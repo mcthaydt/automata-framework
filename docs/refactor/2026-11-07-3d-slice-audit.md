@@ -6,7 +6,9 @@
   (`editor-3d`: Levels 3D, the Studio, the full suite page, and the suite's phone layout), the base 3D game
   (`games/base-3d`), the 3D examples (`examples/3d`), the 3D gates (`3d.yml`, the `:3d` scripts) and the 3D parts of
   the site, measured against the patterns the two earlier slices set.
-- **What it does not do:** change code. Section 8 lists the decisions only the Owner can make (D1 to D8), each with
+- **Its sources too** (added the same day, on the Owner's word): FigureBuilder and EnvironmentBuilder, which the Owner
+  says were updated substantially, measured against AF in section 9.
+- **What it does not do:** change code. Section 8 lists the decisions only the Owner can make (D1 to D10), each with
   a recommendation.
 
 Every number below was measured on this checkout on 2026-11-07; the commands are in the appendix. WebKit and Firefox
@@ -46,6 +48,10 @@ project files, `refactor/2026-11-07-3d-slice-audit-screens/`.
    Chromium and has a cross-engine golden replay. `sector-format` is one owner for the level file, read by the game and
    the editor alike. The renderer's parity and the figures' goldens pass. The Studio reads well on an iPad. The kit is
    still free of 3D.
+9. **Its two sources have moved on, and AF has none of it.** FigureBuilder has 171 commits since the copy AF took on 28
+   October: a natural stand, body and face diversity, new hair, garments sized from the body, its wardrobe moved out
+   behind hooks, and the feature folders AF wants. EnvironmentBuilder, new on 5 November, builds furnished, lit rooms
+   and streets from Build-style maps, as geometry. Section 9 measures both; D9 and D10 decide what comes in.
 
 ## 1. What this slice covers
 
@@ -239,6 +245,24 @@ Each has a recommendation; the plan stage builds on the recommended option unles
 - **D8. The Owner's own inputs.** Pixi 3D's public release (or the Pixi team's written okay to deploy the beta), a run of
   WebKit and Firefox on the Mac (3D parity and journeys), merging PR #425 or saying to re-land its pause in the stack,
   and playing base-3d and the 3D editor on the iPad.
+- **D9. How AF takes from FigureBuilder and EnvironmentBuilder** (section 9, B9 and B10).
+  - **A (recommended):** port by hand into AF's 3D package from the commits read here (`025ffb4`, `6d82a52`), each
+    recorded in `docs/provenance/sources.md` with what was taken; AF owns its copy, and a later pull is a planned task
+    that diffs the source from the recorded commit. AF stays standalone and publishable.
+  - B: AF depends on them (a submodule, or packages they publish). One copy, but both would have to be public and
+    licensed, and their painter-first designs would steer AF's.
+  - C: take nothing new in this slice; AF keeps `a1f7246` and has no environment builder.
+- **D10. What the 3D slice takes from them** (B1 to B8).
+  - **A (recommended):** FigureBuilder's generator side (B1: the stand, the mesh half of the diversity sliders, the hair
+    pieces, fit, seats, the garment registries, its folders) and EnvironmentBuilder's world layer (B6: props, the dresser
+    and its kits, doors, wall trim and decor, window grids, lamps, generated maps) as geometry Pixi 3D draws, in one
+    sector format that grows EnvironmentBuilder's fields (B7). Not the painters, the photo pipeline or the CPU views
+    (M3R-D2 stands). With this, D6's wardrobe cut is the source's own: the wardrobe leaves core, and an example can
+    register it.
+  - B: A, plus the photo pipeline as a Node tool that makes textures on the game's palette (B8).
+  - C: the pixel-art look as well: reopen M3R-D2 and draw 3D the way the two builders paint (another renderer and look;
+    under law 6 the painter could only be an offline bake).
+  - D: FigureBuilder's generator side only; EnvironmentBuilder in a later slice.
 
 ### Work the plan should cover, in order
 
@@ -256,13 +280,47 @@ Each has a recommendation; the plan stage builds on the recommended option unles
 4. **Effect out** (S4): the 3D renderer in plain TypeScript with the browser package's `Clock` and `Disposables`.
 5. **Cuts** (D3, D6, S6): the source game's format, the unbuilt views, and the wardrobe as decided; goldens recorded from
    AF's own code (S7).
-6. **Redesign** (V1 to V5, D4, D5, S10): the 3D editor and the Studio from the approved mock-ups and the kit's tokens, phone
+6. **Pull the builders** (D9, D10, B1 to B10): FigureBuilder's stand, sliders, hair pieces, fit, seats and registries
+   into the figures feature, in its folders, with the Studio showing the new sliders under plain names; EnvironmentBuilder's
+   world into the 3D package; one sector format the 3D editor edits, with props, dressing and lamps placeable; base-3d's
+   room dressed from a kit; `sources.md` entries, and `source-names` learns the new name; goldens from AF's own code.
+7. **Redesign** (V1 to V5, D4, D5, S10): the 3D editor and the Studio from the approved mock-ups and the kit's tokens, phone
    first; one suite.
-7. **Copy pass** (C1 to C10, G4 to G6): the copy table in `copy.md`, plain words, no format ids, paths or source names
+8. **Copy pass** (C1 to C10, G4 to G6): the copy table in `copy.md`, plain words, no format ids, paths or source names
    on screen; one name for the game.
-8. **Words in code** (S8, section 2): plan IDs and source names out of code and tests; READMEs; `source-names` reads code
+9. **Words in code** (S8, section 2): plan IDs and source names out of code and tests; READMEs; `source-names` reads code
    too.
-9. **The site** (D7, W1) and **the release** (D1, W2): built and tested behind the beta check; published when Pixi 3D is.
+10. **The site** (D7, W1) and **the release** (D1, W2): built and tested behind the beta check; published when Pixi 3D is.
+
+## 9. FigureBuilder and EnvironmentBuilder
+
+The Owner, 2026-11-07: "Pull from the figurebuilders repo and environmentbuilders repo, they were updated
+substantially." Read here as: the 3D slice takes their updates, so this section measures them against AF, and the plan
+ports what D9 and D10 choose. Both were read at their `main` heads: FigureBuilder `025ffb4` and EnvironmentBuilder
+`6d82a52` (both 2026-11-06). Nothing was ported in this stage.
+
+- **FigureBuilder** since `a1f7246` (2026-10-28, the commit AF's `figures` was extracted from): 171 commits; `src/` and
+  `base/` 47 files changed, +3,061 and −3,512 lines; now 6,570 source and 2,681 test lines. Five cycles: the base-pair
+  refactor (feature folders in layers, tests only in `tests/`, a public surface, an architecture test; the wardrobe, the
+  random cast, headwear, portraits and the scene prototype cut from base), the wardrobe hooks (five registries a fork
+  fills), c3-stand (a natural stand), c4-diversity and c3-cloth (fabrics and fit).
+- **EnvironmentBuilder** is new: started 2026-11-05 from FigureBuilder's cut scene prototype, 182 commits, 7,844 source
+  and 2,988 test lines, 3,142 lines of library JSON and 2.9 MB of photos. It builds Build-style maps into geometry and
+  paints them as pixel art with FigureBuilder's rasteriser, which it takes as a submodule pinned at `50235f4` (before
+  c3-stand, c4-diversity and c3-cloth).
+
+| ID | Finding | Evidence |
+|---|---|---|
+| B1 | AF's figures is three weeks behind on the generator. What applies to meshes, and AF has none of: the natural stand (the head over the shoulders, a straight weight leg, a trace of weight shift, the arms at the thighs); `fat` on the limbs, neck and jaw, `bust`, `seat`, `bodyAsymmetry` and the face's `asymmetry` (jaw, nose, mouth); the hair's low pony, bun, fall and curl volume; fit (the body's rings and girth, so cuffs, collars and hems are sized from the body and clear every slider's end); seats. | `git diff a1f7246 025ffb4` on `body/genes.ts`, `motion/motion.ts`, `outfit/fit.ts`, `hair/hair.ts`; `grep -r 'bodyAsymmetry\|eyeSize\|girth\|registerGarment' packages/figures/src` finds nothing |
+| B2 | FigureBuilder took its wardrobe out of base: `streetwear.ts` (1,476 lines), the random cast, headwear, graphics and sets are gone, kept for forks (tag `archive/pre-refactor`) behind five registries (`registerGarment`, `registerOutfitHooks`, `registerHairPiece`, `registerFinish`, `registerFabric`). AF still carries the `a1f7246` wardrobe: 11 files in `figures/src/streetwear/` and the `figure-headwear` content kind. That is D6's recommendation, made by the source itself, and the registries are the shape AF's extension rule asks for (opt-in, never editing core). | FigureBuilder README, "Forking FigureBuilder"; `ls packages/figures/src/streetwear` |
+| B3 | FigureBuilder now has the layout AF's rules ask for (feature folders, tests in `tests/`, a layer test); AF's copy is by noun with its tests beside the code (S1). A port can take the source's folders: body, motion, hair, outfit, figure. | FigureBuilder `CLAUDE.md`, "Layout" and "Rules"; its `tests/architecture.test.ts` |
+| B4 | About half of FigureBuilder's new work paints texels and stays out under M3R-D2 (figures are meshes on Endesga 64; the painter and DUEL stay in FigureBuilder): fabrics (a tile of tone labels), the cloth coordinates, the neckline rule, lips on a two-row chin, the lighting feature and its light hook. The eyes' size, spacing and tilt move a texel at density 2 and up, so a mesh needs its own reading of them. | `src/features/paint/`, `lighting/`, `figure/cloth.ts`; the M3 characters spec, M3R-D2 |
+| B5 | FigureBuilder's scripted actors (an action set on a timeline: `actions.json`, `actions.ts`, `actor.ts`, `pose-spec.ts`, 939 lines) overlap AF's clips and `evaluate()`, which already took its reach, look and flinch as fixture clips. Two timelines would drift; the action set fits AF as clip content. | `src/features/actors/`; the header of `packages/figures/src/index.ts` |
+| B6 | EnvironmentBuilder's world layer is renderer-free geometry that Pixi 3D could draw: meshes with swatch materials, built from a map (sectors with sloped floors and ceilings and open sky; swinging doors; walls with a dado, rail, cornice, windows, shopfronts and signs; window grids on facades), a props library and generators (furniture, fixtures, clutter), a dresser that fills a room from a purpose kit by one field (`"dress": { "as": "office" }`, every piece with an id an edit can name), lettering, decals, lamps from a kit, times of day, and generated maps (`apartment@<seed>`, `block@<seed>`). AF's 3D has none of these: base-3d's room is bare sectors, and the 3D editor places crates and a spawn. | EnvironmentBuilder `src/features/world/`, `docs/dressing.md`; `games/base-3d/src/content/levels/room.af-sector.json` |
+| B7 | The two map formats share an ancestor and have diverged. EnvironmentBuilder's: `verts` or `rect`, `floor` and `ceil` planes with `slope` and `sky`, walls by edge index with `decor`, `dress`, `sprites`, `lamps`, `time`, `views`, `horizon`, `grime`, `reads`. AF's `af-sector/1`: `corners` that carry their walls, `holes`, plain numbers for floor and ceiling, `light`, `style`, textures by name, `entities`. Neither reads the other, so taking the world layer means one format, which the 3D editor then edits. | EnvironmentBuilder `src/features/world/types.ts`; `packages/sector-format/src/af-sector.schema.ts` |
+| B8 | EnvironmentBuilder's look is its painter's: per-vertex light stepped and snapped to DUEL; Poly Haven CC0 photos indexed to DUEL ramps by a photo pipeline (flatten, facet, resample, index, wear, clean); CPU diorama, top-down and first-person views at 320 × 200. Under M3R-D2 none of it ports as it is. The photo pipeline could become a Node tool that makes textures on the game's palette, if AF's levels are to be textured from photos (a level names a texture per surface; base-3d's room names none). | `src/features/paint/`, `photo/`, `view/`; `docs/photos.md` |
+| B9 | Where the code came from is not recorded. `docs/provenance/sources.md`, the one file that may name a source, has no FigureBuilder entry, though `figures` names FigureBuilder and `a1f7246` in its comments (part of S8's 491 hits there), and `source-names` does not know EnvironmentBuilder. Neither repository has a licence file or a `license` field (both private, the Owner's). EnvironmentBuilder's photos are Poly Haven CC0, credited in its `photos.json`, and it keeps copies of the source game's files in `docs/reference/`. | `docs/provenance/sources.md`; `tooling/repo-hygiene/src/source-names.ts`; both `package.json` files |
+| B10 | There is no way to pull again. AF rewrote what it took (renderer-free, Zod content kinds, Endesga 64), so neither a merge nor a submodule fits: EnvironmentBuilder takes FigureBuilder as a submodule behind one door file and a fork merges `upstream/main`, but AF publishes to npm and its packages cannot ship a private repository. Each pull is a hand diff from a recorded commit, and EnvironmentBuilder itself lags FigureBuilder by three cycles. | EnvironmentBuilder `CLAUDE.md`, "FigureBuilder", and `.gitmodules`; `git submodule status` |
 
 ## Appendix: how the numbers were measured
 
@@ -271,6 +329,9 @@ Checkout at `a51dbb13` (#441's head), Node 24.22.1 (`/opt/node24/bin`), pnpm 10.
 - **Lines:** `find <dir> -type f \( -name '*.ts' -o -name '*.svelte' -o -name '*.css' -o -name '*.js' \) ! -name
   '*.test.ts' ! -path '*/tests/*' | xargs cat | wc -l`; tests the same over `*.test.ts` and `tests/`. base-3d without
   `src/paraglide` and `src/content/generated`.
+- **FigureBuilder and EnvironmentBuilder:** shallow clones of `main` deepened to 1,000 commits; `git log --no-merges
+  a1f7246..025ffb4 | wc -l`; `git diff -M --stat a1f7246 025ffb4 -- src base`; lines with `git ls-files '<dir>/*.ts' |
+  xargs cat | wc -l` over `src`, `base` and `scripts`, and `tests`.
 - **Unit and DOM tests:** `pnpm test:unit` in each 3D package and in `games/base-3d`.
 - **Editor browser tests:** `npx vitest run --project 'layout (chromium)' --project canvas` in `packages/editor-3d`.
 - **3D parity and game browser tests:** `npx vitest run --project 'browsers (chromium)'` in `packages/render-pixi3d` and
