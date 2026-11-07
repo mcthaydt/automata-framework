@@ -967,25 +967,6 @@ thead th {
 .code-scroll span[style*="#D73A49" i] {
   color: #b31d28 !important;
 }
-
-.start-step {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-  align-items: start;
-}
-.start-page > h1 {
-  max-width: 14ch;
-}
-.start-page .start-step {
-  margin-top: 6rem;
-}
-.start-step h2 {
-  font-size: var(--step-title);
-}
-.start-step .code-scroll {
-  max-height: 34rem;
-}
 .onboarding-depth {
   margin-top: 3rem;
   padding: 1.25rem 1.5rem;
@@ -1011,37 +992,6 @@ thead th {
 .task-prompt .code-block {
   background: var(--bg);
   border-color: transparent;
-}
-.next-changes {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  margin-top: 2rem;
-}
-.next-changes > div {
-  padding: 1.5rem;
-  border-radius: var(--edge-lg);
-  background: var(--paper);
-}
-@media (max-width: 700px) {
-  .start-step,
-  .next-changes {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 2rem;
-  }
-  .next-changes {
-    gap: 1rem;
-  }
-  .start-page .start-step {
-    margin-top: 4rem;
-  }
-}
-/* Task instructions and shell commands should remain readable on narrow screens. */
-.start-step pre {
-  white-space: pre-wrap;
-}
-.start-step pre code {
-  overflow-wrap: anywhere;
 }
 .agent-setup {
   padding: clamp(1.25rem, 3vw, 2rem);

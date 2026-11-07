@@ -22,12 +22,10 @@ describe('Audience onboarding', () => {
         slug,
       ).toBeTruthy()
   })
-  it('keeps prompts copyable while offering an optional readiness checklist', async () => {
+  it('keeps every command copyable while offering an optional readiness checklist', async () => {
     const view = render(Start)
-    const region = view.getByRole('region', { name: 'First task to copy' })
-    expect(region.textContent).toContain('Confirm Superpowers')
-    const task = within(region.closest('figure')!)
-    expect(task.getByRole('button', { name: 'Copy code' })).toBeTruthy()
+    const copies = () => view.getAllByRole('button', { name: 'Copy command' })
+    expect(copies()).toHaveLength(4)
     await fireEvent.click(view.getByText('Set up your coding agent'))
     for (const label of [
       'Superpowers is installed for this agent',
@@ -37,9 +35,8 @@ describe('Audience onboarding', () => {
       await fireEvent.click(view.getByLabelText(label))
     expect(view.getByText(/3 of 3 confirmed by you/)).toBeTruthy()
     expect(view.getByRole('group', { name: 'Skill readiness' })).toBeTruthy()
-    expect(task.getByRole('button', { name: 'Copy code' })).toBeTruthy()
     await fireEvent.change(view.getByLabelText('Your coding agent'), { target: { value: 'Claude Code' } })
-    expect(task.getByRole('button', { name: 'Copy code' })).toBeTruthy()
+    expect(copies()).toHaveLength(4)
   })
   it('separates the community showcase from starter and reference projects', () => {
     const view = render(Showcase)
