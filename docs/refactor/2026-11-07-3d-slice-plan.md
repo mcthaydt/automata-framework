@@ -880,7 +880,7 @@ The prop library, kits, the dresser, decals, lettering, generated maps and the c
   `RegistryClash`); `WorldLibrary { props; swatches }` merged from core's primitives and the game's content; problem
   codes `unknown-prop`, `unknown-generator`, `needs-extension` (`name: 'world-kit'`).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 it('core registers only box and cylinder', () => expect(registeredPropGenerators()).toEqual(['box', 'cylinder']))
@@ -900,7 +900,7 @@ it('a room asking for the world kit draws bare and says so', () => {
 it("every library entry parses", () => { /* world-prop and world-swatch over core's and base-3d's content */ })
 ```
 
-- [ ] **Step 2:** FAIL. **Step 3:** the registry and the primitives; the deletions. **Step 4:** the room's props and
+- [x] **Step 2:** FAIL. **Step 3:** the registry and the primitives; the deletions. **Step 4:** the room's props and
   swatches in base-3d's content; the `needs-extension` problem, with the words of scope trim section 2. **Step 5:**
   base-3d's unit tests and golden replay pass (hash unchanged: props are presentation); its journeys pass in Chromium;
   images in the PR, each change explained. `grep -rn "furniture\|kits.json\|glyphs" packages/3d/src` → none. Rows.
