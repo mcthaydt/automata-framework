@@ -594,7 +594,7 @@ consumer smoke all find packages through it). Tests: `tooling/release/tests/unit
 
 ## Phase 5: refactor after the move (3D scope trim, 2026-11-07 19:28)
 
-Added by the Owner's scope trim ([2026-11-07-3d-scope-trim.md](2026-11-07-3d-scope-trim.md) section 6, on PR #462): "a port is also a refactor". Each task lists what changes, not only where code goes. 19 tasks become 27: 3.6 to 3.9 and 5.1 to 5.5.
+Added by the Owner's scope trim (`2026-11-07-3d-scope-trim.md` section 6, on PR #462): "a port is also a refactor". Each task lists what changes, not only where code goes. 19 tasks become 27: 3.6 to 3.9 and 5.1 to 5.5.
 
 The port's phase 2 moved most packages without changing them. This phase is the refactor.
 
