@@ -4,10 +4,10 @@
 import { randomBytes } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import { networkInterfaces } from 'node:os'
-import { basename, dirname, resolve } from 'node:path'
+import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { type EditorApp, parseEditorArgs } from './editor-args.ts'
-import { type EditorServerOptions, type RunningEditor, serveEditor } from './serve-editor.ts'
+import { type EditorServerOptions, gameName, type RunningEditor, serveEditor } from './serve-editor.ts'
 
 export interface EditorCommandIo {
   readonly stdout: (message: string) => void
@@ -41,7 +41,7 @@ The Tuner shows your game beside its settings: start it with pnpm dev, and give 
 http://localhost:5173.
 `
 
-/** What the first line calls each app: the words a person uses, not the flag's value. */
+/** What the first line calls each app ("Opened My game in the level editor."): words, not the flag's value. */
 const APP_WORDS: Readonly<Record<EditorApp, string>> = {
   '2d': 'the level editor',
   '3d': 'the 3D editor',
@@ -113,7 +113,7 @@ export async function editorCommand(
     return 2
   }
   const query = secret === undefined ? '' : `/?token=${secret}`
-  io.stdout(`Opened ${basename(root)} in ${APP_WORDS[app]}.\n  This computer: ${running.url}${query}\n`)
+  io.stdout(`Opened ${gameName(root)} in ${APP_WORDS[app]}.\n  This computer: ${running.url}${query}\n`)
   if (lan)
     for (const address of deps.lanAddresses())
       io.stdout(`  On the network: http://${address}:${running.port}${query}\n`)

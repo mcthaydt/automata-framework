@@ -49,10 +49,10 @@ describe('editorCommand', () => {
   it('says, in words, which game it opened in which editor', async () => {
     const { deps, io, out } = setup({ cwd: '/home/ada/my-game' })
     await editorCommand([], io, deps)
-    expect(out[0]).toMatch(/^Opened my-game in the level editor\.\n {2}This computer: http/)
+    expect(out[0]).toMatch(/^Opened My game in the level editor\.\n {2}This computer: http/)
     const suite = setup()
     await editorCommand(['../emberwick', '--app', 'suite'], suite.io, suite.deps)
-    expect(suite.out[0]).toMatch(/^Opened emberwick in the editors\./)
+    expect(suite.out[0]).toMatch(/^Opened Emberwick in the editors\./)
   })
 
   it('serves the app and the folder it was told', async () => {

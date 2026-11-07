@@ -2789,7 +2789,7 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   CLI's editor and check output": 17 changed rows (the demo's controls and messages, search's title, placeholder,
   empty state and order, the examples' lead and their 17 titles as sentences, the playground's not-a-game and
   live-off lines, the determinism row folded under "For developers", Start's agent setup, the default description,
-  the editor and web guides' first screens, `automata editor`'s first line: "Opened my-game in the level editor."),
+  the editor and web guides' first screens, `automata editor`'s first line: "Opened My game in the level editor."),
   and the kept rows with their reasons. Deviation: the audit's Home subline and actions rows are not applied; the
   Owner approved the mockup's hero after the audit (2026-11-06 20:31), so the approved words stand. The demo's buttons
   lost their `aria-label`s, so each control's name is the word on it. Step 2: the visitor journey now asserts Home's

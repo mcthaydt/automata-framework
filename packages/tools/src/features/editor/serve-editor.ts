@@ -121,7 +121,7 @@ async function fileRoute(
  * What Home calls the game: its folder's name in words ("emberwick" is "Emberwick", "my-cool-game" is "My cool
  * game"). The folder is the one name every game has whatever its targets; a title lives in a target's own config.
  */
-function gameName(root: string): string {
+export function gameName(root: string): string {
   const words = basename(root).replace(/[-_]+/g, ' ').trim()
   return words.charAt(0).toUpperCase() + words.slice(1)
 }

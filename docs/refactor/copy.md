@@ -160,7 +160,7 @@ the string still exists; rows whose string phase 18 already removed are under "G
 | Default page description | `Automata is an AI-first TypeScript game framework. Build with coding agents, verify their work, author the content and stay in control of the source.` | `Make 2D games for the web: draw the levels, let your coding agent write the code, and put the game online.` | 4 ("AI-first") and 3 |
 | Guide "Draw levels in the editor", first screen | `automata editor opens the editors on your game's own files … the command is a small local server beside them` and `with the editor built once: pnpm --filter @mcthaydt/automata-editor build` | Run `pnpm exec automata editor`, open the address, draw, press Save, Ctrl+C; the server sentence moves under "Open it"; no build step (the editor ships inside the tools) | 2 (opened on internals) and untrue (build it first) |
 | Guide "Publish to the web", first screen | `dist/ is the whole artifact, and any static host serves it` | `Run pnpm build:web && pnpm prepare:web, then upload everything in the dist folder to any web host. That's it.` | 2 and 4 ("artifact") |
-| `automata editor`, first line | `Editing /home/ada/my-game with the 2d editor.` (`with the suite editor.`) | `Opened my-game in the level editor.` (`in the editors.`, `in the 3D editor.`) | 4 (a path and a flag value) |
+| `automata editor`, first line | `Editing /home/ada/my-game with the 2d editor.` (`with the suite editor.`) | `Opened My game in the level editor.` (`in the editors.`, `in the 3D editor.`; the game named as Home names it) | 4 (a path and a flag value) |
 
 ### Kept, with the reason
 
