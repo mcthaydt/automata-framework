@@ -1,0 +1,343 @@
+{
+  "format": "af-sector/2",
+  "name": "forestClearing",
+  "title": "A forest clearing by day",
+  "sectors": [
+    {
+      "id": "meadow",
+      "floor": {
+        "z": 0,
+        "surface": "grass"
+      },
+      "ceiling": {
+        "z": 20,
+        "sky": true
+      },
+      "light": 1,
+      "corners": [
+        [
+          -60,
+          -40,
+          {
+            "none": true
+          }
+        ],
+        [
+          60,
+          -40,
+          {
+            "none": true
+          }
+        ],
+        [
+          60,
+          0.2,
+          {
+            "none": true
+          }
+        ],
+        [
+          -60,
+          0.2,
+          {
+            "none": true
+          }
+        ]
+      ]
+    },
+    {
+      "id": "path",
+      "floor": {
+        "z": 0,
+        "surface": "dirtPath"
+      },
+      "ceiling": {
+        "z": 20,
+        "sky": true
+      },
+      "light": 1,
+      "corners": [
+        [
+          -60,
+          0.2,
+          {
+            "none": true
+          }
+        ],
+        [
+          60,
+          0.2,
+          {
+            "none": true
+          }
+        ],
+        [
+          60,
+          1.3,
+          {
+            "none": true
+          }
+        ],
+        [
+          -60,
+          1.3,
+          {
+            "none": true
+          }
+        ]
+      ]
+    },
+    {
+      "id": "verge",
+      "floor": {
+        "z": 0,
+        "surface": "grass"
+      },
+      "ceiling": {
+        "z": 20,
+        "sky": true
+      },
+      "light": 1,
+      "corners": [
+        [
+          -60,
+          1.3,
+          {
+            "none": true
+          }
+        ],
+        [
+          60,
+          1.3,
+          {
+            "none": true
+          }
+        ],
+        [
+          60,
+          40,
+          {
+            "none": true
+          }
+        ],
+        [
+          -60,
+          40,
+          {
+            "none": true
+          }
+        ]
+      ]
+    }
+  ],
+  "props": [
+    {
+      "id": "prop0",
+      "use": "tree.pine",
+      "at": [-6.2, -6.2],
+      "with": {
+        "seed": 1,
+        "height": 4.4
+      }
+    },
+    {
+      "id": "prop1",
+      "use": "tree.deep",
+      "at": [-3.9, -6],
+      "with": {
+        "seed": 2,
+        "height": 3.9
+      }
+    },
+    {
+      "id": "prop2",
+      "use": "tree.pine",
+      "at": [-1.2, -6.4],
+      "with": {
+        "seed": 3,
+        "height": 4.8
+      }
+    },
+    {
+      "id": "prop3",
+      "use": "tree.deep",
+      "at": [3, -6.1],
+      "with": {
+        "seed": 4,
+        "height": 3.7
+      }
+    },
+    {
+      "id": "prop4",
+      "use": "tree.pine",
+      "at": [5.4, -6.3],
+      "with": {
+        "seed": 5,
+        "height": 4.2
+      }
+    },
+    {
+      "id": "prop5",
+      "use": "tree.round",
+      "at": [-3.6, -2.8],
+      "with": {
+        "seed": 7,
+        "height": 4.6
+      }
+    },
+    {
+      "id": "prop6",
+      "use": "tree.round",
+      "at": [4.6, -2.4],
+      "with": {
+        "seed": 9,
+        "height": 4.2
+      }
+    },
+    {
+      "id": "prop7",
+      "use": "bush",
+      "at": [-1.5, -2.6],
+      "with": {
+        "seed": 1
+      }
+    },
+    {
+      "id": "prop8",
+      "use": "bush.small",
+      "at": [1.2, -3.4],
+      "with": {
+        "seed": 2
+      }
+    },
+    {
+      "id": "prop9",
+      "use": "bush",
+      "at": [6, -1.2],
+      "with": {
+        "seed": 3
+      }
+    },
+    {
+      "id": "prop10",
+      "use": "rock.boulder",
+      "at": [2.3, -1.7],
+      "with": {
+        "seed": 4
+      }
+    },
+    {
+      "id": "prop11",
+      "use": "rock",
+      "at": [-5.2, 2.9],
+      "with": {
+        "seed": 2
+      }
+    },
+    {
+      "id": "prop12",
+      "use": "fence.wood",
+      "at": [-5.4, -1.3],
+      "with": {
+        "length": 3.4
+      }
+    },
+    {
+      "id": "prop13",
+      "use": "crate",
+      "at": [-4.4, -0.5],
+      "angle": 102
+    },
+    {
+      "id": "prop14",
+      "use": "barrel",
+      "at": [-3.65, -0.8]
+    },
+    {
+      "id": "prop15",
+      "use": "tufts",
+      "at": [0, 2.6],
+      "with": {
+        "area": [12, 1.6],
+        "count": 30,
+        "seed": 3
+      }
+    },
+    {
+      "id": "prop16",
+      "use": "tufts",
+      "at": [0, -0.8],
+      "with": {
+        "area": [12, 1],
+        "count": 22,
+        "seed": 8
+      }
+    }
+  ],
+  "cast": [
+    {
+      "id": "cast17",
+      "who": "base-m",
+      "at": [0.4, 0.75],
+      "angle": 90
+    },
+    {
+      "id": "cast18",
+      "who": "base-f",
+      "at": [-1.6, 1],
+      "angle": 0
+    }
+  ],
+  "time": "day",
+  "look": {
+    "visibility": 0
+  },
+  "views": {
+    "diorama": {
+      "w": 960,
+      "h": 540,
+      "pitch": 18,
+      "at": [0, 2.3, 0],
+      "clip": -7.2
+    },
+    "topdown": {
+      "w": 960,
+      "h": 640,
+      "pitch": 55,
+      "at": [0, 0.5, -1],
+      "clip": -7.2
+    },
+    "fp": {
+      "at": [-7, 2.6],
+      "angle": 340,
+      "eye": 1.6
+    }
+  },
+  "paths": {
+    "walk": [[-9, 2.8], [-5, 1.8], [-1.5, 0.8], [1.5, -0.6], [3.5, -3.5], [1, -5], [-2, -4]]
+  },
+  "sky": {
+    "horizon": [
+      {
+        "kind": "mountains",
+        "swatch": "#88d6ff",
+        "height": 0.2,
+        "seed": 2
+      },
+      {
+        "kind": "hills",
+        "swatch": "#71957d",
+        "height": 0.11,
+        "seed": 5
+      },
+      {
+        "kind": "trees",
+        "swatch": "#225918",
+        "height": 0.06,
+        "seed": 8
+      }
+    ]
+  },
+  "grime": 0.3,
+  "reads": {}
+}

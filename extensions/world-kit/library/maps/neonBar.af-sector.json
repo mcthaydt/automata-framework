@@ -1,0 +1,381 @@
+{
+  "format": "af-sector/2",
+  "name": "neonBar",
+  "title": "A neon bar after hours",
+  "sectors": [
+    {
+      "id": "bar",
+      "floor": {
+        "z": 0,
+        "surface": "checkerFloor"
+      },
+      "ceiling": {
+        "z": 2.8,
+        "surface": "beamCeiling"
+      },
+      "light": 1,
+      "corners": [
+        [
+          -3.2,
+          -1.8,
+          {
+            "surface": "brickDark",
+            "trim": "trimDark",
+            "skirting": 0.12
+          }
+        ],
+        [
+          3.2,
+          -1.8,
+          {
+            "surface": "brickDark",
+            "trim": "trimDark",
+            "skirting": 0.12
+          }
+        ],
+        [
+          3.2,
+          0.2,
+          {
+            "surface": "brickDark",
+            "trim": "trimDark",
+            "skirting": 0.12
+          }
+        ],
+        [
+          1,
+          0.2,
+          {
+            "surface": "brickDark",
+            "trim": "trimDark",
+            "skirting": 0.12
+          }
+        ],
+        [
+          1,
+          1.8,
+          {
+            "surface": "brickDark",
+            "trim": "trimDark",
+            "skirting": 0.12
+          }
+        ],
+        [
+          -3.2,
+          1.8,
+          {
+            "surface": "brickDark",
+            "trim": "trimDark",
+            "skirting": 0.12
+          }
+        ]
+      ]
+    },
+    {
+      "id": "hall",
+      "floor": {
+        "z": 0,
+        "surface": "checkerFloor"
+      },
+      "ceiling": {
+        "z": 2.1,
+        "surface": "ceiling"
+      },
+      "light": 0.8,
+      "corners": [
+        [
+          2.1,
+          -3.6,
+          {
+            "surface": "concreteWall",
+            "trim": "trimDark",
+            "decor": [
+              {
+                "kind": "door",
+                "pos": 2.55,
+                "width": 0.7,
+                "height": 1.95,
+                "swatch": "leatherBlack"
+              }
+            ]
+          }
+        ],
+        [
+          3,
+          -3.6,
+          {
+            "surface": "concreteWall",
+            "trim": "trimDark"
+          }
+        ],
+        [
+          3,
+          -1.8,
+          {
+            "surface": "concreteWall",
+            "trim": "trimDark"
+          }
+        ],
+        [
+          2.1,
+          -1.8,
+          {
+            "surface": "concreteWall",
+            "trim": "trimDark"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "dais",
+      "floor": {
+        "z": 0.18,
+        "surface": "carpetRed"
+      },
+      "ceiling": {
+        "z": 2.8,
+        "surface": "beamCeiling"
+      },
+      "light": 1,
+      "corners": [
+        [
+          1,
+          0.2,
+          {
+            "surface": "brickDark",
+            "lower": "walnut",
+            "trim": "trimDark"
+          }
+        ],
+        [
+          3.2,
+          0.2,
+          {
+            "surface": "brickDark",
+            "lower": "walnut",
+            "trim": "trimDark"
+          }
+        ],
+        [
+          3.2,
+          1.8,
+          {
+            "surface": "brickDark",
+            "lower": "walnut",
+            "trim": "trimDark"
+          }
+        ],
+        [
+          1,
+          1.8,
+          {
+            "surface": "brickDark",
+            "lower": "walnut",
+            "trim": "trimDark"
+          }
+        ]
+      ]
+    }
+  ],
+  "props": [
+    {
+      "id": "prop0",
+      "use": "ledge",
+      "at": [-0.75, -1.69, 1.42],
+      "with": {
+        "width": 2.5
+      }
+    },
+    {
+      "id": "prop1",
+      "use": "bottles",
+      "at": [-0.75, -1.7, 1.44],
+      "with": {
+        "count": 11,
+        "width": 2.3,
+        "seed": 3
+      }
+    },
+    {
+      "id": "prop2",
+      "use": "ledge",
+      "at": [-0.75, -1.69, 1.88],
+      "with": {
+        "width": 2.5
+      }
+    },
+    {
+      "id": "prop3",
+      "use": "bottles",
+      "at": [-0.75, -1.7, 1.9],
+      "with": {
+        "count": 9,
+        "width": 2.2,
+        "seed": 8
+      }
+    },
+    {
+      "id": "prop4",
+      "use": "counter.bar",
+      "at": [-0.75, -0.95]
+    },
+    {
+      "id": "prop5",
+      "use": "neon.bars",
+      "at": [-0.75, -1.77, 2.06],
+      "with": {
+        "scale": 0.9
+      }
+    },
+    {
+      "id": "glassSign",
+      "use": "neon.glass",
+      "at": [1.55, -1.77, 1.15],
+      "with": {
+        "light": {
+          "kind": "neon",
+          "color": "#ff7daf",
+          "flicker": 0.75,
+          "rate": 5
+        }
+      }
+    },
+    {
+      "id": "prop7",
+      "use": "neon.arrow",
+      "at": [2.55, -1.77, 2.25]
+    },
+    {
+      "id": "prop8",
+      "use": "poster.pink",
+      "at": [-2.75, -1.78, 1.25]
+    },
+    {
+      "id": "prop9",
+      "use": "lamp.barPendant",
+      "at": [-1.95, -0.95],
+      "with": {
+        "height": 1.95,
+        "ceiling": 2.8
+      }
+    },
+    {
+      "id": "prop10",
+      "use": "lamp.barPendant",
+      "at": [-0.75, -0.95],
+      "with": {
+        "height": 1.95,
+        "ceiling": 2.8
+      }
+    },
+    {
+      "id": "prop11",
+      "use": "lamp.barPendant",
+      "at": [0.45, -0.95],
+      "with": {
+        "height": 1.95,
+        "ceiling": 2.8
+      }
+    },
+    {
+      "id": "prop12",
+      "use": "stool.bar",
+      "at": [-2, -0.38]
+    },
+    {
+      "id": "prop13",
+      "use": "stool.bar",
+      "at": [-0.9, -0.38]
+    },
+    {
+      "id": "prop14",
+      "use": "stool.bar",
+      "at": [0.2, -0.38]
+    },
+    {
+      "id": "prop15",
+      "use": "lamp.wall",
+      "at": [1.85, -1.8]
+    },
+    {
+      "id": "prop16",
+      "use": "plant.fronds",
+      "at": [3, -1.4]
+    },
+    {
+      "id": "prop17",
+      "use": "table.round",
+      "at": [2.2, 0.95],
+      "angle": 90
+    },
+    {
+      "id": "prop18",
+      "use": "stool.bar",
+      "at": [1.55, 1.2],
+      "with": {
+        "height": 0.5
+      }
+    },
+    {
+      "id": "prop19",
+      "use": "stool.bar",
+      "at": [2.85, 1.2],
+      "with": {
+        "height": 0.5
+      }
+    },
+    {
+      "id": "prop20",
+      "use": "lamp.wall",
+      "at": [2.55, -3.55],
+      "angle": 90,
+      "with": {
+        "light": {
+          "kind": "bulb"
+        }
+      }
+    }
+  ],
+  "cast": [
+    {
+      "id": "cast21",
+      "who": "base-m",
+      "at": [-0.4, 0.3],
+      "angle": 90
+    },
+    {
+      "id": "cast22",
+      "who": "base-f",
+      "at": [1.2, 0.6],
+      "angle": -225
+    }
+  ],
+  "time": "bar",
+  "look": {
+    "visibility": 6
+  },
+  "views": {
+    "diorama": {
+      "w": 480,
+      "h": 270,
+      "pitch": 18,
+      "at": [0, 1.3, 0]
+    },
+    "topdown": {
+      "w": 480,
+      "h": 330,
+      "pitch": 55,
+      "at": [0, 0.6, 0.35]
+    },
+    "fp": {
+      "at": [-2.6, 1.4],
+      "angle": 330,
+      "eye": 1.6
+    }
+  },
+  "paths": {
+    "walk": [[-2.8, 1.4], [-1.5, 0.6], [0, 0.5], [1.4, 0], [2.3, -0.6], [2.55, -1.6], [2.55, -2.6]]
+  },
+  "grime": 1.2,
+  "reads": {}
+}

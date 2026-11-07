@@ -23,7 +23,8 @@
   "scripts": {
     "test": "vitest run --project unit",
     "test:unit": "vitest run --project unit",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "maps": "node --import ../../packages/3d/scripts/extensionless-ts.ts scripts/convert-builder-maps.ts tests/fixtures/builder-maps.json --out library/maps"
   },
   "dependencies": {
     "zod": "4.6.6"

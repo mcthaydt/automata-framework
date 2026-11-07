@@ -1,0 +1,217 @@
+{
+  "format": "af-sector/2",
+  "name": "signs",
+  "title": "Signage, lettering and machinery (a review wall)",
+  "sectors": [
+    {
+      "id": "pavement",
+      "floor": {
+        "z": 0,
+        "surface": "sidewalk"
+      },
+      "ceiling": {
+        "z": 8,
+        "sky": true
+      },
+      "light": 1,
+      "corners": [
+        [
+          -6,
+          -2.8,
+          {
+            "surface": "brickRed",
+            "trim": "trimWhite",
+            "none": false,
+            "decor": [
+              {
+                "kind": "sign",
+                "pos": -4.2,
+                "width": 2,
+                "sill": 2.9,
+                "swatch": "signCream",
+                "text": ["NOODLES"]
+              },
+              {
+                "kind": "sign",
+                "pos": -1.2,
+                "width": 2,
+                "sill": 2.9,
+                "swatch": "signBlue",
+                "seed": 41
+              },
+              {
+                "kind": "sign",
+                "pos": 2,
+                "width": 2,
+                "sill": 2.9,
+                "swatch": "trimDark",
+                "text": ["OPEN"],
+                "neon": "neonPink"
+              },
+              {
+                "kind": "sign",
+                "pos": 4.6,
+                "width": 2,
+                "sill": 2.9,
+                "swatch": "posterInkRed",
+                "seed": 7
+              },
+              {
+                "kind": "sign",
+                "pos": 0.4,
+                "width": 2,
+                "sill": 3.7,
+                "text": ["HOTEL", "KAMORI"],
+                "neon": "neonCyan"
+              },
+              {
+                "kind": "shop",
+                "pos": -3,
+                "width": 2.6,
+                "height": 1.8,
+                "sill": 0.5,
+                "awning": "awningRed"
+              },
+              {
+                "kind": "door",
+                "pos": -0.6,
+                "width": 1,
+                "height": 2.15
+              }
+            ]
+          }
+        ],
+        [
+          6,
+          -2.8,
+          {
+            "surface": "brickRed",
+            "trim": "trimWhite",
+            "none": true
+          }
+        ],
+        [
+          6,
+          3,
+          {
+            "surface": "brickRed",
+            "trim": "trimWhite",
+            "none": true
+          }
+        ],
+        [
+          -6,
+          3,
+          {
+            "surface": "brickRed",
+            "trim": "trimWhite",
+            "none": true
+          }
+        ]
+      ]
+    }
+  ],
+  "props": [
+    {
+      "id": "prop0",
+      "use": "vending",
+      "at": [1.2, -2.4],
+      "angle": 90
+    },
+    {
+      "id": "prop1",
+      "use": "vending.blue",
+      "at": [2.25, -2.4],
+      "angle": 90
+    },
+    {
+      "id": "prop2",
+      "use": "generator",
+      "at": [4.3, -2.2],
+      "angle": 90
+    },
+    {
+      "id": "prop3",
+      "use": "ac.unit",
+      "at": [-4.8, -2.62, 2.2],
+      "angle": 90
+    },
+    {
+      "id": "prop4",
+      "use": "ac.unit",
+      "at": [3.5, -2.62, 2.2],
+      "angle": 90
+    },
+    {
+      "id": "prop5",
+      "use": "plate.street",
+      "at": [-5.3, -1.5],
+      "angle": 90,
+      "with": {
+        "seed": 11
+      }
+    },
+    {
+      "id": "prop6",
+      "use": "plate.wall",
+      "at": [5.4, -2.77, 2.3],
+      "angle": 90,
+      "with": {
+        "seed": 12
+      }
+    },
+    {
+      "id": "prop7",
+      "use": "streetLamp",
+      "at": [0, -1.4],
+      "angle": 90
+    }
+  ],
+  "cast": [
+    {
+      "id": "cast8",
+      "who": "base-m",
+      "at": [1.7, -1.5],
+      "angle": 90
+    },
+    {
+      "id": "cast9",
+      "who": "base-f",
+      "at": [-2.6, -1.2],
+      "angle": 45
+    }
+  ],
+  "time": "night",
+  "look": {
+    "visibility": 10,
+    "grade": "warmNight"
+  },
+  "views": {
+    "diorama": {
+      "w": 960,
+      "h": 540,
+      "pitch": 18,
+      "at": [0, 2.6, 0]
+    },
+    "fp": {
+      "at": [0, 2.8],
+      "angle": 270,
+      "eye": 1.6
+    }
+  },
+  "paths": {
+    "walk": [[-5, 2.5], [0, 2], [5, 2.5]]
+  },
+  "sky": {
+    "horizon": [
+      {
+        "kind": "city",
+        "swatch": "#23324d",
+        "height": 0.2,
+        "seed": 3
+      }
+    ]
+  },
+  "grime": 0.8,
+  "reads": {}
+}

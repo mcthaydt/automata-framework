@@ -40,6 +40,20 @@ The purposes are `waitingRoom`, `office`, `bedroom`, `livingRoom`, `corridor`, `
 To take a piece out, or move one, name it in the room's `dress`: `remove = ["office:furniture:2"]`, or
 `pin = { "office:furniture:3" = { at = [2.5, 2.5] } }`.
 
+## Make a whole place
+
+`generateMap` makes a level from a name and a number. The same number always gives the same level.
+
+```ts
+import { dressLevel, generateMap, worldKitLibrary } from '@automata/world-kit'
+
+const { level } = dressLevel(generateMap('apartment', 7), worldKitLibrary)
+```
+
+`apartment` is a corridor with four to six rooms, a ramp and a landing. `block` is a street at night with shops, cars
+and lamps. Both ask for their rooms to be furnished, so run them through `dressLevel`. `dressedBaseScenes` has core's
+plain base interior and exterior with a waiting room and a street added, for judging a look change.
+
 ## Add your own
 
 Props, swatches and kits are data. Put a TOML file in `content/world-props`, `content/world-swatches` or
@@ -52,4 +66,6 @@ A new shape is a generator you register with `registerPropGenerator` from `@auto
 - `library/kits.json`: the eight purposes above.
 - `library/swatches.json`: the materials. A swatch of a base name (`baseWall`, `baseFloor`) has the same colour as
   core's, with the photo texture on it.
+- `library/maps/`: five small maps, ready to read as levels. `npm run maps` makes them again from
+  `tests/fixtures/builder-maps.json`.
 - `library/glyphs.json` and `library/words.json`: the block letters and the words a made-up shop sign is set from.
