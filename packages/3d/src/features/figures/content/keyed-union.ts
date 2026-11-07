@@ -7,12 +7,18 @@
 import { z } from 'zod'
 
 /**
- * Parses an object with the schema of the first key of `members` it has, in `members` order. An object with
+ * Parses an object with the schema of the first key of `members` it has, in `members` order (`members` can be a
+ * function, read at each parse, for a registry that grows). An object with
  * none of them is refused, naming the keys it could have.
  */
-export function keyedUnion<T>(what: string, members: Readonly<Record<string, z.ZodType<T>>>): z.ZodType<T> {
-  const keys = Object.keys(members)
+export function keyedUnion<T>(
+  what: string,
+  membersOf: Readonly<Record<string, z.ZodType<T>>> | (() => Readonly<Record<string, z.ZodType<T>>>),
+): z.ZodType<T> {
   return z.unknown().transform((value, ctx): T => {
+    // A registry's members can grow between parses (an extension registers a kind), so a function is read each time.
+    const members = typeof membersOf === 'function' ? membersOf() : membersOf
+    const keys = Object.keys(members)
     const key =
       typeof value === 'object' && value !== null && !Array.isArray(value)
         ? keys.find((candidate) => Object.hasOwn(value, candidate))

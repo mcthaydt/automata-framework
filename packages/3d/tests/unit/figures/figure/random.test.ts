@@ -7,7 +7,7 @@ import {
   garmentOf,
   roleOf,
   TAKES,
-} from '#src/features/figures/outfit/streetwear/registry.ts'
+} from '#src/features/figures/registry/garment-registry.ts'
 import { type FixtureFigures, fixtureFigures } from '#src/testing/fixture-library.ts'
 import { random, randomCharacter } from '#src/testing/random-character.ts'
 

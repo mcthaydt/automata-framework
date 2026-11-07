@@ -1,8 +1,8 @@
-// The streetwear registry: every garment in one table, which dress(), the layering and the random cast all
-// read: its layer (next to the skin, the base top, over a top, the bottoms, on the feet, an accessory), its
-// swatch fields with the role each plays and the kinds of swatch it takes, its builder, and for a top or a
-// bottom the shape what goes over it clears. And `reachable`: the openings a hand can use in a dressed
-// outfit, less those a garment worn over them covers.
+// The streetwear garments, registered in the garment registry (registry/garment-registry.ts): each with its layer
+// (next to the skin, the base top, over a top, the bottoms, on the feet, an accessory), its swatch fields with the
+// role each plays and the kinds of swatch it takes, its builder, and for a top or a bottom the shape what goes
+// over it clears. They stay core until the wardrobe moves to the examples (3D slice task 6.5). And `reachable`:
+// the openings a hand can use in a dressed outfit, less those a garment worn over them covers.
 //
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/streetwear.ts at a1f7246 (`Layer`,
 // `Kind`, `Role`, `TAKES`, `Entry`, `GARMENTS`, `garmentOf`, `roleOf`, `fieldRole`, `reachable`), with AF's
@@ -12,7 +12,6 @@
 import { clamp } from '../../../../shared/math/math.ts'
 import type { Measure } from '../../body/genes.ts'
 import type { Skeleton } from '../../body/rig.ts'
-import type { SWATCH_KINDS, SWATCH_ROLES } from '../../content/swatch.schema.ts'
 import type { Anchor } from '../../figure/anchors.ts'
 import type {
   Bomber,
@@ -28,62 +27,21 @@ import type {
   Tee,
   WideLegs,
 } from '../../figure/garment.schema.ts'
+import { STREETWEAR_SCHEMAS } from '../../figure/garment.schema.ts'
+import { GARMENTS, type GarmentKind, garmentOf, registerGarment } from '../../registry/garment-registry.ts'
+import '../garments/classic-kinds.ts' // the classic set registers first: it is told apart from streetwear in that order
 import { chain, hoops, shades, sneakers } from './accessories.ts'
 import { bomber, bomberShell } from './bomber.ts'
 import { cargoCut, cargos, wideCut, wideLegs } from './bottoms.ts'
 import { hoodie, hoodieShell } from './hoodie.ts'
 import { jacket, jacketShell } from './jacket.ts'
-import type { Legs } from './layering.ts'
 import { frontOf, widthOf } from './loft.ts'
 import { puffer, pufferShell, tee, teeShell } from './puffer-tee.ts'
-import { topOf, type Worn } from './tops.ts'
-import type { Fit, Wearing } from './under.ts'
-
-/**
- * Where a garment is worn: next to the skin, the base top, over a top, the bottoms, on the feet, or an
- * accessory.
- */
-export type Layer = 'under' | 'top' | 'outer' | 'bottom' | 'shoes' | 'accessory'
-/** What a swatch is, apart from its colour: its cloth and finish, so a recoloured garment keeps its cloth. */
-export type Kind = (typeof SWATCH_KINDS)[number]
-/**
- * What a swatch is for in a garment: a garment's main cloth, a rib, its inside, a trim, a stitch, a sole,
- * hardware, a lens.
- */
-export type Role = (typeof SWATCH_ROLES)[number]
-/**
- * The roles of swatch a field of each role takes: a trim any garment's cloth or metal as well as a trim's
- * own.
- */
-export const TAKES: Readonly<Record<Role, readonly Role[]>> = {
-  main: ['main'],
-  rib: ['rib'],
-  inside: ['inside'],
-  trim: ['trim', 'main', 'hardware'],
-  stitch: ['stitch'],
-  sole: ['sole'],
-  hardware: ['hardware'],
-  lens: ['lens'],
-}
-
-export interface Entry {
-  layer: Layer
-  /** Its swatch fields, each its role and the kinds of swatch it takes, its own cloth first. */
-  swatches: Readonly<Record<string, readonly [Role, ...Kind[]]>>
-  build: (w: Wearing, item: Garment) => Fit
-  /**
-   * Built after the rest of the outfit, on what is worn by then (shades pushed up onto the hair or a cap).
-   */
-  last?: boolean
-  /** A top as worn: what goes over it clears it, a chain lies on it. */
-  top?: (m: Measure, s: Skeleton, item: Garment, garments: readonly Garment[]) => Worn
-  /** A bottom's cut: what a top over it clears. */
-  cut?: (m: Measure, s: Skeleton, item: Garment) => Legs
-}
+import { topOf } from './tops.ts'
 
 // The registry hands each builder the garment its key named (garmentOf), so the casts below only narrow the
 // union.
-export const GARMENTS: Readonly<Record<string, Entry>> = {
+const STREETWEAR: Readonly<Record<string, Omit<GarmentKind, 'schema'>>> = {
   tee: {
     layer: 'top',
     swatches: { tee: ['main', 'knit'], rib: ['rib', 'knit'] },
@@ -175,14 +133,11 @@ export const GARMENTS: Readonly<Record<string, Entry>> = {
   },
 }
 
-/** The registry's name for a garment (the field naming its own cloth), or undefined for one not in it. */
-export const garmentOf = (g: Garment): string | undefined => Object.keys(GARMENTS).find((name) => name in g)
-/** The kinds of swatch a garment's field takes (the registry's), if the garment is in it. */
-export const roleOf = (g: Garment, field: string): Kind[] | undefined =>
-  GARMENTS[garmentOf(g) ?? '']?.swatches[field]?.slice(1) as Kind[] | undefined
-/** The role a garment's field plays (the registry's), if the garment is in it. */
-export const fieldRole = (g: Garment, field: string): Role | undefined =>
-  GARMENTS[garmentOf(g) ?? '']?.swatches[field]?.[0]
+for (const [name, kind] of Object.entries(STREETWEAR)) {
+  const schema = STREETWEAR_SCHEMAS[name]
+  if (!schema) throw new Error(`streetwear garment ${name} has no schema`)
+  registerGarment(name, { ...kind, schema })
+}
 
 /**
  * The openings a hand can reach in a dressed outfit: each garment's anchors, less those an outer garment

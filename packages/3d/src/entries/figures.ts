@@ -216,5 +216,12 @@ export type {
   Targets,
   Vec3,
 } from '../features/figures/motion/targets.ts'
+export {
+  type GarmentKind,
+  registeredGarments,
+  registerGarment,
+} from '../features/figures/registry/garment-registry.ts'
+export { type OutfitHooks, registerOutfitHooks } from '../features/figures/registry/outfit-hooks-registry.ts'
+export { RegistryClash } from '../features/figures/registry/registry-clash.ts'
 export * from '../shared/math/math.ts'
 export { type Ease, easeAt, easeSchema, parseEase } from '../shared/timeline/ease.ts'

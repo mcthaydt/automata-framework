@@ -13,13 +13,24 @@ import { type Decal, GROUP, type Part } from '../../body/mesh.ts'
 import { at, J, type Skeleton } from '../../body/rig.ts'
 import { hemWeights, weights } from '../../body/skin-weights.ts'
 import { tube } from '../../body/superquadric.ts'
+import type { HairStyle } from '../../content/hair.schema.ts'
+import type { Headwear } from '../../content/headwear.schema.ts'
+import type { Swatch } from '../../content/swatch.schema.ts'
 import type { Classic, Garment, Skirt } from '../../figure/garment.schema.ts'
 import { GARMENT_DEFAULTS } from '../../figure/garment-defaults.ts'
+import type { Made } from '../../figure/materials.ts'
 import { armGroup, type Regions, TRAPEZIUS, trapezius } from './body.ts'
 import { SIDES } from './head.ts'
 import { box } from './locks.ts'
 
 const FRONT = Math.PI / 2
+
+/** The libraries a body is dressed from: its swatches, hair styles and headwear, by id. */
+export interface Wardrobe {
+  readonly swatches: Readonly<Record<string, Swatch>>
+  readonly hair: Readonly<Record<string, HairStyle>>
+  readonly headwear: Readonly<Record<string, Headwear>>
+}
 
 /** What the garments build up as an outfit is dressed: the regions they repaint, their parts and marks, and
  * how the body under them stands (thighs shown, the chest's front, boots, the outermost hanging garment). */
@@ -27,6 +38,10 @@ export interface Dressing {
   readonly m: Measure
   readonly s: Skeleton
   readonly garments: readonly Garment[]
+  /** What the hair, caps and the face are drawn from: the libraries, the figure's materials and its own hair pieces. */
+  readonly wardrobe: Wardrobe
+  readonly made: Made
+  readonly hairPieces: readonly string[] | undefined
   readonly r: Regions
   readonly parts: Part[]
   readonly decals: Decal[]

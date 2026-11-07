@@ -14,9 +14,9 @@ import { GROUP, type Part } from '../../body/mesh.ts'
 import { at, J, type Skeleton } from '../../body/rig.ts'
 import type { Anchor } from '../../figure/anchors.ts'
 import type { Garment } from '../../figure/garment.schema.ts'
+import { GARMENTS, garmentOf } from '../../registry/garment-registry.ts'
 import { SIDES } from '../garments/head.ts'
 import { frontOf, type Loft, loft, type Section, type Shell, widthOf } from './loft.ts'
-import { GARMENTS, garmentOf } from './registry.ts'
 import { armSkin, SEAM, skinned, torsoBone, torsoSkin, type Under } from './under.ts'
 
 /** A torso shell from the neck's base (`top`) to `hem`: round over the shoulders to `width`, `depth` deep. */
