@@ -35,7 +35,13 @@ const FINDINGS = JSON.stringify({
       ok: false,
       ms: 5,
       findings: [
-        { file: 'src/sim/a.system.ts', line: 1, col: 1, rule: 'import', message: 'import of "effect"' },
+        {
+          file: 'src/features/jump/jump.system.ts',
+          line: 1,
+          col: 1,
+          rule: 'import',
+          message: 'import of "effect"',
+        },
       ],
     },
   ],
@@ -58,8 +64,8 @@ function project(options: { binAt?: string | null; packageJson?: object; dir?: s
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'agent-hook-')))
   temps.push(root)
   const dir = join(root, options.dir ?? '.')
-  mkdirSync(join(dir, 'src/sim'), { recursive: true })
-  writeFileSync(join(dir, 'src/sim/a.system.ts'), 'export const a = 1\n')
+  mkdirSync(join(dir, 'src/features/jump'), { recursive: true })
+  writeFileSync(join(dir, 'src/features/jump/jump.system.ts'), 'export const a = 1\n')
   writeFileSync(
     join(dir, 'package.json'),
     JSON.stringify(options.packageJson ?? { devDependencies: { '@mcthaydt/automata-tools': '0.0.2' } }),
@@ -137,7 +143,7 @@ function snapshot(dir: string): Record<string, string> {
 }
 
 describe('the PostToolUse hook', () => {
-  it('does nothing for an edit outside src/sim/', () => {
+  it('does nothing for an edit to a file that is not sim code', () => {
     const p = project()
     const run = runHook(p, 'post-edit', edit(p, 'src/render/view.ts'))
     expect(run.status).toBe(0)
@@ -146,7 +152,9 @@ describe('the PostToolUse hook', () => {
 
   it('runs automata check --sim-only --json in the project after a sim edit, and passes when it passes', () => {
     const p = project()
-    const run = runHook(p, 'post-edit', edit(p, 'src/sim/a.system.ts'), { stdout: '{"ok":true,"steps":[]}' })
+    const run = runHook(p, 'post-edit', edit(p, 'src/features/jump/jump.system.ts'), {
+      stdout: '{"ok":true,"steps":[]}',
+    })
     expect(run.status).toBe(0)
     expect(run.stderr).toBe('')
     expect(run.calls).toHaveLength(1)
@@ -154,13 +162,19 @@ describe('the PostToolUse hook', () => {
     expect(run.calls[0]?.cwd).toBe(p.dir)
   })
 
-  // GL spec §5.3 and acceptance B7: a game laid out by role has its sim in src/<role>.ts, src/<role>/ and src/sim.ts.
+  // A game laid out by feature: its sim files end in a sim role suffix, wherever they sit under src/. The base 3D game
+  // still keeps its sim in role files (src/<role>.ts and src/<role>/) until its own slice moves it.
   it.each([
+    'src/features/jump/jump.component.ts',
+    'src/features/jump/jump.command.ts',
+    'src/features/jump/jump.event.ts',
+    'src/features/jump/jump.resource.ts',
+    'src/features/jump/jump.plugin.ts',
+    'src/shared/clock.system.ts',
     'src/systems.ts',
     'src/systems/x.ts',
     'src/resources.ts',
     'src/state.ts',
-    'src/sim.ts',
     'src/constants.ts',
     'src/components/a.ts',
     'src/commands.ts',
@@ -177,6 +191,8 @@ describe('the PostToolUse hook', () => {
     'src/screens/title.ts',
     'src/content/rooms.content.ts',
     'src/simulate.ts',
+    'src/features/jump/jump.view.ts',
+    'tests/unit/jump/jump.system.test.ts',
   ])('does nothing after an edit to %s', (file) => {
     const p = project()
     expect(runHook(p, 'post-edit', edit(p, file)).calls).toEqual([])
@@ -184,13 +200,16 @@ describe('the PostToolUse hook', () => {
 
   it('accepts a sim path relative to the project', () => {
     const p = project()
-    const event = { ...edit(p, ''), tool_input: { file_path: 'src/sim/a.system.ts' } }
+    const event = { ...edit(p, ''), tool_input: { file_path: 'src/features/jump/jump.system.ts' } }
     expect(runHook(p, 'post-edit', event).calls).toHaveLength(1)
   })
 
   it('blocks with the JSON findings on stderr when the check finds problems', () => {
     const p = project()
-    const run = runHook(p, 'post-edit', edit(p, 'src/sim/a.system.ts'), { exit: 1, stdout: FINDINGS })
+    const run = runHook(p, 'post-edit', edit(p, 'src/features/jump/jump.system.ts'), {
+      exit: 1,
+      stdout: FINDINGS,
+    })
     expect(run.status).toBe(2)
     expect(run.stderr).toContain('automata check --sim-only --json found problems')
     expect(run.stderr).toContain(FINDINGS)
@@ -199,7 +218,10 @@ describe('the PostToolUse hook', () => {
   it('blocks when a check tool cannot run (exit 2)', () => {
     const p = project()
     const toolError = '{"ok":false,"steps":[{"name":"test","ok":false,"ms":1,"findings":[]}]}'
-    const run = runHook(p, 'post-edit', edit(p, 'src/sim/a.system.ts'), { exit: 2, stdout: toolError })
+    const run = runHook(p, 'post-edit', edit(p, 'src/features/jump/jump.system.ts'), {
+      exit: 2,
+      stdout: toolError,
+    })
     expect(run.status).toBe(2)
     expect(run.stderr).toContain('could not run')
     expect(run.stderr).toContain(toolError)
@@ -207,7 +229,7 @@ describe('the PostToolUse hook', () => {
 
   it("passes on the check's own output when it printed no report", () => {
     const p = project()
-    const run = runHook(p, 'post-edit', edit(p, 'src/sim/a.system.ts'), {
+    const run = runHook(p, 'post-edit', edit(p, 'src/features/jump/jump.system.ts'), {
       exit: 1,
       stderr: 'Error: Cannot find module dist/bin.js',
     })
@@ -217,7 +239,7 @@ describe('the PostToolUse hook', () => {
 
   it('finds the bin in a parent folder (a workspace)', () => {
     const p = project({ dir: 'games/one', binAt: '.' })
-    const run = runHook(p, 'post-edit', edit(p, 'src/sim/a.system.ts'))
+    const run = runHook(p, 'post-edit', edit(p, 'src/features/jump/jump.system.ts'))
     expect(run.status).toBe(0)
     expect(run.calls).toHaveLength(1)
     expect(run.calls[0]?.cwd).toBe(p.dir)
@@ -257,7 +279,7 @@ describe('a project without the automata bin', () => {
 
   it('is blocked, naming the package to add, when it is an Automata game', () => {
     const p = project({ binAt: null, packageJson: { dependencies: { '@mcthaydt/automata-sim': '0.0.2' } } })
-    const run = runHook(p, 'post-edit', edit(p, 'src/sim/a.system.ts'))
+    const run = runHook(p, 'post-edit', edit(p, 'src/features/jump/jump.system.ts'))
     expect(run.status).toBe(2)
     expect(run.stderr).toContain('@mcthaydt/automata-tools')
   })
@@ -266,7 +288,7 @@ describe('a project without the automata bin', () => {
 it('never changes the project', () => {
   const p = project()
   const before = snapshot(p.root)
-  runHook(p, 'post-edit', edit(p, 'src/sim/a.system.ts'), { exit: 1, stdout: FINDINGS })
+  runHook(p, 'post-edit', edit(p, 'src/features/jump/jump.system.ts'), { exit: 1, stdout: FINDINGS })
   runHook(p, 'stop', stop(p), { exit: 1, stdout: FINDINGS })
   expect(snapshot(p.root)).toEqual(before)
 })

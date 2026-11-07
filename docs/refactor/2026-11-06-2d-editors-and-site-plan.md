@@ -1229,7 +1229,7 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
 - Test: `pnpm plugin:validate`; `tooling/agent-skills/tests/unit/skills-text.test.ts` (no `src/sim/`, "reference host",
   "networked truth" or `vitest run src/`)
 
-- [ ] **Step 1:** Failing text test, then rewrite (A1, A2). `pnpm boundaries` passes on the new example. Commit.
+- [x] **Step 1:** Failing text test, then rewrite (A1, A2). `pnpm boundaries` passes on the new example. Commit.
   `docs(agents): the skills teach the refactored framework`
 
 ### Task 16.2: One generated reference
@@ -2709,3 +2709,14 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   publish guides show the template's workflow, and the desktop guide says where each bundle is built. Gates:
   `template-ci.test.ts` 4 pass (failed first: no such file), actionlint skipped (no Docker daemon here; the YAML
   parses); the stranger's journey (Chromium) passes and checks the file; `pnpm check` passes.
+- **Phase 16 (session 23).** *16.1:* `tooling/agent-skills/tests/unit/skills-text.test.ts` failed first (three skills
+  named `src/sim/`, "reference host", "networked truth" or `vitest run src/`; the editor skill built the editor first).
+  The skills now teach the feature layout (`src/features/<name>/`, `tests/unit/<name>/`, `src/app/game.ts`), the
+  seven laws with law 2 as "the sim's result is the outcome" (no networking exists in AF) and law 7 as "no target is
+  the reference", `pnpm test tests/unit/<feature>/`, and `automata editor` with no build (the level editor ships in
+  `-tools`). The hook (`agents/automata/scripts/check.mjs`) treats a file with a sim suffix under `src/` as a sim
+  edit (it was `src/sim/`, which `automata check` now refuses); its tests moved with it. Deviation: the worked
+  example is the double-jump feature in the shape a new game has (`example/src/features/double-jump/`,
+  `example/tests/unit/double-jump/`), not a whole copy of `create-game`'s output: the template lives in `-tools`, and
+  a copy here would drift from it. `pnpm boundaries` checks it with `--game` (it was a plain sim folder). Gates:
+  agent-skills unit 118, `pnpm boundaries` 0 findings, `pnpm plugin:validate` passes.

@@ -10,7 +10,7 @@ folder (or pass the folder): `automata check [dir] [--json] [--sim-only] [--csp]
 
 | Step | Runs | Skipped when |
 |---|---|---|
-| `boundaries` | `automata-check-boundaries src/sim` | never |
+| `boundaries` | `automata-check-boundaries --game src` (the sim files: every file with a sim suffix, and what they import) | never |
 | `typecheck` | `tsc -p . --noEmit` | never |
 | `test` | `vitest run` | never |
 | `boards` | the leaderboards the sources name, against `ship.config.ts`'s `leaderboards` | `--sim-only` |
@@ -28,7 +28,7 @@ Every step runs even after one fails, so one run shows everything; `--fail-fast`
 
 ```json
 { "ok": false, "steps": [{ "name": "boundaries", "ok": false, "ms": 41,
-  "findings": [{ "file": "src/sim/jump.system.ts", "line": 3, "col": 1, "rule": "import",
+  "findings": [{ "file": "src/features/jump/jump.system.ts", "line": 3, "col": 1, "rule": "import",
                  "message": "import of \"effect\" is not allowed in the sim" }] }] }
 ```
 
@@ -38,8 +38,8 @@ Every step runs even after one fails, so one run shows everything; `--fail-fast`
 - **Exit codes:** 0 pass; 1 findings to fix in the code; 2 a tool could not run (fix the setup it names, not the code).
   A missing tool is never a pass.
 
-The Automata plugin runs `automata check --sim-only --json` after each edit under `src/sim/`, and `automata check
---json` when the turn would end. Its message is this JSON. Fix every finding, then let the check run again; never
+The Automata plugin runs `automata check --sim-only --json` after each edit to a sim file, and `automata check --json`
+when the turn would end. Its message is this JSON. Fix every finding, then let the check run again; never
 delete or skip a test, loosen a rule or re-record a golden to get past it.
 
 ## Rules and fixes
@@ -48,7 +48,7 @@ delete or skip a test, loosen a rule or re-record a golden to get past it.
 
 | Rule | Means | Fix |
 |---|---|---|
-| `import` | The sim imports something outside its allowlist (Effect, DOM libraries, Node modules, another layer of the game) | Import only `@mcthaydt/automata-sim` (and `/math`, `/hash`), `zod`, the physics entry points, or relative sim files. Move I/O or Effect code out of `src/sim/` and pass results in as commands or content |
+| `import` | The sim imports something outside its allowlist (Effect, DOM libraries, Node modules, another layer of the game) | Import only `@mcthaydt/automata-sim` (and `/math`, `/hash`), `zod`, the physics entry points, or relative sim files. Move I/O or Effect code out of the sim files (and what they import) and pass results in as commands or content |
 | `banned-global` | A host or clock global such as `Date`, `setTimeout`, `console`, `window`, `fetch`, `crypto`, `performance`, `Intl` | Time is `ctx.tick`; randomness is the sim's seeded RNG; logging and I/O belong outside the sim |
 | `banned-member` | `.constructor` on a value, which reaches `Function` | Don't build code from strings; call the function directly |
 | `math-member` | A `Math` member outside `sqrt`, `fround`, `round`, `floor`, `ceil`, `trunc`, `abs`, `min`, `max`, `sign`, `imul` (including `Math.random`) | Use `@mcthaydt/automata-sim/math` for the rest, and the sim's RNG for random numbers |
