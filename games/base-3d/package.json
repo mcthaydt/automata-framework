@@ -20,7 +20,7 @@
     "test:browser": "vitest run --configLoader runner --project layout --project sim",
     "test:evidence": "vitest run --configLoader runner --project unit --project sim tests/browser/sim/game.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
     "typecheck": "tsc -p . && tsc -p tsconfig.node.json",
-    "e2e:game": "vite build --configLoader runner && vite preview --configLoader runner --base $AF_E2E_GAME_PATH --strictPort --host localhost --port $AF_E2E_PREVIEW_PORT",
+    "e2e:game": "VITE_AF_JOURNEYS=1 vite build --configLoader runner && vite preview --configLoader runner --base $AF_E2E_GAME_PATH --strictPort --host localhost --port $AF_E2E_PREVIEW_PORT",
     "test:e2e": "playwright test"
   },
   "dependencies": {

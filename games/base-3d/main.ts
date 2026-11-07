@@ -39,11 +39,17 @@ import { TICK_HZ } from './src/shared/constants.ts'
 import { Ember } from './src/shared/ember.component.ts'
 import { Hero } from './src/shared/hero.component.ts'
 import { tuningOf } from './src/shared/tuning.ts'
+import { routed, routeOf, showHero } from './src/testing/route.ts'
 
 // Compiling the room is boot's content cost: measured, so G3-u's journey holds it to a budget.
 performance.mark('base-3d:compile-areas:start')
 const TUNING = tuningOf(content)
-const AREA = compileArea(ROOM, TUNING)
+/** A build for the journeys (`e2e:game`) starts where `?route=` says and shows Wick's place; no other build does. */
+const JOURNEYS = import.meta.env.VITE_AF_JOURNEYS === '1'
+const AREA = compileArea(
+  routed(ROOM, routeOf(typeof location === 'undefined' ? '' : location.search, JOURNEYS)),
+  TUNING,
+)
 /** The keys' and touch buttons' labels, in the source language: the input map is data, read once at boot (G3-t). */
 const KEYS = BASE3D_COPY.en.keys
 performance.measure('base-3d:compile-areas', 'base-3d:compile-areas:start')
@@ -175,6 +181,7 @@ export const base3d = defineGame({
             simTick = result.tick
             // The tick the page last drew, for the journeys (G3-x: the rotate cover holds it).
             document.documentElement.dataset.tick = String(result.tick)
+            showHero(result, JOURNEYS, document.documentElement)
           },
         }
       },
