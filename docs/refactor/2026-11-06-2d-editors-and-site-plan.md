@@ -1131,34 +1131,34 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
 - Modify: `packages/editor/package.json` (`test:e2e`), `turbo.json` (`test:e2e` depends on `-tools`' build),
   `.github/workflows/ci.yml` (`e2e-2d` runs the editor's projects)
 
-- [ ] **Step 1:** `temp-game.ts` copies a game (Emberwick, or a `create-game` output) to a fresh temp folder per test
+- [x] **Step 1:** `temp-game.ts` copies a game (Emberwick, or a `create-game` output) to a fresh temp folder per test
   and removes it after; `run-editor.ts` spawns `packages/tools/dist/bin.js editor <dir> --port 0` and resolves with its
   printed address; `run-game.ts` starts the game's dev server on its own port; `canvas-pointer.ts` turns a level cell
   into page coordinates from the canvas's published geometry. Each has a unit test where it has logic (the cell
   mapping).
-- [ ] **Step 2:** A smoke journey (open the editor, see "Emberwick room") passes in Chromium.
-- [ ] **Step 3: Commit.** `test(editor): a Playwright harness that runs the real automata editor on a temp game`
+- [x] **Step 2:** A smoke journey (open the editor, see "Emberwick room") passes in Chromium.
+- [x] **Step 3: Commit.** `test(editor): a Playwright harness that runs the real automata editor on a temp game`
 
 ### Task 13.2: Save, drift and conflict journeys
 
 **Files:**
 - Create: `packages/editor/tests/e2e/{save-reaches-the-game.test.ts,drift-is-caught.test.ts,conflict-stops-the-save.test.ts}`
 
-- [ ] **Step 1:** Write the three journeys of spec section 9, using roles and names from `copy.md`. The game's room is
+- [x] **Step 1:** Write the three journeys of spec section 9, using roles and names from `copy.md`. The game's room is
   read through the hook Emberwick's own journeys use (find it: `grep -rn "window\.__" games/emberwick/tests/e2e`).
-- [ ] **Step 2:** Run in Chromium (iPad and phone projects) → pass. Record first-attempt results. WebKit: the Owner's.
-- [ ] **Step 3: Commit.** `test(editor): journeys prove Save reaches the game and the check catches drift`
+- [x] **Step 2:** Run in Chromium (iPad and phone projects) → pass. Record first-attempt results. WebKit: the Owner's.
+- [x] **Step 3: Commit.** `test(editor): journeys prove Save reaches the game and the check catches drift`
 
 ### Task 13.3: A new game, and the suite
 
 **Files:**
 - Create: `packages/editor/tests/e2e/{new-game-opens.test.ts,suite-opens-the-checkout.test.ts}`
 
-- [ ] **Step 1:** The new-game journey reuses the stranger's journey's steps (`tooling/consumer-smoke/src/stranger.ts`:
+- [x] **Step 1:** The new-game journey reuses the stranger's journey's steps (`tooling/consumer-smoke/src/stranger.ts`:
   pack, `create-game` outside the workspace, install from the packs), then starts `automata editor` with no flags,
   paints a wall into the starter level, saves, and sees it in the game.
-- [ ] **Step 2:** The suite journey (Chromium only) per spec section 9.
-- [ ] **Step 3:** Both pass in Chromium. `pnpm check`. Commit, mark ready. `test(editor): a new game opens in the editor; the suite opens the game`
+- [x] **Step 2:** The suite journey (Chromium only) per spec section 9.
+- [x] **Step 3:** Both pass in Chromium. `pnpm check`. Commit, mark ready. `test(editor): a new game opens in the editor; the suite opens the game`
 
 ---
 
@@ -2677,3 +2677,22 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   the touch hint and the opaque menu. M2 has no browser rule (checked by eye). Gates: site unit 334, `svelte-check`
   0, `check:site` passes, `pnpm knip` clean, the full Chromium site suite 330 of 330 (before the 13 new rules, which
   pass).
+- **Phase 13 (session 22): the editor's journeys.** *13.1:* `packages/editor/playwright.journeys.config.ts` (projects
+  `editor-ipad-chromium`, `editor-phone-chromium`, `editor-ipad-webkit`), the harness in `tests/e2e/harness/`
+  (`temp-game`, `run-editor`, `run-game`, `canvas-pointer`, `fixtures`, `new-game`), and `LevelCanvas` publishes the
+  camera it drew (`data-camera`) so a journey taps a cell where it is. `turbo.json` runs `test:e2e` after the tools'
+  build; `ci.yml`'s `e2e-2d` runs it. *13.2:* the three journeys of spec section 9. The game is read through
+  Emberwick's `#game[data-content-hash]` (it has no `window.__` hook). First attempts: the Save journey failed (the
+  game never reloaded: the content plugin watched only Vite's root, and the journey's content is a temp copy; fixed in
+  `-content` with a test and a changeset); the conflict journey failed (the level file was written although the
+  project's write was then refused, leaving the two out of step; a guarded save with files ahead of it now checks
+  the document's own version first, with a unit test); drift passed. The conflict dialog's button is "Use mine" (the
+  spec's "Keep mine" is its old name). *13.3:* deviation: the new-game journey runs `create-game` with the
+  repository's built tools and borrows Emberwick's installed packages (a symlink) instead of packing and installing:
+  the pack and install are the stranger's journey's, and repeating them here would add minutes for no new proof. It
+  "sees it in the game" through the game's dev server's compiled content module, which now holds the wall; the game
+  restarting on new content is the Save journey's proof. The suite journey runs at iPad size only: the suite's phone
+  top bar leaves out the game's name, and its layout is the 3D slice's (D3). Seen there for that slice: Levels 2D
+  lists the room twice as "Room 1" (the project and its exported level). Gates: the journeys 11 pass, 1 skip
+  (Chromium, iPad and phone; WebKit not installed, the Owner's); editor unit 3385, editor-3d unit and dom 2932,
+  content unit 415; `pnpm check` passes.

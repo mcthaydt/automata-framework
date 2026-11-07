@@ -3,17 +3,31 @@
 import { execFile } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
-import { test as base, expect, type Page } from '@playwright/test'
+import {
+  test as base,
+  expect,
+  type Page,
+  type PlaywrightTestArgs,
+  type PlaywrightTestOptions,
+  type PlaywrightWorkerArgs,
+  type PlaywrightWorkerOptions,
+  type TestType,
+} from '@playwright/test'
 import { cellOnCanvas } from './canvas-pointer.ts'
 import { BIN, type RunningEditor, runEditor } from './run-editor.ts'
 import { copyGame, type TempGame } from './temp-game.ts'
 
 /** The committed game the journeys copy. */
-export const EMBERWICK = fileURLToPath(new URL('../../../../../games/emberwick', import.meta.url))
+export const EMBERWICK: string = fileURLToPath(new URL('../../../../../games/emberwick', import.meta.url))
 /** Emberwick's room: 8 px cells (320 px across 40 of them). */
-export const ROOM_TILE = 8
+export const ROOM_TILE: number = 8
 
-export const test = base.extend<{ game: TempGame; editor: RunningEditor }>({
+type JourneyFixtures = { game: TempGame; editor: RunningEditor }
+
+export const test: TestType<
+  PlaywrightTestArgs & PlaywrightTestOptions & JourneyFixtures,
+  PlaywrightWorkerArgs & PlaywrightWorkerOptions
+> = base.extend<JourneyFixtures>({
   // biome-ignore lint/correctness/noEmptyPattern: Playwright's fixture signature takes the other fixtures first.
   game: async ({}, use) => {
     const game = copyGame(EMBERWICK)
@@ -28,15 +42,20 @@ export const test = base.extend<{ game: TempGame; editor: RunningEditor }>({
 })
 export { expect }
 
-/** Opens the editor, then Emberwick's room in the Level view, and waits for the canvas to draw. */
-export async function openRoom(page: Page, editor: RunningEditor): Promise<void> {
+/** Opens the editor, then a level project (Emberwick's room unless named) in the Level view, and waits for the canvas to draw. */
+export async function openRoom(page: Page, editor: RunningEditor, card = 'Emberwick room'): Promise<void> {
   await page.goto(editor.url)
-  await page.getByText('Emberwick room').first().click()
+  // The card's button reads its name, then when it changed ("Levels Changed just now").
+  await page.getByRole('button', { name: new RegExp(`^${card} `) }).click()
   await expect(page.locator('[data-level-canvas]')).toHaveAttribute('data-state', 'drawn')
 }
 
-/** Chooses the Collision layer and the Brush, then taps one cell of the room with a pointer. */
-export async function paintWall(page: Page, cell: { col: number; row: number }): Promise<void> {
+/** Chooses the Collision layer and the Brush, then taps one cell of the level (`tile` px cells) with a pointer. */
+export async function paintWall(
+  page: Page,
+  cell: { col: number; row: number },
+  tile: number = ROOM_TILE,
+): Promise<void> {
   // Below the wide layout the layers sit in a sheet behind the Layers button.
   const layer = page.getByRole('button', { name: 'Collision Walls and floors' })
   if (!(await layer.isVisible())) await page.getByRole('button', { name: 'Layers' }).click()
@@ -45,7 +64,7 @@ export async function paintWall(page: Page, cell: { col: number; row: number }):
   const canvas = page.locator('[data-level-canvas]')
   // A new layer redraws the canvas; tap where the cell is now.
   await expect(canvas).toHaveAttribute('data-state', 'drawn')
-  const point = await cellOnCanvas(canvas, cell, ROOM_TILE)
+  const point = await cellOnCanvas(canvas, cell, tile)
   await page.mouse.click(point.x, point.y)
 }
 

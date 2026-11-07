@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { runGame } from '../harness/run-game.ts'
 import { checkLevels, EMBERWICK, expect, openRoom, paintWall, test } from '../harness/fixtures.ts'
+import { runGame } from '../harness/run-game.ts'
 
 // Spec section 9, "Save reaches the game": a wall painted in the real editor and saved is in the game's level file on
 // disk, `automata check` agrees with it, and the running game starts over on it.
