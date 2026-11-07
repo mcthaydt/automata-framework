@@ -1,4 +1,4 @@
-// The world's flat-faced primitives (EnvironmentBuilder `world/mesh.ts` at 6d82a52): one normal per face, and a
+// The world's flat-faced primitives: one normal per face, and a
 // triangle that winds the way its normal points, so a renderer may cull back faces.
 import { describe, expect, it } from 'vitest'
 import { box, quad } from '#src/features/world/mesh.ts'

@@ -1,4 +1,4 @@
-// Stands (FigureBuilder's lookbook poses as the idle): each placed hand goes to an opening the dressed figure offers (a
+// Stands (the lookbook poses as the idle): each placed hand goes to an opening the dressed figure offers (a
 // pocket's mouth, a hem, the hip), trying the place's openings in order (CHAIN), so a pose never pushes a hand into a
 // garment with no pocket there; a stand the outfit does not suit gives way to its fallbacks, and with none that suits,
 // to the gait's relaxed stand. Changed for AF: no `pendant` anchor (the nameplate is cut), so crossed arms keep to the

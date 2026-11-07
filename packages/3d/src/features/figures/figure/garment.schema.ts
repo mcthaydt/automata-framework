@@ -1,4 +1,4 @@
-// Garments: what an outfit is made of (FigureBuilder src/render/figure/garments.ts `Garment` at a1f7246). Each
+// Garments: what an outfit is made of. Each
 // garment is an object named by its first key (`coat`, `top`, `cape`…), whose value is its cloth's swatch.
 // Every swatch field is a library reference, so a missing swatch is a compile error at its line (F-e). The 7
 // garments Wick and the base pair wear are typed here; the rest of a wardrobe (apron, belt, coat, gloves, legs, mark,
@@ -78,8 +78,8 @@ const swatch = contentRef('figure-swatch')
 const optionalSwatch = swatch.optional()
 const flag = z.boolean().optional()
 /**
- * The garments' numbers, each bounded (review): a little past what FigureBuilder's library, its
- * builders' defaults and its random wardrobe's draws use, so any value in range builds a sound garment. Out of
+ * The garments' numbers, each bounded (review): a little past what the library, the
+ * builders' defaults and the random wardrobe's draws use, so any value in range builds a sound garment. Out of
  * range they break the build (cargos of width 0 run out of memory) or the garment (a skirt above the hip).
  */
 const within = (min: number, max: number) => z.number().min(min).max(max)

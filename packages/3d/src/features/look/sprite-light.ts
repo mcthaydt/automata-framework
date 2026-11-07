@@ -1,5 +1,4 @@
-// A figure lit the way a pixel artist lights a sprite (The Last Light's ramp light; EnvironmentBuilder
-// `stage/sprite-light.ts` is the source): the room's light once for the whole figure, and the surface normal only to
+// A figure lit the way a pixel artist lights a sprite (a ramp light): the room's light once for the whole figure, and the surface normal only to
 // move a part one step along its own ramp. - The flat light: the time's ambient plus each lamp at the figure's mean N·L
 // (never under the floor), stepped as the room's light is, times every part. It sets how bright and warm the figure is
 // and never shades across it. The floor is why a figure under a pendant is lit like the floor under it: a lamp overhead

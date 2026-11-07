@@ -5,7 +5,7 @@
 // centre's), so each of positions and normals also has its second moments (Σx², Σy², Σz², Σxy) and an
 // order-sensitive sum (Σ (k + 1)·p_k per axis, k the vertex), and the skin its weighted bone sum.
 
-/** The part fields a fingerprint reads (the figure builder's Part has them). */
+/** The part fields a fingerprint reads (a figure's Part has them). */
 export interface Fingerprinted {
   readonly mesh: {
     readonly positions: readonly number[]

@@ -173,7 +173,7 @@ describe('I-c: after a solve no joint passes its limit, and the report lists exa
       ] as const) {
         const hand = `hand${side}` as const,
           elbow = `elbow${side}` as const
-        // FigureBuilder motion.ts at a1f7246: the reach's default target and pole, and the flinch's.
+        // The reach's default target and pole, and the flinch's.
         const reach: Vec3 = [(x * g.shoulders * 0.8) / k, (s.shoulderY - 0.18 * k) / k, 0.5]
         const flinch: Vec3 = [x * 0.06, (s.chinY + 0.1 * k) / k, 0.21]
         for (const [pos, dir] of [

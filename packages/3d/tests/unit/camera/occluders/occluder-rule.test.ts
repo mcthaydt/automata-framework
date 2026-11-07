@@ -1,7 +1,7 @@
 // The occluder rule's geometry (M3 spec §4.2): which side of a wall's inside face a point is on, whether the camera's
-// line to the player crosses a wall (The Last Light `src/game/cutaway.ts` `wallHidden` at 92e6704), and whether a
-// segment crosses a prop's bounds. The last describe block ports The Last Light's `tests/cutaway.test.ts` onto an
-// equivalent fixture: its clinic map is The Last Light's content, not AF's.
+// line to the player crosses a wall (a cut-away's `wallHidden`), and whether a
+// segment crosses a prop's bounds. The last describe block runs a known cut-away's cases on an
+// equivalent fixture map.
 import { describe, expect, it } from 'vitest'
 import {
   FIGURE_REACH,
@@ -114,10 +114,10 @@ describe('propOcclude', () => {
   })
 })
 
-// The Last Light's cut-away cases (`tests/cutaway.test.ts`): the hall camera, high and south of the room, looks
+// The cut-away cases: the hall camera, high and south of the room, looks
 // north. Here a counter wall runs x 0..0.8 along z 1.2, and the hall's back wall runs along z −1.6 (the hall, +z, on
 // its inside) in two pieces either side of a corridor mouth at x −0.2..1.0.
-describe('The Last Light’s cut-away cases, ported', () => {
+describe('the cut-away cases', () => {
   const HALL_CAMERA = at(0, 9.4, 15.25)
   const counter: WallSpan = { a: { x: 0, z: 1.2 }, b: { x: 0.8, z: 1.2 }, height: 1.1 }
   const northWest: WallSpan = { a: { x: -4, z: -1.6 }, b: { x: -0.2, z: -1.6 }, height: 2.5 }

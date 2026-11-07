@@ -10,7 +10,7 @@ import { type FixtureFigures, fixtureFigures } from '#src/testing/fixture-librar
 import { figureOf } from '#src/testing/golden-outfits.ts'
 import { BASE_PAIR } from '../../../fixtures/base-pair.ts'
 
-// FigureBuilder tests/features/outfit/fit.test.ts, rewritten to AF's outputs: the body as a query (`girth`, `clearance`,
+// The fit checks, in AF's outputs: the body as a query (`girth`, `clearance`,
 // `bodyOf`) and the garments that size themselves from it (a cuff hugs the arm, the collar rides the neck).
 
 const rig = (sliders: Partial<Sliders> = BASE_PAIR.man) => {

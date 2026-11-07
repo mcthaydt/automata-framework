@@ -180,7 +180,7 @@ export function parseGlb(buffer: ArrayBuffer, file: string): ModelMesh {
 }
 
 /**
- * Reads a packed prop (The Last Light's `scripts/pack-models.py`, served as `.bin`): the GLB decimated and
+ * Reads a packed prop (served as `.bin`): the GLB decimated and
  * quantised for the bundle. uint16 positions across the original bounds, int8 normals, uint16 UVs across their
  * range, uint16 indices and a small PNG. Throws `ModelInvalid` naming `file` when it cannot be read.
  */

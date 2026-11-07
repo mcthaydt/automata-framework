@@ -117,7 +117,7 @@ export function compose(rotation: Q, translation: V3): M {
 }
 // mmul and mul3 run for every joint of every figure each frame (fk), so they build their tuples directly
 // instead of through loops or array helpers. Each element is the source's sum in the source's order, so the
-// results are bit-identical to FigureBuilder's loops.
+// results are bit-identical to the plain loops.
 /** a · b: b first, then a. */
 export function mmul(a: M, b: M): M {
   return [

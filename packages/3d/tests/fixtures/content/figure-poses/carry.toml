@@ -1,4 +1,4 @@
-# A fixture pose (M3 spec §4.4.3), for tests and examples; no game's. Figure units, root space unless a handle says.
+# A fixture pose, for tests and examples; no game's. Figure units, root space unless a handle says.
 
 about = "Carrying something before the belly in both hands, held in the chest's frame so it rides with the chest, which leans back against the load."
 

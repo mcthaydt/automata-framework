@@ -1,5 +1,5 @@
-// A stand: an idle pose with attitude, the weight on one leg and each hand placed (FigureBuilder
-// src/render/figure/motion.ts `Stand`, `HandPlace`, `Hang`; library/poses.json at a1f7246). The motion that
+// A stand: an idle pose with attitude, the weight on one leg and each hand placed (`Stand`,
+// `HandPlace`, `Hang`). The motion that
 // places the hands on the outfit's openings is the motion's; this is the content shape. `fallback` names other
 // stands, checked like every library reference.
 

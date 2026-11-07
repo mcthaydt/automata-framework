@@ -8,8 +8,8 @@ import type { RigLimits } from '../content/rig-limits.schema.ts'
 import type { Stand } from '../content/stand.schema.ts'
 import type { HairSwing } from '../motion/motion-state.ts'
 import type { AimTarget, LimbId, Vec3 } from '../motion/targets.ts'
+import type { PoseLibrary } from './blend-key-poses.ts'
 import type { FigureClipDef } from './clip.schema.ts'
-import type { PoseLibrary } from './sample.ts'
 
 /** A clip the sim started: its id, when (presentation seconds) and, when given, the length (s) it is retimed to. */
 export interface ClipStart {

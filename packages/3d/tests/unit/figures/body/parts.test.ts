@@ -12,7 +12,7 @@ const finite = (mesh: Mesh): boolean => [...mesh.positions, ...mesh.normals].eve
 const sum = (pairs: readonly (readonly [number, number])[]): number =>
   pairs.reduce((total, [, weight]) => total + weight, 0)
 
-describe('primitives (FigureBuilder parts.ts)', () => {
+describe('primitives', () => {
   it('a superquadric is a closed surface whose unit normals point out of its centre', () => {
     const mesh = superquadric({ at: [0.1, 0.2, 0], r: [0.1, 0.2, 0.05], e: [0.5, 0.55] })
     expect(finite(mesh)).toBe(true)
@@ -66,7 +66,7 @@ describe('primitives (FigureBuilder parts.ts)', () => {
   })
 })
 
-describe('skin weights (FigureBuilder parts.ts)', () => {
+describe('skin weights', () => {
   const mesh = tube([1, 0.2, 0.15, 0], [0.3, 0.3, 0.2, 0], { seg: 12, rings: 6 })
   it('weights maps each rest position to its bones', () => {
     const skin = weights(mesh, (_x, y) => [

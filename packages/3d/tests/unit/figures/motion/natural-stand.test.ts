@@ -1,6 +1,5 @@
-// The natural stand: head over the shoulders, a trace of contrapposto, and the body's sideways curve. Ported from
-// FigureBuilder (mcthaydt/FigureBuilder) src/features/motion/motion.ts at 025ffb4 (`relaxed`, `STAND_SLIDE`,
-// `STAND_LIFT`, `sideBend`, `standElbow`) and checked through `base`, since the builder has no stand function of its own.
+// The natural stand: head over the shoulders, a trace of contrapposto, and the body's sideways curve. Covers
+// `relaxed`, `STAND_SLIDE`, `STAND_LIFT`, `sideBend` and `standElbow`, checked through `base`, since the builder has no stand function of its own.
 
 import { beforeAll, describe, expect, it } from 'vitest'
 import { at, J } from '#src/features/figures/body/rig.ts'

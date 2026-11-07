@@ -11,8 +11,8 @@
 import type { PoseDef } from '../motion/pose.schema.ts'
 import { mixedChannels } from '../motion/pose-space.ts'
 import { EFFECTOR_IDS } from '../motion/pose-spelling.ts'
+import type { PoseLibrary } from './blend-key-poses.ts'
 import type { FigureClipDef } from './clip.schema.ts'
-import type { PoseLibrary } from './sample.ts'
 
 export interface ClipWarning {
   readonly path: readonly (string | number)[]

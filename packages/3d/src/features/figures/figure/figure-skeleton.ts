@@ -1,6 +1,6 @@
 // A figure's skeleton from its definition (`skeleton(def)`), and the check that refuses an
 // impossible one at content compile (: "a negative bone length … content compile error naming the slider").
-// `genesOf` is FigureBuilder's `fromDef` gene step (src/render/figure/cast.ts at a1f7246): the sliders through
+// `genesOf` is the gene step: the sliders through
 // `measure`, then the figure's own gene overrides.
 
 import { measure, type Sliders } from '../body/genes.ts'

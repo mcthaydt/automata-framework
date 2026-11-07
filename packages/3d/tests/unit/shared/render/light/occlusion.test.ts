@@ -1,5 +1,5 @@
-// Ported from The Last Light `tests/indirect-light.test.ts` at 92e6704 ("bakes occlusion from the sector map: wall
-// bases, inside corners and the foot of furniture"), on a fixture room: the sector walls become planes, the bench a box.
+// Bakes occlusion from the sector map: wall
+// bases, inside corners and the foot of furniture, on a fixture room: the sector walls become planes, the bench a box.
 import { describe, expect, it } from 'vitest'
 import { contactShade, segmentBlocked } from '#src/shared/render/light/occlusion.ts'
 import { sceneLightingSchema } from '#src/shared/render/light/scene-lighting.schema.ts'

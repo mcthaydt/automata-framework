@@ -1,4 +1,4 @@
-// sample: the pose a clip holds at a clip time. Keys hold handles, not joint angles, so the
+// blendKeyPoses: the pose a clip holds at a clip time. Keys hold handles, not joint angles, so the
 // neighbouring keys' poses are blended (`blendAt`, which follows an overshooting ease past the key) at
 // the eased fraction, and the caller solves the result.
 //
@@ -34,7 +34,7 @@ function poseOf(key: ClipKey, poses: PoseLibrary): PoseDef {
 }
 
 /** The pose `clip` holds at clip time `t` (clamped to [0, length]); see the file's note on spaces. */
-export function sample(
+export function blendKeyPoses(
   clip: FigureClipDef,
   t: number,
   poses: PoseLibrary,

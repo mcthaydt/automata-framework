@@ -1,5 +1,4 @@
-// Writes small model files for tests: a GLB (glTF 2.0 binary) and a packed `.bin` (The Last Light's `LLP1` layout,
-// `scripts/pack-models.py`) from the same mesh, so the parsers can be checked against known values.
+// Writes small model files for tests: a GLB (glTF 2.0 binary) and a packed `.bin` (the `LLP1` layout) from the same mesh, so the parsers can be checked against known values.
 
 /** A 1 × 1 white PNG, so a browser test can decode the texture. */
 const PNG = new Uint8Array([

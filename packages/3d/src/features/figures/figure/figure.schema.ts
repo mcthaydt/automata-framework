@@ -1,6 +1,6 @@
 // The figure content kind (`FigureDef`): a character as data. Sliders and gene overrides make
-// its skeleton, library ids (or inline values) make its look and motion. The shape is FigureBuilder's
-// character file (src/render/figure/cast.ts `CharacterDef` at a1f7246) without its sprite fields (`face.camera`
+// its skeleton, library ids (or inline values) make its look and motion. The shape is a
+// character file without its sprite fields (`face.camera`
 // and `face.turn`, `play`, `atlasOutfit`, `story`) and without per-figure swatches (a figure's colours are
 // library swatches, so every one is a palette colour checked in one place).
 
@@ -15,7 +15,7 @@ import { skeletonProblems } from './figure-skeleton.ts'
 import '../outfit/garments/classic-kinds.ts' // the garments a figure's outfits may name register when the schema loads
 import { type Garment, garmentSchema } from './garment.schema.ts'
 
-/** The hair's spring (FigureBuilder cast.ts `HairPhysics`): stiffness and damping, trail, bounce, sway, hang. */
+/** The hair's spring: stiffness and damping, trail, bounce, sway, hang. */
 export interface HairDynamics {
   readonly stiff: number
   readonly damp: number
@@ -53,7 +53,7 @@ export interface FigureDef {
 }
 
 /**
- * Slider ranges, from The Last Light's builder check (scripts/figures/check-lib.ts at 92e6704): the height in
+ * Slider ranges, as the library check bounds them: the height in
  * centimetres and the head's tilt in degrees have their own; every other slider runs 0–1 and may go a little
  * past either end, for figures meant to look wrong.
  */
@@ -109,7 +109,7 @@ const sliders: z.ZodType<Partial<Sliders>> = partialOf<Sliders>(
     face: headShape.optional(),
   }),
 )
-/** Rig genes set directly, after the sliders (FigureBuilder's `genes`, for figures meant to look wrong). */
+/** Rig genes set directly, after the sliders (for figures meant to look wrong). */
 const n = z.number().optional()
 const genes: z.ZodType<Partial<Genes>> = partialOf<Genes>(
   z.strictObject({

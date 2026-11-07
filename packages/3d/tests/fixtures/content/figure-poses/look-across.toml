@@ -1,5 +1,5 @@
-# A fixture pose (M3 spec §4.4.3), for tests and examples; no game's. FigureBuilder's look swept across to the
-# other side and held (motion.ts `lookYaw` at −0.75 rad); the turns are as look-out.toml says.
+# A fixture pose, for tests and examples; no game's. A look swept across to the
+# other side and held (`lookYaw` at −0.75 rad); the turns are as look-out.toml says.
 
 about = "Looking out to the right: the head turned well round, the chest a little."
 

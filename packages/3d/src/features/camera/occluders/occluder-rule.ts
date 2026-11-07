@@ -1,8 +1,6 @@
 // The occluder rule's geometry, plain arithmetic in metres with +y up. A wall is a span `a → b` on the floor plan with
-// its inside face on that line and the room on its left (the inward normal is `(−dir.z, dir.x)`, as The Last Light's
-// sectors, `src/game/sectors.ts` line 76 at 92e6704, and the 3D editor's `facesEye`). Two tests decide a wall: the
-// facing test (the camera is on the wall's outer side), and the crossing test from The Last Light's 2.5D
-// cut-away (`src/game/cutaway.ts` `wallHidden` at 92e6704): the camera's line to the player crosses the wall's face
+// its inside face on that line and the room on its left (the inward normal is `(−dir.z, dir.x)`, as the 3D editor's `facesEye` has it). Two tests decide a wall: the
+// facing test (the camera is on the wall's outer side), and the crossing test of a cut-away: the camera's line to the player crosses the wall's face
 // within its span, a figure's reach past either end, and below its top. The second matters across a doorway, where the
 // eye stands in the next room and that room's copy of the partition faces it.
 
@@ -31,11 +29,11 @@ export interface Box3 {
   readonly max: readonly [number, number, number]
 }
 
-/** Metres past a wall's end within which it still hides a figure behind it (The Last Light: half a sprite and some). */
+/** Metres past a wall's end within which it still hides a figure behind it (half a sprite and some). */
 export const FIGURE_REACH = 0.6
 /**
  * A line ending this close to a wall's inside face, or within the wall's thickness and this far past its outside
- * face, ends in the wall's doorway, not behind it (The Last Light's 0.12 m, measured there on walls with no depth):
+ * face, ends in the wall's doorway, not behind it (0.12 m, measured on walls with no depth):
  * the player walking through a corridor mouth does not cut the wall either side of it.
  */
 export const ON_THE_LINE = 0.12

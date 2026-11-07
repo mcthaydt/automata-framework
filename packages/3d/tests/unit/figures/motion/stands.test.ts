@@ -1,5 +1,4 @@
-// Stands: hands placed on the dressed figure's openings, with fallbacks. Ported from FigureBuilder
-// (mcthaydt/FigureBuilder) tests/form.test.ts "pocket holds" at a1f7246 onto AF's fixture figures, the golden
+// Stands: hands placed on the dressed figure's openings, with fallbacks. The pocket holds, on AF's fixture figures, the golden
 // outfits and seeded random characters, and checked against the recorded `standHolds` and `evaluate`.
 
 import { beforeAll, describe, expect, it } from 'vitest'
@@ -140,7 +139,7 @@ const PITCH = (18 * Math.PI) / 180
 const FLY = 0.45
 const FRONT: AnchorKind[] = ['frontPocket', 'jacketPocket', 'hem']
 
-describe('pocket holds (FigureBuilder form.test.ts, a1f7246)', () => {
+describe('pocket holds', () => {
   it("every stand's hands go to openings it has, the forearm plumb to a pocket, the hand outside the cloth", () => {
     for (const { name, s, built, surface, holds: placed } of dressed()) {
       const k = s.genes.height / 1.62

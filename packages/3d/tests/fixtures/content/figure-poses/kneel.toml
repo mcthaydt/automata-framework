@@ -1,4 +1,4 @@
-# A fixture pose (M3 spec §4.4.3), for tests and examples; no game's. Figure units, root space unless a handle says.
+# A fixture pose, for tests and examples; no game's. Figure units, root space unless a handle says.
 
 about = "Kneeling on the right knee: the hips down, the left foot forward and flat, the right foot behind with its toes down."
 

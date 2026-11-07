@@ -1,6 +1,6 @@
 // A swatch: a step of one of DUEL's 32 ramps (`{ ramp = "skin", step = 5 }`) and the few material fields a lit
 // mesh needs (materials name palette colours, by ramp and step,
-// the way FigureBuilder's swatches name theirs). FigureBuilder's painter fields stay in FigureBuilder. `kind` and `role` are what a wardrobe's garments match swatches by (the garment registry's `Kind`, `Role`).
+// the way a painter's swatches name theirs). The painter's own fields are not part of this shape. `kind` and `role` are what a wardrobe's garments match swatches by (the garment registry's `Kind`, `Role`).
 
 import { DUEL_RAMP_NAMES, type DuelRampName, duelIndex } from '@automata/content/palette'
 import { z } from 'zod'

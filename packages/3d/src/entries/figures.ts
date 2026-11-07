@@ -33,6 +33,7 @@ export {
 } from '../features/figures/body/rig.ts'
 export { FIGURE_PPM } from '../features/figures/body/texels.ts'
 export { twoBoneIK } from '../features/figures/body/two-bone-ik.ts'
+export { blendKeyPoses, chestFrame, type PoseLibrary } from '../features/figures/clips/blend-key-poses.ts'
 export {
   type ClipKey,
   clipSchema,
@@ -53,7 +54,6 @@ export type {
   StanceState,
 } from '../features/figures/clips/figure-state.ts'
 export { maskPose } from '../features/figures/clips/masks.ts'
-export { chestFrame, type PoseLibrary, sample } from '../features/figures/clips/sample.ts'
 export { type FigureAction, figureActionSchema } from '../features/figures/content/figure-action.schema.ts'
 export {
   FIGURE_CONTENT,

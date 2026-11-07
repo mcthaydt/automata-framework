@@ -1,4 +1,4 @@
-// Subdivision keeps the builder's contract (EnvironmentBuilder `world/subdivide.ts` at 6d82a52, its tests ported).
+// Subdivision keeps the builder's contract.
 import { describe, expect, it } from 'vitest'
 import { box, quad } from '#src/features/world/mesh.ts'
 import { subdivide } from '#src/features/world/subdivide.ts'

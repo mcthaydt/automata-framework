@@ -1,4 +1,4 @@
-// @automata/3d/figures-kit: what an extension author needs to write a wardrobe, a set of garments the figure builder
+// @automata/3d/figures-kit: what an extension author needs to write a wardrobe, a set of garments the figure
 // dresses a body in. The classic garments are core; a wardrobe (examples/3d/wardrobe is the worked one) registers its
 // own kinds with `registerGarment`, builds each into the dressed body from a `Wearing` into a `Fit`, and may tune the
 // outfit with `registerOutfitHooks`. This is the whole surface a garment or a hair piece builder reaches into: the

@@ -47,7 +47,7 @@ describe('the fixture figures and libraries compile as content', () => {
     expect(Object.keys(data['figure-pose'] ?? {}).sort()).toEqual([...FIXTURE_POSE_IDS])
     expect(Object.keys(data['figure-clip'] ?? {}).sort()).toEqual([...FIXTURE_CLIP_IDS])
     expect(Object.keys(data['figure-action'] ?? {}).sort()).toEqual([...FIXTURE_ACTION_IDS])
-    // FigureBuilder's 56 swatches and Wick's six.
+    // the 56 library swatches and Wick's six.
     expect(Object.keys(data['figure-swatch'] ?? {})).toHaveLength(62)
   })
   it("keeps the sliders the tests' skeletons are built from", async () => {
@@ -197,7 +197,7 @@ describe('impossible skeletons fail content compile, naming the slider', () => {
       expect.objectContaining({ code: 'unknownField', file, keyPath: 'outfits.lamplighter.5.lips' }),
     )
   })
-  it("FigureBuilder's painter fields are not swatch fields", async () => {
+  it("a painter's fields are not swatch fields", async () => {
     const file = 'content/figure-swatches/fair.toml'
     const diagnostics = await diagnosticsAfter(file, 'step = 5', 'step = 5\nbase = 27')
     expect(diagnostics).toContainEqual(

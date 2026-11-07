@@ -1,4 +1,4 @@
-// A surface and its placement (EnvironmentBuilder `world/surface.ts` at 6d82a52, its tests ported).
+// A surface and its placement.
 import { describe, expect, it } from 'vitest'
 import { isSurfaceTex, texOf, tileName, wallFrame } from '#src/features/world/surface.ts'
 

@@ -28,12 +28,12 @@ import type { PoseDef } from '../motion/pose.schema.ts'
 import type { SpaceContext } from '../motion/pose-space.ts'
 import { solve } from '../motion/solve.ts'
 import type { SolveReport } from '../motion/targets.ts'
+import { chestFrame } from './blend-key-poses.ts'
 import type { FigureClipDef, MaskGroup } from './clip.schema.ts'
 import { retime } from './clip-time.ts'
 import type { ClipStart, EvaluateOptions, FigureState, MotionLibrary } from './figure-state.ts'
 import { addTurns, type ClipLayerOptions, clipLayer, clipPose, type Layer, mergeLayer } from './layers.ts'
 import { movesLegs, ownsArm } from './masks.ts'
-import { chestFrame } from './sample.ts'
 
 /** A new action carries the outgoing one into it over this long when its clip gives no `blend.inMs`. */
 const TRANSITION_MS = 80

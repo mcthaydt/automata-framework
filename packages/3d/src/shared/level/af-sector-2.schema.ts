@@ -1,5 +1,5 @@
-// The `af-sector/2` level file: `/1`, the sector vocabulary Last Light proved, plus what EnvironmentBuilder's
-// map carries, so the game, the editor and the world builder read one format. A pure validator like `/1`'s (no
+// The `af-sector/2` level file: `/1`, the sector vocabulary, plus what a map
+// carries, so the game, the editor and the world builder read one format. A pure validator like `/1`'s (no
 // defaults, an unknown member kept) with one exception: a plane written as a bare number reads as `{ z }`, so every
 // reader after it sees one shape. Fields land by the table in the level spec; the builder's `verts`/`rect` and its walls by edge
 // index are converted by the world-kit extension's converter, never read here.

@@ -1,5 +1,5 @@
 // A held item: its parts in its socket's space, where its tip (a flame, a light) sits, and the hold that
-// poses the arm (FigureBuilder src/render/figure/cast.ts `ItemDef`, library/items.json at a1f7246). A part's
+// poses the arm (`ItemDef`). A part's
 // `material` is a swatch id. The parts become meshes when the figure is built; the hold is applied by the motion.
 
 import { contentRef } from '@automata/content/schema'

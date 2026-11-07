@@ -1,5 +1,4 @@
-// `View3D`'s linear fog (`Pixi3dOptions.fog`). The Last Light (`mcthaydt/PixiJS3D_Experiment_001`,
-// 92e6704) `src/render/fog.ts` `hazeFor` set the same linear fog from its look constants; here it comes from the
+// `View3D`'s linear fog (`Pixi3dOptions.fog`). A look's constants once set the same linear fog; here it comes from the
 // game's options or its lighting content. Its particle mist is not extracted: it stays out unless a measurement shows
 // it within budget, and S7 has not.
 import type { Fog } from '@pixi/3d'

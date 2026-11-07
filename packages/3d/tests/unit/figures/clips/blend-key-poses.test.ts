@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { fk, J, restPose } from '#src/features/figures/body/rig.ts'
+import { blendKeyPoses, chestFrame, type PoseLibrary } from '#src/features/figures/clips/blend-key-poses.ts'
 import type { FigureClipDef } from '#src/features/figures/clips/clip.schema.ts'
-import { chestFrame, type PoseLibrary, sample } from '#src/features/figures/clips/sample.ts'
 import { blend } from '#src/features/figures/motion/blend.ts'
 import type { PoseDef } from '#src/features/figures/motion/pose.schema.ts'
 import { degrees, eulerDegrees, eulerOf } from '#src/features/figures/motion/rotation.ts'
@@ -32,7 +32,7 @@ const clip = (keys: FigureClipDef['keys']): FigureClipDef => ({
   keys,
 })
 
-describe('sample', () => {
+describe('blendKeyPoses', () => {
   const c = clip([
     { t: 0, pose: 'down' },
     { t: 0.5, pose: 'up', ease: 'inOut' },
@@ -40,17 +40,17 @@ describe('sample', () => {
     { t: 1, pose: 'up' },
   ])
   it("is a key's pose at its time, ids looked up in the library", () => {
-    expect(sample(c, 0, POSES)).toEqual(down)
-    expect(sample(c, 0.5, POSES)).toEqual(up)
-    expect(sample(c, 1, POSES)).toEqual(up)
+    expect(blendKeyPoses(c, 0, POSES)).toEqual(down)
+    expect(blendKeyPoses(c, 0.5, POSES)).toEqual(up)
+    expect(blendKeyPoses(c, 1, POSES)).toEqual(up)
   })
   it('blends the neighbouring keys at the eased fraction', () => {
-    expect(sample(c, 0.125, POSES)).toEqual(blend(down, up, easeAt('inOut', 0.25)))
-    expect(sample(c, 0.875, POSES)).toEqual(blend(down, up, 0.5))
+    expect(blendKeyPoses(c, 0.125, POSES)).toEqual(blend(down, up, easeAt('inOut', 0.25)))
+    expect(blendKeyPoses(c, 0.875, POSES)).toEqual(blend(down, up, 0.5))
   })
   it('holds the previous key through a step', () => {
-    expect(sample(c, 0.6, POSES)).toEqual(up)
-    expect(sample(c, 0.75, POSES)).toEqual(down)
+    expect(blendKeyPoses(c, 0.6, POSES)).toEqual(up)
+    expect(blendKeyPoses(c, 0.75, POSES)).toEqual(down)
   })
   it('follows an ease that overshoots past the key and back (positions and turns extrapolate, weights stay 0..1)', () => {
     const a: PoseDef = { effectors: { handR: { pos: [0, 1, 0], weight: 0.9 }, head: { rot: [0, 0, 0] } } }
@@ -61,18 +61,18 @@ describe('sample', () => {
     ])
     const u = easeAt([0.3, 1.6, 0.6, 1], 0.7)
     expect(u).toBeGreaterThan(1)
-    const got = sample(overshoot, 0.7, {})
+    const got = blendKeyPoses(overshoot, 0.7, {})
     expect(got.effectors.handR?.pos?.[2]).toBeCloseTo(0.4 * u, 12)
     expect(got.effectors.head?.rot?.[1]).toBeCloseTo(40 * u, 9)
     expect(got.effectors.handR?.weight).toBe(1)
   })
   it('clamps t to the clip', () => {
-    expect(sample(c, -1, POSES)).toEqual(down)
-    expect(sample(c, 3, POSES)).toEqual(up)
+    expect(blendKeyPoses(c, -1, POSES)).toEqual(down)
+    expect(blendKeyPoses(c, 3, POSES)).toEqual(up)
   })
   it('refuses a key naming a pose the library lacks, by name', () => {
     expect(() =>
-      sample(
+      blendKeyPoses(
         clip([
           { t: 0, pose: 'gone' },
           { t: 1, pose: 'up' },
@@ -114,7 +114,7 @@ describe('keys in different spaces', () => {
       },
       poles: { elbowL: { dir: applyDir(chest, [1, -1, 0]) } },
     }
-    const got = sample(c, 0.25, {}, { chest })
+    const got = blendKeyPoses(c, 0.25, {}, { chest })
     const want = blend(converted, inRoot, 0.25)
     expect(got.effectors.handL?.space).toBeUndefined()
     for (let i = 0; i < 3; i++) {
@@ -130,16 +130,16 @@ describe('keys in different spaces', () => {
       { t: 0, pose: { effectors: inChest.effectors, poles: inChest.poles } },
       { t: 1, pose: noPole },
     ])
-    const got = sample(twoKeys, 0.5, {}, { chest })
+    const got = blendKeyPoses(twoKeys, 0.5, {}, { chest })
     expect(got.poles?.elbowL?.space).toBeUndefined()
     // The hands agree on chest space, so they stay in it.
     expect(got.effectors.handL?.space).toBe('chest')
   })
   it('refuses a mixed pair with no chest frame, naming the channel', () => {
-    expect(() => sample(c, 0.5, {})).toThrow(/handL/)
+    expect(() => blendKeyPoses(c, 0.5, {})).toThrow(/handL/)
   })
   it('needs no chest frame at a key itself', () => {
-    expect(sample(c, 0, {})).toEqual(inChest)
+    expect(blendKeyPoses(c, 0, {})).toEqual(inChest)
   })
 })
 

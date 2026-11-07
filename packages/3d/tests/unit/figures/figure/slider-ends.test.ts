@@ -1,6 +1,5 @@
 // Every slider at either end of its range, and the face's, still builds a whole figure with finite vertices and a
-// pose that stands. Ported from FigureBuilder (mcthaydt/FigureBuilder) tests/features/body/sliders.test.ts at
-// 025ffb4 (which pushes every slider to either end), onto the golden outfits.
+// pose that stands. It pushes every slider to either end, on the golden outfits.
 
 import { beforeAll, describe, expect, it } from 'vitest'
 import {

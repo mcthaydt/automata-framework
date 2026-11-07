@@ -1,6 +1,5 @@
-// Ported in part from The Last Light `tests/indirect-light.test.ts` ("bakes every subdivided vertex"; fixed lamps
-// scaled by their level) and `tests/vertex-lighting-cache.test.ts` ("refreshes changed light inputs … to match a fresh
-// lighting pass"; no upload when nothing changed) at 92e6704, on plain vertex arrays.
+// Bakes every subdivided vertex (fixed lamps scaled by their level), and refreshes changed light inputs to match a
+// fresh lighting pass (no upload when nothing changed), on plain vertex arrays.
 import { describe, expect, it } from 'vitest'
 import { sceneLightingSchema } from '#src/shared/render/light/scene-lighting.schema.ts'
 import { bakeVertices } from '#src/shared/render/light/vertex-bake.ts'

@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_HEAD, DEFAULT_SLIDERS, measure } from '#src/features/figures/body/genes.ts'
 import { KEEPER_SLIDERS, WICK_SLIDERS } from '#src/testing/fixture-sliders.ts'
 
-describe('gene sliders (FigureBuilder genes.ts at a1f7246)', () => {
-  it("fills left-out sliders from FigureBuilder's defaults", () => {
+describe('gene sliders', () => {
+  it('fills left-out sliders from the defaults', () => {
     expect(measure({}).sliders).toEqual(DEFAULT_SLIDERS)
     expect(measure({ height: 150 }).sliders).toEqual({ ...DEFAULT_SLIDERS, height: 150 })
   })
@@ -17,7 +17,7 @@ describe('gene sliders (FigureBuilder genes.ts at a1f7246)', () => {
     expect(measure({ face: { jaw: 0.9, lips: 0.2 } }).face).toEqual({ ...DEFAULT_HEAD, jaw: 0.9, lips: 0.2 })
   })
   it("gives the source's genes for Wick and the keeper", () => {
-    // From FigureBuilder's measure() at a1f7246, run on Node 24 with these sliders.
+    // From measure(), run on Node 24 with these sliders.
     expect(measure(WICK_SLIDERS).genes).toEqual({
       height: 1.2,
       head: 0.2016,
