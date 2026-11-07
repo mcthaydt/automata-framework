@@ -7,6 +7,7 @@ import {
   type Box3,
   drawWorld,
   type FigureViewState,
+  type Look,
   type Occluders,
   type SceneFog,
   swatchColour,
@@ -101,10 +102,16 @@ const LIP_COLOUR = 0xffb108
 const LIP = { height: 0.06, width: 0.12 } as const
 
 /** Draws the room under the view's root (the renderer's `scene` hook): the world builder's floors, walls and ceilings, the walls cut away by the occluder rule, and the lip along each channel. */
-export function buildScene(view: View3D, occluders: Occluders, area: AreaSource, room: RoomWorld): void {
+export function buildScene(
+  view: View3D,
+  occluders: Occluders,
+  area: AreaSource,
+  room: RoomWorld,
+  look?: Look,
+): void {
   const colourOf = (swatch: string) => swatchColour(room.library, swatch)
   view.environment = { skyColor: 0xcdd2da, groundColor: colourOf('floor') ?? 0x8690b2 }
-  drawWorld({ parent: view.root, occluders, colourOf }, room.world.pieces)
+  drawWorld({ parent: view.root, occluders, colourOf, look }, room.world.pieces)
   for (const box of lipBoxes(area)) occluders.box(box.box, box.colour)
 }
 

@@ -1,0 +1,18 @@
+{
+  "pixel": {
+    "short": 180
+  },
+  "steps": 5,
+  "outline": {
+    "edge": 0.35
+  },
+  "dither": {
+    "strength": 0.04
+  },
+  "grade": "time",
+  "switches": {
+    "outline": false,
+    "grade": true,
+    "dither": true
+  }
+}

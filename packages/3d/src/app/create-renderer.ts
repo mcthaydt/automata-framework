@@ -24,6 +24,8 @@ import {
   type Occluders,
   occluderHooks,
 } from '../features/camera/occluders/occluders.ts'
+import type { Look } from '../features/look/look.schema.ts'
+import { createLookPasses, type LookPasses } from '../features/look/look-pass.ts'
 import { type ContextWatch, watchContextLoss } from '../features/renderer/context-loss.ts'
 import { pixi3dUniformSyncInstalled } from '../features/renderer/no-eval/pixi3d-uniform-sync.ts'
 import { lampSwitches } from '../shared/render/light/lamp-switches.ts'
@@ -32,6 +34,7 @@ import type { SceneFog, SceneLighting } from '../shared/render/light/scene-light
 import { fogSkyColor, viewFog } from '../shared/render/light/view-fog.ts'
 import { loadModels, type ModelLibrary, type ModelStore } from '../shared/render/model/load-models.ts'
 import type { EntityView3d, EntityViewResolver3d } from '../shared/render/views/view-3d.ts'
+import { type TimeOfDay, timeOfDay } from '../shared/time-of-day/time-of-day.ts'
 
 export interface Pixi3dOptions extends PixiRendererOptions {
   /** Component id → its 3D view (`mesh`, `box`). `entityViews` stays the 2D layer's, drawn over the 3D view. */
@@ -77,6 +80,14 @@ export interface Pixi3dOptions extends PixiRendererOptions {
    * game's to place in `scene`.
    */
   readonly camera?: Pixi3dCameraOptions | undefined
+  /**
+   * The pixel-art look (ADR 0007): the DUEL snap, the outline when its switch is on, and the passes extensions added
+   * with `addLookPass`, over the view. The low-resolution field is the game's own `size` (`targetSize`), which the
+   * letterbox draws at resolution 1 and upscales whole pixels. Without it the frame is drawn as it is.
+   */
+  readonly look?: Look | undefined
+  /** The time of day the look's passes read (default `day`). Only with `look`. */
+  readonly time?: TimeOfDay | undefined
   /** Times the lost-context wait. The real clock unless a test hands over a fake one. */
   readonly clock?: Clock | undefined
 }
@@ -123,6 +134,8 @@ interface Mounted {
   readonly hooks: PixiStageHooks
   readonly light: SceneLight | undefined
   readonly camera: CameraRig | undefined
+  /** The look's passes, retired with the view (a pass may be shared, so the view never destroys them itself). */
+  readonly passes: LookPasses | undefined
 }
 
 /**
@@ -141,6 +154,9 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
     ? new View3D({ width: options.logicalWidth, height: options.logicalHeight, toneMapping: 'none' })
     : new View3D({ autoResize: true, toneMapping: 'none' })
   view.fog = viewFog(options.fog, options.lighting?.fog)
+  const passes =
+    options.look === undefined ? undefined : createLookPasses(options.look, options.time ?? timeOfDay('day'))
+  if (passes !== undefined) view.passes = [...passes.list]
   // The sky. The view draws no colour where no mesh is, so the letterbox's black field shows through there (the app's
   // clear colour is under that field). A 2D fill of the view's rect, under it, draws the sky exactly on both backends;
   // `@pixi/3d`'s hemisphere background lifts dark colours (0x020c0c draws as 0x091414). Inside the view only, so the
@@ -167,7 +183,7 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   }
   const occluders = createOccluders(view.root)
   if (options.camera === undefined)
-    return { view, occluders, consumer, hooks: entities, light, camera: undefined }
+    return { view, occluders, consumer, hooks: entities, light, camera: undefined, passes }
   const camera = angledCamera({
     camera: view.camera,
     views: options.camera.views,
@@ -185,6 +201,7 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
     hooks: mergeHooks(entities, cameraDriver(camera, options.camera), occluding),
     light,
     camera,
+    passes,
   }
 }
 
@@ -253,7 +270,7 @@ async function buildInstance(
     const tried: ('webgl2' | 'webgpu')[] = options.preference === 'webgpu' ? ['webgpu', 'webgl2'] : ['webgl2']
     return { ok: false, reason: new RendererUnavailable({ tried }) }
   }
-  const { view, consumer, camera, occluders } = mounted
+  const { view, consumer, camera, occluders, passes } = mounted
   const device = (base.stage.app.renderer as unknown as { gpu?: { device?: GPUDevice } }).gpu?.device
   const context = watchContextLoss({ canvas: base.stage.app.canvas, device, bus: target.bus, clock, onGone })
   // Runs before the app's own teardown (added last, run first): stop watching, then drop the views.
@@ -261,6 +278,7 @@ async function buildInstance(
     context.stop()
     consumer.destroy()
     occluders.dispose()
+    for (const pass of passes?.list ?? []) pass.destroy()
   })
   return { ok: true, value: { cleanup, base, view, context, camera } }
 }

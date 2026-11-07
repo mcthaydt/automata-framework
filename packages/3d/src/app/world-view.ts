@@ -3,6 +3,8 @@
 // pieces and the renderer's occluders; the builder itself knows no renderer. Presentation only: the sim never reads it.
 import { Box, Container3D, Geometry3D, Mesh3D, PhongMaterial, Vector3 } from '@pixi/3d'
 import type { Occluders } from '../features/camera/occluders/occluders.ts'
+import type { Look } from '../features/look/look.schema.ts'
+import { RampMaterial } from '../features/look/ramp-light-material.ts'
 import type { WorldPiece } from '../features/world/build.ts'
 import type { WorldLamp } from '../features/world/place-props.ts'
 import { tileName } from '../features/world/surface.ts'
@@ -18,6 +20,8 @@ export interface WorldScene {
   readonly colourOf: (swatch: string) => number | undefined
   /** Default: mid grey. */
   readonly fallback?: number | undefined
+  /** With a look, every piece takes the stepped-light material (the look's `steps`) in place of plain Phong. */
+  readonly look?: Look | undefined
 }
 
 export interface WorldView {
@@ -34,7 +38,7 @@ export interface WorldView {
 const MISSING = 0x808080
 
 /** The mesh of a piece: its geometry from the piece's arrays, in the swatch's colour, with a material of its own. */
-function meshOf(piece: WorldPiece, colour: number): Mesh3D {
+function meshOf(piece: WorldPiece, colour: number, look: Look | undefined): Mesh3D {
   const { positions, normals, indices } = piece.mesh
   const low = [Infinity, Infinity, Infinity] as [number, number, number]
   const high = [-Infinity, -Infinity, -Infinity] as [number, number, number]
@@ -49,7 +53,11 @@ function meshOf(piece: WorldPiece, colour: number): Mesh3D {
     indices: new Uint32Array(indices),
     bounds3D: new Box(new Vector3(...low), new Vector3(...high)),
   })
-  return new Mesh3D({ geometry, material: new PhongMaterial({ baseColor: colour }) })
+  const material =
+    look === undefined
+      ? new PhongMaterial({ baseColor: colour })
+      : new RampMaterial({ baseColor: colour, steps: look.steps })
+  return new Mesh3D({ geometry, material })
 }
 
 /** Draws `pieces` into `scene.parent`. */
@@ -58,7 +66,11 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
   scene.parent.addChild(node)
   const meshes = new Map<string, Mesh3D>()
   for (const piece of pieces) {
-    const mesh = meshOf(piece, scene.colourOf(tileName(piece.surface)) ?? scene.fallback ?? MISSING)
+    const mesh = meshOf(
+      piece,
+      scene.colourOf(tileName(piece.surface)) ?? scene.fallback ?? MISSING,
+      scene.look,
+    )
     node.addChild(mesh)
     meshes.set(piece.id, mesh)
     if (scene.occluders === undefined) continue
