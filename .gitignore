@@ -30,3 +30,4 @@ docs/evidence/
 
 # The create-game journey scaffolds its game here (packages/tools/tests/e2e/serve-new-game.ts).
 packages/tools/tests/e2e/.scratch/
+spikes/3d-look/node_modules

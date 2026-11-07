@@ -8,7 +8,7 @@
 // @automata/3d; @automata/content (its Vite plugin) and @automata/tools.
 import '@automata/3d/no-eval'
 import { content } from 'virtual:automata/content'
-import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
+import { createPixi3dRenderer, DEFAULT_LOOK, figure, render3dExtension, targetSize } from '@automata/3d'
 import type { FigureDef } from '@automata/3d/figures'
 import { CameraTurn, STICK_MAX } from '@automata/3d/sim'
 import type { QualityTier } from '@automata/framework'
@@ -86,6 +86,11 @@ let simTick = 0
 const now = (): number => simTick / TICK_HZ
 
 const TITLE = BASE3D_COPY.en.title
+/**
+ * The pixel-art look's field (ADR 0007): the short side is the look's 180 pixels, drawn at resolution 1 and upscaled in
+ * whole pixels. The page is still the 844 × 390 a phone held sideways shows; the screens are DOM over the field.
+ */
+const FIELD = targetSize({ width: 844, height: 390 }, DEFAULT_LOOK.pixel.short)
 /** The camera's heading plugin and its `camera-view` content kind, and the HUD on play. */
 const EXTENSIONS = [render3dExtension, hudExtension]
 /** The stage, once the renderer has made it: the screens give it the player's graphics quality (M4.4). */
@@ -96,7 +101,7 @@ const saves = base3dSaves()
 export const base3d = defineGame({
   id: 'base-3d',
   title: TITLE,
-  size: { width: 844, height: 390 },
+  size: FIELD,
   orientation: 'landscape',
   sim: BASE3D_SIM,
   extensions: EXTENSIONS,
@@ -131,6 +136,7 @@ export const base3d = defineGame({
         return options.setup?.(made)
       },
       fog: FOG,
+      look: DEFAULT_LOOK,
       views: {
         [Hero.id]: inMetres(
           figure(figures.wick as FigureDef, { library, motion, now, state: (c) => heroFigureState(c) }),
@@ -144,7 +150,7 @@ export const base3d = defineGame({
         position: (c) => placed(c.hero),
       },
       scene: (view, _stage, occluders) => {
-        buildScene(view, occluders, ROOM, ROOM_WORLD)
+        buildScene(view, occluders, ROOM, ROOM_WORLD, DEFAULT_LOOK)
         return {
           draw: () => {},
           reset: () => {},

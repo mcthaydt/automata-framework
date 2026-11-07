@@ -15,7 +15,12 @@
     // plain .mjs files run by hand with node, and are not part of any package.
     ".": {
       "entry": ["agents/automata/scripts/check.mjs"],
-      "ignore": ["agents/automata/skills/*/example/**", "docs/design/**", "docs/archive/design/**"]
+      "ignore": [
+        "agents/automata/skills/*/example/**",
+        "docs/design/**",
+        "docs/archive/design/**",
+        "spikes/**"
+      ]
     },
     // DX.7: the example imports @automata/sim, which tooling/agent-skills' vitest config aliases to the source.
     "tooling/agent-skills": { "ignoreDependencies": ["@automata/sim"] },

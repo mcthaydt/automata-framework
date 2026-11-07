@@ -7,6 +7,7 @@
       "!**/dist",
       "!docs/archive",
       "!**/out",
+      "!spikes",
       "!**/__goldens__",
       "!tooling/api-index/fixtures",
       "!packages/editor-3d/src/testing/fixtures",

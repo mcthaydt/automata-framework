@@ -60,6 +60,26 @@ export {
   type FigureViewState,
   figure,
 } from '../features/figures/view/figure-view.ts'
+export { DuelSnapEffect } from '../features/look/duel-snap-filter.ts'
+export { DEFAULT_LOOK, type Look, type LookSwitches, parseLook } from '../features/look/look.ts'
+export {
+  addLookPass,
+  createLookPasses,
+  type LookPass,
+  type LookPasses,
+  registeredLookPasses,
+} from '../features/look/look-pass.ts'
+export { OutlineEffect } from '../features/look/outline-filter.ts'
+export { lightSteps, rampLit } from '../features/look/ramp-light.ts'
+export { RampMaterial, type RampMaterialOptions } from '../features/look/ramp-light-material.ts'
+export {
+  SPRITE_STYLE,
+  type SpriteInput,
+  type SpriteLamp,
+  type SpriteLight,
+  spriteLight,
+} from '../features/look/sprite-light.ts'
+export { targetSize } from '../features/look/target-size.ts'
 export {
   buildWorld,
   type World,
@@ -108,3 +128,4 @@ export { type BoxMaterial, type BoxSize, box } from '../shared/render/views/box-
 export { type MeshViewOptions, mesh } from '../shared/render/views/mesh-view.ts'
 export { interpolatePose3d, type Pose3d, placeView3d } from '../shared/render/views/pose-3d.ts'
 export type { EntityView3d, EntityViewResolver3d, View3dFactory } from '../shared/render/views/view-3d.ts'
+export { TIMES, type TimeOfDay, type TimeOverrides, timeOfDay } from '../shared/time-of-day/time-of-day.ts'
