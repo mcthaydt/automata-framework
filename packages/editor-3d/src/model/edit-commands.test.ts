@@ -1,6 +1,8 @@
 // The commands and keys of the level editor (ED3D.3 step 8): undo and redo, delete and duplicate over the selected
 // sectors, and the view modes, registered in the kit's registry and reached through its keymap. They run on the toy
 // level (a hall and a dock that lead into each other, 8 and 6 m wide) so every case can be read off its numbers.
+
+import type { AfSector } from '@automata/3d/level'
 import {
   type CommandRegistry,
   createCommandRegistry,
@@ -9,7 +11,6 @@ import {
   type Keymap,
 } from '@automata/editor/kit/core'
 import { beforeEach, describe, expect, it } from 'vitest'
-import type { AfSector } from '../format/af-sector.schema'
 import { afSectorProfile } from '../profile/af-sector-profile'
 import type { EditSector } from '../profile/sector-access'
 import { rect } from '../testing/edit-helpers'

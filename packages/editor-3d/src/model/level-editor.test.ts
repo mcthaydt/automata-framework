@@ -1,12 +1,13 @@
 // The level editor (ED3D.3 step 4): the kit's History and Selection and the view store behind one object, and the
 // protocol every edit goes through. The edits here are small fakes over the depot, so the protocol is tested apart
 // from the sector rules (steps 5 to 7).
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it, vi } from 'vitest'
-import type { AfSector } from '../format/af-sector.schema'
 import { afSectorProfile } from '../profile/af-sector-profile'
 import type { LevelProfile } from '../profile/level-profile'
+import { must } from '../testing/edit-helpers'
 import { loadAuthored } from '../testing/fixtures'
-import { must } from '../testing/toy-blockout'
 import { type Edit, ok, refuse } from './edit'
 import { createLevelEditor } from './level-editor'
 import { addThing, removeThing } from './thing-edits'

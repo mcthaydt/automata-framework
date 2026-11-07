@@ -1,7 +1,8 @@
 // The file a New level starts from (ED3D.13a step 4): a hand-formatted `af-sector/1` file with an empty materials
 // table, no sectors, the spawn definition and no things, which the codec then patches like any other level.
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../../format/af-sector.schema'
 import { addDefinition } from '../../model/definition-edits'
 import type { Edit } from '../../model/edit'
 import { createLevelEditor } from '../../model/level-editor'

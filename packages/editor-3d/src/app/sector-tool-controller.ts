@@ -7,8 +7,9 @@
 // Closing a sector whose walls lie on a neighbour's wall does not end the step: the sector is in the level, the step is
 // still open and `view.offers` lists the portals it could have. Each offer is accepted or declined, and the step ends
 // with the last answer (or `finish`), so the sector and the portals it was given are one undo step.
+
+import type { Point } from '@automata/3d/level'
 import type { Size, Viewport2D } from '@automata/editor/kit/core'
-import type { Point } from '../format/sector.schema'
 import type { EditSession, LevelEditor } from '../model/level-editor'
 import { type PortalOffer, portalOffers } from '../model/portal-offers'
 import { addSector } from '../model/sector-edits'

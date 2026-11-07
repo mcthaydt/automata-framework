@@ -10,6 +10,7 @@
   its edge lengths, refusal and the Sector tool's options are DOM over the canvas.
 -->
 <script lang="ts">
+import type { Point } from '@automata/3d/level'
 import { attachGestures } from '@automata/editor/kit'
 import type { Size } from '@automata/editor/kit/core'
 import { onDestroy } from 'svelte'
@@ -17,7 +18,6 @@ import { loupeOf, nudgePadOf } from '../../app/loupe'
 import { createPlanPicture, planPointAt } from '../../app/plan-picture'
 import type { PlanToolState, PlanTools } from '../../app/plan-tools'
 import { type ToolLabel, toolOverlay } from '../../app/tool-paint'
-import type { Point } from '../../format/sector.schema'
 import type { LevelEditor } from '../../model/level-editor'
 import type { PlanPaint } from '../../view/plan/plan-paint'
 import NewSectorCard from './NewSectorCard.svelte'

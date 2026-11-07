@@ -1,8 +1,9 @@
 // The ref half of `ids` (ED3D.2b-1): a ref field must point at a thing or a sector the level has, as its `to` allows,
 // and a `to` must name only what a definition or `$sector` can be. Seeded into the toy AF level (sectors `hall`, `dock`).
+
+import type { AfEntity, AfEntityDef } from '@automata/3d/level'
 import type { FieldDef } from '@automata/editor/kit/fields'
 import { describe, expect, it } from 'vitest'
-import type { AfEntity, AfEntityDef } from '../format/af-sector.schema'
 import { afEntityKit } from '../profile/af-sector/af-entities'
 import { toyAfSector } from '../testing/toy-af-sector'
 import { entityRefProblems } from './entity-refs'

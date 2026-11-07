@@ -1,7 +1,7 @@
 import { createToasts, type ProjectStore, type Toast } from '@automata/editor/kit/core'
 import { strToU8, zipSync } from 'fflate'
 import { describe, expect, it } from 'vitest'
-import { loadAuthored, loadFixture } from '../../testing/fixtures'
+import { loadAuthored } from '../../testing/fixtures'
 import { createTestClock, memoryWorkspace } from '../../testing/memory-workspace'
 import type { PanelOutcome } from '../document/open-flow-model'
 import { createEditorApp, type EditorApp, type OpenOutcome } from '../editor-app'
@@ -37,30 +37,24 @@ async function setup(files: Record<string, string | Uint8Array> = {}, wrap?: (ap
 }
 
 describe('the 3D Home controller', () => {
-  it('lists the levels and the facility, newest first, with the first selected', async () => {
+  it('lists the levels, newest first, with the first selected', async () => {
     const { controller, current } = await setup({
       [DEPOT]: loadAuthored('depot.af-sector'),
-      'art/blockout-clinic/blockout.json': loadFixture('blockout-clinic'),
-      'art/blockout-facility/facility.json': loadFixture('facility'),
+      'art/annex/annex.json': loadAuthored('depot.af-sector'),
       'art/readme.md': 'not a level',
     })
     await controller.refresh()
-    expect(current().visible.map((entry) => entry.path)).toEqual([
-      'art/blockout-facility/facility.json',
-      'art/blockout-clinic/blockout.json',
-      DEPOT,
-    ])
-    expect(current().selected).toBe('art/blockout-facility/facility.json')
+    expect(current().visible.map((entry) => entry.path)).toEqual(['art/annex/annex.json', DEPOT])
+    expect(current().selected).toBe('art/annex/annex.json')
   })
 
   it('searches by profile', async () => {
-    const { controller, current } = await setup({
-      [DEPOT]: loadAuthored('depot.af-sector'),
-      'art/blockout-clinic/blockout.json': loadFixture('blockout-clinic'),
-    })
+    const { controller, current } = await setup({ [DEPOT]: loadAuthored('depot.af-sector') })
     await controller.refresh()
+    controller.search('af-sector')
+    expect(current().visible.map((entry) => entry.path)).toEqual([DEPOT])
     controller.search('last-light')
-    expect(current().visible.map((entry) => entry.path)).toEqual(['art/blockout-clinic/blockout.json'])
+    expect(current().visible).toEqual([])
   })
 
   it('opens the selected level and hands it to the owner', async () => {
@@ -79,30 +73,6 @@ describe('the 3D Home controller', () => {
     await controller.open('broken.json')
     expect(problems.map((outcome) => [outcome.status, outcome.path])).toEqual([['invalid', 'broken.json']])
     expect(said).toEqual([])
-  })
-
-  it('does not open a facility on its own: no panel, the summary’s reason as a toast, the app never asked', async () => {
-    const asked: string[] = []
-    const { controller, problems, opened, said } = await setup(
-      { 'art/blockout-facility/facility.json': loadFixture('facility') },
-      (app) => ({
-        ...app,
-        open: (path) => {
-          asked.push(path)
-          return app.open(path)
-        },
-      }),
-    )
-    await controller.refresh()
-    await controller.open('art/blockout-facility/facility.json')
-    await controller.open()
-    expect(asked).toEqual([])
-    expect(problems).toEqual([])
-    expect(opened).toEqual([])
-    expect(said.map((toast) => [toast.kind, toast.message])).toEqual([
-      ['info', 'A facility opens with one of its levels: open a level beside it.'],
-      ['info', 'A facility opens with one of its levels: open a level beside it.'],
-    ])
   })
 
   it('toasts a file that went, and a store that refused', async () => {
@@ -130,13 +100,13 @@ describe('the 3D Home controller', () => {
     const { controller, said, current } = await setup({ [DEPOT]: loadAuthored('depot.af-sector') })
     await controller.refresh()
     await controller.importFolder([
-      { path: 'clinic/blockout.json', bytes: strToU8(loadFixture('blockout-clinic')) },
-      { path: 'clinic/.DS_Store', bytes: new Uint8Array(1) },
+      { path: 'annex/annex.json', bytes: strToU8(loadAuthored('depot.af-sector')) },
+      { path: 'annex/.DS_Store', bytes: new Uint8Array(1) },
     ])
     expect(said.map((toast) => [toast.kind, toast.message])).toEqual([
-      ['warn', 'Imported 1 file into clinic; 1 left out (system files, unsafe names or over 16 MB).'],
+      ['warn', 'Imported 1 file into annex; 1 left out (system files, unsafe names or over 16 MB).'],
     ])
-    expect(current().selected).toBe('clinic/blockout.json')
+    expect(current().selected).toBe('annex/annex.json')
   })
 
   it('imports a zip under its top folder, and refuses bytes that are not one', async () => {

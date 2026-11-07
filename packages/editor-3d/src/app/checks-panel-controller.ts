@@ -5,11 +5,11 @@
 // The checks run on committed levels only. The history's `revision` moves on an edit, an undo, a redo and a commit and
 // not on the live updates of a drag, so a drag in flight never reaches the pill, and the level a run reads is the one
 // the step left, whatever has been dragged since.
+
+import type { Point } from '@automata/3d/level'
 import type { CheckResult, Locator } from '../checks/check'
-import type { Point } from '../format/sector.schema'
 import type { LevelEditor } from '../model/level-editor'
 import { parseSelection } from '../model/selection-ref'
-import type { ProfileContext } from '../profile/level-profile'
 import { problemCount } from './problem-count'
 
 /** Calls `run` after `delayMs`; the function it returns cancels the call. */
@@ -19,8 +19,6 @@ export interface ChecksPanelOptions {
   readonly schedule: Scheduler
   /** The pause between a committed step and the run it asks for; another step inside it restarts it. Default 250. */
   readonly delayMs?: number | undefined
-  /** What the profile's checks may be told about the game that holds the level. */
-  readonly context?: ProfileContext | undefined
 }
 
 export interface ChecksPanelView {
@@ -75,7 +73,7 @@ export function createChecksPanel<D>(editor: LevelEditor<D>, options: ChecksPane
   let cancelWaiting: (() => void) | undefined
   let disposed = false
 
-  const check = (): readonly CheckResult[] => editor.profile.checks(committed, options.context)
+  const check = (): readonly CheckResult[] => editor.profile.checks(committed)
 
   const viewOf = (results: readonly CheckResult[], pending: boolean): ChecksPanelView => ({
     results,

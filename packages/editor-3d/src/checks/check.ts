@@ -1,7 +1,7 @@
 // What a check answers: Last Light's `result` helper (scripts/pipeline/blockout-lib.ts, 92e6704) with a severity,
 // and with each problem carrying where it is, so the editor can frame it (ED3D spec §7). The sentence of a problem
 // is Last Light's own, so a level that fails in the game fails the same way here.
-import type { Point } from '../format/sector.schema'
+import type { Point } from '@automata/3d/level'
 import type { Edge, ResolvedMap } from '../geometry/sectors'
 
 export type Severity = 'error' | 'warning'
@@ -72,13 +72,6 @@ export function wallSelection(sectorId: string, corner: number): string {
     throw new SelectionIdError(`wall corner ${corner} is not a whole number from 0`)
   return `wall:${part('sector id', sectorId)}/${corner}`
 }
-
-/** The kinds of member a World selection names (ED3D.9a): the facility's wings, joins, locks and phases. */
-export type FacilitySelectionKind = 'wing' | 'join' | 'lock' | 'phase'
-
-/** `wing:bay`, `join:exit`, `lock:p0.cabinet`, `phase:P2`: the same `kind:name` form as the level's ids. */
-export const facilitySelection = (kind: FacilitySelectionKind, id: string): string =>
-  `${kind}:${part(`${kind} id`, id)}`
 
 export const entitySelection = (definition: string, id: string): string =>
   `entity:${part('entity definition', definition)}/${part('entity id', id)}`

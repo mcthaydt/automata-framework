@@ -1,11 +1,10 @@
 // Cutaway and picking in 3D (ED3D.4 step 8, ED3D spec §6 and flow 4): which surfaces the eye sees, and what a ray from the
 // eye hits first among them. A surface that faces away from the eye is cut away, so the dollhouse sees into a room through
 // its near walls and Walk, inside the room, sees them all. Rooms are 8 m by 6 m and 4 m high.
+
+import type { AfSector, AfSectorEntry, AfWall } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector, AfSectorEntry, AfWall } from '../../format/af-sector.schema'
 import { afSectorProfile } from '../../profile/af-sector-profile'
-import { lastLightProfile } from '../../profile/last-light-profile'
-import { loadFixture } from '../../testing/fixtures'
 import { toyAfSector } from '../../testing/toy-af-sector'
 import { type SelectionOf, selectionOf } from '../selection-of'
 import { type Camera3D, fitOrbit, orbitCamera, projectPoint, rayThrough, walkCamera } from './camera-3d'
@@ -441,10 +440,9 @@ describe('pickMesh', () => {
 })
 
 describe('pickMesh and the cameras', () => {
-  const dawn = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
-  if (!dawn.ok) throw new Error('clinic-dawn does not parse')
-  const layers = lastLightProfile.geometry(dawn.value).layers
-  const select = selectionOf(lastLightProfile, dawn.value)
+  const level = toyAfSector()
+  const layers = afSectorProfile.geometry(level).layers
+  const select = selectionOf(afSectorProfile, level)
   const mesh = buildSectorMesh(layers, select)
 
   /** A small deterministic generator, so a failure names the seed that made it. */
@@ -462,7 +460,7 @@ describe('pickMesh and the cameras', () => {
       orbitCamera(fitOrbit(mesh.bounds, SIZE, { yaw: heading * DEGREES })),
     )
     const walks = Array.from({ length: 6 }, () =>
-      walkCamera({ x: next() * 8 - 4, z: next() * 8 - 4 }, 0, next() * 6.28),
+      walkCamera({ x: next() * 14, z: next() * 6 }, 0, next() * 6.28),
     )
     return [...orbits, ...walks]
   }
@@ -511,26 +509,5 @@ describe('pickMesh and the cameras', () => {
         if (a !== undefined) expect(b?.distance).toBeCloseTo(a.distance, 9)
       }
     }
-  })
-
-  it('never hits a connector’s surface with a selection, and hits it when it is the nearest', () => {
-    const connector = layers[0]?.map.sectors.find((sector) => select.sector(sector.id) === undefined)
-    expect(connector).toBeDefined()
-    const next = random(5)
-    for (const camera of cameras()) {
-      for (let k = 0; k < 60; k++) {
-        const hit = pickAt(mesh, camera, { x: next() * SIZE.w, y: next() * SIZE.h })
-        if (hit?.sector === connector?.id) expect(hit?.selection).toBeUndefined()
-      }
-    }
-    // Straight down onto the connector's own floor.
-    const outline = connector?.points[0] ?? []
-    const middle = {
-      x: outline.reduce((sum, p) => sum + p.x, 0) / outline.length,
-      z: outline.reduce((sum, p) => sum + p.z, 0) / outline.length,
-    }
-    const down = pickMesh(mesh, { origin: [middle.x, 20, middle.z], direction: [0, -1, 0] })
-    expect(down).toMatchObject({ sector: connector?.id, role: 'floor' })
-    expect(down?.selection).toBeUndefined()
   })
 })

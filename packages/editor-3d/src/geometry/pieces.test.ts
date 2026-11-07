@@ -1,9 +1,11 @@
-// Wall pieces, colliders and sight walls: the toy cases come from running The Last Light's own `useMap` (src/game/
-// sectors.ts at 92e6704) on the same inputs; the shipped blockouts are compared with what that code made of them
-// (the golden) and checked with the collider case of Last Light's tests/scenes.test.ts.
+// Wall pieces, colliders and sight walls: small cases that show one rule each, and the collider rule held on a shipped
+// level (the depot).
+
+import { type SectorDef, STEP, type WallDef } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import { type SectorDef, STEP, type WallDef } from '../format/sector.schema'
-import { BLOCKOUT_NAMES, expandedBlockout, loadGeometryGolden, piecesShape } from '../testing/geometry-golden'
+import { buildSectors } from '../profile/af-sector/build'
+import { afSectorProfile } from '../profile/af-sector-profile'
+import { loadAuthored } from '../testing/fixtures'
 import { room } from '../testing/toy-sectors'
 import {
   type Edge,
@@ -218,17 +220,10 @@ describe('resolveMap', () => {
   })
 })
 
-describe.each(BLOCKOUT_NAMES)('%s', (name) => {
-  const expanded = expandedBlockout(name)
-  const map = resolveMap(expanded.sectors, expanded.masses)
-  const golden = loadGeometryGolden()[name].map
-
-  it("has the pieces, colliders and sight walls Last Light's own useMap made of it", () => {
-    const shape = piecesShape(map)
-    expect(shape.pieces).toEqual(golden.pieces)
-    expect(shape.colliders).toEqual(golden.colliders)
-    expect(shape.sightWalls).toEqual(golden.sightWalls)
-  })
+describe('the depot', () => {
+  const parsed = afSectorProfile.parse(loadAuthored('depot.af-sector'))
+  if (!parsed.ok) throw new Error('the depot does not parse')
+  const map = resolveMap(buildSectors(parsed.value), [])
 
   it('has colliders that cover exactly the solid walls and the steps too tall to climb', () => {
     for (const e of map.edges.filter((edge) => !edge.next))

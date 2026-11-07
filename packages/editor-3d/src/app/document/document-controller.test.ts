@@ -1,10 +1,10 @@
+import type { AfSector } from '@automata/3d/level'
 import { createToasts, type Toast } from '@automata/editor/kit/core'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../../format/af-sector.schema'
 import type { LevelEditor } from '../../model/level-editor'
-import { loadAuthored, loadFixture } from '../../testing/fixtures'
+import { loadAuthored } from '../../testing/fixtures'
 import { createTestClock, memoryWorkspace, textOf } from '../../testing/memory-workspace'
-import { createEditorApp, type OpenOutcome } from '../editor-app'
+import { createEditorApp } from '../editor-app'
 import { createDocumentController, type DocumentState } from './document-controller'
 
 // One open level's flows (plan ED3D.5c step 8; ED3D spec §5.3 flow 9, §8, §11; kit spec §5 flows 3 and 4): Save and
@@ -13,8 +13,6 @@ import { createDocumentController, type DocumentState } from './document-control
 
 const PATH = 'depot/depot.json'
 const DEPOT = loadAuthored('depot.af-sector')
-const CLINIC = 'art/blockout-clinic/blockout.json'
-const FACILITY = 'art/blockout-facility/facility.json'
 
 function fakePage() {
   const listeners = new Map<string, Set<() => void>>()
@@ -324,22 +322,5 @@ describe('the 3D document controller', () => {
     await controller.close()
     await controller.save()
     expect(current().busy).toBeUndefined()
-  })
-
-  it('close lets the facility beside a Last Light level go too', async () => {
-    const { controller, outcome } = await setup(
-      { [CLINIC]: loadFixture('blockout-clinic'), [FACILITY]: loadFixture('facility') },
-      CLINIC,
-    )
-    const facility = (outcome as Extract<OpenOutcome, { status: 'opened' }>).facility
-    if (facility?.status !== 'opened') throw new Error('expected the facility to open')
-    let disposed = false
-    const dispose = facility.facility.document.dispose
-    ;(facility.facility.document as { dispose(): void }).dispose = () => {
-      disposed = true
-      dispose()
-    }
-    await controller.close()
-    expect(disposed).toBe(true)
   })
 })

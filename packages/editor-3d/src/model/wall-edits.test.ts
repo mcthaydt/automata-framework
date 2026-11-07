@@ -1,16 +1,13 @@
 // The wall edits (ED3D.3 step 7): what a wall is (solid, portal, door, window), the members of a door and a window, its
-// texture and its flags. On the depot (`af-sector/1`), on small levels that show one rule each, and on Last Light's
-// clinic-dawn blockout, where a wall may be a cutaway name or start from a preset.
+// texture and its flags. On the depot (`af-sector/1`) and on small levels that show one rule each.
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../format/af-sector.schema'
-import type { Blockout } from '../format/blockout.schema'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
 import type { EditSector, EditWall } from '../profile/sector-access'
-import { levelOf, reasonOf } from '../testing/edit-helpers'
-import { loadAuthored, loadFixture } from '../testing/fixtures'
+import { levelOf, must, reasonOf } from '../testing/edit-helpers'
+import { loadAuthored } from '../testing/fixtures'
 import { toyAfSector } from '../testing/toy-af-sector'
-import { must } from '../testing/toy-blockout'
 import type { Edit } from './edit'
 import { createLevelEditor } from './level-editor'
 import { setDoor, setWallFlags, setWallKind, setWallMaterial, setWallOcclude, setWindow } from './wall-edits'
@@ -20,19 +17,11 @@ const depot = (() => {
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
 })()
-const dawn = (() => {
-  const result = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
-  if (!result.ok) throw new Error('clinic-dawn does not parse')
-  return result.value
-})()
 
 const afOn = (level: AfSector, edit: Edit<AfSector>) => edit.run(afSectorProfile, level)
 const afRun = (edit: Edit<AfSector>) => afOn(depot, edit)
-const llRun = (edit: Edit<Blockout>) => edit.run(lastLightProfile, dawn)
 const sector = (level: AfSector, id: string): EditSector =>
   must(afSectorProfile.sectors.list(level).find((each) => each.id === id))
-const room = (level: Blockout, id: string): EditSector =>
-  must(lastLightProfile.sectors.list(level).find((each) => each.id === id))
 /** The wall that starts at a corner, as written. */
 const wallAt = (level: AfSector, id: string, corner: number) => must(sector(level, id).corners[corner])[2]
 const openings = (level: AfSector) => must(afSectorProfile.checks(level).find((r) => r.id === 'openings'))
@@ -199,14 +188,6 @@ describe('wall.setKind: door and window', () => {
     expect(levelOf(afRun(setWallKind({ sector: 'hall', corner: 3, kind: 'door' })))).toBe(depot)
     expect(levelOf(afRun(setWallKind({ sector: 'hall', corner: 0, kind: 'window' })))).toBe(depot)
   })
-
-  it('makes the wall of a Last Light name a door, keeping the cutaway group', () => {
-    const next = levelOf(llRun(setWallKind({ sector: 'hall', corner: 4, kind: 'door' })))
-    expect(must(room(next, 'hall').corners[4])[2]).toEqual({
-      cut: 'north-east',
-      door: { at: 1.4375, width: 1.2, height: 2.2 },
-    })
-  })
 })
 
 describe('wall.setKind: solid', () => {
@@ -251,37 +232,6 @@ describe('wall.setKind: solid', () => {
 
   it('changes nothing for a wall that is solid already', () => {
     expect(levelOf(afRun(setWallKind({ sector: 'hall', corner: 2, kind: 'solid' })))).toBe(depot)
-  })
-
-  it('leaves a Last Light name as the name it is', () => {
-    expect(levelOf(llRun(setWallKind({ sector: 'hall', corner: 4, kind: 'solid' })))).toBe(dawn)
-  })
-
-  it('refuses a wall whose portal comes from a wall preset, with or without a `next` of its own', () => {
-    const withWall = (wall: EditWall): Blockout =>
-      ({
-        ...dawn,
-        rooms: dawn.rooms.map((each) =>
-          each.id === 'hall'
-            ? { ...each, corners: each.corners.map((c, i) => (i === 4 ? [c[0], c[1], wall] : c)) }
-            : each,
-        ),
-      }) as Blockout
-    const reason = 'the wall takes its portal from the wall preset COUNTER, which this edit cannot take off'
-    for (const level of [withWall({ preset: 'COUNTER' }), withWall({ preset: 'COUNTER', next: 'ward' })])
-      for (const kind of ['solid', 'door', 'window'] as const)
-        expect(
-          reasonOf(setWallKind<Blockout>({ sector: 'hall', corner: 4, kind }).run(lastLightProfile, level)),
-        ).toBe(reason)
-    const own = withWall({ preset: 'PILASTER', next: 'ward' })
-    const solid = levelOf(
-      setWallKind<Blockout>({ sector: 'hall', corner: 4, kind: 'solid' }).run(lastLightProfile, own),
-    )
-    expect(must(room(solid, 'hall').corners[4])[2]).toEqual({ preset: 'PILASTER' })
-    const plain = withWall({ preset: 'PILASTER' })
-    expect(
-      setWallKind<Blockout>({ sector: 'hall', corner: 4, kind: 'door' }).run(lastLightProfile, plain).ok,
-    ).toBe(true)
   })
 })
 
@@ -648,12 +598,6 @@ describe('wall.setMaterial', () => {
     expect(levelOf(afRun(setWallMaterial({ sector: 'hall', corner: 2, texture: null })))).toBe(depot)
   })
 
-  it('gives a Last Light name a texture beside its cutaway group', () => {
-    const next = levelOf(llRun(setWallMaterial({ sector: 'hall', corner: 4, texture: 'plaster' })))
-    expect(must(room(next, 'hall').corners[4])[2]).toEqual({ cut: 'north-east', texture: 'plaster' })
-    expect(levelOf(llRun(setWallMaterial({ sector: 'hall', corner: 4, texture: null })))).toBe(dawn)
-  })
-
   it('refuses a texture that is empty', () => {
     expect(reasonOf(afRun(setWallMaterial({ sector: 'hall', corner: 2, texture: '' })))).toBe(
       'a texture is a name, not empty',
@@ -704,13 +648,6 @@ describe('wall.setOcclude (ED3D.4b)', () => {
   it('refuses a value that is not one of the three', () => {
     for (const value of ['hide', '', 'Fade'])
       expect(reasonOf(occlude(2, value as 'fade'))).toBe('occlude is cut, fade or never')
-  })
-
-  it('is refused on a Last Light level, which has its own cutaway groups', () => {
-    expect(reasonOf(llRun(setWallOcclude({ sector: 'hall', corner: 4, occlude: 'fade' })))).toBe(
-      'wall 4 of sector hall has an occlude, which a Last Light wall cannot hold',
-    )
-    expect(levelOf(llRun(setWallOcclude({ sector: 'hall', corner: 4, occlude: null })))).toBe(dawn)
   })
 })
 

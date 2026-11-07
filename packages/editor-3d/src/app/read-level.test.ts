@@ -1,12 +1,11 @@
 // Reading a file into a level (ED3D.5b step 1; ED3D spec §5.3 flow 1, §11): the profile the registry picks parses it,
 // or the person is told which of the other things is the case, with the installed profiles named.
 import { describe, expect, it } from 'vitest'
-import { AUTHORED_NAMES, loadAuthored, loadFixture } from '../testing/fixtures'
-import { BLOCKOUT_NAMES } from '../testing/geometry-golden'
+import { AUTHORED_NAMES, loadAuthored } from '../testing/fixtures'
 import { MAX_FILE_BYTES, readLevel } from './read-level'
 
 const bytes = (text: string): Uint8Array => new TextEncoder().encode(text)
-const INSTALLED = ['af-sector', 'last-light-blockout']
+const INSTALLED = ['af-sector']
 
 describe('readLevel', () => {
   it('parses the depot with the af-sector profile and no warnings', () => {
@@ -17,13 +16,6 @@ describe('readLevel', () => {
     expect(read.text).toBe(loadAuthored('depot.af-sector'))
     expect(read.warnings).toEqual([])
   })
-
-  for (const name of BLOCKOUT_NAMES) {
-    it(`parses ${name} with the Last Light blockout profile`, () => {
-      const read = readLevel(bytes(loadFixture(name)))
-      expect(read.status === 'parsed' && read.profile.id).toBe('last-light-blockout')
-    })
-  }
 
   it('opens a newer minor version with the codec’s warning', () => {
     const text = loadAuthored('depot.af-sector').replace('"af-sector/1"', '"af-sector/1.4"')
@@ -56,18 +48,12 @@ describe('readLevel', () => {
     const read = readLevel(bytes('{"format": "other/1"}'))
     expect(read).toEqual({
       status: 'unrecognised',
-      reason:
-        'not a level this editor opens: it reads an af-sector file (a "format" starting af-sector/) or a Last Light blockout (a "scene" and "rooms")',
+      reason: 'not a level this editor opens: it reads an af-sector file (a "format" starting af-sector/)',
       installed: INSTALLED,
       message:
-        'not a level this editor opens: it reads an af-sector file (a "format" starting af-sector/) or a Last Light blockout (a "scene" and "rooms"). Installed profiles: af-sector, last-light-blockout.',
+        'not a level this editor opens: it reads an af-sector file (a "format" starting af-sector/). Installed profiles: af-sector.',
       text: '{"format": "other/1"}',
     })
-  })
-
-  it('says the facility file is not a level', () => {
-    const read = readLevel(bytes(loadFixture('facility')))
-    expect(read.status === 'unrecognised' && read.reason).toMatch(/^this is a Last Light facility file/)
   })
 
   it('says where the text stops being JSON', () => {

@@ -4,7 +4,7 @@
 // locator names that corner. A wall that came from none (a connector's, a hole's, the walls round a pilaster) is the
 // sector's: the locator names the sector rather than a corner it might not belong to. The locator reads only each
 // sector's id and corner loop, so it serves every profile whose sectors are written as loops of corners.
-import type { Point } from '../format/sector.schema'
+import type { Point } from '@automata/3d/level'
 import type { Edge } from '../geometry/sectors'
 import { type Locator, place, sectorSelection, wallSelection } from './check'
 

@@ -2,7 +2,7 @@
 // `EditSector`s, so `list` hands them over as they are, and `withSectors` is a spread of the level with other sectors in
 // that place. The one thing an `af-sector` level cannot hold is a wall written as a name (Last Light's spelling of a
 // cutaway group), which no edit makes for it and which is refused if one arrives.
-import type { AfCorner, AfSector, AfSectorEntry } from '../../format/af-sector.schema'
+import type { AfCorner, AfSector, AfSectorEntry } from '@automata/3d/level'
 import { insideOutline } from '../../geometry/loops'
 import {
   type EditCorner,

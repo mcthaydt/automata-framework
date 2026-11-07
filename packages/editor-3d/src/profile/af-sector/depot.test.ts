@@ -2,8 +2,8 @@
 // engine data as a Last Light level, with none of Last Light's concepts in the file.
 import { describe, expect, it } from 'vitest'
 import { resolveMap } from '../../geometry/sectors'
+import { must } from '../../testing/edit-helpers'
 import { loadAuthored } from '../../testing/fixtures'
-import { must } from '../../testing/toy-blockout'
 import { afSectorCodec } from './af-codec'
 import { buildSectors } from './build'
 

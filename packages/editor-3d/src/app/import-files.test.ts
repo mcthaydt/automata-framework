@@ -3,7 +3,7 @@
 import { type ProjectStore, StorageError } from '@automata/editor/kit/core'
 import { strToU8, zipSync } from 'fflate'
 import { describe, expect, it } from 'vitest'
-import { loadFixture } from '../testing/fixtures'
+import { loadAuthored } from '../testing/fixtures'
 import { createTestClock, memoryWorkspace, textOf } from '../testing/memory-workspace'
 import { createEditorApp } from './editor-app'
 import { importFolder, importZip, MAX_ZIP_BYTES, MAX_ZIP_ENTRIES } from './import-files'
@@ -196,25 +196,19 @@ describe('importZip', () => {
   })
 })
 
-describe('an imported Last Light checkout', () => {
-  it('lists and opens, with the facility beside the level', async () => {
+describe('an imported checkout', () => {
+  it('lists and opens the levels in it', async () => {
     const clock = createTestClock()
     const workspace = memoryWorkspace(clock)
     const app = createEditorApp({ workspace, clock })
-    const zip = zipSync({
-      'art/blockout-clinic/blockout.json': strToU8(loadFixture('blockout-clinic')),
-      'art/blockout-facility/facility.json': strToU8(loadFixture('facility')),
-    })
+    const zip = zipSync({ 'art/depot/depot.json': strToU8(loadAuthored('depot.af-sector')) })
     expect(await app.importZip('art.zip', zip)).toMatchObject({ status: 'imported', root: 'art' })
-    expect((await app.list()).map((entry) => [entry.path, entry.kind])).toEqual([
-      ['art/blockout-clinic/blockout.json', 'level'],
-      ['art/blockout-facility/facility.json', 'facility'],
-    ])
-    const opened = await app.open('art/blockout-clinic/blockout.json')
-    expect(opened.status === 'opened' && opened.facility?.status).toBe('opened')
+    expect((await app.list()).map((entry) => entry.path)).toEqual(['art/depot/depot.json'])
+    const opened = await app.open('art/depot/depot.json')
+    expect(opened.status).toBe('opened')
     expect(
       await app.importFolder([
-        { path: 'art/blockout-bay/blockout.json', bytes: bytes(loadFixture('blockout-bay')) },
+        { path: 'art/annex/annex.json', bytes: bytes(loadAuthored('depot.af-sector')) },
       ]),
     ).toMatchObject({ root: 'art 2' })
   })

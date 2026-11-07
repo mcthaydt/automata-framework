@@ -1,14 +1,13 @@
 // The `materials` check (ED3D.2b-2): every material a level names is in the profile's list. Seeded over small rooms,
-// then held to the shipped files with the game's own list.
+// then held to the shipped depot with its own table.
+
+import type { SectorDef } from '@automata/3d/level'
+import { TRIM_PIECES, type WallDef } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { SectorDef } from '../format/sector.schema'
-import { TRIM_PIECES, type WallDef } from '../format/sector.schema'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
 import { plainContext } from '../testing/check-context'
-import { FIXTURE_NAMES, loadAuthored, loadFixture } from '../testing/fixtures'
-import { loadGameFacts } from '../testing/game-facts'
-import { must } from '../testing/toy-blockout'
+import { must } from '../testing/edit-helpers'
+import { loadAuthored } from '../testing/fixtures'
 import { room, square } from '../testing/toy-sectors'
 import { materialProblems } from './materials'
 
@@ -123,43 +122,31 @@ describe('materialProblems: walls', () => {
   })
 })
 
-describe('materialProblems: the shipped files', () => {
-  const facts = loadGameFacts()
-
-  it.each(FIXTURE_NAMES.filter((name) => name !== 'facility'))(
-    'passes %s with the game’s own list of materials',
-    (name) => {
-      const parsed = lastLightProfile.parse(loadFixture(name))
-      if (!parsed.ok) throw new Error(`${name} does not parse`)
-      const layer = must(lastLightProfile.geometry(parsed.value).layers[0])
-      if (layer.kind !== 'sectors') throw new Error('no sectors')
-      const list = new Set(facts.options.materials)
-      expect(materialProblems({ map: layer.map, wall: () => undefined }, list)).toEqual([])
-    },
-  )
-
-  it('passes the depot with its own table', () => {
-    const parsed = afSectorProfile.parse(loadAuthored('depot.af-sector'))
-    if (!parsed.ok) throw new Error('the depot does not parse')
-    const layer = must(afSectorProfile.geometry(parsed.value).layers[0])
+describe('materialProblems: the shipped depot', () => {
+  const parsed = afSectorProfile.parse(loadAuthored('depot.af-sector'))
+  if (!parsed.ok) throw new Error('the depot does not parse')
+  const table = new Set(Object.keys(parsed.value.materials ?? {}))
+  const layerOf = (level: typeof parsed.value) => {
+    const layer = must(afSectorProfile.geometry(level).layers[0])
     if (layer.kind !== 'sectors') throw new Error('no sectors')
-    const list = new Set(Object.keys(parsed.value.materials ?? {}))
-    expect(list.size).toBeGreaterThan(0)
-    expect(materialProblems({ map: layer.map, wall: () => undefined }, list)).toEqual([])
+    return layer
+  }
+
+  it('passes with its own table', () => {
+    expect(table.size).toBeGreaterThan(0)
+    expect(materialProblems({ map: layerOf(parsed.value).map, wall: () => undefined }, table)).toEqual([])
   })
 
-  it('says a texture the game’s list lacks in a shipped file: the clinic with a floor of marble', () => {
-    const parsed = lastLightProfile.parse(loadFixture('blockout-clinic'))
-    if (!parsed.ok) throw new Error('the clinic does not parse')
-    const rooms = parsed.value.rooms.map((r, i) => (i === 0 ? { ...r, floorTexture: 'marble' } : r))
-    const layer = must(lastLightProfile.geometry({ ...parsed.value, rooms }).layers[0])
-    if (layer.kind !== 'sectors') throw new Error('no sectors')
+  it('says a texture the table lacks: the depot with a floor of marble', () => {
+    const sectors = parsed.value.sectors.map((sector, i) =>
+      i === 0 ? { ...sector, floorTexture: 'marble' } : sector,
+    )
     const problems = materialProblems(
-      { map: layer.map, wall: () => undefined },
-      new Set(facts.options.materials),
+      { map: layerOf({ ...parsed.value, sectors }).map, wall: () => undefined },
+      table,
     )
     expect(problems.map((problem) => problem.message)).toEqual([
-      `${must(rooms[0]).id}: floorTexture marble is not a material`,
+      `${must(sectors[0]).id}: floorTexture marble is not a material`,
     ])
   })
 })

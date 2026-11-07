@@ -1,8 +1,9 @@
 // Where on an outline the pointer is (ED3D.6b, ED3D.6d, ED3D.6f): the Wall tools put a door or a portal on a wall at that
 // place, the Vertex tool a corner, the Split tool the end of a cut. They all measure it the same way, and this is that one
 // way.
+
+import type { Point } from '@automata/3d/level'
 import type { Viewport2D } from '@automata/editor/kit/core'
-import type { Point } from '../format/sector.schema'
 import type { LevelEditor } from '../model/level-editor'
 import { parseSelection } from '../model/selection-ref'
 import { cornerAt, wallLength } from '../model/wall-geometry'

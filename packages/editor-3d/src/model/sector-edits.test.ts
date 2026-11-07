@@ -1,21 +1,16 @@
-// The sector edits (ED3D.3 step 5): add, remove, duplicate and the property edits, on the depot (`af-sector/1`) and on
-// The Last Light's clinic-dawn blockout, so each rule is shown to hold in both formats. The sentences that are Last
-// Light's own (`overlaps yard`, `still referenced`) are the ones its level-edits tests expect.
+// The sector edits (ED3D.3 step 5): add, remove, duplicate and the property edits, on the depot (`af-sector/1`).
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../format/af-sector.schema'
-import type { Blockout } from '../format/blockout.schema'
 import { afSectorCodec } from '../profile/af-sector/af-codec'
 import { afSectorAccess } from '../profile/af-sector/af-sectors'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { blockoutCodec } from '../profile/last-light-codecs'
-import { lastLightProfile } from '../profile/last-light-profile'
 import type { LevelProfile } from '../profile/level-profile'
 import { type EditSector, SectorAccessError } from '../profile/sector-access'
-import { levelOf, reasonOf, rect } from '../testing/edit-helpers'
-import { loadAuthored, loadFixture } from '../testing/fixtures'
+import { levelOf, must, reasonOf, rect } from '../testing/edit-helpers'
+import { loadAuthored } from '../testing/fixtures'
 import { changedRegion, literalEdits } from '../testing/text-diff'
 import { toyAfSector } from '../testing/toy-af-sector'
-import { must } from '../testing/toy-blockout'
 import type { Edit, EditResult } from './edit'
 import {
   addSector,
@@ -34,23 +29,14 @@ const depot = (() => {
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
 })()
-const dawnText = loadFixture('blockout-clinic-dawn')
-const dawn = (() => {
-  const result = lastLightProfile.parse(dawnText)
-  if (!result.ok) throw new Error('clinic-dawn does not parse')
-  return result.value
-})()
 
 function run<D>(profile: LevelProfile<D>, level: D, edit: Edit<D>): EditResult<D> {
   return edit.run(profile, level)
 }
 const afRun = (edit: Edit<AfSector>) => run(afSectorProfile, depot, edit)
-const llRun = (edit: Edit<Blockout>) => run(lastLightProfile, dawn, edit)
 const sectorsOf = (level: AfSector): readonly EditSector[] => afSectorProfile.sectors.list(level)
 const sector = (level: AfSector, id: string): EditSector =>
   must(sectorsOf(level).find((each) => each.id === id))
-const room = (level: Blockout, id: string): EditSector =>
-  must(lastLightProfile.sectors.list(level).find((each) => each.id === id))
 
 describe('sector.add on an af-sector level', () => {
   it('appends a sector with the heights of the last one, and selects it', () => {
@@ -285,62 +271,6 @@ describe('sector.add on an af-sector level', () => {
   })
 })
 
-describe('sector.add on a Last Light level', () => {
-  const store = {
-    id: 'store',
-    corners: rect(-4.6, -9.6, -1.6, -7.4),
-    like: 'mouth',
-    ceiling: 3.2,
-    open: true,
-  }
-
-  it("adds a room in the zone of the room it is drawn like (`addRoom`'s case)", () => {
-    const result = llRun(addSector(store))
-    expect(room(levelOf(result), 'store')).toStrictEqual({
-      id: 'store',
-      zone: 'corridor',
-      floor: 0,
-      ceiling: 3.2,
-      light: 1,
-      open: true,
-      corners: [
-        [-4.6, -9.6],
-        [-1.6, -9.6],
-        [-1.6, -7.4],
-        [-4.6, -7.4],
-      ],
-    })
-  })
-
-  it('is a pure insert in the file, and removing the room puts the bytes back', () => {
-    const added = levelOf(llRun(addSector(store)))
-    const patched = blockoutCodec.patch(dawnText, dawn, added)
-    if (!patched.ok) throw new Error(`patch refused: ${patched.detail}`)
-    expect(changedRegion(dawnText, patched.text).removed).toBe('')
-    const removed = levelOf(run(lastLightProfile, added, removeSector({ id: 'store' })))
-    const back = blockoutCodec.patch(patched.text, added, removed)
-    if (!back.ok) throw new Error(`patch refused: ${back.detail}`)
-    expect(back.text).toBe(dawnText)
-  })
-
-  it('refuses a taken id (a room or an opening), an id that is not one, and an overlap with a room', () => {
-    expect(reasonOf(llRun(addSector({ ...store, id: 'yard' })))).toBe('there is already a sector yard')
-    expect(reasonOf(llRun(addSector({ ...store, id: 'exitWay' })))).toBe('there is already a sector exitWay')
-    expect(reasonOf(llRun(addSector({ ...store, id: '9x' })))).toBe(
-      'the sector id must be an id: a letter, then letters, digits, - or _',
-    )
-    expect(llRun(addSector({ ...store, corners: rect(0, -9, 2, -8) }))).toEqual({
-      ok: false,
-      reason: 'the new sector overlaps yard',
-      at: 'sector:yard',
-    })
-    expect(llRun(addSector({ ...store, corners: rect(-10, -10, 10, 10) }))).toMatchObject({
-      ok: false,
-      reason: 'the new sector overlaps hall',
-    })
-  })
-})
-
 describe('sector.remove', () => {
   it('removes a sector nothing names, and puts the file back when it follows an add', () => {
     const added = levelOf(afRun(addSector({ id: 'yard', corners: rect(14, 0, 18, 6) })))
@@ -350,19 +280,13 @@ describe('sector.remove', () => {
     expect(patched).toStrictEqual({ ok: true, text: depotText })
   })
 
-  it('refuses a sector that is still referenced, with the references as Last Light words them', () => {
+  it('refuses a sector that is still referenced, with what refers to it', () => {
     expect(afRun(removeSector({ id: 'hall' }))).toEqual({
       ok: false,
       reason:
         'sector hall is still referenced: sector dock corner 3: a portal into hall; entity spawn stands in it',
       at: 'sector:hall',
     })
-    const ward = llRun(removeSector({ id: 'ward' }))
-    expect(reasonOf(ward)).toMatch(/^sector ward is still referenced: /)
-    expect(reasonOf(ward)).toContain('room hall corner 12: a portal into ward')
-    expect(reasonOf(ward)).toContain('box filing stands in it')
-    expect(reasonOf(llRun(removeSector({ id: 'yard' })))).toContain('opening exitWay (corridor → yard)')
-    expect(reasonOf(llRun(removeSector({ id: 'counter' })))).toContain('wall preset COUNTER: next counter')
   })
 
   it('refuses a sector that is not there', () => {
@@ -496,12 +420,6 @@ describe('sector.remove of several sectors', () => {
     const edit = removeSectors({ ids: ['hall', 'dock'] })
     expect(edit.id).toBe('sector.remove')
     expect(edit.label).toBe('Remove 2 sectors')
-  })
-
-  it('keeps an opening between two rooms in the way: it is its own thing to remove first', () => {
-    expect(reasonOf(llRun(removeSectors({ ids: ['corridor', 'yard'] })))).toContain(
-      'opening exitWay (corridor → yard)',
-    )
   })
 
   it('refuses with the sentence of a format that cannot hold what is left, and hides no other error', () => {
@@ -679,13 +597,6 @@ describe('sector.duplicate', () => {
     )
   })
 
-  it("keeps a Last Light room's zone and style", () => {
-    const copy = room(levelOf(llRun(duplicateSector({ id: 'yard', offset: { x: 20, z: 0 } }))), 'yard2')
-    expect(copy).toMatchObject({ zone: 'corridor', style: 'YARD', id: 'yard2' })
-    expect(copy.corners[2]).toEqual([25.25, -7, 'yard-south'])
-    expect(copy.corners[3]).toEqual([18.525, -7, 'yard-west'])
-  })
-
   it('is called sector.duplicate and says what it copies', () => {
     const edit = duplicateSector({ id: 'dock', offset: { x: 6, z: 0 } })
     expect(edit.id).toBe('sector.duplicate')
@@ -718,13 +629,13 @@ describe('sector.setHeights', () => {
   })
 
   it('changes one number in the file, and undo puts the text back (ED3-b)', () => {
-    const next = levelOf(llRun(setHeights({ id: 'hall', ceiling: 5.1 })))
-    const patched = blockoutCodec.patch(dawnText, dawn, next)
+    const next = levelOf(afRun(setHeights({ id: 'hall', ceiling: 5.1 })))
+    const patched = afSectorCodec.patch(depotText, depot, next)
     if (!patched.ok) throw new Error(`patch refused: ${patched.detail}`)
-    expect(literalEdits(dawnText, patched.text)).toEqual(['["rooms",0,"ceiling"]'])
-    expect(changedRegion(dawnText, patched.text)).toEqual({ removed: '4.9', added: '5.1' })
-    const back = blockoutCodec.patch(patched.text, next, dawn)
-    expect(back).toStrictEqual({ ok: true, text: dawnText })
+    expect(literalEdits(depotText, patched.text)).toEqual(['["sectors",0,"ceiling"]'])
+    expect(changedRegion(depotText, patched.text)).toEqual({ removed: '4', added: '5.1' })
+    const back = afSectorCodec.patch(patched.text, next, depot)
+    expect(back).toStrictEqual({ ok: true, text: depotText })
   })
 
   it('refuses a ceiling that is not more than 0.5 m over the floor, in either direction of change', () => {
@@ -805,13 +716,6 @@ describe('sector.setView (ED3D.4b)', () => {
     expect(reasonOf(view('nowhere', 'hall-view'))).toBe('no sector nowhere')
   })
 
-  it('is refused on a Last Light level, which has no camera view to name', () => {
-    expect(reasonOf(llRun(setView({ id: 'hall', view: 'hall-view' })))).toBe(
-      'sector hall has a view id, which a Last Light room cannot hold',
-    )
-    expect(levelOf(llRun(setView({ id: 'hall', view: null })))).toBe(dawn)
-  })
-
   it('is called sector.setView and coalesces on the sector', () => {
     const edit = setView({ id: 'hall', view: 'hall-view' })
     expect([edit.id, edit.label, edit.coalesce]).toEqual([
@@ -877,7 +781,6 @@ describe('sector.setMaterials', () => {
     expect(reasonOf(run(afSectorProfile, styled, setMaterials({ id: 'hall', style: 'nope' })))).toBe(
       'unknown style nope',
     )
-    expect(reasonOf(llRun(setMaterials({ id: 'yard', style: 'COLD' })))).toBe('unknown style COLD')
   })
 
   it('does not build the level for an edit that cannot change what the engine makes of it', () => {
@@ -897,12 +800,6 @@ describe('sector.setMaterials', () => {
     expect(reasonOf(afRun(setMaterials({ id: 'hall', style: '  ' })))).toBe('a style is a name, not empty')
     expect(reasonOf(afRun(setMaterials({ id: 'hall' })))).toBe('give a style or a texture')
     expect(reasonOf(afRun(setMaterials({ id: 'nowhere', floorTexture: 'tile' })))).toBe('no sector nowhere')
-  })
-
-  it('clears the style of a Last Light room, and keeps its zone', () => {
-    const next = levelOf(llRun(setMaterials({ id: 'yard', style: null })))
-    expect(room(next, 'yard')).not.toHaveProperty('style')
-    expect(room(next, 'yard')).toHaveProperty('zone', 'corridor')
   })
 
   it('is called sector.setMaterials', () => {

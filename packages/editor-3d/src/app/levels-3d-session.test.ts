@@ -1,7 +1,7 @@
+import type { AfSector } from '@automata/3d/level'
 import type { WorkspaceFile } from '@automata/editor/kit/ports'
 import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../format/af-sector.schema'
 import { ok } from '../model/edit'
 import type { LevelProfile } from '../profile/level-profile'
 import { loadAuthored } from '../testing/fixtures'

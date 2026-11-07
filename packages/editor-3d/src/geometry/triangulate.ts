@@ -8,7 +8,7 @@
 // A polygon that is not simple (a bow-tie, a hole that crosses the outline) is not refused, because the editor draws
 // the level while its checks are still saying what is wrong with it: a hole that cannot be joined is left out, and
 // when clipping gets stuck the rest is cut as a fan and the triangles that face the wrong way are dropped.
-import type { Point } from '../format/sector.schema'
+import type { Point } from '@automata/3d/level'
 
 export type Triangle = readonly [number, number, number]
 

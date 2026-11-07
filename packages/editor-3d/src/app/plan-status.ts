@@ -1,7 +1,7 @@
 // The words around the plan (ED3D.5d; ED3D spec §9): the status line, the checks pill and the mode switch. They are for
 // someone who is not a developer (Owner, 2026-10-30): a sector is a room, a wall is counted from 1, a disabled mode says
 // why, and nothing names a task or a file format. Plain functions, so each wording is a unit test.
-import type { Point } from '../format/sector.schema'
+import type { Point } from '@automata/3d/level'
 import { parseSelection } from '../model/selection-ref'
 import type { ViewMode } from '../model/view-store'
 

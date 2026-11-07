@@ -4,6 +4,7 @@
 // and `rooms`, and anything else runs every check, the `entities` and `materials` checks last (ED3D.1b2's kit,
 // ED3D.2b).
 
+import type { AfSector, SectorDef } from '@automata/3d/level'
 import {
   type CheckResult,
   checkResult,
@@ -20,8 +21,6 @@ import { genericChecks } from '../../checks/generic-checks'
 import { materialProblems } from '../../checks/materials'
 import { roomsProblem } from '../../checks/rooms-problem'
 import { wallLocator } from '../../checks/wall-locator'
-import type { AfSector } from '../../format/af-sector.schema'
-import type { SectorDef } from '../../format/sector.schema'
 import { type ResolvedMap, resolveMap } from '../../geometry/sectors'
 import { afEntityKit } from './af-entities'
 import { AfBuildError, buildSectors } from './build'

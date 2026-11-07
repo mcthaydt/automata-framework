@@ -1,4 +1,4 @@
-// A seeded run over the shipped files: random edits of the four kinds the editor makes, each patched through the
+// A seeded run over the shipped depot: random edits of the four kinds the editor makes, each patched through the
 // codec, each checked for reading back as the edited model and for touching only what it edited, then reverted.
 // The generator is a fixed linear congruential sequence, so a failure replays.
 
@@ -6,8 +6,7 @@ import { type JsonPath, scan } from '@automata/editor/kit/documents'
 import { describe, expect, it } from 'vitest'
 import { afSectorCodec } from '../profile/af-sector/af-codec'
 import type { FileCodec } from '../profile/file-codec'
-import { blockoutCodec, facilityCodec } from '../profile/last-light-codecs'
-import { FIXTURE_NAMES, loadAuthored, loadFixture } from '../testing/fixtures'
+import { loadAuthored } from '../testing/fixtures'
 import { changedRegion, literalEdits } from '../testing/text-diff'
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json }
@@ -31,22 +30,18 @@ interface Subject {
   readonly text: string
 }
 
-// The five shipped Last Light files, then the AF depot: the depot comes last so the first five keep their seeds.
+// The AF depot. Its seed is the one it had when it came after five other files, so a failure replays as it did.
 const SUBJECTS: readonly Subject[] = [
-  ...FIXTURE_NAMES.map((name) => ({
-    name,
-    codec: (name === 'facility' ? facilityCodec : blockoutCodec) as FileCodec<unknown>,
-    text: loadFixture(name),
-  })),
   {
     name: 'depot.af-sector',
     codec: afSectorCodec as FileCodec<unknown>,
     text: loadAuthored('depot.af-sector'),
   },
 ]
+const SEED = 20261028
 
-describe('seeded edit round trips on the shipped files', () => {
-  SUBJECTS.forEach(({ name, codec, text }, fixtureIndex) => {
+describe('seeded edit round trips on the shipped depot', () => {
+  SUBJECTS.forEach(({ name, codec, text }) => {
     it(`${name}: ${EDITS_PER_FIXTURE} random edits read back, touch only their own bytes, and revert`, () => {
       const parsed = codec.parse(text)
       if (!parsed.ok) throw new Error('fixture does not parse')
@@ -63,7 +58,7 @@ describe('seeded edit round trips on the shipped files', () => {
       }
       collect(scanned.root)
 
-      const random = lcg(20261023 + fixtureIndex)
+      const random = lcg(SEED)
       const pick = <T>(items: readonly T[]): T => items[Math.floor(random() * items.length)] as T
       const counts = { nudge: 0, string: 0, remove: 0, add: 0 }
 

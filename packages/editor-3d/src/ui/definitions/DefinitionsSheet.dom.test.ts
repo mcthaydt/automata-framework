@@ -1,12 +1,10 @@
+import type { AfSector } from '@automata/3d/level'
 import { render, screen, waitFor, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import type { AfSector } from '../../format/af-sector.schema'
 import { createLevelEditor } from '../../model/level-editor'
 import { afSectorProfile } from '../../profile/af-sector-profile'
-import { lastLightProfile } from '../../profile/last-light-profile'
 import depotText from '../../testing/fixtures/depot.af-sector.json?raw'
-import { toyBlockout } from '../../testing/toy-blockout'
 import DefinitionsSheet from './DefinitionsSheet.svelte'
 
 // The definitions sheet (ED3D.13b; ED3-r): add a definition and a field, see a refusal in the model's words, edit the
@@ -65,7 +63,10 @@ describe('DefinitionsSheet', () => {
   })
 
   it('says a fixed format has nothing to edit', () => {
-    const editor = createLevelEditor({ profile: lastLightProfile, level: toyBlockout() })
+    const editor = createLevelEditor({
+      profile: { ...afSectorProfile, id: 'fixed', definitions: undefined },
+      level: depot,
+    })
     render(DefinitionsSheet, { props: { editor: editor as never, onclose: vi.fn() } })
     expect(screen.getByRole('status')).toHaveTextContent(/fixed by its format/)
   })

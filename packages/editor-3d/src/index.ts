@@ -1,4 +1,6 @@
 // The JSON engine lives in the kit's content documents (EDS.1a); this entry still offers it to its consumers.
+
+export * from '@automata/3d/level'
 export {
   formatJsonNumber,
   formatJsonScalar,
@@ -64,7 +66,7 @@ export {
   type MergeTool,
   type MergeToolView,
 } from './app/merge-tool-controller'
-export type { FacilityOutcome, OpenFacility, OpenLevel } from './app/open-level'
+export type { OpenLevel } from './app/open-level'
 export type {
   DocumentSaveOutcome,
   ExportOutcome,
@@ -116,22 +118,12 @@ export {
 export * from './checks/check'
 export * from './checks/entities'
 export * from './checks/entity-refs'
-export { type FacilityResults, facilityChecks } from './checks/facility/facility-checks'
 export * from './checks/generic-checks'
-export { DEFAULT_TONE, type LampKind, lampProblems } from './checks/last-light/lamps'
-export * from './checks/last-light/last-light-checks'
-export { type RoomOwners, type RoomPolicy, roomPolicyProblems } from './checks/last-light/room-policy'
 export { materialProblems } from './checks/materials'
 export * from './checks/wall-locator'
 export * from './entities/thing-def.schema'
 export * from './entities/things'
-export * from './format/af-sector.schema'
-export * from './format/blockout.schema'
-export * from './format/expand'
-export * from './format/facility.schema'
-export * from './format/sector.schema'
 export * from './geometry/loops'
-export * from './geometry/nav'
 export * from './geometry/sectors'
 export { type Triangle, type Triangulation, triangulate } from './geometry/triangulate'
 export { type MoveCornerArgs, moveCorner, moveSector } from './model/corner-edits'
@@ -144,16 +136,6 @@ export {
 } from './model/definition-edits'
 export { type Edit, type EditResult, ok, refuse } from './model/edit'
 export { type EditCommandOptions, registerEditCommands } from './model/edit-commands'
-export {
-  createFacilityEditor,
-  type FacilityEdit,
-  type FacilityEditor,
-  type FacilityEditorOptions,
-  type FacilitySession,
-  type FacilityState,
-} from './model/facility-editor'
-export { type MoveWingArgs, moveWing, removeJoin, setJoin, setLock } from './model/facility-edits'
-export { type FacilitySelectionRef, parseFacilitySelection } from './model/facility-selection'
 export {
   createLevelEditor,
   type EditSession,
@@ -238,19 +220,14 @@ export * from './profile/af-sector/build'
 export * from './profile/af-sector-profile'
 export type { DefinitionAccess, InstanceRename } from './profile/definition-access'
 export * from './profile/file-codec'
-export * from './profile/last-light-codecs'
-export * from './profile/last-light-entities'
-export { lastLightNavLinks } from './profile/last-light-nav-links'
-export * from './profile/last-light-profile'
 export { type LevelHints, WALK_EYE_HEIGHT, WALK_FOV } from './profile/level-hints'
 export {
   type Geometry,
   GeometryError,
   type GeometryLayer,
   type LevelProfile,
-  type ProfileContext,
 } from './profile/level-profile'
-export { LAST_LIGHT_NO_LIST, type Material, type MaterialList } from './profile/materials'
+export type { Material, MaterialList } from './profile/materials'
 export * from './profile/registry'
 export {
   type EditCorner,

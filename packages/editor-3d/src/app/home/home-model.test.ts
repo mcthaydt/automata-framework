@@ -2,15 +2,14 @@ import { describe, expect, it } from 'vitest'
 import type { ProjectEntry } from '../project-list'
 import { importNotice, levelCard, openProblem, searchWords, summaryOf } from './home-model'
 
-// What the 3D editor's Home says (plan ED3D.5c step 7): how a level or a facility reads on its card and in the
+// What the 3D editor's Home says (plan ED3D.5c step 7): how a level reads on its card and in the
 // summary, and the toasts of an open or an import. The kit draws the cards and runs the list.
 
-const INSTALLED = ['af-sector', 'last-light-blockout']
+const INSTALLED = ['af-sector', 'second-format']
 const listed = { size: 2048, mtime: 1_700_000_000_000 }
-const level = (over: Partial<Extract<ProjectEntry, { kind: 'level'; status: 'ok' }>> = {}): ProjectEntry => ({
+const level = (over: Partial<Extract<ProjectEntry, { status: 'ok' }>> = {}): ProjectEntry => ({
   ...listed,
   path: 'depot/depot.json',
-  kind: 'level',
   status: 'ok',
   profile: 'af-sector',
   errors: 0,
@@ -19,19 +18,11 @@ const level = (over: Partial<Extract<ProjectEntry, { kind: 'level'; status: 'ok'
 })
 const broken: ProjectEntry = {
   ...listed,
-  path: 'clinic/blockout.json',
-  kind: 'level',
+  path: 'annex/annex.json',
   status: 'broken',
-  profile: 'last-light-blockout',
-  message: 'rooms.0.floor: Expected number',
+  profile: 'af-sector',
+  message: 'sectors.0.floor: Expected number',
 }
-const facility: ProjectEntry = {
-  ...listed,
-  path: 'art/blockout-facility/facility.json',
-  kind: 'facility',
-  status: 'ok',
-}
-const brokenFacility: ProjectEntry = { ...facility, status: 'broken', message: 'wings: Required' }
 
 describe('levelCard', () => {
   it('names a level by its file, its kind by its profile, coloured by the profile’s place among the installed', () => {
@@ -44,7 +35,7 @@ describe('levelCard', () => {
       size: 2048,
       mtime: listed.mtime,
     })
-    expect(levelCard(level({ profile: 'last-light-blockout' }), INSTALLED).accent).toBe('--color-layer-sky')
+    expect(levelCard(level({ profile: 'second-format' }), INSTALLED).accent).toBe('--color-layer-sky')
     expect(levelCard(level({ profile: 'elsewhere' }), INSTALLED).accent).toBe('--color-text-dim')
   })
 
@@ -57,34 +48,19 @@ describe('levelCard', () => {
     })
   })
 
-  it('says a broken level or facility cannot be opened', () => {
+  it('says a broken level cannot be opened', () => {
     expect(levelCard(broken, INSTALLED).badge).toEqual({ tone: 'bad', text: 'Can’t open' })
-    expect(levelCard(brokenFacility, INSTALLED).badge).toEqual({ tone: 'bad', text: 'Can’t open' })
-  })
-
-  it('gives a facility its own kind and colour, and says it opens with a level', () => {
-    expect(levelCard(facility, INSTALLED)).toMatchObject({
-      title: 'facility.json',
-      kind: 'Facility',
-      accent: '--color-layer-city',
-      badge: { tone: 'neutral', text: 'Opens with a level' },
-    })
   })
 })
 
 describe('searchWords', () => {
   it('are the path, the title and the kind', () => {
     expect(searchWords(level())).toEqual(['depot/depot.json', 'depot.json', 'af-sector'])
-    expect(searchWords(facility)).toEqual([
-      'art/blockout-facility/facility.json',
-      'facility.json',
-      'Facility',
-    ])
   })
 })
 
 describe('summaryOf', () => {
-  it('gives a level’s check counts and lets it open', () => {
+  it('gives a level’s check counts', () => {
     expect(summaryOf(level({ errors: 1, warnings: 3 }))).toEqual({
       facts: [
         { label: 'Profile', value: 'af-sector' },
@@ -92,20 +68,11 @@ describe('summaryOf', () => {
         { label: 'Warnings', value: '3' },
       ],
       reason: undefined,
-      openable: true,
     })
   })
 
-  it('gives a broken level its first problem and still lets it open, where the error panel shows all of them', () => {
-    expect(summaryOf(broken)).toMatchObject({ reason: 'rooms.0.floor: Expected number', openable: true })
-  })
-
-  it('does not open a facility on its own, and says why', () => {
-    expect(summaryOf(facility)).toMatchObject({
-      openable: false,
-      reason: 'A facility opens with one of its levels: open a level beside it.',
-    })
-    expect(summaryOf(brokenFacility)).toMatchObject({ openable: false, reason: 'wings: Required' })
+  it('gives a broken level its first problem, where the error panel shows all of them', () => {
+    expect(summaryOf(broken)).toMatchObject({ reason: 'sectors.0.floor: Expected number' })
   })
 })
 

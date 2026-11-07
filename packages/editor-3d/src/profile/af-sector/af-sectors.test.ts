@@ -1,10 +1,11 @@
 // The sectors of an `af-sector/1` level as the editor's edits see them (ED3D.3 step 3).
+
+import type { AfSector, AfSectorEntry } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector, AfSectorEntry } from '../../format/af-sector.schema'
+import { must } from '../../testing/edit-helpers'
 import { loadAuthored } from '../../testing/fixtures'
 import { literalEdits } from '../../testing/text-diff'
 import { toyAfSector } from '../../testing/toy-af-sector'
-import { must } from '../../testing/toy-blockout'
 import { type EditSector, SectorAccessError } from '../sector-access'
 import { afSectorCodec } from './af-codec'
 import { afSectorAccess } from './af-sectors'

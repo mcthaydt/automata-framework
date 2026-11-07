@@ -2,8 +2,9 @@
 // it, and the corner near it. The reach is in screen pixels and the pointer kind sets it, so a finger is as easy to aim as
 // a mouse and the same metre is a different hit at another zoom. Everything is read from the geometry layers and the
 // selection ids; hidden and locked layers are told in `options`, as the view state holds them.
+
+import type { Point } from '@automata/3d/level'
 import type { PointerKind, Point as ScreenPoint, Viewport2D } from '@automata/editor/kit/core'
-import type { Point } from '../../format/sector.schema'
 import { type Edge, insideSector, polygonArea } from '../../geometry/sectors'
 import type { GeometryLayer } from '../../profile/level-profile'
 import type { SelectionOf } from '../selection-of'

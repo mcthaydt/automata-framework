@@ -4,8 +4,8 @@
   next tap does (a polygon closes on its first point, a rectangle on its second).
 -->
 <script lang="ts">
+import type { Point } from '@automata/3d/level'
 import type { DrawEdge } from '../../app/sector-tool-controller'
-import type { Point } from '../../format/sector.schema'
 
 interface Props {
   corners: readonly Point[]

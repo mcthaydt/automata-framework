@@ -1,18 +1,15 @@
-// The thing edits (ED3D.7a step 3): add, move, set a field and remove, on the depot (`af-sector/1`) and on The Last
-// Light's toy blockout and clinic-dawn, so each rule is shown to hold in both formats. The sentences are the entity
+// The thing edits (ED3D.7a step 3): add, move, set a field and remove, on the depot (`af-sector/1`). The sentences are the entity
 // check's (`entity crate2 is outside every sector`, `contents has no option "gold"`) where the check has one, and an
 // edit that is accepted never makes a level the checks call worse than it was.
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../format/af-sector.schema'
-import type { Blockout } from '../format/blockout.schema'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
 import type { LevelProfile } from '../profile/level-profile'
 import { ThingAccessError } from '../profile/thing-access'
-import { levelOf, reasonOf } from '../testing/edit-helpers'
-import { loadAuthored, loadFixture } from '../testing/fixtures'
+import { levelOf, must, reasonOf } from '../testing/edit-helpers'
+import { loadAuthored } from '../testing/fixtures'
 import { literalEdits } from '../testing/text-diff'
-import { must, toyBlockout } from '../testing/toy-blockout'
 import type { Edit, EditResult } from './edit'
 import { createLevelEditor } from './level-editor'
 import { addThing, moveThing, removeThing, setThingField } from './thing-edits'
@@ -23,16 +20,9 @@ const depot = (() => {
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
 })()
-const dawn = (() => {
-  const result = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
-  if (!result.ok) throw new Error('clinic-dawn does not parse')
-  return result.value
-})()
 
 const runAf = (edit: Edit<AfSector>, level: AfSector = depot): EditResult<AfSector> =>
   edit.run(afSectorProfile, level)
-const runLl = (edit: Edit<Blockout>, level: Blockout = toyBlockout()): EditResult<Blockout> =>
-  edit.run(lastLightProfile, level)
 
 /** The depot with a lamp that floats (it needs a colour, and has a range by default) and a switch that opens a thing. */
 const lit: AfSector = {
@@ -89,8 +79,6 @@ const problemsOf = <D>(profile: LevelProfile<D>, level: D): string[] =>
 
 const crate = (id: string, more: Partial<Parameters<typeof addThing>[0]> = {}) =>
   addThing<AfSector>({ def: 'crate', id, x: 5, z: 3, values: { contents: 'tools' }, ...more })
-
-const box = { w: 1, h: 1, d: 1, kind: 'furniture', role: 'collider' } as const
 
 describe('thing.add on an af-sector level', () => {
   it('appends the thing in the file’s order, fills the defaults it was not given, and selects it', () => {
@@ -215,9 +203,6 @@ describe('thing.add on an af-sector level', () => {
     expect(reasonOf(runAf(addThing({ def: 'lamp', id: 'l', x: 2, z: 2 }), lit))).toBe(
       'entity l: tint is required',
     )
-    expect(
-      reasonOf(runLl(addThing({ def: 'box', id: 'b', x: 1, z: 1, y: 0.5, values: { w: 1, kind: 'desk' } }))),
-    ).toBe('entity b: h is required; d is required; role is required')
   })
 
   it('refuses a taken id even when the thing that has it cannot be read', () => {
@@ -239,81 +224,6 @@ describe('thing.add on an af-sector level', () => {
   it('never makes the checks say more than they did', () => {
     for (const edit of [crate('crate2'), crate('crate3', { x: 12, z: 2 })])
       expect(problemsOf(afSectorProfile, levelOf(runAf(edit)))).toEqual(problemsOf(afSectorProfile, depot))
-  })
-})
-
-describe('thing.add on a Last Light level', () => {
-  it('appends a box with no def, a hotspot without the members it was not given, and selects it', () => {
-    const result = runLl(addThing({ def: 'box', id: 'crate', x: 2, z: 3, y: 0.5, values: box }))
-    expect(result).toMatchObject({ ok: true, select: ['entity:box/crate'] })
-    expect(levelOf(result).boxes.at(-1)).toEqual({ id: 'crate', x: 2, y: 0.5, z: 3, ...box })
-    const sign = levelOf(
-      runLl(addThing({ def: 'hotspot', id: 'sign', x: 1, z: 1, values: { name: 'Sign', reach: 1.2 } })),
-    )
-    expect(sign.hotspots.at(-1)).toEqual({ id: 'sign', x: 1, y: 0, z: 1, name: 'Sign', reach: 1.2 })
-  })
-
-  it('writes an anchor under its key and a nav node with no height, and refuses a height on the node', () => {
-    const anchor = levelOf(
-      runLl(addThing({ def: 'anchor', id: 'leak', x: 1, z: 1, values: { radius: 0.5 } })),
-    )
-    expect(anchor.anchors).toEqual({ leak: { x: 1, y: 0, z: 1, radius: 0.5 } })
-    const node = levelOf(runLl(addThing({ def: 'node', id: 'hub', x: 2, z: 2 })))
-    expect(node.nav.nodes).toEqual({ hub: { x: 2, z: 2 } })
-    expect(reasonOf(runLl(addThing({ def: 'node', id: 'hub', x: 2, z: 2, y: 1 })))).toBe(
-      'a node rests on the floor and has no height',
-    )
-  })
-
-  it('refuses a second spawn, a lamp with a colour out of range and an id the definition has', () => {
-    expect(
-      reasonOf(runLl(addThing({ def: 'spawn', id: 'again', x: 1, z: 1, y: 0.8, values: { facing: 0 } }))),
-    ).toBe('spawn allows one: entity spawn is there already')
-    expect(
-      reasonOf(
-        runLl(
-          addThing({ def: 'lamp', id: 'l', x: 1, z: 1, values: { range: 3, radius: 1, color: [1, 2, 0] } }),
-        ),
-      ),
-    ).toContain('entity l: color')
-    expect(
-      reasonOf(runLl(addThing({ def: 'hotspot', id: 'far', x: 1, z: 1, values: { name: 'Far', reach: 1 } }))),
-    ).toBe('there is already something called far')
-  })
-
-  it('lets an anchor and a lamp share an id, since each definition names its own', () => {
-    const level = toyBlockout({ anchors: { leak: { x: 1, z: 1 } } })
-    const lamp = { def: 'lamp', id: 'leak', x: 1, z: 1, values: { range: 3, radius: 1, color: [1, 1, 1] } }
-    expect(runLl(addThing(lamp), level).ok).toBe(true)
-    expect(reasonOf(runLl(addThing({ ...lamp, def: 'anchor', values: {} }), level))).toBe(
-      'there is already something called leak',
-    )
-  })
-
-  it('never makes the checks say more than they did', () => {
-    const level = toyBlockout()
-    const edits = [
-      addThing<Blockout>({ def: 'box', id: 'crate', x: 2, z: 3, y: 0.5, values: box }),
-      addThing<Blockout>({ def: 'hotspot', id: 'sign', x: 1, z: 1, values: { name: 'Sign', reach: 1.2 } }),
-      addThing<Blockout>({ def: 'anchor', id: 'leak', x: 5, z: 1 }),
-      moveThing<Blockout>({ def: 'hotspot', id: 'far', x: 5.5, z: 2 }),
-      setThingField<Blockout>({ def: 'hotspot', id: 'far', field: 'reach', value: 2 }),
-    ]
-    for (const edit of edits)
-      expect(problemsOf(lastLightProfile, levelOf(runLl(edit, level)))).toEqual(
-        problemsOf(lastLightProfile, level),
-      )
-  })
-
-  it('is one insert in the file of the clinic', () => {
-    const next = levelOf(
-      runLl(
-        addThing({ def: 'hotspot', id: 'plaque', x: 0, z: 0, values: { name: 'Plaque', reach: 1 } }),
-        dawn,
-      ),
-    )
-    const patched = lastLightProfile.patch(loadFixture('blockout-clinic-dawn'), dawn, next)
-    expect(patched.ok).toBe(true)
   })
 })
 
@@ -382,26 +292,6 @@ describe('thing.move', () => {
     )
   })
 
-  it('moves the spawn, a box and a nav node of a Last Light level where each is', () => {
-    const level = toyBlockout({ nav: { nodes: { hub: { x: 1, z: 1 } } } })
-    expect(levelOf(runLl(moveThing({ def: 'spawn', id: 'spawn', x: 2, z: 2 }), level)).spawn).toEqual({
-      x: 2,
-      y: 0.79,
-      z: 2,
-      facing: 0,
-    })
-    expect(
-      levelOf(runLl(moveThing({ def: 'box', id: 'abDoor', x: 4.0625, z: 1.5 }), level)).boxes[0],
-    ).toMatchObject({
-      x: 4.0625,
-      z: 1.5,
-      y: 1.05,
-    })
-    expect(levelOf(runLl(moveThing({ def: 'node', id: 'hub', x: 2, z: 1 }), level)).nav.nodes).toEqual({
-      hub: { x: 2, z: 1 },
-    })
-  })
-
   it('coalesces per thing, and is called thing.move', () => {
     const edit = moveThing({ def: 'crate', id: 'crate1', x: 1, z: 1 })
     expect(edit.id).toBe('thing.move')
@@ -461,13 +351,6 @@ describe('thing.setField', () => {
     expect(levelOf(range(2.123456)).entities?.[2]).toMatchObject({ range: 2.1235 })
     expect(reasonOf(range(-1))).toBe('entity lamp1: range must be at least 0')
     expect(reasonOf(range(Number.NaN))).toBe('entity lamp1: range must be a finite number')
-    const color = levelOf(
-      runLl(
-        setThingField({ def: 'lamp', id: 'bulb', field: 'color', value: [1, 0.123456, 0] }),
-        toyBlockout({ lamps: [{ id: 'bulb', x: 1, y: 2, z: 1, range: 3, radius: 1, color: [1, 1, 1] }] }),
-      ),
-    )
-    expect(color.lamps[0]?.color).toEqual([1, 0.1235, 0])
   })
 
   it('does not blame an edit that changes nothing for a fault the level already had', () => {
@@ -485,35 +368,6 @@ describe('thing.setField', () => {
     expect(reasonOf(runAf(field('b1', 'contents', 'tools', 'barrel'), broken))).toBe(
       'entity b1 is of definition barrel, which is not defined',
     )
-  })
-
-  it('sets the fields of a Last Light hotspot, and refuses to clear one it needs', () => {
-    const named = levelOf(
-      runLl(setThingField({ def: 'hotspot', id: 'far', field: 'name', value: 'Back wall' })),
-    )
-    expect(named.hotspots[0]).toMatchObject({ id: 'far', name: 'Back wall' })
-    const hidden = levelOf(runLl(setThingField({ def: 'hotspot', id: 'far', field: 'hide', value: true })))
-    expect(hidden.hotspots[0]).toMatchObject({ hide: true })
-    expect(reasonOf(runLl(setThingField({ def: 'hotspot', id: 'far', field: 'name', value: null })))).toBe(
-      'entity far: name is required',
-    )
-  })
-
-  it('refuses a value the definition takes but the file cannot hold, so that no level is made that cannot be saved', () => {
-    const attach = (on: string) =>
-      setThingField<Blockout>({ def: 'hotspot', id: 'far', field: 'on', value: on })
-    expect(runLl(attach('box:abDoor')).ok).toBe(true)
-    expect(reasonOf(runLl(attach('bogus')))).toMatch(
-      /^entity far: the file cannot hold it \(hotspots\.0\.on: /,
-    )
-    const added = addThing<Blockout>({
-      def: 'hotspot',
-      id: 'sign',
-      x: 1,
-      z: 1,
-      values: { name: 'S', reach: 1, on: 'bogus' },
-    })
-    expect(reasonOf(runLl(added))).toMatch(/^entity sign: the file cannot hold it \(hotspots\.1\.on: /)
   })
 
   it('coalesces per field of a thing, and is called thing.setField', () => {
@@ -564,21 +418,6 @@ describe('thing.remove', () => {
   it('takes out a thing that cannot be read, so that it can be got rid of', () => {
     const next = levelOf(runAf(removeThing({ def: 'barrel', id: 'b1' }), broken))
     expect(next.entities).toEqual(depot.entities)
-  })
-
-  it('refuses what a Last Light level is named by, and the spawn it cannot do without', () => {
-    expect(reasonOf(runLl(removeThing({ def: 'box', id: 'abDoor' })))).toBe(
-      'box abDoor is still referenced: opening ab: door abDoor',
-    )
-    expect(reasonOf(runLl(removeThing({ def: 'spawn', id: 'spawn' })))).toBe(
-      'a level cannot do without its spawn',
-    )
-    expect(levelOf(runLl(removeThing({ def: 'hotspot', id: 'far' }))).hotspots).toEqual([])
-  })
-
-  it('removes an anchor and leaves an empty record', () => {
-    const level = toyBlockout({ anchors: { only: { x: 1, z: 1 } } })
-    expect(levelOf(runLl(removeThing({ def: 'anchor', id: 'only' }), level)).anchors).toEqual({})
   })
 
   it('is called thing.remove and says what it takes away', () => {
@@ -659,14 +498,5 @@ describe('through the level editor', () => {
     const e = editor()
     expect(e.run(moveThing({ def: 'crate', id: 'crate1', x: 99, z: 2 })).ok).toBe(false)
     expect(e.history.canUndo).toBe(false)
-  })
-
-  it('works on a shipped Last Light file', () => {
-    const e = createLevelEditor({ profile: lastLightProfile, level: dawn })
-    const hotspot = must(dawn.hotspots[0])
-    expect(e.run(moveThing({ def: 'hotspot', id: hotspot.id, x: hotspot.x, z: hotspot.z })).ok).toBe(true)
-    expect(e.level).toBe(dawn)
-    expect(e.run(setThingField({ def: 'hotspot', id: hotspot.id, field: 'reach', value: 3 })).ok).toBe(true)
-    expect(e.level.hotspots[0]).toMatchObject({ reach: 3 })
   })
 })

@@ -9,7 +9,7 @@ import type { AskProvider } from '@automata/editor/kit/ports'
 import type { CheckResult } from '../checks/check'
 import { ok } from '../model/edit'
 import type { LevelEditor } from '../model/level-editor'
-import { type Geometry, GeometryError, type ProfileContext } from '../profile/level-profile'
+import { type Geometry, GeometryError } from '../profile/level-profile'
 import { problemCount } from './problem-count'
 
 export interface AskOptions {
@@ -19,8 +19,6 @@ export interface AskOptions {
   readonly budget: number
   /** The level's path in the workspace: the provider is told which file the proposal is for. */
   readonly path: string
-  /** What the profile's checks may be told about the game that holds the level. */
-  readonly context?: ProfileContext | undefined
 }
 
 /** The proposal, read into a copy of the level and checked. */
@@ -164,7 +162,7 @@ export function createAsk<D>(editor: LevelEditor<D>, options: AskOptions): Ask<D
     if (!parsed.ok) return `the proposal is not a level this editor can read: ${firstIssue(parsed.issues)}`
     const level = parsed.value
     if (same(level, before)) return 'the proposal changes nothing'
-    const checks = editor.profile.checks(level, options.context)
+    const checks = editor.profile.checks(level)
     const errors = problemCount(checks, 'error')
     return {
       summary: proposal.summary,

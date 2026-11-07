@@ -1,8 +1,9 @@
 // The loupe the canvas hands the renderer (ED3D.6g-b step 7): nothing while the tool has no loupe point; otherwise the
 // plan and the tool's overlay for a camera centred on the point at four times the zoom, in a 140 px lens placed clear of
 // the point. The depot, 800 by 400 px, camera at (7, 3), zoom 1 (32 px a metre).
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../format/af-sector.schema'
 import { createLevelEditor } from '../model/level-editor'
 import { afSectorProfile } from '../profile/af-sector-profile'
 import { loadAuthored } from '../testing/fixtures'

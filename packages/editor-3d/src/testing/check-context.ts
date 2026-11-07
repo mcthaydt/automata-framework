@@ -1,8 +1,9 @@
 // A geometry context for the tests of the generic checks: a level's sectors, resolved, with a wall's locator taken
 // straight from the expanded edge. (The real locator, which maps an edge back to the document's corner, is the
 // `wallLocator`.)
+
+import type { MassDef, SectorDef } from '@automata/3d/level'
 import { type GeometryContext, type Locator, wallSelection } from '../checks/check'
-import type { MassDef, SectorDef } from '../format/sector.schema'
 import { type Edge, resolveMap } from '../geometry/sectors'
 
 export const plainWall = (edge: Edge): Locator => ({

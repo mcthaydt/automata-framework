@@ -1,7 +1,9 @@
 // The checks that need no profile, run together over a level's resolved sectors.
 import { describe, expect, it } from 'vitest'
+import { buildSectors } from '../profile/af-sector/build'
+import { afSectorProfile } from '../profile/af-sector-profile'
 import { plainContext } from '../testing/check-context'
-import { BLOCKOUT_NAMES, expandedBlockout } from '../testing/geometry-golden'
+import { loadAuthored } from '../testing/fixtures'
 import { room, square } from '../testing/toy-sectors'
 import { genericChecks } from './generic-checks'
 
@@ -40,13 +42,12 @@ describe('genericChecks', () => {
     ])
   })
 
-  for (const name of BLOCKOUT_NAMES) {
-    it(`${name}: passes all four`, () => {
-      const expanded = expandedBlockout(name)
-      const results = genericChecks(plainContext(expanded.sectors, expanded.masses))
-      expect(
-        results.filter((result) => !result.ok).map((result) => `${result.id}: ${result.detail}`),
-      ).toEqual([])
-    })
-  }
+  it('passes all four on the depot', () => {
+    const parsed = afSectorProfile.parse(loadAuthored('depot.af-sector'))
+    if (!parsed.ok) throw new Error('the depot does not parse')
+    const results = genericChecks(plainContext(buildSectors(parsed.value)))
+    expect(results.filter((result) => !result.ok).map((result) => `${result.id}: ${result.detail}`)).toEqual(
+      [],
+    )
+  })
 })

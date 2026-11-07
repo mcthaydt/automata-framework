@@ -3,8 +3,9 @@
 // first corner while a tap would close; a Wall, Vertex or Split target as a ring at its point, in the refusal colour with
 // the tool's sentence when a tap there would be refused; the Split cut; the rooms Merge would join. In canvas pixels from
 // the plan's own viewport, so the overlay can never drift from the walls under it. Labels are drawn by the DOM.
+
+import type { Point } from '@automata/3d/level'
 import type { Point as ScreenPoint, Size, Viewport2D } from '@automata/editor/kit/core'
-import type { Point } from '../format/sector.schema'
 import type { ViewState } from '../model/view-store'
 import { PLAN_COLORS } from '../view/plan/plan-colors'
 import type { PaintFill, PaintStroke } from '../view/plan/plan-paint'

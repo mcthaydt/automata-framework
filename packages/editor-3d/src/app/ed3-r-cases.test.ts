@@ -1,8 +1,9 @@
 // Acceptance cases of the definitions editor and New level (ED3D.13b; ED3D spec §13): ED3-q (New level from Home writes a
 // valid `af-sector/1` file that opens) and ED3-r (add a definition with a field, place a thing of it, retype the field:
 // refused with the instance named while it would stop validating; one undo per change).
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../format/af-sector.schema'
 import { createLevelEditor } from '../model/level-editor'
 import { addThing } from '../model/thing-edits'
 import { afSectorProfile } from '../profile/af-sector-profile'

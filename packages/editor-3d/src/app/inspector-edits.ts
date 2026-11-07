@@ -2,8 +2,9 @@
 // the field and its value, becomes the model's edit, and runs by the widget's phase. A `set` is one undo step; a scrub
 // (`start`, `update`, `commit`) runs in one session, so it is one step too; `cancel` drops the session. A refusal changes
 // nothing and answers the model's own sentence for the card to show.
+
+import type { Occlude } from '@automata/3d/level'
 import type { FieldValue } from '@automata/editor/kit/fields'
-import type { Occlude } from '../format/sector.schema'
 import type { Edit } from '../model/edit'
 import type { EditSession, LevelEditor } from '../model/level-editor'
 import { type SetMaterialsArgs, setHeights, setLight, setMaterials } from '../model/sector-edits'

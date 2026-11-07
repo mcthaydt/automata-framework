@@ -1,4 +1,4 @@
-// What the 3D editor's Home says (plan ED3D.5c, decisions 2 to 4): how a level or a facility reads on its card and in
+// What the 3D editor's Home says (plan ED3D.5c, decisions 2 to 4): how a level reads on its card and in
 // the summary, and the words of an open or an import. The list, the search, the selection and the drawing are the
 // kit's (`createProjectBrowser`, `HomeScreen`); this file only knows the 3D editor's entries and outcomes.
 import { cardWords, type HomeCard, type ToastKind } from '@automata/editor/kit/core'
@@ -14,8 +14,6 @@ const PROFILE_TOKENS: readonly string[] = [
   '--color-layer-sky',
   '--color-layer-intgrid',
 ]
-const FACILITY_TOKEN = '--color-layer-city'
-const FACILITY_KIND = 'Facility'
 
 function accentOf(profile: string, installed: readonly string[]): string {
   const at = installed.indexOf(profile)
@@ -24,7 +22,6 @@ function accentOf(profile: string, installed: readonly string[]): string {
 
 function badgeOf(entry: ProjectEntry): HomeCard['badge'] {
   if (entry.status === 'broken') return { tone: 'bad', text: 'Can’t open' }
-  if (entry.kind === 'facility') return { tone: 'neutral', text: 'Opens with a level' }
   const errors = plural(entry.errors, 'error', 'errors')
   const warnings = plural(entry.warnings, 'warning', 'warnings')
   if (entry.errors > 0) return { tone: 'bad', text: entry.warnings > 0 ? `${errors} · ${warnings}` : errors }
@@ -32,16 +29,14 @@ function badgeOf(entry: ProjectEntry): HomeCard['badge'] {
   return { tone: 'ok', text: 'Valid' }
 }
 
-const kindOf = (entry: ProjectEntry): string => (entry.kind === 'facility' ? FACILITY_KIND : entry.profile)
-
-/** The kit's card for an entry: a level by its file and its profile's id (the name every message uses), a facility as one. */
+/** The kit's card for an entry: a level by its file and its profile's id (the name every message uses). */
 export function levelCard(entry: ProjectEntry, installed: readonly string[]): HomeCard {
   return {
     path: entry.path,
     title: baseName(entry.path),
     badge: badgeOf(entry),
-    kind: kindOf(entry),
-    accent: entry.kind === 'facility' ? FACILITY_TOKEN : accentOf(entry.profile, installed),
+    kind: entry.profile,
+    accent: accentOf(entry.profile, installed),
     size: entry.size,
     mtime: entry.mtime,
   }
@@ -52,20 +47,14 @@ export const searchWords = (entry: ProjectEntry): readonly string[] => cardWords
 
 export interface Summary {
   readonly facts: readonly { readonly label: string; readonly value: string }[]
-  /** Why the file does not open plainly: its first problem, or why a facility waits for a level. */
+  /** Why the file does not open plainly: its first problem. A broken level still opens, into the error panel with every problem. */
   readonly reason: string | undefined
-  /** A broken level still opens, into the error panel with every problem; a facility does not open on its own. */
-  readonly openable: boolean
 }
-
-const FACILITY_ALONE = 'A facility opens with one of its levels: open a level beside it.'
 
 /** The inspector's facts and reason for the selected entry. */
 export function summaryOf(entry: ProjectEntry): Summary {
-  if (entry.kind === 'facility')
-    return { facts: [], reason: entry.status === 'broken' ? entry.message : FACILITY_ALONE, openable: false }
   if (entry.status === 'broken')
-    return { facts: [{ label: 'Profile', value: entry.profile }], reason: entry.message, openable: true }
+    return { facts: [{ label: 'Profile', value: entry.profile }], reason: entry.message }
   return {
     facts: [
       { label: 'Profile', value: entry.profile },
@@ -73,7 +62,6 @@ export function summaryOf(entry: ProjectEntry): Summary {
       { label: 'Warnings', value: String(entry.warnings) },
     ],
     reason: undefined,
-    openable: true,
   }
 }
 

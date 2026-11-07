@@ -1,18 +1,16 @@
 // The Walk view's camera as plain TypeScript (ED3D.8a step 4, spec D8, §5.3 flow 4, §9 and §10, ED3-n): two sticks and WASD
 // with Q and E, the Walk, Fly and Orbit modes, the crosshair pick and the start with no spawn. Time is the `tick` the
 // test gives: nothing here reads a clock.
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../../format/af-sector.schema'
-import type { Blockout } from '../../format/blockout.schema'
 import { moveSector } from '../../model/corner-edits'
 import { createLevelEditor } from '../../model/level-editor'
 import { setHeights } from '../../model/sector-edits'
 import { afSectorProfile } from '../../profile/af-sector-profile'
-import { lastLightProfile } from '../../profile/last-light-profile'
 import { WALK_FOV } from '../../profile/level-hints'
-import { loadFixture } from '../../testing/fixtures'
+import { loadAuthored } from '../../testing/fixtures'
 import { toyAfSector } from '../../testing/toy-af-sector'
-import { toyBlockout } from '../../testing/toy-blockout'
 import { ORBIT_FOV } from '../mesh/camera-3d'
 import { createWalkController } from './walk-controller'
 
@@ -326,43 +324,6 @@ describe('createWalkController: what stops Walk, per profile', () => {
   })
 })
 
-describe('createWalkController: a Last Light level, with its nav', () => {
-  /** The toy's room a (0 to 4) and room b beyond a doorway at x = 4 with a shut door in it. */
-  const lastLightWalk = (more: Partial<Blockout> = {}) => {
-    const editor = createLevelEditor({
-      profile: lastLightProfile,
-      level: toyBlockout({ spawn: { x: 2, y: 0, z: 2, facing: Math.PI / 2 }, ...more }),
-    })
-    return createWalkController(editor, CANVAS)
-  }
-
-  it('stops at a shut door, which the colliders alone would not', () => {
-    const walk = lastLightWalk()
-    walk.key('KeyW', true)
-    ticks(walk, 20)
-    expect(eyeOf(walk)[0]).toBeLessThan(4 - 0.06 - 0.2)
-    expect(eyeOf(walk)[0]).toBeGreaterThan(3)
-  })
-
-  it('stops at furniture', () => {
-    const desk = {
-      id: 'desk',
-      role: 'collider',
-      kind: 'desk',
-      x: 3,
-      z: 2,
-      y: 0.4,
-      w: 0.6,
-      h: 0.8,
-      d: 0.6,
-    } as const
-    const walk = lastLightWalk({ boxes: [...toyBlockout().boxes, desk] })
-    walk.key('KeyW', true)
-    ticks(walk, 20)
-    expect(eyeOf(walk)[0]).toBeLessThan(3 - 0.3)
-  })
-})
-
 describe('createWalkController: Fly moves no faster on a diagonal', () => {
   it('holds forward, strafe and lift together to full speed', () => {
     const { walk } = walkOn(withSpawn(EAST))
@@ -374,29 +335,26 @@ describe('createWalkController: Fly moves no faster on a diagonal', () => {
   })
 })
 
-describe('createWalkController: the shipped Last Light levels', () => {
-  it.each(['blockout-clinic', 'blockout-bay', 'blockout-prologue'] as const)(
-    'walks from the spawn of %s, which is not stuck in the margin',
-    (name) => {
-      const parsed = lastLightProfile.parse(loadFixture(name))
-      if (!parsed.ok) throw new Error(`${name} does not parse`)
-      const walk = createWalkController(
-        createLevelEditor({ profile: lastLightProfile, level: parsed.value }),
-        CANVAS,
-      )
-      const [x0, , z0] = eyeOf(walk)
-      for (const code of ['KeyW', 'KeyS', 'KeyA', 'KeyD']) {
-        walk.key(code, true)
-        walk.tick(0.1)
-        walk.key(code, false)
-      }
-      walk.key('KeyW', true)
-      walk.key('KeyD', true)
-      ticks(walk, 3)
-      const [x, , z] = eyeOf(walk)
-      expect(Math.hypot(x - x0, z - z0)).toBeGreaterThan(0.1)
-    },
-  )
+describe('createWalkController: the shipped depot', () => {
+  it('walks from the spawn of the depot, which is not stuck in the margin', () => {
+    const parsed = afSectorProfile.parse(loadAuthored('depot.af-sector'))
+    if (!parsed.ok) throw new Error('the depot does not parse')
+    const walk = createWalkController(
+      createLevelEditor({ profile: afSectorProfile, level: parsed.value }),
+      CANVAS,
+    )
+    const [x0, , z0] = eyeOf(walk)
+    for (const code of ['KeyW', 'KeyS', 'KeyA', 'KeyD']) {
+      walk.key(code, true)
+      walk.tick(0.1)
+      walk.key(code, false)
+    }
+    walk.key('KeyW', true)
+    walk.key('KeyD', true)
+    ticks(walk, 3)
+    const [x, , z] = eyeOf(walk)
+    expect(Math.hypot(x - x0, z - z0)).toBeGreaterThan(0.1)
+  })
 })
 
 describe('createWalkController: looking by a drag and the mesh to draw (ED3D.8b)', () => {

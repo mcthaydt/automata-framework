@@ -2,18 +2,17 @@
 // the hall runs from (0, 0) to (8, 6) and the dock from (8, 0) to (14, 6), joined by a portal along x = 8. The canvas is
 // 800 by 400 px with the camera at (7, 3) and zoom 1, which is 32 px to a metre; pixel positions are made with
 // `toScreen`, so no test hides a unit. The grid is the view's default, half a metre.
+
+import type { AfSector } from '@automata/3d/level'
 import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it, vi } from 'vitest'
-import type { AfSector } from '../format/af-sector.schema'
 import { moveSector } from '../model/corner-edits'
 import { createLevelEditor } from '../model/level-editor'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
 import type { LevelProfile } from '../profile/level-profile'
 import { SectorAccessError } from '../profile/sector-access'
 import { loadAuthored } from '../testing/fixtures'
 import { toyAfSector, toyDock, toyHall } from '../testing/toy-af-sector'
-import { toyBlockout } from '../testing/toy-blockout'
 import { planViewport, toScreen } from '../view/plan/plan-viewport'
 import type { PlanPointer } from './plan-controller'
 import { createSectorTool, type SectorToolOptions } from './sector-tool-controller'
@@ -563,22 +562,6 @@ describe('closing the outline', () => {
     tool.close()
     expect(sectorOf(editor, 'sector-1')).toBeDefined()
     expect(tool.view.refusal).toBeUndefined()
-  })
-
-  it('adds a room to a Last Light level', () => {
-    const editor = createLevelEditor({ profile: lastLightProfile, level: toyBlockout() })
-    editor.view.set({ camera: { x: 0, z: 0, zoom: 1 } })
-    const tool = createSectorTool(editor, SIZE)
-    const at = (x: number, z: number): PlanPointer => ({
-      ...toScreen(planViewport(editor.view.state.camera, SIZE), { x, z }),
-      kind: 'mouse',
-    })
-    tool.tap(at(-8, 8))
-    tool.tap(at(-5, 8))
-    tool.tap(at(-5, 11))
-    tool.close()
-    expect(lastLightProfile.sectors.list(editor.level).map((room) => room.id)).toContain('sector-1')
-    expect(editor.history.undoLabel).toBe('Draw sector sector-1')
   })
 })
 

@@ -1,15 +1,11 @@
 // The material picker's model (ED3D.8a step 3, spec §5.3 flow 5 and §9: categories, search, empty search, selected, scale,
 // brightness and the apply scope). The sheet reads `view` and calls the methods; nothing here draws.
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../../format/af-sector.schema'
-import type { Blockout } from '../../format/blockout.schema'
 import { createLevelEditor } from '../../model/level-editor'
 import { afSectorProfile } from '../../profile/af-sector-profile'
-import { lastLightProfile } from '../../profile/last-light-profile'
-import { LAST_LIGHT_NO_LIST } from '../../profile/materials'
-import { loadFixture } from '../../testing/fixtures'
 import { toyAfSector, toyDock, toyHall } from '../../testing/toy-af-sector'
-import { must } from '../../testing/toy-blockout'
 import { createMaterialPicker } from './material-picker'
 
 const level: AfSector = toyAfSector({
@@ -187,33 +183,20 @@ describe('createMaterialPicker: a list that changes under it', () => {
 })
 
 describe('createMaterialPicker: a profile with no list', () => {
-  const parsed = lastLightProfile.parse(loadFixture('blockout-clinic'))
-  if (!parsed.ok) throw new Error('the clinic does not parse')
-  const clinic: Blockout = parsed.value
-  const hall = must(clinic.rooms[0]).id
+  const NO_LIST = 'this level has no list of materials'
+  const bare: typeof afSectorProfile = {
+    ...afSectorProfile,
+    materials: () => ({ ok: false, reason: NO_LIST }),
+  }
+  const hall = 'hall'
 
   it('offers nothing and refuses to apply, in the profile’s sentence, changing nothing', () => {
-    const editor = createLevelEditor({ profile: lastLightProfile, level: clinic })
+    const editor = createLevelEditor({ profile: bare, level })
     const picker = createMaterialPicker(editor, { target: { sector: hall, surface: 'floor' } })
-    expect(picker.view.unavailable).toBe(LAST_LIGHT_NO_LIST)
+    expect(picker.view.unavailable).toBe(NO_LIST)
     expect([picker.view.categories, picker.view.tiles, picker.view.used]).toEqual([[], [], []])
-    expect(picker.apply()).toEqual({ ok: false, reason: LAST_LIGHT_NO_LIST })
-    expect(editor.level).toBe(clinic)
+    expect(picker.apply()).toEqual({ ok: false, reason: NO_LIST })
+    expect(editor.level).toBe(level)
     expect(editor.history.canUndo).toBe(false)
-  })
-
-  it('offers the renderer’s list when the host hands it over', () => {
-    const editor = createLevelEditor({ profile: lastLightProfile, level: clinic })
-    const picker = createMaterialPicker(editor, {
-      target: { sector: hall, surface: 'floor' },
-      context: { materials: ['floor', 'glass'], unlitMaterials: ['glass'] },
-    })
-    expect(picker.view.categories).toEqual([
-      { id: 'lit', count: 1 },
-      { id: 'unlit', count: 1 },
-    ])
-    picker.openCategory('lit')
-    picker.select('floor')
-    expect(picker.apply().ok).toBe(true)
   })
 })

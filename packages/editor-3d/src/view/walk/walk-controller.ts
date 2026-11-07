@@ -4,14 +4,13 @@
 // reads `view` and draws it. The selection a tap makes is the editor's, so Plan and 3D show the same one.
 //
 // Walk keeps the eye `eyeHeight` above the floor of the sector it is in, never enters a sector too low to stand in, and
-// stops where the level says a walker stops: a level with a nav world (Last Light) asks the game's own clearance (walls,
-// shut doors, exits, furniture, raised solids); one without (af-sector) stops at the geometry's colliders (solid walls,
-// steps too tall to climb, blocking masks). Either way it crosses at a portal and slides along a wall. Fly goes anywhere.
+// stops where the level says a walker stops: at the geometry's colliders (solid walls, steps too tall to climb,
+// blocking masks). It crosses at a portal and slides along a wall. Fly goes anywhere.
 // Orbit looks at a point from 8 m off at the dollhouse's 30 degrees. All three are one camera (D8).
+
+import type { Point } from '@automata/3d/level'
 import type { Point as ScreenPoint, Size } from '@automata/editor/kit/core'
 import { createGeometryCache, type Geometry } from '../../app/geometry-cache'
-import type { Point } from '../../format/sector.schema'
-import { clear, type NavState, type NavWorld, nearAWall, segmentHitsBox } from '../../geometry/nav'
 import { crossing, type Edge, type ResolvedMap, sectorAt, segmentDistance } from '../../geometry/sectors'
 import type { LevelEditor } from '../../model/level-editor'
 import {
@@ -132,7 +131,6 @@ function along(from: Point, step: Point, edge: Edge): Point {
 }
 
 /** Walk opens no door: a shut door stops it, as it stops the game's walkers (every box then stops a walk). */
-const SHUT: NavState = {}
 
 /** The level's spawn: the first thing of the definition `spawn`, facing its `facing` field (0 without one). */
 function spawnOf<D>(editor: LevelEditor<D>): SpawnPoint | undefined {
@@ -176,7 +174,7 @@ export function createWalkController<D>(editor: LevelEditor<D>, canvas: Size): W
     return undefined
   }
 
-  /** The collider a step runs into on its way out of a room, or comes nearer than `REACH` to (af-sector: no nav). */
+  /** The collider a step runs into on its way out of a room, or comes nearer than `REACH` to. */
   const colliderHit = (map: ResolvedMap, from: Point, to: Point): Edge | undefined => {
     let hit: { edge: Edge; distance: number } | undefined
     for (const { edge } of map.colliders) {
@@ -191,29 +189,6 @@ export function createWalkController<D>(editor: LevelEditor<D>, canvas: Size): W
   }
 
   /**
-   * What stops a step across a level with a nav world (Last Light): the game's own clearance, which also stops at shut
-   * doors, exits, furniture and raised solids, and a margin of `REACH` round them. The game's `clear` forgives an end
-   * inside an obstacle's margin, so the margin is asked of the end on its own: a step may not go into it, and one that
-   * starts in it may go anywhere that crosses nothing, so Walk is never stuck. The wall it hit, when a wall did; `true`
-   * for anything else.
-   */
-  const navHit = (world: NavWorld, from: Point, to: Point): Edge | true | undefined => {
-    const enters = (near: (p: Point) => boolean): boolean => near(to) && !near(from)
-    const blocked =
-      !clear(world, from, to, SHUT, 0) ||
-      enters((p) => nearAWall(world, p, REACH)) ||
-      world.boxes.some((box) => enters((p) => segmentHitsBox(p, p, box, REACH)))
-    if (!blocked) return undefined
-    let hit: { edge: Edge; distance: number } | undefined
-    for (const edge of world.walkEdges) {
-      if (segmentDistance(from, to, edge.a, edge.b) >= REACH) continue
-      const near = segmentDistance(to, to, edge.a, edge.b)
-      if (hit === undefined || near < hit.distance) hit = { edge, distance: near }
-    }
-    return hit?.edge ?? true
-  }
-
-  /**
    * Why Walk may not take a step: the wall it runs into (which it can slide along), `true` for anything else (no sector
    * there, a sector too low to stand in, a box), or nothing when it may.
    */
@@ -222,7 +197,7 @@ export function createWalkController<D>(editor: LevelEditor<D>, canvas: Size): W
     const sector = sectorUnder(to)
     if (sector === undefined || sector.ceiling - sector.floor < eyeHeight) return true
     for (const layer of geometry().layers) {
-      const hit = layer.nav === undefined ? colliderHit(layer.map, from, to) : navHit(layer.nav, from, to)
+      const hit = colliderHit(layer.map, from, to)
       if (hit !== undefined) return hit
     }
     return undefined

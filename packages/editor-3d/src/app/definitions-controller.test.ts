@@ -1,13 +1,12 @@
 // The definitions editor's controller (ED3D.13b; ED3D spec §4.7, §5.4, ED3-r): the level's entity definitions and its
 // materials table as rows, and every change as one undo step through the model's `def.*` and `material.*` edits. A
-// refusal is the model's own sentence and changes nothing. A profile with fixed definitions (Last Light) has no rows.
+// refusal is the model's own sentence and changes nothing. A profile with fixed definitions has no rows.
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../format/af-sector.schema'
 import { createLevelEditor } from '../model/level-editor'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
 import { loadAuthored } from '../testing/fixtures'
-import { toyBlockout } from '../testing/toy-blockout'
 import { createDefinitionsController } from './definitions-controller'
 
 const depot = ((): AfSector => {
@@ -81,7 +80,13 @@ describe('the definitions controller', () => {
   })
 
   it('offers no rows for definitions or materials a format fixes', () => {
-    const editor = createLevelEditor({ profile: lastLightProfile, level: toyBlockout() })
+    const fixed = {
+      ...afSectorProfile,
+      id: 'fixed',
+      definitions: undefined,
+      materials: () => ({ ok: false as const, reason: 'fixed by the format' }),
+    }
+    const editor = createLevelEditor({ profile: fixed, level: depot })
     const { view } = createDefinitionsController(editor)
     expect(view.definitions).toBeUndefined()
     expect(view.materials).toBeUndefined()

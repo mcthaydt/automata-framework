@@ -1,11 +1,11 @@
 // What the plan paints (ED3D.4 step 2): fills and walls as plain data, read from the geometry layers alone, each with
 // the selection id the app selects it by.
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../../format/af-sector.schema'
 import { afSectorProfile } from '../../profile/af-sector-profile'
-import { lastLightProfile } from '../../profile/last-light-profile'
 import type { GeometryLayer } from '../../profile/level-profile'
-import { loadAuthored, loadFixture } from '../../testing/fixtures'
+import { loadAuthored } from '../../testing/fixtures'
 import { toyAfSector, toyDock, toyHall } from '../../testing/toy-af-sector'
 import { selectionOf } from '../selection-of'
 import { planScene } from './plan-scene'
@@ -59,18 +59,9 @@ describe('planScene fills', () => {
     expect(hall?.outline).toHaveLength(4)
   })
 
-  it("groups by the sector's zone, then its floor texture, then nothing", () => {
-    const dawn = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
-    if (!dawn.ok) throw new Error('clinic-dawn does not parse')
-    const { fills } = planScene(
-      lastLightProfile.geometry(dawn.value).layers,
-      selectionOf(lastLightProfile, dawn.value),
-    )
-    const groups = Object.fromEntries(fills.map((fill) => [fill.sector, fill.group]))
-    // A zone wins over a texture (`counter` has the floor texture `counterTop`): the zone is what the game cuts by.
-    expect(groups).toMatchObject({ hall: 'hall', counter: 'hall', corridor: 'corridor', closet: 'closet' })
-    const bare = sceneOf(toyAfSector())
-    expect(bare.fills.map((fill) => fill.group)).toEqual(['', ''])
+  it("groups by the sector's floor texture, then nothing", () => {
+    expect(sceneOf(depot()).fills.map((fill) => fill.group)).toEqual(['tile', 'plank'])
+    expect(sceneOf(toyAfSector()).fills.map((fill) => fill.group)).toEqual(['', ''])
   })
 
   it('gives a sector with a hole the hole as a loop of its own', () => {
@@ -89,21 +80,6 @@ describe('planScene fills', () => {
     const inside = walls.filter((wall) => wall.sector === 'hall' && wall.selection === 'sector:hall')
     expect(inside).toHaveLength(4)
     expect(inside.every((wall) => wall.kind === 'solid')).toBe(true)
-  })
-
-  it("has a fill for an opening's connector with no selection", () => {
-    const dawn = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
-    if (!dawn.ok) throw new Error('clinic-dawn does not parse')
-    const { fills, walls } = planScene(
-      lastLightProfile.geometry(dawn.value).layers,
-      selectionOf(lastLightProfile, dawn.value),
-    )
-    const connector = fills.find((fill) => fill.sector === 'exitWay')
-    expect(connector).toMatchObject({ selection: undefined, group: 'corridor' })
-    expect(
-      walls.filter((wall) => wall.sector === 'exitWay').every((wall) => wall.selection === undefined),
-    ).toBe(true)
-    expect(walls.some((wall) => wall.sector === 'exitWay')).toBe(true)
   })
 })
 
@@ -201,16 +177,11 @@ describe('planScene walls', () => {
     }
   })
 
-  it('keeps every door and window of a Last Light level inside its wall', () => {
-    const dawn = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
-    if (!dawn.ok) throw new Error('clinic-dawn does not parse')
-    const { walls } = planScene(
-      lastLightProfile.geometry(dawn.value).layers,
-      selectionOf(lastLightProfile, dawn.value),
-    )
+  it('keeps the door and the window of the depot inside their walls', () => {
+    const { walls } = sceneOf(depot())
     const cut = walls.filter((wall) => wall.kind === 'door' || wall.kind === 'window')
-    expect(cut.filter((wall) => wall.kind === 'door')).toHaveLength(3)
-    expect(cut.filter((wall) => wall.kind === 'window')).toHaveLength(2)
+    expect(cut.filter((wall) => wall.kind === 'door')).toHaveLength(1)
+    expect(cut.filter((wall) => wall.kind === 'window')).toHaveLength(1)
     for (const wall of cut) {
       const length = Math.hypot(wall.b.x - wall.a.x, wall.b.z - wall.a.z)
       const [from, to] = wall.span ?? [Number.NaN, Number.NaN]
@@ -218,11 +189,11 @@ describe('planScene walls', () => {
       expect(to).toBeLessThanOrEqual(length + 1e-9)
       expect(to).toBeGreaterThan(from)
     }
-    // The yard's gate: 1.2 m wide, 3.075 m along a 6.725 m wall.
-    const gate = walls.find((wall) => wall.selection === 'wall:yard/0')
-    expect(gate?.kind).toBe('door')
-    expect(gate?.span?.[0]).toBeCloseTo(2.475, 9)
-    expect(gate?.span?.[1]).toBeCloseTo(3.675, 9)
+    // The hall's door: 1.2 m wide, 3 m along the 6 m west wall.
+    const door = walls.find((wall) => wall.selection === 'wall:hall/3')
+    expect(door?.kind).toBe('door')
+    expect(door?.span?.[0]).toBeCloseTo(2.4, 9)
+    expect(door?.span?.[1]).toBeCloseTo(3.6, 9)
   })
 })
 

@@ -8,6 +8,7 @@
   level editor, so this file only draws and forwards.
 -->
 <script lang="ts">
+import type { Point } from '@automata/3d/level'
 import {
   ConflictDialog,
   EditorShell,
@@ -28,7 +29,6 @@ import { planZoom } from '../../app/plan-picture'
 import { checksWords, planStatus } from '../../app/plan-status'
 import { planToolCommands } from '../../app/plan-tool-commands'
 import { createPlanTools, type PlanToolId } from '../../app/plan-tools'
-import type { Point } from '../../format/sector.schema'
 import DefinitionsSheet from '../definitions/DefinitionsSheet.svelte'
 import DollhouseCanvas from '../dollhouse/DollhouseCanvas.svelte'
 import type { DollhouseRendererFactory } from '../dollhouse/dollhouse-renderer'

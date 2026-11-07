@@ -1,18 +1,13 @@
 // The corner and sector moves (ED3D.3 step 6): `sector.moveCorner` with the rule that a portal's reverse follows, and
-// `sector.move`, which leaves the neighbours where they are. On the depot, on small levels that show one rule each, and
-// on the Last Light clinic-dawn blockout.
+// `sector.move`, which leaves the neighbours where they are. On the depot and on small levels that show one rule each.
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../format/af-sector.schema'
-import type { Blockout } from '../format/blockout.schema'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { blockoutCodec } from '../profile/last-light-codecs'
-import { lastLightProfile } from '../profile/last-light-profile'
 import type { EditSector } from '../profile/sector-access'
-import { levelOf, reasonOf } from '../testing/edit-helpers'
-import { loadAuthored, loadFixture } from '../testing/fixtures'
-import { literalEdits } from '../testing/text-diff'
+import { levelOf, must, reasonOf } from '../testing/edit-helpers'
+import { loadAuthored } from '../testing/fixtures'
 import { toyAfSector } from '../testing/toy-af-sector'
-import { must } from '../testing/toy-blockout'
 import { moveCorner, moveSector } from './corner-edits'
 import type { Edit } from './edit'
 import { createLevelEditor } from './level-editor'
@@ -22,20 +17,11 @@ const depot = (() => {
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
 })()
-const dawnText = loadFixture('blockout-clinic-dawn')
-const dawn = (() => {
-  const result = lastLightProfile.parse(dawnText)
-  if (!result.ok) throw new Error('clinic-dawn does not parse')
-  return result.value
-})()
 
 const afOn = (level: AfSector, edit: Edit<AfSector>) => edit.run(afSectorProfile, level)
 const afRun = (edit: Edit<AfSector>) => afOn(depot, edit)
-const llRun = (edit: Edit<Blockout>) => edit.run(lastLightProfile, dawn)
 const sector = (level: AfSector, id: string): EditSector =>
   must(afSectorProfile.sectors.list(level).find((each) => each.id === id))
-const room = (level: Blockout, id: string): EditSector =>
-  must(lastLightProfile.sectors.list(level).find((each) => each.id === id))
 const openings = (level: AfSector) => must(afSectorProfile.checks(level).find((r) => r.id === 'openings'))
 
 /** Three sectors that meet at the origin; `joinAB` says whether a and b are portals into each other as well. */
@@ -221,21 +207,6 @@ describe('sector.moveCorner', () => {
     expect(openings(next).ok).toBe(true)
   })
 
-  it("moves a Last Light portal's reverse too, and patches only the two coordinates (ED3-b)", () => {
-    const next = levelOf(llRun(moveCorner({ sector: 'hall', corner: 12, x: -4.875, z: -1 })))
-    expect(room(next, 'hall').corners[12]).toEqual([-4.875, -1, { next: 'ward' }])
-    expect(room(next, 'ward').corners[3]).toEqual([-4.875, -1, 'west'])
-    expect(room(next, 'yard')).toBe(room(dawn, 'yard'))
-    const patched = blockoutCodec.patch(dawnText, dawn, next)
-    if (!patched.ok) throw new Error(`patch refused: ${patched.detail}`)
-    expect(literalEdits(dawnText, patched.text)).toEqual([
-      '["rooms",0,"corners",12,1]',
-      '["rooms",2,"corners",3,1]',
-    ])
-    const portals = lastLightProfile.checks(next).find((result) => result.id === 'openings')
-    expect(portals?.problems.filter((problem) => problem.message.includes('ward'))).toEqual([])
-  })
-
   it('changes nothing when the corner is where it is told to go', () => {
     expect(afRun(moveCorner({ sector: 'hall', corner: 1, x: 8, z: 0 }))).toEqual({ ok: true, level: depot })
     expect(levelOf(afRun(moveCorner({ sector: 'hall', corner: 1, x: 8.00001, z: -0.00001 })))).toBe(depot)
@@ -358,13 +329,6 @@ describe('sector.move', () => {
       ok: false,
       reason: 'no sector nowhere',
     })
-  })
-
-  it('moves a Last Light room and keeps its zone, its presets and its names', () => {
-    const next = levelOf(llRun(moveSector({ id: 'yard', dx: 1, dz: 0 })))
-    const before = room(dawn, 'yard')
-    expect(room(next, 'yard')).toMatchObject({ zone: 'corridor', style: before.style })
-    expect(room(next, 'yard').corners[2]).toEqual([6.25, -7, 'yard-south'])
   })
 
   it('is called sector.move, coalesces on the sector and says which it moves', () => {

@@ -3,18 +3,17 @@
 // hall has a window on its north wall (corner 0) and a door on its west wall (corner 3). The canvas is 800 by 400 px with
 // the camera at (7, 3) and zoom 1, which is 32 px to a metre; pixel positions are made with `toScreen`, so no test hides a
 // unit.
+
+import type { AfSector, AfSectorEntry } from '@automata/3d/level'
 import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it, vi } from 'vitest'
-import type { AfSector, AfSectorEntry } from '../format/af-sector.schema'
 import { createLevelEditor } from '../model/level-editor'
 import { setWallKind } from '../model/wall-edits'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
 import type { LevelProfile } from '../profile/level-profile'
 import { SectorAccessError } from '../profile/sector-access'
 import { loadAuthored } from '../testing/fixtures'
 import { toyAfSector, toyDock, toyHall } from '../testing/toy-af-sector'
-import { toyBlockout } from '../testing/toy-blockout'
 import { planViewport, toScreen } from '../view/plan/plan-viewport'
 import type { PlanPointer } from './plan-controller'
 import { createWallTool, type WallToolKind } from './wall-tool-controller'
@@ -477,37 +476,5 @@ describe('a tap', () => {
       other.cancel()
       expect(editor.level).toEqual(level)
     }
-  })
-
-  describe('on a Last Light level', () => {
-    const made = (kind: WallToolKind) => {
-      const editor = createLevelEditor({ profile: lastLightProfile, level: toyBlockout() })
-      editor.view.set({ camera: { x: 3.5, z: 2, zoom: 1 } })
-      const tool = createWallTool(editor, SIZE, { kind })
-      const at = (x: number, z: number): PlanPointer => ({
-        ...toScreen(planViewport(editor.view.state.camera, SIZE), { x, z }),
-        kind: 'mouse',
-      })
-      return { editor, tool, at }
-    }
-
-    it('puts a door on a wall of a room', () => {
-      const { editor, tool, at } = made('door')
-      tool.tap(at(1, 4.1))
-      expect(tool.view.refusal).toBeUndefined()
-      expect(editor.history.undoLabel).toBe('Put a door on wall 2 of a')
-    })
-
-    it('puts a window on a wall of a room, and makes a portal where a room lies over it', () => {
-      const { editor, tool, at } = made('window')
-      tool.tap(at(1, 4.1))
-      expect(tool.view.refusal).toBeUndefined()
-      expect(editor.history.undoLabel).toBe('Put a window on wall 2 of a')
-      const portal = made('portal')
-      // Room b starts 0.125 m east of a's east wall: not the same segment, so nothing lies over it.
-      portal.tool.tap(portal.at(4.06, 2))
-      expect(portal.tool.view.refusal).toBe('no other sector has a wall over this one')
-      expect(portal.editor.history.canUndo).toBe(false)
-    })
   })
 })

@@ -2,7 +2,7 @@
 // is read after styles are applied, so a sector says what its floor, ceiling and walls are made of whichever way the
 // file wrote it, and each problem is at the sector or the wall that uses the material (a style nobody uses is not a
 // place). The list is the profile's own: a texture table in the file, or the game's renderer.
-import { TRIM_PIECES } from '../format/sector.schema'
+import { TRIM_PIECES } from '@automata/3d/level'
 import { type GeometryContext, type Problem, place, sectorSelection } from './check'
 
 const SECTOR_FIELDS = ['floorTexture', 'ceilingTexture', 'wallTexture'] as const

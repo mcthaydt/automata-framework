@@ -1,11 +1,11 @@
 // Triangles for a sector's floor and ceiling (ED3D.4 step 5): an outline and its holes in, indices of triangles out. The
 // cases are the shapes a level has (rectangles, an L, rooms with one or two holes), the shipped levels themselves, and
 // seeded random rooms; a polygon that is not simple must still come back, with whatever can be made of it.
+
+import type { Point } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { Point } from '../format/sector.schema'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
-import { loadAuthored, loadFixture } from '../testing/fixtures'
+import { loadAuthored } from '../testing/fixtures'
 import { polygonArea } from './sectors'
 import { triangulate } from './triangulate'
 
@@ -265,23 +265,12 @@ describe('triangulate a polygon that is not simple', () => {
   })
 })
 
-describe('triangulate the shipped levels', () => {
+describe('triangulate the shipped level', () => {
   it('cuts every sector of the depot to the floor it has', () => {
     const parsed = afSectorProfile.parse(loadAuthored('depot.af-sector'))
     if (!parsed.ok) throw new Error('the depot does not parse')
     const sectors = afSectorProfile.geometry(parsed.value).layers[0]?.map.sectors ?? []
     expect(sectors).toHaveLength(2)
-    for (const sector of sectors) {
-      const [outline = [], ...holes] = sector.points
-      expectFloor(triangulate(outline, holes), outline, holes)
-    }
-  })
-
-  it('cuts every sector of clinic-dawn, the hall with its hole and its notches among them', () => {
-    const parsed = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
-    if (!parsed.ok) throw new Error('clinic-dawn does not parse')
-    const sectors = lastLightProfile.geometry(parsed.value).layers[0]?.map.sectors ?? []
-    expect(sectors.some((sector) => sector.points.length > 1)).toBe(true)
     for (const sector of sectors) {
       const [outline = [], ...holes] = sector.points
       expectFloor(triangulate(outline, holes), outline, holes)

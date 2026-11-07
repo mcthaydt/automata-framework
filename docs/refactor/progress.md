@@ -408,7 +408,7 @@ both builders at FigureBuilder `025ffb4` and EnvironmentBuilder `6d82a52`. The p
 the site paths (19.1), the copy table and the 2D editor counts. Then the build (Sonnet, high) starts at task 1.1 with
 `superpowers:executing-plans`, natively in the session with no subagents, handing off after 90 minutes.
 
-### Build: 19% (10 of 53 tasks)
+### Build: 21% (11 of 53 tasks)
 
 One row per task of the [plan](2026-11-07-3d-slice-plan.md); a task is done when its checks have passed in the session that did it. The percentage is done tasks / 53.
 
@@ -424,7 +424,7 @@ One row per task of the [plan](2026-11-07-3d-slice-plan.md); a task is done when
 | 2.1 The move map and `packages/3d` | 2 | Done, 2026-11-07 (390 files moved by `docs/refactor/move-map-3d.json`; 3d unit 821 (822 less one duplicate test), Chromium parity 17 + 2 skipped and goldens 24 as before; full unit run 30/30, typecheck, boundaries, style, knip green; WebKit/Firefox not run here, hosted CI not run) |
 | 2.2 Tests in `tests/`, the feature rule on | 2 | Done, 2026-11-07 (96 test files moved; 3d unit 821 and Chromium browser 41 + 2 skipped as before; `--features packages/3d` and `--test-imports` find 0; typecheck, lint, knip green; WebKit/Firefox and hosted CI not run) |
 | 3.1 The renderer in plain TypeScript | 3 | Done, 2026-11-07 (3d and base-3d import no `effect`, enforced by `--forbid`; 3d unit 822, Chromium parity 41 + 2 skipped, base-3d unit 82; build, api-report and api-index regenerated; WebKit/Firefox and hosted CI not run) |
-| 4.1 The source game's level format goes | 4 | Not started |
+| 4.1 The source game's level format goes | 4 | Done, 2026-11-07 (editor-3d unit+dom 2,196 pass (151 files) after deleting the Last Light tests and moving the generic ones to the depot, the toy level or synthetic profiles; Chromium layout+canvas 203 and journeys 16 pass; typecheck, knip clean; hosted CI not run) |
 | 4.2 Goldens recorded from AF's own code | 4 | Not started |
 | 5.1 The palette in `-content` | 5 | Not started |
 | 5.2 Emberwick, the theme, the examples and the editors' game art on DUEL | 5 | Not started |

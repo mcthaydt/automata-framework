@@ -20,7 +20,7 @@ interface Case {
 const CASES: readonly Case[] = [
   {
     id: 'ED3-a',
-    what: 'The shipped blockouts save byte-identical',
+    what: 'The shipped depot level saves byte-identical',
     proofs: ['src/app/acceptance.test.ts'],
     status: 'covered',
   },
@@ -93,10 +93,9 @@ const CASES: readonly Case[] = [
   },
   {
     id: 'ED3-l',
-    what: 'The clinic’s sector plan rebuilt from empty equals the shipped one',
+    what: 'The depot’s sector plan rebuilt from empty equals the shipped one',
     proofs: ['src/app/acceptance.test.ts'],
-    status: 'partial',
-    note: 'Every sector without a hole is rebuilt and equal; the hall’s hole (the counter) comes from a file, as no edit draws a hole yet.',
+    status: 'covered',
   },
   {
     id: 'ED3-m',

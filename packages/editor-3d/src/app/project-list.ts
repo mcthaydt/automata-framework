@@ -1,12 +1,10 @@
-// The projects Home shows (ED3D spec §8; kit spec §4.7): one entry for each level a profile opens and each facility
-// file in the workspace, newest first, and nothing for textures, notes or JSON no profile claims. Only `.json` files are
+// The projects Home shows (ED3D spec §8; kit spec §4.7): one entry for each level a profile opens, newest first, and
+// nothing for textures, notes or JSON no profile claims. Only `.json` files are
 // read, so a workspace imported from a game checkout does not decode every image on each refresh.
 import type { ProjectStore } from '@automata/editor/kit/core'
 import type { ParseIssue } from '../profile/file-codec'
-import { facilityCodec } from '../profile/last-light-codecs'
-import { FACILITY_FILE } from './open-level'
 import { problemCount } from './problem-count'
-import { decodeText, readLevel } from './read-level'
+import { readLevel } from './read-level'
 
 interface Listed {
   readonly path: string
@@ -16,7 +14,6 @@ interface Listed {
 
 export type ProjectEntry =
   | (Listed & {
-      readonly kind: 'level'
       readonly status: 'ok'
       readonly profile: string
       /** Problems the profile's checks found, by severity, run without the game's lists. */
@@ -25,15 +22,10 @@ export type ProjectEntry =
     })
   /** A profile claims the file and refuses it: Home shows why and offers the text view. */
   | (Listed & {
-      readonly kind: 'level'
       readonly status: 'broken'
       readonly profile: string
       readonly message: string
     })
-  | (Listed & { readonly kind: 'facility'; readonly status: 'ok' })
-  | (Listed & { readonly kind: 'facility'; readonly status: 'broken'; readonly message: string })
-
-const baseName = (path: string): string => path.slice(path.lastIndexOf('/') + 1)
 
 /** The first issue as one line: its JSON path (dotted) and its message. */
 const firstIssue = (issues: readonly ParseIssue[]): string => {
@@ -44,19 +36,10 @@ const firstIssue = (issues: readonly ParseIssue[]): string => {
 
 /** One entry for a file, or nothing when it is no project. */
 function entryOf(listed: Listed, bytes: Uint8Array): ProjectEntry | undefined {
-  if (baseName(listed.path) === FACILITY_FILE) {
-    const decoded = decodeText(bytes)
-    if (decoded.status !== 'text') return undefined
-    const parsed = facilityCodec.parse(decoded.text)
-    return parsed.ok
-      ? { ...listed, kind: 'facility', status: 'ok' }
-      : { ...listed, kind: 'facility', status: 'broken', message: firstIssue(parsed.issues) }
-  }
   const read = readLevel(bytes)
   if (read.status === 'invalid')
     return {
       ...listed,
-      kind: 'level',
       status: 'broken',
       profile: read.profile.id,
       message: firstIssue(read.issues),
@@ -65,7 +48,6 @@ function entryOf(listed: Listed, bytes: Uint8Array): ProjectEntry | undefined {
   const results = read.profile.checks(read.value)
   return {
     ...listed,
-    kind: 'level',
     status: 'ok',
     profile: read.profile.id,
     errors: problemCount(results, 'error'),

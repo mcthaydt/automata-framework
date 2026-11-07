@@ -1,13 +1,12 @@
 // What a pointer on the plan touches among the things (ED3D.7b step 1): a point within the pointer kind's reach, else a
 // box whose footprint is within it, over the sub-layers that are on. The viewport is 32 px to a metre with the world
 // origin at (20, 20), so the cases read in pixels from a known point.
+
+import type { Point } from '@automata/3d/level'
 import { createViewport, type Point as ScreenPoint } from '@automata/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import type { ThingDef } from '../../entities/thing-def.schema'
 import type { EntityKit, Thing } from '../../entities/things'
-import type { Point } from '../../format/sector.schema'
-import { lastLightEntityKit } from '../../profile/last-light-entities'
-import { toyBlockout } from '../../testing/toy-blockout'
 import { PICK_RADIUS, type PickOptions } from './plan-pick'
 import { PLAN_LIMITS, toScreen } from './plan-viewport'
 import { isThingLayerOff, pickThing } from './thing-pick'
@@ -90,9 +89,13 @@ describe('picking a box', () => {
     expect(pickThing(kit, viewport, px({ x: 6, z: 5.5 }, 5, 5), MOUSE)?.id).toBe('crate1')
   })
 
-  it("is sized by the thing's own w and d when the definition has no size (a Last Light box)", () => {
-    // The toy's door box stands at (4.0625, 2), 0.12 m across x and 1 m across z.
-    const box = lastLightEntityKit(toyBlockout())
+  it("is sized by the thing's own w and d when the definition has no size (a box that carries its own size)", () => {
+    // A door box stands at (4.0625, 2), 0.12 m across x and 1 m across z.
+    const box: EntityKit = {
+      definitions: [{ id: 'box', shape: 'box', fields: [] }],
+      things: [{ def: 'box', id: 'abDoor', x: 4.0625, z: 2, values: { w: 0.12, d: 1 } }],
+      problems: [],
+    }
     const options = { radius: 2 }
     expect(pickThing(box, viewport, px({ x: 4.0625, z: 2.45 }), options)?.selection).toBe('entity:box/abDoor')
     expect(pickThing(box, viewport, px({ x: 4.0625, z: 2.5 }, 0, 2), options)?.id).toBe('abDoor')

@@ -1,9 +1,10 @@
 // Where the things of an `af-sector/1` level live: one list, `entities`, of `{ def, id, x, z, ...fields }` (ED3D spec
 // §4.7). Ids are unique across the file, so an element is found by its definition and id and the codec matches it by id,
 // which is why a moved thing is a patch of its `x` and `z` and nothing else.
+
+import type { AfEntity, AfSector } from '@automata/3d/level'
 import { refsOf } from '../../entities/thing-refs'
 import type { Thing } from '../../entities/things'
-import type { AfEntity, AfSector } from '../../format/af-sector.schema'
 import { mergeMembers, newMembers, noThing, type ThingAccess } from '../thing-access'
 import { afEntityKit } from './af-entities'
 

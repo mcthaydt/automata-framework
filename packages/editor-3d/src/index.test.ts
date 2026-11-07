@@ -5,24 +5,15 @@ import { describe, expect, it } from 'vitest'
 import * as editor3d from './index'
 
 describe('public entry', () => {
-  it('exports the codecs, the schemas, the profiles and the registry, expand, patchJson, scan, the geometry queries and the checks', () => {
+  it('exports the codecs, the schemas, the profiles and the registry, patchJson, scan, the geometry queries and the checks', () => {
     for (const name of [
-      'blockoutCodec',
-      'facilityCodec',
       'createFileCodec',
-      'blockoutSchema',
-      'facilitySchema',
-      'expand',
       'patchJson',
       'scan',
       'readLayout',
       'insertElement',
       'resolveMap',
       'sectorAt',
-      'navWorld',
-      'clear',
-      'openDoors',
-      'lastLightChecks',
       'genericChecks',
       'checkResult',
       'entitySelection',
@@ -38,7 +29,6 @@ describe('public entry', () => {
       'AfBuildError',
       'wallLocator',
       'GeometryError',
-      'lastLightProfile',
       'afSectorProfile',
       'profiles',
       'detectProfile',
@@ -91,13 +81,7 @@ describe('public entry', () => {
   })
 
   it('exports the materials, the material picker and the Walk controller (ED3D.8a)', () => {
-    for (const name of [
-      'LAST_LIGHT_NO_LIST',
-      'applyMaterial',
-      'materialOf',
-      'createMaterialPicker',
-      'createWalkController',
-    ]) {
+    for (const name of ['applyMaterial', 'materialOf', 'createMaterialPicker', 'createWalkController']) {
       expect(editor3d, name).toHaveProperty(name)
     }
   })
@@ -126,8 +110,6 @@ describe('public entry', () => {
       'RESERVED_FIELD_IDS',
       'readEntityKit',
       'afEntityKit',
-      'lastLightDefinitions',
-      'lastLightEntityKit',
     ]) {
       expect(editor3d, name).toHaveProperty(name)
     }
@@ -139,8 +121,8 @@ describe('public entry', () => {
     }
   })
 
-  it('exports the checks that take the game’s lists: materials, lamps and the room policy', () => {
-    for (const name of ['materialProblems', 'lampProblems', 'DEFAULT_TONE', 'roomPolicyProblems']) {
+  it('exports the check that takes the game’s list of materials', () => {
+    for (const name of ['materialProblems']) {
       expect(editor3d, name).toHaveProperty(name)
     }
   })
@@ -235,19 +217,9 @@ describe('public entry', () => {
     expect(shapes).toHaveLength(2)
   })
 
-  it('exports the facility editor, the World edits, the facility checks and the World selection ids', () => {
-    for (const name of [
-      'facilityChecks',
-      'createFacilityEditor',
-      'moveWing',
-      'setJoin',
-      'removeJoin',
-      'setLock',
-      'facilitySelection',
-      'parseFacilitySelection',
-    ]) {
-      expect(editor3d, name).toHaveProperty(name)
-    }
+  it('keeps the facility editor and the Last Light checks out: the editor opens af-sector levels only', () => {
+    for (const name of ['facilityChecks', 'createFacilityEditor', 'moveWing', 'lastLightChecks', 'navWorld'])
+      expect(editor3d, name).not.toHaveProperty(name)
   })
 
   it('exports the wall tools and what one wall can be offered, and keeps the geometry cache inside', () => {
@@ -272,15 +244,13 @@ describe('public entry', () => {
     expect([place.id, entry]).toEqual(['crate2', 'things:crate'])
   })
 
-  it('exports the link edits, the Last Light links, and the rectangle and link of the Things tool', () => {
-    for (const name of ['addLink', 'removeLink', 'lastLightNavLinks'])
-      expect(editor3d, name).toHaveProperty(name)
+  it('exports the link edits, and the rectangle and link of the Things tool', () => {
+    for (const name of ['addLink', 'removeLink']) expect(editor3d, name).toHaveProperty(name)
     // The shapes are types, so this is checked by the compiler: the entry names them.
     const link: editor3d.ThingLink = { a: 'p', b: 'q', via: 'door' }
     const area: editor3d.Rectangle = { x0: 0, z0: 0, x1: 1, z1: 1 }
     const place: editor3d.LinkPlace = { ...link, action: 'add' }
-    const links: editor3d.ThingLinks<editor3d.Blockout> | undefined = editor3d.lastLightProfile.links
-    expect([place.a, area.x1, links?.def]).toEqual(['p', 1, 'node'])
+    expect([place.a, area.x1]).toEqual(['p', 1])
   })
 
   it('exports the Split and Merge edits, and keeps the helpers they share inside', () => {

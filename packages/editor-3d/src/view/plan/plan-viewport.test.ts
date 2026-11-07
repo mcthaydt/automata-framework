@@ -1,10 +1,8 @@
 // The plan's camera, its grid and its snap values (ED3D.4 step 1): the kit's `Viewport2D` driven by the view state's
-// camera, and Last Light's `snap` and `snapStep` with the cases its own tests hold.
+// camera, and the snap and snap step with the cases its tests hold.
 import { createViewport } from '@automata/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import { afSectorProfile } from '../../profile/af-sector-profile'
-import { lastLightProfile } from '../../profile/last-light-profile'
-import { loadFixture } from '../../testing/fixtures'
 import { toyAfSector } from '../../testing/toy-af-sector'
 import {
   cameraOf,
@@ -75,17 +73,36 @@ describe('levelBounds and fitPlan', () => {
 
   it('covers the corners of every sector', () => {
     expect(levelBounds(layersOf(toyAfSector()))).toEqual({ x: 0, y: 0, w: 14, h: 6 })
-    const dawn = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
-    if (!dawn.ok) throw new Error('clinic-dawn does not parse')
-    const corners = lastLightProfile.sectors.list(dawn.value).flatMap((sector) => sector.corners)
-    const xs = corners.map((corner) => corner[0])
-    const zs = corners.map((corner) => corner[1])
-    expect(levelBounds(lastLightProfile.geometry(dawn.value).layers)).toEqual({
-      x: Math.min(...xs),
-      y: Math.min(...zs),
-      w: Math.max(...xs) - Math.min(...xs),
-      h: Math.max(...zs) - Math.min(...zs),
+    // Bounds are the corners' extremes, whatever the shape: an L of two sectors reaches the far corner of each.
+    const bent = toyAfSector({
+      sectors: [
+        {
+          id: 'a',
+          floor: 0,
+          ceiling: 3,
+          light: 1,
+          corners: [
+            [-2, 1],
+            [3, 1],
+            [3, 4],
+            [-2, 4],
+          ],
+        },
+        {
+          id: 'b',
+          floor: 0,
+          ceiling: 3,
+          light: 1,
+          corners: [
+            [3, 4],
+            [5, 4],
+            [5, 9],
+            [3, 9],
+          ],
+        },
+      ],
     })
+    expect(levelBounds(layersOf(bent))).toEqual({ x: -2, y: 1, w: 7, h: 8 })
   })
 
   it('is the 10 m box round the origin for a level with no sector, as in Last Light', () => {

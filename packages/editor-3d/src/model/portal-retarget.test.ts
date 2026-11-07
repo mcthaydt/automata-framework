@@ -1,26 +1,20 @@
 // Pointing the other side of a portal at a new sector (ED3D.6e): when a stretch of wall moves from one sector to another
 // (a cut makes a new sector of half a room, a merge takes a room into its neighbour), the wall of the sector on the far
 // side that runs back over it must lead into the sector the wall now belongs to, or the portal pair stops matching.
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../format/af-sector.schema'
-import type { Blockout } from '../format/blockout.schema'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
 import type { EditSector } from '../profile/sector-access'
-import { loadAuthored, loadFixture } from '../testing/fixtures'
+import { must } from '../testing/edit-helpers'
+import { loadAuthored } from '../testing/fixtures'
 import { toyAfSector, toyDock, toyHall } from '../testing/toy-af-sector'
-import { must } from '../testing/toy-blockout'
 import { type PortalMove, redirectPortals, retargetPortals } from './portal-retarget'
 import type { Changes } from './vertex-edits'
 
 const depot = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error('the depot does not parse')
-  return result.value
-})()
-const dawn = (() => {
-  const result = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
-  if (!result.ok) throw new Error('clinic-dawn does not parse')
   return result.value
 })()
 
@@ -264,40 +258,6 @@ describe('retargetPortals', () => {
     expect(wallOf(result, 'b', 0)).toEqual({ next: 'big' })
     expect([...result.keys()].sort()).toEqual(['a', 'b'])
   })
-
-  describe('in Last Light', () => {
-    const lastLight = (level: Blockout, move: PortalMove) =>
-      retargetPortals(lastLightProfile, level, new Map(), move)
-    // The ward leads into the hall along y = -0.875, from (-1.9, -0.875) to (-4.875, -0.875); the hall's reverse is hall wall 12.
-    const wardWall: PortalMove = {
-      from: 'ward',
-      to: 'bay',
-      spans: [{ start: [-1.9, -0.875], end: [-4.875, -0.875], into: 'hall' }],
-    }
-
-    it('points the hall’s wall at the new room', () => {
-      const result = lastLight(dawn, wardWall)
-      expect(wallOf(result, 'hall', 12)).toEqual({ next: 'bay' })
-    })
-
-    it('writes a next of its own on a far wall that reaches the sector through a wall preset', () => {
-      const level: Blockout = {
-        ...dawn,
-        walls: { ...dawn.walls, TOWARD: { next: 'ward' } },
-        rooms: dawn.rooms.map((room) =>
-          room.id === 'hall'
-            ? {
-                ...room,
-                corners: room.corners.map((corner, i) =>
-                  i === 12 ? ([corner[0], corner[1], { preset: 'TOWARD' }] as typeof corner) : corner,
-                ),
-              }
-            : room,
-        ),
-      }
-      expect(wallOf(lastLight(level, wardWall), 'hall', 12)).toEqual({ preset: 'TOWARD', next: 'bay' })
-    })
-  })
 })
 
 describe('redirectPortals', () => {
@@ -431,30 +391,5 @@ describe('redirectPortals', () => {
     const changes: Changes = new Map()
     redirect(changes, 'mid', 'big')
     expect(changes.size).toBe(0)
-  })
-
-  it('writes a next of its own on a wall that leads into the sector through a wall preset', () => {
-    const through: Blockout = {
-      ...dawn,
-      walls: { ...dawn.walls, TOWARD: { next: 'ward' } },
-      rooms: dawn.rooms.map((each) =>
-        each.id === 'hall'
-          ? {
-              ...each,
-              corners: each.corners.map((corner, i) =>
-                i === 12 ? ([corner[0], corner[1], { preset: 'TOWARD' }] as typeof corner) : corner,
-              ),
-            }
-          : each,
-      ),
-    }
-    const result = redirectPortals(lastLightProfile, through, new Map(), { from: 'ward', to: 'wardWest' })
-    expect(must(result.get('hall')).corners[12]?.[2]).toEqual({ preset: 'TOWARD', next: 'wardWest' })
-    expect(through.walls?.TOWARD).toEqual({ next: 'ward' })
-  })
-
-  it('points a Last Light wall at the new room', () => {
-    const result = redirectPortals(lastLightProfile, dawn, new Map(), { from: 'ward', to: 'wardWest' })
-    expect(must(result.get('hall')).corners[12]?.[2]).toEqual({ next: 'wardWest' })
   })
 })

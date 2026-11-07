@@ -1,11 +1,11 @@
 // The selection ids a plan, a pick and a mesh share (ED3D.4 step 2): `sector:<id>` for a sector the document lists and
 // `wall:<sector>/<corner>` for the wall that starts at one of its corners, and nothing for what only the geometry has.
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../format/af-sector.schema'
 import type { Edge } from '../geometry/sectors'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
-import { loadAuthored, loadFixture } from '../testing/fixtures'
+import { loadAuthored } from '../testing/fixtures'
 import { toyAfSector, toyDock, toyHall } from '../testing/toy-af-sector'
 import { selectionOf } from './selection-of'
 
@@ -137,50 +137,5 @@ describe('selectionOf on an af-sector level', () => {
     expect(select.sector('hall')).toBeUndefined()
     expect(select.edge(edgesOf(level, 'hall')[0] as Edge)).toBeUndefined()
     expect(select.sector('dock')).toBe('sector:dock')
-  })
-})
-
-describe('selectionOf on a Last Light level', () => {
-  const dawn = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
-  if (!dawn.ok) throw new Error('clinic-dawn does not parse')
-  const level = dawn.value
-  const map = lastLightProfile.geometry(level).layers[0]?.map
-  if (map === undefined) throw new Error('clinic-dawn has no sectors layer')
-  const select = selectionOf(lastLightProfile, level)
-  const listed = new Set(lastLightProfile.sectors.list(level).map((sector) => sector.id))
-
-  it('has a selection for every room of the file', () => {
-    for (const id of listed) expect(select.sector(id)).toBe(`sector:${id}`)
-  })
-
-  it("has none for an opening's connector, which the plan draws and nothing selects", () => {
-    const derived = map.sectors.filter((sector) => !listed.has(sector.id))
-    expect(derived.map((sector) => sector.id)).toEqual(['exitWay'])
-    for (const sector of derived) {
-      expect(select.sector(sector.id)).toBeUndefined()
-      for (const edge of sector.loops.flat()) expect(select.edge(edge)).toBeUndefined()
-    }
-  })
-
-  it("has the corners of the file's own outline, by their document index, and none for a connector", () => {
-    const hall = lastLightProfile.sectors.list(level).find((sector) => sector.id === 'hall')
-    expect(select.corners('hall')).toHaveLength(hall?.corners.length ?? -1)
-    expect(select.corners('hall')[12]).toEqual({ x: -4.875, z: -0.875 })
-    expect(select.corners('exitWay')).toEqual([])
-  })
-
-  it('names the corner for the outline walls of a room, and the room for the walls of its hole', () => {
-    for (const sector of map.sectors.filter((s) => listed.has(s.id))) {
-      sector.loops.forEach((loop, index) => {
-        for (const edge of loop) {
-          const name = select.edge(edge)
-          if (index === 0) expect(name).toMatch(new RegExp(`^wall:${sector.id}/\\d+$`))
-          else expect(name).toBe(`sector:${sector.id}`)
-        }
-      })
-    }
-    const hall = map.sectors.find((sector) => sector.id === 'hall')
-    expect(hall?.loops.length).toBeGreaterThan(1)
-    expect(select.edge(hall?.loops[0]?.[0] as Edge)).toBe('wall:hall/0')
   })
 })

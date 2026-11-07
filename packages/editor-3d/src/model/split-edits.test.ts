@@ -1,27 +1,20 @@
 // The Split edit (ED3D.6e): `sector.split` cuts a sector in two along a line between two points of its outline. On the
 // depot (the hall from (0, 0) to (8, 6): a window on its north wall from 3.2 to 4.8 m, a portal east into the dock, a door
-// on its west wall), on small levels that show one rule each and on the Last Light clinic-dawn blockout.
+// on its west wall), and on small levels that show one rule each.
+
+import type { AfSector, AfSectorEntry } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector, AfSectorEntry } from '../format/af-sector.schema'
-import type { Blockout } from '../format/blockout.schema'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
 import { GeometryError, type LevelProfile } from '../profile/level-profile'
 import type { EditCorner, EditSector } from '../profile/sector-access'
-import { levelOf, reasonOf } from '../testing/edit-helpers'
-import { loadAuthored, loadFixture } from '../testing/fixtures'
+import { levelOf, must, reasonOf } from '../testing/edit-helpers'
+import { loadAuthored } from '../testing/fixtures'
 import { toyAfSector } from '../testing/toy-af-sector'
-import { must } from '../testing/toy-blockout'
 import { cutProblem, splitSector } from './split-edits'
 
 const depot = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error('the depot does not parse')
-  return result.value
-})()
-const dawn = (() => {
-  const result = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
-  if (!result.ok) throw new Error('clinic-dawn does not parse')
   return result.value
 })()
 
@@ -598,125 +591,27 @@ describe('splitSector refuses a sector that is tied to its walls, or leads into 
     expect(reasonOf(afSplit(loop, 'a', 'b', [2, 0], [2, 10]))).toBe('a has a portal into itself')
   })
 
-  it('names what is tied to a Last Light room’s walls, and points at the room', () => {
-    const [first, second] = [must(dawn.hotspots[0]), must(dawn.hotspots[1])]
-    const level: Blockout = {
-      ...dawn,
-      hotspots: [
-        { ...first, on: 'wall:ward/3' },
-        { ...second, on: 'wall:ward/1' },
-        ...dawn.hotspots.slice(2),
-      ],
+  it('names what is tied to a sector’s walls, and points at the sector', () => {
+    const tied: LevelProfile<AfSector> = {
+      ...afSectorProfile,
+      sectors: {
+        ...afSectorProfile.sectors,
+        pinned: (_level, id) => (id === 'hall' ? ['door d (hall → dock)'] : []),
+      },
     }
-    const result = splitSector<Blockout>({
-      sector: 'ward',
-      id: 'wardWest',
-      from: { x: -3.4, z: -3.8 },
-      to: { x: -3.4, z: -0.875 },
-    }).run(lastLightProfile, level)
+    const result = splitSector<AfSector>({
+      sector: 'hall',
+      id: 'hallWest',
+      from: { x: 4, z: 0 },
+      to: { x: 4, z: 6 },
+    }).run(tied, depot)
     expect(result).toEqual({
       ok: false,
-      reason:
-        'ward cannot be cut while something is tied to its walls: hotspots.0.on: wall:ward/3; hotspots.1.on: wall:ward/1',
-      at: 'sector:ward',
+      reason: 'hall cannot be cut while something is tied to its walls: door d (hall → dock)',
+      at: 'sector:hall',
     })
-  })
-
-  it('refuses a Last Light room that an opening joins', () => {
-    const result = splitSector<Blockout>({
-      sector: 'yard',
-      id: 'yardEast',
-      from: { x: 2, z: -10 },
-      to: { x: 2, z: -7 },
-    }).run(lastLightProfile, dawn)
-    expect(reasonOf(result)).toBe(
-      'yard cannot be cut while something is tied to its walls: opening exitWay (corridor → yard)',
-    )
-  })
-})
-
-describe('splitSector in Last Light', () => {
-  const split = splitSector<Blockout>({
-    sector: 'ward',
-    id: 'wardWest',
-    from: { x: -3.4, z: -3.8 },
-    to: { x: -3.4, z: -0.875 },
-  })
-  const result = split.run(lastLightProfile, dawn)
-  const level = levelOf(result)
-  const room = (id: string) => must(lastLightProfile.sectors.list(level).find((each) => each.id === id))
-
-  it('cuts the ward in two: the east half keeps the name, the west half is the new room, with the zone and the rest', () => {
-    expect(room('ward').corners).toEqual([
-      [-3.4, -3.8, { cut: 'ward-back' }],
-      [-1.9, -3.8, { cut: 'ward-east', thick: 0.2125 }],
-      [-1.9, -0.875, { next: 'hall' }],
-      [-3.4, -0.875, { next: 'wardWest' }],
-    ])
-    expect(room('wardWest').corners).toEqual([
-      [
-        -4.875,
-        -3.8,
-        {
-          cut: 'ward-back',
-          window: {
-            at: 0.875,
-            width: 0.7,
-            y0: 3.05,
-            y1: 3.75,
-            bars: 4,
-            moon: true,
-          },
-        },
-      ],
-      [-3.4, -3.8, { next: 'ward' }],
-      [-3.4, -0.875, { next: 'hall' }],
-      [-4.875, -0.875, 'west'],
-    ])
-    expect(room('ward')).toMatchObject({
-      zone: 'hall',
-      light: 1.2,
-      open: true,
-      ceiling: 4.9,
-    })
-    expect(room('wardWest')).toMatchObject({
-      zone: 'hall',
-      light: 1.2,
-      open: true,
-      ceiling: 4.9,
-    })
-  })
-
-  it('splits the hall’s wall into the ward, and sends the west half to the new room', () => {
-    const hall = room('hall').corners
-    expect(hall[12]).toEqual([-4.875, -0.875, { next: 'wardWest' }])
-    expect(hall[13]).toEqual([-3.4, -0.875, { next: 'ward' }])
-    expect(hall[14]).toEqual([-1.9, -0.875, { preset: 'PILASTER', cut: 'north-west' }])
-    expect(lastLightProfile.checks(level).find((r) => r.id === 'openings')?.ok).toBe(true)
-  })
-
-  it('selects both rooms, and leaves the other rooms the same objects', () => {
-    expect(result.ok && result.select).toEqual(['sector:ward', 'sector:wardWest'])
-    expect(room('corridor')).toBe(must(dawn.rooms.find((each) => each.id === 'corridor')))
-  })
-
-  it('refuses a wall preset that leads into the room, whose walls are tied to it', () => {
-    const through: Blockout = {
-      ...dawn,
-      walls: { ...dawn.walls, TOWARD: { next: 'ward' } },
-      rooms: dawn.rooms.map((each) =>
-        each.id === 'hall'
-          ? {
-              ...each,
-              corners: each.corners.map((corner, i) =>
-                i === 12 ? ([corner[0], corner[1], { preset: 'TOWARD' }] as typeof corner) : corner,
-              ),
-            }
-          : each,
-      ),
-    }
-    expect(reasonOf(split.run(lastLightProfile, through))).toBe(
-      'ward cannot be cut while something is tied to its walls: wall preset TOWARD: next ward',
+    expect(cutProblem(tied, depot, 'hall')).toBe(
+      'hall cannot be cut while something is tied to its walls: door d (hall → dock)',
     )
   })
 })
@@ -724,7 +619,6 @@ describe('splitSector in Last Light', () => {
 describe('cutProblem', () => {
   it('says nothing for a sector that can be cut by some line', () => {
     expect(cutProblem(afSectorProfile, depot, 'hall')).toBeUndefined()
-    expect(cutProblem(lastLightProfile, dawn, 'ward')).toBeUndefined()
   })
 
   it('says what splitSector says before it looks at the line: a portal into itself', () => {
@@ -745,12 +639,6 @@ describe('cutProblem', () => {
       ],
     })
     expect(cutProblem(afSectorProfile, loop, 'a')).toBe('a has a portal into itself')
-  })
-
-  it('says what is tied to a Last Light room', () => {
-    expect(cutProblem(lastLightProfile, dawn, 'yard')).toBe(
-      'yard cannot be cut while something is tied to its walls: opening exitWay (corridor → yard)',
-    )
   })
 
   it('says nothing for a sector that is not there: the edit has the sentence for that', () => {

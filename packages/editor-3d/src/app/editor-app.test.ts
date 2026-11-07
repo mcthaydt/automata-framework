@@ -1,15 +1,11 @@
 // Opening a level from the workspace (ED3D.5b step 5; ED3D spec §5.3 flow 1, §8, §11): stat, read, the registry's
-// profile, the checks run once, the autosave offered; and, beside a Last Light level, its facility file.
+// profile, the checks run once, the autosave offered.
 import { type ProjectStore, StorageError } from '@automata/editor/kit/core'
 import { describe, expect, it } from 'vitest'
-import { moveWing } from '../model/facility-edits'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { loadAuthored, loadFixture } from '../testing/fixtures'
-import { createTestClock, memoryWorkspace, textOf } from '../testing/memory-workspace'
+import { loadAuthored } from '../testing/fixtures'
+import { createTestClock, memoryWorkspace } from '../testing/memory-workspace'
 import { createEditorApp, type OpenOutcome } from './editor-app'
-
-const CLINIC = 'art/blockout-clinic/blockout.json'
-const FACILITY = 'art/blockout-facility/facility.json'
 
 async function appWith(files: Record<string, string | Uint8Array>) {
   const clock = createTestClock()
@@ -35,13 +31,11 @@ describe('open', () => {
     expect(outcome.level.checks).toEqual(outcome.level.profile.checks(outcome.level.editor.level))
     expect(outcome.level.document.session.status).toBe('saved')
     expect(outcome.recovery).toBeUndefined()
-    // An af-sector level has no facility to look for.
-    expect(outcome.facility).toBeUndefined()
   })
 
   it('names the installed profiles', async () => {
     const { app } = await appWith({})
-    expect(app.installed).toEqual(['af-sector', 'last-light-blockout'])
+    expect(app.installed).toEqual(['af-sector'])
   })
 
   it('answers missing for a path with no file', async () => {
@@ -58,13 +52,13 @@ describe('open', () => {
     expect(await app.open('other.json')).toMatchObject({
       status: 'unrecognised',
       path: 'other.json',
-      installed: ['af-sector', 'last-light-blockout'],
+      installed: ['af-sector'],
     })
     expect(await app.open('newer.json')).toMatchObject({
       status: 'invalid',
       path: 'newer.json',
       issues: [{ path: ['format'] }],
-      installed: ['af-sector', 'last-light-blockout'],
+      installed: ['af-sector'],
     })
     expect(await app.open('bytes.json')).toEqual({ status: 'notText', path: 'bytes.json' })
   })
@@ -106,93 +100,6 @@ describe('open', () => {
     const outcome = opened(await broken.open('depot.af-sector.json'))
     expect(outcome.recovery).toBeUndefined()
     expect(outcome.recoveryError).toBe('journal broke')
-  })
-})
-
-describe('the facility beside a Last Light level', () => {
-  it('opens the facility in a sibling folder, with its own editor', async () => {
-    const { app } = await appWith({
-      [CLINIC]: loadFixture('blockout-clinic'),
-      [FACILITY]: loadFixture('facility'),
-    })
-    const outcome = opened(await app.open(CLINIC))
-    expect(outcome.level.profile.id).toBe('last-light-blockout')
-    const facility = outcome.facility
-    expect(facility?.status).toBe('opened')
-    if (facility?.status !== 'opened') return
-    expect(facility.facility.path).toBe(FACILITY)
-    expect(facility.facility.editor.facility.wings.map((wing) => wing.id)).toEqual(['clinic', 'bay'])
-    expect(facility.facility.recovery).toBeUndefined()
-  })
-
-  it('prefers a facility in the level’s own folder', async () => {
-    const { app } = await appWith({
-      [CLINIC]: loadFixture('blockout-clinic'),
-      [FACILITY]: loadFixture('facility'),
-      'art/blockout-clinic/facility.json': loadFixture('facility'),
-    })
-    const facility = opened(await app.open(CLINIC)).facility
-    expect(facility?.status === 'opened' && facility.facility.path).toBe('art/blockout-clinic/facility.json')
-  })
-
-  it('finds one beside a level at the top of the workspace', async () => {
-    const { app } = await appWith({
-      'clinic.json': loadFixture('blockout-clinic'),
-      'facility.json': loadFixture('facility'),
-    })
-    const facility = opened(await app.open('clinic.json')).facility
-    expect(facility?.status === 'opened' && facility.facility.path).toBe('facility.json')
-  })
-
-  it('does not take the facility of another import root for a level one folder deep', async () => {
-    const { app } = await appWith({
-      'packA/blockout.json': loadFixture('blockout-clinic'),
-      'packB/facility.json': loadFixture('facility'),
-    })
-    expect(opened(await app.open('packA/blockout.json')).facility).toEqual({ status: 'missing' })
-  })
-
-  it('is missing when there is none, and the level opens', async () => {
-    const { app } = await appWith({
-      [CLINIC]: loadFixture('blockout-clinic'),
-      'elsewhere/x/facility.json': '{}',
-    })
-    expect(opened(await app.open(CLINIC)).facility).toEqual({ status: 'missing' })
-  })
-
-  it('is invalid, with its issues, when it does not parse; the level still opens', async () => {
-    const { app } = await appWith({ [CLINIC]: loadFixture('blockout-clinic'), [FACILITY]: '{"wings": 3}' })
-    const facility = opened(await app.open(CLINIC)).facility
-    expect(facility?.status).toBe('invalid')
-    if (facility?.status !== 'invalid') return
-    expect(facility.path).toBe(FACILITY)
-    expect(facility.issues.length).toBeGreaterThan(0)
-  })
-
-  it('is unreadable when it is not text', async () => {
-    const { app } = await appWith({
-      [CLINIC]: loadFixture('blockout-clinic'),
-      [FACILITY]: new Uint8Array([0xff]),
-    })
-    expect(opened(await app.open(CLINIC)).facility).toEqual({
-      status: 'unreadable',
-      path: FACILITY,
-      message: 'The file is not text.',
-    })
-  })
-
-  it('saves a wing move through the facility codec, byte for byte', async () => {
-    const { app, workspace } = await appWith({
-      [CLINIC]: loadFixture('blockout-clinic'),
-      [FACILITY]: loadFixture('facility'),
-    })
-    const facility = opened(await app.open(CLINIC)).facility
-    if (facility?.status !== 'opened') throw new Error('no facility')
-    expect(facility.facility.editor.run(moveWing({ wing: 'bay', offset: [10.875, -1, -6.6] })).ok).toBe(true)
-    expect(await facility.facility.document.save()).toEqual({ status: 'saved', path: FACILITY })
-    expect(textOf(await workspace.store.read(FACILITY))).toBe(
-      loadFixture('facility').replace('"offset": [10.375, -1, -6.6]', '"offset": [10.875, -1, -6.6]'),
-    )
   })
 })
 

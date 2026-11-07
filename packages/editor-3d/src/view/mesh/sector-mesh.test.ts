@@ -1,12 +1,12 @@
 // The blockout the 3D views draw (ED3D.4 step 6, ED3D spec §5.4): a level's sectors as flat surfaces, each with the
 // selection id the app selects it by, a unit normal and a shade. The rooms are 8 m by 6 m and 4 m high unless a test says
 // otherwise; `z` is the plan's `z`, so a wall's coordinates read the same here as on the plan.
+
+import type { AfSector, AfSectorEntry, AfWall } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector, AfSectorEntry, AfWall } from '../../format/af-sector.schema'
 import { polygonArea } from '../../geometry/sectors'
 import { afSectorProfile } from '../../profile/af-sector-profile'
-import { lastLightProfile } from '../../profile/last-light-profile'
-import { loadFixture } from '../../testing/fixtures'
+import { loadAuthored } from '../../testing/fixtures'
 import { toyAfSector, toyDock, toyHall } from '../../testing/toy-af-sector'
 import { planScene } from '../plan/plan-scene'
 import { selectionOf } from '../selection-of'
@@ -801,24 +801,30 @@ describe('buildSectorMesh occlusion (ED3D.4b)', () => {
     expect(occludeOfWall(mesh, 'wall:room/0')).toEqual(['cut'])
   })
 
-  it('is cut for every wall of a Last Light level and never for its floors', () => {
-    const parsed = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
-    if (!parsed.ok) throw new Error('clinic-dawn does not parse')
-    const mesh = buildSectorMesh(
-      lastLightProfile.geometry(parsed.value).layers,
-      selectionOf(lastLightProfile, parsed.value),
-    )
-    for (const surface of mesh.surfaces)
+  it('is cut for every wall of the depot and never for its floors', () => {
+    for (const surface of meshOf(depot()).surfaces)
       expect(surface.occlude).toBe(surface.role === 'floor' ? 'never' : 'cut')
   })
 })
 
-describe('buildSectorMesh on a Last Light level', () => {
-  const parsed = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
-  if (!parsed.ok) throw new Error('clinic-dawn does not parse')
-  const layers = lastLightProfile.geometry(parsed.value).layers
-  const select = selectionOf(lastLightProfile, parsed.value)
-  const mesh = buildSectorMesh(layers, select)
+/** The depot sample, with a hole cut in its hall so the floor and ceiling have something to take out. */
+const depot = (): AfSector => {
+  const parsed = afSectorProfile.parse(loadAuthored('depot.af-sector'))
+  if (!parsed.ok) throw new Error('the depot does not parse')
+  const [hall, ...rest] = parsed.value.sectors
+  const hole = [
+    [2, 2],
+    [4, 2],
+    [4, 4],
+    [2, 4],
+  ] as const
+  return { ...parsed.value, sectors: [{ ...(hall as AfSectorEntry), holes: [hole] }, ...rest] }
+}
+
+describe('buildSectorMesh on the depot', () => {
+  const level = depot()
+  const layers = afSectorProfile.geometry(level).layers
+  const mesh = buildSectorMesh(layers, selectionOf(afSectorProfile, level))
   const sectors = layers.flatMap((layer) => layer.map.sectors)
 
   it('is well formed, and every triangle of every surface faces the way its normal says', () => {
@@ -826,14 +832,8 @@ describe('buildSectorMesh on a Last Light level', () => {
     expectWellFormed(mesh)
   })
 
-  it('gives an opening’s connector surfaces with no selection, and every other surface one', () => {
-    const derived = new Set(
-      sectors.filter((sector) => select.sector(sector.id) === undefined).map((s) => s.id),
-    )
-    expect(derived.size).toBeGreaterThan(0)
-    for (const surface of mesh.surfaces)
-      expect(surface.selection === undefined).toBe(derived.has(surface.sector))
-    expect(mesh.surfaces.some((surface) => derived.has(surface.sector))).toBe(true)
+  it('gives every surface a selection: the file lists every sector the geometry has', () => {
+    for (const surface of mesh.surfaces) expect(surface.selection).toBeDefined()
   })
 
   it('has the floor of every sector, with its holes taken out', () => {
@@ -852,7 +852,7 @@ describe('buildSectorMesh on a Last Light level', () => {
     const doors = layers
       .flatMap((layer) => layer.map.edges)
       .filter((edge) => edge.next === undefined && edge.wall.door !== undefined)
-    expect(doors.length).toBeGreaterThan(0)
+    expect(doors).toHaveLength(1)
     expect(only(mesh, 'door')).toHaveLength(doors.length)
   })
 })

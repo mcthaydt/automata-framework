@@ -1,8 +1,9 @@
 // The materials-table edits of an `af-sector/1` level (ED3D.13a step 3): add, set, rename and remove an entry of the
 // `materials` table the picker shows. A rename rewrites every member that names the material, so the `materials` check
 // still passes; a removal is refused while anything names it.
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../../format/af-sector.schema'
 import { levelOf, reasonOf } from '../../testing/edit-helpers'
 import { loadAuthored } from '../../testing/fixtures'
 import { literalEdits } from '../../testing/text-diff'

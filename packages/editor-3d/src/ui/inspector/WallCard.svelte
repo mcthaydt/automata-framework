@@ -4,11 +4,11 @@
   the 3D views hide it (occlude); its handrail. Each change is one undo step; a scrub of a stepper is one too.
 -->
 <script lang="ts">
+import type { Occlude } from '@automata/3d/level'
 import { Button, Segmented, Stepper } from '@automata/editor/kit'
 import type { InspectorCard } from '../../app/inspector-cards'
 import type { InspectorChange, InspectorPhase } from '../../app/inspector-edits'
 import type { MaterialTarget } from '../../app/material-session'
-import type { Occlude } from '../../format/sector.schema'
 
 type WallCardData = Extract<InspectorCard, { kind: 'wall' }>
 

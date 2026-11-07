@@ -4,18 +4,16 @@
 // where a third room can lead into it. The depot is the same pair at different floors, which a merge refuses. The canvas is
 // 800 by 400 px with the camera at (7, 3) and zoom 1, which is 32 px to a metre; pixel positions are made with
 // `toScreen`, so no test hides a unit.
+
+import type { AfSector, AfSectorEntry } from '@automata/3d/level'
 import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it, vi } from 'vitest'
-import type { AfSector, AfSectorEntry } from '../format/af-sector.schema'
-import type { Blockout } from '../format/blockout.schema'
 import { createLevelEditor } from '../model/level-editor'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
 import type { LevelProfile } from '../profile/level-profile'
 import { SectorAccessError } from '../profile/sector-access'
 import { loadAuthored } from '../testing/fixtures'
 import { toyAfSector, toyDock, toyHall } from '../testing/toy-af-sector'
-import { toyBlockout, toyRoom } from '../testing/toy-blockout'
 import { planViewport, toScreen } from '../view/plan/plan-viewport'
 import { createMergeTool } from './merge-tool-controller'
 import type { PlanPointer } from './plan-controller'
@@ -134,20 +132,27 @@ describe('the sector to keep under the pointer', () => {
   })
 
   it("is the model's sentence for a sector that something is tied to", () => {
-    const editor = createLevelEditor({ profile: lastLightProfile, level: toyBlockout() })
-    editor.view.set({ camera: { x: 3.5, z: 2, zoom: 1 } })
+    const tied: LevelProfile<AfSector> = {
+      ...afSectorProfile,
+      sectors: {
+        ...afSectorProfile.sectors,
+        pinned: (_level, id) => (id === 'hall' ? ['door d (hall → dock)'] : []),
+      },
+    }
+    const editor = createLevelEditor({ profile: tied, level: PAIR })
+    editor.view.set({ camera: { x: 7, z: 3, zoom: 1 } })
     const tool = createMergeTool(editor, SIZE)
     const pointer: PlanPointer = {
-      ...toScreen(planViewport(editor.view.state.camera, SIZE), { x: 2, z: 2 }),
+      ...toScreen(planViewport(editor.view.state.camera, SIZE), { x: 4, z: 3 }),
       kind: 'mouse',
     }
     tool.hover(pointer)
-    const sentence = 'a cannot be merged while something is tied to its walls: opening ab (a → b)'
-    expect(tool.view.target).toEqual({ sector: 'a', action: 'none', reason: sentence })
+    const sentence = 'hall cannot be merged while something is tied to its walls: door d (hall → dock)'
+    expect(tool.view.target).toEqual({ sector: 'hall', action: 'none', reason: sentence })
     tool.tap(pointer)
     expect(tool.view.keep).toBeUndefined()
     expect(tool.view.refusal).toBe(sentence)
-    expect(tool.view.target).toMatchObject({ sector: 'a', action: 'none' })
+    expect(tool.view.target).toMatchObject({ sector: 'hall', action: 'none' })
   })
 })
 
@@ -473,46 +478,5 @@ describe('the first sector dies with the level it was picked on', () => {
     editor.history.apply('x', () => ({ level: WITH_YARD }))
     expect(tool.view.keep).toBeUndefined()
     expect(tool.view.refusal).toBeUndefined()
-  })
-})
-
-describe('on a Last Light level', () => {
-  /** The toy's two rooms with no opening and no gap: room b starts where room a ends. */
-  const level: Blockout = toyBlockout({
-    openings: [],
-    rooms: [
-      toyRoom('a'),
-      {
-        ...toyRoom('b'),
-        corners: [
-          [4, 0],
-          [7, 0],
-          [7, 4],
-          [4, 4],
-        ],
-      },
-    ],
-  })
-  const made = () => {
-    const editor = createLevelEditor({ profile: lastLightProfile, level })
-    editor.view.set({ camera: { x: 3.5, z: 2, zoom: 1 } })
-    const tool = createMergeTool(editor, SIZE)
-    const at = (x: number, z: number): PlanPointer => ({
-      ...toScreen(planViewport(editor.view.state.camera, SIZE), { x, z }),
-      kind: 'mouse',
-    })
-    return { editor, tool, at }
-  }
-
-  it('joins two rooms into one, and one undo takes it back', () => {
-    const { editor, tool, at } = made()
-    tool.tap(at(2, 2))
-    tool.hover(at(5.5, 2))
-    expect(tool.view.target).toEqual({ sector: 'b', action: 'merge' })
-    tool.tap(at(5.5, 2))
-    expect(editor.level.rooms.map((each) => each.id)).toEqual(['a'])
-    expect(editor.history.undoLabel).toBe('Merge b into a')
-    editor.history.undo()
-    expect(editor.level).toEqual(level)
   })
 })

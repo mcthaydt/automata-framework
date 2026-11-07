@@ -4,8 +4,9 @@
 // Axes are the plan's: x east, z south, y up. A heading (`yaw`) is a compass bearing in radians: 0 looks north (-z) and a
 // quarter turn looks east (+x), so the plan's north is up the screen in both. `pitch` is the angle the camera looks above
 // the horizon (negative looks down). `fov` is the vertical field of view; the horizontal one follows from the canvas.
+
+import type { Point } from '@automata/3d/level'
 import type { Point as ScreenPoint, Size } from '@automata/editor/kit/core'
-import type { Point } from '../../format/sector.schema'
 import { insideSector, type Sector } from '../../geometry/sectors'
 import { triangulate } from '../../geometry/triangulate'
 import { WALK_EYE_HEIGHT, WALK_FOV } from '../../profile/level-hints'

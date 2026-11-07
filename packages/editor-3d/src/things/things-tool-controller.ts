@@ -13,13 +13,14 @@
 // nodes) are joined with `startLink` and a tap on the other one, and parted with `unlink`.
 //
 // It lives beside `app/` rather than in it while the shell (ED3D.5b) is built there; it follows the same shape.
+
+import type { Point } from '@automata/3d/level'
 import type { Size, Viewport2D } from '@automata/editor/kit/core'
 import type { FieldValue, FieldValues } from '@automata/editor/kit/fields'
 import type { PlanPointer } from '../app/plan-controller'
 import { lowestFreeId } from '../app/sector-id'
 import type { ThingShape } from '../entities/thing-def.schema'
 import type { EntityKit } from '../entities/things'
-import type { Point } from '../format/sector.schema'
 import type { Edit } from '../model/edit'
 import type { EditSession, LevelEditor } from '../model/level-editor'
 import { parseSelection } from '../model/selection-ref'

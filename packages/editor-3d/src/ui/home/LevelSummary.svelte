@@ -1,9 +1,8 @@
 <!--
   The inspector of the 3D Home (plan ED3D.5c, decision 4): the selected level's file, badge and profile, then Open,
   then its facts (check counts) or the reason it does not open plainly. A broken level still offers Open, which shows
-  every problem in the error panel; a facility does not open on its own, so Open is disabled and the reason beside it
-  says why (it opens with a level beside it, in World, ED3D.9c). Open sits under the title, before the details, so a
-  half-height sheet on a phone shows it without scrolling.
+  every problem in the error panel. Open sits under the title, before the details, so a half-height sheet on a phone
+  shows it without scrolling.
 -->
 <script lang="ts">
 import { Button, Pill } from '@automata/editor/kit'
@@ -44,7 +43,7 @@ const summary = $derived(entry === undefined ? undefined : summaryOf(entry))
     <div class="actions">
       <Button
         variant="primary"
-        disabled={busy || !summary.openable}
+        disabled={busy}
         aria-describedby={summary.reason === undefined ? undefined : `${uid}-reason`}
         onclick={onopen}
         data-testid="summary-open">Open</Button

@@ -1,14 +1,12 @@
 // What a pointer on the plan touches (ED3D.4 step 3): the wall or the sector under it, and the corner near it, in pixels
 // that the pointer kind sets. The viewport is 32 px to a metre with the world origin at (20, 20), so a metre is 32 px and
 // the cases below read in pixels from a known point.
+
+import type { AfSector, AfSectorEntry, Point } from '@automata/3d/level'
 import { createViewport, type Point as ScreenPoint } from '@automata/editor/kit/core'
 import { describe, expect, it } from 'vitest'
-import type { AfSector, AfSectorEntry } from '../../format/af-sector.schema'
-import type { Point } from '../../format/sector.schema'
-import { insideSector } from '../../geometry/sectors'
 import { afSectorProfile } from '../../profile/af-sector-profile'
-import { lastLightProfile } from '../../profile/last-light-profile'
-import { loadAuthored, loadFixture } from '../../testing/fixtures'
+import { loadAuthored } from '../../testing/fixtures'
 import { toyAfSector, toyDock, toyHall } from '../../testing/toy-af-sector'
 import { selectionOf } from '../selection-of'
 import { PICK_RADIUS, type PickOptions, pickCorner, pickPlan } from './plan-pick'
@@ -257,40 +255,6 @@ describe('pickPlan layers', () => {
     ).toMatchObject({
       kind: 'sector',
     })
-  })
-})
-
-describe('pickPlan on a Last Light level', () => {
-  const dawn = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
-  if (!dawn.ok) throw new Error('clinic-dawn does not parse')
-  const level = dawn.value
-  const layers = lastLightProfile.geometry(level).layers
-  const select = selectionOf(lastLightProfile, level)
-  const map = layers[0]?.map
-  if (map === undefined) throw new Error('clinic-dawn has no sectors layer')
-  const connector = map.sectors.find((sector) => sector.id === 'exitWay')
-  if (connector === undefined) throw new Error('clinic-dawn has no connector')
-  const vp = viewport(64)
-  const pickAt = (point: Point) => pickPlan(layers, select, vp, toScreen(vp, point), { radius: 1 })
-
-  it('never answers the connector of an opening, which nothing selects', () => {
-    const outline = connector.points[0] ?? []
-    const centre = {
-      x: outline.reduce((sum, p) => sum + p.x, 0) / outline.length,
-      z: outline.reduce((sum, p) => sum + p.z, 0) / outline.length,
-    }
-    // The centre is in the connector, so it is the connector's missing selection that keeps it out of the answer.
-    expect(insideSector(centre, connector)).toBe(true)
-    expect(pickAt(centre)).toBeUndefined()
-    for (const edge of connector.loops.flat()) {
-      const middle = { x: (edge.a.x + edge.b.x) / 2, z: (edge.a.z + edge.b.z) / 2 }
-      const hit = pickAt(middle)
-      if (hit !== undefined) expect(hit.sector).not.toBe('exitWay')
-    }
-  })
-
-  it('answers a room of the file', () => {
-    expect(pickAt({ x: 0, z: 1 })).toMatchObject({ kind: 'sector', selection: 'sector:hall' })
   })
 })
 

@@ -22,7 +22,7 @@ import {
   type ToastStore,
 } from '@automata/editor/kit/core'
 import type { EditorApp, OpenOutcome } from '../editor-app'
-import type { FacilityOutcome, OpenLevel } from '../open-level'
+import type { OpenLevel } from '../open-level'
 import type { DocumentSaveOutcome, PatchRefused } from '../patched-document'
 import {
   documentHeading,
@@ -78,7 +78,7 @@ export interface DocumentController {
   restore(): void
   /** Throws the offered autosave away. */
   discard(): Promise<void>
-  /** Writes the journal, stops listening to the page and lets the level (and its facility) go. Safe to call twice. */
+  /** Writes the journal, stops listening to the page and lets the level go. Safe to call twice. */
   close(): Promise<void>
 }
 
@@ -90,17 +90,9 @@ export interface DocumentControllerOptions {
   readonly lifecycle: { readonly document: LifecycleDocument; readonly window: LifecycleWindow }
 }
 
-/** Lets an open facility go: its journal first, then the document. */
-async function closeFacility(facility: FacilityOutcome | undefined): Promise<void> {
-  if (facility?.status !== 'opened') return
-  await facility.facility.document.session.flush().catch(() => undefined)
-  facility.facility.document.dispose()
-}
-
 export function createDocumentController(options: DocumentControllerOptions): DocumentController {
   const { app, toasts, lifecycle } = options
   let level = options.opened.level
-  let facility = options.opened.facility
   let recovery = options.opened.recovery
   let conflict = false
   let heldOpen = false
@@ -202,14 +194,12 @@ export function createDocumentController(options: DocumentControllerOptions): Do
 
   async function takeTheirs(): Promise<void> {
     const old = level
-    const oldFacility = facility
     // Open first: only a file that opens may replace the person's edits.
     const outcome = await app.open(old.path)
     // Left (Back) while the file was read: the old level is already closed; the new one must not outlive it.
     if (closed) {
       if (outcome.status === 'opened') {
         outcome.level.document.dispose()
-        await closeFacility(outcome.facility)
       }
       return
     }
@@ -225,13 +215,10 @@ export function createDocumentController(options: DocumentControllerOptions): Do
     await old.document.session.discardJournal().catch(() => undefined)
     if (closed) {
       outcome.level.document.dispose()
-      await closeFacility(outcome.facility)
       return
     }
     old.document.dispose()
-    await closeFacility(oldFacility)
     level = outcome.level
-    facility = outcome.facility
     recovery = undefined
     detach = attach(level)
     toasts.push({ kind: 'info', message: reloadedMessage(level.path) })
@@ -307,7 +294,6 @@ export function createDocumentController(options: DocumentControllerOptions): Do
       // The autosave drops a pending write when disposed, so the last edits are written first.
       await level.document.session.flush().catch(() => undefined)
       level.document.dispose()
-      await closeFacility(facility)
     },
   }
 }

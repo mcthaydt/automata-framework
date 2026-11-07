@@ -3,17 +3,16 @@
 // the dock from (8, 0) to (14, 6), joined by a portal along x = 8; the hall has a window on its north wall (corner 0) and a
 // door on its west wall (corner 3). The canvas is 800 by 400 px with the camera at (7, 3) and zoom 1, which is 32 px to a
 // metre; pixel positions are made with `toScreen`, so no test hides a unit.
+
+import type { AfSector, AfSectorEntry } from '@automata/3d/level'
 import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it, vi } from 'vitest'
-import type { AfSector, AfSectorEntry } from '../format/af-sector.schema'
 import { createLevelEditor } from '../model/level-editor'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
 import type { LevelProfile } from '../profile/level-profile'
 import { SectorAccessError } from '../profile/sector-access'
 import { loadAuthored } from '../testing/fixtures'
 import { toyAfSector, toyDock, toyHall } from '../testing/toy-af-sector'
-import { toyBlockout } from '../testing/toy-blockout'
 import { planViewport, toScreen } from '../view/plan/plan-viewport'
 import type { PlanPointer } from './plan-controller'
 import { createVertexTool } from './vertex-tool-controller'
@@ -599,29 +598,5 @@ describe('a tap', () => {
     expect(other.open).toBe(true)
     other.cancel()
     expect(editor.level).toEqual(depot)
-  })
-
-  describe('on a Last Light level', () => {
-    const made = () => {
-      const editor = createLevelEditor({ profile: lastLightProfile, level: toyBlockout() })
-      editor.view.set({ camera: { x: 3.5, z: 2, zoom: 1 } })
-      const tool = createVertexTool(editor, SIZE)
-      const at = (x: number, z: number): PlanPointer => ({
-        ...toScreen(planViewport(editor.view.state.camera, SIZE), { x, z }),
-        kind: 'mouse',
-      })
-      return { editor, tool, at }
-    }
-
-    it('puts a corner on a wall of a room and takes it away again', () => {
-      const { editor, tool, at } = made()
-      tool.tap(at(1, 4.1))
-      expect(tool.view.refusal).toBeUndefined()
-      expect(editor.history.undoLabel).toBe('Add a corner to wall 2 of a')
-      expect(tool.view.target).toMatchObject({ kind: 'corner', sector: 'a', corner: 3, action: 'remove' })
-      tool.tap(at(1, 4.1))
-      expect(editor.history.undoLabel).toBe('Remove corner 3 of a')
-      expect(editor.level).toEqual(toyBlockout())
-    })
   })
 })

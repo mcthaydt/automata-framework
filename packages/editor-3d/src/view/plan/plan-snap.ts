@@ -3,8 +3,9 @@
 // when the view snaps to it, then the data step (5 cm; Shift 1 cm). Alt turns all of it off. The answer says which
 // one it was, so the app can draw the target, and names the wall where there is one. Reach is in pixels, like
 // picking's, so zooming in snaps to fewer metres.
+
+import type { Point } from '@automata/3d/level'
 import type { Point as ScreenPoint, Viewport2D } from '@automata/editor/kit/core'
-import type { Point } from '../../format/sector.schema'
 import type { ViewState } from '../../model/view-store'
 import type { GeometryLayer } from '../../profile/level-profile'
 import type { SelectionOf } from '../selection-of'

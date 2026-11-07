@@ -1,28 +1,21 @@
 // The Merge edit (ED3D.6e): `sector.merge` takes one sector into another that shares a stretch of wall with it. The
-// strongest test of the two edits is that they undo each other, so most cases below split a sector (on the depot and on
-// the Last Light clinic-dawn ward) and merge the halves again, and smaller levels show the one rule each.
+// strongest test of the two edits is that they undo each other, so most cases below split a sector on the depot and
+// merge the halves again, and smaller levels show the one rule each.
+
+import type { AfSector, AfSectorEntry } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector, AfSectorEntry } from '../format/af-sector.schema'
-import type { Blockout } from '../format/blockout.schema'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
 import { GeometryError, type LevelProfile } from '../profile/level-profile'
 import type { EditCorner, EditSector } from '../profile/sector-access'
-import { levelOf, reasonOf } from '../testing/edit-helpers'
-import { loadAuthored, loadFixture } from '../testing/fixtures'
+import { levelOf, must, reasonOf } from '../testing/edit-helpers'
+import { loadAuthored } from '../testing/fixtures'
 import { toyAfSector } from '../testing/toy-af-sector'
-import { must } from '../testing/toy-blockout'
 import { mergeSectors } from './merge-edits'
 import { splitSector } from './split-edits'
 
 const depot = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error('the depot does not parse')
-  return result.value
-})()
-const dawn = (() => {
-  const result = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
-  if (!result.ok) throw new Error('clinic-dawn does not parse')
   return result.value
 })()
 
@@ -128,34 +121,6 @@ describe('mergeSectors after a split on the depot', () => {
     expect(edit).toMatchObject({ id: 'sector.merge', label: 'Merge annex into hall' })
     const result = edit.run(afSectorProfile, split)
     expect(result.ok && result.select).toEqual(['sector:hall'])
-  })
-})
-
-describe('mergeSectors after a split in Last Light', () => {
-  const split = levelOf(
-    splitSector<Blockout>({
-      sector: 'ward',
-      id: 'wardWest',
-      from: { x: -3.4, z: -3.8 },
-      to: { x: -3.4, z: -0.875 },
-    }).run(lastLightProfile, dawn),
-  )
-  const result = mergeSectors<Blockout>({ keep: 'ward', merge: 'wardWest' }).run(lastLightProfile, split)
-  const level = levelOf(result)
-  const roomOf = (blockout: Blockout, id: string) => must(blockout.rooms.find((each) => each.id === id))
-
-  it('gives back the ward, the hall and every other room', () => {
-    expect(level.rooms.map((each) => each.id)).toEqual(dawn.rooms.map((each) => each.id))
-    expect({ ...roomOf(level, 'ward'), corners: canonical(roomOf(level, 'ward').corners) }).toEqual(
-      roomOf(dawn, 'ward'),
-    )
-    expect(roomOf(level, 'hall')).toEqual(roomOf(dawn, 'hall'))
-    expect(roomOf(level, 'corridor')).toBe(roomOf(dawn, 'corridor'))
-    expect(lastLightProfile.checks(level).find((each) => each.id === 'openings')?.ok).toBe(true)
-  })
-
-  it('selects the ward', () => {
-    expect(result.ok && result.select).toEqual(['sector:ward'])
   })
 })
 
@@ -716,13 +681,19 @@ describe('mergeSectors refuses what it cannot do', () => {
     )
   })
 
-  it('refuses a Last Light room that something is tied to, whichever side it is on, and points at it', () => {
+  it('refuses a sector that something is tied to, whichever side it is on, and points at it', () => {
+    const tied: LevelProfile<AfSector> = {
+      ...afSectorProfile,
+      sectors: {
+        ...afSectorProfile.sectors,
+        pinned: (_level, id) => (id === 'dock' ? ['door d (hall → dock)'] : []),
+      },
+    }
     const merge = (keep: string, other: string) =>
-      mergeSectors<Blockout>({ keep, merge: other }).run(lastLightProfile, dawn)
-    const sentence =
-      'yard cannot be merged while something is tied to its walls: opening exitWay (corridor → yard)'
-    expect(merge('yard', 'corridor')).toEqual({ ok: false, reason: sentence, at: 'sector:yard' })
-    expect(merge('ward', 'yard')).toEqual({ ok: false, reason: sentence, at: 'sector:yard' })
+      mergeSectors<AfSector>({ keep, merge: other }).run(tied, depot)
+    const sentence = 'dock cannot be merged while something is tied to its walls: door d (hall → dock)'
+    expect(merge('dock', 'hall')).toEqual({ ok: false, reason: sentence, at: 'sector:dock' })
+    expect(merge('hall', 'dock')).toEqual({ ok: false, reason: sentence, at: 'sector:dock' })
   })
 
   it('makes no change on a refusal', () => {

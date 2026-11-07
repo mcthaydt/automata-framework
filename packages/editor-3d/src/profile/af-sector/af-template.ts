@@ -2,7 +2,7 @@
 // sectors, the one definition every walkable level wants (a `single` spawn that faces a way, as the depot's) and no
 // things. It is written by hand in the depot's layout, so the codec patches it like any authored file, and it is read
 // back through the codec so the text and the model can never disagree.
-import { AF_SECTOR_FORMAT, type AfSector } from '../../format/af-sector.schema'
+import { AF_SECTOR_FORMAT, type AfSector } from '@automata/3d/level'
 import { afSectorCodec } from './af-codec'
 
 export type NewLevelResult =

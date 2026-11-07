@@ -1,16 +1,15 @@
-// The entity check (ED3D.2b-1): what is wrong with the things of a level, seeded into the toy AF level and the toy
-// blockout, and the shipped files that must pass.
+// The entity check (ED3D.2b-1): what is wrong with the things of a level, seeded into the toy AF level, and the shipped
+// depot that must pass.
+
+import type { AfEntity, AfEntityDef, AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfEntity, AfEntityDef, AfSector } from '../format/af-sector.schema'
 import { resolveMap } from '../geometry/sectors'
 import { afEntityKit } from '../profile/af-sector/af-entities'
 import { buildSectors } from '../profile/af-sector/build'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightEntityKit } from '../profile/last-light-entities'
-import { lastLightProfile } from '../profile/last-light-profile'
-import { loadAuthored, loadFixture } from '../testing/fixtures'
+import { must } from '../testing/edit-helpers'
+import { loadAuthored } from '../testing/fixtures'
 import { toyAfSector, toyHall } from '../testing/toy-af-sector'
-import { must } from '../testing/toy-blockout'
 import { entityProblems } from './entities'
 
 const crate: AfEntityDef = {
@@ -180,7 +179,7 @@ describe('entityProblems: order', () => {
   })
 })
 
-describe('entityProblems: the shipped levels', () => {
+describe('entityProblems: the shipped level', () => {
   it('passes the depot', () => {
     const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
     if (!result.ok) throw new Error('the depot does not parse')
@@ -188,15 +187,4 @@ describe('entityProblems: the shipped levels', () => {
     if (map.kind !== 'sectors') throw new Error('the depot has no sectors')
     expect(entityProblems(afSectorProfile.entities(result.value), map.map)).toEqual([])
   })
-
-  it.each(['blockout-clinic', 'blockout-clinic-dawn', 'blockout-bay', 'blockout-prologue'] as const)(
-    'passes %s, with every thing of Last Light’s fixed set inside a sector and fitting its field',
-    (name) => {
-      const result = lastLightProfile.parse(loadFixture(name))
-      if (!result.ok) throw new Error(`${name} does not parse`)
-      const layer = must(lastLightProfile.geometry(result.value).layers[0])
-      if (layer.kind !== 'sectors') throw new Error('no sectors')
-      expect(entityProblems(lastLightEntityKit(result.value), layer.map)).toEqual([])
-    },
-  )
 })

@@ -11,7 +11,6 @@ const NOW = 1_700_000_000_000
 const level: ProjectEntry = {
   ...listed,
   path: 'depot/depot.json',
-  kind: 'level',
   status: 'ok',
   profile: 'af-sector',
   errors: 1,
@@ -48,22 +47,12 @@ describe('LevelSummary', () => {
     mount({
       ...listed,
       path: 'b.json',
-      kind: 'level',
       status: 'broken',
       profile: 'af-sector',
       message: 'sectors: Required',
     })
     expect(screen.getByText('sectors: Required')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Open' })).toBeEnabled()
-  })
-
-  it('does not open a facility on its own, and says why beside the disabled Open', () => {
-    mount({ ...listed, path: 'art/facility.json', kind: 'facility', status: 'ok' })
-    const open = screen.getByRole('button', { name: 'Open' })
-    expect(open).toBeDisabled()
-    expect(open).toHaveAccessibleDescription(
-      'A facility opens with one of its levels: open a level beside it.',
-    )
   })
 
   it('disables Open while another action runs', () => {

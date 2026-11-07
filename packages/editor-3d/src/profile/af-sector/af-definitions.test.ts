@@ -1,13 +1,13 @@
 // How definitions are written into an `af-sector/1` level (ED3D.13a step 1): the access puts a definition where the
 // file keeps it, `entityDefs`, and renames what its instances call it, and the codec turns that into the smallest patch.
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import type { ThingDef } from '../../entities/thing-def.schema'
-import type { AfSector } from '../../format/af-sector.schema'
+import { must } from '../../testing/edit-helpers'
 import { loadAuthored } from '../../testing/fixtures'
 import { changedRegion, literalEdits } from '../../testing/text-diff'
-import { must } from '../../testing/toy-blockout'
 import { afSectorProfile } from '../af-sector-profile'
-import { lastLightProfile } from '../last-light-profile'
 import { afDefinitionAccess } from './af-definitions'
 import { afEntityKit } from './af-entities'
 
@@ -114,8 +114,7 @@ describe('afDefinitionAccess', () => {
     expect(afDefinitionAccess.renameInstances(depot, 'nothing', { def: 'x' })).toBe(depot)
   })
 
-  it('is the access of the af-sector profile; the Last Light profile has none, so its definitions are fixed', () => {
+  it('is the access of the af-sector profile', () => {
     expect(afSectorProfile.definitions).toBe(afDefinitionAccess)
-    expect(lastLightProfile.definitions).toBeUndefined()
   })
 })

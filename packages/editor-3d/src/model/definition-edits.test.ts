@@ -1,16 +1,14 @@
 // The definition edits (ED3D.13a step 2): add, rename, set a field of and remove an entity definition, on the depot
-// (`af-sector/1`), and the refusal on The Last Light's toy blockout, whose definitions are fixed. A definitions edit
+// (`af-sector/1`), and the refusal on a format whose definitions are fixed. A definitions edit
 // never makes a valid instance invalid (the kit's `checkRetype`), and an accepted edit never makes the checks worse.
+
+import type { AfSector } from '@automata/3d/level'
 import type { FieldDef } from '@automata/editor/kit/fields'
 import { describe, expect, it } from 'vitest'
 import type { ThingDef } from '../entities/thing-def.schema'
-import type { AfSector } from '../format/af-sector.schema'
-import type { Blockout } from '../format/blockout.schema'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
 import { levelOf, reasonOf } from '../testing/edit-helpers'
 import { loadAuthored } from '../testing/fixtures'
-import { toyBlockout } from '../testing/toy-blockout'
 import { addDefinition, removeDefinition, renameDefinition, setDefinitionField } from './definition-edits'
 import type { Edit, EditResult } from './edit'
 import { createLevelEditor } from './level-editor'
@@ -25,8 +23,9 @@ const depot = ((): AfSector => {
 
 const runAf = (edit: Edit<AfSector>, level: AfSector = depot): EditResult<AfSector> =>
   edit.run(afSectorProfile, level)
-const runLl = (edit: Edit<Blockout>, level: Blockout = toyBlockout()): EditResult<Blockout> =>
-  edit.run(lastLightProfile, level)
+/** A format that fixes its definitions leaves `definitions` out of its profile. */
+const runFixed = (edit: Edit<AfSector>): EditResult<AfSector> =>
+  edit.run({ ...afSectorProfile, definitions: undefined }, depot)
 
 /** The depot with a second crate and a switch whose ref field may point only at a crate. */
 const wired: AfSector = {
@@ -72,14 +71,14 @@ const barrel: ThingDef = {
 }
 
 describe('the definitions of a format that fixes them', () => {
-  it('refuses every definition edit on a Last Light level, and changes nothing', () => {
+  it('refuses every definition edit, and changes nothing', () => {
     const fixed = "this level's entity definitions are fixed by its format"
-    expect(reasonOf(runLl(addDefinition({ definition: barrel })))).toBe(fixed)
-    expect(reasonOf(runLl(renameDefinition({ def: 'lamp', to: 'light' })))).toBe(fixed)
-    expect(reasonOf(runLl(setDefinitionField({ def: 'lamp', value: { id: 'glow', type: 'float' } })))).toBe(
-      fixed,
-    )
-    expect(reasonOf(runLl(removeDefinition({ def: 'lamp' })))).toBe(fixed)
+    expect(reasonOf(runFixed(addDefinition({ definition: barrel })))).toBe(fixed)
+    expect(reasonOf(runFixed(renameDefinition({ def: 'crate', to: 'chest' })))).toBe(fixed)
+    expect(
+      reasonOf(runFixed(setDefinitionField({ def: 'crate', value: { id: 'glow', type: 'float' } }))),
+    ).toBe(fixed)
+    expect(reasonOf(runFixed(removeDefinition({ def: 'crate' })))).toBe(fixed)
   })
 })
 

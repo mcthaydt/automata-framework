@@ -1,8 +1,9 @@
 // What the inspector's widgets do to the level (ED3D.5f step 3, plan decision 1; ED3D spec §5.3 flow 3: a drag is one
 // transaction): a set is one undo step; a scrub (start, updates, commit) is one step too; a cancel leaves the level as it
 // was; a refusal changes nothing and answers the model's sentence. The depot, as in `inspector-cards.test.ts`.
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../format/af-sector.schema'
 import { createLevelEditor } from '../model/level-editor'
 import { afSectorProfile } from '../profile/af-sector-profile'
 import { loadAuthored } from '../testing/fixtures'

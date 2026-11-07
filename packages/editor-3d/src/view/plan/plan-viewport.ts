@@ -3,6 +3,8 @@
 // themselves are the editor kit's `Viewport2D`, so the plan and the 2D editor move the same way; this file only says
 // how the plan's metres sit in it (a plan point `{ x, z }` is the viewport's `{ x, y: z }`, so z runs down the screen)
 // and gives the plan its limits (4 to 400 px to a metre, Last Light's). Every function is a value in, a value out.
+
+import type { Point } from '@automata/3d/level'
 import {
   createViewport,
   type Rect,
@@ -12,7 +14,6 @@ import {
   type ViewportLimits,
 } from '@automata/editor/kit/core'
 import { roundJsonNumber } from '@automata/editor/kit/documents'
-import type { Point } from '../../format/sector.schema'
 import type { ViewState } from '../../model/view-store'
 import type { GeometryLayer } from '../../profile/level-profile'
 

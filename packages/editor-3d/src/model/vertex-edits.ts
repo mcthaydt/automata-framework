@@ -3,8 +3,9 @@
 // a window at a distance from its start, and a portal has a reverse on the other side that must be split with it or the
 // pair stops matching (the `openings` check). The rules for dividing and for joining what is set into a wall live here
 // once, so that no tool re-derives them.
+
+import type { DoorDef, WindowDef } from '@automata/3d/level'
 import { wallSelection } from '../checks/check'
-import type { DoorDef, WindowDef } from '../format/sector.schema'
 import { outlineProblem } from '../geometry/loops'
 import type { LevelProfile } from '../profile/level-profile'
 import type { EditCorner, EditSector, EditWall } from '../profile/sector-access'

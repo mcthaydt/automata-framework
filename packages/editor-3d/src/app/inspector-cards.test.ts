@@ -1,8 +1,9 @@
 // The inspector's cards as plain data (ED3D.5f step 2; ED3D spec §9): what is selected, read from the live level. The
 // depot: the hall (0, 0)–(8, 6), floor 0, ceiling 4, light 1, tile and brick; its wall 0 has a window, wall 1 is a portal
 // into the dock, wall 2 is solid and wall 3 has a door. The dock: floor −0.5, light 0.7. Things: the spawn and a crate.
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../format/af-sector.schema'
 import { createLevelEditor } from '../model/level-editor'
 import { afSectorProfile } from '../profile/af-sector-profile'
 import { loadAuthored } from '../testing/fixtures'

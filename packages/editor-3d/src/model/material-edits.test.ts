@@ -1,17 +1,13 @@
 // Applying a material (ED3D.8a step 2, spec §5.3 flow 5): to one wall, to a room, or to every wall made of what the target
-// is made of, as one edit. On a small `af-sector/1` level with a style and a hole, and on Last Light's clinic-dawn, whose
-// walls may be a cutaway name or start from a preset.
+// is made of, as one edit. On a small `af-sector/1` level with a style and a hole.
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../format/af-sector.schema'
-import type { Blockout } from '../format/blockout.schema'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
 import type { Material } from '../profile/materials'
 import type { EditSector } from '../profile/sector-access'
-import { levelOf, reasonOf } from '../testing/edit-helpers'
-import { loadFixture } from '../testing/fixtures'
+import { levelOf, must, reasonOf } from '../testing/edit-helpers'
 import { toyAfSector, toyDock, toyHall } from '../testing/toy-af-sector'
-import { must } from '../testing/toy-blockout'
 import { createLevelEditor } from './level-editor'
 import { applyMaterial, type MaterialScope, type MaterialTarget, materialOf } from './material-edits'
 
@@ -191,90 +187,5 @@ describe('applyMaterial: refusals and the history', () => {
       'Apply plank to the floor of hall',
       'Apply plank to the floors that match hall',
     ])
-  })
-})
-
-describe('applyMaterial on a Last Light blockout', () => {
-  const text = loadFixture('blockout-clinic-dawn')
-  const parsed = lastLightProfile.parse(text)
-  if (!parsed.ok) throw new Error('clinic-dawn does not parse')
-  const dawn = parsed.value
-  const plaster: Material = { id: 'plaster', category: 'lit' }
-  const run = (target: MaterialTarget, scope: MaterialScope) =>
-    applyMaterial<Blockout>({ target, scope, material: plaster }).run(lastLightProfile, dawn)
-  const wallsOfRoom = (of: Blockout, id: string) =>
-    must(lastLightProfile.sectors.list(of).find((each) => each.id === id)).corners.map((_, corner) =>
-      materialOf(lastLightProfile, of, { wall: { sector: id, corner } }),
-    )
-
-  it('makes every wall of a room, cutaway names and presets among them, of the material, and patches the file', () => {
-    const after = levelOf(run({ wall: { sector: 'hall', corner: 2 } }, 'room'))
-    expect(wallsOfRoom(after, 'hall').every((made) => made === 'plaster')).toBe(true)
-    expect(lastLightProfile.patch(text, dawn, after).ok).toBe(true)
-  })
-
-  it('sets one wall written as a cutaway name, keeping the name', () => {
-    const hall = must(lastLightProfile.sectors.list(dawn).find((each) => each.id === 'hall'))
-    const named = hall.corners.findIndex((corner) => typeof corner[2] === 'string')
-    expect(named).toBeGreaterThan(-1)
-    const after = levelOf(run({ wall: { sector: 'hall', corner: named } }, 'wall'))
-    const wall = must(
-      must(lastLightProfile.sectors.list(after).find((each) => each.id === 'hall')).corners[named],
-    )[2]
-    expect(wall).toEqual({ cut: hall.corners[named]?.[2], texture: 'plaster' })
-    expect(lastLightProfile.patch(text, dawn, after).ok).toBe(true)
-  })
-})
-
-describe('applyMaterial on a wall that starts from a preset with a material', () => {
-  const parsed = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
-  if (!parsed.ok) throw new Error('clinic-dawn does not parse')
-  const hall = must(parsed.value.rooms.find((room) => room.id === 'hall'))
-  // The hall's corner 2 starts from a preset that names chrome, and corner 3 from the pilaster with a texture of its own.
-  const dawn: Blockout = {
-    ...parsed.value,
-    walls: { ...parsed.value.walls, TILED: { texture: 'chrome' } },
-    rooms: parsed.value.rooms.map((room) =>
-      room.id !== 'hall'
-        ? room
-        : {
-            ...room,
-            corners: room.corners.map((corner, i) => {
-              if (i === 2) return [corner[0], corner[1], { preset: 'TILED' }] as const
-              if (i === 3)
-                return [
-                  corner[0],
-                  corner[1],
-                  { preset: 'PILASTER', cut: 'north-east', texture: 'rail' },
-                ] as const
-              return corner
-            }),
-          },
-    ),
-  }
-  const plaster: Material = { id: 'plaster', category: 'lit' }
-  const after = levelOf(
-    applyMaterial<Blockout>({
-      target: { wall: { sector: 'hall', corner: 0 } },
-      scope: 'room',
-      material: plaster,
-    }).run(lastLightProfile, dawn),
-  )
-  const corners = must(after.rooms.find((room) => room.id === 'hall')).corners
-
-  it('gives a wall whose preset names another material a member of its own, and takes off one the preset does not need', () => {
-    expect(materialOf(lastLightProfile, dawn, { wall: { sector: 'hall', corner: 2 } })).toBe('chrome')
-    expect(corners[2]).toEqual([
-      hall.corners[2]?.[0],
-      hall.corners[2]?.[1],
-      { preset: 'TILED', texture: 'plaster' },
-    ])
-    expect(corners[3]).toEqual([
-      hall.corners[3]?.[0],
-      hall.corners[3]?.[1],
-      { preset: 'PILASTER', cut: 'north-east' },
-    ])
-    for (let corner = 0; corner < corners.length; corner += 1)
-      expect(materialOf(lastLightProfile, after, { wall: { sector: 'hall', corner } })).toBe('plaster')
   })
 })

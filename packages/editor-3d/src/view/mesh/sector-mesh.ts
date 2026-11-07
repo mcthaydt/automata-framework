@@ -7,7 +7,7 @@
 // This is a blockout, not Last Light's dressed room: no trim, wall tops, masses, casings or panes. A wall has openings
 // where a door or a window is, a closed `door` panel fills the door's, and a portal leaves only the strips its neighbour
 // does not open (`pieces`). A door or a window on a portal wall is not drawn: a portal is an opening already.
-import type { Occlude, Point } from '../../format/sector.schema'
+import type { Occlude, Point } from '@automata/3d/level'
 import { type Edge, pieces, type Sector } from '../../geometry/sectors'
 import { triangulate } from '../../geometry/triangulate'
 import type { GeometryLayer } from '../../profile/level-profile'

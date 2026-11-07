@@ -76,17 +76,7 @@ const sources = (directory: string): string[] =>
   })
 
 describe('the pure layers', () => {
-  for (const layer of [
-    'format',
-    'geometry',
-    'checks',
-    'entities',
-    'profile',
-    'model',
-    'view',
-    'app',
-    'things',
-  ]) {
+  for (const layer of ['geometry', 'checks', 'entities', 'profile', 'model', 'view', 'app', 'things']) {
     it(`src/${layer} has no impure import or global`, () => {
       const root = new URL(`./${layer}`, import.meta.url).pathname
       const files = sources(root)

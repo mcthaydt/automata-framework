@@ -1,4 +1,4 @@
-import type { Point } from '../../format/sector.schema'
+import type { Point } from '@automata/3d/level'
 import type { Levels3dSuiteSession } from './levels-3d-suite-editor'
 
 // Where the pointer is on the plan, for the status line (plan EDS.2d): the canvas and the status are two regions of the

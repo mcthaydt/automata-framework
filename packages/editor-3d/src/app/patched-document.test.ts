@@ -1,16 +1,15 @@
 // Saving a document by patching its text (ED3D.5b steps 2 to 4; ED3D spec §5.3 flow 9, §8, §11 and ED3-o; kit spec §5
 // flows 3 and 4): the kit's DocumentSession writes what the codec's patch gives, a refused patch holds Save, and the
 // autosave keeps the model so Restore patches it into the file as it is now.
+
+import type { AfSector } from '@automata/3d/level'
 import { findRecovery, statPath } from '@automata/editor/kit/core'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../format/af-sector.schema'
-import type { Blockout } from '../format/blockout.schema'
 import { createLevelEditor, type LevelEditor } from '../model/level-editor'
 import type { LevelState } from '../model/level-state'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
 import type { LevelProfile } from '../profile/level-profile'
-import { loadAuthored, loadFixture } from '../testing/fixtures'
+import { loadAuthored } from '../testing/fixtures'
 import { createTestClock, memoryWorkspace, type TestClock, textOf } from '../testing/memory-workspace'
 import { createPatchedDocument, type PatchedDocument } from './patched-document'
 
@@ -149,18 +148,6 @@ describe('saving through the patch', () => {
     setHall(editor, 'light', 0.5)
     expect((await document.save()).status).toBe('saved')
     expect(await file()).toBe(reformattedDepot.replace('"light": 1,', '"light": 0.5,'))
-  })
-
-  it('patches a Last Light blockout byte for byte', async () => {
-    const text = loadFixture('blockout-bay')
-    const { editor, document, file } = await setup(lastLightProfile, text, 'art/blockout-bay/blockout.json')
-    const before = editor.level
-    editor.history.apply('Rename scene', (state) => ({
-      level: { ...state.level, scene: 'bay2' } as Blockout,
-    }))
-    expect((await document.save()).status).toBe('saved')
-    expect(await file()).toBe(text.replace('"scene": "bay"', '"scene": "bay2"'))
-    expect(before.scene).toBe('bay')
   })
 
   it('is a conflict, writing nothing, when the file changed behind the editor; Keep mine then writes it', async () => {

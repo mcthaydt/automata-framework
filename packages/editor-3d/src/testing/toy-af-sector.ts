@@ -1,6 +1,6 @@
 // A small `af-sector/1` level for the tests of the AF profile: a hall and a loading dock half a metre below it, joined
 // by a portal pair along x = 8. Every check passes it (the depot sample is a bigger one, shipped as a fixture).
-import type { AfSector, AfSectorEntry } from '../format/af-sector.schema'
+import type { AfSector, AfSectorEntry } from '@automata/3d/level'
 
 export const toyHall: AfSectorEntry = {
   id: 'hall',

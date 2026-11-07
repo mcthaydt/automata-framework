@@ -1,13 +1,11 @@
 // The materials-table edits of an `af-sector/1` level (ED3D spec §4.6, ED3D.13a): `material.add`, `material.set`,
 // `material.rename` and `material.remove` over the file's `materials` table, which the picker shows. They are this
-// format's own (Last Light's materials are the game's renderer's, not the file's), so they live with the profile and
-// the editor core never names them. A material is named by a sector's three textures, a style's three, and a wall's
+// format's own, so they live with the profile and the editor core never names them. A material is named by a sector's three textures, a style's three, and a wall's
 // `texture` and trim pieces, in the outer loop and the holes; a rename rewrites each, and a removal is refused while
 // any is left.
 
-import type { AfCorner, AfMaterial, AfSector, AfSectorEntry, AfWall } from '../../format/af-sector.schema'
-import type { Style } from '../../format/blockout.schema'
-import { TRIM_PIECES } from '../../format/sector.schema'
+import type { AfCorner, AfMaterial, AfSector, AfSectorEntry, AfWall } from '@automata/3d/level'
+import { TRIM_PIECES } from '@automata/3d/level'
 import { type Edit, ok, refuse } from '../../model/edit'
 import { sameJson, withoutUndefined } from '../../model/json-values'
 import { ID_PATTERN } from '../../model/sector-edit-support'
@@ -83,7 +81,7 @@ function renamedUses(level: AfSector, from: string, to: string): AfSector {
   const sectors = level.sectors.map((sector) => renamedSector(sector, rename))
   return {
     ...level,
-    ...(stylesChanged ? { styles: nextStyles as Record<string, Style> } : {}),
+    ...(stylesChanged ? { styles: nextStyles as NonNullable<AfSector['styles']> } : {}),
     sectors: sectors.some((sector, index) => sector !== level.sectors[index]) ? sectors : level.sectors,
   }
 }

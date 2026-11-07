@@ -2,12 +2,10 @@
 // concept. A profile is a file codec (read a file, write a model change back into its text) plus the two things the
 // editor asks of a level: the geometry its views draw, the checks its problems list shows, and the things that stand in
 // it. ED3D.2b adds the checks that need the entities, ED3D.8a the materials and the hints.
+
+import type { MassDef, SectorDef } from '@automata/3d/level'
 import type { CheckResult } from '../checks/check'
-import type { LampKind } from '../checks/last-light/lamps'
-import type { RoomPolicy } from '../checks/last-light/room-policy'
 import type { EntityKit } from '../entities/things'
-import type { MassDef, SectorDef } from '../format/sector.schema'
-import type { NavWorld } from '../geometry/nav'
 import { type ResolvedMap, resolveMap } from '../geometry/sectors'
 import type { DefinitionAccess } from './definition-access'
 import type { FileCodec } from './file-codec'
@@ -24,8 +22,6 @@ import type { ThingLinks } from './thing-links'
 export type GeometryLayer = {
   readonly kind: 'sectors'
   readonly map: ResolvedMap
-  /** Last Light's nav graph and clearance queries; a level without one has none. */
-  readonly nav?: NavWorld | undefined
 }
 
 export interface Geometry {
@@ -37,33 +33,11 @@ export class GeometryError extends Error {
   override readonly name = 'GeometryError'
 }
 
-/**
- * What a profile's checks may be told about the game that holds the level: lists the level file does not carry. A check
- * whose list is absent (or `null`) is skipped and says so; the host reads each list from the game.
- */
-export interface ProfileContext {
-  /** Last Light: the hotspot ids the level's puzzle acts on; `null`, or absent, is a level with no puzzle. */
-  readonly puzzleHotspots?: readonly string[] | null | undefined
-  /** Last Light: the material ids the game's renderer has, for the `materials` check; `null`, or absent, is no list. */
-  readonly materials?: readonly string[] | null | undefined
-  /** Last Light: which of `materials` the renderer draws unlit (`unlitMats`), for the picker's categories; absent is none. */
-  readonly unlitMaterials?: readonly string[] | null | undefined
-  /** Last Light: the lamp archetypes the game allows, by kind, for the `lamps` check; `null`, or absent, is no list. */
-  readonly lampKinds?: Readonly<Record<string, LampKind>> | null | undefined
-  /** Last Light: how far in OKLab a lamp's colour may be from its archetype's; `null`, or absent, is the game's own 0.06. */
-  readonly tone?: number | null | undefined
-  /**
-   * Last Light: the scene's room-visibility policy, for the `policy` check. Absent is a game with none, which skips the check;
-   * `null` is a policy the host could not read, which the check warns about.
-   */
-  readonly roomPolicy?: RoomPolicy | null | undefined
-}
-
 export interface LevelProfile<D> extends FileCodec<D> {
   /** Throws a `GeometryError` for a level that cannot be built or resolved. */
   geometry(doc: D): Geometry
   /** Never throws for a level the schema accepted: a level that cannot be built is the answer, as a result. */
-  checks(doc: D, context?: ProfileContext): CheckResult[]
+  checks(doc: D): CheckResult[]
   /**
    * The definitions and the things of the level, typed (ED3D.1b2). Never throws for a level the schema accepted: what
    * cannot be read is a problem in the kit.
@@ -78,8 +52,8 @@ export interface LevelProfile<D> extends FileCodec<D> {
   readonly sectors: SectorAccess<D>
   /** How the editor's edits write the level's things (ED3D.7a); reading them is `entities`. */
   readonly things: ThingAccess<D>
-  /** What the material picker offers (ED3D.8a): the file's table, or the game's list through the context. */
-  materials(doc: D, context?: ProfileContext): MaterialList
+  /** What the material picker offers (ED3D.8a): the file's table. */
+  materials(doc: D): MaterialList
   /** The unit, Walk's eye and lens, and the snap (ED3D.8a). */
   readonly hints: LevelHints
   /** The things the level joins in pairs (ED3D.7c: Last Light's nav edges); a format with none leaves it out. */

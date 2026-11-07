@@ -16,7 +16,7 @@ import {
   type Trim,
   WALL_THICK,
   type WallDef,
-} from '../format/sector.schema'
+} from '@automata/3d/level'
 
 /** One wall of a sector, with its place in the loop and the numbers every query needs. */
 export interface Edge {

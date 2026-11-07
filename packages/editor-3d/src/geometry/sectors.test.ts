@@ -1,16 +1,12 @@
-// Sector resolution: the toy cases come from running The Last Light's own `resolveSectors` (src/game/sectors.ts at
-// 92e6704) on the same inputs; the shipped blockouts are compared with what that code made of them (the golden) and
-// checked with the geometry cases of Last Light's tests/scenes.test.ts.
+// Sector resolution: small cases that show one rule each, and the invariants of a shipped level (the depot): loops closed,
+// simple and wound with the room on the left, no overlap, and portals that match on both sides.
+
+import type { Corner, Point } from '@automata/3d/level'
+import { DEFAULT_TRIM, WALL_THICK } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { Corner, Point } from '../format/sector.schema'
-import { DEFAULT_TRIM, WALL_THICK } from '../format/sector.schema'
-import {
-  BLOCKOUT_NAMES,
-  expandedBlockout,
-  type GoldenGrid,
-  loadGeometryGolden,
-  sectorsShape,
-} from '../testing/geometry-golden'
+import { buildSectors } from '../profile/af-sector/build'
+import { afSectorProfile } from '../profile/af-sector-profile'
+import { loadAuthored } from '../testing/fixtures'
 import { room, square } from '../testing/toy-sectors'
 import {
   crossing,
@@ -29,7 +25,7 @@ const at = <T>(items: readonly T[], index: number): T => items[index] as T
 const loopOf = (sector: Sector, loop = 0): Sector['loops'][number] => at(sector.loops, loop)
 const only = (resolved: Resolved): Sector => at(resolved.sectors, 0)
 const p = (x: number, z: number): Point => ({ x, z })
-// Last Light's normal of an edge along x is `{ x: -0, z: 1 }`: compare as JSON, which writes -0 as 0.
+// The normal of an edge along x is `{ x: -0, z: 1 }`: compare as JSON, which writes -0 as 0.
 const plain = (value: unknown): unknown => JSON.parse(JSON.stringify(value))
 
 describe('resolveSectors: loops', () => {
@@ -319,7 +315,7 @@ describe('sectorAt and floorAt', () => {
     expect(nameAt(-1, 0)).toBeUndefined()
   })
 
-  it('gives a point on a shared wall to the sector it is on the near side of, as Last Light does', () => {
+  it('gives a point on a shared wall to the sector it is on the near side of', () => {
     expect(nameAt(4, 2)).toBe('high')
     expect(nameAt(0, 0)).toBe('low')
     expect(nameAt(1, 1)).toBeUndefined()
@@ -332,35 +328,10 @@ describe('sectorAt and floorAt', () => {
   })
 })
 
-describe.each(BLOCKOUT_NAMES)('%s', (name) => {
-  const expanded = expandedBlockout(name)
-  const resolved = resolveSectors(expanded.sectors, expanded.masses)
-  const golden = loadGeometryGolden()[name]
-
-  it("resolves to exactly what Last Light's own resolveSectors made of it (sectors, edges and masses)", () => {
-    expect(sectorsShape(resolved)).toEqual(golden.map.sectors)
-    expect(JSON.parse(JSON.stringify(resolved.masses))).toEqual(golden.map.masses)
-  })
-
-  it("finds the same sector and floor as Last Light's on a 0.5 m grid over the plan", () => {
-    const { step, x0, z0 } = golden.grid
-    const points = resolved.sectors.flatMap((s) => s.points.flat())
-    const maxX = Math.max(...points.map((q) => q.x))
-    const maxZ = Math.max(...points.map((q) => q.z))
-    const grid: GoldenGrid = { step, x0, z0, sector: [], floor: [] }
-    for (let z = z0; z <= maxZ + step; z += step) {
-      const sectorRow: number[] = []
-      const floorRow: number[] = []
-      for (let x = x0; x <= maxX + step; x += step) {
-        const found = sectorAt(resolved, p(x, z))
-        sectorRow.push(found ? resolved.sectors.indexOf(found) : -1)
-        floorRow.push(floorAt(resolved, x, z))
-      }
-      grid.sector.push(sectorRow)
-      grid.floor.push(floorRow)
-    }
-    expect(grid).toEqual(golden.grid)
-  })
+describe('the depot', () => {
+  const parsed = afSectorProfile.parse(loadAuthored('depot.af-sector'))
+  if (!parsed.ok) throw new Error('the depot does not parse')
+  const resolved = resolveSectors(buildSectors(parsed.value), [])
 
   const near = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.z - b.z) < 1e-6
 

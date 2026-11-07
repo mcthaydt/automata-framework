@@ -3,9 +3,10 @@
 // document lists, and for a wall the locator's answer (`wall:<sector>/<corner>` for a wall of the file's own outline,
 // the sector for any other). What only the geometry has, such as Last Light's opening connectors, has no selection:
 // it is drawn, and nothing selects it.
+
+import type { Point } from '@automata/3d/level'
 import { place, sectorSelection } from '../checks/check'
 import { wallLocator } from '../checks/wall-locator'
-import type { Point } from '../format/sector.schema'
 import type { Edge } from '../geometry/sectors'
 import type { LevelProfile } from '../profile/level-profile'
 

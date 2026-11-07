@@ -16,7 +16,6 @@
   ],
   "exports": {
     ".": "./src/entries/index.ts",
-    "./blockout": "./src/entries/blockout.ts",
     "./camera-view": "./src/entries/camera-view.ts",
     "./figures": "./src/entries/figures.ts",
     "./level": "./src/entries/level.ts",

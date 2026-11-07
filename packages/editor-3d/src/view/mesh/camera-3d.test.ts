@@ -1,8 +1,9 @@
 // The 3D camera (ED3D.4 step 7, ED3D spec §5.4 and ED3D-D8): projection and picking rays, the dollhouse's orbit and the
 // walk start. Axes are the plan's: x east, z south, y up. A heading (`yaw`) is a compass bearing in radians, 0 looking
 // north (-z) and a quarter turn looking east (+x); `pitch` is the angle the camera looks above the horizon.
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../../format/af-sector.schema'
 import { insideSector, type Sector } from '../../geometry/sectors'
 import { afSectorProfile } from '../../profile/af-sector-profile'
 import { WALK_EYE_HEIGHT, WALK_FOV } from '../../profile/level-hints'

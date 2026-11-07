@@ -1,28 +1,21 @@
 // The vertex edits (ED3D.6d): `sector.addCorner`, which splits a wall at a point and splits a portal's reverse with it, and
 // `sector.removeCorner`, which joins the two walls at a corner into one. On the depot (the hall from (0, 0) to (8, 6): a
-// window on its north wall, a portal east into the dock, a door on its west wall), on small levels that show one rule each
-// and on the Last Light clinic-dawn blockout.
+// window on its north wall, a portal east into the dock, a door on its west wall) and on small levels that show one rule
+// each.
+
+import type { AfSector, AfSectorEntry, WallDef } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector, AfSectorEntry } from '../format/af-sector.schema'
-import type { WallDef } from '../format/sector.schema'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
 import type { EditSector } from '../profile/sector-access'
-import { levelOf, reasonOf } from '../testing/edit-helpers'
-import { loadAuthored, loadFixture } from '../testing/fixtures'
+import { levelOf, must, reasonOf } from '../testing/edit-helpers'
+import { loadAuthored } from '../testing/fixtures'
 import { toyAfSector } from '../testing/toy-af-sector'
-import { must, toyBlockout, toyRoom } from '../testing/toy-blockout'
 import type { Edit } from './edit'
 import { type Changes, cornerInserted, insertCorner, removeCorner } from './vertex-edits'
 
 const depot = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error('the depot does not parse')
-  return result.value
-})()
-const dawn = (() => {
-  const result = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
-  if (!result.ok) throw new Error('clinic-dawn does not parse')
   return result.value
 })()
 
@@ -568,40 +561,6 @@ describe('insertCorner on a portal', () => {
   })
 })
 
-describe('insertCorner in Last Light', () => {
-  const room = (level: typeof dawn, id: string): EditSector =>
-    must(lastLightProfile.sectors.list(level).find((each) => each.id === id))
-
-  it('copies a cutaway name to both halves', () => {
-    const before = room(dawn, 'hall').corners
-    expect(before[5]).toEqual([4.875, -0.875, 'east'])
-    const next = levelOf(
-      insertCorner<typeof dawn>({ sector: 'hall', corner: 5, x: 4.875, z: 2 }).run(lastLightProfile, dawn),
-    )
-    expect(room(next, 'hall').corners.slice(5, 7)).toEqual([
-      [4.875, -0.875, 'east'],
-      [4.875, 2, 'east'],
-    ])
-  })
-
-  it('splits a portal and its reverse', () => {
-    const next = levelOf(
-      insertCorner<typeof dawn>({ sector: 'hall', corner: 12, x: -3, z: -0.875 }).run(lastLightProfile, dawn),
-    )
-    expect(room(next, 'hall').corners.slice(12, 14)).toEqual([
-      [-4.875, -0.875, { next: 'ward' }],
-      [-3, -0.875, { next: 'ward' }],
-    ])
-    expect(room(next, 'ward').corners.slice(2, 5)).toEqual([
-      [-1.9, -0.875, { next: 'hall' }],
-      [-3, -0.875, { next: 'hall' }],
-      [-4.875, -0.875, 'west'],
-    ])
-    const portals = lastLightProfile.checks(next).find((result) => result.id === 'openings')
-    expect(portals?.ok).toBe(true)
-  })
-})
-
 describe('removeCorner', () => {
   /** One room a with these corners and nothing else in the level. */
   const roomOf = (corners: AfSectorEntry['corners']): AfSector =>
@@ -1068,79 +1027,6 @@ describe('removeCorner', () => {
       const result = afOn(level, removeCorner({ sector: 'north/hall', corner: 1 }))
       expect(sector(levelOf(result), 'north/hall').corners).toHaveLength(4)
       expect(result.ok && result.select).toBeUndefined()
-    })
-  })
-
-  describe('in Last Light', () => {
-    const room = (level: typeof dawn, id: string): EditSector =>
-      must(lastLightProfile.sectors.list(level).find((each) => each.id === id))
-    const dropped = (id: string, corner: number) =>
-      removeCorner<typeof dawn>({ sector: id, corner }).run(lastLightProfile, dawn)
-
-    it('joins two walls that are the same cutaway name into that name', () => {
-      // The hall's west wall (-4.875, 6.875) to (-4.875, 3.5) and the jog after it are both "west".
-      const next = levelOf(dropped('hall', 8))
-      expect(room(next, 'hall').corners.slice(7, 10)).toEqual([
-        [-4.875, 6.875, 'west'],
-        [-5.225, 3.5, 'west'],
-        [-5.225, 2.5, 'west'],
-      ])
-    })
-
-    it('undoes a corner added to a wall that is a name', () => {
-      const added = levelOf(
-        insertCorner<typeof dawn>({ sector: 'hall', corner: 5, x: 4.875, z: 2 }).run(lastLightProfile, dawn),
-      )
-      const back = levelOf(
-        removeCorner<typeof dawn>({ sector: 'hall', corner: 6 }).run(lastLightProfile, added),
-      )
-      expect(room(back, 'hall').corners).toEqual(room(dawn, 'hall').corners)
-    })
-
-    it('joins a cutaway name and a wall of that name with a door into one object that has both', () => {
-      const parsed = lastLightProfile.parse(
-        JSON.stringify(
-          toyBlockout({
-            rooms: [
-              {
-                ...toyRoom('a'),
-                corners: [
-                  [0, 0, 'west'],
-                  [2, 0, { cut: 'west', door: { at: 0.5, width: 0.6, height: 2 } }],
-                  [4, 0],
-                  [4, 4],
-                  [0, 4],
-                ],
-              },
-              toyRoom('b'),
-            ],
-          }),
-        ),
-      )
-      if (!parsed.ok) throw new Error('the toy does not parse')
-      const next = levelOf(
-        removeCorner<typeof dawn>({ sector: 'a', corner: 1 }).run(lastLightProfile, parsed.value),
-      )
-      expect(room(next, 'a').corners[0]).toEqual([
-        0,
-        0,
-        { cut: 'west', door: { at: 2.5, width: 0.6, height: 2 } },
-      ])
-    })
-
-    it('says how a pilaster preset and a plain name differ', () => {
-      expect(reasonOf(dropped('hall', 4))).toBe(
-        'the walls at corner 4 of hall differ in preset: make them the same first',
-      )
-    })
-
-    it('refuses a corner of a portal wall, and names its room', () => {
-      expect(reasonOf(dropped('hall', 12))).toBe(
-        'the walls at corner 12 of hall lead into ward: make them solid first',
-      )
-      expect(reasonOf(dropped('ward', 2))).toBe(
-        'the walls at corner 2 of ward lead into hall: make them solid first',
-      )
     })
   })
 })

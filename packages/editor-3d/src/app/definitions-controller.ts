@@ -1,11 +1,12 @@
 // The definitions editor's controller (ED3D.13b; ED3D spec §4.7, §5.4, ED3-r): the level's entity definitions, with each
 // one's instance count, and its materials table, as rows the sheet shows; and every change as one undo step through the
 // model's `def.*` and `material.*` edits. A change answers `undefined` when it was made and the model's own sentence when
-// it was refused (and nothing changed). A format whose definitions or materials the game fixes (Last Light's) has no rows
+// it was refused (and nothing changed). A format whose definitions or materials the game fixes has no rows
 // for them, and `fixed` says so.
+
+import type { AfMaterial, AfSector } from '@automata/3d/level'
 import type { FieldDef } from '@automata/editor/kit/fields'
 import type { ThingDef, ThingShape } from '../entities/thing-def.schema'
-import type { AfMaterial, AfSector } from '../format/af-sector.schema'
 import {
   addDefinition,
   removeDefinition,

@@ -11,16 +11,9 @@ import {
 } from '@automata/editor/kit/core'
 import type { ParseIssue } from '../profile/file-codec'
 import type { LevelProfile } from '../profile/level-profile'
-import { hasFacility } from '../profile/registry'
 import { type CreateOutcome, createLevel } from './home/new-level'
 import { type ImportOutcome, importFolder, importZip, type PickedFile } from './import-files'
-import {
-  type FacilityOutcome,
-  type OpenLevel,
-  openFacilityBeside,
-  openLevel,
-  recoveryFor,
-} from './open-level'
+import { type OpenLevel, openLevel, recoveryFor } from './open-level'
 import { listProjects, type ProjectEntry } from './project-list'
 import { installedProfiles, readLevel } from './read-level'
 
@@ -32,8 +25,6 @@ export type OpenOutcome =
       readonly recovery: Recovery | undefined
       /** Set when the autosave could not be read: the level opened anyway. */
       readonly recoveryError?: string | undefined
-      /** The facility a Last Light level belongs to; `undefined` for a profile that has none. */
-      readonly facility: FacilityOutcome | undefined
     }
   | {
       readonly status: 'unrecognised'
@@ -100,8 +91,7 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
       text: read.text,
       warnings: read.warnings,
     })
-    const facility = hasFacility(read.profile) ? await openFacilityBeside(workspace, clock, path) : undefined
-    return { status: 'opened', level, ...recovery, facility }
+    return { status: 'opened', level, ...recovery }
   }
 
   return {

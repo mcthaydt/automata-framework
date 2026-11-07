@@ -2,8 +2,9 @@
 // window is there and one undo reverts both views), ED3-n (a level with no spawn: Walk starts in the first sector with
 // a warning) and ED3-s (draw a rectangle against the depot's hall wall, accept the portal, walk through it; the
 // generic checks pass and Last Light's rules are not listed). The depot is the shipped sample `af-sector/1` level.
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../format/af-sector.schema'
 import { createLevelEditor } from '../model/level-editor'
 import { wallPortal } from '../model/portal-offers'
 import { addSector } from '../model/sector-edits'

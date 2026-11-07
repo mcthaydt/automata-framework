@@ -2,7 +2,6 @@ import { cleanup, screen, waitFor, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { strToU8, zipSync } from 'fflate'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import clinicText from '../testing/fixtures/blockout-clinic.json?raw'
 import depotText from '../testing/fixtures/depot.af-sector.json?raw'
 import { createTestClock, memoryWorkspace, textOf } from '../testing/memory-workspace'
 import { type EditorEnv, type EditorHandle, startEditor } from './boot'
@@ -70,9 +69,9 @@ async function openDepot(): Promise<void> {
 
 describe('startEditor', () => {
   it('shows Home with the workspace’s levels and the two imports', async () => {
-    await boot({ [DEPOT]: DEPOT_TEXT, 'art/blockout-clinic/blockout.json': clinicText })
+    await boot({ [DEPOT]: DEPOT_TEXT, 'art/pier/pier.json': DEPOT_TEXT })
     expect(await screen.findByRole('option', { name: /depot\.json/ })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /blockout\.json/ })).toHaveTextContent('last-light-blockout')
+    expect(screen.getByRole('option', { name: /pier\.json/ })).toHaveTextContent('af-sector')
     expect(screen.getByLabelText('Import folder…')).toHaveAttribute('webkitdirectory')
     expect(screen.getByLabelText('Import zip…')).toHaveAttribute('accept', '.zip,application/zip')
   })
@@ -146,12 +145,9 @@ describe('startEditor', () => {
   it('journey: importing a zip lists what it brought and selects it', async () => {
     await boot({})
     expect(await screen.findByText('Import a folder or a zip to start.')).toBeInTheDocument()
-    const zip = zipSync({ 'clinic/blockout.json': strToU8(clinicText) })
-    await userEvent.upload(screen.getByLabelText('Import zip…'), new File([zip], 'clinic.zip'))
-    expect(await screen.findByText('Imported 1 file into clinic.')).toBeInTheDocument()
-    expect(await screen.findByRole('option', { name: /blockout\.json/ })).toHaveAttribute(
-      'aria-selected',
-      'true',
-    )
+    const zip = zipSync({ 'pier/pier.json': strToU8(DEPOT_TEXT) })
+    await userEvent.upload(screen.getByLabelText('Import zip…'), new File([zip], 'pier.zip'))
+    expect(await screen.findByText('Imported 1 file into pier.')).toBeInTheDocument()
+    expect(await screen.findByRole('option', { name: /pier\.json/ })).toHaveAttribute('aria-selected', 'true')
   })
 })

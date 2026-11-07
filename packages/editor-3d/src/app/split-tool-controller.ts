@@ -10,8 +10,9 @@
 // would do by running `splitSector` against the live level and not committing it, so the tool cannot disagree with the
 // model about what is allowed, and a refusal is the model's own sentence. A start does not outlive the level it was placed
 // on: an edit, an undo or a redo drops it.
+
+import type { Point } from '@automata/3d/level'
 import type { Size, Viewport2D } from '@automata/editor/kit/core'
-import type { Point } from '../format/sector.schema'
 import type { LevelEditor } from '../model/level-editor'
 import { cutProblem, splitSector } from '../model/split-edits'
 import { planViewport, snapValue } from '../view/plan/plan-viewport'

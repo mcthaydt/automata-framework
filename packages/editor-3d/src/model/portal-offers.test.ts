@@ -2,13 +2,11 @@
 // same segment as a wall of another sector offers a portal, which `setWallKind` makes on both sides; and what one wall
 // can be offered (ED3D.6b step 1). The toy level is a hall (0 to 8 m by 0 to 6 m) and a dock beside it (8 to 14 m), which
 // already lead into each other.
+
+import type { AfSector, AfSectorEntry } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector, AfSectorEntry } from '../format/af-sector.schema'
-import type { Blockout, Room } from '../format/blockout.schema'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
 import { toyAfSector, toyDock, toyHall } from '../testing/toy-af-sector'
-import { toyBlockout, toyRoom } from '../testing/toy-blockout'
 import { portalOffers, wallPortal } from './portal-offers'
 
 const sector = (id: string, corners: AfSectorEntry['corners']): AfSectorEntry => ({
@@ -132,23 +130,6 @@ describe('portalOffers', () => {
     expect(offers(level(), 'hall')).toEqual([])
     expect(offers(level(), 'dock')).toEqual([])
   })
-
-  it('does the same on a Last Light level', () => {
-    const c: Room = {
-      ...toyRoom('a'),
-      id: 'c',
-      corners: [
-        [-4, 0],
-        [0, 0],
-        [0, 4],
-        [-4, 4],
-      ],
-    }
-    const blockout: Blockout = toyBlockout({ rooms: [toyRoom('a'), toyRoom('b'), c] })
-    expect(portalOffers(lastLightProfile, blockout, 'c')).toEqual([
-      { sector: 'c', corner: 1, to: 'a', toCorner: 3, length: 4 },
-    ])
-  })
 })
 
 describe('wallPortal', () => {
@@ -240,24 +221,5 @@ describe('wallPortal', () => {
       kind: 'offer',
       offer: { sector: 'annex', corner: 1, to: 'hall', toCorner: 3, length: 6 },
     })
-  })
-
-  it('answers the same on a Last Light level', () => {
-    const c: Room = {
-      ...toyRoom('a'),
-      id: 'c',
-      corners: [
-        [-4, 0],
-        [0, 0],
-        [0, 4],
-        [-4, 4],
-      ],
-    }
-    const blockout: Blockout = toyBlockout({ rooms: [toyRoom('a'), toyRoom('b'), c] })
-    expect(wallPortal(lastLightProfile, blockout, 'c', 1)).toEqual({
-      kind: 'offer',
-      offer: { sector: 'c', corner: 1, to: 'a', toCorner: 3, length: 4 },
-    })
-    expect(wallPortal(lastLightProfile, blockout, 'c', 0)).toEqual({ kind: 'none' })
   })
 })

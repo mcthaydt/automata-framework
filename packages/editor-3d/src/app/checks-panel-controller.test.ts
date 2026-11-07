@@ -1,8 +1,9 @@
 // The checks panel (ED3D.10a steps 2 and 3, spec §5.3 flow 7): when the checks run, what the pill counts, and what
 // Locate does with a problem. The timer is a fake that the test fires, so nothing here waits.
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it, vi } from 'vitest'
 import type { CheckResult } from '../checks/check'
-import type { AfSector } from '../format/af-sector.schema'
 import type { Edit } from '../model/edit'
 import { ok } from '../model/edit'
 import { createLevelEditor } from '../model/level-editor'
@@ -230,14 +231,6 @@ describe('the counts', () => {
     const { panel } = setup({ profile: scripted })
     expect(panel.view).toMatchObject({ errors: 3, warnings: 2 })
     expect(panel.view.results).toHaveLength(4)
-  })
-
-  it('pass the context on to the profile', () => {
-    const { profile, checks } = watched()
-    const editor = createLevelEditor({ profile, level: depot })
-    const context = { puzzleHotspots: ['monitor'] }
-    createChecksPanel(editor, { schedule: fakeScheduler().schedule, context })
-    expect(checks).toHaveBeenCalledWith(depot, context)
   })
 })
 

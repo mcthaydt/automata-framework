@@ -3,18 +3,17 @@
 // (8, 0) to (14, 6); a spawn stands at (1, 1) and a 1 m crate `crate1` at (11, 2). The canvas is 800 by 400 px with the
 // camera at (7, 3) and zoom 1, which is 32 px to a metre; pixel positions are made with `toScreen`, so no test hides a
 // unit. The grid is the view's default, half a metre.
+
+import type { AfSector } from '@automata/3d/level'
 import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it, vi } from 'vitest'
 import type { PlanPointer } from '../app/plan-controller'
-import type { AfSector } from '../format/af-sector.schema'
-import type { Blockout } from '../format/blockout.schema'
 import { type Edit, ok } from '../model/edit'
 import { createLevelEditor, type LevelEditor } from '../model/level-editor'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
 import type { LevelProfile } from '../profile/level-profile'
 import { loadAuthored } from '../testing/fixtures'
-import { toyBlockout, toyRoom } from '../testing/toy-blockout'
+import { toyAfSector } from '../testing/toy-af-sector'
 import { planViewport, toScreen } from '../view/plan/plan-viewport'
 import { createThingsTool, type ThingsToolOptions } from './things-tool-controller'
 
@@ -105,19 +104,6 @@ describe('the palette', () => {
       ['crate', true, true],
     ])
     expect(heard).toHaveBeenCalledTimes(2)
-  })
-
-  it("lists Last Light's fixed definitions through the same path", () => {
-    const { tool } = setup<Blockout>(toyBlockout(), lastLightProfile)
-    expect(tool.view.palette.map((entry) => entry.def)).toEqual([
-      'spawn',
-      'box',
-      'hotspot',
-      'lamp',
-      'anchor',
-      'node',
-      'zone',
-    ])
   })
 })
 
@@ -383,27 +369,14 @@ describe('placing', () => {
     expect(editor.history.canUndo).toBe(false)
   })
 
-  it('lets a floating Last Light thing take the floor of its room as its height', () => {
-    const raised = toyBlockout({
-      rooms: [{ ...toyRoom('a'), floor: 0.4 }],
-      openings: [],
-      boxes: [],
-      hotspots: [],
-    })
-    const { editor, tool, at } = setup<Blockout>(raised, lastLightProfile)
-    tool.pick('hotspot', { name: 'Sink', reach: 1 })
-    tool.tap(at(2, 2))
-    expect(editor.level.hotspots).toEqual([{ id: 'hotspot1', x: 2, y: 0.4, z: 2, name: 'Sink', reach: 1 }])
-  })
-
-  it('refuses a Last Light thing whose required fields were not given, in the sentence of the values check', () => {
-    const { tool, at } = setup<Blockout>(toyBlockout(), lastLightProfile)
-    tool.pick('hotspot')
-    tool.hover(at(2, 2))
-    expect(tool.view.place).toMatchObject({
-      action: 'none',
-      reason: expect.stringMatching(/^entity hotspot1: /),
-    })
+  it('lets a floating thing take the floor of its sector as its height', () => {
+    // The dock is half a metre below the hall: a floating lamp tapped in it hangs from the dock's floor, not 0.
+    const level = toyAfSector({ entityDefs: [{ id: 'lamp', shape: 'point', sit: 'free', fields: [] }] })
+    const { editor, tool, at } = setup<AfSector>(level)
+    tool.pick('lamp')
+    tool.tap(at(11, 3))
+    const lamp = editor.profile.entities(editor.level).things.find((thing) => thing.def === 'lamp')
+    expect(lamp).toMatchObject({ id: 'lamp1', x: 11, z: 3, y: -0.5 })
   })
 })
 

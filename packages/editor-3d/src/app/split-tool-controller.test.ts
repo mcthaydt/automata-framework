@@ -3,18 +3,16 @@
 // dock from (8, 0) to (14, 6), joined by a portal along x = 8; the hall has a window on its north wall (corner 0, from 3.2
 // to 4.8 m) and a door on its west wall (corner 3, from z = 3.6 down to 2.4). The canvas is 800 by 400 px with the camera at
 // (7, 3) and zoom 1, which is 32 px to a metre; pixel positions are made with `toScreen`, so no test hides a unit.
+
+import type { AfSector, AfSectorEntry } from '@automata/3d/level'
 import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it, vi } from 'vitest'
-import type { AfSector, AfSectorEntry } from '../format/af-sector.schema'
-import type { Blockout } from '../format/blockout.schema'
 import { createLevelEditor } from '../model/level-editor'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
 import type { LevelProfile } from '../profile/level-profile'
 import { SectorAccessError } from '../profile/sector-access'
 import { loadAuthored } from '../testing/fixtures'
 import { toyAfSector } from '../testing/toy-af-sector'
-import { toyBlockout } from '../testing/toy-blockout'
 import { planViewport, toScreen } from '../view/plan/plan-viewport'
 import type { PlanPointer } from './plan-controller'
 import { createSplitTool, type SplitToolOptions } from './split-tool-controller'
@@ -178,25 +176,28 @@ describe('the start of a cut under the pointer', () => {
   })
 
   it("is the model's sentence for a sector that cannot be cut by any line", () => {
-    const level = toyBlockout()
-    const editor = createLevelEditor({ profile: lastLightProfile, level })
-    editor.view.set({ camera: { x: 3.5, z: 2, zoom: 1 } })
+    const tied: LevelProfile<AfSector> = {
+      ...afSectorProfile,
+      sectors: {
+        ...afSectorProfile.sectors,
+        pinned: (_level, id) => (id === 'hall' ? ['door d (hall → dock)'] : []),
+      },
+    }
+    const editor = createLevelEditor({ profile: tied, level: depot })
+    editor.view.set({ camera: { x: 7, z: 3, zoom: 1 } })
     const tool = createSplitTool(editor, SIZE)
     const pointer: PlanPointer = {
-      ...toScreen(planViewport(editor.view.state.camera, SIZE), { x: 2, z: 0.1 }),
+      ...toScreen(planViewport(editor.view.state.camera, SIZE), { x: 4, z: 0.1 }),
       kind: 'mouse',
     }
     tool.hover(pointer)
-    expect(tool.view.target).toMatchObject({
-      sector: 'a',
-      action: 'none',
-      reason: 'a cannot be cut while something is tied to its walls: opening ab (a → b)',
-    })
+    const sentence = 'hall cannot be cut while something is tied to its walls: door d (hall → dock)'
+    expect(tool.view.target).toMatchObject({ sector: 'hall', action: 'none', reason: sentence })
     tool.tap(pointer)
     expect(tool.view.start).toBeUndefined()
-    expect(tool.view.refusal).toBe('a cannot be cut while something is tied to its walls: opening ab (a → b)')
+    expect(tool.view.refusal).toBe(sentence)
     // The pointer stays where it was tapped, so the view goes on showing what was refused.
-    expect(tool.view.target).toMatchObject({ sector: 'a', action: 'none' })
+    expect(tool.view.target).toMatchObject({ sector: 'hall', action: 'none' })
   })
 })
 
@@ -637,29 +638,5 @@ describe('the start dies with the level it was placed on', () => {
     editor.history.apply('x', () => ({ level: ELL }))
     expect(tool.view.start).toBeUndefined()
     expect(tool.view.refusal).toBeUndefined()
-  })
-})
-
-describe('on a Last Light level', () => {
-  const made = () => {
-    const level: Blockout = toyBlockout({ openings: [] })
-    const editor = createLevelEditor({ profile: lastLightProfile, level })
-    editor.view.set({ camera: { x: 3.5, z: 2, zoom: 1 } })
-    const tool = createSplitTool(editor, SIZE)
-    const at = (x: number, z: number): PlanPointer => ({
-      ...toScreen(planViewport(editor.view.state.camera, SIZE), { x, z }),
-      kind: 'mouse',
-    })
-    return { editor, tool, at }
-  }
-
-  it('cuts a room in two, and one undo takes it back', () => {
-    const { editor, tool, at } = made()
-    tool.tap(at(2, 0.1))
-    tool.tap(at(2, 3.9))
-    expect(editor.level.rooms.map((each) => each.id)).toEqual(['a', 'sector-1', 'b'])
-    expect(editor.history.undoLabel).toBe('Split a into a and sector-1')
-    editor.history.undo()
-    expect(editor.level).toEqual(toyBlockout({ openings: [] }))
   })
 })

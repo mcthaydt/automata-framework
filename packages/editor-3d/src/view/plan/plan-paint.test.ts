@@ -1,7 +1,7 @@
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import type { ThingDef } from '../../entities/thing-def.schema'
 import type { EntityKit, Thing } from '../../entities/things'
-import type { AfSector } from '../../format/af-sector.schema'
 import { afSectorProfile } from '../../profile/af-sector-profile'
 import { toyAfSector } from '../../testing/toy-af-sector'
 import { selectionOf } from '../selection-of'

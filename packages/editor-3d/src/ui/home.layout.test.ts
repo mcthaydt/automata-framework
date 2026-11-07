@@ -5,9 +5,7 @@ import { arrived, type EditorSize, SIZES } from '@automata/editor/kit/testing'
 import { byTestId, checkLayout, settleLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
-import clinicText from '../testing/fixtures/blockout-clinic.json?raw'
 import depotText from '../testing/fixtures/depot.af-sector.json?raw'
-import facilityText from '../testing/fixtures/facility.json?raw'
 import { startAt, stopEditor } from '../testing/layout-start'
 
 // The 3D editor's Home with the production CSS in a real browser (plan ED3D.5c step 9; 3D editor spec §10 and §12), at
@@ -24,11 +22,11 @@ const cards = (): HTMLElement[] => [...document.querySelectorAll<HTMLElement>('[
 
 afterEach(stopEditor)
 
-/** A workspace with the depot, a Last Light clinic and its facility, and `extra` copies of the depot. */
+/** A workspace with the depot and two more levels, and `extra` copies of the depot. */
 function open(size: EditorSize, extra = 0) {
   return startAt(size, async (workspace) => {
-    await workspace.store.write('art/blockout-facility/facility.json', facilityText)
-    await workspace.store.write('art/blockout-clinic/blockout.json', clinicText)
+    await workspace.store.write('art/pier/pier.json', depotText)
+    await workspace.store.write('art/yard/yard.json', depotText)
     await workspace.store.write('depot/depot.json', depotText)
     for (let n = 0; n < extra; n += 1) await workspace.store.write(`copies/depot-${n + 1}.json`, depotText)
   })

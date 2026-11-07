@@ -5,7 +5,7 @@
 // stretch); the middle of every piece is then either wholly in the other sector or wholly out of it, so a probe a hair
 // inside the room answers for the piece. That reads touching, nested, identical, holed and concave sectors alike, and
 // walls that share a line: a wall of a room next door has the room on the other side of it.
-import type { Point } from '../format/sector.schema'
+import type { Point } from '@automata/3d/level'
 import { type Edge, insideSector, type Sector } from '../geometry/sectors'
 import { formatPoint, type GeometryContext, type Problem, sectorSelection } from './check'
 

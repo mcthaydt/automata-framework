@@ -1,12 +1,13 @@
 // How things are written into an `af-sector/1` level (ED3D.7a step 1): the access puts a thing where the file keeps it
 // and the codec turns that into the smallest patch, so a thing that is moved changes its `x` and `z` and nothing else.
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import type { Thing } from '../../entities/things'
-import type { AfSector } from '../../format/af-sector.schema'
+import { must } from '../../testing/edit-helpers'
 import { loadAuthored } from '../../testing/fixtures'
 import { changedRegion, literalEdits } from '../../testing/text-diff'
 import { toyAfSector } from '../../testing/toy-af-sector'
-import { must } from '../../testing/toy-blockout'
 import { afSectorProfile } from '../af-sector-profile'
 import { ThingAccessError } from '../thing-access'
 import { afEntityKit } from './af-entities'

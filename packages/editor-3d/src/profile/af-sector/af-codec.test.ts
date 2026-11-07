@@ -1,12 +1,13 @@
 // The codec of the native `af-sector/1` format (ED3D.1b step 3): the shipped depot reads, a patch of an unchanged
 // model is byte-identical (ED3-q), an edit touches only its own bytes, and a new member or element lands where the
 // format's order puts it.
+
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../../format/af-sector.schema'
-import { loadAuthored, loadFixture } from '../../testing/fixtures'
+import { must } from '../../testing/edit-helpers'
+import { loadAuthored } from '../../testing/fixtures'
 import { changedRegion, literalEdits } from '../../testing/text-diff'
 import { toyAfSector } from '../../testing/toy-af-sector'
-import { must } from '../../testing/toy-blockout'
 import { afSectorCodec } from './af-codec'
 
 const depotText = loadAuthored('depot.af-sector')
@@ -320,8 +321,8 @@ describe('the af-sector codec', () => {
     })
   })
 
-  it('fails a Last Light level at the format member first', () => {
-    const result = afSectorCodec.parse(loadFixture('blockout-clinic'))
+  it('fails a level of another format at the format member first', () => {
+    const result = afSectorCodec.parse('{"scene": "x", "rooms": []}')
     expect(result.ok).toBe(false)
     expect(!result.ok && result.issues[0]?.path).toEqual(['format'])
   })

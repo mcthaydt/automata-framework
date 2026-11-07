@@ -1,15 +1,12 @@
 // `buildSectors` turns an `af-sector/1` level into the engine data the geometry reads (ED3D.1b plan, step 2): a
-// `SectorDef` per sector, with a named style layered under the sector's own fields as Last Light's `styled` does, and
-// nothing of the sector's other members. The geometry of a built level is held to Last Light's own, through the same
-// level written as a blockout.
+// `SectorDef` per sector, with a named style layered under the sector's own fields, and
+// nothing of the sector's other members.
+
+import type { AfSector, AfSectorEntry } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector, AfSectorEntry } from '../../format/af-sector.schema'
-import type { Blockout } from '../../format/blockout.schema'
-import { expand } from '../../format/expand'
 import { resolveMap } from '../../geometry/sectors'
-import { piecesShape, sectorsShape } from '../../testing/geometry-golden'
-import { toyAfSector, toyDock, toyHall } from '../../testing/toy-af-sector'
-import { must } from '../../testing/toy-blockout'
+import { must } from '../../testing/edit-helpers'
+import { toyAfSector, toyHall } from '../../testing/toy-af-sector'
 import { AfBuildError, buildSectors } from './build'
 
 const only = (entry: Partial<AfSectorEntry>, more: Partial<AfSector> = {}) =>
@@ -131,59 +128,6 @@ describe('buildSectors', () => {
 })
 
 describe('the geometry of a built level', () => {
-  /** The level as Last Light writes it: the same rooms, with the zone its engine data needs. */
-  const asBlockout = (level: AfSector): Blockout => ({
-    scene: 'cross-check',
-    rooms: level.sectors.map((entry) => ({ ...entry, zone: 'z' })),
-    spawn: { x: 1, y: 0.79, z: 1, facing: 0 },
-    boxes: [],
-    hotspots: [],
-    lamps: [],
-    nav: { derive: false },
-    zones: [{ id: 'z', look: [0, 0, 0], distance: 10 }],
-  })
-
-  /** What the engine data resolves to, with the zone (which only Last Light has) left out. */
-  const resolved = (
-    sectors: Parameters<typeof resolveMap>[0],
-    masses: Parameters<typeof resolveMap>[1] = [],
-  ) => {
-    const map = resolveMap(sectors, masses)
-    return {
-      sectors: (sectorsShape(map) as { zone?: string }[]).map(({ zone: _zone, ...rest }) => rest),
-      ...piecesShape(map),
-    }
-  }
-
-  it('resolves as Last Light resolves the same rooms: two sectors, a portal pair and a step', () => {
-    const level = toyAfSector()
-    const expanded = expand(asBlockout(level))
-    expect(resolved(buildSectors(level))).toEqual(resolved(expanded.sectors, expanded.masses))
-  })
-
-  it('resolves as Last Light does with a hole, a window, a door and a pilaster in the walls', () => {
-    const hall: AfSectorEntry = {
-      ...toyHall,
-      corners: [
-        [0, 0, { window: { at: 2, width: 1, y0: 1, y1: 2 } }],
-        [8, 0, { next: 'dock', frame: true }],
-        [8, 6, { door: { at: 3, width: 1, height: 2.1 }, pilaster: { start: [0.3, 0.2] } }],
-        [0, 6, { thick: 0.3 }],
-      ],
-      holes: [
-        [
-          [2, 2],
-          [2, 4],
-          [4, 4],
-          [4, 2],
-        ],
-      ],
-    }
-    const level = toyAfSector({ sectors: [hall, toyDock] })
-    const expanded = expand(asBlockout(level))
-    expect(resolved(buildSectors(level))).toEqual(resolved(expanded.sectors, expanded.masses))
-  })
-
   it('names a portal to a sector that is not there, as the engine does', () => {
     const level = toyAfSector({ sectors: [toyHall] })
     expect(() => resolveMap(buildSectors(level))).toThrow('hall: unknown portal target dock')

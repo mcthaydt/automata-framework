@@ -5,7 +5,7 @@
 // What is offered is the profile's list (D10). A profile that has none (Last Light when the host could not read the
 // renderer's materials) offers nothing, and Apply answers its refusal: a list is never guessed. Scale and brightness are
 // the preview's, not the level's: neither format holds a texture scale or a brightness for a surface.
-import { TRIM_PIECES } from '../../format/sector.schema'
+import { TRIM_PIECES } from '@automata/3d/level'
 import type { EditResult } from '../../model/edit'
 import type { LevelEditor } from '../../model/level-editor'
 import {
@@ -15,7 +15,7 @@ import {
   materialOf,
 } from '../../model/material-edits'
 import { sectorOf } from '../../model/sector-edit-support'
-import { GeometryError, type ProfileContext } from '../../profile/level-profile'
+import { GeometryError } from '../../profile/level-profile'
 import type { Material, MaterialList } from '../../profile/materials'
 
 export interface MaterialCategory {
@@ -72,8 +72,6 @@ export interface MaterialPicker {
 
 export interface MaterialPickerOptions {
   readonly target: MaterialTarget
-  /** What the host read from the game: Last Light's material list. */
-  readonly context?: ProfileContext | undefined
 }
 
 const SCALE = { min: 0.25, max: 4 } as const
@@ -102,7 +100,6 @@ export function createMaterialPicker<D>(
   options: MaterialPickerOptions,
 ): MaterialPicker {
   const listeners = new Set<() => void>()
-  const { context } = options
   let target = options.target
   let category: string | undefined
   let search = ''
@@ -113,7 +110,7 @@ export function createMaterialPicker<D>(
   let refusal: string | undefined
 
   /** The list for the live level, and what of it the target may take. */
-  const listOf = (): MaterialList => editor.profile.materials(editor.level, context)
+  const listOf = (): MaterialList => editor.profile.materials(editor.level)
   const offered = (): readonly Material[] => {
     const list = listOf()
     if (!list.ok) return []

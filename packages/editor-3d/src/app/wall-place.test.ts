@@ -2,9 +2,10 @@
 // a wall hit becomes the sector and corner the document writes it by, its length, how far along it the pointer is
 // (from the document's start corner, rounded by the keys) and the point there. The depot is the level: the hall runs from
 // (0, 0) to (8, 6) and the dock from (8, 0) to (14, 6), joined by a portal along x = 8.
+
+import type { AfSector } from '@automata/3d/level'
 import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../format/af-sector.schema'
 import { createLevelEditor } from '../model/level-editor'
 import { afSectorProfile } from '../profile/af-sector-profile'
 import { loadAuthored } from '../testing/fixtures'

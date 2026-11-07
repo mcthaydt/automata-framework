@@ -1,5 +1,5 @@
+import type { AfSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import type { AfSector } from '../../format/af-sector.schema'
 import { loadAuthored } from '../../testing/fixtures'
 import { toyAfSector } from '../../testing/toy-af-sector'
 import { afSectorCodec } from './af-codec'

@@ -4,7 +4,7 @@
 // corner: `[x, z]` gets a third member only when the wall has something to say, and loses it when it has not.
 // Solid, door and window change this side of a wall only; a portal is made on both (the reverse wall of the sector it
 // leads into), and what the other side of a portal turned solid still says is the `openings` check's to name (ED3-e).
-import { type DoorDef, OCCLUDES, type Occlude, type WindowDef } from '../format/sector.schema'
+import { type DoorDef, OCCLUDES, type Occlude, type WindowDef } from '@automata/3d/level'
 import type { LevelProfile } from '../profile/level-profile'
 import type { EditCorner, EditSector, EditWall } from '../profile/sector-access'
 import { type Edit, type EditResult, ok, refuse } from './edit'

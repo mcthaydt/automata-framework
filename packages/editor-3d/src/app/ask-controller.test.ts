@@ -1,21 +1,19 @@
 // The Ask controller (ED3D.10a steps 4 and 5, spec §5.3 flow 8 and ED3-j): a prompt goes to the provider with the
 // selection and a budget, the proposal is read into a copy of the level and shown as a ghost with its check results,
 // and Accept applies it as one step unless the copy has errors. The provider is a script the test settles itself.
+
+import type { AfSector } from '@automata/3d/level'
 import type { Proposal } from '@automata/editor/kit/ports'
 import { createScriptedAsk } from '@automata/editor/kit/ports/testing'
 import { describe, expect, it, vi } from 'vitest'
 import type { CheckResult } from '../checks/check'
-import type { AfSector } from '../format/af-sector.schema'
-import type { Blockout } from '../format/blockout.schema'
 import { ok } from '../model/edit'
 import { createLevelEditor } from '../model/level-editor'
 import { afSectorProfile } from '../profile/af-sector-profile'
-import { lastLightProfile } from '../profile/last-light-profile'
 import { GeometryError, type LevelProfile } from '../profile/level-profile'
 import type { EditSector } from '../profile/sector-access'
 import { deferred } from '../testing/fake-ask'
 import { loadAuthored } from '../testing/fixtures'
-import { toyBlockout, toyRoom } from '../testing/toy-blockout'
 import { createAsk } from './ask-controller'
 
 const depot = (() => {
@@ -201,20 +199,6 @@ describe('asking', () => {
     expect(ask.view.ghost).toMatchObject({ errors: 0, warnings: 1, canAccept: true })
   })
 
-  it('hands the context on to the profile for the ghost', async () => {
-    const checks = vi.fn(afSectorProfile.checks)
-    const editor = createLevelEditor({ profile: { ...afSectorProfile, checks }, level: depot })
-    const context = { puzzleHotspots: ['monitor'] }
-    const ask = createAsk(editor, {
-      provider: createScriptedAsk(() => raised).provider,
-      budget: BUDGET,
-      path: PATH,
-      context,
-    })
-    await ask.ask('Raise the hall')
-    expect(checks).toHaveBeenCalledWith(withHall({ ceiling: 5 }), context)
-  })
-
   it('has no geometry for a proposal the profile cannot build, and still a ghost', async () => {
     const strict: LevelProfile<AfSector> = {
       ...afSectorProfile,
@@ -310,23 +294,6 @@ describe('an ask that ends with nothing to show', () => {
     const { ask } = setup(() => Promise.reject(new Error('boom')))
     await ask.ask('Raise the hall')
     expect(ask.view.prompt).toBe('Raise the hall')
-  })
-})
-
-describe('the Last Light profile', () => {
-  it('reads a proposal with its own codec and checks it with its own checks', async () => {
-    const level: Blockout = toyBlockout({ rooms: [{ ...toyRoom('a'), light: 0.5 }, toyRoom('b')] })
-    const editor = createLevelEditor({ profile: lastLightProfile, level: toyBlockout() })
-    const provider = createScriptedAsk(() => proposalOf(level, { summary: 'Dim room a' }))
-    const ask = createAsk(editor, { provider: provider.provider, budget: BUDGET, path: PATH })
-    await ask.ask('Dim room a')
-    expect(ask.view.status).toBe('ghost')
-    expect(ask.view.ghost).toMatchObject({
-      sectors: { added: [], changed: ['a'], removed: [] },
-      errors: 0,
-      canAccept: true,
-    })
-    expect(ask.view.ghost?.checks).toEqual(lastLightProfile.checks(level))
   })
 })
 
