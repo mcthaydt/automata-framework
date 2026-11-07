@@ -1,5 +1,11 @@
 {
-  "sources": ["extensions/physics", "extensions/puzzle"],
+  "sources": [
+    "extensions/physics",
+    "extensions/puzzle",
+    "extensions/feel",
+    "extensions/audio-synth",
+    "extensions/debug"
+  ],
   "moves": [
     {
       "from": "extensions/physics/src/2d.ts",
@@ -164,6 +170,266 @@
     {
       "from": "extensions/puzzle/src/testing",
       "to": "extensions/puzzle/src/testing"
+    },
+    {
+      "from": "extensions/feel/src/index.ts",
+      "to": "extensions/feel/src/entries/index.ts"
+    },
+    {
+      "from": "extensions/feel/src/dynamics",
+      "to": "extensions/feel/src/shared/dynamics"
+    },
+    {
+      "from": "extensions/feel/src/feel.schema.ts",
+      "to": "extensions/feel/src/shared/feel.schema.ts"
+    },
+    {
+      "from": "extensions/feel/src/feel.schema.test.ts",
+      "to": "extensions/feel/src/shared/feel.schema.test.ts"
+    },
+    {
+      "from": "extensions/feel/src/feel.ts",
+      "to": "extensions/feel/src/features/frame/feel.ts"
+    },
+    {
+      "from": "extensions/feel/src/feel.test.ts",
+      "to": "extensions/feel/src/features/frame/feel.test.ts"
+    },
+    {
+      "from": "extensions/feel/src/feel.settings.test.ts",
+      "to": "extensions/feel/src/features/frame/feel.settings.test.ts"
+    },
+    {
+      "from": "extensions/feel/src/feel.content.ts",
+      "to": "extensions/feel/src/features/frame/feel.content.ts"
+    },
+    {
+      "from": "extensions/feel/src/feel.extension.ts",
+      "to": "extensions/feel/src/features/frame/feel.extension.ts"
+    },
+    {
+      "from": "extensions/feel/src/feel.extension.test.ts",
+      "to": "extensions/feel/src/features/frame/feel.extension.test.ts"
+    },
+    {
+      "from": "extensions/feel/src/testing",
+      "to": "extensions/feel/src/testing"
+    },
+    {
+      "from": "extensions/feel/tests",
+      "to": "extensions/feel/tests"
+    },
+    {
+      "from": "extensions/audio-synth/src/index.ts",
+      "to": "extensions/audio-synth/src/entries/index.ts"
+    },
+    {
+      "from": "extensions/audio-synth/src/measure/index.ts",
+      "to": "extensions/audio-synth/src/entries/measure.ts"
+    },
+    {
+      "from": "extensions/audio-synth/src/measure",
+      "to": "extensions/audio-synth/src/features/measure"
+    },
+    {
+      "from": "extensions/audio-synth/src/render/index.ts",
+      "to": "extensions/audio-synth/src/features/render/render.ts"
+    },
+    {
+      "from": "extensions/audio-synth/src/render/browser-entry.ts",
+      "to": "extensions/audio-synth/src/entries/browser.ts"
+    },
+    {
+      "from": "extensions/audio-synth/src/render/render.test.ts",
+      "to": "extensions/audio-synth/src/features/render/render.test.ts"
+    },
+    {
+      "from": "extensions/audio-synth/src/audio.schema.ts",
+      "to": "extensions/audio-synth/src/shared/audio.schema.ts"
+    },
+    {
+      "from": "extensions/audio-synth/src/audio.schema.test.ts",
+      "to": "extensions/audio-synth/src/shared/audio.schema.test.ts"
+    },
+    {
+      "from": "extensions/audio-synth/src/mixer.ts",
+      "to": "extensions/audio-synth/src/shared/mixer.ts"
+    },
+    {
+      "from": "extensions/audio-synth/src/mixer.test.ts",
+      "to": "extensions/audio-synth/src/shared/mixer.test.ts"
+    },
+    {
+      "from": "extensions/audio-synth/src/synth.ts",
+      "to": "extensions/audio-synth/src/shared/synth.ts"
+    },
+    {
+      "from": "extensions/audio-synth/src/synth.test.ts",
+      "to": "extensions/audio-synth/src/shared/synth.test.ts"
+    },
+    {
+      "from": "extensions/audio-synth/src/audio-synth.ts",
+      "to": "extensions/audio-synth/src/features/synth/audio-synth.ts"
+    },
+    {
+      "from": "extensions/audio-synth/src/audio-synth.test.ts",
+      "to": "extensions/audio-synth/src/features/synth/audio-synth.test.ts"
+    },
+    {
+      "from": "extensions/audio-synth/src/audio-synth.extension.ts",
+      "to": "extensions/audio-synth/src/features/synth/audio-synth.extension.ts"
+    },
+    {
+      "from": "extensions/audio-synth/src/audio-synth.extension.test.ts",
+      "to": "extensions/audio-synth/src/features/synth/audio-synth.extension.test.ts"
+    },
+    {
+      "from": "extensions/audio-synth/src/audio.content.ts",
+      "to": "extensions/audio-synth/src/features/synth/audio.content.ts"
+    },
+    {
+      "from": "extensions/audio-synth/src/music.ts",
+      "to": "extensions/audio-synth/src/features/synth/music.ts"
+    },
+    {
+      "from": "extensions/audio-synth/src/music.test.ts",
+      "to": "extensions/audio-synth/src/features/synth/music.test.ts"
+    },
+    {
+      "from": "extensions/audio-synth/src/testing",
+      "to": "extensions/audio-synth/src/testing"
+    },
+    {
+      "from": "extensions/audio-synth/tests",
+      "to": "extensions/audio-synth/tests"
+    },
+    {
+      "from": "extensions/debug/src/index.ts",
+      "to": "extensions/debug/src/entries/index.ts"
+    },
+    {
+      "from": "extensions/debug/src/env.d.ts",
+      "to": "extensions/debug/src/env.d.ts"
+    },
+    {
+      "from": "extensions/debug/src/vitest-setup.ts",
+      "to": "extensions/debug/src/../tests/vitest-setup.ts"
+    },
+    {
+      "from": "extensions/debug/src/host.ts",
+      "to": "extensions/debug/src/shared/host.ts"
+    },
+    {
+      "from": "extensions/debug/src/driver.test.ts",
+      "to": "extensions/debug/src/shared/driver.test.ts"
+    },
+    {
+      "from": "extensions/debug/src/panels.ts",
+      "to": "extensions/debug/src/shared/panels.ts"
+    },
+    {
+      "from": "extensions/debug/src/panels.test.ts",
+      "to": "extensions/debug/src/shared/panels.test.ts"
+    },
+    {
+      "from": "extensions/debug/src/fact-log.ts",
+      "to": "extensions/debug/src/shared/fact-log.ts"
+    },
+    {
+      "from": "extensions/debug/src/fact-log.test.ts",
+      "to": "extensions/debug/src/shared/fact-log.test.ts"
+    },
+    {
+      "from": "extensions/debug/src/summary-rows.ts",
+      "to": "extensions/debug/src/shared/summary-rows.ts"
+    },
+    {
+      "from": "extensions/debug/src/summary-rows.test.ts",
+      "to": "extensions/debug/src/shared/summary-rows.test.ts"
+    },
+    {
+      "from": "extensions/debug/src/panels/SummaryPanel.svelte",
+      "to": "extensions/debug/src/shared/SummaryPanel.svelte"
+    },
+    {
+      "from": "extensions/debug/src/panels/summary-panel.test.ts",
+      "to": "extensions/debug/src/shared/summary-panel.test.ts"
+    },
+    {
+      "from": "extensions/debug/src/audio-board.ts",
+      "to": "extensions/debug/src/features/panels/audio-board.ts"
+    },
+    {
+      "from": "extensions/debug/src/audio-board.test.ts",
+      "to": "extensions/debug/src/features/panels/audio-board.test.ts"
+    },
+    {
+      "from": "extensions/debug/src/feel-board.ts",
+      "to": "extensions/debug/src/features/panels/feel-board.ts"
+    },
+    {
+      "from": "extensions/debug/src/feel-board.test.ts",
+      "to": "extensions/debug/src/features/panels/feel-board.test.ts"
+    },
+    {
+      "from": "extensions/debug/src/shipped-panels.ts",
+      "to": "extensions/debug/src/features/panels/shipped-panels.ts"
+    },
+    {
+      "from": "extensions/debug/src/shipped-panels.test.ts",
+      "to": "extensions/debug/src/features/panels/shipped-panels.test.ts"
+    },
+    {
+      "from": "extensions/debug/src/panels-components.test.ts",
+      "to": "extensions/debug/src/features/panels/panels-components.test.ts"
+    },
+    {
+      "from": "extensions/debug/src/panels",
+      "to": "extensions/debug/src/features/panels"
+    },
+    {
+      "from": "extensions/debug/src/DebugOverlay.svelte",
+      "to": "extensions/debug/src/features/overlay/DebugOverlay.svelte"
+    },
+    {
+      "from": "extensions/debug/src/PanelFrame.svelte",
+      "to": "extensions/debug/src/features/overlay/PanelFrame.svelte"
+    },
+    {
+      "from": "extensions/debug/src/debug-overlay.test.ts",
+      "to": "extensions/debug/src/features/overlay/debug-overlay.test.ts"
+    },
+    {
+      "from": "extensions/debug/src/overlay.ts",
+      "to": "extensions/debug/src/features/overlay/overlay.ts"
+    },
+    {
+      "from": "extensions/debug/src/overlay.test.ts",
+      "to": "extensions/debug/src/features/overlay/overlay.test.ts"
+    },
+    {
+      "from": "extensions/debug/src/overlay.browser.test.ts",
+      "to": "extensions/debug/src/features/overlay/overlay.browser.test.ts"
+    },
+    {
+      "from": "extensions/debug/src/debug.extension.ts",
+      "to": "extensions/debug/src/features/overlay/debug.extension.ts"
+    },
+    {
+      "from": "extensions/debug/src/debug.extension.test.ts",
+      "to": "extensions/debug/src/features/overlay/debug.extension.test.ts"
+    },
+    {
+      "from": "extensions/debug/src/vite.ts",
+      "to": "extensions/debug/src/features/vite/vite.ts"
+    },
+    {
+      "from": "extensions/debug/src/release-bundle.test.ts",
+      "to": "extensions/debug/src/features/vite/release-bundle.test.ts"
+    },
+    {
+      "from": "extensions/debug/src/testing",
+      "to": "extensions/debug/src/testing"
     }
   ],
   "entries": {}

@@ -202,12 +202,18 @@ importers:
       '@automata/sim':
         specifier: workspace:*
         version: link:../../packages/sim
+      '@automata/vitest-preset':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-preset
       '@types/node':
         specifier: 24.19.1
         version: 24.19.1
       smol-toml:
         specifier: 1.9.0
         version: 1.9.0
+      vite:
+        specifier: 8.3.3
+        version: 8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
@@ -266,6 +272,9 @@ importers:
       '@automata/sim':
         specifier: workspace:*
         version: link:../../packages/sim
+      '@automata/vitest-preset':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-preset
       '@sveltejs/vite-plugin-svelte':
         specifier: 7.3.1
         version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
@@ -308,9 +317,6 @@ importers:
 
   extensions/feel:
     dependencies:
-      effect:
-        specifier: 3.22.2
-        version: 3.22.2
       zod:
         specifier: 4.6.6
         version: 4.6.6
@@ -324,12 +330,18 @@ importers:
       '@automata/sim':
         specifier: workspace:*
         version: link:../../packages/sim
+      '@automata/vitest-preset':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-preset
       '@types/node':
         specifier: 24.19.1
         version: 24.19.1
       smol-toml:
         specifier: 1.9.0
         version: 1.9.0
+      vite:
+        specifier: 8.3.3
+        version: 8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))

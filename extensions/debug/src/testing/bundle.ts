@@ -2,7 +2,7 @@
 import { fileURLToPath } from 'node:url'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { build, type Rolldown } from 'vite'
-import { debugBuild } from '../vite'
+import { debugBuild } from '../features/vite/vite'
 
 export const OVERLAY_MARKER = 'automata-debug-overlay'
 export const DRIVER_MARKER = '__automataDebug'

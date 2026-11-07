@@ -1,7 +1,4 @@
-import { defineConfig } from 'vitest/config'
+import { defineTests } from '@automata/vitest-preset'
 
-// audio-synth is presentation only: no sim entry and no golden, so Node runs every test.
-export default defineConfig({
-  optimizeDeps: { include: ['@automata/sim', 'zod'] },
-  test: { environment: 'node', include: ['src/**/*.test.ts'], testTimeout: 90_000 },
-})
+// audio-synth is presentation only: no sim entry and no golden, so there is no browser project.
+export default defineTests({ optimizeDeps: ['@automata/sim', 'zod'], browsers: [], testTimeout: 90_000 })

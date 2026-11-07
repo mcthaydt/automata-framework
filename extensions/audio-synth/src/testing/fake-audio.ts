@@ -1,4 +1,4 @@
-// A fake Web Audio context that records the graph a synth builds (M6.10a): which nodes, how they connect and what each
+// A fake Web Audio context that records the graph a synth builds: which nodes, how they connect and what each
 // param was told. Node has no Web Audio, so the synth's tests read this instead of listening.
 
 export interface FakeParam {

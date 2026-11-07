@@ -9,20 +9,22 @@
     "directory": "extensions/audio-synth"
   },
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": [
+    "./src/features/render/browser.ts"
+  ],
   "imports": {
     "#src/*": "./src/*"
   },
   "exports": {
-    ".": "./src/index.ts",
-    "./measure": "./src/measure/index.ts",
-    "./render": "./src/render/index.ts",
-    "./browser": "./src/render/browser-entry.ts",
+    ".": "./src/entries/index.ts",
+    "./measure": "./src/entries/measure.ts",
+    "./render": "./src/entries/render.ts",
+    "./browser": "./src/entries/browser.ts",
     "./package.json": "./package.json"
   },
   "scripts": {
     "test": "vitest run",
-    "test:unit": "vitest run",
+    "test:unit": "vitest run --project unit",
     "typecheck": "tsc -p ."
   },
   "dependencies": {
@@ -39,8 +41,10 @@
     "@automata/feel": "workspace:*",
     "@automata/framework": "workspace:*",
     "@automata/sim": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
     "@types/node": "24.19.1",
     "smol-toml": "1.9.0",
+    "vite": "8.3.3",
     "vitest": "5.0.3"
   }
 }

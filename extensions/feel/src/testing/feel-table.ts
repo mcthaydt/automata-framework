@@ -1,8 +1,16 @@
-// A feel table and helpers for the runtime's tests (M6.1a): the spec's example, a feel made over it, frames at drawn ticks.
+// A feel table and helpers for the runtime's tests: the spec's example, a feel made over it, frames at drawn ticks.
+
+import { fakeClock } from '@automata/framework/testing'
 import type { SimEvent } from '@automata/sim'
 import { parse } from 'smol-toml'
-import { createFeel, DEFAULT_SETTINGS, type Feel, type FeelFrame, type FeelOptions } from '../feel'
-import type { FeelContent } from '../feel.schema'
+import {
+  createFeel,
+  DEFAULT_SETTINGS,
+  type Feel,
+  type FeelFrame,
+  type FeelOptions,
+} from '../features/frame/feel'
+import type { FeelContent } from '../shared/feel.schema'
 
 const TABLE = `
 [limits]
@@ -35,6 +43,7 @@ export const make = (over: Partial<FeelOptions> = {}): Feel =>
     content: () => content,
     settings: () => DEFAULT_SETTINGS,
     reducedMotion: () => false,
+    clock: fakeClock(),
     ...over,
   })
 /** Frames at drawn ticks `from..to`, one per tick. */

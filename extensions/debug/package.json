@@ -16,16 +16,16 @@
   "svelte": "./src/index.ts",
   "exports": {
     ".": {
-      "svelte": "./src/index.ts",
-      "default": "./src/index.ts"
+      "svelte": "./src/entries/index.ts",
+      "default": "./src/entries/index.ts"
     },
-    "./vite": "./src/vite.ts"
+    "./vite": "./src/entries/vite.ts"
   },
   "scripts": {
-    "test": "vitest run --project jsdom --project browsers",
-    "test:unit": "vitest run --project jsdom",
-    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
-    "test:browser": "vitest run --project browsers"
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:browser": "vitest run --project browser",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "peerDependencies": {
     "@automata/audio-synth": "workspace:^",
@@ -39,6 +39,7 @@
     "@automata/feel": "workspace:*",
     "@automata/framework": "workspace:*",
     "@automata/sim": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",

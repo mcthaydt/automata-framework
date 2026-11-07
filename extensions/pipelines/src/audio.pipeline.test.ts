@@ -14,7 +14,7 @@ import { route } from './router.ts'
 
 const FIXTURE = join(
   dirname(createRequire(import.meta.url).resolve('@automata/audio-synth/package.json')),
-  'fixtures/cues.audio.toml',
+  'tests/fixtures/cues.audio.toml',
 )
 const temps: string[] = []
 afterEach(() => {
