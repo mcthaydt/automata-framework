@@ -397,7 +397,7 @@ the site's 3D parts.
 | 1. Audit | Done, 2026-11-07 (PR stacked on #441): 10 structure (S1 to S10), 3 contracts (K1 to K3), 6 editor shipping (E1 to E6), 5 layout and look (V1 to V5), 6 tests (T1 to T6), 7 game (G1 to G7), 2 CI (Q1, Q2), 2 site (W1, W2), 10 copy (C1 to C10); and, the same day on the Owner's word, FigureBuilder and EnvironmentBuilder measured against AF (B1 to B10, section 9); 10 decisions for the Owner (D1 to D10); the Owner took D10 the same day: C on the card ("Their pixel-art look too"), then "Take everything basically", then "We use pixi3D, and 2D should also use the duel palette". 3,836 unit and DOM tests pass; the 3D editor's Chromium layout and canvas run 187 pass and 8 fail (the known 8); base-3d's journeys 8 of 8 and the 3D examples' 9 of 9 in Chromium. Headline: the 3D editor cannot open base-3d, and the Studio is unreachable | [2026-11-07-3d-slice-audit.md](2026-11-07-3d-slice-audit.md) |
 | 2. Plan and spec | Done, 2026-11-07, rewritten the same day with the superpowers plugin (`brainstorming`, `writing-plans`) in place of the hand-written first version (#443), with the paused plan audit's 21 findings folded in: D1 to D9 on the audit's recommendations, D10 as the Owner took it; four parts in the Owner's order, 20 phases, 53 tasks, each with files, interfaces and its failing tests; one `@automata/3d` package in `--features` layout (shared timeline, level and time of day), DUEL AF-wide, one timeline, one level format (`af-sector/2`, field by field), the look on Pixi 3D, `automata textures` in `-tools`, the 8 tests fixed in phase 1 | [spec](2026-11-07-3d-slice-spec.md), [plan](2026-11-07-3d-slice-plan.md) |
 | 3. Plan audit | Done, 2026-11-07, with the superpowers plugin (`writing-plans`' self-review), native: 26 findings against #444's head, the checkout and both builders, all fixed in place in the spec and the plan (the move map now follows today's imports, so `--features` holds: `shared/render/`, the occluders the camera's; the test mover's real flags; the goldens renamed and re-recorded once for FigureBuilder's newer fat; the 15 classic kinds; `Ease` keeps the cubic-bezier tuple; `LevelProblem`; `findCutByBar` in place of `findClipped`; the 2D slice's real-command harness reused; editor-3d's full move map; the look's target follows a phone in portrait; drunk grandma fixes to the new words). The paused audit's 21: 17 fixed by the rewrite, 4 finished here. DUEL's author and licence stay the Owner's | [record](2026-11-07-3d-slice-plan-audit.md) |
-| 4. Build | Next (Sonnet, high) | |
+| 4. Build | In progress (Sonnet, high): 1 of 53 tasks, see the build table below | [plan](2026-11-07-3d-slice-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
@@ -407,6 +407,66 @@ both builders at FigureBuilder `025ffb4` and EnvironmentBuilder `6d82a52`. The p
 (the plan's "Audit notes folded in" says where each went); its unchecked items remain: the editor-3d move map (14.1),
 the site paths (19.1), the copy table and the 2D editor counts. Then the build (Sonnet, high) starts at task 1.1 with
 `superpowers:executing-plans`, natively in the session with no subagents, handing off after 90 minutes.
+
+### Build: 2% (1 of 53 tasks)
+
+One row per task of the [plan](2026-11-07-3d-slice-plan.md); a task is done when its checks have passed in the session that did it. The percentage is done tasks / 53.
+
+| Task | Phase | Status |
+|---|---|---|
+| 1.1 Every unit test in the gate | 1 | Done, 2026-11-07 (pnpm check green with every unit test: 3D 292 + 426 + 2,932 + base-3d 82 + sector-format 104 among them; gate-scripts 3 RED then GREEN; hosted CI not run) |
+| 1.2 Three 3D jobs and #425's timeout fix | 1 | Not started |
+| 1.3 One scroll region per dialog (the seven `open-flows` failures) | 1 | Not started |
+| 1.4 The plan clear of the sheet (the Pencil failure) | 1 | Not started |
+| 1.5 Every action whole and uncovered | 1 | Not started |
+| 1.6 The 3D editor's journeys in Chromium | 1 | Not started |
+| 1.7 Paraglide never empties its folder | 1 | Not started |
+| 2.1 The move map and `packages/3d` | 2 | Not started |
+| 2.2 Tests in `tests/`, the feature rule on | 2 | Not started |
+| 3.1 The renderer in plain TypeScript | 3 | Not started |
+| 4.1 The source game's level format goes | 4 | Not started |
+| 4.2 Goldens recorded from AF's own code | 4 | Not started |
+| 5.1 The palette in `-content` | 5 | Not started |
+| 5.2 Emberwick, the theme, the examples and the editors' game art on DUEL | 5 | Not started |
+| 5.3 The 3D swatches are DUEL steps | 5 | Not started |
+| 6.1 The provenance record | 6 | Not started |
+| 6.2 The body, the stand and the face | 6 | Not started |
+| 6.3 One timeline; lighting; actions as clips | 6 | Not started |
+| 6.4 Hair, fit, seats and the registries | 6 | Not started |
+| 6.5 Streetwear becomes an example extension | 6 | Not started |
+| 7.1 `af-sector/2` and its migration | 7 | Not started |
+| 7.2 The world builder | 7 | Not started |
+| 7.3 Props, the dresser, lamps, decals, lettering, generated maps | 7 | Not started |
+| 7.4 The stage | 7 | Not started |
+| 8.1 Measure, then choose | 8 | Not started |
+| 8.2 The passes and the reference | 8 | Not started |
+| 9.1 `automata textures` in `-tools` | 9 | Not started |
+| 9.2 The builders' `reads` checks | 9 | Not started |
+| 10.1 No plan IDs or source names in code | 10 | Not started |
+| 10.2 README, a complete record, part A's close | 10 | Not started |
+| 11.1 The feature layout and `content/` | 11 | Not started |
+| 11.2 One name, the menu and the HUD | 11 | Not started |
+| 11.3 Journeys that play | 11 | Not started |
+| 12.1 The 3D examples on the new package | 12 | Not started |
+| 12.2 `create-game --template 3d` | 12 | Not started |
+| 13.1 `automata editor` reads 3D levels | 13 | Not started |
+| 13.2 Docs, agents and words outside the 3D package | 13 | Not started |
+| 13.3 The 3D frame-budget projects | 13 | Not started |
+| 14.1 Feature folders and `tests/` | 14 | Not started |
+| 14.2 Dead entries, the shim and the tokens | 14 | Not started |
+| 15.1 The full suite opens the checkout | 15 | Not started |
+| 15.2 One page, chosen by the game | 15 | Not started |
+| 15.3 The cuts | 15 | Not started |
+| 15.4 The suite on a phone | 15 | Not started |
+| 16.1 The frame, phone first | 16 | Not started |
+| 16.2 The builders' authoring | 16 | Not started |
+| 16.3 Plan, 3D and Walk in the game's look | 16 | Not started |
+| 17.1 The frame, phone first | 17 | Not started |
+| 17.2 New sliders, actions and words | 17 | Not started |
+| 18.1 The copy pass | 18 | Not started |
+| 18.2 Journeys against the real command | 18 | Not started |
+| 19.1 Behind the switch (W1) | 19 | Not started |
+| 20.1 Written and rehearsed now | 20 | Not started |
 
 Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3D in the website's look (the 2D slice redesigns every editor that is not 3D, the Tuner and the suite's 2D page included: tasks 12.6 and 12.7) (the Owner,
 2026-11-06: "completely redesign the editors for ux, copy, and ui"; the 2D slice redesigns the kit and the 2D editor),

@@ -81,8 +81,8 @@ The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history
   packed-install smoke. After changing a published package's exports or doc comments, run `pnpm build`, then
   `pnpm api-report --update` and `pnpm api-index --write` (the cheatsheet and the agent package's API reference), and
   commit what they write.
-- The 2D gate (`pnpm check`, `pnpm test:unit:2d`, `pnpm test:browser:2d`) includes the 2D editors' unit, layout, canvas and
-  journey tests; the 3D editor, the suite and the other 3D packages run in `.github/workflows/3d.yml`.
+- The gate runs every unit test (`pnpm check` runs `pnpm test:unit`, 3D included) and the 2D browser suites
+  (`pnpm test:browser:2d`); `.github/workflows/3d.yml` runs the 3D browser suites and journeys, and `pnpm ci:local` runs both.
 - Only published packages get a changeset, and it is `patch`. Private ones (the editors, figures) need none.
 - Browser, visual and journey suites run on the GPU runner, and cross-engine parity runs in Chromium, WebKit and
   Firefox. Report what you ran, what you left out and what is pending.

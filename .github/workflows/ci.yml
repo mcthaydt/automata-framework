@@ -110,7 +110,7 @@ jobs:
       - run: pnpm style
       # Unused files, exports and dependencies (knip.jsonc).
       - run: pnpm knip
-      - run: pnpm test:unit:2d
+      - run: pnpm test:unit
       # Each of these first proves it fails on its planted fixture, then checks the repository. The audit is
       # `pnpm audit --prod --audit-level=high`; the secret scan runs the pinned gitleaks over the full history
       # (fetch-depth 0 above).

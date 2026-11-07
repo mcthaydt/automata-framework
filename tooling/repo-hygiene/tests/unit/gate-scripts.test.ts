@@ -38,8 +38,7 @@ describe('the 2D gate', () => {
     expect(Object.keys(scripts).filter((name) => /:core$/.test(name))).toEqual([])
   })
 
-  it('is what `pnpm check` and `ci:local` run', () => {
-    expect(scripts.check).toContain('pnpm test:unit:2d')
+  it('is what `ci:local` runs for the browser suites', () => {
     expect(scripts['ci:local']).toContain('pnpm test:browser:2d')
   })
 })
@@ -52,5 +51,30 @@ describe('the 3D gate', () => {
     expect(included).toContain('./packages/editor-3d')
     expect(included).not.toContain('./packages/editor')
     expect(included).not.toContain('./packages/editor-*')
+  })
+})
+
+/** A workflow file's text, for the invariants that are about what a job runs. */
+function readWorkflow(name: string): string {
+  return readFileSync(`${root}.github/workflows/${name}`, 'utf8')
+}
+
+// 3D is part of the product, so its unit tests are part of the gate (Owner, 2026-11-07: "we're on 3D now, so 3D tests
+// MUST run"). The browser suites and journeys stay in their own jobs, which `ci:local` runs by name.
+describe('every unit test is in the gate', () => {
+  it('check runs every unit test', () => {
+    expect(scripts.check).toContain('pnpm test:unit &&')
+    expect(scripts.check).not.toContain('test:unit:2d')
+  })
+
+  it('the hosted core job runs every unit test', () => {
+    expect(readWorkflow('ci.yml')).toMatch(/run: pnpm test:unit\n/)
+  })
+
+  it('ci:local runs the 3D browser suites and journeys', () => {
+    expect(scripts['ci:local']).toContain('pnpm test:browser:3d')
+    expect(scripts['ci:local']).toContain('pnpm test:journeys:3d')
+    expect(scripts['ci:local']).toContain('--filter @af-games/base-3d')
+    expect(scripts['ci:local']).toContain('--filter @af-examples/examples-3d')
   })
 })

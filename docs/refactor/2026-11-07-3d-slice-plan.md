@@ -79,6 +79,27 @@ behind it: the [audit](2026-11-07-3d-slice-audit.md).
 53`. At the end of each task set its row to "Done, <date>, <engines run>", recompute both percentages, and commit with
 the task.
 
+## Changes from the automata-skills plan (PR #446, skills spec section 7; relayed 2026-11-07 11:48)
+
+Apply each when the task is reached, and tick it in the execution log:
+
+- [ ] **13.2:** drop the 3D skills and the 3D API reference from `agents/` (they return in 20.1).
+- [ ] **20.1:** add them when `@automata/3d` goes public. A new test fails on any unpublished package named in `agents/`.
+- [ ] **10.1:** keep a single environment-builder pattern, since skills task 2.4 may add it first.
+- [ ] **5.1:** add one "How it looks" skill line.
+- [ ] **5.2:** add create-game's template colours (`0xffc825`, `0x64748b`) to its file list.
+- [ ] **11.1:** delete `ROLE_LAYOUT_GAMES` and the hook's role list.
+- [ ] **13.1:** keep the editor skill at "2D level files" until phase 20.
+
+## Notes from the automata-plus audit (PR #40, relayed 2026-11-07 11:49)
+
+Not decided; read when the task is reached. X1 (task 7.1): `shared/level/sim/` and `simLevel()` overlap Plus's `sectors`
+package; check Plus PR #40 for the outcome (P-D4) before building them. X2 (`shared/timeline/`): Plus's `cutscenes` is a
+fourth keyed-time model; core's timeline owns keys and eases, so the design stands. X3 (task 4.1): deleting
+`blockout` breaks Plus's `pipe blockout`; agreed (D3). X4: keep the 12 names Plus imports from sector-format's root
+(`SectorDef`, `WallDef`, `Corner`, `Trim`, `STEP`, `WALL_THICK` and others) exported from `@automata/3d/level` with the
+same shapes where af-sector/2 allows.
+
 ## Builders' checkouts
 
 Clone both at the recorded commits beside the checkout: `git clone https://github.com/mcthaydt/figurebuilder
