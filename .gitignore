@@ -25,3 +25,5 @@ frame-budget-results/
 
 # A developer's own editor settings; the shared .vscode/settings.json and extensions.json are committed.
 .vscode/*.local.json
+
+docs/evidence/

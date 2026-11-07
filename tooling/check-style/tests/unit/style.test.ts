@@ -219,3 +219,32 @@ describe('a game root groups its sim by role (GL spec §5.1, acceptance A1–A11
     expect(findings[0]?.message).toBe('systems.ts and systems/ both exist; move systems.ts into systems/')
   })
 })
+
+// A comment should say why, not which plan asked for the code (refactor spec §8, task 7.2). The rule is opt-in: it is
+// switched on per root with `planComments`, so a package turns it on when its comments have been rewritten.
+describe('comments that cite a plan', () => {
+  const MESSAGE = 'A comment should say why, not which plan asked for it. Explain the reason in plain words.'
+  const check = (code: string) => checkFile('/p/src/a.ts', code, { planComments: true })
+
+  test.each([
+    ['// M5.2 owns this\nexport const a = 1\n', 1],
+    ['export const a = 1 // (DX.2d) the words\n', 1],
+    ['/** Chosen in PRODUCT.2 plan U-3. */\nexport const a = 1\n', 1],
+    ['/*\n * See spec §3.1 for the reason.\n */\nexport const a = 1\n', 2],
+  ])('%j is flagged', (code, line) => {
+    expect(check(code)).toEqual([{ file: '/p/src/a.ts', rule: 'plan-comment', message: MESSAGE, line }])
+  })
+
+  test.each([
+    '// The Pixi default is 1, too blurry on an iPad\nexport const a = 1\n',
+    "export const a = 'M5.2'\n",
+    "export const url = 'https://example.com/#M5.2' // the site\n",
+    '// Version 5.2 of the format added a field\nexport const a = 1\n',
+  ])('%j passes', (code) => {
+    expect(check(code)).toEqual([])
+  })
+
+  test('is off unless asked for', () => {
+    expect(checkFile('/p/src/a.ts', '// M5.2 owns this\nexport const a = 1\n')).toEqual([])
+  })
+})

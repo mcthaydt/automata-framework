@@ -1,7 +1,7 @@
 import type { CompiledContentData } from '@mcthaydt/automata'
 import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
 
-// Emberwick's flow, as compiled content the runtime reads (DX.3).
+// Emberwick's flow, as compiled content the runtime reads.
 
 const FLOW_DATA: CompiledContentData = {
   flow: {

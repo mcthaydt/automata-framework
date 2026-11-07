@@ -51,7 +51,7 @@ export interface CatalogEntry {
 }
 
 export interface CatalogOptions {
-  /** The delivery plan whose ticked rows end a `Pending:` (default docs/02-master-delivery-plan.md). */
+  /** The delivery plan whose ticked rows end a `Pending:` (default docs/archive/02-master-delivery-plan.md). */
   readonly deliveryPlan?: string
   /** The folder of workspace packages whose declared exports are public entries (default packages/). */
   readonly packagesDir?: string
@@ -202,7 +202,9 @@ function importProblem(
 
 export function readCatalog(root: string, options: CatalogOptions = {}): CatalogEntry[] {
   const publicImports = publicEntries(options.packagesDir ?? join(repoRoot, 'packages'))
-  const tasks = deliveryTasks(options.deliveryPlan ?? join(repoRoot, 'docs/02-master-delivery-plan.md'))
+  const tasks = deliveryTasks(
+    options.deliveryPlan ?? join(repoRoot, 'docs/archive/02-master-delivery-plan.md'),
+  )
   const approvedPath = join(root, 'screenshots-approved.json')
   const approved = existsSync(approvedPath)
     ? (JSON.parse(readFileSync(approvedPath, 'utf8')) as Record<string, string>)

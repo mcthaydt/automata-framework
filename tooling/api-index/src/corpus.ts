@@ -6,13 +6,13 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 export const CORPUS: readonly string[] = [
-  'docs/00-overview.md',
+  'docs/README.md',
   'docs/adr/0001-ecs-choice.md',
   'docs/adr/0002-pixi-for-2d-and-3d.md',
   'docs/adr/0003-effect-outside-the-sim.md',
   'docs/adr/0004-ruken-first-host.md',
   'docs/adr/0005-publish-targets.md',
-  'docs/superpowers/specs/2026-10-11-m1-shared-contracts-design.md',
+  'docs/archive/superpowers/specs/2026-10-11-m1-shared-contracts-design.md',
   'docs/versions.md',
 ]
 

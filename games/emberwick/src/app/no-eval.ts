@@ -8,7 +8,7 @@
 //   every command with Zod.
 //
 // Imported first by `main.ts`, so both are in place before anything renders or parses. Moves to
-// `render-pixi/no-eval` with M1.7.
+// the renderer's `no-eval` entry.
 import 'pixi.js/unsafe-eval'
 import { config } from 'zod'
 

@@ -19,8 +19,8 @@ FloorFifty's `vendor/ruken/` pattern (decision D-6, master spec §12).
 use zod), so AF needs no override. The previous tarballs were packed from `d0fa2fe` on 2026-10-30 (QB.1f), and before
 that from `b30d31b` on 2026-10-11. Between `d0fa2fe` and `e376a2d` only the licence changed: each tarball gains
 `package/LICENSE` and `"license": "MIT"`, and every `dist/` is byte-identical
-(`docs/superpowers/plans/2026-10-30-product4r-ruken-mit-repack.md`; what changed from `b30d31b` to `d0fa2fe` is in
-`docs/superpowers/plans/2026-10-30-qb1f-repack-ruken.md`).
+(`docs/archive/superpowers/plans/2026-10-30-product4r-ruken-mit-repack.md`; what changed from `b30d31b` to `d0fa2fe` is in
+`docs/archive/superpowers/plans/2026-10-30-qb1f-repack-ruken.md`).
 
 **Licence:** MIT, for all four (the Owner, 2026-10-30: "Yes, MIT it"; RukenApp PR #396). Each tarball holds the same
 `package/LICENSE` ("Copyright (c) 2026 Dawson McThay") and its `package.json` declares `"license": "MIT"`. MIT asks

@@ -1,65 +1,88 @@
 # AutomataFramework: Agent Rules
 
-## Read order and current task
+AF is a TypeScript framework for small, deterministic web games. The simulation runs on Koota and is checked bit
+for bit in Node, Chromium, WebKit and Firefox. PixiJS draws the game. `web`, `itch`, `ruken` and `tauri` are peer
+distribution targets, chosen when the game is built. The Owner's direction, decision by decision, is in
+[`docs/archive/direction-log.md`](docs/archive/direction-log.md).
 
-Read these before choosing work:
+## Read order
 
-1. `docs/00-overview.md`, then the master spec and extraction map it links (read their Ruken-first sections through [ADR 0006](docs/adr/0006-distribution-targets.md)).
-2. `docs/01-decomposition.md` for packages, milestones, dependencies and required spec/plan detail.
-3. `docs/02-master-delivery-plan.md`, the only task list.
-4. `docs/03-continuation-prompt.md` for current evidence, unresolved inputs and the exact next action.
-5. `docs/04-how-we-build.md` for how a task flows to a merged PR.
+1. [`docs/README.md`](docs/README.md): what AF is and where things are.
+2. [`docs/status.md`](docs/status.md): what works today and what is next.
+3. [`docs/refactor/progress.md`](docs/refactor/progress.md): the refactor's tasks, with evidence.
+4. [`docs/refactor/2026-11-05-core-and-2d-spec.md`](docs/refactor/2026-11-05-core-and-2d-spec.md): the layout and
+   the rules below, with reasons. Its plan is next to it.
 
-Then read the milestone spec, its ADR/spike references and the task's plan when one exists. `CLAUDE.md` delegates to this file.
+The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history, not a source of tasks.
 
-**Current direction (Owner, 2026-10-11):** AF is **Ruken first**. Core packages are built from proven code in FloorFifty (2D), The Last Light (`PixiJS3D_Experiment_001`, 3D) and Ruken; everything else is an opt-in extension. PixiJS renders 2D and 3D (ADR 0002). Effect runs everything outside the sim; the sim stays on Koota and never imports Effect (ADRs 0001, 0003). Ruken's packages and process are the foundation (ADR 0004). CI/CD, deployment, mobile UI and the content compiler come first, in M1. AF 1.0 covers 2D and 3D, and the 3D runtime is free, not Plus (2.5D was dropped on 2026-10-18; **Owner, 2026-10-23: "3D ships 1.0"**, M3R-D10, M3R-D20): the base 3D game, `games/base-3d`, is built on AF inside 1.0 and its proven 3D systems become packages (M9) before the launch. Run CI locally (Node 24, Playwright browsers, all jobs including parity): hosted Actions jobs are not getting runners. Each milestone's spec is reviewed before its task plans; in M1, work runs in parallel lanes (`docs/04-how-we-build.md`), each writing its task spec first and getting it reviewed in its own PR. Decisions D-1 to D-6 run on their recommended defaults (master spec §12). Preserve the merged M0 work. **Owner, 2026-10-16:** loosen the Ruken coupling so a game publishes to Ruken or itch.io: Ruken stays the reference host and contract vocabulary, the target is chosen at build time, and itch.io is a supported target ([ADR 0005](docs/adr/0005-publish-targets.md), PUB spec; approved 2026-10-16). **Owner, 2026-10-16:** DX.0, PRODUCT.0, EX.0, QB.0 and PUB.0 are approved with every recommended default. **Owner, 2026-10-18:** drop 2.5D. **Owner, 2026-10-23:** "procedural only for now": rigged glTF characters are deferred (procedural figures with an IK rig for posing and animation), the 3D camera is Crow Country's angle on a 24 mm lens, 25° down and 5 m back, turned freely by the player; the Ocarina-style action-adventure is the base 3D game, the counterpart of Emberwick, with "everything we did for 2D" done for 3D, matching the 2D game's quality and authored in the editors; **the AF 1.0 launch waits for Pixi 3D's public release** (Owner, 2026-10-23: "we launch when pixi 3D goes public"; `@pixi/3d` is a closed beta, so we build on it with private builds meanwhile, M3R-D18) ([revised M3 spec](docs/superpowers/specs/2026-10-18-m3-3d-characters-design.md), approved by the Owner 2026-10-23). **Owner, 2026-10-30:** finish everything through the AF 1.0 launch, the website included; Pixi 3D goes public in about two weeks, so plan to completion on the vendored `@pixi/3d` 0.1.0-beta.2 (copied from The Last Light, swapped for the npm release when it ships); the agent may merge its own PRs once every check, parity included, is green on the head; there is no orchestrator or bus any more, so questions, device-test requests and acceptances go to the Owner directly; FigureBuilder (`mcthaydt/FigureBuilder`) is the procedural character source alongside The Last Light. The Owner supplies `NPM_TOKEN`, site hosting and DNS, a Discord server and bot, and an itch.io account with `BUTLER_API_KEY`. **Owner, later on 2026-10-30:** "Auto accept all spec and plans" (a spec or plan is accepted once its review is done; its veto-defaults stand; quote the words where acceptance is recorded); "Auto approve all visual acceptance too" (recorded by the agent once a reviewer has opened the actual expected/actual/diff images and the PR explains every change; unexplained golden or screenshot changes still block, sim hash mismatches are still investigated, and real-device testing stays the Owner's); "You can do all 3 as well" (three lanes while the Mac's CI queue drains: Plus and the website pause; Chromium is installed before the consumer smoke and the publish; push access to RukenApp). Other workflow changes, hosting and deploy credentials, licence, pricing and terms text, money and real-device tests stay the Owner's. **Owner, 2026-10-30:** "I kinda want to change our plans for paid - we'll make the editor suite paid for iOS and Android instead as apps; priced like nomad sculp"; Plus becomes free, the editors stay free on the web and desktop, and the iOS and Android editor apps are a one-time purchase (the [APP spec](docs/superpowers/specs/2026-10-30-paid-editor-apps-design.md)). Projects are laid out like EsperRedux "when it makes sense to" (the [GL spec](docs/superpowers/specs/2026-10-30-game-layout-by-role-design.md)). **Owner, 2026-10-31:** "Let's not couple the automata framework so tightly to Ruken - that's just one of the many places we can distribute content to easily; we have tauri export, Ruken export, and itch export": `web`, `itch`, `ruken` and `tauri` are peer targets, all core and free, and AF owns its host contract ([ADR 0006](docs/adr/0006-distribution-targets.md), rows DIST.0 to DIST.6); this supersedes "Ruken first" above and ADR 0004 where they make Ruken's contracts win. **Owner, 2026-10-31:** "Reminder that everything is auto approved and accepted, do not wait on me to do any approvals": specs, plans, visual and copy acceptance, veto defaults and workflow changes no longer wait on the Owner (record the words where acceptance is recorded); credentials and secrets, money, real-device tests, release-environment publish approvals and branch deletions stay the Owner's.
+## The laws
 
-## Planning, tracking and handoff
+1. Only the sim changes gameplay state. The sim has no I/O, no wall clock and no `Math.random`.
+2. Each piece of state has one owner. Presentation observes; it never decides.
+3. The same seed, content and inputs give the same hash, in every engine. Never accept a hash mismatch as flaky.
+4. The host is a port. No distribution target is the reference ([ADR 0006](docs/adr/0006-distribution-targets.md)).
+5. Effect is for Node tooling. The sim never imports it, and it is leaving the browser package (task 5.4 finishes it;
+   [ADR 0003](docs/adr/0003-effect-outside-the-sim.md) as amended).
+6. PixiJS only for rendering ([ADR 0002](docs/adr/0002-pixi-for-2d-and-3d.md)). Every game imports the no-eval entry first.
+7. Zod is the only schema language.
 
-- Every milestone spec defines scope, ownership, interfaces, ordered flows, lifecycle/failure/recovery behavior, dependencies and concrete success/failure acceptance cases. UI specs include component/state and responsive/input inventories; testing specs define fixtures, test layers, focused feedback and required full gates. Follow `docs/01-decomposition.md` §5.
-- Plans name exact create/modify/test files and consumed/produced interfaces, with observable failing tests, minimal changes, passing verification and reviewable deliverables. A roadmap or draft spec does not authorize implementation.
-- Maintain `docs/03-continuation-prompt.md` after changing the agreed plan, completing or blocking a task, recording verification and before every handoff/end of a work session. This is the agent's responsibility, not automatic synchronization.
-- Update the master delivery checklist and applicable spec/plan status from evidence in the same session. Track drafted, reviewed, implemented, locally checked, CI verified, deployed and Owner accepted separately. Leave incomplete gates unchecked; historical results and unchecked plans are not proof of current implementation status.
-- Verify existing artifacts before rebuilding them. Preserve unrelated changes and active processes; use isolation when work would conflict. Do not delegate unless explicitly requested or required by an applicable instruction.
-- Write simple, readable code with descriptive names and small responsibilities. Use established patterns when they solve the current problem; explain non-obvious invariants, algorithms and failure policies beside the code.
+## Packages and features
 
-## Contracts and scope
+- Browser code is one package, `@mcthaydt/automata`. Node build tools are one package, `@mcthaydt/automata-tools`.
+  The sim (`-sim`) and the content compiler (`-content`) stay separate. Extensions are opt-in and never edit core.
+- Inside a package, `src/` is `app/`, `features/<x>/`, `shared/`, `entries/` and `testing/`. A feature imports
+  only itself and `shared/`; `app/` wires features together; `entries/` only re-exports. `pnpm boundaries` enforces it.
+- A game's `src/` has the same shape. Sim files are found by role suffix (`.component.ts`, `.system.ts`,
+  `.command.ts`, `.event.ts`, `.resource.ts`, `.plugin.ts`) and by what they import. `games/base-3d` keeps its
+  role files until the 3D phase.
+- Tests live in `tests/` beside `src/`: `unit/<feature>/`, `browser/`, `e2e/`, `fixtures/`. One suffix, `.test.ts`.
+- Names: kebab-case files with a role suffix where one applies. A source file has at most 600 lines.
+- Comments say why. They do not say which plan asked for the code.
 
-- **One contract owner.** Shared sim/content/snapshot/replay/host contracts have an explicit owner and consuming milestones. Keep definitions canonical; do not maintain slightly different copies in runtime, rendering, UI and networking. Coordinate changes in the owning spec and affected consumers before implementation. Breaking published changes require semver and the approved migration/codemod path.
-- **Target-neutral core (ADR 0006).** AF owns the host contract in `@mcthaydt/automata-host`; `web`, `itch`, `ruken` and `tauri` are peer targets chosen at build time. Only a target's adapter and its `ship` target import that platform's packages (`@ruken/sdk`, `@ruken/manifest` and `ruken publish` for `ruken`; Tauri's for `tauri`); inside the Ruken target, never redefine or copy a Ruken message, capability, limit or manifest field, and send what Ruken lacks to Ruken as a request. A game meets the limits of the targets it builds for. Version pins for Ruken's packages follow Ruken's `docs/versions.md`. A bare `M1.4` in AF docs is AF's; write Ruken's as "Ruken M1".
-- **Core and extensions.** Core is what every distribution target needs or what both reference games need; everything else is an extension registered with `defineExtension`. Extensions never edit core files; core never imports an extension. Extracted code brings its source tests, and its source repository and commit are recorded only in `docs/provenance/sources.md` (Owner, 2026-10-31: AF is standalone, so code, tests, published text and the website never name the source projects).
-- **Honor host authority.** Use the `Hosting` service (the target's adapter talks to the platform). A denied/unavailable hosted capability must not silently switch to device storage or another standalone path. Adapter tests cover readiness, lifecycle, timeouts, consent and missing capabilities. Any adapter/harness window-message handler validates both source and origin; do not duplicate the SDK bridge in game code.
-- **Keep the current task scoped.** Reconcile dependencies without pulling unrelated future features into implementation. Keep retained scope in its owning milestone; no speculative dependencies, generic abstractions or unrequested automation.
-- **Facts come from evidence.** Generate metrics, hashes and validation results from actual artifacts/checks. Human review records decisions, not invented FPS, CI success, license facts or implementation status. Record asset provenance and verify outputs before claiming visual acceptance.
+## Host authority and targets
+
+- The game talks to the host only through the `Hosting` service. A refused or missing capability never quietly
+  falls back to device storage.
+- Only a target's adapter imports that platform's packages (`@ruken/*`, `@tauri-apps/*`). Never copy a Ruken
+  message, limit or manifest field into AF; ask Ruken for what it lacks.
+- A window-message handler checks both source and origin.
 
 ## Responsive UI
 
-- Reuse framework primitives and theme/composition contracts rather than copying viewport fixes into every screen. Layout depends on container size and usable height; input mode is independent. The `ui` geometry owner is the single source of layout geometry. Design and test at phone sizes first. Keyboard/browser-bar changes must not unexpectedly reclassify or remount the screen.
-- Preserve essential actions, state and focus through rotation, compact height and host/keyboard occlusion. Use declared scroll regions; do not shrink touch targets or hide required actions to make a screenshot fit. Keep 44 px touch targets and 48 px primary actions.
-- Test component states and player interactions through DOM behavior tests, production CSS geometry through real-browser layout checks, and rendered composition through GPU/integration evidence. A snapshot cannot prove focus or hit testing; a fixture cannot prove a real host/game journey.
-- Inspect actual expected/actual/diff images for visual changes. Explain intentional baseline changes and obtain required Owner visual acceptance; do not automatically promote new screenshots or update goldens to hide an unexplained regression. Sim hash mismatches must be investigated, never rebaselined per engine.
+- Design and test at phone size first. Layout follows the container size and usable height; input mode is separate.
+- Touch targets are at least 44 px; primary actions 48 px. Never shrink one or hide an action to make a screenshot fit.
+- Keep focus and state through rotation, compact height and the on-screen keyboard. Scroll only in declared regions.
+- Prove behaviour with DOM tests, layout with real-browser tests, composition with journeys. A screenshot proves none of
+  focus, hit testing or a host journey.
+- Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happening and what to press?
 
-## Testing feedback and shared runs
+## How to work
 
-- Start with the smallest relevant failing test and confirm its failure reason. Use injected clocks/timers and deterministic seeds/content. Browser checks wait on semantic readiness, fonts and completed state transitions rather than arbitrary sleeps.
-- Focused tests come before broader CI/GPU runs. Batch verified fixes and avoid duplicate remote jobs for the same artifact/selection. Expand coverage for shared styles/contracts and unknown dependencies; always report selected, omitted and pending gates.
-- Unit tests, typecheck and build run locally and in hosted CI. Lightweight renderer-free DOM component/browser checks may run locally. Heavy GPU, visual and E2E suites stay on the GPU runner chosen in M1 (D-5); performance probes require exclusive GPU access. Preserve mandatory cross-engine parity.
-- Reuse a test build/server only after verifying its source/config/content identity and explicit ownership. Rebuild after relevant changes. Isolate ports, test data and artifacts per checkout/run; never silently test another worktree's server or stop a process you do not own.
-- Preserve first-attempt failure evidence even if a retry passes. Diagnose product assertions separately from runner/transport/setup failures. A skipped, empty or focused suite does not establish a required full gate.
-- Mark plan steps when their required checks pass, in the same session. Record deviations with the supporting evidence; keep Progress/execution records and the continuation consistent. Do not collect all checkoffs at the end or treat an unverified workaround as completion.
-- Preserve unrelated dirty work. Do not use a shared Git stash to hide another task's changes. Clean up only owned, verified disposable resources; removal of other worktrees or evidence requires explicit authorization.
+- Write the failing test first in `packages/`, `tooling/`, `games/` and `examples/`; confirm it fails for the right
+  reason. Start with the smallest test, then widen.
+- Use injected clocks and fixed seeds. Browser tests wait on readiness, never on a sleep.
+- A hash that moves is investigated, not re-recorded per engine. Say why in the commit when it must move.
+- Look at the real expected, actual and diff images before accepting a visual change, and explain each change.
+- Facts come from artifacts: hashes, sizes and timings are measured, never written by hand.
+- Keep the change to what was asked. Preserve other people's changes. Do not delegate to subagents unless asked.
+- Update `docs/refactor/progress.md` and the plan's log in the same session as the work. Tick a plan step only when
+  its checks pass. Leave a gate unchecked if it did not run, and say which.
 
-## Engineering rules
+## Gates
 
-- **Strict TDD** in `packages/`, `tooling/` and `examples/`: write a failing test first, then make the minimal change. `spikes/` is exempt (A0+A1 spec §2).
-- **The seven laws** (2026-10-01 master spec §2, law 7 refined in the 2026-10-11 spec): only the sim changes gameplay state; the sim has no I/O, no wall clock and no `Math.random`; the host is a port, and no target is the reference (ADR 0006).
-- **Effect outside the sim only** (ADR 0003): runtime managers are Effect services; inject time through Effect's `Clock` and test it with `TestClock`; use `Scope` for disposal; no Effect allocation per frame. Zod is the only schema language.
-- **PixiJS only** (ADR 0002): core 2D in `render-pixi`; 3D only in the `render-pixi3d` extension. WebGL2 is the default renderer and WebGPU is opt-in; every game imports `render-pixi/no-eval` first (web targets, Ruken's CSP included, allow no `eval`). Filters are GLSL + WGSL pairs taking pixel position from the vertex stage; WebGL2 stays at parity with WebGPU. `render-pixi3d` stays unpublished (D-1).
-- **Naming:** role suffixes (`*.component.ts`, `*.system.ts`, `*.command.ts`, `*.event.ts`, `*.resource.ts`, `*.plugin.ts`, `*.manager.ts`, `*.schema.ts`, `*.migration.ts`, `*.content.ts`, `*.generator.ts`, `*.extension.ts`, `*.test.ts`). Folders group by feature, except a game's `src/` (`games/*` and what `create-game` generates), which groups by role like EsperRedux: `constants.ts`, `components.ts`, `commands.ts`, `events.ts`, `resources.ts`, `systems.ts`, `state.ts`, `views.ts`, `main.ts` and `game.test.ts`, each becoming a folder of the same name once it passes 300 lines (the GL spec). One-file examples keep the same order in `// --- <role> ---` sections. Games move as their GL rows land.
-- **Determinism is cross-engine:** goldens must match bit-for-bit in Node, Chromium, WebKit and Firefox. Never accept a hash mismatch as "flaky".
-- Run `pnpm format` before committing. Use Conventional Commits.
-- Packages publish as `@mcthaydt/automata-<name>` (GitHub Packages, `mcthaydt/automata-framework`).
-- **Before committing:** `pnpm check` runs lint, typecheck, `boundaries`, `style`, `knip` (unused files, exports and dependencies) and unit tests. CI runs the same, plus the cross-engine parity suites in Chromium, WebKit and Firefox and, after `pnpm build`, `pnpm api-report`, `pnpm api-index`, `pnpm agent-skills`, `changeset status` and `check-changesets`: after changing a published package's exports or doc comments, run `pnpm api-report --update` and `pnpm agent-skills --write` (and `pnpm cheatsheet` when `api-index` says the cheatsheet is stale) and commit what they write. Only published packages go in a changeset: a private one (cli, figures and the editors) needs none, and naming one fails `check-changesets`.
-- **`pnpm boundaries`** (packages/sim) and each game's sim files (`--game`: the role files from `constants.ts` to `state.ts`, `resources.ts` included): no DOM/host globals, no `Date`/timers/`console`, only `Math.{sqrt,fround,round,floor,ceil,trunc,abs,min,max,sign,imul}` (use `@mcthaydt/automata-sim/math` for the rest), no `**`, no `Object.keys/values/entries`/`for…in` (use `sortedKeys`/`sortedEntries`), imports only from `koota`, `zod`, Rapier deterministic-compat, the sim's public entries, an extension entry its own `package.json` declares (`"automata": { "simEntries": ["./2d"] }`), or relative paths (so never `effect`).
-- **`pnpm style`**: kebab-case files; `define*` results live in a file with the matching role suffix (`*.component.ts` exports `defineComponent` results, and so on); in a game's `src/`, the role files and folders count too (`components.ts` and `components/` hold `defineComponent` results, `resources.ts` holds resources, `state.ts` the plugin), and a role is a file or a folder, never both; `testing/` folders and tests are exempt. A non-test `.ts` source file under `packages/*/src` has at most 600 lines: split it by responsibility.
-- Heavy GPU, visual and E2E suites run on the GPU runner (from M1.1), not on the developer's Mac.
+- `pnpm format` before committing; Conventional Commits.
+- `pnpm check` runs lint, typecheck, `boundaries`, `style`, `knip` and the unit tests.
+- After `pnpm build`, CI also runs `pnpm api-report`, `pnpm api-index`, `pnpm agent-skills`, `changeset status`
+  and `check-changesets`. After changing a published package's exports or doc comments, run
+  `pnpm api-report --update`, `pnpm agent-skills --write` and `pnpm cheatsheet`, and commit what they write.
+- Only published packages get a changeset, and it is `patch`. Private ones (the editors, figures) need none.
+- Browser, visual and journey suites run on the GPU runner, and cross-engine parity runs in Chromium, WebKit and
+  Firefox. Report what you ran, what you left out and what is pending.
+- Packages publish as `@mcthaydt/automata-<name>` to GitHub Packages.
+
+## Branches and pull requests
+
+- Work on a branch and open a draft pull request. Do not leave backup or handoff branches; a draft PR or a tag does
+  that job. When a branch's pull request is merged, delete the branch.
+- `main` and the branches with an open pull request are the only long-lived branches.
+- Credentials, money, real-device tests, release approvals and branch deletions are the Owner's.

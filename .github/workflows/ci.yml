@@ -2,7 +2,7 @@ name: ci
 
 # AF's own CI (ship spec §3.7). Checks run on every push and pull request; cross-engine parity and the 2D journeys
 # (Emberwick in Chromium and WebKit, the one-file examples) run on every push to main and on pull requests that are
-# not drafts (a draft runs parity in a cloud container, docs/cloud-parity.md). One focused browser run can be asked
+# not drafts (a draft runs parity in a cloud container, docs/archive/cloud-parity.md). One focused browser run can be asked
 # for with `automata ship test-remote <folder> <playwright args>`.
 #
 # What a pull request runs (CI backlog, 2026-10-23): one runner serves every pull request, so the checks job
@@ -21,7 +21,7 @@ name: ci
 # repository variable AF_LINUX_RUNNER switches every job to another label (ubuntu-latest once hosted minutes
 # are back), and AF_GPU_RUNNER moves the browser journeys alone. Parity alone runs on the Owner's Mac (label
 # af-mac, 2026-10-17) and AF_PARITY_RUNNER moves it. Until a runner serves AF, a full local run is
-# the green gate (docs/04-how-we-build.md).
+# the green gate (docs/archive/04-how-we-build.md).
 
 on:
   push:
@@ -123,7 +123,7 @@ jobs:
 
   parity:
     name: parity (chromium, webkit, firefox)
-    # A draft PR runs parity in a cloud container instead (docs/cloud-parity.md). Pushes to main have no
+    # A draft PR runs parity in a cloud container instead (docs/archive/cloud-parity.md). Pushes to main have no
     # pull_request and always run it. `!cancelled()` keeps a red checks job from hiding parity on a push or the
     # nightly run; a pull request needs green checks first, so a red one does not also queue the heavy jobs.
     needs: checks

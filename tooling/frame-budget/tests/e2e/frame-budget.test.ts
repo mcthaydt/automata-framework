@@ -4,7 +4,7 @@
 // measured; the budget itself is compared by the check, so the first GPU-runner run records numbers even while
 // no budget exists.
 //
-// Method, after spike S8 (docs/spikes/s8-effect.md) and FloorFifty's probes (ac72660,
+// Method, after spike S8 (docs/archive/spikes/s8-effect.md) and FloorFifty's probes (ac72660,
 // tests/e2e/frame-budget.spec.ts and tests/e2e/support/perf-probe.ts):
 // - the built page, served with Ruken's headers; a CSP violation, page error or console error fails the run;
 // - every requestAnimationFrame callback is timed from an init script, with no hook in the game. A frame's

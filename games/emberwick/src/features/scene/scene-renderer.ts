@@ -14,7 +14,7 @@ const NIGHT = Number.parseInt(endesga(15).slice(1), 16)
 
 /**
  * The options `startGame` gives render-pixi for Emberwick: its scene on the stage, fed each step and drawn
- * each frame through the stage hooks (DX.3 decision E-1). `onFrame` hears where Wick is after every frame
+ * each frame through the stage hooks. `onFrame` hears where Wick is after every frame
  * (the page's data attributes, which the browser journeys read).
  */
 export function sceneRenderer(room: Room, onFrame: (at: WickAt) => void): PixiRendererOptions {

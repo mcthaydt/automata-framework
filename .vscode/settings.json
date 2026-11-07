@@ -26,7 +26,7 @@
     // Vendored builds and archives.
     "vendor": true,
     "docs/evidence": true,
-    "docs/history": true,
+    "docs/archive": true,
     "docs/provenance": true,
     // Written by tools, or written once.
     "**/CHANGELOG.md": true,
@@ -77,7 +77,7 @@
     "docs/cheatsheet.md": true,
     "vendor": true,
     "docs/evidence": true,
-    "docs/history": true,
+    "docs/archive": true,
     "docs/provenance": true,
     "**/CHANGELOG.md": true,
     "**/LICENSE": true,

@@ -2,7 +2,7 @@ import { defineContentSchema } from '@mcthaydt/automata-content'
 import { z } from 'zod'
 
 // The content kinds Emberwick registers for its room, which the 2D editor authors (`content/rooms/room-1.af2d.json`) and
-// exports as `content/levels/<id>.toml`, `project.toml` and `world.toml` (2D editor spec §6.2). The sim receives the levels
+// exports as `content/levels/<id>.toml`, `project.toml` and `world.toml`. The sim receives the levels
 // and the tuning; the project's definitions and the world's placements are for the editor and the tools, so they stay
 // out of the sim's content and its hash.
 //

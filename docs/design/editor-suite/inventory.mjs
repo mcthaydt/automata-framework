@@ -1,6 +1,6 @@
 // The editor audit: every editor in The Last Light's suite and the game's own boards, what each edits, where it lives
 // and whether AF keeps it. Read from the code at mcthaydt/PixiJS3D_Experiment_001 (main at 92e6704, 2026-10-22) and
-// from AF's plan (docs/01-decomposition.md). The gallery and the README both read this one list.
+// from AF's plan (docs/archive/01-decomposition.md). The gallery and the README both read this one list.
 //
 // `lives` names the AF content file the editor writes (the glob in the game's proposed `content/editors.toml`, see
 // data.mjs) and, after "from", the Last Light source it replaces. `verdict` is one of: kept, new, built, shell, planned.

@@ -39,7 +39,7 @@ import { drawFigure, type FigureDrawing } from './figure-meshes.js'
 
 /**
  * Building a figure's meshes past this many milliseconds logs a warning. S7-Q9 measured the one-off build at 1.95 ms
- * p95 in Node (docs/spikes/s7-pixi3d.md); this leaves room for a phone until M3.1b's phone numbers set it.
+ * p95 in Node (docs/archive/spikes/s7-pixi3d.md); this leaves room for a phone until M3.1b's phone numbers set it.
  */
 export const FIGURE_BUILD_BUDGET_MS = 5
 

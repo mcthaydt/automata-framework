@@ -54,7 +54,7 @@ describe('findSourceNames', () => {
     const sample = SOURCE_NAMES[0]?.sample ?? ''
     const root = tree({
       'docs/provenance/sources.md': `${sample}\n`,
-      'docs/superpowers/plans/x.md': `${sample}\n`,
+      'docs/archive/superpowers/plans/x.md': `${sample}\n`,
       'packages/ui/src/a.ts': `// ${sample}\n`,
       'packages/ui/CHANGELOG.md': 'clean\n',
     })

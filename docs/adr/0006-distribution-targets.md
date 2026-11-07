@@ -42,4 +42,4 @@ ADR 0005 already lets a game choose `ruken`, `itch` or `web` at build time, but 
   difference.
 - **Docs and copy.** AGENTS.md's "Ruken first" rules become "target-neutral core"; the website and `create-game` present
   the four targets equally. The master specs' Ruken-first sections are read through this ADR until they are revised.
-- **Rows:** DIST.0 to DIST.6 in `docs/02-master-delivery-plan.md`.
+- **Rows:** DIST.0 to DIST.6 in `docs/archive/02-master-delivery-plan.md`.

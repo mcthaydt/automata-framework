@@ -2,8 +2,8 @@
 
 > The free game is **Emberwick in 3D**: the 2D reference game's flow, saves, settings and HUD pattern, one room, a
 > third-person hero under the angled free-turn camera, and one verb beyond walking, the roll. The decision and its words
-> are in [the rescope spec](../../docs/superpowers/specs/2026-10-31-base-3d-emberwick-rescope.md); the plan that built it is
-> [free base-3d](../../docs/superpowers/plans/2026-10-31-free-base-3d.md). The action-adventure this game grew from (lock-on,
+> are in [the rescope spec](../../docs/archive/superpowers/specs/2026-10-31-base-3d-emberwick-rescope.md); the plan that built it is
+> [free base-3d](../../docs/archive/superpowers/plans/2026-10-31-free-base-3d.md). The action-adventure this game grew from (lock-on,
 > combat, enemies, items, the dungeon pieces, the Cold Kiln and the Ashen Warden) moved to Plus; its last copy in this
 > repository is the ref `archive/base-3d-adventure`.
 
