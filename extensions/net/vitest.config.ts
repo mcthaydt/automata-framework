@@ -1,12 +1,12 @@
-import { defineConfig } from 'vitest/config'
+import { defineTests } from '@automata/vitest-preset'
 
-export default defineConfig({
-  test: {
-    name: 'node',
-    environment: 'node',
-    include: ['src/**/*.test.ts'],
-    // The link tests step TestClock through hundreds of milliseconds; the shared Mac runner runs every package's tests
-    // at once, so they get physics's margin rather than the 5 s default (a hang still fails).
-    testTimeout: 90_000,
-  },
+// Net has no browser tests: the wire, the room and the session are plain TypeScript, and the sim's hashes are checked in
+// the units. `svelte` because the tests import `fakeClock` from `@automata/framework/testing`, whose barrel also holds
+// Svelte fixtures. The link tests step a fake clock through hundreds of milliseconds, and the shared runner runs every
+// package at once, so they get physics's margin rather than the 5 s default (a hang still fails).
+export default defineTests({
+  optimizeDeps: ['@automata/sim', 'zod'],
+  browsers: [],
+  svelte: true,
+  testTimeout: 90_000,
 })

@@ -4,7 +4,8 @@
     "extensions/puzzle",
     "extensions/feel",
     "extensions/audio-synth",
-    "extensions/debug"
+    "extensions/debug",
+    "extensions/net"
   ],
   "moves": [
     {
@@ -430,6 +431,90 @@
     {
       "from": "extensions/debug/src/testing",
       "to": "extensions/debug/src/testing"
+    },
+    {
+      "from": "extensions/net/src/index.ts",
+      "to": "extensions/net/src/entries/index.ts"
+    },
+    {
+      "from": "extensions/net/src/sim/index.ts",
+      "to": "extensions/net/src/entries/sim.ts"
+    },
+    {
+      "from": "extensions/net/src/testing/index.ts",
+      "to": "extensions/net/src/entries/testing.ts"
+    },
+    {
+      "from": "extensions/net/src/sim",
+      "to": "extensions/net/src/shared/sim"
+    },
+    {
+      "from": "extensions/net/src/wire",
+      "to": "extensions/net/src/shared/wire"
+    },
+    {
+      "from": "extensions/net/src/config/net.schema.ts",
+      "to": "extensions/net/src/shared/net.schema.ts"
+    },
+    {
+      "from": "extensions/net/src/config/net.schema.test.ts",
+      "to": "extensions/net/src/shared/net.schema.test.ts"
+    },
+    {
+      "from": "extensions/net/src/client",
+      "to": "extensions/net/src/features/client/room"
+    },
+    {
+      "from": "extensions/net/src/session/authority-clock.ts",
+      "to": "extensions/net/src/features/client/interpolation/authority-clock.ts"
+    },
+    {
+      "from": "extensions/net/src/session/authority-clock.test.ts",
+      "to": "extensions/net/src/features/client/interpolation/authority-clock.test.ts"
+    },
+    {
+      "from": "extensions/net/src/session/render-clock.ts",
+      "to": "extensions/net/src/features/client/interpolation/render-clock.ts"
+    },
+    {
+      "from": "extensions/net/src/session/render-clock.test.ts",
+      "to": "extensions/net/src/features/client/interpolation/render-clock.test.ts"
+    },
+    {
+      "from": "extensions/net/src/session/snapshot-buffer.ts",
+      "to": "extensions/net/src/features/client/interpolation/snapshot-buffer.ts"
+    },
+    {
+      "from": "extensions/net/src/session/snapshot-buffer.test.ts",
+      "to": "extensions/net/src/features/client/interpolation/snapshot-buffer.test.ts"
+    },
+    {
+      "from": "extensions/net/src/session",
+      "to": "extensions/net/src/features/client/session"
+    },
+    {
+      "from": "extensions/net/src/test-support",
+      "to": "extensions/net/src/testing"
+    },
+    {
+      "from": "extensions/net/src/testing/fake-colyseus.ts",
+      "to": "extensions/net/src/testing/fake-colyseus.ts"
+    },
+    {
+      "from": "extensions/net/src/testing/link.ts",
+      "to": "extensions/net/src/testing/link.ts"
+    },
+    {
+      "from": "extensions/net/src/testing/link.test.ts",
+      "to": "extensions/net/src/testing/link.test.ts"
+    },
+    {
+      "from": "extensions/net/src/testing/link-client.ts",
+      "to": "extensions/net/src/testing/link-client.ts"
+    },
+    {
+      "from": "extensions/net/src/testing/link-client.test.ts",
+      "to": "extensions/net/src/testing/link-client.test.ts"
     }
   ],
   "entries": {}

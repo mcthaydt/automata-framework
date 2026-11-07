@@ -13,9 +13,9 @@
     "#src/*": "./src/*"
   },
   "exports": {
-    ".": "./src/index.ts",
-    "./sim": "./src/sim/index.ts",
-    "./testing": "./src/testing/index.ts"
+    ".": "./src/entries/index.ts",
+    "./sim": "./src/entries/sim.ts",
+    "./testing": "./src/entries/testing.ts"
   },
   "automata": {
     "simEntries": [
@@ -23,7 +23,8 @@
     ]
   },
   "scripts": {
-    "test:unit": "vitest run",
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
     "typecheck": "tsc -p ."
   },
   "dependencies": {
@@ -32,10 +33,15 @@
     "zod": "4.6.6"
   },
   "peerDependencies": {
+    "@automata/framework": "workspace:^",
     "@automata/sim": "workspace:^"
   },
   "devDependencies": {
+    "@automata/framework": "workspace:*",
     "@automata/sim": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
+    "@types/node": "24.19.1",
+    "vite": "8.3.3",
     "vitest": "5.0.3"
   }
 }

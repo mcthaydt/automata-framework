@@ -7,9 +7,9 @@
  * outcome for that call, or by default with a fresh room. Nothing here waits on a timer.
  */
 
-import type { NetSdkClient, NetSdkRoom } from '../client/sdk'
-import { NET_BYTES_CHANNEL, NET_CHANNEL } from '../wire/room'
-import type { ServerMessage } from '../wire/server-message.schema'
+import type { NetSdkClient, NetSdkRoom } from '../features/client/room/sdk'
+import { NET_BYTES_CHANNEL, NET_CHANNEL } from '../shared/wire/room'
+import type { ServerMessage } from '../shared/wire/server-message.schema'
 
 type Listener = (event: { readonly data: unknown }) => void
 

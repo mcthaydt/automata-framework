@@ -12,12 +12,12 @@
  */
 
 import type { Effect } from 'effect'
-import { ColyseusTransport } from '../client/colyseus-transport'
-import { type ClientNetworkPort, createClientPort } from '../client/net-port'
-import { createRequestIds } from '../client/request-ids'
-import type { NetSdkRoom } from '../client/sdk'
-import { NET_BYTES_CHANNEL, NET_CHANNEL } from '../wire/room'
-import type { ServerMessage } from '../wire/server-message.schema'
+import { ColyseusTransport } from '../features/client/room/colyseus-transport'
+import { type ClientNetworkPort, createClientPort } from '../features/client/room/net-port'
+import { createRequestIds } from '../features/client/room/request-ids'
+import type { NetSdkRoom } from '../features/client/room/sdk'
+import { NET_BYTES_CHANNEL, NET_CHANNEL } from '../shared/wire/room'
+import type { ServerMessage } from '../shared/wire/server-message.schema'
 import type { Transport, WireData } from './link'
 
 /** Runs a link's send on the test's clock. */
