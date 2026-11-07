@@ -32,6 +32,19 @@ export interface DependencyReport extends NewDependency {
 
 const NPMJS = 'https://registry.npmjs.org'
 
+/**
+ * The `@scope:registry=url` lines of a root .npmrc. `undefined` means the repository has no .npmrc, and then every
+ * scope installs from npmjs.org.
+ */
+export function scopeRegistries(npmrc: string | undefined): Record<string, string> {
+  const scopes: Record<string, string> = {}
+  for (const line of (npmrc ?? '').split('\n')) {
+    const match = /^(@[^:]+):registry=(\S+)$/.exec(line.trim())
+    if (match?.[1] !== undefined && match[2] !== undefined) scopes[match[1]] = match[2].replace(/\/$/, '')
+  }
+  return scopes
+}
+
 /** The registry a dependency installs from, or undefined for a `workspace:` or `file:` version. */
 export function registryFor(
   name: string,
