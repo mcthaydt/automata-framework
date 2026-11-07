@@ -395,17 +395,18 @@ the site's 3D parts.
 | Stage | Status | Record |
 |---|---|---|
 | 1. Audit | Done, 2026-11-07 (PR stacked on #441): 10 structure (S1 to S10), 3 contracts (K1 to K3), 6 editor shipping (E1 to E6), 5 layout and look (V1 to V5), 6 tests (T1 to T6), 7 game (G1 to G7), 2 CI (Q1, Q2), 2 site (W1, W2), 10 copy (C1 to C10); and, the same day on the Owner's word, FigureBuilder and EnvironmentBuilder measured against AF (B1 to B10, section 9); 10 decisions for the Owner (D1 to D10); the Owner took D10 the same day: C on the card ("Their pixel-art look too"), then "Take everything basically", then "We use pixi3D, and 2D should also use the duel palette". 3,836 unit and DOM tests pass; the 3D editor's Chromium layout and canvas run 187 pass and 8 fail (the known 8); base-3d's journeys 8 of 8 and the 3D examples' 9 of 9 in Chromium. Headline: the 3D editor cannot open base-3d, and the Studio is unreachable | [2026-11-07-3d-slice-audit.md](2026-11-07-3d-slice-audit.md) |
-| 2. Plan and spec | Done, 2026-11-07: D1 to D9 on the audit's recommendations, D10 as the Owner took it; four parts in the Owner's order (the 3D core, the rest of AF that uses 3D, the editors, the site and the release), 20 phases, 52 tasks (the builders' three views moved to the editors on the Owner's word, 11:04); one `@automata/3d` package, DUEL AF-wide, one timeline, one level format (`af-sector/2`), the look on Pixi 3D, the 8 tests fixed in phase 1 | [spec](2026-11-07-3d-slice-spec.md), [plan](2026-11-07-3d-slice-plan.md) |
+| 2. Plan and spec | Done, 2026-11-07, rewritten the same day with the superpowers plugin (`brainstorming`, `writing-plans`) in place of the hand-written first version (#443), with the paused plan audit's 21 findings folded in: D1 to D9 on the audit's recommendations, D10 as the Owner took it; four parts in the Owner's order, 20 phases, 53 tasks, each with files, interfaces and its failing tests; one `@automata/3d` package in `--features` layout (shared timeline, level and time of day), DUEL AF-wide, one timeline, one level format (`af-sector/2`, field by field), the look on Pixi 3D, `automata textures` in `-tools`, the 8 tests fixed in phase 1 | [spec](2026-11-07-3d-slice-spec.md), [plan](2026-11-07-3d-slice-plan.md) |
 | 3. Plan audit | Next (Opus, medium) | |
 | 4. Build | Not started | |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-**Where to resume (2026-11-07, stage 2 done):** the plan audit (stage 3, Opus medium) reads the
+**Where to resume (2026-11-07, stage 2 redone with the plugin):** the plan audit (stage 3, Opus medium, with the superpowers plugin) reads the
 [spec](2026-11-07-3d-slice-spec.md) and the [plan](2026-11-07-3d-slice-plan.md) against the audit, the checkout and
-both builders at FigureBuilder `025ffb4` and EnvironmentBuilder `6d82a52`, fixes what it finds in both, and records
-itself here. Then the build (Sonnet, high) starts at task 1.1, natively in the session with no subagents, handing off
-after 90 minutes.
+both builders at FigureBuilder `025ffb4` and EnvironmentBuilder `6d82a52`. The paused audit's 21 findings are folded in
+(the plan's "Audit notes folded in" says where each went); its unchecked items remain: the editor-3d move map (14.1),
+the site paths (19.1), the copy table and the 2D editor counts. Then the build (Sonnet, high) starts at task 1.1 with
+`superpowers:executing-plans`, natively in the session with no subagents, handing off after 90 minutes.
 
 Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3D in the website's look (the 2D slice redesigns every editor that is not 3D, the Tuner and the suite's 2D page included: tasks 12.6 and 12.7) (the Owner,
 2026-11-06: "completely redesign the editors for ux, copy, and ui"; the 2D slice redesigns the kit and the 2D editor),
