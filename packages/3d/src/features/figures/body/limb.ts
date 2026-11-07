@@ -73,6 +73,43 @@ function curve(xs: number[], ys: number[]): (x: number) => number {
   }
 }
 
+/** The four monotone curves of a limb's sorted keys: half-widths across and front to back, and the centre's offsets. */
+function curves(keys: readonly Ring[]): Record<'RX' | 'RZ' | 'DX' | 'DZ', (y: number) => number> {
+  const ys = keys.map((r) => r.y)
+  return {
+    RX: curve(
+      ys,
+      keys.map((r) => r.rx),
+    ),
+    RZ: curve(
+      ys,
+      keys.map((r) => r.rz),
+    ),
+    DX: curve(
+      ys,
+      keys.map((r) => r.dx ?? 0),
+    ),
+    DZ: curve(
+      ys,
+      keys.map((r) => r.dz ?? 0),
+    ),
+  }
+}
+const curveCache = new WeakMap<Limb, { rings: Ring[]; n: number; c: ReturnType<typeof curves> }>()
+/**
+ * A limb's profile at height `y` on its axis: the very curves `limb()` sweeps, clamped to the keys' range. The curves
+ * are built once per limb (its rings are never edited in place), so a query per vertex stays cheap.
+ */
+export function profileAt(o: Limb, y: number): Ring {
+  let hit = curveCache.get(o)
+  if (!hit || hit.rings !== o.rings || hit.n !== o.rings.length) {
+    hit = { rings: o.rings, n: o.rings.length, c: curves([...o.rings].sort((a, b) => a.y - b.y)) }
+    curveCache.set(o, hit)
+  }
+  const { RX, RZ, DX, DZ } = hit.c
+  return { y, rx: RX(y), rz: RZ(y), dx: DX(y), dz: DZ(y) }
+}
+
 /** The limb's mesh: one parameter s down its whole length (the top cap, the body, the bottom cap). */
 export function limb(o: Limb): Mesh {
   const keys = [...o.rings].sort((a, b) => a.y - b.y)
@@ -80,22 +117,7 @@ export function limb(o: Limb): Mesh {
   const e = o.e ?? 1
   const seg = o.seg ?? 16
   const step = o.step ?? 0.012
-  const RX = curve(
-    ys,
-    keys.map((r) => r.rx),
-  )
-  const RZ = curve(
-    ys,
-    keys.map((r) => r.rz),
-  )
-  const DX = curve(
-    ys,
-    keys.map((r) => r.dx ?? 0),
-  )
-  const DZ = curve(
-    ys,
-    keys.map((r) => r.dz ?? 0),
-  )
+  const { RX, RZ, DX, DZ } = curves(keys)
   const yLo = at(ys, 0)
   const yHi = at(ys, ys.length - 1)
   const [capHi, capLo] = o.caps ?? [0, 0]

@@ -13,7 +13,7 @@ import type { FigureDef, FigureLibrary, Gait, ItemDef, Swatch } from '@automata/
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
 
 // Content a game compiles from content/figure-swatches/*.toml and content/figure-items/*.toml, written as compiled.
-// Swatch colours are DUEL ramps and steps. The item is FigureBuilder's hand lamp (src/render/figure/library at a1f7246).
+// Swatch colours are DUEL ramps and steps. The item is FigureBuilder's hand lamp (src/features/outfit/library at 025ffb4).
 const duel = (ramp: Swatch['ramp'], step: number, more = {}): Swatch => ({ ramp, step, ...more })
 const cloak = { 'wick-cloak': duel('ocean', 3), 'wick-cloak-shade': duel('ocean', 1) }
 const trim = { 'wick-trim': duel('flame', 5, { gloss: 0.9 }), 'wick-boot': duel('brick', 0) }
@@ -42,13 +42,14 @@ const handLamp: ItemDef = {
 const swatches = { ...cloak, ...trim, ...shade, ...face, ...brows, ...lamp }
 const library: FigureLibrary = { swatches, hair: {}, headwear: {}, items: { 'hand-lamp': handLamp } }
 
-// FigureBuilder's `bounce` gait (src/render/figure/library/gaits.json at a1f7246), grouped by what each part moves.
+// FigureBuilder's `bounce` gait (src/features/motion/library/gaits.json at 025ffb4), grouped by what each part moves.
 const stride = { cycle: 0.46, speed: 3, stride: 0.6, duty: 0.54, lift: 0.065, bob: 0.05, crouch: 0.01 }
 const hips = { sway: 0.03, hipYaw: 0.09, hipRoll: 0.08, chestCounter: 0.5, lean: 0.03 }
-const feet = { heel: 0.24, push: 0.35 }
+// The feet's heel and push walking; standOut and standElbow (how the arms hang standing) ride along.
+const feet = { heel: 0.24, push: 0.35, standOut: 0, standElbow: 0.36 }
 const arms = { armSwing: 0.5, armOut: 0.08, elbow: 0.45, elbowSwing: 0.45, armLag: 0.04, shoulderRoll: 0.75 }
 const head = { headLevel: 0, headStabilize: 0.8, drag: 0, track: 0.3, spring: 0.6, chin: 0.04 }
-const stand = { stance: 0.045, stanceLead: 0.07, hang: 0.04, idleElbow: 0.3, standOut: 0.04, reach: 1.4 }
+const stand = { stance: 0.045, stanceLead: 0.07, hang: 0.04, idleElbow: 0.3, reach: 1.4 }
 const clock = { poseRate: 12, walkPoses: 8, idlePoses: 8, turnRate: 0.785, twitch: 0, twitchEvery: 3 }
 const breath = { breath: 0.03, breathPeriod: 3.4, shift: 0.012, shiftPeriod: 5.5, headLead: 0.785 }
 const bounce: Gait = { ...stride, ...hips, ...feet, ...arms, ...head, ...stand, ...clock, ...breath }

@@ -63,7 +63,10 @@ const gaitShape = {
   stanceLead: n,
   hang: n,
   idleElbow: n,
+  /** Standing, how far the arms hang out from the shoulder (rad), whole; without it the walk's `armOut`. */
   standOut: n.optional(),
+  /** Standing, the near elbow's bend (rad), whole, the far arm's three quarters of it; without it `elbow` and `idleElbow`. */
+  standElbow: n.optional(),
   shoulderRoll: n.optional(),
   heel: n.optional(),
   push: n.optional(),
@@ -126,6 +129,7 @@ export interface Gait {
   readonly hang: number
   readonly idleElbow: number
   readonly standOut?: number | undefined
+  readonly standElbow?: number | undefined
   readonly shoulderRoll?: number | undefined
   readonly heel?: number | undefined
   readonly push?: number | undefined

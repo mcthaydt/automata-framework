@@ -66,7 +66,7 @@ export function legs(
     // The weight leg runs straight from its hip to its foot, drawn in under the body: the hips sink as far as that needs.
     const hipW = position(at(world, J[`thigh.${stand.weight}`]))
     const foot = apply(rootM, [w * g.hips * (1 - (stand.under ?? 0.25)), g.ankle, 0])
-    const L = (s.thigh + s.shin) * 0.996
+    const L = (s.thigh + s.shin) * 0.9995
     const dx = hipW[0] - foot[0]
     const dz = hipW[2] - foot[2]
     pelvis[1] -= hipW[1] - foot[1] - Math.sqrt(Math.max(0, L * L - dx * dx - dz * dz))

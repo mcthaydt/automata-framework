@@ -37,6 +37,7 @@ describe('gene sliders (FigureBuilder genes.ts at a1f7246)', () => {
       headPitch: 0.044000000000000004,
       faceAhead: 0.25,
       hunch: 0,
+      sideBend: 0,
     })
     const keeper = measure(KEEPER_SLIDERS).genes
     expect(keeper.arms).toBe(0.74493)

@@ -70,6 +70,13 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 
 | Source file | AF file | How |
 | --- | --- | --- |
+| `src/features/body/genes.ts` | `packages/3d/src/features/figures/body/genes.ts` | rewritten: fat on the limbs, neck and jaw, `bust`, `seat`, the eyes' size, spacing and tilt, and the face and body asymmetry; the sliders' names and numbers are the builder's |
+| `src/features/body/rig.ts` | `packages/3d/src/features/figures/body/rig.ts` | rewritten: the `sideBend` gene only; the rest was ported at `a1f7246` |
+| `src/features/body/head.ts` | `packages/3d/src/features/figures/outfit/garments/head.ts` | rewritten: the jaw's underside widens with fat and the jaw with asymmetry (`HeadForm.width` takes a side) |
+| `src/features/outfit/fit.ts` | `packages/3d/src/features/figures/body/profiles.ts` | rewritten: `profiles` and `ringAt` as one query of the body's rings, in `body/` where the layers allow it; `girth` and the cuffs and collar wait for task 6.4 |
+| `src/features/motion/motion.ts` | `packages/3d/src/features/figures/motion/base.ts` | rewritten: the natural stand (`relaxed`, the neck's slide, the chest's lift), `standElbow`, `standOut` and the side bend; the actions stay clips, and `seated` waits for the seats |
+| `src/features/motion/library/gaits.json` | `packages/3d/tests/fixtures/content/figure-gaits/strut.toml` | rewritten: `standOut` is the whole value and `standElbow` is new, so the fixture gaits (strut, loose, bounce, still, with games/base-3d's bounce) carry both |
+| `tests/features/body/fat.test.ts` | `packages/3d/tests/unit/figures/body/diversity.test.ts` | rewritten: the fat classes, rings, jaw, bust and seat, the new genes' defaults and the face asymmetry, on the base pair |
 
 ## The environment source
 

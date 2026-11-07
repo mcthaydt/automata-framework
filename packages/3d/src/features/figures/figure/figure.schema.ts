@@ -57,6 +57,8 @@ export interface FigureDef {
  * past either end, for figures meant to look wrong.
  */
 const beyond = z.number().min(-1).max(2)
+/** The signed sliders (the sign picks the side) run −1 to 1. */
+const signed = z.number().min(-1).max(1)
 const headShape: z.ZodType<Partial<HeadShape>> = partialOf<HeadShape>(
   z.strictObject({
     width: beyond.optional(),
@@ -73,6 +75,10 @@ const headShape: z.ZodType<Partial<HeadShape>> = partialOf<HeadShape>(
     crease: beyond.optional(),
     hood: beyond.optional(),
     liner: beyond.optional(),
+    eyeSize: beyond.optional(),
+    eyeSpacing: beyond.optional(),
+    eyeTilt: beyond.optional(),
+    asymmetry: signed.optional(),
   }),
 )
 const sliders: z.ZodType<Partial<Sliders>> = partialOf<Sliders>(
@@ -96,6 +102,9 @@ const sliders: z.ZodType<Partial<Sliders>> = partialOf<Sliders>(
     chunk: beyond.optional(),
     faceForward: beyond.optional(),
     hunch: beyond.optional(),
+    bodyAsymmetry: signed.optional(),
+    bust: beyond.optional(),
+    seat: beyond.optional(),
     face: headShape.optional(),
   }),
 )
@@ -121,6 +130,7 @@ const genes: z.ZodType<Partial<Genes>> = partialOf<Genes>(
     headPitch: n,
     faceAhead: n,
     hunch: n,
+    sideBend: n,
   }),
 )
 const hairDynamics: z.ZodType<Partial<HairDynamics>> = partialOf<HairDynamics>(

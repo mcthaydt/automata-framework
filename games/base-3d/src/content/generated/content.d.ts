@@ -45,6 +45,7 @@ declare module 'virtual:automata/content' {
       readonly spring?: number
       readonly stance?: number
       readonly stanceLead?: number
+      readonly standElbow?: number
       readonly standOut?: number
       readonly stride?: number
       readonly sway?: number
@@ -73,6 +74,7 @@ declare module 'virtual:automata/content' {
       readonly neck?: number
       readonly posture?: number
       readonly shoulders?: number
+      readonly sideBend?: number
     }
     readonly hair?: {
       readonly bounce?: number
@@ -90,8 +92,11 @@ declare module 'virtual:automata/content' {
     readonly sliders: {
       readonly age?: number
       readonly arms?: number
+      readonly bodyAsymmetry?: number
+      readonly bust?: number
       readonly chunk?: number
       readonly face?: {
+        readonly asymmetry?: number
         readonly bridge?: number
         readonly browArch?: number
         readonly browHeight?: number
@@ -100,6 +105,9 @@ declare module 'virtual:automata/content' {
         readonly cheekWidth?: number
         readonly chin?: number
         readonly crease?: number
+        readonly eyeSize?: number
+        readonly eyeSpacing?: number
+        readonly eyeTilt?: number
         readonly hood?: number
         readonly jaw?: number
         readonly liner?: number
@@ -122,6 +130,7 @@ declare module 'virtual:automata/content' {
       readonly neck?: number
       readonly neckLength?: number
       readonly posture?: number
+      readonly seat?: number
       readonly shoulders?: number
     }
     readonly stand?: FigureStandId
@@ -178,6 +187,7 @@ declare module 'virtual:automata/content' {
     readonly spring?: number
     readonly stance: number
     readonly stanceLead: number
+    readonly standElbow?: number
     readonly standOut?: number
     readonly stride: number
     readonly sway: number
