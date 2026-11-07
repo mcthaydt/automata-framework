@@ -5,7 +5,7 @@ import packageJson from './package.json' with { type: 'json' }
 export default defineShipConfig({
   game: {
     id: 'base-3d',
-    title: 'AF Base 3D',
+    title: 'Ember Hall',
     // From package.json, so the manifest can never disagree with the package (FloorFifty ruken-pack.ts).
     version: packageJson.version,
     entry: 'index.html',

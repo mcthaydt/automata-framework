@@ -14,6 +14,7 @@ import { GoalReached } from '../../shared/ember.event.ts'
 import { followLocale } from './copy.svelte.ts'
 import EndScreen from './EndScreen.svelte'
 import { hudInPlay } from './hud.ts'
+import MenuSettings from './MenuSettings.svelte'
 import SplashScreen from './SplashScreen.svelte'
 
 /** How long the splash shows before moving on by itself. */
@@ -82,9 +83,16 @@ export function base3dScreens(game: ScreensGame): ScreenDef[] {
     ...title,
     enter: (context) => {
       if (context.from === 'paused') context.services.hosting.round.end('quit')
+      show(context.screen, MenuSettings, context.layer, {
+        onSettings: () => void context.services.flow.dispatch('settings'),
+      })
       return title.enter(context)
     },
   }
+
+  // Settings reached from the menu is the framework's Settings under its own id, so its Back goes to the menu and not to
+  // a pause (the flow says which: BASE3D_FLOW).
+  const menuSettings: ScreenDef = { ...byId(defaults, 'settings'), id: 'menu-settings' }
 
   const room: ScreenDef = {
     ...play,
@@ -117,5 +125,5 @@ export function base3dScreens(game: ScreensGame): ScreenDef[] {
   }
 
   const replaced = [title, play]
-  return [splash, menu, room, ...defaults.filter((screen) => !replaced.includes(screen)), end]
+  return [splash, menu, menuSettings, room, ...defaults.filter((screen) => !replaced.includes(screen)), end]
 }

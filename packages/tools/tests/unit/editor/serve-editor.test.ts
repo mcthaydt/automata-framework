@@ -48,6 +48,29 @@ describe('serveEditor', () => {
     })
   })
 
+  it('names the game by the title its package.json gives, when it gives one', async () => {
+    const game = join(root, 'base-3d')
+    await mkdir(game)
+    await writeFile(
+      join(game, 'package.json'),
+      '{"name":"@af-games/base-3d","automata":{"title":"Ember Hall"}}',
+    )
+    const { url } = await start({ root: game })
+    expect(await (await api(url, '/api/ping')).json()).toMatchObject({ game: 'Ember Hall' })
+  })
+
+  it('falls back to the folder when package.json has no title or is not JSON', async () => {
+    const game = join(root, 'my-cool-game')
+    await mkdir(game)
+    await writeFile(join(game, 'package.json'), '{"name":"x"}')
+    const { url } = await start({ root: game })
+    expect(await (await api(url, '/api/ping')).json()).toMatchObject({ game: 'My cool game' })
+    await running?.close()
+    await writeFile(join(game, 'package.json'), 'not json')
+    const again = await start({ root: game })
+    expect(await (await api(again.url, '/api/ping')).json()).toMatchObject({ game: 'My cool game' })
+  })
+
   it("hands the game's dev page to the editor in the ping, for the Tuner's game pane", async () => {
     const { url } = await start({ gameUrl: 'http://localhost:5173/' })
     expect(await (await api(url, '/api/ping')).json()).toMatchObject({ gameUrl: 'http://localhost:5173/' })

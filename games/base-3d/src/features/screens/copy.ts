@@ -10,6 +10,8 @@ export interface Base3dCopy {
     /** The ember count's accessible name. */
     readonly embers: (count: number, total: number) => string
   }
+  /** The menu's own button (the save's words are the framework's). */
+  readonly menu: { readonly settings: string }
   /** The splash and the end (G3-t). */
   readonly splash: { readonly mark: string; readonly hint: string }
   readonly end: { readonly title: string; readonly menu: string }
@@ -25,6 +27,7 @@ export function copyFrom(say: Say): Base3dCopy {
   return {
     title: say('title'),
     hud: { embers: (count, total) => say('hud_embers', { count, total }) },
+    menu: { settings: say('menu_settings') },
     splash: { mark: say('splash_mark'), hint: say('splash_hint') },
     end: { title: say('end_title'), menu: say('end_menu') },
     keys: { roll: say('key_roll') },

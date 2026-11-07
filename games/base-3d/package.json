@@ -2,6 +2,9 @@
   "name": "@af-games/base-3d",
   "version": "0.1.0",
   "private": true,
+  "automata": {
+    "title": "Ember Hall"
+  },
   "type": "module",
   "imports": {
     "#src/*": "./src/*"

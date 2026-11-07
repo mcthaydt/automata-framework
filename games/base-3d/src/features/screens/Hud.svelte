@@ -1,5 +1,5 @@
 <!--
-  base-3d's HUD, in the play screen's `hud.overlay` slot: the ember count at the top inline-start, as Emberwick's. It reads
+  base-3d's HUD, in the play screen's `hud.overlay` slot: "Embers 0 of 6" at the top inline-start, in words so a player knows what the number counts. It reads
   the running sim every animation frame (`hudOf`) and takes no pointer.
 -->
 <script lang="ts">
@@ -22,13 +22,8 @@ onMount(() => {
 
 {#if state !== undefined}
   <div class="b3-hud" data-testid="hud">
-    <div
-      class="b3-hud__embers"
-      data-testid="hud-embers"
-      role="img"
-      aria-label={liveCopy.current.hud.embers(state.embers, state.total)}
-    >
-      <span class="b3-hud__ember" aria-hidden="true"></span>{state.embers}
+    <div class="b3-hud__embers" data-testid="hud-embers">
+      <span class="b3-hud__ember" aria-hidden="true"></span>{liveCopy.current.hud.embers(state.embers, state.total)}
     </div>
   </div>
 {/if}

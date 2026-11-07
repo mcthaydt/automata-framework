@@ -190,6 +190,25 @@ describe("base-3d's flow", () => {
     expect(document.activeElement).toBe(byTestId('save-slots-new'))
   })
 
+  it('the menu has Settings beside the save, and Back from it returns to the menu, not to a pause', async () => {
+    await toMenu()
+    expect(button('Settings')).toBeDefined()
+    button('Settings')?.click()
+    await until(() => screen() === 'menu-settings', 'Settings')
+    button('Back')?.click()
+    await until(() => screen() === 'title', 'the menu again')
+    // Pause still opens its own Settings, which goes back to pause.
+    await until(() => byTestId('save-slots-new') !== null, 'New game')
+    byTestId('save-slots-new')?.click()
+    await until(() => screen() === 'play', 'the room')
+    key('keydown', 'Escape')
+    await until(() => screen() === 'paused', 'pause')
+    button('Settings')?.click()
+    await until(() => screen() === 'settings', 'Settings from pause')
+    button('Back')?.click()
+    await until(() => screen() === 'paused', 'pause again')
+  })
+
   it('moves on from the splash by itself', async () => {
     await boot()
     await new Promise((resolve) => setTimeout(resolve, SPLASH_MS + 100))
@@ -424,13 +443,15 @@ describe("base-3d's flow", () => {
       await toRoom()
       await until(() => hud() !== null, 'the HUD')
       expect(root.querySelector('[data-testid="play-screen"]')?.contains(hud())).toBe(true)
-      expect(root.querySelector('[data-testid="hud-embers"]')?.textContent?.trim()).toBe('0')
-      expect(root.querySelector('[data-testid="hud-embers"]')?.getAttribute('aria-label')).toBe(
-        'Embers 0 of 6',
-      )
+      // The words are on the screen, not only in a screen reader's label (G6): what it counts, and out of how many.
+      expect(root.querySelector('[data-testid="hud-embers"]')?.textContent?.trim()).toBe('Embers 0 of 6')
+      expect(button('Pause')).toBeDefined()
       running().resource(Progress).taken = [0, 1]
       await nextFrame()
-      expect(root.querySelector('[data-testid="hud-embers"]')?.textContent?.trim()).toBe('2')
+      // The test sets the taken list without removing the embers, so only the count is pinned here.
+      expect(root.querySelector('[data-testid="hud-embers"]')?.textContent?.trim()).toMatch(
+        /^Embers 2 of \d+$/,
+      )
       key('keydown', 'Escape')
       await until(() => screen() === 'paused', 'paused')
       expect(hud()).toBeNull()

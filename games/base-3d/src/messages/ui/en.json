@@ -2,6 +2,7 @@
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "title": "Ember Hall",
   "hud_embers": "Embers {count} of {total}",
+  "menu_settings": "Settings",
   "splash_mark": "AutomataFramework",
   "splash_hint": "Press any key or tap",
   "end_title": "The ember is yours",

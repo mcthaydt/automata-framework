@@ -1,16 +1,17 @@
 // base-3d's flow, as compiled content the runtime reads and checks the hash of at boot: splash → menu (the
-// default title) → room (the default play) ⇄ paused ⇄ settings, and the end on the goal ember.
+// default title) ⇄ its own Settings, → room (the default play) ⇄ paused ⇄ settings, and the end on the goal ember.
 import type { CompiledContentData } from '@automata/framework'
 import { canonicalJson, hex64, utf8, xxhash64 } from '@automata/sim/hash'
 
 const FLOW_DATA: CompiledContentData = {
   flow: {
     entry: 'splash',
-    screens: ['end', 'paused', 'play', 'settings', 'splash', 'title'],
+    screens: ['end', 'menu-settings', 'paused', 'play', 'settings', 'splash', 'title'],
     terminal: [],
     // Sorted by from, event, then to, as the content compiler writes them.
     transitions: [
       { from: 'end', event: 'quit', to: 'title', transition: 'cut' },
+      { from: 'menu-settings', event: 'back', to: 'title', transition: 'cut' },
       { from: 'paused', event: 'quit', to: 'title', transition: 'cut' },
       { from: 'paused', event: 'resume', to: 'play', transition: 'cut' },
       { from: 'paused', event: 'settings', to: 'settings', transition: 'cut' },
@@ -19,6 +20,7 @@ const FLOW_DATA: CompiledContentData = {
       { from: 'settings', event: 'back', to: 'paused', transition: 'cut' },
       { from: 'splash', event: 'continue', to: 'title', transition: 'cut' },
       { from: 'title', event: 'play', to: 'play', transition: 'cut' },
+      { from: 'title', event: 'settings', to: 'menu-settings', transition: 'cut' },
     ],
   },
   game: {

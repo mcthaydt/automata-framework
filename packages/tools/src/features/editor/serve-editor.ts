@@ -5,7 +5,7 @@
 // path is resolved through real paths, so a symlink cannot lead out of the checkout. A guarded write is the mtime check
 // the kit's stores have; the check and the write are two steps, as the kit says of its own browser stores.
 import { timingSafeEqual } from 'node:crypto'
-import { createReadStream } from 'node:fs'
+import { createReadStream, readFileSync } from 'node:fs'
 import { readFile, realpath, rm, stat } from 'node:fs/promises'
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
 import type { AddressInfo } from 'node:net'
@@ -118,12 +118,27 @@ async function fileRoute(
 }
 
 /**
- * What Home calls the game: its folder's name in words ("emberwick" is "Emberwick", "my-cool-game" is "My cool
- * game"). The folder is the one name every game has whatever its targets; a title lives in a target's own config.
+ * What Home calls the game: the `automata.title` its package.json gives ("Ember Hall"), else its folder's name in
+ * words ("emberwick" is "Emberwick", "my-cool-game" is "My cool game"). The folder is the one name every game has
+ * whatever its targets; a title lives in a target's own config.
  */
 export function gameName(root: string): string {
+  const title = packageTitle(root)
+  if (title !== undefined) return title
   const words = basename(root).replace(/[-_]+/g, ' ').trim()
   return words.charAt(0).toUpperCase() + words.slice(1)
+}
+
+/** The `automata.title` of the game's package.json; undefined when the file, the field or valid JSON is missing. */
+function packageTitle(root: string): string | undefined {
+  try {
+    const title = (
+      JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as { automata?: { title?: unknown } }
+    ).automata?.title
+    return typeof title === 'string' && title.trim() !== '' ? title.trim() : undefined
+  } catch {
+    return undefined
+  }
 }
 
 /** What the ping tells the editor: the game's name and, when there is one, its dev page. */

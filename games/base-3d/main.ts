@@ -1,4 +1,4 @@
-// games/base-3d: AF's free 3D game, Emberwick in 3D (the rescope spec), as one `defineGame` call (DX.3) that the page
+// games/base-3d: AF's free 3D game, Ember Hall (the rescope spec's "Emberwick in 3D"), as one `defineGame` call (DX.3) that the page
 // starts (GL spec §4.6). Wick walks one room under the angled free-turn camera, takes embers, and rolls across the
 // channels that walking cannot cross to reach the goal ember. The flow, saves and settings follow Emberwick's.
 //
@@ -8,7 +8,7 @@
 // @automata/3d; @automata/content (its Vite plugin) and @automata/tools.
 import '@automata/3d/no-eval'
 import { content } from 'virtual:automata/content'
-import { createPixi3dRenderer, DEFAULT_LOOK, figure, render3dExtension, targetSize } from '@automata/3d'
+import { createPixi3dRenderer, DEFAULT_LOOK, figure, render3dExtension } from '@automata/3d'
 import type { FigureDef } from '@automata/3d/figures'
 import { CameraTurn, STICK_MAX } from '@automata/3d/sim'
 import type { QualityTier } from '@automata/framework'
@@ -17,6 +17,7 @@ import { base3dSim } from './src/app/base-sim.ts'
 import { emberView } from './src/features/embers/ember-view.ts'
 import { Act, Move } from './src/features/hero/move.command.ts'
 import { ROOM, roomWorld } from './src/features/room/room.ts'
+import { fieldOfWindow } from './src/features/scene/field.ts'
 import {
   buildScene,
   FOG,
@@ -98,9 +99,10 @@ const now = (): number => simTick / TICK_HZ
 const TITLE = BASE3D_COPY.en.title
 /**
  * The pixel-art look's field (ADR 0007): the short side is the look's 180 pixels, drawn at resolution 1 and upscaled in
- * whole pixels. The page is still the 844 × 390 a phone held sideways shows; the screens are DOM over the field.
+ * whole pixels, shaped like the screen the game boots on (a phone held sideways is 844 × 390) so a tablet's room fills
+ * its height. The screens are DOM over the field.
  */
-const FIELD = targetSize({ width: 844, height: 390 }, DEFAULT_LOOK.pixel.short)
+const FIELD = fieldOfWindow()
 /** The camera's heading plugin and its `camera-view` content kind, and the HUD on play. */
 const EXTENSIONS = [render3dExtension, hudExtension]
 /** The stage, once the renderer has made it: the screens give it the player's graphics quality (M4.4). */
