@@ -118,6 +118,43 @@ describe('occluders.update', () => {
   })
 })
 
+describe('occluders.face', () => {
+  const SPAN = { a: { x: 4, z: 5 }, b: { x: 0, z: 5 }, height: 2.5 } as const
+
+  it('cuts a mesh that is a wall’s face as it cuts a wall, and shows no trim', () => {
+    // The face on z = 5 runs −x, so the room is on its left, toward −z, where the player stands: an eye at z 9 is behind
+    // the wall, one at z −4 is in the room.
+    const occluders = createOccluders(new Container3D())
+    const face = new Mesh3D({ geometry: new CubeGeometry(), material: new PhongMaterial() })
+    occluders.face(face, SPAN)
+    const look: Vec3 = { x: 2, y: 1, z: 2 }
+    const frame = { ...frameAt(0, 0, true), eye: { x: 2, y: 3, z: 9 }, look }
+    occluders.update(frame)
+    expect(face.visible).toBe(false)
+    occluders.update({ ...frame, eye: { x: 2, y: 3, z: -4 } })
+    expect(face.visible).toBe(true)
+  })
+
+  it('leaves a face its author said `never` for, whatever the camera does', () => {
+    const occluders = createOccluders(new Container3D())
+    const face = new Mesh3D({ geometry: new CubeGeometry(), material: new PhongMaterial() })
+    occluders.face(face, SPAN, 'never')
+    occluders.update({ ...frameAt(0, 0, true), eye: { x: 2, y: 3, z: 9 } })
+    expect(face.visible).toBe(true)
+  })
+
+  it('refuses a face that shares its material with a prop that fades, as a prop does', () => {
+    const material = new PhongMaterial()
+    const occluders = createOccluders(new Container3D())
+    occluders.prop(new Mesh3D({ geometry: new CubeGeometry(), material }), {
+      bounds: { min: [1.8, 0, 0.8], max: [2.2, 2.4, 1.2] },
+    })
+    expect(() => occluders.face(new Mesh3D({ geometry: new CubeGeometry(), material }), SPAN)).toThrow(
+      /occluders.face: this mesh shares its material/,
+    )
+  })
+})
+
 describe('review of #249', () => {
   const PILLAR = { min: [1.8, 0, 0.8], max: [2.2, 2.4, 1.2] } as const
   const row: RenderRow = { sid: 1, components: { crate: { x: 0, y: 0, z: 0 } } }

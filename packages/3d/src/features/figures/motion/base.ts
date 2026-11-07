@@ -62,7 +62,7 @@ export const relaxed = (gait: Gait): Stand => ({
  * 6 degrees against the spine, so the trunk curves rather than leans, and `local` is the chest's own share of it. Both
  * are exactly 0, and the pose is the straight one's, when there is none.
  */
-function sideBend(g: Skeleton['genes']): { world: number; local: number } {
+export function sideBend(g: Skeleton['genes']): { world: number; local: number } {
   const b = g.sideBend
   if (!b) return { world: 0, local: 0 }
   const apart = (0.03 * (g.height / 1.62) * Math.abs(b)) / (2 * g.shoulders)
@@ -209,7 +209,7 @@ function baseOn(s: Skeleton, gait: Gait, st: MotionState, way: Travel): Evaluate
   }
   // ─── Arms: swing opposite the legs, or hang ───
   for (const side of ['L', 'R'] as const) {
-    // Walking, a bulky sleeve (one that must hang well out to clear the figure) swings less, as a puffer's arm does.
+    // Walking, a bulky sleeve (one that must hang well out to clear the figure) swings less, as a padded coat's arm does.
     const clear = st.clear?.[side === 'L' ? 0 : 1] ?? 0
     const amp = gait.armSwing * (walking ? 1 - SWING_BULK * Math.min(1, clear / 0.4) : 1)
     const x = sideSign(side)

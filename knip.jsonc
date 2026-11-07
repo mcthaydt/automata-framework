@@ -72,7 +72,7 @@
     // pixi3d-bundle.test.ts builds the fixture page scripts in `src/testing/bundle/` with Vite by path, and nothing
     // imports them. (The goldens' recorder is the package's `goldens` script, which knip reads.)
     "packages/3d": {
-      "entry": ["src/testing/bundle/*-entry.ts"]
+      "entry": ["src/testing/bundle/*-entry.ts", "scripts/*.ts"]
     },
     // The bundle tests build the two fixture modules in `src/testing/bundle/` with Vite by path; nothing imports them.
     "extensions/debug": { "entry": ["src/testing/bundle/*.ts"] },

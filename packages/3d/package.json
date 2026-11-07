@@ -12,16 +12,19 @@
   "type": "module",
   "sideEffects": [
     "./src/entries/no-eval.ts",
+    "./src/features/figures/outfit/garments/classic-kinds.ts",
     "./src/features/renderer/no-eval/install-no-eval.ts"
   ],
   "exports": {
     ".": "./src/entries/index.ts",
     "./camera-view": "./src/entries/camera-view.ts",
     "./figures": "./src/entries/figures.ts",
+    "./figures-kit": "./src/entries/figures-kit.ts",
     "./level": "./src/entries/level.ts",
     "./no-eval": "./src/entries/no-eval.ts",
     "./sim": "./src/entries/sim.ts",
     "./testing": "./src/entries/testing.ts",
+    "./testing-checks": "./src/entries/testing-checks.ts",
     "./timeline": "./src/entries/timeline.ts"
   },
   "imports": {

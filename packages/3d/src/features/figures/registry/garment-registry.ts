@@ -3,7 +3,7 @@
 // extension's wardrobe is, so there is one path to a garment and one place that lists them.
 //
 // A kind is: the shape of its item (`schema`, which the figure's schema parses an item with), then either how it
-// is built into the dressed body (`build`, streetwear-style: it returns a fit) or how it is worn on the body being
+// is built into the dressed body (`build`, an extension wardrobe's style: it returns a fit) or how it is worn on the body being
 // dressed (`wear`, classic-style: it repaints regions and adds parts). Which kind an item is, is the first
 // registered kind whose name is one of the item's keys.
 
@@ -13,9 +13,7 @@ import type { Skeleton } from '../body/rig.ts'
 import type { SWATCH_KINDS, SWATCH_ROLES } from '../content/swatch.schema.ts'
 import type { Garment } from '../figure/garment.schema.ts'
 import type { Dressing } from '../outfit/garments/classic.ts'
-import type { Legs } from '../outfit/streetwear/layering.ts'
-import type { Worn } from '../outfit/streetwear/tops.ts'
-import type { Fit, Wearing } from '../outfit/streetwear/under.ts'
+import type { Fit, Legs, Wearing, Worn } from './garment-fit.ts'
 import { RegistryClash } from './registry-clash.ts'
 
 /**

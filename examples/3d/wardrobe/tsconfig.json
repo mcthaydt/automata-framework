@@ -1,0 +1,8 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node", "vitest/browser"],
+    "isolatedDeclarations": false
+  },
+  "include": ["*.ts", "garments/**/*.ts", "scripts/**/*.ts", "testing/**/*.ts", "tests/**/*.ts"]
+}

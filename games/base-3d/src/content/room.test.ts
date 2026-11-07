@@ -1,11 +1,11 @@
-// The free base-3d room as a level file (the free base-3d plan, step 6): a valid `af-sector/1` file of axis-aligned
+// The free base-3d room as a level file (the free base-3d plan, step 6): a valid `af-sector/2` file of axis-aligned
 // rectangles, with the pits the roll crosses (a channel is 2 m wide, the roll carries 3.2 m) and the spawn, the embers
 // and the goal standing in rooms. The converter and the sim read it after the strip commits.
-import { afSectorSchema } from '@automata/3d/level'
+import { afSector2Schema } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import file from './levels/room.af-sector.json'
 
-const room = afSectorSchema.parse(file)
+const room = afSector2Schema.parse(file)
 const boxes = room.sectors.map((sector) => {
   const xs = sector.corners.map((corner) => corner[0])
   const zs = sector.corners.map((corner) => corner[1])
@@ -18,14 +18,19 @@ const boxes = room.sectors.map((sector) => {
   }
 })
 const ROLL_METRES = 3.2
-const pits = boxes.filter(({ sector }) => sector.floor < 0)
-const rooms = boxes.filter(({ sector }) => sector.floor >= 0)
+const pits = boxes.filter(({ sector }) => sector.pit === true)
+const rooms = boxes.filter(({ sector }) => sector.pit !== true)
 
 describe('room.af-sector.json', () => {
   it('is four-cornered rectangles: three rooms and two pits', () => {
     expect(room.sectors.every((sector) => sector.corners.length === 4)).toBe(true)
     expect(pits).toHaveLength(2)
     expect(rooms.filter(({ sector }) => sector.view !== undefined)).toHaveLength(3)
+  })
+
+  it('names its three camera views, one for each room', () => {
+    expect(Object.keys(room.views ?? {})).toEqual(['start', 'middle', 'goal'])
+    expect(rooms.map(({ sector }) => sector.view)).toEqual(['start', 'middle', 'goal'])
   })
 
   it('has channels the roll crosses and walking does not', () => {

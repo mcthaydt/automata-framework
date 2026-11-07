@@ -1,6 +1,31 @@
 {
-  "format": "af-sector/1",
+  "format": "af-sector/2",
   "name": "room",
+  "views": {
+    "start": {
+      "yawDeg": 0,
+      "bounds": {
+        "min": [-4, 0, 1],
+        "max": [4, 2, 7]
+      }
+    },
+    "middle": {
+      "yawDeg": 0,
+      "bounds": {
+        "min": [-4, 0, 11],
+        "max": [4, 2, 17]
+      }
+    },
+    "goal": {
+      "yawDeg": 0,
+      "tiltDeg": 35,
+      "distance": 7,
+      "bounds": {
+        "min": [-4, 0, 21],
+        "max": [4, 2, 27]
+      }
+    }
+  },
   "sectors": [
     {
       "id": "start",
@@ -19,12 +44,15 @@
           }
         ],
         [-5, 8]
-      ]
+      ],
+      "floorTexture": "floor",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "wall"
     },
     {
       "id": "channel-1",
       "floor": -3,
-      "ceiling": 0,
+      "ceiling": 3,
       "light": 1,
       "corners": [
         [
@@ -43,7 +71,11 @@
           }
         ],
         [-5, 10]
-      ]
+      ],
+      "pit": true,
+      "floorTexture": "lava",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "wall"
     },
     {
       "id": "middle",
@@ -68,12 +100,15 @@
           }
         ],
         [-5, 18]
-      ]
+      ],
+      "floorTexture": "floor",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "wall"
     },
     {
       "id": "channel-2",
       "floor": -3,
-      "ceiling": 0,
+      "ceiling": 3,
       "light": 1,
       "corners": [
         [
@@ -92,7 +127,11 @@
           }
         ],
         [-5, 20]
-      ]
+      ],
+      "pit": true,
+      "floorTexture": "lava",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "wall"
     },
     {
       "id": "goal",
@@ -111,7 +150,10 @@
         [5, 20],
         [5, 28],
         [-5, 28]
-      ]
+      ],
+      "floorTexture": "floor",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "wall"
     }
   ],
   "entityDefs": [

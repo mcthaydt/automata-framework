@@ -36,8 +36,8 @@ describe('the garment registry', () => {
     expect(() => registerGarment('cape', cape)).toThrow('A garment called "cape" is already registered')
     expect(() => registerGarment('cape', cape)).toThrow(RegistryClash)
   })
-  it('registers the classic set', () => {
-    expect(registeredGarments()).toEqual(expect.arrayContaining(CLASSIC))
+  it('registers only the 15 classic kinds: the streetwear wardrobe is an example extension', () => {
+    expect([...registeredGarments()].sort()).toEqual(CLASSIC)
   })
   it('lists the garments in the order a figure tells them apart (a cap’s mark is the cap’s)', () => {
     const names = registeredGarments()

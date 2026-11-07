@@ -43,6 +43,7 @@ describe('the fixture figures and libraries compile as content', () => {
     expect(Object.keys(data['figure-headwear'] ?? {})).toHaveLength(3)
     expect(Object.keys(data['figure-item'] ?? {})).toHaveLength(3)
     expect(Object.keys(data['figure-stand'] ?? {})).toHaveLength(7)
+    expect(Object.keys(data['figure-seat'] ?? {})).toHaveLength(8)
     expect(Object.keys(data['figure-rig'] ?? {})).toEqual(['default'])
     expect(Object.keys(data['figure-pose'] ?? {}).sort()).toEqual([...FIXTURE_POSE_IDS])
     expect(Object.keys(data['figure-clip'] ?? {}).sort()).toEqual([...FIXTURE_CLIP_IDS])
@@ -340,18 +341,9 @@ describe("a garment's default swatches are checked at compile (M3.5b review)", (
 describe("a garment's numbers and lists are bounded (M3.5b review)", () => {
   const file = 'content/figures/keeper.toml'
   const top = 'top = "starch"\nsleeves = "short"'
-  // Each would build badly: zero-width cargos run out of memory, an empty zip throws, the rest degrade.
+  // Each would build badly. (The wardrobe's garments are bounded the same way: examples/3d/wardrobe/tests/unit/content.test.ts.)
   const cases: { garment: string; field: string }[] = [
-    { garment: 'cargos = "charcoal"\nwidth = 0', field: 'width' },
-    { garment: 'cargos = "charcoal"\nwidth = -0.2', field: 'width' },
-    { garment: 'jacket = "navy"\nzip = []', field: 'zip' },
-    { garment: 'bomber = "navy"\nzip = []', field: 'zip' },
     { garment: 'skirt = "navy"\nlength = -1', field: 'length' },
-    { garment: 'tee = "navy"\nfit = 0', field: 'fit' },
-    { garment: 'hoops = "brass"\nsize = -1', field: 'size' },
-    { garment: 'puffer = "navy"\nbaffles = 0', field: 'baffles' },
-    { garment: 'puffer = "navy"\nbaffles = 2.5', field: 'baffles' },
-    { garment: 'chain = "brass"\ndrop = 3', field: 'drop' },
   ]
   for (const c of cases)
     it(`refuses ${c.garment.replace('\n', ', ')} at the field`, async () => {
@@ -397,5 +389,16 @@ describe("the fixture's default rig", () => {
     if (!result.ok) throw new Error(result.message)
     const rigs = result.content.data['figure-rig'] as Record<string, unknown>
     expect(rigs.default).toEqual({ ...DEFAULT_RIG_LIMITS, about: expect.any(String) })
+  })
+})
+
+describe('a garment no registered kind claims', () => {
+  it('is refused, naming the 15 classic kinds (a wardrobe extension adds the rest)', async () => {
+    const top = 'top = "starch"\nsleeves = "short"'
+    const diagnostics = await diagnosticsAfter('content/figures/keeper.toml', top, 'bomber = "navy"')
+    const named = diagnostics.map((d) => d.message).join('\n')
+    expect(named).toContain(
+      'a garment has one of: top, waistcoat, trousers, legs, shoes, skirt, apron, coat, belt, cape, gloves, hair, cap, eyes, mark',
+    )
   })
 })

@@ -3,8 +3,9 @@
 //
 // From FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/cast.ts at a1f7246: `random` (mulberry32, as
 // the source) and the generic half of `randomCharacter`: every slider drawn over its range (the lookbook's
-// narrower ones), an outfit composed layer by layer from the garment registry with the wardrobe's draws
-// (`WARDROBE`, an outer layer half the time over a top that goes under one), a hair style with pieces,
+// narrower ones), an outfit composed layer by layer from the garment registry with a wardrobe's draws (the
+// caller's `wardrobe` draws, FigureBuilder's `WARDROBE`: an outer layer half the time over a top that goes under one), or,
+// where no registered garment has a layer (core's classic set has none), a classic outfit; a hair style with pieces,
 // sometimes a cap, the face's marks. Not taken: the colourway and the sets (which skin goes with which lips,
 // eyes and hair, the label's colours, one loud hue: SNEKPRTY's), the stands (M3.5c) and the crew's own
 // swatches. A swatch field draws from the library's swatches of a kind its role takes and in a role it takes,
@@ -21,7 +22,6 @@ import type { FigureLibrary } from '../features/figures/figure/build.ts'
 import type { FigureDef } from '../features/figures/figure/figure.schema.ts'
 import type { Garment } from '../features/figures/figure/garment.schema.ts'
 import '../features/figures/outfit/garments/classic-kinds.ts'
-import '../features/figures/outfit/streetwear/registry.ts'
 import {
   fieldRole,
   GARMENTS,
@@ -46,22 +46,10 @@ export function random(seed: number): () => number {
 type Draw = readonly [number, number] | readonly (boolean | string)[]
 /** How a random outfit draws a registry garment: its fields' draws, `under` an outer layer those instead (a
  * top with none is not worn under one), and an accessory's chance (half, without one). */
-interface Wear {
+export interface Wear {
   readonly draw?: Readonly<Record<string, Draw>>
   readonly under?: Readonly<Record<string, Draw>>
   readonly chance?: number
-}
-/** The wardrobe's draws, by registry garment (FigureBuilder cast.ts `WARDROBE`). */
-const WARDROBE: Readonly<Record<string, Wear>> = {
-  tee: {
-    draw: { fit: [0.96, 1.1], length: [-0.05, 1.9] },
-    under: { fit: [0.98, 1.04], length: [-0.08, 0.04], sleeves: [false] },
-  },
-  cargos: { draw: { width: [0.62, 0.95] } },
-  sneakers: { draw: { court: [true, false] } },
-  chain: { draw: { drop: [0.04, 0.2] }, chance: 0.75 },
-  hoops: { draw: { size: [0.08, 0.32] }, chance: 0.4 },
-  shades: { draw: { up: [true, false] }, chance: 0.3 },
 }
 /** The sliders a lookbook model keeps within (the rest run their whole range). */
 const LOOKBOOK: Partial<Record<keyof Sliders, [number, number]>> = {
@@ -82,7 +70,12 @@ export interface RandomCharacter {
   readonly item: string | null
 }
 
-export function randomCharacter(seed: number, library: FigureLibrary): RandomCharacter {
+export function randomCharacter(
+  seed: number,
+  library: FigureLibrary,
+  /** A wardrobe's draws, by registry garment; core's classic set needs none. */
+  wardrobe: Readonly<Record<string, Wear>> = {},
+): RandomCharacter {
   const r = random(seed)
   const pick = <T>(a: readonly T[]): T => at(a, Math.floor(r() * a.length))
   const range = (lo: number, hi: number) => lo + (hi - lo) * r()
@@ -107,7 +100,7 @@ export function randomCharacter(seed: number, library: FigureLibrary): RandomCha
     return fit.length ? fit : plain
   }
   const draws = (key: string, under = false) => {
-    const wear = WARDROBE[key]
+    const wear = wardrobe[key]
     const table = (under && wear?.under) || wear?.draw || {}
     return Object.fromEntries(
       Object.entries(table).map(([f, d]) => [
@@ -140,12 +133,26 @@ export function randomCharacter(seed: number, library: FigureLibrary): RandomCha
   })
   // The outfit, layer by layer: an outer layer half the time over a top that goes under one.
   const keys = (layer: Layer) => Object.keys(GARMENTS).filter((key) => GARMENTS[key]?.layer === layer)
-  const topKey = pick(keys('top'))
-  const outerKey = WARDROBE[topKey]?.under && r() < 0.5 ? pick(keys('outer')) : undefined
-  const garments: Garment[] = [wear(topKey, !!outerKey)]
-  if (outerKey) garments.push(wear(outerKey))
-  garments.push(wear(pick(keys('bottom'))), wear(pick(keys('shoes'))))
-  for (const key of keys('accessory')) if (r() < (WARDROBE[key]?.chance ?? 0.5)) garments.push(wear(key))
+  const garments: Garment[] = []
+  if (keys('top').length > 0) {
+    const topKey = pick(keys('top'))
+    const outerKey = wardrobe[topKey]?.under && r() < 0.5 ? pick(keys('outer')) : undefined
+    garments.push(wear(topKey, !!outerKey))
+    if (outerKey) garments.push(wear(outerKey))
+    garments.push(wear(pick(keys('bottom'))), wear(pick(keys('shoes'))))
+    for (const key of keys('accessory')) if (r() < (wardrobe[key]?.chance ?? 0.5)) garments.push(wear(key))
+  } else {
+    // No registered layers: core's classic garments, in plain colours.
+    const colour = () => pick(plain)
+    garments.push(
+      { top: colour(), sleeves: pick(['none', 'short', 'long'] as const) },
+      { trousers: colour() },
+      { shoes: colour(), ...(r() < 0.4 ? { boots: true } : {}) },
+    )
+    if (r() < 0.4) garments.push({ coat: colour(), length: range(0.2, 0.9) })
+    if (r() < 0.4) garments.push({ belt: colour() })
+    if (r() < 0.3) garments.push({ cape: colour(), length: range(0.3, 1) })
+  }
   // The head: a skin, a hair style with pieces in a plain colour, sometimes a cap (a mark on it half the
   // time).
   const skins = SKINS.filter((id) => library.swatches[id] !== undefined)

@@ -101,10 +101,29 @@ export interface Fall {
   readonly bare?: boolean | undefined
   readonly capped?: boolean | undefined
 }
+/**
+ * Loose hair: `count` clumps (ropes) laid on the scalp round the head from the hairline `from` and falling past it, either
+ * side of the parting `part` (an angle from the front, 0 the centre), over the ears, past the collar and behind the
+ * shoulders, to `length` (0 the jaw to 1 the shoulder blades; clamped there), clear of the dressed trunk. `curl` 0 to 1:
+ * straight, rising to waves, then spirals, the clumps fatter and shorter as it rises; `volume` 0 to 1: how far the mass
+ * stands off the skull, so curl 1 and volume 1 at a short length is a round afro.
+ */
+export interface Loose {
+  readonly from: Line
+  readonly part?: number | undefined
+  readonly count: number
+  readonly length: number
+  readonly curl?: number | undefined
+  readonly volume?: number | undefined
+  readonly rope: Rope
+}
 export interface Bun {
   readonly at: Vec3
   readonly r: number
-  readonly turns: number
+  /** How deep it lies, of its width (default 0.6). */
+  readonly flat?: number | undefined
+  /** How many times it winds (default 2.5). */
+  readonly turns?: number | undefined
   readonly rope: Rope
   readonly tie?: Tie | undefined
 }
@@ -134,7 +153,7 @@ export type Piece =
   | { readonly scalp: Scalp }
   | { readonly rows: Rows }
   | { readonly tail: Tail }
-  | { readonly fall: Fall }
+  | { readonly fall: Fall | Loose }
   | { readonly bun: Bun }
   | { readonly sweep: Sweep }
   | { readonly block: Block }
@@ -222,7 +241,7 @@ const tail: z.ZodType<Tail> = z.strictObject({
   hang: z.literal('down').optional(),
 })
 
-const fall: z.ZodType<Fall> = z.strictObject({
+const locks: z.ZodType<Fall> = z.strictObject({
   // [angle, root height, tip height, own lift?, tip angle?]
   at: z.array(z.array(n).min(3).max(5)).min(1),
   lift: n,
@@ -238,7 +257,27 @@ const fall: z.ZodType<Fall> = z.strictObject({
   capped: z.boolean().optional(),
 })
 
-const bun: z.ZodType<Bun> = z.strictObject({ at: vec3, r: n, turns: n, rope, tie: tie.optional() })
+const loose: z.ZodType<Loose> = z.strictObject({
+  from: line,
+  part: n.optional(),
+  count: z.number().int().positive(),
+  length: n,
+  curl: n.optional(),
+  volume: n.optional(),
+  rope,
+})
+
+/** A fall is the newer loose hair (it has a `from` hairline) or the older list of locks (it has `at`). */
+const fall: z.ZodType<Fall | Loose> = z.union([locks, loose])
+
+const bun: z.ZodType<Bun> = z.strictObject({
+  at: vec3,
+  r: n,
+  flat: n.optional(),
+  turns: n.optional(),
+  rope,
+  tie: tie.optional(),
+})
 
 const sweep: z.ZodType<Sweep> = z.strictObject({
   path: z.array(vec3).min(2),

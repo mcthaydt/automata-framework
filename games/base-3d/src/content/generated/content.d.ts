@@ -320,6 +320,30 @@ declare module 'virtual:automata/content' {
     readonly weight: 'L' | 'R'
   }
 
+  export type FigureSeatId = never
+  export type FigureSeat = {
+    readonly about?: string
+    readonly feet?: number
+    readonly hands?: {
+      readonly L?: 'lap' | 'hang' | {
+        readonly aim?: readonly [readonly [number, number, number], readonly [number, number, number]]
+        readonly to: readonly [number, number, number]
+      }
+      readonly R?: 'lap' | 'hang' | {
+        readonly aim?: readonly [readonly [number, number, number], readonly [number, number, number]]
+        readonly to: readonly [number, number, number]
+      }
+    }
+    readonly head?: readonly [number, number, number]
+    readonly height: number
+    readonly knees?: number
+    readonly lean?: number
+    readonly roll?: number
+    readonly slump?: number
+    readonly turn?: number
+    readonly type?: number
+  }
+
   export type FigureRigId = 'default'
   export type FigureRig = {
     readonly about?: string
@@ -519,6 +543,7 @@ declare module 'virtual:automata/content' {
     readonly 'figure-headwear': Readonly<Record<FigureHeadwearId, FigureHeadwear>>
     readonly 'figure-item': Readonly<Record<FigureItemId, FigureItem>>
     readonly 'figure-stand': Readonly<Record<FigureStandId, FigureStand>>
+    readonly 'figure-seat': Readonly<Record<FigureSeatId, FigureSeat>>
     readonly 'figure-rig': Readonly<Record<FigureRigId, FigureRig>>
     readonly 'figure-pose': Readonly<Record<FigurePoseId, FigurePose>>
     readonly 'figure-clip': Readonly<Record<FigureClipId, FigureClip>>

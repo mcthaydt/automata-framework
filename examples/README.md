@@ -42,4 +42,4 @@ A file starts with a header (what it shows, its controls, its base and its packa
 | [`2d/textures/textures-sprite.ts`](2d/textures/textures-sprite.ts) | A character animated from a sheet of frames |
 | [`2d/ui/primitives/main.ts`](2d/ui/primitives/main.ts) | every ui primitive at every reference size, with no renderer |
 
-`2d/content/hot-reload` and `2d/ui/primitives` are small packages with their own `package.json`; the rest are single files.
+`2d/content/hot-reload`, `2d/ui/primitives` and [`3d/wardrobe`](3d/wardrobe/) are small packages with their own `package.json`; the rest are single files. `3d/wardrobe` (`@af-examples/wardrobe-3d`) is the worked example of a wardrobe extension: eleven streetwear garments for the procedural figures, registered with `@automata/3d/figures-kit` the way a game's own garments would be.

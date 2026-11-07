@@ -29,6 +29,7 @@ import type { HairStyle, Piece } from '../content/hair.schema.ts'
 import type { Made } from '../figure/materials.ts'
 import { FACE_SEAM, headAt, headForm, headNormal } from '../outfit/garments/head.ts'
 import { hairPieceOf } from '../registry/hair-piece-registry.ts'
+import { loose } from './loose.ts'
 import { shell } from './shell.ts'
 import { alignY, along, CROWN, HAIR_SEAM, onHead, type Skull, skull, toHead, unitAt } from './skull.ts'
 import { grid, sweep } from './sweep.ts'
@@ -201,7 +202,13 @@ function buildPiece(b: HairBuild, piece: Piece): void {
       b.rigid(mesh, o.tone ?? 'hair', o.apart === false ? HAIR_SEAM : b.nextSeam(), lit, o.matte)
     }
   } else if ('tail' in piece) tail(b, piece.tail)
-  else if ('fall' in piece && !(piece.fall.bare && i.capped) && !(piece.fall.capped && !i.capped)) {
+  else if ('fall' in piece && 'from' in piece.fall) loose(b, piece.fall)
+  else if (
+    'fall' in piece &&
+    'at' in piece.fall &&
+    !(piece.fall.bare && i.capped) &&
+    !(piece.fall.capped && !i.capped)
+  ) {
     const o = piece.fall
     const locks = o.at.flatMap((knot) => {
       const [a = 0, y0 = 0, y1 = 0, own, to] = knot
@@ -287,57 +294,51 @@ function buildPiece(b: HairBuild, piece: Piece): void {
   }
 }
 
-/** A coil: the rope wound round the bun's axis from a narrow foot up, swelling to a ball and tucked in on
- * top, so it stands off the head on its neck and breaks the silhouette from every side; a band round its
- * foot. */
+/**
+ * A bun: one rope wound in a flattened spiral about the direction `at` (a disc standing off the skull, its coils fused
+ * into a mass by their own thickness), from its outer edge in to near its middle, rising along `at` as it goes in, so it
+ * domes. Its root rides the head's form (`toHead`) and the whole of it lies outside it, a rope's radius and a little
+ * over. `flat` (default 0.6) is how deep it lies, of its width; `turns` (default 2.5) how many times it winds.
+ */
 function bun(b: HairBuild, o: Extract<Piece, { bun: unknown }>['bun']): void {
   const { k, form, hw, parts } = b
-  const c0 = toHead(form, k, o.at)
-  const up0 = normalize(sub(c0, k.c))
+  const dir = normalize(o.at)
+  const root = toHead(form, k, dir, 0)
   const R = o.r * hw
-  const c = add(c0, scale(up0, R * 0.9))
-  const up = normalize(sub(c, k.c))
-  const u = normalize(cross(up, [1, 0, 0]))
-  const w = cross(up, u)
-  const path: V3[] = []
-  const steps = Math.ceil(o.turns * 12)
-  const radius = (t: number) => R * Math.sqrt(1 - 0.75 * (2 * t - 1) ** 2)
-  const height = (t: number) => R * lerp(-0.6, 0.5, t)
-  for (let q = 0; q <= steps; q++) {
-    const t = q / steps
-    const th = 2 * Math.PI * o.turns * t
-    path.push(
-      add(
-        c,
-        add(
-          scale(up, height(t)),
-          add(scale(u, Math.cos(th) * radius(t)), scale(w, Math.sin(th) * radius(t))),
-        ),
-      ),
-    )
+  const ra = o.rope.r * hw
+  const turns = o.turns ?? 2.5
+  const flat = o.flat ?? 0.6
+  const u = normalize(cross(dir, Math.abs(dir[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0]))
+  const w = cross(dir, u)
+  const lift = ra * 1.5
+  const n = Math.max(24, Math.round(turns * 24))
+  // A disc `flat` of its width deep: the coils rise from `lift` at the rim to `flat * R` at the middle.
+  const spiral = (q: number): V3 => {
+    const th = 2 * Math.PI * turns * q
+    const rho = R * (1 - 0.8 * q)
+    const h = lift + flat * R * smooth(q)
+    return add(root, add(scale(u, Math.cos(th) * rho), add(scale(w, Math.sin(th) * rho), scale(dir, h))))
   }
-  const { mesh, lit } = sweep(path, { ...o.rope, root: 0.02, tip: 'round' }, hw, (p) => sub(p, c))
+  const path = Array.from({ length: n + 1 }, (_, i) => spiral(i / n))
+  const { mesh, lit } = sweep(path, { tip: 'round', ...o.rope }, hw, () => dir)
   b.rigid(mesh, 'hair', b.nextSeam(), lit)
-  // The tie: a band, not a cord, standing a little proud of the coil all round, a whole texel tall.
+  // The tie: a band, not a cord, a little proud of the coil's middle, a whole texel tall.
   const band = b.tieOf(o.tie)
-  if (band) {
-    const foot = add(c, scale(up, height(0.06)))
-    const rr = radius(0.12) + o.rope.r * hw * 1.1
+  if (band)
     parts.push({
       bone: J.head,
       mesh: superquadric({
-        at: foot,
-        r: [rr, texels(0.034 * b.input.s.genes.head) / 2, rr],
-        e: [0.2, 1],
-        seg: 18,
+        at: add(root, scale(dir, lift * 0.8)),
+        r: [R * 0.45, texels(0.04 * b.input.s.genes.head) / 2, R * 0.45],
+        e: [0.25, 1],
+        seg: 14,
         rings: 4,
-        turn: alignY(up),
+        turn: alignY(dir),
       }),
       material: band,
       group: 1,
       seam: b.nextSeam(),
     })
-  }
 }
 
 /** A high-top's block of tight coils: the head's own section at its foot, so its walls rise out of the faded

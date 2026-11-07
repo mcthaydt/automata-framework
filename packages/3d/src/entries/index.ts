@@ -11,6 +11,7 @@ export {
   type RendererKind,
 } from '../app/create-renderer.ts'
 export { render3dExtension } from '../app/render3d.extension.ts'
+export { drawWorld, type WorldScene, type WorldView } from '../app/world-view.ts'
 export {
   type AngledCameraOptions,
   angledCamera,
@@ -58,6 +59,14 @@ export {
   type FigureViewState,
   figure,
 } from '../features/figures/view/figure-view.ts'
+export {
+  buildWorld,
+  type World,
+  type WorldOptions,
+  type WorldPart,
+  type WorldPiece,
+} from '../features/world/build.ts'
+export type { WorldLibrary } from '../features/world/swatches.ts'
 export { type BakeOptions, createSceneLight, type SceneLight } from '../shared/render/light/scene-light.ts'
 export { sceneLightingContent } from '../shared/render/light/scene-lighting.content.ts'
 export {

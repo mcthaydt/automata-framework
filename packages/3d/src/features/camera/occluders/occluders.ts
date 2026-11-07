@@ -17,7 +17,7 @@ import {
   type WallEntry,
   type WallShown,
 } from './occluder-pass.ts'
-import { type Box3, type PlanPoint, propOcclude } from './occluder-rule.ts'
+import { type Box3, type PlanPoint, propOcclude, type WallSpan } from './occluder-rule.ts'
 
 export interface WallOptions {
   /** The inside face runs from `a` to `b` with the room on its left. */
@@ -46,6 +46,11 @@ export interface PropOptions {
 export interface Occluders {
   /** Builds a wall and its floor trim under the view's root, and returns their node. */
   wall(options: WallOptions): Container3D
+  /**
+   * A mesh that is a wall's face (the world builder draws walls as faces): it follows the wall rule on the line
+   * `span`, the room on its left, and shows no floor trim while cut. It owns its material.
+   */
+  face(mesh: Mesh3D, span: WallSpan, occlude?: Occlude): void
   /** A ceiling or an overhead beam: not drawn in the angled view. */
   ceiling(node: Container3D): void
   /** A static mesh that fades (or is cut) when it stands on the camera's line to the player. It owns its material. */
@@ -105,7 +110,7 @@ function slab(cube: CubeGeometry, options: WallOptions, height: number, thicknes
 }
 
 export function createOccluders(parent: Container3D): OccluderStage {
-  const walls: { entry: WallEntry; wall: Mesh3D; trim: Mesh3D }[] = []
+  const walls: { entry: WallEntry; wall: Mesh3D; trim: Mesh3D | undefined }[] = []
   const props: { entry: PropEntry; mesh: Mesh3D }[] = []
   const ceilings: Container3D[] = []
   // Every wall, trim and box is this cube, scaled: one geometry for the whole room.
@@ -115,6 +120,20 @@ export function createOccluders(parent: Container3D): OccluderStage {
   const copies: BaseMaterial3D[] = []
   // Registration happens in the `scene` hook, before the first frame; a later one starts the rule afresh.
   let pass: OccluderPass | undefined
+
+  /**
+   * Gives `mesh` a material of its own to fade through: a shared one (a box view's, a loaded model's) is swapped for a
+   * copy; one another mesh already fades cannot be told apart from this one's, so it is refused.
+   */
+  const own = (mesh: Mesh3D, what: 'face' | 'prop'): void => {
+    const copy = ownCopyOf(mesh.material)
+    if (copy !== undefined) {
+      copies.push(copy)
+      mesh.material = copy
+    } else if (fading.has(mesh.material))
+      throw new Error(`occluders.${what}: this mesh shares its material with another prop; give it its own`)
+    fading.add(mesh.material)
+  }
 
   return {
     wall(options) {
@@ -136,16 +155,13 @@ export function createOccluders(parent: Container3D): OccluderStage {
     ceiling(node) {
       ceilings.push(node)
     },
+    face(mesh, span, occlude) {
+      own(mesh, 'face')
+      walls.push({ entry: { span, occlude: occlude ?? 'cut' }, wall: mesh, trim: undefined })
+      pass = undefined
+    },
     prop(mesh, options) {
-      // A shared material (a box view's, a loaded model's) is swapped for a copy of its own; one another prop already
-      // fades cannot be told apart from this one's, so it is refused.
-      const copy = ownCopyOf(mesh.material)
-      if (copy !== undefined) {
-        copies.push(copy)
-        mesh.material = copy
-      } else if (fading.has(mesh.material))
-        throw new Error('occluders.prop: this mesh shares its material with another prop; give it its own')
-      fading.add(mesh.material)
+      own(mesh, 'prop')
       props.push({
         entry: { bounds: options.bounds, occlude: propOcclude(options.bounds, options.occlude) },
         mesh,
@@ -167,7 +183,7 @@ export function createOccluders(parent: Container3D): OccluderStage {
         const { wall, trim } = walls[i] as (typeof walls)[number]
         const state = shown.walls[i] as WallShown
         showAt(wall, state.opacity)
-        if (!trim.destroyed) trim.visible = state.trim
+        if (trim !== undefined && !trim.destroyed) trim.visible = state.trim
       }
       for (let i = 0; i < props.length; i++)
         showAt((props[i] as (typeof props)[number]).mesh, shown.props[i] ?? 1)

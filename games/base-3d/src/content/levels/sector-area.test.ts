@@ -1,11 +1,11 @@
-// The level converter (GAME-3D.1i, DESIGN.md §17): an `af-sector/1` file read as an `AreaSource`. Rectangular sectors
+// The level converter (GAME-3D.1i, DESIGN.md §17): an `af-sector` file (either format) read as an `AreaSource`. Rectangular sectors
 // only in 1.0; a file that cannot be read fails naming the file and the JSON path (G3-F2).
 import { WALL_THICK } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { AreaLoadError, areaFromSector } from './sector-area.ts'
 
 const HALF = WALL_THICK / 2
-const views = [{ id: 'a' }, { id: 'b' }]
+const views = { a: { yawDeg: 0 }, b: { yawDeg: 90 } }
 
 type Json = Record<string, unknown>
 /** A rectangle sector from x0,z0 to x1,z1, walls as given by edge in order: south, east, north, west. */
@@ -31,13 +31,14 @@ const rect = (
 const spawn = { def: 'spawn', id: 'spawn', x: 1, z: 1 }
 const goal = { def: 'goal', id: 'goal', x: 2, z: 2 }
 const file = (sectors: Json[], entities: Json[] = [spawn, goal], more: Json = {}) => ({
-  format: 'af-sector/1',
+  format: 'af-sector/2',
   name: 'test',
+  views,
   sectors,
   entities,
   ...more,
 })
-const convert = (json: unknown) => areaFromSector(json, { file: 'test.af-sector.json', views })
+const convert = (json: unknown) => areaFromSector(json, { file: 'test.af-sector.json' })
 const failure = (json: unknown): AreaLoadError => {
   try {
     convert(json)
@@ -62,7 +63,10 @@ describe('areaFromSector (GAME-3D.1i)', () => {
       ]),
     )
     expect(area.walls).toHaveLength(4)
-    expect(area.views).toEqual(views)
+    expect(area.views).toEqual([
+      { id: 'a', yawDeg: 0 },
+      { id: 'b', yawDeg: 90 },
+    ])
   })
 
   it('leaves a portal edge open, and a door’s opening open between two flanks', () => {
@@ -100,12 +104,21 @@ describe('areaFromSector (GAME-3D.1i)', () => {
     expect(shared).toHaveLength(2)
   })
 
-  it('makes a sector below the floor a pit, with no room box', () => {
+  it('makes a sector flagged as a pit a pit, with no room box; a low floor alone is a room', () => {
     const area = convert(
-      file([rect('a', [0, 0, 4, 3]), rect('b', [4, 0, 6, 3], [], { floor: -3, view: undefined })]),
+      file([rect('a', [0, 0, 4, 3]), rect('b', [4, 0, 6, 3], [], { floor: -3, pit: true, view: undefined })]),
     )
     expect(area.pits).toEqual([{ min: [4, 0], max: [6, 3] }])
     expect(area.rooms.map((room) => room.view)).toEqual(['a'])
+    const sunken = convert(file([rect('a', [0, 0, 4, 3], [], { floor: { z: -3 } })]))
+    expect(sunken.pits).toEqual([])
+    expect(sunken.rooms).toHaveLength(1)
+  })
+
+  it('still reads an af-sector/1 file: its sectors migrate and a views member it carries is kept', () => {
+    const old = convert({ ...file([rect('a', [0, 0, 4, 3])]), format: 'af-sector/1' })
+    expect(old.rooms).toHaveLength(1)
+    expect(old.views.map((view) => view.id)).toEqual(['a', 'b'])
   })
 
   it('reads the spawn, the embers and the goal', () => {
@@ -180,7 +193,7 @@ describe('areaFromSector (GAME-3D.1i)', () => {
 
     it('refuses a file the af-sector schema refuses, at the schema’s path', () => {
       expect(failure({ ...file([rect('a', [0, 0, 4, 3])]), format: 'af-sector/9' }).path).toBe('format')
-      expect(failure({ format: 'af-sector/1', name: 'x', sectors: [{ id: 'a' }] }).path).toBe(
+      expect(failure({ format: 'af-sector/2', name: 'x', sectors: [{ id: 'a' }] }).path).toBe(
         'sectors[0].floor',
       )
     })
