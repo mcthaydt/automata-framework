@@ -148,4 +148,14 @@ describe('levelInspector', () => {
       fields: [{ id: 'music', widget: 'text', value: '' }],
     })
   })
+
+  it('counts the size in tiles of the first layer’s grid, and has none when the size is not whole tiles', () => {
+    const project = platformer()
+    expect(levelInspector(project, 'level-1').tiles).toEqual({ wide: 32, high: 18, tile: 16 })
+    const odd: Project = {
+      ...project,
+      levels: project.levels.map((level) => ({ ...level, size: { w: 500, h: 288 } })),
+    }
+    expect(levelInspector(odd, 'level-1').tiles).toBeUndefined()
+  })
 })

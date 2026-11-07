@@ -80,7 +80,16 @@ export interface LevelInspector {
   readonly id: string
   readonly name: string
   readonly size: Size
+  /** The size in whole tiles of the project's grid; absent when the level is not a whole number of tiles. */
+  readonly tiles: { readonly wide: number; readonly high: number; readonly tile: number } | undefined
   readonly fields: readonly FieldRow[]
+}
+
+/** The size in tiles of the first layer that has a grid (every layer of a template shares it). */
+function sizeInTiles(project: Project, size: Size): LevelInspector['tiles'] {
+  const [tile] = project.defs.layers.flatMap((layer) => ('grid' in layer ? [layer.grid] : []))
+  if (tile === undefined || size.w % tile !== 0 || size.h % tile !== 0) return undefined
+  return { wide: size.w / tile, high: size.h / tile, tile }
 }
 
 export function levelInspector(project: Project, level: string): LevelInspector {
@@ -89,6 +98,7 @@ export function levelInspector(project: Project, level: string): LevelInspector 
     id: found.id,
     name: found.name,
     size: found.size,
+    tiles: sizeInTiles(project, found.size),
     fields: rowsOf(project.defs.levelFields, found.fields, project, undefined),
   }
 }

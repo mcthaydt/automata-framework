@@ -5,7 +5,8 @@
   focus back on the trigger), and Escape or a press outside closes it. A disabled item stays in the menu, says why
   and calls `onblocked` when pressed, but keyboard movement skips it, as it does separators.
 
-  `trigger` replaces the label text with something else (an icon); `label` still names the button and the menu.
+  `trigger` replaces the label text with something else (an icon, or an icon and the word); `label` still names the
+  button and the menu. `variant="primary"` is for the one action a screen is for.
 -->
 <script lang="ts">
 import type { Snippet } from 'svelte'
@@ -27,6 +28,8 @@ interface Props extends BlockedProps {
   label: string
   items: readonly (MenuItem | 'separator')[]
   presentation?: 'popover' | 'sheet'
+  /** `primary` makes the button the screen's one primary action (the Button's flat chartreuse panel). */
+  variant?: 'plain' | 'primary'
   trigger?: Snippet | undefined
   onselect?: ((id: string) => void) | undefined
 }
@@ -35,6 +38,7 @@ const {
   label,
   items,
   presentation = 'popover',
+  variant = 'plain',
   trigger: triggerContent,
   onselect,
   disabled = false,
@@ -136,6 +140,7 @@ function onItemKey(event: KeyboardEvent, position: number): void {
 <button
   type="button"
   class="trigger"
+  data-kind={variant}
   aria-haspopup="menu"
   aria-expanded={open}
   aria-controls={open ? `${uid}-menu` : undefined}
@@ -196,6 +201,20 @@ function onItemKey(event: KeyboardEvent, position: number): void {
   }
   .trigger:hover:not([aria-disabled='true']) {
     background: var(--paper);
+  }
+  .trigger[data-kind='primary'] {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--size-primary);
+    padding: 0 var(--space-5);
+    border-color: var(--primary-edge);
+    background: var(--primary);
+    color: var(--primary-ink);
+    font-weight: 600;
+  }
+  .trigger[data-kind='primary']:hover:not([aria-disabled='true']) {
+    background: var(--primary-hover);
   }
   .trigger[aria-disabled='true'] {
     opacity: 0.45;

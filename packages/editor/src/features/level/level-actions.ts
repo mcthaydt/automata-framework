@@ -1,6 +1,7 @@
 import type { EditHistory } from '../../shared/level-2d/model/edit-history'
 import { commitEdit } from '../../shared/level-2d/model/field-commit'
 import type { IdSource } from '../../shared/level-2d/model/ids'
+import { paletteOf } from '../../shared/level-2d/tiles/palette-model'
 import type { LevelSession } from './level-session'
 import type { LevelShortcut } from './level-shortcuts'
 import { deleteSelected, duplicateSelected, nudgeSelected } from './selection-edits'
@@ -31,6 +32,15 @@ export function levelActions(
 ): LevelActions {
   const { editor } = session
 
+  /**
+   * The row a number key names: the nth of an entities or IntGrid layer's palette. A tile layer has no numbered rows
+   * (a tileset has dozens, chosen by looking), so its keys do nothing and are left alone.
+   */
+  function numbered(index: number) {
+    const { items } = paletteOf(edits.state, editor.view.layer, new Set())
+    return items.every((item) => item.kind === 'tile') ? undefined : items[index]
+  }
+
   function deleteSelection(): void {
     const { level, selected } = editor.view
     if (selected.length === 0) return
@@ -57,7 +67,9 @@ export function levelActions(
         ? undo.onundo !== undefined
         : shortcut.action === 'redo'
           ? undo.onredo !== undefined
-          : true,
+          : shortcut.action === 'choose'
+            ? numbered(shortcut.index) !== undefined
+            : true,
     run(shortcut) {
       const view = editor.view
       switch (shortcut.action) {
@@ -76,6 +88,12 @@ export function levelActions(
         case 'tool':
           editor.setTool(shortcut.tool)
           break
+        case 'choose': {
+          const item = numbered(shortcut.index)
+          if (item?.kind === 'entity') editor.setEntityDef(item.def)
+          else if (item !== undefined && item.kind !== 'tile') editor.setWord(item.word)
+          break
+        }
         case 'brush':
           editor.setBrushSize(Math.min(8, Math.max(1, view.brushSize + shortcut.by)))
           break

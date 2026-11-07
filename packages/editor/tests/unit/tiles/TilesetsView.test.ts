@@ -241,6 +241,18 @@ describe('Tilesets view: Add tiles', () => {
     expect(within(panel()).getByRole('radio', { name: /Moss/ })).toHaveAttribute('aria-checked', 'true')
   })
 
+  it('has one Add tiles button, in the empty stage, while the game has no tiles; the panel’s waits for the first', async () => {
+    const { opened } = await mount('blank')
+    // A game folder whose game has no tileset at all: the template's placeholder one is taken away.
+    opened.document.history.apply('Remove tiles', (value) => {
+      const project = value as Project
+      return { ...project, defs: { ...project.defs, tilesets: [] } }
+    })
+    expect(await screen.findByText(/No tiles yet/)).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Add tiles' })).toHaveLength(1)
+    expect(within(panel()).queryByRole('button', { name: 'Add tiles' })).toBeNull()
+  })
+
   it('offers no Add tiles where nothing can be written', async () => {
     await mount('platformer', { files: false })
     expect(within(panel()).queryByRole('button', { name: 'Add tiles' })).toBeNull()

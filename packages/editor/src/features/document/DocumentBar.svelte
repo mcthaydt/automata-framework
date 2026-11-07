@@ -1,10 +1,11 @@
 <!--
   The document's top bar, essentials only, laid out as the approved mockup draws it: Back (an icon), the document's
   name and beside it, after a slash, where the view is (`place`: the Level view's level picker, a quiet menu), the
-  views as quiet tabs, then on the right Problems and Share when they apply (`tools`), Undo and Redo as icon buttons,
+  views as quiet tabs, then on the right Problems when they apply (`tools`), Undo and Redo as icon buttons,
   where the level stands on saving as a quiet status ("Saved" with a tick, "Not saved" with an amber dot, "Saving…",
-  "Couldn't save" or "Not kept on this device" in the warning colour), and Save, the one primary button, which always
-  says Save so its word never moves under a finger. The status is a live region only when saving went wrong or cannot
+  "Couldn't save" or "Not kept on this device" in the warning colour), and Save, the one primary button (in browser
+  storage Share is, and Save sits beside it as a plain button), which always says Save so its word never moves under a
+  finger. The status is a live region only when saving went wrong or cannot
   happen here: a screen reader is not told "Not saved" after every brush stroke. The file's path and format are not here (the level's Details on Home has
   them); the bar carries the path as `data-path` for whoever needs it without reading it. Undo and Redo are named with
   the step they act on and are disabled when there is none; Save and Back wait while a save or a conflict choice runs.
@@ -35,8 +36,13 @@ interface Props {
   switcher?: Snippet | undefined
   /** Where in the document the open view is, beside the name: the Level view's level picker. */
   place?: Snippet | undefined
-  /** Problems and Share, where they apply. */
+  /** Problems, where they apply. */
   tools?: Snippet | undefined
+  /**
+   * The bar's primary action when it is not Save: Share, in browser storage, where a level leaves by a file. Save then
+   * turns plain and sits beside it; without it, Save is the primary (a game folder, where Save writes the game).
+   */
+  primary?: Snippet | undefined
   /** A save or a conflict choice is running: Save, and Back (which would close the document under it), wait. */
   busy: boolean
   /** Focus the heading when the bar appears (the document opened); a bar remounted by a view change leaves focus alone. */
@@ -62,6 +68,7 @@ const {
   switcher,
   place,
   tools,
+  primary,
   autofocus = true,
   onfocused,
   onback,
@@ -120,8 +127,7 @@ onMount(() => {
         onclick={onredo}
       />
     </span>
-  </span>
-  <span class="save">
+    <!-- Where the level stands on saving: beside Undo and Redo, so a phone's top row keeps its room for the name. -->
     <span class="state" data-testid="save-state" data-save={save} aria-live={urgent ? 'polite' : 'off'}>
       {#if save === 'saved'}
         <Icon name="check" size={16} />
@@ -132,18 +138,22 @@ onMount(() => {
       {/if}
       {STATUS[save]}
     </span>
-    <Button variant="primary" disabled={busy} data-testid="save" onclick={onsave}>Save</Button>
+  </span>
+  <span class="actions">
+    <Button variant={primary ? 'plain' : 'primary'} disabled={busy} data-testid="save" onclick={onsave}>Save</Button>
+    {@render primary?.()}
   </span>
 </div>
 
 <style>
-  /* Wide: one row, Back, the name and the views on the left, a gap that takes what is left, then the tools and
-     Save; the name gives way first when the row is tight. Compact: Back, the name and Save on top, the rest below. */
+  /* Wide: one row, Back, the name and the views on the left, a gap that takes what is left, then the tools, the
+     save state and the primary action; the name gives way first when the row is tight. Compact: Back, the name and the
+     actions on top; the switcher, the tools and the save state below. */
   .bar {
     display: grid;
     flex: 1;
-    grid-template-columns: auto minmax(0, max-content) auto minmax(0, 1fr) auto auto;
-    grid-template-areas: 'back title switch . tools save';
+    grid-template-columns: auto minmax(0, max-content) auto minmax(0, 1fr) auto auto auto;
+    grid-template-areas: 'back title switch . tools state actions';
     align-items: center;
     gap: var(--space-1);
     min-width: 0;
@@ -151,7 +161,7 @@ onMount(() => {
   .bar[data-compact='true'] {
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas:
-      'back title save'
+      'back title actions'
       'lower lower lower';
     padding: var(--space-1) 0;
   }
@@ -170,6 +180,14 @@ onMount(() => {
     justify-content: space-between;
     gap: var(--space-2);
     min-width: 0;
+  }
+  /* The tools stay at the right edge; the save state sits to their left. */
+  .bar[data-compact='true'] .state {
+    order: 1;
+    margin-left: auto;
+  }
+  .bar[data-compact='true'] .tools {
+    order: 2;
   }
   .switch {
     grid-area: switch;
@@ -190,14 +208,15 @@ onMount(() => {
     justify-content: flex-end;
     gap: var(--space-1);
   }
-  .save {
-    grid-area: save;
+  .actions {
+    grid-area: actions;
     display: flex;
     align-items: center;
     gap: var(--space-2);
   }
   /* The save state: grey words with a mark before them, the mark coloured by what it says. */
   .state {
+    grid-area: state;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -249,6 +268,15 @@ onMount(() => {
   .title[data-place='true'] h1 {
     color: var(--muted);
     font: var(--text-body-13);
+  }
+  /* A phone: the path keeps room for the level's name, which is what a person is looking for, so the document's name
+     is held to a few letters (a tap still renames it) and the buttons beside it are a little tighter. */
+  .bar[data-compact='true'] .title[data-place='true'] h1 {
+    min-width: 0;
+    max-width: 3rem;
+  }
+  .bar[data-compact='true'] .actions :global(button) {
+    padding-inline: var(--space-3);
   }
   .sep {
     color: var(--muted);

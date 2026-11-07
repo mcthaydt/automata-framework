@@ -21,6 +21,7 @@ let scene: LevelScene | undefined
 const tokens: Record<string, string> = {
   '--color-layer-tiles': '#00ff00',
   '--color-accent-default': '#e0a54a',
+  '--color-border-strong': '#ffffff',
 }
 const colors = createColorResolver((name) => tokens[name] ?? '')
 
@@ -153,6 +154,16 @@ describe('level scene: what it draws', () => {
     s.update(list([{ kind: 'intgrid', def: 'i', opacity: 0.5, locked: false, chunks: [cells] }]))
     expectNear(colorAt(s.root, 4, 4), '#800000')
     expectNear(colorAt(s.root, 12, 4), '#008000')
+  })
+
+  it('draws the grid faintly, so the level reads first (the approved mockup)', () => {
+    const s = sceneOf()
+    s.update(list([], { grid: { xs: [8], ys: [], step: 8 } }))
+    // A one pixel line centred on x = 8 shares its pixels with both neighbours: take the brighter of the two.
+    const red = Math.max(...[7, 8].map((x) => Number.parseInt(colorAt(s.root, x, 4).slice(1, 3), 16)))
+    // White lines over the black background: a bright line would be near 0xff, a faint one stays well under a third.
+    expect(red).toBeGreaterThan(0)
+    expect(red).toBeLessThan(0x55)
   })
 
   it('draws later layers over earlier ones', () => {

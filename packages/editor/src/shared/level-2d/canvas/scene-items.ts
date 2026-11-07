@@ -152,6 +152,9 @@ export function backgroundView(list: LevelDrawList, context: ItemContext): Conta
   return view
 }
 
+/** How strongly the grid lines show over the level. */
+const GRID_ALPHA = 0.16
+
 /** The grid, the footprint and the selection, over the layers. */
 export function drawOverlays(overlay: Graphics, list: LevelDrawList, context: ItemContext, px: number): void {
   overlay.clear()
@@ -159,7 +162,8 @@ export function drawOverlays(overlay: Graphics, list: LevelDrawList, context: It
   if (grid !== undefined) {
     for (const x of grid.xs) overlay.moveTo(x, 0).lineTo(x, size.h)
     for (const y of grid.ys) overlay.moveTo(0, y).lineTo(size.w, y)
-    overlay.stroke({ color: context.colors('border/strong'), width: px, alpha: 0.6 })
+    // Faint: the level reads first and the grid only shows where a stroke will land (the approved mockup).
+    overlay.stroke({ color: context.colors('border/strong'), width: px, alpha: GRID_ALPHA })
   }
   if (footprint !== undefined) {
     const color = context.colors(footprint.erase ? 'state/bad' : 'accent/default')

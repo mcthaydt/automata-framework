@@ -1,8 +1,8 @@
 <!--
   The Level view's canvas region, canvas first (spec 11.4): the Pixi level canvas fills the region edge to edge, with
   the kit's gesture recogniser on it feeding the session through the gesture map, and the keyboard shortcuts. Over it
-  float the tool pill (`LevelToolbar`) and, in a corner, Fit (the whole level in view) and, below `wide`, Details (the
-  inspector): on a phone the tools are a dock across the foot and the corner sits at the top right; from an iPad up the
+  float the tool pill (`LevelToolbar`) and, in a corner, the zoom (− 100 % +), Fit (the whole level in view) and, below
+  `wide`, Details (the inspector): on a phone the tools are a dock across the foot and the corner sits at the top right; from an iPad up the
   pill floats at the top and the corner at the bottom right, or at the bottom left in the medium layout, where the
   floating inspector takes the lower right (the approved mockup). Both float as siblings of the canvas's box, not inside it, so a press on them
   never reaches the gestures. A locked or hidden layer says so in the left corner across from Fit instead of ignoring the pen
@@ -71,6 +71,10 @@ const actions = levelActions(session, level.edits, ids, { onundo, onredo })
 // svelte-ignore state_referenced_locally
 const Canvas: Component<LevelCanvasProps> = canvas ?? LevelCanvas
 let host = $state<HTMLElement>()
+
+/** One press of − or + changes the zoom by this much. */
+const ZOOM_STEP = 1.25
+const zoomPercent = $derived(Math.round((level.camera?.scale ?? 1) * 100))
 
 const layerDef = $derived(level.project.defs.layers.find((layer) => layer.id === level.view.layer))
 /** Why the tools do nothing on this layer right now, in words for the canvas. */
@@ -146,6 +150,10 @@ $effect(() => {
     <p class="blocked" role="status">{blocked}</p>
   {/if}
   <div class="corner">
+    <IconButton icon="minus" label="Zoom out" onclick={() => session.zoomBy(1 / ZOOM_STEP)} />
+    <!-- How far in the level is, so a mouse user can read the zoom and a touch user can see it after a pinch. -->
+    <output class="zoom" aria-label="Zoom">{zoomPercent}%</output>
+    <IconButton icon="plus" label="Zoom in" onclick={() => session.zoomBy(ZOOM_STEP)} />
     <IconButton icon="fit" label="Fit the level in view" onclick={() => session.fit()} />
     {#if showInspector}
       <IconButton icon="inspector" label="Details" aria-expanded={inspectorOpen} onclick={oninspector} />
@@ -179,6 +187,15 @@ $effect(() => {
     inset: 0;
     overflow: hidden;
     overscroll-behavior: contain;
+  }
+  .zoom {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3.25em;
+    color: var(--color-text-primary);
+    font: var(--text-mono-12);
+    font-variant-numeric: tabular-nums;
   }
   .corner {
     position: absolute;

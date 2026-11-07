@@ -42,6 +42,15 @@ describe('Inspector', () => {
     expect(screen.getByRole('textbox', { name: 'Music' })).toBeInTheDocument()
   })
 
+  // The mockup gives the size in tiles, the unit a person draws in, with the tile's size said once; the pixel count a
+  // computer thinks in is not shown.
+  it('gives the level’s size in tiles, wide and high, and says how big a tile is', () => {
+    setup([])
+    expect(screen.getByText('32 wide × 18 high')).toBeInTheDocument()
+    expect(screen.getByText('Sizes are in tiles of 16 px.')).toBeInTheDocument()
+    expect(screen.queryByText(/512/)).toBeNull()
+  })
+
   it('shows one chosen instance and edits its fields as one step each', async () => {
     const { history, edits, user } = setup(['slime-a'])
     expect(screen.getByRole('heading', { level: 2, name: 'Slime' })).toBeInTheDocument()

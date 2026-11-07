@@ -70,7 +70,8 @@ function thumb(tile: number | undefined): string {
         </button>
       {/each}
     </div>
-    {#if onaddtiles !== undefined}<Button onclick={onaddtiles}>Add tiles</Button>{/if}
+    <!-- With no tiles yet the stage's own Add tiles is the one (a screen needs one button for one job). -->
+    {#if onaddtiles !== undefined && tilesetRows(project).length > 0}<Button onclick={onaddtiles}>Add tiles</Button>{/if}
   </section>
 
   <section aria-labelledby="auto-heading">

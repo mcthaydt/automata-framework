@@ -161,14 +161,16 @@ describe('Home', () => {
       expect(screen.queryByRole('status', { name: 'Loading levels' })).toBeNull()
     })
 
-    it('with no levels, invites a new one from the empty list too', async () => {
+    it('with no levels, points at the one New level button instead of offering a second', async () => {
       await setup({ seed: false })
       await waitFor(() => expect(screen.getByText('No levels yet')).toBeInTheDocument())
       expect(screen.queryByRole('searchbox')).toBeNull()
       const empty = screen.getByText('No levels yet').parentElement as HTMLElement
-      // One lime button a screen: the top bar's New level is the primary, the empty list's a plain one.
-      expect(within(empty).getByRole('button', { name: 'New level' })).toHaveAttribute('data-kind', 'plain')
-      await userEvent.click(within(empty).getByRole('button', { name: 'New level' }))
+      // One button for one job: the top bar's New level is the primary, so the empty list only says where it is.
+      expect(within(empty).queryByRole('button')).toBeNull()
+      expect(within(empty).getByText(/New level/)).toBeInTheDocument()
+      expect(screen.getAllByRole('button', { name: 'New level' })).toHaveLength(1)
+      await userEvent.click(screen.getByRole('button', { name: 'New level' }))
       expect(screen.getByRole('dialog', { name: 'New level' })).toBeInTheDocument()
     })
   })

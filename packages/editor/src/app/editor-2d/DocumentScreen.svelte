@@ -185,7 +185,10 @@ function show(path: string): void {
 
 {#snippet tools()}
   <Problems document={shown.document} onshow={show} />
-  {#if shares && workspace !== undefined}
+{/snippet}
+
+{#snippet share()}
+  {#if workspace !== undefined}
     <ShareMenu document={shown.document} exports={workspace.exports} persistent={workspace.persistent} {toasts} />
   {/if}
 {/snippet}
@@ -204,6 +207,7 @@ function show(path: string): void {
     {switcher}
     {place}
     {tools}
+    primary={shares ? share : undefined}
     autofocus={!arrived}
     onfocused={() => (arrived = true)}
     onback={back}

@@ -3,7 +3,8 @@
   foot on a phone as a dock under the thumb (`at`), never running off the edge (G5). It holds, in the compact layout,
   Layers (which opens the layers and the palette as a sheet), then the six tools as icons, each named in plain words (its tooltip and its
   accessible name: Select, Brush, Rectangle, Fill, Eraser, Copy a tile), and while a brush or the eraser is out the
-  brush size, a 44 px button showing the number that opens a popover with the stepper. Fit and Details are the
+  brush size: − 1 + beside the tools from an iPad up, and on a phone's dock, which has no room, a 44 px button showing
+  the number that opens a popover with the stepper. Fit and Details are the
   canvas's own corner controls (`LevelStage`), so the pill stays one row on a 390 px phone. The pill itself (where it
   floats, how it scrolls when a narrow canvas cannot hold it) is the kit's `StagePill`, shared with Map, Tiles and
   Characters.
@@ -50,6 +51,8 @@ const TOOLS: readonly { id: LevelTool; label: string; icon: IconName }[] = [
   { id: 'eraser', label: 'Eraser', icon: 'eraser' },
   { id: 'picker', label: 'Copy a tile', icon: 'eyedropper' },
 ]
+const MIN_BRUSH = 1
+const MAX_BRUSH = 8
 const sized = $derived(tool === 'brush' || tool === 'eraser')
 const isTool = (id: string): id is LevelTool => TOOLS.some((each) => each.id === id)
 
@@ -70,7 +73,24 @@ let sizeButton = $state<HTMLElement>()
       if (isTool(event.value)) ontool(event.value)
     }}
   />
-  {#if sized}
+  {#if sized && at !== 'dock'}
+    <!-- With room (an iPad up), the size is the approved mockup's − 1 +. -->
+    <span class="stepper">
+      <IconButton
+        icon="minus"
+        label="Smaller brush"
+        disabled={brushSize <= MIN_BRUSH}
+        onclick={() => onbrushsize(brushSize - 1)}
+      />
+      <output class="size-now" aria-label="Brush size">{brushSize}</output>
+      <IconButton
+        icon="plus"
+        label="Bigger brush"
+        disabled={brushSize >= MAX_BRUSH}
+        onclick={() => onbrushsize(brushSize + 1)}
+      />
+    </span>
+  {:else if sized}
     <span bind:this={sizeButton}>
       <Button
         aria-label={`Brush size ${brushSize}`}
@@ -85,8 +105,8 @@ let sizeButton = $state<HTMLElement>()
         <Stepper
           label="Brush size"
           value={brushSize}
-          min={1}
-          max={8}
+          min={MIN_BRUSH}
+          max={MAX_BRUSH}
           integer
           onedit={(event) => {
             if (event.phase === 'set' || event.phase === 'commit') onbrushsize(event.value)
@@ -98,6 +118,20 @@ let sizeButton = $state<HTMLElement>()
 </StagePill>
 
 <style>
+  /* A hairline sets the size apart from the tools, as the mockup does. */
+  .stepper {
+    display: inline-flex;
+    align-items: center;
+    margin-left: var(--space-1);
+    padding-left: var(--space-1);
+    border-left: 1px solid var(--line);
+  }
+  .size-now {
+    min-width: 1.75em;
+    text-align: center;
+    font: var(--text-mono-12);
+    color: var(--color-text-primary);
+  }
   .size {
     padding: var(--space-3);
   }

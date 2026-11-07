@@ -50,6 +50,17 @@ describe('level session', () => {
     expect(history.revision).toBe(revision)
   })
 
+  it('zooms about the middle of the canvas, so + and − keep what is in view where it is', () => {
+    const { session } = setup()
+    session.measure({ w: 560, h: 336 })
+    const middle = session.toLevel({ x: 280, y: 168 })
+    session.zoomBy(2)
+    expect(session.camera?.scale).toBe(2)
+    expect(session.toLevel({ x: 280, y: 168 })).toEqual(middle)
+    session.zoomBy(0.5)
+    expect(session.camera?.scale).toBe(1)
+  })
+
   it('turns screen points into level pixels through the camera', () => {
     const { session } = setup()
     session.measure({ w: 560, h: 336 })

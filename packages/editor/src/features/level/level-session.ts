@@ -26,6 +26,8 @@ export interface LevelSession {
   measure(size: Size): void
   panBy(dx: number, dy: number): void
   zoomAt(point: Point, factor: number): void
+  /** Zooms about the middle of the canvas: the − and + buttons. */
+  zoomBy(factor: number): void
   /** The whole level, as large as it fits. */
   fit(): void
   /** A canvas point (CSS pixels) in level pixels. */
@@ -89,6 +91,10 @@ export function createLevelSession(options: LevelSessionOptions): LevelSession |
     },
     zoomAt(point, factor) {
       if (viewport !== undefined) moved(viewport.zoomAt(point, factor))
+    },
+    zoomBy(factor) {
+      if (viewport !== undefined)
+        moved(viewport.zoomAt({ x: viewport.size.w / 2, y: viewport.size.h / 2 }, factor))
     },
     fit() {
       if (viewport !== undefined) moved(viewport.fit(levelRect(), FIT_PADDING))

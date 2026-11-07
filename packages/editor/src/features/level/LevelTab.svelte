@@ -1,5 +1,6 @@
 <!--
-  What the inspector shows with nothing chosen: the level's name as the heading, its size beneath, and its typed
+  What the inspector shows with nothing chosen: the level's name as the heading, its size beneath in tiles (the unit a
+  person draws in, with the tile's size said once; whole pixels when the level is not a whole number of tiles), and its typed
   fields, label-left, each change one undo step. Renaming and resizing a level are the World view's, where a resize that loses cells is confirmed.
 -->
 <script lang="ts">
@@ -19,7 +20,12 @@ const { inspector, history, palette }: Props = $props()
 
 <div class="tab" data-testid="level-tab">
   <h2 class="title">{inspector.name}</h2>
-  <p class="size">{inspector.size.w} × {inspector.size.h} px</p>
+  {#if inspector.tiles !== undefined}
+    <p class="size">{inspector.tiles.wide} wide × {inspector.tiles.high} high</p>
+    <p class="size note">Sizes are in tiles of {inspector.tiles.tile} px.</p>
+  {:else}
+    <p class="size">{inspector.size.w} × {inspector.size.h} px</p>
+  {/if}
   {#each inspector.fields as row (row.id)}
     <FieldEditor
       {row}

@@ -72,12 +72,12 @@ describe('Level view: layers', () => {
     await mount()
     const rows = within(layers()).getAllByRole('option')
     expect(rows.map((row) => row.querySelector('.label')?.textContent)).toEqual([
-      'Characters',
+      'Characters and items',
       'Decor',
       'Ground',
       'Collision',
     ])
-    // A name that already says what the layer holds ("Characters") is not said twice.
+    // A name that already says what the layer holds ("Characters and items") is not said twice.
     expect(rows.map((row) => row.querySelector('.kind')?.textContent)).toEqual([
       undefined,
       'Tiles',
@@ -86,12 +86,11 @@ describe('Level view: layers', () => {
     ])
     // Each row has its colour and two icon toggles named for what a press does.
     expect(rows.every((row) => row.querySelector('.swatch') !== null)).toBe(true)
-    expect(within(rows[0] as HTMLElement).getByRole('button', { name: 'Hide Characters' })).toHaveAttribute(
-      'aria-pressed',
-      'false',
-    )
     expect(
-      within(rows[0] as HTMLElement).getByRole('button', { name: 'Lock Characters' }),
+      within(rows[0] as HTMLElement).getByRole('button', { name: 'Hide Characters and items' }),
+    ).toHaveAttribute('aria-pressed', 'false')
+    expect(
+      within(rows[0] as HTMLElement).getByRole('button', { name: 'Lock Characters and items' }),
     ).toBeInTheDocument()
     expect(rows[0]).toHaveAttribute('aria-selected', 'true')
     expect(canvas()).toHaveAttribute('data-layer', 'entities')
@@ -104,7 +103,7 @@ describe('Level view: layers', () => {
     const palette = screen.getByRole('radiogroup', { name: /Paint with/ })
     const choices = within(palette)
       .getAllByRole('radio')
-      .map((choice) => choice.textContent?.trim())
+      .map((choice) => choice.querySelector('.name')?.textContent?.trim())
     expect(choices).toEqual(['Solid', 'One-way', 'Spike', 'Water', 'Ladder'])
     expect(screen.getByRole('radio', { name: 'Solid' })).toHaveAttribute('aria-checked', 'true')
   })
@@ -171,11 +170,38 @@ describe('Level view: toolbar and canvas', () => {
     expect(canvas()).toHaveAttribute('data-tool', 'fill')
     expect(screen.queryByRole('button', { name: /^Brush size/ })).toBeNull()
     await userEvent.click(within(tool).getByRole('radio', { name: 'Eraser' }))
-    // The size is behind its own 44 px button showing the number, so it never widens the pill.
-    expect(screen.queryByRole('spinbutton', { name: 'Brush size' })).toBeNull()
-    expect(screen.getByRole('button', { name: 'Brush size 1' })).toHaveTextContent(/^1$/)
+    // Beside the tools the size is the mockup's − 1 +, each a 44 px button.
+    expect(screen.getByRole('status', { name: 'Brush size' })).toHaveTextContent(/^1$/)
+    await userEvent.click(screen.getByRole('button', { name: 'Bigger brush' }))
+    expect(screen.getByRole('status', { name: 'Brush size' })).toHaveTextContent(/^2$/)
+    await userEvent.click(screen.getByRole('button', { name: 'Smaller brush' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Smaller brush' }))
+    expect(screen.getByRole('status', { name: 'Brush size' })).toHaveTextContent(/^1$/)
+  })
+
+  it('keeps the brush size behind one button on a phone, where the dock has no room for − 1 +', async () => {
+    await mount([390, 844])
+    await userEvent.click(
+      within(screen.getByRole('radiogroup', { name: 'Tool' })).getByRole('radio', { name: 'Eraser' }),
+    )
+    expect(screen.queryByRole('button', { name: 'Bigger brush' })).toBeNull()
     await userEvent.click(screen.getByRole('button', { name: 'Brush size 1' }))
     expect(screen.getByRole('spinbutton', { name: 'Brush size' })).toBeInTheDocument()
+  })
+
+  it('zooms with − and + and says how far in it is; Fit puts the whole level back in view', async () => {
+    measuredAt(560, 336)
+    await mount()
+    const zoom = (): HTMLElement => screen.getByRole('status', { name: 'Zoom' })
+    expect(zoom()).toHaveTextContent('100%')
+    await userEvent.click(screen.getByRole('button', { name: 'Zoom in' }))
+    expect(zoom()).toHaveTextContent('125%')
+    expect(canvas().dataset.camera?.endsWith(',1.25')).toBe(true)
+    await userEvent.click(screen.getByRole('button', { name: 'Zoom out' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Zoom out' }))
+    expect(zoom()).toHaveTextContent('80%')
+    await userEvent.click(screen.getByRole('button', { name: 'Fit the level in view' }))
+    expect(zoom()).toHaveTextContent('100%')
   })
 
   it('fits the level in the canvas once it is measured', async () => {
@@ -337,12 +363,33 @@ describe('Level view: shortcuts (§12)', () => {
       expect(canvas()).toHaveAttribute('data-tool', tool)
     }
     // The size button says the size; the stepper behind it is the same number.
-    const size = (): number => Number(screen.getByRole('button', { name: /^Brush size/ }).textContent?.trim())
+    const size = (): number => Number(screen.getByRole('status', { name: 'Brush size' }).textContent?.trim())
     const before = size()
     await userEvent.keyboard(']')
     expect(size()).toBe(before + 1)
     await userEvent.keyboard('[[')
     expect(size()).toBe(before)
+  })
+
+  it('the number keys choose what to paint with: 2 is the palette’s second row, and a tile layer has none', async () => {
+    await mount()
+    expect(screen.getByRole('radio', { name: 'Checkpoint' })).toHaveAttribute('aria-checked', 'true')
+    await userEvent.keyboard('2')
+    expect(screen.getByRole('radio', { name: 'Coin' })).toHaveAttribute('aria-checked', 'true')
+    // Each row says its key at its right edge.
+    expect(screen.getByRole('radio', { name: 'Coin' })).toHaveTextContent('2')
+    // Collision's values are numbered too; a tileset's hundred tiles are not, so the key does nothing there.
+    await userEvent.click(within(layers()).getByText('Collision'))
+    await userEvent.keyboard('3')
+    expect(screen.getByRole('radio', { name: 'Spike' })).toHaveAttribute('aria-checked', 'true')
+    await userEvent.click(within(layers()).getByText('Decor'))
+    const chosen = (): (string | null)[] =>
+      within(screen.getByRole('radiogroup', { name: /Paint with/ }))
+        .getAllByRole('radio', { checked: true })
+        .map((radio) => radio.getAttribute('aria-label'))
+    const before = chosen()
+    await userEvent.keyboard('2')
+    expect(chosen()).toEqual(before)
   })
 
   it('arrows nudge from the canvas, Mod+D duplicates and Delete deletes, each one undo step', async () => {

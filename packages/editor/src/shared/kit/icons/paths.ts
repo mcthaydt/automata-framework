@@ -1,5 +1,5 @@
 /*
- * The editor's icons: 32 drawings from Lucide (lucide-static 0.460.0), copied as the shapes inside each
+ * The editor's icons: 33 drawings from Lucide (lucide-static 0.460.0), copied as the shapes inside each
  * 24 x 24 svg (tag and attributes), so the kit needs no icon dependency. Icon.svelte draws each with a 2 px round stroke in
  * currentColor. To add one, copy the elements inside the <svg> of icons/<lucide-name>.svg into a new entry
  * here as [tag, attributes] pairs, under the name the editor uses for it, and record it in docs/provenance/sources.md.
@@ -124,6 +124,7 @@ export const ICONS = {
     ['path', { d: 'M5 12h14' }],
     ['path', { d: 'M12 5v14' }],
   ],
+  minus: [['path', { d: 'M5 12h14' }]],
   // trash-2
   trash: [
     ['path', { d: 'M3 6h18' }],

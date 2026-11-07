@@ -336,4 +336,18 @@ describe('DocumentScreen: Share', () => {
     await mountLevel()
     expect(screen.queryByRole('button', { name: 'Share' })).toBeNull()
   })
+
+  // The approved mockups: in browser storage the level leaves by Share, so Share is the one primary button, with its
+  // word beside the icon; on a game folder Save writes the game, so Save is the primary and there is no Share.
+  it('makes Share the primary action in browser storage and Save the plain one', async () => {
+    await mountLevel([1194, 834], { share: true })
+    expect(screen.getByRole('button', { name: 'Share' })).toHaveAttribute('data-kind', 'primary')
+    expect(screen.getByRole('button', { name: 'Share' })).toHaveTextContent('Share')
+    expect(screen.getByTestId('save')).toHaveAttribute('data-kind', 'plain')
+  })
+
+  it('keeps Save the primary action on a game folder', async () => {
+    await mountLevel()
+    expect(screen.getByTestId('save')).toHaveAttribute('data-kind', 'primary')
+  })
 })

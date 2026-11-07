@@ -126,7 +126,7 @@ export const platformerTemplate: TemplateDef<Project> = {
       'platformer',
       {
         layers: [
-          { id: 'entities', label: 'Characters', kind: 'entities', grid: TILE, snap: true },
+          { id: 'entities', label: 'Characters and items', kind: 'entities', grid: TILE, snap: true },
           { id: 'decor', label: 'Decor', kind: 'tiles', grid: TILE, tileset: 'terrain', opacity: 1 },
           {
             id: 'ground',
