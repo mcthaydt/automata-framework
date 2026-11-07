@@ -53,6 +53,7 @@ pnpm build && node tooling/consumer-smoke/src/run.ts --from packs
 | Path | What it holds |
 |---|---|
 | `packages/` | The packages, published as `@automata/*` |
+| `extensions/` | Opt-in extras, each `@automata/<name>`: physics, feel, audio-synth, debug, puzzle, online play (net, net-ui, net-server), ready-made screens (ui-screens) and the level, story and scene tools (sectors, nav, systems, narrative, cutscenes, pipelines). A game adds the ones it wants; core never imports one |
 | `games/` | Emberwick (2D) and the 3D game |
 | `examples/` | One file per feature ([`examples/README.md`](examples/README.md)) |
 | `tooling/` | Repository checks: boundaries, style, versions, release, consumer smoke and repo hygiene |

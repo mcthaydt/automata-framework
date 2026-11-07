@@ -20,7 +20,7 @@ export interface Header {
   readonly packages: readonly string[]
   /** One to four stars. */
   readonly difficulty: 1 | 2 | 3 | 4
-  readonly tier: 'core' | 'plus'
+  readonly tier: 'core' | 'extension'
   readonly host?: HostSettings
   /** Ticks the parity test replays. */
   readonly golden?: number
@@ -120,11 +120,11 @@ export function parseHeader(source: string): Header | HeaderError[] {
     })
 
   const tierField = fields.get('Tier')
-  if (tierField?.text && tierField.text !== 'core' && tierField.text !== 'plus')
+  if (tierField?.text && tierField.text !== 'core' && tierField.text !== 'extension')
     errors.push({
       line: tierField.line,
       field: 'Tier',
-      message: `Tier: must be core or plus, got "${tierField.text}"`,
+      message: `Tier: must be core or extension, got "${tierField.text}"`,
     })
 
   const goldenField = fields.get('Golden')

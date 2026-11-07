@@ -60,6 +60,14 @@ export const STACK: StackSource = {
       adds: '`@automata/content` validates the parsed TOML with Zod, reports `file:line:col` diagnostics, writes canonical JSON with a content hash, generates TypeScript types, the locale keys and Ruken manifest fields, and runs as a Vite plugin with watch mode.',
     },
     {
+      library: 'Rapier',
+      tier: 'Extension',
+      packages: ['@dimforge/rapier2d-deterministic-compat', '@dimforge/rapier3d-deterministic-compat'],
+      does: '2D and 3D physics inside the sim, for games that add the `@automata/physics` extension. A sim plugin creates the Rapier world, so a game that does not ask for physics never loads it.',
+      why: "Rapier's deterministic build gives the same results in Node, Chromium, WebKit and Firefox, which the sim's replays and goldens need. The 2D and 3D worlds come from one release, so they move together.",
+      adds: '`@automata/physics/2d` and `@automata/physics/3d`: a sim plugin for each, transform, rigid-body and collider components, collision-started and collision-ended events, and spawn helpers. Game code never imports Rapier.',
+    },
+    {
       library: 'Ruken SDK',
       tier: 'Core',
       packages: ['@ruken/sdk', '@ruken/sdk-host', '@ruken/manifest', '@ruken/cli'],

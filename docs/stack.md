@@ -14,6 +14,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 | [Svelte 5](#svelte-5) | Core | `svelte` 5.57.1 | MIT |
 | [Paraglide](#paraglide) | Core | `@inlang/paraglide-js` 2.25.4 | MIT |
 | [smol-toml](#smol-toml) | Core | `smol-toml` 1.9.0 | BSD-3-Clause |
+| [Rapier](#rapier) | Extension | `@dimforge/rapier2d-deterministic-compat` 0.21.0; `@dimforge/rapier3d-deterministic-compat` 0.21.0 | Apache-2.0 |
 | [Ruken SDK](#ruken-sdk) | Core | `@ruken/sdk` 0.0.0; `@ruken/sdk-host` 0.0.0; `@ruken/manifest` 0.0.0; `@ruken/cli` 0.0.0 | MIT |
 | [Vite, Vitest, Playwright](#vite-vitest-playwright) | Core | `vite` 8.3.3; `vitest` 5.0.3; `@playwright/test` 1.63.0 | MIT; Apache-2.0 |
 
@@ -82,6 +83,18 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 - **What it does in AF:** Parses the TOML files under a game's `content/`.
 - **Why it was chosen:** A small, spec-complete TOML 1.0 parser with no dependencies, proven in a content compiler before AF.
 - **What AF adds on top:** `@automata/content` validates the parsed TOML with Zod, reports `file:line:col` diagnostics, writes canonical JSON with a content hash, generates TypeScript types, the locale keys and Ruken manifest fields, and runs as a Vite plugin with watch mode.
+
+## Rapier
+
+| Package | Version | License |
+|---|---|---|
+| `@dimforge/rapier2d-deterministic-compat` | 0.21.0 | Apache-2.0 |
+| `@dimforge/rapier3d-deterministic-compat` | 0.21.0 | Apache-2.0 |
+
+- **Tier:** Extension
+- **What it does in AF:** 2D and 3D physics inside the sim, for games that add the `@automata/physics` extension. A sim plugin creates the Rapier world, so a game that does not ask for physics never loads it.
+- **Why it was chosen:** Rapier's deterministic build gives the same results in Node, Chromium, WebKit and Firefox, which the sim's replays and goldens need. The 2D and 3D worlds come from one release, so they move together.
+- **What AF adds on top:** `@automata/physics/2d` and `@automata/physics/3d`: a sim plugin for each, transform, rigid-body and collider components, collision-started and collision-ended events, and spawn helpers. Game code never imports Rapier.
 
 ## Ruken SDK
 

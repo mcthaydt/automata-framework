@@ -3,10 +3,12 @@ import { describe, expect, it } from 'vitest'
 import { type CatalogEntry, isUnpublishedExtension, readCatalog } from '#src/catalog.ts'
 
 const fixtures = fileURLToPath(new URL('../fixtures/catalog/', import.meta.url))
-// Stub manifests: the catalog's package rules do not depend on which packages the framework holds today (physics, the
-// one extension these fixtures name, is Automata Plus since PRODUCT.5g).
-const packagesDir = fileURLToPath(new URL('../fixtures/packages/', import.meta.url))
-const catalog = readCatalog(fixtures, { deliveryPlan: `${fixtures}delivery-plan.md`, packagesDir })
+// Stub manifests: the catalog's package rules do not depend on which packages the framework holds today. Physics,
+// the one extension these fixtures name, sits in its own folder, as extensions do beside `packages/`.
+const packagesDirs = ['packages', 'extensions'].map((dir) =>
+  fileURLToPath(new URL(`../fixtures/${dir}/`, import.meta.url)),
+)
+const catalog = readCatalog(fixtures, { deliveryPlan: `${fixtures}delivery-plan.md`, packagesDirs })
 const entry = (path: string): CatalogEntry => {
   const found = catalog.find((candidate) => candidate.path === path)
   if (found === undefined) throw new Error(`${path} is not in the catalog`)
@@ -78,9 +80,10 @@ describe('readCatalog', () => {
     })
   })
 
-  it("accepts an extension's published entry", () => {
+  it("accepts an extension's published entry, under the extension tier", () => {
     expect(entry('physics/physics-bodies.ts')).toMatchObject({
       problems: [],
+      header: { tier: 'extension' },
       imports: ['@automata/physics/2d'],
     })
   })
