@@ -1011,6 +1011,12 @@ thead th {
 .agent-install-layout > div {
   min-width: 0;
 }
+/* The upstream links stand alone under their steps, so each is a whole tap target (site visual audit M1). */
+.agent-install-layout > div > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
 .agent-install-layout .code-block {
   margin-block: 1rem;
 }
