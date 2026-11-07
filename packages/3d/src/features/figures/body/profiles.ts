@@ -4,12 +4,14 @@
 // instead of from `k * t` constants, so it clears any body the sliders make.
 //
 // Ported from FigureBuilder (mcthaydt/FigureBuilder) src/features/outfit/fit.ts at 025ffb4 (`TRAPEZIUS`, `fatten`,
-// `profiles`, `ringAt`), with AF's strict types; the numbers and their order are the source's.
+// `profiles`, `ringAt`, `girth`, `clearance`, `Body`, `bodyOf`; the density is the fixed FIGURE_PPM), with AF's strict types;
+// the numbers and their order are the source's.
 
 import { lerp } from '../../../shared/math/math.ts'
 import type { Measure } from './genes.ts'
 import { type Limb, profileAt, type Ring } from './limb.ts'
 import { J, type Side, type Skeleton } from './rig.ts'
+import { FIGURE_PPM } from './texels.ts'
 
 /** The trapezius's slope (rad): the body's shoulder line runs up it to the neck. */
 export const TRAPEZIUS = 0.6
@@ -178,3 +180,62 @@ const regionOf = (p: Profiles, region: Region, side: Side): Limb =>
 /** The body's ring at rest height `y` (the profile's own curves; clamped past its end keys). The side is ignored for the torso and the neck. */
 export const ringAt = (p: Profiles, region: Region, side: Side, y: number): Ring =>
   profileAt(regionOf(p, region, side), y)
+
+/**
+ * The widest the body is over `[y1, y0]` as a box round it, and that box's centre: the rings sampled every 4 mm (both
+ * ends included), `dx`/`dz` the middle of the extremes `dx ± rx` and `dz ± rz` over the span, `rx`/`rz` half their
+ * spread. So an ellipse of `rx`/`rz` at `dx`/`dz` holds the body at every height of the span, even where the profile's
+ * own centre drifts.
+ */
+export function girth(p: Profiles, region: Region, side: Side, y0: number, y1: number): Ring {
+  const hi = Math.max(y0, y1)
+  const lo = Math.min(y0, y1)
+  const n = Math.max(1, Math.ceil((hi - lo) / 0.004))
+  const limb = regionOf(p, region, side)
+  let xHi = Number.NEGATIVE_INFINITY
+  let xLo = Number.POSITIVE_INFINITY
+  let zHi = Number.NEGATIVE_INFINITY
+  let zLo = Number.POSITIVE_INFINITY
+  for (let i = 0; i <= n; i++) {
+    const r = profileAt(limb, lo + ((hi - lo) * i) / n)
+    const dx = r.dx ?? 0
+    const dz = r.dz ?? 0
+    xHi = Math.max(xHi, dx + r.rx)
+    xLo = Math.min(xLo, dx - r.rx)
+    zHi = Math.max(zHi, dz + r.rz)
+    zLo = Math.min(zLo, dz - r.rz)
+  }
+  return {
+    y: (hi + lo) / 2,
+    rx: (xHi - xLo) / 2,
+    rz: (zHi - zLo) / 2,
+    dx: (xHi + xLo) / 2,
+    dz: (zHi + zLo) / 2,
+  }
+}
+
+/** The clearance a garment keeps from the body: one texel at the figures' density (`ppm`), never under 4 mm at scale `k`. */
+export const clearance = (k: number, ppm: number = FIGURE_PPM): number => Math.max(0.004 * k, 1 / ppm)
+
+/**
+ * What a garment is given to size itself from the body (`Wearing.body`): the profiles, the body's ring at a height, its
+ * girth over a span, and the clearance to leave. A sleeve end, a cuff or a trouser-leg hem takes `girth(...)` plus
+ * `clear` and so clears any body the sliders make.
+ */
+export interface Body {
+  readonly profiles: Profiles
+  at(region: Region, side: Side, y: number): Ring
+  girth(region: Region, side: Side, y0: number, y1: number): Ring
+  readonly clear: number
+}
+
+/** The body query of a measure on a rig. */
+export function bodyOf(m: Measure, s: Skeleton): Body {
+  const p = profiles(m, s)
+  return {
+    profiles: p,
+    at: (region, side, y) => ringAt(p, region, side, y),
+    girth: (region, side, y0, y1) => girth(p, region, side, y0, y1),
+    clear: clearance(m.k),
+  }
+}

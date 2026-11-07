@@ -9,6 +9,7 @@
 
 import type { Measure } from '../../body/genes.ts'
 import { type Decal, GROUP, type Part } from '../../body/mesh.ts'
+import { type Body, bodyOf } from '../../body/profiles.ts'
 import { J, type Skeleton } from '../../body/rig.ts'
 import type { Anchor } from '../../figure/anchors.ts'
 import type { Garment } from '../../figure/garment.schema.ts'
@@ -69,9 +70,11 @@ export function dress(
   }
   const parts: Part[] = []
   const decals: Decal[] = []
+  const fit: Body = bodyOf(m, s)
   const d: Dressing = {
     m,
     s,
+    body: fit,
     garments,
     wardrobe,
     made,
@@ -95,7 +98,7 @@ export function dress(
   const fitOf = (name: string, item: Garment) => {
     const build = GARMENTS[name]?.build
     if (!build) throw new Error(`The garment called "${name}" has no way to be built`)
-    return build({ m, s, garments, made, worn: parts }, item)
+    return build({ m, s, garments, made, worn: parts, body: fit }, item)
   }
   for (const item of garments) {
     const kind = kindOf(item)
