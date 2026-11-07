@@ -33,13 +33,16 @@ const BEHIND = 0.06
 
 /**
  * Writes the hems' turn and shift into `pose`, from `world` (the pose's FK with the legs placed). "Fore and
- * aft" is along `line` (root space x, z; the line the feet run walking, M3.5c), forward when left out.
+ * aft" is along `line` (root space x, z; the line the feet run walking, M3.5c), forward when left out. `follow` (0 the
+ * hip's plumb, 1 the ankle) fixes how far the hem follows the ankle, for a figure whose knee is not over its foot: a
+ * seated one's hem rides the ankle all the way (1).
  */
 export function placeHems(
   s: Skeleton,
   pose: Pose,
   world: readonly M[],
   line?: readonly [number, number],
+  follow?: number,
 ): void {
   const g = s.genes
   const k = g.height / 1.62
@@ -51,12 +54,12 @@ export function placeHems(
     const hip = apply(toRoot, position(at(world, J[`thigh.${side}`])))
     const lift = Math.max(0, ankle[1] - g.ankle)
     const behind = line ? (hip[0] - ankle[0]) * line[0] + (hip[2] - ankle[2]) * line[1] : hip[2] - ankle[2]
-    const follow = lerp(PLANT, 1, Math.max(smooth(lift / (LIFT * k)), smooth(behind / (BEHIND * k))))
-    // Along the line the hem hangs `follow` of the way from the hip's plumb to the ankle; across it, at the ankle.
-    const back = line ? (1 - follow) * behind : 0
+    const along = follow ?? lerp(PLANT, 1, Math.max(smooth(lift / (LIFT * k)), smooth(behind / (BEHIND * k))))
+    // Along the line the hem hangs `along` of the way from the hip's plumb to the ankle; across it, at the ankle.
+    const back = line ? (1 - along) * behind : 0
     const place: V3 = line
       ? [ankle[0] + back * line[0], g.ankle + lift, ankle[2] + back * line[1]]
-      : [ankle[0], g.ankle + lift, lerp(hip[2], ankle[2], follow)]
+      : [ankle[0], g.ankle + lift, lerp(hip[2], ankle[2], along)]
     const local = mmul(invertRigid(at(world, J[`shin.${side}`])), mmul(rootM, compose(IDENTITY_Q, place)))
     pose.rot[hem] = matq(rotationOf(local))
     pose.shift[hem] = sub(position(local), at(s.offset, hem))

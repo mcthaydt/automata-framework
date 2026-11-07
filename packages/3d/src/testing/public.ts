@@ -5,6 +5,7 @@
 export { compileFixture, FIXTURE_ROOT } from './compile-fixture.ts'
 export { type Fingerprint, fingerprint } from './fingerprint.ts'
 export { type FixtureFigures, fixtureFigures } from './fixture-library.ts'
+export { KEEPER_SLIDERS, WICK_SLIDERS } from './fixture-sliders.ts'
 export { type FixtureMotion, fixtureMotion } from './fixture-motion.ts'
 export {
   expectMatchesGolden,

@@ -44,7 +44,7 @@ export {
   withSwatchDefaults,
 } from '../features/figures/figure/garment.schema.ts'
 export { type Made, variant } from '../features/figures/figure/materials.ts'
-export type { HairBuild, HairInput } from '../features/figures/hair/hair-parts.ts'
+export { type HairBuild, type HairInput, hairParts } from '../features/figures/hair/hair-parts.ts'
 export { type Scalp, shell } from '../features/figures/hair/shell.ts'
 export {
   alignY,
