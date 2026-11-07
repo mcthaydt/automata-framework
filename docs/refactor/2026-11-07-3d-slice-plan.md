@@ -32,10 +32,12 @@ behind it: the [audit](2026-11-07-3d-slice-audit.md).
   `packages/3d` has no Effect at all after phase 3.
 - Determinism is cross-engine: base-3d's golden replay hash never changes in this slice; a mismatch is investigated,
   never rebaselined.
-- Changesets: `patch` only; only published packages (`@automata/content`, `@automata/framework`, `@automata/tools`,
-  `create-game`). `@automata/3d` gets none until phase 20.
-- After changing a published package's exports or doc comments: `pnpm api-report --update`, `pnpm agent-skills
-  --write`, and `pnpm cheatsheet` when `api-index` says so.
+- Changesets: `patch` only; only published packages (the `fixed` group: `@automata/framework`, `@automata/content`,
+  `@automata/sim`, `@automata/tools`). `automata create-game` is a command of `@automata/tools`, not a package.
+  `@automata/3d` gets none until phase 20.
+- After changing a published package's exports or doc comments: `pnpm build`, then `pnpm api-report --update` and
+  `pnpm api-index --write` (it rewrites the cheatsheet and the agent package's API reference), and commit what they
+  write (AGENTS.md). There is no `pnpm cheatsheet` and `agent-skills` has no `--write`.
 - Files under `packages/*/src` stay at or under 600 lines; split by responsibility.
 - Every user-facing string changed goes in `docs/refactor/copy.md` ("3D editors" or "Base 3D"), old and new, and passes
   the drunk grandma test: could a drunk grandma tell what is happening and how to use it?
@@ -44,6 +46,8 @@ behind it: the [audit](2026-11-07-3d-slice-audit.md).
   `docs/provenance/sources.md`; no file outside `docs/` records names a source project or a plan ID.
 - Visual changes: expected, actual and diff images opened and every change explained in the PR; acceptance recorded
   under "Auto approve all visual acceptance too" (Owner, 2026-10-30).
+- `--features` holds for `packages/3d` from task 2.2 on: a feature imports only itself, `shared/` and packages; what
+  two features use is `shared/`; `app/` composes. A new file that would import another feature goes in `app/` (spec 7).
 - Cloud sessions run Chromium only; a WebKit or Firefox step is ticked "Chromium here; WebKit/Firefox on the Owner's
   `pnpm ci:local` or hosted CI", and the progress row says which engines ran. editor-3d's browser runs use
   `--project 'layout (chromium)' --project canvas`.
@@ -81,7 +85,7 @@ Clone both at the recorded commits beside the checkout: `git clone https://githu
 ../FigureBuilder` and `…/environmentbuilder ../EnvironmentBuilder`; `git -C ../FigureBuilder checkout 025ffb4` and
 `git -C ../EnvironmentBuilder checkout 6d82a52`. Tools used below: the module mover `node
 tooling/codemods/src/move-modules-cli.ts --map <map> [--dry-run]`; the test mover `node tooling/codemods/src/cli.ts
-<package> --environment node|jsdom [--keep-qualifier <q>] [--dry-run]`.
+<package> --environment node|jsdom [--browser-folders] [--feature-folders] [--keep-qualifier <test file>] [--dry-run]`.
 
 ---
 
@@ -94,7 +98,8 @@ tooling/codemods/src/move-modules-cli.ts --map <map> [--dry-run]`; the test move
 **Files:**
 - Modify: `package.json` (`check` runs `pnpm test:unit` in place of `pnpm test:unit:2d`; `ci:local` adds
   `pnpm test:browser:3d`, `pnpm test:journeys:3d`, `pnpm test:e2e --filter @af-games/base-3d --filter
-  @af-examples/examples-3d`), `.github/workflows/ci.yml:113` (`pnpm test:unit`), `AGENTS.md` (the gate line),
+  @af-examples/examples-3d`), `.github/workflows/ci.yml:113` (`pnpm test:unit`), `AGENTS.md` (the "2D gate" line under Packages and features: the
+  gate runs every unit test, and `3d.yml` runs the 3D browser suites and journeys),
   `docs/status.md`
 - Test: `tooling/repo-hygiene/tests/unit/gate-scripts.test.ts`
 
@@ -168,7 +173,8 @@ it('browser runs use two at a time and a 90 s hook timeout', () => {
 **Files:**
 - Modify: `packages/editor-3d/src/ui/document/ErrorPanel.svelte`, its dialog caller,
   `packages/editor-3d/src/ui/document/open-flows.layout.test.ts`
-- Create test: `packages/editor-3d/src/ui/document/error-panel.dom.test.ts` (moves to `tests/` in task 14.1)
+- Test: `packages/editor-3d/src/ui/document/ErrorPanel.dom.test.ts` (exists; the new case goes in it; it moves to
+  `tests/` in task 14.1)
 
 **Interfaces:**
 - Produces: `ErrorPanel` prop `inDialog?: boolean` (default `false`).
@@ -216,15 +222,20 @@ it('fits the room inside the area the sheet and tools leave', () => {
 ### Task 1.5: Every action whole and uncovered (spec 5; audit note 17)
 
 **Files:**
-- Modify: `packages/automata/src/testing/layout/assertions.ts` (add `findCovered`),
-  `packages/automata/src/testing/ui/layout-contract.ts` (`checkLayout` adds the bar selector to `findClipped` and calls
-  `findCovered`), `packages/automata/src/entries/testing-fixtures.ts` (export `findCovered`), regions in
+- Modify: `packages/automata/src/testing/layout/assertions.ts` (add `findCutByBar` and `findCovered`),
+  `packages/automata/src/testing/ui/layout-contract.ts` (`checkLayout` calls both with `BAR_ACTIONS`), `packages/automata/src/entries/testing-fixtures.ts` (export `findCovered`), regions in
   `packages/editor` and `packages/editor-3d` that lack `data-region`
 - Test: `packages/automata/tests/browser/ui/actions-inside.test.ts`
 
 **Interfaces:**
-- Consumes: `findClipped(root: ParentNode, selector: string): string[]` (exists).
-- Produces: `findCovered(root: ParentNode, selector: string): string[]`; `BAR_ACTIONS =
+- Consumes: `visibleControls`, `nameOf` and `findCoveredCorners`' rule for what may cover a control (a modal dialog,
+  which makes the page inert, and an ErrorPanel that had to rise) from the same files. `findClipped` is not the tool:
+  it measures a node's own vertical overflow (`scrollHeight > clientHeight`), so a button its bar cuts across is never
+  seen by it.
+- Produces: `findCutByBar(root: ParentNode, selector: string): string[]` (a control whose box runs past the box of an
+  ancestor that clips its overflow and is not a declared scroll region); `findCovered(root: ParentNode, selector:
+  string): string[]` (`elementFromPoint` at the control's centre is not the control or inside it, with the same
+  exceptions as `findCoveredCorners`); `BAR_ACTIONS =
   '[data-region=topbar] :is(button,a,[role=tab],[role=menuitem]), [data-region=rail] :is(…), [data-region=panel]
   :is(…), [data-region=dock] :is(…), [data-region=tools] :is(…)'`.
 
@@ -236,6 +247,10 @@ it('reports a bar button its bar clips', () => {
     <button style="flex:none;width:100px">Back</button><button style="flex:none;width:80px">Publish</button></div>`)
   expect(checkLayout(phone, [])).toContainEqual(expect.stringContaining('Publish'))
 })
+it('lets a modal dialog cover the bar', () => {
+  mount(`<div data-region="topbar"><button>Save</button></div><dialog open aria-modal="true" style="position:fixed;inset:0"></dialog>`)
+  expect(findCovered(document.body, BAR_ACTIONS)).toEqual([])
+})
 it('reports a bar button another element covers', () => {
   mount(`<div data-region="topbar"><button>Save</button></div><div style="position:fixed;inset:0"></div>`)
   expect(findCovered(document.body, BAR_ACTIONS)).toEqual([expect.stringContaining('Save')])
@@ -246,8 +261,8 @@ it('reports a bar button another element covers', () => {
 - [ ] **Step 4: Run** both editors' layout suites in Chromium: only the Studio's phone portrait fails (Publish, T5);
   mark it `.fails` with the comment "Publish is clipped on a phone until the Characters redesign"; any other failure
   is fixed here.
-- [ ] **Step 5:** API report, agent skills, changeset `patch` for `@automata/framework`. **Commit**
-  `test(layout): every action in a bar is whole and uncovered`
+- [ ] **Step 5:** `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write`; changeset `patch` for
+  `@automata/framework`. **Commit** `test(layout): every action in a bar is whole and uncovered`
 
 ### Task 1.6: The 3D editor's journeys in Chromium
 
@@ -305,34 +320,44 @@ it('removes files a compile no longer makes', async () => { /* drop a message; i
   `tooling/release/tests/unit/private-build.test.ts`, `site/playground/build.ts`,
   `site/playground/src/playground-resources.ts`, `packages/tools/src/shared/ship/prepare/pixi3d-markers.ts`,
   `packages/automata/src/app/define-game.ts` (comment), `agents/automata` API reference, `docs/{README,status,versions}.md`,
-  `docs/adr/0002-*.md`, `vendor/pixi-3d/README.md`, `AGENTS.md` (the `render-pixi3d` rules become `@automata/3d`'s; the
-  game-layout line says games use `--features` layout like Emberwick), root `package.json` (`boundaries` sim list,
+  `docs/adr/0002-*.md`, `vendor/pixi-3d/README.md`, root `package.json` (`boundaries` sim list,
   `--forbid packages/editor:@pixi/3d,@automata/editor-3d,@automata/3d`, the `:3d` filters name `./packages/3d`),
-  `knip.json`, `turbo.json`, `.github/workflows/3d.yml`
+  and every `!./packages/{render-pixi3d,figures,sector-format}` filter of `test:unit:2d`, `test:browser:2d` and
+  `test:browser:affected`, `knip.jsonc`, `turbo.json`, `.github/workflows/3d.yml`, `.gitleaks.toml`,
+  `.vscode/settings.json`, `site/tests/unit/playground/runtime/playground-{catalog,resources}.test.ts`,
+  `tooling/repo-hygiene/tests/unit/secret-scan.test.ts` (each names a moved path; `git grep -l -E
+  "render-pixi3d|sector-format|automata/figures"` is empty outside `docs/` records afterwards)
 
 The map (every source file appears once; spec 7's tree):
+
+The map is drawn from today's imports, so `--features` holds after it (stage 3 audit): the render views import the
+light, the model loader imports the shared material, and the figure view, the camera driver and the occluders import
+the render views, so those three folders are `shared/render/`; the occluders import the camera nine times, so they are
+the camera's; `create-pixi3d-renderer.ts` imports the camera, the occluders, the light and the models, so it is `app/`.
 
 | From | To |
 |---|---|
 | `render-pixi3d/src/renderer/create-pixi3d-renderer.ts` | `3d/src/app/create-renderer.ts` |
 | `render-pixi3d/src/render3d.extension.ts`, `figures/src/figures.extension.ts` | `3d/src/app/` |
-| `render-pixi3d/src/{renderer,model,bundle}/*`, `views/*` (box, mesh, pose-3d, shared material, view-3d) | `features/renderer/` |
-| `render-pixi3d/src/camera/*`, `camera-view.ts` | `features/camera/` |
+| `render-pixi3d/src/index.ts`, `camera-view.ts`, `no-eval.ts`; `figures/src/index.ts`; `sector-format/src/index.ts` | `3d/src/entries/{index,camera-view,no-eval,figures,level}.ts` (only re-exports) |
+| `render-pixi3d/src/renderer/context-loss.ts`, `no-eval/*`, `bundle/testing/*` | `features/renderer/` (`bundle/testing` to `testing/bundle/`) |
+| `render-pixi3d/src/{views,model,light}/*` | `shared/render/{views,model,light}/` |
+| `render-pixi3d/src/camera/*` | `features/camera/` |
+| `render-pixi3d/src/occluders/*` (with `occluders/testing`) | `features/camera/occluders/` |
 | `render-pixi3d/src/sim/*` (camera heading: component, plugin, turn command and system, view schema, heading, stick mapper, view latch) | `features/camera/sim/` |
-| `render-pixi3d/src/{light,occluders}/*` | `features/look/{light,occluders}/` |
 | `render-pixi3d/src/figure/*` (meshes, colour, skin, joints, decals, view) | `features/figures/view/` |
-| `render-pixi3d/src/no-eval*` | `features/renderer/no-eval/` |
+| `render-pixi3d/src/{css,env}.d.ts` | `packages/3d/src/` (type declarations, no feature) |
 | `figures/src/{genes,parts,rig}` | `features/figures/body/` |
 | `figures/src/{motion,pose,solve}` | `features/figures/motion/` |
 | `figures/src/hair` | `features/figures/hair/` |
 | `figures/src/{garments,streetwear}` | `features/figures/outfit/` (streetwear leaves in task 6.5) |
-| `figures/src/{build,figure}` | `features/figures/figure/` |
+| `figures/src/{build,figure}` | `features/figures/figure/` (`garment.schema.ts`, `garment-defaults.ts`, `figure.schema.ts` among them) |
 | `figures/src/{clip,evaluate}` | `features/figures/clips/` (keys and eases go to `shared/timeline/` in task 6.3) |
 | `figures/src/{library,content}` | `features/figures/content/` |
 | `figures/src/math`, `render-pixi3d/src/parity` | `shared/math/`, `shared/parity/` |
 | `sector-format/src/*` | `shared/level/` |
 | `sector-format/blockout/*` | `shared/level/blockout/` (deleted in task 4.1) |
-| `*/src/testing/*` | `testing/` (`public.ts` re-exports what `./testing` published) |
+| `*/src/testing/*`, `*/src/*/testing/*` | `testing/` (`public.ts` re-exports what `./testing` published); `figures/src/testing/__goldens__/` and `fixtures/` are test data and go to `tests/fixtures/` in task 2.2 |
 
 **Interfaces:**
 - Produces: `@automata/3d` entries `.`, `./sim`, `./level`, `./figures`, `./camera-view`, `./no-eval`, `./testing`;
@@ -343,6 +368,7 @@ The map (every source file appears once; spec 7's tree):
 - [ ] **Step 2:** Write the map; `--dry-run` → no unresolved specifier, no clash. **Session break here if needed.**
 - [ ] **Step 3:** Run the mover; one import style (`.ts` specifiers; S9). The renderer's imports of the figures go
   through `app/compose-scene.ts` (`composeScene(renderer, figureViews, look)`), so no feature imports another.
+  AGENTS.md: rule 5's "The 3D renderer keeps Effect until the 3D phase" stays until task 3.1, which deletes it.
 - [ ] **Step 4:** `pnpm install`, `pnpm typecheck`, `pnpm test:unit:3d` → the counts of step 1. `pnpm boundaries`
   with `packages/3d/src/features/camera/sim packages/3d/src/shared/level packages/3d/src/entries/sim.ts` in the sim list.
 - [ ] **Step 5: Commit** `refactor(3d): one @automata/3d package from render-pixi3d, figures and sector-format`
@@ -354,8 +380,10 @@ The map (every source file appears once; spec 7's tree):
 - Modify: root `package.json` (`boundaries --features packages/3d`; `style --test-imports packages/3d`; the
   `--plan-comments` for `packages/3d` is added in task 10.1), `packages/3d/vitest.config.ts` (projects by folder)
 
-- [ ] **Step 1:** `node tooling/codemods/src/cli.ts packages/3d --environment node --keep-qualifier parity
-  --keep-qualifier bench --dry-run`, then for real. **Session break here if needed.**
+- [ ] **Step 1:** `node tooling/codemods/src/cli.ts packages/3d --environment node --browser-folders --feature-folders
+  --dry-run`, then for real (`--browser-folders` sorts `.parity`, `.layout`, `.canvas` and `.journey` tests into their
+  folders; `--keep-qualifier` takes a test file's path, only for a clash the dry run names). `__goldens__/` and the
+  content fixtures move to `tests/fixtures/` by hand in the same commit. **Session break here if needed.**
 - [ ] **Step 2:** `pnpm boundaries` → `--features packages/3d` finds 0 (a finding is fixed by moving the shared part to
   `shared/` or composing in `app/`, never by an exemption).
 - [ ] **Step 3:** `pnpm test:unit:3d` and `npx vitest run --project 'browsers (chromium)'` in `packages/3d` → parity
@@ -371,7 +399,7 @@ The map (every source file appears once; spec 7's tree):
 - Modify: the four source files that import `effect` (`app/create-renderer.ts`, `features/renderer/context-loss.ts`,
   `features/renderer/load-models.ts`, `testing/compile-fixture.ts`) and the five tests; `packages/3d/package.json` and
   `games/base-3d/package.json` (drop `effect`); `packages/automata/src/entries/testing.ts` (export `fakeClock`,
-  `FakeClock`)
+  `FakeClock`); `AGENTS.md` (rule 5 loses "The 3D renderer keeps Effect until the 3D phase")
 - Test: `packages/3d/tests/unit/no-effect.test.ts` (temporary), the rewritten renderer and context-loss tests
 
 **Interfaces:**
@@ -392,8 +420,8 @@ it('no 3D source imports effect', () => {
   `async`, time through `Clock`; tests use `fakeClock()`.
 - [ ] **Step 4: Run** unit and Chromium parity → PASS. Replace the grep test with `--forbid packages/3d:effect` and
   `--forbid games/base-3d:effect` in `boundaries`; delete the grep test.
-- [ ] **Step 5:** API report and agent skills for `@automata/framework`, changeset `patch`. **Commit**
-  `refactor(3d): the renderer without Effect`
+- [ ] **Step 5:** `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write` for `@automata/framework`,
+  changeset `patch`. **Commit** `refactor(3d): the renderer without Effect`
 
 ---
 
@@ -417,12 +445,18 @@ it('no 3D source imports effect', () => {
 
 **Files:**
 - Create: `packages/3d/scripts/record-goldens.ts`
-- Delete: `packages/3d/scripts/figurebuilder-{,action-,motion-}goldens.ts`
+- Delete: `packages/3d/scripts/figurebuilder-{,action-,motion-}goldens.ts` (they run the source's code from a checkout)
+- Move: `tests/fixtures/__goldens__/figurebuilder-{dress,actions,motion}.json` → `tests/fixtures/goldens/{dress,actions,
+  motion}.json`; `src/testing/figurebuilder-hand-on-hip.ts` → `src/testing/hand-on-hip.ts`; the readers
+  (`testing/golden-checks.ts`, `testing/motion-goldens.ts`, `clips/actions.test.ts`, `motion/hair-spring.test.ts`) and
+  their comments follow (no source name in a path or a comment)
 - Test: `packages/3d/tests/unit/goldens-fresh.test.ts`
 
 **Interfaces:**
 - Produces: `recordGoldens(outDir: string): Promise<string[]>` (the files written); CLI `node
-  packages/3d/scripts/record-goldens.ts [--out <dir>]`, default `tests/fixtures/goldens/`.
+  packages/3d/scripts/record-goldens.ts [--out <dir>]`, default `tests/fixtures/goldens/` (`GOLDENS`). From here on
+  the goldens are AF's record of its own behaviour; a port that moves them re-records them in a named commit with the
+  change explained (phase 6).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -473,7 +507,8 @@ it('step moves along a ramp and stops at its ends', () => {
 
 - [ ] **Step 2: Run, expect FAIL.** **Step 3:** DUEL in; record each content hash that moves.
 - [ ] **Step 4: Run** `pnpm --filter @automata/content test:unit` → PASS with the new hashes, each named in the commit.
-- [ ] **Step 5:** API report, agent skills, changeset `patch`. **Commit** `feat(content): DUEL is the default palette`
+- [ ] **Step 5:** `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write`, changeset `patch`. **Commit**
+  `feat(content): DUEL is the default palette`
 
 ### Task 5.2: Emberwick, the theme, the examples and the editors' game art on DUEL
 
@@ -504,6 +539,7 @@ it('step moves along a ramp and stops at its ends', () => {
 
 **Files:**
 - Modify: `packages/3d/src/features/figures/content/swatch.schema.ts`, `features/figures/figure/materials.ts`,
+  `features/figures/content/swatch-colours.ts`,
   `features/figures/view/figure-colour.ts`, `packages/3d/src/testing/golden-checks.ts`,
   `games/base-3d/src/content/figure-swatches/*.toml`, `games/base-3d/src/views/index.ts`, `examples/3d/*`
 - Test: `packages/3d/tests/unit/figures/content/swatch.schema.test.ts`; goldens re-recorded with `record-goldens.ts`
@@ -535,8 +571,10 @@ pair (`base/base.ts`) is the fixture each port is checked on.
 - Test: `tooling/repo-hygiene/tests/unit/sources-md.test.ts`
 
 **Interfaces:**
-- Produces: `checkSources(md: string, manifest: Manifest): string[]` in `tooling/repo-hygiene/src/sources-md.ts`;
-  `--complete` makes a missing row an error (turned on in task 10.2).
+- Produces: `checkSources(md: string, manifest: Manifest, options?: { complete?: boolean }): string[]` in
+  `tooling/repo-hygiene/src/sources-md.ts`; CLI `tooling/repo-hygiene/src/sources-md-cli.ts [--complete]`, root script
+  `sources-md`, chained into `source-names` (`... source-names-cli.ts && node .../sources-md-cli.ts`); `--complete`
+  makes a missing row an error (turned on in task 10.2).
 
 - [ ] **Step 1: Write the failing tests**: `each builder section names a 40-character commit and the pull procedure`;
   `every row's AF path exists or says left out`; `with --complete, every manifest file has a row`. **Step 2:** FAIL.
@@ -554,24 +592,31 @@ pair (`base/base.ts`) is the fixture each port is checked on.
 - Test: `packages/3d/tests/unit/figures/body/*.test.ts`, `motion/*.test.ts`
 
 **Interfaces:**
-- Produces: genes gain `fat` (limbs, neck, jaw), `bust`, `seat`, `bodyAsymmetry`, `faceAsymmetry`, `eyeSize`,
-  `eyeSpacing`, `eyeTilt`, each `number` in `[0, 1]` with a default that keeps Wick's goldens; `naturalStand(m:
-  Measure): Pose`.
+- Produces: genes gain `bust`, `seat`, `eyeSize`, `eyeSpacing`, `eyeTilt` (default 0.5), `bodyAsymmetry` and
+  `faceAsymmetry` (FigureBuilder's `asymmetry`; default 0), each `number` in `[0, 1]`, each a no-op at its default;
+  the existing `fat` (default 0.4) takes FigureBuilder's newer reading (the limbs, the neck and the jaw swell; every
+  multiplier 1 at fat 0); `naturalStand(m: Measure): Pose`, the stand of a figure that names none (spec 8.2).
 
 - [ ] **Step 1: Port the tests, failing**, e.g.
 
 ```ts
-it('fat thickens the limb rings and leaves defaults unchanged', () => {
+it('fat thickens the limb rings, and fat 0 changes nothing', () => {
   expect(ringRadius(build(basePair.m, { fat: 1 }), 'thighL')).toBeGreaterThan(ringRadius(build(basePair.m), 'thighL'))
-  expect(build(wick)).toEqual(build(wick, DEFAULT_GENES_DELTA))
+  expect(build(basePair.m, { fat: 0 })).toEqual(buildBeforeThePort(basePair.m, { fat: 0 }))
+})
+it('each new gene at its default leaves the figure as it was', () => {
+  for (const [gene, value] of NEW_GENE_DEFAULTS) expect(build(wick, { [gene]: value })).toEqual(build(wick))
 })
 it('the natural stand puts the head over the shoulders', () => {
   expect(Math.abs(joint(naturalStand(m), 'head').x - joint(naturalStand(m), 'chest').x)).toBeLessThan(0.01)
 })
 ```
 
-- [ ] **Step 2:** FAIL. **Session break here if needed.** **Step 3:** port the code. **Step 4:** unit and AF goldens
-  (Wick unchanged) pass; every slider pushed to both ends builds (`sliders.test.ts`). **Step 5:** rows. **Commit**
+- [ ] **Step 2:** FAIL. **Session break here if needed.** **Step 3:** port the code. **Step 4:** unit tests pass;
+  every slider pushed to both ends builds (`sliders.test.ts`). The new `fat` moves Wick (fat 0.3) and the fixtures with
+  fat above 0: re-record with `record-goldens.ts` in its own commit, `test(3d): re-record the figure goldens for the
+  new fat`, with before and after contact sheets (`look-sheet.ts` once it lands; until then the parity images) opened
+  and explained in the PR. base-3d's replay hash does not move (the sim reads no mesh). **Step 5:** rows. **Commit**
   `feat(3d): the natural stand and the body and face sliders`
 
 ### Task 6.3: One timeline; lighting; actions as clips (spec 6, 8.3)
@@ -592,10 +637,13 @@ model), `src/features/paint/library/times.json`.
   `tests/unit/figures/clips/actions.test.ts`
 
 **Interfaces:**
-- Produces: `interface Key<V> { t: number; value: V; ease: Ease }`; `type Ease = 'linear' | 'step' | 'in' | 'out' |
-  'inOut' | 'smooth'` (AF's names; `hold` reads as `step`); `sample<V>(track: Track<V>, t: number, mix: Mix<V>): V`;
+- Produces: `interface Key<V> { t: number; value: V; ease?: Ease }` (no ease is linear); `type Ease = 'linear' |
+  'step' | 'in' | 'out' | 'inOut' | 'smooth' | readonly [number, number, number, number]` (AF's names and its CSS
+  cubic-bezier tuple, which today's clips use, plus `smooth`; `hold` reads as `step`, and a source key's `v` as
+  `value`); a clip's content keys stay `{ t, pose, ease? }` and compile to `Key<Pose>`; `sample<V>(track: Track<V>, t: number, mix: Mix<V>): V`;
   `compileAction(action: FigureAction): Clip`; `TimeOfDay { name; scene: { light, haze, grade }; figure: { key, fill,
-  bounce } }` and `timeOfDay(name: string, overrides?): TimeOfDay`.
+  bounce }; label: string }` (the editor's words: Day, Golden hour, Dusk, Night, Lamplight, Bar light) and
+  `timeOfDay(name: string, overrides?): TimeOfDay`.
 
 - [ ] **Step 1: Write the failing tests** (both sources' cases):
 
@@ -609,6 +657,7 @@ it('a frame at t is the same drawn alone', () => {
   expect(sample(tr, 1.3, mixNumber)).toBe(sampleFresh(tr, 1.3))
 })
 it('reads hold as step', () => expect(parseEase('hold')).toBe('step'))
+it('keeps a cubic-bezier ease', () => expect(parseEase([0.4, 0, 0.2, 1])).toEqual([0.4, 0, 0.2, 1]))
 it('merges the six times of day', () => {
   expect(TIMES.map((t) => t.name)).toEqual(['day', 'golden', 'dusk', 'night', 'lampLit', 'bar'])
   expect(timeOfDay('dusk').figure.key).toBeDefined()
@@ -647,7 +696,8 @@ it('refuses a second registration of a name', () => {
   expect(() => registerGarment('cape', otherCape)).toThrow('A garment called "cape" is already registered')
 })
 it('core registers only the classic set', () => {
-  expect(registeredGarments()).toEqual(['cap', 'cape', 'shoes', 'trousers'])
+  expect(registeredGarments()).toEqual(['apron', 'belt', 'cap', 'cape', 'coat', 'eyes', 'gloves', 'hair', 'legs',
+    'mark', 'shoes', 'skirt', 'top', 'trousers', 'waistcoat'])
 })
 it('a cuff hugs the arm at every slider end', () => {
   for (const m of sliderEnds(basePair.m)) expect(cuffRadius(m) - girth(m, 'wristL')).toBeCloseTo(TEXEL, 5)
@@ -663,8 +713,8 @@ it('a cuff hugs the arm at every slider end', () => {
 
 **Files:**
 - Move: `packages/3d/src/features/figures/outfit/streetwear/` → `examples/3d/wardrobe/`, with `wardrobe.extension.ts`
-- Modify: `features/figures/content/garment.schema.ts`, `garment-defaults.ts`, `swatch.schema.ts`, `outfit/classic.ts`
-  (no streetwear types), `examples/3d/figures/figures-outfits-items.ts`, `examples/3d/package.json` (`test:unit`),
+- Modify: `features/figures/figure/garment.schema.ts`, `features/figures/figure/garment-defaults.ts`,
+  `features/figures/content/swatch.schema.ts`, `features/figures/outfit/classic.ts` (no streetwear types), `examples/3d/figures/figures-outfits-items.ts`, `examples/3d/package.json` (`test:unit`),
   create `examples/3d/vitest.config.ts`
 - Test: `examples/3d/tests/unit/wardrobe.test.ts`; streetwear goldens move to the example
 
@@ -697,8 +747,10 @@ Ports from `../EnvironmentBuilder` at `6d82a52`, with `sources.md` rows.
   `convert-builder-maps.test.ts`; base-3d's golden replay
 
 **Interfaces:**
-- Produces: `type AfSector2` and `afSector2Schema`; `readLevel(json: unknown): { level: AfSector2; migrated: boolean;
-  problems: Problem[] }`; `migrateAfSector1(level: AfSector): AfSector2`; `simLevel(level: AfSector2): SimLevel`
+- Produces: `interface LevelProblem extends Problem { where: string; name?: string }` in
+  `shared/level/problem.ts` (`Problem` is `@automata/content`'s `{ path, code, message }`, so `automata check` places it
+  in its file); `type AfSector2` and `afSector2Schema`; `readLevel(json: unknown): { level: AfSector2; migrated:
+  boolean; problems: LevelProblem[] }`; `migrateAfSector1(level: AfSector): AfSector2`; `simLevel(level: AfSector2): SimLevel`
   (what the sim reads, from `@automata/3d/sim`); `convertBuilderMap(plan: unknown): AfSector2`.
 
 - [ ] **Step 1: Write the failing tests**
@@ -717,7 +769,7 @@ it('reads a bare-number floor as a plane', () => {
 it("reads a wall's texture as its surface", () => { /* /1 texture → /2 surface */ })
 it('says when a level was migrated', () => expect(readLevel(v1Room).migrated).toBe(true))
 it('converts a builder map: rect sectors to corners, sprites to props and cast', () => {
-  const two = convertBuilderMap(builderMap('apartment-small'))
+  const two = convertBuilderMap(builderMap('bedroom')) // maps.json: bedroom, neonBar, streetNight, forestClearing, signs
   expect(two.sectors[0].corners).toHaveLength(4); expect(two.props?.length).toBeGreaterThan(0)
 })
 ```
@@ -732,8 +784,10 @@ it('converts a builder map: rect sectors to corners, sprites to props and cast',
 `src/lib/{geometry,rng}.ts`.
 
 **Files:**
-- Create: `packages/3d/src/features/world/{build,sectors,mesh,subdivide,surface,swatches}.ts`
-- Modify: `features/renderer/` (draws world pieces: `world-pieces.ts`), `games/base-3d/src/content/levels/sector-area.ts`
+- Create: `packages/3d/src/features/world/{build,sectors,mesh,subdivide,surface,swatches}.ts`,
+  `packages/3d/src/shared/math/geometry.ts` (EnvironmentBuilder `lib/geometry.ts`), `packages/3d/src/app/world-view.ts`
+  (draws the pieces; in `app/` because it reads the world's pieces and the renderer's views)
+- Modify: `games/base-3d/src/content/levels/sector-area.ts`
   (box room → world pieces; deleted if nothing else reads it), `packages/editor-3d/src/view/mesh/sector-mesh.ts`
   (replaced by the world builder), `app/compose-scene.ts`
 - Test: ported `tests/unit/world/{build,mesh,subdivide,surface}.test.ts`; render parity for base-3d's room re-recorded
@@ -742,9 +796,9 @@ it('converts a builder map: rect sectors to corners, sprites to props and cast',
 **Interfaces:**
 - Consumes: `AfSector2` (task 7.1); `createRng(seed)` from `@automata/sim` (EnvironmentBuilder's `lib/rng.ts` is not
   ported).
-- Produces: `buildWorld(level: AfSector2, library: WorldLibrary): { pieces: WorldPiece[]; problems: Problem[] }`;
+- Produces: `buildWorld(level: AfSector2, library: WorldLibrary): { pieces: WorldPiece[]; problems: LevelProblem[] }`;
   `interface WorldPiece { id: string; sector: string; part: 'floor' | 'ceiling' | 'wall' | 'decor' | 'prop' | 'lamp';
-  mesh: MeshData; surface: Surface }`; `drawWorld(scene, pieces): WorldView` in `features/renderer/world-pieces.ts`.
+  mesh: MeshData; surface: Surface }`; `drawWorld(scene, pieces): WorldView` in `app/world-view.ts`.
 
 - [ ] **Step 1: Write the failing tests** (the source's cases, plus):
 
@@ -813,12 +867,12 @@ it('apartment@1 and block@1 generate valid /2 levels', () => {
 
 **Files:**
 - Create: `packages/3d/src/features/stage/{stage-script.schema.ts,stage.content.ts,scene-state.ts,director.ts,
-  sequence.ts}`, `features/renderer/update-pieces.ts`
+  sequence.ts}`, `app/update-pieces.ts` (in `app/`: it reads the stage's state and the world's view)
 - Modify: `app/compose-scene.ts` (gives the director `startClip`)
 - Test: `tests/unit/stage/*.test.ts`
 
 **Interfaces:**
-- Consumes: `Track`, `sample` (task 6.3); `WorldPiece` ids (task 7.2).
+- Consumes: `Track`, `sample` (task 6.3); piece ids as plain strings (the stage imports nothing from `world/`).
 - Produces: `createDirector(script: StageScript, startClip: (who: string, clip: string, atTick: number) => void):
   Director`; `Director.stateAt(t: number): SceneState`; `SceneState { camera; doors: Record<string, number>; lamps:
   Record<string, LampState>; time: string; grade: string; props: Record<string, PropState> }`;
@@ -875,7 +929,8 @@ with Wick), `docs/adr/0007-3d-look.md`.
 
 **Interfaces:**
 - Consumes: `DEFAULT_PALETTE`, `step` (task 5.1); `timeOfDay` (task 6.3).
-- Produces: `Look { pixel: { width: 320; height: 180 }; steps: number; outline: boolean; dither: boolean; grade: string;
+- Produces: `targetSize(stage: { width: number; height: number }): { width: number; height: number }` (short side 180,
+  long side rounded from the stage's aspect); `Look { pixel: { short: 180 }; steps: number; outline: boolean; dither: boolean; grade: string;
   switches: Record<'outline' | 'sky' | 'stars' | 'rain' | 'bloom' | 'grade' | 'dither', boolean> }`;
   `createLookPasses(look: Look, time: TimeOfDay): LookPasses`; `spriteLight(figure, time): SpriteLight`;
   `paintReference(scene, camera, look): Uint8Array` (palette indices; test-only).
@@ -890,6 +945,11 @@ it('ramp light moves a colour in whole steps along its ramp', () => {
   expect(rampLit(3 * 8 + 4, 0.5, look)).toBe(step(3 * 8 + 4, -2))
 })
 it('sprite light gives a flat light at the chest, a one-step form and a rim', () => { /* … */ })
+it('the low-resolution target keeps its short side at 180 and follows the stage', () => {
+  expect(targetSize({ width: 1280, height: 720 })).toEqual({ width: 320, height: 180 })
+  expect(targetSize({ width: 390, height: 844 })).toEqual({ width: 180, height: 390 })
+})
+// browser: after a context loss and restore, the target and the filters are rebuilt and the next frame draws
 // browser: WebGL2 and WebGPU agree; Pixi 3D and paintReference agree within 2 % of pixels off by one ramp step
 ```
 
@@ -956,7 +1016,7 @@ it('reports a stale tile', () => {
 - Test: `packages/3d/tests/unit/world/reads.test.ts`
 
 **Interfaces:**
-- Produces: `checkReads(level: AfSector2, library: WorldLibrary): Problem[]` (exported from `@automata/3d/level`).
+- Produces: `checkReads(level: AfSector2, library: WorldLibrary): LevelProblem[]` (exported from `@automata/3d/level`).
 
 - [ ] **Step 1: Write the failing tests**: `a swatch whose edge is under its minEdge is reported`; `a level whose room is too small for its
   declared minEdge is reported`. **Step 2:** FAIL. **Step 3:** implement. **Step 4:** PASS. Rows. **Commit**
@@ -975,10 +1035,12 @@ it('reports a stale tile', () => {
 - Test: `tooling/repo-hygiene/tests/unit/source-names.test.ts`
 
 **Interfaces:**
-- Produces: `findSourceNames(files: readonly string[], options: { code: readonly string[] }): Finding[]`.
+- Produces: `findSourceNames(root: string, options?: { code?: readonly string[] }): string[]` (today's signature and
+  finding format, `file:line: names a source project (entry N)`, kept; `code` adds those folders' files, and a file
+  whose path names a source is a finding at line 0).
 
 - [ ] **Step 1: Write the failing tests**: `a .ts file naming a source under a --code folder fails`; `one outside does
-  not`; `docs/provenance stays exempt`. **Step 2:** FAIL. **Step 3:** the option; rewrite the comments (what and why,
+  not`; `a file whose name names a source fails`; `docs/provenance stays exempt`. **Step 2:** FAIL. **Step 3:** the option; rewrite the comments (what and why,
   not where from). **Step 4:** `pnpm source-names` and `pnpm style` pass. The `--code` list grows: `packages/automata`,
   `content`, `tools`, `games/base-3d`, `examples/3d` in task 13.2; `packages/editor-3d`, `packages/editor` in 17.2, which
   replaces the list with every source folder. **Step 5: Commit** `refactor(3d): comments say what and why`
@@ -1015,8 +1077,9 @@ root `package.json` (`sources-md --complete` in `source-names`), `progress.md`.
 - Test: the moved tests; `tests/unit/editors-list.test.ts`
 
 **Interfaces:**
-- Produces: `content/editors.toml` rows `content/levels/*.af-sector.json` → `levels-3d`, `content/figures/*.toml` →
-  `studio`, `content/tuning.toml` → `tuner`, with `exports`, `gates` and `checks` as Emberwick's.
+- Produces: `content/editors.toml` (`format = "af-editors/1"`) rows `content/levels/*.af-sector.json` → `levels-3d`,
+  `content/figures/*.toml` → `studio`, `content/tuning.toml` → `tuner`, each `modes = ["edit"]`, `gates = []`,
+  `checks = ["content"]` as Emberwick's (the editor ids are the suite editors' own: `levels-3d`, `studio`, `tuner`).
 
 - [ ] **Step 1:** Record counts (unit 82, browser and layout 32, journeys 8, the replay hash). Dry run, then move.
 - [ ] **Step 2: Write the failing test** `the editor list parses and every glob matches a file`; FAIL; write
@@ -1078,8 +1141,9 @@ it('the room fills the stage on an iPad', async () => { expect(await roomBoxHeig
 
 **Files:**
 - Create: `packages/tools/src/shared/create-game/template-3d.ts`
-- Modify: `packages/tools/src/shared/create-game/` (the template list; `--help` lists `3d` only when `@automata/3d`
-  resolves: inside this repository or with `AF_BETA_3D=1`), `tooling/consumer-smoke` (a 3D stranger behind
+- Modify: `packages/tools/src/shared/create-game/` (`automata create-game` has one template today; it gains
+  `--template 2d|3d`, `2d` the default, and `--help` lists `3d` only when `@automata/3d` resolves: inside this
+  repository or with `AF_BETA_3D=1`), `tooling/consumer-smoke` (a 3D stranger behind
   `AF_BETA_3D=1`)
 - Test: `packages/tools/tests/unit/create-game/template-3d.test.ts`, the smoke
 
@@ -1088,9 +1152,10 @@ it('the room fills the stage on an iPad', async () => { expect(await roomBoxHeig
   layout, the content test with `checkReads`).
 
 - [ ] **Step 1: Write the failing tests**: `the 3D template's files pass automata check`; `without the 3D package it
-  says "3D games need a package that is not public yet." and exits 1`. **Step 2:** FAIL. **Step 3:** the template.
-  **Step 4:** PASS; the smoke passes with `AF_BETA_3D=1`. **Step 5:** changeset `patch` for `@automata/tools` and
-  `create-game`. **Commit** `feat(create-game): a 3D template`
+  says "3D games need a package that is not public yet. For now, make a 2D game: leave out --template." and exits
+  1`; `without --template it makes the 2D game it makes today`. **Step 2:** FAIL. **Step 3:** the template.
+  **Step 4:** PASS; the smoke passes with `AF_BETA_3D=1`. **Step 5:** changeset `patch` for `@automata/tools`.
+  **Commit** `feat(create-game): a 3D template`
 
 ## Phase 13: The command, docs, agents and budgets (PR `claude/3d-rest`)
 
@@ -1114,7 +1179,7 @@ it('the room fills the stage on an iPad', async () => { expect(await roomBoxHeig
 `examples/3d`; root `package.json` (`source-names --code` and `style --plan-comments` cover them).
 
 - [ ] **Step 1:** Add the folders to `--code`; run `pnpm source-names` → the findings (record the count). **Step 2:**
-  rewrite. **Step 3:** PASS; `pnpm api-index`, `pnpm agent-skills --write`, `pnpm cheatsheet` if stale. **Step 4:
+  rewrite. **Step 3:** PASS; `pnpm build`, `pnpm api-index --write` (the agent package's API reference and the cheatsheet), `pnpm agent-skills`. **Step 4:
   Commit** `docs: 3D in the guides and the agent package`
 
 ### Task 13.3: The 3D frame-budget projects (spec 6; audit note 15)
@@ -1122,13 +1187,18 @@ it('the room fills the stage on an iPad', async () => { expect(await roomBoxHeig
 **Files:**
 - Create: `tooling/frame-budget/stress/3d/{index.html,main.ts}` (Ember Hall's dressed room with Wick, every pass on, the
   camera turning)
-- Modify: `tooling/frame-budget/playwright.config.ts` (projects `frame-budget-3d-phone`, `frame-budget-3d-ipad` at
-  1194 × 834), `tooling/frame-budget/budget.json` (33 ms, 16.7 ms, the first pose 5 ms)
+- Modify: `tooling/frame-budget/src/playwright-run.ts` (`frameBudgetProjects` gains `frame-budget-3d-phone`, Pixel 7
+  as the phone project, and `frame-budget-3d-ipad` at 1194 × 834; `playwright.config.ts` only calls it),
+  `tooling/frame-budget/budget.json` (`projects` gains the two rows in its own shape, `{ workMsP95, intervalMsP95 }`:
+  33.3 and 33.3 for the phone, 16.7 and 16.7 for the iPad, the spec's targets until the Owner's GPU run replaces them;
+  the first pose's 5 ms is a separate `firstPoseMs` row checked by the stress page)
 - Test: `tooling/frame-budget/tests/unit/budget-3d.test.ts`
 
 - [ ] **Step 1: Write the failing tests**: `budget.json has the 3D rows`; `a software renderer skips with "Skipped:
   software renderer, no frame budget measured."`. **Step 2:** FAIL. **Step 3:** the page and projects. **Step 4:** PASS
-  here (skips); the GPU runner's run is the Owner's queue; the first pose is met or changed to the measured number in
+  here (skips). `pnpm budget:frame` fails closed (a budgeted project with no hardware result fails), so it stays red
+  for the 3D rows until the Owner's GPU run: say so in the PR and the progress row, never loosen the check; the GPU
+  runner's run is the Owner's queue; the first pose is met or changed to the measured number in
   spec 15. **Step 5:** Part B's done check. **Commit** `test(frame-budget): 3D budgets for the look`
 - [ ] **Step 6:** Merge part B's PRs in stack order once green. Part C starts after.
 
@@ -1141,14 +1211,38 @@ it('the room fills the stage on an iPad', async () => { expect(await roomBoxHeig
 ### Task 14.1: Feature folders and `tests/` (**session break** after the map)
 
 **Files:**
-- Create: `docs/refactor/move-map-editor-3d.json`: `ui/suite/studio/*` → `features/studio/`; `ui/{plan,walk,dollhouse,
-  inspector,definitions,document,home}`, `app/*-controller.ts`, `checks/`, `things/`, `entities/`, `model/` →
-  `features/levels-3d/<same name>/`; `view/*` → `features/levels-3d/{plan,walk,dollhouse}/`; `geometry/`, `codec/`,
-  `profile/` → `shared/{geometry,level-session}/`; `suite-main.ts`, `ui/suite/*` → `app/suite/`; `testing/` stays
-- Move: tests → `tests/{unit,dom,browser/{layout,canvas},journeys}` (`--keep-qualifier layout --keep-qualifier canvas
-  --keep-qualifier journey`)
+- Create: `docs/refactor/move-map-editor-3d.json`, every file once (after task 4.1 and 15.3's deletions; `ask-controller.ts`
+  stays where it is until 15.3 deletes it):
+
+| From | To |
+|---|---|
+| `ui/suite/studio/{studio-*.ts,ui/*,stage/*}` | `features/studio/` (`ui/` and `stage/` keep their names; `testing/` → `testing/studio/`) |
+| `ui/{plan,walk,dollhouse,inspector,definitions,document,home}/*` | `features/levels-3d/<same name>/` |
+| `ui/suite/{Levels3dInspector,Levels3dRegions,Levels3dStatus}.svelte`, `levels-3d-suite-editor.ts`, `plan-tools-of.ts`, `pointer.svelte.ts` | `features/levels-3d/` (Levels 3D's own, not the suite's) |
+| `app/{plan,sector,split,vertex,wall,merge}-*.ts`, `plan-picture.ts`, `plan-status.ts`, `tool-paint.ts`, `wall-place.ts`, `sector-id.ts`, `loupe*.ts` | `features/levels-3d/plan/` |
+| `app/{dollhouse-controller,dollhouse-paint}.ts` | `features/levels-3d/dollhouse/` |
+| `app/{walk-hud,walk-session}.ts`, `view/walk/*`, `view/mesh/{camera-3d,follow-camera,heading,mesh-pick,vec3}.ts` | `features/levels-3d/walk/` (`camera-3d`, `mesh-pick` and `vec3` to `shared/geometry/` if the dollhouse imports them too) |
+| `view/plan/*` | `features/levels-3d/plan/` |
+| `app/{inspector-cards,inspector-edits,material-session}.ts`, `view/materials/*` | `features/levels-3d/inspector/` |
+| `app/{definitions-controller,thing-fields}.ts`, `entities/*`, `things/*` | `features/levels-3d/{definitions,things}/` |
+| `app/checks-panel-controller.ts`, `app/problem-count.ts`, `checks/*` | `features/levels-3d/checks/` |
+| `app/document/*`, `app/{open-level,read-level,patched-document,import-files}.ts` | `features/levels-3d/document/` |
+| `app/home/*`, `app/project-list.ts` | `features/levels-3d/home/` |
+| `app/{editor-app,levels-3d-session,layers-model,geometry-cache}.ts` | `app/` (they wire the features) |
+| `model/*` | `shared/edit/` |
+| `geometry/*` | `shared/geometry/` |
+| `profile/*`, `profile/af-sector/*`, `codec/` (tests only) | `shared/level-session/` |
+| `view/selection-of.ts` | `shared/edit/` |
+| `suite-main.ts`, `ui/suite/index.ts` | `app/suite/` |
+| `main.css`, `vitest-setup.ts` | `app/main.css`, `tests/setup.ts` |
+| `journeys/*.journey.test.ts` | `tests/browser/journeys/` (by the mover) |
+
+  A row the dry run shows importing another feature goes to `shared/` or `app/` by the rule above, written in the map.
+- Move: tests → `tests/{unit,browser/{layout,canvas,journeys}}` with `--browser-folders --feature-folders`
+  (`--environment node --other-environment` for nothing: `.dom` tests get the jsdom directive and land in `unit/`)
 - Modify: root `boundaries` (`--features packages/editor-3d --components`), `style` (`--test-imports
-  packages/editor-3d`), `packages/editor-3d/vitest.config.ts`
+  packages/editor-3d`), `packages/editor-3d/vitest.config.ts` (projects by folder, as `packages/editor`'s), its
+  `package.json` (`test:unit` runs `--project unit`)
 
 - [ ] **Step 1:** Record counts (unit and DOM; Chromium layout and canvas 195; journeys). Write the map; dry run.
   **Session break here if needed.** **Step 2:** move; `--features` finds 0; every suite passes with the counts.
@@ -1173,11 +1267,15 @@ it('the room fills the stage on an iPad', async () => { expect(await roomBoxHeig
 
 ### Task 15.1: The full suite opens the checkout (E2)
 
-**Files:** Modify `packages/editor-3d/src/app/suite/main.ts`, `packages/editor/src/features/suite/memory/sample-ports.ts`
-(takes extra sample files from its caller). Test `packages/editor-3d/tests/dom/suite/open-checkout.dom.test.ts`.
+**Files:** Modify `packages/editor-3d/src/app/suite/main.ts`; create `packages/editor-3d/src/testing/sample-3d.ts`
+(`SAMPLE_3D`: a 3D room and Wick). Test `packages/editor-3d/tests/unit/suite/open-checkout.test.ts`.
 
 **Interfaces:**
-- Produces: `samplePorts(extra?: readonly SampleFile[]): SuitePorts`; the 3D page passes a 3D room and Wick.
+- Consumes: `openSuitePorts` (`packages/editor/src/features/suite/shell/open-suite-ports.ts`, what the 2D page uses) and
+  `samplePorts(files: Readonly<Record<string, string>>): Promise<SuitePorts>` with `SAMPLE_GAME` (both exist; no
+  signature changes).
+- Produces: the 3D page opens the checkout through `openSuitePorts`, and for the site `samplePorts({ ...SAMPLE_GAME,
+  ...SAMPLE_3D })`.
 
 - [ ] **Step 1: Write the failing tests**: `on a checkout the suite lists base-3d's room and Wick`; `served for the site
   it opens the sample with a 3D room and Wick`. **Step 2:** FAIL. **Step 3:** `openSuitePorts` as the 2D page.
@@ -1188,8 +1286,14 @@ it('the room fills the stage on an iPad', async () => { expect(await roomBoxHeig
 **Files:**
 - Modify: `packages/tools/src/features/editor/editor-command.ts` (no `--app`; `BUILDS` is the 2D suite and the full
   suite), `docs/guides/editor.md`, the help text
-- Delete: `packages/editor-3d/src/main.ts`, its `index.html` and standalone build, `packages/editor/src/app/editor-2d/`
-- Test: `packages/tools/tests/unit/editor/editor-command.test.ts`; the 2D journeys re-pointed at the suite (same counts)
+- Delete: `packages/editor-3d/src/main.ts`, its `index.html` and standalone build; the 2D standalone page:
+  `packages/editor/index.html`, `src/app/editor-2d/main.ts`, the default `vite build` (`dist/2d`, so `build` is only
+  `vite build --mode suite`) and `packedEditor('2d')` in the command. The rest of `app/editor-2d/` stays: the suite's
+  Levels editor imports its `profiles.ts`, `testing/level-2d/journey-editor.ts` its `DocumentScreen.svelte`, and 43 test
+  files its `boot.ts` and `main.css`; `pnpm knip` decides whether `App.svelte` goes, and the folder is renamed
+  `app/level-2d/` (the standalone app is gone, the 2D level editor is not)
+- Test: `packages/tools/tests/unit/editor/editor-command.test.ts`; the 2D unit, layout and journey counts before and
+  after (only the standalone page's own tests, such as `editor-app-import.test.ts`, may drop, each named)
 
 **Interfaces:**
 - Produces: `pageFor(game: GameFiles, builds: Builds): 'suite-2d' | 'suite-full'`.
@@ -1203,7 +1307,8 @@ it('the room fills the stage on an iPad', async () => { expect(await roomBoxHeig
 
 **Files:** Delete World, Ask (`ask-controller.ts`, `testing/fake-ask.ts`, `SuiteAsk.svelte`, the top bar's Ask), the
 change-set desk (Review, Export changes, Import changes, Publish over a sample) in `packages/editor` and
-`packages/editor-3d`.
+`packages/editor-3d`; the `ask` mode of `af-editors/1` (`packages/editor/src/shared/editor-list/editors.schema.ts`
+`modes`: `edit` only; every committed list already says `["edit"]`).
 
 - [ ] **Step 1:** Record counts. **Step 2:** delete with their tests. **Step 3:** counts drop by exactly theirs; journeys
   pass; `pnpm knip` clean. **Commit** `refactor(editors): only what works on a real game`
@@ -1224,8 +1329,8 @@ Characters. Test `packages/editor/tests/browser/layout/suite-phone.test.ts`.
 
 **Files:** Modify `packages/editor-3d/src/features/levels-3d/` (spec 10.3's top bar, floating tools, view tabs and phone
 menu, label-left inspector, layers sheet, three layouts by `shellModeOf` with the dock on compact), the kit's icons
-(Room, Corner, Doorway, Door, Window, Thing, Prop, Lamp). Test `tests/browser/layout/levels-3d.layout.test.ts`,
-`tests/dom/levels-3d/*`, the canvas suite.
+(Room, Corner, Doorway, Door, Window, Thing, Furniture, Lamp). Test `tests/browser/layout/levels-3d/*.test.ts`,
+`tests/unit/levels-3d/*` (DOM, jsdom), the canvas suite.
 
 - [ ] **Step 1: Write the failing tests**: at 390 × 844, 844 × 390, 1194 × 834, 1440 × 900 `a drawing tool, the view
   switch, the inspector and Save are reachable` and `checkLayout` is clean; `every tool is reachable by role and name`;
@@ -1236,8 +1341,8 @@ menu, label-left inspector, layers sheet, three layouts by `shellModeOf` with th
 
 ### Task 16.2: The builders' authoring (spec 10.3)
 
-**Files:** Modify `features/levels-3d/inspector/` (Furnish as, Time of day, Wall trim, Windows), `features/levels-3d/
-plan/tools/` (Furniture and things, Lamp), `shared/edit/` (one undoable command each), `features/levels-3d/checks/`
+**Files:** Modify `features/levels-3d/inspector/` (Fill with furniture, Time of day, Wall trim, Windows),
+`features/levels-3d/plan/tools/` (Furniture, Lamp), `shared/edit/` (one undoable command each), `features/levels-3d/checks/`
 (`checkReads`; a prop outside every room; a lamp inside a wall; a kit, prop or time the game lacks), the 3D view (draws
 through the world builder).
 
@@ -1247,7 +1352,8 @@ through the world builder).
   `setWallTrim(wall, trim)`, `setWindows(wall, grid)`, each `EditCommand` with a `label`.
 
 - [ ] **Step 1:** For each change, in order: a failing unit test of its command (`undo restores the level byte for
-  byte`; the label "Furnish as Office"), its DOM test, its canvas test; then the code. A level naming a kit the game
+  byte`; Undo's label "Undo fill with furniture"; Time of day lists each time's `label`), its DOM test, its canvas test;
+  then the code. A level naming a kit the game
   lacks shows "This room asks for furniture this game doesn't have: Spaceship." **Step 2:** all PASS. **Commit**
   `feat(levels-3d): furnish rooms, place props and lamps, pick the time of day`
 
@@ -1288,10 +1394,11 @@ Delete task 1.5's `.fails`. Test `tests/browser/layout/studio.layout.test.ts`.
 **Files:** Modify `features/studio/look/` (phase 6's controls, words at each slider end), `features/studio/animate/`
 (actions as clips), names instead of ids (C9), thumbnails drawn by Pixi 3D into a render texture; plan IDs and source
 names out of `packages/editor-3d` and `packages/editor`; root `package.json` (`source-names --code` covers every source
-folder). Test `tests/dom/studio/*`, a thumbnail canvas test.
+folder). Test `tests/unit/studio/*` (DOM), a thumbnail canvas test.
 
-- [ ] **Step 1: Write the failing tests**: `each new control has its role and name`; `a slider's ends say "Thin" and
-  "Heavy"`; `actions list by name`. **Step 2:** FAIL. **Step 3:** implement. **Step 4:** PASS; `pnpm source-names`
+- [ ] **Step 1: Write the failing tests**: `each new control has its role and name`; `each new slider's ends say the
+  spec 11 words` (fat "Thin"/"Heavy", bust and seat "Smaller"/"Larger", eye size "Small"/"Large", eye spacing
+  "Close"/"Wide", eye tilt "Down"/"Up", asymmetry "Even"/"Uneven"); `actions list by name`. **Step 2:** FAIL. **Step 3:** implement. **Step 4:** PASS; `pnpm source-names`
   passes repository-wide. **Commit** `feat(studio): every slider the figures have, in words`
 
 ## Phase 18: Copy and real journeys (PR `claude/3d-editor-journeys`)
@@ -1300,7 +1407,7 @@ folder). Test `tests/dom/studio/*`, a thumbnail canvas test.
 
 **Files:** Modify every string of spec 11 and the rest the pass finds; create
 `features/levels-3d/checks/messages.ts`; `docs/refactor/copy.md` "3D editors". Test
-`tests/unit/levels-3d/checks/messages.test.ts`, `tests/dom/copy.dom.test.ts`.
+`tests/unit/levels-3d/checks/messages.test.ts`, `tests/unit/copy.test.ts` (DOM).
 
 **Interfaces:**
 - Produces: `problemSentence(issue: ZodIssue, level: AfSector2): { room: string; text: string }`.
@@ -1320,17 +1427,22 @@ it('no screen shows a format id, a path, a plan ID or a source name', () => { /*
 
 ### Task 18.2: Journeys against the real command (T2; **session break** after the harness)
 
-**Files:** Create `packages/editor-3d/tests/journeys/real/{harness.ts,levels.journey.ts,characters.journey.ts,
-phone.journey.ts}`.
+**Files:** Modify `packages/editor/tests/e2e/harness/fixtures.ts` (the game to copy is a fixture option:
+`EMBERWICK` or a new `BASE_3D`), `run-game.ts` if base-3d's dev server needs its own start; create
+`packages/editor/tests/e2e/journeys/{levels-3d-save-reaches-the-game,character-save-reaches-the-game,
+levels-3d-on-a-phone}.test.ts`. The 2D slice's harness (`run-editor.ts`, `run-game.ts`, `temp-game.ts`) already copies a
+game, starts the real `automata editor` and the game's server on their own ports and stops only what it started; no
+second harness.
 
 **Interfaces:**
-- Produces: `startRealEditor(): Promise<{ url: string; gameUrl: string; folder: string; stop(): Promise<void> }>`
-  (copies base-3d to a temporary folder, starts `automata editor` and the game's dev server on free ports, stops only
-  what it started).
+- Consumes: `copyGame`, `runEditor`, the journeys' `test` fixture (`tests/e2e/harness/`); `playwright.journeys.config.ts`
+  (`pnpm --filter @automata/editor test:e2e`).
 
-- [ ] **Step 1:** The harness, with a test that `stop()` leaves no process and no folder. **Session break here if
-  needed.** **Step 2:** spec 10.4's journeys, failing where the product lacks a hook (each fixed as a product bug with a
-  test). **Step 3:** PASS in Chromium, WebKit on the runner. Part C's done check: spec criteria 8 to 13. **Commit**
+- [ ] **Step 1:** `BASE_3D` in the fixtures, with a test that a base-3d run leaves no process and no folder (as the 2D
+  ones do). **Session break here if needed.**
+- [ ] **Step 2:** spec 10.4's journeys, failing where the product lacks a hook (each fixed as a product bug with a
+  test). **Step 3:** PASS in Chromium, WebKit on the runner; the 2D journeys' count is unchanged. `3d.yml`'s
+  `3D - journeys` job runs `pnpm --filter @automata/editor test:e2e --grep 3d` (named in task 1.2's test once added). Part C's done check: spec criteria 8 to 13. **Commit**
   `test(editors): journeys from the editor to the game`
 - [ ] **Step 4:** Merge part C's PRs in stack order once green. Part D starts after.
 
@@ -1342,9 +1454,10 @@ phone.journey.ts}`.
 
 ### Task 19.1: Behind the switch (W1)
 
-**Files:** Modify `site/src/shared/framework/examples.ts`, `site/src/features/home/`, `site/src/features/editor/`,
-`site/src/features/docs/`, `site/src/features/api/`, `site/vite.config.ts` (`AF_SITE_3D`). Test the site's scan, the
-visitor's journey with the switch on, the site's browser gates on the new pages.
+**Files:** Modify `site/src/shared/framework/examples.ts`, `site/src/features/{home,editor,docs,api,examples}/`, the
+routes under `site/src/routes/` that the switch adds, `site/vite.config.ts` (`AF_SITE_3D`),
+`site/scripts/scan-closed-beta.ts` (the scan that proves no `@pixi/3d` byte ships). Test the scan's own test, the
+visitor's journey with the switch on (`site/tests/e2e/`), the site's browser gates on the new pages.
 
 - [ ] **Step 1: Write the failing tests**: `with the switch off the build has no 3D route and no @pixi/3d byte`; `with
   it on, Home plays Ember Hall and the 3D editor opens the sample`. **Step 2:** FAIL. **Step 3:** the pages in the
@@ -1395,6 +1508,13 @@ sources); 9 → 6.3, spec 6; 10 → spec 9's table, 7.1; 11 → spec 8.4, 9.2, 8
 spec 9 and 15.9; 14 → 8.2's entry test, spec 6; 15 → 13.3, 16.3; 16 → 5.1, spec 14; 17 → 1.5; 18 → 11.1, spec 15.14;
 19 → 6.3 writes under `src/content/` and 11.1 moves it, `--plan-comments` only in 10.1, 8.2 names `sprite-light.ts`;
 20 → the named breaks in Global Constraints; 21 → 20.1.
+
+## Stage 3 plan audit (2026-11-07)
+
+Audited with the superpowers plugin (`writing-plans`' self-review checklist) against the checkout at #444's head
+(`64c27c91`), FigureBuilder `025ffb4` and EnvironmentBuilder `6d82a52`; the record and every finding is
+[2026-11-07-3d-slice-plan-audit.md](2026-11-07-3d-slice-plan-audit.md). Every fix is in the tasks above; the build
+reads only this plan and the spec. DUEL's author and licence stay the Owner's open question (D8).
 
 ## Execution log
 

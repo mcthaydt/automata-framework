@@ -14,6 +14,9 @@
   questions: "Reminder that everything is auto approved and accepted, do not wait on me to do any approvals"
   (2026-10-31). The user's rule wins over the skill's gate (the skill's own priority rule). The spec is accepted once
   the stage 3 audit's fixes are in.
+- **Stage 3 audit (2026-11-07):** audited against #444's head (`64c27c91`) and both builders at the same commits; its fixes
+  are in sections 6 to 11 and 15 here and in the plan ([record](2026-11-07-3d-slice-plan-audit.md)). Accepted under
+  "Reminder that everything is auto approved and accepted, do not wait on me to do any approvals" (Owner, 2026-10-31).
 
 ## 0. What the Owner wants (the brief)
 
@@ -161,7 +164,9 @@ The gate is fixed before anything moves.
 
 ## 6. The look on Pixi 3D (D10, B4, B8)
 
-- **Measured first** (ADR 0007): (a) *passes*: render into a low-resolution target (320 × 180 at 16:9), a material
+- **Measured first** (ADR 0007): (a) *passes*: render into a low-resolution target (320 × 180 at 16:9; the short side is always 180 and the long side follows the
+  stage, so a phone in portrait at 390 × 844 draws 180 × 390, and the target is rebuilt on a resize and after a
+  context loss), a material
   quantises light into ramp steps, a post filter snaps each pixel to its DUEL ramp and draws outlines from depth and
   normal edges, the target is drawn nearest-neighbour; (b) *bake*: offline sprite cells and textures drawn as
   billboards. **Rule:** (a) if it holds the phone budget with the camera turning; else (a) for the world and (b) for
@@ -174,7 +179,8 @@ The gate is fixed before anything moves.
 - **One time of day** (audit note 9): FigureBuilder `lighting/library/times.json` and EnvironmentBuilder
   `paint/library/times.json` share six names (day, golden, dusk, night, lampLit, bar) with different fields. They merge
   into one `time-of-day` content kind in `shared/time-of-day/` (schema plus the merged library): each entry holds the
-  scene's light, haze and grade (EnvironmentBuilder's fields) and the figure's key, fill and bounce (FigureBuilder's).
+  scene's light, haze and grade (EnvironmentBuilder's fields), the figure's key, fill and bounce (FigureBuilder's) and
+  a `label`, the words the editor shows (Day, Golden hour, Dusk, Night, Lamplight, Bar light).
   The look and the figures' lighting both read it; a level names one.
 - **The reference:** both painters (FigureBuilder `paint/{paint,raster,fabric}.ts`, `lighting/light.ts`;
   EnvironmentBuilder `paint/*`, `view/render.ts`, `view/fp.ts`) port to `src/testing/look-reference/` as plain
@@ -200,27 +206,33 @@ packages/3d/
                   no-eval.ts, testing.ts
   src/app/        create-renderer.ts, render3d.extension.ts, figures.extension.ts, compose-scene.ts
   src/features/
-    renderer/     the Pixi 3D app, context loss, model loading, bundles, render views (box, mesh, pose-3d,
-                  shared material), world pieces and their update
-    camera/       the game's camera (angled camera, driver, pose, fov, camera-view content) and sim/ (camera heading:
-                  component, plugin, turn command and system, view schema, heading, stick mapper, view latch)
-    look/         the passes, light (lamps, occlusion, scene light, vertex bake, fog), occluders
+    renderer/     the Pixi 3D app's own parts: context loss, bundles, no-eval
+    camera/       the game's camera (angled camera, driver, pose, fov, camera-view content), occluders/ (what fades
+                  between the camera and the hero) and sim/ (camera heading: component, plugin, turn command and
+                  system, view schema, heading, stick mapper, view latch)
+    look/         the passes (ramp light, DUEL snap, outline, sky, rain, post, sprite light)
     figures/      body/, motion/, hair/, outfit/, figure/, lighting/, clips/, content/, registry/, view/ (the Pixi
                   meshes of a figure: meshes, colour, skin, joints, decals, figure view)
     stage/        the presentation director, scene state, sequences
     world/        the world builder and library/ (kits, props, swatches, glyphs, maps, tiles)
-  src/shared/     math, rng, parity helpers, timeline/ (keys, eases, sampling), level/ (the af-sector schema, its
-                  types, the migration, occlude, sim/), time-of-day/
+  src/shared/     math, parity helpers, render/ (what every feature draws through: the render views box, mesh,
+                  pose-3d, shared material and view-3d; model loading and geometry; light: lamps, occlusion, scene
+                  light, vertex light and bake, fog), timeline/ (keys, eases, sampling), level/ (the af-sector schema,
+                  its types, the migration, occlude, the level problem, sim/), time-of-day/
   src/testing/    public.ts (fixtures, golden checks), look-reference/
   tests/          unit/, browser/ (parity, goldens, look), fixtures/
   scripts/        record-goldens.ts, convert-builder-maps.ts
 ```
 
 - **The `--features` rule holds:** a feature imports only itself, `shared/` and packages. What two features share is
-  in `shared/`: the timeline (figures and stage), the level (world, renderer, camera) and the time of day (look and
-  figures). `app/` composes: it gives the renderer the look's passes and the figures' views, and gives the stage a
-  `startClip` callback, so no feature imports another. The renderer's 11 imports of `figures` today become the figures'
-  own `view/` folder, composed in `app/compose-scene.ts`.
+  in `shared/`: the timeline (figures and stage), the level (world, renderer, camera), the time of day (look and
+  figures) and `render/` (today the render views import the light, the model loader imports the shared material,
+  and the figure view, the camera driver and the occluders import the render views, so these are the shared base, not
+  one feature's). `app/` composes: `app/create-renderer.ts` (today's `create-pixi3d-renderer.ts`, which imports the
+  camera, the occluders, the light and the models) builds the app, gives it the look's passes and the figures' views,
+  draws the world's pieces (`app/world-view.ts`) and applies the stage's state to them (`app/update-pieces.ts`), and
+  gives the stage a `startClip` callback, so no feature imports another. The renderer's 11 imports of `figures` today
+  become the figures' own `view/` folder, composed in `app/compose-scene.ts`.
 - **The sim:** `"automata": { "simEntries": ["./sim"] }`; `entries/sim.ts` re-exports `features/camera/sim` and
   `shared/level/sim`. `pnpm boundaries` lists `packages/3d/src/features/camera/sim`, `packages/3d/src/shared/level` and
   `packages/3d/src/entries/sim.ts` under the sim's rules.
@@ -248,17 +260,26 @@ The five registries come from their real homes (audit note 8): `registerGarment`
 In AF they are `features/figures/registry/*.registry.ts`, exported from `@automata/3d/figures`, and an extension calls
 them from its `setup`.
 
-- **The classic set stays core** (audit note 7): AF's `garments/classic.ts` (trousers, shoes, cape, cap: what Wick
-  wears) is core, registered by `figures.extension.ts` through the registries. So Wick needs no extension of base-3d's
-  own, and the `figure-headwear` kind folds into the garment registry.
+- **The classic set stays core** (audit note 7): AF's `garments/classic.ts` and `dress.ts` (the 15 classic kinds:
+  apron, belt, cap, cape, coat, eyes, gloves, hair, legs, mark, shoes, skirt, top, trousers, waistcoat; Wick wears top,
+  trousers, shoes, cape and cap) is core, registered by `figures.extension.ts` through the registries. So Wick needs no
+  extension of base-3d's own, and the `figure-headwear` kind folds into the garment registry.
+- **Where the port moves today's figures** (stage 3 audit): AF already has `fat` (default 0.4; Wick 0.3), and
+  FigureBuilder's newer `fat` also swells the limbs, the neck and the jaw (each multiplier exactly 1 at fat 0). Taking
+  it (the newer one wins) moves Wick and every figure with fat above 0, so the figure goldens are re-recorded once, in
+  a named commit, with the images explained; the sim's replay hash does not move. The genes FigureBuilder added
+  (`bust`, `seat` and the three eye genes at 0.5, `bodyAsymmetry` and `asymmetry` at 0) keep every figure as it is at
+  their defaults; FigureBuilder's `asymmetry` is AF's `faceAsymmetry`. A figure that names a stand keeps it; the
+  natural stand is the stand of a figure that names none.
 - **Streetwear leaves core after the registries land** (phase 6, task 6.5; not phase 4): today it is typed into core's
   `figure/garment.schema.ts`, `garment-defaults`, `swatch.schema` and `classic.ts`. It moves to
   `examples/3d/wardrobe/`, registered by `wardrobe.extension.ts`. `examples/3d` gains a Vitest unit project for its test.
 
 ### 8.3 One timeline, one stage (B5)
 
-- **`shared/timeline/`** owns the key `{ t, value, ease }`, the eases (AF's set plus EnvironmentBuilder's `smooth`; its
-  `hold` reads as `step`) and sampling. A track is a sorted list of keys of one value type; sampling is pure (a frame at
+- **`shared/timeline/`** owns the key `{ t, value, ease? }` (no ease is linear), the eases (AF's set, the
+  cubic-bezier tuple included, plus EnvironmentBuilder's `smooth`; its `hold` reads as `step`, and its key's `v` as
+  `value`) and sampling. A clip's content keeps its `{ t, pose, ease? }` keys; they compile to `Key<Pose>`. A track is a sorted list of keys of one value type; sampling is pure (a frame at
   `t` is the same drawn first or alone). A value a track cannot interpolate (a lamp's style) is a stepped track.
 - **Figures:** a clip is a set of tracks over poses; `evaluate()` is the only player. FigureBuilder's actions
   (`actors/{actions,pose-spec}.ts`, `library/actions.json`) become a `figure-action` content kind whose entries compile
@@ -329,6 +350,9 @@ add new files as rows, record the new commit. `source-names` learns EnvironmentB
   (`world-kit`, `world-prop`, `world-swatch`), so a game adds its own.
 - **What it replaces** (audit note 12): base-3d's box room (`src/content/levels/sector-area.ts` → `AreaSource` boxes,
   `ROOM_VIEWS` in `src/content/room.ts`) and editor-3d's `view/mesh/sector-mesh.ts` both draw through the world builder.
+- **Problems:** the level, the world builder and the checks report a `LevelProblem` (`shared/level/problem.ts`): content's
+  `Problem` (`path`, `code`, `message`, so `automata check` places it in its file) plus `where` (the room, prop or lamp
+  id) and `name` (the missing kit, prop, swatch or time). Nothing in them throws on a level it cannot build.
 - **The game-facing meaning (K2):** what the sim reads (floors, walls, pits, things and their fields, spawn) is
   `shared/level/sim/`; dressing, lamps, decals, time, views, cast and sky are presentation.
 - **Surfaces and photos** (audit note 13): a swatch names a DUEL ramp and step, or a tile. The photo pipeline
@@ -356,8 +380,11 @@ add new files as rows, record the new commit. `source-names` learns EnvironmentB
 ### 10.2 Inside `editor-3d`
 
 - `--features` layout: `app/`, `entries/`, `features/levels-3d/{plan,views,walk,dollhouse,inspector,things,definitions,
-  checks,document,home}`, `features/studio/{look,pose,animate,stage}`, `shared/{geometry,edit,level-session}`, `testing/`;
-  tests in `tests/{unit,dom,browser/{layout,canvas},journeys}` with `#src/…` imports.
+  checks,document,home}` (`entities/` becomes `things/`), `features/studio/{look,pose,animate,stage}`,
+  `shared/{geometry,edit,level-session}` (`model/` becomes `shared/edit/`, `profile/` and `codec/` become
+  `shared/level-session/`), `testing/`;
+  tests in `tests/{unit,browser/{layout,canvas,journeys},e2e}` with `#src/…` imports, as `packages/editor` has them (the
+  test mover puts a DOM test in `unit/` with the jsdom directive; there is no `dom/` folder).
 - The source game's format goes (D3): `format/`, `profile/last-light-*`, `checks/facility/`, `checks/last-light/`,
   `model/facility-*`, `testing/{toy-blockout,shipped-facility}.ts`, the `blockout` entry. One profile stays, so
   `profile/registry.ts` becomes a plain import.
@@ -373,10 +400,10 @@ From `refactor/2026-11-06-redesign-mockups/editor-level.html`, phone first:
   look, framed by the ported framing math; Walk says when a figure does not read ("Wick is hard to see here").
 - **Levels 3D:** top bar = Back, the game and level menu, the views as quiet tabs (a menu on a phone), Undo, Redo,
   problems, the save status and one lime primary (Save); tools float top centre as icons with accessible names (Select,
-  Room, Corner, Doorway, Door, Window, Thing, Prop, Lamp); the label-left inspector shows the level when nothing is
+  Room, Corner, Doorway, Door, Window, Thing, Furniture, Lamp); the label-left inspector shows the level when nothing is
   chosen; wide, medium and compact layouts by the container, compact with the tools in a dock and the inspector and
   layers in sheets; one eye and one lock icon per layer row (C8).
-- **The builders' authoring:** "Furnish as" on a room (from the game's `world-kit` content), props, lamps, the level's
+- **The builders' authoring:** "Fill with furniture" on a room (from the game's `world-kit` content), props, lamps, the level's
   time of day, a wall's trim and windows; each one inspector field or one tool.
 - **Characters (the Studio):** the same top bar; on a phone Undo and Redo go into the menu, the panel toggles become one
   Panels button, Dock goes, Publish becomes Save; Look gains the body, face and hair controls; Animate edits actions as
@@ -389,8 +416,9 @@ From `refactor/2026-11-06-redesign-mockups/editor-level.html`, phone first:
 
 ### 10.4 Real journeys (T2)
 
-Playwright journeys under `packages/editor-3d/tests/journeys/real/` start the real `automata editor` on a temporary
-copy of base-3d (own port, own folder): open the room, draw a room, furnish it, save, the file changes, `automata check`
+Playwright journeys in `packages/editor/tests/e2e/journeys/` (the 2D slice's harness, `tests/e2e/harness/`, taught to
+copy base-3d as well as Emberwick) start the real `automata editor` on a temporary copy of base-3d (own port, own
+folder): open the room, draw a room, furnish it, save, the file changes, `automata check`
 passes, the game's dev server shows it; open Wick, change a slider, save, the game shows it; on a phone (390 × 844,
 touch) draw a room with the dock and save. Chromium and WebKit.
 
@@ -404,17 +432,18 @@ grandma tell what is happening and how to use it?
 | "Read as af-sector. This editor opens af-sector and last-light-blockout." | (gone) |
 | "sectors.0.floor Invalid input: expected number, received string" ×40 | "Room 1's floor height isn't a number. Open the room and type a number." (one line per problem, grouped by room, with Show) |
 | "This is a sample game, not yours…" in a game folder | (gone) |
-| "No projects yet. Import a folder or a zip to start." | "This game has nothing to edit yet." with the one action in sight |
+| "No projects yet. Import a folder or a zip to start." | "This game has nothing to edit yet." with its one action, "Add a level", in sight |
 | Sector, Vertex, Portal, Definitions…, spawn, "51 px per metre", "af-sector" | Room, Corner, Doorway, Thing types…, Start point, (scale hidden), (badge gone) |
 | "Nothing to edit in Studio yet." | "This game has no characters yet." with New character |
 | "Opened Base 3d in the level editor." | "Opened Ember Hall." |
 | Studio | Characters (the code's folder stays `studio/`) |
-| New: Furnish as, Time of day, Lamp, Prop, Trim | Furnish as (the kit's name), Time of day (Morning, Dusk, Night…), Lamp, Furniture and things, Wall trim |
+| New: Furnish as, Time of day, Lamp, Prop, Trim | Fill with furniture (None or the kit's name; Undo says "Undo fill with furniture"), Time of day (each time's `label`: Day, Golden hour, Dusk, Night, Lamplight, Bar light), Lamp, Furniture (the tool; "Thing" stays for what the game uses, so the two never share a word), Wall trim |
 | `wick`, `guard-high`, Skin `wick-shadow`, Gait `bounce`, 0.4, Playhead, Add key, Dock | Wick, High guard, Skin "Shadow", Walk "Bouncy", words at each slider end ("Thin" … "Heavy"), Time, Add a pose here, (gone) |
+| New sliders | the words at each end: fat "Thin" … "Heavy", bust and seat "Smaller" … "Larger", eye size "Small" … "Large", eye spacing "Close" … "Wide", eye tilt "Down" … "Up", body and face asymmetry "Even" … "Uneven" |
 | HUD "● 0", pause "II", no Settings | "Embers 0 of 6", a pause icon named Pause, Settings on the title menu |
 | a stale tile | "This texture is older than its photo. Run automata textures to update it." |
 | `--app` | "This option is gone: automata editor picks the editors your game needs." |
-| `create-game --template 3d` before the release | "3D games need a package that is not public yet." |
+| `automata create-game --template 3d` before the release | "3D games need a package that is not public yet. For now, make a 2D game: leave out --template." |
 
 The game is **Ember Hall** everywhere (G4); the folder stays `games/base-3d`.
 
@@ -465,7 +494,7 @@ plugin's `executing-plans` is the method). Later stages: plan audit (Opus, mediu
 
 1. The package is `packages/3d`, `@automata/3d`.
 2. The game is Ember Hall.
-3. The look's pixel size is 320 × 180 at 16:9.
+3. The look's pixel size is 320 × 180 at 16:9: the short side is 180 and the long side follows the stage.
 4. Budgets: 30 fps phone profile, 60 fps iPad profile.
 5. `pnpm check` and `ci.yml` run every unit test.
 6. `/1` levels are migrated on open and written as `/2` on Save, never silently.
@@ -478,7 +507,13 @@ plugin's `executing-plans` is the method). Later stages: plan audit (Opus, mediu
 12. The Studio is called Characters on screen.
 13. The figure, level, world and time-of-day libraries are content kinds (Zod).
 14. base-3d keeps `--game` for its sim role files and adds `--features` (audit note 18).
-15. `fakeClock` becomes public in `@automata/framework/testing` (API report, agent skills, changeset; audit note 6).
+15. `fakeClock` becomes public in `@automata/framework/testing` (API report, `pnpm api-index --write`, changeset; audit note 6).
+16. The fat slider takes FigureBuilder's newer reading and the figure goldens are re-recorded once for it (section 8.2).
+17. The editor's words: a room's field is "Fill with furniture", the tool that places one piece is "Furniture", and "Thing"
+    is only for what the game uses; each time of day carries a `label` (Day, Golden hour, Dusk, Night, Lamplight, Bar
+    light).
+18. Shared render primitives (the render views, the model loader, the light) are `shared/render/`, the occluders are the
+    camera's, and `features/look/` holds only the passes (section 7).
 
 ## 16. The code standard
 

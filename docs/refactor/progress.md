@@ -386,7 +386,7 @@ Done means: someone new finds the site, makes a 2D game with `create-game`, edit
 the change in the game and publishes it, with nothing from 3D in the way; and journeys prove each step on every pull
 request.
 
-## 3D (core, editors, website): 33% (2 of 6)
+## 3D (core, editors, website): 50% (3 of 6)
 
 Scope: the 3D core (`render-pixi3d`, `figures`, `sector-format`, `vendor/pixi-3d`), the 3D editors (`editor-3d`:
 Levels 3D, the Studio, the full suite page, the suite's phone layout), `games/base-3d`, `examples/3d`, the 3D gates and
@@ -396,12 +396,12 @@ the site's 3D parts.
 |---|---|---|
 | 1. Audit | Done, 2026-11-07 (PR stacked on #441): 10 structure (S1 to S10), 3 contracts (K1 to K3), 6 editor shipping (E1 to E6), 5 layout and look (V1 to V5), 6 tests (T1 to T6), 7 game (G1 to G7), 2 CI (Q1, Q2), 2 site (W1, W2), 10 copy (C1 to C10); and, the same day on the Owner's word, FigureBuilder and EnvironmentBuilder measured against AF (B1 to B10, section 9); 10 decisions for the Owner (D1 to D10); the Owner took D10 the same day: C on the card ("Their pixel-art look too"), then "Take everything basically", then "We use pixi3D, and 2D should also use the duel palette". 3,836 unit and DOM tests pass; the 3D editor's Chromium layout and canvas run 187 pass and 8 fail (the known 8); base-3d's journeys 8 of 8 and the 3D examples' 9 of 9 in Chromium. Headline: the 3D editor cannot open base-3d, and the Studio is unreachable | [2026-11-07-3d-slice-audit.md](2026-11-07-3d-slice-audit.md) |
 | 2. Plan and spec | Done, 2026-11-07, rewritten the same day with the superpowers plugin (`brainstorming`, `writing-plans`) in place of the hand-written first version (#443), with the paused plan audit's 21 findings folded in: D1 to D9 on the audit's recommendations, D10 as the Owner took it; four parts in the Owner's order, 20 phases, 53 tasks, each with files, interfaces and its failing tests; one `@automata/3d` package in `--features` layout (shared timeline, level and time of day), DUEL AF-wide, one timeline, one level format (`af-sector/2`, field by field), the look on Pixi 3D, `automata textures` in `-tools`, the 8 tests fixed in phase 1 | [spec](2026-11-07-3d-slice-spec.md), [plan](2026-11-07-3d-slice-plan.md) |
-| 3. Plan audit | Next (Opus, medium) | |
-| 4. Build | Not started | |
+| 3. Plan audit | Done, 2026-11-07, with the superpowers plugin (`writing-plans`' self-review), native: 26 findings against #444's head, the checkout and both builders, all fixed in place in the spec and the plan (the move map now follows today's imports, so `--features` holds: `shared/render/`, the occluders the camera's; the test mover's real flags; the goldens renamed and re-recorded once for FigureBuilder's newer fat; the 15 classic kinds; `Ease` keeps the cubic-bezier tuple; `LevelProblem`; `findCutByBar` in place of `findClipped`; the 2D slice's real-command harness reused; editor-3d's full move map; the look's target follows a phone in portrait; drunk grandma fixes to the new words). The paused audit's 21: 17 fixed by the rewrite, 4 finished here. DUEL's author and licence stay the Owner's | [record](2026-11-07-3d-slice-plan-audit.md) |
+| 4. Build | Next (Sonnet, high) | |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-**Where to resume (2026-11-07, stage 2 redone with the plugin):** the plan audit (stage 3, Opus medium, with the superpowers plugin) reads the
+**Where to resume (2026-11-07, stage 3 done):** the build (stage 4, Sonnet high) starts at task 1.1 of the [plan](2026-11-07-3d-slice-plan.md) with `superpowers:executing-plans`, natively in the session with no subagents, handing off after 90 minutes; the [plan audit](2026-11-07-3d-slice-plan-audit.md) lists what changed. Before it, stage 2's note: the plan audit read the
 [spec](2026-11-07-3d-slice-spec.md) and the [plan](2026-11-07-3d-slice-plan.md) against the audit, the checkout and
 both builders at FigureBuilder `025ffb4` and EnvironmentBuilder `6d82a52`. The paused audit's 21 findings are folded in
 (the plan's "Audit notes folded in" says where each went); its unchecked items remain: the editor-3d move map (14.1),
