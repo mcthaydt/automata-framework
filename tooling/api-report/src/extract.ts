@@ -193,10 +193,7 @@ export function sourceExports(packages: readonly CorePackage[]): ExportsOf {
  * to the declaration file it must resolve to: without it, an import of another workspace package follows its
  * `node_modules` link to the package's manifest, whose `exports` point at source, and the re-export prints the source.
  */
-export function declarationExports(
-  files: readonly string[],
-  paths?: Record<string, string[]>,
-): ExportsOf {
+export function declarationExports(files: readonly string[], paths?: Record<string, string[]>): ExportsOf {
   const program = ts.createProgram(files, {
     // Only declarations, aliases and doc comments are read, never types, so the default lib and @types are
     // not loaded (loading them made each run several seconds slower). Diagnostics are not read.

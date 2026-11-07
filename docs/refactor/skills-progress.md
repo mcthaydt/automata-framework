@@ -27,12 +27,12 @@ live in the framework's `docs/refactor/` (audit decision D1 A); `mcthaydt/automa
 | 2.3 Only published packages (D2 A) | 2 | Done, 2026-11-07 |
 | 2.4 Both builder names (T3) | 2 | Done, 2026-11-07 |
 | 2.5 Part 2 close | 2 | Done, 2026-11-07 |
-| 3.1 Editor skill (C3) | 3 | Not started |
-| 3.2 One sim import list (C4) | 3 | Not started |
-| 3.3 Repository-only rules (C5) | 3 | Not started |
-| 3.4 CSP, shipping, description (C6 to C8) | 3 | Not started |
-| 3.5 `automata check` runs a workspace game's tests (M5) | 3 | Not started |
-| 3.6 Part 3 close | 3 | Not started |
+| 3.1 Editor skill (C3) | 3 | Done, 2026-11-07 |
+| 3.2 One sim import list (C4) | 3 | Done, 2026-11-07 |
+| 3.3 Repository-only rules (C5) | 3 | Done, 2026-11-07 |
+| 3.4 CSP, shipping, description (C6 to C8) | 3 | Done, 2026-11-07 |
+| 3.5 `automata check` runs a workspace game's tests (M5) | 3 | Done, 2026-11-07 |
+| 3.6 Part 3 close | 3 | Done, 2026-11-07 |
 | 4.1 Install suite | 4 | Not started |
 | 4.2 In release checks | 4 | Not started |
 | 5.1 Site offers the plugin (after the first mirror push) | 5 | Not started |
@@ -82,3 +82,18 @@ Stage 4, `superpowers:executing-plans`, inline. Pre-flight: tasks 1.1 to 1.2 sha
   passes on today's tree: no unpublished package is named, and the 3D build's 13.2 has not landed on this stack.
 - Task 2.4: complete (`source-names.test.ts` 2 new cases RED→GREEN; repo-hygiene 93/93; `pnpm source-names` 0 findings).
   The 3D build's 10.1 has not landed on this stack, so the pattern and the `agents/` extensions are added here.
+- Task 3.1 to 3.4: complete (each RED→GREEN in `skill-content.test.ts`, `skills-text.test.ts`, `layout.test.ts`,
+  `platform-imports.test.ts`; agent-skills 150/150, tools 711 passed 1 skipped).
+  Ruling (3.4): the shipping bullet names `pnpm build:<target>`, `pnpm prepare:<target>` and `automata ship prepare|publish`,
+  not `automata build` — there is no `automata build` command (create-game writes the `build:<target>` scripts), and
+  `publish` exists for `itch` and `ruken` only (web is uploaded by hand, desktop goes to itch with `--from tauri`). The test
+  asks for `pnpm build:` instead of `automata build` — an agent following the plan's words would run a missing command.
+  Ruling (3.4): the "Ruken's CSP" reasons say "a strict Content-Security-Policy (the headers Ruken sends)" or "no web
+  target allows that"; the `--csp` line keeps the plan's "under Ruken's rules" — each is true of the code (`csp-probe-live.ts`).
+  Ruling (3.3): the ten repository-only rows sit in a section at the end of the verify skill, so "after the heading and
+  not before it" holds without a second heading — none if wrong.
+- Task 3.5: complete (`run-check.test.ts` RED→GREEN, tools 711 passed). On Emberwick the failure changed: before,
+  `ERR_MODULE_NOT_FOUND … packages/content/src/features/vite/index` (config would not load); after, the config loads and
+  the unit project runs, but `automata check --sim-only .` still ends "0 findings, 1 step could not run" because
+  Emberwick's browser projects need Firefox and WebKit, which this session does not have (`browserType.launch:
+  Executable doesn't exist … firefox-1543`). That is the session, not the code; the runner has them. Changeset added.
