@@ -12,7 +12,11 @@ describe('platformImportFindings', () => {
   it.each([
     ["import { Ruken } from '@ruken/sdk'", '@ruken/sdk', '@automata/framework'],
     ["import type { Capability } from '@ruken/sdk'", '@ruken/sdk', '@automata/framework'],
-    ["export { createFakeHost } from '@ruken/sdk-host/testing'", '@ruken/sdk-host/testing', 'FakeHosting'],
+    [
+      "export { createFakeHost } from '@ruken/sdk-host/testing'",
+      '@ruken/sdk-host/testing',
+      '@automata/framework/testing (fakeHosting)',
+    ],
     ["export * from '@ruken/manifest'", '@ruken/manifest', '@automata/content/game-config'],
     ["await import('@ruken/cli')", '@ruken/cli', 'automata ship'],
     ["import '@tauri-apps/api/core'", '@tauri-apps/api/core', "'tauri'"],

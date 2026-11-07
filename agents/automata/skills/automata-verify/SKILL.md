@@ -56,16 +56,6 @@ delete or skip a test, loosen a rule or re-record a golden to get past it.
 | `key-enumeration` | `Object.keys`/`values`/`entries`, `for…in`, or a computed member on them, whose order can differ | `sortedKeys` / `sortedEntries` from `@automata/sim` |
 | `locale` | `localeCompare`, `toLocaleString` and similar, which depend on the engine's locale data | Compare and format explicitly |
 | `koota-soa` | koota's `trait` or a `relation` store given an object schema (or one the checker cannot see), which koota compiles with `new Function`; Ruken's CSP refuses it | Use `defineComponent` from `@automata/sim`, or pass koota a factory: `trait(() => ({ x: 0 }))`, `relation({ store: () => ({ amount: 0 }) })` |
-| `platform-import` | A distribution target's platform package (`@ruken/*`, `@tauri-apps/*`) imported outside a folder named for that target (`ruken/`, `tauri/`); run with `--platform-imports` | Use AF's own API instead (the message names it: `@automata/framework` for host types, `@automata/framework/testing` for a fake host, `@automata/content/game-config` for the game config), or move the file under the target's folder |
-| `forbidden-import` | A package imports a module it must never use (the 2D editor and `@pixi/3d`, for example); run with `--forbid <root>:<package>,...` | Take the dependency out; if the code needs 3D, it belongs in the 3D package |
-| `feature-import` | In a package laid out by feature (`src/features/<x>/`), a feature imports another feature; run with `--features` | Pass what it needs in from `app/`, or move the shared part to `shared/` (`--shared-island <folder>` also keeps one `shared/` folder from importing the rest of `shared/`) |
-| `shared-import` | A file in `shared/` imports a feature, `app/` or `entries/`; run with `--features` | Move what it needs into `shared/`, or move the file into the feature that owns it |
-| `app-import` | A feature imports `app/`; run with `--features` | Only `entries/` and `testing/` import `app/`: pass the value in from `app/` instead |
-| `entries-import` | A feature, `shared/` or `app/` file imports `entries/`, the published surface; run with `--features` | Import the module the entry re-exports |
-| `entries-logic` | A file in `entries/` holds code instead of only re-exporting; run with `--features` | Move the code into `app/`, `features/` or `shared/` and re-export it |
-| `testing-import` | Product code imports `testing/`, the published test helpers; run with `--features` | Only `entries/` re-exports `testing/`; keep test helpers out of product code |
-| `alias-in-src` | A `#src/…` import in `src/`, where only tests use the alias; run with `--features` | Import by relative path |
-| `browser-import` | A file a browser entry reaches imports `effect`, a Node built-in or a Node-only library; run with `--browser` | Effect and Node's modules belong to the Node tooling package (ADR 0003); keep them out of browser code |
 | `parse-error` | The file could not be parsed | Fix the syntax error at the location |
 
 ### `typecheck`
@@ -135,3 +125,21 @@ Findings use the compiler's code as the rule (`TS2322`, `TS2304`, …) with its 
 |---|---|---|
 | `tool-missing` | A tool the step needs isn't installed in the game; the message says what to install | Install it as a dev dependency, then run again |
 | `tool-error` | A tool ran but failed in a way that isn't a finding (crashed, bad config) | Read the tool output in the message and fix the setup |
+
+## Only in the framework's own repository
+
+`automata check` never reports these on a game; they guard the framework's own packages. They appear only when the
+boundaries checker is run with the flag in the row.
+
+| Rule | Means | Fix |
+|---|---|---|
+| `feature-import` | In a package laid out by feature (`src/features/<x>/`), a feature imports another feature; run with `--features` | Pass what it needs in from `app/`, or move the shared part to `shared/` (`--shared-island <folder>` also keeps one `shared/` folder from importing the rest of `shared/`) |
+| `shared-import` | A file in `shared/` imports a feature, `app/` or `entries/`; run with `--features` | Move what it needs into `shared/`, or move the file into the feature that owns it |
+| `app-import` | A feature imports `app/`; run with `--features` | Only `entries/` and `testing/` import `app/`: pass the value in from `app/` instead |
+| `entries-import` | A feature, `shared/` or `app/` file imports `entries/`, the published surface; run with `--features` | Import the module the entry re-exports |
+| `entries-logic` | A file in `entries/` holds code instead of only re-exporting; run with `--features` | Move the code into `app/`, `features/` or `shared/` and re-export it |
+| `testing-import` | Product code imports `testing/`, the published test helpers; run with `--features` | Only `entries/` re-exports `testing/`; keep test helpers out of product code |
+| `alias-in-src` | A `#src/…` import in `src/`, where only tests use the alias; run with `--features` | Import by relative path |
+| `browser-import` | A file a browser entry reaches imports `effect`, a Node built-in or a Node-only library; run with `--browser` | Effect and Node's modules belong to the Node tooling package (ADR 0003); keep them out of browser code |
+| `forbidden-import` | A package imports a module it must never use (the 2D editor and `@pixi/3d`, for example); run with `--forbid <root>:<package>,...` | Take the dependency out; if the code needs 3D, it belongs in the 3D package |
+| `platform-import` | A distribution target's platform package (`@ruken/*`, `@tauri-apps/*`) imported outside a folder named for that target (`ruken/`, `tauri/`); run with `--platform-imports` | Use AF's own API instead (the message names it: `@automata/framework` for host types, `@automata/framework/testing` for a fake host, `@automata/content/game-config` for the game config), or move the file under the target's folder |

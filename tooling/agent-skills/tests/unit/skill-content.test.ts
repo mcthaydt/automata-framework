@@ -46,6 +46,42 @@ describe('automata-verify', () => {
     expect(skill).toContain(`\`${id}\``)
   })
 
+  describe("the framework's own repository", () => {
+    // `automata check` runs the boundaries checker with `--game` only, so a game never meets these rules; they guard
+    // the framework's packages (they need `--features`, `--platform-imports`, `--forbid` or `--browser`).
+    const REPOSITORY_ONLY_RULES = [
+      'feature-import',
+      'shared-import',
+      'app-import',
+      'entries-import',
+      'entries-logic',
+      'testing-import',
+      'alias-in-src',
+      'browser-import',
+      'forbidden-import',
+      'platform-import',
+    ]
+    const HEADING = "## Only in the framework's own repository"
+
+    it('are real rules that the game check never passes', () => {
+      expect(checkRuleIds()).toEqual(expect.arrayContaining(REPOSITORY_ONLY_RULES))
+      const steps = read('packages/tools/src/shared/check/check-steps.ts')
+      expect(steps).toContain("[cli, '--game', 'src']")
+      for (const flag of ['--features', '--platform-imports', '--forbid', '--browser'])
+        expect(steps).not.toContain(flag)
+    })
+
+    it('are listed under their own heading, and not before it', () => {
+      const heading = skill.indexOf(HEADING)
+      expect(heading).toBeGreaterThan(-1)
+      expect(skill.slice(heading)).toContain('`automata check` never reports these on a game')
+      for (const id of REPOSITORY_ONLY_RULES) {
+        expect(skill.slice(heading), id).toContain(`\`${id}\``)
+        expect(skill.slice(0, heading), id).not.toContain(`\`${id}\``)
+      }
+    })
+  })
+
   it("documents typecheck's TS codes, the test rules and every step", () => {
     for (const text of [
       '`TS',

@@ -24,7 +24,7 @@ const PLATFORMS: readonly Platform[] = [
     replacements: {
       '@ruken/sdk':
         '@automata/framework (the host contract: Hosting, Capability, ErrorCode and the payloads)',
-      '@ruken/sdk-host': '@automata/framework/testing (FakeHosting)',
+      '@ruken/sdk-host': '@automata/framework/testing (fakeHosting)',
       '@ruken/manifest': '@automata/content/game-config (the game config)',
       '@ruken/cli': 'automata ship publish --target ruken',
     },
