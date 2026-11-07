@@ -11,7 +11,7 @@ export interface Step {
 export const STEPS: readonly Step[] = [
   {
     title: '1. Make a game',
-    command: 'npx @mcthaydt/automata-tools create-game my-game',
+    command: 'npx @automata/tools create-game my-game',
     what: 'A folder called my-game with a small working platformer in it: a level, a player and its tests.',
   },
   {

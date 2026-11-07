@@ -1,5 +1,5 @@
 ---
-'@mcthaydt/automata-tools': patch
+'@automata/tools': patch
 ---
 
 `automata check` has a `levels` step that fails when a level project and the game files saved from it disagree, and

@@ -1,7 +1,7 @@
-import '@mcthaydt/automata-editor/tokens.css'
-import '@mcthaydt/automata-editor/fonts.css'
+import '@automata/editor/tokens.css'
+import '@automata/editor/fonts.css'
 import './main.css'
-import { openServedWorkspace } from '@mcthaydt/automata-editor/kit/core'
+import { openServedWorkspace } from '@automata/editor/kit/core'
 import { startEditor } from './ui/boot'
 import { lazyPlanRenderer } from './ui/plan/lazy-renderer'
 

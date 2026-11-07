@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { packReplay, type Replay, ReplayFormatError, unpackReplay } from '@mcthaydt/automata-sim/replay'
+import { packReplay, type Replay, ReplayFormatError, unpackReplay } from '@automata/sim/replay'
 import { expect, test } from 'vitest'
 import { nodeCompression, streamCompression } from '#src/testing/compression.ts'
 

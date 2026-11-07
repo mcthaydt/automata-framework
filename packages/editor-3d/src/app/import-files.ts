@@ -8,7 +8,7 @@ import {
   type StorageFailure,
   statPath,
   storePathProblem,
-} from '@mcthaydt/automata-editor/kit/core'
+} from '@automata/editor/kit/core'
 import { type UnzipFileInfo, unzipSync } from 'fflate'
 import { MAX_FILE_BYTES } from './read-level'
 

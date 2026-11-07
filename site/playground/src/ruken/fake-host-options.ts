@@ -1,4 +1,4 @@
-import type { HostSettings } from '@mcthaydt/examples-runner/header'
+import type { HostSettings } from '@automata/examples-runner/header'
 import type { createFakeHost } from '@ruken/sdk-host/testing'
 
 type FakeHostCreateOptions = Parameters<typeof createFakeHost>[0]

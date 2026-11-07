@@ -7,7 +7,7 @@
     "isolatedDeclarations": false,
     // The automata-feature example (outside this package) resolves its imports as a game would.
     "paths": {
-      "@mcthaydt/automata-sim": ["../../packages/sim/src/entries/index.ts"],
+      "@automata/sim": ["../../packages/sim/src/entries/index.ts"],
       "zod": ["./node_modules/zod"],
       "vitest": ["./node_modules/vitest"]
     }

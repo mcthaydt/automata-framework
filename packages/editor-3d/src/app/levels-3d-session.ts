@@ -1,9 +1,4 @@
-import type {
-  SuiteAskTarget,
-  SuitePorts,
-  SuiteUndo,
-  WorkspaceFile,
-} from '@mcthaydt/automata-editor/kit/ports'
+import type { SuiteAskTarget, SuitePorts, SuiteUndo, WorkspaceFile } from '@automata/editor/kit/ports'
 import { ok } from '../model/edit'
 import { createLevelEditor, type LevelEditor } from '../model/level-editor'
 import type { ParseIssue } from '../profile/file-codec'

@@ -1,4 +1,4 @@
-import { createToasts, type ProjectStore, type Toast } from '@mcthaydt/automata-editor/kit/core'
+import { createToasts, type ProjectStore, type Toast } from '@automata/editor/kit/core'
 import { strToU8, zipSync } from 'fflate'
 import { describe, expect, it } from 'vitest'
 import { loadAuthored, loadFixture } from '../../testing/fixtures'

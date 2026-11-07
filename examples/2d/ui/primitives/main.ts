@@ -14,11 +14,11 @@
  * card, Tab and the arrow keys move focus as a player's keyboard or controller would. Open a card
  * on its own (its link) to see it full-window, and resize the window to watch the owner re-measure.
  *
- * Base: none (renderer-free). Packages: `@mcthaydt/automata` (`/testing` for
+ * Base: none (renderer-free). Packages: `@automata/framework` (`/testing` for
  * the reference sizes and Ruken's display-metrics fixture).
  */
 
-import '@mcthaydt/automata/theme.css'
+import '@automata/framework/theme.css'
 import {
   classifyFormFactor,
   classifyHeightTier,
@@ -26,8 +26,8 @@ import {
   installGlobalErrorHandlers,
   suppressPageGestures,
   type ViewportWindow,
-} from '@mcthaydt/automata'
-import { hostDisplay, REFERENCE_SIZES, VARIANTS, type Variant } from '@mcthaydt/automata/testing'
+} from '@automata/framework'
+import { hostDisplay, REFERENCE_SIZES, VARIANTS, type Variant } from '@automata/framework/testing'
 import { mount, unmount } from 'svelte'
 import Frame from './src/Frame.svelte'
 import Gallery from './src/Gallery.svelte'

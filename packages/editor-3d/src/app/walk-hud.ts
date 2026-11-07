@@ -1,4 +1,4 @@
-import type { Size } from '@mcthaydt/automata-editor/kit/core'
+import type { Size } from '@automata/editor/kit/core'
 import { parseSelection } from '../model/selection-ref'
 import type { GeometryLayer } from '../profile/level-profile'
 import type { Camera3D } from '../view/mesh/camera-3d'

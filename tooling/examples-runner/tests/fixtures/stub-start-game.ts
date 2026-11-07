@@ -2,7 +2,7 @@
 // before DX.2 lands (EX plan, Task EX.1). It is not the real API and is only ever given to the runner's own
 // fixture config (fixtures.vite.config.ts): it runs the example's sim for a few ticks, shows the tick and the
 // state hash, and marks the page ready.
-import { createSim } from '@mcthaydt/automata-sim'
+import { createSim } from '@automata/sim'
 import type { GoldenExample } from '#src/parity.ts'
 
 export async function startGame(example: GoldenExample): Promise<void> {

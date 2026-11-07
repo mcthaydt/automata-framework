@@ -57,6 +57,17 @@ describe('apiBreaks', () => {
   })
 })
 
+describe('apiBreaks, across a rename', () => {
+  it('names the package by its current name, so a changeset under the new name declares the break', () => {
+    const head = { package: '@fx/renamed', entries: [{ entryPoint: '.', exports: [] }] }
+    expect(apiBreaks(base, head).map((found) => found.package)).toEqual([
+      '@fx/renamed',
+      '@fx/renamed',
+      '@fx/renamed',
+    ])
+  })
+})
+
 describe('apiBreaks, a function that only gains optional trailing parameters', () => {
   const before = 'function add(a: number, b: number): number;'
   const exportOf = (declaration: string, kind: ApiExport['kind'] = 'function') => ({

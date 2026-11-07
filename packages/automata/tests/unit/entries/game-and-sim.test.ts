@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import * as sim from '@mcthaydt/automata-sim'
+import * as sim from '@automata/sim'
 import { describe, expect, it } from 'vitest'
 import * as game from '#src/entries/game.ts'
 import * as automata from '#src/entries/game-and-sim.ts'
 
-// `@mcthaydt/automata`, the one import (PRODUCT spec §7, plan U-2): the game package and the sim's define verbs,
+// `@automata/framework`, the one import (PRODUCT spec §7, plan U-2): the game package and the sim's define verbs,
 // each the very same value as its owner's. The list is pinned, so a new verb is added on purpose (`defineSave`, M5.2:
 // `defineGame({ saves })` takes a save, and a game imports the umbrella, not the runtime, to declare one; `inputs`,
 // M3.7b: a game whose sim takes several commands joins its `keys()` maps).
@@ -36,7 +36,7 @@ const umbrella = new Map(Object.entries(automata))
 const gameExports = new Map(Object.entries(game))
 const simExports = new Map(Object.entries(sim))
 
-describe('@mcthaydt/automata', () => {
+describe('@automata/framework', () => {
   it('exports exactly the pinned verbs', () => {
     expect(Object.keys(automata).sort()).toEqual([...FROM_GAME, ...FROM_SIM].sort())
   })

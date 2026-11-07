@@ -1,5 +1,5 @@
-import { examplesPort } from '@mcthaydt/examples-runner/host/ports'
-import { collectErrors, openHosted } from '@mcthaydt/examples-runner/host/testing'
+import { examplesPort } from '@automata/examples-runner/host/ports'
+import { collectErrors, openHosted } from '@automata/examples-runner/host/testing'
 import { expect, test } from '@playwright/test'
 
 // The audio unlock in a real browser, under the fake host and Ruken's CSP (M5.3 plan step 9): no AudioContext

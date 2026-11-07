@@ -8,8 +8,8 @@
 // whose sim keeps fixed-point positions reads metres with `position`, and frames a lock-on target with `lock`: the
 // driver then keeps every row's components by sid, so `lock` can find the target's.
 
-import type { FrameInfo, PixiStageHooks } from '@mcthaydt/automata'
-import type { FieldRecord, StepResult } from '@mcthaydt/automata-sim'
+import type { FrameInfo, PixiStageHooks } from '@automata/framework'
+import type { FieldRecord, StepResult } from '@automata/sim'
 import { CameraHeading } from '../sim/camera-heading.component.js'
 import type { CameraView } from '../sim/camera-view.schema.js'
 import { headingDegrees } from '../sim/heading.js'

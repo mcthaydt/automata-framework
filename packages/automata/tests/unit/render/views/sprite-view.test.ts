@@ -1,4 +1,4 @@
-import type { RenderRow } from '@mcthaydt/automata-sim'
+import type { RenderRow } from '@automata/sim'
 import { Assets, type Sprite, Texture, TextureSource } from 'pixi.js'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { sprite } from '#src/features/render/views/sprite-view.ts'

@@ -76,8 +76,8 @@ describe('the new game’s files', () => {
 
   it('starts the game from main.ts, with the no-eval entry first', () => {
     const main = read('src/main.ts')
-    expect(main.indexOf("import '@mcthaydt/automata/no-eval'")).toBeGreaterThan(-1)
-    expect(main.indexOf("import '@mcthaydt/automata/no-eval'")).toBeLessThan(
+    expect(main.indexOf("import '@automata/framework/no-eval'")).toBeGreaterThan(-1)
+    expect(main.indexOf("import '@automata/framework/no-eval'")).toBeLessThan(
       main.indexOf("from './app/game.ts'"),
     )
     expect(main).toContain('startGame(game)')
@@ -95,7 +95,7 @@ describe('the new game’s files', () => {
 
   it('keeps the sim free of the renderer, so its tests need no browser', () => {
     for (const file of files.filter((each) => /^src\/features\/(square|level)\/(?!\w+\.view)/.test(each))) {
-      expect(read(file), file).not.toMatch(/from '@mcthaydt\/automata'|pixi/)
+      expect(read(file), file).not.toMatch(/from '@automata\/framework'|pixi/)
     }
   })
 })
@@ -122,7 +122,7 @@ describe('the tools package’s README', () => {
   it('starts with the one command that makes a game, with no install first', () => {
     const readme = readFileSync(new URL('../../../../README.md', import.meta.url), 'utf8')
     const firstCommand = /```sh\n([^\n]+)/.exec(readme)?.[1] ?? ''
-    expect(firstCommand).toMatch(/^pnpm dlx @mcthaydt\/automata-tools create-game my-game/)
+    expect(firstCommand).toMatch(/^pnpm dlx @automata\/tools create-game my-game/)
     expect(readme).not.toContain('github.com/mcthaydt/automata-framework')
   })
 })
@@ -142,7 +142,7 @@ describe('the new game’s scripts and config', () => {
   })
 
   it('depends on the content package, which compiles and reads the level', () => {
-    expect(manifest().dependencies['@mcthaydt/automata-content']).toBeDefined()
+    expect(manifest().dependencies['@automata/content']).toBeDefined()
   })
 
   it('declares the pad in ship.config.ts, because keys() binds it', () => {

@@ -3,11 +3,11 @@
  * stand-ins as written, and their `xx-long` form, about 40% longer, accented and bracketed, from the pseudo-locale
  * content owns. A fixture takes a `locale` prop and says each of its words with `say`.
  *
- * Test-only: it imports `@mcthaydt/automata-content`, which is ui's dev dependency, so the published build strips
+ * Test-only: it imports `@automata/content`, which is ui's dev dependency, so the published build strips
  * it with the fixtures (`*-fixture` in tooling/release's `finishSvelteDist`).
  */
 
-import { hasRawText, PSEUDO_LOCALE, pseudoLocalize } from '@mcthaydt/automata-content/locale'
+import { hasRawText, PSEUDO_LOCALE, pseudoLocalize } from '@automata/content/locale'
 
 /** `en`, the English stand-ins as written, or the pseudo-locale's tag. */
 export type FixtureLocale = 'en' | typeof PSEUDO_LOCALE

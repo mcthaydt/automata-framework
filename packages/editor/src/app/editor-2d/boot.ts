@@ -1,4 +1,4 @@
-import { createGeometryOwner, type ViewportWindow } from '@mcthaydt/automata'
+import { createGeometryOwner, type ViewportWindow } from '@automata/framework'
 import { type Component, mount, unmount } from 'svelte'
 import type { LevelCanvasProps, ObjectUrls } from '../../features/document/view-props'
 import type { LastOpened } from '../../features/home/home-controller'

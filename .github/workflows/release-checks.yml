@@ -63,7 +63,7 @@ jobs:
       # against origin/main's reports is declared by a changeset.
       - run: pnpm api-report
       - run: pnpm build
-      - run: pnpm --filter @mcthaydt/release test:dist
+      - run: pnpm --filter @automata/release test:dist
       # The API index and llms-full.txt from the built .d.ts; fails on a new export with no doc comment.
       - run: pnpm api-index
       # The automata-api skill carries that api.md and the plugin its version; then Claude Code validates the
@@ -73,7 +73,7 @@ jobs:
       # The packed packages installed outside the workspace.
       - run: node tooling/consumer-smoke/src/run.ts --from packs
       # The playground's feasibility and frame journeys (the website's embedded player), in every engine.
-      - run: pnpm --filter @mcthaydt/automata-site test:e2e:playground
+      - run: pnpm --filter @automata/site test:e2e:playground
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:

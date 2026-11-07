@@ -16,7 +16,7 @@ describe('endonymOf', () => {
     expect(endonymOf('fr')).toBe('Français')
   })
 
-  it('is exported by @mcthaydt/automata-content/locale', () => {
+  it('is exported by @automata/content/locale', () => {
     expect(locale.endonymOf).toBe(endonymOf)
   })
 })

@@ -1,6 +1,6 @@
 // The area: the room's level content compiled to fixed point, and the geometry the systems read. The free game has one
 // area (the rescope spec §2): its rooms, walls, pits and camera views, the spawn, the embers and the goal.
-import { type CameraView, cameraViewSchema } from '@mcthaydt/automata-render-pixi3d/sim'
+import { type CameraView, cameraViewSchema } from '@automata/render-pixi3d/sim'
 import { z } from 'zod'
 import { HERO_HALF, metres } from '../constants/index.ts'
 

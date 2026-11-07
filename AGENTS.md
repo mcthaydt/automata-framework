@@ -21,14 +21,14 @@ The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history
 2. Each piece of state has one owner. Presentation observes; it never decides.
 3. The same seed, content and inputs give the same hash, in every engine. Never accept a hash mismatch as flaky.
 4. The host is a port. No distribution target is the reference ([ADR 0006](docs/adr/0006-distribution-targets.md)).
-5. Effect is for Node tooling. The sim never imports it, and the browser package `@mcthaydt/automata` is plain
+5. Effect is for Node tooling. The sim never imports it, and the browser package `@automata/framework` is plain
    TypeScript ([ADR 0003](docs/adr/0003-effect-outside-the-sim.md) as amended). The 3D renderer keeps Effect until the 3D phase.
 6. PixiJS only for rendering ([ADR 0002](docs/adr/0002-pixi-for-2d-and-3d.md)). Every game imports the no-eval entry first.
 7. Zod is the only schema language.
 
 ## Packages and features
 
-- Browser code is one package, `@mcthaydt/automata`. Node build tools are one package, `@mcthaydt/automata-tools`.
+- Browser code is one package, `@automata/framework`. Node build tools are one package, `@automata/tools`.
   The sim (`-sim`) and the content compiler (`-content`) stay separate. Extensions are opt-in and never edit core.
 - Inside a package, `src/` is `app/`, `features/<x>/`, `shared/`, `entries/` and `testing/`. A feature imports
   only itself and `shared/`; `app/` wires features together; `entries/` only re-exports. `pnpm boundaries` enforces it.
@@ -86,7 +86,7 @@ The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history
 - Only published packages get a changeset, and it is `patch`. Private ones (the editors, figures) need none.
 - Browser, visual and journey suites run on the GPU runner, and cross-engine parity runs in Chromium, WebKit and
   Firefox. Report what you ran, what you left out and what is pending.
-- Packages publish as `@mcthaydt/automata-<name>` to GitHub Packages.
+- Packages publish as `@automata/<name>` to GitHub Packages.
 
 ## Branches and pull requests
 

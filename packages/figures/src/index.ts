@@ -1,4 +1,4 @@
-// @mcthaydt/automata-figures: procedural characters (M3 spec §4.4), renderer-free. Part 1 (M3.5a): the math,
+// @automata/figures: procedural characters (M3 spec §4.4), renderer-free. Part 1 (M3.5a): the math,
 // the shared rig and its two-bone IK, the gene sliders, the figure and library content kinds, and the
 // extension that registers them. Part 2 (M3.5b): `build()`, the part, garment and hair generators behind it.
 // Part 3 (M3.5c): locomotion (`base()`, `moveDir`), stands, holds, hems, the pose clock and the hair spring.

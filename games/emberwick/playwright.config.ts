@@ -1,4 +1,4 @@
-import { defineJourneys, sizes } from '@mcthaydt/playwright-preset'
+import { defineJourneys, sizes } from '@automata/playwright-preset'
 import {
   devPort,
   devUrl,

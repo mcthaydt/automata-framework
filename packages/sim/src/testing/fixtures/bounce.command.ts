@@ -1,4 +1,4 @@
-import { type CommandDef, defineCommand } from '@mcthaydt/automata-sim'
+import { type CommandDef, defineCommand } from '@automata/sim'
 import { z } from 'zod'
 
 const kickSchema: z.ZodObject<{ ball: z.ZodNumber; dvx: z.ZodNumber }> = z.object({

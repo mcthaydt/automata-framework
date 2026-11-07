@@ -3,7 +3,7 @@
 // AF's changes: every failure is a `ModelInvalid` naming the file (M3 spec §6), a GLB with a skin is refused
 // (skinned glTF is deferred, M3R-D1), and reads are bounds-checked so a damaged file fails here rather than drawing
 // garbage. Only the static path is kept: one textured primitive, float positions, normals and UVs.
-import { ModelInvalid } from '@mcthaydt/automata'
+import { ModelInvalid } from '@automata/framework'
 
 /** One textured mesh, as both file types read: what `modelGeometry` and the mesh view build from. */
 export interface ModelMesh {

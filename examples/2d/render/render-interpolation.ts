@@ -4,10 +4,10 @@
 //   current one), so motion stays smooth when display frames and sim ticks do not line up. The pink line is the
 //   sim's own position, which only moves a whole tick at a time; the HUD prints the frame's alpha.
 // Controls: I turns the blend on and off
-// Packages: @mcthaydt/automata
+// Packages: @automata/framework
 // Difficulty: ★★☆☆
 // Tier: core
-import { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@mcthaydt/automata'
+import { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@automata/framework'
 
 const Runner = defineComponent('runner', { x: 'f32', y: 'f32', vx: 'f32' })
 

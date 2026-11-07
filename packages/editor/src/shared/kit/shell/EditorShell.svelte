@@ -34,7 +34,7 @@
   The app imports `tokens.css` (and `fonts.css`) once; this component only reads the variables.
 -->
 <script lang="ts">
-import type { GeometryState } from '@mcthaydt/automata'
+import type { GeometryState } from '@automata/framework'
 import type { Snippet } from 'svelte'
 import RegionError from './RegionError.svelte'
 import type { SnippetRegion } from './region-error'

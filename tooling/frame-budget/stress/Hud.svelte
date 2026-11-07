@@ -3,7 +3,7 @@
   overlay as a real game's would. The tick count comes from the sim's Beat events on the presentation bus.
 -->
 <script lang="ts">
-import { ActionBar, type BarAction } from '@mcthaydt/automata'
+import { ActionBar, type BarAction } from '@automata/framework'
 
 interface Props {
   entities: number

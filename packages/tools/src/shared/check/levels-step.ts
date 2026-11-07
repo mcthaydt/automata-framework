@@ -1,6 +1,6 @@
 import { join } from 'node:path'
-import { EDITOR_LIST_PATH, globMatch, loadEditorList } from '@mcthaydt/automata-editor/editor-list'
-import { exportContent, openProject } from '@mcthaydt/automata-editor/level-export'
+import { EDITOR_LIST_PATH, globMatch, loadEditorList } from '@automata/editor/editor-list'
+import { exportContent, openProject } from '@automata/editor/level-export'
 import { Effect } from 'effect'
 import { Files } from '../node/files.ts'
 import type { CheckFinding } from './check-report.ts'

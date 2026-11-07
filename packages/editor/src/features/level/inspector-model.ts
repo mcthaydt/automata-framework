@@ -1,4 +1,4 @@
-import type { FieldDef, FieldValues } from '@mcthaydt/automata-content/level-2d'
+import type { FieldDef, FieldValues } from '@automata/content/level-2d'
 import { type FieldRow, fieldRow } from '../../shared/kit/fields/field-row.ts'
 import { valuesWithDefaults } from '../../shared/kit/fields/field-values.ts'
 import type { EntityDef2D, EntityInstance, Project, Size } from '../../shared/level-2d/model/project-types'

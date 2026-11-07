@@ -3,7 +3,7 @@
 // every engine). The compiler cannot run in a browser, so the sim-rooms fixture's compiled partition is
 // committed beside it as `sim-content.json`; a Node test (sim-partition.test.ts) keeps that file equal to a
 // fresh compile.
-import { createSim } from '@mcthaydt/automata-sim'
+import { createSim } from '@automata/sim'
 import { expect, test } from 'vitest'
 import { contentHash } from '#src/shared/hash/content-hash.ts'
 import simContent from '#src/testing/fixtures/sim-rooms/sim-content.json'

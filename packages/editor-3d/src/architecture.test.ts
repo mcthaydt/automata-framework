@@ -25,8 +25,7 @@ describe('checkArchitecture: components', () => {
 describe('checkArchitecture: the headless layers', () => {
   it('may import the kit core, zod and each other', () => {
     const files = tree({
-      'app/a.ts':
-        "import { readStored } from '@mcthaydt/automata-editor/kit/core'\nimport { b } from '../model/b'",
+      'app/a.ts': "import { readStored } from '@automata/editor/kit/core'\nimport { b } from '../model/b'",
       'model/b.ts': "import { z } from 'zod'\nexport const b = z.string()",
     })
     expect(checkArchitecture(files)).toEqual([])
@@ -38,9 +37,9 @@ describe('checkArchitecture: the headless layers', () => {
       './Panel.svelte',
       'svelte',
       'svelte/store',
-      '@mcthaydt/automata-editor/kit',
-      '@mcthaydt/automata-editor/suite',
-      '@mcthaydt/automata-ui',
+      '@automata/editor/kit',
+      '@automata/editor/suite',
+      '@automata/ui',
     ]) {
       const files = tree({ 'app/a.ts': `import x from '${specifier}'\nexport default x` })
       expect(rules(checkArchitecture(files)), specifier).toEqual(['headless-imports-view'])

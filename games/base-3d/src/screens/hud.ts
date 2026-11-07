@@ -1,6 +1,6 @@
 // The HUD's state, read from the running sim each animation frame: the embers taken and how many there are. Presentation:
 // it only reads the sim (law 1).
-import type { Sim } from '@mcthaydt/automata-sim'
+import type { Sim } from '@automata/sim'
 import { Ember } from '../components.ts'
 import { Progress } from '../resources.ts'
 

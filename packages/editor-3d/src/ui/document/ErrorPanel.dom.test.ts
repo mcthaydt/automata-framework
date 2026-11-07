@@ -1,4 +1,4 @@
-import { createToasts, type Toast, type WriteResult } from '@mcthaydt/automata-editor/kit/core'
+import { createToasts, type Toast, type WriteResult } from '@automata/editor/kit/core'
 import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'

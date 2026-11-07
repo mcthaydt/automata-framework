@@ -1,7 +1,7 @@
 // base-3d's state (the GL spec's `state.ts`): the plugin that lists every definition, and the starting world (the room
 // compiled once, before the sim is made, and the entities the sim starts with). Sim code: `pnpm boundaries` checks it.
-import { CameraHeading, enterView, START } from '@mcthaydt/automata-render-pixi3d/sim'
-import { definePlugin, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
+import { CameraHeading, enterView, START } from '@automata/render-pixi3d/sim'
+import { definePlugin, type PluginDef, type Sim } from '@automata/sim'
 import { Act, Move } from '../commands.ts'
 import { Ember, Hero, HeroAction, HeroControl } from '../components.ts'
 import { EmberTaken, GoalReached, HeroFell, HeroRolled } from '../events.ts'

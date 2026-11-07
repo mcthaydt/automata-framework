@@ -5,14 +5,14 @@
 //   right arm and a look of the head and chest; each clip cuts into the last with the action transition; the
 //   view's clock is the sim's tick, so a clip starts where the sim started it.
 // Controls: none
-// Packages: @mcthaydt/automata, @mcthaydt/automata-figures, @mcthaydt/automata-render-pixi3d
+// Packages: @automata/framework, @automata/figures, @automata/render-pixi3d
 // Difficulty: ★★★☆
 // Tier: core
-import '@mcthaydt/automata-render-pixi3d/no-eval'
-import { defineComponent, defineGame, definePlugin, defineSystem } from '@mcthaydt/automata'
-import type { Ease, FigureClipDef, FigureDef, MotionLibrary, Vec3 } from '@mcthaydt/automata-figures'
-import { createPixi3dRenderer, figure, render3dExtension } from '@mcthaydt/automata-render-pixi3d'
-import { CameraHeading, cameraView, enterView, START } from '@mcthaydt/automata-render-pixi3d/sim'
+import '@automata/render-pixi3d/no-eval'
+import type { Ease, FigureClipDef, FigureDef, MotionLibrary, Vec3 } from '@automata/figures'
+import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
+import { createPixi3dRenderer, figure, render3dExtension } from '@automata/render-pixi3d'
+import { CameraHeading, cameraView, enterView, START } from '@automata/render-pixi3d/sim'
 
 // Wick, his swatches and the `bounce` gait as in figures-walk (FigureBuilder a1f7246), written as compiled.
 const cloak = { 'wick-cloak': { colour: 41 }, 'wick-cloak-shade': { colour: 40 } }

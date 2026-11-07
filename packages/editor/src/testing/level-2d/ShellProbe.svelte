@@ -3,7 +3,7 @@
   (compile, the kit's components, runes, the geometry stand-in) before real screens exist.
 -->
 <script lang="ts">
-import type { GeometryState } from '@mcthaydt/automata'
+import type { GeometryState } from '@automata/framework'
 import EditorShell from '../../shared/kit/shell/EditorShell.svelte'
 
 let { geometry }: { geometry: GeometryState } = $props()

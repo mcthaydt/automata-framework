@@ -5,7 +5,7 @@
   Several selected show the first and say so; nothing selected says how to select.
 -->
 <script lang="ts">
-import { Button } from '@mcthaydt/automata-editor/kit'
+import { Button } from '@automata/editor/kit'
 import type { InspectorCard } from '../../app/inspector-cards'
 import type { InspectorChange, InspectorPhase } from '../../app/inspector-edits'
 import type { MaterialTarget } from '../../app/material-session'

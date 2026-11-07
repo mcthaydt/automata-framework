@@ -1,4 +1,4 @@
-import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
+import { defineSystem, type SystemDef } from '@automata/sim'
 import { PlayerControl } from '../../shared/player.component.ts'
 import { Move } from './move.command.ts'
 

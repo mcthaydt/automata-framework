@@ -1,7 +1,7 @@
 // What the suite's real-browser layout tests share (the level editors' own tests are in the packages that own them): open
 // the suite at a size with the production CSS, find a tab or a region inside the one shell, and check the page never
 // scrolls. The caller says which editors the suite holds, so a package tests only the editors it has.
-import { publishConditions, settleLayout } from '@mcthaydt/automata/testing'
+import { publishConditions, settleLayout } from '@automata/framework/testing'
 import { expect } from 'vitest'
 import { page } from 'vitest/browser'
 import { samplePorts } from '../../features/suite/memory/sample-ports'

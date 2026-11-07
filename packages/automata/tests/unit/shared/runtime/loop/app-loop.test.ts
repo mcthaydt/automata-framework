@@ -5,7 +5,7 @@ import {
   definePlugin,
   defineSystem,
   SimFaultedError,
-} from '@mcthaydt/automata-sim'
+} from '@automata/sim'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { createAppLoop } from '#src/shared/runtime/loop/app-loop.manager.ts'

@@ -1,7 +1,7 @@
 // The Plan view's tool switcher (ED3D.6g-a, plan decision 1): which tool the plan's pointer goes to. The depot is the
 // level (the hall from (0, 0) to (8, 6), the dock from (8, 0) to (14, 6)); the canvas is 800 by 400 px with the camera
 // at (7, 3) and zoom 1, and pixel positions come from `toScreen`, as in the tools' own tests.
-import type { PointerKind } from '@mcthaydt/automata-editor/kit/core'
+import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import type { AfSector } from '../format/af-sector.schema'
 import { createLevelEditor } from '../model/level-editor'

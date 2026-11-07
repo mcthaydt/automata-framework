@@ -1,6 +1,6 @@
 // The package's public entry: what a consumer can import, and what stays inside.
 
-import { cameraView } from '@mcthaydt/automata-render-pixi3d/camera-view'
+import { cameraView } from '@automata/render-pixi3d/camera-view'
 import { describe, expect, it } from 'vitest'
 import * as editor3d from './index'
 

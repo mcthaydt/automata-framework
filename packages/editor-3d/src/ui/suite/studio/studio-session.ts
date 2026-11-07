@@ -1,6 +1,6 @@
-import { createHistory, type History } from '@mcthaydt/automata-editor/kit/core'
-import { type ContentEdit, openDocument } from '@mcthaydt/automata-editor/kit/documents'
-import type { SuitePorts, WorkspaceFile } from '@mcthaydt/automata-editor/kit/ports'
+import { createHistory, type History } from '@automata/editor/kit/core'
+import { type ContentEdit, openDocument } from '@automata/editor/kit/documents'
+import type { SuitePorts, WorkspaceFile } from '@automata/editor/kit/ports'
 import { kindOf, readStudioContent, readValue, type StudioContent } from './studio-content'
 
 // The Studio's session (EDS.9a; editor suite spec §4.4, §6.2, EDS-D12): the figure content of one game, kept for the

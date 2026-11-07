@@ -8,7 +8,7 @@
   view on the new one. Everything it does goes through the document controller; nothing here names a profile.
 -->
 <script lang="ts">
-import type { GeometryState } from '@mcthaydt/automata'
+import type { GeometryState } from '@automata/framework'
 import type { Component, Snippet } from 'svelte'
 import { componentOf } from '../../app/editor-2d/views'
 import ConflictDialog from '../../shared/kit/dialogs/ConflictDialog.svelte'

@@ -1,5 +1,5 @@
-import { lerp, lerpAngle } from '@mcthaydt/automata'
-import type { FieldRecord } from '@mcthaydt/automata-sim'
+import { lerp, lerpAngle } from '@automata/framework'
+import type { FieldRecord } from '@automata/sim'
 import type { Container3D } from '@pixi/3d'
 
 /** Where a 3D view draws: a position in metres and a heading in radians about +y. */

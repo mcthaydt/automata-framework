@@ -16,8 +16,7 @@ export interface Violation {
 /** The page entries: the only files outside `ui/` that start the views (the editor's page and the full suite's). */
 const ENTRIES: ReadonlySet<string> = new Set(['main.ts', 'suite-main.ts'])
 /** Packages that are views: Svelte, the kit's Svelte root, the suite shell and the geometry owner. Svelte's and the geometry owner's sub-entries count too; the kit's headless ones (`kit/core`, `kit/fields`) do not. */
-const VIEW_PACKAGES =
-  /^(svelte(\/.*)?|@mcthaydt\/automata-editor\/(kit|suite)|@mcthaydt\/automata-ui(\/.*)?)$/
+const VIEW_PACKAGES = /^(svelte(\/.*)?|@automata\/editor\/(kit|suite)|@automata\/ui(\/.*)?)$/
 /** What the views must not read for themselves: the boot hands them a clock. */
 const CLOCK =
   /^(Date|setTimeout|setInterval|clearTimeout|clearInterval|requestAnimationFrame|queueMicrotask|performance\.now|Math\.random)$/

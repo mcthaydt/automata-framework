@@ -1,4 +1,4 @@
-import type { RenderRow } from '@mcthaydt/automata-sim'
+import type { RenderRow } from '@automata/sim'
 import { Container3D, Mesh3D } from '@pixi/3d'
 import type { ModelLibrary } from '../model/load-models.js'
 import { placeView3d } from './pose-3d.js'

@@ -16,7 +16,7 @@ function game(files: Record<string, string>): string {
   return dir
 }
 
-const scores = (board: string) => `import { defineGame } from '@mcthaydt/automata-game'
+const scores = (board: string) => `import { defineGame } from '@automata/game'
 export default defineGame({
   id: 'g',
   scores: {

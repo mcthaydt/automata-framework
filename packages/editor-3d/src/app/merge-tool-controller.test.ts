@@ -4,7 +4,7 @@
 // where a third room can lead into it. The depot is the same pair at different floors, which a merge refuses. The canvas is
 // 800 by 400 px with the camera at (7, 3) and zoom 1, which is 32 px to a metre; pixel positions are made with
 // `toScreen`, so no test hides a unit.
-import type { PointerKind } from '@mcthaydt/automata-editor/kit/core'
+import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it, vi } from 'vitest'
 import type { AfSector, AfSectorEntry } from '../format/af-sector.schema'
 import type { Blockout } from '../format/blockout.schema'

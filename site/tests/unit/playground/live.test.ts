@@ -131,9 +131,9 @@ describe('diagnosticText', () => {
   it('keeps a message’s own full stop', () => {
     expect(
       diagnosticText(
-        { line: 1, column: 1, message: 'The playground can import only @mcthaydt/automata and zod.' },
+        { line: 1, column: 1, message: 'The playground can import only @automata/framework and zod.' },
         false,
       ),
-    ).toBe('Line 1: The playground can import only @mcthaydt/automata and zod.')
+    ).toBe('Line 1: The playground can import only @automata/framework and zod.')
   })
 })

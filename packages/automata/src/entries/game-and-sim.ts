@@ -1,5 +1,5 @@
 // The game call and the sim's define verbs, unchanged: each is a thin layer over a part a game can always drop down
-// to (`@mcthaydt/automata-sim` for the verbs). `createCamera2d` comes through `game.ts`; verbs core does not have
+// to (`@automata/sim` for the verbs). `createCamera2d` comes through `game.ts`; verbs core does not have
 // yet (`sound`, `music`, `t`, `tween`) join this list when they ship.
 
 export {
@@ -20,5 +20,5 @@ export {
   type SimContext,
   type StepResult,
   type SystemDef,
-} from '@mcthaydt/automata-sim'
+} from '@automata/sim'
 export * from './game.ts'

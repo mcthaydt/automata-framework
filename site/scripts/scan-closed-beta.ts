@@ -4,7 +4,7 @@
 // `automata ship` runs on a game; the site depends on the tools, never the other way round.
 import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { findPixi3d } from '@mcthaydt/automata-tools/internal'
+import { findPixi3d } from '@automata/tools/internal'
 
 /** One message per built file that carries Pixi 3D or its extras; an empty list means the build is clean. */
 export function scanClosedBeta(root: string): string[] {

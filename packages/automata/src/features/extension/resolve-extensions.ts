@@ -1,5 +1,5 @@
-import type { ContentSchemaDef } from '@mcthaydt/automata-content'
-import type { PluginDef } from '@mcthaydt/automata-sim'
+import type { ContentSchemaDef } from '@automata/content'
+import type { PluginDef } from '@automata/sim'
 import type { UiComponent, UiSlotName } from '../../shared/ui/slots/ui-slot.ts'
 import type { ExtensionDef, GameConfig, RukenManifestContribution } from './define-extension'
 import { ExtensionError } from './extension-error'

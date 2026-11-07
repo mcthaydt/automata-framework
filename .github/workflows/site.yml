@@ -60,9 +60,9 @@ jobs:
       - name: Build and check the site
         if: steps.host.outputs.present == 'true'
         run: |
-          pnpm exec turbo run build --filter @mcthaydt/automata-site
-          pnpm --filter @mcthaydt/automata-site check:site
-          pnpm --filter @mcthaydt/automata-site check:launch
+          pnpm exec turbo run build --filter @automata/site
+          pnpm --filter @automata/site check:site
+          pnpm --filter @automata/site check:launch
       - name: Upload site/build to the host
         if: steps.host.outputs.present == 'true'
         env:

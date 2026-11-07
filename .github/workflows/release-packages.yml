@@ -2,7 +2,7 @@ name: release packages
 
 # AF's releases. Changesets opens or updates a "Version packages" pull request on every push to
 # main that carries changesets; merging that pull request (the Owner's word, never automatic) publishes every
-# changed @mcthaydt/automata-* package at one shared 0.0.x version to GitHub Packages. Nothing is published on
+# changed @automata/* package at one shared 0.0.x version to GitHub Packages. Nothing is published on
 # any other push.
 #
 # Four jobs: `plan` asks whether the pushed commit carries changesets, which is the question

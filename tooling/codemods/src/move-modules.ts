@@ -25,7 +25,7 @@ export interface MoveMap {
   /** The package folders being merged or emptied (`packages/runtime`): every file under their `src/` and `tests/` must have a row. */
   readonly sources: readonly string[]
   readonly moves: readonly MoveRow[]
-  /** Old specifier (`@mcthaydt/automata-ui/testing`) → new entry. Matched exactly. */
+  /** Old specifier (`@automata/ui/testing`) → new entry. Matched exactly. */
   readonly entries: Readonly<Record<string, EntryTarget>>
 }
 
@@ -62,10 +62,11 @@ const packageOf = (root: string, path: string): string => {
   return join(root, a, b)
 }
 
-/** The package folder a new public specifier names: `@mcthaydt/automata-sim/testing` → `packages/sim`. */
+/** The package folder a new public specifier names: `@automata/sim/testing` → `packages/sim`. */
 function folderOfSpecifier(specifier: string): string | undefined {
-  const match = /^@mcthaydt\/automata(?:-([a-z0-9-]+))?(?:\/|$)/.exec(specifier)
-  return match ? `packages/${match[1] ?? 'automata'}` : undefined
+  // `@automata/framework` lives in `packages/automata`; every other package's name is its folder's.
+  const match = /^@automata\/([a-z0-9-]+)(?:\/|$)/.exec(specifier)
+  return match ? `packages/${match[1] === 'framework' ? 'automata' : match[1]}` : undefined
 }
 
 function makeDestination(root: string, map: MoveMap): (file: string) => string | undefined {
@@ -234,7 +235,7 @@ const DEPENDENCY_SECTIONS = [
   'optionalDependencies',
   'devDependencies',
 ] as const
-/** `@mcthaydt/automata-ui/testing` → `@mcthaydt/automata-ui`. */
+/** `@automata/ui/testing` → `@automata/ui`. */
 const packageNameOf = (specifier: string): string => specifier.split('/').slice(0, 2).join('/')
 
 /** Remember that the package owning `file` now imports the entry `entry` in place of the old specifier `from`. */
@@ -276,7 +277,7 @@ function manifestRewrites(
   map: MoveMap,
   read: (path: string) => string,
 ): Map<string, string> {
-  // A name that is also a destination (`@mcthaydt/automata`) is not an old package, whatever entry it had.
+  // A name that is also a destination (`@automata/framework`) is not an old package, whatever entry it had.
   const newNames = new Set(
     Object.values(map.entries).map((entry) => packageNameOf(typeof entry === 'string' ? entry : entry.to)),
   )
@@ -325,13 +326,13 @@ function manifestRewrites(
   return out
 }
 
-/** The file an old public entry (`@mcthaydt/automata-ui/testing`) was served from, or 'conditional' for a target choice. */
+/** The file an old public entry (`@automata/ui/testing`) was served from, or 'conditional' for a target choice. */
 function oldEntryFile(
   root: string,
   specifier: string,
   read: (path: string) => string,
 ): string | 'conditional' | undefined {
-  const match = /^(@mcthaydt\/automata(?:-[a-z0-9-]+)?)(\/.*)?$/.exec(specifier)
+  const match = /^(@automata\/[a-z0-9-]+)(\/.*)?$/.exec(specifier)
   const folder = folderOfSpecifier(specifier)
   if (!match || !folder) return undefined
   try {

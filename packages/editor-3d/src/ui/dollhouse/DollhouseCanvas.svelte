@@ -6,8 +6,8 @@
   the plan still works and the level is safe, and offers Try again; the plan beside it never hears of it.
 -->
 <script lang="ts">
-import { attachGestures } from '@mcthaydt/automata-editor/kit'
-import type { Size } from '@mcthaydt/automata-editor/kit/core'
+import { attachGestures } from '@automata/editor/kit'
+import type { Size } from '@automata/editor/kit/core'
 import { onDestroy } from 'svelte'
 import { createDollhouseController, type DollhouseController } from '../../app/dollhouse-controller'
 import { dollhousePaint } from '../../app/dollhouse-paint'

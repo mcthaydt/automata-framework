@@ -63,36 +63,33 @@ const EXAMPLE_PATH = /^([a-z0-9]+)\/\1-([a-z0-9]+(?:-[a-z0-9]+)*)\.ts$/
 const SKIPPED_DIRS: ReadonlySet<string> = new Set(['node_modules', 'dist', 'e2e', 'resources', '__goldens__'])
 const ROOT_FILES: ReadonlySet<string> = new Set(['vite.config.ts', 'playwright.config.ts'])
 // The core umbrella: every core verb an example uses comes through it.
-const UMBRELLA = '@mcthaydt/automata'
+const UMBRELLA = '@automata/framework'
 // Zod is AF's only schema language: every command takes a Zod schema, and no core package re-exports `z`. It stays
 // a public import: re-exporting `z` would tie an example's schema library to the umbrella's pinned copy.
 const SCHEMA_LANGUAGE = 'zod'
 /**
  * The packages that are extensions rather than core: an example shows one by importing its
- * published entry. Every other `@mcthaydt/automata-*` package is core or tooling, and is reached through the
+ * published entry. Every other `@automata/*` package is core or tooling, and is reached through the
  * umbrella. A new extension package fails the catalog until it is listed here, which is when to decide its tier.
  */
-const EXTENSION_PACKAGES: ReadonlySet<string> = new Set(['@mcthaydt/automata-physics'])
+const EXTENSION_PACKAGES: ReadonlySet<string> = new Set(['@automata/physics'])
 /**
  * Extensions that stay private for now, whose entries examples may still import: `render-pixi3d` is built on the
  * closed `@pixi/3d` beta and is published when Pixi 3D is; `figures` stays private while its
  * only renderer does (M3R-D7). The website's playground leaves their
  * examples out (`playgroundCatalog`), because it is public.
  */
-const UNPUBLISHED_EXTENSIONS: ReadonlySet<string> = new Set([
-  '@mcthaydt/automata-render-pixi3d',
-  '@mcthaydt/automata-figures',
-])
+const UNPUBLISHED_EXTENSIONS: ReadonlySet<string> = new Set(['@automata/render-pixi3d', '@automata/figures'])
 
 /** Whether an import names an unpublished extension's entry. */
 export const isUnpublishedExtension = (specifier: string): boolean =>
   [...UNPUBLISHED_EXTENSIONS].some((name) => specifier === name || specifier.startsWith(`${name}/`))
-const AUTOMATA_PACKAGE = /^(@mcthaydt\/automata-[a-z0-9-]+)(?:\/|$)/
+const AUTOMATA_PACKAGE = /^(@automata\/[a-z0-9-]+)(?:\/|$)/
 
 interface PublicEntries {
   /** Every specifier an example may import: the umbrella, Zod and the published extensions' entries. */
   readonly entries: ReadonlySet<string>
-  /** The names of the `@mcthaydt/automata-*` packages in the workspace, private ones too. */
+  /** The names of the `@automata/*` packages in the workspace, private ones too. */
   readonly packages: ReadonlySet<string>
 }
 
@@ -122,7 +119,8 @@ function publicEntries(packagesDir: string): PublicEntries {
       private?: boolean
       exports?: Record<string, unknown>
     }
-    if (!manifest.name.startsWith(`${UMBRELLA}-`)) continue
+    // Every workspace package but the umbrella itself, which is always a public entry.
+    if (!manifest.name.startsWith('@automata/') || manifest.name === UMBRELLA) continue
     packages.add(manifest.name)
     const published = manifest.private !== true && EXTENSION_PACKAGES.has(manifest.name)
     if (!published && !UNPUBLISHED_EXTENSIONS.has(manifest.name)) continue
@@ -179,7 +177,7 @@ function importsOf(file: string, source: string): string[] {
 
 /**
  * Why an import is not allowed, if it is not. A core package is reached through the umbrella, whatever the path
- * into it. A pending example may import an `@mcthaydt/automata-*` package the workspace does not have yet: its
+ * into it. A pending example may import an `@automata/*` package the workspace does not have yet: its
  * pending task adds it. Once the example is no longer pending, the package must exist and declare the entry.
  */
 function importProblem(

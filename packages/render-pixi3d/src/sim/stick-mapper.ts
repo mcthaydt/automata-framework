@@ -2,7 +2,7 @@
 // up moves the character away from the camera at any heading. It changes gameplay, so it runs in the sim, on
 // `dmath`'s `sin` and `cos` (the sim may not call `Math` trig), and gives Q16.16 integers so a replay hashes the
 // same in Node, Chromium, WebKit and Firefox.
-import { cos, sin } from '@mcthaydt/automata-sim/math'
+import { cos, sin } from '@automata/sim/math'
 import { TURN_UNITS } from './heading.js'
 
 /** One in Q16.16: the mapper's outputs are this many to a metre's worth of direction. */

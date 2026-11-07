@@ -1,5 +1,5 @@
 // base-3d's HUD (DESIGN.md §9.5, GAME-3D.1e part 5a), as an extension filling the play screen's `hud.overlay` slot.
-import { defineExtension, type ExtensionDef } from '@mcthaydt/automata/extension'
+import { defineExtension, type ExtensionDef } from '@automata/framework/extension'
 import Hud from './Hud.svelte'
 
 export const hudExtension: ExtensionDef<'base-3d-hud'> = defineExtension({

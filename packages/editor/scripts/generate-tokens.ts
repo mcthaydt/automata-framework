@@ -1,5 +1,5 @@
 // Writes src/shared/kit/tokens.css from src/shared/kit/tokens/tokens.json. Run it after editing the JSON:
-//   pnpm --filter @mcthaydt/automata-editor tokens
+//   pnpm --filter @automata/editor tokens
 // With --check it writes nothing and exits 1 when tokens.css is stale (tokens.test.ts runs it).
 import { readFileSync, writeFileSync } from 'node:fs'
 import type { EditorTokens } from '../src/shared/kit/tokens/editor-tokens.ts'
@@ -11,7 +11,7 @@ const css = tokensToCss(JSON.parse(readFileSync(source, 'utf8')) as EditorTokens
 
 if (process.argv.includes('--check')) {
   if (readFileSync(target, 'utf8') !== css) {
-    console.error('tokens.css is stale. Run: pnpm --filter @mcthaydt/automata-editor tokens')
+    console.error('tokens.css is stale. Run: pnpm --filter @automata/editor tokens')
     process.exit(1)
   }
 } else {

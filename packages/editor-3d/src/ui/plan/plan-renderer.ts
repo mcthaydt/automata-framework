@@ -1,4 +1,4 @@
-import type { Point as ScreenPoint } from '@mcthaydt/automata-editor/kit/core'
+import type { Point as ScreenPoint } from '@automata/editor/kit/core'
 import {
   type AutoDetectOptions,
   autoDetectRenderer,

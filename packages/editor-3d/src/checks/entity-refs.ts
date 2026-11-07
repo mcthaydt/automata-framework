@@ -1,7 +1,7 @@
 // The ref half of the `ids` check (ED3D spec §7): a `ref` field must point at a thing or a sector the level has, as its
 // `to` allows, and a `to` must name only what can exist: a definition of the file or `$sector`. A level is one file, so
 // a ref's `container` is not looked at. Whether a value is shaped like a ref at all is the entity check's to say.
-import type { FieldDef } from '@mcthaydt/automata-editor/kit/fields'
+import type { FieldDef } from '@automata/editor/kit/fields'
 import { refsOf } from '../entities/thing-refs'
 import type { EntityKit, Thing } from '../entities/things'
 import type { Problem } from './check'

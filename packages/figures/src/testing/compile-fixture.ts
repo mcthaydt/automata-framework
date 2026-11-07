@@ -4,12 +4,7 @@
 import { cpSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import {
-  type CompiledContent,
-  compileContent,
-  type Diagnostic,
-  formatDiagnostic,
-} from '@mcthaydt/automata-content'
+import { type CompiledContent, compileContent, type Diagnostic, formatDiagnostic } from '@automata/content'
 import { Effect, Either } from 'effect'
 import { FIGURE_CONTENT } from '../content/figures.content'
 

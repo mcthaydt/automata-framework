@@ -3,7 +3,7 @@
 // every edit refuses on it. A definitions edit never makes a valid instance invalid: a changed field asks the kit's
 // `checkRetype`, an added or removed field asks the kit's `checkValues` of the instances that validated before, and a
 // ref field's narrowed `to` asks the `ids` check's ref rule. The sentences are the reader's and the checks' own.
-import { checkRetype, checkValues, ENTITY_ID, type FieldDef } from '@mcthaydt/automata-editor/kit/fields'
+import { checkRetype, checkValues, ENTITY_ID, type FieldDef } from '@automata/editor/kit/fields'
 import { entityRefProblems } from '../checks/entity-refs'
 import type { ThingDef } from '../entities/thing-def.schema'
 import { type EntityKit, readEntityKit, type Thing } from '../entities/things'

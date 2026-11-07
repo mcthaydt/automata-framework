@@ -5,7 +5,7 @@ import type { Files } from '../../shared/node/files.ts'
 import { ProcessRunner } from '../../shared/node/process-runner.ts'
 
 // `automata build`: the game's own `vite build`, found as `automata check` finds its tools. `--debug` sets `AUTOMATA_DEBUG=1` for
-// it, which `@mcthaydt/automata-content/vite` turns into the `__AUTOMATA_DEBUG__` constant (true), so a game's dev-only tools are in the
+// it, which `@automata/content/vite` turns into the `__AUTOMATA_DEBUG__` constant (true), so a game's dev-only tools are in the
 // bundle. A release build sets nothing: the constant is false and the bundler drops every block it guards.
 
 export interface BuildResult {

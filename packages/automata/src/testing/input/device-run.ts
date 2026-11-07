@@ -8,7 +8,7 @@ import {
   defineComponent,
   definePlugin,
   defineSystem,
-} from '@mcthaydt/automata-sim'
+} from '@automata/sim'
 import { z } from 'zod'
 import { type InputMap, keys } from '../../features/input/keys.ts'
 
@@ -61,7 +61,7 @@ function heldAt(tick: number): Direction[] {
 
 /**
  * The sim hash the script ends on, in every engine (pinned 2026-10-17 from the Node run, `pnpm --filter
- * @mcthaydt/automata exec vitest run --project unit tests/unit/input/keys.devices.test.ts`). A mismatch is a defect
+ * @automata/framework exec vitest run --project unit tests/unit/input/keys.devices.test.ts`). A mismatch is a defect
  * to find, never a value to update per engine.
  */
 export const DEVICE_RUN_HASH = 'df59895cfb81d1a0'

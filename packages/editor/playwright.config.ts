@@ -1,4 +1,4 @@
-import { defineJourneys } from '@mcthaydt/playwright-preset'
+import { defineJourneys } from '@automata/playwright-preset'
 
 // The design board's screenshots: `pnpm design:board`. One Vite dev server (the board is served in development only),
 // on its own port; the four sizes every editor layout is checked at, phone first. Chromium only: this is for looking

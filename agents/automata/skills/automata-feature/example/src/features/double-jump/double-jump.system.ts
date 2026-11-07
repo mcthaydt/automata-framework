@@ -1,4 +1,4 @@
-import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
+import { defineSystem, type SystemDef } from '@automata/sim'
 import { AIR_JUMPS, Body, GRAVITY, JUMP_SPEED } from './body.component.ts'
 import { Jump } from './jump.command.ts'
 

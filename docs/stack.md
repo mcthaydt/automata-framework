@@ -26,7 +26,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 - **Tier:** Core
 - **What it does in AF:** Draws the game in 2D: WebGL2 by default, WebGPU opt-in per game (ADR 0002).
 - **Why it was chosen:** The games AF was proven in render with Pixi 8, in 2D and in 3D, so one renderer covers both. Not every host offers WebGPU, so the WebGL2 path is the one that must stay solid (ADR 0002).
-- **What AF adds on top:** `@mcthaydt/automata`'s renderer: the `/no-eval` entry every game imports first (no web target allows `eval`), renderer start-up with a WebGL2 default, a `RenderDelta` consumer that interpolates between sim ticks, the letterbox and canvas resolution, and GLSL + WGSL filter-program pairs.
+- **What AF adds on top:** `@automata/framework`'s renderer: the `/no-eval` entry every game imports first (no web target allows `eval`), renderer start-up with a WebGL2 default, a `RenderDelta` consumer that interpolates between sim ticks, the letterbox and canvas resolution, and GLSL + WGSL filter-program pairs.
 
 ## Koota
 
@@ -37,7 +37,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 - **Tier:** Core
 - **What it does in AF:** The entity-component store inside the deterministic sim (ADR 0001).
 - **Why it was chosen:** A spike found it deterministic across Node, Chromium, WebKit and Firefox, like Miniplex, and it adds relations with data, added/changed/removed tracking and struct-of-arrays storage at no determinism cost (ADR 0001).
-- **What AF adds on top:** `@mcthaydt/automata-sim` keeps Koota behind a facade: its own monotonic `StableId` (Koota recycles IDs), StableId-ordered iteration, snapshot and restore, render deltas, seeded RNG, deterministic math and hashing, and `.replay` recording. Game code never imports Koota directly.
+- **What AF adds on top:** `@automata/sim` keeps Koota behind a facade: its own monotonic `StableId` (Koota recycles IDs), StableId-ordered iteration, snapshot and restore, render deltas, seeded RNG, deterministic math and hashing, and `.replay` recording. Game code never imports Koota directly.
 
 ## Zod
 
@@ -59,7 +59,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 - **Tier:** Core
 - **What it does in AF:** Menus, HUD and every screen outside the canvas, with rune stores for app state.
 - **Why it was chosen:** Small, fast screens with no virtual DOM, and the UI AF was proven with is Svelte; phones need real layouts, which its components give per screen size.
-- **What AF adds on top:** `@mcthaydt/automata`'s ui kit: mobile-first primitives (ScreenFrame, ActionBar, CornerControls, ScrollList, Dialog, LoaderOverlay, ErrorPanel), the single geometry owner (form factor, height tier, viewport tracking), focus navigation and browser hygiene, with layout-contract test helpers.
+- **What AF adds on top:** `@automata/framework`'s ui kit: mobile-first primitives (ScreenFrame, ActionBar, CornerControls, ScrollList, Dialog, LoaderOverlay, ErrorPanel), the single geometry owner (form factor, height tier, viewport tracking), focus navigation and browser hygiene, with layout-contract test helpers.
 
 ## Paraglide
 
@@ -70,7 +70,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 - **Tier:** Core
 - **What it does in AF:** Compiles the content compiler's locale keys into typed `t()` message functions.
 - **Why it was chosen:** Typed messages that tree-shake per language, already proven in a shipped game; hosts such as Ruken hand the game a locale to follow.
-- **What AF adds on top:** `@mcthaydt/automata`'s runtime: language negotiation (the player's saved choice, then the host's locale, the browser, the default) before the first screen, a typed `t()` over Paraglide's runtime, `Intl` formatting and `<html lang dir>`.
+- **What AF adds on top:** `@automata/framework`'s runtime: language negotiation (the player's saved choice, then the host's locale, the browser, the default) before the first screen, a typed `t()` over Paraglide's runtime, `Intl` formatting and `<html lang dir>`.
 
 ## smol-toml
 
@@ -81,7 +81,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 - **Tier:** Core
 - **What it does in AF:** Parses the TOML files under a game's `content/`.
 - **Why it was chosen:** A small, spec-complete TOML 1.0 parser with no dependencies, proven in a content compiler before AF.
-- **What AF adds on top:** `@mcthaydt/automata-content` validates the parsed TOML with Zod, reports `file:line:col` diagnostics, writes canonical JSON with a content hash, generates TypeScript types, the locale keys and Ruken manifest fields, and runs as a Vite plugin with watch mode.
+- **What AF adds on top:** `@automata/content` validates the parsed TOML with Zod, reports `file:line:col` diagnostics, writes canonical JSON with a content hash, generates TypeScript types, the locale keys and Ruken manifest fields, and runs as a Vite plugin with watch mode.
 
 ## Ruken SDK
 
@@ -95,7 +95,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 - **Tier:** Core
 - **What it does in AF:** The `ruken` target: the game side of Ruken's protocol, a fake host for tests, the manifest checks and CSP headers, and `ruken publish` (ADR 0006).
 - **Why it was chosen:** Ruken is one of four peer targets. Only its adapter and its `ship` target import these, so AF uses Ruken's own contract instead of a copy of it (ADR 0006). They are vendored as tarballs until Ruken publishes them (`vendor/ruken/README.md`).
-- **What AF adds on top:** `@mcthaydt/automata`'s host contract, which AF owns: the `Hosting` service with typed errors and a fake host to test against; `@mcthaydt/automata-tools` generates `ruken.toml`, checks it with `@ruken/manifest` and hands the build to `ruken publish`.
+- **What AF adds on top:** `@automata/framework`'s host contract, which AF owns: the `Hosting` service with typed errors and a fake host to test against; `@automata/tools` generates `ruken.toml`, checks it with `@ruken/manifest` and hands the build to `ruken publish`.
 
 ## Vite, Vitest, Playwright
 
@@ -108,4 +108,4 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 - **Tier:** Core
 - **What it does in AF:** Vite builds every game and example; Vitest runs unit tests and the cross-engine parity suites; Playwright drives browser journeys and the parity browsers.
 - **Why it was chosen:** One toolchain from build to browser tests: Vitest reuses Vite's config, and Playwright runs the same journeys in Chromium, WebKit and Firefox.
-- **What AF adds on top:** `@mcthaydt/automata/testing`: sim and replay goldens that must match bit for bit in Node, Chromium, WebKit and Firefox, renderer-free screen fixtures and layout assertions (hit testing, target size, clipping); `automata-content`'s Vite plugin compiles content on build.
+- **What AF adds on top:** `@automata/framework/testing`: sim and replay goldens that must match bit for bit in Node, Chromium, WebKit and Firefox, renderer-free screen fixtures and layout assertions (hit testing, target size, clipping); `automata-content`'s Vite plugin compiles content on build.

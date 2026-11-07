@@ -1,5 +1,5 @@
-import { examplesPort } from '@mcthaydt/examples-runner/host/ports'
-import { collectErrors, openHosted } from '@mcthaydt/examples-runner/host/testing'
+import { examplesPort } from '@automata/examples-runner/host/ports'
+import { collectErrors, openHosted } from '@automata/examples-runner/host/testing'
 import { expect, type Frame, test } from '@playwright/test'
 
 // The leaderboard flow under the fake host and Ruken's CSP (M5.7 plan step 9): a finished run's score reaches the

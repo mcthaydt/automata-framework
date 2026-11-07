@@ -14,8 +14,8 @@ import {
   type PoseDef,
   type Space,
   skeleton,
-} from '@mcthaydt/automata-figures'
-import type { FigureViewState } from '@mcthaydt/automata-render-pixi3d'
+} from '@automata/figures'
+import type { FigureViewState } from '@automata/render-pixi3d'
 import { type Readable, writable } from 'svelte/store'
 import { DEFAULT_ORBIT, type Orbit, type Vec3 } from './stage/stage-camera'
 import type { StudioContent } from './studio-content'

@@ -46,6 +46,6 @@ describe('./camera-view', () => {
 
   it('imports nothing but zod and the sector format: no pixi.js, no @pixi/3d', () => {
     const imports = [...bareImports(resolve(import.meta.dirname, 'camera-view.ts'))].sort()
-    expect(imports).toEqual(['@mcthaydt/automata-sector-format', 'zod'])
+    expect(imports).toEqual(['@automata/sector-format', 'zod'])
   })
 })

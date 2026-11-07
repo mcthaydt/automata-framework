@@ -1,12 +1,7 @@
 // Writes a level project out as the TOML files the game's content compiler reads: one per kind, each starting with a
 // comment that names the project.
 
-import type {
-  ContentLevel,
-  ContentProject,
-  ContentRows,
-  ContentWorld,
-} from '@mcthaydt/automata-content/level-2d'
+import type { ContentLevel, ContentProject, ContentRows, ContentWorld } from '@automata/content/level-2d'
 import { stringify } from 'smol-toml'
 import { encodeRows, packTile } from '../../model/cells-codec.ts'
 import { Grid } from '../../model/grid.ts'

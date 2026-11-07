@@ -13,7 +13,7 @@ import { applyGeometry, type Geometry, type HostDisplay, type Insets, measureGeo
 
 type Listen = (type: string, listener: () => void) => void
 
-/** The parts of `window` the owner reads; a fake from `@mcthaydt/automata/testing` stands in for it in tests. */
+/** The parts of `window` the owner reads; a fake from `@automata/framework/testing` stands in for it in tests. */
 export interface ViewportWindow {
   readonly innerWidth: number
   readonly innerHeight: number

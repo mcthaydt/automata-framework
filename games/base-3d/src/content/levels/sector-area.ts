@@ -1,5 +1,5 @@
 // Reads an `af-sector/1` level file as an `AreaSource` (GAME-3D.1i, DESIGN.md §17): the game consumes the level the
-// editor writes, through core's `@mcthaydt/automata-sector-format` schema, and never a copy of it.
+// editor writes, through core's `@automata/sector-format` schema, and never a copy of it.
 //
 // - Each rectangular sector is a room box (its `view` is a camera view of the area's `views`); a sector whose floor is
 //   below 0 is a pit (no room box, no floor drawn, Wick falls into it).
@@ -9,7 +9,7 @@
 // - Entities: `spawn`, `ember` and `goal` are the area's own; any other is a load error.
 // - Only axis-aligned rectangles in 1.0: another shape, or a sector with holes, is a load error naming its path (a
 //   level-editor gap if the content wants one, EDITOR-GAPS.md). Nothing here runs per tick: it is the load step.
-import { type AfSectorEntry, afSectorSchema, WALL_THICK } from '@mcthaydt/automata-sector-format'
+import { type AfSectorEntry, afSectorSchema, WALL_THICK } from '@automata/sector-format'
 import type { AreaSource } from '../../systems/index.ts'
 
 type Box = { min: [number, number]; max: [number, number] }

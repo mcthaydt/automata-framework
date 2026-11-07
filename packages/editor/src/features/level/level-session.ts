@@ -1,4 +1,4 @@
-import type { Point } from '@mcthaydt/automata-content/level-2d'
+import type { Point } from '@automata/content/level-2d'
 import { createViewport, type Size, type Viewport2D } from '../../shared/kit/gestures/viewport-2d.ts'
 import type { History } from '../../shared/kit/history/history.ts'
 import type { Camera } from '../../shared/level-2d/canvas/level-view'

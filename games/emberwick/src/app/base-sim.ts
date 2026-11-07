@@ -1,6 +1,6 @@
 // Sets up the base's sim: the room as content, the plugin, and the character at the room's start. Demos and
 // games start from here (`@af-games/emberwick`), then add their own plugins.
-import { type Command, createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
+import { type Command, createSim, type PluginDef, type Sim } from '@automata/sim'
 import type { MoveInput } from '../features/player/move.command.ts'
 import { placeWick } from '../features/player/place-wick.ts'
 import { Player } from '../shared/player.component.ts'

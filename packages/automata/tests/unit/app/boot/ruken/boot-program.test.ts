@@ -1,5 +1,5 @@
-import type { FlowGraph } from '@mcthaydt/automata-content'
-import { contentHash } from '@mcthaydt/automata-content'
+import type { FlowGraph } from '@automata/content'
+import { contentHash } from '@automata/content'
 import { createFakeHost, type FakeHost, settle } from '@ruken/sdk-host/testing'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
@@ -140,7 +140,7 @@ async function failed(boot: Promise<Result<void, BootError>>): Promise<BootError
 }
 
 describe('bootProgram', () => {
-  it('contentHashOf matches contentHash from @mcthaydt/automata-content', () => {
+  it('contentHashOf matches contentHash from @automata/content', () => {
     expect(contentHashOf(fixtureContentData)).toBe(contentHash(fixtureContentData))
   })
 

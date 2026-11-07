@@ -31,7 +31,7 @@ export interface ApiSearchRow {
   summary: string
 }
 
-const slugOf = (name: string): string => name.replace(/^@mcthaydt\//, '')
+const slugOf = (name: string): string => name.replace(/^@automata\//, '')
 
 export function parseApiReference(markdown: string): ApiReference {
   const lines = markdown.split('\n')
@@ -55,7 +55,7 @@ export function parseApiReference(markdown: string): ApiReference {
       } else code.push(line)
       continue
     }
-    const pkg = /^## `(@mcthaydt\/[a-z0-9-]+)`$/.exec(line)
+    const pkg = /^## `(@automata\/[a-z0-9-]+)`$/.exec(line)
     const point = /^### `import \{ … \} from '([^']+)'`$/.exec(line)
     const head = /^#### `([^`]+)` \(([^)]+)\)$/.exec(line)
     if (pkg) {

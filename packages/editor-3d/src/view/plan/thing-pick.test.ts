@@ -1,7 +1,7 @@
 // What a pointer on the plan touches among the things (ED3D.7b step 1): a point within the pointer kind's reach, else a
 // box whose footprint is within it, over the sub-layers that are on. The viewport is 32 px to a metre with the world
 // origin at (20, 20), so the cases read in pixels from a known point.
-import { createViewport, type Point as ScreenPoint } from '@mcthaydt/automata-editor/kit/core'
+import { createViewport, type Point as ScreenPoint } from '@automata/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import type { ThingDef } from '../../entities/thing-def.schema'
 import type { EntityKit, Thing } from '../../entities/things'

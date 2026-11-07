@@ -81,7 +81,7 @@ export function consumerManifest(options: ConsumerOptions): ConsumerManifest {
 }
 
 /**
- * The project's `pnpm-workspace.yaml`, which holds its overrides: a tarball's own `@mcthaydt/*` dependencies name
+ * The project's `pnpm-workspace.yaml`, which holds its overrides: a tarball's own `@automata/*` dependencies name
  * the shared version, which is not on any registry yet in packs mode, so the overrides send them to the same
  * tarballs. Settings live here rather than under `pnpm` in package.json, which newer pnpm no longer reads.
  */

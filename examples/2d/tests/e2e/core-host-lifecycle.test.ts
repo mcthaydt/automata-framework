@@ -1,5 +1,5 @@
-import { examplesPort } from '@mcthaydt/examples-runner/host/ports'
-import { collectErrors, openHosted } from '@mcthaydt/examples-runner/host/testing'
+import { examplesPort } from '@automata/examples-runner/host/ports'
+import { collectErrors, openHosted } from '@automata/examples-runner/host/testing'
 import { expect, test } from '@playwright/test'
 
 // The host's lifecycle under the fake host and Ruken's CSP (EX.4, from the host-lifecycle demo's e2e): when the

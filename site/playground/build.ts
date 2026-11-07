@@ -13,7 +13,7 @@ import {
 import { basename, dirname, join, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
-import { readCatalog } from '@mcthaydt/examples-runner/catalog'
+import { readCatalog } from '@automata/examples-runner/catalog'
 import { build, type Rolldown } from 'vite'
 import { playgroundFramePage } from './src/frame-page.ts'
 import { playgroundCatalog } from './src/playground-catalog.ts'

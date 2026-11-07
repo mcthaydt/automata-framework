@@ -1,5 +1,5 @@
 {
-  "name": "@mcthaydt/automata-editor-3d",
+  "name": "@automata/editor-3d",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -26,11 +26,11 @@
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "dependencies": {
-    "@mcthaydt/automata": "workspace:*",
-    "@mcthaydt/automata-editor": "workspace:*",
-    "@mcthaydt/automata-figures": "workspace:*",
-    "@mcthaydt/automata-render-pixi3d": "workspace:*",
-    "@mcthaydt/automata-sector-format": "workspace:*",
+    "@automata/framework": "workspace:*",
+    "@automata/editor": "workspace:*",
+    "@automata/figures": "workspace:*",
+    "@automata/render-pixi3d": "workspace:*",
+    "@automata/sector-format": "workspace:*",
     "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
     "fflate": "0.8.3",
     "pixi.js": "8.22.0",

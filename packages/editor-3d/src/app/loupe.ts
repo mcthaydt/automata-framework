@@ -1,7 +1,7 @@
 // The loupe the Plan canvas hands its renderer (ED3D.6g-b, plan decision 1): while the Sector tool has a loupe point
 // (the snapped point under a Pencil, or the last corner after a nudge), the plan and the tool's overlay for a camera
 // centred on that point at four times the zoom, in a lens placed clear of the point and the canvas edge.
-import type { Size } from '@mcthaydt/automata-editor/kit/core'
+import type { Size } from '@automata/editor/kit/core'
 import type { LevelEditor } from '../model/level-editor'
 import type { PlanPaint } from '../view/plan/plan-paint'
 import { planViewport, toScreen } from '../view/plan/plan-viewport'

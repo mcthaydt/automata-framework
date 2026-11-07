@@ -3,7 +3,7 @@
 // `automata ship` accepts (the four targets of ADR 0006). The page itself only lays these out.
 
 /** The first command a new author runs. */
-export const CREATE_COMMAND = 'npx @mcthaydt/automata-tools create-game my-game'
+export const CREATE_COMMAND = 'npx @automata/tools create-game my-game'
 
 /** The three reasons on Home, each something the framework does today. */
 export const REASONS = [

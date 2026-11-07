@@ -1,4 +1,4 @@
-import { cross, type Decal, dot, FIGURE_PPM, sub, type V3 } from '@mcthaydt/automata-figures'
+import { cross, type Decal, dot, FIGURE_PPM, sub, type V3 } from '@automata/figures'
 import { describe, expect, it } from 'vitest'
 import { decalQuads } from './figure-decals.js'
 

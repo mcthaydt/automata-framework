@@ -1,10 +1,200 @@
 # Automata cheatsheet
 
-> Every export of every published `@mcthaydt/automata-*` entry point, one line each, grouped by module (package). Generated from the API index by `pnpm api-index --write` after `pnpm build`; do not edit by hand. `pnpm api-index` fails when this page is stale. Full signatures and doc comments: the API reference (`api.md`).
+> Every export of every published `@automata/*` entry point, one line each, grouped by module (package). Generated from the API index by `pnpm api-index --write` after `pnpm build`; do not edit by hand. `pnpm api-index` fails when this page is stale. Full signatures and doc comments: the API reference (`api.md`).
 
-## `@mcthaydt/automata`
+## `@automata/content`
 
-### `import { … } from '@mcthaydt/automata'`
+### `import { … } from '@automata/content'`
+
+- `AssetsSource` (interface): What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a folder), and the atlases and fonts of the asset build it uses, by their names in `atlases.toml` and `fonts.toml`.
+- `buildContent` (const): Compiles, writes every output under the output folder, then removes the outputs it no longer produces.
+- `checkTuningLayer(layer, options, { complete })`: Checks one layer of tuning against code-owned declarations.
+- `compileContent` (const): Compiles `<root>/content` in memory.
+- `CompiledContent` (interface): The result of a compile: the content and its hash, the sim partition, every output file's text, warnings, the languages and each language's message catalog.
+- `ContentCompileFailed` (class): The authored content has problems.
+- `ContentConfig` (type): The default export of `automata.content.ts`.
+- `ContentData` (type): The compiled content as it is written to `content.json` and hashed.
+- `ContentGenerator` (interface): A generator: a unique name and a pure `generate` that turns compiled content into extra files.
+- `contentHash(data)`: 16 lowercase hex digits.
+- `ContentOptions` (interface): What the content compiler is given: the project root, the registered kinds, and optionally tunables, invariants, flow capabilities, generators, an output folder and Paraglide.
+- `contentRef(kind)`: The ID of another content item of `kind`.
+- `ContentSchemaDef` (interface): A content kind a game registers: its name, the Zod schema each item must match, where its TOML files live, and whether the sim receives it.
+- `ContentSchemaOptions` (interface): Options for `defineContentSchema`; `sim: false` keeps the kind out of the sim's content and its hash.
+- `ContentSchemaPlace` (type): Where a kind's files are: every TOML file under a folder (a collection), or one file (a document).
+- `ContentWriteFailed` (class): An output could not be written.
+- `DEFAULT_OUT_DIR` (const): Where outputs go when `outDir` is not set: `content/generated`, relative to the project root.
+- `DEFAULT_PALETTE` (const): The palette a game gets when it has no `content/palette.toml`: Endesga 64.
+- `defineContentGenerator(name, generate)`: Defines a generator by name and `generate` function.
+- `defineContentSchema(kind, schema, place, options?)`: Registers a content kind: a name, its Zod schema, and a folder (every TOML file in it is an item) or one file (a single document).
+- `Diagnostic` (interface): One authoring problem: a stable `code`, the file to open, the 1-based line and column, the dotted key inside it and a message that says what to write instead.
+- `DiagnosticCode` (type): Stable codes.
+- `FlowCapabilities` (interface): What the game's code implements: the screens, and optionally the pairs and destinations each allows.
+- `FlowGraph` (interface): The checked screen flow from `flow.toml`: the entry screen, every screen, the terminal screens and every transition, in a fixed order.
+- `FlowTransition` (interface): One checked move in the flow: on `event` the game goes `from` one screen `to` another, drawn in the `transition` style (`cut` when unwritten).
+- `formatDiagnostic(d)`: `content/tuning.toml:12:1 GRAVITY outOfRange: expected -1200..-100, received -2000`
+- `GAME_ID_PATTERN` (const): A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
+- `GameConfig` (interface): What every target knows about a game.
+- `gameConfigSchema` (const): Checks a game's config.
+- `GameSource` (interface): What `content/game.toml` says about the game: its source language, rating, content descriptors, estimated hours, the analytics events it may send, and the screens whose files are preloaded.
+- `GeneratorInput` (interface): Everything a generator is given: the compiled content and its hash, the sim partition, the registered schemas, the message catalog and the tuning metadata.
+- `GeneratorOutput` (interface): What a generator returns: files to write and diagnostics to report.
+- `Input` (type): One input a game can be played with.
+- `INPUTS` (const): The inputs a game can be played with.
+- `InvalidContentConfig` (class): The game's code registered something unusable (a duplicate kind, a clashing generator).
+- `LEADERBOARD_ORDERS` (const): The orders a score board sorts in.
+- `LeaderboardConfig` (interface): A score board a game declares.
+- `localized()`: Text a player reads, written in the source language.
+- `MessageCatalog` (type): One locale's messages: message key to translated text.
+- `messageKey(kind, id, path)`: The message key of one text.
+- `MessageLocation` (interface): A message's place in its file, 1-based.
+- `Orientation` (type): One orientation a game supports.
+- `ORIENTATIONS` (const): The orientations a game supports.
+- `Palette` (interface): The game's palette: a name and its colors.
+- `ParaglideOptions` (interface): Where and which catalogs `ContentOptions.paraglide` compiles with Paraglide on build.
+- `PreloadInput` (interface): What `preloadList` reads: the content options (to compile `game.toml` and `assets.toml`, and to find the asset build's outputs below `outDir`) and the built game folder.
+- `preloadList` (const): The files Ruken preloads before the game starts, in order, for `[loading] preload`: each `preload_screens` screen's files from `assets.toml` (the flow's entry when none is named), then the pages of the atlases and every language's subset of the fonts it names there, which `automata-content assets` wrote below `outDir` and the build serves in `atlases/` and `fonts/`; without repeats.
+- `Rating` (type): One content rating.
+- `RATINGS` (const): The content ratings a game declares.
+- `Renderer` (type): One renderer a game may ask for.
+- `RENDERERS` (const): The renderers a game may ask for.
+- `renderTuningTable(meta)`: Every tunable once, sorted by name, with its type, range and value in `content/tuning.toml`.
+- `RukenFields` (type): The game config's `content` and `analytics` sections (Ruken's `[content]` and `[analytics]` tables), worked out from `game.toml` and the languages present and written to `ruken-fields.json`.
+- `SimPartition` (interface): The part of the compiled content the sim receives (`tuning` and every kind with `sim: true`) and its hash, which gates snapshots and replays.
+- `sortDiagnostics(diagnostics)`: Returns the diagnostics in the one fixed order (file, line, column, key, code, message), without changing the input.
+- `TunableDeclaration` (interface): A tunable a game declares in code: `int` or `float`, an inclusive range and a default.
+- `TunableDeclarations` (type): A game's tunables by name (upper-case words joined by underscores, such as `GRAVITY`).
+- `TuningMeta` (type): Every tunable's type, value and range (`min`, `max`, `step`) by name, as written to `tuning-meta.json` for debug sliders.
+- `verifyContent` (const): Fails with `staleArtifact` for each committed output that differs from a fresh compile.
+- `withTuningTable(guide, meta)`: The guide with its generated section replaced, or undefined when it has no markers.
+
+### `import { … } from '@automata/content/assets'`
+
+- `ATLAS_EXTRUDE` (const): Pixels of each frame's edge repeated around it, so filtering never samples a neighbour.
+- `ATLAS_PADDING` (const): Transparent pixels between cells, and between a cell and the page edge.
+- `ATLAS_PAGE_MAX` (const): The largest atlas page side, in pixels: WebGL2's guaranteed `MAX_TEXTURE_SIZE`.
+- `AtlasFrameTooLarge` (class): A frame that cannot fit a page even alone.
+- `AtlasOutputs` (interface): What `buildAtlases` produces; the caller writes it.
+- `buildAtlases` (const): Builds every atlas `<root>/content/atlases.toml` names, or fails with every problem found.
+- `buildFonts` (const): Builds every subset `<root>/content/fonts.toml` names, or fails with every problem found.
+- `fontCoverage(font)`: Whether a font file (TrueType, OpenType, woff or woff2) has a glyph for each character.
+- `FontOutputs` (interface): What `buildFonts` produces; the caller writes it.
+- `FontsFile` (interface): `content/fonts.toml`: each source font by name.
+- `FontSource` (interface): One source font: its committed file, the sha256 of its bytes, its licence and the languages it serves.
+- `FrameSize` (interface): A frame to pack: its name (the PNG's file name without `.png`) and size in pixels.
+- `PackedAtlas` (interface): Every frame's placement, and the pages they fill.
+- `packFrames(frames)`: Packs `frames` into atlas pages.
+- `Placement` (interface): Where a frame's own pixels are: inside its extrusion, on page `page`.
+- `subsetWoff2(source, characters)`: The font cut to `characters`, as woff2.
+
+### `import { … } from '@automata/content/game-config'`
+
+- `GAME_ID_PATTERN` (const): A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
+- `GameConfig` (interface): What every target knows about a game.
+- `gameConfigSchema` (const): Checks a game's config.
+- `Input` (type): One input a game can be played with.
+- `INPUTS` (const): The inputs a game can be played with.
+- `LEADERBOARD_ORDERS` (const): The orders a score board sorts in.
+- `LeaderboardConfig` (interface): A score board a game declares.
+- `Orientation` (type): One orientation a game supports.
+- `ORIENTATIONS` (const): The orientations a game supports.
+- `Rating` (type): One content rating.
+- `RATINGS` (const): The content ratings a game declares.
+- `Renderer` (type): One renderer a game may ask for.
+- `RENDERERS` (const): The renderers a game may ask for.
+
+### `import { … } from '@automata/content/level-2d'`
+
+- `checkEntityDef(def)`: Problems with an entity definition: its id and color, then each field's problems tagged with the field's id and index, with a repeated field id reported at its later occurrence.
+- `checkFieldDef(def)`: Problems with one field definition, in a stable order: id, misplaced properties, bounds, step, options, default.
+- `checkFieldValue(def, value)`: Whether `value` fits the field: `undefined` when it does, else the first problem.
+- `ContentEntityDef` (type): An entity definition in `project.toml`: a typed-field definition plus how the editor draws and places it.
+- `ContentEntityItem` (interface): One placed entity in a level: its definition, its position (and size when resizable) and its field values.
+- `ContentLevel` (interface): A level as `levels/<id>.toml` holds it, after parsing the TOML.
+- `ContentLevelLayer` (type): One layer of a level, by kind: tile rows, IntGrid rows, auto-tile stacks, entities or objects.
+- `ContentNeighbours` (interface): One level's neighbours in `world.toml`, each side ordered by position and then id.
+- `ContentObjectItem` (interface): One placed tile object in an objects layer.
+- `ContentProject` (interface): The project as `project.toml` holds it: the layer, tileset and entity definitions every level uses.
+- `ContentProjectLayer` (type): A layer definition in `project.toml`, by kind.
+- `ContentRows` (interface): One stack entry of an auto layer: run-length row strings.
+- `ContentSize` (interface): A width and height in pixels.
+- `ContentTileset` (interface): A tileset in `project.toml`: its tile size, grid, optional image and tags.
+- `ContentWorld` (interface): The worlds as `world.toml` holds them: layout, level placements and, for a grid world, each level's neighbours.
+- `defaultFieldValue(def)`: The value an instance gets when it has none: the field's `default`, else the type's zero (moved into a number's bounds), else `[]` for a list.
+- `entitiesOf(level, layer)`: The items of an entities layer, in file order.
+- `ENTITY_ID` (const): An entity definition id.
+- `EntityDef` (interface): A thing a game places: an id, a label and the typed fields its instances carry.
+- `EntityDefCode` (type): The reasons `checkEntityDef` can refuse an entity definition.
+- `EntityDefIssue` (interface): One problem found in a parsed entity definition, with the path of the field at fault.
+- `entityDefIssues(def)`: The entity-level problems of a definition, for `superRefine`: its id and color, and a repeated field id at the later field's path.
+- `EntityDefProblem` (interface): A problem with a definition; `fieldId` and `fieldIndex` (its place in `fields`) say which field when the problem is in one.
+- `entityDefSchema` (const): The schema of an entity definition: strict shape, then the rules `checkEntityDef` applies.
+- `entityDefShape` (const): The keys of an entity definition, for an editor to extend (`z.strictObject({ ...entityDefShape, shape: … })`) so its own entity schema never copies the kit's keys (`EntityDef2D = EntityDef & { shape, size, … }`).
+- `FIELD_ID` (const): A field id as an inspector shows it and a file stores it.
+- `FIELD_TYPES` (const): Every field type, in the order a picker lists them.
+- `FieldDef` (interface): The definition of one typed field: its id, type and the bounds, options or target its type needs.
+- `FieldDefCode` (type): The reasons `checkFieldDef` can refuse a field definition.
+- `fieldDefSchema` (const): The schema of a field definition: strict shape, then the rules `checkFieldDef` applies.
+- `FieldProblem` (interface): A problem with a field, with a stable `code` and a sentence to show.
+- `FieldType` (type): The kind of value a field holds: int, float, bool, text, enum, color, angle, ref or point.
+- `FieldValue` (type): A value a field can hold: a number, boolean, string, point, reference or a list of those.
+- `FieldValueCode` (type): The reasons `checkFieldValue` can refuse a value.
+- `FieldValueProblem` (interface): `badListItem` carries the index of the first bad item and that item's own problem as `cause`.
+- `FieldValues` (type): The values an instance holds, by field id.
+- `fieldValueSchema` (const): Any well-formed value shape.
+- `fieldValuesSchema` (const): The schema of the values an instance holds, by field id.
+- `HEX_COLOR` (const): A field's color value: `#rrggbb`, either case.
+- `InstanceCode` (type): The reasons an instance's values can disagree with its definition.
+- `InstanceProblem` (interface): A problem with one value of an instance, found by `checkValues`.
+- `intGridRows(level, layer)`: The cells of an IntGrid layer, one array of numbers per row (0 is empty).
+- `level2dKinds(options?)`: The kinds `levels` (in the sim's content), `project` and `world` (outside it).
+- `Level2dKindsOptions` (interface): Options for `level2dKinds`.
+- `levelContentSchema` (const): The strict schema of `levels/<id>.toml`.
+- `Point` (interface): A position with `x` and `y`.
+- `projectContentSchema` (const): The strict schema of `project.toml`.
+- `RefValue` (interface): `target` and `container` are opaque to the kit: whether they resolve is the editor's check.
+- `worldContentSchema` (const): The strict schema of `world.toml`.
+
+### `import { … } from '@automata/content/locale'`
+
+- `ALWAYS_CHARACTERS` (const): Printable ASCII, CJK symbols and punctuation, half- and full-width forms, and the symbols the UI draws.
+- `catalogCharacters(catalog)`: Every character the catalog's messages show.
+- `ContentText` (type): `text(kind, id, path, authored, inputs?)`: the text in the active locale, or the authored text.
+- `ContentTextOptions` (interface): Options for `createContentText`.
+- `createContentText(messages, options?)`: A lookup over the messages module Paraglide compiles into `paraglide.outdir` (its `messages.js`, imported whole).
+- `endonymOf(tag)`: A language's name in its own language ("日本語" for `ja`), from the browser's `Intl.DisplayNames`.
+- `hasRawText(text)`: True when a piece of visible text has English in it that did not come from the xx-long catalog: any ASCII letter outside a ⟦ ⟧ span.
+- `localeCharacters(catalog)`: A locale's own characters for its subset font: `ALWAYS_CHARACTERS` and the catalog's characters.
+- `MessageCatalog` (type): One locale's messages: message key to translated text.
+- `messageKey(kind, id, path)`: The message key of one text.
+- `MessageValue` (type): A value in an inlang message file: a message, a list of variants, or a namespace or variant object.
+- `PSEUDO_LOCALE` (const): The pseudo-locale's tag.
+- `pseudoLocalize(message)`: The xx-long form of one message string.
+- `pseudoMessages(file)`: The xx-long form of a whole message file (the inlang message format): nested namespaces are walked, plural variants keep their `declarations` and `selectors` (they are code, not text) and only their `match` texts change.
+- `snakeKey(value)`: `snow-shrine` → `snow_shrine`, `fastFall` → `fast_fall`, `melee/sword` → `melee_sword`.
+
+### `import { … } from '@automata/content/palette'`
+
+- `DEFAULT_PALETTE` (const): The palette a game gets when it has no `content/palette.toml`: Endesga 64.
+- `Palette` (interface): The game's palette: a name and its colors.
+
+### `import { … } from '@automata/content/schema'`
+
+- `contentRef(kind)`: The ID of another content item of `kind`.
+- `ContentSchemaDef` (interface): A content kind a game registers: its name, the Zod schema each item must match, where its TOML files live, and whether the sim receives it.
+- `ContentSchemaOptions` (interface): Options for `defineContentSchema`; `sim: false` keeps the kind out of the sim's content and its hash.
+- `ContentSchemaPlace` (type): Where a kind's files are: every TOML file under a folder (a collection), or one file (a document).
+- `defineContentSchema(kind, schema, place, options?)`: Registers a content kind: a name, its Zod schema, and a folder (every TOML file in it is an item) or one file (a single document).
+- `localized()`: Text a player reads, written in the source language.
+
+### `import { … } from '@automata/content/vite'`
+
+- `automataContent(pluginOptions?)`: The Vite plugin that compiles content and serves it as `virtual:automata/content`.
+- `AutomataContentOptions` (type): The plugin's options: `ContentOptions`, with `root` defaulting to Vite's root.
+- `VIRTUAL_MODULE_ID` (const): The import path of the compiled content: `content`, `contentHash`, `simContent` and `simContentHash`.
+
+## `@automata/framework`
+
+### `import { … } from '@automata/framework'`
 
 - `ActionBar` (const): One row of actions that collapses as its container narrows.
 - `ActionKind` (type): The action bar's model.
@@ -216,9 +406,9 @@
 - `Translate` (type): The typed `t` verb: `t('hello', { name })`, checked against the game's compiled messages.
 - `turnUnitsFromPixels(dxPx, degPerPixel, invert)`: `dxPx` dragged at `degPerPixel` as whole turn units: positive for a drag to the right (which way that turns the heading is the game's convention), negated when `invert`, clamped to ±`MAX_TURN_UNITS_PER_STEP`.
 - `typedBus(bus)`: Cast a PresentationBus instance to a typed view with game-specific fact types.
-- `ViewportWindow` (interface): The parts of `window` the owner reads; a fake from `@mcthaydt/automata/testing` stands in for it in tests.
+- `ViewportWindow` (interface): The parts of `window` the owner reads; a fake from `@automata/framework/testing` stands in for it in tests.
 
-### `import { … } from '@mcthaydt/automata/extension'`
+### `import { … } from '@automata/framework/extension'`
 
 - `defineExtension(def)`: Returns its argument.
 - `ExtensionDef` (interface): One opt-in feature of a game.
@@ -228,7 +418,7 @@
 - `resolveExtensions(defs)`: Checks the list and puts it in a fixed order.
 - `RukenManifestContribution` (type): What an extension may add to ruken.toml: preload files.
 
-### `import { … } from '@mcthaydt/automata/testing'`
+### `import { … } from '@automata/framework/testing'`
 
 - `byTestId(id)`: The element a test id names; throws when the fixture has none, so a missing part fails loudly.
 - `checkLayout(conditions, essentials)`: The checks every screen shares: the document never scrolls; every control is at least the conditions' target (primaries the primary target) at this scale, on screen unless in a declared scroll region, never under a reserved area or a touch button and never over the corner row; the corner row's controls and any `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), and no control's words run past its edge; and each of `essentials` is reachable without scrolling.
@@ -294,203 +484,13 @@
 - `visibleControls(root)`: Controls a player could see and reach: laid out, not hidden, not in an inert subtree.
 - `withRuntimeTest(program, options?)`: Runs `program` on an open runtime and always closes it.
 
-### `import { … } from '@mcthaydt/automata/tooling'`
+### `import { … } from '@automata/framework/tooling'`
 
 - `isDefinedGame(value)`: Whether `value` came from `defineGame`.
 
-## `@mcthaydt/automata-content`
+## `@automata/sim`
 
-### `import { … } from '@mcthaydt/automata-content'`
-
-- `AssetsSource` (interface): What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a folder), and the atlases and fonts of the asset build it uses, by their names in `atlases.toml` and `fonts.toml`.
-- `buildContent` (const): Compiles, writes every output under the output folder, then removes the outputs it no longer produces.
-- `checkTuningLayer(layer, options, { complete })`: Checks one layer of tuning against code-owned declarations.
-- `compileContent` (const): Compiles `<root>/content` in memory.
-- `CompiledContent` (interface): The result of a compile: the content and its hash, the sim partition, every output file's text, warnings, the languages and each language's message catalog.
-- `ContentCompileFailed` (class): The authored content has problems.
-- `ContentConfig` (type): The default export of `automata.content.ts`.
-- `ContentData` (type): The compiled content as it is written to `content.json` and hashed.
-- `ContentGenerator` (interface): A generator: a unique name and a pure `generate` that turns compiled content into extra files.
-- `contentHash(data)`: 16 lowercase hex digits.
-- `ContentOptions` (interface): What the content compiler is given: the project root, the registered kinds, and optionally tunables, invariants, flow capabilities, generators, an output folder and Paraglide.
-- `contentRef(kind)`: The ID of another content item of `kind`.
-- `ContentSchemaDef` (interface): A content kind a game registers: its name, the Zod schema each item must match, where its TOML files live, and whether the sim receives it.
-- `ContentSchemaOptions` (interface): Options for `defineContentSchema`; `sim: false` keeps the kind out of the sim's content and its hash.
-- `ContentSchemaPlace` (type): Where a kind's files are: every TOML file under a folder (a collection), or one file (a document).
-- `ContentWriteFailed` (class): An output could not be written.
-- `DEFAULT_OUT_DIR` (const): Where outputs go when `outDir` is not set: `content/generated`, relative to the project root.
-- `DEFAULT_PALETTE` (const): The palette a game gets when it has no `content/palette.toml`: Endesga 64.
-- `defineContentGenerator(name, generate)`: Defines a generator by name and `generate` function.
-- `defineContentSchema(kind, schema, place, options?)`: Registers a content kind: a name, its Zod schema, and a folder (every TOML file in it is an item) or one file (a single document).
-- `Diagnostic` (interface): One authoring problem: a stable `code`, the file to open, the 1-based line and column, the dotted key inside it and a message that says what to write instead.
-- `DiagnosticCode` (type): Stable codes.
-- `FlowCapabilities` (interface): What the game's code implements: the screens, and optionally the pairs and destinations each allows.
-- `FlowGraph` (interface): The checked screen flow from `flow.toml`: the entry screen, every screen, the terminal screens and every transition, in a fixed order.
-- `FlowTransition` (interface): One checked move in the flow: on `event` the game goes `from` one screen `to` another, drawn in the `transition` style (`cut` when unwritten).
-- `formatDiagnostic(d)`: `content/tuning.toml:12:1 GRAVITY outOfRange: expected -1200..-100, received -2000`
-- `GAME_ID_PATTERN` (const): A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
-- `GameConfig` (interface): What every target knows about a game.
-- `gameConfigSchema` (const): Checks a game's config.
-- `GameSource` (interface): What `content/game.toml` says about the game: its source language, rating, content descriptors, estimated hours, the analytics events it may send, and the screens whose files are preloaded.
-- `GeneratorInput` (interface): Everything a generator is given: the compiled content and its hash, the sim partition, the registered schemas, the message catalog and the tuning metadata.
-- `GeneratorOutput` (interface): What a generator returns: files to write and diagnostics to report.
-- `Input` (type): One input a game can be played with.
-- `INPUTS` (const): The inputs a game can be played with.
-- `InvalidContentConfig` (class): The game's code registered something unusable (a duplicate kind, a clashing generator).
-- `LEADERBOARD_ORDERS` (const): The orders a score board sorts in.
-- `LeaderboardConfig` (interface): A score board a game declares.
-- `localized()`: Text a player reads, written in the source language.
-- `MessageCatalog` (type): One locale's messages: message key to translated text.
-- `messageKey(kind, id, path)`: The message key of one text.
-- `MessageLocation` (interface): A message's place in its file, 1-based.
-- `Orientation` (type): One orientation a game supports.
-- `ORIENTATIONS` (const): The orientations a game supports.
-- `Palette` (interface): The game's palette: a name and its colors.
-- `ParaglideOptions` (interface): Where and which catalogs `ContentOptions.paraglide` compiles with Paraglide on build.
-- `PreloadInput` (interface): What `preloadList` reads: the content options (to compile `game.toml` and `assets.toml`, and to find the asset build's outputs below `outDir`) and the built game folder.
-- `preloadList` (const): The files Ruken preloads before the game starts, in order, for `[loading] preload`: each `preload_screens` screen's files from `assets.toml` (the flow's entry when none is named), then the pages of the atlases and every language's subset of the fonts it names there, which `automata-content assets` wrote below `outDir` and the build serves in `atlases/` and `fonts/`; without repeats.
-- `Rating` (type): One content rating.
-- `RATINGS` (const): The content ratings a game declares.
-- `Renderer` (type): One renderer a game may ask for.
-- `RENDERERS` (const): The renderers a game may ask for.
-- `renderTuningTable(meta)`: Every tunable once, sorted by name, with its type, range and value in `content/tuning.toml`.
-- `RukenFields` (type): The game config's `content` and `analytics` sections (Ruken's `[content]` and `[analytics]` tables), worked out from `game.toml` and the languages present and written to `ruken-fields.json`.
-- `SimPartition` (interface): The part of the compiled content the sim receives (`tuning` and every kind with `sim: true`) and its hash, which gates snapshots and replays.
-- `sortDiagnostics(diagnostics)`: Returns the diagnostics in the one fixed order (file, line, column, key, code, message), without changing the input.
-- `TunableDeclaration` (interface): A tunable a game declares in code: `int` or `float`, an inclusive range and a default.
-- `TunableDeclarations` (type): A game's tunables by name (upper-case words joined by underscores, such as `GRAVITY`).
-- `TuningMeta` (type): Every tunable's type, value and range (`min`, `max`, `step`) by name, as written to `tuning-meta.json` for debug sliders.
-- `verifyContent` (const): Fails with `staleArtifact` for each committed output that differs from a fresh compile.
-- `withTuningTable(guide, meta)`: The guide with its generated section replaced, or undefined when it has no markers.
-
-### `import { … } from '@mcthaydt/automata-content/assets'`
-
-- `ATLAS_EXTRUDE` (const): Pixels of each frame's edge repeated around it, so filtering never samples a neighbour.
-- `ATLAS_PADDING` (const): Transparent pixels between cells, and between a cell and the page edge.
-- `ATLAS_PAGE_MAX` (const): The largest atlas page side, in pixels: WebGL2's guaranteed `MAX_TEXTURE_SIZE`.
-- `AtlasFrameTooLarge` (class): A frame that cannot fit a page even alone.
-- `AtlasOutputs` (interface): What `buildAtlases` produces; the caller writes it.
-- `buildAtlases` (const): Builds every atlas `<root>/content/atlases.toml` names, or fails with every problem found.
-- `buildFonts` (const): Builds every subset `<root>/content/fonts.toml` names, or fails with every problem found.
-- `fontCoverage(font)`: Whether a font file (TrueType, OpenType, woff or woff2) has a glyph for each character.
-- `FontOutputs` (interface): What `buildFonts` produces; the caller writes it.
-- `FontsFile` (interface): `content/fonts.toml`: each source font by name.
-- `FontSource` (interface): One source font: its committed file, the sha256 of its bytes, its licence and the languages it serves.
-- `FrameSize` (interface): A frame to pack: its name (the PNG's file name without `.png`) and size in pixels.
-- `PackedAtlas` (interface): Every frame's placement, and the pages they fill.
-- `packFrames(frames)`: Packs `frames` into atlas pages.
-- `Placement` (interface): Where a frame's own pixels are: inside its extrusion, on page `page`.
-- `subsetWoff2(source, characters)`: The font cut to `characters`, as woff2.
-
-### `import { … } from '@mcthaydt/automata-content/game-config'`
-
-- `GAME_ID_PATTERN` (const): A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
-- `GameConfig` (interface): What every target knows about a game.
-- `gameConfigSchema` (const): Checks a game's config.
-- `Input` (type): One input a game can be played with.
-- `INPUTS` (const): The inputs a game can be played with.
-- `LEADERBOARD_ORDERS` (const): The orders a score board sorts in.
-- `LeaderboardConfig` (interface): A score board a game declares.
-- `Orientation` (type): One orientation a game supports.
-- `ORIENTATIONS` (const): The orientations a game supports.
-- `Rating` (type): One content rating.
-- `RATINGS` (const): The content ratings a game declares.
-- `Renderer` (type): One renderer a game may ask for.
-- `RENDERERS` (const): The renderers a game may ask for.
-
-### `import { … } from '@mcthaydt/automata-content/level-2d'`
-
-- `checkEntityDef(def)`: Problems with an entity definition: its id and color, then each field's problems tagged with the field's id and index, with a repeated field id reported at its later occurrence.
-- `checkFieldDef(def)`: Problems with one field definition, in a stable order: id, misplaced properties, bounds, step, options, default.
-- `checkFieldValue(def, value)`: Whether `value` fits the field: `undefined` when it does, else the first problem.
-- `ContentEntityDef` (type): An entity definition in `project.toml`: a typed-field definition plus how the editor draws and places it.
-- `ContentEntityItem` (interface): One placed entity in a level: its definition, its position (and size when resizable) and its field values.
-- `ContentLevel` (interface): A level as `levels/<id>.toml` holds it, after parsing the TOML.
-- `ContentLevelLayer` (type): One layer of a level, by kind: tile rows, IntGrid rows, auto-tile stacks, entities or objects.
-- `ContentNeighbours` (interface): One level's neighbours in `world.toml`, each side ordered by position and then id.
-- `ContentObjectItem` (interface): One placed tile object in an objects layer.
-- `ContentProject` (interface): The project as `project.toml` holds it: the layer, tileset and entity definitions every level uses.
-- `ContentProjectLayer` (type): A layer definition in `project.toml`, by kind.
-- `ContentRows` (interface): One stack entry of an auto layer: run-length row strings.
-- `ContentSize` (interface): A width and height in pixels.
-- `ContentTileset` (interface): A tileset in `project.toml`: its tile size, grid, optional image and tags.
-- `ContentWorld` (interface): The worlds as `world.toml` holds them: layout, level placements and, for a grid world, each level's neighbours.
-- `defaultFieldValue(def)`: The value an instance gets when it has none: the field's `default`, else the type's zero (moved into a number's bounds), else `[]` for a list.
-- `entitiesOf(level, layer)`: The items of an entities layer, in file order.
-- `ENTITY_ID` (const): An entity definition id.
-- `EntityDef` (interface): A thing a game places: an id, a label and the typed fields its instances carry.
-- `EntityDefCode` (type): The reasons `checkEntityDef` can refuse an entity definition.
-- `EntityDefIssue` (interface): One problem found in a parsed entity definition, with the path of the field at fault.
-- `entityDefIssues(def)`: The entity-level problems of a definition, for `superRefine`: its id and color, and a repeated field id at the later field's path.
-- `EntityDefProblem` (interface): A problem with a definition; `fieldId` and `fieldIndex` (its place in `fields`) say which field when the problem is in one.
-- `entityDefSchema` (const): The schema of an entity definition: strict shape, then the rules `checkEntityDef` applies.
-- `entityDefShape` (const): The keys of an entity definition, for an editor to extend (`z.strictObject({ ...entityDefShape, shape: … })`) so its own entity schema never copies the kit's keys (`EntityDef2D = EntityDef & { shape, size, … }`).
-- `FIELD_ID` (const): A field id as an inspector shows it and a file stores it.
-- `FIELD_TYPES` (const): Every field type, in the order a picker lists them.
-- `FieldDef` (interface): The definition of one typed field: its id, type and the bounds, options or target its type needs.
-- `FieldDefCode` (type): The reasons `checkFieldDef` can refuse a field definition.
-- `fieldDefSchema` (const): The schema of a field definition: strict shape, then the rules `checkFieldDef` applies.
-- `FieldProblem` (interface): A problem with a field, with a stable `code` and a sentence to show.
-- `FieldType` (type): The kind of value a field holds: int, float, bool, text, enum, color, angle, ref or point.
-- `FieldValue` (type): A value a field can hold: a number, boolean, string, point, reference or a list of those.
-- `FieldValueCode` (type): The reasons `checkFieldValue` can refuse a value.
-- `FieldValueProblem` (interface): `badListItem` carries the index of the first bad item and that item's own problem as `cause`.
-- `FieldValues` (type): The values an instance holds, by field id.
-- `fieldValueSchema` (const): Any well-formed value shape.
-- `fieldValuesSchema` (const): The schema of the values an instance holds, by field id.
-- `HEX_COLOR` (const): A field's color value: `#rrggbb`, either case.
-- `InstanceCode` (type): The reasons an instance's values can disagree with its definition.
-- `InstanceProblem` (interface): A problem with one value of an instance, found by `checkValues`.
-- `intGridRows(level, layer)`: The cells of an IntGrid layer, one array of numbers per row (0 is empty).
-- `level2dKinds(options?)`: The kinds `levels` (in the sim's content), `project` and `world` (outside it).
-- `Level2dKindsOptions` (interface): Options for `level2dKinds`.
-- `levelContentSchema` (const): The strict schema of `levels/<id>.toml`.
-- `Point` (interface): A position with `x` and `y`.
-- `projectContentSchema` (const): The strict schema of `project.toml`.
-- `RefValue` (interface): `target` and `container` are opaque to the kit: whether they resolve is the editor's check.
-- `worldContentSchema` (const): The strict schema of `world.toml`.
-
-### `import { … } from '@mcthaydt/automata-content/locale'`
-
-- `ALWAYS_CHARACTERS` (const): Printable ASCII, CJK symbols and punctuation, half- and full-width forms, and the symbols the UI draws.
-- `catalogCharacters(catalog)`: Every character the catalog's messages show.
-- `ContentText` (type): `text(kind, id, path, authored, inputs?)`: the text in the active locale, or the authored text.
-- `ContentTextOptions` (interface): Options for `createContentText`.
-- `createContentText(messages, options?)`: A lookup over the messages module Paraglide compiles into `paraglide.outdir` (its `messages.js`, imported whole).
-- `endonymOf(tag)`: A language's name in its own language ("日本語" for `ja`), from the browser's `Intl.DisplayNames`.
-- `hasRawText(text)`: True when a piece of visible text has English in it that did not come from the xx-long catalog: any ASCII letter outside a ⟦ ⟧ span.
-- `localeCharacters(catalog)`: A locale's own characters for its subset font: `ALWAYS_CHARACTERS` and the catalog's characters.
-- `MessageCatalog` (type): One locale's messages: message key to translated text.
-- `messageKey(kind, id, path)`: The message key of one text.
-- `MessageValue` (type): A value in an inlang message file: a message, a list of variants, or a namespace or variant object.
-- `PSEUDO_LOCALE` (const): The pseudo-locale's tag.
-- `pseudoLocalize(message)`: The xx-long form of one message string.
-- `pseudoMessages(file)`: The xx-long form of a whole message file (the inlang message format): nested namespaces are walked, plural variants keep their `declarations` and `selectors` (they are code, not text) and only their `match` texts change.
-- `snakeKey(value)`: `snow-shrine` → `snow_shrine`, `fastFall` → `fast_fall`, `melee/sword` → `melee_sword`.
-
-### `import { … } from '@mcthaydt/automata-content/palette'`
-
-- `DEFAULT_PALETTE` (const): The palette a game gets when it has no `content/palette.toml`: Endesga 64.
-- `Palette` (interface): The game's palette: a name and its colors.
-
-### `import { … } from '@mcthaydt/automata-content/schema'`
-
-- `contentRef(kind)`: The ID of another content item of `kind`.
-- `ContentSchemaDef` (interface): A content kind a game registers: its name, the Zod schema each item must match, where its TOML files live, and whether the sim receives it.
-- `ContentSchemaOptions` (interface): Options for `defineContentSchema`; `sim: false` keeps the kind out of the sim's content and its hash.
-- `ContentSchemaPlace` (type): Where a kind's files are: every TOML file under a folder (a collection), or one file (a document).
-- `defineContentSchema(kind, schema, place, options?)`: Registers a content kind: a name, its Zod schema, and a folder (every TOML file in it is an item) or one file (a single document).
-- `localized()`: Text a player reads, written in the source language.
-
-### `import { … } from '@mcthaydt/automata-content/vite'`
-
-- `automataContent(pluginOptions?)`: The Vite plugin that compiles content and serves it as `virtual:automata/content`.
-- `AutomataContentOptions` (type): The plugin's options: `ContentOptions`, with `root` defaulting to Vite's root.
-- `VIRTUAL_MODULE_ID` (const): The import path of the compiled content: `content`, `contentHash`, `simContent` and `simContentHash`.
-
-## `@mcthaydt/automata-sim`
-
-### `import { … } from '@mcthaydt/automata-sim'`
+### `import { … } from '@automata/sim'`
 
 - `canonicalJson(value)`: Canonical JSON: object keys sorted at every depth, no whitespace.
 - `CanonicalJsonError` (class): A value canonical JSON cannot represent exactly; hashing it anyway would let different values collide.
@@ -549,14 +549,14 @@
 - `SystemSpec` (interface): The object form of `defineSystem`: a name, a phase, the optional `before`/`after` ordering and the run.
 - `xxhash64(data, seed?)`: XXH64 of `data` with an unsigned 64-bit `seed`.
 
-### `import { … } from '@mcthaydt/automata-sim/hash'`
+### `import { … } from '@automata/sim/hash'`
 
 - `canonicalJson(value)`: Canonical JSON: object keys sorted at every depth, no whitespace.
 - `hex64(value)`: 16 lowercase hex digits.
 - `utf8(s)`: UTF-8 encoding without TextEncoder (the sim's lib has no DOM/Web APIs).
 - `xxhash64(data, seed?)`: XXH64 of `data` with an unsigned 64-bit `seed`.
 
-### `import { … } from '@mcthaydt/automata-sim/math'`
+### `import { … } from '@automata/sim/math'`
 
 - `atan(x0)`: Deterministic arctangent.
 - `atan2(y, x)`: Finite inputs only (sim values are finite).
@@ -568,7 +568,7 @@
 - `sin(x)`: Deterministic sine, in radians.
 - `tan(x)`: Deterministic tangent, in radians, as `sin(x) / cos(x)`.
 
-### `import { … } from '@mcthaydt/automata-sim/replay'`
+### `import { … } from '@automata/sim/replay'`
 
 - `createRecorder(sim, options?)`: Starts recording `sim` from its current state, for the recorder's `step` to extend.
 - `createReplayStepper(replay, setup)`: Creates a stepper over `replay`: a fresh sim built from the replay's seed and tick rate, restored from its start snapshot.
@@ -592,7 +592,7 @@
 - `ReplayStepSetup` (interface): What a stepper needs to rebuild the recorded sim: the same `plugins` and `content` the recording sim had.
 - `unpackReplay(bytes, compression, options?)`: Inflates `.replay` file bytes and decodes them.
 
-### `import { … } from '@mcthaydt/automata-sim/testing'`
+### `import { … } from '@automata/sim/testing'`
 
 - `Difference` (interface): One difference between two snapshot views: its kind, where it is (`entity 4 bounce.ball.vx`), the entity's sid when it is an entity, and both values as printed.
 - `diffSnapshotViews(expected, actual)`: Every difference between an expected and an actual snapshot view, field by field, in a fixed order (header, rng, resources, next id, entities, plugin bytes) so a report reads the same in every engine.
@@ -612,24 +612,24 @@
 - `snapshotRoundTripProperty(options)`: Checks that snapshot, restore and continue equals an uninterrupted run, over many seeds, run lengths and restore points, alternating fresh and dirty restores.
 - `streamCompression` (const): Browsers and Node: CompressionStream / DecompressionStream('deflate-raw').
 
-### `import { … } from '@mcthaydt/automata-sim/testing/commands'`
+### `import { … } from '@automata/sim/testing/commands'`
 
 - `goldenCommands(options?)`: The Vitest browser commands that let golden tests read golden files in a browser: register them with `browser: { commands: goldenCommands() }`.
 - `GoldenCommandsOptions` (interface): Options for {@link goldenCommands}.
 
-### `import { … } from '@mcthaydt/automata-sim/testing/property'`
+### `import { … } from '@automata/sim/testing/property'`
 
 - `RoundTripFailure` (interface): One case whose restored run differed from the uninterrupted one: its number, sim seed, length, restore tick, variant and a report of what differed.
 - `RoundTripOptions` (interface): What `snapshotRoundTripProperty` runs: the plugins, content and a command script, and how many cases of what length to try.
 - `RoundTripVariant` (type): How a case restores: into a `fresh` sim, or into one that has `dirty` (stepped on past the snapshot).
 - `snapshotRoundTripProperty(options)`: Checks that snapshot, restore and continue equals an uninterrupted run, over many seeds, run lengths and restore points, alternating fresh and dirty restores.
 
-## `@mcthaydt/automata-tools`
+## `@automata/tools`
 
-### `import { … } from '@mcthaydt/automata-tools'`
+### `import { … } from '@automata/tools'`
 
 - `defineShipConfig(config)`: Identity function that gives a game's `ship.config.ts` type checking and editor completion.
 - `ItchConfig` (interface): What a game writes in `ship.config.ts`.
 - `ItchSettings` (interface): The checked settings, with the channel filled in.
-- `ShipConfig` (interface): What a game tells ship about itself: the game config every target reads (`@mcthaydt/automata-content`'s `GameConfig`) and each target's own section.
+- `ShipConfig` (interface): What a game tells ship about itself: the game config every target reads (`@automata/content`'s `GameConfig`) and each target's own section.
 - `TauriConfig` (interface): What a game writes in `ship.config.ts` to build for the desktop.

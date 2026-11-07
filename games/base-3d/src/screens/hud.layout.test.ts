@@ -1,7 +1,7 @@
 // The HUD's layout with production CSS in Chromium, WebKit and Firefox, at the phone sizes first: 844 × 390 and the compact
 // 780 × 270. The ember count stays inside the frame's visible region, clear of the corner Pause and of the touch row.
-import '@mcthaydt/automata/theme.css'
-import '@mcthaydt/automata'
+import '@automata/framework/theme.css'
+import '@automata/framework'
 import { flushSync, mount, unmount } from 'svelte'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'

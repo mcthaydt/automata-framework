@@ -1,4 +1,4 @@
-import { type ContentLevel, entitiesOf, intGridRows } from '@mcthaydt/automata-content/level-2d'
+import { type ContentLevel, entitiesOf, intGridRows } from '@automata/content/level-2d'
 import type { RoomSource } from '../../shared/room.ts'
 
 // The room the sim plays, read from the level the 2D editor exported (`content/levels/room-1.toml`). Pure: the compiled

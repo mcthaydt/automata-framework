@@ -6,7 +6,7 @@
   journal first. Nothing here names a profile.
 -->
 <script lang="ts">
-import type { GeometryState } from '@mcthaydt/automata'
+import type { GeometryState } from '@automata/framework'
 import { type Component, onDestroy } from 'svelte'
 import DocumentScreen from '../../features/document/DocumentScreen.svelte'
 import {

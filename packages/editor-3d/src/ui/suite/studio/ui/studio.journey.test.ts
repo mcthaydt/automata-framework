@@ -1,9 +1,8 @@
-import '@mcthaydt/automata-editor/tokens.css'
-import '@mcthaydt/automata-editor/fonts.css'
-import '@mcthaydt/automata-editor/suite.css'
-import { publishConditions, settleLayout } from '@mcthaydt/automata/testing'
-import { EDITOR_LIST_PATH } from '@mcthaydt/automata-editor/editor-list'
-import type { SuiteEditor } from '@mcthaydt/automata-editor/kit/ports'
+import '@automata/editor/tokens.css'
+import '@automata/editor/fonts.css'
+import '@automata/editor/suite.css'
+import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
+import type { SuiteEditor } from '@automata/editor/kit/ports'
 import {
   arrived,
   createPointers,
@@ -11,8 +10,9 @@ import {
   type IpadProfile,
   REST,
   turned,
-} from '@mcthaydt/automata-editor/kit/testing'
-import { createSuite, type SuiteHandle, samplePorts, startSuite } from '@mcthaydt/automata-editor/suite'
+} from '@automata/editor/kit/testing'
+import { createSuite, type SuiteHandle, samplePorts, startSuite } from '@automata/editor/suite'
+import { publishConditions, settleLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { createStageRenderer } from '../stage/stage-renderer'

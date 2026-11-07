@@ -1,7 +1,7 @@
 // Deflate adapters for `.replay` files: Node's zlib and the web's CompressionStream, both raw
 // deflate, so each reads the other's bytes. Both stop inflating once the output passes the cap, so a small
 // file cannot expand into gigabytes.
-import { type ReplayCompression, ReplayFormatError } from '@mcthaydt/automata-sim/replay'
+import { type ReplayCompression, ReplayFormatError } from '@automata/sim/replay'
 
 const pastCap = (maxBytes: number): ReplayFormatError =>
   new ReplayFormatError(`inflates past ${maxBytes} bytes`)

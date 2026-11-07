@@ -26,7 +26,7 @@ function targets(entry: unknown): string[] {
 
 describe('private packages that ship built code', () => {
   it('include the sector format, which stays private', () => {
-    const found = builtPrivate.find((pkg) => pkg.manifest.name === '@mcthaydt/automata-sector-format')
+    const found = builtPrivate.find((pkg) => pkg.manifest.name === '@automata/sector-format')
     expect(found?.manifest.private).toBe(true)
   })
 
@@ -43,7 +43,7 @@ describe('private packages that ship built code', () => {
   })
 })
 
-// After `pnpm build` (`pnpm --filter @mcthaydt/release test:dist`, run by CI's checks job); skipped by `pnpm check`, which does not build.
+// After `pnpm build` (`pnpm --filter @automata/release test:dist`, run by CI's checks job); skipped by `pnpm check`, which does not build.
 describe.skipIf(process.env.AF_CHECK_DIST !== '1')('the built private packages', () => {
   it('have every file publishConfig names', () => {
     for (const { dir, manifest } of builtPrivate) {

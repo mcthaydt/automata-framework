@@ -3,7 +3,7 @@
 // growing toward +x). The editor states a heading the way the game does, turns it by a drag, and looks at the dollhouse from
 // any heading and from every 15 degrees of one, with what each cuts away or fades. Rooms are 8 m by 6 m and 4 m high.
 
-import { degToHeading, TURN_UNITS, wrapHeading } from '@mcthaydt/automata-render-pixi3d/camera-view'
+import { degToHeading, TURN_UNITS, wrapHeading } from '@automata/render-pixi3d/camera-view'
 import { describe, expect, it } from 'vitest'
 import { entry, meshOf, room } from '../../testing/room-mesh'
 import { toyAfSector } from '../../testing/toy-af-sector'

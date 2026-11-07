@@ -1171,9 +1171,9 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
   (`git grep -l "@mcthaydt/automata"`), through a specifier codemod table (`tooling/codemods`)
 - Test: `tooling/release/tests/unit/scope.test.ts`
 
-- [ ] **Step 1: Failing test:** no tracked file outside `docs/archive/`, `docs/refactor/` and the changelogs names
+- [x] **Step 1: Failing test:** no tracked file outside `docs/archive/`, `docs/refactor/` and the changelogs names
   `@mcthaydt/automata`.
-- [ ] **Step 2:** Run the codemod with the Owner's scope; `pnpm install`, `pnpm check`, the stranger's journey,
+- [x] **Step 2:** Run the codemod with the Owner's scope; `pnpm install`, `pnpm check`, the stranger's journey,
   Emberwick's Chromium journeys. API reports, agent skills and cheatsheet regenerated. One changeset `patch` per package
   saying the name changed. Mark ready. `refactor: publish under the project's npm scope`
 
@@ -2813,3 +2813,27 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   (no token: the notice and `present=false`; a token: `present=true`). `pnpm lint:actions` needs Docker, which this
   session lacks: the Owner's. The runbook's new "Launch the website" lists the Owner's steps. Gates: site unit 336,
   repo-hygiene unit 90 (the invariants over `site.yml` and the `site` job).
+  *14.1 (session 25):* the scope is `@automata` (the Owner, 2026-11-06). Names: `@mcthaydt/automata` →
+  `@automata/framework` (its own word, not "automata" twice; offered to the Owner on a decision card, reversible
+  until the first publish), `@mcthaydt/automata-<name>` → `@automata/<name>`, and the private tooling packages
+  (`@mcthaydt/vitest-preset` and the rest) → `@automata/<tool>`, so the workspace has one scope. The codemod is a table
+  of text rules (`tooling/codemods/src/rename-scope.ts`, its CLI `rename-scope-cli.ts`, 9 unit tests), not an import
+  rewrite, because the names sit in imports, manifests, Markdown, YAML, shell lines and tests alike; it rewrote 964
+  files and listed the four whose regular expressions encode the old scheme (the main package as the bare prefix),
+  which were fixed by hand with four more that matched on `@mcthaydt\/[`, `startsWith('@mcthaydt/')` or
+  `` `${UMBRELLA}-` `` (examples-runner's catalog, the site's API slugs, `move-modules.ts`, the frame-budget surface
+  test, the release list). Kept on purpose: `@mcthaydt` as a registry scope (`.npmrc`, `release-packages.yml`'s
+  `scope:`, the consumer smoke's `.npmrc`), which 14.2 replaces with npmjs.org; the GitHub owner in URLs and
+  `CODEOWNERS`; the history (`docs/archive/`, `docs/refactor/`, the changelogs). Step 1's test is
+  `tooling/release/tests/unit/scope.test.ts` (it failed first, listing the files the codemod then rewrote). Deviations: (1) `.changeset/config.json`'s
+  fixed group lists the four published names; `@automata/*` would also have caught the private tooling. (2) The site's
+  API pages are `/api/<version>/sim`, `/framework` and so on (the slug is the name without the scope), and the four
+  packages list in name order (content, framework, sim, tools). (3) `api-report` named a break by the base report's
+  package name, so after a rename every changeset under the new name looked missing; a break now takes the current
+  name (`breaks.ts`, one new test). (4) A doc comment that began a line with `@automata/content` read as a JSDoc tag in
+  the API index; it is in backticks now. One changeset (`scope-automata.md`, a patch for each of the four). The release
+  job still publishes to GitHub Packages, which takes only the `@mcthaydt` scope, so nothing can publish until 14.2
+  lands. Gates: `pnpm check` green; `pnpm build`; `pnpm api-report` against #437's head 0 breaks (against the shallow
+  main, 2, both declared or private); `api-index`, `agent-skills`, `changeset status` and `check-changesets` clean;
+  the stranger's journey (Chromium, 1 of 1); the consumer smoke from packs; Emberwick's Chromium journeys 29 of 29;
+  the site suite in Chromium. WebKit and Firefox not installed here.

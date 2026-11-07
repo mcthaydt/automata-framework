@@ -1,7 +1,7 @@
 // The bundle check's entry: it imports the host exactly as the runtime's boot does (`app/boot/boot-program.ts`): the
 // contract from `.`, the adapter from `./target`.
 
-import { createHosting } from '@mcthaydt/automata/target'
+import { createHosting } from '@automata/framework/target'
 
 void createHosting({ gameId: 'bundle-check', wants: ['saves'], pauseBehavior: 'pause' }).then((made) => {
   if (made.ok) {

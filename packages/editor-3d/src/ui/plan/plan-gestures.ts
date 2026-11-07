@@ -2,7 +2,7 @@
 // go to the active tool with the pointer's kind and keys (the tools decide what a Pencil may not do: it never pans); two
 // fingers and the wheel move the camera through Select, whatever the tool; a two-finger tap undoes and a three-finger tap redoes. A plain
 // function of the controller, so the mapping is a unit test and the canvas only attaches it.
-import type { GestureHandlers, Modifiers, PointerKind } from '@mcthaydt/automata-editor/kit'
+import type { GestureHandlers, Modifiers, PointerKind } from '@automata/editor/kit'
 import type { PlanPointer } from '../../app/plan-controller'
 import type { PlanTools } from '../../app/plan-tools'
 

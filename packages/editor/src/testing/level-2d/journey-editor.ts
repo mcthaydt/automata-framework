@@ -1,5 +1,5 @@
-import { createGeometryOwner } from '@mcthaydt/automata'
-import { settleLayout } from '@mcthaydt/automata/testing'
+import { createGeometryOwner } from '@automata/framework'
+import { settleLayout } from '@automata/framework/testing'
 import { mount, unmount } from 'svelte'
 import { page } from 'vitest/browser'
 import { createAppProfiles } from '../../app/editor-2d/profiles'

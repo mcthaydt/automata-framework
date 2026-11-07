@@ -1,5 +1,5 @@
 {
-  "name": "@mcthaydt/automata-content",
+  "name": "@automata/content",
   "version": "0.0.5",
   "license": "MIT",
   "repository": {
@@ -84,7 +84,7 @@
   "dependencies": {
     "@inlang/paraglide-js": "2.25.4",
     "@inlang/plugin-message-format": "4.4.4",
-    "@mcthaydt/automata-sim": "workspace:*",
+    "@automata/sim": "workspace:*",
     "effect": "3.22.2",
     "fontkit": "2.0.4",
     "pngjs": "7.0.0",
@@ -96,7 +96,7 @@
     "vite": "^8.3.3"
   },
   "devDependencies": {
-    "@mcthaydt/vitest-preset": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@types/fontkit": "2.0.9",
     "@types/node": "24.19.1",

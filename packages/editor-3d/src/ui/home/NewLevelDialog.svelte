@@ -2,7 +2,7 @@
   New level (ED3D.13b; ED3D spec §4.6, ED3-q): the dialog Home's New level button opens. A name, Create (disabled until there is one) and Cancel. Enter creates. It only asks; the controller makes the file and opens it.
 -->
 <script lang="ts">
-import { Button, Dialog } from '@mcthaydt/automata-editor/kit'
+import { Button, Dialog } from '@automata/editor/kit'
 
 interface Props {
   oncreate: (name: string) => void

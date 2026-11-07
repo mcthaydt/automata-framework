@@ -14,7 +14,7 @@
 // after `reset`: nothing was drawn to fade from, so a wall must not flash in front of the player. A `cut` wall's trim shows while the wall is
 // not fully shown, so the room's outline reads.
 
-import type { Occlude } from '@mcthaydt/automata-sector-format'
+import type { Occlude } from '@automata/sector-format'
 import type { Vec3 } from '../camera/camera-pose.js'
 import { type Box3, lineCrossesWall, segmentHitsBox, type WallSpan, wallFacesAway } from './occluder-rule.js'
 

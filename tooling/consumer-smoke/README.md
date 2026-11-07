@@ -12,7 +12,7 @@ What it runs, in order:
    runs.
 3. The content compiler, `automata ship` and `automata-check-boundaries` run; TypeScript 7.0.2 and 6.0.3 read every
    type declaration (7.0.2 also under nodenext); no published file uses `eval`.
-4. A small game on `@mcthaydt/automata` is built for Ruken (one copy of Ruken's SDK in the bundle) and for the web.
+4. A small game on `@automata/framework` is built for Ruken (one copy of Ruken's SDK in the bundle) and for the web.
    The web build is served with the headers Ruken would send and opened in Chromium: it must reach
    `data-state="ready"`, start from Play and run 30 frames with no error and no CSP violation. This step needs
    Playwright's Chromium (`pnpm exec playwright install chromium`, or `PLAYWRIGHT_BROWSERS_PATH`).

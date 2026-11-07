@@ -1,4 +1,4 @@
-import type { FieldDef, FieldValue, RefValue } from '@mcthaydt/automata-content/level-2d'
+import type { FieldDef, FieldValue, RefValue } from '@automata/content/level-2d'
 import type { Project } from '../project-types'
 
 // What a `ref` value points at. A field's `to` says what it may

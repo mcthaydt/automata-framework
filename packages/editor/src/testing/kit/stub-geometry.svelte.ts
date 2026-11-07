@@ -1,4 +1,4 @@
-import { type Geometry, type GeometryState, measureGeometry } from '@mcthaydt/automata'
+import { type Geometry, type GeometryState, measureGeometry } from '@automata/framework'
 
 const NO_INSETS = { top: 0, right: 0, bottom: 0, left: 0 }
 

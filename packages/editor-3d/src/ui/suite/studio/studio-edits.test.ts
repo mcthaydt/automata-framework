@@ -1,7 +1,7 @@
 // The Studio's typed edits (EDS.9a to EDS.9c): each one turns a figure, a pose or a clip and a person's change into the
 // content edits that make it, or into the sentence for why it cannot be made. Every result is applied here to the
 // fixture files and read back through the figures schemas, so an edit that makes a file the game would refuse fails.
-import { openDocument } from '@mcthaydt/automata-editor/kit/documents'
+import { openDocument } from '@automata/editor/kit/documents'
 import { describe, expect, it } from 'vitest'
 import { readStudioContent } from './studio-content'
 import {

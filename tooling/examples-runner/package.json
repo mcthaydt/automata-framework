@@ -1,5 +1,5 @@
 {
-  "name": "@mcthaydt/examples-runner",
+  "name": "@automata/examples-runner",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -29,16 +29,16 @@
     "e2e:fixtures": "vite build -c fixtures.vite.config.ts && vite preview -c fixtures.vite.config.ts --strictPort --host localhost --port $AF_E2E_EXAMPLES_PORT"
   },
   "dependencies": {
-    "@mcthaydt/automata": "workspace:*",
-    "@mcthaydt/automata-sim": "workspace:*",
-    "@mcthaydt/automata-tools": "workspace:*",
+    "@automata/framework": "workspace:*",
+    "@automata/sim": "workspace:*",
+    "@automata/tools": "workspace:*",
     "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
     "effect": "3.22.2",
     "oxc-parser": "0.152.0",
     "zod": "4.6.6"
   },
   "devDependencies": {
-    "@mcthaydt/vitest-preset": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
     "@playwright/test": "1.63.0",
     "@types/node": "24.19.1",
     "@vitest/browser-playwright": "5.0.3",

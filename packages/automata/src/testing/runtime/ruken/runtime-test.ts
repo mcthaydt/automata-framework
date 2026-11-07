@@ -1,4 +1,4 @@
-import type { FlowGraph } from '@mcthaydt/automata-content'
+import type { FlowGraph } from '@automata/content'
 import type { FakeHostOptions } from '@ruken/sdk-host/testing'
 import { contentHashOf } from '../../../app/boot/boot-program.js'
 import type { CompiledContentData } from '../../../app/boot/game-definition.js'

@@ -1,7 +1,7 @@
 // Saving a document by patching its text (ED3D.5b steps 2 to 4; ED3D spec §5.3 flow 9, §8, §11 and ED3-o; kit spec §5
 // flows 3 and 4): the kit's DocumentSession writes what the codec's patch gives, a refused patch holds Save, and the
 // autosave keeps the model so Restore patches it into the file as it is now.
-import { findRecovery, statPath } from '@mcthaydt/automata-editor/kit/core'
+import { findRecovery, statPath } from '@automata/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import type { AfSector } from '../format/af-sector.schema'
 import type { Blockout } from '../format/blockout.schema'

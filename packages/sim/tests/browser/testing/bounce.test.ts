@@ -1,9 +1,9 @@
 // @vitest-environment node
 // The bounce goldens (exit 3): checked in Node (sim project) and in Chromium, WebKit and Firefox (sim-browsers).
 
-import { createSim } from '@mcthaydt/automata-sim'
-import { createRecorder, encodeReplay, type Replay, unpackReplay } from '@mcthaydt/automata-sim/replay'
-import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
+import { recordGoldenEvidence } from '@automata/evidence/golden'
+import { createSim } from '@automata/sim'
+import { createRecorder, encodeReplay, type Replay, unpackReplay } from '@automata/sim/replay'
 import { expect, test } from 'vitest'
 import { nodeCompression, streamCompression } from '#src/testing/compression.ts'
 import { bouncePlugin } from '#src/testing/fixtures/bounce.plugin.ts'

@@ -1,6 +1,6 @@
 // What the default screens share when a save starts or replaces the game being played: the title starts one
 // from a slot, and the paused screen replaces it with the newer progress another device wrote.
-import type { Sim } from '@mcthaydt/automata-sim'
+import type { Sim } from '@automata/sim'
 import type { Result } from '../../../shared/lib/result.ts'
 
 /** What starting play from a slot needs from the screens. */

@@ -1,4 +1,4 @@
-import type { AssetsSource } from '@mcthaydt/automata-content'
+import type { AssetsSource } from '@automata/content'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createFlow, type Flow, type FlowHandle } from '#src/app/flow/flow.manager.ts'
 import type { RuntimeServices, ScreenDef } from '#src/app/flow/screen.ts'

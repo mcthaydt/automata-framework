@@ -1,7 +1,7 @@
 // Swatch colours against the game's palette. A swatch names a palette colour by index; whether that index is
 // in the game's palette needs the palette and the swatches together, which no single file's schema sees.
 
-import type { Palette } from '@mcthaydt/automata-content'
+import type { Palette } from '@automata/content'
 import type { Swatch } from './swatch.schema'
 
 export interface SwatchColourProblem {

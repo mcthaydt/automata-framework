@@ -114,8 +114,7 @@ function relationStore(definition: AstNode): AstNode | undefined | 'unknown' {
 }
 
 const CSP = "koota compiles accessors for it with new Function, which Ruken's CSP (no 'unsafe-eval') refuses"
-const TRAIT_FIX =
-  'use defineComponent from @mcthaydt/automata-sim, or pass koota a factory: trait(() => ({ ... }))'
+const TRAIT_FIX = 'use defineComponent from @automata/sim, or pass koota a factory: trait(() => ({ ... }))'
 const RELATION_FIX = 'pass a factory store: relation({ store: () => ({ ... }) })'
 const MESSAGES = {
   trait: {

@@ -17,13 +17,13 @@
   "dependencies": {
     "@af-games/emberwick": "workspace:*",
     "@fontsource/pixelify-sans": "5.3.0",
-    "@mcthaydt/automata": "workspace:*"
+    "@automata/framework": "workspace:*"
   },
   "devDependencies": {
-    "@mcthaydt/automata-content": "workspace:*",
-    "@mcthaydt/automata-tools": "workspace:*",
-    "@mcthaydt/examples-runner": "workspace:*",
-    "@mcthaydt/vitest-preset": "workspace:*",
+    "@automata/content": "workspace:*",
+    "@automata/tools": "workspace:*",
+    "@automata/examples-runner": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
     "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",

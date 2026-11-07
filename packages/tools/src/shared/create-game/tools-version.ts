@@ -15,7 +15,7 @@ export function toolsVersion(): string {
         name?: string
         version?: string
       }
-      if (manifest.name === '@mcthaydt/automata-tools' && manifest.version !== undefined) {
+      if (manifest.name === '@automata/tools' && manifest.version !== undefined) {
         return manifest.version
       }
     } catch {

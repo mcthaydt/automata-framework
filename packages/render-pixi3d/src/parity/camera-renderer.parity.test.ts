@@ -2,7 +2,7 @@
 // stands at the Owner's view behind the followed position on a 24 mm lens. Headless Firefox here has no WebGL, so
 // this skips there and the GPU runner runs it (M3.1b).
 import '../no-eval.js'
-import type { RenderRow, StepResult } from '@mcthaydt/automata-sim'
+import type { RenderRow, StepResult } from '@automata/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { eyeOf } from '../camera/camera-pose.js'
 import { createPixi3dRenderer } from '../renderer/create-pixi3d-renderer.js'

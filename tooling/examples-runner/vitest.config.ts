@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url'
-import { goldenCommands } from '@mcthaydt/automata-sim/testing/commands'
-import { defineTests } from '@mcthaydt/vitest-preset'
+import { goldenCommands } from '@automata/sim/testing/commands'
+import { defineTests } from '@automata/vitest-preset'
 
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url))
 
@@ -18,5 +18,5 @@ export default defineTests({
   // globs into pending examples, whose imports do not resolve yet, give up, and reload the page mid-run.
   // An example's game also brings PixiJS, whose CommonJS dependencies (eventemitter3, earcut) a browser can only
   // import pre-bundled.
-  optimizeDeps: ['koota', 'zod', '@mcthaydt/automata > pixi.js'],
+  optimizeDeps: ['koota', 'zod', '@automata/framework > pixi.js'],
 })

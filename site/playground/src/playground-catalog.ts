@@ -1,5 +1,5 @@
-import { type CatalogEntry, isUnpublishedExtension } from '@mcthaydt/examples-runner/catalog'
-import type { HostSettings } from '@mcthaydt/examples-runner/header'
+import { type CatalogEntry, isUnpublishedExtension } from '@automata/examples-runner/catalog'
+import type { HostSettings } from '@automata/examples-runner/header'
 import { exampleModulePath } from '../../src/features/playground/protocol.ts'
 
 /** One example as the site shows it (`catalog.json`). */

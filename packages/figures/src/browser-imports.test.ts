@@ -17,7 +17,7 @@ const sources = (dir: string): string[] =>
 describe("the package's content imports", () => {
   it('value-imports nothing from the content root', () => {
     const offenders = sources(src).filter((file) =>
-      /^import\s+(?!type\s)[^'"]*from\s+'@mcthaydt\/automata-content'/m.test(readFileSync(file, 'utf8')),
+      /^import\s+(?!type\s)[^'"]*from\s+'@automata\/content'/m.test(readFileSync(file, 'utf8')),
     )
     expect(offenders.map((file) => file.slice(src.length + 1))).toEqual([])
   })

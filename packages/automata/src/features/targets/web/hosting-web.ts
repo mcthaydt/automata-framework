@@ -20,7 +20,7 @@ import { guardRounds } from '../rounds'
 
 /*
  * The web adapter: `Hosting` for a page outside Ruken, chosen at build time for the `itch` and
- * `web` targets through `@mcthaydt/automata/target` (ADR 0005). It mirrors the SDK's standalone session
+ * `web` targets through `@automata/framework/target` (ADR 0005). It mirrors the SDK's standalone session
  * wherever the SDK defines one and adds what a page can observe. It never falls back to memory for saves: when
  * the browser blocks storage, `saves` is not granted and every call is refused `DENIED`.
  *

@@ -1,5 +1,5 @@
 {
-  "name": "@mcthaydt/evidence",
+  "name": "@automata/evidence",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -20,7 +20,7 @@
     "zod": "4.6.6"
   },
   "devDependencies": {
-    "@mcthaydt/vitest-preset": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
     "@types/node": "24.19.1",
     "vitest": "5.0.3"
   }

@@ -1,4 +1,4 @@
-import type { RenderDelta, RenderRow } from '@mcthaydt/automata-sim'
+import type { RenderDelta, RenderRow } from '@automata/sim'
 import { Container } from 'pixi.js'
 import { describe, expect, it, vi } from 'vitest'
 import { type EntityView, RenderDeltaConsumer } from '#src/features/render/delta/render-delta-consumer.ts'

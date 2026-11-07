@@ -1,4 +1,4 @@
-import { type CommandDef, defineCommand } from '@mcthaydt/automata-sim'
+import { type CommandDef, defineCommand } from '@automata/sim'
 import { z } from 'zod'
 
 const moveSchema = z.object({ x: z.union([z.literal(-1), z.literal(0), z.literal(1)]), jump: z.boolean() })

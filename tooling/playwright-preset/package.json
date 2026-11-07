@@ -1,5 +1,5 @@
 {
-  "name": "@mcthaydt/playwright-preset",
+  "name": "@automata/playwright-preset",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -18,7 +18,7 @@
     "@playwright/test": "1.63.0"
   },
   "devDependencies": {
-    "@mcthaydt/vitest-preset": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
     "@types/node": "24.19.1",
     "typescript": "6.0.3",
     "vitest": "5.0.3"

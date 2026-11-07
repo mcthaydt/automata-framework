@@ -4,13 +4,13 @@ import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { expect, test } from 'vitest'
 
-test('@mcthaydt/automata-sim/testing/commands loads in plain Node', () => {
+test('@automata/sim/testing/commands loads in plain Node', () => {
   const out = execFileSync(
     process.execPath,
     [
       '--input-type=module',
       '-e',
-      "const m = await import('@mcthaydt/automata-sim/testing/commands'); console.log(Object.keys(m.goldenCommands()).join())",
+      "const m = await import('@automata/sim/testing/commands'); console.log(Object.keys(m.goldenCommands()).join())",
     ],
     { cwd: fileURLToPath(new URL('../../..', import.meta.url)), encoding: 'utf8' },
   )

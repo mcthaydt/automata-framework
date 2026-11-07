@@ -1,6 +1,6 @@
 // The smallest content project: one kind of item, read from content/items.
-import type { ContentConfig } from '@mcthaydt/automata-content'
-import { defineContentSchema } from '@mcthaydt/automata-content'
+import type { ContentConfig } from '@automata/content'
+import { defineContentSchema } from '@automata/content'
 import { z } from 'zod'
 
 const ITEM = defineContentSchema('item', z.strictObject({ name: z.string(), weight: z.number() }), {

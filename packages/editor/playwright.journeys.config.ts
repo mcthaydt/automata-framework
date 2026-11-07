@@ -1,4 +1,4 @@
-import { defineJourneys, sizes } from '@mcthaydt/playwright-preset'
+import { defineJourneys, sizes } from '@automata/playwright-preset'
 
 // The editor's real journeys (`pnpm test:e2e`): each one copies a game to a temp folder, runs the built
 // `automata editor` on it and works the editor as a person would, Save included. The journeys start their own

@@ -12,7 +12,7 @@ import {
   type FieldDef,
   type FieldType,
   type FieldValue,
-} from '@mcthaydt/automata-content/level-2d'
+} from '@automata/content/level-2d'
 import FieldEditor from '../../shared/kit/fields/FieldEditor.svelte'
 import { fieldRow } from '../../shared/kit/fields/field-row'
 import Button from '../../shared/kit/widgets/Button.svelte'

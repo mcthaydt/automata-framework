@@ -32,9 +32,9 @@ const MAP: MoveMap = {
     { from: 'packages/ui/src/index.ts', to: 'packages/automata/src/entries/from-ui.ts' },
   ],
   entries: {
-    '@mcthaydt/automata-runtime': '@mcthaydt/automata',
-    '@mcthaydt/automata-ui': '@mcthaydt/automata',
-    '@mcthaydt/automata-ui/testing': '@mcthaydt/automata/testing',
+    '@automata/runtime': '@automata/framework',
+    '@automata/ui': '@automata/framework',
+    '@automata/ui/testing': '@automata/framework/testing',
   },
 }
 
@@ -227,48 +227,47 @@ describe('rewriting imports', () => {
       {
         'packages/runtime/src/index.ts': 'export {}\n',
         'packages/editor-kit/src/a.ts':
-          "import { Slot } from '@mcthaydt/automata-runtime'\nimport type { B } from '@mcthaydt/automata-ui/testing'\n",
+          "import { Slot } from '@automata/runtime'\nimport type { B } from '@automata/ui/testing'\n",
       },
       MAP,
     )
     expect(text('packages/editor-kit/src/a.ts')).toBe(
-      "import { Slot } from '@mcthaydt/automata'\nimport type { B } from '@mcthaydt/automata/testing'\n",
+      "import { Slot } from '@automata/framework'\nimport type { B } from '@automata/framework/testing'\n",
     )
   })
 
   it('splits one import in two when its names now come from two entries', () => {
     const { text } = run(
       {
-        'tooling/x/src/a.ts':
-          "import { createSimTest, mount as m, type Fake } from '@mcthaydt/automata-testing'\n",
+        'tooling/x/src/a.ts': "import { createSimTest, mount as m, type Fake } from '@automata/testing'\n",
       },
       {
         ...MAP,
         entries: {
           ...MAP.entries,
-          '@mcthaydt/automata-testing': {
-            to: '@mcthaydt/automata/testing',
-            names: { createSimTest: '@mcthaydt/automata-sim/testing' },
+          '@automata/testing': {
+            to: '@automata/framework/testing',
+            names: { createSimTest: '@automata/sim/testing' },
           },
         },
       },
     )
     expect(text('tooling/x/src/a.ts')).toBe(
-      "import { createSimTest } from '@mcthaydt/automata-sim/testing'\nimport { mount as m, type Fake } from '@mcthaydt/automata/testing'\n",
+      "import { createSimTest } from '@automata/sim/testing'\nimport { mount as m, type Fake } from '@automata/framework/testing'\n",
     )
   })
 
   it('rewrites an old specifier in a config file and in a Svelte script', () => {
     const { text } = run(
       {
-        'packages/editor-kit/vite.config.ts': "import { x } from '@mcthaydt/automata-ui'\nexport default x\n",
+        'packages/editor-kit/vite.config.ts': "import { x } from '@automata/ui'\nexport default x\n",
         'packages/editor-kit/src/A.svelte':
-          '<script lang="ts">\n  import { Button } from \'@mcthaydt/automata-ui\'\n</script>\n',
+          '<script lang="ts">\n  import { Button } from \'@automata/ui\'\n</script>\n',
       },
       MAP,
     )
-    expect(text('packages/editor-kit/vite.config.ts')).toContain("from '@mcthaydt/automata'")
-    expect(text('packages/editor-kit/src/A.svelte')).toContain("from '@mcthaydt/automata'")
+    expect(text('packages/editor-kit/vite.config.ts')).toContain("from '@automata/framework'")
+    expect(text('packages/editor-kit/src/A.svelte')).toContain("from '@automata/framework'")
   })
 
   it('leaves a file alone when nothing in it changes', () => {
@@ -290,11 +289,11 @@ describe('imports of an old package inside the package it merges into', () => {
       { from: 'packages/ui/src/theme.css', to: 'packages/automata/src/shared/ui/theme.css' },
       { from: 'packages/ui/src/testing', to: 'packages/automata/src/testing/ui' },
     ],
-    entries: { ...MAP.entries, '@mcthaydt/automata-ui/theme.css': '@mcthaydt/automata/theme.css' },
+    entries: { ...MAP.entries, '@automata/ui/theme.css': '@automata/framework/theme.css' },
   }
   const files = {
     'packages/ui/package.json': JSON.stringify({
-      name: '@mcthaydt/automata-ui',
+      name: '@automata/ui',
       exports: {
         '.': './src/index.ts',
         './theme.css': './src/theme.css',
@@ -309,7 +308,7 @@ describe('imports of an old package inside the package it merges into', () => {
     'packages/ui/src/theme.css': ':root {}\n',
     'packages/ui/src/testing/index.ts': 'export const settle = 3\n',
     'packages/runtime/src/audio/a.ts':
-      "import { Button, type ButtonProps, openDialog as open } from '@mcthaydt/automata-ui'\nimport Frame from '@mcthaydt/automata-ui'\nimport '@mcthaydt/automata-ui/theme.css'\nimport { settle } from '@mcthaydt/automata-ui/testing'\nexport const a = [Button, open, Frame, settle]\nexport type P = ButtonProps\n",
+      "import { Button, type ButtonProps, openDialog as open } from '@automata/ui'\nimport Frame from '@automata/ui'\nimport '@automata/ui/theme.css'\nimport { settle } from '@automata/ui/testing'\nexport const a = [Button, open, Frame, settle]\nexport type P = ButtonProps\n",
   }
 
   it('turns each name into an import of the file that defines it, through re-exports and export *', () => {
@@ -317,7 +316,7 @@ describe('imports of an old package inside the package it merges into', () => {
       {
         ...files,
         'packages/runtime/src/audio/a.ts': files['packages/runtime/src/audio/a.ts'].replace(
-          "import Frame from '@mcthaydt/automata-ui'\n",
+          "import Frame from '@automata/ui'\n",
           '',
         ),
       },
@@ -341,8 +340,7 @@ describe('imports of an old package inside the package it merges into', () => {
     const { text } = run(
       {
         ...files,
-        'packages/runtime/src/audio/a.ts':
-          "import { Frame } from '@mcthaydt/automata-ui'\nexport const a = Frame\n",
+        'packages/runtime/src/audio/a.ts': "import { Frame } from '@automata/ui'\nexport const a = Frame\n",
       },
       withUi,
     )
@@ -356,13 +354,13 @@ describe('imports of an old package inside the package it merges into', () => {
       {
         ...files,
         'packages/runtime/src/audio/a.ts':
-          "import { Missing } from '@mcthaydt/automata-ui'\nexport const a = Missing\n",
+          "import { Missing } from '@automata/ui'\nexport const a = Missing\n",
       },
       withUi,
     )
-    expect(text('packages/runtime/src/audio/a.ts')).toContain("from '@mcthaydt/automata-ui'")
+    expect(text('packages/runtime/src/audio/a.ts')).toContain("from '@automata/ui'")
     expect(plan.intra).toEqual([
-      { file: 'packages/runtime/src/audio/a.ts', from: '@mcthaydt/automata-ui', names: ['Missing'] },
+      { file: 'packages/runtime/src/audio/a.ts', from: '@automata/ui', names: ['Missing'] },
     ])
   })
 })
@@ -375,23 +373,23 @@ describe("a consumer's package.json", () => {
     const { text } = run(
       {
         'packages/editor-kit/package.json': manifest({
-          dependencies: { '@mcthaydt/automata-ui': 'workspace:*', zod: '4.6.6' },
-          devDependencies: { '@mcthaydt/automata-testing': 'workspace:*', vitest: '5.0.3' },
+          dependencies: { '@automata/ui': 'workspace:*', zod: '4.6.6' },
+          devDependencies: { '@automata/testing': 'workspace:*', vitest: '5.0.3' },
         }),
         'packages/editor-kit/src/a.ts':
-          "import { Slot } from '@mcthaydt/automata-ui'\nimport { settle } from '@mcthaydt/automata-ui/testing'\n",
-        'packages/editor-kit/tests/unit/a.test.ts': "import { x } from '@mcthaydt/automata-testing/sim'\n",
+          "import { Slot } from '@automata/ui'\nimport { settle } from '@automata/ui/testing'\n",
+        'packages/editor-kit/tests/unit/a.test.ts': "import { x } from '@automata/testing/sim'\n",
       },
       {
         ...MAP,
-        entries: { ...MAP.entries, '@mcthaydt/automata-testing/sim': '@mcthaydt/automata-sim/testing' },
+        entries: { ...MAP.entries, '@automata/testing/sim': '@automata/sim/testing' },
       },
     )
     expect(JSON.parse(text('packages/editor-kit/package.json'))).toEqual({
       name: '@x/consumer',
       version: '0.0.0',
-      dependencies: { '@mcthaydt/automata': 'workspace:*', zod: '4.6.6' },
-      devDependencies: { '@mcthaydt/automata-sim': 'workspace:*', vitest: '5.0.3' },
+      dependencies: { '@automata/framework': 'workspace:*', zod: '4.6.6' },
+      devDependencies: { '@automata/sim': 'workspace:*', vitest: '5.0.3' },
     })
   })
 
@@ -400,7 +398,7 @@ describe("a consumer's package.json", () => {
       {
         'packages/editor-kit/package.json': manifest({ dependencies: { zod: '4.6.6' } }),
         'packages/runtime/package.json': manifest({
-          dependencies: { '@mcthaydt/automata-ui': 'workspace:*' },
+          dependencies: { '@automata/ui': 'workspace:*' },
         }),
         'packages/runtime/src/audio/a.ts': 'export {}\n',
       },
@@ -414,18 +412,18 @@ describe('the reports', () => {
   it('lists the names each consumer imports from an old entry (the surface report)', () => {
     const { plan } = run(
       {
-        'packages/editor-kit/src/a.ts': "import { Slot, Other } from '@mcthaydt/automata-runtime'\n",
+        'packages/editor-kit/src/a.ts': "import { Slot, Other } from '@automata/runtime'\n",
         'packages/editor-3d/src/b.ts':
-          "import { Slot } from '@mcthaydt/automata-runtime'\nimport * as ui from '@mcthaydt/automata-ui'\n",
+          "import { Slot } from '@automata/runtime'\nimport * as ui from '@automata/ui'\n",
       },
       MAP,
     )
     expect(plan.surface).toEqual([
-      { consumer: 'packages/editor-3d/src/b.ts', from: '@mcthaydt/automata-runtime', names: ['Slot'] },
-      { consumer: 'packages/editor-3d/src/b.ts', from: '@mcthaydt/automata-ui', names: ['*'] },
+      { consumer: 'packages/editor-3d/src/b.ts', from: '@automata/runtime', names: ['Slot'] },
+      { consumer: 'packages/editor-3d/src/b.ts', from: '@automata/ui', names: ['*'] },
       {
         consumer: 'packages/editor-kit/src/a.ts',
-        from: '@mcthaydt/automata-runtime',
+        from: '@automata/runtime',
         names: ['Other', 'Slot'],
       },
     ])
@@ -434,13 +432,13 @@ describe('the reports', () => {
   it('lists the old-package imports inside the merged package, which the build step resolves to relative imports', () => {
     const { plan } = run(
       {
-        'packages/runtime/src/audio/a.ts': "import { Button } from '@mcthaydt/automata-ui'\nexport {}\n",
+        'packages/runtime/src/audio/a.ts': "import { Button } from '@automata/ui'\nexport {}\n",
         'packages/ui/src/index.ts': 'export {}\n',
       },
       MAP,
     )
     expect(plan.intra).toEqual([
-      { file: 'packages/runtime/src/audio/a.ts', from: '@mcthaydt/automata-ui', names: ['Button'] },
+      { file: 'packages/runtime/src/audio/a.ts', from: '@automata/ui', names: ['Button'] },
     ])
   })
 })

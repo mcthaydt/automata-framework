@@ -1,4 +1,4 @@
-import { defineJourneys, sizes } from '@mcthaydt/playwright-preset'
+import { defineJourneys, sizes } from '@automata/playwright-preset'
 
 // The stranger's journey (tests/e2e/stranger.test.ts): `pnpm test:e2e` in this folder. It needs no server of its own;
 // it packs the published packages (turbo builds them first), makes a game in an empty folder outside the repository,

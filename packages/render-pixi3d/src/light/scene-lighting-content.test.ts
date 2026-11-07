@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { compileContent, type Diagnostic } from '@mcthaydt/automata-content'
+import { compileContent, type Diagnostic } from '@automata/content'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { sceneLightingContent } from './scene-lighting.content.js'

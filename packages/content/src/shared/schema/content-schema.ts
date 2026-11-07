@@ -92,7 +92,7 @@ export function configProblems(schemas: readonly ContentSchemaDef[]): string[] {
 // copy of this file. So a marker is recognized by its `automataContentMarker` brand, not by `instanceof`,
 // and the registries live on `globalThis` under a global symbol (`Symbol.for` returns the same symbol in
 // every copy) so every copy adds to and reads from the same ones.
-const REGISTRIES: unique symbol = Symbol.for('@mcthaydt/automata-content/registries')
+const REGISTRIES: unique symbol = Symbol.for('@automata/content/registries')
 
 /** A parsed reference to another content item, before it is checked. */
 export class ContentRefMarker {

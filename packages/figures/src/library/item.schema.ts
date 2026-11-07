@@ -2,7 +2,7 @@
 // poses the arm (FigureBuilder src/render/figure/cast.ts `ItemDef`, library/items.json at a1f7246). A part's
 // `material` is a swatch id. The parts become meshes in M3.5b; the hold is applied in M3.5c.
 
-import { contentRef } from '@mcthaydt/automata-content/schema'
+import { contentRef } from '@automata/content/schema'
 import { z } from 'zod'
 import { about, type Vec2, type Vec3, vec2, vec3 } from './shapes.schema'
 

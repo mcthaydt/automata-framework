@@ -1,4 +1,4 @@
-import type { GeometryState } from '@mcthaydt/automata'
+import type { GeometryState } from '@automata/framework'
 import type { Component, Snippet } from 'svelte'
 import type { GestureClock } from '../../shared/kit/gestures/gesture-clock'
 import type { ProjectStore } from '../../shared/kit/storage/project-store'

@@ -1,7 +1,7 @@
 // The Last Light file formats as codecs: the schema that reads them and the rules that tell the diff how they are
 // written. The member orders are the ones Last Light's own editor uses when it adds a member (editor/src/server/
 // level-edits.ts, 92e6704), so a new member lands where a hand edit would put it.
-import type { JsonPath, PatchRules } from '@mcthaydt/automata-editor/kit/documents'
+import type { JsonPath, PatchRules } from '@automata/editor/kit/documents'
 import { type Blockout, blockoutSchema } from '../format/blockout.schema'
 import { type Facility, facilitySchema } from '../format/facility.schema'
 import { createFileCodec, type FileCodec } from './file-codec'

@@ -1,4 +1,4 @@
-import { axisAngle, compose, IDENTITY, type M, type V3, type Weight } from '@mcthaydt/automata-figures'
+import { axisAngle, compose, IDENTITY, type M, type V3, type Weight } from '@automata/figures'
 import { describe, expect, it } from 'vitest'
 import { restInverses, skinPart } from './figure-skin.js'
 
