@@ -1,3 +1,5 @@
+// Code colouring for the site's code blocks, with Shiki. It loads on first use, with only the theme and the
+// languages the site shows, so a page without code never downloads it.
 import type { HighlighterCore } from 'shiki/core'
 
 let highlighter: Promise<HighlighterCore> | undefined

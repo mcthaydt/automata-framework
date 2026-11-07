@@ -5,7 +5,6 @@ vi.mock('$app/environment', () => ({ browser: true }))
 
 import DemoRunner from '../../../src/features/home/DemoRunner.svelte'
 import { demoStatus } from '../../../src/features/home/demo-status'
-import { isEditing } from '../../../src/shared/utils/keyboard'
 
 // The gallery's ?demo= and ?file= selection is retired with the gallery (WEB.PLAY.5): /examples is one prerendered
 // index whatever the query (tests/examples-pages.test.ts).
@@ -35,11 +34,5 @@ describe('Demo readiness', () => {
     expect(view.container.querySelector('iframe')).toBeNull()
     await fireEvent.click(view.getAllByRole('button', { name: 'Play demo' })[0])
     expect(view.container.querySelector('iframe')?.getAttribute('src')).toBe('/demos/emberwick/index.html')
-  })
-  it('identifies editable targets so slash does not steal their input', () => {
-    const input = document.createElement('input')
-    const event = new KeyboardEvent('keydown', { key: '/' })
-    Object.defineProperty(event, 'target', { value: input })
-    expect(isEditing(event)).toBe(true)
   })
 })

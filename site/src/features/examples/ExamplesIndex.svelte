@@ -1,4 +1,5 @@
 <script lang="ts">
+// /examples: every example, grouped as the examples folder groups them, each opening beside its code.
 import InlineText from '../../shared/components/InlineText.svelte'
 import PageMeta from '../../shared/components/PageMeta.svelte'
 import { difficultyStars, type ExampleGroup } from '../../shared/framework/example-catalog'

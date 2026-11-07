@@ -1,4 +1,6 @@
 <script lang="ts">
+// A game demo in a frame: a poster until the visitor presses Play (or at once, with `autoStart`), then the built game
+// from /demos/, with Stop and Restart beside it. Stopping drops the frame, so a stopped demo costs nothing.
 import { onMount, untrack } from 'svelte'
 import { previewSrcset } from '../../shared/previews'
 import { demoStatus } from './demo-status'

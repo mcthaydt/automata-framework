@@ -1,3 +1,5 @@
+// What Start's agent setup says: where each skill comes from, how each agent installs it, and the check to ask the
+// agent for before it writes code. Sources were checked on 15 October 2026; upstream instructions win when they change.
 export const SKILL_SOURCES = {
   superpowers: 'https://github.com/obra/superpowers#installation',
   pixijs: 'https://github.com/pixijs/pixijs-skills#installing',
