@@ -10,29 +10,22 @@ name: 3d
 #
 # Runners are the same as ci.yml's (D-5). A draft skips the heavy jobs, as it does there; marking it ready starts them.
 
-# PAUSED until the 3D slice starts (Owner, 2026-11-06: "We don't really need to run 3D since we haven't overhauled
-# that"). The 3D suites held the one Mac runner for hours on pull requests that never touched 3D. The workflow runs
-# only by hand (Actions > 3d > Run workflow).
-#
-# To turn it back on: put these triggers back above `workflow_dispatch:`, then delete "the paused 3D workflow" test
-# in tooling/repo-hygiene/tests/unit/workflow-invariants.test.ts.
-#
-#   push:
-#     branches: [main]
-#   pull_request:
-#     types: [opened, synchronize, reopened, ready_for_review]
-#     paths:
-#       # Their own files.
-#       - "games/base-3d/**"
-#       - "examples/3d/**"
-#       - "agents/**"
-#       # Every package: the 3D packages, and the core ones they build on.
-#       - "packages/**"
-#       - pnpm-lock.yaml
-#       - .github/workflows/3d.yml
-#   schedule:
-#     - cron: "0 9 * * *"
 on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      # Their own files.
+      - "games/base-3d/**"
+      - "examples/3d/**"
+      - "agents/**"
+      # Every package: the 3D packages, and the core ones they build on.
+      - "packages/**"
+      - pnpm-lock.yaml
+      - .github/workflows/3d.yml
+  schedule:
+    - cron: "0 9 * * *"
   workflow_dispatch:
 
 permissions:
