@@ -8,16 +8,23 @@
 // `trouserOutline`, `underneath`, `over`), with AF's strict types; the formulas and their order are the
 // source's.
 
-import { clamp, lerp, smooth } from '../../../../shared/math/math.ts'
-import type { Measure } from '../../body/genes.ts'
-import { sgnPow } from '../../body/mesh.ts'
-import { at, type Skeleton } from '../../body/rig.ts'
-import type { Superquadric } from '../../body/superquadric.ts'
-import type { Garment } from '../../figure/garment.schema.ts'
-import { GARMENTS, garmentOf } from '../../registry/garment-registry.ts'
-import { SIDES } from '../garments/head.ts'
+import type { Garment, Legs, Measure, Superquadric } from '@automata/3d/figures-kit'
+import {
+  at,
+  clamp,
+  GARMENTS,
+  garmentOf,
+  lerp,
+  SIDES,
+  type Skeleton,
+  sgnPow,
+  smooth,
+} from '@automata/3d/figures-kit'
 import type { Section, Shell } from './loft.ts'
 import { type Under, under } from './under.ts'
+
+// The contract type is core's (figures-kit); re-exported so a builder imports it with the helpers.
+export type { Legs }
 
 /** The trouser legs' inseam gap (m at 1.62 m). */
 const GAP = 0.012
@@ -27,14 +34,6 @@ const GAP = 0.012
  */
 export const legAt = (k: number, r: number): number => GAP * k + r
 
-/** A trouser cut: its legs from the hip (`top`) to `hem`, `radius(t)` round (t 0 the hip, 1 the hem), `folds`
- * the most its folds swell it (a fraction of its round), so its legs stand apart by their fullest. */
-export interface Legs {
-  top: number
-  hem: number
-  radius: (t: number) => number
-  folds?: number
-}
 /** A trouser leg's section at t on its side (x ±1), narrowing into the seat at the top; its centre out by its
  * fullest round, folds and all, so below the seat the legs part. */
 export const legSection =

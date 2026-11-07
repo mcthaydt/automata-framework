@@ -8,44 +8,27 @@
 // source's. Changed: a garment's painter materials (`own`, `lighter`, `mark`, `flatTone`, from the DUEL
 // ramps) are swatch variants (build/materials.ts: `own` and `tone` here).
 
-import { lerp, normalize, smooth, type V3 } from '../../../../shared/math/math.ts'
-import type { Measure } from '../../body/genes.ts'
-import type { Decal, Mesh, Part, Weight } from '../../body/mesh.ts'
-import type { Body } from '../../body/profiles.ts'
-import { at, J, type Side, type Skeleton } from '../../body/rig.ts'
-import { hemSkin, weights } from '../../body/skin-weights.ts'
-import { type Superquadric, superquadric } from '../../body/superquadric.ts'
-import type { Anchor } from '../../figure/anchors.ts'
-import type { Garment } from '../../figure/garment.schema.ts'
-import { type Made, variant } from '../../figure/materials.ts'
-import { frontOf, type Shell } from './loft.ts'
+import type { Decal, Fit, Measure, Mesh, Paint, Part, Shell, Wearing, Weight } from '@automata/3d/figures-kit'
+import {
+  at,
+  hemSkin,
+  J,
+  lerp,
+  type Made,
+  normalize,
+  type Side,
+  type Skeleton,
+  type Superquadric,
+  smooth,
+  superquadric,
+  type V3,
+  variant,
+  weights,
+} from '@automata/3d/figures-kit'
+import { frontOf } from './loft.ts'
 
-/** The body's regions a garment repaints (garments/body.ts Regions). */
-export type Paint = Partial<
-  Record<
-    | 'chest'
-    | 'waist'
-    | 'shoulder'
-    | 'upper'
-    | 'fore'
-    | 'pelvis'
-    | 'thigh'
-    | 'knee'
-    | 'shin'
-    | 'shoe'
-    | 'sole',
-    string
-  >
->
-
-/** What a garment adds to a dressed body: its parts and marks, the body regions it repaints (so the body
- * under it is its cloth wherever a joint opens a gap), and the openings a hand can go to. */
-export interface Fit {
-  parts: Part[]
-  decals?: Decal[]
-  paint?: Paint
-  anchors?: Anchor[]
-}
+// The contract types are core's (figures-kit); re-exported so a builder imports them with the helpers.
+export type { Fit, Paint, Wearing }
 
 /**
  * A top that repaints the whole torso and both arms, so the body under it is its cloth wherever a joint opens
@@ -58,20 +41,6 @@ export const wholeTop = (cloth: string): Paint => ({
   upper: cloth,
   fore: cloth,
 })
-
-/**
- * What a garment's builder is given: the body, the whole outfit, the variants made so far, the parts already
- * worn.
- */
-export interface Wearing {
-  m: Measure
-  s: Skeleton
-  garments: readonly Garment[]
-  made: Made
-  worn: readonly Part[]
-  /** The body under the clothes as a query: size a sleeve end, a cuff or a hem from `body.girth(...)` plus `body.clear`. */
-  body: Body
-}
 
 /** Each garment's surfaces (the body's are 3000–3004). */
 export const SEAM = {

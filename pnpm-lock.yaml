@@ -184,6 +184,43 @@ importers:
         specifier: 8.3.3
         version: 8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
 
+  examples/3d/wardrobe:
+    dependencies:
+      '@automata/3d':
+        specifier: workspace:*
+        version: link:../../../packages/3d
+      '@automata/content':
+        specifier: workspace:*
+        version: link:../../../packages/content
+      '@automata/framework':
+        specifier: workspace:*
+        version: link:../../../packages/automata
+      zod:
+        specifier: 4.6.6
+        version: 4.6.6
+    devDependencies:
+      '@automata/vitest-preset':
+        specifier: workspace:*
+        version: link:../../../tooling/vitest-preset
+      '@types/node':
+        specifier: 24.19.1
+        version: 24.19.1
+      '@vitest/browser-playwright':
+        specifier: 5.0.3
+        version: 5.0.3(playwright@1.63.0)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(vitest@5.0.3)
+      playwright:
+        specifier: 1.63.0
+        version: 1.63.0
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vite:
+        specifier: 8.3.3
+        version: 8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+
   games/base-3d:
     dependencies:
       '@automata/3d':

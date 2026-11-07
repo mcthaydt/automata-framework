@@ -1,0 +1,28 @@
+{
+  "name": "@af-examples/wardrobe-3d",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The streetwear wardrobe: eleven garments for the procedural figures, written as an extension of @automata/3d.",
+  "scripts": {
+    "goldens": "node --import ../../../packages/3d/scripts/extensionless-ts.ts scripts/record-goldens.ts",
+    "test:unit": "vitest run --project unit",
+    "test:browser": "vitest run --project browser",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@automata/3d": "workspace:*",
+    "@automata/content": "workspace:*",
+    "@automata/framework": "workspace:*",
+    "zod": "4.6.6"
+  },
+  "devDependencies": {
+    "@automata/vitest-preset": "workspace:*",
+    "@types/node": "24.19.1",
+    "@vitest/browser-playwright": "5.0.3",
+    "playwright": "1.63.0",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}

@@ -1,23 +1,31 @@
-// The streetwear garments, registered in the garment registry (registry/garment-registry.ts): each with its layer
-// (next to the skin, the base top, over a top, the bottoms, on the feet, an accessory), its swatch fields with the
-// role each plays and the kinds of swatch it takes, its builder, and for a top or a bottom the shape what goes
-// over it clears. They stay core until the wardrobe moves to the examples (3D slice task 6.5). And `reachable`:
-// the openings a hand can use in a dressed outfit, less those a garment worn over them covers.
+// The streetwear garments, registered in the garment registry (core's `registerGarment`) when this file loads: each
+// with its layer (next to the skin, the base top, over a top, the bottoms, on the feet, an accessory), its swatch
+// fields with the role each plays and the kinds of swatch it takes, its builder, and for a top or a bottom the shape
+// what goes over it clears. And `reachable`: the openings a hand can use in a dressed outfit, less those a garment
+// worn over them covers, which the wardrobe sets as the outfit hook that picks a dressed figure's openings.
 //
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/streetwear.ts at a1f7246 (`Layer`,
 // `Kind`, `Role`, `TAKES`, `Entry`, `GARMENTS`, `garmentOf`, `roleOf`, `fieldRole`, `reachable`), with AF's
 // strict types. Swatch kinds and roles are AF's swatch fields (library/swatch.schema.ts). Not taken:
-// `recombine` (the random cast is testing/random-character.ts).
+// `recombine` (the random cast is core's testing/random-character.ts).
 
-import { clamp } from '../../../../shared/math/math.ts'
-import type { Measure } from '../../body/genes.ts'
-import type { Skeleton } from '../../body/rig.ts'
-import type { Anchor } from '../../figure/anchors.ts'
+import type { Anchor, Garment, Measure, Skeleton } from '@automata/3d/figures-kit'
+import {
+  clamp,
+  GARMENTS,
+  type GarmentKind,
+  garmentOf,
+  registerGarment,
+  registerOutfitHooks,
+} from '@automata/3d/figures-kit'
+import { chain, hoops, shades, sneakers } from './accessories.ts'
+import { bomber, bomberShell } from './bomber.ts'
+import { cargoCut, cargos, wideCut, wideLegs } from './bottoms.ts'
+import { STREETWEAR_SCHEMAS } from './garment-schemas.ts'
 import type {
   Bomber,
   Cargos,
   Chain,
-  Garment,
   Hoodie,
   Hoops,
   Jacket,
@@ -26,13 +34,7 @@ import type {
   Sneakers,
   Tee,
   WideLegs,
-} from '../../figure/garment.schema.ts'
-import { STREETWEAR_SCHEMAS } from '../../figure/garment.schema.ts'
-import { GARMENTS, type GarmentKind, garmentOf, registerGarment } from '../../registry/garment-registry.ts'
-import '../garments/classic-kinds.ts' // the classic set registers first: it is told apart from streetwear in that order
-import { chain, hoops, shades, sneakers } from './accessories.ts'
-import { bomber, bomberShell } from './bomber.ts'
-import { cargoCut, cargos, wideCut, wideLegs } from './bottoms.ts'
+} from './garment-types.ts'
 import { hoodie, hoodieShell } from './hoodie.ts'
 import { jacket, jacketShell } from './jacket.ts'
 import { frontOf, widthOf } from './loft.ts'
@@ -133,6 +135,8 @@ const STREETWEAR: Readonly<Record<string, Omit<GarmentKind, 'schema'>>> = {
   },
 }
 
+// Registered on load (an extension has no setup hook), and only after the classic set: `@automata/3d/figures-kit`
+// registers the classic garments when it loads, and the garments are told apart in registration order.
 for (const [name, kind] of Object.entries(STREETWEAR)) {
   const schema = STREETWEAR_SCHEMAS[name]
   if (!schema) throw new Error(`streetwear garment ${name} has no schema`)
@@ -171,3 +175,5 @@ export function reachable(
     })
     .map((w) => w.anchor)
 }
+
+registerOutfitHooks({ anchors: (worn, _parts, { m, s, garments }) => reachable(m, s, garments, worn) })

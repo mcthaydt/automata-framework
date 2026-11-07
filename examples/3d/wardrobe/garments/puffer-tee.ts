@@ -6,14 +6,21 @@
 // source's. Cut: graphics (SNEKPRTY marks). Changed: painter materials are swatch variants, and a mark the
 // source draws at two sizes by density is one decal at its density-2 size (M3.5b decision 4).
 
-import { clamp, lerp, normalize, smooth } from '../../../../shared/math/math.ts'
-import type { Measure } from '../../body/genes.ts'
-import { type Decal, GROUP, type Part } from '../../body/mesh.ts'
-import { J, type Skeleton } from '../../body/rig.ts'
-import type { Anchor } from '../../figure/anchors.ts'
-import type { Garment, Puffer, Tee } from '../../figure/garment.schema.ts'
-import { GARMENT_DEFAULTS } from '../../figure/garment-defaults.ts'
-import { SIDES } from '../garments/head.ts'
+import type { Anchor, Garment, Measure } from '@automata/3d/figures-kit'
+import {
+  clamp,
+  type Decal,
+  GROUP,
+  J,
+  lerp,
+  normalize,
+  type Part,
+  SIDES,
+  type Skeleton,
+  smooth,
+} from '@automata/3d/figures-kit'
+import { WARDROBE_DEFAULTS } from './defaults.ts'
+import type { Puffer, Tee } from './garment-types.ts'
 import { over, underneath } from './layering.ts'
 import { frontOf, loft, widthOf } from './loft.ts'
 import {
@@ -159,7 +166,7 @@ export function puffer(w: Wearing, item: Puffer): Fit {
   parts.push(...cuffs(s, b, trim, cuffTop + 0.01 * k, b.wristY + 0.006 * k, b.fore * 1.18))
   // The zip: centre front from the collar's top to the binding, its pull at the chin.
   const decals: Decal[] = []
-  const zip = item.zip ?? GARMENT_DEFAULTS.puffer.zip
+  const zip = item.zip ?? WARDROBE_DEFAULTS.puffer.zip
   for (let y = collarTop - 0.006 * k; y > hem + 0.006 * k; y -= 0.004) {
     const z = y > top - 0.03 * k ? 0.02 * k + collarR * 1.03 : (frontOf(sh, 0, y) ?? D) + 0.002
     const bone = y > top - 0.03 * k ? J.chest : torsoBone(s, y)
@@ -169,7 +176,7 @@ export function puffer(w: Wearing, item: Puffer): Fit {
     bone: J.chest,
     at: local(s, J.chest, [0.012 * k, collarTop - 0.028 * k, 0.02 * k + collarR * 1.05]),
     normal: [0, 0, 1],
-    material: item.pull ?? GARMENT_DEFAULTS.puffer.pull,
+    material: item.pull ?? WARDROBE_DEFAULTS.puffer.pull,
     size: [1, 2],
   })
   // The handwarmers: a welt slanting down each side of the last baffle toward the hem, the hands in at its

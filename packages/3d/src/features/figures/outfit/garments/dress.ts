@@ -1,5 +1,5 @@
 // Dresses a body: the garments in order repaint regions and add parts, each worn by its registered kind (the
-// classic set, streetwear, an extension's wardrobe), then the body is built under them. Every size comes from
+// classic set, an extension's wardrobe), then the body is built under them. Every size comes from
 // the measure.
 //
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`dress`),
@@ -14,10 +14,9 @@ import { J, type Skeleton } from '../../body/rig.ts'
 import type { Anchor } from '../../figure/anchors.ts'
 import type { Garment } from '../../figure/garment.schema.ts'
 import type { Made } from '../../figure/materials.ts'
+import type { Fit } from '../../registry/garment-fit.ts'
 import { GARMENTS, type GarmentKind, garmentOf } from '../../registry/garment-registry.ts'
 import { outfitHooks } from '../../registry/outfit-hooks-registry.ts'
-import { reachable } from '../streetwear/registry.ts'
-import type { Fit } from '../streetwear/under.ts'
 import { body, legGroup, type Regions } from './body.ts'
 import type { Dressing, Wardrobe } from './classic.ts'
 import './classic-kinds.ts'
@@ -87,7 +86,7 @@ export function dress(
     boots: false,
     outer: { waist: 0, hem: 0 },
   }
-  /** A streetwear garment's fit: its parts, marks, the regions it repaints, its openings. */
+  /** A built garment's fit (an extension's kind): its parts, marks, the regions it repaints, its openings. */
   const anchors: { anchor: Anchor; from: Garment }[] = []
   const wear = (f: Fit, from: Garment) => {
     parts.push(...f.parts)
@@ -124,6 +123,7 @@ export function dress(
   return {
     parts: dressed,
     decals,
-    anchors: pickAnchors ? pickAnchors(anchors, dressed) : reachable(m, s, garments, anchors),
+    // Every opening the kinds published, unless the wardrobe picks the ones a hand can reach.
+    anchors: pickAnchors ? pickAnchors(anchors, dressed, { m, s, garments }) : anchors.map((a) => a.anchor),
   }
 }

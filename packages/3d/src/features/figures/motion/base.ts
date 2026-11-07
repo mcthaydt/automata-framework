@@ -209,7 +209,7 @@ function baseOn(s: Skeleton, gait: Gait, st: MotionState, way: Travel): Evaluate
   }
   // ─── Arms: swing opposite the legs, or hang ───
   for (const side of ['L', 'R'] as const) {
-    // Walking, a bulky sleeve (one that must hang well out to clear the figure) swings less, as a puffer's arm does.
+    // Walking, a bulky sleeve (one that must hang well out to clear the figure) swings less, as a padded coat's arm does.
     const clear = st.clear?.[side === 'L' ? 0 : 1] ?? 0
     const amp = gait.armSwing * (walking ? 1 - SWING_BULK * Math.min(1, clear / 0.4) : 1)
     const x = sideSign(side)

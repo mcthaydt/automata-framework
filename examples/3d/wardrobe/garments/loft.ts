@@ -8,20 +8,23 @@
 // `torus`), with AF's strict types; the formulas and their order are the source's. Not taken: `backOf`
 // (nothing builds with it).
 
-import { clamp, cross, dot, lerp, normalize, sub, type V3 } from '../../../../shared/math/math.ts'
-import { type Mesh, sgnPow } from '../../body/mesh.ts'
-import { at } from '../../body/rig.ts'
-import type { Superquadric } from '../../body/superquadric.ts'
+import type { Section, Shell, Superquadric } from '@automata/3d/figures-kit'
+import {
+  at,
+  clamp,
+  cross,
+  dot,
+  lerp,
+  type Mesh,
+  normalize,
+  sgnPow,
+  sub,
+  type V3,
+} from '@automata/3d/figures-kit'
 
-/**
- * A section across a loft's axis: its centre and half-widths, and its roundness (1 an ellipse, ~0.4 a rounded
- * box).
- */
-export interface Section {
-  c: [number, number]
-  r: [number, number]
-  e?: number
-}
+// The contract types are core's (figures-kit); re-exported so a builder imports them with the helpers.
+export type { Section, Shell }
+
 export interface Loft {
   /** Rings along the axis and points round each. */
   rings?: number
@@ -114,15 +117,6 @@ export function loft(
   return { positions, normals, indices }
 }
 
-/** A shell's description in rest figure space, so a chain or a zip can lie on it. */
-export interface Shell {
-  from: number
-  to: number
-  section: (t: number) => Section
-  bump?: ((t: number, v: number) => number) | undefined
-  /** Where it is open (a jacket's V). */
-  open?: (x: number, y: number) => boolean
-}
 /** A shell's front surface (z) at (x, y), or null above or below it; `back` its back surface instead. */
 export function frontOf(sh: Shell, x: number, y: number, back = false): number | null {
   const t = (y - sh.from) / (sh.to - sh.from)

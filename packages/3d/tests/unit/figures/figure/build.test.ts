@@ -30,8 +30,8 @@ describe('build() matches its recorded goldens part for part', () => {
     })
   }
   it("builds the pony's cuffs on every other braid (the source's density gate is a sprite's)", () => {
-    const outfit = GOLDEN_OUTFITS.find((o) => o.name === 'model-moto')
-    if (!outfit) throw new Error('no model-moto')
+    const outfit = GOLDEN_OUTFITS.find((o) => o.name === 'model-braids')
+    if (!outfit) throw new Error('no model-braids')
     const def = figureOf(outfit.sliders, outfit.skin, outfit.garments)
     const cuffs = build(def, skeleton(def), 'golden', null, library).parts.filter((p) => p.tag === 'cuff')
     // Seven ropes, the four on top cuffed.
@@ -50,7 +50,7 @@ describe('build() is platform-stable: a last-bit change moves no part past the g
   for (const outfit of GOLDEN_OUTFITS) {
     it(outfit.name, () => {
       expectPlatformStable(outfit, library)
-      // Two builds of a streetwear outfit take a few seconds while the whole repository's checks share the CPU.
+      // Two builds of an outfit take a few seconds while the whole repository's checks share the CPU.
     }, 90_000)
   }
 })
@@ -100,7 +100,7 @@ describe('hairPieces (decision 6): a hair garment with no style wears the figure
       (p) => p.group === GROUP.hair && p.material.startsWith('auburn'),
     )
   it('in order, in the garment’s colour; a style on the garment wins; no hair garment, no hair', () => {
-    const base = figureOf({}, 'fair', [{ tee: 'navy' }, { hair: 'auburn' }, { eyes: 'eye-dark' }])
+    const base = figureOf({}, 'fair', [{ top: 'navy' }, { hair: 'auburn' }, { eyes: 'eye-dark' }])
     const def: FigureDef = { ...base, hairPieces: ['cropped', 'sleek-bun'] }
     const s = skeleton(def)
     const cropped = pieces(figureOf({}, 'fair', [{ hair: 'auburn', style: 'cropped' }]), s)
@@ -111,7 +111,7 @@ describe('hairPieces (decision 6): a hair garment with no style wears the figure
     expect(both).toEqual([...cropped, ...bun])
     const styled = { ...def, outfits: { golden: [{ hair: 'auburn', style: 'bob' }] } }
     expect(pieces(styled, s)).toEqual(pieces(figureOf({}, 'fair', [{ hair: 'auburn', style: 'bob' }]), s))
-    expect(pieces({ ...def, outfits: { golden: [{ tee: 'navy' }] } }, s)).toEqual([])
+    expect(pieces({ ...def, outfits: { golden: [{ top: 'navy' }] } }, s)).toEqual([])
     expect(() => build(base, s, 'golden', null, library)).toThrow(/hairPieces/)
   })
 })

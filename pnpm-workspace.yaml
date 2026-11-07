@@ -3,9 +3,10 @@ packages:
   - tooling/*
   - games/*
   # The one-file examples, one package per dimension, and the feature demos inside the 2D one
-  # (examples/2d/content/hot-reload, examples/2d/ui/primitives).
+  # (examples/2d/content/hot-reload, examples/2d/ui/primitives) and the 3D wardrobe extension (examples/3d/wardrobe).
   - examples/2d
   - examples/3d
+  - examples/3d/wardrobe
   - examples/2d/*/*
   # The website (automata.dev), moved in with its history on 2026-11-06.
   - site

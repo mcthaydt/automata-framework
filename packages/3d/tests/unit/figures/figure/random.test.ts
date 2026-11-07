@@ -40,10 +40,11 @@ describe('random characters (FigureBuilder cast.ts randomCharacter, seeded)', ()
 })
 
 // FigureBuilder tests/random.test.ts "the registry in the random cast", ported: every swatch a registry
-// garment wears is of a kind its role takes, and every outfit offers the openings its dress() found.
+// garment wears is of a kind its role takes. (The openings a dress() finds come from a wardrobe's garments: the
+// wardrobe example's random.test.ts checks them.)
 describe('the registry in the random cast', () => {
   for (let seed = 3000; seed < 3024; seed++)
-    it(`random character ${seed} wears each swatch in a role of its kind, and its outfit has openings`, () => {
+    it(`random character ${seed} wears each swatch in a role of its kind`, () => {
       const { def, item } = randomCharacter(seed, fixture.library)
       const swatches = fixture.library.swatches
       const outfit = def.outfits[def.default] ?? []
@@ -60,8 +61,6 @@ describe('the registry in the random cast', () => {
           if (use && its) expect(TAKES[use], `${key}.${f} = ${v} (a ${its})`).toContain(its)
         }
       }
-      const built = build(def, skeleton(def), def.default, item, fixture.library)
-      expect(built.anchors.length).toBeGreaterThan(0)
-      expect(built.anchors.some((a) => a.kind === 'hip')).toBe(true)
+      expect(() => build(def, skeleton(def), def.default, item, fixture.library)).not.toThrow()
     })
 })

@@ -10,16 +10,28 @@
 // and in the outfit's thread from density 3, is drawn once, in the thread when the outfit names one, and a
 // back pocket is its top edge (M3.5b decision 4).
 
-import { clamp, lerp, normalize, smooth, type V3 } from '../../../../shared/math/math.ts'
-import type { Measure } from '../../body/genes.ts'
-import { type Decal, GROUP, type Part, sgnPow, type Weight } from '../../body/mesh.ts'
-import { at, J, type Side, type Skeleton } from '../../body/rig.ts'
-import { superquadric } from '../../body/superquadric.ts'
-import type { Anchor } from '../../figure/anchors.ts'
-import type { Cargos, Garment, WideLegs } from '../../figure/garment.schema.ts'
-import { GARMENT_DEFAULTS } from '../../figure/garment-defaults.ts'
-import { variant } from '../../figure/materials.ts'
-import { SIDES } from '../garments/head.ts'
+import type { Anchor, Garment, Measure } from '@automata/3d/figures-kit'
+import {
+  at,
+  clamp,
+  type Decal,
+  GROUP,
+  J,
+  lerp,
+  normalize,
+  type Part,
+  SIDES,
+  type Side,
+  type Skeleton,
+  sgnPow,
+  smooth,
+  superquadric,
+  type V3,
+  variant,
+  type Weight,
+} from '@automata/3d/figures-kit'
+import { WARDROBE_DEFAULTS } from './defaults.ts'
+import type { Cargos, WideLegs } from './garment-types.ts'
 import { bandOf, fitLegs, type Legs, legAt, legSection, seatOf, sliceOf } from './layering.ts'
 import { type Loft, loft, quadricZ, type Section, sectionZ, widthOf } from './loft.ts'
 import { topOf, type Worn } from './tops.ts'
@@ -101,7 +113,7 @@ function trousers(w: Wearing, cloth: string, legs: Legs, o: TrouserOptions = {})
   // deepest, the button in the hardware's light.
   const stitch = o.stitch ? tone(made, o.stitch, 'thread', 1) : own(made, cloth, 'stitch')
   const open = tone(made, cloth, 'open', 3)
-  const button = tone(made, o.hardware ?? GARMENT_DEFAULTS.wideLegs.hardware, 'button', 0)
+  const button = tone(made, o.hardware ?? WARDROBE_DEFAULTS.wideLegs.hardware, 'button', 0)
   const surface = (x: number, y: number, back: boolean): { z: number; bone: number } | null => {
     const d = back ? -1 : 1
     const found: { z: number; bone: number }[] = []
@@ -347,7 +359,7 @@ export function cargos(w: Wearing, item: Cargos): Fit {
   const { m, s, made } = w
   const { k } = m
   const cloth = item.cargos
-  const hardware = item.hardware ?? GARMENT_DEFAULTS.cargos.hardware
+  const hardware = item.hardware ?? WARDROBE_DEFAULTS.cargos.hardware
   const cut = cargoCut(m, s, item)
   const { hem, radius } = cut
   const cuffTop = s.genes.ankle + 0.085 * k

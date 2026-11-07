@@ -8,15 +8,25 @@
 // metal's teeth and pulls, seams) are swatch variants, and a mark the source draws at two sizes by density is
 // one decal at its density-2 size (M3.5b decision 4).
 
-import { axisAngle, clamp, lerp, normalize, smooth, type V3 } from '../../../../shared/math/math.ts'
-import type { Measure } from '../../body/genes.ts'
-import { type Decal, GROUP, type Part } from '../../body/mesh.ts'
-import { at, J, type Skeleton } from '../../body/rig.ts'
-import type { Anchor } from '../../figure/anchors.ts'
-import type { Garment, Jacket } from '../../figure/garment.schema.ts'
-import { GARMENT_DEFAULTS } from '../../figure/garment-defaults.ts'
-import { variant } from '../../figure/materials.ts'
-import { SIDES } from '../garments/head.ts'
+import type { Anchor, Garment, Measure } from '@automata/3d/figures-kit'
+import {
+  at,
+  axisAngle,
+  clamp,
+  type Decal,
+  GROUP,
+  J,
+  lerp,
+  normalize,
+  type Part,
+  SIDES,
+  type Skeleton,
+  smooth,
+  type V3,
+  variant,
+} from '@automata/3d/figures-kit'
+import { WARDROBE_DEFAULTS } from './defaults.ts'
+import type { Jacket } from './garment-types.ts'
 import { over, underneath } from './layering.ts'
 import { angleAt, frontOf, loft, type Section, type Shell, topAt, widthOf } from './loft.ts'
 import { hemAnchors, hemBand, sleeves, torso, type Worn } from './tops.ts'
@@ -109,8 +119,8 @@ export function jacket(w: Wearing, item: Jacket): Fit {
   const b = under(m, s)
   const { k } = b
   const cloth = item.jacket
-  const hardware = item.hardware ?? GARMENT_DEFAULTS.jacket.hardware
-  const zip = item.zip ?? GARMENT_DEFAULTS.jacket.zip
+  const hardware = item.hardware ?? WARDROBE_DEFAULTS.jacket.hardware
+  const zip = item.zip ?? WARDROBE_DEFAULTS.jacket.zip
   const { shell: sh, edges, hem, top, D, zx, zipTop } = jacketShell(m, s, item, w.garments)
   // The lapels, the collar and the belt are the hide folded: matte, parted from the panels by the light along
   // their folded edges, a mark three steps up the hide's own light.

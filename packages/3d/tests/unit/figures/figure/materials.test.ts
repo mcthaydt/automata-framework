@@ -15,7 +15,7 @@ describe('swatch variants', () => {
   })
   it("a cap's seam and a jacket's seam on one swatch are two materials", () => {
     const made: Made = {}
-    // The cap's (hair/cap.ts) and the jacket's and bomber's (streetwear/) role names.
+    // The cap's (hair/cap.ts) and the wardrobe's jacket and bomber role names.
     const cap = variant(made, 'navy', 'cap-seam', { flat: true, shade: -1 })
     const jacket = variant(made, 'navy', 'seam', { flat: true, shade: 1 })
     const resolved = resolveMaterials([cap, jacket], made, { navy: { ramp: 'slate', step: 4 } })

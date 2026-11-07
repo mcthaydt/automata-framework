@@ -1,6 +1,6 @@
 // The classic garments: each fitted to the body the sliders make. A top repaints the torso and as much of the
 // arms as its sleeves cover; a skirt hangs from the waist to the length asked for; an apron, a coat, a cape,
-// a belt and marks add their own parts. (Hair, caps and the face are dress.ts's; streetwear is streetwear/.)
+// a belt and marks add their own parts. (Hair, caps and the face are dress.ts's, and an extension's wardrobe builds its own kinds.)
 //
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`hemAt`,
 // `hang`, `band` and `dress`'s branches for top, waistcoat, trousers, legs, shoes, gloves, skirt, coat,

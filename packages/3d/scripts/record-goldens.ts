@@ -15,70 +15,24 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { at, J } from '../src/features/figures/body/rig.ts'
 import { evaluate } from '../src/features/figures/clips/evaluate.ts'
-import { build } from '../src/features/figures/figure/build.ts'
 import { skeleton } from '../src/features/figures/figure/figure-skeleton.ts'
 import { base } from '../src/features/figures/motion/base.ts'
 import { DEFAULT_HAIR } from '../src/features/figures/motion/gait-of.ts'
 import { HAIR_AT_REST, hairStep, headNod } from '../src/features/figures/motion/hair-spring.ts'
 import { evaluateMotion, holdOf } from '../src/features/figures/motion/hold.ts'
 import type { MotionState } from '../src/features/figures/motion/motion-state.ts'
-import { standHolds } from '../src/features/figures/motion/stands.ts'
 import type { M } from '../src/shared/math/math.ts'
-import { fingerprint } from '../src/testing/fingerprint.ts'
 import { type FixtureFigures, fixtureFigures } from '../src/testing/fixture-library.ts'
 import { fixtureMotion } from '../src/testing/fixture-motion.ts'
-import { figureOf, GOLDEN_OUTFITS } from '../src/testing/golden-outfits.ts'
+import { GOLDEN_OUTFITS } from '../src/testing/golden-outfits.ts'
+import { recordDress, recordStands, round, section } from '../src/testing/golden-recorders.ts'
 import { motionFingerprint } from '../src/testing/motion-fingerprint.ts'
 import { AT_REST, GOLDEN_SOME_STATES, GOLDEN_STATES } from '../src/testing/motion-states.ts'
-import { surfaceOf } from '../src/testing/stand-surface.ts'
 
 /** Where the committed goldens live. */
 export const GOLDENS: string = join(import.meta.dirname, '../tests/fixtures/goldens')
 /** The files written, by name. */
 export const GOLDEN_FILES: readonly string[] = ['dress.json', 'motion.json', 'actions.json']
-
-/** `x` with every number kept to `digits` significant digits. */
-function round(x: unknown, digits: number): unknown {
-  if (typeof x === 'number') return Number(x.toPrecision(digits))
-  if (Array.isArray(x)) return x.map((v) => round(v, digits))
-  if (x && typeof x === 'object')
-    return Object.fromEntries(Object.entries(x).map(([k, v]) => [k, round(v, digits)]))
-  return x
-}
-
-/** The outfits' geometry: per part its fingerprint, per outfit its anchors and its arms' clearance. */
-function recordDress(fixture: FixtureFigures): string {
-  const lines = ['{']
-  for (const [n, o] of GOLDEN_OUTFITS.entries()) {
-    const def = figureOf(o.sliders, o.skin, o.garments)
-    const built = build(def, skeleton(def), 'golden', null, fixture.library)
-    const anchors = built.anchors.map((a) =>
-      round({ kind: a.kind, side: a.side ?? null, bone: a.bone, at: a.at, open: a.open }, 13),
-    )
-    const parts = built.parts.map((p) => round(fingerprint(p), 13))
-    // One part per line, so a diff names the part that moved.
-    lines.push(
-      `  ${JSON.stringify(o.name)}: {`,
-      `    "clearance": ${JSON.stringify(round(built.clearance, 13))},`,
-      '    "anchors": [',
-      ...anchors.map((a, j) => `      ${JSON.stringify(a)}${j < anchors.length - 1 ? ',' : ''}`),
-      '    ],',
-      '    "parts": [',
-      ...parts.map((p, j) => `      ${JSON.stringify(p)}${j < parts.length - 1 ? ',' : ''}`),
-      '    ]',
-      `  }${n < GOLDEN_OUTFITS.length - 1 ? ',' : ''}`,
-    )
-  }
-  lines.push('}')
-  return `${lines.join('\n')}\n`
-}
-
-/** One entry per line, so a diff names the state that moved. */
-const section = (entries: Record<string, unknown>, indent: string): string[] =>
-  Object.entries(entries).map(
-    ([key, value], n, all) =>
-      `${indent}${JSON.stringify(key)}: ${JSON.stringify(value)}${n < all.length - 1 ? ',' : ''}`,
-  )
 
 const need = <T>(value: T | undefined, what: string): T => {
   if (value === undefined) throw new Error(`the fixture has no ${what}`)
@@ -116,25 +70,7 @@ function recordMotion(fixture: FixtureFigures): string {
         }
   }
 
-  const loose = need(fixture.gaits.loose, 'loose gait')
-  const stands: Record<string, unknown> = {}
-  for (const o of GOLDEN_OUTFITS) {
-    const def = figureOf(o.sliders, o.skin, o.garments)
-    const s = skeleton(def)
-    const built = build(def, s, 'golden', null, fixture.library)
-    const surface = surfaceOf(s, built)
-    for (const [standId, stand] of Object.entries(fixture.stands)) {
-      const placed = standHolds(s, stand, surface, built.anchors)
-      const world = evaluateMotion(s, loose, { ...AT_REST, stand, holds: placed, clear: [0.1, 0.2] }).world
-      stands[`${o.name} ${standId}`] = {
-        holds: round(
-          placed.map((h) => ({ ...h, anchor: h.anchor ?? null })),
-          12,
-        ),
-        world: print(world),
-      }
-    }
-  }
+  const stands = recordStands(GOLDEN_OUTFITS, fixture)
 
   // The hair spring over 40 steps: standing, walking, turning, at mixed frame times. The keeper in the elderly
   // gait supplies the head's pose; each step starts where the one before ended.
@@ -224,7 +160,7 @@ export async function recordGoldens(outDir: string): Promise<string[]> {
   mkdirSync(outDir, { recursive: true })
   const fixture = await fixtureFigures()
   const files: [string, string][] = [
-    ['dress.json', recordDress(fixture)],
+    ['dress.json', recordDress(GOLDEN_OUTFITS, fixture)],
     ['motion.json', recordMotion(fixture)],
     ['actions.json', await recordActions()],
   ]

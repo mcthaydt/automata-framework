@@ -10,30 +10,42 @@
 // density are drawn once, at density 2 (the fixed ppm's; M3.5b decision 4), so the chain's rope is two texels
 // wide.
 
+import type { Measure } from '@automata/3d/figures-kit'
 import {
   add,
+  at,
   axisAngle,
+  CROWN,
   clamp,
   cross,
+  type Decal,
+  ear,
+  FIGURE_PPM,
+  GARMENTS,
+  GROUP,
+  garmentOf,
+  headForm,
+  J,
   lerp,
   normalize,
+  onSkull,
+  type Part,
+  placed,
+  reach,
+  SIDES,
+  type Side,
+  type Skeleton,
   scale,
+  skull,
   smooth,
   sub,
+  superquadric,
+  toHead,
   type V3,
-} from '../../../../shared/math/math.ts'
-import type { Measure } from '../../body/genes.ts'
-import { type Decal, GROUP, type Part, placed } from '../../body/mesh.ts'
-import { reach } from '../../body/reach.ts'
-import { at, J, type Side, type Skeleton } from '../../body/rig.ts'
-import { superquadric } from '../../body/superquadric.ts'
-import { FIGURE_PPM } from '../../body/texels.ts'
-import type { Chain, Hoops, Shades, Sneakers } from '../../figure/garment.schema.ts'
-import { GARMENT_DEFAULTS } from '../../figure/garment-defaults.ts'
-import { variant } from '../../figure/materials.ts'
-import { CROWN, onSkull, skull, toHead } from '../../hair/skull.ts'
-import { GARMENTS, garmentOf } from '../../registry/garment-registry.ts'
-import { ear, headForm, SIDES } from '../garments/head.ts'
+  variant,
+} from '@automata/3d/figures-kit'
+import { WARDROBE_DEFAULTS } from './defaults.ts'
+import type { Chain, Hoops, Shades, Sneakers } from './garment-types.ts'
 import { frontOf, loft, type Section, torus } from './loft.ts'
 import { tops } from './tops.ts'
 import { type Fit, FRONT, local, piece, SEAM, stroke, under, type Wearing } from './under.ts'
@@ -45,8 +57,8 @@ export function sneakers(w: Wearing, item: Sneakers): Fit {
   const { g, k } = b
   const fw = m.foot
   const upper = item.sneakers
-  const sole = item.sole ?? GARMENT_DEFAULTS.sneakers.sole
-  const outsole = item.outsole ?? GARMENT_DEFAULTS.sneakers.outsole
+  const sole = item.sole ?? WARDROBE_DEFAULTS.sneakers.sole
+  const outsole = item.outsole ?? WARDROBE_DEFAULTS.sneakers.outsole
   const guard = item.mudguard ?? upper
   const floor = -g.ankle
   const heel = -0.32 * g.foot
@@ -215,7 +227,7 @@ export function chain(w: Wearing, item: Chain): Fit {
   }
   const glint = variant(made, item.chain, 'glint', { flat: true, shade: 1 })
   const light = variant(made, item.chain, 'light', { flat: true })
-  const mid = variant(made, item.links ?? GARMENT_DEFAULTS.chain.links, 'link', { flat: true })
+  const mid = variant(made, item.links ?? WARDROBE_DEFAULTS.chain.links, 'link', { flat: true })
   // The rope at the fixed ppm: 0.025 m wide at 1.62 m, in whole texels.
   const texel = 1 / FIGURE_PPM
   const rows = Math.max(1, Math.round((0.025 * k) / texel))
@@ -338,7 +350,7 @@ export function shades(w: Wearing, item: Shades): Fit {
   const g = s.genes
   const k = m.k
   const h = g.head
-  const frame = item.frame ?? GARMENT_DEFAULTS.shades.frame
+  const frame = item.frame ?? WARDROBE_DEFAULTS.shades.frame
   if (item.up)
     return shadesUp(
       w,
@@ -400,7 +412,7 @@ function shadesUp(w: Wearing, item: Shades, headParts: readonly Part[]): Fit {
   const k = m.k
   const sk = skull(s)
   const form = headForm(m, s)
-  const frame = item.frame ?? GARMENT_DEFAULTS.shades.frame
+  const frame = item.frame ?? WARDROBE_DEFAULTS.shades.frame
   const base = at(s.rest, J.head)
   const origin = add(base, sk.c)
   const tint = variant(made, item.shades, 'up', { matte: true, shade: -1 })

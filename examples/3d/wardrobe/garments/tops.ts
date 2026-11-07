@@ -8,16 +8,25 @@
 // `hemAnchors`, `SLIVER`, `outerHem`, `Worn`, `tops`, `topOf`), with AF's strict types; the formulas and
 // their order are the source's.
 
-import { clamp, lerp, smooth } from '../../../../shared/math/math.ts'
-import type { Measure } from '../../body/genes.ts'
-import { GROUP, type Part } from '../../body/mesh.ts'
-import { at, J, type Skeleton } from '../../body/rig.ts'
-import type { Anchor } from '../../figure/anchors.ts'
-import type { Garment } from '../../figure/garment.schema.ts'
-import { GARMENTS, garmentOf } from '../../registry/garment-registry.ts'
-import { SIDES } from '../garments/head.ts'
+import type { Anchor, Garment, Measure, Worn } from '@automata/3d/figures-kit'
+import {
+  at,
+  clamp,
+  GARMENTS,
+  GROUP,
+  garmentOf,
+  J,
+  lerp,
+  type Part,
+  SIDES,
+  type Skeleton,
+  smooth,
+} from '@automata/3d/figures-kit'
 import { frontOf, type Loft, loft, type Section, type Shell, widthOf } from './loft.ts'
 import { armSkin, SEAM, skinned, torsoBone, torsoSkin, type Under } from './under.ts'
+
+// The contract type is core's (figures-kit); re-exported so a builder imports it with the helpers.
+export type { Worn }
 
 /** A torso shell from the neck's base (`top`) to `hem`: round over the shoulders to `width`, `depth` deep. */
 export function torso(
@@ -252,17 +261,6 @@ export function hemAnchors(s: Skeleton, sh: Shell): Anchor[] {
  * would show only as a sliver, so it ends at that hem. */
 export const SLIVER = 0.04
 
-/**
- * A top as worn: its shell, its cloth, the neck it leaves, its collar's description if it stands one, its
- * lowest edge.
- */
-export interface Worn {
-  shell: Shell
-  cloth: string
-  neck: number
-  collar?: Shell
-  foot?: number
-}
 /** A top as it is worn in the outfit (null for anything else), from the registry. */
 export function topOf(m: Measure, s: Skeleton, g: Garment, garments: readonly Garment[]): Worn | null {
   const kind = garmentOf(g)

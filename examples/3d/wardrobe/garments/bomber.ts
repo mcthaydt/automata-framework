@@ -7,14 +7,10 @@
 // graphics (SNEKPRTY marks). Changed: painter materials are swatch variants, and the zip's pull, drawn at two
 // sizes by density, is one decal at its density-2 size (M3.5b decision 4).
 
-import { clamp, lerp, normalize, smooth, type V3 } from '../../../../shared/math/math.ts'
-import type { Measure } from '../../body/genes.ts'
-import type { Decal, Part } from '../../body/mesh.ts'
-import { J, type Skeleton } from '../../body/rig.ts'
-import type { Anchor } from '../../figure/anchors.ts'
-import type { Bomber, Garment } from '../../figure/garment.schema.ts'
-import { GARMENT_DEFAULTS } from '../../figure/garment-defaults.ts'
-import { SIDES } from '../garments/head.ts'
+import type { Anchor, Decal, Garment, Measure, Part } from '@automata/3d/figures-kit'
+import { clamp, J, lerp, normalize, SIDES, type Skeleton, smooth, type V3 } from '@automata/3d/figures-kit'
+import { WARDROBE_DEFAULTS } from './defaults.ts'
+import type { Bomber } from './garment-types.ts'
 import { over, underneath } from './layering.ts'
 import { frontOf, widthOf } from './loft.ts'
 import { collar, collarShell, cuffs, hemBand, shellPart, sleeves, torso, type Worn } from './tops.ts'
@@ -99,8 +95,8 @@ export function bomber(w: Wearing, item: Bomber): Fit {
   const b = under(m, s)
   const { k } = b
   const cloth = item.bomber
-  const hardware = item.hardware ?? GARMENT_DEFAULTS.bomber.hardware
-  const zip = item.zip ?? GARMENT_DEFAULTS.bomber.zip
+  const hardware = item.hardware ?? WARDROBE_DEFAULTS.bomber.hardware
+  const zip = item.zip ?? WARDROBE_DEFAULTS.bomber.zip
   const {
     shell: sh,
     hem,

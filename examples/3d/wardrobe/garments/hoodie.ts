@@ -6,15 +6,26 @@
 // source's. Cut: graphics (SNEKPRTY marks). Changed: painter materials are swatch variants; the aglet, drawn
 // at two sizes by density, is one decal at its density-2 size (M3.5b decision 4).
 
-import { clamp, lerp, normalize, smooth, type V3 } from '../../../../shared/math/math.ts'
-import type { Measure } from '../../body/genes.ts'
-import { type Decal, GROUP, type Part, sgnPow, type Weight } from '../../body/mesh.ts'
-import { at, J, type Skeleton } from '../../body/rig.ts'
-import type { Anchor } from '../../figure/anchors.ts'
-import type { Garment, Hoodie } from '../../figure/garment.schema.ts'
-import { GARMENT_DEFAULTS } from '../../figure/garment-defaults.ts'
-import { sweep } from '../../hair/sweep.ts'
-import { SIDES } from '../garments/head.ts'
+import type { Anchor, Garment, Measure } from '@automata/3d/figures-kit'
+import {
+  at,
+  clamp,
+  type Decal,
+  GROUP,
+  J,
+  lerp,
+  normalize,
+  type Part,
+  SIDES,
+  type Skeleton,
+  sgnPow,
+  smooth,
+  sweep,
+  type V3,
+  type Weight,
+} from '@automata/3d/figures-kit'
+import { WARDROBE_DEFAULTS } from './defaults.ts'
+import type { Hoodie } from './garment-types.ts'
 import { over, underneath } from './layering.ts'
 import { angleAt, frontOf, loft, type Shell } from './loft.ts'
 import { collarShell, cuffs, hemAnchors, hemBand, shellPart, sleeves, torso, type Worn } from './tops.ts'
@@ -277,7 +288,7 @@ export function hoodie(w: Wearing, item: Hoodie): Fit {
       bone: J.chest,
       at: local(s, J.chest, [x0 + x * 0.008 * k, y1 - 0.006 * k, (frontOf(sh, x0, y1) ?? D) + 0.004]),
       normal: [0, 0, 1],
-      material: item.aglets ?? GARMENT_DEFAULTS.hoodie.aglets,
+      material: item.aglets ?? WARDROBE_DEFAULTS.hoodie.aglets,
       size: [1, 2],
     })
   }

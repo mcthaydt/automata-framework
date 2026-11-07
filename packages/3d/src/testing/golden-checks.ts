@@ -12,7 +12,8 @@ import { type Fingerprint, fingerprint, type Moments } from './fingerprint.ts'
 import { figureOf, type GoldenOutfit } from './golden-outfits.ts'
 
 type GoldenPart = Fingerprint
-interface Golden {
+/** One outfit's recorded geometry: its parts' fingerprints, its openings and its arms' clearance. */
+export interface Golden {
   readonly clearance: number[]
   readonly anchors: {
     readonly kind: string
@@ -23,7 +24,9 @@ interface Golden {
   }[]
   readonly parts: GoldenPart[]
 }
-const GOLDENS = goldens as unknown as Readonly<Record<string, Golden>>
+/** The geometry goldens by outfit name (an extension's wardrobe keeps its own set the same shape). */
+export type OutfitGoldens = Readonly<Record<string, Golden>>
+const GOLDENS = goldens as unknown as OutfitGoldens
 
 /** `actual` within the goldens' tolerance of `expected`: 1e-9, relative past 1. */
 function close(actual: number, expected: number, what: string): void {
@@ -73,10 +76,14 @@ export function expectSound(built: Built): void {
 }
 
 /** The outfit built here matches its recorded golden part for part: parts, bones, skins, anchors, clearance. */
-export function expectMatchesGolden(outfit: GoldenOutfit, library: FigureLibrary): void {
+export function expectMatchesGolden(
+  outfit: GoldenOutfit,
+  library: FigureLibrary,
+  recorded: OutfitGoldens = GOLDENS,
+): void {
   const def = figureOf(outfit.sliders, outfit.skin, outfit.garments)
   const built = build(def, skeleton(def), 'golden', null, library)
-  const golden = GOLDENS[outfit.name]
+  const golden = recorded[outfit.name]
   if (!golden) throw new Error(`no golden for ${outfit.name}`)
   const want = golden.parts
   expect(built.parts).toHaveLength(want.length)
