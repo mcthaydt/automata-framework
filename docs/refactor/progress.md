@@ -207,6 +207,17 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
 
+**Where to resume (2026-11-07, session 23):** branch `claude/project-thread-3mf5b2`, PR #436 stacked on #435.
+Session 23: **15.1, 16.1 to 16.4 and 19.1 are done** (the plan's log); the build is 61 of 68. 19.1's visitor journey
+found two site bugs, both fixed: the try-it editor's canvas was unavailable under the site's CSP (no-eval import), and
+on an upright phone the playing demo's wide frame made Emberwick ask for fullscreen (it now stands 3 by 4). Also fixed,
+at the coordinator's ask: the platformer journey's two-finger undo runs on the test clock (it flaked once on #416).
+Next, in plan order: **19.2** (links, privacy, the closed-beta scan), 20.1 (the copy table), 21.1 (site workflow,
+legal, launch steps). Then the build is 64 of 68: 14.1 needs its own thread and branch (`claude/refactor-scope`,
+scope `@automata`); 14.2, 21.0's DNS and 21.2 are the Owner's. The Gmail in the footer still waits for the Owner. For
+19.2: Emberwick's on-screen pad is `aria-hidden` with glyph-only buttons (the keys do the same); fine for a screen
+reader, but a candidate for phase 20's copy pass.
+
 **Where to resume (2026-11-07, session 22, end):** branch `claude/project-thread-68k16x`, PR #435 stacked on #434.
 After the note below, **13.1, 13.2 and 13.3 are done** (the plan's log, "Phase 13 (session 22)"); the build is 55 of
 68. The editor's journeys (`pnpm test:e2e --filter @mcthaydt/automata-editor`, 11 pass and 1 skip in Chromium) found

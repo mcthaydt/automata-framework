@@ -2769,3 +2769,4 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   views now take a `gestureClock` through the view services, and the journey harness passes its test clock. The
   journey holds the fingers 400 ms of real time to prove it: on the real clock it fails ("undone: expected 1 to be 2"),
   on the test clock it passes. Editor journeys (Chromium) 28, unit 3,385, svelte-check 0.
+  *Handoff (session 23):* 61 of 68 on PR #436. Next 19.2, 20.1, 21.1 (resume note in `progress.md`).
