@@ -21,7 +21,7 @@ live in the framework's `docs/refactor/` (audit decision D1 A); `mcthaydt/automa
 |---|---|---|
 | 1.1 Mirror generator | 1 | Done, 2026-11-07 (13 tests) |
 | 1.2 Release job and checks use it | 1 | Done, 2026-11-07 |
-| 1.3 Part 1 close | 1 | Not started |
+| 1.3 Part 1 close | 1 | Done, 2026-11-07 (PR #447) |
 | 2.1 Declarations only (C1) | 2 | Done, 2026-11-07 |
 | 2.2 What the reference leaves out (C2) | 2 | Done, 2026-11-07 |
 | 2.3 Only published packages (D2 A) | 2 | Done, 2026-11-07 |
@@ -49,7 +49,11 @@ live in the framework's `docs/refactor/` (audit decision D1 A); `mcthaydt/automa
 - **The Owner:** the npm organisation, `NPM_TOKEN`, the release approval and `SKILLS_TOKEN` (M4); one run of the install
   suite on the runner (task 4.2).
 
-## Where stage 4 starts
+## Where stage 5 starts
+
+The Opus audit reads PRs #447 to #451 against the spec and this ledger's rulings. Part 4's install suite passed here (10/10, 28 s); the runner's first run is the Owner's. The first mirror push (token and release) is what unblocks #451.
+
+## Where stage 4 started
 
 Build with `superpowers:executing-plans`, natively (no subagents), Sonnet at high effort. Read the plan's Global
 Constraints and Review Focus, then part 1. Part 1 lands before any `@automata/*` release. The plan's paths and lines
@@ -112,4 +116,11 @@ Stage 4, `superpowers:executing-plans`, inline. Pre-flight: tasks 1.1 to 1.2 sha
   1440 × 900 with the card in view, no horizontal overflow). The PR waits for the first mirror push.
   Ruling: the existing test's "4 copy buttons" stays 4 — the agent setup sits in a closed `details`, which Testing
   Library does not count — so the new card's buttons are covered by the text assertions instead.
-- Stage 4 done. Final self-review (no subagent tool): see the thread's report; the audit stage (Opus) is next.
+- Final review: self-review (no subagent tool; the Owner allows none). The next stage, the Opus build audit, is the
+  fresh reviewer. I checked the stack for: the generator running under Node 24 type stripping with no install (it did,
+  through the CLI tests); `.mirror/` being git-ignored so biome, knip and style skip it (style ran with it present);
+  the README's claims matching the hook; the site's pinned version equal to the install suite's (a test).
+  Deferred minors: the release job does not run `plugin validate` on the clone before pushing (release-checks does it
+  on the same generator); `testedOn` is a typed string kept equal to the pin by a test rather than imported.
+- Pull requests, a stack on #446: part 1 #447, part 2 #448, part 3 #449, part 4 #450, part 5 #451 (merges only after the
+  first mirror push). Hand-offs for the merge thread, the Owner and the 3D build are unchanged from the table above.
