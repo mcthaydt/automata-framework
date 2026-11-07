@@ -146,7 +146,7 @@ Each finding has an ID so the plan can point at it.
 
 | ID | Finding | Evidence |
 |---|---|---|
-| T1 | The 8 known failures, reproduced in Chromium. Seven: `open-flows.layout` reads the first `[data-scroll-region]`, which is now the kit dialog's own body, not the problem list; the list does scroll (screen). The product now nests two scroll regions. One: `sector-tools.layout`'s Pencil journey fails at iPad mini landscape only (it passes at the four other non-compact sizes): since the 2D slice put the 3D editor on the size-based layouts, an inspector sheet covers the lower third of the plan and the floating tool bar sits over the room there, so the test's corners land on overlays ("that point is already a corner"), the room never closes and Undo has nothing to name. A layout question as much as a test one. | `e3d-browser.log`; `Dialog.svelte:101`; `ErrorPanel.svelte:46`; screen `t1-pencil-ipad-mini.png` |
+| T1 | The 8 known failures, reproduced in Chromium, and the same 8 fail in WebKit and Firefox on the runner (this PR's `3D - parity` job: 24 failures, everything else in the 3D browser suites passes in all three engines). Seven: `open-flows.layout` reads the first `[data-scroll-region]`, which is now the kit dialog's own body, not the problem list; the list does scroll (screen). The product now nests two scroll regions. One: `sector-tools.layout`'s Pencil journey fails at iPad mini landscape only (it passes at the four other non-compact sizes): since the 2D slice put the 3D editor on the size-based layouts, an inspector sheet covers the lower third of the plan and the floating tool bar sits over the room there, so the test's corners land on overlays ("that point is already a corner"), the room never closes and Undo has nothing to name. A layout question as much as a test one. | `e3d-browser.log`; `Dialog.svelte:101`; `ErrorPanel.svelte:46`; screen `t1-pencil-ipad-mini.png` |
 | T2 | No test starts `automata editor`, opens a game folder, writes a file or looks at the game. The three "journeys" mount the app in a test page. E1 and E2 exist because of this. | `packages/editor-3d/src/journeys/`, `*.journey.test.ts` |
 | T3 | `pnpm check` runs no 3D unit test; `ci:local` runs no 3D suite; the 3D editor's journeys run in WebKit only, so a session cannot run them. | root `package.json`; `journey-project.ts` |
 | T4 | 24 review-image canvas tests are skipped unless `ED3D_VISUALS=1`; nothing compares their pictures. | canvas run |
@@ -290,5 +290,6 @@ Checkout at `a51dbb13` (#441's head), Node 24.22.1 (`/opt/node24/bin`), pnpm 10.
   each folder, `node_modules` and `dist` excluded.
 - **Tokens:** every `var(--…)` in `packages/editor-3d/src` against the custom properties `tokens.css` defines and any
   definition inside the package.
+- **WebKit and Firefox:** this PR's own `3D - parity` job on the runner (Actions run 42358120705), read from its log.
 - **The stack:** `git merge-base --is-ancestor origin/claude/project-thread-ajhkmg HEAD` (#425's head) returns false.
 - **Pixi 3D:** `npm view @pixi/3d versions` returns E404 on 2026-11-07.
