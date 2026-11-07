@@ -1,11 +1,11 @@
 import { fireEvent, render, waitFor } from '@testing-library/svelte'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
-import { getDocSections } from '../src/data/docs-loader'
-import CommandMenu from '../src/lib/components/CommandMenu.svelte'
-import Header from '../src/lib/components/Header.svelte'
-import TerminalBox from '../src/lib/components/TerminalBox.svelte'
+import { getDocSections } from '../src/features/docs/docs-loader'
+import Examples from '../src/features/examples/ExamplesIndex.svelte'
+import CommandMenu from '../src/features/search/CommandMenu.svelte'
 import Home from '../src/routes/+page.svelte'
-import Examples from '../src/routes/examples/+page.svelte'
+import Header from '../src/shared/components/Header.svelte'
+import TerminalBox from '../src/shared/components/TerminalBox.svelte'
 
 const docs = getDocSections()
 
@@ -43,7 +43,8 @@ describe('Audit regressions', () => {
   })
 
   it('provides labelled search across documentation and API entries', async () => {
-    const view = render(CommandMenu, { props: { isOpen: true } })
+    const guides = [{ title: 'Quick Start', detail: 'Make a game', url: '/docs/quick-start' }]
+    const view = render(CommandMenu, { props: { isOpen: true, guides } })
     const input = view.getByRole('searchbox', { name: /search/i })
     await fireEvent.input(input, { target: { value: 'quick start' } })
     expect(view.getByRole('link', { name: /Quick Start/i }).getAttribute('href')).toBe('/docs/quick-start')

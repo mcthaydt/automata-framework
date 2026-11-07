@@ -9,8 +9,8 @@
 import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs'
 import { createServer } from 'node:http'
 import { extname, join, resolve, sep } from 'node:path'
-import { playgroundHeaders } from '../src/lib/playground/headers.ts'
-import { securityHeaders } from '../src/lib/security-headers.ts'
+import { playgroundHeaders } from '../src/features/playground/headers.ts'
+import { securityHeaders } from '../src/shared/html/security-headers.ts'
 import { framePageForOrigin, isFramePage } from './playground-origin.ts'
 
 const TYPES: Record<string, string> = {

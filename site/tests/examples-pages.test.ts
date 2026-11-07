@@ -1,15 +1,16 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { fireEvent, render, waitFor } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { exampleIndex, getExample, getExamples } from '../src/data/examples'
-import examplesJson from '../src/data/examples.json'
-import CommandMenu from '../src/lib/components/CommandMenu.svelte'
-import { compileExample } from '../src/lib/playground/compile'
-import type { HighlightedLine } from '../src/lib/playground/highlight'
-import { SITE_ORIGIN } from '../src/lib/site.js'
+import IndexPage from '../src/features/examples/ExamplesIndex.svelte'
+import { compileExample } from '../src/features/playground/compile'
+import type { HighlightedLine } from '../src/features/playground/highlight'
+import CommandMenu from '../src/features/search/CommandMenu.svelte'
 import { load as indexLoad } from '../src/routes/examples/+page.server'
-import IndexPage from '../src/routes/examples/+page.svelte'
 import { entries, load as exampleLoad } from '../src/routes/examples/[id]/+page.server'
 import ExamplePage from '../src/routes/examples/[id]/+page.svelte'
+import { exampleIndex, getExample, getExamples } from '../src/shared/framework/example-catalog'
+import { SITE_ORIGIN } from '../src/shared/site.js'
 
 // WEB.PLAY.5 (website playground spec §6 F1, §7.4, §8.1): /examples is the catalog's index, and each example has its
 // own prerendered page whose preview runs the precompiled original once the page has loaded and the preview is near
@@ -130,9 +131,8 @@ describe('/examples/<id>', () => {
   it('shows the synced source byte for byte, with its header fields and the list beside it', async () => {
     const data = await pageData('shapes-rects')
     const view = render(ExamplePage, { props: { data } })
-    const synced = (examplesJson as { id: string; source: string }[]).find(
-      (example) => example.id === 'shapes-rects',
-    )!.source
+    // The framework's own file, read from examples/2d, not the page's copy of it.
+    const synced = readFileSync(resolve(process.cwd(), '../examples/2d/shapes/shapes-rects.ts'), 'utf8')
     expect(view.container.querySelector('[data-testid="static-code"] code')?.textContent).toBe(synced)
     expect(view.getByText(data.example.shows)).toBeTruthy()
     expect(view.getByRole('link', { name: data.example.title, current: 'page' })).toBeTruthy()

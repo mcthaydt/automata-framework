@@ -13,6 +13,7 @@ describe('the cut pages redirect', () => {
       '/ai': '/docs/how-it-works',
       '/inside': '/docs/how-it-works',
       '/cheatsheet': '/api',
+      '/editors': '/editor',
       '/showcase': '/',
       '/community': '/',
       '/proof': '/',

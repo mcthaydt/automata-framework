@@ -2,8 +2,8 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { searchApi } from '../src/lib/api-reference'
 import { parseApiReference, readApiIndex } from '../src/shared/framework/api.ts'
+import { searchApi } from '../src/shared/framework/api-reference'
 
 // M10.4: the complete generated reference as pages. Parsed from llms-api.txt, so the pages and the plain-text file
 // cannot disagree.

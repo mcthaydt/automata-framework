@@ -2,7 +2,7 @@ import { createServer } from 'node:http'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import { playgroundOrigin, playgroundPort } from '@mcthaydt/examples-runner/host/ports'
-import { playgroundHeaders } from '../src/lib/playground/headers.ts'
+import { playgroundHeaders } from '../src/features/playground/headers.ts'
 import { framePolicy } from './src/ruken/frame-policy.ts'
 import { fileUnder, sendFile } from './static-files.ts'
 

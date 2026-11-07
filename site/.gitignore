@@ -12,4 +12,5 @@ release-manifest.json
 # Written by scripts/build-demos.ts at build time.
 /static/demos/
 /static/playground/
+/static/editor/
 /playground/dist/

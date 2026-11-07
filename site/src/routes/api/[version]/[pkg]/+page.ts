@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit'
-import { apiVersions, getApiReference } from '$lib/api-reference'
+import { apiVersions, getApiReference } from '../../../../shared/framework/api-reference'
 import type { EntryGenerator, PageLoad } from './$types'
 
 export const prerender = true

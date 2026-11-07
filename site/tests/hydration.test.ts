@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
-import { AFTER_FIRST_PAINT, FALLBACK_MS, hydrateAfterFirstPaint } from '../src/lib/hydration'
+import { AFTER_FIRST_PAINT, FALLBACK_MS, hydrateAfterFirstPaint } from '../src/shared/html/hydration'
 
 // QB.3j. The first Mac run of QB.3j's code measured the pages at 2.57 to 3.01 s where the hosted runner and a quiet
 // container measure 1.7 to 2.1 s, to the millisecond on two runs, whatever else the Mac was doing. Lighthouse simulates

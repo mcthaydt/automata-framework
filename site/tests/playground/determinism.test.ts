@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { determinismText } from '../../src/lib/playground/determinism'
+import { determinismText } from '../../src/features/playground/determinism'
 
 // The determinism row's words (spec §13): it says only what this browser checked.
 describe('determinismText', () => {

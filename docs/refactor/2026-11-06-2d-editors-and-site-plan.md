@@ -1336,10 +1336,10 @@ before it. The footer's contact address stays as it is until the Owner decides (
 - Modify: root `package.json` (`boundaries --features site`), `site/src/routes/**` (thin)
 - Test: `site/tests/unit/redirects.test.ts`
 
-- [ ] **Step 1: Failing test:** the redirect map sends `/ai` and `/inside` to `/docs/how-it-works`, `/cheatsheet` to
+- [x] **Step 1: Failing test:** the redirect map sends `/ai` and `/inside` to `/docs/how-it-works`, `/cheatsheet` to
   `/api`, and `/showcase`, `/community`, `/proof`, `/releases`, `/sources` to `/`; the build writes a page for each that
   redirects (meta refresh plus a link, so it works on any static host).
-- [ ] **Step 2:** Move and delete. `pnpm boundaries` passes with `--features site`. Unit and e2e gates pass in
+- [x] **Step 2:** Move and delete. `pnpm boundaries` passes with `--features site`. Unit and e2e gates pass in
   Chromium. Commit. `refactor(site): seven pages, grouped by feature`
 
 ### Task 18.2: Home and Start on the current code
@@ -1349,14 +1349,14 @@ before it. The footer's contact address stays as it is until the Owner decides (
   (create: reads `create-game`'s template at build time)
 - Test: `site/tests/unit/home/*.test.ts`, `site/tests/unit/start/*.test.ts`
 
-- [ ] **Step 1: Failing tests:** Home's walk-through shows three files that exist in `create-game`'s template (the
+- [x] **Step 1: Failing tests:** Home's walk-through shows three files that exist in `create-game`'s template (the
   test reads the template); Start's first command is `npx @mcthaydt/automata-tools create-game`; no page text mentions
   `@af-examples/base-2d`, `base-2d`, `git clone`, Effect in the browser, or files the refactor deleted (W1, W2, WG3).
-- [ ] **Step 2:** Rewrite both pages, on the shared tokens and the kit's look. Start has the four steps of spec 10.2
+- [x] **Step 2:** Rewrite both pages, on the shared tokens and the kit's look. Start has the four steps of spec 10.2
   and "Using a coding agent" (the AI page's setup). Copy rows. Commit. `feat(site): Home and Start describe the
   framework as it is`
-- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) findings 2, 5, 6, 18):** the Emberwick embed starts upright on an upright phone (the game's orientation check or the embed's aspect ratio); no promise of a remix or a demo that is not there; every Emberwick link lands on Emberwick; the demo's controls show only while it plays.
-- [ ] **Step V (added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md) H5, M3, M6, L2, L3, L4, L7):** the first example shows something (a title, a coloured field, a line of text), not a black box; at 844 × 390 the Emberwick demo and an example's preview start above the fold (the facts table folds); the footer's two API links become one ("Reference"); the double-jump picture is re-shot or removed; Home's desktop gutter label, lone card and uneven cards go; the hero's two actions stay side by side or stack aligned; the comments in Emberwick's code shown on Home read plainly.
+- [x] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) findings 2, 5, 6, 18):** the Emberwick embed starts upright on an upright phone (the game's orientation check or the embed's aspect ratio); no promise of a remix or a demo that is not there; every Emberwick link lands on Emberwick; the demo's controls show only while it plays.
+- [x] **Step V (added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md) H5, M3, M6, L2, L3, L4, L7):** the first example shows something (a title, a coloured field, a line of text), not a black box; at 844 × 390 the Emberwick demo and an example's preview start above the fold (the facts table folds); the footer's two API links become one ("Reference"); the double-jump picture is re-shot or removed; Home's desktop gutter label, lone card and uneven cards go; the hero's two actions stay side by side or stack aligned; the comments in Emberwick's code shown on Home read plainly.
 
 ### Task 18.3: The editor page and "Try the editor"
 
@@ -1365,11 +1365,11 @@ before it. The footer's contact address stays as it is until the Owner decides (
   `/editor/app/`), `site/src/shared/csp.ts` (if the editor needs anything new; it must not need `eval`)
 - Test: `site/tests/unit/editor/*.test.ts`, `site/tests/e2e/editor-try.test.ts`
 
-- [ ] **Step 1: Failing e2e (Chromium):** `/editor` shows three pictures from the design board and "Try the editor";
+- [x] **Step 1: Failing e2e (Chromium):** `/editor` shows three pictures from the design board and "Try the editor";
   it opens `/editor/app/`, which starts on browser storage with no console error under the site's CSP.
-- [ ] **Step 2:** Implement. If Pixi needs `eval` there, the editor's `main.ts` imports `@mcthaydt/automata/no-eval`
+- [x] **Step 2:** Implement. If Pixi needs `eval` there, the editor's `main.ts` imports `@mcthaydt/automata/no-eval`
   first (spec risks). Copy rows. Commit. `feat(site): try the 2D editor on the site`
-- [ ] **Step V (added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md) L8):** Privacy says that the try-it editor keeps levels in this browser's storage and nowhere else.
+- [x] **Step V (added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md) L8):** Privacy says that the try-it editor keeps levels in this browser's storage and nowhere else.
 
 ### Task 18.4: Docs and API
 
@@ -2617,3 +2617,35 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   `llms.ts`, `site-docs.ts` and the search menu still read; the redirects; the move to `features/`. *Left for 18.2:*
   Step V's first example (H5) and phone-landscape fold (M3). Gates: site unit 347, `svelte-check` 0, `pnpm knip`
   clean, the site builds (57 pages).
+- **Phase 18, part (session 21): 18.1, 18.2's Step V and 18.3.** *18.1:* the AI, Showcase and Cheatsheet routes,
+  their data (`ai-guidance`, `cheatsheet`, `showcase`) and tests are cut (Community, Inside, Proof, Releases and
+  Sources had already gone). Search (`features/search/CommandMenu.svelte`) lists the pages, the examples and the
+  guides (the layout passes the guides in, since a feature never imports another) and finds API names only in the
+  generated index; `llms.txt` and `llms-guides.txt` link only pages that exist. `features/redirects/redirects.ts`
+  maps every cut address (and `/editors` → `/editor`) to the page that took its place, and
+  `scripts/write-redirects.ts` writes one static page per address after the build (a meta refresh and a link, no
+  script, `noindex`); `builtPages` skips them, so the sitemap and the page checks never see them. `/ai` and `/inside`
+  point at `/docs/how-it-works`, which 18.4 writes. *The move:* `src/lib/` and `src/data/` are gone: shared
+  components, the HTML hooks (`shared/html/`: CSP, hydration, preloads, security headers, text files), the site
+  config, the utilities, the framework readers (`shared/framework/`: the example catalog and the API reference join
+  the readers already there) and the content two features share (`shared/content/`: the agent setup, the targets);
+  each page's body and data under `features/<page>/` (home, start, examples, playground, editor, docs, api, legal,
+  search, redirects); every route is a thin wrapper. The example page takes the playground as `children` from its
+  route, so `examples` never imports `playground`. Dead code cut on the way: `CreativeStarts`, `LazyPicture` (no page
+  used them; 4 tests), `examples.json` (a stale copy; the tests read `examples/2d` itself). *Boundaries:*
+  `automata-check-boundaries --features site --components` (new flag) reads `.svelte` files too: 0 findings over 99
+  files. The flag is opt-in because the editor's views cross features in 11 places (`view-props` from `document` in
+  six views, `inspector-model` from `level` in `map`, and `DocumentFrame` importing `app/`, `problems` and `share`),
+  a finding for the build audit. *Stale e2e tests fixed:* session 20's new header and Home left 15 site e2e tests on
+  the old names ("Make your first change", the Showcase and AI links, `.lazy-picture`); they now test the new page,
+  and the editor screenshot ships an 800 px WebP beside the 1600 px one (it was drawn at 718 px). *18.2 Step V:*
+  `core-basic-window` paints a field and "Your game runs here." (H5); on a phone on its side the example's preview
+  comes before its facts and Home's words and Emberwick sit side by side (M3). *18.3:* `/editor` (was `/editors`)
+  shows the editor in three real screenshots with captions, "Try the editor" (`/editor/app/`) and the command for a
+  game; the suite list with unreleased editors and Plus is gone. `build-demos.ts` copies `packages/editor/dist/2d`,
+  which now names its files relative to its page (`base: './'`), so the one build runs at `/` under `automata editor`
+  and at `/editor/app/` here. The editor asks its origin `/api/ping` whether it is served; the site answers
+  `{"automata":"site"}` (a prerendered route), so it opens browser storage with no 404 in the console. The security
+  headers give `/editor/app/` the demos' whole policy. Privacy says the try-it editor keeps levels in this browser
+  (Step V, L8). Deviation: the pictures are screenshots of the real editor (Level, New level, phone), not of the
+  design board, which shows components rather than what the editor does.

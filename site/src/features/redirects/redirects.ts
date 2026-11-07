@@ -11,6 +11,7 @@ export const REDIRECTS: Readonly<Record<string, string>> = {
   '/ai': '/docs/how-it-works',
   '/inside': '/docs/how-it-works',
   '/cheatsheet': '/api',
+  '/editors': '/editor',
   '/showcase': '/',
   '/community': '/',
   '/proof': '/',

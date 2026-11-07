@@ -1,10 +1,10 @@
 import { render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
-import { apiVersions, getApiReference, latestApiVersion } from '../src/lib/api-reference'
-import Index from '../src/routes/api/+page.svelte'
+import Index from '../src/features/api/ApiIndex.svelte'
+import Package from '../src/features/api/ApiPackage.svelte'
 import { entries, load } from '../src/routes/api/[version]/[pkg]/+page'
-import Package from '../src/routes/api/[version]/[pkg]/+page.svelte'
 import type { ApiPackage } from '../src/shared/framework/api.ts'
+import { apiVersions, getApiReference, latestApiVersion } from '../src/shared/framework/api-reference'
 
 // M10.4: the complete generated reference, one page per package and version.
 describe('/api', () => {

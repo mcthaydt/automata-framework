@@ -4,8 +4,8 @@
   button, white panels on hairlines, 4/6/8 px corners.
 -->
 <script lang="ts">
-import AgentSetup from '$lib/components/AgentSetup.svelte'
-import TerminalBox from '$lib/components/TerminalBox.svelte'
+import TerminalBox from '../../shared/components/TerminalBox.svelte'
+import AgentSetup from './AgentSetup.svelte'
 import { PUBLISH_GUIDES, STEPS } from './start-content'
 </script>
 

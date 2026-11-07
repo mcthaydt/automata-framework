@@ -11,9 +11,10 @@
 // import (`player-move.system.ts` and the files it imports). A game root with no sim files exits 2.
 // `--platform-imports <root>...` runs only the platform check: every source under each root, tests
 // included, imports a target's platform packages (`@ruken/*`, `@tauri-apps/*`) only under that target's folder.
-// `--features <package-root>... [--shared-island <folder>]` runs only the feature-layout check: app/, features/<x>/,
-// shared/, entries/ and testing/ of each package's src/ import one way. With `--shared-island kit`, shared/kit/
-// may import only itself and other packages.
+// `--features <package-root>... [--shared-island <folder>] [--components]` runs only the feature-layout check:
+// app/, features/<x>/, shared/, entries/ and testing/ of each package's src/ import one way. With
+// `--shared-island kit`, shared/kit/ may import only itself and other packages. With `--components`, Svelte
+// components are read too (the site's are; the editor's views still cross features, a finding for its audit).
 // `--forbid <package-root>:<package>,<package>...` runs only the forbidden-import check: no source under the
 // root (tests included) imports those packages, or a path inside them (`packages/editor:@pixi/3d`).
 // `--browser <package-root>[:<entry>,<entry>]...` runs only the browser-only check: nothing a
@@ -58,12 +59,16 @@ if (process.argv[2] === '--platform-imports') {
 
 if (process.argv[2] === '--features' || process.argv[2] === '--browser' || process.argv[2] === '--forbid') {
   const mode = process.argv[2]
-  const args = process.argv.slice(3)
+  // `--components` may come anywhere after `--features`.
+  const components = mode === '--features' && process.argv.includes('--components')
+  const args = process.argv.slice(3).filter((arg) => arg !== '--components')
   // `--shared-island <folder>` may follow the roots of `--features`.
   const islandAt = args.indexOf('--shared-island')
   const sharedIsland = islandAt === -1 ? undefined : args[islandAt + 1]
   if (islandAt !== -1 && (mode !== '--features' || sharedIsland === undefined)) {
-    console.error('usage: check-boundaries --features <package-root>... [--shared-island <folder>]')
+    console.error(
+      'usage: check-boundaries --features <package-root>... [--shared-island <folder>] [--components]',
+    )
     process.exit(2)
   }
   const roots = islandAt === -1 ? args : args.slice(0, islandAt)
@@ -84,7 +89,7 @@ if (process.argv[2] === '--features' || process.argv[2] === '--browser' || proce
     }
     const result =
       mode === '--features'
-        ? featureFindings(packageRoot, sharedIsland)
+        ? featureFindings(packageRoot, sharedIsland, { components })
         : mode === '--forbid'
           ? forbidFindings(packageRoot, entries as string[])
           : browserOnlyFindings(packageRoot, entries)

@@ -105,13 +105,15 @@ function islandBreak(from: Place, to: Place, island: string | undefined): string
 
 /**
  * The files checked and the findings, for one package folder (`packages/automata`): its `src/` is read.
- * `sharedIsland` names a shared/ folder that may not import the rest of shared/.
+ * `sharedIsland` names a shared/ folder that may not import the rest of shared/. `components` reads its Svelte
+ * components too (`--components`).
  */
 export function featureFindings(
   packageRoot: string,
   sharedIsland?: string,
+  { components = false }: { components?: boolean } = {},
 ): { files: string[]; findings: Finding[] } {
-  const files = collectSources(join(packageRoot, 'src'))
+  const files = collectSources(join(packageRoot, 'src'), [], { components })
   const src = resolve(packageRoot, 'src')
   const findings: Finding[] = []
   for (const file of files) {

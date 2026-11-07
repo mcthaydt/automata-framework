@@ -4,8 +4,8 @@ import { join } from 'node:path'
 import { gzipSync } from 'node:zlib'
 import { JSDOM } from 'jsdom'
 import { REDIRECTS, redirectFile } from '../src/features/redirects/redirects.ts'
-import { CSP_META_PREFIX, scriptHash } from '../src/lib/csp.ts'
-import { SITE_ORIGIN } from '../src/lib/site.js'
+import { CSP_META_PREFIX, scriptHash } from '../src/shared/html/csp.ts'
+import { SITE_ORIGIN } from '../src/shared/site.js'
 
 /**
  * Placeholder and AI-filler phrases (quality-bar spec §4.2). Matched on whole words in each page's text, title and
@@ -96,7 +96,7 @@ export function checkTargets(root: string): string[] {
 }
 
 /** Folders the site copies in from the framework as built: the demo bundles and the playground (frame pages, runtime). */
-const FRAMEWORK_TREES = ['demos/', 'playground/']
+const FRAMEWORK_TREES = ['demos/', 'playground/', 'editor/app/']
 const fromFramework = (path: string) => FRAMEWORK_TREES.some((tree) => path.startsWith(tree))
 // The cut pages' redirects are not pages: no header, no canonical, and never in the sitemap.
 const REDIRECT_FILES = new Set(Object.keys(REDIRECTS).map(redirectFile))
@@ -350,7 +350,7 @@ function checkPageResources(file: string, doc: Document, fontUrls: Set<string>):
  * Preloaded modules start downloading before any script has run, so on a mobile connection they compete with the
  * stylesheet, font and image the first paint waits for. The home page and the gallery once preloaded 380 KB of example
  * sources and had a 3.2 s LCP; then the 26 to 29 hints for shared chunks (250 KB) cost every page 0.5 to 0.9 s of first
- * paint. Only the entry and node modules are preloaded now (`src/lib/preloads.ts`); the heaviest page has 35 KB of them,
+ * paint. Only the entry and node modules are preloaded now (`src/shared/html/preloads.ts`); the heaviest page has 35 KB of them,
  * which this leaves room for. Raise it only with a Lighthouse run that still meets the LCP budget.
  */
 export const MAX_PRELOADED_SCRIPT_BYTES = 48_000
@@ -361,7 +361,7 @@ const PRELOADABLE_MODULES = /^_app\/immutable\/(?:entry|nodes)\//
 /**
  * A page that hydrates starts after the first paint (QB.3j). SvelteKit's start script imports about 30 small modules and
  * hydrates at once; on a host that finishes those requests before it paints, Lighthouse charges all of them (350 KB) to
- * the first paint. `hydrateAfterFirstPaint` (src/lib/hydration.ts, applied in src/hooks.server.ts) wraps the imports in
+ * the first paint. `hydrateAfterFirstPaint` (src/shared/html/hydration.ts, applied in src/hooks.server.ts) wraps the imports in
  * `afterFirstPaint(`; a page that imports its entry modules without it was not transformed (a SvelteKit upgrade can
  * change the script's shape, and the transform then leaves it alone).
  */
@@ -383,7 +383,7 @@ export function checkContentSecurityPolicy(file: string, html: string, doc: Docu
   const metaAt = head ? head.index + head[0].length : -1
   if (!head || !html.startsWith(CSP_META_PREFIX, metaAt)) {
     return [
-      `${file}: has no Content-Security-Policy first in <head> (withContentSecurityPolicy, applied last in src/lib/finish-page.ts)`,
+      `${file}: has no Content-Security-Policy first in <head> (withContentSecurityPolicy, applied last in src/shared/html/finish-page.ts)`,
     ]
   }
   const start = metaAt + CSP_META_PREFIX.length
@@ -505,7 +505,7 @@ function checkSecurityTxt(root: string, now: Date): string[] {
 }
 
 /** The editor's source, as the build's Vite manifest keys it. */
-export const EDITOR_SOURCE = 'src/lib/playground/editor.ts'
+export const EDITOR_SOURCE = 'src/features/playground/editor.ts'
 /** The editor chunk and the chunks it imports, gzipped (playground spec §10.1). */
 export const MAX_EDITOR_CHUNK_GZIP_BYTES = 175_000
 

@@ -5,9 +5,9 @@ import {
   createLiveCompile,
   EDIT_QUIET_MS,
   type LiveResult,
-} from '../../src/lib/playground/live'
-import type { Clock } from '../../src/lib/playground/orchestrator'
-import { diagnosticText } from '../../src/lib/playground/status'
+} from '../../src/features/playground/live'
+import type { Clock } from '../../src/features/playground/orchestrator'
+import { diagnosticText } from '../../src/features/playground/status'
 
 // The live compile (spec F3, §5.2's last paragraph): the quiet period, `seq`, and latest-wins, with a fake clock and a
 // fake worker.

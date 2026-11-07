@@ -1,9 +1,9 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { getExample } from '../../src/data/examples'
-import { compileExample } from '../../src/lib/playground/compile'
-import { atOrigin } from '../../src/lib/playground/origin'
-import { SITE_ORIGIN } from '../../src/lib/site.js'
+import { compileExample } from '../../src/features/playground/compile'
+import { atOrigin } from '../../src/features/playground/origin'
+import { getExample } from '../../src/shared/framework/example-catalog'
+import { SITE_ORIGIN } from '../../src/shared/site.js'
 
 // The precompiled originals (static/playground/compiled/) are compiled for the site's origin, so an example's
 // `import.meta.url` is a literal naming it. A local server runs them at its own origin, or the frame's CSP blocks the

@@ -6,13 +6,20 @@ import '@fontsource-variable/geist-mono/wght.css'
 import geistLatin from '@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url'
 import '../app.css'
 import { page } from '$app/stores'
-import CommandMenu from '$lib/components/CommandMenu.svelte'
-import Footer from '$lib/components/Footer.svelte'
-import Header from '$lib/components/Header.svelte'
-import { SITE_ORIGIN } from '$lib/site.js'
+import { getDocSections } from '../features/docs/docs-loader'
+import CommandMenu from '../features/search/CommandMenu.svelte'
+import Footer from '../shared/components/Footer.svelte'
+import Header from '../shared/components/Header.svelte'
+import { SITE_ORIGIN } from '../shared/site.js'
 
 let { children }: { children?: import('svelte').Snippet } = $props()
 let isSearchOpen = $state(false)
+// Search finds every guide by its title, description and text.
+const guides = getDocSections().map((doc) => ({
+  title: doc.title,
+  detail: doc.description + ' ' + doc.content,
+  url: '/docs/' + doc.slug,
+}))
 function keydown(event: KeyboardEvent) {
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
     event.preventDefault()
@@ -33,4 +40,4 @@ function keydown(event: KeyboardEvent) {
 <Header pathname={$page.url.pathname} onOpenSearch={() => isSearchOpen = true} />
 <main id="main" tabindex="-1">{@render children?.()}</main>
 <Footer />
-<CommandMenu isOpen={isSearchOpen} onClose={() => isSearchOpen = false} />
+<CommandMenu isOpen={isSearchOpen} onClose={() => isSearchOpen = false} {guides} />

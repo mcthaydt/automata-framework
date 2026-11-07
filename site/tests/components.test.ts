@@ -1,9 +1,9 @@
 import { render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
-import Footer from '../src/lib/components/Footer.svelte'
-import Header from '../src/lib/components/Header.svelte'
-import TerminalBox from '../src/lib/components/TerminalBox.svelte'
-import { highlightCode } from '../src/lib/utils/highlight'
+import Footer from '../src/shared/components/Footer.svelte'
+import Header from '../src/shared/components/Header.svelte'
+import TerminalBox from '../src/shared/components/TerminalBox.svelte'
+import { highlightCode } from '../src/shared/utils/highlight'
 
 describe('UI Components', () => {
   it('TerminalBox renders command text and copy button', () => {

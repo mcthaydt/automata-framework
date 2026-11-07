@@ -159,6 +159,17 @@ describe('--features and --browser (core and 2D refactor spec §3.5)', () => {
     expect(result).toMatchObject({ status: 0 })
   })
 
+  it('--features --components reads Svelte components too', () => {
+    const files = {
+      'features/home/Home.svelte': "<script>\nimport { b } from '../docs/b.ts'\n</script>\n",
+      'features/docs/b.ts': 'export const b = 1\n',
+    }
+    expect(pkg(files, () => ['--features', '.'])).toMatchObject({ status: 0 })
+    const read = pkg(files, () => ['--features', '.', '--components'])
+    expect(read.status).toBe(1)
+    expect(read.stdout).toContain('"home" imports "docs" (features/docs/b.ts).')
+  })
+
   it('--browser names the entries after a colon, and exits 1 on Effect in a reachable file', () => {
     const files = {
       'entries/index.ts': "export { run } from '../app/run.ts'\n",

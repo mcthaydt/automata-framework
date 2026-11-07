@@ -1,4 +1,4 @@
-import { type RunMessage, runMessage } from '../../src/lib/playground/protocol.ts'
+import { type RunMessage, runMessage } from '../../src/features/playground/protocol.ts'
 
 /** The parts of a `message` event the gate reads. */
 export interface IncomingMessage {

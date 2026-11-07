@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit'
-import { getDocBySlug, getDocSections } from '../../../data/docs-loader'
+import { getDocBySlug, getDocSections } from '../../../features/docs/docs-loader'
 import type { EntryGenerator, PageLoad } from './$types'
 
 export const prerender = true

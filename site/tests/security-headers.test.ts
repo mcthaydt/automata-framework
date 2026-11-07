@@ -1,9 +1,9 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { DEMO_POLICY, securityHeaders } from '../src/lib/security-headers'
+import { DEMO_POLICY, securityHeaders } from '../src/shared/html/security-headers'
 
 // QB.4a: the header set every response carries (quality-bar spec QB.4). A site page's script policy is a <meta> in the
-// page (src/lib/csp.ts), so its header adds only what a <meta> cannot: the frame policy. The demos are copied in as
+// page (src/shared/html/csp.ts), so its header adds only what a <meta> cannot: the frame policy. The demos are copied in as
 // built and never pass through the page hook, so their header carries their whole policy.
 describe('securityHeaders', () => {
   it('is the set QB.4 names, with the frame policy alone in the CSP header of a site page', () => {
@@ -19,6 +19,9 @@ describe('securityHeaders', () => {
 
   it('gives everything under /demos/ a whole policy: scripts from the site only, wasm allowed, no inline script', () => {
     expect(securityHeaders('/demos/base-2d/index.html')['Content-Security-Policy']).toBe(DEMO_POLICY)
+    // The try-it editor is the framework's build too, served as it is.
+    expect(securityHeaders('/editor/app/')['Content-Security-Policy']).toBe(DEMO_POLICY)
+    expect(securityHeaders('/editor')['Content-Security-Policy']).not.toBe(DEMO_POLICY)
     expect(DEMO_POLICY).toContain("script-src 'self' 'wasm-unsafe-eval';")
     expect(DEMO_POLICY).toContain("frame-ancestors 'self'")
     expect(DEMO_POLICY).not.toMatch(/'unsafe-inline'[^;]*;?\s*$|script-src[^;]*'unsafe-(inline|eval)'/)

@@ -3,9 +3,9 @@ import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('$app/environment', () => ({ browser: true }))
 
-import DemoRunner from '../src/lib/components/DemoRunner.svelte'
-import { demoStatus } from '../src/lib/utils/demo-status'
-import { isEditing } from '../src/lib/utils/keyboard'
+import DemoRunner from '../src/features/home/DemoRunner.svelte'
+import { demoStatus } from '../src/features/home/demo-status'
+import { isEditing } from '../src/shared/utils/keyboard'
 
 // The gallery's ?demo= and ?file= selection is retired with the gallery (WEB.PLAY.5): /examples is one prerendered
 // index whatever the query (tests/examples-pages.test.ts).

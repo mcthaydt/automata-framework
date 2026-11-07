@@ -44,6 +44,20 @@ describe('featureFindings', () => {
     })
   })
 
+  it('reads Svelte components when asked: a page that imports another feature fails', () => {
+    const root = pkg({
+      'features/home/Home.svelte':
+        '<script lang="ts">\nimport { guides } from \'../docs/docs-loader.ts\'\n</script>\n<p>{guides}</p>\n',
+      'features/docs/docs-loader.ts': 'export const guides = 1\n',
+    })
+    expect(featureFindings(root).files).toHaveLength(1)
+    const { findings, files } = featureFindings(root, undefined, { components: true })
+    expect(files).toHaveLength(2)
+    expect(findings).toMatchObject([
+      { file: join(root, 'src/features/home/Home.svelte'), line: 2, rule: 'feature-import' },
+    ])
+  })
+
   it('lets a feature import its own files and shared/', () => {
     const root = pkg({
       'features/saves/save-slots.ts':
