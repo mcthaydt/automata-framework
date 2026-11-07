@@ -12,6 +12,7 @@ import '@automata/3d/no-eval'
 import { box, createPixi3dRenderer, render3dExtension, sceneLightingSchema } from '@automata/3d'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
 
+// --- scene ---
 // A game with content writes this in content/lighting/<room>.toml (kind scene-lighting); here it is inline.
 // Colours are DUEL. The pillar blocks the warm lamp's light from the floor behind it.
 const lighting = sceneLightingSchema.parse({
@@ -29,6 +30,7 @@ const lighting = sceneLightingSchema.parse({
   fog: { near: 5, far: 11, color: 0x2f3f38 },
 })
 
+// --- sim ---
 // Positions in metres (y up). Scenery is entities too: each kind of block is drawn by its own static box view.
 const Floor = defineComponent('floor', { x: 'f32', y: 'f32', z: 'f32' })
 const Wall = defineComponent('wall', { x: 'f32', y: 'f32', z: 'f32' })
@@ -48,6 +50,7 @@ const pace = defineSystem('pace', (ctx) => {
 
 const room = definePlugin({ name: 'room', defs: [Floor, Wall, Pillar, Crate, Walker, LampSwitch, pace] })
 
+// --- game ---
 export default defineGame({
   id: 'render3d-lighting-fog',
   size: { width: 320, height: 180 },

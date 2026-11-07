@@ -12,6 +12,7 @@ import { box, createPixi3dRenderer, figure, render3dExtension } from '@automata/
 import type { FigureDef, MotionLibrary, Swatch } from '@automata/3d/figures'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
 
+// --- figure ---
 // Wick, his swatches and the `bounce` gait as in figures-walk (FigureBuilder 025ffb4), written as compiled.
 const duel = (ramp: Swatch['ramp'], step: number, more = {}): Swatch => ({ ramp, step, ...more })
 const cloak = { 'wick-cloak': duel('ocean', 3), 'wick-cloak-shade': duel('ocean', 1) }
@@ -42,6 +43,7 @@ const wick: FigureDef = {
 }
 const motion: MotionLibrary = { gaits: { bounce }, poses: {}, clips: {}, items: {}, stands: {}, rigs: {} }
 
+// --- sim ---
 // Wick's feet and facing, and the orb's: the orb's position is also where Wick looks.
 const place = { x: 'f32', y: 'f32', z: 'f32', yaw: 'f32' } as const
 const Hero = defineComponent('hero', { ...place, atX: 'f32', atZ: 'f32' })
@@ -77,6 +79,7 @@ const watching = (hero?: Readonly<Record<string, unknown>>) => {
   } as const
 }
 
+// --- game ---
 export default defineGame({
   id: 'figures-aim',
   size: { width: 320, height: 180 },

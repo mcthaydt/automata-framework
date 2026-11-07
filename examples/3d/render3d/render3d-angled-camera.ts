@@ -13,8 +13,10 @@ import { box, createPixi3dRenderer, render3dExtension } from '@automata/3d'
 import { CameraHeading, cameraView, enterView, START, turnCamera } from '@automata/3d/sim'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
 
+// --- scene ---
 const ROOM = cameraView('room', { tiltDeg: 30, distance: 8 })
 
+// --- sim ---
 // The player's feet, in metres on the floor (y up).
 const Body = defineComponent('body', { x: 'f32', y: 'f32', z: 'f32' })
 
@@ -46,6 +48,7 @@ const WALLS = [
 ] as const
 const PILLAR = { min: [1.8, 0, 1.8], max: [2.2, 2.2, 2.2] } as const
 
+// --- game ---
 export default defineGame({
   id: 'render3d-angled-camera',
   size: { width: 320, height: 180 },

@@ -22,6 +22,9 @@ export const CORE_MODULES: readonly string[] = [
   'render3d',
   // Procedural characters, drawn only by render3d, so private with it (M3R-D7) and core like it.
   'figures',
+  // The pixel-art look and the world builder, also `@automata/3d`'s.
+  'look',
+  'world',
 ]
 export const PLUS_MODULES: readonly string[] = ['physics', 'net', 'feel', 'post']
 

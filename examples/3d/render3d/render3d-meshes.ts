@@ -12,10 +12,12 @@ import '@automata/3d/no-eval'
 import { box, createPixi3dRenderer, mesh, render3dExtension } from '@automata/3d'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
 
+// --- scene ---
 // The same nightstand twice: The Last Light's GLB and its packed .bin (resources/models/PROVENANCE.md).
 const glb = new URL('../resources/models/nightstand.glb', import.meta.url).href
 const bin = new URL('../resources/models/nightstand.bin', import.meta.url).href
 
+// --- sim ---
 // Positions in metres on the floor (y up); yaw in radians about +y.
 const Crate = defineComponent('crate', { x: 'f32', y: 'f32', z: 'f32', yaw: 'f32' })
 const Stand = defineComponent('stand', { x: 'f32', y: 'f32', z: 'f32', yaw: 'f32' })
@@ -33,6 +35,7 @@ const turn = defineSystem('turn', (ctx) => {
 
 const room = definePlugin({ name: 'room', defs: [Crate, Stand, Packed, turn] })
 
+// --- game ---
 export default defineGame({
   id: 'render3d-meshes',
   size: { width: 320, height: 180 },

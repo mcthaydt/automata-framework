@@ -12,6 +12,7 @@ import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
 import type { FigureDef, FigureLibrary, Gait, ItemDef, Swatch } from '@automata/3d/figures'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
 
+// --- figure ---
 // Content a game compiles from content/figure-swatches/*.toml and content/figure-items/*.toml, written as compiled.
 // Swatch colours are DUEL ramps and steps. The item is FigureBuilder's hand lamp (src/features/outfit/library at 025ffb4).
 const duel = (ramp: Swatch['ramp'], step: number, more = {}): Swatch => ({ ramp, step, ...more })
@@ -72,6 +73,7 @@ const wick: FigureDef = {
   },
 }
 
+// --- sim ---
 // The figure's feet, its facing, and what it wears and holds ('' for an empty hand).
 const place = { x: 'f32', y: 'f32', z: 'f32', yaw: 'f32' } as const
 const Model = defineComponent('model', { ...place, outfit: 'string', item: 'string' })
@@ -96,6 +98,7 @@ const worn = (model?: Readonly<Record<string, unknown>>) => ({
 
 const wardrobe = definePlugin({ name: 'wardrobe', defs: [Model, dress] })
 
+// --- game ---
 export default defineGame({
   id: 'figures-outfits-items',
   size: { width: 320, height: 180 },
