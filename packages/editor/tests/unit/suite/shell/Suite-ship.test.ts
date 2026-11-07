@@ -7,6 +7,7 @@ import { createMemoryPorts, type MemoryPorts } from '#src/features/suite/memory/
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
 
 // Ship, the Review desk, Export and Import inside the suite, with the
@@ -84,6 +85,26 @@ async function edit(): Promise<void> {
 const fileText = async (ports: MemoryPorts) => (await ports.ports.workspace.read(TUNING))?.text
 
 describe('Suite: Ship, Review and the interchange', () => {
+  it('its toasts run on the clock it is given: one stays until that clock passes its time', async () => {
+    const ports = await memory()
+    // A change set still open from before the reload: the suite says its locks were cleared.
+    await ports.ports.changeSet?.begin('Faster')
+    const clock = createTestClock()
+    const target = document.body.appendChild(document.createElement('div'))
+    started = await startSuite(target, {
+      window,
+      document,
+      ports: ports.ports,
+      suite: createSuite({ editors: [fixtureEditor as SuiteEditor<unknown>] }),
+      clock,
+    })
+    const toast = await screen.findByText('Locked values were cleared when the page reloaded.')
+    clock.advance(4_999)
+    expect(toast).toBeInTheDocument()
+    clock.advance(1)
+    await waitFor(() => expect(toast).not.toBeInTheDocument())
+  })
+
   it('without a change set port there is no Ship button', async () => {
     await start(await memory({ changeSet: false }))
     expect(screen.queryByRole('button', { name: 'Publish' })).toBeNull()

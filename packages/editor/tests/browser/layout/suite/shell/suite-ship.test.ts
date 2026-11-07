@@ -12,6 +12,7 @@ import { createSuite } from '#src/features/suite/shell/create-suite.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
 import { editorTargets } from '#src/testing/kit/targets.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
 
 /** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
@@ -103,6 +104,8 @@ async function open(size: EditorSize) {
     document,
     ports: memory.ports,
     suite: createSuite({ editors: [fixtureEditor as SuiteEditor<unknown>] }),
+    // A clock nothing advances: the reload toast stays however slow the runner is (it measures the toast's place).
+    clock: createTestClock(),
   })
   await expect.poll(() => document.querySelector('[data-testid="suite-home"]')).not.toBeNull()
   await settleLayout()
