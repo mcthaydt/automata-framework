@@ -248,25 +248,6 @@ input::placeholder {
 .skip-link:focus {
   top: 1rem;
 }
-
-.ownership {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  gap: 5rem;
-  align-items: start;
-}
-.rules-list {
-  display: grid;
-  gap: 1.5rem;
-  margin: 0 0 2.5rem;
-}
-.rules-list dt {
-  font-size: var(--step-body);
-  margin-bottom: 0.35rem;
-}
-.rules-list dd {
-  color: var(--muted);
-}
 .legal-page > section {
   max-width: 68ch;
 }
@@ -322,17 +303,6 @@ nav.link-row a:hover {
   background: #fff;
   border-color: var(--line-strong);
 }
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin: 2.5rem 0;
-}
-.filters button[aria-pressed="true"] {
-  background: var(--ink);
-  color: #fff;
-  border-color: var(--ink);
-}
 .examples-layout {
   display: grid;
   grid-template-columns: minmax(12rem, 0.3fr) minmax(0, 1fr);
@@ -344,18 +314,20 @@ nav.link-row a:hover {
 
 /* Side navigation: quiet lists; the current item is lit. */
 .demo-list,
-.docs-sidebar nav > div,
+.docs-sidebar nav,
 .doc-toc nav {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
 }
 .demo-list a,
 .docs-sidebar nav a,
 .doc-toc nav a {
   position: relative;
-  display: block;
-  padding: 0.45rem 0 0.45rem 1rem;
+  /* 44 px tall, so each row is a finger's tap target too (site visual audit M1). */
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.3rem 0 0.3rem 1rem;
   font-size: var(--step-small);
   line-height: 1.35;
   text-decoration: none;
@@ -386,13 +358,11 @@ nav.link-row a:hover {
 .doc-toc nav a {
   padding-left: 0;
 }
-.docs-sidebar nav p,
 .doc-toc nav p {
   margin: 0 0 0.5rem;
   font-size: var(--step-small);
   color: var(--ink);
 }
-.docs-sidebar nav p strong,
 .doc-toc nav p strong {
   font-weight: 600;
 }
@@ -636,26 +606,72 @@ nav.link-row a:hover {
   overflow-wrap: normal;
   word-break: normal;
 }
-.api-module {
-  max-width: 72rem;
+/* The API reference: folded groups, then one quiet row per export (site visual audit H4). */
+.api-group {
+  border-top: 1px solid var(--line);
+}
+.api-group:last-of-type {
+  border-bottom: 1px solid var(--line);
+}
+.api-group > summary,
+.api-entry > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  cursor: pointer;
+  list-style: none;
+}
+.api-group > summary::-webkit-details-marker,
+.api-entry > summary::-webkit-details-marker {
+  display: none;
+}
+.api-group > summary {
+  align-items: center;
+  min-height: 56px;
+  padding-block: 0.5rem;
+}
+.api-group > summary h2 {
+  margin: 0;
+  font-size: var(--step-body);
+}
+/* A plus that turns to a minus: the fold's state, drawn without an icon font. */
+.api-group > summary::after {
+  content: "+";
+  margin-left: auto;
+  font: 500 1.25rem / 1 var(--font-mono);
+  color: var(--muted);
+}
+.api-group[open] > summary::after {
+  content: "−";
 }
 .api-entry {
-  padding: clamp(1.25rem, 2.5vw, 2rem);
-  margin-block: 1rem;
-  background: var(--paper);
-  border-radius: var(--edge-lg);
+  /* A search result lands on the export below the sticky header, not under it. */
+  scroll-margin-top: 6rem;
+  border-top: 1px solid var(--line);
+  margin-left: 0.25rem;
+}
+.api-entry > summary {
+  min-height: 44px;
+  padding-block: 0.6rem;
 }
 .api-entry h3 {
+  margin: 0;
   font-family: var(--font-mono); /* taste-skill-ignore: API names are code */
-  font-size: var(--step-body);
+  font-size: var(--step-small);
   font-weight: 600;
   letter-spacing: 0;
 }
-.api-entry pre {
-  margin-block: 1rem;
+.api-summary {
+  flex-basis: 100%;
+  font-size: var(--step-small);
+  color: var(--muted);
 }
-.ai-page section {
-  max-width: 65rem;
+.api-entry[open] .api-summary {
+  display: none;
+}
+.api-entry pre {
+  margin-block: 0.75rem 1.25rem;
 }
 
 /* Docs */
@@ -673,17 +689,9 @@ nav.link-row a:hover {
   overflow: auto;
   padding-bottom: 1rem;
 }
-.docs-sidebar > label {
-  margin-top: 0;
-}
-.docs-sidebar nav {
-  margin-top: 2rem;
-}
+
 .mobile-doc-links {
   display: none;
-}
-.docs-sidebar nav > div {
-  margin-bottom: 1.75rem;
 }
 .doc-content {
   min-width: 0;
@@ -823,12 +831,8 @@ thead th {
     position: static;
     max-height: none;
   }
-  .ownership {
-    gap: 2rem;
-  }
 }
 @media (max-width: 700px) {
-  .ownership,
   .examples-layout,
   .docs-layout {
     grid-template-columns: minmax(0, 1fr);
@@ -978,29 +982,7 @@ thead th {
 .code-scroll span[style*="#D73A49" i] {
   color: #b31d28 !important;
 }
-.onboarding-depth {
-  margin-top: 3rem;
-  padding: 1.25rem 1.5rem;
-  border-radius: var(--edge-lg);
-  background: var(--paper);
-}
-.onboarding-depth > summary {
-  min-height: 48px;
-  padding-block: 0.5rem;
-  font-size: var(--step-lead);
-  font-weight: 500;
-}
-.onboarding-depth[open] > summary {
-  margin-bottom: 1.5rem;
-}
-.onboarding-depth .agent-setup {
-  margin-top: 0;
-  padding: 0;
-  background: transparent;
-}
-.onboarding-depth .code-block,
-.agent-setup .code-block,
-.task-prompt .code-block {
+.agent-setup .code-block {
   background: var(--bg);
   border-color: transparent;
 }
@@ -1067,40 +1049,10 @@ thead th {
   padding: 0;
   accent-color: var(--ink);
 }
-.community-games {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3rem;
-}
-.community-games img {
-  width: 100%;
-  height: auto;
-  border-radius: var(--edge-lg);
-}
-.showcase-submit {
-  display: flex;
-  align-items: center;
-  gap: 3rem;
-  justify-content: space-between;
-  padding: 2rem;
-  border-radius: var(--edge-lg);
-  background: var(--paper);
-  margin-top: 2rem;
-}
-.showcase-submit p {
-  margin-bottom: 0;
-}
 @media (max-width: 700px) {
-  .agent-install-layout,
-  .community-games {
+  .agent-install-layout {
     grid-template-columns: minmax(0, 1fr);
     gap: 2rem;
-  }
-  .showcase-submit {
-    flex-direction: column;
-    align-items: start;
-    padding: 1.25rem;
-    gap: 1.5rem;
   }
 }
 /* A reference signature wraps instead of scrolling, so it needs no focus stop (hundreds sit on one package page). */

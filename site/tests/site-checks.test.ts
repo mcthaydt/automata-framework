@@ -268,12 +268,12 @@ describe('checkSite', () => {
     const preloads =
       '<link rel="modulepreload" href="../_app/immutable/entry/start.js" /><link rel="modulepreload" href="../_app/immutable/nodes/5.js" />'
     site.write(
-      'docs/faq.html',
-      page('/docs/faq', { head: ICON_LINKS.replaceAll('href="./', 'href="../') + preloads }),
+      'docs/editor.html',
+      page('/docs/editor', { head: ICON_LINKS.replaceAll('href="./', 'href="../') + preloads }),
     )
-    site.write('sitemap.xml', sitemap(['/', '/docs', '/docs/faq', '/privacy', '/terms']))
+    site.write('sitemap.xml', sitemap(['/', '/docs', '/docs/editor', '/privacy', '/terms']))
     expect(checkSite(site.root, { now: NOW })).toEqual([
-      expect.stringMatching(/^docs\/faq\.html: modulepreloads \d+ bytes of JavaScript, over the/),
+      expect.stringMatching(/^docs\/editor\.html: modulepreloads \d+ bytes of JavaScript, over the/),
     ])
   })
 
@@ -521,10 +521,10 @@ describe('checkSite: standalone and target-neutral', () => {
   })
 
   it('wants the four targets where the site says where a game goes', () => {
-    expect(TARGETS_SENTENCE_PAGES).toEqual(['index.html', 'docs/capabilities.html', 'llms.txt'])
+    expect(TARGETS_SENTENCE_PAGES).toEqual(['index.html', 'docs/how-it-works.html', 'llms.txt'])
     const site = goodSite()
     site.write('index.html', page('/', { body: `<p><a href="/docs">Docs</a></p><p>${TARGETS}</p>` }))
-    site.write('docs/capabilities.html', page('/docs/capabilities', { body: `<p>${TARGETS}</p>` }))
+    site.write('docs/how-it-works.html', page('/docs/how-it-works', { body: `<p>${TARGETS}</p>` }))
     site.write('llms.txt', `# Automata\n\n${TARGETS}\n`)
     expect(checkTargets(site.root)).toEqual([])
     site.write(

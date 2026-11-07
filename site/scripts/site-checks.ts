@@ -46,7 +46,7 @@ export const FRAMING_PHRASES: { label: string; pattern: RegExp }[] = [
 ]
 
 /** Where the site says where a game goes: each names all four targets (ADR 0006). */
-export const TARGETS_SENTENCE_PAGES = ['index.html', 'docs/capabilities.html', 'llms.txt']
+export const TARGETS_SENTENCE_PAGES = ['index.html', 'docs/how-it-works.html', 'llms.txt']
 const TARGETS: { label: string; pattern: RegExp }[] = [
   { label: 'the web', pattern: /\bweb\b/i },
   { label: 'itch.io', pattern: /\bitch\.io\b/i },
@@ -261,7 +261,7 @@ function checkImageFormats(root: string): string[] {
   return failures
 }
 
-/** The URL a built page is served at: `index.html` is `/`, `docs/faq.html` is `/docs/faq`. */
+/** The URL a built page is served at: `index.html` is `/`, `docs/editor.html` is `/docs/editor`. */
 export function pageUrl(file: string): URL {
   const path =
     file === 'index.html'

@@ -1,11 +1,11 @@
 import { error } from '@sveltejs/kit'
-import { getDocBySlug, getDocSections } from '../../../features/docs/docs-loader'
+import { getDocBySlug, getDocs } from '../../../features/docs/docs-loader'
 import type { EntryGenerator, PageLoad } from './$types'
 
 export const prerender = true
 
 export const entries: EntryGenerator = () => {
-  return getDocSections().map((section) => ({
+  return getDocs().map((section) => ({
     slug: section.slug,
   }))
 }

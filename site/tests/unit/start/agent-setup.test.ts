@@ -1,26 +1,9 @@
-import { fireEvent, render, within } from '@testing-library/svelte'
+import { fireEvent, render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
-import { getDocSections } from '../src/features/docs/docs-loader'
-import Start from '../src/routes/start/+page.svelte'
+import Start from '../../../src/features/start/Start.svelte'
 
-describe('Audience onboarding', () => {
-  it('offers all five engine backgrounds in canonical documentation', () => {
-    const docs = getDocSections()
-    for (const slug of [
-      'from-unity',
-      'from-godot',
-      'from-unreal',
-      'from-gamemaker',
-      'from-web',
-      'agent-setup',
-      'audience',
-      'faq',
-    ])
-      expect(
-        docs.find((doc) => doc.slug === slug),
-        slug,
-      ).toBeTruthy()
-  })
+// "Using a coding agent" on Start: the agent setup the old AI and docs pages held.
+describe('Start: using a coding agent', () => {
   it('keeps every command copyable while offering an optional readiness checklist', async () => {
     const view = render(Start)
     const copies = () => view.getAllByRole('button', { name: 'Copy command' })

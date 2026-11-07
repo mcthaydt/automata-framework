@@ -1,15 +1,11 @@
+import { resolve } from 'node:path'
 import { fireEvent, render, waitFor } from '@testing-library/svelte'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
-import { getDocSections } from '../src/features/docs/docs-loader'
 import Examples from '../src/features/examples/ExamplesIndex.svelte'
 import CommandMenu from '../src/features/search/CommandMenu.svelte'
 import Home from '../src/routes/+page.svelte'
 import Header from '../src/shared/components/Header.svelte'
 import TerminalBox from '../src/shared/components/TerminalBox.svelte'
-
-const docs = getDocSections()
-
-import { resolve } from 'node:path'
 import { findHardCodedHashes, siteSourceFiles } from './helpers/hard-coded-hashes'
 
 beforeAll(() => {
@@ -43,11 +39,11 @@ describe('Audit regressions', () => {
   })
 
   it('provides labelled search across documentation and API entries', async () => {
-    const guides = [{ title: 'Quick Start', detail: 'Make a game', url: '/docs/quick-start' }]
+    const guides = [{ title: 'How it works', detail: 'The rules run in ticks', url: '/docs/how-it-works' }]
     const view = render(CommandMenu, { props: { isOpen: true, guides } })
     const input = view.getByRole('searchbox', { name: /search/i })
-    await fireEvent.input(input, { target: { value: 'quick start' } })
-    expect(view.getByRole('link', { name: /Quick Start/i }).getAttribute('href')).toBe('/docs/quick-start')
+    await fireEvent.input(input, { target: { value: 'how it works' } })
+    expect(view.getByRole('link', { name: /How it works/i }).getAttribute('href')).toBe('/docs/how-it-works')
     await fireEvent.keyDown(input, { key: 'ArrowDown' })
     expect(document.activeElement?.tagName).toBe('A')
   })
@@ -86,24 +82,6 @@ describe('Restored claims (DX.10a)', () => {
     expect(view.container.textContent).not.toMatch(/complete determinism|100% match|run identically/i)
   })
 
-  it('states the 780×270 input journeys the framework runs, and keeps them apart from real-device acceptance', () => {
-    const doc = docs.find((entry) => entry.slug === 'mobile-ui')!.content
-    expect(doc).toContain('## Tested input journeys')
-    expect(doc).toContain(
-      'At 780×270, the framework’s input matrix plays a touch journey and a gamepad journey in Chromium under a fake host.',
-    )
-    expect(doc).toContain(
-      'Keyboard journeys run at the tablet and desktop sizes, in Chromium, WebKit and Firefox at desktop size.',
-    )
-    expect(doc).toContain(
-      'These are browser tests with simulated input and DOM geometry. Acceptance on real phones and controllers is separate and still open.',
-    )
-    expect(doc).toContain(
-      'https://github.com/mcthaydt/automata-framework/blob/main/packages/tools/src/e2e/input-matrix.ts',
-    )
-    expect(doc).not.toMatch(/verified at 780|full parity|input parity/i)
-  })
-
   it('describes the playground’s live updates, diagnostics and restart, bounded to the playground', () => {
     const view = render(Examples, { props: { data: { index: [] } } })
     const section = view.getByRole('region', { name: 'How an example runs' })
@@ -120,14 +98,5 @@ describe('Restored claims (DX.10a)', () => {
       'This is how the playground on this site works, not a description of a game’s own hot reload or restart.',
     )
     expect(section.textContent).not.toMatch(/instant|in-place|without losing state/i)
-  })
-
-  it('says what each plain-text file holds and that none of them is the framework source', () => {
-    const rules = docs.find((doc) => doc.slug === 'ai-rules')!.content
-    expect(rules).toContain(
-      "llms-full.txt, the framework's defined documentation corpus followed by its complete API reference, and llms-api.txt, that reference alone, both generated from the package declarations by the framework's API index",
-    )
-    expect(rules).toContain('None of them is the framework source.')
-    expect(rules).not.toMatch(/complete plain-text documentation|exhaustive/i)
   })
 })

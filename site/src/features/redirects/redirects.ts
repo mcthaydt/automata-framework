@@ -6,6 +6,11 @@
 // `scripts/write-redirects.ts` writes one per address after the build; `noindex` keeps them out of search results,
 // and the sitemap and the page checks skip them (`scripts/site-checks.ts`, `builtPages`).
 
+/** `/docs/<slug>` → `to`, for each slug. */
+function docsMovedTo(to: string, slugs: readonly string[]): Record<string, string> {
+  return Object.fromEntries(slugs.map((slug) => ['/docs/' + slug, to]))
+}
+
 /** Old address → the page that took its place. */
 export const REDIRECTS: Readonly<Record<string, string>> = {
   '/ai': '/docs/how-it-works',
@@ -17,6 +22,29 @@ export const REDIRECTS: Readonly<Record<string, string>> = {
   '/proof': '/',
   '/releases': '/',
   '/sources': '/',
+  // The site's own docs pages, folded into How it works or the page that now says the same (task 18.4).
+  ...docsMovedTo('/docs/how-it-works', [
+    'overview',
+    'sim-ecs',
+    'render-pixi',
+    'effect-runtime',
+    'security-csp',
+    'mobile-ui',
+    'service-model',
+    'saves',
+  ]),
+  ...docsMovedTo('/start', [
+    'quick-start',
+    'ai-rules',
+    'agent-setup',
+    'from-unity',
+    'from-godot',
+    'from-unreal',
+    'from-gamemaker',
+    'from-web',
+  ]),
+  ...docsMovedTo('/terms', ['capabilities']),
+  ...docsMovedTo('/', ['audience', 'faq', 'plus']),
 }
 
 /** The file a static host serves for an old address: `/ai` is `ai.html`, as SvelteKit writes its own pages. */

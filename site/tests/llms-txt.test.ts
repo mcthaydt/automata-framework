@@ -13,14 +13,16 @@ describe('LLMs.txt & Docs Pipeline', () => {
     expect(content).toContain('# Automata Framework')
     expect(content).toContain('> Automata is a deterministic')
     expect(content).toContain('## Documentation')
-    expect(content).toContain('- [Overview & Vision](/docs/overview)')
-    expect(content).toContain('- [AI Coding Agent Rules](/docs/ai-rules)')
+    expect(content).toContain('- [How it works](/docs/how-it-works)')
+    expect(content).toContain('- [Draw levels in the editor](/docs/editor)')
   })
 
-  it('generates llms-guides.txt with 5 Golden Rules and full markdown', async () => {
+  it('generates llms-guides.txt with every guide in full, How it works first', async () => {
     const content = await llmsGuides().text()
-    expect(content).toContain('The 5 Golden Rules for LLMs')
-    expect(content).toContain('Sub-tick alpha interpolation')
-    expect(content).toContain('Zero Eval')
+    expect(content.indexOf('## Document: How it works')).toBeLessThan(
+      content.indexOf('## Document: Publish to the web'),
+    )
+    expect(content).toContain('## The same game every time')
+    expect(content).not.toMatch(/Effect outside|Golden Rules/)
   })
 })
