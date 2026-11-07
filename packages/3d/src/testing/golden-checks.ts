@@ -1,19 +1,17 @@
-// The FigureBuilder golden checks (tests/fixtures/__goldens__/figurebuilder-dress.json), shared by build.test.ts, which runs
+// The geometry golden checks (tests/fixtures/goldens/dress.json, recorded by scripts/record-goldens.ts), shared by build.test.ts, which runs
 // them in Node, and build/golden.parity.test.ts, which runs the same checks in Chromium, WebKit and Firefox. The
 // goldens are a JSON import, not a file read, so this module loads in a browser page too.
 
 import { expect } from 'vitest'
-import goldens from '../../tests/fixtures/__goldens__/figurebuilder-dress.json' with { type: 'json' }
+import goldens from '../../tests/fixtures/goldens/dress.json' with { type: 'json' }
 import { JOINTS } from '../features/figures/body/rig.ts'
 import type { Built, FigureLibrary } from '../features/figures/figure/build.ts'
 import { build } from '../features/figures/figure/build.ts'
-import type { FigureDef } from '../features/figures/figure/figure.schema.ts'
 import { skeleton } from '../features/figures/figure/figure-skeleton.ts'
-import type { Garment } from '../features/figures/figure/garment.schema.ts'
 import { type Fingerprint, fingerprint, type Moments } from './fingerprint.ts'
-import type { GoldenOutfit } from './golden-outfits.ts'
+import { figureOf, type GoldenOutfit } from './golden-outfits.ts'
 
-type GoldenPart = Fingerprint & { readonly cut?: string }
+type GoldenPart = Fingerprint
 interface Golden {
   readonly clearance: number[]
   readonly anchors: {
@@ -32,15 +30,6 @@ function close(actual: number, expected: number, what: string): void {
   expect(Math.abs(actual - expected), `${what}: ${actual} vs ${expected}`).toBeLessThanOrEqual(
     1e-9 * Math.max(1, Math.abs(expected)),
   )
-}
-
-/** A one-outfit figure (its outfit named `golden`) with the given body, skin and garments. */
-export function figureOf(
-  sliders: FigureDef['sliders'],
-  skin: string,
-  garments: readonly Garment[],
-): FigureDef {
-  return { sliders, skin, gait: 'bounce', hand: 'R', outfits: { golden: garments }, default: 'golden' }
 }
 
 /** Every part is bound to real joints, and every number in it is finite. */
@@ -83,19 +72,16 @@ export function expectSound(built: Built): void {
   expect(built.clearance.every((c) => c >= 0 && c <= 0.6)).toBe(true)
 }
 
-/** The outfit built here matches FigureBuilder's dress() part for part: parts, bones, skins, anchors, clearance. */
+/** The outfit built here matches its recorded golden part for part: parts, bones, skins, anchors, clearance. */
 export function expectMatchesGolden(outfit: GoldenOutfit, library: FigureLibrary): void {
   const def = figureOf(outfit.sliders, outfit.skin, outfit.garments)
   const built = build(def, skeleton(def), 'golden', null, library)
   const golden = GOLDENS[outfit.name]
   if (!golden) throw new Error(`no golden for ${outfit.name}`)
-  // Cut here (decisions 4 and 9): the chain's nameplate. Added here: the pony's cuffs, which the source
-  // builds only past 1.5 × its ppm.
-  const want = golden.parts.filter((p) => p.cut === undefined)
-  const got = built.parts.filter((p) => p.tag !== 'cuff')
-  expect(got.map((p) => p.material)).toHaveLength(want.length)
+  const want = golden.parts
+  expect(built.parts).toHaveLength(want.length)
   for (const [n, expected] of want.entries()) {
-    const part = got[n]
+    const part = built.parts[n]
     if (!part) throw new Error(`no part ${n}`)
     const actual = fingerprint(part)
     const what = `${outfit.name} part ${n} (${part.material})`
@@ -117,8 +103,7 @@ export function expectMatchesGolden(outfit: GoldenOutfit, library: FigureLibrary
     close(actual.w, expected.w, `${what} skin`)
     close(actual.wOrdered, expected.wOrdered, `${what} skin order`)
   }
-  // Cut with the nameplate (decision 9): the chain's `pendant` anchor.
-  const anchors = golden.anchors.filter((a) => a.kind !== 'pendant')
+  const anchors = golden.anchors
   expect(built.anchors.map((a) => [a.kind, a.side ?? null, a.bone])).toEqual(
     anchors.map((a) => [a.kind, a.side, a.bone]),
   )

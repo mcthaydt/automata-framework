@@ -1,8 +1,5 @@
-// The motion states the goldens (tests/fixtures/__goldens__/figurebuilder-motion.json) were taken in, by label, and
-// the walk, idle and turn the hold-invariance test runs (The Last Light tests/procedural-figure.test.ts
-// `states` at 92e6704, without its actions). FigureBuilder (mcthaydt/FigureBuilder) at a1f7246 ran `base()`
-// and `evaluate()` in each with `view: 0` and no `lookUp` or `pitch` (M3.5c plan, decisions 5 and 9;
-// scripts/figurebuilder-motion-goldens.ts, which loads this file with Node's type stripping).
+// The motion states the goldens (tests/fixtures/goldens/motion.json) are taken in, by label, and the walk, idle
+// and turn the hold-invariance test runs. scripts/record-goldens.ts plays `base()` and `evaluate()` in each.
 
 import type { MotionState } from '../features/figures/motion/motion-state.ts'
 

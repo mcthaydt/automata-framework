@@ -5,13 +5,8 @@ import { build, type FigureLibrary } from '#src/features/figures/figure/build.ts
 import type { FigureDef } from '#src/features/figures/figure/figure.schema.ts'
 import { skeleton } from '#src/features/figures/figure/figure-skeleton.ts'
 import { type FixtureFigures, fixtureFigures } from '#src/testing/fixture-library.ts'
-import {
-  expectMatchesGolden,
-  expectPlatformStable,
-  expectSound,
-  figureOf,
-} from '#src/testing/golden-checks.ts'
-import { GOLDEN_OUTFITS } from '#src/testing/golden-outfits.ts'
+import { expectMatchesGolden, expectPlatformStable, expectSound } from '#src/testing/golden-checks.ts'
+import { figureOf, GOLDEN_OUTFITS } from '#src/testing/golden-outfits.ts'
 
 function deepFreeze<T>(value: T): T {
   if (value && typeof value === 'object' && !Object.isFrozen(value)) {
@@ -28,7 +23,7 @@ beforeAll(async () => {
   library = fixture.library
 })
 
-describe('build() matches FigureBuilder dress() part for part (goldens, a1f7246)', () => {
+describe('build() matches its recorded goldens part for part', () => {
   for (const outfit of GOLDEN_OUTFITS) {
     it(`${outfit.name}: the same parts, bones, skins, anchors and clearance`, () => {
       expectMatchesGolden(outfit, library)

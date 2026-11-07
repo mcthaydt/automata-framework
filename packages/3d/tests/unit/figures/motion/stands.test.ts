@@ -1,10 +1,8 @@
 // Stands: hands placed on the dressed figure's openings, with fallbacks. Ported from FigureBuilder
 // (mcthaydt/FigureBuilder) tests/form.test.ts "pocket holds" at a1f7246 onto AF's fixture figures, the golden
-// outfits and seeded random characters, and checked against FigureBuilder's `standHolds` and `evaluate`.
+// outfits and seeded random characters, and checked against the recorded `standHolds` and `evaluate`.
 
 import { beforeAll, describe, expect, it } from 'vitest'
-import { GROUP } from '#src/features/figures/body/mesh.ts'
-import { reach } from '#src/features/figures/body/reach.ts'
 import { at, fk, J, type Skeleton } from '#src/features/figures/body/rig.ts'
 import type { Stand } from '#src/features/figures/content/stand.schema.ts'
 import type { AnchorKind } from '#src/features/figures/figure/anchors.ts'
@@ -25,10 +23,11 @@ import {
 } from '#src/features/figures/motion/stands.ts'
 import { apply, invertRigid, normalize, position, sub, type V3 } from '#src/shared/math/math.ts'
 import { type FixtureFigures, fixtureFigures } from '#src/testing/fixture-library.ts'
-import { GOLDEN_OUTFITS } from '#src/testing/golden-outfits.ts'
+import { figureOf, GOLDEN_OUTFITS } from '#src/testing/golden-outfits.ts'
 import { expectClose, expectDigest, MOTION_GOLDENS } from '#src/testing/motion-goldens.ts'
 import { AT_REST } from '#src/testing/motion-states.ts'
 import { randomCharacter } from '#src/testing/random-character.ts'
+import { surfaceOf } from '#src/testing/stand-surface.ts'
 
 let fixture: FixtureFigures
 beforeAll(async () => {
@@ -38,31 +37,6 @@ const standNamed = (id: string): Stand => {
   const stand = fixture.stands[id]
   if (!stand) throw new Error(`no stand ${id}`)
   return stand
-}
-const figureOf = (sliders: FigureDef['sliders'], skin: string, garments: readonly Garment[]): FigureDef => ({
-  sliders,
-  skin,
-  gait: 'bounce',
-  hand: 'R',
-  outfits: { golden: garments },
-  default: 'golden',
-})
-/** The dressed figure's outermost surface, as a hand finds the cloth it rests on (FigureBuilder form.test.ts).
- * `reach` is a pure function of the cloth, the rest pose and the ray, and the tests here cast the same rays
- * again and again (each hold re-casts the body's openings; most stands share their hands' rays), so each
- * figure's casts are remembered by the ray's exact coordinates: every cast still returns `reach`'s own value. */
-const surfaceOf = (s: Skeleton, built: Built): Surface => {
-  const skip: number[] = [GROUP.head, GROUP.armL, GROUP.armR, GROUP.item]
-  const cloth = built.parts.filter((p) => !skip.includes(p.group))
-  const cast = new Map<string, number>()
-  return (origin, dir) => {
-    const ray = `${origin.join()} ${dir.join()}`
-    const known = cast.get(ray)
-    if (known !== undefined) return known
-    const far = reach(cloth, s.rest, origin, dir)
-    cast.set(ray, far)
-    return far
-  }
 }
 interface Dressed {
   readonly name: string
@@ -100,11 +74,7 @@ const dressed = (): Dressed[] => [
     return dress(`random ${2000 + i}`, def, def.default)
   }),
 ]
-/** The golden outfits that wore FigureBuilder's chain, whose nameplate set crossed arms' height (its `pendant`
- * anchor, cut with the plate, M3.5b decision 9). */
-const PENDANT = ['model-moto', 'tall-bomber']
-
-describe("stands match FigureBuilder's (goldens, a1f7246)", () => {
+describe('stands match their recorded goldens', () => {
   it("every stand on Wick's and the keeper's bodies, on the body's own openings", () => {
     const bounce = fixture.gaits.bounce
     if (!bounce) throw new Error('no bounce')
@@ -134,8 +104,6 @@ describe("stands match FigureBuilder's (goldens, a1f7246)", () => {
         const key = `${o.name} ${id}`
         const golden = MOTION_GOLDENS.stands[key]
         if (!golden) throw new Error(`no golden for ${key}`)
-        // Crossed arms under a nameplate the port does not make: they keep to the chest's height instead.
-        if (id === 'arms-crossed' && PENDANT.includes(o.name)) continue
         const stand = standNamed(id)
         const holds = placed[id] ?? []
         expect(
@@ -156,7 +124,7 @@ describe("stands match FigureBuilder's (goldens, a1f7246)", () => {
         compared++
       }
     }
-    expect(compared).toBe(GOLDEN_OUTFITS.length * 7 - PENDANT.length)
+    expect(compared).toBe(GOLDEN_OUTFITS.length * 7)
   }, 120_000)
 })
 

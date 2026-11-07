@@ -1,5 +1,5 @@
-// FigureBuilder's (mcthaydt/FigureBuilder) motion at a1f7246, fingerprinted (tests/fixtures/__goldens__/
-// figurebuilder-motion.json, written by scripts/figurebuilder-motion-goldens.ts): per joint, its world position
+// The figures' motion, fingerprinted (tests/fixtures/goldens/motion.json, recorded by scripts/record-goldens.ts):
+// per joint, its world position
 // and its rotation as a quaternion (testing/motion-fingerprint.ts), for `base()` and `evaluate()` on Wick's and
 // the keeper's bodies in every fixture gait, every stand and every item's hold; `standHolds` on every golden
 // outfit; and the hair spring's steps (`Figure.swingHair`). Twelve significant digits.
@@ -43,10 +43,7 @@ export interface MotionGoldens {
 }
 
 export const MOTION_GOLDENS: MotionGoldens = JSON.parse(
-  readFileSync(
-    join(import.meta.dirname, '../../tests/fixtures/__goldens__/figurebuilder-motion.json'),
-    'utf8',
-  ),
+  readFileSync(join(import.meta.dirname, '../../tests/fixtures/goldens/motion.json'), 'utf8'),
 ) as MotionGoldens
 
 /** Equal to 1e-9, relative past 1 (the goldens keep 12 significant digits). */

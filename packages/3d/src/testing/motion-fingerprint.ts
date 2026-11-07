@@ -1,6 +1,5 @@
-// A world pose's fingerprint, for the FigureBuilder motion goldens (tests/fixtures/__goldens__/figurebuilder-motion.json).
-// The same function runs in the motion tests on AF's world matrices and in scripts/figurebuilder-motion-goldens.ts
-// on FigureBuilder's, so it imports nothing (the script loads it with Node's type stripping).
+// A world pose's fingerprint, for the motion goldens (tests/fixtures/goldens/motion.json). The same function runs
+// in the motion tests and in scripts/record-goldens.ts, so it imports nothing.
 //
 // Each joint keeps its whole transform: its position and its rotation as a unit quaternion (w ≥ 0), seven numbers
 // for twelve that carry six degrees of freedom, so no change to a joint passes unseen.

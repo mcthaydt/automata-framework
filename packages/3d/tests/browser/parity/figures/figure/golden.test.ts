@@ -1,6 +1,6 @@
-// The FigureBuilder goldens in Chromium, WebKit and Firefox (the `browsers` project). build.test.ts runs the same
-// checks in Node, so between them the goldens hold in four engines: the geometry must match FigureBuilder to the
-// same 1e-9 everywhere, and a last-bit change must move nothing past it (decision 16). A mismatch in one engine is
+// The geometry goldens in Chromium, WebKit and Firefox (the `browser` project). build.test.ts runs the same
+// checks in Node, so between them the goldens hold in four engines: the geometry must match the recording to the
+// same 1e-9 everywhere, and a last-bit change must move nothing past it. A mismatch in one engine is
 // investigated, never re-recorded per engine.
 //
 // The fixture library is compiled by the content compiler, which reads files, so the `figureFixture` command
@@ -17,11 +17,11 @@ beforeAll(async () => {
   const figureFixture = (commands as unknown as { figureFixture?: () => Promise<FigureLibrary> })
     .figureFixture
   if (typeof figureFixture !== 'function')
-    throw new Error('no figureFixture command: run this file in the browsers project')
+    throw new Error('no figureFixture command: run this file in the browser project')
   library = await figureFixture()
 })
 
-describe('build() matches FigureBuilder dress() part for part in every browser (goldens, a1f7246)', () => {
+describe('build() matches its recorded goldens part for part in every browser', () => {
   for (const outfit of GOLDEN_OUTFITS)
     it(`${outfit.name}: the same parts, bones, skins, anchors and clearance`, () => {
       expectMatchesGolden(outfit, library)

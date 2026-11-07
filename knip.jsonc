@@ -69,15 +69,10 @@
     },
     // `suite.html` starts the full suite page (`vite build --mode suite`), which knip does not read from the HTML.
     "packages/editor-3d": { "entry": ["src/suite-main.ts"] },
-    // The goldens' generators are run by hand with node (their headers say how); pixi3d-bundle.test.ts builds the
-    // fixture page scripts in `src/testing/bundle/` with Vite by path, and nothing imports them.
+    // pixi3d-bundle.test.ts builds the fixture page scripts in `src/testing/bundle/` with Vite by path, and nothing
+    // imports them. (The goldens' recorder is the package's `goldens` script, which knip reads.)
     "packages/3d": {
-      "entry": [
-        "scripts/figurebuilder-goldens.ts",
-        "scripts/figurebuilder-motion-goldens.ts",
-        "scripts/figurebuilder-action-goldens.ts",
-        "src/testing/bundle/*-entry.ts"
-      ]
+      "entry": ["src/testing/bundle/*-entry.ts"]
     },
     // Runtime dependencies of the Ruken code that tsdown bundles (@ruken/cli, @ruken/manifest, @ruken/sdk-host).
     // yauzl and yazl are Ruken's, needed at runtime by the code tsdown bundles; smol-toml the tools import themselves.

@@ -1,11 +1,9 @@
-// The outfits the geometry goldens (tests/fixtures/__goldens__/figurebuilder-dress.json) were taken on: between them every
-// classic and streetwear garment, both kinds of headwear and every kind of hair piece, on four bodies.
-// FigureBuilder (mcthaydt/FigureBuilder) at a1f7246 dressed each one on Node 24 with `dress(measure, skeleton,
-// skin, garments, swatches, PPM)` (scripts/figurebuilder-goldens.ts, which says how to run it); build.test.ts
-// dresses them here and compares part by part. Ids are AF's kebab-case; the script turns them back into
-// FigureBuilder's names.
+// The outfits the geometry goldens (tests/fixtures/goldens/dress.json) are taken on: between them every classic
+// and streetwear garment, both kinds of headwear and every kind of hair piece, on four bodies.
+// scripts/record-goldens.ts dresses each one; build.test.ts dresses them again and compares part by part.
 
 import type { Sliders } from '../features/figures/body/genes.ts'
+import type { FigureDef } from '../features/figures/figure/figure.schema.ts'
 import type { Garment } from '../features/figures/figure/garment.schema.ts'
 import { KEEPER_SLIDERS, WICK_SLIDERS } from './fixture-sliders.ts'
 
@@ -14,6 +12,15 @@ export interface GoldenOutfit {
   readonly sliders: Partial<Sliders>
   readonly skin: string
   readonly garments: readonly Garment[]
+}
+
+/** A one-outfit figure (its outfit named `golden`) with the given body, skin and garments. */
+export function figureOf(
+  sliders: FigureDef['sliders'],
+  skin: string,
+  garments: readonly Garment[],
+): FigureDef {
+  return { sliders, skin, gait: 'bounce', hand: 'R', outfits: { golden: garments }, default: 'golden' }
 }
 
 const KEEPER: Partial<Sliders> = {
