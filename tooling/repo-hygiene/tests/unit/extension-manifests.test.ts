@@ -40,8 +40,8 @@ describe('extensionManifestProblems', () => {
     ])
   })
 
-  it('refuses an old scope', () => {
-    expect(extensionManifestProblems(fixture({ name: '@mcthaydt/automata-x' }))[0]).toMatch(/@automata\/x/)
+  it('refuses a name outside the @automata scope', () => {
+    expect(extensionManifestProblems(fixture({ name: '@other-scope/x' }))[0]).toMatch(/@automata\/x/)
   })
 
   it('refuses a licence other than MIT and a missing #src map', () => {

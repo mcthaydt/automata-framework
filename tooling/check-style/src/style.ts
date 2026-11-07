@@ -94,8 +94,65 @@ function factoryOf(node: Node | null): string | undefined {
   return Object.hasOwn(DEFINE_ROLE, callee.name) ? callee.name : undefined
 }
 
+/** Every node under `node`, not entering a nested function (its returns are its own). */
+function returnedValues(node: Node | null, out: (Node | null)[]): void {
+  if (!node || typeof node !== 'object') return
+  if (node.type === 'ReturnStatement') {
+    out.push((node.argument as Node | null) ?? null)
+    return
+  }
+  for (const [key, child] of Object.entries(node)) {
+    if (key === 'parent' || child === null || typeof child !== 'object') continue
+    for (const item of Array.isArray(child) ? child : [child]) {
+      const sub = item as Node
+      if (typeof sub.type !== 'string') continue
+      if (
+        sub.type === 'FunctionDeclaration' ||
+        sub.type === 'FunctionExpression' ||
+        sub.type === 'ArrowFunctionExpression'
+      )
+        continue
+      returnedValues(sub, out)
+    }
+  }
+}
+
+/** The define* factory a returned value holds: the call itself, or an object literal with one as a member. */
+function factoryHeldBy(value: Node | null): string | undefined {
+  const direct = factoryOf(value)
+  if (direct !== undefined) return direct
+  const object = unwrap(value)
+  if (object?.type !== 'ObjectExpression') return undefined
+  for (const member of object.properties as Node[]) {
+    const held = member.type === 'Property' ? factoryOf(member.value as Node) : undefined
+    if (held !== undefined) return held
+  }
+  return undefined
+}
+
+/**
+ * The define* factory a function builds: every value it returns is that factory's call, or an object with that call
+ * as a member (`createCutscenes(options)` returning `{ plugin: definePlugin(...) }`). A function that sometimes returns
+ * anything else is not one.
+ */
+function factoryBuiltBy(fn: Node | null): string | undefined {
+  if (
+    fn?.type !== 'FunctionDeclaration' &&
+    fn?.type !== 'FunctionExpression' &&
+    fn?.type !== 'ArrowFunctionExpression'
+  )
+    return undefined
+  const body = fn.body as Node
+  const values: (Node | null)[] = []
+  if (body.type === 'BlockStatement') returnedValues(body, values)
+  else values.push(body)
+  const factories = values.map(factoryHeldBy)
+  const first = factories[0]
+  return first !== undefined && factories.every((f) => f === first) ? first : undefined
+}
+
 /** Factory names of every `export const X = defineY(...)` / `export default defineY(...)` / `const X = defineY(...); export { X }` in the file. */
-function exportedFactories(program: Node): string[] {
+function exportedFactories(program: Node, functions: boolean): string[] {
   const out: string[] = []
   const constMap = new Map<string, string>() // name -> factory
 
@@ -116,12 +173,19 @@ function exportedFactories(program: Node): string[] {
   for (const stmt of program.body as Node[]) {
     if (stmt.type === 'ExportNamedDeclaration') {
       const decl = stmt.declaration as Node | null
-      // export const X = defineY(...)
+      // export const X = defineY(...), or export const makeX = (...) => defineY(...)
       if (decl?.type === 'VariableDeclaration') {
         for (const d of decl.declarations as Node[]) {
-          const f = factoryOf(d.init as unknown as Node)
+          const f =
+            factoryOf(d.init as unknown as Node) ??
+            (functions ? factoryBuiltBy(d.init as Node | null) : undefined)
           if (f) out.push(f)
         }
+      }
+      // export function makeX(...) { return defineY(...) }
+      if (functions && decl?.type === 'FunctionDeclaration') {
+        const f = factoryBuiltBy(decl)
+        if (f) out.push(f)
       }
       // export { X, Y } - resolve via constMap
       const specifiers = stmt.specifiers as Node[] | undefined
@@ -222,7 +286,7 @@ function namingFindings(file: string, code: string, options: CheckOptions): Styl
 
   const parsed = parseSync(file, code)
   if (parsed.errors.length > 0) return finding('parse-error', parsed.errors.map((e) => e.message).join('; '))
-  const factories = exportedFactories(parsed.program as unknown as Node)
+  const factories = exportedFactories(parsed.program as unknown as Node, role !== undefined)
 
   const gamePath = options.gameRoot === undefined ? undefined : gameRelativePath(options.gameRoot, file)
   if (gamePath !== undefined) {

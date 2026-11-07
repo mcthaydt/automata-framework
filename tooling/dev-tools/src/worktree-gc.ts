@@ -5,7 +5,7 @@ import { Files, ProcessRunner } from './node-seams.ts'
 import { type ProcessTable, pidsInside, runningProcesses } from './running-processes.ts'
 import { parseWorktreeList, type WorktreeRecord } from './worktree-list.ts'
 
-// Tidies the worktrees of the repository it runs in (ported from FloorFifty's `tools/worktree-gc`; plan M4.11).
+// Tidies the worktrees of the repository it runs in.
 // It reports by default and changes nothing without `apply`. What it may do with `apply`:
 // - remove a worktree that is merged into the base, on a remote, clean and idle, then delete its branch with
 //   `git branch -d` (which refuses an unmerged one). It never passes `--force`, so git refuses a dirty tree too;

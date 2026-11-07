@@ -68,6 +68,35 @@ the record is here.
 | `packages/content/src/shared/flow/check-flow.ts` | `FLOW_TARGETS` and `byPair` |
 | `packages/sim/src/features/replay/pack.ts` | the 1 MiB replay cap, raised here for goldens |
 
+## Extensions: moved from `mcthaydt/automata-plus` (2026-11-07)
+
+Every extension below was ported into this repository from `mcthaydt/automata-plus` at `1766c622` (2026-11-01), with
+that repository's history (a subtree import), and then laid out and checked by this repository's rules. Where Plus
+recorded an earlier source, the row says so; the adventure source's rows above describe how most of them were made.
+
+| Package | Folder | Ported from | Earlier source |
+| --- | --- | --- | --- |
+| `@automata/physics` | `extensions/physics` | `packages/physics` | `mcthaydt/automata-framework` `packages/physics` at `6aee63be` (2026-10-30), byte-identical at `b7ef19d9`; the 2D and 3D golden hashes are unchanged from there |
+| `@automata/feel` | `extensions/feel` | `packages/feel` | The adventure source's frame model and coverage (M6 rows above) |
+| `@automata/audio-synth` | `extensions/audio-synth` | `packages/audio-synth` | The adventure source (M6.10a, M6.10b rows) |
+| `@automata/debug` | `extensions/debug` | `packages/debug` | The adventure source (M6.2 row) |
+| `@automata/puzzle` | `extensions/puzzle` | `packages/puzzle` | The adventure source (M6.6b row) |
+| `@automata/net` | `extensions/net` | `packages/net` | The arcade source (rows below) |
+| `@automata/net-ui` | `extensions/net-ui` | `packages/net-ui` | The arcade source |
+| `@automata/net-server` | `extensions/net-server` | `packages/server` | The arcade source |
+| `@automata/ui-screens` | `extensions/ui-screens` | `kits/ui-screens` | Written in Plus (PRODUCT.6) |
+| `@automata/sectors` | `extensions/sectors` | `packages/sectors` | The adventure source (M6 rows above) |
+| `@automata/nav` | `extensions/nav` | `packages/nav` | The adventure source (M6.5 row) |
+| `@automata/systems` | `extensions/systems` | `packages/systems` | The adventure source (M6.7a, M6.7b rows) |
+| `@automata/narrative` | `extensions/narrative` | `packages/narrative` | The adventure source (M6.8a, M6.8b rows) |
+| `@automata/cutscenes` | `extensions/cutscenes` | `packages/cutscenes` | The adventure source (M6.9a row) |
+| `@automata/pipelines` | `extensions/pipelines` | `tooling/pipelines` | The adventure source (M6.6b to M6.10b rows); the blockout stage is not ported |
+| `@automata/dev-tools` | `tooling/dev-tools` | `packages/dev-tools` | `FloorFifty`'s `tools/promote-evidence` and `tools/worktree-gc` |
+
+Not ported: `starters/party-racer` (the Owner cut it), Plus's own `tooling/{core,boundary,ci}`, its docs, workflows and
+the committed `.vitest` screenshots. The converted fixtures keep the headers their converter scripts wrote; the scripts
+themselves are not ported, and the fixtures stay as they are.
+
 ## Third-party assets copied into this repository
 
 | Asset | Source | Licence |

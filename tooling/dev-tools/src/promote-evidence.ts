@@ -6,8 +6,8 @@ import { git } from './git.ts'
 import { Files, ProcessRunner } from './node-seams.ts'
 import { isInside, isSymlink, resolvedPath } from './real-path.ts'
 
-// Copies evidence a person approved from the git-ignored evidence folder into the committed baselines (ported from
-// FloorFifty's `tools/promote-evidence`; plan M4.11). The two trees share a layout. With no path it lists what
+// Copies evidence a person approved from the git-ignored evidence folder into the committed baselines. The two trees
+// share a layout. With no path it lists what
 // differs and copies nothing. Every path is checked before anything is copied, so a refused path leaves the
 // baselines as they were.
 //

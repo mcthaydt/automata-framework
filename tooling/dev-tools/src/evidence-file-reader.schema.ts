@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-// A READER of core's evidence file (`evidence.json`, written by the framework's tooling/evidence; DX spec §3.10),
+// A READER of core's evidence file (`evidence.json`, written by the framework's tooling/evidence),
 // not a definition of it: core's `EvidenceSchema` owns the format (one contract owner). Promotion needs three facts
 // from it, so this reads only those and strips the rest. The contract test parses a file with core's schema first,
 // so a change in core that this reader no longer accepts fails here.
