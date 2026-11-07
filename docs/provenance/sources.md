@@ -103,6 +103,9 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | --- | --- | --- |
 | `src/features/world/timeline.ts` | `packages/3d/src/shared/timeline/sample.ts` | rewritten: the key is `{ t, value, ease? }` (`v` is `value`), no ease is linear (the source's was `inOut`), `hold` reads as `step`, and the ease and the sampling are AF's, shared with the figures' clips; `wobble`, `lerpAngle` and `lerpV` wait for the shots |
 | `src/features/paint/library/times.json` | `packages/3d/src/shared/time-of-day/library/times.json` | rewritten: merged with the figure source's six times of day (the light, haze and sky are `scene`) |
+| `src/features/world/types.ts` (`MapPlan`, `Sector`, `Plane`, `MapWall`, `Decor`, `WindowGrid`, `Dress`, `MapSprite`, `Lamp`) | `packages/3d/src/shared/level/af-sector-2.schema.ts` | rewritten as Zod: the `/2` file's fields, one per row of the 3D spec's section 9 table; `swatch` is `surface`, `ceil` is `ceiling`, a plane is a number or `{ z, slope?, sky?, surface? }`, and what the builder only cached (`dressed`, `doorState`, a door's `shown`, a sprite's `diorama`) is left out |
+| `src/features/world/types.ts` (`MapPlan` and the shapes above, read by the converter) | `packages/3d/src/features/world/convert-builder-map.ts` | rewritten: one pass from a builder map to a `/2` level (rect and verts to corners, the sector's wall under each edge's own, sprites to props and cast, `shade` to a light level at a tenth a step); `scripts/convert-builder-maps.ts` writes the files |
+| `src/features/world/library/maps.json` | `packages/3d/tests/fixtures/level/builder-maps.json` | ported |
 
 ## Core: the doc comments that named their source (moved here 2026-11-07)
 

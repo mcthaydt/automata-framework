@@ -1,6 +1,31 @@
 {
-  "format": "af-sector/1",
+  "format": "af-sector/2",
   "name": "room",
+  "views": {
+    "start": {
+      "yawDeg": 0,
+      "bounds": {
+        "min": [-4, 0, 1],
+        "max": [4, 2, 7]
+      }
+    },
+    "middle": {
+      "yawDeg": 0,
+      "bounds": {
+        "min": [-4, 0, 11],
+        "max": [4, 2, 17]
+      }
+    },
+    "goal": {
+      "yawDeg": 0,
+      "tiltDeg": 35,
+      "distance": 7,
+      "bounds": {
+        "min": [-4, 0, 21],
+        "max": [4, 2, 27]
+      }
+    }
+  },
   "sectors": [
     {
       "id": "start",
@@ -43,7 +68,8 @@
           }
         ],
         [-5, 10]
-      ]
+      ],
+      "pit": true
     },
     {
       "id": "middle",
@@ -92,7 +118,8 @@
           }
         ],
         [-5, 20]
-      ]
+      ],
+      "pit": true
     },
     {
       "id": "goal",
