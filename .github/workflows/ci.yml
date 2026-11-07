@@ -351,6 +351,17 @@ jobs:
           path: frame-budget-results/
           retention-days: 30
 
+  # The website goes to its host from main, once the 2D journeys (the website's suite among them) pass.
+  site:
+    name: deploy the site
+    needs: e2e-2d
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.e2e-2d.result == 'success'
+    uses: ./.github/workflows/site.yml
+    with:
+      runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+    secrets:
+      SITE_DEPLOY_TOKEN: ${{ secrets.SITE_DEPLOY_TOKEN }}
+
   emberwick:
     name: emberwick through game-ci
     needs: checks

@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:unit": "node scripts/write-api-index.ts && vitest run",
     "check:site": "node scripts/check-site.ts",
+    "check:launch": "node scripts/check-launch.ts",
     "test:e2e": "playwright test",
     "e2e:playground": "node playground/feasibility-server.ts",
     "e2e:playground-frame": "vite build -c playground/vite.config.ts && node playground/frame-server.ts",

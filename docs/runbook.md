@@ -1,7 +1,7 @@
 # Runbook
 
-Two procedures: what to do when credentials are lost or stolen, and how to rebuild
-everything from Git. The Owner runs both; an agent never holds these credentials (AGENTS.md).
+Three procedures: what to do when credentials are lost or stolen, how to rebuild everything from Git, and how the
+website goes live. The Owner runs both; an agent never holds these credentials (AGENTS.md).
 
 ## Lost credentials
 
@@ -21,6 +21,7 @@ environment. Nothing publishes from a laptop. The long-lived credentials are:
 | The `af-linux` runner registration | The runner PC (`owner-pc-wsl-af`, the Owner's Windows PC under WSL2 Ubuntu-24.04; service `actions.runner.mcthaydt-automata-framework.owner-pc-wsl-af`) | Run the checks, the games' CI and the consumer smoke for this repository (since 2026-10-30, when `AF_LINUX_RUNNER` went back from `af-mac` to `af-linux`) |
 | The `af-mac` runner registrations | The Owner's Mac | Run CI jobs and, since 2026-10-30, the release jobs (`release-packages.yml`: version, and publish behind the `release` approval) |
 | The npm token for npmjs.org | Not created yet | Will publish the public packages |
+| `SITE_DEPLOY_TOKEN` | This repository's secrets (not created yet) | Upload the website to its host from `main` (`site.yml`); without it the deploy says "No host configured yet." |
 | `SKILLS_TOKEN` | This repository's secrets (not created yet) | Push the agent package to `mcthaydt/automata-skills` after each release; without it the release says "No skills token yet." and the mirror waits |
 
 **Do this, in order, from a device you still trust:**
@@ -73,3 +74,23 @@ Published versions live in GitHub Packages, and from the first public release al
 4. If GitHub Packages lost the published versions, run the release workflow from `main` again. Changesets
    publishes every version the registry is missing, and `verify-published.ts` checks the result.
 5. Record what was rebuilt, and when, in [03 Continuation](archive/03-continuation-prompt.md).
+
+## Launch the website
+
+The website (`site/`) builds and is tested on every pull request inside `ci.yml`'s 2D journeys. From `main`, the
+`site` job (`.github/workflows/site.yml`) deploys it once these are done. The Owner does steps 1 to 3; the agent does
+step 4 in one pull request.
+
+1. **Choose the host** (any static host that serves a folder over HTTPS and lets you set response headers), create its
+   deploy token, and add it as the repository secret `SITE_DEPLOY_TOKEN`. Until then every deploy says "No host
+   configured yet." and passes. With the token but before step 4, the deploy fails on purpose: its upload step is not
+   written yet.
+2. **Point the domain at it.** `automataframework.com`: an apex record (or the host's `ALIAS`, `ANAME` or flattened
+   `CNAME`), `www` redirecting to the apex, and HTTPS on at the host.
+3. **Name the project's addresses**, one for questions and one for security reports, on the project's own domain.
+   `pnpm --filter @mcthaydt/automata-site check:launch` refuses a personal mailbox, so the deploy waits for them.
+4. **The agent's pull request:** the addresses in `site/src/shared/site.js` and `site/static/.well-known/security.txt`
+   (a unit test keeps the two the same), the host's upload step in `site.yml` with the headers of
+   `site/src/shared/html/security-headers.ts`, and these steps marked done. Merging it deploys.
+5. **Look at it** on a phone and on the iPad: the home page, play Emberwick, Start, Try the editor.
+

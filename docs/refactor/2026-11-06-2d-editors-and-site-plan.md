@@ -1473,8 +1473,8 @@ tightly to ruken". This answers D8's domain.
   (the Owner's launch steps)
 - Test: `site/tests/unit/legal.test.ts` (no personal mailbox in any page or `security.txt`; W9)
 
-- [ ] **Step 1:** Failing test, then the change. `pnpm lint:actions` if Docker exists, else the Owner's.
-- [ ] **Step 2:** The deploy job runs on this PR's head and prints "No host configured yet." Commit, mark ready, merge
+- [x] **Step 1:** Failing test, then the change. `pnpm lint:actions` if Docker exists, else the Owner's.
+- [x] **Step 2:** The deploy job runs on this PR's head and prints "No host configured yet." Commit, mark ready, merge
   when green.
 
 ### Task 21.2: The Owner's inputs and go (the Owner)
@@ -2797,3 +2797,19 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   unit 333, `check:site` (35 pages), the site suite in Chromium 345 passed (visitor journey on desktop and phone
   included), the playground frame suite in Chromium; tools editor unit 55; editor harness unit 4; examples-runner unit
   76. WebKit and Firefox not installed here.
+  *21.1 (session 24):* `.github/workflows/site.yml` is a reusable workflow that `ci.yml`'s new `site` job calls after
+  `e2e-2d` passes on a push to `main`; pull requests already build and test the site inside `e2e-2d` ("The website"),
+  so there is no second build or check. Without `SITE_DEPLOY_TOKEN` it prints "No host configured yet." and passes;
+  with it, it builds the site (the closed-beta scan runs at the end of the build), runs `check:site` and the new
+  `check:launch`, then stops at the upload step, which fails on purpose until 21.2 writes it for the host the Owner
+  picks. W9: `site/scripts/check-launch.ts` refuses a personal mailbox for the contact or the security address
+  (`tests/unit/legal/contact.test.ts`: refused and accepted fixtures, and security.txt holds the address `site.js`
+  names). Deviations: (1) the Gmail stays on the site while the Owner decides (D8), so the "no personal mailbox" rule
+  is the launch's check, not a unit test over today's pages (that test would fail until the Owner answers); no
+  `CONTACT_ADDRESS` placeholder either, since `site.js` is already the one place the pages read the addresses from.
+  (2) The origin was already one constant (`SITE_ORIGIN` in `site.js`, 21.0), so no `config.ts`. (3) Step 2: the
+  deploy job cannot run on a pull request's head, because the workflow invariants keep a job that holds a deploy
+  token away from anything a pull request can start; its first step was run locally from the parsed YAML instead
+  (no token: the notice and `present=false`; a token: `present=true`). `pnpm lint:actions` needs Docker, which this
+  session lacks: the Owner's. The runbook's new "Launch the website" lists the Owner's steps. Gates: site unit 335,
+  repo-hygiene unit 90 (the invariants over `site.yml` and the `site` job).

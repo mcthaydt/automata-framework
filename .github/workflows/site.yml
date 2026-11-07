@@ -1,0 +1,72 @@
+name: site
+
+# Deploys the website (site/) from main. Pull requests build and test the site inside ci.yml's e2e-2d job ("The
+# website" step), so there is no second build or required check here: ci.yml calls this after that job passes on a
+# push to main.
+#
+# The host is the Owner's (task 21.2). Until its token is a repository secret, the job prints "No host configured
+# yet." and passes. With the token, it builds the site, refuses a personal contact address (`check:launch`, W9), and
+# uploads `site/build/` with the host's own step, which 21.2 writes once the host is chosen.
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        description: The runner label for the job.
+        type: string
+        required: true
+    secrets:
+      SITE_DEPLOY_TOKEN:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: deploy the site
+    # Main only: the token must never reach a job a pull request can start.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: 20
+    steps:
+      - name: Is the host configured?
+        id: host
+        env:
+          SITE_DEPLOY_TOKEN: ${{ secrets.SITE_DEPLOY_TOKEN }}
+        run: |
+          if [[ -n "$SITE_DEPLOY_TOKEN" ]]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::No host configured yet."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.host.outputs.present == 'true'
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        if: steps.host.outputs.present == 'true'
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        if: steps.host.outputs.present == 'true'
+        with:
+          node-version-file: .nvmrc
+      - if: steps.host.outputs.present == 'true'
+        run: pnpm install --frozen-lockfile
+      # The build ends with the closed-beta scan; check:site holds every page to the site's rules; check:launch
+      # refuses a personal mailbox.
+      - name: Build and check the site
+        if: steps.host.outputs.present == 'true'
+        run: |
+          pnpm exec turbo run build --filter @mcthaydt/automata-site
+          pnpm --filter @mcthaydt/automata-site check:site
+          pnpm --filter @mcthaydt/automata-site check:launch
+      - name: Upload site/build to the host
+        if: steps.host.outputs.present == 'true'
+        env:
+          SITE_DEPLOY_TOKEN: ${{ secrets.SITE_DEPLOY_TOKEN }}
+        run: |
+          echo "::error::The host's upload step is not written yet: task 21.2 adds it with the host the Owner chooses."
+          exit 1
