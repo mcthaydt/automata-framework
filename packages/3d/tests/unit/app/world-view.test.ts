@@ -104,6 +104,14 @@ describe('sceneLamps', () => {
     })
   })
 
+  it('burns a lamp at the level its state says, in the colour its state gives', () => {
+    const lit = sceneLamps(lamps, true, { in: { level: 0.5, color: 0x112233 } })
+    expect(lit[0]).toMatchObject({ id: 'in', level: 0.5, color: 0x112233 })
+    // A lamp with no state, and a lamp put out, are as asked.
+    expect(lit[1]).toMatchObject({ id: 'street', level: 1, color: lamps[1]?.color })
+    expect(sceneLamps(lamps, true, { in: { level: 0 } })[0]?.level).toBe(0)
+  })
+
   it('leaves out a street lamp by day, which only a night lights', () => {
     expect(sceneLamps(lamps, true).map((lamp) => lamp.id)).toEqual(['in', 'street'])
     expect(sceneLamps(lamps, false).map((lamp) => lamp.id)).toEqual(['in'])

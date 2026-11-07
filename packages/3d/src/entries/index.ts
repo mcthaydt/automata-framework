@@ -11,6 +11,7 @@ export {
   type RendererKind,
 } from '../app/create-renderer.ts'
 export { render3dExtension } from '../app/render3d.extension.ts'
+export { updatePieces } from '../app/update-pieces.ts'
 export { drawWorld, sceneLamps, type WorldScene, type WorldView } from '../app/world-view.ts'
 export {
   type AngledCameraOptions,

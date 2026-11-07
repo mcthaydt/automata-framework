@@ -34,6 +34,8 @@ export interface PlacedPiece {
   readonly sway?: number
   readonly phase?: number
   readonly noCast?: boolean
+  /** The prop it belongs to and where its base stands, for a state that moves the prop. */
+  readonly prop?: { readonly id: string; readonly at: V3 }
 }
 
 /** A lamp in the world: its kind's colour, reach and peak resolved, `at` in world space (x, up, z). */
@@ -155,6 +157,7 @@ export function placeProps(level: AfSector2, library: WorldLibrary, tell: Tell):
         ...(piece.sway === undefined ? {} : { sway: piece.sway }),
         ...(piece.phase === undefined ? {} : { phase: piece.phase }),
         ...(piece.noCast === true ? { noCast: true } : {}),
+        prop: { id: place.id, at },
       })
     })
     built.lights?.forEach((light, n) => {

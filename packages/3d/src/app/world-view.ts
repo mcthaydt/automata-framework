@@ -6,6 +6,7 @@ import type { Occluders } from '../features/camera/occluders/occluders.ts'
 import type { WorldPiece } from '../features/world/build.ts'
 import type { WorldLamp } from '../features/world/place-props.ts'
 import { tileName } from '../features/world/surface.ts'
+import type { LampState } from '../shared/level/piece-states.ts'
 import type { Lamp } from '../shared/render/light/scene-lighting.schema.ts'
 
 export interface WorldScene {
@@ -22,6 +23,8 @@ export interface WorldScene {
 export interface WorldView {
   /** Holds every piece's mesh. */
   readonly node: Container3D
+  /** The pieces drawn, as the builder made them (a door's hinge, a prop's place), for the states that move them. */
+  readonly pieces: readonly WorldPiece[]
   /** A piece's mesh by its id. */
   readonly mesh: (id: string) => Mesh3D | undefined
   /** Takes the meshes down and frees their geometry and materials. */
@@ -73,6 +76,7 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
   }
   return {
     node,
+    pieces,
     mesh: (id) => meshes.get(id),
     dispose() {
       for (const mesh of meshes.values()) mesh.destroy({ children: true })
@@ -84,19 +88,27 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
 
 /**
  * The world's lamps as the scene light's: a lamp of the kit gives its colour, its reach and its level, at its place.
- * A lamp only a night lights (a street lamp on its photocell) is left out by day.
+ * A lamp only a night lights (a street lamp on its photocell) is left out by day. A lamp's state (`PieceStates.lamps`)
+ * scales its level and may change its colour.
  */
-export function sceneLamps(lamps: readonly WorldLamp[], night = true): Lamp[] {
+export function sceneLamps(
+  lamps: readonly WorldLamp[],
+  night = true,
+  states: Readonly<Record<string, LampState>> = {},
+): Lamp[] {
   return lamps
     .filter((lamp) => night || !lamp.dusk)
-    .map((lamp) => ({
-      id: lamp.id,
-      x: lamp.at[0],
-      y: lamp.at[1],
-      z: lamp.at[2],
-      color: lamp.color,
-      strength: 1,
-      range: lamp.range,
-      level: lamp.level,
-    }))
+    .map((lamp) => {
+      const state = states[lamp.id]
+      return {
+        id: lamp.id,
+        x: lamp.at[0],
+        y: lamp.at[1],
+        z: lamp.at[2],
+        color: state?.color ?? lamp.color,
+        strength: 1,
+        range: lamp.range,
+        level: lamp.level * (state?.level ?? 1),
+      }
+    })
 }

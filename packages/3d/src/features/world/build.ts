@@ -70,6 +70,8 @@ export interface WorldPiece {
   readonly phase?: number
   /** Casts no shadow: a thin or glowing part. */
   readonly noCast?: boolean
+  /** A prop's part: the prop's id and where its base stands (world x, up, z), for a state that moves the prop. */
+  readonly prop?: { readonly id: string; readonly at: V3 }
 }
 
 export interface World {
@@ -152,7 +154,7 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
     mesh: MeshData,
     surface: Surface,
     tex?: TexPlace,
-    extra: Pick<WorldPiece, 'door' | 'line' | 'occlude' | 'sway' | 'phase' | 'noCast'> = {},
+    extra: Pick<WorldPiece, 'door' | 'line' | 'occlude' | 'sway' | 'phase' | 'noCast' | 'prop'> = {},
   ): void => {
     const sector = level.sectors[si] as AfSectorEntry2
     const name = tileName(surface)
@@ -467,6 +469,7 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
       ...(piece.sway === undefined ? {} : { sway: piece.sway }),
       ...(piece.phase === undefined ? {} : { phase: piece.phase }),
       ...(piece.noCast === true ? { noCast: true } : {}),
+      ...(piece.prop === undefined ? {} : { prop: piece.prop }),
     })
   return { pieces, lamps: placed.lamps, problems }
 }
