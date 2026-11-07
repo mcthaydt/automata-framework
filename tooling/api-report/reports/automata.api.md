@@ -622,6 +622,17 @@ interface EntityView<C extends SceneNode = Container> {
 const ERROR_CODES: readonly ["UNSUPPORTED", "NOT_READY", "TIMEOUT", "RATE_LIMITED", "QUOTA_EXCEEDED", "INVALID_PAYLOAD", "DENIED", "OFFLINE", "CANCELLED", "INTERNAL"];
 ```
 
+### `ErrorAction` (interface)
+
+```ts
+interface ErrorAction {
+    readonly id: string;
+    readonly label: string;
+    readonly kind: 'primary' | 'secondary';
+    readonly onSelect: () => void;
+}
+```
+
 ### `ErrorCode` (type)
 
 ```ts
@@ -632,6 +643,12 @@ type ErrorCode = (typeof ERROR_CODES)[number];
 
 ```ts
 const ErrorCodeSchema: z.ZodType<ErrorCode>;
+```
+
+### `ErrorPanel` (svelte)
+
+```ts
+component from '../shared/ui/status/ErrorPanel.svelte'
 ```
 
 ### `EventDef` (interface)
@@ -1879,6 +1896,12 @@ interface SettingsDef<S> {
 }
 ```
 
+### `SettingsScreen` (svelte)
+
+```ts
+component from '../app/screens/settings/SettingsScreen.svelte'
+```
+
 ### `SettingsScreenCopy` (interface)
 
 ```ts
@@ -1896,6 +1919,16 @@ interface SettingsScreenCopy {
 
 ```ts
 function settingsStore<S>(settings: Settings, def: SettingsDef<S>): SettingsStore<S>;
+```
+
+### `SettingsTab` (interface)
+
+```ts
+interface SettingsTab {
+    readonly id: string;
+    readonly label: string;
+    readonly sections: readonly SettingsSection[];
+}
 ```
 
 ### `Sheet` (svelte)
@@ -2221,6 +2254,18 @@ type RukenManifestContribution = {
         readonly preload?: readonly string[];
     };
 };
+```
+
+### `UiComponent` (type)
+
+```ts
+type UiComponent = Component<Record<string, never>>;
+```
+
+### `UiSlotName` (type)
+
+```ts
+type UiSlotName = (typeof UI_SLOT_NAMES)[number];
 ```
 
 ## `./testing`

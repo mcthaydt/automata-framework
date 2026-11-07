@@ -266,8 +266,10 @@
 - `EntityRef` (interface): A live entity, addressed by its StableId.
 - `EntityView` (interface): What an entity view factory returns: the container drawn for one entity, updated with its current and previous component values and the interpolation alpha, and destroyed when the entity goes.
 - `ERROR_CODES` (const): Why a host call failed.
+- `ErrorAction` (interface): One way forward from a failure.
 - `ErrorCode` (type): One error code.
 - `ErrorCodeSchema` (const): Checks an error code.
+- `ErrorPanel` (const): A failure, and what the player can do about it.
 - `EventDef` (interface): An event a system emits: an id and the Zod schema its payload must match.
 - `filterPrograms(name, fragmentGlsl, fragmentWgsl)`: Builds a filter's programs from its GLSL and WGSL fragment stages on the shared vertex stages, so WebGL2 stays at parity with WebGPU (AGENTS.md).
 - `findRukenSdkMarkers(code)`: The markers found in `code` (built JavaScript), each named once; empty means no Ruken SDK code.
@@ -382,8 +384,10 @@
 - `ScrollList` (const): A list that keeps its rows.
 - `Settings` (interface): The booted game's settings as a runtime service: its key and store, both undefined for a game without settings.
 - `SettingsDef` (interface): A game's settings: the key it is saved under, its version, schema, defaults and migration steps, and which fields stay on one device.
+- `SettingsScreen` (const): The core Settings screen, laid out and behaving as FloorFifty's settings (`ui/components/SettingsPanel.svelte` in `PauseOverlay.svelte` at a28dc44; Owner 2026-10-18: "match the layout and function, not the style"): a dialog over the dimmed game, the same frame as Paused, so going between them reads as one dialog changing its view.
 - `SettingsScreenCopy` (interface): The Settings screen's own words: its title, Back, the tabs and the overflow count.
 - `settingsStore(settings, def)`: The booted store for `def`.
+- `SettingsTab` (interface): A tab of the Settings screen (FloorFifty's Settings and Controls): its label and its sections, in order.
 - `Sheet` (const): A Modal on the bottom edge at every form factor: the same scoping, Close and scroll region, where a thumb reaches the actions.
 - `Sim` (interface): A running simulation, stepped with commands, that can snapshot, restore and hash its state.
 - `SimContext` (interface): What a system's `run` receives each tick.
@@ -421,6 +425,8 @@
 - `ResolvedExtensions` (interface): Everything the runtime and the build tools need from a game's extension list, in one fixed order.
 - `resolveExtensions(defs)`: Checks the list and puts it in a fixed order.
 - `RukenManifestContribution` (type): What an extension may add to ruken.toml: preload files.
+- `UiComponent` (type): What an extension puts in a slot: a Svelte component that takes no props.
+- `UiSlotName` (type): The name of a place an extension may add UI: one of `UI_SLOT_NAMES`.
 
 ### `import { … } from '@automata/framework/testing'`
 

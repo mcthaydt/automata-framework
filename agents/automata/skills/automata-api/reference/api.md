@@ -2907,6 +2907,19 @@ fit; `ruken/conformance.test.ts` holds them to the vendored SDK.
 const ERROR_CODES: readonly ["UNSUPPORTED", "NOT_READY", "TIMEOUT", "RATE_LIMITED", "QUOTA_EXCEEDED", "INVALID_PAYLOAD", "DENIED", "OFFLINE", "CANCELLED", "INTERNAL"];
 ```
 
+#### `ErrorAction` (interface)
+
+One way forward from a failure.
+
+```ts
+interface ErrorAction {
+    readonly id: string;
+    readonly label: string;
+    readonly kind: 'primary' | 'secondary';
+    readonly onSelect: () => void;
+}
+```
+
 #### `ErrorCode` (type)
 
 One error code.
@@ -2921,6 +2934,27 @@ Checks an error code.
 
 ```ts
 const ErrorCodeSchema: z.ZodType<ErrorCode>;
+```
+
+#### `ErrorPanel` (const)
+
+A failure, and what the player can do about it.
+
+`role="alert"` rather than `role="status"`, because this interrupts: the player usually just
+pressed something and needs to know it did not work. The panel is opaque, because a failure is
+often the thing that means the artwork did not arrive. It sits at the top of the visible region,
+under the corner row, so it never covers the way out of the screen it reports on, and its layer
+passes taps through everywhere but the panel.
+
+Where the room is short (a long message, a keyboard), the panel gives up space in this order:
+first the message, which scrolls, down to one visible line; only then the gap that keeps it under
+the corner row, so it rises over Back only when its actions cannot fit any other way. A final
+panel has no actions and is the screen's last word, so it never rises: Back is its way out. The
+actions sit outside the scrolling part and never shrink (framework audit of #7).
+
+```ts
+const ErrorPanel: import("svelte").Component<Props, {}, "">;
+type ErrorPanel = ReturnType<typeof ErrorPanel>;
 ```
 
 #### `EventDef` (interface)
@@ -4916,6 +4950,22 @@ interface SettingsDef<S> {
 }
 ```
 
+#### `SettingsScreen` (const)
+
+The core Settings screen, laid out and behaving as FloorFifty's settings
+(`ui/components/SettingsPanel.svelte` in `PauseOverlay.svelte` at a28dc44; Owner 2026-10-18: "match the layout and
+function, not the style"): a dialog over the dimmed game, the same frame as Paused, so going between them reads as
+one dialog changing its view. Tabs stay put and the chosen tab's sections scroll under them in one list that counts
+what is below; Back sits under the dialog, and Escape and the dialog's Close go back too. Where the dialog is 560 px
+wide (it widens on a short band) the sections go two across. The default screens give it Display and Controls;
+extensions add theirs to the Settings tab through the `settings.sections` slot. A kit's styled screen replaces it
+by flow.
+
+```ts
+const SettingsScreen: import("svelte").Component<Props, {}, "">;
+type SettingsScreen = ReturnType<typeof SettingsScreen>;
+```
+
 #### `SettingsScreenCopy` (interface)
 
 The Settings screen's own words: its title, Back, the tabs and the overflow count.
@@ -4938,6 +4988,18 @@ mistake, and a store made up on the spot would save under a key nothing reads.
 
 ```ts
 function settingsStore<S>(settings: Settings, def: SettingsDef<S>): SettingsStore<S>;
+```
+
+#### `SettingsTab` (interface)
+
+A tab of the Settings screen (FloorFifty's Settings and Controls): its label and its sections, in order.
+
+```ts
+interface SettingsTab {
+    readonly id: string;
+    readonly label: string;
+    readonly sections: readonly SettingsSection[];
+}
 ```
 
 #### `Sheet` (const)
@@ -5432,6 +5494,22 @@ type RukenManifestContribution = {
         readonly preload?: readonly string[];
     };
 };
+```
+
+#### `UiComponent` (type)
+
+What an extension puts in a slot: a Svelte component that takes no props.
+
+```ts
+type UiComponent = Component<Record<string, never>>;
+```
+
+#### `UiSlotName` (type)
+
+The name of a place an extension may add UI: one of `UI_SLOT_NAMES`.
+
+```ts
+type UiSlotName = (typeof UI_SLOT_NAMES)[number];
 ```
 
 ### `import { … } from '@automata/framework/testing'`
