@@ -17,8 +17,7 @@
 
 import type { ServerMessage } from '@automata/net'
 import { SeatJoin, SeatLeave } from '@automata/net/sim'
-import { type Command, createRng, type Rng, type Sim } from '@automata/sim'
-import { createRecorder, packReplay, type Recorder } from '@automata/sim/replay'
+import type { Command, Sim } from '@automata/sim'
 import type { RoomLogEvent } from '../../../shared/game/server-config'
 import { type CommandIntent, ROOM_SOURCE, type ServerDef } from '../../../shared/game/server-game'
 import { type SimView, simViewOf } from '../../../shared/game/sim-view'
@@ -46,7 +45,8 @@ import {
 } from '../rules/lobby-rules'
 import { RoomCommandError } from '../rules/room-errors'
 import { SeatRegistry } from '../rules/seat-registry'
-import { nodeReplayCompression } from './replay-compression'
+import { BotRoster } from './bot-roster'
+import { ReplayKeeper } from './replay-keeper'
 import type { CloseReason, RoomClient, RoomEngineOptions, RoomInfoView, SubmitOutcome } from './room-types'
 
 export type {
@@ -58,11 +58,6 @@ export type {
 } from './room-types'
 
 import { receiveMessage } from './room-messages'
-
-interface BotSeat {
-  readonly rng: Rng
-  seq: number
-}
 
 export class RoomEngine {
   /** Read by `room-messages.ts`, the room's switchboard; not room API. */
@@ -84,7 +79,7 @@ export class RoomEngine {
   private readonly clients = new Map<string, RoomClient>()
   /** Seat names, people's and bots'. */
   private readonly names = new Map<number, string>()
-  private readonly bots = new Map<number, BotSeat>()
+  private readonly bots = new BotRoster()
   /** Seats held after a drop, and the tick each is given up on. */
   private readonly drops = new Map<number, number>()
   /** Seats whose client has returned and not yet sent a command (see `submit`). */
@@ -94,8 +89,7 @@ export class RoomEngine {
   /** The room's own commands for the next tick: seat.join, seat.leave and spawns. */
   private roomCommands: Command[] = []
   private roomSeq = 0
-  private recorder: Recorder | undefined
-  private packedReplay: Promise<Uint8Array> | undefined
+  private readonly replays: ReplayKeeper
   private held: ReadonlySet<ClockName> = new Set()
   private isDraining = false
   private closed = false
@@ -122,7 +116,7 @@ export class RoomEngine {
       creditsPerTick: options.commandsPerSeat.perSecond / tickHz,
     })
     // A room records from its first tick, so the replay holds every seat it ever seated.
-    this.recorder = createRecorder(options.sim)
+    this.replays = new ReplayKeeper(options.sim, options.compression)
   }
 
   // ── Reading ──
@@ -137,7 +131,7 @@ export class RoomEngine {
 
   /** The packed replay of the last game, once play has ended; offered to every client then. */
   get replay(): Promise<Uint8Array> | undefined {
-    return this.packedReplay
+    return this.replays.replay
   }
 
   /** The clocks held now (`clock-hold.ts`). */
@@ -219,8 +213,9 @@ export class RoomEngine {
     // The bucket keeps what was left: a fill here would hand a client a fresh burst for every drop and return.
     setConnected(this.lobby, seat, true, this.rules)
     evaluateReadiness(this.lobby, this.rules)
-    if (this.lobby.phase === 'ended' && this.packedReplay !== undefined) {
-      this.packedReplay
+    const packed = this.replays.replay
+    if (this.lobby.phase === 'ended' && packed !== undefined) {
+      packed
         .then((replay) => this.sendReplay(client, replay))
         .catch(() => this.log({ event: 'replay.failed' }))
     }
@@ -249,7 +244,7 @@ export class RoomEngine {
     const seat = addBot(this.lobby, by, this.rules, this.def.game.bots !== undefined)
     const name = `Bot ${seat + 1}`
     this.names.set(seat, name)
-    this.bots.set(seat, { rng: createRng(botSeed(this.options.seed, seat)), seq: 0 })
+    this.bots.add(seat, botSeed(this.options.seed, seat))
     this.seatInSim(seat, name)
     evaluateReadiness(this.lobby, this.rules)
     return seat
@@ -258,7 +253,7 @@ export class RoomEngine {
   /** The host's `bot.remove`. */
   removeBot(by: number, seat: number): void {
     removeBot(this.lobby, by, seat)
-    this.bots.delete(seat)
+    this.bots.remove(seat)
     this.forgetSeatNumbering(seat)
     this.names.delete(seat)
     this.roomCommand({ type: SeatLeave.id, payload: { seat } })
@@ -394,8 +389,7 @@ export class RoomEngine {
       this.stepOnce()
     } catch (error) {
       this.log({ event: 'room.error', code: error instanceof Error ? error.name : typeof error })
-      this.recorder = undefined
-      this.packedReplay = undefined
+      this.replays.discard()
       this.close('failed')
     }
   }
@@ -414,8 +408,7 @@ export class RoomEngine {
       if (command.source !== ROOM_SOURCE) this.acks.set(command.source, command.seq)
 
     this.lastStepAt = this.now()
-    const recorder = this.recorder
-    const result = recorder === undefined ? this.sim.step(commands) : recorder.step(commands)
+    const result = this.replays.step(commands)
     if (this.lobby.phase === 'playing' && this.def.game.ended?.(this.view, result.events) === true)
       this.finishGame()
 
@@ -433,14 +426,7 @@ export class RoomEngine {
   private driveBots(tick: number): void {
     const policy = this.def.game.bots
     if (policy === undefined || !acceptsInput(this.lobby)) return
-    for (const seat of [...this.bots.keys()].sort((a, b) => a - b)) {
-      const bot = this.bots.get(seat)
-      if (bot === undefined) continue
-      for (const intent of policy.commands(this.view, seat, bot.rng)) {
-        this.queue.submit(seat, { seq: bot.seq, tick, type: intent.type, payload: intent.payload }, tick)
-        bot.seq += 1
-      }
-    }
+    this.bots.drive(policy, this.view, tick, (seat, input) => this.queue.submit(seat, input, tick))
   }
 
   /** Gives up every dropped seat whose grace has run out: its token stops working and the sim hears `seat.leave`. */
@@ -459,11 +445,8 @@ export class RoomEngine {
 
   private finishGame(): void {
     endGame(this.lobby)
-    const replay = this.recorder?.finish()
-    this.recorder = undefined
-    if (replay === undefined) return
-    const packed = packReplay(replay, this.options.compression ?? nodeReplayCompression)
-    this.packedReplay = packed
+    const packed = this.replays.finish()
+    if (packed === undefined) return
     packed
       .then((bytes) => {
         for (const client of this.clients.values()) this.sendReplay(client, bytes)
@@ -479,10 +462,9 @@ export class RoomEngine {
   /** Play again: a fresh lobby on the same sim, recorded afresh from where the last game left it. */
   private playAgain(): void {
     startOver(this.lobby)
-    this.packedReplay = undefined
-    this.recorder = createRecorder(this.sim)
-    for (const bot of this.bots.values()) bot.seq = 0
-    for (const seat of this.bots.keys()) this.forgetSeatNumbering(seat)
+    this.replays.restart()
+    this.bots.restart()
+    for (const seat of this.bots.seats()) this.forgetSeatNumbering(seat)
   }
 
   private publishSnapshot(): void {

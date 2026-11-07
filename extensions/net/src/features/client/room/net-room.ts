@@ -22,7 +22,7 @@
  */
 
 import type { Clock } from '@automata/framework'
-import { createWatchable, type Watchable } from '../../../shared/watchable'
+import { createWatchable } from '../../../shared/watchable'
 import { type JoinOptions, joinOptionsSchema } from '../../../shared/wire/join-options.schema'
 import { PROTOCOL_VERSION } from '../../../shared/wire/limits'
 import { ROOM_NAME } from '../../../shared/wire/room'
@@ -32,97 +32,28 @@ import { NetError, refusalCode } from './net-error'
 import { type ClientNetworkPort, createClientPort } from './net-port'
 import { reconnectDelay } from './reconnect-delay'
 import { createRequestIds, newLoadToken } from './request-ids'
+import type {
+  ConnectionState,
+  IntentOptions,
+  NetRoom,
+  NetRoomOptions,
+  ResumeOutcome,
+  RoomEnd,
+} from './room-api'
+import { abortable, endOf, NO_ANSWER, quietly, within } from './room-helpers'
 import { type RoomInfo, roomInfoOf, sameRoomInfo } from './room-info'
 import { colyseusClient, type NetSdkClient, type NetSdkRoom } from './sdk'
-import { createSeatTokenStore, type SeatStorage, sessionSeatStorage } from './seat-token'
+import { createSeatTokenStore, sessionSeatStorage } from './seat-token'
 import { createStopper, type Stopper } from './stopper'
 
-/**
- * Where the connection to the room is: offline, connecting, connected, reconnecting after a drop,
- * or degraded (up, but slow or silent).
- */
-export type ConnectionState = 'offline' | 'connecting' | 'connected' | 'reconnecting' | 'degraded'
-
-/** Why the room went without the player choosing to leave. */
-export interface RoomEnd {
-  readonly reason: 'seat-lost' | 'closed' | 'server-updating' | 'failed'
-}
-
-/**
- * What happened when a page tried to take its old seat back after a reload: it resumed, there was
- * nothing to resume, or the seat had expired.
- */
-export type ResumeOutcome = 'resumed' | 'none' | 'expired'
-
-/** What an intent that opens a room takes besides the player's name. */
-export interface IntentOptions {
-  readonly name: string
-  /** Aborting it gives the call up: the room goes `offline` and the call rejects with the signal's reason. */
-  readonly signal?: AbortSignal | undefined
-}
-
-/**
- * The player's side of an online room. Create, join or quick-match, get ready, add or remove a
- * bot, leave, and watch the connection, the room and why it ended.
- */
-export interface NetRoom {
-  create(options: IntentOptions): Promise<void>
-  join(code: string, options: IntentOptions): Promise<void>
-  /** Seats you in an open room in its lobby, or opens one. */
-  quickMatch(options: IntentOptions): Promise<void>
-  setReady(ready: boolean): Promise<void>
-  /** Host seat only; the server's `BotPolicy` drives the bot. */
-  addBot(): Promise<void>
-  removeBot(seat: number): Promise<void>
-  /** Leaves and forgets the seat, so no later reconnect or reload reclaims it. */
-  leave(): Promise<void>
-  /**
-   * The session's diagnostics say the link is slow or silent: while the connection is up it reads `degraded` instead
-   * of `connected`. A drop shows `reconnecting`, and going offline forgets the mark.
-   */
-  markDegraded(degraded: boolean): void
-  /** Reclaims the stored seat after a reload, once: `expired` forgets the token and is never retried. */
-  resume(options?: { readonly signal?: AbortSignal | undefined }): Promise<ResumeOutcome>
-  readonly info: Watchable<RoomInfo | undefined>
-  readonly connection: Watchable<ConnectionState>
-  /** Set when the room ended without a leave; cleared by the next intent. */
-  readonly ended: Watchable<RoomEnd | undefined>
-  /** Core's `NetworkPort`, client end, for the session that predicts and reconciles. */
-  readonly port: ClientNetworkPort
-  /**
-   * Closes the socket, the probe and any reconnect in flight, without giving up the seat: the stored token stays for
-   * the next page load's `resume`. Pending requests reject as `OFFLINE`.
-   */
-  close(): void
-}
-
-/**
- * What `createNetRoom` needs: the server url, the client sim's hashes for the join check, the
- * reconnect grace, the game's clock and optionally the session token, the SDK client and where the
- * seat token is stored.
- */
-export interface NetRoomOptions {
-  /** The server: net.toml's `url`. */
-  readonly url: string
-  /** The client sim's hashes: the join check. */
-  readonly version: { readonly schemaHash: string; readonly contentHash: string }
-  readonly reconnectGraceSeconds: number
-  /** Time for the probe, the round trips and the reconnection's waits: the game's clock, a fake one in tests. */
-  readonly clock: Clock
-  /** The host's session token, for the server's `SessionVerifier`; none for an anonymous server. */
-  readonly session?: (() => string | undefined) | undefined
-  /** The SDK client for `url`; the real one by default. */
-  readonly client?: ((url: string) => NetSdkClient) | undefined
-  /**
-   * Where the reconnection token is written through to, for a reload's `resume`: this page's `sessionStorage` when
-   * absent; `null` switches persistence off (the seat is still held in memory, so a drop reconnects).
-   */
-  readonly storage?: SeatStorage | null | undefined
-  /** The backoff's spread, in [0, 1]; `Math.random` by default. */
-  readonly random?: (() => number) | undefined
-  /** The request ids' per-load prefix; drawn by default. */
-  readonly loadToken?: string | undefined
-}
+export type {
+  ConnectionState,
+  IntentOptions,
+  NetRoom,
+  NetRoomOptions,
+  ResumeOutcome,
+  RoomEnd,
+} from './room-api'
 
 /** How often a connected room is probed, so the round trip is known before play needs it. */
 const PROBE_EVERY_MS = 1_000
@@ -135,53 +66,6 @@ const QUICK_MATCH_RETRY: readonly NetErrorCode[] = ['ROOM_FULL', 'ROOM_NOT_FOUND
 
 /** A resume that failed for these is not an expired seat: the token is kept for the next page load. */
 const RESUME_KEEPS_TOKEN: readonly NetErrorCode[] = ['OFFLINE', 'RATE_LIMITED']
-
-/** A resume the server never answered within the grace: read as `OFFLINE`. */
-const NO_ANSWER: unique symbol = Symbol('no answer')
-
-/** What a close code means; undefined is a drop. */
-function endOf(code: number): RoomEnd['reason'] | undefined {
-  switch (code) {
-    case 1000:
-    case 4000:
-      return 'closed'
-    case 4001:
-      return 'server-updating'
-    case 4002:
-      return 'failed'
-    default:
-      return undefined
-  }
-}
-
-const quietly = (room: NetSdkRoom | undefined): void => {
-  void room?.leave(true).catch(() => undefined)
-}
-
-/**
- * `work`, unless `signal` aborts first: then `onAbort` runs and the result rejects with the signal's reason. Whatever
- * `work` does later is ignored here (the caller's own generation check retires a room that arrives late).
- */
-function abortable<T>(signal: AbortSignal | undefined, work: Promise<T>, onAbort: () => void): Promise<T> {
-  if (signal === undefined) return work
-  return new Promise<T>((resolve, reject) => {
-    const abort = (): void => {
-      onAbort()
-      reject(signal.reason)
-    }
-    signal.addEventListener('abort', abort, { once: true })
-    work.then(
-      (value) => {
-        signal.removeEventListener('abort', abort)
-        resolve(value)
-      },
-      (error: unknown) => {
-        signal.removeEventListener('abort', abort)
-        reject(error)
-      },
-    )
-  })
-}
 
 /**
  * Makes the player's side of a room. It reconnects after a drop for as long as the grace allows,
@@ -474,22 +358,6 @@ export function createNetRoom(options: NetRoomOptions): NetRoom {
     if (room !== undefined) await room.leave(true).catch(() => 0)
   }
 
-  /** `work`, or `NO_ANSWER` if it has not settled within `ms`. */
-  const within = <T>(work: Promise<T>, ms: number): Promise<T> =>
-    new Promise<T>((resolve, reject) => {
-      const timer = clock.setTimeout(() => reject(NO_ANSWER), ms)
-      work.then(
-        (value) => {
-          clock.clearTimeout(timer)
-          resolve(value)
-        },
-        (error: unknown) => {
-          clock.clearTimeout(timer)
-          reject(error)
-        },
-      )
-    })
-
   const resume = async (resumeOptions?: {
     readonly signal?: AbortSignal | undefined
   }): Promise<ResumeOutcome> => {
@@ -506,6 +374,7 @@ export function createNetRoom(options: NetRoomOptions): NetRoom {
       const adopted = await abortable(
         signal,
         within(
+          clock,
           makeClient(options.url)
             .reconnect(seat.token)
             .then((room) => adopt(room, gen, { presented: seat.token, live: () => true })),
