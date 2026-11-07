@@ -14,6 +14,7 @@ import StagePill from '../../shared/kit/shell/StagePill.svelte'
 import { shellModeAt } from '../../shared/kit/shell/shell-mode'
 import IconButton from '../../shared/kit/widgets/IconButton.svelte'
 import type { Camera } from '../../shared/level-2d/canvas/level-view'
+import type { ViewProps } from '../../shared/level-2d/documents/view-props'
 import { projectHistory } from '../../shared/level-2d/model/edit-history'
 import type { Project, WorldLayout } from '../../shared/level-2d/model/project-types'
 import { addLevel } from '../../shared/level-2d/model/world/level-edits'
@@ -26,7 +27,6 @@ import {
   newLevelInput,
   worldRects,
 } from '../../shared/level-2d/model/world/world-model'
-import type { ViewProps } from '../document/view-props'
 import WorldCanvas from './WorldCanvas.svelte'
 import WorldInspector from './WorldInspector.svelte'
 import WorldPanel from './WorldPanel.svelte'

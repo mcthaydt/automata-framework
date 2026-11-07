@@ -4,7 +4,7 @@
 -->
 <script lang="ts">
 import EditorShell from '../../shared/kit/shell/EditorShell.svelte'
-import type { ViewProps } from './view-props'
+import type { ViewProps } from '../../shared/level-2d/documents/view-props'
 
 const { geometry, label, frame }: ViewProps = $props()
 </script>

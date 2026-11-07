@@ -8,14 +8,12 @@
 <script lang="ts">
 import type { GeometryState } from '@automata/framework'
 import { type Component, onDestroy } from 'svelte'
-import DocumentScreen from '../../features/document/DocumentScreen.svelte'
 import {
   createDocumentController,
   type DocumentController,
 } from '../../features/document/document-controller'
 import ErrorPanel from '../../features/document/ErrorPanel.svelte'
 import ProfileChoice from '../../features/document/ProfileChoice.svelte'
-import type { LevelCanvasProps, ObjectUrls } from '../../features/document/view-props'
 import Home from '../../features/home/Home.svelte'
 import { createHomeController, type LastOpened } from '../../features/home/home-controller'
 import type { LifecycleDocument, LifecycleWindow } from '../../shared/kit/storage/page-lifecycle'
@@ -24,8 +22,10 @@ import type { ToastStore } from '../../shared/kit/widgets/toasts'
 import type { LevelThumbnails } from '../../shared/level-2d/canvas/level-thumbnails'
 import type { EditorApp } from '../../shared/level-2d/documents/editor-app'
 import type { ChoiceOutcome, PanelOutcome } from '../../shared/level-2d/documents/open-flow-model'
+import type { LevelCanvasProps, ObjectUrls } from '../../shared/level-2d/documents/view-props'
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import type { ProfileRegistry } from '../../shared/level-2d/profiles/profile'
+import DocumentScreen from './DocumentScreen.svelte'
 
 interface Props {
   geometry: GeometryState

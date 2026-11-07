@@ -10,7 +10,14 @@
 <script lang="ts">
 import type { GeometryState } from '@automata/framework'
 import type { Component, Snippet } from 'svelte'
-import { componentOf } from '../../app/editor-2d/views'
+import DocumentBar from '../../features/document/DocumentBar.svelte'
+import type { DocumentController, DocumentState } from '../../features/document/document-controller'
+import LeaveDialog from '../../features/document/LeaveDialog.svelte'
+import RenameDialog from '../../features/document/RenameDialog.svelte'
+import ViewSwitcher from '../../features/document/ViewSwitcher.svelte'
+import { routeOf, viewsOf } from '../../features/document/view-router'
+import Problems from '../../features/problems/Problems.svelte'
+import ShareMenu from '../../features/share/ShareMenu.svelte'
 import ConflictDialog from '../../shared/kit/dialogs/ConflictDialog.svelte'
 import RecoveryDialog from '../../shared/kit/dialogs/RecoveryDialog.svelte'
 import type { GestureClock } from '../../shared/kit/gestures/gesture-clock'
@@ -19,16 +26,14 @@ import type { ProjectStore } from '../../shared/kit/storage/project-store'
 import type { Workspace } from '../../shared/kit/storage/workspace'
 import ToastRegion from '../../shared/kit/widgets/ToastRegion.svelte'
 import type { ToastStore } from '../../shared/kit/widgets/toasts'
+import type {
+  LevelCanvasProps,
+  ObjectUrls,
+  ViewServices,
+  WorldCanvasProps,
+} from '../../shared/level-2d/documents/view-props'
 import type { IdSource } from '../../shared/level-2d/model/ids'
-import Problems from '../problems/Problems.svelte'
-import ShareMenu from '../share/ShareMenu.svelte'
-import DocumentBar from './DocumentBar.svelte'
-import type { DocumentController, DocumentState } from './document-controller'
-import LeaveDialog from './LeaveDialog.svelte'
-import RenameDialog from './RenameDialog.svelte'
-import ViewSwitcher from './ViewSwitcher.svelte'
-import type { LevelCanvasProps, ObjectUrls, ViewServices, WorldCanvasProps } from './view-props'
-import { routeOf, viewsOf } from './view-router'
+import { componentOf } from './views'
 
 interface Props {
   geometry: GeometryState

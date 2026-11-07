@@ -15,8 +15,8 @@ import { levelImages } from '../../shared/level-2d/canvas/draw/level-images'
 import { plainDrawView } from '../../shared/level-2d/canvas/level-thumbnails'
 import { createTextureManager } from '../../shared/level-2d/canvas/textures.manager'
 import { createWorldView, type WorldView } from '../../shared/level-2d/canvas/world-view'
+import type { WorldCanvasProps } from '../../shared/level-2d/documents/view-props'
 import type { Size } from '../../shared/level-2d/model/project-types'
-import type { WorldCanvasProps } from '../document/view-props'
 
 const { project, read, rects, camera, links }: WorldCanvasProps = $props()
 

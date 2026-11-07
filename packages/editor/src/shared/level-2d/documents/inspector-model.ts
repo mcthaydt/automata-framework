@@ -1,10 +1,10 @@
 import type { FieldDef, FieldValues } from '@automata/content/level-2d'
-import { type FieldRow, fieldRow } from '../../shared/kit/fields/field-row.ts'
-import { valuesWithDefaults } from '../../shared/kit/fields/field-values.ts'
-import type { EntityDef2D, EntityInstance, Project, Size } from '../../shared/level-2d/model/project-types'
-import { refName, refTargets } from '../../shared/level-2d/model/refs/ref-links'
-import { isRefValue } from '../../shared/level-2d/model/refs/ref-resolve'
-import { findLevel } from '../../shared/level-2d/model/world/level-edits'
+import { type FieldRow, fieldRow } from '../../kit/fields/field-row.ts'
+import { valuesWithDefaults } from '../../kit/fields/field-values.ts'
+import type { EntityDef2D, EntityInstance, Project, Size } from '../model/project-types'
+import { refName, refTargets } from '../model/refs/ref-links'
+import { isRefValue } from '../model/refs/ref-resolve'
+import { findLevel } from '../model/world/level-edits'
 
 // What the Level view's inspector shows: one row per typed
 // field, naming the kit control that edits it, for the chosen instance and, with nothing chosen, the level. The

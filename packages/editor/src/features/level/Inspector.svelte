@@ -7,10 +7,10 @@
   a column in `wide`, a drawer in `medium`, a sheet in `compact`.
 -->
 <script lang="ts">
+import { entityInspector, levelInspector } from '../../shared/level-2d/documents/inspector-model'
 import type { EditHistory } from '../../shared/level-2d/model/edit-history'
 import type { Project } from '../../shared/level-2d/model/project-types'
 import EntityTab from './EntityTab.svelte'
-import { entityInspector, levelInspector } from './inspector-model'
 import LevelTab from './LevelTab.svelte'
 
 interface Props {

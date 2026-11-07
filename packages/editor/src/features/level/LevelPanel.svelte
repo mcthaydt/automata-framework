@@ -6,8 +6,8 @@
 <script lang="ts">
 import { onDestroy } from 'svelte'
 import type { History } from '../../shared/kit/history/history'
+import type { ObjectUrls } from '../../shared/level-2d/documents/view-props'
 import { type PaletteItem, paletteOf } from '../../shared/level-2d/tiles/palette-model'
-import type { ObjectUrls } from '../document/view-props'
 import LayersPanel from './LayersPanel.svelte'
 import type { LevelSession } from './level-session'
 import { levelState } from './level-state.svelte'

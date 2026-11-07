@@ -1,7 +1,7 @@
 import type { FieldDef } from '@automata/content/level-2d'
 import { describe, expect, it } from 'vitest'
-import { entityInspector, levelInspector } from '#src/features/level/inspector-model.ts'
 import { fieldRow } from '#src/shared/kit/fields/field-row.ts'
+import { entityInspector, levelInspector } from '#src/shared/level-2d/documents/inspector-model.ts'
 import { placeEntity, setEntityField } from '#src/shared/level-2d/model/commands/entity-edits.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'

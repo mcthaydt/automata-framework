@@ -1,14 +1,14 @@
 import type { GeometryState } from '@automata/framework'
 import type { Component, Snippet } from 'svelte'
-import type { GestureClock } from '../../shared/kit/gestures/gesture-clock'
-import type { ProjectStore } from '../../shared/kit/storage/project-store'
-import type { DrawView } from '../../shared/level-2d/canvas/draw/draw-list-types'
-import type { Camera } from '../../shared/level-2d/canvas/level-view'
-import type { OpenDocument } from '../../shared/level-2d/documents/editor-app'
-import type { IdSource } from '../../shared/level-2d/model/ids'
-import type { Project } from '../../shared/level-2d/model/project-types'
-import type { WorldLink } from '../../shared/level-2d/model/world/world-links'
-import type { WorldRect } from '../../shared/level-2d/model/world/world-model'
+import type { GestureClock } from '../../kit/gestures/gesture-clock'
+import type { ProjectStore } from '../../kit/storage/project-store'
+import type { DrawView } from '../canvas/draw/draw-list-types'
+import type { Camera } from '../canvas/level-view'
+import type { IdSource } from '../model/ids'
+import type { Project } from '../model/project-types'
+import type { WorldLink } from '../model/world/world-links'
+import type { WorldRect } from '../model/world/world-model'
+import type { OpenDocument } from './editor-app'
 
 // What every view (Level, Map, Tiles, Characters) is given. The document screen draws the parts every view shares (the
 // top bar with its view switcher, the dialogs and toasts; no rail, no status bar) as snippets, and the view places them
