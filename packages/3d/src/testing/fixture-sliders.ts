@@ -1,4 +1,4 @@
-// The sliders of the two fixture figures (testing/fixtures/content/figures/*.toml), for tests that need a
+// The sliders of the two fixture figures (tests/fixtures/content/figures/*.toml), for tests that need a
 // skeleton without compiling content. figures-content.test.ts checks the TOML files say the same.
 
 import type { Sliders } from '../features/figures/body/genes.ts'

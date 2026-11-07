@@ -6,5 +6,5 @@
     // Relative imports name their `.ts` file (one style); this package never emits.
     "allowImportingTsExtensions": true
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "tests/**/*.ts"]
 }

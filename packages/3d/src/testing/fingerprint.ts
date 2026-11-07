@@ -1,4 +1,4 @@
-// A part's geometry fingerprint, for the FigureBuilder goldens (testing/__goldens__/figurebuilder-dress.json).
+// A part's geometry fingerprint, for the FigureBuilder goldens (tests/fixtures/__goldens__/figurebuilder-dress.json).
 // The same function runs in build.test.ts on AF's parts and in scripts/figurebuilder-goldens.ts on
 // FigureBuilder's, so it imports nothing (the script loads it with Node's type stripping).
 //

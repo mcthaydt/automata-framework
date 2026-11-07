@@ -24,6 +24,9 @@
     "./sim": "./src/entries/sim.ts",
     "./testing": "./src/entries/testing.ts"
   },
+  "imports": {
+    "#src/*": "./src/*"
+  },
   "automata": {
     "simEntries": [
       "./sim",
@@ -31,10 +34,10 @@
     ]
   },
   "scripts": {
-    "bench": "vitest run --project bench",
-    "test": "vitest run --project unit",
+    "bench": "AF_BENCH=1 vitest run --project bench",
+    "test": "vitest run",
     "test:unit": "vitest run --project unit",
-    "test:browser": "vitest run --project browsers",
+    "test:browser": "vitest run --project browser",
     "typecheck": "tsc -p ."
   },
   "dependencies": {
@@ -51,6 +54,7 @@
     "pixi.js": "8.22.0"
   },
   "devDependencies": {
+    "@automata/vitest-preset": "workspace:*",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",
     "@vitest/browser-playwright": "5.0.3",

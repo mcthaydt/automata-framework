@@ -1,4 +1,4 @@
-// A world pose's fingerprint, for the FigureBuilder motion goldens (testing/__goldens__/figurebuilder-motion.json).
+// A world pose's fingerprint, for the FigureBuilder motion goldens (tests/fixtures/__goldens__/figurebuilder-motion.json).
 // The same function runs in the motion tests on AF's world matrices and in scripts/figurebuilder-motion-goldens.ts
 // on FigureBuilder's, so it imports nothing (the script loads it with Node's type stripping).
 //

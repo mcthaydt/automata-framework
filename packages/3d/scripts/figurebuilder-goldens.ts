@@ -1,5 +1,5 @@
 // Writes (or checks) the FigureBuilder goldens that build.test.ts compares build() against
-// (src/testing/__goldens__/figurebuilder-dress.json): FigureBuilder's own dress() on every outfit of
+// (src/tests/fixtures/__goldens__/figurebuilder-dress.json): FigureBuilder's own dress() on every outfit of
 // src/testing/golden-outfits.ts, each part fingerprinted by src/testing/fingerprint.ts, with the outfit's anchors
 // and its arms' clearance. M3.5b plan, decision 12.
 //
@@ -24,7 +24,7 @@ import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const here = import.meta.dirname
-const GOLDEN = join(here, '../src/testing/__goldens__/figurebuilder-dress.json')
+const GOLDEN = join(here, '../tests/fixtures/__goldens__/figurebuilder-dress.json')
 const [source, flag] = process.argv.slice(2)
 if (!source) {
   console.error('usage: node figurebuilder-goldens.ts <FigureBuilder checkout> [--check]')

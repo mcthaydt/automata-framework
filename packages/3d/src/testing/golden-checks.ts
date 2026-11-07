@@ -1,15 +1,15 @@
-// The FigureBuilder golden checks (testing/__goldens__/figurebuilder-dress.json), shared by build.test.ts, which runs
+// The FigureBuilder golden checks (tests/fixtures/__goldens__/figurebuilder-dress.json), shared by build.test.ts, which runs
 // them in Node, and build/golden.parity.test.ts, which runs the same checks in Chromium, WebKit and Firefox. The
 // goldens are a JSON import, not a file read, so this module loads in a browser page too.
 
 import { expect } from 'vitest'
+import goldens from '../../tests/fixtures/__goldens__/figurebuilder-dress.json' with { type: 'json' }
 import { JOINTS } from '../features/figures/body/rig.ts'
 import type { Built, FigureLibrary } from '../features/figures/figure/build.ts'
 import { build } from '../features/figures/figure/build.ts'
 import type { FigureDef } from '../features/figures/figure/figure.schema.ts'
 import { skeleton } from '../features/figures/figure/figure-skeleton.ts'
 import type { Garment } from '../features/figures/figure/garment.schema.ts'
-import goldens from './__goldens__/figurebuilder-dress.json' with { type: 'json' }
 import { type Fingerprint, fingerprint, type Moments } from './fingerprint.ts'
 import type { GoldenOutfit } from './golden-outfits.ts'
 

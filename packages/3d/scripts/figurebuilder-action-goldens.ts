@@ -1,4 +1,4 @@
-// Writes the action goldens (src/testing/__goldens__/figurebuilder-actions.json): FigureBuilder's own `reach`,
+// Writes the action goldens (src/tests/fixtures/__goldens__/figurebuilder-actions.json): FigureBuilder's own `reach`,
 // `look` and `flinch` end poses on Wick's body, which the fixture clips (`figure-clips/{reach,look,flinch}.toml`)
 // must match within 1e-3 figure units (M3 spec §4.4.4, F-g; M3.6d plan, decision 13). It also prints the numbers
 // those clips are written from: the neck's and head's local turns equal to FigureBuilder's change of its head
@@ -16,7 +16,7 @@ import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const here = import.meta.dirname
-const GOLDEN = join(here, '../src/testing/__goldens__/figurebuilder-actions.json')
+const GOLDEN = join(here, '../tests/fixtures/__goldens__/figurebuilder-actions.json')
 const [source, flag] = process.argv.slice(2)
 if (!source) {
   console.error('usage: node figurebuilder-action-goldens.ts <FigureBuilder checkout> [--check]')

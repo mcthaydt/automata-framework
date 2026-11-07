@@ -1,4 +1,4 @@
-# Copied into base-3d from figures' test fixtures (packages/3d/src/testing/fixtures/content at 077484c7).
+# Copied into base-3d from figures' test fixtures (packages/3d/tests/fixtures/content at 077484c7).
 # A fixture pose (M3 spec §4.4.3), for tests and examples; no game's. Figure units, root space unless a handle says.
 
 about = "Standing easy: the hands hanging a little out and forward, the chest up a touch, the chin level."

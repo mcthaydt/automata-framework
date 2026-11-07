@@ -1,5 +1,5 @@
 // Writes (or checks) the FigureBuilder motion goldens that the motion tests compare against
-// (src/testing/__goldens__/figurebuilder-motion.json): FigureBuilder's own `base()`, `evaluate()`, item holds,
+// (src/tests/fixtures/__goldens__/figurebuilder-motion.json): FigureBuilder's own `base()`, `evaluate()`, item holds,
 // `standHolds` and hair spring, each world pose fingerprinted by src/testing/motion-fingerprint.ts. M3.5c plan,
 // decision 9.
 //
@@ -19,7 +19,7 @@ import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const here = import.meta.dirname
-const GOLDEN = join(here, '../src/testing/__goldens__/figurebuilder-motion.json')
+const GOLDEN = join(here, '../tests/fixtures/__goldens__/figurebuilder-motion.json')
 const [source, flag] = process.argv.slice(2)
 if (!source) {
   console.error('usage: node figurebuilder-motion-goldens.ts <FigureBuilder checkout> [--check]')

@@ -1,4 +1,4 @@
-// The fixture content (testing/fixtures/content) compiled once and handed to build(): its libraries and its
+// The fixture content (tests/fixtures/content) compiled once and handed to build(): its libraries and its
 // two figures, for the build, random-character and motion tests.
 
 import type { Gait } from '../features/figures/content/gait.schema.ts'
