@@ -86,8 +86,9 @@ step 4 in one pull request.
    written yet.
 2. **Point the domain at it.** `automataframework.com`: an apex record (or the host's `ALIAS`, `ANAME` or flattened
    `CNAME`), `www` redirecting to the apex, and HTTPS on at the host.
-3. **Name the project's addresses**, one for questions and one for security reports, on the project's own domain.
-   `pnpm --filter @automata/site check:launch` refuses a personal mailbox, so the deploy waits for them.
+3. **Make the project's address work.** The site names `hello@automataframework.com` for questions and security reports
+   (the Owner chose a project address over a personal mailbox, 2026-11-07); set up that mailbox or forward on the domain.
+   `pnpm --filter @automata/site check:launch` refuses a personal mailbox, and also fails until `@automata/tools` is on npmjs.org.
 4. **The agent's pull request:** the addresses in `site/src/shared/site.js` and `site/static/.well-known/security.txt`
    (a unit test keeps the two the same), the host's upload step in `site.yml` with the headers of
    `site/src/shared/html/security-headers.ts`, and these steps marked done. Merging it deploys.

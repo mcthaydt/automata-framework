@@ -234,7 +234,7 @@ on an upright phone the playing demo's wide frame made Emberwick ask for fullscr
 at the coordinator's ask: the platformer journey's two-finger undo runs on the test clock (it flaked once on #416).
 Next, in plan order: **19.2** (links, privacy, the closed-beta scan), 20.1 (the copy table), 21.1 (site workflow,
 legal, launch steps). Then the build is 64 of 68: 14.1 needs its own thread and branch (`claude/refactor-scope`,
-scope `@automata`); 14.2, 21.0's DNS and 21.2 are the Owner's. The Gmail in the footer still waits for the Owner. For
+scope `@automata`); 14.2, 21.0's DNS and 21.2 are the Owner's. The footer's Gmail was replaced by `hello@automataframework.com` on 2026-11-07 (the Owner's yes). For
 19.2: Emberwick's on-screen pad is `aria-hidden` with glyph-only buttons (the keys do the same); fine for a screen
 reader, but a candidate for phase 20's copy pass.
 
