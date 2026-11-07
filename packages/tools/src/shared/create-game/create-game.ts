@@ -333,7 +333,7 @@ export function createGame(options: CreateGameOptions): Effect.Effect<CreateGame
       return yield* Effect.fail(
         new CreateGameError({
           reason: 'invalid-id',
-          message: `Invalid game id "${options.id}". ID must be lowercase alphanumeric with hyphens (e.g. my-game).`,
+          message: `"${options.id}" can't be a game id. Use lowercase letters, digits and hyphens, like my-game.`,
         }),
       )
     }
@@ -352,7 +352,7 @@ export function createGame(options: CreateGameOptions): Effect.Effect<CreateGame
         return yield* Effect.fail(
           new CreateGameError({
             reason: 'target-directory-exists',
-            message: `Target directory "${options.targetDir}" already exists and is not empty.`,
+            message: `${options.targetDir} already has files in it. Pick a new folder.`,
           }),
         )
       }
@@ -387,7 +387,7 @@ export function createGame(options: CreateGameOptions): Effect.Effect<CreateGame
       return yield* Effect.fail(
         new CreateGameError({
           reason: 'write-failed',
-          message: `Failed to write template files: ${cause instanceof Error ? cause.message : String(cause)}`,
+          message: `Couldn't write the game's files: ${cause instanceof Error ? cause.message : String(cause)}`,
         }),
       )
     }

@@ -27,24 +27,25 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Where to resume (2026-11-05, ninth session)
+### Where to resume (2026-11-06, tenth session)
 
 The PRs are stacked and draft: #393 (4.3, 4.4) ← #394 (5.2, 5.3) ← #395 (6.1 to 6.4) ← #396 (7.1, 7.2 steps 1 and 2) ← #397
-(8.1, 8.2 part) ← #398 (7.2 step 3, 8.2 rest, 8.3) ← #399 (5.4 so far) ← #400 (5.4 finish). Next, in order:
+(8.1, 8.2 part) ← #398 (7.2 step 3, 8.2 rest, 8.3) ← #399 (5.4 so far) ← #400 (5.4 finish) ← #401 (8.1 finish).
 
-1. **5.4 is done** (#400, branch `claude/project-thread-eo8dhs`, stacked on #399): boot, `run-game`, the renderer and the
-   test harness are plain, the bridge and the Effect tags are gone, `effect` left `packages/automata`, and the
-   Emberwick bundle has no Effect in it (below). The plan's execution log has the detail (deviations 76 to 81).
-2. **8.1 rest:** the Settings sections' long strings, the CLI messages and the READMEs' first screens are still unchecked in
-   `copy.md`. Found by the create-game journey: the pause menu's close button and its Resume button share the name "Resume".
-3. **Consumer smoke after the package merge** (found by the first CI run, 2026-11-06; [comment on #400](https://github.com/mcthaydt/automata-framework/pull/400#issuecomment-6678595019)):
-   setup is fixed; 6 steps still fail: the Node fixture imports the old packages, the published Ruken `.d.ts` import
+**The build is done as far as it can go here.** 8.1 is finished (#401, branch `claude/project-thread-ttb6rx`): the copy
+table is checked end to end and the paused dialog's ✕ is `Close`. What is left needs someone outside this repository:
+
+1. **8.2 boot failure:** a request to Ruken for a refusal switch in the fake host (deviation 64).
+2. **9.2** waits for the Owner's go; **2.1**'s tag push is the Owner's (HTTP 403 from here).
+3. WebKit, Firefox and hosted CI runs for the whole stack.
+4. **Consumer smoke after the package merge** (found by the first CI run, 2026-11-06; [comment on #400](https://github.com/mcthaydt/automata-framework/pull/400#issuecomment-6678595019)):
+   setup is fixed; 6 steps still fail at #400: the Node fixture imports the old packages, the published Ruken `.d.ts` import
    `@ruken/sdk`, `./testing` does not publish `openHostingTest`, the packed tools bin has an `eval`, and the
    `automata-web` bundle fixture meets uncompiled `.svelte`. Needs its own task before the post-build audit.
-4. **8.2 boot failure:** a request to Ruken for a refusal switch in the fake host (deviation 64).
-5. **9.2** waits for the Owner's go.
 
-### Build: 73% (22 of 30 tasks)
+Next stage: the build audit (stage 5), over the stack from #388 to #401.
+
+### Build: 77% (23 of 30 tasks)
 
 Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) has the steps.
 
@@ -75,7 +76,7 @@ Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) h
 | 6.4 The surface | 6 | Done locally, 2026-11-05 (CI run pending): `@mcthaydt/automata` root 600 → 274 names; the ten API reports 2,109 → 1,783 exports (audit's 1,042 was counted differently); changeset `trim-the-root-entry` | PR to open |
 | 7.1 Docs and AGENTS.md | 7 | Done locally, 2026-11-05: `docs/archive/`, `docs/README.md`, `docs/status.md` (47 lines), `AGENTS.md` (88 lines), `examples/README.md` | PR to open |
 | 7.2 Comments that cite plans | 7 | Done locally, 2026-11-05: 762 hits rewritten (automata 399, sim 39, content 69, tools 113, tooling 142); `pnpm style` checks every core, 2D and tooling root | #398 |
-| 8.1 The copy table | 8 | Step 1 and 2 done locally for core screens, boot failure and Emberwick (`copy.md`); CLI messages, READMEs and Settings sections still to check | PR to open |
+| 8.1 The copy table | 8 | Done locally, 2026-11-06 (CI run pending): screens, Settings, saves, boot failure, Emberwick, the CLI and the READMEs' first screens (`copy.md`); the paused dialog's ✕ is `Close`, no longer a second "Resume" | #397, [#401](https://github.com/mcthaydt/automata-framework/pull/401) |
 | 8.2 New Emberwick journeys | 8 | Done locally except boot failure: pause on hide and the end screen added; touch-only and the examples' reload journeys already existed; slow load dropped (deviation 67); boot failure blocked on a refusal switch in Ruken's fake host (deviation 64) | #397, #398 |
 | 8.3 The `create-game` journey | 8 | Done locally, 2026-11-05 (Chromium, 1 of 1): it found that the template never booted a game; the template now runs on the default screens (deviation 68) | #398 |
 | 9.1 Prepare the branch clean-up | 9 | Done: `branches.md` and `pnpm branches:prune` (dry run only; nothing deleted) | |

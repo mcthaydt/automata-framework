@@ -163,13 +163,14 @@ describe('prepareBuild', () => {
       return dir
     }
 
-    it('stops a public build that contains @pixi/3d, with the D-1 reason, writing nothing', () => {
+    it('stops a public build that contains @pixi/3d, saying why and where it may go, writing nothing', () => {
       const dir = with3d()
       const error = failure(prepare({ distDir: dir, config }))
       expect(error._tag).toBe('Pixi3dInPublicBuild')
       const message = (error as unknown as { message: string }).message
       expect(message).toContain('assets/main.js')
-      expect(message).toContain('D-1')
+      expect(message).toContain('may not be shipped publicly yet')
+      expect(message).not.toContain('D-1')
       expect(existsSync(join(dir, 'ruken.toml'))).toBe(false)
     })
 

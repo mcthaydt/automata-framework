@@ -167,6 +167,7 @@ describe('default screens', () => {
           paused: {
             title: 'En pause',
             resume: 'Reprendre',
+            close: 'Fermer',
             back: 'Retour',
             mute: 'Couper le son',
             settings: 'Réglages',
@@ -192,7 +193,7 @@ describe('default screens', () => {
     expect(button('pause-mute')?.textContent?.trim()).toBe('Couper le son')
     expect(button('settings')?.textContent?.trim()).toBe('Réglages')
     expect(button('quit')?.textContent?.trim()).toBe('Quitter')
-    expect(paused.querySelector('button[aria-label="Reprendre"]')).not.toBeNull()
+    expect(paused.querySelector('button[aria-label="Fermer"]')).not.toBeNull()
     button('quit')?.click()
     await until(() => button('quit-confirm') !== null, 'the quit confirm')
     expect(button('quit-confirm')?.textContent?.trim()).toBe('Oui, quitter')
@@ -341,6 +342,8 @@ describe('default screens', () => {
       ),
     ).toEqual(['resume', 'pause-mute', 'settings', 'quit'])
     expect(document.activeElement).toBe(button('resume'))
+    // The corner ✕ is named Close, so a screen reader hears one Resume, not two.
+    expect(dialog?.querySelector('[data-modal-close]')?.getAttribute('aria-label')).toBe('Close')
 
     button('quit')?.click()
     await until(() => button('quit-confirm') !== null, 'the confirm')

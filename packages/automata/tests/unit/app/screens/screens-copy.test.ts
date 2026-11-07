@@ -30,6 +30,7 @@ describe('DEFAULT_SCREENS_COPY', () => {
     expect(DEFAULT_SCREENS_COPY.paused).toEqual({
       title: 'Paused',
       resume: 'Resume',
+      close: 'Close',
       back: 'Back',
       mute: 'Mute',
       unmute: 'Unmute',
@@ -58,6 +59,20 @@ describe('DEFAULT_SCREENS_COPY', () => {
     })
     expect(DEFAULT_SCREENS_COPY.board).toBe(BOARD_COPY)
     expect(DEFAULT_SCREENS_COPY.padUnsupported).toBe(PAD_UNSUPPORTED)
+  })
+
+  // The copy table (docs/refactor/copy.md): each Settings line says what is happening and what to do, in plain words.
+  it('says the Settings and save lines in plain words', () => {
+    expect(PROMPT_COPY.unbound).toBe('Not set')
+    expect(CONTROLS_COPY.capturing('Jump', 'Keyboard', 9)).toBe(
+      'Press a new keyboard button for Jump. 9 seconds left. Escape cancels.',
+    )
+    expect(CONTROLS_COPY.conflict('Jump', 'Fire')).toBe('Fire needs that one. Pick another for Jump.')
+    expect(AUDIO_COPY.muteUnfocused).toBe('Mute when you switch away')
+    expect(AUDIO_COPY.buses.master).toBe('All sound')
+    expect(DISPLAY_COPY.reducedMotion(true)).toBe('Reduced motion is on in your device’s settings.')
+    expect(DISPLAY_COPY.reducedMotion(false)).toBe('Reduced motion is off in your device’s settings.')
+    expect(SAVE_SLOTS_COPY.otherContent).toBe('From another version: it loads, but some things may reset')
   })
 })
 

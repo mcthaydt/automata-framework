@@ -63,7 +63,10 @@ describe('bin cli', () => {
 
       expect(code).toBe(0)
       expect(stderr).toBe('')
-      expect(stdout).toContain('Created game "My CLI Game" (my-cli-game)')
+      // It says what it made and the next three commands, so the first run needs no README.
+      expect(stdout).toBe(
+        `Created "My CLI Game" in ${testDir}.\nNext: cd ${testDir} && pnpm install && pnpm dev\n`,
+      )
       expect(existsSync(join(testDir, 'package.json'))).toBe(true)
     })
 
@@ -77,7 +80,7 @@ describe('bin cli', () => {
       })
 
       expect(code).toBe(1)
-      expect(stderr).toContain('target directory is required')
+      expect(stderr).toContain('Error: name a folder for the game, like: automata create-game my-game')
     })
 
     it('returns exit code 1 on invalid id', async () => {
@@ -90,7 +93,9 @@ describe('bin cli', () => {
       })
 
       expect(code).toBe(1)
-      expect(stderr).toContain('Invalid game id')
+      expect(stderr).toContain(
+        'Error: "INVALID_ID" can\'t be a game id. Use lowercase letters, digits and hyphens, like my-game.',
+      )
     })
 
     it('builds only for the targets --targets names', async () => {

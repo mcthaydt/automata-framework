@@ -2,7 +2,7 @@
 
 Each file here is one example of one feature, run by `pnpm examples` (the index) and checked by its journey in
 `examples/tests`. Emberwick, the 2D game, is in [`games/emberwick`](../games/emberwick/); the 3D game is in
-[`games/base-3d`](../games/base-3d/). Art keeps to the [art direction](../docs/art/README.md): Endesga 64.
+[`games/base-3d`](../games/base-3d/). Art keeps to the [art direction](../docs/art/README.md) and its Endesga 64 colour palette.
 
 A file starts with a header (what it shows, its controls, its base and its packages), and the catalog test checks it.
 

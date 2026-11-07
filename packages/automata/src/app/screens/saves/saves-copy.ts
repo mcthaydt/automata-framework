@@ -12,7 +12,7 @@ export const SAVE_SLOTS_COPY: SaveSlotsCopy = {
   empty: 'Empty',
   unreadable: "This save can't be opened",
   newer: 'Saved by a newer version of the game',
-  otherContent: 'Saved by another version of the game; your progress will load, the rest will not',
+  otherContent: 'From another version: it loads, but some things may reset',
   writing: 'Saving…',
   failed: "Couldn't save this slot",
   load: 'Continue',

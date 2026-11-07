@@ -124,7 +124,7 @@ $effect(() => {
 <div bind:this={root} class="af-game-menu" data-game-screen="paused">
   <Modal
     title={words.title}
-    closeLabel={view === 'menu' ? words.resume : words.back}
+    closeLabel={view === 'menu' ? words.close : words.back}
     onclose={back}
     testId="paused-screen"
     actions={view === 'elsewhere' ? choice : undefined}

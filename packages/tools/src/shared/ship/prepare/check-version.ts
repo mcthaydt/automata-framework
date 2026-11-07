@@ -4,5 +4,5 @@
  */
 export function checkVersion(version: string, tag: string | undefined): string | undefined {
   if (tag === undefined || tag === `v${version}`) return undefined
-  return `the game is at version ${version} but the tag is ${tag}`
+  return `the game is at version ${version} but the tag is ${tag}: tag it v${version}, or change the version to match`
 }

@@ -42,7 +42,7 @@ const cases = [
   [
     new EntryMissing({ entry: 'index.html', distDir: 'dist' }),
     'EntryMissing',
-    'the entry page index.html is not in dist',
+    'the entry page index.html is not in dist: build the game first',
   ],
   [new PublishRejected(failure), 'PublishRejected', 'ruken publish rejected the build (exit 1):\nno'],
   [new PublishUsage(failure), 'PublishUsage', 'ruken publish did not understand the command (exit 1):\nno'],

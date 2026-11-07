@@ -1783,6 +1783,7 @@ interface ScreensCopy {
     readonly paused: {
         readonly title: string;
         readonly resume: string;
+        readonly close: string;
         readonly back: string;
         readonly mute: string;
         readonly unmute: string;
