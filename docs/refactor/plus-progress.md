@@ -21,13 +21,25 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 | 1. Audit | Done, 2026-11-07, in `mcthaydt/automata-plus` PR #40 (head `4cb70b9`), moved here: C1 to C9, E1 to E4, L1 to L6, D1, G1 to G4, X1 to X4, P1 to P4; P-D1 to P-D11. P-D1: the Owner chose B (15:05) after A (15:02). `pnpm check` and the Chromium browser suites pass on Plus's pinned core | [audit](2026-11-07-plus-audit.md) |
 | 2. Plan and spec | Done, 2026-11-07, with the superpowers plugin (`brainstorming`, `writing-plans`), native: P-D2 to P-D11 decided (P-D11 departs from the audit: B, because core never imports an extension); 3 parts, 4 phases, 19 tasks; the 3D plan's tasks 7.1, 7.4 and 12.1 change (spec section 9) | [spec](2026-11-07-plus-port-spec.md), [plan](2026-11-07-plus-port-plan.md) |
 | 3. Plan audit | Done, 2026-11-07, with the superpowers plugin (`writing-plans`' self-review), native: 16 findings (F1 to F16), all fixed in the spec and the plan; P-D11 B confirmed sound with F5's fix; one change to the 3D plan's 7.1 (`zone`, `masses`, `cut`, `hideFrom` in `af-sector/2`, spec section 9). Spec accepted | [plan audit](2026-11-07-plus-port-plan-audit.md) |
-| 4. Build | Not started | |
+| 4. Build | In progress, PR #458 (on #457): phase 1 done and gated (tasks 1.1 to 1.4, 2.1); tasks 2.2 (physics, puzzle) and 2.3 (feel without Effect, audio-synth, debug) done; resume at task 2.4 (net without Effect). WebKit and Firefox parity pending on the Owner's Mac | [plan execution log](2026-11-07-plus-port-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-## Where to resume (2026-11-07, stage 3 done)
+## Where to resume (2026-11-07, stage 4 in progress)
 
-The build (Sonnet, high, `superpowers:executing-plans`, native, no subagents) starts at plan task 1.1 and works part A
-in order; part B's tasks each wait for the 3D task they name. Read the plan's Global Constraints and Review Focus first.
-The 3D build must apply spec section 9 (now including the 7.1 additions for `af-sector/2`) when it reaches 7.1, 7.4,
-12.1 and 12.2.
+Branch `claude/project-thread-d62n7h` (PR #458, on #457). Tasks 1.1 to 1.4 and 2.1 to 2.3 are done; the plan's execution log
+has each one's counts and the ledger (`.superpowers/sdd/2026-11-07-plus-port-plan/progress.md`, git-ignored) its rulings.
+Resume at **task 2.4, step 1**: `net` still depends on Effect in the page (`client/net-room.ts` is a scoped Effect
+service with `SubscriptionRef`, fibers and `Schedule`; `room-store.ts`, `make-net-session.ts`, `net-error.ts`, the
+`test-support` harness and the `testing/link*` files use it too, and the tests run on `TestClock`). Rewrite to promises
+and an injected `Clock` with the tests first, as the plan says, then the five moves for `net`, `net-ui` and `net-server`.
+The moves use `docs/refactor/move-map-plus.json` (rows per package, `entries` empty) with `node
+tooling/codemods/src/move-modules-cli.ts`, then `tooling/codemods/src/cli.ts <pkg> --environment node|jsdom
+--feature-folders`; a test file with an unknown qualifier (`x.settings.test.ts`) is renamed first. Per package afterwards:
+`package.json` exports and scripts, `vitest.config.ts` as `defineTests`, `tsconfig.json` includes `tests/**`, the root
+`package.json` `--features`, `--plan-comments`, `--test-imports` and `--forbid …:effect` lists, then `pnpm style`,
+`pnpm boundaries`, `pnpm source-names` and `pnpm knip`.
+
+`pnpm check` fails on one thing that is not this branch's: `tooling/api-report/reports/3d.api.md` is stale on the 3D
+build's branch, so the api-report unit test fails, and a commit needs `--no-verify` after the affected tests are run by hand.
+The 3D build must run `pnpm api-report --update`.
