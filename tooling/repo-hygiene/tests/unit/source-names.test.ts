@@ -50,6 +50,36 @@ describe('findSourceNames', () => {
     }
   })
 
+  it("stops the second builder's name", () => {
+    const sample = 'EnvironmentBuilder'
+    const root = tree({ 'agents/automata/skills/api/SKILL.md': `---\n---\n${sample}\n` })
+    expect(findSourceNames(root)).toEqual([
+      `agents/automata/skills/api/SKILL.md:3: names a source project (entry ${SOURCE_NAMES.length})`,
+    ])
+    expect(SOURCE_NAMES.at(-1)?.sample).toBe(sample)
+  })
+
+  it('reads .ts, .mjs and .json under agents/ (the mirror copies them all)', () => {
+    const sample = SOURCE_NAMES[0]?.sample ?? ''
+    const root = tree({
+      'agents/automata/scripts/check.mjs': `// ${sample}\n`,
+      'agents/automata/skills/feature/example/src/a.ts': `// ${sample}\n`,
+      'agents/automata/.claude-plugin/plugin.json': `{ "description": "${sample}" }\n`,
+      'agents/automata/notes.txt': `${sample}\n`,
+    })
+    expect(findSourceNames(root)).toEqual([
+      'agents/automata/.claude-plugin/plugin.json:1: names a source project (entry 1)',
+      'agents/automata/scripts/check.mjs:1: names a source project (entry 1)',
+      'agents/automata/skills/feature/example/src/a.ts:1: names a source project (entry 1)',
+    ])
+  })
+
+  it('still skips agents/**/node_modules', () => {
+    const sample = SOURCE_NAMES[0]?.sample ?? ''
+    const root = tree({ 'agents/automata/node_modules/p/index.ts': `// ${sample}\n` })
+    expect(findSourceNames(root)).toEqual([])
+  })
+
   it('leaves text that is not a published surface alone (provenance, plans, source comments)', () => {
     const sample = SOURCE_NAMES[0]?.sample ?? ''
     const root = tree({

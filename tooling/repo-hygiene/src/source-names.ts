@@ -16,27 +16,37 @@ export const SOURCE_NAMES: readonly SourceName[] = [
   { pattern: /pixijs3d[\s_-]?experiment/i, sample: 'PixiJS3D_Experiment_001' },
   { pattern: /figure[\s_-]?builder/i, sample: 'FigureBuilder' },
   { pattern: /legacy[\s_-]?v2/i, sample: 'LegacyV2' },
+  { pattern: /environment[\s_-]?builder/i, sample: 'EnvironmentBuilder' },
 ]
 
 /** The folders under `docs/` that are records: they name the source projects as evidence, by design. */
 const RECORD_FOLDERS: ReadonlySet<string> = new Set(['adr', 'archive', 'provenance', 'refactor'])
 
-/** Every `.md` file below `dir`, skipping `node_modules` and, under `docs/`, the record folders (the ADRs cite where each decision came from). */
-function markdownBelow(dir: string, skip: ReadonlySet<string> = new Set()): string[] {
+const MARKDOWN: readonly string[] = ['.md']
+/** Everything the public mirror copies from `agents/`: text, the example's code, the hook and the manifests. */
+const AGENT_FILES: readonly string[] = ['.md', '.ts', '.mjs', '.json']
+
+/** Every file below `dir` with one of `extensions`, skipping `node_modules` and, under `docs/`, the record folders (the ADRs cite where each decision came from). */
+function filesBelow(
+  dir: string,
+  extensions: readonly string[],
+  skip: ReadonlySet<string> = new Set(),
+): string[] {
   if (!existsSync(dir)) return []
   return readdirSync(dir, { withFileTypes: true })
     .sort((a, b) => a.name.localeCompare(b.name))
     .flatMap((entry) => {
       const path = join(dir, entry.name)
       if (entry.isDirectory())
-        return entry.name === 'node_modules' || skip.has(entry.name) ? [] : markdownBelow(path)
-      return entry.name.endsWith('.md') ? [path] : []
+        return entry.name === 'node_modules' || skip.has(entry.name) ? [] : filesBelow(path, extensions)
+      return extensions.some((extension) => entry.name.endsWith(extension)) ? [path] : []
     })
 }
 
 /**
  * The text AF publishes or a reader opens: each package's changelog and README, the root README, the agent package
- * (its skills and the generated API reference, which copies doc comments) and `docs/` (the cheatsheet among them)
+ * (everything the public mirror copies: its skills, the generated API reference, which copies doc comments, the example,
+ * the hook and the manifests) and `docs/` (the cheatsheet among them)
  * outside the record folders.
  */
 function publishedSurfaces(root: string): string[] {
@@ -49,8 +59,8 @@ function publishedSurfaces(root: string): string[] {
   return [
     ...perPackage,
     join(root, 'README.md'),
-    ...markdownBelow(join(root, 'agents')),
-    ...markdownBelow(join(root, 'docs'), RECORD_FOLDERS),
+    ...filesBelow(join(root, 'agents'), AGENT_FILES),
+    ...filesBelow(join(root, 'docs'), MARKDOWN, RECORD_FOLDERS),
   ].filter(existsSync)
 }
 
