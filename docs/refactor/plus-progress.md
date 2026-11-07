@@ -25,7 +25,7 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-## The refactor's record (task 5.5, draft: 3.8 and 3.9 are not in yet)
+## The refactor's record (task 5.5, draft: 3.9 is not in yet)
 
 Lines of TypeScript from `wc -l`, `src` without test files, and test files alone, in `mcthaydt/automata-plus` at `1766c62` (before) and in `extensions/` on this branch (after). `server` is `net-server` now.
 
@@ -46,7 +46,7 @@ Lines of TypeScript from `wc -l`, `src` without test files, and test files alone
 | `systems` | 3443 | 3447 | 1359 | 1397 |
 | all thirteen | 26626 | 28078 | 20449 | 20990 |
 
-Read it plainly: the thirteen did **not** get smaller, they got more structured. `src` grew by 5.5% (26,626 to 28,078) and tests by 2.6%, because every package gained its `entries/`, `app/` and feature folders, the packages that lost Effect (`feel`, `net`) gained a small watchable and a stopper in its place, and the packages that moved onto core's level geometry (`sectors`, `cutscenes`) gained the code that calls it. Where the refactor removed duplicated work, it shows only inside the figures: `sectors` 1,007 to 1,061 *after* dropping its own copy of the level geometry (`resolveLevel` now comes from core). Two new extensions came out of core's scope trim and have no "before" in Plus: `character-kit` (2,060 lines of `src` against the 2,317 that left core) and `world-kit` (3,503; its generators 1,379 against 1,488). The kits' own rows and the three browser-checked packages will be added when 3.8 and 3.9 land.
+Read it plainly: the thirteen did **not** get smaller, they got more structured. `src` grew by 5.5% (26,626 to 28,078) and tests by 2.6%, because every package gained its `entries/`, `app/` and feature folders, the packages that lost Effect (`feel`, `net`) gained a small watchable and a stopper in its place, and the packages that moved onto core's level geometry (`sectors`, `cutscenes`) gained the code that calls it. Where the refactor removed duplicated work, it shows only inside the figures: `sectors` 1,007 to 1,061 *after* dropping its own copy of the level geometry (`resolveLevel` now comes from core). Two new extensions came out of core's scope trim and have no "before" in Plus: `character-kit` (2,060 lines of `src` against the 2,317 that left core) and `world-kit` (5,438 with the textures, checks and sky passes; its generators 1,379 against 1,488). The three browser-checked packages and the examples will be added when 3.9 lands.
 
 Findings left open, each with its reason:
 
@@ -58,9 +58,9 @@ Findings left open, each with its reason:
 
 ## Where to resume (2026-11-07, stage 4 in progress)
 
-Branch `claude/project-thread-d62n7h` (PR #458, on #457). Tasks 1.1 to 1.4, 2.1 to 2.8, 3.1 to 3.4, 3.6, 3.7, 4.1 and 5.1 to 5.4 are done; the plan's execution log
+Branch `claude/project-thread-d62n7h` (PR #458, on #457). Tasks 1.1 to 1.4, 2.1 to 2.8, 3.1 to 3.4, 3.6 to 3.8, 4.1 and 5.1 to 5.4 are done; the plan's execution log
 has each one's counts and the ledger (`.superpowers/sdd/2026-11-07-plus-port-plan/progress.md`, git-ignored) its rulings.
-Next: **3.8** (3D 8.2 is merged in at `f162412c`: `addLookPass`, `Look`, the DUEL snap and outline effects; 3.7 is done); 3.5 needs 3D 12.1, and 4.2 closes. 3.9 on 3.6 to 3.8 and 12.1, and 5.5 closes the refactor. 3.7 and 3.8 were amended at 20:01 (the base pair, the base interior and exterior and the sky stay in 3D core; see the plan).
+Next: 3.5 and 3.9 wait on 3D 12.1 (not landed); then 5.5 (the final numbers) and 4.2 close. 3.8 is done (3D 8.2 is merged in at `246be0f6`). 3.9 on 3.6 to 3.8 and 12.1, and 5.5 closes the refactor. 3.7 and 3.8 were amended at 20:01 (the base pair, the base interior and exterior and the sky stay in 3D core; see the plan).
 The moves use `docs/refactor/move-map-plus.json` (rows per package, `entries` empty; give the mover a temporary map whose
 `sources` holds only the package being moved) with `node tooling/codemods/src/move-modules-cli.ts --map <map>`, then
 `tooling/codemods/src/cli.ts <pkg> --environment node|jsdom --feature-folders`; a test file with an unknown qualifier

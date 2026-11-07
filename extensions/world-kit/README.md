@@ -54,6 +54,39 @@ const { level } = dressLevel(generateMap('apartment', 7), worldKitLibrary)
 and lamps. Both ask for their rooms to be furnished, so run them through `dressLevel`. `dressedBaseScenes` has core's
 plain base interior and exterior with a waiting room and a street added, for judging a look change.
 
+## Photo textures
+
+Every material is a photo. `assets/photos/` holds 38 CC0 photos (`photos.json` has each one's source, licence and
+credit), and `library/tiles/` holds the small DUEL tile each swatch is drawn with. A tile is made from its photo by
+`photoToTile`: flatten, facet, scale down, index to the palette, wear, clean. It is deterministic, so the committed
+tile is checked, not trusted: it carries its photo's sha-256, and a missing, stray or stale tile is an error.
+
+```sh
+pnpm exec automata-world-textures --check   # do the committed tiles match their photos?
+pnpm exec automata-world-textures --out out/tiles   # draw them again
+```
+
+## Checks
+
+- `checkReads(level, library, photos)` tells you which swatch misses the look it declared in `reads` (too blotchy, too
+  flat, too few colours) as a `swatch-reads` problem.
+- `readsAgainst(figure, room, camera)` says whether a figure still stands out against the room behind it. It works on
+  the pixels of a frame you drew, so it runs in Node.
+
+## Sky passes
+
+`@automata/world-kit/sky` adds stars, rain and a glow to core's look. Each is a pass that runs after core's DUEL snap and
+lands on whole palette steps, and each has its own switch (stars and glow are on, rain is off unless you give it). The stars
+are as thick as the time of day says. A game that does not add them draws core's look unchanged.
+
+```ts
+import { addSkyPasses } from '@automata/world-kit/sky'
+
+addSkyPasses({ stars: true, glow: true, rain: { density: 0.3 } })
+```
+
+Call it once before the renderer is made; a second call throws, because the pass names are taken.
+
 ## Add your own
 
 Props, swatches and kits are data. Put a TOML file in `content/world-props`, `content/world-swatches` or
