@@ -112,3 +112,24 @@ search dialog's keyboard line is left), and L3 to L5 and L7 went with the old Ho
 Left, by task: the docs sidebar and "On this page" links (M1, 18.4), the API page length (H4, 18.4), the first example
 (H5) and the phone-landscape fold (M3) in 18.2's Step V, the cheatsheet's small targets (the page is cut in 18.1), and
 the editors page (M5, 18.3). Rerun this audit after 18.4.
+
+## 6. Rerun after 18.4 and 18.5 (session 22, 2026-11-07)
+
+The same `run.cjs` against the built site (`scripts/serve-static.ts build 4417`), over the 35 pages of its sitemap and
+the 404: 216 page and size pairs. The page list changed with 18.1 and 18.4 (the cut pages and the site's own docs now
+redirect), so the counts are per page that exists.
+
+| Check | Section 5 | Now |
+|---|---|---|
+| Sideways scroll | 0 | 0 |
+| Page errors | the 404 and the API package page | the 404 only (expected); the API pages fold, so they capture |
+| Text under 12 px | 6 | 0 |
+| Tap targets under 44 px | 4,938 | 30, all on Start: its two upstream links (22 px tall) and three checkboxes (20 px) |
+
+Fixed after the run: Start's two upstream links are 44 px tall. The checkboxes stay 20 px; their labels, the whole
+row, are 48 px, and a tap on a label ticks the box. The site's browser suite now holds every page to this at all six
+sizes (`tests/e2e/site.e2e.ts`, "big enough to tap"), with the touch hint (L1) and the opaque phone menu (M4).
+
+H4 is closed: an API package page is one and a half phone screens with its groups folded (it was too tall to capture).
+M1 is closed for links and buttons. Left: M2's code-block wrapping was checked by eye in section 5 and has no
+browser rule yet.
