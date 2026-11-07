@@ -82,6 +82,17 @@ describe('LevelCanvas', () => {
     expect(getComputedStyle(canvas as HTMLCanvasElement).visibility).toBe('visible')
   })
 
+  it('publishes the camera it drew with, so a journey can tap a cell (data-camera: x,y,scale)', async () => {
+    const { host, rerender } = mountCanvas([])
+    await drawn(host)
+    // With no camera it fits the level to its 320 x 200 box: a scale, and an offset that centres it.
+    const [x, y, scale] = (host.dataset['camera'] ?? '').split(',').map(Number)
+    expect(scale).toBeGreaterThan(0)
+    expect(Number.isFinite(x) && Number.isFinite(y)).toBe(true)
+    await rerender({ camera: { x: 4, y: 8, scale: 2 } })
+    await expect.poll(() => host.dataset['camera']).toBe('4,8,2')
+  })
+
   it('follows its box: a new size resizes the drawing buffer', async () => {
     const { host } = mountCanvas([])
     await drawn(host)

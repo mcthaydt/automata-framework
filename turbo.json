@@ -27,6 +27,11 @@
     "test:e2e": {
       "cache": false,
       "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
+    },
+    "@mcthaydt/automata-editor#test:e2e": {
+      "dependsOn": ["build", "@mcthaydt/automata-tools#build"],
+      "cache": false,
+      "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
     }
   }
 }

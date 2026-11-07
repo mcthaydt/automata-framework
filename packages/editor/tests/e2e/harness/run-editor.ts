@@ -1,0 +1,59 @@
+// The real `automata editor`, as a game maker runs it: the built tools' bin on a game folder, on a free port. It
+// resolves once the command prints its address, so a journey opens exactly what a person would open.
+import { type ChildProcess, spawn } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
+
+/** `packages/tools/dist/bin.js`: build the tools first (`pnpm --filter @mcthaydt/automata-tools build`). */
+const BIN = fileURLToPath(new URL('../../../../tools/dist/bin.js', import.meta.url))
+
+export interface RunningEditor {
+  /** The address the command printed under "This computer". */
+  readonly url: string
+  /** Stops the command (Ctrl+C) and waits for it to exit. */
+  readonly stop: () => Promise<void>
+}
+
+/** The address on the command's "This computer:" line, or undefined before it is printed. */
+export function printedAddress(output: string): string | undefined {
+  return /This computer: (http:\/\/\S+)/.exec(output)?.[1]
+}
+
+export function runEditor(gameDir: string, args: readonly string[] = []): Promise<RunningEditor> {
+  const child = spawn(process.execPath, [BIN, 'editor', gameDir, '--port', '0', ...args], {
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+  return new Promise((resolve, reject) => {
+    let output = ''
+    const fail = (reason: string) => reject(new Error(`automata editor ${reason}:\n${output}`))
+    // A command that has printed nothing in 30 s is stuck (the editor build is missing, or the port is taken).
+    const timer = setTimeout(() => {
+      child.kill()
+      fail('printed no address in 30 s')
+    }, 30_000)
+    const read = (chunk: Buffer) => {
+      output += chunk.toString()
+      const url = printedAddress(output)
+      if (url === undefined) return
+      clearTimeout(timer)
+      child.stdout?.off('data', read)
+      resolve({ url, stop: () => stopProcess(child) })
+    }
+    child.stdout?.on('data', read)
+    child.stderr?.on('data', (chunk: Buffer) => {
+      output += chunk.toString()
+    })
+    child.on('exit', (code) => {
+      clearTimeout(timer)
+      fail(`exited with ${code} before printing its address`)
+    })
+  })
+}
+
+/** SIGINT, as Ctrl+C sends, then the exit. A process that has already exited resolves at once. */
+export function stopProcess(child: ChildProcess): Promise<void> {
+  if (child.exitCode !== null || child.signalCode !== null) return Promise.resolve()
+  return new Promise((resolve) => {
+    child.once('exit', () => resolve())
+    child.kill('SIGINT')
+  })
+}
