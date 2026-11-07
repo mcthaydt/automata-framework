@@ -62,7 +62,7 @@ export const relaxed = (gait: Gait): Stand => ({
  * 6 degrees against the spine, so the trunk curves rather than leans, and `local` is the chest's own share of it. Both
  * are exactly 0, and the pose is the straight one's, when there is none.
  */
-function sideBend(g: Skeleton['genes']): { world: number; local: number } {
+export function sideBend(g: Skeleton['genes']): { world: number; local: number } {
   const b = g.sideBend
   if (!b) return { world: 0, local: 0 }
   const apart = (0.03 * (g.height / 1.62) * Math.abs(b)) / (2 * g.shoulders)

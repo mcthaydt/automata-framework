@@ -43,6 +43,7 @@ describe('the fixture figures and libraries compile as content', () => {
     expect(Object.keys(data['figure-headwear'] ?? {})).toHaveLength(3)
     expect(Object.keys(data['figure-item'] ?? {})).toHaveLength(3)
     expect(Object.keys(data['figure-stand'] ?? {})).toHaveLength(7)
+    expect(Object.keys(data['figure-seat'] ?? {})).toHaveLength(8)
     expect(Object.keys(data['figure-rig'] ?? {})).toEqual(['default'])
     expect(Object.keys(data['figure-pose'] ?? {}).sort()).toEqual([...FIXTURE_POSE_IDS])
     expect(Object.keys(data['figure-clip'] ?? {}).sort()).toEqual([...FIXTURE_CLIP_IDS])

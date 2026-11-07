@@ -1,0 +1,12 @@
+# `typing` from FigureBuilder (mcthaydt/FigureBuilder) src/features/motion/library/seats.json at 025ffb4; the id in kebab-case.
+
+about = "At a desk, the back easy and a little forward, both hands on the keys."
+height = 0.46
+lean = 0.12
+knees = 0.02
+head = [0, 0, 0.05]
+type = 0.006
+
+[hands]
+L = { to = [0.13, 0.76, 0.36] }
+R = { to = [0.13, 0.76, 0.36] }
