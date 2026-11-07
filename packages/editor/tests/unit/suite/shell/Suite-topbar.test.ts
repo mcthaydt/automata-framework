@@ -84,6 +84,33 @@ describe("the suite's top bar", () => {
     await vi.waitFor(() => expect(publish).toHaveAttribute('data-kind', 'plain'))
   })
 
+  it("says nothing but a person's words on Home and with the Tuner open (the copy rule, task 12.5)", async () => {
+    const stray = [
+      /editor-/i,
+      /af2d/i,
+      /\.json\b/i,
+      /\bcheckout\b/i,
+      /\bPlus\b/,
+      /\bprojects?\b/i,
+      /\bworkspaces?\b/i,
+      /\bentit(y|ies)\b/i,
+      /\bIntGrid\b/i,
+      /\btunables?\b/i,
+      /\bchange sets?\b/i,
+      /\bgates?\b/i,
+      /\bpivot\b/i,
+    ]
+    const found = (where: string): string[] =>
+      stray.filter((word) => word.test(document.body.textContent ?? '')).map((word) => `${where}: ${word}`)
+    await start({ sample: true })
+    await screen.findByRole('heading', { name: 'What do you want to change?' })
+    const words = found('Home')
+    screen.getByRole('tab', { name: 'Tuner' }).click()
+    await screen.findByTestId('tuner-rows')
+    words.push(...found('Tuner'))
+    expect(words).toEqual([])
+  })
+
   it('on the sample, a banner says it is not your game and how to open yours', async () => {
     await start({ sample: true })
     expect(

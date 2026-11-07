@@ -2553,7 +2553,7 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   `Entities` (the Level view's layer row and "Paint with · Entities"); it is `Characters` now, the view's own word, and
   Home's Details say `Characters` (a count, was "6 definitions") and `Tiles` (was Tilesets). The guide
   (`docs/guides/editor.md`) is rewritten as open, draw, save, play, on a tablet, in plain words, titled "Draw levels in
-  the editor" (the audit's row). **Left for 12.5:** Step 0's file checks over every `.svelte` file (size, header
-  comment); Step 1's grep of the editor's `.svelte` and `*-messages.ts` for strings not in `copy.md`; the scan over the
-  suite page and the Tuner; `Add field` and the field types' words (`int`) in the Characters Settings tab; the layer
+  the editor" (the audit's row). The suite page's Home and the Tuner get the same word list as a unit test over the
+  whole page's text (`textContent`, stricter than what is on screen); it passes as it stands. **Left for 12.5:** Step 0's file checks over every `.svelte` file (size, header
+  comment); Step 1's grep of the editor's `.svelte` and `*-messages.ts` for strings not in `copy.md`; `Add field` and the field types' words (`int`) in the Characters Settings tab; the layer
   row reads "Characters / Characters and items" (its name over its kind), which says one thing twice.
