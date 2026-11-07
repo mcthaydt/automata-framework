@@ -5,8 +5,7 @@
   // An export its own file uses is not dead code (constants and types that tests also read).
   "ignoreExportsUsedInFile": true,
   // Fixtures are test inputs read as files, never imported.
-  // Spikes (spikes/*) are standalone packages outside the pnpm workspace, installed with --ignore-workspace.
-  "ignore": ["**/fixtures/**", "spikes/**", "games/base-3d/src/paraglide/**"],
+  "ignore": ["**/fixtures/**", "games/base-3d/src/paraglide/**"],
   // BootErrorIsDrawable is a compile-time assertion (shared contracts §4); exporting it keeps it checked.
   "ignoreIssues": { "packages/automata/src/app/boot/boot-error.ts": ["types"] },
   "workspaces": {
@@ -79,9 +78,9 @@
       ]
     },
     // Runtime dependencies of the Ruken code that tsdown bundles (@ruken/cli, @ruken/manifest, @ruken/sdk-host).
-    // automata check (DX.6) bundles @ruken/manifest, which imports smol-toml at runtime; yauzl and yazl are Ruken's.
+    // yauzl and yazl are Ruken's, needed at runtime by the code tsdown bundles; smol-toml the tools import themselves.
     "packages/tools": {
-      "ignoreDependencies": ["smol-toml", "yauzl", "yazl"]
+      "ignoreDependencies": ["yauzl", "yazl"]
     },
     // PRODUCT.L2: compile-messages.ts loads Paraglide with a dynamic import of a constant and resolves the inlang
     // plugin by name (createRequire().resolve), neither of which knip follows.
