@@ -54,6 +54,20 @@ describe('hair pieces (H3)', () => {
     expect(seen).toEqual([{ n: 2 }])
     expect(look.parts.map((p) => p.tag)).toEqual(['crown'])
   })
+  it('takes the crown tag only for the pieces whose data asks, when crown is a question about the data', () => {
+    const tri = {
+      positions: [0, 0, 0, 1, 0, 0, 0, 1, 0],
+      normals: [0, 0, 1, 0, 0, 1, 0, 0, 1],
+      indices: [0, 1, 2],
+    }
+    registerHairPiece<{ up: boolean }>('worn-up-or-not', {
+      crown: (piece) => piece.up,
+      build: (b) => b.rigid(tri, 'hair'),
+    })
+    const tags = (up: boolean) => hairParts(input, { pieces: [{ 'worn-up-or-not': { up } }] } as never).parts
+    expect(tags(true).map((p) => p.tag)).toEqual(['crown'])
+    expect(tags(false).map((p) => p.tag)).toEqual([undefined])
+  })
   it('names a piece nobody registered', () => {
     expect(() => hairParts(input, { pieces: [{ nope: {} }] } as never)).toThrow(
       'There is no hair piece called "nope"',

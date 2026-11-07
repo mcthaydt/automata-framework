@@ -14,8 +14,11 @@ export interface HairPiece<T = unknown> {
   /** Checks the piece's data (the value under its kind's key); left out, any value is taken. */
   readonly schema?: z.ZodType<T>
   build(b: HairBuild, piece: T): void
-  /** Its parts take the crown tag, like the scalp's and the rows': what is worn up on the head lies on them. */
-  readonly crown?: boolean
+  /**
+   * Its parts take the crown tag: what is worn up on the head lies on them. `true` for every use of the piece; a function
+   * of the piece's own data when only some uses lie on the crown (a shell does, a fade's tiers do not).
+   */
+  readonly crown?: boolean | ((piece: T) => boolean)
 }
 
 const PIECES = new Map<string, HairPiece>()

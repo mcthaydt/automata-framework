@@ -108,10 +108,17 @@ export function hairParts(input: HairInput, style: HairStyle): { parts: Part[]; 
     buildPiece(b, piece)
     // The hair's top over the crown (a piece that asks for it: a shell, rows, a bun; never a lock hanging off it):
     // what is worn up lies on it, not on whatever stands furthest out.
-    if (registered(piece)?.[1].crown)
+    if (liesOnCrown(piece))
       for (let n = first; n < parts.length; n++) parts[n] = { ...at(parts, n), tag: CROWN }
   }
   return { parts, decals }
+}
+
+/** Whether a piece asks to be tagged as the hair's top over the crown (its registration says so, for all of it or by its data). */
+function liesOnCrown(piece: Piece): boolean {
+  const found = registered(piece)
+  const crown = found?.[1].crown
+  return typeof crown === 'function' ? crown(found?.[0]) : !!crown
 }
 
 /** The registered piece (H3) a piece names, with its data, or undefined for one of the base generators. */

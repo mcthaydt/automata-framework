@@ -135,7 +135,7 @@ export { type Garment, garmentSchema } from '../features/figures/figure/garment.
 export type { BuiltMaterial } from '../features/figures/figure/materials.ts'
 export type { HairBuild } from '../features/figures/hair/hair-parts.ts'
 export { applyPose } from '../features/figures/motion/apply-pose.ts'
-export { base, relaxed } from '../features/figures/motion/base.ts'
+export { base, relaxed, sideBend } from '../features/figures/motion/base.ts'
 export { blend, blendAt } from '../features/figures/motion/blend.ts'
 export {
   headLead,
@@ -146,7 +146,7 @@ export {
   wrapAngle,
 } from '../features/figures/motion/clock.ts'
 export { DEFAULT_HAIR, gaitOf, hairOf } from '../features/figures/motion/gait-of.ts'
-export { type FootTarget, walkFoot } from '../features/figures/motion/gait-path.ts'
+export { type FootTarget, sideSign, TAU, walkFoot } from '../features/figures/motion/gait-path.ts'
 export {
   HAIR_AT_REST,
   type HairInput,
