@@ -1,22 +1,25 @@
 // An `af-sector/2` level resolved for the sim: loops normalised so the room is on the left of every edge (outer
 // loops counter-clockwise on the plan, x right and z up; holes clockwise), pilasters expanded into notches with their
 // masonry, portals linked, and the collision spans listed. The same steps as the 3D level editor's float geometry, on
-// the sim's deterministic `hypot`. Edges link by index, not by reference: `sector` and `next` index
+// the one sector geometry in `@automata/3d/level`. Edges link by index, not by reference: `sector` and `next` index
 // `sectors`, `prev` and `succ` index the edge's own loop, so the result is plain data.
 import {
   type AfCorner2,
   type AfWall2,
   DEFAULT_TRIM,
+  insideSector,
   type MassDef,
+  opening,
   type PartialTrim,
   type Point,
+  segmentDistance,
   type Trim,
   WALL_THICK,
+  walkBlocker,
 } from '@automata/3d/level'
 import { hypot } from '@automata/sim/math'
 import { heightOf, type SectorMap, type StoredSector } from './check-level'
-import { opening, type PieceKind, pieceSpans, walkBlocker } from './pieces'
-import { insideSector, segmentDistance } from './queries'
+import { type PieceKind, pieceSpans } from './pieces'
 
 /** One wall of a sector, with its place in the loop and the numbers every query needs. */
 export interface Edge {
@@ -286,7 +289,7 @@ export function resolveLevel(level: SectorMap): ResolvedMap {
         sector: e.sector,
         loop: e.loop,
         index: e.index,
-        ...opening(sectors[e.sector] as Sector, sectors[e.next as number] as Sector),
+        ...opening({ sector: sectors[e.sector] as Sector, next: sectors[e.next as number] as Sector }),
       })),
   ]
   const colliderEdges = colliders.map((c) => sectors[c.sector]?.loops[c.loop]?.[c.index] as Edge)

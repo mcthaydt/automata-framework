@@ -1,6 +1,6 @@
 # Automata Plus as framework extensions: progress
 
-**Overall: 50% (3 of 6 stages done; stage 4 is 19 of 27 tasks).**
+**Overall: 50% (3 of 6 stages done; stage 4 is 20 of 27 tasks).**
 
 The Owner, 2026-11-07: "do automata-plus too" (11:19); then, on where: "Actually no make them extensions because
 they're free anyway, and move the stuff 3D is doing here, and cut the starter" (15:05). Plus's packages are ported into
@@ -27,9 +27,9 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 
 ## Where to resume (2026-11-07, stage 4 in progress)
 
-Branch `claude/project-thread-d62n7h` (PR #458, on #457). Tasks 1.1 to 1.4, 2.1 to 2.8, 3.1 to 3.4 and 4.1 are done; the plan's execution log
+Branch `claude/project-thread-d62n7h` (PR #458, on #457). Tasks 1.1 to 1.4, 2.1 to 2.8, 3.1 to 3.4, 4.1 and 5.1 to 5.4 are done; the plan's execution log
 has each one's counts and the ledger (`.superpowers/sdd/2026-11-07-plus-port-plan/progress.md`, git-ignored) its rulings.
-Resume at **5.1** once 3D 7.5 is merged in (its geometry helpers, `segmentDistance` and the rest, are exported from `@automata/3d/level`); 3.5 needs 3D 12.1, and 4.2 closes. Phase 5's 5.2, 5.3 and 5.4 are done; 5.1 waits on 3D 7.5, 3.6 on 7.6, 3.7 on 7.5, 3.8 on 3.7 and 8.2, 3.9 on 3.6 to 3.8 and 12.1, and 5.5 closes the refactor. 3.7 and 3.8 were amended at 20:01 (the base pair, the base interior and exterior and the sky stay in 3D core; see the plan).
+Next: **3.6** (waits on 3D 7.6) and **3.7** (waits on 3D 7.7); 3.5 needs 3D 12.1, and 4.2 closes. 3.8 on 3.7 and 8.2, 3.9 on 3.6 to 3.8 and 12.1, and 5.5 closes the refactor. 3.7 and 3.8 were amended at 20:01 (the base pair, the base interior and exterior and the sky stay in 3D core; see the plan).
 The moves use `docs/refactor/move-map-plus.json` (rows per package, `entries` empty; give the mover a temporary map whose
 `sources` holds only the package being moved) with `node tooling/codemods/src/move-modules-cli.ts --map <map>`, then
 `tooling/codemods/src/cli.ts <pkg> --environment node|jsdom --feature-folders`; a test file with an unknown qualifier

@@ -1,7 +1,5 @@
 // What each resolved edge builds, for collision: a solid wall is one piece floor to ceiling; a portal
-// leaves only the strips its neighbour does not open. The step rule: a lower strip taller than `STEP` is a wall.
-import { STEP } from '@automata/3d/level'
-
+// leaves only the strips its neighbour does not open. The step rule: a lower strip taller than the level's `STEP` is a wall (`walkBlocker`, in the level entry).
 /** The floor and ceiling of the sectors on each side of an edge. */
 export interface Span {
   readonly floor: number
@@ -26,13 +24,3 @@ export function pieceSpans(own: Span, next: Span | undefined): PieceSpan[] {
     out.push({ y0: Math.max(next.ceiling, own.floor), y1: own.ceiling, kind: 'upper' })
   return out
 }
-
-/** The opening a portal leaves, between the higher floor and the lower ceiling. */
-export const opening = (own: Span, next: Span): { y0: number; y1: number } => ({
-  y0: Math.max(own.floor, next.floor),
-  y1: Math.min(own.ceiling, next.ceiling),
-})
-
-/** Pieces a walker cannot pass: solid walls and steps too tall to climb. */
-export const walkBlocker = (piece: PieceSpan): boolean =>
-  piece.kind === 'wall' || (piece.kind === 'lower' && piece.y1 - piece.y0 > STEP)

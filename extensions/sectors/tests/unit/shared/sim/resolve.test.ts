@@ -1,9 +1,8 @@
 // The clinic resolves to the original game's own loops, portals, edges, masses and colliders, and passes the
 // source's sector checks (its scenes test), re-pointed at the index-linked resolution. The sim's geometry is
 // dmath and the original's is Math, so derived numbers are compared within 1e-12 and everything else exactly.
-import { DEFAULT_TRIM, WALL_THICK } from '@automata/3d/level'
+import { crossing, DEFAULT_TRIM, insideSector, polygonArea, WALL_THICK } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import { crossing, insideSector, polygonArea } from '#src/shared/sim/queries.ts'
 import { type Edge, resolveLevel } from '#src/shared/sim/resolve.ts'
 import { clinicMap, clinicResolved } from '#src/testing/clinic.ts'
 

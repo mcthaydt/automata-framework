@@ -1,9 +1,8 @@
 // The map's queries: where a point is, the floor under it, and whether a walk is blocked. The step rule
 // is the sector format's `STEP`: a lower strip of exactly 0.25 m is climbed, anything taller is a wall.
-import { STEP } from '@automata/3d/level'
+import { opening, STEP, walkBlocker } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import { opening, pieceSpans, walkBlocker } from '#src/shared/sim/pieces.ts'
-import { crossing, segmentDistance } from '#src/shared/sim/queries.ts'
+import { pieceSpans } from '#src/shared/sim/pieces.ts'
 import { resolveLevel } from '#src/shared/sim/resolve.ts'
 import { clinicMap } from '#src/testing/clinic.ts'
 
@@ -40,21 +39,6 @@ const twoRooms = (step: number, eastWall: object = {}) =>
     ],
   })
 
-describe('crossing and segmentDistance', () => {
-  it('finds where one segment crosses another, and -1 when it misses or runs parallel', () => {
-    expect(crossing(0, 1, 2, 1, { x: 1, z: 0 }, { x: 1, z: 2 })).toBe(0.5)
-    expect(crossing(0, 1, 0.5, 1, { x: 1, z: 0 }, { x: 1, z: 2 })).toBe(-1)
-    expect(crossing(0, 0, 2, 0, { x: 0, z: 1 }, { x: 2, z: 1 })).toBe(-1)
-  })
-
-  it('is 0 for crossing segments and the nearest gap otherwise', () => {
-    expect(segmentDistance({ x: 0, z: 1 }, { x: 2, z: 1 }, { x: 1, z: 0 }, { x: 1, z: 2 })).toBe(0)
-    expect(segmentDistance({ x: 0, z: 0 }, { x: 2, z: 0 }, { x: 3, z: 4 }, { x: 3, z: 9 })).toBe(
-      Math.sqrt(17),
-    )
-  })
-})
-
 describe('sectorAt and floorAt', () => {
   const clinic = resolveLevel(clinicMap())
 
@@ -77,7 +61,10 @@ describe('the step rule and segmentBlocked', () => {
       { y0: 2.5, y1: 3, kind: 'upper' },
     ])
     expect(pieceSpans({ floor: 0, ceiling: 3 }, undefined)).toEqual([{ y0: 0, y1: 3, kind: 'wall' }])
-    expect(opening({ floor: 0, ceiling: 3 }, { floor: 0.5, ceiling: 2.5 })).toEqual({ y0: 0.5, y1: 2.5 })
+    expect(opening({ sector: { floor: 0, ceiling: 3 }, next: { floor: 0.5, ceiling: 2.5 } })).toEqual({
+      y0: 0.5,
+      y1: 2.5,
+    })
   })
 
   it('climbs a step of exactly STEP and is stopped by a taller one', () => {
