@@ -410,6 +410,8 @@ the site paths (19.1), the copy table and the 2D editor counts. Then the build (
 
 ### Build: 42% (22 of 53 tasks)
 
+Scope trim (2026-11-07 19:28, the Owner): 3D core as light as 2D; see [2026-11-07-3d-scope-trim.md](2026-11-07-3d-scope-trim.md). 9.1 and 9.2 moved to the Plus port and leave the count; 7.5 and 7.6 joined it, so it stays 53.
+
 One row per task of the [plan](2026-11-07-3d-slice-plan.md); a task is done when its checks have passed in the session that did it. The percentage is done tasks / 53.
 
 | Task | Phase | Status |
@@ -436,12 +438,14 @@ One row per task of the [plan](2026-11-07-3d-slice-plan.md); a task is done when
 | 6.5 Streetwear becomes an example extension | 6 | Done, 2026-11-07 (session d60hqd; `examples/3d/wardrobe` is a workspace package: 95 unit tests and 14 Chromium parity tests; its dress goldens (7 outfits) and stand goldens (49) are byte for byte the ones those outfits had in core; core's goldens re-recorded for classic-only outfits; `pnpm lint`, `typecheck`, `boundaries`, `style`, `source-names`, `knip` clean; 3d unit 1002, base-3d, editor-3d and the wardrobe `test:unit:3d` green; 24 Chromium figure goldens pass; WebKit/Firefox and hosted CI not run) |
 | 7.1 `af-sector/2` and its migration | 7 | Done, 2026-11-07 (session d60hqd; `readLevel` reads `/1` and `/2`, `convertBuilderMap` converts the five builder maps; 113 level tests, base-3d unit 84 with the sim and render goldens unchanged; the editor still opens `/1` only, moved to 14.1 and 16.2 in the plan log; WebKit/Firefox and hosted CI not run) |
 | 7.2 The world builder | 7 | Done, 2026-11-07 (session h7alco; `buildWorld(level, library)` gives floors, ceilings, walls with portal steps, holes, openings, trim, windows, shopfronts and hinged doors, and reports a degenerate room, a missing swatch and a portal to nowhere as `LevelProblem`s; `drawWorld` draws the pieces with `@pixi/3d` and `Occluders.face` puts a wall's face under the occluder rule; base-3d's room is drawn by it (the sim and its goldens unchanged, 85 unit tests); the before and after frames are in project files `refactor/2026-11-07-3d-7-2-room-shots/`; editor-3d's `sector-mesh.ts` stays until 14.1; `pnpm check` green; WebKit/Firefox and hosted CI not run) |
-| 7.3 Props, the dresser, lamps, decals, lettering, generated maps | 7 | Not started |
-| 7.4 The stage | 7 | Not started |
+| 7.3 Props a game places, and lamps (trimmed: [scope trim](2026-11-07-3d-scope-trim.md)) | 7 | In progress (78e0ca7f has props, lamps and the library; the library leaves core) |
+| 7.4 The piece states | 7 | Not started |
+| 7.5 One sector geometry (new) | 7 | Not started |
+| 7.6 Clothes, hairstyles and seats leave core (new) | 7 | Not started |
 | 8.1 Measure, then choose | 8 | Not started |
-| 8.2 The passes and the reference | 8 | Not started |
-| 9.1 `automata textures` in `-tools` | 9 | Not started |
-| 9.2 The builders' `reads` checks | 9 | Not started |
+| 8.2 The passes (no reference painters; sky and rain to the world kit) | 8 | Not started |
+| 9.1 `automata textures` in `-tools` | 9 | Moved to the Plus port, task 3.8 (scope trim) |
+| 9.2 The builders' `reads` checks | 9 | Moved to the Plus port, task 3.8 (scope trim) |
 | 10.1 No plan IDs or source names in code | 10 | Not started |
 | 10.2 README, a complete record, part A's close | 10 | Not started |
 | 11.1 The feature layout and `content/` | 11 | Not started |
