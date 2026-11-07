@@ -37,7 +37,8 @@ repository's shape, the API index other tools read, and two plans' interfaces.
 4. The API reference shows declarations only. `defineSystem` and the five other sim definers read the same in the
    framework's section as in the sim's, and a test pins that (C1). The skill says in one line which two entry points
    the reference leaves out and why (C2).
-5. The skills say what the code does (C3 to C8): the editor's flags and the Tuner; one list of what a sim file may
+5. The skills say what the code does (C3 to C8), and `automata check`, which they and the hook run, can run
+   Emberwick's tests (M5, 6.5): the editor's flags and the Tuner; one list of what a sim file may
    import, read from the checker by a test; the repository-only rules apart from the game rules; the CSP rules as
    every web target's; one line on shipping; an editor mention in the plugin description; the `fakeHosting` message.
 6. The agent package names no package that is not published, and a unit test fails if it does (D2 A, T1). So 3D skill
@@ -68,7 +69,9 @@ forbid.
 In scope, all in `mcthaydt/automata-framework`: `tooling/agent-skills` (the mirror generator, its tests, the install
 suite), `.github/workflows/release-packages.yml` (`skills` job) and `release-checks.yml`, `tooling/api-index` and
 `tooling/api-report/src/extract.ts` (C1), `tooling/repo-hygiene/src/source-names.ts` (T3), the five skills and
-`plugin.json`'s description, the `platform-import` message in `packages/tools`, the site's agent setup (M3, last),
+`plugin.json`'s description, the `platform-import` message in `packages/tools`, `automata check`'s test step in `packages/tools/src/shared/check/check-steps.ts` (M5's "failed to load config",
+section 6.5, moved in scope at the plan audit because the skills and the hook tell agents to run that command), the
+site's agent setup (M3, last),
 `docs/refactor/` (this pipeline's documents), root `package.json` scripts.
 
 Out of scope:
@@ -77,9 +80,6 @@ Out of scope:
 - The release itself and `SKILLS_TOKEN` (the Owner's: the npm organisation, `NPM_TOKEN`, the release approval and the
   token, M4). Closing #431 (V2) is the merge thread's.
 - 3D skill text and the 3D API reference: phase 20 of the 3D slice (D2 A, T2).
-- `automata check`'s test step failing on Emberwick ("failed to load config", audit M5): a tools bug, not a skills
-  one. The install suite stops using Emberwick, so it no longer depends on it. Handed to the coordinator as its own
-  item.
 - automata-plus: no overlap (P1); its own pipeline handles it.
 
 ## 4. The mirror (M1, M2)
@@ -90,7 +90,7 @@ Out of scope:
 |---|---|
 | `.claude-plugin/plugin.json`, `hooks/`, `scripts/`, `skills/` | `agents/automata/`, byte for byte |
 | `.claude-plugin/marketplace.json` | generated: `{ "name": "automata-skills", "description": …, "owner": { "name": "mcthaydt" }, "plugins": [{ "name": "automata", "source": "./" }] }` |
-| `README.md` | generated: what the package is, the two Claude Code lines, the Agent Skills line, the version, "generated, do not edit here" with the framework's agent package named as the source |
+| `README.md` | generated: what the package is, in plain words; the two Claude Code lines; the Agent Skills line; the version; "Please don't edit this repository" (every file is copied from the framework at each release) |
 | `LICENSE` | the framework's root `LICENSE`, byte for byte |
 
 The plugin manifest and the marketplace file share `.claude-plugin/`. The audit verified that this layout validates
@@ -154,7 +154,7 @@ failure is reported and rerun by hand; it never retries on its own.
   `Skills (<n>)` and `Hooks (2) PostToolUse, Stop`, and the installed skills equal the source byte for byte.
 - **The game:** a `create-game` game made in a folder outside the workspace and installed from the packs, with the
   consumer smoke's helpers (`strangerFolder`, `packOverrides`, `overridesYaml`). The hook passes a clean edit of
-  `src/features/square/square.system.ts` and blocks `src/features/square/seeded.system.ts` importing `effect`
+  `src/features/square/move.system.ts` (the template's one system) and blocks a new `src/features/square/seeded.system.ts` importing `effect`
   (exit 2, rule `import`).
 - **Agent Skills:** `npx skills add <mirror tree>` installs every skill for Claude Code, Codex and Cursor, byte for
   byte (the route the README offers).
@@ -187,7 +187,7 @@ C2 is one line in the `automata-api` skill: the reference lists every typed entr
 | C4 | Both skills state one list: `koota`, `zod`, Rapier's 2D and 3D deterministic-compat builds, `@automata/sim` (and `/hash`, `/math`), an installed extension's declared sim entries, relative imports | the test reads `IMPORT_ALLOWED` and requires each name in both skills; "physics entry points" is retired |
 | C5 | The ten repository-only rules move to a table headed "Only in the framework's own repository" | the test reads `check-steps.ts`'s `--game` call and requires the ten under that heading |
 | C5 | `platform-import`'s replacement for `@ruken/sdk-host` reads `@automata/framework/testing (fakeHosting)` | `platform-imports.test.ts` |
-| C6 | "Web targets run without `eval`; the check loads the game under Ruken's policy" replaces "Ruken's CSP" as the reason | `skills-text.test.ts`: `Ruken's CSP` is retired |
+| C6 | "Web games may not use `eval` on any target. `automata check --csp` opens your build under Ruken's rules to prove it." replaces "Ruken's CSP" as the reason | `skills-text.test.ts`: `Ruken's CSP` is retired |
 | C7 | One bullet: `automata build`, `automata ship prepare|publish --target web|itch|tauri|ruken`, and the publish guides | the test checks the targets against `DIST_TARGETS` (`create-game-targets.ts`) |
 | C8 | `plugin.json`'s description names the editor | `layout.test.ts` |
 
@@ -204,10 +204,21 @@ arrives early. Phase 20 adds the 3D skill text in the same PR that makes the pac
 `.md`, `.ts`, `.mjs` and `.json` under `agents/`. The 3D plan's task 10.1 adds the same pattern and a `--code` option;
 whichever lands second keeps one pattern (section 7).
 
+### 6.5 `automata check` runs a workspace game's tests (M5)
+
+`testStep` runs `vitest run` with Node's default config loader, which cannot load a config that imports TypeScript
+source with extensionless imports (Emberwick's, through the workspace). Emberwick's own scripts pass
+`--configLoader runner`; the check passes it too. Reproduced at the plan audit: the test step "could not run" on
+Emberwick (`ERR_MODULE_NOT_FOUND`), and `vitest run --configLoader runner --project unit` passes there (109 tests). A
+stranger's game is proven by the consumer smoke's `pnpm check`. One `patch` changeset for `@automata/tools`.
+
 ## 7. Cross-dependencies with the 3D slice plan (#444)
 
-These belong in the 3D plan, so they go to its audit ("Audit the rewritten 3D slice plan") as notes, not as edits to
-#444:
+These belong in the 3D plan, so they went to the coordinator for the 3D plan's audit as notes, not as edits to #444.
+At this plan's audit, the audited 3D plan (#445, `ff683ef0`) has not folded them in (its 13.2 still writes "the agent
+package's 3D skills and API reference"; its 10.1 still adds the second builder's name on its own); the coordinator
+sent them on to the running 3D build thread instead. So this plan's tasks 2.3 and 2.4 say what to do when the 3D
+build's version lands first. The table:
 
 | 3D task | Change | Why |
 |---|---|---|
@@ -232,7 +243,8 @@ One PR per part, stacked on this plan's PR, each opened ready and merged by hand
 
 Each part regenerates what it changes (`pnpm api-index --write`, `pnpm agent-skills`, `pnpm api-report --update`
 where exports or doc comments change) and runs `pnpm format` and `pnpm check`. No changeset: every package touched is
-private, except the `platform-import` message in `@automata/tools`, which takes a `patch` changeset.
+private, except `@automata/tools` (the `platform-import` message and the check's config loader), which takes two
+`patch` changesets.
 
 ## 9. Veto defaults
 
