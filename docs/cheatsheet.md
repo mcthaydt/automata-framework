@@ -384,10 +384,10 @@
 - `ScrollList` (const): A list that keeps its rows.
 - `Settings` (interface): The booted game's settings as a runtime service: its key and store, both undefined for a game without settings.
 - `SettingsDef` (interface): A game's settings: the key it is saved under, its version, schema, defaults and migration steps, and which fields stay on one device.
-- `SettingsScreen` (const): The core Settings screen, laid out and behaving as FloorFifty's settings (`ui/components/SettingsPanel.svelte` in `PauseOverlay.svelte` at a28dc44; Owner 2026-10-18: "match the layout and function, not the style"): a dialog over the dimmed game, the same frame as Paused, so going between them reads as one dialog changing its view.
+- `SettingsScreen` (const): The core Settings screen: a dialog over the dimmed game, the same frame as Paused, so going between them reads as one dialog changing its view.
 - `SettingsScreenCopy` (interface): The Settings screen's own words: its title, Back, the tabs and the overflow count.
 - `settingsStore(settings, def)`: The booted store for `def`.
-- `SettingsTab` (interface): A tab of the Settings screen (FloorFifty's Settings and Controls): its label and its sections, in order.
+- `SettingsTab` (interface): A tab of the Settings screen (Settings and Controls): its label and its sections, in order.
 - `Sheet` (const): A Modal on the bottom edge at every form factor: the same scoping, Close and scroll region, where a thumb reaches the actions.
 - `Sim` (interface): A running simulation, stepped with commands, that can snapshot, restore and hash its state.
 - `SimContext` (interface): What a system's `run` receives each tick.

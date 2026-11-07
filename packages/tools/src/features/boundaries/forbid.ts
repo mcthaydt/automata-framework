@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs'
-import type { Finding } from './check.ts'
+import type { Finding, Rule } from './check.ts'
 import { readImports } from './imports.ts'
 import { collectPlatformSources } from './platform-imports.ts'
 
@@ -13,10 +13,22 @@ function names(specifier: string, name: string): boolean {
   return specifier === name || specifier.startsWith(`${name}/`)
 }
 
+/** The rule name and message of a finding: `--forbid` words it about the package, other checks word their own. */
+export interface ForbidReport {
+  readonly rule: Rule
+  readonly message: (specifier: string, packageRoot: string) => string
+}
+
+const FORBID_REPORT: ForbidReport = {
+  rule: 'forbidden-import',
+  message: (specifier, packageRoot) => `imports "${specifier}", which ${packageRoot} may not use.`,
+}
+
 /** The files checked and the findings for one package folder and the packages it may not import. */
 export function forbidFindings(
   packageRoot: string,
   forbidden: readonly string[],
+  report: ForbidReport = FORBID_REPORT,
 ): { files: string[]; findings: Finding[] } {
   const files = collectPlatformSources(packageRoot)
   const findings: Finding[] = []
@@ -29,8 +41,8 @@ export function forbidFindings(
         file,
         line,
         col,
-        rule: 'forbidden-import',
-        message: `imports "${specifier}", which ${packageRoot} may not use.`,
+        rule: report.rule,
+        message: report.message(specifier, packageRoot),
       })
     }
   }

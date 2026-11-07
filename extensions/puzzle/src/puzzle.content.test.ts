@@ -3,8 +3,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { compileContent } from '@automata/content'
-import { Effect, Either } from 'effect'
+import { compileContentResult } from '@automata/content'
 import { stringify } from 'smol-toml'
 import { afterEach, describe, expect, it } from 'vitest'
 import { puzzleContent, puzzleSchema } from './puzzle.content'
@@ -80,11 +79,9 @@ it('names the file and line of a bad reference when content compiles', async () 
     join(root, 'content', 'puzzles', 'toy.toml'),
     stringify(withAction({ use: 'spoon' }) as never),
   )
-  const result = await Effect.runPromise(
-    Effect.either(compileContent({ root, schemas: [puzzleContent(ALL)] })),
-  )
-  if (Either.isRight(result)) throw new Error('the compile passed')
-  const failure = result.left
+  const result = await compileContentResult({ root, schemas: [puzzleContent(ALL)] })
+  if (result.ok) throw new Error('the compile passed')
+  const failure = result.error
   if (failure._tag !== 'ContentCompileFailed') throw new Error(failure.message)
   expect(failure.diagnostics).toEqual([
     expect.objectContaining({

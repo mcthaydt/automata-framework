@@ -23,6 +23,9 @@ on:
       - "agents/**"
       # Every package: the 3D packages, and the core ones they build on.
       - "packages/**"
+      # The extensions that build on @automata/3d (sectors, nav, cutscenes, narrative, systems, pipelines) run in this
+      # workflow; the others ride along, because they are small and a change to one can break a 3D game.
+      - "extensions/**"
       - pnpm-lock.yaml
       - .github/workflows/3d.yml
   schedule:

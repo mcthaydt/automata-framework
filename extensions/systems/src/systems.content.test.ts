@@ -3,8 +3,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { compileContent } from '@automata/content'
-import { Effect, Either } from 'effect'
+import { compileContentResult } from '@automata/content'
 import { stringify } from 'smol-toml'
 import { afterEach, expect, it } from 'vitest'
 import { systemsContent, systemsSchema } from './systems.content'
@@ -27,11 +26,9 @@ it('names the file and line of a hook the game did not give when content compile
   root = mkdtempSync(join(tmpdir(), 'systems-content-'))
   mkdirSync(join(root, 'content', 'systems'), { recursive: true })
   writeFileSync(join(root, 'content', 'systems', 'toy.toml'), stringify(alarmToy() as never))
-  const result = await Effect.runPromise(
-    Effect.either(compileContent({ root, schemas: [systemsContent({ hooks: [] })] })),
-  )
-  if (Either.isRight(result)) throw new Error('the compile passed')
-  const failure = result.left
+  const result = await compileContentResult({ root, schemas: [systemsContent({ hooks: [] })] })
+  if (result.ok) throw new Error('the compile passed')
+  const failure = result.error
   if (failure._tag !== 'ContentCompileFailed') throw new Error(failure.message)
   expect(failure.diagnostics).toEqual([
     expect.objectContaining({

@@ -7,4 +7,3 @@ export const sectorMapContent: ContentSchemaDef<'sector-map', typeof sectorMapSc
   sectorMapSchema,
   { folder: 'maps' },
 )
-export type { SectorMap }

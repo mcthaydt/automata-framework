@@ -3,8 +3,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { compileContent } from '@automata/content'
-import { Effect, Either } from 'effect'
+import { compileContentResult } from '@automata/content'
 import { afterEach, expect, it } from 'vitest'
 import { sectorMapContent } from './sector-map.content'
 
@@ -30,9 +29,9 @@ it('names the file and line of a self-intersecting loop (SC-c)', async () => {
     '',
   ].join('\n')
   writeFileSync(join(root, 'content', 'maps', 'ward.toml'), toml)
-  const result = await Effect.runPromise(Effect.either(compileContent({ root, schemas: [sectorMapContent] })))
-  if (Either.isRight(result)) throw new Error('the compile passed')
-  const failure = result.left
+  const result = await compileContentResult({ root, schemas: [sectorMapContent] })
+  if (result.ok) throw new Error('the compile passed')
+  const failure = result.error
   if (failure._tag !== 'ContentCompileFailed') throw new Error(failure.message)
   expect(failure.diagnostics.map((d) => ({ file: d.file, line: d.line, message: d.message }))).toEqual([
     {

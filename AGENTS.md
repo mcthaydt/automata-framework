@@ -30,6 +30,7 @@ The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history
 
 - Browser code is one package, `@automata/framework`. Node build tools are one package, `@automata/tools`.
   The sim (`-sim`) and the content compiler (`-content`) stay separate. Extensions are opt-in and never edit core.
+  They live in `extensions/<name>` as `@automata/<name>`, and core never imports one (`pnpm boundaries` fails on it).
 - Inside a package, `src/` is `app/`, `features/<x>/`, `shared/`, `entries/` and `testing/`. A feature imports
   only itself and `shared/`; `app/` wires features together; `entries/` only re-exports. `pnpm boundaries` enforces it.
 - A game's `src/` has the same shape. Sim files are found by role suffix (`.component.ts`, `.system.ts`,

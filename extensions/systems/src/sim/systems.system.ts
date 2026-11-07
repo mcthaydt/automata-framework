@@ -94,5 +94,3 @@ export const hearWith =
     heardIn(w)(made)
     commit(w)
   }
-
-export const sceneLoaded = (ctx: SimContext): boolean => ctx.resource(SystemsScene).def !== null

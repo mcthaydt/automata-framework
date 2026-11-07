@@ -1,8 +1,6 @@
 <!--
   @component
-  The core Settings screen, laid out and behaving as FloorFifty's settings
-  (`ui/components/SettingsPanel.svelte` in `PauseOverlay.svelte` at a28dc44; Owner 2026-10-18: "match the layout and
-  function, not the style"): a dialog over the dimmed game, the same frame as Paused, so going between them reads as
+  The core Settings screen: a dialog over the dimmed game, the same frame as Paused, so going between them reads as
   one dialog changing its view. Tabs stay put and the chosen tab's sections scroll under them in one list that counts
   what is below; Back sits under the dialog, and Escape and the dialog's Close go back too. Where the dialog is 560 px
   wide (it widens on a short band) the sections go two across. The default screens give it Display and Controls;

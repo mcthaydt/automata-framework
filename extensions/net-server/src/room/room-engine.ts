@@ -54,7 +54,6 @@ export type {
   RoomClient,
   RoomEngineOptions,
   RoomInfoView,
-  SeatInfoView,
   SubmitOutcome,
 } from './room-types'
 

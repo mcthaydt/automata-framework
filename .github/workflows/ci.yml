@@ -87,7 +87,7 @@ jobs:
           if [ "$(git rev-list --parents -n 1 HEAD | wc -w)" -eq 3 ]; then
             changed="$(git diff --name-only HEAD^1 HEAD)"
             if ! printf '%s\n' "$changed" | grep -qvE '^docs/|\.md$'; then docs_only=true; fi
-            if ! printf '%s\n' "$changed" | grep -qvE '^(packages|tooling|examples|games|docs)/|\.md$'; then parity_full=false; fi
+            if ! printf '%s\n' "$changed" | grep -qvE '^(packages|extensions|tooling|examples|games|docs)/|\.md$'; then parity_full=false; fi
             # The stranger's journey (a new game from the packed packages) runs when a package, the journey itself or
             # anything outside the workspace folders changes (a workflow, a lockfile); not for a game, an example or docs.
             if ! printf '%s\n' "$changed" | grep -qE '^(packages/|tooling/consumer-smoke/)|^[^/]+$|^\.github/'; then stranger=false; fi

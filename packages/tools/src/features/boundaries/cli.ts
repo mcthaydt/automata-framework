@@ -17,6 +17,8 @@
 // components are read too (the site's are; the editor's views still cross features, a finding for its audit).
 // `--forbid <package-root>:<package>,<package>...` runs only the forbidden-import check: no source under the
 // root (tests included) imports those packages, or a path inside them (`packages/editor:@pixi/3d`).
+// `--no-extension-imports <root>...` runs only the extension check: nothing under the roots (tests included)
+// imports a package that lives under `extensions/`, so core never depends on an extension.
 // `--browser <package-root>[:<entry>,<entry>]...` runs only the browser-only check: nothing a
 // browser entry reaches imports Effect, a Node built-in or a Node-only library. The entries after `:` name files in
 // src/entries/ (`packages/content:locale,assets`); with none, every file there is a browser entry.
@@ -24,6 +26,7 @@ import { readFileSync, statSync } from 'node:fs'
 import { relative, resolve } from 'node:path'
 import { browserOnlyFindings } from './browser-only.ts'
 import { checkSource, type Finding } from './check.ts'
+import { extensionImportFindings, extensionPackageNames } from './extensions.ts'
 import { featureFindings } from './features.ts'
 import { collectGameSimSet, collectSources, GAME_SIM_ROLES } from './files.ts'
 import { forbidFindings } from './forbid.ts'
@@ -55,6 +58,16 @@ if (process.argv[2] === '--platform-imports') {
     files,
     files.flatMap((file) => platformImportFindings(file, readFileSync(file, 'utf8'))),
   )
+}
+
+if (process.argv[2] === '--no-extension-imports') {
+  const roots = process.argv.slice(3)
+  if (roots.length === 0) {
+    console.error('usage: check-boundaries --no-extension-imports <root>...')
+    process.exit(2)
+  }
+  const files = roots.flatMap((root) => collectPlatformSources(root))
+  finish(files, extensionImportFindings(roots, extensionPackageNames(process.cwd())))
 }
 
 if (process.argv[2] === '--features' || process.argv[2] === '--browser' || process.argv[2] === '--forbid') {
