@@ -53,7 +53,8 @@ project files, `refactor/2026-11-07-3d-slice-audit-screens/`.
    behind hooks, and the feature folders AF wants. EnvironmentBuilder, new on 5 November, builds furnished, lit rooms
    and streets from Build-style maps, as geometry. Section 9 measures both. **The Owner took D10 the same day:
    everything comes in, the builders' pixel-art look included**, which reverses the 30 October call that 3D figures are
-   meshes; D9 (how) stands on its recommendation.
+   meshes; the look is rebuilt on Pixi 3D, and DUEL becomes AF's palette for 2D too. D9 (how) stands on its
+   recommendation.
 
 ## 1. What this slice covers
 
@@ -270,6 +271,10 @@ Each has a recommendation; the plan stage builds on the recommended option unles
     generator, painter, lighting and actors, and EnvironmentBuilder's world, photo pipeline, painter, lighting, stage and
     views. M3R-D2 (figures are meshes, the painter stays out) is reversed. D6's wardrobe cut still matches FigureBuilder's
     `main`, whose base no longer holds a wardrobe; its registries come in.
+  - **And, 2026-11-07, later:** "We use pixi3D, and 2D should also use the duel palette". So Pixi 3D stays the 3D
+    renderer: the builders' look (DUEL snap, stepped light, outlines, figures lit as sprites) is rebuilt on Pixi 3D, not
+    drawn by a CPU painter at runtime; `@pixi/3d` stays, and with it D1 and the launch rule of 2026-10-23. And DUEL becomes
+    AF's palette for 2D as well as 3D, in place of Endesga 64.
 
 ### Work the plan should cover, in order
 
@@ -289,21 +294,23 @@ Each has a recommendation; the plan stage builds on the recommended option unles
    AF's own code (S7).
 6. **Pull the builders** (D9, D10 as taken, B1 to B10): everything from FigureBuilder `025ffb4` and EnvironmentBuilder
    `6d82a52`, ported into AF's 3D package in their feature folders and recorded in `sources.md` (`source-names` learns the
-   new name). The plan answers first, from measurements:
-   - **Law 6 and ADR 0002** ("PixiJS only for rendering"): both painters rasterise on the CPU. Either Pixi presents the
-     painted frame (a texture per frame or per sprite cell) and the law is amended to say so, or the painters' rules
-     (DUEL snap, stepped light, outlines) are rebuilt as Pixi passes. The plan writes the ADR amendment for whichever it
-     picks. Both painters' source is plain TypeScript with no Node imports (only EnvironmentBuilder's photo loading and
-     PNG code use Node), so they can run in a browser.
-   - **Does 3D still need `@pixi/3d`?** If the painters draw the frame, Pixi 3D may no longer be needed, and D1's wait for
-     its public release with it. That changes the launch rule the Owner set on 2026-10-23 ("we launch when pixi 3D goes
-     public"), so the plan measures it and puts the answer to the Owner.
-   - **One palette:** both builders paint on DUEL; AF's palette content defaults to Endesga 64. The 3D look is DUEL
-     unless the plan finds a reason it cannot be.
+   new name).
+   The Owner settled two questions (D10, "We use pixi3D, and 2D should also use the duel palette"):
+   - **The renderer is Pixi 3D.** Law 6 holds: the painters' rules (DUEL snap, stepped light, outlines, the sprite light)
+     become Pixi 3D passes, or the painters bake sprite cells and textures that Pixi 3D draws; the plan measures both and
+     picks one. No CPU painter draws a frame at runtime. Both painters' source is plain TypeScript with no Node imports
+     (only EnvironmentBuilder's photo loading and PNG code use Node), so either way they can run in a browser or a build.
+   - **The palette is DUEL, AF-wide** (32 ramps of 8 colours, from FigureBuilder's `duel-ramps.ts`). For 2D that means
+     `@automata/content`'s `DEFAULT_PALETTE` (Endesga 64 today, `shared/palette/`), Emberwick's art (`shared/art/palette.ts`
+     and the palette-indexed sprites, backdrop, particles and lights that use it: 12 files name Endesga 64), the UI theme's
+     colours (`packages/automata/src/shared/ui/theme.css`), the 2D examples, `docs/art/` (DUEL's source and credit
+     recorded as Endesga 64's were) and the agent package's API reference. Content hashes move with the palette; the
+     commit says why, as AGENTS.md asks.
+
+   The plan answers the rest from measurements:
    - **One timeline:** FigureBuilder's actors and AF's clips and `evaluate()` (B5) become one.
    - **One level format** the 3D editor edits (B7), with props, dressing, lamps and time of day placeable.
-   - **The frame budget** on a phone and an iPad for the first-person and diorama views at their native size, and whether
-     the editor's Plan, 3D and Walk views are drawn by the painter too.
+   - **The frame budget** on a phone and an iPad for the first-person and diorama views, with the look's passes on.
    Then the port, with the builders' goldens re-recorded from AF's code (S7), and base-3d's room dressed from a kit.
 7. **Redesign** (V1 to V5, D4, D5, S10): the 3D editor and the Studio from the approved mock-ups and the kit's tokens, phone
    first; one suite.
