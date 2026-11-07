@@ -190,7 +190,7 @@ const BAR_REGIONS = ['topbar', 'rail', 'panel', 'dock', 'tools']
  * screen or an editor declares with `data-region` (`topbar`, `rail`, `panel`, `dock`, `tools`). `findCutByBar` and
  * `findCovered` take it as their `selector`, and `checkLayout` runs both with it.
  */
-export const BAR_ACTIONS = BAR_REGIONS.map(
+export const BAR_ACTIONS: string = BAR_REGIONS.map(
   (region) => `[data-region=${region}] :is(button, a, [role=tab], [role=menuitem])`,
 ).join(', ')
 

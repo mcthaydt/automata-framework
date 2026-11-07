@@ -2216,7 +2216,7 @@ type RukenManifestContribution = {
 ### `BAR_ACTIONS` (const)
 
 ```ts
-const BAR_ACTIONS: any;
+const BAR_ACTIONS: string;
 ```
 
 ### `byTestId` (function)
