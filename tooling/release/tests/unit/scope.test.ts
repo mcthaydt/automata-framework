@@ -12,6 +12,8 @@ const KEPT = [
   /^docs\/archive\//,
   /^docs\/refactor\//,
   /(^|\/)CHANGELOG\.md$/,
+  // The changeset that tells users the old names became the new ones; it ends up in the changelogs.
+  /^\.changeset\/scope-automata\.md$/,
   /^tooling\/codemods\/(src|tests\/unit)\/rename-scope(-cli)?(\.test)?\.ts$/,
   /^tooling\/release\/tests\/unit\/scope\.test\.ts$/,
 ]
