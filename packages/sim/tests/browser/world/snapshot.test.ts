@@ -1,7 +1,7 @@
 import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
 import { expect, test } from 'vitest'
+import { createSim } from '#src/shared/world/sim.ts'
 import { Body, fixturePlugin, Tag } from '#src/testing/fixture-world.ts'
-import { createSim } from '#src/world/sim.ts'
 
 test('a 300-tick run with churn, every field type and a mid-run restore hashes identically in every engine', async ({
   task,

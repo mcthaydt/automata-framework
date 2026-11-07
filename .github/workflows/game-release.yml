@@ -26,7 +26,7 @@ name: game-release
 #
 # The itch job (PUB spec §5 flow 4) runs only when the caller passes `itch: true`, and never for a pull request.
 # It builds the game's own itch target (`pnpm build:itch`) from the tagged commit, since a Ruken build carries
-# ruken.toml and the Ruken adapter, and runs `automata-ship publish --target itch`, which checks, zips and pushes
+# ruken.toml and the Ruken adapter, and runs `automata ship publish --target itch`, which checks, zips and pushes
 # with butler. Unlike the jobs above, an opted-in itch job without BUTLER_API_KEY fails: the caller asked for a
 # push, so a missing key is an error, not a skip.
 
@@ -166,7 +166,7 @@ jobs:
         run: $BUILD_COMMAND
       - name: Prepare for Ruken (the version must match the tag)
         working-directory: ${{ inputs.working-directory }}
-        run: pnpm exec automata-ship prepare --tag "$TAG"
+        run: pnpm exec automata ship prepare --tag "$TAG"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-dist
@@ -224,9 +224,9 @@ jobs:
           if [[ -z "$RUKEN_TOKEN" ]]; then echo "::notice::RUKEN_TOKEN is not set; skipping ruken publish"; exit 0; fi
           # ruken publish registers a new game when it knows none: from a fresh CI checkout, every release would.
           if [[ -n "$GAME" ]]; then
-            pnpm exec automata-ship publish --tag "$TAG" --game "$GAME"
+            pnpm exec automata ship publish --tag "$TAG" --game "$GAME"
           elif [[ -f .ruken/project.json ]]; then
-            pnpm exec automata-ship publish --tag "$TAG"
+            pnpm exec automata ship publish --tag "$TAG"
           else
             echo "::error::set the game input (the Ruken public id) or commit .ruken/project.json; refusing to register a new Ruken game"
             exit 1
@@ -288,7 +288,7 @@ jobs:
           printf '%s\n' "$SHIP_DEV_SSH_KEY" > "$keys/id" && chmod 600 "$keys/id"
           printf '%s\n' "$SHIP_DEV_KNOWN_HOSTS" > "$keys/known_hosts"
           SHIP_DEV_SSH_KEY_FILE="$keys/id" SHIP_DEV_KNOWN_HOSTS_FILE="$keys/known_hosts" \
-            pnpm exec automata-ship deploy-dev --tag "$TAG" --activate
+            pnpm exec automata ship deploy-dev --tag "$TAG" --activate
       - name: Remove the deploy key
         if: always()
         run: rm -rf "$RUNNER_TEMP/ship-ssh"
@@ -371,7 +371,7 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         env:
           BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
-        run: pnpm exec automata-ship publish --target itch --tag "$TAG"
+        run: pnpm exec automata ship publish --target itch --tag "$TAG"
       - name: Remove butler
         if: always()
         run: rm -rf "$RUNNER_TEMP/butler"
@@ -422,7 +422,7 @@ jobs:
         run: $DESKTOP_BUILD_COMMAND
       - name: Build the bundles (unsigned)
         working-directory: ${{ inputs.working-directory }}
-        run: pnpm exec automata-ship prepare --target tauri --tag "$TAG"
+        run: pnpm exec automata ship prepare --target tauri --tag "$TAG"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: desktop-unsigned-${{ matrix.runner }}
@@ -433,7 +433,7 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         env:
           BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
-        run: pnpm exec automata-ship publish --target itch --from tauri --tag "$TAG"
+        run: pnpm exec automata ship publish --target itch --from tauri --tag "$TAG"
 
   # The signed macOS bundle (DIST-D8): only in the release environment, whose approval is the Owner's, with the Owner's
   # Apple secrets; tauri build signs and notarizes when they are set (https://v2.tauri.app/distribute/sign/macos/).
@@ -499,7 +499,7 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: pnpm exec automata-ship prepare --target tauri --tag "$TAG"
+        run: pnpm exec automata ship prepare --target tauri --tag "$TAG"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: desktop-signed-macos

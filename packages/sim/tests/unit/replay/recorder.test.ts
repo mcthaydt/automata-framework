@@ -1,13 +1,13 @@
 import { afterEach, expect, test } from 'vitest'
 import { z } from 'zod'
-import { defineCommand, definePlugin, defineSystem } from '#src/define/definitions.ts'
-import { hex64, xxhash64 } from '#src/hash/xxhash64.ts'
-import { decodeReplay, encodeReplay } from '#src/replay/codec.ts'
-import { ReplayRecordError } from '#src/replay/errors.ts'
-import { createRecorder } from '#src/replay/recorder.ts'
+import { decodeReplay, encodeReplay } from '#src/features/replay/codec.ts'
+import { ReplayRecordError } from '#src/features/replay/errors.ts'
+import { createRecorder } from '#src/features/replay/recorder.ts'
+import { defineCommand, definePlugin, defineSystem } from '#src/shared/define/definitions.ts'
+import { hex64, xxhash64 } from '#src/shared/hash/xxhash64.ts'
+import { SIM_VERSION } from '#src/shared/version.ts'
+import { createSim, type Sim } from '#src/shared/world/sim.ts'
 import { Body, fixturePlugin } from '#src/testing/fixture-world.ts'
-import { SIM_VERSION } from '#src/version.ts'
-import { createSim, type Sim } from '#src/world/sim.ts'
 
 const sims: Sim[] = []
 async function make(plugins = [fixturePlugin]) {

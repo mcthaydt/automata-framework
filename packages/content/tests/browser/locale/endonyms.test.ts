@@ -4,7 +4,7 @@
 // FR), as Node 24 gives them, in Node, Chromium, WebKit and Firefox. A name an engine spells differently is a
 // character the build may not have cut: change the build or the list here, never this check, to make it pass.
 import { expect, test } from 'vitest'
-import { endonymOf } from '#src/locale/endonyms.ts'
+import { endonymOf } from '#src/shared/locale/endonyms.ts'
 
 const NAMES: Readonly<Record<string, string>> = {
   en: 'English',

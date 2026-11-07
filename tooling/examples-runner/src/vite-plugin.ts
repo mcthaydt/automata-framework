@@ -16,7 +16,7 @@ export interface ExamplesRunnerOptions {
   readonly root: string
   /** The module exporting `startGame` (default `@mcthaydt/automata`, DX.2 and PRODUCT.2). */
   readonly start?: string
-  /** The side-effect import every page runs first (default `@mcthaydt/automata-render-pixi/no-eval`). */
+  /** The side-effect import every page runs first (default `@mcthaydt/automata/no-eval`). */
   readonly noEval?: string
   readonly catalog?: CatalogOptions
 }
@@ -26,7 +26,7 @@ const isPending = (entry: CatalogEntry): boolean => entry.header?.pending !== un
 export function examplesRunner(options: ExamplesRunnerOptions): Plugin {
   const modules: PageModules = {
     start: options.start ?? '@mcthaydt/automata',
-    noEval: options.noEval ?? '@mcthaydt/automata-render-pixi/no-eval',
+    noEval: options.noEval ?? '@mcthaydt/automata/no-eval',
   }
   const headers = previewHeaders(EXAMPLES_SHIP_CONFIG)
   const catalog = () => readCatalog(options.root, options.catalog)

@@ -1,13 +1,13 @@
 import { expect, test } from 'vitest'
-import { encodeReplay } from '#src/replay/codec.ts'
-import { ReplayFormatError } from '#src/replay/errors.ts'
+import { encodeReplay } from '#src/features/replay/codec.ts'
+import { ReplayFormatError } from '#src/features/replay/errors.ts'
 import {
   packReplay,
   REPLAY_INFLATE_MAX_BYTES,
   type ReplayCompression,
   unpackReplay,
-} from '#src/replay/pack.ts'
-import type { Replay } from '#src/replay/replay.ts'
+} from '#src/features/replay/pack.ts'
+import type { Replay } from '#src/features/replay/replay.ts'
 
 /** "Deflate" is a marker byte in front; inflate honours the cap the way the real adapters do. */
 function fakeCompression(log: number[] = []): ReplayCompression {

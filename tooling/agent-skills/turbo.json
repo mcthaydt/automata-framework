@@ -10,7 +10,7 @@
         "$TURBO_ROOT$/package.json",
         "$TURBO_ROOT$/.github/workflows/ci.yml",
         "$TURBO_ROOT$/tooling/check-boundaries/src/**",
-        "$TURBO_ROOT$/packages/cli/src/check/**",
+        "$TURBO_ROOT$/packages/tools/src/shared/check/**",
         "$TURBO_ROOT$/packages/sim/src/**"
       ]
     },
@@ -22,7 +22,7 @@
         "$TURBO_ROOT$/package.json",
         "$TURBO_ROOT$/.github/workflows/ci.yml",
         "$TURBO_ROOT$/tooling/check-boundaries/src/**",
-        "$TURBO_ROOT$/packages/cli/src/check/**",
+        "$TURBO_ROOT$/packages/tools/src/shared/check/**",
         "$TURBO_ROOT$/packages/sim/src/**"
       ]
     },

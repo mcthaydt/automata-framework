@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
-import { ReplayFormatError } from '#src/replay/errors.ts'
-import { readVarint, writeVarint } from '#src/replay/varint.ts'
+import { ReplayFormatError } from '#src/features/replay/errors.ts'
+import { readVarint, writeVarint } from '#src/features/replay/varint.ts'
 
 const encode = (value: number): number[] => {
   const out: number[] = []

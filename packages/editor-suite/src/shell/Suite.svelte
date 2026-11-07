@@ -6,6 +6,7 @@
   rotation; only what is inside its regions changes.
 -->
 <script lang="ts">
+import type { GeometryState } from '@mcthaydt/automata'
 import {
   Button,
   createToasts,
@@ -21,7 +22,6 @@ import type {
   SuitePorts,
   WorkspaceFile,
 } from '@mcthaydt/automata-editor-kit/ports'
-import type { GeometryState } from '@mcthaydt/automata-ui'
 import { SvelteMap } from 'svelte/reactivity'
 import { type AskState, createAskSession } from '../core/ask-session'
 import type { Pill } from '../core/pills-model'

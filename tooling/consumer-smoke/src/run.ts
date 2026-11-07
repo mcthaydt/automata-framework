@@ -9,7 +9,7 @@ import { cpSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, wri
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { findRukenSdkMarkers } from '../../../packages/host/src/sdk-markers.ts'
+import { findRukenSdkMarkers } from '../../../packages/automata/src/features/targets/sdk-markers.ts'
 import { resolveSourceCommit } from '../../core-packs/src/args.ts'
 import { packWorkspace } from '../../core-packs/src/pack.ts'
 import { publishablePackages } from '../../release/src/publishable-packages.ts'
@@ -181,7 +181,7 @@ function steps(project: string): Step[] {
       },
     ],
     [
-      'ship: automata-ship --help prints its commands',
+      'ship: automata ship --help prints its commands',
       () => {
         // The CLI answers --help with its usage and exit 2 (a usage answer), so check what it printed.
         const usage = output(project, bin('automata-ship'), ['--help'])

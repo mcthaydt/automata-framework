@@ -7,11 +7,11 @@
 // Controls: arrows or A/D to move, Space, Z, W or Up to jump, Escape or P to pause; on-screen buttons on touch.
 // Base: this is the 2D base. Demos build on it through `@af-examples/base-2d`.
 // Packages: @mcthaydt/automata-game (runtime, render-pixi, host, ui), @mcthaydt/automata-sim, pixi.js,
-// @fontsource/pixelify-sans (OFL font); @mcthaydt/automata-ship for packaging.
-import '@mcthaydt/automata-game/no-eval'
+// @fontsource/pixelify-sans (OFL font); @mcthaydt/automata-tools for packaging.
+import '@mcthaydt/automata/no-eval'
 import '@fontsource/pixelify-sans/latin-400.css'
 import '@fontsource/pixelify-sans/latin-700.css'
-import { startGame } from '@mcthaydt/automata-game'
+import { startGame } from '@mcthaydt/automata'
 import { emberwick } from './src/game.ts'
 
 startGame(emberwick)

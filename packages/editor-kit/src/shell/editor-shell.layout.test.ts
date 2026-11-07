@@ -1,13 +1,16 @@
 import '../tokens.css'
 import '../fonts.css'
 import {
+  byTestId,
+  checkLayout,
   type MountedFixture,
   mountFixture,
+  publishConditions,
   type ReferenceSize,
+  settleLayout,
   VARIANTS,
   type Variant,
-} from '@mcthaydt/automata-testing'
-import { byTestId, checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata-ui/testing'
+} from '@mcthaydt/automata/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import ShellFixture from '../testing/ShellFixture.svelte'

@@ -7,7 +7,7 @@ import type { CatalogEntry } from './catalog.ts'
 export const EXAMPLES_GAME_ID = 'af-examples'
 
 export interface PageModules {
-  /** The module that exports `startGame` (`@mcthaydt/automata-game`, or the runner's test stub). */
+  /** The module that exports `startGame` (`@mcthaydt/automata`, or the runner's test stub). */
   readonly start: string
   /** Imported before anything else, so PixiJS never reaches for eval under Ruken's CSP (AGENTS.md). */
   readonly noEval: string

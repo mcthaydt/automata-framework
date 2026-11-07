@@ -1,0 +1,57 @@
+// @mcthaydt/automata-game: one call to start a game (DX spec §3.1). The only package that composes runtime,
+// render-pixi, host, ui and sim; every default it fills in is an existing core contract with its options set.
+
+export { defaultContent } from '../app/default-content.ts'
+export {
+  type DefinedGame,
+  defineGame,
+  type GameCopy,
+  type GameSaves,
+  type GameSpec,
+  GameSpecError,
+} from '../app/define-game.ts'
+export type { DrawContext, DrawTextOptions } from '../app/draw/draw-layer.ts'
+export type { DrawEntity, DrawSim } from '../app/draw/read-sim.ts'
+export { defaultScreens, type ScreensGame } from '../app/screens/default-screens.ts'
+export type { ChangedElsewhereCopy } from '../app/screens/saves/saves-copy.ts'
+// The default screens' words (DX.2d): a game passes its own in `copy.screens`, over the English defaults.
+export type {
+  ScreensCopy,
+  ScreensCopyInput,
+  ScreensCopyOverrides,
+  SettingsScreenCopy,
+} from '../app/screens/screens-copy.ts'
+export { startGame } from '../app/start-game.ts'
+export { inputs } from '../features/input/inputs.ts'
+export {
+  type AnalogOptions,
+  type AnalogReading,
+  type InputMap,
+  type InputSource,
+  type KeyBindings,
+  type KeysOptions,
+  keys,
+  type TouchButton,
+} from '../features/input/keys.ts'
+export {
+  type Camera2d,
+  type Camera2dOptions,
+  type CameraRect,
+  createCamera2d,
+  type PostFilterDef,
+  type PostFilterSpec,
+  postFilter,
+  type RectViewOptions,
+  rect,
+  type SpriteFrames,
+  type SpriteViewOptions,
+  sprite,
+} from './from-render-pixi.ts'
+// A save is declared with the runtime's `defineSave` and handed to `defineGame({ saves })` (M5.2); a game imports
+// only the umbrella (or this package), never the runtime, so the declaration comes through here.
+export {
+  type AutosavePolicy,
+  type AutosaveTrigger,
+  defineSave,
+  type SaveDef,
+} from './from-runtime.ts'

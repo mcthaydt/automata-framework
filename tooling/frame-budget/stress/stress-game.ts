@@ -1,10 +1,5 @@
-import { createPixiRenderer } from '@mcthaydt/automata-render-pixi'
-import type {
-  CompiledContentData,
-  GameDefinition,
-  RendererFactory,
-  RuntimeSeams,
-} from '@mcthaydt/automata-runtime'
+import type { CompiledContentData, GameDefinition, RendererFactory, RuntimeSeams } from '@mcthaydt/automata'
+import { createPixiRenderer } from '@mcthaydt/automata'
 import type { StressParams } from './params.ts'
 import { WORLD } from './sim/stress.component.ts'
 import { stressScreen } from './stress-screen.ts'

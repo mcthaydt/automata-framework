@@ -11,8 +11,8 @@ export interface Seam {
   readonly members?: readonly string[]
 }
 
-const runtime = '@mcthaydt/automata-runtime'
-const renderPixi = '@mcthaydt/automata-render-pixi'
+const runtime = '@mcthaydt/automata'
+const renderPixi = '@mcthaydt/automata'
 
 export const SEAMS: readonly Seam[] = [
   { seam: 'input profiles', package: runtime, entryPoint: '.', name: 'inputProfileSchema' },
@@ -67,14 +67,14 @@ export const SEAMS: readonly Seam[] = [
   { seam: 'presentation-bus events', package: runtime, entryPoint: '.', name: 'typedBus' },
   {
     seam: 'host leaderboard call',
-    package: '@mcthaydt/automata-host',
+    package: '@mcthaydt/automata',
     entryPoint: '.',
     name: 'Hosting',
     members: ['leaderboards'],
   },
   {
     seam: 'host leaderboard call',
-    package: '@mcthaydt/automata-host',
+    package: '@mcthaydt/automata',
     entryPoint: '.',
     name: 'HostingLeaderboards',
     members: ['submit', 'get'],

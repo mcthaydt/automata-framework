@@ -807,3 +807,238 @@ function unpackReplay(bytes: Uint8Array, compression: ReplayCompression, options
     readonly maxInflatedBytes?: number;
 }): Promise<Replay>;
 ```
+
+## `./testing`
+
+### `Difference` (interface)
+
+```ts
+interface Difference {
+    readonly kind: 'header' | 'rng' | 'resource' | 'entity' | 'plugin';
+    readonly at: string;
+    readonly sid?: number;
+    readonly expected: string;
+    readonly actual: string;
+}
+```
+
+### `diffSnapshotViews` (function)
+
+```ts
+function diffSnapshotViews(expected: SnapshotView, actual: SnapshotView): Difference[];
+```
+
+### `expectGolden` (function)
+
+```ts
+function expectGolden(report: GoldenReport): void;
+```
+
+### `formatGoldenReport` (function)
+
+```ts
+function formatGoldenReport(report: GoldenReport): string;
+```
+
+### `GOLDEN_MAX_PACKED_BYTES` (const)
+
+```ts
+const GOLDEN_MAX_PACKED_BYTES: number;
+```
+
+### `goldenCommands` (function)
+
+```ts
+function goldenCommands(options?: GoldenCommandsOptions): Record<string, BrowserCommand<[path: string], Promise<string | null>>>;
+```
+
+### `GoldenReport` (type)
+
+```ts
+type GoldenReport = {
+    readonly name: string;
+} & ({
+    readonly kind: 'pass';
+    readonly checks: number;
+} | {
+    readonly kind: 'written';
+    readonly file: string;
+    readonly bytes: number;
+} | {
+    readonly kind: 'missing';
+    readonly file: string;
+} | {
+    readonly kind: 'schema-changed' | 'content-changed';
+    readonly expected: string;
+    readonly actual: string;
+} | {
+    readonly kind: 'setup-changed';
+    readonly field: 'seed' | 'tickHz' | 'ticks' | 'every';
+    readonly expected: number;
+    readonly actual: number;
+} | {
+    readonly kind: 'diverged';
+    readonly firstTick: number;
+    readonly lastGoodTick: number;
+    readonly exact: boolean;
+    readonly diffTick?: number;
+    readonly differences: readonly Difference[];
+});
+```
+
+### `nodeCompression` (const)
+
+```ts
+const nodeCompression: ReplayCompression;
+```
+
+### `replayGolden` (function)
+
+```ts
+function replayGolden(options: ReplayGoldenOptions): Promise<GoldenReport>;
+```
+
+### `ReplayGoldenOptions` (interface)
+
+```ts
+interface ReplayGoldenOptions {
+    readonly file: string;
+    readonly plugins: readonly PluginDef[];
+    readonly content?: unknown;
+    readonly record?: RecordFrom & {
+        readonly drive: (recorder: Recorder, sim: Sim) => void | Promise<void>;
+        readonly snapshotEvery?: number;
+    };
+}
+```
+
+### `RoundTripFailure` (interface)
+
+```ts
+interface RoundTripFailure {
+    readonly case: number;
+    readonly simSeed: number;
+    readonly ticks: number;
+    readonly at: number;
+    readonly variant: RoundTripVariant;
+    readonly report: string;
+}
+```
+
+### `RoundTripOptions` (interface)
+
+```ts
+interface RoundTripOptions {
+    readonly plugins: readonly PluginDef[];
+    readonly content?: unknown;
+    readonly tickHz?: number;
+    readonly setup?: (sim: Sim, rng: Rng) => void;
+    readonly script: (tick: number, rng: Rng) => readonly Command[];
+    readonly cases?: number;
+    readonly maxTicks?: number;
+    readonly seed?: number;
+}
+```
+
+### `RoundTripVariant` (type)
+
+```ts
+type RoundTripVariant = 'fresh' | 'dirty';
+```
+
+### `simGolden` (function)
+
+```ts
+function simGolden(options: SimGoldenOptions): Promise<GoldenReport>;
+```
+
+### `SimGoldenOptions` (interface)
+
+```ts
+interface SimGoldenOptions {
+    readonly name: string;
+    readonly dir: string;
+    readonly plugins: readonly PluginDef[];
+    readonly content?: unknown;
+    readonly seed: number;
+    readonly tickHz?: number;
+    readonly setup?: (sim: Sim) => void;
+    readonly script: (tick: number, rng: Rng) => readonly Command[];
+    readonly ticks: number;
+    readonly every?: number;
+}
+```
+
+### `snapshotRoundTripProperty` (function)
+
+```ts
+function snapshotRoundTripProperty(options: RoundTripOptions): Promise<{
+    readonly failures: readonly RoundTripFailure[];
+}>;
+```
+
+### `streamCompression` (const)
+
+```ts
+const streamCompression: ReplayCompression;
+```
+
+## `./testing/commands`
+
+### `goldenCommands` (function)
+
+```ts
+function goldenCommands(options?: GoldenCommandsOptions): Record<string, BrowserCommand<[path: string], Promise<string | null>>>;
+```
+
+### `GoldenCommandsOptions` (interface)
+
+```ts
+interface GoldenCommandsOptions {
+    readonly root?: string;
+}
+```
+
+## `./testing/property`
+
+### `RoundTripFailure` (interface)
+
+```ts
+interface RoundTripFailure {
+    readonly case: number;
+    readonly simSeed: number;
+    readonly ticks: number;
+    readonly at: number;
+    readonly variant: RoundTripVariant;
+    readonly report: string;
+}
+```
+
+### `RoundTripOptions` (interface)
+
+```ts
+interface RoundTripOptions {
+    readonly plugins: readonly PluginDef[];
+    readonly content?: unknown;
+    readonly tickHz?: number;
+    readonly setup?: (sim: Sim, rng: Rng) => void;
+    readonly script: (tick: number, rng: Rng) => readonly Command[];
+    readonly cases?: number;
+    readonly maxTicks?: number;
+    readonly seed?: number;
+}
+```
+
+### `RoundTripVariant` (type)
+
+```ts
+type RoundTripVariant = 'fresh' | 'dirty';
+```
+
+### `snapshotRoundTripProperty` (function)
+
+```ts
+function snapshotRoundTripProperty(options: RoundTripOptions): Promise<{
+    readonly failures: readonly RoundTripFailure[];
+}>;
+```

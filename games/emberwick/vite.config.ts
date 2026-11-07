@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import { automataContent } from '@mcthaydt/automata-content/vite'
-import { rukenHeaders } from '@mcthaydt/automata-ship'
+import { rukenHeaders } from '@mcthaydt/automata-tools'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { Effect } from 'effect'
 import { defaultClientConditions, defineConfig } from 'vite'

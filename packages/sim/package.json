@@ -13,10 +13,13 @@
     "dist"
   ],
   "exports": {
-    ".": "./src/index.ts",
-    "./hash": "./src/hash/hash.ts",
-    "./math": "./src/math/dmath.ts",
-    "./replay": "./src/replay/index.ts"
+    ".": "./src/entries/index.ts",
+    "./hash": "./src/entries/hash.ts",
+    "./math": "./src/entries/math.ts",
+    "./replay": "./src/entries/replay.ts",
+    "./testing": "./src/entries/testing.ts",
+    "./testing/commands": "./src/entries/testing-commands.ts",
+    "./testing/property": "./src/entries/testing-property.ts"
   },
   "imports": {
     "#src/*": "./src/*"
@@ -39,6 +42,18 @@
       "./replay": {
         "types": "./dist/replay.d.ts",
         "import": "./dist/replay.js"
+      },
+      "./testing": {
+        "types": "./dist/testing.d.ts",
+        "import": "./dist/testing.js"
+      },
+      "./testing/commands": {
+        "types": "./dist/testing-commands.d.ts",
+        "import": "./dist/testing-commands.js"
+      },
+      "./testing/property": {
+        "types": "./dist/testing-property.d.ts",
+        "import": "./dist/testing-property.js"
       }
     }
   },
@@ -48,7 +63,7 @@
     "test:unit": "vitest run --project unit",
     "typecheck": "tsc -p .",
     "test:browser": "vitest run --project browser",
-    "test:evidence": "vitest run --project unit --project browser tests/browser/world/snapshot.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
+    "test:evidence": "vitest run --project unit --project browser tests/browser/world/snapshot.test.ts tests/browser/testing/bounce.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
     "build": "tsdown"
   },
   "dependencies": {
@@ -58,8 +73,17 @@
   "devDependencies": {
     "@mcthaydt/evidence": "workspace:*",
     "@mcthaydt/vitest-preset": "workspace:*",
+    "@types/node": "24.19.1",
     "@vitest/browser-playwright": "5.0.3",
     "playwright": "1.63.0",
     "vitest": "5.0.3"
+  },
+  "peerDependencies": {
+    "vitest": "^5.0.3"
+  },
+  "peerDependenciesMeta": {
+    "vitest": {
+      "optional": true
+    }
   }
 }

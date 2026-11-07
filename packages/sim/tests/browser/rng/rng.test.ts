@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
-import { hex64, xxhash64 } from '#src/hash/xxhash64.ts'
-import { createRng, deriveSeed } from '#src/rng/rng.ts'
+import { hex64, xxhash64 } from '#src/shared/hash/xxhash64.ts'
+import { createRng, deriveSeed } from '#src/shared/rng/rng.ts'
 
 test('100k outputs across 8 substreams hash identically in every engine', () => {
   const out = new Uint32Array(100_000)

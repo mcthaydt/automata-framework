@@ -1,13 +1,12 @@
 // consumer-smoke's types step (M2.4 spec §3.6): the published declarations, read by TypeScript 7.0.2 and by
 // 6.0.3 (ship spec §3.1: TS 6 consumers can read AF's .d.ts). One use of each entry's main types.
+
+import { HostError, type Hosting } from '@mcthaydt/automata'
+import { HostingLive, makeHosting } from '@mcthaydt/automata/target'
+import { HostingTest, REFERENCE_SIZES, type ReferenceSize } from '@mcthaydt/automata/testing'
 import type { CompiledContent, ContentConfig, Diagnostic } from '@mcthaydt/automata-content'
 import { type ContentText, createContentText } from '@mcthaydt/automata-content/locale'
 import { automataContent } from '@mcthaydt/automata-content/vite'
-import { HostError, type Hosting } from '@mcthaydt/automata-host'
-import { HostingLive, makeHosting } from '@mcthaydt/automata-host/target'
-import { HostingTest } from '@mcthaydt/automata-host/testing'
-import { type FilesService, ProcessRunner } from '@mcthaydt/automata-node'
-import { prepareBuild, type ShipConfig } from '@mcthaydt/automata-ship'
 import {
   createSim,
   defineComponent,
@@ -18,18 +17,30 @@ import {
 } from '@mcthaydt/automata-sim'
 import { xxhash64 } from '@mcthaydt/automata-sim/hash'
 import { sin } from '@mcthaydt/automata-sim/math'
-import { REFERENCE_SIZES, type ReferenceSize } from '@mcthaydt/automata-testing'
+import { type FilesService, ProcessRunner, prepareBuild, type ShipConfig } from '@mcthaydt/automata-tools'
 import '@mcthaydt/automata/no-eval'
-import { type DefinedGame, defineGame, defineComponent as umbrellaComponent } from '@mcthaydt/automata'
-import { type GameSpec, keys, startGame } from '@mcthaydt/automata-game'
-import '@mcthaydt/automata-game/no-eval'
-import { createPixiRenderer, type PixiRendererOptions, rect } from '@mcthaydt/automata-render-pixi'
-import '@mcthaydt/automata-render-pixi/no-eval'
-import { type GameDefinition, type RuntimeHandle, runGame } from '@mcthaydt/automata-runtime'
-import { defineExtension, type ExtensionDef } from '@mcthaydt/automata-runtime/extension'
-import { manualFrames, RuntimeTest } from '@mcthaydt/automata-runtime/testing'
-import { classifyFormFactor, Dialog, type FormFactor, type Geometry } from '@mcthaydt/automata-ui'
-import { checkLayout } from '@mcthaydt/automata-ui/testing'
+import {
+  type DefinedGame,
+  defineGame,
+  type GameSpec,
+  keys,
+  startGame,
+  defineComponent as umbrellaComponent,
+} from '@mcthaydt/automata'
+import '@mcthaydt/automata/no-eval'
+import { createPixiRenderer, type PixiRendererOptions, rect } from '@mcthaydt/automata'
+import '@mcthaydt/automata/no-eval'
+import {
+  classifyFormFactor,
+  Dialog,
+  type FormFactor,
+  type GameDefinition,
+  type Geometry,
+  type RuntimeHandle,
+  runGame,
+} from '@mcthaydt/automata'
+import { defineExtension, type ExtensionDef } from '@mcthaydt/automata/extension'
+import { checkLayout, manualFrames, RuntimeTest } from '@mcthaydt/automata/testing'
 
 export const sizes: readonly ReferenceSize[] = REFERENCE_SIZES
 export const factor: FormFactor = classifyFormFactor(390, 844)

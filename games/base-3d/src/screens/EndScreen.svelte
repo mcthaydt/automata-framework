@@ -4,7 +4,7 @@
   starts a fresh one (screens.ts).
 -->
 <script lang="ts">
-import { ScreenFrame } from '@mcthaydt/automata-ui'
+import { ScreenFrame } from '@mcthaydt/automata'
 import CentredActions from './CentredActions.svelte'
 import { liveCopy } from './copy.svelte.ts'
 

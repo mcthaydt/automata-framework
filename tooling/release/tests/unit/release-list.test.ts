@@ -10,20 +10,13 @@ import { publishablePackages, type WorkspacePackage, workspacePackages } from '#
 const root = fileURLToPath(new URL('../../../..', import.meta.url))
 const published = publishablePackages(root)
 
-// DX.2a: runtime, render-pixi, game and the umbrella joined, so a game (and Automata Plus) can install them.
+// Core and 2D refactor, D1: four packages (sim, content, automata, tools) and the boundaries checker.
 const EXPECTED: readonly string[] = [
   '@mcthaydt/automata',
   '@mcthaydt/automata-check-boundaries',
   '@mcthaydt/automata-content',
-  '@mcthaydt/automata-game',
-  '@mcthaydt/automata-host',
-  '@mcthaydt/automata-node',
-  '@mcthaydt/automata-render-pixi',
-  '@mcthaydt/automata-runtime',
-  '@mcthaydt/automata-ship',
   '@mcthaydt/automata-sim',
-  '@mcthaydt/automata-testing',
-  '@mcthaydt/automata-ui',
+  '@mcthaydt/automata-tools',
 ]
 
 const REGISTRY = 'https://npm.pkg.github.com'

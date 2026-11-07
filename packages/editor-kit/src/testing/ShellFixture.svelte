@@ -6,7 +6,7 @@
   a test can read what the shell told it. `broken` puts a widget with a bug in one region (kit spec §6).
 -->
 <script lang="ts">
-import type { GeometryState } from '@mcthaydt/automata-ui'
+import type { GeometryState } from '@mcthaydt/automata'
 import EditorShell from '../shell/EditorShell.svelte'
 import type { SnippetRegion } from '../shell/region-error'
 import StatusLine from '../widgets/StatusLine.svelte'

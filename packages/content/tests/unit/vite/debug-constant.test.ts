@@ -2,8 +2,8 @@ import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { build, type Plugin } from 'vite'
 import { afterEach, describe, expect, it } from 'vitest'
+import { automataContent } from '#src/features/vite/automata-content.ts'
 import { copyFixture, fixtureOptions } from '#src/testing/fixture-game.ts'
-import { automataContent } from '#src/vite/automata-content.ts'
 
 // FR.3 (Plus DBG-D2): the plugin defines `__AUTOMATA_DEBUG__` for the game: true in the dev server and in a build made with
 // AUTOMATA_DEBUG=1 (`automata build --debug`), false in a release build. A block a game guards with it is tree-shaken from a release

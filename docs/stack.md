@@ -109,7 +109,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 - **Tier:** Core
 - **What it does in AF:** The host: the game side of Ruken's protocol, a fake host for tests, the manifest checks and CSP headers, and `ruken publish` (ADR 0004).
 - **Why it was chosen:** Ruken is the reference host. FloorFifty already runs through these packages, so AF consumes them instead of re-deriving Ruken's contract (ADR 0004). They are vendored as tarballs until Ruken publishes them (`vendor/ruken/README.md`).
-- **What AF adds on top:** `@mcthaydt/automata-host`: the `Hosting` Effect service with typed errors and a test layer on the fake host; `@mcthaydt/automata-ship` generates `ruken.toml`, checks it with `@ruken/manifest` and hands the build to `ruken publish`.
+- **What AF adds on top:** `@mcthaydt/automata-host`: the `Hosting` Effect service with typed errors and a test layer on the fake host; `@mcthaydt/automata-tools` generates `ruken.toml`, checks it with `@ruken/manifest` and hands the build to `ruken publish`.
 
 ## Vite, Vitest, Playwright
 

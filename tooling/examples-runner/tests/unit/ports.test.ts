@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { browserSafePort } from '../../../../packages/ship/src/ports/browser-safe-port.ts'
+import { browserSafePort } from '../../../../packages/tools/src/shared/ship/ports/browser-safe-port.ts'
 
 afterEach(() => {
   vi.unstubAllEnvs()

@@ -1,4 +1,4 @@
-import { INPUT_MATRIX } from '@mcthaydt/automata-testing/e2e'
+import { INPUT_MATRIX } from '@mcthaydt/automata-tools/e2e'
 import {
   demoHostOrigin,
   demoHostPort,

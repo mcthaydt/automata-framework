@@ -6,7 +6,7 @@
 // (A browser-safe entry for the content package is the proper home for this; it is a request to that package, not a
 // Studio-only workaround.)
 
-export { DEFAULT_PALETTE, type Palette } from '../../../content/src/palette/palette'
+export { DEFAULT_PALETTE, type Palette } from '../../../content/src/shared/palette/palette'
 export {
   type ContentSchemaDef,
   type ContentSchemaOptions,
@@ -14,4 +14,4 @@ export {
   contentRef,
   defineContentSchema,
   localized,
-} from '../../../content/src/schema/content-schema'
+} from '../../../content/src/shared/schema/content-schema'

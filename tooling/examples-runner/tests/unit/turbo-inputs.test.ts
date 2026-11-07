@@ -54,8 +54,8 @@ describe.each(TASKS)("turbo's cache key for the examples runner's %s", (task) =>
   it("covers the packages' manifests and the sources an example runs, but not their tests", () => {
     const files = hashed.get(task) ?? []
     expect(files).toEqual(
-      expect.arrayContaining(['packages/game/package.json', 'packages/game/src/define-game.ts']),
+      expect.arrayContaining(['packages/automata/package.json', 'packages/automata/src/app/define-game.ts']),
     )
-    expect(files).not.toContain('packages/game/src/define-game.test.ts')
+    expect(files).not.toContain('packages/automata/tests/unit/app/define-game.test.ts')
   })
 })

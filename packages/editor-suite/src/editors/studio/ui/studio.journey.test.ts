@@ -1,6 +1,7 @@
 import '@mcthaydt/automata-editor-kit/tokens.css'
 import '@mcthaydt/automata-editor-kit/fonts.css'
 import '../../../main.css'
+import { publishConditions, settleLayout } from '@mcthaydt/automata/testing'
 import type { SuiteEditor } from '@mcthaydt/automata-editor-kit/ports'
 import {
   arrived,
@@ -10,7 +11,6 @@ import {
   REST,
   turned,
 } from '@mcthaydt/automata-editor-kit/testing'
-import { publishConditions, settleLayout } from '@mcthaydt/automata-ui/testing'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { EDITOR_LIST_PATH } from '../../../core'

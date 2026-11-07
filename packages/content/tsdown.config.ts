@@ -6,11 +6,11 @@ import { publishedBuild } from '../../tooling/release/src/tsdown-shared.ts'
 // package has no `.ts` to load, so the published bin is `build/cli.ts`, which calls `runCli` directly.
 export default publishedBuild(import.meta.url, {
   entry: {
-    index: 'src/index.ts',
-    assets: 'src/assets/index.ts',
-    locale: 'src/locale/index.ts',
-    'game-config': 'src/game/game-config.schema.ts',
-    vite: 'src/vite/index.ts',
+    index: 'src/entries/index.ts',
+    assets: 'src/entries/assets.ts',
+    locale: 'src/entries/locale.ts',
+    'game-config': 'src/entries/game-config.ts',
+    vite: 'src/entries/vite.ts',
     cli: 'build/cli.ts',
   },
   platform: 'node',

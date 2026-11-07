@@ -73,7 +73,7 @@ export const STACK: StackSource = {
       packages: ['@ruken/sdk', '@ruken/sdk-host', '@ruken/manifest', '@ruken/cli'],
       does: "The host: the game side of Ruken's protocol, a fake host for tests, the manifest checks and CSP headers, and `ruken publish` (ADR 0004).",
       why: "Ruken is the reference host. FloorFifty already runs through these packages, so AF consumes them instead of re-deriving Ruken's contract (ADR 0004). They are vendored as tarballs until Ruken publishes them (`vendor/ruken/README.md`).",
-      adds: '`@mcthaydt/automata-host`: the `Hosting` Effect service with typed errors and a test layer on the fake host; `@mcthaydt/automata-ship` generates `ruken.toml`, checks it with `@ruken/manifest` and hands the build to `ruken publish`.',
+      adds: '`@mcthaydt/automata-host`: the `Hosting` Effect service with typed errors and a test layer on the fake host; `@mcthaydt/automata-tools` generates `ruken.toml`, checks it with `@ruken/manifest` and hands the build to `ruken publish`.',
     },
     {
       library: 'Vite, Vitest, Playwright',

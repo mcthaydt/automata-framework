@@ -7,9 +7,9 @@
   profile; the templates, kinds and summaries all come from the registry.
 -->
 <script lang="ts">
+import type { GeometryState } from '@mcthaydt/automata'
 import { FilePick, HomeScreen } from '@mcthaydt/automata-editor-kit'
 import { splitPath, type ToastStore, type Workspace } from '@mcthaydt/automata-editor-kit/core'
-import type { GeometryState } from '@mcthaydt/automata-ui'
 import { tick } from 'svelte'
 import type { LevelThumbnails } from '../../canvas/level-thumbnails'
 import type { ProfileRegistry } from '../../profiles/profile'

@@ -5,10 +5,16 @@
 // Play is the default play screen with one addition: the sim's `goal.reached` ends the round as complete and moves on to
 // the end screen. The round starts when play is entered from the menu and ends as `quit` when Quit leaves paused for the
 // menu.
-import { defaultScreens, type ScreensGame } from '@mcthaydt/automata-game'
-import { Hosting } from '@mcthaydt/automata-host'
-import { Flow, Locale, PresentationBus, type ScreenDef } from '@mcthaydt/automata-runtime'
-import { resolveExtensions } from '@mcthaydt/automata-runtime/extension'
+import {
+  defaultScreens,
+  Flow,
+  Hosting,
+  Locale,
+  PresentationBus,
+  type ScreenDef,
+  type ScreensGame,
+} from '@mcthaydt/automata'
+import { resolveExtensions } from '@mcthaydt/automata/extension'
 import type { Sim } from '@mcthaydt/automata-sim'
 import { Effect, type Scope } from 'effect'
 import { flushSync, mount, unmount } from 'svelte'

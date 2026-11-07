@@ -14,17 +14,17 @@
     "VENDORED.md"
   ],
   "exports": {
-    ".": "./src/index.ts",
-    "./assets": "./src/assets/index.ts",
-    "./game-config": "./src/game/game-config.schema.ts",
-    "./locale": "./src/locale/index.ts",
-    "./vite": "./src/vite/index.ts"
+    ".": "./src/entries/index.ts",
+    "./assets": "./src/entries/assets.ts",
+    "./game-config": "./src/entries/game-config.ts",
+    "./locale": "./src/entries/locale.ts",
+    "./vite": "./src/entries/vite.ts"
   },
   "imports": {
     "#src/*": "./src/*"
   },
   "bin": {
-    "automata-content": "./src/cli/main.ts"
+    "automata-content": "./src/app/cli/main.ts"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",

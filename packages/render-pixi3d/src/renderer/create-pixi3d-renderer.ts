@@ -1,12 +1,14 @@
 import {
   createPixiRenderer,
+  type ModelInvalid,
   type PixiRenderer,
   type PixiRendererOptions,
   type PixiStage,
   type PixiStageHooks,
   RenderDeltaConsumer,
-} from '@mcthaydt/automata-render-pixi'
-import { type ModelInvalid, RendererUnavailable, type RenderTarget } from '@mcthaydt/automata-runtime'
+  RendererUnavailable,
+  type RenderTarget,
+} from '@mcthaydt/automata'
 import type { RenderDelta, RenderRow } from '@mcthaydt/automata-sim'
 import { type Container3D, View3D } from '@pixi/3d'
 import { Effect, ExecutionStrategy, Exit, Runtime, Scope } from 'effect'

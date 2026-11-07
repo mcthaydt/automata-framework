@@ -13,13 +13,16 @@ export function isSourceFile(name: string): boolean {
   return SOURCE.test(name) && !SKIPPED.test(name)
 }
 
-/** All checkable source files under `dir`, sorted, skipping tests and type declarations. */
-export function collectSources(dir: string): string[] {
+/**
+ * All checkable source files under `dir`, sorted, skipping tests and type declarations, and any folder named in
+ * `skipDirs` (`--skip-dir`: `packages/sim/src/testing` holds Vitest helpers that are not sim code).
+ */
+export function collectSources(dir: string, skipDirs: readonly string[] = []): string[] {
   const out: string[] = []
   for (const name of readdirSync(dir).sort()) {
     const path = join(dir, name)
     if (statSync(path).isDirectory()) {
-      if (!SKIPPED_DIRS.has(name)) out.push(...collectSources(path))
+      if (!SKIPPED_DIRS.has(name) && !skipDirs.includes(name)) out.push(...collectSources(path, skipDirs))
     } else if (isSourceFile(name)) out.push(path)
   }
   return out

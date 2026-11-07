@@ -1,4 +1,4 @@
-import { FakePad, hold, type MatrixCell, type MatrixHost } from '@mcthaydt/automata-testing/e2e'
+import { FakePad, hold, type MatrixCell, type MatrixHost } from '@mcthaydt/automata-tools/e2e'
 import { examplesPort } from '@mcthaydt/examples-runner/host/ports'
 import { collectErrors, openHosted } from '@mcthaydt/examples-runner/host/testing'
 import { expect, type Frame, type Page, type TestInfo, test } from '@playwright/test'

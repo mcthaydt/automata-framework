@@ -2,7 +2,7 @@
 // models arrive through the game's preload, and ruken.toml's `runtime.renderer` stays `webgl2` (Ruken has no WebGPU
 // value). It brings the camera's `camera-view` content and the heading's sim plugin (`./sim`), and the room's
 // `scene-lighting` content (M3.4d).
-import { defineExtension, type ExtensionDef } from '@mcthaydt/automata-runtime/extension'
+import { defineExtension, type ExtensionDef } from '@mcthaydt/automata/extension'
 import { cameraViewContent } from './camera/camera-view.content.js'
 import { sceneLightingContent } from './light/scene-lighting.content.js'
 import { cameraHeadingPlugin } from './sim/camera-heading.plugin.js'

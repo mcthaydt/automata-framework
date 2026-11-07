@@ -1,14 +1,14 @@
 // @vitest-environment jsdom
-import type { DefinedGame } from '@mcthaydt/automata-game'
+import type { DefinedGame } from '@mcthaydt/automata'
+import { type GameRenderer, type RendererFactory, type RuntimeHandle, runGame } from '@mcthaydt/automata'
 import {
-  type GameRenderer,
-  type RendererFactory,
-  type RuntimeHandle,
-  runGame,
-} from '@mcthaydt/automata-runtime'
-import { fakeFetch, type ManualFrames, manualFrames } from '@mcthaydt/automata-runtime/testing'
+  type FakeHostControl,
+  fakeFetch,
+  fakeHosting,
+  type ManualFrames,
+  manualFrames,
+} from '@mcthaydt/automata/testing'
 import type { StepResult } from '@mcthaydt/automata-sim'
-import { type FakeHostControl, fakeHosting } from '@mcthaydt/automata-testing/host'
 import { Effect } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { emberwick } from '#src/game.ts'

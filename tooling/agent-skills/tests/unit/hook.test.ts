@@ -62,7 +62,7 @@ function project(options: { binAt?: string | null; packageJson?: object; dir?: s
   writeFileSync(join(dir, 'src/sim/a.system.ts'), 'export const a = 1\n')
   writeFileSync(
     join(dir, 'package.json'),
-    JSON.stringify(options.packageJson ?? { devDependencies: { '@mcthaydt/automata-cli': '0.0.2' } }),
+    JSON.stringify(options.packageJson ?? { devDependencies: { '@mcthaydt/automata-tools': '0.0.2' } }),
   )
   const binAt = options.binAt === undefined ? '.' : options.binAt
   if (binAt !== null) {
@@ -259,7 +259,7 @@ describe('a project without the automata bin', () => {
     const p = project({ binAt: null, packageJson: { dependencies: { '@mcthaydt/automata-sim': '0.0.2' } } })
     const run = runHook(p, 'post-edit', edit(p, 'src/sim/a.system.ts'))
     expect(run.status).toBe(2)
-    expect(run.stderr).toContain('@mcthaydt/automata-cli')
+    expect(run.stderr).toContain('@mcthaydt/automata-tools')
   })
 })
 

@@ -1,8 +1,0 @@
-{
-  // Only for `svelte-package` (DX.2a, ui's layout, M2.4 spec §3.3). svelte2tsx writes component declarations with
-  // inferred types, which isolatedDeclarations rejects; typechecking still uses tsconfig.json with the flag on.
-  // The sources import with `.ts` extensions; rewriteRelativeImportExtensions turns them into `.js` in the
-  // JavaScript, and build/finish-dist.ts does the same in the declarations.
-  "extends": "./tsconfig.json",
-  "compilerOptions": { "isolatedDeclarations": false, "rewriteRelativeImportExtensions": true }
-}

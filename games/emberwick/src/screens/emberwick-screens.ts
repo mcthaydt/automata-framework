@@ -6,9 +6,8 @@
 // The room owns the round's sim. Entering from the menu or the end screen starts a round on a fresh sim;
 // entering from paused resumes the same one. `AppLoop.run` resets the renderer, so a resume restores the
 // sim's own snapshot first, which makes the next step a full resync.
-import type { InputMap } from '@mcthaydt/automata-game'
-import { Hosting } from '@mcthaydt/automata-host'
-import { AppLoop, Flow, PresentationBus, type ScreenDef } from '@mcthaydt/automata-runtime'
+import type { InputMap } from '@mcthaydt/automata'
+import { AppLoop, Flow, Hosting, PresentationBus, type ScreenDef } from '@mcthaydt/automata'
 import { createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { Effect, type Scope } from 'effect'
 import { TICK_HZ } from '../sim/tuning.ts'

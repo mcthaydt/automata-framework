@@ -22,8 +22,8 @@
     "typecheck": "tsc -p ."
   },
   "dependencies": {
+    "@mcthaydt/automata": "workspace:*",
     "@mcthaydt/automata-content": "workspace:*",
-    "@mcthaydt/automata-runtime": "workspace:*",
     "smol-toml": "1.9.0",
     "zod": "4.6.6"
   },

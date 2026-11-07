@@ -1,5 +1,5 @@
-import { browserSafePort } from '../../../packages/ship/src/ports/browser-safe-port.ts'
-import { portsFor } from '../../../packages/ship/src/ports/ports-for.ts'
+import { browserSafePort } from '../../../packages/tools/src/shared/ship/ports/browser-safe-port.ts'
+import { portsFor } from '../../../packages/tools/src/shared/ship/ports/ports-for.ts'
 
 // Where the feature demos' browser checks listen. The checkout's port pair is left free, the ui demo sits
 // 100 above the preview port and Emberwick 300 above the pair (games/emberwick/tests/e2e/origins.ts). The shared demo

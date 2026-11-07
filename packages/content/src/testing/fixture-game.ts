@@ -9,10 +9,15 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { z } from 'zod'
-import type { ContentOptions } from '../compile/compile-content'
-import type { FlowCapabilities } from '../flow/check-flow'
-import { type ContentSchemaDef, contentRef, defineContentSchema, localized } from '../schema/content-schema'
-import type { TunableDeclarations } from '../tuning/check-tuning'
+import type { ContentOptions } from '../shared/compile/compile-content'
+import type { FlowCapabilities } from '../shared/flow/check-flow'
+import {
+  type ContentSchemaDef,
+  contentRef,
+  defineContentSchema,
+  localized,
+} from '../shared/schema/content-schema'
+import type { TunableDeclarations } from '../shared/tuning/check-tuning'
 
 export const FIXTURES: string = fileURLToPath(new URL('./fixtures/', import.meta.url))
 

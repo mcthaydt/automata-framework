@@ -6,8 +6,8 @@ import { compileArea } from './systems/index.ts'
 
 // `startGame` spied on, so importing the page entry shows whether it starts the game (GL spec §4.6).
 const started = vi.hoisted(() => ({ calls: 0 }))
-vi.mock('@mcthaydt/automata-game', async (original) => ({
-  ...(await original<typeof import('@mcthaydt/automata-game')>()),
+vi.mock('@mcthaydt/automata', async (original) => ({
+  ...(await original<typeof import('@mcthaydt/automata')>()),
   startGame: () => {
     started.calls++
   },

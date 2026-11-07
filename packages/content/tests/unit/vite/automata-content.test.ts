@@ -8,10 +8,10 @@ import { Effect } from 'effect'
 import { build, createLogger, createServer, type HotPayload, type ViteDevServer } from 'vite'
 import { afterEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { compileContent } from '#src/compile/compile-content.ts'
-import { defineContentSchema } from '#src/schema/content-schema.ts'
+import { type AutomataContentOptions, automataContent } from '#src/features/vite/automata-content.ts'
+import { compileContent } from '#src/shared/compile/compile-content.ts'
+import { defineContentSchema } from '#src/shared/schema/content-schema.ts'
 import { copyFixture, fixtureOptions, simRoomsOptions } from '#src/testing/fixture-game.ts'
-import { type AutomataContentOptions, automataContent } from '#src/vite/automata-content.ts'
 
 const servers: ViteDevServer[] = []
 

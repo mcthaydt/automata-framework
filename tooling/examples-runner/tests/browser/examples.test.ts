@@ -1,4 +1,4 @@
-import { expectGolden, replayGolden } from '@mcthaydt/automata-testing/sim'
+import { expectGolden, replayGolden } from '@mcthaydt/automata-sim/testing'
 import { expect, it } from 'vitest'
 import { goldenExamples } from '#src/parity.ts'
 

@@ -2,7 +2,7 @@
 // kinds. It has no sim plugin (figures never feed the sim) and no ui; its renderer is the figure view in
 // render-pixi3d (M3.5d).
 
-import { defineExtension, type ExtensionDef } from '@mcthaydt/automata-runtime/extension'
+import { defineExtension, type ExtensionDef } from '@mcthaydt/automata/extension'
 import { FIGURE_CONTENT } from './content/figures.content'
 
 export const figuresExtension: ExtensionDef<'figures'> = defineExtension({

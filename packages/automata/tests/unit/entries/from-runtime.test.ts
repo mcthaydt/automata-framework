@@ -1,0 +1,124 @@
+import { expect, test } from 'vitest'
+
+// The public surface (M1.5 spec §3.1): one expected export list per entry point.
+// Each later task adds its names here when it adds the export.
+const ROOT_EXPORTS: string[] = [
+  'AUDIO_BUS_NAMES',
+  'AUDIO_SETTINGS_DEFAULT',
+  'AppLoop',
+  'AssetLoadFailed',
+  'Assets',
+  'Audio',
+  'AudioBuses',
+  'AudioDecodeFailed',
+  'AudioLive',
+  'BootDefect',
+  'CAMERA_SETTINGS_DEFAULT',
+  'CAMERA_TURN_SPEED',
+  'CORE_SETTINGS',
+  'CameraDragTracker',
+  'ContentHashMismatch',
+  'DEFAULT_QUALITY',
+  'Flow',
+  'GESTURE_TUNING',
+  'Haptics',
+  'INPUT_SETTINGS_DEFAULT',
+  'Input',
+  'LOCALE_SAVE_KEY',
+  'Leaderboards',
+  'LoadStalled',
+  'Locale',
+  'MAX_FRAME_MS',
+  'MAX_TURN_UNITS_PER_STEP',
+  'ModelInvalid',
+  'PresentationBus',
+  'QUALITY_TIERS',
+  'REBIND_TIMEOUT_MS',
+  'RESERVED_KEYS',
+  'RESERVED_PAD_BUTTONS',
+  'RebindCancelled',
+  'RebindConflict',
+  'RebindReserved',
+  'RebindTimedOut',
+  'RebindUnknown',
+  'Renderer',
+  'RendererUnavailable',
+  'SLOW_MS',
+  'STALL_MS',
+  'STANDARD_PAD_BUTTON_MAX',
+  'SaveFromNewerBuild',
+  'SaveRefused',
+  'SaveUnreadable',
+  'Saves',
+  'Settings',
+  'SwipeTracker',
+  'TURN_UNITS_PER_TURN',
+  'Time',
+  'actionsForGesture',
+  'actionsForKey',
+  'actionsForPadButton',
+  'applyDocumentLocale',
+  'applyOverrides',
+  'audioBusGainsSchema',
+  'audioLayer',
+  'audioSettingsSchema',
+  'browserHaptics',
+  'cameraSettingsSchema',
+  'contentHashOf',
+  'createHaptics',
+  'createT',
+  'defineSave',
+  'displaySettingsSchema',
+  'formatDateTime',
+  'formatDuration',
+  'formatNumber',
+  'formatPercent',
+  'hapticsSettingsSchema',
+  'inputProfileSchema',
+  'inputSettingsSchema',
+  'liveDeviceStorage',
+  'makeAudio',
+  'makeInput',
+  'makeLeaderboards',
+  'makeSaves',
+  'matchLocale',
+  'negotiateLocale',
+  'pluralCategory',
+  'qualityTierSchema',
+  'rebindProfile',
+  'runGame',
+  'saveOf',
+  'saveService',
+  'selectPlural',
+  'settingsStore',
+  'textDirection',
+  'touchModesFor',
+  'turnUnitsFromPixels',
+  'typedBus',
+]
+const EXTENSION_EXPORTS: string[] = ['ExtensionError', 'defineExtension', 'resolveExtensions']
+const TESTING_EXPORTS: string[] = [
+  'RuntimeTest',
+  'fakeAudioContext',
+  'fakeBuffer',
+  'fakeFetch',
+  'manualFrames',
+  'nullRenderer',
+]
+
+// 90 s budget: importing the whole entry took 28.5 s on the shared af-linux runner (2026-10-16, run
+// 38862520260), past the old 15 s. The root test:unit default is the same 90 s; packages/ship's workflows test pins both.
+test('the root entry exports exactly the expected names', async () => {
+  const entry = await import('#src/entries/from-runtime.ts')
+  expect(Object.keys(entry).sort()).toEqual(ROOT_EXPORTS)
+}, 90_000)
+
+test('the ./extension entry exports exactly the expected names', async () => {
+  const entry = await import('#src/features/extension/index.ts')
+  expect(Object.keys(entry).sort()).toEqual(EXTENSION_EXPORTS)
+})
+
+test('the ./testing entry exports exactly the expected names', async () => {
+  const entry = await import('#src/testing/runtime/index.ts')
+  expect(Object.keys(entry).sort()).toEqual(TESTING_EXPORTS)
+})
