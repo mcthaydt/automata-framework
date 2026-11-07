@@ -3,8 +3,8 @@
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`hands`,
 // `shoe`), with AF's strict types; the formulas and their order are the source's.
 
+import { limb } from '../../../../shared/math/limb.ts'
 import { axisAngle } from '../../../../shared/math/math.ts'
-import { limb } from '../../body/limb.ts'
 import { type Part, placed } from '../../body/mesh.ts'
 import { box } from './locks.ts'
 

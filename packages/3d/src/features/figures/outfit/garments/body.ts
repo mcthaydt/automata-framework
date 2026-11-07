@@ -8,9 +8,9 @@
 // `SURFACE`, `surfaces`, `TRAPEZIUS`, `trapezius`, `stretch`, `across`, `body`), with AF's strict types; the
 // formulas and their order are the source's.
 
+import { type Limb, limb } from '../../../../shared/math/limb.ts'
 import { lerp, smooth, type V3 } from '../../../../shared/math/math.ts'
 import type { Measure } from '../../body/genes.ts'
-import { type Limb, limb } from '../../body/limb.ts'
 import { GROUP, type Part, type Weight } from '../../body/mesh.ts'
 import { profiles, TRAPEZIUS } from '../../body/profiles.ts'
 import { at, J, type Side, type Skeleton } from '../../body/rig.ts'

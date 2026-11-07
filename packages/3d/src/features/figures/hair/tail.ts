@@ -22,10 +22,10 @@ import {
   sub,
   type V3,
 } from '../../../shared/math/math.ts'
+import { superquadric } from '../../../shared/math/superquadric.ts'
 import type { Weight } from '../body/mesh.ts'
 import { reach } from '../body/reach.ts'
 import { at, J } from '../body/rig.ts'
-import { superquadric } from '../body/superquadric.ts'
 import { FIGURE_PPM, texels } from '../body/texels.ts'
 import type { Rope, Tail } from '../content/hair.schema.ts'
 import type { HairBuild } from './hair-parts.ts'

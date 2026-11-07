@@ -9,10 +9,10 @@
 // ppm.
 
 import { add, axisAngle, lerp, normalize, qmul, scale, sub, type V3 } from '../../../shared/math/math.ts'
+import { superquadric } from '../../../shared/math/superquadric.ts'
 import type { Measure } from '../body/genes.ts'
 import type { Decal, Part } from '../body/mesh.ts'
 import { at, J, type Skeleton } from '../body/rig.ts'
-import { superquadric } from '../body/superquadric.ts'
 import { FIGURE_PPM } from '../body/texels.ts'
 import type { Cap } from '../content/headwear.schema.ts'
 import { type Made, variant } from '../figure/materials.ts'

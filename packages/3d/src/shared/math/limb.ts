@@ -5,9 +5,8 @@
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/parts.ts at a1f7246 (`Ring`,
 // `Limb`, `curve`, `limb`), with AF's strict types; the formulas and their order are the source's.
 
-import { cross, dot, lerp, normalize, sub, type V3 } from '../../../shared/math/math.ts'
-import { type Mesh, sgnPow } from './mesh.ts'
-import { at } from './rig.ts'
+import { type MeshData as Mesh, sgnPow } from './geometry.ts'
+import { at, cross, dot, lerp, normalize, sub, type V3 } from './math.ts'
 
 /** A key of a limb's profile: at height `y` on its axis, its half-widths across (x) and front to back (z),
  * and how far its centre sits off the axis (`dx`, `dz`): a deltoid out, a biceps forward, a calf back. */

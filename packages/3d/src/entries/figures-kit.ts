@@ -25,7 +25,6 @@ export type { Body } from '../features/figures/body/profiles.ts'
 export { reach } from '../features/figures/body/reach.ts'
 export { at, J, type Side, type Skeleton } from '../features/figures/body/rig.ts'
 export { hemSkin, weights } from '../features/figures/body/skin-weights.ts'
-export { type Superquadric, superquadric } from '../features/figures/body/superquadric.ts'
 export { FIGURE_PPM } from '../features/figures/body/texels.ts'
 export type { Anchor } from '../features/figures/figure/anchors.ts'
 export {
@@ -80,3 +79,4 @@ export {
   sub,
   type V3,
 } from '../shared/math/math.ts'
+export { type Superquadric, superquadric } from '../shared/math/superquadric.ts'

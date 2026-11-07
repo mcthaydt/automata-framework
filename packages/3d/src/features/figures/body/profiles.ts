@@ -7,9 +7,9 @@
 // `profiles`, `ringAt`, `girth`, `clearance`, `Body`, `bodyOf`; the density is the fixed FIGURE_PPM), with AF's strict types;
 // the numbers and their order are the source's.
 
+import { type Limb, profileAt, type Ring } from '../../../shared/math/limb.ts'
 import { lerp } from '../../../shared/math/math.ts'
 import type { Measure } from './genes.ts'
-import { type Limb, profileAt, type Ring } from './limb.ts'
 import { J, type Side, type Skeleton } from './rig.ts'
 import { FIGURE_PPM } from './texels.ts'
 

@@ -4,7 +4,9 @@
 import { Box, Container3D, Geometry3D, Mesh3D, PhongMaterial, Vector3 } from '@pixi/3d'
 import type { Occluders } from '../features/camera/occluders/occluders.ts'
 import type { WorldPiece } from '../features/world/build.ts'
+import type { WorldLamp } from '../features/world/place-props.ts'
 import { tileName } from '../features/world/surface.ts'
+import type { Lamp } from '../shared/render/light/scene-lighting.schema.ts'
 
 export interface WorldScene {
   /** Where the pieces are added. */
@@ -78,4 +80,23 @@ export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): Wor
       node.destroy()
     },
   }
+}
+
+/**
+ * The world's lamps as the scene light's: a lamp of the kit gives its colour, its reach and its level, at its place.
+ * A lamp only a night lights (a street lamp on its photocell) is left out by day.
+ */
+export function sceneLamps(lamps: readonly WorldLamp[], night = true): Lamp[] {
+  return lamps
+    .filter((lamp) => night || !lamp.dusk)
+    .map((lamp) => ({
+      id: lamp.id,
+      x: lamp.at[0],
+      y: lamp.at[1],
+      z: lamp.at[2],
+      color: lamp.color,
+      strength: 1,
+      range: lamp.range,
+      level: lamp.level,
+    }))
 }

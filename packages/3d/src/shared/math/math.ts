@@ -189,3 +189,10 @@ export function hash(n: number): number {
   x ^= x >>> 13
   return (x >>> 0) / 4294967296
 }
+
+/** The element at `index`. Joint and ring indices come from tables the code owns, so a miss is a bug, not content. */
+export function at<T>(list: readonly T[], index: number): T {
+  const value = list[index]
+  if (value === undefined) throw new RangeError(`no element ${index} (of ${list.length})`)
+  return value
+}

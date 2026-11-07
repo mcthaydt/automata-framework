@@ -8,12 +8,12 @@
 // the skirt's stain (a painter wash).
 
 import { axisAngle, smooth } from '../../../../shared/math/math.ts'
+import { tube } from '../../../../shared/math/superquadric.ts'
 import type { Measure } from '../../body/genes.ts'
 import { type Decal, GROUP, type Part } from '../../body/mesh.ts'
 import type { Body } from '../../body/profiles.ts'
 import { at, J, type Side, type Skeleton } from '../../body/rig.ts'
 import { hemWeights, weights } from '../../body/skin-weights.ts'
-import { tube } from '../../body/superquadric.ts'
 import type { HairStyle } from '../../content/hair.schema.ts'
 import type { Headwear } from '../../content/headwear.schema.ts'
 import type { Swatch } from '../../content/swatch.schema.ts'

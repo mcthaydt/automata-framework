@@ -1,7 +1,7 @@
 // The world on `@pixi/3d`: a mesh for each piece, the swatch's colour on it, and the occluder rule on walls and ceilings.
 import { Container3D, type Mesh3D, type PhongMaterial } from '@pixi/3d'
 import { describe, expect, it } from 'vitest'
-import { drawWorld } from '#src/app/world-view.ts'
+import { drawWorld, sceneLamps } from '#src/app/world-view.ts'
 import { createOccluders } from '#src/features/camera/occluders/occluders.ts'
 import { buildWorld } from '#src/features/world/build.ts'
 import type { AfSector2 } from '#src/shared/level/af-sector-2.schema.ts'
@@ -76,5 +76,36 @@ describe('drawWorld', () => {
     const view = drawWorld({ parent, colourOf: () => 0 }, pieces)
     view.dispose()
     expect(parent.children).toHaveLength(0)
+  })
+})
+
+describe('sceneLamps', () => {
+  const lamps = buildWorld(
+    {
+      ...level,
+      lamps: [
+        { id: 'in', kind: 'bulb', at: [1, 2, 2.5] },
+        { id: 'street', kind: 'sodium', at: [3, 3, 4] },
+      ],
+    },
+    LIB,
+  ).lamps
+
+  it('gives each lamp its place, colour, reach and level for the scene light', () => {
+    expect(sceneLamps(lamps)[0]).toEqual({
+      id: 'in',
+      x: 1,
+      y: 2.5,
+      z: 2,
+      color: 0xffce7f,
+      strength: 1,
+      range: 4.75,
+      level: 1,
+    })
+  })
+
+  it('leaves out a street lamp by day, which only a night lights', () => {
+    expect(sceneLamps(lamps, true).map((lamp) => lamp.id)).toEqual(['in', 'street'])
+    expect(sceneLamps(lamps, false).map((lamp) => lamp.id)).toEqual(['in'])
   })
 })

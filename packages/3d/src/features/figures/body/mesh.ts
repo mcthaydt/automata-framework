@@ -7,13 +7,13 @@
 // palette colours) and the decal's `density` and `print` (sprite densities and prints). `vertexAt` and
 // `sgnPow` are small helpers the source wrote inline.
 
-import { apply, applyDir, compose, IDENTITY_Q, type Q, type V3 } from '../../../shared/math/math.ts'
+import type { MeshData } from '../../../shared/math/geometry.ts'
+import type { V3 } from '../../../shared/math/math.ts'
 
-export interface Mesh {
-  positions: number[]
-  normals: number[]
-  indices: number[]
-}
+export { placed, sgnPow, vertexAt } from '../../../shared/math/geometry.ts'
+
+/** The plain triple a part is built of: shared with the world's pieces (`shared/math/geometry.ts`). */
+export type Mesh = MeshData
 
 /**
  * The figure's part groups: what moves and outlines as one (the trunk, the head and hair, each limb, a held
@@ -64,27 +64,4 @@ export interface Decal {
   when?: string[]
   /** true: only while the eyes blink; false: never while they do. */
   blink?: boolean
-}
-
-export const sgnPow = (v: number, e: number): number => Math.sign(v) * Math.abs(v) ** e
-
-/** The `i`th vertex of a flat x, y, z list. */
-export function vertexAt(list: readonly number[], i: number): V3 {
-  const x = list[i * 3]
-  const y = list[i * 3 + 1]
-  const z = list[i * 3 + 2]
-  if (x === undefined || y === undefined || z === undefined) throw new RangeError(`no vertex ${i}`)
-  return [x, y, z]
-}
-
-/** Moves a mesh (a part authored around the origin) by a turn and an offset. */
-export function placed(mesh: Mesh, at: V3, turn: Q = IDENTITY_Q): Mesh {
-  const m = compose(turn, at)
-  const positions: number[] = []
-  const normals: number[] = []
-  for (let i = 0; i < mesh.positions.length / 3; i++) {
-    positions.push(...apply(m, vertexAt(mesh.positions, i)))
-    normals.push(...applyDir(m, vertexAt(mesh.normals, i)))
-  }
-  return { positions, normals, indices: mesh.indices.slice() }
 }

@@ -6,9 +6,9 @@
 // `lockParts`, `named`), with AF's strict types; the formulas and their order are the source's.
 
 import { axisAngle, type V3 } from '../../../../shared/math/math.ts'
+import { type Superquadric, superquadric } from '../../../../shared/math/superquadric.ts'
 import type { Part } from '../../body/mesh.ts'
 import { at, J, type Skeleton } from '../../body/rig.ts'
-import { type Superquadric, superquadric } from '../../body/superquadric.ts'
 import type { Lock } from '../../content/headwear.schema.ts'
 
 /** A rounded box: the kit's one primitive. */

@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { limb } from '#src/features/figures/body/limb.ts'
 import { type Mesh, placed, vertexAt } from '#src/features/figures/body/mesh.ts'
 import { reach } from '#src/features/figures/body/reach.ts'
 import { J } from '#src/features/figures/body/rig.ts'
 import { hemSkin, hemWeights, weights } from '#src/features/figures/body/skin-weights.ts'
-import { superquadric, tube } from '#src/features/figures/body/superquadric.ts'
 import { FIGURE_PPM, texels } from '#src/features/figures/body/texels.ts'
+import { limb } from '#src/shared/math/limb.ts'
 import { dot, length, sub, type V3 } from '#src/shared/math/math.ts'
+import { superquadric, tube } from '#src/shared/math/superquadric.ts'
 
 const finite = (mesh: Mesh): boolean => [...mesh.positions, ...mesh.normals].every(Number.isFinite)
 const sum = (pairs: readonly (readonly [number, number])[]): number =>
