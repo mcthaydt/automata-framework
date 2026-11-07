@@ -15,10 +15,10 @@ const gpuChromium = (device: string): NonNullable<Project['use']> => ({
  * the size it failed at (FloorFifty's frame-budget projects at ac72660).
  */
 const frameBudgetProjects: Project[] = [
-  { name: 'frame-budget-phone', testDir: 'e2e', use: gpuChromium('Pixel 7') },
+  { name: 'frame-budget-phone', testDir: 'tests/e2e', use: gpuChromium('Pixel 7') },
   {
     name: 'frame-budget-desktop',
-    testDir: 'e2e',
+    testDir: 'tests/e2e',
     use: { ...gpuChromium('Desktop Chrome'), viewport: { width: 1280, height: 720 } },
   },
 ]

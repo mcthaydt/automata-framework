@@ -8,15 +8,15 @@
   "include": [
     "src/**/*.ts",
     "host/*.ts",
-    "e2e/*.ts",
+    "tests/**/*.ts",
     "playground/*.ts",
     "playground/runtime/*.ts",
     "playground/e2e/*.ts",
     "*.ts"
   ],
   "exclude": [
-    "src/fixtures/catalog/**",
-    "src/fixtures/examples/core/core-later.ts",
-    "src/fixtures/examples/dist"
+    "tests/fixtures/catalog/**",
+    "tests/fixtures/examples/core/core-later.ts",
+    "tests/fixtures/examples/dist"
   ]
 }

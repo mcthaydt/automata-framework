@@ -48,7 +48,8 @@
     "evidence": "VITEST_MAX_WORKERS=${VITEST_MAX_WORKERS:-${CI:+2}} turbo run test:evidence --concurrency=3 -- --browser.connectTimeout=120000 && node tooling/evidence/src/cli.ts",
     "audit:deps": "node tooling/repo-hygiene/src/audit-cli.ts",
     "secrets": "node tooling/repo-hygiene/src/secrets.ts",
-    "deps:new": "node tooling/repo-hygiene/src/new-deps-cli.ts"
+    "deps:new": "node tooling/repo-hygiene/src/new-deps-cli.ts",
+    "branches:prune": "node tooling/repo-hygiene/src/prune-branches-cli.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",

@@ -129,7 +129,7 @@ function place(base: string, keepQualifier: boolean): Placement {
 const slash = (path: string): string => path.split('\\').join('/')
 
 /** Import specifiers in a TypeScript file: static, re-exported and dynamic, with their text spans. */
-function specifierSpans(file: string, code: string): Span[] {
+export function specifierSpans(file: string, code: string): Span[] {
   const { module } = parseSync(file, code)
   const spans: Span[] = []
   const add = (request: { value: string; start: number; end: number } | undefined): void => {
@@ -154,7 +154,7 @@ function specifierSpans(file: string, code: string): Span[] {
 }
 
 /** Specifiers that parsing does not report: mocks, `new URL(..., import.meta.url)`, and Svelte `<script>` imports. */
-const MOCK_SPECIFIERS: readonly RegExp[] = [
+export const MOCK_SPECIFIERS: readonly RegExp[] = [
   /\bvi\.(?:mock|doMock|unmock|doUnmock|importActual|importMock)\(\s*(['"])(?<value>\.{1,2}\/[^'"]*)\1/g,
   // `typeof import('./x')` in a type position, which the parser reports as a type, not an import.
   /\btypeof import\(\s*(['"])(?<value>\.{1,2}\/[^'"]*)\1/g,
@@ -170,7 +170,7 @@ const SVELTE_SPECIFIERS: readonly RegExp[] = [
   /\bimport\s*(['"])(?<value>\.{1,2}\/[^'"]*)\1/g,
 ]
 
-interface Span {
+export interface Span {
   start: number
   end: number
   value: string
@@ -179,7 +179,7 @@ interface Span {
 }
 
 /** The text ranges of string literals and template text in a file: code written there is data, not code. */
-function stringRanges(file: string, code: string): [number, number][] {
+export function stringRanges(file: string, code: string): [number, number][] {
   const ranges: [number, number][] = []
   const visit = (node: unknown): void => {
     if (Array.isArray(node)) {
@@ -200,7 +200,7 @@ function stringRanges(file: string, code: string): [number, number][] {
   return ranges
 }
 
-function extraSpans(
+export function extraSpans(
   code: string,
   patterns: readonly RegExp[],
   kind: Span['kind'] = 'module',
@@ -243,7 +243,7 @@ function relativeSpecifiers(file: string, code: string): Span[] {
  * `index.ts`) or write `./x.js` for `x.ts`. Null when nothing matches. The rewritten specifier always names the file in
  * full, so the one `#src/*` alias is unambiguous.
  */
-function resolveTarget(
+export function resolveTarget(
   from: string,
   specifier: string,
   exists: (path: string) => boolean,

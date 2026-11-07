@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config'
+import { defineTests } from '@mcthaydt/vitest-preset'
 
-// fixtures/ holds files named like tests (to check that the CLI skips them); they are not tests.
-export default defineConfig({ test: { include: ['src/**/*.test.ts'] } })
+// Every test runs on Node, so there is no browser project.
+export default defineTests({ browsers: [] })

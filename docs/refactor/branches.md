@@ -1,0 +1,390 @@
+# Branch clean-up list (refactor task 9.1)
+
+Written from `git ls-remote --heads origin` and, for each branch, `git rev-list --count origin/main..origin/<branch>`
+on 2026-11-05 (the audit's section 5 comparison, run again; 362 branches including `main`). Nothing here has been
+deleted: `pnpm branches:prune` reads this file, checks every line against origin, and only with `--apply` tags and
+deletes. Branch deletion is the Owner's call (`AGENTS.md`), so task 9.2 waits for their go.
+
+Each line is ``- `branch` `commit` `` where the commit is the tip the list was written for. `prune` stops if a branch
+has moved since, if a "delete" branch is not in `origin/main`, or if a tag did not land on the tip.
+
+## delete: merged into main (333 branches, every commit is on main)
+
+Includes `changeset-release/main`, which the release bot recreates.
+
+- `changeset-release/main` `78029da294ea0feca6cf8e5fbb7404a63f51b706`
+- `chore/mit-license` `b307238b681fc1873f3e7b55b7c4688e376230ce`
+- `claude/3d-free-base-3d` `3fef62a5538b5a5931c28d162939956f7de0d255`
+- `claude/3d-free-quality` `82a2adba4bd12d44da14d5f95b573ad81d0682bb`
+- `claude/3d-game-3d-0-design` `efb3e983d94aad020d4150e2da20348781372e39`
+- `claude/3d-game-3d-1a` `4b31006300e5a18554c39a6c881dba22aef8aeec`
+- `claude/3d-game-3d-1a-flow` `02a69fcb915cbedfa309b317b056f8a83c17b627`
+- `claude/3d-game-3d-1b` `d46a2fa7df76a0bd24cdc15df36aadf6d0db341a`
+- `claude/3d-game-3d-1b-2` `6a2b97894ada7f88af4c1ceed481a8d53b90f80b`
+- `claude/3d-game-3d-1c` `5ae3886c71b99fe5dffaf49a696d309145b52b8e`
+- `claude/3d-game-3d-1c-2` `e4ab241c9c195663990ffe48d7bdef0610be2e42`
+- `claude/3d-game-3d-1c-3` `dd37d5b59b6e4df1c0cb9f440ee5661db36a65a4`
+- `claude/3d-game-3d-1d` `f120e87b16e5c68aa4f72df899e479152c42c338`
+- `claude/3d-game-3d-1d-2` `790015f1357fffa04a6466e229907b4ab66fd86b`
+- `claude/3d-game-3d-1d-3` `719a6f1f213e3b61dd9b9e7531ca75d5c3d23422`
+- `claude/3d-game-3d-1d-4` `94521116231f1c1e3aaaa91984b2e1048027279a`
+- `claude/3d-game-3d-1e` `6296f43d034dae6da9a307763f43a70a942e1ae1`
+- `claude/3d-game-3d-1e-2` `110ee9fd6e70a2ab4652eb9433738e8d51774460`
+- `claude/3d-game-3d-1e-3` `9ef3de0d48104f349ee727e0c8310b9df479b67e`
+- `claude/3d-game-3d-1e-4` `e1015a1c4beddeb4f56640fe2dc7dd2ea9ced353`
+- `claude/3d-game-3d-1e-5` `884855573374055ac12afa652f837ef4f2cee7f0`
+- `claude/3d-game-3d-1e-5b` `8c8cff76c88c695888a44b6a2862d4e606662f95`
+- `claude/3d-game-3d-1e-5c` `bca86d725f89e13a6509a70aaeb74ab762b386ca`
+- `claude/3d-game-3d-1f` `66814a6f3fbd1adb6be9c9fc2d7899e7afc82615`
+- `claude/3d-game-3d-1h-1i` `4cfc09819444070c2a96bcda83d6f2aa95d534ca`
+- `claude/3d-gl-7-base3d-layout` `5729e2b4580a6c5f2913ce7088d54b6c06051a14`
+- `claude/3d-m3-0a-figurebuilder-source` `70d3d60e873d62afd182a07d76d78cde5ab44440`
+- `claude/3d-m3-1a-s7-spike` `86a52981cdfa25db83de86699c38e43231ab64f4`
+- `claude/3d-m3-1b-s7-gpu` `612bb76916b435949a1977cc295fc99f2a14a76b`
+- `claude/3d-m3-2-pixi-822` `e377da3172650981c968c3a4330249d7496249c6`
+- `claude/3d-m3-4a-render3d` `07aebd98197dd5e669adeccb48ac2650cdc848a6`
+- `claude/3d-m3-4b-camera` `43e042193c942bbc63c498062714d311db528c46`
+- `claude/3d-m3-4c-occluders` `eaa54f09775c5c40d0a0dc8c473e799c28d537e7`
+- `claude/3d-m3-4d-light` `960922c5434383fd22009845a8c1e2351f5b7a99`
+- `claude/3d-m3-5a-figures-rig` `00868bd0a6a39b2eb53ffa3363aecbb9fcc1fb2a`
+- `claude/3d-m3-5b-build` `8811e5b7bb4037dc7b3f35ff60275ef2c25169f3`
+- `claude/3d-m3-5c-motion` `93ae4165d7f15c222b8b6b0c89f514ca92a21dd3`
+- `claude/3d-m3-5d-figure-view` `b68a60faf9223d2633ceac85ef577a1bdea359d2`
+- `claude/3d-m3-5d2-figure-examples` `6a5173ff1d3eeaa07bb53e704037d260dadf463f`
+- `claude/3d-m3-6a-solve` `69cf50bc46a97cfc95de36a7d7a07b0d71ffb38b`
+- `claude/3d-m3-6b-poses-v2` `9c7dfa6c6504ba11710938a7f484dce144415cb1`
+- `claude/3d-m3-6c-clips-v2` `52fa75f12eb6cd6399e49aaeaee09586cc399c3e`
+- `claude/3d-m3-6d-evaluate` `6fe79bb7ac42fe4b4c186bdf80f7518d14853b46`
+- `claude/3d-m3-6d-examples` `71c36254a64ef05ee2105c717ca6432280c37502`
+- `claude/3d-m3-7a-base3d-sim` `69c664974a571d0bcaccfeb20e7feb540bb59221`
+- `claude/3d-m3-7b-actions` `3db2460a4e264999a9d5cd0a4966bddf0dbca905`
+- `claude/3d-m3-7b-content` `e7425d0f3bf39675171beb9197a556f26dfd7a5f`
+- `claude/3d-m3-7b-figure-evaluate` `7327fb5f612d362bf976d68320b0da473db0a190`
+- `claude/3d-m3-7b-flow` `1a906bf390adb5e1d6c85f06816e102efa2fac3b`
+- `claude/3d-m3-7b-scene` `94108974737ad5066319c9aaac633df21bee3d64`
+- `claude/3d-m3-7b-scene-packages` `d7b459b0ea68b48d0ed0c653f37b3ab31302726f`
+- `claude/3d-m4-12-analog-input` `0b23f8ca98758143cafe4316ad0df924dadadb3e`
+- `claude/3d-m4-12b-stick-compact` `ecc0aa2524569919685723b7cd5aa9866288bb7e`
+- `claude/3d-s7-q2-pixi3d-report` `e17d22d2bc995fec205d97ca94265c81074aa679`
+- `claude/adr-0006-distribution-targets` `d0c876dd7cd23e3dd0c103519ae65c8f1665babc`
+- `claude/af-M6.0a-spec-amendment` `8385fc6bdc031f440a942f84ae6c20e5fb8bebe8`
+- `claude/af-M6.4a0-editor3d-format-entry` `a5cf562c279e0639186a876e718e29264feb75b7`
+- `claude/af-docs-02-03-batch-1031b` `ad5f43cfe97f761a8651c83c4c195f17a348bcf1`
+- `claude/af-docs-02-03-batch-1031c` `c67e7bcceb9c8de8dc230cfac5d932aedad46ab3`
+- `claude/af-finish-docs-0` `9383a5856eacf477e55e6f887df1b9b4ba47e593`
+- `claude/af-finish-docs-1` `4bd432d2da1a5c8578205da5caafc093e6b3ee2d`
+- `claude/af-m6d18-blockout` `aaaf8a54596ab3ac91f0664b32fd66c3a4a7273f`
+- `claude/af-provenance-fold` `3770fb87ab3ce2baa32f95ba0aa6547055e8ac79`
+- `claude/af-provenance-m6-1a` `5e555c2cafa5a11bfaea0e6088f5e80def2eac17`
+- `claude/af-provenance-m6-8b` `4a05f873ff2f35f697757cf64a5ac6af7e5fc513`
+- `claude/af-provenance-m6-9a` `575ea6d0d2f3eaba719d4c4940fcd6fe67c8a435`
+- `claude/af-provenance-m6-bots-solver` `ab50a8ed51606821a18e834c9c3192bdb6bc5507`
+- `claude/af-provenance-m6-narrative` `6d50d779a3a2490c18885a30f51e7a50cc5c193b`
+- `claude/af-provenance-m6-nav-systems` `13079af628cfed8786ab2af5646d5c9514203bd7`
+- `claude/ci-api-report-merge-base` `0eb4e38c2064f3db210f1b156de023d58b011915`
+- `claude/ci-api1a-deps-new-base` `428a82c7c71044492ae8c9e7140063bbba4d3717`
+- `claude/ci-checks-timeout` `17923f2d230aeaeb10e389c1d5f3ca0223313fc9`
+- `claude/ci-chromium-for-smoke` `139cdf104a130e1f87639cea8e03d08e34047a04`
+- `claude/ci-game-runner` `133d733c9a0c688a2dd3e5879f2df54975f8a218`
+- `claude/ci-hardening` `64094cd55bbb7cd78cc12641165da0dc956c4ba5`
+- `claude/ci-main-runs-finish` `4a2e5dea7aecf1ee3d8af3c6fdd490c359417ac3`
+- `claude/ci-n2-touch-journey-ready` `e7ebebd03f09dafc4d4ec88d988b44b61fc52e71`
+- `claude/ci-parity-affected` `c61280d13085c0d4fe4974ab67b199ebce6adc14`
+- `claude/ci-release-on-mac` `01ae82f27a4bc7d33aae12391a09883fb14b90c6`
+- `claude/ci-ship-private-audience` `b47e79612c1fb3d9e57ede8715d6f9756ceed586`
+- `claude/clever-pasteur-ujmu6e` `a06e1d75bcc977faa394528fe163767fb3fd4a9d`
+- `claude/clever-pasteur-ujmu6e-apireport` `2079915185f514f01531165553c63480dbe30371`
+- `claude/clever-pasteur-ujmu6e-ci-budgets2` `5292bc30905ed4877b178abfe69968d139b4f83d`
+- `claude/clever-pasteur-ujmu6e-coord3` `0fd1de93a0f7dc749e2d5713a64e326ba8a10583`
+- `claude/clever-pasteur-ujmu6e-dx1` `f4da36c3570192b790312346880383680c99e652`
+- `claude/clever-pasteur-ujmu6e-dx1-pending` `8108f12ef2c786e28f32b80c9f864d657bbb21ff`
+- `claude/clever-pasteur-ujmu6e-dx2` `d614415307cdfaa19aa26aec0adbd95199c7469c`
+- `claude/clever-pasteur-ujmu6e-dx2b` `10879c3df13e83c659572d84b16736af9521201f`
+- `claude/clever-pasteur-ujmu6e-dx3` `41334e2470c0fd1b82f97d86088309899486e8f2`
+- `claude/clever-pasteur-ujmu6e-dx4` `25d5a68cd5d4e0ef7dce39d39fc0e80fbb03d48d`
+- `claude/clever-pasteur-ujmu6e-dx6` `61aee5287c3c3722045a98097307d4db89fa0e88`
+- `claude/clever-pasteur-ujmu6e-dx7` `33abc7cf3fa0df9a457aca02ff237e9b9d5ed670`
+- `claude/clever-pasteur-ujmu6e-dx9` `f914d1c7494d2bd41012359c48d089458d6f5501`
+- `claude/clever-pasteur-ujmu6e-evidencefix` `bc1932cd8c77e54cccf4c0fc8f30e398b4580ea8`
+- `claude/clever-pasteur-ujmu6e-ex1` `7750a39c778e40f1cc39c48455e36ed083c4efcc`
+- `claude/clever-pasteur-ujmu6e-ex2` `0db74d1a88f7360fc949bc57740aa35d2d573e55`
+- `claude/clever-pasteur-ujmu6e-ex3` `0203f5e9c11d1f02b72735ea8560de9d56557f61`
+- `claude/clever-pasteur-ujmu6e-ex5` `6cd687779d519bde8b555c6cd71202474f1b96ea`
+- `claude/clever-pasteur-ujmu6e-m3rev` `db6ccb37ec23d75c09bde86276eebb0206c527fb`
+- `claude/clever-pasteur-ujmu6e-m3spec` `b5eb300147ca0a7bf872b665c50770f7cc2404d9`
+- `claude/clever-pasteur-ujmu6e-m4-1` `ec5a46df6bf4dc64bff87b2ce7425047e3a2f5e1`
+- `claude/clever-pasteur-ujmu6e-m4-10` `a8f2ffec07735dd6d1d4ec07580fd46a78fea90e`
+- `claude/clever-pasteur-ujmu6e-m4-2` `dc1cea3dc2ad5c04044b8430704e746f57503641`
+- `claude/clever-pasteur-ujmu6e-m4-3` `4c84fd05a03500af39eac8c94b6c35e793f6373d`
+- `claude/clever-pasteur-ujmu6e-m4-4` `702bb47bcbbcc790a6fd2080f7f2c2e943c46bbf`
+- `claude/clever-pasteur-ujmu6e-m4-5` `b073750b553bae3f446e0fb37ad80c75493cc1ad`
+- `claude/clever-pasteur-ujmu6e-m4-6` `12385268af15d8cec1da5040407d0aba669bec4e`
+- `claude/clever-pasteur-ujmu6e-m4-7` `d36d35621e427ca5c7cbabdbfa74b2cf3e150b65`
+- `claude/clever-pasteur-ujmu6e-m4-8` `7ced55dcf9cfbaaf10f3f23da22dffb2fca5e6c4`
+- `claude/clever-pasteur-ujmu6e-m4-9` `24cea752a6ae9ff18e7ae321a1ba97b8580a09af`
+- `claude/clever-pasteur-ujmu6e-m4spec` `519e431aefac39217664e1a7477d2c7d9a2f1ebb`
+- `claude/clever-pasteur-ujmu6e-m5-1` `0f651fbb5ef16f05c98555434de45a9958c4a83b`
+- `claude/clever-pasteur-ujmu6e-m5-3` `b3989ffc57a4fcb44c2ca50ef3a9f6d7df083e08`
+- `claude/clever-pasteur-ujmu6e-m5-4` `501b79b8944cb1168429e257255e67fef7aa6228`
+- `claude/clever-pasteur-ujmu6e-m5-5` `e7b364017d0a7b5059cf4a1e621c02bbe4ec041d`
+- `claude/clever-pasteur-ujmu6e-m5-6` `04785bc9781a8a395aabe0e01f59235a989533c9`
+- `claude/clever-pasteur-ujmu6e-m5-7` `0f495b058f6307d748d79e9ee6dd421e4eb90892`
+- `claude/clever-pasteur-ujmu6e-m5spec` `4b4133eb5990139e79e58361710fea48f83e2e19`
+- `claude/clever-pasteur-ujmu6e-m6spec` `f20306ebd781c28386b8bc8e67fcd4e03c400f51`
+- `claude/clever-pasteur-ujmu6e-m7spec` `9aafa3da079fa4c0fcfc9ec06e585debb32dfe72`
+- `claude/clever-pasteur-ujmu6e-m8spec` `e814a8030b285563a4413b609e11097c506fc48f`
+- `claude/clever-pasteur-ujmu6e-portfix` `178240f8be68fb3daa8be1693e3cd34eb3d63399`
+- `claude/clever-pasteur-ujmu6e-probe` `71c3410dea6b8af4256f7e0e402e570b32594d7f`
+- `claude/clever-pasteur-ujmu6e-product1` `4c73124c8c00344273326df11e21d3d041f2f4ff`
+- `claude/clever-pasteur-ujmu6e-product2` `eab0ab42700b5524951f5b3b8a8625e6a72c2fa1`
+- `claude/clever-pasteur-ujmu6e-product3` `e97a91610b9a9241d56a2390ad2d693a0cf2200e`
+- `claude/clever-pasteur-ujmu6e-product4` `1bf856dd7497e68c1a588d5c7a1cfece1a55a192`
+- `claude/clever-pasteur-ujmu6e-product7` `0c85235f2611f9d50917cdf156a6abe2f8981d02`
+- `claude/clever-pasteur-ujmu6e-productl` `c4ff285425de5fa96106b4c58f458006a9abf1cb`
+- `claude/clever-pasteur-ujmu6e-productl-pending` `67d645d9b6d4094f162a52f7d983d0accc23da0a`
+- `claude/clever-pasteur-ujmu6e-productl2` `e7de0ab84b3cef969b84bcd7ded7d40792f9e47e`
+- `claude/clever-pasteur-ujmu6e-pub1` `8836209d9f21d0b6176baae9e7dce62a921c7069`
+- `claude/clever-pasteur-ujmu6e-pub2` `e85b541954f535d3168f449afb077c23778b6e08`
+- `claude/clever-pasteur-ujmu6e-pub4` `dac4da3c4f70b47f7acc69206ce92c9938df6587`
+- `claude/clever-pasteur-ujmu6e-qb1` `333fa6677ea56ed2009469d0d5eee8cf4ea2500a`
+- `claude/clever-pasteur-ujmu6e-qb1-pending` `c0b18f41371eee47d8c712159ea314a255f80514`
+- `claude/clever-pasteur-ujmu6e-qb2` `87b08289d781642d2fbf7f2af12768efd8468f80`
+- `claude/clever-pasteur-ujmu6e-settings-redo` `5e3e2fb96a26396bcc9edfed6fa87e7bf5aa4546`
+- `claude/clever-pasteur-ujmu6e-turbo-probe` `1f3eb3b443c1c8ab44573cad5bb74d5a30a02544`
+- `claude/coord-asset-0-ritmo-spec` `1e13db773bcf6a14374dc8b96c858b7bf5a27fc1`
+- `claude/coord-decisions-1101` `9f9fe44bd9ef81c2dc2e23208d610ceb34137d8b`
+- `claude/coord-docs-1030b` `eba55ae62f4c1364b171270d2ccf9ed441296657`
+- `claude/coord-docs-1030c` `f9ace7c0c9078f6dd44d6eb314d15ae46e04ccef`
+- `claude/coord-docs-batch-2031` `3d17e03be9a922eb28eb9e17c3b82fecdd2bd1da`
+- `claude/coord-docs-batch-2240` `93843ab68e941ae0d98df2f7508d11a0a2326baf`
+- `claude/coord-gl-1-style-game-roots` `d5fbbcf71f2fdc5ad2abc51d6fe473f54bb54f7e`
+- `claude/coord-gl-1b-boundaries-game` `6e68adba96cc4254995539b4b5876b3e86b95ea0`
+- `claude/coord-ui-scroll-region-words` `0b6b7e3d72bba3972c2de9f600010b0129cb11ef`
+- `claude/core-requests-from-plus` `3acd86c7c21a5249f5d0060965c618736ba1acf5`
+- `claude/core-saves-e2e-budget` `9c9ac4d2c9d5b2c77776c6adb5eb30bd387991a0`
+- `claude/deps-vite-8-3-3` `9244e86e87682fc5175448d9ea33cad3836ba741`
+- `claude/dist-1-spec` `8137519209925111eaa429b013a4ad9d155aa9e9`
+- `claude/dist-2-host-contract` `cc1c8d8639899b117f23f302839561ba22793bef`
+- `claude/dist-3-ruken-boundary` `56393a0d61ae36662ed874902da659ad97744894`
+- `claude/dist-3b-platform-imports` `dcd0d69aa1e3aa5b3a93ca9cb4192545916bb3e9`
+- `claude/dist-4-fake-host` `a784f4ac4e8c8b4ee41b054ba9ff5bcd6fbe1b46`
+- `claude/dist-5a-tauri-adapter` `c1faa97f87d98e5d2c36225cd88de42909645119`
+- `claude/dist-5b-ship-tauri` `09bed6e0b6e046a72e1e761ccbd04a5ecc863a84`
+- `claude/dist-5c-desktop-release` `c88a91a4ec67f1b52d30a0df4b935710cac9f372`
+- `claude/docs-02-03-1031b` `b9f0e2f1506e8046d504bec8a08f60db747c74a9`
+- `claude/docs-02-ticks-1940` `2360905ec7ad3a6bd6d21daf39d92c2329ee05cb`
+- `claude/docs-02-ticks-2105` `ec13cdfc3d4865942fbe808d1d8b9828fa1287e9`
+- `claude/docs-3d-rescope` `9a6b7f858611425b5a5edbb1fad341b52f64d13f`
+- `claude/docs-launcher-gl7` `3c4044b3a77fbb1657a6dbd21530585fb86fca36`
+- `claude/docs-legacy-steal` `329496ad3b619c767f2f74ba2adfed427574ac1f`
+- `claude/docs-paid-editor-apps` `e28d6a3360449a95d223de0e53b82fd1ae3a0c7c`
+- `claude/docs-ticks-0110` `94adc3c33ca3d7fca9967799f9063847423baaa1`
+- `claude/docs-ticks-2026-10-31b` `87c6f87e96627095d9e3d6e80ee7916ed116498f`
+- `claude/docs-ticks-2225z` `433989812fa39908d55ae9ba8648a3cdfa7babdf`
+- `claude/docs-ticks-dx2a` `d032a83fd04227edba7605437cc97acf2e94a813`
+- `claude/dx-2a-publish-runtime-render-game-umbrella` `8b3666984cc66745c3ed309ef72cd09d37e3f419`
+- `claude/dx-2c-dispose-sim-on-shutdown` `17749038b7fd1827c3f20e9848cd7eb336afbdbd`
+- `claude/dx-2d-screen-copy` `99fad594c7d0d91d1748f0c5acc6c326a4fabba8`
+- `claude/dx-5a-small-assets-csp` `51153ce383bb3901ee1090575a3a158ceb6d3f3d`
+- `claude/dx-6b-koota-soa-guard` `05b7e92ed32bb3c0092fa5af56cb7cc2a59f96bb`
+- `claude/dx-6c-check-example-path` `bb71797610a35ae239776aade1a96a06aa3c6efe`
+- `claude/dx-6c1-script-paths` `33f3a108a2311f3420332d4438c33d786823488d`
+- `claude/dx-7a-version-refreshes-skills` `db65019e78dba8e2b601f502b805ceecb5e219c3`
+- `claude/ed2d-5b-tilesets-view` `bc36745264d739259f006d2e8dc0fd6beca1a803`
+- `claude/ed2d-5c-entities-view` `00ff60dac9d2323a59a1dc831dec7180331c6088`
+- `claude/ed2d-6b-world-view` `8936088a3d77aa0207f48885fbca2d2bfd802f97`
+- `claude/ed2d-7a-checks-view` `faf2872c326986731d7f3ba2767c3dc0b0838aa4`
+- `claude/ed2d-7b-export` `a92db28d82a51989620a2e9c9148d32f32815f7f`
+- `claude/ed2d-8a-world-ipad` `5402516b51ba9f9b317605e1aece9bcc18b1a07b`
+- `claude/ed2d-8b-world-thumbnails` `2acb6b8d5d37aec155c4b84e1364e1b7df4bbf69`
+- `claude/ed2d-export-plain-words` `c76a7b34f4cac790c31eb01bd9f1ba13c4b98d4c`
+- `claude/editors-2d-wide` `46c91417b6b55a5bff354803b7b601ec2a89e317`
+- `claude/editors-3d-wide` `30413f3541d8736b67de86b1eb537b32b6083d64`
+- `claude/editors-ed2d-4c2b-ed2d-4c2b-open-flows` `dbd475f7bca95ed0dac54432f3a18610b03af83b`
+- `claude/editors-ed2d-4c3a-draw-list` `601708a148e67e8d0a99d22b8a36fdf0bf62112c`
+- `claude/editors-ed2d-4c3b-pixi-canvas` `c798efc08bac49bccff84a6838fd2faf6ee2aedf`
+- `claude/editors-ed2d-4c4a-level-view` `2fc0d9bd4bc374d399d0ab158702646a49be115f`
+- `claude/editors-ed2d-4c4b-inspector-dock` `1d6be5d63751f07a7befba92f2a6c5912625fa0d`
+- `claude/editors-ed2d.5a-ed2d-5a-def-commands` `20155cef92bdab02f741457bfd2ac20a3162db9d`
+- `claude/editors-ed2d.6a-ed2d-6a-world-commands` `8e1aab92fdfcd617bfac946a0c10161638e1cc70`
+- `claude/editors-ed3d-13a-ed3d-13a-def-commands` `d62534fb77a2c7d29536e19e3d50f7542f650b46`
+- `claude/editors-ed3d-5c-ed3d-5c-scaffold-home` `00290638ec7d789adb1c9defd7e0dc3881899e4e`
+- `claude/editors-ed3d-5d-plan-view` `459dc65ab91a510eb6a494c3d7e1811f825adaa8`
+- `claude/editors-ed3d-5e-7d` `df7ee6274ac650b4043bc57641e5e49ad5706f1c`
+- `claude/editors-ed3d-6g-sector-tools-ui` `cb4befe4bd183172309e2d75745361d84d14f09e`
+- `claude/editors-ed3d-7b-ed3d-7b-things-tool` `377c79fef148d95680d7968915af96b4377e31b2`
+- `claude/editors-ed3d-7c-zones-nav` `2913ab0afbfaa65ee2cdaa06769c63a7cc7770f9`
+- `claude/editors-ed3d-8a-ed3d-8a-materials-walk` `e5d645f7ac6a81b55c660727c2da6b1b5f6b886d`
+- `claude/editors-ed3d.5b-ed3d-5b-app-core` `7230f8fff2fcf20b6cb862ecf0abb0620ceb0161`
+- `claude/editors-edk-6a-edk-6a-layout-engines` `1aef053384d607efdaf4cf5d8cb5fceb73ee1881`
+- `claude/editors-edk.8-edk-8-region-boundary` `b0bc7d305113bc54285d215ae362fa3c1e605427`
+- `claude/editors-eds-1a-eds-1a-documents` `d93c7fce4de2e88ebd593b5c9a176ef3a9cb95d8`
+- `claude/editors-eds-1b-eds-1b-ports` `e5593ec59b86ae6c57b072ffe2373678b4727eb3`
+- `claude/editors-eds-1d-a-node-adapters` `0617dcc501bea7e03f95bcfebbfda87375c5b446`
+- `claude/editors-eds-2a-suite-app` `82612caae58d53d316522ced520eba204c9f8ed7`
+- `claude/editors-eds-2b` `d5f160b15e79d216144f2bc17f53251eb0dad1d5`
+- `claude/editors-eds-2c-b-dialogs` `79911ec33bc0a800833390af5488de10100468f0`
+- `claude/editors-eds-2c-ship-review-interchange` `7c9ec3680b07b1feb875d7b60f43f4b422c6a87c`
+- `claude/editors-eds.0-eds-0-suite-spec` `9f9cc51e30e271b15d88de1dabee0fd604e66b52`
+- `claude/editors-eds.1c-eds-1c-editors-list` `df74a6e31edbe96073f869bd593cd67433d6836d`
+- `claude/editors-field-form-journeys` `3ce672310a25c5ec5923b3651367e44ed0eee691`
+- `claude/editors-followups` `7d766b95b9a6fa91d2f5e149f2a5e6b7e3fcba67`
+- `claude/edk-6b-ipad-journeys` `093ff0ceffc80cffcf496e5c272bdcf16bff3dcd`
+- `claude/eds-2c-c-fixes` `54599b6a19adcea971430ec97ad0078c8a01a213`
+- `claude/eds-2d-level-mounts` `5c323e073cefbcc9148d00fca3b706c8c597da38`
+- `claude/eds-4a-tuner` `28c96dbcd27093a35fcc4a509450fc69071ec5da`
+- `claude/gl-0-game-layout-by-role-spec` `f7a9af240bc1541f9e2464be1d4f8acec83deb88`
+- `claude/gl-3-placeholder-src-main` `284b3f6f586790f063101b0e3fc422ad0ac30a08`
+- `claude/m3-vendor-pixi3d` `1a73ee73e8f78b99668605dae44862dfb40db822`
+- `claude/m5-5f-endonym-subsets` `56dd7e7e126f0cb5eb5c7a7f47ba9e597b335e92`
+- `claude/m5-6f2-preload-atlas-fonts` `d4f221565c6996a761196c5001394aeed3f74069`
+- `claude/nice-einstein-mf7zqc` `5ce3ced3e801e2f71cfdb402feb1b8163b08786a`
+- `claude/node-1-files-read-bytes` `93fea5e2e0d0a87ab2bbe24ab6c4d2bd327c19a9`
+- `claude/owner-journey-2026-10-18` `92deec6db35f8cba22b2cf2578bf0c9662488d7a`
+- `claude/owner-visual-acceptances` `274a274ce2eaeb38fe23386b7d67a1f03e866dc2`
+- `claude/parity-on-mac` `a2f63118268934c13eea98a316b1f87e1ca626e7`
+- `claude/plus-PRODUCT.5g-drop-physics` `43a679d91f7c1af20529a6376fb0972b55f648ab`
+- `claude/product-1b3-one-extractor` `b9d8bbd9b23fc7da5575e6f0c5a32382ea2f4750`
+- `claude/product-4r-ruken-mit-repack` `35944e1c6eca8a71d338c424ec7d3ff670332463`
+- `claude/product-5d-automata-add` `125da137af19f899df369a5ea35b8e03073c7335`
+- `claude/product-l3a-xx-long` `58f8da47da2518727c3fc1a3288d65bc71c61929`
+- `claude/project-thread-0s94ad` `9976beac2cd81c8462b33d87ebe37193c09e7065`
+- `claude/project-thread-39g5i1-ed3d-10a` `365737db44d4ab135676f38f2179af46bce5ac21`
+- `claude/project-thread-39g5i1-ed3d-4c` `64d3f5ff5c68775f1d880c5a06f45999dc9dfe37`
+- `claude/project-thread-39g5i1-ed3d-6e` `ce7bf221bc60d12b3df37e1a41792877b321cd89`
+- `claude/project-thread-39g5i1-ed3d-6f` `15227797643d287678d51dea2cbf5b91c1e48f99`
+- `claude/project-thread-39g5i1-ed3d-7a` `23dedc851a190efd5d2d40cf2f08c1caddcc484b`
+- `claude/project-thread-39g5i1-ed3d-9a` `1d0eb6b39b75b8c5ebced79a8ee9a1f7eba4bb0a`
+- `claude/project-thread-39g5i1-ed3d-9b` `bbe544f1b7312d18ea5e87946eb5c96f87dc6a58`
+- `claude/project-thread-4vn53j` `43c4c1544351cd99dde28326a8e65649703bdb98`
+- `claude/project-thread-4vn53j-corepacks` `2bd0c8f58fea0641e3e79754e40c02217ca11418`
+- `claude/project-thread-4vn53j-product5` `81741ca3358d08ae02b9abc9180e37e0fed2f867`
+- `claude/project-thread-4vn53j-pub4b` `65a8d8e24c44b03e0700ee12e19822c9909bc239`
+- `claude/project-thread-4vn53j-simentries` `e686fc5c4c28d19c047f01bac3c4f4002ca80eed`
+- `claude/project-thread-4wl6sk-cap-workers` `ec8a66e3d42b59ec8dd724736abb6c247845f567`
+- `claude/project-thread-4wl6sk-docs-sync` `720a1588a2c5dd19698eed6a453072d1a0121b94`
+- `claude/project-thread-4wl6sk-matrix-focus` `c05d7b77e76371f80609913c3e4edc9008921ceb`
+- `claude/project-thread-4wl6sk-zod-bump` `f8854b3f56c44583b98183fdc3003c51bd2f8616`
+- `claude/project-thread-5ebgbe` `2aed78e98573d0be3dbf0d6139fa074b6cf5de8e`
+- `claude/project-thread-5xwuqn` `74c1f2cddc248001dd90da54f0ebaa43fb7b157f`
+- `claude/project-thread-73sp69` `3fc0a675876bfdbeffd573bdd913f5d9571dd8d8`
+- `claude/project-thread-73sp69-ed2d-general` `c9c2a39c16025ed1c12be7497243e2201eefb0b7`
+- `claude/project-thread-73sp69-ed2d1` `e0586f3c09e925a0d17c25cfa6d5426aa3a4d8c1`
+- `claude/project-thread-73sp69-ed2d2` `a4b05729424a7623785bb214c8a88b54b4b047a8`
+- `claude/project-thread-73sp69-ed2d3` `e2364b2cf00f647676bdabaa43a51e47d1e7a708`
+- `claude/project-thread-73sp69-ed2d4a` `ff335000ff213e7008ecce224397dcda37253e10`
+- `claude/project-thread-73sp69-ed2d4b` `0c57ba2c93db284896dbd82680cce91e6628053e`
+- `claude/project-thread-73sp69-ed2d4c` `59c210490962e30e00c7bf41bdd614e0cc47dfd8`
+- `claude/project-thread-73sp69-ed2d4c-base` `37dbeb9f23c8292e6bda0a6d41429c85ae029402`
+- `claude/project-thread-73sp69-ed2d4c2` `43df2375af48d675a11bf31843ebca9e37843b0b`
+- `claude/project-thread-73sp69-edff1` `1c073bf2cfef6e6630e78f5a3391b65ae94383c7`
+- `claude/project-thread-73sp69-edff1b` `6095284fc4ee6006f24035b969fc8ff467da867e`
+- `claude/project-thread-73sp69-edff1c` `735988068e077e50de4c38563fd19eb518571acc`
+- `claude/project-thread-73sp69-edff1d` `e43262a61a22d45370c766ea92ae37148e2a83fd`
+- `claude/project-thread-73sp69-editor-suite` `f1a6aa494fe51eea022bb348a205d70957e00c10`
+- `claude/project-thread-73sp69-edk1` `07c41917c22040d4730c73d153b96d9f24839a6f`
+- `claude/project-thread-73sp69-edk2` `f84d9504e7fc24c354fa166c55047efd8a07f30c`
+- `claude/project-thread-73sp69-edk3` `17fb414029af48afd7c4b9d0197b7485948bc5ac`
+- `claude/project-thread-73sp69-edk4` `156f019f5c93dd0b9abc5577de440cea38f347ac`
+- `claude/project-thread-73sp69-edk5` `91f307346836cde3de2cfcd61157e6d5ce3be661`
+- `claude/project-thread-73sp69-edk7` `b336b5a095ebd7787341c011f7ad91043c4435b4`
+- `claude/project-thread-bqis5q` `1caa52114fbca4c0a75b53de46877622b55b0cb4`
+- `claude/project-thread-bupmx9-apirep` `56488d02e066af4ebb99491587ee5d27fbcedb13`
+- `claude/project-thread-bupmx9-csp-assets` `110e906b8d1b0f4cc5b8900cbb63e4980bcc7c40`
+- `claude/project-thread-bupmx9-docs` `a825c520ecff5883187a5196f0c8454021696cef`
+- `claude/project-thread-bupmx9-dx4b-s2` `6906a228f51d5fb9e3825f7ed74fc5959867b1db`
+- `claude/project-thread-bupmx9-dx4b-s3` `52bbb761af7d528676782e0fc164415dc0594abb`
+- `claude/project-thread-bupmx9-dx4b-sim` `4731d0f146b44ab8aebf1be6318b52028345cad1`
+- `claude/project-thread-bupmx9-dx4b-ui` `bb676867e7a7f82440986bf5a0c7dc0ad8f90d77`
+- `claude/project-thread-bupmx9-ex4-host` `58e9fe7257816c65f29f8214dc20c6f49d0961a2`
+- `claude/project-thread-bupmx9-ex4-r2d` `38ec57ac2bbc59e52d84c75da6dfe09bdfed7bb1`
+- `claude/project-thread-bupmx9-ex6` `0310d6495b9463ed1d61fd9591542c1b0edfbcda`
+- `claude/project-thread-bupmx9-exports-timeout` `2b5dc1477a2a874e15e8e3129855e0efc0371567`
+- `claude/project-thread-bupmx9-hud` `9e60c43594e73c2c1cdee4799a773bc20dff1d4c`
+- `claude/project-thread-bupmx9-m41` `f0898faa86a7fdbe030a112c60f25b610d92367e`
+- `claude/project-thread-bupmx9-m47` `b8548c40e626313ca7d1f81254870f87a7e83355`
+- `claude/project-thread-bupmx9-postfilter` `d3b0278172efc32c49f15add2a0046a1826e826a`
+- `claude/project-thread-bupmx9-qb1a` `91f21c757387b3387f8b5cf79aae8920e87d0af1`
+- `claude/project-thread-bupmx9-qb1b` `4185aa77fbe6154975029b1176cffe0e4a610588`
+- `claude/project-thread-bupmx9-qb1c` `28ddb142afc64355b3a7282005aaecc1cd136a06`
+- `claude/project-thread-bupmx9-rfilter` `cf274b93374d0161ba25e5d750c437fac7b61554`
+- `claude/project-thread-bupmx9-test-feedback` `f6d78c5771a11d819c4ae136325d52bf5c043822`
+- `claude/project-thread-jhqvhl` `91b7dc0ed3ea1232d3d14028b5a79b44f2ce8a18`
+- `claude/project-thread-ljshus` `cea7d5fe60330d6c070b1577776c6cc6ba098279`
+- `claude/project-thread-ljshus-ed3d-1` `63e5d6c4d7484b6b6e35ddc3a761379e781dc079`
+- `claude/project-thread-ljshus-ed3d-1b` `75e38adbc57dfee7484ee526fab3e84e42c74b0e`
+- `claude/project-thread-ljshus-ed3d-1b2` `92030fe31fd58348c2cf917624155b1481e23f54`
+- `claude/project-thread-ljshus-ed3d-1c` `117c1dcc4a1f7818cea742e0faf16ebb39348c5c`
+- `claude/project-thread-ljshus-ed3d-2` `be2786859f73ed8f9c1c5dfe7352804061c400ad`
+- `claude/project-thread-ljshus-ed3d-2b1` `08fdcdc7faabe2fd1c8d4623ff8846ad949be623`
+- `claude/project-thread-ljshus-ed3d-2b2` `a67bf7840cbff806b195e2bb51945df36ec31219`
+- `claude/project-thread-ljshus-ed3d-3` `4f555cee215c067df9fe5642a3f8260302ffb3e6`
+- `claude/project-thread-ljshus-ed3d-4` `0d97797740c5ff1517e1b7dc5b83c12dd317fddb`
+- `claude/project-thread-ljshus-ed3d-4b` `c3d00232ce5c05485c652258ed31caec708a2b9b`
+- `claude/project-thread-ljshus-ed3d-5a` `9d6c71c5dc03c27fb4f9f1b28eae13c6a016df56`
+- `claude/project-thread-ljshus-ed3d-6a` `43fa6b8dfc48e29dabbc21087ac87cbd0d8af7ac`
+- `claude/project-thread-ljshus-ed3d-6b` `d9a1b4733fa7eee7d537118f8c145e4ddfa9f7cd`
+- `claude/project-thread-ljshus-ed3d-6c` `a72d97cc2b2404d9d7d3234b8f09142fb70e2a75`
+- `claude/project-thread-ljshus-ed3d-6d` `5547872a0785c78008e95a4b7a331a23a2682c8f`
+- `claude/project-thread-nlubyz` `cc52ba4dc7e93cbc99a2e79223254e809a004632`
+- `claude/project-thread-onilcu` `371c2ec2c0b9b8c2d11fa74f9765961663684678`
+- `claude/project-thread-uuiywm` `8e920e1ee7ff4d43ac1d178125e5ade4f5d907ff`
+- `claude/prov-M6.10a` `3e2215459d24ef8097cad16156efd5c885ca9cd6`
+- `claude/prov-M6.10b` `d729d579c181a4119be203fb7dfc5abcb3c00e97`
+- `claude/prov-M6.11` `5e85a2d60140528cb1fefadb7c9a63bd771f0b83`
+- `claude/prov-M6.2` `f27c18e6c1aa89f791e68f027e3814670b7d5945`
+- `claude/prov-M7.5c` `267e8710bda5db0ee8db196f06db21e7179f686d`
+- `claude/prov-PRODUCT.6` `9524c28bd4bbb567f33ff680042ebf617b8b12a4`
+- `claude/qb-1f-repack-ruken` `6c741e13613c228ab136539ae1e8f63e20121e01`
+- `claude/qb-1g-secret-scan-scope` `4bc26d6fb91149545563c2648852825c23404794`
+- `claude/qb-1h-gitleaks-hook-timeout` `4c09a361752bc51aa92c326c2e53edb37dde37f2`
+- `claude/qb-2c-one-secret-rule-list` `be3bae10e10736d1a725a354de390d3efa96e4fd`
+- `claude/rt-boot1-retry-reload` `79457ff0a5df177bf5f25f4b8b72eddbb9d3d2e2`
+- `claude/rt-ext1-extension-sim-plugins` `ba53883fc7eda57821870549129e0ede58fe93c6`
+- `claude/standalone-3-drop-ff-profile` `b8c163a58490e3a9bf47e7235e7111363cc45256`
+- `claude/website-WEB.PLAY.1-playground-feasibility` `56dfdfc4e9483984ef69092c7a63548313e86055`
+- `claude/website-WEB.PLAY.2-playground-harness` `eac7b034b67464ef71103562468706e1a539ab58`
+- `claude/website-WEB.PLAY.3-build-playground` `bab228ea0e381077027c2996761fae7fbce60940`
+
+## tag archived: merged into main, but the name may matter
+
+- `archive/base-3d-adventure` `aa5b4fa7892af84ae4e40c04658bb986b33096a4`
+
+## tag abandoned: not merged, no open pull request (tag, then delete)
+
+Each commit stays reachable from the tag `abandoned/<branch>`.
+
+- `backup/3d-m3-4a-sky-wip` `74a04561a9ee5ba65d38ee5e65ebb393eab96d52` (a backup)
+- `claude/3d-game-3d-1a-2` `50d147efd3d0de201a54bff3022eb00032331260` (no PR)
+- `claude/3d-gitleaks-allow-false-positive` `fc2da4082b0f13aefe3a3e9aaa1866f9db4e5b94` (PR closed unmerged)
+- `claude/3d-m3-6b-poses` `a2f22718f056fdda4fa52609297099d660b79545` (replaced by -v2, merged as #220)
+- `claude/3d-m3-6c-clips` `305b89fd1e421ba36c25837d5635ca8f738cb0fe` (replaced by -v2, merged as #221)
+- `claude/clever-pasteur-ujmu6e-ci-timeouts` `f78dfc36859dca1e5b01694d3ec8a136e47b5ac7` (PR #53 closed unmerged)
+- `claude/clever-pasteur-ujmu6e-handoff` `bce35dee60722e4ede0ad6cdbfb172c58bc9d7e7` (session handoff notes, same tip as handoff-local)
+- `claude/clever-pasteur-ujmu6e-pub3` `1da21ac971292bccbc2913ae1ea94788df6eda37` (no PR; PUB.4 merged after it (#50))
+- `claude/clever-pasteur-ujmu6e-pub3-wip` `7f03cb47f051a5fff3b79fa6ef705edcc907b9f5` (work in progress of pub3)
+- `claude/ed2d-6c-links` `7392e2b3d48f7b5f0883b5c412c820cca58d5411` (PR closed unmerged)
+- `claude/edff-2a-stage-assets` `c93eadcc9ab4fd34133bc90d0e6417881d94e467` (PR closed unmerged)
+- `claude/eds-10-11` `cd95adb8e108a38dd622a2a365cc7c00ab06bc72` (PR #378, closed: the 2026-11-01 reset superseded it)
+- `claude/project-thread-z6q9rx` `c63b94eb083eb10e0b8f991de2273e3cd5d29205` (no PR; 2,757 commits behind main)
+- `handoff-local` `bce35dee60722e4ede0ad6cdbfb172c58bc9d7e7` (same tip as claude/clever-pasteur-ujmu6e-handoff)
+
+## tag parked: open drafts kept for a later phase (tag, then delete; close the PR with a comment naming the tag)
+
+Each commit stays reachable from the tag `parked/<branch>`. Revive one with `git switch -c <branch> parked/<branch>`.
+
+- `claude/3d-art-pass` `0936c8c93da0f8df590373585680f77c6be4e120` (PR #377, 3D phase)
+- `claude/j3-served-suite` `adb274c2e0e360aa0507de797436ca38097ac74a` (PR #381, editors phase)
+- `claude/j4-checks-list` `88729a8a78b9977408d043f1b54c2ab20dce1863` (PR #382, editors phase)
+
+## keep: not touched
+
+- `main`.
+- The refactor's stacked pull requests #385 to #392: `claude/refactor-2d-audit`, `claude/refactor-2d-plan`,
+  `claude/project-thread-kkpo1d`, `claude/project-thread-k497wo`, `claude/refactor-2d-unused`, `claude/refactor-2d-d4`,
+  `claude/project-thread-twtegf`, `claude/project-thread-f01qmj`. They go as each merges, once
+  `delete_branch_on_merge` is on (task 9.2).
+- `claude/content-browser-entry` (#383) and `claude/fix-touch-selection` (#379): folded into the refactor in task 4.3,
+  or merged first. If neither happens they stay open; closing them is a later call.
+
+After task 9.2 the remote holds `main` and the kept branches above, each with an open pull request and CI.

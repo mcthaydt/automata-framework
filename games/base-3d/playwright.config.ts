@@ -19,8 +19,8 @@ export default defineJourneys({
     // The 3D examples (render3d, and figures since M3.5d) in WebKit too (M3.4a): headless Firefox here has no WebGL.
     {
       name: 'examples-webkit',
-      testDir: '../../examples/e2e',
-      testMatch: ['render3d-*.e2e.ts', 'figures-*.e2e.ts'],
+      testDir: '../../examples/tests/e2e',
+      testMatch: ['render3d-*.test.ts', 'figures-*.test.ts'],
       use: { ...devices['iPhone 14 landscape'] },
     },
   ],

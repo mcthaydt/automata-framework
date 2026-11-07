@@ -1,0 +1,630 @@
+{
+  "sources": [
+    "packages/host",
+    "packages/runtime",
+    "packages/render-pixi",
+    "packages/ui",
+    "packages/game",
+    "packages/automata",
+    "packages/testing",
+    "packages/node",
+    "packages/ship",
+    "packages/cli",
+    "packages/sim",
+    "packages/content"
+  ],
+  "moves": [
+    {
+      "from": "packages/host/src/contract",
+      "to": "packages/automata/src/shared/host"
+    },
+    {
+      "from": "packages/host/src/contract-suite.ts",
+      "to": "packages/automata/src/testing/host/contract-suite.ts"
+    },
+    {
+      "from": "packages/host/src/testing",
+      "to": "packages/automata/src/testing/host/page"
+    },
+    {
+      "from": "packages/host/src/web",
+      "to": "packages/automata/src/features/targets/web"
+    },
+    {
+      "from": "packages/host/src/web/target.ts",
+      "to": "packages/automata/src/entries/target/web.ts"
+    },
+    {
+      "from": "packages/host/src/ruken",
+      "to": "packages/automata/src/features/targets/ruken"
+    },
+    {
+      "from": "packages/host/src/ruken/target.ts",
+      "to": "packages/automata/src/entries/target/ruken.ts"
+    },
+    {
+      "from": "packages/host/src/tauri",
+      "to": "packages/automata/src/features/targets/tauri"
+    },
+    {
+      "from": "packages/host/src/tauri/target.ts",
+      "to": "packages/automata/src/entries/target/tauri.ts"
+    },
+    {
+      "from": "packages/host/src/menu.ts",
+      "to": "packages/automata/src/features/targets/menu.ts"
+    },
+    {
+      "from": "packages/host/src/exit-handlers.ts",
+      "to": "packages/automata/src/features/targets/exit-handlers.ts"
+    },
+    {
+      "from": "packages/host/src/rounds.ts",
+      "to": "packages/automata/src/features/targets/rounds.ts"
+    },
+    {
+      "from": "packages/host/src/sdk-markers.ts",
+      "to": "packages/automata/src/features/targets/sdk-markers.ts"
+    },
+    {
+      "from": "packages/host/src/subscribable.ts",
+      "to": "packages/automata/src/shared/lib/subscribable.ts"
+    },
+    {
+      "from": "packages/host/src/index.ts",
+      "to": "packages/automata/src/entries/from-host.ts"
+    },
+    {
+      "from": "packages/runtime/src/audio",
+      "to": "packages/automata/src/features/audio"
+    },
+    {
+      "from": "packages/runtime/src/display",
+      "to": "packages/automata/src/features/display"
+    },
+    {
+      "from": "packages/runtime/src/extension",
+      "to": "packages/automata/src/features/extension"
+    },
+    {
+      "from": "packages/runtime/src/flow",
+      "to": "packages/automata/src/features/flow"
+    },
+    {
+      "from": "packages/runtime/src/loading",
+      "to": "packages/automata/src/features/loading"
+    },
+    {
+      "from": "packages/runtime/src/locale",
+      "to": "packages/automata/src/features/locale"
+    },
+    {
+      "from": "packages/runtime/src/settings",
+      "to": "packages/automata/src/features/settings"
+    },
+    {
+      "from": "packages/runtime/src/save",
+      "to": "packages/automata/src/features/saves"
+    },
+    {
+      "from": "packages/runtime/src/input",
+      "to": "packages/automata/src/features/input"
+    },
+    {
+      "from": "packages/runtime/src/haptics",
+      "to": "packages/automata/src/features/input/haptics"
+    },
+    {
+      "from": "packages/runtime/src/leaderboards",
+      "to": "packages/automata/src/features/leaderboards"
+    },
+    {
+      "from": "packages/runtime/src/loop",
+      "to": "packages/automata/src/app/loop"
+    },
+    {
+      "from": "packages/runtime/src/time",
+      "to": "packages/automata/src/app/time"
+    },
+    {
+      "from": "packages/runtime/src/presentation",
+      "to": "packages/automata/src/app/presentation"
+    },
+    {
+      "from": "packages/runtime/src/render",
+      "to": "packages/automata/src/app/render"
+    },
+    {
+      "from": "packages/runtime/src/boot",
+      "to": "packages/automata/src/app/boot"
+    },
+    {
+      "from": "packages/runtime/src/testing",
+      "to": "packages/automata/src/testing/runtime"
+    },
+    {
+      "from": "packages/runtime/src/env.d.ts",
+      "to": "packages/automata/src/env.d.ts"
+    },
+    {
+      "from": "packages/runtime/src/index.ts",
+      "to": "packages/automata/src/entries/from-runtime.ts"
+    },
+    {
+      "from": "packages/automata/tests/unit/index.test.ts",
+      "to": "packages/automata/src/../tests/unit/entries/from-automata.test.ts"
+    },
+    {
+      "from": "packages/host/tests/unit/index.test.ts",
+      "to": "packages/automata/src/../tests/unit/entries/from-host.test.ts"
+    },
+    {
+      "from": "packages/runtime/tests/unit/index.test.ts",
+      "to": "packages/automata/src/../tests/unit/entries/from-runtime.test.ts"
+    },
+    {
+      "from": "packages/render-pixi/tests/unit/index.test.ts",
+      "to": "packages/automata/src/../tests/unit/entries/from-render-pixi.test.ts"
+    },
+    {
+      "from": "packages/ui/tests/unit/index.test.ts",
+      "to": "packages/automata/src/../tests/unit/entries/from-ui.test.ts"
+    },
+    {
+      "from": "packages/game/tests/unit/index.test.ts",
+      "to": "packages/automata/src/../tests/unit/entries/from-game.test.ts"
+    },
+    {
+      "from": "packages/testing/tests/unit/index.test.ts",
+      "to": "packages/automata/src/../tests/unit/entries/from-testing.test.ts"
+    },
+    {
+      "from": "packages/cli/tests/unit/index.test.ts",
+      "to": "packages/tools/tests/unit/entries/from-cli.test.ts"
+    },
+    {
+      "from": "packages/ship/tests/unit/index.test.ts",
+      "to": "packages/tools/tests/unit/entries/from-ship.test.ts"
+    },
+    {
+      "from": "packages/cli/tests/unit/create-game.integration.test.ts",
+      "to": "packages/tools/tests/unit/create-game/create-game.integration.test.ts"
+    },
+    {
+      "from": "packages/host/tests/unit/target.test.ts",
+      "to": "packages/automata/tests/unit/targets/target.test.ts"
+    },
+    {
+      "from": "packages/runtime/tests/unit/ruken",
+      "to": "packages/automata/tests/unit/targets/ruken"
+    },
+    {
+      "from": "packages/ui/tests/setup.ts",
+      "to": "packages/automata/tests/fixtures/setup.ts"
+    },
+    {
+      "from": "packages/game/tests/setup.ts",
+      "to": "packages/automata/tests/fixtures/setup.ts"
+    },
+    {
+      "from": "packages/ui/tests/browser/m4-primitives.test.ts",
+      "to": "packages/automata/tests/browser/shared/ui/m4-primitives.test.ts"
+    },
+    {
+      "from": "packages/ui/tests/unit/theme.test.ts",
+      "to": "packages/automata/tests/unit/shared/ui/theme.test.ts"
+    },
+    {
+      "from": "packages/testing/tests/fixtures/sim",
+      "to": "packages/sim/tests/fixtures/sim"
+    },
+    {
+      "from": "packages/render-pixi/src",
+      "to": "packages/automata/src/features/render"
+    },
+    {
+      "from": "packages/render-pixi/src/no-eval.ts",
+      "to": "packages/automata/src/entries/no-eval.ts"
+    },
+    {
+      "from": "packages/render-pixi/src/index.ts",
+      "to": "packages/automata/src/entries/from-render-pixi.ts"
+    },
+    {
+      "from": "packages/render-pixi/src/env.d.ts",
+      "to": "packages/automata/src/features/render/env.d.ts"
+    },
+    {
+      "from": "packages/ui/src/controls",
+      "to": "packages/automata/src/shared/ui/controls"
+    },
+    {
+      "from": "packages/ui/src/dialog",
+      "to": "packages/automata/src/shared/ui/dialog"
+    },
+    {
+      "from": "packages/ui/src/focus",
+      "to": "packages/automata/src/shared/ui/focus"
+    },
+    {
+      "from": "packages/ui/src/geometry",
+      "to": "packages/automata/src/shared/ui/geometry"
+    },
+    {
+      "from": "packages/ui/src/layout",
+      "to": "packages/automata/src/shared/ui/layout"
+    },
+    {
+      "from": "packages/ui/src/slots",
+      "to": "packages/automata/src/shared/ui/slots"
+    },
+    {
+      "from": "packages/ui/src/status",
+      "to": "packages/automata/src/shared/ui/status"
+    },
+    {
+      "from": "packages/ui/src/touch",
+      "to": "packages/automata/src/shared/ui/touch"
+    },
+    {
+      "from": "packages/ui/src/prompts",
+      "to": "packages/automata/src/shared/ui/prompts"
+    },
+    {
+      "from": "packages/ui/src/display",
+      "to": "packages/automata/src/shared/ui/display"
+    },
+    {
+      "from": "packages/ui/src/browser",
+      "to": "packages/automata/src/shared/ui/browser"
+    },
+    {
+      "from": "packages/ui/src/theme.css",
+      "to": "packages/automata/src/shared/ui/theme.css"
+    },
+    {
+      "from": "packages/ui/src/saves",
+      "to": "packages/automata/src/features/saves/ui"
+    },
+    {
+      "from": "packages/ui/src/settings",
+      "to": "packages/automata/src/features/settings/ui"
+    },
+    {
+      "from": "packages/ui/src/testing",
+      "to": "packages/automata/src/testing/ui"
+    },
+    {
+      "from": "packages/ui/src/index.ts",
+      "to": "packages/automata/src/entries/from-ui.ts"
+    },
+    {
+      "from": "packages/game/src/define-game.ts",
+      "to": "packages/automata/src/app/define-game.ts"
+    },
+    {
+      "from": "packages/game/src/start-game.ts",
+      "to": "packages/automata/src/app/start-game.ts"
+    },
+    {
+      "from": "packages/game/src/default-content.ts",
+      "to": "packages/automata/src/app/default-content.ts"
+    },
+    {
+      "from": "packages/game/src/draw",
+      "to": "packages/automata/src/app/draw"
+    },
+    {
+      "from": "packages/game/src/input",
+      "to": "packages/automata/src/features/input"
+    },
+    {
+      "from": "packages/game/src/input/testing",
+      "to": "packages/automata/src/testing/input"
+    },
+    {
+      "from": "packages/game/src/screens",
+      "to": "packages/automata/src/features/screens"
+    },
+    {
+      "from": "packages/game/src/screens/saves-copy.ts",
+      "to": "packages/automata/src/features/saves/ui/saves-copy.ts"
+    },
+    {
+      "from": "packages/game/src/screens/saves-paused.ts",
+      "to": "packages/automata/src/features/saves/ui/saves-paused.ts"
+    },
+    {
+      "from": "packages/game/src/screens/saves-start.ts",
+      "to": "packages/automata/src/features/saves/ui/saves-start.ts"
+    },
+    {
+      "from": "packages/game/src/screens/saves-title.ts",
+      "to": "packages/automata/src/features/saves/ui/saves-title.ts"
+    },
+    {
+      "from": "packages/game/src/screens/saves-view.svelte.ts",
+      "to": "packages/automata/src/features/saves/ui/saves-view.svelte.ts"
+    },
+    {
+      "from": "packages/game/src/screens/SettingsView.svelte",
+      "to": "packages/automata/src/features/settings/ui/SettingsView.svelte"
+    },
+    {
+      "from": "packages/game/src/screens/audio-settings.ts",
+      "to": "packages/automata/src/features/settings/ui/audio-settings.ts"
+    },
+    {
+      "from": "packages/game/src/screens/haptics-settings.ts",
+      "to": "packages/automata/src/features/settings/ui/haptics-settings.ts"
+    },
+    {
+      "from": "packages/game/src/screens/settings-copy.ts",
+      "to": "packages/automata/src/features/settings/ui/settings-copy.ts"
+    },
+    {
+      "from": "packages/game/src/screens/settings-screen.svelte.ts",
+      "to": "packages/automata/src/features/settings/ui/settings-screen.svelte.ts"
+    },
+    {
+      "from": "packages/game/src/screens/settings-view.ts",
+      "to": "packages/automata/src/features/settings/ui/settings-view.ts"
+    },
+    {
+      "from": "packages/game/src/tooling.ts",
+      "to": "packages/automata/src/entries/tooling.ts"
+    },
+    {
+      "from": "packages/game/src/no-eval.ts",
+      "to": "packages/automata/src/entries/from-game-no-eval.ts"
+    },
+    {
+      "from": "packages/game/src/index.ts",
+      "to": "packages/automata/src/entries/from-game.ts"
+    },
+    {
+      "from": "packages/automata/src/index.ts",
+      "to": "packages/automata/src/entries/from-automata.ts"
+    },
+    {
+      "from": "packages/automata/src/no-eval.ts",
+      "to": "packages/automata/src/entries/from-automata-no-eval.ts"
+    },
+    {
+      "from": "packages/testing/src/fixtures",
+      "to": "packages/automata/src/testing/fixtures"
+    },
+    {
+      "from": "packages/testing/src/layout",
+      "to": "packages/automata/src/testing/layout"
+    },
+    {
+      "from": "packages/testing/src/input",
+      "to": "packages/automata/src/testing/input"
+    },
+    {
+      "from": "packages/testing/src/host",
+      "to": "packages/automata/src/testing/host"
+    },
+    {
+      "from": "packages/testing/src/sim",
+      "to": "packages/sim/src/testing"
+    },
+    {
+      "from": "packages/testing/src/e2e",
+      "to": "packages/tools/src/e2e"
+    },
+    {
+      "from": "packages/testing/src/index.ts",
+      "to": "packages/automata/src/entries/from-testing.ts"
+    },
+    {
+      "from": "packages/ship/src",
+      "to": "packages/tools/src/features/ship"
+    },
+    {
+      "from": "packages/ship/src/cli.ts",
+      "to": "packages/tools/src/app/ship-cli.ts"
+    },
+    {
+      "from": "packages/cli/src/add",
+      "to": "packages/tools/src/features/add"
+    },
+    {
+      "from": "packages/cli/src/build",
+      "to": "packages/tools/src/features/build"
+    },
+    {
+      "from": "packages/cli/src/check",
+      "to": "packages/tools/src/features/check"
+    },
+    {
+      "from": "packages/cli/src/editor",
+      "to": "packages/tools/src/features/editor"
+    },
+    {
+      "from": "packages/cli/src/create-game.ts",
+      "to": "packages/tools/src/features/create-game/create-game.ts"
+    },
+    {
+      "from": "packages/cli/src/create-game-targets.ts",
+      "to": "packages/tools/src/features/create-game/create-game-targets.ts"
+    },
+    {
+      "from": "packages/cli/src/bin.ts",
+      "to": "packages/tools/src/app/cli.ts"
+    },
+    {
+      "from": "packages/cli/src/index.ts",
+      "to": "packages/tools/src/entries/from-cli.ts"
+    },
+    {
+      "from": "packages/node/src",
+      "to": "packages/tools/src/shared/node"
+    },
+    {
+      "from": "packages/node/src/index.ts",
+      "to": "packages/tools/src/entries/from-node.ts"
+    },
+    {
+      "from": "packages/ship/src/index.ts",
+      "to": "packages/tools/src/entries/index.ts"
+    },
+    {
+      "from": "packages/sim/src/world",
+      "to": "packages/sim/src/features/world"
+    },
+    {
+      "from": "packages/sim/src/schedule",
+      "to": "packages/sim/src/features/schedule"
+    },
+    {
+      "from": "packages/sim/src/define",
+      "to": "packages/sim/src/features/define"
+    },
+    {
+      "from": "packages/sim/src/rng",
+      "to": "packages/sim/src/features/rng"
+    },
+    {
+      "from": "packages/sim/src/replay",
+      "to": "packages/sim/src/features/replay"
+    },
+    {
+      "from": "packages/sim/src/hash",
+      "to": "packages/sim/src/features/hash"
+    },
+    {
+      "from": "packages/sim/src/math",
+      "to": "packages/sim/src/shared/math"
+    },
+    {
+      "from": "packages/sim/src/util",
+      "to": "packages/sim/src/shared/util"
+    },
+    {
+      "from": "packages/sim/src/version.ts",
+      "to": "packages/sim/src/shared/version.ts"
+    },
+    {
+      "from": "packages/sim/src/index.ts",
+      "to": "packages/sim/src/entries/index.ts"
+    },
+    {
+      "from": "packages/sim/src/hash/index.ts",
+      "to": "packages/sim/src/entries/hash.ts"
+    },
+    {
+      "from": "packages/sim/src/math/index.ts",
+      "to": "packages/sim/src/entries/math.ts"
+    },
+    {
+      "from": "packages/sim/src/replay/index.ts",
+      "to": "packages/sim/src/entries/replay.ts"
+    },
+    {
+      "from": "packages/sim/src/testing",
+      "to": "packages/sim/src/testing"
+    },
+    {
+      "from": "packages/content/src/compile",
+      "to": "packages/content/src/features/compile"
+    },
+    {
+      "from": "packages/content/src/parse",
+      "to": "packages/content/src/features/parse"
+    },
+    {
+      "from": "packages/content/src/assets",
+      "to": "packages/content/src/features/assets"
+    },
+    {
+      "from": "packages/content/src/locale",
+      "to": "packages/content/src/features/locale"
+    },
+    {
+      "from": "packages/content/src/flow",
+      "to": "packages/content/src/features/flow"
+    },
+    {
+      "from": "packages/content/src/game",
+      "to": "packages/content/src/features/game"
+    },
+    {
+      "from": "packages/content/src/tuning",
+      "to": "packages/content/src/features/tuning"
+    },
+    {
+      "from": "packages/content/src/palette",
+      "to": "packages/content/src/features/palette"
+    },
+    {
+      "from": "packages/content/src/preload",
+      "to": "packages/content/src/features/preload"
+    },
+    {
+      "from": "packages/content/src/generate",
+      "to": "packages/content/src/features/generate"
+    },
+    {
+      "from": "packages/content/src/vite",
+      "to": "packages/content/src/features/vite"
+    },
+    {
+      "from": "packages/content/src/diagnostics",
+      "to": "packages/content/src/shared/diagnostics"
+    },
+    {
+      "from": "packages/content/src/files",
+      "to": "packages/content/src/shared/files"
+    },
+    {
+      "from": "packages/content/src/hash",
+      "to": "packages/content/src/shared/hash"
+    },
+    {
+      "from": "packages/content/src/schema",
+      "to": "packages/content/src/shared/schema"
+    },
+    {
+      "from": "packages/content/src/cli",
+      "to": "packages/content/src/app/cli"
+    },
+    {
+      "from": "packages/content/src/testing",
+      "to": "packages/content/src/testing"
+    },
+    {
+      "from": "packages/content/src/index.ts",
+      "to": "packages/content/src/entries/index.ts"
+    }
+  ],
+  "entries": {
+    "@mcthaydt/automata-host": "@mcthaydt/automata",
+    "@mcthaydt/automata-host/target": "@mcthaydt/automata/target",
+    "@mcthaydt/automata-host/contract-suite": "@mcthaydt/automata/testing",
+    "@mcthaydt/automata-host/testing": "@mcthaydt/automata/testing",
+    "@mcthaydt/automata-runtime": "@mcthaydt/automata",
+    "@mcthaydt/automata-runtime/extension": "@mcthaydt/automata/extension",
+    "@mcthaydt/automata-runtime/testing": "@mcthaydt/automata/testing",
+    "@mcthaydt/automata-render-pixi": "@mcthaydt/automata",
+    "@mcthaydt/automata-render-pixi/no-eval": "@mcthaydt/automata/no-eval",
+    "@mcthaydt/automata-ui": "@mcthaydt/automata",
+    "@mcthaydt/automata-ui/theme.css": "@mcthaydt/automata/theme.css",
+    "@mcthaydt/automata-ui/testing": "@mcthaydt/automata/testing",
+    "@mcthaydt/automata-game": "@mcthaydt/automata",
+    "@mcthaydt/automata-game/no-eval": "@mcthaydt/automata/no-eval",
+    "@mcthaydt/automata-game/tooling": "@mcthaydt/automata/tooling",
+    "@mcthaydt/automata/no-eval": "@mcthaydt/automata/no-eval",
+    "@mcthaydt/automata-testing": "@mcthaydt/automata/testing",
+    "@mcthaydt/automata-testing/input": "@mcthaydt/automata/testing",
+    "@mcthaydt/automata-testing/host": "@mcthaydt/automata/testing",
+    "@mcthaydt/automata-testing/sim": "@mcthaydt/automata-sim/testing",
+    "@mcthaydt/automata-testing/sim/commands": "@mcthaydt/automata-sim/testing/commands",
+    "@mcthaydt/automata-testing/sim/property": "@mcthaydt/automata-sim/testing/property",
+    "@mcthaydt/automata-testing/e2e": "@mcthaydt/automata-tools/e2e",
+    "@mcthaydt/automata-node": "@mcthaydt/automata-tools",
+    "@mcthaydt/automata-ship": "@mcthaydt/automata-tools",
+    "@mcthaydt/automata-cli": "@mcthaydt/automata-tools"
+  }
+}

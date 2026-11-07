@@ -1,11 +1,4 @@
-import { svelte } from '@sveltejs/vite-plugin-svelte'
-import { defineConfig } from 'vitest/config'
+import { defineTests } from '@mcthaydt/vitest-preset'
 
-export default defineConfig({
-  plugins: [svelte()],
-  resolve: { conditions: ['browser'] },
-  test: {
-    environment: 'node',
-    include: ['src/**/*.test.ts', 'stress/**/*.test.ts'],
-  },
-})
+// The stress example is a game, so its tests build Svelte views; every test runs on Node.
+export default defineTests({ svelte: true, browsers: [] })

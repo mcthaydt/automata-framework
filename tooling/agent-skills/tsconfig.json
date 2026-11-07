@@ -12,5 +12,5 @@
       "vitest": ["./node_modules/vitest"]
     }
   },
-  "include": ["src/**/*.ts", "../../agents/automata/skills/*/example/**/*.ts"]
+  "include": ["src/**/*.ts", "tests/**/*.ts", "../../agents/automata/skills/*/example/**/*.ts"]
 }

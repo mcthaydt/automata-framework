@@ -329,14 +329,14 @@ For `sim`, `content`, `host`, `ui`, `runtime`, `render-pixi`, `game`, `automata`
 `games/emberwick`, then `tooling/*` and `examples`. Session breaks: after `ui`, after `cli`, after
 `games/emberwick` (four sessions).
 
-- [ ] **Step 1:** Run the codemod on the package. Replace its `vitest.config.ts` with one `defineTests({...})` call
+- [x] **Step 1:** Run the codemod on the package. Replace its `vitest.config.ts` with one `defineTests({...})` call
   carrying the options task 3.1 step 0 recorded for it. Add `tests` to its `tsconfig.json` `include`. Journeys move
   from `e2e/` to `tests/e2e/` and become `*.test.ts`; the area's Playwright config's `testDir` follows, and when the
   last area has moved, the preset's `testMatch` becomes `**/*.test.ts` (task 1.1).
-- [ ] **Step 2:** `pnpm --filter <pkg> test:unit`, `test:parity` (now `test:browser`) and `typecheck` pass, with the
+- [x] **Step 2:** `pnpm --filter <pkg> test:unit`, `test:parity` (now `test:browser`) and `typecheck` pass, with the
   **same test count as before** (record before and after in the execution log; a lower count is a lost test).
-- [ ] **Step 3:** One commit per package: `test(<pkg>): move tests to tests/`.
-- [ ] **Step 4:** Update `check-style` (tests exempt by folder, not suffix), `knip.jsonc` and `biome.json` fixture
+- [x] **Step 3:** One commit per package: `test(<pkg>): move tests to tests/`.
+- [x] **Step 4:** Update `check-style` (tests exempt by folder, not suffix), `knip.jsonc` and `biome.json` fixture
   paths, and the turbo task names (`test:parity` → `test:browser`). `pnpm check` passes. Open the PR, green, merge.
 
 ---
@@ -351,13 +351,13 @@ For `sim`, `content`, `host`, `ui`, `runtime`, `render-pixi`, `game`, `automata`
   `tests/fixtures/features/`
 - Modify: `tooling/check-boundaries/src/cli.ts`, `src/check.ts` (find sim files by role suffix)
 
-- [ ] **Step 1: Failing tests** for each rule in spec section 3.3 (one fixture per rule: a feature importing a
+- [x] **Step 1: Failing tests** for each rule in spec section 3.3 (one fixture per rule: a feature importing a
   feature, shared importing a feature, a feature importing `app/`, logic in `entries/`, product code importing
   `testing/`), each expecting the exact message in spec section 3.5. And for `--browser`: a file reachable from
   `src/entries/index.ts` that imports `effect` fails with `"<file>" runs in the browser and imports "effect". Effect
   is for Node tooling only (ADR 0003).`; the same import in a file not reachable from an entry passes.
-- [ ] **Step 2:** Implement over the existing AST reader (`ast.ts`). Tests pass.
-- [ ] **Step 3: Sim files by suffix and by import:** failing tests that
+- [x] **Step 2:** Implement over the existing AST reader (`ast.ts`). Tests pass.
+- [x] **Step 3: Sim files by suffix and by import:** failing tests that
   `games/x/src/features/player/player-move.system.ts` is checked as a sim file, that `tuning.ts`, which it imports
   by relative path, is checked too, and that `games/x/src/features/player/hud.ts`, which no sim file imports, is
   not; that an `import type` from `effect` passes `--browser`; and that `#src/x` in a `src/` file fails. Implement;
@@ -371,7 +371,7 @@ For `sim`, `content`, `host`, `ui`, `runtime`, `render-pixi`, `game`, `automata`
 - Create: `docs/refactor/move-map.json`, `tooling/codemods/src/move-modules.ts`,
   `tooling/codemods/tests/unit/move-modules.test.ts`
 
-- [ ] **Step 1: Write the move map.** One entry per source folder (and per file where a folder splits), from its
+- [x] **Step 1: Write the move map.** One entry per source folder (and per file where a folder splits), from its
   current path to its new one, following the spec's section 3.3. The folder-level map:
 
   | From | To (`packages/automata/src/…` unless noted) |
@@ -413,14 +413,14 @@ For `sim`, `content`, `host`, `ui`, `runtime`, `render-pixi`, `game`, `automata`
 
   And an entry map: every old public entry (`@mcthaydt/automata-runtime`, `…-ui/testing`, `…-render-pixi`, the 16
   that 3D and the editors import, and the rest) → its new entry and, per exported name, where it now comes from.
-- [ ] **Step 2: Failing tests for the codemod** on fixtures: it moves files by the map with `git mv`; rewrites
+- [x] **Step 2: Failing tests for the codemod** on fixtures: it moves files by the map with `git mv`; rewrites
   relative imports inside the moved package; moves each package's `tests/<kind>/<old folder>/` to
   `packages/<new package>/tests/<kind>/<new feature>/` by the same map (six `tests/` folders merge into
   `packages/automata/tests/`) and rewrites their `#src/…` imports to the new paths; rewrites bare imports in every
   other workspace package (3D, the editors, `tooling/`, `examples/` and `agents/` included) and in `vitest.config.ts`
   and `vite.config.ts` files by the entry map, splitting one import into two when names now come from two entries;
   and prints the names each consumer imports, which is the surface report (S4).
-- [ ] **Step 3:** Implement. Pass. Commit.
+- [x] **Step 3:** Implement. Pass. Commit.
 
 ### Task 4.3: Build `packages/automata` (PR `claude/refactor-2d-packages`)
 
@@ -472,11 +472,11 @@ in step 2.
 **Files:** Create `tooling/bundle-report/{package.json,src/cli.ts,src/report.ts}`,
 `tooling/bundle-report/tests/unit/report.test.ts`
 
-- [ ] **Step 1: Failing test:** given a Vite `manifest.json` and chunk files (fixture), `report` groups gzip bytes
+- [x] **Step 1: Failing test:** given a Vite `manifest.json` and chunk files (fixture), `report` groups gzip bytes
   by package (`pixi.js`, `svelte`, `zod`, `effect`, `@mcthaydt/*`, the game) and prints a table.
-- [ ] **Step 2:** Implement (Vite's `build.manifest` plus `rollup-plugin-visualizer`'s JSON, or the source map's
+- [x] **Step 2:** Implement (Vite's `build.manifest` plus `rollup-plugin-visualizer`'s JSON, or the source map's
   `sources`; pick the one that needs no new dependency: the source map). Pass.
-- [ ] **Step 3:** Run on Emberwick; paste the table into `progress.md` as "Bundle before D2". Commit.
+- [x] **Step 3:** Run on Emberwick; paste the table into `progress.md` as "Bundle before D2". Commit.
 
 ### Task 5.2: The plain-TypeScript helpers (PR `claude/refactor-2d-no-effect-1`)
 
@@ -654,12 +654,12 @@ the features it lacks are journeyed on the one-file examples that show them:
 
 ### Task 9.1: Prepare
 
-- [ ] **Step 1:** Re-run the audit's branch comparison (appendix command) and write
+- [x] **Step 1:** Re-run the audit's branch comparison (appendix command) and write
   `docs/refactor/branches.md`: the merged list (to delete), the unmerged list (to tag `abandoned/<branch>`, then
   delete), the parked drafts #377, #381, #382 (tag `parked/<branch>`, close the PR with a comment naming the tag),
   #378 (close), #383 and #379 (closed as folded in, naming the refactor PR that carries their change; if either was
   not folded in, it stays open instead).
-- [ ] **Step 2:** Write `tooling/repo-hygiene/src/prune-branches.ts`: reads `branches.md`, tags first, verifies
+- [x] **Step 2:** Write `tooling/repo-hygiene/src/prune-branches.ts`: reads `branches.md`, tags first, verifies
   each tag points at the branch tip, then deletes; `--dry-run` by default, `--apply` to act. Test the parsing and the
   "tag before delete, stop on any mismatch" order with a fake `git` in `tests/unit/prune-branches.test.ts`.
 
@@ -758,8 +758,77 @@ the features it lacks are journeyed on the one-file examples that show them:
   render-pixi 121, game 229, automata 22, testing 168, node 12, ship 463, cli 188 (+4 slow), Emberwick 108. Chromium
   browser projects (first run, no WebKit or Firefox here): ui 1671, game 403, runtime 2, render-pixi 8, testing 39,
   content 3; Emberwick's journeys, phone Chromium: 8 passed.
-  **Resume at:** the tooling packages `api-index`, `check-boundaries`, `check-style`, `repo-hygiene` (their tests find
-  `src/cli.ts`, `turbo.json` and `kit-fixtures` by path; the codemod output is in git history of this branch, redo with
-  the CLI), then `agent-skills`, `examples-runner` (its `playground/e2e` stays until the playground moves; `e2e/` moves),
-  `frame-budget` (`stress/` is an extra root), the examples, and step 4 (`check-style` exempts by folder, `biome.json`
-  fixture paths, then `pnpm check`, the PR, and the CI run).
+  **Tooling and examples (second session).** Unit counts, before and after (equal): api-index 43, check-boundaries 109,
+  check-style 71 (72 with the new folder test), repo-hygiene 65, agent-skills 95, examples-runner 112 + 1 skipped,
+  frame-budget 45, playwright-preset 8, hot-reload 3; the primitives smoke test, Chromium: 26. Deviations: (22) the
+  `turbo-inputs` tests of api-index and repo-hygiene resolve every relative import against its file, in `src/` and
+  `tests/`, so moving a file never changes which sibling tooling folders count as inputs. (23) Fixtures moved to
+  `tests/fixtures/` only where a test in `src/` owned them (`check-style` kit fixtures, `examples-runner` and
+  `frame-budget` fixtures); `api-index/fixtures`, `check-boundaries/fixtures` and `api-report/fixtures` stay at the package
+  root, where `biome.json` and `knip.jsonc` already exclude them, so no `biome.json` path changed. (24) `agent-skills`
+  keeps its own `vitest.config.ts` (its root is the repository, for the skill's worked example and the sim alias); its
+  install suite moved to `tests/install/` and `test:install` points there. (25) The `examples-runner` browser parity
+  test runs in Node too through the preset's `alsoInNode`; `test:unit` and `test:browser` now name the projects `unit`
+  and `browser`. (26) `check-style` skips any `tests/` folder; the `*.test.ts` suffix stays exempt until the 3D and
+  editor packages move (they still keep tests in `src/`), at which point the suffix rule is deleted. (27) The examples'
+  and `games/base-3d`'s Playwright configs, the 3D workflow's path filter and `knip.jsonc` follow the journeys to
+  `tests/e2e/*.test.ts`. `pnpm check` passes (30 unit tasks, 0 cached). **Not run here:** WebKit and Firefox parity,
+  every Playwright journey (the GPU/CI runner), `pnpm build` and the CI-only gates (left to the pull request's CI).
+- **Task 4.1 (2026-11-05, second session).** `tooling/check-boundaries` has `--features <root>...`, `--browser
+  <root>[:<entry>,…]...` and, in `--game`, the sim by role suffix and by import (files `features.ts`, `browser-only.ts`,
+  `sim-by-suffix.ts`, and `imports.ts`, the one import reader the platform check now shares). 144 tests (109 before). Deviations:
+  (28) The failing tests built their trees in temporary folders instead of under `tests/fixtures/features/`: each rule needs
+  a four-line tree, and the test then reads next to its tree. (29) A multi-line message (spec section 3.5) prints under
+  `file:line:col`, indented; single-line findings print as before. (30) `--browser` takes `root:entry,entry` for a package
+  with Node entries too (content), because section 3.2 makes only some of its entries browser-safe; it also refuses
+  `fontkit`, `pngjs`, `subset-font` and any Node built-in, as section 3.3 says for content. (31) `--game` takes the union of the
+  role files (`base-3d` still has them) and the suffix set, and exits 2 only when both are empty. (32) **The file-list
+  comparison (step 3) does not hold on today's tree, so `package.json`'s `boundaries` line is unchanged.** Today's line
+  checks 12 files under `games/emberwick/src/sim`; the suffix rule finds 10. `sim/index.ts` (a barrel) and `place-wick.ts`
+  are imported by `base-sim.ts` and `make-game.ts`, which are not sim files, and import sim files themselves, so no sim
+  file reaches them (the spec's claim that `place-wick.ts` is reached by import is wrong). Task 6.3 must close it when
+  Emberwick moves: rename `place-wick.ts` to `place-wick.command.ts`, drop the barrel, and switch the line to
+  `--game games/*/src` in the same commit; `base-3d` (12 role files, 0 by suffix) keeps its role layout until the 3D area.
+- **Task 4.2 (2026-11-05, second session).** `docs/refactor/move-map.json` (146 rows and the entry map),
+  `tooling/codemods/src/move-modules.ts` (the pure plan, `planModules`, and `applyModulePlan`), and
+  `src/move-modules-cli.ts` (`node tooling/codemods/src/move-modules-cli.ts [--dry-run] [--surface]`), with 17 tests on an
+  in-memory file system. **Not applied:** moving the files before task 4.3 builds the package would break the tree. The dry
+  run over today's tree: 764 files move, 1 duplicate is removed (the two identical `setup.ts`), 624 files change text, none
+  is unmapped and none clashes. Deviations: (33) A test follows the source file it tests (`tests/unit/audio/a.test.ts` is the
+  test of `src/audio/a.ts`), so a test needs no row of its own; rows exist only for the 16 tests with no source file by that
+  name (the `index.test.ts` of each old barrel, `target.test.ts`, the Ruken seam tests, the two `setup.ts` and `testing`'s golden
+  fixtures, which keep their path relative to the test file). (34) Two files with the same text on one path are one file
+  (the first stays, `git rm` the rest); different text stops the run. (35) Each old `index.ts` moves to
+  `entries/from-<package>.ts` and each old `no-eval.ts` to `entries/no-eval.ts` or `entries/from-<package>-no-eval.ts`, with
+  its relative imports already right; task 4.3 step 1 writes the real `entries/index.ts` from them. (36) The map decides what
+  the spec left open: `haptics` goes to `features/input/haptics`, `leaderboards` stays a feature (`features/leaderboards`),
+  `host/src/testing` to `testing/host/page` (beside `testing/src/host`, which becomes `testing/host`), `ship`'s `cli.ts` to
+  `app/ship-cli.ts` and `cli`'s `bin.ts` to `app/cli.ts` (task 4.4 merges them into the one bin). (37) A moved file that imports an old package of the same merge gets a relative import
+  of the file that defines each name: the codemod reads the old package's `exports`, follows the entry file's re-exports
+  (`export { a } from`, `export *`, `export { default as A } from`) to the defining module, and writes one import per module
+  (`import type` kept). That took the 230 such imports to **10 left for task 4.3 step 1 by hand**: the two old barrels
+  (`game/src/index.ts`, `automata/src/index.ts`, which are re-exports and become the real `entries/index.ts`), `ship`'s
+  re-export of `node`, four Svelte screens that `import * ` from `ui`, and one test; `--dry-run` lists them. A build-time
+  entry (`host/target`) stays a package specifier. (38) The other workspace packages' `package.json` swap each old package they
+  import for the new one they now import (`ui` → `automata`, `testing/sim` → `automata-sim`), in the section the old one was
+  in; 14 are rewritten. The merged package's own `package.json` (the union of the dependencies of `host`, `runtime`,
+  `render-pixi`, `ui`, `game`, and the exports map) is written by hand in task 4.3 step 1. The 197 imports from other
+  workspace files are rewritten by the entry map; the `names` overrides are empty, so a name that is not in its new entry is
+  found by the typecheck in 4.3.
+- **Task 5.1 (2026-11-05, second session), done before 4.3 because it needs only today's build.** `tooling/bundle-report` reads
+  each chunk's source map (`sources` and `mappings`, decoded by a 30-line VLQ reader, so no new dependency), counts the
+  generated bytes per source file, groups them by package, and shares each chunk's gzip size out by those counts. 12 tests on
+  hand-built chunks. On Emberwick: 1,183 kB raw, 360 kB gzip, Effect 187 kB raw and 57.6 kB gzip (16%), Pixi 42.9%, zod 8%
+  (table in `progress.md`). This is the number task 5.4 compares against; the placeholder game's 28.3 kB gzip for Effect
+  was a smaller page.
+- **Task 9.1 (2026-11-05, second session), done early because it needs no code from the other phases.** `docs/refactor/branches.md`
+  lists 351 of the 361 non-main branches by name and tip commit: 333 merged (delete), `archive/base-3d-adventure`
+  (tag `archived/`, then delete), 14 unmerged with no open pull request (tag `abandoned/`; this includes #378's branch),
+  and the drafts #377, #381 and #382 (tag `parked/`). The ten kept: the eight stacked refactor branches (#385 to #392)
+  and #383 and #379. `pnpm branches:prune` (`tooling/repo-hygiene/src/prune-branches.ts`) reads the list. With `--apply`
+  it first runs every check (the tip is still the listed commit; a "delete" branch is an ancestor of `origin/main`),
+  and only then, per branch, tags, pushes the tag, reads it back from origin at the tip, and deletes. 9 tests with a
+  fake `git`. The dry run against the live origin (all 351 checks): 333 to delete, 18 to tag then delete, 0 already
+  gone, no mismatch. **Nothing was deleted or tagged**; task 9.2 waits for the Owner's go. Deviation (39): the
+  appendix said 334 merged branches; one of them (`archive/base-3d-adventure`) is listed to be tagged first, as the
+  audit suggested, so the delete section holds 333.
