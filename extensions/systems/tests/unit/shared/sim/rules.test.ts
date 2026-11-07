@@ -1,11 +1,13 @@
 // The rule ticks: the original game's `systems.test.ts` cases through the real sim, plus the
 // halt: a catch in a rule ends the step before the agents.
+
+import { stepWith } from '@automata/sectors/testing'
 import type { Sim } from '@automata/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { SystemsNoises } from '#src/shared/sim/systems.resource.ts'
 import type { SystemsDef } from '#src/shared/sim/systems.schema.ts'
 import { alarmToy, sceneOf, watchman } from '#src/testing/toy.ts'
-import { agent, createWardGame, fact, kinds, load, run, stepWith } from '#src/testing/ward-game.ts'
+import { agent, createWardGame, fact, kinds, load, run } from '#src/testing/ward-game.ts'
 
 let sims: Sim[] = []
 afterEach(() => {

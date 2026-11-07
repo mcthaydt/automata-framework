@@ -5,8 +5,8 @@ import { createNavPlugin, loadNavGraph, NavAgent } from '@automata/nav/sim'
 import { clinicBlocked, clinicGraph, clinicMap } from '@automata/nav/testing/clinic'
 import { createPuzzlePlugin, loadPuzzle, type PuzzleDef, PuzzleState, type Value } from '@automata/puzzle/sim'
 import { InSector, loadSectorMap, type Point, resolvedMap, sectorsPlugin } from '@automata/sectors/sim'
+import { type Order, stepWith } from '@automata/sectors/testing'
 import {
-  type Command,
   createSim,
   defineCommand,
   definePlugin,
@@ -14,7 +14,6 @@ import {
   type PluginDef,
   type Sim,
   type SimEvent,
-  type StepResult,
 } from '@automata/sim'
 import { z } from 'zod'
 import { createSystems } from '../shared/sim/systems.plugin'
@@ -120,7 +119,6 @@ export async function createWardGame(
   return { sim, player, log }
 }
 
-export type Order = Pick<Command, 'type' | 'payload'>
 export const load = (places: Readonly<Record<string, Point>> = {}): Order => ({
   type: 'ward.load',
   payload: { places },
@@ -131,9 +129,6 @@ export const noise = (x: number, z: number, loudness: number, kind = 'bottle'): 
   type: 'ward.noise',
   payload: { at: { x, z }, loudness, kind },
 })
-
-export const stepWith = (sim: Sim, orders: readonly Order[] = []): StepResult =>
-  sim.step(orders.map((order, seq) => ({ tick: sim.tick, source: 0, seq, ...order })))
 
 /** Steps for `seconds` (at the sim's rate), the first step with `orders`; gives every event. */
 export function run(sim: Sim, seconds: number, orders: readonly Order[] = []): SimEvent[] {

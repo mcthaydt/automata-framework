@@ -511,6 +511,63 @@ door's state after the scene is open).
 
 ---
 
+
+### Task 3.6: `@automata/character-kit` (after 3D 7.6)
+
+**Files:** create `extensions/character-kit/` (`src/features/{garments,hair,seats}/`, `src/entries/index.ts`,
+`character-kit.extension.ts`, `tests/`); `examples/3d/wardrobe/` (the streetwear example) registers its kinds next to
+the kit's.
+
+**Interfaces:** consumes `registerGarment`, `registerHairPiece`, `registerFinish`, `registerFabric`, `profiles`,
+`girth`, `Pose`, `Track` from `@automata/3d/figures`; produces `characterKitExtension` (registers the eight garment
+kinds, the eight hair pieces, the extra finishes and the `figure-seat` kind) and `seated(...)`.
+
+- [ ] **Step 1: Failing tests:** `a figure in a skirt fails with "No garment called skirt" without the kit and builds
+  with it`; `a style with a bun builds only with the kit`; `the base pair and Wick are the same with or without the kit`
+  (mesh equality); the ported goldens for the kit's kinds.
+- [ ] **Step 2:** FAIL. **Step 3:** the move from the 3D commit, then the refactor: R4 (one `fall`), one schema file per
+  piece kind beside its builder, no piece kind known by name outside its own file. **Step 4:** PASS; 3D's goldens
+  unchanged. Grandma test on the kit's README. **Commit** `feat(character-kit): clothes, hairstyles and seats for 3D figures`
+
+### Task 3.7: `@automata/world-kit`: props, furnishing, signs, maps (after 3D 7.3 and 7.5)
+
+**Files:** create `extensions/world-kit/` (`src/features/{props,furnish,lettering,maps}/`, `library/{props,kits,
+swatches,glyphs}.json`, `library/maps/*.af-sector.json`, `scripts/convert-builder-maps.ts`).
+
+**Interfaces:** consumes `registerPropGenerator`, `buildWorld`, `WorldLibrary`, `AfSector2`, the level geometry; produces
+`worldKitExtension`, `worldKitLibrary: WorldLibrary` (merged by the game with its own), `dressLevel(level, library,
+seed): AfSector2` (writes `props` and removes `dress`, so core draws it), `generateMap(name: 'apartment' | 'block',
+seed): AfSector2`, the `world-kit` content kind.
+
+- [ ] **Step 1: Failing tests** (from 3D 7.3's): `dressing is deterministic and every piece has an id`; `an unknown kit
+  leaves the room bare and reports it`; `every library entry parses`; `apartment@1 and block@1 generate valid /2
+  levels`; `a dressed level draws with core alone once dressLevel has run`.
+- [ ] **Step 2:** FAIL. **Step 3:** the move from `78e0ca7f` and the uncommitted dresser, then the refactor: generators
+  registered through the registry (R2), lettering's word list and shop kinds as library data, not code. **Step 4:**
+  PASS. **Commit** `feat(world-kit): ready-made props, furnished rooms, signs and generated maps`
+
+### Task 3.8: `@automata/world-kit`: textures, checks and the sky (after 3.7 and 3D 8.2)
+
+**Files:** `extensions/world-kit/src/features/{textures,reads,sky}/`, `assets/photos/` (with each credit), the tiles
+(generated, committed, each with its photo's sha-256), the bin `automata-world-textures`, the passes as GLSL + WGSL
+pairs.
+
+**Interfaces:** `photoToTile(png, knobs)` (from 3D 9.1's interface), `checkReads(level, library): LevelProblem[]` and
+`readsAgainst(figure, room, camera)` (from 9.2 and 16.3), `skyPass`, `starsPass`, `rainPass`, `bloomPass` added with
+`addLookPass`.
+
+- [ ] **Step 1: Failing tests:** 3D 9.1's and 9.2's tests, plus `rain is drawn only when the kit's pass is added` and
+  WebGL2/WebGPU parity for each pass.
+- [ ] **Step 2:** FAIL. **Step 3:** the port and the refactor (one tile format shared with the swatch library).
+  **Step 4:** PASS in Chromium; WebKit and Firefox pending for the Owner's Mac. **Commit** `feat(world-kit): photo
+  textures, the library's checks, and sky, stars and rain`
+
+### Task 3.9: The kits' examples (after 3.6 to 3.8 and 3D 12.1)
+
+`examples/3d/{figures-hair,figures-wardrobe,world-furnished-room,world-generated-map}.ts`, each booting to ready in
+Chromium. **Commit** `feat(examples): the character and world kits`
+
+
 ## Part C: closing
 
 ### Task 4.1: The publish set
@@ -534,6 +591,41 @@ consumer smoke all find packages through it). Tests: `tooling/release/tests/unit
 - [ ] The Owner's list in the PR body: archive `mcthaydt/automata-plus` (and its parked server-deploy branch), WebKit
   and Firefox parity on the Mac, the release run.
 - [ ] **Commit** `docs(refactor): Plus port build done`
+
+## Phase 5: refactor after the move (3D scope trim, 2026-11-07 19:28)
+
+Added by the Owner's scope trim ([2026-11-07-3d-scope-trim.md](2026-11-07-3d-scope-trim.md) section 6, on PR #462): "a port is also a refactor". Each task lists what changes, not only where code goes. 19 tasks become 27: 3.6 to 3.9 and 5.1 to 5.5.
+
+The port's phase 2 moved most packages without changing them. This phase is the refactor.
+
+### Task 5.1: `sectors` uses core's level geometry (R1; after 3D 7.5)
+
+- [ ] **Step 1:** record every sector parity hash and golden. **Step 2:** delete `polygonArea`, `insideSector`,
+  `segmentDistance`, `crossing`, `opening`, `walkBlocker` from `extensions/sectors/src/shared/sim/`; import them from
+  `@automata/3d/level`. **Step 3:** every hash and golden byte-identical; `pnpm boundaries` green. **Commit**
+  `refactor(sectors): one sector geometry, core's`
+
+### Task 5.2: `ui-screens` keeps only what core lacks (R9)
+
+- [ ] **Step 1:** for Title, Pause and Settings, list what the kit's screen does that core's does not, in the log.
+  **Step 2:** a screen with nothing on its list goes (its entry, tests and README line); a screen with something keeps
+  only that, built on core's screen. **Step 3:** layout suite passes; `ui-screens` README says which screens it adds and
+  why. Grandma test on what remains. **Commit** `refactor(ui-screens): only the screens core does not have`
+
+### Task 5.3: One walking test helper (R10)
+
+- [ ] `@automata/sectors/testing` exports `stepWith`; `nav` and `systems` import it; counts unchanged. **Commit**
+  `refactor(extensions): one walking helper for the level's tests`
+
+### Task 5.4: Files at the limit, split by responsibility (R11)
+
+- [ ] `runner.ts`, `net-room.ts`, `room-engine.ts` each become files with one responsibility apiece (named in the log),
+  every test unchanged and passing. **Commit** `refactor(extensions): one responsibility per file`
+
+### Task 5.5: The refactor's record
+
+- [ ] In `plus-progress.md`, each extension's line counts before and after phase 5 and 3.6 to 3.8, from `wc -l`, and
+  the findings left open with their reason. **Commit** `docs(extensions): the refactor's record`
 
 ## Self-review (writing-plans, 2026-11-07)
 
@@ -577,3 +669,4 @@ reads only this plan and the spec. One fix belongs to the 3D build (its task 7.1
 | 4.1 | The nine extensions (`physics`, `puzzle`, `feel`, `audio-synth`, `debug`, `net`, `net-server`, `net-ui`, `ui-screens`) are in the publish set: `publishable-packages.ts` reads `extensions/` too, `.changeset/config.json`'s fixed group names them (one version, 0.0.5) and `.changeset/extensions-public.md` is their changeset. Each manifest is public (MIT, `files:["dist"]`, npmjs `publishConfig`, `publishConfig.exports` into `./dist/`); the plain packages build with `publishedBuild` (tsdown), the three Svelte ones with `svelte-package` plus `finish-svelte-dist.ts`. The release-list tests expect 13 names and pass over source (61 pass, 7 dist-only skipped) and over `dist` (`AF_CHECK_DIST=1`, 68 pass). `api-index --write` asked for a doc comment on 304 exports across the nine; every one now has one (1171 exports, 0 undocumented), and the cheatsheet and the agent reference are regenerated. `pnpm api-report --update` wrote the same six reports (it covers `packages/` only). `format`, `lint`, `typecheck`, `boundaries`, `style`, `source-names`, `knip`, `check:changesets` and the consumer smoke (`pnpm test:e2e --filter @automata/consumer-smoke`, 1 passed) are green. Rulings: extensions have no API report (the tool reads `packages/`; the cheatsheet and agent reference carry their API); `puzzle`'s `./testing/*` and `audio-synth`'s `./package.json` are workspace-only exports; `@sveltejs/package` and `@sveltejs/vite-plugin-svelte` are devDependencies of the three Svelte extensions; physics moves from the GitHub registry to npmjs; svelte peers are caret ranges. Pending (not run here): the release run and a real publish are the Owner's. |
 | 3.2 | `sectors` reads `af-sector/2` (3D 7.1 and 7.2 are in this branch's base; 7.1 already carries `zone`, `pit`, `masses`, `cut` and `hideFrom`, so nothing was added to the schema). `resolveLevel(level)` replaces `resolveMap`, `checkLevel(level): LevelProblem[]` replaces `sectorMapSchema`'s loop and id checks (codes `duplicate-id`, `short-loop`, `zero-wall`, `wall-crossing`, `unknown-portal`, `sloped-floor`, `sloped-ceiling`; nothing throws), and `readSectorMap(json)` is the door (`readLevel` plus `checkLevel`). `Sector` gains `pit` and `floorAt` is undefined over a pit. The clinic is `clinic.af-sector.json`, converted once from the TOML by a script that was deleted with the TOML, the `sector-map` content kind and its test. `nav`, `narrative`, `cutscenes` and `systems` read the JSON through `readSectorMap`. Unit counts: sectors 44, nav 21, systems 61, narrative 135, cutscenes 56; the clinic's resolution passes the same field-by-field comparisons against `clinic.resolved.json`. **Hashes moved, and why:** the five sectors-dependent goldens (sectors twice, nav, systems, narrative) changed, with every events hash unchanged. A snapshot's header carries a hash of each resource's schema, and the sector-map resource's schema is now `af-sector/2`'s. Proof that nothing else moved: with the header's schema hash zeroed, the walkers' state hashes to the same six values every 100 steps, with and without colliders, on the commit before the port and on this one; `tests/unit/shared/sim/state-bytes.test.ts` pins them. The four goldens were re-recorded in this commit (sectors `30613a36313dd477`, physics `38fff211d9c79335`; nav `32aa557695d03488`; systems `8ec637bd430ca3de`; narrative `ef100aa9197a622f`) and pass in Node and Chromium; WebKit and Firefox are pending on the Mac. Rulings: the spec's "goldens do not move" holds for state and events, not for the header's schema hash; a plane that is only a height is stored as the bare number (`loadSectorMap`), so the stored state is what it was; `zone` is optional in `/2`, so a room that names none is its own zone (`zone: id`); a sloped ceiling is reported as `sloped-ceiling` as the floor is, because reading it flat is the same fault; `@automata/content` and `smol-toml` leave `sectors`' dependencies. The pit, the readSectorMap and the check tests were written after the code, not before. |
 | 3.4 | The base 3D game builds its area from the sectors resolver: `areaFromSector` reads the file with `readSectorMap` (the reader's problems and `checkLevel`'s), resolves it with `resolveLevel`, and takes its room boxes, pits and wall boxes from the resolved sectors and edges; the views and entities stay the file's own. The game's systems (`area.ts`, `hero.ts`) are untouched and the sectors plugin and its Rapier colliders are not wired in. The golden replay hash is unchanged, in Node and Chromium (the hash covers the room's boxes, in order); base-3d unit 86 (85 plus one). One addition to `sectors`: `Edge.reversed`, because the resolver winds a loop to put the room on its left and a wall's `door.at` is measured from the file's start of the wall, which on a reversed edge is `b`; a clockwise room's door is placed from the right end and the new test fails without it. The wall boxes are taken in the order the file wrote them, which a reversed loop would otherwise change. `@automata/sectors` is a dependency of `@af-games/base-3d`. |
+| 5.3 | One walking helper: `@automata/sectors/testing` exports `stepWith` and `Order` (`src/testing/step-with.ts`); the copies in `sectors`' walkers, `nav`'s walk-game and `systems`' ward-game are gone and their tests and scripts import it. Unit counts unchanged (sectors 45, nav 21, systems 61); no hash moved. |

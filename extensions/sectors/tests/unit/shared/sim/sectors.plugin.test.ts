@@ -3,7 +3,8 @@
 import type { Sim } from '@automata/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { InSector } from '#src/entries/sim.ts'
-import { createWalkers, load, type Order, spawn, stepWith, walk } from '#src/testing/walkers.ts'
+import { type Order, stepWith } from '#src/testing/step-with.ts'
+import { createWalkers, load, spawn, walk } from '#src/testing/walkers.ts'
 
 /** West (zone ward) and east (zone hall) rooms joined on x = 4, and a third room `annex`, also zone hall. */
 const rooms = {

@@ -1,6 +1,6 @@
 # Automata Plus as framework extensions: progress
 
-**Overall: 50% (3 of 6 stages done; stage 4 is 16 of 19 tasks).**
+**Overall: 50% (3 of 6 stages done; stage 4 is 16 of 27 tasks).**
 
 The Owner, 2026-11-07: "do automata-plus too" (11:19); then, on where: "Actually no make them extensions because
 they're free anyway, and move the stuff 3D is doing here, and cut the starter" (15:05). Plus's packages are ported into

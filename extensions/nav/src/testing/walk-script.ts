@@ -2,9 +2,11 @@
 // Walker 1 crosses the ward into the corridor and back; walker 2 tries the supply room while its door is shut
 // (unreachable), the door opens at step 200, and it tries again at 210; walker 3 walks to three nodes in turn, the
 // second one given mid-walk.
+
+import { type Order, stepWith } from '@automata/sectors/testing'
 import { canonicalJson, type Sim } from '@automata/sim'
 import { hex64, utf8, xxhash64 } from '@automata/sim/hash'
-import { createWalkGame, door, load, type Order, spawnWalker, stepWith, walkTo } from './walk-game'
+import { createWalkGame, door, load, spawnWalker, walkTo } from './walk-game'
 
 const TICKS = 600
 

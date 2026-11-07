@@ -1,15 +1,8 @@
 // A test game for nav: the clinic's map and graph, loaded by a command, with the clinic's boxes behind the game's own
 // `Blocked`. Walkers are spawned at setup with sectors' `InSector` and nav's `NavAgent`.
 import { InSector, loadSectorMap, resolvedMap, sectorsPlugin } from '@automata/sectors/sim'
-import {
-  type Command,
-  createSim,
-  defineCommand,
-  definePlugin,
-  defineSystem,
-  type Sim,
-  type StepResult,
-} from '@automata/sim'
+import type { Order } from '@automata/sectors/testing'
+import { createSim, defineCommand, definePlugin, defineSystem, type Sim } from '@automata/sim'
 import { z } from 'zod'
 import { createNavPlugin, loadNavGraph, NavAgent, type NavOptions } from '../entries/sim'
 import { clinicBlocked, clinicGraph, clinicMap } from './clinic'
@@ -45,16 +38,12 @@ export const spawnWalker = (sim: Sim, x: number, z: number, speed = 1.5): number
     [NavAgent, { speed }],
   ])
 
-export type Order = Pick<Command, 'type' | 'payload'>
 export const load = (): Order => ({ type: 'walk-game.load', payload: {} })
 export const walkTo = (entity: number, x: number, z: number): Order => ({
   type: 'nav.walk-to',
   payload: { entity, to: { x, z } },
 })
 export const door = (id: string, open: boolean): Order => ({ type: 'nav.door', payload: { door: id, open } })
-
-export const stepWith = (sim: Sim, orders: readonly Order[] = []): StepResult =>
-  sim.step(orders.map((order, seq) => ({ tick: sim.tick, source: 0, seq, ...order })))
 
 export const at = (sim: Sim, sid: number): { x: number; z: number } => {
   const { x, z } = (sim.entity(sid) as NonNullable<ReturnType<Sim['entity']>>).get(InSector)

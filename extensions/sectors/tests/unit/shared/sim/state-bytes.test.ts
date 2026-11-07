@@ -5,7 +5,8 @@
 import { hex64, xxhash64 } from '@automata/sim/hash'
 import { describe, expect, it } from 'vitest'
 import { rooms, yard } from '#src/testing/golden-script.ts'
-import { createWalkers, load, spawn, stepWith, walk } from '#src/testing/walkers.ts'
+import { stepWith } from '#src/testing/step-with.ts'
+import { createWalkers, load, spawn, walk } from '#src/testing/walkers.ts'
 
 /** The snapshot with the header's `schemaHash` (bytes 6 to 14) zeroed. */
 const stateHash = (bytes: Uint8Array): string => {

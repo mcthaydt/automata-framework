@@ -1,6 +1,7 @@
 // The systems plugin: the env the game writes drives light and warmth, facts go through puzzle's
 // state and mapped facts, every event's payload, a bad load fails with the scene's name, and reserved nodes.
 import { PuzzleState, type Value } from '@automata/puzzle/sim'
+import { stepWith } from '@automata/sectors/testing'
 import type { Sim } from '@automata/sim'
 import { afterEach, expect, it } from 'vitest'
 import { reachable, reserveNodes } from '#src/shared/sim/reserve.ts'
@@ -8,7 +9,7 @@ import { SystemsEnv } from '#src/shared/sim/systems.resource.ts'
 import type { Rule } from '#src/shared/sim/systems.schema.ts'
 import type { SystemsWorld } from '#src/shared/sim/world.ts'
 import { sceneOf, watchman } from '#src/testing/toy.ts'
-import { createWardGame, fact, kinds, load, move, run, stepWith } from '#src/testing/ward-game.ts'
+import { createWardGame, fact, kinds, load, move, run } from '#src/testing/ward-game.ts'
 
 let sims: Sim[] = []
 afterEach(() => {

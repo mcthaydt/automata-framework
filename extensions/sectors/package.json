@@ -17,6 +17,7 @@
     ".": "./src/entries/index.ts",
     "./sim": "./src/entries/sim.ts",
     "./physics": "./src/entries/physics.ts",
+    "./testing": "./src/testing/index.ts",
     "./testing/fixtures/*": "./src/testing/fixtures/*"
   },
   "automata": {

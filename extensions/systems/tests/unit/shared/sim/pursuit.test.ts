@@ -4,12 +4,13 @@
 // player's move, since sectors decides her sector in `cleanup`.
 import { clinicGraph, resolvedClinic } from '@automata/nav/testing/clinic'
 import type { Point } from '@automata/sectors/sim'
+import { stepWith } from '@automata/sectors/testing'
 import type { Sim, SimEvent } from '@automata/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { SystemsEnv, SystemsPursuit } from '#src/shared/sim/systems.resource.ts'
 import type { Rule, SystemsDef } from '#src/shared/sim/systems.schema.ts'
 import { sceneOf } from '#src/testing/toy.ts'
-import { agent, agentAt, createWardGame, fact, kinds, load, move, stepWith } from '#src/testing/ward-game.ts'
+import { agent, agentAt, createWardGame, fact, kinds, load, move } from '#src/testing/ward-game.ts'
 
 const NODES = clinicGraph().nodes as Record<string, Point>
 const STEP = 1 / 60

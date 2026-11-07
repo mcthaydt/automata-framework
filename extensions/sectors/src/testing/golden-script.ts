@@ -4,7 +4,8 @@
 import { canonicalJson, type Sim } from '@automata/sim'
 import { hex64, utf8, xxhash64 } from '@automata/sim/hash'
 import type { SectorMap } from '../entries/sim'
-import { createWalkers, load, type Order, spawn, stepWith, type WalkersOptions, walk } from './walkers'
+import { type Order, stepWith } from './step-with'
+import { createWalkers, load, spawn, type WalkersOptions, walk } from './walkers'
 
 export const rooms: SectorMap = {
   sectors: [

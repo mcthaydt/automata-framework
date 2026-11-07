@@ -1,18 +1,11 @@
 // The nav plugin: `walk-to` routes once and walks the walker's `InSector` plan position leg by
 // leg at its speed; `nav.arrived` and `nav.unreachable` say how it ended; a door's change re-routes a walk once.
+
+import { type Order, stepWith } from '@automata/sectors/testing'
 import type { Sim, SimEvent } from '@automata/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { NavDoors, NavRoutes } from '#src/entries/sim.ts'
-import {
-  at,
-  createWalkGame,
-  door,
-  load,
-  type Order,
-  spawnWalker,
-  stepWith,
-  walkTo,
-} from '#src/testing/walk-game.ts'
+import { at, createWalkGame, door, load, spawnWalker, walkTo } from '#src/testing/walk-game.ts'
 
 let sims: Sim[] = []
 afterEach(() => {

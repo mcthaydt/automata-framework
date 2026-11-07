@@ -3,6 +3,7 @@
 import { clinicGraph } from '@automata/nav/testing/clinic'
 import { PuzzleState } from '@automata/puzzle/sim'
 import type { Point } from '@automata/sectors/sim'
+import { stepWith } from '@automata/sectors/testing'
 import type { Sim } from '@automata/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { AgentDef } from '#src/shared/sim/systems.schema.ts'
@@ -18,7 +19,6 @@ import {
   noise,
   place,
   run,
-  stepWith,
 } from '#src/testing/ward-game.ts'
 
 const NODES = clinicGraph().nodes as Record<string, Point>
