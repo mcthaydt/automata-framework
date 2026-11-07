@@ -53,7 +53,7 @@ export async function createTalkGame(
     systems: [
       defineSystem('talk.drive', 'input', (ctx) => {
         for (const _ of ctx.commands.of(Load)) {
-          loadSectorMap(ctx, readSectorMap(JSON.parse(clinicLevel)).map)
+          loadSectorMap(ctx, readSectorMap(JSON.parse(clinicLevel)).level)
           loadPuzzle(ctx, puzzle)
           narrative.load(ctx, scene)
         }

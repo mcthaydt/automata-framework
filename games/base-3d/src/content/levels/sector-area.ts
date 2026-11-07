@@ -1,5 +1,6 @@
 // Reads an `af-sector` level file (either format) as an `AreaSource` (GAME-3D.1i, DESIGN.md §17): the game consumes the
-// level the editor writes, through core's `@automata/3d/level` reader, and never a copy of it.
+// level the editor writes, through the `sectors` extension's reader and resolver, and never a copy of it. The sim's own
+// systems keep colliding with these boxes; the sectors plugin and its Rapier colliders are not wired in.
 //
 // - Each rectangular sector is a room box (its `view` is a camera view of the file's `views`); a sector flagged
 //   `pit: true` is a pit (no room box, no floor drawn, Wick falls into it).
@@ -9,7 +10,8 @@
 // - Entities: `spawn`, `ember` and `goal` are the area's own; any other is a load error.
 // - Only axis-aligned rectangles in 1.0: another shape, or a sector with holes, is a load error naming its path (a
 //   level-editor gap if the content wants one, EDITOR-GAPS.md). Nothing here runs per tick: it is the load step.
-import { type AfSectorEntry2, pathText, readLevel, WALL_THICK } from '@automata/3d/level'
+import { pathText, WALL_THICK } from '@automata/3d/level'
+import { readSectorMap, resolveLevel, type Sector } from '@automata/sectors/sim'
 import type { AreaSource } from '../../systems/index.ts'
 
 type Box = { min: [number, number]; max: [number, number] }
@@ -39,50 +41,57 @@ export class AreaLoadError extends Error {
 const at = (path: string, index: number): string => `${path}[${index}]`
 
 /** The sector as a box, or nothing when it is not an axis-aligned rectangle. */
-function rectangle(sector: AfSectorEntry2): Box | undefined {
-  const { corners } = sector
+function rectangle(sector: Sector): Box | undefined {
+  const corners = sector.points[0] ?? []
   if (corners.length !== 4) return undefined
   // Consecutive corners differ in exactly one coordinate, and together they span two values on each axis.
   for (let i = 0; i < 4; i++) {
-    const [x0, z0] = corners[i] as readonly [number, number]
-    const [x1, z1] = corners[(i + 1) % 4] as readonly [number, number]
-    if ((x0 === x1) === (z0 === z1)) return undefined
+    const a = corners[i] as { x: number; z: number }
+    const b = corners[(i + 1) % 4] as { x: number; z: number }
+    if ((a.x === b.x) === (a.z === b.z)) return undefined
   }
-  const xs = corners.map((corner) => corner[0])
-  const zs = corners.map((corner) => corner[1])
+  const xs = corners.map((corner) => corner.x)
+  const zs = corners.map((corner) => corner.z)
   const [x0, x1] = [Math.min(...xs), Math.max(...xs)]
   const [z0, z1] = [Math.min(...zs), Math.max(...zs)]
   if (x0 === x1 || z0 === z1) return undefined
   return { min: [x0, z0], max: [x1, z1] }
 }
 
-/** The wall boxes of one sector's edges. */
-function wallsOf(sector: AfSectorEntry2): Box[] {
+/**
+ * The wall boxes of one rectangular sector's edges, in the order the file wrote them. The resolver winds a loop to put
+ * the room on its left, so a loop written the other way comes back reversed; a door's `at` is measured from the file's
+ * start of the wall, which on such an edge is `b`.
+ */
+function wallsOf(sector: Sector): Box[] {
+  const loop = sector.loops[0] ?? []
+  const inFileOrder = loop[0]?.reversed === true ? [...loop].reverse() : loop
   const boxes: Box[] = []
-  for (let i = 0; i < 4; i++) {
-    const [x0, z0, wall] = sector.corners[i] as AfSectorEntry2['corners'][number]
-    const [x1, z1] = sector.corners[(i + 1) % 4] as readonly [number, number]
-    const length = Math.abs(x1 - x0) + Math.abs(z1 - z0)
-    const ux = Math.sign(x1 - x0)
-    const uz = Math.sign(z1 - z0)
+  for (const edge of inFileOrder) {
+    const [start, end] = edge.reversed ? [edge.b, edge.a] : [edge.a, edge.b]
+    const length = Math.abs(end.x - start.x) + Math.abs(end.z - start.z)
+    const ux = Math.sign(end.x - start.x)
+    const uz = Math.sign(end.z - start.z)
+    const { door } = edge.wall
+    const { next } = edge
     // The spans of the edge left standing, in metres from its start, the ends closing the corners.
     const spans: [number, number][] =
-      wall?.door !== undefined
+      door !== undefined
         ? [
-            [-HALF, wall.door.at - wall.door.width / 2],
-            [wall.door.at + wall.door.width / 2, length + HALF],
+            [-HALF, door.at - door.width / 2],
+            [door.at + door.width / 2, length + HALF],
           ]
-        : wall?.next !== undefined
+        : next !== undefined
           ? []
           : [[-HALF, length + HALF]]
     for (const [from, to] of spans) {
       if (to <= from) continue
-      const [ax, az] = [x0 + ux * from, z0 + uz * from]
-      const [bx, bz] = [x0 + ux * to, z0 + uz * to]
+      const [ax, az] = [start.x + ux * from, start.z + uz * from]
+      const [bx, bz] = [start.x + ux * to, start.z + uz * to]
       boxes.push(
         uz === 0
-          ? { min: [Math.min(ax, bx), z0 - HALF], max: [Math.max(ax, bx), z0 + HALF] }
-          : { min: [x0 - HALF, Math.min(az, bz)], max: [x0 + HALF, Math.max(az, bz)] },
+          ? { min: [Math.min(ax, bx), start.z - HALF], max: [Math.max(ax, bx), start.z + HALF] }
+          : { min: [start.x - HALF, Math.min(az, bz)], max: [start.x + HALF, Math.max(az, bz)] },
       )
     }
   }
@@ -97,7 +106,7 @@ export function areaFromSector(json: unknown, options: SectorAreaOptions): AreaS
   const fail = (path: string, reason: string): never => {
     throw new AreaLoadError(options.file, path, reason)
   }
-  const { level: file, problems } = readLevel(json)
+  const { level: file, problems } = readSectorMap(json)
   const problem = problems[0]
   if (problem !== undefined) return fail(pathText(problem.path), problem.message)
   // A view is a name in the file's `views`; the sim reads them as a list.
@@ -107,14 +116,16 @@ export function areaFromSector(json: unknown, options: SectorAreaOptions): AreaS
   const rooms: AreaSource['rooms'] = []
   const pits: Box[] = []
   const walls = new Map<string, Box>()
-  for (const [index, sector] of file.sectors.entries()) {
+  // The sectors, edges and pits are the resolver's; the views and entities are the file's own.
+  const resolved = resolveLevel(file)
+  for (const [index, sector] of resolved.sectors.entries()) {
     const path = at('sectors', index)
-    if (sector.holes !== undefined && sector.holes.length > 0)
+    if (sector.points.length > 1)
       fail(`${path}.holes`, `sector "${sector.id}" has a hole; 1.0 reads axis-aligned rectangles only`)
     const box =
       rectangle(sector) ??
       fail(path, `sector "${sector.id}" is not an axis-aligned rectangle (1.0 reads those only)`)
-    if (sector.pit === true) pits.push(box)
+    if (sector.pit) pits.push(box)
     else {
       if (sector.view === undefined) fail(`${path}.view`, `sector "${sector.id}" has no camera view`)
       else if (!viewIds.has(sector.view))

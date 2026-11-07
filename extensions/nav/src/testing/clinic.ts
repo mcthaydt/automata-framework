@@ -16,7 +16,7 @@ import type { Blocked } from '../shared/sim/route'
 import boxesToml from './fixtures/clinic.boxes.toml?raw'
 import graphToml from './fixtures/clinic.nav-graph.toml?raw'
 
-export const clinicMap = (): SectorMap => readSectorMap(JSON.parse(clinicLevel)).map
+export const clinicMap = (): SectorMap => readSectorMap(JSON.parse(clinicLevel)).level
 export const clinicGraph = (): NavGraph => parse(graphToml) as unknown as NavGraph
 
 interface Box {

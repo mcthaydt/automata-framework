@@ -39,7 +39,7 @@ describe('the converted scenes', () => {
 })
 
 describe('the clinic’s cutscenes against the clinic map', () => {
-  const map = resolveLevel(readSectorMap(JSON.parse(clinicLevel)).map)
+  const map = resolveLevel(readSectorMap(JSON.parse(clinicLevel)).level)
   it('lint to the two renderer-dependent camera findings, and nothing else', () => {
     const found = lintCutscenes(scriptsOf('clinic'), {
       map,

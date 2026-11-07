@@ -91,6 +91,30 @@ describe('areaFromSector (GAME-3D.1i)', () => {
     ])
   })
 
+  it('finds a door from the wall’s start as written, in a room whose corners run clockwise', () => {
+    // The opening is z 1.75 to 2.75 on x = 4. Room `a` writes its east wall from (0,0) up to (4,3), the door 2.25 along;
+    // the same room written clockwise starts that wall at (4,3), so the same opening is 0.75 along. Room `b` writes
+    // the shared wall from (4,3) and keeps its door 0.75 along.
+    const east = (at: number) => ({ next: 'b', door: { at, width: 1, height: 2.2 } })
+    const west = { next: 'a', door: { at: 0.75, width: 1, height: 2.2 } }
+    const b = rect('b', [4, 0, 8, 3], [undefined, undefined, undefined, west])
+    const counterClockwise = rect('a', [0, 0, 4, 3], [undefined, east(2.25)])
+    const clockwise = {
+      ...rect('a', [0, 0, 4, 3]),
+      corners: [[0, 0], [0, 3], [4, 3], [4, 0, east(0.75)].filter(Boolean)].map((corner) => corner),
+    }
+    // The wall from (4,3) to (4,0) is the third edge: its corner is (4,3).
+    clockwise.corners = [
+      [0, 0],
+      [0, 3],
+      [4, 3, east(0.75)],
+      [4, 0],
+    ]
+    const key = (box: { min: number[]; max: number[] }) => JSON.stringify(box)
+    const sorted = (area: ReturnType<typeof convert>) => area.walls.map(key).sort()
+    expect(sorted(convert(file([clockwise, b])))).toEqual(sorted(convert(file([counterClockwise, b]))))
+  })
+
   it('writes a wall shared by two rooms once', () => {
     const door = { next: 'b', door: { at: 1.5, width: 2, height: 2.2 } }
     const both = convert(

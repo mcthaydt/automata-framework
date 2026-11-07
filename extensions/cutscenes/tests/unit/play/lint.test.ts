@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest'
 import type { CutsceneScript } from '#src/entries/sim.ts'
 import { type LintWorld, lintCutscene, lintCutscenes, readingTime } from '#src/features/play/lint.ts'
 
-const map = resolveLevel(readSectorMap(JSON.parse(clinicLevel)).map)
+const map = resolveLevel(readSectorMap(JSON.parse(clinicLevel)).level)
 const world = (over: Partial<LintWorld> = {}): LintWorld => ({
   map,
   text: { 'toy.a': 'The clock has stopped.', 'toy.b': 'Someone is at the door.' },

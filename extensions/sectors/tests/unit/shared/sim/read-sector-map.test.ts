@@ -22,7 +22,7 @@ describe('readSectorMap', () => {
   it('reads the clinic with no problem and resolves it', () => {
     const read = readSectorMap(JSON.parse(JSON.stringify(clinicMap())))
     expect(read.problems).toEqual([])
-    expect(resolveLevel(read.map).sectors).toHaveLength(7)
+    expect(resolveLevel(read.level).sectors).toHaveLength(7)
   })
 
   it('names a sloped floor, by room, instead of reading it flat', () => {
@@ -45,6 +45,6 @@ describe('readSectorMap', () => {
   it('reports a file that is not a level, with an empty map to go on with', () => {
     const read = readSectorMap({ format: 'tiled/1' })
     expect(read.problems).toMatchObject([{ code: 'unknown-format' }])
-    expect(read.map.sectors).toEqual([])
+    expect(read.level.sectors).toEqual([])
   })
 })

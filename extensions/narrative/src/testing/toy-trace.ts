@@ -85,7 +85,7 @@ export function toyTraceGame(over: Partial<TraceGame> = {}): TraceGame {
         systems: [
           defineSystem('toy.load', 'input', (ctx) => {
             for (const { payload } of ctx.commands.of(Load)) {
-              loadSectorMap(ctx, readSectorMap(JSON.parse(clinicLevel)).map)
+              loadSectorMap(ctx, readSectorMap(JSON.parse(clinicLevel)).level)
               loadPuzzle(ctx, puzzle.def, payload.entry)
               narrative.load(ctx, { graphs, storylets: TOY_STORYLETS })
             }

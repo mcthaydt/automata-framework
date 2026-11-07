@@ -43,6 +43,11 @@ export interface Edge {
   readonly trim: Trim
   /** One of the three walls round a pilaster's masonry. */
   readonly notch: boolean
+  /**
+   * The loop was wound the other way to put the room on the left, so this edge runs against the order the file wrote
+   * it. A wall's `door.at` and `window.at` are measured from the file's start of the wall, which is then `b`.
+   */
+  readonly reversed: boolean
 }
 
 export interface Sector
@@ -123,13 +128,20 @@ function reverse(corners: readonly Corner[]): Corner[] {
 }
 
 interface Notched {
+  /** Whether the file's loop was wound the other way. */
+  readonly reversed: boolean
   readonly loop: Corner[]
   /** Whether the wall from each corner is one of the walls round a pilaster's masonry. */
   readonly notched: boolean[]
 }
 
 /** Expands pilasters into notches in the loop, so trims wrap round them, and adds their masonry to `masses`. */
-function notchPilasters(corners: readonly Corner[], top: number, masses: MassDef[]): Notched {
+function notchPilasters(
+  corners: readonly Corner[],
+  top: number,
+  masses: MassDef[],
+  reversed: boolean,
+): Notched {
   const out: Corner[] = []
   const notched: boolean[] = []
   const keep = (x: number, z: number, w: AfWall2 | undefined): void => {
@@ -173,7 +185,7 @@ function notchPilasters(corners: readonly Corner[], top: number, masses: MassDef
     } else keep(x, z, plain)
     if (pilaster.end) notch(length - pilaster.end[0], pilaster.end[0], pilaster.end[1])
   })
-  return { loop: out, notched }
+  return { loop: out, notched, reversed }
 }
 
 const withTrim = (base: Trim, over: PartialTrim | undefined): Trim => ({ ...base, ...over }) as Trim
@@ -185,7 +197,7 @@ const trimHeights = (trim: AfWall2['trim']): PartialTrim | undefined =>
 function loopEdges(
   sector: number,
   li: number,
-  { loop, notched }: Notched,
+  { loop, notched, reversed }: Notched,
   own: Sector,
   byId: Map<string, number>,
   id: string,
@@ -219,6 +231,7 @@ function loopEdges(
       cut: wall.cut ?? `${id}:${li}:${index}`,
       trim: withTrim(own.trim, trimHeights(wall.trim)),
       notch: notched[index] === true,
+      reversed,
     }
     u += length
     return edge
@@ -230,9 +243,13 @@ export function resolveLevel(level: SectorMap): ResolvedMap {
   const masses: MassDef[] = [...(level.masses ?? [])]
   const raw: Notched[][] = []
   const sectors: Writable<Sector>[] = level.sectors.map((def) => {
-    const outer = area(def.corners) < 0 ? reverse(def.corners) : def.corners
-    const holes = (def.holes ?? []).map((h) => (area(h) > 0 ? reverse(h) : h))
-    const loops = [outer, ...holes].map((loop) => notchPilasters(loop, heightOf(def.ceiling), masses))
+    const top = heightOf(def.ceiling)
+    // Outer loops wind counter-clockwise and holes clockwise; a loop written the other way is reversed.
+    const wound = (loop: readonly Corner[], clockwise: boolean): Notched => {
+      const reversed = clockwise ? area(loop) > 0 : area(loop) < 0
+      return notchPilasters(reversed ? reverse(loop) : loop, top, masses, reversed)
+    }
+    const loops = [wound(def.corners, false), ...(def.holes ?? []).map((h) => wound(h, true))]
     raw.push(loops)
     const { corners: _corners, holes: _holes, trim, floor, ceiling, pit, zone, ...rest } = def
     return {

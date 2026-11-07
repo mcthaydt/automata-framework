@@ -249,4 +249,17 @@ describe('resolveLevel', () => {
     expect(map.sectors.every((sector) => !sector.pit)).toBe(true)
     expect(map.floorAt({ x: 0, z: 1 })).toBe(0)
   })
+
+  it('marks the edges of a loop written the other way as reversed, so a door can be found from the file’s end', () => {
+    const ccw = [
+      [0, 0],
+      [4, 0],
+      [4, 3],
+      [0, 3],
+    ]
+    const flat = resolveLevel(room(ccw) as never)
+    expect(flat.edges.map((edge) => edge.reversed)).toEqual([false, false, false, false])
+    const turned = resolveLevel(room([...ccw].reverse()) as never)
+    expect(turned.edges.map((edge) => edge.reversed)).toEqual([true, true, true, true])
+  })
 })

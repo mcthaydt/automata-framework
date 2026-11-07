@@ -850,6 +850,9 @@ importers:
       '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
+      '@automata/sectors':
+        specifier: workspace:*
+        version: link:../../extensions/sectors
       '@automata/sim':
         specifier: workspace:*
         version: link:../../packages/sim
