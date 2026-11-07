@@ -64,6 +64,8 @@ describe('hair finishes (H4)', () => {
   it('the base finishes are there, and a taken name is refused', () => {
     expect(finishMatte('coil')).toBe(true)
     expect(finishMatte('straight')).toBe(false)
+    expect(finishMatte('smooth')).toBe(false)
+    expect(finishMatte('curl')).toBe(true)
     expect(() => registerFinish('coil', { matte: false })).toThrow(
       'A hair finish called "coil" is already registered',
     )

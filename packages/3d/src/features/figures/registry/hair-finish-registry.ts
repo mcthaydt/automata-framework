@@ -20,6 +20,9 @@ const BASE: Readonly<Record<string, HairFinish>> = {
   loc: { matte: true },
   sleek: { matte: false },
   straight: { matte: false },
+  // Straight hair that gleams (a low pony, a fall), and curls matte on each clump's crest: the source's newer two.
+  smooth: { matte: false },
+  curl: { matte: true },
 }
 
 const FINISHES = new Map<string, HairFinish>(Object.entries(BASE))

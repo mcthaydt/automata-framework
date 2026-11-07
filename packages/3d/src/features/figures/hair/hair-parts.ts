@@ -29,6 +29,7 @@ import type { HairStyle, Piece } from '../content/hair.schema.ts'
 import type { Made } from '../figure/materials.ts'
 import { FACE_SEAM, headAt, headForm, headNormal } from '../outfit/garments/head.ts'
 import { hairPieceOf } from '../registry/hair-piece-registry.ts'
+import { loose } from './loose.ts'
 import { shell } from './shell.ts'
 import { alignY, along, CROWN, HAIR_SEAM, onHead, type Skull, skull, toHead, unitAt } from './skull.ts'
 import { grid, sweep } from './sweep.ts'
@@ -201,7 +202,13 @@ function buildPiece(b: HairBuild, piece: Piece): void {
       b.rigid(mesh, o.tone ?? 'hair', o.apart === false ? HAIR_SEAM : b.nextSeam(), lit, o.matte)
     }
   } else if ('tail' in piece) tail(b, piece.tail)
-  else if ('fall' in piece && !(piece.fall.bare && i.capped) && !(piece.fall.capped && !i.capped)) {
+  else if ('fall' in piece && 'from' in piece.fall) loose(b, piece.fall)
+  else if (
+    'fall' in piece &&
+    'at' in piece.fall &&
+    !(piece.fall.bare && i.capped) &&
+    !(piece.fall.capped && !i.capped)
+  ) {
     const o = piece.fall
     const locks = o.at.flatMap((knot) => {
       const [a = 0, y0 = 0, y1 = 0, own, to] = knot
