@@ -78,3 +78,15 @@ describe('every unit test is in the gate', () => {
     expect(scripts['ci:local']).toContain('--filter @af-examples/examples-3d')
   })
 })
+
+// Slow browser runs on a shared runner time out in setup when three packages start at once, so every browser script runs
+// two at a time and gives a hook 90 s (the fix first made in a separate pull request, now carried here).
+describe('the browser scripts', () => {
+  it.each(Object.entries(scripts).filter(([name]) => name.startsWith('test:browser')))(
+    '%s runs two at a time with a 90 s hook timeout',
+    (_name, line) => {
+      expect(line).toContain('--concurrency=2')
+      expect(line).toContain('--hookTimeout=90000')
+    },
+  )
+})

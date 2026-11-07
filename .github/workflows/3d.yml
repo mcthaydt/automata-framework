@@ -1,8 +1,8 @@
 name: 3d
 
-# The 3D suites: the 3D editor and the suite shell, the 3D renderer, figures, the sector format, the base 3D game
-# and the 3D examples. The 2D editors run in the 2D gate (ci.yml). A core or 2D pull request is not blocked by them in ci.yml;
-# this workflow runs them on any pull request that touches their files or a core package (so a codemod's changes to
+# The 3D browser suites and journeys: the 3D editor and the suite shell, the 3D renderer, figures, the sector format, the
+# base 3D game and the 3D examples. Their unit tests run in the core job of ci.yml, and so do the 2D
+# editors' suites. A core or 2D pull request is not blocked by them in ci.yml; this workflow runs them on any pull request that touches their files or a core package (so a codemod's changes to
 # their imports are checked), on every push to main, nightly, and by hand.
 #
 # It is not a required check in branch protection: a required check that a path filter skips never reports, and the
@@ -19,6 +19,7 @@ on:
       # Their own files.
       - "games/base-3d/**"
       - "examples/3d/**"
+      - "vendor/pixi-3d/**"
       - "agents/**"
       # Every package: the 3D packages, and the core ones they build on.
       - "packages/**"
@@ -36,35 +37,8 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  unit-and-journeys:
-    name: 3D - unit and iPad journeys
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft != true
-    runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
-          dest: ${{ runner.temp }}/setup-pnpm
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version-file: .nvmrc
-          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm test:unit:3d
-      # The 3D editor's and the suite's iPad journeys (WebKit with touch and a 2x screen; the 2D editors' run in
-      # ci.yml). They take seconds, so they run in full. A self-hosted runner has WebKit's system libraries installed once.
-      - run: pnpm exec playwright install --with-deps webkit
-        if: runner.environment == 'github-hosted'
-      - run: pnpm exec playwright install webkit
-        if: runner.environment == 'self-hosted'
-      - run: pnpm test:journeys:3d
-
   e2e-3d:
-    name: 3D journeys (base-3d and the 3D examples)
+    name: 3D - journeys
     if: github.event_name != 'pull_request' || github.event.pull_request.draft != true
     runs-on: ${{ vars.AF_E2E_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
     timeout-minutes: 20
@@ -84,6 +58,9 @@ jobs:
         if: runner.environment == 'github-hosted'
       - run: pnpm exec playwright install chromium webkit
         if: runner.environment == 'self-hosted'
+      # The 3D editor's and the suite's iPad journeys (WebKit with touch and a 2x screen; the 2D editors' run in
+      # ci.yml). They take seconds, so they run in full. The unit tests run in ci.yml's core job.
+      - run: pnpm test:journeys:3d
       - run: pnpm --filter @af-games/base-3d test:e2e
       - run: pnpm --filter @af-examples/examples-3d test:e2e
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
