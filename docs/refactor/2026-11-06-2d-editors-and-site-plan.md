@@ -1421,10 +1421,10 @@ before it. The footer's contact address stays as it is until the Owner decides (
 - Modify: `site/package.json` (`build` ends with `node scripts/scan-closed-beta.ts build`)
 - Delete: remaining claim-to-data tests that pin history (WT1); list them in the execution log
 
-- [ ] **Step 1: Failing tests:** every internal link and anchor in the built site resolves; no link to
+- [x] **Step 1: Failing tests:** every internal link and anchor in the built site resolves; no link to
   `github.com/mcthaydt/automata-framework` while `repositoryPublic` is false; the scan passes on the build and fails on
   a fixture with the beta's marker.
-- [ ] **Step 2:** Fix every broken link the test finds (W6). Commit, mark ready.
+- [x] **Step 2:** Fix every broken link the test finds (W6). Commit, mark ready.
   `test(site): links resolve, none reach the private repository, no closed beta`
 
 ---
@@ -2770,3 +2770,16 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   journey holds the fingers 400 ms of real time to prove it: on the real clock it fails ("undone: expected 1 to be 2"),
   on the test clock it passes. Editor journeys (Chromium) 28, unit 3,385, svelte-check 0.
   *Handoff (session 23):* 61 of 68 on PR #436. Next 19.2, 20.1, 21.1 (resume note in `progress.md`).
+  *19.2 (session 24):* the link rules live where the site already walks every built link: `checkSite`
+  (`pnpm check:site`) has reported a missing destination, a missing anchor on the page and a missing anchor on the
+  linked page since the quality bar, so no `links.test.ts` e2e file repeats it (deviation: the check reads the static
+  build, which is what the e2e server serves, and its fixtures sit in `site-checks.test.ts`; two new fixture cases pin
+  the anchor rules). New: no page links into the framework's repository while `REPOSITORY_PUBLIC` is false. The
+  switch sits beside `SITE_ORIGIN` in `site/src/shared/site.js` (the one origin constant the site already has; no
+  separate `config.ts`), and the check takes `repositoryPublic` so the fixture proves both sides. The closed-beta scan
+  is `site/scripts/scan-closed-beta.ts` (the tools' `findPixi3d` from `-tools/internal`), the last step of the site's
+  `build`; its unit test passes a clean build and fails on the core and extras markers. The real build: 35 pages, no
+  broken link, no private-repository link (none existed), no Pixi 3D. WT1, deleted: `tests/unit/shared/scaffold.test.ts`
+  (pinned the package's name and two dependencies), `tests/unit/shared/core-only.test.ts` (pinned that physics left
+  for Plus, which is history), and `audit-regressions.test.ts`'s "Restored claims" block (pinned DX.10a's restored
+  sentences word for word; phase 20 owns the copy). Site unit 333, `check:site` passes.

@@ -4,7 +4,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { JSDOM } from 'jsdom'
-import { SITE_ORIGIN } from '../src/shared/site.js'
+import { REPOSITORY_PUBLIC, REPOSITORY_URL, SITE_ORIGIN } from '../src/shared/site.js'
 import {
   checkIconFiles,
   checkIconLinks,
@@ -24,7 +24,10 @@ import { builtPages } from './site-checks/pages.ts'
  * Checks a static build and returns one message per failure (an empty list means it passed).
  * Each rule is a regression gate from the quality-bar spec; tests/unit/scripts/site-checks.test.ts holds a failing fixture for each.
  */
-export function checkSite(root: string, { now = new Date() }: { now?: Date } = {}): string[] {
+export function checkSite(
+  root: string,
+  { now = new Date(), repositoryPublic = REPOSITORY_PUBLIC }: { now?: Date; repositoryPublic?: boolean } = {},
+): string[] {
   const pages = builtPages(root)
   const failures: string[] = []
   // Store plain ID sets: a long reference page can be linked dozens of times.
@@ -92,6 +95,8 @@ export function checkSite(root: string, { now = new Date() }: { now?: Date } = {
       failures.push(file + ': wrong social image')
     for (const anchor of doc.querySelectorAll('a[href]')) {
       const href = anchor.getAttribute('href')!
+      if (!repositoryPublic && href.startsWith(REPOSITORY_URL))
+        failures.push(`${file}: links to the private repository (${href})`)
       if (href.startsWith('#')) {
         if (!doc.getElementById(href.slice(1))) failures.push(file + ': missing anchor ' + href)
         continue

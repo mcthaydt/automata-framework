@@ -131,6 +131,27 @@ describe('checkSite', () => {
     expect(checkSite(site.root, { now: NOW })).toContain('docs.html: missing destination /nowhere')
   })
 
+  it('reports an anchor that no element on the page or the linked page carries', () => {
+    const site = goodSite()
+    site.write(
+      'docs.html',
+      page('/docs', { body: '<a href="#nope">Here</a><a href="/privacy#gone">There</a>' }),
+    )
+    const failures = checkSite(site.root, { now: NOW })
+    expect(failures).toContain('docs.html: missing anchor #nope')
+    expect(failures).toContain('docs.html: missing destination anchor /privacy#gone')
+  })
+
+  it('fails on a link into the private repository while it is private, and passes it once it opens', () => {
+    const site = goodSite()
+    const link = '<a href="https://github.com/mcthaydt/automata-framework/blob/main/README.md">Source</a>'
+    site.write('docs.html', page('/docs', { body: link }))
+    expect(checkSite(site.root, { now: NOW })).toContain(
+      'docs.html: links to the private repository (https://github.com/mcthaydt/automata-framework/blob/main/README.md)',
+    )
+    expect(checkSite(site.root, { now: NOW, repositoryPublic: true })).toEqual([])
+  })
+
   it('fails when a page is missing from the sitemap', () => {
     const site = goodSite()
     site.write('sitemap.xml', sitemap(['/', '/privacy', '/terms']))
