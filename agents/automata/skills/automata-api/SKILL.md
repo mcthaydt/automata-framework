@@ -18,8 +18,10 @@ files at the version its first line states, so it cannot describe an API that is
   package's files are not part of the API.
 - **Not listed means it does not exist** in this version. Do not guess a name from another version or another
   framework; find the listed export that does the job, or write the code in the game.
-- **Entry points left out**: two are not in it, `@automata/framework/target`, which the build picks for the target and a
-  game never imports, and `@automata/framework/theme.css`, a stylesheet.
+- **Entry points left out**: three are not in it, because they have no exports to list.
+  `@automata/framework/no-eval` is a side-effect import: every game imports it first in its entry, for its effect alone
+  (it keeps the game from using `eval`). `@automata/framework/target` is picked by the build for the target, and a game
+  never imports it. `@automata/framework/theme.css` is a stylesheet.
 - **No doc comment** (`_No doc comment._`) means the signature is all there is; read the types.
 - **Version**: compare the reference's version with the game's `@automata/*` versions in `package.json`.
   If they differ, the reference may be wrong for this game: say so instead of relying on it.

@@ -158,16 +158,28 @@ describe('automata-api', () => {
   })
 
   it('names the entry points the reference leaves out', () => {
-    // The reference lists the typed entry points; an `exports` key without a `types` target (a stylesheet, the
-    // build-picked target) is not in it, so the skill says so instead of letting "not listed" read as "not there".
-    const untyped = publishablePackages(REPO).flatMap(({ manifest }) =>
-      Object.entries(manifest.publishConfig?.exports ?? manifest.exports ?? {})
-        .filter(([, entry]) => typeof entry !== 'object' || entry === null || !('types' in entry))
-        .map(([key]) => `${manifest.name}${key.slice(1)}`),
+    // An entry point is left out when the reference has no section for it: a stylesheet, the build-picked target,
+    // and a side-effect import such as `no-eval` (its declaration exports nothing, so `api-index` writes no section).
+    // The list is read from the published `exports` maps and the reference itself, so a new one cannot slip by.
+    const reference = read('agents/automata/skills/automata-api/reference/api.md')
+    const leftOut = publishablePackages(REPO).flatMap(({ manifest }) =>
+      Object.keys(manifest.publishConfig?.exports ?? manifest.exports ?? {})
+        .map((key) => `${manifest.name}${key.slice(1)}`)
+        .filter((entry) => !reference.includes(`from '${entry}'`)),
     )
-    expect(untyped).toContain('@automata/framework/target')
-    expect(untyped).toContain('@automata/framework/theme.css')
-    for (const entry of untyped) expect(skill).toContain(`\`${entry}\``)
+    expect(leftOut).toEqual(
+      expect.arrayContaining([
+        '@automata/framework/target',
+        '@automata/framework/theme.css',
+        '@automata/framework/no-eval',
+      ]),
+    )
+    for (const entry of leftOut) expect(skill).toContain(`\`${entry}\``)
+  })
+
+  it('does not call a left-out entry point something a game never imports', () => {
+    // `no-eval` is left out of the reference, but every game imports it first (the verify skill says so).
+    expect(skill).toMatch(/`@automata\/framework\/no-eval`[^.]*import/)
   })
 })
 
