@@ -10,6 +10,7 @@ import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
 
 // Ship, the Review desk and Import with the production CSS in real browsers at the sizes of spec §10: each dialog's
@@ -98,6 +99,9 @@ async function open(size: EditorSize) {
     document,
     ports: memory.ports,
     suite: createSuite({ editors: [fixtureEditor as SuiteEditor<unknown>] }),
+    // Time stands still for the toasts, so the reload toast is still there however long a loaded runner takes to lay
+    // the page out (with the page's clock it went after 5 s, before the test could measure it).
+    clock: createTestClock(),
   })
   await expect.poll(() => document.querySelector('[data-testid="suite-home"]')).not.toBeNull()
   await settleLayout()

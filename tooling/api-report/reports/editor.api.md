@@ -4442,6 +4442,7 @@ interface SuiteEnv {
     readonly suite: Suite;
     readonly sample?: boolean;
     readonly game?: string | undefined;
+    readonly clock?: GestureClock | undefined;
 }
 ```
 
