@@ -1211,10 +1211,10 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
   `dev-target` example), `docs/guides/publish-to-*.md` (show the template's workflow)
 - Test: `packages/tools/tests/unit/shared/create-game/template-ci.test.ts`
 
-- [ ] **Step 1: Failing test:** a new game has `.github/workflows/release.yml` that runs on a tag, on `ubuntu-latest`,
+- [x] **Step 1: Failing test:** a new game has `.github/workflows/release.yml` that runs on a tag, on `ubuntu-latest`,
   with `pnpm check`, `pnpm build:web` and an itch.io publish guarded by `BUTLER_API_KEY`; it parses as YAML and passes
   `actionlint` when Docker is present.
-- [ ] **Step 2:** Implement; the stranger's journey checks the file exists. Mark ready.
+- [x] **Step 2:** Implement; the stranger's journey checks the file exists. Mark ready.
   `feat(create-game): a new game has its own release workflow`
 
 ---
@@ -2696,3 +2696,16 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   lists the room twice as "Room 1" (the project and its exported level). Gates: the journeys 11 pass, 1 skip
   (Chromium, iPad and phone; WebKit not installed, the Owner's); editor unit 3385, editor-3d unit and dom 2932,
   content unit 415; `pnpm check` passes.
+- **Phase 15 (session 23): CI for games.** *15.1:* `create-game` writes `.github/workflows/release.yml` from the real
+  file `packages/tools/src/shared/create-game/template-ci/release.yml` (copied to `dist/template-ci/` like the starter
+  level). Blocks for one target are fenced by `# web:begin`/`# web:end` and `# itch:begin`/`# itch:end` lines, kept
+  only when the game builds for that target; the fences never reach the game. On a `v*` tag, on `ubuntu-latest`:
+  install, `pnpm check`, `pnpm build:web` (kept as the `web` download); the itch job checks for `BUTLER_API_KEY` in one
+  step and, without it, says "No BUTLER_API_KEY secret yet, so nothing was published to itch.io." and passes; with it,
+  builds for itch, installs the pinned and checksum-checked butler, and runs `ship publish --target itch --tag`.
+  `game-ci.yml` shrinks to Emberwick's (and base-3d's) build and prepare: no GitHub Packages token, no outside-repo
+  check or determinism steps (ci.yml's `checks` runs those), `runner` required (no `af-linux` default for others).
+  `game-release.yml` is deleted: nothing in the repository called it, and a new game has its own workflow now; the
+  publish guides show the template's workflow, and the desktop guide says where each bundle is built. Gates:
+  `template-ci.test.ts` 4 pass (failed first: no such file), actionlint skipped (no Docker daemon here; the YAML
+  parses); the stranger's journey (Chromium) passes and checks the file; `pnpm check` passes.

@@ -27,6 +27,7 @@ Every player-facing string of core and Emberwick, checked against the four quest
 | `automata create-game`, folder taken | `Target directory "X" already exists and is not empty.` | `X already has files in it. Pick a new folder.` | 2 |
 | `automata create-game`, a write failed | `Failed to write template files: …` | `Couldn't write the game's files: …` | 4 ("template") |
 | `automata create-game`, done | `Created game "T" (id) at /path` | `Created "T" in my-game.` and `Next: cd my-game && pnpm install && pnpm dev` | 2 (no next step) |
+| A new game's release workflow, no itch.io key (task 15.1) | (new) | `No BUTLER_API_KEY secret yet, so nothing was published to itch.io.` | (new; says what happened and names the one thing to add) |
 | `ship prepare`, version and tag differ | `the game is at version 1.2.3 but the tag is v1.2.4` | the same, then `: tag it v1.2.3, or change the version to match` | 2 |
 | `ship prepare`, entry page missing | `the entry page index.html is not in dist` | the same, then `: build the game first` | 2 |
 | `ship prepare` and `publish --private`, `@pixi/3d` | `… (D-1: render-pixi3d stays private until Pixi 3D's public release) …`, `… (D-1)` | `… a closed beta that may not be shipped publicly yet …`, no decision number | 4 (an internal decision number) |

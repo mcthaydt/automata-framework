@@ -103,6 +103,11 @@ test('a stranger makes a game, checks it, plays it and makes the itch.io zip', a
       expect(Object.keys(wanted), 'no dependency on Ruken for a web and itch.io game').not.toContain(
         '@ruken/sdk',
       )
+      // The published tools carry the release workflow (copied beside the bundle), so the game gets it too.
+      expect(
+        existsSync(join(gameDir, '.github/workflows/release.yml')),
+        'the game has its release workflow',
+      ).toBe(true)
     })
 
     await step('install it', () => {
