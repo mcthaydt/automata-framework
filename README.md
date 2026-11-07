@@ -6,7 +6,7 @@ Firefox, and PixiJS draws it.
 
 ## Make a game
 
-`pnpm dlx @mcthaydt/automata-tools create-game my-game` makes a game that runs, passes its checks and opens in the
+`npx @mcthaydt/automata-tools create-game my-game` makes a game that runs, passes its checks and opens in the
 level editor. The steps, the guides and the API are on [automataframework.com](https://automataframework.com).
 
 ## Work on the framework
