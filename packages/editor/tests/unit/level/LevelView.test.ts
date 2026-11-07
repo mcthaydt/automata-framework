@@ -77,8 +77,9 @@ describe('Level view: layers', () => {
       'Ground',
       'Collision',
     ])
+    // A name that already says what the layer holds ("Characters") is not said twice.
     expect(rows.map((row) => row.querySelector('.kind')?.textContent)).toEqual([
-      'Characters and items',
+      undefined,
       'Tiles',
       'Tiles that place themselves',
       'Walls and floors',

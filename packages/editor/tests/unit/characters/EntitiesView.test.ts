@@ -159,18 +159,18 @@ describe('Entities view: the field editor', () => {
     await choose('Coin')
     expect(within(inspector()).getByRole('tab', { name: 'Settings' })).toBeInTheDocument()
     await userEvent.click(within(inspector()).getByRole('tab', { name: 'Settings' }))
-    await userEvent.click(within(inspector()).getByRole('button', { name: 'Add field' }))
+    await userEvent.click(within(inspector()).getByRole('button', { name: 'Add setting' }))
     expect(within(inspector()).getByRole('tab', { name: 'Settings (1)' })).toBeInTheDocument()
     expect(within(inspector()).getByRole('heading', { name: 'Settings of Coin' })).toBeInTheDocument()
   })
 
-  it('adds a field, and an int field shows its bounds and step', async () => {
+  it('adds a field, and a whole-number setting shows its bounds and step', async () => {
     const { def } = await mount()
     await choose('Coin')
     await userEvent.click(within(inspector()).getByRole('tab', { name: /Settings/ }))
-    await userEvent.click(within(inspector()).getByRole('button', { name: 'Add field' }))
+    await userEvent.click(within(inspector()).getByRole('button', { name: 'Add setting' }))
     expect(def('coin')?.fields).toHaveLength(1)
-    await userEvent.click(within(inspector()).getByRole('radio', { name: 'int' }))
+    await userEvent.click(within(inspector()).getByRole('radio', { name: 'Whole number' }))
     expect(def('coin')?.fields[0]?.type).toBe('int')
     expect(within(inspector()).getByRole('spinbutton', { name: 'Min' })).toBeInTheDocument()
     expect(within(inspector()).getByRole('spinbutton', { name: 'Max' })).toBeInTheDocument()
@@ -192,7 +192,7 @@ describe('Entities view: the field editor', () => {
     const { history, project } = await mount()
     await userEvent.click(within(panel()).getByRole('button', { name: /^Every level/ }))
     const before = history.revision
-    await userEvent.click(within(inspector()).getByRole('radio', { name: 'int' }))
+    await userEvent.click(within(inspector()).getByRole('radio', { name: 'Whole number' }))
     const dialog = screen.getByRole('dialog', { name: 'Change music?' })
     expect(within(dialog).getByText('level-1')).toBeInTheDocument()
     expect(history.revision).toBe(before)

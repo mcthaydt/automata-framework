@@ -119,3 +119,20 @@ export function rowOffsets(heights: readonly number[], order: readonly number[])
   }
   return offsets
 }
+
+/**
+ * Where each row is drawn, by original index, while the row at `from` is previewed at place `to`: the drop as
+ * `moveRow` would make it, turned into offsets by the rows' measured heights.
+ */
+export function previewOffsets(shapes: readonly RowShape[], from: number, to: number): number[] {
+  const order = moveRow(
+    shapes.map((_, index) => index),
+    (index) => shapes[index]?.locked === true,
+    from,
+    to,
+  )
+  return rowOffsets(
+    shapes.map((shape) => shape.height),
+    order,
+  )
+}

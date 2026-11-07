@@ -18,7 +18,7 @@ const { geometry, label, frame }: ViewProps = $props()
   {#snippet canvas()}
     <div class="pending" role="status">
       <h2>{label} is coming in a later update</h2>
-      <p>Your project is safe. Choose Level to keep editing.</p>
+      <p>Your game is safe. Choose Level to keep editing.</p>
     </div>
   {/snippet}
 </EditorShell>
