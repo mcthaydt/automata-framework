@@ -1,0 +1,10 @@
+# Looking out to the left: the chest a little round, the neck and head turned well round.
+
+about = "Looking out to the left: the head turned well round, the chest a little."
+
+[effectors]
+
+[fk]
+chest = [ 0, 10.743, 0 ]
+neck = [ -0.2152, 12.8883, 0.1725 ]
+head = [ -0.5038, 19.3259, 0.3593 ]

@@ -1,4 +1,4 @@
-// F-g: the fixture clips `reach`, `look` and `flinch`, three actions as data, end within 1e-3 figure units of
+// F-g: the fixture actions `reach`, `look` and `flinch` (compiled to clips), three actions as data, end within 1e-3 figure units of
 // their recorded end poses (tests/fixtures/goldens/actions.json, written by scripts/record-goldens.ts) at the
 // same state: Wick standing still at t 0, facing +z.
 
@@ -54,7 +54,7 @@ describe('F-g: the actions as clips', () => {
     })
     expect(worst).toBeLessThan(1e-3)
   })
-  it('compiles the three clips with no warnings', () => {
+  it('compiles the three actions to clips with no warnings', () => {
     const { library } = fixture
     for (const id of ['reach', 'look', 'flinch']) {
       const clip = library.clips[id]

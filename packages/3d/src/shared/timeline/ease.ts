@@ -1,8 +1,38 @@
-// Eases (M3 spec §4.4.4 `Ease`): how a segment between two keys runs. `in`, `out` and `inOut` are CSS's
-// ease-in, ease-out and ease-in-out; a tuple is a CSS cubic-bezier(x1, y1, x2, y2), whose x1 and x2 the
-// schema keeps in [0, 1] so the curve's x rises and has one solution; `step` holds the previous key.
+// Eases: how a segment between two keys runs, for every keyed thing (a figure's clip, a light, a door). `in`,
+// `out` and `inOut` are CSS's ease-in, ease-out and ease-in-out; a tuple is a CSS cubic-bezier(x1, y1, x2, y2),
+// whose x1 and x2 the schema keeps in [0, 1] so the curve's x rises and has one solution; `smooth` is the
+// smoothstep; `step` holds the previous key until the next. The environment source called `step` "hold", so a
+// file may still say it: `easeSchema` reads it as `step`.
 
-import type { Ease } from './clip.schema.ts'
+import { z } from 'zod'
+
+/** How a key is eased into: CSS's named curves, the smoothstep, a held step, or a CSS cubic-bezier. */
+export type Ease =
+  | 'step'
+  | 'linear'
+  | 'in'
+  | 'out'
+  | 'inOut'
+  | 'smooth'
+  | readonly [number, number, number, number]
+
+const unit = z.number().min(0).max(1)
+/** The `Ease` schema: a name (`hold` reads as `step`) or a cubic-bezier tuple with x1 and x2 in [0, 1]. */
+export const easeSchema: z.ZodType<Ease> = z.union([
+  z.enum(['step', 'linear', 'in', 'out', 'inOut', 'smooth']),
+  z.literal('hold').transform((): 'step' => 'step'),
+  z.tuple([unit, z.number(), unit, z.number()]),
+])
+
+/** An ease read from authored data; a RangeError names what it could not read. */
+export function parseEase(input: unknown): Ease {
+  const read = easeSchema.safeParse(input)
+  if (!read.success)
+    throw new RangeError(
+      `${JSON.stringify(input)} is not an ease (linear, step, in, out, inOut, smooth or a cubic-bezier of four numbers)`,
+    )
+  return read.data
+}
 
 type Curve = readonly [number, number, number, number]
 const NAMED: Readonly<Record<'in' | 'out' | 'inOut', Curve>> = {
@@ -46,5 +76,6 @@ export function easeAt(ease: Ease | undefined, u: number): number {
   if (u >= 1) return 1
   if (ease === undefined || ease === 'linear') return u
   if (ease === 'step') return 0
+  if (ease === 'smooth') return u * u * (3 - 2 * u)
   return cubic(typeof ease === 'string' ? NAMED[ease] : ease, u)
 }

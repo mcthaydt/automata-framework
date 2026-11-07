@@ -7,6 +7,7 @@ import { type ContentSchemaDef, defineContentSchema } from '@automata/content/sc
 import { clipSchema } from '../clips/clip.schema.ts'
 import { figureSchema } from '../figure/figure.schema.ts'
 import { poseSchema } from '../motion/pose.schema.ts'
+import { figureActionSchema } from './figure-action.schema.ts'
 import { gaitSchema } from './gait.schema.ts'
 import { hairStyleSchema } from './hair.schema.ts'
 import { headwearSchema } from './headwear.schema.ts'
@@ -80,6 +81,13 @@ export const figureClipContent: ContentSchemaDef<'figure-clip'> = defineContentS
   presentation,
 )
 
+export const figureActionContent: ContentSchemaDef<'figure-action'> = defineContentSchema(
+  'figure-action',
+  figureActionSchema,
+  { folder: 'figure-actions' },
+  presentation,
+)
+
 /** Every figures kind, for `figuresExtension` and for a game that registers them itself. */
 export const FIGURE_CONTENT: readonly ContentSchemaDef[] = [
   figureContent,
@@ -92,4 +100,5 @@ export const FIGURE_CONTENT: readonly ContentSchemaDef[] = [
   figureRigContent,
   figurePoseContent,
   figureClipContent,
+  figureActionContent,
 ]

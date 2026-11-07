@@ -2,6 +2,7 @@
 // stepped pose shows (its rate, snapping to markers), stretching a clip to the sim's action length, and
 // reading a marker.
 
+import { wrapTime } from '../../../shared/timeline/track.ts'
 import type { FigureClipDef } from './clip.schema.ts'
 
 /**
@@ -10,19 +11,7 @@ import type { FigureClipDef } from './clip.schema.ts'
  * the length. A negative `elapsed` is 0.
  */
 export function clipTime(clip: FigureClipDef, elapsed: number): number {
-  const { length } = clip
-  const t = Math.max(0, elapsed)
-  switch (clip.loop) {
-    case 'once':
-    case 'hold':
-      return Math.min(t, length)
-    case 'loop':
-      return t % length
-    case 'pingpong': {
-      const u = t % (2 * length)
-      return u <= length ? u : 2 * length - u
-    }
-  }
+  return wrapTime(clip.loop, clip.length, elapsed)
 }
 
 /** The play time (seconds since the clip started) of the latest pass over a marker at or before `to`, for a

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { easeAt } from '#src/features/figures/clips/ease.ts'
+import { easeAt } from '#src/shared/timeline/ease.ts'
 
 /** CSS's cubic-bezier at x, by plain bisection on the curve's x: a slow reference for the solver. */
 function reference(x1: number, y1: number, x2: number, y2: number, x: number): number {

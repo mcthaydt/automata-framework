@@ -1,0 +1,13 @@
+# A fixture action (spec 8.3, F-g), for tests and examples; no game's. The figure source's flinch as data: into it
+# over 0.18 s and held until the sim stops it.
+
+mask = [ "pelvis", "torso", "head", "armL", "armR", "legR" ]
+anticipation = 0.18
+action = 0
+recovery = 0.3
+hold = true
+
+[[keys]]
+t = 0.18
+pose = "flinch"
+ease = "inOut"

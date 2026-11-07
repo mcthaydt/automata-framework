@@ -77,6 +77,13 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `src/features/motion/motion.ts` | `packages/3d/src/features/figures/motion/base.ts` | rewritten: the natural stand (`relaxed`, the neck's slide, the chest's lift), `standElbow`, `standOut` and the side bend; the actions stay clips, and `seated` waits for the seats |
 | `src/features/motion/library/gaits.json` | `packages/3d/tests/fixtures/content/figure-gaits/strut.toml` | rewritten: `standOut` is the whole value and `standElbow` is new, so the fixture gaits (strut, loose, bounce, still, with games/base-3d's bounce) carry both |
 | `tests/features/body/fat.test.ts` | `packages/3d/tests/unit/figures/body/diversity.test.ts` | rewritten: the fat classes, rings, jaw, bust and seat, the new genes' defaults and the face asymmetry, on the base pair |
+| `src/features/lighting/lamps.ts` | `packages/3d/src/features/figures/lighting/lamps.ts` | rewritten: the lamp, its strength (flicker, light style, level) and the steps it lifts a point, as typed functions with `noise3` from `paint/raster.ts`; the lamp is `FigureLamp` |
+| `src/features/lighting/grade.ts` | | left out: the colour moves along the DUEL ramps belong to the look's sprite light (3D slice task 8.2) |
+| `src/features/lighting/light.ts` | | left out: `lightFigure` paints a CPU cell; the look's sprite light and its reference (task 8.2) replace it |
+| `src/features/lighting/library/times.json` | `packages/3d/src/shared/time-of-day/library/times.json` | rewritten: merged with the environment source's six times of day into one entry each (exposure, lift, ambient and tint are `figure` and `scene.grade`) |
+| `src/features/actors/actions.ts` | `packages/3d/src/features/figures/clips/figure-action.ts` | rewritten: the envelope (wind-up, action, recovery, hold) compiles to a clip the one player plays; the pose-spec keys and the repeat range wait for the other actions |
+| `src/features/actors/pose-spec.ts` | | left out: the pose-spec's arms, feet and face-turn are for the nineteen actions beyond reach, look and flinch, which are not ported yet |
+| `src/features/actors/library/actions.json` | `games/base-3d/src/content/figure-actions/look.toml` | rewritten: `look` only; reach and flinch come from the older extraction's motion, as `figure-action` files; the other eighteen are not ported yet |
 
 ## The environment source
 
@@ -90,6 +97,8 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 
 | Source file | AF file | How |
 | --- | --- | --- |
+| `src/features/world/timeline.ts` | `packages/3d/src/shared/timeline/sample.ts` | rewritten: the key is `{ t, value, ease? }` (`v` is `value`), no ease is linear (the source's was `inOut`), `hold` reads as `step`, and the ease and the sampling are AF's, shared with the figures' clips; `wobble`, `lerpAngle` and `lerpV` wait for the shots |
+| `src/features/paint/library/times.json` | `packages/3d/src/shared/time-of-day/library/times.json` | rewritten: merged with the figure source's six times of day (the light, haze and sky are `scene`) |
 
 ## Core: the doc comments that named their source (moved here 2026-11-07)
 

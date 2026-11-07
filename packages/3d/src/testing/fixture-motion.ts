@@ -3,7 +3,9 @@
 
 import type { Skeleton } from '../features/figures/body/rig.ts'
 import type { FigureClipDef } from '../features/figures/clips/clip.schema.ts'
+import { clipsWithActions } from '../features/figures/clips/figure-action.ts'
 import type { MotionLibrary } from '../features/figures/clips/figure-state.ts'
+import type { FigureAction } from '../features/figures/content/figure-action.schema.ts'
 import type { FigureDef } from '../features/figures/figure/figure.schema.ts'
 import { skeleton } from '../features/figures/figure/figure-skeleton.ts'
 import { compileFixture } from './compile-fixture.ts'
@@ -25,7 +27,7 @@ export async function fixtureMotion(): Promise<FixtureMotion> {
     library: {
       gaits: kind('figure-gait'),
       poses: kind('figure-pose'),
-      clips: kind<FigureClipDef>('figure-clip'),
+      clips: clipsWithActions(kind<FigureClipDef>('figure-clip'), kind<FigureAction>('figure-action')),
       items: kind('figure-item'),
       stands: kind('figure-stand'),
       rigs: kind('figure-rig'),

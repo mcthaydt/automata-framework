@@ -7,6 +7,7 @@ describe('figuresExtension', () => {
     const content = figuresExtension.content ?? []
     expect(content.map((kind) => kind.kind).sort()).toEqual([
       'figure',
+      'figure-action',
       'figure-clip',
       'figure-gait',
       'figure-hair',

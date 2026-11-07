@@ -373,7 +373,7 @@ declare module 'virtual:automata/content' {
     }
   }
 
-  export type FigurePoseId = 'free' | 'guard-high' | 'guard-low' | 'pickup-low' | 'point' | 'stand'
+  export type FigurePoseId = 'flinch' | 'free' | 'guard-high' | 'guard-low' | 'look-across' | 'look-out' | 'pickup-low' | 'point' | 'reach-out' | 'stand'
   export type FigurePose = {
     readonly about?: string
     readonly effectors: {
@@ -479,7 +479,7 @@ declare module 'virtual:automata/content' {
       readonly t: number
     })[]
     readonly keys: readonly ({
-      readonly ease?: 'step' | 'linear' | 'in' | 'out' | 'inOut' | readonly [number, number, number, number]
+      readonly ease?: 'step' | 'linear' | 'in' | 'out' | 'inOut' | 'smooth' | unknown /* figure-clip.keys.ease has no JSON form */ | readonly [number, number, number, number]
       readonly pose: unknown /* figure-clip.keys.pose has no JSON form */
       readonly t: number
     })[]
@@ -489,6 +489,22 @@ declare module 'virtual:automata/content' {
     readonly mask: readonly ('root' | 'pelvis' | 'torso' | 'head' | 'armL' | 'armR' | 'legL' | 'legR')[]
     readonly mode?: 'override' | 'additive'
     readonly rate?: number
+  }
+
+  export type FigureActionId = 'flinch' | 'look' | 'reach'
+  export type FigureAction = {
+    readonly about?: string
+    readonly action: number
+    readonly anticipation: number
+    readonly enter?: number
+    readonly hold?: boolean
+    readonly keys: readonly ({
+      readonly ease?: 'step' | 'linear' | 'in' | 'out' | 'inOut' | 'smooth' | unknown /* figure-action.keys.ease has no JSON form */ | readonly [number, number, number, number]
+      readonly pose: unknown /* figure-action.keys.pose has no JSON form */
+      readonly t: number
+    })[]
+    readonly mask: readonly ('root' | 'pelvis' | 'torso' | 'head' | 'armL' | 'armR' | 'legL' | 'legR')[]
+    readonly recovery: number
   }
 
   export type ScreenId = never
@@ -506,6 +522,7 @@ declare module 'virtual:automata/content' {
     readonly 'figure-rig': Readonly<Record<FigureRigId, FigureRig>>
     readonly 'figure-pose': Readonly<Record<FigurePoseId, FigurePose>>
     readonly 'figure-clip': Readonly<Record<FigureClipId, FigureClip>>
+    readonly 'figure-action': Readonly<Record<FigureActionId, FigureAction>>
     readonly tuning: Readonly<Record<TuningName, number | boolean | string>>
     readonly palette: Palette
   }

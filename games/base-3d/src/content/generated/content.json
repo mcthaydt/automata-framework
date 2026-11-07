@@ -96,6 +96,75 @@
       }
     }
   },
+  "figure-action": {
+    "flinch": {
+      "action": 0,
+      "anticipation": 0.18,
+      "hold": true,
+      "keys": [
+        {
+          "ease": "inOut",
+          "pose": "flinch",
+          "t": 0.18
+        }
+      ],
+      "mask": [
+        "pelvis",
+        "torso",
+        "head",
+        "armL",
+        "armR",
+        "legR"
+      ],
+      "recovery": 0.3
+    },
+    "look": {
+      "action": 2.8,
+      "anticipation": 0.6,
+      "hold": true,
+      "keys": [
+        {
+          "ease": "out",
+          "pose": "look-out",
+          "t": 0.6
+        },
+        {
+          "pose": "look-out",
+          "t": 1.6
+        },
+        {
+          "ease": "inOut",
+          "pose": "look-across",
+          "t": 3.4
+        }
+      ],
+      "mask": [
+        "torso",
+        "head"
+      ],
+      "recovery": 0.4
+    },
+    "reach": {
+      "action": 0.91,
+      "anticipation": 0.49,
+      "keys": [
+        {
+          "ease": "inOut",
+          "pose": "reach-out",
+          "t": 0.49
+        },
+        {
+          "pose": "reach-out",
+          "t": 1.008
+        }
+      ],
+      "mask": [
+        "armR",
+        "torso"
+      ],
+      "recovery": 0.4
+    }
+  },
   "figure-clip": {
     "roll": {
       "keys": [
@@ -480,6 +549,72 @@
     }
   },
   "figure-pose": {
+    "flinch": {
+      "about": "Flinching: the forearms up before the face, the head ducked and turned away, the hips back.",
+      "effectors": {
+        "footR": {
+          "pos": [
+            -0.0657,
+            0.0825,
+            0
+          ]
+        },
+        "handL": {
+          "pos": [
+            0.06,
+            1.4478,
+            0.21
+          ]
+        },
+        "handR": {
+          "pos": [
+            -0.06,
+            1.4478,
+            0.21
+          ]
+        },
+        "pelvis": {
+          "pos": [
+            -0.045,
+            0.8244,
+            -0.04
+          ]
+        }
+      },
+      "fk": {
+        "chest": [
+          -8.0214,
+          6.8755,
+          0
+        ],
+        "head": [
+          10.7433,
+          10.6012,
+          0.2399
+        ],
+        "neck": [
+          7.2229,
+          6.9979,
+          0.1057
+        ]
+      },
+      "poles": {
+        "elbowL": {
+          "dir": [
+            0.5,
+            -1,
+            0.1
+          ]
+        },
+        "elbowR": {
+          "dir": [
+            -0.5,
+            -1,
+            0.1
+          ]
+        }
+      }
+    },
     "free": {
       "about": "Sets no handle: every channel is left to the layers below.",
       "effectors": {}
@@ -571,6 +706,48 @@
         }
       }
     },
+    "look-across": {
+      "about": "Looking out to the right: the head turned well round, the chest a little.",
+      "effectors": {},
+      "fk": {
+        "chest": [
+          0,
+          -10.743,
+          0
+        ],
+        "head": [
+          0.3565,
+          -19.3291,
+          -0.5058
+        ],
+        "neck": [
+          0.1713,
+          -12.8889,
+          -0.2161
+        ]
+      }
+    },
+    "look-out": {
+      "about": "Looking out to the left: the head turned well round, the chest a little.",
+      "effectors": {},
+      "fk": {
+        "chest": [
+          0,
+          10.743,
+          0
+        ],
+        "head": [
+          -0.5038,
+          19.3259,
+          0.3593
+        ],
+        "neck": [
+          -0.2152,
+          12.8883,
+          0.1725
+        ]
+      }
+    },
     "pickup-low": {
       "about": "Stooping to pick something up: the hips down and back, the chest bent over, the right hand low before the feet.",
       "effectors": {
@@ -629,6 +806,34 @@
       },
       "root": {
         "yaw": 15
+      }
+    },
+    "reach-out": {
+      "about": "Reaching out with the right hand before the shoulder, the chest leaning into it.",
+      "effectors": {
+        "handR": {
+          "pos": [
+            -0.1275,
+            1.1114,
+            0.5
+          ]
+        }
+      },
+      "fk": {
+        "chest": [
+          6.8755,
+          6.8755,
+          0
+        ]
+      },
+      "poles": {
+        "elbowR": {
+          "dir": [
+            -0.7,
+            -0.5,
+            -0.5
+          ]
+        }
       }
     },
     "stand": {

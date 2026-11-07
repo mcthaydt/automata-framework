@@ -39,15 +39,14 @@ export { twoBoneIK } from '../features/figures/body/two-bone-ik.ts'
 export {
   type ClipKey,
   clipSchema,
-  type Ease,
   type FigureClipDef,
   MASK_GROUPS,
   type MaskGroup,
 } from '../features/figures/clips/clip.schema.ts'
 export { clipTime, markerTime, retime, smoothTime, stepTime } from '../features/figures/clips/clip-time.ts'
 export { type ClipWarning, clipWarnings } from '../features/figures/clips/clip-warnings.ts'
-export { easeAt } from '../features/figures/clips/ease.ts'
 export { evaluate, type FigureEvaluated } from '../features/figures/clips/evaluate.ts'
+export { clipsWithActions, compileAction, NEUTRAL_POSE } from '../features/figures/clips/figure-action.ts'
 export type {
   ActionState,
   ClipStart,
@@ -58,8 +57,10 @@ export type {
 } from '../features/figures/clips/figure-state.ts'
 export { maskPose } from '../features/figures/clips/masks.ts'
 export { chestFrame, type PoseLibrary, sample } from '../features/figures/clips/sample.ts'
+export { type FigureAction, figureActionSchema } from '../features/figures/content/figure-action.schema.ts'
 export {
   FIGURE_CONTENT,
+  figureActionContent,
   figureClipContent,
   figureContent,
   figureGaitContent,
@@ -216,3 +217,4 @@ export type {
   Vec3,
 } from '../features/figures/motion/targets.ts'
 export * from '../shared/math/math.ts'
+export { type Ease, easeAt, easeSchema, parseEase } from '../shared/timeline/ease.ts'

@@ -1,0 +1,12 @@
+# Flinch away, and stay flinching until told to stop.
+
+mask = [ "pelvis", "torso", "head", "armL", "armR", "legR" ]
+anticipation = 0.18
+action = 0
+recovery = 0.3
+hold = true
+
+[[keys]]
+t = 0.18
+pose = "flinch"
+ease = "inOut"

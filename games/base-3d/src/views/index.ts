@@ -4,7 +4,14 @@
 // back (law 1).
 
 import type { Box3, FigureViewState, Occluders, PlanPoint, SceneFog, View3dFactory } from '@automata/3d'
-import type { FigureClipDef, FigureDef, FigureLibrary, MotionLibrary } from '@automata/3d/figures'
+import type {
+  FigureAction,
+  FigureClipDef,
+  FigureDef,
+  FigureLibrary,
+  MotionLibrary,
+} from '@automata/3d/figures'
+import { clipsWithActions } from '@automata/3d/figures'
 import { Q16 } from '@automata/3d/sim'
 import type { FieldRecord } from '@automata/sim'
 import type { View3D } from '@pixi/3d'
@@ -186,6 +193,7 @@ interface FigureKinds {
   readonly 'figure-gait': MotionLibrary['gaits']
   readonly 'figure-pose': MotionLibrary['poses']
   readonly 'figure-clip': Kind<FigureClipDef>
+  readonly 'figure-action': Kind<FigureAction>
   readonly 'figure-stand': MotionLibrary['stands']
   readonly 'figure-rig': MotionLibrary['rigs']
 }
@@ -212,7 +220,7 @@ export function figureContent(content: unknown): {
     motion: {
       gaits: kinds['figure-gait'],
       poses: kinds['figure-pose'],
-      clips: kinds['figure-clip'],
+      clips: clipsWithActions(kinds['figure-clip'], kinds['figure-action']),
       items: kinds['figure-item'],
       stands: kinds['figure-stand'],
       rigs: kinds['figure-rig'],
