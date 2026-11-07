@@ -448,7 +448,7 @@ One row per task of the [plan](2026-11-07-3d-slice-plan.md); a task is done when
 | 9.1 `automata textures` in `-tools` | 9 | Moved to the Plus port, task 3.8 (scope trim) |
 | 9.2 The builders' `reads` checks | 9 | Moved to the Plus port, task 3.8 (scope trim) |
 | 10.1 No plan IDs or source names in code | 10 | Done, 2026-11-07 (`source-names --code`, 0 findings in `packages/3d`, `--plan-comments` 0; `sample` is `blendKeyPoses`; `pnpm lint`, `typecheck`, `boundaries`, `knip`, `style`, `source-names` and 3D unit 1,165 pass) |
-| 10.2 README, a complete record, part A's close | 10 | Not started |
+| 10.2 README, a complete record, part A's close | 10 | In progress, 2026-11-07: README written; `sources-md` rows checked for notes; 55 manifest files still have no row (listed in the plan's log); `--complete` not on; done check not run |
 | 11.1 The feature layout and `content/` | 11 | Not started |
 | 11.2 One name, the menu and the HUD | 11 | Not started |
 | 11.3 Journeys that play | 11 | Not started |

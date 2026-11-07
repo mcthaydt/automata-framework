@@ -89,6 +89,259 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `src/features/actors/actions.ts` | `packages/3d/src/features/figures/clips/figure-action.ts` | rewritten: the envelope (wind-up, action, recovery, hold) compiles to a clip the one player plays; the pose-spec keys and the repeat range wait for the other actions |
 | `src/features/actors/pose-spec.ts` | | left out: the pose-spec's arms, feet and face-turn are for the nineteen actions beyond reach, look and flinch, which are not ported yet |
 | `src/features/actors/library/actions.json` | `games/base-3d/src/content/figure-actions/look.toml` | rewritten: `look` only; reach and flinch come from the older extraction's motion, as `figure-action` files; the other eighteen are not ported yet |
+| `.gitignore` | | left out: the builder's own readme, rules or editor settings; AF's are its own |
+| `.vscode/settings.json` | | left out: the builder's own readme, rules or editor settings; AF's are its own |
+| `CLAUDE.md` | | left out: the builder's own readme, rules or editor settings; AF's are its own |
+| `README.md` | | left out: the builder's own readme, rules or editor settings; AF's are its own |
+| `docs/actors.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/audits/2026-11-05-wardrobe-hooks-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/refactor-progress.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-05-stage1-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-05-stage3-plan-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-05-stage5-result-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/README.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/across-d2-pitch0-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/across-d2-pitch0.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/across-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/across-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/across-d4-pitch0-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/across-d4-pitch0.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/across-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/across-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/across-lit-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/across-lit-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/across-lit-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/across-lit-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/check-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/check-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/check-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/check-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/check-lit-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/check-lit-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/check-lit-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/check-lit-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/plain-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/plain-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/plain-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/plain-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/rib-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/rib-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/rib-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/rib-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/rib-lit-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/rib-lit-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/rib-lit-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/rib-lit-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/twill-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/twill-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/twill-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/twill-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/twill-lit-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/twill-lit-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/twill-lit-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/twill-lit-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/twill-walk-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-a/twill-walk-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/README.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-bust0-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-bust0-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-bust0-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-bust0-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-bust1-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-bust1-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-bust1-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-bust1-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-fat0-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-fat0-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-fat0-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-fat0-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-fat1.2-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-fat1.2-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-fat1.2-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-fat1.2-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-fat1.2-walk-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-fat1.2-walk-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-neck1-fat1.2-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-neck1-fat1.2-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-neck1-fat1.2-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-neck1-fat1.2-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-seat0-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-seat0-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-seat0-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-seat0-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-seat1-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-seat1-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-seat1-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-f-seat1-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-bust0-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-bust0-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-bust0-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-bust0-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-bust1-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-bust1-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-bust1-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-bust1-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-fat0-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-fat0-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-fat0-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-fat0-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-fat1.2-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-fat1.2-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-fat1.2-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-fat1.2-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-fat1.2-walk-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-fat1.2-walk-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-neck1-fat1.2-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-neck1-fat1.2-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-neck1-fat1.2-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-neck1-fat1.2-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-seat0-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-seat0-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-seat0-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-seat0-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-seat1-d2-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-seat1-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-seat1-d4-x1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-gate-b/base-m-seat1-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-impl-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-cloth-plan-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-stand-impl-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-stand-impl-audit/base-f-turn-d2-x4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-stand-impl-audit/base-m-turn-d2-x4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-stand-impl-audit/before-after-base-f-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-stand-impl-audit/before-after-base-f-d4-back.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-stand-impl-audit/before-after-base-m-d2-head.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-stand-impl-audit/before-after-base-m-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-stand-impl-audit/heroes-before-after.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-stand-impl-audit/neckline-d4-cap-before-after.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-stand-impl-audit/neckline-off-on.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-stand-impl-audit/talk-d1-before-after.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-stand-impl-audit/talk-d1-fix-actors-frame.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-stand-impl-audit/talk-d1-fix-views.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-stand-impl-audit/walk-to-stand-pop.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-stand-plan-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-diversity-plan-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage1/base-f-hero-d1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage1/base-f-hero-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage1/base-f-hero-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage1/base-f-turn-d1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage1/base-f-turn-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage1/base-f-turn-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage1/base-m-hero-d1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage1/base-m-hero-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage1/base-m-hero-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage1/base-m-turn-d1.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage1/base-m-turn-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage1/base-m-turn-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage1/big-turn-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage1/big-walk-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage1/cheekwidth-mark-vs-outline.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage1/faces-base-f-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage1/fat-softened-front-back.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage1/lifter-turn-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage1/ugly-turn-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage2/eye-swap.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage2/eyes-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage2/eyes-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage2/hood-lighter-base-f-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage3/body-asymmetry-base-m-hero-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage3/body-asymmetry-base-m-turn-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage3/body-asymmetry-base-m-walk-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage3/face-asymmetry-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage3/face-asymmetry-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage4/base-f-bust-seat-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage4/base-f-bust-seat-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage4/base-m-bust-seat-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage4/base-m-bust-seat-d4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage5/bench-beauty-turn-d2-x4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage5/bench-beauty-turn-d4-x2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage5/bench-beauty-walk-d2-x4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage5/bench-big-turn-d2-x4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage5/bench-big-walk-d2-x4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage5/bench-curly-turn-d2-x4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage5/bench-curly-walk-d2-x4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage5/bench-elder-turn-d2-x4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage5/bench-elder-walk-d2-x4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage5/bench-lineup-x4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage5/demo-bench-hair.diff` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage5/pieces-turn-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage5/pieces-turn-d4-a.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage5/pieces-turn-d4-b.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-stage5/pieces-walk-d2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/plans/2026-11-05-base-pair-refactor.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/plans/2026-11-06-c3-cloth.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/plans/2026-11-06-c4-diversity.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/plans/2026-11-06-natural-stand.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/progress.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-05-base-pair-refactor-design.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-06-c3-cloth-design.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-06-c4-diversity-design.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-06-c4-diversity/before-beauty-hero-d4-x2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-06-c4-diversity/before-big-turn-d2-x4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-06-c4-diversity/before-lineup-x4.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-06-c4-diversity/before-ugly-hero-d4-x2.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-06-c4-diversity/probe-fat-limbs.diff.txt` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-06-c4-diversity/probe-fat-limbs.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-06-natural-stand-design.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-06-natural-stand/collars.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-06-natural-stand/n2-vs-current.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-06-natural-stand/neck-rotation-rejected.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-06-natural-stand/palm-twist.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-06-natural-stand/probe.diff.txt` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-06-natural-stand/weight-shift-options.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `package-lock.json` | | left out: the builder's package and build setup; AF's packages have their own |
+| `package.json` | | left out: the builder's package and build setup; AF's packages have their own |
+| `scripts/actors-demo.ts` | | left out: the builder's command line draws with its CPU painter; AF records its goldens with `packages/3d/scripts/record-goldens.ts` |
+| `scripts/golden.ts` | | left out: the builder's command line draws with its CPU painter; AF records its goldens with `packages/3d/scripts/record-goldens.ts` |
+| `scripts/lit.ts` | | left out: the builder's command line draws with its CPU painter; AF records its goldens with `packages/3d/scripts/record-goldens.ts` |
+| `scripts/render.ts` | | left out: the builder's command line draws with its CPU painter; AF records its goldens with `packages/3d/scripts/record-goldens.ts` |
+| `tests/api.test.ts` | | left out: the builder's layer rule and public-surface test; AF's `pnpm boundaries` and `pnpm api-report` do that |
+| `tests/architecture.test.ts` | | left out: the builder's layer rule and public-surface test; AF's `pnpm boundaries` and `pnpm api-report` do that |
+| `tests/golden/actors.json` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/actors.test.ts` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/actors.ts` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/base.test.ts` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/base.ts` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/base/base-f-hero-d1.rgba.gz` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/base/base-f-hero-d2.rgba.gz` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/base/base-f-turn-d1.rgba.gz` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/base/base-f-turn-d2.rgba.gz` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/base/base-f-walk-d1.rgba.gz` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/base/base-f-walk-d2.rgba.gz` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/base/base-m-hero-d1.rgba.gz` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/base/base-m-hero-d2.rgba.gz` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/base/base-m-turn-d1.rgba.gz` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/base/base-m-turn-d2.rgba.gz` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/base/base-m-walk-d1.rgba.gz` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/base/base-m-walk-d2.rgba.gz` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/lit.json` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/lit.test.ts` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/lit.ts` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/sprites.json` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tests/golden/sprites.ts` | | left out: the golden pixels of the CPU painter; AF does not ship the painter and records its own goldens from its geometry and motion |
+| `tsconfig.json` | | left out: the builder's package and build setup; AF's packages have their own |
+| `vitest.config.ts` | | left out: the builder's package and build setup; AF's packages have their own |
+| `src/features/paint/paint.ts` |  | left out: the figure's CPU painter and rasteriser; the view draws the figure's meshes with Pixi 3D |
+| `src/features/paint/raster.ts` |  | left out: the figure's CPU painter and rasteriser; the view draws the figure's meshes with Pixi 3D |
+| `tests/features/paint/materials.test.ts` |  | left out: the figure's CPU painter and rasteriser; the view draws the figure's meshes with Pixi 3D |
+| `tests/features/paint/neckline.test.ts` |  | left out: the figure's CPU painter and rasteriser; the view draws the figure's meshes with Pixi 3D |
+| `tests/features/paint/prints.test.ts` |  | left out: the figure's CPU painter and rasteriser; the view draws the figure's meshes with Pixi 3D |
+| `tests/features/paint/fabric.test.ts` |  | left out: the figure's CPU painter and rasteriser; the view draws the figure's meshes with Pixi 3D |
+| `tests/features/paint/fabric-fixtures.ts` |  | left out: the figure's CPU painter and rasteriser; the view draws the figure's meshes with Pixi 3D |
+| `tests/features/figure/render.test.ts` |  | left out: the figure's CPU painter and rasteriser; the view draws the figure's meshes with Pixi 3D |
+| `tests/features/figure/light-hook.test.ts` |  | left out: the figure's CPU painter and rasteriser; the view draws the figure's meshes with Pixi 3D |
+| `tests/features/draw.ts` |  | left out: the figure's CPU painter and rasteriser; the view draws the figure's meshes with Pixi 3D |
+| `src/lib/math.ts` | `packages/3d/src/shared/math/math.ts` | ported: the vector and matrix helpers; the results are bit-identical |
+| `tests/features/body/sliders.test.ts` | `packages/3d/tests/unit/figures/figure/slider-ends.test.ts` | rewritten: every slider at either end on the golden outfits |
+| `tests/features/motion/form.test.ts` | `packages/3d/tests/unit/figures/motion/base.test.ts` and `packages/3d/tests/unit/figures/motion/stands.test.ts` | rewritten: the walk and the pocket holds, on AF's fixture figures |
+| `tests/features/motion/stand.test.ts` | `packages/3d/tests/unit/figures/motion/natural-stand.test.ts` | rewritten: checked through `base` |
+| `tests/features/outfit/fit.test.ts` | `packages/3d/tests/unit/figures/outfit/fit.test.ts` | rewritten: to the body as a query (`girth`, `clearance`) |
+| `tests/features/hair/hooks.test.ts` | `packages/3d/tests/unit/figures/registry/hair-registry.test.ts` | rewritten: hair pieces, finishes and fabrics as registries |
+| `tests/features/motion/seats.test.ts` |  | left out: moved to `@automata/character-kit` with the seats (3D slice task 7.6) |
+| `tests/features/hair/hang.test.ts` |  | left out: tests the low pony, bun and fall pieces, which moved to `@automata/character-kit` (3D slice task 7.6) |
+| `tests/features/hair/options.test.ts` |  | left out: tests the hair finishes and pieces that moved to `@automata/character-kit` (3D slice task 7.6) |
+| `tests/features/body/bust-seat.test.ts` | `packages/3d/tests/unit/figures/body/diversity.test.ts` | rewritten: folded into the diversity cases (bust and seat are the default at 0.5) |
+| `tests/features/body/asymmetry.test.ts` | `packages/3d/tests/unit/figures/body/diversity.test.ts` | rewritten: folded into the diversity cases (asymmetry has defaults that change nothing) |
 
 ## The environment source
 
@@ -104,20 +357,196 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | --- | --- | --- |
 | `src/features/world/timeline.ts` | `packages/3d/src/shared/timeline/sample.ts` | rewritten: the key is `{ t, value, ease? }` (`v` is `value`), no ease is linear (the source's was `inOut`), `hold` reads as `step`, and the ease and the sampling are AF's, shared with the figures' clips; `wobble`, `lerpAngle` and `lerpV` wait for the shots |
 | `src/features/paint/library/times.json` | `packages/3d/src/shared/time-of-day/library/times.json` | rewritten: merged with the figure source's six times of day (the light, haze and sky are `scene`) |
-| `src/features/world/types.ts` (`MapPlan`, `Sector`, `Plane`, `MapWall`, `Decor`, `WindowGrid`, `Dress`, `MapSprite`, `Lamp`) | `packages/3d/src/shared/level/af-sector-2.schema.ts` | rewritten as Zod: the `/2` file's fields, one per row of the 3D spec's section 9 table; `swatch` is `surface`, `ceil` is `ceiling`, a plane is a number or `{ z, slope?, sky?, surface? }`, and what the builder only cached (`dressed`, `doorState`, a door's `shown`, a sprite's `diorama`) is left out |
+| `src/features/world/types.ts` (`MapPlan`, `Sector`, `Plane`, `MapWall`, `Decor`, `WindowGrid`, `Dress`, `MapSprite`, `Lamp`) | `packages/3d/src/shared/level/af-sector-2.schema.ts` | rewritten: as Zod, the `/2` file's fields, one per row of the 3D spec's section 9 table; `swatch` is `surface`, `ceil` is `ceiling`, a plane is a number or `{ z, slope?, sky?, surface? }`, and what the builder only cached (`dressed`, `doorState`, a door's `shown`, a sprite's `diorama`) is left out |
 | `src/lib/geometry.ts` (`merge`, `tube`) | `packages/3d/src/shared/math/geometry.ts` | ported: `merge` and `tube` as written; `MeshData` (the plain mesh triple) and `windToNormals` (every triangle winds the way its normals point, so a renderer may cull back faces; the builder's raster did not cull) are AF's |
 | `src/features/world/mesh.ts` (`quad`, `box`, `rbox`, `cylinder`, `rod`, `cone`, `blob`) | `packages/3d/src/features/world/mesh.ts` | ported: as written, each winding to its normals; `rbox`, `rod`, `cone` and `blob` return with the five base props (3D slice task 7.7); `turnY` and `turnX` go with the prop library to `@automata/world-kit` |
-| `src/features/world/props.ts` (`table`, `bin`, `lamp`, `streetLamp`, `tree`) and `stream` | `packages/3d/src/features/world/props/base-props.ts` and `stream.ts` | ported: the five generators as written (the numbers are the source's), the ones the base scenes are made of; the rest of the prop library goes to `@automata/world-kit` |
-| `base/base.ts` (EnvironmentBuilder: `interior`, `exterior`) | `packages/3d/src/features/world/base/{base-scenes,base-library}.ts` | rewritten: the two bare scenes converted once to `af-sector/2` levels (with the 78e0ca7f converter, then written out), the swatches and presets they name as a library of flat DUEL steps; the dressed variants and the photo textures go to `@automata/world-kit` |
+| `src/features/world/props.ts` (`table`, `bin`, `lamp`, `streetLamp`, `tree`) and `stream` | `packages/3d/src/features/world/props/base-props.ts` and `packages/3d/src/features/world/stream.ts` | ported: the five generators as written (the numbers are the source's), the ones the base scenes are made of; the rest of the prop library goes to `@automata/world-kit` |
+| `base/base.ts` (EnvironmentBuilder: `interior`, `exterior`) | `packages/3d/src/features/world/base/base-scenes.ts` and `packages/3d/src/features/world/base/base-library.ts` | rewritten: the two bare scenes converted once to `af-sector/2` levels (with the 78e0ca7f converter, then written out), the swatches and presets they name as a library of flat DUEL steps; the dressed variants and the photo textures go to `@automata/world-kit` |
 | `base/base.ts` (FigureBuilder: `BASE`) | `packages/3d/src/features/figures/base/base-pair.ts` | rewritten: the two figures' sliders and faces as written, painted-on blocks, hair as inline locks (the braided pony and the fade go to `@automata/character-kit`), colours as the DUEL swatches `BASE_PAIR_SWATCHES`; the pose and the face's camera and blink are the stand and the view's |
 | `src/features/world/subdivide.ts` | `packages/3d/src/features/world/subdivide.ts` | ported |
 | `src/features/stage/state.ts` (`StateScript`, `Snapshot`: doors, lamps, props) | `packages/3d/src/shared/level/piece-states.ts` and `packages/3d/src/app/update-pieces.ts` | rewritten: only the state of the pieces stays in core (a door's opening, a lamp's level and colour, a prop's place, turn and presence) and `updatePieces` applies a change of it to the meshes; the keys, the time of day, the grade, dynamic lights and `SceneState` are the cutscenes extension's |
 | `src/features/world/surface.ts` (`isSurfaceTex`, `tileName`, `texOf`, `wallFrame`) | `packages/3d/src/features/world/surface.ts` | ported: the surface types are the `/2` schema's; `objectFrame` comes with the props |
 | `src/features/world/swatches.ts` | `packages/3d/src/features/world/swatches.ts` | rewritten: the library is handed in (a game adds its own), and an unknown name is a `LevelProblem` the builder reports, not a throw; `name#seed` still reads as its base; the `world-swatch` content kind is core's, the swatch library goes to `@automata/world-kit` |
 | `src/features/world/sectors.ts` (`vertsOf`, `inside`, `heightAt`, `signedArea`, `triangulate`, `segments`, `inward`) | `packages/3d/src/features/world/sectors.ts` | rewritten: a sector is `/2`'s `corners` and `holes` (a hole is walled from the room side; the point tests and the triangulation are `shared/level/geometry.ts`, moved from editor-3d's `geometry/{sectors,triangulate}.ts`), a room with no area is `isDegenerate`, and the shared stretch of an edge is found by geometry as the source did; `sectorAt`, `floorAt`, `dollhouseStub`, `wallInDiorama` and `lintel*` are not here (views belong to the editor, and nothing reads the rest yet) |
-| `src/features/world/map.ts` (`planeMesh`, `wallQuad`, `onWall`, `rotY`) | `packages/3d/src/features/world/plane-mesh.ts` | ported over `/2`'s planes and the bridged fill |
+| `src/features/world/map.ts` (`planeMesh`, `wallQuad`, `onWall`, `rotY`) | `packages/3d/src/features/world/plane-mesh.ts` | ported: over `/2`'s planes and the bridged fill |
 | `src/features/world/map.ts` (`decorPieces`, `doorPieces`) | `packages/3d/src/features/world/decor.ts` | rewritten: the rng is AF's seeded one, a piece names its swatch for the library to check, a hinged door is built shut and carries its hinge and swing for the stage to turn; a sign draws nothing until the world kit's lettering draws it |
 | `src/features/world/map.ts` (`mapPieces`, first-person view) and `build.ts` | `packages/3d/src/features/world/build.ts` | rewritten: `buildWorld(level, library)` over `/2`, returning pieces and `LevelProblem`s; a level is built whole (the diorama's cut-away and the top-down clip are the editor's), a wall's `door` and `window` are cut from its face, a wall's `next` must agree with the shared stretch found by geometry, and grime, litter and emitters wait for task 7.3; `build.ts`'s prop placement (`buildScene`, `paramsOf`) comes with the props |
+| `.claude/settings.json` | | left out: the builder's own readme, rules or editor settings; AF's are its own |
+| `.gitignore` | | left out: the builder's own readme, rules or editor settings; AF's are its own |
+| `.gitmodules` | | left out: the builder's own readme, rules or editor settings; AF's are its own |
+| `.vscode/settings.json` | | left out: the builder's own readme, rules or editor settings; AF's are its own |
+| `CLAUDE.md` | | left out: the builder's own readme, rules or editor settings; AF's are its own |
+| `README.md` | | left out: the builder's own readme, rules or editor settings; AF's are its own |
+| `docs/camera-and-state.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/dressing.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/environments-history.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/lighting.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/photos.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/reference/the-last-light/README.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/reference/the-last-light/corridor-on.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/reference/the-last-light/hall-on.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/reference/the-last-light/source/docs/style/look.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/reference/the-last-light/source/src/render/dressing.ts` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/reference/the-last-light/source/src/render/figure/ramp-light.ts` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/reference/the-last-light/source/src/render/fog.ts` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/reference/the-last-light/source/src/render/indirect-light.ts` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/reference/the-last-light/source/src/render/look.ts` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/reference/the-last-light/source/src/render/occlusion.ts` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/reference/the-last-light/source/src/render/sector-mesh.ts` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/reference/the-last-light/source/src/render/sprite-light.ts` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/reference/the-last-light/supply-on.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/reference/the-last-light/ward-on.png` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-05-c2-implementation-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-05-c2-plan-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-05-implementation-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-05-pixel-3d-gap-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-05-plan-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-implementation-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c3-plan-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-implementation-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c4-plan-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c5-implementation-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c5-plan-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c6-implementation-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/audits/2026-11-06-c6-plan-audit.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/plans/2026-11-05-base-scenes-vertex-light-dresser.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/plans/2026-11-05-environment-builder.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/plans/2026-11-06-fast-tuning.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/plans/2026-11-06-figure-exposure.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/plans/2026-11-06-figures-read-surfaces-read.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/plans/2026-11-06-instant-checks.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/plans/2026-11-06-sprite-light-build-textures.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/progress.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-05-base-scenes-vertex-light-dresser-design.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-05-environment-builder-design.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-05-klipp-rig-design.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-06-fast-tuning-design.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-06-figure-exposure-design.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-06-figures-read-surfaces-read-design.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-06-instant-checks-design.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `docs/superpowers/specs/2026-11-06-sprite-light-build-textures-design.md` | | left out: the builder's own notes, specs, plans, audits and references; AF's are under `docs/` |
+| `package-lock.json` | | left out: the builder's package and build setup; AF's packages have their own |
+| `package.json` | | left out: the builder's package and build setup; AF's packages have their own |
+| `scripts/board.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
+| `scripts/check.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
+| `scripts/checks.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
+| `scripts/golden.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
+| `scripts/lit.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
+| `scripts/map.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
+| `scripts/photos.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
+| `scripts/render.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
+| `scripts/save.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
+| `scripts/sheet.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
+| `scripts/textures.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
+| `scripts/tune-light.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
+| `scripts/tune.ts` | | left out: the builder's command line (render, board, tune, photos, textures, golden) drives its CPU renderer and photo tools, which core does not ship |
+| `tests/api.test.ts` | | left out: the builder's layer rule and public-surface test; AF's `pnpm boundaries` and `pnpm api-report` do that |
+| `tests/architecture.test.ts` | | left out: the builder's layer rule and public-surface test; AF's `pnpm boundaries` and `pnpm api-report` do that |
+| `tests/golden/base.json` | | left out: golden images of the CPU renderer and the photo tiles; core does not ship them |
+| `tests/golden/base.test.ts` | | left out: golden images of the CPU renderer and the photo tiles; core does not ship them |
+| `tests/golden/base.ts` | | left out: golden images of the CPU renderer and the photo tiles; core does not ship them |
+| `tests/golden/scenes.json` | | left out: golden images of the CPU renderer and the photo tiles; core does not ship them |
+| `tests/golden/scenes.test.ts` | | left out: golden images of the CPU renderer and the photo tiles; core does not ship them |
+| `tests/golden/scenes.ts` | | left out: golden images of the CPU renderer and the photo tiles; core does not ship them |
+| `tests/golden/tiles.json` | | left out: golden images of the CPU renderer and the photo tiles; core does not ship them |
+| `tests/golden/tiles.test.ts` | | left out: golden images of the CPU renderer and the photo tiles; core does not ship them |
+| `tests/golden/tiles.ts` | | left out: golden images of the CPU renderer and the photo tiles; core does not ship them |
+| `tsconfig.json` | | left out: the builder's package and build setup; AF's packages have their own |
+| `vendor/FigureBuilder` | | left out: the submodule that gives the builder its figures; AF imports its own figure code |
+| `vite.config.ts` | | left out: the builder's package and build setup; AF's packages have their own |
+| `src/features/photo/library/photos.json` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/aggregate.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/asphalt.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/bark.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/beams.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/brick.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/brickYellow.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/carpet.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/ceilingPaint.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/ceilingTiles.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/checker.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/cobbles.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/concrete.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/corrugated.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/dirt.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/fabric.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/floorTiles.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/kerb.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/laminate.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/lino.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/metal.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/metalSheet.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/paintedPlaster.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/panelling.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/pavement.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/paving.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/planks.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/plaster.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/plasterFinish.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/roof.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/rug.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/scallopPlaster.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/stone.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/stripedWallpaper.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/stucco.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/tiles.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/wallTiles.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/woodGrain.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/library/photos/woodPanels.png` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/pipeline.ts` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/structure.ts` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/photo/textures.ts` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/lib/png.ts` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `tests/features/photo/pipeline.test.ts` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `tests/features/photo/structure.test.ts` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `tests/features/photo/textures.test.ts` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `tests/lib/png.test.ts` | | left out: the photo library and its pipeline go to `@automata/world-kit` (scope trim section 2); core draws the textures a game supplies |
+| `src/features/paint/paint.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
+| `src/features/paint/perspective.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
+| `src/features/paint/post.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
+| `src/features/paint/light.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
+| `src/features/paint/colour.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
+| `tests/features/paint/colour.test.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
+| `tests/features/paint/light-pass.test.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
+| `tests/features/paint/place.test.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
+| `tests/features/paint/post.test.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
+| `tests/features/paint/to-cell.test.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
+| `tests/features/paint/kit.test.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
+| `tests/features/stage/figure-light.test.ts` |  | left out: the CPU scene painter; the Pixi 3D look (`features/look`, ADR 0007) draws instead |
+| `src/features/paint/rain.ts` |  | left out: rain goes to `@automata/world-kit` as a look pass (`addLookPass`) |
+| `src/features/paint/look.ts` | `packages/3d/src/features/look/look.ts` | rewritten: the look's switches and numbers as a Zod-checked `Look` the Pixi 3D passes read, not the CPU painter's profile |
+| `src/features/paint/library/look.json` | `packages/3d/src/features/look/library/look.json` | rewritten: the pixel size, light steps, outline, dither and grade; the lamp kit and haze stay with the world kit |
+| `tests/features/paint/look.test.ts` | `packages/3d/tests/unit/look/look.test.ts` | rewritten: the look's parse and defaults, `targetSize`, `rampLit`, `spriteLight` and `addLookPass` |
+| `src/features/stage/sprite-light.ts` | `packages/3d/src/features/look/sprite-light.ts` | rewritten: `spriteLight(input, time)` returns the flat chest light, the form and the rim as pure functions; the view's per-frame tint is not wired yet |
+| `tests/features/stage/sprite-light.test.ts` | `packages/3d/tests/unit/look/look.test.ts` | rewritten: `spriteLight` is tested with the look |
+| `src/features/view/fp.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
+| `src/features/view/render.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
+| `src/features/view/shots.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
+| `src/features/view/view-frame.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
+| `src/features/view/readability.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
+| `tests/features/view/readability.test.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
+| `tests/features/view/room.test.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
+| `tests/features/view/scene.test.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
+| `tests/features/view/shots.test.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
+| `tests/base/readability.test.ts` |  | left out: the diorama, first-person and top-down views belong in the editor, not in core (the Owner, 2026-11-07) |
+| `src/features/world/dress.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
+| `src/features/world/decals.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
+| `src/features/world/lettering.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
+| `src/features/world/generate.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
+| `src/features/world/library/glyphs.json` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
+| `src/features/world/library/kits.json` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
+| `src/features/world/library/maps.json` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
+| `tests/features/world/dress.test.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
+| `tests/features/world/signage.test.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
+| `tests/base/checked-maps.test.ts` |  | left out: goes to `@automata/world-kit` (scope trim section 2); core draws what a game authored |
+| `tests/scripts/bad-values.test.ts` | | left out: tests of the builder's command line, which core does not ship |
+| `tests/scripts/check.test.ts` | | left out: tests of the builder's command line, which core does not ship |
+| `src/lib/search.ts` | | left out: the search the builder's tuning commands share; the tuning tools are not in core |
+| `tests/lib/search.test.ts` | | left out: the search the builder's tuning commands share; the tuning tools are not in core |
+| `tests/features/world/subdivide.test.ts` | `packages/3d/tests/unit/world/subdivide.test.ts` | ported: the cases on `subdivide` |
+| `tests/features/world/surface.test.ts` | `packages/3d/tests/unit/world/surface.test.ts` | ported: the cases on the surface types and `tileName` |
+| `tests/features/world/build.test.ts` | `packages/3d/tests/unit/world/build.test.ts` | rewritten: the cases run `buildWorld` over `/2` levels and check the `LevelProblem`s it reports |
+| `src/features/world/build.ts` | `packages/3d/src/features/world/build.ts` | rewritten: see the row for `src/features/world/map.ts` (`mapPieces`) |
 
 ## Core: the doc comments that named their source (moved here 2026-11-07)
 

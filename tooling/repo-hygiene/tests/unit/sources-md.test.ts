@@ -68,6 +68,19 @@ describe('checkSources', () => {
     ])
   })
 
+  it('a row may follow its source path with a note on which names of the file it covers', () => {
+    const rows = [`| \`src/c.ts\` (\`quad\`, \`box\`) | \`packages/3d/src/c.ts\` | ported: as written |`]
+    expect(checkSources(doc([], rows), manifest, { complete: false })).toEqual([])
+    expect(
+      checkSources(
+        doc([row('src/a.ts', '`x.ts`', 'ported'), row('src/b.ts', '`y.ts`', 'ported')], rows),
+        manifest,
+        {
+          complete: true,
+        },
+      ),
+    ).toEqual([])
+  })
   it('refuses a row whose source file is not in the manifest, or whose way is not one of the three', () => {
     const rows = [row('src/zzz.ts', '`x.ts`', 'ported'), row('src/a.ts', '`x.ts`', 'copied')]
     expect(checkSources(doc(rows, []), manifest)).toEqual([
