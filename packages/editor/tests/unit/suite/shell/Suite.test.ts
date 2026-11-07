@@ -41,7 +41,7 @@ describe('Suite Home', () => {
     await start(SAMPLE_GAME)
     const tuner = await screen.findByRole('region', { name: 'Tuner' })
     expect(within(tuner).getByRole('button', { name: 'Tuning' })).toBeInTheDocument()
-    expect(screen.getByRole('region', { name: 'Levels 2D' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Levels' })).toBeInTheDocument()
     // No editor is registered here, so the rail has only Review (the sample has change sets).
     expect(screen.getAllByRole('tab').map((tab) => tab.textContent?.trim())).toEqual(['Review'])
   })
@@ -98,11 +98,11 @@ describe('Suite entries', () => {
   it('lists only the registered editors, then Review', async () => {
     const editor = (id: string, label: string) =>
       ({ id, label, open: async () => ({}), regions: {} }) as unknown as SuiteEditor<unknown>
-    await start(SAMPLE_GAME, [editor('tuner', 'Tuner'), editor('levels-2d', 'Levels 2D')])
+    await start(SAMPLE_GAME, [editor('tuner', 'Tuner'), editor('levels-2d', 'Levels')])
     await screen.findByRole('region', { name: 'Tuner' })
     expect(screen.getAllByRole('tab').map((tab) => tab.textContent?.trim())).toEqual([
       'Tuner',
-      'Levels 2D',
+      'Levels',
       'Review',
     ])
   })

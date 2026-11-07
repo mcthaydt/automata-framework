@@ -140,7 +140,7 @@ export function createEntitiesSession(options: EntitiesSessionOptions): Entities
       const ownerChanged = patch.owner !== undefined && patch.field === undefined
       choose(ownerChanged ? { ...patch, field: undefined } : patch)
     },
-    addDefinition: () => addDefinitionAs('Add character', newDefinition(`entity-${options.ids.next()}`)),
+    addDefinition: () => addDefinitionAs('Add a character', newDefinition(`entity-${options.ids.next()}`)),
     duplicateDefinition() {
       const { def } = current()
       if (def === undefined) return OK

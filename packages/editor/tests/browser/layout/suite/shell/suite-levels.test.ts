@@ -58,7 +58,7 @@ const READY = '[data-testid="level-canvas"]'
 
 describe.each(SIZES)('Suite Levels 2D at $name ($width x $height)', (size) => {
   test('fills the one shell: the stage has room, every target 44 px, the level picker in the top bar', async () => {
-    opened = await openSuite(size, editors(), FILES, READY, 'Levels 2D')
+    opened = await openSuite(size, editors(), FILES, READY, 'Levels')
     const { conditions } = opened
     const surface = inShell('[data-testid="level-surface"]')
     inView(surface, size)
@@ -72,13 +72,13 @@ describe.each(SIZES)('Suite Levels 2D at $name ($width x $height)', (size) => {
     // suite's bar): scrolled to, it is wholly in view and a full-size target.
     picker.scrollIntoView({ block: 'nearest', inline: 'nearest' })
     await settleLayout()
-    expect(checkLayout(conditions, [tab('Levels 2D'), picker])).toEqual([])
+    expect(checkLayout(conditions, [tab('Levels'), picker])).toEqual([])
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/suite-levels-2d-${size.name}.png` })
   })
 
   test('a rotation keeps the session: the chosen tool is still chosen', async () => {
-    opened = await openSuite(size, editors(), FILES, READY, 'Levels 2D')
+    opened = await openSuite(size, editors(), FILES, READY, 'Levels')
     await page.getByRole('radio', { name: 'Eraser' }).click()
     await expect.poll(() => document.querySelector(READY)?.getAttribute('data-tool')).toBe('eraser')
     await page.viewport(size.height, size.width)

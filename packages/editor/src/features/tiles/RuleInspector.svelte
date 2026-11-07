@@ -1,8 +1,8 @@
 <!--
   The Tilesets view's inspector: tabs Rule and Group.
-  Rule: on or off, the pattern size, the pattern editor with the IntGrid value its cycle uses, the outputs (each
-  removable; "Add selected tiles" takes the sheet's selection), chance, Flip X, Flip Y, Break on match, what is read
-  beyond the level edge, Duplicate and Delete. Group: its name, on or off, Delete group. Each change is one undo step;
+  Rule: on or off, what it looks at, the pattern editor with the kind of tile its cycle uses, the tiles it draws (each
+  removable; "Draw the tiles I picked" takes the sheet's selection), how often, the three switches (`rule-words.ts`),
+  what is read beyond the level edge, Duplicate and Delete. Group: its name, on or off, Delete group. Each change is one undo step;
   a refusal shows its message and changes nothing.
 -->
 <script lang="ts">
@@ -15,6 +15,7 @@ import type { FieldCommit } from '../../shared/level-2d/model/field-commit'
 import type { Project } from '../../shared/level-2d/model/project-types'
 import { spriteStyle } from '../../shared/level-2d/tiles/tile-sprite'
 import PatternEditor from './PatternEditor.svelte'
+import { FLAG_WORDS, ruleTitle } from './rule-words'
 import { autoLayersOf, type ResolvedSelection, ruleInspector } from './tilesets-model'
 import type { TilesetsSession } from './tilesets-session'
 
@@ -50,9 +51,9 @@ function show(result: FieldCommit): void {
 }
 
 const flags = [
-  { key: 'flipX', label: 'Flip X' },
-  { key: 'flipY', label: 'Flip Y' },
-  { key: 'breakOnMatch', label: 'Break on match' },
+  { key: 'flipX', label: FLAG_WORDS.flipX },
+  { key: 'flipY', label: FLAG_WORDS.flipY },
+  { key: 'breakOnMatch', label: FLAG_WORDS.breakOnMatch },
 ] as const
 
 function rename(event: Event): void {
@@ -84,8 +85,7 @@ function rename(event: Event): void {
           {@const rule = inspector.rule}
           <div class="fields">
             <div class="title">
-              <h2>{rule.id}</h2>
-              <span class="place">No. {inspector.place} in this group</span>
+              <h2>{ruleTitle(rule.id)}</h2>
               <button
                 type="button"
                 class="toggle"
@@ -94,19 +94,19 @@ function rename(event: Event): void {
               >
             </div>
             <Segmented
-              label="Pattern size"
+              label="Looks at"
               options={[
-                { id: '1', label: '1×1' },
-                { id: '3', label: '3×3' },
-                { id: '5', label: '5×5' },
+                { id: '1', label: 'This tile' },
+                { id: '3', label: 'Next to it' },
+                { id: '5', label: 'Further out' },
               ]}
               value={String(rule.size)}
               onedit={(event) => show(session.resize(Number(event.value) as 1 | 3 | 5))}
             />
             <PatternEditor size={rule.size} cells={inspector.cells} oncycle={(index) => show(session.cycleCell(index))} />
-            <p class="hint">Tap a cell to cycle any, empty, filled, is and not. The outlined cell is the one being decided.</p>
+            <p class="hint">Tap a square to say what has to be there: anything, nothing, something, only one kind, or anything but one kind. The outlined square is the tile being drawn.</p>
             {#if inspector.values.length > 0}
-              <div class="values" role="radiogroup" aria-label="Value for is and not">
+              <div class="values" role="radiogroup" aria-label="Which kind of tile">
                 {#each inspector.values as value (value.value)}
                   <button
                     type="button"
@@ -121,8 +121,8 @@ function rename(event: Event): void {
               </div>
             {/if}
 
-            <div class="outputs" role="group" aria-label="Outputs">
-              <span class="label">Outputs</span>
+            <div class="outputs" role="group" aria-label="Tiles it draws">
+              <span class="label">Tiles it draws</span>
               {#each inspector.outputs as output, at (at)}
                 <button
                   type="button"
@@ -134,20 +134,20 @@ function rename(event: Event): void {
                 >
               {/each}
               {#if inspector.outputs.length === 0}
-                <span class="hint">No output yet: the rule draws nothing.</span>
+                <span class="hint">No tiles picked yet, so it draws nothing.</span>
               {/if}
             </div>
             {#if selection.tileset !== inspector.tileset}
-              <p class="hint">Show this layer’s tileset to pick its tiles.</p>
+              <p class="hint">Pick this layer’s tiles from its picture.</p>
             {:else}
               <Button disabled={selection.tiles.length === 0} onclick={() => show(session.addOutputs())}
-                >Add selected tiles{selection.tiles.length === 0 ? '' : ` (${selection.tiles.length})`}</Button
+                >Draw the tiles I picked{selection.tiles.length === 0 ? '' : ` (${selection.tiles.length})`}</Button
               >
             {/if}
 
             {#key revision}
               <Stepper
-                label="Chance"
+                label="How often"
                 value={inspector.chance}
                 min={0}
                 max={100}
@@ -157,7 +157,7 @@ function rename(event: Event): void {
                 }}
               />
             {/key}
-            <div class="flags" role="group" aria-label="Flips and break">
+            <div class="flags" role="group" aria-label="More choices">
               {#each flags as flag (flag.key)}
                 <button
                   type="button"
@@ -168,7 +168,7 @@ function rename(event: Event): void {
               {/each}
             </div>
             <Picker
-              label="Outside the level"
+              label="Beyond the edge of the level"
               options={inspector.outsideOptions}
               value={inspector.outside}
               onpick={(choice) => show(session.setOutside(choice))}
@@ -246,7 +246,6 @@ function rename(event: Event): void {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .place,
   .label,
   .hint {
     color: var(--color-text-dim);

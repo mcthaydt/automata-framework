@@ -1,5 +1,6 @@
 // The Tilesets view's editing: tilesets, tags, auto-tile groups and rules. Each edit is one undoable step; a refused
 // edit answers with a sentence for the person.
+
 import type { History } from '../../shared/kit/history/history.ts'
 import {
   addRule,
@@ -22,6 +23,7 @@ import { commitEdit, type FieldCommit } from '../../shared/level-2d/model/field-
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import type { AutoLayerDef, Project, TilesetDef } from '../../shared/level-2d/model/project-types'
 import type { Rule, RuleGroup } from '../../shared/level-2d/tiles/autotile/rule.schema'
+import { FLAG_WORDS } from './rule-words'
 import {
   autoLayersOf,
   type ResolvedSelection,
@@ -76,8 +78,6 @@ export interface TilesetsSessionOptions {
 
 const OK: FieldCommit = { ok: true }
 const refused = (message: string): FieldCommit => ({ ok: false, message })
-
-const FLAG_LABELS = { flipX: 'Flip X', flipY: 'Flip Y', breakOnMatch: 'Break on match' } as const
 
 /** Undefined for a document that is not a level project. */
 export function createTilesetsSession(options: TilesetsSessionOptions): TilesetsSession | undefined {
@@ -170,12 +170,12 @@ export function createTilesetsSession(options: TilesetsSessionOptions): Tilesets
       })
     },
     resize: (size) =>
-      onRule('Resize pattern', (project, layer, rule) => resizeRule(project, layer, rule.id, size)),
+      onRule('Change what it looks at', (project, layer, rule) => resizeRule(project, layer, rule.id, size)),
     setRule(patch) {
       const label =
         patch.active !== undefined
           ? `Turn rule ${patch.active ? 'on' : 'off'}`
-          : FLAG_LABELS[
+          : FLAG_WORDS[
               Object.hasOwn(patch, 'flipX')
                 ? 'flipX'
                 : Object.hasOwn(patch, 'flipY')
@@ -185,23 +185,23 @@ export function createTilesetsSession(options: TilesetsSessionOptions): Tilesets
       return onRule(label, (project, layer, rule) => editRule(project, layer, rule.id, patch))
     },
     setChance: (percent) =>
-      onRule('Set chance', (project, layer, rule) =>
+      onRule('Change how often', (project, layer, rule) =>
         editRule(project, layer, rule.id, { chance: percent / 100 }),
       ),
     setOutside: (choice) =>
-      onRule('Set outside', (project, layer, rule) =>
+      onRule('Change outside the level', (project, layer, rule) =>
         editRule(project, layer, rule.id, { outside: choice === 'same' ? 'same' : Number(choice) }),
       ),
     addOutputs() {
       const { tiles } = current()
-      return onRule('Add outputs', (project, layer, rule) =>
+      return onRule('Add tiles to a rule', (project, layer, rule) =>
         editRule(project, layer, rule.id, {
           tiles: [...rule.tiles, ...tiles.filter((tile) => !rule.tiles.includes(tile))],
         }),
       )
     },
     removeOutput: (at) =>
-      onRule('Remove output', (project, layer, rule) =>
+      onRule('Remove a tile from a rule', (project, layer, rule) =>
         editRule(project, layer, rule.id, { tiles: rule.tiles.filter((_, i) => i !== at) }),
       ),
     addRule() {

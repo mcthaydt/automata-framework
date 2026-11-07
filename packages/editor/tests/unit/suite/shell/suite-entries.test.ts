@@ -4,13 +4,13 @@ import { suiteEntries } from '#src/features/suite/shell/suite-entries.ts'
 // The rail lists what the build has: one entry per registered editor, in the order the page registers them, and
 // Review only when there are change sets to review.
 const tuner = { id: 'tuner', label: 'Tuner' }
-const levels = { id: 'levels-2d', label: 'Levels 2D' }
+const levels = { id: 'levels-2d', label: 'Levels' }
 
 describe('the rail entries', () => {
   it('are the registered editors, in the order the page registers them, each opening itself', () => {
     expect(suiteEntries([tuner, levels], false)).toEqual([
       { id: 'tuner', label: 'Tuner', icon: 'sliders', editors: ['tuner'] },
-      { id: 'levels-2d', label: 'Levels 2D', icon: 'grid', editors: ['levels-2d'] },
+      { id: 'levels-2d', label: 'Levels', icon: 'grid', editors: ['levels-2d'] },
     ])
   })
 

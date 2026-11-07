@@ -209,7 +209,7 @@ describe.each(SIZES)('Ship, Review and Import at $name ($width x $height)', (siz
 
   test('Import: the plan with its diff, and Apply reachable at 48 px', async () => {
     await open(size)
-    button('Import').click()
+    button('Import changes').click()
     await expect.poll(() => document.querySelector('[role="dialog"] textarea')).not.toBeNull()
     const dialog = dialogNamed('Import')
     if (dialog === null) throw new Error('no dialog')

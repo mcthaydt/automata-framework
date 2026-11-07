@@ -63,7 +63,7 @@ describe.each(SIZES)('Suite at $name ($width x $height)', (size) => {
     const conditions = await open(size)
     expect(document.querySelector('[data-editor-shell]')).toHaveAttribute('data-mode', size.mode)
     const all = tabs()
-    expect(all.map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels 2D', 'Review'])
+    expect(all.map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels', 'Review'])
     for (const tab of all) {
       const box = tab.getBoundingClientRect()
       expect(box.width).toBeGreaterThanOrEqual(targets.hit)

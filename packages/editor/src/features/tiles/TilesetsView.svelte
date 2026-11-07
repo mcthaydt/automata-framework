@@ -48,6 +48,8 @@ const wide = $derived(mode === 'wide')
 /** Where the pill with the list and Details floats below `wide`: at the stage's foot on a phone, its top on an iPad. */
 const pillAt = $derived(mode === 'compact' ? 'dock' : 'top')
 const images = $derived(new Set(urls.keys()))
+/** Whether the game has any tiles: only then is there anything for the inspector to edit. */
+const hasTiles = $derived((project?.defs.tilesets.length ?? 0) > 0)
 const tileset = $derived(project?.defs.tilesets.find((set) => set.id === selection?.tileset))
 const preview = $derived(
   project === undefined || selection?.layer === undefined || selection.value === undefined
@@ -82,6 +84,7 @@ onDestroy(() => {
   topbar={frame.topbar}
   bind:panelOpen
   bind:inspectorOpen
+  inspector={hasTiles ? ruleInspector : undefined}
   testId="tilesets-view"
 >
   {#snippet panel()}
@@ -122,22 +125,18 @@ onDestroy(() => {
               onclick={() => (panelOpen = !panelOpen)}
             />
           {/if}
-          <IconButton
-            icon="inspector"
-            label="Details"
-            showLabel
-            aria-expanded={inspectorOpen}
-            onclick={() => (inspectorOpen = !inspectorOpen)}
-          />
+          {#if hasTiles}
+            <IconButton
+              icon="inspector"
+              label="Details"
+              showLabel
+              aria-expanded={inspectorOpen}
+              onclick={() => (inspectorOpen = !inspectorOpen)}
+            />
+          {/if}
         </StagePill>
       {/if}
       </div>
-    {/if}
-  {/snippet}
-
-  {#snippet inspector()}
-    {#if session !== undefined && project !== undefined && selection !== undefined}
-      <RuleInspector {project} {selection} {session} {images} {imageUrl} />
     {/if}
   {/snippet}
 
@@ -153,6 +152,14 @@ onDestroy(() => {
     {/if}
   {/snippet}
 </EditorShell>
+
+<!-- The rules' inspector. It is offered only once the game has tiles: before that there is no rule to choose or add, and
+     an inspector saying so is a panel of nothing (build audit G2). -->
+{#snippet ruleInspector()}
+  {#if session !== undefined && project !== undefined && selection !== undefined}
+    <RuleInspector {project} {selection} {session} {images} {imageUrl} />
+  {/if}
+{/snippet}
 
 <style>
   /* The stage scrolls inside the frame; the pill floats over the frame, so it stays put while the stage scrolls. */

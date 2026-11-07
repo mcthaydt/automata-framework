@@ -111,12 +111,12 @@ describe('SuiteRail', () => {
     const two = suiteEntries(
       [
         { id: 'tuner', label: 'Tuner' },
-        { id: 'levels-2d', label: 'Levels 2D' },
+        { id: 'levels-2d', label: 'Levels' },
       ],
       false,
     )
     render(SuiteRail, { entries: two, current: undefined, orientation: 'vertical', onselect })
-    expect(tabs().map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels 2D'])
+    expect(tabs().map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels'])
     await userEvent.keyboard('{Meta>}2{/Meta}')
     expect(onselect).toHaveBeenLastCalledWith('levels-2d')
     await userEvent.keyboard('{Meta>}1{/Meta}')

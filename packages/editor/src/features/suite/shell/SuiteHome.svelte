@@ -31,8 +31,8 @@ const { home, sample, onopen, onread, oninterchange }: Props = $props()
   {/if}
   <Home title="What do you want to change?" {home} empty="This game has nothing to edit yet." {onopen} {onread}>
     {#snippet actions()}
-      <Button onclick={() => oninterchange('export')}>Export</Button>
-      <Button onclick={() => oninterchange('import')}>Import</Button>
+      <Button title="Copy your game's settings as text, to keep or to share" onclick={() => oninterchange('export')}>Export changes</Button>
+      <Button title="Bring in settings someone sent you as text" onclick={() => oninterchange('import')}>Import changes</Button>
     {/snippet}
   </Home>
 </div>

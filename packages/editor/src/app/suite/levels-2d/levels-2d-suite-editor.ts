@@ -9,7 +9,7 @@ import { type Levels2dOptions, type Levels2dSession, levels2dUndo, openLevels2d 
 export function createLevels2d(options: Levels2dOptions): SuiteEditor<Levels2dSession> {
   return defineSuiteEditor<Levels2dSession>({
     id: 'levels-2d',
-    label: 'Levels 2D',
+    label: 'Levels',
     icon: 'grid',
     hue: 'color/ed/levels',
     open: (files, ports) => openLevels2d(files, ports, options),

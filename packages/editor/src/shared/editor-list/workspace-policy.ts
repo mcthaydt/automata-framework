@@ -64,6 +64,18 @@ export function tilePicturePath(path: string): boolean {
   return /^assets\/[^/]+\.(png|webp|jpe?g)$/i.test(path) && !path.startsWith('assets/.')
 }
 
+/**
+ * Whether `path` is writable only because a level project's Save writes it (its game files and the pictures it
+ * draws), and no row's glob lists it as a file in its own right. Home names the files a person opens and leaves these
+ * out: they are how the game stores a level, not something to choose.
+ */
+export function writtenBySave(list: EditorList, path: string): boolean {
+  if (list.file.some((row) => globMatch(row.glob, path) !== undefined)) return false
+  return list.file.some(
+    (row) => row.exports !== undefined && (exportPathsMatch(row.exports, path) || tilePicturePath(path)),
+  )
+}
+
 /** The first row whose glob matches `path`, with the scene its `{scene}` matched. */
 function firstRow(list: EditorList, path: string): { row: FileRow; scene?: string } | undefined {
   for (const row of list.file) {

@@ -33,10 +33,60 @@ describe('Home (editor suite spec §5 flow 2, §9 suite-home, §11)', () => {
     if (state.kind !== 'cards') throw new Error(state.kind)
     expect(state.cards.map((card) => [card.editor, card.label, card.entry])).toEqual([
       ['tuner', 'Tuner', undefined],
-      ['levels-2d', 'Levels 2D', undefined],
+      ['levels-2d', 'Levels', undefined],
     ])
     expect(state.cards[0]?.files).toEqual([tuning])
     expect(state.cards[1]?.files).toEqual([])
+  })
+
+  // Build audit G6: Home orders the cards as the rail does, and lists a level once, not the game files Save writes.
+  it('puts the cards in the rail order, whatever order the list names them in', () => {
+    const list = `format = "af-editors/1"
+[[file]]
+glob = "content/rooms/*.af2d.json"
+editor = "levels-2d"
+modes = ["edit"]
+exports = "content"
+gates = []
+checks = ["content"]
+[[file]]
+glob = "content/tuning.toml"
+editor = "tuner"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+`
+    const installed = (id: string) => ({ id, label: id, regions: {} }) as never
+    const suite = createSuite({ editors: [installed('tuner'), installed('levels-2d')] })
+    const state = homeOf(loadEditorList(list), new Map(), suite)
+    if (state.kind !== 'cards') throw new Error(state.kind)
+    expect(state.cards.map((card) => card.editor)).toEqual(['tuner', 'levels-2d'])
+  })
+
+  it('lists a level once: not the project, the world and the level files Save writes, or the pictures', () => {
+    const list = `format = "af-editors/1"
+[[file]]
+glob = "content/rooms/*.af2d.json"
+editor = "levels-2d"
+modes = ["edit"]
+exports = "content"
+gates = []
+checks = ["content"]
+`
+    const room = file('content/rooms/room-1.af2d.json', 'levels-2d')
+    const saved = [
+      'content/project.toml',
+      'content/world.toml',
+      'content/levels/room-1.toml',
+      'assets/tiles.png',
+    ]
+    const state = homeOf(
+      loadEditorList(list),
+      new Map([['levels-2d', [room, ...saved.map((path) => file(path, 'levels-2d'))]]]),
+      empty,
+    )
+    if (state.kind !== 'cards') throw new Error(state.kind)
+    expect(state.cards[0]?.files).toEqual([room])
   })
 
   it("lists the Bay game's editors once each", () => {

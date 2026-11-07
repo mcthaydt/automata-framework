@@ -182,3 +182,20 @@ the string still exists; rows whose string phase 18 already removed are under "G
 The audit's rows for the Home subline and actions, the demo's poster and caption, the footer's tagline and links, the
 old Editors page, the FAQ and the targets sentence: phase 18 replaced those strings (the footer is Docs, Examples,
 Reference, Privacy, Terms and Contact; the targets are named by the publish section and the guides).
+
+## Stage 6 grandma fixes (2026-11-07)
+
+| Where | Was | Now | Why |
+|---|---|---|---|
+| Tile rules, row names and cell words | the rule's id (`ground-n-e`), `is 3`, `not 3` | `Ground, joined above and to the right`; `only solid`, `anything but spike` | 4 (ids and numbers) |
+| Tile rule options | `flipX`, `flipY`, `breakOnMatch` | `Mirror left to right`, `Flip upside down`, `Stop after this rule` | 4 |
+| Tile rule inspector | offered with no tiles in the game | only when the game has tiles | 2 (nothing to press) |
+| Suite Home, editor names | `Levels 2D` | `Levels` | 4 |
+| Characters, second section | `Settings for every level`, `None yet`, `Add a level setting` | `Settings every level has`, `No settings yet`, `Add a setting` | 3 |
+| Characters, add button | `Add character` | `Add a character` | 3 |
+| Characters, summaries | monospace | body type | 4 (code look for words) |
+| Colour field | the trigger spelled the hex (`#e0a54a`) | a swatch and `Change`; the hex stays in the Custom field | 4 |
+| Characters, "Only one per level" | a button that looked pressed | a switch | 2 |
+| Map, Arrange levels | a bare choice | `Where your levels sit on the map. Drag a level to move it.` under it | 1 |
+| Map, `Depth` | `Depth` | `Floor` | 4 |
+

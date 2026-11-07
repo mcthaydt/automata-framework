@@ -83,8 +83,8 @@ describe('Entities view: the definition in plain words (grandma audit 5.2)', () 
         .getAllByRole('radio')
         .map((radio) => radio.textContent?.trim()),
     ).toEqual(['Box', 'Circle', 'Dot', 'Picture'])
-    expect(within(inspector()).getByRole('button', { name: 'Only one per level' })).toHaveAttribute(
-      'aria-pressed',
+    expect(within(inspector()).getByRole('switch', { name: 'Only one per level' })).toHaveAttribute(
+      'aria-checked',
       'true',
     )
     const more = within(inspector()).getByText('More').closest('details') as HTMLDetailsElement
@@ -142,7 +142,7 @@ describe('Entities view: the panel and the preview', () => {
 
   it('adds a definition and selects it', async () => {
     const { project } = await mount()
-    await userEvent.click(within(panel()).getByRole('button', { name: 'Add character' }))
+    await userEvent.click(within(panel()).getByRole('button', { name: 'Add a character' }))
     expect(project().defs.entities).toHaveLength(7)
     const def = project().defs.entities[6]
     const added = def?.label ?? def?.id ?? ''

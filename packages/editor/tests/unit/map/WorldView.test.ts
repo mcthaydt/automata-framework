@@ -194,7 +194,7 @@ describe('World view: the inspector', () => {
     await setStepper('X', 1200)
     await setStepper('Y', 64)
     expect(placement(history.state, 'level-2')).toMatchObject({ x: 1200, y: 64 })
-    await setStepper('Depth', 2)
+    await setStepper('Floor', 2)
     expect(placement(history.state, 'level-2')?.depth).toBe(2)
   })
 
