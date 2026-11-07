@@ -28,17 +28,9 @@
       "svelte": "./src/entries/loading.ts",
       "default": "./src/entries/loading.ts"
     },
-    "./pause": {
-      "svelte": "./src/entries/pause.ts",
-      "default": "./src/entries/pause.ts"
-    },
     "./results": {
       "svelte": "./src/entries/results.ts",
       "default": "./src/entries/results.ts"
-    },
-    "./settings": {
-      "svelte": "./src/entries/settings.ts",
-      "default": "./src/entries/settings.ts"
     },
     "./title": {
       "svelte": "./src/entries/title.ts",
@@ -64,20 +56,10 @@
         "svelte": "./dist/entries/loading.js",
         "import": "./dist/entries/loading.js"
       },
-      "./pause": {
-        "types": "./dist/entries/pause.d.ts",
-        "svelte": "./dist/entries/pause.js",
-        "import": "./dist/entries/pause.js"
-      },
       "./results": {
         "types": "./dist/entries/results.d.ts",
         "svelte": "./dist/entries/results.js",
         "import": "./dist/entries/results.js"
-      },
-      "./settings": {
-        "types": "./dist/entries/settings.d.ts",
-        "svelte": "./dist/entries/settings.js",
-        "import": "./dist/entries/settings.js"
       },
       "./title": {
         "types": "./dist/entries/title.d.ts",

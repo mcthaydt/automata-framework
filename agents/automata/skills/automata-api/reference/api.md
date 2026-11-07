@@ -15094,38 +15094,6 @@ const LoadingScreen: import("svelte").Component<Props, {}, "">;
 type LoadingScreen = ReturnType<typeof LoadingScreen>;
 ```
 
-#### `PauseCopy` (interface)
-
-Core's `ScreensCopy['paused']`, the part this screen reads.
-
-```ts
-interface PauseCopy {
-    readonly title: string;
-    readonly resume: string;
-    readonly back: string;
-    readonly mute: string;
-    readonly unmute: string;
-    readonly settings: string;
-    readonly quit: string;
-    readonly quitPrompt: string;
-    readonly quitConfirm: string;
-    readonly cancel: string;
-    readonly reconnect: string;
-}
-```
-
-#### `PauseScreen` (const)
-
-The pause screen: a dialog over the dimmed game with Resume (primary, focused), Mute, Settings and Quit. Quit asks first,
-because the run is lost. Escape (the pad's B, the system back) steps back one level: from the confirm to the menu, from the
-menu to resuming. The words are core's `ScreensCopy['paused']`. A game with a save, a leaderboard or a controller to
-reconnect uses core's default pause for those; this one is the plain version to edit.
-
-```ts
-const PauseScreen: import("svelte").Component<Props, {}, "">;
-type PauseScreen = ReturnType<typeof PauseScreen>;
-```
-
 #### `ResultsAction` (interface)
 
 A button on the results screen's action bar. Mark one `primary`; give each secondary a
@@ -15184,31 +15152,6 @@ const ResultsScreen: import("svelte").Component<Props, {}, "">;
 type ResultsScreen = ReturnType<typeof ResultsScreen>;
 ```
 
-#### `SettingsCopy` (interface)
-
-Core's `ScreensCopy['settings']['screen']`.
-
-```ts
-interface SettingsCopy {
-    readonly title: string;
-    readonly back: string;
-    readonly tabs: string;
-    readonly more: (count: number) => string;
-}
-```
-
-#### `SettingsScreen` (const)
-
-The settings screen: core's SettingsScreen with the game's own tabs, its words taken from core's
-`ScreensCopy['settings']['screen']`. Core's screen is the presentation (the dialog, the tabs, the sections that scroll); the
-sections' wiring (audio, display, controls, language) is the game's state, so a game builds its `tabs` from core's section
-components and adds its own tab or section here without touching core.
-
-```ts
-const SettingsScreen: import("svelte").Component<Props, {}, "">;
-type SettingsScreen = ReturnType<typeof SettingsScreen>;
-```
-
 #### `TitleAction` (interface)
 
 An extra button on the title screen beside Play, such as Settings or Credits. `shortLabel` is
@@ -15260,40 +15203,6 @@ the visible region.
 ```ts
 const LoadingScreen: import("svelte").Component<Props, {}, "">;
 type LoadingScreen = ReturnType<typeof LoadingScreen>;
-```
-
-### `import { … } from '@automata/ui-screens/pause'`
-
-#### `PauseCopy` (interface)
-
-Core's `ScreensCopy['paused']`, the part this screen reads.
-
-```ts
-interface PauseCopy {
-    readonly title: string;
-    readonly resume: string;
-    readonly back: string;
-    readonly mute: string;
-    readonly unmute: string;
-    readonly settings: string;
-    readonly quit: string;
-    readonly quitPrompt: string;
-    readonly quitConfirm: string;
-    readonly cancel: string;
-    readonly reconnect: string;
-}
-```
-
-#### `PauseScreen` (const)
-
-The pause screen: a dialog over the dimmed game with Resume (primary, focused), Mute, Settings and Quit. Quit asks first,
-because the run is lost. Escape (the pad's B, the system back) steps back one level: from the confirm to the menu, from the
-menu to resuming. The words are core's `ScreensCopy['paused']`. A game with a save, a leaderboard or a controller to
-reconnect uses core's default pause for those; this one is the plain version to edit.
-
-```ts
-const PauseScreen: import("svelte").Component<Props, {}, "">;
-type PauseScreen = ReturnType<typeof PauseScreen>;
 ```
 
 ### `import { … } from '@automata/ui-screens/results'`
@@ -15354,33 +15263,6 @@ focus model are core's (`@automata/framework`), so keep using `ScreenFrame`, `Sc
 ```ts
 const ResultsScreen: import("svelte").Component<Props, {}, "">;
 type ResultsScreen = ReturnType<typeof ResultsScreen>;
-```
-
-### `import { … } from '@automata/ui-screens/settings'`
-
-#### `SettingsCopy` (interface)
-
-Core's `ScreensCopy['settings']['screen']`.
-
-```ts
-interface SettingsCopy {
-    readonly title: string;
-    readonly back: string;
-    readonly tabs: string;
-    readonly more: (count: number) => string;
-}
-```
-
-#### `SettingsScreen` (const)
-
-The settings screen: core's SettingsScreen with the game's own tabs, its words taken from core's
-`ScreensCopy['settings']['screen']`. Core's screen is the presentation (the dialog, the tabs, the sections that scroll); the
-sections' wiring (audio, display, controls, language) is the game's state, so a game builds its `tabs` from core's section
-components and adds its own tab or section here without touching core.
-
-```ts
-const SettingsScreen: import("svelte").Component<Props, {}, "">;
-type SettingsScreen = ReturnType<typeof SettingsScreen>;
 ```
 
 ### `import { … } from '@automata/ui-screens/title'`

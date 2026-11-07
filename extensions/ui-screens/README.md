@@ -1,6 +1,7 @@
 # @automata/ui-screens
 
-Six ready-made screens for a game: **Title**, **Pause**, **Settings**, **Results**, **Loading** and **Error**.
+Four ready-made screens for a game: **Title**, **Results**, **Loading** and **Error**. Core already ships the Paused and Settings
+screens, so this package does not repeat them.
 
 ## Add it and use a screen
 
@@ -9,14 +10,17 @@ pnpm add @automata/ui-screens
 ```
 
 ```ts
-import { PauseScreen } from '@automata/ui-screens/pause'
+import { TitleScreen } from '@automata/ui-screens/title'
 import type { ScreensCopy } from '@automata/framework'
 declare const words: ScreensCopy // your game's words, in the player's language
-mount(PauseScreen, { target, props: { copy: words.paused, muted, onResume, onQuit, onSettings, onMute } })
+mount(TitleScreen, {
+  target,
+  props: { title: 'Moss Garden', copy: words.title, onPlay, extra: [{ id: 'credits', label: 'Credits' }], onAction },
+})
 ```
 
-Each screen has its own path: `@automata/ui-screens/title`, `/pause`, `/settings`, `/results`, `/loading` and `/error`. The
-main path, `@automata/ui-screens`, has all six.
+Each screen has its own path: `@automata/ui-screens/title`, `/results`, `/loading` and `/error`. The
+main path, `@automata/ui-screens`, has all four.
 
 ## Change a screen
 
@@ -27,13 +31,15 @@ is.
 ## What is core's, and what is this package's
 
 Core (`@automata/framework`) already ships default Title, Paused and Settings screens, and the parts every screen is built from. A game
-that is happy with the defaults needs nothing from this package. It is for a game that wants these screens:
+that is happy with the defaults needs nothing from this package. Title here is core's with a different set of buttons: Play, then any
+actions the game names (Credits, Help), with no save slots. Results, Loading and Error are this package's only: core has no such screens.
+It is for a game that wants these screens:
 
 | Core keeps | This package gives you |
 |---|---|
 | The geometry (safe area, host strip, keyboard), 44 px and 48 px targets, the focus model, `ScreenFrame`, `ActionBar`, `Modal`, `ScrollList`, `ErrorPanel`, `LoaderOverlay`, `SettingsScreen` | The layout of each screen, the order and set of its actions, its copy slots, where it sits in your flow |
 | The words' types (`ScreensCopy`) and the default English | Screens that take those words as props |
-| Save slots, the leaderboard and the changed-elsewhere step on Title and Pause | Nothing: use core's default screens for those, or copy them from core |
+| Save slots on Title; the leaderboard, saves and reconnect step on Paused; every setting | Nothing: use core's default Title, Paused and Settings screens for those |
 
 Keep using the core parts. A screen that draws its own buttons or frame loses the layout guarantees below.
 

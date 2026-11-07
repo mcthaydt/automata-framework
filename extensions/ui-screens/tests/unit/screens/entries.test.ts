@@ -3,14 +3,12 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-// The package is imported, not copied: each screen has its own entry, `.` has all six, and nothing says to run a
+// The package is imported, not copied: each screen has its own entry, `.` has all four, and nothing says to run a
 // command that copies files into a game.
 
 const ROOT = dirname(dirname(dirname(dirname(fileURLToPath(import.meta.url)))))
 const SCREENS = [
   ['title', 'TitleScreen'],
-  ['pause', 'PauseScreen'],
-  ['settings', 'SettingsScreen'],
   ['results', 'ResultsScreen'],
   ['loading', 'LoadingScreen'],
   ['error', 'ErrorScreen'],

@@ -1293,14 +1293,10 @@
 
 - `ErrorScreen` (const): The error screen: core's ErrorPanel on core's ScreenFrame (the frame gives Back its place).
 - `LoadingScreen` (const): The loading screen: the game's title on core's ScreenFrame with core's LoaderOverlay over it.
-- `PauseCopy` (interface): Core's `ScreensCopy['paused']`, the part this screen reads.
-- `PauseScreen` (const): The pause screen: a dialog over the dimmed game with Resume (primary, focused), Mute, Settings and Quit.
 - `ResultsAction` (interface): A button on the results screen's action bar.
 - `ResultsCopy` (interface): The words this screen adds to the game's own: the rows' region name, the empty line and the "+N more" label.
 - `ResultsRow` (interface): One line of the results list: a label and its value, with an optional detail line under it.
 - `ResultsScreen` (const): The results screen: a title, the rows a game wants to show and one to three actions, on core's ScreenFrame.
-- `SettingsCopy` (interface): Core's `ScreensCopy['settings']['screen']`.
-- `SettingsScreen` (const): The settings screen: core's SettingsScreen with the game's own tabs, its words taken from core's `ScreensCopy['settings']['screen']`.
 - `TitleAction` (interface): An extra button on the title screen beside Play, such as Settings or Credits.
 - `TitleScreen` (const): The title screen: the game's name, one primary Play and any further actions the game adds (Settings, Credits), on core's ScreenFrame and ActionBar.
 
@@ -1312,22 +1308,12 @@
 
 - `LoadingScreen` (const): The loading screen: the game's title on core's ScreenFrame with core's LoaderOverlay over it.
 
-### `import { … } from '@automata/ui-screens/pause'`
-
-- `PauseCopy` (interface): Core's `ScreensCopy['paused']`, the part this screen reads.
-- `PauseScreen` (const): The pause screen: a dialog over the dimmed game with Resume (primary, focused), Mute, Settings and Quit.
-
 ### `import { … } from '@automata/ui-screens/results'`
 
 - `ResultsAction` (interface): A button on the results screen's action bar.
 - `ResultsCopy` (interface): The words this screen adds to the game's own: the rows' region name, the empty line and the "+N more" label.
 - `ResultsRow` (interface): One line of the results list: a label and its value, with an optional detail line under it.
 - `ResultsScreen` (const): The results screen: a title, the rows a game wants to show and one to three actions, on core's ScreenFrame.
-
-### `import { … } from '@automata/ui-screens/settings'`
-
-- `SettingsCopy` (interface): Core's `ScreensCopy['settings']['screen']`.
-- `SettingsScreen` (const): The settings screen: core's SettingsScreen with the game's own tabs, its words taken from core's `ScreensCopy['settings']['screen']`.
 
 ### `import { … } from '@automata/ui-screens/title'`
 

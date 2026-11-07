@@ -7,14 +7,11 @@ import {
   settleLayout,
   VARIANTS,
 } from '@automata/framework/testing'
-import { createRawSnippet } from 'svelte'
 import { expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import ErrorScreen from '#src/features/error/ErrorScreen.svelte'
 import LoadingScreen from '#src/features/loading/LoadingScreen.svelte'
-import PauseScreen from '#src/features/pause/PauseScreen.svelte'
 import ResultsScreen from '#src/features/results/ResultsScreen.svelte'
-import SettingsScreen from '#src/features/settings/SettingsScreen.svelte'
 import TitleScreen from '#src/features/title/TitleScreen.svelte'
 
 // The images the coordinator opens for a person to look at. They are written only
@@ -22,24 +19,6 @@ import TitleScreen from '#src/features/title/TitleScreen.svelte'
 const OUT: string | undefined = import.meta.env.VITE_REVIEW_IMAGES
 const SIZES = ['iphone-14', 'galaxy-chrome-landscape', 'desktop-720p']
 const nothing = (): void => {}
-const section = (line: string, button: string) => ({
-  snippet: createRawSnippet(() => ({
-    render: () => `<div><p>${line}</p><button type="button" class="af-control">${button}</button></div>`,
-  })),
-})
-const PAUSE = {
-  title: 'Paused',
-  resume: 'Resume',
-  back: 'Back',
-  mute: 'Mute',
-  unmute: 'Unmute',
-  settings: 'Settings',
-  quit: 'Quit to title',
-  quitPrompt: 'Quit?',
-  quitConfirm: 'Quit',
-  cancel: 'Cancel',
-  reconnect: 'Reconnect your controller',
-}
 const SCREENS = {
   title: () =>
     mountFixture(TitleScreen, {
@@ -51,28 +30,6 @@ const SCREENS = {
         { id: 'credits', label: 'Credits', shortLabel: 'Info' },
       ],
       onAction: nothing,
-    }),
-  pause: () =>
-    mountFixture(PauseScreen, {
-      copy: PAUSE,
-      muted: false,
-      onResume: nothing,
-      onQuit: nothing,
-      onSettings: nothing,
-      onMute: nothing,
-    }),
-  settings: () =>
-    mountFixture(SettingsScreen, {
-      copy: { title: 'Settings', back: 'Back', tabs: 'Settings tabs', more: (n: number) => `+${n} more` },
-      tabs: [
-        {
-          id: 'settings',
-          label: 'Settings',
-          sections: [section('Volume', 'Louder'), section('Brightness', 'Brighter')],
-        },
-        { id: 'controls', label: 'Controls', sections: [section('Rebind keys', 'Rebind')] },
-      ],
-      onBack: nothing,
     }),
   results: () =>
     mountFixture(ResultsScreen, {
@@ -121,7 +78,7 @@ test.skipIf(OUT === undefined)('writes the review images', async () => {
       publishConditions(document.documentElement, size, rest)
       const fixture = show()
       await settleLayout()
-      if (name === 'pause') expect(byTestId('resume')).toBeTruthy()
+      if (name === 'title') expect(byTestId('play')).toBeTruthy()
       await page.screenshot({ path: `${OUT}/${name}-${sizeName}.png` })
       await fixture.unmount()
     }
