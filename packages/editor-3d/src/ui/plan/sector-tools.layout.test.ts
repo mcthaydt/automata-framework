@@ -69,15 +69,47 @@ function penTap(x: number, y: number): void {
     )
 }
 
-/** Three corners above the framed level (the fit leaves a band there), clear of the toolbar and the actions. */
-function margin(): readonly (readonly [number, number])[] {
+/** A Pencil hovering a point of the plan: the world point the status line then names, and the zoom. */
+async function probe(x: number, y: number): Promise<{ wx: number; wz: number; perMetre: number }> {
+  const box = plan().getBoundingClientRect()
+  plan().dispatchEvent(
+    new PointerEvent('pointermove', {
+      bubbles: true,
+      pointerId: 2,
+      pointerType: 'pen',
+      isPrimary: true,
+      clientX: box.left + x,
+      clientY: box.top + y,
+    }),
+  )
+  await arrived()
+  const text = document.querySelector('[data-widget="status-line"]')?.textContent ?? ''
+  const match = /x (-?[\d.]+) m · z (-?[\d.]+) m · (\d+) px per metre/.exec(text.replace('−', '-'))
+  if (match === null) throw new Error(`no position in the status line: ${text}`)
+  return { wx: Number(match[1]), wz: Number(match[2]), perMetre: Number(match[3]) }
+}
+
+/**
+ * Three corners above the framed level (the fit leaves a band there), clear of the toolbar and the actions. The first
+ * sits exactly on a whole metre: a tap snaps to the grid, and the closing tap must land within a Pencil's reach of the
+ * corner that snapping made, which a point a half cell away does not at the highest zoom a size gets. The others are
+ * far enough apart to stay three corners at the lowest zoom (about 59 px per metre on an iPad mini held wide), and the third
+ * goes up, away from the level, so the room never overlaps it.
+ */
+async function margin(): Promise<readonly (readonly [number, number])[]> {
   const { width, height } = plan().getBoundingClientRect()
   const x = Math.round(width * 0.3)
   const y = Math.max(84, Math.round(height * 0.12))
+  const here = await probe(x, y)
+  const there = await probe(x + 20, y + 20)
+  const sx = Math.sign(there.wx - here.wx) || 1
+  const sz = Math.sign(there.wz - here.wz) || 1
+  const fx = Math.round(x + (Math.round(here.wx) - here.wx) * here.perMetre * sx)
+  const fy = Math.round(y + (Math.round(here.wz) - here.wz) * here.perMetre * sz)
   return [
-    [x, y],
-    [x + 24, y],
-    [x + 24, y + 20],
+    [fx, fy],
+    [fx + 72, fy],
+    [fx + 72, fy - 40],
   ]
 }
 
@@ -105,7 +137,7 @@ describe.each(SIZES)('the Plan tools at $name ($width x $height)', (size) => {
       'Merge',
     ])
     expect(checkLayout(conditions, radios)).toEqual([])
-    const [first, second] = margin()
+    const [first, second] = await margin()
     penTap(...(first as [number, number]))
     penTap(...(second as [number, number]))
     await arrived()
@@ -121,7 +153,7 @@ describe.each(SIZES)('the Plan tools at $name ($width x $height)', (size) => {
       await openDepot(size)
       railButton('Sector').click()
       await arrived()
-      const corners = margin()
+      const corners = await margin()
       for (const [x, y] of corners) penTap(x, y)
       const [x0, y0] = corners[0] as [number, number]
       penTap(x0, y0)

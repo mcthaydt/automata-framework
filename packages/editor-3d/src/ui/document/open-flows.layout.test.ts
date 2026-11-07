@@ -106,7 +106,7 @@ describe.each(SIZES)('3D open flows at $name ($width x $height)', (size) => {
       48,
     )
     if (size.width >= 700) expect(panel.getBoundingClientRect().width, 'the wide dialog').toBeGreaterThan(600)
-    const rows = panel.querySelector<HTMLElement>('[data-scroll-region]') as HTMLElement
+    const rows = panel.querySelector<HTMLElement>('ul[data-scroll-region]') as HTMLElement
     expect(rows.querySelectorAll('li').length).toBe(40)
     expect(getComputedStyle(rows).overflowY).toBe('auto')
     expect(rows.scrollHeight, 'the list scrolls inside the panel').toBeGreaterThan(rows.clientHeight)
