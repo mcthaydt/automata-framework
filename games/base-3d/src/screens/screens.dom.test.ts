@@ -153,7 +153,7 @@ describe("base-3d's flow", () => {
    * nothing was written comes after it.
    */
   async function closeGame(): Promise<void> {
-    await Effect.runPromise(host.control.close)
+    await host.control.close()
     await handle?.shutdown()
     handle = undefined
     for (let turn = 0; turn < 20; turn++) await new Promise((resolve) => setTimeout(resolve, 0))

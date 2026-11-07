@@ -2043,6 +2043,8 @@ interface HostingSaves {
 ```ts
 interface HostingSeams {
     readonly env?: SdkEnv;
+    readonly clock?: Clock;
+    readonly signal?: AbortSignal;
 }
 ```
 
@@ -4864,16 +4866,22 @@ function wrapPage(index: number, count: number): number;
 
 ## `./target`
 
-### `HostingLive` (function)
+### `createHosting` (function)
 
 ```ts
-function HostingLive(options: HostingOptions, seams?: unknown): Layer.Layer<Hosting, HostError>;
+function createHosting(options: HostingOptions, _seams?: unknown): Promise<HostResult<Hosting>>;
 ```
 
-### `makeHosting` (function)
+### `HostingLive` (const)
 
 ```ts
-function makeHosting(options: HostingOptions, _seams?: unknown): Effect.Effect<Hosting, HostError, Scope.Scope>;
+const HostingLive: HostingLayer<unknown>;
+```
+
+### `makeHosting` (const)
+
+```ts
+const makeHosting: MakeHosting<unknown>;
 ```
 
 ## `./extension`
@@ -4969,7 +4977,7 @@ interface Conditions {
 ### `describeHostingContract` (function)
 
 ```ts
-function describeHostingContract(name: string, layer: HostingLayer, settled: Settle): void;
+function describeHostingContract(name: string, create: HostingFactory, settled: Settle): void;
 ```
 
 ### `documentScrolls` (function)
@@ -5109,7 +5117,7 @@ interface FakeHostControl {
     })[];
     readonly submits: readonly Submission[];
     requestMenu(): boolean;
-    readonly close: Effect.Effect<void>;
+    close(): Promise<void>;
 }
 const FakeHostControl: Context.Tag<FakeHostControl, FakeHostControl>;
 ```
@@ -5117,7 +5125,7 @@ const FakeHostControl: Context.Tag<FakeHostControl, FakeHostControl>;
 ### `FakeHosting` (function)
 
 ```ts
-function FakeHosting(options?: FakeHostingOptions, hosting?: HostingOptions): Layer.Layer<Hosting | FakeHostControl, HostError>;
+function FakeHosting(options?: FakeHostingOptions, hosting?: HostingOptions): Layer.Layer<EffectHosting | FakeHostControl, HostError>;
 ```
 
 ### `fakeHosting` (function)
@@ -5125,7 +5133,8 @@ function FakeHosting(options?: FakeHostingOptions, hosting?: HostingOptions): La
 ```ts
 function fakeHosting(options?: FakeHostingOptions): {
     readonly control: FakeHostControl;
-    make(hosting: HostingOptions): Effect.Effect<Hosting, HostError, Scope.Scope>;
+    create(hosting: HostingOptions, clock?: Clock): Hosting;
+    make(hosting: HostingOptions): Effect.Effect<EffectHosting, never, Scope.Scope>;
 };
 ```
 
@@ -5280,10 +5289,10 @@ function hostDisplay(options?: {
 }): DisplayMetricsPayload;
 ```
 
-### `HostingLayer` (type)
+### `HostingFactory` (type)
 
 ```ts
-type HostingLayer = () => Layer.Layer<Hosting, HostError>;
+type HostingFactory = () => Hosting | Promise<Hosting>;
 ```
 
 ### `installFakeResizeObserver` (function)
@@ -5434,7 +5443,7 @@ interface RuntimeTestOptions {
 ### `Settle` (type)
 
 ```ts
-type Settle = Effect.Effect<void>;
+type Settle = () => Promise<void>;
 ```
 
 ### `settleLayout` (function)

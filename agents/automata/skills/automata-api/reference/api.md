@@ -3129,6 +3129,13 @@ Test seams. Games pass nothing; `HostingTest` passes the fake host's in-memory w
 ```ts
 interface HostingSeams {
     readonly env?: SdkEnv;
+    /** The clock AF's own timing (the exit cap) runs on; a test passes `fakeClock()`. */
+    readonly clock?: Clock;
+    /**
+     * Gives up waiting for the handshake. Inside a frame that is not Ruken's the SDK waits up to 10 s for a welcome;
+     * boot may stop sooner. A session that arrives after the abort is disposed at once instead of leaking.
+     */
+    readonly signal?: AbortSignal;
 }
 ```
 
@@ -7424,12 +7431,12 @@ interface Conditions {
 
 #### `describeHostingContract` (function)
 
-Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`. `layer` builds a fresh
-`Hosting` for each case, with `saves` granted; `settled` lets the host answer and forked stream readers subscribe
-(for example one macrotask). Every target's adapter and `FakeHosting` pass these cases (DIST spec §7).
+Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`. `create` builds a fresh
+`Hosting` for each case, with `saves` granted; `settled` lets the host answer (for example one macrotask). Every
+target's adapter and `FakeHosting` pass these cases (DIST spec §7). Each case disposes its `Hosting`.
 
 ```ts
-function describeHostingContract(name: string, layer: HostingLayer, settled: Settle): void;
+function describeHostingContract(name: string, create: HostingFactory, settled: Settle): void;
 ```
 
 #### `documentScrolls` (function)
@@ -7616,30 +7623,33 @@ interface FakeHostControl {
     readonly submits: readonly Submission[];
     /** The host's "Open game menu": the latest handler's answer, or false before `ready` or with none. */
     requestMenu(): boolean;
-    /** The host closes the game: the exiting handlers in order, then the save flush, all within `HOST_EXIT_CAP`. */
-    readonly close: Effect.Effect<void>;
+    /** The host closes the game: the exiting handlers in order, then the save flush, all within `HOST_EXIT_CAP_MS`. */
+    close(): Promise<void>;
 }
 const FakeHostControl: Context.Tag<FakeHostControl, FakeHostControl>;
 ```
 
 #### `FakeHosting` (function)
 
-The fake host as a layer: `Hosting` for the game (built from `hosting`, default a game that wants saves) and
-`FakeHostControl` for the test. Both are released when the layer's scope closes.
+The fake host as an Effect layer, for the runtime's tests until task 5.4 converts them: `Hosting` for the game
+(built from `hosting`, default a game that wants saves) and `FakeHostControl` for the test. Both are released when
+the layer's scope closes.
 
 ```ts
-function FakeHosting(options?: FakeHostingOptions, hosting?: HostingOptions): Layer.Layer<Hosting | FakeHostControl, HostError>;
+function FakeHosting(options?: FakeHostingOptions, hosting?: HostingOptions): Layer.Layer<EffectHosting | FakeHostControl, HostError>;
 ```
 
 #### `fakeHosting` (function)
 
-A fake host and the control handle that drives it. `make` builds the game's `Hosting` in a scope; closing the
-scope shuts it down (later calls fail `CANCELLED`, every stream ends).
+A fake host and the control handle that drives it. `create` builds the game's `Hosting`; `dispose()` shuts it down
+(later calls are refused `CANCELLED`, every subscription stops). `clock` times the exit cap.
 
 ```ts
 function fakeHosting(options?: FakeHostingOptions): {
     readonly control: FakeHostControl;
-    make(hosting: HostingOptions): Effect.Effect<Hosting, HostError, Scope.Scope>;
+    create(hosting: HostingOptions, clock?: Clock): Hosting;
+    /** TEMPORARY (until task 5.4): `create` as the Effect the runtime's `seams.hosting` still takes. */
+    make(hosting: HostingOptions): Effect.Effect<EffectHosting, never, Scope.Scope>;
 };
 ```
 
@@ -7856,12 +7866,12 @@ function hostDisplay(options?: {
 }): DisplayMetricsPayload;
 ```
 
-#### `HostingLayer` (type)
+#### `HostingFactory` (type)
 
-An adapter under test: a fresh layer per case, with `saves` granted.
+An adapter under test: a fresh `Hosting` per case, with `saves` granted.
 
 ```ts
-type HostingLayer = () => Layer.Layer<Hosting, HostError>;
+type HostingFactory = () => Hosting | Promise<Hosting>;
 ```
 
 #### `installFakeResizeObserver` (function)
@@ -8066,10 +8076,10 @@ interface RuntimeTestOptions {
 
 #### `Settle` (type)
 
-Lets the fake Ruken host answer over its in-memory ports, and forked stream readers subscribe.
+Lets the fake Ruken host answer over its in-memory ports (for example one macrotask).
 
 ```ts
-type Settle = Effect.Effect<void>;
+type Settle = () => Promise<void>;
 ```
 
 #### `settleLayout` (function)

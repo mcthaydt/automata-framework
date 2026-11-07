@@ -455,9 +455,10 @@ in step 2.
   package; their names do not change). `testing/src/sim` becomes `@mcthaydt/automata-sim/testing` (and
   `./testing/commands`, `./testing/property`); `vitest` becomes an optional peer of `automata-sim`; the sim purity
   check skips `packages/sim/src/testing/` (spec section 3.2).
-- [ ] **Step 3:** `pnpm boundaries --features packages/{sim,content,tools}` passes; `--browser packages/content`
-  checks the five browser-safe entries (`game-config`, `locale`, `assets`, `schema`, `palette`) reach no `effect`,
-  `node:*`, `fontkit`, `pngjs` or `subset-font`.
+- [x] **Step 3** (2026-11-05): `pnpm boundaries --features packages/{sim,content,tools}` passes; `--browser
+  packages/content:game-config,locale` checks the two browser-safe entries reach no `effect`, `node:*`, `fontkit`,
+  `pngjs` or `subset-font` (0 findings in 10 files). `assets` is Node-only, so it is not on the list (deviation 54);
+  `schema` and `palette` are not entries, only files behind `game-config` and the root.
 - [ ] **Step 4:** Every game's scripts use `automata ship prepare`. `pnpm check`, browser, journeys, 3D and editors
   pass. Changesets, API reports. Open the PR, green, merge. **After this task, `packages/` holds `sim`, `content`,
   `automata`, `tools` and the 3D and editor packages, nothing else.** `tools` is published (spec veto default 8),
@@ -483,20 +484,23 @@ in step 2.
 **Files:** Create `packages/automata/src/shared/lib/{clock,disposables,result,subscribable}.ts`,
 `packages/automata/src/testing/fake-clock.ts`, tests in `packages/automata/tests/unit/lib/`
 
-- [ ] **Step 1: Failing tests:** `disposables()` runs added functions once, in reverse order, and a throwing one
+- [x] **Step 1: Failing tests:** `disposables()` runs added functions once, in reverse order, and a throwing one
   does not stop the rest (the first error is rethrown after all ran); `fakeClock()` advances time and fires due
   timeouts in order; `Result` is `{ ok: true, value } | { ok: false, reason }` with `ok()`/`refused()` helpers;
   `subscribable(get, listen)` gives the current value then each change to a subscriber, loses no change made between
   `listen` and the first read (the guarantee `host/src/subscribable.ts` documents today), and stops on unsubscribe.
-- [ ] **Step 2:** Implement, each file under 60 lines with a header comment saying which Effect idea it replaces
+- [x] **Step 2:** Implement, each file under 60 lines with a header comment saying which Effect idea it replaces
   and why it is enough here. Pass. Commit.
 
 ### Task 5.3: Host contract and targets (same PR)
 
-- [ ] Convert `shared/host/` and `features/targets/` (today's 13 Effect files in `host`, Tauri included). For each file: rewrite its
-  test to plain promises and `Result` first (failing), then the code. The contract suite (`testing/host`) runs
-  against every target and passes. `pnpm boundaries --browser packages/automata` shows the host files gone from its
-  list. Commit per target. Amend ADR 0003 in this PR. Open the PR, green, merge.
+- [x] **Adapters, contract suite, fake host, ADR** (2026-11-05): the web, Ruken and Tauri adapters, the exit and menu
+  handlers, `FakeHosting`, `HostingTest` and the contract suite are plain, with their tests rewritten first
+  (promises, `HostResult`, `fakeClock`); the contract suite runs against all three adapters and the fake host for
+  each of the four targets. ADR 0003 is amended.
+- [ ] **Still open, moved to 5.4 (deviation 55):** the Effect `Hosting` tag and `HostError` in `shared/host/` stay as
+  a temporary bridge (`effect-bridge.ts`) so the Effect runtime keeps working until its features convert; 5.4 deletes
+  the bridge, `hosting.ts` and `errors.ts`, and `--browser packages/automata` then passes.
 
 ### Task 5.4: Runtime features and the app (PR `claude/refactor-2d-no-effect-2`)
 
@@ -877,3 +881,14 @@ the features it lacks are journeyed on the one-file examples that show them:
   (`effect`, `node:*`); the fix is to split the browser-safe reads from the Node compile in those two entries. Not run here: the browser projects, Emberwick's journeys, the 3D and
   editor suites (unit tests of the 3D and editor packages ran in the turbo pass; see progress.md), WebKit and Firefox,
   `test:dist`. Hosted CI has no runners.
+- **Tasks 4.4 step 3 and 5.2 to 5.3, fourth session, 2026-11-05 (stacked on #393).** Deviations: (54) `game-config` and
+  `locale` were already browser-safe (the 21 findings were `assets`), so no split: `assets` leaves the `--browser` list and the root
+  `boundaries` line checks `game-config,locale`; the spec's content row says `assets` is Node-only. Browser and journey suites
+  ran here in Chromium and pass: 3 browser test files and 25 of 25 Emberwick journeys (1m40s). WebKit and Firefox are not
+  installable here. (55) Phase 5 splits. 5.2 (plain helpers) and 5.3 (plain host contract, web, Ruken and Tauri adapters,
+  contract suite, fake host, each taking a `Clock` and `AbortSignal`) are done; the Effect runtime still consumes the old
+  `Hosting` tag, so `shared/host/effect-bridge.ts` adapts the plain host to it and `plain-hosting.ts`/`plain-errors.ts` keep
+  temporary names. Deleting the bridge, `hosting.ts` and `errors.ts` is part of 5.4, which is large (about 25 test files build
+  `makePresentationBus` as an Effect), so it runs after phases 6 to 8 in its own PR. ADR 0003 is amended
+  (Effect leaves the browser). Unit tests: automata 1,922; one tools test (`workflows.test.ts`, a regex that read `}, 10)` as a
+  test timeout) failed on new tests and the tests were reshaped.
