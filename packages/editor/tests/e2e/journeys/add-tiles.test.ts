@@ -13,7 +13,13 @@ test('a picture of tiles added in the editor is on disk after Save, and the chec
   editor,
 }) => {
   await openRoom(page, editor)
-  await page.getByRole('radio', { name: 'Tiles' }).click()
+  // The views are tabs from an iPad up; on a phone they are one menu button named after the open view.
+  const tabs = page.getByRole('radio', { name: 'Tiles' })
+  if (await tabs.count()) await tabs.click()
+  else {
+    await page.getByRole('button', { name: 'Level', exact: true }).click()
+    await page.getByRole('menuitem', { name: 'Tiles' }).click()
+  }
   await page.getByRole('button', { name: 'Add tiles' }).first().click()
 
   const dialog = page.getByRole('dialog', { name: 'Add tiles' })

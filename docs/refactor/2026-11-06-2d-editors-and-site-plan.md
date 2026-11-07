@@ -96,18 +96,18 @@ the task.
   `test:browser` puts them under ci.yml's parity job, which already installs all three engines.
 - Test: `tooling/repo-hygiene/tests/unit/gate-scripts.test.ts` (create)
 
-- [ ] **Step 1: Write the failing test.** It reads the root `package.json` and asserts: `test:unit:2d` has no filter
+- [x] **Step 1: Write the failing test.** It reads the root `package.json` and asserts: `test:unit:2d` has no filter
   that excludes `editor-kit` or `editor-2d`, excludes `./packages/editor-3d` and `./packages/editor-suite` (it holds 3D
   until phase 8), and `check` calls `test:unit:2d`. Run `pnpm --filter @mcthaydt/repo-hygiene exec vitest run
   tests/unit/gate-scripts.test.ts` → fails on the old script name.
-- [ ] **Step 2: Rename and re-filter the scripts.** `--filter='!./packages/editor-3d' --filter='!./packages/editor-suite'`
+- [x] **Step 2: Rename and re-filter the scripts.** `--filter='!./packages/editor-3d' --filter='!./packages/editor-suite'`
   in place of `--filter='!./packages/editor-*'`; the `:3d` scripts filter `./packages/editor-3d` and
   `./packages/editor-suite`. Update every caller (`grep -rn "unit:core\|browser:core" .github package.json docs AGENTS.md`).
-- [ ] **Step 3: Run the new gate.** `pnpm check` → passes, now including `editor-kit` (1,373) and `editor-2d` (1,552)
+- [x] **Step 3: Run the new gate.** `pnpm check` → passes, now including `editor-kit` (1,373) and `editor-2d` (1,552)
   unit and DOM tests; record the counts. `pnpm test:browser:2d` in Chromium (set `--browser.instances` through the
   preset's `AF_BROWSERS=chromium` if the editor configs honour it; otherwise a throwaway config, deleted after) → the
   editor's layout and canvas pass (252 + 6 skipped, the audit's numbers). WebKit and Firefox: the Owner's `ci:local`.
-- [ ] **Step 4: Commit.** `ci(gate): run the 2D editors' tests in the 2D gate`
+- [x] **Step 4: Commit.** `ci(gate): run the 2D editors' tests in the 2D gate`
 
 ### Task 1.2: One workflow per dimension
 
@@ -116,12 +116,12 @@ the task.
 - Modify: `3d.yml` (paths and job names: `editor-3d`, `editor-suite`, `render-pixi3d`, `figures`, `sector-format`,
   `base-3d`, the 3D examples), `ci.yml` (its header comment), `docs/status.md`
 
-- [ ] **Step 1:** Rename the workflow and drop `editor-kit` and `editor-2d` from its jobs; keep `packages/**` in its
+- [x] **Step 1:** Rename the workflow and drop `editor-kit` and `editor-2d` from its jobs; keep `packages/**` in its
   paths (a core change can break 3D) but name the 2D editor folders in nothing. Its `pnpm test:journeys` becomes
   `pnpm test:journeys:3d` (filtered like the other `:3d` scripts), or the 2D editors' journeys would run twice.
-- [ ] **Step 2:** `pnpm lint:actions` needs Docker: if it is not available, run `node -e` YAML parse on both files and
+- [x] **Step 2:** `pnpm lint:actions` needs Docker: if it is not available, run `node -e` YAML parse on both files and
   note "actionlint: the Owner's" in the execution log.
-- [ ] **Step 3: Commit.** `ci: the 3D workflow holds only 3D; the 2D editors are in the 2D gate`
+- [x] **Step 3: Commit.** `ci: the 3D workflow holds only 3D; the 2D editors are in the 2D gate`
 
 ---
 
@@ -139,15 +139,15 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
 - Test: `tooling/consumer-smoke/tests/unit/stranger.test.ts` (the overrides block it writes, the temp folder is outside
   the workspace: no `pnpm-workspace.yaml` above it)
 
-- [ ] **Step 1: Unit tests first** for the two pieces of logic: `packOverrides(packs)` returns a `pnpm.overrides`
+- [x] **Step 1: Unit tests first** for the two pieces of logic: `packOverrides(packs)` returns a `pnpm.overrides`
   object naming each pack by absolute `file:` path; `strangerFolder()` makes a folder under `os.tmpdir()` and refuses one
   inside a workspace. Run → fail (no file). Implement → pass.
-- [ ] **Step 2: The journey.** The six steps of spec 16.1, each a `test.step` with a plain name ("make a game", "install
+- [x] **Step 2: The journey.** The six steps of spec 16.1, each a `test.step` with a plain name ("make a game", "install
   it", "check it", "test it", "play it in a browser", "make the itch.io zip"), each command's output attached on
   failure.
-- [ ] **Step 3: See it fail for the right reason.** Run in Chromium → fails at "install it" with "Failed to resolve
+- [x] **Step 3: See it fail for the right reason.** Run in Chromium → fails at "install it" with "Failed to resolve
   @mcthaydt/automata-tools@workspace:*" (N1). Record the first-attempt output in the execution log.
-- [ ] **Step 4: Commit** (the PR stays red until 2.4). `test(create-game): a stranger's journey from an empty folder to an itch.io zip`
+- [x] **Step 4: Commit** (the PR stays red until 2.4). `test(create-game): a stranger's journey from an empty folder to an itch.io zip`
 
 ### Task 2.2: A new game installs
 
@@ -157,11 +157,11 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
   `--link-workspace`, no hand-made links), `docs/guides/publish-to-ruken.md` (no `@ruken/sdk` line)
 - Test: `packages/tools/tests/unit/shared/create-game/{create-game.test.ts,create-game-targets.test.ts}`
 
-- [ ] **Step 1: Failing tests.** The written `package.json` asks for `^<running -tools version>` for each AF package;
+- [x] **Step 1: Failing tests.** The written `package.json` asks for `^<running -tools version>` for each AF package;
   `--link-workspace` writes `workspace:*`; no target adds `@ruken/sdk`; with no `--targets` the game's targets are `web`
   and `itch`; `--targets web,itch,tauri,ruken` still works.
-- [ ] **Step 2:** Implement. The version comes from `-tools`' own `package.json` (read once at start).
-- [ ] **Step 3:** The journey passes "install it" and fails at "check it" (N3). Commit.
+- [x] **Step 2:** Implement. The version comes from `-tools`' own `package.json` (read once at start).
+- [x] **Step 3:** The journey passes "install it" and fails at "check it" (N3). Commit.
   `fix(create-game): a new game installs outside the repository, with web and itch by default`
 
 ### Task 2.3: A new game passes its own check, in the feature layout
@@ -173,14 +173,14 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
   `@mcthaydt/automata-check-boundaries`), `packages/tools/package.json`
 - Test: `packages/tools/tests/unit/shared/create-game/template.test.ts`, `packages/tools/tests/unit/shared/check/check-steps.test.ts`
 
-- [ ] **Step 1: Failing tests.** The template writes `src/app/game.ts`, `src/features/square/{square.component.ts,
+- [x] **Step 1: Failing tests.** The template writes `src/app/game.ts`, `src/features/square/{square.component.ts,
   move.command.ts,move.system.ts,square.plugin.ts}`, `src/shared/`, `main.ts`, `tests/unit/square/square-move.test.ts`,
   `vitest` in devDependencies and `test` and `check` scripts; `ship.config.ts` declares `gamepad` with the pad bindings;
   `automata check` refuses a `src/sim/` layout with "Put game code in src/features/<name>/ (see the guide)." and accepts
   role files only under `games/base-3d`.
-- [ ] **Step 2:** Implement. The template's test runs in the repository too (`pnpm --filter` on a generated fixture in
+- [x] **Step 2:** Implement. The template's test runs in the repository too (`pnpm --filter` on a generated fixture in
   `tests/fixtures/new-game/`, regenerated by a script and compared, so it cannot drift).
-- [ ] **Step 3:** The journey passes "check it" and "test it". Commit.
+- [x] **Step 3:** The journey passes "check it" and "test it". Commit.
   `feat(create-game): a new game has a test, passes its check and uses the feature layout`
 
 ### Task 2.4: The rest of the path
@@ -190,8 +190,8 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
   `packages/tools/README.md` (`pnpm dlx … create-game` first)
 - Test: the template test (no link into the repository; the README's first command)
 
-- [ ] **Step 1:** Failing test, then the change (N5, N7). Copy rows in `copy.md`.
-- [ ] **Step 2:** The whole journey passes in Chromium: play, then the itch.io zip. `pnpm check` passes. The old
+- [x] **Step 1:** Failing test, then the change (N5, N7). Copy rows in `copy.md`.
+- [x] **Step 2:** The whole journey passes in Chromium: play, then the itch.io zip. `pnpm check` passes. The old
   `create-game` journey's hand-made links are gone (N6). Changeset `patch` for `-tools`. Mark the PR ready.
   `docs(create-game): one command to start, guides on the site`
 
@@ -211,9 +211,9 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
 - Modify: `packages/tools/src/app/cli.ts`, `packages/tools/package.json` (`bin`), `packages/tools/tsdown.config.ts`,
   `packages/tools/README.md`
 
-- [ ] **Step 1: Failing test:** `automata --help`'s commands are `create-game`, `check`, `build`, `editor`, `ship`;
+- [x] **Step 1: Failing test:** `automata --help`'s commands are `create-game`, `check`, `build`, `editor`, `ship`;
   `automata add` and `automata ship test-remote` and `deploy-dev` print "Unknown command" and the help.
-- [ ] **Step 2:** Delete; `pnpm knip` finds nothing left behind. Tag the last commit with the deleted code in the
+- [x] **Step 2:** Delete; `pnpm knip` finds nothing left behind. Tag the last commit with the deleted code in the
   execution log (git keeps it; the Owner pushes tags). Commit. `refactor(tools): the command holds what a game author needs`
 
 ### Task 3.2: The target is always named
@@ -223,10 +223,10 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
   `packages/tools/src/shared/ship/targets/web/prepare-web.ts` (beside `targets/itch` and `targets/tauri`)
 - Test: `packages/tools/tests/unit/shared/ship/{ship-args.test.ts,targets/prepare-web.test.ts}`
 
-- [ ] **Step 1: Failing tests.** `ship prepare` with no `--target` exits 2 with "Choose a target: --target web, itch,
+- [x] **Step 1: Failing tests.** `ship prepare` with no `--target` exits 2 with "Choose a target: --target web, itch,
   tauri or ruken."; `--target web` builds and runs the public scans (secrets, data URLs, `findPixi3d` from
   `prepare/pixi3d-markers.ts`, no-eval) and writes `dist/`; `--private`'s help text is spec 16.2's.
-- [ ] **Step 2:** Implement. Commit. `feat(ship): name the target every time; web has a prepare step`
+- [x] **Step 2:** Implement. Commit. `feat(ship): name the target every time; web has a prepare step`
 
 ### Task 3.3: A small root entry, and `check-boundaries` folded in
 
@@ -244,9 +244,9 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
   `.changeset/config.json`, `tooling/release/src/*` (four published packages), `tooling/consumer-smoke`, API reports
 - Delete: `tooling/check-boundaries`
 
-- [ ] **Step 1: Failing test:** the API report for `-tools` lists `defineShipConfig` and its types only; the boundaries
+- [x] **Step 1: Failing test:** the API report for `-tools` lists `defineShipConfig` and its types only; the boundaries
   step of `automata check` runs with no `@mcthaydt/automata-check-boundaries` installed (the journey proves it).
-- [ ] **Step 2:** Move and trim. `pnpm build`, `pnpm api-report --update`, `pnpm agent-skills --write`, `pnpm cheatsheet`.
+- [x] **Step 2:** Move and trim. `pnpm build`, `pnpm api-report --update`, `pnpm agent-skills --write`, `pnpm cheatsheet`.
   Changeset `patch` for `-tools`. `pnpm check` passes. Commit. `refactor(tools): export the ship config only; boundaries inside tools`
 
 ### Task 3.4: Help text
@@ -255,9 +255,9 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
 - Modify: `packages/tools/src/app/cli.ts` (`USAGE`), every command's usage text
 - Test: `packages/tools/tests/unit/app/help.test.ts`
 
-- [ ] **Step 1: Failing test:** `automata --help` is at most eight lines and names the four steps; no help text holds
+- [x] **Step 1: Failing test:** `automata --help` is at most eight lines and names the four steps; no help text holds
   `D-1`, `M<n>`, `__AUTOMATA_DEBUG__`, "exit 0", `ruken.toml` on the first screen or a package name.
-- [ ] **Step 2:** Rewrite (Y1, Y2); copy rows. The stranger's journey still passes. Commit.
+- [x] **Step 2:** Rewrite (Y1, Y2); copy rows. The stranger's journey still passes. Commit.
   `docs(tools): help a first-time author can read`
 
 ### Task 3.5: The code refactor of `-tools` (same PR)
@@ -790,15 +790,15 @@ export and its 2D build) and the reverse would be a dependency cycle.
   `@import '@mcthaydt/automata-editor/tokens.css'`), `site/package.json` (`@mcthaydt/automata-editor` workspace dependency)
 - Test: `packages/editor/tests/unit/kit/tokens.test.ts`
 
-- [ ] **Step 1: Failing test.** The generated CSS defines every custom property the site's `:root` block defines today,
+- [x] **Step 1: Failing test.** The generated CSS defines every custom property the site's `:root` block defines today,
   with the same value (the test reads the names and values from a fixture copied from `site/src/app.css` before the
   change: about 36, from `--bg` to `--ease-out`, the flutes, the curtain, the glow and the stage colours included, not
   a hand-picked list); every old editor name (`--color-bg-app`, `--color-accent-default`, ...) is an alias (`var(--...)`);
   every `--color-layer-*` name still exists; `color-scheme: light`. `generate-tokens.ts --check` fails when `tokens.css`
   is stale.
-- [ ] **Step 2:** Implement; the site imports the file; its own page CSS keeps working (its e2e gates pass in
+- [x] **Step 2:** Implement; the site imports the file; its own page CSS keeps working (its e2e gates pass in
   Chromium; screenshots of Home before and after are identical by eye, since the values are the same).
-- [ ] **Step 3: Commit.** `feat(design): one token source for the editor and the site`
+- [x] **Step 3: Commit.** `feat(design): one token source for the editor and the site`
 
 ### Task 11.2: Geist and the icons
 
@@ -808,12 +808,12 @@ export and its 2D build) and the reverse would be a dependency cycle.
 - Create: `packages/editor/src/shared/kit/icons/{Icon.svelte,paths.ts}`
 - Test: `packages/editor/tests/unit/kit/icons.test.ts`
 
-- [ ] **Step 1: Failing test.** `Icon` renders an `svg` with `aria-hidden="true"` and the path for each of the 24
+- [x] **Step 1: Failing test.** `Icon` renders an `svg` with `aria-hidden="true"` and the path for each of the 24
   names (select, brush, rectangle, fill, eraser, eyedropper, undo, redo, layers, eye, eye-off, lock, unlock, more,
   back, plus, trash, share, download, copy, play, check, alert, close); an unknown name is a type error.
-- [ ] **Step 2:** Implement. Font files load as the site's do (self-hosted, no third-party request: the site's
+- [x] **Step 2:** Implement. Font files load as the site's do (self-hosted, no third-party request: the site's
   third-party gate covers the try-it page later).
-- [ ] **Step 3: Commit.** `feat(design): Geist and an icon set in the editor kit`
+- [x] **Step 3: Commit.** `feat(design): Geist and an icon set in the editor kit`
 
 ### Task 11.3: The kit's components and the design board
 
@@ -824,16 +824,16 @@ export and its 2D build) and the reverse would be a dependency cycle.
   state with fixture data), `packages/editor/tests/e2e/design-board.test.ts` (screenshots at the four sizes)
 - Test: `packages/editor/tests/unit/kit/widgets/*.test.ts` (behaviour unchanged), `packages/editor/tests/browser/layout/widgets.test.ts`
 
-- [ ] **Step 1: Failing layout tests** for the new rules: Button 44 px, primary 48 px; IconButton 44 × 44 with an
+- [x] **Step 1: Failing layout tests** for the new rules: Button 44 px, primary 48 px; IconButton 44 × 44 with an
   accessible name; a Dialog at 390 × 844 is a bottom sheet with its primary action visible; focus rings are 2 px cobalt.
-- [ ] **Step 2:** Restyle each component to spec 11.3 using only the new token names (no literal colours: a unit test,
+- [x] **Step 2:** Restyle each component to spec 11.3 using only the new token names (no literal colours: a unit test,
   `tests/unit/kit/no-literal-colors.test.ts`, reads the kit's `.svelte` styles and fails on a `#hex`, `rgb(` or `hsl(`
   outside `tokens/`). The kit's components stop using the old aliases; the aliases stay only for `editor-3d`, and the
   3D slice deletes them (spec 11.2).
-- [ ] **Step 3: The board.** Build `design.html` (not in the shipped build: Vite input only in `dev` and the design
+- [x] **Step 3: The board.** Build `design.html` (not in the shipped build: Vite input only in `dev` and the design
   script). Run the screenshot test in Chromium; open every image; fix what looks wrong; attach the iPad and phone images
   to the PR.
-- [ ] **Step 4:** The editor's unit and Chromium browser tests pass (behaviour unchanged). `editor-3d`'s tests in the
+- [x] **Step 4:** The editor's unit and Chromium browser tests pass (behaviour unchanged). `editor-3d`'s tests in the
   3D workflow: any that asserted an old colour or size is updated with the reason in the commit (spec 11.6). Commit,
   mark ready. `feat(design): the editor kit in the website's look, with a design board`
 
@@ -857,13 +857,13 @@ logic that is not markup lives in the view's `*-model.ts`.
 - Create: `packages/editor/src/features/home/{ProjectCard.svelte,NewLevelSheet.svelte}`
 - Test: `packages/editor/tests/unit/home/*.test.ts`, `packages/editor/tests/browser/layout/home.test.ts`
 
-- [ ] **Step 1: Failing tests.** One list of cards; "New level" opens a sheet with three templates named per spec 11.5;
+- [x] **Step 1: Failing tests.** One list of cards; "New level" opens a sheet with three templates named per spec 11.5;
   a card's More menu holds Open, Duplicate, Delete; no third column at any size; "Open from" is a two-option control;
   storage is one line; no "Level project" or "Valid" badge; a project with problems says "2 problems".
-- [ ] **Step 2:** Implement. Layout test at the four sizes: no horizontal scroll, every card's More button inside the
+- [x] **Step 2:** Implement. Layout test at the four sizes: no horizontal scroll, every card's More button inside the
   viewport.
-- [ ] **Step 3:** Screenshots, copy rows. Commit. `feat(editor): Home redesigned`
-- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) findings 3 and 16, section 5.2):** the New level templates on a game folder make the level where the game's editor list allows (`content/rooms/`), or the sheet says why not and what to do; never the toast that names the file twice. The Delete dialog names the level by its label ("Delete Emberwick room? It's removed from your game for good."). Home shows the game's name as the source ("Your game: Emberwick"), one storage line, and "Changed 7 minutes ago" on a card; file sizes and paths go under Details. One name per thing: the label people gave it, everywhere.
+- [x] **Step 3:** Screenshots, copy rows. Commit. `feat(editor): Home redesigned`
+- [x] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) findings 3 and 16, section 5.2):** the New level templates on a game folder make the level where the game's editor list allows (`content/rooms/`), or the sheet says why not and what to do; never the toast that names the file twice. The Delete dialog names the level by its label ("Delete Emberwick room? It's removed from your game for good."). Home shows the game's name as the source ("Your game: Emberwick"), one storage line, and "Changed 7 minutes ago" on a card; file sizes and paths go under Details. One name per thing: the label people gave it, everywhere.
 
 ### Task 12.2: The document frame (same PR)
 
@@ -874,13 +874,13 @@ logic that is not markup lives in the view's `*-model.ts`.
 - Test: `packages/editor/tests/unit/document/*.test.ts`, `.../problems/*.test.ts`, `.../share/*.test.ts`,
   `packages/editor/tests/browser/layout/document.test.ts`
 
-- [ ] **Step 1: Failing tests.** The top bar has Back, the name (renames on tap), the view switcher with Level, Map,
+- [x] **Step 1: Failing tests.** The top bar has Back, the name (renames on tap), the view switcher with Level, Map,
   Tiles, Characters, Undo and Redo icon buttons, and Save as the one primary button showing "Save", "Saving…",
   "Saved"; no status bar; "2 problems" opens a sheet and choosing one jumps to it; on a checkout with `exports` there is
   no Share menu; in browser storage the Share menu holds Download, Share, Copy; on a phone the view switcher is a menu.
-- [ ] **Step 2:** Implement. Layout test: Save is visible and never covered by a sheet, at every size.
-- [ ] **Step 3:** Screenshots, copy rows. Commit, mark the PR ready. `feat(editor): the document frame redesigned`
-- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) finding 8):** Back with unsaved changes asks "Save your changes to Emberwick room?" (Save, Don't save, Cancel). One save story: Save writes the game; the autosave is a safety net out of sight (no "Autosave on"); a restore says "You have unsaved changes from last time. Keep them?" (Throw away, Keep my changes). The rail's views carry icons and labels.
+- [x] **Step 2:** Implement. Layout test: Save is visible and never covered by a sheet, at every size.
+- [x] **Step 3:** Screenshots, copy rows. Commit, mark the PR ready. `feat(editor): the document frame redesigned`
+- [x] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) finding 8):** Back with unsaved changes asks "Save your changes to Emberwick room?" (Save, Don't save, Cancel). One save story: Save writes the game; the autosave is a safety net out of sight (no "Autosave on"); a restore says "You have unsaved changes from last time. Keep them?" (Throw away, Keep my changes). The rail's views carry icons and labels.
 
 ### Task 12.3: The Level view (PR `claude/refactor-ed-redesign-2`)
 
@@ -891,12 +891,12 @@ logic that is not markup lives in the view's `*-model.ts`.
 - Test: `packages/editor/tests/unit/level/*.test.ts`, `packages/editor/tests/browser/layout/level.test.ts`,
   `packages/editor/tests/browser/canvas/*.test.ts`, the level journeys in `tests/browser/journeys/`
 
-- [ ] **Step 1: Failing tests.** The canvas fills a charcoal cabinet; the tools are one floating pill with Select,
+- [x] **Step 1: Failing tests.** The canvas fills a charcoal cabinet; the tools are one floating pill with Select,
   Brush, Rectangle, Fill, Eraser, Copy a tile (brush size inside Brush's popover); the pill is wholly inside the
   viewport at 1194 × 834 and at 390 × 844 (G5); Layers is a sheet with colour, name, eye and lock per row and the
   palette under the chosen layer; layer subtitles per spec 11.5; the inspector opens on selection and docks from iPad
   landscape up; the level strip is a level picker in the top bar.
-- [ ] **Step 2:** Implement. **Session break** after the tool pill and layers if needed (log what is left).
+- [x] **Step 2:** Implement. **Session break** after the tool pill and layers if needed (log what is left).
 - **12.7, the rest of Step 1 and 2 (session 15).** *The split:* `Suite.svelte` 437 → 339 lines by responsibility:
   `SuiteTopBar.svelte` (the game's name, where edits are saved, the pills, Undo, Redo, Ask, Publish and the editor's
   tools; it shows only what has something to say), `SuiteHome.svelte` (the sample's note, Export and Import, the
@@ -1041,10 +1041,10 @@ the rest of 12.3, before 12.4.
   `packages/editor/src/shared/kit/dialogs/document-messages.ts`
 - Test: their unit and layout tests
 
-- [ ] **Step 1: Failing tests** per view: the frame of spec 11.4 (stage in its cabinet, a list sheet, an item sheet);
+- [x] **Step 1: Failing tests** per view: the frame of spec 11.4 (stage in its cabinet, a list sheet, an item sheet);
   each dialog has one primary action and the copy of `copy.md`.
-- [ ] **Step 2:** Implement, one view per commit. **Session break** between views if needed.
-- [ ] **Step 3:** Screenshots, copy rows. Commit per view.
+- [x] **Step 2:** Implement, one view per commit. **Session break** between views if needed.
+- [x] **Step 3:** Screenshots, copy rows. Commit per view.
 - **12.4, the mockup's look (session 18).** Tiles and Characters draw pages, not canvases, so their stage takes the
   light field (`--bg`): their names and notes were dark text on the near-black cabinet since 12.3 Step 3. Their
   panels' headings are small-capital section labels ("Your tiles", "Characters" for "Tilesets", "Definitions"); the
@@ -1052,7 +1052,7 @@ the rest of 12.3, before 12.4.
   that Step G names ("spacing 0 · padding 0", "IntGrid", "rule 1", "Settings for every level"), and the inspectors'
   label-left layout. Gates: editor unit (map, tiles, characters, document) 267, Chromium layout with a mouse and with
   touch 144, svelte-check clean.
-- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) section 5.2):** the Tiles, Map and Characters rows of the audit's table: no IntGrid, rule, pivot, id, shape or field-count words on the first screen ("No tiles yet. Add a picture of your tiles to paint with them.", "Arrange levels: Anywhere, In a grid, In a row, In a column", "Ember (one per level)", "Box, Circle, Dot, Picture"); the anchor point and the name in code live under More.
+- [x] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) section 5.2):** the Tiles, Map and Characters rows of the audit's table: no IntGrid, rule, pivot, id, shape or field-count words on the first screen ("No tiles yet. Add a picture of your tiles to paint with them.", "Arrange levels: Anywhere, In a grid, In a row, In a column", "Ember (one per level)", "Box, Circle, Dot, Picture"); the anchor point and the name in code live under More.
 
 ### Task 12.6: The Tuner, audited and redesigned (PR `claude/refactor-ed-redesign-3`; added 2026-11-06)
 
@@ -1065,21 +1065,21 @@ editor". The Tuner (`features/suite/tuner/`) is a non-3D editor the plan had lef
 - Test: `packages/editor/tests/unit/suite/tuner/*.test.ts`, a layout test at the four sizes in
   `packages/editor/tests/browser/layout/suite/`
 
-- [ ] **Step 0: The audit.** Spec 17.3's read over the Tuner (size, header, logic in markup, unused code) and the
+- [x] **Step 0: The audit.** Spec 17.3's read over the Tuner (size, header, logic in markup, unused code) and the
   four questions over every string it shows; findings and the Tuner's actions (from its DOM tests) in the execution log.
-- [ ] **Step 1: Failing tests.** A split view (the Owner, 2026-11-06: "I feel like the tuner should be a split view
+- [x] **Step 1: Failing tests.** A split view (the Owner, 2026-11-06: "I feel like the tuner should be a split view
   where it shows the effect of the change"): the settings on one side, the game running live on the other, and a
   change to a value shows in the running game without a reload (side by side from iPad landscape up; stacked, game
   on top, on a phone); every value row names the setting in plain words with its unit; no format word or path on screen; nothing reachable before is
   lost.
-- [ ] **Step 2:** Implement with the kit's components only. Layout test: no horizontal scroll, 44 / 48 px targets.
-- [ ] **Step 3:** Screenshots before and after (phone, iPad, desktop), copy rows. Commit.
+- [x] **Step 2:** Implement with the kit's components only. Layout test: no horizontal scroll, 44 / 48 px targets.
+- [x] **Step 3:** Screenshots before and after (phone, iPad, desktop), copy rows. Commit.
   `feat(editor): the Tuner audited and redesigned`
 - **12.6, the look (session 18).** The settings and the search were dark on the cabinet: their colours named tokens
   that do not exist and fell back to the old dark theme's hex values. They read the kit's tokens now: white cards on
   the light field, paper fields, the accent edge on the chosen setting; only the game keeps the cabinet. Gates: editor
   unit (suite) 294, Chromium layout (suite) with a mouse and with touch 121 each. **Left:** the unit a player can feel.
-- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) section 6.2):** each tunable has a label and a one-line "what you'll feel" carried by the game's `tuning.toml` (or the Tuner's schema), with a unit a player can feel; no constant names, no other game's numbers on screen (they stay in the TOML comments); Lock becomes Keep with its tooltip; the empty panel says "Tap a setting to see more."; the split view (step 1) is how she tries it, so no separate "Play to try it" button.
+- [x] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) section 6.2):** each tunable has a label and a one-line "what you'll feel" carried by the game's `tuning.toml` (or the Tuner's schema), with a unit a player can feel; no constant names, no other game's numbers on screen (they stay in the TOML comments); Lock becomes Keep with its tooltip; the empty panel says "Tap a setting to see more."; the split view (step 1) is how she tries it, so no separate "Play to try it" button.
 
 ### Task 12.7: The 2D suite page, audited and redesigned (same PR; added 2026-11-06)
 
@@ -1092,16 +1092,16 @@ gives it the look, the layout and the words, and the 3D slice adds the Studio an
   `packages/editor/src/features/suite/shell/home-model.ts` (only where logic leaves markup)
 - Test: `packages/editor/tests/unit/suite/shell/*.test.ts`, `packages/editor/tests/browser/layout/suite/`
 
-- [ ] **Step 0: The audit**, as 12.6 step 0, over every file in `features/suite/shell/` and `app/suite/`.
-- [ ] **Step 1: Failing tests.** The suite's top bar holds Back, the editor's name and one primary action; the rail is
+- [x] **Step 0: The audit**, as 12.6 step 0, over every file in `features/suite/shell/` and `app/suite/`.
+- [x] **Step 1: Failing tests.** The suite's top bar holds Back, the editor's name and one primary action; the rail is
   the kit's view switcher; each dialog has one primary action and the copy of `copy.md`; a control that is not wired
   says so in plain words, or is not shown (E6), never a button that does nothing.
-- [ ] **Step 2:** Implement with the kit's components only; no component over 300 lines (`Suite.svelte` and
+- [x] **Step 2:** Implement with the kit's components only; no component over 300 lines (`Suite.svelte` and
   `ReviewDesk.svelte` are split by responsibility if they are).
-- [ ] **Step 3:** Screenshots, copy rows. Commit, mark the PR ready. `feat(editor): the 2D suite page audited and redesigned`
+- [x] **Step 3:** Screenshots, copy rows. Commit, mark the PR ready. `feat(editor): the 2D suite page audited and redesigned`
 
 Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan covers them.
-- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) section 6.1):** the top bar's rewrites (the game's name as the title; "Saved in your game folder"; change-set, checks and gates pills hidden until they mean something; Ship becomes Publish, disabled with "Nothing new to publish yet"; Undo and Redo labelled); when the suite shows a sample instead of the game (no server), a full-width banner says "This is a sample game, not yours. Run automata editor inside your game's folder to edit it." in place of the small "Sample game" chip; Home lists levels by name ("What do you want to change? Levels: Emberwick room. Movement: how Wick runs and jumps") and hides the files Save writes.
+- [x] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) section 6.1):** the top bar's rewrites (the game's name as the title; "Saved in your game folder"; change-set, checks and gates pills hidden until they mean something; Ship becomes Publish, disabled with "Nothing new to publish yet"; Undo and Redo labelled); when the suite shows a sample instead of the game (no server), a full-width banner says "This is a sample game, not yours. Run automata editor inside your game's folder to edit it." in place of the small "Sample game" chip; Home lists levels by name ("What do you want to change? Levels: Emberwick room. Movement: how Wick runs and jumps") and hides the files Save writes.
 
 ### Task 12.5: The copy table and the guide (same PR)
 
@@ -1279,8 +1279,8 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
 - Create: `tooling/repo-hygiene/tests/unit/workflow-invariants.test.ts`
 - Delete: `packages/tools/tests/unit/shared/ship/workflows.test.ts` and the config-pinning tests the audit lists (Q2)
 
-- [ ] **Step 1:** Write the invariants (spec 16.6) and see each fail on a fixture workflow that breaks it.
-- [ ] **Step 2:** Delete the pinning tests. Record the test counts before and after. Commit.
+- [x] **Step 1:** Write the invariants (spec 16.6) and see each fail on a fixture workflow that breaks it.
+- [x] **Step 2:** Delete the pinning tests. Record the test counts before and after. Commit.
   `test(ci): a few workflow invariants instead of tests that pin the YAML`
 
 ### Task 17.2: The packages that lost their reason
@@ -1291,9 +1291,9 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
   deleted), `tooling/evidence` (the Proof half), `tooling/versions` (stack rows), `tooling/examples-runner` (confirm
   task 10.2 left only the examples index; knip finds nothing of the playground)
 
-- [ ] **Step 1:** For each, `grep` its importers and scripts; decide per the table; write the decision and the line
+- [x] **Step 1:** For each, `grep` its importers and scripts; decide per the table; write the decision and the line
   counts in the execution log.
-- [ ] **Step 2:** `pnpm check`, `pnpm knip` clean. Commit. `chore(tooling): drop what Plus and the old site needed`
+- [x] **Step 2:** `pnpm check`, `pnpm knip` clean. Commit. `chore(tooling): drop what Plus and the old site needed`
 
 ### Task 17.3: The code refactor of the tooling that stays (same PR)
 
@@ -2837,3 +2837,16 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   main, 2, both declared or private); `api-index`, `agent-skills`, `changeset status` and `check-changesets` clean;
   the stranger's journey (Chromium, 1 of 1); the consumer smoke from packs; Emberwick's Chromium journeys 29 of 29;
   the site suite in Chromium 345 of 345. WebKit and Firefox not installed here.
+
+### 2026-11-07, stage 6 (Sonnet, high), second fix thread: C4, C5, T2, D2, L1, L2, L4
+
+Branch `claude/project-thread-tkgq9c`, stacked on #440. Each finding of the [build audit](2026-11-07-2d-editors-and-site-build-audit.md) that the first fix thread left is fixed or has its reason here.
+
+- **C4, the Level view against `editor-level.html`.** Done: (1) the grid lines are faint (`GRID_ALPHA` 0.16 in `scene-items.ts`; a canvas test reads the pixels); (2) − 100% + beside Fit (`LevelSession.zoomBy` zooms about the canvas centre, ×1.25 a step; the figure is a live `<output>`); (3) the brush size is − 1 + beside the tools, 1 to 8, on an iPad and up (a phone's dock keeps the one-button popover, because three 44 px buttons do not fit the dock); (4) in browser storage Share is the primary button and Save sits beside it plain (`DocumentBar`'s `primary` snippet, `Menu`'s `variant`); (5) the level inspector gives "{wide} wide × {high} high" and "Sizes are in tiles of {tile} px.", and only when the size is whole tiles; (6) the number keys 1 to 9 choose the palette's rows, shown on each row; (7) the entities layer is "Characters and items" in the three templates. **Deviation:** the level's Music field stays a text box. The platformer's field is `type: text` in the level definition; the mockup's choice list would need an `enum` in the template and in every level already written, and the Owner has not asked for that. The mockup's own list is sample content.
+- **C5, the phone's white band.** The band is the document bar's second row plus the corner's Fit and Details. The bar is two rows on a phone as before; the save state moved to the second row so the first row has room for the level's name, and the document's name is held to 3.25 rem (still a 44 px target that renames). The white strip in a full-size headless Chromium screenshot is not in the page: the canvas box starts at y 105, directly under the 104 px bar, its drawing buffer is the full 780 × 1478, `elementsFromPoint` finds only the canvas and its dark surface there, and a screenshot of just that strip is dark (14, 16, 20) with the corner, the canvas or the bar hidden or not; the strip's pixels in the large capture have alpha 0, so the capture dropped the WebGL layer. No product change beyond the bar.
+- **L4.** Home's empty state says "Press New level to start drawing." and has no second button; the Tiles view shows Add tiles once, in the panel's head, only when tilesets exist.
+- **T2.** Two journeys with a real `automata editor`: `share-leaves-the-browser` (Share is the primary button; Download hands over a file; Copy puts the level on the clipboard) and `tuner-shows-the-game` (the game appears beside the settings once it is running, and a change reaches the game's file; `--game-url` points the Tuner at a stand-in dev page). A new harness file serves the built 2D editor for the Share journey. The add-tiles journey chose the Tiles view by a tab, which a phone does not have; it picks the menu now (found by the full rerun).
+- **L1.** `check-style --plan-comments` now also flags "Spec 11.5" and "Plan 4.2" style citations, and runs over `site/src` (as `--comments-only`, since the site has its own naming). The audit counted about 100; the check finds none now, in the editor or the site (`pnpm style`: 0 findings in each of its three runs).
+- **L2.** `EditorShell.svelte` is 332 lines (was 632): the layout grids move to `shell-layout.css`, the region rules to `shell-regions.css` (every selector under `[data-editor-shell]`, so specificity is the same as when scoped), the foot state to `shell-foot.svelte.ts`.
+- **D2.** 65 step boxes ticked in tasks `progress.md` marks Done. Open on purpose: 14.2 (the Owner's `@automata` organisation, `NPM_TOKEN`, the release approval), 21.0's DNS and 21.2 (the Owner's); and the three boxes under "Done" below, which close with the build audit.
+- Copy: second-pass rows in `copy.md`.
