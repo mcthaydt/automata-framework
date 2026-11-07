@@ -7,6 +7,8 @@ export interface NumberRules {
   readonly max?: number | undefined
   /** Only whole numbers are valid. */
   readonly integer?: boolean | undefined
+  /** Said after a bound in a refusal (`Must be at most 180 px/s`). */
+  readonly unit?: string | undefined
 }
 
 export type ParsedNumber =
@@ -23,10 +25,11 @@ export function parseNumberText(text: string, rules: NumberRules): ParsedNumber 
   const value = Number(trimmed)
   if (!Number.isFinite(value)) return { ok: false, message: 'Enter a number' }
   if (rules.integer && !Number.isInteger(value)) return { ok: false, message: 'Whole numbers only' }
+  const unit = rules.unit === undefined || rules.unit === '' ? '' : ` ${rules.unit}`
   if (rules.min !== undefined && value < rules.min)
-    return { ok: false, message: `Must be at least ${rules.min}` }
+    return { ok: false, message: `Must be at least ${rules.min}${unit}` }
   if (rules.max !== undefined && value > rules.max)
-    return { ok: false, message: `Must be at most ${rules.max}` }
+    return { ok: false, message: `Must be at most ${rules.max}${unit}` }
   return { ok: true, value }
 }
 

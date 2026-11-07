@@ -59,8 +59,16 @@ export interface TuningResult {
 
 const NAME_PATTERN = /^[A-Z][A-Z0-9_]*$/
 const RANGE_KEYS = ['value', 'min', 'max', 'step']
-/** Words a ranged tunable may carry for the Tuner (its name on screen and what a player feels); never in the values. */
-const WORD_KEYS = ['feel', 'label']
+/**
+ * Words a ranged tunable may carry for the Tuner (its name on screen, what a player feels and the unit it is shown
+ * in); never in the values.
+ */
+const WORD_KEYS = ['feel', 'label', 'unit']
+/**
+ * How the Tuner shows the value in its `unit`: the value times `scale` (a speed in subpixels per tick, times 60/256,
+ * is pixels a second). Display only: the file, the values and the sim keep the sim's own units.
+ */
+const SCALE_KEY = 'scale'
 
 const isTable = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -155,6 +163,10 @@ function checkRanged(
     if (WORD_KEYS.includes(key)) {
       if (typeof table[key] !== 'string')
         problems.push(problem([name, key], 'invalidType', `${key} must be text`))
+    } else if (key === SCALE_KEY) {
+      const scale = table[key]
+      if (typeof scale !== 'number' || !Number.isFinite(scale) || scale === 0)
+        problems.push(problem([name, key], 'invalidType', `${key} must be a finite number other than 0`))
     } else if (!RANGE_KEYS.includes(key))
       problems.push(problem([name, key], 'unknownField', `unknown field: ${key}`))
   }

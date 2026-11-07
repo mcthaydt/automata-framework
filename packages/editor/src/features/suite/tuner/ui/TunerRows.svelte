@@ -4,7 +4,9 @@
   slider and a number box, a number without is the box alone, a toggle is On or Off, a string a text field, and a table
   or a list says "Ask only". A value outside the bounds is refused before the write, with the bound named; Keep (the session's lock) makes a
   row refuse until it is let go. The states without rows: no file (an offer to create it), a file that does not parse
-  (the parser's line), and a code-owned game whose bounds the compiler has not written.
+  (the parser's line), and a code-owned game whose bounds the compiler has not written. A setting with a scale is shown
+  and edited in its unit (`tuner-display.ts`): the slider and the box speak pixels a second or seconds, and what a
+  person sets goes back to the file as the sim's own number.
 -->
 <script lang="ts">
 import Button from '../../../../shared/kit/widgets/Button.svelte'
@@ -13,6 +15,7 @@ import Slider from '../../../../shared/kit/widgets/Slider.svelte'
 import Stepper from '../../../../shared/kit/widgets/Stepper.svelte'
 import { KEEP_TIP, shownName, shownNote, type Tunable } from '../tuner-content'
 import type { TunerController } from '../tuner-controller'
+import { rawValue, shownBounds, shownValue } from '../tuner-display'
 import { checkValue } from '../tuner-edits'
 
 const { controller }: { controller: TunerController } = $props()
@@ -55,8 +58,19 @@ const noBounds = $derived(
 )
 
 const bounded = (tunable: Tunable): boolean => tunable.min !== undefined && tunable.max !== undefined
-const stepOf = (tunable: Tunable): number => tunable.step ?? (tunable.kind === 'int' ? 1 : 0.01)
-const numberOf = (tunable: Tunable): number => (typeof tunable.value === 'number' ? tunable.value : 0)
+/** The default step a number without one takes, before it is shown in its unit. */
+const withStep = (tunable: Tunable): Tunable =>
+  tunable.step === undefined ? { ...tunable, step: tunable.kind === 'int' ? 1 : 0.01 } : tunable
+/** The value, its bounds and its step as shown (in its unit when it has a scale). */
+const shownOf = (tunable: Tunable) => {
+  const stepped = withStep(tunable)
+  const raw = typeof tunable.value === 'number' ? tunable.value : 0
+  return {
+    value: shownValue(stepped, raw),
+    ...shownBounds(stepped),
+    raw: (shown: number) => rawValue(stepped, shown),
+  }
+}
 </script>
 
 <section class="rows" aria-label="Tunables" data-testid="tuner-rows" data-scroll-region="vertical">
@@ -124,20 +138,21 @@ const numberOf = (tunable: Tunable): number => (typeof tunable.value === 'number
               }}
             />
           {:else}
+            {@const number = shownOf(tunable)}
             {#if bounded(tunable)}
               <Slider
                 label={shown}
-                value={numberOf(tunable)}
-                min={tunable.min ?? 0}
-                max={tunable.max ?? 0}
-                step={stepOf(tunable)}
+                value={number.value}
+                min={number.min ?? 0}
+                max={number.max ?? 0}
+                step={number.step}
                 unit={tunable.unit}
                 disabled={locked}
                 reason={`${shown} is kept: tap Kept to change it`}
                 onedit={(event) => {
-                  if (event.phase === 'set') void controller.set(tunable.name, event.value)
+                  if (event.phase === 'set') void controller.set(tunable.name, number.raw(event.value))
                   else if (event.phase === 'start') controller.dragStart(tunable.name)
-                  else if (event.phase === 'update') controller.dragUpdate(event.value)
+                  else if (event.phase === 'update') controller.dragUpdate(number.raw(event.value))
                   else if (event.phase === 'commit') void controller.dragCommit()
                   else controller.dragCancel()
                 }}
@@ -145,19 +160,19 @@ const numberOf = (tunable: Tunable): number => (typeof tunable.value === 'number
             {/if}
             <Stepper
               label={shown}
-              value={numberOf(tunable)}
-              min={tunable.min}
-              max={tunable.max}
-              step={stepOf(tunable)}
+              value={number.value}
+              min={number.min}
+              max={number.max}
+              step={number.step}
               unit={tunable.unit}
-              integer={tunable.kind === 'int'}
+              integer={tunable.kind === 'int' && tunable.scale === undefined}
               validate={(value) => {
-                const check = checkValue(tunable, value)
+                const check = checkValue(tunable, number.raw(value))
                 return 'message' in check ? check.message : undefined
               }}
               disabled={locked}
               reason={`${shown} is kept: tap Kept to change it`}
-              onedit={(event) => void controller.set(tunable.name, event.value)}
+              onedit={(event) => void controller.set(tunable.name, number.raw(event.value))}
             />
           {/if}
         </div>

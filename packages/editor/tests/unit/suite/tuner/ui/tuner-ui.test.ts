@@ -150,6 +150,34 @@ describe('the Tuner in plain words', () => {
     expect(within(row).getByRole('slider', { name: 'Running speed' })).toBeTruthy()
   })
 
+  it('shows a scaled setting in its unit and writes the sim’s number back; a refusal speaks the unit too', async () => {
+    const SCALED =
+      'MAX_RUN = { value = 384, min = 128, max = 768, step = 1, label = "Running speed", unit = "px/s", scale = 0.234375 }\n'
+    const user = userEvent.setup()
+    const controller = await open({ [PATH]: SCALED })
+    render(TunerRows, { controller })
+    const row = screen.getByTestId('tuner-row-MAX_RUN')
+    const box = within(row).getByRole('spinbutton', { name: /Running speed/ })
+    expect(box).toHaveValue(90)
+    expect(row).toHaveTextContent('px/s')
+    await user.click(box)
+    await user.keyboard('{Control>}a{/Control}100{Enter}')
+    expect(text(controller)).toContain('value = 427')
+    // A write redraws the rows: find the row and its box again.
+    const after = screen.getByTestId('tuner-row-MAX_RUN')
+    await user.click(within(after).getByRole('spinbutton', { name: /Running speed/ }))
+    await user.keyboard('{Control>}a{/Control}500{Enter}')
+    expect(text(controller)).toContain('value = 427')
+    expect(within(after).getByRole('alert')).toHaveTextContent('Must be at most 180 px/s')
+    // The inspector speaks the same unit: the value, the range, and a number, not a whole number of subpixels.
+    controller.select('MAX_RUN')
+    render(TunerInspector, { controller })
+    const inspector = screen.getByTestId('tuner-inspector')
+    expect(inspector).toHaveTextContent('100.1 px/s')
+    expect(inspector).toHaveTextContent('30 to 180 px/s')
+    expect(inspector).not.toHaveTextContent(/whole number|427|768/)
+  })
+
   it('keeps a setting (was Lock), and says what keeping does', async () => {
     const user = userEvent.setup()
     const controller = await open({ [PATH]: LABELLED })

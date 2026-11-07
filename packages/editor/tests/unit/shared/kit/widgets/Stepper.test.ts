@@ -114,6 +114,13 @@ describe('Stepper typing', () => {
     expect(events).toEqual([{ value: 6, phase: 'set' }])
   })
 
+  test('a refusal names the bound in the unit when there is one', async () => {
+    mount({ unit: 'px/s' })
+    await userEvent.click(spin())
+    await userEvent.keyboard('12{Enter}')
+    expect(screen.getByRole('alert')).toHaveTextContent('Must be at most 9 px/s')
+  })
+
   test('a value above the maximum is refused with a message and the value is kept', async () => {
     const { events } = mount()
     await userEvent.click(spin())
