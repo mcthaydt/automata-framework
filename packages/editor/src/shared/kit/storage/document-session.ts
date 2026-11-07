@@ -200,6 +200,16 @@ export function createDocumentSession<S>(options: DocumentSessionOptions<S>): Do
   const saveOwnFile = (guarded: boolean): Promise<SaveOutcome> =>
     tracked(async () => {
       const revision = history.revision
+      // The files written ahead of the document must not land when the document itself would then be refused: that
+      // leaves them made from edits the document on disk does not have. So a guarded save checks the document first.
+      if (guarded && options.beforeSave !== undefined && knownMtime !== undefined) {
+        try {
+          if ((await statPath(store, path))?.mtime !== knownMtime) return { status: 'conflict' }
+        } catch (error) {
+          const { reason, message } = classifyStorageError(error)
+          return failed(reason, message)
+        }
+      }
       const stop = await options.beforeSave?.(guarded ? 'guarded' : 'overwrite')
       if (stop?.status === 'failed') return failed(stop.reason, stop.message)
       if (stop !== undefined) return stop
