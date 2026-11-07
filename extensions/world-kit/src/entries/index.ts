@@ -7,3 +7,12 @@ export { type Dressed, dressLevel } from '../features/furnish/dress.ts'
 export { worldKitContent } from '../features/furnish/kit.content.ts'
 export type { Kit, KitSlot, SlotRule } from '../features/furnish/kit.schema.ts'
 export { generateMap, MAP_NAMES, type MapName } from '../features/maps/generate-map.ts'
+export { type FigureRead, type Frame, figureReads } from '../features/reads/figure-reads.ts'
+export {
+  DEFAULT_READS,
+  HOT,
+  isHot,
+  MIN_READ,
+  readsAgainst,
+  waivedBy,
+} from '../features/reads/reads-against.ts'

@@ -18,13 +18,16 @@
     "#src/*": "./src/*"
   },
   "exports": {
-    ".": "./src/entries/index.ts"
+    ".": "./src/entries/index.ts",
+    "./textures": "./src/entries/textures.ts"
   },
   "scripts": {
     "test": "vitest run --project unit",
     "test:unit": "vitest run --project unit",
     "typecheck": "tsc -p .",
-    "maps": "node --import ../../packages/3d/scripts/extensionless-ts.ts scripts/convert-builder-maps.ts tests/fixtures/builder-maps.json --out library/maps"
+    "maps": "node --import ../../packages/3d/scripts/extensionless-ts.ts scripts/convert-builder-maps.ts tests/fixtures/builder-maps.json --out library/maps",
+    "textures": "node --import ../../packages/3d/scripts/extensionless-ts.ts src/app/textures-cli.ts",
+    "textures:check": "node --import ../../packages/3d/scripts/extensionless-ts.ts src/app/textures-cli.ts --check"
   },
   "dependencies": {
     "zod": "4.6.6"
@@ -47,5 +50,8 @@
     "typescript": "6.0.3",
     "vite": "8.3.3",
     "vitest": "5.0.3"
+  },
+  "bin": {
+    "automata-world-textures": "./src/app/textures-cli.ts"
   }
 }
