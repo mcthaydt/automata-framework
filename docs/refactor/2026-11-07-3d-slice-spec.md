@@ -41,7 +41,7 @@ The slice is finished when all of these are true, each checked by a command, a j
    source file (source path, AF path, what was rewritten, or why it was left out), and the pull procedure (section
    7.5), so a later pull is a diff from the recorded commit scoped to those rows (D9, D10, B1 to B10).
 5. **The 3D look is the builders' pixel-art look, drawn by Pixi 3D**: a low-resolution render target, light stepped
-   along DUEL ramps, outlines, figures lit as sprites, and the diorama, first-person and top-down views. No CPU painter
+   along DUEL ramps, outlines and figures lit as sprites, through the game's own camera. No CPU painter
    draws a frame in a game or an editor page; the painters' code survives only as the offline reference the look's
    tests compare with, and as a Node bake if task 8.1 picks baking for figures (section 6).
 6. **DUEL is AF's palette** (32 ramps of 8): `@automata/content`'s `DEFAULT_PALETTE`, Emberwick's art, the game UI
@@ -213,13 +213,16 @@ dither and grade, at 320 × 200. AF draws the same look with Pixi 3D:
   by Pixi 3D agree within a palette-index tolerance the test names) and, only if task 8.1 picks baking for figures, the
   body of a Node bake entry. A `--forbid` boundary rule keeps them out of every browser entry, so no game or editor page
   paints on the CPU. The Studio's figure thumbnails are drawn by Pixi 3D into a small render texture.
-- **Views:** the diorama, first-person and top-down views (EnvironmentBuilder `view/`) become camera presets in
-  `packages/3d/src/features/camera/` beside the existing Crow Country camera (24 mm, 25° down, 5 m back, turned freely).
-  The CPU `view/render.ts` and `view/fp.ts` are not ported as runtimes (they go to the reference); their framing math
-  (`view-frame.ts`, `readability.ts`) is. `view/shots.ts` (shots and sequences on one clock) goes to the `stage` feature
-  (section 7.4).
+- **Views belong to the editor, not the core** (the Owner, 2026-11-07 11:04: "the diorama, first-person and top-down
+  views sounds more like they should be in the editor and not 3D"). The 3D core keeps one camera, the game's (the Crow
+  Country camera: 24 mm, 25° down, 5 m back, turned freely), and the look draws through whatever camera it is given.
+  EnvironmentBuilder's diorama, first-person and top-down views (`view/`) become Levels 3D's views in `editor-3d`
+  (section 9.3): top-down is the Plan, the diorama is the 3D view, first person is Walk. Their framing math
+  (`view-frame.ts`, `readability.ts`: framing a map, and how a figure reads against its room) ports there too. The CPU
+  `view/render.ts` and `view/fp.ts` are not ported as runtimes (they go to the reference). `view/shots.ts` (shots and
+  sequences on one clock) goes to the core's `stage` feature (section 7.4), since a game plays it.
 - **Frame budget:** 30 fps (33 ms) at the phone profile and 60 fps (16.7 ms) at the iPad profile, measured by
-  `tooling/frame-budget`'s 3D probes for the diorama and first-person views with every pass on, on the GPU runner with
+  `tooling/frame-budget`'s 3D probe of the game's camera with every pass on, on the GPU runner with
   exclusive access. A software renderer skips the budget (as the 2D probes do) and says so. Real-device numbers are the
   Owner's (D8). The hero's first pose budget (5 ms, G7) is measured in the same probe and either met or changed to a
   measured number with the reason in the spec's veto defaults.
@@ -359,6 +362,10 @@ EnvironmentBuilder's tracks (`world/timeline.ts`: keys `{ t, v, ease }` shared b
 
 From `refactor/2026-11-06-redesign-mockups/editor-level.html` and the visual direction, phone first:
 
+- **Levels 3D's views** are the builders' three (section 6): Plan is the top-down view, 3D the diorama, Walk first
+  person, each drawn by Pixi 3D in the game's look, framed by the ported framing math, and the Walk view says when a
+  character does not read against the room ("Wick is hard to see here"). They live in
+  `features/levels-3d/views/{plan,diorama,walk}/` and their frame budget is checked by the editor's own probe.
 - **Levels 3D:** the top bar is Back, the game and level menu, the views (Plan, 3D, Walk) as quiet tabs (a menu on a
   phone), Undo, Redo, problems, the save status and one lime primary (Save); tools float top centre as icons with
   names on hover and in an accessible name (Select, Room, Corner, Doorway, Door, Window, Thing, Prop, Lamp); the

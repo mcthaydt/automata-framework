@@ -70,10 +70,10 @@ to use it?
 ## Tracking
 
 `docs/refactor/progress.md` gains a "3D" slice with the stage table and, during stage 4, this table, one row per task;
-the build's percentage is `done tasks / 51`:
+the build's percentage is `done tasks / 52`:
 
 ```markdown
-### Build: 0% (0 of 51 tasks)
+### Build: 0% (0 of 52 tasks)
 
 | Task | Phase | Status | PR |
 |---|---|---|---|
@@ -546,8 +546,8 @@ sky, vertex-light, colour), `src/features/stage/*`, `src/features/view/*` (frami
 - Create: `packages/3d/src/features/look/{look.ts,ramp-light.material.ts,duel-snap.filter.ts,outline.filter.ts,
   sprite-light.ts,sky.ts,rain.ts,post.ts}` (each filter a `.glsl` + `.wgsl` pair taking pixel position from the vertex
   stage; the passes the look's `switches` name: outline, sky, stars, rain, bloom, grade, dither), `look/library/look.json`,
-  `packages/3d/src/testing/look-reference/` (both painters as the offline oracle, plain TypeScript, no globals),
-  `features/camera/presets/{diorama,first-person,top-down}.ts` (from `view/view-frame.ts` and `readability.ts`)
+  `packages/3d/src/testing/look-reference/` (both painters as the offline oracle, plain TypeScript, no globals); no
+  camera presets: the builders' views are the editor's (task 16.3; the Owner, 2026-11-07 11:04)
 - Modify: `app/create-renderer.ts` (renders to the low-resolution target, then the passes), base-3d's views
 - Modify: root `boundaries` (`--forbid` `testing/look-reference` from every browser entry: `entries/{index,sim,level,
   figures,camera-view,no-eval}.ts`; if task 8.1 chose a figure bake, its Node entry `./bake` may import it)
@@ -557,7 +557,7 @@ sky, vertex-light, colour), `src/features/stage/*`, `src/features/view/*` (frami
 
 - [ ] **Step 1:** Failing unit tests (look settings parse, ramp stepping, sprite light's flat light and rim) and the
   failing parity test. **Step 2:** the filters (**session break here if needed**). **Step 3:** the material, sprite
-  light, sky and rain; the camera presets. **Step 4:** parity in Chromium (WebKit/Firefox: the Owner's), the reference
+  light, sky and rain, drawn through the game's camera. **Step 4:** parity in Chromium (WebKit/Firefox: the Owner's), the reference
   agreement, base-3d's journeys; the frame-budget probes run where a GPU is (task 13.3 makes them permanent). Visual
   acceptance under the standing rule ("Auto approve all visual acceptance too", 2026-10-30) once a reviewer has opened
   the before/after/diff images and the PR explains every change. `sources.md` rows (the painters' files: *rewritten:
@@ -735,8 +735,8 @@ photos it lists, `src/lib/png.ts`, `scripts/textures.ts`.
 ### Task 13.3: The 3D frame-budget probes
 
 **Files:**
-- Create: `tooling/frame-budget/src/probes/3d-{diorama,first-person}.ts` (Ember Hall's dressed room with Wick, every
-  look pass on, the camera turning), `budget.json` rows (spec section 6: 33 ms phone profile, 16.7 ms iPad profile; the
+- Create: `tooling/frame-budget/src/probes/3d-game.ts` (Ember Hall's dressed room with Wick through the game's
+  camera, every look pass on, the camera turning; the editor's views get their own probe in task 16.3), `budget.json` rows (spec section 6: 33 ms phone profile, 16.7 ms iPad profile; the
   hero's first pose, G7)
 - Test: `tooling/frame-budget/tests/unit/probes-3d.test.ts` (the probes are listed; a software renderer skips with
   "Skipped: software renderer, no frame budget measured.")
@@ -863,6 +863,26 @@ photos it lists, `src/lib/png.ts`, `scripts/textures.ts`.
 
 - [ ] **Step 1–3:** each change in that order; undo and redo name it ("Undo Furnish as Office"). **Commit.**
   `feat(levels-3d): furnish rooms, place props and lamps, pick the time of day`
+
+### Task 16.3: The builders' views: Plan, 3D and Walk (spec 6 and 9.3; the Owner, 2026-11-07 11:04)
+
+**Source files:** EnvironmentBuilder `src/features/view/{view-frame,readability}.ts` (framing a map; how a figure reads
+against its room), and `render.ts` and `fp.ts` for their camera and framing rules only (their CPU drawing is the
+reference's, task 8.2).
+
+**Files:**
+- Create: `packages/editor-3d/src/features/levels-3d/views/{plan,diorama,walk}/` (top-down, diorama and first person,
+  each a Pixi 3D camera over the game's look from `@automata/3d`), `views/shared/{frame-map.ts,readability.ts}` (the
+  ported framing math, pure)
+- Modify: the existing Plan, dollhouse and Walk code (`features/levels-3d/{plan,dollhouse,walk}/`) to draw through
+  these views; the Walk view's hint when a character does not read ("Wick is hard to see here"; `copy.md`)
+- Create: `tooling/frame-budget/src/probes/3d-editor-views.ts` (the diorama and Walk at the phone and iPad profiles)
+- Test: `tests/unit/levels-3d/views/{frame-map,readability}.test.ts` (the source's cases), canvas tests of each view
+  (pixel changes against the old views explained), layout tests (the view switch reachable at every size)
+
+- [ ] **Step 1:** Port the framing and readability tests, failing. **Step 2:** the three views. **Step 3:** unit,
+  canvas and layout pass in Chromium; the probe skips on a software renderer with its message. `sources.md` rows
+  (*rewritten: editor views*). **Commit.** `feat(levels-3d): the plan, diorama and walk views in the game's look`
 
 ## Phase 17: Characters (the Studio) redesigned (one PR, `claude/3d-studio-redesign`)
 
