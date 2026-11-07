@@ -4,10 +4,9 @@
 import { createPuzzlePlugin, loadPuzzle, type PuzzleDef } from '@automata/puzzle/sim'
 import type { PuzzleScene } from '@automata/puzzle/solver'
 import { toyScene } from '@automata/puzzle/testing/toy-scene'
-import { loadSectorMap, type SectorMap, sectorsPlugin } from '@automata/sectors/sim'
-import clinicMapToml from '@automata/sectors/testing/fixtures/clinic.sector-map.toml?raw'
+import { loadSectorMap, readSectorMap, sectorsPlugin } from '@automata/sectors/sim'
+import clinicLevel from '@automata/sectors/testing/fixtures/clinic.af-sector.json?raw'
 import { createSim, defineCommand, definePlugin, defineSystem } from '@automata/sim'
-import { parse } from 'smol-toml'
 import { z } from 'zod'
 import type { NarrativeToolsScene } from '../features/tools/scene'
 import type { TraceGame } from '../features/tools/traces'
@@ -86,7 +85,7 @@ export function toyTraceGame(over: Partial<TraceGame> = {}): TraceGame {
         systems: [
           defineSystem('toy.load', 'input', (ctx) => {
             for (const { payload } of ctx.commands.of(Load)) {
-              loadSectorMap(ctx, parse(clinicMapToml) as unknown as SectorMap)
+              loadSectorMap(ctx, readSectorMap(JSON.parse(clinicLevel)).map)
               loadPuzzle(ctx, puzzle.def, payload.entry)
               narrative.load(ctx, { graphs, storylets: TOY_STORYLETS })
             }

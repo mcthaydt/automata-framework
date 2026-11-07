@@ -2,14 +2,13 @@
 // an actor off the floor, a caption whose line does not exist or is shown too briefly, a sound or lamp that does not exist,
 // a shot that is too short, dead air. The original's rules that read its renderer (ceiling, cut-away walls, sprite scale,
 // back to camera, solid boxes) come with the renderer.
-import { resolveMap } from '@automata/sectors/sim'
-import clinicMapToml from '@automata/sectors/testing/fixtures/clinic.sector-map.toml?raw'
-import { parse } from 'smol-toml'
+import { readSectorMap, resolveLevel } from '@automata/sectors/sim'
+import clinicLevel from '@automata/sectors/testing/fixtures/clinic.af-sector.json?raw'
 import { describe, expect, it } from 'vitest'
 import type { CutsceneScript } from '#src/entries/sim.ts'
 import { type LintWorld, lintCutscene, lintCutscenes, readingTime } from '#src/features/play/lint.ts'
 
-const map = resolveMap(parse(clinicMapToml) as never)
+const map = resolveLevel(readSectorMap(JSON.parse(clinicLevel)).map)
 const world = (over: Partial<LintWorld> = {}): LintWorld => ({
   map,
   text: { 'toy.a': 'The clock has stopped.', 'toy.b': 'Someone is at the door.' },

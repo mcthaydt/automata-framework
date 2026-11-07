@@ -1,9 +1,8 @@
 // The four scenes' converted cutscenes: 28 scripts that parse, whose captions name lines the scenes have, and
 // the clinic's linted against the clinic map. The two findings left are the original's renderer rules: the keypad
 // insert's camera is near a wall the renderer cuts away, and the opening's is above the clinic, outside the map.
-import { resolveMap } from '@automata/sectors/sim'
-import clinicMapToml from '@automata/sectors/testing/fixtures/clinic.sector-map.toml?raw'
-import { parse } from 'smol-toml'
+import { readSectorMap, resolveLevel } from '@automata/sectors/sim'
+import clinicLevel from '@automata/sectors/testing/fixtures/clinic.af-sector.json?raw'
 import { describe, expect, it } from 'vitest'
 import { cutsceneSchema } from '#src/entries/sim.ts'
 import { lintCutscenes } from '#src/entries/tools.ts'
@@ -40,7 +39,7 @@ describe('the converted scenes', () => {
 })
 
 describe('the clinic’s cutscenes against the clinic map', () => {
-  const map = resolveMap(parse(clinicMapToml) as never)
+  const map = resolveLevel(readSectorMap(JSON.parse(clinicLevel)).map)
   it('lint to the two renderer-dependent camera findings, and nothing else', () => {
     const found = lintCutscenes(scriptsOf('clinic'), {
       map,

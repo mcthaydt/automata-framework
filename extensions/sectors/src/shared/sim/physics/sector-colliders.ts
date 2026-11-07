@@ -7,10 +7,10 @@
 import { WALL_THICK } from '@automata/3d/level'
 import { BodyKind, body3d, collider3d, transform3d } from '@automata/physics/3d'
 import type { SimContext } from '@automata/sim'
+import type { SectorMap } from '../check-level'
 import { loadSectorMap } from '../load-sector-map'
 import type { Edge } from '../resolve'
 import { resolvedMap } from '../resolved-map'
-import type { SectorMap } from '../sector-map.schema'
 import { SectorCollider } from './sector-collider.component'
 
 /** The rotation about y that takes the x axis to the wall's direction. */

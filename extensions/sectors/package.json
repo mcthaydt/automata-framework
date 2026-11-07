@@ -36,7 +36,6 @@
   },
   "peerDependencies": {
     "@automata/3d": "workspace:^",
-    "@automata/content": "workspace:^",
     "@automata/framework": "workspace:^",
     "@automata/physics": "workspace:^",
     "@automata/sim": "workspace:^"
@@ -48,14 +47,12 @@
   },
   "devDependencies": {
     "@automata/3d": "workspace:*",
-    "@automata/content": "workspace:*",
     "@automata/evidence": "workspace:*",
     "@automata/framework": "workspace:*",
     "@automata/physics": "workspace:*",
     "@automata/sim": "workspace:*",
     "@automata/vitest-preset": "workspace:*",
     "@types/node": "24.19.1",
-    "smol-toml": "1.9.0",
     "vitest": "5.0.3"
   }
 }

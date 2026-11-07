@@ -2,8 +2,8 @@
 // command, moves the player, sets facts and fires system events. Puzzle's `dialogue` and `verb` hooks go to narrative
 //; the player is an entity with `InSector`, named in `narrative.env`.
 import { createPuzzlePlugin, loadPuzzle, type PuzzleDef, PuzzleState } from '@automata/puzzle/sim'
-import { InSector, loadSectorMap, type SectorMap, sectorsPlugin } from '@automata/sectors/sim'
-import clinicMapToml from '@automata/sectors/testing/fixtures/clinic.sector-map.toml?raw'
+import { InSector, loadSectorMap, readSectorMap, sectorsPlugin } from '@automata/sectors/sim'
+import clinicLevel from '@automata/sectors/testing/fixtures/clinic.af-sector.json?raw'
 import {
   type Command,
   createSim,
@@ -13,7 +13,6 @@ import {
   type Sim,
   type StepResult,
 } from '@automata/sim'
-import { parse } from 'smol-toml'
 import { z } from 'zod'
 import type { NarrativeScene } from '../shared/sim/load-narrative'
 import { createNarrative } from '../shared/sim/narrative.plugin'
@@ -54,7 +53,7 @@ export async function createTalkGame(
     systems: [
       defineSystem('talk.drive', 'input', (ctx) => {
         for (const _ of ctx.commands.of(Load)) {
-          loadSectorMap(ctx, parse(clinicMapToml) as unknown as SectorMap)
+          loadSectorMap(ctx, readSectorMap(JSON.parse(clinicLevel)).map)
           loadPuzzle(ctx, puzzle)
           narrative.load(ctx, scene)
         }

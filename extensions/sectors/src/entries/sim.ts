@@ -1,17 +1,18 @@
-// @automata/sectors/sim: the sector map's sim side, a sim entry. The map's shape is the sector
-// format's (`Point` is re-exported from it); resolution, queries, the step rule and the plugin are sectors' own.
+// @automata/sectors/sim: the level's sim side, a sim entry. The level's shape is `af-sector/2`'s (`Point` is
+// re-exported from it); the checks, resolution, queries and the plugin are sectors' own.
 export type { Point } from '@automata/3d/level'
+export { checkLevel, type SectorMap, type StoredPlane, type StoredSector } from '../shared/sim/check-level'
 export { loadSectorMap } from '../shared/sim/load-sector-map'
+export { readSectorMap, type SectorMapRead } from '../shared/sim/read-sector-map'
 export {
   type Collider,
   type Edge,
   type Piece,
   type ResolvedMap,
-  resolveMap,
+  resolveLevel,
   type Sector,
 } from '../shared/sim/resolve'
 export { resolvedMap } from '../shared/sim/resolved-map'
-export { type SectorMap, sectorMapSchema } from '../shared/sim/sector-map.schema'
 export { InSector } from '../shared/sim/sectors.component'
 export {
   SectorEntered,

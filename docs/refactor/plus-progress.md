@@ -1,6 +1,6 @@
 # Automata Plus as framework extensions: progress
 
-**Overall: 50% (3 of 6 stages done; stage 4 is 14 of 19 tasks).**
+**Overall: 50% (3 of 6 stages done; stage 4 is 15 of 19 tasks).**
 
 The Owner, 2026-11-07: "do automata-plus too" (11:19); then, on where: "Actually no make them extensions because
 they're free anyway, and move the stuff 3D is doing here, and cut the starter" (15:05). Plus's packages are ported into
@@ -27,9 +27,9 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 
 ## Where to resume (2026-11-07, stage 4 in progress)
 
-Branch `claude/project-thread-d62n7h` (PR #458, on #457). Tasks 1.1 to 1.4, 2.1 to 2.8, 3.1 and 4.1 are done; the plan's execution log
+Branch `claude/project-thread-d62n7h` (PR #458, on #457). Tasks 1.1 to 1.4, 2.1 to 2.8, 3.1, 3.2 and 4.1 are done; the plan's execution log
 has each one's counts and the ledger (`.superpowers/sdd/2026-11-07-plus-port-plan/progress.md`, git-ignored) its rulings.
-Resume at **3.2** once 3D 7.1 (`af-sector/2`) is in this branch's base; 3.3 needs 3D 7.2 and 7.4, 3.5 needs 3D 12.1. 3.4 follows 3.2, and 4.2 (tracking and handover) closes.
+Resume at **3.4** (3.2 is done; the 3D build has 7.1 and 7.2 merged into this branch's base); 3.3 needs 3D 7.4, 3.5 needs 3D 12.1, and 4.2 closes.
 The moves use `docs/refactor/move-map-plus.json` (rows per package, `entries` empty; give the mover a temporary map whose
 `sources` holds only the package being moved) with `node tooling/codemods/src/move-modules-cli.ts --map <map>`, then
 `tooling/codemods/src/cli.ts <pkg> --environment node|jsdom --feature-folders`; a test file with an unknown qualifier

@@ -22,7 +22,7 @@ test('narrative: 600 steps of talk on the clinic, straight and restored, match t
 const EXPECTED = {
   seed: 2026,
   ticks: 600,
-  hash: 'f07b6a56c0f4182b',
+  hash: 'ef100aa9197a622f',
   events: '50cfecbe4dd669d4',
   eventCount: 94,
   storylets: 9,

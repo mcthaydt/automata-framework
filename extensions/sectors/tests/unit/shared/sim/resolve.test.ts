@@ -4,7 +4,7 @@
 import { DEFAULT_TRIM, WALL_THICK } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { crossing, insideSector, polygonArea } from '#src/shared/sim/queries.ts'
-import { type Edge, resolveMap } from '#src/shared/sim/resolve.ts'
+import { type Edge, resolveLevel } from '#src/shared/sim/resolve.ts'
 import { clinicMap, clinicResolved } from '#src/testing/clinic.ts'
 
 const TOLERANCE = 1e-12
@@ -12,10 +12,10 @@ const close = (actual: number, expected: number): boolean => Math.abs(actual - e
 const near = (p: { x: number; z: number }, q: { x: number; z: number }): boolean =>
   Math.abs(p.x - q.x) < 1e-6 && Math.abs(p.z - q.z) < 1e-6
 
-const map = resolveMap(clinicMap())
+const map = resolveLevel(clinicMap())
 const source = clinicResolved()
 
-describe('resolveMap of the clinic', () => {
+describe('resolveLevel of the clinic', () => {
   it('has the original’s sectors, loops and edges, in order', () => {
     expect(source.sourceCommit).toBe('92e67047a33161c5cfb1c5f9d8b981e91e1c55b9')
     expect(map.sectors.map((s) => s.id)).toEqual(source.sectors.map((s) => s.id))
@@ -124,9 +124,9 @@ describe('the original’s sector checks, on the clinic', () => {
   })
 })
 
-describe('resolveMap', () => {
+describe('resolveLevel', () => {
   const room = (corners: unknown[], more: object = {}) => ({
-    sectors: [{ id: 'r', zone: 'r', floor: 0, ceiling: 3, light: 1, corners, ...more }],
+    sectors: [{ id: 'r', zone: 'r', floor: { z: 0 }, ceiling: { z: 3 }, light: 1, corners, ...more }],
   })
 
   it('winds an outer loop counter-clockwise and a hole clockwise, keeping each wall on its own edge', () => {
@@ -148,7 +148,7 @@ describe('resolveMap', () => {
         ],
       },
     )
-    const sector = resolveMap(clockwise as never).sectors[0]
+    const sector = resolveLevel(clockwise as never).sectors[0]
     expect(polygonArea(sector?.points[0] ?? [])).toBeGreaterThan(0)
     expect(polygonArea(sector?.points[1] ?? [])).toBeLessThan(0)
     // The wall that ran 0,0 → 0,4 now runs 0,4 → 0,0 and keeps its cut group.
@@ -160,7 +160,7 @@ describe('resolveMap', () => {
   })
 
   it('lays the sector’s and the wall’s trim over the default, and defaults thick and cut', () => {
-    const resolved = resolveMap(
+    const resolved = resolveLevel(
       room(
         [
           [0, 0, { trim: { rail: 0 } }],
@@ -179,7 +179,7 @@ describe('resolveMap', () => {
   })
 
   it('expands a pilaster into three walls round one mass of masonry', () => {
-    const resolved = resolveMap(
+    const resolved = resolveLevel(
       room([
         [0, 0, { pilaster: { start: [0.5, 0.2] }, cut: 'south' }],
         [4, 0],
@@ -203,5 +203,50 @@ describe('resolveMap', () => {
         cut: 'south',
       },
     ])
+  })
+
+  it('keeps the clinic’s cuts, zones and masses through af-sector/2', () => {
+    const level = clinicMap()
+    expect(map.sectors.map((sector) => sector.zone)).toEqual(level.sectors.map((sector) => sector.zone))
+    expect(level.masses).toHaveLength(3)
+    expect(map.edges.some((edge) => edge.wall.hideFrom?.includes('hall'))).toBe(true)
+    expect(new Set(map.edges.map((edge) => edge.cut)).has('counter')).toBe(true)
+  })
+
+  it('reads a wall whose trim names a surface as having no trim heights of its own', () => {
+    const resolved = resolveLevel(
+      room(
+        [
+          [0, 0, { trim: 'brick' }],
+          [4, 0, { trim: { tile: 'brick' } }],
+          [4, 4, { trim: { rail: 0.5 } }],
+          [0, 4],
+        ],
+        { trim: { rail: 0.25 } },
+      ) as never,
+    )
+    expect(resolved.edges.map((edge) => edge.trim.rail)).toEqual([0.25, 0.25, 0.5, 0.25])
+  })
+
+  it('is where the floor ends over a pit: the sector says so and floorAt has no height there', () => {
+    const resolved = resolveLevel(
+      room(
+        [
+          [0, 0],
+          [4, 0],
+          [4, 4],
+          [0, 4],
+        ],
+        { pit: true },
+      ) as never,
+    )
+    expect(resolved.sectors[0]?.pit).toBe(true)
+    expect(resolved.floorAt({ x: 2, z: 2 })).toBeUndefined()
+    expect(resolved.sectorAt({ x: 2, z: 2 })?.id).toBe('r')
+  })
+
+  it('has a floor under every room that is not a pit', () => {
+    expect(map.sectors.every((sector) => !sector.pit)).toBe(true)
+    expect(map.floorAt({ x: 0, z: 1 })).toBe(0)
   })
 })

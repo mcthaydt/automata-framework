@@ -11,8 +11,8 @@ const rooms = {
     {
       id: 'west',
       zone: 'ward',
-      floor: 0,
-      ceiling: 3,
+      floor: { z: 0 },
+      ceiling: { z: 3 },
       light: 1,
       corners: [
         [0, 0],
@@ -24,8 +24,8 @@ const rooms = {
     {
       id: 'east',
       zone: 'hall',
-      floor: 0,
-      ceiling: 3,
+      floor: { z: 0 },
+      ceiling: { z: 3 },
       light: 1,
       corners: [
         [4, 0],
@@ -37,8 +37,8 @@ const rooms = {
     {
       id: 'annex',
       zone: 'hall',
-      floor: 0,
-      ceiling: 3,
+      floor: { z: 0 },
+      ceiling: { z: 3 },
       light: 1,
       corners: [
         [8, 0],
@@ -54,8 +54,8 @@ const other = {
     {
       id: 'yard',
       zone: 'yard',
-      floor: 0,
-      ceiling: 9,
+      floor: { z: 0 },
+      ceiling: { z: 9 },
       light: 1,
       corners: [
         [0, 0],

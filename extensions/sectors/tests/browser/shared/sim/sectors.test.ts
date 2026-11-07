@@ -30,7 +30,7 @@ test('sectors with physics: the same script with collider boxes matches its gold
 const EXPECTED_PHYSICS = {
   seed: 2026,
   ticks: 600,
-  hash: 'a1d684b93a0dacc6',
+  hash: '38fff211d9c79335',
   events: 'e72945926e02b3ad',
   eventCount: 50,
 }
@@ -39,7 +39,7 @@ const EXPECTED_PHYSICS = {
 const EXPECTED = {
   seed: 2026,
   ticks: 600,
-  hash: '8ed8ca2ef8c3b55c',
+  hash: '30613a36313dd477',
   events: 'e72945926e02b3ad',
   eventCount: 50,
 }

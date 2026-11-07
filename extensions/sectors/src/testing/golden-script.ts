@@ -6,13 +6,13 @@ import { hex64, utf8, xxhash64 } from '@automata/sim/hash'
 import type { SectorMap } from '../entries/sim'
 import { createWalkers, load, type Order, spawn, stepWith, type WalkersOptions, walk } from './walkers'
 
-const rooms: SectorMap = {
+export const rooms: SectorMap = {
   sectors: [
     {
       id: 'west',
       zone: 'ward',
-      floor: 0,
-      ceiling: 3,
+      floor: { z: 0 },
+      ceiling: { z: 3 },
       light: 1,
       corners: [
         [0, 0, { pilaster: { start: [0.5, 0.25] } }],
@@ -24,8 +24,8 @@ const rooms: SectorMap = {
     {
       id: 'east',
       zone: 'hall',
-      floor: 0.25,
-      ceiling: 3,
+      floor: { z: 0.25 },
+      ceiling: { z: 3 },
       light: 0.8,
       corners: [
         [4, 0],
@@ -45,8 +45,8 @@ const rooms: SectorMap = {
     {
       id: 'annex',
       zone: 'hall',
-      floor: 0,
-      ceiling: 2.5,
+      floor: { z: 0 },
+      ceiling: { z: 2.5 },
       light: 1,
       corners: [
         [8, 0],
@@ -68,13 +68,13 @@ const rooms: SectorMap = {
     },
   ],
 }
-const yard: SectorMap = {
+export const yard: SectorMap = {
   sectors: [
     {
       id: 'yard',
       zone: 'yard',
-      floor: 0,
-      ceiling: 9,
+      floor: { z: 0 },
+      ceiling: { z: 9 },
       light: 1,
       corners: [
         [0, 0, { next: 'shed' }],
@@ -86,8 +86,8 @@ const yard: SectorMap = {
     {
       id: 'shed',
       zone: 'shed',
-      floor: 0,
-      ceiling: 3,
+      floor: { z: 0 },
+      ceiling: { z: 3 },
       light: 0.5,
       corners: [
         [6, 0],

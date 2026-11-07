@@ -26,7 +26,7 @@ test('the ward-to-corridor route is the same points in every engine', () => {
 const EXPECTED = {
   seed: 2026,
   ticks: 600,
-  hash: 'f890d0c1a042d8ab',
+  hash: '32aa557695d03488',
   events: '26459d9780a85a2c',
   eventCount: 20,
 }

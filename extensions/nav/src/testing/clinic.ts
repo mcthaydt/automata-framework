@@ -1,8 +1,14 @@
-// The clinic fixture for nav's tests, in Node and the browsers (`?raw`, no `node:fs`): sectors' converted clinic map,
+// The clinic fixture for nav's tests, in Node and the browsers (`?raw`, no `node:fs`): sectors' clinic level,
 // the clinic's nav graph, and its boxes behind a game-side `Blocked` like the original's (boxes are the game's, not nav's).
 
-import { type Point, type ResolvedMap, resolveMap, type SectorMap } from '@automata/sectors/sim'
-import clinicMapToml from '@automata/sectors/testing/fixtures/clinic.sector-map.toml?raw'
+import {
+  type Point,
+  type ResolvedMap,
+  readSectorMap,
+  resolveLevel,
+  type SectorMap,
+} from '@automata/sectors/sim'
+import clinicLevel from '@automata/sectors/testing/fixtures/clinic.af-sector.json?raw'
 import { parse } from 'smol-toml'
 import { blockedBy } from '../shared/sim/blocked'
 import type { NavGraph } from '../shared/sim/nav-graph.schema'
@@ -10,7 +16,7 @@ import type { Blocked } from '../shared/sim/route'
 import boxesToml from './fixtures/clinic.boxes.toml?raw'
 import graphToml from './fixtures/clinic.nav-graph.toml?raw'
 
-export const clinicMap = (): SectorMap => parse(clinicMapToml) as unknown as SectorMap
+export const clinicMap = (): SectorMap => readSectorMap(JSON.parse(clinicLevel)).map
 export const clinicGraph = (): NavGraph => parse(graphToml) as unknown as NavGraph
 
 interface Box {
@@ -72,4 +78,4 @@ export function clinicBlocked(
   }
 }
 
-export const resolvedClinic = (): ResolvedMap => resolveMap(clinicMap())
+export const resolvedClinic = (): ResolvedMap => resolveLevel(clinicMap())

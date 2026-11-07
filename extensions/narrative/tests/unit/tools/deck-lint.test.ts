@@ -2,7 +2,7 @@
 // trigger that cannot fire, a condition that never holds, a fact stated before the scene that teaches it, a beat a
 // storylet delivers. Who may not have storylets is the game's.
 import { scenePuzzle } from '@automata/puzzle/testing/converted-puzzles'
-import clinicMapToml from '@automata/sectors/testing/fixtures/clinic.sector-map.toml?raw'
+import clinicLevel from '@automata/sectors/testing/fixtures/clinic.af-sector.json?raw'
 import { parse } from 'smol-toml'
 import { describe, expect, it } from 'vitest'
 import type { Canon, DialogueGraph, LineRecord, Storylet } from '#src/entries/sim.ts'
@@ -85,7 +85,7 @@ describe('lintDeck', () => {
 
 describe('the converted clinic deck', () => {
   it('passes with what the clinic’s game declares: its presentation room, its world facts and the director to come', () => {
-    const map = parse(clinicMapToml) as unknown as { sectors: { id: string; zone: string }[] }
+    const map = JSON.parse(clinicLevel) as { sectors: { id: string; zone: string }[] }
     const puzzle = scenePuzzle('clinic')
     const said = new Set(['stance'])
     for (const g of (fixture('clinic.dialogue.toml') as { graphs: DialogueGraph[] }).graphs)

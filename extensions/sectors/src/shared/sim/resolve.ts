@@ -1,23 +1,22 @@
-// A `sector-map` resolved for the sim: loops normalised so the room is on the left of every edge (outer
+// An `af-sector/2` level resolved for the sim: loops normalised so the room is on the left of every edge (outer
 // loops counter-clockwise on the plan, x right and z up; holes clockwise), pilasters expanded into notches with their
 // masonry, portals linked, and the collision spans listed. The same steps as the 3D level editor's float geometry, on
 // the sim's deterministic `hypot`. Edges link by index, not by reference: `sector` and `next` index
 // `sectors`, `prev` and `succ` index the edge's own loop, so the result is plain data.
 import {
-  type Corner,
+  type AfCorner2,
+  type AfWall2,
   DEFAULT_TRIM,
   type MassDef,
   type PartialTrim,
   type Point,
-  type SectorDef,
   type Trim,
   WALL_THICK,
-  type WallDef,
 } from '@automata/3d/level'
 import { hypot } from '@automata/sim/math'
+import { heightOf, type SectorMap, type StoredSector } from './check-level'
 import { opening, type PieceKind, pieceSpans, walkBlocker } from './pieces'
 import { insideSector, segmentDistance } from './queries'
-import type { SectorMap } from './sector-map.schema'
 
 /** One wall of a sector, with its place in the loop and the numbers every query needs. */
 export interface Edge {
@@ -31,7 +30,7 @@ export interface Edge {
   /** Unit direction a→b and the inward normal (into the room). */
   readonly dir: Point
   readonly normal: Point
-  readonly wall: WallDef
+  readonly wall: AfWall2
   /** Index of the sector a portal leads into; undefined for a solid wall. */
   readonly next: number | undefined
   /** Distance along the loop to `a`. */
@@ -46,7 +45,15 @@ export interface Edge {
   readonly notch: boolean
 }
 
-export interface Sector extends Readonly<Omit<SectorDef, 'corners' | 'holes' | 'trim'>> {
+export interface Sector
+  extends Readonly<Omit<StoredSector, 'corners' | 'holes' | 'trim' | 'floor' | 'ceiling' | 'pit' | 'zone'>> {
+  /** The floor and ceiling heights: the sim reads both flat (`checkLevel` reports a slope). */
+  readonly floor: number
+  readonly ceiling: number
+  /** What the rules call the room's zone: the level's `zone`, or the room's own id when it names none. */
+  readonly zone: string
+  /** The floor is a drop, not ground: nothing stands on it, and `floorAt` is undefined there. */
+  readonly pit: boolean
   readonly trim: Trim
   /** `loops[i]` are the edges of `points[i]`: the outer loop first, then the holes. */
   readonly loops: readonly (readonly Edge[])[]
@@ -82,11 +89,13 @@ export interface ResolvedMap {
   readonly colliders: readonly Collider[]
   /** The first sector that holds the point. */
   sectorAt(p: Point): Sector | undefined
-  /** The floor height under the point; undefined outside the map. */
+  /** The floor height under the point; undefined outside the map and over a pit. */
   floorAt(p: Point): number | undefined
   /** Whether the plan segment a→b crosses, or comes within `margin` of, a collider. */
   segmentBlocked(a: Point, b: Point, margin?: number): boolean
 }
+
+type Corner = AfCorner2
 
 type Writable<T> = { -readonly [K in keyof T]: T[K] }
 
@@ -98,10 +107,10 @@ const area = (points: readonly Corner[]): number =>
     return sum + x * z2 - x2 * z
   }, 0) / 2
 
-const flipPilaster = (w: WallDef): WallDef =>
+const flipPilaster = (w: AfWall2): AfWall2 =>
   w.pilaster ? { ...w, pilaster: { start: w.pilaster.end, end: w.pilaster.start } } : w
 
-const corner = (x: number, z: number, wall: WallDef | undefined): Corner => (wall ? [x, z, wall] : [x, z])
+const corner = (x: number, z: number, wall: AfWall2 | undefined): Corner => (wall ? [x, z, wall] : [x, z])
 
 /** Reverses a loop while keeping each wall on its own edge. */
 function reverse(corners: readonly Corner[]): Corner[] {
@@ -123,7 +132,7 @@ interface Notched {
 function notchPilasters(corners: readonly Corner[], top: number, masses: MassDef[]): Notched {
   const out: Corner[] = []
   const notched: boolean[] = []
-  const keep = (x: number, z: number, w: WallDef | undefined): void => {
+  const keep = (x: number, z: number, w: AfWall2 | undefined): void => {
     out.push(corner(x, z, w))
     notched.push(false)
   }
@@ -141,7 +150,7 @@ function notchPilasters(corners: readonly Corner[], top: number, masses: MassDef
       z: z + d.z * along + n.z * into,
     })
     const { pilaster, ...plain } = w
-    const side: WallDef = { ...plain, thick: 0 }
+    const side: AfWall2 = { ...plain, thick: 0 }
     // Each pilaster is three short walls round a block of masonry that reaches back under the wall top.
     const notch = (s: number, width: number, depth: number): void => {
       out.push(
@@ -169,6 +178,10 @@ function notchPilasters(corners: readonly Corner[], top: number, masses: MassDef
 
 const withTrim = (base: Trim, over: PartialTrim | undefined): Trim => ({ ...base, ...over }) as Trim
 
+/** A wall's trim heights: its `trim` when that is heights, and none when it names a surface (a string or a `tile`). */
+const trimHeights = (trim: AfWall2['trim']): PartialTrim | undefined =>
+  typeof trim === 'object' && !('tile' in trim) ? trim : undefined
+
 function loopEdges(
   sector: number,
   li: number,
@@ -185,7 +198,7 @@ function loopEdges(
     const dir = { x: (x2 - x) / length, z: (z2 - z) / length }
     const wall = w ?? {}
     const next = wall.next === undefined ? undefined : byId.get(wall.next)
-    // sectorMapSchema reports this at the corner; a map that skipped the schema still fails loudly here.
+    // checkLevel reports this at the corner; a map that skipped the schema still fails loudly here.
     if (wall.next !== undefined && next === undefined)
       throw new Error(`${id}: unknown portal target ${wall.next}`)
     const edge: Edge = {
@@ -204,7 +217,7 @@ function loopEdges(
       succ: (index + 1) % count,
       thick: wall.thick ?? WALL_THICK,
       cut: wall.cut ?? `${id}:${li}:${index}`,
-      trim: withTrim(own.trim, wall.trim),
+      trim: withTrim(own.trim, trimHeights(wall.trim)),
       notch: notched[index] === true,
     }
     u += length
@@ -212,17 +225,22 @@ function loopEdges(
   })
 }
 
-export function resolveMap(map: SectorMap): ResolvedMap {
-  const masses: MassDef[] = [...(map.masses ?? [])]
+/** `level` resolved for the sim. A level `checkLevel` reports on may throw here (a portal to no room). */
+export function resolveLevel(level: SectorMap): ResolvedMap {
+  const masses: MassDef[] = [...(level.masses ?? [])]
   const raw: Notched[][] = []
-  const sectors: Writable<Sector>[] = map.sectors.map((def) => {
+  const sectors: Writable<Sector>[] = level.sectors.map((def) => {
     const outer = area(def.corners) < 0 ? reverse(def.corners) : def.corners
     const holes = (def.holes ?? []).map((h) => (area(h) > 0 ? reverse(h) : h))
-    const loops = [outer, ...holes].map((loop) => notchPilasters(loop, def.ceiling, masses))
+    const loops = [outer, ...holes].map((loop) => notchPilasters(loop, heightOf(def.ceiling), masses))
     raw.push(loops)
-    const { corners: _corners, holes: _holes, trim, ...rest } = def
+    const { corners: _corners, holes: _holes, trim, floor, ceiling, pit, zone, ...rest } = def
     return {
       ...rest,
+      zone: zone ?? def.id,
+      floor: heightOf(floor),
+      ceiling: heightOf(ceiling),
+      pit: pit === true,
       trim: withTrim(DEFAULT_TRIM, trim),
       loops: [],
       points: loops.map(({ loop }) => loop.map(([x, z]) => ({ x, z }))),
@@ -263,7 +281,10 @@ export function resolveMap(map: SectorMap): ResolvedMap {
     pieces,
     colliders,
     sectorAt,
-    floorAt: (p) => sectorAt(p)?.floor,
+    floorAt: (p) => {
+      const here = sectorAt(p)
+      return here === undefined || here.pit ? undefined : here.floor
+    },
     segmentBlocked: (a, b, margin = 0) =>
       colliderEdges.some((e) => segmentDistance(a, b, e.a, e.b) <= margin),
   }

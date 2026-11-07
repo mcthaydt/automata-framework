@@ -4,18 +4,18 @@ import { STEP } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { opening, pieceSpans, walkBlocker } from '#src/shared/sim/pieces.ts'
 import { crossing, segmentDistance } from '#src/shared/sim/queries.ts'
-import { resolveMap } from '#src/shared/sim/resolve.ts'
+import { resolveLevel } from '#src/shared/sim/resolve.ts'
 import { clinicMap } from '#src/testing/clinic.ts'
 
 /** Two rooms side by side, 4 m square, joined by a portal on x = 4; the east room's floor is `step` higher. */
 const twoRooms = (step: number, eastWall: object = {}) =>
-  resolveMap({
+  resolveLevel({
     sectors: [
       {
         id: 'west',
         zone: 'ward',
-        floor: 0,
-        ceiling: 3,
+        floor: { z: 0 },
+        ceiling: { z: 3 },
         light: 1,
         corners: [
           [0, 0],
@@ -27,8 +27,8 @@ const twoRooms = (step: number, eastWall: object = {}) =>
       {
         id: 'east',
         zone: 'hall',
-        floor: step,
-        ceiling: 3,
+        floor: { z: step },
+        ceiling: { z: 3 },
         light: 1,
         corners: [
           [4, 0],
@@ -56,7 +56,7 @@ describe('crossing and segmentDistance', () => {
 })
 
 describe('sectorAt and floorAt', () => {
-  const clinic = resolveMap(clinicMap())
+  const clinic = resolveLevel(clinicMap())
 
   it('names the sector under a point, leaving a hole to the sector it holds', () => {
     expect(clinic.sectorAt({ x: 0, z: 3 })?.id).toBe('hall')

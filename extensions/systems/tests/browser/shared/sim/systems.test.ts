@@ -21,7 +21,7 @@ test('systems: 600 steps of the watchman on the clinic, straight and restored, m
 const EXPECTED = {
   seed: 2026,
   ticks: 600,
-  hash: '9970d47dc313d17c',
+  hash: '8ec637bd430ca3de',
   events: '8c0c735f6411f312',
   eventCount: 160,
   hunts: 380,

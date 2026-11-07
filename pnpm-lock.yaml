@@ -723,9 +723,6 @@ importers:
       '@automata/3d':
         specifier: workspace:*
         version: link:../../packages/3d
-      '@automata/content':
-        specifier: workspace:*
-        version: link:../../packages/content
       '@automata/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
@@ -744,9 +741,6 @@ importers:
       '@types/node':
         specifier: 24.19.1
         version: 24.19.1
-      smol-toml:
-        specifier: 1.9.0
-        version: 1.9.0
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))

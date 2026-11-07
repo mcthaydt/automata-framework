@@ -8,7 +8,7 @@ import { createSim, defineCommand, definePlugin, defineSystem, type Sim } from '
 import { afterEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { loadSectorMapWithColliders, SectorCollider, sectorCollidersPlugin } from '#src/entries/physics.ts'
-import { resolveMap, type SectorMap, sectorsPlugin } from '#src/entries/sim.ts'
+import { resolveLevel, type SectorMap, sectorsPlugin } from '#src/entries/sim.ts'
 
 /** A 4 × 2 room with a portal on its east wall into a room whose floor is 0.5 m higher (a step too tall to climb). */
 const rooms = {
@@ -16,8 +16,8 @@ const rooms = {
     {
       id: 'low',
       zone: 'a',
-      floor: 0,
-      ceiling: 3,
+      floor: { z: 0 },
+      ceiling: { z: 3 },
       light: 1,
       corners: [
         [0, 0, { thick: 0.3 }],
@@ -29,8 +29,8 @@ const rooms = {
     {
       id: 'high',
       zone: 'a',
-      floor: 0.5,
-      ceiling: 3,
+      floor: { z: 0.5 },
+      ceiling: { z: 3 },
       light: 1,
       corners: [
         [4, 0],
@@ -46,8 +46,8 @@ const yard = {
     {
       id: 'yard',
       zone: 'y',
-      floor: 0,
-      ceiling: 3,
+      floor: { z: 0 },
+      ceiling: { z: 3 },
       light: 1,
       corners: [
         [0, 0],
@@ -82,7 +82,7 @@ describe('sector colliders', () => {
   it('adds one fixed box per collider span, and replaces them with the next scene’s', async () => {
     sim = await createSim({ seed: 1, plugins: [physics3d(), sectorsPlugin, sectorCollidersPlugin, loader] })
     loadAt('rooms')
-    expect(colliders().length).toBe(resolveMap(rooms).colliders.length)
+    expect(colliders().length).toBe(resolveLevel(rooms).colliders.length)
     for (const box of colliders()) {
       expect(box.get(RigidBody3D).kind).toBe(BodyKind.fixed)
       expect(box.get(Collider3D).shape).toBe(ShapeKind.cuboid)
@@ -105,7 +105,7 @@ describe('sector colliders', () => {
   it('turns a box to its wall, and spans a tall step from floor to floor', async () => {
     sim = await createSim({ seed: 1, plugins: [physics3d(), sectorsPlugin, sectorCollidersPlugin, loader] })
     loadAt('rooms')
-    const map = resolveMap(rooms)
+    const map = resolveLevel(rooms)
     const step = map.colliders.findIndex((c) => map.sectors[c.sector]?.id === 'low' && c.index === 1)
     const box = colliders().find((c) => c.get(SectorCollider).index === step)
     // The step runs 4,0 → 4,2 (north): a quarter turn, its 0.5 m height centred at 0.25, one WALL_THICK deep.
