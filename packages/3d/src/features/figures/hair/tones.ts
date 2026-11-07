@@ -8,18 +8,11 @@
 // `raise` (the painter's tones; M3 spec §4.4.1: the painter stays in FigureBuilder). The finishes' matteness
 // and each tone's place are the source's.
 
-import type { HAIR_FINISHES } from '../content/hair.schema.ts'
 import { type Made, variant } from '../figure/materials.ts'
+import { finishMatte } from '../registry/hair-finish-registry.ts'
 
-export type Finish = (typeof HAIR_FINISHES)[number]
-/** Matte finishes, as the source's FINISH table has them. */
-const MATTE: Readonly<Record<Finish, boolean>> = {
-  coil: true,
-  braid: true,
-  loc: true,
-  sleek: false,
-  straight: false,
-}
+/** A finish's name: a base finish (coil, braid, loc, sleek, straight) or one an extension registered. */
+export type Finish = string
 
 /** The hair's own tones; anything else is a swatch id, used as it is. */
 const TONES = ['hair', 'lit', 'crest', 'fade1', 'fade2', 'scalp', 'parting'] as const
@@ -34,7 +27,7 @@ export function toneOf(
   matte = false,
 ): string {
   if (!(TONES as readonly string[]).includes(tone)) return tone
-  const dull = matte || MATTE[finish]
+  const dull = matte || finishMatte(finish)
   const as = (of: string, role: string, shade: number) =>
     variant(made, of, `${role}${dull ? '~matte' : ''}`, {
       ...(shade ? { shade } : {}),

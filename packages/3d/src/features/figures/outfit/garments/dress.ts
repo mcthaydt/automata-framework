@@ -8,7 +8,7 @@
 // taken; the kinds are told apart by the garment registry, not by a branch for each.
 
 import type { Measure } from '../../body/genes.ts'
-import { type Decal, GROUP, type Part } from '../../body/mesh.ts'
+import type { Decal, Part } from '../../body/mesh.ts'
 import { type Body, bodyOf } from '../../body/profiles.ts'
 import { J, type Skeleton } from '../../body/rig.ts'
 import type { Anchor } from '../../figure/anchors.ts'

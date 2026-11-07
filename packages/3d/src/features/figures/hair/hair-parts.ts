@@ -28,6 +28,7 @@ import { FIGURE_PPM, texels } from '../body/texels.ts'
 import type { HairStyle, Piece } from '../content/hair.schema.ts'
 import type { Made } from '../figure/materials.ts'
 import { FACE_SEAM, headAt, headForm, headNormal } from '../outfit/garments/head.ts'
+import { hairPieceOf } from '../registry/hair-piece-registry.ts'
 import { shell } from './shell.ts'
 import { alignY, along, CROWN, HAIR_SEAM, onHead, type Skull, skull, toHead, unitAt } from './skull.ts'
 import { grid, sweep } from './sweep.ts'
@@ -124,11 +125,19 @@ export function hairParts(input: HairInput, style: HairStyle): { parts: Part[]; 
     // tail, a fade): what is worn up lies on it, not on whatever stands furthest out.
     if (
       ['rows', 'sweep', 'block', 'bun'].some((c) => c in piece) ||
-      ('scalp' in piece && piece.scalp.tone !== 'fade')
+      ('scalp' in piece && piece.scalp.tone !== 'fade') ||
+      registered(piece)?.[1].crown
     )
       for (let n = first; n < parts.length; n++) parts[n] = { ...at(parts, n), tag: CROWN }
   }
   return { parts, decals }
+}
+
+/** The registered piece (H3) a piece names, with its data, or undefined for one of the base generators. */
+function registered(piece: Piece): [unknown, NonNullable<ReturnType<typeof hairPieceOf>>] | undefined {
+  const [kind = ''] = Object.keys(piece)
+  const found = hairPieceOf(kind)
+  return found && [(piece as Record<string, unknown>)[kind], found]
 }
 
 function buildPiece(b: HairBuild, piece: Piece): void {
@@ -270,6 +279,11 @@ function buildPiece(b: HairBuild, piece: Piece): void {
           size: [w, h],
         })
       }
+  } else if (!('fall' in piece)) {
+    // (A fall left out for the cap is handled above.) Not one of the base generators: an extension's piece (H3), or no piece at all.
+    const found = registered(piece)
+    if (!found) throw new RangeError(`There is no hair piece called "${Object.keys(piece)[0] ?? ''}"`)
+    found[1].build(b, found[0])
   }
 }
 

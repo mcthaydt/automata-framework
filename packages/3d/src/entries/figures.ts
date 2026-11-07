@@ -152,6 +152,7 @@ export type {
 } from '../features/figures/figure/garment.schema.ts'
 export { type Garment, garmentSchema } from '../features/figures/figure/garment.schema.ts'
 export type { BuiltMaterial } from '../features/figures/figure/materials.ts'
+export type { HairBuild } from '../features/figures/hair/hair-parts.ts'
 export { applyPose } from '../features/figures/motion/apply-pose.ts'
 export { base, relaxed } from '../features/figures/motion/base.ts'
 export { blend, blendAt } from '../features/figures/motion/blend.ts'
@@ -217,10 +218,18 @@ export type {
   Vec3,
 } from '../features/figures/motion/targets.ts'
 export {
+  type Fabric,
+  fabricOf,
+  labelAt,
+  registerFabric,
+} from '../features/figures/registry/fabric-registry.ts'
+export {
   type GarmentKind,
   registeredGarments,
   registerGarment,
 } from '../features/figures/registry/garment-registry.ts'
+export { type HairFinish, registerFinish } from '../features/figures/registry/hair-finish-registry.ts'
+export { type HairPiece, registerHairPiece } from '../features/figures/registry/hair-piece-registry.ts'
 export { type OutfitHooks, registerOutfitHooks } from '../features/figures/registry/outfit-hooks-registry.ts'
 export { RegistryClash } from '../features/figures/registry/registry-clash.ts'
 export * from '../shared/math/math.ts'
