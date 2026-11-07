@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import { figuresExtension } from '@automata/3d/figures'
+import { worldPropContent, worldSwatchContent } from '@automata/3d/world-content'
 import { automataContent } from '@automata/content/vite'
 import { rukenHeadersOf } from '@automata/tools/internal'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
@@ -15,12 +16,12 @@ function previewHeaders(): Record<string, string> {
 
 /**
  * The content plugin over src/content (`virtual:automata/content`): the figures, poses and clips,
- * with the figures extension's kinds. The page and the tests (vitest.config.ts) both compile it.
+ * with the figures extension's kinds, and the room's swatches and props. The page and the tests (vitest.config.ts) both compile it.
  */
 export function contentPlugin(): ReturnType<typeof automataContent> {
   return automataContent({
     root: fileURLToPath(new URL('./src', import.meta.url)),
-    schemas: [...(figuresExtension.content ?? [])],
+    schemas: [...(figuresExtension.content ?? []), worldSwatchContent, worldPropContent],
     // The game's own words (G3-t): its catalog, compiled with Paraglide into src/paraglide (DESIGN.md §12.3).
     paraglide: { outdir: 'paraglide', catalogs: ['messages/ui/{locale}.json'] },
   })

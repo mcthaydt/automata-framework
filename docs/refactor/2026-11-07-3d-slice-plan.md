@@ -10,6 +10,14 @@
 by Pixi 3D in their pixel-art look on DUEL; Ember Hall edited in one redesigned suite on a phone, an iPad or a
 computer; the site showing 3D beside 2D; the release written and waiting for Pixi 3D.
 
+> **Scope trim (Owner, 2026-11-07 19:28: "Make sure we're not overscoping 3D, it should be as lightweight as 2D,
+> everything else should go into plus"; 19:31: "we aren't just moving stuff around right?").** Core is as light as 2D
+> core: it draws the game's own data and ships no ready-made library. Libraries, furnishing, generators, the photo
+> pipeline, the sky and rain, and the extra clothes and hairstyles go to `@automata/world-kit` and
+> `@automata/character-kit` in the Plus port. The ruling, the refactor findings R1 to R11 and the port's addendum are in
+> [2026-11-07-3d-scope-trim.md](2026-11-07-3d-scope-trim.md). Task numbers are kept; 9.1 and 9.2 moved to the port, 7.5
+> and 7.6 are new, so there are still 53. Where a task below and the trim document differ, the trim document wins.
+
 **Architecture:** Four parts in the Owner's order (3D core, the rest of AF using 3D, the editors, the site), 20 phases,
 one stacked PR per phase. Contracts shared by two features live in `packages/3d/src/shared/` (timeline, level,
 time of day) and `app/` composes features, so the `--features` rule holds. The look is GPU passes on Pixi 3D; the CPU
@@ -66,9 +74,10 @@ behind it: the [audit](2026-11-07-3d-slice-audit.md).
    task 7.2: `reports a degenerate room instead of throwing`.
 3. **Two extensions registering the same garment, hair piece or fabric name:** the second fails with a message naming
    both, so a game never silently gets the wrong look. Test in task 6.4: `refuses a second registration of a name`.
-4. **A level naming a kit, prop, swatch or time of day the game does not have:** `automata check` and Levels 3D both
-   say which name and where; the game draws the room undressed rather than failing to start. Tests in tasks 7.3
-   (`an unknown kit leaves the room bare and reports it`) and 16.2.
+4. **A level naming a prop, swatch, time of day or extension the game does not have:** `automata check` and Levels 3D
+   both say which name and where; the game draws the room bare rather than failing to start, and never fills it some
+   other way. Tests in tasks 7.3 (`an unknown prop is reported and the room still draws`, `a room asking for the world
+   kit draws bare and says so`) and 16.2.
 5. **The phone keyboard or browser bar changing the height mid-edit** (an inspector number field focused at 390 ×
    844): the compact layout stays compact, the field stays visible, Save stays whole. Test in task 16.1:
    `keyboard occlusion keeps compact layout and the focused field`.
@@ -843,47 +852,59 @@ it('an open-sky sector has no ceiling piece', () => { /* ceiling { z: 3, sky: tr
   builder replaces the box room) and base-3d's golden replay (unchanged) pass. Rows. **Commit** `feat(3d): the world
   builder draws levels`
 
-### Task 7.3: Props, the dresser, lamps, decals, lettering, generated maps (**session break** after props)
+### Task 7.3: Props a game places, and lamps (trimmed 2026-11-07; scope trim section 2)
 
-**Source files:** `src/features/world/{props,dress,decals,lettering,generate}.ts`,
-`library/{props,kits,glyphs,maps,swatches}.json`; `src/features/paint/look.ts` (the lamp kit), `library/look.json`.
+**Source files:** `src/features/world/{props,build}.ts`; `src/features/paint/look.ts` (the lamp kit), `library/look.json`.
+The prop library, kits, the dresser, decals, lettering, generated maps and the converter are **not** core: they leave
+`packages/3d` in this task (the commit `78e0ca7f` stays on the branch as the source port task 3.7 moves them from).
 
 **Files:**
-- Create: `features/world/{props,dress,decals,lettering,generate}.ts`, `features/world/library/{props,kits,swatches,
-  glyphs}.json`, `features/world/library/maps/*.af-sector.json` (by `convert-builder-maps.ts`), the content kinds
-  `world-kit`, `world-prop`, `world-swatch` (`world-kit.schema.ts`, `world-prop.schema.ts`, `world-swatch.schema.ts`,
-  `world.content.ts`)
-- Modify: `games/base-3d/src/content/levels/room.af-sector.json` (dressed from a kit, a lamp, a time of day)
-- Test: `tests/unit/world/{dress,props,generate,library}.test.ts`
+- Keep (built in `78e0ca7f`): `features/world/{place-props,lamp-kit}.ts`, `features/world/props/{piece,resolve}.ts`,
+  `features/world/library/lamp-kit.json`, `features/world/content/{world-prop.schema,world-swatch.schema,world.content}.ts`
+- Create: `features/world/props/prop-generator.registry.ts` (`registerPropGenerator`, `propGenerator(kind)`,
+  `registeredPropGenerators()`), `features/world/props/primitives.ts` (`box`, `cylinder`, registered by
+  `app/render3d.extension.ts`)
+- Delete from `packages/3d`: `props/{furniture,nature,signs,small-things,street,generators}.ts`,
+  `library/{props,kits,glyphs}.json`, `library/swatches.json` (the swatches the room uses move to
+  `games/base-3d/src/content/world-swatches/`), `lettering.ts`, `stream.ts` if only lettering reads it,
+  `convert-builder-map.ts`, `scripts/convert-builder-maps.ts`, their tests and their `sources.md` rows (each row says
+  *moved to `@automata/world-kit`*)
+- Modify: `shared/level/af-sector-2.schema.ts` (`dress` stays a field: the format is one), `features/world/build.ts`
+  (a sector with `dress` is drawn bare with a `needs-extension` problem), `games/base-3d/src/content/levels/room.af-sector.json`
+  (a few `box` and `cylinder` props from the game's own `world-prop` files, a lamp, a time of day)
+- Test: `tests/unit/world/{props,library,prop-registry}.test.ts`
 
 **Interfaces:**
-- Consumes: `buildWorld` (task 7.2), `timeOfDay` (task 6.3).
-- Produces: `dressSector(sector: Sector2, kit: Kit, seed: number): PlacedProp[]` (each with a stable `id`);
-  `generateMap(name: 'apartment' | 'block', seed: number): AfSector2`; `WorldLibrary { kits; props; swatches; glyphs }`
-  merged from core and the game's content.
+- Consumes: `buildWorld` (task 7.2), `timeOfDay` (task 6.3), `RegistryClash` (task 6.4).
+- Produces: `registerPropGenerator(kind: string, generator: Generator): void` (a second registration of a kind throws
+  `RegistryClash`); `WorldLibrary { props; swatches }` merged from core's primitives and the game's content; problem
+  codes `unknown-prop`, `unknown-generator`, `needs-extension` (`name: 'world-kit'`).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
-it('dressing is deterministic and every piece has an id', () => {
-  const a = dressSector(room, KITS.office, 7), b = dressSector(room, KITS.office, 7)
-  expect(a).toEqual(b); expect(new Set(a.map((p) => p.id)).size).toBe(a.length)
+it('core registers only box and cylinder', () => expect(registeredPropGenerators()).toEqual(['box', 'cylinder']))
+it('refuses a second generator of a kind', () => {
+  expect(() => registerPropGenerator('box', otherBox)).toThrow('A prop generator called "box" is already registered')
 })
-it('an unknown kit leaves the room bare and reports it', () => {
-  const { pieces, problems } = buildWorld(levelDressedAs('spaceship'), LIB)
-  expect(problems).toContainEqual(expect.objectContaining({ code: 'unknown-kit', name: 'spaceship' }))
+it('an unknown prop is reported and the room still draws', () => {
+  const { pieces, problems } = buildWorld(levelWithProp('spaceship'), LIB)
+  expect(problems).toContainEqual(expect.objectContaining({ code: 'unknown-prop', name: 'spaceship' }))
   expect(pieces.some((p) => p.part === 'floor')).toBe(true)
 })
-it('every library entry parses', () => { /* world-kit, world-prop, world-swatch schemas over the library */ })
-it('apartment@1 and block@1 generate valid /2 levels', () => {
-  for (const n of ['apartment', 'block'] as const) expect(afSector2Schema.safeParse(generateMap(n, 1)).success).toBe(true)
+it('a room asking for the world kit draws bare and says so', () => {
+  const { pieces, problems } = buildWorld(levelDressedAs('office'), LIB)
+  expect(problems).toContainEqual(expect.objectContaining({ code: 'needs-extension', name: 'world-kit' }))
+  expect(pieces.every((p) => p.part !== 'prop')).toBe(true)
 })
+it("every library entry parses", () => { /* world-prop and world-swatch over core's and base-3d's content */ })
 ```
 
-- [ ] **Step 2:** FAIL. **Step 3:** props and the dresser. **Session break here if needed.** **Step 4:** lamps, decals,
-  lettering, generators, the converted maps. **Step 5:** base-3d's unit tests and golden replay pass (hash unchanged:
-  dressing is presentation); its journeys pass in Chromium with the dressed room; images in the PR, each change
-  explained. Rows. **Commit** `feat(3d): props, furnished rooms, lamps and generated maps`
+- [x] **Step 2:** FAIL. **Step 3:** the registry and the primitives; the deletions. **Step 4:** the room's props and
+  swatches in base-3d's content; the `needs-extension` problem, with the words of scope trim section 2. **Step 5:**
+  base-3d's unit tests and golden replay pass (hash unchanged: props are presentation); its journeys pass in Chromium;
+  images in the PR, each change explained. `grep -rn "furniture\|kits.json\|glyphs" packages/3d/src` → none. Rows.
+  **Commit** `feat(3d): props a game places, lamps, and a generator registry`
 
 ### Task 7.4: The piece states (spec 8.3; cut down on the Owner's word, 2026-11-07)
 
@@ -905,7 +926,7 @@ pieces, and applying a change of it.
 - Produces: `PieceStates { doors: Record<string, number>; lamps: Record<string, LampState>; props: Record<string, PropState> }`;
   `updatePieces(view: WorldView, before: PieceStates, after: PieceStates): number` (pieces changed).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 it('a door key changes only that door', () => {
@@ -913,8 +934,51 @@ it('a door key changes only that door', () => {
 })
 ```
 
-- [ ] **Step 2:** FAIL. **Step 3:** implement. **Step 4:** PASS. No `features/stage/`, no `stage-script` kind and no
+- [x] **Step 2:** FAIL. **Step 3:** implement. **Step 4:** PASS. No `features/stage/`, no `stage-script` kind and no
   director here: `@automata/cutscenes` builds them. Rows. **Commit** `feat(3d): the world's pieces move on the one timeline`
+
+### Task 7.5: One sector geometry (new, 2026-11-07; scope trim R1)
+
+Sector geometry is written three times today: `packages/editor-3d/src/geometry/{sectors,triangulate}.ts`,
+`extensions/sectors/src/shared/sim/{queries,pieces}.ts` (the Plus port) and `features/world/sectors.ts`. Core owns it once.
+
+**Files:**
+- Create: `packages/3d/src/shared/level/geometry.ts` (`polygonArea`, `insideSector`, `segmentDistance`, `crossing`,
+  `opening`, `walkBlocker`, `triangulate`), exported from `@automata/3d/level` (a sim entry: the sim's rules hold, so
+  `pnpm boundaries` reads it)
+- Modify: `features/world/sectors.ts` (imports it; its own `triangulate` goes)
+- Test: `tests/unit/shared/level/geometry.test.ts` (editor-3d's `geometry/{sectors,triangulate}.test.ts` cases, moved)
+
+**Interfaces:**
+- Produces: the seven functions with the editor's signatures (the editor's tests are the most complete); where the
+  extension's sim version and the editor's differ, the sim-safe one is the body and both callers' tests must pass.
+
+- [ ] **Step 1:** move the editor's geometry tests to the new file, importing `#src/shared/level/geometry.ts` → FAIL.
+  **Step 2:** the file, sim-safe (only the allowed `Math` members). **Step 3:** PASS; world builder tests and base-3d's
+  replay unchanged; `pnpm boundaries` green. editor-3d switches in task 14.1, the extension in port task 5.1. Rows.
+  **Commit** `refactor(3d): one sector geometry, in the level entry`
+
+### Task 7.6: Clothes, hairstyles and seats leave core (new, 2026-11-07; scope trim section 2, R3)
+
+**Files:**
+- Delete from `packages/3d` (the commit before this one is the source port task 3.6 moves from): the garment kinds
+  `apron`, `belt`, `coat`, `gloves`, `legs`, `mark`, `skirt`, `waistcoat` (their parts of `outfit/garments/classic.ts`,
+  `classic-kinds.ts` and `figure/garment.schema.ts`), the hair pieces (`hair/{sweep,tail,loose,shell}.ts` and the
+  piece builders in `hair-parts.ts`), the extra finishes, `motion/seated.ts`, `content/seat.schema.ts` and the
+  `figure-seat` kind, their tests and goldens, their fixtures
+- Modify: `hair/hair-parts.ts` (builds a style's pieces through `registerHairPiece`'s registry; core registers none and
+  keeps `locks`), `content/hair.schema.ts` (a piece is a registered kind's schema), `registry/*` unchanged,
+  `motion/hems.ts` (no seated argument), `sources.md` rows (*moved to `@automata/character-kit`*)
+- Test: `tests/unit/figures/registry/*.test.ts`, `tests/unit/figures/hair/*.test.ts`
+
+- [ ] **Step 1: Write the failing tests**: `core registers exactly cap, cape, eyes, hair, shoes, top, trousers` (if
+  `cap` needs `mark`, `mark` stays and the log says why); `a style naming a bun fails with "No hair piece called bun"`;
+  `Wick and the base pair build the same meshes as before` (recorded before the change).
+- [ ] **Step 2:** FAIL. **Step 3:** the deletions and the registry-driven `hairParts`. **Step 4:** 3D unit, the figure
+  goldens for Wick and the base pair unchanged; goldens of removed kinds leave with them (listed in the log, moved by
+  port task 3.6); the Characters editor's tests pass (a kind it lists that core no longer has is gone from its list).
+  `grep -rn "waistcoat\|seated\|bun" packages/3d/src` → none. **Commit** `refactor(3d): the wardrobe and hairstyles
+  leave core for the character kit`
 
 ---
 
@@ -932,16 +996,18 @@ with Wick), `docs/adr/0007-3d-look.md`.
 - [ ] **Step 3:** Write the ADR (what was measured, where, the choice by spec 6's rule). **Commit** `docs(adr): the 3D
   look on Pixi 3D`
 
-### Task 8.2: The passes and the reference (**session break** after the filters; audit note 14)
+### Task 8.2: The passes (**session break** after the filters; audit note 14; trimmed 2026-11-07, scope trim section 2)
+
+Trimmed: no CPU reference painters and no `look-sheet.ts` (2D proves its look with parity images from the real
+renderer, and so does 3D); sky, stars, rain and bloom are `@automata/world-kit`'s (port task 3.8), added through
+`addLookPass`. Ignore those names in the lists below.
 
 **Source files:** EnvironmentBuilder `src/features/paint/*`, `src/features/stage/sprite-light.ts`; FigureBuilder
 `src/features/paint/{paint,raster,fabric}.ts`, `src/features/lighting/light.ts`.
 
 **Files:**
 - Create: `packages/3d/src/features/look/{look.ts,look.schema.ts,ramp-light.material.ts,duel-snap.filter.ts,
-  outline.filter.ts,sprite-light.ts,sky.ts,rain.ts,post.ts}` with `.glsl` + `.wgsl` pairs, `look/library/look.json`,
-  `packages/3d/src/testing/look-reference/` (both painters, plain TypeScript), `packages/3d/scripts/look-sheet.ts`
-  (contact sheets from the reference, for a reviewer)
+  outline.filter.ts,sprite-light.ts,post.ts,look-pass.ts}` with `.glsl` + `.wgsl` pairs, `look/library/look.json`
 - Modify: `app/create-renderer.ts` (low-resolution target, then the passes), `app/compose-scene.ts`, base-3d's views
 - Test: `tests/unit/look/*.test.ts`, `tests/unit/entries.test.ts`, `tests/browser/look/look.parity.test.ts`
 
@@ -951,14 +1017,13 @@ with Wick), `docs/adr/0007-3d-look.md`.
   long side rounded from the stage's aspect); `Look { pixel: { short: 180 }; steps: number; outline: boolean; dither: boolean; grade: string;
   switches: Record<'outline' | 'sky' | 'stars' | 'rain' | 'bloom' | 'grade' | 'dither', boolean> }`;
   `createLookPasses(look: Look, time: TimeOfDay): LookPasses`; `spriteLight(figure, time): SpriteLight`;
-  `paintReference(scene, camera, look): Uint8Array` (palette indices; test-only).
+  `addLookPass(pass: LookPass): void` (a pass an extension adds after core's; a pass whose name is taken throws
+  `RegistryClash`). `Look.switches` keeps only `outline`, `grade` and `dither`; an extension's pass has its own switch.
 
 - [ ] **Step 1: Write the failing tests**
 
 ```ts
-it('no product entry reaches the reference painters', () => {
-  for (const e of PRODUCT_ENTRIES) expect(importGraph(e).some((f) => f.includes('look-reference'))).toBe(false)
-})
+it('an added pass runs after core passes, and a taken name is refused', () => { /* addLookPass */ })
 it('ramp light moves a colour in whole steps along its ramp', () => {
   expect(rampLit(3 * 8 + 4, 0.5, look)).toBe(step(3 * 8 + 4, -2))
 })
@@ -968,19 +1033,22 @@ it('the low-resolution target keeps its short side at 180 and follows the stage'
   expect(targetSize({ width: 390, height: 844 })).toEqual({ width: 180, height: 390 })
 })
 // browser: after a context loss and restore, the target and the filters are rebuilt and the next frame draws
-// browser: WebGL2 and WebGPU agree; Pixi 3D and paintReference agree within 2 % of pixels off by one ramp step
+// browser: WebGL2 and WebGPU agree; the parity images of base-3d's room are opened and explained
 ```
 
 - [ ] **Step 2:** FAIL. **Step 3:** the filters. **Session break here if needed.** **Step 4:** the material, sprite
-  light, sky and rain, through the game's camera. **Step 5:** parity in Chromium (WebKit/Firefox: the Owner's), the
-  reference agreement, base-3d's journeys pass; images opened and explained. Rows (painters: *rewritten: reference
-  only*). **Commit** `feat(3d): the pixel-art look, drawn by Pixi 3D`
+  light and `addLookPass`, through the game's camera. **Step 5:** parity in Chromium (WebKit/Firefox: the Owner's),
+  base-3d's journeys pass; images opened and explained. Rows (painters: *left out: the look is drawn by Pixi 3D only*). **Commit** `feat(3d): the pixel-art look, drawn by Pixi 3D`
 
 ---
 
 ## Phase 9: Textures and the builders' checks (PR `claude/3d-textures`)
 
 ### Task 9.1: `automata textures` in `-tools` (spec 9; audit note 13)
+
+> **Moved to the Plus port, task 3.8 (scope trim, 2026-11-07).** The photo pipeline, the photos and the tiles are
+> `@automata/world-kit`'s; `-tools` gains nothing. Not built here; the row says "Moved". The text below is the port's
+> source.
 
 **Source files:** EnvironmentBuilder `src/features/photo/{pipeline,structure,textures}.ts`, `library/photos.json`, the
 photos, `src/lib/png.ts`, `scripts/{textures,photos}.ts`.
@@ -1022,6 +1090,9 @@ it('reports a stale tile', () => {
 
 ### Task 9.2: The builders' `reads` checks (spec 8.4; audit note 11)
 
+> **Moved to the Plus port, task 3.8 (scope trim, 2026-11-07).** `checkReads` is `@automata/world-kit`'s; base-3d's
+> content test does not run it. Not built here; the row says "Moved".
+
 **Source files:** EnvironmentBuilder `scripts/{check,checks}.ts`, `photo/structure.ts` (`checkReads`),
 `view/view-frame.ts` (`frameIssues`), the `reads` fields of `swatches.json` and `maps.json`.
 
@@ -1059,13 +1130,15 @@ it('reports a stale tile', () => {
 
 - [ ] **Step 1: Write the failing tests**: `a .ts file naming a source under a --code folder fails`; `one outside does
   not`; `a file whose name names a source fails`; `docs/provenance stays exempt`. **Step 2:** FAIL. **Step 3:** the option; rewrite the comments (what and why,
-  not where from). **Step 4:** `pnpm source-names` and `pnpm style` pass. The `--code` list grows: `packages/automata`,
+  not where from); 190 plan IDs in `packages/3d/src` at `78e0ca7f` (count again first). Scope trim R5: the clip
+  blender `features/figures/clips/sample.ts`'s `sample` becomes `blendKeyPoses`, so the package has one `sample`. **Step 4:** `pnpm source-names` and `pnpm style` pass. The `--code` list grows: `packages/automata`,
   `content`, `tools`, `games/base-3d`, `examples/3d` in task 13.2; `packages/editor-3d`, `packages/editor` in 17.2, which
   replaces the list with every source folder. **Step 5: Commit** `refactor(3d): comments say what and why`
 
 ### Task 10.2: README, a complete record, part A's close
 
-**Files:** Create `packages/3d/README.md` (entries, the beta rule); modify `docs/README.md`, `docs/provenance/sources.md`,
+**Files:** Create `packages/3d/README.md` (entries, the beta rule, what is core and what the character kit and the
+world kit add); modify `docs/README.md`, `docs/provenance/sources.md`,
 root `package.json` (`sources-md --complete` in `source-names`), `progress.md`.
 
 - [ ] **Step 1:** Turn on `--complete`; run → it lists every manifest file without a row; fill them (each *ported*,
@@ -1147,12 +1220,13 @@ it('the room fills the stage on an iPad', async () => { expect(await roomBoxHeig
 
 **Files:**
 - Modify: `examples/3d/{figures,render3d}/*` (imports from `@automata/3d`; `// --- <role> ---` sections)
-- Create: `examples/3d/{figures-stand-and-sliders,figures-hair,figures-wardrobe,look-pixel-art,world-furnished-room,
-  world-generated-map,world-time-of-day}.ts`, `examples/3d/README.md`
+- Create: `examples/3d/{figures-stand-and-sliders,look-pixel-art,world-time-of-day}.ts`, `examples/3d/README.md`
+  (trimmed 2026-11-07: the hair, wardrobe, furnished-room and generated-map examples show extensions and are the Plus
+  port's task 3.9)
 - Test: `examples/3d/e2e/*.e2e.ts` (each boots and reaches ready), the examples runner's list
 
-- [ ] **Step 1:** Failing journeys for the seven. **Step 2:** four examples. **Session break here if needed.**
-  **Step 3:** the other three. **Step 4:** PASS in Chromium. **Step 5: Commit** `feat(examples): the 3D examples show
+- [ ] **Step 1:** Failing journeys for the three. **Step 2:** the three examples. **Step 3:** the moved figures and
+  render3d examples on the new entries. **Step 4:** PASS in Chromium. **Step 5: Commit** `feat(examples): the 3D examples show
   the figures, the world and the look`
 
 ### Task 12.2: `create-game --template 3d`
@@ -1168,8 +1242,8 @@ When the Plus port's task 3.4 lands, the 3D template lists `@automata/sectors` (
 - Test: `packages/tools/tests/unit/create-game/template-3d.test.ts`, the smoke
 
 **Interfaces:**
-- Produces: `template3d(name: string): TemplateFiles` (one room, Wick, a tuning file, an editor list, the feature
-  layout, the content test with `checkReads`).
+- Produces: `template3d(name: string): TemplateFiles` (one room with box and cylinder props, Wick, a tuning file, an
+  editor list, the feature layout, the content test).
 
 - [ ] **Step 1: Write the failing tests**: `the 3D template's files pass automata check`; `without the 3D package it
   says "3D games need a package that is not public yet. For now, make a 2D game: leave out --template." and exits
@@ -1205,7 +1279,7 @@ When the Plus port's task 3.4 lands, the 3D template lists `@automata/sectors` (
 ### Task 13.3: The 3D frame-budget projects (spec 6; audit note 15)
 
 **Files:**
-- Create: `tooling/frame-budget/stress/3d/{index.html,main.ts}` (Ember Hall's dressed room with Wick, every pass on, the
+- Create: `tooling/frame-budget/stress/3d/{index.html,main.ts}` (Ember Hall's room with Wick, every core pass on, the
   camera turning)
 - Modify: `tooling/frame-budget/src/playwright-run.ts` (`frameBudgetProjects` gains `frame-budget-3d-phone`, Pixel 7
   as the phone project, and `frame-budget-3d-ipad` at 1194 × 834; `playwright.config.ts` only calls it),
@@ -1250,7 +1324,7 @@ When the Plus port's task 3.4 lands, the 3D template lists `@automata/sectors` (
 | `app/home/*`, `app/project-list.ts` | `features/levels-3d/home/` |
 | `app/{editor-app,levels-3d-session,layers-model,geometry-cache}.ts` | `app/` (they wire the features) |
 | `model/*` | `shared/edit/` |
-| `geometry/*` | `shared/geometry/` |
+| `geometry/*` | deleted where `@automata/3d/level`'s geometry covers it (task 7.5; scope trim R7): `sectors.ts` and `triangulate.ts` go and their callers import the level entry; `loops.ts` moves to `shared/geometry/` only if nothing in the level entry does its job |
 | `profile/*`, `profile/af-sector/*`, `codec/` (tests only) | `shared/level-session/` |
 | `view/selection-of.ts` | `shared/edit/` |
 | `suite-main.ts`, `ui/suite/index.ts` | `app/suite/` |
@@ -1349,7 +1423,7 @@ Characters. Test `packages/editor/tests/browser/layout/suite-phone.test.ts`.
 
 **Files:** Modify `packages/editor-3d/src/features/levels-3d/` (spec 10.3's top bar, floating tools, view tabs and phone
 menu, label-left inspector, layers sheet, three layouts by `shellModeOf` with the dock on compact), the kit's icons
-(Room, Corner, Doorway, Door, Window, Thing, Furniture, Lamp). Test `tests/browser/layout/levels-3d/*.test.ts`,
+(Room, Corner, Doorway, Door, Window, Thing, Furniture, Lamp; Furniture places one of the game's own props). Test `tests/browser/layout/levels-3d/*.test.ts`,
 `tests/unit/levels-3d/*` (DOM, jsdom), the canvas suite.
 
 - [ ] **Step 1: Write the failing tests**: at 390 × 844, 844 × 390, 1194 × 834, 1440 × 900 `a drawing tool, the view
@@ -1359,23 +1433,27 @@ menu, label-left inspector, layers sheet, three layouts by `shellModeOf` with th
   **Session break here if needed.** **Step 4:** inspector, layers, layouts. **Step 5:** PASS; before/after at the four
   sizes against the mock-up. **Commit** `feat(levels-3d): the approved look, with every tool on a phone`
 
-### Task 16.2: The builders' authoring (spec 10.3)
+### Task 16.2: The builders' authoring (spec 10.3; trimmed 2026-11-07, scope trim section 2)
 
-**Files:** Modify `features/levels-3d/inspector/` (Fill with furniture, Time of day, Wall trim, Windows),
-`features/levels-3d/plan/tools/` (Furniture, Lamp), `shared/edit/` (one undoable command each), `features/levels-3d/checks/`
-(`checkReads`; a prop outside every room; a lamp inside a wall; a kit, prop or time the game lacks), the 3D view (draws
-through the world builder).
+No Fill with furniture, no `furnishAs`, no `checkReads` and no kit checks: furnishing is the world kit's, and the editor
+is core, which never imports an extension.
+
+**Files:**
+- Modify: `features/levels-3d/inspector/` (Time of day, Wall trim, Windows), `features/levels-3d/plan/tools/`
+  (Furniture, Lamp), `shared/edit/` (one undoable command each), `features/levels-3d/checks/` (a prop outside every
+  room; a lamp inside a wall; a prop, swatch or time the game lacks; a room asking for an extension), the 3D view
+  (draws through the world builder)
 
 **Interfaces:**
-- Consumes: `dressSector`, `buildWorld`, `checkReads` (tasks 7.2, 7.3, 9.2).
-- Produces: edit commands `furnishAs(room, kit)`, `placeProp(use, at)`, `placeLamp(kind, at)`, `setTimeOfDay(name)`,
-  `setWallTrim(wall, trim)`, `setWindows(wall, grid)`, each `EditCommand` with a `label`.
+- Consumes: `buildWorld` (task 7.2), the `needs-extension` problem (task 7.3).
+- Produces: edit commands `placeProp(use, at)`, `placeLamp(kind, at)`, `setTimeOfDay(name)`, `setWallTrim(wall, trim)`,
+  `setWindows(wall, grid)`, each `EditCommand` with a `label`.
 
 - [ ] **Step 1:** For each change, in order: a failing unit test of its command (`undo restores the level byte for
-  byte`; Undo's label "Undo fill with furniture"; Time of day lists each time's `label`), its DOM test, its canvas test;
-  then the code. A level naming a kit the game
-  lacks shows "This room asks for furniture this game doesn't have: Spaceship." **Step 2:** all PASS. **Commit**
-  `feat(levels-3d): furnish rooms, place props and lamps, pick the time of day`
+  byte`; Undo's label "Undo place furniture"; Time of day lists each time's `label`), its DOM test, its canvas test;
+  then the code. A room asking for the world kit shows "This room asks to be furnished by the world kit, which this
+  game doesn't have. Add @automata/world-kit, or remove "dress" from the room." **Step 2:** all PASS. **Commit**
+  `feat(levels-3d): place furniture and lamps, pick the time of day`
 
 ### Task 16.3: Plan, 3D and Walk in the game's look (spec 6, 10.3)
 
@@ -1383,17 +1461,15 @@ through the world builder).
 their camera and framing rules only.
 
 **Files:**
-- Create: `packages/editor-3d/src/features/levels-3d/views/{plan,diorama,walk}/`, `views/shared/{frame-map.ts,
-  readability.ts}`, `tooling/frame-budget/stress/3d-editor/` with projects `frame-budget-3d-editor-{phone,ipad}`
+- Create: `packages/editor-3d/src/features/levels-3d/views/{plan,diorama,walk}/`, `views/shared/frame-map.ts`
+  (trimmed 2026-11-07: readability is the world kit's, port task 3.8), `tooling/frame-budget/stress/3d-editor/` with projects `frame-budget-3d-editor-{phone,ipad}`
 - Modify: `features/levels-3d/{plan,dollhouse,walk}/` draw through these views; Walk's hint
-- Test: `tests/unit/levels-3d/views/{frame-map,readability}.test.ts`, canvas and layout tests
+- Test: `tests/unit/levels-3d/views/frame-map.test.ts`, canvas and layout tests
 
 **Interfaces:**
-- Produces: `frameMap(level: AfSector2, view: 'plan' | 'diorama' | 'walk', viewport: Rect): Camera3d`;
-  `readsAgainst(figure: FigureView, room: WorldView, camera: Camera3d): { reads: boolean; contrast: number }`.
+- Produces: `frameMap(level: AfSector2, view: 'plan' | 'diorama' | 'walk', viewport: Rect): Camera3d`.
 
-- [ ] **Step 1: Write the failing tests** (the source's framing and readability cases; `Walk says "Wick is hard to see
-  here" when a figure does not read`). **Step 2:** FAIL. **Step 3:** the three views. **Step 4:** unit, canvas and
+- [ ] **Step 1: Write the failing tests** (the source's framing cases). **Step 2:** FAIL. **Step 3:** the three views. **Step 4:** unit, canvas and
   layout PASS in Chromium; the budget page skips on software. Rows (*rewritten: editor views*). **Commit**
   `feat(levels-3d): the plan, diorama and walk views in the game's look`
 
@@ -1413,7 +1489,7 @@ Delete task 1.5's `.fails`. Test `tests/browser/layout/studio.layout.test.ts`.
 
 **Files:** Modify `features/studio/look/` (phase 6's controls, words at each slider end), `features/studio/animate/`
 (actions as clips), names instead of ids (C9), thumbnails drawn by Pixi 3D into a render texture; plan IDs and source
-names out of `packages/editor-3d` and `packages/editor`; root `package.json` (`source-names --code` covers every source
+names out of `packages/editor-3d` (465 plan IDs in its `src` at `78e0ca7f`; count again first) and `packages/editor`; root `package.json` (`source-names --code` covers every source
 folder). Test `tests/unit/studio/*` (DOM), a thumbnail canvas test.
 
 - [ ] **Step 1: Write the failing tests**: `each new control has its role and name`; `each new slider's ends say the
@@ -1570,3 +1646,6 @@ reads only this plan and the spec. DUEL's author and licence stay the Owner's op
 - Task 6.5: done (session d60hqd, 2026-11-07). Rulings: (1) The wardrobe is its own workspace package, `@af-examples/wardrobe-3d` (`examples/3d/wardrobe/`, with `package.json`, `vitest.config.ts`, `tests/unit`, `tests/browser/parity`, `goldens/`, `scripts/record-goldens.ts`), not files inside `@af-examples/examples-3d`: the examples catalog skips a folder with a `package.json`, which a library of eleven builders needs (they are not one-file examples with a header and a 100-line budget). It joins `test:unit:3d` and `test:browser:3d`. The plan's "modify `examples/3d/package.json`" and "create `examples/3d/vitest.config.ts`" become the wardrobe's own; `figures-outfits-items.ts` is left alone (it wears classic garments only). (2) The extension-author surface is one new entry, `@automata/3d/figures-kit` (the registries, the contract types, the body, rig, mesh, skinning, hair and maths a garment builder reaches into), plus `@automata/3d/testing-checks` (the golden checks, browser-safe, because `@automata/3d/testing` loads the content compiler) and a wider `@automata/3d/testing` (compile fixture, random cast, recorders, motion comparisons). The kit loads the classic set first, so a wardrobe's kinds always register after it (`classic-kinds.ts` is now in `sideEffects`). (3) The contract types `Fit`, `Wearing`, `Paint`, `Worn`, `Legs`, `Section` and `Shell` moved to core (`registry/garment-fit.ts`); the wardrobe re-exports them beside its helpers. `Garment` is `Classic | object` (`CustomGarment`), so a wardrobe's interfaces are garments without an index signature. (4) `reachable` (the openings no outer garment covers) is the wardrobe's, set as the outfit hook `anchors`; the hook gained a third argument, `{ m, s, garments }`. Core's default is every opening the kinds published, and the classic kinds publish none. (5) Core's golden outfits keep their bodies, hair and caps and wear classic garments where they wore streetwear (renamed `model-braids`, `tall-fade`, `model-bun`, `tall-locs`, `model-quiff`), so hair-piece coverage stays in core; the seven streetwear outfits are the wardrobe's (`testing/wardrobe-outfits.ts`). Core's random cast draws a classic outfit when no registered garment has a layer; a wardrobe passes its draws (`randomCharacter(seed, library, draws)`). (6) The stands that need pockets (fall back, hand in pocket) are checked in the wardrobe; core asserts only that every stand ends relaxed. Evidence the move changed nothing: the wardrobe's recorded dress and stand goldens equal, as JSON, the entries those outfits had in core's `dress.json` and `motion.json` at 2783cd05. Cost if wrong: a game wanting streetwear adds `examples/3d/wardrobe` as a dependency or copies it; `grep -rn "bomber\|hoodie\|puffer" packages/3d/src` finds nothing. `docs/refactor/move-map-3d.json` still names the old folder (a record of task 2.1).
 - Task 7.1: done (session d60hqd, 2026-11-07). Rulings: (1) `afSectorSchema` stays the strict `/1` envelope; `/2` is `afSector2Schema` and the one door is `readLevel(json)` (either format in, a `/2` level out, `migrated` true for a `/1` file, a `LevelProblem` list instead of a throw). The plan's "`af-sector.schema.ts` reads `/1` and `/2`" is `readLevel`, because editor-3d's whole edit model is typed on `/1` (`floor: number`) until the phase 14-16 rewrite, and widening `afSectorSchema` would have broken its 2,196 tests for no reader. (2) The editor therefore still opens and writes `/1` in this task. The "This level was made with an older version. Saving updates it." line, and writing `/2` on Save, move to task 14.1 (`shared/level-session/` reads through `readLevel`) and 16.2 (the inspector edits `/2` fields). Until then the editor cannot open base-3d's room, which is now `/2`. Cost if wrong: one phase of an editor that opens the toy `/1` levels only. (3) `LevelProblem` is its own interface (`path`, `code: string`, `message`, `where`, `name?`), not `extends Problem`: `@automata/content` does not export `Problem`, and its `code` is the closed `DiagnosticCode` union, which cannot hold `unknown-kit`. The checks task (9.2) maps a `LevelProblem` to a diagnostic where `automata check` places it. (4) A plane is the one thing the `/2` schema transforms: a number parses to `{ z }`, so every reader sees one shape. A file may still write a number (the migrated room does). (5) `/1`'s wall `texture` is `/2`'s `surface`, and a `/2` wall's `trim` is `/1`'s heights object or the builder's surface (an object with a `tile` is the surface). (6) A builder `shade` step is a tenth of light (`light = 1 - 0.1 * shade`, rounded to 0.01): the builder's maps use shade 0, 1 and 2 only, and its painter lights per vertex, so the value only has to order the rooms. (7) The builder's map name `name` becomes `title`; `name` is the id (the file name), as `/1`. Decals and lettering are carried as written (`Marking`) until 7.3 ports the generators that read them. A portal (`next`) between two builder sectors is not inferred: the builder joined rooms by shared edges, and the world builder (7.2) decides which edges are shared. (8) base-3d's room is `/2` with `pit: true` on the two channels (a floor below 0 no longer means a pit) and the three camera views in its `views`; `ROOM_VIEWS` is gone, and `areaFromSector(json, { file })` reads either format. (9) `convertBuilderMap` lives in `features/world/convert-builder-map.ts`, not `shared/level/`, and is not exported from `@automata/3d/level`: that entry is a sim entry that imports nothing but zod (`sector-format.test.ts`), and the converter is a build-time tool (the script and tests import it directly). Evidence: 113 level tests in `packages/3d`, 84 base-3d unit tests (82 + 2 new) with the sim and render goldens unchanged. Also recorded: 5 builder maps convert and parse back unchanged. Resume at task 7.2 (the world builder; session break after mesh).
 - Task 7.2: done (session h7alco, 2026-11-07). Rulings: (1) Walls are built whole, in the first-person way: a level is not cut for a view (the diorama's `dollhouseStub`, `wallInDiorama` and `lintel*` and the top-down clip are the editor's, per the Owner's 11:04 word), so `features/world/` has no `MapView`. (2) The shared stretch of an edge is found by geometry (the source's rule, T-junctions included); a wall's `next` is accepted only if it names a room that shares some stretch of that edge, else `portal-not-shared` (and the stretch stays solid). Cost if wrong: a Last Light level whose rooms touch with a solid wall and no `next` opens there. (3) `WorldLibrary` is `{ swatches }` for now (the builder only asks whether a name is there; an unknown name is `unknown-swatch`); kits, props and glyphs arrive with 7.3. (4) A wall's `door` and `window` (the `/1` vocabulary) are openings cut from its face (a lintel above, a breast under a window; a window gets a pane and bars); a door opening is left empty, the game's door entity fills it. `decor` (a window, door or shopfront drawn on the wall) and `windows` (a facade grid) are the builder's, ported. A `sign` draws nothing until 7.3 ports the lettering. A sector-level `trim` and a wall's `trim` heights give skirting and rail; `wainscot`, `cap` and `capital` (the editor blockout's) are not drawn. (5) A hinged door is built shut and its piece carries `door: { hinge, swing }` for 7.4's `update-pieces` to turn it. (6) `drawWorld(scene, pieces)` takes the colour of a swatch from the caller (`colourOf`): the swatch content kind and its colours are 7.3. (7) `Occluders.face(mesh, span, occlude?)` is new: the occluder rule's walls were slabs it built itself; a face the builder made registers as a wall with no thickness and no floor trim. A face that never rises above the floor (the side of a pit) follows no rule. (8) base-3d's room draws through the builder: its file names its surfaces (`floorTexture`, `ceilingTexture`, `wallTexture`: `floor`, `ceiling`, `wall`, `lava` for the channels), the game gives each a DUEL colour, and the two pit sectors' ceiling is 3 like their neighbours (it was 0, a lid at floor level). `areaFromSector` still reads the file for the sim (the sim needs boxes), so `sector-area.ts` stays; what left is `sceneOf`, the wall and floor boxes and the lava box (`channelBoxes` is `lipBoxes`). The visible change, from the opened before and after frames (project files `refactor/2026-11-07-3d-7-2-room-shots/`): a wall is a face and has no thickness, so the dark top of each wall slab and the floor-trim stub at the near edge are gone; a channel now has walls and a lava floor of its own. Sim hash and goldens unchanged. (9) editor-3d's `view/mesh/sector-mesh.ts` is not replaced: the editor's blockout carries a selection id and an `occlude` per surface and is typed on `/1` until 14.1 and 16.2 (task 7.1's rulings 1 and 2); the swap goes with them. (10) There is no `app/compose-scene.ts` yet (6.x did not create it): the game's `scene` hook is the composer, and 7.4 adds `startClip` where it lands. Cost if wrong: one hook moved. (11) Holes: the plan did not say; a hole is walled and left out of the floor by a bridged ear-clipping (`fill`). Evidence: 41 new unit tests in `tests/unit/world` and `tests/unit/app`, 3 more in the occluders' tests; base-3d unit 85 with the sim hash unchanged; the game boots in Chromium and both frames were opened. Resume at task 7.3 (props, the dresser, lamps, decals, lettering, generated maps; session break after props).
+- Task 7.3: done as the scope ruling trimmed it (session 50d3sw, 2026-11-07; the Owner's 19:28 word: 3D as light as 2D, the rest in extensions; the ruling came from the "Trim 3D core to match 2D" thread). Rulings: (1) The first half was built whole (commit 78e0ca7f: 70 prop presets and their generators, the kits, lettering, the lamp kit) and then cut back: that commit stays on the branch as the source the world-kit extension ports from; the dresser (`dress/*`, `world-kit.schema.ts`, written but never committed) is in project files `af-world-kit-source/`, with `props.json` and `swatches.json`. (2) Core keeps: `placeProps`, `props/piece.ts`, `props/resolve.ts`, a generator registry (`registerPropGenerator`, throwing `RegistryClash` on a taken name, also core's `box` and `cylinder`), the lamp kit and the level's lamps and a prop's lights, the `world-swatch` and `world-prop` content kinds, doors and windows. `RegistryClash` moved to `shared/registry/` so the figures' registries and this one share it. (3) Out of core: the furniture, small-thing, street, nature and sign generators, the prop, swatch and kit libraries (`CORE_LIBRARY`, `mergeLibrary`), lettering, glyphs and `stream.ts`, the dresser, the `world-kit` content kind, decals, `generateMap` (apartment and block), the converted builder maps, `convert-builder-map.ts` and its script, test and fixture (task 7.1 built them; the `/2` schema's comment now names the extension's converter). `world-prop`'s schema checks only that `kind` is a string: an extension's kind may register after the content is read, so a kind with no generator is `unknown-generator` from the builder. (4) The `Marking` decals and lettering fields of `/2` stay in the schema, carried as written; core draws none. (5) The superquadric and limb primitives, noise and colour helpers moved to `shared/math` for the world's props; they stay there (the figures import them from it), the cost being one more shared folder if wrong. (6) Ember Hall's room has no kit: its file places five crates and barrels (`props`); its swatches (`wall`, `floor`, `ceiling`, `lava`, `crate`, `barrel`, DUEL steps, the colours the views had) and its two presets (a `box` and a `cylinder`) are TOML under `games/base-3d/src/content/world-swatches/` and `world-props/`, compiled with the `world-swatch` and `world-prop` kinds (new Node-safe entry `@automata/3d/world-content`, listed in the game's `vite.config.ts`), and `roomWorld(content)` builds the room from them; the views read each colour from the swatch (`swatchColour`), only the lip's stays in code. It has no lamp or time of day: nothing in base-3d lights from a lamp until 8.2's look, so a lamp written now would be dead data. Cost if wrong: one lamp and one `time` added to the file. (7) A room with `dress` (its own or the level's, unless the level's `keep` is false) is drawn bare with a `needs-extension` problem (`name: 'world-kit'`, the scope trim's words). The generator registry holds core's `box` and `cylinder` from the start (`registeredPropGenerators()`), and `world-prop` accepts any `kind` string. The sim hash and goldens are unchanged (85 unit tests; `sim-content.hash` did not move, `content.hash` did for the new TOML); the crates and barrels stand clear of the embers and the roll path. Frames: project files `refactor/2026-11-07-3d-7-3-room-shots/` (`before.png`, `after.png`: the far wall of the first room now has two crates and a barrel). Evidence: 107 world and app unit tests, base-3d's 7 Chromium journeys, knip, boundaries and style clean. Resume at task 7.4 (the stage); 8.2's passes, 9.1, 9.2 and the 6.x follow-ups are held until the amended plan.
+- Scope trim (session 2kk058, 2026-11-07, Opus): the Owner at 19:28, "Make sure we're not overscoping 3D, it should be as lightweight as 2D, everything else should go into plus", and at 19:31, "we aren't just moving stuff around right?". Ruled feature by feature against 2D core in [2026-11-07-3d-scope-trim.md](2026-11-07-3d-scope-trim.md) (measured at `78e0ca7f`): 7.3 trimmed to placement through a generator registry, `box` and `cylinder`, lamps and the two content kinds; 7.5 (one sector geometry) and 7.6 (clothes, hairstyles and seats leave core) added; 8.2 without reference painters or sky and rain; 9.1 and 9.2 moved to the Plus port (3.8); 12.1, 12.2, 13.3, 14.1, 16.1 to 16.3 and 17.2 amended; refactor findings R1 to R11 placed in tasks here and in the port's addendum (section 6 of the trim document). Accepted under "Reminder that everything is auto approved and accepted, do not wait on me to do any approvals" (Owner, 2026-10-31).
+- Task 7.4: done (session 50d3sw, 2026-11-07). Rulings: (1) `PieceStates` is `{ doors, lamps, props }` as the plan says; a door is its room's (`doors[<room id>]`, a hinged door being a doorway sector's), clamped to 0..1; a prop's state is `{ at?, turn?, hidden? }` about its base; a lamp's is `{ level, color? }`. (2) `updatePieces(view, before, after)` touches only the pieces whose state differs and returns how many; a door turns about its hinge by `swing × open`, a prop's pieces move, turn and hide together. To know which pieces those are, `WorldView` now carries its `pieces` and a prop's `WorldPiece` carries `prop: { id, at }`. (3) A lamp is not a piece: its state reaches the light through `sceneLamps(lamps, night, states)` (level scaled, colour replaced), next to the sim's own lamp switches. (4) No `app/compose-scene.ts` and no `startClip`: the plan said to give the scene a `startClip(who, clip, atTick)` callback, but there is no composer (task 7.2's ruling 10) and the figure view already starts a clip from the `action` of the state a game hands it, so a cue from outside sets that; adding a callback now would be a second way to do the same. Cost if wrong: one callback, added where the extension needs it. (5) `PieceStates` and its helpers are exported from `@automata/3d/level` (pure data, so a sim or a cutscene extension reads the same shape); `updatePieces` from the main entry. Evidence: 6 unit tests for the states, 7 for `updatePieces` (a door key changes only that door; the hinge stays put; a prop turns about its base), 1 for `sceneLamps`; knip, boundaries and style clean. WebKit and Firefox not run.

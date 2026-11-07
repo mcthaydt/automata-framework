@@ -18,6 +18,14 @@
   are in sections 6 to 11 and 15 here and in the plan ([record](2026-11-07-3d-slice-plan-audit.md)). Accepted under
   "Reminder that everything is auto approved and accepted, do not wait on me to do any approvals" (Owner, 2026-10-31).
 
+> **Scope trim, 2026-11-07 (Owner, 19:28): "Make sure we're not overscoping 3D, it should be as lightweight as 2D,
+> everything else should go into plus".** Sections 3, 6, 7, 8.2 and 9 are narrowed by
+> [2026-11-07-3d-scope-trim.md](2026-11-07-3d-scope-trim.md): core draws a game's own data and ships no ready-made
+> library; the prop, swatch and kit libraries, the dresser, decals, lettering, generated maps, the photo pipeline, the
+> declared `reads`, sky, stars, rain and bloom go to `@automata/world-kit`, and eight garment kinds, the hair pieces and
+> seats to `@automata/character-kit` (both Plus port extensions). The CPU reference painters are not written. Where a
+> section below and the trim document differ, the trim document wins.
+
 ## 0. What the Owner wants (the brief)
 
 **Said by the Owner:**

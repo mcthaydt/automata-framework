@@ -1,13 +1,13 @@
 // The outfit hooks (H2): what an extension tunes in `dress` without editing it. Both are callbacks core never
 // sets. They are set once, by the one extension that owns the look of an outfit (a wardrobe); a second set fails.
 
+import { RegistryClash } from '../../../shared/registry/registry-clash.ts'
 import type { Measure } from '../body/genes.ts'
 import type { Part } from '../body/mesh.ts'
 import type { Skeleton } from '../body/rig.ts'
 import type { Swatch } from '../content/swatch.schema.ts'
 import type { Anchor } from '../figure/anchors.ts'
 import type { Garment } from '../figure/garment.schema.ts'
-import { RegistryClash } from './registry-clash.ts'
 
 /** The outfit being dressed: the body's measure and skeleton, and every garment in order. */
 export interface OutfitBody {

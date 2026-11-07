@@ -3,7 +3,19 @@
 // Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/lib/geometry.ts at 6d82a52: `merge` and `tube`.
 // Added: `MeshData` (the plain triple every piece is made of) and `windToNormals`, which makes every triangle wind
 // the way its vertex normals point, so a renderer may cull back faces (the builder's own raster did not cull).
-import { cross, dot, lerp, normalize, sub, type V3 } from './math.ts'
+import {
+  apply,
+  applyDir,
+  compose,
+  cross,
+  dot,
+  IDENTITY_Q,
+  lerp,
+  normalize,
+  type Q,
+  sub,
+  type V3,
+} from './math.ts'
 
 /** Positions, normals (one per position) and triangles (three indices each), as plain arrays. */
 export interface MeshData {
@@ -104,4 +116,27 @@ export function tube(top: Ring, bottom: Ring, options: TubeOptions = {}): MeshDa
       indices.push(a, b, c, a, c, d)
     }
   return windToNormals({ positions, normals, indices })
+}
+
+export const sgnPow = (v: number, e: number): number => Math.sign(v) * Math.abs(v) ** e
+
+/** The `i`th vertex of a flat x, y, z list. */
+export function vertexAt(list: readonly number[], i: number): V3 {
+  const x = list[i * 3]
+  const y = list[i * 3 + 1]
+  const z = list[i * 3 + 2]
+  if (x === undefined || y === undefined || z === undefined) throw new RangeError(`no vertex ${i}`)
+  return [x, y, z]
+}
+
+/** Moves a mesh (a part authored around the origin) by a turn and an offset. */
+export function placed(mesh: MeshData, at: V3, turn: Q = IDENTITY_Q): MeshData {
+  const m = compose(turn, at)
+  const positions: number[] = []
+  const normals: number[] = []
+  for (let i = 0; i < mesh.positions.length / 3; i++) {
+    positions.push(...apply(m, vertexAt(mesh.positions, i)))
+    normals.push(...applyDir(m, vertexAt(mesh.normals, i)))
+  }
+  return { positions, normals, indices: mesh.indices.slice() }
 }

@@ -20,10 +20,10 @@ import {
   sub,
   type V3,
 } from '../../../../shared/math/math.ts'
+import { type Superquadric, superquadric } from '../../../../shared/math/superquadric.ts'
 import type { Measure } from '../../body/genes.ts'
 import { GROUP, type Mesh, type Part } from '../../body/mesh.ts'
 import { at, J, type Skeleton } from '../../body/rig.ts'
-import { type Superquadric, superquadric } from '../../body/superquadric.ts'
 import { texels } from '../../body/texels.ts'
 import type { Made } from '../../figure/materials.ts'
 import { variant } from '../../figure/materials.ts'

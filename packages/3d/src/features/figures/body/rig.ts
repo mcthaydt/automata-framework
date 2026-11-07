@@ -9,6 +9,7 @@
 
 import {
   add,
+  at,
   axisAngle,
   compose,
   IDENTITY_Q,
@@ -18,6 +19,8 @@ import {
   sub,
   type V3,
 } from '../../../shared/math/math.ts'
+
+export { at }
 
 export const JOINTS = [
   'root',
@@ -91,13 +94,6 @@ export const PARENTS: readonly number[] = JOINTS.map((name) => {
   const parent = PARENT[name]
   return parent === null ? -1 : J[parent]
 })
-
-/** The element at `index`. Joint indices come from `J` and `PARENTS`, so a miss is a bug, not content. */
-export function at<T>(list: readonly T[], index: number): T {
-  const value = list[index]
-  if (value === undefined) throw new RangeError(`no element ${index} (of ${list.length})`)
-  return value
-}
 
 /** The arm chain a hold may rewrite (spec §7). */
 export const armChain = (side: Side): number[] => [

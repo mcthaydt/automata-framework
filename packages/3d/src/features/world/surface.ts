@@ -3,8 +3,8 @@
 // the prop) and whether it is turned a quarter. A plain swatch name has no placement and tiles in the world.
 //
 // Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/surface.ts at 6d82a52 (`isSurfaceTex`,
-// `tileName`, `texOf`, `wallFrame`). The surface types are the level schema's; `objectFrame` and `toLocal` come with
-// the props (task 7.3).
+// `tileName`, `texOf`, `wallFrame`, `objectFrame`). The surface types are the level schema's; the renderer maps a tile
+// into a frame, so the builder does not need the source's `toLocal`.
 import type { Surface, SurfaceTex } from '../../shared/level/af-sector-2.schema.ts'
 
 /** A point or direction in world space. */
@@ -76,4 +76,14 @@ export function wallFrame(
   n: readonly [number, number],
 ): TexFrame {
   return { o: [from[0], floor, from[1]], x: [n[1], 0, -n[0]], y: [0, 1, 0], z: [n[0], 0, n[1]] }
+}
+
+/**
+ * A prop's frame: placed at `at` (world), turned `turn` degrees about y as `rotateY` turns it, so x = (cos, 0, −sin),
+ * y up and z = (sin, 0, cos).
+ */
+export function objectFrame(turn: number, at: Vec3): TexFrame {
+  const a = (turn * Math.PI) / 180
+  const [c, s] = [Math.cos(a), Math.sin(a)]
+  return { o: at, x: [c, 0, -s], y: [0, 1, 0], z: [s, 0, c] }
 }

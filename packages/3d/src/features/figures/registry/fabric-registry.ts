@@ -8,7 +8,7 @@
 // Ported from FigureBuilder (mcthaydt/FigureBuilder) src/features/paint/fabric.ts at 025ffb4 (`Fabric`,
 // `registerFabric`, `fabricOf`, `labelAt`), with AF's strict types. The painter that reads the labels is not taken.
 
-import { RegistryClash } from './registry-clash.ts'
+import { RegistryClash } from '../../../shared/registry/registry-clash.ts'
 
 export interface Fabric {
   /** Tile size in labels, and the labels row by row (w x h), each a tone offset: +1 a step lighter, -1 a step darker. */

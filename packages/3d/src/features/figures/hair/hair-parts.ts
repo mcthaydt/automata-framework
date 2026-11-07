@@ -20,10 +20,10 @@ import {
   sub,
   type V3,
 } from '../../../shared/math/math.ts'
+import { superquadric } from '../../../shared/math/superquadric.ts'
 import type { Measure } from '../body/genes.ts'
 import type { Decal, Mesh, Part, Weight } from '../body/mesh.ts'
 import { at, J, type Skeleton } from '../body/rig.ts'
-import { superquadric } from '../body/superquadric.ts'
 import { FIGURE_PPM, texels } from '../body/texels.ts'
 import type { HairStyle, Piece } from '../content/hair.schema.ts'
 import type { Made } from '../figure/materials.ts'

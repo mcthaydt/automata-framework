@@ -156,6 +156,34 @@
       "wallTexture": "wall"
     }
   ],
+  "props": [
+    {
+      "id": "crate-1",
+      "use": "crate",
+      "at": [-4, 6.5]
+    },
+    {
+      "id": "crate-2",
+      "use": "crate",
+      "at": [4, 6.5],
+      "angle": 45
+    },
+    {
+      "id": "barrel-1",
+      "use": "barrel",
+      "at": [-4, 5.4]
+    },
+    {
+      "id": "crate-3",
+      "use": "crate",
+      "at": [4, 16]
+    },
+    {
+      "id": "barrel-2",
+      "use": "barrel",
+      "at": [-4, 16]
+    }
+  ],
   "entityDefs": [
     {
       "id": "ember"

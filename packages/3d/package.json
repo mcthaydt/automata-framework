@@ -22,6 +22,7 @@
     "./figures-kit": "./src/entries/figures-kit.ts",
     "./level": "./src/entries/level.ts",
     "./no-eval": "./src/entries/no-eval.ts",
+    "./world-content": "./src/entries/world-content.ts",
     "./sim": "./src/entries/sim.ts",
     "./testing": "./src/entries/testing.ts",
     "./testing-checks": "./src/entries/testing-checks.ts",

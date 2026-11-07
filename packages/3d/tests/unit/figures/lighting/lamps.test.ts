@@ -2,13 +2,8 @@
 // (a flicker that drops in quarters, a light style, a level) and the ramp steps it lifts a surface at a point.
 
 import { describe, expect, it } from 'vitest'
-import {
-  type FigureLamp,
-  lampSteps,
-  noise3,
-  strength,
-  viewToWorld,
-} from '#src/features/figures/lighting/lamps.ts'
+import { type FigureLamp, lampSteps, strength, viewToWorld } from '#src/features/figures/lighting/lamps.ts'
+import { noise3 } from '#src/shared/math/noise.ts'
 
 const lamp: FigureLamp = { at: [0, 1, 0], color: '#ffbc4e', steps: 3, radius: 2 }
 /** The steps `l` lifts a surface at (px, py, pz) facing (nx, ny, nz), at full strength. */

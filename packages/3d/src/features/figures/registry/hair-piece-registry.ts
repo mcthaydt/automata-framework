@@ -6,8 +6,8 @@
 // `registerHairPiece`), with AF's strict types; a piece may carry a Zod schema, so its data is checked like the rest.
 
 import type { z } from 'zod'
+import { RegistryClash } from '../../../shared/registry/registry-clash.ts'
 import type { HairBuild } from '../hair/hair-parts.ts'
-import { RegistryClash } from './registry-clash.ts'
 
 /** A hair piece an extension registers: how one entry of a style's `pieces` is built. */
 export interface HairPiece<T = unknown> {

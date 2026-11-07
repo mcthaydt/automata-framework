@@ -8,7 +8,7 @@ import {
   registeredGarments,
   registerGarment,
 } from '#src/features/figures/registry/garment-registry.ts'
-import { RegistryClash } from '#src/features/figures/registry/registry-clash.ts'
+import { RegistryClash } from '#src/shared/registry/registry-clash.ts'
 import '#src/features/figures/outfit/garments/classic-kinds.ts'
 
 const CLASSIC = [

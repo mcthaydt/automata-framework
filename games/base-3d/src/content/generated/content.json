@@ -1455,5 +1455,48 @@
     ],
     "name": "DUEL"
   },
-  "tuning": {}
+  "tuning": {},
+  "world-prop": {
+    "barrel": {
+      "height": 0.9,
+      "kind": "cylinder",
+      "radius": 0.3,
+      "swatch": "barrel"
+    },
+    "crate": {
+      "kind": "box",
+      "size": [
+        0.7,
+        0.6,
+        0.7
+      ],
+      "swatch": "crate"
+    }
+  },
+  "world-swatch": {
+    "barrel": {
+      "ramp": "mud",
+      "step": 2
+    },
+    "ceiling": {
+      "ramp": "dusk",
+      "step": 0
+    },
+    "crate": {
+      "ramp": "mud",
+      "step": 3
+    },
+    "floor": {
+      "ramp": "dusk",
+      "step": 4
+    },
+    "lava": {
+      "ramp": "rose",
+      "step": 1
+    },
+    "wall": {
+      "ramp": "dusk",
+      "step": 1
+    }
+  }
 }

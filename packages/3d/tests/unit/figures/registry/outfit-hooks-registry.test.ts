@@ -8,7 +8,7 @@ import { build, type FigureLibrary } from '#src/features/figures/figure/build.ts
 import { skeleton } from '#src/features/figures/figure/figure-skeleton.ts'
 import { registerGarment } from '#src/features/figures/registry/garment-registry.ts'
 import { outfitHooks, registerOutfitHooks } from '#src/features/figures/registry/outfit-hooks-registry.ts'
-import { RegistryClash } from '#src/features/figures/registry/registry-clash.ts'
+import { RegistryClash } from '#src/shared/registry/registry-clash.ts'
 import { fixtureFigures } from '#src/testing/fixture-library.ts'
 import { figureOf, GOLDEN_OUTFITS } from '#src/testing/golden-outfits.ts'
 

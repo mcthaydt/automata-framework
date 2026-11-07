@@ -1,11 +1,12 @@
 // The world's flat-faced primitives: boxes and quads for walls, floors and frames, which want one normal per face (a
 // rounded box's normals would band a 6 m wall like a pillow).
 //
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/mesh.ts at 6d82a52: `quad` and
-// `box`. The rounded primitives (`rbox`, `cylinder`, `rod`, `cone`, `blob`) come with the props that use them
-// (task 7.3). Changed: every triangle winds the way its normal points (`windToNormals`).
+// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/mesh.ts at 6d82a52: `quad`, `box`
+// and `cylinder`. Changed: every triangle winds the way its normal points (`windToNormals`), and the figure's own
+// superquadric comes from `shared/math`.
 import { type MeshData, merge, windToNormals } from '../../shared/math/geometry.ts'
 import { normalize, type V3 } from '../../shared/math/math.ts'
+import { superquadric } from '../../shared/math/superquadric.ts'
 
 export type { MeshData }
 export { merge }
@@ -54,4 +55,17 @@ export function box(at: V3, size: V3, skip: readonly string[] = []): MeshData {
     ['-y', quad([x0, y, z0], [w, 0, 0], [0, 0, d], cells(w), cells(d))],
   ]
   return merge(...faces.filter(([face]) => !skip.includes(face)).map(([, mesh]) => mesh))
+}
+
+/** An upright cylinder (flat-ended, round across): base centre `at`, radius, height. */
+export function cylinder(at: V3, radius: number, height: number, seg = 12, round = 0.15): MeshData {
+  return windToNormals(
+    superquadric({
+      at: [at[0], at[1] + height / 2, at[2]],
+      r: [radius, height / 2, radius],
+      e: [round, 1],
+      seg,
+      rings: 7,
+    }),
+  )
 }

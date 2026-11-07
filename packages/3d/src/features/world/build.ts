@@ -26,6 +26,7 @@ import { type MeshData, merge } from '../../shared/math/geometry.ts'
 import type { V3 } from '../../shared/math/math.ts'
 import { decorPieces, doorPieces } from './decor.ts'
 import { box } from './mesh.ts'
+import { placeProps, type WorldLamp } from './place-props.ts'
 import { onWall, planeMesh, wallQuad } from './plane-mesh.ts'
 import {
   cornersOf,
@@ -43,8 +44,8 @@ import { hasSwatch, type WorldLibrary } from './swatches.ts'
 
 export type { WorldLibrary }
 
-/** What a piece is a part of. `prop` and `lamp` come with task 7.3. */
-export type WorldPart = 'floor' | 'ceiling' | 'wall' | 'decor' | 'prop' | 'lamp'
+/** What a piece is a part of. Lamps are not pieces: they are `World.lamps`. */
+export type WorldPart = 'floor' | 'ceiling' | 'wall' | 'decor' | 'prop'
 
 /** One drawable thing: its mesh and the surface it is painted with, in the room it belongs to. */
 export interface WorldPiece {
@@ -64,10 +65,19 @@ export interface WorldPiece {
   readonly occlude?: Occlude
   /** A hinged door's pivot and its swing at fully open (degrees about y); the mesh is built shut. */
   readonly door?: { readonly hinge: V3; readonly swing: number }
+  /** Sways in the wind: how far (metres) its top moves, and its phase (leaves, grass, a curtain). */
+  readonly sway?: number
+  readonly phase?: number
+  /** Casts no shadow: a thin or glowing part. */
+  readonly noCast?: boolean
+  /** A prop's part: the prop's id and where its base stands (world x, up, z), for a state that moves the prop. */
+  readonly prop?: { readonly id: string; readonly at: V3 }
 }
 
 export interface World {
   readonly pieces: WorldPiece[]
+  /** Every lamp: the level's own and the ones props carry, resolved against the lamp kit. */
+  readonly lamps: WorldLamp[]
   readonly problems: LevelProblem[]
 }
 
@@ -121,6 +131,21 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
     problems.push(problem)
   }
 
+  // A room that asks to be dressed is drawn bare: filling a room is the world-kit extension's, and core never fills it
+  // some other way. The field stays in the format, so the level is one file for every game.
+  if (level.dress?.keep !== false)
+    level.sectors.forEach((sector, si) => {
+      if ((sector.dress ?? level.dress) === undefined) return
+      problems.push({
+        path: sector.dress === undefined ? ['dress'] : ['sectors', si, 'dress'],
+        code: 'needs-extension',
+        message:
+          'This room asks to be furnished by the world kit, which this game doesn\'t have. Add @automata/world-kit, or remove "dress" from the room.',
+        where: sector.id,
+        name: 'world-kit',
+      })
+    })
+
   /** Adds a piece, saying so once if its swatch is not in the library. */
   const add = (
     si: number,
@@ -129,7 +154,7 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
     mesh: MeshData,
     surface: Surface,
     tex?: TexPlace,
-    extra: Pick<WorldPiece, 'door' | 'line' | 'occlude'> = {},
+    extra: Pick<WorldPiece, 'door' | 'line' | 'occlude' | 'sway' | 'phase' | 'noCast' | 'prop'> = {},
   ): void => {
     const sector = level.sectors[si] as AfSectorEntry2
     const name = tileName(surface)
@@ -436,7 +461,17 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
       )
     }
   }
-  return { pieces, problems }
+
+  // --- props and lamps ---
+  const placed = placeProps(level, library, tell)
+  for (const piece of placed.pieces)
+    add(piece.sector, `prop:${piece.role}`, 'prop', piece.mesh, piece.surface, piece.tex, {
+      ...(piece.sway === undefined ? {} : { sway: piece.sway }),
+      ...(piece.phase === undefined ? {} : { phase: piece.phase }),
+      ...(piece.noCast === true ? { noCast: true } : {}),
+      ...(piece.prop === undefined ? {} : { prop: piece.prop }),
+    })
+  return { pieces, lamps: placed.lamps, problems }
 }
 
 /** The segment as the occluder rule reads a wall: from `a` to `b` with the room on the left. */

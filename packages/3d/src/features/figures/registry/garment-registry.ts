@@ -8,13 +8,13 @@
 // registered kind whose name is one of the item's keys.
 
 import type { z } from 'zod'
+import { RegistryClash } from '../../../shared/registry/registry-clash.ts'
 import type { Measure } from '../body/genes.ts'
 import type { Skeleton } from '../body/rig.ts'
 import type { SWATCH_KINDS, SWATCH_ROLES } from '../content/swatch.schema.ts'
 import type { Garment } from '../figure/garment.schema.ts'
 import type { Dressing } from '../outfit/garments/classic.ts'
 import type { Fit, Legs, Wearing, Worn } from './garment-fit.ts'
-import { RegistryClash } from './registry-clash.ts'
 
 /**
  * Where a garment is worn: next to the skin, the base top, over a top, the bottoms, on the feet, or an
