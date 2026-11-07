@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { metres, ROLL, TICK_HZ, WALK_SPEED } from './constants/index.ts'
-import { ROOM } from './content/room.ts'
-import { channelBoxes, heroFigureState, placed, sceneOf } from './views/index.ts'
+import { ROOM, ROOM_WORLD } from './content/room.ts'
+import { heroFigureState, lipBoxes, placed } from './views/index.ts'
 
-// base-3d's views: Wick's rows to the figure view's state, Q16.16 rows to metres for the views, and the room to its walls,
-// floors and ceilings. Presentation: the sim never reads them back (law 1).
+// base-3d's views: Wick's rows to the figure view's state, Q16.16 rows to metres for the views, and the room’s world and lips. Presentation: the sim never reads them back (law 1).
 const hero = { x: 0, z: 0, facing: 0, moving: false, moveDir: 0 }
 const idleAction = { clip: 0, startedAt: 0, pushX: 0, pushZ: 0, pushTicks: 0 }
 
@@ -37,31 +36,38 @@ describe('placed', () => {
   })
 })
 
-describe('sceneOf the room', () => {
-  const scene = sceneOf(ROOM)
+describe('the room’s world', () => {
+  const pieces = (part: string) => ROOM_WORLD.pieces.filter((piece) => piece.part === part)
 
-  it('draws one wall per area wall, its height above the 2 m camera bounds', () => {
-    expect(scene.walls).toHaveLength(ROOM.walls.length)
-    for (const wall of scene.walls) expect(wall.height).toBeGreaterThan(2)
+  it('builds with nothing to report: every surface the file names is in the library', () => {
+    expect(ROOM_WORLD.problems).toEqual([])
   })
 
-  it('lays a floor and a ceiling over each room, and none over a pit, so a channel shows as a gap', () => {
-    expect(scene.floors).toHaveLength(ROOM.rooms.length)
-    expect(scene.ceilings).toHaveLength(ROOM.rooms.length)
-    for (const pit of ROOM.pits)
-      for (const floor of scene.floors)
-        expect(floor.max[2] <= pit.min[1] || floor.min[2] >= pit.max[1]).toBe(true)
+  it('lays a floor and a ceiling over every sector, the channels’ floors in lava', () => {
+    expect(pieces('floor')).toHaveLength(ROOM.rooms.length + ROOM.pits.length)
+    expect(pieces('ceiling')).toHaveLength(ROOM.rooms.length + ROOM.pits.length)
+    const lava = pieces('floor').filter((piece) => piece.surface === 'lava')
+    expect(lava.map((piece) => piece.sector)).toEqual(['channel-1', 'channel-2'])
+  })
+
+  it('stands every wall face above the 2 m camera bounds, and steps a channel down from its platforms', () => {
+    const faces = pieces('wall').filter((piece) => piece.line !== undefined)
+    expect(faces.length).toBeGreaterThan(0)
+    const tops = faces.map((face) => Math.max(...face.mesh.positions.filter((_, i) => i % 3 === 1)))
+    for (const top of tops) expect(top).toBeGreaterThan(2)
+    // A channel’s floor is 3 m under its platforms: the step up to them is drawn from the channel’s side.
+    const steps = pieces('wall').filter(
+      (piece) => piece.id.includes(':lower:') && piece.sector.startsWith('channel'),
+    )
+    expect(steps).toHaveLength(4)
   })
 })
 
-describe('channelBoxes', () => {
-  it('lays a lava floor under each channel and a bright lip along both of its edges', () => {
-    const boxes = channelBoxes(ROOM)
-    expect(boxes).toHaveLength(ROOM.pits.length * 3)
-    const lava = boxes.filter((entry) => entry.box.max[1] < 0)
-    expect(lava).toHaveLength(ROOM.pits.length)
-    const lips = boxes.filter((entry) => entry.box.max[1] > 0)
-    expect(new Set(lips.map((entry) => entry.colour)).size).toBe(1)
-    for (const lip of lips) expect(lip.box.max[1]).toBeLessThan(0.2)
+describe('lipBoxes', () => {
+  it('lays a bright lip along both edges of each channel', () => {
+    const boxes = lipBoxes(ROOM)
+    expect(boxes).toHaveLength(ROOM.pits.length * 2)
+    expect(new Set(boxes.map((entry) => entry.colour)).size).toBe(1)
+    for (const lip of boxes) expect(lip.box.max[1]).toBeLessThan(0.2)
   })
 })

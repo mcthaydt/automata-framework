@@ -16,7 +16,7 @@ import { defineGame, type GameSaves, inputs, keys, startGame } from '@automata/f
 import { Act, Move } from './commands.ts'
 import { Ember, Hero } from './components.ts'
 import { TICK_HZ } from './constants/index.ts'
-import { ROOM } from './content/room.ts'
+import { ROOM, ROOM_WORLD } from './content/room.ts'
 import * as paraglideRuntime from './paraglide/runtime.js'
 import { cameraTurnUnits, endGroup, moveFromStick } from './screens/controls.ts'
 import { BASE3D_COPY } from './screens/copy.ts'
@@ -142,7 +142,7 @@ export const base3d = defineGame({
         position: (c) => placed(c.hero),
       },
       scene: (view, _stage, occluders) => {
-        buildScene(view, occluders, ROOM)
+        buildScene(view, occluders, ROOM, ROOM_WORLD)
         return {
           draw: () => {},
           reset: () => {},

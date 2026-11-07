@@ -1,0 +1,80 @@
+// The world on `@pixi/3d`: a mesh for each piece, the swatch's colour on it, and the occluder rule on walls and ceilings.
+import { Container3D, type Mesh3D, type PhongMaterial } from '@pixi/3d'
+import { describe, expect, it } from 'vitest'
+import { drawWorld } from '#src/app/world-view.ts'
+import { createOccluders } from '#src/features/camera/occluders/occluders.ts'
+import { buildWorld } from '#src/features/world/build.ts'
+import type { AfSector2 } from '#src/shared/level/af-sector-2.schema.ts'
+
+const LIB = { swatches: { oakFloor: {}, plasterWarm: {}, trimWhite: {} } }
+const level: AfSector2 = {
+  format: 'af-sector/2',
+  name: 't',
+  sectors: [
+    {
+      id: 'a',
+      floor: { z: 0 },
+      ceiling: { z: 3 },
+      light: 1,
+      corners: [
+        [0, 0],
+        [4, 0],
+        [4, 4],
+        [0, 4],
+      ],
+    },
+  ],
+}
+const colours: Record<string, number> = { oakFloor: 0x8690b2, plasterWarm: 0x3a4568 }
+const { pieces } = buildWorld(level, LIB)
+
+describe('drawWorld', () => {
+  it('adds a mesh for each piece under one node, in the swatch’s colour', () => {
+    const parent = new Container3D()
+    const view = drawWorld({ parent, colourOf: (name) => colours[name] }, pieces)
+    expect(view.node.parent).toBe(parent)
+    expect(view.node.children).toHaveLength(pieces.length)
+    const floor = view.mesh('a:floor') as Mesh3D
+    expect((floor.material as PhongMaterial).baseColor).toBe(0x8690b2)
+  })
+  it('draws a swatch it does not know in the fallback colour', () => {
+    const view = drawWorld(
+      { parent: new Container3D(), colourOf: () => undefined, fallback: 0x123456 },
+      pieces,
+    )
+    expect(((view.mesh('a:floor') as Mesh3D).material as PhongMaterial).baseColor).toBe(0x123456)
+  })
+  it('gives each mesh the geometry of its piece', () => {
+    const view = drawWorld({ parent: new Container3D(), colourOf: () => 0 }, pieces)
+    const floor = pieces.find((p) => p.id === 'a:floor')
+    const mesh = view.mesh('a:floor') as Mesh3D
+    expect(mesh.geometry.vertexCount).toBe((floor?.mesh.positions.length as number) / 3)
+  })
+  it('registers the walls with the occluder rule and hides the ceiling', () => {
+    const parent = new Container3D()
+    const occluders = createOccluders(parent)
+    const view = drawWorld({ parent, occluders, colourOf: () => 0 }, pieces)
+    const eye = { x: 2, y: 3, z: 9 }
+    const frame = {
+      eye,
+      look: { x: 2, y: 1, z: 2 },
+      feet: { x: 2, y: 0, z: 2 },
+      head: { x: 2, y: 1.6, z: 2 },
+      seconds: 1,
+      reduced: true,
+    }
+    occluders.update(frame)
+    // The ceiling is never drawn; the south wall stands between the eye and the player, so it is cut.
+    expect((view.mesh('a:ceiling') as Mesh3D).visible).toBe(false)
+    expect((view.mesh('a:wall:0.2.0') as Mesh3D).visible).toBe(false)
+    // The north wall faces the eye from behind the player; it stays.
+    expect((view.mesh('a:wall:0.0.0') as Mesh3D).visible).toBe(true)
+    expect((view.mesh('a:floor') as Mesh3D).visible).toBe(true)
+  })
+  it('takes the meshes down on dispose', () => {
+    const parent = new Container3D()
+    const view = drawWorld({ parent, colourOf: () => 0 }, pieces)
+    view.dispose()
+    expect(parent.children).toHaveLength(0)
+  })
+})

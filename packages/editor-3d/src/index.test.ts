@@ -271,7 +271,8 @@ describe('public entry', () => {
 
   it('exports the app core: the editor app and the size limit, and keeps the storage steps inside', () => {
     for (const name of ['createEditorApp', 'MAX_FILE_BYTES']) expect(editor3d, name).toHaveProperty(name)
-    for (const name of ['createPatchedDocument', 'readLevel', 'listProjects', 'importZip', 'readStored'])
+    // (`readLevel` is core's now, from the level entry the editor re-exports; the editor's own storage reader is not.)
+    for (const name of ['createPatchedDocument', 'listProjects', 'importZip', 'readStored'])
       expect(editor3d, name).not.toHaveProperty(name)
     // The outcomes are types, so this is checked by the compiler: the entry names them.
     const refused: editor3d.PatchRefused = {

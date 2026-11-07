@@ -44,12 +44,15 @@
           }
         ],
         [-5, 8]
-      ]
+      ],
+      "floorTexture": "floor",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "wall"
     },
     {
       "id": "channel-1",
       "floor": -3,
-      "ceiling": 0,
+      "ceiling": 3,
       "light": 1,
       "corners": [
         [
@@ -69,7 +72,10 @@
         ],
         [-5, 10]
       ],
-      "pit": true
+      "pit": true,
+      "floorTexture": "lava",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "wall"
     },
     {
       "id": "middle",
@@ -94,12 +100,15 @@
           }
         ],
         [-5, 18]
-      ]
+      ],
+      "floorTexture": "floor",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "wall"
     },
     {
       "id": "channel-2",
       "floor": -3,
-      "ceiling": 0,
+      "ceiling": 3,
       "light": 1,
       "corners": [
         [
@@ -119,7 +128,10 @@
         ],
         [-5, 20]
       ],
-      "pit": true
+      "pit": true,
+      "floorTexture": "lava",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "wall"
     },
     {
       "id": "goal",
@@ -138,7 +150,10 @@
         [5, 20],
         [5, 28],
         [-5, 28]
-      ]
+      ],
+      "floorTexture": "floor",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "wall"
     }
   ],
   "entityDefs": [
