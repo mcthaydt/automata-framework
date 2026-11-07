@@ -54,6 +54,36 @@ STANDALONE.2 extends this file to every earlier extraction; until then it holds 
 | Commit | `18525fc` |
 | Used | `docs/references/Narrative Architecture.md` (layered storylets; one shared state of facts, relationships, promises and reputations) as design input for `narrative` (row M6.8a; Owner, 2026-10-30: "Steal everything you need to") |
 
+## The figure source
+
+Repository: `mcthaydt/FigureBuilder`. Commit read: `025ffb48b941043e16ab680c847d33e2eb40eab4`. Licence: none recorded
+(the Owner's private repository). Every file at that commit is listed in `builders-manifest.json`; each file's row below
+says where it went in AF (3D slice task 6.1, spec 8.4).
+
+Earlier extraction: the first port of the figures, at `a1f7246` (M3, `packages/3d/src/features/figures/` as
+`packages/figures`), took the generators, rig, motion and clips; the 3D slice's phase 6 ports everything since, from
+`025ffb4`, tests first.
+
+Pull again: clone the builder, `git diff 025ffb4..<new> -- <the rows' source paths>`, port each hunk (tests first), add
+a row for every new file, run `pnpm sources-md`, and record the new commit here and in the manifest. A row says
+*ported*, *rewritten: what* or *left out: why*.
+
+| Source file | AF file | How |
+| --- | --- | --- |
+
+## The environment source
+
+Repository: `mcthaydt/environmentbuilder`. Commit read: `6d82a527bf0e6ae9c771b14f2cb5bfa487438ab0`. Licence: none
+recorded (the Owner's private repository). Every file at that commit is listed in `builders-manifest.json`. Left out on
+purpose: its `vendor/FigureBuilder` submodule (its door, `src/lib/figure.ts`, becomes AF imports), `docs/reference/`,
+both `docs/superpowers/` folders and the review tooling.
+
+Pull again: clone the builder, `git diff 6d82a52..<new> -- <the rows' source paths>`, port each hunk (tests first), add
+a row for every new file, run `pnpm sources-md`, and record the new commit here and in the manifest.
+
+| Source file | AF file | How |
+| --- | --- | --- |
+
 ## Core: the doc comments that named their source (moved here 2026-11-07)
 
 The published doc comments below named the arcade source (`SNEKPRTY/FloorFifty`); the doc comments no longer do, so
