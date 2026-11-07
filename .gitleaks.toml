@@ -11,7 +11,7 @@ description = "The planted fake key of the scan's own self-test"
 paths = ['''^tooling/repo-hygiene/fixtures/secrets/''']
 
 [[allowlists]]
-description = "A content key path in a test's expected diagnostic, e.g. keyPath: 'effectors.handR.rot.0' (generic-api-key reads the word key; packages/figures, commit ed9d06d, M3.6b)"
+description = "A content key path in a test's expected diagnostic, e.g. keyPath: 'effectors.handR.rot.0' (generic-api-key reads the word key; packages/3d, commit ed9d06d, M3.6b)"
 condition = "AND"
 regexTarget = "line"
 regexes = ['''keyPath:\s*['"][A-Za-z0-9_.]+['"]''']

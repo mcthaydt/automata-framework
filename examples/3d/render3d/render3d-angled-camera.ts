@@ -5,13 +5,13 @@
 //   with a 150 ms fade and 5° of hysteresis), never draws the ceiling, and fades the pillar to 25% when it stands
 //   between the camera and the player. The view keeps the whole floor in frame at 4:3 and 21:9 (D3-g).
 // Controls: none
-// Packages: @automata/framework, @automata/render-pixi3d
+// Packages: @automata/framework, @automata/3d
 // Difficulty: ★★★☆
 // Tier: core
-import '@automata/render-pixi3d/no-eval'
+import '@automata/3d/no-eval'
+import { box, createPixi3dRenderer, render3dExtension } from '@automata/3d'
+import { CameraHeading, cameraView, enterView, START, turnCamera } from '@automata/3d/sim'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
-import { box, createPixi3dRenderer, render3dExtension } from '@automata/render-pixi3d'
-import { CameraHeading, cameraView, enterView, START, turnCamera } from '@automata/render-pixi3d/sim'
 
 const ROOM = cameraView('room', { tiltDeg: 30, distance: 8 })
 

@@ -1,11 +1,11 @@
 // The Studio stage's renderer (EDS.9a; editor suite spec EDS-D13): one Pixi WebGL2 renderer with one `View3D`, drawing
-// the figure exactly as the game does, with `render-pixi3d`'s own `figure` view (its meshes, its evaluate, its hair),
+// the figure exactly as the game does, with `@automata/3d`'s own `figure` view (its meshes, its evaluate, its hair),
 // from the library and motion content the Studio read. The orbit comes from the stage camera's maths; the view's
 // clock is the playhead, so scrubbing a clip shows the pose `sample` gives at that time. Losing the context pauses it
 // and the stage offers Try again, as the 3D level editor's views do (ED3D spec §11); the fields keep working.
-import '@automata/render-pixi3d/no-eval'
-import type { FigureDef, FigureLibrary, MotionLibrary } from '@automata/figures'
-import { type FigureViewState, figure } from '@automata/render-pixi3d'
+import '@automata/3d/no-eval'
+import { type FigureViewState, figure } from '@automata/3d'
+import type { FigureDef, FigureLibrary, MotionLibrary } from '@automata/3d/figures'
 import { View3D } from '@pixi/3d'
 import { autoDetectRenderer, Container, type Renderer, type WebGLRenderer } from 'pixi.js'
 import { type Readable, writable } from 'svelte/store'

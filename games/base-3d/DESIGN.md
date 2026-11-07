@@ -28,7 +28,7 @@ in the end group; touch targets are at least 44 px.
 ## 3. Sim
 
 `hero.input` → `hero.move` (walk, roll, fall) → `hero.view` → `ember.take`, at 60 Hz in Q16.16 metres. Commands: `move`,
-`camera-turn` (render-pixi3d's), `act { roll }`. Events: `ember.taken`, `goal.reached`, `hero.fell`. State: `Progress { taken,
+`camera-turn` (@automata/3d's), `act { roll }`. Events: `ember.taken`, `goal.reached`, `hero.fell`. State: `Progress { taken,
 goal }`, `Location` (the return point). The golden replay in `src/game.test.ts` walks the room, falls once, rolls across both
 channels and takes the goal; its hash is equal in Node, Chromium, WebKit and Firefox.
 

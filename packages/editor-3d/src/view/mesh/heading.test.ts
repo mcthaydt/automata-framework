@@ -3,7 +3,7 @@
 // growing toward +x). The editor states a heading the way the game does, turns it by a drag, and looks at the dollhouse from
 // any heading and from every 15 degrees of one, with what each cuts away or fades. Rooms are 8 m by 6 m and 4 m high.
 
-import { degToHeading, TURN_UNITS, wrapHeading } from '@automata/render-pixi3d/camera-view'
+import { degToHeading, TURN_UNITS, wrapHeading } from '@automata/3d/camera-view'
 import { describe, expect, it } from 'vitest'
 import { entry, meshOf, room } from '../../testing/room-mesh'
 import { toyAfSector } from '../../testing/toy-af-sector'
@@ -33,7 +33,7 @@ const countsAt = (mesh: SectorMesh, heading: number, options = {}) => {
 
 describe('the turn', () => {
   it('is the owner’s 65,536 units, and a pixel of drag is a quarter of a degree', () => {
-    // Wrapping, turning and reading a yawDeg are render-pixi3d's `camera-view`, tested there (M3.4b moved them).
+    // Wrapping, turning and reading a yawDeg are @automata/3d's `camera-view`, tested there (M3.4b moved them).
     expect(TURN_UNITS).toBe(65_536)
     expect(DEGREES_PER_PIXEL).toBe(0.25)
   })

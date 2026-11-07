@@ -18,10 +18,8 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@automata/3d": "workspace:*",
     "@automata/framework": "workspace:*",
-    "@automata/figures": "workspace:*",
-    "@automata/render-pixi3d": "workspace:*",
-    "@automata/sector-format": "workspace:*",
     "@automata/sim": "workspace:*",
     "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
     "effect": "3.22.2",
@@ -31,10 +29,10 @@
   },
   "devDependencies": {
     "@automata/content": "workspace:*",
-    "@automata/tools": "workspace:*",
     "@automata/evidence": "workspace:*",
     "@automata/examples-runner": "workspace:*",
     "@automata/playwright-preset": "workspace:*",
+    "@automata/tools": "workspace:*",
     "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",

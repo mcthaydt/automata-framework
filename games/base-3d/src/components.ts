@@ -1,5 +1,5 @@
 // base-3d's Koota traits. Positions are Q16.16 metres and angles turn units (constants/index.ts); the renderer converts
-// them to metres and radians. The camera's view and heading are render-pixi3d's `camera-heading`, on the same entity as
+// them to metres and radians. The camera's view and heading are @automata/3d's `camera-heading`, on the same entity as
 // `hero` (M3 spec §4.2, one owner).
 import { type ComponentDef, defineComponent } from '@automata/sim'
 

@@ -2,9 +2,9 @@
 // a focus a metre above the followed position, along a heading the player turns freely. The editor draws a room as the player
 // sees it: the eye the game would put there, and the walls that eye cuts away. `bounds`, `lag` easing and lock-on framing
 // are the game renderer's; the editor carries `lag` as data only. The view itself (its fields, defaults and ranges) is
-// render-pixi3d's `camera-view`, whose own tests cover it.
+// @automata/3d's `camera-view`, whose own tests cover it.
 
-import { cameraView, TURN_UNITS } from '@automata/render-pixi3d/camera-view'
+import { cameraView, TURN_UNITS } from '@automata/3d/camera-view'
 import { describe, expect, it } from 'vitest'
 import { room } from '../../testing/room-mesh'
 import { forward, ORBIT_FOV, orbitCamera, projectPoint } from './camera-3d'

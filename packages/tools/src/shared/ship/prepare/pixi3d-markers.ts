@@ -1,7 +1,7 @@
 // The closed-beta guard. `@pixi/3d` 0.1.0-beta.2 is a closed beta whose terms allow no
 // public deployment, and its `./extras` entry probes `new Function` at load, a CSP violation under
 // Ruken. A build is read for strings that survive minification (checked against Vite's minified builds of the
-// vendored tarball by packages/render-pixi3d's pixi3d-bundle.test.ts): error and warning ids from @pixi/3d's main
+// vendored tarball by packages/3d's pixi3d-bundle.test.ts): error and warning ids from @pixi/3d's main
 // entry, and for `./extras` the spawn code generator's own source strings (S7 found the name `generateSpawnBurst`
 // can be renamed by a minifier; the spike's guard, spikes/s7-pixi3d/src/bundle/extras-guard.ts at 86a5298).
 // When Pixi 3D is public, the core markers' check goes (the AF 1.0 launch task); the extras check stays.

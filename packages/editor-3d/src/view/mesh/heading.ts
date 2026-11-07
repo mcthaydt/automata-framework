@@ -3,11 +3,12 @@
 // the plan) and a heading grows toward +x (east), the direction being `(sin h, cos h)` in `(x, z)`. The editor's own camera
 // states a heading as a compass bearing (0 looks north, a quarter turn east; camera-3d.ts), which is a half turn minus the
 // heading. The conversions are whole-unit arithmetic first and one multiplication last, so every unit round-trips exactly.
-// The turn itself (`TURN_UNITS`, `wrapHeading`, `turnHeading`, `degToHeading`) is render-pixi3d's `camera-view`, its one
+// The turn itself (`TURN_UNITS`, `wrapHeading`, `turnHeading`, `degToHeading`) is @automata/3d's `camera-view`, its one
 // owner (M3 spec §4.2, amended 2026-10-30); what stays here is the editor camera's compass and its own drag.
+
+import { TURN_UNITS, wrapHeading } from '@automata/3d/camera-view'
 import type { Size } from '@automata/editor/kit/core'
 import { roundJsonNumber } from '@automata/editor/kit/documents'
-import { TURN_UNITS, wrapHeading } from '@automata/render-pixi3d/camera-view'
 import { type Camera3D, fitOrbit, type Orbit, orbitCamera } from './camera-3d'
 import { surfaceVisibility } from './mesh-pick'
 import type { SectorMesh, Vec3 } from './sector-mesh'

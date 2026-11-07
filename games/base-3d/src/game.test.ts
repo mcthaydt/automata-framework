@@ -1,5 +1,5 @@
+import { cameraHeadingPlugin, cameraView } from '@automata/3d/sim'
 import { recordGoldenEvidence } from '@automata/evidence/golden'
-import { cameraHeadingPlugin, cameraView } from '@automata/render-pixi3d/sim'
 import { createSim, type Sim } from '@automata/sim'
 import { describe, expect, it } from 'vitest'
 import { Ember, Hero, HeroAction } from './components.ts'
@@ -198,7 +198,7 @@ describe('embers and the goal', () => {
   })
 })
 
-describe('camera-turn (render-pixi3d’s command, on Wick’s heading)', () => {
+describe('camera-turn (@automata/3d’s command, on Wick’s heading)', () => {
   it('turns the heading, and the stick with it, from the same tick', async () => {
     const sim = await startSim(openArea(0))
     run(sim, { stick: UP, turn: 8_192 })

@@ -3175,7 +3175,7 @@ interface GameSpec<S = never, D = unknown> {
     readonly renderer?: PixiRendererOptions;
     /**
      * Makes the renderer from the Pixi options `defineGame` built (the size, pixel art, the views, `renderer` and
-     * the draw layer's and Settings' `setup`): an extension's renderer, such as render-pixi3d's
+     * the draw layer's and Settings' `setup`): an extension's renderer, such as a 3D extension's
      * `(options) => createPixi3dRenderer({ ...options, views })`. Default: core's `createPixiRenderer`.
      */
     readonly createRenderer?: (options: PixiRendererOptions) => RendererFactory;

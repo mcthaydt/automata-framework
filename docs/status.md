@@ -35,7 +35,7 @@ Left, and the Owner's:
 ## What is next
 
 After core and 2D: the 2D editors and the website, made ready to ship with 2D alone (the Owner, 2026-11-06); then the
-same for 3D (`games/base-3d`, `render-pixi3d`, `figures`, the 3D editors and the site). Each slice goes audit, plan,
+same for 3D (`games/base-3d`, `packages/3d`, the 3D editors and the site). Each slice goes audit, plan,
 plan audit, build, build audit, fixes, and is finished before the next starts. The 2D editors and website audit is
 [`refactor/2026-11-06-2d-editors-and-site-audit.md`](refactor/2026-11-06-2d-editors-and-site-audit.md); the rest of the
 2D launch path (`create-game`, releases, the agent package, docs, tooling, Plus and the other repositories) is

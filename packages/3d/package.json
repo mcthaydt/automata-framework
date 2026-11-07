@@ -1,0 +1,64 @@
+{
+  "name": "@automata/3d",
+  "version": "0.0.0",
+  "license": "MIT",
+  "private": true,
+  "description": "AF's 3D: the Pixi 3D renderer and camera, procedural figures, the level format and the world, by feature. Private until Pixi 3D is public.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-framework.git",
+    "directory": "packages/3d"
+  },
+  "type": "module",
+  "sideEffects": [
+    "./src/entries/no-eval.ts",
+    "./src/features/renderer/no-eval/install-no-eval.ts"
+  ],
+  "exports": {
+    ".": "./src/entries/index.ts",
+    "./blockout": "./src/entries/blockout.ts",
+    "./camera-view": "./src/entries/camera-view.ts",
+    "./figures": "./src/entries/figures.ts",
+    "./level": "./src/entries/level.ts",
+    "./no-eval": "./src/entries/no-eval.ts",
+    "./sim": "./src/entries/sim.ts",
+    "./testing": "./src/entries/testing.ts"
+  },
+  "automata": {
+    "simEntries": [
+      "./sim",
+      "./level"
+    ]
+  },
+  "scripts": {
+    "bench": "vitest run --project bench",
+    "test": "vitest run --project unit",
+    "test:unit": "vitest run --project unit",
+    "test:browser": "vitest run --project browsers",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@automata/content": "workspace:*",
+    "@automata/framework": "workspace:*",
+    "@automata/sim": "workspace:*",
+    "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
+    "@pmndrs/klipp": "0.16.0",
+    "effect": "3.22.2",
+    "smol-toml": "1.9.0",
+    "zod": "4.6.6"
+  },
+  "peerDependencies": {
+    "pixi.js": "8.22.0"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@types/node": "24.19.1",
+    "@vitest/browser-playwright": "5.0.3",
+    "pixi.js": "8.22.0",
+    "playwright": "1.63.0",
+    "svelte": "5.57.1",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}

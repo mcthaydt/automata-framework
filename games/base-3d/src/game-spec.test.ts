@@ -1,4 +1,4 @@
-import { cameraHeadingPlugin } from '@automata/render-pixi3d/sim'
+import { cameraHeadingPlugin } from '@automata/3d/sim'
 import { describe, expect, it, vi } from 'vitest'
 import { ROOM } from './content/room.ts'
 import { base3dPlugin, base3dSim } from './state/index.ts'

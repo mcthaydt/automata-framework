@@ -89,14 +89,14 @@ describe('playgroundCatalog', () => {
   })
 
   // D-1 (M3 spec §4.8): the website is public, so an example of an unpublished extension (the closed beta's
-  // render-pixi3d) never reaches it.
+  // @automata/3d) never reaches it.
   it('leaves out an example that imports an unpublished extension', () => {
     const catalog = playgroundCatalog(
       [
         entry({ id: 'shapes-rects' }),
         entry({
           id: 'render3d-meshes',
-          imports: ['@automata/framework', '@automata/render-pixi3d/no-eval'],
+          imports: ['@automata/framework', '@automata/3d/no-eval'],
         }),
       ],
       () => '',

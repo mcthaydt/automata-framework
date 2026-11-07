@@ -1,6 +1,6 @@
 // The level converter (GAME-3D.1i, DESIGN.md §17): an `af-sector/1` file read as an `AreaSource`. Rectangular sectors
 // only in 1.0; a file that cannot be read fails naming the file and the JSON path (G3-F2).
-import { WALL_THICK } from '@automata/sector-format'
+import { WALL_THICK } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { AreaLoadError, areaFromSector } from './sector-area.ts'
 

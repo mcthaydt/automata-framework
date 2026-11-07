@@ -1,5 +1,5 @@
 // The turn-unit angle math the movement reads. Pure functions, so the systems and the tests share them. Sim code.
-import { TURN_UNITS, wrapHeading } from '@automata/render-pixi3d/sim'
+import { TURN_UNITS, wrapHeading } from '@automata/3d/sim'
 import { atan2 } from '@automata/sim/math'
 
 // 2π spelled out: `Math.PI` is not sim-safe.

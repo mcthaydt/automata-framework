@@ -13,7 +13,7 @@ A game is built for one of four peer targets, chosen at build time: `web`, `itch
 | `packages/automata` | The browser package: runtime, renderer, host contract, ui kit, screens, target adapters |
 | `packages/sim`, `packages/content` | The deterministic sim, and the content compiler |
 | `packages/tools` | The `automata` command: create-game, add, check, build, ship |
-| `packages/render-pixi3d`, `figures`, `sector-format` | The 3D renderer, procedural figures and the level format |
+| `packages/3d` | The 3D renderer, camera, procedural figures and the level format, by feature (private until Pixi 3D is public) |
 | `packages/editor-*` | The editor suite: 2D level editor, 3D editor, shared kit |
 | `games/emberwick` | The 2D reference game |
 | `games/base-3d` | The 3D reference game (in progress) |

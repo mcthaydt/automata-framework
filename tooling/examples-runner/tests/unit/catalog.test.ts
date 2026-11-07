@@ -85,20 +85,20 @@ describe('readCatalog', () => {
     })
   })
 
-  // D-1: render-pixi3d stays private until Pixi 3D is public, yet its examples are free core examples (M3R-D20).
+  // D-1: @automata/3d stays private until Pixi 3D is public, yet its examples are free core examples (M3R-D20).
   it("accepts an unpublished extension's entries in the render3d module", () => {
     expect(entry('render3d/render3d-boxes.ts')).toMatchObject({
       problems: [],
-      imports: ['@automata/render-pixi3d/no-eval', '@automata/render-pixi3d'],
+      imports: ['@automata/3d/no-eval', '@automata/3d'],
     })
   })
 
-  // M3R-D7: `figures` is private while its only renderer is; its examples are free core examples too (M3 spec §5).
-  it('accepts the figures module and its private package beside the 3D renderer', () => {
+  // M3R-D7: the figures entry is part of the private 3D package; its examples are free core examples too (M3 spec §5).
+  it('accepts the figures module and its entry beside the 3D renderer', () => {
     expect(entry('figures/figures-stand.ts')).toMatchObject({
       problems: [],
       module: 'figures',
-      imports: ['@automata/render-pixi3d/no-eval', '@automata/figures', '@automata/render-pixi3d'],
+      imports: ['@automata/3d/no-eval', '@automata/3d', '@automata/3d/figures'],
     })
   })
 

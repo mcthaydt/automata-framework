@@ -95,10 +95,10 @@ describe('the history scan', () => {
   })
 
   it("does not read a content key path in a test's expected diagnostic as a key", () => {
-    // generic-api-key matched `keyPath: 'effectors.handR.rot.0'` in packages/figures (commit ed9d06d, M3.6b).
+    // generic-api-key matched `keyPath: 'effectors.handR.rot.0'` in packages/3d (commit ed9d06d, M3.6b).
     const { dir, commit } = scratchRepository()
     commit('a diagnostic with a key path', {
-      'packages/figures/src/pose/pose-library.test.ts':
+      'packages/3d/tests/unit/motion/pose-library.test.ts':
         "expect(d).toEqual({ keyPath: 'effectors.handR.rot.0' })\n",
     })
     expect(scan(dir)).toBe(0)

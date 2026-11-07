@@ -1,4 +1,4 @@
-// The `af-sector/1` envelope is core's `@automata/sector-format` (the game reads the same file, GAME-3D.1i),
+// The `af-sector/1` envelope is core's `@automata/3d/level` (the game reads the same file, GAME-3D.1i),
 // re-exported unchanged so the editor's files and its public entry keep their names.
 export {
   AF_SECTOR_FORMAT,
@@ -16,4 +16,4 @@ export {
   afSectorEntrySchema,
   afSectorSchema,
   afWallSchema,
-} from '@automata/sector-format'
+} from '@automata/3d/level'

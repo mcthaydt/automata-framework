@@ -1,6 +1,6 @@
+import type { Ease, EffectorId, FigureClipDef, MaskGroup, PoseDef, Vec3 } from '@automata/3d/figures'
+import { MASK_GROUPS } from '@automata/3d/figures'
 import type { SuitePorts } from '@automata/editor/kit/ports'
-import type { Ease, EffectorId, FigureClipDef, MaskGroup, PoseDef, Vec3 } from '@automata/figures'
-import { MASK_GROUPS } from '@automata/figures'
 import { type Readable, writable } from 'svelte/store'
 import type { StudioContent } from './studio-content'
 import {

@@ -1,4 +1,4 @@
-// The browser-safe entries: what a game's page (and the packages it loads, such as figures and render-pixi3d) may
+// The browser-safe entries: what a game's page (and the packages it loads, such as figures and @automata/3d) may
 // import from content without Node. The root entry is the compiler and reaches `node:fs/promises`; in Vite's dev
 // server that throws at boot (a production build tree-shakes it away, so only `vite dev` showed a blank page). So
 // each browser entry's whole import graph, not just its own file, must stay clear of Node built-ins.

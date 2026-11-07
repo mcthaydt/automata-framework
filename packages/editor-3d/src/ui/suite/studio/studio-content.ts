@@ -21,7 +21,7 @@ import {
   type Swatch,
   standSchema,
   swatchSchema,
-} from '@automata/figures'
+} from '@automata/3d/figures'
 import { parse as parseToml } from 'smol-toml'
 import type { ZodType } from 'zod'
 

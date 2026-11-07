@@ -4,13 +4,13 @@
 //   the figure's meshes once on each change, without moving a joint; an item (FigureBuilder's hold: where the
 //   hand goes and how it turns) is data in the figure library, beside the swatches it is made of.
 // Controls: none
-// Packages: @automata/framework, @automata/figures, @automata/render-pixi3d
+// Packages: @automata/framework, @automata/3d
 // Difficulty: ★★★☆
 // Tier: core
-import '@automata/render-pixi3d/no-eval'
-import type { FigureDef, FigureLibrary, Gait, ItemDef } from '@automata/figures'
+import '@automata/3d/no-eval'
+import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
+import type { FigureDef, FigureLibrary, Gait, ItemDef } from '@automata/3d/figures'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
-import { createPixi3dRenderer, figure, render3dExtension } from '@automata/render-pixi3d'
 
 // Content a game compiles from content/figure-swatches/*.toml and content/figure-items/*.toml, written as compiled.
 // Swatch colours are Endesga 64 indices. The item is FigureBuilder's hand lamp (src/render/figure/library at a1f7246).

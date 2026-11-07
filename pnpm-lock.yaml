@@ -8,15 +8,15 @@ importers:
 
   .:
     devDependencies:
+      '@automata/tools':
+        specifier: workspace:*
+        version: link:packages/tools
       '@biomejs/biome':
         specifier: 2.5.15
         version: 2.5.15
       '@changesets/cli':
         specifier: 3.0.3
         version: 3.0.3
-      '@automata/tools':
-        specifier: workspace:*
-        version: link:packages/tools
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -51,15 +51,15 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/tools':
-        specifier: workspace:*
-        version: link:../../packages/tools
       '@automata/examples-runner':
         specifier: workspace:*
         version: link:../../tooling/examples-runner
       '@automata/playwright-preset':
         specifier: workspace:*
         version: link:../../tooling/playwright-preset
+      '@automata/tools':
+        specifier: workspace:*
+        version: link:../../packages/tools
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -78,22 +78,22 @@ importers:
       '@af-games/emberwick':
         specifier: workspace:*
         version: link:../../../../games/emberwick
-      '@fontsource/pixelify-sans':
-        specifier: 5.3.0
-        version: 5.3.0
       '@automata/framework':
         specifier: workspace:*
         version: link:../../../../packages/automata
+      '@fontsource/pixelify-sans':
+        specifier: 5.3.0
+        version: 5.3.0
     devDependencies:
       '@automata/content':
         specifier: workspace:*
         version: link:../../../../packages/content
-      '@automata/tools':
-        specifier: workspace:*
-        version: link:../../../../packages/tools
       '@automata/examples-runner':
         specifier: workspace:*
         version: link:../../../../tooling/examples-runner
+      '@automata/tools':
+        specifier: workspace:*
+        version: link:../../../../packages/tools
       '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../../../../tooling/vitest-preset
@@ -152,15 +152,12 @@ importers:
 
   examples/3d:
     dependencies:
+      '@automata/3d':
+        specifier: workspace:*
+        version: link:../../packages/3d
       '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/figures':
-        specifier: workspace:*
-        version: link:../../packages/figures
-      '@automata/render-pixi3d':
-        specifier: workspace:*
-        version: link:../../packages/render-pixi3d
       pixi.js:
         specifier: 8.22.0
         version: 8.22.0
@@ -189,18 +186,12 @@ importers:
 
   games/base-3d:
     dependencies:
+      '@automata/3d':
+        specifier: workspace:*
+        version: link:../../packages/3d
       '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/figures':
-        specifier: workspace:*
-        version: link:../../packages/figures
-      '@automata/render-pixi3d':
-        specifier: workspace:*
-        version: link:../../packages/render-pixi3d
-      '@automata/sector-format':
-        specifier: workspace:*
-        version: link:../../packages/sector-format
       '@automata/sim':
         specifier: workspace:*
         version: link:../../packages/sim
@@ -223,9 +214,6 @@ importers:
       '@automata/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/tools':
-        specifier: workspace:*
-        version: link:../../packages/tools
       '@automata/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
@@ -235,6 +223,9 @@ importers:
       '@automata/playwright-preset':
         specifier: workspace:*
         version: link:../../tooling/playwright-preset
+      '@automata/tools':
+        specifier: workspace:*
+        version: link:../../packages/tools
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -265,15 +256,15 @@ importers:
 
   games/emberwick:
     dependencies:
-      '@fontsource/pixelify-sans':
-        specifier: 5.3.0
-        version: 5.3.0
       '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
       '@automata/sim':
         specifier: workspace:*
         version: link:../../packages/sim
+      '@fontsource/pixelify-sans':
+        specifier: 5.3.0
+        version: 5.3.0
       pixi.js:
         specifier: 8.22.0
         version: 8.22.0
@@ -287,15 +278,15 @@ importers:
       '@automata/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@automata/tools':
-        specifier: workspace:*
-        version: link:../../packages/tools
       '@automata/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
       '@automata/playwright-preset':
         specifier: workspace:*
         version: link:../../tooling/playwright-preset
+      '@automata/tools':
+        specifier: workspace:*
+        version: link:../../packages/tools
       '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
@@ -330,6 +321,61 @@ importers:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
+  packages/3d:
+    dependencies:
+      '@automata/content':
+        specifier: workspace:*
+        version: link:../content
+      '@automata/framework':
+        specifier: workspace:*
+        version: link:../automata
+      '@automata/sim':
+        specifier: workspace:*
+        version: link:../sim
+      '@pixi/3d':
+        specifier: file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz
+        version: file:vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz(pixi.js@8.22.0)
+      '@pmndrs/klipp':
+        specifier: 0.16.0
+        version: 0.16.0
+      effect:
+        specifier: 3.22.2
+        version: 3.22.2
+      smol-toml:
+        specifier: 1.9.0
+        version: 1.9.0
+      zod:
+        specifier: 4.6.6
+        version: 4.6.6
+    devDependencies:
+      '@sveltejs/vite-plugin-svelte':
+        specifier: 7.3.1
+        version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@types/node':
+        specifier: 24.19.1
+        version: 24.19.1
+      '@vitest/browser-playwright':
+        specifier: 5.0.3
+        version: 5.0.3(playwright@1.63.0)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(vitest@5.0.3)
+      pixi.js:
+        specifier: 8.22.0
+        version: 8.22.0
+      playwright:
+        specifier: 1.63.0
+        version: 1.63.0
+      svelte:
+        specifier: 5.57.1
+        version: 5.57.1
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vite:
+        specifier: 8.3.3
+        version: 8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+
   packages/automata:
     dependencies:
       '@automata/content':
@@ -342,15 +388,15 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
+      '@automata/vitest-preset':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-preset
       '@inlang/paraglide-js':
         specifier: 2.25.4
         version: 2.25.4(typescript@6.0.3)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
       '@inlang/plugin-message-format':
         specifier: 4.4.4
         version: 4.4.4
-      '@automata/vitest-preset':
-        specifier: workspace:*
-        version: link:../../tooling/vitest-preset
       '@ruken/sdk':
         specifier: file:../../vendor/ruken/ruken-sdk-0.0.0.tgz
         version: file:vendor/ruken/ruken-sdk-0.0.0.tgz
@@ -417,15 +463,15 @@ importers:
 
   packages/content:
     dependencies:
+      '@automata/sim':
+        specifier: workspace:*
+        version: link:../sim
       '@inlang/paraglide-js':
         specifier: 2.25.4
         version: 2.25.4(typescript@7.0.2)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
       '@inlang/plugin-message-format':
         specifier: 4.4.4
         version: 4.4.4
-      '@automata/sim':
-        specifier: workspace:*
-        version: link:../sim
       effect:
         specifier: 3.22.2
         version: 3.22.2
@@ -475,6 +521,12 @@ importers:
 
   packages/editor:
     dependencies:
+      '@automata/content':
+        specifier: workspace:*
+        version: link:../content
+      '@automata/framework':
+        specifier: workspace:*
+        version: link:../automata
       '@decimalturn/toml-patch':
         specifier: 3.3.1
         version: 3.3.1
@@ -484,12 +536,6 @@ importers:
       '@fontsource-variable/geist-mono':
         specifier: 5.3.0
         version: 5.3.0
-      '@automata/framework':
-        specifier: workspace:*
-        version: link:../automata
-      '@automata/content':
-        specifier: workspace:*
-        version: link:../content
       pixi.js:
         specifier: 8.22.0
         version: 8.22.0
@@ -557,21 +603,15 @@ importers:
 
   packages/editor-3d:
     dependencies:
-      '@automata/framework':
+      '@automata/3d':
         specifier: workspace:*
-        version: link:../automata
+        version: link:../3d
       '@automata/editor':
         specifier: workspace:*
         version: link:../editor
-      '@automata/figures':
+      '@automata/framework':
         specifier: workspace:*
-        version: link:../figures
-      '@automata/render-pixi3d':
-        specifier: workspace:*
-        version: link:../render-pixi3d
-      '@automata/sector-format':
-        specifier: workspace:*
-        version: link:../sector-format
+        version: link:../automata
       '@pixi/3d':
         specifier: file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz
         version: file:vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz(pixi.js@8.22.0)
@@ -627,108 +667,6 @@ importers:
       vite:
         specifier: 8.3.3
         version: 8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
-      vitest:
-        specifier: 5.0.3
-        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
-
-  packages/figures:
-    dependencies:
-      '@automata/framework':
-        specifier: workspace:*
-        version: link:../automata
-      '@automata/content':
-        specifier: workspace:*
-        version: link:../content
-      smol-toml:
-        specifier: 1.9.0
-        version: 1.9.0
-      zod:
-        specifier: 4.6.6
-        version: 4.6.6
-    devDependencies:
-      '@types/node':
-        specifier: 24.19.1
-        version: 24.19.1
-      '@vitest/browser-playwright':
-        specifier: 5.0.3
-        version: 5.0.3(playwright@1.63.0)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(vitest@5.0.3)
-      effect:
-        specifier: 3.22.2
-        version: 3.22.2
-      playwright:
-        specifier: 1.63.0
-        version: 1.63.0
-      vitest:
-        specifier: 5.0.3
-        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
-
-  packages/render-pixi3d:
-    dependencies:
-      '@automata/framework':
-        specifier: workspace:*
-        version: link:../automata
-      '@automata/content':
-        specifier: workspace:*
-        version: link:../content
-      '@automata/figures':
-        specifier: workspace:*
-        version: link:../figures
-      '@automata/sector-format':
-        specifier: workspace:*
-        version: link:../sector-format
-      '@automata/sim':
-        specifier: workspace:*
-        version: link:../sim
-      '@pixi/3d':
-        specifier: file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz
-        version: file:vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz(pixi.js@8.22.0)
-      '@pmndrs/klipp':
-        specifier: 0.16.0
-        version: 0.16.0
-      effect:
-        specifier: 3.22.2
-        version: 3.22.2
-      zod:
-        specifier: 4.6.6
-        version: 4.6.6
-    devDependencies:
-      '@sveltejs/vite-plugin-svelte':
-        specifier: 7.3.1
-        version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
-      '@types/node':
-        specifier: 24.19.1
-        version: 24.19.1
-      '@vitest/browser-playwright':
-        specifier: 5.0.3
-        version: 5.0.3(playwright@1.63.0)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(vitest@5.0.3)
-      pixi.js:
-        specifier: 8.22.0
-        version: 8.22.0
-      playwright:
-        specifier: 1.63.0
-        version: 1.63.0
-      svelte:
-        specifier: 5.57.1
-        version: 5.57.1
-      typescript:
-        specifier: 6.0.3
-        version: 6.0.3
-      vite:
-        specifier: 8.3.3
-        version: 8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
-      vitest:
-        specifier: 5.0.3
-        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
-
-  packages/sector-format:
-    dependencies:
-      zod:
-        specifier: 4.6.6
-        version: 4.6.6
-    devDependencies:
-      '@types/node':
-        specifier: 24.19.1
-        version: 24.19.1
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
@@ -815,6 +753,18 @@ importers:
 
   site:
     dependencies:
+      '@automata/editor':
+        specifier: workspace:*
+        version: link:../packages/editor
+      '@automata/framework':
+        specifier: workspace:*
+        version: link:../packages/automata
+      '@automata/sim':
+        specifier: workspace:*
+        version: link:../packages/sim
+      '@automata/tools':
+        specifier: workspace:*
+        version: link:../packages/tools
       '@babel/parser':
         specifier: 8.0.10
         version: 8.0.10
@@ -842,18 +792,6 @@ importers:
       '@lezer/highlight':
         specifier: 1.2.5
         version: 1.2.5
-      '@automata/framework':
-        specifier: workspace:*
-        version: link:../packages/automata
-      '@automata/editor':
-        specifier: workspace:*
-        version: link:../packages/editor
-      '@automata/sim':
-        specifier: workspace:*
-        version: link:../packages/sim
-      '@automata/tools':
-        specifier: workspace:*
-        version: link:../packages/tools
       '@ruken/manifest':
         specifier: file:../vendor/ruken/ruken-manifest-0.0.0.tgz
         version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
@@ -870,6 +808,12 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
+      '@automata/examples-runner':
+        specifier: workspace:*
+        version: link:../tooling/examples-runner
+      '@automata/playwright-preset':
+        specifier: workspace:*
+        version: link:../tooling/playwright-preset
       '@axe-core/playwright':
         specifier: 4.13.0
         version: 4.13.0(playwright-core@1.63.0)
@@ -882,12 +826,6 @@ importers:
       '@lhci/cli':
         specifier: 0.15.1
         version: 0.15.1(bare-buffer@3.7.1)
-      '@automata/examples-runner':
-        specifier: workspace:*
-        version: link:../tooling/examples-runner
-      '@automata/playwright-preset':
-        specifier: workspace:*
-        version: link:../tooling/playwright-preset
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -1119,15 +1057,15 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@automata/tools':
-        specifier: workspace:*
-        version: link:../../packages/tools
       '@automata/examples-runner':
         specifier: workspace:*
         version: link:../examples-runner
       '@automata/playwright-preset':
         specifier: workspace:*
         version: link:../playwright-preset
+      '@automata/tools':
+        specifier: workspace:*
+        version: link:../../packages/tools
       '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset

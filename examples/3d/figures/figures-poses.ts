@@ -4,14 +4,14 @@
 //   which pose and since which tick, and the view plays a hold clip that blends the figure from the last pose into
 //   it over 0.4 s and holds it; the view's clock is the sim's tick, so a clip starts where the sim started it.
 // Controls: none
-// Packages: @automata/framework, @automata/figures, @automata/render-pixi3d
+// Packages: @automata/framework, @automata/3d
 // Difficulty: ★★★☆
 // Tier: core
-import '@automata/render-pixi3d/no-eval'
-import type { FigureClipDef, FigureDef, FigureLibrary, Gait, PoseLibrary, Vec3 } from '@automata/figures'
-import { MASK_GROUPS } from '@automata/figures'
+import '@automata/3d/no-eval'
+import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
+import type { FigureClipDef, FigureDef, FigureLibrary, Gait, PoseLibrary, Vec3 } from '@automata/3d/figures'
+import { MASK_GROUPS } from '@automata/3d/figures'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
-import { createPixi3dRenderer, figure, render3dExtension } from '@automata/render-pixi3d'
 
 // Wick, his swatches and the `bounce` gait as in figures-walk (FigureBuilder a1f7246), written as compiled.
 const cloak = { 'wick-cloak': { colour: 41 }, 'wick-cloak-shade': { colour: 40 } }

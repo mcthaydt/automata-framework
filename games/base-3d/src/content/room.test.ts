@@ -1,7 +1,7 @@
 // The free base-3d room as a level file (the free base-3d plan, step 6): a valid `af-sector/1` file of axis-aligned
 // rectangles, with the pits the roll crosses (a channel is 2 m wide, the roll carries 3.2 m) and the spawn, the embers
 // and the goal standing in rooms. The converter and the sim read it after the strip commits.
-import { afSectorSchema } from '@automata/sector-format'
+import { afSectorSchema } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import file from './levels/room.af-sector.json'
 

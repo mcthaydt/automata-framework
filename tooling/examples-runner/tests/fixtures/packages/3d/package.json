@@ -1,0 +1,9 @@
+{
+  "name": "@automata/3d",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./figures": "./src/figures.ts",
+    "./no-eval": "./src/no-eval.ts"
+  }
+}

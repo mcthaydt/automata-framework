@@ -5,8 +5,8 @@
   words under the fields.
 -->
 <script lang="ts">
+import { type Ease, MASK_GROUPS } from '@automata/3d/figures'
 import { Button, Chips, Picker, Segmented, Stepper } from '@automata/editor/kit'
-import { type Ease, MASK_GROUPS } from '@automata/figures'
 import type { StudioController } from '../studio-controller'
 
 const { controller }: { controller: StudioController } = $props()

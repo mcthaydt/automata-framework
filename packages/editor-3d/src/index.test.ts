@@ -1,6 +1,6 @@
 // The package's public entry: what a consumer can import, and what stays inside.
 
-import { cameraView } from '@automata/render-pixi3d/camera-view'
+import { cameraView } from '@automata/3d/camera-view'
 import { describe, expect, it } from 'vitest'
 import * as editor3d from './index'
 
@@ -204,14 +204,14 @@ describe('public entry', () => {
     ])
       expect(editor3d, name).toHaveProperty(name)
     for (const name of ['HEADINGS', 'headingPreview']) expect(editor3d, name).not.toHaveProperty(name)
-    // The heading's own maths has one owner, render-pixi3d's `./camera-view` (M3 spec §4.2, amended 2026-10-30).
+    // The heading's own maths has one owner, @automata/3d's `./camera-view` (M3 spec §4.2, amended 2026-10-30).
     for (const name of ['TURN_UNITS', 'wrapHeading', 'turnHeading', 'degToHeading'])
       expect(editor3d, name).not.toHaveProperty(name)
   })
 
   it('exports the follow camera of a room and the camera the game puts on a player, on the owner’s camera-view', () => {
     for (const name of ['followCamera', 'roomView']) expect(editor3d, name).toHaveProperty(name)
-    // `camera-view` has one owner, render-pixi3d's `./camera-view` (M3 spec §4.2, amended 2026-10-30): the editor
+    // `camera-view` has one owner, @automata/3d's `./camera-view` (M3 spec §4.2, amended 2026-10-30): the editor
     // keeps no copy of the view's shape, defaults or ranges.
     for (const name of ['CAMERA_DEFAULTS', 'CAMERA_RANGES', 'cameraViewSpec'])
       expect(editor3d, name).not.toHaveProperty(name)

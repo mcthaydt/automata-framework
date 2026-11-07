@@ -1,18 +1,18 @@
 // figures-walk: Wick, a procedural figure, walking a loop under the angled camera
 //
 // Shows: a figure as data (a FigureDef: sliders, an outfit of garments, palette swatches and a gait) drawn by
-//   render-pixi3d's figure view, one mesh per part posed from the gait's pose clock; the sim moves the figure and
+//   @automata/3d's figure view, one mesh per part posed from the gait's pose clock; the sim moves the figure and
 //   says whether it is walking, and the view walks or idles from that; the camera is the Owner's default view
 //   (24 mm, 25° down, 5 m back) following the figure.
 // Controls: none
-// Packages: @automata/framework, @automata/figures, @automata/render-pixi3d
+// Packages: @automata/framework, @automata/3d
 // Difficulty: ★★★☆
 // Tier: core
-import '@automata/render-pixi3d/no-eval'
-import type { FigureDef, FigureLibrary, Gait } from '@automata/figures'
+import '@automata/3d/no-eval'
+import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
+import type { FigureDef, FigureLibrary, Gait } from '@automata/3d/figures'
+import { CameraHeading, cameraView, enterView, START } from '@automata/3d/sim'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
-import { createPixi3dRenderer, figure, render3dExtension } from '@automata/render-pixi3d'
-import { CameraHeading, cameraView, enterView, START } from '@automata/render-pixi3d/sim'
 
 // A game writes these in content/figures/wick.toml, content/figure-swatches/*.toml and content/figure-gaits/*.toml
 // and the content compiler checks them and fills their defaults; here they are inline, written as compiled.

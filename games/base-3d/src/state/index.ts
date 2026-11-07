@@ -1,6 +1,6 @@
 // base-3d's state (the GL spec's `state.ts`): the plugin that lists every definition, and the starting world (the room
 // compiled once, before the sim is made, and the entities the sim starts with). Sim code: `pnpm boundaries` checks it.
-import { CameraHeading, enterView, START } from '@automata/render-pixi3d/sim'
+import { CameraHeading, enterView, START } from '@automata/3d/sim'
 import { definePlugin, type PluginDef, type Sim } from '@automata/sim'
 import { Act, Move } from '../commands.ts'
 import { Ember, Hero, HeroAction, HeroControl } from '../components.ts'
@@ -31,7 +31,7 @@ export function spawnArea(sim: Sim, area: Area): void {
   sim.spawn([[Ember, { x: area.goal.x, z: area.goal.z, goal: true, index: area.embers.length }]])
 }
 
-/** The free game's sim. It depends on render-pixi3d's `camera-heading` plugin for the heading. */
+/** The free game's sim. It depends on @automata/3d's `camera-heading` plugin for the heading. */
 export const base3dPlugin: PluginDef = definePlugin({
   name: 'base-3d',
   dependsOn: ['camera-heading'],

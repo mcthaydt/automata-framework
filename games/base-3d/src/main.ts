@@ -4,15 +4,15 @@
 //
 // Controls: WASD, the arrows, the left stick or the touch stick to walk; Q and E, the right stick or a drag to turn the
 // camera; Space, K, A or the Roll button to roll; Escape to pause.
-// Packages: @automata/framework, @automata/sim, @automata/figures,
-// @automata/render-pixi3d; @automata/content (its Vite plugin) and @automata/tools.
-import '@automata/render-pixi3d/no-eval'
+// Packages: @automata/framework, @automata/sim,
+// @automata/3d; @automata/content (its Vite plugin) and @automata/tools.
+import '@automata/3d/no-eval'
 import { content } from 'virtual:automata/content'
-import type { FigureDef } from '@automata/figures'
+import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
+import type { FigureDef } from '@automata/3d/figures'
+import { CameraTurn, STICK_MAX } from '@automata/3d/sim'
 import type { QualityTier } from '@automata/framework'
 import { defineGame, type GameSaves, inputs, keys, startGame } from '@automata/framework'
-import { createPixi3dRenderer, figure, render3dExtension } from '@automata/render-pixi3d'
-import { CameraTurn, STICK_MAX } from '@automata/render-pixi3d/sim'
 import { Act, Move } from './commands.ts'
 import { Ember, Hero } from './components.ts'
 import { TICK_HZ } from './constants/index.ts'

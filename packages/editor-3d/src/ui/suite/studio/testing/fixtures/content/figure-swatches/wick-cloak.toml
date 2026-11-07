@@ -1,4 +1,4 @@
 # Wick's cloak, from Emberwick's sprite colours (games/emberwick/src/art/sprites.ts WICK_COLORS): the cloak, #0069aa, Endesga 64 index 41.
-# Not from FigureBuilder. Copied into base-3d from figures' test fixtures (packages/figures/src/testing/fixtures/content at 077484c7).
+# Not from FigureBuilder. Copied into base-3d from figures' test fixtures (packages/3d/src/testing/fixtures/content at 077484c7).
 
 colour = 41

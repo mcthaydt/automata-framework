@@ -3,16 +3,9 @@
 // ceilings and props (M3.7b part 3). Not sim code: `pnpm boundaries` does not scan it, and the sim never reads it
 // back (law 1).
 
-import type { FigureClipDef, FigureDef, FigureLibrary, MotionLibrary } from '@automata/figures'
-import type {
-  Box3,
-  FigureViewState,
-  Occluders,
-  PlanPoint,
-  SceneFog,
-  View3dFactory,
-} from '@automata/render-pixi3d'
-import { Q16 } from '@automata/render-pixi3d/sim'
+import type { Box3, FigureViewState, Occluders, PlanPoint, SceneFog, View3dFactory } from '@automata/3d'
+import type { FigureClipDef, FigureDef, FigureLibrary, MotionLibrary } from '@automata/3d/figures'
+import { Q16 } from '@automata/3d/sim'
 import type { FieldRecord } from '@automata/sim'
 import type { View3D } from '@pixi/3d'
 import { ACTION_CLIP, ROLL, TICK_HZ, WALK_SPEED } from '../constants/index.ts'
@@ -108,7 +101,7 @@ const inside = (rooms: readonly Rect[], x: number, z: number): boolean =>
 
 /**
  * The face of an area wall (an axis-aligned box) that a room lies against, the room on its left (the inward normal is
- * `(−dir.z, dir.x)`, render-pixi3d's occluder rule). The box's short side is the thickness; a wall with rooms on both
+ * `(−dir.z, dir.x)`, @automata/3d's occluder rule). The box's short side is the thickness; a wall with rooms on both
  * sides takes its face toward −z or −x.
  */
 function wallOf(box: Rect, rooms: readonly Rect[]): SceneWall {

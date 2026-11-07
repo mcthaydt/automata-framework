@@ -69,12 +69,14 @@
     },
     // `suite.html` starts the full suite page (`vite build --mode suite`), which knip does not read from the HTML.
     "packages/editor-3d": { "entry": ["src/suite-main.ts"] },
-    // M3.5b: the FigureBuilder goldens' generator is run by hand with node (its header says how).
-    "packages/figures": {
+    // The goldens' generators are run by hand with node (their headers say how); pixi3d-bundle.test.ts builds the
+    // fixture page scripts in `src/testing/bundle/` with Vite by path, and nothing imports them.
+    "packages/3d": {
       "entry": [
         "scripts/figurebuilder-goldens.ts",
         "scripts/figurebuilder-motion-goldens.ts",
-        "scripts/figurebuilder-action-goldens.ts"
+        "scripts/figurebuilder-action-goldens.ts",
+        "src/testing/bundle/*-entry.ts"
       ]
     },
     // Runtime dependencies of the Ruken code that tsdown bundles (@ruken/cli, @ruken/manifest, @ruken/sdk-host).
@@ -86,8 +88,6 @@
     // plugin by name (createRequire().resolve), neither of which knip follows.
     "packages/content": { "ignoreDependencies": ["@inlang/paraglide-js", "@inlang/plugin-message-format"] },
     // The locale test fixture resolves the inlang plugin by name (createRequire().resolve) for its settings file.
-    "packages/automata": { "ignoreDependencies": ["@inlang/plugin-message-format"] },
-    // M3.4a: pixi3d-bundle.test.ts builds these fixture page scripts with Vite by path; nothing imports them.
-    "packages/render-pixi3d": { "entry": ["src/bundle/testing/*-entry.ts"] }
+    "packages/automata": { "ignoreDependencies": ["@inlang/plugin-message-format"] }
   }
 }

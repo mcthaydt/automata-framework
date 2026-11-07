@@ -1,6 +1,6 @@
-// base-3d's commands: what the input layer sends the sim each fixed step. `camera-turn` is render-pixi3d's (M3 spec
+// base-3d's commands: what the input layer sends the sim each fixed step. `camera-turn` is @automata/3d's (M3 spec
 // §4.2, one owner). Systems read only these and the world, never input devices.
-import { STICK_MAX } from '@automata/render-pixi3d/sim'
+import { STICK_MAX } from '@automata/3d/sim'
 import { type CommandDef, defineCommand } from '@automata/sim'
 import { z } from 'zod'
 

@@ -1,3 +1,4 @@
+import { render3dExtension } from '@automata/3d'
 import type { DefinedGame } from '@automata/framework'
 import { type RendererFactory, type RuntimeHandle, runGame } from '@automata/framework'
 import {
@@ -7,7 +8,6 @@ import {
   type ManualFrames,
   manualFrames,
 } from '@automata/framework/testing'
-import { render3dExtension } from '@automata/render-pixi3d'
 import type { StepResult } from '@automata/sim'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { base3d, input } from '../main.ts'

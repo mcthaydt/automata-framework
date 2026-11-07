@@ -7,7 +7,7 @@ M3R-D18; Owner, 2026-10-23: "we launch when pixi 3D goes public"). The Owner con
 
 | Tarball | Package | Used by |
 |---|---|---|
-| `pixi-3d-0.1.0-beta.2.tgz` | `@pixi/3d` 0.1.0-beta.2 (MIT, `LICENSE`) | spike S7 (M3.1) and `packages/render-pixi3d` (M3.4), through a `file:` specifier. Peer: `pixi.js` ^8.22.0 (M3.2 moves core to 8.22); dependency: `meshoptimizer` ^1.2.0 |
+| `pixi-3d-0.1.0-beta.2.tgz` | `@pixi/3d` 0.1.0-beta.2 (MIT, `LICENSE`) | spike S7 (M3.1) and `packages/3d` (M3.4), through a `file:` specifier. Peer: `pixi.js` ^8.22.0 (M3.2 moves core to 8.22); dependency: `meshoptimizer` ^1.2.0 |
 
 **Source:** the release asset of `pixijs-userland/pixi-3d-beta` `v0.1.0-beta.2`, as The Last Light
 (`mcthaydt/PixiJS3D_Experiment_001`) vendors it at `92e6704`; copied byte for byte on 2026-10-30. The Last

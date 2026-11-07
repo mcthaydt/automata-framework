@@ -1,6 +1,6 @@
 name: 3d
 
-# The 3D browser suites and journeys: the 3D editor and the suite shell, the 3D renderer, figures, the sector format, the
+# The 3D browser suites and journeys: the 3D editor and the suite shell, the 3D package (renderer, figures, level format), the
 # base 3D game and the 3D examples. Their unit tests run in the core job of ci.yml, and so do the 2D
 # editors' suites. A core or 2D pull request is not blocked by them in ci.yml; this workflow runs them on any pull request that touches their files or a core package (so a codemod's changes to
 # their imports are checked), on every push to main, nightly, and by hand.
