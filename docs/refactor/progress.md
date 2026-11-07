@@ -207,6 +207,14 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
 
+**Where to resume (2026-11-07, session 24):** branch `claude/project-thread-sor69o`, PR #437 stacked on #436.
+Session 24: **19.2, 20.1 and 21.1 are done** (the plan's log); the build is 64 of 68, and every task an agent can do
+on the stack is done. Left: **14.1** (the `@automata` scope) on its own branch and PR (`claude/refactor-scope`), based
+on the stack's head, in its own thread, because it renames every file that names `@mcthaydt/automata` and would
+conflict with every PR still in the stack; 14.2, 21.0's DNS and 21.2 are the Owner's. The Gmail stays in the footer
+until the Owner decides; `check:launch` keeps the deploy from going out with it (`docs/runbook.md`, Launch the
+website). After 14.1, the next pipeline stage is the build audit (stage 5).
+
 **Where to resume (2026-11-07, session 23):** branch `claude/project-thread-3mf5b2`, PR #436 stacked on #435.
 Session 23: **15.1, 16.1 to 16.4 and 19.1 are done** (the plan's log); the build is 61 of 68. 19.1's visitor journey
 found two site bugs, both fixed: the try-it editor's canvas was unavailable under the site's CSP (no-eval import), and
