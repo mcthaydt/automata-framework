@@ -1,5 +1,4 @@
-// A gait: the walk and idle cycle's numbers (FigureBuilder src/render/figure/motion.ts `Gait`, library/gaits.json
-// at a1f7246). The motion that reads them is M3.5c's; this is their content shape. Units are the source's:
+// A gait: the walk and idle cycle's numbers (the shape of a `Gait`). The motion reads them elsewhere; this is their content shape. Units are the source's:
 // seconds, metres at a 1.62 m figure, radians.
 
 import { z } from 'zod'
@@ -56,7 +55,7 @@ const gaitShape = {
   idlePoses: z.number().int().positive().optional(),
   shuffle: z.boolean().optional(),
   plumb: n.optional(),
-  /** Seconds a reach takes, out and back (the reach becomes a clip in M3.6). */
+  /** Seconds a reach takes, out and back (the reach becomes a clip in). */
   reach: positive,
   /** Standing: weight on one leg, that foot's lead, the arms' forward hang and extra elbow bend. */
   stance: n,
@@ -121,7 +120,7 @@ export interface Gait {
   readonly idlePoses?: number | undefined
   readonly shuffle?: boolean | undefined
   readonly plumb?: number | undefined
-  /** Seconds a reach takes, out and back (the reach becomes a clip in M3.6). */
+  /** Seconds a reach takes, out and back (the reach becomes a clip in). */
   readonly reach: number
   /** Standing: weight on one leg, that foot's lead, the arms' forward hang and extra elbow bend. */
   readonly stance: number
@@ -139,7 +138,7 @@ export interface Gait {
 
 export const gaitSchema: z.ZodType<Gait> = z.strictObject(gaitShape)
 
-/** Any of a gait's numbers, changed on top of a library gait (FigureBuilder cast.ts `gaitOverrides`). */
+/** Any of a gait's numbers, changed on top of a library gait. */
 export const gaitOverridesSchema: z.ZodType<Partial<Gait>> = partialOf<Gait>(
   z.strictObject(gaitShape).partial(),
 )

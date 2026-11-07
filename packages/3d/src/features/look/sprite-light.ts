@@ -1,18 +1,13 @@
-// A figure lit the way a pixel artist lights a sprite (The Last Light's ramp light; EnvironmentBuilder
-// `stage/sprite-light.ts` is the source): the room's light once for the whole figure, and the surface normal only to
-// move a part one step along its own ramp.
-//
-// - The flat light: the time's ambient plus each lamp at the figure's mean N·L (never under the floor), stepped as the
-//   room's light is, times every part. It sets how bright and warm the figure is and never shades across it. The floor is
-//   why a figure under a pendant is lit like the floor under it: a lamp overhead meets most of a figure's normals
-//   edge-on, and its mean N·L alone would leave the figure a silhouette. The floors add up, so under several lamps they
-//   are capped (`floorCap`) and scaled down evenly.
-// - The form: a part whose normal faces the lamps clearly harder than the figure as a whole takes the next lighter
-//   step, one clearly turned away the next darker one.
-// - The rim: the silhouette's edge on the lamps' side takes the lighter step. A lamp's side is its direction in the
-//   picture plane (x, y), not its raw component, and a lamp straight from the viewer or from behind has none.
-//
-// A pure function over the lamps and the figure's normals, so a view applies it to whatever it draws and a test reads it.
+// A figure lit the way a pixel artist lights a sprite (a ramp light): the room's light once for the whole figure, and the surface normal only to
+// move a part one step along its own ramp. - The flat light: the time's ambient plus each lamp at the figure's mean N·L
+// (never under the floor), stepped as the room's light is, times every part. It sets how bright and warm the figure is
+// and never shades across it. The floor is why a figure under a pendant is lit like the floor under it: a lamp overhead
+// meets most of a figure's normals edge-on, and its mean N·L alone would leave the figure a silhouette. The floors add
+// up, so under several lamps they are capped (`floorCap`) and scaled down evenly. - The form: a part whose normal faces
+// the lamps clearly harder than the figure as a whole takes the next lighter step, one clearly turned away the next
+// darker one. - The rim: the silhouette's edge on the lamps' side takes the lighter step. A lamp's side is its direction
+// in the picture plane (x, y), not its raw component, and a lamp straight from the viewer or from behind has none. A
+// pure function over the lamps and the figure's normals, so a view applies it to whatever it draws and a test reads it.
 
 import type { TimeOfDay } from '../../shared/time-of-day/time-of-day.ts'
 

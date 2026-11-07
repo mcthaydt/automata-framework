@@ -1,4 +1,4 @@
-// The sim's side of a lamp change (M3 spec §4.3: "a lamp change (a sim event) rebakes the meshes in range"). The sim
+// The sim's side of a lamp change ("a lamp change (a sim event) rebakes the meshes in range"). The sim
 // switches a lamp by an entity carrying the component the game names in `Pixi3dOptions.lamps`, with fields `lamp` (a
 // lamp id from the lighting content) and `level` (0 off, 1 full). The renderer reads it from the render deltas, like
 // any view; nothing here is new sim API.

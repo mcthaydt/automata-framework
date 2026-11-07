@@ -1,11 +1,8 @@
-// What the figure is built of: meshes, the parts that carry them (rigid on one bone, or skinned to several),
-// and the point marks laid on them. Every part names its material, a swatch id or a variant of one
-// (build/materials.ts), which the view draws in a palette colour.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/parts.ts at a1f7246: `Mesh`,
-// `Part`, `Decal`, `GROUP`, `placed`. Cut: the painter's `Material` (DUEL ramps and tones; AF's materials are
-// palette colours) and the decal's `density` and `print` (sprite densities and prints). `vertexAt` and
-// `sgnPow` are small helpers the source wrote inline.
+// What the figure is built of: meshes, the parts that carry them (rigid on one bone, or skinned to several), and the
+// point marks laid on them. Every part names its material, a swatch id or a variant of one (build/materials.ts), which
+// the view draws in a palette colour. Cut: the painter's `Material` (DUEL ramps and tones; AF's materials are palette
+// colours) and the decal's `density` and `print` (sprite densities and prints). `vertexAt` and `sgnPow` are small
+// helpers the source wrote inline.
 
 import type { MeshData } from '../../../shared/math/geometry.ts'
 import type { V3 } from '../../../shared/math/math.ts'

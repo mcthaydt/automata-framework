@@ -1,11 +1,7 @@
-// The core garments: each fitted to the body the sliders make. A top repaints the torso and as much of the
-// arms as its sleeves cover; trousers and shoes repaint the legs and feet; a cape adds its own parts. (Hair, caps and
-// the face are dress.ts's. The rest of a wardrobe, apron, belt, coat, gloves, legs, mark, skirt and waistcoat, is
+// The core garments: each fitted to the body the sliders make. A top repaints the torso and as much of the arms as its
+// sleeves cover; trousers and shoes repaint the legs and feet; a cape adds its own parts. (Hair, caps and the face are
+// dress.ts's. The rest of a wardrobe, apron, belt, coat, gloves, legs, mark, skirt and waistcoat, is
 // @automata/character-kit's, and an extension's wardrobe builds its own kinds.)
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`hemAt` and
-// `dress`'s branches for top, trousers, shoes and cape), with AF's strict types; the formulas and their order are the
-// source's.
 
 import { axisAngle, smooth } from '../../../../shared/math/math.ts'
 import { tube } from '../../../../shared/math/superquadric.ts'

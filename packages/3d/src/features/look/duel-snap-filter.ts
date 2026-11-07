@@ -1,6 +1,6 @@
 // The one snap: every pixel of the frame goes to its nearest DUEL colour, with a 4 × 4 Bayer offset first so a colour
-// between two palette colours lands on both, in a pattern, instead of one flat patch (EnvironmentBuilder
-// `paint/colour.ts snap`). A `PostEffect`, written as a GLSL + WGSL pair: WebGL2 stays at parity with WebGPU (ADR 0002).
+// between two palette colours lands on both, in a pattern, instead of one flat patch (an ordered dither,
+// as pixel-art snapping does). A `PostEffect`, written as a GLSL + WGSL pair: WebGL2 stays at parity with WebGPU (ADR 0002).
 // Pixel position comes from the content-space `uv` over one texel (`texel()`), not from the vertex stage, which a
 // post effect has none of.
 

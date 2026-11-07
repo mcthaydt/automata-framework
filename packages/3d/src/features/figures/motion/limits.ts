@@ -1,4 +1,4 @@
-// Joint limits (M3 spec §4.4.2): how the solver reads each limited joint against the content's `RigLimits` and
+// Joint limits: how the solver reads each limited joint against the content's `RigLimits` and
 // clamps it. Every reading is of the joint's local rotation, in degrees:
 //
 // - Hinges (elbows, knees): the bend about the joint's local x, as flexion: a knee bends back (+x), an elbow
@@ -36,7 +36,7 @@ export type JointLimit =
       readonly roll?: Range | undefined
     }
 
-/** The posture split (FigureBuilder `motion.ts` `base()` at a1f7246): spine 0.3, chest 0.7. */
+/** The posture split (the base pose): spine 0.3, chest 0.7. */
 export const CHEST_SHARES = { spine: 0.3, chest: 0.7 } as const
 
 const share = (r: Range, k: number): Range => ({ min: r.min * k, max: r.max * k })

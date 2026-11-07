@@ -1,10 +1,7 @@
-// Small math for the procedural figures: vectors, quaternions and affine matrices as plain arrays, so the rig
-// runs the same in Node (tests, content checks) and in the browser.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/math.ts at a1f7246. Changed for AF's
-// strict compiler settings only: matrices are fixed tuples (`M` 12 numbers, `R3` 9) so reading an element is a
-// number, and the exported arrow functions carry their return types. The formulas and their order are the
-// source's, and the tests pin its numbers.
+// Small math for the procedural figures: vectors, quaternions and affine matrices as plain arrays, so the rig runs the
+// same in Node (tests, content checks) and in the browser. Changed for AF's strict compiler settings only: matrices are
+// fixed tuples (`M` 12 numbers, `R3` 9) so reading an element is a number, and the exported arrow functions carry their
+// return types. The formulas and their order are the source's, and the tests pin its numbers.
 
 export type V3 = [number, number, number]
 /** A unit quaternion, [x, y, z, w]. */
@@ -120,7 +117,7 @@ export function compose(rotation: Q, translation: V3): M {
 }
 // mmul and mul3 run for every joint of every figure each frame (fk), so they build their tuples directly
 // instead of through loops or array helpers. Each element is the source's sum in the source's order, so the
-// results are bit-identical to FigureBuilder's loops.
+// results are bit-identical to the plain loops.
 /** a · b: b first, then a. */
 export function mmul(a: M, b: M): M {
   return [

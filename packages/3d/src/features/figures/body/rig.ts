@@ -1,11 +1,9 @@
-// The shared skeleton: 27 joints. Every figure is this rig with its own genes, so two characters are one rig
-// with two sets of numbers. The figure faces +z, y is up, its own left is +x. Rest local rotations are the
-// identity and limbs hang along −y, so a joint's local frame is "x left, y up the bone, z forward".
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/rig.ts at a1f7246. `twoBoneIK` is in
-// two-bone-ik.ts. Changed for AF: the source's `skeleton(genes)` is `skeletonFromGenes` (the spec's
-// `skeleton(def)` is in figure/figure-skeleton.ts), lookups by joint index go through `at`, which throws on an
-// index the rig does not have, and the types are AF's strict ones. The formulas are the source's.
+// The shared skeleton: 27 joints. Every figure is this rig with its own genes, so two characters are one rig with two
+// sets of numbers. The figure faces +z, y is up, its own left is +x. Rest local rotations are the identity and limbs
+// hang along −y, so a joint's local frame is "x left, y up the bone, z forward". `twoBoneIK` is in two-bone-ik.ts.
+// Changed for AF: the source's `skeleton(genes)` is `skeletonFromGenes` (the spec's `skeleton(def)` is in
+// figure/figure-skeleton.ts), lookups by joint index go through `at`, which throws on an index the rig does not have,
+// and the types are AF's strict ones. The formulas are the source's.
 
 import {
   add,
@@ -95,7 +93,7 @@ export const PARENTS: readonly number[] = JOINTS.map((name) => {
   return parent === null ? -1 : J[parent]
 })
 
-/** The arm chain a hold may rewrite (spec §7). */
+/** The arm chain a hold may rewrite. */
 export const armChain = (side: Side): number[] => [
   J[`upperArm.${side}`],
   J[`foreArm.${side}`],

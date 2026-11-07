@@ -15,6 +15,7 @@ export const SOURCE_NAMES: readonly SourceName[] = [
   { pattern: /the[\s_-]last[\s_-]light/i, sample: 'The Last Light' },
   { pattern: /pixijs3d[\s_-]?experiment/i, sample: 'PixiJS3D_Experiment_001' },
   { pattern: /figure[\s_-]?builder/i, sample: 'FigureBuilder' },
+  { pattern: /environment[\s_-]?builder/i, sample: 'EnvironmentBuilder' },
   { pattern: /legacy[\s_-]?v2/i, sample: 'LegacyV2' },
 ]
 
@@ -54,17 +55,48 @@ function publishedSurfaces(root: string): string[] {
   ].filter(existsSync)
 }
 
-/** `file:line: names a source project (entry N)` for each line that names one, files in path order. */
-export function findSourceNames(root: string): string[] {
+/** The files a code folder holds that can carry words: source, styles, markup, data and tests. */
+const CODE_FILE = /\.(?:ts|svelte|css|json|toml)$/
+
+/** Every code file below `dir`, skipping `node_modules` and `dist`. */
+function codeBelow(dir: string): string[] {
+  if (!existsSync(dir)) return []
+  return readdirSync(dir, { withFileTypes: true })
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .flatMap((entry) => {
+      const path = join(dir, entry.name)
+      if (entry.isDirectory())
+        return entry.name === 'node_modules' || entry.name === 'dist' ? [] : codeBelow(path)
+      return CODE_FILE.test(entry.name) ? [path] : []
+    })
+}
+
+export interface SourceNameOptions {
+  /** Folders (relative to the root) whose code files are read too: a file naming a source is a finding. */
+  readonly code?: readonly string[]
+}
+
+/**
+ * `file:line: names a source project (entry N)` for each line that names one, files in path order. Under a `code` folder
+ * a file whose own path names a source is a finding at line 0.
+ */
+export function findSourceNames(root: string, options: SourceNameOptions = {}): string[] {
   const findings: string[] = []
-  for (const file of publishedSurfaces(root).sort()) {
+  const files = [
+    ...publishedSurfaces(root),
+    ...(options.code ?? []).flatMap((folder) => codeBelow(join(root, folder))),
+  ]
+  for (const file of files.sort()) {
+    const name = relative(root, file)
+    SOURCE_NAMES.forEach((entry, entryIndex) => {
+      if ((options.code ?? []).some((folder) => name.startsWith(`${folder}/`)) && entry.pattern.test(name))
+        findings.push(`${name}:0: names a source project (entry ${entryIndex + 1})`)
+    })
     const lines = readFileSync(file, 'utf8').split('\n')
     lines.forEach((text, index) => {
       SOURCE_NAMES.forEach((entry, entryIndex) => {
         if (entry.pattern.test(text))
-          findings.push(
-            `${relative(root, file)}:${index + 1}: names a source project (entry ${entryIndex + 1})`,
-          )
+          findings.push(`${name}:${index + 1}: names a source project (entry ${entryIndex + 1})`)
       })
     })
   }

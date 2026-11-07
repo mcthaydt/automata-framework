@@ -1,6 +1,6 @@
-// The camera's heading as the sim keeps it (M3 spec §4.2): an integer in turn units, 65,536 to a full turn, 0 looking
+// The camera's heading as the sim keeps it: an integer in turn units, 65,536 to a full turn, 0 looking
 // toward +z and growing toward +x, so the camera's forward direction is `(sin h, cos h)` in `(x, z)`. Integers only,
-// so a replay stores and hashes the same in every engine. Moved here from the 3D level editor (ED3D.4c), which
+// so a replay stores and hashes the same in every engine. Moved here from the 3D level editor, which
 // consumes it, so there is one definition. Sim-safe: no trig, no `**`.
 
 /** Turn units in a full turn: a heading wraps here. */

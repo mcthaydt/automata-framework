@@ -1,7 +1,4 @@
 // The hands as they hang (a loose fist with a thumb) and the feet as shoes on their soles.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`hands`,
-// `shoe`), with AF's strict types; the formulas and their order are the source's.
 
 import { limb } from '../../../../shared/math/limb.ts'
 import { axisAngle } from '../../../../shared/math/math.ts'

@@ -14,6 +14,7 @@ import type { FigureDef, FigureLibrary, Gait, Swatch } from '@automata/3d/figure
 import { CameraHeading, cameraView, enterView, START } from '@automata/3d/sim'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
 
+// --- figure ---
 // A game writes these in content/figures/wick.toml, content/figure-swatches/*.toml and content/figure-gaits/*.toml
 // and the content compiler checks them and fills their defaults; here they are inline, written as compiled.
 // Swatch colours are DUEL ramps and steps; sole, lid, brow and mouth are the defaults a boot and a face name.
@@ -57,6 +58,7 @@ const wick: FigureDef = {
   },
 }
 
+// --- sim ---
 // Wick's feet on the floor (metres, y up), facing `yaw`, and whether Wick is walking.
 const Hero = defineComponent('hero', { x: 'f32', y: 'f32', z: 'f32', yaw: 'f32', walking: 'bool' })
 
@@ -77,6 +79,7 @@ const walk = defineSystem('walk', (ctx) => {
 const loop = definePlugin({ name: 'loop', defs: [Hero, walk] })
 const FOLLOW = cameraView('follow')
 
+// --- game ---
 export default defineGame({
   id: 'figures-walk',
   size: { width: 320, height: 180 },

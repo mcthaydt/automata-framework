@@ -1,8 +1,5 @@
-// Static model files (M3 spec §4.1): a prop's GLB, or its packed `.bin`. Extracted from The Last Light
-// (`mcthaydt/PixiJS3D_Experiment_001`) `src/render/glb.ts` at 92e6704 (`parseGlb`, `parsePack`), with its parse tests;
-// AF's changes: every failure is a `ModelInvalid` naming the file (M3 spec §6), a GLB with a skin is refused
-// (skinned glTF is deferred, M3R-D1), and reads are bounds-checked so a damaged file fails here rather than drawing
-// garbage. Only the static path is kept: one textured primitive, float positions, normals and UVs.
+// Static model files: a prop's GLB, or its packed `.bin`. Only the static path is kept: one textured primitive, float
+// positions, normals and UVs.
 import { ModelInvalid } from '@automata/framework'
 
 /** One textured mesh, as both file types read: what `modelGeometry` and the mesh view build from. */
@@ -183,7 +180,7 @@ export function parseGlb(buffer: ArrayBuffer, file: string): ModelMesh {
 }
 
 /**
- * Reads a packed prop (The Last Light's `scripts/pack-models.py`, served as `.bin`, M3-D8): the GLB decimated and
+ * Reads a packed prop (served as `.bin`): the GLB decimated and
  * quantised for the bundle. uint16 positions across the original bounds, int8 normals, uint16 UVs across their
  * range, uint16 indices and a small PNG. Throws `ModelInvalid` naming `file` when it cannot be read.
  */

@@ -48,7 +48,7 @@ async function loadModel(
 ): Promise<LoadedModel> {
   const parse = parserFor(file)
   if (parse === undefined) throw new ModelInvalid({ file, reason: 'unsupported type' })
-  // The runtime fetched the file with byte progress under the 30 s stall rule (M1.5) because the game listed it
+  // The runtime fetched the file with byte progress under the 30 s stall rule because the game listed it
   // in its preload; a file it did not fetch is a game bug, named here.
   const blob = assets.get(file)
   if (blob === undefined) throw new ModelInvalid({ file, reason: 'not loaded' })

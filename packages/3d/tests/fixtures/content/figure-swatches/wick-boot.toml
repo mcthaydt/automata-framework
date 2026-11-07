@@ -1,5 +1,5 @@
 # Wick's boots, from Emberwick's sprite colours (games/emberwick/src/shared/art/sprites.ts WICK_COLORS). Colour: DUEL ramp 24 (brick), step 0 (#372423), nearest in OKLab.
-# Not from FigureBuilder: a fixture swatch for the fixture figure.
+# A fixture swatch for the fixture figure.
 
 ramp = "brick"
 step = 0

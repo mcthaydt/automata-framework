@@ -1,13 +1,9 @@
-// The base pose (M3 spec §4.4.5 step 1, "locomotion stays code"): the pelvis and torso (walk or stand, lean,
-// breath, sway), the head (stabilise, tilt, turn lead, twitch), the arms (swing or hang) and the legs (foot
-// paths, or a stand's feet, into IK), then the hems. Nothing here reads a hold; holds come after (hold.ts).
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/motion.ts at a1f7246 (`base`,
-// `relaxed`), its formulas and their order, then brought up to 025ffb4 for the natural stand (the head over the
-// shoulders, a lighter contrapposto, `standElbow` and `standOut`) and the body's side bend. Changed for AF: no action branches (reach, look and flinch become
-// clips in M3.6); no sprite cheats (`lookUp`, `view`, `pitch` and the walk-level neck correction that reads
-// them), so the gait's chin lift is its attitude at full weight (M3.5c decision 5); the twitch is idle's, so
-// the walk repeats exactly after one cycle (decision 10, F-c); the feet run along `moveDir` (decision 4, F-h).
+// The base pose ("locomotion stays code"): the pelvis and torso (walk or stand, lean, breath, sway), the head
+// (stabilise, tilt, turn lead, twitch), the arms (swing or hang) and the legs (foot paths, or a stand's feet, into IK),
+// then the hems. Nothing here reads a hold; holds come after (hold.ts). Changed for AF: no action branches (reach, look
+// and flinch become clips); no sprite cheats (`lookUp`, `view`, `pitch` and the walk-level neck correction that
+// reads them), so the gait's chin lift is its attitude at full weight; the twitch is idle's, so the walk repeats exactly
+// after one cycle (decision 10, F-c); the feet run along `moveDir` (decision 4, F-h).
 
 import { dot, euler, hash, lerp3, type Q } from '../../../shared/math/math.ts'
 import { fk, J, type Pose, restPose, type Skeleton } from '../body/rig.ts'
@@ -93,7 +89,7 @@ function blendPoses(a: Pose, b: Pose, u: number): Pose {
 /**
  * The base pose, everything but the holds. Nothing here reads a hold. Walking, `moveDir` picks the way the
  * cycle plays (gait-path.ts): forward of the back band the forward cycle, behind it the reversed one, and in
- * the band the two poses blended, so the pose is continuous all round the circle (M3.5c decision 12). In the
+ * the band the two poses blended, so the pose is continuous all round the circle. In the
  * band a planted foot may slide a little: the blend is of the poses, not of the feet's contacts.
  */
 export function base(s: Skeleton, gait: Gait, st: MotionState): Evaluated {

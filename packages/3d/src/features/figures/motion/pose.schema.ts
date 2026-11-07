@@ -1,9 +1,9 @@
-// The pose content kind (M3 spec §4.4.3 `PoseDef`, schema `figure-pose`): a snapshot of the rig's handles,
+// The pose content kind (`PoseDef`, schema `figure-pose`): a snapshot of the rig's handles,
 // saved as content. It reuses the solver's handle types (solve/targets.ts), so a pose is exactly what a solve
 // is asked to satisfy, plus the few joints no handle covers (`fk`) and an offset of the root.
 //
 // A pose names only what it sets; a handle it leaves out is left to the layers below it. Its id is its file's
-// name, as a figure's is. The compile refuses (§6): a handle, pole or joint the rig does not have, a number
+// name, as a figure's is. The compile refuses: a handle, pole or joint the rig does not have, a number
 // that is not finite, and a position past twice the figure's reach (pose-checks.ts).
 
 import { z } from 'zod'

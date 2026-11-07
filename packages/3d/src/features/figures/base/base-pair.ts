@@ -1,13 +1,9 @@
 // The base pair: one man and one woman, the figure every character starts from, and the two every visual change to a
 // body, a face or the light is judged on. Each is only data (sliders and names). They wear no cloth: a top and shorts
-// painted on the body (modest blocks of two plain greys, no parts of their own), barefoot, with a hairstyle written
-// inline (the hood-style locks a cap or a cropped cut is made of) and the face's marks, so the body, the face and the
-// light are judged and not the clothes. The same two stand in the base scenes (`man` and `woman` are their cast ids).
-//
-// Ported from FigureBuilder (mcthaydt/FigureBuilder) base/base.ts at 025ffb4 (`BASE`): the sliders and the face are
-// its numbers. Changed: a hairstyle is two or six locks (the braided pony and the fade are the character kit's), the
-// colours are DUEL swatches named here (`BASE_PAIR_SWATCHES`), and a gait and a stand are ids of the game's own content
-// (`loose` and `bounce`, `arms-crossed` and `hand-on-hip`: base-3d and the test fixtures have them).
+// painted on the body (modest blocks of two plain greys, no parts of their own), barefoot, with a hairstyle Changed: a
+// hairstyle is two or six locks (the braided pony and the fade are the character kit's), the colours are DUEL swatches
+// named here (`BASE_PAIR_SWATCHES`), and a gait and a stand are ids of the game's own content (`loose` and `bounce`,
+// `arms-crossed` and `hand-on-hip`: base-3d and the test fixtures have them).
 import type { Lock } from '../content/headwear.schema.ts'
 import type { Swatch } from '../content/swatch.schema.ts'
 import type { FigureDef } from '../figure/figure.schema.ts'

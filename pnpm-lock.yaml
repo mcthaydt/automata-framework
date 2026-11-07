@@ -939,9 +939,6 @@ importers:
       '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
-      '@automata/sectors':
-        specifier: workspace:*
-        version: link:../../extensions/sectors
       '@automata/sim':
         specifier: workspace:*
         version: link:../../packages/sim
@@ -961,6 +958,9 @@ importers:
       '@automata/content':
         specifier: workspace:*
         version: link:../../packages/content
+      '@automata/editor':
+        specifier: workspace:*
+        version: link:../../packages/editor
       '@automata/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
@@ -973,6 +973,9 @@ importers:
       '@automata/tools':
         specifier: workspace:*
         version: link:../../packages/tools
+      '@automata/vitest-preset':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-preset
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0

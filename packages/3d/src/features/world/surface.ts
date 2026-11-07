@@ -1,10 +1,8 @@
 // Surfaces: where a wall, a floor or a piece names a swatch, it may give a placement with it, as Build's Mapster32 does
-// a wall's picnum: how often the tile repeats, how it is panned, where it starts (aligned to the wall, the world or
-// the prop) and whether it is turned a quarter. A plain swatch name has no placement and tiles in the world.
-//
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/surface.ts at 6d82a52 (`isSurfaceTex`,
-// `tileName`, `texOf`, `wallFrame`, `objectFrame`). The surface types are the level schema's; the renderer maps a tile
-// into a frame, so the builder does not need the source's `toLocal`.
+// a wall's picnum: how often the tile repeats, how it is panned, where it starts (aligned to the wall, the world or the
+// prop) and whether it is turned a quarter. A plain swatch name has no placement and tiles in the world. The surface
+// types are the level schema's; the renderer maps a tile into a frame, so the builder does not need the source's
+// `toLocal`.
 import type { Surface, SurfaceTex } from '../../shared/level/af-sector-2.schema.ts'
 
 /** A point or direction in world space. */

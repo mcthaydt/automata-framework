@@ -14,7 +14,7 @@
 // polyfill as before. pixi3d-uniform-sync.test.ts pins the parsers' count, order and types, the method names, and
 // each function against its source string, so an update that moves any of them fails there.
 //
-// Removed when a Pixi 3D release ships its own no-eval counterparts (re-checked at M9.10).
+// Removed when a Pixi 3D release ships its own no-eval counterparts (re-checked at).
 import { GlUboSystem, GlUniformGroupSystem, GpuUboSystem, type UniformData, uniformParsers } from 'pixi.js'
 
 /** The types of pixi.js 8.22's own uniform parsers, in order: the shim's parsers follow them. */

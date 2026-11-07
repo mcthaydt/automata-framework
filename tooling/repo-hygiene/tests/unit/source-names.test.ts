@@ -68,3 +68,53 @@ describe('the repository', () => {
     expect(findSourceNames(root)).toEqual([])
   })
 })
+
+describe('findSourceNames with code folders', () => {
+  const sample = SOURCE_NAMES[0]?.sample ?? ''
+  const code = { code: ['packages/3d'] }
+
+  it('a .ts file naming a source under a code folder fails', () => {
+    const root = tree({ 'packages/3d/src/a.ts': `// fine\n// ported from ${sample}\n` })
+    expect(findSourceNames(root, code)).toEqual(['packages/3d/src/a.ts:2: names a source project (entry 1)'])
+  })
+
+  it('reads .svelte, .css, .json and .toml files too, tests and fixtures among them', () => {
+    const root = tree({
+      'packages/3d/src/a.svelte': `<!-- ${sample} -->\n`,
+      'packages/3d/src/a.css': `/* ${sample} */\n`,
+      'packages/3d/tests/fixtures/a.json': `{ "from": "${sample}" }\n`,
+      'packages/3d/tests/fixtures/a.toml': `# ${sample}\n`,
+    })
+    expect(findSourceNames(root, code)).toHaveLength(4)
+  })
+
+  it('one outside the code folders does not', () => {
+    const root = tree({ 'packages/ui/src/a.ts': `// ${sample}\n`, 'packages/3d/src/b.ts': '// clean\n' })
+    expect(findSourceNames(root, code)).toEqual([])
+  })
+
+  it('a file whose name names a source is a finding at line 0', () => {
+    const root = tree({ [`packages/3d/src/${sample.toLowerCase().replace(/[\s_]/g, '-')}.ts`]: '// clean\n' })
+    expect(findSourceNames(root, code)).toEqual([
+      `packages/3d/src/${sample.toLowerCase().replace(/[\s_]/g, '-')}.ts:0: names a source project (entry 1)`,
+    ])
+  })
+
+  it('skips node_modules and dist', () => {
+    const root = tree({
+      'packages/3d/node_modules/x/a.ts': `// ${sample}\n`,
+      'packages/3d/dist/a.json': `"${sample}"\n`,
+    })
+    expect(findSourceNames(root, code)).toEqual([])
+  })
+
+  it('docs/provenance stays exempt', () => {
+    const root = tree({ 'docs/provenance/sources.md': `${sample}\n`, 'packages/3d/src/a.ts': '// clean\n' })
+    expect(findSourceNames(root, code)).toEqual([])
+  })
+
+  it('learns the environment builder’s name', () => {
+    const root = tree({ 'packages/3d/src/a.ts': '// Environment Builder\n' })
+    expect(findSourceNames(root, code)).toHaveLength(1)
+  })
+})

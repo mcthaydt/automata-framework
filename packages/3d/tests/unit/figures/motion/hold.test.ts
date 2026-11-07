@@ -1,6 +1,5 @@
-// Holds: an item's grip is applied last and changes only the holding arm (F-b). Ported from The Last Light
-// (mcthaydt/PixiJS3D_Experiment_001) tests/procedural-figure.test.ts at 92e6704 ("holding an item changes only
-// the holding arm", "the hold is applied after the base pose and leaves the base untouched") onto AF's
+// Holds: an item's grip is applied last and changes only the holding arm (F-b). Holding an item changes only
+// the holding arm, and the hold is applied after the base pose and leaves the base untouched, on AF's
 // fixture figures and items, and checked against the recorded holds.
 
 import { beforeAll, describe, expect, it } from 'vitest'
@@ -42,7 +41,7 @@ describe('F-b: holding an item changes only the holding arm', () => {
         const gait = gaitOf(def, fixture.gaits)
         const hold = holdOf(item(itemId), s, def.hand)
         const chain = new Set(armChain(def.hand))
-        // Walk, idle and turn (The Last Light's states without its actions), and standing in the figure's own
+        // Walk, idle and turn (states without actions), and standing in the figure's own
         // stand, whose placed hand the item's hold takes over.
         const states: [string, MotionState][] = [...locomotionStates()]
         const stand = def.stand ? fixture.stands[def.stand] : undefined

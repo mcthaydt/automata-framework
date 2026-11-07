@@ -21,6 +21,7 @@ import {
 } from '@automata/3d/figures'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
 
+// --- figure ---
 // Wick, his swatches and the `bounce` gait as in figures-walk (FigureBuilder 025ffb4), written as compiled.
 const duel = (ramp: Swatch['ramp'], step: number, more = {}): Swatch => ({ ramp, step, ...more })
 const cloak = { 'wick-cloak': duel('ocean', 3), 'wick-cloak-shade': duel('ocean', 1) }
@@ -75,6 +76,7 @@ const clips: Record<string, FigureClipDef> = Object.fromEntries(
 )
 const motion = { gaits: { bounce }, poses, clips, items: {}, stands: {}, rigs: {} }
 
+// --- sim ---
 // Wick's feet, his facing, the pose he is in (an index into SHOWN) and the tick he took it.
 const place = { x: 'f32', y: 'f32', z: 'f32', yaw: 'f32' } as const
 const Model = defineComponent('model', { ...place, pose: 'u32', since: 'u32' })
@@ -91,6 +93,7 @@ const posed = (model?: Readonly<Record<string, unknown>>) => ({
   action: { id: SHOWN[Number(model?.pose)] ?? 'stand', startedAt: Number(model?.since) / 60 },
 })
 
+// --- game ---
 export default defineGame({
   id: 'figures-poses',
   size: { width: 320, height: 180 },

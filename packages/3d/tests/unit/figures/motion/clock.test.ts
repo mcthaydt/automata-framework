@@ -1,4 +1,4 @@
-// The pose clock, the turn on the spot and the head's lead (FigureBuilder figure.ts `Figure.update` and
+// The pose clock, the turn on the spot and the head's lead (`Figure.update` and
 // `Figure.motion` at a1f7246, as pure functions of presentation time).
 
 import { beforeAll, describe, expect, it } from 'vitest'
@@ -33,7 +33,7 @@ describe('poseClock', () => {
     expect(poseClock(g, held * 1.5).t).toBe(held)
     expect(poseClock(g, loop + held * 1.5).t).toBe(poseClock(g, held * 1.5).t)
   })
-  it('holds the idle still while the figure turns on the spot (FigureBuilder figure.ts: idleT = still ? 0 : steppedT)', () => {
+  it('holds the idle still while the figure turns on the spot (idleT = still ? 0 : steppedT)', () => {
     const g = gait('brisk')
     expect(poseClock(g, 2.3, { still: true }).t).toBe(0)
     expect(poseClock(g, 2.3, { still: false }).t).toBe(poseClock(g, 2.3).t)

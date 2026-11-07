@@ -1,11 +1,9 @@
-// The feet's paths through the walk cycle, and the direction they run (`moveDir`).
-//
-// `footPath` is FigureBuilder's (mcthaydt/FigureBuilder) src/render/figure/motion.ts at a1f7246, its formulas
-// and their order. New for AF (M3 spec §4.4.1, F-h; M3.5c decisions 4 and 12): the stride runs along the
-// direction of travel against the facing, `moveDir`, so the stride vector is the forward vector turned by it;
-// across the body the stride shortens and the feet's lines move apart by its span, so a strafe steps out and
-// closes and never crosses the legs; behind the back band the cycle plays backwards along the opposite line, so
-// a half-turn is the forward walk in reverse.
+// The feet's paths through the walk cycle, and the direction they run (`moveDir`). `footPath` keeps the
+// formulas and their order. New for AF (decisions 4
+// and 12): the stride runs along the direction of travel against the facing, `moveDir`, so the stride vector is the
+// forward vector turned by it; across the body the stride shortens and the feet's lines move apart by its span, so a
+// strafe steps out and closes and never crosses the legs; behind the back band the cycle plays backwards along the
+// opposite line, so a half-turn is the forward walk in reverse.
 
 import { smooth, type V3 } from '../../../shared/math/math.ts'
 import type { Side, Skeleton } from '../body/rig.ts'
@@ -64,7 +62,7 @@ export function footPath(
 export const BACK_BAND: readonly [start: number, end: number] = [-0.4, -0.6]
 /** At a pure strafe the stride is this share of the forward one (a side step is short)… */
 const SIDE_STRIDE = 0.5
-/** …and the feet's middle line sits this share of the hip width out, the stand's (FigureBuilder's 0.75), at
+/** …and the feet's middle line sits this share of the hip width out, the stand's (0.75), at
  * least the gait's own `track`. */
 const SIDE_TRACK = 0.75
 

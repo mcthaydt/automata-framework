@@ -1,6 +1,6 @@
-// A pose as a solve's input (M3 spec §4.4.3 with §4.4.2): the base pose with the pose's fk joints and root
+// A pose as a solve's input: the base pose with the pose's fk joints and root
 // offset applied, and the pose's handles as `Targets`. It is what the Studio needs to show one pose and what
-// the tests solve; layering poses and clips over locomotion is M3.6d's `evaluate`.
+// the tests solve; layering poses and clips over locomotion is `evaluate`'s.
 
 import { apply, axisAngle, compose, qmul, scale } from '../../../shared/math/math.ts'
 import { at, clonePose, J, JOINTS, type Pose, type Skeleton } from '../body/rig.ts'

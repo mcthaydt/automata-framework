@@ -48,9 +48,9 @@ const skyShare = (frame: Frame): Promise<number> =>
           let sky = 0
           for (let i = 0; i < data.length; i += 4)
             if (
-              Math.abs((data[i] ?? 0) - 0xc7) <= 2 &&
-              Math.abs((data[i + 1] ?? 0) - 0xdc) <= 2 &&
-              Math.abs((data[i + 2] ?? 0) - 0xd0) <= 2
+              Math.abs((data[i] ?? 0) - 0xcd) <= 2 &&
+              Math.abs((data[i + 1] ?? 0) - 0xd2) <= 2 &&
+              Math.abs((data[i + 2] ?? 0) - 0xda) <= 2
             )
               sky++
           resolve(sky / Math.max(1, data.length / 4))

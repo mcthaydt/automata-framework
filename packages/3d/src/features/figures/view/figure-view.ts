@@ -1,9 +1,9 @@
-// `figure(def, options)`: a procedural character as an entity view (M3 spec §4.1, §4.4.1, §4.4.5). It builds the
+// `figure(def, options)`: a procedural character as an entity view. It builds the
 // figure's parts once (`build`), draws them (figure-meshes.ts) and poses them from presentation time with figures'
 // `evaluate()`: the gait's pose clock and what the sim says through the render row (moving, speed, the direction of
 // travel, the action and stances, aim points, the outfit and the held item). The pose is evaluated only when the
 // pose clock steps or that state changes (an aim point in the frame's own space changes as the figure moves, so a
-// locked figure re-solves every frame, as §4.4.5 asks), so a figure costs nothing between pose steps but its light
+// locked figure re-solves every frame), so a figure costs nothing between pose steps but its light
 // tint. The view owns what lives between frames: the hair spring, the last evaluated time (`previous`, so a clip's
 // marker is not skipped) and the set of missing clips already warned about. Motion never feeds back into the sim
 // (law 1).
@@ -29,12 +29,12 @@ import { drawFigure, type FigureDrawing } from './figure-meshes.ts'
 
 /**
  * Building a figure's meshes past this many milliseconds logs a warning. S7-Q9 measured the one-off build at 1.95 ms
- * p95 in Node (docs/archive/spikes/s7-pixi3d.md); this leaves room for a phone until M3.1b's phone numbers set it.
+ * p95 in Node (docs/archive/spikes/s7-pixi3d.md); this leaves room for a phone until a phone's measured numbers set it.
  */
 export const FIGURE_BUILD_BUDGET_MS = 5
 
 /**
- * What the view reads from the sim each frame: figures' `FigureState` (M3 spec §4.4.5) without what the view supplies
+ * What the view reads from the sim each frame: figures' `FigureState` without what the view supplies
  * itself. The facing is the node's yaw (the render row's), the hair swing is the view's spring, and aim points are
  * world metres, which the view turns into the figure's own frame.
  */

@@ -14,6 +14,7 @@ import type { Ease, FigureClipDef, FigureDef, MotionLibrary, Swatch, Vec3 } from
 import { CameraHeading, cameraView, enterView, START } from '@automata/3d/sim'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
 
+// --- figure ---
 // Wick, his swatches and the `bounce` gait as in figures-walk (FigureBuilder 025ffb4), written as compiled.
 const duel = (ramp: Swatch['ramp'], step: number, more = {}): Swatch => ({ ramp, step, ...more })
 const cloak = { 'wick-cloak': duel('ocean', 3), 'wick-cloak-shade': duel('ocean', 1) }
@@ -72,6 +73,7 @@ const CLIPS = ['reach', 'look', 'flinch'] as const
 const clips = { reach, look, flinch }
 const motion: MotionLibrary = { gaits: { bounce }, poses, clips, items: {}, stands: {}, rigs: {} }
 
+// --- sim ---
 // Wick's feet on the floor (metres, y up), facing `yaw`, and his clip (an index into CLIPS) and the tick it started.
 const Hero = defineComponent('hero', { x: 'f32', y: 'f32', z: 'f32', yaw: 'f32', clip: 'u32', since: 'u32' })
 
@@ -94,6 +96,7 @@ const playing = (hero?: Readonly<Record<string, unknown>>) => ({
 const shown = figure(wick, { library, motion, now: () => seconds, state: (c) => playing(c[Hero.id]) })
 const FOLLOW = cameraView('follow')
 
+// --- game ---
 export default defineGame({
   id: 'figures-clips',
   size: { width: 320, height: 180 },

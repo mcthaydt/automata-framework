@@ -1,11 +1,8 @@
 // The lamp kit: a lamp names a kind, and the kind sets its colour, how far it reaches and how bright it may get. A lamp
-// may carry its own colour (a lamp is rarely the exact white of its kind) but only within `tone` of the kind's in
-// OKLab, so one level's lamps read as one set of lights; a neon is a coloured glow (a tube, a screen, a headlight), so
-// it may be any colour.
-//
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/paint/look.ts at 6d82a52 (`lampIssues`,
-// `resolveLamp`) and library/look.json's `kit` and `tone`. The rest of that file's look is the renderer's
-// (`shared/render/light`). Changed: a bad lamp is a `LevelProblem`-shaped fault the builder reports, not a throw.
+// may carry its own colour (a lamp is rarely the exact white of its kind) but only within `tone` of the kind's in OKLab,
+// so one level's lamps read as one set of lights; a neon is a coloured glow (a tube, a screen, a headlight), so it may
+// be any colour. The rest of that file's look is the renderer's (`shared/render/light`). Changed: a bad lamp is a
+// `LevelProblem`-shaped fault the builder reports, not a throw.
 
 import type { LampPlace } from '../../shared/level/af-sector-2.schema.ts'
 import { hexToRgb, labDistance } from '../../shared/math/colour.ts'

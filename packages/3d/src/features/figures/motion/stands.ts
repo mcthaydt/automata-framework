@@ -1,13 +1,9 @@
-// Stands (FigureBuilder's lookbook poses as the idle): each placed hand goes to an opening the dressed figure
-// offers (a pocket's mouth, a hem, the hip), trying the place's openings in order (CHAIN), so a pose never
-// pushes a hand into a garment with no pocket there; a stand the outfit does not suit gives way to its
-// fallbacks, and with none that suits, to the gait's relaxed stand.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) at a1f7246: src/render/figure/motion.ts (`CHAIN`,
-// `Surface`, `openings`, `place`, `crossed`, `standHolds`) and src/render/figure/cast.ts (`fits`), their
-// formulas and their order. Changed for AF: no `pendant` anchor (the nameplate is cut, M3.5b decision 9), so
-// crossed arms keep to the chest's own height; `standFor` walks the fallbacks with `fits` alone (the source's
-// hero also judged a stand's legibility as painted, a sprite test).
+// Stands (the lookbook poses as the idle): each placed hand goes to an opening the dressed figure offers (a
+// pocket's mouth, a hem, the hip), trying the place's openings in order (CHAIN), so a pose never pushes a hand into a
+// garment with no pocket there; a stand the outfit does not suit gives way to its fallbacks, and with none that suits,
+// to the gait's relaxed stand. Changed for AF: no `pendant` anchor (the nameplate is cut), so crossed arms keep to the
+// chest's own height; `standFor` walks the fallbacks with `fits` alone (the source's hero also judged a stand's
+// legibility as painted, a sprite test).
 
 import { add, normalize, scale, sub, type V3 } from '../../../shared/math/math.ts'
 import { GROUP } from '../body/mesh.ts'

@@ -16,10 +16,10 @@ beforeAll(async () => {
   fixture = await fixtureFigures()
 })
 
-describe('random characters (FigureBuilder cast.ts randomCharacter, seeded)', () => {
-  it("random(seed) is FigureBuilder's mulberry32: the same seed, the same numbers", () => {
+describe('random characters, seeded', () => {
+  it('random(seed) is mulberry32: the same seed, the same numbers', () => {
     const r = random(1000)
-    // FigureBuilder a1f7246's random(1000), run on Node 24.
+    // random(1000), run on Node 24.
     expect([r(), r(), r()]).toEqual([0.7951949068810791, 0.8276879135519266, 0.6915161057841033])
   })
   it('the same seed gives the same character', () => {
@@ -39,7 +39,7 @@ describe('random characters (FigureBuilder cast.ts randomCharacter, seeded)', ()
     })
 })
 
-// FigureBuilder tests/random.test.ts "the registry in the random cast", ported: every swatch a registry
+// The registry in the random cast: every swatch a registry
 // garment wears is of a kind its role takes. (The openings a dress() finds come from a wardrobe's garments: the
 // wardrobe example's random.test.ts checks them.)
 describe('the registry in the random cast', () => {

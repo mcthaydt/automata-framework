@@ -1,7 +1,5 @@
-// Locomotion: base() against its recorded goldens, and the walk's own checks. Ported from FigureBuilder
-// (mcthaydt/FigureBuilder) tests/form.test.ts "the walk" at a1f7246 and The Last Light
-// (mcthaydt/PixiJS3D_Experiment_001) tests/procedural-figure.test.ts at 92e6704 ("plants both feet on the
-// floor when standing", "walks a closed cycle"), onto AF's fixture figures. F-c and F-h are M3 spec §13's.
+// Locomotion: base() against its recorded goldens, and the walk's own checks. It covers the walk (the strike, the closed cycle) and
+// that both feet plant on the floor when standing, on AF's fixture figures.
 
 import { beforeAll, describe, expect, it } from 'vitest'
 import { at, J, type Side, type Skeleton } from '#src/features/figures/body/rig.ts'
@@ -73,7 +71,7 @@ describe('base() matches its recorded goldens joint for joint', () => {
   }
 })
 
-describe('standing and walking (The Last Light procedural-figure.test.ts, 92e6704)', () => {
+describe('standing and walking', () => {
   it('plants both feet on the floor when standing, for both figures', () => {
     for (const id of ['wick', 'keeper']) {
       const def = figure(id)
@@ -93,10 +91,10 @@ describe('standing and walking (The Last Light procedural-figure.test.ts, 92e670
   })
 })
 
-describe('the walk (FigureBuilder form.test.ts, a1f7246)', () => {
-  // FigureBuilder's cast for this test walks the street gaits: bodies in the lookbook's ranges (the golden
+describe('the walk', () => {
+  // The cast for this test walks the street gaits: bodies in the lookbook's ranges (the golden
   // outfits' model and tall bodies, seeded random characters) and the keeper in every one, Wick in his own.
-  // Their knees at the strike are FigureBuilder's numbers (the goldens match): Wick's legs, a fifth of the
+  // Their knees at the strike are the recorded numbers (the goldens match): Wick's legs, a fifth of the
   // slider, bend 37° in the loose gait, and the elderly gait, not a street gait, shuffles on bent knees (38°).
   const cases = (): [string, FigureBody, readonly string[]][] => [
     ...GOLDEN_OUTFITS.filter((o) => o.name === 'model-bob' || o.name === 'tall-hoodie').map(

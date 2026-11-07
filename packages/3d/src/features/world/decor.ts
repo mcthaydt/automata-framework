@@ -1,10 +1,7 @@
-// What a wall carries and what a doorway holds: a window, a door, a shopfront, each authored in the wall's own frame
-// (x along it, y up, z out into the room), and a doorway sector's hinged door.
-//
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/map.ts at 6d82a52 (`decorPieces`,
-// `doorPieces`). Changed: the rng is AF's seeded one, a piece names its swatch for the library to check, and a door
-// carries its hinge and its swing for the stage to turn it (it is built shut). A sign is lettered by the props'
-// generators, which task 7.3 ports; until then a sign draws nothing.
+// What a wall carries and what a doorway holds: a window, a door, a shopfront, each authored in the wall's own frame (x
+// along it, y up, z out into the room), and a doorway sector's hinged door. Changed: the rng is AF's seeded one, a piece
+// names its swatch for the library to check, and a door carries its hinge and its swing for the stage to turn it (it is
+// built shut). A sign is lettered by the props' generators; with none registered a sign draws nothing.
 import { createRng } from '@automata/sim'
 import type { AfSectorEntry2, Decor, SectorDoor } from '../../shared/level/af-sector-2.schema.ts'
 import { type MeshData, merge, tube } from '../../shared/math/geometry.ts'

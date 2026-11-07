@@ -1,11 +1,7 @@
-// What the base scenes name, and nothing else: twenty-one swatches (a step of one of DUEL's ramps each, flat in colour: the
-// photo textures and patterns the builder cut its tiles from are the world-kit extension's) and six prop presets. A game
-// that wants a different look copies these into its own `world-swatch` and `world-prop` content; the scenes build from
-// this library alone.
-//
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/library/{swatches,props}.json at
-// 6d82a52: the swatches the two base scenes and their props use, with `ramp` as DUEL's name and `step` its `base`, and
-// the presets `prim.box`, `prim.table`, `prim.cylinder`, `lamp.pendant`, `streetLamp` and `tree.round`.
+// What the base scenes name, and nothing else: twenty-one swatches (a step of one of DUEL's ramps each, flat in colour:
+// the photo textures and patterns the builder cut its tiles from are the world-kit extension's) and six prop presets. A
+// game that wants a different look copies these into its own `world-swatch` and `world-prop` content; the scenes build
+// from this library alone.
 
 import type { WorldProp } from '../content/world-prop.schema.ts'
 import type { WorldSwatch } from '../content/world-swatch.schema.ts'

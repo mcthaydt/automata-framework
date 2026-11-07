@@ -1,11 +1,8 @@
-// The legs: each foot on its path through the walk or the shuffle, or set by the stand; the hips riding on the
-// planted legs; two-bone IK from each hip to its ankle, the foot turned and pitched by its roll.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/motion.ts at a1f7246 (`base`'s legs
-// section), its formulas and their order. Changed for AF: no flinch step-back (a clip in M3.6); the walking
-// feet come from `footOn`, which runs them along `moveDir` (gait-path.ts); a foot's lead over its hip and the
-// hip's reach across to its foot are measured along the line of travel and the feet's own track, so a strafe
-// rides the planted feet as a forward walk does.
+// The legs: each foot on its path through the walk or the shuffle, or set by the stand; the hips riding on the planted
+// legs; two-bone IK from each hip to its ankle, the foot turned and pitched by its roll. Changed for AF: no flinch
+// step-back (a clip in); the walking feet come from `footOn`, which runs them along `moveDir` (gait-path.ts); a foot's
+// lead over its hip and the hip's reach across to its foot are measured along the line of travel and the feet's own
+// track, so a strafe rides the planted feet as a forward walk does.
 
 import {
   apply,

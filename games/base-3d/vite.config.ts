@@ -15,15 +15,15 @@ function previewHeaders(): Record<string, string> {
 }
 
 /**
- * The content plugin over src/content (`virtual:automata/content`): the figures, poses and clips,
+ * The content plugin over the game's `content/` (`virtual:automata/content`): the figures, poses and clips,
  * with the figures extension's kinds, and the room's swatches and props. The page and the tests (vitest.config.ts) both compile it.
  */
 export function contentPlugin(): ReturnType<typeof automataContent> {
   return automataContent({
-    root: fileURLToPath(new URL('./src', import.meta.url)),
+    root: fileURLToPath(new URL('.', import.meta.url)),
     schemas: [...(figuresExtension.content ?? []), worldSwatchContent, worldPropContent],
     // The game's own words (G3-t): its catalog, compiled with Paraglide into src/paraglide (DESIGN.md §12.3).
-    paraglide: { outdir: 'paraglide', catalogs: ['messages/ui/{locale}.json'] },
+    paraglide: { outdir: 'src/paraglide', catalogs: ['src/messages/ui/{locale}.json'] },
   })
 }
 

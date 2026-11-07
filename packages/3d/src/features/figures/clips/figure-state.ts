@@ -1,6 +1,6 @@
-// What `evaluate` reads (M3 spec §4.4.5 `FigureState`): what the sim says about one figure through its render
+// What `evaluate` reads (`FigureState`): what the sim says about one figure through its render
 // row, and the content it plays from. The additions to the spec's shape (`action.replaced`, stances with their
-// times, `pins`, `hair`) are the M3.6d plan's decision 1; `MotionLibrary` is the spec's `Library` (decision 2).
+// times, `pins`, `hair`) are this state's own; `MotionLibrary` is the library the motion reads.
 
 import type { Gait } from '../content/gait.schema.ts'
 import type { ItemDef } from '../content/item.schema.ts'
@@ -8,8 +8,8 @@ import type { RigLimits } from '../content/rig-limits.schema.ts'
 import type { Stand } from '../content/stand.schema.ts'
 import type { HairSwing } from '../motion/motion-state.ts'
 import type { AimTarget, LimbId, Vec3 } from '../motion/targets.ts'
+import type { PoseLibrary } from './blend-key-poses.ts'
 import type { FigureClipDef } from './clip.schema.ts'
-import type { PoseLibrary } from './sample.ts'
 
 /** A clip the sim started: its id, when (presentation seconds) and, when given, the length (s) it is retimed to. */
 export interface ClipStart {

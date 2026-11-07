@@ -1,4 +1,4 @@
-// Aim (M3 spec §4.4.2): a head or chest turns its forward axis (+z) toward a world point, spread over the torso
+// Aim: a head or chest turns its forward axis (+z) toward a world point, spread over the torso
 // by share and clamped by the limits; a hand aim points the arm straight at the point.
 //
 // The torso aim is one swing, `A`, in the pelvis's frame (an axis and an angle, so looking straight down is no

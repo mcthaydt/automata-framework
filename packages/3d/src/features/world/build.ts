@@ -1,13 +1,9 @@
-// The world builder: a `/2` level into renderer-free pieces (spec 9). Each room gives its floor and ceiling, its
-// hinged door; each wall segment (sectors.ts) gives its face, its trim and what it carries, or, where rooms share it,
-// the steps of a portal. Nothing here throws on a level it cannot build: a degenerate room, a missing swatch and a
-// portal to nowhere are `LevelProblem`s, and the rest of the level still draws.
-//
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/map.ts (`mapPieces`) and build.ts at
-// 6d82a52, the first-person view only: the diorama's cut-away belongs to the editor (a level is built whole). Changed:
-// pieces name a surface, not a swatch id; a wall's opening (`door`, `window`) is cut out of its face; a room's holes
-// are walled and left out of its floor; the shared stretch is found by geometry, as the builder did, and a wall's
-// `next` must agree with it.
+// The world builder: a `/2` level into renderer-free pieces. Each room gives its floor and ceiling, its hinged door;
+// each wall segment (sectors.ts) gives its face, its trim and what it carries, or, where rooms share it, the steps of a
+// portal. Nothing here throws on a level it cannot build: a degenerate room, a missing swatch and a portal to nowhere
+// are `LevelProblem`s, and the rest of the level still draws. Changed: pieces name a surface, not a swatch id; a wall's
+// opening (`door`, `window`) is cut out of its face; a room's holes are walled and left out of its floor; the shared
+// stretch is found by geometry, as the builder did, and a wall's `next` must agree with it.
 
 import { createRng } from '@automata/sim'
 import type {

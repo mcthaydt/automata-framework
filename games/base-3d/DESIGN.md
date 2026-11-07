@@ -1,6 +1,6 @@
-# base-3d: the free 3D game (design)
+# Ember Hall (base-3d): the free 3D game (design)
 
-> The free game is **Emberwick in 3D**: the 2D reference game's flow, saves, settings and HUD pattern, one room, a
+> The free game is **Ember Hall**: the 2D reference game's flow, saves, settings and HUD pattern, one room, a
 > third-person hero under the angled free-turn camera, and one verb beyond walking, the roll. The decision and its words
 > are in [the rescope spec](../../docs/archive/superpowers/specs/2026-10-31-base-3d-emberwick-rescope.md); the plan that built it is
 > [free base-3d](../../docs/archive/superpowers/plans/2026-10-31-free-base-3d.md). The action-adventure this game grew from (lock-on,
@@ -9,10 +9,11 @@
 
 ## 1. What it is
 
-- **Flow:** splash → menu (New game, Continue, Settings) → play → pause (Resume, Settings, Quit) → end (the goal ember).
-- **Room:** `src/content/levels/room.af-sector.json`, an `af-sector/1` file: three platforms and two 2 m channels that
+- **Flow:** splash → menu (Continue when a save is there, New game when it is empty, Settings, which comes back to the menu) → play ("Embers 0 of 6" and Pause on screen) → pause (Resume, Settings, Quit) → end (the goal ember).
+- **Screen:** the pixel field takes the shape of the screen the game boots on (`src/features/scene/field.ts`), so on a tablet the room fills its height instead of a band across the middle.
+- **Room:** `content/levels/room.af-sector.json`, an `af-sector/1` file: three platforms and two 2 m channels that
   walking cannot cross and the roll's 3.2 m lunge does, five embers and the goal ember. The converter
-  (`src/content/levels/sector-area.ts`) reads it as the sim's area; the camera views are in `src/content/room.ts`
+  (`src/features/room/sector-area.ts`) reads it as the sim's area; the camera views are in `src/features/room/room.ts`
   (editor gap EG-3).
 - **Verb:** the roll (24 ticks, 3.2 m, in the way Wick faces). Walking into a channel puts him back on the last safe spot,
   with his embers kept (`hero.fell`).

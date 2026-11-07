@@ -1,8 +1,5 @@
-// How far out a dressed figure's surface lies along a ray: where a hand rests on the cloth, how far a hair
-// tail falls clear of the back, how far an arm hangs out to clear the body.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/parts.ts at a1f7246 (`reach`), with
-// AF's strict types; the formula and its order are the source's.
+// How far out a dressed figure's surface lies along a ray: where a hand rests on the cloth, how far a hair tail falls
+// clear of the back, how far an arm hangs out to clear the body.
 
 import type { V3 } from '../../../shared/math/math.ts'
 import type { Part } from './mesh.ts'

@@ -1,10 +1,7 @@
-// Gene sliders, after the Procedural Human Workshop: a figure is designed from a few normalised sliders, and
-// one generator turns them into a skeleton and a body, so every character gets sound proportions and a new one
-// is a handful of numbers. Sliders run 0–1; a little past either end is allowed, for figures meant to look wrong.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/genes.ts at a1f7246, with AF's strict
-// types, and brought up to src/features/body/genes.ts at 025ffb4 (fat on the limbs, the neck and the jaw; bust and
-// seat; the eyes' size, spacing and tilt; a body's and a face's asymmetry). The formulas are the source's.
+// Gene sliders, after the Procedural Human Workshop: a figure is designed from a few normalised sliders, and one
+// generator turns them into a skeleton and a body, so every character gets sound proportions and a new one is a handful
+// of numbers. Sliders run 0–1; a little past either end is allowed, for figures meant to look wrong. The formulas are
+// the source's.
 
 import { lerp } from '../../../shared/math/math.ts'
 import type { Genes } from './rig.ts'

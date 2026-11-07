@@ -4,7 +4,7 @@ import type { Rope } from '#src/features/figures/content/hair.schema.ts'
 import { sweep } from '#src/features/figures/hair/sweep.ts'
 import type { V3 } from '#src/shared/math/math.ts'
 
-describe('sweep (FigureBuilder hair.ts)', () => {
+describe('sweep', () => {
   // M3.5b decision 16. The source's tip, `1 - q²` with `q = (t - (1 - tipLen)) / tipLen`, left the last ring
   // about 1e-10 m wide whenever `q` rounded to just under 1 at t = 1 (here: a tip 0.1 of the way, since
   // 1 - 0.9 is 0.09999999999999998), so that ring's normals took their side from the sign of a dot product

@@ -1,5 +1,5 @@
 // Fixture rooms for the occluder rule's sweeps (D3-h) and the framing check (D3-g): `games/base-3d`'s own rooms are
-// M3.7b. Every wall runs with the room on its left; walls are 2.5 m high and 0.2 m thick outward.
+// Every wall runs with the room on its left; walls are 2.5 m high and 0.2 m thick outward.
 import type { Vec3 } from '../../features/camera/camera-pose.ts'
 import {
   type Box3,

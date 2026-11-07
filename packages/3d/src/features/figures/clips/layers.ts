@@ -1,6 +1,6 @@
-// Clip layers (M3 spec §4.4.4 and §4.4.5 steps 2 and 3): one clip sampled at its time, masked, with its blend
+// Clip layers: one clip sampled at its time, masked, with its blend
 // ramp's weight, and merged over the layers below it. A layer is handles, not joint angles; `evaluate` solves the
-// merged result once. The merge rule, the ramp and the additive mode are the M3.6d plan's decisions 5, 7 and 9.
+// merged result once. The merge rule, the ramp and the additive mode are set here.
 
 import { IDENTITY_Q, qmul } from '../../../shared/math/math.ts'
 import type { Joint } from '../body/rig.ts'
@@ -11,10 +11,10 @@ import type { SpaceContext } from '../motion/pose-space.ts'
 import { degrees, eulerDegrees, eulerOf, slerp } from '../motion/rotation.ts'
 import type { EffectorId, Vec3 } from '../motion/targets.ts'
 import { HEAD_SHARES } from '../motion/torso.ts'
+import { blendKeyPoses, type PoseLibrary } from './blend-key-poses.ts'
 import type { FigureClipDef, MaskGroup } from './clip.schema.ts'
 import { smoothTime, stepTime } from './clip-time.ts'
 import { maskPose } from './masks.ts'
-import { type PoseLibrary, sample } from './sample.ts'
 
 /** One clip's contribution: its masked pose and its ramp weight in (0, 1]. */
 export interface Layer {
@@ -49,7 +49,7 @@ export interface ClipLayerOptions {
   readonly previous?: number | undefined
   /** Seconds of play at which the clip ends and starts to ramp out. */
   readonly end?: number | undefined
-  /** The chest frame of the layers below, for keys in different spaces (`sample`). */
+  /** The chest frame of the layers below, for keys in different spaces (`blendKeyPoses`). */
   readonly context?: SpaceContext | undefined
 }
 
@@ -58,7 +58,7 @@ export function clipPose(clip: FigureClipDef, elapsed: number, options: ClipLaye
   const t = options.smooth
     ? smoothTime(clip, elapsed, options.previous)
     : stepTime(clip, elapsed, options.rate, options.previous)
-  return maskPose(sample(clip, t, options.poses, options.context), clip.mask)
+  return maskPose(blendKeyPoses(clip, t, options.poses, options.context), clip.mask)
 }
 
 /** The clip's layer after `elapsed` seconds of play, or undefined while its weight is 0. */

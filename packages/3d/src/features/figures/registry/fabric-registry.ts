@@ -1,12 +1,9 @@
 // H5, the fabrics: a garment's cloth carries a tiled weave or pattern. A fabric is data, a tile of tone labels (one per
 // texel), and a swatch names it. A label shifts a tiled texel's tone within its own ramp (+1 a step lighter, -1 a step
-// darker), so a tile never moves a texel off its ramp. The base registers none, so no base pixel moves.
-//
-// Two kinds of tile, by size: a motif (4 x 4 or smaller) is how a pixel artist draws a weave (denim's twill as a one-step
-// diagonal hatch), one step deep, labels 0 or -1; a pattern (anything larger: a check, a plaid) may use -2 to +1.
-//
-// Ported from FigureBuilder (mcthaydt/FigureBuilder) src/features/paint/fabric.ts at 025ffb4 (`Fabric`,
-// `registerFabric`, `fabricOf`, `labelAt`), with AF's strict types. The painter that reads the labels is not taken.
+// darker), so a tile never moves a texel off its ramp. The base registers none, so no base pixel moves. Two kinds of
+// tile, by size: a motif (4 x 4 or smaller) is how a pixel artist draws a weave (denim's twill as a one-step diagonal
+// hatch), one step deep, labels 0 or -1; a pattern (anything larger: a check, a plaid) may use -2 to +1. The painter
+// that reads the labels is not taken.
 
 import { RegistryClash } from '../../../shared/registry/registry-clash.ts'
 

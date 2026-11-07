@@ -1,4 +1,4 @@
-// mirror (M3 spec §4.4.3): the pose seen in a mirror through the body's middle plane (x = 0). Left and right
+// mirror: the pose seen in a mirror through the body's middle plane (x = 0). Left and right
 // swap in handle ids and fk joints; positions and pole directions negate x; an Euler turn (pitch, yaw, roll)
 // keeps its pitch and negates its yaw and roll, because reflecting conjugates a rotation by S = diag(−1, 1, 1),
 // which keeps a turn about x and reverses turns about y and z (the spec's "x and yaw negated" leaves roll

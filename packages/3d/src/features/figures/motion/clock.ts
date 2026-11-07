@@ -1,11 +1,8 @@
-// Presentation time (M3 spec §4.4.1): the pose clock that steps the walk and the idle, one pose step of the
-// turn on the spot, and the head's lead into it. Pure: the view keeps the shown facing and the time; these
-// say what pose to show for them.
-//
-// From FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/figure.ts at a1f7246 (`Figure.update` and
-// `Figure.motion`), its formulas. Changed for AF: the walk's phase is stepped from whole pose steps of the
-// time (the source accumulated `dt / cycle` while moving), so it repeats exactly after one cycle (F-c); the
-// head's lead has no 30° steps and no turn toward the camera (sprite cheats).
+// Presentation time: the pose clock that steps the walk and the idle, one pose step of the turn on the spot, and the
+// head's lead into it. Pure: the view keeps the shown facing and the time; these say what pose to show for them. From
+// The formulas of the figure's `update` and `motion`, changed for AF: the walk's phase is stepped from whole pose steps of the time (the source accumulated
+// `dt / cycle` while moving), so it repeats exactly after one cycle (F-c); the head's lead has no 30° steps and no turn
+// toward the camera (sprite cheats).
 
 import type { Gait } from '../content/gait.schema.ts'
 
@@ -21,8 +18,7 @@ export interface PoseClock {
 
 /**
  * The stepped clocks at presentation time `time` (s). `still`: the idle holds its first pose (t 0) while the
- * figure turns on the spot, so a turn is one strip of poses, not one a breath (FigureBuilder figure.ts
- * `idleT = still ? 0 : steppedT`; its other reason to hold, an action, is a clip's in M3.6).
+ * figure turns on the spot, so a turn is one strip of poses, not one a breath (`idleT = still ? 0 : steppedT`; its other reason to hold, an action, is a clip's).
  */
 export function poseClock(gait: Gait, time: number, options: { readonly still?: boolean } = {}): PoseClock {
   const walkStep = Math.floor((time * gait.walkPoses) / gait.cycle)

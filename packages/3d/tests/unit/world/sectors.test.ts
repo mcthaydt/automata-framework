@@ -1,4 +1,4 @@
-// The geometry of sectors (EnvironmentBuilder `world/sectors.ts` at 6d82a52, over `/2`'s corners and holes): where a
+// The geometry of sectors (over `/2`'s corners and holes): where a
 // point stands, a plane's height, the triangulation, and a level's wall segments with the stretches rooms share.
 import { describe, expect, it } from 'vitest'
 import {

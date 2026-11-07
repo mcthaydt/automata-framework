@@ -1,4 +1,4 @@
-// The heading's rules (M3 spec §4.2, §5; M3R-D15), as pure functions over `camera-heading`'s fields so a game's
+// The heading's rules, as pure functions over `camera-heading`'s fields so a game's
 // systems call them and tests read them without a sim.
 //
 // The latch: crossing into another view while the stick is held keeps the stick mapping through the heading before

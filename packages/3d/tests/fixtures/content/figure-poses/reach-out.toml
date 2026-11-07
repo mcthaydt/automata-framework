@@ -1,7 +1,6 @@
-# A fixture pose (M3 spec §4.4.3), for tests and examples; no game's. FigureBuilder's reach at its hold
-# (mcthaydt/FigureBuilder a1f7246, src/render/figure/motion.ts): the right hand out before the shoulder, the
-# chest leaning and turning into it. The hand's place is FigureBuilder's `[x·shoulders·0.8, shoulderY − 0.18k,
-# 0.5k]` on Wick's body, in figure units (scripts/figurebuilder-action-goldens.ts prints it); the chest's turn is
+# A fixture pose, for tests and examples; no game's. A reach at its hold: the right hand out before the shoulder, the
+# chest leaning and turning into it. The hand's place is `[x·shoulders·0.8, shoulderY − 0.18k,
+# 0.5k]` on Wick's body, in figure units; the chest's turn is
 # its `euler(0.12, 0.12, 0)` in degrees.
 
 about = "Reaching out with the right hand before the shoulder, the chest leaning into it."

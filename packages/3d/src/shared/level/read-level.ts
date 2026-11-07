@@ -1,4 +1,4 @@
-// The one door a level file comes in by (spec 9): `/2` as it is, `/1` migrated, anything else a problem. Nothing here
+// The one door a level file comes in by: `/2` as it is, `/1` migrated, anything else a problem. Nothing here
 // throws on a file it cannot read; the problems say where and why, and the level is empty so a caller can go on.
 import type { z } from 'zod'
 import { afFormatVersion, afSectorSchema } from './af-sector.schema.ts'

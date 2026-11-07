@@ -1,7 +1,5 @@
-// A room's light on `@pixi/3d` (M3 spec §4.3, §5): static meshes baked once at load and rebaked only when a lamp
-// that reaches them changes; characters tinted per frame from the same lamps (M3R-D4). Extracted in part from The
-// Last Light (`mcthaydt/PixiJS3D_Experiment_001`) at 92e6704 `src/render/indirect-light.ts` (`bakeGeometry`: the
-// dynamic copy with vertex colours; the material's `vertexColors`); the light itself is `vertex-bake.ts`.
+// A room's light on `@pixi/3d`: static meshes baked once at load and rebaked only when a lamp that reaches them changes;
+// characters tinted per frame from the same lamps (M3R-D4).
 import { type Container3D, Geometry3D, type Mesh3D } from '@pixi/3d'
 import type { SceneLighting } from './scene-lighting.schema.ts'
 import { bakeVertices, type VertexBake } from './vertex-bake.ts'

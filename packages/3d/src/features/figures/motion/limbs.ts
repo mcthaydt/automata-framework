@@ -1,5 +1,5 @@
-// The limb handles (M3 spec §4.4.2): feet and hands on M3.5a's `twoBoneIK`, from the thigh or the upper arm,
-// bending toward a pole. The default poles are the source's (FigureBuilder `motion.ts` at a1f7246): a knee
+// The limb handles: feet and hands on `twoBoneIK`, from the thigh or the upper arm,
+// bending toward a pole. The default poles: a knee
 // points along the root's forward (`forwardWorld`), an elbow back, down and out (`[x·0.7, −0.5, −0.5]` in root
 // space, x +1 on the left).
 

@@ -1,4 +1,4 @@
-// The figures' content kinds (M3 spec §4.4.1: "libraries are content too"). Every kind is a collection, one
+// The figures' content kinds (: "libraries are content too"). Every kind is a collection, one
 // TOML file per item, and none goes to the sim: figures are presentation (law 1), so their content stays out
 // of the sim's partition and hash. References between them are `contentRef`s, so the content compiler reports
 // a missing id at its file, line and column (F-e).

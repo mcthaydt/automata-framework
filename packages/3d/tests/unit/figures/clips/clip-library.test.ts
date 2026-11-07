@@ -2,10 +2,10 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Diagnostic } from '@automata/content'
 import { beforeAll, describe, expect, it } from 'vitest'
+import { blendKeyPoses } from '#src/features/figures/clips/blend-key-poses.ts'
 import type { FigureClipDef } from '#src/features/figures/clips/clip.schema.ts'
 import { markerTime, retime, smoothTime, stepTime } from '#src/features/figures/clips/clip-time.ts'
 import { clipWarnings } from '#src/features/figures/clips/clip-warnings.ts'
-import { sample } from '#src/features/figures/clips/sample.ts'
 import type { PoseDef } from '#src/features/figures/motion/pose.schema.ts'
 import { compileFixture, FIXTURE_ROOT } from '#src/testing/compile-fixture.ts'
 import { FIXTURE_ACTION_IDS, FIXTURE_CLIP_IDS, fixtureClips } from '#src/testing/fixture-clips.ts'
@@ -50,7 +50,7 @@ describe('I-i: retime, and the contact pose on the first frame at or after its m
       const length = n / 100
       const played = retime(clip('jab'), length)
       const contact = markerTime(played, 'contact')
-      const contactPose = sample(played, contact, poses)
+      const contactPose = blendKeyPoses(played, contact, poses)
       const rate = played.rate ?? 12
       // Render frames at 60 a second; the action starts `offset` after a frame (startedAt off the grid).
       for (const offset of [0, 0.004, 0.0111, 0.0163]) {
@@ -66,7 +66,7 @@ describe('I-i: retime, and the contact pose on the first frame at or after its m
           )
           const label = `${mode}, length ${length}, offset ${offset}`
           expect(shown[first], label).toBe(contact)
-          expect(sample(played, shown[first] ?? Number.NaN, poses), label).toEqual(contactPose)
+          expect(blendKeyPoses(played, shown[first] ?? Number.NaN, poses), label).toEqual(contactPose)
           for (let f = 0; f < first; f++)
             expect(shown[f] ?? Number.NaN, `${label}, frame ${f}`).toBeLessThan(contact)
         }

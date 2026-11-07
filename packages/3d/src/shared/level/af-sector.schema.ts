@@ -1,5 +1,5 @@
-// The native `af-sector/1` level file's envelope (ED3D spec §4.6, owned here since GAME-3D.1i so the game reads it
-// without the editor; the exact shape is in the ED3D.1b plan): the sector
+// The native `af-sector/1` level file's envelope (owned here so the game reads it
+// without the editor; the exact shape is in the level spec): the sector
 // vocabulary Last Light proved (corner loops with walls, portals, doors, windows, trim, heights, light), without the
 // pieces that are Last Light's own (camera zones, the nav graph, openings as connector sectors, exports). Like the
 // Last Light schemas it is a pure validator: no defaults, nothing changed, and an unknown member is kept so the codec
@@ -136,7 +136,7 @@ export const afSectorEntrySchema: z.ZodType<AfSectorEntry> = z.looseObject({
   holes: z.array(z.array(cornerSchema).min(3)).optional(),
 })
 
-/** An entity definition, carried as written until the typed model (ED3D.1b2) reads its fields. */
+/** An entity definition, carried as written until the typed model reads its fields. */
 export interface AfEntityDef {
   readonly id: string
   readonly [member: string]: unknown

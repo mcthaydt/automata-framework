@@ -1,6 +1,5 @@
 // A union told apart by which key an object has: a garment is `{ coat = "navy" … }` or `{ top = "starch" … }`,
-// a hair piece `{ scalp = { … } }` or `{ rows = { … } }`. FigureBuilder writes them that way (garments.ts
-// `Garment`, hair.ts `Piece`). zod's union reports a failed member as one "Invalid input" at the whole object;
+// a hair piece `{ scalp = { … } }` or `{ rows = { … } }`. Character files write them that way. zod's union reports a failed member as one "Invalid input" at the whole object;
 // choosing the member by its key first keeps each problem at its own field, so content diagnostics point at
 // the line to fix.
 

@@ -1,9 +1,5 @@
-// The kit's one rounded box, and locks: rounded boxes of hair or headwear in head units (x of the head's
-// half-width, y of its height above the chin, z of its half-depth), so a style fits any head the sliders
-// make.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`box`,
-// `lockParts`, `named`), with AF's strict types; the formulas and their order are the source's.
+// The kit's one rounded box, and locks: rounded boxes of hair or headwear in head units (x of the head's half-width, y
+// of its height above the chin, z of its half-depth), so a style fits any head the sliders make.
 
 import { axisAngle, type V3 } from '../../../../shared/math/math.ts'
 import { type Superquadric, superquadric } from '../../../../shared/math/superquadric.ts'

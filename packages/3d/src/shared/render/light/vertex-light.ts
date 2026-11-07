@@ -1,7 +1,6 @@
-// Direct light from a lamp at a point. Extracted from The Last Light (`mcthaydt/PixiJS3D_Experiment_001`) at 92e6704,
-// `src/render/indirect-light.ts` (`vertexLight`, `lightAt`), with its tests. AF's changes: lamps, ambient and
-// occluders come from one `SceneLighting` instead of the level module, and `characterTint` is the per-character light
-// of M3R-D4 (the source lit its sprites from normal maps instead).
+// Direct light from a lamp at a point. AF's changes: lamps, ambient and occluders come from one `SceneLighting` instead
+// of the level module, and `characterTint` is the per-character light of M3R-D4 (the source lit its sprites from normal
+// maps instead).
 import { type LightSample, segmentBlocked } from './occlusion.ts'
 import type { Lamp, SceneLighting } from './scene-lighting.schema.ts'
 

@@ -1,10 +1,7 @@
-// The hair's spring (secondary motion, M3 spec §4.4.5 step 7): it trails behind as the figure walks, bounces
-// with each step, lags through a turn, and hangs against the head's nod and tilt. A pure step: the spring's
-// state in, the next state out, so the view (or a test) owns the state and the same inputs give the same swing.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/figure.ts at a1f7246
-// (`Figure.swingHair`), its formulas and their order. Changed for AF: what the method read from the figure
-// (the walk, the speed, the turn's rate, the head's nod and tilt) comes in as `HairInput`; the swing is not
+// The hair's spring (secondary motion): it trails behind as the figure walks, bounces with each step, lags through a
+// turn, and hangs against the head's nod and tilt. A pure step: the spring's state in, the next state out, so the view
+// (or a test) owns the state and the same inputs give the same swing. Changed for AF: what the method read from the
+// figure (the walk, the speed, the turn's rate, the head's nod and tilt) comes in as `HairInput`; the swing is not
 // rounded to a tenth (the source's sprite cell cache).
 
 import type { M } from '../../../shared/math/math.ts'
@@ -23,7 +20,7 @@ export interface HairInput {
   readonly moving: boolean
   /** The walk's phase, [0, 1). */
   readonly phase: number
-  /** The walking speed (m/s): FigureBuilder passed the gait's tuned speed. */
+  /** The walking speed (m/s): the gait's tuned speed. */
   readonly speed: number
   /** How fast the shown facing turns (rad/s): the change in facing wrapped to [−π, π) (clock.ts `wrapAngle`)
    * before it is divided by the time, so a turn across ±π is not a full spin. */

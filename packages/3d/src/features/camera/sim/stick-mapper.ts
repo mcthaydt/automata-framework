@@ -1,4 +1,4 @@
-// The stick mapper (M3 spec §4.2, D3-i): a stick turns into a world direction through the sim's heading, so pushing
+// The stick mapper: a stick turns into a world direction through the sim's heading, so pushing
 // up moves the character away from the camera at any heading. It changes gameplay, so it runs in the sim, on
 // `dmath`'s `sin` and `cos` (the sim may not call `Math` trig), and gives Q16.16 integers so a replay hashes the
 // same in Node, Chromium, WebKit and Firefox.
@@ -7,7 +7,7 @@ import { TURN_UNITS } from './heading.ts'
 
 /** One in Q16.16: the mapper's outputs are this many to a metre's worth of direction. */
 export const Q16 = 65_536
-/** A stick axis's full push, as `Input.stick()` quantizes it (M4-D2): integers in −127..127, y positive down. */
+/** A stick axis's full push, as `Input.stick()` quantizes it: integers in −127..127, y positive down. */
 export const STICK_MAX = 127
 
 // 2π spelled out: `Math.PI` is not sim-safe.

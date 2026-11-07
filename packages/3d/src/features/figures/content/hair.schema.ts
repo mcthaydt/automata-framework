@@ -1,5 +1,5 @@
-// Hair styles: a list of registered pieces, or a list of locks (FigureBuilder src/render/figure/hair.ts `HairStyle`,
-// `Piece` and `Rope`; library/hair.json at a1f7246). Positions are in head units round the skull, so a style fits any
+// Hair styles: a list of registered pieces, or a list of locks (`HairStyle`,
+// `Piece` and `Rope`). Positions are in head units round the skull, so a style fits any
 // head. Core knows the locks and the rope (the one mesh every piece is swept from); the pieces themselves (a scalp,
 // rows, a tail, a fall, a bun, a sweep, a block, edges) are @automata/character-kit's, which registers each kind
 // with its own schema. A tone is one of the hair's own tones or a swatch id, checked like every library reference.

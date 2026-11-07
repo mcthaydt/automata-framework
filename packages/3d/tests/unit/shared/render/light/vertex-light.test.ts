@@ -1,6 +1,5 @@
-// The direct-light cases are ported from The Last Light `tests/indirect-light.test.ts` at 92e6704 ("Gouraud direct
-// light responds to distance, normal direction, and solid occlusion"; "does not let a bench collision volume shadow
-// its own smaller seat"), on a fixture room with the same desk and bench.
+// The direct-light cases: Gouraud direct light responds to distance, normal direction and solid occlusion, and a
+// bench collision volume does not shadow its own smaller seat, on a fixture room with the same desk and bench.
 import { describe, expect, it } from 'vitest'
 import { sceneLightingSchema } from '#src/shared/render/light/scene-lighting.schema.ts'
 import { characterTint, vertexLight } from '#src/shared/render/light/vertex-light.ts'

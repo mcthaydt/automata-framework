@@ -1,5 +1,5 @@
 // The base interior and exterior: two plain places every look change is judged on, as `af-sector/2` levels (converted once
-// from EnvironmentBuilder's `base/base.ts` at 6d82a52; written out here, not generated at run time). The interior is a
+// written out here, not generated at run time). The interior is a
 // room with a window, a doorway and a corridor stub, a table, a box and a bin, a pendant lamp, lit at `lampLit`; the
 // exterior is a pavement before a building face (a door and two windows), a road a kerb lower, a street lamp and a tree,
 // under open sky with a city on the horizon, at `day`. Both cast the base pair (`man` and `woman`, figures/base) and

@@ -1,5 +1,5 @@
-// A built figure's material as the colour the view draws (M3 spec §4.4.1, decision 6: materials name palette
-// colours). The figures package records a tone step (`shade`) instead of FigureBuilder's DUEL ramp tones; the view
+// A built figure's material as the colour the view draws (materials name palette
+// colours). The figures package records a tone step (`shade`) instead of a DUEL ramp tone; the view
 // draws a step as the palette colour a fixed share lighter or darker.
 import type { BuiltMaterial } from '../figure/materials.ts'
 

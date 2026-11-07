@@ -40,6 +40,7 @@ Every external dependency in AF is pinned to an exact version. AF owns its pins 
 | `lefthook` | 2.1.16 | 2026-10-01 | Pre-commit hooks |
 | `oxc-parser` | 0.152.0 | 2026-10-01 | AST for `check-boundaries`, `check-style` and `ship`'s root-absolute check |
 | `pixi.js` | 8.22.0 | 2026-10-30 | 2D renderer (ADR 0002). 8.22.0 is the peer floor of the vendored `@pixi/3d` 0.1.0-beta.2 (`^8.22.0`) and was npm latest when moved; no change in it that AF depends on ([the move's plan](archive/superpowers/plans/2026-10-30-m3-2-pixi-822.md)) |
+| `@pixi/3d` | 0.1.0-beta.2 | 2026-11-07 | The post effects of `@automata/world-kit` (stars, rain, glow) extend its `PostEffect`; core `@automata/3d` takes it from the vendored tarball (`vendor/pixi-3d/`), and the kit asks its game for the same version as a peer |
 | `@fontsource/pixelify-sans` | 5.3.0 | 2026-10-11 | Pixel font for Emberwick's screens (`games/emberwick`) (OFL-1.1), bundled so it loads under a CSP that allows only `font-src 'self' data:` |
 | `@fontsource-variable/geist` | 5.3.0 | 2026-11-06 | The editor kit's and the website's interface face (`packages/editor`, `site`) (OFL-1.1), bundled so the editors load offline and the site makes no third-party request |
 | `@fontsource-variable/geist-mono` | 5.3.0 | 2026-11-06 | The editor kit's and the website's face for paths and numbers (`packages/editor`, `site`) (OFL-1.1), bundled likewise |

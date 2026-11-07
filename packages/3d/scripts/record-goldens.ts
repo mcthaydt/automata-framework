@@ -1,4 +1,4 @@
-// Records AF's goldens from AF's own code: the figure builder's geometry on every golden outfit, its motion
+// Records AF's goldens from AF's own code: the figure geometry on every golden outfit, its motion
 // (locomotion, stands, holds, the hair spring) and the end poses of the reach, look and flinch clips. The tests
 // compare the code against these files; this script is the one place that writes them. A change that moves a
 // golden is re-recorded in a named commit that explains it (the test, `goldens-fresh.test.ts`, fails until then).

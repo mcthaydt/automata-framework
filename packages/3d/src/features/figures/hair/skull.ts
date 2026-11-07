@@ -1,11 +1,7 @@
 // The skull's frame for hair and headwear. A style's head units (heights, angles round the head, sizes of its
-// half-width) are about a rounded box round the head; what fits the head (a scalp, a row's line, a fall's
-// root, a cap's dome) fits the head's own form (garments/head.ts), so a style and a cap hug the round
-// cranium.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/hair.ts at a1f7246 (`HAIR_SEAM`,
-// `CROWN`, `Skull`, `skull`, `onSkull`, `toHead`, `along`, `alignY`, `onHead`, `unitAt`), with AF's strict
-// types; the formulas and their order are the source's. Not taken: `toSkull` (nothing builds with it).
+// half-width) are about a rounded box round the head; what fits the head (a scalp, a row's line, a fall's root, a cap's
+// dome) fits the head's own form (garments/head.ts), so a style and a cap hug the round cranium. Not taken: `toSkull`
+// (nothing builds with it).
 
 import {
   add,

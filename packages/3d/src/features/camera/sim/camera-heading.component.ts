@@ -16,7 +16,7 @@ const fields = {
 } as const
 
 /**
- * The camera's heading as sim state (M3 spec §4.2), on the player: the view it is in, the heading and the stick's
+ * The camera's heading as sim state, on the player: the view it is in, the heading and the stick's
  * view-change latch. A render component, so the renderer reads `view` and `heading` from the rows.
  */
 export const CameraHeading: ComponentDef<typeof fields> = defineComponent('camera-heading', fields)

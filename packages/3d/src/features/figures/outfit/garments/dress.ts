@@ -1,11 +1,7 @@
-// Dresses a body: the garments in order repaint regions and add parts, each worn by its registered kind (the
-// classic set, an extension's wardrobe), then the body is built under them. Every size comes from
-// the measure.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`dress`),
-// with AF's strict types; the order of the garments and of the parts is the source's. Changed: libraries come in
-// as arguments (no library in code); painter materials are swatch variants; the drawn face (`FaceLook`) is not
-// taken; the kinds are told apart by the garment registry, not by a branch for each.
+// Dresses a body: the garments in order repaint regions and add parts, each worn by its registered kind (the classic
+// set, an extension's wardrobe), then the body is built under them. Every size comes from the measure. Changed:
+// libraries come in as arguments (no library in code); painter materials are swatch variants; the drawn face
+// (`FaceLook`) is not taken; the kinds are told apart by the garment registry, not by a branch for each.
 
 import type { Measure } from '../../body/genes.ts'
 import type { Decal, Part } from '../../body/mesh.ts'

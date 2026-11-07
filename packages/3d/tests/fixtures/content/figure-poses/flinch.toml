@@ -1,7 +1,6 @@
-# A fixture pose (M3 spec §4.4.3), for tests and examples; no game's. FigureBuilder's flinch held
-# (mcthaydt/FigureBuilder a1f7246, motion.ts): both forearms up before the face with the elbows down and out, the
+# A fixture pose, for tests and examples; no game's. A flinch held: both forearms up before the face with the elbows down and out, the
 # head ducked and turned away, the hips back. The hands' places are its `[0.06x·k, chinY + 0.1k, 0.21k]` on Wick's
-# body; the pelvis and the right foot are where its flinch puts them on Wick standing still; the chest's turn is
+# body; the pelvis and the right foot are where a flinch puts them on Wick standing still; the chest's turn is
 # its `euler(−0.14, 0.12, 0)` in degrees; the neck's and head's are as look-out.toml says.
 
 about = "Flinching: the forearms up before the face, the head ducked and turned away, the hips back."

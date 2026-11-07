@@ -14,7 +14,7 @@ import {
 import { registerHairPiece } from '#src/features/figures/registry/hair-piece-registry.ts'
 import { RegistryClash } from '#src/shared/registry/registry-clash.ts'
 
-// FigureBuilder's H3 (hair pieces), H4 (finishes) and H5 (fabrics), as registries a game's extension fills: a name
+// Hair pieces, finishes and fabrics, as registries a game's extension fills: a name
 // taken, by the base set or an earlier registration, is a RegistryClash that names it.
 
 const LOCK = { on: 'head', at: [0, 0.5, 0], r: [1, 0.3, 1] } as const

@@ -1,5 +1,4 @@
-// The Last Light's parse cases (tests/props.test.ts at 92e6704, "GLB reader" and "packed models"), ported onto one
-// of its props, plus the static-only rule AF adds: a skinned or malformed file is ModelInvalid naming the file.
+// The parse cases (the GLB reader and packed models) on one prop, plus the static-only rule AF adds: a skinned or malformed file is ModelInvalid naming the file.
 import { readFileSync } from 'node:fs'
 import { ModelInvalid } from '@automata/framework'
 import { describe, expect, it } from 'vitest'
@@ -34,7 +33,7 @@ function refusal(run: () => unknown): ModelInvalid {
   throw new Error('expected ModelInvalid')
 }
 
-describe('parseGlb (The Last Light)', () => {
+describe('parseGlb', () => {
   it('reads a prop mesh: positions, normals and UVs per vertex, triangles in range, a PNG texture', () => {
     const buffer = bytesOf('nightstand.glb')
     const mesh = parseGlb(buffer, 'nightstand.glb')
@@ -59,7 +58,7 @@ describe('parseGlb (The Last Light)', () => {
   })
 })
 
-describe('parsePack (The Last Light)', () => {
+describe('parsePack', () => {
   it('reads a packed prop: in range, with the GLB bounds, unit normals and a PNG', () => {
     const mesh = parsePack(bytesOf('nightstand.pack'), 'nightstand.bin')
     const vertices = mesh.positions.length / 3

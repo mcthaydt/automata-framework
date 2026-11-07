@@ -1,5 +1,4 @@
-// The look's settings (content-shaped, like EnvironmentBuilder's `paint/library/look.json`, which this takes the
-// view's half of): how small the field is, how many steps light is cut into, the outline's edge, the dither and which
+// The look's settings (content-shaped: the view's half of a game's look): how small the field is, how many steps light is cut into, the outline's edge, the dither and which
 // passes are on. Presentation only: the sim never reads it (law 1). Stars, rain and bloom are the world kit's passes,
 // each with a switch of its own, so they are not named here.
 

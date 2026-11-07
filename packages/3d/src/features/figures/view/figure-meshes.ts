@@ -1,4 +1,4 @@
-// A built figure drawn in `@pixi/3d` (M3 spec §4.4.1 "Drawing"): each rigid part a `Mesh3D` under its joint's
+// A built figure drawn in `@pixi/3d` ("Drawing"): each rigid part a `Mesh3D` under its joint's
 // `Container3D`, each skinned part a `Mesh3D` on the figure re-skinned on the CPU at each pose step, and the neutral
 // face's marks as quads on their bones. The joint containers sit flat under the figure's node and take `fk`'s world
 // matrices (figure space), so they are not nested. One material a material name, owned by this figure: the view

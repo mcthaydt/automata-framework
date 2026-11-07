@@ -21,7 +21,7 @@ describe('a swatch names a DUEL ramp and step', () => {
     expect(swatchSchema.safeParse({ colour: 22 }).success).toBe(false)
     expect(swatchSchema.safeParse({ ramp: 'skin' }).success).toBe(false)
   })
-  it("refuses FigureBuilder's painter fields", () => {
+  it("refuses a painter's fields", () => {
     expect(swatchSchema.safeParse({ ramp: 'skin', step: 3, paint: ['#ffffff'] }).success).toBe(false)
   })
 })

@@ -1,4 +1,4 @@
-// A room's light as content (M3 spec §4.3: `SceneLighting { lamps, ambient }`; 2026-10-16 spec §4.4: occlusion
+// A room's light as content (`SceneLighting { lamps, ambient }`; occlusion
 // takes boxes and planes from the room's content). Presentation only: the sim never reads it (law 1); it switches a
 // lamp through a render-row field instead (`Pixi3dOptions.lamps`).
 import { z } from 'zod'

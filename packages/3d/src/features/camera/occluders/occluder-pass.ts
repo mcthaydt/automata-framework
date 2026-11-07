@@ -1,4 +1,4 @@
-// The occluder rule per frame (M3 spec §4.2), apart from Pixi so it is plain state to test. Each frame it takes the
+// The occluder rule per frame, apart from Pixi so it is plain state to test. Each frame it takes the
 // camera's eye and look point and the player's feet and head, and says for each registered wall and prop whether the
 // rule takes it out of the way and how far its fade has got.
 //
@@ -10,7 +10,7 @@
 // it is not.
 //
 // Every change is one 150 ms fade, linear in a 0-to-1 progress, both ways: opacity is `1 − progress × (1 − floor)`,
-// with floor 0 for `cut` and 0.25 for `fade`. Reduced motion jumps (§8), and so does the first step and the first
+// with floor 0 for `cut` and 0.25 for `fade`. Reduced motion jumps, and so does the first step and the first
 // after `reset`: nothing was drawn to fade from, so a wall must not flash in front of the player. A `cut` wall's trim shows while the wall is
 // not fully shown, so the room's outline reads.
 
@@ -18,7 +18,7 @@ import type { Occlude } from '../../../shared/level/occlude.ts'
 import type { Vec3 } from '../camera-pose.ts'
 import { type Box3, lineCrossesWall, segmentHitsBox, type WallSpan, wallFacesAway } from './occluder-rule.ts'
 
-/** A faded mesh's opacity (§4.2), as the editor's `fade` surface. */
+/** A faded mesh's opacity, as the editor's `fade` surface. */
 export const FADED_OPACITY = 0.25
 /** How long a cut or a fade takes, either way. */
 export const OCCLUDER_FADE_SECONDS = 0.15

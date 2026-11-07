@@ -1,14 +1,21 @@
 // base-3d's sim test harness: the game's own sim spec, a sim made the way the game makes it, and one tick's commands
 // from the player. Test code (`testing/` is exempt from `pnpm style`).
+
+import { content } from 'virtual:automata/content'
 import { CameraHeading, cameraHeadingPlugin } from '@automata/3d/sim'
 import { type Command, createSim, type Sim } from '@automata/sim'
-import { Hero } from '../components.ts'
-import { ROOM } from '../content/room.ts'
-import { base3dPlugin, base3dSim, spawnArea } from '../state/index.ts'
-import { type Area, compileArea } from '../systems/index.ts'
+import { base3dSim } from '../app/base-sim.ts'
+import { base3dPlugin, spawnArea } from '../app/base3d.plugin.ts'
+import { ROOM } from '../features/room/room.ts'
+import { type Area, compileArea } from '../shared/area.ts'
+import { Hero } from '../shared/hero.component.ts'
+import { tuningOf } from '../shared/tuning.ts'
+
+/** The game's tunables, from its compiled `content/tuning.toml`. */
+export const TUNING = tuningOf(content)
 
 /** The game's own sim spec, on the room, as `main.ts` makes it. */
-export const BASE3D_SIM = base3dSim(compileArea(ROOM))
+export const BASE3D_SIM = base3dSim(compileArea(ROOM, TUNING))
 
 /**
  * The game's sim spec as `defineGame` makes it: `BASE3D_SIM`'s plugin, then render3dExtension's heading plugin (RT.EXT1).
@@ -68,13 +75,16 @@ export const RIGHT = { x: 127, y: 0 }
 
 /** One open room, no walls, a view with `yawDeg` and `rotate`. */
 export const openArea = (yawDeg = 0, rotate = true): Area =>
-  compileArea({
-    id: 'test',
-    spawn: { x: 0, z: 0 },
-    views: [{ id: 'open', yawDeg, rotate }],
-    rooms: [{ view: 'open', min: [-50, -50], max: [50, 50] }],
-    walls: [],
-    pits: [],
-    embers: [],
-    goal: { x: 40, z: 40 },
-  })
+  compileArea(
+    {
+      id: 'test',
+      spawn: { x: 0, z: 0 },
+      views: [{ id: 'open', yawDeg, rotate }],
+      rooms: [{ view: 'open', min: [-50, -50], max: [50, 50] }],
+      walls: [],
+      pits: [],
+      embers: [],
+      goal: { x: 40, z: 40 },
+    },
+    TUNING,
+  )

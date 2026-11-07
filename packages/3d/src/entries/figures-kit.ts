@@ -1,12 +1,11 @@
 // @automata/3d/figures-kit: what an extension author needs to write a wardrobe, a set of garments the figure
-// builder dresses a body in. The classic garments are core; a wardrobe (examples/3d/wardrobe is the worked one)
-// registers its own kinds with `registerGarment`, builds each into the dressed body from a `Wearing` into a
-// `Fit`, and may tune the outfit with `registerOutfitHooks`.
-//
-// This is the whole surface a garment or a hair piece builder reaches into: the registries and their contract types, the
-// body and rig a garment is sized from, the mesh parts and skinning it builds, the head and hair it must clear, the
-// skull a hair piece is laid on, and the maths. Nothing here is a second copy of a core contract; each name is the core
-// one. @automata/character-kit (the clothes and hairstyles core left out) is built on it.
+// dresses a body in. The classic garments are core; a wardrobe (examples/3d/wardrobe is the worked one) registers its
+// own kinds with `registerGarment`, builds each into the dressed body from a `Wearing` into a `Fit`, and may tune the
+// outfit with `registerOutfitHooks`. This is the whole surface a garment or a hair piece builder reaches into: the
+// registries and their contract types, the body and rig a garment is sized from, the mesh parts and skinning it builds,
+// the head and hair it must clear, the skull a hair piece is laid on, and the maths. Nothing here is a second copy of a
+// core contract; each name is the core one. @automata/character-kit (the clothes and hairstyles core left out) is built
+// on it.
 
 // The classic set registers first, because garments are told apart in registration order: loading the kit loads it, so a
 // wardrobe's kinds always come after.

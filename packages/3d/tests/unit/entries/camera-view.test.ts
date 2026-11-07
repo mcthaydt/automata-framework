@@ -23,7 +23,7 @@ function bareImports(file: string, seen = new Set<string>()): Set<string> {
 }
 
 describe('./camera-view', () => {
-  it('is the 24 mm lens: 53.13° vertical, 2·atan(12 / mm) (The Last Light’s convention)', () => {
+  it('is the 24 mm lens: 53.13° vertical, 2·atan(12 / mm)', () => {
     expect(entry.LENS_MM).toBe(24)
     expect(entry.fovOf(24)).toBeCloseTo(53.1301, 4)
     expect(entry.fovOf(50)).toBeCloseTo(27.0, 1)

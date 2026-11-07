@@ -1,6 +1,4 @@
 // Colour distance, for the lamp kit: how far a lamp's own colour may be from its kind's.
-//
-// Rewritten from FigureBuilder (mcthaydt/FigureBuilder) `oklab` at a1f7246: sRGB to OKLab (Björn Ottosson's matrices).
 
 /** `0xRRGGBB` as OKLab `[L, a, b]`. */
 export function oklab(rgb: number): [number, number, number] {

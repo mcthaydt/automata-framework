@@ -1,6 +1,5 @@
-// `View3D`'s linear fog (M3 spec §4.1 `Pixi3dOptions.fog`, §4.3). The Last Light (`mcthaydt/PixiJS3D_Experiment_001`,
-// 92e6704) `src/render/fog.ts` `hazeFor` set the same linear fog from its look constants; here it comes from the
-// game's options or its lighting content. Its particle mist is not extracted: spec §4.3 keeps it only if S7 measures
+// `View3D`'s linear fog (`Pixi3dOptions.fog`). A look's constants once set the same linear fog; here it comes from the
+// game's options or its lighting content. Its particle mist is not extracted: it stays out unless a measurement shows
 // it within budget, and S7 has not.
 import type { Fog } from '@pixi/3d'
 import { type SceneFog, sceneFogSchema } from './scene-lighting.schema.ts'
@@ -27,7 +26,7 @@ const linearChannel = (channel: number): number => {
 
 /**
  * The sky behind fog: the colour fully fogged pixels reach on screen, so a wall fades into the sky with no edge
- * (spec §4.2, S7-Q10). In `@pixi/3d` 0.1.0-beta.2 that colour is the fog colour's linear value, drawn as if it were
+ *. In `@pixi/3d` 0.1.0-beta.2 that colour is the fog colour's linear value, drawn as if it were
  * sRGB (0x8b9bb4 draws as 0x425474), while a background colour draws as given, so the sky takes the decoded value.
  * `lighting.parity.test.ts` checks the two meet; if the beta changes its fog mix, that test fails here first.
  */

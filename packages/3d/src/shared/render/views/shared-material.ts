@@ -1,4 +1,4 @@
-// Materials shared between meshes (M3.4c, review of #249): a box view's boxes share one, and every mesh of a loaded
+// Materials shared between meshes (review of #249): a box view's boxes share one, and every mesh of a loaded
 // model shares the model's. The occluder rule fades a prop through its material's alpha, so fading a mesh whose
 // material is shared would fade every other mesh with it. A view that shares a material registers how to make a
 // fresh one like it, and the rule gives a faded prop that copy.

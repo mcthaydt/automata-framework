@@ -27,7 +27,7 @@ const SECTIONS = [
   { title: 'The environment source', key: 'environment' },
 ] as const
 
-const WAYS = /^(ported|rewritten: .+|left out: .+)$/
+const WAYS = /^(ported(: .+)?|rewritten: .+|left out: .+)$/
 
 /** The text of the `## title` section, up to the next `## ` heading, or undefined when there is none. */
 function sectionOf(md: string, title: string): string | undefined {
@@ -39,11 +39,14 @@ function sectionOf(md: string, title: string): string | undefined {
   return (end < 0 ? rest : rest.slice(0, end)).join('\n')
 }
 
-/** `| \`source\` | af | how |` rows: the source path, the AF paths it names (backticked) and how it was taken. */
+/**
+ * `| \`source\` | af | how |` rows: the source path, the AF paths it names (backticked) and how it was taken. The
+ * source cell may go on after the path with a note on which names of the file the row covers.
+ */
 function rowsOf(text: string): { source: string; af: string[]; how: string }[] {
   return text.split('\n').flatMap((line) => {
     const cells = line.split('|').map((cell) => cell.trim())
-    const source = /^`([^`]+)`$/.exec(cells[1] ?? '')?.[1]
+    const source = /^`([^`]+)`(?:\s.*)?$/.exec(cells[1] ?? '')?.[1]
     if (source === undefined || cells.length < 5) return []
     const af = [...(cells[2] ?? '').matchAll(/`([^`]+)`/g)].map((m) => m[1] ?? '')
     return [{ source, af, how: cells[3] ?? '' }]

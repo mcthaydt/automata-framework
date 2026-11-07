@@ -2,8 +2,8 @@ import type { Clock, RenderTarget, TimeoutHandle } from '@automata/framework'
 
 /**
  * How long the renderer waits for the browser to give a lost WebGL context back before it shows the "picture
- * stopped" panel (M3 spec §5). Browsers that restore do so within a second or two; the spec names no figure, so
- * this is the agent's default (M3.4a).
+ * stopped" panel. Browsers that restore do so within a second or two; the spec names no figure, so
+ * this is the agent's default.
  */
 export const CONTEXT_RESTORE_MS = 5000
 
@@ -26,7 +26,7 @@ export interface ContextWatch {
 }
 
 /**
- * Watches the renderer's graphics context (M3 spec §5). A lost WebGL context is published as `render.context.lost`
+ * Watches the renderer's graphics context. A lost WebGL context is published as `render.context.lost`
  * and nothing is drawn; when the browser gives it back within `CONTEXT_RESTORE_MS`, Pixi re-creates its GPU
  * resources and `@pixi/3d`'s meshes upload again on the next draw (renderer.parity.test.ts shows the frame after a
  * restore equals the frame before the loss), and `render.context.restored` is published. When it does not, or when

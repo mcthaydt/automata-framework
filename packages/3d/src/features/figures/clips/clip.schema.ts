@@ -1,6 +1,6 @@
-// The clip content kind (M3 spec §4.4.4 `FigureClipDef`, schema `figure-clip`): a time-ordered list of keyed
+// The clip content kind (`FigureClipDef`, schema `figure-clip`): a time-ordered list of keyed
 // poses. Keys hold handles, not joint angles, so sampling interpolates targets and the solver runs on the
-// result. Its id is its file's name. The compile refuses (§6): keys out of order, not starting at 0 or not
+// result. Its id is its file's name. The compile refuses: keys out of order, not starting at 0 or not
 // ending at `length`, an unknown mask group, a marker or cue outside [0, length], a key naming a missing pose
 // (a `contentRef`, so the compiler gives its file, line and column), and an inline pose failing the pose checks.
 

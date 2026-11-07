@@ -1,4 +1,4 @@
-// `af-sector/1` to `/2` (spec 9). Lossless: every member of the old file is in the new one, a number for a plane
+// `af-sector/1` to `/2`. Lossless: every member of the old file is in the new one, a number for a plane
 // becomes `{ z }`, and a wall's `texture` becomes its `surface`. The pit that base-3d's room used to mean by a floor
 // below 0 is not guessed here; the game's own file says `pit: true`.
 import type { AfCorner, AfSector, AfSectorEntry } from './af-sector.schema.ts'

@@ -18,7 +18,7 @@ const wick = skeletonFromGenes(measure(WICK_SLIDERS).genes)
 const keeper = skeletonFromGenes(measure(KEEPER_SLIDERS).genes)
 const origin: V3 = [0, 0, 0]
 
-describe('the shared skeleton (FigureBuilder rig.ts at a1f7246)', () => {
+describe('the shared skeleton', () => {
   it('has 27 joints: 20 body joints, a socket per hand, 3 hair pivots and 2 hem pivots, parents first', () => {
     expect(JOINTS).toHaveLength(27)
     for (const [index, parent] of PARENTS.entries()) expect(parent).toBeLessThan(index)
@@ -29,7 +29,7 @@ describe('the shared skeleton (FigureBuilder rig.ts at a1f7246)', () => {
     for (const hair of ['hair.back', 'hair.L', 'hair.R'] as const) expect(PARENTS[J[hair]]).toBe(J.head)
   })
   it("places the rest joints as the source does (Wick's and the keeper's numbers)", () => {
-    // From FigureBuilder's skeleton() at a1f7246, run on Node 24.
+    // From skeleton(), run on Node 24.
     expect(wick.thigh).toBe(0.26109244444444446)
     expect(wick.upperArm).toBe(0.20924399999999999)
     expect(wick.rest[J.head]).toEqual([0, 1.009511111111111, 0.02592592592592593])
@@ -59,7 +59,7 @@ function reachLeft(s: Skeleton, target: V3, pole: V3 = [0.5, -0.5, -0.5]): { han
   return { hand: apply(at(after, J['hand.L']), origin), shoulder: apply(at(world, J['upperArm.L']), origin) }
 }
 
-describe('two-bone IK (ported from The Last Light tests/procedural-figure.test.ts at 92e6704)', () => {
+describe('two-bone IK', () => {
   it('puts the end on any reachable target, for both fixture figures', () => {
     let reachable = 0
     for (const s of [wick, keeper]) {
@@ -95,7 +95,7 @@ describe('two-bone IK (ported from The Last Light tests/procedural-figure.test.t
     }
   })
   it("solves to the source's joint rotations", () => {
-    // From FigureBuilder's twoBoneIK at a1f7246 on Wick, target [0.2, 0.7, 0.3], pole [0.5, -0.5, -0.5].
+    // From twoBoneIK on Wick, target [0.2, 0.7, 0.3], pole [0.5, -0.5, -0.5].
     const pose = restPose()
     twoBoneIK(
       wick,

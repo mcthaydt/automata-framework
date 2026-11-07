@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { blendKeyPoses } from '#src/features/figures/clips/blend-key-poses.ts'
 import type { FigureClipDef } from '#src/features/figures/clips/clip.schema.ts'
 import {
   addTurns,
@@ -7,7 +8,6 @@ import {
   mergeLayer,
   rampWeight,
 } from '#src/features/figures/clips/layers.ts'
-import { sample } from '#src/features/figures/clips/sample.ts'
 import { blend } from '#src/features/figures/motion/blend.ts'
 import type { PoseDef } from '#src/features/figures/motion/pose.schema.ts'
 import { eulerDegrees, eulerOf } from '#src/features/figures/motion/rotation.ts'
@@ -55,13 +55,13 @@ describe('clipLayer', () => {
     expect(layer.weight).toBe(1)
     expect(layer.additive).toBe(false)
     // The chest is outside the mask.
-    const sampled = sample(CLIP, 0.25, POSES)
+    const sampled = blendKeyPoses(CLIP, 0.25, POSES)
     expect(layer.pose).toEqual({ effectors: { handR: sampled.effectors.handR }, poles: {}, fk: {} })
   })
   it('samples at the pose step when not smooth', () => {
     const stepped = clipLayer(CLIP, 0.2, { ...options, smooth: false, end: 0.4 }) as Layer
     // 0.2 s at 12 a second is in the step that starts at 2/12 s.
-    expect(stepped.pose.effectors.handR).toEqual(sample(CLIP, 2 / 12, POSES).effectors.handR)
+    expect(stepped.pose.effectors.handR).toEqual(blendKeyPoses(CLIP, 2 / 12, POSES).effectors.handR)
   })
   it('holds a once clip on its last pose while it fades, then is gone', () => {
     const fading = clipLayer(CLIP, 0.5, { ...options, end: 0.4 }) as Layer

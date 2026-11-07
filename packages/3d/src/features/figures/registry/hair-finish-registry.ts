@@ -1,11 +1,8 @@
 // H4, the hair finishes: how a style's hair is painted. In AF's 3D look a finish only says whether it is matte (no
 // glint, and its lit tone a step up too, so a plait's beads or a loc's edge read on the dark side as well); the
-// painter's thresholds stay in FigureBuilder (M3 spec section 4.4.1). Core has the two glossy finishes; the matte ones
+// painter's thresholds are not part of core. Core has the two glossy finishes; the matte ones
 // (coil, braid, loc, curl) and the gleaming `smooth` come with the character kit, which registers them, and a style
 // names one by its `finish`.
-//
-// Ported from FigureBuilder (mcthaydt/FigureBuilder) src/features/hair/hair.ts at 025ffb4 (`registerFinish`, `FINISH`'s
-// matteness).
 
 import { RegistryClash } from '../../../shared/registry/registry-clash.ts'
 

@@ -1,5 +1,5 @@
 // The outline: a pixel whose depth jumps by more than `edge` of its own depth over the next pixel to the right or
-// below is drawn in DUEL's outline colour (ramp 6, step 0), never shaded (EnvironmentBuilder's outline switch, off by
+// below is drawn in DUEL's outline colour (ramp 6, step 0), never shaded (off by
 // default). Depth edges only, so a texture's own lines are left alone. A `PostEffect` in GLSL + WGSL.
 
 import { DUEL_RAMPS } from '@automata/content/palette'

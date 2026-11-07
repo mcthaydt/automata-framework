@@ -1,6 +1,4 @@
 // Smooth deterministic value noise, for lumpy foliage and rocks and for a lamp's flicker.
-//
-// Rewritten from FigureBuilder (mcthaydt/FigureBuilder) `noise3` at a1f7246.
 
 /** One lattice point's value in [0, 1): an integer hash. */
 function lattice(x: number, y: number, z: number): number {

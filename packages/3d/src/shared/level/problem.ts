@@ -1,4 +1,4 @@
-// What the level, the world builder and the checks report (spec 9): a place in the file, a stable code and a sentence,
+// What the level, the world builder and the checks report: a place in the file, a stable code and a sentence,
 // plus the room, prop or lamp it is about and, for a missing thing, its name. Nothing that reads a level throws on one
 // it cannot build; it hands these back, so a half-made level still draws and `automata check` can name each fault.
 
