@@ -1406,11 +1406,11 @@ before it. The footer's contact address stays as it is until the Owner decides (
 - Create: `site/tests/e2e/visitor.test.ts`
 - Modify: `site/playwright.config.ts` (`defineJourneys`; phone and desktop in Chromium and WebKit)
 
-- [ ] **Step 1:** Write spec 10.4's journey (land, play Emberwick inline, Start, copy the command, Editor, Try,
+- [x] **Step 1:** Write spec 10.4's journey (land, play Emberwick inline, Start, copy the command, Editor, Try,
   make a platformer level, paint, reload, still there). Run in Chromium → pass. WebKit: the Owner's.
-- [ ] **Step 2: Commit.** `test(site): a visitor's journey from the home page to their first level`
-- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) finding 2):** the visitor's journey runs at a phone size too and plays the Emberwick embed upright.
-- [ ] **Step V (added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md) section 4):** rerun the visual audit's scripts on the rebuilt site; every finding it measures reads 0 or is explained in the PR; rerun them on the editor's screens after phase 12.
+- [x] **Step 2: Commit.** `test(site): a visitor's journey from the home page to their first level`
+- [x] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) finding 2):** the visitor's journey runs at a phone size too and plays the Emberwick embed upright.
+- [x] **Step V (added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md) section 4):** rerun the visual audit's scripts on the rebuilt site; every finding it measures reads 0 or is explained in the PR; rerun them on the editor's screens after phase 12.
 
 ### Task 19.2: Links, privacy and the closed beta
 
@@ -2754,3 +2754,13 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   publish by hand); instead both steps were run locally from the parsed YAML: with no token the notice and
   `present=false`; with a fake token against a local bare repository the copy pushed one commit and removed a stale
   file. The workflow invariants pass (the token stays in its two steps' env; the job cannot start from a pull request).
+  *19.1 (session 23):* `site/tests/e2e/visitor.e2e.ts` (the site's suite matches `*.e2e.ts`, and its config already
+  runs Chromium and WebKit, so no `defineJourneys`): on a desktop and on an upright iPhone 13 a visitor plays Emberwick
+  from the poster (keys, then the on-screen pad), copies Start's first command (the clipboard holds it), opens Try the
+  editor, makes a platformer level, paints a wall, saves, reloads, and finds the same picture. Two bugs it found, both
+  fixed: the try-it editor's canvas said "Preview unavailable" under the site's CSP (the editor's entry did not import
+  `@mcthaydt/automata/no-eval` first; it does now), and on an upright phone the demo's 16 by 10 frame was, to the game
+  inside, a phone held sideways, so it asked for fullscreen before it would play (18.2's Step G was ticked on the
+  controls alone). A playing demo now stands 3 by 4 on an upright phone; the poster keeps the wide frame. Chromium: the
+  journey 6 of 6 over three repeats, the whole site suite 345 passed. WebKit: not installed here, so not run. Step V:
+  the audit's section 7 (0 sideways, 0 small text, 18 small targets, all Start's explained checkboxes).

@@ -133,3 +133,19 @@ sizes (`tests/e2e/site.e2e.ts`, "big enough to tap"), with the touch hint (L1) a
 H4 is closed: an API package page is one and a half phone screens with its groups folded (it was too tall to capture).
 M1 is closed for links and buttons. Left: M2's code-block wrapping was checked by eye in section 5 and has no
 browser rule yet.
+
+## 7. Rerun for 19.1's Step V (session 23, 2026-11-07)
+
+The same `run.cjs` against the built site (`scripts/serve-static.ts build 4417`), over the 35 pages of its sitemap and
+the 404 (216 page and size pairs), and then over the try-it editor (`/editor/app/`, six sizes).
+
+| Check | Section 6 | Now |
+|---|---|---|
+| Sideways scroll | 0 | 0 (the editor 0) |
+| Page errors | the 404 only | the 404 only (expected); the editor none |
+| Text under 12 px | 0 | 0 (the editor 0) |
+| Tap targets under 44 px | 30, then fixed | 18: Start's three checkboxes (20 px) at six sizes, explained in section 6 |
+
+The editor's Home has four controls 32 px tall (New level twice, the two "where" options) at the two desktop sizes
+only: there the pointer is a mouse, and the kit draws its compact size for a fine pointer; on every touch size they
+are 44 px or more.
