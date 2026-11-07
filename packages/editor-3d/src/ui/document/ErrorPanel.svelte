@@ -43,7 +43,7 @@ async function copy(details: string): Promise<void> {
   <Dialog open={true} title={panel.title} width="wide" onclose={() => onclose()}>
     <div class="body">
       {#if panel.rows.length > 0}
-        <ul class="problems" data-scroll-region>
+        <ul class="problems" aria-label="Problems">
           {#each panel.rows as row, index (index)}
             <li><code class="path">{row.path}</code> <span class="message">{row.message}</span></li>
           {/each}
@@ -70,16 +70,14 @@ async function copy(details: string): Promise<void> {
     gap: var(--space-3);
     min-width: 0;
   }
-  /* A file can have hundreds of problems: the list scrolls inside the panel, never the page. */
+  /* A file can have hundreds of problems: the dialog's body is the one scroll region, so the list is plain and the
+     panel scrolls inside the dialog, never the page. */
   .problems {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
-    max-height: 40vh;
     margin: 0;
     padding: var(--space-2) var(--space-3);
-    overflow: auto;
-    overscroll-behavior: contain;
     border: 1px solid var(--color-border-default);
     border-radius: var(--radius-md);
     background: var(--color-bg-field);

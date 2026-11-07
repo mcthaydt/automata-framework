@@ -128,7 +128,7 @@ tooling/codemods/src/move-modules-cli.ts --map <map> [--dry-run]`; the test move
 - Consumes: nothing.
 - Produces: `pnpm check` and the hosted core job run the 3D unit tests (every later task's gate).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 it('check runs every unit test', () => {
@@ -144,12 +144,12 @@ it('ci:local runs the 3D browser suites and journeys', () => {
 })
 ```
 
-- [ ] **Step 2: Run, expect FAIL**: `pnpm --filter @automata/repo-hygiene exec vitest run
+- [x] **Step 2: Run, expect FAIL**: `pnpm --filter @automata/repo-hygiene exec vitest run
   tests/unit/gate-scripts.test.ts` → the three fail on today's scripts.
-- [ ] **Step 3: Change the scripts and `ci.yml`.**
-- [ ] **Step 4: Run, expect PASS**; then `pnpm check` passes with the 3D unit tests (record the count; the audit had
+- [x] **Step 3: Change the scripts and `ci.yml`.**
+- [x] **Step 4: Run, expect PASS**; then `pnpm check` passes with the 3D unit tests (record the count; the audit had
   3,836).
-- [ ] **Step 5: Commit** `ci(gate): every unit test in pnpm check and the hosted core job`
+- [x] **Step 5: Commit** `ci(gate): every unit test in pnpm check and the hosted core job`
 
 ### Task 1.2: Three 3D jobs and #425's timeout fix (spec 5)
 
@@ -163,7 +163,7 @@ it('ci:local runs the 3D browser suites and journeys', () => {
 - Consumes: task 1.1 (the hosted core job runs the 3D unit tests, so `3d.yml` need not).
 - Produces: the job names `3D - journeys`, `3D - parity (chromium, webkit, firefox)`, `base-3d through game-ci`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 it('the 3D workflow has three jobs and runs on vendor changes', () => {
@@ -181,12 +181,12 @@ it('browser runs use two at a time and a 90 s hook timeout', () => {
 })
 ```
 
-- [ ] **Step 2: Run, expect FAIL** (four jobs; concurrency 3).
-- [ ] **Step 3: Take #425's hunks** (`git diff origin/claude/project-thread-xe0752...origin/claude/project-thread-ajhkmg
+- [x] **Step 2: Run, expect FAIL** (four jobs; concurrency 3).
+- [x] **Step 3: Take #425's hunks** (`git diff origin/claude/project-thread-xe0752...origin/claude/project-thread-ajhkmg
   -- package.json tooling/repo-hygiene/tests/unit/gate-scripts.test.ts`), then edit `3d.yml`.
-- [ ] **Step 4: Run, expect PASS**; `pnpm lint:actions` if Docker runs, else a YAML parse and "actionlint: the
+- [x] **Step 4: Run, expect PASS**; `pnpm lint:actions` if Docker runs, else a YAML parse and "actionlint: the
   Owner's" in the log.
-- [ ] **Step 5: Commit** `ci(3d): three jobs, browser runs at concurrency 2`; then comment on #425 that the fix is
+- [x] **Step 5: Commit** `ci(3d): three jobs, browser runs at concurrency 2`; then comment on #425 that the fix is
   carried here and close it.
 
 ### Task 1.3: One scroll region per dialog (the seven `open-flows` failures)
@@ -200,7 +200,7 @@ it('browser runs use two at a time and a 90 s hook timeout', () => {
 **Interfaces:**
 - Produces: `ErrorPanel` prop `inDialog?: boolean` (default `false`).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 it('declares no scroll region of its own inside a dialog', () => {
@@ -209,12 +209,12 @@ it('declares no scroll region of its own inside a dialog', () => {
 })
 ```
 
-- [ ] **Step 2: Run, expect FAIL** (2 regions).
-- [ ] **Step 3: Add `inDialog`; the dialog caller passes it; the layout test reads the list by
+- [x] **Step 2: Run, expect FAIL** (2 regions).
+- [x] **Step 3: Add `inDialog`; the dialog caller passes it; the layout test reads the list by
   `getByRole('list', { name: /problems/i })`.**
-- [ ] **Step 4: Run** `npx vitest run --project 'layout (chromium)' src/ui/document/open-flows.layout.test.ts` in
+- [x] **Step 4: Run** `npx vitest run --project 'layout (chromium)' src/ui/document/open-flows.layout.test.ts` in
   `packages/editor-3d` → 7 pass, and the DOM test passes.
-- [ ] **Step 5: Commit** `fix(editor-3d): one scroll region in the open-problems dialog`
+- [x] **Step 5: Commit** `fix(editor-3d): one scroll region in the open-problems dialog`
 
 ### Task 1.4: The plan clear of the sheet (the Pencil failure)
 
@@ -1540,3 +1540,6 @@ reads only this plan and the spec. DUEL's author and licence stay the Owner's op
 ## Execution log
 
 (One two-line entry per session: what was done, where to resume.)
+- Task 1.1: done (7eb54b3b). pnpm check green with every unit test.
+- Task 1.2: done (66b8ac65). actionlint not run here (no Docker daemon): the Owner's. #425 comment and close pending the push.
+- Task 1.3: done. Ruling: no `inDialog` prop — ErrorPanel renders its own Dialog, so the dialog body is the one scroll region and the problems list is a plain labelled list (`aria-label=Problems`); the layout test reads it by that label — cost if wrong: a caller wanting a standalone panel adds the prop. open-flows 32 pass in Chromium.

@@ -106,11 +106,15 @@ describe.each(SIZES)('3D open flows at $name ($width x $height)', (size) => {
       48,
     )
     if (size.width >= 700) expect(panel.getBoundingClientRect().width, 'the wide dialog').toBeGreaterThan(600)
-    const rows = panel.querySelector<HTMLElement>('[data-scroll-region]') as HTMLElement
+    // The dialog's body is the one scroll region; the problems are a labelled list inside it.
+    const regions = panel.querySelectorAll<HTMLElement>('[data-scroll-region]')
+    expect(regions.length, 'one scroll region in the dialog').toBe(1)
+    const region = regions[0] as HTMLElement
+    const rows = panel.querySelector('ul[aria-label="Problems"]') as HTMLElement
     expect(rows.querySelectorAll('li').length).toBe(40)
-    expect(getComputedStyle(rows).overflowY).toBe('auto')
-    expect(rows.scrollHeight, 'the list scrolls inside the panel').toBeGreaterThan(rows.clientHeight)
-    expect(rows.scrollWidth, 'no row runs off sideways').toBeLessThanOrEqual(rows.clientWidth)
+    expect(getComputedStyle(region).overflowY).toBe('auto')
+    expect(region.scrollHeight, 'the problems scroll inside the panel').toBeGreaterThan(region.clientHeight)
+    expect(region.scrollWidth, 'no row runs off sideways').toBeLessThanOrEqual(region.clientWidth)
     expect(document.documentElement.scrollTop).toBe(0)
     await page.screenshot({ path: `.vitest/shots/ed3d-open-failed-${size.name}.png` })
   })

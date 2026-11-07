@@ -53,6 +53,15 @@ describe('ErrorPanel', () => {
     expect(dialog).toHaveTextContent('Nothing was written')
   })
 
+  it('declares one scroll region in the dialog, however many problems there are', () => {
+    // The layout check reads `[data-scroll-region]` to find what scrolls: a list with a region of its own beside the
+    // dialog's would be a second, and the open-flows layout test would pick the wrong one.
+    const forty = Array.from({ length: 40 }, (_, n) => ({ path: ['sectors', n, 'floor'], message: 'wrong' }))
+    mount({ ...invalid, issues: forty } as PanelOutcome)
+    expect(document.querySelectorAll('[role=dialog] [data-scroll-region]')).toHaveLength(1)
+    expect(within(screen.getByRole('dialog')).getByRole('list', { name: /problems/i })).toBeTruthy()
+  })
+
   it('names the installed profiles for a file none of them reads', () => {
     mount({
       status: 'unrecognised',
