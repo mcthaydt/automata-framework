@@ -36,17 +36,10 @@ Opens the level editor on the game in <folder> (default: this folder) until you 
 Only this computer can open it, unless you add --lan: then a tablet on your network can too, and a token is needed
 (one is made for you if you give none). Open the address it prints, with the token in it.
 The editor saves to the files listed in content/editors.toml, and it will not overwrite a file that changed while
-you were editing. Without content/editors.toml, it opens only level files (*.af2d.json).
+you were editing. Without content/editors.toml, it opens only level files (*.af2d.json and *.af-sector.json).
 The Tuner shows your game beside its settings: start it with pnpm dev, and give --game-url if it is not on
 http://localhost:5173.
 `
-
-/** What the first line calls each app ("Opened My game in the level editor."): words, not the flag's value. */
-const APP_WORDS: Readonly<Record<EditorApp, string>> = {
-  '2d': 'the level editor',
-  '3d': 'the 3D editor',
-  suite: 'the editors',
-}
 
 /** Where each editor's build is, from the repository root, and the package that builds it. */
 const BUILDS: Readonly<Record<EditorApp, { readonly folder: string; readonly pkg: string }>> = {
@@ -118,7 +111,7 @@ export async function editorCommand(
     return 2
   }
   const query = secret === undefined ? '' : `/?token=${secret}`
-  io.stdout(`Opened ${gameName(root)} in ${APP_WORDS[app]}.\n  This computer: ${running.url}${query}\n`)
+  io.stdout(`Opened ${gameName(root)}.\n  This computer: ${running.url}${query}\n`)
   if (lan)
     for (const address of deps.lanAddresses())
       io.stdout(`  On the network: http://${address}:${running.port}${query}\n`)

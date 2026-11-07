@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import { type EditorCommandDeps, editorCommand, liveEditorDeps } from '#src/features/editor/editor-command.ts'
 import type { EditorServerOptions } from '#src/features/editor/serve-editor.ts'
@@ -46,13 +49,28 @@ describe('editorCommand', () => {
     expect(closed).toHaveBeenCalled()
   })
 
-  it('says, in words, which game it opened in which editor', async () => {
+  it('names the game by its title on the first line, whichever editor opens', async () => {
     const { deps, io, out } = setup({ cwd: '/home/ada/my-game' })
     await editorCommand([], io, deps)
-    expect(out[0]).toMatch(/^Opened My game in the level editor\.\n {2}This computer: http/)
+    expect(out[0]).toMatch(/^Opened My game\.\n {2}This computer: http/)
     const suite = setup()
     await editorCommand(['../emberwick', '--app', 'suite'], suite.io, suite.deps)
-    expect(suite.out[0]).toMatch(/^Opened Emberwick in the editors\./)
+    expect(suite.out[0]).toMatch(/^Opened Emberwick\.\n/)
+  })
+
+  it('names a game by the title in its package.json, as the editor shows it', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'af-editor-title-'))
+    try {
+      writeFileSync(
+        join(dir, 'package.json'),
+        JSON.stringify({ name: 'base-3d', automata: { title: 'Ember Hall' } }),
+      )
+      const { deps, io, out } = setup()
+      await editorCommand([dir], io, deps)
+      expect(out[0]).toMatch(/^Opened Ember Hall\.\n/)
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 
   it('serves the app and the folder it was told', async () => {

@@ -2,7 +2,7 @@
 // `content/editors.toml` the editor list decides (a file is written only through a row, never the list, `.git` or a
 // gate's records; a file that is read only is still readable, so the editor can show it, and the list itself is always
 // readable, so the suite can show its rules or its problem); without one, only level files
-// (`*.af2d.json` outside the folders a build or a tool owns) are readable and writable. Paths outside the checkout are never
+// (`*.af2d.json` and `*.af-sector.json` outside the folders a build or a tool owns) are readable and writable. Paths outside the checkout are never
 // reachable.
 import { EDITOR_LIST_PATH, fileAccess, loadEditorList } from '@automata/editor/editor-list'
 
@@ -13,8 +13,8 @@ export interface EditorPolicy {
   canWrite(path: string): boolean
 }
 
-/** The one kind of file an editor reaches when the game has no editor list. */
-const LEVEL_FILE = '.af2d.json'
+/** The kinds of file an editor reaches when the game has no editor list: a 2D level and a 3D room. */
+const LEVEL_FILES = ['.af2d.json', '.af-sector.json'] as const
 
 /** Folders a person's tools own: nothing in them is an editor's to read or write. */
 const OWNED = new Set(['.git', 'node_modules', 'dist', '.vitest', '.claude', '.github'])
@@ -31,7 +31,7 @@ const ownedByTools = (path: string): boolean => path.split('/').some((segment) =
 export function editorPolicy(listText: string | undefined): EditorPolicy {
   if (listText === undefined) {
     const levelFile = (path: string): boolean =>
-      inside(path) && !ownedByTools(path) && path.endsWith(LEVEL_FILE)
+      inside(path) && !ownedByTools(path) && LEVEL_FILES.some((suffix) => path.endsWith(suffix))
     return { canRead: levelFile, canWrite: levelFile }
   }
   const loaded = loadEditorList(listText)
