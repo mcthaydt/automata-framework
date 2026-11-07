@@ -310,7 +310,7 @@ it('reports a bar button another element covers', () => {
 - Produces: `syncFolder(from: string, to: string): Promise<{ written: number; removed: number }>` in
   `packages/content/src/shared/locale/sync-folder.ts`; `compileInFolder` compiles to `${folder}.next-<pid>` then calls it.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 it('an unchanged compile writes nothing', async () => {
@@ -327,9 +327,9 @@ it('the output folder is never empty during a compile', async () => {
 it('removes files a compile no longer makes', async () => { /* drop a message; its file is gone */ })
 ```
 
-- [ ] **Step 2: Run, expect FAIL.** **Step 3: Implement `syncFolder` and use it.** **Step 4: Run, expect PASS**; then
+- [x] **Step 2: Run, expect FAIL.** **Step 3: Implement `syncFolder` and use it.** **Step 4: Run, expect PASS**; then
   base-3d's browser projects three times in a row → no "Could not load src/paraglide".
-- [ ] **Step 5:** changeset `patch` for `@automata/content`. **Commit** `fix(content): compile messages without
+- [x] **Step 5:** changeset `patch` for `@automata/content`. **Commit** `fix(content): compile messages without
   emptying the output folder`
 
 ---
@@ -1552,3 +1552,4 @@ reads only this plan and the spec. DUEL's author and licence stay the Owner's op
 - Task 1.4: done. Ruling: the camera helper is `fitInto(bounds, usable, size)` in plan-viewport.ts and the controller gets `setUsable(Rect|undefined)`, with the kit's `Rect` ({x,y,w,h}) in place of the plan's `fitToRoom(room, {width,height})`/`PlanView` (PlanView is already the controller's hover state) — cost if wrong: a rename. The usable rect is computed by `ui/plan/usable-area.ts` (tool row 56 px, any docked sheet over the canvas bottom) and exposed as `data-usable`. The real cause of the iPad mini failure was a 24 px triangle collapsing on the snap grid / overlapping the hall (the band above the level is under 1 m), so the layout test now zooms out and draws a metre-wide triangle inside `data-usable`. editor-3d Chromium layout+canvas: 203 pass, 0 fail.
 - Task 1.5: done. Rulings: (1) test file is `packages/automata/tests/browser/testing/ui/actions-inside.test.ts` (mirrors src/testing/ui; there is no tests/browser/ui) — cost: none. (2) `findCovered` skips a control behind an open dialog (the topmost dialog is on top; the kit's scrim is a sibling of the dialog, so the page behind is covered on purpose, inert or not) and a control inside a declared scroll region (scrolled out of view is not covered; the region's own checks judge it), and takes an `excused(cover)` callback the contract uses for an ErrorPanel that had to rise — cost if wrong: a bar control hidden behind a non-modal popover is not reported. (3) The new checks found two real bugs, fixed here with the failing suites as their tests: the 2D document bar drew the problems chip over the Characters tab at 900 x 600 (`.switch` min-width:0 let the tabs shrink under the tools; now min-content, the name's track gives way) and the kit's Tabs panel scrolled without declaring `data-scroll-region` (it hid the Studio's steppers and the Definitions button from the check). (4) No Studio `.fails`: the Studio's phone layout test passes under the new checks (32/32), so there is nothing to mark; the suite's Publish clip is for the Characters redesign (17.1) to prove with its own test. Chromium: automata browser 2,124 pass; editor layout 446 pass; editor-3d layout+canvas 203 pass; WebKit/Firefox on the Owner's ci:local.
 - Task 1.6: done. Before the change `journeys` listed only WebKit (not installed in cloud sessions: 'Executable doesn't exist'); `journeyProject(provider, { browsers })` is new, editor-3d passes chromium and webkit; 3 journey files, 16 tests pass in Chromium; no Chromium-only failure. WebKit on the Owner's ci:local / hosted CI.
+- Task 1.7: done. Ruling: the compile goes to `<tmp folder>/built` (the temporary folder the inlang project already uses), not `${outdir}.next-<pid>` beside the outdir, so a watcher on `src/` never sees the temporary output — cost if wrong: none (same sync). syncFolder: 3 unit tests; compile-messages: 'unchanged compile writes nothing' and 'never empty' RED then GREEN, 'removes left-over files' guards the sync. content 421 unit pass; base-3d browsers+layout (Chromium) 32/32 three runs in a row, no 'Could not load src/paraglide'.

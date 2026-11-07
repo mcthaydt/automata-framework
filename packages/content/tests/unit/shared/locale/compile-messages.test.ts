@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { Effect, Either } from 'effect'
@@ -100,5 +100,64 @@ describe('the Paraglide compile of the content catalogs', () => {
     expect(await refused({ outdir: 'src/paraglide', catalogs: ['messages/ui/en.json'] })).toBe(
       'paraglide.catalogs messages/ui/en.json must be a relative path with {locale}, ending in .json',
     )
+  })
+
+  // Task 1.7: Paraglide empties its outdir before writing. A dev server watching `src/paraglide` saw the message
+  // modules vanish and come back on every compile, and a page that loaded one in between failed. The compile now goes
+  // to a temporary folder and only what differs reaches the real one.
+  describe('the output folder', () => {
+    const paraglide = { outdir: 'src/paraglide' }
+
+    /** Every file under `folder` with its modification time. */
+    function mtimes(folder: string, prefix = ''): Record<string, number> {
+      const found: Record<string, number> = {}
+      for (const entry of readdirSync(join(folder, prefix), { withFileTypes: true })) {
+        const path = prefix === '' ? entry.name : `${prefix}/${entry.name}`
+        if (entry.isDirectory()) Object.assign(found, mtimes(folder, path))
+        else found[path] = statSync(join(folder, path)).mtimeMs
+      }
+      return found
+    }
+
+    it('an unchanged compile writes nothing', async () => {
+      const root = copyFixture('valid')
+      await build({ ...fixtureOptions(root), paraglide })
+      const out = join(root, 'src/paraglide')
+      const before = mtimes(out)
+      await new Promise((resolve) => setTimeout(resolve, 25))
+      await build({ ...fixtureOptions(root), paraglide })
+      expect(mtimes(out)).toEqual(before)
+    })
+
+    it('is never empty during a compile', async () => {
+      const root = copyFixture('valid')
+      await build({ ...fixtureOptions(root), paraglide })
+      const out = join(root, 'src/paraglide')
+      const counts: number[] = []
+      const watch = setInterval(() => counts.push(readdirSync(out).length), 0)
+      try {
+        mkdirSync(join(root, 'messages/ui'), { recursive: true })
+        writeFileSync(join(root, 'messages/ui/en.json'), '{ "play": "Play" }\n')
+        writeFileSync(join(root, 'messages/ui/fr.json'), '{ "play": "Jouer" }\n')
+        await build({
+          ...fixtureOptions(root),
+          paraglide: { ...paraglide, catalogs: ['messages/ui/{locale}.json'] },
+        })
+      } finally {
+        clearInterval(watch)
+      }
+      expect(counts.length, 'the watch looked').toBeGreaterThan(5)
+      expect(Math.min(...counts)).toBeGreaterThan(0)
+    })
+
+    it('removes files a compile no longer makes', async () => {
+      const root = copyFixture('valid')
+      await build({ ...fixtureOptions(root), paraglide })
+      const out = join(root, 'src/paraglide')
+      writeFileSync(join(out, 'left-over.js'), '// a file an earlier compile made')
+      await build({ ...fixtureOptions(root), paraglide })
+      expect(existsSync(join(out, 'left-over.js'))).toBe(false)
+      expect(existsSync(join(out, 'messages.js'))).toBe(true)
+    })
   })
 })
