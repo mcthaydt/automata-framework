@@ -1,6 +1,6 @@
 # Refactor progress
 
-**Overall: 50% (9 of 18 stages done).**
+**Overall: 61% (11 of 18 stages done).**
 
 The Owner's order: finish one slice completely before starting the next. On 2026-11-05 it was core and 2D, then 3D, then
 the editors, then the website. On 2026-11-06 the Owner changed the later slices to vertical ones: "we do the editor
@@ -185,7 +185,7 @@ Done means: Emberwick's journeys pass on every pull request in two browsers, the
 repository has only `main` and branches with active CI (fewer than 5), the code follows the feature-folder layout
 with tests in their own folder, and `.vscode` hides what the Owner does not need to see.
 
-## 2D editors and website: 67% (4 of 6: stages 1, 2, 3 and 5; the build stays open until 68 of 68)
+## 2D editors and website: 83% (5 of 6: stages 1, 2, 3, 5 and 6; the build stays open until 68 of 68)
 
 Scope: `editor-kit`, `editor-2d`, the parts of `editor-suite` that 2D touches, `automata editor`, and the website
 repository (`mcthaydt/automata-website`), judged as if AF ships with 2D alone. Widened on 2026-11-06 (the Owner: "we need
@@ -386,10 +386,24 @@ Done means: someone new finds the site, makes a 2D game with `create-game`, edit
 the change in the game and publishes it, with nothing from 3D in the way; and journeys prove each step on every pull
 request.
 
-## 3D (core, editors, website): 0% (0 of 6)
+## 3D (core, editors, website): 17% (1 of 6)
 
-Not started. Starts when the 2D editors and the website are done. It may split in two (3D core, then the 3D editors
-and site) at its audit.
+Scope: the 3D core (`render-pixi3d`, `figures`, `sector-format`, `vendor/pixi-3d`), the 3D editors (`editor-3d`:
+Levels 3D, the Studio, the full suite page, the suite's phone layout), `games/base-3d`, `examples/3d`, the 3D gates and
+the site's 3D parts.
+
+| Stage | Status | Record |
+|---|---|---|
+| 1. Audit | Done, 2026-11-07 (PR stacked on #441): 9 structure (S1 to S9), 3 contracts (K1 to K3), 6 editor shipping (E1 to E6), 4 layout and look (V1 to V4), 4 tests (T1 to T4), 3 game (G1 to G3), 2 CI (Q1, Q2), 2 site (W1, W2), 8 copy (C1 to C8); 8 decisions for the Owner (D1 to D8). 3,836 unit and DOM tests pass; the 3D editor's Chromium layout and canvas run 187 pass and 8 fail (the known 8); base-3d's journeys 8 of 8 and the 3D examples' 9 of 9 in Chromium. Headline: the 3D editor cannot open base-3d, and the Studio is unreachable | [2026-11-07-3d-slice-audit.md](2026-11-07-3d-slice-audit.md) |
+| 2. Plan and spec | Next (Opus, medium), from the audit's section 8 | |
+| 3. Plan audit | Not started | |
+| 4. Build | Not started | |
+| 5. Build audit | Not started | |
+| 6. Fixes | Not started | |
+
+**Where to resume (2026-11-07, stage 1 done):** read the audit's short version and section 8. The plan stage starts
+from the recommended option of each of D1 to D8 unless the Owner has picked another. PR #425 (the 3D pause) is not in
+this stack (finding Q1), so the plan's first task decides how the 3D gate comes back.
 
 Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3D in the website's look (the 2D slice redesigns every editor that is not 3D, the Tuner and the suite's 2D page included: tasks 12.6 and 12.7) (the Owner,
 2026-11-06: "completely redesign the editors for ux, copy, and ui"; the 2D slice redesigns the kit and the 2D editor),
