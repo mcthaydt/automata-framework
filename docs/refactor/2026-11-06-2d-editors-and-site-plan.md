@@ -1240,7 +1240,7 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
   (`release:version`), `AGENTS.md` (one command after an export change)
 - Test: `tooling/api-index/tests/unit/outputs.test.ts`
 
-- [ ] **Step 1:** Failing test: one `pnpm api-index --write` writes both files from one index; `pnpm agent-skills
+- [x] **Step 1:** Failing test: one `pnpm api-index --write` writes both files from one index; `pnpm agent-skills
   --write` no longer writes `api.md`. Implement (A3). Commit. `build(docs): one generator for the API reference`
 
 ### Task 16.3: The docs agree with the direction
@@ -2720,3 +2720,10 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   `example/tests/unit/double-jump/`), not a whole copy of `create-game`'s output: the template lives in `-tools`, and
   a copy here would drift from it. `pnpm boundaries` checks it with `--game` (it was a plain sim folder). Gates:
   agent-skills unit 118, `pnpm boundaries` 0 findings, `pnpm plugin:validate` passes.
+  *16.2:* `tooling/api-index/tests/unit/outputs.test.ts` failed first (no `committed` option). One run of
+  `pnpm api-index --write` now writes the three committed outputs from one index: `docs/cheatsheet.md`, the agent
+  package's `reference/api.md` and its `plugin.json` version; without `--write`, each missing or different one is a
+  finding naming that command. `pnpm agent-skills` checks only the package's layout (`api-reference.ts` and its test
+  are gone), `pnpm cheatsheet` is gone, `release:version` ends with `pnpm api-index --write`, and `AGENTS.md` names the
+  one command. Regenerated after `pnpm build`: only the cheatsheet's header line changed (the other two were already
+  current). Gates: api-index unit 43, agent-skills unit 111, release unit 61, `pnpm knip` clean.
