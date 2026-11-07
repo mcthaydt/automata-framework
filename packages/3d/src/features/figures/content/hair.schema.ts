@@ -104,7 +104,10 @@ export interface Fall {
 export interface Bun {
   readonly at: Vec3
   readonly r: number
-  readonly turns: number
+  /** How deep it lies, of its width (default 0.6). */
+  readonly flat?: number | undefined
+  /** How many times it winds (default 2.5). */
+  readonly turns?: number | undefined
   readonly rope: Rope
   readonly tie?: Tie | undefined
 }
@@ -238,7 +241,14 @@ const fall: z.ZodType<Fall> = z.strictObject({
   capped: z.boolean().optional(),
 })
 
-const bun: z.ZodType<Bun> = z.strictObject({ at: vec3, r: n, turns: n, rope, tie: tie.optional() })
+const bun: z.ZodType<Bun> = z.strictObject({
+  at: vec3,
+  r: n,
+  flat: n.optional(),
+  turns: n.optional(),
+  rope,
+  tie: tie.optional(),
+})
 
 const sweep: z.ZodType<Sweep> = z.strictObject({
   path: z.array(vec3).min(2),
