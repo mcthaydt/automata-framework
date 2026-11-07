@@ -12,9 +12,10 @@ export type ContributionPoint = 'tuner.source' | 'audio.panel'
 
 /** The shell regions an editor fills, each drawn from its session. The suite owns the top bar; `tools` sits in it. */
 export interface SuiteRegions<S> {
-  readonly panel: Snippet<[S]>
+  /** Optional: an editor with nothing to list or inspect (the Tuner) gives its column to the canvas. */
+  readonly panel?: Snippet<[S]> | undefined
   readonly canvas: Snippet<[S]>
-  readonly inspector: Snippet<[S]>
+  readonly inspector?: Snippet<[S]> | undefined
   readonly dock?: Snippet<[S]> | undefined
   readonly status?: Snippet<[S]> | undefined
   /** Controls in the top bar, right of the suite's pills. */

@@ -193,8 +193,8 @@ function openCard(card: EditorCard): void {
   bind:panelOpen
   bind:inspectorOpen
   bind:dockOpen
-  panel={mounted ? panel : undefined}
-  inspector={mounted ? inspector : undefined}
+  panel={mounted?.editor.regions.panel ? panel : undefined}
+  inspector={mounted?.editor.regions.inspector ? inspector : undefined}
   dock={mounted?.editor.regions.dock ? dock : undefined}
   status={mounted?.editor.regions.status ? status : undefined}
   testId="suite-shell"
@@ -222,8 +222,10 @@ function openCard(card: EditorCard): void {
       {shippable}
       tools={mounted?.editor.regions.tools ? editorTools : undefined}
     />
-    {#if mounted && mode !== 'wide'}
+    {#if mounted?.editor.regions.panel && mode !== 'wide'}
       <IconButton icon="list" label="Panel" aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)} />
+    {/if}
+    {#if mounted?.editor.regions.inspector && mode !== 'wide'}
       <IconButton
         icon="inspector"
         label="Details"
@@ -287,8 +289,8 @@ function openCard(card: EditorCard): void {
 />
 
 {#snippet editorTools()}{#if mounted?.editor.regions.tools}{@render mounted.editor.regions.tools(mounted.session)}{/if}{/snippet}
-{#snippet panel()}{#if mounted}{@render mounted.editor.regions.panel(mounted.session)}{/if}{/snippet}
-{#snippet inspector()}{#if mounted}{@render mounted.editor.regions.inspector(mounted.session)}{/if}{/snippet}
+{#snippet panel()}{#if mounted?.editor.regions.panel}{@render mounted.editor.regions.panel(mounted.session)}{/if}{/snippet}
+{#snippet inspector()}{#if mounted?.editor.regions.inspector}{@render mounted.editor.regions.inspector(mounted.session)}{/if}{/snippet}
 {#snippet dock()}{#if mounted?.editor.regions.dock}{@render mounted.editor.regions.dock(mounted.session)}{/if}{/snippet}
 {#snippet status()}{#if mounted?.editor.regions.status}{@render mounted.editor.regions.status(mounted.session)}{/if}{/snippet}
 

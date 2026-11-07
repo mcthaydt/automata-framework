@@ -13,16 +13,11 @@ export interface TunerController {
   readonly refusal: Readable<string | undefined>
   /** Moves after every step, drag value, lock and Undo: what a component re-reads the tunables on. */
   readonly revision: Readable<number>
-  /** The tunable the inspector shows. */
+  /** The setting the person last tapped by name: the one Ask is about. */
   readonly selected: Readable<string | undefined>
-  /** The search text. */
-  readonly filter: Readable<string>
   /** Every tunable, in the file's order, or why the file cannot be shown. */
   all(): { readonly tunables: readonly Tunable[] } | { readonly problem: string }
-  /** The tunables the search keeps. */
-  visible(): readonly Tunable[]
   select(name: string | undefined): void
-  setFilter(text: string): void
   set(name: string, value: number | boolean | string): Promise<TunerOutcome>
   dragStart(name: string): TunerOutcome
   dragUpdate(value: number | boolean | string): TunerOutcome
@@ -40,14 +35,8 @@ export async function createTunerController(ports: SuitePorts): Promise<TunerCon
   const refusal = writable<string | undefined>(undefined)
   const revision = writable(0)
   const selected = writable<string | undefined>(undefined)
-  const filter = writable('')
   const bump = (): void => revision.update((count) => count + 1)
   session.history.subscribe(bump)
-
-  let search = ''
-  filter.subscribe((text) => {
-    search = text.trim().toLowerCase()
-  })
 
   const say = (outcome: TunerOutcome): TunerOutcome => {
     refusal.set(outcome.ok ? undefined : outcome.message)
@@ -59,26 +48,11 @@ export async function createTunerController(ports: SuitePorts): Promise<TunerCon
     refusal: { subscribe: refusal.subscribe },
     revision: { subscribe: revision.subscribe },
     selected: { subscribe: selected.subscribe },
-    filter: { subscribe: filter.subscribe },
     all: () => {
       const read = session.read()
       return 'problem' in read ? read : { tunables: read.tunables }
     },
-    visible: () => {
-      const read = session.read()
-      if ('problem' in read) return []
-      return search === ''
-        ? read.tunables
-        : read.tunables.filter(
-            (tunable) =>
-              tunable.name.toLowerCase().includes(search) ||
-              (tunable.label ?? '').toLowerCase().includes(search) ||
-              (tunable.feel ?? '').toLowerCase().includes(search) ||
-              (tunable.note ?? '').toLowerCase().includes(search),
-          )
-    },
     select: (name) => selected.set(name),
-    setFilter: (text) => filter.set(text),
     async set(name, value) {
       return say(await session.set(name, value))
     },

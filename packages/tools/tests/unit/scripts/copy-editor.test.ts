@@ -5,8 +5,8 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { PIXI3D_EXTRAS_MARKERS, PIXI3D_MARKERS } from '#src/shared/ship/prepare/pixi3d-markers.ts'
 import { copyEditor } from '../../../scripts/copy-editor.ts'
 
-// The build of `-tools` copies the editor's 2D build into `dist/editors/2d`, after the closed-beta scan has read the
-// 2D build and the suite build: the published package must never carry the private Pixi 3D beta.
+// The build of `-tools` copies the editor's 2D build and the suite's 2D page into `dist/editors/`, after the
+// closed-beta scan has read both: the published package must never carry the private Pixi 3D beta.
 
 const made: string[] = []
 
@@ -36,11 +36,12 @@ afterEach(() => {
 })
 
 describe('copyEditor', () => {
-  it('copies the 2D build to editors/2d, and not the suite', () => {
+  // Build audit C1: the Tuner is part of AF with 2D alone, so a stranger's `automata editor --app suite` finds it.
+  it('copies the 2D build to editors/2d and the suite build to editors/suite', () => {
     const { editorDist, outDir } = folders()
     copyEditor(editorDist, outDir)
     expect(readFileSync(join(outDir, 'editors/2d/assets/app.js'), 'utf8')).toBe('console.log("2d")')
-    expect(() => readFileSync(join(outDir, 'editors/suite/index.html'))).toThrow()
+    expect(readFileSync(join(outDir, 'editors/suite/assets/suite.js'), 'utf8')).toBe('console.log("suite")')
   })
 
   it('replaces an earlier copy rather than adding to it', () => {

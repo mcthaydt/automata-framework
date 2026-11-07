@@ -3793,9 +3793,9 @@ interface SuitePorts {
 
 ```ts
 interface SuiteRegions<S> {
-    readonly panel: Snippet<[S]>;
+    readonly panel?: Snippet<[S]> | undefined;
     readonly canvas: Snippet<[S]>;
-    readonly inspector: Snippet<[S]>;
+    readonly inspector?: Snippet<[S]> | undefined;
     readonly dock?: Snippet<[S]> | undefined;
     readonly status?: Snippet<[S]> | undefined;
     readonly tools?: Snippet<[S]> | undefined;

@@ -20,7 +20,7 @@ const targets = editorTargets()
 
 // The Tuner in the suite's one shell with the production CSS in Chromium, WebKit and Firefox at the eight window sizes
 //: every control is a 44 px target in a declared scroll region (reached by scrolling
-// it, never by shrinking it), the page never scrolls, and a rotation keeps the search and the chosen tunable (EDS-x).
+// it, never by shrinking it), the page never scrolls, and a rotation keeps the chosen tunable (EDS-x).
 
 const LIST = `format = "af-editors/1"\n[[file]]\nglob = "content/tuning.toml"\neditor = "tuner"\nmodes = ["edit", "ask"]\ngates = []\nchecks = []\n`
 
@@ -111,7 +111,7 @@ describe.each(SIZES)('Tuner at $name ($width x $height)', (size) => {
     await page.screenshot({ path: `.vitest/shots/tuner-rows-${size.name}.png` })
   })
 
-  test('the game runs beside the settings: side by side in a canvas 480 px wide and up, the game on top below that', async () => {
+  test('the game runs beside the settings: side by side in a canvas 560 px wide and up with the game the larger pane, the game on top below that', async () => {
     await open(size)
     await expect.poll(() => document.querySelector('iframe[title="Your game"]')).not.toBeNull()
     const game = document.querySelector('[data-testid="tuner-game"]') as HTMLElement
@@ -122,8 +122,10 @@ describe.each(SIZES)('Tuner at $name ($width x $height)', (size) => {
       document.querySelector('[data-testid="tuner-split"]') as HTMLElement
     ).getBoundingClientRect()
     // Every iPad, a small window and a phone held sideways have room side by side; a phone upright stacks.
-    expect(split.width >= 480).toBe(size.name !== 'phone-portrait')
-    if (split.width >= 480) {
+    expect(split.width >= 560).toBe(size.name !== 'phone-portrait')
+    if (split.width >= 560) {
+      // The game is the larger pane.
+      expect(gameBox.width).toBeGreaterThan(rowsBox.width)
       expect(gameBox.right).toBeLessThanOrEqual(rowsBox.left + 0.5)
       expect(Math.abs(gameBox.top - rowsBox.top)).toBeLessThan(1)
     } else {
@@ -136,16 +138,9 @@ describe.each(SIZES)('Tuner at $name ($width x $height)', (size) => {
     await page.screenshot({ path: `.vitest/shots/tuner-split-${size.name}.png` })
   })
 
-  test('a rotation keeps the search and the chosen tunable (EDS-x)', async () => {
+  test('a rotation keeps the chosen tunable (EDS-x)', async () => {
     await open(size)
-    const search = document.querySelector<HTMLInputElement>('input[type="search"]')
-    const list = [...document.querySelectorAll<HTMLElement>('[data-testid="tuner-panel"] button')]
-    if (search === null && list.length === 0) {
-      // A phone keeps the panel behind its toggle; the rows' own pick button chooses the same tunable.
-      document.querySelector<HTMLElement>('[data-testid="tuner-row-GRAVITY"] .pick')?.click()
-    } else {
-      list.find((button) => button.textContent?.trim().startsWith('GRAVITY'))?.click()
-    }
+    document.querySelector<HTMLElement>('[data-testid="tuner-row-GRAVITY"] .pick')?.click()
     await settleLayout()
     await page.viewport(size.height, size.width)
     await settleLayout()

@@ -16,7 +16,7 @@ export interface EditorCommandIo {
 
 export interface EditorCommandDeps {
   readonly serve: (options: EditorServerOptions) => Promise<RunningEditor>
-  /** The build folder of an editor: the 2D editor that came with the tools when there is one, else the repository's. */
+  /** The build folder of an editor: the one that came with the tools when there is one (2D and the suite), else the repository's. */
   readonly builtApp: (app: EditorApp) => string
   /** Whether this runs from a checkout of the AutomataFramework repository, where the 3D editors are built. */
   readonly inRepository: boolean
@@ -52,8 +52,8 @@ const APP_WORDS: Readonly<Record<EditorApp, string>> = {
 const BUILDS: Readonly<Record<EditorApp, { readonly folder: string; readonly pkg: string }>> = {
   '2d': { folder: 'packages/editor/dist/2d', pkg: '@automata/editor' },
   '3d': { folder: 'packages/editor-3d/dist', pkg: '@automata/editor-3d' },
-  // The suite's 2D page: the level editor and the Tuner. The full suite, with the 3D editors, is editor-3d's
-  // `dist/suite`, served with --app-dir.
+  // The suite's 2D page: the level editor and the Tuner, packed in the published tools too. The full suite, with
+  // the 3D editors, is editor-3d's `dist/suite`, served with --app-dir.
   suite: { folder: 'packages/editor/dist/suite', pkg: '@automata/editor' },
 }
 
@@ -81,9 +81,16 @@ export async function editorCommand(
     return 2
   }
   const { dir, app, appDir, port, lan, token, gameUrl } = parsed.options
-  // The 3D editor and the suite are built in the repository only; a published copy of the tools has just the level
-  // editor.
-  if (app !== '2d' && appDir === undefined && !deps.inRepository) {
+  const root = resolve(deps.cwd, dir)
+  const build = appDir === undefined ? deps.builtApp(app) : resolve(deps.cwd, appDir)
+  // The 3D editor is built in the repository only. A published copy of the tools packs the level editor and the suite's
+  // 2D page (the Tuner); a copy without the suite's page says so rather than naming a build folder it never had.
+  if (
+    app !== '2d' &&
+    appDir === undefined &&
+    !deps.inRepository &&
+    (app === '3d' || !deps.exists(resolve(build, 'index.html')))
+  ) {
     io.stderr(
       app === 'suite'
         ? 'Error: The editor suite is not in this release yet. Run automata editor to open the level editor.\n'
@@ -91,8 +98,6 @@ export async function editorCommand(
     )
     return 2
   }
-  const root = resolve(deps.cwd, dir)
-  const build = appDir === undefined ? deps.builtApp(app) : resolve(deps.cwd, appDir)
   if (!deps.exists(resolve(build, 'index.html'))) {
     io.stderr(`Error: no editor build at ${build}. Build it first: pnpm --filter ${BUILDS[app].pkg} build\n`)
     return 2
@@ -123,9 +128,9 @@ export async function editorCommand(
   return 0
 }
 
-/** The 2D editor packed next to the running bin (`dist/editors/2d` in the published tools), if this is a published copy. */
-const packedEditor = (): string | undefined => {
-  const folder = resolve(here, 'editors/2d')
+/** An editor packed next to the running bin (`dist/editors/2d` and `dist/editors/suite` in the published tools), if this is a published copy. */
+const packedEditor = (app: 'suite' | '2d'): string | undefined => {
+  const folder = resolve(here, `editors/${app}`)
   return existsSync(resolve(folder, 'index.html')) ? folder : undefined
 }
 
@@ -136,7 +141,7 @@ export function liveEditorDeps(): EditorCommandDeps {
   return {
     serve: serveEditor,
     builtApp: (app) =>
-      (app === '2d' ? packedEditor() : undefined) ?? resolve(repositoryRoot(), BUILDS[app].folder),
+      (app === '3d' ? undefined : packedEditor(app)) ?? resolve(repositoryRoot(), BUILDS[app].folder),
     inRepository: isRepository(),
     exists: existsSync,
     lanAddresses: () =>

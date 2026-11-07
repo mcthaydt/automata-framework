@@ -106,6 +106,22 @@ describe('/examples', () => {
     expect(view.getByRole('heading', { name: /shapes/i })).toBeTruthy()
   })
 
+  // Build audit V2: the index reads as the rest of the site does, in a person's words, with nothing unexplained.
+  it('names each example in plain words first, with its id small beneath, and no unexplained stars', async () => {
+    const view = render(IndexPage, { props: { data: await indexLoad() } })
+    const card = view.container
+      .querySelector('a[href="/examples/core-basic-window"]')
+      ?.closest('li') as HTMLElement
+    expect(card.querySelector('.name')?.textContent).toBe(
+      'A game window with a coloured field and a line of text',
+    )
+    expect(card.querySelector('.id')?.textContent).toBe('core-basic-window')
+    expect(view.container.textContent).not.toMatch(/★|☆|defineGame|deadzone/)
+    // The groups say what is in them, not the folder names.
+    expect(view.getByRole('heading', { name: 'Drawing shapes' })).toBeTruthy()
+    expect(view.container.textContent).not.toMatch(/\bcore\b|\btextures\b/)
+  })
+
   it('ignores the retired ?demo= query: the index is the same page whatever the query', async () => {
     expect(indexLoad.length).toBe(0)
   })

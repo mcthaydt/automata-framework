@@ -110,7 +110,7 @@ export type CodeState = 'static' | 'loading' | 'ready' | 'failed'
 </section>
 <style>
   /* No scroll anchoring inside: the static code an anchor would follow goes away in the swap. */
-  .code-panel { min-width: 0; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper); overflow: hidden; overflow-anchor: none; }
+  .code-panel { min-width: 0; border: 1px solid var(--line-strong); border-radius: var(--edge-lg); background: var(--paper); overflow: hidden; overflow-anchor: none; }
   .code-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0 .5rem 0 1rem; border-bottom: 1px solid var(--line); font-size: var(--step-small); color: var(--muted); }
   .code-header :global(button) { min-height: 44px; min-width: 44px; }
   .code-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .5rem; }

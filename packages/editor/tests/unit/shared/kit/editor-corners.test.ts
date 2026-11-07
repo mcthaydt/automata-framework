@@ -35,6 +35,42 @@ function styles(): Array<{ file: string; code: string }> {
   })
 }
 
+// The website is held to the same scale (build audit V1): its Examples and playground kept the old 18 px panels and
+// pill buttons because only the editor's styles were read. This reads the site's components and its stylesheet.
+const SITE = fileURLToPath(new URL('../../../../../../site/src/', import.meta.url))
+
+function siteStyles(dir: string): Array<{ file: string; code: string }> {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(dir, entry.name)
+    if (entry.isDirectory()) return siteStyles(path)
+    if (entry.name.endsWith('.css')) return [{ file: relative(SITE, path), code: readFileSync(path, 'utf8') }]
+    if (!entry.name.endsWith('.svelte')) return []
+    const style = readFileSync(path, 'utf8').match(/<style[^>]*>([\s\S]*?)<\/style>/)?.[1] ?? ''
+    return [{ file: relative(SITE, path), code: style }]
+  })
+}
+
+describe('the website`s corners', () => {
+  test('every corner is on the --edge scale, 0, a 2 or 3 px glyph corner, or 50% on a status dot: no pill, no 18 px', () => {
+    const found = siteStyles(SITE).flatMap(({ file, code }) =>
+      [...code.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/border(?:-[a-z]+)*-radius:\s*([^;}]+)/g)]
+        .map((match) => (match[1] as string).trim())
+        .filter((value) => !/^((var\(--edge-(sm|md|lg)\)|0|[23]px|50%)\s*)+$/.test(value))
+        .map((value) => `${file}: ${value}`),
+    )
+    expect(found).toEqual([])
+  })
+
+  test('nothing reads the old --radius, --radius-sm, --radius-lg or --pill', () => {
+    const found = siteStyles(SITE).flatMap(({ file, code }) =>
+      [...code.matchAll(/var\(--(radius|radius-sm|radius-lg|pill)\)/g)].map(
+        (match) => `${file}: ${match[0]}`,
+      ),
+    )
+    expect(found).toEqual([])
+  })
+})
+
 describe('the editors` corners and fills', () => {
   test('the editors` corners are slightly rounded: 4, 6 and 8 px, never a pill', () => {
     expect([tokens.tokens['edge-sm'], tokens.tokens['edge-md'], tokens.tokens['edge-lg']]).toEqual([

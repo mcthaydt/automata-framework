@@ -16,6 +16,20 @@ export interface ExampleGroup {
 /** The order a reader meets the modules in: the sim and input first, drawing next, sound last. */
 const MODULE_ORDER = ['core', 'shapes', 'textures', 'render', 'audio']
 
+/** What a group of examples is called on the site: the person's words, not the examples folder's. */
+const MODULE_TITLES: Readonly<Record<string, string>> = {
+  core: 'The basics',
+  shapes: 'Drawing shapes',
+  textures: 'Pictures and sprites',
+  render: 'Looks and speed',
+  audio: 'Sound',
+}
+
+/** A group's heading: its plain name, or the folder's name with a capital for a group added later. */
+export function moduleTitle(module: string): string {
+  return MODULE_TITLES[module] ?? module.charAt(0).toUpperCase() + module.slice(1)
+}
+
 const EXAMPLES: readonly Example[] = examples
 
 export function getExamples(): readonly Example[] {

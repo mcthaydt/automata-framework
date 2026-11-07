@@ -87,11 +87,18 @@ describe('editorCommand', () => {
       ['3d', 'The 3D editor is not in this release yet.'],
       ['suite', 'The editor suite is not in this release yet. Run automata editor to open the level editor.'],
     ] as const) {
-      const { deps, io, err, served } = setup({ inRepository: false })
+      // A release without the suite's page: nothing is at the build folder.
+      const { deps, io, err, served } = setup({ inRepository: false, exists: () => false })
       expect(await editorCommand(['--app', app], io, deps)).toBe(2)
       expect(err.join('')).toContain(says)
       expect(served).toEqual([])
     }
+  })
+
+  it('opens the suite from the tools’ own copy outside the repository: that is where a stranger finds the Tuner', async () => {
+    const { deps, io, served } = setup({ inRepository: false })
+    expect(await editorCommand(['--app', 'suite'], io, deps)).toBe(0)
+    expect(served).toHaveLength(1)
   })
 
   it('serves a 3D build given with --app-dir even outside the repository', async () => {
