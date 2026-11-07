@@ -1,6 +1,7 @@
 import { expect, type Frame, type Page, test } from '@playwright/test'
 import { hostedUrl } from '../../../tooling/examples-runner/host/ports.ts'
 import { collectErrors, openHosted } from '../../../tooling/examples-runner/host/testing.ts'
+import { PLAY_STEP_MS } from './budget.ts'
 import { gameUrl } from './origin.ts'
 
 // base-3d in a real browser (M3.7b part 4, B-b): its build served from /b/<buildId>/ with the headers Ruken would
@@ -12,12 +13,6 @@ const GAME_ID = 'base-3d'
 /** The screen the runtime's flow shows: it marks each screen's layer with its id. */
 const screen = (target: Page | Frame, id: string) =>
   target.locator(`[data-layer="screens"] [data-screen="${id}"]`)
-
-/**
- * How long one step may take once play draws: the headless shell draws WebGL2 in software, a frame or more a
- * second (Emberwick's journeys measured up to 3.8 s a frame on a loaded machine, ROOM_STEP_MS there).
- */
-const PLAY_STEP_MS = 40_000
 
 /**
  * A phone held sideways and standalone plays fullscreen or not at all (M4.7): the landscape gate covers the game
