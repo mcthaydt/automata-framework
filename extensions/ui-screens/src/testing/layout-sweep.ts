@@ -1,4 +1,4 @@
-// The layout contract every kit screen runs (M1.6 spec §7), with production CSS in a real browser: at every reference size and
+// The layout contract every screen runs, with production CSS in a real browser: at every reference size and
 // variant, in English and in the `xx-long` pseudo-locale (about 40% longer, accented and bracketed, so a word that skipped the
 // copy shows up): no document scroll, whole 44 px targets (48 px primaries), nothing off screen or under the host's strip, and
 // every essential action visible and hit-testable. The checks are core's (`checkLayout`); this only sweeps them.

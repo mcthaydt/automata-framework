@@ -13,11 +13,42 @@
   "imports": {
     "#src/*": "./src/*"
   },
+  "svelte": "./src/entries/index.ts",
+  "exports": {
+    ".": {
+      "svelte": "./src/entries/index.ts",
+      "default": "./src/entries/index.ts"
+    },
+    "./error": {
+      "svelte": "./src/entries/error.ts",
+      "default": "./src/entries/error.ts"
+    },
+    "./loading": {
+      "svelte": "./src/entries/loading.ts",
+      "default": "./src/entries/loading.ts"
+    },
+    "./pause": {
+      "svelte": "./src/entries/pause.ts",
+      "default": "./src/entries/pause.ts"
+    },
+    "./results": {
+      "svelte": "./src/entries/results.ts",
+      "default": "./src/entries/results.ts"
+    },
+    "./settings": {
+      "svelte": "./src/entries/settings.ts",
+      "default": "./src/entries/settings.ts"
+    },
+    "./title": {
+      "svelte": "./src/entries/title.ts",
+      "default": "./src/entries/title.ts"
+    }
+  },
   "scripts": {
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
-    "test:layout": "vitest run --project layout",
-    "test:parity": "vitest run --project layout",
+    "test:browser": "vitest run --project browser",
+    "test:parity": "vitest run --project browser",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "peerDependencies": {
@@ -27,7 +58,7 @@
   "devDependencies": {
     "@automata/content": "workspace:*",
     "@automata/framework": "workspace:*",
-    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@automata/vitest-preset": "workspace:*",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/svelte": "5.4.2",
