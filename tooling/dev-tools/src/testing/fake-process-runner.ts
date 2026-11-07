@@ -1,5 +1,5 @@
-import { ProcessError, ProcessRunner, type RunResult } from '@mcthaydt/automata-node'
 import { Effect, Layer } from 'effect'
+import { ProcessError, ProcessRunner, type RunResult } from '../node-seams.ts'
 
 /** One program start the fake saw. */
 export interface RunCall {

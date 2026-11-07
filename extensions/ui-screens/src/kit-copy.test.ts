@@ -4,15 +4,10 @@ import { cleanup, render, screen } from '@testing-library/svelte'
 import { afterEach, describe, expect, it } from 'vitest'
 import { copyKit, KIT_ROOT, kitSources, specifiersOf } from './testing/copy-kit'
 
-// PRODUCT.6: the kit is copied into a game by `automata add`, so it must work from the copy and must reach only what a game has:
-// `@mcthaydt/automata-ui`, `@mcthaydt/automata-game` (types), `svelte`, and the other files it copies.
+// A game may copy a screen to change it, so each screen must work from the copy and reach only what a game has:
+// `@automata/framework`, `svelte`, and the other files it copies.
 
-const ALLOWED = [
-  /^@mcthaydt\/automata-ui$/,
-  /^@mcthaydt\/automata-game$/,
-  /^svelte(\/.*)?$/,
-  /^\.\/[A-Za-z]+\.svelte$/,
-]
+const ALLOWED = [/^@automata\/framework$/, /^svelte(\/.*)?$/, /^\.\/[A-Za-z]+\.svelte$/]
 const copies: string[] = []
 afterEach(() => {
   cleanup()

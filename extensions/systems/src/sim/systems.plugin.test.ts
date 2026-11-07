@@ -1,7 +1,7 @@
 // The systems plugin (M6 spec §4.6, §6): the env the game writes drives light and warmth, facts go through puzzle's
 // state and mapped facts, every event's payload, a bad load fails with the scene's name, and reserved nodes.
-import { PuzzleState, type Value } from '@mcthaydt/automata-puzzle/sim'
-import type { Sim } from '@mcthaydt/automata-sim'
+import { PuzzleState, type Value } from '@automata/puzzle/sim'
+import type { Sim } from '@automata/sim'
 import { afterEach, expect, it } from 'vitest'
 import { sceneOf, watchman } from '../testing/toy'
 import { createWardGame, fact, kinds, load, move, run, stepWith } from '../testing/ward-game'

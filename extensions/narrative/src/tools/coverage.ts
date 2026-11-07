@@ -1,6 +1,6 @@
 // Beat coverage and the hint cross-check (M6.8b step 5; from the source's `coverage.ts`). Pure: the caller plays the
 // puzzle solver's routes in the sim (`traces.ts`) and hands over what each one showed.
-import type { Lethal } from '@mcthaydt/automata-puzzle/sim'
+import type { Lethal } from '@automata/puzzle/sim'
 import type { LineRecord } from '../sim/index'
 import type { Beat } from './beats.schema'
 import { collect, type Finding } from './finding'

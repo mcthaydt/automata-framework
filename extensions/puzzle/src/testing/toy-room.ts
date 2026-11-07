@@ -7,7 +7,7 @@ import {
   defineSystem,
   type Sim,
   type StepResult,
-} from '@mcthaydt/automata-sim'
+} from '@automata/sim'
 import { z } from 'zod'
 import { createPuzzlePlugin, loadPuzzle, type PuzzleDef, type PuzzleOptions } from '../sim/index'
 

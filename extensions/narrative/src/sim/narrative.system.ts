@@ -8,9 +8,9 @@ import {
   type Reader,
   type Value,
   type VerbReport,
-} from '@mcthaydt/automata-puzzle/sim'
-import { InSector, resolvedMap } from '@mcthaydt/automata-sectors/sim'
-import { defineSystem, type SimContext, type SystemDef } from '@mcthaydt/automata-sim'
+} from '@automata/puzzle/sim'
+import { InSector, resolvedMap } from '@automata/sectors/sim'
+import { defineSystem, type SimContext, type SystemDef } from '@automata/sim'
 import { advance, applyChoice, choose, type Place, readerOf, settle, start, view } from './dialogue'
 import type { DialogueGraph } from './dialogue.schema'
 import { AdvanceCommand, ChooseCommand, StartCommand } from './narrative.command'

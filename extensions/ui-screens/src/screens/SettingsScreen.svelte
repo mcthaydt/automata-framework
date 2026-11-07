@@ -6,7 +6,7 @@
   components and adds its own tab or section here without touching core.
 -->
 <script lang="ts">
-import { SettingsScreen as CoreSettings, type SettingsTab } from '@mcthaydt/automata-ui'
+import { SettingsScreen as CoreSettings, type SettingsTab } from '@automata/framework'
 
 /** Core's `ScreensCopy['settings']['screen']`. */
 export interface SettingsCopy {

@@ -15,7 +15,7 @@
  * and are not here; the lobby holds them.
  */
 
-import type { ServerMessage } from '@mcthaydt/automata-net'
+import type { ServerMessage } from '@automata/net'
 
 /** The one thing the registry does with a client: tell it where it sits. */
 export interface SeatClient {

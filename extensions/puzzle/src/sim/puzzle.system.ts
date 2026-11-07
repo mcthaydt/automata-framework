@@ -2,7 +2,7 @@
 // matching action and applies its effects in order, then says its line; effects that must follow the line (a
 // checkpoint, a cutscene, an exit, a dialogue) are emitted after it, or at once when the action has no line. A verb
 // that matches nothing says its fallback line. The goal is reported the first time it holds.
-import { defineSystem, type SimContext, type SystemDef } from '@mcthaydt/automata-sim'
+import { defineSystem, type SimContext, type SystemDef } from '@automata/sim'
 import { fallbackLine, holds, match, type Reader, type Verb } from './interpret'
 import { VerbCommand } from './puzzle.command'
 import {

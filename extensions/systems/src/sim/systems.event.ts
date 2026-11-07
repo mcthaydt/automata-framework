@@ -1,6 +1,6 @@
 // What the systems tell the game: an agent changed mode, a noise was made, the player was caught, a cutscene starts,
 // a line is said. Text is the game's (a line is a key).
-import { defineEvent, type EventDef } from '@mcthaydt/automata-sim'
+import { defineEvent, type EventDef } from '@automata/sim'
 import { z } from 'zod'
 
 export interface ModePayload {

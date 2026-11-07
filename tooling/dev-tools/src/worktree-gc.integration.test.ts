@@ -2,9 +2,9 @@ import { type ChildProcess, execFileSync, spawn } from 'node:child_process'
 import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { FilesLive, ProcessRunnerLive } from '@mcthaydt/automata-node'
 import { Effect, Layer } from 'effect'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { FilesLive, ProcessRunnerLive } from './node-seams.ts'
 import { worktreeGc } from './worktree-gc.ts'
 
 // DT-h: real git, lsof and find on a temporary repository with a bare remote and five worktrees: merged and clean

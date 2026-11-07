@@ -1,6 +1,6 @@
+import { ROOM_NAME } from '@automata/net'
+import { createReplayStepper, unpackReplay } from '@automata/sim/replay'
 import { CloseCode } from '@colyseus/core'
-import { ROOM_NAME } from '@mcthaydt/automata-net'
-import { createReplayStepper, unpackReplay } from '@mcthaydt/automata-sim/replay'
 import { Effect } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
 import {

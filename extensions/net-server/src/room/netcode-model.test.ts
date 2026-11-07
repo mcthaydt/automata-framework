@@ -1,4 +1,4 @@
-import type { LocalCommand } from '@mcthaydt/automata-net'
+import type { LocalCommand } from '@automata/net'
 import { afterEach, describe, expect, it } from 'vitest'
 import { Move } from '../test-support/fixture-game'
 import { type LinkPlayer, type LinkRoom, type LinkRoomOptions, linkRoom } from '../test-support/link-room'

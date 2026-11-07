@@ -16,7 +16,7 @@ export async function bundle(entry: 'guarded' | 'leaky', debug: boolean): Promis
       write: false,
       minify: false,
       lib: { entry: fileURLToPath(new URL(`./bundle/${entry}.ts`, import.meta.url)), formats: ['es'] },
-      rollupOptions: { external: [/^@mcthaydt\//, /^effect/, 'svelte', /^svelte\//] },
+      rollupOptions: { external: [/^@automata\//, /^effect/, 'svelte', /^svelte\//] },
     },
   })
   const outputs = (Array.isArray(result) ? result : [result]) as Rolldown.RolldownOutput[]

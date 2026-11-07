@@ -13,8 +13,8 @@ import {
   type Trim,
   WALL_THICK,
   type WallDef,
-} from '@mcthaydt/automata-sector-format'
-import { hypot } from '@mcthaydt/automata-sim/math'
+} from '@automata/3d/level'
+import { hypot } from '@automata/sim/math'
 import { opening, type PieceKind, pieceSpans, walkBlocker } from './pieces'
 import { insideSector, segmentDistance } from './queries'
 import type { SectorMap } from './sector-map.schema'

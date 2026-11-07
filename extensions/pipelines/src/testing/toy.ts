@@ -1,7 +1,7 @@
 import { join } from 'node:path'
-import { Files } from '@mcthaydt/automata-node'
 import { Effect } from 'effect'
 import { z } from 'zod'
+import { Files } from '../node-seams.ts'
 import {
   definePipeline,
   type PipelineDef,

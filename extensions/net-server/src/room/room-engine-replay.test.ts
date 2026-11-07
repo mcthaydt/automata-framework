@@ -1,4 +1,4 @@
-import { createReplayStepper, type Replay, unpackReplay } from '@mcthaydt/automata-sim/replay'
+import { createReplayStepper, type Replay, unpackReplay } from '@automata/sim/replay'
 import { afterEach, describe, expect, it } from 'vitest'
 import { defineServer, ROOM_SOURCE } from '../game/server-game'
 import {

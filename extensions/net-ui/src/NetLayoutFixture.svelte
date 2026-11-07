@@ -8,8 +8,8 @@ export type NetShow = 'connecting' | 'degraded' | 'reconnecting' | 'expired'
 </script>
 
 <script lang="ts">
-import { pseudoLocalize } from '@mcthaydt/automata-content/locale'
-import { ScreenFrame } from '@mcthaydt/automata-ui'
+import { pseudoLocalize } from '@automata/content/locale'
+import { ScreenFrame } from '@automata/framework'
 import { onDestroy } from 'svelte'
 import { installNetUi } from './host'
 import { NET_COPY_EN } from './net-copy'

@@ -1,5 +1,5 @@
 // Hiding (SY-D7): the player goes into a hiding place where she stands, or comes out. Moving brings her out too.
-import { type CommandDef, defineCommand } from '@mcthaydt/automata-sim'
+import { type CommandDef, defineCommand } from '@automata/sim'
 import { z } from 'zod'
 
 export interface HidePayload {

@@ -1,4 +1,4 @@
-// @mcthaydt/automata-feel: game feel as data (M6 spec §4.1): hits that shake, hold, flash, squash and pop a word, from `feel.toml`,
+// @automata/feel: game feel as data (M6 spec §4.1): hits that shake, hold, flash, squash and pop a word, from `feel.toml`,
 // switchable by the player. Presentation only.
 
 export { type Beat, Beats, type BeatsOptions } from './dynamics/beats'

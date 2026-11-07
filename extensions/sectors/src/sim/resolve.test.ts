@@ -1,7 +1,7 @@
 // SC-a: the clinic resolves to the adventure source's own loops, portals, edges, masses and colliders, and passes the
 // source's sector checks (its scenes test), re-pointed at the index-linked resolution (S4-D3). The sim's geometry is
 // dmath and the source's is Math, so derived numbers are compared within 1e-12 and everything else exactly (S4-D5).
-import { DEFAULT_TRIM, WALL_THICK } from '@mcthaydt/automata-sector-format'
+import { DEFAULT_TRIM, WALL_THICK } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { clinicMap, clinicResolved } from '../testing/clinic'
 import { crossing, insideSector, polygonArea } from './queries'

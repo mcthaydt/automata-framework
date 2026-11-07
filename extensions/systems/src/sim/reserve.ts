@@ -1,7 +1,7 @@
 // Reserved nodes (N-D3, from the source's nav): a node kept for one agent, so another that picks "the farthest
 // reachable node" never picks it. The reservations live in `systems.state`, so a restore keeps them.
-import { NavDoors, NavGraphResource } from '@mcthaydt/automata-nav/sim'
-import type { SimContext } from '@mcthaydt/automata-sim'
+import { NavDoors, NavGraphResource } from '@automata/nav/sim'
+import type { SimContext } from '@automata/sim'
 import { SystemsState } from './systems.resource'
 
 export function reserveNodes(ctx: SimContext, agent: string, ids: readonly string[]): void {

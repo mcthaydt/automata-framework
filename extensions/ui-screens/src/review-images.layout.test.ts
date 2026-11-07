@@ -1,6 +1,12 @@
-import '@mcthaydt/automata-ui/theme.css'
-import { mountFixture, REFERENCE_SIZES, VARIANTS } from '@mcthaydt/automata-testing'
-import { byTestId, publishConditions, settleLayout } from '@mcthaydt/automata-ui/testing'
+import '@automata/framework/theme.css'
+import {
+  byTestId,
+  mountFixture,
+  publishConditions,
+  REFERENCE_SIZES,
+  settleLayout,
+  VARIANTS,
+} from '@automata/framework/testing'
 import { createRawSnippet } from 'svelte'
 import { expect, test } from 'vitest'
 import { page } from 'vitest/browser'

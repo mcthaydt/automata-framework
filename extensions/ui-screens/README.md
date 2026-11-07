@@ -5,7 +5,7 @@ your game (`automata add ui-screens`) as source you own, under `src/screens/`.
 
 ## What is core's, and what is yours
 
-Core (`@mcthaydt/automata-game`) already ships default Title, Paused and Settings screens, and `@mcthaydt/automata-ui` ships the
+Core (`@automata/framework`) already ships default Title, Paused and Settings screens, and `@automata/framework` ships the
 parts every screen is built from. A game that is happy with the defaults needs nothing from this kit. The kit is for a game that wants
 the screen source:
 
@@ -23,7 +23,7 @@ Each screen takes its words and callbacks as props; your flow mounts it. The wor
 game's own `copy.screens` (or your translation of it) feeds them. For example, Pause:
 
 ```ts
-import type { ScreensCopy } from '@mcthaydt/automata-game'
+import type { ScreensCopy } from '@automata/framework'
 declare const words: ScreensCopy // your game's words, in the player's language
 mount(PauseScreen, { target, props: { copy: words.paused, muted, onResume, onQuit, onSettings, onMute } })
 ```
@@ -37,6 +37,6 @@ language with long words, three or more actions need the short form to stay on o
 Each screen has behaviour tests (jsdom) and a layout contract in real Chromium, WebKit and Firefox at every reference size and
 variant, in English and the `xx-long` pseudo-locale: no document scroll, whole 44 px targets (48 px primaries), nothing off screen or
 under the host's strip, every essential action visible and hit-testable. The layout tests are not copied; they live here. Edit freely,
-then run the same contract in your game with `@mcthaydt/automata-testing`.
+then run the same contract in your game with `@automata/framework/testing`.
 
 The kit also passes core's kit rule (no `{@html}`, no platform chrome: a password field, the host's name, sign-in or payment words).

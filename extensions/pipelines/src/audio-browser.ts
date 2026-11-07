@@ -1,7 +1,7 @@
 // The audio pipeline's renderer (M6.10b, AU-D5): the render module bundled with Vite and run in headless Chromium, because Node has
 // no `OfflineAudioContext`. One browser per renderer; `close` ends it. A missing browser is an error that says so, never a skip.
 import { fileURLToPath } from 'node:url'
-import type { AudioContent } from '@mcthaydt/automata-audio-synth'
+import type { AudioContent } from '@automata/audio-synth'
 import { build, type Rolldown } from 'vite'
 
 export interface CueRender {
@@ -31,7 +31,7 @@ export interface AudioRenderer {
   close(): Promise<void>
 }
 
-const ENTRY = fileURLToPath(import.meta.resolve('@mcthaydt/automata-audio-synth/browser'))
+const ENTRY = fileURLToPath(import.meta.resolve('@automata/audio-synth/browser'))
 
 /** The page bundle, built once per process. */
 let bundle: Promise<string> | undefined

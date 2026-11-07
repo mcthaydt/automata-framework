@@ -1,4 +1,4 @@
-// @mcthaydt/automata-puzzle/solver: the puzzle solver and its tools (M6 spec §4.5, M6.6b). Node only: build time and
+// @automata/puzzle/solver: the puzzle solver and its tools (M6 spec §4.5, M6.6b). Node only: build time and
 // tests, never in a game bundle.
 
 export { type Analysis, analyse, keypadOf, keySet, type Route, routesOf, timing } from './analyse'

@@ -1,8 +1,8 @@
 // What a bot sees and how it answers (M6 spec §4.6): the view a scene adapter reads from the sim, and the sim commands
 // a bot gives, exactly as input does. Nothing here runs in the sim.
-import type { Value } from '@mcthaydt/automata-puzzle/sim'
-import type { Point } from '@mcthaydt/automata-sectors/sim'
-import type { Command } from '@mcthaydt/automata-sim'
+import type { Value } from '@automata/puzzle/sim'
+import type { Point } from '@automata/sectors/sim'
+import type { Command } from '@automata/sim'
 
 /** A command before it is stamped with the tick it runs on. */
 export type Order = Pick<Command, 'type' | 'payload'>

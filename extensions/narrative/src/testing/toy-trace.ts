@@ -1,12 +1,12 @@
 // A toy game to play routes in (M6.8b step 5): a drawer that gives a key, a door it unlocks that starts a conversation
 // and a cutscene, and a storylet on the drawer. It has the talk game's shape (sectors, puzzle and narrative loaded by
 // a command) with its own load command, so the narrative golden's commands stay as they are.
-import { createPuzzlePlugin, loadPuzzle, type PuzzleDef } from '@mcthaydt/automata-puzzle/sim'
-import type { PuzzleScene } from '@mcthaydt/automata-puzzle/solver'
-import { toyScene } from '@mcthaydt/automata-puzzle/testing/toy-scene'
-import { loadSectorMap, type SectorMap, sectorsPlugin } from '@mcthaydt/automata-sectors/sim'
-import clinicMapToml from '@mcthaydt/automata-sectors/testing/fixtures/clinic.sector-map.toml?raw'
-import { createSim, defineCommand, definePlugin, defineSystem } from '@mcthaydt/automata-sim'
+import { createPuzzlePlugin, loadPuzzle, type PuzzleDef } from '@automata/puzzle/sim'
+import type { PuzzleScene } from '@automata/puzzle/solver'
+import { toyScene } from '@automata/puzzle/testing/toy-scene'
+import { loadSectorMap, type SectorMap, sectorsPlugin } from '@automata/sectors/sim'
+import clinicMapToml from '@automata/sectors/testing/fixtures/clinic.sector-map.toml?raw'
+import { createSim, defineCommand, definePlugin, defineSystem } from '@automata/sim'
 import { parse } from 'smol-toml'
 import { z } from 'zod'
 import { createNarrative, type DialogueGraph, type LineRecord, type Storylet } from '../sim/index'

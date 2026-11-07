@@ -1,8 +1,8 @@
 // The clinic fixture for nav's tests, in Node and the browsers (`?raw`, no `node:fs`): sectors' converted clinic map,
 // the clinic's nav graph, and its boxes behind a game-side `Blocked` like the source's (boxes are the game's, not nav's).
 
-import { type Point, type ResolvedMap, resolveMap, type SectorMap } from '@mcthaydt/automata-sectors/sim'
-import clinicMapToml from '@mcthaydt/automata-sectors/testing/fixtures/clinic.sector-map.toml?raw'
+import { type Point, type ResolvedMap, resolveMap, type SectorMap } from '@automata/sectors/sim'
+import clinicMapToml from '@automata/sectors/testing/fixtures/clinic.sector-map.toml?raw'
 import { parse } from 'smol-toml'
 import { blockedBy } from '../sim/blocked'
 import type { NavGraph } from '../sim/nav-graph.schema'

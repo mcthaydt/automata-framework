@@ -10,9 +10,9 @@ import {
 } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { basename, dirname, join } from 'node:path'
-import { FilesLive, ProcessRunner, ProcessRunnerLive } from '@mcthaydt/automata-node'
 import { Effect, Layer } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { FilesLive, ProcessRunner, ProcessRunnerLive } from './node-seams.ts'
 import { promoteEvidence } from './promote-evidence.ts'
 
 // DT-b, DT-c and DT-d. git is answered by a fake (the root is the temporary folder, or "not a checkout"); `cmp`,

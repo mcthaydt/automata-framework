@@ -1,9 +1,9 @@
 import { existsSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { FilesLive, ProcessRunnerLive } from '@mcthaydt/automata-node'
 import { Layer, TestClock, TestContext } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
 import { TOOL_NAMES } from './mcp-server.ts'
+import { FilesLive, ProcessRunnerLive } from './node-seams.ts'
 import { mcpProject, TOY } from './testing/mcp-client.ts'
 
 // The pipelines MCP server (The Last Light's tests/mcp-server.test.ts at 92e6704), through the SDK's in-memory client,

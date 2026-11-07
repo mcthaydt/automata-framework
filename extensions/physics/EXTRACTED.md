@@ -1,4 +1,4 @@
-# Extracted: `@mcthaydt/automata-physics`
+# Extracted: `@automata/physics`
 
 - **Source:** `mcthaydt/automata-framework` at `6aee63bedce8785aaf725571100e5fcdccd714ef` (`main`, 2026-10-30),
   `packages/physics`. Its files are byte-identical at `b7ef19d978d4751eaf08d1374dcfbcf2459d8c2b`, the commit in
@@ -13,8 +13,8 @@
 
 | File | Change |
 |---|---|
-| `package.json` | `@mcthaydt/automata-sim` moves from `dependencies` to `peerDependencies` at the exact version (0.0.3); `devDependencies` list `@mcthaydt/automata-sim`, `@mcthaydt/automata-testing` and `@mcthaydt/evidence` at their pack versions, resolved through the core overrides (P5-D1); `license` is `SEE LICENSE IN LICENSE` (P5-D5); `repository` points at `automata-plus`. The `automata.simEntries` declaration (P5-D2, PRODUCT.5c) is unchanged. |
-| `vitest.config.ts` | `koota` leaves `optimizeDeps.include` for `@mcthaydt/automata-sim`: Koota is the sim's dependency, which resolved here in the framework only through the workspace link. |
+| `package.json` | `@automata/sim` moves from `dependencies` to `peerDependencies` at the exact version (0.0.3); `devDependencies` list `@automata/sim`, `@automata/framework/testing` and `@automata/evidence` at their pack versions, resolved through the core overrides (P5-D1); `license` is `SEE LICENSE IN LICENSE` (P5-D5); `repository` points at `automata-plus`. The `automata.simEntries` declaration (P5-D2, PRODUCT.5c) is unchanged. |
+| `vitest.config.ts` | `koota` leaves `optimizeDeps.include` for `@automata/sim`: Koota is the sim's dependency, which resolved here in the framework only through the workspace link. |
 | `tsdown.config.ts` | A comment: the file is copied and not run, because `publishedBuild` is the framework's and the Plus build is PRODUCT.5h's. |
 
 ## Golden hashes (unchanged from the source commit)

@@ -1,9 +1,9 @@
 // The agent interpreter (M6 spec §4.6), from the adventure source's `createAgent`: each step an agent counts down an
 // appearance, takes the highest-priority transition whose probes hold, then walks its path at its mode's speed (or
 // waits, and asks its waiting transitions), and runs its routine. Hearing runs when a noise is made.
-import { route } from '@mcthaydt/automata-nav/sim'
-import type { Point } from '@mcthaydt/automata-sectors/sim'
-import { atan2, hypot } from '@mcthaydt/automata-sim/math'
+import { route } from '@automata/nav/sim'
+import type { Point } from '@automata/sectors/sim'
+import { atan2, hypot } from '@automata/sim/math'
 import { applyEffects, type Outcome } from './effect'
 import { AT_NODE, holds, type Subject } from './probe'
 import { hearsIn, isStill, routineMode, waitsIn } from './probe-kinds'

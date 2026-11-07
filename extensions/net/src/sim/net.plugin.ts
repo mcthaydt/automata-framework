@@ -1,4 +1,4 @@
-import { definePlugin, type PluginDef } from '@mcthaydt/automata-sim'
+import { definePlugin, type PluginDef } from '@automata/sim'
 import { NetOwner } from './net-owner.component'
 import { SeatJoin, SeatLeave } from './seat.command'
 import { SeatJoined, SeatLeft } from './seat.event'

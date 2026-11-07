@@ -2,7 +2,7 @@
 // `T + round(duration / dt)` or on `cutscene.skip`, and while one is under way `locked` holds, so gameplay input that
 // reads it is ignored. A start while one plays replaces it (CS-D5); a script whose anchor does not resolve is skipped at
 // once and never locks (CS-c, CS-D2). The step runs in `input`, before gameplay reads its commands.
-import { defineSystem, type SimContext, type SystemDef } from '@mcthaydt/automata-sim'
+import { defineSystem, type SimContext, type SystemDef } from '@automata/sim'
 import { CutsceneSkip } from './cutscene.command'
 import { CutsceneEnded, CutsceneStarted } from './cutscene.event'
 import { CutsceneScene, CutsceneState } from './cutscene.resource'

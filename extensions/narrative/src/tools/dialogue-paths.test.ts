@@ -1,6 +1,6 @@
 // `walk`, `stance` and `motifs` (M6.8b step 3): the source's path analyses on toy graphs. The endings a register must
 // offer are the game's (the canon holds none), so `stance` takes them as an option (NR-D8).
-import type { PuzzleDef } from '@mcthaydt/automata-puzzle/sim'
+import type { PuzzleDef } from '@automata/puzzle/sim'
 import { describe, expect, it } from 'vitest'
 import type { DialogueGraph } from '../sim/index'
 import { CANON, rec, TALK } from '../testing/toy-dialogue'

@@ -1,8 +1,8 @@
 // Plan geometry the sim asks of a resolved map (M6 spec §4.3): crossings, distances and point-in-sector. The same
 // arithmetic as the 3D level editor's float geometry, with `hypot` from the sim's deterministic math (§4.9), so a
 // distance is the same in every engine.
-import type { Point } from '@mcthaydt/automata-sector-format'
-import { hypot } from '@mcthaydt/automata-sim/math'
+import type { Point } from '@automata/3d/level'
+import { hypot } from '@automata/sim/math'
 
 /** The part of a resolved sector that point-in-sector reads: its loops' corners, the outer loop first. */
 export interface Outline {

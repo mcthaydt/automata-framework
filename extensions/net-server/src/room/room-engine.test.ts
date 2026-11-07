@@ -1,4 +1,4 @@
-import { NetOwner } from '@mcthaydt/automata-net/sim'
+import { NetOwner } from '@automata/net/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { type EngineHarness, engineHarness } from '../test-support/engine-harness'
 import { fixtureSim, positions } from '../test-support/fixture-game'

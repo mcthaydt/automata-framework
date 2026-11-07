@@ -1,4 +1,4 @@
-import { createRng, type Rng } from '@mcthaydt/automata-sim'
+import { createRng, type Rng } from '@automata/sim'
 import { Clock, Duration, Effect } from 'effect'
 
 /** One message as it travels: text (JSON) or binary (a snapshot, a packed replay). */

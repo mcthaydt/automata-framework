@@ -1,11 +1,11 @@
 // One systems call's view of the sim (a step, or a noise heard): the def, the resources, the player's point and every
 // agent's plan position read from its entity's `InSector`, the movement and sight queries, and the options. `commit`
 // writes the moved positions back. Hooks, derived facts and refused steps receive it as `SystemsWorld`.
-import type { NavGraph } from '@mcthaydt/automata-nav/sim'
-import { type Blocked, blockedBy, NavDoors, NavGraphResource } from '@mcthaydt/automata-nav/sim'
-import type { PuzzleOptions, Value } from '@mcthaydt/automata-puzzle/sim'
-import { InSector, type Point, type ResolvedMap, resolvedMap } from '@mcthaydt/automata-sectors/sim'
-import { type SimContext, sortedKeys } from '@mcthaydt/automata-sim'
+import type { NavGraph } from '@automata/nav/sim'
+import { type Blocked, blockedBy, NavDoors, NavGraphResource } from '@automata/nav/sim'
+import type { PuzzleOptions, Value } from '@automata/puzzle/sim'
+import { InSector, type Point, type ResolvedMap, resolvedMap } from '@automata/sectors/sim'
+import { type SimContext, sortedKeys } from '@automata/sim'
 import { SystemsMode } from './systems.event'
 import {
   type AgentRecord,

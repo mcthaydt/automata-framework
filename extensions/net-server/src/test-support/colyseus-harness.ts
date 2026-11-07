@@ -7,7 +7,6 @@
  * assertion depends on timer scheduling. Waiting on the network is on what arrived, never on a sleep.
  */
 
-import { ColyseusTestServer } from '@colyseus/testing'
 import {
   type ClientMessage,
   NET_BYTES_CHANNEL,
@@ -15,7 +14,8 @@ import {
   parseServerMessage,
   ROOM_NAME,
   type ServerMessage,
-} from '@mcthaydt/automata-net'
+} from '@automata/net'
+import { ColyseusTestServer } from '@colyseus/testing'
 import { Effect, Exit, Scope } from 'effect'
 import type { RoomLogEvent, ServerConfig, ServerLimits } from '../game/server-config'
 import type { ServerDef } from '../game/server-game'

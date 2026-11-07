@@ -4,7 +4,7 @@
  * `ServerGameDef.seat`, client commands with a payload schema, a bot policy, and `ended` from an event.
  */
 
-import { NetOwner, netPlugin } from '@mcthaydt/automata-net/sim'
+import { NetOwner, netPlugin } from '@automata/net/sim'
 import {
   type CommandDef,
   type ComponentDef,
@@ -17,7 +17,7 @@ import {
   type EventDef,
   type PluginDef,
   type Sim,
-} from '@mcthaydt/automata-sim'
+} from '@automata/sim'
 import { z } from 'zod'
 import { type BotPolicy, defineServer, type ServerDef, type ServerGameDef } from '../game/server-game'
 

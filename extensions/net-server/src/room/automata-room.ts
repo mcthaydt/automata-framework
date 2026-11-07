@@ -10,15 +10,15 @@
  * never reaches for a global and two servers in one process (a test) never share one.
  */
 
-import { type Client, CloseCode, Room } from '@colyseus/core'
 import {
   type JoinOptions,
   joinOptionsSchema,
   NET_BYTES_CHANNEL,
   NET_CHANNEL,
   type NetConfig,
-} from '@mcthaydt/automata-net'
-import { createSim } from '@mcthaydt/automata-sim'
+} from '@automata/net'
+import { createSim } from '@automata/sim'
+import { type Client, CloseCode, Room } from '@colyseus/core'
 import type { Bucket, RoomLogEvent } from '../game/server-config'
 import type { ServerDef } from '../game/server-game'
 import { type GameVersion, versionVerdict } from '../gate/matchmake-version-gate'

@@ -1,6 +1,6 @@
 // Membership, last in the step (the `cleanup` phase) so it sees every position the step wrote: each walker's sector,
 // in entity order, and the events when it changes.
-import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
+import { defineSystem, type SystemDef } from '@automata/sim'
 import { resolvedMap } from './resolved-map'
 import { InSector } from './sectors.component'
 import { SectorEntered, ZoneCrossed } from './sectors.event'

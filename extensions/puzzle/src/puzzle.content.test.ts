@@ -3,7 +3,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { compileContent } from '@mcthaydt/automata-content'
+import { compileContent } from '@automata/content'
 import { Effect, Either } from 'effect'
 import { stringify } from 'smol-toml'
 import { afterEach, describe, expect, it } from 'vitest'

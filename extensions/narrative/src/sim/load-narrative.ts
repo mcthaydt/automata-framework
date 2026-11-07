@@ -1,7 +1,7 @@
 // A scene change (M6 spec §5): the game's Flow hands the scene's narrative content to the sim. The stance bounds come
 // from the canon (the default −4..4 when it gives none, NR-D2); the conversation under way and what the deck has played
 // start again, as the source's new world did. Stance and the dialogue's facts carry over.
-import type { SimContext } from '@mcthaydt/automata-sim'
+import type { SimContext } from '@automata/sim'
 import { type Canon, DEFAULT_STANCE } from './canon.schema'
 import { type DialogueGraph, dialogueGraphSchema } from './dialogue.schema'
 import { NarrativeDialogue, NarrativeSceneResource, NarrativeStorylets } from './narrative.resource'

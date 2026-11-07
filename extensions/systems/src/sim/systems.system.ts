@@ -1,8 +1,8 @@
 // The systems' step (M6 spec §4.6, §5), in `gameplay`: hiding commands, then (when the def asks about portals) the
 // player's crossing, then the world rules in order (a catch or a cutscene halts the rest of the step), then every
 // agent in the def's order. Noises age in `cleanup`. `hear` makes a noise and has the systems react at once.
-import type { SimContext, SystemDef } from '@mcthaydt/automata-sim'
-import { defineSystem } from '@mcthaydt/automata-sim'
+import type { SimContext, SystemDef } from '@automata/sim'
+import { defineSystem } from '@automata/sim'
 import { hearAgent, stepAgent } from './agent-step'
 import { applyEffects, makeNoise } from './effect'
 import { holds } from './probe'

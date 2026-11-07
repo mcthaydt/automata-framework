@@ -17,7 +17,7 @@ test.each([
     return { ...original, default: { ...original.default, init } }
   })
   const mod = (await import(/* @vite-ignore */ entry)) as Record<string, () => never>
-  const { createSim } = await import('@mcthaydt/automata-sim')
+  const { createSim } = await import('@automata/sim')
   await expect(createSim({ seed: 1, plugins: [(mod[factory] as () => never)()] })).rejects.toThrow(
     'wasm fetch failed',
   )

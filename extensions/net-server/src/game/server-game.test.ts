@@ -1,5 +1,5 @@
-import { netPlugin } from '@mcthaydt/automata-net/sim'
-import { defineCommand, definePlugin } from '@mcthaydt/automata-sim'
+import { netPlugin } from '@automata/net/sim'
+import { defineCommand, definePlugin } from '@automata/sim'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { defineServer, ROOM_SOURCE, type ServerGameDef } from './server-game'

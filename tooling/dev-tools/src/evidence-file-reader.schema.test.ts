@@ -1,9 +1,9 @@
-import { EvidenceSchema } from '@mcthaydt/evidence'
+import { EvidenceSchema } from '@automata/evidence'
 import { describe, expect, it } from 'vitest'
 import { EvidenceFileReaderSchema, evidenceFileRefusal } from './evidence-file-reader.schema.ts'
 
 // DT-d: the reader takes what promotion needs from core's evidence file (the framework's tooling/evidence, packed as
-// the private @mcthaydt/evidence, imported here in a test only, as F1 allows). The contract case parses a file with
+// the private @automata/evidence, imported here in a test only, as F1 allows). The contract case parses a file with
 // core's own schema first, so the reader follows core rather than a copy of it.
 
 const node = { engine: 'node', version: 'v24.21.0', hash: '0123456789abcdef' }
@@ -28,7 +28,7 @@ const coreFile = (overrides: { dirty?: boolean; enginesAgree?: boolean } = {}) =
     run: { kind: 'local' },
     playwright: '1.60.0',
     goldens: [golden(overrides.enginesAgree ?? true)],
-    packages: [{ name: '@mcthaydt/automata-sim', version: '0.0.3', released: false }],
+    packages: [{ name: '@automata/sim', version: '0.0.3', released: false }],
     automataCheck: { status: 'pending', waitingOn: ['DX.5'], note: 'not merged yet' },
   })
 

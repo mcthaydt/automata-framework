@@ -1,6 +1,6 @@
 // The puzzle plugin (M6 spec §4.5). `createPuzzlePlugin` takes the game's call functions and mapped facts; their names
 // are its config, so two sims with different calls never accept each other's snapshots. `puzzlePlugin` has neither.
-import { definePlugin, type PluginDef, sortedKeys } from '@mcthaydt/automata-sim'
+import { definePlugin, type PluginDef, sortedKeys } from '@automata/sim'
 import { VerbCommand } from './puzzle.command'
 import {
   PuzzleCheckpoint,

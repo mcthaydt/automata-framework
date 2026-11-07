@@ -1,4 +1,4 @@
-import type { Command } from '@mcthaydt/automata-sim'
+import type { Command } from '@automata/sim'
 import { describe, expect, it } from 'vitest'
 import { fakeColyseus } from '../testing/fake-colyseus'
 import { NET_CHANNEL } from '../wire/room'

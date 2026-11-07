@@ -1,5 +1,5 @@
 // What `automata add ui-screens` does, for the kit's own tests: copies each `from` in kit.json to its `to` in a game folder. The
-// folder is made inside the kit's package (not the system temp) so the copy resolves `@mcthaydt/automata-ui` and `svelte` as a
+// folder is made inside the kit's package (not the system temp) so the copy resolves `@automata/framework` and `svelte` as a
 // game's files would.
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'

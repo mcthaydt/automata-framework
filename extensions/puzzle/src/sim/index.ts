@@ -1,4 +1,4 @@
-// @mcthaydt/automata-puzzle/sim: the puzzle interpreter (M6 spec §4.5), a sim entry. `Value` and `Cond` are puzzle's
+// @automata/puzzle/sim: the puzzle interpreter (M6 spec §4.5), a sim entry. `Value` and `Cond` are puzzle's
 // (§3): narrative and systems import them from here.
 export { fallbackLine, holds, match, type Reader, uses, type Verb } from './interpret'
 export { loadPuzzle } from './load-puzzle'

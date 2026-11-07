@@ -1,7 +1,7 @@
 // Hint probes (M6.8b step 5; from the source's `hintProbes`): for each lethal rule and each route that exposes its risk
 // (a step that sets up a systemic entry with a risk), each `hintedBy` action the route can take at or before that
 // step, played in the sim at the first point it can be, and the lines it showed.
-import { createSolver } from '@mcthaydt/automata-puzzle/solver'
+import { createSolver } from '@automata/puzzle/solver'
 import type { HintProbe } from './coverage'
 import { type PlayRoute, play, shown, solverRoutes, type TraceGame } from './traces'
 

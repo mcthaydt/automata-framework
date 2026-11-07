@@ -1,12 +1,6 @@
 // A run's watcher (M6.7b): checks a scenario's condition with the systems' own probes at the end of every step and
 // keeps whether it held. Bots and the pipeline add it to a run's sim; a game never registers it.
-import {
-  definePlugin,
-  defineResource,
-  defineSystem,
-  type PluginDef,
-  type ResourceDef,
-} from '@mcthaydt/automata-sim'
+import { definePlugin, defineResource, defineSystem, type PluginDef, type ResourceDef } from '@automata/sim'
 import { z } from 'zod'
 import { holds, type Subject } from './probe'
 import type { Probe } from './systems.schema'

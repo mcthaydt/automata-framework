@@ -7,14 +7,14 @@
 // paid. The sample budget is not part of it: it is core's asset budget (AU-D6).
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import type { AudioContent } from '@mcthaydt/automata-audio-synth'
-import { Files } from '@mcthaydt/automata-node'
-import { canonicalJson } from '@mcthaydt/automata-sim'
-import { hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
+import type { AudioContent } from '@automata/audio-synth'
+import { canonicalJson } from '@automata/sim'
+import { hex64, utf8, xxhash64 } from '@automata/sim/hash'
 import { Effect } from 'effect'
 import { parse as parseToml } from 'smol-toml'
 import { z } from 'zod'
 import { type AudioRenderer, openAudioRenderer } from './audio-browser.ts'
+import { Files } from './node-seams.ts'
 import {
   type CheckResult,
   definePipeline,
@@ -136,7 +136,7 @@ const load = (ctx: Ctx, stage: string) =>
     const text = yield* files.readText(join(ctx.dir, ctx.spec.content))
     const spec = yield* files.readText(ctx.specPath)
     const { audioSchema } = yield* Effect.tryPromise({
-      try: () => import('@mcthaydt/automata-audio-synth'),
+      try: () => import('@automata/audio-synth'),
       catch: failing(stage),
     })
     const content = yield* Effect.try({
@@ -160,7 +160,7 @@ const musicLoudness = (ctx: Ctx, target: MusicTarget) =>
     const names = (yield* files.exists(root)) ? yield* files.listFiles(root) : []
     const ceiling = target.true_peak_dbtp ?? ctx.spec.true_peak_dbtp ?? -1
     const { decodeWav, integratedLoudness, truePeak } = yield* Effect.tryPromise({
-      try: () => import('@mcthaydt/automata-audio-synth/measure'),
+      try: () => import('@automata/audio-synth/measure'),
       catch: failing('check'),
     })
     const problems: string[] = []
@@ -199,12 +199,12 @@ const musicLoudness = (ctx: Ctx, target: MusicTarget) =>
   })
 
 const cueSeconds = async (content: AudioContent, id: string, tail: number): Promise<number> => {
-  const { cueLength } = await import('@mcthaydt/automata-audio-synth')
+  const { cueLength } = await import('@automata/audio-synth')
   const cue = (content.cue ?? []).find((c) => c.id === id)
   return (cue === undefined ? 0 : cueLength(cue)) + tail
 }
 
-type Meter = typeof import('@mcthaydt/automata-audio-synth/measure')
+type Meter = typeof import('@automata/audio-synth/measure')
 
 function measure(m: Meter, file: string, channels: readonly Float32Array[]): Measured {
   const { clicks, integratedLoudness, truePeak } = m
@@ -223,8 +223,8 @@ async function renderAll(
   renderer: AudioRenderer,
 ): Promise<RenderRecord> {
   // Loaded when the stage runs, not at import: the bin runs from source and resolves these through the SB-D6 hook (as `narrative`).
-  const { cueLength } = await import('@mcthaydt/automata-audio-synth')
-  const meter = await import('@mcthaydt/automata-audio-synth/measure')
+  const { cueLength } = await import('@automata/audio-synth')
+  const meter = await import('@automata/audio-synth/measure')
   const { encodeWav, rms } = meter
   const tail = ctx.spec.tail ?? 0.5
   const out: Measured[] = []
@@ -417,7 +417,7 @@ export const audioPipeline: PipelineDef<AudioPipeSpec> = definePipeline<AudioPip
       if (ctx.spec.music !== undefined) results.push(yield* musicLoudness(ctx, ctx.spec.music))
       if (ctx.spec.events !== undefined) {
         const { coverage } = yield* Effect.tryPromise({
-          try: () => import('@mcthaydt/automata-audio-synth'),
+          try: () => import('@automata/audio-synth'),
           catch: failing('check'),
         })
         const cov = coverage(content, new Map(ctx.spec.events.map((e) => [e, 'audio.pipe.toml'])))

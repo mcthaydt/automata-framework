@@ -5,13 +5,13 @@
 // scene module and the solver load when a stage runs (as `systems`, SB-D6).
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { Files } from '@mcthaydt/automata-node'
-import type { PuzzleScene } from '@mcthaydt/automata-puzzle/solver'
-import { canonicalJson } from '@mcthaydt/automata-sim'
-import { hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
-import type { Policy, SystemsScene } from '@mcthaydt/automata-systems/bots'
+import type { PuzzleScene } from '@automata/puzzle/solver'
+import { canonicalJson } from '@automata/sim'
+import { hex64, utf8, xxhash64 } from '@automata/sim/hash'
+import type { Policy, SystemsScene } from '@automata/systems/bots'
 import { Effect } from 'effect'
 import { z } from 'zod'
+import { Files } from './node-seams.ts'
 import {
   type CheckResult,
   definePipeline,
@@ -48,9 +48,9 @@ type Ctx = StageContext<PuzzlePipeSpec>
 
 const failing = (stage: string) => (cause: unknown) => new StageFailed({ stage, reason: String(cause) })
 const solverTools = (stage: string) =>
-  Effect.tryPromise({ try: () => import('@mcthaydt/automata-puzzle/solver'), catch: failing(stage) })
+  Effect.tryPromise({ try: () => import('@automata/puzzle/solver'), catch: failing(stage) })
 const bots = (stage: string) =>
-  Effect.tryPromise({ try: () => import('@mcthaydt/automata-systems/bots'), catch: failing(stage) })
+  Effect.tryPromise({ try: () => import('@automata/systems/bots'), catch: failing(stage) })
 
 interface Loaded {
   readonly puzzle: PuzzleScene

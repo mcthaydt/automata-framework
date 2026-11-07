@@ -6,8 +6,8 @@
  */
 
 import type { IncomingMessage, ServerResponse } from 'node:http'
+import type { NetErrorCode } from '@automata/net'
 import { ErrorCode } from '@colyseus/core'
-import type { NetErrorCode } from '@mcthaydt/automata-net'
 import type { OriginPolicy } from './origins'
 
 /** What a player is told, by code. */

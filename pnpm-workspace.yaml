@@ -1,5 +1,6 @@
 packages:
   - packages/*
+  - extensions/*
   - tooling/*
   - games/*
   # The one-file examples, one package per dimension, and the feature demos inside the 2D one

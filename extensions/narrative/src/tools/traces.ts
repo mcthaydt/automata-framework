@@ -3,15 +3,9 @@
 // storylets, conversations (the lines every path says before its first choice) and cutscenes. Beat coverage, the hint
 // cross-check and the screenplay read these traces. The game gives `TraceGame` the sim it plays in; nothing here
 // walks the player (the sim takes a verb as the game's walker arrives), so a route is its steps' verbs in order.
-import { PuzzleCutscene, PuzzleDialogue, PuzzleSaid, PuzzleState } from '@mcthaydt/automata-puzzle/sim'
-import {
-  createSolver,
-  describe,
-  type PuzzleScene,
-  routesOf,
-  type Step,
-} from '@mcthaydt/automata-puzzle/solver'
-import type { Command, Sim } from '@mcthaydt/automata-sim'
+import { PuzzleCutscene, PuzzleDialogue, PuzzleSaid, PuzzleState } from '@automata/puzzle/sim'
+import { createSolver, describe, type PuzzleScene, routesOf, type Step } from '@automata/puzzle/solver'
+import type { Command, Sim } from '@automata/sim'
 import { AFTER, type DialogueGraph, type LineRecord, NarrativeStorylet } from '../sim/index'
 
 /** What a game gives the tracer. */

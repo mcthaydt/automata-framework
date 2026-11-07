@@ -1,6 +1,6 @@
 // Cutscenes' state (M6 spec §4.8, M6-D7): which scripts the scene has (their length and the anchors they name; the rest of a
 // script is presentation's), and the cutscene under way with the ticks it starts and ends on.
-import { defineResource, type ResourceDef } from '@mcthaydt/automata-sim'
+import { defineResource, type ResourceDef } from '@automata/sim'
 import { z } from 'zod'
 
 export interface SceneScript {

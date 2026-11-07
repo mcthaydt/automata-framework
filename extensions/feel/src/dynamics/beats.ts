@@ -1,7 +1,7 @@
 // Events held until the drawn picture reaches them (M6 spec §4.1; from the arcade source's `room-beats.ts`). The sim runs ahead
 // of the picture, so an event answered on arrival would land before the picture showed its cause. Each event is answered
 // once: a batch delivered twice (a reconnect, a lagged tab catching up) starts nothing twice.
-import type { SimEvent } from '@mcthaydt/automata-sim'
+import type { SimEvent } from '@automata/sim'
 
 /** How far behind the drawn tick a batch is remembered, to refuse a late replay; then it is forgotten. */
 const MEMORY_TICKS = 600

@@ -1,4 +1,4 @@
-import type { SpawnPart } from '@mcthaydt/automata-sim'
+import type { SpawnPart } from '@automata/sim'
 import { type BodyKind, type ColliderOptions, colliderDefaults, ShapeKind } from './kinds'
 import { Collider2D, RigidBody2D, Transform2D } from './physics-2d.component'
 

@@ -1,4 +1,4 @@
-// @mcthaydt/automata-nav/sim: routes over a scene's graph and click-to-walk (M6 spec §4.4), a sim entry.
+// @automata/nav/sim: routes over a scene's graph and click-to-walk (M6 spec §4.4), a sim entry.
 export { blockedBy } from './blocked'
 export { loadNavGraph } from './load-nav-graph'
 export { NavDoor, type NavDoorPayload, WalkTo, type WalkToPayload } from './nav.command'

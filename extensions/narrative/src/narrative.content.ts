@@ -2,7 +2,7 @@
 // (`content/lines`), its dialogue graphs (`content/dialogue`), its storylet deck (`content/storylets`), its beats
 // (`content/beats`) and its puzzle help (`content/help`). Each schema
 // checks its references at their paths, so the compiler names the file and line.
-import { type ContentSchemaDef, defineContentSchema } from '@mcthaydt/automata-content'
+import { type ContentSchemaDef, defineContentSchema } from '@automata/content/schema'
 import type { z } from 'zod'
 import {
   type Canon,

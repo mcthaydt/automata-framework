@@ -1,5 +1,5 @@
 // Nav's input: walk an entity to a point (click-to-walk), and open or shut a door.
-import { type CommandDef, defineCommand } from '@mcthaydt/automata-sim'
+import { type CommandDef, defineCommand } from '@automata/sim'
 import { z } from 'zod'
 
 export interface WalkToPayload {

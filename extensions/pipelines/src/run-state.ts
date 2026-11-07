@@ -1,10 +1,10 @@
 import { extname, join, resolve } from 'node:path'
-import { Files } from '@mcthaydt/automata-node'
 import { Clock, Effect } from 'effect'
 import { parse } from 'smol-toml'
 import type { z } from 'zod'
 import type { Units } from './budget.ts'
 import { EXIT, type PipelineExit } from './exit.ts'
+import { Files } from './node-seams.ts'
 import type { PipelineDef, StageContext, StageDef } from './pipeline.ts'
 import { inputHash, missingPaths, relativeTo, stagePaths } from './stage-cache.ts'
 import {

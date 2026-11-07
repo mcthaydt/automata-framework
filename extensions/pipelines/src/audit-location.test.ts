@@ -1,12 +1,12 @@
 import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { FilesLive, ProcessRunnerLive } from '@mcthaydt/automata-node'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { Effect, Layer, ManagedRuntime } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createPipelinesServer } from './mcp-server.ts'
+import { FilesLive, ProcessRunnerLive } from './node-seams.ts'
 import { route } from './router.ts'
 import { toyPipeline } from './testing/toy.ts'
 

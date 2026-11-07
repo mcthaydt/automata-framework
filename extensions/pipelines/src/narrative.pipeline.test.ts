@@ -8,15 +8,15 @@ import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { FilesLive, ProcessRunnerLive } from '@mcthaydt/automata-node'
 import { Effect, Layer } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
 import { narrativePipeline, narrativePipeSpec } from './narrative.pipeline.ts'
+import { FilesLive, ProcessRunnerLive } from './node-seams.ts'
 import { route } from './router.ts'
 
 const resolve = createRequire(import.meta.url).resolve
-const TOY = resolve('@mcthaydt/automata-narrative/testing/toy-scene.pipe')
-const DEAD_END = resolve('@mcthaydt/automata-narrative/testing/dead-end-scene.pipe')
+const TOY = resolve('@automata/narrative/testing/toy-scene.pipe')
+const DEAD_END = resolve('@automata/narrative/testing/dead-end-scene.pipe')
 const temps: string[] = []
 afterEach(() => {
   for (const dir of temps.splice(0)) rmSync(dir, { recursive: true, force: true })

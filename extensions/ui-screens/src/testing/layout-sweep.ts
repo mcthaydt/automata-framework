@@ -2,15 +2,18 @@
 // variant, in English and in the `xx-long` pseudo-locale (about 40% longer, accented and bracketed, so a word that skipped the
 // copy shows up): no document scroll, whole 44 px targets (48 px primaries), nothing off screen or under the host's strip, and
 // every essential action visible and hit-testable. The checks are core's (`checkLayout`); this only sweeps them.
-import { hasRawText, PSEUDO_LOCALE, pseudoLocalize } from '@mcthaydt/automata-content/locale'
+import { hasRawText, PSEUDO_LOCALE, pseudoLocalize } from '@automata/content/locale'
 import {
+  byTestId,
+  checkLayout,
   type MountedFixture,
+  publishConditions,
   REFERENCE_SIZES,
   type ReferenceSize,
+  settleLayout,
   VARIANTS,
   type Variant,
-} from '@mcthaydt/automata-testing'
-import { byTestId, checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata-ui/testing'
+} from '@automata/framework/testing'
 import { describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 

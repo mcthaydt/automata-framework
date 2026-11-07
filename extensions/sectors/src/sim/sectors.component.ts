@@ -1,6 +1,6 @@
 // `in-sector`: a walker's place on the floor plan and the sector it stands in. The game writes `x` and `z` (its own
 // position component's plan coordinates) and sectors decides `sector` on the fixed step (S4-D6).
-import { type ComponentDef, defineComponent } from '@mcthaydt/automata-sim'
+import { type ComponentDef, defineComponent } from '@automata/sim'
 
 const inSectorFields = {
   /** Plan position in metres, written by the game. */

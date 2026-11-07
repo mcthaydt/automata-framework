@@ -10,7 +10,7 @@ import {
   type PreparedRestore,
   type SimContext,
   SnapshotFormatError,
-} from '@mcthaydt/automata-sim'
+} from '@automata/sim'
 
 /** One dimension's Rapier, as the shared code needs it. `World` is that dimension's Rapier world. */
 export interface PhysicsAdapter<World> {

@@ -1,4 +1,4 @@
-import { type SimContext, sortedKeys } from '@mcthaydt/automata-sim'
+import { type SimContext, sortedKeys } from '@automata/sim'
 import { NavGraphResource, NavRoutes } from './nav.resource'
 import { type NavGraph, navGraphSchema } from './nav-graph.schema'
 

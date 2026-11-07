@@ -1,6 +1,6 @@
 // `nav.agent`: a walker that nav moves. Its plan position is sectors' `InSector` x and z (N-D2); its route lives in
 // `nav.routes`, because components hold only numbers.
-import { type ComponentDef, defineComponent } from '@mcthaydt/automata-sim'
+import { type ComponentDef, defineComponent } from '@automata/sim'
 
 const navAgentFields = {
   /** Walking speed in metres per second. */

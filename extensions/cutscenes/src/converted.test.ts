@@ -1,8 +1,8 @@
 // The four scenes' converted cutscenes (M6.9a step 6): 28 scripts that parse, whose captions name lines the scenes have, and
 // the clinic's linted against the clinic map. The two findings left are the source's renderer rules (CS-D3): the keypad
 // insert's camera is near a wall the renderer cuts away, and the opening's is above the clinic, outside the map.
-import { resolveMap } from '@mcthaydt/automata-sectors/sim'
-import clinicMapToml from '@mcthaydt/automata-sectors/testing/fixtures/clinic.sector-map.toml?raw'
+import { resolveMap } from '@automata/sectors/sim'
+import clinicMapToml from '@automata/sectors/testing/fixtures/clinic.sector-map.toml?raw'
 import { parse } from 'smol-toml'
 import { describe, expect, it } from 'vitest'
 import { cutsceneSchema } from './sim/index'

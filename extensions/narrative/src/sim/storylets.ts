@@ -6,7 +6,7 @@
 // line, in turn. An inspect storylet that follows an action's own line (or a turn away to a cutscene, dialogue, keypad
 // or exit) waits AFTER seconds (NR-D4); while one waits, nothing else plays, and the next verb drops it. Dwell counts
 // seconds standing still in the room; moving or a verb resets it.
-import { holds as condHolds, type Reader } from '@mcthaydt/automata-puzzle/sim'
+import { holds as condHolds, type Reader } from '@automata/puzzle/sim'
 import { parseTrigger, type Storylet, type Trigger } from './storylet.schema'
 
 /** The least time an action's own line stays up before a storylet follows it, in seconds (NR-D4). */

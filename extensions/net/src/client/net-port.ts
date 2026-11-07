@@ -1,5 +1,5 @@
 /**
- * The client end of core's `NetworkPort` (`@mcthaydt/automata-runtime`, PRODUCT.1; M7 spec §4.2).
+ * The client end of core's `NetworkPort` (`@automata/framework`, PRODUCT.1; M7 spec §4.2).
  *
  * Core's runtime package is private until it publishes (DX.2a), so Plus cannot import the `NetworkPort` type; this
  * port has its four members with core's exact signatures, and is typed against core's once runtime publishes (a
@@ -12,7 +12,7 @@
  * Plain callbacks, no Effect: commands and snapshots cross the port every tick (ADR 0003).
  */
 
-import type { Command } from '@mcthaydt/automata-sim'
+import type { Command } from '@automata/sim'
 import type { ColyseusTransport, NetSnapshot, Pong, TransportEvents } from './colyseus-transport'
 
 /** Round trips remembered for the estimate; the median of these is the answer (FloorFifty `RTT_SAMPLES`). */

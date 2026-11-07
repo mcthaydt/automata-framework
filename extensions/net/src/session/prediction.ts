@@ -18,7 +18,7 @@
  * commands). Bytes that `restore` refuses leave the sim untouched (core's rule). Plain code, no Effect per step.
  */
 
-import type { Command, Sim } from '@mcthaydt/automata-sim'
+import type { Command, Sim } from '@automata/sim'
 import type { NetSnapshot } from '../client/colyseus-transport'
 
 const NO_COMMANDS: readonly Command[] = Object.freeze([])

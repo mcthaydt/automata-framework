@@ -2,7 +2,7 @@
 // are the game's presentation (P6-D3). The effects that belong to other extensions are events those extensions read:
 // `puzzle.noise` (systems), `puzzle.cutscene` and `puzzle.exit` (cutscenes and the game's Flow), `puzzle.dialogue`
 // (narrative); `puzzle.checkpoint` and `puzzle.keypad` are the game's.
-import { defineEvent, type EventDef } from '@mcthaydt/automata-sim'
+import { defineEvent, type EventDef } from '@automata/sim'
 import { z } from 'zod'
 
 type Empty = Record<string, never>

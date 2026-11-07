@@ -12,7 +12,7 @@
  * the edge and never inside the logic.
  */
 
-import type { NetConfig } from '@mcthaydt/automata-net'
+import type { NetConfig } from '@automata/net'
 import { Effect, type Scope } from 'effect'
 import type { ServerConfig, ServerLimits, SignalSource } from '../game/server-config'
 import type { ServerDef } from '../game/server-game'

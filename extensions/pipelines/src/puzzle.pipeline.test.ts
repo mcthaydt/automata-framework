@@ -6,15 +6,15 @@ import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { FilesLive, ProcessRunnerLive } from '@mcthaydt/automata-node'
 import { Effect, Layer } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
+import { FilesLive, ProcessRunnerLive } from './node-seams.ts'
 import { puzzlePipeline, puzzlePipeSpec } from './puzzle.pipeline.ts'
 import { route } from './router.ts'
 
 const resolve = createRequire(import.meta.url).resolve
-const TOY = resolve('@mcthaydt/automata-puzzle/testing/toy-scene.pipe')
-const SOFTLOCK = resolve('@mcthaydt/automata-puzzle/testing/softlock-scene.pipe')
+const TOY = resolve('@automata/puzzle/testing/toy-scene.pipe')
+const SOFTLOCK = resolve('@automata/puzzle/testing/softlock-scene.pipe')
 const temps: string[] = []
 afterEach(() => {
   for (const dir of temps.splice(0)) rmSync(dir, { recursive: true, force: true })

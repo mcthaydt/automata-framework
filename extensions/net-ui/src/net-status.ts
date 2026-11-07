@@ -7,7 +7,7 @@
 //   degraded           badge "degraded" for as long as it lasts
 //   reconnecting       badge "reconnecting" with the seconds left; the overlay counts down; once the grace has passed the overlay
 //                      says it could not reconnect and offers Leave, and the badge hides (the overlay has the player's attention)
-import type { ConnectionState } from '@mcthaydt/automata-net'
+import type { ConnectionState } from '@automata/net'
 
 export const CONNECTED_SHOWN_MS = 2000
 

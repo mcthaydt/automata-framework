@@ -1,4 +1,4 @@
-import type { EntityRef, EventDef, SimContext } from '@mcthaydt/automata-sim'
+import type { EntityRef, EventDef, SimContext } from '@automata/sim'
 import { expect, test } from 'vitest'
 import { Collider3D, CollisionEnded3D, CollisionStarted3D, RigidBody3D, Transform3D } from './3d'
 import { type PhysicsAdapter, PhysicsWorld } from './physics-world'

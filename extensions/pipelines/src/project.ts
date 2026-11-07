@@ -1,9 +1,9 @@
 import { readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
-import { type FileError, Files } from '@mcthaydt/automata-node'
 import { Effect, type Scope } from 'effect'
 import { parse } from 'smol-toml'
 import type { Units } from './budget.ts'
+import { type FileError, Files } from './node-seams.ts'
 import { type PipelineToml, pipelineTomlSchema } from './pipeline-toml.schema.ts'
 import { spendLedgerSchema } from './state.schema.ts'
 

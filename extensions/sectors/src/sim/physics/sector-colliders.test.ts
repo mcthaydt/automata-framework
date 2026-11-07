@@ -1,16 +1,10 @@
 // Colliders (M6 spec §4.3): when the game registers physics, the map adds one fixed Rapier box behind each span a
 // walker cannot pass (a solid wall, a step taller than STEP, a blocking masked portal), as deep as the wall's `thick`
 // (WALL_THICK when it has none), and a new scene's map replaces them. Without physics, `segmentBlocked` is the query.
-import {
-  BodyKind,
-  Collider3D,
-  physics3d,
-  RigidBody3D,
-  ShapeKind,
-  Transform3D,
-} from '@mcthaydt/automata-physics/3d'
-import { WALL_THICK } from '@mcthaydt/automata-sector-format'
-import { createSim, defineCommand, definePlugin, defineSystem, type Sim } from '@mcthaydt/automata-sim'
+
+import { WALL_THICK } from '@automata/3d/level'
+import { BodyKind, Collider3D, physics3d, RigidBody3D, ShapeKind, Transform3D } from '@automata/physics/3d'
+import { createSim, defineCommand, definePlugin, defineSystem, type Sim } from '@automata/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { resolveMap, type SectorMap, sectorsPlugin } from '../index'

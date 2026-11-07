@@ -9,7 +9,7 @@
  * No I/O: the room sends the answer (net's `answer` message); this only decides what it is.
  */
 
-import { reqIdSchema } from '@mcthaydt/automata-net'
+import { reqIdSchema } from '@automata/net'
 import { type ServerError, toServerError } from './room-errors'
 
 /** Answers remembered per session (FloorFifty's `COMMAND_RESULT_HISTORY`). */

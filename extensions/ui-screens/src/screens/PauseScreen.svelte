@@ -6,7 +6,7 @@
   reconnect uses core's default pause for those; this one is the plain version to edit.
 -->
 <script lang="ts">
-import { Modal } from '@mcthaydt/automata-ui'
+import { Modal } from '@automata/framework'
 import { tick } from 'svelte'
 
 /** Core's `ScreensCopy['paused']`, the part this screen reads. */

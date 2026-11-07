@@ -1,6 +1,6 @@
 // The nav plugin (M6 spec §4.4, §5, N-b): `walk-to` routes once and walks the walker's `InSector` plan position leg by
 // leg at its speed; `nav.arrived` and `nav.unreachable` say how it ended; a door's change re-routes a walk once.
-import type { Sim, SimEvent } from '@mcthaydt/automata-sim'
+import type { Sim, SimEvent } from '@automata/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
   at,

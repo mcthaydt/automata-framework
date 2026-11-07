@@ -15,7 +15,7 @@ import {
   defineSystem,
   type PluginDef,
   type Sim,
-} from '@mcthaydt/automata-sim'
+} from '@automata/sim'
 import { z } from 'zod'
 
 export const Mover: ComponentDef<{ seat: 'i32'; x: 'i32' }> = defineComponent('mover', {

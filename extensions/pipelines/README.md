@@ -1,4 +1,4 @@
-# `@mcthaydt/automata-pipelines` (Automata Plus, private)
+# `@automata/pipelines` (Automata Plus, private)
 
 A game's content pipelines: the `automata-pipe` command line for people, and the `automata-pipe-mcp` server for
 agents. Plans: `docs/superpowers/plans/2026-10-30-m3-8a-pipelines-platform.md` and `…-m3-8b-pipelines-mcp.md`.

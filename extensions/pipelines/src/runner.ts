@@ -1,8 +1,8 @@
 import { dirname } from 'node:path'
-import type { Files } from '@mcthaydt/automata-node'
 import { Cause, Effect, Exit, Option, type Scope } from 'effect'
 import { budgetRefusal, type Units } from './budget.ts'
 import { EXIT } from './exit.ts'
+import type { Files } from './node-seams.ts'
 import type { CheckResult, PipelineDef, StageDef, StageServices } from './pipeline.ts'
 import { charge, holdLedger, holdTarget, loadProject, type Project, readSpent } from './project.ts'
 import {

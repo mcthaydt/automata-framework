@@ -10,7 +10,7 @@
  */
 
 // The code's alphabet and length are net's (the client reads and types the code).
-import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from '@mcthaydt/automata-net'
+import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from '@automata/net'
 
 /** The shared set holding every live room code. */
 export const ROOM_CODE_CHANNEL = 'automata:rooms'

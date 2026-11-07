@@ -1,7 +1,7 @@
 // The nav golden (M6 spec §4.9, N-a): three clinic walkers hash to one committed value in Node, Chromium, WebKit and
 // Firefox, straight and restored at step 300, and one route's points are pinned. A mismatch is investigated, never
 // rebaselined.
-import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
+import { recordGoldenEvidence } from '@automata/evidence/golden'
 import { expect, test } from 'vitest'
 import { clinicBlocked, clinicGraph, resolvedClinic } from '../testing/clinic'
 import { runNavGolden } from '../testing/walk-script'

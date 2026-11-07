@@ -1,6 +1,14 @@
-import '@mcthaydt/automata-ui/theme.css'
-import { findUnreachable, mountFixture, REFERENCE_SIZES, VARIANTS } from '@mcthaydt/automata-testing'
-import { byTestId, checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata-ui/testing'
+import '@automata/framework/theme.css'
+import {
+  byTestId,
+  checkLayout,
+  findUnreachable,
+  mountFixture,
+  publishConditions,
+  REFERENCE_SIZES,
+  settleLayout,
+  VARIANTS,
+} from '@automata/framework/testing'
 import { describe, expect, test, vi } from 'vitest'
 import { page } from 'vitest/browser'
 import NetLayoutFixture, { type NetShow } from './NetLayoutFixture.svelte'

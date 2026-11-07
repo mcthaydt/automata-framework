@@ -1,5 +1,5 @@
-import '@mcthaydt/automata-ui/theme.css'
-import { mountFixture } from '@mcthaydt/automata-testing'
+import '@automata/framework/theme.css'
+import { mountFixture } from '@automata/framework/testing'
 import { type Locale, layoutContract, say } from '../testing/layout-sweep'
 import LoadingScreen from './LoadingScreen.svelte'
 

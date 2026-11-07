@@ -1,4 +1,4 @@
-import { defineEvent, type EventDef } from '@mcthaydt/automata-sim'
+import { defineEvent, type EventDef } from '@automata/sim'
 import { z } from 'zod'
 
 // Collision events (M2.1 spec §3.4): `a < b` are the two entities' StableIds; `sensor` when either is a sensor.

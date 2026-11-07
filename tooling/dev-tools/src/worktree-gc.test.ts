@@ -1,9 +1,9 @@
 import { existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { FilesLive } from '@mcthaydt/automata-node'
 import { Effect, Layer } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { FilesLive } from './node-seams.ts'
 import { type FakeAnswer, fakeProcessRunner, type RunCall } from './testing/fake-process-runner.ts'
 import { worktreeGc } from './worktree-gc.ts'
 

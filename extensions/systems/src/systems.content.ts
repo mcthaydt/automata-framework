@@ -1,6 +1,6 @@
 // The `systems` content kind (M6 spec §4.6): every TOML file in `content/systems` is one scene's systems. The game says
 // which hooks it gives `createSystems`, so a hook a def names but the game lacks fails when content compiles.
-import { type ContentSchemaDef, defineContentSchema } from '@mcthaydt/automata-content'
+import { type ContentSchemaDef, defineContentSchema } from '@automata/content/schema'
 import type { z } from 'zod'
 import { type SystemsDef, systemsDefShape } from './sim/systems.schema'
 import { checkSystems, type SystemsCheckOptions } from './sim/systems-checks'

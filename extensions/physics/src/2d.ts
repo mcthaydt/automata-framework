@@ -1,4 +1,4 @@
-// @mcthaydt/automata-physics/2d: 2D physics for the sim (M2.1 spec §3.5). Game code never imports Rapier.
+// @automata/physics/2d: 2D physics for the sim (M2.1 spec §3.5). Game code never imports Rapier.
 export { BodyKind, type ColliderOptions, ShapeKind } from './kinds'
 export { type Physics2DOptions, physics2d } from './physics-2d'
 export { Collider2D, RigidBody2D, Transform2D } from './physics-2d.component'

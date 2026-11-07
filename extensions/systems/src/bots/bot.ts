@@ -9,8 +9,8 @@
 // - random: samples verbs (hotspots with an item or a bare hand, combines, codes at the keypad) and walks.
 // A bot's randomness comes from its own seed, never from the sim's RNG.
 
-import type { Point } from '@mcthaydt/automata-sectors/sim'
-import { createRng, type Rng } from '@mcthaydt/automata-sim'
+import type { Point } from '@automata/sectors/sim'
+import { createRng, type Rng } from '@automata/sim'
 import { type BotView, type Order, type PlanStep, tokenOf, verbOf, walkTo } from './view'
 
 export type Policy = 'scripted' | 'cautious' | 'random' | 'greedy'

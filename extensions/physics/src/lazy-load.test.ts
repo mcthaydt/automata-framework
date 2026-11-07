@@ -13,7 +13,7 @@ test.each([
   })
   const mod = (await import(/* @vite-ignore */ entry)) as Record<string, () => unknown>
   expect(loads).toEqual([])
-  const { createSim } = await import('@mcthaydt/automata-sim')
+  const { createSim } = await import('@automata/sim')
   const sim = await createSim({ seed: 1, plugins: [(mod[factory] as () => never)()] })
   expect(loads).toEqual([rapier])
   sim.dispose()

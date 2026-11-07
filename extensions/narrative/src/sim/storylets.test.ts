@@ -1,6 +1,6 @@
 // Storylets (M6 spec §4.13): the adventure source's salience, once and max, inspect, enter, dwell, system and state
 // cases, re-pointed at the pure functions (a room is a sector id or a zone, NR-D5; an inspect waits AFTER, NR-D4).
-import type { Reader, Value } from '@mcthaydt/automata-puzzle/sim'
+import type { Reader, Value } from '@automata/puzzle/sim'
 import { describe, expect, it } from 'vitest'
 import {
   freshStorylets,

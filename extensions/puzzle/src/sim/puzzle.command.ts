@@ -1,7 +1,7 @@
 // A verb (M6 spec §4.5, §5): what the player did, sent by the game once its walker is in reach. `at` is a hotspot id or
 // `combine`, `floor` or `code`; `held` the item in hand, `pair` two items combined, `code` a typed code, `point` a floor
 // point.
-import { type CommandDef, defineCommand } from '@mcthaydt/automata-sim'
+import { type CommandDef, defineCommand } from '@automata/sim'
 import { z } from 'zod'
 
 export interface VerbPayload {

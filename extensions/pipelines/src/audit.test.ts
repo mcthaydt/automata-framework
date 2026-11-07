@@ -2,10 +2,10 @@ import { spawnSync } from 'node:child_process'
 import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { FilesLive, ProcessRunnerLive } from '@mcthaydt/automata-node'
 import { Effect, Layer } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
 import { AUDIT_LOG, type AuditEntry, appendAudit, auditEntrySchema, auditRootOf, gitHead } from './audit.ts'
+import { FilesLive, ProcessRunnerLive } from './node-seams.ts'
 
 // The audit log (The Last Light's docs/pipeline-audit.jsonl and AuditEntry at 92e6704): one JSON line per call.
 

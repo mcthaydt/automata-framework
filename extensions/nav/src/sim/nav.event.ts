@@ -1,5 +1,5 @@
 // How a walk ended: the walker arrived, or there was no way to its target (it stands where it was).
-import { defineEvent, type EventDef } from '@mcthaydt/automata-sim'
+import { defineEvent, type EventDef } from '@automata/sim'
 import { z } from 'zod'
 
 const pointSchema = z.strictObject({ x: z.number(), z: z.number() })

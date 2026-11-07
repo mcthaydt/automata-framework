@@ -15,10 +15,10 @@
  * the room's final hash.
  */
 
-import type { ServerMessage } from '@mcthaydt/automata-net'
-import { SeatJoin, SeatLeave } from '@mcthaydt/automata-net/sim'
-import { type Command, createRng, type Rng, type Sim } from '@mcthaydt/automata-sim'
-import { createRecorder, packReplay, type Recorder } from '@mcthaydt/automata-sim/replay'
+import type { ServerMessage } from '@automata/net'
+import { SeatJoin, SeatLeave } from '@automata/net/sim'
+import { type Command, createRng, type Rng, type Sim } from '@automata/sim'
+import { createRecorder, packReplay, type Recorder } from '@automata/sim/replay'
 import type { RoomLogEvent } from '../game/server-config'
 import { type CommandIntent, ROOM_SOURCE, type ServerDef } from '../game/server-game'
 import { type SimView, simViewOf } from '../game/sim-view'

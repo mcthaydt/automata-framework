@@ -3,7 +3,7 @@
 // says its lines in order, then offers the player's choices or goes on to `next`. A node whose `when` fails is passed
 // over: a `next` leads through it to its own `next`, and a choice that leads to it is not offered. Nothing advances
 // on a timer: only `advance` and `choose` move a conversation.
-import { type Cond, holds as condHolds, type Reader, type Value } from '@mcthaydt/automata-puzzle/sim'
+import { type Cond, holds as condHolds, type Reader, type Value } from '@automata/puzzle/sim'
 import type { Choice, DialogueGraph, DialogueNode } from './dialogue.schema'
 
 /** What choices have changed: stance (clamped to the canon's bounds) and the facts they set. */

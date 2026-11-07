@@ -2,10 +2,10 @@
   @component
   The title screen (PRODUCT.6): the game's name, one primary Play and any further actions the game adds (Settings, Credits), on core's
   ScreenFrame and ActionBar. Play takes focus on entry. A game with saves keeps core's default title, which lists the slots; add
-  that here by copying the slot list from `@mcthaydt/automata-game`'s title when you need it.
+  that here by copying the slot list from `@automata/framework`'s title when you need it.
 -->
 <script lang="ts">
-import { ActionBar, ScreenFrame } from '@mcthaydt/automata-ui'
+import { ActionBar, ScreenFrame } from '@automata/framework'
 import { onMount } from 'svelte'
 
 export interface TitleAction {

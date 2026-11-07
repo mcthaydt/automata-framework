@@ -1,6 +1,6 @@
 // The rule ticks (M6 spec §4.6, §5): the adventure source's `systems.test.ts` cases through the real sim, plus the
 // halt: a catch in a rule ends the step before the agents.
-import type { Sim } from '@mcthaydt/automata-sim'
+import type { Sim } from '@automata/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { alarmToy, sceneOf, watchman } from '../testing/toy'
 import { agent, createWardGame, fact, kinds, load, run, stepWith } from '../testing/ward-game'

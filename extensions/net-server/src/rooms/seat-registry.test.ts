@@ -1,4 +1,4 @@
-import type { ServerMessage } from '@mcthaydt/automata-net'
+import type { ServerMessage } from '@automata/net'
 import { describe, expect, it, vi } from 'vitest'
 import { type SeatClient, SeatRegistry } from './seat-registry'
 

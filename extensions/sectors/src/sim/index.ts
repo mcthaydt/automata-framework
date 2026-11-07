@@ -1,6 +1,6 @@
-// @mcthaydt/automata-sectors/sim: the sector map's sim side (M6 spec §4.3), a sim entry. The map's shape is the sector
+// @automata/sectors/sim: the sector map's sim side (M6 spec §4.3), a sim entry. The map's shape is the sector
 // format's (`Point` is re-exported from it, §3); resolution, queries, the step rule and the plugin are sectors' own.
-export type { Point } from '@mcthaydt/automata-sector-format'
+export type { Point } from '@automata/3d/level'
 export { loadSectorMap } from './load-sector-map'
 export { type Collider, type Edge, type Piece, type ResolvedMap, resolveMap, type Sector } from './resolve'
 export { resolvedMap } from './resolved-map'

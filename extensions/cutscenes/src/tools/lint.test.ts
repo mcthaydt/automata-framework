@@ -2,8 +2,8 @@
 // an actor off the floor, a caption whose line does not exist or is shown too briefly, a sound or lamp that does not exist,
 // a shot that is too short, dead air. The source's rules that read its renderer (ceiling, cut-away walls, sprite scale,
 // back to camera, solid boxes) come with the renderer (CS-D3).
-import { resolveMap } from '@mcthaydt/automata-sectors/sim'
-import clinicMapToml from '@mcthaydt/automata-sectors/testing/fixtures/clinic.sector-map.toml?raw'
+import { resolveMap } from '@automata/sectors/sim'
+import clinicMapToml from '@automata/sectors/testing/fixtures/clinic.sector-map.toml?raw'
 import { parse } from 'smol-toml'
 import { describe, expect, it } from 'vitest'
 import type { CutsceneScript } from '../sim/index'

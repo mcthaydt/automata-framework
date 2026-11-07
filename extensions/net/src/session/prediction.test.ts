@@ -1,4 +1,4 @@
-import type { Sim } from '@mcthaydt/automata-sim'
+import type { Sim } from '@automata/sim'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { NetSnapshot } from '../client/colyseus-transport'
 import { counterSim, move, moverX, spawn } from '../test-support/counter-game'

@@ -1,6 +1,6 @@
 // The narrative extension (M6 spec §4.7): the plugin and the six content kinds, after sectors (rooms) and puzzle
 // (conditions, the `dialogue` and `verb` hooks).
-import { defineExtension, type ExtensionDef } from '@mcthaydt/automata-runtime/extension'
+import { defineExtension, type ExtensionDef } from '@automata/framework/extension'
 import {
   beatsContent,
   canonContent,

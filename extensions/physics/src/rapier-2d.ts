@@ -2,8 +2,8 @@
 // from physics-2d.ts, so the wasm loads inside createSim and never at import time. It mirrors rapier-3d.ts
 // with 2D vectors and a scalar rotation.
 
+import type { EntityRef } from '@automata/sim'
 import RAPIER from '@dimforge/rapier2d-deterministic-compat'
-import type { EntityRef } from '@mcthaydt/automata-sim'
 import { checkBody, checkCollider } from './checks'
 import { BodyKind, ShapeKind } from './kinds'
 import { Collider2D, RigidBody2D, Transform2D } from './physics-2d.component'

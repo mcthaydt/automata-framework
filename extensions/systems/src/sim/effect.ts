@@ -1,8 +1,8 @@
 // Effects (M6 spec §4.6): what a rule or a transition does, in order. A catch or a cutscene ends the step for the
 // rest of the systems (the source's halt).
-import { route } from '@mcthaydt/automata-nav/sim'
-import type { Point } from '@mcthaydt/automata-sectors/sim'
-import { sortedKeys } from '@mcthaydt/automata-sim'
+import { route } from '@automata/nav/sim'
+import type { Point } from '@automata/sectors/sim'
+import { sortedKeys } from '@automata/sim'
 import { heardNoises, lit, type Subject, setFact } from './probe'
 import { dist, FOLLOW_CLEAR, portal, zoneAt } from './pursuit'
 import { reachable } from './reserve'

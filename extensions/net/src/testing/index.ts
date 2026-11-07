@@ -1,4 +1,4 @@
-// `@mcthaydt/automata-net/testing`: the deterministic link harness (M7 spec §4.7) and the scripted Colyseus SDK the
+// `@automata/net/testing`: the deterministic link harness (M7 spec §4.7) and the scripted Colyseus SDK the
 // client's tests run on (M7.5a), and net's wire over a link for a room and its clients (M7.5b).
 
 export {

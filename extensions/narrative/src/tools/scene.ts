@@ -2,7 +2,7 @@
 // exports a `NarrativeToolsScene` (the narrative counterpart of puzzle's `PuzzleScene`, PZ-D2): the game's trace game
 // (its puzzle, lines, conversations and the sim to play them in), its canon and locale text, its deck and beats and its
 // puzzle help, with the rules that are the game's own (NR-D8). Nothing here imports a game.
-import { showCond } from '@mcthaydt/automata-puzzle/solver'
+import { showCond } from '@automata/puzzle/solver'
 import type { Canon, Storylet } from '../sim/index'
 import type { Beat } from './beats.schema'
 import { type BeatReport, beatCoverage, type HintSystems, hintCheck } from './coverage'

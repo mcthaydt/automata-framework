@@ -4,8 +4,8 @@
 // the lines `beatCoverage` counts: messages, items, captions, and what a conversation says on every path). Then the
 // "Storylets" appendix. Pure and deterministic: the same traces give byte-identical text. The text of a line is the
 // locale's (NR-D10). The endings a route closes on and a cutscene's stance variants come with the cutscenes (M6.9).
-import type { Cond } from '@mcthaydt/automata-puzzle/sim'
-import { showCond } from '@mcthaydt/automata-puzzle/solver'
+import type { Cond } from '@automata/puzzle/sim'
+import { showCond } from '@automata/puzzle/solver'
 import type { DialogueGraph, LineRecord, Storylet } from '../sim/index'
 import { parseTrigger } from '../sim/index'
 import type { Beat } from './beats.schema'

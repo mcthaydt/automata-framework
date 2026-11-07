@@ -1,8 +1,8 @@
 // Dialogue graphs (M6 spec §4.7): a conversation's nodes say line records in order, then offer the player's choices or
 // go on to `next`. A node whose `when` fails is passed over. Conditions are puzzle's `Cond`.
 
-import { type Cond, condSchema, type Value, valueSchema } from '@mcthaydt/automata-puzzle/sim'
-import { sortedKeys } from '@mcthaydt/automata-sim'
+import { type Cond, condSchema, type Value, valueSchema } from '@automata/puzzle/sim'
+import { sortedKeys } from '@automata/sim'
 import { z } from 'zod'
 
 export interface Choice {

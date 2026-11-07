@@ -1,4 +1,4 @@
-import { definePlugin } from '@mcthaydt/automata-sim'
+import { definePlugin } from '@automata/sim'
 import { Effect, Exit } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { ServerLimits } from '../game/server-config'

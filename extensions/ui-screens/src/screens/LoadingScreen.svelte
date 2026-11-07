@@ -6,7 +6,7 @@
   the visible region.
 -->
 <script lang="ts">
-import { LoaderOverlay, ScreenFrame } from '@mcthaydt/automata-ui'
+import { LoaderOverlay, ScreenFrame } from '@automata/framework'
 
 interface Props {
   title: string

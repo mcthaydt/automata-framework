@@ -1,8 +1,8 @@
 // The 3D Rapier adapter (M2.1 spec §3.4): the only 3D file that calls Rapier. Loaded with a dynamic import
 // from physics-3d.ts, so the wasm loads inside createSim and never at import time.
 
+import type { EntityRef } from '@automata/sim'
 import RAPIER from '@dimforge/rapier3d-deterministic-compat'
-import type { EntityRef } from '@mcthaydt/automata-sim'
 import { checkBody, checkCollider, checkDepth, checkUnitQuaternion } from './checks'
 import { BodyKind, ShapeKind } from './kinds'
 import { Collider3D, RigidBody3D, Transform3D } from './physics-3d.component'

@@ -2,8 +2,8 @@
 // shape, with its WP-19 additions (`crossed`, `sawHide`, `followThrough`, `ambush`). Probes ask about the world,
 // effects change it, senses say what an agent can perceive. The definition checks are `systems-checks.ts`.
 
-import { type Value, valueSchema } from '@mcthaydt/automata-puzzle/sim'
-import type { Point } from '@mcthaydt/automata-sectors/sim'
+import { type Value, valueSchema } from '@automata/puzzle/sim'
+import type { Point } from '@automata/sectors/sim'
 import { z } from 'zod'
 
 export type Probe =

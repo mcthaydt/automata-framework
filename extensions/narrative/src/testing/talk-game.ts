@@ -1,9 +1,9 @@
 // A test game for narrative on the clinic's floor plan (sectors' fixture): it loads a scene's puzzle and narrative by
 // command, moves the player, sets facts and fires system events. Puzzle's `dialogue` and `verb` hooks go to narrative
 // (NR-D3); the player is an entity with `InSector`, named in `narrative.env` (NR-D5).
-import { createPuzzlePlugin, loadPuzzle, type PuzzleDef, PuzzleState } from '@mcthaydt/automata-puzzle/sim'
-import { InSector, loadSectorMap, type SectorMap, sectorsPlugin } from '@mcthaydt/automata-sectors/sim'
-import clinicMapToml from '@mcthaydt/automata-sectors/testing/fixtures/clinic.sector-map.toml?raw'
+import { createPuzzlePlugin, loadPuzzle, type PuzzleDef, PuzzleState } from '@automata/puzzle/sim'
+import { InSector, loadSectorMap, type SectorMap, sectorsPlugin } from '@automata/sectors/sim'
+import clinicMapToml from '@automata/sectors/testing/fixtures/clinic.sector-map.toml?raw'
 import {
   type Command,
   createSim,
@@ -12,7 +12,7 @@ import {
   defineSystem,
   type Sim,
   type StepResult,
-} from '@mcthaydt/automata-sim'
+} from '@automata/sim'
 import { parse } from 'smol-toml'
 import { z } from 'zod'
 import { createNarrative, type NarrativeOptions, type NarrativeScene } from '../sim/index'

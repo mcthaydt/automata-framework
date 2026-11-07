@@ -1,7 +1,7 @@
 // The systems plugin (M6 spec §4.6). `createSystems` takes the game's hooks, derived facts, refused steps, mapped
 // facts and queries, and gives the plugin with the `hear` and `load` bound to those options.
-import type { Point } from '@mcthaydt/automata-sectors/sim'
-import { definePlugin, type PluginDef, type SimContext, sortedKeys } from '@mcthaydt/automata-sim'
+import type { Point } from '@automata/sectors/sim'
+import { definePlugin, type PluginDef, type SimContext, sortedKeys } from '@automata/sim'
 import { loadSystems } from './load-systems'
 import { Hide, Unhide } from './systems.command'
 import { SystemsAgent } from './systems.component'

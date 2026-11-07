@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { ROOM_CODE_ALPHABET, ROOM_NAME } from '@mcthaydt/automata-net'
+import { ROOM_CODE_ALPHABET, ROOM_NAME } from '@automata/net'
 import { Effect, Exit, Fiber, Scope } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
 import { startTestServer, TEST_LIMITS, type TestServer, waitFor } from '../test-support/colyseus-harness'

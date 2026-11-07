@@ -1,9 +1,9 @@
 import { posix } from 'node:path'
-import { Files, ProcessRunner } from '@mcthaydt/automata-node'
 import { Effect } from 'effect'
 import type { CommandOutput } from './command-output.ts'
 import { evidenceFileRefusal } from './evidence-file-reader.schema.ts'
 import { git } from './git.ts'
+import { Files, ProcessRunner } from './node-seams.ts'
 import { isInside, isSymlink, resolvedPath } from './real-path.ts'
 
 // Copies evidence a person approved from the git-ignored evidence folder into the committed baselines (ported from

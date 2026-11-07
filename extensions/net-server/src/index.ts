@@ -1,4 +1,4 @@
-// `@mcthaydt/automata-server` (M7 spec §4.3): a game's server (`defineServer`), the process (`startServer`,
+// `@automata/net-server` (M7 spec §4.3): a game's server (`defineServer`), the process (`startServer`,
 // `runServerProcess`), the generic Colyseus room that adapts the room rules (M7.3b), the rules themselves as plain
 // modules (M7.3a), the gates in front of Colyseus (M7.4a), and operations (M7.4b: log lines, probes, process safety,
 // `SessionVerifier`). The test driver, the clock hold and the fake verifier are `./testing`.

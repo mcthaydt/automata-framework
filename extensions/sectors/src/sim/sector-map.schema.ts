@@ -1,13 +1,7 @@
 // `sector-map` content (M6 spec §4.3): a scene's sectors and masses in the sector format's own shape. `sectors` adds no
 // field to the format (M6-D15, M6-D17). What it adds is the checks a map must pass before it can be resolved, each
 // reported at the corner, wall or id it is about, so the content compiler names the file and line (SC-c).
-import {
-  type Corner,
-  type MassDef,
-  massSchema,
-  type SectorDef,
-  sectorDefSchema,
-} from '@mcthaydt/automata-sector-format'
+import { type Corner, type MassDef, massSchema, type SectorDef, sectorDefSchema } from '@automata/3d/level'
 import { z } from 'zod'
 
 export interface SectorMap {

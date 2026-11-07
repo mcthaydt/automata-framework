@@ -1,22 +1,10 @@
 // A test game for systems on the clinic (nav's fixture: sectors' map, the nav graph and the clinic's boxes): it loads
 // a def by command, moves the player, sets facts and makes noises. The player is an entity with `InSector`, named in
 // `systems.env`. Hooks log what they were called with.
-import { createNavPlugin, loadNavGraph, NavAgent } from '@mcthaydt/automata-nav/sim'
-import { clinicBlocked, clinicGraph, clinicMap } from '@mcthaydt/automata-nav/testing/clinic'
-import {
-  createPuzzlePlugin,
-  loadPuzzle,
-  type PuzzleDef,
-  PuzzleState,
-  type Value,
-} from '@mcthaydt/automata-puzzle/sim'
-import {
-  InSector,
-  loadSectorMap,
-  type Point,
-  resolvedMap,
-  sectorsPlugin,
-} from '@mcthaydt/automata-sectors/sim'
+import { createNavPlugin, loadNavGraph, NavAgent } from '@automata/nav/sim'
+import { clinicBlocked, clinicGraph, clinicMap } from '@automata/nav/testing/clinic'
+import { createPuzzlePlugin, loadPuzzle, type PuzzleDef, PuzzleState, type Value } from '@automata/puzzle/sim'
+import { InSector, loadSectorMap, type Point, resolvedMap, sectorsPlugin } from '@automata/sectors/sim'
 import {
   type Command,
   createSim,
@@ -27,7 +15,7 @@ import {
   type Sim,
   type SimEvent,
   type StepResult,
-} from '@mcthaydt/automata-sim'
+} from '@automata/sim'
 import { z } from 'zod'
 import {
   type AgentRecord,

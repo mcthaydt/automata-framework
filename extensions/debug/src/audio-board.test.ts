@@ -1,4 +1,4 @@
-import type { AudioContent } from '@mcthaydt/automata-audio-synth'
+import type { AudioContent } from '@automata/audio-synth'
 import { describe, expect, it, vi } from 'vitest'
 import { audioBoard } from './audio-board'
 

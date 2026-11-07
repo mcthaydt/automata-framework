@@ -1,4 +1,4 @@
-import { NET_ERROR_CODES } from '@mcthaydt/automata-net'
+import { NET_ERROR_CODES } from '@automata/net'
 import { describe, expect, it } from 'vitest'
 import { NET_COPY_EN, netCopyKeys, netText } from './net-copy'
 

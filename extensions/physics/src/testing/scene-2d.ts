@@ -8,7 +8,7 @@ import {
   type PluginDef,
   type Sim,
   type SimContext,
-} from '@mcthaydt/automata-sim'
+} from '@automata/sim'
 import { z } from 'zod'
 import {
   BodyKind,

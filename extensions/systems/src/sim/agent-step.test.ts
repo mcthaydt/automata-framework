@@ -1,9 +1,9 @@
 // The agent interpreter (M6 spec §4.6): the adventure source's `agents.test.ts` cases, re-pointed at the clinic
 // fixture and run through the real sim (the toy watchman, the player as an entity, noises made by `hear`).
-import { clinicGraph } from '@mcthaydt/automata-nav/testing/clinic'
-import { PuzzleState } from '@mcthaydt/automata-puzzle/sim'
-import type { Point } from '@mcthaydt/automata-sectors/sim'
-import type { Sim } from '@mcthaydt/automata-sim'
+import { clinicGraph } from '@automata/nav/testing/clinic'
+import { PuzzleState } from '@automata/puzzle/sim'
+import type { Point } from '@automata/sectors/sim'
+import type { Sim } from '@automata/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { sceneOf, watchman } from '../testing/toy'
 import {

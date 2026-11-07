@@ -5,15 +5,15 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { encodeWav, integratedLoudness, truePeak } from '@mcthaydt/automata-audio-synth/measure'
-import { FilesLive, ProcessRunnerLive } from '@mcthaydt/automata-node'
+import { encodeWav, integratedLoudness, truePeak } from '@automata/audio-synth/measure'
 import { Effect, Layer } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
 import { audioPipeline, audioPipeSpec } from './audio.pipeline.ts'
+import { FilesLive, ProcessRunnerLive } from './node-seams.ts'
 import { route } from './router.ts'
 
 const FIXTURE = join(
-  dirname(createRequire(import.meta.url).resolve('@mcthaydt/automata-audio-synth/package.json')),
+  dirname(createRequire(import.meta.url).resolve('@automata/audio-synth/package.json')),
   'fixtures/cues.audio.toml',
 )
 const temps: string[] = []

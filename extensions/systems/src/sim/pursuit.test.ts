@@ -2,9 +2,9 @@
 // real sim: zone crossings, door-follow, hiding and ambushes, and footfalls no agent hears. Not ported: `wallRing`
 // (presentation, M6.4b) and `withHiding` (the game's verb wrapper, SY-D7). A crossing is seen one step after the
 // player's move, since sectors decides her sector in `cleanup` (SY-D6).
-import { clinicGraph, resolvedClinic } from '@mcthaydt/automata-nav/testing/clinic'
-import type { Point } from '@mcthaydt/automata-sectors/sim'
-import type { Sim, SimEvent } from '@mcthaydt/automata-sim'
+import { clinicGraph, resolvedClinic } from '@automata/nav/testing/clinic'
+import type { Point } from '@automata/sectors/sim'
+import type { Sim, SimEvent } from '@automata/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { sceneOf } from '../testing/toy'
 import { agent, agentAt, createWardGame, fact, kinds, load, move, stepWith } from '../testing/ward-game'

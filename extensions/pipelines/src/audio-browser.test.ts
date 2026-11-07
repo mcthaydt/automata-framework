@@ -1,5 +1,5 @@
 // The browser runner for the audio pipeline: the real render module in real Chromium (Node has no OfflineAudioContext).
-import type { AudioContent } from '@mcthaydt/automata-audio-synth'
+import type { AudioContent } from '@automata/audio-synth'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { type AudioRenderer, openAudioRenderer } from './audio-browser.ts'
 

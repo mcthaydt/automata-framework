@@ -1,4 +1,4 @@
-// @mcthaydt/automata-audio-synth: synthesized cues, beds and music slots as data (M6 spec §4.10), played on core's audio buses.
+// @automata/audio-synth: synthesized cues, beds and music slots as data (M6 spec §4.10), played on core's audio buses.
 // Presentation only.
 export { audioContent } from './audio.content'
 export {

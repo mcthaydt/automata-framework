@@ -1,6 +1,6 @@
 // What a cutscene tells the presentation (M6 spec §4.8, §5): it started, with the ticks it runs between, or it ended, played
 // out or skipped. A script skipped because an anchor was missing ends without starting, naming the anchors (CS-D2).
-import { defineEvent, type EventDef } from '@mcthaydt/automata-sim'
+import { defineEvent, type EventDef } from '@automata/sim'
 import { z } from 'zod'
 
 export interface StartedPayload {

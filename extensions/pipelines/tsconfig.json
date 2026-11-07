@@ -1,12 +1,11 @@
 {
   "extends": "../../tsconfig.base.json",
-  // Node runs the bin straight from source (type stripping), so imports keep their .ts suffix and the syntax stays
-  // erasable, as in the root tooling that Node also runs (tooling/core/cli.ts).
+  // Node runs the bins straight from source with `--experimental-transform-types`: the core packages they load are
+  // TypeScript sources too, and those use parameter properties, which type stripping alone refuses.
   "compilerOptions": {
     "lib": ["ES2023", "DOM"],
     "types": ["node"],
-    "allowImportingTsExtensions": true,
-    "erasableSyntaxOnly": true
+    "allowImportingTsExtensions": true
   },
   "include": ["src/**/*.ts"]
 }

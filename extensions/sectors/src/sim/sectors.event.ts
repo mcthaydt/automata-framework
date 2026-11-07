@@ -1,6 +1,6 @@
 // What sectors tells a game about its walkers: a walker entered a sector, and a walker's zone changed (the adventure
 // source's `crossed` probe). `from` is null when the walker was outside every sector (or just spawned or loaded).
-import { defineEvent, type EventDef } from '@mcthaydt/automata-sim'
+import { defineEvent, type EventDef } from '@automata/sim'
 import { z } from 'zod'
 
 export interface SectorEnteredPayload {

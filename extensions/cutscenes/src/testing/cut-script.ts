@@ -1,8 +1,8 @@
 // The cutscenes golden (M6 spec §4.9, CS-a): the clinic's eight converted scripts, a script that waits on a resolvable
 // anchor and one on an anchor the scene lacks, played by a fixed script for 600 steps: cutscenes started in turn, gameplay
 // input sent throughout (ignored while one plays), skips now and then, straight or restored from a snapshot.
-import { canonicalJson, type Sim } from '@mcthaydt/automata-sim'
-import { hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
+import { canonicalJson, type Sim } from '@automata/sim'
+import { hex64, utf8, xxhash64 } from '@automata/sim/hash'
 import { parse } from 'smol-toml'
 import type { CutsceneScript } from '../sim/index'
 import { createCutGame, hit, hits, load, type Order, play, skip, step } from './cut-game'

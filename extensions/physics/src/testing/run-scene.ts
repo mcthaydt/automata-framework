@@ -1,7 +1,7 @@
 // Runs a scene for the snapshot and parity tests: the straight run and a run restored mid-way, each giving
 // the sim hash and a hash of every event, so a divergence in either state or events is caught.
-import { type Command, canonicalJson, type Sim } from '@mcthaydt/automata-sim'
-import { hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
+import { type Command, canonicalJson, type Sim } from '@automata/sim'
+import { hex64, utf8, xxhash64 } from '@automata/sim/hash'
 
 export interface SceneRun {
   readonly seed: number

@@ -1,4 +1,4 @@
-import type { Feel } from '@mcthaydt/automata-feel'
+import type { Feel } from '@automata/feel'
 import { describe, expect, it, type Mock, vi } from 'vitest'
 import { feelBoard } from './feel-board'
 

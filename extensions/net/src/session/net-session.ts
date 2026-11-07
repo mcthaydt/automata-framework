@@ -17,7 +17,7 @@
  * `makeNetSession` wires it to a `NetRoom`.
  */
 
-import type { Command, Sim } from '@mcthaydt/automata-sim'
+import type { Command, Sim } from '@automata/sim'
 import type { NetSnapshot } from '../client/colyseus-transport'
 import { InputLead, leadForRoundTrip } from './input-lead'
 import type { NetDiagnostics } from './net-diagnostics'

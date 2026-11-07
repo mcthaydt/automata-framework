@@ -1,9 +1,9 @@
 // Pursuit (M6 spec §4.6, the source's WP-19): where the player crosses into another zone, hiding, and who saw her
 // hide. The crossing is read from the player's `InSector.sector`, which sectors decides in `cleanup`, so it is the
 // sector at the end of the last step (SY-D6).
-import { InSector, type Point, type Sector } from '@mcthaydt/automata-sectors/sim'
-import { sortedKeys } from '@mcthaydt/automata-sim'
-import { hypot } from '@mcthaydt/automata-sim/math'
+import { InSector, type Point, type Sector } from '@automata/sectors/sim'
+import { sortedKeys } from '@automata/sim'
+import { hypot } from '@automata/sim/math'
 import type { Crossing } from './systems.resource'
 import type { SystemsWorld } from './world'
 

@@ -1,6 +1,6 @@
 // Debug panels (M6 spec §4.2): a titled component the overlay shows as a tab. The id is kebab-case and unique; the title is a
 // dev-only literal (debug text is not localized). A panel reads the host through the overlay's context, never props (DBG-D1).
-import type { UiComponent } from '@mcthaydt/automata-ui'
+import type { UiComponent } from '@automata/framework/extension'
 import SummaryPanel from './panels/SummaryPanel.svelte'
 
 export interface DebugPanelDef {

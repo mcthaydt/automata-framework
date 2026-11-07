@@ -1,8 +1,8 @@
 // Dialogue paths (M6.8b step 3; from the source's `dialogue-lint.ts`): every way through a conversation, the stance
 // the player can arrive at act after act, whether each ending is on offer at the register, and the motifs an act
 // carries. Pure: the caller hands over the acts, with each puzzle route as the actions it takes.
-import type { Action, PuzzleDef } from '@mcthaydt/automata-puzzle/sim'
-import { applyEffect, type State } from '@mcthaydt/automata-puzzle/solver'
+import type { Action, PuzzleDef } from '@automata/puzzle/sim'
+import { applyEffect, type State } from '@automata/puzzle/solver'
 import {
   applyChoice,
   type Canon,

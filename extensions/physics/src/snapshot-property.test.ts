@@ -1,7 +1,7 @@
 // Exit 4 on the physics scenes (M2.3 spec §7): snapshot -> restore -> continue equals the straight run over 200
 // cases each, in 2D and 3D, restoring both into a fresh sim and into one that has moved on. About 15 s and 19 s
 // in Node on a cloud container (2026-10-11); under the 60 s the spec allows before a project of their own.
-import { snapshotRoundTripProperty } from '@mcthaydt/automata-testing/sim/property'
+import { snapshotRoundTripProperty } from '@automata/sim/testing/property'
 import { expect, test } from 'vitest'
 import { sceneCommands2D, scenePlugins2D, spawnScene2D } from './testing/scene-2d'
 import { sceneCommands, scenePlugins3D, spawnScene3D } from './testing/scene-3d'

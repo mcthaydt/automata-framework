@@ -1,6 +1,6 @@
 // The cutscene plugin (M6 spec §4.8). `createCutscenes` gives the plugin and the functions a game wires: `start` (puzzle's
 // `cutscene` hook, NR-D3's pattern), `load` for a scene change, and `locked` for the input that cutscenes hold.
-import { definePlugin, type PluginDef, type SimContext } from '@mcthaydt/automata-sim'
+import { definePlugin, type PluginDef, type SimContext } from '@automata/sim'
 import { CutsceneSkip } from './cutscene.command'
 import { CutsceneEnded, CutsceneStarted } from './cutscene.event'
 import { CutsceneScene, CutsceneState } from './cutscene.resource'

@@ -1,4 +1,4 @@
-import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
+import { recordGoldenEvidence } from '@automata/evidence/golden'
 import { expect, test } from 'vitest'
 import { runScene } from './testing/run-scene'
 import { createScene3D, sceneCommands } from './testing/scene-3d'

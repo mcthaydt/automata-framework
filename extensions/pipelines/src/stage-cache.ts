@@ -1,7 +1,7 @@
 import { isAbsolute, relative, resolve, sep } from 'node:path'
-import { type FileError, Files } from '@mcthaydt/automata-node'
-import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
+import { canonicalJson, hex64, utf8, xxhash64 } from '@automata/sim/hash'
 import { Effect } from 'effect'
+import { type FileError, Files } from './node-seams.ts'
 import type { StageContext, StageDef } from './pipeline.ts'
 
 // The stage cache (The Last Light's runner, `inputHash` and `isCurrent`): a stage is skipped when the hash of its

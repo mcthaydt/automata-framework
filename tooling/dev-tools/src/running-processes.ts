@@ -1,5 +1,5 @@
-import { ProcessRunner } from '@mcthaydt/automata-node'
 import { Effect } from 'effect'
+import { ProcessRunner } from './node-seams.ts'
 
 /**
  * Every process's working folder, or why it cannot be known. `worktree-gc` keeps a worktree with a process working

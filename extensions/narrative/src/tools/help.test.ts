@@ -1,9 +1,9 @@
 // `lintHelp` and `currentHint` (M6.8b step 4): the owner's two puzzle-design rules (2026-10-11), checked on a toy puzzle
 // scene with its solver routes, and on the four converted scenes' help against their converted puzzles.
 
-import { createSolver, routesOf } from '@mcthaydt/automata-puzzle/solver'
-import { scenePuzzle } from '@mcthaydt/automata-puzzle/testing/converted-puzzles'
-import { toyScene } from '@mcthaydt/automata-puzzle/testing/toy-scene'
+import { createSolver, routesOf } from '@automata/puzzle/solver'
+import { scenePuzzle } from '@automata/puzzle/testing/converted-puzzles'
+import { toyScene } from '@automata/puzzle/testing/toy-scene'
 import { describe, expect, it } from 'vitest'
 import type { DialogueGraph, LineRecord } from '../sim/index'
 import { fixture, SCENES } from '../testing/converted-narrative'

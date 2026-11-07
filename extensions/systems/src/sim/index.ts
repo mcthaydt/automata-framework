@@ -1,4 +1,4 @@
-// @mcthaydt/automata-systems/sim: world rules and agents as data (M6 spec §4.6), a sim entry.
+// @automata/systems/sim: world rules and agents as data (M6 spec §4.6), a sim entry.
 export { ARRIVE } from './agent-step'
 export type { Outcome } from './effect'
 export { AT_NODE, type Subject } from './probe'

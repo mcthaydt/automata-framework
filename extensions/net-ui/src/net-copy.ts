@@ -2,7 +2,7 @@
 // components no message catalog, so `net`'s UI reads text through `netText(key, params, catalog)`: the game passes a catalog
 // built from its locale files (the same keys), and the English one below is the default and the source of the keys.
 // Each error message names the cause and the next action. `{name}` marks a value filled in at run time.
-import type { NetErrorCode } from '@mcthaydt/automata-net'
+import type { NetErrorCode } from '@automata/net'
 
 export type NetCopyKey = `net.${string}`
 

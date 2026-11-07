@@ -1,6 +1,6 @@
 // Routes on the clinic (M6 spec §4.4, N-a): the adventure source's three nav tests, re-pointed at the converted clinic,
 // plus the determinism rules (sorted scan, ties to the lower id) and the unreachable fallback.
-import type { Point } from '@mcthaydt/automata-sectors/sim'
+import type { Point } from '@automata/sectors/sim'
 import { describe, expect, it } from 'vitest'
 import { clinicBlocked, clinicGraph, resolvedClinic } from '../testing/clinic'
 import type { NavGraph } from './nav-graph.schema'

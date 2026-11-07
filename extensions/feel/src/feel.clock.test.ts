@@ -1,13 +1,6 @@
 // Feel under Effect's `Clock` (M6.1a step 5, F-a, F-b): the frame times come from the presentation clock, `TestClock` in tests;
 // and feel never changes the sim, so a run with it hashes the same at every tick as a run without it.
-import {
-  createSim,
-  defineEvent,
-  definePlugin,
-  defineResource,
-  defineSystem,
-  type Sim,
-} from '@mcthaydt/automata-sim'
+import { createSim, defineEvent, definePlugin, defineResource, defineSystem, type Sim } from '@automata/sim'
 import { Effect, TestClock, TestContext } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'

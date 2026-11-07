@@ -5,15 +5,15 @@ import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { FilesLive, ProcessRunnerLive } from '@mcthaydt/automata-node'
 import { Effect, Layer } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
+import { FilesLive, ProcessRunnerLive } from './node-seams.ts'
 import { route } from './router.ts'
 import { PIPE_POLICIES, systemsPipeline, systemsPipeSpec } from './systems.pipeline.ts'
 
 const resolve = createRequire(import.meta.url).resolve
-const WARD = resolve('@mcthaydt/automata-systems/testing/ward-scene.pipe')
-const STRICT = resolve('@mcthaydt/automata-systems/testing/ward-scene-strict.pipe')
+const WARD = resolve('@automata/systems/testing/ward-scene.pipe')
+const STRICT = resolve('@automata/systems/testing/ward-scene-strict.pipe')
 const temps: string[] = []
 afterEach(() => {
   for (const dir of temps.splice(0)) rmSync(dir, { recursive: true, force: true })
@@ -41,7 +41,7 @@ const pipe = (...argv: string[]) =>
 
 describe('systems.pipe.toml', () => {
   it("takes the bots' policies", async () => {
-    expect(PIPE_POLICIES).toEqual((await import('@mcthaydt/automata-systems/bots')).POLICIES)
+    expect(PIPE_POLICIES).toEqual((await import('@automata/systems/bots')).POLICIES)
   })
 
   it('parses a scene module, seeds, policies and a sweep; an unknown policy and a sweep of no steps fail at their path', () => {

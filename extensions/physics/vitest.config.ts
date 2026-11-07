@@ -7,7 +7,7 @@ export default defineConfig({
   // link, and in Plus the sim comes from its pack, which Vite pre-bundles with its own Koota (PRODUCT.5f).
   optimizeDeps: {
     include: [
-      '@mcthaydt/automata-sim',
+      '@automata/sim',
       'zod',
       '@dimforge/rapier2d-deterministic-compat',
       '@dimforge/rapier3d-deterministic-compat',

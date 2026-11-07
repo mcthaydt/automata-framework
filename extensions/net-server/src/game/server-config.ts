@@ -7,7 +7,7 @@
  * redacted lines (M7.4b), and a test switch here (`seed`, `manualClock`, a fake `verifier`) is refused in production.
  */
 
-import type { NetConfig } from '@mcthaydt/automata-net'
+import type { NetConfig } from '@automata/net'
 import type { SecurityTxt } from '../server/probes'
 import type { SessionVerifier } from '../session/session-verifier'
 

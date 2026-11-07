@@ -1,6 +1,6 @@
 // `systems` as an extension a game opts into: the plugin (with the game's options) and the `systems` content kind,
 // whose hook check uses the same hook names. It needs `sectors`, `nav` and `puzzle`.
-import { defineExtension, type ExtensionDef } from '@mcthaydt/automata-runtime/extension'
+import { defineExtension, type ExtensionDef } from '@automata/framework/extension'
 import { createSystems, type Systems } from './sim/systems.plugin'
 import type { SystemsOptions } from './sim/world'
 import { systemsContent } from './systems.content'

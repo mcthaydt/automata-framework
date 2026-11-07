@@ -1,6 +1,6 @@
 // The definition checks (M6 spec §4.6, §6), from the adventure source's `validateSystems`, `validateAgent` and
 // `pursuitErrors`: each error in the source's words, reported at its path in the def.
-import { sortedKeys } from '@mcthaydt/automata-sim'
+import { sortedKeys } from '@automata/sim'
 import { BUILT_IN_HOOKS, hearsIn, PLACES, POLICIES, ROUTINE_MODES, routineMode, waitsIn } from './probe-kinds'
 import type { AgentDef, Probe, SysEffect, SystemsDef } from './systems.schema'
 

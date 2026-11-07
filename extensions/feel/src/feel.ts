@@ -4,7 +4,7 @@
 // the picture shows its cause. Noise is a hash of integers and time is the sum of the frame times it is given (the presentation
 // clock, `Clock` through `frameNow`, `TestClock` in tests), so a frame is a pure function of the events, the drawn tick, the
 // settings and the frame times. Reduced motion and the settings are read live, on every frame, so they apply on the next one.
-import type { SimEvent } from '@mcthaydt/automata-sim'
+import type { SimEvent } from '@automata/sim'
 import { Clock, Effect } from 'effect'
 import { Beats } from './dynamics/beats'
 import { HitStop } from './dynamics/hit-stop'

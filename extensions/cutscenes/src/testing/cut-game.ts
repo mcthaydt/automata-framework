@@ -9,7 +9,7 @@ import {
   defineSystem,
   type Sim,
   type StepResult,
-} from '@mcthaydt/automata-sim'
+} from '@automata/sim'
 import { z } from 'zod'
 import { type Cutscenes, type CutscenesOptions, createCutscenes } from '../sim/cutscene.plugin'
 import type { CutsceneScript } from '../sim/cutscene.schema'

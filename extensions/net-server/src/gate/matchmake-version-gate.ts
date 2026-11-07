@@ -12,8 +12,8 @@
  */
 
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { PROTOCOL_VERSION } from '@mcthaydt/automata-net'
-import { createSim } from '@mcthaydt/automata-sim'
+import { PROTOCOL_VERSION } from '@automata/net'
+import { createSim } from '@automata/sim'
 import type { ServerDef } from '../game/server-game'
 import type { OriginPolicy } from './origins'
 import { writeRefusal } from './refusal'

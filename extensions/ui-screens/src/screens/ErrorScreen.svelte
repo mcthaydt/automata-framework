@@ -6,7 +6,7 @@
   scrolls, where the actions stack) are core's.
 -->
 <script lang="ts">
-import { type ErrorAction, ErrorPanel, ScreenFrame } from '@mcthaydt/automata-ui'
+import { type ErrorAction, ErrorPanel, ScreenFrame } from '@automata/framework'
 import { onMount } from 'svelte'
 
 interface Props {

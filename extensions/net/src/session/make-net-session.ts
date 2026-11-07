@@ -11,7 +11,7 @@
  * listener; the sim stays the caller's.
  */
 
-import type { Sim } from '@mcthaydt/automata-sim'
+import type { Sim } from '@automata/sim'
 import { Effect, type Scope, Stream, type Subscribable, SubscriptionRef } from 'effect'
 import type { ConnectionState, NetRoom } from '../client/net-room'
 import type { RoomInfo } from '../client/room-info'

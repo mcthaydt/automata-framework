@@ -1,6 +1,6 @@
 // The puzzle golden (M6 spec §4.9): the clinic played by a fixed verb script hashes to one committed value in Node,
 // Chromium, WebKit and Firefox, straight and restored at step 300. A mismatch is investigated, never rebaselined.
-import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
+import { recordGoldenEvidence } from '@automata/evidence/golden'
 import { expect, test } from 'vitest'
 import { runPuzzleGolden } from '../testing/verb-script'
 

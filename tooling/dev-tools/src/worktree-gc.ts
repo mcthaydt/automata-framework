@@ -1,7 +1,7 @@
-import { Files, ProcessRunner } from '@mcthaydt/automata-node'
 import { Effect } from 'effect'
 import type { CommandExit, CommandOutput } from './command-output.ts'
 import { git } from './git.ts'
+import { Files, ProcessRunner } from './node-seams.ts'
 import { type ProcessTable, pidsInside, runningProcesses } from './running-processes.ts'
 import { parseWorktreeList, type WorktreeRecord } from './worktree-list.ts'
 

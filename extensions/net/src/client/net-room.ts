@@ -79,9 +79,7 @@ export interface NetRoom {
   readonly port: ClientNetworkPort
 }
 
-export const NetRoom: Context.Tag<NetRoom, NetRoom> = Context.GenericTag<NetRoom>(
-  '@mcthaydt/automata-net/NetRoom',
-)
+export const NetRoom: Context.Tag<NetRoom, NetRoom> = Context.GenericTag<NetRoom>('@automata/net/NetRoom')
 
 export interface NetRoomOptions {
   /** The server: net.toml's `url`. */

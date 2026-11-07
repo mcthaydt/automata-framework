@@ -1,7 +1,7 @@
 // The systems golden (M6 spec §4.9, SY-a): the toy watchman's patrol on the clinic hashes to one committed value in
 // Node, Chromium, WebKit and Firefox, straight and restored at step 300, and his patrol → hunt switch falls on the same
 // step in all four. A mismatch is investigated, never rebaselined.
-import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
+import { recordGoldenEvidence } from '@automata/evidence/golden'
 import { expect, test } from 'vitest'
 import { runSystemsGolden } from '../testing/patrol-script'
 

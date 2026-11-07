@@ -1,10 +1,10 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { FilesLive } from '@mcthaydt/automata-node'
-import { hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
+import { hex64, utf8, xxhash64 } from '@automata/sim/hash'
 import { Effect } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { FilesLive } from './node-seams.ts'
 import type { StageContext, StageDef } from './pipeline.ts'
 import { inputHash, missingPaths } from './stage-cache.ts'
 

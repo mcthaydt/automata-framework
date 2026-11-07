@@ -6,7 +6,7 @@
 // walls, sprite scale, back to camera, solid boxes) return with the renderer in M6.9b (CS-D3). A script may break a rule
 // it names in `lintAllow`, with the reason; the lint has one context (the anchors as given), so an allow's `context` is
 // not read.
-import type { ResolvedMap } from '@mcthaydt/automata-sectors/sim'
+import type { ResolvedMap } from '@automata/sectors/sim'
 import { evaluate } from '../play/evaluate'
 import { type CutsceneScript, type PlacedScript, placeScript } from '../sim/index'
 

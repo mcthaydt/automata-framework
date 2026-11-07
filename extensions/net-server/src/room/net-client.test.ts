@@ -8,7 +8,6 @@
  */
 
 import { createServer } from 'node:http'
-import { Client } from '@colyseus/sdk'
 import {
   makeNetRoom,
   type NetRoom,
@@ -16,7 +15,8 @@ import {
   type NetSdkRoom,
   type SeatStorage,
   seatTokenKey,
-} from '@mcthaydt/automata-net'
+} from '@automata/net'
+import { Client } from '@colyseus/sdk'
 import { Effect, Exit, Scope } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { startTestServer, TEST_ORIGIN, type TestServer, waitFor } from '../test-support/colyseus-harness'

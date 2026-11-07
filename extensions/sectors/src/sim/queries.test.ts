@@ -1,6 +1,6 @@
 // The map's queries (M6 spec §4.3): where a point is, the floor under it, and whether a walk is blocked. The step rule
 // is the sector format's `STEP`: a lower strip of exactly 0.25 m is climbed, anything taller is a wall.
-import { STEP } from '@mcthaydt/automata-sector-format'
+import { STEP } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { clinicMap } from '../testing/clinic'
 import { opening, pieceSpans, walkBlocker } from './pieces'

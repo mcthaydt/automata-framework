@@ -1,9 +1,9 @@
 // Loads a scene's systems (M6 spec §4.6): checks the def against the loaded nav graph, despawns the last scene's
 // agents, spawns one entity per agent (at `places[id]`, else its first routine stop, else the origin) and zeroes every
 // rule clock. Call it from a game system after the scene's sector map and nav graph are loaded.
-import { NavGraphResource } from '@mcthaydt/automata-nav/sim'
-import { InSector, type Point } from '@mcthaydt/automata-sectors/sim'
-import { type SimContext, sortedKeys } from '@mcthaydt/automata-sim'
+import { NavGraphResource } from '@automata/nav/sim'
+import { InSector, type Point } from '@automata/sectors/sim'
+import { type SimContext, sortedKeys } from '@automata/sim'
 import { SystemsAgent } from './systems.component'
 import { emptyPursuit, SystemsNoises, SystemsPursuit, SystemsScene, SystemsState } from './systems.resource'
 import { type SystemsDef, systemsDefShape } from './systems.schema'

@@ -1,15 +1,18 @@
 {
-  "name": "@mcthaydt/automata-narrative",
+  "name": "@automata/narrative",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mcthaydt/automata-plus.git",
-    "directory": "packages/narrative"
+    "url": "git+https://github.com/mcthaydt/automata-framework.git",
+    "directory": "extensions/narrative"
   },
   "type": "module",
   "sideEffects": false,
+  "imports": {
+    "#src/*": "./src/*"
+  },
   "exports": {
     ".": "./src/index.ts",
     "./sim": "./src/sim/index.ts",
@@ -33,19 +36,19 @@
     "zod": "4.6.6"
   },
   "peerDependencies": {
-    "@mcthaydt/automata-content": "0.0.3",
-    "@mcthaydt/automata-puzzle": "0.0.0",
-    "@mcthaydt/automata-runtime": "0.0.3",
-    "@mcthaydt/automata-sectors": "0.0.0",
-    "@mcthaydt/automata-sim": "0.0.3"
+    "@automata/content": "workspace:^",
+    "@automata/framework": "workspace:^",
+    "@automata/puzzle": "workspace:^",
+    "@automata/sectors": "workspace:^",
+    "@automata/sim": "workspace:^"
   },
   "devDependencies": {
-    "@mcthaydt/automata-content": "0.0.3",
-    "@mcthaydt/automata-puzzle": "workspace:*",
-    "@mcthaydt/automata-runtime": "0.0.3",
-    "@mcthaydt/automata-sectors": "workspace:*",
-    "@mcthaydt/automata-sim": "0.0.3",
-    "@mcthaydt/evidence": "0.0.0",
+    "@automata/content": "workspace:*",
+    "@automata/evidence": "workspace:*",
+    "@automata/framework": "workspace:*",
+    "@automata/puzzle": "workspace:*",
+    "@automata/sectors": "workspace:*",
+    "@automata/sim": "workspace:*",
     "@types/node": "24.19.1",
     "@vitest/browser-playwright": "5.0.3",
     "effect": "3.22.2",

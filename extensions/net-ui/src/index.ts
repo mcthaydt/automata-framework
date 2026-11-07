@@ -1,4 +1,4 @@
-// `@mcthaydt/automata-net/ui`: the connection badge and the reconnect overlay for `hud.overlay` (M7 spec §7), their words as locale
+// `@automata/net/ui`: the connection badge and the reconnect overlay for `hud.overlay` (M7 spec §7), their words as locale
 // keys, and the host the game installs. Svelte, so apart from the main entry, which stays free of it.
 export { copyOf, currentNetUi, installNetUi, type NetUiHost } from './host'
 export { default as NetBadge } from './NetBadge.svelte'

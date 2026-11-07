@@ -1,8 +1,8 @@
 // The systems golden (M6 spec §4.9, SY-a): the toy watchman patrols the clinic’s corridor (end ↔ cmid), hears a bottle
 // at step 20 (and gives up after 3 s there), the closet door opens at 200, and from step 380 the player walks from the hall up into the corridor,
 // into his sight. 600 steps, straight or restored from a snapshot; the step of his patrol → hunt switch is reported.
-import { canonicalJson, type Sim } from '@mcthaydt/automata-sim'
-import { hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
+import { canonicalJson, type Sim } from '@automata/sim'
+import { hex64, utf8, xxhash64 } from '@automata/sim/hash'
 import { sceneOf, watchman } from './toy'
 import { createWardGame, fact, load, move, noise, type Order, stepWith } from './ward-game'
 

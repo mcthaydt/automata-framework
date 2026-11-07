@@ -1,6 +1,6 @@
 // What each resolved edge builds, for collision (M6 spec §4.3): a solid wall is one piece floor to ceiling; a portal
 // leaves only the strips its neighbour does not open. The step rule: a lower strip taller than `STEP` is a wall.
-import { STEP } from '@mcthaydt/automata-sector-format'
+import { STEP } from '@automata/3d/level'
 
 /** The floor and ceiling of the sectors on each side of an edge. */
 export interface Span {

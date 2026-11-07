@@ -101,7 +101,7 @@ describe('the bin runs an extension’s pipeline from source', () => {
   }
 
   it('systems run', () => {
-    const dir = folder(resolve('@mcthaydt/automata-systems/testing/ward-scene.pipe'), 'scene', {
+    const dir = folder(resolve('@automata/systems/testing/ward-scene.pipe'), 'scene', {
       'systems.pipe.toml': 'scene = "./scene.ts"\nseeds = 1\npolicies = ["scripted"]\n',
     })
     expect(runs(dir, 'systems')).toEqual({
@@ -113,7 +113,7 @@ describe('the bin runs an extension’s pipeline from source', () => {
   })
 
   it('puzzle run', () => {
-    const dir = folder(resolve('@mcthaydt/automata-puzzle/testing/toy-scene.pipe'), 'puzzle', {
+    const dir = folder(resolve('@automata/puzzle/testing/toy-scene.pipe'), 'puzzle', {
       'toy.puzzle.toml': '# the toy puzzle\n',
       'puzzle.pipe.toml': 'scene = "./scene.ts"\nsources = ["toy.puzzle.toml"]\n',
     })

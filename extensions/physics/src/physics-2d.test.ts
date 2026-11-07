@@ -1,4 +1,4 @@
-import { createSim, type Sim, SimFaultedError, type SpawnPart } from '@mcthaydt/automata-sim'
+import { createSim, type Sim, SimFaultedError, type SpawnPart } from '@automata/sim'
 import { afterEach, expect, test, vi } from 'vitest'
 import {
   BodyKind,

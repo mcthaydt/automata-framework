@@ -1,4 +1,4 @@
-// `@mcthaydt/automata-net`: the wire (one owner; `server` imports it), the `net.toml` schema, and the client (M7 spec
+// `@automata/net`: the wire (one owner; `server` imports it), the `net.toml` schema, and the client (M7 spec
 // §4.2): the Colyseus transport, `NetRoom`, reconnection and the room store (M7.5a); prediction and reconciliation,
 // `NetSession` (M7.5b). Interpolation arrives with M7.5c; the sim side is `./sim`, the link harness and the fake SDK `./testing`.
 export type { NetSnapshot, Pong } from './client/colyseus-transport'

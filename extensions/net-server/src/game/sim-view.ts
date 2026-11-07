@@ -7,7 +7,7 @@
  * serves a room for its whole life.
  */
 
-import type { ComponentDef, FieldSchema, FieldValues, ResourceDef, Sim } from '@mcthaydt/automata-sim'
+import type { ComponentDef, FieldSchema, FieldValues, ResourceDef, Sim } from '@automata/sim'
 import type { z } from 'zod'
 
 /** An entity as a view reads it: its id and its components' values, never a setter. */

@@ -3,9 +3,10 @@
 // wall's `thick`, or `WALL_THICK` for a wall of none. It is turned about y so its x axis runs along the wall: yaw is
 // atan2(-dir.z, dir.x), and the quaternion's half-angle terms come from the direction by the half-angle identities, so
 // no trigonometry is needed. Masses get no box: masonry above a portal would close it (S4-D7).
-import { BodyKind, body3d, collider3d, transform3d } from '@mcthaydt/automata-physics/3d'
-import { WALL_THICK } from '@mcthaydt/automata-sector-format'
-import type { SimContext } from '@mcthaydt/automata-sim'
+
+import { WALL_THICK } from '@automata/3d/level'
+import { BodyKind, body3d, collider3d, transform3d } from '@automata/physics/3d'
+import type { SimContext } from '@automata/sim'
 import { loadSectorMap } from '../load-sector-map'
 import type { Edge } from '../resolve'
 import { resolvedMap } from '../resolved-map'

@@ -1,5 +1,5 @@
 // Nav's state: the scene's graph, the doors (with a version that counts their changes) and each walker's route.
-import { defineResource, type ResourceDef } from '@mcthaydt/automata-sim'
+import { defineResource, type ResourceDef } from '@automata/sim'
 import { z } from 'zod'
 import { navGraphSchema } from './nav-graph.schema'
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { FilesLive, ProcessRunnerLive } from '@mcthaydt/automata-node'
 import { Effect, Layer } from 'effect'
 import type { CommandOutput } from '../command-output.ts'
+import { FilesLive, ProcessRunnerLive } from '../node-seams.ts'
 import { worktreeGc } from '../worktree-gc.ts'
 
 // The `worktree-gc` bin, run by Node from source (imports keep `.ts`; plan DT-D5). Dev-only: the package exports

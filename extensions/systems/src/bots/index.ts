@@ -1,4 +1,4 @@
-// @mcthaydt/automata-systems/bots: bots, scenarios, playtests and fairness (M6 spec §4.6, M6.7b). Node only: build time
+// @automata/systems/bots: bots, scenarios, playtests and fairness (M6 spec §4.6, M6.7b). Node only: build time
 // and tests, never in a game bundle.
 export {
   type Bot,

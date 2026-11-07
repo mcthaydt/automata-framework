@@ -1,7 +1,7 @@
 // `nav-graph` (M6 spec §4.4): a scene's authored walking graph. Nodes are plan points by id; an edge joins two declared
 // nodes, and its optional third member names a door that must be open to use it. Each problem is reported at its path,
 // so the content compiler names the file and line.
-import type { Point } from '@mcthaydt/automata-sectors/sim'
+import type { Point } from '@automata/sectors/sim'
 import { z } from 'zod'
 
 export interface NavGraph {

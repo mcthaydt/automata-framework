@@ -1,6 +1,6 @@
 // A scene change (M6 spec §5): the game's Flow hands the new scene's map to the sim, which replaces the old one. Every
 // walker's membership is cleared, so the next membership pass enters each walker into the new map's sectors.
-import type { SimContext } from '@mcthaydt/automata-sim'
+import type { SimContext } from '@automata/sim'
 import { type SectorMap, sectorMapSchema } from './sector-map.schema'
 import { InSector } from './sectors.component'
 import { SectorMapResource } from './sectors.resource'

@@ -1,6 +1,6 @@
 // The audio board's port (M6.10b): every cue and bed of the `audio` content, with the events that play each cue, over the controls
 // the game has (its mixer's `play`, the synth's beds). The content is read each time, so a reload shows.
-import type { AudioContent } from '@mcthaydt/automata-audio-synth'
+import type { AudioContent } from '@automata/audio-synth'
 import type { AudioBoardPort } from './host'
 
 export interface AudioControls {

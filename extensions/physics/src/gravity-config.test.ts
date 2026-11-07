@@ -1,4 +1,4 @@
-import { createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
+import { createSim, type PluginDef, type Sim } from '@automata/sim'
 import { afterEach, expect, test } from 'vitest'
 import { body2d, collider2d, physics2d, transform2d } from './2d'
 import { BodyKind, body3d, collider3d, physics3d, transform3d } from './3d'

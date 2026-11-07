@@ -1,7 +1,7 @@
 // Narrative's sim state (M6 spec §4.7, §4.13): the scene's content as loaded (the canon's stance bounds, the graphs and
 // the deck), the conversation under way, what the deck has played, and the player it follows (NR-D5).
-import { type Value, valueSchema } from '@mcthaydt/automata-puzzle/sim'
-import { defineResource, type ResourceDef } from '@mcthaydt/automata-sim'
+import { type Value, valueSchema } from '@automata/puzzle/sim'
+import { defineResource, type ResourceDef } from '@automata/sim'
 import { z } from 'zod'
 import { DEFAULT_STANCE } from './canon.schema'
 import type { DialogueState, Place } from './dialogue'

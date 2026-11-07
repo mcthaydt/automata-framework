@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 
 const packageDir = fileURLToPath(new URL('..', import.meta.url))
 const plusRoot = join(packageDir, '..', '..')
-const NAME = '@mcthaydt/automata-dev-tools'
+const NAME = '@automata/dev-tools'
 const readJson = (path: string): Record<string, unknown> =>
   JSON.parse(readFileSync(path, 'utf8')) as Record<string, unknown>
 const manifest = readJson(join(packageDir, 'package.json'))

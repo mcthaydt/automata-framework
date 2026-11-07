@@ -1,15 +1,18 @@
 {
-  "name": "@mcthaydt/automata-debug",
+  "name": "@automata/debug",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mcthaydt/automata-plus.git",
-    "directory": "packages/debug"
+    "url": "git+https://github.com/mcthaydt/automata-framework.git",
+    "directory": "extensions/debug"
   },
   "type": "module",
   "sideEffects": false,
+  "imports": {
+    "#src/*": "./src/*"
+  },
   "svelte": "./src/index.ts",
   "exports": {
     ".": {
@@ -25,19 +28,17 @@
     "test:browser": "vitest run --project browsers"
   },
   "peerDependencies": {
-    "@mcthaydt/automata-audio-synth": "0.0.0",
-    "@mcthaydt/automata-feel": "0.0.0",
-    "@mcthaydt/automata-runtime": "0.0.3",
-    "@mcthaydt/automata-sim": "0.0.3",
-    "@mcthaydt/automata-ui": "0.0.4",
+    "@automata/audio-synth": "workspace:^",
+    "@automata/feel": "workspace:^",
+    "@automata/framework": "workspace:^",
+    "@automata/sim": "workspace:^",
     "svelte": "^5.57.1"
   },
   "devDependencies": {
-    "@mcthaydt/automata-audio-synth": "workspace:*",
-    "@mcthaydt/automata-feel": "workspace:*",
-    "@mcthaydt/automata-runtime": "0.0.3",
-    "@mcthaydt/automata-sim": "0.0.3",
-    "@mcthaydt/automata-ui": "0.0.4",
+    "@automata/audio-synth": "workspace:*",
+    "@automata/feel": "workspace:*",
+    "@automata/framework": "workspace:*",
+    "@automata/sim": "workspace:*",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",
@@ -47,10 +48,10 @@
     "@vitest/browser-playwright": "5.0.3",
     "jsdom": "30.1.1",
     "playwright": "1.63.0",
-    "svelte": "5.57.3",
+    "svelte": "5.57.1",
     "svelte-check": "4.7.6",
     "typescript": "6.0.3",
-    "vite": "8.3.5",
+    "vite": "8.3.3",
     "vitest": "5.0.3"
   }
 }

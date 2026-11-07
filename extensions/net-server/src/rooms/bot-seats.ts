@@ -8,7 +8,7 @@
  * FloorFifty's.
  */
 
-import { deriveSeed } from '@mcthaydt/automata-sim'
+import { deriveSeed } from '@automata/sim'
 import { isPreGame, type LobbyRules, type LobbyState, takeSeat } from './lobby-rules'
 import { RoomCommandError } from './room-errors'
 

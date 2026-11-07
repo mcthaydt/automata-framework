@@ -1,7 +1,7 @@
 // The scene audit (M6 spec §4.5, M6.6b), from the adventure source's `audit-lib`: what the puzzle, its systems and its
 // generated files say about a scene, for the people who decide. Its findings never fail `check` (a stale doc does,
 // through its file row). Not ported: the source's objective guidance, emergent search and recorded gate decisions.
-import type { FairnessRow, Policy, ThreatCause } from '@mcthaydt/automata-systems/bots'
+import type { FairnessRow, Policy, ThreatCause } from '@automata/systems/bots'
 
 export type { ThreatCause }
 

@@ -1,4 +1,4 @@
-// `@mcthaydt/automata-server/testing`: the room driver and the clock hold, for tests only (M7 spec §4.3, §4.7).
+// `@automata/net-server/testing`: the room driver and the clock hold, for tests only (M7 spec §4.3, §4.7).
 // The room refuses a clock hold in production; process safety refuses to start with a test switch set, the fake
 // session verifier included (M7.4b).
 

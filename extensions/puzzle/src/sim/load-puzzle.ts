@@ -1,6 +1,6 @@
 // A scene change (M6 spec §5): the game's Flow makes the new scene's def the puzzle, and the play state starts from the
 // def's facts with an entry's items and facts laid over (the first entry when none is named).
-import type { SimContext } from '@mcthaydt/automata-sim'
+import type { SimContext } from '@automata/sim'
 import { PuzzleSceneResource, PuzzleState } from './puzzle.resource'
 import { type PuzzleDef, puzzleDefShape } from './puzzle.schema'
 

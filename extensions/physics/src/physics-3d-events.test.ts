@@ -1,11 +1,4 @@
-import {
-  createSim,
-  defineCommand,
-  definePlugin,
-  defineSystem,
-  type Sim,
-  type SimEvent,
-} from '@mcthaydt/automata-sim'
+import { createSim, defineCommand, definePlugin, defineSystem, type Sim, type SimEvent } from '@automata/sim'
 import { afterEach, expect, test } from 'vitest'
 import { z } from 'zod'
 import { BodyKind, body3d, Collider3D, collider3d, type Physics3DOptions, physics3d, transform3d } from './3d'

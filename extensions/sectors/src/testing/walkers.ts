@@ -1,7 +1,7 @@
 // A test game for the sectors plugin: commands that load a map, spawn a walker and move it on the plan, so a test or
 // the golden drives membership exactly as a game would (the game writes the plan position; sectors reads it).
 
-import { physics3d } from '@mcthaydt/automata-physics/3d'
+import { physics3d } from '@automata/physics/3d'
 import {
   type Command,
   createSim,
@@ -11,7 +11,7 @@ import {
   type PluginDef,
   type Sim,
   type StepResult,
-} from '@mcthaydt/automata-sim'
+} from '@automata/sim'
 import { z } from 'zod'
 import { InSector, loadSectorMap, type SectorMap, sectorsPlugin } from '../sim/index'
 import { loadSectorMapWithColliders, sectorCollidersPlugin } from '../sim/physics/index'

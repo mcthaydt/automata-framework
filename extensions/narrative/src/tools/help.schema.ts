@@ -1,7 +1,7 @@
 // Puzzle help (M6.8b): the owner's two puzzle-design rules as data. Every puzzle has three escalating hints (a nudge, a
 // direction, then nearly the answer) woven into the world, and every important deduction about three clues from
 // different places. `lintHelp` checks the counts and the places; the schema checks the shape and the references.
-import { type Cond, condSchema } from '@mcthaydt/automata-puzzle/sim'
+import { type Cond, condSchema } from '@automata/puzzle/sim'
 import { z } from 'zod'
 
 /** One line in the world, and where the player meets it. */

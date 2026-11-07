@@ -1,6 +1,6 @@
 // The narrative plugin (M6 spec §4.7, §4.13): conversations through commands, puzzle's `{ dialogue }` effect, the
 // storylets on verbs, rooms, standing still and system events, and a restore mid-conversation.
-import type { Sim } from '@mcthaydt/automata-sim'
+import type { Sim } from '@automata/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
   advance,

@@ -1,5 +1,5 @@
 // The nav plugin (M6 spec §4.4). `createNavPlugin` takes the game's movement query, for obstacles of its own.
-import { definePlugin, type PluginDef } from '@mcthaydt/automata-sim'
+import { definePlugin, type PluginDef } from '@automata/sim'
 import { NavDoor, WalkTo } from './nav.command'
 import { NavAgent } from './nav.component'
 import { NavArrived, NavUnreachable } from './nav.event'

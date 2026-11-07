@@ -1,8 +1,8 @@
 // How a game plugs into the bots and the `systems` pipeline (SB-D2): a `SystemsScene` adapter gives its sim, how a
 // run starts, what a bot sees, its routes and how it is retuned. The bots never import a game.
-import type { PuzzleDef, Value } from '@mcthaydt/automata-puzzle/sim'
-import type { Point } from '@mcthaydt/automata-sectors/sim'
-import type { PluginDef, Sim } from '@mcthaydt/automata-sim'
+import type { PuzzleDef, Value } from '@automata/puzzle/sim'
+import type { Point } from '@automata/sectors/sim'
+import type { PluginDef, Sim } from '@automata/sim'
 import type { SystemsDef, SystemsOptions } from '../sim/index'
 import type { BotOptions } from './bot'
 import type { BotView, Order, PlanStep } from './view'

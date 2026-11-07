@@ -1,6 +1,6 @@
-import type { FileError, Files, ProcessError, ProcessRunner, TaggedErrorClass } from '@mcthaydt/automata-node'
 import { Data, type Effect } from 'effect'
 import type { z } from 'zod'
+import type { FileError, Files, ProcessError, ProcessRunner, TaggedErrorClass } from './node-seams.ts'
 
 /** A key of `pipeline.toml`'s `[budget]` table: `images`, `meshyCredits`, `visionCalls` in M3. */
 export type BudgetKey = string

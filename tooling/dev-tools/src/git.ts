@@ -1,5 +1,5 @@
-import { ProcessRunner } from '@mcthaydt/automata-node'
 import { Effect } from 'effect'
+import { ProcessRunner } from './node-seams.ts'
 
 /** A git call's result: its output, or the reason it failed (a non-zero exit, or git could not be started). */
 export type GitResult =

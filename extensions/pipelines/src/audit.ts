@@ -1,8 +1,8 @@
 import { appendFileSync, mkdirSync, realpathSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
-import { type Files, ProcessRunner } from '@mcthaydt/automata-node'
 import { Effect } from 'effect'
 import { z } from 'zod'
+import { type Files, ProcessRunner } from './node-seams.ts'
 import { findPipelineToml } from './project.ts'
 import { type Env, redactValue } from './redact.ts'
 

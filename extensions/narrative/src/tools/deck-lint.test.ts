@@ -1,8 +1,8 @@
 // `lintDeck` (M6.8b step 3): the storylet deck's checks from the source's `checkDeck`: a line that is not a record, a
 // trigger that cannot fire, a condition that never holds, a fact stated before the scene that teaches it, a beat a
 // storylet delivers. Who may not have storylets is the game's (NR-D8).
-import { scenePuzzle } from '@mcthaydt/automata-puzzle/testing/converted-puzzles'
-import clinicMapToml from '@mcthaydt/automata-sectors/testing/fixtures/clinic.sector-map.toml?raw'
+import { scenePuzzle } from '@automata/puzzle/testing/converted-puzzles'
+import clinicMapToml from '@automata/sectors/testing/fixtures/clinic.sector-map.toml?raw'
 import { parse } from 'smol-toml'
 import { describe, expect, it } from 'vitest'
 import type { Canon, DialogueGraph, LineRecord, Storylet } from '../sim/index'

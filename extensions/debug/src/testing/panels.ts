@@ -1,5 +1,5 @@
 // Fixture panels for the overlay's tests.
-import type { UiComponent } from '@mcthaydt/automata-ui'
+import type { UiComponent } from '@automata/framework/extension'
 import PanelOneComponent from './PanelOne.svelte'
 import PanelTwoComponent from './PanelTwo.svelte'
 import ThrowingComponent from './Throwing.svelte'

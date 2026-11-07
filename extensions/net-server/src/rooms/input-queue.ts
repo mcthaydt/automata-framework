@@ -18,7 +18,7 @@
  * read (M7 spec §4.3). No I/O and no clock: the room says what tick it is.
  */
 
-import type { Command } from '@mcthaydt/automata-sim'
+import type { Command } from '@automata/sim'
 
 /**
  * Commands one seat may have waiting. A client leads the room by a round trip, so an honest queue holds a handful;

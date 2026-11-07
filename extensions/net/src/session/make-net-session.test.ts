@@ -1,4 +1,4 @@
-import type { Sim } from '@mcthaydt/automata-sim'
+import type { Sim } from '@automata/sim'
 import { Clock, Effect, Exit, Scope, SubscriptionRef } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createClientPort } from '../client/net-port'
