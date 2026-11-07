@@ -25,8 +25,6 @@ describe('the framework API index, as published', () => {
     expect(index).toContain(
       `- [API reference](/llms-api.txt): Every export of the ${version} packages with its signature and doc comment, generated from the package declarations.`,
     )
-    expect(index).toContain(
-      '- [Site guides](/llms-guides.txt): The guides, task prompts and selected API examples on this site.',
-    )
+    expect(index).toContain('- [Site guides](/llms-guides.txt): Every guide on this site, in full.')
   })
 })

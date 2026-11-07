@@ -1,7 +1,6 @@
 import { fireEvent, render, within } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import { getDocSections } from '../src/data/docs-loader'
-import Showcase from '../src/routes/showcase/+page.svelte'
 import Start from '../src/routes/start/+page.svelte'
 
 describe('Audience onboarding', () => {
@@ -37,12 +36,5 @@ describe('Audience onboarding', () => {
     expect(view.getByRole('group', { name: 'Skill readiness' })).toBeTruthy()
     await fireEvent.change(view.getByLabelText('Your coding agent'), { target: { value: 'Claude Code' } })
     expect(copies()).toHaveLength(4)
-  })
-  it('separates the community showcase from starter and reference projects', () => {
-    const view = render(Showcase)
-    expect(view.getByRole('heading', { name: 'Games from the community' })).toBeTruthy()
-    const link = view.getByRole('link', { name: 'Submit your game' })
-    expect(link.getAttribute('href')).toContain('github.com/mcthaydt/automata-framework/issues/new')
-    expect(view.getByText('No community submissions have been published here yet.')).toBeTruthy()
   })
 })

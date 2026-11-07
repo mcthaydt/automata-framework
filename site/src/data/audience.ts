@@ -73,9 +73,4 @@ export const FAQ_ITEMS = [
       DISTRIBUTION_TARGETS +
       ' The starter also runs standalone in a browser; see hosting guidance when adding platform services.',
   },
-  {
-    question: 'How do I get my game into the showcase?',
-    answer:
-      'Use the community showcase submission link. Include a public playable URL, your creator name, a short description, the Automata version and screenshots you have permission to share. Submissions are reviewed before publication.',
-  },
 ]

@@ -1,13 +1,10 @@
 import { fireEvent, render, waitFor } from '@testing-library/svelte'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
-import { CHEATSHEET_MODULES } from '../src/data/cheatsheet'
 import { getDocSections } from '../src/data/docs-loader'
 import CommandMenu from '../src/lib/components/CommandMenu.svelte'
 import Header from '../src/lib/components/Header.svelte'
 import TerminalBox from '../src/lib/components/TerminalBox.svelte'
 import Home from '../src/routes/+page.svelte'
-import Ai from '../src/routes/ai/+page.svelte'
-import Cheatsheet from '../src/routes/cheatsheet/+page.svelte'
 import Examples from '../src/routes/examples/+page.svelte'
 
 const docs = getDocSections()
@@ -45,19 +42,11 @@ describe('Audit regressions', () => {
     ).toBe(true)
   })
 
-  it('documents actual async sim creation and does not invent runtime exports', () => {
-    const sim = CHEATSHEET_MODULES[0].entries.find((entry) => entry.name === 'createSim')!
-    expect(sim.returnType).toBe('Promise<Sim>')
-    expect(CHEATSHEET_MODULES.flatMap((mod) => mod.entries).some((entry) => entry.name === 'runApp')).toBe(
-      false,
-    )
-  })
-
   it('provides labelled search across documentation and API entries', async () => {
     const view = render(CommandMenu, { props: { isOpen: true } })
     const input = view.getByRole('searchbox', { name: /search/i })
-    await fireEvent.input(input, { target: { value: 'createSim' } })
-    expect(view.getByRole('link', { name: /createSim/i }).getAttribute('href')).toContain('/cheatsheet#')
+    await fireEvent.input(input, { target: { value: 'quick start' } })
+    expect(view.getByRole('link', { name: /Quick Start/i }).getAttribute('href')).toBe('/docs/quick-start')
     await fireEvent.keyDown(input, { key: 'ArrowDown' })
     expect(document.activeElement?.tagName).toBe('A')
   })
@@ -96,26 +85,6 @@ describe('Restored claims (DX.10a)', () => {
     expect(view.container.textContent).not.toMatch(/complete determinism|100% match|run identically/i)
   })
 
-  it('bounds the CSP wording to what is checked, names compileHeaders and links its use at framework.ref', () => {
-    const view = render(Ai)
-    const csp = view.getByRole('region', { name: 'The content security policy' })
-    expect(csp.textContent).toContain('Instructions give an agent context; they do not enforce anything.')
-    expect(csp.textContent).toContain(
-      'Each target serves a game with its own headers. On Ruken, a game’s headers, its content security policy among them, come from compileHeaders in @ruken/manifest, which derives them from the game’s manifest.',
-    )
-    expect(csp.textContent).toContain(
-      'The framework CLI’s CSP probe loads the built game in Chromium under those headers, for Ruken’s local origins, and reports every violation the policy fires.',
-    )
-    expect(view.getByRole('link', { name: 'the CSP probe’s source' }).getAttribute('href')).toBe(
-      'https://github.com/mcthaydt/automata-framework/tree/main/packages/tools',
-    )
-    expect(csp.textContent).not.toMatch(/guarantee|100%|fully compliant|eliminate/i)
-    const securityDoc = docs.find((entry) => entry.slug === 'security-csp')!.content
-    expect(securityDoc).toContain(
-      "Test the built game under the headers its target serves. On Ruken, a game's headers come from compileHeaders in @ruken/manifest, and the framework CLI's CSP probe loads the build in Chromium under them. See [the content security policy](/ai#csp).",
-    )
-  })
-
   it('states the 780×270 input journeys the framework runs, and keeps them apart from real-device acceptance', () => {
     const doc = docs.find((entry) => entry.slug === 'mobile-ui')!.content
     expect(doc).toContain('## Tested input journeys')
@@ -150,13 +119,6 @@ describe('Restored claims (DX.10a)', () => {
       'This is how the playground on this site works, not a description of a game’s own hot reload or restart.',
     )
     expect(section.textContent).not.toMatch(/instant|in-place|without losing state/i)
-  })
-
-  it('labels the generated API reference as complete for the packages it was generated from, and links it', () => {
-    const view = render(Cheatsheet)
-    expect(
-      view.getByRole('link', { name: 'Complete generated reference (plain text)' }).getAttribute('href'),
-    ).toBe('/llms-api.txt')
   })
 
   it('says what each plain-text file holds and that none of them is the framework source', () => {

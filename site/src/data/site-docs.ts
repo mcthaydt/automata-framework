@@ -1,7 +1,6 @@
 import type { Guide } from '../shared/framework/guides'
 import { PIXIJS_INSTALL, SKILL_PREFLIGHT, SKILL_SOURCES } from './agent-setup'
 import { AUDIENCE_FIT, AUDIENCE_NOT_FIT, FAQ_ITEMS } from './audience'
-import { CHEATSHEET_MODULES } from './cheatsheet'
 import { PLUS_DOC, SAVES_DOC, SERVICE_MODEL_DOC } from './deep-docs'
 import { MIGRATION_GUIDES } from './migrations'
 import { DISTRIBUTION_TARGETS } from './targets'
@@ -100,7 +99,7 @@ const AUTHORED_DOCS: Omit<DocSection, 'toc'>[] = [
     category: 'Core',
     description: 'Avoiding dynamic evaluation under the host policy.',
     content:
-      "# Zero-Eval CSP & Host Security\n\n## Dynamic evaluation\n\nDo not use eval or new Function in game code. Every web build follows the no-eval rule, whatever its target. Import the renderer's no-eval entry before initializing PixiJS.\n\n## Policy scope\n\nAvoiding dynamic evaluation is one part of CSP compatibility. Asset origins, connections, workers and other directives must also match the host policy. Test the built game under the headers its target serves. On Ruken, a game's headers come from compileHeaders in @ruken/manifest, and the framework CLI's CSP probe loads the build in Chromium under them. See [the content security policy](/ai#csp).\n\n## Trust boundaries\n\nKeep credentials outside game bundles. Validate host messages at the integration boundary. Use the supported hosting API instead of inventing another handshake.",
+      "# Zero-Eval CSP & Host Security\n\n## Dynamic evaluation\n\nDo not use eval or new Function in game code. Every web build follows the no-eval rule, whatever its target. Import the renderer's no-eval entry before initializing PixiJS.\n\n## Policy scope\n\nAvoiding dynamic evaluation is one part of CSP compatibility. Asset origins, connections, workers and other directives must also match the host policy. Test the built game under the headers its target serves. On Ruken, a game's headers come from compileHeaders in @ruken/manifest, and the framework CLI's CSP probe loads the build in Chromium under them.\n\n## Trust boundaries\n\nKeep credentials outside game bundles. Validate host messages at the integration boundary. Use the supported hosting API instead of inventing another handshake.",
   },
   {
     id: 'mobile-ui',
@@ -199,7 +198,7 @@ AUTHORED_DOCS.push(
     content:
       '# FAQ\n\n' +
       FAQ_ITEMS.map((item) => '## ' + item.question + '\n\n' + item.answer).join('\n\n') +
-      '\n\n[Install agent skills](/docs/agent-setup), [make a first change](/start), or [visit the community showcase](/showcase).',
+      '\n\n[Install agent skills](/docs/agent-setup) or [make a first change](/start).',
   },
 )
 

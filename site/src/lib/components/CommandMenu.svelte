@@ -1,8 +1,6 @@
 <script lang="ts">
 import { tick } from 'svelte'
 import { latestApiVersion, loadApiSearch, searchApi } from '$lib/api-reference'
-import { AI_TASKS } from '../../data/ai-guidance'
-import { CHEATSHEET_MODULES, cheatsheetSearchText } from '../../data/cheatsheet'
 import { getDocSections } from '../../data/docs-loader'
 import { getExamples } from '../../data/examples'
 import type { ApiSearchRow } from '../../shared/framework/api'
@@ -11,30 +9,21 @@ let { isOpen = false, onClose = () => {} }: { isOpen?: boolean; onClose?: () => 
 let dialog: HTMLDialogElement
 let input: HTMLInputElement
 let query = $state('')
+// The site's pages, its guides and its examples. API names come from the generated index below, so search never
+// knows a name the packages do not export.
 const links = [
-  { title: 'Overview', detail: 'About Automata', url: '/' },
+  { title: 'Home', detail: 'About Automata', url: '/' },
+  { title: 'Start', detail: 'Make a game, play it, draw its level and put it online', url: '/start' },
   { title: 'Examples', detail: 'One-file examples that run beside their code', url: '/examples' },
-  { title: 'API reference', detail: 'Selected current APIs', url: '/cheatsheet' },
-  { title: 'Showcase', detail: 'Starter and reference projects', url: '/showcase' },
-  { title: 'AI guidance', detail: 'Rules and plain-text docs', url: '/ai' },
-  ...AI_TASKS.map((task) => ({
-    title: task.title,
-    detail: task.description + ' ' + task.prompt,
-    url: '/ai#prompt-' + task.id,
-  })),
+  { title: 'Editor', detail: 'Draw your levels', url: '/editors' },
+  { title: 'Docs', detail: 'Guides to the framework', url: '/docs' },
+  { title: 'API reference', detail: 'Every export of every package', url: '/api' },
   ...getDocSections().map((d) => ({
     title: d.title,
     detail: d.description + ' ' + d.content,
     url: '/docs/' + d.slug,
   })),
   ...getExamples().map((e) => ({ title: e.id + ': ' + e.title, detail: e.shows, url: '/examples/' + e.id })),
-  ...CHEATSHEET_MODULES.flatMap((m) =>
-    m.entries.map((e) => ({
-      title: e.name,
-      detail: cheatsheetSearchText(m, e),
-      url: '/cheatsheet#' + e.name,
-    })),
-  ),
 ]
 let results = $derived(
   links.filter((l) =>
@@ -50,13 +39,11 @@ const apiVersion = latestApiVersion()
 let apiRows = $state<ApiSearchRow[]>([])
 let apiLoaded = false
 const apiResults = $derived(
-  searchApi(apiRows, query, 20)
-    .filter((row) => !links.some((l) => l.url === '/cheatsheet#' + row.name))
-    .map((row) => ({
-      title: row.name,
-      detail: row.kind + ' in ' + row.package,
-      url: '/api/' + apiVersion + '/' + row.package + '#' + row.name,
-    })),
+  searchApi(apiRows, query, 20).map((row) => ({
+    title: row.name,
+    detail: row.kind + ' in ' + row.package,
+    url: '/api/' + apiVersion + '/' + row.package + '#' + row.name,
+  })),
 )
 $effect(() => {
   if (!dialog) return

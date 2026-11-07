@@ -3,6 +3,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { gzipSync } from 'node:zlib'
 import { JSDOM } from 'jsdom'
+import { REDIRECTS, redirectFile } from '../src/features/redirects/redirects.ts'
 import { CSP_META_PREFIX, scriptHash } from '../src/lib/csp.ts'
 import { SITE_ORIGIN } from '../src/lib/site.js'
 
@@ -97,12 +98,14 @@ export function checkTargets(root: string): string[] {
 /** Folders the site copies in from the framework as built: the demo bundles and the playground (frame pages, runtime). */
 const FRAMEWORK_TREES = ['demos/', 'playground/']
 const fromFramework = (path: string) => FRAMEWORK_TREES.some((tree) => path.startsWith(tree))
+// The cut pages' redirects are not pages: no header, no canonical, and never in the sitemap.
+const REDIRECT_FILES = new Set(Object.keys(REDIRECTS).map(redirectFile))
 
-/** The prerendered pages of a build: every HTML file except the framework's trees and the 404 fallback. */
+/** The prerendered pages of a build: every HTML file except the framework's trees, the redirects and the 404 fallback. */
 export function builtPages(root: string): string[] {
   return readdirSync(root, { recursive: true })
     .map(String)
-    .filter((p) => p.endsWith('.html') && !fromFramework(p) && p !== '404.html')
+    .filter((p) => p.endsWith('.html') && !fromFramework(p) && !REDIRECT_FILES.has(p) && p !== '404.html')
     .sort()
 }
 

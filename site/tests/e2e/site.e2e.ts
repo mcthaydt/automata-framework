@@ -84,7 +84,7 @@ for (const viewport of VIEWPORTS) {
     })
 
     test('images are at most twice their rendered width', async ({ page }) => {
-      for (const path of ['/', '/start', '/showcase']) {
+      for (const path of ['/', '/start', '/examples']) {
         await open(page, path)
         for (const image of await page.locator('img:visible').all()) {
           await image.scrollIntoViewIfNeeded()

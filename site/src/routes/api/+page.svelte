@@ -8,7 +8,7 @@ const versions = apiVersions()
 <div class="page-shell api-page">
   <h1>Complete API reference</h1>
   <p class="lead">Every export of every published package, generated from the published type declarations.</p>
-  <p>An export that is not listed for a version does not exist in it. <a href="/cheatsheet">Selected APIs with examples</a> are on the API reference page; the same text as one file is <a href="/llms-api.txt">llms-api.txt</a>.</p>
+  <p>An export that is not listed for a version does not exist in it. The same text as one file is <a href="/llms-api.txt">llms-api.txt</a>.</p>
   {#each versions as version}
     {@const reference = getApiReference(version)}
     {#if reference}
