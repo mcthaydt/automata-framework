@@ -21,7 +21,8 @@
     "./level": "./src/entries/level.ts",
     "./no-eval": "./src/entries/no-eval.ts",
     "./sim": "./src/entries/sim.ts",
-    "./testing": "./src/entries/testing.ts"
+    "./testing": "./src/entries/testing.ts",
+    "./timeline": "./src/entries/timeline.ts"
   },
   "imports": {
     "#src/*": "./src/*"
@@ -29,7 +30,8 @@
   "automata": {
     "simEntries": [
       "./sim",
-      "./level"
+      "./level",
+      "./timeline"
     ]
   },
   "scripts": {

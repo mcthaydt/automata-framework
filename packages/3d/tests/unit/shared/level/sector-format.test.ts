@@ -27,7 +27,7 @@ describe('the sector format entry', () => {
     const manifest = JSON.parse(
       readFileSync(resolve(import.meta.dirname, '../../../../package.json'), 'utf8'),
     )
-    expect(manifest.automata.simEntries).toEqual(['./sim', './level'])
+    expect(manifest.automata.simEntries).toEqual(['./sim', './level', './timeline'])
     expect([...bareImports(resolve(import.meta.dirname, '../../../../src/entries/level.ts'))].sort()).toEqual(
       ['zod'],
     )
