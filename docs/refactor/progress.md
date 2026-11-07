@@ -1,6 +1,6 @@
 # Refactor progress
 
-**Overall: 44% (8 of 18 stages done).**
+**Overall: 50% (9 of 18 stages done).**
 
 The Owner's order: finish one slice completely before starting the next. On 2026-11-05 it was core and 2D, then 3D, then
 the editors, then the website. On 2026-11-06 the Owner changed the later slices to vertical ones: "we do the editor
@@ -185,7 +185,7 @@ Done means: Emberwick's journeys pass on every pull request in two browsers, the
 repository has only `main` and branches with active CI (fewer than 5), the code follows the feature-folder layout
 with tests in their own folder, and `.vscode` hides what the Owner does not need to see.
 
-## 2D editors and website: 50% (3 of 6; the build stays open until 68 of 68)
+## 2D editors and website: 67% (4 of 6: stages 1, 2, 3 and 5; the build stays open until 68 of 68)
 
 Scope: `editor-kit`, `editor-2d`, the parts of `editor-suite` that 2D touches, `automata editor`, and the website
 repository (`mcthaydt/automata-website`), judged as if AF ships with 2D alone. Widened on 2026-11-06 (the Owner: "we need
@@ -199,13 +199,15 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 2. Plan and spec | Done, 2026-11-06 (draft PR [#406](https://github.com/mcthaydt/automata-framework/pull/406)): 21 phases, 63 tasks. Built on D1 to D17 as the Owner took them; adds the editor redesign in the website's look and the code refactor to the core slice's standard (minimal, elegant, documented), both asked for by the Owner the same day. Stage 3 reviews it | [spec](2026-11-06-2d-editors-and-site-spec.md), [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 3. Plan audit | Done, 2026-11-06 (draft PR, stacked on #406 and #407): 30 findings (12 that would have stopped the build, 18 that would have caused harm or rework), all fixed in the spec and plan; three veto defaults added (14 to 16); the Owner's calls are the npm organisation's name and D8/D17's inputs. Stage 4 starts at task 1.1 | [plan audit](2026-11-06-2d-editors-and-site-plan-audit.md) |
 | 4. Build | In progress: 65 of 68 tasks (12.3b added 2026-11-06) (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
-| 5. Build audit | Not started | |
+| 5. Build audit | Done, 2026-11-07 (PR stacked on #438): 3 broken (B1 Add tiles cannot write into a game folder, B2 `pnpm check` red at the head, B3 task 14.2 is agent work), 7 spec gaps (C1 to C7), 2 visual (V1, V2), 9 copy (G1 to G9), 2 tests (T1, T2), 3 tracking (D1 to D3), 4 tidy (L1 to L4); the stranger's journey, the editor's Chromium journeys and the site visual audit pass | [build audit](2026-11-07-2d-editors-and-site-build-audit.md) |
 | 6. Fixes | Not started | |
 
 ### Build: 96% (65 of 68 tasks)
 
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
+
+**Where to resume (2026-11-07, stage 5 done):** the build audit is [2026-11-07-2d-editors-and-site-build-audit.md](2026-11-07-2d-editors-and-site-build-audit.md), on its own PR stacked on #438. Next is stage 6 (fixes, Sonnet high), in the audit's section 5 order: `pnpm check` is red at the head (B2) and Add tiles fails on every game folder (B1) come first; task 14.2 is agent work, not the Owner's (B3). This file's duplicate section is finding D1.
 
 **Where to resume (2026-11-07, session 25):** branch `claude/refactor-scope`, its own PR stacked on #437. Session 25:
 **14.1 is done** (the plan's log): every package is in the `@automata` scope. The main package is
@@ -442,7 +444,7 @@ Done means: Emberwick's journeys pass on every pull request in two browsers, the
 repository has only `main` and branches with active CI (fewer than 5), the code follows the feature-folder layout
 with tests in their own folder, and `.vscode` hides what the Owner does not need to see.
 
-## 2D editors and website: 50% (3 of 6; the build stays open until 68 of 68)
+## 2D editors and website: 67% (4 of 6: stages 1, 2, 3 and 5; the build stays open until 68 of 68)
 
 Scope: `editor-kit`, `editor-2d`, the parts of `editor-suite` that 2D touches, `automata editor`, and the website
 repository (`mcthaydt/automata-website`), judged as if AF ships with 2D alone. Widened on 2026-11-06 (the Owner: "we need
@@ -456,7 +458,7 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 2. Plan and spec | Done, 2026-11-06 (draft PR [#406](https://github.com/mcthaydt/automata-framework/pull/406)): 21 phases, 63 tasks. Built on D1 to D17 as the Owner took them; adds the editor redesign in the website's look and the code refactor to the core slice's standard (minimal, elegant, documented), both asked for by the Owner the same day. Stage 3 reviews it | [spec](2026-11-06-2d-editors-and-site-spec.md), [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 3. Plan audit | Done, 2026-11-06 (draft PR, stacked on #406 and #407): 30 findings (12 that would have stopped the build, 18 that would have caused harm or rework), all fixed in the spec and plan; three veto defaults added (14 to 16); the Owner's calls are the npm organisation's name and D8/D17's inputs. Stage 4 starts at task 1.1 | [plan audit](2026-11-06-2d-editors-and-site-plan-audit.md) |
 | 4. Build | In progress: 65 of 68 tasks (12.3b added 2026-11-06) (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
-| 5. Build audit | Not started | |
+| 5. Build audit | Done, 2026-11-07 (PR stacked on #438): 3 broken (B1 Add tiles cannot write into a game folder, B2 `pnpm check` red at the head, B3 task 14.2 is agent work), 7 spec gaps (C1 to C7), 2 visual (V1, V2), 9 copy (G1 to G9), 2 tests (T1, T2), 3 tracking (D1 to D3), 4 tidy (L1 to L4); the stranger's journey, the editor's Chromium journeys and the site visual audit pass | [build audit](2026-11-07-2d-editors-and-site-build-audit.md) |
 | 6. Fixes | Not started | |
 
 ### Build: 96% (65 of 68 tasks)
