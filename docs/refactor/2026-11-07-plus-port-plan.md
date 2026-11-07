@@ -531,6 +531,15 @@ kinds, the eight hair pieces, the extra finishes and the `figure-seat` kind) and
 
 ### Task 3.7: `@automata/world-kit`: props, furnishing, signs, maps (after 3D 7.3 and 7.5)
 
+> **Amended 2026-11-07 20:01** (the Owner at 19:58: "The base M and F figure should be in 3D though, base interior and
+> exterior too"; 3D PR #464 carries the updated scope trim). 3D core keeps the base pair, the base interior and
+> exterior, the generators table, bin, lamp, streetLamp and tree with the swatches those scenes use, and the sky and
+> its horizon. So this kit adds the *dressed* base scenes (`base-interior-dressed` with the waiting-room kit,
+> `base-exterior-dressed` with the street kit) built from core's `BASE_SCENES`, and does not carry those five
+> generators or the base swatches. 3D 7.3 is in PR #463 (commit `78e0ca7f` and the project files `af-world-kit-source/`
+> hold the source that left `packages/3d`: dresser, kit schema, `props.json`, `swatches.json`); a room with `dress`
+> reports `needs-extension` with the name `world-kit`.
+
 **Files:** create `extensions/world-kit/` (`src/features/{props,furnish,lettering,maps}/`, `library/{props,kits,
 swatches,glyphs}.json`, `library/maps/*.af-sector.json`, `scripts/convert-builder-maps.ts`).
 
@@ -547,6 +556,9 @@ seed): AfSector2`, the `world-kit` content kind.
   PASS. **Commit** `feat(world-kit): ready-made props, furnished rooms, signs and generated maps`
 
 ### Task 3.8: `@automata/world-kit`: textures, checks and the sky (after 3.7 and 3D 8.2)
+
+> **Amended 2026-11-07 20:01:** the sky stays in 3D core, so there is no `skyPass` here: this task adds the stars, rain
+> and bloom passes only.
 
 **Files:** `extensions/world-kit/src/features/{textures,reads,sky}/`, `assets/photos/` (with each credit), the tiles
 (generated, committed, each with its photo's sha-256), the bin `automata-world-textures`, the passes as GLSL + WGSL
