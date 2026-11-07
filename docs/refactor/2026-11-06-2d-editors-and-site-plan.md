@@ -2554,6 +2554,10 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   Home's Details say `Characters` (a count, was "6 definitions") and `Tiles` (was Tilesets). The guide
   (`docs/guides/editor.md`) is rewritten as open, draw, save, play, on a tablet, in plain words, titled "Draw levels in
   the editor" (the audit's row). The suite page's Home and the Tuner get the same word list as a unit test over the
-  whole page's text (`textContent`, stricter than what is on screen); it passes as it stands. **Left for 12.5:** Step 0's file checks over every `.svelte` file (size, header
-  comment); Step 1's grep of the editor's `.svelte` and `*-messages.ts` for strings not in `copy.md`; `Add field` and the field types' words (`int`) in the Characters Settings tab; the layer
+  whole page's text (`textContent`, stricter than what is on screen); it passes as it stands. *Step 0, run (session 19):* every `.svelte` file in `packages/editor/src` opens with its
+  header comment; nine are over 300 lines, for 12.5 to split or the build audit to take: `EditorShell` 632,
+  `ReorderList` 432, `WorldView` 387, `EntityInspector` 374, `Stepper` 357, `Suite` 352 (12.7 asked for under 300: it
+  was 339 after session 15's split and the look added 13; its Publish, review and interchange wiring is the next
+  piece to leave), `RuleInspector` 341, `Picker` 333, `WorldInspector` 312. **Left for 12.5:** the splits above;
+  Step 1's grep of the editor's `.svelte` and `*-messages.ts` for strings not in `copy.md`; `Add field` and the field types' words (`int`) in the Characters Settings tab; the layer
   row reads "Characters / Characters and items" (its name over its kind), which says one thing twice.
