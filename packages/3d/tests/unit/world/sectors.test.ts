@@ -10,7 +10,6 @@ import {
   segments,
   signedArea,
   standsIn,
-  triangulate,
 } from '#src/features/world/sectors.ts'
 import type { AfCorner2, AfSector2, AfSectorEntry2 } from '#src/shared/level/af-sector-2.schema.ts'
 
@@ -104,7 +103,7 @@ describe('triangulation', () => {
       [2, 4],
       [0, 4],
     ] as const
-    expect(areaOf(l, triangulate(l))).toBeCloseTo(12)
+    expect(areaOf(fill(l).points, fill(l).triangles)).toBeCloseTo(12)
   })
   it('covers a clockwise polygon too', () => {
     const cw = [
@@ -113,7 +112,7 @@ describe('triangulation', () => {
       [4, 4],
       [4, 0],
     ] as const
-    expect(areaOf(cw, triangulate(cw))).toBeCloseTo(16)
+    expect(areaOf(fill(cw).points, fill(cw).triangles)).toBeCloseTo(16)
   })
   it('covers a room with a hole: the room’s area less the hole’s', () => {
     const { points, triangles } = fill(
