@@ -1253,8 +1253,8 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
 - Test: `tooling/check-style/tests/unit/{plan-comments-yaml-md.test.ts,links.test.ts}`,
   `tooling/repo-hygiene/tests/unit/source-names-wired.test.ts`
 
-- [ ] **Step 1: Failing tests** for the YAML/Markdown plan-ID rule, the links rule and source names in `pnpm check`.
-- [ ] **Step 2:** Implement; run; rewrite every finding (about 100 plan-ID lines, 9 links, the source names outside
+- [x] **Step 1: Failing tests** for the YAML/Markdown plan-ID rule, the links rule and source names in `pnpm check`.
+- [x] **Step 2:** Implement; run; rewrite every finding (about 100 plan-ID lines, 9 links, the source names outside
   comments). The source-names rule skips `docs/refactor/` as well as `docs/archive/` and `docs/provenance/` (the audits
   there name the source projects as evidence). ADRs, stack, versions and Renovate per spec 16.5. **Session break**
   between the three rules if needed. `pnpm check` passes. Commit.
@@ -2727,3 +2727,21 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   are gone), `pnpm cheatsheet` is gone, `release:version` ends with `pnpm api-index --write`, and `AGENTS.md` names the
   one command. Regenerated after `pnpm build`: only the cheatsheet's header line changed (the other two were already
   current). Gates: api-index unit 43, agent-skills unit 111, release unit 61, `pnpm knip` clean.
+  *16.3:* the three tests failed first (`#src/docs.ts` missing; no `source-names` script). `check-style --docs`
+  (`tooling/check-style/src/docs.ts`, in `pnpm style`) reads the tracked Markdown, YAML and `.npmrc`: plan IDs in
+  YAML and `.npmrc` comments and Markdown prose (code blocks and inline code are not read), and relative Markdown links
+  that lead nowhere. Records are left out by design: `docs/archive`, `docs/refactor`, `docs/provenance`, `docs/adr`
+  (decision records cite their sources), `PROVENANCE.md`, `vendor/` READMEs (where each tarball came from) and
+  fixtures. Found 118 plan-ID lines and 11 broken links (the audit said about 100 and 9); after the record folders,
+  91 lines, all rewritten: the workflows' and `.npmrc`'s comments, `docs/versions.md` (every Why cell; no lanes, plan
+  IDs, source names or "Same as Ruken"; AF owns its pins), `docs/stack.md` from `stack-cards.ts`, the art README's
+  milestone column dropped, the runbook, status and base-3d's gap list; the generated API reports' header loses its
+  spec citation. Links: the ADRs, provenance and versions to `docs/archive/`, the runbook to the archived plans, the
+  site audit's shared-folder paths as text. `pnpm source-names` (new `source-names-cli.ts`) runs in `pnpm check` and
+  now also reads `docs/` outside `adr`, `archive`, `provenance` and `refactor`, and the agent package's generated
+  reference: it found 12 lines, all copies of nine doc comments that named the arcade source; the doc comments are
+  plain now (changeset `doc-comments-plain`) and the record moved to `docs/provenance/sources.md`. Code comments that
+  name it are PR #404's. ADRs (spec 16.5): 0002's "review pending" resolved under the auto-accept rule, 0004 and 0005
+  marked superseded by 0006. `renovate.json` stops holding pins to Ruken's list, and `tooling/versions/src/renovate.ts`
+  with its test goes. The README opens with making a game and the site; the clone-and-check part is "Work on the
+  framework". Gates: check-style unit (new 8), repo-hygiene unit 92, versions unit 34, `pnpm check` passes.

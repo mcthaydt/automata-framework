@@ -1,9 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "description": [
-    "QB.1 (QB spec §4.1): one monthly batch of upgrade PRs for npm packages and GitHub Actions.",
+    "One monthly batch of upgrade PRs for npm packages and GitHub Actions.",
     "Each npm PR changes one package, as docs/versions.md asks; tooling/versions fails until the PR also updates that package's row there.",
-    "Actions stay pinned to a commit SHA with the tag in a comment. Ruken-matched pins never move here: they follow Ruken's docs/versions.md (tooling/versions/src/renovate.test.ts holds the list to that file)."
+    "Actions stay pinned to a commit SHA with the tag in a comment. AF owns its pins (ADR 0006): no other project's list holds them back."
   ],
   "extends": [
     "config:recommended",
@@ -16,36 +16,13 @@
   "ignorePaths": ["**/node_modules/**", "**/fixtures/**", "vendor/**"],
   "minimumReleaseAge": "14 days",
   "internalChecksFilter": "strict",
-  "lockFileMaintenance": { "enabled": false },
+  "lockFileMaintenance": {
+    "enabled": false
+  },
   "packageRules": [
     {
-      "description": "Same as Ruken (docs/versions.md): these move only when Ruken's docs/versions.md moves.",
-      "matchPackageNames": [
-        "@changesets/cli",
-        "@playwright/test",
-        "@types/node",
-        "node",
-        "playwright",
-        "pnpm",
-        "smol-toml",
-        "tsdown",
-        "turbo",
-        "vite",
-        "vitest",
-        "yaml",
-        "yauzl",
-        "yazl",
-        "zod"
-      ],
-      "enabled": false
-    },
-    {
-      "description": "These follow a Ruken-matched pin: the vitest browser provider (same major as vitest), the Playwright image (same tag as playwright) and Ruken's pinned changesets/action.",
-      "matchPackageNames": [
-        "@vitest/browser-playwright",
-        "mcr.microsoft.com/playwright",
-        "changesets/action"
-      ],
+      "description": "These move with their partner, never alone: the vitest browser provider (same major as vitest) and the Playwright image (same tag as playwright).",
+      "matchPackageNames": ["@vitest/browser-playwright", "mcr.microsoft.com/playwright"],
       "enabled": false
     },
     {

@@ -5,9 +5,9 @@ Read-only audit of the website as it stands on the newest build branch (`claude/
 `vite preview`. Chromium only (WebKit and Firefox cannot be installed in cloud sessions, so Safari on a real iPhone or
 iPad is still the Owner's check).
 
-Screenshots: [`2026-11-06-site-visual-audit/screens/`](2026-11-06-site-visual-audit/screens/) (105 full-page JPEGs at
+Screenshots: `refactor/2026-11-06-site-visual-audit/screens/` in the project's shared folder (105 full-page JPEGs at
 2x, named `<page>--<size>.jpg`). Raw measurements for every page at every size:
-[`metrics.json`](2026-11-06-site-visual-audit/metrics.json).
+`metrics.json` beside them.
 
 ## 1. Are we done adding screens?
 
@@ -89,7 +89,7 @@ Search and Menu on phones and tablets without crowding.
 Fix the **new** shared-layout items (M1 tap targets, M2 code wrapping, M4 menu, L1 touch hints) as one small task
 before phase 18, because every rebuilt page inherits them. Add H4 (API page length: an index with collapsed sections
 or one page per export group) and H5 (a first example that shows something) to tasks 18.4 and 18.3's neighbours. The
-rest is already in phases 18 to 20. Re-run this audit with the scripts in [`2026-11-06-site-visual-audit/scripts/`](2026-11-06-site-visual-audit/scripts/) (`run.cjs` measures, `shots.cjs` screenshots; both expect `vite preview` on port 4417)
+rest is already in phases 18 to 20. Re-run this audit with the scripts in the shared folder's `refactor/2026-11-06-site-visual-audit/scripts/` (`run.cjs` measures, `shots.cjs` screenshots; both expect `vite preview` on port 4417)
 after phase 18, and on the editor after phase 12.
 
 ## 5. Rerun after phase 18, part (session 20, 2026-11-07)

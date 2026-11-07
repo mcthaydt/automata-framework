@@ -37,7 +37,7 @@ export interface PixiRendererOptions {
   readonly pixelArt?: boolean | undefined
   /** Letterbox cropping fraction for top and bottom bars. Default is 0.05 (5%). */
   readonly barFraction?: number | undefined
-  /** Bar color in hex. Default is 0x2e222f (FloorFifty plum black). */
+  /** Bar color in hex. Default is 0x2e222f (plum black). */
   readonly barColor?: number | undefined
   /** The graphics quality tier to start at; `PixiStage.setQuality` changes it. Default `high`. */
   readonly quality?: QualityTier | undefined

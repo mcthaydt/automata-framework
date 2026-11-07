@@ -138,7 +138,7 @@ interface Audio {
     /** The player's mute: the master only, so unmuting restores the mix as it was. */
     setMuted(muted: boolean): void;
     /**
-     * A short tone on `bus`, as the volume sliders play on release (FloorFifty's sample), so the player hears the level
+     * A short tone on `bus`, as the volume sliders play on release, so the player hears the level
      * they set. The graph makes it: no game asset. Silent before the unlock, as every sound is.
      */
     sample(bus: AudioBusName): void;
@@ -2039,7 +2039,7 @@ class ModelInvalid extends Error {
 A choice of one: a
 segmented row whose chosen option is filled and marked, never only underlined or only coloured.
 
-Native radios in a fieldset, where FloorFifty used `<button role="radio">`: the browser gives the arrow keys,
+Native radios in a fieldset, not `<button role="radio">`: the browser gives the arrow keys,
 and the focus navigator's `adjust` cycles a named radio group, so a pad changes it without leaving it.
 
 Controlled: it reports a choice through `onchange` and shows the `value` it is given. A choice the owner does
@@ -2133,7 +2133,7 @@ interface PixiRendererOptions {
     readonly pixelArt?: boolean | undefined;
     /** Letterbox cropping fraction for top and bottom bars. Default is 0.05 (5%). */
     readonly barFraction?: number | undefined;
-    /** Bar color in hex. Default is 0x2e222f (FloorFifty plum black). */
+    /** Bar color in hex. Default is 0x2e222f (plum black). */
     readonly barColor?: number | undefined;
     /** The graphics quality tier to start at; `PixiStage.setQuality` changes it. Default `high`. */
     readonly quality?: QualityTier | undefined;
@@ -3349,7 +3349,7 @@ interface TouchButton {
 
 #### `TouchControls` (const)
 
-The on-screen touch buttons, from FloorFifty `ui/components/TouchControls.svelte` at `ac72660`.
+The on-screen touch buttons.
 
 This is the element that produces pointer events and nothing more; the multi-touch bookkeeping is
 `touch-controls.ts`. Each side's group takes the pointers, not the buttons, and reaches `STICKY_MARGIN_PX` past
@@ -3998,9 +3998,8 @@ function installFakeResizeObserver(): FakeResizeObserver;
 
 #### `LayoutRect` (interface)
 
-Layout assertions as plain DOM functions, from FloorFifty's
-`tests/e2e/support/layout.ts` at 122a220 (`expectReachable`, `expectControlsFit`,
-`expectRowsWhole`, `expectApart`, `expectNoDocumentScroll`).
+Layout assertions as plain DOM functions (`expectReachable`, `expectControlsFit`, `expectRowsWhole`,
+`expectApart`, `expectNoDocumentScroll`).
 
 Each returns a list of human-readable problems; `[]` is a pass. They take no test framework, so
 the same code runs in Vitest browser mode and inside a Playwright `page.evaluate` bundle. They
@@ -4375,7 +4374,7 @@ const buildContent: (options: ContentOptions) => Effect.Effect<CompiledContent, 
 #### `checkTuningLayer` (function)
 
 Checks one layer of tuning against code-owned declarations. `complete` is true for the base layer, which
-must name every tunable; false for a partial override (FloorFifty's stage and mode layers).
+must name every tunable; false for a partial override (a stage or mode layer).
 
 Invariants are rejected before unknown names so the more specific answer wins, then non-numbers, then
 integer declarations, then the inclusive range.
@@ -4626,7 +4625,7 @@ interface FlowCapabilities {
   /** The only screen a session may begin on. */
   readonly entry?: string;
   readonly screens: readonly string[];
-  /** For each screen and event, the destinations that screen is prepared to enter (FloorFifty `FLOW_TARGETS`). */
+  /** For each screen and event, the destinations that screen is prepared to enter. */
   readonly targets?: Readonly<Record<string, Readonly<Record<string, readonly string[]>>>>;
   /** Transition styles the runtime draws. Default: only `cut`. */
   readonly styles?: readonly string[];
@@ -4645,7 +4644,7 @@ interface FlowGraph {
   readonly screens: readonly string[];
   /** Sorted. */
   readonly terminal: readonly string[];
-  /** Sorted by from, event, then to (FloorFifty `byPair`): declaration order means nothing. */
+  /** Sorted by from, event, then to: declaration order means nothing. */
   readonly transitions: readonly FlowTransition[];
 }
 ```
@@ -7189,7 +7188,7 @@ const REPLAY_FORMAT = 1;
 
 #### `REPLAY_INFLATE_MAX_BYTES` (const)
 
-Larger than FloorFifty's 1 MiB because goldens carry reference snapshots; player replays may pass less.
+Larger than 1 MiB because goldens carry reference snapshots; player replays may pass less.
 
 ```ts
 const REPLAY_INFLATE_MAX_BYTES: number;

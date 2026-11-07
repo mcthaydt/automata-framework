@@ -2,7 +2,7 @@
 
 - Status: Accepted by Owner direction (2026-10-11); amended 2026-11-05 (below): Effect is for Node tooling only
 - Date: 2026-10-11
-- Supersedes: "Effect: Skip" in the [2026-10-01 master spec](../superpowers/specs/2026-10-01-automata-framework-overview-design.md) §8
+- Supersedes: "Effect: Skip" in the [2026-10-01 master spec](../archive/superpowers/specs/2026-10-01-automata-framework-overview-design.md) §8
 
 ## Context
 The 2026-10-01 design skipped Effect: a second paradigm for game developers, overlap with Zod, and hot-loop overhead. The Owner directed on 2026-10-11 to "use Effect and the Koota ECS". The runtime has many concerns Effect handles well and that FloorFifty and The Last Light handle by hand: ordered boot with failure states, retries and timeouts (handshake, loading stalls, exit grace, save flush), resource disposal on screen exit and on game restart, injected clocks, and typed errors that must each map to a UI state.

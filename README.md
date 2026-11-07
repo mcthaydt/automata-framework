@@ -1,11 +1,20 @@
 # AutomataFramework
 
-AutomataFramework (AF) is a TypeScript framework for small 2D and 3D web games. You write a game once and ship it
-to the web, itch.io, Ruken or a desktop app. The game's rules give the same result, bit for bit, in Node, Chromium,
-WebKit and Firefox, and PixiJS draws it. [`docs/README.md`](docs/README.md) explains the design and
+AutomataFramework (AF) is a TypeScript framework for small 2D web games. You write a game once and ship it to the web,
+itch.io, Ruken or a desktop app. The game's rules give the same result, bit for bit, in Node, Chromium, WebKit and
+Firefox, and PixiJS draws it.
+
+## Make a game
+
+`pnpm dlx @mcthaydt/automata-tools create-game my-game` makes a game that runs, passes its checks and opens in the
+level editor. The steps, the guides and the API are on [automataframework.com](https://automataframework.com).
+
+## Work on the framework
+
+The rest of this page is for working on AF itself. [`docs/README.md`](docs/README.md) explains the design and
 [`docs/status.md`](docs/status.md) says what works today.
 
-## Play Emberwick from a fresh clone
+### Play Emberwick from a fresh clone
 
 Emberwick is AF's 2D sample game: Wick, a hooded lantern-bearer, walks and jumps through a room of mossy ruins to
 reach an ember. It lives in [`games/emberwick`](games/emberwick/).
@@ -22,7 +31,7 @@ pnpm --filter @af-games/emberwick dev    # open the printed URL; arrows or A/D m
 
 The same build runs on its own in a browser and inside Ruken.
 
-## Check a change
+### Check a change
 
 ```sh
 pnpm format                               # Biome writes the formatting
@@ -39,7 +48,7 @@ as a game would. It also checks that every command in this README still resolves
 pnpm build && node tooling/consumer-smoke/src/run.ts --from packs
 ```
 
-## Where things are
+### Where things are
 
 | Path | What it holds |
 |---|---|

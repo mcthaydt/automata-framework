@@ -1,15 +1,15 @@
 name: release packages
 
-# AF's releases (M2.4 spec §3.5). Changesets opens or updates a "Version packages" pull request on every push to
+# AF's releases. Changesets opens or updates a "Version packages" pull request on every push to
 # main that carries changesets; merging that pull request (the Owner's word, never automatic) publishes every
 # changed @mcthaydt/automata-* package at one shared 0.0.x version to GitHub Packages. Nothing is published on
 # any other push.
 #
-# Four jobs (QB.1b): `plan` asks whether the pushed commit carries changesets, which is the question
+# Four jobs: `plan` asks whether the pushed commit carries changesets, which is the question
 # changesets/action asks to choose between its two modes. `version` runs when it does and can only open or update
 # the pull request. `release-checks` runs when it does not, and runs the release-only checks (release-checks.yml:
 # build, API report, API index, agent skills, plugin, consumer smoke) that pull requests no longer run. `publish`
-# runs after them, and it alone waits for the Owner's approval in the `release` environment (QB.1), so a push that
+# runs after them, and it alone waits for the Owner's approval in the `release` environment, so a push that
 # only versions never waits.
 #
 # Runner: the Owner's Mac (Owner, 2026-10-30: "Publish from my Mac"); vars.AF_RELEASE_RUNNER moves it. Hosted jobs
@@ -24,7 +24,7 @@ name: release packages
 # Token: the workflow's own GITHUB_TOKEN with packages: write publishes packages linked to this repository
 # (each package.json's `repository`). Games install with AF_READ_TOKEN, a classic personal access token with
 # read:packages (GitHub Packages' npm registry accepts no other kind). No --provenance: GitHub's npm registry
-# docs do not describe it (spec §8).
+# docs do not describe it.
 
 on:
   push:
@@ -123,9 +123,9 @@ jobs:
     if: needs.plan.outputs.pending == 'false'
     runs-on: ${{ vars.AF_RELEASE_RUNNER || 'af-mac' }}
     timeout-minutes: 20
-    # QB.1: the job waits for the Owner's approval in the `release` environment (Settings -> Environments,
+    # The job waits for the Owner's approval in the `release` environment (Settings -> Environments,
     # required reviewer: the Owner, deployments from main only) before it can publish anything. Only this job
-    # waits (QB.1b); rejecting the approval only skips this run.
+    # waits; rejecting the approval only skips this run.
     environment: release
     permissions:
       contents: write
@@ -148,7 +148,7 @@ jobs:
           registry-url: https://npm.pkg.github.com
           scope: "@mcthaydt"
       - run: pnpm install --frozen-lockfile
-      # The registry smoke boots Chromium (DX.2a). A no-op once the pinned browser is in the runner's cache; fetched
+      # The registry smoke boots Chromium. A no-op once the pinned browser is in the runner's cache; fetched
       # before publishing, so a clean machine cannot fail the smoke after the packages are out (Owner, 2026-10-30:
       # "You can do all 3 as well").
       - run: pnpm exec playwright install chromium-headless-shell
@@ -175,7 +175,7 @@ jobs:
         env:
           PUBLISHED: ${{ steps.changesets.outputs['published-packages'] }}
         run: echo "version=$(node tooling/release/src/released-version.ts)" >> "$GITHUB_OUTPUT"
-      # `changeset publish` exits 0 whether it published or skipped, so check the registry itself (spec §5).
+      # `changeset publish` exits 0 whether it published or skipped, so check the registry itself.
       - name: Every package is on GitHub Packages
         if: steps.changesets.outputs.published == 'true'
         env:

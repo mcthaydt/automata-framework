@@ -1,10 +1,10 @@
 # ADR 0005: Publish targets (Ruken is the reference, itch.io is a peer)
 
-- Status: Accepted (Owner, 2026-10-16, with the PUB.0 spec)
+- Status: Superseded by [ADR 0006](0006-distribution-targets.md) (2026-10-31), which makes web, itch.io, Ruken and the desktop build peer targets. Accepted by the Owner on 2026-10-16
 - Refined by [ADR 0006](0006-distribution-targets.md) (2026-10-31): Ruken is no longer the reference host; `tauri` joins `web`, `itch` and `ruken` as a core target.
 - Date: 2026-10-16
 - Refines: [ADR 0004](0004-ruken-first-host.md) (Ruken first); law 7 (the host is a port)
-- Spec: [publish targets](../superpowers/specs/2026-10-16-publish-targets-design.md)
+- Spec: [publish targets](../archive/superpowers/specs/2026-10-16-publish-targets-design.md)
 
 ## Context
 The Owner asked on 2026-10-16 to "loosen the Ruken coupling … so you can publish to Ruken or itch.io easily". ADR 0004 already keeps standalone web as a supported second adapter, but in practice everything assumes Ruken:

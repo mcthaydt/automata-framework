@@ -29,8 +29,8 @@ Left, and the Owner's:
 
 1. Run `pnpm ci:local` where WebKit and Firefox install, and `pnpm lint:actions` where Docker runs.
 2. Mark the pull requests ready and merge them bottom up. Squashing the stack into fewer pull requests is an option.
-3. Push the tag `pre-refactor-2d` (task 2.1), say go for the branch clean-up (9.2), and play Emberwick on the iPad.
-4. Ask Ruken for a refusal switch in its fake host, so the boot-failure journey (8.2) can be added.
+3. Push the tag `pre-refactor-2d`, say go for the branch clean-up, and play Emberwick on the iPad.
+4. Ask Ruken for a refusal switch in its fake host, so the boot-failure journey can be added.
 
 ## What is next
 

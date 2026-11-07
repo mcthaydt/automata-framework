@@ -9,7 +9,7 @@ import type { StyleFinding } from './style.ts'
  * dash and a letter with digits), a plan code with an upper-case prefix and a number, a numbered task, or a section
  * sign. They say which plan, not why.
  */
-const PLAN_REFERENCE = new RegExp(
+export const PLAN_REFERENCE: RegExp = new RegExp(
   [
     String.raw`\bM\d{1,2}(?:\.\d+[a-z]?)?(?:-[A-Z]\d+[a-z]?)?(?![\w-])`,
     String.raw`\b(?:DX|EX|QB|PUB|DIST|PRODUCT|APP|GAME|GL|CI|ED2D|ED3D)[.-][\w.-]+`,
@@ -18,7 +18,8 @@ const PLAN_REFERENCE = new RegExp(
     String.raw`§\s?\d`,
   ].join('|'),
 )
-const MESSAGE = 'A comment should say why, not which plan asked for it. Explain the reason in plain words.'
+export const PLAN_MESSAGE =
+  'A comment should say why, not which plan asked for it. Explain the reason in plain words.'
 
 const lineAt = (code: string, offset: number): number => code.slice(0, offset).split('\n').length
 
@@ -27,7 +28,7 @@ function citingLines(file: string, text: string, firstLine: number): StyleFindin
   const out: StyleFinding[] = []
   text.split('\n').forEach((line, offset) => {
     if (PLAN_REFERENCE.test(line))
-      out.push({ file, rule: 'plan-comment', message: MESSAGE, line: firstLine + offset })
+      out.push({ file, rule: 'plan-comment', message: PLAN_MESSAGE, line: firstLine + offset })
   })
   return out
 }
