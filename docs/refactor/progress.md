@@ -1,6 +1,6 @@
 # Refactor progress
 
-**Overall: 13% (3 of 24 stages done).**
+**Overall: 17% (4 of 24 stages done).**
 
 The Owner's order (2026-11-05): finish one area completely before starting the next, in this order:
 core and 2D, then 3D, then the editors, then the website. Each stage runs in its own session.
@@ -16,7 +16,7 @@ Every area goes through the same six stages:
 
 Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happening and how to use it?
 
-## Core and 2D: 50% (3 of 6)
+## Core and 2D: 67% (4 of 6: stages 1, 2, 3 and 5; the build stays open until 30 of 30)
 
 | Stage | Status | Record |
 |---|---|---|
@@ -24,7 +24,7 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 | 2. Plan and spec | Done, 2026-11-05 | [spec](2026-11-05-core-and-2d-spec.md), [plan](2026-11-05-core-and-2d-plan.md) |
 | 3. Plan audit | Done, 2026-11-05: 31 findings, all fixed in the spec and plan; three calls left for the Owner | [plan audit](2026-11-05-core-and-2d-plan-audit.md) |
 | 4. Build | In progress: phases 1 to 7 done locally; 8.1's Settings, CLI and README copy left; 8.2's boot-failure journey blocked on Ruken; 9.2 waits for the Owner; PRs #393 to #400 (stacked) | [plan](2026-11-05-core-and-2d-plan.md) |
-| 5. Build audit | Not started | |
+| 5. Build audit | Done, 2026-11-06: 4 broken (B1 to B4), 8 spec gaps (C1 to C8), 4 tracking (D1 to D4), 2 unverified (E1, E2), 5 copy (G1 to G5), 6 tidy (L1 to L6); `pnpm check`, `pnpm build` and Emberwick's 28 Chromium journeys pass | [build audit](2026-11-06-core-and-2d-build-audit.md) |
 | 6. Fixes | Not started | |
 
 ### Where to resume (2026-11-06, tenth session)
