@@ -66,6 +66,6 @@ A new shape is a generator you register with `registerPropGenerator` from `@auto
 - `library/kits.json`: the eight purposes above.
 - `library/swatches.json`: the materials. A swatch of a base name (`baseWall`, `baseFloor`) has the same colour as
   core's, with the photo texture on it.
-- `library/maps/`: five small maps, ready to read as levels. `npm run maps` makes them again from
+- `library/maps/`: five small maps, ready to read as levels. `pnpm run maps` makes them again from
   `tests/fixtures/builder-maps.json`.
 - `library/glyphs.json` and `library/words.json`: the block letters and the words a made-up shop sign is set from.
