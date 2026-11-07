@@ -27,7 +27,7 @@ export const CORE_MODULES: readonly string[] = [
   'world',
 ]
 /** The sections that show an extension (`extensions/<name>`) rather than core; their examples say `Tier: extension`. */
-export const EXTENSION_MODULES: readonly string[] = ['physics', 'net', 'feel']
+export const EXTENSION_MODULES: readonly string[] = ['physics', 'net', 'feel', 'cutscenes']
 
 /** Code lines an example may have, not counting its header, blank lines or comment-only lines. */
 export const CODE_LINE_BUDGET = 100
@@ -86,13 +86,14 @@ const EXTENSION_PACKAGES: ReadonlySet<string> = new Set([
   '@automata/net-ui',
   '@automata/net-server',
   '@automata/ui-screens',
+  '@automata/cutscenes',
 ])
 /**
  * Extensions that stay private for now, whose entries examples may still import: `@automata/3d` is built on the
  * closed `@pixi/3d` beta and is published when Pixi 3D is (M3R-D7). The website's playground leaves
  * its examples out (`playgroundCatalog`), because it is public.
  */
-const UNPUBLISHED_EXTENSIONS: ReadonlySet<string> = new Set(['@automata/3d'])
+const UNPUBLISHED_EXTENSIONS: ReadonlySet<string> = new Set(['@automata/3d', '@automata/cutscenes'])
 
 /** Whether an import names an unpublished extension's entry. */
 export const isUnpublishedExtension = (specifier: string): boolean =>

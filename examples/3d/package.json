@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@automata/3d": "workspace:*",
+    "@automata/cutscenes": "workspace:*",
     "@automata/framework": "workspace:*",
     "pixi.js": "8.22.0",
     "svelte": "5.57.1"

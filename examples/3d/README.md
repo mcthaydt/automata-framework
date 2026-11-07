@@ -18,6 +18,8 @@ sections, since each example is one file. Colours are the DUEL palette.
 | [`render3d/render3d-lighting-fog.ts`](render3d/render3d-lighting-fog.ts) | Baked lamp light, a lit walker and fog |
 | [`look/look-pixel-art.ts`](look/look-pixel-art.ts) | The pixel-art look: a low-resolution field, DUEL colours, stepped light and an outline |
 | [`world/world-level-room.ts`](world/world-level-room.ts) | A room built from a level file and drawn by the world builder |
+| [`cutscenes/cutscenes-door-and-lamp.ts`](cutscenes/cutscenes-door-and-lamp.ts) | A scripted scene: the camera drifts, a lamp warms and a door opens (the `cutscenes` extension) |
+| [`cutscenes/cutscenes-reach-cue.ts`](cutscenes/cutscenes-reach-cue.ts) | A scripted scene: a man walks and a cue makes him reach, started once |
 
 The hair, wardrobe, furnished-room and generated-map examples show extensions, so they belong to the Plus port and not to
 core. A time of day is read by the passes an extension registers, so an example of it goes with that extension.
