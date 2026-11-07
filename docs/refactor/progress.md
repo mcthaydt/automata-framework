@@ -394,7 +394,7 @@ the site's 3D parts.
 
 | Stage | Status | Record |
 |---|---|---|
-| 1. Audit | Done, 2026-11-07 (PR stacked on #441): 10 structure (S1 to S10), 3 contracts (K1 to K3), 6 editor shipping (E1 to E6), 5 layout and look (V1 to V5), 6 tests (T1 to T6), 7 game (G1 to G7), 2 CI (Q1, Q2), 2 site (W1, W2), 10 copy (C1 to C10); and, the same day on the Owner's word, FigureBuilder and EnvironmentBuilder measured against AF (B1 to B10, section 9); 10 decisions for the Owner (D1 to D10). 3,836 unit and DOM tests pass; the 3D editor's Chromium layout and canvas run 187 pass and 8 fail (the known 8); base-3d's journeys 8 of 8 and the 3D examples' 9 of 9 in Chromium. Headline: the 3D editor cannot open base-3d, and the Studio is unreachable | [2026-11-07-3d-slice-audit.md](2026-11-07-3d-slice-audit.md) |
+| 1. Audit | Done, 2026-11-07 (PR stacked on #441): 10 structure (S1 to S10), 3 contracts (K1 to K3), 6 editor shipping (E1 to E6), 5 layout and look (V1 to V5), 6 tests (T1 to T6), 7 game (G1 to G7), 2 CI (Q1, Q2), 2 site (W1, W2), 10 copy (C1 to C10); and, the same day on the Owner's word, FigureBuilder and EnvironmentBuilder measured against AF (B1 to B10, section 9); 10 decisions for the Owner (D1 to D10); the Owner took D10 the same day: C on the card ("Their pixel-art look too"), then "Take everything basically". 3,836 unit and DOM tests pass; the 3D editor's Chromium layout and canvas run 187 pass and 8 fail (the known 8); base-3d's journeys 8 of 8 and the 3D examples' 9 of 9 in Chromium. Headline: the 3D editor cannot open base-3d, and the Studio is unreachable | [2026-11-07-3d-slice-audit.md](2026-11-07-3d-slice-audit.md) |
 | 2. Plan and spec | Next (Opus, medium), from the audit's sections 8 and 9 | |
 | 3. Plan audit | Not started | |
 | 4. Build | Not started | |
@@ -402,7 +402,9 @@ the site's 3D parts.
 | 6. Fixes | Not started | |
 
 **Where to resume (2026-11-07, stage 1 done):** read the audit's short version and sections 8 and 9. The plan stage starts
-from the recommended option of each of D1 to D10 unless the Owner has picked another. The two builders were read at
+from the recommended option of each of D1 to D9 unless the Owner has picked another. D10 is taken: everything from
+both builders, the pixel-art look included (M3R-D2 reversed); work item 6 lists what the plan settles first (law 6 and
+ADR 0002, whether 3D still needs `@pixi/3d`, one palette, one timeline, one level format, the frame budget). The two builders were read at
 FigureBuilder `025ffb4` and EnvironmentBuilder `6d82a52`; pull from those commits, or re-measure if they have moved. PR #425 (the 3D pause) is not in
 this stack (finding Q1), so the plan's first task decides how the 3D gate comes back.
 

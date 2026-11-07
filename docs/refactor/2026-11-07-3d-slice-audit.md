@@ -51,7 +51,9 @@ project files, `refactor/2026-11-07-3d-slice-audit-screens/`.
 9. **Its two sources have moved on, and AF has none of it.** FigureBuilder has 171 commits since the copy AF took on 28
    October: a natural stand, body and face diversity, new hair, garments sized from the body, its wardrobe moved out
    behind hooks, and the feature folders AF wants. EnvironmentBuilder, new on 5 November, builds furnished, lit rooms
-   and streets from Build-style maps, as geometry. Section 9 measures both; D9 and D10 decide what comes in.
+   and streets from Build-style maps, as geometry. Section 9 measures both. **The Owner took D10 the same day:
+   everything comes in, the builders' pixel-art look included**, which reverses the 30 October call that 3D figures are
+   meshes; D9 (how) stands on its recommendation.
 
 ## 1. What this slice covers
 
@@ -263,6 +265,11 @@ Each has a recommendation; the plan stage builds on the recommended option unles
   - C: the pixel-art look as well: reopen M3R-D2 and draw 3D the way the two builders paint (another renderer and look;
     under law 6 the painter could only be an offline bake).
   - D: FigureBuilder's generator side only; EnvironmentBuilder in a later slice.
+  - **Taken by the Owner, 2026-11-07: C**, on the decision card ("Their pixel-art look too"), then in the thread: "Take
+    everything basically". Read as: all of both builders comes in (B1 to B8 with nothing left out): FigureBuilder's
+    generator, painter, lighting and actors, and EnvironmentBuilder's world, photo pipeline, painter, lighting, stage and
+    views. M3R-D2 (figures are meshes, the painter stays out) is reversed. D6's wardrobe cut still matches FigureBuilder's
+    `main`, whose base no longer holds a wardrobe; its registries come in.
 
 ### Work the plan should cover, in order
 
@@ -280,10 +287,24 @@ Each has a recommendation; the plan stage builds on the recommended option unles
 4. **Effect out** (S4): the 3D renderer in plain TypeScript with the browser package's `Clock` and `Disposables`.
 5. **Cuts** (D3, D6, S6): the source game's format, the unbuilt views, and the wardrobe as decided; goldens recorded from
    AF's own code (S7).
-6. **Pull the builders** (D9, D10, B1 to B10): FigureBuilder's stand, sliders, hair pieces, fit, seats and registries
-   into the figures feature, in its folders, with the Studio showing the new sliders under plain names; EnvironmentBuilder's
-   world into the 3D package; one sector format the 3D editor edits, with props, dressing and lamps placeable; base-3d's
-   room dressed from a kit; `sources.md` entries, and `source-names` learns the new name; goldens from AF's own code.
+6. **Pull the builders** (D9, D10 as taken, B1 to B10): everything from FigureBuilder `025ffb4` and EnvironmentBuilder
+   `6d82a52`, ported into AF's 3D package in their feature folders and recorded in `sources.md` (`source-names` learns the
+   new name). The plan answers first, from measurements:
+   - **Law 6 and ADR 0002** ("PixiJS only for rendering"): both painters rasterise on the CPU. Either Pixi presents the
+     painted frame (a texture per frame or per sprite cell) and the law is amended to say so, or the painters' rules
+     (DUEL snap, stepped light, outlines) are rebuilt as Pixi passes. The plan writes the ADR amendment for whichever it
+     picks. Both painters' source is plain TypeScript with no Node imports (only EnvironmentBuilder's photo loading and
+     PNG code use Node), so they can run in a browser.
+   - **Does 3D still need `@pixi/3d`?** If the painters draw the frame, Pixi 3D may no longer be needed, and D1's wait for
+     its public release with it. That changes the launch rule the Owner set on 2026-10-23 ("we launch when pixi 3D goes
+     public"), so the plan measures it and puts the answer to the Owner.
+   - **One palette:** both builders paint on DUEL; AF's palette content defaults to Endesga 64. The 3D look is DUEL
+     unless the plan finds a reason it cannot be.
+   - **One timeline:** FigureBuilder's actors and AF's clips and `evaluate()` (B5) become one.
+   - **One level format** the 3D editor edits (B7), with props, dressing, lamps and time of day placeable.
+   - **The frame budget** on a phone and an iPad for the first-person and diorama views at their native size, and whether
+     the editor's Plan, 3D and Walk views are drawn by the painter too.
+   Then the port, with the builders' goldens re-recorded from AF's code (S7), and base-3d's room dressed from a kit.
 7. **Redesign** (V1 to V5, D4, D5, S10): the 3D editor and the Studio from the approved mock-ups and the kit's tokens, phone
    first; one suite.
 8. **Copy pass** (C1 to C10, G4 to G6): the copy table in `copy.md`, plain words, no format ids, paths or source names
@@ -297,7 +318,8 @@ Each has a recommendation; the plan stage builds on the recommended option unles
 The Owner, 2026-11-07: "Pull from the figurebuilders repo and environmentbuilders repo, they were updated
 substantially." Read here as: the 3D slice takes their updates, so this section measures them against AF, and the plan
 ports what D9 and D10 choose. Both were read at their `main` heads: FigureBuilder `025ffb4` and EnvironmentBuilder
-`6d82a52` (both 2026-11-06). Nothing was ported in this stage.
+`6d82a52` (both 2026-11-06). Nothing was ported in this stage. The Owner took D10 the same day (everything, the
+pixel-art look included), so B4 and B8 below describe what M3R-D2 kept out, all of which now comes in.
 
 - **FigureBuilder** since `a1f7246` (2026-10-28, the commit AF's `figures` was extracted from): 171 commits; `src/` and
   `base/` 47 files changed, +3,061 and −3,512 lines; now 6,570 source and 2,681 test lines. Five cycles: the base-pair
