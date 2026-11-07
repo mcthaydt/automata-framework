@@ -48,7 +48,7 @@ const PANELS = {
       <h2 id="paused-title">Paused</h2>
       <div class="actions">
         <button type="button" class="primary" data-kind="primary" data-action="resume">Resume</button>
-        <button type="button" data-action="quit">Quit</button>
+        <button type="button" data-action="quit">Back to menu</button>
       </div>
     </section>`,
   end: `<section class="panel" aria-labelledby="end-title">
@@ -178,6 +178,16 @@ export function emberwickScreens(game: ScreensGame): ScreenDef[] {
           event.preventDefault()
           pause()
         })
+
+        // Leaving the page (another tab, another app, a locked phone) pauses the round, so the player comes back to
+        // the pause menu instead of to a game that kept running.
+        const pauseWhenHidden = (): void => {
+          if (target.document.hidden) pause()
+        }
+        yield* Effect.acquireRelease(
+          Effect.sync(() => target.document.addEventListener('visibilitychange', pauseWhenHidden)),
+          () => Effect.sync(() => target.document.removeEventListener('visibilitychange', pauseWhenHidden)),
+        )
 
         // The sim's goal event ends the round; the end screen shows how long it took.
         const unsubscribe = bus.subscribe('sim.events', (events) => {

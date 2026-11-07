@@ -140,12 +140,12 @@ describe("Emberwick's screens", () => {
     expect(results.at(-1)?.tick).toBe(4)
   })
 
-  it('the Pause button pauses; Quit ends the round and goes to the menu; Play starts again at tick 0', async () => {
+  it('the Pause button pauses; Back to menu ends the round and goes to the menu; Play starts again at tick 0', async () => {
     await toRoom()
     step(3)
     button('Pause')?.click()
     await until(() => screen() === 'paused', 'paused')
-    button('Quit')?.click()
+    button('Back to menu')?.click()
     await until(() => screen() === 'menu', 'the menu')
     expect(rounds()).toEqual([{ kind: 'start' }, { kind: 'end', outcome: 'quit' }])
     results.length = 0

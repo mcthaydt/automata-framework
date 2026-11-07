@@ -81,7 +81,7 @@ export const BOOT_FAILURE_COPY_EN: BootFailureCopy = {
   start: "Couldn't start the game.",
   connect: "Couldn't connect to Ruken.",
   progress: "Couldn't load your progress.",
-  damaged: 'This copy of the game is damaged.',
+  damaged: 'This copy of the game is damaged. Download it again.',
   download: "Couldn't download the game.",
   'download-stalled': 'Still waiting for the game to download.',
   unsupported: "This device can't run the game.",
