@@ -1,10 +1,7 @@
 // A world swatch (the `world-swatch` content kind): what a wall, a floor or a prop is painted with, a step of one of
-// DUEL's 32 ramps (`{ ramp = "wood", step = 3 }`) and the few fields the builder and the view read. The photo a
-// texture is made from (`texture.photo`) and the painter's own knobs stay data for the photo pipeline; a swatch with
-// none draws as its flat palette colour.
-//
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/library/swatches.json at 6d82a52:
-// its `ramp` (a number) is a ramp's name and its `base` is `step`, the way a figure's swatch names its colour.
+// DUEL's 32 ramps (`{ ramp = "wood", step = 3 }`) and the few fields the builder and the view read. The photo a texture
+// is made from (`texture.photo`) and the painter's own knobs stay data for the photo pipeline; a swatch with none draws
+// as its flat palette colour.
 import { DUEL_RAMP_NAMES, DUEL_RAMPS, type DuelRampName } from '@automata/content/palette'
 import { z } from 'zod'
 

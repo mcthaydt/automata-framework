@@ -1,8 +1,8 @@
-// The renderer's side of the heading (M3 spec §4.2, §5 "View change" and "Camera turn"). The sim owns the player's
+// The renderer's side of the heading ("View change" and "Camera turn"). The sim owns the player's
 // view id and heading (`camera-heading`, a render component); each frame this reads them from the rows and drives the
 // rig: the first view is a cut, a later view change an ease, and a view that sets `yawDeg` eases the heading to it
 // (the sim set it the same tick), as does a change the game's `easeHeading` names (a recentre). Every other frame
-// tracks the latest tick's heading exactly, not interpolated: §4.2 says nothing eases between the finger and the
+// tracks the latest tick's heading exactly, not interpolated: nothing eases between the finger and the
 // camera, and a turn is at most a tick old. Positions are
 // interpolated as every view's are. A row whose view is still '' (the component's start) has no view yet. A game
 // whose sim keeps fixed-point positions reads metres with `position`, and frames a lock-on target with `lock`: the
@@ -33,7 +33,7 @@ export interface Pixi3dCameraOptions {
    */
   readonly position?: ((components: Components) => Vec3 | undefined) | undefined
   /**
-   * Lock-on framing (§4.2): the point to frame with the player, from the player's components and any entity's by
+   * Lock-on framing: the point to frame with the player, from the player's components and any entity's by
    * sid (`rowOf`), or none to frame the player alone. Read each frame and passed to the rig's `frame`.
    */
   readonly lock?:
@@ -47,7 +47,7 @@ export interface Pixi3dCameraOptions {
   readonly easeHeading?: ((curr: Components, prev: Components | undefined) => boolean) | undefined
 }
 
-/** The spec's figure (§4.2, D3-j): the occluder rule keeps the line to a head this high clear by default. */
+/** The spec's figure: the occluder rule keeps the line to a head this high clear by default. */
 export const PLAYER_HEIGHT = 1.62
 
 type Components = Readonly<Record<string, Readonly<FieldRecord>>>

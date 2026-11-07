@@ -1,4 +1,4 @@
-// The occluder rule on `@pixi/3d` (M3 spec §4.2): the static scenery a game registers in its `scene` hook, and the
+// The occluder rule on `@pixi/3d`: the static scenery a game registers in its `scene` hook, and the
 // per-frame pass applied to it. Walls are built here, so each has its own material for its fade and a floor trim that
 // shows while it is cut, as The Last Light's cut-away groups show their low stubs (`src/render/stage.ts` lines 168 to
 // 171 and 887 to 891 at 92e6704). Ceilings are never drawn in the angled view. A prop fades through its material's

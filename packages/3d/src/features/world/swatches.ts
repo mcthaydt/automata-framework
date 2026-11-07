@@ -1,10 +1,6 @@
-// The swatches a level may name, and the rest of what the builder reads from the library. A swatch is a library
-// entry (the `world-swatch` content kind); the builder only asks whether a name is there. A name may carry a seed,
-// `name#123`: the swatch with its texture's seed set (a decal's poster, a tag), so seeded variety is still a library
-// name.
-//
-// Rewritten from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/swatches.ts at 6d82a52: the
-// library is handed in (a game adds its own), and an unknown name is a problem the builder reports, not a throw.
+// The swatches a level may name, and the rest of what the builder reads from the library. A swatch is a library entry
+// (the `world-swatch` content kind); the builder only asks whether a name is there. A name may carry a seed, `name#123`:
+// the swatch with its texture's seed set (a decal's poster, a tag), so seeded variety is still a library name.
 import { swatchRgb, worldSwatchSchema } from './content/world-swatch.schema.ts'
 
 /**

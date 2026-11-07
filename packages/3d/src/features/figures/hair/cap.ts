@@ -1,12 +1,8 @@
-// A fitted cap, and the hair under it. The cap: a crown of panels lifted off the head's own form from its
-// band to a button; a brim on the band (worn backwards at π); a snapback's gap opposite the brim with a strap
-// across its foot; the panels' seams as marks a texel apart. Under it, the hair is pressed inside its dome,
-// so no style stands through it.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/hair.ts at a1f7246 (`underCap`,
-// `capParts`), with AF's strict types; the formulas and their order are the source's. Changed: the seam's
-// painter tone is a variant of the cap's swatch (build/materials.ts), and its marks are spaced at the fixed
-// ppm.
+// A fitted cap, and the hair under it. The cap: a crown of panels lifted off the head's own form from its band to a
+// button; a brim on the band (worn backwards at π); a snapback's gap opposite the brim with a strap across its foot; the
+// panels' seams as marks a texel apart. Under it, the hair is pressed inside its dome, so no style stands through it.
+// Changed: the seam's painter tone is a variant of the cap's swatch (build/materials.ts), and its marks are spaced at
+// the fixed ppm.
 
 import { add, axisAngle, lerp, normalize, qmul, scale, sub, type V3 } from '../../../shared/math/math.ts'
 import { superquadric } from '../../../shared/math/superquadric.ts'

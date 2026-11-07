@@ -1,9 +1,6 @@
-// A shell on the head between two lines round it: a scalp's hair, a fade's tiers, a cap's crown. Lifted off
-// the head's form, fuller toward the crown, ridged the way the hair is combed, with a sheen of lit streaks
-// along the comb split into a second mesh (drawn a tone up).
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/hair.ts at a1f7246 (`shell`,
-// `combPhase`), with AF's strict types; the formulas and their order are the source's.
+// A shell on the head between two lines round it: a scalp's hair, a fade's tiers, a cap's crown. Lifted off the head's
+// form, fuller toward the crown, ridged the way the hair is combed, with a sheen of lit streaks along the comb split
+// into a second mesh (drawn a tone up).
 
 import { clamp, cross, dot, hash, lerp, normalize, smooth, sub, type V3 } from '../../../shared/math/math.ts'
 import type { Mesh } from '../body/mesh.ts'

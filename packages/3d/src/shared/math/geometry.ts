@@ -1,8 +1,6 @@
-// Mesh helpers the world's pieces are built with.
-//
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/lib/geometry.ts at 6d82a52: `merge` and `tube`.
-// Added: `MeshData` (the plain triple every piece is made of) and `windToNormals`, which makes every triangle wind
-// the way its vertex normals point, so a renderer may cull back faces (the builder's own raster did not cull).
+// Mesh helpers the world's pieces are built with. Added: `MeshData` (the plain triple every piece is made of) and
+// `windToNormals`, which makes every triangle wind the way its vertex normals point, so a renderer may cull back faces
+// (the builder's own raster did not cull).
 import {
   apply,
   applyDir,

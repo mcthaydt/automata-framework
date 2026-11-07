@@ -1,4 +1,4 @@
-// @automata/3d/level: the one sector format (M6 spec M6-D15, M6-D17). The Build-style vocabulary
+// @automata/3d/level: the one sector format. The Build-style vocabulary
 // (sectors, corners, walls with windows and doors, trims, masses) as Zod schemas, the constants a map is read with
 // (`WALL_THICK`, `STEP`, `DEFAULT_TRIM`) the `occlude` member, the `af-sector/1` file envelope (`afSectorSchema`) and
 // `af-sector/2`, the format the game, the editor and the world read: its schema, `readLevel` (either format in, `/2` out),

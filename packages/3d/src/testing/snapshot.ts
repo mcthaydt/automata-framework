@@ -1,4 +1,4 @@
-// The canvas's pixels for the renderer's parity tests (#241's probe, M3.4d's Mac Firefox failure): one helper, so a
+// The canvas's pixels for the renderer's parity tests (#241's probe, 's Mac Firefox failure): one helper, so a
 // test cannot fall back to the `RenderTexture` read that comes back all black in macOS Firefox.
 import { RenderTexture } from 'pixi.js'
 import type { Pixi3dRenderer } from '../app/create-renderer.ts'

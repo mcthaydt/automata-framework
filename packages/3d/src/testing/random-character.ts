@@ -1,15 +1,13 @@
-// Random characters for the build tests: the library recombined, to prove any character file builds. Seeded,
-// so a failure can be found again (no Math.random).
-//
-// From FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/cast.ts at a1f7246: `random` (mulberry32, as
-// the source) and the generic half of `randomCharacter`: every slider drawn over its range (the lookbook's
-// narrower ones), an outfit composed layer by layer from the garment registry with a wardrobe's draws (the
-// caller's `wardrobe` draws, FigureBuilder's `WARDROBE`: an outer layer half the time over a top that goes under one), or,
-// where no registered garment has a layer (core's set has none), a core outfit; a hair style with pieces,
-// sometimes a cap, the face's marks. Not taken: the colourway and the sets (which skin goes with which lips,
-// eyes and hair, the label's colours, one loud hue: SNEKPRTY's), the stands (M3.5c) and the crew's own
-// swatches. A swatch field draws from the library's swatches of a kind its role takes and in a role it takes,
-// or, where the library has none, from those that name no kind or role.
+// Random characters for the build tests: the library recombined, to prove any character file builds. Seeded, so a
+// failure can be found again (no Math.random). From FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/cast.ts at
+// a1f7246: `random` (mulberry32, as the source) and the generic half of `randomCharacter`: every slider drawn over its
+// range (the lookbook's narrower ones), an outfit composed layer by layer from the garment registry with a wardrobe's
+// draws (the caller's `wardrobe` draws, FigureBuilder's `WARDROBE`: an outer layer half the time over a top that goes
+// under one), or, where no registered garment has a layer (core's set has none), a core outfit; a hair style with
+// pieces, sometimes a cap, the face's marks. Not taken: the colourway and the sets (which skin goes with which lips,
+// eyes and hair, the label's colours, one loud hue: SNEKPRTY's), the stands and the crew's own swatches. A swatch field
+// draws from the library's swatches of a kind its role takes and in a role it takes, or, where the library has none,
+// from those that name no kind or role.
 
 import {
   DEFAULT_HEAD,

@@ -1,10 +1,10 @@
-// blend (M3 spec §4.4.3): a pose between two. Positions, weights and pole directions lerp; rotations (an
+// blend: a pose between two. Positions, weights and pole directions lerp; rotations (an
 // effector's `rot`, an fk joint) slerp as quaternions and are read back as Euler degrees; the root's yaw turns
 // the short way round. At t = 0 and t = 1 the poses come back as written (an Euler triple has more than one
 // spelling of a turn, so the ends are not recomputed); t is clamped to [0, 1].
 //
 // A pose names only what it sets, so a handle only one pose names blends against the layers below it, as
-// §4.4.5 step 3 says for a channel only one clip owns: it keeps its targets and its weight (1 when left out)
+// the rule for a channel only one clip owns: it keeps its targets and its weight (1 when left out)
 // is scaled by that pose's share, 1 − t for a and t for b, which is what `EffectorTarget.weight` means
 // ("blending from the base pose"). A pole one pose leaves out is that limb's default pole; an fk joint or a
 // root field one leaves out is zero. A field only one of two named handles sets (a `rot` in one) is held from
@@ -99,7 +99,7 @@ export function blend(a: PoseDef, b: PoseDef, t: number, context: SpaceContext =
 
 /**
  * `blend` without the clamp: `t` outside 0..1 extrapolates positions, turns and pole directions along the same
- * lines (an ease that overshoots its key and settles back, §4.4.4's Bézier eases); weights stay in 0..1. At
+ * lines (an ease that overshoots its key and settles back, 's Bézier eases); weights stay in 0..1. At
  * exactly 0 and 1 the poses come back as written. The clip sampler uses it.
  */
 export function blendAt(a: PoseDef, b: PoseDef, t: number, context: SpaceContext = {}): PoseDef {

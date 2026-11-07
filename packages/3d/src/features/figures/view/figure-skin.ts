@@ -1,4 +1,4 @@
-// CPU skinning of a figure's skinned parts (M3 spec §4.4.1 "Drawing", §4.4.5 step 7): a skirt's or a coat tail's
+// CPU skinning of a figure's skinned parts ("Drawing"): a skirt's or a coat tail's
 // vertices follow the joints they are weighted to, by linear blend, at each pose step. The figure has no GPU skin
 // and no glTF skin. A skinned part's mesh is in rest figure space, and every rest rotation is the identity
 // (`restPose`), so a joint's rest matrix is its rest position alone and its inverse a translation back.

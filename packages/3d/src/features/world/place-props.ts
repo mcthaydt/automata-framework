@@ -1,9 +1,6 @@
 // Props and lamps in a level: each prop place becomes its generator's pieces standing in the room it is in, and its
-// lights; each lamp of the level becomes a lamp of the kit. A fault (a preset the library lacks, a lamp of no kind)
-// is a problem, and the rest of the level still draws.
-//
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/map.ts (the sprite loop of
-// `mapScene`) and build.ts (`place`) at 6d82a52. A place's `angle` is degrees clockwise from east (90 faces south), so
+// lights; each lamp of the level becomes a lamp of the kit. A fault (a preset the library lacks, a lamp of no kind) is a
+// problem, and the rest of the level still draws. A place's `angle` is degrees clockwise from east (90 faces south), so
 // the turn about y is `90 − angle`.
 import type {
   AfSector2,

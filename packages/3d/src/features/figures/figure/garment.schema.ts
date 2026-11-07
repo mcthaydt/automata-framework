@@ -38,7 +38,7 @@ export interface Cape {
 }
 /**
  * Hair in a swatch's colour: a style from the hair library (or written inline: a style, or its locks), or,
- * with no style, the figure's own `hairPieces` (M3.5b decision 6). `tie` the band a pony or a bun is tied
+ * with no style, the figure's own `hairPieces`. `tie` the band a pony or a bun is tied
  * with; left out, the outfit's own metal, else the hair's own.
  */
 export interface HairGarment {
@@ -78,7 +78,7 @@ const swatch = contentRef('figure-swatch')
 const optionalSwatch = swatch.optional()
 const flag = z.boolean().optional()
 /**
- * The garments' numbers, each bounded (M3.5b review): a little past what FigureBuilder's library, its
+ * The garments' numbers, each bounded (review): a little past what FigureBuilder's library, its
  * builders' defaults and its random wardrobe's draws use, so any value in range builds a sound garment. Out of
  * range they break the build (cargos of width 0 run out of memory) or the garment (a skirt above the hip).
  */

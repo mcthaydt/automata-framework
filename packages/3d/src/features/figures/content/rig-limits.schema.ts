@@ -1,6 +1,6 @@
-// Rig limits (M3 spec §4.4.2, content `rig.json` there, the `figure-rig` kind here): hinge ranges for the elbows
+// Rig limits (content `rig.json` there, the `figure-rig` kind here): hinge ranges for the elbows
 // and knees, swing cones for the shoulders and hips, and twist, yaw, pitch and roll ranges for the chest, neck
-// and head, in degrees. M3.6a's solve() clamps to them; this task only checks that each range is a range.
+// and head, in degrees. The solve clamps to them; this schema only checks that each range is a range.
 
 import { z } from 'zod'
 import { about } from './shapes.schema.ts'
@@ -38,9 +38,9 @@ export const rigLimitsSchema: z.ZodType<RigLimits> = z.strictObject({
 })
 
 /**
- * The shared default (M3 spec §4.4.2: "one shared default"): what a figure that names no `rig` gets, even in a
+ * The shared default (: "one shared default"): what a figure that names no `rig` gets, even in a
  * game with no figure-rig content. The fixture's `figure-rigs/default.toml` says the same (a test checks it).
- * The spec's starting values as M3.6a tuned them: the shoulder cone lets an arm point well above level, the hip
+ * The starting values as the solve was tuned with them: the shoulder cone lets an arm point well above level, the hip
  * cone a deep seat or a climb, and the spec's head turn (yaw ±70°) is split over the neck and the head, so the
  * head turns at most 35 + 35 + 45 = 115° from the hips. Chest and neck roll are not limited.
  */

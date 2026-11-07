@@ -1,4 +1,4 @@
-// Joint limits (M3 spec §4.4.2): how the solver reads each limited joint against the content's `RigLimits` and
+// Joint limits: how the solver reads each limited joint against the content's `RigLimits` and
 // clamps it. Every reading is of the joint's local rotation, in degrees:
 //
 // - Hinges (elbows, knees): the bend about the joint's local x, as flexion: a knee bends back (+x), an elbow

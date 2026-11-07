@@ -1,12 +1,10 @@
-// A hair piece's tone as a material: the hair's swatch, its lit strands a step up, the partings between
-// braids in its deep, a fade's tiers between the hair and the skin, the scalp the skin's shadow.
-// FigureBuilder makes each a painter ramp from the DUEL rows; AF keeps the swatch's palette colour and
-// records the tone step for the view (build/materials.ts). A finish (coil, braid, loc) is matte: no gloss on
-// its hair or its lit tone.
-//
-// Replaces FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/hair.ts at a1f7246 `FINISH`, `finish` and
-// `raise` (the painter's tones; M3 spec §4.4.1: the painter stays in FigureBuilder). The finishes' matteness
-// and each tone's place are the source's.
+// A hair piece's tone as a material: the hair's swatch, its lit strands a step up, the partings between braids in its
+// deep, a fade's tiers between the hair and the skin, the scalp the skin's shadow. FigureBuilder makes each a painter
+// ramp from the DUEL rows; AF keeps the swatch's palette colour and records the tone step for the view
+// (build/materials.ts). A finish (coil, braid, loc) is matte: no gloss on its hair or its lit tone. Replaces
+// FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/hair.ts at a1f7246 `FINISH`, `finish` and `raise` (the
+// painter's tones; : the painter stays in FigureBuilder). The finishes' matteness and each tone's place are the
+// source's.
 
 import { type Made, variant } from '../figure/materials.ts'
 import { finishMatte } from '../registry/hair-finish-registry.ts'

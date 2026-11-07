@@ -1,6 +1,6 @@
-// Clip layers (M3 spec §4.4.4 and §4.4.5 steps 2 and 3): one clip sampled at its time, masked, with its blend
+// Clip layers: one clip sampled at its time, masked, with its blend
 // ramp's weight, and merged over the layers below it. A layer is handles, not joint angles; `evaluate` solves the
-// merged result once. The merge rule, the ramp and the additive mode are the M3.6d plan's decisions 5, 7 and 9.
+// merged result once. The merge rule, the ramp and the additive mode are set here.
 
 import { IDENTITY_Q, qmul } from '../../../shared/math/math.ts'
 import type { Joint } from '../body/rig.ts'

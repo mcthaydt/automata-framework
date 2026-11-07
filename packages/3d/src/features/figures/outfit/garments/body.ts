@@ -1,12 +1,7 @@
-// The body under the clothes, every size from the measure. The torso, each arm (deltoid to wrist) and each
-// leg (hip to ankle) is one profiled limb, skinned across its joints, so it reads as anatomy, not stacked
-// boxes. Each region a garment may repaint (chest, waist, pelvis; shoulder, upper arm, forearm; thigh, knee,
-// shin) is its own stretch of the one profile, cut ring to ring, so a sleeve's end is a material's edge on an
-// unbroken form.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`Regions`,
-// `SURFACE`, `surfaces`, `TRAPEZIUS`, `trapezius`, `stretch`, `across`, `body`), with AF's strict types; the
-// formulas and their order are the source's.
+// The body under the clothes, every size from the measure. The torso, each arm (deltoid to wrist) and each leg (hip to
+// ankle) is one profiled limb, skinned across its joints, so it reads as anatomy, not stacked boxes. Each region a
+// garment may repaint (chest, waist, pelvis; shoulder, upper arm, forearm; thigh, knee, shin) is its own stretch of the
+// one profile, cut ring to ring, so a sleeve's end is a material's edge on an unbroken form.
 
 import { type Limb, limb } from '../../../../shared/math/limb.ts'
 import { lerp, smooth, type V3 } from '../../../../shared/math/math.ts'

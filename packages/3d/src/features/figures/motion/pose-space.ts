@@ -1,7 +1,7 @@
-// Handles in different spaces (M3 spec §4.4.4, "keys in different spaces"): when a channel is in chest space in
+// Handles in different spaces ("keys in different spaces"): when a channel is in chest space in
 // one pose and root space in the other, the two are interpolated in root space, converting the chest-space side
 // through the chest's frame. A pose has no chest frame of its own; the caller supplies the one the layers below
-// it left (§4.4.5 steps 1 and 2): the clip sampler and the action transition.
+// it left (steps 1 and 2): the clip sampler and the action transition.
 
 import { apply, applyDir, type M, matq, mul3, qmat, rotationOf } from '../../../shared/math/math.ts'
 import type { PoseDef } from './pose.schema.ts'

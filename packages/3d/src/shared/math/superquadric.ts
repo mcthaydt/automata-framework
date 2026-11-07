@@ -1,9 +1,6 @@
-// The kit's two parametric primitives: a tapered superquadric (heads' features, hands, shoes' soles, boxes,
-// buttons) and an open tube (skirts, coat tails, capes), each with smooth normals from the surface's own
-// derivatives, so tapers and rounded boxes shade as one form.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/parts.ts at a1f7246
-// (`superquadric`, `tube`), with AF's strict types; the formulas and their order are the source's.
+// The kit's two parametric primitives: a tapered superquadric (heads' features, hands, shoes' soles, boxes, buttons) and
+// an open tube (skirts, coat tails, capes), each with smooth normals from the surface's own derivatives, so tapers and
+// rounded boxes shade as one form.
 
 import { type MeshData as Mesh, sgnPow } from './geometry.ts'
 import {

@@ -1,10 +1,6 @@
-// Holds (M3 spec §4.4.1, §4.4.5 step 6): an item's grip, or a stand's placed hand, rewrites only its side's
-// upper arm, forearm and hand, after everything else, so an item never changes the rest of the pose (F-b).
-// M3.6's `evaluate` applies them only to an arm no active clip owns.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) at a1f7246: src/render/figure/motion.ts (`handTurn`,
-// `applyHold`, and `evaluate`, here `evaluateMotion`) and src/render/figure/cast.ts (an item's `hold` from its
-// measures, here `holdOf`), their formulas and their order.
+// Holds: an item's grip, or a stand's placed hand, rewrites only its side's upper arm, forearm and hand, after
+// everything else, so an item never changes the rest of the pose (F-b). `evaluate` applies them only to an arm no
+// active clip owns.
 
 import {
   apply,

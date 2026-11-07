@@ -1,4 +1,4 @@
-// The `camera-view` content (M3 spec §4.2, M3R-D11): the one definition of a view's fields, defaults and ranges
+// The `camera-view` content: the one definition of a view's fields, defaults and ranges
 // (amended 2026-10-30, "one owner for camera-view"). It lives in the sim folder because the sim reads a view's
 // `rotate` and `yawDeg` (the heading is sim state); the pure `./camera-view` entry re-exports it for the
 // renderer and the 3D level editor. A view's id is its file's name (`content/camera-views/hall.toml` is `hall`),

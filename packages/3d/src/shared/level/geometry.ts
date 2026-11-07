@@ -1,13 +1,4 @@
-// One sector geometry, written once: where a point stands in a room, how far apart two walls are, where a ray crosses
-// one, what a portal opens and what stops a walker, and the triangles of a room's floor and ceiling. The world builder,
-// the 3D level editor and the sectors extension all stand on it, so a rule is fixed in one place. Pure functions of
-// plain data with only `Math` behind them (a sim may import it through `@automata/3d/level`, and then the sim's rules
-// hold: no clock, no random, no I/O).
-//
-// Extracted from The Last Light src/game/sectors.ts (92e6704) as the editor's `geometry/sectors.ts` and
-// `geometry/triangulate.ts` hold it, expression for expression, so floats are bit-equal; what changes is that the queries
-// ask only for the fields they read (a resolved sector and edge satisfy them), so a caller need not resolve a level to
-// use them.
+// One sector geometry,
 import type { Point } from './sector.schema.ts'
 import { STEP } from './sector.schema.ts'
 

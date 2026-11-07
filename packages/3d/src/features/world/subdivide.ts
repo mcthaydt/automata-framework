@@ -1,8 +1,6 @@
 // Subdivision: a mesh cut until no triangle edge is longer than `seg`, so the vertex light has a vertex wherever a
 // lamp's pool or a shadow's edge needs one. A big wall or floor is two triangles; lit per vertex it would take one
 // colour at each corner and nothing between.
-//
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/subdivide.ts at 6d82a52.
 import type { MeshData } from '../../shared/math/geometry.ts'
 
 /** The most triangles a mesh may grow to: a `seg` far under the mesh's size is a mistake, not a request. */

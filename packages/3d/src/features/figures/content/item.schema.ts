@@ -1,6 +1,6 @@
 // A held item: its parts in its socket's space, where its tip (a flame, a light) sits, and the hold that
 // poses the arm (FigureBuilder src/render/figure/cast.ts `ItemDef`, library/items.json at a1f7246). A part's
-// `material` is a swatch id. The parts become meshes in M3.5b; the hold is applied in M3.5c.
+// `material` is a swatch id. The parts become meshes when the figure is built; the hold is applied by the motion.
 
 import { contentRef } from '@automata/content/schema'
 import { z } from 'zod'

@@ -1,8 +1,6 @@
-// Occlusion for the baked light: what blocks a lamp (boxes and planes), and contact darkening where surfaces meet.
-// Extracted from The Last Light (`mcthaydt/PixiJS3D_Experiment_001`) at 92e6704: `src/render/indirect-light.ts`
-// (`intersectsBox`, the slab test) and `src/render/occlusion.ts` (the contact terms and their constants), with its
-// tests. AF's change: the source read its level's sector map and furniture list; here the occluders are the
-// `SceneLighting`'s boxes and planes, so a sector wall is a plane and the darkening rules apply to any plane.
+// Occlusion for the baked light: what blocks a lamp (boxes and planes), and contact darkening where surfaces meet. AF's
+// change: the source read its level's sector map and furniture list; here the occluders are the `SceneLighting`'s boxes
+// and planes, so a sector wall is a plane and the darkening rules apply to any plane.
 import type { OccluderBox, OccluderPlane, SceneLighting } from './scene-lighting.schema.ts'
 
 /** A point on a surface and its unit normal, in world metres. */

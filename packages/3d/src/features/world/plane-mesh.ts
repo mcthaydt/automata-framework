@@ -1,9 +1,6 @@
 // The meshes of a room's shell: a floor or ceiling as cut triangles, a wall as a quad, and the two moves that put a
-// piece authored in a wall's own frame (or turned on a hinge) where it belongs.
-//
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/map.ts at 6d82a52 (`planeMesh`,
-// `wallQuad`, `onWall`, `rotY`). Changed: the plane is `/2`'s, a room with holes is filled from `fill`'s bridged
-// polygon, and every triangle winds the way its normal points.
+// piece authored in a wall's own frame (or turned on a hinge) where it belongs. Changed: the plane is `/2`'s, a room
+// with holes is filled from `fill`'s bridged polygon, and every triangle winds the way its normal points.
 
 import type { Plane } from '../../shared/level/af-sector-2.schema.ts'
 import { type MeshData, windToNormals } from '../../shared/math/geometry.ts'

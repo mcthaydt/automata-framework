@@ -1,4 +1,4 @@
-// A figure's point marks (the eyes, buttons, zips, stitches) as small quads on their bones (M3 spec §4.4.1 "Faces":
+// A figure's point marks (the eyes, buttons, zips, stitches) as small quads on their bones (
 // the source's point decals become small textured quads on the head, shown only when facing the camera). Each quad
 // is wound to face along its decal's normal, so the material's back-face culling hides it when it is turned away:
 // that is the "shown only toward the camera" rule, with no per-frame test.
@@ -20,7 +20,7 @@ const LIFT = 0.0005
 
 /**
  * The neutral face's decals as quads: those with no `when` list or one naming `neutral`, and not the blink's lids.
- * The other face states (an expression, a blink, an open mouth) are clips' to drive (M3.6d).
+ * The other face states (an expression, a blink, an open mouth) are clips' to drive.
  */
 export function decalQuads(decals: readonly Decal[]): DecalQuad[] {
   return decals

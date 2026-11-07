@@ -1,6 +1,6 @@
-// The figures extension (M3 spec §4.4.1 `figuresExtension`): it registers the figure and library content
+// The figures extension (`figuresExtension`): it registers the figure and library content
 // kinds. It has no sim plugin (figures never feed the sim) and no ui; its renderer is the figure view in
-// @automata/3d (M3.5d).
+// @automata/3d.
 
 import { defineExtension, type ExtensionDef } from '@automata/framework/extension'
 // The classic garment set registers when this file loads (core, so Wick needs no wardrobe of his own); an

@@ -1,11 +1,7 @@
 // The body under the clothes, as profiles: the ring lists that sweep into the torso, the neck, each arm and each leg,
-// and a query on them (`ringAt`) that says how wide the body is at a height, fat, bust and seat included. The
-// body is built from these very lists (outfit/garments/body.ts), and a garment can size itself from the answer
-// instead of from `k * t` constants, so it clears any body the sliders make.
-//
-// Ported from FigureBuilder (mcthaydt/FigureBuilder) src/features/outfit/fit.ts at 025ffb4 (`TRAPEZIUS`, `fatten`,
-// `profiles`, `ringAt`, `girth`, `clearance`, `Body`, `bodyOf`; the density is the fixed FIGURE_PPM), with AF's strict types;
-// the numbers and their order are the source's.
+// and a query on them (`ringAt`) that says how wide the body is at a height, fat, bust and seat included. The body is
+// built from these very lists (outfit/garments/body.ts), and a garment can size itself from the answer instead of from
+// `k * t` constants, so it clears any body the sliders make.
 
 import { type Limb, profileAt, type Ring } from '../../../shared/math/limb.ts'
 import { lerp } from '../../../shared/math/math.ts'

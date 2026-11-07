@@ -1,4 +1,4 @@
-// Clip time (M3 spec §4.4.4): where in a clip `elapsed` seconds of play are (its loop mode), the instant a
+// Clip time: where in a clip `elapsed` seconds of play are (its loop mode), the instant a
 // stepped pose shows (its rate, snapping to markers), stretching a clip to the sim's action length, and
 // reading a marker.
 
@@ -56,7 +56,7 @@ function markerPassed(clip: FigureClipDef, from: number, to: number, closed: boo
  * step is the floor of `elapsed`; a marker passed since the previous frame (in (previous, elapsed]) is shown on
  * this frame even when this frame is already in a later step; and a step that holds a marker keeps showing it
  * from its instant to the step's end. So a `contact` pose shows on the first frame at or after its marker, never
- * earlier (§4.4.4). Loop wraps and pingpong returns count as passes.
+ * earlier. Loop wraps and pingpong returns count as passes.
  */
 export function stepTime(clip: FigureClipDef, elapsed: number, rate: number, previous?: number): number {
   if (!(rate > 0) || !Number.isFinite(rate))

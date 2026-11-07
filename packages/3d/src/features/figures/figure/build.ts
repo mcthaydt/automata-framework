@@ -1,13 +1,10 @@
-// `build(def, skeleton, outfit, item, library)` (M3 spec §4.4.1): a figure's part meshes for one outfit and
-// one held item, each bound to a joint (rigid on one bone, or skinned to several), with the materials they
-// name as palette colours, the face's and the garments' marks as anchor points, the openings a hand can reach
-// and how far the arms hang out to clear the outfit. It is pure: it reads its arguments and writes nothing,
-// so swapping an outfit rebuilds the part list from the same skeleton and changes no joint (F-d). M3.5d draws
-// the result.
-//
-// The item parts are FigureBuilder's (mcthaydt/FigureBuilder) src/render/figure/cast.ts `item` at a1f7246
-// (each a rounded box on the holding hand's socket); `build` itself is new here, in place of `fromDef`'s
-// dressing step (the libraries are arguments, not code).
+// `build(def, skeleton, outfit, item, library)`: a figure's part meshes for one outfit and one held item, each bound to
+// a joint (rigid on one bone, or skinned to several), with the materials they name as palette colours, the face's and
+// the garments' marks as anchor points, the openings a hand can reach and how far the arms hang out to clear the outfit.
+// It is pure: it reads its arguments and writes nothing, so swapping an outfit rebuilds the part list from the same
+// skeleton and changes no joint (F-d). The view draws the result. The item parts are FigureBuilder's
+// (mcthaydt/FigureBuilder) src/render/figure/cast.ts `item` at a1f7246 (each a rounded box on the holding hand's
+// socket); `build` itself is new here, in place of `fromDef`'s dressing step (the libraries are arguments, not code).
 
 import { axisAngle } from '../../../shared/math/math.ts'
 import { measure } from '../body/genes.ts'
@@ -31,7 +28,7 @@ export interface FigureLibrary {
   readonly items: Readonly<Record<string, ItemDef>>
 }
 
-/** A built figure: what M3.5d draws and what the stands (M3.5c) place hands against. */
+/** A built figure: what the view draws and what the stands place hands against. */
 export interface Built {
   /** Each part's mesh in its bone's space (rigid) or in rest figure space (skinned), and its material. */
   parts: Part[]

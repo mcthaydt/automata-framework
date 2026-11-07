@@ -1,6 +1,6 @@
-// Masks (M3 spec §4.4.4): the body groups a clip owns while it plays. A clip's channels outside its mask are
+// Masks: the body groups a clip owns while it plays. A clip's channels outside its mask are
 // dropped before it is layered, so a slash masked to the right arm and the torso changes nothing below the pelvis
-// and nothing in the left arm (I-h). Which channels each group owns is the M3.6d plan's decision 6.
+// and nothing in the left arm (I-h). Which channels each group owns is set here.
 
 import type { Joint, Side } from '../body/rig.ts'
 import type { PoseDef } from '../motion/pose.schema.ts'
@@ -74,13 +74,13 @@ export function maskPose(pose: PoseDef, mask: readonly MaskGroup[]): PoseDef {
   }
 }
 
-/** Whether a clip masked by `mask` owns the arm on `side` (an item's hold then waits, §4.4.5 step 6). */
+/** Whether a clip masked by `mask` owns the arm on `side` (an item's hold then waits). */
 export const ownsArm = (mask: readonly MaskGroup[], side: Side): boolean =>
   mask.includes(side === 'L' ? 'armL' : 'armR')
 
 const LEG_GROUPS: readonly MaskGroup[] = ['root', 'pelvis', 'legL', 'legR']
 
-/** Whether `pose` moves the hips or a leg, so the hems must hang again from the solved legs (§4.4.5 step 7). */
+/** Whether `pose` moves the hips or a leg, so the hems must hang again from the solved legs. */
 export function movesLegs(pose: PoseDef): boolean {
   const legs = maskPose(pose, LEG_GROUPS)
   return (

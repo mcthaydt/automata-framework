@@ -1,10 +1,7 @@
-// The face as point marks on the head: an eye each side (two tall when afraid or surprised, a lid when
-// blinking), brows that slant with the mood, and a mouth that shows only when it means something. M3.5d draws
-// each as a small quad facing out of the head, shown toward the camera (M3 spec §4.4.1: faces are decals);
-// the painter's drawn face is not taken.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`face`),
-// with AF's strict types; the places are the source's. The mouth's swatch is the eyes' `mouth` (the library's `mouth` by default).
+// The face as point marks on the head: an eye each side (two tall when afraid or surprised, a lid when blinking), brows
+// that slant with the mood, and a mouth that shows only when it means something. The view draws each as a small quad facing
+// out of the head, shown toward the camera (: faces are decals); the painter's drawn face is not The mouth's swatch is
+// the eyes' `mouth` (the library's `mouth` by default).
 
 import type { V3 } from '../../../../shared/math/math.ts'
 import type { Decal } from '../../body/mesh.ts'

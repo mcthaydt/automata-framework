@@ -1,7 +1,6 @@
-// A figure's gait (its library gait or inline one, with its own overrides) and its hair spring's numbers.
-//
-// From FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/cast.ts at a1f7246: `fromDef`'s
-// `{ ...GAITS[def.gait], ...def.gaitOverrides }` and `{ ...HAIR, ...def.hair }`, and the default `HAIR`.
+// A figure's gait (its library gait or inline one, with its own overrides) and its hair spring's numbers. From
+// FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/cast.ts at a1f7246: `fromDef`'s `{ ...GAITS[def.gait],
+// ...def.gaitOverrides }` and `{ ...HAIR, ...def.hair }`, and the default `HAIR`.
 
 import type { Gait } from '../content/gait.schema.ts'
 import type { FigureDef, HairDynamics } from '../figure/figure.schema.ts'

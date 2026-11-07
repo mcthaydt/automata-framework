@@ -42,7 +42,7 @@ export interface Pixi3dOptions extends PixiRendererOptions {
   /**
    * After the `View3D` is mounted, before the first frame: the camera, the lights and the static scenery. Walls,
    * ceilings and tall props are registered with `occluders`, so the angled camera's occluder rule keeps them off the
-   * player (M3 spec §4.2). With `lighting`, `light` is the room's light: bake each static mesh with
+   * player. With `lighting`, `light` is the room's light: bake each static mesh with
    * `light.bake(mesh)`. `models` holds the views' model files and the scene's own (`models`), loaded. It may return
    * hooks, which run after the views (and the camera) each step and frame.
    */
@@ -61,12 +61,12 @@ export interface Pixi3dOptions extends PixiRendererOptions {
    */
   readonly models?: readonly string[] | undefined
   /**
-   * The view's linear fog (M3 spec §4.1). Without it, the lighting content's `fog`; without both, none. With fog, the
+   * The view's linear fog. Without it, the lighting content's `fog`; without both, none. With fog, the
    * sky behind the scene is the colour fog reaches (in place of `backgroundColor`), so fogged walls meet it with no edge.
    */
   readonly fog?: SceneFog | undefined
   /**
-   * The room's light from content (M3 spec §4.3): static meshes baked in `scene`, `lit` views tinted each frame.
+   * The room's light from content: static meshes baked in `scene`, `lit` views tinted each frame.
    */
   readonly lighting?: SceneLighting | undefined
   /**
@@ -75,7 +75,7 @@ export interface Pixi3dOptions extends PixiRendererOptions {
    */
   readonly lamps?: string | undefined
   /**
-   * The angled camera on the player (M3 spec §4.2): the rig follows the entity with `camera-heading` (the `./sim`
+   * The angled camera on the player: the rig follows the entity with `camera-heading` (the `./sim`
    * entry), reading its `view` and `heading` and the position in `follow`. Without it the `View3D`'s camera is the
    * game's to place in `scene`.
    */
@@ -139,8 +139,7 @@ interface Mounted {
 }
 
 /**
- * The sky behind the scene: `backgroundColor`, or with fog the colour fog reaches, so fogged walls meet it with no edge
- * (spec §4.2, S7-Q10).
+ * The sky behind the scene: `backgroundColor`, or with fog the colour fog reaches, so fogged walls meet it with no edge.
  */
 function skyOf(options: Pixi3dOptions): number | undefined {
   const fog = options.fog ?? options.lighting?.fog
@@ -289,18 +288,18 @@ export type Pixi3dResult =
   | { readonly ok: false; readonly reason: RendererUnavailable | ModelInvalid }
 
 /**
- * The 3D renderer (M3 spec §4.1): core's Pixi renderer with one `View3D` mounted in `stage.world` through its
+ * The 3D renderer: core's Pixi renderer with one `View3D` mounted in `stage.world` through its
  * `setup`, and a second `RenderDeltaConsumer` over the view's `Container3D` root for the 3D entity views. 2D
  * layers (`stage.ui`, `stage.backdrop`, `entityViews`) keep working over it.
  *
- * Init order (2026-10-16 spec §4.1): every model file the views name is read from the runtime's loaded assets
+ * Init order (2026-10-16): every model file the views name is read from the runtime's loaded assets
  * first, so a bad one fails with `ModelInvalid` before anything is drawn; then the Pixi app (WebGL2 by default,
  * WebGPU when asked); then the `View3D`, the game's own `setup` and `scene`. A renderer that is not WebGL2 or
  * WebGPU (Pixi's Canvas fallback) fails with `RendererUnavailable`.
  *
  * A lost context the browser gives back draws again; one it does not (or a lost WebGPU device) asks the runtime for
  * the "picture stopped" panel, whose Try again replaces the app, the View3D and the views, resynced from the sim's
- * current rows (M3 spec §5). The models and the game's state are kept.
+ * current rows. The models and the game's state are kept.
  */
 export function createPixi3dRenderer(
   options: Pixi3dOptions,
@@ -338,7 +337,7 @@ export function createPixi3dRenderer(
     current = first.value
     lifetime.add(() => current?.cleanup.dispose())
 
-    // A context that will not come back (M3 spec §5): the runtime shows the panel, and Try again builds the Pixi
+    // A context that will not come back: the runtime shows the panel, and Try again builds the Pixi
     // app, the View3D and the views again, from the sim's current rows (a resync).
     function onGone(): void {
       void target.reportLost?.(retry)

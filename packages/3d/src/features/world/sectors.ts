@@ -1,11 +1,9 @@
 // The world's view of sector geometry: an outline and its holes, where a point stands, a plane's height, and a level's
-// wall segments: each room's edges cut where other rooms share them, the shared stretches being portals. The point
-// tests and the triangulation live once in `shared/level/geometry.ts`; these are thin adapters over `[x, z]` pairs.
-//
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/sectors.ts at 6d82a52. Changed: a
-// sector is `/2`'s `corners` and `holes` (the builder's `verts`/`rect` are converted, never read), a hole is walled
-// and filled, a room with no area is reported by `isDegenerate` instead of failing the triangulation, and the
-// diorama's cut-away rules (`dollhouseStub`, `wallInDiorama`, `lintel*`) are not here: views belong to the editor.
+// wall segments: each room's edges cut where other rooms share them, the shared stretches being portals. The point tests
+// and the triangulation live once in `shared/level/geometry.ts`; these are thin adapters over `[x, z]` pairs. Changed: a
+// sector is `/2`'s `corners` and `holes` (the builder's `verts`/`rect` are converted, never read), a hole is walled and
+// filled, a room with no area is reported by `isDegenerate` instead of failing the triangulation, and the diorama's
+// cut-away rules (`dollhouseStub`, `wallInDiorama`, `lintel*`) are not here: views belong to the editor.
 import type { AfCorner2, AfSector2, AfSectorEntry2, Plane } from '../../shared/level/af-sector-2.schema.ts'
 import { insideSector, polygonArea, triangulate } from '../../shared/level/geometry.ts'
 import type { Point } from '../../shared/level/sector.schema.ts'

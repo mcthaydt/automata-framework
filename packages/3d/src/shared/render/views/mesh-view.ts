@@ -12,7 +12,7 @@ export interface MeshViewOptions {
 /**
  * A static model from a `.glb` or packed `.bin` file, standing on its component's position (the model's lowest
  * point at `y`), interpolated between ticks and turned by `yaw`. The renderer loads `file` from the game's preload
- * before the first frame; a skinned or malformed file fails boot with `ModelInvalid` (M3 spec §6).
+ * before the first frame; a skinned or malformed file fails boot with `ModelInvalid`.
  */
 export function mesh(file: string, options: MeshViewOptions = {}): View3dFactory {
   const factory = (_row: RenderRow, componentId: string | undefined, models: ModelLibrary): EntityView3d => {

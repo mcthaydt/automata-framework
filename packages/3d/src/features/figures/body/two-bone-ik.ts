@@ -1,8 +1,6 @@
-// Analytic two-bone IK, the one solver the source has: it drives both legs (foot paths) and the arms (a held
-// item's grip, a hand target). M3.6a's `solve()` builds the effectors, poles and limits on it.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/rig.ts (`twoBoneIK`) at a1f7246.
-// Changed for AF: typed rotations (`R3`) and checked joint lookups; the steps and their order are the source's.
+// Analytic two-bone IK, the one solver the source has: it drives both legs (foot paths) and the arms (a held item's
+// grip, a hand target). `solve()` builds the effectors, poles and limits on it. Changed for AF: typed rotations
+// (`R3`) and checked joint lookups; the steps and their order are the source's.
 
 import {
   add,

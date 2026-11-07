@@ -1,13 +1,10 @@
-// Hair styles as parts: a style is a list of pieces fitted to the skull in head units (angles round it from
-// the front, + toward the figure's left and mirrored; heights of its half-height about its middle; sizes of
-// its half-width), so any head the sliders make wears it. Core builds none of them: a piece kind (a scalp, rows, a
-// tail, a fall, a bun, a sweep, a block, edges) is registered with `registerHairPiece` by the character kit, and this
-// file hands each entry of a style to the one registered under its key. What a piece shares is `HairBuild`.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/hair.ts at a1f7246 (`HairInput`,
-// `hairParts`), with AF's strict types; the formulas and their order are the source's. Changed: a piece's
-// tone is a swatch variant (tones.ts) instead of a painter ramp; the texel sizes are held at the fixed ppm; the
-// piece builders left for @automata/character-kit.
+// Hair styles as parts: a style is a list of pieces fitted to the skull in head units (angles round it from the front, +
+// toward the figure's left and mirrored; heights of its half-height about its middle; sizes of its half-width), so any
+// head the sliders make wears it. Core builds none of them: a piece kind (a scalp, rows, a tail, a fall, a bun, a sweep,
+// a block, edges) is registered with `registerHairPiece` by the character kit, and this file hands each entry of a style
+// to the one registered under its key. What a piece shares is `HairBuild`. Changed: a piece's tone is a swatch variant
+// (tones.ts) instead of a painter ramp; the texel sizes are held at the fixed ppm; the piece builders left for
+// @automata/character-kit.
 
 import type { V3 } from '../../../shared/math/math.ts'
 import type { Measure } from '../body/genes.ts'

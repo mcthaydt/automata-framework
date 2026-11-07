@@ -1,10 +1,6 @@
 // The garments worn on the head and face: hair, caps and the face's marks. They are classic kinds like the rest
-// (classic-kinds.ts registers them), but each draws from the libraries rather than from the body's rings, so they
-// live apart from classic.ts.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`dress`'s hair,
-// cap and eyes branches), with AF's strict types; the order of the parts is the source's. Changed: a hair garment
-// with no style wears the figure's `hairPieces` (M3.5b decision 6).
+// (classic-kinds.ts registers them), but each draws from the libraries rather than from the body's rings, so they live
+// apart from classic.ts. Changed: a hair garment with no style wears the figure's `hairPieces`.
 
 import type { V3 } from '../../../../shared/math/math.ts'
 import { GROUP } from '../../body/mesh.ts'

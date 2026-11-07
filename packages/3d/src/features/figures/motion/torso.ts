@@ -1,4 +1,4 @@
-// The body handles (M3 spec §4.4.2): `pelvis` moves and turns the hips; `chest` is a turn shared by `spine` and
+// The body handles: `pelvis` moves and turns the hips; `chest` is a turn shared by `spine` and
 // `chest` (the source's posture split, 0.3/0.7); `head` is a turn shared by `neck` and `head` (the source's head
 // split, 0.4/0.6; FigureBuilder `motion.ts` `base()` at a1f7246). Each writes local rotations, blended from the
 // base pose by the handle's weight; each returns the local rotations it wanted, so the report can say how far a

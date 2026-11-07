@@ -1,4 +1,4 @@
-// The angled camera (M3 spec §4.2) on klipp (`@pmndrs/klipp`, Owner 2026-10-30: "keep in mind for the camera we're
+// The angled camera on klipp (`@pmndrs/klipp`, Owner 2026-10-30: "keep in mind for the camera we're
 // using klipp"): the Owner's 24 mm lens, 25° down and 5 m back by default, following the player inside the active
 // view's bounds and turned by the sim's heading. Presentation only (law 1): it reads interpolated positions and the
 // sim's heading and writes only the `Camera3D` it is given.
@@ -9,7 +9,7 @@
 // `ease` blends easeInOut over 400 ms, `cut` and reduced motion cut. A heading set with `ease` moves the `horizontal`
 // axis's target and klipp's axis damping turns the shorter way in about 250 ms; a tracked heading (the player's
 // turn) jumps the axis, or moves the target of an ease still running, so the camera does not snap. Reduced motion
-// zeroes every damping (spec §8). The one thin layer of our own is the target point, `framedFocus`: the follow
+// zeroes every damping. The one thin layer of our own is the target point, `framedFocus`: the follow
 // raised by the view's focus height, leaned toward a lock-on and kept inside the view's bounds.
 //
 // Nothing runs before the first `follow`: the renderer draws frames before the player's row exists, and a pose

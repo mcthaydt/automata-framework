@@ -1,4 +1,4 @@
-// Rotation helpers the solver needs beyond M3.5a's math: degrees, slerp, and reading a quaternion back as the
+// Rotation helpers the solver needs beyond the shared math: degrees, slerp, and reading a quaternion back as the
 // source's euler angles, which is how the limits are stated.
 
 import { euler, type Q, qconj, qmat, qmul } from '../../../shared/math/math.ts'

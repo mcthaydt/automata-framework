@@ -1,8 +1,8 @@
-// evaluate (M3 spec §4.4.5): one figure's pose at a presentation time, from what the sim says (`FigureState`) and
+// evaluate: one figure's pose at a presentation time, from what the sim says (`FigureState`) and
 // the content it plays from. Pure: the same skeleton, definition, state, time, library and options give equal
 // matrices (I-g). The order:
 //
-//   1. Locomotion: `base()` with the stand's placed hands (M3.5c's `evaluateMotion` without the item), stepped
+//   1. Locomotion: `base()` with the stand's placed hands (`evaluateMotion` without the item), stepped
 //      at the gait's pose clock.
 //   2. Stance clips, in the sim's order, each masked and at its blend ramp's weight.
 //   3. The action clip; one replacing another carries the outgoing pose into it (M3R-D16).
@@ -35,7 +35,7 @@ import { addTurns, type ClipLayerOptions, clipLayer, clipPose, type Layer, merge
 import { movesLegs, ownsArm } from './masks.ts'
 import { chestFrame } from './sample.ts'
 
-/** A new action carries the outgoing one into it over this long when its clip gives no `blend.inMs` (§4.4.5). */
+/** A new action carries the outgoing one into it over this long when its clip gives no `blend.inMs`. */
 const TRANSITION_MS = 80
 
 export interface FigureEvaluated extends Evaluated {
@@ -87,7 +87,7 @@ function playing(start: ClipStart, ctx: Context, endedAt?: number): Playing | un
   }
 }
 
-/** The action's layer (§4.4.5 step 3): its own, or, while it replaces another, the outgoing clip's pose at the
+/** The action's layer: its own, or, while it replaces another, the outgoing clip's pose at the
  * replacement blended into its own with `blend` over its `blend.inMs` (80 ms when it gives none; 0 cuts). */
 function actionLayer(state: FigureState, ctx: Context): Layer | undefined {
   const { action } = state
@@ -118,7 +118,7 @@ function actionLayer(state: FigureState, ctx: Context): Layer | undefined {
   }
 }
 
-/** The stance layers (§4.4.5 step 2), in the sim's order. */
+/** The stance layers, in the sim's order. */
 function stanceLayers(state: FigureState, ctx: Context): Layer[] {
   const layers: Layer[] = []
   for (const stance of state.stances ?? []) {

@@ -1,12 +1,12 @@
-// The clip compile warnings (M3 spec §4.4.4): things that compile but may not play as the author meant.
+// The clip compile warnings: things that compile but may not play as the author meant.
 // - A channel whose space changes between neighbouring keys is interpolated in root space through the chest
 //   frame of whatever the layers below are doing, so the result depends on the torso underneath.
 // - A handle both neighbouring keys name with different fields (a `rot` at one only): one weight covers all of
 //   a handle's fields, so the lone field is held through the segment and drops to the layers below at the key
-//   that lacks it (M3.6b `blend`).
+//   that lacks it (`blend`).
 // A function, not a schema check: a key naming a pose by id needs the pose library, and the content compiler has
 // no channel for a kind's warnings (a request for the content package). Importable for the Studio and for a
-// game's content check (§4.4.6).
+// game's content check.
 
 import type { PoseDef } from '../motion/pose.schema.ts'
 import { mixedChannels } from '../motion/pose-space.ts'

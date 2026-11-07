@@ -1,4 +1,4 @@
-// The lens (M3 spec §4.2). `fovOf` is The Last Light's convention, `src/direction/shots.ts` line 29 at `92e6704`: a
+// The lens. `fovOf` is The Last Light's convention, `src/direction/shots.ts` line 29 at `92e6704`: a
 // 24 mm tall film gate, so the vertical field of view is `2 * atan(12 / mm)`. Presentation only: it uses `Math`.
 
 /** The Owner's lens (2026-10-23), in every view; `pipeline.toml` `[locked]` holds it. */

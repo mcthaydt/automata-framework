@@ -1,13 +1,10 @@
-// @automata/3d/figures: procedural characters (M3 spec §4.4), renderer-free. Part 1 (M3.5a): the math,
-// the shared rig and its two-bone IK, the gene sliders, the figure and library content kinds, and the
-// extension that registers them. Part 2 (M3.5b): `build()`, the part, garment and hair generators behind it.
-// Part 3 (M3.5c): locomotion (`base()`, `moveDir`), stands, holds, hems, the pose clock and the hair spring.
-// Part 5 (M3.6a): `solve()`, the rig's handles (effectors, poles, aim, pins) and its joint limits.
-// Part 6 (M3.6b): poses (`figure-pose` content), their canonical spelling, mirror, blend and checks.
-// Part 7 (M3.6c): clips (`figure-clip` content), eases, sampling, loop and stepped time, retime and markers.
-// Part 8 (M3.6d): `evaluate()`, the layers in order (locomotion, stances, the action and its transition, aim, the
-// solve, holds by mask, the hems), and FigureBuilder's reach, look and flinch as fixture clips.
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) at a1f7246.
+// @automata/3d/figures: procedural characters, renderer-free. The math, the shared rig and its two-bone IK, the gene
+// sliders, the figure and library content kinds and the extension that registers them; `build()` and the part, garment
+// and hair generators behind it; locomotion (`base()`, `moveDir`), stands, holds, hems, the pose clock and the hair
+// spring; `solve()`, the rig's handles (effectors, poles, aim, pins) and its joint limits; poses (`figure-pose`
+// content), their canonical spelling, mirror, blend and checks; clips (`figure-clip` content), eases, sampling, loop and
+// stepped time, retime and markers; and `evaluate()`, the layers in order (locomotion, stances, the action and its
+// transition, aim, the solve, holds by mask, the hems), with reach, look and flinch as fixture clips.
 
 export { figuresExtension } from '../app/figures.extension.ts'
 export {

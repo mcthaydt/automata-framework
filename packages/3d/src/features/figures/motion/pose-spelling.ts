@@ -1,4 +1,4 @@
-// A pose's canonical spelling (M3 spec §4.4.6): one way to write each pose, so the Studio's save is stable
+// A pose's canonical spelling: one way to write each pose, so the Studio's save is stable
 // and a diff shows only what changed. Numbers keep 4 decimals, rounded in decimal notation and never -0;
 // defaults are left out (`space = "root"`, `weight = 1`, empty tables); keys go in the rig's order.
 //

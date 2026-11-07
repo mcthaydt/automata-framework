@@ -1,4 +1,4 @@
-// The angled camera's geometry (M3 spec §4.2), kept apart from `@pixi/3d` so it is plain arithmetic to test. A heading
+// The angled camera's geometry, kept apart from `@pixi/3d` so it is plain arithmetic to test. A heading
 // of 0° looks toward +z and grows toward +x (the sim's convention, `sim/heading.ts`); the eye sits `distance` metres
 // back from the focus along the view axis, tipped `tiltDeg` down. `@pixi/3d` is right-handed with +y up, so a camera
 // looking along `forward` has `forward × up` on its right.
@@ -98,7 +98,7 @@ export interface FrameInput {
 }
 
 /**
- * The focus for `player` in `view`, leaning toward `lock` (M3 spec §4.2 lock-on framing): up to `LOCK_SHARE` of the
+ * The focus for `player` in `view`, leaning toward `lock` (lock-on framing): up to `LOCK_SHARE` of the
  * way from the player's focus to the target's (both `focusHeight` up), clamped by the view's bounds, and cut back by
  * bisection while the player's focus would fall outside the middle third of the frame on either axis or behind the eye.
  */

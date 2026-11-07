@@ -1,10 +1,7 @@
 // The five generators beside core's box and cylinder, the ones the base interior and exterior are made of: a table, a
 // bin, a lamp (floor, desk, pendant or wall), a street lamp and a tree. Every other shape, a chair, a shelf, a sign, a
-// car, is a generator the world-kit extension registers (`registerPropGenerator`).
-//
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/props.ts at 6d82a52: `table`,
-// `bin`, `lamp`, `streetLamp` and `tree`. Changed: parts are `part(mesh, swatch, label)`, a seeded stream is `stream`,
-// and the numbers are the source's.
+// car, is a generator the world-kit extension registers (`registerPropGenerator`). Changed: parts are `part(mesh,
+// swatch, label)`, a seeded stream is `stream`, and the numbers are the source's.
 import type { MeshData } from '../../../shared/math/geometry.ts'
 import { merge } from '../../../shared/math/geometry.ts'
 import { limb } from '../../../shared/math/limb.ts'

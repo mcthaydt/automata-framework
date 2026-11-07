@@ -1,9 +1,5 @@
-// Skin weights: which bones carry each vertex of a skinned part, and how much (summing to 1). The view blends
-// the bones' transforms by them (linear blend skinning on the CPU, M3.5d).
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/parts.ts at a1f7246 (`weights`,
-// `hemWeights`, `hemSkin`), with AF's strict types; the formulas and their order are the source's. Not taken:
-// `drapeWeights` (nothing builds with it).
+// Skin weights: which bones carry each vertex of a skinned part, and how much (summing to 1). The view blends the bones'
+// transforms by them (linear blend skinning on the CPU). Not taken: `drapeWeights` (nothing builds with it).
 
 import { smooth } from '../../../shared/math/math.ts'
 import { type Mesh, vertexAt, type Weight } from './mesh.ts'
@@ -45,7 +41,7 @@ export function hemWeights(
 /**
  * Skin weights for a trouser leg's hem (wide-legs, cargos): `leg` the leg's own skin (pelvis, thigh, shin);
  * from `from` (a height on the shin, the knee's or under it) down to `hemY` a share of it, rising smoothly to
- * `share` at the hem, goes to the leg's hem joint `hem` (J.hemL / J.hemR). The motion (M3.5c) places that
+ * `share` at the hem, goes to the leg's hem joint `hem` (J.hemL / J.hemR). The motion places that
  * joint each frame between the ankle and the plumb under the hip, upright: on the floor while the foot is
  * planted, so the hem hangs and pools rather than swinging rigid with the shin; with the foot as it lifts, so
  * it rides up over a trailing shoe.

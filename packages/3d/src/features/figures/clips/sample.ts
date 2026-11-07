@@ -1,10 +1,10 @@
-// sample (M3 spec §4.4.4): the pose a clip holds at a clip time. Keys hold handles, not joint angles, so the
-// neighbouring keys' poses are blended (M3.6b's `blendAt`, which follows an overshooting ease past the key) at
+// sample: the pose a clip holds at a clip time. Keys hold handles, not joint angles, so the
+// neighbouring keys' poses are blended (`blendAt`, which follows an overshooting ease past the key) at
 // the eased fraction, and the caller solves the result.
 //
 // Keys in different spaces: a channel in chest space at one key and root space at the next is blended in root
 // space through the chest frame the caller passes (`context.chest`: the chest joint in root space, from the pose
-// evaluated so far, §4.4.5 steps 1 and 2; pose/pose-space.ts converts). Without it such a pair throws, naming
+// evaluated so far; pose/pose-space.ts converts). Without it such a pair throws, naming
 // the channel. Channels whose spaces agree stay in their space.
 
 import { invertRigid, type M, mmul } from '../../../shared/math/math.ts'

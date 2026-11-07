@@ -1,4 +1,4 @@
-// A built figure's materials: every name a part or a decal carries, as a palette colour (M3 spec §4.4.1,
+// A built figure's materials: every name a part or a decal carries, as a palette colour (
 // amended 2026-10-30: materials name palette colours). A name is a library swatch's id, or a variant of one
 // (`<swatch>@<role>`): where FigureBuilder makes a painter material out of a swatch (a rib's matte knit, a
 // lining in shadow, a stitch in the cloth's light, a flap a tone lighter, the hair's lit strands), AF keeps

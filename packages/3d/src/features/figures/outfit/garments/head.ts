@@ -1,12 +1,7 @@
-// The head: its form (the chin, the jaw rising back under the ear, the cheekbones, the eyes set in under the
-// brow, a forehead and a round cranium), the skin over it as one smooth surface, a nose standing off the face
-// and an ear each side. Hair and caps fit this same form (hair/).
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`curve`,
-// `HeadForm`, `faceRound`, `headAt`, `insideHead`, `headNormal`, `headMesh`, `headForm`, `ear`, `head`), with
-// AF's strict types; the formulas and their order are the source's. Changed: the ears' painter materials (the
-// skin's tones by hand) are variants of the skin (build/materials.ts), and the rim's texel width is held at
-// the fixed ppm (parts/texels.ts).
+// The head: its form (the chin, the jaw rising back under the ear, the cheekbones, the eyes set in under the brow, a
+// forehead and a round cranium), the skin over it as one smooth surface, a nose standing off the face and an ear each
+// side. Hair and caps fit this same form (hair/). Changed: the ears' painter materials (the skin's tones by hand) are
+// variants of the skin (build/materials.ts), and the rim's texel width is held at the fixed ppm (parts/texels.ts).
 
 import {
   apply,

@@ -2,9 +2,6 @@
 // burns, where a prop is and whether it is there. Plain data a track can drive (the sim, a cutscene extension and the
 // renderer all read the same shape); nothing here knows a renderer. A piece with no entry is as the builder put it: a
 // door shut, a lamp as authored, a prop where it was placed.
-//
-// Rewritten from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/stage/state.ts at 6d82a52 (`StateScript`
-// and `Snapshot`): only the state of the pieces stays here; the keys, the director and the time of day are not core.
 
 /** A point in the world: x, up, z. */
 type Point = readonly [number, number, number]

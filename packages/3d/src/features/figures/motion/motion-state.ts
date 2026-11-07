@@ -1,11 +1,8 @@
-// What one frame of procedural motion reads and returns. Every layer is a pure function of the figure's
-// skeleton, its gait and this state, so a frame is reproducible and a hold can replace one arm without
-// touching anything else (M3 spec §4.4.1: presentation time, pure, no Math.random).
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/motion.ts at a1f7246 (`MotionState`,
-// `Hold`, `Evaluated`). Changed for AF: the runtime hold is `ArmHold` (`Hold` names the item library's content
-// shape); the state has no `action` (reach, look and flinch become clips in M3.6), no sprite cheats (`lookUp`,
-// `view`, `pitch`), and gains `moveDir` (spec §4.4.1, F-h).
+// What one frame of procedural motion reads and returns. Every layer is a pure function of the figure's skeleton, its
+// gait and this state, so a frame is reproducible and a hold can replace one arm without touching anything else (:
+// presentation time, pure, no Math.random). Changed for AF: the runtime hold is `ArmHold` (`Hold` names the item
+// library's content shape); the state has no `action` (reach, look and flinch become clips in), no sprite cheats
+// (`lookUp`, `view`, `pitch`), and gains `moveDir`.
 
 import type { M, V3 } from '../../../shared/math/math.ts'
 import type { Pose, Side } from '../body/rig.ts'

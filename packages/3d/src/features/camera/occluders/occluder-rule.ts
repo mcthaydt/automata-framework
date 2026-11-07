@@ -1,11 +1,10 @@
-// The occluder rule's geometry (M3 spec §4.2), plain arithmetic in metres with +y up. A wall is a span `a → b` on the
-// floor plan with its inside face on that line and the room on its left (the inward normal is `(−dir.z, dir.x)`, as
-// The Last Light's sectors, `src/game/sectors.ts` line 76 at 92e6704, and the 3D editor's `facesEye`).
-//
-// Two tests decide a wall: the facing test of §4.2 (the camera is on the wall's outer side), and the crossing test
-// from The Last Light's 2.5D cut-away (`src/game/cutaway.ts` `wallHidden` at 92e6704): the camera's line to the
-// player crosses the wall's face within its span, a figure's reach past either end, and below its top. The second
-// matters across a doorway, where the eye stands in the next room and that room's copy of the partition faces it.
+// The occluder rule's geometry, plain arithmetic in metres with +y up. A wall is a span `a → b` on the floor plan with
+// its inside face on that line and the room on its left (the inward normal is `(−dir.z, dir.x)`, as The Last Light's
+// sectors, `src/game/sectors.ts` line 76 at 92e6704, and the 3D editor's `facesEye`). Two tests decide a wall: the
+// facing test (the camera is on the wall's outer side), and the crossing test from The Last Light's 2.5D
+// cut-away (`src/game/cutaway.ts` `wallHidden` at 92e6704): the camera's line to the player crosses the wall's face
+// within its span, a figure's reach past either end, and below its top. The second matters across a doorway, where the
+// eye stands in the next room and that room's copy of the partition faces it.
 
 import type { Occlude } from '../../../shared/level/occlude.ts'
 import type { Vec3 } from '../camera-pose.ts'
@@ -40,7 +39,7 @@ export const FIGURE_REACH = 0.6
  * the player walking through a corridor mouth does not cut the wall either side of it.
  */
 export const ON_THE_LINE = 0.12
-/** Props taller than this fade by default; shorter ones never go (§4.2). */
+/** Props taller than this fade by default; shorter ones never go. */
 export const TALL_PROP_METRES = 1.5
 
 interface Span {
@@ -71,7 +70,7 @@ export function wallSide(wall: WallSpan, point: Vec3): number {
   return (point.x - wall.a.x) * -dir.z + (point.z - wall.a.z) * dir.x
 }
 
-/** The facing test (§4.2): the wall's inside face points away from `eye`, which is on its outer side or edge-on. */
+/** The facing test: the wall's inside face points away from `eye`, which is on its outer side or edge-on. */
 export const wallFacesAway = (wall: WallSpan, eye: Vec3): boolean => wallSide(wall, eye) <= 0
 
 /** `point` in the wall's own frame: x along it from `a`, y up, z outward from its inside face. */
@@ -163,7 +162,7 @@ function clip(origin: number, step: number, low: number, high: number): boolean 
   return enter <= leave
 }
 
-/** What a prop does on the line: what it says, else `fade` when taller than 1.5 m and `never` when not (§4.2). */
+/** What a prop does on the line: what it says, else `fade` when taller than 1.5 m and `never` when not. */
 export function propOcclude(bounds: Box3, given: Occlude | undefined): Occlude {
   if (given !== undefined) return given
   return bounds.max[1] - bounds.min[1] > TALL_PROP_METRES ? 'fade' : 'never'

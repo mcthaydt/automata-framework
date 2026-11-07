@@ -1,12 +1,8 @@
-// What a garment kind built into the dressed body is made of, and what it hands back: the contract between `dress`
-// and an extension's garment builders (the wardrobe). Core owns the shapes; the builders live with the extension.
-//
-// A kind's builder gets a `Wearing` (the body, the outfit, the variants made so far, the parts already worn) and
-// returns a `Fit`. A top also describes itself as a `Worn` (so what goes over it clears it and a chain lies on it),
-// a bottom as `Legs` (so a top over it clears its cut); both are built from `Shell`s and `Section`s.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/streetwear.ts at a1f7246, with AF's strict
-// types (`Fit`, `Wearing`, `Paint`, `Worn`, `Legs`, `Section`, `Shell`).
+// What a garment kind built into the dressed body is made of, and what it hands back: the contract between `dress` and
+// an extension's garment builders (the wardrobe). Core owns the shapes; the builders live with the extension. A kind's
+// builder gets a `Wearing` (the body, the outfit, the variants made so far, the parts already worn) and returns a `Fit`.
+// A top also describes itself as a `Worn` (so what goes over it clears it and a chain lies on it), a bottom as `Legs`
+// (so a top over it clears its cut); both are built from `Shell`s and `Section`s.
 
 import type { Measure } from '../body/genes.ts'
 import type { Decal, Part } from '../body/mesh.ts'

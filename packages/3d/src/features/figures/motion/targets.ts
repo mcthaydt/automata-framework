@@ -1,4 +1,4 @@
-// The rig's handles (M3 spec §4.4.2): what a solve is asked to satisfy, after the pose and clip layers have
+// The rig's handles: what a solve is asked to satisfy, after the pose and clip layers have
 // merged, and what it reports back. `solve()` (solve.ts) turns them into joint rotations.
 
 import type { Joint } from '../body/rig.ts'

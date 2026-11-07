@@ -1,9 +1,6 @@
-// A limb: a tube swept down its axis whose cross-section follows a profile, with rounded ends. One profile
-// from the shoulder to the wrist (or the hip to the ankle) makes a deltoid, a biceps, an elbow, a forearm and
-// a wrist as one form, never stacked boxes; skinned across its joints it bends without a bulge.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/parts.ts at a1f7246 (`Ring`,
-// `Limb`, `curve`, `limb`), with AF's strict types; the formulas and their order are the source's.
+// A limb: a tube swept down its axis whose cross-section follows a profile, with rounded ends. One profile from the
+// shoulder to the wrist (or the hip to the ankle) makes a deltoid, a biceps, an elbow, a forearm and a wrist as one
+// form, never stacked boxes; skinned across its joints it bends without a bulge.
 
 import { type MeshData as Mesh, sgnPow } from './geometry.ts'
 import { at, cross, dot, lerp, normalize, sub, type V3 } from './math.ts'

@@ -1,10 +1,7 @@
 // The world's flat-faced primitives: boxes and quads for walls, floors and frames, which want one normal per face (a
-// rounded box's normals would band a 6 m wall like a pillow).
-//
-// Ported from EnvironmentBuilder (mcthaydt/EnvironmentBuilder) src/features/world/mesh.ts at 6d82a52: `quad`, `box`
-// and the rounded primitives the base props are made of (`rbox`, `cylinder`, `rod`, `cone`, `blob`).
-// Changed: every triangle winds the way its normal points (`windToNormals`), and the figure's own primitives come
-// from `shared/math`, where the figures and the world both reach them.
+// rounded box's normals would band a 6 m wall like a pillow). Changed: every triangle winds the way its normal points
+// (`windToNormals`), and the figure's own primitives come from `shared/math`, where the figures and the world both reach
+// them.
 import { type MeshData, merge, placed, windToNormals } from '../../shared/math/geometry.ts'
 import { axisAngle, normalize, type Q, type V3 } from '../../shared/math/math.ts'
 import { noise3 } from '../../shared/math/noise.ts'

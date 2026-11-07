@@ -19,7 +19,7 @@ export interface BoxMaterial {
   /**
    * Lit by the room's light when the renderer has `lighting` (without it, a plain box):
    * - `'static'`: scenery. Vertex light is baked into its own geometry once, at its first pose, with occlusion, and
-   *   rebaked when a lamp reaching it changes (M3 spec §4.3). It must not move. Its faces are cut into 25 cm cells
+   *   rebaked when a lamp reaching it changes. It must not move. Its faces are cut into 25 cm cells
    *   whether or not the renderer has `lighting`. Occluder boxes never skip it (there is no `ignore` here: bake a mesh
    *   with `SceneLight.bake(mesh, { ignore })` for that).
    * - `'moving'`: a character (M3R-D4). Each frame it takes the ambient light plus the lamps in range at its
@@ -59,7 +59,7 @@ export function box(size: BoxSize, material: BoxMaterial): View3dFactory {
     heightSegments: cells(size.height),
     depthSegments: cells(size.depth),
   })
-  // Shared between the view's boxes; the occluder rule gives a faded box its own copy (M3.4c).
+  // Shared between the view's boxes; the occluder rule gives a faded box its own copy.
   const shared = shareMaterial(
     new PhongMaterial({ baseColor: material.color }),
     () => new PhongMaterial({ baseColor: material.color }),

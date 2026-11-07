@@ -1,10 +1,7 @@
-// The hems (rig.ts `hemL`, `hemR`): each upright on the floor between its ankle and the plumb under its hip
-// while the foot is planted, riding up with the ankle as the heel peels off and following it through the
-// swing, so a wide hem always covers its shoe's collar and never tips with the shin. Written as each joint's
-// turn and shift on its shin.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/motion.ts at a1f7246 (`placeHems`),
-// its formulas and their order. Changed for AF: walking, fore and aft is along the line of travel (`moveDir`).
+// The hems (rig.ts `hemL`, `hemR`): each upright on the floor between its ankle and the plumb under its hip while the
+// foot is planted, riding up with the ankle as the heel peels off and following it through the swing, so a wide hem
+// always covers its shoe's collar and never tips with the shin. Changed for AF: walking, fore and aft is along the line
+// of travel (`moveDir`).
 
 import {
   apply,
@@ -33,7 +30,7 @@ const BEHIND = 0.06
 
 /**
  * Writes the hems' turn and shift into `pose`, from `world` (the pose's FK with the legs placed). "Fore and
- * aft" is along `line` (root space x, z; the line the feet run walking, M3.5c), forward when left out. `follow` (0 the
+ * aft" is along `line` (root space x, z; the line the feet run walking), forward when left out. `follow` (0 the
  * hip's plumb, 1 the ankle) fixes how far the hem follows the ankle, for a figure whose knee is not over its foot: a
  * seated one's hem rides the ankle all the way (1).
  */

@@ -1,4 +1,4 @@
-// The checks a pose must pass beyond its shape (M3 spec §4.4.3, §6): every position within twice the figure's
+// The checks a pose must pass beyond its shape: every position within twice the figure's
 // reach of the root. Positions are in figure units (1 unit is 1 m on a 1.62 m figure, times height / 1.62 at
 // solve time), so a pose fits every figure up to its proportions.
 //

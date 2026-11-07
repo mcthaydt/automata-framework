@@ -1,7 +1,7 @@
-// solve(): turns the rig's handles (targets.ts) into joint rotations (M3 spec §4.4.2). Pure: a function of its
+// solve(): turns the rig's handles (targets.ts) into joint rotations. Pure: a function of its
 // arguments only, no clock, no Math.random; `base` is never written.
 //
-// Order (§4.4.5 step 5): the hips, the chest and the head (torso.ts), clamped by the limits; the head and chest
+// Order: the hips, the chest and the head (torso.ts), clamped by the limits; the head and chest
 // aims (aim.ts), which clamp as they turn; then each limb (limbs.ts), the feet re-solving onto their base places
 // when the hips moved, a pin outranking a hand aim and a hand aim outranking an effector position, each limb
 // clamped after its solve; then the report, from the final pose.

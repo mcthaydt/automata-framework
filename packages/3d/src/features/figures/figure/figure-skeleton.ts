@@ -1,5 +1,5 @@
-// A figure's skeleton from its definition (M3 spec §4.4.1 `skeleton(def)`), and the check that refuses an
-// impossible one at content compile (§6: "a negative bone length … content compile error naming the slider").
+// A figure's skeleton from its definition (`skeleton(def)`), and the check that refuses an
+// impossible one at content compile (: "a negative bone length … content compile error naming the slider").
 // `genesOf` is FigureBuilder's `fromDef` gene step (src/render/figure/cast.ts at a1f7246): the sliders through
 // `measure`, then the figure's own gene overrides.
 

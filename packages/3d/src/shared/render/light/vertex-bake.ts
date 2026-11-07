@@ -1,9 +1,6 @@
-// Baked vertex light for a static mesh (M3 spec §4.3; 2026-10-16 spec §4.4). Extracted from The Last Light
-// (`mcthaydt/PixiJS3D_Experiment_001`) at 92e6704, `src/render/indirect-light.ts` (`bakeGeometry`,
-// `createVertexLighting`), with its tests. Kept: each lamp's light per vertex is computed once, with its occlusion,
-// because static lamps never move, so a level change is a cheap re-sum; colours are written only when one changed.
-// Dropped: the moving player lamp, its touch deadband and bounding-sphere cull, the authored bounce pools, wall fill
-// and shade-table steps (The Last Light's look, not AF's contract). Pure: no Pixi, so it runs in Node.
+// Baked vertex light for a static mesh (2026-10-16). Kept: each lamp's light per vertex is computed once, with its
+// occlusion, because static lamps never move, so a level change is a cheap re-sum; colours are Pure: no Pixi, so it runs
+// in Node.
 import { contactShade, type LightSample } from './occlusion.ts'
 import type { SceneLighting } from './scene-lighting.schema.ts'
 import { channels, type LampLevels, LIGHT_CEILING, levelOf, vertexLight } from './vertex-light.ts'

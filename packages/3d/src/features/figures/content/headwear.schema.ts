@@ -1,6 +1,6 @@
 // Headwear and hair locks (FigureBuilder src/render/figure/garments.ts `Lock`, `Headwear`, hair.ts `Cap`;
 // library/headwear.json at a1f7246). Locks are rounded boxes in head units, so a style fits any head the
-// sliders make. The generators that build them are M3.5b's; these are the content shapes.
+// sliders make. The generators that build them live in the hair and outfit code; these are the content shapes.
 
 import { contentRef } from '@automata/content/schema'
 import { z } from 'zod'

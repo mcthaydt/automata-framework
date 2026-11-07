@@ -1,10 +1,6 @@
-// Where a dressed figure's hands can go, and how far its arms hang out to clear it. The garments publish
-// their openings (a pocket's mouth, a hem's side, the hip) as anchors; the stands (M3.5c) place the hands
-// against them, and the walk swings the arms clear of the body by the clearance.
-//
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/motion.ts at a1f7246 (`Anchor`,
-// `AnchorKind`, `clearance`), with AF's strict types; the formulas and their order are the source's. Changed:
-// no `pendant` kind (the SNEKPRTY nameplate it marked is not taken).
+// Where a dressed figure's hands can go, and how far its arms hang out to clear it. The garments publish their openings
+// (a pocket's mouth, a hem's side, the hip) as anchors; the stands place the hands against them, and the walk swings the
+// arms clear of the body by the clearance. Changed: no `pendant` kind (the SNEKPRTY nameplate it marked is not taken).
 
 import type { V3 } from '../../../shared/math/math.ts'
 import type { Part } from '../body/mesh.ts'
