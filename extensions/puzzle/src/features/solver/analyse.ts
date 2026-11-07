@@ -12,11 +12,19 @@ import {
 import type { PuzzleScene } from './scene'
 import { createSolver } from './solver'
 
+/**
+ * One way through the puzzle: a name, the action banned to find it (null for the shortest) and its
+ * solution.
+ */
 export interface Route {
   readonly name: string
   readonly banned: string | null
   readonly solution: Solution
 }
+/**
+ * Everything the tools learn about one scene: the solve, its routes, the softlocks, the hint
+ * checks and the key-sets.
+ */
 export interface Analysis {
   readonly solve: SolveResult
   readonly routes: readonly Route[]
@@ -25,6 +33,7 @@ export interface Analysis {
   /** The key-sets the design asks for (the model's `keys`), each with its route. */
   readonly keys: readonly KeyResult[]
 }
+/** A solution's distinct action ids, sorted and joined, to tell routes apart. */
 export const keySet = (s: Solution): string => [...new Set(s.steps.map((x) => x.action))].sort().join(' ')
 
 /** The shortest solution, then one per distinct key-set among the alternatives, in the solver's order. */
@@ -42,6 +51,10 @@ export function routesOf(result: SolveResult): Route[] {
   return routes
 }
 
+/**
+ * Solves a scene and checks its softlocks, hints and key-sets. `entry` limits it to one way in,
+ * and `softlocks: false` skips the softlock search.
+ */
 export function analyse(p: PuzzleScene, opts: { entry?: string; softlocks?: boolean } = {}): Analysis {
   const def =
     opts.entry === undefined ? p.def : { ...p.def, entry: p.def.entry.filter((e) => e.name === opts.entry) }
@@ -74,4 +87,5 @@ export function analyse(p: PuzzleScene, opts: { entry?: string; softlocks?: bool
 /** The hotspot a code is typed at: the one whose action opens the keypad. */
 export const keypadOf = (p: PuzzleScene): string | undefined =>
   p.def.actions.find((a) => !SPECIAL.has(a.at) && a.then.some((e) => 'keypad' in e))?.at
+/** The seconds a solution takes: its actions plus walking between hotspots. */
 export const timing = (p: PuzzleScene, solution: Solution): Budget => budget(solution, p.walk, 3, keypadOf(p))

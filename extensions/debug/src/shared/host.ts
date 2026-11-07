@@ -29,6 +29,10 @@ export interface AudioBoardCue {
   readonly draft: boolean
   readonly events: readonly string[]
 }
+/**
+ * One looping bed on the audio board: its id, its bus, a line about it and whether it is still a
+ * draft.
+ */
 export interface AudioBoardBed {
   readonly id: string
   readonly bus: string
@@ -53,6 +57,10 @@ export interface NetDiagnosticsPort {
 export interface SummaryPort {
   summary(): unknown
 }
+/**
+ * Everything the debug panels can read, handed over by the game with `installDebug`. Every handle
+ * is optional: a panel whose handle is missing says so instead of failing.
+ */
 export interface DebugHost {
   readonly panels: readonly DebugPanelDef[]
   readonly bus?: BusPort | undefined

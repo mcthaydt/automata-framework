@@ -15,6 +15,10 @@ interface KeyBucket {
   at: number
 }
 
+/**
+ * How a set of buckets behaves: the burst a quiet key may take, how long one token takes to come
+ * back, how many keys to remember and the clock.
+ */
 export interface TokenBucketOptions {
   /** How many a quiet key may take at once. */
   readonly burst: number
@@ -30,6 +34,10 @@ export function bucketOptions(bucket: Bucket): { burst: number; refillMs: number
   return { burst: bucket.burst, refillMs: bucket.perSecond > 0 ? 1000 / bucket.perSecond : Infinity }
 }
 
+/**
+ * A token bucket for each key, usually an address, held in memory and capped at a number of keys.
+ * The least recently used key is forgotten first.
+ */
 export class TokenBuckets {
   private readonly buckets = new Map<string, KeyBucket>()
   private readonly options: TokenBucketOptions

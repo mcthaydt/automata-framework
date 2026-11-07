@@ -7,11 +7,15 @@ import type { PuzzleScene } from './scene'
 import { createSolver } from './solver'
 import { condFacts, condItems, used } from './validate'
 
+/**
+ * One arrow of the lock graph: from one lock or item to another, with the action that gets there.
+ */
 export interface LockEdge {
   readonly from: string
   readonly to: string
   readonly label: string
 }
+/** The name of the lock graph's last node, the goal. */
 export const GOAL = 'goal'
 
 /** The change a step makes: facts that moved, items gained (+) and spent (−). */
@@ -40,6 +44,7 @@ const sameStep = (a: Step, b: Step): boolean =>
   (a.code ?? '') === (b.code ?? '') &&
   JSON.stringify(a.pair ?? null) === JSON.stringify(b.pair ?? null)
 
+/** Draws which things unlock which for a scene's routes, as nodes and labelled edges. */
 export function lockGraph(p: PuzzleScene, routes: readonly Route[]): { nodes: string[]; edges: LockEdge[] } {
   const solver = createSolver(p.def, p.model)
   const edges: LockEdge[] = []

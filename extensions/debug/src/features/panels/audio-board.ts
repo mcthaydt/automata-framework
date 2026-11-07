@@ -3,6 +3,10 @@
 import type { AudioContent } from '@automata/audio-synth'
 import type { AudioBoardPort } from '../../shared/host'
 
+/**
+ * What the audio board needs from the game's mixer and synth: play a cue, start or stop a bed and
+ * say which beds are playing.
+ */
 export interface AudioControls {
   play(cue: string): void
   startBed(id: string): void
@@ -10,6 +14,10 @@ export interface AudioControls {
   playing(): readonly string[]
 }
 
+/**
+ * Builds the audio board for the debug overlay from the game's audio content and its controls. The
+ * content is read each time, so a reload shows.
+ */
 export function audioBoard(content: () => AudioContent, controls: AudioControls): AudioBoardPort {
   return {
     cues: () => {

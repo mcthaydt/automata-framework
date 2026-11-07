@@ -8,6 +8,11 @@ import type { AudioContent, Cue, EventRow } from '../../shared/audio.schema'
 import { createMixer, type Listener, type MixerPort } from '../../shared/mixer'
 import { startBed } from '../../shared/synth'
 
+/**
+ * What `createAudioSynth` needs: the audio table (read at each event, so a reload shows), the port
+ * into the game's buses, an optional seed and how many ticks behind the picture an event is still
+ * answered.
+ */
 export interface AudioSynthOptions {
   /** The audio table; read at each event, so a reload shows on the next one. */
   readonly content: () => AudioContent
@@ -16,6 +21,10 @@ export interface AudioSynthOptions {
   readonly staleTicks?: number | undefined
   readonly seed?: number | undefined
 }
+/**
+ * The audio runtime. Tell it what the sim did with `hear`, play what the picture has reached with
+ * `frame`, and start or stop looping beds.
+ */
 export interface AudioSynth {
   /** The events the step at `tick` produced. */
   hear(tick: number, events: readonly SimEvent[]): void
@@ -38,6 +47,10 @@ function placeOf(event: SimEvent): { x: number; z: number } | undefined {
   return typeof point?.x === 'number' && typeof point.z === 'number' ? { x: point.x, z: point.z } : undefined
 }
 
+/**
+ * Starts the audio runtime. Sim events are answered when the drawn picture reaches their tick,
+ * once each, with the cue the event map names.
+ */
 export function createAudioSynth(options: AudioSynthOptions): AudioSynth {
   const beats = new Beats({ staleTicks: options.staleTicks })
   const seed = options.seed ?? 1
@@ -77,6 +90,10 @@ export function createAudioSynth(options: AudioSynthOptions): AudioSynth {
   }
 }
 
+/**
+ * Whether every event a game can produce is answered: `missing` lists events with no row, and
+ * `silent` lists events that are silent on purpose, with the reason.
+ */
 export interface Coverage {
   readonly ok: boolean
   /** Events a game declares that no row answers. */

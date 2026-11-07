@@ -8,6 +8,10 @@
 import { ActionBar, ScreenFrame } from '@automata/framework'
 import { onMount } from 'svelte'
 
+/**
+ * An extra button on the title screen beside Play, such as Settings or Credits. `shortLabel` is
+ * what it says when the bar is narrow.
+ */
 export interface TitleAction {
   readonly id: string
   readonly label: string

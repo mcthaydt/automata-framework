@@ -12,6 +12,10 @@ export interface Transport {
   onMessage(listener: (data: WireData) => void): () => void
 }
 
+/**
+ * How bad a test link is: a seed, the base delay, the jitter, and the chances a message is lost,
+ * arrives twice or is held back so later ones overtake it.
+ */
 export interface LinkOptions {
   readonly seed: number
   /** Every message's base delay. */

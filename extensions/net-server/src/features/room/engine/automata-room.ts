@@ -91,6 +91,11 @@ const nextSerial = (): string => {
   return String(roomSerial)
 }
 
+/**
+ * The Colyseus room behind every game. It seats players and bots, steps the sim on its own clock,
+ * sends snapshots and answers each request once. A game never builds it directly; the server makes
+ * its subclass.
+ */
 export class AutomataRoom extends Room<{ state: RoomInfoState }> {
   /** Set by `roomClassFor`'s subclass before Colyseus calls `onCreate`. */
   protected context: RoomContext | undefined

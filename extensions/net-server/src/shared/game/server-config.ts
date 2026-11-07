@@ -22,6 +22,10 @@ export interface Bucket {
   readonly perSecond: number
 }
 
+/**
+ * Every limit the server enforces: rooms, allowed origins, message size, sockets and matchmaking
+ * per address, and each seat's command budget.
+ */
 export interface ServerLimits {
   /** The most rooms the process holds; one more is refused `SERVER_BUSY`. */
   readonly maxRooms: number
@@ -71,6 +75,10 @@ export interface SignalSource {
   off(event: 'SIGTERM', listener: () => void): unknown
 }
 
+/**
+ * Everything a server process is given: its port, limits, net settings, log, verifier and the test
+ * switches a production server refuses.
+ */
 export interface ServerConfig {
   /** `0` asks the operating system for a free port, as every test does. */
   readonly port: number

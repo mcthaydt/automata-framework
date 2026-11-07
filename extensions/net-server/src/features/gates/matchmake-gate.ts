@@ -59,6 +59,10 @@ function pathOf(url: string | undefined): { path: string; normal: boolean } {
   }
 }
 
+/**
+ * What the matchmaking gate checks a request against: the origin list, whether the server is
+ * draining, the per-address limits, the body cap, the game's version and the clock.
+ */
 export interface MatchmakeGateOptions {
   readonly origins: OriginPolicy
   readonly isDraining: () => boolean
@@ -75,6 +79,10 @@ export interface MatchmakeGateOptions {
 /** Answers the request when it is refused, and says whether it did. Anything not matchmaking passes untouched. */
 export type MatchmakeGate = (request: IncomingMessage, response: ServerResponse) => Promise<boolean>
 
+/**
+ * Builds the gate every matchmaking request passes before Colyseus sees it: origin, draining,
+ * per-address limits, body size and game version. It answers a refused request itself.
+ */
 export function createMatchmakeGate(options: MatchmakeGateOptions): MatchmakeGate {
   const bucket = (limit: Limit): TokenBuckets =>
     new TokenBuckets({

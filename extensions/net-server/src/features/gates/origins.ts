@@ -28,6 +28,10 @@ function isOrigin(entry: string): boolean {
   }
 }
 
+/**
+ * Builds the origin list from exact origins. It refuses an empty list, a blank entry and anything
+ * that is not `scheme://host[:port]`.
+ */
 export function originPolicy(list: readonly string[]): OriginPolicy {
   if (list.length === 0) throw new Error('allowedOrigins is empty: list the origins the game is served from')
   for (const entry of list) {

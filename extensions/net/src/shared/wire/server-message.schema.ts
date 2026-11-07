@@ -24,6 +24,10 @@ export const NET_ERROR_CODES: readonly [
   'UNVERIFIED',
   'OFFLINE',
 ] as const
+/**
+ * Why a room refused a request: refused, the game versions differ, no such room, the room is full,
+ * the server is busy or updating, too many requests, not verified, or offline.
+ */
 export type NetErrorCode = (typeof NET_ERROR_CODES)[number]
 
 /** A seat as a JSON object key: "0" to MAX_SEATS - 1, no leading zero. */
@@ -52,6 +56,10 @@ const answer = z
   .strict()
 const replay = z.object({ t: z.literal('replay') }).strict()
 
+/**
+ * Everything the room may send a client: a snapshot header, the seat you were given, a probe's
+ * answer, the answer to a request (with an error code if it was refused) and a replay header.
+ */
 export type ServerMessage =
   | {
       readonly t: 'snap'
@@ -64,6 +72,7 @@ export type ServerMessage =
   | { readonly t: 'answer'; readonly req: string; readonly error?: NetErrorCode | undefined }
   | { readonly t: 'replay' }
 
+/** The Zod schema of a server message. */
 export const serverMessageSchema: z.ZodType<ServerMessage> = z.discriminatedUnion('t', [
   snap,
   seated,

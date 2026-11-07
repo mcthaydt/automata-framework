@@ -13,6 +13,7 @@ const sceneSchema: z.ZodType<PuzzleScene> = z.strictObject({
   def: puzzleDefShape.nullable(),
 }) as z.ZodType<PuzzleScene>
 
+/** The scene's puzzle as content gives it. `def` is null until the game loads a scene's puzzle. */
 export const PuzzleSceneResource: ResourceDef<z.ZodType<PuzzleScene>> = defineResource(
   'puzzle.scene',
   sceneSchema,

@@ -10,6 +10,10 @@ import type { IncomingMessage } from 'node:http'
 
 const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1'])
 
+/**
+ * The address a request's limits are counted against. It is the connection's peer, or the proxy's
+ * last hop when the peer is the proxy on loopback; a header from anyone else is ignored.
+ */
 export function clientIp(request: IncomingMessage): string {
   const peer = request.socket.remoteAddress ?? 'unknown'
   const forwarded = request.headers['x-forwarded-for']

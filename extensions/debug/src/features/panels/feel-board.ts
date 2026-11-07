@@ -3,6 +3,10 @@
 import type { Feel, FeelContent } from '@automata/feel'
 import type { FeelBoardPort } from '../../shared/host'
 
+/**
+ * Builds the feel board for the debug overlay: every event the feel content reacts to, and a way
+ * to fire one.
+ */
 export function feelBoard(content: () => FeelContent, feel: Feel, tick: () => number): FeelBoardPort {
   return {
     entries: () => [...new Set((content().entry ?? []).map((e) => e.on))],

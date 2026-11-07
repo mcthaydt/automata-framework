@@ -3,6 +3,7 @@
 import { defineExtension, type ExtensionDef } from '@automata/framework/extension'
 import { audioContent } from './audio.content'
 
+/** The audio-synth extension a game opts into. It registers the `audio` content kind. */
 export const audioSynthExtension: ExtensionDef<'audio-synth'> = defineExtension({
   name: 'audio-synth',
   content: [audioContent],

@@ -16,6 +16,10 @@ import {
 import { PuzzleSceneResource, PuzzleState } from './puzzle.resource'
 import { type PuzzleOptions, puzzleVerbSystem } from './puzzle.system'
 
+/**
+ * Makes the puzzle plugin with the game's options: its functions for `call` effects, where facts
+ * live, and what hears noises, dialogues and cutscenes.
+ */
 export function createPuzzlePlugin(options: PuzzleOptions = {}): PluginDef {
   return definePlugin({
     name: 'puzzle',
@@ -37,4 +41,5 @@ export function createPuzzlePlugin(options: PuzzleOptions = {}): PluginDef {
   })
 }
 
+/** The puzzle plugin with no options. */
 export const puzzlePlugin: PluginDef = createPuzzlePlugin()

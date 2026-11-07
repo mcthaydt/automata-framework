@@ -34,6 +34,10 @@ export interface EnvServerBase {
 /** The port when `PORT` is unset. */
 const DEFAULT_PORT = 3000
 
+/**
+ * The server's config read from its environment, or the name of every variable that was missing or
+ * not valid.
+ */
 export type EnvConfigResult =
   | { readonly ok: true; readonly config: ServerConfig }
   | { readonly ok: false; readonly problems: string[] }
@@ -70,6 +74,11 @@ export function serverConfigFromEnv(env: Env, base: EnvServerBase): EnvConfigRes
   }
 }
 
+/**
+ * What `runServerProcess` takes beyond the game's own limits. Every field is injected so a test
+ * can run a whole process without touching the real one: the environment, the log writer and
+ * clock, the process and its exit.
+ */
 export interface ServerProcessOptions extends EnvServerBase {
   /** [`process.env`] */
   readonly env?: Env | undefined

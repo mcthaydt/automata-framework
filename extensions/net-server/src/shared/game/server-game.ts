@@ -28,6 +28,10 @@ export interface BotPolicy {
   commands(view: SimView, seat: number, rng: Rng): readonly CommandIntent[]
 }
 
+/**
+ * What a game gives its server: the sim's plugins and content, how many seats, and optionally the
+ * lobby rules, how a new seat gets its avatar, how a bot plays and when the game is over.
+ */
 export interface ServerGameDef {
   /** The game's sim, the same list its client uses; it must include net's `netPlugin`. */
   readonly plugins: readonly PluginDef[]
@@ -45,6 +49,10 @@ export interface ServerGameDef {
   readonly ended?: (view: SimView, events: readonly SimEvent[]) => boolean
 }
 
+/**
+ * A game's server after `defineServer` has checked it: the game, its seat range, its lobby and a
+ * way to find the commands a client may send.
+ */
 export interface ServerDef {
   readonly kind: 'server'
   readonly game: ServerGameDef

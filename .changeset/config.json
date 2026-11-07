@@ -2,11 +2,30 @@
   "$schema": "https://unpkg.com/@changesets/config@4.0.1/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
-  "fixed": [["@automata/framework", "@automata/content", "@automata/sim", "@automata/tools"]],
+  "fixed": [
+    [
+      "@automata/framework",
+      "@automata/content",
+      "@automata/sim",
+      "@automata/tools",
+      "@automata/physics",
+      "@automata/feel",
+      "@automata/audio-synth",
+      "@automata/debug",
+      "@automata/puzzle",
+      "@automata/net",
+      "@automata/net-ui",
+      "@automata/net-server",
+      "@automata/ui-screens"
+    ]
+  ],
   "linked": [],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [],
-  "privatePackages": { "version": false, "tag": false }
+  "privatePackages": {
+    "version": false,
+    "tag": false
+  }
 }

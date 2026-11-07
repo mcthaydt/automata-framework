@@ -1,5 +1,9 @@
 // Clicks and decay: the checks that need no loudness meter.
 
+/**
+ * How strict the click check is: the smallest second difference that counts (`floor`) and how far
+ * it must stand out from its neighbours (`ratio`).
+ */
 export interface ClickOptions {
   readonly floor?: number
   readonly ratio?: number

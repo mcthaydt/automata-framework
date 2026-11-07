@@ -9,6 +9,7 @@
 import type { ConnectionState, NetRoom } from './net-room'
 import type { RoomInfo } from './room-info'
 
+/** The room and the connection as plain values with one subscription, for a screen to read. */
 export interface RoomStore {
   readonly info: RoomInfo | undefined
   readonly connection: ConnectionState
@@ -18,6 +19,10 @@ export interface RoomStore {
   close(): void
 }
 
+/**
+ * Mirrors a room's info and connection. It starts with what the room shows now, so a store made in
+ * the middle of a room shows it at once.
+ */
 export function createRoomStore(room: Pick<NetRoom, 'info' | 'connection'>): RoomStore {
   // Seeded from the room, so a store made mid-room shows the room at once.
   let info = room.info.get()

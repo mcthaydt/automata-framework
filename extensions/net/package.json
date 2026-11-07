@@ -1,6 +1,6 @@
 {
   "name": "@automata/net",
-  "version": "0.0.0",
+  "version": "0.0.5",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -12,6 +12,9 @@
   "imports": {
     "#src/*": "./src/*"
   },
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": "./src/entries/index.ts",
     "./sim": "./src/entries/sim.ts",
@@ -22,10 +25,29 @@
       "./sim"
     ]
   },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./sim": {
+        "types": "./dist/sim.d.ts",
+        "import": "./dist/sim.js"
+      },
+      "./testing": {
+        "types": "./dist/testing.d.ts",
+        "import": "./dist/testing.js"
+      }
+    }
+  },
   "scripts": {
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "build": "tsdown"
   },
   "dependencies": {
     "@colyseus/sdk": "0.18.5",

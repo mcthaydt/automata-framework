@@ -4,6 +4,10 @@
 import type { Action, PuzzleDef } from './puzzle.schema'
 import type { Cond, Value } from './value.schema'
 
+/**
+ * What the player did, as the interpreter reads it: where it is aimed, the item held, a pair of
+ * items, a typed code or a floor point.
+ */
 export interface Verb {
   readonly at: string
   readonly held?: string | undefined
@@ -22,6 +26,10 @@ export interface Reader {
 const factOf = (reader: Reader, verb: Verb, name: string): Value | undefined =>
   name === 'held' ? (verb.held ?? '') : name === 'code' ? (verb.code ?? '') : reader.fact(name)
 
+/**
+ * Whether a condition holds for this reader and verb. `held` and `code` are facts of the verb
+ * itself.
+ */
 export function holds(reader: Reader, verb: Verb, c: Cond): boolean {
   if ('has' in c) return reader.has(c.has)
   if ('not' in c) return !holds(reader, verb, c.not)

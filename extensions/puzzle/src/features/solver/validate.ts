@@ -5,6 +5,10 @@ import type { Cond } from '../../shared/sim/value.schema'
 import { SPECIAL } from './model'
 import type { PuzzleScene } from './scene'
 
+/**
+ * One problem the checks found: an error or a warning, the rule it breaks, what it is about and
+ * the detail.
+ */
 export interface Finding {
   readonly level: 'error' | 'warning'
   readonly rule: string
@@ -13,13 +17,20 @@ export interface Finding {
 }
 const VIRTUAL = new Set(['held', 'code'])
 
+/** The names of the facts a condition reads. */
 export const condFacts = (c: Cond): string[] =>
   'not' in c ? condFacts(c.not) : 'any' in c ? c.any.flatMap(condFacts) : 'fact' in c ? [c.fact] : []
+/** The names of the items a condition asks about. */
 export const condItems = (c: Cond): string[] =>
   'not' in c ? condItems(c.not) : 'any' in c ? c.any.flatMap(condItems) : 'has' in c ? [c.has] : []
+/** The items an action uses: none, one, or both of a pair. */
 export const used = (a: Action): string[] =>
   a.use === undefined ? [] : typeof a.use === 'string' ? [a.use] : [...a.use]
 
+/**
+ * Checks a scene's puzzle for mistakes the schema cannot see, such as a line with no text or an
+ * item nothing gives. Returns the findings.
+ */
 export function validate(p: PuzzleScene): Finding[] {
   const { def, model } = p
   const out: Finding[] = []

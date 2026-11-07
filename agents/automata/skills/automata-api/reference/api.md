@@ -2,6 +2,879 @@
 
 > Every export of every published `@automata/*` entry point at version 0.0.5, generated from the published `.d.ts` files. An export that is not listed here does not exist in this version.
 
+## `@automata/audio-synth`
+
+### `import { … } from '@automata/audio-synth'`
+
+#### `audioContent` (const)
+
+The `audio` content kind: `content/audio/*.toml` holds a game's cues, beds, event map, ducking
+and music.
+
+```ts
+const audioContent: ContentSchemaDef<"audio", z.ZodType<AudioContent>>;
+```
+
+#### `AudioContent` (interface)
+
+A game's whole `audio` content: master gain, cues, beds, the map from sim events to cues, the
+ducking rules, and the music slots and rules.
+
+```ts
+interface AudioContent {
+  readonly master_gain?: number | undefined;
+  readonly cue?: readonly Cue[] | undefined;
+  readonly bed?: readonly Bed[] | undefined;
+  readonly event?: readonly EventRow[] | undefined;
+  readonly duck?: readonly DuckRule[] | undefined;
+  readonly slot?: readonly Slot[] | undefined;
+  readonly music_rule?: readonly MusicRule[] | undefined;
+}
+```
+
+#### `audioSchema` (const)
+
+The Zod schema of the `audio` content. Every reference (a cue an event plays, a slot a rule
+picks) is checked at its path.
+
+```ts
+const audioSchema: z.ZodType<AudioContent>;
+```
+
+#### `AudioSynth` (interface)
+
+The audio runtime. Tell it what the sim did with `hear`, play what the picture has reached with
+`frame`, and start or stop looping beds.
+
+```ts
+interface AudioSynth {
+  /** The events the step at `tick` produced. */
+  hear(tick: number, events: readonly SimEvent[]): void;
+  /** Plays what the drawn tick has reached. `listener` pans world cues. */
+  frame(drawnTick: number, listener?: Listener | null): {
+    readonly played: readonly string[];
+  };
+  startBed(id: string): void;
+  stopBed(id: string): void;
+  /** The beds playing, in the order they started. */
+  playing(): string[];
+}
+```
+
+#### `audioSynthExtension` (const)
+
+The audio-synth extension a game opts into. It registers the `audio` content kind.
+
+```ts
+const audioSynthExtension: ExtensionDef<"audio-synth">;
+```
+
+#### `AudioSynthOptions` (interface)
+
+What `createAudioSynth` needs: the audio table (read at each event, so a reload shows), the port
+into the game's buses, an optional seed and how many ticks behind the picture an event is still
+answered.
+
+```ts
+interface AudioSynthOptions {
+  /** The audio table; read at each event, so a reload shows on the next one. */
+  readonly content: () => AudioContent;
+  readonly port: MixerPort;
+  /** The most ticks behind the picture an event is still answered (default 30). */
+  readonly staleTicks?: number | undefined;
+  readonly seed?: number | undefined;
+}
+```
+
+#### `Bed` (interface)
+
+A looping bed: steady drones, optional filtered noise and an optional slow pulse.
+
+```ts
+interface Bed {
+  readonly id: string;
+  readonly about?: string | undefined;
+  readonly bus: BusId;
+  /** The bed's own gain, before its fade and bus. */
+  readonly volume: number;
+  readonly drones: readonly {
+    readonly wave: Wave;
+    readonly freq: number;
+    readonly volume?: number | undefined;
+  }[];
+  readonly noise?: {
+    readonly freq: number;
+    readonly q: number;
+    readonly volume: number;
+  } | undefined;
+  /** Amplitude pulse: `rate` Hz, `depth` 0..1. */
+  readonly pulse?: {
+    readonly rate: number;
+    readonly depth: number;
+  } | undefined;
+  readonly draft?: boolean | undefined;
+}
+```
+
+#### `BUSES` (const)
+
+Every audio bus, in order.
+
+```ts
+const BUSES: readonly BusId[];
+```
+
+#### `BusId` (type)
+
+One of the four audio buses: music, sfx, ui and voice.
+
+```ts
+type BusId = "music" | "sfx" | "ui" | "voice";
+```
+
+#### `Candidate` (interface)
+
+A file that would play for a slot, with its final level.
+
+```ts
+interface Candidate {
+  readonly sound: string;
+  readonly volume: number;
+  readonly filter?: FilterId;
+  /** True for a placeholder, false for the slot's own file. */
+  readonly placeholder: boolean;
+}
+```
+
+#### `Condition` (type)
+
+What a music rule asks of one key of the game's state: an exact value, one of a list, or within
+`atLeast` and `atMost`.
+
+```ts
+type Condition = StateValue | readonly StateValue[] | {
+  readonly atMost?: number | undefined;
+  readonly atLeast?: number | undefined;
+};
+```
+
+#### `coverage` (function)
+
+Every event the game declares, with where it comes from, against the event map: cued, silent with a reason, or missing.
+
+```ts
+function coverage(content: Pick<AudioContent, "event">, wanted: ReadonlyMap<string, string>): Coverage;
+```
+
+#### `Coverage` (interface)
+
+Whether every event a game can produce is answered: `missing` lists events with no row, and
+`silent` lists events that are silent on purpose, with the reason.
+
+```ts
+interface Coverage {
+  readonly ok: boolean;
+  /** Events a game declares that no row answers. */
+  readonly missing: readonly {
+    readonly event: string;
+    readonly from: string;
+  }[];
+  readonly silent: readonly {
+    readonly event: string;
+    readonly why: string;
+  }[];
+  readonly events: number;
+  readonly cued: number;
+}
+```
+
+#### `createAudioSynth` (function)
+
+Starts the audio runtime. Sim events are answered when the drawn picture reaches their tick,
+once each, with the cue the event map names.
+
+```ts
+function createAudioSynth(options: AudioSynthOptions): AudioSynth;
+```
+
+#### `createMixer` (function)
+
+Makes a mixer that plays into the buses the game already has. It never makes an audio context or
+a bus of its own.
+
+```ts
+function createMixer({ port, ducks }: MixerOptions): Mixer;
+```
+
+#### `createMusicDirector` (function)
+
+Turns the rows' answer into the slot to play. A slot with a `linger` holds that many seconds after its state ends, so a
+pursuer losing the player for a moment does not cut the chase. Silence and a `relief` slot take over at once, and `hold`
+(an overlay) keeps what plays and leaves the linger clock where it was. Every other change is at once.
+
+```ts
+function createMusicDirector(options: MusicDirectorOptions): MusicDirector;
+```
+
+#### `Cue` (interface)
+
+A short sound as a recipe of voices, played on a bus. A world cue is panned and made quieter
+with distance from the listener, and a draft cue is a placeholder until the audio pass replaces
+it.
+
+```ts
+interface Cue {
+  readonly id: string;
+  /** One line: what the player hears, and when. */
+  readonly about?: string | undefined;
+  readonly bus: BusId;
+  readonly voices: readonly Voice[];
+  /** A core sound alias played through `Audio.sound` in place of the voices once it is loaded. */
+  readonly sound?: string | undefined;
+  /** A world sound: panned and attenuated from the listener when the caller passes a position. */
+  readonly world?: boolean | undefined;
+  /** Played on its bus without the ducking that bus normally causes. */
+  readonly no_duck?: boolean | undefined;
+  /** Not final: a placeholder until the audio pass replaces it. */
+  readonly draft?: boolean | undefined;
+}
+```
+
+#### `cueLength` (function)
+
+Seconds from a cue's start to its last voice's end (a tone rings 0.05 s past its ramp).
+
+```ts
+function cueLength(cue: Pick<Cue, "voices">): number;
+```
+
+#### `dbToGain` (const)
+
+Turns decibels into a gain multiplier: -6 dB is about half.
+
+```ts
+const dbToGain: (db: number) => number;
+```
+
+#### `DISTANCE` (const)
+
+Distance model: full level within `ref` metres, then ref / (ref + rolloff · (d − ref)).
+
+```ts
+const DISTANCE: {
+  readonly ref: number;
+  readonly rolloff: number;
+};
+```
+
+#### `DuckRule` (interface)
+
+While a cue on `bus` plays, each bus in `duck` drops by `db`, then recovers.
+
+```ts
+interface DuckRule {
+  readonly bus: BusId;
+  readonly duck: readonly BusId[];
+  readonly db: number;
+  readonly attack: number;
+  readonly release: number;
+}
+```
+
+#### `EventRow` (interface)
+
+A sim event id or a `*` pattern, and the cue it plays or the reason it plays none.
+
+```ts
+interface EventRow {
+  readonly on: string;
+  readonly cue?: string | undefined;
+  readonly silent?: string | undefined;
+}
+```
+
+#### `Fallback` (interface)
+
+A music file standing in for a slot: `volume` multiplies the slot's, `filter` colours it.
+
+```ts
+interface Fallback {
+  readonly sound: string;
+  readonly volume?: number | undefined;
+  readonly filter?: FilterId | undefined;
+}
+```
+
+#### `FilterId` (type)
+
+The colour a music file can be given. Only `radio` exists.
+
+```ts
+type FilterId = "radio";
+```
+
+#### `FILTERS` (const)
+
+The cut-off frequencies of each filter: `radio` removes everything below 450 Hz and above 3000
+Hz.
+
+```ts
+const FILTERS: Readonly<Record<FilterId, {
+  readonly highpass: number;
+  readonly lowpass: number;
+}>>;
+```
+
+#### `holds` (function)
+
+Whether `value` satisfies `want`: equal, one of a list, or within `atLeast`/`atMost`.
+
+```ts
+function holds(want: Condition, value: StateValue | null | undefined): boolean;
+```
+
+#### `Listener` (interface)
+
+Where the ears are: the camera's ground position and yaw (0 looks toward −z, right is +x).
+
+```ts
+interface Listener {
+  readonly x: number;
+  readonly z: number;
+  readonly yaw: number;
+}
+```
+
+#### `Mixer` (interface)
+
+Plays cues on their buses with ducking and, for world cues, panning and distance. `listener`
+says where the ears are.
+
+```ts
+interface Mixer {
+  play(cue: Cue, options?: PlayOptions): void;
+  listener(l: Listener | null): void;
+}
+```
+
+#### `MixerOptions` (interface)
+
+What `createMixer` needs: the port into the game's audio buses and the ducking rules.
+
+```ts
+interface MixerOptions {
+  readonly port: MixerPort;
+  readonly ducks: readonly DuckRule[];
+}
+```
+
+#### `MixerPort` (interface)
+
+What the mixer needs of core: a node to connect a source to for a bus, and a duck.
+
+```ts
+interface MixerPort {
+  /** `AudioBuses.input(bus)`: the node a source connects to so that it plays on `bus`. */
+  input(bus: BusId): AudioNode;
+  /** `Audio.duck(bus, amount, seconds)`: takes `bus` down by `amount` (0..1) for `seconds`. */
+  duck(bus: BusId, amount: number, seconds: number): void;
+}
+```
+
+#### `MusicDirector` (interface)
+
+Chooses which music slot plays as the game's state changes. `step` moves it forward by some
+seconds and `slot` is what plays now, or nothing.
+
+```ts
+interface MusicDirector {
+  /** Steps `dt` seconds with `state`; returns the slot to play (null for none). */
+  step(state: MusicState, dt: number): string | null;
+  readonly slot: string | null;
+}
+```
+
+#### `MusicDirectorOptions` (interface)
+
+The slots and rules a music director chooses from.
+
+```ts
+interface MusicDirectorOptions {
+  readonly slots: readonly Slot[];
+  readonly rules: readonly MusicRule[];
+}
+```
+
+#### `MusicRule` (interface)
+
+Picks a music slot when every key in `when` holds. The slot is a slot id, `hold` to keep what
+plays or `silence` to play nothing.
+
+```ts
+interface MusicRule {
+  /** Every named key must hold: equal to a value, one of a list, or within `atLeast`/`atMost`. */
+  readonly when: Readonly<Record<string, Condition>>;
+  /** A slot id, `hold` (keep what plays) or `silence` (play nothing). */
+  readonly slot: string;
+  readonly why?: string | undefined;
+}
+```
+
+#### `MusicState` (type)
+
+What the rules read: a flat record. A key the state lacks never satisfies a condition that names it.
+
+```ts
+type MusicState = Readonly<Record<string, StateValue | null | undefined>>;
+```
+
+#### `noiseBuffer` (function)
+
+Seeded white noise (the Park–Miller generator, seed 7): every hiss is the same noise.
+
+```ts
+function noiseBuffer(ctx: BaseAudioContext, seconds: number): AudioBuffer;
+```
+
+#### `PAN_WIDTH` (const)
+
+How far a sound fully to one side pans (1 would silence the other ear).
+
+```ts
+const PAN_WIDTH = .8;
+```
+
+#### `playCue` (function)
+
+Plays a cue's voices at `when`.
+
+```ts
+function playCue(ctx: BaseAudioContext, out: AudioNode, cue: Pick<Cue, "voices">, when?: number, random?: () => number): void;
+```
+
+#### `PlayOptions` (interface)
+
+How to play one cue: where it sounds, when to start it in audio-context seconds, a random source
+and how long it holds a duck.
+
+```ts
+interface PlayOptions {
+  readonly at?: {
+    readonly x: number;
+    readonly z: number;
+  } | undefined;
+  /** Context seconds; now by default. */
+  readonly when?: number | undefined;
+  readonly random?: (() => number) | undefined;
+  /** Seconds the cue holds a duck; the cue's length by default. */
+  readonly length?: number | undefined;
+}
+```
+
+#### `playVoice` (function)
+
+Schedules one voice at `when` (context seconds) into `out`. `random` picks a hiss centre from a range.
+
+```ts
+function playVoice(ctx: BaseAudioContext, out: AudioNode, voice: Voice, when: number, random?: () => number): void;
+```
+
+#### `resolveSlot` (function)
+
+What plays for `slot`, best first: its own file, then each fallback that exists. Empty when none does (silent).
+
+```ts
+function resolveSlot(slot: Slot, available: ReadonlySet<string>): Candidate[];
+```
+
+#### `rowFor` (const)
+
+The first row of the event map that matches `event`.
+
+```ts
+const rowFor: (content: Pick<AudioContent, "event">, event: string) => EventRow | undefined;
+```
+
+#### `Slot` (interface)
+
+One piece of music the game can switch to. It loops or plays once, has a level, and may fade in,
+cross-fade at its seam, delay, linger after its state ends or be a place of relief.
+
+```ts
+interface Slot {
+  readonly id: string;
+  readonly about?: string | undefined;
+  /** `loop` repeats until the state moves on; `once` plays through and then the slot is silent until it is wanted again. */
+  readonly mode: "loop" | "once";
+  /** Its level, 0..1, before the music bus's volume setting. */
+  readonly volume: number;
+  /** The core sound alias of its own file; its id when unset. */
+  readonly sound?: string | undefined;
+  /** Seconds to crossfade in (2 by default). */
+  readonly fade?: number | undefined;
+  /** Seconds of crossfade at a loop's seam. */
+  readonly seam?: number | undefined;
+  /** Seconds before it starts to sound, so an effect on the same moment lands first. */
+  readonly delay?: number | undefined;
+  /** A place of relief: a chase does not linger into it. */
+  readonly relief?: boolean | undefined;
+  /** Diegetic: its file runs on while the slot is not heard. */
+  readonly resume?: boolean | undefined;
+  /** Seconds the slot holds after its state ends, in play only. */
+  readonly linger?: number | undefined;
+  /** The placeholders to play while the slot's own file does not exist, best first. */
+  readonly fallback?: readonly Fallback[] | undefined;
+}
+```
+
+#### `slotFor` (function)
+
+The slot `state` calls for: the first row that matches wins, so the order is the priority. `hold` and `silence` come back as themselves.
+
+```ts
+function slotFor(rules: readonly MusicRule[], state: MusicState): string | undefined;
+```
+
+#### `slotsFor` (function)
+
+The loops the rows play when `state[key]` is `value`, best first: for loading ahead of the scene.
+
+```ts
+function slotsFor(rules: readonly MusicRule[], slots: readonly Slot[], key: string, value: StateValue): string[];
+```
+
+#### `Spatial` (interface)
+
+How a world sound reaches the listener: a pan from -0.8 (left) to 0.8 (right) and a gain that
+falls with distance.
+
+```ts
+interface Spatial {
+  readonly pan: number;
+  readonly gain: number;
+}
+```
+
+#### `spatial` (function)
+
+Pan and distance gain of a world sound at `at` for `listener`.
+
+```ts
+function spatial(listener: Listener, at: {
+  readonly x: number;
+  readonly z: number;
+}): Spatial;
+```
+
+#### `startBed` (function)
+
+Starts a bed into `out`; returns its stop function.
+
+```ts
+function startBed(ctx: BaseAudioContext, out: AudioNode, bed: Bed): (at?: number) => void;
+```
+
+#### `StateValue` (type)
+
+A value a music rule can test: text, a number or a yes-or-no.
+
+```ts
+type StateValue = string | number | boolean;
+```
+
+#### `Voice` (interface)
+
+A tone (`tone`, `from`, `to`) or a hiss (`hiss`, `q`), `at` seconds in, `length` long, at `volume`.
+
+```ts
+interface Voice {
+  readonly tone?: Wave | undefined;
+  readonly from?: number | undefined;
+  readonly to?: number | undefined;
+  readonly hiss?: number | readonly [number, number] | undefined;
+  readonly q?: number | undefined;
+  readonly at?: number | undefined;
+  readonly length: number;
+  readonly volume: number;
+}
+```
+
+#### `Wave` (type)
+
+The shape of a tone: sine, square, sawtooth or triangle.
+
+```ts
+type Wave = "sine" | "square" | "sawtooth" | "triangle";
+```
+
+#### `WAVES` (const)
+
+Every tone shape.
+
+```ts
+const WAVES: readonly Wave[];
+```
+
+### `import { … } from '@automata/audio-synth/browser'`
+
+#### `Renderers` (interface)
+
+The offline renderers the page offers the audio pipeline: a cue, a bed, a mix and the ducking
+demonstration, each answering plain number arrays.
+
+```ts
+interface Renderers {
+  cue(content: AudioContent, id: string, options: CueRenderOptions): Promise<number[][]>;
+  bed(content: AudioContent, id: string, seconds: number): Promise<number[][]>;
+  mix(content: AudioContent, mix: MixSpec): Promise<number[][]>;
+  duck(content: AudioContent, options: DuckRenderOptions): Promise<number[][]>;
+}
+```
+
+### `import { … } from '@automata/audio-synth/measure'`
+
+#### `ClickOptions` (interface)
+
+How strict the click check is: the smallest second difference that counts (`floor`) and how far
+it must stand out from its neighbours (`ratio`).
+
+```ts
+interface ClickOptions {
+  readonly floor?: number;
+  readonly ratio?: number;
+}
+```
+
+#### `clicks` (function)
+
+Clicks: a second difference that stands out of everything around it. A sample is a click when
+|x[n] - 2x[n-1] + x[n-2]| exceeds `floor` and `ratio` times the largest second difference in the 30 ms on either side (the 1 ms
+around the sample left out). A waveform's own edges (a saw's reset, a square's step, from 34 Hz up) repeat inside that window and
+pass, and so does noise. A sound starting out of silence (the 30 ms before it under -80 dBFS) is an attack, not a click:
+percussive cues start hard on purpose. An isolated step, dropout or cut inside a sound does not pass.
+
+```ts
+function clicks(x: Float32Array, rate: number, { floor, ratio }?: ClickOptions): number[];
+```
+
+#### `decay` (function)
+
+RT60 measured from a decaying tail starting at `from`: the level in 10 ms windows, a straight line fitted to it from 5 dB below
+its start to 25 dB below (a T20), extended to 60 dB. `null` when the tail is too short or too quiet to measure.
+
+```ts
+function decay(x: ArrayLike<number>, from: number, rate: number): number | null;
+```
+
+#### `decodeWav` (function)
+
+Decodes a 16-bit PCM WAV. Throws on anything else: the pipeline writes only this.
+
+```ts
+function decodeWav(bytes: Uint8Array): Wav;
+```
+
+#### `encodeWav` (function)
+
+Encodes `channels` (equal length, -1..1; anything outside is clamped) as a 16-bit PCM WAV.
+
+```ts
+function encodeWav(channels: readonly Float32Array[], sampleRate: number): Uint8Array;
+```
+
+#### `integratedLoudness` (function)
+
+Integrated loudness in LUFS (gated), `null` when the signal is shorter than one 400 ms block, `-Infinity` when all is gated out.
+
+```ts
+function integratedLoudness(channels: readonly Float32Array[], rate: number): number | null;
+```
+
+#### `rms` (function)
+
+The root mean square of `x[from..to)`.
+
+```ts
+function rms(x: ArrayLike<number>, from: number, to: number): number;
+```
+
+#### `truePeak` (function)
+
+True peak in dBTP: the sample peak of a 4x windowed-sinc upsampling. `-Infinity` for silence.
+
+```ts
+function truePeak(channels: readonly Float32Array[]): number;
+```
+
+#### `Wav` (interface)
+
+A decoded WAV file: its sample rate and one array of samples between -1 and 1 for each channel.
+
+```ts
+interface Wav {
+  readonly sampleRate: number;
+  readonly channels: Float32Array[];
+}
+```
+
+### `import { … } from '@automata/audio-synth/render'`
+
+#### `CueRenderOptions` (interface)
+
+How to render one cue: how many seconds, and optionally where it sounds and where the listener
+is, for a world cue.
+
+```ts
+interface CueRenderOptions {
+  readonly seconds: number;
+  /** Where the cue sounds and where the listener is, to render it panned and attenuated (a world cue only). */
+  readonly place?: {
+    readonly at: {
+      readonly x: number;
+      readonly z: number;
+    };
+    readonly listener: Listener;
+  } | undefined;
+}
+```
+
+#### `DuckRenderOptions` (interface)
+
+How to render the ducking demonstration: its length, when the line starts, which cue is the line
+and which bed to listen on.
+
+```ts
+interface DuckRenderOptions {
+  readonly seconds: number;
+  /** When the line starts. */
+  readonly at: number;
+  /** The cue that ducks, or `null` for the same render with nothing to duck it. */
+  readonly line: string | null;
+  /** The bed to listen to ducking on; the first bed by default. */
+  readonly bed?: string | undefined;
+}
+```
+
+#### `MixSpec` (interface)
+
+A mix to render: its length in seconds, the bed under it and the cues to play at which times.
+
+```ts
+interface MixSpec {
+  readonly seconds: number;
+  readonly bed: string | null;
+  readonly sequence: readonly {
+    readonly t: number;
+    readonly cue: string;
+  }[];
+}
+```
+
+#### `OfflineLike` (interface)
+
+The part of `OfflineAudioContext` a render needs.
+
+```ts
+interface OfflineLike extends BaseAudioContext {
+  startRendering(): Promise<{
+    getChannelData(channel: number): Float32Array;
+  }>;
+}
+```
+
+#### `OfflinePort` (interface)
+
+A mixer port for an offline render. Set `at` to the context time before each `play` so ducks
+start there.
+
+```ts
+interface OfflinePort extends MixerPort {
+  /** The context time ducks start at; set before each `play` (a render schedules everything before it starts). */
+  at: number | undefined;
+}
+```
+
+#### `offlinePort` (function)
+
+Core's buses for an offline render: a gain per bus into the destination, and ducks as gain automation. Ducks do not nest:
+overlapping ducks on one bus each automate the same param, the last scheduled winning where they cross.
+
+```ts
+function offlinePort(ctx: BaseAudioContext, { release }?: OfflinePortOptions): OfflinePort;
+```
+
+#### `OfflinePortOptions` (interface)
+
+How long a duck takes to let go after its hold, in seconds.
+
+```ts
+interface OfflinePortOptions {
+  /** Seconds a duck takes to let go after its hold (the rule's release is not part of the port's call). */
+  readonly release?: number;
+}
+```
+
+#### `renderBed` (function)
+
+A bed for `seconds`.
+
+```ts
+function renderBed(env: RenderEnv, content: AudioContent, id: string, seconds: number): Promise<Float32Array[]>;
+```
+
+#### `renderCue` (function)
+
+One cue through the mixer, alone.
+
+```ts
+function renderCue(env: RenderEnv, content: AudioContent, id: string, options: CueRenderOptions): Promise<Float32Array[]>;
+```
+
+#### `renderDuck` (function)
+
+A bed, with `line` played at `at`: the ducking demonstration.
+
+```ts
+function renderDuck(env: RenderEnv, content: AudioContent, options: DuckRenderOptions): Promise<Float32Array[]>;
+```
+
+#### `RenderEnv` (interface)
+
+What an offline render needs from the page: a function that makes an offline audio context, and
+optionally a sample rate.
+
+```ts
+interface RenderEnv {
+  /** `(channels, frames, sampleRate) => new OfflineAudioContext(...)`. */
+  readonly make: (channels: number, frames: number, rate: number) => OfflineLike;
+  readonly rate?: number;
+}
+```
+
+#### `renderMix` (function)
+
+A sequence of cues over a bed: the bus and gameplay mix the loudness targets apply to.
+
+```ts
+function renderMix(env: RenderEnv, content: AudioContent, mix: MixSpec): Promise<Float32Array[]>;
+```
+
+#### `SAMPLE_RATE` (const)
+
+The sample rate offline renders use: 48000 Hz.
+
+```ts
+const SAMPLE_RATE = 48e3;
+```
+
+#### `seeded` (function)
+
+A seeded random (mulberry32), so a crackle renders the same every time.
+
+```ts
+function seeded(seed?: number): () => number;
+```
+
 ## `@automata/content`
 
 ### `import { … } from '@automata/content'`
@@ -1963,6 +2836,752 @@ The import path of the compiled content: `content`, `contentHash`, `simContent` 
 
 ```ts
 const VIRTUAL_MODULE_ID = "virtual:automata/content";
+```
+
+## `@automata/debug`
+
+### `import { … } from '@automata/debug'`
+
+#### `audioBoard` (function)
+
+Builds the audio board for the debug overlay from the game's audio content and its controls. The
+content is read each time, so a reload shows.
+
+```ts
+function audioBoard(content: () => AudioContent, controls: AudioControls): AudioBoardPort;
+```
+
+#### `AudioBoardBed` (interface)
+
+One looping bed on the audio board: its id, its bus, a line about it and whether it is still a
+draft.
+
+```ts
+interface AudioBoardBed {
+    readonly id: string;
+    readonly bus: string;
+    readonly about?: string;
+    readonly draft: boolean;
+}
+```
+
+#### `AudioBoardCue` (interface)
+
+One cue on the audio board: its bus, its line, and the sim events that play it.
+
+```ts
+interface AudioBoardCue {
+    readonly id: string;
+    readonly bus: string;
+    readonly about?: string;
+    readonly draft: boolean;
+    readonly events: readonly string[];
+}
+```
+
+#### `AudioBoardPort` (interface)
+
+The audio board: every cue and bed, and a way to play them through the mixer the game installed.
+
+```ts
+interface AudioBoardPort {
+    cues(): readonly AudioBoardCue[];
+    beds(): readonly AudioBoardBed[];
+    play(cue: string): void;
+    startBed(id: string): void;
+    stopBed(id: string): void;
+    /** The beds playing now. */
+    playing(): readonly string[];
+}
+```
+
+#### `AudioControls` (interface)
+
+What the audio board needs from the game's mixer and synth: play a cue, start or stop a bed and
+say which beds are playing.
+
+```ts
+interface AudioControls {
+    play(cue: string): void;
+    startBed(id: string): void;
+    stopBed(id: string): void;
+    playing(): readonly string[];
+}
+```
+
+#### `BusPort` (interface)
+
+The presentation bus, as far as the debug panels need it.
+
+```ts
+interface BusPort {
+    subscribe(name: string, listener: (fact: unknown) => void): () => void;
+}
+```
+
+#### `createOverlay` (function)
+
+Makes the overlay's state. The dev key (backquote) or a three-finger tap toggles it and Escape
+closes it. Opening it pauses nothing.
+
+```ts
+function createOverlay(options: OverlayOptions): Overlay;
+```
+
+#### `debugExtension` (const)
+
+The debug extension a game opts into in dev and `--debug` builds only. It draws the overlay in
+`hud.overlay`, with the panels from the host the game installed. Add it behind
+`__AUTOMATA_DEBUG__` so a release build leaves it out.
+
+```ts
+const debugExtension: ExtensionDef<'debug'>;
+```
+
+#### `DebugHost` (interface)
+
+Everything the debug panels can read, handed over by the game with `installDebug`. Every handle
+is optional: a panel whose handle is missing says so instead of failing.
+
+```ts
+interface DebugHost {
+    readonly panels: readonly DebugPanelDef[];
+    readonly bus?: BusPort | undefined;
+    /** The facts to record for the bus panel; the runtime's by default. */
+    readonly facts?: readonly string[] | undefined;
+    readonly sim?: SimProbe | undefined;
+    readonly feel?: FeelBoardPort | undefined;
+    readonly audio?: AudioBoardPort | undefined;
+    readonly net?: NetDiagnosticsPort | undefined;
+    /** Each extension's summary, by the id of its `summaryPanel` (DBG-D4). */
+    readonly summaries?: Readonly<Record<string, SummaryPort>> | undefined;
+    /** Flow's existing pause, for the overlay's "Pause the game" toggle. */
+    readonly setPaused?: ((paused: boolean) => void) | undefined;
+    /** The game's test driver (DBG-D3): named functions a Playwright playthrough calls, exposed as `window.__automataDebug`. */
+    readonly driver?: Readonly<Record<string, (...args: never[]) => unknown>> | undefined;
+}
+```
+
+#### `DebugOverlay` (const)
+
+The debug overlay. The dev key or a three-finger tap opens it; it shows the host's panels as tabs in a scroll region, and opening it pauses nothing. If one panel fails, its tab shows the error and the others keep working.
+
+```ts
+const DebugOverlay: import("svelte").Component<Record<string, never>, {}, "">;
+type DebugOverlay = ReturnType<typeof DebugOverlay>;
+```
+
+#### `DebugPanelDef` (interface)
+
+One tab of the debug overlay: a kebab-case id that is not used twice, a title (debug words are
+not translated) and the component that draws it.
+
+```ts
+interface DebugPanelDef {
+    readonly id: string;
+    readonly title: string;
+    readonly component: UiComponent;
+}
+```
+
+#### `debugPanels` (function)
+
+Checks the panels and returns them in the order given. Throws on a bad id, a repeated id or an empty title.
+
+```ts
+function debugPanels(...panels: readonly DebugPanelDef[]): readonly DebugPanelDef[];
+```
+
+#### `FactEntry` (interface)
+
+One fact heard on the presentation bus: its name and one line of text.
+
+```ts
+interface FactEntry {
+    readonly name: string;
+    readonly text: string;
+}
+```
+
+#### `FactLog` (interface)
+
+The bus panel's record of the last facts heard. Read it with `entries`, hear changes with
+`subscribe` and stop listening with `dispose`.
+
+```ts
+interface FactLog {
+    entries(): readonly FactEntry[];
+    subscribe(listener: () => void): () => void;
+    dispose(): void;
+}
+```
+
+#### `feelBoard` (function)
+
+Builds the feel board for the debug overlay: every event the feel content reacts to, and a way
+to fire one.
+
+```ts
+function feelBoard(content: () => FeelContent, feel: Feel, tick: () => number): FeelBoardPort;
+```
+
+#### `FeelBoardPort` (interface)
+
+The feel board: every event the content reacts to, and a way to fire one.
+
+```ts
+interface FeelBoardPort {
+    entries(): readonly string[];
+    fire(on: string): void;
+}
+```
+
+#### `installDebug` (function)
+
+Makes `host` the one the overlay shows, and its driver (if any) `window.__automataDebug`, with `panels()` added. Returns a
+dispose that removes both, unless a later install has replaced them.
+
+```ts
+function installDebug(host: DebugHost): () => void;
+```
+
+#### `NetDiagnosticsPort` (interface)
+
+The net diagnostics: a summary object (`NetDiagnostics.summary()`), read as rows.
+
+```ts
+interface NetDiagnosticsPort {
+    summary(): unknown;
+}
+```
+
+#### `Overlay` (interface)
+
+The overlay's state and its dev-input rules, apart from any view: toggle, close, pick a tab,
+pause, and handle a key or a touch count.
+
+```ts
+interface Overlay {
+    state(): OverlayState;
+    toggle(): void;
+    close(): void;
+    select(id: string): void;
+    setPaused(paused: boolean): void;
+    /** Returns true when the key was the overlay's (the caller then stops it reaching the game). */
+    key(key: string): boolean;
+    /** Returns true when the touch count opened or closed the overlay. */
+    touch(fingers: number): boolean;
+    subscribe(listener: (state: OverlayState) => void): () => void;
+}
+```
+
+#### `OverlayOptions` (interface)
+
+What the overlay starts with: its panels, and the function that pauses the game when the pause
+toggle is used.
+
+```ts
+interface OverlayOptions {
+    readonly panels: readonly DebugPanelDef[];
+    readonly setPaused?: ((paused: boolean) => void) | undefined;
+}
+```
+
+#### `OverlayState` (interface)
+
+Whether the overlay is open, which tab it shows and whether the game is paused from it.
+
+```ts
+interface OverlayState {
+    readonly open: boolean;
+    /** The shown panel's id; null when there are no panels. */
+    readonly tab: string | null;
+    readonly paused: boolean;
+}
+```
+
+#### `recordFacts` (function)
+
+Starts listening for the named facts on the bus and keeps the last `limit` of them (50 by
+default). It only listens: it never sends anything.
+
+```ts
+function recordFacts(bus: BusPort, names: readonly string[], limit?: number): FactLog;
+```
+
+#### `RUNTIME_FACTS` (const)
+
+The facts the runtime publishes (core's `RuntimeFacts`), for a host that does not name its own.
+
+```ts
+const RUNTIME_FACTS: readonly string[];
+```
+
+#### `shippedPanels` (const)
+
+The panels debug comes with: Sim, Bus, Feel, Audio and Net.
+
+```ts
+const shippedPanels: readonly DebugPanelDef[];
+```
+
+#### `SimProbe` (interface)
+
+What the sim panel shows, read each time the panel refreshes.
+
+```ts
+interface SimProbe {
+    tick(): number;
+    entities(): number;
+    /** The last state hash, as a string. */
+    hash(): string;
+    /** Milliseconds the last step took. */
+    stepMs(): number;
+}
+```
+
+#### `summaryPanel` (function)
+
+A panel for an extension's summary: it lists `host.summaries[id].summary()` as rows. `debug` imports no extension, so
+each extension exports a function that turns its state into a plain object and the game hands it over under this id.
+
+```ts
+function summaryPanel(id: string, title: string): DebugPanelDef;
+```
+
+#### `SummaryPort` (interface)
+
+An extension's debug summary (DBG-D4): a plain object the extension builds from its own state, shown as rows by `summaryPanel`.
+
+```ts
+interface SummaryPort {
+    summary(): unknown;
+}
+```
+
+#### `SummaryRow` (interface)
+
+One row of a diagnostics summary: a dotted name and its value as text.
+
+```ts
+interface SummaryRow {
+    readonly name: string;
+    readonly value: string;
+}
+```
+
+#### `summaryRows` (function)
+
+Turns a diagnostics summary into rows: nested objects get dotted names, a distribution (count,
+last, min, p50, p95, max) takes one row and long fractions are rounded. Anything that is not an
+object gives no rows.
+
+```ts
+function summaryRows(summary: unknown, prefix?: string): SummaryRow[];
+```
+
+### `import { … } from '@automata/debug/vite'`
+
+#### `debugBuild` (function)
+
+A Vite plugin that sets `__AUTOMATA_DEBUG__`. Pass `true` in dev and `--debug` builds and
+`false` in a release build, so a release bundle leaves the overlay out.
+
+```ts
+function debugBuild(debug: boolean): Plugin;
+```
+
+## `@automata/feel`
+
+### `import { … } from '@automata/feel'`
+
+#### `AudioRow` (interface)
+
+An audio cue to play, named by its id.
+
+```ts
+interface AudioRow {
+  readonly cue: string;
+}
+```
+
+#### `Beat` (interface)
+
+A sim event with the tick that produced it.
+
+```ts
+interface Beat {
+  readonly tick: number;
+  readonly event: SimEvent;
+}
+```
+
+#### `Beats` (class)
+
+Events held until the drawn picture reaches them, each answered once even when a batch is
+delivered twice.
+
+```ts
+class Beats {
+  private pending;
+  private readonly seen;
+  private readonly seenAt;
+  private readonly stale;
+  constructor(options?: BeatsOptions);
+  /** Notes the events a step at `tick` produced. An event is told apart by its tick and place in the batch. */
+  noteAt(tick: number, events: readonly SimEvent[]): void;
+  /**
+   * The events the drawn tick has reached, oldest first; each is given once. One the picture passed more than the stale
+   * window ago is dropped unanswered: a tab back from the background would otherwise play every pop it missed in one frame.
+   */
+  reach(drawnTick: number): Beat[];
+  /** Batches still remembered. */
+  get remembered(): number;
+  clear(): void;
+}
+```
+
+#### `BeatsOptions` (interface)
+
+How late an event may still be answered, in ticks behind the picture.
+
+```ts
+interface BeatsOptions {
+  /** The most ticks behind the picture an event is still answered (default 30). */
+  readonly staleTicks?: number | undefined;
+}
+```
+
+#### `CameraRow` (interface)
+
+A camera shake an entry causes.
+
+```ts
+interface CameraRow {
+  /** Trauma 0..1: the shake is its square. */
+  readonly shake: number;
+}
+```
+
+#### `createFeel` (function)
+
+Starts the feel runtime. Events are answered when the drawn picture reaches their tick, once
+each, and the same events, settings and frame times always give the same frames.
+
+```ts
+function createFeel(options: FeelOptions): Feel;
+```
+
+#### `DEFAULT_LIMITS` (const)
+
+The limits used when `feel.toml` sets none.
+
+```ts
+const DEFAULT_LIMITS: Limits;
+```
+
+#### `DEFAULT_SETTINGS` (const)
+
+The settings a new player starts with: flashing on, rumble on, full strength.
+
+```ts
+const DEFAULT_SETTINGS: FeelSettings;
+```
+
+#### `EntityRef` (type)
+
+A view the sim names, by its stable id.
+
+```ts
+type EntityRef = number;
+```
+
+#### `Feel` (interface)
+
+The feel runtime. Tell it what the sim did with `hear`, then ask for the frame to draw with
+`frame` or `frameNow`. It never writes the sim.
+
+```ts
+interface Feel {
+  /** The events the step at `tick` produced (the game's loop passes them as it gets them: FE-D1). */
+  hear(tick: number, events: readonly SimEvent[]): void;
+  /** The frame to draw: `frameSeconds` after the last. */
+  frame(drawnTick: number, alpha: number, frameSeconds: number): FeelFrame;
+  /** The same, its seconds read from the clock: the time since the last call, or 0 on the first. */
+  frameNow(drawnTick: number, alpha: number): FeelFrame;
+}
+```
+
+#### `feelContent` (const)
+
+The `feel` content kind: `content/feel.toml` is the game's feel table.
+
+```ts
+const feelContent: ContentSchemaDef<"feel", z.ZodType<FeelContent>>;
+```
+
+#### `FeelContent` (interface)
+
+The whole `feel.toml`: the limits, the squash spring and the entries that answer sim events.
+
+```ts
+interface FeelContent {
+  readonly limits?: { readonly [K in keyof Limits]?: Limits[K] | undefined; } | undefined;
+  readonly springs?: {
+    readonly squash?: SpringTuning | undefined;
+  } | undefined;
+  readonly entry?: readonly FeelEntry[] | undefined;
+}
+```
+
+#### `FeelEntry` (interface)
+
+How one sim event feels. `on` is an event id or a pattern with `*` for any run of characters,
+and the channels say what happens: camera, pose, visual, word, haptic and audio.
+
+```ts
+interface FeelEntry {
+  readonly on: string;
+  readonly camera?: readonly CameraRow[] | undefined;
+  readonly pose?: readonly PoseRow[] | undefined;
+  readonly visual?: readonly VisualRow[] | undefined;
+  readonly word?: readonly WordRow[] | undefined;
+  readonly haptic?: readonly HapticRow[] | undefined;
+  readonly audio?: readonly AudioRow[] | undefined;
+}
+```
+
+#### `feelExtension` (const)
+
+The feel extension a game opts into. It is presentation only and adds no sim plugin, so a game's
+sim hash is the same with or without it.
+
+```ts
+const feelExtension: ExtensionDef<"feel">;
+```
+
+#### `FeelFrame` (interface)
+
+Everything to draw for one frame as plain data: the camera offset, the views held by a hit-stop,
+the flash and tint, the squashes, the words, and the rumbles and audio cues that fire on this
+frame once.
+
+```ts
+interface FeelFrame {
+  /** Whole pixels (2D) or screen pixels (3D). */
+  readonly offset: readonly [number, number];
+  /** Hit-stop: these views hold their pose. */
+  readonly frozen: readonly EntityRef[];
+  readonly flash: {
+    readonly colour: string;
+    readonly alpha: number;
+  } | null;
+  readonly tint: {
+    readonly colour: string;
+    readonly alpha: number;
+  } | null;
+  /** Scale x, y on 1/32 steps, for each view not at rest. */
+  readonly squash: ReadonlyMap<EntityRef, readonly [number, number]>;
+  readonly words: readonly WordPop[];
+  /** The rumbles that fire on this frame, once (the haptics port plays them). */
+  readonly haptics: readonly Pulse[];
+  /** The audio cues that fire on this frame, once. */
+  readonly cues: readonly string[];
+}
+```
+
+#### `FeelOptions` (interface)
+
+What `createFeel` needs: the feel table, the player's settings, the reduced-motion preference,
+an optional seed and the presentation clock.
+
+```ts
+interface FeelOptions {
+  /** The feel table; read at each event, so a reload shows on the next one. */
+  readonly content: () => FeelContent;
+  readonly settings: () => FeelSettings;
+  /** The player's reduced-motion preference, read every frame. */
+  readonly reducedMotion: () => boolean;
+  readonly seed?: number | undefined;
+  /** The most ticks behind the picture an event is still answered (default 30). */
+  readonly staleTicks?: number | undefined;
+  /** The presentation clock `frameNow` reads its frame times from; tests hand over `fakeClock()`. */
+  readonly clock: Clock;
+}
+```
+
+#### `feelSchema` (const)
+
+The Zod schema of `feel.toml`.
+
+```ts
+const feelSchema: z.ZodType<FeelContent>;
+```
+
+#### `FeelSettings` (interface)
+
+What the player can switch: no flashing, rumble on or off, and how strong the camera and pose
+effects are.
+
+```ts
+interface FeelSettings {
+  /** Drops flash and flicker. */
+  readonly reduceFlashing: boolean;
+  /** The player's rumble switch. */
+  readonly haptics: boolean;
+  /** Scales camera and pose effects: shake, hit-stop length and squash. */
+  readonly intensity: 0 | 0.5 | 1;
+}
+```
+
+#### `HapticRow` (interface)
+
+A rumble for a game pad (strong and weak motors, in milliseconds) and, optionally, a single buzz
+for a phone.
+
+```ts
+interface HapticRow {
+  readonly strong: number;
+  readonly weak: number;
+  readonly ms: number;
+  /** A phone's single buzz; none for an entry without it. */
+  readonly phone_ms?: number | undefined;
+}
+```
+
+#### `hash` (function)
+
+A steady pseudo-random number from 0 up to but not including 1, made from whole numbers with no
+stored state, so a replay shakes the same.
+
+```ts
+function hash(...n: number[]): number;
+```
+
+#### `Limits` (interface)
+
+The hard limits on the effects: the most shake in pixels, the longest hit-stop in milliseconds,
+and the most flash frames and flash opacity. Values above a limit are clamped when played and
+named by `limitWarnings`.
+
+```ts
+interface Limits {
+  readonly shake_px: number;
+  readonly hit_stop_ms: number;
+  readonly flash_frames: number;
+  readonly flash_alpha: number;
+}
+```
+
+#### `limitWarnings` (function)
+
+Each value above a limit, named by entry; the runtime clamps it anyway.
+
+```ts
+function limitWarnings(feel: FeelContent): string[];
+```
+
+#### `matches` (const)
+
+`*` matches any run of characters.
+
+```ts
+const matches: (pattern: string, event: string) => boolean;
+```
+
+#### `PoseRow` (interface)
+
+A hit-stop: the view's pose is held for this many milliseconds, and `target: 'subject'` holds
+only the view the event is about.
+
+```ts
+interface PoseRow {
+  readonly hit_stop_ms: number;
+  readonly target?: "subject" | undefined;
+}
+```
+
+#### `Pulse` (interface)
+
+One rumble for the haptics port to play.
+
+```ts
+interface Pulse {
+  readonly strong: number;
+  readonly weak: number;
+  readonly ms: number;
+  readonly phoneMs?: number | undefined;
+}
+```
+
+#### `resolveLimits` (const)
+
+The limits a file sets over the defaults.
+
+```ts
+const resolveLimits: (feel: Pick<FeelContent, "limits">) => Limits;
+```
+
+#### `SpringTuning` (interface)
+
+How the squash spring moves: its speed in hertz, how much it wobbles and how it starts.
+
+```ts
+interface SpringTuning {
+  /** How fast it answers, in hertz. */
+  readonly f: number;
+  /** How much it wobbles: below 1 it overshoots. */
+  readonly zeta: number;
+  /** How it starts: above 1 it anticipates past the target, below 0 it winds up first. */
+  readonly r: number;
+}
+```
+
+#### `VisualRow` (interface)
+
+One of a flash (`flash`, `frames`, `alpha`), a tint (`tint`, `ms`, `alpha`) or a squash (`squash`).
+
+```ts
+interface VisualRow {
+  readonly flash?: string | undefined;
+  readonly frames?: number | undefined;
+  readonly tint?: string | undefined;
+  readonly ms?: number | undefined;
+  readonly alpha?: number | undefined;
+  readonly squash?: number | undefined;
+}
+```
+
+#### `WordPop` (interface)
+
+A word on screen: its locale key, the view it belongs to, its age in seconds and whether it
+holds still for reduced motion.
+
+```ts
+interface WordPop {
+  /** A locale key. */
+  readonly key: string;
+  readonly at: EntityRef | null;
+  /** Seconds since it popped. */
+  readonly age: number;
+  /** Reduced motion: it appears, still. */
+  readonly still: boolean;
+}
+```
+
+#### `WordRow` (interface)
+
+A word that pops up, as a locale key, never as text. It stays up 800 ms unless `ms` says
+otherwise.
+
+```ts
+interface WordRow {
+  /** A locale key. */
+  readonly key: string;
+  readonly at?: "subject" | undefined;
+  /** How long it stays up; 800 ms when unset. */
+  readonly ms?: number | undefined;
+}
 ```
 
 ## `@automata/framework`
@@ -6447,6 +8066,5470 @@ Whether `value` came from `defineGame`.
 function isDefinedGame<S>(value: GameSpec<S> | DefinedGame<S>): value is DefinedGame<S>;
 ```
 
+## `@automata/net`
+
+### `import { … } from '@automata/net'`
+
+#### `ClientMessage` (type)
+
+Everything a client may send the room: a command, a clock probe, ready or not, add or remove a
+bot, and leave.
+
+```ts
+type ClientMessage = {
+  readonly t: "cmd";
+  readonly seq: number;
+  readonly tick: number;
+  readonly type: string;
+  readonly payload: unknown;
+} | {
+  readonly t: "ping";
+  readonly id: number;
+  readonly tick: number;
+} | {
+  readonly t: "ready";
+  readonly ready: boolean;
+  readonly req: string;
+} | {
+  readonly t: "bot.add" | "leave";
+  readonly req: string;
+} | {
+  readonly t: "bot.remove";
+  readonly req: string;
+  readonly seat: number;
+};
+```
+
+#### `clientMessageSchema` (const)
+
+The Zod schema of a client message. The room checks every message against it before it acts.
+
+```ts
+const clientMessageSchema: z.ZodType<ClientMessage>;
+```
+
+#### `ClientNetworkPort` (interface)
+
+The sim's link to the room on a client: it sends the player's commands and never hears remote
+ones or publishes a snapshot, because the room is the authority.
+
+```ts
+interface ClientNetworkPort {
+  /** A client hears no remote commands: the listener is never called. */
+  onRemoteCommand(listener: (command: Command) => void): () => void;
+  /** Sends one local command to the room; `source` is not sent (the room stamps the seat). */
+  sendCommand(command: Command): void;
+  /** A client publishes nothing: the authority is the room. */
+  publishSnapshot(snapshot: {
+    readonly tick: number;
+    readonly bytes: Uint8Array;
+    readonly hash: string;
+  }): void;
+  /** Each authoritative snapshot, in arrival order, with the per-seat acks. */
+  onSnapshot(listener: (snapshot: NetSnapshot) => void): () => void;
+  /** A clock probe for `tick` (-1 with no clock); its id, or undefined with no room. */
+  ping(tick: number): number | undefined;
+  onPong(listener: (pong: Pong) => void): () => void;
+  /** The median of the last seven round trips, in milliseconds; undefined before the first. */
+  roundTripMs(): number | undefined;
+  /** Every byte the room sockets delivered, across reconnects. */
+  bytesIn(): number;
+  /** The finished game's packed replay. */
+  onReplay(listener: (bytes: Uint8Array) => void): () => void;
+}
+```
+
+#### `colyseusClient` (function)
+
+The real SDK client for a server at `url` (net.toml's `url`).
+
+```ts
+function colyseusClient(url: string): NetSdkClient;
+```
+
+#### `COMMAND_TYPE_MAX_LENGTH` (const)
+
+The longest sim command type a client may name.
+
+```ts
+const COMMAND_TYPE_MAX_LENGTH = 64;
+```
+
+#### `commandTypeSchema` (const)
+
+A sim command id, in the sim's own id form (lower-case words separated by dots or dashes).
+
+```ts
+const commandTypeSchema: z.ZodType<string>;
+```
+
+#### `ConnectionState` (type)
+
+Where the connection to the room is: offline, connecting, connected, reconnecting after a drop,
+or degraded (up, but slow or silent).
+
+```ts
+type ConnectionState = "offline" | "connecting" | "connected" | "reconnecting" | "degraded";
+```
+
+#### `createNetRoom` (function)
+
+Makes the player's side of a room. It reconnects after a drop for as long as the grace allows,
+and keeps the seat so a reload can take it back.
+
+```ts
+function createNetRoom(options: NetRoomOptions): NetRoom;
+```
+
+#### `createNetSession` (function)
+
+Joins a room's port to a client sim: it predicts the player's own commands, follows the room's
+snapshots and measures the link. Close the handle when the game ends.
+
+```ts
+function createNetSession<T = RemoteView>(options: CreateNetSessionOptions<T>): NetSessionHandle<T>;
+```
+
+#### `CreateNetSessionOptions` (interface)
+
+What `createNetSession` needs: the room, the client sim, the game's clock, the largest lead in
+ticks and how to draw the other players.
+
+```ts
+interface CreateNetSessionOptions<T = RemoteView> {
+  readonly room: Pick<NetRoom, "port" | "info" | "connection" | "markDegraded">;
+  /** The client's sim: the game's plugins and content, as the room runs them. */
+  readonly sim: Sim;
+  /** Time for arrivals and probes: the game's clock, a fake one in tests. */
+  readonly clock: Clock;
+  /** net.toml's `maxLeadTicks` [60]. */
+  readonly maxLeadTicks?: number | undefined;
+  /** How the game draws the others from the authoritative states. */
+  readonly remote?: RemoteSource<T> | undefined;
+  /** net.toml's `snapshotEvery`, `interpolationTicks`, `degradedRoundTripMs` and `degradedGapMs`; their defaults when absent. */
+  readonly config?: {
+    readonly snapshotEvery?: number | undefined;
+    readonly interpolationTicks?: number | undefined;
+    readonly degradedRoundTripMs?: number | undefined;
+    readonly degradedGapMs?: number | undefined;
+  } | undefined;
+}
+```
+
+#### `createRoomStore` (function)
+
+Mirrors a room's info and connection. It starts with what the room shows now, so a store made in
+the middle of a room shows it at once.
+
+```ts
+function createRoomStore(room: Pick<NetRoom, "info" | "connection">): RoomStore;
+```
+
+#### `createWatchable` (function)
+
+Makes a value that tells its listeners when it changes. Keep the source to set it, and hand out
+the read-only view.
+
+```ts
+function createWatchable<T>(initial: T): WatchableSource<T>;
+```
+
+#### `DEFAULT_DEGRADED` (const)
+
+The usual thresholds: a second of round trip or a second of silence.
+
+```ts
+const DEFAULT_DEGRADED: DegradedThresholds;
+```
+
+#### `DegradedThresholds` (interface)
+
+How slow or silent the link may be before it counts as degraded: the round trip and the gap
+between snapshots, in milliseconds.
+
+```ts
+interface DegradedThresholds {
+  readonly roundTripMs: number;
+  readonly gapMs: number;
+}
+```
+
+#### `DESYNC_WINDOW_MS` (const)
+
+Two hash mismatches this close together end the session.
+
+```ts
+const DESYNC_WINDOW_MS = 1e4;
+```
+
+#### `Distribution` (class)
+
+The last `capacity` values, summarised on demand.
+
+```ts
+class Distribution {
+  private readonly capacity;
+  private values;
+  constructor(capacity?: number);
+  add(value: number): void;
+  summary(): DistributionSummary;
+  /** The median of the last `n` values; undefined with fewer than `n`. */
+  medianOfLast(n: number): number | undefined;
+  clear(): void;
+}
+```
+
+#### `DistributionSummary` (interface)
+
+What this client's netcode is doing, measured.
+
+The room is drawn from three moving parts that each fail quietly: a clock that tracks authority, a buffer that interpolates the
+others, and a prediction that carries the local player ahead. When one is off the symptom is a feel ("floaty", "rubber-bandy")
+and a feel cannot be bisected, so each part reports numbers. It observes and never steers: nothing in the session reads a value
+back out of it except `degraded`, which only changes what the connection badge says. Anomalies go to a console sink only while
+one is attached, each kind at most once a second.
+
+`degraded` (new here): the round trip's median over the last five probes, or the silence since the last snapshot, past the
+thresholds (1000 ms by default); it clears once both are under 80 % of them. Plain counters and a ring of recent values, no Effect
+per frame (ADR 0003).
+
+```ts
+interface DistributionSummary {
+  readonly count: number;
+  readonly last: number;
+  readonly min: number;
+  readonly p50: number;
+  readonly p95: number;
+  readonly max: number;
+}
+```
+
+#### `hex16Schema` (const)
+
+A sim hash on the wire: 16 lower-case hex characters, as `Sim.hash()` writes it.
+
+```ts
+const hex16Schema: z.ZodType<string>;
+```
+
+#### `INITIAL_LEAD_TICKS` (const)
+
+A lead a typical home connection needs, until the first pong says otherwise.
+
+```ts
+const INITIAL_LEAD_TICKS = 4;
+```
+
+#### `InputLead` (class)
+
+How many ticks ahead of the room the client stamps its commands, worked out from recent round
+trips so a command arrives on time.
+
+```ts
+class InputLead {
+  private current;
+  private wanted;
+  private heard;
+  private readonly tickMs;
+  private readonly maxTicks;
+  /** The lead each recent probe would have needed to arrive exactly on time. */
+  private readonly needed;
+  constructor(initialTicks?: number, options?: InputLeadOptions);
+  /** The lead to predict at, in ticks. */
+  get ticks(): number;
+  /** Where the lead is heading. */
+  get target(): number;
+  /**
+   * One pong: the lead its ping was sent with, and how early it arrived. The first answer is adopted at once when it
+   * asks for more lead (a game that starts short runs every early input late until the lead catches up); every later
+   * change eases.
+   */
+  observe(leadAtSend: number, slackTicks: number): void;
+  /** Moves the lead toward its target for one rendered frame, at the slew bound. */
+  advance(deltaMs: number): void;
+}
+```
+
+#### `InputLeadOptions` (interface)
+
+The sim's tick rate and the largest lead, in ticks.
+
+```ts
+interface InputLeadOptions {
+  /** The sim's tick rate. */
+  readonly tickHz: number;
+  /** The largest lead, in ticks. */
+  readonly maxTicks: number;
+}
+```
+
+#### `IntentOptions` (interface)
+
+What an intent that opens a room takes besides the player's name.
+
+```ts
+interface IntentOptions {
+  readonly name: string;
+  /** Aborting it gives the call up: the room goes `offline` and the call rejects with the signal's reason. */
+  readonly signal?: AbortSignal | undefined;
+}
+```
+
+#### `JoinOptions` (interface)
+
+What a client presents when it joins; `name` is trimmed by the schema.
+
+```ts
+interface JoinOptions {
+  readonly protocol: number;
+  readonly schemaHash: string;
+  readonly contentHash: string;
+  readonly name: string;
+  readonly session?: string | undefined;
+}
+```
+
+#### `joinOptionsSchema` (const)
+
+The Zod schema of what a client sends to join: the protocol version, the two hashes, a name and
+an optional session token.
+
+```ts
+const joinOptionsSchema: z.ZodType<JoinOptions>;
+```
+
+#### `leadForRoundTrip` (function)
+
+The lead a known round trip needs, before any slack has been measured. The client's view of authority trails the
+room by the downstream half of the trip and its commands take the upstream half to arrive, so the round trip in
+ticks lands a command exactly on time; the margin is the floor a measured lead would add, and one more for jitter
+nobody has measured yet.
+
+```ts
+function leadForRoundTrip(roundTripMs: number | undefined, options?: InputLeadOptions): number;
+```
+
+#### `LOBBY_PHASES` (const)
+
+Where a room is: `RoomInfo.phase`.
+
+```ts
+const LOBBY_PHASES: readonly ["lobby", "countdown", "playing", "ended"];
+```
+
+#### `LobbyPhase` (type)
+
+Where a room is: in the lobby, counting down, playing or ended.
+
+```ts
+type LobbyPhase = (typeof LOBBY_PHASES)[number];
+```
+
+#### `LocalCommand` (interface)
+
+One command a game samples: a sim command without the header the session stamps.
+
+```ts
+interface LocalCommand {
+  readonly type: string;
+  readonly payload: unknown;
+}
+```
+
+#### `MAX_CATCH_UP_TICKS` (const)
+
+The most ticks one frame may sample. Twelve is a fifth of a second at 60 Hz, a hitch the loop can catch up on; past
+it the gap is a hidden tab or a stalled device, and the loop re-seats at the present instead.
+
+```ts
+const MAX_CATCH_UP_TICKS = 12;
+```
+
+#### `MAX_LEAD_TICKS` (const)
+
+The cap at net's default `maxLeadTicks` (60, one second at 60 Hz): half of it. The room refuses commands at its
+bound; past half of that the link is not one a game can be played on as if local, and leading further only makes
+every other player look more behind.
+
+```ts
+const MAX_LEAD_TICKS = 30;
+```
+
+#### `MAX_MESSAGE_BYTES` (const)
+
+The size cap: a message past it is dropped before it is parsed.
+
+```ts
+const MAX_MESSAGE_BYTES = 16384;
+```
+
+#### `MAX_PENDING_COMMANDS` (const)
+
+A backstop on unacked commands, past which a sample is dropped, neither applied nor sent. The real bound is the
+expiry (a command unacked `maxLeadTicks` past its tick is given up). This is not the room's queue bound: the room's
+32 (server `MAX_QUEUED_COMMANDS`) counts commands that have arrived and are not yet due, while this counts every
+command not yet acked (in flight both ways, about the lead plus a snapshot interval of ticks). At the 30-tick lead
+cap that is a few dozen commands at one or two a tick; 256 leaves room for a busy game and still bounds a broken one.
+
+```ts
+const MAX_PENDING_COMMANDS = 256;
+```
+
+#### `MAX_SEATS` (const)
+
+Seats are 0 to MAX_SEATS - 1. Owned by the sim side, which the wire imports (the sim may not import the wire).
+
+```ts
+const MAX_SEATS = 16;
+```
+
+#### `nameSchema` (const)
+
+The only player-authored string on the wire: letters, digits, spaces, hyphens
+and underscores, so no later consumer (nameplate, roster, results row) needs an escaping rule of its own.
+
+```ts
+const nameSchema: z.ZodType<string>;
+```
+
+#### `NET_BYTES_CHANNEL` (const)
+
+The channel the binary that follows a `snap` or `replay` header travels on: snapshot or packed replay bytes.
+
+```ts
+const NET_BYTES_CHANNEL = "net.bytes";
+```
+
+#### `NET_CHANNEL` (const)
+
+The channel every wire message travels on as JSON text, both ways: a `ClientMessage` from a client and a
+`ServerMessage` from the room. Text, so the room measures a message before it parses it.
+
+```ts
+const NET_CHANNEL = "net";
+```
+
+#### `NET_ERROR_CODES` (const)
+
+The codes a room answers a refused request with.
+
+```ts
+const NET_ERROR_CODES: readonly ["REFUSED", "VERSION_MISMATCH", "ROOM_NOT_FOUND", "ROOM_FULL", "SERVER_BUSY", "SERVER_UPDATING", "RATE_LIMITED", "UNVERIFIED", "OFFLINE"];
+```
+
+#### `NetConfig` (interface)
+
+`content/net.toml` after parsing: every field present.
+
+```ts
+interface NetConfig {
+  readonly url: string;
+  readonly snapshotEvery: number;
+  readonly maxLeadTicks: number;
+  readonly interpolationTicks: number;
+  readonly reconnectGraceSeconds: number;
+  readonly degradedRoundTripMs: number;
+  readonly degradedGapMs: number;
+}
+```
+
+#### `NetConfigInput` (interface)
+
+`content/net.toml` as written: everything but `url` may be left to its default.
+
+```ts
+interface NetConfigInput {
+  readonly url: string;
+  readonly snapshotEvery?: number | undefined;
+  readonly maxLeadTicks?: number | undefined;
+  readonly interpolationTicks?: number | undefined;
+  readonly reconnectGraceSeconds?: number | undefined;
+  readonly degradedRoundTripMs?: number | undefined;
+  readonly degradedGapMs?: number | undefined;
+}
+```
+
+#### `netConfigSchema` (const)
+
+`content/net.toml`. The url must also be one the game's target lets it connect to (each target has its own network
+setting, and building for that target checks it).
+
+```ts
+const netConfigSchema: z.ZodType<NetConfig, NetConfigInput>;
+```
+
+#### `NetDiagnostics` (class)
+
+Measures the link as it is used and says when it is degraded. It writes a console line for
+anything strange, at most once in a while.
+
+```ts
+class NetDiagnostics {
+  private readonly options;
+  private readonly thresholds;
+  private sink;
+  private readonly lastLogged;
+  private isDegraded;
+  private snapshotCount;
+  private duplicates;
+  private reordered;
+  private newestTick;
+  private lastArrival;
+  private readonly interval;
+  private readonly tickStep;
+  private readonly clockError;
+  private snapCount;
+  private delay;
+  private readonly headroom;
+  private underrunCount;
+  private frameCount;
+  private correctionCount;
+  private adoptedCount;
+  private readonly correctionSize;
+  private late;
+  private readonly rtt;
+  private bytesIn;
+  private firstBytes;
+  constructor(options: NetDiagnosticsOptions);
+  /** Attaches or detaches the console sink. Only anomalies are ever logged. */
+  attach(sink: ((line: string) => void) | undefined): void;
+  get degraded(): boolean;
+  /** A snapshot arrived for `tick`. */
+  snapshot(tick: number): void;
+  /** The clock after a frame: how far it trails its anchor, how far back others are drawn, how many times it jumped. */
+  clock(report: {
+    error: number;
+    delayTicks: number;
+    snaps: number;
+  }): void;
+  /** How far the buffer reaches past the render moment; an underrun is none at all. */
+  buffer(headroomTicks: number): void;
+  /** A reconciliation moved the predicted state by `ticks` of error; `adopted` when it was taken outright rather than eased. */
+  correction(ticks: number, adopted: boolean): void;
+  /** A command was resent late. */
+  lateCommand(): void;
+  /** A pong measured a round trip. */
+  roundTrip(ms: number): void;
+  /** The socket's lifetime received byte count, as the transport reports it. */
+  bytes(total: number): void;
+  /** Re-reads the silence since the last snapshot; the session calls it each frame. */
+  poll(): void;
+  private evaluate;
+  private anomaly;
+  summary(): NetSummary;
+  /** Forgets everything, as leaving a room does. */
+  reset(): void;
+}
+```
+
+#### `NetDiagnosticsOptions` (interface)
+
+What the diagnostics need: a millisecond clock, optional thresholds and a function to call when
+the link becomes degraded or recovers.
+
+```ts
+interface NetDiagnosticsOptions {
+  /** Milliseconds (Effect's `Clock` in the session). */
+  readonly now: () => number;
+  readonly thresholds?: DegradedThresholds | undefined;
+  /** Called when `degraded` changes. */
+  readonly onDegraded?: ((degraded: boolean) => void) | undefined;
+}
+```
+
+#### `NetError` (class)
+
+A `NetRoom` call that failed: net's code, and which call it was (`create`, `join`, `setReady`, ...).
+
+```ts
+class NetError extends Error {
+  override readonly name: "NetError";
+  readonly code: NetErrorCode;
+  readonly operation: string;
+  constructor(fields: {
+    readonly code: NetErrorCode;
+    readonly operation: string;
+  });
+}
+```
+
+#### `NetErrorCode` (type)
+
+Why a room refused a request: refused, the game versions differ, no such room, the room is full,
+the server is busy or updating, too many requests, not verified, or offline.
+
+```ts
+type NetErrorCode = (typeof NET_ERROR_CODES)[number];
+```
+
+#### `NetFrame` (interface)
+
+One frame's answer: where authority is and the tick the predicted sim has stepped.
+
+```ts
+interface NetFrame<T = RemoteView> {
+  readonly authorityTick: number;
+  readonly predictedTick: number;
+  /** The moment the others are drawn at: authority less the interpolation delay. */
+  readonly renderTick: number;
+  /** The others at `renderTick`, blended from the authoritative states; undefined without a `remote` option or before one. */
+  readonly remote: T | undefined;
+}
+```
+
+#### `NetRoom` (interface)
+
+The player's side of an online room. Create, join or quick-match, get ready, add or remove a
+bot, leave, and watch the connection, the room and why it ended.
+
+```ts
+interface NetRoom {
+  create(options: IntentOptions): Promise<void>;
+  join(code: string, options: IntentOptions): Promise<void>;
+  /** Seats you in an open room in its lobby, or opens one. */
+  quickMatch(options: IntentOptions): Promise<void>;
+  setReady(ready: boolean): Promise<void>;
+  /** Host seat only; the server's `BotPolicy` drives the bot. */
+  addBot(): Promise<void>;
+  removeBot(seat: number): Promise<void>;
+  /** Leaves and forgets the seat, so no later reconnect or reload reclaims it. */
+  leave(): Promise<void>;
+  /**
+   * The session's diagnostics say the link is slow or silent: while the connection is up it reads `degraded` instead
+   * of `connected`. A drop shows `reconnecting`, and going offline forgets the mark.
+   */
+  markDegraded(degraded: boolean): void;
+  /** Reclaims the stored seat after a reload, once: `expired` forgets the token and is never retried. */
+  resume(options?: {
+    readonly signal?: AbortSignal | undefined;
+  }): Promise<ResumeOutcome>;
+  readonly info: Watchable<RoomInfo | undefined>;
+  readonly connection: Watchable<ConnectionState>;
+  /** Set when the room ended without a leave; cleared by the next intent. */
+  readonly ended: Watchable<RoomEnd | undefined>;
+  /** Core's `NetworkPort`, client end, for the session that predicts and reconciles. */
+  readonly port: ClientNetworkPort;
+  /**
+   * Closes the socket, the probe and any reconnect in flight, without giving up the seat: the stored token stays for
+   * the next page load's `resume`. Pending requests reject as `OFFLINE`.
+   */
+  close(): void;
+}
+```
+
+#### `NetRoomOptions` (interface)
+
+What `createNetRoom` needs: the server url, the client sim's hashes for the join check, the
+reconnect grace, the game's clock and optionally the session token, the SDK client and where the
+seat token is stored.
+
+```ts
+interface NetRoomOptions {
+  /** The server: net.toml's `url`. */
+  readonly url: string;
+  /** The client sim's hashes: the join check. */
+  readonly version: {
+    readonly schemaHash: string;
+    readonly contentHash: string;
+  };
+  readonly reconnectGraceSeconds: number;
+  /** Time for the probe, the round trips and the reconnection's waits: the game's clock, a fake one in tests. */
+  readonly clock: Clock;
+  /** The host's session token, for the server's `SessionVerifier`; none for an anonymous server. */
+  readonly session?: (() => string | undefined) | undefined;
+  /** The SDK client for `url`; the real one by default. */
+  readonly client?: ((url: string) => NetSdkClient) | undefined;
+  /**
+   * Where the reconnection token is written through to, for a reload's `resume`: this page's `sessionStorage` when
+   * absent; `null` switches persistence off (the seat is still held in memory, so a drop reconnects).
+   */
+  readonly storage?: SeatStorage | null | undefined;
+  /** The backoff's spread, in [0, 1]; `Math.random` by default. */
+  readonly random?: (() => number) | undefined;
+  /** The request ids' per-load prefix; drawn by default. */
+  readonly loadToken?: string | undefined;
+}
+```
+
+#### `NetSdkClient` (interface)
+
+The part of the Colyseus SDK's client that `net` uses: create, join by code, join or create, and
+reconnect with a token.
+
+```ts
+interface NetSdkClient {
+  create(roomName: string, options: unknown): Promise<NetSdkRoom>;
+  joinById(code: string, options: unknown): Promise<NetSdkRoom>;
+  joinOrCreate(roomName: string, options: unknown): Promise<NetSdkRoom>;
+  reconnect(token: string): Promise<NetSdkRoom>;
+}
+```
+
+#### `NetSdkRoom` (interface)
+
+The part of the Colyseus SDK's room that `net` uses. The real SDK room fits it, and so does the
+fake in `@automata/net/testing`.
+
+```ts
+interface NetSdkRoom {
+  /** The room code. */
+  readonly roomId: string;
+  /** Rotated by every reconnect handshake. */
+  readonly reconnectionToken: string;
+  /** The SDK's own reconnect loop: switched off, because ours survives a reload too. */
+  readonly reconnection: {
+    enabled: boolean;
+  };
+  /** The room-info schema, decoded by the SDK. */
+  readonly state: unknown;
+  readonly connection: {
+    close(code?: number, reason?: string): void;
+    readonly transport?: unknown;
+  };
+  onMessage(type: string, handler: (payload: unknown) => void): unknown;
+  onStateChange(handler: (state: unknown) => void): unknown;
+  onLeave(handler: (code: number) => void): unknown;
+  send(type: string, payload: unknown): void;
+  /** A consented leave frees the seat at once; the SDK resolves with the close code. */
+  leave(consented?: boolean): Promise<number>;
+  removeAllListeners(): void;
+}
+```
+
+#### `NetSession` (class)
+
+The client's game loop in an online room. It predicts the player's commands, takes the room's
+snapshots and corrects when they differ, and tells a desync. Call `frame` once per rendered
+frame.
+
+```ts
+class NetSession<T = RemoteView> {
+  private readonly prediction;
+  private readonly clock;
+  private readonly buffer;
+  private readonly diagnostics;
+  private readonly lead;
+  private readonly send;
+  private readonly ping;
+  private readonly now;
+  private readonly onEnd;
+  private seat;
+  private accepting;
+  /** The last tick input was sampled for: the tick the prediction stands at. */
+  private inputTick;
+  /**
+   * The next command's seq. Numbering starts at 1: the room reads seq 0 from a seat that has
+   * just returned as a reloaded client restarting its numbering, so a resent first command must never be 0.
+   */
+  private nextSeq;
+  private sincePing;
+  /** The lead each outstanding probe was sent with, and whether it can count, by id. */
+  private readonly pings;
+  /** Commands already sent a second time, by seq. */
+  private readonly resent;
+  private virtualTime;
+  private lastMismatchAt;
+  private mismatchCount;
+  private end;
+  /** One frame's answer, reused: `frame` allocates nothing (ADR 0003). */
+  private readonly answer;
+  constructor(options: NetSessionOptions<T>);
+  /** The seat and whether the room takes input; until both say yes, sampled commands are dropped. */
+  setRoomState(state: SessionRoomState): void;
+  /**
+   * One authoritative snapshot, timestamped with when it arrived. It reconciles the prediction and steers the clock;
+   * then numbering goes on from the seat's ack (a reloaded page takes over a seat the room kept counting for), and a
+   * command the room has stepped past without taking is sent once more.
+   */
+  observe(snapshot: NetSnapshot, receivedAt?: number): void;
+  /**
+   * Advances one rendered frame, sampling input for the latest tick it reaches. Undefined before the first snapshot
+   * (there is no game to be at a moment of) and once the session has ended. The answer is one object, reused: read it
+   * before the next frame.
+   */
+  frame(sample: Sampler, deltaMs: number): NetFrame<T> | undefined;
+  /** The room answered a probe: a reliable one steers the lead. Another's probe (NetRoom's own) is ignored. */
+  pong(pong: {
+    readonly id: number;
+    readonly slack: number;
+  }): void;
+  /**
+   * The connection came back. Commands sent while it was down went nowhere, so every one the room has not acked is
+   * sent again, with its own seq and tick: the room takes a late one on its next tick and refuses one it already has.
+   */
+  resync(): void;
+  /**
+   * Forgets the game, as leaving it does: its snapshots, commands, numbering and any desync. The next room numbers
+   * from 1, or from its own ack when this player is taking over a seat it kept counting for (`observe`).
+   */
+  clear(): void;
+  /** The tick input was last sampled for, or undefined before the first frame. */
+  get sampledTick(): number | undefined;
+  /** The lead in ticks. */
+  get leadTicks(): number;
+  /** Where authority is now, on the one clock. */
+  authorityTick(): number | undefined;
+  /** Why the session ended; undefined while it runs. */
+  get ended(): SessionEnd | undefined;
+  /** Snapshot frames that failed their hash, in all. */
+  get mismatches(): number;
+  /** The last snapshot restored, by tick and hash. */
+  get authoritative(): {
+    readonly tick: number;
+    readonly hash: string;
+  } | undefined;
+  /** The local commands the room has not acked yet. */
+  get pendingCommands(): readonly Command[];
+  private time;
+  private mismatch;
+  /**
+   * A command whose tick is before the snapshot's, and not acked, was lost or is late. Sending it once more costs a
+   * refusal at worst (the room refuses a seq it has had) and saves a command lost for good. Once, so a slow link does
+   * not resend every command on every snapshot.
+   */
+  private resendOverdue;
+  /**
+   * Brings input and the prediction up to `target`: sample once, stamp, step. A frame that covers several ticks could
+   * only notice a key now, so its commands are stamped with the latest tick it reaches; the ticks before are stepped
+   * with what is already pending. Re-seated rather than caught up after a long gap either way: forward, so a hidden
+   * tab does not sample hundreds of ticks; backward, so a clock that lands far behind never leaves input dead.
+   */
+  private sampleUpTo;
+}
+```
+
+#### `NetSessionHandle` (interface)
+
+A running session: the session to call once per frame, its measured diagnostics, why it ended
+and a way to close it.
+
+```ts
+interface NetSessionHandle<T = RemoteView> {
+  /** The game's loop calls `session.frame` once per rendered frame. */
+  readonly session: NetSession<T>;
+  /** What the netcode is doing, measured; the connection reads `degraded` from it. */
+  readonly diagnostics: NetDiagnostics;
+  /** Why the session ended (a desync), once it has. */
+  readonly ended: Watchable<SessionEnd | undefined>;
+  /** Stops listening to the room and the port: no command and no probe goes out after it. */
+  close(): void;
+}
+```
+
+#### `NetSessionOptions` (interface)
+
+What a session needs: the client sim it steps and restores, how to send a command and a probe,
+the first round trip, the largest lead, how to draw the others and the diagnostics.
+
+```ts
+interface NetSessionOptions<T = RemoteView> {
+  /** The client's sim: the game's plugins and content, as the room runs them. The session steps and restores it. */
+  readonly sim: Sim;
+  /** Sends one stamped command (`ClientNetworkPort.sendCommand`). */
+  readonly send?: ((command: Command) => void) | undefined;
+  /** Sends a clock probe for `tick`; its id, or undefined with no room (`ClientNetworkPort.ping`). */
+  readonly ping?: ((tick: number) => number | undefined) | undefined;
+  /** The round trip measured before play, which seeds the lead. */
+  readonly roundTripMs?: number | undefined;
+  /** net.toml's `maxLeadTicks`, past which the room refuses a command; the lead stays under half of it [60]. */
+  readonly maxLeadTicks?: number | undefined;
+  /** Milliseconds (Effect's `Clock`). Without one, time is the sum of frame deltas. */
+  readonly now?: (() => number) | undefined;
+  /** Called once, when the session ends. */
+  readonly onEnd?: ((end: SessionEnd) => void) | undefined;
+  /** The others, drawn from the authoritative states. */
+  readonly remote?: RemoteSource<T> | undefined;
+  /** net.toml's `snapshotEvery` [3]: the interpolation delay is never less than a snapshot's span. */
+  readonly snapshotTicks?: number | undefined;
+  /** net.toml's `interpolationTicks` [6]: the delay a perfect link needs. */
+  readonly interpolationTicks?: number | undefined;
+  /** Measures the link (round trips, snapshot gaps, the buffer); the session only feeds it. */
+  readonly diagnostics?: NetDiagnostics | undefined;
+}
+```
+
+#### `NetSnapshot` (interface)
+
+One authoritative snapshot as it arrived: core's `AuthoritativeSnapshot` (`tick`, `bytes`, `hash`), plus the
+per-seat acks that ride beside it on net's wire (the last `seq` the room applied for each seat).
+
+```ts
+interface NetSnapshot {
+  readonly tick: number;
+  readonly bytes: Uint8Array;
+  readonly hash: string;
+  readonly acks: Readonly<Record<string, number>>;
+}
+```
+
+#### `NetSummary` (interface)
+
+What the diagnostics measured: snapshots, their spacing and reordering, round trips, corrections
+and whether the link is degraded.
+
+```ts
+interface NetSummary {
+  readonly snapshots: {
+    readonly count: number;
+    /** Same tick as the newest already seen: a republish, harmless. */
+    readonly duplicates: number;
+    /** Older than the newest already seen: the transport reordered. */
+    readonly reordered: number;
+    readonly intervalMs: DistributionSummary;
+    readonly tickStep: DistributionSummary;
+  };
+  readonly clock: {
+    readonly errorTicks: DistributionSummary;
+    readonly snaps: number;
+    /** How far behind authority everyone else is drawn, now. */
+    readonly delayTicks: number;
+  };
+  readonly buffer: {
+    readonly headroomTicks: DistributionSummary;
+    readonly underruns: number;
+    readonly frames: number;
+  };
+  readonly corrections: {
+    readonly count: number;
+    readonly adopted: number;
+    readonly size: DistributionSummary;
+  };
+  readonly input: {
+    readonly lateCommands: number;
+    readonly rttMs: DistributionSummary;
+  };
+  readonly wire: {
+    readonly bytesIn: number;
+    readonly bytesPerSecond: number;
+  };
+  readonly degraded: boolean;
+}
+```
+
+#### `parseClientMessage` (const)
+
+Reads a raw message from a client. It measures it first, so a message that is too large is
+refused before it is parsed.
+
+```ts
+const parseClientMessage: (raw: string | Uint8Array) => ParseResult<ClientMessage>;
+```
+
+#### `ParseResult` (type)
+
+The result of reading a raw message: the message, or why it was refused (too large, not JSON, or
+not a valid message).
+
+```ts
+type ParseResult<M> = {
+  readonly ok: true;
+  readonly message: M;
+} | {
+  readonly ok: false;
+  readonly reason: "too-large" | "not-json" | "invalid";
+  readonly detail: string;
+};
+```
+
+#### `parseServerMessage` (const)
+
+Reads a raw message from the room, the same way.
+
+```ts
+const parseServerMessage: (raw: string | Uint8Array) => ParseResult<ServerMessage>;
+```
+
+#### `PING_EVERY_MS` (const)
+
+How often the clock is probed. Four a second is five seconds per lead window.
+
+```ts
+const PING_EVERY_MS = 250;
+```
+
+#### `PLAYER_NAME_MAX_LENGTH` (const)
+
+The longest a player's name may be.
+
+```ts
+const PLAYER_NAME_MAX_LENGTH = 16;
+```
+
+#### `Pong` (interface)
+
+The answer to a clock probe: its id, how many ticks early (positive) or late (negative) the
+probe arrived, and the round trip in milliseconds.
+
+```ts
+interface Pong {
+  readonly id: number;
+  /** Ticks early (positive) or late (negative) the probe's tick arrived. */
+  readonly slack: number;
+  readonly rttMs: number;
+}
+```
+
+#### `PROTOCOL_VERSION` (const)
+
+Bumped when a message shape changes; a room refuses a join on another version.
+
+```ts
+const PROTOCOL_VERSION = 1;
+```
+
+#### `RECONNECT_BASE_MS` (const)
+
+The first wait after a drop.
+
+```ts
+const RECONNECT_BASE_MS = 250;
+```
+
+#### `RECONNECT_CEILING_MS` (const)
+
+The longest wait between two attempts.
+
+```ts
+const RECONNECT_CEILING_MS = 2e3;
+```
+
+#### `reconnectDelay` (function)
+
+The wait before reconnect attempt `attempt` (from 0): 250 ms doubling to a 2 s ceiling. The climbing steps are spread by ±25%, so a server restart does not bring every client back on
+the same beat; the ceiling is not spread, so the attempts keep their pace through a long outage. `random` is in
+[0, 1]: injected, so a test chooses the spread.
+
+```ts
+function reconnectDelay(attempt: number, random: () => number): number;
+```
+
+#### `refusalCode` (function)
+
+Turns whatever a failed join or create threw into one of the error codes, so a screen can say
+what went wrong.
+
+```ts
+function refusalCode(error: unknown): NetErrorCode;
+```
+
+#### `RemoteSource` (interface)
+
+How the game draws the others: which entities are remote, read from each authoritative state, and how to blend.
+
+```ts
+interface RemoteSource<T = RemoteView> {
+  /** The view of the remote entities in `sim`, right after a snapshot was restored (before the prediction steps on). */
+  read(sim: Sim): T;
+  blend(from: T, to: T, t: number): T;
+}
+```
+
+#### `reqIdSchema` (const)
+
+A client-chosen correlation id: printable ASCII, bounded. It addresses an
+answer and grants no authority; nothing branches on its value.
+
+```ts
+const reqIdSchema: z.ZodType<string>;
+```
+
+#### `REQUEST_ID_MAX_LENGTH` (const)
+
+The longest a request id may be.
+
+```ts
+const REQUEST_ID_MAX_LENGTH = 64;
+```
+
+#### `ResumeOutcome` (type)
+
+What happened when a page tried to take its old seat back after a reload: it resumed, there was
+nothing to resume, or the seat had expired.
+
+```ts
+type ResumeOutcome = "resumed" | "none" | "expired";
+```
+
+#### `ROOM_CODE_ALPHABET` (const)
+
+Characters a player can read off a screen and type without ambiguity: `I`, `O`, `0` and `1` are omitted.
+
+```ts
+const ROOM_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+```
+
+#### `ROOM_CODE_LENGTH` (const)
+
+Six characters.
+
+```ts
+const ROOM_CODE_LENGTH = 6;
+```
+
+#### `ROOM_NAME` (const)
+
+The Colyseus room type a client creates, joins and finds (`create`, `joinById`, `joinOrCreate`).
+
+```ts
+const ROOM_NAME = "automata";
+```
+
+#### `RoomEnd` (interface)
+
+Why the room went without the player choosing to leave.
+
+```ts
+interface RoomEnd {
+  readonly reason: "seat-lost" | "closed" | "server-updating" | "failed";
+}
+```
+
+#### `RoomInfo` (interface)
+
+A room as a screen shows it: the six-character code, the phase, the seats, your own seat and the
+host's seat.
+
+```ts
+interface RoomInfo {
+  /** Six characters: the Colyseus room id. */
+  readonly code: string;
+  readonly phase: LobbyPhase;
+  readonly seats: readonly SeatInfo[];
+  /** Your seat, from the room's `seated` message only. */
+  readonly you: number | undefined;
+  readonly hostSeat: number | undefined;
+}
+```
+
+#### `RoomStore` (interface)
+
+The room and the connection as plain values with one subscription, for a screen to read.
+
+```ts
+interface RoomStore {
+  readonly info: RoomInfo | undefined;
+  readonly connection: ConnectionState;
+  /** Called after each change; returns the unsubscribe. */
+  subscribe(listener: () => void): () => void;
+  /** Stops mirroring and drops every subscriber; the store keeps what it last showed. */
+  close(): void;
+}
+```
+
+#### `Sampler` (type)
+
+The game's input for one predicted tick: the commands to apply and send on it, often none.
+
+```ts
+type Sampler = (tick: number) => readonly LocalCommand[];
+```
+
+#### `SEAT_TOKEN_KEY` (const)
+
+The `sessionStorage` key's prefix; the server's url follows it (`seatTokenKey`).
+
+```ts
+const SEAT_TOKEN_KEY = "automata-net.seat";
+```
+
+#### `SeatInfo` (interface)
+
+One seat in a room: its number, the name, whether the player is ready and connected, and whether
+it is a bot.
+
+```ts
+interface SeatInfo {
+  readonly seat: number;
+  readonly name: string;
+  readonly ready: boolean;
+  readonly connected: boolean;
+  readonly bot: boolean;
+}
+```
+
+#### `seatSchema` (const)
+
+A seat index, 0 to MAX_SEATS - 1.
+
+```ts
+const seatSchema: z.ZodType<number>;
+```
+
+#### `SeatStorage` (interface)
+
+The slice of the Web Storage API the store uses.
+
+```ts
+interface SeatStorage {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+  removeItem(key: string): void;
+}
+```
+
+#### `seatTokenKey` (const)
+
+The key a server's seat is stored under.
+
+```ts
+const seatTokenKey: (url: string) => string;
+```
+
+#### `ServerMessage` (type)
+
+Everything the room may send a client: a snapshot header, the seat you were given, a probe's
+answer, the answer to a request (with an error code if it was refused) and a replay header.
+
+```ts
+type ServerMessage = {
+  readonly t: "snap";
+  readonly tick: number;
+  readonly hash: string;
+  readonly acks: Record<string, number>;
+} | {
+  readonly t: "seated";
+  readonly seat: number;
+} | {
+  readonly t: "pong";
+  readonly id: number;
+  readonly slack: number;
+} | {
+  readonly t: "answer";
+  readonly req: string;
+  readonly error?: NetErrorCode | undefined;
+} | {
+  readonly t: "replay";
+};
+```
+
+#### `serverMessageSchema` (const)
+
+The Zod schema of a server message.
+
+```ts
+const serverMessageSchema: z.ZodType<ServerMessage>;
+```
+
+#### `SESSION_MAX_LENGTH` (const)
+
+A reconnection session token, opaque to the client.
+
+```ts
+const SESSION_MAX_LENGTH = 128;
+```
+
+#### `SessionEnd` (interface)
+
+Why the session stopped: a second snapshot hash mismatch within `DESYNC_WINDOW_MS`, at this snapshot tick.
+
+```ts
+interface SessionEnd {
+  readonly reason: "desync";
+  readonly tick: number;
+}
+```
+
+#### `SessionRoomState` (interface)
+
+What the room says about this player: their seat, and whether it takes input now.
+
+```ts
+interface SessionRoomState {
+  readonly seat: number | undefined;
+  readonly accepting: boolean;
+}
+```
+
+#### `uintSchema` (const)
+
+A whole number from 0.
+
+```ts
+const uintSchema: z.ZodType<number>;
+```
+
+#### `Watchable` (interface)
+
+What a reader gets: the value now, and a way to hear it change.
+
+```ts
+interface Watchable<T> {
+  get(): T;
+  /** Calls `listener` with the value after each change (not with the current one); returns the unsubscribe. */
+  subscribe(listener: (value: T) => void): () => void;
+}
+```
+
+#### `WatchableSource` (interface)
+
+The owner's end of a `Watchable`: it can also set the value.
+
+```ts
+interface WatchableSource<T> extends Watchable<T> {
+  /** Sets the value; a value equal to the current one (`Object.is`) is not announced. */
+  set(value: T): void;
+  /** The read-only end, safe to hand out. */
+  readonly view: Watchable<T>;
+}
+```
+
+### `import { … } from '@automata/net/sim'`
+
+#### `NetOwner` (const)
+
+The seat an entity belongs to. `netPlugin` gives each joined seat one entity with it; a game tags
+its own entities (a player's character) with the same seat, and `seat.leave` despawns them together.
+
+```ts
+const NetOwner: ComponentDef<{
+  seat: "u32";
+}>;
+```
+
+#### `netPlugin` (const)
+
+`net`'s sim side: the same plugin runs in the room and in every client.
+
+```ts
+const netPlugin: PluginDef;
+```
+
+#### `ROOM_SOURCE` (const)
+
+The sim `source` of the room's own commands (seat.join, seat.leave and a game's room commands): the highest source
+the sim accepts, never a seat. On the sim side so a game's sim can tell the room's commands from a seat's without
+importing the server; the server stamps its commands with this constant.
+
+```ts
+const ROOM_SOURCE = 255;
+```
+
+#### `SeatEntity` (interface)
+
+The seat and the id of its seat entity.
+
+```ts
+interface SeatEntity {
+  readonly seat: number;
+  readonly sid: number;
+}
+```
+
+#### `SeatJoin` (const)
+
+Sent by the room when a seat is taken (a player or a bot). Commands are `seat.join`; the events say `joined`.
+
+```ts
+const SeatJoin: CommandDef<z.ZodType<SeatPayload>>;
+```
+
+#### `SeatJoined` (const)
+
+A player took a seat: its number and the id of the sim entity it owns.
+
+```ts
+const SeatJoined: EventDef<z.ZodType<SeatEntity>>;
+```
+
+#### `SeatLeave` (const)
+
+Sent by the room when a seat is given up (a leave, or a drop past the reconnect grace).
+
+```ts
+const SeatLeave: CommandDef<z.ZodType<SeatPayload>>;
+```
+
+#### `SeatLeft` (const)
+
+A player left a seat: its number and the id of the sim entity it owned.
+
+```ts
+const SeatLeft: EventDef<z.ZodType<SeatEntity>>;
+```
+
+#### `SeatPayload` (interface)
+
+Which seat.
+
+```ts
+interface SeatPayload {
+  readonly seat: number;
+}
+```
+
+### `import { … } from '@automata/net/testing'`
+
+#### `createLink` (function)
+
+A deterministic in-memory link: every delay, loss, duplicate and reorder is drawn from `seed`, one stream per
+direction, and delivery waits on `clock`, so under a fake clock a failure replays exactly.
+
+```ts
+function createLink(options: LinkOptions, clock: Clock): {
+  client: Transport;
+  server: Transport;
+};
+```
+
+#### `fakeColyseus` (function)
+
+Makes a fake SDK client for tests, so `createNetRoom` runs without a network.
+
+```ts
+function fakeColyseus(): FakeColyseus;
+```
+
+#### `FakeColyseus` (interface)
+
+A stand-in for the SDK client. It records every matchmaking call, hands out fake rooms, and lets
+a test choose the next answer.
+
+```ts
+interface FakeColyseus {
+  readonly client: NetSdkClient;
+  /** Every matchmaking call: the method and its arguments. */
+  readonly calls: {
+    readonly method: Method;
+    readonly args: readonly unknown[];
+  }[];
+  /** Every room the fake client handed out, in order. */
+  readonly rooms: FakeRoom[];
+  /** A room the test may hand out itself. */
+  room(code?: string): FakeRoom;
+  /** The next `method` call answers with `outcome`; queued in order. */
+  respond(method: Method, outcome: FakeOutcome): void;
+  /** Every `method` call with nothing queued answers with `outcome`. */
+  respondAlways(method: Method, outcome: FakeOutcome | undefined): void;
+  /** The room-info state a fresh room starts with. */
+  state(code: string, extra?: Record<string, unknown>): Record<string, unknown>;
+}
+```
+
+#### `FakeOutcome` (type)
+
+What a fake matchmaking call answers: a room, an error, or a promise of a room.
+
+```ts
+type FakeOutcome = FakeRoom | Error | Promise<FakeRoom>;
+```
+
+#### `FakeRoom` (interface)
+
+A stand-in for the SDK's room. It records every send, leave and close, and lets a test push
+messages and state to the client.
+
+```ts
+interface FakeRoom extends NetSdkRoom {
+  roomId: string;
+  reconnectionToken: string;
+  /** Every `send`, in order: the type and the payload as sent. */
+  readonly sent: {
+    readonly type: string;
+    readonly payload: unknown;
+  }[];
+  /** Every `leave` call's `consented`. */
+  readonly leaves: boolean[];
+  /** Every `connection.close` call. */
+  readonly closes: number;
+  readonly socket: FakeSocket;
+  /** Whether any handler is still attached. */
+  readonly listening: boolean;
+  /** A wire message on net's channel, as the room sends it (JSON text), or raw text. */
+  message(message: ServerMessage | string): void;
+  /** Binary on net's bytes channel. */
+  bytes(bytes: Uint8Array): void;
+  /** Replaces the room-info state and announces the change. */
+  patch(state: unknown): void;
+  /** The socket closes with `code`, as the SDK reports it to `onLeave`. */
+  close(code: number): void;
+  /** Raw data on the socket, for the byte count. */
+  socketData(data: unknown): void;
+  /**
+   * A callback the SDK had already queued: runs the last handler registered for `channel` (`'leave'` for the close
+   * handler) even if the client has since removed it.
+   */
+  queued(channel: string, payload: unknown): void;
+}
+```
+
+#### `FakeSocket` (interface)
+
+A socket stand-in the client may count bytes from, as it does the SDK's WebSocket.
+
+```ts
+interface FakeSocket {
+  addEventListener(type: "message", listener: Listener): void;
+  removeEventListener(type: "message", listener: Listener): void;
+  readonly listeners: number;
+}
+```
+
+#### `linkClient` (function)
+
+Makes the client's end of a test link over a transport.
+
+```ts
+function linkClient(transport: Transport, options: {
+  readonly now: () => number;
+}): LinkClient;
+```
+
+#### `LinkClient` (interface)
+
+The client's end of a test link: its port, its seat, and ways to attach to another link (a
+reconnect) or drop the link.
+
+```ts
+interface LinkClient {
+  /** The client port, kept across `attach`, as `NetRoom`'s is across a reconnect. */
+  readonly port: ClientNetworkPort;
+  /** The seat the room's last `seated` said. */
+  seat(): number | undefined;
+  /** Talks over another link from now on (a reconnect), keeping every listener. */
+  attach(transport: Transport): void;
+  /** Talks over no link: commands are dropped and nothing arrives (a drop). */
+  detach(): void;
+}
+```
+
+#### `LinkOptions` (interface)
+
+How bad a test link is: a seed, the base delay, the jitter, and the chances a message is lost,
+arrives twice or is held back so later ones overtake it.
+
+```ts
+interface LinkOptions {
+  readonly seed: number;
+  /** Every message's base delay. */
+  readonly latencyMs: number;
+  /** Up to this much more, drawn uniformly per message. */
+  readonly jitterMs: number;
+  /** The chance a message is lost, 0 to 1. */
+  readonly loss: number;
+  /** The chance a message also arrives a second time, with its own delay. */
+  readonly duplicate: number;
+  /** The chance a message is held back by one more `latencyMs`, so later ones overtake it. */
+  readonly reorder: number;
+}
+```
+
+#### `linkRoomClient` (function)
+
+The room's end of a link, in the shape of `server`'s `RoomClient`.
+
+```ts
+function linkRoomClient(transport: Transport): LinkRoomClient;
+```
+
+#### `LinkRoomClient` (interface)
+
+The room's end of a test link, shaped like the server's room client: send a message or bytes,
+close, and whether it is closed.
+
+```ts
+interface LinkRoomClient {
+  send(message: ServerMessage): void;
+  sendBytes(bytes: Uint8Array): void;
+  /** Ends the connection: nothing more is sent. */
+  close(): void;
+  readonly closed: boolean;
+}
+```
+
+#### `Transport` (interface)
+
+One end of a link: what `net`'s transport and the test server talk through.
+
+```ts
+interface Transport {
+  /** Sends one message to the other end; it arrives after the link's delay, on the link's clock. */
+  send(data: WireData): void;
+  /** Calls `listener` for each message that arrives here, in arrival order; returns the unsubscribe. */
+  onMessage(listener: (data: WireData) => void): () => void;
+}
+```
+
+#### `WireData` (type)
+
+One message as it travels: text (JSON) or binary (a snapshot, a packed replay).
+
+```ts
+type WireData = string | Uint8Array;
+```
+
+## `@automata/net-server`
+
+### `import { … } from '@automata/net-server'`
+
+#### `acceptsInput` (function)
+
+Whether the room takes commands for the sim: from the countdown on, so a player holding a direction through GO
+moves on the first tick of play exactly as they would locally; never in the lobby, and never once the game ended.
+
+```ts
+function acceptsInput(lobby: Pick<LobbyState, "phase">): boolean;
+```
+
+#### `addBot` (function)
+
+The host's tap on an open seat, in the lobby only. `botsAllowed` is whether the game configured a `BotPolicy`.
+Returns the bot's seat.
+
+```ts
+function addBot(lobby: LobbyState, by: number, rules: LobbyRules, botsAllowed: boolean): number;
+```
+
+#### `ANOMALY_COOLDOWN_MS` (const)
+
+One line per anomaly kind per room (and per seat for late inputs), at most this often.
+
+```ts
+const ANOMALY_COOLDOWN_MS: number;
+```
+
+#### `anonymousVerifier` (const)
+
+Accepts every join and names nobody: the only verifier production has until a host gives its own.
+
+```ts
+const anonymousVerifier: SessionVerifier;
+```
+
+#### `answerProbe` (function)
+
+Answers one of the server's own routes and returns true, or returns false for every other path.
+
+```ts
+function answerProbe(request: IncomingMessage, response: ServerResponse, state: ProbeState): boolean;
+```
+
+#### `AutomataRoom` (class)
+
+The Colyseus room behind every game. It seats players and bots, steps the sim on its own clock,
+sends snapshots and answers each request once. A game never builds it directly; the server makes
+its subclass.
+
+```ts
+class AutomataRoom extends Room<{
+  state: RoomInfoState;
+}> {
+  /** Set by `roomClassFor`'s subclass before Colyseus calls `onCreate`. */
+  protected context: RoomContext | undefined;
+  private roomEngine;
+  private scheduler;
+  private codeClaimed;
+  /** Whether the matchmaker offers this room to Quick match; undefined until the first `project`. */
+  private listed;
+  private closing;
+  private readonly serial;
+  /** Sessions whose connection dropped and has not come back: their leave is the grace running out. */
+  private readonly dropped;
+  /** Room telemetry's cooldown (`room-telemetry.ts`), on the room's clock. */
+  private anomalies;
+  /** A step longer than this is logged `step.slow`: half a tick. */
+  private slowStepAfterMs;
+  /** The room's engine, for the test driver (`server/testing`); not room API. */
+  get engine(): RoomEngine;
+  private get ctx();
+  override onCreate(): Promise<void>;
+  /** Validated before a seat exists: a bad join is refused, not seated and then removed. Reconnects skip this. */
+  override onAuth(_client: Client, options: unknown): true;
+  override onJoin(client: Client, options: unknown): void;
+  /**
+   * A connection lost rather than given up: the seat is held for the grace, on room ticks in the engine and in wall
+   * seconds by Colyseus, whose reconnection token is cancelled when the engine gives the seat up first.
+   */
+  override onDrop(client: Client): void;
+  override onReconnect(client: Client): void;
+  /** A consented leave, or a drop the grace ran out on: the seat is freed for good. Idempotent. */
+  override onLeave(client: Client): void;
+  override onDispose(): void;
+  /** One tick: the engine's, then the info state; a patch goes with each snapshot. */
+  tick(): void;
+  /**
+   * Something on the tick threw outside the engine's own boundary (which halts the room for the game's code). The
+   * room halts the same way: logged by the error's class, closed with an error, and the process carries on.
+   */
+  private fail;
+  /** A slow tick or step: written with the room's serial unless one of its kind went out in the last ten seconds. */
+  private anomaly;
+  /** Stops the room's own clock for good: a test that steps the room by hand calls this first. */
+  stopClock(): void;
+  /** The server is draining (`LiveRooms`): the engine decides what that means for this room. */
+  beginDrain(): void;
+  /**
+   * Every client message, inside an error boundary: Colyseus calls a handler outside any
+   * try/catch of its own, so an error a handler let escape would reach the process and end every game on it.
+   */
+  private receive;
+  private project;
+  /**
+   * The room is offered to Quick match (`joinOrCreate`) exactly while it is in its lobby and not draining
+   *. Colyseus's `private` means "not offered"; its lock keeps meaning "full", and a friend
+   * with the code (`joinById`) is told the real reason by `onAuth`. A no-op while the answer has not changed.
+   */
+  private syncListing;
+  /**
+   * The engine has nothing left to do. A drained room closes with Colyseus's server-shutdown code, which a client
+   * reads as `SERVER_UPDATING`; an abandoned one simply goes.
+   */
+  private close;
+}
+```
+
+#### `botCount` (const)
+
+How many of the lobby's seats are bots.
+
+```ts
+const botCount: (lobby: LobbyState) => number;
+```
+
+#### `BotPolicy` (interface)
+
+The bot-seat hook (PD-5): no AI ships.
+
+```ts
+interface BotPolicy {
+  readonly name: string;
+  /**
+   * Called once per tick for each bot seat, while the room takes commands (the countdown and play). Reads the sim;
+   * never writes it. Its commands enter the same input queue with the bot's seat as `source`, so they are in the
+   * replay and clients see bots only through snapshots.
+   */
+  commands(view: SimView, seat: number, rng: Rng): readonly CommandIntent[];
+}
+```
+
+#### `botSeed` (const)
+
+The seed of a bot seat's RNG (`deriveSeed(roomSeed, seat)`; the sim's `deriveSeed` names its stream
+with a string). The same room and seat draw the same stream, so a room's story repeats from its replay.
+
+```ts
+const botSeed: (roomSeed: number, seat: number) => number;
+```
+
+#### `Bucket` (interface)
+
+A token bucket: up to `burst` at once, refilled at `perSecond`.
+
+```ts
+interface Bucket {
+  readonly burst: number;
+  readonly perSecond: number;
+}
+```
+
+#### `bucketOptions` (function)
+
+A config bucket as `TokenBuckets` reads it. `perSecond` 0 never refills.
+
+```ts
+function bucketOptions(bucket: Bucket): {
+  burst: number;
+  refillMs: number;
+};
+```
+
+#### `claimRoomCode` (function)
+
+Claims a free code. The shared set's add is the claim: two processes can generate the same code in the same
+instant, and only the one whose add reports 1 holds it (a check followed by an add would let both take it).
+
+```ts
+function claimRoomCode(store: RoomCodeStore, randomInt: RandomInt): Promise<string>;
+```
+
+#### `clientIp` (function)
+
+The address a request's limits are counted against. It is the connection's peer, or the proxy's
+last hop when the peer is the proxy on loopback; a header from anyone else is ignored.
+
+```ts
+function clientIp(request: IncomingMessage): string;
+```
+
+#### `CODE_ATTEMPTS` (const)
+
+Bounded so a failing random source cannot spin forever.
+
+```ts
+const CODE_ATTEMPTS = 8;
+```
+
+#### `colyseusLogger` (function)
+
+Colyseus logs to the console by default, and its text can hold a room id (the room code) or what a client sent.
+Its errors and warnings become text-free lines, so the operator still hears of them; the rest is dropped.
+
+```ts
+function colyseusLogger(log: (event: RoomLogEvent) => void): ColyseusLogger;
+```
+
+#### `ColyseusLogger` (interface)
+
+The logger Colyseus is given (`new Server({ logger })`).
+
+```ts
+interface ColyseusLogger {
+  debug(...args: unknown[]): void;
+  error(...args: unknown[]): void;
+  info(...args: unknown[]): void;
+  trace(...args: unknown[]): void;
+  warn(...args: unknown[]): void;
+}
+```
+
+#### `COMMAND_HISTORY` (const)
+
+Answers remembered per session.
+
+```ts
+const COMMAND_HISTORY = 64;
+```
+
+#### `CommandIntent` (interface)
+
+A command without its header: the room stamps `tick`, `source` and `seq`.
+
+```ts
+interface CommandIntent {
+  readonly type: string;
+  readonly payload: unknown;
+}
+```
+
+#### `CommandLedger` (class)
+
+Remembers the answer given to each request, per session, so a resent request gets the same
+answer and never acts twice. Bounded, oldest answers dropped first.
+
+```ts
+class CommandLedger {
+  /** Answers per session, oldest first: a `Map` iterates in insertion order. */
+  private readonly answers;
+  private readonly capacity;
+  constructor(capacity?: number);
+  /**
+   * Runs `run` for a request id this session has not sent before, or replays the stored answer for one it has.
+   * `run` refuses by throwing; the throw becomes an `ok: false` answer and is remembered like any other, so a resent
+   * refusal is refused again without running a second time.
+   */
+  answer(session: string, req: string, run: () => void): LedgerAnswer;
+  /** Drops a session's history, for a seat that has left for good. */
+  forget(session: string): void;
+  private historyOf;
+  /** Evicts the oldest answers until the history fits its capacity. */
+  private trim;
+}
+```
+
+#### `CommandResult` (type)
+
+The answer to one request.
+
+```ts
+type CommandResult = {
+  readonly req: string;
+  readonly ok: true;
+} | {
+  readonly req: string;
+  readonly ok: false;
+  readonly error: ServerError;
+};
+```
+
+#### `countdownElapsed` (function)
+
+Whether a running countdown has reached zero on this tick.
+
+```ts
+function countdownElapsed(lobby: LobbyState): boolean;
+```
+
+#### `CrashTarget` (interface)
+
+Where crashes are heard: `process` in production, an emitter in a test.
+
+```ts
+interface CrashTarget {
+  on(event: "unhandledRejection" | "uncaughtException", handler: (error: unknown) => void): unknown;
+}
+```
+
+#### `createAnomalyLimiter` (function)
+
+Whether an event may be written now. Anomalies are limited on `now` (the room's clock, in milliseconds); every
+other event passes.
+
+```ts
+function createAnomalyLimiter(now: () => number, cooldownMs?: number): (event: RoomLogEvent) => boolean;
+```
+
+#### `createLobby` (function)
+
+A new, empty lobby, before anyone has sat down.
+
+```ts
+function createLobby(): LobbyState;
+```
+
+#### `createLogWriter` (function)
+
+The server's `log`: each event becomes one validated JSON line.
+
+```ts
+function createLogWriter(options: LogWriterOptions): (event: RoomLogEvent) => void;
+```
+
+#### `createMatchmakeGate` (function)
+
+Builds the gate every matchmaking request passes before Colyseus sees it: origin, draining,
+per-address limits, body size and game version. It answers a refused request itself.
+
+```ts
+function createMatchmakeGate(options: MatchmakeGateOptions): MatchmakeGate;
+```
+
+#### `createServerRuntime` (function)
+
+Builds a server inside the caller's scope: checks the config, binds the listener, installs the
+gates and probes, and defines the room. It stops with the scope.
+
+```ts
+function createServerRuntime(def: ServerDef, config: ServerConfig): Effect.Effect<ServerRuntime, ServerStartError, Scope.Scope>;
+```
+
+#### `createSocketGate` (function)
+
+Builds the count of open sockets, per address and in all. It admits a socket while both counts
+have room and forgets an address with none open.
+
+```ts
+function createSocketGate(limits: {
+  readonly maxPerIp: number;
+  readonly maxTotal: number;
+}): SocketGate;
+```
+
+#### `createUpgradeGate` (function)
+
+Builds the gate every WebSocket upgrade passes: the origin must be listed and the address must
+have a socket to spare. A refusal is a bare HTTP status on the socket.
+
+```ts
+function createUpgradeGate(options: UpgradeGateOptions): UpgradeGate;
+```
+
+#### `defineServer` (function)
+
+Checks a game's server once, so a room never meets a bad one. Throws for a definition no room can run.
+
+```ts
+function defineServer(def: ServerGameDef): ServerDef;
+```
+
+#### `DRAIN_MAX_MS` (const)
+
+The longest a drain waits for rooms to close: five minutes.
+
+```ts
+const DRAIN_MAX_MS: number;
+```
+
+#### `DrainableRoom` (interface)
+
+The slice of a room the drain needs; kept narrow so this file imports no room.
+
+```ts
+interface DrainableRoom {
+  beginDrain(): void;
+}
+```
+
+#### `DrainResult` (type)
+
+`empty` when the last room closed; `cap` when the wait ran out first.
+
+```ts
+type DrainResult = "empty" | "cap";
+```
+
+#### `endGame` (function)
+
+The game says it is over. Only from play.
+
+```ts
+function endGame(lobby: LobbyState): void;
+```
+
+#### `EnvConfigResult` (type)
+
+The server's config read from its environment, or the name of every variable that was missing or
+not valid.
+
+```ts
+type EnvConfigResult = {
+  readonly ok: true;
+  readonly config: ServerConfig;
+} | {
+  readonly ok: false;
+  readonly problems: string[];
+};
+```
+
+#### `EnvServerBase` (interface)
+
+What a game gives its server beside the environment's limits.
+
+```ts
+interface EnvServerBase {
+  readonly net: NetConfig;
+  readonly limits: Omit<ServerLimits, "maxRooms" | "allowedOrigins">;
+  /** [`anonymousVerifier`]; a host gives its own verifier. */
+  readonly verifier?: SessionVerifier | undefined;
+}
+```
+
+#### `evaluateReadiness` (function)
+
+Under `all-ready`, starts the countdown once every connected player is ready and the game's minimum of seats is
+taken. A room with nobody connected never starts. Outside the lobby, or under `host`, it does nothing.
+
+```ts
+function evaluateReadiness(lobby: LobbyState, rules: LobbyRules): void;
+```
+
+#### `FreedSeat` (interface)
+
+A seat freed by `keepOnly`, so the room can forget what else it held.
+
+```ts
+interface FreedSeat {
+  readonly session: string;
+  readonly seat: number;
+}
+```
+
+#### `GameVersion` (interface)
+
+What two builds must share to play in one room: the net protocol, the sim's schema hash and the
+content hash.
+
+```ts
+interface GameVersion {
+  readonly protocol: number;
+  readonly schemaHash: string;
+  readonly contentHash: string;
+}
+```
+
+#### `gameVersionOf` (function)
+
+The game's version, read from a sim of it (seed 0: neither hash depends on the seed), then disposed.
+
+```ts
+function gameVersionOf(def: ServerDef): Promise<GameVersion>;
+```
+
+#### `GateOptions` (interface)
+
+The gates `installGates` puts in front of Colyseus: the origin list, the matchmaking gate and
+the upgrade gate.
+
+```ts
+interface GateOptions {
+  readonly origins: OriginPolicy;
+  readonly matchmake: MatchmakeGate;
+  readonly upgrade: UpgradeGate;
+}
+```
+
+#### `generateRoomCode` (function)
+
+A room code drawn from net's alphabet with the given random source. It is not yet claimed.
+
+```ts
+function generateRoomCode(randomInt: RandomInt): string;
+```
+
+#### `InputMeter` (class)
+
+Each seat's command budget, a token bucket counted in room ticks. A seat spends one credit per
+accepted command; an empty seat has its command dropped.
+
+```ts
+class InputMeter {
+  private readonly credits;
+  private readonly options;
+  constructor(options: InputMeterOptions);
+  /** Gives a seat a full budget: on joining, and again on reconnecting. */
+  fill(seat: number): void;
+  /**
+   * Spends one command's credit. Returns false when the seat is out of credit, and the caller drops the command. A
+   * seat the meter has never seen has no credit.
+   */
+  spend(seat: number): boolean;
+  /** Earns each listed seat one tick's credit, up to the cap. Once per tick. */
+  refill(seats: Iterable<number>): void;
+  /** Drops a seat's budget, for a seat that has left for good. */
+  forget(seat: number): void;
+}
+```
+
+#### `InputMeterOptions` (interface)
+
+Each seat's command budget: a token bucket on the room clock.
+
+A seat may bank up to `capacity` commands and spends one per accepted command, refilling a little faster than
+the tick rate so ordinary play never touches the limit. Budgets are measured on the room clock rather than wall
+time, so a client cannot widen them by stalling the server.
+
+A command over budget is dropped, never answered with a disconnect: a burst is far more often a slow
+frame than an attack, and dropping costs the player one tick of intent.
+
+No I/O and no clock: the room calls `refill` once per tick.
+
+```ts
+interface InputMeterOptions {
+  /** The most commands a seat can bank: one second's worth, `tickHz`. */
+  readonly capacity: number;
+  /** Commands a seat earns back per room tick. */
+  readonly creditsPerTick: number;
+}
+```
+
+#### `InputQueue` (class)
+
+Holds the commands each seat has sent until the tick they are due. It refuses a repeated or
+runaway sequence, a command stamped too far ahead and a seat with too many waiting.
+
+```ts
+class InputQueue {
+  /** Indexed by seat, so taking walks the seats in seat order. */
+  private readonly seats;
+  private readonly options;
+  constructor(options: InputQueueOptions);
+  private queueOf;
+  /** Accepts one command from `seat`, given the tick the room steps next (the sim's `tick` before `step`). */
+  submit(seat: number, input: QueuedInput, nextTick: number): SubmitResult;
+  /**
+   * Every command due by `tick`, stamped `tick` with its seat as `source`, in seat order and then sequence order.
+   * Called once per room tick, just before the sim steps `tick`.
+   */
+  take(tick: number): Command[];
+  /**
+   * Forgets a seat that has been given up, numbering and all. The room also calls it when a seat is resumed by a
+   * reloaded client (`NetRoom.resume`), whose sequence starts again; a transport reconnect keeps the client's state
+   * and continues its numbering, so it is not forgotten.
+   */
+  forget(seat: number): void;
+  /** Forgets every seat, as a new game does. */
+  reset(): void;
+}
+```
+
+#### `InputQueueOptions` (interface)
+
+How far ahead a command may be stamped, and how far its sequence may jump past the last accepted
+one.
+
+```ts
+interface InputQueueOptions {
+  /** How far ahead of the room a command may be stamped: net's `maxLeadTicks`. One at that lead is refused. */
+  readonly maxLeadTicks: number;
+  /**
+   * How far a sequence may jump past the last accepted one. A command far ahead of the last one is not a fast client
+   * but a client that has lost track.
+   */
+  readonly maxSequenceGap: number;
+}
+```
+
+#### `installCrashHandlers` (function)
+
+Makes an error nothing caught write one fatal log line, naming the error's class only, and end
+the process with code 1 so the supervisor restarts it.
+
+```ts
+function installCrashHandlers(target: CrashTarget, log: (event: RoomLogEvent) => void, exit: (code: number) => void): void;
+```
+
+#### `installGates` (function)
+
+Puts Colyseus's listeners behind the gates; the returned function puts them back.
+
+```ts
+function installGates(http: Server, options: GateOptions): () => void;
+```
+
+#### `installProbes` (function)
+
+Puts the probes in front of the listener's own request handlers. Colyseus binds a router at `listen()` that answers
+every path (a 404 for those it does not know), so this runs after `listen`, takes its handlers and calls them only
+for what the probes leave.
+
+```ts
+function installProbes(http: Server, state: ProbeState): void;
+```
+
+#### `isPreGame` (function)
+
+Before the game: the lobby, and only the lobby. From the countdown on, nobody new sits down or readies.
+
+```ts
+function isPreGame(lobby: Pick<LobbyState, "phase">): boolean;
+```
+
+#### `isTestVerifier` (function)
+
+Whether a verifier is a test switch, which a production server refuses (`process-safety.ts`).
+
+```ts
+function isTestVerifier(verifier: SessionVerifier): boolean;
+```
+
+#### `LedgerAnswer` (interface)
+
+The answer to one request, and whether it came from history.
+
+```ts
+interface LedgerAnswer {
+  readonly result: CommandResult;
+  /** True when the request did not run because this id was answered before. */
+  readonly replayed: boolean;
+}
+```
+
+#### `levelOf` (function)
+
+A crash or a refusal to start is fatal; a refusal, a slow or late tick and a room's error warn; the rest inform.
+
+```ts
+function levelOf(event: string): LogLevel;
+```
+
+#### `LiveRooms` (class)
+
+Every room a server process holds. The room cap counts them and a drain speaks to each. One per
+server, so two servers in a test never share a set.
+
+```ts
+class LiveRooms<R extends DrainableRoom = DrainableRoom> implements Iterable<R> {
+  private readonly rooms;
+  get size(): number;
+  register(room: R): void;
+  forget(room: R): void;
+  [Symbol.iterator](): Iterator<R>;
+}
+```
+
+#### `LobbyRules` (interface)
+
+A game's lobby.
+
+```ts
+interface LobbyRules {
+  /** Seats, bots included, that must be taken before a game starts. */
+  readonly minSeats: number;
+  /** Seats the room offers; never more than net's `MAX_SEATS`. */
+  readonly maxSeats: number;
+  readonly countdownTicks: number;
+  /** `all-ready`: the countdown starts when every connected player is ready. `host`: when the host says so. */
+  readonly startWhen: "all-ready" | "host";
+}
+```
+
+#### `LobbySeat` (interface)
+
+One taken seat. A bot has no client: always connected and ready, never the host (`bot-seats.ts`).
+
+```ts
+interface LobbySeat {
+  readonly seat: number;
+  ready: boolean;
+  connected: boolean;
+  readonly bot: boolean;
+}
+```
+
+#### `LobbyState` (interface)
+
+The room's lobby: its phase, the host, who is seated and ready, and the countdown's end. The
+lobby rules change it in place.
+
+```ts
+interface LobbyState {
+  phase: LobbyPhase;
+  /** The room's tick, set by the room once per tick: the countdown runs on it. */
+  tick: number;
+  hostSeat: number | undefined;
+  countdownEndsAtTick: number | undefined;
+  startedAtTick: number | undefined;
+  /** Taken seats in seating order: the longest-seated first. */
+  readonly seats: LobbySeat[];
+}
+```
+
+#### `LogLevel` (type)
+
+How serious a log line is: information, a warning, or a fatal error.
+
+```ts
+type LogLevel = "info" | "warn" | "fatal";
+```
+
+#### `LogWriterOptions` (interface)
+
+Where a finished log line is written and the clock that stamps it.
+
+```ts
+interface LogWriterOptions {
+  /** Where a finished line goes, newline included [`process.stdout.write` in production]. */
+  readonly write: (line: string) => void;
+  /** Milliseconds since the epoch, for `ts`. */
+  readonly now: () => number;
+}
+```
+
+#### `MatchmakeGate` (type)
+
+Answers the request when it is refused, and says whether it did. Anything not matchmaking passes untouched.
+
+```ts
+type MatchmakeGate = (request: IncomingMessage, response: ServerResponse) => Promise<boolean>;
+```
+
+#### `MatchmakeGateOptions` (interface)
+
+What the matchmaking gate checks a request against: the origin list, whether the server is
+draining, the per-address limits, the body cap, the game's version and the clock.
+
+```ts
+interface MatchmakeGateOptions {
+  readonly origins: OriginPolicy;
+  readonly isDraining: () => boolean;
+  readonly perIp: ServerLimits["perIp"];
+  /** The body cap: `maxMessageBytes`. */
+  readonly maxBodyBytes: number;
+  /** The game's version, once the server has read it; undefined while the game is loading or if it never loads. */
+  readonly version: () => GameVersion | undefined;
+  /** The server's clock, in milliseconds (Effect's `Clock`). */
+  readonly now: () => number;
+  readonly onRefused: (code: string) => void;
+}
+```
+
+#### `MAX_QUEUED_COMMANDS` (const)
+
+Commands one seat may have waiting. A client leads the room by a round trip, so an honest queue holds a handful;
+thirty-two is generous for a hand on a controller and still a bound for a client that is not one.
+
+```ts
+const MAX_QUEUED_COMMANDS = 32;
+```
+
+#### `nextHost` (function)
+
+Who hosts next, from the seated players in seating order: the longest-seated player who is still connected,
+because a host who has dropped would block everyone who is there; when nobody is connected, the longest-seated
+player, so a room always has a host to hand on. Never a bot.
+
+```ts
+function nextHost(lobby: LobbyState): number | undefined;
+```
+
+#### `openSeat` (function)
+
+The lowest seat number nobody holds, or undefined when the room is full.
+
+```ts
+function openSeat(lobby: LobbyState, rules: LobbyRules): number | undefined;
+```
+
+#### `originPolicy` (function)
+
+Builds the origin list from exact origins. It refuses an empty list, a blank entry and anything
+that is not `scheme://host[:port]`.
+
+```ts
+function originPolicy(list: readonly string[]): OriginPolicy;
+```
+
+#### `OriginPolicy` (interface)
+
+Which pages may use this server.
+
+`allowedOrigins` lists the client origins, matched exactly: whichever origins the game is served from (a web page,
+an itch.io page, or a host's `gameOrigin`; see `originsFromGameOrigin`). There is no "unset allows everything":
+a server without a list refuses to start, and a dev server lists its dev origin.
+
+This keeps other websites from using the server from their pages. It does not stop a script that forges the
+header; the per-address limits are for that.
+
+```ts
+interface OriginPolicy {
+  /** Whether a request or socket from `origin` may proceed. */
+  allows(origin: string | undefined): boolean;
+  /** The CORS headers an answer to `origin` carries. */
+  corsHeaders(origin: string | undefined): Record<string, string>;
+  /** The listed origins. */
+  readonly origins: readonly string[];
+}
+```
+
+#### `originsFromGameOrigin` (function)
+
+The seam for Ruken's `gameOrigin(publicId, env, channel)` (`@ruken/manifest`). No core pack exports it yet, and a
+Ruken contract is never copied here, so the deploy computes the origin and this lists it, refusing anything that
+is not an exact origin. Once a core pack exposes `gameOrigin`, this calls it.
+
+```ts
+function originsFromGameOrigin(origin: string): readonly string[];
+```
+
+#### `PROBE_HEADERS` (const)
+
+The probes' answers are never cached and never sniffed.
+
+```ts
+const PROBE_HEADERS: Readonly<Record<string, string>>;
+```
+
+#### `ProbeState` (interface)
+
+What the server's own routes report: whether it is ready, and the contact for `security.txt` if
+it has one.
+
+```ts
+interface ProbeState {
+  readonly readiness: () => Readiness;
+  readonly securityTxt?: SecurityTxt | undefined;
+}
+```
+
+#### `QueuedInput` (type)
+
+What a client sends for the sim: a command without `source`, which the seat supplies.
+
+```ts
+type QueuedInput = Pick<Command, "seq" | "tick" | "type" | "payload">;
+```
+
+#### `RandomInt` (type)
+
+An integer in `[0, max)`.
+
+```ts
+type RandomInt = (max: number) => number;
+```
+
+#### `RATE_BUCKET_MAX_KEYS` (const)
+
+The most addresses a bucket remembers.
+
+```ts
+const RATE_BUCKET_MAX_KEYS: number;
+```
+
+#### `readCappedBody` (function)
+
+Reads a request body up to a size cap. Past the cap it stops reading and gives back undefined.
+
+```ts
+function readCappedBody(request: IncomingMessage, limit: number): Promise<string | undefined>;
+```
+
+#### `Readiness` (type)
+
+`starting` until the content has loaded, `ready` while rooms may open, `full` at the room cap (every new room is
+refused `SERVER_BUSY`), `draining` once SIGTERM came.
+
+```ts
+type Readiness = "starting" | "ready" | "full" | "draining";
+```
+
+#### `ReadonlyEntity` (interface)
+
+An entity as a view reads it: its id and its components' values, never a setter.
+
+```ts
+interface ReadonlyEntity {
+  readonly sid: number;
+  has(component: ComponentDef): boolean;
+  get<S extends FieldSchema>(component: ComponentDef<S>): Readonly<FieldValues<S>>;
+}
+```
+
+#### `REFUSAL_WORDS` (const)
+
+What a player is told, by code.
+
+```ts
+const REFUSAL_WORDS: Readonly<Partial<Record<NetErrorCode, string>>>;
+```
+
+#### `refuseTooLarge` (function)
+
+Answers 413 and closes the connection once the answer is out, so a body that never ends cannot
+hold the server.
+
+```ts
+function refuseTooLarge(request: IncomingMessage, response: ServerResponse, headers?: Record<string, string>): void;
+```
+
+#### `releaseRoomCode` (function)
+
+Gives a room code back to the shared set when its room closes.
+
+```ts
+function releaseRoomCode(store: RoomCodeStore, code: string): Promise<void>;
+```
+
+#### `removeBot` (function)
+
+The host's tap on a bot's seat: frees it.
+
+```ts
+function removeBot(lobby: LobbyState, by: number, seat: number): void;
+```
+
+#### `removeSeat` (function)
+
+Frees a seat for good: a leave, or a drop past the grace. A host who leaves hands the role on (`nextHost`), and a
+countdown left short of the game's minimum is cancelled.
+
+```ts
+function removeSeat(lobby: LobbyState, seat: number, rules: LobbyRules): void;
+```
+
+#### `requestIdOf` (function)
+
+The request id (`req`) a raw message carries, if any.
+
+Read before the rest of the message is validated, because even a malformed request has to be answered, and the
+answer is addressed by this id. Runs on raw client data, so it must never throw: it reads only the message's own
+data property, which runs no code, and takes it only when net's `reqIdSchema` does, which checks the type before
+anything else and never converts a value to a string.
+
+```ts
+function requestIdOf(message: unknown): string | undefined;
+```
+
+#### `ROOM_CODE_CHANNEL` (const)
+
+The shared set holding every live room code.
+
+```ts
+const ROOM_CODE_CHANNEL = "automata:rooms";
+```
+
+#### `ROOM_SOURCE` (const)
+
+The sim `source` of the room's own commands (seat.join, seat.leave and a game's room commands): the highest source
+the sim accepts, never a seat. On the sim side so a game's sim can tell the room's commands from a seat's without
+importing the server; the server stamps its commands with this constant.
+
+```ts
+const ROOM_SOURCE = 255;
+```
+
+#### `RoomCodeStore` (interface)
+
+The set operations a code claim needs: Colyseus Presence's `sismember`, `sadd` and `srem`.
+
+```ts
+interface RoomCodeStore {
+  /** Adds `member`; resolves to 1 when it was added and 0 when the set already held it (Redis and Presence `sadd`). */
+  sadd(key: string, member: string): Promise<number>;
+  srem(key: string, member: string): Promise<unknown>;
+}
+```
+
+#### `RoomCommandError` (class)
+
+A refusal the client is expected to show the player, as opposed to a crash.
+
+```ts
+class RoomCommandError extends Error {
+  readonly code: NetErrorCode;
+  constructor(code: NetErrorCode, message: string);
+}
+```
+
+#### `RoomLogEvent` (interface)
+
+One event worth a log line. No field holds an address, a name, a room code, a
+token or a payload; `room` is the room's index in this process, never its code.
+
+```ts
+interface RoomLogEvent {
+  readonly event: string;
+  readonly room?: string;
+  readonly seat?: number;
+  readonly code?: string;
+  readonly ms?: number;
+  readonly count?: number;
+}
+```
+
+#### `runServerProcess` (function)
+
+Runs a game's server as a production process and never returns. Fails with `ServerStartError` (after one
+`start.refused` line per problem) when the environment lacks what the server cannot run without.
+
+```ts
+function runServerProcess(def: ServerDef, options: ServerProcessOptions): Effect.Effect<never, ServerStartError, Scope.Scope>;
+```
+
+#### `SeatClient` (interface)
+
+The one thing the registry does with a client: tell it where it sits.
+
+```ts
+interface SeatClient {
+  send(message: ServerMessage): void;
+}
+```
+
+#### `seatPlayer` (function)
+
+Seats a joining player in the lowest open seat; the first player to sit down hosts. Returns the seat.
+
+```ts
+function seatPlayer(lobby: LobbyState, rules: LobbyRules): number;
+```
+
+#### `SeatRegistry` (class)
+
+Which session sits in which seat, which clients have yet to be told their seat and which dropped
+seats are being held for a return.
+
+```ts
+class SeatRegistry {
+  /** The seat per session, in the order they first sat down. */
+  private readonly bySession;
+  /** Clients still waiting to hear their own seat. */
+  private readonly unannounced;
+  /** How to cancel each pending reconnection, keyed by the session that dropped. */
+  private readonly holds;
+  private seatedOnce;
+  /** Seats taken, counting those held for a player who dropped. */
+  get size(): number;
+  /** Whether anyone has ever sat down: an empty room that has had a player is abandoned; one that has not is new. */
+  get everSeated(): boolean;
+  seatOf(session: string): number | undefined;
+  /** The session sitting in `seat`, if it still holds it. */
+  sessionOf(seat: number): string | undefined;
+  /** Every seat a session holds, in seating order: a copy, safe to keep. */
+  seats(): number[];
+  /**
+   * Every seat a session holds, in seating order, without copying: for loops that run on every tick. Do not seat
+   * or free anyone while iterating it.
+   */
+  seated(): Iterable<number>;
+  /** Seats a session and queues its announcement: on a join and again on a reconnect, which keeps its place. */
+  seat(session: string, seat: number, client: SeatClient): void;
+  /**
+   * Frees a seat for good; nothing is announced to it afterwards. It does not touch a reconnection hold: a caller
+   * freeing a dropped seat calls `closeHold` first, or the token stays valid.
+   */
+  release(session: string): void;
+  /** Frees every seat `keep` rejects, and says which ones it freed. */
+  keepOnly(keep: (seat: number) => boolean): FreedSeat[];
+  /**
+   * Tells each waiting client its seat. Once per tick. A client that disconnected after it was queued makes `send`
+   * throw; its seat has already been dealt with by the room's leave handler, so the failure is swallowed and the
+   * other clients are still told.
+   */
+  announce(): void;
+  /** Records how to cancel the reconnection held for a dropped session. */
+  hold(session: string, cancel: () => void): void;
+  /** Forgets a hold that has settled: the player came back, or the grace ran out. */
+  endHold(session: string): void;
+  /** Ends a hold early. Its token stops working, so a client still holding it is refused rather than seated. */
+  closeHold(session: string): void;
+}
+```
+
+#### `SecurityTxt` (interface)
+
+RFC 9116's two required fields: a `mailto:` or `https:` contact, and an ISO 8601 expiry.
+
+```ts
+interface SecurityTxt {
+  readonly contact: string;
+  readonly expires: string;
+}
+```
+
+#### `securityTxtBody` (function)
+
+The text of `/.well-known/security.txt` for a contact and an expiry.
+
+```ts
+function securityTxtBody(security: SecurityTxt): string;
+```
+
+#### `ServerConfig` (interface)
+
+Everything a server process is given: its port, limits, net settings, log, verifier and the test
+switches a production server refuses.
+
+```ts
+interface ServerConfig {
+  /** `0` asks the operating system for a free port, as every test does. */
+  readonly port: number;
+  /**
+   * The address to listen on. Unset, every address (Node's default), as a deployed server wants. The test harness
+   * gives `127.0.0.1` (issue #14): on macOS a wildcard listener can share its port with another process's loopback one.
+   */
+  readonly host?: string | undefined;
+  readonly limits: ServerLimits;
+  /** `content/net.toml`: the snapshot rate, the lead a client may take and the reconnect grace. */
+  readonly net: NetConfig;
+  /** A test switch: every room's seed. Unset, each room draws a fresh one. A production server refuses it. */
+  readonly seed?: number | undefined;
+  readonly log?: ((event: RoomLogEvent) => void) | undefined;
+  /**
+   * A test switch: rooms start with no clock of their own, and only a test steps them, so no tick runs that the
+   * test did not ask for. A production server refuses it with the other test switches.
+   */
+  readonly manualClock?: boolean | undefined;
+  /** SIGTERM's source [`process`]. */
+  readonly signals?: SignalSource | undefined;
+  /** Ends the process after a drain [`process.exit`]. */
+  readonly exit?: ((code: number) => void) | undefined;
+  /** Read for `NODE_ENV`: a clock hold is refused in production [`process.env`]. */
+  readonly env?: Readonly<Record<string, string | undefined>> | undefined;
+  /** The longest a drain waits for rooms to finish [five minutes]. */
+  readonly drainCapMs?: number | undefined;
+  /** Who a joining player is [`anonymousVerifier`, until a host verifier is given]. The fake is a test switch. */
+  readonly verifier?: SessionVerifier | undefined;
+  /** `/.well-known/security.txt`'s contact and expiry; unset, the path is 404. */
+  readonly securityTxt?: SecurityTxt | undefined;
+}
+```
+
+#### `serverConfigFromEnv` (function)
+
+The server's config from its environment, or the name of each variable that is missing or not valid.
+
+```ts
+function serverConfigFromEnv(env: Env, base: EnvServerBase): EnvConfigResult;
+```
+
+#### `ServerDef` (interface)
+
+A game's server after `defineServer` has checked it: the game, its seat range, its lobby and a
+way to find the commands a client may send.
+
+```ts
+interface ServerDef {
+  readonly kind: "server";
+  readonly game: ServerGameDef;
+  readonly seats: {
+    readonly min: number;
+    readonly max: number;
+  };
+  readonly lobby: {
+    readonly countdownSeconds: number;
+    readonly startWhen: "all-ready" | "host";
+  };
+  /**
+   * The definition of a command a client may send, by type: every plugin's commands but net's seat commands, which
+   * only the room sends. Undefined for any other type.
+   */
+  clientCommand(type: string): CommandDef | undefined;
+}
+```
+
+#### `ServerError` (interface)
+
+What a player is told about a failure: a code from net's list and a sentence.
+
+```ts
+interface ServerError {
+  readonly code: NetErrorCode;
+  readonly message: string;
+}
+```
+
+#### `ServerGameDef` (interface)
+
+What a game gives its server: the sim's plugins and content, how many seats, and optionally the
+lobby rules, how a new seat gets its avatar, how a bot plays and when the game is over.
+
+```ts
+interface ServerGameDef {
+  /** The game's sim, the same list its client uses; it must include net's `netPlugin`. */
+  readonly plugins: readonly PluginDef[];
+  /** Compiled content, as `SimOptions.content`; its hash must equal the client's. */
+  readonly content?: unknown;
+  readonly seats: {
+    readonly min: number;
+    readonly max: number;
+  };
+  readonly lobby?: {
+    readonly countdownSeconds: number;
+    readonly startWhen: "all-ready" | "host";
+  };
+  /** Commands that give a newly seated seat (a player or a bot) its entities, sent right after `seat.join`. */
+  readonly seat?: (seat: number, name: string) => readonly CommandIntent[];
+  readonly bots?: BotPolicy;
+  /**
+   * Whether play is over, asked after each tick of play with that tick's events. Without it a game plays until its
+   * room closes.
+   */
+  readonly ended?: (view: SimView, events: readonly SimEvent[]) => boolean;
+}
+```
+
+#### `ServerLimits` (interface)
+
+Every limit the server enforces: rooms, allowed origins, message size, sockets and matchmaking
+per address, and each seat's command budget.
+
+```ts
+interface ServerLimits {
+  /** The most rooms the process holds; one more is refused `SERVER_BUSY`. */
+  readonly maxRooms: number;
+  /**
+   * Exact client origins (`scheme://host[:port]`): the game's Ruken `gameOrigin` (see `originsFromGameOrigin`) and
+   * any web or itch.io origin. Matchmaking and sockets from any other origin, or none, are refused; empty refuses
+   * to start.
+   */
+  readonly allowedOrigins: readonly string[];
+  /**
+   * A room message past this is dropped before parsing, and a matchmaking body past it gets 413. From 1 to net's
+   * `MAX_MESSAGE_BYTES` [16384].
+   */
+  readonly maxMessageBytes: number;
+  /** Sockets one address may hold [16]; the server's total is a socket per seat of `maxRooms` rooms plus 64. */
+  readonly socketsPerIp: number;
+  /**
+   * Matchmaking per address: opening a room (`create`), Quick match (`quickMatch`, which fills a listed room or
+   * opens one), joining by code (`join`) and reconnecting (`reconnect`). Past one: `RATE_LIMITED`.
+   */
+  readonly perIp: {
+    readonly create: Bucket;
+    readonly join: Bucket;
+    readonly quickMatch: Bucket;
+    readonly reconnect: Bucket;
+  };
+  /** Each seat's command budget: a command past it is dropped, never a disconnect. */
+  readonly commandsPerSeat: Bucket;
+}
+```
+
+#### `serverLogLine` (const)
+
+The strict schema every log line is parsed with before it is written. It is what keeps the log
+free of anything private.
+
+```ts
+const serverLogLine: z.ZodType<ServerLogLine>;
+```
+
+#### `ServerLogLine` (interface)
+
+One line of the server's log. It has no field for an address, a name, a room code, a token or a
+payload, so none can leak.
+
+```ts
+interface ServerLogLine {
+  readonly ts: number;
+  readonly level: LogLevel;
+  readonly event: string;
+  readonly room?: string | undefined;
+  readonly seat?: number | undefined;
+  readonly code?: string | undefined;
+  readonly ms?: number | undefined;
+  readonly count?: number | undefined;
+}
+```
+
+#### `ServerProcessOptions` (interface)
+
+What `runServerProcess` takes beyond the game's own limits. Every field is injected so a test
+can run a whole process without touching the real one: the environment, the log writer and
+clock, the process and its exit.
+
+```ts
+interface ServerProcessOptions extends EnvServerBase {
+  /** [`process.env`] */
+  readonly env?: Env | undefined;
+  /** Where log lines go [`process.stdout.write`]. */
+  readonly write?: ((line: string) => void) | undefined;
+  /** The log lines' clock, in epoch milliseconds [`Date.now`]. */
+  readonly now?: (() => number) | undefined;
+  /** Crashes and SIGTERM [`process`]. */
+  readonly process?: (CrashTarget & SignalSource) | undefined;
+  /** [`process.exit`] */
+  readonly exit?: ((code: number) => void) | undefined;
+}
+```
+
+#### `ServerRuntime` (interface)
+
+A running server: its port and address, its rooms, whether it is draining, what `/ready` says,
+and the `drain` that ends it gracefully.
+
+```ts
+interface ServerRuntime {
+  /** The port the listener bound: the one asked for, or the operating system's choice for port 0. */
+  readonly port: number;
+  /** The address the listener bound: the configured host, or Node's wildcard (`::` or `0.0.0.0`) with none. */
+  readonly host: string;
+  readonly gameServer: Server$1;
+  readonly rooms: LiveRooms<AutomataRoom>;
+  readonly draining: boolean;
+  /** What `/ready` reports: `ready` once the content has loaded, `full` at the room cap, `draining` after SIGTERM. */
+  readonly readiness: Readiness;
+  /** The origin list every route answers with. */
+  readonly origins: OriginPolicy;
+  /** The protocol and hashes a client must match to join; undefined until read. */
+  readonly version: GameVersion | undefined;
+  /** The open sockets the gates count, per address and in all. */
+  readonly sockets: Pick<SocketGate, "open" | "addresses">;
+  /**
+   * Opens no room and seats nobody new, tells every room, waits for them to finish (at most the cap), then shuts
+   * Colyseus down. Runs once: a second run returns the first result.
+   */
+  readonly drain: Effect.Effect<DrainResult>;
+}
+```
+
+#### `ServerStartError` (class)
+
+The server could not start: a config no server can run with, or a listener that could not bind.
+
+```ts
+class ServerStartError extends ServerStartErrorBase {}
+```
+
+#### `SessionRejected` (class)
+
+The verifier refused the token; the room refuses the join `UNVERIFIED`.
+
+```ts
+class SessionRejected extends SessionRejectedBase {}
+```
+
+#### `SessionRejectReason` (type)
+
+Why a token was refused: none was given, it was never issued, or it has expired.
+
+```ts
+type SessionRejectReason = "missing" | "forged" | "expired";
+```
+
+#### `SessionVerifier` (interface)
+
+The port that says who a joining player is. Given the session token a client presents, it
+answers with a verified player or refuses.
+
+```ts
+interface SessionVerifier {
+  verify(token: string): Effect.Effect<VerifiedSession, SessionRejected>;
+}
+```
+
+#### `setConnected` (function)
+
+A player's drop (false) or return (true). A dropped player cannot hold the room up, so their readiness is cleared;
+they keep the host role while their seat is held. A countdown that no longer has anyone
+connected is cancelled.
+
+```ts
+function setConnected(lobby: LobbyState, seat: number, connected: boolean, rules: LobbyRules): void;
+```
+
+#### `setReady` (function)
+
+A player's Ready toggle, in the lobby only.
+
+```ts
+function setReady(lobby: LobbyState, seat: number, ready: boolean, rules: LobbyRules): void;
+```
+
+#### `SignalSource` (interface)
+
+Where SIGTERM comes from: the process in production, an emitter in a test.
+
+```ts
+interface SignalSource {
+  on(event: "SIGTERM", listener: () => void): unknown;
+  off(event: "SIGTERM", listener: () => void): unknown;
+}
+```
+
+#### `SimView` (interface)
+
+A read-only look at the room's sim, for a bot: the tick, the hash, entities and resources, and
+nothing that changes them.
+
+```ts
+interface SimView {
+  /** The tick the sim steps next. */
+  readonly tick: number;
+  readonly tickHz: number;
+  readonly contentHash: string;
+  entity(sid: number): ReadonlyEntity | undefined;
+  /** Entities with every listed component, in id order (the sim's `query`). */
+  query(...components: ComponentDef[]): ReadonlyEntity[];
+  resource<Z extends z.ZodType>(def: ResourceDef<Z>): Readonly<z.output<Z>>;
+  hash(): string;
+}
+```
+
+#### `simViewOf` (function)
+
+Wraps a sim as a read-only `SimView`. The view is live, reading the sim as it is when called.
+
+```ts
+function simViewOf(sim: Sim): SimView;
+```
+
+#### `slowStepMs` (function)
+
+A step that took more than half its tick: two back to back would miss a tick.
+
+```ts
+function slowStepMs(tickHz: number): number;
+```
+
+#### `SOCKET_HEADROOM` (const)
+
+Sockets beyond one per seat that the server holds for joins in flight.
+
+```ts
+const SOCKET_HEADROOM: number;
+```
+
+#### `SocketGate` (interface)
+
+Open WebSockets, per address and overall.
+
+Sixteen per address (the default) covers four players behind one router with their reconnects; the total is a
+socket per seat in every room the server may hold, plus headroom for joins in flight. An address with no open
+socket is forgotten. Refusing a socket never touches the ones already open.
+
+```ts
+interface SocketGate {
+  /** Counts one more socket from `ip`, or refuses it. */
+  admit(ip: string): boolean;
+  /** Counts one socket from `ip` closed. */
+  release(ip: string): void;
+  readonly open: number;
+  readonly addresses: number;
+}
+```
+
+#### `socketTotal` (function)
+
+The most sockets the server holds at once: one per seat of `maxRooms` rooms, plus the headroom.
+
+```ts
+function socketTotal(maxRooms: number, seatsPerRoom: number): number;
+```
+
+#### `startCountdown` (function)
+
+The host's Start, under `host`. A guest is told they are not the host before anything else, so the lobby can
+disable the control for the right reason rather than "not now".
+
+```ts
+function startCountdown(lobby: LobbyState, by: number, rules: LobbyRules): void;
+```
+
+#### `startGame` (function)
+
+Play begins on this tick; every seat keeps its connection and readiness. Only from the countdown.
+
+```ts
+function startGame(lobby: LobbyState): void;
+```
+
+#### `startOver` (function)
+
+Play again: a fresh lobby after an ended game, keeping every seat, the host and the room's clock (`tick` is kept,
+so a dropped seat's grace deadline stays meaningful). A dropped player comes over still dropped; were they rebuilt
+as connected, they would count as a player who is not ready and the countdown could never start. People ready
+again in the lobby; a bot is always ready.
+
+```ts
+function startOver(lobby: LobbyState): void;
+```
+
+#### `startServer` (function)
+
+Starts the server and keeps it: listens, then drains on the first SIGTERM and exits (0 drained, 1 failed). Fails
+with `ServerStartError` before listening when the config cannot run. Closing the scope shuts it down.
+
+```ts
+function startServer(def: ServerDef, config: ServerConfig): Effect.Effect<never, ServerStartError, Scope.Scope>;
+```
+
+#### `startTickScheduler` (function)
+
+Starts ticking at fixed deadlines, one tick length apart, so ticks do not bunch up. After a
+stall it catches up a few ticks and drops the rest.
+
+```ts
+function startTickScheduler(options: TickSchedulerOptions): TickScheduler;
+```
+
+#### `SubmitResult` (type)
+
+`tick` is when the command will take effect. `slack` is how many ticks early it arrived: its stamped tick minus
+the next tick the room steps. Zero is exactly in time; negative is late, which the room logs as `input.late`.
+
+```ts
+type SubmitResult = {
+  readonly ok: true;
+  readonly tick: number;
+  readonly slack: number;
+} | {
+  readonly ok: false;
+  readonly reason: "sequence" | "lead" | "full";
+};
+```
+
+#### `testSwitchesSet` (function)
+
+Each test switch set, or a production limit missing, when any of `envs` says production; empty otherwise.
+
+```ts
+function testSwitchesSet(config: ServerConfig, ...envs: readonly Env$1[]): string[];
+```
+
+#### `TickClock` (interface)
+
+The time source and timer the scheduler runs on. Times are milliseconds.
+
+```ts
+interface TickClock {
+  now(): number;
+  setTimer(callback: () => void, delayMs: number): unknown;
+  clearTimer(handle: unknown): void;
+}
+```
+
+#### `tickClockFrom` (function)
+
+The room's tick clock on Effect's `Clock`: time is the clock's (TestClock in a test), and the wake-up is a Node
+timer, which the clock does not own. A test that needs exact ticks stops the room's clock and steps it by hand.
+
+```ts
+function tickClockFrom(clock: Clock.Clock): TickClock;
+```
+
+#### `TickScheduler` (interface)
+
+A running metronome. Stop it to end it for good.
+
+```ts
+interface TickScheduler {
+  /** Stops for good. Idempotent. */
+  stop(): void;
+}
+```
+
+#### `TickSchedulerOptions` (interface)
+
+How often to tick and what runs: the tick length, the clock, the tick itself and optional hooks
+for a slow wake-up, an error and the most ticks to catch up.
+
+```ts
+interface TickSchedulerOptions {
+  readonly tickMs: number;
+  readonly clock: TickClock;
+  /** Runs one tick. */
+  readonly onTick: () => void;
+  /** After each wake-up: how many ticks ran and how much time was given up. */
+  readonly onCallback?: (ticks: number, droppedMs: number) => void;
+  /**
+   * A tick threw. The scheduler has stopped for good: it runs in a timer callback, where a throw would be an
+   * uncaught exception, so it never lets one out and never runs a room on past one.
+   */
+  readonly onError?: (error: unknown) => void;
+  /** The most ticks one wake-up runs [5]. */
+  readonly maxCatchUp?: number;
+}
+```
+
+#### `TokenBucketOptions` (interface)
+
+How a set of buckets behaves: the burst a quiet key may take, how long one token takes to come
+back, how many keys to remember and the clock.
+
+```ts
+interface TokenBucketOptions {
+  /** How many a quiet key may take at once. */
+  readonly burst: number;
+  /** How long one token takes to come back; `Infinity` never refills. */
+  readonly refillMs: number;
+  readonly maxKeys: number;
+  /** The clock, in milliseconds. */
+  readonly now: () => number;
+}
+```
+
+#### `TokenBuckets` (class)
+
+A token bucket for each key, usually an address, held in memory and capped at a number of keys.
+The least recently used key is forgotten first.
+
+```ts
+class TokenBuckets {
+  private readonly buckets;
+  private readonly options;
+  constructor(options: TokenBucketOptions);
+  get size(): number;
+  /** Takes one token for `key`, and says whether there was one. */
+  take(key: string): boolean;
+  /** Drops every bucket that has refilled to its burst: it would behave exactly like a new one. */
+  sweep(): void;
+  private refilled;
+}
+```
+
+#### `toLogLine` (function)
+
+The line an event becomes, with only the schema's fields copied. Not yet validated.
+
+```ts
+function toLogLine(event: {
+  readonly event: string;
+} & object, ts: number): ServerLogLine;
+```
+
+#### `toServerError` (function)
+
+Translates any thrown failure into something a client can render. A refusal keeps its own code and words.
+Anything else is a bug on our side, so the player gets a generic sentence and never the bug's own text.
+
+```ts
+function toServerError(error: unknown): ServerError;
+```
+
+#### `UpgradeGate` (type)
+
+Admits an upgrade, or answers it and says it did not. An admitted socket is counted until it closes.
+
+```ts
+type UpgradeGate = (request: IncomingMessage, socket: Duplex) => boolean;
+```
+
+#### `UpgradeGateOptions` (interface)
+
+What the upgrade gate checks a socket against: the origin list and the socket counts, and where
+refusals are reported.
+
+```ts
+interface UpgradeGateOptions {
+  readonly origins: OriginPolicy;
+  readonly sockets: SocketGate;
+  /** Hears each refusal by its code (`origin`, `sockets`), never by address. */
+  readonly onRefused: (code: string) => void;
+}
+```
+
+#### `VerifiedSession` (interface)
+
+Who a token belongs to. The player id is the only thing a verifier tells the room.
+
+```ts
+interface VerifiedSession {
+  readonly playerId: string;
+}
+```
+
+#### `versionVerdict` (function)
+
+`same`, `mismatch`, or `unread` for options this gate cannot read, which are the room's to refuse (its strict
+schema answers `REFUSED`). A protocol that differs is a mismatch whatever else the options hold: an old client may
+send a shape this server does not know.
+
+```ts
+function versionVerdict(options: unknown, version: GameVersion): "same" | "mismatch" | "unread";
+```
+
+### `import { … } from '@automata/net-server/testing'`
+
+#### `CLOCK_NAMES` (const)
+
+The clocks a test may ask a room to hold.
+
+```ts
+const CLOCK_NAMES: readonly ClockName[];
+```
+
+#### `ClockName` (type)
+
+A clock a room can be asked to hold. The countdown is the one a client watches run out.
+
+```ts
+type ClockName = "countdown";
+```
+
+#### `createFakeVerifier` (function)
+
+Verifies only the tokens it issued: any other is `forged`, an empty one `missing`, and one at or past its expiry
+`expired`. Each fake numbers its tokens under its own prefix, so two fakes never accept each other's.
+
+```ts
+function createFakeVerifier(): FakeVerifier;
+```
+
+#### `createRoomDriver` (function)
+
+Builds a driver for a room. It uses the room's own input path and cannot set a position, a phase
+or a winner.
+
+```ts
+function createRoomDriver(room: DrivableRoom): RoomDriver;
+```
+
+#### `DrivableRoom` (interface)
+
+What the driver needs of a room: its engine, its clock and one tick (`AutomataRoom` has all three).
+
+```ts
+interface DrivableRoom {
+  readonly engine: RoomEngine;
+  stopClock(): void;
+  tick(): void;
+}
+```
+
+#### `FakeVerifier` (interface)
+
+A verifier for tests: it hands out tokens and accepts only those. A production server refuses to
+start with one.
+
+```ts
+interface FakeVerifier extends SessionVerifier {
+  /** A token this verifier accepts for `playerId` until `expiresAtMs` on Effect's `Clock`. */
+  issue(playerId: string, options: {
+    readonly expiresAtMs: number;
+  }): string;
+}
+```
+
+#### `HELD_GRACE_SECONDS` (const)
+
+How long Colyseus keeps a seat that dropped while the room was held, in wall seconds.
+
+```ts
+const HELD_GRACE_SECONDS: number;
+```
+
+#### `holdAllowed` (function)
+
+Whether a hold may be taken in this environment: never in production.
+
+```ts
+function holdAllowed(env: Readonly<Record<string, string | undefined>>): boolean;
+```
+
+#### `isClockName` (function)
+
+Whether a value names a clock a room can hold. Checked before a hold is taken, because the name
+comes from a test's input.
+
+```ts
+function isClockName(value: unknown): value is ClockName;
+```
+
+#### `MAX_DRIVEN_TICKS` (const)
+
+The most ticks one `step` call drives: five minutes at 60 Hz.
+
+```ts
+const MAX_DRIVEN_TICKS: number;
+```
+
+#### `RoomDriver` (interface)
+
+Drives a room in a test: stop its clock, step it tick by tick, submit a seat's command, read its
+state and hold its clocks.
+
+```ts
+interface RoomDriver {
+  /** Stops the room's own clock for good, so no tick the test did not ask for lands between its assertions. */
+  stopClock(): void;
+  step(count: number): void;
+  submit(seat: number, input: QueuedInput): SubmitOutcome;
+  read(): RoomReading;
+  /** Holds the named clocks and lets go of the rest. Refused in production; the whole list or nothing. */
+  holdClocks(names: readonly ClockName[]): RoomReading;
+}
+```
+
+#### `RoomReading` (interface)
+
+The room as it decided, read from the room itself and never from a client's copy.
+
+```ts
+interface RoomReading {
+  readonly phase: string;
+  /** The tick the room steps next. */
+  readonly tick: number;
+  readonly countdownEndsAtTick?: number;
+  readonly held: ClockName[];
+  readonly hash: string;
+  readonly seats: readonly SeatInfoView[];
+}
+```
+
+## `@automata/net-ui`
+
+### `import { … } from '@automata/net-ui'`
+
+#### `BadgeState` (type)
+
+What the connection badge shows: nothing, connecting, connected, reconnecting (with seconds
+left) or a poor connection.
+
+```ts
+type BadgeState = 'hidden' | 'connecting' | 'connected' | 'reconnecting' | 'degraded';
+```
+
+#### `CONNECTED_SHOWN_MS` (const)
+
+How long the badge says the connection is up before it hides again, in milliseconds.
+
+```ts
+const CONNECTED_SHOWN_MS = 2000;
+```
+
+#### `copyOf` (const)
+
+The words for `host`: its own catalog, or the English one when it gave none.
+
+```ts
+const copyOf: (host: NetUiHost) => Readonly<Record<string, string>>;
+```
+
+#### `createNetStatus` (function)
+
+Starts a status machine. `graceSeconds` is how long a game keeps trying to reconnect before the
+overlay says it could not.
+
+```ts
+function createNetStatus(options: {
+    readonly graceSeconds: number;
+}): NetStatus;
+```
+
+#### `currentNetUi` (const)
+
+The host that is installed now, or nothing when the game has not installed one.
+
+```ts
+const currentNetUi: () => NetUiHost | undefined;
+```
+
+#### `installNetUi` (function)
+
+Makes `host` the one the badge and overlay read. Returns a dispose that removes it (if it is still the current one).
+
+```ts
+function installNetUi(host: NetUiHost): () => void;
+```
+
+#### `NET_COPY_EN` (const)
+
+The English words for the badge, the overlay and every connection error. Each error says what
+went wrong and what to do next. A game translates by giving the same keys.
+
+```ts
+const NET_COPY_EN: Readonly<Record<NetCopyKey, string>>;
+```
+
+#### `NetBadge` (const)
+
+The small connection badge for the game's overlay layer. It is hidden offline, says connecting, then says online for two seconds, shows the seconds left while reconnecting, and says poor connection for as long as that lasts. It cannot be pressed, and a screen reader hears each change.
+
+```ts
+const NetBadge: import("svelte").Component<Record<string, never>, {}, "">;
+type NetBadge = ReturnType<typeof NetBadge>;
+```
+
+#### `NetCopyKey` (type)
+
+A key into the connection words, always starting with `net.`.
+
+```ts
+type NetCopyKey = `net.${string}`;
+```
+
+#### `netCopyKeys` (const)
+
+Every key, sorted: what a locale file must supply.
+
+```ts
+const netCopyKeys: () => string[];
+```
+
+#### `netErrorKey` (const)
+
+The key for a `NetError` code's message.
+
+```ts
+const netErrorKey: (code: NetErrorCode) => NetCopyKey;
+```
+
+#### `NetHud` (const)
+
+What the net extension puts in the game's overlay layer: the connection badge and the reconnect overlay.
+
+```ts
+const NetHud: $$__sveltets_2_IsomorphicComponent<Record<string, never>, {
+    [evt: string]: CustomEvent<any>;
+}, {}, {}, string>;
+type NetHud = InstanceType<typeof NetHud>;
+```
+
+#### `NetStatus` (interface)
+
+The connection badge and the reconnect overlay as one state machine, fed the connection state
+and the time.
+
+```ts
+interface NetStatus {
+    /** The view for `state` at time `now` (ms). Call it when the state changes and as time passes. */
+    update(state: ConnectionState, now: number): NetStatusView;
+}
+```
+
+#### `NetStatusView` (interface)
+
+What to draw for one moment: the badge, the overlay and the seconds of grace left while
+reconnecting.
+
+```ts
+interface NetStatusView {
+    readonly badge: BadgeState;
+    readonly overlay: OverlayState;
+    /** Seconds of grace left while reconnecting; undefined otherwise. */
+    readonly secondsLeft: number | undefined;
+}
+```
+
+#### `netText` (function)
+
+The text for `key`, with `{name}` placeholders filled from `params`; one with no value is left as written, so a gap shows.
+
+```ts
+function netText(key: NetCopyKey, params?: Readonly<Record<string, string | number>>, catalog?: Readonly<Record<string, string>>): string;
+```
+
+#### `NetUiHost` (interface)
+
+What the badge and overlay need from the game: the connection, the grace, a way to leave and the
+words. Hand it to `installNetUi`.
+
+```ts
+interface NetUiHost {
+    /** The connection now, and a way to hear it change (a `NetRoom.connection` subscription). */
+    readonly connection: {
+        get(): ConnectionState;
+        subscribe(listener: (state: ConnectionState) => void): () => void;
+    };
+    /** net.toml's `reconnectGraceSeconds`. */
+    readonly graceSeconds: number;
+    /** `NetRoom.leave`, fire and forget: the overlay's Leave and Back. */
+    leave(): void;
+    /** Milliseconds; `performance.now` by default. */
+    readonly now?: (() => number) | undefined;
+    /** The catalog (keys from `net-copy`); English by default. */
+    readonly copy?: Readonly<Record<string, string>> | undefined;
+}
+```
+
+#### `OverlayState` (type)
+
+What the reconnect overlay shows: nothing, a countdown while the game reconnects, or the words
+for giving up once the grace has passed.
+
+```ts
+type OverlayState = 'hidden' | 'reconnecting' | 'expired';
+```
+
+#### `ReconnectOverlay` (const)
+
+The banner shown while the game reconnects: it counts down the grace, then says it could not reconnect. Leave is always there, and it gets focus once the grace has passed. It pauses nothing: the game keeps drawing behind it.
+
+```ts
+const ReconnectOverlay: import("svelte").Component<Record<string, never>, {}, "">;
+type ReconnectOverlay = ReturnType<typeof ReconnectOverlay>;
+```
+
+#### `watchStatus` (function)
+
+Calls `onView` with what to draw now, and again whenever the connection changes or time passes.
+Returns a function that stops it.
+
+```ts
+function watchStatus(host: NetUiHost, onView: (view: NetStatusView) => void): () => void;
+```
+
+## `@automata/physics`
+
+### `import { … } from '@automata/physics/2d'`
+
+#### `body2d` (function)
+
+The spawn part that gives an entity a rigid body of a `BodyKind`. Damping and velocities (`vx`, `vy` in
+m/s, `angvel` in rad/s) are 0 unless given.
+
+```ts
+function body2d(kind: BodyKind, opts?: {
+  linearDamping?: number;
+  angularDamping?: number;
+  vx?: number;
+  vy?: number;
+  angvel?: number;
+}): SpawnPart;
+```
+
+#### `BodyKind` (const)
+
+The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never
+moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its
+velocity). `BodyKind` is also the type of those values.
+
+```ts
+const BodyKind: {
+  readonly dynamic: 0;
+  readonly fixed: 1;
+  readonly kinematicPosition: 2;
+  readonly kinematicVelocity: 3;
+};
+type BodyKind = (typeof BodyKind)[keyof typeof BodyKind];
+```
+
+#### `Collider2D` (const)
+
+One collider. `shape` is a `ShapeKind`; sizes are halves: ball radius `hx`; cuboid half extents `hx, hy`;
+capsule radius `hx` and half-height `hy`. `groups` is Rapier's packed membership << 16 | filter.
+
+```ts
+const Collider2D: ComponentDef<typeof colliderFields>;
+```
+
+#### `collider2d` (const)
+
+The spawn parts that give an entity a collider: `ball(radius)`, `cuboid(hx, hy)` with half extents, and
+`capsule(halfHeight, radius)`. Each takes `ColliderOptions`, whose defaults are Rapier's (every group,
+friction 0.5, no bounce, not a sensor).
+
+```ts
+const collider2d: {
+  ball(radius: number, opts?: ColliderOptions): SpawnPart;
+  cuboid(hx: number, hy: number, opts?: ColliderOptions): SpawnPart;
+  capsule(halfHeight: number, radius: number, opts?: ColliderOptions): SpawnPart;
+};
+```
+
+#### `ColliderOptions` (interface)
+
+Options every collider helper takes. The defaults are Rapier's: every group, friction 0.5, no bounce.
+
+```ts
+interface ColliderOptions {
+  readonly sensor?: boolean;
+  readonly groups?: number;
+  readonly friction?: number;
+  readonly restitution?: number;
+}
+```
+
+#### `CollisionEnded2D` (const)
+
+Two colliders stopped touching, or one was removed. The payload is the one of `CollisionStarted2D`; ended
+events come before started events in a tick.
+
+```ts
+const CollisionEnded2D: EventDef<typeof pair>;
+```
+
+#### `CollisionStarted2D` (const)
+
+Two colliders began touching (or, with a sensor, overlapping). `a` and `b` are the entities' StableIds, `a`
+the lower, and `sensor` is true when either collider is a sensor. Emitted in `postPhysics`, in `(a, b)`
+order, after that tick's ended events.
+
+```ts
+const CollisionStarted2D: EventDef<typeof pair>;
+```
+
+#### `physics2d` (function)
+
+The 2D physics plugin. Rapier's wasm loads inside `createSim`, through the dynamic import
+in rapier-2d.ts, so importing this module costs nothing until a sim uses it.
+
+```ts
+function physics2d(options?: Physics2DOptions): PluginDef;
+```
+
+#### `Physics2DOptions` (interface)
+
+The options of `physics2d`. Gravity is part of the sim's schema hash, so a different gravity is a different
+sim.
+
+```ts
+interface Physics2DOptions {
+  /** m/s², default { x: 0, y: -9.81 }. */
+  readonly gravity?: {
+    readonly x: number;
+    readonly y: number;
+  };
+}
+```
+
+#### `RigidBody2D` (const)
+
+A Rapier rigid body: its kind (`BodyKind`), damping, and linear (m/s) and angular (rad/s) velocity.
+
+```ts
+const RigidBody2D: ComponentDef<typeof bodyFields>;
+```
+
+#### `ShapeKind` (const)
+
+The codes a collider's `shape` field holds: `ball`, `cuboid` and `capsule`. `ShapeKind` is also the type of
+those values.
+
+```ts
+const ShapeKind: {
+  readonly ball: 0;
+  readonly cuboid: 1;
+  readonly capsule: 2;
+};
+type ShapeKind = (typeof ShapeKind)[keyof typeof ShapeKind];
+```
+
+#### `transform2d` (function)
+
+The spawn part that places an entity: `x` and `y` in metres and `rotation` in radians, each 0 unless given.
+
+```ts
+function transform2d(at?: {
+  x?: number;
+  y?: number;
+  rotation?: number;
+}): SpawnPart;
+```
+
+#### `Transform2D` (const)
+
+Position in metres and rotation in radians. Rendered.
+
+```ts
+const Transform2D: ComponentDef<typeof transformFields>;
+```
+
+### `import { … } from '@automata/physics/3d'`
+
+#### `body3d` (function)
+
+The spawn part that gives an entity a rigid body of a `BodyKind`. Damping and velocities (`vx`, `vy`, `vz`
+in m/s, `wx`, `wy`, `wz` in rad/s) are 0 unless given.
+
+```ts
+function body3d(kind: BodyKind, opts?: {
+  linearDamping?: number;
+  angularDamping?: number;
+  vx?: number;
+  vy?: number;
+  vz?: number;
+  wx?: number;
+  wy?: number;
+  wz?: number;
+}): SpawnPart;
+```
+
+#### `BodyKind` (const)
+
+The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never
+moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its
+velocity). `BodyKind` is also the type of those values.
+
+```ts
+const BodyKind: {
+  readonly dynamic: 0;
+  readonly fixed: 1;
+  readonly kinematicPosition: 2;
+  readonly kinematicVelocity: 3;
+};
+type BodyKind = (typeof BodyKind)[keyof typeof BodyKind];
+```
+
+#### `Collider3D` (const)
+
+One collider. `shape` is a `ShapeKind`; sizes are halves: ball radius `hx`; cuboid half extents `hx, hy, hz`;
+capsule radius `hx` and half-height `hy`. `groups` is Rapier's packed membership << 16 | filter.
+
+```ts
+const Collider3D: ComponentDef<typeof colliderFields>;
+```
+
+#### `collider3d` (const)
+
+The spawn parts that give an entity a collider: `ball(radius)`, `cuboid(hx, hy, hz)` with half extents, and
+`capsule(halfHeight, radius)`. Each takes `ColliderOptions`, whose defaults are Rapier's (every group,
+friction 0.5, no bounce, not a sensor).
+
+```ts
+const collider3d: {
+  ball(radius: number, opts?: ColliderOptions): SpawnPart;
+  cuboid(hx: number, hy: number, hz: number, opts?: ColliderOptions): SpawnPart;
+  capsule(halfHeight: number, radius: number, opts?: ColliderOptions): SpawnPart;
+};
+```
+
+#### `ColliderOptions` (interface)
+
+Options every collider helper takes. The defaults are Rapier's: every group, friction 0.5, no bounce.
+
+```ts
+interface ColliderOptions {
+  readonly sensor?: boolean;
+  readonly groups?: number;
+  readonly friction?: number;
+  readonly restitution?: number;
+}
+```
+
+#### `CollisionEnded3D` (const)
+
+Two colliders stopped touching, or one was removed. The payload is the one of `CollisionStarted3D`; ended
+events come before started events in a tick.
+
+```ts
+const CollisionEnded3D: EventDef<typeof pair>;
+```
+
+#### `CollisionStarted3D` (const)
+
+Two colliders began touching (or, with a sensor, overlapping). `a` and `b` are the entities' StableIds, `a`
+the lower, and `sensor` is true when either collider is a sensor. Emitted in `postPhysics`, in `(a, b)`
+order, after that tick's ended events.
+
+```ts
+const CollisionStarted3D: EventDef<typeof pair>;
+```
+
+#### `physics3d` (function)
+
+The 3D physics plugin. Rapier's wasm loads inside `createSim`, through the dynamic import
+in rapier-3d.ts, so importing this module costs nothing until a sim uses it.
+
+```ts
+function physics3d(options?: Physics3DOptions): PluginDef;
+```
+
+#### `Physics3DOptions` (interface)
+
+The options of `physics3d`. Gravity is part of the sim's schema hash, so a different gravity is a different
+sim.
+
+```ts
+interface Physics3DOptions {
+  /** m/s², default { x: 0, y: -9.81, z: 0 }. */
+  readonly gravity?: {
+    readonly x: number;
+    readonly y: number;
+    readonly z: number;
+  };
+}
+```
+
+#### `RigidBody3D` (const)
+
+A Rapier rigid body: its kind (`BodyKind`), damping, and linear (m/s) and angular (rad/s) velocity.
+
+```ts
+const RigidBody3D: ComponentDef<typeof bodyFields>;
+```
+
+#### `ShapeKind` (const)
+
+The codes a collider's `shape` field holds: `ball`, `cuboid` and `capsule`. `ShapeKind` is also the type of
+those values.
+
+```ts
+const ShapeKind: {
+  readonly ball: 0;
+  readonly cuboid: 1;
+  readonly capsule: 2;
+};
+type ShapeKind = (typeof ShapeKind)[keyof typeof ShapeKind];
+```
+
+#### `transform3d` (function)
+
+The spawn part that places an entity: `x`, `y` and `z` in metres and a rotation quaternion (`qx`, `qy`,
+`qz`, `qw`). Position is 0 and the rotation is the identity unless given.
+
+```ts
+function transform3d(at?: {
+  x?: number;
+  y?: number;
+  z?: number;
+  qx?: number;
+  qy?: number;
+  qz?: number;
+  qw?: number;
+}): SpawnPart;
+```
+
+#### `Transform3D` (const)
+
+Position in metres and rotation as a unit quaternion. Rendered.
+
+```ts
+const Transform3D: ComponentDef<typeof transformFields>;
+```
+
+## `@automata/puzzle`
+
+### `import { … } from '@automata/puzzle'`
+
+#### `Action` (interface)
+
+One thing the player can do at a hotspot: where it is aimed (`at`), the item or pair of items it
+uses, the conditions that must hold, its effects, the line said and how many seconds it takes.
+
+```ts
+interface Action {
+  readonly id: string;
+  readonly at: VerbAt;
+  readonly use?: string | readonly [string, string] | undefined;
+  readonly when?: readonly Cond[] | undefined;
+  readonly then: readonly Effect[];
+  readonly say: string;
+  readonly seconds?: number | undefined;
+}
+```
+
+#### `Cond` (type)
+
+A condition on the puzzle's state. It asks that a fact is a value or within `atLeast` and
+`atMost`, that an item is carried (`has`), that another condition does not hold (`not`), or that
+any of a list holds (`any`).
+
+```ts
+type Cond = {
+  readonly fact: string;
+  readonly is?: Value | undefined;
+  readonly atLeast?: number | undefined;
+  readonly atMost?: number | undefined;
+} | {
+  readonly has: string;
+} | {
+  readonly not: Cond;
+} | {
+  readonly any: readonly Cond[];
+};
+```
+
+#### `condSchema` (const)
+
+The Zod schema of a condition.
+
+```ts
+const condSchema: z.ZodType<Cond>;
+```
+
+#### `createPuzzlePlugin` (function)
+
+Makes the puzzle plugin with the game's options: its functions for `call` effects, where facts
+live, and what hears noises, dialogues and cutscenes.
+
+```ts
+function createPuzzlePlugin(options?: PuzzleOptions): PluginDef;
+```
+
+#### `Effect` (type)
+
+What an action does when it is taken: set or add to a fact, give or take an item, make a noise,
+start a cutscene or a dialogue, mark a checkpoint, open the keypad, leave through an exit, or
+call a function the game supplied.
+
+```ts
+type Effect = {
+  readonly set: string;
+  readonly to: Value;
+} | {
+  readonly add: string;
+  readonly by: number;
+} | {
+  readonly give: string;
+} | {
+  readonly take: string;
+} | {
+  readonly noise: {
+    readonly at: Point | string;
+    readonly loudness: number;
+    readonly kind: string;
+  };
+} | {
+  readonly cutscene: string;
+} | {
+  readonly checkpoint: true;
+} | {
+  readonly keypad: true;
+} | {
+  readonly exit: {
+    readonly to: string;
+    readonly cutscene: string;
+  };
+} | {
+  readonly dialogue: string;
+} | {
+  readonly call: string;
+};
+```
+
+#### `effectSchema` (const)
+
+The Zod schema of an effect.
+
+```ts
+const effectSchema: z.ZodType<Effect>;
+```
+
+#### `Entry` (interface)
+
+A way into the scene: its name, the items the player arrives with and any facts it sets.
+
+```ts
+interface Entry {
+  readonly name: string;
+  readonly items: readonly string[];
+  readonly facts?: Readonly<Record<string, Value>> | undefined;
+}
+```
+
+#### `fallbackLine` (function)
+
+The fallback line for a verb that matched nothing: per hotspot, then per verb kind, then `*` (codes have no `*`).
+
+```ts
+function fallbackLine(def: PuzzleDef, verb: Verb): string | undefined;
+```
+
+#### `holds` (function)
+
+Whether a condition holds for this reader and verb. `held` and `code` are facts of the verb
+itself.
+
+```ts
+function holds(reader: Reader, verb: Verb, c: Cond): boolean;
+```
+
+#### `Lethal` (interface)
+
+A way to fail, with its rule and the hints that warn the player.
+
+```ts
+interface Lethal {
+  readonly id: string;
+  readonly rule: string;
+  readonly hintedBy: readonly string[];
+}
+```
+
+#### `loadPuzzle` (function)
+
+Loads a scene's puzzle into the sim and starts the play state, at the named entry or the first
+one.
+
+```ts
+function loadPuzzle(ctx: SimContext, def: PuzzleDef, entryName?: string): void;
+```
+
+#### `match` (const)
+
+The first action, in content order, aimed where the verb is, using what it holds, whose conditions all hold.
+
+```ts
+const match: (def: PuzzleDef, reader: Reader, verb: Verb) => Action | undefined;
+```
+
+#### `Point` (interface)
+
+A spot on the floor.
+
+```ts
+interface Point {
+  readonly x: number;
+  readonly z: number;
+}
+```
+
+#### `PuzzleCall` (interface)
+
+What a `{ call }` effect hands the game's function: the action and what the verb held or pointed at.
+
+```ts
+interface PuzzleCall {
+  readonly action: string;
+  readonly held: string | undefined;
+  readonly pair: readonly [string, string] | undefined;
+  readonly point: {
+    readonly x: number;
+    readonly z: number;
+  } | undefined;
+}
+```
+
+#### `PuzzleCheckOptions` (interface)
+
+What the content checks need to know about the game: the `call` names it declares and the
+extensions it registers.
+
+```ts
+interface PuzzleCheckOptions {
+  /** The `{ call }` names the game declares (its `calls` option). */
+  readonly calls: readonly string[];
+  /** The extensions the game registers, by name. */
+  readonly extensions: readonly string[];
+}
+```
+
+#### `PuzzleCheckpoint` (const)
+
+An action marks a checkpoint. The game decides what that saves.
+
+```ts
+const PuzzleCheckpoint: EventDef<z.ZodType<Empty>>;
+```
+
+#### `puzzleContent` (const)
+
+The `puzzle` content kind: `content/puzzles/*.toml`, one puzzle per scene.
+
+```ts
+const puzzleContent: (options: PuzzleCheckOptions) => ContentSchemaDef<"puzzle", z.ZodType<PuzzleDef>>;
+```
+
+#### `PuzzleCutscene` (const)
+
+An action asks for a cutscene, by id.
+
+```ts
+const PuzzleCutscene: EventDef<z.ZodType<IdPayload>>;
+```
+
+#### `PuzzleDebugSummary` (interface)
+
+What the debug summary shows: whether the goal is reached, the items carried, how many actions
+were seen and the facts.
+
+```ts
+interface PuzzleDebugSummary {
+  readonly goal: boolean;
+  readonly items: string;
+  readonly seen: number;
+  readonly facts: Readonly<Record<string, Value>>;
+}
+```
+
+#### `puzzleDebugSummary` (function)
+
+Turns the puzzle's play state into a summary for the debug overlay.
+
+```ts
+function puzzleDebugSummary(state: PuzzleStateValue): PuzzleDebugSummary;
+```
+
+#### `PuzzleDef` (interface)
+
+One scene's puzzle: its facts and items, where its hotspots are, the ways in, the actions, the
+systemic solutions and lethal rules, the goal and the fallback lines for verbs that match
+nothing.
+
+```ts
+interface PuzzleDef {
+  readonly scene: string;
+  readonly facts: Readonly<Record<string, Value>>;
+  readonly items: readonly string[];
+  readonly hotspots: Readonly<Record<string, Point>>;
+  readonly entry: readonly Entry[];
+  readonly actions: readonly Action[];
+  readonly systemic: readonly Systemic[];
+  readonly lethal: readonly Lethal[];
+  readonly goal: readonly Cond[];
+  readonly fallback: Readonly<Record<string, string>>;
+}
+```
+
+#### `puzzleDefShape` (const)
+
+The Zod schema of a puzzle's shape, without the cross-checks that `puzzleSchema` adds.
+
+```ts
+const puzzleDefShape: z.ZodType<PuzzleDef>;
+```
+
+#### `PuzzleDialogue` (const)
+
+An action asks for a dialogue, by id.
+
+```ts
+const PuzzleDialogue: EventDef<z.ZodType<IdPayload>>;
+```
+
+#### `PuzzleExit` (const)
+
+An action leaves the scene for another, with the cutscene to play on the way.
+
+```ts
+const PuzzleExit: EventDef<z.ZodType<ExitPayload>>;
+```
+
+#### `puzzleExtension` (const)
+
+The puzzle extension a game opts into. It adds the puzzle plugin and the `puzzle` content kind
+from one set of options.
+
+```ts
+const puzzleExtension: (options: PuzzleExtensionOptions) => ExtensionDef<"puzzle">;
+```
+
+#### `PuzzleExtensionOptions` (interface)
+
+The puzzle's options plus the names of the extensions the game registers, so an effect that
+needs a missing one fails when content compiles.
+
+```ts
+interface PuzzleExtensionOptions extends PuzzleOptions {
+  /** The extensions the game registers, so an effect that needs a missing one fails when content compiles. */
+  readonly extensions: readonly string[];
+}
+```
+
+#### `PuzzleGave` (const)
+
+The player was given an item.
+
+```ts
+const PuzzleGave: EventDef<z.ZodType<GavePayload>>;
+```
+
+#### `PuzzleGoal` (const)
+
+The puzzle's goal now holds. It is sent once.
+
+```ts
+const PuzzleGoal: EventDef<z.ZodType<Empty>>;
+```
+
+#### `PuzzleKeypad` (const)
+
+An action opens the keypad. The game shows it and sends the typed code back as a verb.
+
+```ts
+const PuzzleKeypad: EventDef<z.ZodType<Empty>>;
+```
+
+#### `PuzzleNoise` (const)
+
+An action made a noise at a place, with its loudness and kind. The systems extension listens.
+
+```ts
+const PuzzleNoise: EventDef<z.ZodType<NoisePayload>>;
+```
+
+#### `PuzzleOptions` (interface)
+
+How a game wires the puzzle to the rest of itself: the functions `call` effects run, where it
+keeps its own facts, and what hears noises, dialogues and cutscenes. `locked` ignores verbs
+while a cutscene plays, and `verb` is told of every verb once it has run.
+
+```ts
+interface PuzzleOptions {
+  /**
+   * The game's functions for `{ call }` effects, by name. They run inside the verb system, on the verb's step, so
+   * they may change sim state like any system (P6-D2 as built: the sim has no reading of a step's own events).
+   */
+  readonly calls?: Readonly<Record<string, (ctx: SimContext, call: PuzzleCall) => void>>;
+  /**
+   * Facts the game keeps in its own fields: `get` returns undefined for a fact it does not map, and `set` returns false
+   * for one; those facts live in `puzzle.state`.
+   */
+  readonly facts?: {
+    get(ctx: SimContext, name: string): Value | undefined;
+    set(ctx: SimContext, name: string, value: Value): boolean;
+  };
+  /**
+   * Where a `noise` effect is heard, on the verb's step (the `systems` extension's `hear`, SY-D2). `puzzle.noise` is
+   * emitted either way, for presentation.
+   */
+  readonly noise?: (ctx: SimContext, noise: {
+    readonly at: {
+      readonly x: number;
+      readonly z: number;
+    };
+    readonly loudness: number;
+    readonly kind: string;
+  }) => void;
+  /**
+   * Where a `{ dialogue }` effect starts its graph, on the verb's step and after the action's line (the `narrative`
+   * extension's `startDialogue`, NR-D3). `puzzle.dialogue` is emitted either way.
+   */
+  readonly dialogue?: (ctx: SimContext, id: string) => void;
+  /**
+   * Where a `{ cutscene }` effect starts its cutscene, on the verb's step and after the action's line (the `cutscenes`
+   * extension's `start`, as `dialogue`). `puzzle.cutscene` is emitted either way.
+   */
+  readonly cutscene?: (ctx: SimContext, id: string) => void;
+  /** While this holds (a cutscene is playing), verbs are ignored (the `cutscenes` extension's `locked`). */
+  readonly locked?: (ctx: SimContext) => boolean;
+  /**
+   * Told of every verb once it has run, taken or not (the `narrative` extension's inspect storylets, NR-D3): the
+   * action taken or null, whether a line was said, and whether the action turned away to a cutscene, dialogue, keypad
+   * or exit.
+   */
+  readonly verb?: (ctx: SimContext, report: VerbReport) => void;
+}
+```
+
+#### `puzzlePlugin` (const)
+
+The puzzle plugin with no options.
+
+```ts
+const puzzlePlugin: PluginDef;
+```
+
+#### `PuzzleSaid` (const)
+
+A verb was answered: the action applied (null for a fallback line), where, the line key and the
+items gained. It carries keys, never text.
+
+```ts
+const PuzzleSaid: EventDef<z.ZodType<SaidPayload>>;
+```
+
+#### `PuzzleSceneResource` (const)
+
+The scene's puzzle as content gives it. `def` is null until the game loads a scene's puzzle.
+
+```ts
+const PuzzleSceneResource: ResourceDef<z.ZodType<PuzzleScene>>;
+```
+
+#### `puzzleSchema` (const)
+
+The Zod schema of a puzzle with all its cross-checks: every item, fact, call and extension an
+action names must exist.
+
+```ts
+const puzzleSchema: (options: PuzzleCheckOptions) => z.ZodType<PuzzleDef>;
+```
+
+#### `PuzzleState` (const)
+
+Facts, carried items (sorted), the ids of actions applied so far, and whether `puzzle.goal` was emitted.
+
+```ts
+const PuzzleState: ResourceDef<z.ZodType<PuzzleStateValue>>;
+```
+
+#### `Reader` (interface)
+
+What a condition reads: a fact by name and whether an item is carried.
+
+```ts
+interface Reader {
+  fact(name: string): Value | undefined;
+  has(item: string): boolean;
+}
+```
+
+#### `Systemic` (interface)
+
+A way of solving the puzzle that no single action shows, with a note, the conditions it enables,
+the actions that lead to it and any risk (`lethal` or `chase`).
+
+```ts
+interface Systemic {
+  readonly id: string;
+  readonly note: string;
+  readonly enables: readonly Cond[];
+  readonly via: readonly string[];
+  readonly risk?: "lethal" | "chase" | undefined;
+}
+```
+
+#### `uses` (function)
+
+A pair matches in either order; a single `use` is the first of a pair, or the held item.
+
+```ts
+function uses(action: Action, verb: Verb): boolean;
+```
+
+#### `Value` (type)
+
+A fact's value: a yes-or-no, a number or text.
+
+```ts
+type Value = boolean | number | string;
+```
+
+#### `valueSchema` (const)
+
+The Zod schema of a fact's value.
+
+```ts
+const valueSchema: z.ZodType<Value>;
+```
+
+#### `Verb` (interface)
+
+What the player did, as the interpreter reads it: where it is aimed, the item held, a pair of
+items, a typed code or a floor point.
+
+```ts
+interface Verb {
+  readonly at: string;
+  readonly held?: string | undefined;
+  readonly pair?: readonly [string, string] | undefined;
+  readonly code?: string | undefined;
+  readonly point?: {
+    readonly x: number;
+    readonly z: number;
+  } | undefined;
+}
+```
+
+#### `VerbCommand` (const)
+
+A verb: what the player did, sent by the game once its walker is in reach. `at` is a hotspot id,
+or `combine`, `floor` or `code`; `held` is the item in hand, `pair` two items combined, `code` a
+typed code and `point` a floor point.
+
+```ts
+const VerbCommand: CommandDef<z.ZodType<VerbPayload>>;
+```
+
+#### `VerbReport` (interface)
+
+What happened to one verb: where it was aimed, the item held, the action taken (null for none),
+whether a line was said and whether the action turned away to a cutscene, dialogue, keypad or
+exit.
+
+```ts
+interface VerbReport {
+  readonly at: string;
+  readonly held: string | undefined;
+  readonly action: string | null;
+  readonly said: boolean;
+  readonly away: boolean;
+}
+```
+
+### `import { … } from '@automata/puzzle/sim'`
+
+#### `Action` (interface)
+
+One thing the player can do at a hotspot: where it is aimed (`at`), the item or pair of items it
+uses, the conditions that must hold, its effects, the line said and how many seconds it takes.
+
+```ts
+interface Action {
+  readonly id: string;
+  readonly at: VerbAt;
+  readonly use?: string | readonly [string, string] | undefined;
+  readonly when?: readonly Cond[] | undefined;
+  readonly then: readonly Effect[];
+  readonly say: string;
+  readonly seconds?: number | undefined;
+}
+```
+
+#### `Cond` (type)
+
+A condition on the puzzle's state. It asks that a fact is a value or within `atLeast` and
+`atMost`, that an item is carried (`has`), that another condition does not hold (`not`), or that
+any of a list holds (`any`).
+
+```ts
+type Cond = {
+  readonly fact: string;
+  readonly is?: Value | undefined;
+  readonly atLeast?: number | undefined;
+  readonly atMost?: number | undefined;
+} | {
+  readonly has: string;
+} | {
+  readonly not: Cond;
+} | {
+  readonly any: readonly Cond[];
+};
+```
+
+#### `condSchema` (const)
+
+The Zod schema of a condition.
+
+```ts
+const condSchema: z.ZodType<Cond>;
+```
+
+#### `createPuzzlePlugin` (function)
+
+Makes the puzzle plugin with the game's options: its functions for `call` effects, where facts
+live, and what hears noises, dialogues and cutscenes.
+
+```ts
+function createPuzzlePlugin(options?: PuzzleOptions): PluginDef;
+```
+
+#### `Effect` (type)
+
+What an action does when it is taken: set or add to a fact, give or take an item, make a noise,
+start a cutscene or a dialogue, mark a checkpoint, open the keypad, leave through an exit, or
+call a function the game supplied.
+
+```ts
+type Effect = {
+  readonly set: string;
+  readonly to: Value;
+} | {
+  readonly add: string;
+  readonly by: number;
+} | {
+  readonly give: string;
+} | {
+  readonly take: string;
+} | {
+  readonly noise: {
+    readonly at: Point | string;
+    readonly loudness: number;
+    readonly kind: string;
+  };
+} | {
+  readonly cutscene: string;
+} | {
+  readonly checkpoint: true;
+} | {
+  readonly keypad: true;
+} | {
+  readonly exit: {
+    readonly to: string;
+    readonly cutscene: string;
+  };
+} | {
+  readonly dialogue: string;
+} | {
+  readonly call: string;
+};
+```
+
+#### `effectSchema` (const)
+
+The Zod schema of an effect.
+
+```ts
+const effectSchema: z.ZodType<Effect>;
+```
+
+#### `Entry` (interface)
+
+A way into the scene: its name, the items the player arrives with and any facts it sets.
+
+```ts
+interface Entry {
+  readonly name: string;
+  readonly items: readonly string[];
+  readonly facts?: Readonly<Record<string, Value>> | undefined;
+}
+```
+
+#### `fallbackLine` (function)
+
+The fallback line for a verb that matched nothing: per hotspot, then per verb kind, then `*` (codes have no `*`).
+
+```ts
+function fallbackLine(def: PuzzleDef, verb: Verb): string | undefined;
+```
+
+#### `holds` (function)
+
+Whether a condition holds for this reader and verb. `held` and `code` are facts of the verb
+itself.
+
+```ts
+function holds(reader: Reader, verb: Verb, c: Cond): boolean;
+```
+
+#### `Lethal` (interface)
+
+A way to fail, with its rule and the hints that warn the player.
+
+```ts
+interface Lethal {
+  readonly id: string;
+  readonly rule: string;
+  readonly hintedBy: readonly string[];
+}
+```
+
+#### `loadPuzzle` (function)
+
+Loads a scene's puzzle into the sim and starts the play state, at the named entry or the first
+one.
+
+```ts
+function loadPuzzle(ctx: SimContext, def: PuzzleDef, entryName?: string): void;
+```
+
+#### `match` (const)
+
+The first action, in content order, aimed where the verb is, using what it holds, whose conditions all hold.
+
+```ts
+const match: (def: PuzzleDef, reader: Reader, verb: Verb) => Action | undefined;
+```
+
+#### `Point` (interface)
+
+A spot on the floor.
+
+```ts
+interface Point {
+  readonly x: number;
+  readonly z: number;
+}
+```
+
+#### `PuzzleCall` (interface)
+
+What a `{ call }` effect hands the game's function: the action and what the verb held or pointed at.
+
+```ts
+interface PuzzleCall {
+  readonly action: string;
+  readonly held: string | undefined;
+  readonly pair: readonly [string, string] | undefined;
+  readonly point: {
+    readonly x: number;
+    readonly z: number;
+  } | undefined;
+}
+```
+
+#### `PuzzleCheckpoint` (const)
+
+An action marks a checkpoint. The game decides what that saves.
+
+```ts
+const PuzzleCheckpoint: EventDef<z.ZodType<Empty>>;
+```
+
+#### `PuzzleCutscene` (const)
+
+An action asks for a cutscene, by id.
+
+```ts
+const PuzzleCutscene: EventDef<z.ZodType<IdPayload>>;
+```
+
+#### `PuzzleDebugSummary` (interface)
+
+What the debug summary shows: whether the goal is reached, the items carried, how many actions
+were seen and the facts.
+
+```ts
+interface PuzzleDebugSummary {
+  readonly goal: boolean;
+  readonly items: string;
+  readonly seen: number;
+  readonly facts: Readonly<Record<string, Value>>;
+}
+```
+
+#### `puzzleDebugSummary` (function)
+
+Turns the puzzle's play state into a summary for the debug overlay.
+
+```ts
+function puzzleDebugSummary(state: PuzzleStateValue): PuzzleDebugSummary;
+```
+
+#### `PuzzleDef` (interface)
+
+One scene's puzzle: its facts and items, where its hotspots are, the ways in, the actions, the
+systemic solutions and lethal rules, the goal and the fallback lines for verbs that match
+nothing.
+
+```ts
+interface PuzzleDef {
+  readonly scene: string;
+  readonly facts: Readonly<Record<string, Value>>;
+  readonly items: readonly string[];
+  readonly hotspots: Readonly<Record<string, Point>>;
+  readonly entry: readonly Entry[];
+  readonly actions: readonly Action[];
+  readonly systemic: readonly Systemic[];
+  readonly lethal: readonly Lethal[];
+  readonly goal: readonly Cond[];
+  readonly fallback: Readonly<Record<string, string>>;
+}
+```
+
+#### `puzzleDefShape` (const)
+
+The Zod schema of a puzzle's shape, without the cross-checks that `puzzleSchema` adds.
+
+```ts
+const puzzleDefShape: z.ZodType<PuzzleDef>;
+```
+
+#### `PuzzleDialogue` (const)
+
+An action asks for a dialogue, by id.
+
+```ts
+const PuzzleDialogue: EventDef<z.ZodType<IdPayload>>;
+```
+
+#### `PuzzleExit` (const)
+
+An action leaves the scene for another, with the cutscene to play on the way.
+
+```ts
+const PuzzleExit: EventDef<z.ZodType<ExitPayload>>;
+```
+
+#### `PuzzleGave` (const)
+
+The player was given an item.
+
+```ts
+const PuzzleGave: EventDef<z.ZodType<GavePayload>>;
+```
+
+#### `PuzzleGoal` (const)
+
+The puzzle's goal now holds. It is sent once.
+
+```ts
+const PuzzleGoal: EventDef<z.ZodType<Empty>>;
+```
+
+#### `PuzzleKeypad` (const)
+
+An action opens the keypad. The game shows it and sends the typed code back as a verb.
+
+```ts
+const PuzzleKeypad: EventDef<z.ZodType<Empty>>;
+```
+
+#### `PuzzleNoise` (const)
+
+An action made a noise at a place, with its loudness and kind. The systems extension listens.
+
+```ts
+const PuzzleNoise: EventDef<z.ZodType<NoisePayload>>;
+```
+
+#### `PuzzleOptions` (interface)
+
+How a game wires the puzzle to the rest of itself: the functions `call` effects run, where it
+keeps its own facts, and what hears noises, dialogues and cutscenes. `locked` ignores verbs
+while a cutscene plays, and `verb` is told of every verb once it has run.
+
+```ts
+interface PuzzleOptions {
+  /**
+   * The game's functions for `{ call }` effects, by name. They run inside the verb system, on the verb's step, so
+   * they may change sim state like any system (P6-D2 as built: the sim has no reading of a step's own events).
+   */
+  readonly calls?: Readonly<Record<string, (ctx: SimContext, call: PuzzleCall) => void>>;
+  /**
+   * Facts the game keeps in its own fields: `get` returns undefined for a fact it does not map, and `set` returns false
+   * for one; those facts live in `puzzle.state`.
+   */
+  readonly facts?: {
+    get(ctx: SimContext, name: string): Value | undefined;
+    set(ctx: SimContext, name: string, value: Value): boolean;
+  };
+  /**
+   * Where a `noise` effect is heard, on the verb's step (the `systems` extension's `hear`, SY-D2). `puzzle.noise` is
+   * emitted either way, for presentation.
+   */
+  readonly noise?: (ctx: SimContext, noise: {
+    readonly at: {
+      readonly x: number;
+      readonly z: number;
+    };
+    readonly loudness: number;
+    readonly kind: string;
+  }) => void;
+  /**
+   * Where a `{ dialogue }` effect starts its graph, on the verb's step and after the action's line (the `narrative`
+   * extension's `startDialogue`, NR-D3). `puzzle.dialogue` is emitted either way.
+   */
+  readonly dialogue?: (ctx: SimContext, id: string) => void;
+  /**
+   * Where a `{ cutscene }` effect starts its cutscene, on the verb's step and after the action's line (the `cutscenes`
+   * extension's `start`, as `dialogue`). `puzzle.cutscene` is emitted either way.
+   */
+  readonly cutscene?: (ctx: SimContext, id: string) => void;
+  /** While this holds (a cutscene is playing), verbs are ignored (the `cutscenes` extension's `locked`). */
+  readonly locked?: (ctx: SimContext) => boolean;
+  /**
+   * Told of every verb once it has run, taken or not (the `narrative` extension's inspect storylets, NR-D3): the
+   * action taken or null, whether a line was said, and whether the action turned away to a cutscene, dialogue, keypad
+   * or exit.
+   */
+  readonly verb?: (ctx: SimContext, report: VerbReport) => void;
+}
+```
+
+#### `puzzlePlugin` (const)
+
+The puzzle plugin with no options.
+
+```ts
+const puzzlePlugin: PluginDef;
+```
+
+#### `PuzzleSaid` (const)
+
+A verb was answered: the action applied (null for a fallback line), where, the line key and the
+items gained. It carries keys, never text.
+
+```ts
+const PuzzleSaid: EventDef<z.ZodType<SaidPayload>>;
+```
+
+#### `PuzzleSceneResource` (const)
+
+The scene's puzzle as content gives it. `def` is null until the game loads a scene's puzzle.
+
+```ts
+const PuzzleSceneResource: ResourceDef<z.ZodType<PuzzleScene>>;
+```
+
+#### `PuzzleState` (const)
+
+Facts, carried items (sorted), the ids of actions applied so far, and whether `puzzle.goal` was emitted.
+
+```ts
+const PuzzleState: ResourceDef<z.ZodType<PuzzleStateValue>>;
+```
+
+#### `Reader` (interface)
+
+What a condition reads: a fact by name and whether an item is carried.
+
+```ts
+interface Reader {
+  fact(name: string): Value | undefined;
+  has(item: string): boolean;
+}
+```
+
+#### `Systemic` (interface)
+
+A way of solving the puzzle that no single action shows, with a note, the conditions it enables,
+the actions that lead to it and any risk (`lethal` or `chase`).
+
+```ts
+interface Systemic {
+  readonly id: string;
+  readonly note: string;
+  readonly enables: readonly Cond[];
+  readonly via: readonly string[];
+  readonly risk?: "lethal" | "chase" | undefined;
+}
+```
+
+#### `uses` (function)
+
+A pair matches in either order; a single `use` is the first of a pair, or the held item.
+
+```ts
+function uses(action: Action, verb: Verb): boolean;
+```
+
+#### `Value` (type)
+
+A fact's value: a yes-or-no, a number or text.
+
+```ts
+type Value = boolean | number | string;
+```
+
+#### `valueSchema` (const)
+
+The Zod schema of a fact's value.
+
+```ts
+const valueSchema: z.ZodType<Value>;
+```
+
+#### `Verb` (interface)
+
+What the player did, as the interpreter reads it: where it is aimed, the item held, a pair of
+items, a typed code or a floor point.
+
+```ts
+interface Verb {
+  readonly at: string;
+  readonly held?: string | undefined;
+  readonly pair?: readonly [string, string] | undefined;
+  readonly code?: string | undefined;
+  readonly point?: {
+    readonly x: number;
+    readonly z: number;
+  } | undefined;
+}
+```
+
+#### `VerbCommand` (const)
+
+A verb: what the player did, sent by the game once its walker is in reach. `at` is a hotspot id,
+or `combine`, `floor` or `code`; `held` is the item in hand, `pair` two items combined, `code` a
+typed code and `point` a floor point.
+
+```ts
+const VerbCommand: CommandDef<z.ZodType<VerbPayload>>;
+```
+
+#### `VerbReport` (interface)
+
+What happened to one verb: where it was aimed, the item held, the action taken (null for none),
+whether a line was said and whether the action turned away to a cutscene, dialogue, keypad or
+exit.
+
+```ts
+interface VerbReport {
+  readonly at: string;
+  readonly held: string | undefined;
+  readonly action: string | null;
+  readonly said: boolean;
+  readonly away: boolean;
+}
+```
+
+### `import { … } from '@automata/puzzle/solver'`
+
+#### `analyse` (function)
+
+Solves a scene and checks its softlocks, hints and key-sets. `entry` limits it to one way in,
+and `softlocks: false` skips the softlock search.
+
+```ts
+function analyse(p: PuzzleScene, opts?: {
+  entry?: string;
+  softlocks?: boolean;
+}): Analysis;
+```
+
+#### `Analysis` (interface)
+
+Everything the tools learn about one scene: the solve, its routes, the softlocks, the hint
+checks and the key-sets.
+
+```ts
+interface Analysis {
+  readonly solve: SolveResult;
+  readonly routes: readonly Route[];
+  readonly softlocks: Softlocks;
+  readonly hints: readonly HintResult[];
+  /** The key-sets the design asks for (the model's `keys`), each with its route. */
+  readonly keys: readonly KeyResult[];
+}
+```
+
+#### `applyEffect` (function)
+
+Applies plain effects (set, add, give, take); everything else is presentation or handled by the model.
+
+```ts
+function applyEffect(s: State, e: Effect): void;
+```
+
+#### `budget` (function)
+
+Seconds for a solution: action time plus walking between hotspots at `speed` m/s; a code is typed at `keypad`.
+
+```ts
+function budget(solution: Solution, walk: Walk, speed?: number, keypad?: string): Budget;
+```
+
+#### `Budget` (interface)
+
+The time a solution takes: the seconds of actions, the seconds of walking and the total.
+
+```ts
+interface Budget {
+  readonly actions: number;
+  readonly walking: number;
+  readonly total: number;
+}
+```
+
+#### `condFacts` (const)
+
+The names of the facts a condition reads.
+
+```ts
+const condFacts: (c: Cond) => string[];
+```
+
+#### `condItems` (const)
+
+The names of the items a condition asks about.
+
+```ts
+const condItems: (c: Cond) => string[];
+```
+
+#### `createSolver` (function)
+
+Makes a solver for a puzzle and the model of what its `call` effects do.
+
+```ts
+function createSolver(def: PuzzleDef, model?: PuzzleModel): Solver;
+```
+
+#### `describe` (function)
+
+What the player does for a step, in words.
+
+```ts
+function describe(p: PuzzleScene, step: Step): string;
+```
+
+#### `DOC` (const)
+
+The name of the generated doc file, `puzzle.md`.
+
+```ts
+const DOC = "puzzle.md";
+```
+
+#### `Finding` (interface)
+
+One problem the checks found: an error or a warning, the rule it breaks, what it is about and
+the detail.
+
+```ts
+interface Finding {
+  readonly level: "error" | "warning";
+  readonly rule: string;
+  readonly id: string;
+  readonly detail: string;
+}
+```
+
+#### `GOAL` (const)
+
+The name of the lock graph's last node, the goal.
+
+```ts
+const GOAL = "goal";
+```
+
+#### `HintResult` (interface)
+
+Whether the hints on one lethal rule hold: its id, whether they do and what failed.
+
+```ts
+interface HintResult {
+  readonly id: string;
+  readonly ok: boolean;
+  readonly failures: readonly string[];
+}
+```
+
+#### `holds` (const)
+
+Whether a condition holds in a solver state, with the item held and the code typed.
+
+```ts
+const holds: (s: State, c: Cond, held?: string, code?: string) => boolean;
+```
+
+#### `KeyDecl` (interface)
+
+A key-set the design asks for: the shortest solution with the actions in `ban` banned must take
+every action in `uses` to open `lock` with `key`, optionally from one entry.
+
+```ts
+interface KeyDecl {
+  readonly lock: string;
+  readonly key: string;
+  readonly uses: readonly string[];
+  readonly ban?: readonly string[] | undefined;
+  readonly entry?: string | undefined;
+}
+```
+
+#### `keypadOf` (const)
+
+The hotspot a code is typed at: the one whose action opens the keypad.
+
+```ts
+const keypadOf: (p: PuzzleScene) => string | undefined;
+```
+
+#### `KeyResult` (interface)
+
+A key-set check: the declaration, the shortest solution found with its actions banned, whether
+it used every action asked for, and which it missed.
+
+```ts
+interface KeyResult extends KeyDecl {
+  readonly solution: Solution | null;
+  readonly ok: boolean;
+  readonly missing: readonly string[];
+}
+```
+
+#### `keySet` (const)
+
+A solution's distinct action ids, sorted and joined, to tell routes apart.
+
+```ts
+const keySet: (s: Solution) => string;
+```
+
+#### `LockEdge` (interface)
+
+One arrow of the lock graph: from one lock or item to another, with the action that gets there.
+
+```ts
+interface LockEdge {
+  readonly from: string;
+  readonly to: string;
+  readonly label: string;
+}
+```
+
+#### `lockGraph` (function)
+
+Draws which things unlock which for a scene's routes, as nodes and labelled edges.
+
+```ts
+function lockGraph(p: PuzzleScene, routes: readonly Route[]): {
+  nodes: string[];
+  edges: LockEdge[];
+};
+```
+
+#### `matrix` (function)
+
+Builds the item by hotspot table of a puzzle.
+
+```ts
+function matrix(def: PuzzleDef): Matrix;
+```
+
+#### `Matrix` (interface)
+
+The item by hotspot table of a puzzle: for each item and hotspot, its own actions, a response
+whatever is held, or the fallback line, plus the item pairs that combine.
+
+```ts
+interface Matrix {
+  readonly hotspots: readonly string[];
+  /** Per item, per hotspot: its own actions, `any` (a response whatever is held) or `fallback`. */
+  readonly rows: readonly {
+    item: string;
+    cells: Record<string, string>;
+  }[];
+  readonly combines: readonly {
+    pair: readonly [string, string];
+    action: string;
+  }[];
+}
+```
+
+#### `PuzzleModel` (interface)
+
+What data cannot say about a scene, for the solver: what each `call` effect does, extra facts,
+solver-only effects and conditions, what time does after a step, which hotspots exist in which
+state, the key-sets the design asks for and how many states a search expands before it stops.
+
+```ts
+interface PuzzleModel {
+  /** Extra facts the solver tracks, with their starting values. */
+  readonly facts?: Readonly<Record<string, Value>> | undefined;
+  /** What each `{ call }` does: the possible resulting states. */
+  readonly calls?: Readonly<Record<string, (s: State, step: Step) => State[]>> | undefined;
+  /** Solver-only effects after an action's own. */
+  readonly effects?: Readonly<Record<string, readonly Effect[]>> | undefined;
+  /** Solver-only conditions: the player can take this action only if these hold. */
+  readonly require?: Readonly<Record<string, readonly Cond[]>> | undefined;
+  /** What time does after any step; applied after the step's effects. */
+  readonly after?: ((s: State, step: Step) => State) | undefined;
+  /** Whether a hotspot exists in this state (default: always). */
+  readonly available?: ((s: State, at: string) => boolean) | undefined;
+  /** What a systemic set-up does when that depends on the state (default: it sets its `enables`). */
+  readonly systemic?: Readonly<Record<string, (s: State) => State[]>> | undefined;
+  /** Seconds an action takes when it gives none (default 2). */
+  readonly seconds?: number | undefined;
+  /** Calls whose result does not depend on the item in hand: such an action is tried once, bare-handed. */
+  readonly pure?: readonly string[] | undefined;
+  /** States a search expands before it stops as capped (default 200,000). */
+  readonly cap?: number | undefined;
+  /** The key-sets the design asks for: the shortest solution with `ban` banned must take every step in `uses`. */
+  readonly keys?: readonly KeyDecl[] | undefined;
+}
+```
+
+#### `PuzzleScene` (interface)
+
+How a game plugs into the solver's tools: its puzzle, its solver model, the names for the
+generated doc, where the player spawns, the game's text, its cutscene ids, how far apart its
+hotspots are and the files the doc depends on. The tools never import a game.
+
+```ts
+interface PuzzleScene {
+  readonly id: string;
+  readonly def: PuzzleDef;
+  readonly model: PuzzleModel;
+  /** Hotspot names for the doc (the hotspots themselves are the puzzle's `hotspots`). */
+  readonly names: Readonly<Record<string, string>>;
+  readonly spawn: {
+    readonly x: number;
+    readonly z: number;
+  };
+  /** The game's text: line keys to text, item ids to names (the doc's words; a line key with no text fails `validate`). */
+  readonly story: {
+    readonly lines: Readonly<Record<string, string>>;
+    readonly items: Readonly<Record<string, string>>;
+  };
+  /** The scene's cutscene ids. */
+  readonly cutscenes: readonly string[];
+  /** Metres walked between two hotspots (null: from the spawn), every door open. */
+  readonly walk: Walk;
+  /** The files the generated doc depends on, relative to the scene folder, with their XXH64 hashes (PZ-D4). */
+  readonly sources: readonly {
+    readonly path: string;
+    readonly hash: string;
+  }[];
+}
+```
+
+#### `renderDoc` (function)
+
+Writes a scene's puzzle doc as Markdown from its analysis: the hotspots, the item table, the
+routes with their times, the softlocks and the lock graph.
+
+```ts
+function renderDoc(p: PuzzleScene, x: Analysis): string;
+```
+
+#### `Route` (interface)
+
+One way through the puzzle: a name, the action banned to find it (null for the shortest) and its
+solution.
+
+```ts
+interface Route {
+  readonly name: string;
+  readonly banned: string | null;
+  readonly solution: Solution;
+}
+```
+
+#### `routesOf` (function)
+
+The shortest solution, then one per distinct key-set among the alternatives, in the solver's order.
+
+```ts
+function routesOf(result: SolveResult): Route[];
+```
+
+#### `showCond` (function)
+
+A condition in words, for the generated doc.
+
+```ts
+function showCond(c: Cond): string;
+```
+
+#### `showEffect` (function)
+
+An effect in words, for the generated doc.
+
+```ts
+function showEffect(e: Effect): string;
+```
+
+#### `Softlocks` (interface)
+
+The states from which the goal can no longer be reached, with the trail to each, and the actions
+that change something but are never taken in any reachable state.
+
+```ts
+interface Softlocks {
+  readonly states: number;
+  readonly capped: boolean;
+  readonly count: number;
+  readonly softlocks: readonly {
+    entry: string;
+    trail: string[];
+    facts: Record<string, Value>;
+    items: string[];
+  }[];
+  /** Actions that change something but are never taken in any reachable state. */
+  readonly never: readonly string[];
+}
+```
+
+#### `Solution` (interface)
+
+A route through the puzzle: the entry it starts from, the steps in order and the seconds they
+take.
+
+```ts
+interface Solution {
+  readonly entry: string;
+  readonly steps: readonly Step[];
+  readonly seconds: number;
+}
+```
+
+#### `Solver` (interface)
+
+Searches a puzzle's states: pick the action a verb resolves to, list the verbs, step, test for
+the goal, find the shortest solution, look for softlocks and check hints.
+
+```ts
+interface Solver {
+  /** The action the game would pick for this verb, or null for its fallback line. */
+  match(s: State, at: string, held?: string, pair?: readonly [string, string], code?: string): Action | null;
+  verbs(s: State, banned: ReadonlySet<string>): Verb[];
+  next(s: State, step: Step, action: Action | null): State[];
+  isGoal(s: State): boolean;
+  start(entry: PuzzleDef["entry"][number]): State;
+  keys(): KeyResult[];
+  solve(): SolveResult;
+  softlocks(limit?: number): Softlocks;
+  states(sol: Solution): State[];
+  hints(solutions: readonly Solution[]): HintResult[];
+}
+```
+
+#### `SolveResult` (interface)
+
+What solving found: whether the puzzle can be solved, how many states were searched, whether the
+search was capped, the shortest solution, one alternative for each action of it banned in turn,
+and the distinct sets of actions used.
+
+```ts
+interface SolveResult {
+  readonly solvable: boolean;
+  readonly states: number;
+  readonly capped: boolean;
+  readonly shortest: Solution | null;
+  /** One solution per alternative: banning each action of the shortest solution in turn. */
+  readonly alternatives: readonly {
+    readonly banned: string;
+    readonly solution: Solution | null;
+  }[];
+  /** Distinct sets of action ids across the shortest solution and the alternatives. */
+  readonly keySets: readonly (readonly string[])[];
+}
+```
+
+#### `stamp` (const)
+
+The line that records which source files the generated doc was made from, with their hashes.
+
+```ts
+const stamp: (p: PuzzleScene) => string;
+```
+
+#### `State` (interface)
+
+The puzzle's facts, the player's items (a multiset) and which systemic set-ups have happened.
+
+```ts
+interface State {
+  facts: Record<string, Value>;
+  items: string[];
+  seen: string[];
+}
+```
+
+#### `Step` (interface)
+
+A verb as the player makes it: a hotspot with a held item (or a bare hand), a floor use, a combine, a typed code.
+
+```ts
+interface Step {
+  readonly action: string;
+  readonly at: string;
+  readonly held?: string | undefined;
+  readonly pair?: readonly [string, string] | undefined;
+  readonly code?: string | undefined;
+  /** A systemic set-up (`systemic:<id>`), not a verb. */
+  readonly systemic?: boolean | undefined;
+}
+```
+
+#### `timing` (const)
+
+The seconds a solution takes: its actions plus walking between hotspots.
+
+```ts
+const timing: (p: PuzzleScene, solution: Solution) => Budget;
+```
+
+#### `used` (const)
+
+The items an action uses: none, one, or both of a pair.
+
+```ts
+const used: (a: Action) => string[];
+```
+
+#### `validate` (function)
+
+Checks a scene's puzzle for mistakes the schema cannot see, such as a line with no text or an
+item nothing gives. Returns the findings.
+
+```ts
+function validate(p: PuzzleScene): Finding[];
+```
+
+#### `Verb` (interface)
+
+A verb the player can make in a state, with the action it resolves to.
+
+```ts
+interface Verb {
+  readonly step: Step;
+  readonly action: Action | null;
+}
+```
+
+#### `Walk` (type)
+
+Metres walked between two hotspots (null: from the spawn).
+
+```ts
+type Walk = (from: string | null, to: string) => number;
+```
+
 ## `@automata/sim`
 
 ### `import { … } from '@automata/sim'`
@@ -7981,4 +15064,348 @@ interface TauriConfig {
   /** A square PNG of at least 512 px for the app's icon, relative to the game's folder. Left out, ship draws one. */
   readonly icon?: string | undefined;
 }
+```
+
+## `@automata/ui-screens`
+
+### `import { … } from '@automata/ui-screens'`
+
+#### `ErrorScreen` (const)
+
+The error screen: core's ErrorPanel on core's ScreenFrame (the frame gives Back its place). The panel is opaque and sits at the top of the visible region, so the screen carries no title of its own. Every failure names a way forward: an
+action, or, when the device cannot run the game at all (`final`), the frame's Back, so a final failure needs `onBack`. The primary
+action takes focus on entry; Escape goes back when the game gives a way back. The panel's own layout rules (where the message
+scrolls, where the actions stack) are core's.
+
+```ts
+const ErrorScreen: import("svelte").Component<Props, {}, "">;
+type ErrorScreen = ReturnType<typeof ErrorScreen>;
+```
+
+#### `LoadingScreen` (const)
+
+The loading screen: the game's title on core's ScreenFrame with core's LoaderOverlay over it. The words are the game's
+own: `label` names the progress bar and `slowLabel` is what the overlay says once `slow` is set. Progress is 0 to 1, absent while
+unknown (the bar is then indeterminate). Edit the title, the art behind it, or swap the overlay: the frame is what keeps it inside
+the visible region.
+
+```ts
+const LoadingScreen: import("svelte").Component<Props, {}, "">;
+type LoadingScreen = ReturnType<typeof LoadingScreen>;
+```
+
+#### `PauseCopy` (interface)
+
+Core's `ScreensCopy['paused']`, the part this screen reads.
+
+```ts
+interface PauseCopy {
+    readonly title: string;
+    readonly resume: string;
+    readonly back: string;
+    readonly mute: string;
+    readonly unmute: string;
+    readonly settings: string;
+    readonly quit: string;
+    readonly quitPrompt: string;
+    readonly quitConfirm: string;
+    readonly cancel: string;
+    readonly reconnect: string;
+}
+```
+
+#### `PauseScreen` (const)
+
+The pause screen: a dialog over the dimmed game with Resume (primary, focused), Mute, Settings and Quit. Quit asks first,
+because the run is lost. Escape (the pad's B, the system back) steps back one level: from the confirm to the menu, from the
+menu to resuming. The words are core's `ScreensCopy['paused']`. A game with a save, a leaderboard or a controller to
+reconnect uses core's default pause for those; this one is the plain version to edit.
+
+```ts
+const PauseScreen: import("svelte").Component<Props, {}, "">;
+type PauseScreen = ReturnType<typeof PauseScreen>;
+```
+
+#### `ResultsAction` (interface)
+
+A button on the results screen's action bar. Mark one `primary`; give each secondary a
+`shortLabel` for when the bar is narrow.
+
+```ts
+interface ResultsAction {
+    readonly id: string;
+    readonly label: string;
+    /** What a secondary action says when the bar is narrow ("Title" for "Back to title"); give one for each secondary. */
+    readonly shortLabel?: string | undefined;
+    readonly primary?: boolean | undefined;
+}
+```
+
+#### `ResultsCopy` (interface)
+
+The words this screen adds to the game's own: the rows' region name, the empty line and the "+N more" label.
+
+```ts
+interface ResultsCopy {
+    readonly rows: string;
+    readonly empty: string;
+    readonly more: (count: number) => string;
+}
+```
+
+#### `ResultsRow` (interface)
+
+One line of the results list: a label and its value, with an optional detail line under it. `id`
+keeps the row steady between updates.
+
+```ts
+interface ResultsRow {
+    readonly id: string;
+    readonly label: string;
+    readonly value: string;
+    readonly detail?: string | undefined;
+}
+```
+
+#### `ResultsScreen` (const)
+
+The results screen: a title, the rows a game wants to show and one to three actions, on core's ScreenFrame.
+
+It never ranks. The caller passes the rows in the order to show them and the screen only shows them, so what decides the order
+(the sim, a server's standings) stays the one place that decides it. The rows are a declared scroll region; the actions
+are outside it, so a long list scrolls and the way out never moves. The primary action takes focus on entry (the first action
+when none is primary); Escape or the system back calls `onBack` when the game gives one.
+
+Edit freely once copied: the layout, the row markup and the order of the actions are yours. The geometry, the targets and the
+focus model are core's (`@automata/framework`), so keep using `ScreenFrame`, `ScrollList` and `ActionBar`.
+
+```ts
+const ResultsScreen: import("svelte").Component<Props, {}, "">;
+type ResultsScreen = ReturnType<typeof ResultsScreen>;
+```
+
+#### `SettingsCopy` (interface)
+
+Core's `ScreensCopy['settings']['screen']`.
+
+```ts
+interface SettingsCopy {
+    readonly title: string;
+    readonly back: string;
+    readonly tabs: string;
+    readonly more: (count: number) => string;
+}
+```
+
+#### `SettingsScreen` (const)
+
+The settings screen: core's SettingsScreen with the game's own tabs, its words taken from core's
+`ScreensCopy['settings']['screen']`. Core's screen is the presentation (the dialog, the tabs, the sections that scroll); the
+sections' wiring (audio, display, controls, language) is the game's state, so a game builds its `tabs` from core's section
+components and adds its own tab or section here without touching core.
+
+```ts
+const SettingsScreen: import("svelte").Component<Props, {}, "">;
+type SettingsScreen = ReturnType<typeof SettingsScreen>;
+```
+
+#### `TitleAction` (interface)
+
+An extra button on the title screen beside Play, such as Settings or Credits. `shortLabel` is
+what it says when the bar is narrow.
+
+```ts
+interface TitleAction {
+    readonly id: string;
+    readonly label: string;
+    /** What the action says when the bar is narrow. */
+    readonly shortLabel?: string | undefined;
+}
+```
+
+#### `TitleScreen` (const)
+
+The title screen: the game's name, one primary Play and any further actions the game adds (Settings, Credits), on core's
+ScreenFrame and ActionBar. Play takes focus on entry. A game with saves keeps core's default title, which lists the slots; add
+that here by copying the slot list from `@automata/framework`'s title when you need it.
+
+```ts
+const TitleScreen: import("svelte").Component<Props, {}, "">;
+type TitleScreen = ReturnType<typeof TitleScreen>;
+```
+
+### `import { … } from '@automata/ui-screens/error'`
+
+#### `ErrorScreen` (const)
+
+The error screen: core's ErrorPanel on core's ScreenFrame (the frame gives Back its place). The panel is opaque and sits at the top of the visible region, so the screen carries no title of its own. Every failure names a way forward: an
+action, or, when the device cannot run the game at all (`final`), the frame's Back, so a final failure needs `onBack`. The primary
+action takes focus on entry; Escape goes back when the game gives a way back. The panel's own layout rules (where the message
+scrolls, where the actions stack) are core's.
+
+```ts
+const ErrorScreen: import("svelte").Component<Props, {}, "">;
+type ErrorScreen = ReturnType<typeof ErrorScreen>;
+```
+
+### `import { … } from '@automata/ui-screens/loading'`
+
+#### `LoadingScreen` (const)
+
+The loading screen: the game's title on core's ScreenFrame with core's LoaderOverlay over it. The words are the game's
+own: `label` names the progress bar and `slowLabel` is what the overlay says once `slow` is set. Progress is 0 to 1, absent while
+unknown (the bar is then indeterminate). Edit the title, the art behind it, or swap the overlay: the frame is what keeps it inside
+the visible region.
+
+```ts
+const LoadingScreen: import("svelte").Component<Props, {}, "">;
+type LoadingScreen = ReturnType<typeof LoadingScreen>;
+```
+
+### `import { … } from '@automata/ui-screens/pause'`
+
+#### `PauseCopy` (interface)
+
+Core's `ScreensCopy['paused']`, the part this screen reads.
+
+```ts
+interface PauseCopy {
+    readonly title: string;
+    readonly resume: string;
+    readonly back: string;
+    readonly mute: string;
+    readonly unmute: string;
+    readonly settings: string;
+    readonly quit: string;
+    readonly quitPrompt: string;
+    readonly quitConfirm: string;
+    readonly cancel: string;
+    readonly reconnect: string;
+}
+```
+
+#### `PauseScreen` (const)
+
+The pause screen: a dialog over the dimmed game with Resume (primary, focused), Mute, Settings and Quit. Quit asks first,
+because the run is lost. Escape (the pad's B, the system back) steps back one level: from the confirm to the menu, from the
+menu to resuming. The words are core's `ScreensCopy['paused']`. A game with a save, a leaderboard or a controller to
+reconnect uses core's default pause for those; this one is the plain version to edit.
+
+```ts
+const PauseScreen: import("svelte").Component<Props, {}, "">;
+type PauseScreen = ReturnType<typeof PauseScreen>;
+```
+
+### `import { … } from '@automata/ui-screens/results'`
+
+#### `ResultsAction` (interface)
+
+A button on the results screen's action bar. Mark one `primary`; give each secondary a
+`shortLabel` for when the bar is narrow.
+
+```ts
+interface ResultsAction {
+    readonly id: string;
+    readonly label: string;
+    /** What a secondary action says when the bar is narrow ("Title" for "Back to title"); give one for each secondary. */
+    readonly shortLabel?: string | undefined;
+    readonly primary?: boolean | undefined;
+}
+```
+
+#### `ResultsCopy` (interface)
+
+The words this screen adds to the game's own: the rows' region name, the empty line and the "+N more" label.
+
+```ts
+interface ResultsCopy {
+    readonly rows: string;
+    readonly empty: string;
+    readonly more: (count: number) => string;
+}
+```
+
+#### `ResultsRow` (interface)
+
+One line of the results list: a label and its value, with an optional detail line under it. `id`
+keeps the row steady between updates.
+
+```ts
+interface ResultsRow {
+    readonly id: string;
+    readonly label: string;
+    readonly value: string;
+    readonly detail?: string | undefined;
+}
+```
+
+#### `ResultsScreen` (const)
+
+The results screen: a title, the rows a game wants to show and one to three actions, on core's ScreenFrame.
+
+It never ranks. The caller passes the rows in the order to show them and the screen only shows them, so what decides the order
+(the sim, a server's standings) stays the one place that decides it. The rows are a declared scroll region; the actions
+are outside it, so a long list scrolls and the way out never moves. The primary action takes focus on entry (the first action
+when none is primary); Escape or the system back calls `onBack` when the game gives one.
+
+Edit freely once copied: the layout, the row markup and the order of the actions are yours. The geometry, the targets and the
+focus model are core's (`@automata/framework`), so keep using `ScreenFrame`, `ScrollList` and `ActionBar`.
+
+```ts
+const ResultsScreen: import("svelte").Component<Props, {}, "">;
+type ResultsScreen = ReturnType<typeof ResultsScreen>;
+```
+
+### `import { … } from '@automata/ui-screens/settings'`
+
+#### `SettingsCopy` (interface)
+
+Core's `ScreensCopy['settings']['screen']`.
+
+```ts
+interface SettingsCopy {
+    readonly title: string;
+    readonly back: string;
+    readonly tabs: string;
+    readonly more: (count: number) => string;
+}
+```
+
+#### `SettingsScreen` (const)
+
+The settings screen: core's SettingsScreen with the game's own tabs, its words taken from core's
+`ScreensCopy['settings']['screen']`. Core's screen is the presentation (the dialog, the tabs, the sections that scroll); the
+sections' wiring (audio, display, controls, language) is the game's state, so a game builds its `tabs` from core's section
+components and adds its own tab or section here without touching core.
+
+```ts
+const SettingsScreen: import("svelte").Component<Props, {}, "">;
+type SettingsScreen = ReturnType<typeof SettingsScreen>;
+```
+
+### `import { … } from '@automata/ui-screens/title'`
+
+#### `TitleAction` (interface)
+
+An extra button on the title screen beside Play, such as Settings or Credits. `shortLabel` is
+what it says when the bar is narrow.
+
+```ts
+interface TitleAction {
+    readonly id: string;
+    readonly label: string;
+    /** What the action says when the bar is narrow. */
+    readonly shortLabel?: string | undefined;
+}
+```
+
+#### `TitleScreen` (const)
+
+The title screen: the game's name, one primary Play and any further actions the game adds (Settings, Credits), on core's
+ScreenFrame and ActionBar. Play takes focus on entry. A game with saves keeps core's default title, which lists the slots; add
+that here by copying the slot list from `@automata/framework`'s title when you need it.
+
+```ts
+const TitleScreen: import("svelte").Component<Props, {}, "">;
+type TitleScreen = ReturnType<typeof TitleScreen>;
 ```

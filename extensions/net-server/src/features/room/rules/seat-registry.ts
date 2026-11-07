@@ -27,6 +27,10 @@ export interface FreedSeat {
   readonly seat: number
 }
 
+/**
+ * Which session sits in which seat, which clients have yet to be told their seat and which dropped
+ * seats are being held for a return.
+ */
 export class SeatRegistry {
   /** The seat per session, in the order they first sat down. */
   private readonly bySession = new Map<string, number>()

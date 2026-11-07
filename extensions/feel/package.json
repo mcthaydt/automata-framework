@@ -1,7 +1,6 @@
 {
   "name": "@automata/feel",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.0.5",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -13,13 +12,27 @@
   "imports": {
     "#src/*": "./src/*"
   },
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": "./src/entries/index.ts"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      }
+    }
   },
   "scripts": {
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "build": "tsdown"
   },
   "dependencies": {
     "zod": "4.6.6"

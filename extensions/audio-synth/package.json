@@ -1,7 +1,6 @@
 {
   "name": "@automata/audio-synth",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.0.5",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -10,11 +9,15 @@
   },
   "type": "module",
   "sideEffects": [
-    "./src/features/render/browser.ts"
+    "./src/features/render/browser.ts",
+    "./dist/browser.js"
   ],
   "imports": {
     "#src/*": "./src/*"
   },
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": "./src/entries/index.ts",
     "./measure": "./src/entries/measure.ts",
@@ -22,10 +25,33 @@
     "./browser": "./src/entries/browser.ts",
     "./package.json": "./package.json"
   },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./measure": {
+        "types": "./dist/measure.d.ts",
+        "import": "./dist/measure.js"
+      },
+      "./render": {
+        "types": "./dist/render.d.ts",
+        "import": "./dist/render.js"
+      },
+      "./browser": {
+        "types": "./dist/browser.d.ts",
+        "import": "./dist/browser.js"
+      }
+    }
+  },
   "scripts": {
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "build": "tsdown"
   },
   "dependencies": {
     "zod": "4.6.6"

@@ -4,8 +4,13 @@
 // Each error message names the cause and the next action. `{name}` marks a value filled in at run time.
 import type { NetErrorCode } from '@automata/net'
 
+/** A key into the connection words, always starting with `net.`. */
 export type NetCopyKey = `net.${string}`
 
+/**
+ * The English words for the badge, the overlay and every connection error. Each error says what
+ * went wrong and what to do next. A game translates by giving the same keys.
+ */
 export const NET_COPY_EN: Readonly<Record<NetCopyKey, string>> = {
   'net.badge.connecting': 'Connecting…',
   'net.badge.connected': 'Online',

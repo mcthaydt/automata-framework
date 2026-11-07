@@ -1,3 +1,7 @@
+<!--
+  @component
+  The banner shown while the game reconnects: it counts down the grace, then says it could not reconnect. Leave is always there, and it gets focus once the grace has passed. It pauses nothing: the game keeps drawing behind it.
+-->
 <script lang="ts">
 // The reconnect overlay, drawn in `hud.overlay`: while reconnecting it counts down the grace; once the grace has
 // passed it says so. Leave (48 px) is always there, focused once the grace has passed; Back is Leave. It is a banner, not a

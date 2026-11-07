@@ -94,6 +94,10 @@ export interface SessionRoomState {
   readonly accepting: boolean
 }
 
+/**
+ * What a session needs: the client sim it steps and restores, how to send a command and a probe,
+ * the first round trip, the largest lead, how to draw the others and the diagnostics.
+ */
 export interface NetSessionOptions<T = RemoteView> {
   /** The client's sim: the game's plugins and content, as the room runs them. The session steps and restores it. */
   readonly sim: Sim
@@ -119,6 +123,11 @@ export interface NetSessionOptions<T = RemoteView> {
   readonly diagnostics?: NetDiagnostics | undefined
 }
 
+/**
+ * The client's game loop in an online room. It predicts the player's commands, takes the room's
+ * snapshots and corrects when they differ, and tells a desync. Call `frame` once per rendered
+ * frame.
+ */
 export class NetSession<T = RemoteView> {
   private readonly prediction: Prediction
   private readonly clock: RenderClock

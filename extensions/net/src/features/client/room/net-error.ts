@@ -62,6 +62,10 @@ function unreachable(error: unknown): boolean {
   return typeof code === 'string' && UNREACHABLE.has(code)
 }
 
+/**
+ * Turns whatever a failed join or create threw into one of the error codes, so a screen can say
+ * what went wrong.
+ */
 export function refusalCode(error: unknown): NetErrorCode {
   const message = error instanceof Error ? error.message : typeof error === 'string' ? error : ''
   const leading = LEADING_CODE.exec(message)?.[1]

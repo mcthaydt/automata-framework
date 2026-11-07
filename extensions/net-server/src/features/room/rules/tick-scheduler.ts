@@ -22,6 +22,10 @@ export interface TickClock {
   clearTimer(handle: unknown): void
 }
 
+/**
+ * How often to tick and what runs: the tick length, the clock, the tick itself and optional hooks
+ * for a slow wake-up, an error and the most ticks to catch up.
+ */
 export interface TickSchedulerOptions {
   readonly tickMs: number
   readonly clock: TickClock
@@ -38,11 +42,16 @@ export interface TickSchedulerOptions {
   readonly maxCatchUp?: number
 }
 
+/** A running metronome. Stop it to end it for good. */
 export interface TickScheduler {
   /** Stops for good. Idempotent. */
   stop(): void
 }
 
+/**
+ * Starts ticking at fixed deadlines, one tick length apart, so ticks do not bunch up. After a
+ * stall it catches up a few ticks and drops the rest.
+ */
 export function startTickScheduler(options: TickSchedulerOptions): TickScheduler {
   const { clock, tickMs } = options
   const maxCatchUp = options.maxCatchUp ?? 5

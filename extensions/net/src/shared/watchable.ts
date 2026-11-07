@@ -16,6 +16,10 @@ export interface WatchableSource<T> extends Watchable<T> {
   readonly view: Watchable<T>
 }
 
+/**
+ * Makes a value that tells its listeners when it changes. Keep the source to set it, and hand out
+ * the read-only view.
+ */
 export function createWatchable<T>(initial: T): WatchableSource<T> {
   let value = initial
   const listeners = new Set<(value: T) => void>()

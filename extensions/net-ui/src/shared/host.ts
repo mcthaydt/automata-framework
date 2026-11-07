@@ -3,6 +3,10 @@
 import type { ConnectionState } from '@automata/net'
 import { NET_COPY_EN } from './net-copy'
 
+/**
+ * What the badge and overlay need from the game: the connection, the grace, a way to leave and the
+ * words. Hand it to `installNetUi`.
+ */
 export interface NetUiHost {
   /** The connection now, and a way to hear it change (a `NetRoom.connection` subscription). */
   readonly connection: {
@@ -28,5 +32,7 @@ export function installNetUi(host: NetUiHost): () => void {
     if (current === host) current = undefined
   }
 }
+/** The host that is installed now, or nothing when the game has not installed one. */
 export const currentNetUi = (): NetUiHost | undefined => current
+/** The words for `host`: its own catalog, or the English one when it gave none. */
 export const copyOf = (host: NetUiHost): Readonly<Record<string, string>> => host.copy ?? NET_COPY_EN

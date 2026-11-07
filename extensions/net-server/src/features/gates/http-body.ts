@@ -7,6 +7,9 @@
 
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
+/**
+ * Reads a request body up to a size cap. Past the cap it stops reading and gives back undefined.
+ */
 export function readCappedBody(request: IncomingMessage, limit: number): Promise<string | undefined> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = []
@@ -28,6 +31,10 @@ export function readCappedBody(request: IncomingMessage, limit: number): Promise
   })
 }
 
+/**
+ * Answers 413 and closes the connection once the answer is out, so a body that never ends cannot
+ * hold the server.
+ */
 export function refuseTooLarge(
   request: IncomingMessage,
   response: ServerResponse,

@@ -19,6 +19,10 @@ const env = {
 const plain = async (out: Promise<Float32Array[]>): Promise<number[][]> =>
   (await out).map((c) => Array.from(c))
 
+/**
+ * The offline renderers the page offers the audio pipeline: a cue, a bed, a mix and the ducking
+ * demonstration, each answering plain number arrays.
+ */
 export interface Renderers {
   cue(content: AudioContent, id: string, options: CueRenderOptions): Promise<number[][]>
   bed(content: AudioContent, id: string, seconds: number): Promise<number[][]>

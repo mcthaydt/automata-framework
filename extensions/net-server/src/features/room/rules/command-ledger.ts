@@ -43,6 +43,10 @@ export function requestIdOf(message: unknown): string | undefined {
   return parsed.success ? parsed.data : undefined
 }
 
+/**
+ * Remembers the answer given to each request, per session, so a resent request gets the same
+ * answer and never acts twice. Bounded, oldest answers dropped first.
+ */
 export class CommandLedger {
   /** Answers per session, oldest first: a `Map` iterates in insertion order. */
   private readonly answers = new Map<string, Map<string, CommandResult>>()

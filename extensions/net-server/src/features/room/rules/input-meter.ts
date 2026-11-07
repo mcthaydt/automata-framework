@@ -18,6 +18,10 @@ export interface InputMeterOptions {
   readonly creditsPerTick: number
 }
 
+/**
+ * Each seat's command budget, a token bucket counted in room ticks. A seat spends one credit per
+ * accepted command; an empty seat has its command dropped.
+ */
 export class InputMeter {
   private readonly credits = new Map<number, number>()
   private readonly options: InputMeterOptions

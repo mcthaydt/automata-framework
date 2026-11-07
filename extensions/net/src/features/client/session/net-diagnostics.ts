@@ -58,10 +58,15 @@ export class Distribution {
   }
 }
 
+/**
+ * How slow or silent the link may be before it counts as degraded: the round trip and the gap
+ * between snapshots, in milliseconds.
+ */
 export interface DegradedThresholds {
   readonly roundTripMs: number
   readonly gapMs: number
 }
+/** The usual thresholds: a second of round trip or a second of silence. */
 export const DEFAULT_DEGRADED: DegradedThresholds = { roundTripMs: 1000, gapMs: 1000 }
 /** A degraded link clears when it is under this fraction of both thresholds. */
 const RECOVER = 0.8
@@ -70,6 +75,10 @@ const RTT_WINDOW = 5
 /** A correction past this many ticks is worth a console line. */
 const CORRECTION_ANOMALY_TICKS = 4
 
+/**
+ * What the diagnostics measured: snapshots, their spacing and reordering, round trips, corrections
+ * and whether the link is degraded.
+ */
 export interface NetSummary {
   readonly snapshots: {
     readonly count: number
@@ -101,6 +110,10 @@ export interface NetSummary {
   readonly degraded: boolean
 }
 
+/**
+ * What the diagnostics need: a millisecond clock, optional thresholds and a function to call when
+ * the link becomes degraded or recovers.
+ */
 export interface NetDiagnosticsOptions {
   /** Milliseconds (Effect's `Clock` in the session). */
   readonly now: () => number
@@ -109,6 +122,10 @@ export interface NetDiagnosticsOptions {
   readonly onDegraded?: ((degraded: boolean) => void) | undefined
 }
 
+/**
+ * Measures the link as it is used and says when it is degraded. It writes a console line for
+ * anything strange, at most once in a while.
+ */
 export class NetDiagnostics {
   private readonly thresholds: DegradedThresholds
   private sink: ((line: string) => void) | undefined

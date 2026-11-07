@@ -272,6 +272,9 @@ importers:
       '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
+      '@sveltejs/package':
+        specifier: 3.0.0
+        version: 3.0.0(svelte@5.57.1)(typescript@6.0.3)
       '@sveltejs/vite-plugin-svelte':
         specifier: 7.3.1
         version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
@@ -505,6 +508,12 @@ importers:
       '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
+      '@sveltejs/package':
+        specifier: 3.0.0
+        version: 3.0.0(svelte@5.57.1)(typescript@6.0.3)
+      '@sveltejs/vite-plugin-svelte':
+        specifier: 7.3.1
+        version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
       '@testing-library/dom':
         specifier: 10.4.2
         version: 10.4.2
@@ -759,6 +768,12 @@ importers:
       '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
+      '@sveltejs/package':
+        specifier: 3.0.0
+        version: 3.0.0(svelte@5.57.1)(typescript@6.0.3)
+      '@sveltejs/vite-plugin-svelte':
+        specifier: 7.3.1
+        version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
       '@testing-library/dom':
         specifier: 10.4.2
         version: 10.4.2

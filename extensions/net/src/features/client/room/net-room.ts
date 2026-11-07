@@ -37,6 +37,10 @@ import { colyseusClient, type NetSdkClient, type NetSdkRoom } from './sdk'
 import { createSeatTokenStore, type SeatStorage, sessionSeatStorage } from './seat-token'
 import { createStopper, type Stopper } from './stopper'
 
+/**
+ * Where the connection to the room is: offline, connecting, connected, reconnecting after a drop,
+ * or degraded (up, but slow or silent).
+ */
 export type ConnectionState = 'offline' | 'connecting' | 'connected' | 'reconnecting' | 'degraded'
 
 /** Why the room went without the player choosing to leave. */
@@ -44,6 +48,10 @@ export interface RoomEnd {
   readonly reason: 'seat-lost' | 'closed' | 'server-updating' | 'failed'
 }
 
+/**
+ * What happened when a page tried to take its old seat back after a reload: it resumed, there was
+ * nothing to resume, or the seat had expired.
+ */
 export type ResumeOutcome = 'resumed' | 'none' | 'expired'
 
 /** What an intent that opens a room takes besides the player's name. */
@@ -53,6 +61,10 @@ export interface IntentOptions {
   readonly signal?: AbortSignal | undefined
 }
 
+/**
+ * The player's side of an online room. Create, join or quick-match, get ready, add or remove a
+ * bot, leave, and watch the connection, the room and why it ended.
+ */
 export interface NetRoom {
   create(options: IntentOptions): Promise<void>
   join(code: string, options: IntentOptions): Promise<void>
@@ -84,6 +96,11 @@ export interface NetRoom {
   close(): void
 }
 
+/**
+ * What `createNetRoom` needs: the server url, the client sim's hashes for the join check, the
+ * reconnect grace, the game's clock and optionally the session token, the SDK client and where the
+ * seat token is stored.
+ */
 export interface NetRoomOptions {
   /** The server: net.toml's `url`. */
   readonly url: string
@@ -166,6 +183,10 @@ function abortable<T>(signal: AbortSignal | undefined, work: Promise<T>, onAbort
   })
 }
 
+/**
+ * Makes the player's side of a room. It reconnects after a drop for as long as the grace allows,
+ * and keeps the seat so a reload can take it back.
+ */
 export function createNetRoom(options: NetRoomOptions): NetRoom {
   const { clock } = options
   const connectionState = createWatchable<ConnectionState>('offline')

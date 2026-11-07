@@ -19,6 +19,10 @@ export interface FakeSocket {
   readonly listeners: number
 }
 
+/**
+ * A stand-in for the SDK's room. It records every send, leave and close, and lets a test push
+ * messages and state to the client.
+ */
 export interface FakeRoom extends NetSdkRoom {
   roomId: string
   reconnectionToken: string
@@ -48,9 +52,14 @@ export interface FakeRoom extends NetSdkRoom {
   queued(channel: string, payload: unknown): void
 }
 
+/** What a fake matchmaking call answers: a room, an error, or a promise of a room. */
 export type FakeOutcome = FakeRoom | Error | Promise<FakeRoom>
 type Method = 'create' | 'joinById' | 'joinOrCreate' | 'reconnect'
 
+/**
+ * A stand-in for the SDK client. It records every matchmaking call, hands out fake rooms, and lets
+ * a test choose the next answer.
+ */
 export interface FakeColyseus {
   readonly client: NetSdkClient
   /** Every matchmaking call: the method and its arguments. */
@@ -69,6 +78,7 @@ export interface FakeColyseus {
 
 let tokenSerial = 0
 
+/** Makes a fake SDK client for tests, so `createNetRoom` runs without a network. */
 export function fakeColyseus(): FakeColyseus {
   const calls: FakeColyseus['calls'] = []
   const rooms: FakeRoom[] = []

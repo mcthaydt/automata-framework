@@ -17,6 +17,10 @@ import type { ColyseusTransport, NetSnapshot, Pong, TransportEvents } from './co
 /** Round trips remembered for the estimate; the median of these is the answer. */
 const RTT_SAMPLES = 7
 
+/**
+ * The sim's link to the room on a client: it sends the player's commands and never hears remote
+ * ones or publishes a snapshot, because the room is the authority.
+ */
 export interface ClientNetworkPort {
   /** A client hears no remote commands: the listener is never called. */
   onRemoteCommand(listener: (command: Command) => void): () => void

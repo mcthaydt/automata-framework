@@ -27,6 +27,7 @@ export interface RoomCodeStore {
   srem(key: string, member: string): Promise<unknown>
 }
 
+/** A room code drawn from net's alphabet with the given random source. It is not yet claimed. */
 export function generateRoomCode(randomInt: RandomInt): string {
   let code = ''
   for (let index = 0; index < ROOM_CODE_LENGTH; index += 1)
@@ -46,6 +47,7 @@ export async function claimRoomCode(store: RoomCodeStore, randomInt: RandomInt):
   throw new Error('could not allocate a room code')
 }
 
+/** Gives a room code back to the shared set when its room closes. */
 export async function releaseRoomCode(store: RoomCodeStore, code: string): Promise<void> {
   await store.srem(ROOM_CODE_CHANNEL, code)
 }

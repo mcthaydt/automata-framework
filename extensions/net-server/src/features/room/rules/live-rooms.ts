@@ -8,6 +8,10 @@ export interface DrainableRoom {
   beginDrain(): void
 }
 
+/**
+ * Every room a server process holds. The room cap counts them and a drain speaks to each. One per
+ * server, so two servers in a test never share a set.
+ */
 export class LiveRooms<R extends DrainableRoom = DrainableRoom> implements Iterable<R> {
   private readonly rooms = new Set<R>()
 

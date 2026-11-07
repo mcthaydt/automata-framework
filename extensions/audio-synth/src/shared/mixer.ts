@@ -19,6 +19,10 @@ export interface Listener {
   readonly z: number
   readonly yaw: number
 }
+/**
+ * How a world sound reaches the listener: a pan from -0.8 (left) to 0.8 (right) and a gain that
+ * falls with distance.
+ */
 export interface Spatial {
   readonly pan: number
   readonly gain: number
@@ -41,8 +45,13 @@ export function spatial(listener: Listener, at: { readonly x: number; readonly z
   return { pan, gain }
 }
 
+/** Turns decibels into a gain multiplier: -6 dB is about half. */
 export const dbToGain = (db: number): number => 10 ** (db / 20)
 
+/**
+ * How to play one cue: where it sounds, when to start it in audio-context seconds, a random source
+ * and how long it holds a duck.
+ */
 export interface PlayOptions {
   readonly at?: { readonly x: number; readonly z: number } | undefined
   /** Context seconds; now by default. */
@@ -51,15 +60,24 @@ export interface PlayOptions {
   /** Seconds the cue holds a duck; the cue's length by default. */
   readonly length?: number | undefined
 }
+/**
+ * Plays cues on their buses with ducking and, for world cues, panning and distance. `listener`
+ * says where the ears are.
+ */
 export interface Mixer {
   play(cue: Cue, options?: PlayOptions): void
   listener(l: Listener | null): void
 }
+/** What `createMixer` needs: the port into the game's audio buses and the ducking rules. */
 export interface MixerOptions {
   readonly port: MixerPort
   readonly ducks: readonly DuckRule[]
 }
 
+/**
+ * Makes a mixer that plays into the buses the game already has. It never makes an audio context or
+ * a bus of its own.
+ */
 export function createMixer({ port, ducks }: MixerOptions): Mixer {
   let ears: Listener | null = null
   return {

@@ -21,6 +21,10 @@ import type { RoomInfo } from '../room/room-info'
 import { NetDiagnostics } from './net-diagnostics'
 import { NetSession, type RemoteSource, type SessionEnd } from './net-session'
 
+/**
+ * What `createNetSession` needs: the room, the client sim, the game's clock, the largest lead in
+ * ticks and how to draw the other players.
+ */
 export interface CreateNetSessionOptions<T = RemoteView> {
   readonly room: Pick<NetRoom, 'port' | 'info' | 'connection' | 'markDegraded'>
   /** The client's sim: the game's plugins and content, as the room runs them. */
@@ -42,6 +46,10 @@ export interface CreateNetSessionOptions<T = RemoteView> {
     | undefined
 }
 
+/**
+ * A running session: the session to call once per frame, its measured diagnostics, why it ended
+ * and a way to close it.
+ */
 export interface NetSessionHandle<T = RemoteView> {
   /** The game's loop calls `session.frame` once per rendered frame. */
   readonly session: NetSession<T>
@@ -58,6 +66,10 @@ const takesInput = (info: RoomInfo | undefined, connection: ConnectionState): bo
   (info.phase === 'countdown' || info.phase === 'playing') &&
   (connection === 'connected' || connection === 'degraded')
 
+/**
+ * Joins a room's port to a client sim: it predicts the player's own commands, follows the room's
+ * snapshots and measures the link. Close the handle when the game ends.
+ */
 export function createNetSession<T = RemoteView>(options: CreateNetSessionOptions<T>): NetSessionHandle<T> {
   const { clock } = options
   // `Clock.now` is steady (it does not step back when the system time is set), and an arrival stamped in the past

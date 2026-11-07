@@ -19,8 +19,13 @@ import type { LobbyState } from './lobby-rules'
 /** A clock a room can be asked to hold. The countdown is the one a client watches run out. */
 export type ClockName = 'countdown'
 
+/** The clocks a test may ask a room to hold. */
 export const CLOCK_NAMES: readonly ClockName[] = ['countdown']
 
+/**
+ * Whether a value names a clock a room can hold. Checked before a hold is taken, because the name
+ * comes from a test's input.
+ */
 export function isClockName(value: unknown): value is ClockName {
   return typeof value === 'string' && (CLOCK_NAMES as readonly string[]).includes(value)
 }

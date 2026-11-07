@@ -26,6 +26,7 @@ export const INITIAL_LEAD_TICKS = 4
  */
 export const MAX_LEAD_TICKS = 30
 
+/** The sim's tick rate and the largest lead, in ticks. */
 export interface InputLeadOptions {
   /** The sim's tick rate. */
   readonly tickHz: number
@@ -77,6 +78,10 @@ export function leadForRoundTrip(
   return clamp(roundTripMs / tickMs + MIN_MARGIN_TICKS + 1, 0, options.maxTicks)
 }
 
+/**
+ * How many ticks ahead of the room the client stamps its commands, worked out from recent round
+ * trips so a command arrives on time.
+ */
 export class InputLead {
   private current: number
   private wanted: number

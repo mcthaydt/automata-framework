@@ -5,11 +5,16 @@ import type { z } from 'zod'
 import { type PuzzleDef, puzzleDefShape } from '../../shared/sim/puzzle.schema'
 import { checkPuzzle, type PuzzleCheckOptions } from '../../shared/sim/puzzle-checks'
 
+/**
+ * The Zod schema of a puzzle with all its cross-checks: every item, fact, call and extension an
+ * action names must exist.
+ */
 export const puzzleSchema = (options: PuzzleCheckOptions): z.ZodType<PuzzleDef> =>
   puzzleDefShape.superRefine((def, context) =>
     checkPuzzle(def, options, (path, message) => context.addIssue({ code: 'custom', path, message })),
   )
 
+/** The `puzzle` content kind: `content/puzzles/*.toml`, one puzzle per scene. */
 export const puzzleContent = (
   options: PuzzleCheckOptions,
 ): ContentSchemaDef<'puzzle', z.ZodType<PuzzleDef>> =>

@@ -33,6 +33,10 @@ export interface Verb {
   readonly step: Step
   readonly action: Action | null
 }
+/**
+ * Searches a puzzle's states: pick the action a verb resolves to, list the verbs, step, test for
+ * the goal, find the shortest solution, look for softlocks and check hints.
+ */
 export interface Solver {
   /** The action the game would pick for this verb, or null for its fallback line. */
   match(s: State, at: string, held?: string, pair?: readonly [string, string], code?: string): Action | null
@@ -60,6 +64,7 @@ const codesIn = (c: Cond): string[] =>
 const readsHeld = (c: Cond): boolean =>
   'not' in c ? readsHeld(c.not) : 'any' in c ? c.any.some(readsHeld) : 'fact' in c && c.fact === 'held'
 
+/** Makes a solver for a puzzle and the model of what its `call` effects do. */
 export function createSolver(def: PuzzleDef, model: PuzzleModel = {}): Solver {
   const hotspots = [...new Set(def.actions.map((a) => a.at).filter((at) => !SPECIAL.has(at)))]
   const codes = [...new Set(def.actions.flatMap((a) => (a.when ?? []).flatMap(codesIn))), '']

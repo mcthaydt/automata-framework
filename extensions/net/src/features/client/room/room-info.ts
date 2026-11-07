@@ -12,6 +12,10 @@
 import { z } from 'zod'
 import { LOBBY_PHASES, type LobbyPhase } from '../../../shared/wire/room'
 
+/**
+ * One seat in a room: its number, the name, whether the player is ready and connected, and whether
+ * it is a bot.
+ */
 export interface SeatInfo {
   readonly seat: number
   readonly name: string
@@ -20,6 +24,10 @@ export interface SeatInfo {
   readonly bot: boolean
 }
 
+/**
+ * A room as a screen shows it: the six-character code, the phase, the seats, your own seat and the
+ * host's seat.
+ */
 export interface RoomInfo {
   /** Six characters: the Colyseus room id. */
   readonly code: string

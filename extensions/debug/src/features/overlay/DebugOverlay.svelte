@@ -1,3 +1,7 @@
+<!--
+  @component
+  The debug overlay. The dev key or a three-finger tap opens it; it shows the host's panels as tabs in a scroll region, and opening it pauses nothing. If one panel fails, its tab shows the error and the others keep working.
+-->
 <script lang="ts">
 // The debug overlay. Opened by the dev key or a three-finger tap; it renders the host's panels as tabs in a
 // declared scroll region, and opening it pauses nothing. One panel throwing shows its error in its tab and the rest keep working.

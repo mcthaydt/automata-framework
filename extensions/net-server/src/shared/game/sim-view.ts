@@ -17,6 +17,10 @@ export interface ReadonlyEntity {
   get<S extends FieldSchema>(component: ComponentDef<S>): Readonly<FieldValues<S>>
 }
 
+/**
+ * A read-only look at the room's sim, for a bot: the tick, the hash, entities and resources, and
+ * nothing that changes them.
+ */
 export interface SimView {
   /** The tick the sim steps next. */
   readonly tick: number
@@ -35,6 +39,7 @@ const readonlyEntity = (entity: ReadonlyEntity): ReadonlyEntity => ({
   get: (component) => entity.get(component),
 })
 
+/** Wraps a sim as a read-only `SimView`. The view is live, reading the sim as it is when called. */
 export function simViewOf(sim: Sim): SimView {
   return {
     get tick() {

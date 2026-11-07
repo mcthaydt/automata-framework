@@ -38,6 +38,10 @@ function unframe(data: Uint8Array): { readonly header: string; readonly bytes: U
   return { header: decoder.decode(data.subarray(4, 4 + length)), bytes: data.subarray(4 + length) }
 }
 
+/**
+ * The client's end of a test link: its port, its seat, and ways to attach to another link (a
+ * reconnect) or drop the link.
+ */
 export interface LinkClient {
   /** The client port, kept across `attach`, as `NetRoom`'s is across a reconnect. */
   readonly port: ClientNetworkPort
@@ -85,6 +89,7 @@ function linkSdkRoom(transport: Transport): NetSdkRoom {
   }
 }
 
+/** Makes the client's end of a test link over a transport. */
 export function linkClient(transport: Transport, options: { readonly now: () => number }): LinkClient {
   const hub = createClientPort()
   const requestIds = createRequestIds('link0001')
@@ -119,6 +124,10 @@ export function linkClient(transport: Transport, options: { readonly now: () => 
   }
 }
 
+/**
+ * The room's end of a test link, shaped like the server's room client: send a message or bytes,
+ * close, and whether it is closed.
+ */
 export interface LinkRoomClient {
   send(message: ServerMessage): void
   sendBytes(bytes: Uint8Array): void

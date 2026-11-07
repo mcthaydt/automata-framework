@@ -4,6 +4,10 @@ import type { SimContext } from '@automata/sim'
 import { PuzzleSceneResource, PuzzleState } from './puzzle.resource'
 import { type PuzzleDef, puzzleDefShape } from './puzzle.schema'
 
+/**
+ * Loads a scene's puzzle into the sim and starts the play state, at the named entry or the first
+ * one.
+ */
 export function loadPuzzle(ctx: SimContext, def: PuzzleDef, entryName?: string): void {
   const checked = puzzleDefShape.parse(def)
   const entry = entryName === undefined ? checked.entry[0] : checked.entry.find((e) => e.name === entryName)

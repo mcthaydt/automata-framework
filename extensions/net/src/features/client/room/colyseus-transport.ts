@@ -31,6 +31,10 @@ export interface NetSnapshot {
   readonly acks: Readonly<Record<string, number>>
 }
 
+/**
+ * The answer to a clock probe: its id, how many ticks early (positive) or late (negative) the
+ * probe arrived, and the round trip in milliseconds.
+ */
 export interface Pong {
   readonly id: number
   /** Ticks early (positive) or late (negative) the probe's tick arrived. */

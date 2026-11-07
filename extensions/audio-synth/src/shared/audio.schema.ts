@@ -4,9 +4,13 @@
 // buses are core's. Every reference is checked at its path.
 import { z } from 'zod'
 
+/** One of the four audio buses: music, sfx, ui and voice. */
 export type BusId = 'music' | 'sfx' | 'ui' | 'voice'
+/** Every audio bus, in order. */
 export const BUSES: readonly BusId[] = ['music', 'sfx', 'ui', 'voice']
+/** The shape of a tone: sine, square, sawtooth or triangle. */
 export type Wave = 'sine' | 'square' | 'sawtooth' | 'triangle'
+/** Every tone shape. */
 export const WAVES: readonly Wave[] = ['sine', 'square', 'sawtooth', 'triangle']
 
 /** A tone (`tone`, `from`, `to`) or a hiss (`hiss`, `q`), `at` seconds in, `length` long, at `volume`. */
@@ -20,6 +24,11 @@ export interface Voice {
   readonly length: number
   readonly volume: number
 }
+/**
+ * A short sound as a recipe of voices, played on a bus. A world cue is panned and made quieter
+ * with distance from the listener, and a draft cue is a placeholder until the audio pass replaces
+ * it.
+ */
 export interface Cue {
   readonly id: string
   /** One line: what the player hears, and when. */
@@ -66,7 +75,12 @@ export interface DuckRule {
   readonly attack: number
   readonly release: number
 }
+/** The colour a music file can be given. Only `radio` exists. */
 export type FilterId = 'radio'
+/**
+ * The cut-off frequencies of each filter: `radio` removes everything below 450 Hz and above 3000
+ * Hz.
+ */
 export const FILTERS: Readonly<Record<FilterId, { readonly highpass: number; readonly lowpass: number }>> = {
   radio: { highpass: 450, lowpass: 3000 },
 }
@@ -76,6 +90,10 @@ export interface Fallback {
   readonly volume?: number | undefined
   readonly filter?: FilterId | undefined
 }
+/**
+ * One piece of music the game can switch to. It loops or plays once, has a level, and may fade in,
+ * cross-fade at its seam, delay, linger after its state ends or be a place of relief.
+ */
 export interface Slot {
   readonly id: string
   readonly about?: string | undefined
@@ -100,11 +118,20 @@ export interface Slot {
   /** The placeholders to play while the slot's own file does not exist, best first. */
   readonly fallback?: readonly Fallback[] | undefined
 }
+/** A value a music rule can test: text, a number or a yes-or-no. */
 export type StateValue = string | number | boolean
+/**
+ * What a music rule asks of one key of the game's state: an exact value, one of a list, or within
+ * `atLeast` and `atMost`.
+ */
 export type Condition =
   | StateValue
   | readonly StateValue[]
   | { readonly atMost?: number | undefined; readonly atLeast?: number | undefined }
+/**
+ * Picks a music slot when every key in `when` holds. The slot is a slot id, `hold` to keep what
+ * plays or `silence` to play nothing.
+ */
 export interface MusicRule {
   /** Every named key must hold: equal to a value, one of a list, or within `atLeast`/`atMost`. */
   readonly when: Readonly<Record<string, Condition>>
@@ -112,6 +139,10 @@ export interface MusicRule {
   readonly slot: string
   readonly why?: string | undefined
 }
+/**
+ * A game's whole `audio` content: master gain, cues, beds, the map from sim events to cues, the
+ * ducking rules, and the music slots and rules.
+ */
 export interface AudioContent {
   readonly master_gain?: number | undefined
   readonly cue?: readonly Cue[] | undefined
@@ -224,6 +255,10 @@ const musicRule: z.ZodType<MusicRule> = z.strictObject({
   why: z.string().optional(),
 })
 
+/**
+ * The Zod schema of the `audio` content. Every reference (a cue an event plays, a slot a rule
+ * picks) is checked at its path.
+ */
 export const audioSchema: z.ZodType<AudioContent> = z
   .strictObject({
     master_gain: z.number().min(0).max(1).optional(),

@@ -28,6 +28,11 @@ export interface PuzzleCall {
   readonly point: { readonly x: number; readonly z: number } | undefined
 }
 
+/**
+ * How a game wires the puzzle to the rest of itself: the functions `call` effects run, where it
+ * keeps its own facts, and what hears noises, dialogues and cutscenes. `locked` ignores verbs
+ * while a cutscene plays, and `verb` is told of every verb once it has run.
+ */
 export interface PuzzleOptions {
   /**
    * The game's functions for `{ call }` effects, by name. They run inside the verb system, on the verb's step, so
@@ -74,6 +79,11 @@ export interface PuzzleOptions {
   readonly verb?: (ctx: SimContext, report: VerbReport) => void
 }
 
+/**
+ * What happened to one verb: where it was aimed, the item held, the action taken (null for none),
+ * whether a line was said and whether the action turned away to a cutscene, dialogue, keypad or
+ * exit.
+ */
 export interface VerbReport {
   readonly at: string
   readonly held: string | undefined

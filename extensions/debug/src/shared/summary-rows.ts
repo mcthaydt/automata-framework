@@ -1,5 +1,6 @@
 // A diagnostics summary as rows a panel can list: nested objects flattened to dotted names, a distribution (the shape `net`'s
 // `Distribution.summary()` has) on one row, long fractions rounded. It knows no package's types: the port is `{ summary(): unknown }`.
+/** One row of a diagnostics summary: a dotted name and its value as text. */
 export interface SummaryRow {
   readonly name: string
   readonly value: string
@@ -12,6 +13,11 @@ const isDistribution = (v: Record<string, unknown>): boolean =>
   DISTRIBUTION.every((k) => typeof v[k] === 'number') && Object.keys(v).length === DISTRIBUTION.length
 const num = (n: number): string => String(Math.round(n * 100) / 100)
 
+/**
+ * Turns a diagnostics summary into rows: nested objects get dotted names, a distribution (count,
+ * last, min, p50, p95, max) takes one row and long fractions are rounded. Anything that is not an
+ * object gives no rows.
+ */
 export function summaryRows(summary: unknown, prefix = ''): SummaryRow[] {
   if (!isRecord(summary)) return []
   const rows: SummaryRow[] = []

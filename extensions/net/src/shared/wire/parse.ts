@@ -3,6 +3,10 @@ import { type ClientMessage, clientMessageSchema } from './client-message.schema
 import { MAX_MESSAGE_BYTES } from './limits'
 import { type ServerMessage, serverMessageSchema } from './server-message.schema'
 
+/**
+ * The result of reading a raw message: the message, or why it was refused (too large, not JSON, or
+ * not a valid message).
+ */
 export type ParseResult<M> =
   | { readonly ok: true; readonly message: M }
   | { readonly ok: false; readonly reason: 'too-large' | 'not-json' | 'invalid'; readonly detail: string }
@@ -38,8 +42,13 @@ function parseWith<S extends z.ZodType>(schema: S, raw: string | Uint8Array): Pa
   return { ok: true, message: result.data }
 }
 
+/**
+ * Reads a raw message from a client. It measures it first, so a message that is too large is
+ * refused before it is parsed.
+ */
 export const parseClientMessage = (raw: string | Uint8Array): ParseResult<ClientMessage> =>
   parseWith(clientMessageSchema, raw)
 
+/** Reads a raw message from the room, the same way. */
 export const parseServerMessage = (raw: string | Uint8Array): ParseResult<ServerMessage> =>
   parseWith(serverMessageSchema, raw)

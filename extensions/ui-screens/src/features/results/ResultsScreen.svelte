@@ -14,12 +14,20 @@
 import { ActionBar, ScreenFrame, ScrollList } from '@automata/framework'
 import { onMount } from 'svelte'
 
+/**
+ * One line of the results list: a label and its value, with an optional detail line under it. `id`
+ * keeps the row steady between updates.
+ */
 export interface ResultsRow {
   readonly id: string
   readonly label: string
   readonly value: string
   readonly detail?: string | undefined
 }
+/**
+ * A button on the results screen's action bar. Mark one `primary`; give each secondary a
+ * `shortLabel` for when the bar is narrow.
+ */
 export interface ResultsAction {
   readonly id: string
   readonly label: string

@@ -22,6 +22,10 @@ export interface LobbySeat {
   readonly bot: boolean
 }
 
+/**
+ * The room's lobby: its phase, the host, who is seated and ready, and the countdown's end. The
+ * lobby rules change it in place.
+ */
 export interface LobbyState {
   phase: LobbyPhase
   /** The room's tick, set by the room once per tick: the countdown runs on it. */
@@ -44,6 +48,7 @@ export interface LobbyRules {
   readonly startWhen: 'all-ready' | 'host'
 }
 
+/** A new, empty lobby, before anyone has sat down. */
 export function createLobby(): LobbyState {
   return {
     phase: 'lobby',

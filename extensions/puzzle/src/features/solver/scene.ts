@@ -4,6 +4,11 @@ import type { PuzzleDef } from '../../shared/sim/puzzle.schema'
 import type { Walk } from './matrix'
 import type { PuzzleModel } from './model'
 
+/**
+ * How a game plugs into the solver's tools: its puzzle, its solver model, the names for the
+ * generated doc, where the player spawns, the game's text, its cutscene ids, how far apart its
+ * hotspots are and the files the doc depends on. The tools never import a game.
+ */
 export interface PuzzleScene {
   readonly id: string
   readonly def: PuzzleDef

@@ -1,10 +1,15 @@
 // The bus panel's record: the last facts heard on the presentation bus, each as a name and one line of text. It only listens.
 import type { BusPort } from './host'
 
+/** One fact heard on the presentation bus: its name and one line of text. */
 export interface FactEntry {
   readonly name: string
   readonly text: string
 }
+/**
+ * The bus panel's record of the last facts heard. Read it with `entries`, hear changes with
+ * `subscribe` and stop listening with `dispose`.
+ */
 export interface FactLog {
   entries(): readonly FactEntry[]
   subscribe(listener: () => void): () => void
@@ -43,6 +48,10 @@ const text = (fact: unknown): string => {
   }
 }
 
+/**
+ * Starts listening for the named facts on the bus and keeps the last `limit` of them (50 by
+ * default). It only listens: it never sends anything.
+ */
 export function recordFacts(bus: BusPort, names: readonly string[], limit = 50): FactLog {
   let entries: FactEntry[] = []
   const listeners = new Set<() => void>()

@@ -20,4 +20,9 @@ const verbSchema: z.ZodType<VerbPayload> = z.strictObject({
   point: z.strictObject({ x: z.number(), z: z.number() }).optional(),
 })
 
+/**
+ * A verb: what the player did, sent by the game once its walker is in reach. `at` is a hotspot id,
+ * or `combine`, `floor` or `code`; `held` is the item in hand, `pair` two items combined, `code` a
+ * typed code and `point` a floor point.
+ */
 export const VerbCommand: CommandDef<z.ZodType<VerbPayload>> = defineCommand('puzzle.verb', verbSchema)

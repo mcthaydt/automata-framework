@@ -21,13 +21,19 @@ const saidSchema: z.ZodType<SaidPayload> = z.strictObject({
   line: z.string(),
   gained: z.array(z.string()),
 })
+/**
+ * A verb was answered: the action applied (null for a fallback line), where, the line key and the
+ * items gained. It carries keys, never text.
+ */
 export const PuzzleSaid: EventDef<z.ZodType<SaidPayload>> = defineEvent('puzzle.said', saidSchema)
 
 export interface GavePayload {
   readonly item: string
 }
 const gaveSchema: z.ZodType<GavePayload> = z.strictObject({ item: z.string() })
+/** The player was given an item. */
 export const PuzzleGave: EventDef<z.ZodType<GavePayload>> = defineEvent('puzzle.gave', gaveSchema)
+/** The puzzle's goal now holds. It is sent once. */
 export const PuzzleGoal: EventDef<z.ZodType<Empty>> = defineEvent('puzzle.goal', empty)
 
 export interface NoisePayload {
@@ -40,13 +46,16 @@ const noiseSchema: z.ZodType<NoisePayload> = z.strictObject({
   loudness: z.number(),
   kind: z.string(),
 })
+/** An action made a noise at a place, with its loudness and kind. The systems extension listens. */
 export const PuzzleNoise: EventDef<z.ZodType<NoisePayload>> = defineEvent('puzzle.noise', noiseSchema)
 
 export interface IdPayload {
   readonly id: string
 }
 const idSchema: z.ZodType<IdPayload> = z.strictObject({ id: z.string() })
+/** An action asks for a cutscene, by id. */
 export const PuzzleCutscene: EventDef<z.ZodType<IdPayload>> = defineEvent('puzzle.cutscene', idSchema)
+/** An action asks for a dialogue, by id. */
 export const PuzzleDialogue: EventDef<z.ZodType<IdPayload>> = defineEvent('puzzle.dialogue', idSchema)
 
 export interface ExitPayload {
@@ -54,6 +63,9 @@ export interface ExitPayload {
   readonly cutscene: string
 }
 const exitSchema: z.ZodType<ExitPayload> = z.strictObject({ to: z.string(), cutscene: z.string() })
+/** An action leaves the scene for another, with the cutscene to play on the way. */
 export const PuzzleExit: EventDef<z.ZodType<ExitPayload>> = defineEvent('puzzle.exit', exitSchema)
+/** An action marks a checkpoint. The game decides what that saves. */
 export const PuzzleCheckpoint: EventDef<z.ZodType<Empty>> = defineEvent('puzzle.checkpoint', empty)
+/** An action opens the keypad. The game shows it and sends the typed code back as a verb. */
 export const PuzzleKeypad: EventDef<z.ZodType<Empty>> = defineEvent('puzzle.keypad', empty)

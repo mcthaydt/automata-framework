@@ -23,6 +23,10 @@ export function socketTotal(maxRooms: number, seatsPerRoom: number): number {
   return maxRooms * seatsPerRoom + SOCKET_HEADROOM
 }
 
+/**
+ * Builds the count of open sockets, per address and in all. It admits a socket while both counts
+ * have room and forgets an address with none open.
+ */
 export function createSocketGate(limits: {
   readonly maxPerIp: number
   readonly maxTotal: number

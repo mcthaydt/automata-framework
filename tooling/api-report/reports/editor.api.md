@@ -4686,6 +4686,27 @@ function loadEditorList(text: string | undefined): EditorListLoad;
 function workspaceFile(list: EditorList, path: string): WorkspaceFile | UnlistedFile;
 ```
 
+## `./gate-records`
+
+### `GateRecord` (interface)
+
+```ts
+interface GateRecord {
+    readonly id: string;
+    readonly decision: 'approved' | 'rejected' | 'open';
+    readonly decidedAt?: string | undefined;
+    readonly url?: string | undefined;
+}
+```
+
+### `gateRecordsSchema` (const)
+
+```ts
+const gateRecordsSchema: z.ZodType<{
+    readonly gates: readonly GateRecord[];
+}>;
+```
+
 ## `./level-export`
 
 ### `exportContent` (function)

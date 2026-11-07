@@ -3,6 +3,10 @@
 // tree-shakes the overlay and the driver; the bundle test fails if it does not.
 import type { Plugin } from 'vite'
 
+/**
+ * A Vite plugin that sets `__AUTOMATA_DEBUG__`. Pass `true` in dev and `--debug` builds and
+ * `false` in a release build, so a release bundle leaves the overlay out.
+ */
 export function debugBuild(debug: boolean): Plugin {
   return {
     name: 'automata-debug-build',

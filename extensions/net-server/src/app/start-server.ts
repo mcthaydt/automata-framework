@@ -54,6 +54,10 @@ const ServerStartErrorBase: TaggedErrorClass<
 /** The server could not start: a config no server can run with, or a listener that could not bind. */
 export class ServerStartError extends ServerStartErrorBase {}
 
+/**
+ * A running server: its port and address, its rooms, whether it is draining, what `/ready` says,
+ * and the `drain` that ends it gracefully.
+ */
 export interface ServerRuntime {
   /** The port the listener bound: the one asked for, or the operating system's choice for port 0. */
   readonly port: number
@@ -154,6 +158,10 @@ const close = (http: HttpServer): Promise<void> =>
     http.close(() => resolve())
   })
 
+/**
+ * Builds a server inside the caller's scope: checks the config, binds the listener, installs the
+ * gates and probes, and defines the room. It stops with the scope.
+ */
 export function createServerRuntime(
   def: ServerDef,
   config: ServerConfig,

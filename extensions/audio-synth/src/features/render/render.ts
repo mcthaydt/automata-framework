@@ -7,12 +7,17 @@ import { BUSES } from '../../shared/audio.schema'
 import { createMixer, type Listener, type MixerPort } from '../../shared/mixer'
 import { startBed } from '../../shared/synth'
 
+/** The sample rate offline renders use: 48000 Hz. */
 export const SAMPLE_RATE = 48000
 
 /** The part of `OfflineAudioContext` a render needs. */
 export interface OfflineLike extends BaseAudioContext {
   startRendering(): Promise<{ getChannelData(channel: number): Float32Array }>
 }
+/**
+ * What an offline render needs from the page: a function that makes an offline audio context, and
+ * optionally a sample rate.
+ */
 export interface RenderEnv {
   /** `(channels, frames, sampleRate) => new OfflineAudioContext(...)`. */
   readonly make: (channels: number, frames: number, rate: number) => OfflineLike
@@ -30,12 +35,17 @@ export function seeded(seed = 1): () => number {
   }
 }
 
+/** How long a duck takes to let go after its hold, in seconds. */
 export interface OfflinePortOptions {
   /** Seconds a duck takes to let go after its hold (the rule's release is not part of the port's call). */
   readonly release?: number
 }
 /** The port's attack in seconds: a duck reaches its depth this fast. */
 const DUCK_ATTACK = 0.05
+/**
+ * A mixer port for an offline render. Set `at` to the context time before each `play` so ducks
+ * start there.
+ */
 export interface OfflinePort extends MixerPort {
   /** The context time ducks start at; set before each `play` (a render schedules everything before it starts). */
   at: number | undefined
@@ -92,6 +102,10 @@ const bedOf = (content: AudioContent, id: string) => {
   return bed
 }
 
+/**
+ * How to render one cue: how many seconds, and optionally where it sounds and where the listener
+ * is, for a world cue.
+ */
 export interface CueRenderOptions {
   readonly seconds: number
   /** Where the cue sounds and where the listener is, to render it panned and attenuated (a world cue only). */
@@ -132,6 +146,7 @@ export async function renderBed(
   return channelsOf(ctx, 2)
 }
 
+/** A mix to render: its length in seconds, the bed under it and the cues to play at which times. */
 export interface MixSpec {
   readonly seconds: number
   readonly bed: string | null
@@ -160,6 +175,10 @@ export async function renderMix(
   return channelsOf(ctx, 2)
 }
 
+/**
+ * How to render the ducking demonstration: its length, when the line starts, which cue is the line
+ * and which bed to listen on.
+ */
 export interface DuckRenderOptions {
   readonly seconds: number
   /** When the line starts. */

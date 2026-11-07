@@ -19,6 +19,10 @@ export interface Step {
   /** A systemic set-up (`systemic:<id>`), not a verb. */
   readonly systemic?: boolean | undefined
 }
+/**
+ * A key-set the design asks for: the shortest solution with the actions in `ban` banned must take
+ * every action in `uses` to open `lock` with `key`, optionally from one entry.
+ */
 export interface KeyDecl {
   readonly lock: string
   readonly key: string
@@ -26,6 +30,11 @@ export interface KeyDecl {
   readonly ban?: readonly string[] | undefined
   readonly entry?: string | undefined
 }
+/**
+ * What data cannot say about a scene, for the solver: what each `call` effect does, extra facts,
+ * solver-only effects and conditions, what time does after a step, which hotspots exist in which
+ * state, the key-sets the design asks for and how many states a search expands before it stops.
+ */
 export interface PuzzleModel {
   /** Extra facts the solver tracks, with their starting values. */
   readonly facts?: Readonly<Record<string, Value>> | undefined
@@ -50,16 +59,29 @@ export interface PuzzleModel {
   /** The key-sets the design asks for: the shortest solution with `ban` banned must take every step in `uses`. */
   readonly keys?: readonly KeyDecl[] | undefined
 }
+/**
+ * A route through the puzzle: the entry it starts from, the steps in order and the seconds they
+ * take.
+ */
 export interface Solution {
   readonly entry: string
   readonly steps: readonly Step[]
   readonly seconds: number
 }
+/**
+ * A key-set check: the declaration, the shortest solution found with its actions banned, whether
+ * it used every action asked for, and which it missed.
+ */
 export interface KeyResult extends KeyDecl {
   readonly solution: Solution | null
   readonly ok: boolean
   readonly missing: readonly string[]
 }
+/**
+ * What solving found: whether the puzzle can be solved, how many states were searched, whether the
+ * search was capped, the shortest solution, one alternative for each action of it banned in turn,
+ * and the distinct sets of actions used.
+ */
 export interface SolveResult {
   readonly solvable: boolean
   readonly states: number
@@ -70,6 +92,10 @@ export interface SolveResult {
   /** Distinct sets of action ids across the shortest solution and the alternatives. */
   readonly keySets: readonly (readonly string[])[]
 }
+/**
+ * The states from which the goal can no longer be reached, with the trail to each, and the actions
+ * that change something but are never taken in any reachable state.
+ */
 export interface Softlocks {
   readonly states: number
   readonly capped: boolean
@@ -83,6 +109,7 @@ export interface Softlocks {
   /** Actions that change something but are never taken in any reachable state. */
   readonly never: readonly string[]
 }
+/** Whether the hints on one lethal rule hold: its id, whether they do and what failed. */
 export interface HintResult {
   readonly id: string
   readonly ok: boolean

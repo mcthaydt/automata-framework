@@ -1,5 +1,8 @@
 // 16-bit PCM WAV files: what the render stage writes and the checks read back.
 
+/**
+ * A decoded WAV file: its sample rate and one array of samples between -1 and 1 for each channel.
+ */
 export interface Wav {
   readonly sampleRate: number
   readonly channels: Float32Array[]

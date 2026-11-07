@@ -31,6 +31,10 @@ const ready = z.object({ t: z.literal('ready'), ready: z.boolean(), req: reqIdSc
 const roomRequest = z.object({ t: z.enum(['bot.add', 'leave']), req: reqIdSchema }).strict()
 const botRemove = z.object({ t: z.literal('bot.remove'), req: reqIdSchema, seat: seatSchema }).strict()
 
+/**
+ * Everything a client may send the room: a command, a clock probe, ready or not, add or remove a
+ * bot, and leave.
+ */
 export type ClientMessage =
   | {
       readonly t: 'cmd'
@@ -44,6 +48,7 @@ export type ClientMessage =
   | { readonly t: 'bot.add' | 'leave'; readonly req: string }
   | { readonly t: 'bot.remove'; readonly req: string; readonly seat: number }
 
+/** The Zod schema of a client message. The room checks every message against it before it acts. */
 export const clientMessageSchema: z.ZodType<ClientMessage> = z.discriminatedUnion('t', [
   command,
   ping,

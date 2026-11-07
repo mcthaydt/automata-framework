@@ -23,10 +23,15 @@ const SessionRejectedBase: TaggedErrorClass<'SessionRejected', { readonly reason
 /** The verifier refused the token; the room refuses the join `UNVERIFIED`. */
 export class SessionRejected extends SessionRejectedBase {}
 
+/** Who a token belongs to. The player id is the only thing a verifier tells the room. */
 export interface VerifiedSession {
   readonly playerId: string
 }
 
+/**
+ * The port that says who a joining player is. Given the session token a client presents, it
+ * answers with a verified player or refuses.
+ */
 export interface SessionVerifier {
   verify(token: string): Effect.Effect<VerifiedSession, SessionRejected>
 }
@@ -36,6 +41,10 @@ export const anonymousVerifier: SessionVerifier = {
   verify: () => Effect.succeed({ playerId: 'anonymous' }),
 }
 
+/**
+ * A verifier for tests: it hands out tokens and accepts only those. A production server refuses to
+ * start with one.
+ */
 export interface FakeVerifier extends SessionVerifier {
   /** A token this verifier accepts for `playerId` until `expiresAtMs` on Effect's `Clock`. */
   issue(playerId: string, options: { readonly expiresAtMs: number }): string

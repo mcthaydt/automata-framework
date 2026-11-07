@@ -1,0 +1,6 @@
+{
+  // Only for `svelte-package`. svelte2tsx writes component declarations with inferred types, which
+  // isolatedDeclarations rejects; typechecking still uses tsconfig.json with the flag on.
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "isolatedDeclarations": false }
+}

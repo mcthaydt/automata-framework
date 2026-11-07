@@ -8,6 +8,10 @@ const REFRESH_MS = 250
 const same = (a: NetStatusView, b: NetStatusView): boolean =>
   a.badge === b.badge && a.overlay === b.overlay && a.secondsLeft === b.secondsLeft
 
+/**
+ * Calls `onView` with what to draw now, and again whenever the connection changes or time passes.
+ * Returns a function that stops it.
+ */
 export function watchStatus(host: NetUiHost, onView: (view: NetStatusView) => void): () => void {
   const status = createNetStatus({ graceSeconds: host.graceSeconds })
   const now = host.now ?? (() => performance.now())

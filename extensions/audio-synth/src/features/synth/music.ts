@@ -71,11 +71,16 @@ export function slotsFor(
   return out
 }
 
+/**
+ * Chooses which music slot plays as the game's state changes. `step` moves it forward by some
+ * seconds and `slot` is what plays now, or nothing.
+ */
 export interface MusicDirector {
   /** Steps `dt` seconds with `state`; returns the slot to play (null for none). */
   step(state: MusicState, dt: number): string | null
   readonly slot: string | null
 }
+/** The slots and rules a music director chooses from. */
 export interface MusicDirectorOptions {
   readonly slots: readonly Slot[]
   readonly rules: readonly MusicRule[]

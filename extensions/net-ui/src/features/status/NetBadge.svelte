@@ -1,3 +1,7 @@
+<!--
+  @component
+  The small connection badge for the game's overlay layer. It is hidden offline, says connecting, then says online for two seconds, shows the seconds left while reconnecting, and says poor connection for as long as that lasts. It cannot be pressed, and a screen reader hears each change.
+-->
 <script lang="ts">
 // The connection badge, drawn in `hud.overlay`: hidden offline; connecting; connected (for two seconds); reconnecting
 // with the seconds left; degraded for as long as it lasts. Not interactive, announced by a polite live region that is always there

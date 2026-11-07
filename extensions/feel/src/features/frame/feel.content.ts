@@ -3,6 +3,7 @@ import { type ContentSchemaDef, defineContentSchema } from '@automata/content/sc
 import type { z } from 'zod'
 import { type FeelContent, feelSchema } from '../../shared/feel.schema'
 
+/** The `feel` content kind: `content/feel.toml` is the game's feel table. */
 export const feelContent: ContentSchemaDef<'feel', z.ZodType<FeelContent>> = defineContentSchema(
   'feel',
   feelSchema,

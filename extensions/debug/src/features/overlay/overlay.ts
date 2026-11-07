@@ -2,16 +2,25 @@
 // Escape closes it; opening it pauses nothing. The "pause sim" toggle goes out through the port the game gives (Flow's pause).
 import type { DebugPanelDef } from '../../shared/panels'
 
+/** Whether the overlay is open, which tab it shows and whether the game is paused from it. */
 export interface OverlayState {
   readonly open: boolean
   /** The shown panel's id; null when there are no panels. */
   readonly tab: string | null
   readonly paused: boolean
 }
+/**
+ * What the overlay starts with: its panels, and the function that pauses the game when the pause
+ * toggle is used.
+ */
 export interface OverlayOptions {
   readonly panels: readonly DebugPanelDef[]
   readonly setPaused?: ((paused: boolean) => void) | undefined
 }
+/**
+ * The overlay's state and its dev-input rules, apart from any view: toggle, close, pick a tab,
+ * pause, and handle a key or a touch count.
+ */
 export interface Overlay {
   state(): OverlayState
   toggle(): void
@@ -28,6 +37,10 @@ export interface Overlay {
 export const DEV_KEY = '`'
 export const DEV_TAP_FINGERS = 3
 
+/**
+ * Makes the overlay's state. The dev key (backquote) or a three-finger tap toggles it and Escape
+ * closes it. Opening it pauses nothing.
+ */
 export function createOverlay(options: OverlayOptions): Overlay {
   let state: OverlayState = { open: false, tab: options.panels[0]?.id ?? null, paused: false }
   const listeners = new Set<(state: OverlayState) => void>()

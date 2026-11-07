@@ -10,6 +10,10 @@ import { PROTOCOL_VERSION } from '@automata/net'
 import { createSim } from '@automata/sim'
 import type { ServerDef } from './game/server-game'
 
+/**
+ * What two builds must share to play in one room: the net protocol, the sim's schema hash and the
+ * content hash.
+ */
 export interface GameVersion {
   readonly protocol: number
   readonly schemaHash: string

@@ -11,6 +11,10 @@ import { clientIp } from './client-ip'
 import type { OriginPolicy } from './origins'
 import type { SocketGate } from './socket-gate'
 
+/**
+ * What the upgrade gate checks a socket against: the origin list and the socket counts, and where
+ * refusals are reported.
+ */
 export interface UpgradeGateOptions {
   readonly origins: OriginPolicy
   readonly sockets: SocketGate
@@ -30,6 +34,10 @@ const refuse = (socket: Duplex, status: string): false => {
   return false
 }
 
+/**
+ * Builds the gate every WebSocket upgrade passes: the origin must be listed and the address must
+ * have a socket to spare. A refusal is a bare HTTP status on the socket.
+ */
 export function createUpgradeGate(options: UpgradeGateOptions): UpgradeGate {
   return (request, socket) => {
     if (!options.origins.allows(request.headers.origin)) {

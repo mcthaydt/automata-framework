@@ -20,6 +20,10 @@ import type { SecurityTxt } from '../../shared/game/server-config'
  */
 export type Readiness = 'starting' | 'ready' | 'full' | 'draining'
 
+/**
+ * What the server's own routes report: whether it is ready, and the contact for `security.txt` if
+ * it has one.
+ */
 export interface ProbeState {
   readonly readiness: () => Readiness
   readonly securityTxt?: SecurityTxt | undefined
@@ -31,6 +35,7 @@ export const PROBE_HEADERS: Readonly<Record<string, string>> = {
   'x-content-type-options': 'nosniff',
 }
 
+/** The text of `/.well-known/security.txt` for a contact and an expiry. */
 export function securityTxtBody(security: SecurityTxt): string {
   return [`Contact: ${security.contact}`, `Expires: ${security.expires}`, 'Preferred-Languages: en', ''].join(
     '\n',

@@ -4,6 +4,7 @@
 // and `audio` (a cue id). Values above a limit are clamped at run time and named by `limitWarnings`.
 import { z } from 'zod'
 
+/** How the squash spring moves: its speed in hertz, how much it wobbles and how it starts. */
 export interface SpringTuning {
   /** How fast it answers, in hertz. */
   readonly f: number
@@ -12,18 +13,29 @@ export interface SpringTuning {
   /** How it starts: above 1 it anticipates past the target, below 0 it winds up first. */
   readonly r: number
 }
+/**
+ * The hard limits on the effects: the most shake in pixels, the longest hit-stop in milliseconds,
+ * and the most flash frames and flash opacity. Values above a limit are clamped when played and
+ * named by `limitWarnings`.
+ */
 export interface Limits {
   readonly shake_px: number
   readonly hit_stop_ms: number
   readonly flash_frames: number
   readonly flash_alpha: number
 }
+/** The limits used when `feel.toml` sets none. */
 export const DEFAULT_LIMITS: Limits = { shake_px: 3, hit_stop_ms: 120, flash_frames: 3, flash_alpha: 0.85 }
 
+/** A camera shake an entry causes. */
 export interface CameraRow {
   /** Trauma 0..1: the shake is its square. */
   readonly shake: number
 }
+/**
+ * A hit-stop: the view's pose is held for this many milliseconds, and `target: 'subject'` holds
+ * only the view the event is about.
+ */
 export interface PoseRow {
   readonly hit_stop_ms: number
   readonly target?: 'subject' | undefined
@@ -37,6 +49,10 @@ export interface VisualRow {
   readonly alpha?: number | undefined
   readonly squash?: number | undefined
 }
+/**
+ * A word that pops up, as a locale key, never as text. It stays up 800 ms unless `ms` says
+ * otherwise.
+ */
 export interface WordRow {
   /** A locale key. */
   readonly key: string
@@ -44,6 +60,10 @@ export interface WordRow {
   /** How long it stays up; 800 ms when unset. */
   readonly ms?: number | undefined
 }
+/**
+ * A rumble for a game pad (strong and weak motors, in milliseconds) and, optionally, a single buzz
+ * for a phone.
+ */
 export interface HapticRow {
   readonly strong: number
   readonly weak: number
@@ -51,9 +71,14 @@ export interface HapticRow {
   /** A phone's single buzz; none for an entry without it. */
   readonly phone_ms?: number | undefined
 }
+/** An audio cue to play, named by its id. */
 export interface AudioRow {
   readonly cue: string
 }
+/**
+ * How one sim event feels. `on` is an event id or a pattern with `*` for any run of characters,
+ * and the channels say what happens: camera, pose, visual, word, haptic and audio.
+ */
 export interface FeelEntry {
   readonly on: string
   readonly camera?: readonly CameraRow[] | undefined
@@ -63,6 +88,7 @@ export interface FeelEntry {
   readonly haptic?: readonly HapticRow[] | undefined
   readonly audio?: readonly AudioRow[] | undefined
 }
+/** The whole `feel.toml`: the limits, the squash spring and the entries that answer sim events. */
 export interface FeelContent {
   readonly limits?: { readonly [K in keyof Limits]?: Limits[K] | undefined } | undefined
   readonly springs?: { readonly squash?: SpringTuning | undefined } | undefined
@@ -122,6 +148,7 @@ const entry: z.ZodType<FeelEntry> = z.strictObject({
   audio: z.array(z.strictObject({ cue: z.string().min(1) })).optional(),
 })
 
+/** The Zod schema of `feel.toml`. */
 export const feelSchema: z.ZodType<FeelContent> = z
   .strictObject({
     limits: z

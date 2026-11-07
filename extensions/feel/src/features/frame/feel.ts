@@ -15,6 +15,10 @@ import { type FeelContent, type FeelEntry, resolveLimits, type SpringTuning } fr
 /** A view the sim names, by its stable id. */
 export type EntityRef = number
 
+/**
+ * What the player can switch: no flashing, rumble on or off, and how strong the camera and pose
+ * effects are.
+ */
 export interface FeelSettings {
   /** Drops flash and flicker. */
   readonly reduceFlashing: boolean
@@ -23,8 +27,13 @@ export interface FeelSettings {
   /** Scales camera and pose effects: shake, hit-stop length and squash. */
   readonly intensity: 0 | 0.5 | 1
 }
+/** The settings a new player starts with: flashing on, rumble on, full strength. */
 export const DEFAULT_SETTINGS: FeelSettings = { reduceFlashing: false, haptics: true, intensity: 1 }
 
+/**
+ * A word on screen: its locale key, the view it belongs to, its age in seconds and whether it
+ * holds still for reduced motion.
+ */
 export interface WordPop {
   /** A locale key. */
   readonly key: string
@@ -34,12 +43,18 @@ export interface WordPop {
   /** Reduced motion: it appears, still. */
   readonly still: boolean
 }
+/** One rumble for the haptics port to play. */
 export interface Pulse {
   readonly strong: number
   readonly weak: number
   readonly ms: number
   readonly phoneMs?: number | undefined
 }
+/**
+ * Everything to draw for one frame as plain data: the camera offset, the views held by a hit-stop,
+ * the flash and tint, the squashes, the words, and the rumbles and audio cues that fire on this
+ * frame once.
+ */
 export interface FeelFrame {
   /** Whole pixels (2D) or screen pixels (3D). */
   readonly offset: readonly [number, number]
@@ -56,6 +71,10 @@ export interface FeelFrame {
   readonly cues: readonly string[]
 }
 
+/**
+ * What `createFeel` needs: the feel table, the player's settings, the reduced-motion preference,
+ * an optional seed and the presentation clock.
+ */
 export interface FeelOptions {
   /** The feel table; read at each event, so a reload shows on the next one. */
   readonly content: () => FeelContent
@@ -68,6 +87,10 @@ export interface FeelOptions {
   /** The presentation clock `frameNow` reads its frame times from; tests hand over `fakeClock()`. */
   readonly clock: Clock
 }
+/**
+ * The feel runtime. Tell it what the sim did with `hear`, then ask for the frame to draw with
+ * `frame` or `frameNow`. It never writes the sim.
+ */
 export interface Feel {
   /** The events the step at `tick` produced (the game's loop passes them as it gets them: FE-D1). */
   hear(tick: number, events: readonly SimEvent[]): void
@@ -99,6 +122,10 @@ function subjectOf(event: SimEvent): EntityRef | null {
   return typeof id === 'number' ? id : null
 }
 
+/**
+ * Starts the feel runtime. Events are answered when the drawn picture reaches their tick, once
+ * each, and the same events, settings and frame times always give the same frames.
+ */
 export function createFeel(options: FeelOptions): Feel {
   const seed = options.seed ?? 1
   const beats = new Beats({ staleTicks: options.staleTicks })

@@ -41,6 +41,7 @@ export function toLogLine(event: { readonly event: string } & object, ts: number
   return line as unknown as ServerLogLine
 }
 
+/** Where a finished log line is written and the clock that stamps it. */
 export interface LogWriterOptions {
   /** Where a finished line goes, newline included [`process.stdout.write` in production]. */
   readonly write: (line: string) => void

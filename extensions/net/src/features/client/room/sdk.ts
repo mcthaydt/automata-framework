@@ -7,6 +7,10 @@
 
 import { Client } from '@colyseus/sdk'
 
+/**
+ * The part of the Colyseus SDK's room that `net` uses. The real SDK room fits it, and so does the
+ * fake in `@automata/net/testing`.
+ */
 export interface NetSdkRoom {
   /** The room code. */
   readonly roomId: string
@@ -26,6 +30,10 @@ export interface NetSdkRoom {
   removeAllListeners(): void
 }
 
+/**
+ * The part of the Colyseus SDK's client that `net` uses: create, join by code, join or create, and
+ * reconnect with a token.
+ */
 export interface NetSdkClient {
   create(roomName: string, options: unknown): Promise<NetSdkRoom>
   joinById(code: string, options: unknown): Promise<NetSdkRoom>

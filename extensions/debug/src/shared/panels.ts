@@ -3,6 +3,10 @@
 import type { UiComponent } from '@automata/framework/extension'
 import SummaryPanel from './SummaryPanel.svelte'
 
+/**
+ * One tab of the debug overlay: a kebab-case id that is not used twice, a title (debug words are
+ * not translated) and the component that draws it.
+ */
 export interface DebugPanelDef {
   readonly id: string
   readonly title: string

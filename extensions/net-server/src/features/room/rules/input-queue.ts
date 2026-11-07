@@ -37,6 +37,10 @@ export type SubmitResult =
   | { readonly ok: true; readonly tick: number; readonly slack: number }
   | { readonly ok: false; readonly reason: 'sequence' | 'lead' | 'full' }
 
+/**
+ * How far ahead a command may be stamped, and how far its sequence may jump past the last accepted
+ * one.
+ */
 export interface InputQueueOptions {
   /** How far ahead of the room a command may be stamped: net's `maxLeadTicks`. One at that lead is refused. */
   readonly maxLeadTicks: number
@@ -56,6 +60,10 @@ interface SeatQueue {
   readonly pending: { readonly input: QueuedInput; readonly tick: number }[]
 }
 
+/**
+ * Holds the commands each seat has sent until the tick they are due. It refuses a repeated or
+ * runaway sequence, a command stamped too far ahead and a seat with too many waiting.
+ */
 export class InputQueue {
   /** Indexed by seat, so taking walks the seats in seat order. */
   private readonly seats: (SeatQueue | undefined)[] = []

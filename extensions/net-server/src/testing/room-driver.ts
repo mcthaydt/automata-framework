@@ -37,6 +37,10 @@ export interface RoomReading {
   readonly seats: readonly SeatInfoView[]
 }
 
+/**
+ * Drives a room in a test: stop its clock, step it tick by tick, submit a seat's command, read its
+ * state and hold its clocks.
+ */
 export interface RoomDriver {
   /** Stops the room's own clock for good, so no tick the test did not ask for lands between its assertions. */
   stopClock(): void
@@ -47,6 +51,10 @@ export interface RoomDriver {
   holdClocks(names: readonly ClockName[]): RoomReading
 }
 
+/**
+ * Builds a driver for a room. It uses the room's own input path and cannot set a position, a phase
+ * or a winner.
+ */
 export function createRoomDriver(room: DrivableRoom): RoomDriver {
   const read = (): RoomReading => {
     const { engine } = room

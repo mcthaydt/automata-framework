@@ -19,6 +19,10 @@ import type { UpgradeGate } from './upgrade-gate'
 
 type UpgradeListener = (request: IncomingMessage, socket: Duplex, head: Buffer) => void
 
+/**
+ * The gates `installGates` puts in front of Colyseus: the origin list, the matchmaking gate and
+ * the upgrade gate.
+ */
 export interface GateOptions {
   readonly origins: OriginPolicy
   readonly matchmake: MatchmakeGate

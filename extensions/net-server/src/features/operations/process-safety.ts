@@ -91,6 +91,10 @@ function errorClass(error: unknown): string {
   return IDENTIFIER.test(name) ? name : 'Error'
 }
 
+/**
+ * Makes an error nothing caught write one fatal log line, naming the error's class only, and end
+ * the process with code 1 so the supervisor restarts it.
+ */
 export function installCrashHandlers(
   target: CrashTarget,
   log: (event: RoomLogEvent) => void,

@@ -11,6 +11,7 @@ import type { PuzzleScene } from './scene'
 import { used } from './validate'
 
 const val = (v: Value): string => (typeof v === 'string' ? `'${v}'` : String(v))
+/** A condition in words, for the generated doc. */
 export function showCond(c: Cond): string {
   if ('has' in c) return `has ${c.has}`
   if ('not' in c) return `not ${showCond(c.not)}`
@@ -22,6 +23,7 @@ export function showCond(c: Cond): string {
   if (c.atMost !== undefined) parts.push(`${c.fact} ≤ ${c.atMost}`)
   return parts.join(', ') || `${c.fact} set`
 }
+/** An effect in words, for the generated doc. */
 export function showEffect(e: Effect): string {
   if ('set' in e) return `${e.set} = ${val(e.to)}`
   if ('add' in e) return `${e.add} += ${e.by}`
@@ -57,10 +59,16 @@ export function describe(p: PuzzleScene, step: Step): string {
     ? `Click the ${spot(step.at)}`
     : `Use the ${item(step.held)} on the ${spot(step.at)}`
 }
+/** The line that records which source files the generated doc was made from, with their hashes. */
 export const stamp = (p: PuzzleScene): string =>
   `sources: ${p.sources.map((s) => `${s.path} xxh64 ${s.hash}`).join('; ')}`
+/** The name of the generated doc file, `puzzle.md`. */
 export const DOC = 'puzzle.md'
 
+/**
+ * Writes a scene's puzzle doc as Markdown from its analysis: the hotspots, the item table, the
+ * routes with their times, the softlocks and the lock graph.
+ */
 export function renderDoc(p: PuzzleScene, x: Analysis): string {
   const { def } = p
   const L: string[] = []

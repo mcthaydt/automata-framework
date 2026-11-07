@@ -8,15 +8,21 @@ const MEMORY_TICKS = 600
 /** How far behind the drawn tick an event may still be answered: half a second at 60 Hz. */
 const STALE_TICKS = 30
 
+/** A sim event with the tick that produced it. */
 export interface Beat {
   readonly tick: number
   readonly event: SimEvent
 }
+/** How late an event may still be answered, in ticks behind the picture. */
 export interface BeatsOptions {
   /** The most ticks behind the picture an event is still answered (default 30). */
   readonly staleTicks?: number | undefined
 }
 
+/**
+ * Events held until the drawn picture reaches them, each answered once even when a batch is
+ * delivered twice.
+ */
 export class Beats {
   private pending: Beat[] = []
   private readonly seen = new Set<string>()

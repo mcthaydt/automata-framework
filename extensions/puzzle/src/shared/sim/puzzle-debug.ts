@@ -4,6 +4,10 @@ import { sortedKeys } from '@automata/sim'
 import type { PuzzleStateValue } from './puzzle.resource'
 import type { Value } from './value.schema'
 
+/**
+ * What the debug summary shows: whether the goal is reached, the items carried, how many actions
+ * were seen and the facts.
+ */
 export interface PuzzleDebugSummary {
   readonly goal: boolean
   readonly items: string
@@ -11,6 +15,7 @@ export interface PuzzleDebugSummary {
   readonly facts: Readonly<Record<string, Value>>
 }
 
+/** Turns the puzzle's play state into a summary for the debug overlay. */
 export function puzzleDebugSummary(state: PuzzleStateValue): PuzzleDebugSummary {
   const facts: Record<string, Value> = {}
   for (const name of sortedKeys(state.facts)) facts[name] = state.facts[name] as Value

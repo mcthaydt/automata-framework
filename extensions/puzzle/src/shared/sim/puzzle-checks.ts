@@ -4,6 +4,10 @@
 import type { Effect, PuzzleDef } from './puzzle.schema'
 import type { Cond } from './value.schema'
 
+/**
+ * What the content checks need to know about the game: the `call` names it declares and the
+ * extensions it registers.
+ */
 export interface PuzzleCheckOptions {
   /** The `{ call }` names the game declares (its `calls` option). */
   readonly calls: readonly string[]

@@ -2,12 +2,17 @@
 import type { PuzzleDef } from '../../shared/sim/puzzle.schema'
 import { type Solution, SPECIAL } from './model'
 
+/**
+ * The item by hotspot table of a puzzle: for each item and hotspot, its own actions, a response
+ * whatever is held, or the fallback line, plus the item pairs that combine.
+ */
 export interface Matrix {
   readonly hotspots: readonly string[]
   /** Per item, per hotspot: its own actions, `any` (a response whatever is held) or `fallback`. */
   readonly rows: readonly { item: string; cells: Record<string, string> }[]
   readonly combines: readonly { pair: readonly [string, string]; action: string }[]
 }
+/** Builds the item by hotspot table of a puzzle. */
 export function matrix(def: PuzzleDef): Matrix {
   const hotspots = [...new Set(def.actions.map((a) => a.at).filter((at) => !SPECIAL.has(at)))]
   const rows = def.items.map((item) => ({
@@ -34,6 +39,7 @@ export function matrix(def: PuzzleDef): Matrix {
 /** Metres walked between two hotspots (null: from the spawn). */
 export type Walk = (from: string | null, to: string) => number
 
+/** The time a solution takes: the seconds of actions, the seconds of walking and the total. */
 export interface Budget {
   readonly actions: number
   readonly walking: number

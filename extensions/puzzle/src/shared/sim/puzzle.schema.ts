@@ -3,12 +3,18 @@
 import { z } from 'zod'
 import { type Cond, condSchema, type Value, valueSchema } from './value.schema'
 
+/** A spot on the floor. */
 export interface Point {
   readonly x: number
   readonly z: number
 }
 const pointSchema: z.ZodType<Point> = z.strictObject({ x: z.number(), z: z.number() })
 
+/**
+ * What an action does when it is taken: set or add to a fact, give or take an item, make a noise,
+ * start a cutscene or a dialogue, mark a checkpoint, open the keypad, leave through an exit, or
+ * call a function the game supplied.
+ */
 export type Effect =
   | { readonly set: string; readonly to: Value }
   | { readonly add: string; readonly by: number }
@@ -22,6 +28,7 @@ export type Effect =
   | { readonly dialogue: string }
   | { readonly call: string }
 
+/** The Zod schema of an effect. */
 export const effectSchema: z.ZodType<Effect> = z.union([
   z.strictObject({ set: z.string(), to: valueSchema }),
   z.strictObject({ add: z.string(), by: z.number() }),
@@ -41,6 +48,10 @@ export const effectSchema: z.ZodType<Effect> = z.union([
 /** Where a verb is aimed: a hotspot id, or one of the three verbs that are not at a hotspot. */
 export type VerbAt = string
 
+/**
+ * One thing the player can do at a hotspot: where it is aimed (`at`), the item or pair of items it
+ * uses, the conditions that must hold, its effects, the line said and how many seconds it takes.
+ */
 export interface Action {
   readonly id: string
   readonly at: VerbAt
@@ -61,6 +72,10 @@ const actionSchema: z.ZodType<Action> = z.strictObject({
   seconds: z.number().optional(),
 })
 
+/**
+ * A way of solving the puzzle that no single action shows, with a note, the conditions it enables,
+ * the actions that lead to it and any risk (`lethal` or `chase`).
+ */
 export interface Systemic {
   readonly id: string
   readonly note: string
@@ -69,18 +84,25 @@ export interface Systemic {
   readonly risk?: 'lethal' | 'chase' | undefined
 }
 
+/** A way to fail, with its rule and the hints that warn the player. */
 export interface Lethal {
   readonly id: string
   readonly rule: string
   readonly hintedBy: readonly string[]
 }
 
+/** A way into the scene: its name, the items the player arrives with and any facts it sets. */
 export interface Entry {
   readonly name: string
   readonly items: readonly string[]
   readonly facts?: Readonly<Record<string, Value>> | undefined
 }
 
+/**
+ * One scene's puzzle: its facts and items, where its hotspots are, the ways in, the actions, the
+ * systemic solutions and lethal rules, the goal and the fallback lines for verbs that match
+ * nothing.
+ */
 export interface PuzzleDef {
   readonly scene: string
   readonly facts: Readonly<Record<string, Value>>
@@ -94,6 +116,7 @@ export interface PuzzleDef {
   readonly fallback: Readonly<Record<string, string>>
 }
 
+/** The Zod schema of a puzzle's shape, without the cross-checks that `puzzleSchema` adds. */
 export const puzzleDefShape: z.ZodType<PuzzleDef> = z.strictObject({
   scene: z.string(),
   facts: z.record(z.string(), valueSchema),

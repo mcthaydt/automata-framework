@@ -1,7 +1,6 @@
 {
   "name": "@automata/puzzle",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.0.5",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -13,6 +12,9 @@
   "imports": {
     "#src/*": "./src/*"
   },
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": "./src/entries/index.ts",
     "./sim": "./src/entries/sim.ts",
@@ -27,11 +29,30 @@
       "./sim"
     ]
   },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./sim": {
+        "types": "./dist/sim.d.ts",
+        "import": "./dist/sim.js"
+      },
+      "./solver": {
+        "types": "./dist/solver.d.ts",
+        "import": "./dist/solver.js"
+      }
+    }
+  },
   "scripts": {
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
     "test:browser": "vitest run --project browser",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "build": "tsdown"
   },
   "dependencies": {
     "zod": "4.6.6"

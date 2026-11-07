@@ -13,6 +13,7 @@ export const LOBBY_PHASES: readonly ['lobby', 'countdown', 'playing', 'ended'] =
   'playing',
   'ended',
 ]
+/** Where a room is: in the lobby, counting down, playing or ended. */
 export type LobbyPhase = (typeof LOBBY_PHASES)[number]
 
 /** The Colyseus room type a client creates, joins and finds (`create`, `joinById`, `joinOrCreate`). */

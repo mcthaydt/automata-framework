@@ -11,6 +11,7 @@ import { deriveSeed } from '@automata/sim'
 import { isPreGame, type LobbyRules, type LobbyState, takeSeat } from './lobby-rules'
 import { RoomCommandError } from './room-errors'
 
+/** How many of the lobby's seats are bots. */
 export const botCount = (lobby: LobbyState): number => lobby.seats.filter((entry) => entry.bot).length
 
 /**

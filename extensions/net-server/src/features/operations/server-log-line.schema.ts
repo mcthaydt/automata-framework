@@ -9,8 +9,13 @@
 
 import { z } from 'zod'
 
+/** How serious a log line is: information, a warning, or a fatal error. */
 export type LogLevel = 'info' | 'warn' | 'fatal'
 
+/**
+ * One line of the server's log. It has no field for an address, a name, a room code, a token or a
+ * payload, so none can leak.
+ */
 export interface ServerLogLine {
   readonly ts: number
   readonly level: LogLevel
@@ -22,6 +27,10 @@ export interface ServerLogLine {
   readonly count?: number | undefined
 }
 
+/**
+ * The strict schema every log line is parsed with before it is written. It is what keeps the log
+ * free of anything private.
+ */
 export const serverLogLine: z.ZodType<ServerLogLine> = z
   .object({
     ts: z.number().int(),

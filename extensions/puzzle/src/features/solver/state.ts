@@ -12,6 +12,7 @@ export const readerOf = (s: State): Reader => ({
   has: (item) => s.items.includes(item),
 })
 
+/** Whether a condition holds in a solver state, with the item held and the code typed. */
 export const holds = (s: State, c: Cond, held = '', code = ''): boolean =>
   condHolds(
     readerOf(s),

@@ -15,6 +15,10 @@ export interface JoinOptions {
   readonly session?: string | undefined
 }
 
+/**
+ * The Zod schema of what a client sends to join: the protocol version, the two hashes, a name and
+ * an optional session token.
+ */
 export const joinOptionsSchema: z.ZodType<JoinOptions> = z
   .object({
     protocol: uintSchema,
