@@ -3,9 +3,16 @@ import { toolsVersion } from './tools-version.ts'
 
 // What a template file is, and what it is made from: the options `create-game` was given.
 
+/** The kinds of game `create-game` makes: the 2D square in a level (default), or Wick in a 3D room. */
+export const TEMPLATES = ['2d', '3d'] as const
+
+export type TemplateKind = (typeof TEMPLATES)[number]
+
 export interface TemplateOptions {
   readonly id: string
   readonly title: string
+  /** Which game to make; default `2d`. */
+  readonly template?: TemplateKind | undefined
   /** The distribution targets to build for; default web and itch.io. */
   readonly targets?: readonly DistTarget[] | undefined
   /**

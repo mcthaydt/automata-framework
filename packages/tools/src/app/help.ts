@@ -12,13 +12,20 @@ export const ROOT_HELP = `Usage: automata <command>
 Run automata <command> --help for more.
 `
 
-export const CREATE_GAME_HELP = `Usage: automata create-game <folder> [--id <id>] [--title <title>] [--targets <list>]
+/** The help of \`create-game\`; it lists the 3D template only where the 3D package is found. */
+export const createGameHelp = (
+  threeD: boolean,
+): string => `Usage: automata create-game <folder> [--id <id>] [--title <title>] [--targets <list>]${threeD ? ' [--template <2d|3d>]' : ''}
 
 Makes a new game in <folder>. Run it in your browser with pnpm dev.
 
   --id <id>         The game's short name: lowercase letters, digits and hyphens. Default: the folder's name.
   --title <title>   The name players see. Default: made from the short name.
-  --targets <list>  Where the game will be published, separated by commas (default: web,itch; also tauri, ruken).
+  --targets <list>  Where the game will be published, separated by commas (default: web,itch; also tauri, ruken).${
+    threeD
+      ? '\n  --template <2d|3d>  The kind of game: a square in a level (2d, the default) or Wick in a 3D room (3d).'
+      : ''
+  }
 `
 
 export const CHECK_HELP = `Usage: automata check [folder] [--sim-only] [--fail-fast] [--csp] [--json] [--only <step>]
