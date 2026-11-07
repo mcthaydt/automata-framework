@@ -1266,7 +1266,7 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
 - Modify: `.github/workflows/release-packages.yml` (after publish: copy `agents/automata` to `mcthaydt/automata-skills`
   with `SKILLS_TOKEN`; without it, print "No skills token yet." and pass)
 
-- [ ] **Step 1:** The job parses; with no secret it passes on the PR's head (a `workflow_dispatch` dry run;
+- [x] **Step 1:** The job parses; with no secret it passes on the PR's head (a `workflow_dispatch` dry run;
   task 17.1's invariants then keep the guard). Mark the PR ready. `ci(release): mirror the agent package to its public home`
 
 ---
@@ -2745,3 +2745,12 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   marked superseded by 0006. `renovate.json` stops holding pins to Ruken's list, and `tooling/versions/src/renovate.ts`
   with its test goes. The README opens with making a game and the site; the clone-and-check part is "Work on the
   framework". Gates: check-style unit (new 8), repo-hygiene unit 92, versions unit 34, `pnpm check` passes.
+  *16.4:* `release-packages.yml` gains a `skills` job after `publish` (which now outputs `published` and `version`),
+  run only when something was published: without `SKILLS_TOKEN` it prints "No skills token yet." and passes; with it,
+  it clones `mcthaydt/automata-skills` into the job's temp folder (the token as a one-push auth header, never in a URL
+  or `.git/config`), replaces everything but `.git` with `agents/automata`, and commits "Agent package for <version>"
+  only when something changed. The runbook lists the token. Deviation: no `workflow_dispatch` run on the PR's head
+  (the release workflow runs on `main` only, and adding a manual trigger to the publishing workflow would let it
+  publish by hand); instead both steps were run locally from the parsed YAML: with no token the notice and
+  `present=false`; with a fake token against a local bare repository the copy pushed one commit and removed a stale
+  file. The workflow invariants pass (the token stays in its two steps' env; the job cannot start from a pull request).

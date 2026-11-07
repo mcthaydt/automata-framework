@@ -130,6 +130,9 @@ jobs:
     permissions:
       contents: write
       packages: write
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -189,3 +192,53 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node tooling/consumer-smoke/src/run.ts --from registry --version "$VERSION"
+
+  # The agent package's public home: after a release, `agents/automata` is copied to mcthaydt/automata-skills, where
+  # anyone installs it, because this repository is private. The copy needs SKILLS_TOKEN, a token that can push to
+  # that repository (the Owner's to create); until it exists the job says so and passes, so a release never fails
+  # for want of it.
+  skills:
+    name: mirror the agent package
+    needs: publish
+    if: needs.publish.outputs.published == 'true'
+    runs-on: ${{ vars.AF_RELEASE_RUNNER || 'af-mac' }}
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Is SKILLS_TOKEN set?
+        id: token
+        env:
+          SKILLS_TOKEN: ${{ secrets.SKILLS_TOKEN }}
+        run: |
+          if [[ -n "$SKILLS_TOKEN" ]]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::No skills token yet."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.token.outputs.present == 'true'
+        with:
+          persist-credentials: false
+      # The mirror holds exactly agents/automata: files removed here are removed there. The token goes to git as an
+      # auth header for this one push, in the job's temp folder, and never into a remote URL or .git/config.
+      - name: Copy agents/automata to mcthaydt/automata-skills
+        if: steps.token.outputs.present == 'true'
+        env:
+          SKILLS_TOKEN: ${{ secrets.SKILLS_TOKEN }}
+          VERSION: ${{ needs.publish.outputs.version }}
+        run: |
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$SKILLS_TOKEN" | base64 | tr -d '\n')"
+          mirror="$RUNNER_TEMP/automata-skills"
+          git -c http.extraheader="$auth" clone --depth 1 https://github.com/mcthaydt/automata-skills.git "$mirror"
+          find "$mirror" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -R agents/automata/. "$mirror/"
+          cd "$mirror"
+          git add -A
+          if git diff --cached --quiet; then echo "The mirror already matches $VERSION."; exit 0; fi
+          git -c user.name="automata-release" -c user.email="automata-release@users.noreply.github.com" commit -q -m "Agent package for $VERSION"
+          git -c http.extraheader="$auth" push origin HEAD
+      - name: Remove the mirror's clone
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/automata-skills"
