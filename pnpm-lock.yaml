@@ -261,6 +261,9 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
+      '@automata/3d':
+        specifier: workspace:*
+        version: link:../../packages/3d
       '@automata/content':
         specifier: workspace:*
         version: link:../../packages/content

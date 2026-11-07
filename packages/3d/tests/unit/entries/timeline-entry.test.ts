@@ -21,10 +21,12 @@ function importGraph(file: string, files = new Set<string>(), bare = new Set<str
 }
 
 describe('./timeline', () => {
-  it('exports the track, the sampler, the eases and the ease schema', () => {
+  it('exports the track, the sampler, the bracket under it, the eases and the ease schema', () => {
     expect(typeof entry.track).toBe('function')
     expect(typeof entry.sample).toBe('function')
     expect(typeof entry.parseEase).toBe('function')
+    expect(typeof entry.bracket).toBe('function')
+    expect(typeof entry.mixNumber).toBe('function')
     expect(typeof entry.easeSchema.safeParse).toBe('function')
   })
 

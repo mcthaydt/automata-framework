@@ -20,12 +20,15 @@ export {
   type ActorKey,
   type CameraKey,
   type Caption,
+  type CueKey,
   type CutsceneScript,
   cutsceneSchema,
-  EASES,
-  type Ease,
+  type DoorKey,
+  type GradeKey,
   type LightKey,
+  type PropKey,
   type SoundKey,
+  type TimeKey,
   type V3,
 } from '../shared/sim/cutscene.schema'
 export { locked, startCutscene } from '../shared/sim/cutscene.system'

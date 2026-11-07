@@ -3,5 +3,5 @@
 // may import it (declared in package.json `automata.simEntries` and checked by `pnpm boundaries`).
 export { type Ease, easeSchema, parseEase } from '../shared/timeline/ease.ts'
 export type { Key } from '../shared/timeline/key.ts'
-export { type Mix, sample } from '../shared/timeline/sample.ts'
+export { bracket, type Mix, mixNumber, sample, type Timed } from '../shared/timeline/sample.ts'
 export { type Track, track } from '../shared/timeline/track.ts'

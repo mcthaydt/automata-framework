@@ -1,15 +1,15 @@
 // The cutscene lint: a script against the
 // scene's map, lines, sounds and lamps. Pure and Node-only (it may use `acos` and friends; it is not the sim). It
-// evaluates the script every 0.1 s and checks the frames: the camera inside the map and clear of walls, every actor on the
+// plays the script through the director every 0.1 s and checks the frames: the camera inside the map and clear of walls, every actor on the
 // floor and clear of walls. Once per script: duration, fades, captions (lines exist, readable, not overlapping), sound and
 // lamp keys exist, no shot shorter than a second, no dead air. The original's rules that read its renderer (ceiling, cut-away
 // walls, sprite scale, back to camera, solid boxes) return with the renderer. A script may break a rule
 // it names in `lintAllow`, with the reason; the lint has one context (the anchors as given), so an allow's `context` is
 // not read.
 import type { ResolvedMap } from '@automata/sectors/sim'
+import { createDirector } from '../../shared/director/director'
 import { type PlacedScript, placeScript } from '../../shared/sim/anchors'
 import type { CutsceneScript } from '../../shared/sim/cutscene.schema'
-import { evaluate } from './evaluate'
 
 export interface CutsceneFinding {
   readonly level: 'error' | 'warning'
@@ -19,6 +19,8 @@ export interface CutsceneFinding {
   readonly t?: number | undefined
   /** How many frames or keys it was found at, when folded into one. */
   readonly count?: number | undefined
+  /** The door or prop a finding is about, when it is about one. */
+  readonly name?: string | undefined
 }
 export interface LintWorld {
   readonly map: ResolvedMap
@@ -27,6 +29,9 @@ export interface LintWorld {
   /** The sound kinds and lamp ids the game has. */
   readonly sounds: ReadonlySet<string>
   readonly lamps: ReadonlySet<string>
+  /** The rooms whose doors the level has, and the props it has: the ids a script's `doors` and `props` rows name. */
+  readonly doors: ReadonlySet<string>
+  readonly props: ReadonlySet<string>
   /** Where an anchor stands for the lint (`player`, `actor:nurse`, a hotspot or a nav node); undefined when the scene lacks it. */
   readonly anchor: (name: string) => { readonly x: number; readonly z: number } | undefined
 }
@@ -59,7 +64,14 @@ function pair<K extends { t: number }>(keys: readonly K[], t: number): [K, K] {
 export function lintCutscene(script: CutsceneScript, world: LintWorld): CutsceneFinding[] {
   const allowed = new Set((script.lintAllow ?? []).map((a) => a.rule))
   const folded = new Map<string, CutsceneFinding>()
-  const add = (level: 'error' | 'warning', rule: string, detail: string, t?: number, subject = ''): void => {
+  const add = (
+    level: 'error' | 'warning',
+    rule: string,
+    detail: string,
+    t?: number,
+    subject = '',
+    name?: string,
+  ): void => {
     if (allowed.has(rule)) return
     const key = `${rule}|${subject}|${level === 'error' ? '' : detail}`
     const seen = folded.get(key)
@@ -71,6 +83,7 @@ export function lintCutscene(script: CutsceneScript, world: LintWorld): Cutscene
         cutscene: script.id,
         detail,
         ...(t === undefined ? {} : { t }),
+        ...(name === undefined ? {} : { name }),
         count: 1,
       })
   }
@@ -117,6 +130,12 @@ export function lintCutscene(script: CutsceneScript, world: LintWorld): Cutscene
     if (!world.sounds.has(s.kind)) add('error', 'sound', `no sound '${s.kind}'`, s.t, s.kind)
   for (const l of script.light ?? [])
     if (!world.lamps.has(l.lamp)) add('error', 'lamp', `no lamp '${l.lamp}' in the scene`, l.t, l.lamp)
+  for (const d of script.doors ?? [])
+    if (!world.doors.has(d.door))
+      add('error', 'door', `no door '${d.door}' in the scene`, d.t, d.door, d.door)
+  for (const p of script.props ?? [])
+    if (!world.props.has(p.prop))
+      add('error', 'prop', `no prop '${p.prop}' in the scene`, p.t, p.prop, p.prop)
 
   // Anchors: every one must resolve. An actor that cannot be placed is left out of the frame checks.
   const placed = placeScript(script, world.anchor)
@@ -127,12 +146,14 @@ export function lintCutscene(script: CutsceneScript, world: LintWorld): Cutscene
     world.anchor,
   )
   const play: PlacedScript = settled.ok ? settled.script : { ...script, actor: [] }
+  // Starts no clips: the lint only looks at the frames.
+  const director = createDirector(play, () => {})
 
   // Shots: from each cut (or the start) to the next.
   const starts = [...script.camera].filter((k, i) => i === 0 || k.cut === true).map((k) => Math.max(0, k.t))
   starts.forEach((t, i) => {
     const end = Math.min(script.duration, starts[i + 1] ?? script.duration)
-    if (end - t + 1e-9 < MIN_SHOT && evaluate(play, t).fade < 0.98)
+    if (end - t + 1e-9 < MIN_SHOT && director.stateAt(t).fade < 0.98)
       add(
         'error',
         'cut',
@@ -145,11 +166,18 @@ export function lintCutscene(script: CutsceneScript, world: LintWorld): Cutscene
   // Dead air: a stretch with no caption, no cut, nothing moving or fading, no flicker, sound or lamp change.
   const sounds = (script.sound ?? []).map((x) => x.t)
   const lights = (script.light ?? []).map((x) => x.t)
-  const marks = (script.states ?? []).map((x) => x.t)
+  // A door, a prop, the time of day or the grade changing is something happening, as a state mark is.
+  const marks = [
+    ...(script.states ?? []),
+    ...(script.doors ?? []),
+    ...(script.props ?? []),
+    ...(script.time ?? []),
+    ...(script.grade ?? []),
+  ].map((x) => x.t)
   const near = (list: number[], t: number): boolean => list.some((x) => Math.abs(x - t) < 0.5 + 1e-9)
   const live = (t: number): boolean => {
-    const f = evaluate(play, t)
-    const g = evaluate(play, Math.max(0, t - STEP))
+    const f = director.stateAt(t)
+    const g = director.stateAt(Math.max(0, t - STEP))
     const moved = Object.keys(f.actors).some((who) => {
       const a = f.actors[who]
       const b = g.actors[who]
@@ -196,7 +224,7 @@ export function lintCutscene(script: CutsceneScript, world: LintWorld): Cutscene
   const keysOf = (who: string) => (play.actor ?? []).filter((a) => a.who === who)
   for (let i = 0; i * STEP <= script.duration + 1e-9; i++) {
     const t = round1(i * STEP)
-    const f = evaluate(play, t)
+    const f = director.stateAt(t)
     if (f.fade >= 0.98) continue
     const [x, y, z] = f.camera.pos
     const fmt = `(${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)})`

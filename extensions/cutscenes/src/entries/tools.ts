@@ -11,4 +11,4 @@ export {
   MIN_SHOT,
   readingTime,
   WALL_CLEARANCE,
-} from '../features/play/lint'
+} from '../features/lint/lint'

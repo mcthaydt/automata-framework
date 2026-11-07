@@ -2,11 +2,14 @@
 // functions of a context; these are rows. An actor row's position is a point, or an anchor name (`player`, `actor:<who>`,
 // or a hotspot or nav node the game names) resolved when the cutscene starts. A caption names a line key; its text is the
 // locale's. The original's one-off marks (`powerAt`, `exitOpenAt`, `flatline`) are `states` rows here.
+//
+// Every keyed row is a key on the one timeline (`@automata/3d/timeline`), and an `ease` is that timeline's. A key with
+// no ease is eased `smooth`, which is the cutscene default (a figure's clip, which the timeline also keys, is linear);
+// a camera key with `cut` arrives with no easing at all.
+import { type Ease, easeSchema } from '@automata/3d/timeline'
 import { z } from 'zod'
 
 export type V3 = readonly [number, number, number]
-export type Ease = 'smooth' | 'in' | 'out' | 'linear'
-export const EASES: readonly Ease[] = ['smooth', 'in', 'out', 'linear']
 
 /** `lens`: focal length in mm for this key (default the script's), eased with the move. `cut`: arrive without easing. */
 export interface CameraKey {
@@ -56,6 +59,41 @@ export interface SoundKey {
   readonly t: number
   readonly kind: string
 }
+/** How far the door of room `door` stands open from `t` on: 0 shut … 1 open. */
+export interface DoorKey {
+  readonly t: number
+  readonly door: string
+  readonly open: number
+  readonly ease?: Ease | undefined
+}
+/** The time of day (a `TimeOfDay` name) the scene is lit by from `t` on. */
+export interface TimeKey {
+  readonly t: number
+  readonly time: string
+}
+/** The mood grade (a level's `look.grade` name) the scene is graded with from `t` on. */
+export interface GradeKey {
+  readonly t: number
+  readonly grade: string
+}
+/**
+ * A prop's whole state at `t` (see `PropState`): where it stands, how far it is turned, whether it has gone. A field
+ * a key leaves out is the prop as it was placed, and between two keys a field moves only when both name it.
+ */
+export interface PropKey {
+  readonly t: number
+  readonly prop: string
+  readonly at?: V3 | undefined
+  readonly turn?: number | undefined
+  readonly hidden?: boolean | undefined
+  readonly ease?: Ease | undefined
+}
+/** At `at` seconds the figure `who` starts the clip `clip`. */
+export interface CueKey {
+  readonly at: number
+  readonly who: string
+  readonly clip: string
+}
 export interface CutsceneScript {
   readonly id: string
   /** Seconds. */
@@ -67,6 +105,12 @@ export interface CutsceneScript {
   readonly caption?: readonly Caption[] | undefined
   readonly light?: readonly LightKey[] | undefined
   readonly sound?: readonly SoundKey[] | undefined
+  readonly doors?: readonly DoorKey[] | undefined
+  readonly time?: readonly TimeKey[] | undefined
+  readonly grade?: readonly GradeKey[] | undefined
+  readonly props?: readonly PropKey[] | undefined
+  /** Clips the scene starts on figures, each once as the scene passes its time. */
+  readonly cues?: readonly CueKey[] | undefined
   /** Camera shake windows: [from, to, metres], strongest at `from` and dying out by `to`. */
   readonly shake?: readonly (readonly [number, number, number])[] | undefined
   /** Lamp flicker windows: [from, to]. */
@@ -90,7 +134,7 @@ const cameraKey: z.ZodType<CameraKey> = z.strictObject({
   look: v3,
   cut: z.boolean().optional(),
   lens: z.number().positive().optional(),
-  ease: z.enum(EASES as [Ease, ...Ease[]]).optional(),
+  ease: easeSchema.optional(),
 })
 const actorKey: z.ZodType<ActorKey> = z.strictObject({
   who: z.string().min(1),
@@ -130,6 +174,33 @@ export const cutsceneSchema: z.ZodType<CutsceneScript> = z
       .optional(),
     light: z.array(z.strictObject({ t: z.number(), lamp: z.string().min(1), level: z.number() })).optional(),
     sound: z.array(z.strictObject({ t: z.number(), kind: z.string().min(1) })).optional(),
+    doors: z
+      .array(
+        z.strictObject({
+          t: z.number(),
+          door: z.string().min(1),
+          open: z.number().min(0).max(1),
+          ease: easeSchema.optional(),
+        }),
+      )
+      .optional(),
+    time: z.array(z.strictObject({ t: z.number(), time: z.string().min(1) })).optional(),
+    grade: z.array(z.strictObject({ t: z.number(), grade: z.string().min(1) })).optional(),
+    props: z
+      .array(
+        z.strictObject({
+          t: z.number(),
+          prop: z.string().min(1),
+          at: v3.optional(),
+          turn: z.number().optional(),
+          hidden: z.boolean().optional(),
+          ease: easeSchema.optional(),
+        }),
+      )
+      .optional(),
+    cues: z
+      .array(z.strictObject({ at: z.number().min(0), who: z.string().min(1), clip: z.string().min(1) }))
+      .optional(),
     shake: z.array(z.tuple([z.number(), z.number(), z.number()])).optional(),
     flicker: z.array(z.tuple([z.number(), z.number()])).optional(),
     fade: z.array(z.strictObject({ t: z.number(), value: z.number() })).optional(),

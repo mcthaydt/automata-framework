@@ -1,12 +1,15 @@
 // The four scenes' converted cutscenes: 28 scripts that parse, whose captions name lines the scenes have, and
 // the clinic's linted against the clinic map. The two findings left are the original's renderer rules: the keypad
 // insert's camera is near a wall the renderer cuts away, and the opening's is above the clinic, outside the map.
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { readSectorMap, resolveLevel } from '@automata/sectors/sim'
 import clinicLevel from '@automata/sectors/testing/fixtures/clinic.af-sector.json?raw'
 import { describe, expect, it } from 'vitest'
 import { cutsceneSchema } from '#src/entries/sim.ts'
 import { lintCutscenes } from '#src/entries/tools.ts'
 import { SCENES, scriptsOf, textOf } from '#src/testing/converted-cutscenes.ts'
+import { anchorFor } from '#src/testing/play-anchor.ts'
 
 describe('the converted scenes', () => {
   it('have 5, 8, 8 and 7 scripts, each of which parses, with its id once', () => {
@@ -38,6 +41,30 @@ describe('the converted scenes', () => {
   })
 })
 
+describe('every scene’s lint findings', () => {
+  const recorded = JSON.parse(
+    readFileSync(join(import.meta.dirname, '../../fixtures/frames.json'), 'utf8'),
+  ) as { lint: unknown[][] }
+  it('are the ones recorded before the director replaced the old frames', () => {
+    const map = resolveLevel(readSectorMap(JSON.parse(clinicLevel)).level)
+    const now = SCENES.map((scene) =>
+      lintCutscenes(scriptsOf(scene), {
+        map,
+        text: textOf(scene),
+        sounds: new Set(['sting', 'power']),
+        lamps: new Set(),
+        doors: new Set(),
+        props: new Set(),
+        anchor: anchorFor,
+      }),
+    )
+    // The fixture keeps numbers to twelve decimals.
+    const twelve = (_key: string, v: unknown): unknown =>
+      typeof v === 'number' ? Math.round(v * 1e12) / 1e12 : v
+    expect(JSON.parse(JSON.stringify(now, twelve))).toEqual(recorded.lint)
+  })
+})
+
 describe('the clinic’s cutscenes against the clinic map', () => {
   const map = resolveLevel(readSectorMap(JSON.parse(clinicLevel)).level)
   it('lint to the two renderer-dependent camera findings, and nothing else', () => {
@@ -46,6 +73,8 @@ describe('the clinic’s cutscenes against the clinic map', () => {
       text: textOf('clinic'),
       sounds: new Set(['sting', 'power']),
       lamps: new Set(),
+      doors: new Set(),
+      props: new Set(),
       anchor: () => undefined,
     })
     expect(found.map((f) => `${f.cutscene} ${f.rule}`).sort()).toEqual(['keypad camera', 'opening camera'])

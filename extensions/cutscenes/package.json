@@ -16,7 +16,7 @@
   "exports": {
     ".": "./src/entries/index.ts",
     "./sim": "./src/entries/sim.ts",
-    "./play": "./src/entries/play.ts",
+    "./director": "./src/entries/director.ts",
     "./tools": "./src/entries/tools.ts"
   },
   "automata": {
@@ -34,12 +34,14 @@
     "zod": "4.6.6"
   },
   "peerDependencies": {
+    "@automata/3d": "workspace:^",
     "@automata/content": "workspace:^",
     "@automata/framework": "workspace:^",
     "@automata/sectors": "workspace:^",
     "@automata/sim": "workspace:^"
   },
   "devDependencies": {
+    "@automata/3d": "workspace:*",
     "@automata/content": "workspace:*",
     "@automata/evidence": "workspace:*",
     "@automata/framework": "workspace:*",

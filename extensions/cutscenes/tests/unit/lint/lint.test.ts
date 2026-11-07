@@ -6,7 +6,7 @@ import { readSectorMap, resolveLevel } from '@automata/sectors/sim'
 import clinicLevel from '@automata/sectors/testing/fixtures/clinic.af-sector.json?raw'
 import { describe, expect, it } from 'vitest'
 import type { CutsceneScript } from '#src/entries/sim.ts'
-import { type LintWorld, lintCutscene, lintCutscenes, readingTime } from '#src/features/play/lint.ts'
+import { type LintWorld, lintCutscene, lintCutscenes, readingTime } from '#src/features/lint/lint.ts'
 
 const map = resolveLevel(readSectorMap(JSON.parse(clinicLevel)).level)
 const world = (over: Partial<LintWorld> = {}): LintWorld => ({
@@ -14,6 +14,8 @@ const world = (over: Partial<LintWorld> = {}): LintWorld => ({
   text: { 'toy.a': 'The clock has stopped.', 'toy.b': 'Someone is at the door.' },
   sounds: new Set(['thud']),
   lamps: new Set(['hall']),
+  doors: new Set(['hall']),
+  props: new Set(['cup']),
   anchor: (name) => (name === 'player' ? { x: 0, z: 3 } : undefined),
   ...over,
 })
@@ -106,6 +108,31 @@ describe('lintCutscene', () => {
     expect(rules(stand(40, 40))).toContain('error floor')
     expect(rules(stand(4.8, 3))).toContain('error wall')
     expect(rules(stand(40, 40, true))).toEqual([])
+  })
+  it('fails a door or a prop the level lacks, by name', () => {
+    const found = (script: CutsceneScript) => lintCutscene(script, world())
+    expect(
+      found({ ...GOOD, doors: [{ t: 1, door: 'hall', open: 1 }], props: [{ t: 1, prop: 'cup', turn: 90 }] }),
+    ).toEqual([])
+    expect(found({ ...GOOD, doors: [{ t: 1, door: 'door-9', open: 1 }] })).toContainEqual(
+      expect.objectContaining({ level: 'error', rule: 'door', name: 'door-9' }),
+    )
+    expect(found({ ...GOOD, props: [{ t: 1, prop: 'ghost', hidden: true }] })).toContainEqual(
+      expect.objectContaining({ level: 'error', rule: 'prop', name: 'ghost' }),
+    )
+  })
+  it('counts a door opening as something happening, so it is not dead air', () => {
+    const quiet: CutsceneScript = { id: 'quiet', duration: 6, camera: GOOD.camera.slice(0, 1) as never }
+    expect(rules(quiet)).toEqual(['error dead'])
+    expect(
+      rules({
+        ...quiet,
+        doors: [
+          { t: 1, door: 'hall', open: 1 },
+          { t: 4, door: 'hall', open: 0 },
+        ],
+      }),
+    ).toEqual([])
   })
   it('places an actor at an anchor, and fails an anchor the scene does not have', () => {
     const at = (name: string): CutsceneScript => ({
