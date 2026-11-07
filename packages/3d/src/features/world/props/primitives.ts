@@ -1,7 +1,9 @@
-// The two generators core ships: a box and a cylinder, each one swatch, a size and its origin at the base centre. A
-// game's own props are presets of these (`{ kind = "box", swatch = "wood", size = [1, 0.5, 0.6] }`); any other shape
-// is a generator an extension registers (`registerPropGenerator`).
+// The generators core ships: a box and a cylinder, each one swatch, a size and its origin at the base centre, and the
+// five the base scenes are made of (`base-props.ts`: table, bin, lamp, streetLamp, tree). A game's own props are
+// presets of these (`{ kind = "box", swatch = "wood", size = [1, 0.5, 0.6] }`); any other shape is a generator an
+// extension registers (`registerPropGenerator`).
 import { box, cylinder } from '../mesh.ts'
+import { BASE_PROPS } from './base-props.ts'
 import { type Built, type Generator, part } from './piece.ts'
 
 /** A box: `size` `[width, height, depth]` in metres, painted `swatch`. */
@@ -27,4 +29,5 @@ const cylinderProp: Generator = (p) => {
 export const PRIMITIVE_PROPS: Readonly<Record<string, Generator>> = {
   box: boxProp,
   cylinder: cylinderProp,
+  ...BASE_PROPS,
 }
