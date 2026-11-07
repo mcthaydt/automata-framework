@@ -123,7 +123,7 @@ describe('runCheck', () => {
     expect(game.ran).toEqual([
       'automata-check-boundaries --game src',
       'tsc -p . --noEmit --pretty false',
-      `vitest run --reporter=json --outputFile=${VITEST_REPORT} --includeTaskLocation`,
+      `vitest run --configLoader runner --reporter=json --outputFile=${VITEST_REPORT} --includeTaskLocation`,
       'vite build',
     ])
   })

@@ -82,6 +82,10 @@ export const testStep = (gameDir: string): StepEffect =>
     yield* Effect.orElse(files.remove(reportPath), () => Effect.void) // a stale report must never count
     const result = yield* runTool(gameDir, TOOLS.vitest, [
       'run',
+      // A workspace game's vitest config imports the framework's TypeScript source, whose extensionless imports Node's
+      // default config loader cannot resolve; the runner loader reads that config and a plain one alike.
+      '--configLoader',
+      'runner',
       '--reporter=json',
       `--outputFile=${reportPath}`,
       '--includeTaskLocation',
