@@ -56,7 +56,7 @@ describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-la
         )
       }
 
-      await chooseLayer('Entities')
+      await chooseLayer('Characters')
       await press('radio', 'Brush')
       await press('radio', 'Villager')
       const entities = (): number => {

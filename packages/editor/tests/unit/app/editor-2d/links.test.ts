@@ -78,7 +78,7 @@ async function openLevel(name: RegExp): Promise<void> {
 
 async function chooseEntities(): Promise<void> {
   const layers = within(screen.getByRole('listbox', { name: 'Layers' }))
-  await userEvent.click(layers.getByRole('option', { name: /^Entities/ }))
+  await userEvent.click(layers.getByRole('option', { name: /^Characters/ }))
 }
 
 /** Places a thing of `def` with the brush, which leaves it selected in the inspector. */

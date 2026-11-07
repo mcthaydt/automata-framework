@@ -16,7 +16,7 @@ export const blankTemplate: TemplateDef<Project> = {
       'blank',
       {
         layers: [
-          { id: 'entities', label: 'Entities', kind: 'entities', grid: 16, snap: true },
+          { id: 'entities', label: 'Characters', kind: 'entities', grid: 16, snap: true },
           { id: 'tiles', label: 'Tiles', kind: 'tiles', grid: 16, tileset: 'tiles', opacity: 1 },
         ],
         tilesets: [

@@ -67,7 +67,7 @@ describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-la
       expect(open.document.history.canRedo).toBe(true)
 
       // Place a coin on the Entities layer (the Pencil has been used, so a finger would only navigate).
-      await chooseLayer('Entities')
+      await chooseLayer('Characters')
       await press('radio', 'Brush')
       await press('radio', 'Coin')
       const before = open.project().levels[0]?.layers.find((layer) => layer.kind === 'entities')

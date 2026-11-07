@@ -72,7 +72,7 @@ describe('Level view: layers', () => {
     await mount()
     const rows = within(layers()).getAllByRole('option')
     expect(rows.map((row) => row.querySelector('.label')?.textContent)).toEqual([
-      'Entities',
+      'Characters',
       'Decor',
       'Ground',
       'Collision',
@@ -85,11 +85,13 @@ describe('Level view: layers', () => {
     ])
     // Each row has its colour and two icon toggles named for what a press does.
     expect(rows.every((row) => row.querySelector('.swatch') !== null)).toBe(true)
-    expect(within(rows[0] as HTMLElement).getByRole('button', { name: 'Hide Entities' })).toHaveAttribute(
+    expect(within(rows[0] as HTMLElement).getByRole('button', { name: 'Hide Characters' })).toHaveAttribute(
       'aria-pressed',
       'false',
     )
-    expect(within(rows[0] as HTMLElement).getByRole('button', { name: 'Lock Entities' })).toBeInTheDocument()
+    expect(
+      within(rows[0] as HTMLElement).getByRole('button', { name: 'Lock Characters' }),
+    ).toBeInTheDocument()
     expect(rows[0]).toHaveAttribute('aria-selected', 'true')
     expect(canvas()).toHaveAttribute('data-layer', 'entities')
   })
