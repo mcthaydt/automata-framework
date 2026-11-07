@@ -95,8 +95,16 @@ describe('the generators', () => {
     expect(built.top).toEqual({ y: 0.5, size: [0.6, 0.6] })
   })
 
-  it('core registers only box and cylinder, before any extension', () => {
-    expect(registeredPropGenerators().slice(0, 2)).toEqual(['box', 'cylinder'])
+  it('core registers box and cylinder first, then the five the base scenes are made of, before any extension', () => {
+    expect(registeredPropGenerators().slice(0, 7)).toEqual([
+      'box',
+      'cylinder',
+      'table',
+      'bin',
+      'lamp',
+      'streetLamp',
+      'tree',
+    ])
   })
 
   it('refuses a name core or an extension took', () => {

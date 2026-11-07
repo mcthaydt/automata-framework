@@ -1,4 +1,4 @@
-// The prop generators: how a preset's `kind` becomes pieces. Core registers a box and a cylinder (`primitives.ts`); an
+// The prop generators: how a preset's `kind` becomes pieces. Core registers a box, a cylinder and the base scenes' five (`primitives.ts`); an
 // extension registers more (furniture, trees, signs) under a kind a preset then names. A name core or an earlier
 // extension took is refused, never replaced quietly.
 import { RegistryClash } from '../../../shared/registry/registry-clash.ts'

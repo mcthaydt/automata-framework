@@ -1,0 +1,490 @@
+{
+  "base-interior": {
+    "problems": [],
+    "pieces": [
+      {
+        "id": "room:floor",
+        "surface": "baseFloor",
+        "vertices": 72,
+        "indices": 294
+      },
+      {
+        "id": "room:ceiling",
+        "surface": "baseCeiling",
+        "vertices": 72,
+        "indices": 294
+      },
+      {
+        "id": "doorway:floor",
+        "surface": "baseFloor",
+        "vertices": 6,
+        "indices": 6
+      },
+      {
+        "id": "doorway:ceiling",
+        "surface": "trimWhite",
+        "vertices": 6,
+        "indices": 6
+      },
+      {
+        "id": "stub:floor",
+        "surface": "baseFloor",
+        "vertices": 12,
+        "indices": 24
+      },
+      {
+        "id": "stub:ceiling",
+        "surface": "baseCeiling",
+        "vertices": 12,
+        "indices": 24
+      },
+      {
+        "id": "room:wall:0.0.0",
+        "surface": "baseWall",
+        "vertices": 16,
+        "indices": 54
+      },
+      {
+        "id": "room:skirting:0.0.0",
+        "surface": "trimWhite",
+        "vertices": 8,
+        "indices": 18
+      },
+      {
+        "id": "room:doorway:0.0.1",
+        "surface": "trimWhite",
+        "vertices": 88,
+        "indices": 156
+      },
+      {
+        "id": "room:upper:0.0.1",
+        "surface": "baseWall",
+        "vertices": 4,
+        "indices": 6
+      },
+      {
+        "id": "room:wall:0.0.2",
+        "surface": "baseWall",
+        "vertices": 16,
+        "indices": 54
+      },
+      {
+        "id": "room:skirting:0.0.2",
+        "surface": "trimWhite",
+        "vertices": 8,
+        "indices": 18
+      },
+      {
+        "id": "room:wall:0.1.0",
+        "surface": "baseWall",
+        "vertices": 24,
+        "indices": 90
+      },
+      {
+        "id": "room:skirting:0.1.0",
+        "surface": "trimWhite",
+        "vertices": 12,
+        "indices": 30
+      },
+      {
+        "id": "room:glass:0.1.0.0",
+        "surface": "glassNight",
+        "vertices": 9,
+        "indices": 24
+      },
+      {
+        "id": "room:frame:0.1.0.0",
+        "surface": "trimWhite",
+        "vertices": 72,
+        "indices": 108
+      },
+      {
+        "id": "room:bars:0.1.0.0",
+        "surface": "trimWhite",
+        "vertices": 48,
+        "indices": 72
+      },
+      {
+        "id": "room:sill:0.1.0.0",
+        "surface": "trimWhite",
+        "vertices": 24,
+        "indices": 36
+      },
+      {
+        "id": "room:wall:0.2.0",
+        "surface": "baseWall",
+        "vertices": 28,
+        "indices": 108
+      },
+      {
+        "id": "room:skirting:0.2.0",
+        "surface": "trimWhite",
+        "vertices": 14,
+        "indices": 36
+      },
+      {
+        "id": "room:wall:0.3.0",
+        "surface": "baseWall",
+        "vertices": 24,
+        "indices": 90
+      },
+      {
+        "id": "room:skirting:0.3.0",
+        "surface": "trimWhite",
+        "vertices": 12,
+        "indices": 30
+      },
+      {
+        "id": "doorway:wall:0.1.0",
+        "surface": "trimWhite",
+        "vertices": 8,
+        "indices": 18
+      },
+      {
+        "id": "doorway:wall:0.3.0",
+        "surface": "trimWhite",
+        "vertices": 8,
+        "indices": 18
+      },
+      {
+        "id": "stub:wall:0.0.0",
+        "surface": "baseWall",
+        "vertices": 12,
+        "indices": 36
+      },
+      {
+        "id": "stub:skirting:0.0.0",
+        "surface": "trimWhite",
+        "vertices": 6,
+        "indices": 12
+      },
+      {
+        "id": "stub:wall:0.1.0",
+        "surface": "baseWall",
+        "vertices": 12,
+        "indices": 36
+      },
+      {
+        "id": "stub:skirting:0.1.0",
+        "surface": "trimWhite",
+        "vertices": 6,
+        "indices": 12
+      },
+      {
+        "id": "stub:wall:0.2.0",
+        "surface": "baseWall",
+        "vertices": 8,
+        "indices": 18
+      },
+      {
+        "id": "stub:skirting:0.2.0",
+        "surface": "trimWhite",
+        "vertices": 4,
+        "indices": 6
+      },
+      {
+        "id": "stub:doorway:0.2.1",
+        "surface": "trimWhite",
+        "vertices": 88,
+        "indices": 156
+      },
+      {
+        "id": "stub:upper:0.2.1",
+        "surface": "baseWall",
+        "vertices": 4,
+        "indices": 6
+      },
+      {
+        "id": "stub:wall:0.2.2",
+        "surface": "baseWall",
+        "vertices": 8,
+        "indices": 18
+      },
+      {
+        "id": "stub:skirting:0.2.2",
+        "surface": "trimWhite",
+        "vertices": 4,
+        "indices": 6
+      },
+      {
+        "id": "stub:wall:0.3.0",
+        "surface": "baseWall",
+        "vertices": 12,
+        "indices": 36
+      },
+      {
+        "id": "stub:skirting:0.3.0",
+        "surface": "trimWhite",
+        "vertices": 6,
+        "indices": 12
+      },
+      {
+        "id": "room:prop:prop0.0.cord",
+        "surface": "cordBlack",
+        "vertices": 36,
+        "indices": 180
+      },
+      {
+        "id": "room:prop:prop0.1.shade",
+        "surface": "brass",
+        "vertices": 96,
+        "indices": 504
+      },
+      {
+        "id": "room:prop:prop0.2.bulb",
+        "surface": "bulbWarm",
+        "vertices": 126,
+        "indices": 672
+      },
+      {
+        "id": "room:prop:prop1.0.block",
+        "surface": "basePrim",
+        "vertices": 24,
+        "indices": 36
+      },
+      {
+        "id": "room:prop:prop2.0.top",
+        "surface": "basePrim",
+        "vertices": 96,
+        "indices": 504
+      },
+      {
+        "id": "room:prop:prop2.1.legs",
+        "surface": "basePrim",
+        "vertices": 96,
+        "indices": 144
+      },
+      {
+        "id": "room:prop:prop3.0.can",
+        "surface": "basePrim",
+        "vertices": 96,
+        "indices": 504
+      },
+      {
+        "id": "room:prop:prop3.1.lid",
+        "surface": "basePrim",
+        "vertices": 96,
+        "indices": 504
+      }
+    ],
+    "lamps": [
+      {
+        "id": "prop0.light0",
+        "kind": "pendant",
+        "at": [
+          0,
+          2.1,
+          0
+        ]
+      }
+    ]
+  },
+  "base-exterior": {
+    "problems": [],
+    "pieces": [
+      {
+        "id": "pavement:floor",
+        "surface": "baseGround",
+        "vertices": 240,
+        "indices": 1176
+      },
+      {
+        "id": "road:floor",
+        "surface": "baseRoad",
+        "vertices": 240,
+        "indices": 1176
+      },
+      {
+        "id": "pavement:wall:0.0.0",
+        "surface": "baseFacade",
+        "vertices": 170,
+        "indices": 864
+      },
+      {
+        "id": "pavement:door:0.0.0.-2",
+        "surface": "doorWood",
+        "vertices": 32,
+        "indices": 60
+      },
+      {
+        "id": "pavement:doorPanels:0.0.0.-2",
+        "surface": "doorWood",
+        "vertices": 48,
+        "indices": 72
+      },
+      {
+        "id": "pavement:doorFrame:0.0.0.-2",
+        "surface": "trimDark",
+        "vertices": 88,
+        "indices": 156
+      },
+      {
+        "id": "pavement:knob:0.0.0.-2",
+        "surface": "brass",
+        "vertices": 24,
+        "indices": 36
+      },
+      {
+        "id": "pavement:glass:0.0.0.1.5",
+        "surface": "glassDay",
+        "vertices": 9,
+        "indices": 24
+      },
+      {
+        "id": "pavement:frame:0.0.0.1.5",
+        "surface": "trimDark",
+        "vertices": 72,
+        "indices": 108
+      },
+      {
+        "id": "pavement:bars:0.0.0.1.5",
+        "surface": "trimDark",
+        "vertices": 48,
+        "indices": 72
+      },
+      {
+        "id": "pavement:sill:0.0.0.1.5",
+        "surface": "trimDark",
+        "vertices": 24,
+        "indices": 36
+      },
+      {
+        "id": "pavement:glass:0.0.0.4.5",
+        "surface": "glassDay",
+        "vertices": 9,
+        "indices": 24
+      },
+      {
+        "id": "pavement:frame:0.0.0.4.5",
+        "surface": "trimDark",
+        "vertices": 72,
+        "indices": 108
+      },
+      {
+        "id": "pavement:bars:0.0.0.4.5",
+        "surface": "trimDark",
+        "vertices": 48,
+        "indices": 72
+      },
+      {
+        "id": "pavement:sill:0.0.0.4.5",
+        "surface": "trimDark",
+        "vertices": 24,
+        "indices": 36
+      },
+      {
+        "id": "road:lower:0.0.0",
+        "surface": "baseKerb",
+        "vertices": 34,
+        "indices": 96
+      },
+      {
+        "id": "pavement:prop:prop0.0.pole",
+        "surface": "poleTeal",
+        "vertices": 80,
+        "indices": 420
+      },
+      {
+        "id": "pavement:prop:prop0.1.pole",
+        "surface": "poleTeal",
+        "vertices": 48,
+        "indices": 240
+      },
+      {
+        "id": "pavement:prop:prop0.2.pole",
+        "surface": "poleTeal",
+        "vertices": 36,
+        "indices": 180
+      },
+      {
+        "id": "pavement:prop:prop0.3.head",
+        "surface": "lampHead",
+        "vertices": 96,
+        "indices": 504
+      },
+      {
+        "id": "pavement:prop:prop0.4.glass",
+        "surface": "bulbWarm",
+        "vertices": 96,
+        "indices": 504
+      },
+      {
+        "id": "pavement:prop:prop1.0.trunk",
+        "surface": "bark",
+        "vertices": 260,
+        "indices": 1500
+      },
+      {
+        "id": "pavement:prop:prop1.1.trunk",
+        "surface": "bark",
+        "vertices": 108,
+        "indices": 540
+      },
+      {
+        "id": "pavement:prop:prop1.2.crown",
+        "surface": "leafGreen",
+        "vertices": 126,
+        "indices": 672
+      },
+      {
+        "id": "pavement:prop:prop1.3.crown",
+        "surface": "leafGreen",
+        "vertices": 126,
+        "indices": 672
+      },
+      {
+        "id": "pavement:prop:prop1.4.crown",
+        "surface": "leafGreen",
+        "vertices": 126,
+        "indices": 672
+      },
+      {
+        "id": "pavement:prop:prop1.5.crown",
+        "surface": "leafGreen",
+        "vertices": 126,
+        "indices": 672
+      },
+      {
+        "id": "pavement:prop:prop1.6.crown",
+        "surface": "leafGreen",
+        "vertices": 126,
+        "indices": 672
+      },
+      {
+        "id": "pavement:prop:prop1.7.crown",
+        "surface": "leafGreen",
+        "vertices": 126,
+        "indices": 672
+      },
+      {
+        "id": "pavement:prop:prop1.8.crown",
+        "surface": "leafGreen",
+        "vertices": 126,
+        "indices": 672
+      },
+      {
+        "id": "pavement:prop:prop1.9.crown",
+        "surface": "leafGreen",
+        "vertices": 126,
+        "indices": 672
+      },
+      {
+        "id": "pavement:prop:prop1.10.crown",
+        "surface": "leafGreen",
+        "vertices": 126,
+        "indices": 672
+      }
+    ],
+    "lamps": [
+      {
+        "id": "prop0.light0",
+        "kind": "sodium",
+        "at": [
+          -3.3,
+          4.0200000000000005,
+          -0.4
+        ]
+      }
+    ]
+  }
+}
