@@ -1,8 +1,5 @@
-import { execFileSync } from 'node:child_process'
-import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { afterAll, describe, expect, it } from 'vitest'
+import { execFileSync, spawnSync } from 'node:child_process'
+import { describe, expect, it } from 'vitest'
 import { parse } from 'yaml'
 import type { DistTarget } from '#src/shared/create-game/create-game-targets.ts'
 import { TEMPLATE_FILES } from '#src/shared/create-game/template.ts'
@@ -33,11 +30,6 @@ const releaseText = (targets?: readonly DistTarget[]): string => {
 }
 const release = (targets?: readonly DistTarget[]): Workflow => parse(releaseText(targets)) as Workflow
 const runs = (job: Job | undefined): readonly string[] => (job?.steps ?? []).flatMap((step) => step.run ?? [])
-
-const scratch: string[] = []
-afterAll(() => {
-  for (const dir of scratch) rmSync(dir, { recursive: true, force: true })
-})
 
 describe("a new game's release workflow", () => {
   it('runs on a version tag, on GitHub’s own runner, reading nothing but the code', () => {
@@ -76,21 +68,23 @@ describe("a new game's release workflow", () => {
 
   // actionlint runs in Docker, which a session may not have; the YAML parse above is the check then.
   it.skipIf(!hasDocker())('passes actionlint', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'af-release-'))
-    scratch.push(dir)
-    // mkdtemp makes the folder readable by its owner only, and actionlint's image runs as another user: open it up.
-    chmodSync(dir, 0o755)
-    writeFileSync(join(dir, 'release.yml'), releaseText(), { mode: 0o644 })
-    execFileSync('docker', [
-      'run',
-      '--rm',
-      '-v',
-      `${dir}:/repo`,
-      '-w',
-      '/repo',
-      'rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667',
-      'release.yml',
-    ])
+    // The workflow goes in on stdin (`-`), not through a mounted folder: a Docker that keeps its own /tmp (a snap
+    // install) cannot see the host's temp folder, and actionlint then stops on a missing file before it lints.
+    const run = spawnSync(
+      'docker',
+      [
+        'run',
+        '--rm',
+        '-i',
+        'rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667',
+        '-stdin-filename',
+        '.github/workflows/release.yml',
+        '-',
+      ],
+      { input: releaseText(), encoding: 'utf8' },
+    )
+    expect(run.stdout + run.stderr).toBe('')
+    expect(run.status).toBe(0)
   })
 })
 
