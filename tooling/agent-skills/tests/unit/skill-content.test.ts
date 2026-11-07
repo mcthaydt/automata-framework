@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { publishablePackages } from '../../../release/src/publishable-packages.ts'
 
 // The skills state facts about code; these tests read the facts from the code, so a new rule or a renamed example
 // file fails here instead of leaving the skill wrong.
@@ -96,5 +97,18 @@ describe('automata-api', () => {
 
   it('points to its reference file', () => {
     expect(skill).toContain('(reference/api.md)')
+  })
+
+  it('names the entry points the reference leaves out', () => {
+    // The reference lists the typed entry points; an `exports` key without a `types` target (a stylesheet, the
+    // build-picked target) is not in it, so the skill says so instead of letting "not listed" read as "not there".
+    const untyped = publishablePackages(REPO).flatMap(({ manifest }) =>
+      Object.entries(manifest.publishConfig?.exports ?? manifest.exports ?? {})
+        .filter(([, entry]) => typeof entry !== 'object' || entry === null || !('types' in entry))
+        .map(([key]) => `${manifest.name}${key.slice(1)}`),
+    )
+    expect(untyped).toContain('@automata/framework/target')
+    expect(untyped).toContain('@automata/framework/theme.css')
+    for (const entry of untyped) expect(skill).toContain(`\`${entry}\``)
   })
 })
