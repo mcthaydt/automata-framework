@@ -2836,4 +2836,4 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   lands. Gates: `pnpm check` green; `pnpm build`; `pnpm api-report` against #437's head 0 breaks (against the shallow
   main, 2, both declared or private); `api-index`, `agent-skills`, `changeset status` and `check-changesets` clean;
   the stranger's journey (Chromium, 1 of 1); the consumer smoke from packs; Emberwick's Chromium journeys 29 of 29;
-  the site suite in Chromium. WebKit and Firefox not installed here.
+  the site suite in Chromium 345 of 345. WebKit and Firefox not installed here.
