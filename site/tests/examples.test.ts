@@ -16,6 +16,21 @@ describe('DemoRunner', () => {
     expect(getByLabelText(/Restart demo/i)).toBeTruthy()
     expect(getByLabelText(/Toggle fullscreen/i)).toBeTruthy()
   })
+
+  it('shows only Play until the demo plays, and Play is not a second lime primary on the page', () => {
+    const view = render(DemoRunner, {
+      props: {
+        src: '/demos/emberwick/index.html',
+        title: 'Emberwick',
+        autoStart: false,
+        poster: '/previews/emberwick.jpg',
+      },
+    })
+    expect(view.queryByLabelText(/Restart demo/i)).toBeNull()
+    expect(view.queryByLabelText(/Toggle fullscreen/i)).toBeNull()
+    const play = view.getByRole('button', { name: 'Play demo' })
+    expect(play.classList.contains('button')).toBe(false)
+  })
 })
 
 // The browser gate that clicks every visible button (tests/e2e/gates.ts) found the fullscreen button doing nothing in

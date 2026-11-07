@@ -12,10 +12,6 @@ declare module 'virtual:framework/packages' {
   const packages: import('./packages.ts').PublishedPackage[]
   export default packages
 }
-declare module 'virtual:framework/sources' {
-  const sources: import('../../data/project-types').ExampleSources
-  export default sources
-}
 declare module 'virtual:framework/api' {
   const reference: import('./api.ts').ApiReference
   export default reference

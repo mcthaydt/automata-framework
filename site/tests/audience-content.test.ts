@@ -1,10 +1,8 @@
 import { fireEvent, render, within } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import { getDocSections } from '../src/data/docs-loader'
-import Home from '../src/routes/+page.svelte'
 import Showcase from '../src/routes/showcase/+page.svelte'
 import Start from '../src/routes/start/+page.svelte'
-import { homeData } from './helpers/page-data'
 
 describe('Audience onboarding', () => {
   it('offers all five engine backgrounds in canonical documentation', () => {
@@ -23,15 +21,6 @@ describe('Audience onboarding', () => {
         docs.find((doc) => doc.slug === slug),
         slug,
       ).toBeTruthy()
-  })
-  it('makes fit, limitations and FAQ available from the homepage', () => {
-    const view = render(Home, { props: { data: homeData } })
-    expect(view.getByRole('heading', { name: 'Who this is for' })).toBeTruthy()
-    expect(view.getByRole('heading', { name: 'Who this is not for' })).toBeTruthy()
-    expect(view.getByRole('heading', { name: 'FAQ' })).toBeTruthy()
-    expect(view.getByRole('link', { name: 'Browse the community showcase' }).getAttribute('href')).toBe(
-      '/showcase',
-    )
   })
   it('keeps prompts copyable while offering an optional readiness checklist', async () => {
     const view = render(Start)

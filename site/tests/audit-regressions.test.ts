@@ -9,7 +9,6 @@ import Home from '../src/routes/+page.svelte'
 import Ai from '../src/routes/ai/+page.svelte'
 import Cheatsheet from '../src/routes/cheatsheet/+page.svelte'
 import Examples from '../src/routes/examples/+page.svelte'
-import { homeData } from './helpers/page-data'
 
 const docs = getDocSections()
 
@@ -40,7 +39,7 @@ describe('Audit regressions', () => {
 
   it('exposes mobile navigation and marks the current page', () => {
     const view = render(Header, { props: { pathname: '/examples' } })
-    expect(view.getByText('Menu').closest('summary')).toBeTruthy()
+    expect(view.getByLabelText('Menu').tagName).toBe('SUMMARY')
     expect(
       view.getAllByRole('link', { name: 'Examples' }).every((a) => a.getAttribute('aria-current') === 'page'),
     ).toBe(true)
@@ -91,7 +90,7 @@ describe('Evidence, not typed numbers (DX.9w)', () => {
 describe('Restored claims (DX.10a)', () => {
   it('makes no cross-engine claim while the site has no evidence page to link it to', () => {
     // The claim and its /proof page left with the synced evidence file (task 10.2); it returns with its evidence.
-    const view = render(Home, { props: { data: homeData } })
+    const view = render(Home)
     expect(view.queryByText('Same result in every engine')).toBeNull()
     expect(view.container.querySelector('a[href="/proof"]')).toBeNull()
     expect(view.container.textContent).not.toMatch(/complete determinism|100% match|run identically/i)

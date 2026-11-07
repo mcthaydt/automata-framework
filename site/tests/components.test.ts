@@ -20,13 +20,24 @@ describe('UI Components', () => {
     expect(html).toContain('pre')
   })
 
-  it('renders AI link in navigation header', () => {
-    const { getAllByRole } = render(Header)
-    expect(getAllByRole('link', { name: /^AI$/ }).length).toBeGreaterThan(0)
+  it('leads the header with the four pages a visitor looks for, and Get started', () => {
+    const view = render(Header)
+    const main = view.getByRole('navigation', { name: 'Main navigation' })
+    expect([...main.querySelectorAll('a')].map((link) => link.textContent)).toEqual([
+      'Docs',
+      'Examples',
+      'Editor',
+      'API',
+    ])
+    expect(view.getByRole('link', { name: 'Get started' }).getAttribute('href')).toBe('/start')
   })
 
-  it('includes AI portal link in footer', () => {
-    const { getByRole } = render(Footer)
-    expect(getByRole('link', { name: /AI & Skills/i })).toBeTruthy()
+  it('links the footer to one reference, the licence pages and a way to get in touch', () => {
+    const view = render(Footer)
+    expect(view.getAllByRole('link', { name: 'Reference' }).map((link) => link.getAttribute('href'))).toEqual(
+      ['/api'],
+    )
+    for (const name of ['Privacy', 'Terms', 'Contact']) expect(view.getByRole('link', { name })).toBeTruthy()
+    expect(view.queryByRole('link', { name: /AI|Showcase|Complete API/ })).toBeNull()
   })
 })

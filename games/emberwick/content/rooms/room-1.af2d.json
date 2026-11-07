@@ -7,7 +7,7 @@
     "layers": [
       {
         "id": "entities",
-        "label": "Entities",
+        "label": "Characters",
         "kind": "entities",
         "grid": 8,
         "snap": true
