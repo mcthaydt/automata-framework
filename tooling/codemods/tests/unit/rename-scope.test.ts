@@ -18,9 +18,9 @@ describe('renameScope', () => {
       'pnpm dlx @automata/tools create-game',
     )
     expect(renameScope("'@mcthaydt/automata-editor-3d/kit'")).toBe("'@automata/editor-3d/kit'")
-    expect(renameScope('`@mcthaydt/automata-<name>` and `@mcthaydt/automata-${name}`')).toBe(
-      '`@automata/<name>` and `@automata/${name}`',
-    )
+    // The `${name}` is the text of a template literal in someone's source, not a placeholder here.
+    const source = ['`@mcthaydt/automata-<name>`', '`@mcthaydt/automata-$', '{name}`'].join('')
+    expect(renameScope(source)).toBe(['`@automata/<name>`', '`@automata/$', '{name}`'].join(''))
   })
 
   it('moves the private tooling packages into the same scope', () => {
