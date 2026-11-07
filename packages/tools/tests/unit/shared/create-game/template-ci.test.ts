@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterAll, describe, expect, it } from 'vitest'
@@ -78,7 +78,9 @@ describe("a new game's release workflow", () => {
   it.skipIf(!hasDocker())('passes actionlint', () => {
     const dir = mkdtempSync(join(tmpdir(), 'af-release-'))
     scratch.push(dir)
-    writeFileSync(join(dir, 'release.yml'), releaseText())
+    // mkdtemp makes the folder readable by its owner only, and actionlint's image runs as another user: open it up.
+    chmodSync(dir, 0o755)
+    writeFileSync(join(dir, 'release.yml'), releaseText(), { mode: 0o644 })
     execFileSync('docker', [
       'run',
       '--rm',
