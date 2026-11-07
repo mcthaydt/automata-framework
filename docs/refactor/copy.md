@@ -216,3 +216,13 @@ Reference, Privacy, Terms and Contact; the targets are named by the publish sect
 | Palette rows | name only | the number key at the row's right edge for the first nine (1 to 9 choose them) | 2 (the mockup) |
 | Home, no levels | `Make your first one to start drawing.` and a second `New level` button | `Press New level to start drawing.` (the top bar's button is the one) | 2 (one button for one job) |
 | Tiles, no tiles yet | an `Add tiles` button in the panel and another in the stage | the stage's only; the panel's appears once there is a first tileset | 2 |
+
+## Skills (automata-skills build, part 5, 2026-11-07)
+
+| Where | Was | Now | Why |
+|---|---|---|---|
+| Start, "Set up your coding agent", intro | `Give your agent two sets of skills: Superpowers, which plans and tests each change, and PixiJS, which knows how the game draws.` | `Give your agent three sets of skills: Superpowers, which plans and tests each change, PixiJS, which knows how the game draws, and the Automata skills, which know this framework.` | 1 (it named two of the three) |
+| Start, the agent setup | (nothing for the framework's own skills) | `The Automata skills`: `They teach your agent this framework’s rules and API. In Claude Code, type:`, the two lines (`/plugin marketplace add mcthaydt/automata-skills`, `/plugin install automata@automata-skills`), `Other agents:`, `npx skills add mcthaydt/automata-skills`, and `Tested on Claude Code 2.1.301.` | 2 (no way to get the framework's skills). The lines are the ones the install suite runs against the mirror; the version is the one it ran on |
+| Start, the check to copy to the agent | `Confirm Superpowers…` and `Confirm the official PixiJS…`; `If either collection is missing…` | adds `Confirm the Automata skills are installed (automata, automata-api, automata-editor, automata-feature, automata-verify).` and `If any of them is missing…` | 2 (it checked two of three) |
+
+Merges only after the first mirror push has been installed from `mcthaydt/automata-skills` (veto default 3).

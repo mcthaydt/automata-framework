@@ -4,14 +4,14 @@ The Owner, 2026-11-07: "Have we been updating automata-skills, I know we worked 
 handle that". Each stage runs in its own thread and hands off through the documents listed here. From stage 2 on they
 live in the framework's `docs/refactor/` (audit decision D1 A); `mcthaydt/automata-skills` stays output only.
 
-**Progress: 3 of 6 stages done (50%).**
+**Progress: 4 of 6 stages done (67%).**
 
 | Stage | Status | Document | Pull request |
 |---|---|---|---|
 | 1. Audit | Done, 2026-11-07 | [2026-11-07-skills-audit.md](2026-11-07-skills-audit.md) (moved here; first written in automata-skills PR #1) | automata-skills #1, `claude/project-thread-l4q4y1` |
 | 2. Plan and spec | Done, 2026-11-07 (accepted under "Auto accept all spec and plans") | [spec](2026-11-07-skills-spec.md), [plan](2026-11-07-skills-plan.md) | `claude/project-thread-wd20yh`, stacked on #444 |
 | 3. Plan audit | Done, 2026-11-07: 15 findings, fixed in place | [2026-11-07-skills-plan-audit.md](2026-11-07-skills-plan-audit.md) | #446, same branch |
-| 4. Build | In progress (5 parts, 17 tasks) | [execution ledger](#execution-ledger) | |
+| 4. Build | Done 2026-11-07 (5 parts, 17 tasks; part 5 waits for the first mirror push) | [execution ledger](#execution-ledger) | #447 to #451, a stack on #446 |
 | 5. Build audit | Not started | | |
 | 6. Fixes | Not started | | |
 
@@ -35,7 +35,7 @@ live in the framework's `docs/refactor/` (audit decision D1 A); `mcthaydt/automa
 | 3.6 Part 3 close | 3 | Done, 2026-11-07 |
 | 4.1 Install suite | 4 | Done, 2026-11-07 |
 | 4.2 In release checks | 4 | Done, 2026-11-07 |
-| 5.1 Site offers the plugin (after the first mirror push) | 5 | Not started |
+| 5.1 Site offers the plugin (after the first mirror push) | 5 | Built 2026-11-07; PR open, merges only after the first mirror push |
 
 ## Hand-offs
 
@@ -108,3 +108,8 @@ Stage 4, `superpowers:executing-plans`, inline. Pre-flight: tasks 1.1 to 1.2 sha
 - Task 4.2: complete (`ci.test.ts` RED→GREEN, agent-skills 151/151, repo-hygiene 93/93). `release-checks.yml` installs the
   pinned CLI under `$RUNNER_TEMP`, puts it on `GITHUB_PATH` and runs `test:install` after the consumer smoke. The job's
   40-minute limit stays (the suite took 28 s here). Step 5 (a first run on the runner) is the Owner's, or the job's first run.
+- Task 5.1: built (`agent-setup.test.ts` 3 new cases RED→GREEN; site 343/343; `site check` 0 errors; Start opened at 390 × 844 and
+  1440 × 900 with the card in view, no horizontal overflow). The PR waits for the first mirror push.
+  Ruling: the existing test's "4 copy buttons" stays 4 — the agent setup sits in a closed `details`, which Testing
+  Library does not count — so the new card's buttons are covered by the text assertions instead.
+- Stage 4 done. Final self-review (no subagent tool): see the thread's report; the audit stage (Opus) is next.

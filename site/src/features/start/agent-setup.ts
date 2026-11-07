@@ -6,6 +6,15 @@ export const SKILL_SOURCES = {
   codex: 'https://developers.openai.com/plugins/quickstart',
 }
 export const PIXIJS_INSTALL = 'npx skills add https://github.com/pixijs/pixijs-skills'
+// The framework's own skills, from the public mirror the release job fills. The lines are the ones the install suite
+// runs against that mirror (tooling/agent-skills/tests/install), and `testedOn` is the Claude Code it ran on (the
+// version pinned in the root `plugin:validate` script; a unit test keeps the two equal).
+export const AUTOMATA_INSTALL = {
+  marketplace: '/plugin marketplace add mcthaydt/automata-skills',
+  plugin: '/plugin install automata@automata-skills',
+  skills: 'npx skills add mcthaydt/automata-skills',
+  testedOn: 'Claude Code 2.1.301',
+}
 export const AGENT_INSTALL_OPTIONS = [
   {
     name: 'Codex',
@@ -33,7 +42,8 @@ export const AGENT_INSTALL_OPTIONS = [
 export const SKILL_PREFLIGHT = `Before coding, check the skills available in this agent session.
 Confirm Superpowers is installed, including using-superpowers and its planning/testing workflows.
 Confirm the official PixiJS v8 skill collection is installed, including the pixijs router and relevant rendering skills.
+Confirm the Automata skills are installed (automata, automata-api, automata-editor, automata-feature, automata-verify).
 Read the applicable SKILL.md files and report their loaded paths or plugin names.
-If either collection is missing or cannot be loaded, stop and follow its upstream installation instructions before implementing.
+If any of them is missing or cannot be loaded, stop and follow its upstream installation instructions before implementing.
 Then read this checkout's AGENTS.md and current package types. Project rules take precedence.
 Do not report a skill as installed or loaded without evidence.`

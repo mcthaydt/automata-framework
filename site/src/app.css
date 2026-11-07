@@ -1025,8 +1025,13 @@ thead th {
   align-items: center;
   min-height: 44px;
 }
-.agent-install-layout .code-block {
+.agent-install-layout .code-block,
+.agent-automata .code-block {
   margin-block: 1rem;
+}
+.agent-automata {
+  margin-block: 0 2.5rem;
+  max-width: 40rem;
 }
 .agent-setup pre {
   white-space: pre-wrap;
