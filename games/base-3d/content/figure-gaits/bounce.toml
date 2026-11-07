@@ -1,4 +1,4 @@
-# `bounce` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/gaits.json at a1f7246.
+# `bounce`: a base figure's gait.
 
 cycle = 0.46
 speed = 3

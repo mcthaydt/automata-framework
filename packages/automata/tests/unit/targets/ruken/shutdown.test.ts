@@ -90,7 +90,7 @@ describe('shutting Hosting down (audit of PR #5)', () => {
   })
 })
 
-describe('the built-in save flush on exit (FloorFifty ruken/exit.ts)', () => {
+describe('the built-in save flush on exit', () => {
   it('flushes pending saves before the game tells the host it is ready to close, with no handler registered', () =>
     withHostingTest(async ({ hosting, handle: { host } }) => {
       await hosting.saves.set('progress', '2')

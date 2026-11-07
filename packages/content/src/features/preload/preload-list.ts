@@ -1,6 +1,5 @@
 // The files Ruken fetches before the game starts (`[loading] preload` in `ruken.toml`), worked out after a
-// build. Generalized from FloorFifty deploy/tools/ruken-pack.ts `preloadFor` (122a220): FloorFifty listed
-// its splash bundles and fonts in code; here the game names screens in `game.toml` (`preload_screens`,
+// build. The game names screens in `game.toml` (`preload_screens`,
 // default the flow's entry) and each screen's files in `assets.toml`, with the atlases and fonts of the asset
 // build it uses, whose pages and subsets join the list (`asset-build-files.ts`).
 //

@@ -1,6 +1,5 @@
 /**
- * The touch buttons' bookkeeping, from FloorFifty `systems/gameplay/touch-controls.ts` at
- * `ac72660`, over a game's action ids instead of its race's three.
+ * The touch buttons' bookkeeping, over a game's action ids.
  *
  * Multi-touch is the whole difficulty, and it lives here rather than in the component that draws the buttons. A
  * player holds left with one thumb and taps another button with the other, so each action tracks its own set of

@@ -12,6 +12,10 @@ import { THREE_D_NOT_PUBLIC } from '#src/shared/create-game/three-d-gate.ts'
 // What a new 3D game is made of: one room, Wick walking in it, a tuning file, the editor list, and the same feature
 // layout as the 2D game (features by name, shared numbers, the app that wires them, tests of the sim).
 
+// The source projects' names are written in pieces, so this file names none of them either.
+const SOURCE_NAMES = ['Figure' + 'Builder', 'Environment' + 'Builder', 'Last' + ' Light', 'Floor' + 'Fifty']
+const NO_SOURCE_NAMES = new RegExp(`${SOURCE_NAMES.join('|')}|Ruken M\\d|\\b[A-Z]{1,3}\\d\\.\\d\\b`)
+
 let root: string
 let dir: string
 let files: string[]
@@ -89,10 +93,7 @@ describe('the new 3D game’s files', () => {
   })
 
   it('names no source project and no plan id in anything it writes', () => {
-    for (const file of files)
-      expect(read(file), file).not.toMatch(
-        /FigureBuilder|EnvironmentBuilder|Last Light|Ruken M\d|\b[A-Z]{1,3}\d\.\d\b/,
-      )
+    for (const file of files) expect(read(file), file).not.toMatch(NO_SOURCE_NAMES)
   })
 
   it('keeps the sim free of the renderer, so its tests need no browser', () => {

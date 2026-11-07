@@ -13,7 +13,7 @@ import { box, createPixi3dRenderer, mesh, render3dExtension } from '@automata/3d
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
 
 // --- scene ---
-// The same nightstand twice: The Last Light's GLB and its packed .bin (resources/models/PROVENANCE.md).
+// The same nightstand twice: as a GLB and as its packed .bin (resources/models/PROVENANCE.md).
 const glb = new URL('../resources/models/nightstand.glb', import.meta.url).href
 const bin = new URL('../resources/models/nightstand.bin', import.meta.url).href
 
@@ -61,7 +61,7 @@ export default defineGame({
         [Packed.id]: mesh(bin, { height: 0.8 }),
       },
       // The camera and a sky-and-ground light, set once before the first frame (the angled camera rig and baked
-      // lamps arrive with M3.4b and M3.4d).
+      // lamps arrive later).
       scene: (view) => {
         view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
         view.camera.position.set(0, 2.4, 4.2)

@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { NavRepeat, REPEAT_DELAY_MS, REPEAT_EVERY_MS } from '#src/features/input/gamepad/nav-repeat.ts'
 
-// The held-direction repeat (M4 spec §4.3), from FloorFifty `gamepad-source.ts` at `ac72660` (lines 35–36 and
-// `fireNav`) and its "repeats a held direction after a delay, not every frame" test.
+// The held-direction repeat (M4 spec §4.3): it repeats a held direction after a delay, not every frame.
 const down = new Set(['down'] as const)
 const none = new Set<'down'>()
 

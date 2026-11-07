@@ -3,8 +3,7 @@
  *
  * `measureGeometry` is pure: it turns what the browser and the host report into one answer.
  * `applyGeometry` publishes that answer on the document root, where CSS reads it. The owner
- * (`geometry-owner.ts`) decides when to measure. Built from FloorFifty's `viewport-tracking.svelte.ts`
- * and `ruken/host.ts` `reservedOf` at 122a220.
+ * (`geometry-owner.ts`) decides when to measure.
  */
 
 import type { DisplayMetricsPayload } from '../../host/display.schema.ts'
@@ -84,7 +83,7 @@ export interface Geometry {
 
 const NO_INSETS: Insets = { top: 0, right: 0, bottom: 0, left: 0 }
 
-/** Ruken reserves a strip on one edge; its width is the rect's, never negative (FloorFifty `reservedOf`). */
+/** Ruken reserves a strip on one edge; its width is the rect's, never negative. */
 export function hostReservedInsets(host: HostDisplay | undefined): { left: number; right: number } {
   if (host === undefined) return { left: 0, right: 0 }
   const width = Math.max(0, host.hostReserved.rect.w)

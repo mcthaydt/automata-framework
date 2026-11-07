@@ -15,7 +15,7 @@ import { CameraHeading, cameraView, enterView, START } from '@automata/3d/sim'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
 
 // --- figure ---
-// Wick, his swatches and the `bounce` gait as in figures-walk (FigureBuilder 025ffb4), written as compiled.
+// Wick, his swatches and the `bounce` gait as in figures-walk, written as compiled.
 const duel = (ramp: Swatch['ramp'], step: number, more = {}): Swatch => ({ ramp, step, ...more })
 const cloak = { 'wick-cloak': duel('ocean', 3), 'wick-cloak-shade': duel('ocean', 1) }
 const trim = { 'wick-trim': duel('flame', 5, { gloss: 0.9 }), 'wick-boot': duel('brick', 0) }

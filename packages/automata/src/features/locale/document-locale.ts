@@ -1,6 +1,5 @@
 // The document follows the locale.
-// Extracted from FloorFifty apps/client/src/i18n/document.svelte.ts (ac72660), which set `lang` in a Svelte
-// effect; here the `Locale` service calls this on boot and on every change, and `dir` is set too, so a
+// The `Locale` service calls this on boot and on every change, and `dir` is set too, so a
 // right-to-left language lays out mirrored (with ui's logical properties).
 
 /** ISO 15924 scripts written right to left (the ones CLDR's likely subtags produce, plus their peers). */

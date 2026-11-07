@@ -3,8 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import SettingsScreen from '#src/app/screens/settings/SettingsScreen.svelte'
 import Extension from '../../../../fixtures/app/screens/settings/SettingsExtension.test.svelte'
 
-// The core Settings screen (M4 spec §4.8, M4-D8), laid out and behaving as FloorFifty's settings
-// (`ui/components/SettingsPanel.svelte` and `PauseOverlay.svelte` at a28dc44; Owner 2026-10-18, "match the layout and
+// The core Settings screen (M4 spec §4.8, M4-D8) (Owner 2026-10-18, "match the layout and
 // function, not the style"): a dialog over the dimmed game, two tabs whose sections scroll under them in one list,
 // and Back under the dialog; Escape and the dialog's Close go back too.
 

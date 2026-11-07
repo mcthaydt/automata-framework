@@ -1,4 +1,4 @@
-// How a random outfit draws the wardrobe's garments (FigureBuilder cast.ts `WARDROBE`): the fields a garment's draw
+// How a random outfit draws the wardrobe's garments: the fields a garment's draw
 // moves, the ones it moves under an outer layer, and an accessory's chance. Core's seeded random cast takes it as the
 // `wardrobe` argument of `randomCharacter`; core itself has no layered garments to draw.
 

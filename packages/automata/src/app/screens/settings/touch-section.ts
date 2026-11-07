@@ -1,4 +1,4 @@
-// The Touch controls group's words (FloorFifty `SettingsPanel.svelte` at a28dc44): how touch drives play.
+// The Touch controls group's words: how touch drives play.
 import type { ControlsTouchMode } from './controls-section'
 
 /** Every word the Touch controls group shows, in the game's language. */

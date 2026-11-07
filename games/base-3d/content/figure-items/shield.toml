@@ -1,4 +1,4 @@
-# Wick's shield (M3 spec §4.7). New for base-3d: FigureBuilder's items library (a1f7246) has no shield. A figure holds
+# Wick's shield (M3 spec §4.7). Made for base-3d. A figure holds
 # one item, in its `hand`, so the first slice shows the sword; the shield waits on a second hand's item (a follow-up
 # for figures, recorded in the M3.7b plan).
 

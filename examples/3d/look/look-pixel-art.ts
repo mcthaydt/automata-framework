@@ -26,7 +26,7 @@ const brows = { brow: duel('brick', 0, { flat: true }), mouth: duel('skin', 0, {
 const swatches = { ...cloak, ...trim, ...shade, ...face, ...brows }
 const library: FigureLibrary = { swatches, hair: {}, headwear: {}, items: {} }
 
-// FigureBuilder's `bounce` gait (src/features/motion/library/gaits.json at 025ffb4), grouped by what each part moves.
+// The `bounce` gait, grouped by what each part moves.
 const stride = { cycle: 0.46, speed: 3, stride: 0.6, duty: 0.54, lift: 0.065, bob: 0.05, crouch: 0.01 }
 const hips = { sway: 0.03, hipYaw: 0.09, hipRoll: 0.08, chestCounter: 0.5, lean: 0.03 }
 // The feet's heel and push walking; standOut and standElbow (how the arms hang standing) ride along.

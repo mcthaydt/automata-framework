@@ -1,7 +1,6 @@
 <!--
   @component
-  The core Settings screen, laid out and behaving as FloorFifty's settings
-  (`ui/components/SettingsPanel.svelte` in `PauseOverlay.svelte` at a28dc44; Owner 2026-10-18: "match the layout and
+  The core Settings screen, a dialog (Owner 2026-10-18: "match the layout and
   function, not the style"): a dialog over the dimmed game, the same frame as Paused, so going between them reads as
   one dialog changing its view. Tabs stay put and the chosen tab's sections scroll under them in one list that counts
   what is below; Back sits under the dialog, and Escape and the dialog's Close go back too. Where the dialog is 560 px
@@ -87,8 +86,7 @@ const current = $derived(tabs.find((tab) => tab.id === chosen) ?? tabs[0])
 </Modal>
 
 <style>
-  /* On a short or compact band the list keeps the row Back would take: the dialog's Close, named Back, does the same
-     (FloorFifty's Settings from its title has only the Close). A tall band draws both, as FloorFifty's pause does. */
+  /* On a short or compact band the list keeps the row Back would take: the dialog's Close, named Back, does the same A tall band draws both. */
   :global(:is([data-height='short'], [data-height='compact'])) :global(.af-modal__actions:has(> .af-settings__back)) {
     display: none;
   }
@@ -134,14 +132,14 @@ const current = $derived(tabs.find((tab) => tab.id === chosen) ?? tabs[0])
     gap: 16px;
   }
 
-  /* Two sections across where the dialog is wide enough (FloorFifty: Language beside Audio, Display beside Touch). */
+  /* Two sections across where the dialog is wide enough. */
   @container af-dialog (min-width: 560px) {
     .af-settings__sections {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       align-items: start;
       column-gap: 24px;
     }
-    /* A tab of one section (Controls) takes the width: FloorFifty's Controls tab is one column. */
+    /* A tab of one section (Controls) takes the width, one column. */
     .af-settings__section:only-child {
       grid-column: 1 / -1;
     }

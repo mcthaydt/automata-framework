@@ -1,5 +1,4 @@
-// `subset-font` ships no types; this is the part `font-subset.ts` calls. Copied from FloorFifty
-// packages/asset-contract/tools/subset-font.d.ts (ac72660).
+// `subset-font` ships no types; this is the part `font-subset.ts` calls.
 declare module 'subset-font' {
   export default function subsetFont(
     font: Uint8Array,

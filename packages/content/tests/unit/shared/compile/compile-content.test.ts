@@ -57,7 +57,7 @@ function caseSensitiveFs(): boolean {
 }
 
 describe('the fixture game', () => {
-  it('compiles FloorFifty’s real flow and tuning with its declarations', async () => {
+  it('compiles the fixture flow and tuning with their declarations', async () => {
     const { data } = await compiled(fixtureOptions(copyFixture('valid')))
     expect(Object.keys(data).sort()).toEqual([
       'assets',

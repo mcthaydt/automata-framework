@@ -3,9 +3,8 @@
 // over an arc (a pocket, a lens) or closed at both ends. And the questions a garment asks of a shell it lies
 // on: where its front is at (x, y), how wide it is, where its top is over x.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/streetwear.ts at a1f7246
-// (`Section`, `Loft`, `loft`, `Shell`, `frontOf`, `widthOf`, `topAt`, `angleAt`, `sectionZ`, `quadricZ`,
-// `torus`), with AF's strict types; the formulas and their order are the source's. Not taken: `backOf`
+// The parts here (`Section`, `Loft`, `loft`, `Shell`, `frontOf`, `widthOf`, `topAt`, `angleAt`, `sectionZ`, `quadricZ`,
+// `torus`), with AF's strict types; the formulas and their order are unchanged. Not taken: `backOf`
 // (nothing builds with it).
 
 import type { Section, Shell, Superquadric } from '@automata/3d/figures-kit'
