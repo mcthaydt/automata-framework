@@ -336,6 +336,9 @@ add new files as rows, record the new commit. `source-names` learns EnvironmentB
 | `seed` | `seed` | seeds generated maps and dressing |
 | `reads` | `reads: { minEdge?, hot? }` | read by the checks |
 | — | `decals`, `lettering` | from `world/decals.ts`, `lettering.ts` |
+| — | `zone` on a sector | a name the sim's rules can read (Plus's clinic uses it; the `sectors` extension reads it) |
+| — | `masses` on the level | solid blocks that are not sectors (the clinic's) |
+| — | `cut`, `hideFrom` on a corner's wall (`AfWall` stops omitting them) | which part of a wall is cut away and which views hide it |
 | — | entity definitions with `fields` (EG-2); pits as a sector flag `pit: true` (EG-3) | AF's own gaps |
 
 - **Migration:** `shared/level/af-sector-1-to-2.migration.ts`; the editor opens a `/1` file, says "This level was made
