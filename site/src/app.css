@@ -172,7 +172,7 @@ code,
 kbd {
   font-family: var(--font-mono);
 } /* taste-skill-ignore */
-/* Inline code breaks only where a word cannot fit on its own line at all, never inside a word that could (M2). */
+/* Inline code breaks only where a word cannot fit on its own line at all, never inside a word that could. */
 code {
   font-size: 0.88em;
   overflow-wrap: break-word;
@@ -323,7 +323,7 @@ nav.link-row a:hover {
 .docs-sidebar nav a,
 .doc-toc nav a {
   position: relative;
-  /* 44 px tall, so each row is a finger's tap target too (site visual audit M1). */
+  /* 44 px tall, so each row is a finger's tap target too. */
   display: flex;
   align-items: center;
   min-height: 44px;
@@ -584,7 +584,7 @@ nav.link-row a:hover {
   gap: 0.7rem;
   font-size: var(--step-small);
 }
-/* A tap target like any other: 44 px tall (M1). */
+/* A tap target like any other: 44 px tall. */
 .copy-control button {
   min-height: 44px;
   padding: 0 12px;
@@ -594,7 +594,7 @@ nav.link-row a:hover {
   display: none;
 }
 /* A command and its Copy, as Home's: a white box on a hairline, the command in mono, Copy at the right. A long
-   command wraps between words, never inside one (M2). */
+   command wraps between words, never inside one. */
 .terminal {
   display: flex;
   align-items: center;
@@ -1019,7 +1019,7 @@ thead th {
 .agent-install-layout > div {
   min-width: 0;
 }
-/* The upstream links stand alone under their steps, so each is a whole tap target (site visual audit M1). */
+/* The upstream links stand alone under their steps, so each is a whole tap target. */
 .agent-install-layout > div > a {
   display: inline-flex;
   align-items: center;

@@ -1,5 +1,5 @@
 <!--
-  The Editor page (spec 10.2): what the 2D level editor does in three pictures, "Try the editor" (the same build
+  The Editor page: what the 2D level editor does in three pictures, "Try the editor" (the same build
   `automata editor` serves, here on this browser's storage) and the command that opens it on a game. Home's look: one
   lime button, white panels on hairlines, 4/6/8 px corners.
 -->

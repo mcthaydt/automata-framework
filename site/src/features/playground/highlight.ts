@@ -1,4 +1,4 @@
-// The static code's highlighting (spec F1, §9.3), worked out at prerender with the editor's own parser and
+// The static code's highlighting, worked out at prerender with the editor's own parser and
 // `classHighlighter`, so the static code and the editor carry the same `tok-*` classes and the swap changes no colour.
 import { typescriptLanguage } from '@codemirror/lang-javascript'
 import { classHighlighter, highlightTree } from '@lezer/highlight'

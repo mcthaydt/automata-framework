@@ -1,5 +1,5 @@
 <!--
-  Add tiles (plan 12.3b): one dialog that turns a picture of tiles into something to paint with. Three steps on one
+  Add tiles: one dialog that turns a picture of tiles into something to paint with. Three steps on one
   screen: choose a picture, say how big one tile is (one stepper, in px), and see
   the picture with its grid drawn over it and the count in words. A size that does not fit says so and suggests sizes
   that do; Add tiles, the one primary action, waits until the picture and the size fit. It writes the picture into

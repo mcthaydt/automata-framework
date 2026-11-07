@@ -1,9 +1,9 @@
-// The share link (spec §5.6): `#code=1.<payload>`, where `1` is the format and the payload is the UTF-8 source,
+// The share link: `#code=1.<payload>`, where `1` is the format and the payload is the UTF-8 source,
 // compressed with deflate-raw, in base64url. The decoded text is only ever text: it goes into the editor and the frame.
 
-/** Decoding stops at this many decompressed bytes (§5.7). */
+/** Decoding stops at this many decompressed bytes. */
 export const MAX_SHARED_SOURCE_BYTES = 65_536
-/** A fragment longer than this is refused before it is decoded (§5.7). */
+/** A fragment longer than this is refused before it is decoded. */
 export const MAX_FRAGMENT_CHARS = 32_768
 
 const PREFIX = 'code=1.'

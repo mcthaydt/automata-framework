@@ -1,7 +1,7 @@
 /**
- * The header set every response of the site carries (QB.4a; quality-bar spec QB.4). serve-static.ts sends it, so the
+ * The header set every response of the site carries. serve-static.ts sends it, so the
  * browser suite and Lighthouse run under it. When the host is known
- * (DX.12) its configuration is written from this and from the playground's own headers (src/features/playground/headers.ts).
+ * its configuration is written from this and from the playground's own headers (src/features/playground/headers.ts).
  *
  * A site page's policy is a <meta> in the page (csp.ts), because its script hashes are per page; the header adds what a
  * <meta> policy cannot carry, the frame policy: the site's pages, its demos and the playground's frames may be framed by
@@ -30,7 +30,7 @@ export const DEMO_POLICY = [
 ].join('; ')
 
 /**
- * An example page's preview runs in a sandboxed frame with an opaque origin, which `(self)` never matches (WEB.PLAY.5),
+ * An example page's preview runs in a sandboxed frame with an opaque origin, which `(self)` never matches,
  * so example pages and the frame pages they load allow fullscreen and the gamepad to any origin. A frame still gets a
  * feature only through its `allow` attribute, and only the playground's frames carry one.
  */
@@ -45,7 +45,7 @@ export function securityHeaders(pathname: string): Record<string, string> {
     : 'fullscreen=(self), gamepad=(self)'
   return {
     // One day while the host is new: a broken certificate then locks returning readers out for a day, not a year.
-    // QB.4 raises it to a year once the live origin has passed `pnpm check:deployed` for a week.
+    // It becomes a year once the live origin has passed `pnpm check:deployed` for a week.
     'Strict-Transport-Security': 'max-age=86400; includeSubDomains',
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'strict-origin-when-cross-origin',

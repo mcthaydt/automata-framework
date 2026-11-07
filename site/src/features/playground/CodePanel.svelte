@@ -1,5 +1,5 @@
 <script lang="ts" module>
-/** `static` until the first tap or focus on the code, `loading` while the editor chunk downloads (spec F2, §7.3). */
+/** `static` until the first tap or focus on the code, `loading` while the editor chunk downloads. */
 export type CodeState = 'static' | 'loading' | 'ready' | 'failed'
 </script>
 <script lang="ts">
@@ -15,28 +15,28 @@ export type CodeState = 'static' | 'loading' | 'ready' | 'failed'
     title: string
     describedBy: string
     oncodestate?: (state: CodeState) => void
-    /** The editor's whole text after each change (spec F3). */
+    /** The editor's whole text after each change. */
     onedit?: (source: string) => void
-    /** The latest compile's problems, marked at their lines (spec F5). */
+    /** The latest compile's problems, marked at their lines. */
     diagnostics?: readonly Diagnostic[]
-    /** The page's address, which carries the edit (spec F8). */
+    /** The page's address, which carries the edit. */
     link: string
     /** The code differs from the original, so Reset is shown (F7). */
     edited?: boolean
     onreset?: () => void
-    /** One column only: whether the preview is shown (the toggle's `aria-pressed`, §8.2, §9.1). */
+    /** One column only: whether the preview is shown (the toggle's `aria-pressed`). */
     previewShown?: boolean
     ontogglepreview?: () => void
   } = $props()
   // One span per line, each carrying its newline, so the code's text is the source byte for byte; the line numbers are
-  // CSS counters and never part of it. The editor takes this box's size and font (spec §9.3), and the pieces carry the
+  // CSS counters and never part of it. The editor takes this box's size and font, and the pieces carry the
   // editor's own `tok-*` classes.
   let codeState = $state<CodeState>('static')
   let pre: HTMLElement | undefined = $state()
   let host: HTMLElement | undefined = $state()
   let editor = $state.raw<ReturnType<typeof Editor.mountEditor>>()
   let editorModule: typeof Editor | undefined
-  /** The editor's text, which Copy code copies (§8.2). */
+  /** The editor's text, which Copy code copies. */
   let edits = $state<string>()
   let current = $derived(edits ?? source)
   let destroyed = false
@@ -77,7 +77,7 @@ export type CodeState = 'static' | 'loading' | 'ready' | 'failed'
     if (editor) editorModule!.showDiagnostics(editor, diagnostics)
   })
 
-  /** Puts the caret on a diagnostic's line and focuses the editor (the status line's button, §8.2). */
+  /** Puts the caret on a diagnostic's line and focuses the editor (the status line's button). */
   export function focusAt(line: number, column: number) {
     if (editor) editorModule!.moveCaret(editor, line, column)
   }
@@ -115,7 +115,7 @@ export type CodeState = 'static' | 'loading' | 'ready' | 'failed'
   .code-header :global(button) { min-height: 44px; min-width: 44px; }
   .code-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .5rem; }
   .reset, .preview-toggle { padding: .3rem .8rem; font-size: var(--step-micro); }
-  /* Side by side the preview is always in view, so the toggle is only for one column (§8.2). */
+  /* Side by side the preview is always in view, so the toggle is only for one column. */
   @container playground (min-width: 700px) { .preview-toggle { display: none; } }
   .static-code { margin: 0; padding: 1rem 1rem 1rem calc(3ch + 2rem); font-size: 1rem; line-height: 1.5; white-space: break-spaces; overflow-wrap: anywhere; word-break: break-word; overflow: visible; counter-reset: line; }
   /* The editor's own wrapping rules (`EditorView.lineWrapping`), which the site's `pre code` would otherwise reset. */
@@ -123,7 +123,7 @@ export type CodeState = 'static' | 'loading' | 'ready' | 'failed'
   .static-code[hidden] { display: none; }
   .line { counter-increment: line; }
   .line::before { content: counter(line); display: inline-block; width: 3ch; margin-left: calc(-3ch - 1rem); margin-right: 1rem; text-align: right; color: var(--muted); user-select: none; }
-  /* The site's focus ring, on the static code and on the editor (§9.2). `:focus-within`, not `.cm-focused`: CodeMirror
+  /* The site's focus ring, on the static code and on the editor. `:focus-within`, not `.cm-focused`: CodeMirror
      sets that class a moment after focus arrives, and the ring should not lag the caret. */
   .static-code:focus-visible, .editor-host :global(.cm-editor:focus-within) { outline: 2px solid var(--focus); outline-offset: -2px; }
   /* `classHighlighter`'s classes, shared by the static code and the editor. Colour only: weight and style would change

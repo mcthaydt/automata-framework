@@ -2,7 +2,7 @@ import { z } from 'zod'
 import type { CompileResult } from './compile'
 import type { Clock } from './orchestrator'
 
-// Live updates (spec F3, §5.2's last paragraph): every edit restarts the quiet period; when it ends the source goes to
+// Live updates: every edit restarts the quiet period; when it ends the source goes to
 // the compile worker with the next `seq`, and only the answer to the latest `seq` is passed on, so a slow compile of an
 // older text never replaces a newer one. The clock and the worker are injected, so all of it runs in a unit test.
 

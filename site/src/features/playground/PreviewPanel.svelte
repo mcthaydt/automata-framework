@@ -62,7 +62,7 @@ const FULLSCREEN_UNAVAILABLE = 'Fullscreen is unavailable in this browser.'
   .toolbar-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .5rem; }
   .fullscreen-message { margin: 0; padding: .5rem 1rem; font-size: var(--step-small); }
   .preview-box { position: relative; width: 100%; aspect-ratio: 16 / 10; background: #12201f; }
-  /* Side by side on a short screen (§9.1): the box is capped by the height below the header and toolbar, and the game
+  /* Side by side on a short screen: the box is capped by the height below the header and toolbar, and the game
      letterboxes inside it. */
   @media (max-height: 499.98px) {
     @container playground (min-width: 700px) { .preview-box { max-height: calc(100svh - 5rem - 52px); } }

@@ -93,7 +93,7 @@ import ShapesPreview from './ShapesPreview.svelte'
       you save.
     </p>
     <div class="wide">
-      <!-- Far below the poster: in the page only once the reader is near it (NearView, QB.3j). -->
+      <!-- Far below the poster: in the page only once the reader is near it (NearView). -->
       <NearView>
         <picture>
           <source media="(max-width: 760px)" type="image/webp" srcset="/previews/editor-phone.webp" />
@@ -521,7 +521,7 @@ import ShapesPreview from './ShapesPreview.svelte'
       width: 100%;
     }
   }
-  /* A phone on its side (audit M3): one column would push the demo below the fold, so the words and the game sit
+  /* A phone on its side: one column would push the demo below the fold, so the words and the game sit
      side by side, as on a desktop, and the heading shrinks to fit the short screen. */
   @media (orientation: landscape) and (max-height: 500px) and (min-width: 640px) {
     .intro {

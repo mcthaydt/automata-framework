@@ -1,5 +1,5 @@
 <!--
-  The Level view's canvas region, canvas first (spec 11.4): the Pixi level canvas fills the region edge to edge, with
+  The Level view's canvas region, canvas first: the Pixi level canvas fills the region edge to edge, with
   the kit's gesture recogniser on it feeding the session through the gesture map, and the keyboard shortcuts. Over it
   float the tool pill (`LevelToolbar`) and, in a corner, the zoom (− 100 % +), Fit (the whole level in view) and, below
   `wide`, Details (the inspector): on a phone the tools are a dock across the foot and the corner sits at the top right; from an iPad up the

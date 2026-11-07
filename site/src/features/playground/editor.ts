@@ -1,4 +1,4 @@
-// The editor (spec F2, §9.2, §9.3), loaded on the reader's first tap or focus on the code and never preloaded: its
+// The editor, loaded on the reader's first tap or focus on the code and never preloaded: its
 // chunk is held to MAX_EDITOR_CHUNK_GZIP_BYTES by `check:site`. Its layout matches the static code's box exactly
 // (CodePanel.svelte): Geist Mono at 16 px, line height 1.5, 1rem padding, a three-digit gutter and wrapped lines.
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
@@ -20,7 +20,7 @@ export interface EditorOptions {
   readonly describedBy: string
   /** Where the caret starts: the source offset the reader tapped. */
   readonly anchor: number
-  /** Called with the whole text after each change, but not during IME composition: once it ends (spec F3). */
+  /** Called with the whole text after each change, but not during IME composition: once it ends. */
   readonly onchange: (doc: string) => void
 }
 
@@ -69,7 +69,7 @@ export function mountEditor({
       syntaxHighlighting(classHighlighter),
       EditorState.tabSize.of(2),
       EditorView.lineWrapping,
-      // No indentWithTab: Tab and Shift+Tab leave the editor, so the keyboard gate finds no trap (§9.2).
+      // No indentWithTab: Tab and Shift+Tab leave the editor, so the keyboard gate finds no trap.
       keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap]),
       EditorView.contentAttributes.of({
         'aria-label': label,
@@ -97,7 +97,7 @@ export function mountEditor({
   const view = new EditorView({ state, parent })
   // CodeMirror draws only the lines near the screen and estimates the others' heights, so a wrapped file's box would
   // come out a few lines off the static code's. Its print mode draws and measures every line, and the heights it
-  // measures stay; the examples are short, so one full measure at mount is cheap and the box keeps its size (§9.3).
+  // measures stay; the examples are short, so one full measure at mount is cheap and the box keeps its size.
   // `viewState.printing` and `measure` are internal to @codemirror/view (pinned in package.json); the e2e box test
   // guards them.
   const internal = view as unknown as { viewState?: { printing?: boolean }; measure?: () => void }
@@ -115,7 +115,7 @@ function offsetOf(view: EditorView, line: number, column: number): number {
   return Math.min(at.from + Math.max(column, 1) - 1, at.to)
 }
 
-/** Marks each diagnostic in the gutter and underlines it to the end of its line (spec F5); none clears them. */
+/** Marks each diagnostic in the gutter and underlines it to the end of its line; none clears them. */
 export function showDiagnostics(view: EditorView, diagnostics: readonly Diagnostic[]) {
   view.dispatch(
     setDiagnostics(
@@ -135,13 +135,13 @@ export function showDiagnostics(view: EditorView, diagnostics: readonly Diagnost
   )
 }
 
-/** Puts the caret at a 1-based line and column and focuses the editor (the status line's diagnostic, §8.2). */
+/** Puts the caret at a 1-based line and column and focuses the editor (the status line's diagnostic). */
 export function moveCaret(view: EditorView, line: number, column: number) {
   view.dispatch({ selection: EditorSelection.cursor(offsetOf(view, line, column)), scrollIntoView: true })
   view.focus()
 }
 
-/** Replaces the whole text in one undoable transaction (Reset, spec F7: Mod-Z brings the edit back). */
+/** Replaces the whole text in one undoable transaction (Reset: Mod-Z brings the edit back). */
 export function replaceAll(view: EditorView, text: string) {
   view.dispatch({
     changes: { from: 0, to: view.state.doc.length, insert: text },

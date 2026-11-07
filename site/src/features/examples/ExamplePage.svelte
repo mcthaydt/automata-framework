@@ -37,7 +37,7 @@ let example = $derived(data.example)
   .demo-list p { margin: 1rem 0 .25rem; font-size: var(--step-small); font-weight: 600; }
   .demo-list a { min-height: 44px; display: flex; align-items: center; }
   @media (max-width: 900px) { .examples-layout { grid-template-columns: minmax(0, 1fr); } aside { order: 1; } }
-  /* A phone on its side (audit M3): the facts would fill the screen, so the running example comes first. */
+  /* A phone on its side: the facts would fill the screen, so the running example comes first. */
   @media (orientation: landscape) and (max-height: 500px) {
     article { display: flex; flex-direction: column; }
     .spec-list { order: 1; }

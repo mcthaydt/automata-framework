@@ -21,7 +21,7 @@ interface Props {
 
 const { layers, current, hidden, locked, onselect, onhidden, onlocked }: Props = $props()
 
-/** What a layer holds, in a player's words (spec 11.5). */
+/** What a layer holds, in a player's words. */
 const KIND_WORDS: Readonly<Record<LayerDef['kind'], string>> = {
   tiles: 'Tiles',
   intgrid: 'Walls and floors',

@@ -1,0 +1,101 @@
+/*
+  The editor shell's grid: which regions sit where in each layout mode (wide, medium, compact), with the rail, the panel
+  or the inspector left out. One file for the layout so EditorShell.svelte keeps to the shell's behaviour; the
+  attributes it reads (`data-mode`, `data-dock`, `data-rail`, `data-panel`, `data-inspector`) are the shell's own.
+*/
+
+/* Sizes from the mockups (docs/design/editor-2d). Targets never shrink with the window; only gutters do. The top bar
+   is at least --shell-topbar tall and grows when its content wraps (the document's bar takes two rows on a phone).
+   A screen with nothing to put in a column sets its width to 0 below. */
+[data-editor-shell] {
+  --shell-topbar: 52px;
+  --shell-rail: 56px;
+  --shell-tabbar: 64px;
+  --shell-panel: 264px;
+  --shell-inspector: 320px;
+  --shell-dock: 148px;
+}
+
+[data-editor-shell][data-mode="wide"] {
+  grid-template-columns: var(--shell-rail) var(--shell-panel) minmax(0, 1fr) var(--shell-inspector);
+  grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    "topbar topbar topbar topbar"
+    "rail panel canvas inspector"
+    "rail panel dock inspector"
+    "status status status status";
+}
+
+/* A short window keeps the dock out of the grid: it is a sheet over the canvas, summoned by the editor. */
+[data-editor-shell][data-mode="wide"][data-dock="sheet"] {
+  grid-template-areas:
+    "topbar topbar topbar topbar"
+    "rail panel canvas inspector"
+    "rail panel canvas inspector"
+    "status status status status";
+}
+
+/* Medium: the panel stays beside the canvas (the layers are what a person reaches for most); the rest float. */
+[data-editor-shell][data-mode="medium"] {
+  grid-template-columns: var(--shell-panel) minmax(0, 1fr);
+  grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto var(--shell-tabbar);
+  grid-template-areas:
+    "topbar topbar"
+    "panel canvas"
+    "status status"
+    "rail rail";
+}
+
+[data-editor-shell][data-mode="compact"] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto var(--shell-tabbar);
+  grid-template-areas:
+    "topbar"
+    "canvas"
+    "status"
+    "rail";
+}
+
+/* A screen with nothing to list beside its canvas (the suite's Home) gives the panel's column to the canvas. */
+[data-editor-shell][data-panel="none"] {
+  --shell-panel: 0px;
+}
+
+/* A view whose inspector is not built yet gives its column to the canvas. */
+[data-editor-shell][data-inspector="none"] {
+  --shell-inspector: 0px;
+}
+
+/* A screen with no destinations (Home) gives the rail's column, and the tab bar's row, to the canvas. */
+[data-editor-shell][data-mode="wide"][data-rail="none"] {
+  grid-template-columns: var(--shell-panel) minmax(0, 1fr) var(--shell-inspector);
+  grid-template-areas:
+    "topbar topbar topbar"
+    "panel canvas inspector"
+    "panel dock inspector"
+    "status status status";
+}
+
+[data-editor-shell][data-mode="wide"][data-rail="none"][data-dock="sheet"] {
+  grid-template-areas:
+    "topbar topbar topbar"
+    "panel canvas inspector"
+    "panel canvas inspector"
+    "status status status";
+}
+
+[data-editor-shell][data-mode="medium"][data-rail="none"] {
+  grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto;
+  grid-template-areas:
+    "topbar topbar"
+    "panel canvas"
+    "status status";
+}
+
+[data-editor-shell][data-mode="compact"][data-rail="none"] {
+  grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto;
+  grid-template-areas:
+    "topbar"
+    "canvas"
+    "status";
+}

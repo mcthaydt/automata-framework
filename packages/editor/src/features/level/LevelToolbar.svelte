@@ -1,5 +1,5 @@
 <!--
-  The Level view's tools: one pill floating over the canvas (spec 11.4), centred at its top from an iPad up and at its
+  The Level view's tools: one pill floating over the canvas, centred at its top from an iPad up and at its
   foot on a phone as a dock under the thumb (`at`), never running off the edge (G5). It holds, in the compact layout,
   Layers (which opens the layers and the palette as a sheet), then the six tools as icons, each named in plain words (its tooltip and its
   accessible name: Select, Brush, Rectangle, Fill, Eraser, Copy a tile), and while a brush or the eraser is out the

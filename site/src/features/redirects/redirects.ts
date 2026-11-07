@@ -1,4 +1,4 @@
-// The pages the lean site cut (spec 10.2), and where each old address now leads. A visitor or a search result that
+// The pages the lean site cut, and where each old address now leads. A visitor or a search result that
 // still holds an old link lands on the page that took its place, never on the 404.
 //
 // The site is static and its host is not chosen yet (D8), so a redirect is a small page of its own rather than a
@@ -22,7 +22,7 @@ export const REDIRECTS: Readonly<Record<string, string>> = {
   '/proof': '/',
   '/releases': '/',
   '/sources': '/',
-  // The site's own docs pages, folded into How it works or the page that now says the same (task 18.4).
+  // The site's own docs pages, folded into How it works or the page that now says the same.
   ...docsMovedTo('/docs/how-it-works', [
     'overview',
     'sim-ecs',

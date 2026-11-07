@@ -75,7 +75,7 @@ function thumb(tile: number | undefined): string {
   </section>
 
   <section aria-labelledby="auto-heading">
-    <!-- The auto layers in the Level view's words for them (spec 11.5). -->
+    <!-- The auto layers in the Level view's words for them. -->
     <h2 id="auto-heading">Tiles that place themselves</h2>
     {#if layer === undefined}
       <p class="empty">None in this game yet.</p>

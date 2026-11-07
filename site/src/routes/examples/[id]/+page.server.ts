@@ -4,12 +4,12 @@ import { exampleIndex, getExample, getExamples } from '../../../shared/framework
 import type { EntryGenerator, PageServerLoad } from './$types'
 
 // One prerendered page per catalog example (PLAY-D9). A server load, so each page's data carries its own example and
-// the source-free index; the other sources never reach the browser (QB.3h's rule for example sources).
+// the source-free index; the other sources never reach the browser.
 export const entries = (() => getExamples().map((example) => ({ id: example.id }))) satisfies EntryGenerator
 
 export const load = (async ({ params }) => {
   const example = getExample(params.id)
   if (!example) error(404, 'No such example')
-  // Highlighted here, at prerender, so the parser never reaches the page's scripts (spec F1, §9.3).
+  // Highlighted here, at prerender, so the parser never reaches the page's scripts.
   return { example, highlighted: highlightLines(example.source), index: exampleIndex() }
 }) satisfies PageServerLoad

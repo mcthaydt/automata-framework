@@ -1,7 +1,7 @@
 import { parse } from '@babel/parser'
 import { transform } from 'sucrase'
 
-// The playground's compile step (spec §5.2), a pure function the compile worker wraps. Babel parses the reader's
+// The playground's compile step, a pure function the compile worker wraps. Babel parses the reader's
 // TypeScript, because it places a syntax error inside an arrow function at its own line where sucrase's parser names
 // the function's first line; the same tree gives the import check, the loop guards and the import.meta.url rewrite,
 // applied as text edits that add no newline; sucrase then strips the types and keeps every line where it was, so a

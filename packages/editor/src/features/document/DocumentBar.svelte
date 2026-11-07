@@ -270,10 +270,10 @@ onMount(() => {
     font: var(--text-body-13);
   }
   /* A phone: the path keeps room for the level's name, which is what a person is looking for, so the document's name
-     is held to a few letters (a tap still renames it) and the buttons beside it are a little tighter. */
+     is held to a few letters, still a 44 px target (a tap renames it) and the buttons beside it are a little tighter. */
   .bar[data-compact='true'] .title[data-place='true'] h1 {
-    min-width: 0;
-    max-width: 3rem;
+    min-width: var(--size-hit);
+    max-width: 3.25rem;
   }
   .bar[data-compact='true'] .actions :global(button) {
     padding-inline: var(--space-3);

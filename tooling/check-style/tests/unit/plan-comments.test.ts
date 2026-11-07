@@ -20,6 +20,10 @@ describe('citations in a .ts comment', () => {
     ['// task 6.4 cut this\nexport const a = 1\n'],
     ['// Task 6.4 cut this\nexport const a = 1\n'],
     ['// the old entry (M1.6 spec §3.3)\nexport const a = 1\n'],
+    ['// a pill over the stage (spec 11.4)\nexport const a = 1\n'],
+    ['// the editor loads late (spec F2)\nexport const a = 1\n'],
+    ['// the editor loads late (spec F-4)\nexport const a = 1\n'],
+    ['// as plan 12.3 says\nexport const a = 1\n'],
   ])('%j is flagged', (code) => {
     expect(check(code)).toEqual([finding('/p/a.ts', 1)])
   })
@@ -30,6 +34,8 @@ describe('citations in a .ts comment', () => {
     '// HTTP/2 and UTF-8 both work here\nexport const a = 1\n',
     '// Uses a 3.4 GHz clock in the benchmark\nexport const a = 1\n',
     '// The M4-style layout is two columns\nexport const a = 1\n',
+    '// The spec is the file the user wrote, so it is read as it is\nexport const a = 1\n',
+    '// A plan for 3 days of food, spec by spec\nexport const a = 1\n',
   ])('%j passes', (code) => {
     expect(check(code)).toEqual([])
   })

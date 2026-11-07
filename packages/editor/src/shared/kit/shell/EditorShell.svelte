@@ -38,6 +38,7 @@ import type { GeometryState } from '@automata/framework'
 import type { Snippet } from 'svelte'
 import RegionError from './RegionError.svelte'
 import type { SnippetRegion } from './region-error'
+import { shellFoot } from './shell-foot.svelte'
 import {
   type Detent,
   defaultDockOpen,
@@ -48,6 +49,8 @@ import {
   shellModeAt,
 } from './shell-mode'
 import { type OpenState, reconcileOpen } from './shell-open'
+import './shell-layout.css'
+import './shell-regions.css'
 
 interface Props {
   geometry: GeometryState
@@ -140,26 +143,14 @@ const dockLift: string | undefined = $derived(
 )
 
 // How far the foot of the shell (the tab bar, and the status line above it or beside the canvas) rises from the
-// bottom of the window, so a toast in `sheets` sits above it rather than over its controls. Without a ResizeObserver
-// (jsdom) nothing is measured and the toast keeps to the window's foot.
+// bottom of the window, so a toast in `sheets` sits above it rather than over its controls.
 let railElement = $state<HTMLElement>()
 let statusElement = $state<HTMLElement>()
-let railHeight = $state(0)
-let statusHeight = $state(0)
-$effect(() => {
-  if (typeof ResizeObserver === 'undefined') return
-  // A region taken away while shown leaves its binding null, not undefined: measure only elements that are there.
-  const measured = [railElement, statusElement].filter((element) => element instanceof Element)
-  const observer = new ResizeObserver(() => {
-    railHeight = railElement?.offsetHeight ?? 0
-    statusHeight = statusElement?.offsetHeight ?? 0
-  })
-  for (const element of measured) observer.observe(element)
-  return () => observer.disconnect()
+const foot = shellFoot({
+  elements: () => [railElement, statusElement],
+  railShown: () => rail !== undefined && mode !== 'wide',
+  statusShown: () => status !== undefined,
 })
-const footLift = $derived(
-  `${(rail !== undefined && mode !== 'wide' ? railHeight : 0) + (status !== undefined ? statusHeight : 0)}px`,
-)
 
 function sheetStyle(name: ShellRegion): string | undefined {
   return presentation[name] === 'sheet' ? `--sheet-height: ${detentLength(name, detents[name])}` : undefined
@@ -288,7 +279,7 @@ function sheetStyle(name: ShellRegion): string | undefined {
 </div>
 
 <!-- `display: contents`: the sheets position themselves; this only hands them the height of the shell's foot. -->
-<div class="sheets" style:--shell-foot={footLift}>{@render sheets?.()}</div>
+<div class="sheets" style:--shell-foot={foot.lift}>{@render sheets?.()}</div>
 
 <style>
   /* A touch must not behave like a web page's (the Owner, on a real iPad: a double tap zoomed, and a hold selected the
@@ -318,15 +309,9 @@ function sheetStyle(name: ShellRegion): string | undefined {
   .sheets {
     display: contents;
   }
-  /* Sizes from the mockups (docs/design/editor-2d). Targets never shrink with the window; only gutters do. The top bar
-     is at least --shell-topbar tall and grows when its content wraps (the document's bar takes two rows on a phone). */
+  /* The shell's own box: the whole window less the safe areas and the keyboard. Its grid is `shell-layout.css`, its
+     regions `shell-regions.css`. */
   .shell {
-    --shell-topbar: 52px;
-    --shell-rail: 56px;
-    --shell-tabbar: 64px;
-    --shell-panel: 264px;
-    --shell-inspector: 320px;
-    --shell-dock: 148px;
     position: fixed;
     /* The insets and the keyboard come from the geometry owner; without one (a bare fixture) the browser's env(). */
     inset: 0 0 var(--af-visual-inset-bottom, 0px);
@@ -343,290 +328,5 @@ function sheetStyle(name: ShellRegion): string | undefined {
   /* With the keyboard up the foot already ends above it, and the bottom safe area is under the keyboard. */
   :global(:root[data-visual-inset]) .shell {
     padding-bottom: 0;
-  }
-
-  .shell[data-mode='wide'] {
-    grid-template-columns: var(--shell-rail) var(--shell-panel) minmax(0, 1fr) var(--shell-inspector);
-    grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto auto;
-    grid-template-areas:
-      'topbar topbar topbar topbar'
-      'rail panel canvas inspector'
-      'rail panel dock inspector'
-      'status status status status';
-  }
-
-  /* A short window keeps the dock out of the grid: it is a sheet over the canvas, summoned by the editor. */
-  .shell[data-mode='wide'][data-dock='sheet'] {
-    grid-template-areas:
-      'topbar topbar topbar topbar'
-      'rail panel canvas inspector'
-      'rail panel canvas inspector'
-      'status status status status';
-  }
-
-  /* Medium: the panel stays beside the canvas (the layers are what a person reaches for most); the rest float. */
-  .shell[data-mode='medium'] {
-    grid-template-columns: var(--shell-panel) minmax(0, 1fr);
-    grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto var(--shell-tabbar);
-    grid-template-areas:
-      'topbar topbar'
-      'panel canvas'
-      'status status'
-      'rail rail';
-  }
-
-  .shell[data-mode='compact'] {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto var(--shell-tabbar);
-    grid-template-areas:
-      'topbar'
-      'canvas'
-      'status'
-      'rail';
-  }
-
-  /* A screen with nothing to list beside its canvas (the suite's Home) gives the panel's column to the canvas. */
-  .shell[data-panel='none'] {
-    --shell-panel: 0px;
-  }
-
-  /* A view whose inspector is not built yet gives its column to the canvas. */
-  .shell[data-inspector='none'] {
-    --shell-inspector: 0px;
-  }
-
-  /* A screen with no destinations (Home) gives the rail's column, and the tab bar's row, to the canvas. */
-  .shell[data-mode='wide'][data-rail='none'] {
-    grid-template-columns: var(--shell-panel) minmax(0, 1fr) var(--shell-inspector);
-    grid-template-areas:
-      'topbar topbar topbar'
-      'panel canvas inspector'
-      'panel dock inspector'
-      'status status status';
-  }
-
-  .shell[data-mode='wide'][data-rail='none'][data-dock='sheet'] {
-    grid-template-areas:
-      'topbar topbar topbar'
-      'panel canvas inspector'
-      'panel canvas inspector'
-      'status status status';
-  }
-
-  .shell[data-mode='medium'][data-rail='none'] {
-    grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto;
-    grid-template-areas:
-      'topbar topbar'
-      'panel canvas'
-      'status status';
-  }
-
-  .shell[data-mode='compact'][data-rail='none'] {
-    grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto;
-    grid-template-areas:
-      'topbar'
-      'canvas'
-      'status';
-  }
-
-  .region {
-    box-sizing: border-box;
-    min-width: 0;
-    min-height: 0;
-  }
-
-  [data-region='topbar'] {
-    grid-area: topbar;
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: 0 var(--space-2);
-    background: var(--paper);
-    border-bottom: 1px solid var(--line);
-  }
-
-  [data-region='rail'] {
-    grid-area: rail;
-    display: flex;
-    background: var(--paper);
-  }
-
-  [data-region='rail'][data-presentation='rail'] {
-    flex-direction: column;
-    border-right: 1px solid var(--line);
-  }
-
-  [data-region='rail'][data-presentation='tabbar'] {
-    flex-direction: row;
-    border-top: 1px solid var(--line);
-  }
-
-  [data-region='canvas'] {
-    grid-area: canvas;
-    position: relative;
-    overflow: hidden;
-    background: var(--charcoal);
-    /* The canvas takes every gesture itself: it never scrolls or pulls the page. */
-    touch-action: none;
-    overscroll-behavior: none;
-  }
-
-  [data-region='status'] {
-    grid-area: status;
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding: 0 var(--space-3);
-    min-height: 28px;
-    font: var(--text-mono-11);
-    color: var(--muted);
-    background: var(--paper);
-    border-top: 1px solid var(--line);
-  }
-
-  /* The kit's StatusLine is a bar of its own: it takes the whole region (the region's border stays the one border). */
-  [data-region='status'] :global([data-widget='status-line']) {
-    flex: 1 1 auto;
-    align-self: stretch;
-    margin: 0 calc(-1 * var(--space-3));
-    border-top: 0;
-  }
-
-  /* panel, inspector and dock share a column: an optional handle, then the scrolling body. */
-  [data-region='panel'],
-  [data-region='inspector'],
-  [data-region='dock'] {
-    display: flex;
-    flex-direction: column;
-    background: var(--paper);
-  }
-
-  .body {
-    flex: 1;
-    min-height: 0;
-    overflow: auto;
-    overscroll-behavior: contain;
-    /* The end edge keeps 16 px: macOS lays its overlay scroll bar (about 15 px, hit-tested in Safari) over that edge
-       once the body scrolls, and a control under it would lose its taps there. */
-    padding: var(--space-2) var(--space-4) var(--space-2) var(--space-2);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  [data-region='panel'][data-presentation='inline'] {
-    grid-area: panel;
-    border-right: 1px solid var(--line);
-  }
-
-  [data-region='inspector'][data-presentation='inline'] {
-    grid-area: inspector;
-    border-left: 1px solid var(--line);
-  }
-
-  [data-region='dock'][data-presentation='inline'] {
-    grid-area: dock;
-    height: var(--shell-dock);
-    border-top: 1px solid var(--line);
-  }
-
-  [data-region='dock'][data-presentation='inline'][data-open='false'] {
-    height: 0;
-    border-top-width: 0;
-    visibility: hidden;
-  }
-
-  /* The floating inspector and the sheets sit in the canvas's cell, above it. */
-  [data-presentation='float'],
-  [data-presentation='sheet'] {
-    grid-area: canvas;
-    z-index: 2;
-    transition: none;
-  }
-
-  /* Medium's inspector: a card over the canvas's lower right (the mockup), above an open dock sheet, leaving the
-     top of the canvas to the tools: the row a stage pill floats in (its margins, a target, its padding and its
-     edges). It is the wide inspector's width, so its fields lay out the same. It never runs off the canvas: it
-     scrolls inside instead. */
-  [data-presentation='float'] {
-    --pill-row: calc(2 * var(--space-3) + var(--size-hit) + 2 * var(--space-1) + 2px);
-    align-self: end;
-    justify-self: end;
-    width: min(var(--shell-inspector), calc(100% - 2 * var(--space-3)));
-    max-height: calc(100% - var(--dock-lift, 0px) - var(--space-3) - var(--pill-row));
-    margin: 0 var(--space-3) calc(var(--dock-lift, 0px) + var(--space-3)) 0;
-    border: 1px solid var(--line);
-    border-radius: var(--edge-lg);
-    box-shadow: var(--shadow-sheet);
-    overflow: hidden;
-  }
-
-  [data-presentation='sheet'] {
-    align-self: end;
-    justify-self: stretch;
-    height: var(--sheet-height);
-    border-top: 1px solid var(--line-strong);
-    border-radius: var(--edge-lg) var(--edge-lg) 0 0;
-    box-shadow: var(--shadow-sheet);
-    transform: translateY(100%);
-  }
-
-  [data-presentation='sheet'][data-open='true'] {
-    transform: none;
-  }
-
-  /* Closed: out of sight and out of the tab order, but still laid out so scroll positions are kept. */
-  [data-presentation='float'][data-open='false'],
-  [data-presentation='sheet'][data-open='false'] {
-    visibility: hidden;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    [data-presentation='sheet'] {
-      transition:
-        transform 160ms ease-out,
-        visibility 0s linear 160ms;
-    }
-
-    [data-presentation='sheet'][data-open='true'] {
-      transition:
-        transform 160ms ease-out,
-        visibility 0s;
-    }
-  }
-
-  .handle {
-    flex: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    min-height: var(--size-hit);
-    padding: 0;
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-  }
-
-  .handle:focus-visible {
-    outline: 2px solid var(--focus);
-    outline-offset: -4px;
-    border-radius: var(--edge-sm);
-  }
-
-  .grip {
-    width: 36px;
-    height: 4px;
-    border-radius: var(--edge-sm);
-    background: var(--line-strong);
-  }
-
-  .scrim {
-    grid-area: canvas;
-    z-index: 1;
-    padding: 0;
-    border: 0;
-    background: var(--scrim);
-    cursor: default;
   }
 </style>
