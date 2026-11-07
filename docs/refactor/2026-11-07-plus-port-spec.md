@@ -12,7 +12,8 @@
   they're free anyway, and move the stuff 3D is doing here, and cut the starter" (15:05 UTC). The last answer stands.
 - **Approval:** the Owner's standing rule (2026-10-31): "Reminder that everything is auto approved and accepted, do not
   wait on me to do any approvals". This spec is accepted when its plan audit (stage 3) is done; its veto defaults
-  (section 12) stand unless the Owner says otherwise.
+  (section 12) stand unless the Owner says otherwise. **Accepted 2026-11-07:** the plan audit is done
+  ([2026-11-07-plus-port-plan-audit.md](2026-11-07-plus-port-plan-audit.md), 16 findings fixed in place).
 
 ## 1. What this is for
 
@@ -85,7 +86,7 @@ instead of writing them a second time. Success is:
 | `packages/cutscenes` | `extensions/cutscenes` | `@automata/cutscenes` | with 3D | `sectors`, `@automata/3d` (timeline, piece states) |
 | `packages/narrative` | `extensions/narrative` | `@automata/narrative` | with 3D | `sectors`, `puzzle` |
 | `packages/systems` | `extensions/systems` | `@automata/systems` | with 3D | `sectors`, `nav`, `puzzle` |
-| `tooling/pipelines` | `extensions/pipelines` | `@automata/pipelines` | no (private Node tool) | the extensions it drives |
+| `tooling/pipelines` | `extensions/pipelines` | `@automata/pipelines` | no (private Node tool) | the extensions it drives, `@automata/editor/gate-records` |
 | `packages/dev-tools` | `tooling/dev-tools` | `@automata/dev-tools` | no (private Node tool) | |
 | `starters/party-racer` | not ported (Owner: "cut the starter") | | | |
 
@@ -114,7 +115,7 @@ standing rule. Where this spec departs from the audit's text, the row says why.
 | P-D8 | `feel` and `net`'s client become plain TypeScript; `feel` takes a `Clock` from `@automata/framework`. `net-server`, `pipelines` and `dev-tools` keep Effect (Node). `pnpm boundaries` forbids `effect` in every extension except those three | |
 | P-D9 | The framework's house rules, run by the framework's own checks (section 6) | |
 | P-D10 | The starter is cut (Owner). `dev-tools` and the kit are ported. The kit is an installable package: a game adds `@automata/ui-screens` and imports a screen, or copies a screen's folder to change it (its README says how); `automata add` does not come back. The parked branch is the Owner's | the audit's "documented copy step" becomes "a package, and copying is optional", because extensions are packages now |
-| P-D11 | **B:** the editor owns the gate-records shape and exports its schema at `@automata/editor/gate-records`; the pipelines write that shape (`{ gates: [{ id, decision: 'approved' \| 'rejected' \| 'open', decidedAt?, url? }] }`, `pending` written as `open`). | departs from the audit's A: under P-D1 B the pipelines are an extension and the editor is core, and core never imports an extension. The pipelines keep their own richer `state.json`; `gates.json` is the editor's file |
+| P-D11 | **B:** the editor owns the gate-records shape and exports its schema at `@automata/editor/gate-records`; the pipelines write that shape (`{ gates: [{ id, decision: 'approved' \| 'rejected' \| 'open', decidedAt?, url? }] }`, `pending` written as `open`). | departs from the audit's A: under P-D1 B the pipelines are an extension and the editor is core, and core never imports an extension. Plan audit: the pipelines have no separate state file for gates; they read `gates.json` back themselves (`run-state.ts`), so both sides move to the array at once. Each record also carries the pipelines' own fields (`stage`, `files`, `summary`, `note`, `requestedAt`, `by`), which the editor's non-strict schema ignores, and the pipelines read an old keyed file once and rewrite it |
 
 ## 6. The house rules, as checks
 
@@ -142,10 +143,14 @@ check pass.
   commit (`mcthaydt/automata-plus` at `1766c622`) and, where Plus recorded one, the earlier source.
 - **`pnpm knip`:** `extensions/*` and `tooling/dev-tools` in `knip.jsonc`'s workspaces.
 - **Tests and CI:** `pnpm-workspace.yaml` lists `extensions/*`, so turbo's `test:unit`, `test:browser` and `typecheck` pick
-  them up. The five that depend on `@automata/3d` join the `:3d` filters of `test:unit:3d`, `test:browser:3d` and are
-  excluded from the `:2d` ones, so the 2D gate does not wait on 3D.
+  them up. The six that depend on `@automata/3d` (`sectors`, `nav`, `cutscenes`, `narrative`, `systems` and
+  `pipelines`) join the `:3d` filters of `test:unit:3d`, `test:browser:3d` and are excluded from the `:2d` and
+  `test:browser:affected` ones, so the 2D gate does not wait on 3D. `3d.yml`'s pull-request paths gain
+  `extensions/**`, and `ci.yml`'s parity scope counts `extensions/` as a package folder. The tooling that finds
+  packages by folder learns `extensions/`: `tooling/release`'s `GROUPS` (changesets, the API index, the consumer smoke)
+  and `tooling/versions`' `workspace()` (the pin check).
 - **Published extensions:** API reports (`pnpm api-report --update`), the API index and agent skills
-  (`pnpm agent-skills --write`) as for any published package; changesets name them.
+  (`pnpm agent-skills`, a check) as for any published package; changesets name them.
 - **Dependencies:** Colyseus, Rapier, `@modelcontextprotocol/sdk` and `smol-toml` are new to the framework's lockfile:
   `pnpm deps:new` lists them and `pnpm audit:deps` checks their licences; pins follow the framework's
   (`svelte` 5.57.1, `vite` 8.3.3, `typescript` 7.0.2; audit C9).
@@ -156,20 +161,27 @@ check pass.
 
 - **Reads:** `af-sector/2` (the 3D plan's 7.1 schema, `readLevel()` from `@automata/3d/level`), from the game's
   `*.af-sector.json` files, the same files the game and the editor read. One file per level.
-- **Owns:** `resolveLevel(level: AfSector2): ResolvedMap` (today's `resolve`, reading corners and pits by flag), the
+- **Owns:** `resolveLevel(level: AfSector2): ResolvedMap` (today's `resolveMap`, reading corners; a sector with
+  `pit: true` resolves with `pit` set and no floor under it, so `floorAt` is `undefined` there; a sloped floor, which
+  the sim cannot walk yet, is a `sloped-floor` problem naming the room, never read flat), the
   checks a level passes before it resolves (reported as the 3D slice's `LevelProblem`), the queries
   (`sectorAt`, `InSector`, `resolvedMap`), the resolved-map resource, the sectors plugin and system, and the colliders
   on `physics` (`./physics`).
+- **What `/2` must hold for it:** the clinic uses `zone` on its sectors, top-level `masses`, and `cut` and `hideFrom`
+  on its walls. `/1` has none of these (`AfWall` is `Omit<WallDef, 'hideFrom' | 'cut'>`), so the 3D build's 7.1 adds
+  them to `/2` (section 9). A converter that dropped them would resolve a different map.
 - **The proof it is the same level sim:** Plus's fixture `clinic.sector-map.toml` is converted once to
   `clinic.af-sector.json` (a script under `extensions/sectors/scripts/`, run once, then deleted with the TOML kind), and
-  `resolveLevel(readLevel(clinic).level)` deep-equals today's `clinic.resolved.json`. Because the resolved map is
+  `resolveLevel(readLevel(clinic).level)` passes today's `resolve.test.ts` comparisons against `clinic.resolved.json`
+  (field by field, points within 1e-12; a deep-equal cannot work, as `ResolvedMap` holds functions). Because the resolved map is
   unchanged, the goldens of `nav`, `systems`, `narrative` and `cutscenes` do not move. A hash change is investigated,
   never re-recorded.
 - **Before 3D 7.1 lands:** `sectors` is ported on the names `@automata/3d/level` exports today (`SectorDef`, `WallDef`,
   `Corner`, `Trim`, `STEP`, `WALL_THICK`; the 3D build's 4.1 log confirms they are still there), with its TOML kind,
   so the port does not wait on 3D. The move to `af-sector/2` is its own task after 7.1.
 - **The base 3D game:** its sim reads the level through `@automata/sectors/sim` once `sectors` reads `af-sector/2`
-  (the audit's P-D4). Its golden replay hash must not change; if the two readings of the room differ, the task stops and
+  (the audit's P-D4): its `AreaSource` boxes come from `resolveLevel`'s map instead of its own reading of the file, and
+  its systems stay as they are (the sectors plugin and its Rapier colliders are not wired in). Its golden replay hash must not change; if the two readings of the room differ, the task stops and
   records it rather than re-recording.
 
 ### 7.2 Scripted scenes (`@automata/cutscenes`)
@@ -181,14 +193,20 @@ check pass.
   lints (`./tools`).
 - **Presentation side:** the director the 3D plan's 7.4 specified, moved here: `createDirector(script, startClip)`,
   `Director.stateAt(t)` returning `SceneState { camera; doors; lamps; time; grade; props; captions }`, reading the
-  presentation's interpolated tick time as an argument, no clock, no gameplay state. Plus's `play/evaluate.ts` and its
-  eases go: tracks sample with `@automata/3d/timeline`'s `sample` and `Ease`.
+  presentation's interpolated tick time as an argument, no clock, no gameplay state. `SceneState` keeps every member of
+  Plus's `CutsceneFrame` (actors, caption, flicker, fade, done, prop states and how long each has held; `light` becomes
+  `lamps`). Plus's `play/evaluate.ts` and its eases go: tracks sample with `@automata/3d/timeline`'s `sample` and
+  `Ease`. No frame moves: a cutscene key with no ease is `smooth` (Plus's default, kept as the kind's documented
+  default), Plus's `out` (`t(2 − t)`) is rewritten in the four fixtures as the exact cubic-bezier `[1/3, 2/3, 2/3, 1]`
+  (AF's `out` is CSS's curve), and `cut: true` is `step`. `cutscenes`' schema is a sim file, so `./timeline` is one of
+  `@automata/3d`'s `simEntries`.
 - **What stays in `@automata/3d`:** the timeline, figure clips and `evaluate()`; the world view; `updatePieces(view,
   before: PieceStates, after: PieceStates)` with `PieceStates { doors; lamps; props }` defined in 3D
   (`shared/level/piece-states.ts`), which `SceneState` extends; `compose-scene`'s `startClip`. A game wires the director's
   state into `updatePieces` and its `startClip` into the director: the game imports both, neither imports the other's
   internals, and 3D never imports the extension.
-- **Proof:** Plus's four converted fixtures play to the same sim hashes; the 3D plan's 7.4 tests (a state at t comes from
+- **Proof:** Plus's four converted fixtures play to the same sim hashes and the same frames (Plus's `evaluate` output
+  recorded every 0.1 s before the change, numbers within 1e-9) and lint the same; the 3D plan's 7.4 tests (a state at t comes from
   the keys alone; a door key changes only that door; a cue starts its clip at its tick) move here and pass.
 
 ## 8. Framework changes the port makes
@@ -197,18 +215,19 @@ check pass.
 |---|---|---|
 | `extensions/*` in the workspace; turbo, knip, CI filters | root `pnpm-workspace.yaml`, `turbo.json`, `knip.jsonc`, `package.json` scripts | section 6 |
 | Export `UiComponent`, `UiSlotName` | `packages/automata/src/entries/extension.ts` | `ExtensionDef.ui.slots` uses them (audit C3) |
-| Export `ErrorPanel`, `ErrorAction`, `SettingsScreen`, `SettingsTab` | `packages/automata/src/entries/game.ts` (or the entry the API report shows they belong to) | the kit builds screens from them |
-| `--no-extension-imports` | `packages/tools/src/features/boundaries/extensions.ts`, `cli.ts` | "core never imports an extension" as a check |
+| Export `ErrorPanel`, `ErrorAction`, `SettingsScreen`, `SettingsTab` | `packages/automata/src/entries/ui.ts` (the root's UI part; `game.ts` is not re-exported by `index.ts`) | the kit builds screens from them |
+| `--no-extension-imports` | `packages/tools/src/features/boundaries/extensions.ts` (over `forbid.ts`), `cli.ts` | "core never imports an extension" as a check |
+| `extensions/` in the folder lists | `tooling/release/src/publishable-packages.ts` `GROUPS`, `tooling/versions/src/stack.ts` `workspace()`, `.github/workflows/{3d,ci}.yml` | section 6 |
 | The style rule learns factories | `tooling/check-style/src/style.ts` | section 6 |
 | `@automata/editor/gate-records` | `packages/editor/package.json` exports | P-D11 B |
-| `@automata/3d/timeline` and `PieceStates` | `packages/3d/src/entries/timeline.ts`, `shared/level/piece-states.ts` | section 7.2 |
+| `@automata/3d/timeline` (with `easeSchema`, a sim entry) and `PieceStates` | `packages/3d/src/entries/timeline.ts`, `packages/3d/package.json`, `shared/level/piece-states.ts` | section 7.2 |
 | The examples catalog names the real extensions | `tooling/examples-runner/src/catalog.ts` (`PLUS_MODULES` becomes `EXTENSION_MODULES`, the tier `plus` becomes `extension`, `EXTENSION_PACKAGES` lists the published extensions) | audit G4 |
 | The stack card points at `extensions/physics` | `tooling/versions/src/stack.ts` | audit G4 |
 | Provenance rows | `docs/provenance/sources.md` | section 6 |
 | AGENTS.md: where extensions live | `AGENTS.md` "Packages and features" | one line: `extensions/<name>`, never imported by core |
 
 Each published-package change carries a changeset (`check-changesets` decides the bump); `pnpm api-report --update`
-and `pnpm agent-skills --write` follow export changes.
+and `pnpm agent-skills` follow export changes.
 
 ## 9. What changes in the 3D plan
 
@@ -217,9 +236,10 @@ the 3D build applies it to its plan when it reaches each task.
 
 | 3D task | Change |
 |---|---|
-| 7.1 | Drop `shared/level/sim/` and `simLevel()` from Files and Interfaces; `entries/sim.ts` keeps only `features/camera/sim`. Drop `expect(simLevel(two)).toEqual(simLevelOfV1(f))` from the migration test (the lossless round trip stays). Everything else stays: the `af-sector/2` schema, `readLevel`, the migration, `LevelProblem`, the converter, base-3d's migrated room. `automata.simEntries` becomes `["./sim", "./level"]` as today (`./level` holds the types the extension's sim imports) |
+| 7.1 | Drop `shared/level/sim/` and `simLevel()` from Files and Interfaces; `entries/sim.ts` keeps only `features/camera/sim`. Drop `expect(simLevel(two)).toEqual(simLevelOfV1(f))` from the migration test (the lossless round trip stays). Everything else stays: the `af-sector/2` schema, `readLevel`, the migration, `LevelProblem`, the converter, base-3d's migrated room. `automata.simEntries` stays `["./sim", "./level"]` (`./level` holds the types the extension's sim imports; the port's 3.1 adds `./timeline`). **Added by the plan audit:** `/2` carries what `@automata/sectors` resolves and `/1` lacks: `zone?: string` on a sector, `masses?: MassDef[]` on the level, and `cut?`, `hideFrom?` on a corner's wall (`AfWall` stops omitting them), each with a row in spec 9's table and a migration test (a `/1` file has none, so it migrates unchanged) |
 | 7.4 | Shrinks to what 3D keeps: `shared/level/piece-states.ts` (`PieceStates`, `LampState`, `PropState`), `app/update-pieces.ts`, and `compose-scene`'s `startClip`. The `features/stage/` folder, the `stage-script` kind, the director, scene state and sequences are not made (port task 3.3 makes them in `@automata/cutscenes`). Its tests "a door key changes only that door" stays (on `updatePieces`); the other two move to the port |
 | 12.1 | `examples/3d/stage-script.ts` is not made; the port adds `examples/3d/cutscene.ts` (port task 3.5) |
+| 12.2 | If port task 3.4 has landed, the `3d` template lists `@automata/sectors` beside `@automata/3d` (both private until Pixi 3D's release) |
 | Spec section 7 | `stage/` leaves the package tree; `shared/level/` loses `sim/`; the sim entry re-exports only the camera's sim |
 | Spec section 8.3 | "The stage" bullet points at `@automata/cutscenes` |
 | Spec section 9 | "what the sim reads ... is `shared/level/sim/`" becomes "is `@automata/sectors`" |
