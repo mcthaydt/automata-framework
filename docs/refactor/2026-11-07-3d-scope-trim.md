@@ -64,10 +64,23 @@ are extensions. Ember Hall uses core only, as Emberwick does.
 | The `figure-headwear` kind | yes | **keep** (6.4's ruling stands: a style library a game fills, like hair styles) | a game's own content (`figure-headwear/flat.toml`), not a library core ships | none |
 | glTF loading (`shared/render/model/`) | yes | **keep** | the authored-art path, as 2D loads atlases | none |
 | The look: low-resolution target, DUEL snap and dither, ramp light, outline, sprite light, fog, grade | no (8.2) | **keep** | the Owner's look ("their pixel-art look too"; "We use pixi3D") | 8.2 |
-| Sky, stars, rain, bloom passes | no (8.2) | **move** to `@automata/world-kit` through a pass slot core adds | weather and skies are dressing; core gets `addLookPass`, as 2D has one post-filter slot | 8.2, port 3.8 |
+| Sky with its horizon silhouette | no (8.2) | **keep** (amended 19:58: the base exterior needs it) | an open-sky sector is part of the level format; the base exterior is judged under it | 8.2, 7.7 |
+| Stars, rain, bloom passes | no (8.2) | **move** to `@automata/world-kit` through a pass slot core adds | weather and skies are dressing; core gets `addLookPass`, as 2D has one post-filter slot | 8.2, port 3.8 |
 | The CPU reference painters (`testing/look-reference/`) and `look-sheet.ts` | no (8.2) | **cut** | a second renderer kept only as a test oracle; 2D proves its look with parity images from the real renderer, and so does 3D | 8.2 |
 | Examples: hair, wardrobe, furnished room, generated map | no (12.1) | **move** to the port (they show extensions) | | 12.1, port 3.9 |
 | Levels 3D: Fill with furniture, the kit checks, readability hint | no (16.2, 16.3) | **cut** from the editor | the editor is core and never imports an extension; essential features only | 16.2, 16.3 |
+
+**The base pair and the base scenes are core (Owner, 2026-11-07 19:58: "The base M and F figure should be in 3D
+though, base interior and exterior too").** As in both builders, they are what every visual change is judged on, so
+they ship with core: the base man and woman (bodies only, in painted-on blocks, barefoot: no garment and no hair, so
+nothing they need left core), the base interior (a plain room at lamplight with a window, a doorway and a corridor
+stub, a box, a table, a cylinder and a pendant lamp) and the base exterior (a pavement before a building face with a
+door and two windows, a road a kerb lower, a street lamp, a round tree, open sky with a city on the horizon, by day).
+For them core keeps, beyond `box` and `cylinder`, the generators `table`, `bin`, `lamp`, `streetLamp` and `tree`
+(from `78e0ca7f`'s `furniture.ts`, `small-things.ts`, `street.ts` and `nature.ts`, those kinds only), the presets
+`prim.box`, `prim.table`, `prim.cylinder`, `lamp.pendant`, `streetLamp` and `tree.round`, and the swatches the two
+scenes name. The dressed variants (the interior as a waiting room, the exterior as a street) need kits, so they are
+the world kit's. Task 7.7.
 
 **Ember Hall's room:** no kit. It places a few `box` and `cylinder` props from its own `world-prop` content, keeps its
 lamp and its time of day; its replay hash does not move (dressing is presentation).
@@ -105,8 +118,8 @@ that core does not publish them; sharing them would grow core's API for two priv
 
 ## 4. What changes in the 3D plan
 
-Task numbers are kept, so the tracking table and the log still line up. Still 53 tasks: 9.1 and 9.2 leave for the port,
-7.5 and 7.6 join.
+Task numbers are kept, so the tracking table and the log still line up. Now 54 tasks: 9.1 and 9.2 leave for the port,
+7.5, 7.6 and 7.7 join.
 
 | Task | Change |
 |---|---|
@@ -114,7 +127,8 @@ Task numbers are kept, so the tracking table and the log still line up. Still 53
 | 7.4 | Unchanged |
 | **7.5 (new)** | One sector geometry owner (R1) |
 | **7.6 (new)** | Character-kit material leaves core: eight garment kinds, the hair pieces and their finishes, seats; `hairParts` reads the registry (R3) |
-| 8.2 | No reference painters and no `look-sheet.ts`; sky, stars, rain and bloom go; core adds `addLookPass` |
+| 8.2 | No reference painters and no `look-sheet.ts`; stars, rain and bloom go; the sky and its horizon stay; core adds `addLookPass`; the parity images include the base scenes with the base pair |
+| **7.7 (new, 19:58)** | The base pair and the base scenes in core, with the generators, presets and swatches they use |
 | 9.1, 9.2 | Moved to the port (3.8). Their boxes are not ticked here; their rows say "moved" |
 | 10.1 | Also R5 |
 | 10.2 | The README lists what is core and points at the two kits |
@@ -161,7 +175,8 @@ kinds, the eight hair pieces, the extra finishes and the `figure-seat` kind) and
 
 ### Task 3.7: `@automata/world-kit`: props, furnishing, signs, maps (after 3D 7.3 and 7.5)
 
-**Files:** create `extensions/world-kit/` (`src/features/{props,furnish,lettering,maps}/`, `library/{props,kits,
+**Files:** the base scenes' dressed variants (`base-interior-dressed` as a waiting room, `base-exterior-dressed` as a
+street, built from core's base scenes so the two never drift); create `extensions/world-kit/` (`src/features/{props,furnish,lettering,maps}/`, `library/{props,kits,
 swatches,glyphs}.json`, `library/maps/*.af-sector.json`, `scripts/convert-builder-maps.ts`).
 
 **Interfaces:** consumes `registerPropGenerator`, `buildWorld`, `WorldLibrary`, `AfSector2`, the level geometry; produces
@@ -183,8 +198,8 @@ seed): AfSector2`, the `world-kit` content kind.
 pairs.
 
 **Interfaces:** `photoToTile(png, knobs)` (from 3D 9.1's interface), `checkReads(level, library): LevelProblem[]` and
-`readsAgainst(figure, room, camera)` (from 9.2 and 16.3), `skyPass`, `starsPass`, `rainPass`, `bloomPass` added with
-`addLookPass`.
+`readsAgainst(figure, room, camera)` (from 9.2 and 16.3), `starsPass`, `rainPass`, `bloomPass` added with
+`addLookPass` (the sky and its horizon are core's).
 
 - [ ] **Step 1: Failing tests:** 3D 9.1's and 9.2's tests, plus `rain is drawn only when the kit's pass is added` and
   WebGL2/WebGPU parity for each pass.

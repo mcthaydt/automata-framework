@@ -15,8 +15,9 @@ computer; the site showing 3D beside 2D; the release written and waiting for Pix
 > core: it draws the game's own data and ships no ready-made library. Libraries, furnishing, generators, the photo
 > pipeline, the sky and rain, and the extra clothes and hairstyles go to `@automata/world-kit` and
 > `@automata/character-kit` in the Plus port. The ruling, the refactor findings R1 to R11 and the port's addendum are in
-> [2026-11-07-3d-scope-trim.md](2026-11-07-3d-scope-trim.md). Task numbers are kept; 9.1 and 9.2 moved to the port, 7.5
-> and 7.6 are new, so there are still 53. Where a task below and the trim document differ, the trim document wins.
+> [2026-11-07-3d-scope-trim.md](2026-11-07-3d-scope-trim.md). Task numbers are kept; 9.1 and 9.2 moved to the port, 7.5,
+> 7.6 and 7.7 are new, so there are 54. The base pair and the base interior and exterior stay core (Owner, 19:58: "The
+> base M and F figure should be in 3D though, base interior and exterior too"; task 7.7). Where a task below and the trim document differ, the trim document wins.
 
 **Architecture:** Four parts in the Owner's order (3D core, the rest of AF using 3D, the editors, the site), 20 phases,
 one stacked PR per phase. Contracts shared by two features live in `packages/3d/src/shared/` (timeline, level,
@@ -85,7 +86,7 @@ behind it: the [audit](2026-11-07-3d-slice-audit.md).
 ## Tracking
 
 `docs/refactor/progress.md`'s "3D" slice gets one row per task during stage 4; the build's percentage is `done tasks /
-53`. At the end of each task set its row to "Done, <date>, <engines run>", recompute both percentages, and commit with
+54`. At the end of each task set its row to "Done, <date>, <engines run>", recompute both percentages, and commit with
 the task.
 
 ## Changes from the automata-skills plan (PR #446, skills spec section 7; relayed 2026-11-07 11:48)
@@ -980,6 +981,36 @@ Sector geometry is written three times today: `packages/editor-3d/src/geometry/{
   `grep -rn "waistcoat\|seated\|bun" packages/3d/src` → none. **Commit** `refactor(3d): the wardrobe and hairstyles
   leave core for the character kit`
 
+
+### Task 7.7: The base pair and the base scenes (new, 2026-11-07 19:58; scope trim section 2)
+
+The Owner: "The base M and F figure should be in 3D though, base interior and exterior too". As in both builders,
+they are the set every visual change is judged on, so they are core and public.
+
+**Source files:** FigureBuilder `base/base.ts`; EnvironmentBuilder `base/base.ts` (the two bare scenes), and from
+`78e0ca7f` the generators `table` (`props/furniture.ts`), `bin` and `lamp` (`props/small-things.ts`), `streetLamp`
+(`props/street.ts`), `tree` (`props/nature.ts`), the presets and the swatches the scenes name.
+
+**Files:**
+- Create: `packages/3d/src/features/base/{base-pair.ts,base-scenes.ts}`, `features/base/library/{props,swatches}.json`
+  (only what the scenes use), `features/base/levels/{base-interior,base-exterior}.af-sector.json` (converted once from
+  the builder's plans; written, not generated at run time), `packages/3d/src/entries/base.ts` (`@automata/3d/base`)
+- Modify: `features/world/props/primitives.ts` (registers `table`, `bin`, `lamp`, `streetLamp`, `tree` beside `box`
+  and `cylinder`), `packages/3d/package.json` (`./base`), `tests/fixtures/base-pair.ts` (re-exports the core one)
+- Test: `tests/unit/base/{base-pair,base-scenes}.test.ts`
+
+**Interfaces:**
+- Produces: `BASE_PAIR: Readonly<Record<'man' | 'woman', Figure>>` (bodies only, painted-on blocks, barefoot);
+  `BASE_SCENES: Readonly<Record<'base-interior' | 'base-exterior', AfSector2>>` (each naming its time: `lampLit`,
+  `day`, and casting the base pair); `baseLibrary: WorldLibrary`.
+
+- [ ] **Step 1: Write the failing tests**: `both base scenes build with no problem from core alone`; `the interior is lit
+  at lamplight by its pendant and the exterior has open sky and a horizon`; `the base pair build and wear nothing`;
+  `core registers exactly box, cylinder, table, bin, lamp, streetLamp and tree`.
+- [ ] **Step 2:** FAIL. **Step 3:** the generators (ported with their source tests), the presets and swatches, the
+  two levels, the entry. **Step 4:** PASS; `buildWorld` on each scene gives the same pieces as the builder's map built
+  through `78e0ca7f` (recorded before the trim's deletions, from that commit). 8.2's parity images and the editors'
+  samples use these scenes. Rows. **Commit** `feat(3d): the base pair and the base interior and exterior`
 ---
 
 ## Phase 8: The look on Pixi 3D (PR `claude/3d-look`)
@@ -999,8 +1030,10 @@ with Wick), `docs/adr/0007-3d-look.md`.
 ### Task 8.2: The passes (**session break** after the filters; audit note 14; trimmed 2026-11-07, scope trim section 2)
 
 Trimmed: no CPU reference painters and no `look-sheet.ts` (2D proves its look with parity images from the real
-renderer, and so does 3D); sky, stars, rain and bloom are `@automata/world-kit`'s (port task 3.8), added through
-`addLookPass`. Ignore those names in the lists below.
+renderer, and so does 3D); stars, rain and bloom are `@automata/world-kit`'s (port task 3.8), added through
+`addLookPass`. The sky and its horizon silhouette stay core (`sky.ts`): the base exterior is judged under them. The
+parity images include `base-interior` at lamplight and `base-exterior` by day, each with the base pair (task 7.7).
+Ignore the moved names in the lists below.
 
 **Source files:** EnvironmentBuilder `src/features/paint/*`, `src/features/stage/sprite-light.ts`; FigureBuilder
 `src/features/paint/{paint,raster,fabric}.ts`, `src/features/lighting/light.ts`.
@@ -1648,3 +1681,4 @@ reads only this plan and the spec. DUEL's author and licence stay the Owner's op
 - Task 7.2: done (session h7alco, 2026-11-07). Rulings: (1) Walls are built whole, in the first-person way: a level is not cut for a view (the diorama's `dollhouseStub`, `wallInDiorama` and `lintel*` and the top-down clip are the editor's, per the Owner's 11:04 word), so `features/world/` has no `MapView`. (2) The shared stretch of an edge is found by geometry (the source's rule, T-junctions included); a wall's `next` is accepted only if it names a room that shares some stretch of that edge, else `portal-not-shared` (and the stretch stays solid). Cost if wrong: a Last Light level whose rooms touch with a solid wall and no `next` opens there. (3) `WorldLibrary` is `{ swatches }` for now (the builder only asks whether a name is there; an unknown name is `unknown-swatch`); kits, props and glyphs arrive with 7.3. (4) A wall's `door` and `window` (the `/1` vocabulary) are openings cut from its face (a lintel above, a breast under a window; a window gets a pane and bars); a door opening is left empty, the game's door entity fills it. `decor` (a window, door or shopfront drawn on the wall) and `windows` (a facade grid) are the builder's, ported. A `sign` draws nothing until 7.3 ports the lettering. A sector-level `trim` and a wall's `trim` heights give skirting and rail; `wainscot`, `cap` and `capital` (the editor blockout's) are not drawn. (5) A hinged door is built shut and its piece carries `door: { hinge, swing }` for 7.4's `update-pieces` to turn it. (6) `drawWorld(scene, pieces)` takes the colour of a swatch from the caller (`colourOf`): the swatch content kind and its colours are 7.3. (7) `Occluders.face(mesh, span, occlude?)` is new: the occluder rule's walls were slabs it built itself; a face the builder made registers as a wall with no thickness and no floor trim. A face that never rises above the floor (the side of a pit) follows no rule. (8) base-3d's room draws through the builder: its file names its surfaces (`floorTexture`, `ceilingTexture`, `wallTexture`: `floor`, `ceiling`, `wall`, `lava` for the channels), the game gives each a DUEL colour, and the two pit sectors' ceiling is 3 like their neighbours (it was 0, a lid at floor level). `areaFromSector` still reads the file for the sim (the sim needs boxes), so `sector-area.ts` stays; what left is `sceneOf`, the wall and floor boxes and the lava box (`channelBoxes` is `lipBoxes`). The visible change, from the opened before and after frames (project files `refactor/2026-11-07-3d-7-2-room-shots/`): a wall is a face and has no thickness, so the dark top of each wall slab and the floor-trim stub at the near edge are gone; a channel now has walls and a lava floor of its own. Sim hash and goldens unchanged. (9) editor-3d's `view/mesh/sector-mesh.ts` is not replaced: the editor's blockout carries a selection id and an `occlude` per surface and is typed on `/1` until 14.1 and 16.2 (task 7.1's rulings 1 and 2); the swap goes with them. (10) There is no `app/compose-scene.ts` yet (6.x did not create it): the game's `scene` hook is the composer, and 7.4 adds `startClip` where it lands. Cost if wrong: one hook moved. (11) Holes: the plan did not say; a hole is walled and left out of the floor by a bridged ear-clipping (`fill`). Evidence: 41 new unit tests in `tests/unit/world` and `tests/unit/app`, 3 more in the occluders' tests; base-3d unit 85 with the sim hash unchanged; the game boots in Chromium and both frames were opened. Resume at task 7.3 (props, the dresser, lamps, decals, lettering, generated maps; session break after props).
 - Task 7.3: done as the scope ruling trimmed it (session 50d3sw, 2026-11-07; the Owner's 19:28 word: 3D as light as 2D, the rest in extensions; the ruling came from the "Trim 3D core to match 2D" thread). Rulings: (1) The first half was built whole (commit 78e0ca7f: 70 prop presets and their generators, the kits, lettering, the lamp kit) and then cut back: that commit stays on the branch as the source the world-kit extension ports from; the dresser (`dress/*`, `world-kit.schema.ts`, written but never committed) is in project files `af-world-kit-source/`, with `props.json` and `swatches.json`. (2) Core keeps: `placeProps`, `props/piece.ts`, `props/resolve.ts`, a generator registry (`registerPropGenerator`, throwing `RegistryClash` on a taken name, also core's `box` and `cylinder`), the lamp kit and the level's lamps and a prop's lights, the `world-swatch` and `world-prop` content kinds, doors and windows. `RegistryClash` moved to `shared/registry/` so the figures' registries and this one share it. (3) Out of core: the furniture, small-thing, street, nature and sign generators, the prop, swatch and kit libraries (`CORE_LIBRARY`, `mergeLibrary`), lettering, glyphs and `stream.ts`, the dresser, the `world-kit` content kind, decals, `generateMap` (apartment and block), the converted builder maps, `convert-builder-map.ts` and its script, test and fixture (task 7.1 built them; the `/2` schema's comment now names the extension's converter). `world-prop`'s schema checks only that `kind` is a string: an extension's kind may register after the content is read, so a kind with no generator is `unknown-generator` from the builder. (4) The `Marking` decals and lettering fields of `/2` stay in the schema, carried as written; core draws none. (5) The superquadric and limb primitives, noise and colour helpers moved to `shared/math` for the world's props; they stay there (the figures import them from it), the cost being one more shared folder if wrong. (6) Ember Hall's room has no kit: its file places five crates and barrels (`props`); its swatches (`wall`, `floor`, `ceiling`, `lava`, `crate`, `barrel`, DUEL steps, the colours the views had) and its two presets (a `box` and a `cylinder`) are TOML under `games/base-3d/src/content/world-swatches/` and `world-props/`, compiled with the `world-swatch` and `world-prop` kinds (new Node-safe entry `@automata/3d/world-content`, listed in the game's `vite.config.ts`), and `roomWorld(content)` builds the room from them; the views read each colour from the swatch (`swatchColour`), only the lip's stays in code. It has no lamp or time of day: nothing in base-3d lights from a lamp until 8.2's look, so a lamp written now would be dead data. Cost if wrong: one lamp and one `time` added to the file. (7) A room with `dress` (its own or the level's, unless the level's `keep` is false) is drawn bare with a `needs-extension` problem (`name: 'world-kit'`, the scope trim's words). The generator registry holds core's `box` and `cylinder` from the start (`registeredPropGenerators()`), and `world-prop` accepts any `kind` string. The sim hash and goldens are unchanged (85 unit tests; `sim-content.hash` did not move, `content.hash` did for the new TOML); the crates and barrels stand clear of the embers and the roll path. Frames: project files `refactor/2026-11-07-3d-7-3-room-shots/` (`before.png`, `after.png`: the far wall of the first room now has two crates and a barrel). Evidence: 107 world and app unit tests, base-3d's 7 Chromium journeys, knip, boundaries and style clean. Resume at task 7.4 (the stage); 8.2's passes, 9.1, 9.2 and the 6.x follow-ups are held until the amended plan.
 - Scope trim (session 2kk058, 2026-11-07, Opus): the Owner at 19:28, "Make sure we're not overscoping 3D, it should be as lightweight as 2D, everything else should go into plus", and at 19:31, "we aren't just moving stuff around right?". Ruled feature by feature against 2D core in [2026-11-07-3d-scope-trim.md](2026-11-07-3d-scope-trim.md) (measured at `78e0ca7f`): 7.3 trimmed to placement through a generator registry, `box` and `cylinder`, lamps and the two content kinds; 7.5 (one sector geometry) and 7.6 (clothes, hairstyles and seats leave core) added; 8.2 without reference painters or sky and rain; 9.1 and 9.2 moved to the Plus port (3.8); 12.1, 12.2, 13.3, 14.1, 16.1 to 16.3 and 17.2 amended; refactor findings R1 to R11 placed in tasks here and in the port's addendum (section 6 of the trim document). Accepted under "Reminder that everything is auto approved and accepted, do not wait on me to do any approvals" (Owner, 2026-10-31).
+- Scope trim, amended (session 2kk058, 2026-11-07 20:05): the Owner, 19:58, "The base M and F figure should be in 3D though, base interior and exterior too". Nothing they need had left core except the generators and swatches of the two base scenes and the sky; task 7.7 brings those back for the base scenes only, 8.2 keeps the sky and its horizon, and the dressed variants are the world kit's (port 3.7). 54 tasks.
