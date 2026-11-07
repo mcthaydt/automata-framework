@@ -2530,3 +2530,30 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   12.5's copy scan: `Add field` and the field types' format words (`int`) in the Settings tab. The 2D editor's Home
   with no levels showed two lime New level buttons (the top bar's and the empty list's); the empty list's is plain
   now, so the screen has one primary. Gates: editor unit 3,369, Chromium journeys 26, Home layout 82, editor-3d unit and DOM 2,932, Chromium layout (mouse and touch) 892, `pnpm check`.
+- **12.6, the unit a player can feel (session 19).** A ranged tunable may carry `unit` (text) and `scale` (a finite
+  number other than 0) beside `label` and `feel`; `-content`'s check accepts them and keeps them out of the values and
+  `tuning-meta.json` (a changeset). The Tuner shows the value times the scale in the unit and writes back the sim's
+  own number, snapped to the step (`tuner-display.ts`: `shownValue`, `rawValue`, `shownBounds`; the shown value keeps
+  as many decimals as one step changes, and a negative scale, Emberwick's upward jump speed shown as how hard Wick
+  jumps, puts the smaller bound first). The row's slider and box, the box's refusal ("Must be at most 180 px/s": the
+  kit's Stepper now names a bound in its unit), the value check's words (the label and the shown number, never the
+  constant's name or the sim's 768) and the inspector (value, range in the unit, a scaled whole number reads as a
+  number) all speak it. Emberwick's ten tunables carry them: speeds ×60/256 px/s, accelerations ×3600/256 px/s², tick
+  counts ×1/60 s (written 0.0166667; the snap to a whole tick absorbs the rounding); its "Further below zero jumps
+  higher" and "(60 is one second)" notes are gone, since the numbers now read as a player feels them. *Design choice:*
+  display only, never a second unit system in the sim (law 2) or the file: the file keeps whole subpixels so every
+  step stays exact in every engine. Gates: content unit 416, editor unit (suite, kit widgets) 323 including a scaled
+  row end to end (90 px/s shown, 100 typed writes 427, 500 refused in px/s, the inspector in px/s), Emberwick unit 109,
+  `pnpm check`. **12.6 is done.**
+- **12.5, part (session 19): the scan and the guide.** A Chromium journey (`tests/browser/journeys/2d/screen-words.test.ts`)
+  reads the rendered text of the Level, Map, Tiles and Characters views and the Characters Settings tab, for the
+  platformer and the top-down templates on an iPad, and fails on a package name (`editor-`), `af2d`, `.json`,
+  `checkout`, `Plus`, and the audit's words: project, workspace, entity, IntGrid, tunable, change set, gate, pivot. A
+  real browser, not jsdom, because only `innerText` says what is on screen. It found one: the templates' layer was
+  `Entities` (the Level view's layer row and "Paint with · Entities"); it is `Characters` now, the view's own word, and
+  Home's Details say `Characters` (a count, was "6 definitions") and `Tiles` (was Tilesets). The guide
+  (`docs/guides/editor.md`) is rewritten as open, draw, save, play, on a tablet, in plain words, titled "Draw levels in
+  the editor" (the audit's row). **Left for 12.5:** Step 0's file checks over every `.svelte` file (size, header
+  comment); Step 1's grep of the editor's `.svelte` and `*-messages.ts` for strings not in `copy.md`; the scan over the
+  suite page and the Tuner; `Add field` and the field types' words (`int`) in the Characters Settings tab; the layer
+  row reads "Characters / Characters and items" (its name over its kind), which says one thing twice.
