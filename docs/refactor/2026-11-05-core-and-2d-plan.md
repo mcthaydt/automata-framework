@@ -962,3 +962,89 @@ the features it lacks are journeyed on the one-file examples that show them:
   scaffold uses the built `dist/bin.js` because the source bin cannot load `editor-suite`'s extensionless imports under plain
   Node. It runs in `e2e-2d` and `pnpm ci:local`. Passes here in Chromium (1 of 1). Not run: WebKit and Firefox (their
   downloads are refused here, so the golden `421c5a1bf522299e` is still Chromium-only), hosted CI.
+- **Task 5.4, part 1, fifth session, 2026-11-05 (PR `claude/refactor-2d-no-effect-2`, stacked on #398).** Three leaf features
+  are plain TypeScript, each test rewritten first and seen failing: `display` (`createDisplayPolicy` returns `{ dispose }`),
+  `locale` (`createLocale` resolves once the saved choice is read; a refused save goes to `warn`) and `settings`
+  (`createSettings` returns the service at once; `storeOf(settings, def)` replaces the lookup). Deviation 69: while boot and
+  the default screens still read an Effect context, the `Locale` and `Settings` tags and `settingsStore` live in
+  `app/boot/effect-tags.ts`, and `effect-bridge.ts` gains `plainSaves`, the Effect `Hosting.saves` seen as the plain calls;
+  both go when `app/` is converted. The public names are unchanged (the API report shows the two tags as type aliases of the
+  same services). Verified: automata unit 1,830, `pnpm test:unit` 31 of 31, repo typecheck, boundaries, style, lint, knip,
+  `api-report`; Emberwick journeys 28 of 28 in Chromium (phone, compact, iPad). Next: `audio`, then `saves` (session break).
+- **Task 5.4, part 2, sixth session, 2026-11-05 (PR `claude/refactor-2d-no-effect-2`).** `audio` and `saves` are plain
+  TypeScript, each test rewritten first and seen failing. `createAudio` returns the service with `dispose()`; `unlocked` and
+  `available` are plain `Subscribable`s (a new `state` helper in `shared/lib/subscribable.ts`), `music()` answers a `Result`,
+  and `AudioDecodeFailed` is a plain `Error`. The presentation bus gains `createPresentationBus` (the Effect
+  `makePresentationBus` wraps it until boot is converted). `saveService` answers `Result`s (the three save errors are plain
+  `Error`s; the host's refusal is its `HostRefusal`), a slot's writes take turns on a promise queue, and `createSaves` and a
+  plain `saveOf(saves, def)` replace `makeSaves` and the Effect `saveOf`. Deviation 70: `flushPending` is a method
+  (`flushPending()`) instead of an Effect value, the interval timer re-arms before it writes (fixed rate rather than "sleep
+  after each write"; writes of a slot still queue and collapse), and `dispose()` returns a promise: it stops the triggers,
+  then flushes once more. Deviation 71: the `Audio`, `AudioBuses` and `Saves` tags join `app/boot/effect-tags.ts`, with
+  `openSaves` (the save timed on the Effect clock, so a `TestClock` still moves it); the effect bridge gains `plainReady`,
+  `plainObserved`, `plainAudioHosting` and `toPlainHosting`. While the tag lives there, the public `AudioBuses` type is spelled
+  out member by member (each typed by the feature's interface), because the API report's seam check (`seams.test.ts`) reads
+  the members from the declaration; a bare alias turned CI's unit job red on the audio commit, fixed in `c04786b8`. Verified:
+  automata unit 1,831, repo typecheck 33 of 33, lint, boundaries, style, knip, `api-report` tests 65 of 65; browser (Chromium)
+  `tests/browser/audio` 2 of 2 and `tests/browser/app` 842 of 842; Emberwick journeys 28 of 28 and the create-game journey 1
+  of 1 in Chromium. Not run: WebKit and Firefox (downloads refused here), hosted CI. Next: `loading`.
+- **Task 5.4, part 3, seventh session, 2026-11-05 (PR `claude/refactor-2d-no-effect-2`).** `loading`, `input` and
+  `extension` are plain TypeScript, each test rewritten first and seen failing. Loading: `createLoadMeter(clock)` guards a
+  promise-returning wait with timeouts on the `Clock` and rejects `LoadStalled` (aborting the wait's signal);
+  `createAssets` answers `load(screen, onProgress?, signal?)` with a `Result`, keeps single-flight downloads (the fetch
+  stops when its last waiter aborts) and stops a screen's other downloads on its first failure. `LoadStalled` and
+  `AssetLoadFailed` are plain `Error`s with their `_tag`. Input: `createInput` returns the Input with `dispose()`; `device`,
+  `profile` and `pads` are plain `Subscribable`s, `rebind` answers a `Result`, `resetBindings()` is a method, `capture`
+  resolves a `Result` and times out on the Input's `Clock`; the rebind errors are plain, `rebindProfile` answers a `Result`;
+  the `Input` tag, which nothing provided, leaves the runtime entry; `tablesFor` moves to `input-tables.ts` to keep the file
+  under 600 lines. Until the screens are plain, `screen-kit`'s `ownInput` opens the Input for a screen's scope on the Effect
+  clock, and boot and `RuntimeTest` time the meter on it (`effectClock`), so a `TestClock` still drives both; the `Assets`
+  and `Haptics` tags join `app/boot/effect-tags.ts`. A new `testing/settle.ts` drains promise chains without the Ruken
+  testing package (which the platform-import rule keeps under `ruken/` folders). Deviation 72: `flow` is not converted on
+  its own. Its whole job is running screens, and a screen's `enter` is an Effect program over the runtime's services, so a
+  plain flow would need an Effect runner inside it for one step only. `flow`, `screens` and `app/` convert together, on this
+  contract: `ScreenDef.enter(context)` returns `void | Promise<void>`; `context` holds `layer`, `from`, `screen` (a
+  `Disposables` the flow disposes when the screen is left), `runtime` (the `Disposables` kept across screens, disposed after
+  the save's last flush) and `services` (the plain runtime services: hosting, bus, time, flow, settings, saves, appLoop,
+  assets, renderer, locale, audio, leaderboards, haptics). A throw or rejection is the screen's failure (`ScreenFailed`).
+  `Flow.settled()` becomes a method returning a promise. Deviation 73: the extension's `layers` field and
+  `ResolvedExtensions.layer` are removed, not converted: no game, example or 3D package declared one, and boot built the
+  layer and threw its services away. Also found: `features/leaderboards` still imports Effect and is missing from the
+  plan's list; it goes after `render`. Verified: automata unit 1,831 (one layers test became the "no layers" test), repo
+  typecheck 33 of 33, lint, boundaries, style, knip, `api-report` tests 65 of 65 (the seam check included), changeset
+  check; Emberwick journeys 28 of 28 in Chromium (phone, compact, iPad) at the input commit and again after the extension
+  commit. Not run: WebKit and Firefox (downloads refused here), hosted CI. Next: flow, screens and app/ together.
+- **Task 5.4, part 4, eighth session, 2026-11-05 (PR `claude/refactor-2d-no-effect-2`).** The flow's leaves first:
+  `createTime(bus)`, `createAppLoop(options)` (with `dispose()`), `watchLifecycle` (the plain lifecycle in, its stop
+  function out), `createVeil({ overlay, reducedMotion, clock })` (its `cover()` and `reveal()` promises timed on the
+  `Clock`), and the Effect `makePresentationBus` deleted; then `leaderboards` (`createLeaderboards(hosting, bus)`, whose
+  `submitScore` and `readBoard` answer promises that never reject; its test moved under `ruken/` because it opens the
+  fake Ruken host). Each test was rewritten first and seen failing (`createVeil is not a function`, `createLeaderboards is
+  not a function`). Commit `47b46d66`. Then flow and screens together (deviation 72), on the contract written in part 3
+  with one addition (deviation 74): `RuntimeServices` also carries `clock`, the runtime's `Clock`, because two screens
+  wait on time (a toast's four seconds, Settings' rebind countdown) and Effect's clock gave them that before.
+  `createFlow(options)` runs transitions one at a time on a promise queue (the runner starts a microtask later, so two
+  dispatches in a row are queued before the first runs, as the Effect queue did); `dispose()` leaves the current screen,
+  reveals the veil and, for a flow that made its own `runtime`, disposes it last. A screen whose `enter` is still awaiting
+  when the flow is disposed is left at once; what it adds afterwards runs at once (the `Disposables` rule), and the play
+  screens dispose a sim made after they were left, which replaces the abort signal the Effect interruption gave them.
+  The screen kit's helpers take the screen's `Disposables` (and the services they need); `screensCopy`, `titleSaves` and
+  `pausedSaves` take an owner. Emberwick's screens, base-3d's screens (deviation 75: they are 3D, but `ScreenDef` is
+  shared, so they move in this commit, as decision D3 allows) and the frame-budget stress screen are converted, and
+  `effect` leaves `tooling/frame-budget`. Boot and `RuntimeTest` are still Effect programs: they build the plain
+  services object (`toPlainHosting` over the Effect `Hosting`, the Effect clock as `clock`, so a `TestClock` still moves
+  fades and countdowns) and `RuntimeTest` still provides the tags, now built by `runtimeContext(services, hosting)` in
+  `app/boot/effect-tags.ts` (with the `Time`, `AppLoop`, `Leaderboards` and `Flow` tags). Not test-first (a deviation from
+  strict TDD, recorded here): the flow's 21 tests and the boot, run-game and RuntimeTest screen fixtures were rewritten
+  after the code, by a mechanical rewrite then by hand, because the contract change breaks every fixture at once; the
+  two new flow cases ("a runtime the flow is given is the caller's", "a flow disposed while a screen is entering")
+  passed on first run. Verified: automata unit 1,832; repo typecheck 33 of 33 (forced, no cache); `pnpm check` (lint,
+  typecheck, boundaries, style, knip, core unit); every package's unit tests pass on their own (the forced parallel run
+  of all 31 timed out in five packages under load: emberwick, examples-runner, content, tools, editor-2d, each green
+  alone); `api-report` tests 65 of 65 after `--update`; Chromium journeys: Emberwick 28 of 28, create-game 1 of 1, the
+  examples' default-screens, saves, rebind, leaderboard, host-lifecycle, display-policy and audio journeys 14 of 14.
+  Not run: WebKit and Firefox (downloads refused here), the frame-budget stress run (GPU runner), hosted CI. Commit
+  `5c4c0169`. Next: boot and `run-game` plain (the boot tests are the large part: 1,316 and 1,176 lines of Effect
+  programs), with `render` (the `RendererFactory` is still an Effect; `nullRenderer` gained a plain `nullGameRenderer`
+  for the loop's tests) and `RuntimeTest`, then delete the bridge.
+

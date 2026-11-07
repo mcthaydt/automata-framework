@@ -1,163 +1,120 @@
-import { settle } from '@ruken/sdk-host/testing'
-import { Effect, Exit, Scope } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { makePresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
-import { makeTime, watchLifecycle } from '#src/shared/runtime/time/time.manager.ts'
-import { Hosting } from '../../../../../../src/shared/host/hosting.ts'
-import { FakeHostHandle, HostingTest } from '../../../../../../src/testing/host/page/ruken/hosting-test.ts'
-import { runScoped } from '../../../../../../src/testing/host/page/run.ts'
+import { createPresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
+import { createTime, watchLifecycle } from '#src/shared/runtime/time/time.manager.ts'
+import { withHostingTest } from '#src/testing/host/page/ruken/hosting-test.ts'
+import { settle } from '#src/testing/settle.ts'
 
-const drive = (step: () => unknown): Effect.Effect<void> =>
-  Effect.promise(async () => {
-    await step()
-    await settle()
-  })
+const drive = async (step: () => unknown): Promise<void> => {
+  await step()
+  await settle()
+}
 
 describe('Time and watchLifecycle', () => {
   it("pause('menu') makes paused true and reasons {menu}; resume('menu') clears it; with both reasons held, resuming one keeps it paused", async () => {
-    await runScoped(
-      Effect.gen(function* () {
-        const bus = yield* makePresentationBus()
-        const time = makeTime(bus)
+    const bus = createPresentationBus()
+    const time = createTime(bus)
 
-        expect(time.paused).toBe(false)
-        expect([...time.reasons]).toEqual([])
+    expect(time.paused).toBe(false)
+    expect([...time.reasons]).toEqual([])
 
-        time.pause('menu')
-        expect(time.paused).toBe(true)
-        expect([...time.reasons]).toEqual(['menu'])
+    time.pause('menu')
+    expect(time.paused).toBe(true)
+    expect([...time.reasons]).toEqual(['menu'])
 
-        time.pause('lifecycle')
-        expect(time.paused).toBe(true)
-        expect(new Set(time.reasons)).toEqual(new Set(['menu', 'lifecycle']))
+    time.pause('lifecycle')
+    expect(time.paused).toBe(true)
+    expect(new Set(time.reasons)).toEqual(new Set(['menu', 'lifecycle']))
 
-        time.resume('menu')
-        expect(time.paused).toBe(true)
-        expect([...time.reasons]).toEqual(['lifecycle'])
+    time.resume('menu')
+    expect(time.paused).toBe(true)
+    expect([...time.reasons]).toEqual(['lifecycle'])
 
-        time.resume('lifecycle')
-        expect(time.paused).toBe(false)
-        expect([...time.reasons]).toEqual([])
-      }),
-    )
+    time.resume('lifecycle')
+    expect(time.paused).toBe(false)
+    expect([...time.reasons]).toEqual([])
   })
 
   it("holds the 'input' reason for a pad unplugged in play (M4-D9)", async () => {
-    await runScoped(
-      Effect.gen(function* () {
-        const time = makeTime(yield* makePresentationBus())
-        time.pause('input')
-        time.pause('menu')
-        time.resume('menu')
-        expect([...time.reasons]).toEqual(['input'])
-        time.resume('input')
-        expect(time.paused).toBe(false)
-      }),
-    )
+    const time = createTime(createPresentationBus())
+    time.pause('input')
+    time.pause('menu')
+    time.resume('menu')
+    expect([...time.reasons]).toEqual(['input'])
+    time.resume('input')
+    expect(time.paused).toBe(false)
   })
 
   it("holds the 'display' reason for a phone held the wrong way (M4.7)", async () => {
-    await runScoped(
-      Effect.gen(function* () {
-        const time = makeTime(yield* makePresentationBus())
-        time.pause('display')
-        time.pause('menu')
-        time.resume('menu')
-        expect([...time.reasons]).toEqual(['display'])
-        time.resume('display')
-        expect(time.paused).toBe(false)
-      }),
-    )
+    const time = createTime(createPresentationBus())
+    time.pause('display')
+    time.pause('menu')
+    time.resume('menu')
+    expect([...time.reasons]).toEqual(['display'])
+    time.resume('display')
+    expect(time.paused).toBe(false)
   })
 
   it('time.changed is published on the bus each time paused flips, and not when a second reason is added', async () => {
-    await runScoped(
-      Effect.gen(function* () {
-        const bus = yield* makePresentationBus()
-        const time = makeTime(bus)
+    const bus = createPresentationBus()
+    const time = createTime(bus)
 
-        const events: boolean[] = []
-        bus.subscribe('time.changed', (fact) => {
-          events.push(fact.paused)
-        })
+    const events: boolean[] = []
+    bus.subscribe('time.changed', (fact) => {
+      events.push(fact.paused)
+    })
 
-        // Flip from false -> true
-        time.pause('menu')
-        expect(events).toEqual([true])
+    // Flip from false -> true
+    time.pause('menu')
+    expect(events).toEqual([true])
 
-        // Second pause reason: paused is still true, so time.changed does not publish
-        time.pause('lifecycle')
-        expect(events).toEqual([true])
+    // Second pause reason: paused is still true, so time.changed does not publish
+    time.pause('lifecycle')
+    expect(events).toEqual([true])
 
-        // Resume one reason: paused is still true
-        time.resume('menu')
-        expect(events).toEqual([true])
+    // Resume one reason: paused is still true
+    time.resume('menu')
+    expect(events).toEqual([true])
 
-        // Resume last reason: paused flips to false
-        time.resume('lifecycle')
-        expect(events).toEqual([true, false])
-      }),
-    )
+    // Resume last reason: paused flips to false
+    time.resume('lifecycle')
+    expect(events).toEqual([true, false])
   })
 
   it("under pauseBehavior: 'pause', the host going to background adds lifecycle; coming back removes it", async () => {
-    await runScoped(
-      Effect.gen(function* () {
-        const hosting = yield* Hosting
-        const { host } = yield* FakeHostHandle
-        const bus = yield* makePresentationBus()
-        const time = makeTime(bus)
+    await withHostingTest(async ({ hosting, handle: { host } }) => {
+      const time = createTime(createPresentationBus())
+      const stop = watchLifecycle({ hosting, time, pauseBehavior: 'pause', openMenu: () => {} })
 
-        yield* watchLifecycle({
-          hosting,
-          time,
-          pauseBehavior: 'pause',
-          openMenu: () => {},
-        })
+      await drive(() => undefined)
+      expect(time.reasons.has('lifecycle')).toBe(false)
 
-        yield* drive(() => undefined)
-        expect(time.reasons.has('lifecycle')).toBe(false)
+      await drive(() => host.frame?.hostDocument.setVisibility('hidden'))
+      expect(time.reasons.has('lifecycle')).toBe(true)
 
-        yield* drive(() => host.frame?.hostDocument.setVisibility('hidden'))
-        expect(time.reasons.has('lifecycle')).toBe(true)
-
-        yield* drive(() => host.frame?.hostDocument.setVisibility('visible'))
-        expect(time.reasons.has('lifecycle')).toBe(false)
-      }).pipe(Effect.provide(HostingTest())),
-    )
+      await drive(() => host.frame?.hostDocument.setVisibility('visible'))
+      expect(time.reasons.has('lifecycle')).toBe(false)
+      stop()
+    })
   })
 
   it("under pauseBehavior: 'continue' the same does nothing", async () => {
-    await runScoped(
-      Effect.gen(function* () {
-        const hosting = yield* Hosting
-        const { host } = yield* FakeHostHandle
-        const bus = yield* makePresentationBus()
-        const time = makeTime(bus)
+    await withHostingTest(async ({ hosting, handle: { host } }) => {
+      const time = createTime(createPresentationBus())
+      const stop = watchLifecycle({ hosting, time, pauseBehavior: 'continue', openMenu: () => {} })
 
-        yield* watchLifecycle({
-          hosting,
-          time,
-          pauseBehavior: 'continue',
-          openMenu: () => {},
-        })
-
-        yield* drive(() => undefined)
-        yield* drive(() => host.frame?.hostDocument.setVisibility('hidden'))
-        expect(time.reasons.has('lifecycle')).toBe(false)
-        expect(time.paused).toBe(false)
-      }).pipe(Effect.provide(HostingTest())),
-    )
+      await drive(() => undefined)
+      await drive(() => host.frame?.hostDocument.setVisibility('hidden'))
+      expect(time.reasons.has('lifecycle')).toBe(false)
+      expect(time.paused).toBe(false)
+      stop()
+    })
   })
 
   it('a hidden document pauses a standalone session (the injected document visibilityState and its visibilitychange event)', async () => {
-    await runScoped(
-      Effect.gen(function* () {
-        const hosting = yield* Hosting
-        const bus = yield* makePresentationBus()
-        const time = makeTime(bus)
+    await withHostingTest(
+      async ({ hosting }) => {
+        const time = createTime(createPresentationBus())
 
-        // Mock document with visibilityState and dispatchEvent
         let visibilityState: DocumentVisibilityState = 'visible'
         const listeners = new Set<() => void>()
         const fakeDocument = {
@@ -172,7 +129,7 @@ describe('Time and watchLifecycle', () => {
           },
         } as unknown as Document
 
-        yield* watchLifecycle({
+        const stop = watchLifecycle({
           hosting,
           time,
           pauseBehavior: 'pause',
@@ -180,98 +137,66 @@ describe('Time and watchLifecycle', () => {
           openMenu: () => {},
         })
 
-        // Simulate tab hidden
         visibilityState = 'hidden'
         for (const l of listeners) l()
         expect(time.reasons.has('lifecycle')).toBe(true)
 
-        // Simulate tab visible
         visibilityState = 'visible'
         for (const l of listeners) l()
         expect(time.reasons.has('lifecycle')).toBe(false)
-      }).pipe(
-        Effect.provide(
-          HostingTest({
-            env: (env) => ({ ...env, isTopLevel: true }),
-          }),
-        ),
-      ),
+
+        stop()
+        expect(listeners.size).toBe(0)
+      },
+      { env: (env) => ({ ...env, isTopLevel: true }) },
     )
   })
 
   it("entering background under 'pause' calls openMenu once, and play does not resume on its own when the host comes back", async () => {
-    await runScoped(
-      Effect.gen(function* () {
-        const hosting = yield* Hosting
-        const { host } = yield* FakeHostHandle
-        const bus = yield* makePresentationBus()
-        const time = makeTime(bus)
+    await withHostingTest(async ({ hosting, handle: { host } }) => {
+      const time = createTime(createPresentationBus())
+      let openMenuCalls = 0
+      const openMenu = () => {
+        openMenuCalls++
+        time.pause('menu')
+      }
+      const stop = watchLifecycle({ hosting, time, pauseBehavior: 'pause', openMenu })
 
-        let openMenuCalls = 0
-        const openMenu = () => {
-          openMenuCalls++
-          time.pause('menu')
-        }
+      await drive(() => undefined)
+      expect(openMenuCalls).toBe(0)
 
-        yield* watchLifecycle({
-          hosting,
-          time,
-          pauseBehavior: 'pause',
-          openMenu,
-        })
+      await drive(() => host.frame?.hostDocument.setVisibility('hidden'))
+      expect(openMenuCalls).toBe(1)
+      expect(time.reasons.has('lifecycle')).toBe(true)
+      expect(time.reasons.has('menu')).toBe(true)
 
-        yield* drive(() => undefined)
-        expect(openMenuCalls).toBe(0)
+      await drive(() => host.frame?.hostDocument.setVisibility('visible'))
+      expect(time.reasons.has('lifecycle')).toBe(false)
+      expect(time.reasons.has('menu')).toBe(true)
+      expect(time.paused).toBe(true) // play does not resume on its own
 
-        // Background: should call openMenu and add lifecycle
-        yield* drive(() => host.frame?.hostDocument.setVisibility('hidden'))
-        expect(openMenuCalls).toBe(1)
-        expect(time.reasons.has('lifecycle')).toBe(true)
-        expect(time.reasons.has('menu')).toBe(true)
-
-        // Host returns to visible: lifecycle removed, but menu remains
-        yield* drive(() => host.frame?.hostDocument.setVisibility('visible'))
-        expect(time.reasons.has('lifecycle')).toBe(false)
-        expect(time.reasons.has('menu')).toBe(true)
-        expect(time.paused).toBe(true) // play does not resume on its own
-
-        // Game resumes menu
-        time.resume('menu')
-        expect(time.paused).toBe(false)
-      }).pipe(Effect.provide(HostingTest())),
-    )
+      time.resume('menu')
+      expect(time.paused).toBe(false)
+      stop()
+    })
   })
 
-  it('closing the watcher scope stops it (a later background changes nothing)', async () => {
-    await runScoped(
-      Effect.gen(function* () {
-        const hosting = yield* Hosting
-        const { host } = yield* FakeHostHandle
-        const bus = yield* makePresentationBus()
-        const time = makeTime(bus)
+  it('stopping the watcher stops it (a later background changes nothing)', async () => {
+    await withHostingTest(async ({ hosting, handle: { host } }) => {
+      const time = createTime(createPresentationBus())
+      const stop = watchLifecycle({ hosting, time, pauseBehavior: 'pause', openMenu: () => {} })
 
-        const childScope = yield* Scope.make()
-        yield* watchLifecycle({
-          hosting,
-          time,
-          pauseBehavior: 'pause',
-          openMenu: () => {},
-        }).pipe(Scope.extend(childScope))
+      await drive(() => undefined)
+      await drive(() => host.frame?.hostDocument.setVisibility('hidden'))
+      expect(time.reasons.has('lifecycle')).toBe(true)
 
-        yield* drive(() => undefined)
-        yield* drive(() => host.frame?.hostDocument.setVisibility('hidden'))
-        expect(time.reasons.has('lifecycle')).toBe(true)
+      await drive(() => host.frame?.hostDocument.setVisibility('visible'))
+      expect(time.reasons.has('lifecycle')).toBe(false)
 
-        yield* drive(() => host.frame?.hostDocument.setVisibility('visible'))
-        expect(time.reasons.has('lifecycle')).toBe(false)
+      stop()
 
-        // Close watcher scope
-        yield* Scope.close(childScope, Exit.void)
-
-        // Later background changes nothing
-        yield* drive(() => host.frame?.hostDocument.setVisibility('hidden'))
-        expect(time.reasons.has('lifecycle')).toBe(false)
-      }).pipe(Effect.provide(HostingTest())),
-    )
+      await drive(() => host.frame?.hostDocument.setVisibility('hidden'))
+      expect(time.reasons.has('lifecycle')).toBe(false)
+    })
   })
 })

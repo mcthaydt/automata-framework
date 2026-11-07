@@ -1,44 +1,54 @@
 // The build's publish target picks the adapter: Ruken by default, the web adapter under `automata-web`.
 import { makeHosting } from '@mcthaydt/automata/target'
 import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
-import { Context, Duration, Effect, ExecutionStrategy, Layer, Scope, Stream } from 'effect'
-import { Audio, makeAudio } from '../../features/audio/audio.manager.js'
-import { AudioBuses } from '../../features/audio/audio-buses.js'
+import { Duration, Effect, type Scope, Stream } from 'effect'
+import { createAudio } from '../../features/audio/audio.manager.js'
 import { playEventSounds } from '../../features/audio/event-sounds.js'
-import { displayPolicy } from '../../features/display/display-policy.svelte.js'
-import { resolveExtensions } from '../../features/extension/resolve-extensions.js'
-import { browserHaptics, Haptics } from '../../features/input/haptics/haptics.manager.js'
+import { createDisplayPolicy } from '../../features/display/display-policy.svelte.js'
+import { browserHaptics } from '../../features/input/haptics/haptics.manager.js'
 import { submitEventScores } from '../../features/leaderboards/event-scores.js'
-import { Leaderboards, makeLeaderboards } from '../../features/leaderboards/leaderboards.manager.js'
-import { browserLanguages, Locale, makeLocale, singleLocale } from '../../features/locale/locale.manager.js'
+import { createLeaderboards } from '../../features/leaderboards/leaderboards.manager.js'
+import { browserLanguages, createLocale, singleLocale } from '../../features/locale/locale.manager.js'
 import { savesKept } from '../../features/saves/save.manager.js'
-import { makeSaves, Saves } from '../../features/saves/saves.manager.js'
 import type { HostingSeams } from '../../features/targets/ruken/hosting-ruken.ts'
+import {
+  effectClock,
+  plainAudioHosting,
+  plainObserved,
+  plainReady,
+  plainSaves,
+  toPlainHosting,
+} from '../../shared/host/effect-bridge.ts'
 import { HostError } from '../../shared/host/errors.ts'
-import { Hosting, type HostingOptions } from '../../shared/host/hosting.ts'
-import { Assets, makeAssets } from '../../shared/runtime/assets.manager.js'
-import { BootDefect, type BootError, ContentHashMismatch } from '../../shared/runtime/boot-error.js'
-import { makeLoadMeter, SLOW_MS } from '../../shared/runtime/load-meter.js'
-import { AppLoop, makeAppLoop } from '../../shared/runtime/loop/app-loop.manager.js'
+import type { Hosting, HostingOptions } from '../../shared/host/hosting.ts'
+import { refuse } from '../../shared/host/plain-errors.ts'
+import { disposables } from '../../shared/lib/disposables.ts'
+import { createAssets } from '../../shared/runtime/assets.manager.js'
+import {
+  BootDefect,
+  type BootError,
+  ContentHashMismatch,
+  LoadStalled,
+} from '../../shared/runtime/boot-error.js'
+import { createLoadMeter, SLOW_MS } from '../../shared/runtime/load-meter.js'
+import { createAppLoop } from '../../shared/runtime/loop/app-loop.manager.js'
 import { liveFrames } from '../../shared/runtime/loop/frames.js'
 import type { LoaderControls, PageLayers } from '../../shared/runtime/page-layers.svelte.js'
 import { createPageLayers } from '../../shared/runtime/page-layers.svelte.js'
-import {
-  makePresentationBus,
-  PresentationBus,
-} from '../../shared/runtime/presentation/presentation-bus.manager.js'
-import { type GameRenderer, Renderer, type RenderTarget } from '../../shared/runtime/render/renderer.js'
+import { createPresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
+import type { RenderTarget } from '../../shared/runtime/render/renderer.js'
 import { liveDeviceStorage } from '../../shared/runtime/settings/device-storage.js'
-import { makeSettings, Settings } from '../../shared/runtime/settings/settings.manager.js'
-import { makeTime, Time, watchLifecycle } from '../../shared/runtime/time/time.manager.js'
+import { createSettings } from '../../shared/runtime/settings/settings.manager.js'
+import { createTime, watchLifecycle } from '../../shared/runtime/time/time.manager.js'
 import { installGlobalErrorHandlers } from '../../shared/ui/browser/global-errors.ts'
 import { lockOverscroll } from '../../shared/ui/browser/lock-overscroll.ts'
 import { reducedMotion } from '../../shared/ui/browser/reduced-motion.ts'
 import { suppressPageGestures } from '../../shared/ui/browser/suppress-page-gestures.ts'
 import { createGeometryOwner } from '../../shared/ui/geometry/geometry-owner.svelte.ts'
-import { Flow, makeFlow } from '../flow/flow.manager.js'
+import { createFlow } from '../flow/flow.manager.js'
 import type { RuntimeServices } from '../flow/screen.js'
-import { makeVeil } from '../flow/veil.js'
+import { createVeil } from '../flow/veil.js'
+import { openSaves } from './effect-tags.ts'
 import type { CompiledContentData, GameDefinition } from './game-definition.js'
 import { notifyFailure } from './notify-failure.js'
 
@@ -81,43 +91,6 @@ export interface BootProgramOptions {
   readonly onHosting?: (hosting: Hosting) => void
   readonly onLayers?: (layers: PageLayers) => void
   readonly onLoader?: (loader: LoaderControls) => void
-}
-
-/**
- * Builds the Context<RuntimeServices> containing all 14 runtime tags (`Audio` and
- * `AudioBuses` are one service). Its own function so RuntimeTest reuses the exact service wiring.
- */
-export function buildRuntimeServices(services: {
-  readonly hosting: Hosting
-  readonly bus: PresentationBus
-  readonly time: Time
-  readonly flow: Flow
-  readonly settings: Settings
-  readonly saves: Saves
-  readonly appLoop: AppLoop
-  readonly assets: Assets
-  readonly renderer: GameRenderer
-  readonly locale: Locale
-  readonly audio: Audio & AudioBuses
-  readonly leaderboards: Leaderboards
-  readonly haptics: Haptics
-}): Context.Context<RuntimeServices> {
-  return Context.empty().pipe(
-    Context.add(Hosting, services.hosting),
-    Context.add(PresentationBus, services.bus),
-    Context.add(Time, services.time),
-    Context.add(Flow, services.flow),
-    Context.add(Settings, services.settings),
-    Context.add(Saves, services.saves),
-    Context.add(AppLoop, services.appLoop),
-    Context.add(Assets, services.assets),
-    Context.add(Renderer, services.renderer),
-    Context.add(Locale, services.locale),
-    Context.add(Audio, services.audio),
-    Context.add(AudioBuses, services.audio),
-    Context.add(Leaderboards, services.leaderboards),
-    Context.add(Haptics, services.haptics),
-  ) as Context.Context<RuntimeServices>
 }
 
 /**
@@ -210,7 +183,12 @@ export function bootProgram<S>(
     const deviceStorage =
       game.seams?.deviceStorage ??
       (typeof window === 'undefined' ? undefined : liveDeviceStorage(window, game.hosting.gameId))
-    const settingsService = yield* makeSettings(game.settings, rawSettings, hosting.saves, deviceStorage)
+    const settingsService = createSettings(
+      game.settings,
+      rawSettings,
+      plainSaves(hosting.saves),
+      deviceStorage,
+    )
 
     // Step 4: content hash verification
     const actualHash = contentHashOf(game.content.data)
@@ -219,7 +197,8 @@ export function bootProgram<S>(
     }
 
     // Step 5: load assets and fonts under the stall rule
-    const meter = yield* makeLoadMeter
+    // Timed on the runtime's Effect clock until boot is plain, so a `TestClock` still moves the stall rule.
+    const meter = createLoadMeter(effectClock(yield* Effect.runtime<never>()))
     yield* Effect.forkScoped(
       Effect.sleep(Duration.millis(SLOW_MS)).pipe(
         Effect.andThen(Effect.sync(() => loaderHandle.setSlow(true))),
@@ -238,7 +217,7 @@ export function bootProgram<S>(
         ? game.content.data.game.preload_screens
         : [game.content.data.flow.entry]
 
-    const assets = yield* makeAssets({
+    const assets = createAssets({
       assets: withPreload(game.content.data.assets, preloadScreens[0], game.preload),
       fonts: screenFonts,
       ...(game.seams?.fetch !== undefined ? { fetch: game.seams.fetch } : {}),
@@ -247,11 +226,17 @@ export function bootProgram<S>(
     })
 
     for (const screenId of preloadScreens) {
-      yield* assets.load(screenId, (fraction) => loaderHandle.setProgress(fraction))
+      const loaded = yield* Effect.promise((signal) =>
+        assets.load(screenId, (fraction) => loaderHandle.setProgress(fraction), signal),
+      )
+      if (!loaded.ok) return yield* Effect.fail(loaded.reason)
     }
 
     // Step 6: renderer factory. The bus exists first so the renderer can publish render facts.
-    const bus = yield* makePresentationBus()
+    const bus = yield* Effect.acquireRelease(
+      Effect.sync(() => createPresentationBus()),
+      (opened) => Effect.sync(() => opened.dispose()),
+    )
     const renderTarget: RenderTarget = {
       host: layers.stage,
       geometry,
@@ -279,35 +264,41 @@ export function bootProgram<S>(
     const renderer = yield* game.renderer(renderTarget)
 
     // Step 7: ready guarded by stall rule, runtime services, extensions and flow start
-    yield* meter
-      .guard(hosting.ready, {
-        url: 'session.ready',
-        onSlow: () => loaderHandle.setSlow(true),
-      })
-      .pipe(
-        Effect.catchTag('LoadStalled', () =>
-          Effect.fail(new HostError({ code: 'TIMEOUT', retryable: true, operation: 'ready' })),
-        ),
-      )
+    // A ready that stalls is the host timing out: the panel offers Try again, as for any retryable refusal.
+    const ready = yield* Effect.promise((signal) =>
+      meter
+        .guard(
+          () => plainReady(hosting.ready),
+          { url: 'session.ready', onSlow: () => loaderHandle.setSlow(true) },
+          signal,
+        )
+        .catch((error: unknown) => {
+          if (error instanceof LoadStalled) return refuse('TIMEOUT', true, 'ready')
+          throw error
+        }),
+    )
+    if (!ready.ok) return yield* Effect.fail(new HostError(ready.reason))
 
     // Ready resolved: close loader overlay and set state ready
     loaderHandle.close()
     layers.setState('ready')
 
-    const time = makeTime(bus)
+    const time = createTime(bus)
 
     // The locale is negotiated, and <html lang dir> set, before the first screen enters.
-    const locale = yield* makeLocale({
-      def: game.locale ?? singleLocale(game.content.data.game?.source_language ?? 'en'),
-      hosting,
-      browser: game.seams?.languages ?? browserLanguages(win.navigator),
-      bus,
-      element: doc.documentElement,
-    })
+    const locale = yield* Effect.promise(() =>
+      createLocale({
+        def: game.locale ?? singleLocale(game.content.data.game?.source_language ?? 'en'),
+        hosting: { kind: hosting.kind, locale: hosting.locale, saves: plainSaves(hosting.saves) },
+        browser: game.seams?.languages ?? browserLanguages(win.navigator),
+        bus,
+        element: doc.documentElement,
+      }),
+    )
 
     // Built now and silent until the first gesture after ready.
-    const audio = yield* makeAudio({
-      hosting,
+    const audio = createAudio({
+      hosting: plainAudioHosting(hosting),
       assets,
       bus,
       window: win,
@@ -317,14 +308,13 @@ export function bootProgram<S>(
         : { createContext: game.seams.createAudioContext }),
       ...(game.seams?.fetch === undefined ? {} : { fetch: game.seams.fetch }),
     })
+    yield* Effect.addFinalizer(() => Effect.sync(() => audio.dispose()))
     if (game.sounds !== undefined) {
       const stopSounds = playEventSounds(bus, audio, game.sounds)
       yield* Effect.addFinalizer(() => Effect.sync(stopSounds))
     }
-    const leaderboards = yield* makeLeaderboards.pipe(
-      Effect.provideService(Hosting, hosting),
-      Effect.provideService(PresentationBus, bus),
-    )
+    const plainHosting = toPlainHosting(hosting)
+    const leaderboards = createLeaderboards(plainHosting, bus)
     if (game.scores !== undefined) {
       const stopScores = submitEventScores(bus, leaderboards, game.scores)
       yield* Effect.addFinalizer(() => Effect.sync(stopScores))
@@ -333,23 +323,26 @@ export function bootProgram<S>(
     // What a game keeps across screens, handed to each as `ScreenContext.runtime`. Forked here, before the
     // save, because finalizers run last-in, first-out: at shutdown it closes after the current screen and the save's
     // last flush (which may still read what it holds), and before the renderer is destroyed and Hosting closes.
-    const keptAcrossScreens = yield* Scope.fork(yield* Scope.Scope, ExecutionStrategy.sequential)
+    const keptAcrossScreens = disposables()
+    yield* Effect.addFinalizer(() => Effect.sync(() => keptAcrossScreens.dispose()))
 
     // The game's save: its slots read from the host now, its triggers and its exit flush
     // live for the session. A failure here is the host's, and boots to the failure panel like a refused settings read.
-    const saves = yield* makeSaves(game.saves, { contentHash: game.content.hash }).pipe(
-      Effect.provideService(Hosting, hosting),
-      Effect.provideService(PresentationBus, bus),
+    const saves = yield* openSaves(game.saves, { contentHash: game.content.hash, hosting, bus })
+
+    // The runtime's Effect clock until boot is plain, so a `TestClock` still moves the fades, toasts and countdowns.
+    const clock = effectClock(yield* Effect.runtime<never>())
+    const veil = yield* Effect.acquireRelease(
+      Effect.sync(() =>
+        createVeil({ overlay: layers.overlay, reducedMotion: () => reducedMotion(win), clock }),
+      ),
+      (made) => Effect.sync(() => made.dispose()),
     )
 
-    const veil = yield* makeVeil({
-      overlay: layers.overlay,
-      reducedMotion: () => reducedMotion(win),
-    })
+    // Built once every service exists (the flow is one of them); a screen reads them when it enters.
+    let services: RuntimeServices | undefined
 
-    let runtimeContext: Context.Context<RuntimeServices> = Context.empty() as Context.Context<RuntimeServices>
-
-    const flowHandle = yield* makeFlow({
+    const flowHandle = createFlow({
       graph: game.content.data.flow,
       screens: game.screens,
       layers,
@@ -359,7 +352,10 @@ export function bootProgram<S>(
       geometry,
       veil,
       ...(game.copy !== undefined ? { copy: game.copy } : {}),
-      services: () => runtimeContext,
+      services: () => {
+        if (services === undefined) throw new Error('A screen entered before the runtime services were built')
+        return services
+      },
       runtime: keptAcrossScreens,
       onFailure: (cause) => notifyFailure(game.seams, cause),
       ...(import.meta.env?.DEV
@@ -369,18 +365,21 @@ export function bootProgram<S>(
           }
         : {}),
     })
+    // Leaving the current screen comes before the save's last flush and `keptAcrossScreens` (finalizers run last first).
+    yield* Effect.addFinalizer(() => Effect.promise(() => flowHandle.dispose()))
 
     yield* hosting.onMenuRequest(() => flowHandle.flow.openMenu())
 
-    yield* watchLifecycle({
-      hosting,
+    const stopWatching = watchLifecycle({
+      hosting: { lifecycle: plainObserved(hosting.lifecycle) },
       time,
       pauseBehavior: game.hosting.pauseBehavior,
       document: doc,
       openMenu: () => flowHandle.flow.openMenu(),
     })
+    yield* Effect.addFinalizer(() => Effect.sync(stopWatching))
 
-    const appLoop = yield* makeAppLoop({
+    const appLoop = createAppLoop({
       frames,
       renderer,
       time,
@@ -394,10 +393,12 @@ export function bootProgram<S>(
         notifyFailure(game.seams, cause)
       },
     })
+    yield* Effect.addFinalizer(() => Effect.sync(() => appLoop.dispose()))
 
-    runtimeContext = buildRuntimeServices({
-      hosting,
+    services = {
+      hosting: plainHosting,
       bus,
+      clock,
       time,
       flow: flowHandle.flow,
       settings: settingsService,
@@ -409,17 +410,12 @@ export function bootProgram<S>(
       audio,
       leaderboards,
       haptics: game.seams?.haptics ?? browserHaptics(win),
-    })
-
-    if (game.extensions && game.extensions.length > 0) {
-      const resolved = resolveExtensions(game.extensions)
-      yield* Layer.build(resolved.layer).pipe(Effect.provide(runtimeContext))
     }
 
-    yield* flowHandle.start()
+    yield* Effect.promise(() => flowHandle.start())
 
     // The landscape gate (standalone) and the rotate hint, over every screen for the session.
-    yield* displayPolicy({
+    const display = createDisplayPolicy({
       orientation: game.orientation ?? 'any',
       rotateHint: game.rotateHint ?? 'block',
       hosted: hosting.kind !== 'standalone',
@@ -428,6 +424,7 @@ export function bootProgram<S>(
       layer: layers.overlay,
       time,
     })
+    yield* Effect.addFinalizer(() => Effect.sync(() => display.dispose()))
   })
 
   return program.pipe(

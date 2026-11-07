@@ -1,7 +1,6 @@
 // Rebinding, as pure functions over the game's profile and the player's overrides.
 // FloorFifty has no rebinding; these rules are the spec's.
-import { Data, Either } from 'effect'
-import type { TaggedErrorClass } from '../../../shared/runtime/boot-error.js'
+import { ok, type Result, refused } from '../../../shared/lib/result.ts'
 import {
   type InputBinding,
   type InputContext,
@@ -74,17 +73,43 @@ interface ReservedFields {
 interface UnknownFields {
   readonly action: string
 }
-const RebindConflictBase: TaggedErrorClass<'RebindConflict', ConflictFields> =
-  Data.TaggedError('RebindConflict')
-const RebindReservedBase: TaggedErrorClass<'RebindReserved', ReservedFields> =
-  Data.TaggedError('RebindReserved')
-const RebindUnknownBase: TaggedErrorClass<'RebindUnknown', UnknownFields> = Data.TaggedError('RebindUnknown')
 /** Refused: the input would leave `with`, a required action, with nothing on that device (M4-D4). */
-export class RebindConflict extends RebindConflictBase {}
+export class RebindConflict extends Error {
+  readonly _tag = 'RebindConflict' as const
+  readonly action: string
+  readonly with: string
+
+  constructor(fields: ConflictFields) {
+    super(`'${fields.action}' cannot take that input: '${fields.with}' would be left with nothing`)
+    this.name = 'RebindConflict'
+    this.action = fields.action
+    this.with = fields.with
+  }
+}
 /** Refused: Escape, Tab, pad 8 or pad 16 (M4-D3), or a pad button the standard mapping does not have. */
-export class RebindReserved extends RebindReservedBase {}
+export class RebindReserved extends Error {
+  readonly _tag = 'RebindReserved' as const
+  readonly action: string
+  readonly input: string
+
+  constructor(fields: ReservedFields) {
+    super(`'${fields.input}' is kept for the game itself and cannot be bound to '${fields.action}'`)
+    this.name = 'RebindReserved'
+    this.action = fields.action
+    this.input = fields.input
+  }
+}
 /** Refused: the profile has no such action. */
-export class RebindUnknown extends RebindUnknownBase {}
+export class RebindUnknown extends Error {
+  readonly _tag = 'RebindUnknown' as const
+  readonly action: string
+
+  constructor(fields: UnknownFields) {
+    super(`There is no action '${fields.action}' to bind`)
+    this.name = 'RebindUnknown'
+    this.action = fields.action
+  }
+}
 /** Why a rebind was refused, with nothing changed. */
 export type RebindError = RebindConflict | RebindReserved | RebindUnknown
 
@@ -92,14 +117,28 @@ interface CaptureFields {
   /** What the capture was waiting for. */
   readonly device: 'keyboard' | 'gamepad'
 }
-const RebindCancelledBase: TaggedErrorClass<'RebindCancelled', CaptureFields> =
-  Data.TaggedError('RebindCancelled')
-const RebindTimedOutBase: TaggedErrorClass<'RebindTimedOut', CaptureFields> =
-  Data.TaggedError('RebindTimedOut')
 /** The player pressed Escape or pad B while a capture waited: nothing changes. */
-export class RebindCancelled extends RebindCancelledBase {}
+export class RebindCancelled extends Error {
+  readonly _tag = 'RebindCancelled' as const
+  readonly device: 'keyboard' | 'gamepad'
+
+  constructor(fields: CaptureFields) {
+    super(`The ${fields.device} capture was cancelled`)
+    this.name = 'RebindCancelled'
+    this.device = fields.device
+  }
+}
 /** Nothing was pressed for `REBIND_TIMEOUT_MS`: nothing changes. */
-export class RebindTimedOut extends RebindTimedOutBase {}
+export class RebindTimedOut extends Error {
+  readonly _tag = 'RebindTimedOut' as const
+  readonly device: 'keyboard' | 'gamepad'
+
+  constructor(fields: CaptureFields) {
+    super(`Nothing was pressed on the ${fields.device} in time`)
+    this.name = 'RebindTimedOut'
+    this.device = fields.device
+  }
+}
 
 const contextOf = (binding: InputBinding): InputContext => binding.context ?? 'play'
 /** Two actions compete for an input when they can be live at once. */
@@ -136,14 +175,14 @@ export function rebindProfile(
   action: string,
   device: 'keyboard' | 'gamepad',
   capture: Capture,
-): Either.Either<Record<string, BindingOverride>, RebindError> {
+): Result<Record<string, BindingOverride>, RebindError> {
   const target = current.bindings[action]
-  if (target === undefined) return Either.left(new RebindUnknown({ action }))
+  if (target === undefined) return refused(new RebindUnknown({ action }))
   const field = device === 'keyboard' ? 'keys' : 'pad'
   let input: string | number
   if ('code' in capture) {
     if (RESERVED_KEYS.includes(capture.code))
-      return Either.left(new RebindReserved({ action, input: capture.code }))
+      return refused(new RebindReserved({ action, input: capture.code }))
     input = capture.code
   } else {
     const { button } = capture
@@ -153,7 +192,7 @@ export function rebindProfile(
       button > STANDARD_PAD_BUTTON_MAX ||
       RESERVED_PAD_BUTTONS.includes(button)
     )
-      return Either.left(new RebindReserved({ action, input: `pad ${button}` }))
+      return refused(new RebindReserved({ action, input: `pad ${button}` }))
     input = button
   }
 
@@ -165,9 +204,9 @@ export function rebindProfile(
     if (!inputs.includes(input) || !overlaps(contextOf(binding), contextOf(target))) continue
     const left = inputs.filter((value) => value !== input)
     if (binding.required === true && left.length === 0)
-      return Either.left(new RebindConflict({ action, with: other }))
+      return refused(new RebindConflict({ action, with: other }))
     bindings[other] = { ...binding, [field]: left }
   }
   bindings[action] = { ...target, [field]: [input] }
-  return Either.right(overridesFrom(defaults, bindings))
+  return ok(overridesFrom(defaults, bindings))
 }

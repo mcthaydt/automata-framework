@@ -1,11 +1,9 @@
 // The game's save as a runtime service, the way `Settings` is one for settings: boot builds it from
 // `GameDefinition.saves`, and a screen asks for it by the same definition.
 
-import { Context, Effect, type Scope } from 'effect'
-import type { HostError } from '../../shared/host/errors.ts'
-import type { Hosting } from '../../shared/host/hosting.ts'
-import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
-import type { Save } from './save.manager.js'
+import type { HostRefusal } from '../../shared/host/plain-errors.ts'
+import { ok, type Result } from '../../shared/lib/result.ts'
+import type { Save, SaveServiceOptions } from './save.manager.js'
 import { saveService } from './save.manager.js'
 import type { SaveDef } from './save.schema.js'
 
@@ -19,33 +17,27 @@ export interface Saves {
   readonly save: Save<unknown> | undefined
 }
 
-export const Saves: Context.Tag<Saves, Saves> = Context.GenericTag<Saves>('@mcthaydt/automata-runtime/Saves')
-
 /**
- * Returns the booted save when `def.key` matches.
- * Dies with a defect if the game booted a different save, or none: asking for a save the game never declared is
- * the game's mistake (as `settingsStore` does for settings).
+ * Returns the booted save when `def.key` matches. Throws if the game booted a different save, or none: asking for a
+ * save the game never declared is the game's mistake (as `storeOf` does for settings).
  */
-export function saveOf<S>(def: SaveDef<S>): Effect.Effect<Save<S>, never, Saves> {
-  return Effect.gen(function* () {
-    const saves = yield* Saves
-    if (saves.key !== def.key || saves.save === undefined) {
-      return yield* Effect.dieMessage(
-        `saveOf: requested save '${def.key}' does not match the booted save '${saves.key}'`,
-      )
-    }
-    return saves.save as Save<S>
-  })
+export function saveOf<S>(saves: Saves, def: SaveDef<S>): Save<S> {
+  if (saves.key !== def.key || saves.save === undefined)
+    throw new Error(`saveOf: requested save '${def.key}' does not match the booted save '${saves.key}'`)
+  return saves.save as Save<S>
 }
 
 /**
- * Opens the game's save for boot, with its triggers and its exit flush, for as long as the scope is open. A game
- * without `saves` gets a `Saves` that holds nothing, and nothing is read from the host.
+ * Opens the game's save for boot, with its triggers and its exit flush, until `dispose()`. A game without `saves`
+ * gets a `Saves` that holds nothing, and nothing is read from the host.
  */
-export function makeSaves(
+export async function createSaves(
   def: SaveDef<unknown> | undefined,
-  options: { readonly contentHash: string },
-): Effect.Effect<Saves, HostError, Hosting | PresentationBus | Scope.Scope> {
-  if (def === undefined) return Effect.succeed({ key: undefined, save: undefined })
-  return saveService(def, options).pipe(Effect.map((save) => ({ key: def.key, save })))
+  options: SaveServiceOptions,
+): Promise<Result<Saves & { dispose(): Promise<void> }, HostRefusal>> {
+  if (def === undefined) return ok({ key: undefined, save: undefined, dispose: async () => undefined })
+  const opened = await saveService(def, options)
+  if (!opened.ok) return opened
+  const save = opened.value
+  return ok({ key: def.key, save, dispose: () => save.dispose() })
 }

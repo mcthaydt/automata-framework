@@ -3,11 +3,10 @@
 // bindings: one poll, one set of touch buttons, one Controls section.
 
 import type { Command } from '@mcthaydt/automata-sim'
-import { Effect, Exit, Scope } from 'effect'
 import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.ts'
 import { CAMERA_SETTINGS_DEFAULT } from './analog/camera-settings.schema.ts'
 import { type AnalogReading, analogReading } from './analog-reading.ts'
-import { makeInput } from './input.manager.ts'
+import { createInput } from './input.manager.ts'
 import {
   type InputProfile,
   inputProfileSchema,
@@ -88,9 +87,8 @@ export function inputs(...maps: readonly InputMap[]): InputMap {
     labels: Object.assign({}, ...maps.map((map) => map.labels)),
     toCommand,
     attach(target) {
-      // One Input over the merged bindings, in a scope of its own that `dispose` closes, as `keys()` attaches.
-      const scope = Effect.runSync(Scope.make())
-      const input = Effect.runSync(makeInput({ target, profile, bus: SILENT_BUS }).pipe(Scope.extend(scope)))
+      // One Input over the merged bindings, which `dispose` takes down, as `keys()` attaches.
+      const input = createInput({ target, profile, bus: SILENT_BUS })
       return {
         commands(tick) {
           input.poll()
@@ -99,7 +97,7 @@ export function inputs(...maps: readonly InputMap[]): InputMap {
         hold: (buttonId) => input.hold(buttonId),
         release: (buttonId) => input.release(buttonId),
         gesture: input.gesture,
-        dispose: () => Effect.runSync(Scope.close(scope, Exit.void)),
+        dispose: () => input.dispose(),
       }
     },
   }

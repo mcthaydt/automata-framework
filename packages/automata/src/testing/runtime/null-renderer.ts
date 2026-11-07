@@ -16,6 +16,24 @@ export interface NullRendererOptions {
   readonly fail?: boolean
 }
 
+/** The renderer `nullRenderer` builds: it draws nothing and records each call in `log`. */
+export function nullGameRenderer(log: NullRendererEntry[] = []): GameRenderer & { dispose(): void } {
+  return {
+    apply(result: StepResult): void {
+      log.push({ type: 'apply', tick: result.tick })
+    },
+    draw(frame: FrameInfo): void {
+      log.push({ type: 'draw', alpha: frame.alpha })
+    },
+    reset(): void {
+      log.push({ type: 'reset' })
+    },
+    dispose(): void {
+      log.push({ type: 'destroy' })
+    },
+  }
+}
+
 /** A renderer that draws nothing and records each call in `log`, for runtime tests without a GPU. */
 export function nullRenderer(
   log: NullRendererEntry[] = [],
@@ -26,26 +44,9 @@ export function nullRenderer(
       return Effect.fail(new RendererUnavailable({ tried: ['webgl2'] }))
     }
 
-    return Effect.gen(function* () {
-      yield* Effect.addFinalizer(() =>
-        Effect.sync(() => {
-          log.push({ type: 'destroy' })
-        }),
-      )
-
-      const renderer: GameRenderer = {
-        apply(result: StepResult): void {
-          log.push({ type: 'apply', tick: result.tick })
-        },
-        draw(frame: FrameInfo): void {
-          log.push({ type: 'draw', alpha: frame.alpha })
-        },
-        reset(): void {
-          log.push({ type: 'reset' })
-        },
-      }
-
-      return renderer
-    })
+    return Effect.acquireRelease(
+      Effect.sync(() => nullGameRenderer(log)),
+      (renderer) => Effect.sync(() => renderer.dispose()),
+    )
   }
 }

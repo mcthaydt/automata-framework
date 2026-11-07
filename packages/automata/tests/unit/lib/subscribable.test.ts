@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { disposables } from '#src/shared/lib/disposables.ts'
-import { emitter, subscribable } from '#src/shared/lib/subscribable.ts'
+import { emitter, state, subscribable } from '#src/shared/lib/subscribable.ts'
 
 /** A source like the SDK's: a current value and an `on('change')`. */
 function source<A>(initial: A) {
@@ -107,5 +107,19 @@ describe('emitter', () => {
     emit(1)
     emit(2)
     expect(seen).toEqual(['first', 'second', 'second'])
+  })
+})
+
+describe('state', () => {
+  it('holds a value: subscribers hear it now, then each change, and an unchanged set is not news', () => {
+    const value = state(false)
+    const seen: boolean[] = []
+    const stop = value.subscribe((v) => seen.push(v))
+    value.set(true)
+    value.set(true)
+    expect(value.get()).toBe(true)
+    stop()
+    value.set(false)
+    expect(seen).toEqual([false, true])
   })
 })

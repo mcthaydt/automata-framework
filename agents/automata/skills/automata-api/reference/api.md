@@ -98,53 +98,24 @@ The properties of one analytics event: flat names to strings, numbers or boolean
 type AnalyticsProps = Record<string, string | number | boolean>;
 ```
 
-#### `AppLoop` (interface)
+#### `AppLoop` (type)
 
 The frame loop service: `run` steps a sim at its fixed tick rate from display frames, with the commands for each
-tick, and the renderer draws every frame. No step runs while `Time` is paused; a throw from a step stops it.
+tick, and the renderer draws every frame.
 
 ```ts
-interface AppLoop {
-    run(options: {
-        sim: Sim;
-        commands: (tick: number) => readonly Command[];
-    }): void;
-    stop(): void;
-    readonly running: boolean;
-}
-const AppLoop: Context.Tag<AppLoop, AppLoop>;
+type AppLoop = AppLoopService;
+const AppLoop: Context.Tag<AppLoopService, AppLoopService>;
 ```
 
-#### `Audio` (interface)
+#### `Audio` (type)
 
-The audio service: one-shot sounds and looping music on the audio buses, unlocked by the
-first gesture after `session.ready`; the game runs silent when no audio context can be built.
+The audio service: one-shot sounds and looping music on the audio buses, unlocked by the first gesture after
+`session.ready`; the game runs silent when no audio context can be built.
 
 ```ts
-interface Audio {
-    /** False until the first gesture after `session.ready` builds and resumes the graph. */
-    readonly unlocked: Subscribable.Subscribable<boolean>;
-    /** False once a context could not be built (`audio.unavailable`): the game runs silent, and Settings says so. */
-    readonly available: Subscribable.Subscribable<boolean>;
-    /** Plays the asset at `alias` once. Fire and forget: silent before the unlock, while asleep, or if it fails. */
-    sound(alias: string, options?: SoundOptions): void;
-    /** Loops the asset at `alias` on the music bus. Asked for before the unlock, it starts on the unlock. */
-    music(alias: string, options?: MusicOptions): Effect.Effect<void, AudioDecodeFailed | AssetLoadFailed>;
-    /** Fades the music out over `fadeSeconds`, a click-free cut by default. */
-    stopMusic(fadeSeconds?: number): void;
-    /** Takes `bus` down by `amount` (0..1) for `seconds`; `master` ducks every bus. */
-    duck(bus: AudioBusName, amount: number, seconds: number): void;
-    /** The player's mute: the master only, so unmuting restores the mix as it was. */
-    setMuted(muted: boolean): void;
-    /**
-     * A short tone on `bus`, as the volume sliders play on release (FloorFifty's sample), so the player hears the level
-     * they set. The graph makes it: no game asset. Silent before the unlock, as every sound is.
-     */
-    sample(bus: AudioBusName): void;
-    /** The player's "mute when in the background": silences the master while another window has focus. */
-    setMuteUnfocused(muteUnfocused: boolean): void;
-}
-const Audio: Context.Tag<Audio, Audio>;
+type Audio = AudioService;
+const Audio: Context.Tag<AudioService, AudioService>;
 ```
 
 #### `AUDIO_BUS_NAMES` (const)
@@ -156,24 +127,17 @@ the set is an API change.
 const AUDIO_BUS_NAMES: readonly ['master', 'music', 'sfx', 'ui', 'voice'];
 ```
 
-#### `AudioBuses` (interface)
+#### `AudioBuses` (type)
 
-The audio-bus seam. Core audio implements it over Web Audio (a gain node per bus
-into `master`, combined there with `Hosting.audio`'s volume and focus); an extension such as Plus
-`audio-stream`, or the game, connects its sources to `input(bus)` and never to the destination directly,
-so the player's gains and the host's ducking always apply.
-The `AudioBuses` service tag. The Audio service implements it.
+The audio-bus seam. The audio service implements it.
 
 ```ts
-interface AudioBuses {
-    /** The node a source connects to so that it plays on `bus`. */
-    input(bus: AudioBusName): AudioNode;
-    /** The player's current gain for `bus`, 0..1. */
-    gain(bus: AudioBusName): number;
-    /** Sets the player's gain for `bus`, 0..1. Persisting it is the game's settings' job. */
-    setGain(bus: AudioBusName, gain: number): void;
-}
-const AudioBuses: Context.Tag<AudioBuses, AudioBuses>;
+type AudioBuses = {
+    input: AudioBusesService['input'];
+    gain: AudioBusesService['gain'];
+    setGain: AudioBusesService['setGain'];
+};
+const AudioBuses: Context.Tag<AudioBusesService, AudioBusesService>;
 ```
 
 #### `audioBusGainsSchema` (const)
@@ -426,6 +390,19 @@ The height tier of a layout height in CSS px: `compact` below 340, `short` up to
 
 ```ts
 function classifyHeightTier(height: number): HeightTier;
+```
+
+#### `Clock` (interface)
+
+_No doc comment._
+
+```ts
+interface Clock {
+    /** Milliseconds; only differences between two calls mean anything. */
+    now(): number;
+    setTimeout(callback: () => void, ms: number): TimeoutHandle;
+    clearTimeout(handle: TimeoutHandle): void;
+}
 ```
 
 #### `Command` (interface)
@@ -850,6 +827,31 @@ Checks display metrics.
 const DisplayMetricsPayloadSchema: z.ZodType<DisplayMetricsPayload>;
 ```
 
+#### `Disposables` (interface)
+
+_No doc comment._
+
+```ts
+interface Disposables {
+    /**
+     * Runs `undo` at disposal. Added after disposal it runs at once, so a late arrival is never leaked. Returns a
+     * function that takes `undo` back out (a listener that was stopped by hand has nothing left to undo).
+     */
+    add(undo: () => void): () => void;
+    /** Runs what was added, last added first, once. Later calls do nothing. */
+    dispose(): void;
+    readonly disposed: boolean;
+}
+```
+
+#### `disposables` (function)
+
+_No doc comment._
+
+```ts
+function disposables(): Disposables;
+```
+
 #### `DrawContext` (interface)
 
 What `draw` receives each frame. Coordinates are logical playfield pixels (plan D-2).
@@ -1023,16 +1025,16 @@ function findTauriMarkers(code: string): string[];
 #### `Flow` (interface)
 
 The screen flow service: the current screen, `dispatch` to follow an event's transition from it, `openMenu`
-for the current screen's menu, and `settled` once no transition is pending.
+for the current screen's menu, and `settled()` once no transition is pending.
 
 ```ts
 interface Flow {
     readonly current: string | undefined;
     dispatch(event: string): boolean;
     openMenu(): boolean;
-    readonly settled: Effect.Effect<void>;
+    /** Resolves once no transition is queued or running (at once when the flow is idle). */
+    settled(): Promise<void>;
 }
-const Flow: Context.Tag<Flow, Flow>;
 ```
 
 #### `FormFactor` (type)
@@ -1583,25 +1585,24 @@ interface Input {
     cameraDrag(): number;
     /** `play` during gameplay, `menu` while a screen pauses the sim or a modal is open. Releases what is held. */
     setContext(context: InputContextNow): void;
-    readonly device: SubscriptionRef.SubscriptionRef<ActiveDevice>;
-    readonly profile: SubscriptionRef.SubscriptionRef<InputProfile>;
+    readonly device: Subscribable<ActiveDevice>;
+    readonly profile: Subscribable<InputProfile>;
     /** The pads connected since this Input started, in connection order. */
-    readonly pads: SubscriptionRef.SubscriptionRef<readonly PadInfo[]>;
+    readonly pads: Subscribable<readonly PadInfo[]>;
     /**
      * Binds the captured key or pad button to `action` on `device`, saved in the settings'
      * `input` when the Input has settings; refused, with nothing changed, by `RebindError`.
      */
-    rebind(action: string, device: 'keyboard' | 'gamepad', capture: Capture): Effect.Effect<void, RebindError>;
+    rebind(action: string, device: 'keyboard' | 'gamepad', capture: Capture): Result<void, RebindError>;
     /** Every binding back to the game's profile. */
-    readonly resetBindings: Effect.Effect<void>;
+    resetBindings(): void;
     /**
      * The next key (`keyboard`) or pad button (`gamepad`) pressed, for `rebind`. Escape or pad B cancels; nothing
-     * for `REBIND_TIMEOUT_MS` on Effect's Clock times out. While it waits, every key it sees goes no further, and the
-     * pads drive nothing else.
+     * for `REBIND_TIMEOUT_MS` on the Input's clock times out. While it waits, every key it sees goes no further, and the
+     * pads drive nothing else. A new capture cancels the one waiting; `signal` aborting stops it and rejects.
      */
-    capture(device: 'keyboard' | 'gamepad'): Effect.Effect<Capture, RebindCancelled | RebindTimedOut>;
+    capture(device: 'keyboard' | 'gamepad', signal?: AbortSignal): Promise<Result<Capture, RebindCancelled | RebindTimedOut>>;
 }
-const Input: Context.Tag<Input, Input>;
 ```
 
 #### `InputMap` (interface)
@@ -1937,30 +1938,13 @@ const LoaderOverlay: import("svelte").Component<Props, {}, "">;
 type LoaderOverlay = ReturnType<typeof LoaderOverlay>;
 ```
 
-#### `Locale` (interface)
+#### `Locale` (type)
 
-The locale service: the game's locales, the one text is drawn in now, the player's choice
-and the text direction.
+The locale service: the game's locales, the one text is drawn in now, the player's choice and the text direction.
 
 ```ts
-interface Locale {
-    /** The game's locales, in its own order (the picker's order). */
-    readonly locales: readonly string[];
-    readonly baseLocale: string;
-    /** The locale text is drawn in now. */
-    readonly current: string;
-    /** The player's pick: one of `locales`, or null for Automatic (nothing saved, or a saved locale the game dropped). */
-    readonly choice: string | null;
-    readonly direction: 'ltr' | 'rtl';
-    /** Svelte store contract: called at once with the current locale, then on each change. */
-    subscribe(listener: (locale: string) => void): () => void;
-    /**
-     * The picker's one call: one of `locales`, or null for Automatic. Saved through `Hosting.saves`.
-     * A locale the game does not ship throws: the picker only offers `locales`.
-     */
-    set(choice: string | null): void;
-}
-const Locale: Context.Tag<Locale, Locale>;
+type Locale = LocaleService;
+const Locale: Context.Tag<LocaleService, LocaleService>;
 ```
 
 #### `MAX_TURN_UNITS_PER_STEP` (const)
@@ -2583,6 +2567,31 @@ interface RuntimeSeams {
 }
 ```
 
+#### `RuntimeServices` (interface)
+
+The runtime services a screen may use, as one plain object: boot builds them in order and hands them over.
+
+```ts
+interface RuntimeServices {
+    readonly hosting: Hosting;
+    readonly bus: PresentationBus;
+    /** The runtime's clock: what a screen waits on (a toast's four seconds, a rebind's countdown). */
+    readonly clock: Clock;
+    readonly time: Time;
+    readonly flow: Flow;
+    readonly settings: Settings;
+    readonly saves: Saves;
+    readonly appLoop: AppLoop;
+    readonly assets: Assets;
+    readonly renderer: GameRenderer;
+    readonly locale: Locale;
+    /** Sounds and music, and the audio buses' gains (one service). */
+    readonly audio: Audio & AudioBuses;
+    readonly leaderboards: Leaderboards;
+    readonly haptics: Haptics;
+}
+```
+
 #### `Save` (interface)
 
 A game's save: its slots' states, load, write and remove, and the progress `touch` keeps for
@@ -2591,16 +2600,16 @@ the autosave triggers to write.
 ```ts
 interface Save<S> {
     /** Every slot's state, in slot order. */
-    readonly slots: Subscribable.Subscribable<readonly SlotState[]>;
+    readonly slots: Subscribable<readonly SlotState[]>;
     /** The slot being played: the last one `load` returned. Undefined before the first load. */
-    readonly loaded: Subscribable.Subscribable<number | undefined>;
+    readonly loaded: Subscribable<number | undefined>;
     /**
      * Reads a slot and makes it the one being played. Progress `touch`ed before is dropped: it came from the game this
-     * load replaces, and must not be written over what was just read.
+     * load replaces, and must not be written over what was just read. A slot the save does not have throws.
      */
-    load(slot: number): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>;
-    write(slot: number, data: S, options?: SaveWriteOptions): Effect.Effect<void, SaveRefused | HostError>;
-    remove(slot: number): Effect.Effect<void, HostError>;
+    load(slot: number): Promise<Result<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostRefusal>>;
+    write(slot: number, data: S, options?: SaveWriteOptions): Promise<Result<void, SaveRefused | HostRefusal>>;
+    remove(slot: number): Promise<Result<void, HostRefusal>>;
     /**
      * Says the loaded slot's progress changed and what it is now. A plain function, safe to call every tick: it only
      * keeps `data`, and the next autosave trigger writes it. With no slot loaded it keeps nothing.
@@ -2611,23 +2620,23 @@ interface Save<S> {
      * (an exit must not lose progress because `on` left out a trigger). It still never writes a slot whose state
      * is not `ready` or `empty` (a newer build's, a damaged one, one loaded with other content), nor the slot
      * another device changed while it was played, until the player answers: that progress stays kept (Keep
-     * playing releases it; Load newer and any other load drop it). It never fails, because it runs inside the host's exit; a refused write is the `save.failed`
-     * fact, and the progress stays kept for the next flush.
+     * playing releases it; Load newer and any other load drop it). It never rejects, because it runs inside the host's
+     * exit; a refused write is the `save.failed` fact, and the progress stays kept for the next flush.
      */
-    readonly flushPending: Effect.Effect<void>;
+    flushPending(): Promise<void>;
     /**
      * What a trigger calls: `flushPending` if the save's policy lists `trigger`, otherwise nothing. `saveService`
      * already wires every trigger to its source; this is for a game that raises one itself.
      */
-    autosave(trigger: AutosaveTrigger): Effect.Effect<void>;
+    autosave(trigger: AutosaveTrigger): Promise<void>;
     /**
      * True while the loaded slot holds something another device wrote after it was loaded (M5-D6). Nothing is
      * reloaded, and no trigger writes that slot over the other device's until the player answers. Lowered by
      * `keepPlaying`, `loadNewer` or any load.
      */
-    readonly changedElsewhere: Subscribable.Subscribable<boolean>;
-    /** Loads the loaded slot again, so the game plays what the other device wrote. Dies when nothing is loaded. */
-    loadNewer(): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>;
+    readonly changedElsewhere: Subscribable<boolean>;
+    /** Loads the loaded slot again, so the game plays what the other device wrote. Throws when nothing is loaded. */
+    loadNewer(): Promise<Result<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostRefusal>>;
     /** The player chose to carry on: lowers `changedElsewhere`. The next trigger writes the progress kept over the other device's, as any write would. */
     keepPlaying(): void;
 }
@@ -2657,18 +2666,14 @@ interface SaveDef<S> {
 }
 ```
 
-#### `Saves` (interface)
+#### `Saves` (type)
 
-The booted game's save as a runtime service, as `Settings` is for settings: its key and the
-`Save`, both undefined for a game without saves.
+The booted game's save as a runtime service, as `Settings` is for settings: its key and the `Save`, both undefined
+for a game without saves.
 
 ```ts
-interface Saves {
-    /** The booted save's key prefix; undefined for a game without saves. */
-    readonly key: string | undefined;
-    readonly save: Save<unknown> | undefined;
-}
-const Saves: Context.Tag<Saves, Saves>;
+type Saves = SavesService;
+const Saves: Context.Tag<SavesService, SavesService>;
 ```
 
 #### `SavesChangedPayload` (interface)
@@ -2726,19 +2731,45 @@ Checks a saves status.
 const SavesStatusSchema: z.ZodType<SavesStatus>;
 ```
 
-#### `ScreenDef` (interface)
+#### `ScreenContext` (interface)
 
-One screen of the flow: its id, whether it pauses the sim, its kind and fonts, and `enter`, which mounts it
-in its scope (closing the scope leaves the screen).
+What a screen's `enter` is given: where to mount, where it came from, what to undo, and the runtime's services.
 
 ```ts
-interface ScreenDef<R = never> {
+interface ScreenContext {
+    /** The screen's own element in the screen layer. */
+    readonly layer: HTMLElement;
+    readonly from: string | undefined;
+    /**
+     * What the screen undoes when it is left: add a function for each listener, mount or timer it starts. The flow
+     * disposes it once, last added first, before the next screen enters (and when a failed `enter` is cleaned up).
+     */
+    readonly screen: Disposables;
+    /**
+     * What a game keeps across screens, such as the sim the default screens share. Every screen of a run gets the same
+     * one. It is disposed once, when the runtime shuts down or a failed boot is tried again: after the current screen
+     * and the save's last flush, which may still read what it holds, and before the renderer is destroyed and Hosting
+     * closes.
+     */
+    readonly runtime: Disposables;
+    readonly services: RuntimeServices;
+}
+```
+
+#### `ScreenDef` (interface)
+
+One screen of the flow: its id, whether it pauses the sim, its kind and fonts, and `enter`, which mounts it.
+Everything `enter` starts goes in `context.screen`, which the flow disposes when the screen is left.
+
+```ts
+interface ScreenDef {
     readonly id: string;
     readonly pausesSim?: boolean;
     /** `gameplay` lets the cursor policy hide an idle pointer; a `menu` (the default) never does. */
     readonly kind?: 'menu' | 'gameplay';
     readonly fonts?: readonly string[];
-    enter(context: ScreenContext): Effect.Effect<void, unknown, Scope.Scope | RuntimeServices | R>;
+    /** A throw, or a rejected promise, is the screen's failure: the flow shows the error panel with Try again. */
+    enter(context: ScreenContext): void | Promise<void>;
     openMenu?(): boolean;
 }
 ```
@@ -2881,17 +2912,13 @@ const ScrollList: import("svelte").Component<Props, {}, "">;
 type ScrollList = ReturnType<typeof ScrollList>;
 ```
 
-#### `Settings` (interface)
+#### `Settings` (type)
 
-The booted game's settings as a runtime service: its key and store, both undefined for a game without
-settings.
+The booted game's settings as a runtime service: its key and store, both undefined for a game without settings.
 
 ```ts
-interface Settings {
-    readonly key: string | undefined;
-    readonly store: SettingsStore<unknown> | undefined;
-}
-const Settings: Context.Tag<Settings, Settings>;
+type Settings = SettingsService;
+const Settings: Context.Tag<SettingsService, SettingsService>;
 ```
 
 #### `SettingsDef` (interface)
@@ -2909,7 +2936,7 @@ interface SettingsDef<S> {
     /**
      * Fields that belong to one device: kept in its `DeviceStorage`, never in the player's saves, and the saves'
      * copy is never read. The rest of the record is the player's, as for any settings. Names, not
-     * `keyof S`, so a `SettingsDef<S>` stays assignable where `SettingsDef<unknown>` is wanted; `makeSettings`
+     * `keyof S`, so a `SettingsDef<S>` stays assignable where `SettingsDef<unknown>` is wanted; `createSettings`
      * refuses a name the defaults do not have.
      */
     readonly deviceFields?: readonly string[];
@@ -2933,11 +2960,10 @@ interface SettingsScreenCopy {
 
 #### `settingsStore` (function)
 
-Returns the booted settings store when def.key matches.
-Dies with a defect if requested key does not match booted key (planning note 7).
+Returns the booted settings store when `def.key` matches; dies with a defect when it does not.
 
 ```ts
-function settingsStore<S>(def: SettingsDef<S>): Effect.Effect<SettingsStore<S>, never, Settings>;
+function settingsStore<S>(def: SettingsDef<S>): Effect.Effect<SettingsStore<S>, never, SettingsService>;
 ```
 
 #### `Sheet` (const)
@@ -3176,18 +3202,13 @@ both; a `web`, `itch` or `ruken` build holds neither. Re-check them after a Taur
 const TAURI_MARKERS: readonly string[];
 ```
 
-#### `Time` (interface)
+#### `Time` (type)
 
 The time service: whether the sim is paused, and why; each reason pauses until it is resumed.
 
 ```ts
-interface Time {
-    readonly paused: boolean;
-    readonly reasons: ReadonlySet<PauseReason>;
-    pause(reason: PauseReason): void;
-    resume(reason: PauseReason): void;
-}
-const Time: Context.Tag<Time, Time>;
+type Time = TimeService;
+const Time: Context.Tag<TimeService, TimeService>;
 ```
 
 #### `Toast` (const)
@@ -3333,8 +3354,6 @@ interface ExtensionDef<Name extends string = string> {
     readonly sim?: readonly PluginDef[];
     /** `defineContentSchema` results. */
     readonly content?: readonly ContentSchemaDef[];
-    /** Effect services the extension provides. They cannot fail at construction. */
-    readonly layers?: Layer.Layer<any, never, any>;
     /** Components for the named ui slots. An extension fills the slots it wants, and cannot add a slot. */
     readonly ui?: {
         readonly slots?: Readonly<Partial<Record<UiSlotName, UiComponent>>>;
@@ -3349,8 +3368,11 @@ interface ExtensionDef<Name extends string = string> {
 A bad extension list. Thrown, not returned, so a game's Vite build fails with `message`.
 
 ```ts
-class ExtensionError extends ExtensionErrorBase {
-    get message(): string;
+class ExtensionError extends Error {
+    readonly _tag: "ExtensionError";
+    readonly reason: ExtensionErrorFields['reason'];
+    readonly names: readonly string[];
+    constructor(fields: ExtensionErrorFields);
 }
 ```
 
@@ -3374,8 +3396,6 @@ interface ResolvedExtensions {
     readonly simPlugins: readonly PluginDef[];
     /** For the content Vite plugin's `schemas`. */
     readonly contentSchemas: readonly ContentSchemaDef[];
-    /** Every extension's layers, merged in order. Each layer may use the services of those before it. */
-    readonly layer: Layer.Layer<any, never, any>;
     /** Every extension's component for that slot, in order. */
     slots(name: UiSlotName): readonly UiComponent[];
     /** The contributions merged: preload lists concatenated, a repeated path keeps its first place. */
@@ -4057,7 +4077,7 @@ Uses `HostingTest` behind the scenes, hooks DOM layers and geometry, starts the 
 and yields all runtime services plus `FakeHostHandle`.
 
 ```ts
-function RuntimeTest(options?: RuntimeTestOptions): Layer.Layer<RuntimeServices | FakeHostHandle, BootError>;
+function RuntimeTest(options?: RuntimeTestOptions): Layer.Layer<RuntimeTags | FakeHostHandle, BootError>;
 ```
 
 #### `RuntimeTestOptions` (interface)
@@ -4068,7 +4088,7 @@ fetch and locale it uses.
 ```ts
 interface RuntimeTestOptions {
     readonly hosting?: HostingTestOptions | Partial<Omit<FakeHostOptions, 'gameOrigin' | 'gameId'>>;
-    readonly screens?: readonly ScreenDef<any>[];
+    readonly screens?: readonly ScreenDef[];
     readonly content?: CompiledContentData;
     readonly settings?: SettingsDef<unknown>;
     /** The game's save, opened as boot opens it: its triggers and exit flush run, and `saveOf(def)` finds it. */

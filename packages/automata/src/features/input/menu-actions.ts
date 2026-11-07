@@ -40,3 +40,7 @@ export const MENU_BINDINGS: Readonly<Record<MenuAction, MenuBinding>> = {
 /** `pause` is the one menu action live during play; the rest are live only in menus. */
 export const isMenuActionLive = (action: MenuAction, context: 'play' | 'menu'): boolean =>
   action === 'pause' ? context === 'play' : context === 'menu'
+
+/** The menu actions whose binding `matches`, in `MENU_BINDINGS` order. */
+export const menuActionsFor = (matches: (binding: MenuBinding) => boolean): MenuAction[] =>
+  (Object.keys(MENU_BINDINGS) as MenuAction[]).filter((action) => matches(MENU_BINDINGS[action]))

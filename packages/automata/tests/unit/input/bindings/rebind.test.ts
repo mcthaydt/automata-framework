@@ -1,4 +1,3 @@
-import { Either } from 'effect'
 import { describe, expect, it } from 'vitest'
 import {
   applyOverrides,
@@ -8,6 +7,7 @@ import {
   rebindProfile,
 } from '#src/features/input/bindings/rebind.ts'
 import { type InputProfile, inputProfileSchema } from '#src/features/input/input-profile.schema.ts'
+import { refused } from '#src/shared/lib/result.ts'
 
 // A rebind (M4 spec §4.5, M4-D4): the captured input becomes the action's only input on that device and leaves any
 // other action live in the same context; if that would leave a required action unbound on that device, it is
@@ -24,8 +24,8 @@ const profileWith = (fire: object = {}): InputProfile =>
   })
 
 const overrides = (result: ReturnType<typeof rebindProfile>) => {
-  if (Either.isLeft(result)) throw new Error(`expected a rebind, got ${result.left._tag}`)
-  return result.right
+  if (!result.ok) throw new Error(`expected a rebind, got ${result.reason._tag}`)
+  return result.value
 }
 
 describe('rebindProfile', () => {
@@ -50,7 +50,7 @@ describe('rebindProfile', () => {
   it('refuses to leave a required action unbound on that device, naming both (I-l)', () => {
     const required = profileWith({ required: true })
     const result = rebindProfile(required, required, 'jump', 'keyboard', { code: 'KeyK' })
-    expect(result).toEqual(Either.left(new RebindConflict({ action: 'jump', with: 'fire' })))
+    expect(result).toEqual(refused(new RebindConflict({ action: 'jump', with: 'fire' })))
   })
 
   it('moves a pad button the same way', () => {
@@ -65,16 +65,16 @@ describe('rebindProfile', () => {
 
   it('refuses a reserved input', () => {
     expect(rebindProfile(defaults, defaults, 'jump', 'keyboard', { code: 'Tab' })).toEqual(
-      Either.left(new RebindReserved({ action: 'jump', input: 'Tab' })),
+      refused(new RebindReserved({ action: 'jump', input: 'Tab' })),
     )
     expect(rebindProfile(defaults, defaults, 'jump', 'gamepad', { button: 16 })).toEqual(
-      Either.left(new RebindReserved({ action: 'jump', input: 'pad 16' })),
+      refused(new RebindReserved({ action: 'jump', input: 'pad 16' })),
     )
   })
 
   it('refuses an action the profile does not have', () => {
     expect(rebindProfile(defaults, defaults, 'dash', 'keyboard', { code: 'KeyD' })).toEqual(
-      Either.left(new RebindUnknown({ action: 'dash' })),
+      refused(new RebindUnknown({ action: 'dash' })),
     )
   })
 

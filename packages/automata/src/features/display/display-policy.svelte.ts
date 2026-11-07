@@ -11,7 +11,6 @@
 // "A phone" is a coarse pointer in a phone form factor: a short desktop window is classed `phone-landscape` too, and
 // has no bar to hide and nothing to turn.
 
-import { Effect, type Scope } from 'effect'
 import { mount, unmount } from 'svelte'
 import type { Time } from '../../shared/runtime/time/time.manager.js'
 import {
@@ -83,88 +82,94 @@ const heldWrong = (orientation: GameOrientation, formFactor: FormFactor): boolea
   (orientation === 'portrait' && formFactor === 'phone-landscape') ||
   (orientation === 'landscape' && formFactor === 'phone-portrait')
 
-/** Keeps both covers over the layer for the scope's life: closing it unmounts them and stops every listener. */
-export function displayPolicy(options: DisplayPolicyOptions): Effect.Effect<void, never, Scope.Scope> {
-  return Effect.gen(function* () {
-    const { orientation, hosted, win, geometry, layer, time } = options
-    const copy = options.copy ?? DISPLAY_COPY_EN
-    const doc = win.document
-    // A window without `matchMedia` (a test's, a replay's) is a fine pointer, not installed.
-    const query = (
-      media: string,
-    ): Pick<MediaQueryList, 'matches' | 'addEventListener' | 'removeEventListener'> =>
-      win.matchMedia?.(media) ?? { matches: false, addEventListener: () => {}, removeEventListener: () => {} }
-    const coarse = query('(pointer: coarse)')
-    const installed = query('(display-mode: standalone), (display-mode: fullscreen)')
+/** The covers over the layer, kept until `dispose`, which unmounts them and stops every listener. */
+export interface DisplayPolicy {
+  dispose(): void
+}
 
-    const gateProps: { state: LandscapeGateState; copy: LandscapeGateCopy; onfullscreen: () => void } =
-      $state({
-        state: 'none',
-        copy: copy.gate,
-        onfullscreen: () => void enterFullscreen(doc, win.screen).then(update),
-      })
-    const hintProps: { shown: boolean; copy: RotateHintCopy } = $state({
-      shown: false,
-      copy: copy.rotate[orientation === 'portrait' ? 'portrait' : 'landscape'],
-    })
-    const toastProps: { shown: boolean; copy: RotateToastCopy; ondismiss: () => void } = $state({
-      shown: false,
-      copy: copy.toast,
-      ondismiss: () => {
-        dismissed = true
-        update()
-      },
-    })
-    const blocking = (options.rotateHint ?? 'block') === 'block'
-    // A toast dismissed stays dismissed for the session; saving it would need device storage outside `Hosting`.
-    let dismissed = false
-    let pausing = false
+/** Mounts the landscape gate, the rotate hint and the rotate toast over the layer, and keeps them current. */
+export function createDisplayPolicy(options: DisplayPolicyOptions): DisplayPolicy {
+  const { orientation, hosted, win, geometry, layer, time } = options
+  const copy = options.copy ?? DISPLAY_COPY_EN
+  const doc = win.document
+  // A window without `matchMedia` (a test's, a replay's) is a fine pointer, not installed.
+  const query = (
+    media: string,
+  ): Pick<MediaQueryList, 'matches' | 'addEventListener' | 'removeEventListener'> =>
+    win.matchMedia?.(media) ?? { matches: false, addEventListener: () => {}, removeEventListener: () => {} }
+  const coarse = query('(pointer: coarse)')
+  const installed = query('(display-mode: standalone), (display-mode: fullscreen)')
 
-    function update(): void {
-      const formFactor = geometry.geometry.current.formFactor
-      gateProps.state = hosted
-        ? 'none'
-        : landscapeGate({
-            formFactor,
-            coarse: coarse.matches,
-            support: fullscreenSupport(doc, win.navigator),
-            fullscreen: isFullscreen(doc),
-            installed: installed.matches,
-          })
-      const wrong = coarse.matches && heldWrong(orientation, formFactor)
-      toastProps.shown = !blocking && wrong && !dismissed
-      const block = blocking && wrong
-      hintProps.shown = block
-      if (block && !pausing) time.pause('display')
-      if (!block && pausing) time.resume('display')
-      pausing = block
-    }
-    update()
-
-    const stops = [
-      geometry.onChange(update),
-      onFullscreenChange(doc, update),
-      (() => {
-        coarse.addEventListener('change', update)
-        installed.addEventListener('change', update)
-        return () => {
-          coarse.removeEventListener('change', update)
-          installed.removeEventListener('change', update)
-        }
-      })(),
-    ]
-    const covers = [
-      mount(RotateHint, { target: layer, props: hintProps }),
-      mount(RotateToast, { target: layer, props: toastProps }),
-      mount(LandscapeGate, { target: layer, props: gateProps }),
-    ]
-    yield* Effect.addFinalizer(() =>
-      Effect.gen(function* () {
-        for (const stop of stops) stop()
-        if (pausing) time.resume('display')
-        pausing = false
-        for (const cover of covers) yield* Effect.promise(() => unmount(cover))
-      }),
-    )
+  const gateProps: { state: LandscapeGateState; copy: LandscapeGateCopy; onfullscreen: () => void } = $state({
+    state: 'none',
+    copy: copy.gate,
+    onfullscreen: () => void enterFullscreen(doc, win.screen).then(update),
   })
+  const hintProps: { shown: boolean; copy: RotateHintCopy } = $state({
+    shown: false,
+    copy: copy.rotate[orientation === 'portrait' ? 'portrait' : 'landscape'],
+  })
+  const toastProps: { shown: boolean; copy: RotateToastCopy; ondismiss: () => void } = $state({
+    shown: false,
+    copy: copy.toast,
+    ondismiss: () => {
+      dismissed = true
+      update()
+    },
+  })
+  const blocking = (options.rotateHint ?? 'block') === 'block'
+  // A toast dismissed stays dismissed for the session; saving it would need device storage outside `Hosting`.
+  let dismissed = false
+  let pausing = false
+
+  function update(): void {
+    const formFactor = geometry.geometry.current.formFactor
+    gateProps.state = hosted
+      ? 'none'
+      : landscapeGate({
+          formFactor,
+          coarse: coarse.matches,
+          support: fullscreenSupport(doc, win.navigator),
+          fullscreen: isFullscreen(doc),
+          installed: installed.matches,
+        })
+    const wrong = coarse.matches && heldWrong(orientation, formFactor)
+    toastProps.shown = !blocking && wrong && !dismissed
+    const block = blocking && wrong
+    hintProps.shown = block
+    if (block && !pausing) time.pause('display')
+    if (!block && pausing) time.resume('display')
+    pausing = block
+  }
+  update()
+
+  const stops = [
+    geometry.onChange(update),
+    onFullscreenChange(doc, update),
+    (() => {
+      coarse.addEventListener('change', update)
+      installed.addEventListener('change', update)
+      return () => {
+        coarse.removeEventListener('change', update)
+        installed.removeEventListener('change', update)
+      }
+    })(),
+  ]
+  const covers = [
+    mount(RotateHint, { target: layer, props: hintProps }),
+    mount(RotateToast, { target: layer, props: toastProps }),
+    mount(LandscapeGate, { target: layer, props: gateProps }),
+  ]
+  let disposed = false
+  return {
+    dispose() {
+      if (disposed) return
+      disposed = true
+      for (const stop of stops) stop()
+      if (pausing) time.resume('display')
+      pausing = false
+      // No outro is asked for, so each cover is gone when `unmount` returns; its promise has nothing to wait on.
+      for (const cover of covers) void unmount(cover)
+    },
+  }
 }

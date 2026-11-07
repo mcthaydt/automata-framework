@@ -1,34 +1,42 @@
 import type { FlowGraph } from '@mcthaydt/automata-content'
 import type { FakeHostOptions } from '@ruken/sdk-host/testing'
 import { Context, Effect, Layer, Stream } from 'effect'
-import { buildRuntimeServices, contentHashOf } from '../../../app/boot/boot-program.js'
+import { contentHashOf } from '../../../app/boot/boot-program.js'
+import { openSaves, type RuntimeTags, runtimeContext } from '../../../app/boot/effect-tags.ts'
 import type { CompiledContentData } from '../../../app/boot/game-definition.js'
-import { makeFlow } from '../../../app/flow/flow.manager.js'
+import { createFlow } from '../../../app/flow/flow.manager.js'
 import type { RuntimeServices, ScreenDef } from '../../../app/flow/screen.js'
-import { makeVeil } from '../../../app/flow/veil.js'
-import { makeAudio } from '../../../features/audio/audio.manager.js'
+import { createVeil } from '../../../app/flow/veil.js'
+import { createAudio } from '../../../features/audio/audio.manager.js'
 import type { AudioContextLike } from '../../../features/audio/audio-graph.js'
 import { fakeAudioContext } from '../../../features/audio/testing/fake-audio-context.js'
 import { createHaptics } from '../../../features/input/haptics/haptics.manager.js'
-import { makeLeaderboards } from '../../../features/leaderboards/leaderboards.manager.js'
-import { type LocaleDef, makeLocale, singleLocale } from '../../../features/locale/locale.manager.js'
+import { createLeaderboards } from '../../../features/leaderboards/leaderboards.manager.js'
+import { createLocale, type LocaleDef, singleLocale } from '../../../features/locale/locale.manager.js'
 import type { SaveDef } from '../../../features/saves/save.schema.js'
-import { makeSaves } from '../../../features/saves/saves.manager.js'
+import {
+  effectClock,
+  plainAudioHosting,
+  plainObserved,
+  plainSaves,
+  toPlainHosting,
+} from '../../../shared/host/effect-bridge.ts'
 import { Hosting } from '../../../shared/host/hosting.ts'
-import { makeAssets } from '../../../shared/runtime/assets.manager.js'
+import { disposables } from '../../../shared/lib/disposables.ts'
+import { createAssets } from '../../../shared/runtime/assets.manager.js'
 import type { BootError } from '../../../shared/runtime/boot-error.js'
-import { makeLoadMeter } from '../../../shared/runtime/load-meter.js'
-import { makeAppLoop } from '../../../shared/runtime/loop/app-loop.manager.js'
+import { createLoadMeter } from '../../../shared/runtime/load-meter.js'
+import { createAppLoop } from '../../../shared/runtime/loop/app-loop.manager.js'
 import type { FrameSource } from '../../../shared/runtime/loop/frames.js'
 import { createPageLayers, type PageLayers } from '../../../shared/runtime/page-layers.svelte.js'
 import {
-  makePresentationBus,
+  createPresentationBus,
   PresentationBus,
 } from '../../../shared/runtime/presentation/presentation-bus.manager.js'
 import type { GameRenderer, RendererFactory, RenderTarget } from '../../../shared/runtime/render/renderer.js'
 import type { DeviceStorage } from '../../../shared/runtime/settings/device-storage.js'
-import { makeSettings, type SettingsDef } from '../../../shared/runtime/settings/settings.manager.js'
-import { makeTime, watchLifecycle } from '../../../shared/runtime/time/time.manager.js'
+import { createSettings, type SettingsDef } from '../../../shared/runtime/settings/settings.manager.js'
+import { createTime, watchLifecycle } from '../../../shared/runtime/time/time.manager.js'
 import { createGeometryOwner } from '../../../shared/ui/geometry/geometry-owner.svelte.ts'
 import { FakeHostHandle, HostingTest, type HostingTestOptions } from '../../host/page/ruken/hosting-test.ts'
 import { fakeFetch } from '../fake-fetch.js'
@@ -41,7 +49,7 @@ import { nullRenderer } from '../null-renderer.js'
  */
 export interface RuntimeTestOptions {
   readonly hosting?: HostingTestOptions | Partial<Omit<FakeHostOptions, 'gameOrigin' | 'gameId'>>
-  readonly screens?: readonly ScreenDef<any>[]
+  readonly screens?: readonly ScreenDef[]
   readonly content?: CompiledContentData
   readonly settings?: SettingsDef<unknown>
   /** The game's save, opened as boot opens it: its triggers and exit flush run, and `saveOf(def)` finds it. */
@@ -80,7 +88,7 @@ function memoryDeviceStorage(): DeviceStorage {
  */
 export function RuntimeTest(
   options: RuntimeTestOptions = {},
-): Layer.Layer<RuntimeServices | FakeHostHandle, BootError> {
+): Layer.Layer<RuntimeTags | FakeHostHandle, BootError> {
   return Layer.scopedContext(
     Effect.gen(function* () {
       let hostingTestOptions: HostingTestOptions | undefined
@@ -140,16 +148,16 @@ export function RuntimeTest(
       if (options.settings !== undefined) {
         rawSettings = yield* hosting.saves.get(options.settings.key)
       }
-      const settingsService = yield* makeSettings(
+      const settingsService = createSettings(
         options.settings,
         rawSettings,
-        hosting.saves,
+        plainSaves(hosting.saves),
         options.deviceStorage ?? memoryDeviceStorage(),
       )
 
       const frames = options.frames ?? manualFrames()
 
-      const meter = yield* makeLoadMeter
+      const meter = createLoadMeter(effectClock(yield* Effect.runtime<never>()))
       const screens = options.screens ?? []
       const screenFonts: Record<string, readonly string[]> = {}
       for (const screen of screens) {
@@ -175,7 +183,7 @@ export function RuntimeTest(
       }
 
       const fontFaces = doc?.fonts
-      const assets = yield* makeAssets({
+      const assets = createAssets({
         assets: content.assets,
         fonts: screenFonts,
         fetch: options.fetch ?? fakeFetch({}).fetch,
@@ -203,22 +211,30 @@ export function RuntimeTest(
       yield* hosting.ready
       layers.setState('ready')
 
-      const bus = yield* makePresentationBus()
-      const time = makeTime(bus)
-      const locale = yield* makeLocale({
-        def: options.locale ?? singleLocale(content.game?.source_language ?? 'en'),
-        hosting,
-        browser: options.languages ?? [],
-        bus,
-        element: doc?.documentElement,
-      })
-      const veil = yield* makeVeil({
-        overlay: layers.overlay,
-        reducedMotion: () => false,
-      })
+      const bus = yield* Effect.acquireRelease(
+        Effect.sync(() => createPresentationBus()),
+        (opened) => Effect.sync(() => opened.dispose()),
+      )
+      const time = createTime(bus)
+      const locale = yield* Effect.promise(() =>
+        createLocale({
+          def: options.locale ?? singleLocale(content.game?.source_language ?? 'en'),
+          hosting: { kind: hosting.kind, locale: hosting.locale, saves: plainSaves(hosting.saves) },
+          browser: options.languages ?? [],
+          bus,
+          element: doc?.documentElement,
+        }),
+      )
+      const veilClock = effectClock(yield* Effect.runtime<never>())
+      const veil = yield* Effect.acquireRelease(
+        Effect.sync(() =>
+          createVeil({ overlay: layers.overlay, reducedMotion: () => false, clock: veilClock }),
+        ),
+        (made) => Effect.sync(() => made.dispose()),
+      )
       // A page without a DOM (Node) still gets an Audio: it is never unlocked, so it stays silent.
-      const audio = yield* makeAudio({
-        hosting,
+      const audio = createAudio({
+        hosting: plainAudioHosting(hosting),
         assets,
         bus,
         window: win ?? new EventTarget(),
@@ -226,11 +242,13 @@ export function RuntimeTest(
         createContext: options.createAudioContext ?? (() => fakeAudioContext()),
         ...(options.fetch === undefined ? {} : { fetch: options.fetch }),
       })
+      yield* Effect.addFinalizer(() => Effect.sync(() => audio.dispose()))
 
-      let runtimeContext: Context.Context<RuntimeServices | FakeHostHandle> =
-        Context.empty() as Context.Context<RuntimeServices | FakeHostHandle>
+      let services: RuntimeServices | undefined
+      const keptAcrossScreens = disposables()
+      yield* Effect.addFinalizer(() => Effect.sync(() => keptAcrossScreens.dispose()))
 
-      const flowHandle = yield* makeFlow<FakeHostHandle>({
+      const flowHandle = createFlow({
         graph: content.flow,
         screens,
         layers,
@@ -239,20 +257,27 @@ export function RuntimeTest(
         bus,
         geometry,
         veil,
-        services: () => runtimeContext,
+        runtime: keptAcrossScreens,
+        services: () => {
+          if (services === undefined)
+            throw new Error('A screen entered before the runtime services were built')
+          return services
+        },
       })
+      yield* Effect.addFinalizer(() => Effect.promise(() => flowHandle.dispose()))
 
       yield* hosting.onMenuRequest(() => flowHandle.flow.openMenu())
 
-      yield* watchLifecycle({
-        hosting,
+      const stopWatching = watchLifecycle({
+        hosting: { lifecycle: plainObserved(hosting.lifecycle) },
         time,
         pauseBehavior: hostingTestOptions?.hosting?.pauseBehavior ?? 'pause',
         ...(doc ? { document: doc } : {}),
         openMenu: () => flowHandle.flow.openMenu(),
       })
+      yield* Effect.addFinalizer(() => Effect.sync(stopWatching))
 
-      const appLoop = yield* makeAppLoop({
+      const appLoop = createAppLoop({
         frames,
         renderer,
         time,
@@ -264,37 +289,32 @@ export function RuntimeTest(
             cause,
           }),
       })
+      yield* Effect.addFinalizer(() => Effect.sync(() => appLoop.dispose()))
 
-      const runtimeServices = buildRuntimeServices({
+      const plainHosting = toPlainHosting(hosting)
+      services = {
         audio,
-        hosting,
+        hosting: plainHosting,
         bus,
+        clock: veilClock,
         time,
         flow: flowHandle.flow,
         settings: settingsService,
-        saves: yield* makeSaves(options.saves, { contentHash: contentHashOf(content) }).pipe(
-          Effect.provideService(Hosting, hosting),
-          Effect.provideService(PresentationBus, bus),
-        ),
+        saves: yield* openSaves(options.saves, { contentHash: contentHashOf(content), hosting, bus }),
         appLoop,
         assets,
         renderer,
         locale,
-        leaderboards: yield* makeLeaderboards.pipe(
-          Effect.provideService(Hosting, hosting),
-          Effect.provideService(PresentationBus, bus),
-        ),
+        leaderboards: createLeaderboards(plainHosting, bus),
         // A device that can neither rumble nor buzz: a test that pulses checks only that nothing throws.
         haptics: createHaptics({ touch: () => false }),
-      })
-
-      runtimeContext = Context.merge(runtimeServices, Context.make(FakeHostHandle, fakeHostHandle))
-
-      if (screens.length > 0 && content.flow?.entry) {
-        yield* flowHandle.start()
       }
 
-      return runtimeContext
+      if (screens.length > 0 && content.flow?.entry) {
+        yield* Effect.promise(() => flowHandle.start())
+      }
+
+      return Context.merge(runtimeContext(services, hosting), Context.make(FakeHostHandle, fakeHostHandle))
     }),
   )
 }

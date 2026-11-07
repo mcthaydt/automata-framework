@@ -1,13 +1,11 @@
-import { Effect, Exit, Scope } from 'effect'
 import { flushSync } from 'svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { displayPolicy } from '#src/features/display/display-policy.svelte.ts'
-import { makePresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
-import { makeTime } from '#src/shared/runtime/time/time.manager.ts'
+import { createDisplayPolicy } from '#src/features/display/display-policy.svelte.ts'
+import { createPresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
+import { createTime } from '#src/shared/runtime/time/time.manager.ts'
 import type { FormFactor } from '../../../src/shared/ui/geometry/form-factor.ts'
 import type { Geometry } from '../../../src/shared/ui/geometry/geometry.ts'
 import type { GeometryOwner } from '../../../src/shared/ui/geometry/geometry-owner.svelte.ts'
-import { runScoped } from '../../../src/testing/host/page/run.ts'
 
 // The display policy (M4 spec §4.9, §5, §6, M4-D5): the landscape gate over every screen, standalone only, and the
 // rotate hint over a paused game for a game locked to one orientation, on a phone held the other way.
@@ -82,30 +80,32 @@ const withPolicy = (
   },
   body: (parts: {
     root: HTMLElement
-    time: ReturnType<typeof makeTime>
+    time: ReturnType<typeof createTime>
     geometry: ReturnType<typeof fakeGeometry>
     window: ReturnType<typeof fakeWindow>
   }) => Promise<void>,
 ) =>
-  runScoped(
-    Effect.gen(function* () {
-      const time = makeTime(yield* makePresentationBus())
-      const geometry = fakeGeometry(options.formFactor ?? 'phone-landscape')
-      const window = fakeWindow(options)
-      const root = layer()
-      yield* displayPolicy({
-        orientation: options.orientation ?? 'any',
-        hosted: options.hosted ?? false,
-        win: window.win,
-        geometry: geometry.owner,
-        layer: root,
-        time,
-        ...(options.rotateHint === undefined ? {} : { rotateHint: options.rotateHint }),
-      })
-      flushSync()
-      yield* Effect.promise(() => body({ root, time, geometry, window }))
-    }),
-  )
+  (async () => {
+    const time = createTime(createPresentationBus())
+    const geometry = fakeGeometry(options.formFactor ?? 'phone-landscape')
+    const window = fakeWindow(options)
+    const root = layer()
+    const policy = createDisplayPolicy({
+      orientation: options.orientation ?? 'any',
+      hosted: options.hosted ?? false,
+      win: window.win,
+      geometry: geometry.owner,
+      layer: root,
+      time,
+      ...(options.rotateHint === undefined ? {} : { rotateHint: options.rotateHint }),
+    })
+    flushSync()
+    try {
+      await body({ root, time, geometry, window })
+    } finally {
+      policy.dispose()
+    }
+  })()
 
 describe('the landscape gate (M4-D5, D-d)', () => {
   it('never shows under a host, whatever the device', () =>
@@ -214,28 +214,28 @@ describe('the rotate hint as a toast', () => {
 })
 
 describe('closing', () => {
-  it('unmounts both covers and stops listening when its scope closes', async () => {
-    const scope = Effect.runSync(Scope.make())
-    const time = makeTime(Effect.runSync(makePresentationBus().pipe(Scope.extend(scope))))
+  it('unmounts both covers and stops listening when disposed', async () => {
+    const bus = createPresentationBus()
+    const time = createTime(bus)
     const geometry = fakeGeometry('phone-landscape')
     const window = fakeWindow()
     const root = layer()
-    Effect.runSync(
-      displayPolicy({
-        orientation: 'portrait',
-        hosted: false,
-        win: window.win,
-        geometry: geometry.owner,
-        layer: root,
-        time,
-      }).pipe(Scope.extend(scope)),
-    )
+    const policy = createDisplayPolicy({
+      orientation: 'portrait',
+      hosted: false,
+      win: window.win,
+      geometry: geometry.owner,
+      layer: root,
+      time,
+    })
     flushSync()
     expect(gate(root)).not.toBeNull()
-    await Effect.runPromise(Scope.close(scope, Exit.void))
+    policy.dispose()
+    flushSync()
     expect(root.children.length).toBe(0)
     expect(geometry.listeners.size).toBe(0)
     expect(window.changes.size).toBe(0)
     expect(time.paused).toBe(false)
+    bus.dispose()
   })
 })

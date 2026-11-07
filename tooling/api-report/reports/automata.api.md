@@ -57,35 +57,18 @@ interface AnalogReading {
 type AnalyticsProps = Record<string, string | number | boolean>;
 ```
 
-### `AppLoop` (interface)
+### `AppLoop` (type)
 
 ```ts
-interface AppLoop {
-    run(options: {
-        sim: Sim;
-        commands: (tick: number) => readonly Command[];
-    }): void;
-    stop(): void;
-    readonly running: boolean;
-}
-const AppLoop: Context.Tag<AppLoop, AppLoop>;
+type AppLoop = AppLoopService;
+const AppLoop: Context.Tag<AppLoopService, AppLoopService>;
 ```
 
-### `Audio` (interface)
+### `Audio` (type)
 
 ```ts
-interface Audio {
-    readonly unlocked: Subscribable.Subscribable<boolean>;
-    readonly available: Subscribable.Subscribable<boolean>;
-    sound(alias: string, options?: SoundOptions): void;
-    music(alias: string, options?: MusicOptions): Effect.Effect<void, AudioDecodeFailed | AssetLoadFailed>;
-    stopMusic(fadeSeconds?: number): void;
-    duck(bus: AudioBusName, amount: number, seconds: number): void;
-    setMuted(muted: boolean): void;
-    sample(bus: AudioBusName): void;
-    setMuteUnfocused(muteUnfocused: boolean): void;
-}
-const Audio: Context.Tag<Audio, Audio>;
+type Audio = AudioService;
+const Audio: Context.Tag<AudioService, AudioService>;
 ```
 
 ### `AUDIO_BUS_NAMES` (const)
@@ -94,15 +77,15 @@ const Audio: Context.Tag<Audio, Audio>;
 const AUDIO_BUS_NAMES: readonly ['master', 'music', 'sfx', 'ui', 'voice'];
 ```
 
-### `AudioBuses` (interface)
+### `AudioBuses` (type)
 
 ```ts
-interface AudioBuses {
-    input(bus: AudioBusName): AudioNode;
-    gain(bus: AudioBusName): number;
-    setGain(bus: AudioBusName, gain: number): void;
-}
-const AudioBuses: Context.Tag<AudioBuses, AudioBuses>;
+type AudioBuses = {
+    input: AudioBusesService['input'];
+    gain: AudioBusesService['gain'];
+    setGain: AudioBusesService['setGain'];
+};
+const AudioBuses: Context.Tag<AudioBusesService, AudioBusesService>;
 ```
 
 ### `audioBusGainsSchema` (const)
@@ -274,6 +257,16 @@ function classifyFormFactor(width: number, height: number): FormFactor;
 
 ```ts
 function classifyHeightTier(height: number): HeightTier;
+```
+
+### `Clock` (interface)
+
+```ts
+interface Clock {
+    now(): number;
+    setTimeout(callback: () => void, ms: number): TimeoutHandle;
+    clearTimeout(handle: TimeoutHandle): void;
+}
 ```
 
 ### `Command` (interface)
@@ -508,6 +501,22 @@ interface DisplayMetricsPayload {
 const DisplayMetricsPayloadSchema: z.ZodType<DisplayMetricsPayload>;
 ```
 
+### `Disposables` (interface)
+
+```ts
+interface Disposables {
+    add(undo: () => void): () => void;
+    dispose(): void;
+    readonly disposed: boolean;
+}
+```
+
+### `disposables` (function)
+
+```ts
+function disposables(): Disposables;
+```
+
 ### `DrawContext` (interface)
 
 ```ts
@@ -646,9 +655,8 @@ interface Flow {
     readonly current: string | undefined;
     dispatch(event: string): boolean;
     openMenu(): boolean;
-    readonly settled: Effect.Effect<void>;
+    settled(): Promise<void>;
 }
-const Flow: Context.Tag<Flow, Flow>;
 ```
 
 ### `FormFactor` (type)
@@ -956,14 +964,13 @@ interface Input {
     readonly drag: DragSink;
     cameraDrag(): number;
     setContext(context: InputContextNow): void;
-    readonly device: SubscriptionRef.SubscriptionRef<ActiveDevice>;
-    readonly profile: SubscriptionRef.SubscriptionRef<InputProfile>;
-    readonly pads: SubscriptionRef.SubscriptionRef<readonly PadInfo[]>;
-    rebind(action: string, device: 'keyboard' | 'gamepad', capture: Capture): Effect.Effect<void, RebindError>;
-    readonly resetBindings: Effect.Effect<void>;
-    capture(device: 'keyboard' | 'gamepad'): Effect.Effect<Capture, RebindCancelled | RebindTimedOut>;
+    readonly device: Subscribable<ActiveDevice>;
+    readonly profile: Subscribable<InputProfile>;
+    readonly pads: Subscribable<readonly PadInfo[]>;
+    rebind(action: string, device: 'keyboard' | 'gamepad', capture: Capture): Result<void, RebindError>;
+    resetBindings(): void;
+    capture(device: 'keyboard' | 'gamepad', signal?: AbortSignal): Promise<Result<Capture, RebindCancelled | RebindTimedOut>>;
 }
-const Input: Context.Tag<Input, Input>;
 ```
 
 ### `InputMap` (interface)
@@ -1186,19 +1193,11 @@ type LifecycleReason = 'hidden' | 'blurred' | 'host-overlay' | 'ad' | 'offline-g
 component from '../shared/ui/status/LoaderOverlay.svelte'
 ```
 
-### `Locale` (interface)
+### `Locale` (type)
 
 ```ts
-interface Locale {
-    readonly locales: readonly string[];
-    readonly baseLocale: string;
-    readonly current: string;
-    readonly choice: string | null;
-    readonly direction: 'ltr' | 'rtl';
-    subscribe(listener: (locale: string) => void): () => void;
-    set(choice: string | null): void;
-}
-const Locale: Context.Tag<Locale, Locale>;
+type Locale = LocaleService;
+const Locale: Context.Tag<LocaleService, LocaleService>;
 ```
 
 ### `MAX_TURN_UNITS_PER_STEP` (const)
@@ -1582,20 +1581,41 @@ interface RuntimeSeams {
 }
 ```
 
+### `RuntimeServices` (interface)
+
+```ts
+interface RuntimeServices {
+    readonly hosting: Hosting;
+    readonly bus: PresentationBus;
+    readonly clock: Clock;
+    readonly time: Time;
+    readonly flow: Flow;
+    readonly settings: Settings;
+    readonly saves: Saves;
+    readonly appLoop: AppLoop;
+    readonly assets: Assets;
+    readonly renderer: GameRenderer;
+    readonly locale: Locale;
+    readonly audio: Audio & AudioBuses;
+    readonly leaderboards: Leaderboards;
+    readonly haptics: Haptics;
+}
+```
+
 ### `Save` (interface)
 
 ```ts
 interface Save<S> {
-    readonly slots: Subscribable.Subscribable<readonly SlotState[]>;
-    readonly loaded: Subscribable.Subscribable<number | undefined>;
-    load(slot: number): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>;
-    write(slot: number, data: S, options?: SaveWriteOptions): Effect.Effect<void, SaveRefused | HostError>;
-    remove(slot: number): Effect.Effect<void, HostError>;
+    readonly slots: Subscribable<readonly SlotState[]>;
+    readonly loaded: Subscribable<number | undefined>;
+    load(slot: number): Promise<Result<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostRefusal>>;
+    write(slot: number, data: S, options?: SaveWriteOptions): Promise<Result<void, SaveRefused | HostRefusal>>;
+    remove(slot: number): Promise<Result<void, HostRefusal>>;
     touch(data: () => S): void;
-    readonly flushPending: Effect.Effect<void>;
-    autosave(trigger: AutosaveTrigger): Effect.Effect<void>;
-    readonly changedElsewhere: Subscribable.Subscribable<boolean>;
-    loadNewer(): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>;
+    flushPending(): Promise<void>;
+    autosave(trigger: AutosaveTrigger): Promise<void>;
+    readonly changedElsewhere: Subscribable<boolean>;
+    loadNewer(): Promise<Result<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostRefusal>>;
     keepPlaying(): void;
 }
 ```
@@ -1616,14 +1636,11 @@ interface SaveDef<S> {
 }
 ```
 
-### `Saves` (interface)
+### `Saves` (type)
 
 ```ts
-interface Saves {
-    readonly key: string | undefined;
-    readonly save: Save<unknown> | undefined;
-}
-const Saves: Context.Tag<Saves, Saves>;
+type Saves = SavesService;
+const Saves: Context.Tag<SavesService, SavesService>;
 ```
 
 ### `SavesChangedPayload` (interface)
@@ -1668,15 +1685,27 @@ type SavesStatus = 'checking' | 'syncing' | 'saved' | 'offline-queued' | 'retry'
 const SavesStatusSchema: z.ZodType<SavesStatus>;
 ```
 
+### `ScreenContext` (interface)
+
+```ts
+interface ScreenContext {
+    readonly layer: HTMLElement;
+    readonly from: string | undefined;
+    readonly screen: Disposables;
+    readonly runtime: Disposables;
+    readonly services: RuntimeServices;
+}
+```
+
 ### `ScreenDef` (interface)
 
 ```ts
-interface ScreenDef<R = never> {
+interface ScreenDef {
     readonly id: string;
     readonly pausesSim?: boolean;
     readonly kind?: 'menu' | 'gameplay';
     readonly fonts?: readonly string[];
-    enter(context: ScreenContext): Effect.Effect<void, unknown, Scope.Scope | RuntimeServices | R>;
+    enter(context: ScreenContext): void | Promise<void>;
     openMenu?(): boolean;
 }
 ```
@@ -1773,14 +1802,11 @@ interface ScreensGame {
 component from '../shared/ui/layout/ScrollList.svelte'
 ```
 
-### `Settings` (interface)
+### `Settings` (type)
 
 ```ts
-interface Settings {
-    readonly key: string | undefined;
-    readonly store: SettingsStore<unknown> | undefined;
-}
-const Settings: Context.Tag<Settings, Settings>;
+type Settings = SettingsService;
+const Settings: Context.Tag<SettingsService, SettingsService>;
 ```
 
 ### `SettingsDef` (interface)
@@ -1812,7 +1838,7 @@ interface SettingsScreenCopy {
 ### `settingsStore` (function)
 
 ```ts
-function settingsStore<S>(def: SettingsDef<S>): Effect.Effect<SettingsStore<S>, never, Settings>;
+function settingsStore<S>(def: SettingsDef<S>): Effect.Effect<SettingsStore<S>, never, SettingsService>;
 ```
 
 ### `Sheet` (svelte)
@@ -1961,16 +1987,11 @@ interface SystemDef {
 const TAURI_MARKERS: readonly string[];
 ```
 
-### `Time` (interface)
+### `Time` (type)
 
 ```ts
-interface Time {
-    readonly paused: boolean;
-    readonly reasons: ReadonlySet<PauseReason>;
-    pause(reason: PauseReason): void;
-    resume(reason: PauseReason): void;
-}
-const Time: Context.Tag<Time, Time>;
+type Time = TimeService;
+const Time: Context.Tag<TimeService, TimeService>;
 ```
 
 ### `Toast` (svelte)
@@ -2081,7 +2102,6 @@ interface ExtensionDef<Name extends string = string> {
     readonly requires?: readonly string[];
     readonly sim?: readonly PluginDef[];
     readonly content?: readonly ContentSchemaDef[];
-    readonly layers?: Layer.Layer<any, never, any>;
     readonly ui?: {
         readonly slots?: Readonly<Partial<Record<UiSlotName, UiComponent>>>;
     };
@@ -2092,8 +2112,11 @@ interface ExtensionDef<Name extends string = string> {
 ### `ExtensionError` (class)
 
 ```ts
-class ExtensionError extends ExtensionErrorBase {
-    get message(): string;
+class ExtensionError extends Error {
+    readonly _tag: "ExtensionError";
+    readonly reason: ExtensionErrorFields['reason'];
+    readonly names: readonly string[];
+    constructor(fields: ExtensionErrorFields);
 }
 ```
 
@@ -2110,7 +2133,6 @@ interface ResolvedExtensions {
     readonly order: readonly string[];
     readonly simPlugins: readonly PluginDef[];
     readonly contentSchemas: readonly ContentSchemaDef[];
-    readonly layer: Layer.Layer<any, never, any>;
     slots(name: UiSlotName): readonly UiComponent[];
     manifest(config: GameConfig): RukenManifestContribution;
 }
@@ -2599,7 +2621,7 @@ interface ReferenceSize {
 ### `RuntimeTest` (function)
 
 ```ts
-function RuntimeTest(options?: RuntimeTestOptions): Layer.Layer<RuntimeServices | FakeHostHandle, BootError>;
+function RuntimeTest(options?: RuntimeTestOptions): Layer.Layer<RuntimeTags | FakeHostHandle, BootError>;
 ```
 
 ### `RuntimeTestOptions` (interface)
@@ -2607,7 +2629,7 @@ function RuntimeTest(options?: RuntimeTestOptions): Layer.Layer<RuntimeServices 
 ```ts
 interface RuntimeTestOptions {
     readonly hosting?: HostingTestOptions | Partial<Omit<FakeHostOptions, 'gameOrigin' | 'gameId'>>;
-    readonly screens?: readonly ScreenDef<any>[];
+    readonly screens?: readonly ScreenDef[];
     readonly content?: CompiledContentData;
     readonly settings?: SettingsDef<unknown>;
     readonly saves?: SaveDef<unknown>;

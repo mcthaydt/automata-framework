@@ -5,20 +5,22 @@ import {
   Deferred,
   Effect,
   Clock as EffectClock,
+  Exit,
   Fiber,
   Layer,
   Option,
   Runtime,
-  type Scope,
+  Scope,
   Stream,
   Subscribable,
 } from 'effect'
 import type { Clock } from '../lib/clock'
+import { ok } from '../lib/result'
 import type { Listenable, Subscribable as PlainSubscribable } from '../lib/subscribable'
 import { HostError, HostHandshakeFailed } from './errors'
 import { type Hosting as EffectHosting, type HostingOptions, Hosting as HostingTag } from './hosting'
-import type { HostResult } from './plain-errors'
-import type { Hosting } from './plain-hosting'
+import { type HostResult, refuse } from './plain-errors'
+import type { Hosting, HostingSaves } from './plain-hosting'
 
 /** The Effect constructor of an adapter, as the target entries expose it. */
 export type MakeHosting<Seams> = (
@@ -185,4 +187,132 @@ export function bridgeFakeHosting(
 /** The Effect layer over a bridged constructor, as `HostingLive` was. */
 export function bridgeLayer<Seams>(make: MakeHosting<Seams>): HostingLayer<Seams> {
   return (options, seams) => Layer.scoped(HostingTag, make(options, seams))
+}
+
+/**
+ * The other way round: the Effect `Hosting.saves` the runtime still holds, seen as the plain calls a feature that is
+ * already converted takes (the locale). A failure comes back as the refusal it carries.
+ */
+export function plainSaves(saves: EffectHosting['saves']): Pick<HostingSaves, 'get' | 'set' | 'remove'> {
+  const run = <A>(call: Effect.Effect<A, HostError>): Promise<HostResult<A>> =>
+    Effect.runPromise(
+      Effect.match(call, {
+        onSuccess: (value): HostResult<A> => ok(value),
+        onFailure: (error): HostResult<A> =>
+          refuse(error.code, error.retryable, error.operation, error.cause),
+      }),
+    )
+  return {
+    get: (key) => run(saves.get(key)),
+    set: (key, value) => run(saves.set(key, value)),
+    remove: (key) => run(saves.remove(key)),
+  }
+}
+
+/** The Effect `Hosting.ready` as the plain promise a converted feature waits on. */
+export function plainReady(ready: EffectHosting['ready']): Promise<HostResult<void>> {
+  return Effect.runPromise(
+    Effect.match(ready, {
+      onSuccess: (): HostResult<void> => ok(undefined),
+      onFailure: (error): HostResult<void> =>
+        refuse(error.code, error.retryable, error.operation, error.cause),
+    }),
+  )
+}
+
+/** An Effect `Subscribable` the runtime still holds as the plain one (its current value, then each change). */
+export function plainObserved<A>(source: Subscribable.Subscribable<A>): PlainSubscribable<A> {
+  return {
+    get: () => Effect.runSync(source.get),
+    subscribe(listener) {
+      const fiber = Effect.runFork(
+        Stream.runForEach(source.changes, (value) => Effect.sync(() => listener(value))),
+      )
+      return () => void Effect.runFork(Fiber.interrupt(fiber))
+    },
+  }
+}
+
+/** What the audio service listens to, from the Effect `Hosting`. */
+export function plainAudioHosting(
+  hosting: Pick<EffectHosting, 'ready' | 'lifecycle' | 'audio'>,
+): Pick<Hosting, 'ready' | 'lifecycle' | 'audio'> {
+  return {
+    ready: plainReady(hosting.ready),
+    lifecycle: plainObserved(hosting.lifecycle),
+    audio: plainObserved(hosting.audio),
+  }
+}
+
+/** An Effect `Stream` of events as the plain `Listenable`: each subscriber runs the stream until it stops. */
+function plainEvents<A>(events: Stream.Stream<A>): Listenable<A> {
+  return {
+    subscribe(listener) {
+      const fiber = Effect.runFork(Stream.runForEach(events, (value) => Effect.sync(() => listener(value))))
+      return () => void Effect.runFork(Fiber.interrupt(fiber))
+    },
+  }
+}
+
+/** Runs a scoped Effect registration (a handler held while the scope is open) and returns what closes it. */
+function held(register: Effect.Effect<void, never, Scope.Scope>): () => void {
+  const scope = Effect.runSync(Scope.make())
+  Effect.runSync(Scope.extend(register, scope))
+  return () => void Effect.runFork(Scope.close(scope, Exit.void))
+}
+
+/**
+ * The Effect `Hosting` the runtime still holds as the plain one, for a converted feature (the saves). It does not own
+ * the session: `dispose` does nothing, and the Effect scope that built Hosting still shuts it down.
+ */
+export function toPlainHosting(hosting: EffectHosting): Hosting {
+  const run = <A>(call: Effect.Effect<A, HostError>): Promise<HostResult<A>> =>
+    Effect.runPromise(
+      Effect.match(call, {
+        onSuccess: (value): HostResult<A> => ok(value),
+        onFailure: (error): HostResult<A> =>
+          refuse(error.code, error.retryable, error.operation, error.cause),
+      }),
+    )
+  return {
+    kind: hosting.kind,
+    hostName: hosting.hostName,
+    handshake: {
+      fellBack: Option.match(hosting.handshake.fellBack, {
+        onNone: () => null,
+        onSome: (failed) => ({ reason: failed.reason }),
+      }),
+    },
+    player: hosting.player,
+    locale: hosting.locale,
+    granted: hosting.granted,
+    ready: plainReady(hosting.ready),
+    lifecycle: plainObserved(hosting.lifecycle),
+    input: plainObserved(hosting.input),
+    display: plainObserved(hosting.display),
+    audio: plainObserved(hosting.audio),
+    entitlements: plainObserved(hosting.entitlements),
+    savesStatus: plainObserved(hosting.savesStatus),
+    saves: {
+      ...plainSaves(hosting.saves),
+      flush: () => run(hosting.saves.flush),
+      keys: () => run(hosting.saves.keys),
+      changed: plainEvents(hosting.saves.changed),
+    },
+    leaderboards: {
+      submit: (board, score, meta) => run(hosting.leaderboards.submit(board, score, meta)),
+      get: (board, query) => run(hosting.leaderboards.get(board, query)),
+    },
+    setFullscreen: (on) => run(hosting.setFullscreen(on)),
+    round: {
+      start: () => Effect.runSync(hosting.round.start),
+      end: (outcome) => Effect.runSync(hosting.round.end(outcome)),
+      ended: plainEvents(hosting.round.ended),
+    },
+    track: (event, props) => Effect.runSync(hosting.track(event, props)),
+    exit: (reason) => run(hosting.exit(reason)),
+    onMenuRequest: (handler) => held(hosting.onMenuRequest(handler)),
+    onExiting: (handler) => held(hosting.onExiting(Effect.promise(async () => handler()))),
+    dispose: () => undefined,
+  }
 }

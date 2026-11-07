@@ -1,5 +1,5 @@
-import { Context, Effect, type Scope, Stream } from 'effect'
-import type { Hosting, HostingOptions } from '../../host/hosting.ts'
+import type { HostingOptions } from '../../host/hosting.ts'
+import type { Hosting } from '../../host/plain-hosting.ts'
 import type { PresentationBus } from '../presentation/presentation-bus.manager.js'
 
 export type PauseBehavior = HostingOptions['pauseBehavior']
@@ -17,9 +17,7 @@ export interface Time {
   resume(reason: PauseReason): void
 }
 
-export const Time: Context.Tag<Time, Time> = Context.GenericTag<Time>('@mcthaydt/automata-runtime/Time')
-
-export function makeTime(bus: PresentationBus): Time {
+export function createTime(bus: PresentationBus): Time {
   const reasons = new Set<PauseReason>()
 
   return {
@@ -49,64 +47,52 @@ export function makeTime(bus: PresentationBus): Time {
 }
 
 export interface WatchLifecycleOptions {
-  readonly hosting: Hosting
+  readonly hosting: Pick<Hosting, 'lifecycle'>
   readonly time: Time
   readonly pauseBehavior: PauseBehavior
   readonly document?: Document
   readonly openMenu: () => void
 }
 
-export function watchLifecycle(options: WatchLifecycleOptions): Effect.Effect<void, never, Scope.Scope> {
-  if (options.pauseBehavior === 'continue') {
-    return Effect.void
-  }
+/**
+ * Pauses the sim (`lifecycle`) while the host is in the background or the page is hidden, and opens the menu as it
+ * goes; coming back clears the reason but leaves the menu open, so play never resumes on its own. Does nothing under
+ * `pauseBehavior: 'continue'`. Returns the function that stops watching.
+ */
+export function watchLifecycle(options: WatchLifecycleOptions): () => void {
+  if (options.pauseBehavior === 'continue') return () => undefined
 
-  return Effect.gen(function* () {
-    const doc = options.document ?? (typeof document !== 'undefined' ? document : undefined)
+  const doc = options.document ?? (typeof document !== 'undefined' ? document : undefined)
+  let hostBackground = options.hosting.lifecycle.get().state === 'background'
+  let docHidden = doc?.visibilityState === 'hidden'
+  let inBackground = false
 
-    const initial = yield* options.hosting.lifecycle.get
-    let hostBackground = initial.state === 'background'
-    let docHidden = doc?.visibilityState === 'hidden'
-    let inBackground = hostBackground || docHidden
-
-    const update = (newHostBg: boolean, newDocHidden: boolean) => {
-      hostBackground = newHostBg
-      docHidden = newDocHidden
-      const shouldPause = hostBackground || docHidden
-
-      if (shouldPause && !inBackground) {
-        inBackground = true
-        options.time.pause('lifecycle')
-        options.openMenu()
-      } else if (!shouldPause && inBackground) {
-        inBackground = false
-        options.time.resume('lifecycle')
-      }
-    }
-
-    if (inBackground) {
+  const update = (): void => {
+    const shouldPause = hostBackground || docHidden
+    if (shouldPause && !inBackground) {
+      inBackground = true
       options.time.pause('lifecycle')
       options.openMenu()
+    } else if (!shouldPause && inBackground) {
+      inBackground = false
+      options.time.resume('lifecycle')
     }
+  }
+  update()
 
-    // 1. Listen to document visibilitychange
-    if (doc) {
-      const onVisibilityChange = () => {
-        update(hostBackground, doc.visibilityState === 'hidden')
-      }
-      doc.addEventListener('visibilitychange', onVisibilityChange)
-      yield* Effect.addFinalizer(() =>
-        Effect.sync(() => {
-          doc.removeEventListener('visibilitychange', onVisibilityChange)
-        }),
-      )
-    }
-
-    // 2. Stream hosting.lifecycle.changes in a scoped fiber
-    yield* Stream.runForEach(options.hosting.lifecycle.changes, (payload) =>
-      Effect.sync(() => {
-        update(payload.state === 'background', docHidden)
-      }),
-    ).pipe(Effect.forkScoped)
+  const onVisibilityChange = (): void => {
+    docHidden = doc?.visibilityState === 'hidden'
+    update()
+  }
+  doc?.addEventListener('visibilitychange', onVisibilityChange)
+  // `subscribe` hears the current value first, which `update` has already seen: it changes nothing.
+  const stopHost = options.hosting.lifecycle.subscribe((payload) => {
+    hostBackground = payload.state === 'background'
+    update()
   })
+
+  return () => {
+    stopHost()
+    doc?.removeEventListener('visibilitychange', onVisibilityChange)
+  }
 }

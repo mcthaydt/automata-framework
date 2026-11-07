@@ -1,6 +1,7 @@
 // Replaces Effect's `Scope` and finalizers: a place to put "undo this" functions and run them all at once.
 // Every factory in the package that opens a listener, a timer or a child returns `{ dispose }` built on this.
 
+/** A list of "undo this" functions, run together once: what a screen, a run or a service holds open. */
 export interface Disposables {
   /**
    * Runs `undo` at disposal. Added after disposal it runs at once, so a late arrival is never leaked. Returns a
@@ -12,6 +13,7 @@ export interface Disposables {
   readonly disposed: boolean
 }
 
+/** Makes an empty `Disposables`. */
 export function disposables(): Disposables {
   const pending: Array<() => void> = []
   let disposed = false

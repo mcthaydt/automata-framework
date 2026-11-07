@@ -2,9 +2,10 @@ import { settle } from '@ruken/sdk-host/testing'
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
+import { plainSaves } from '#src/shared/host/effect-bridge.ts'
 import { type DeviceStorage, liveDeviceStorage } from '#src/shared/runtime/settings/device-storage.ts'
 import { type SettingsDef, writeSettings } from '#src/shared/runtime/settings/migrate-settings.ts'
-import { makeSettings, type Settings } from '#src/shared/runtime/settings/settings.manager.ts'
+import { createSettings, type Settings } from '#src/shared/runtime/settings/settings.manager.ts'
 import { Hosting } from '../../../../../../src/shared/host/hosting.ts'
 import { FakeHostHandle, HostingTest } from '../../../../../../src/testing/host/page/ruken/hosting-test.ts'
 import { runScoped } from '../../../../../../src/testing/host/page/run.ts'
@@ -80,7 +81,7 @@ describe('settings fields kept on the device', () => {
       Effect.gen(function* () {
         const hosting = yield* Hosting
         const { sentByGame } = yield* FakeHostHandle
-        const settings = yield* makeSettings(mixed, null, hosting.saves, device)
+        const settings = createSettings(mixed, null, plainSaves(hosting.saves), device)
         settings.store?.update((value) => ({ ...(value as Mixed), audio: { muted: true, music: 0.25 } }))
         yield* settled
         expect(JSON.parse(device.held.get(DEVICE_KEY) ?? 'null')).toEqual({
@@ -99,7 +100,7 @@ describe('settings fields kept on the device', () => {
       Effect.gen(function* () {
         const hosting = yield* Hosting
         const { sentByGame } = yield* FakeHostHandle
-        const settings = yield* makeSettings(mixed, null, hosting.saves, device)
+        const settings = createSettings(mixed, null, plainSaves(hosting.saves), device)
         settings.store?.update((value) => ({
           ...(value as Mixed),
           audio: { muted: true, music: 1 },
@@ -122,7 +123,7 @@ describe('settings fields kept on the device', () => {
     await runScoped(
       Effect.gen(function* () {
         const hosting = yield* Hosting
-        const settings = yield* makeSettings(mixed, account, hosting.saves, device)
+        const settings = createSettings(mixed, account, plainSaves(hosting.saves), device)
         expect(settings.store?.get()).toEqual({
           name: 'Kite',
           locale: 'ja',
@@ -137,7 +138,7 @@ describe('settings fields kept on the device', () => {
     await runScoped(
       Effect.gen(function* () {
         const hosting = yield* Hosting
-        const settings = yield* makeSettings(mixed, account, hosting.saves, memoryDevice())
+        const settings = createSettings(mixed, account, plainSaves(hosting.saves), memoryDevice())
         expect(settings.store?.get()).toEqual({ name: 'Kite', locale: 'ja', audio: AUDIO_DEFAULT })
       }).pipe(Effect.provide(HostingTest())),
     )
@@ -150,7 +151,7 @@ describe('settings fields kept on the device', () => {
       Effect.gen(function* () {
         const hosting = yield* Hosting
         const { sentByGame } = yield* FakeHostHandle
-        const settings = yield* makeSettings(mixed, old, hosting.saves, device)
+        const settings = createSettings(mixed, old, plainSaves(hosting.saves), device)
         expect(settings.store?.get()).toEqual({ name: 'Kite', locale: 'ja', audio: AUDIO_DEFAULT })
 
         settings.store?.update((value) => ({ ...(value as Mixed), name: 'Wren' }))
@@ -174,7 +175,7 @@ describe('settings fields kept on the device', () => {
     await runScoped(
       Effect.gen(function* () {
         const hosting = yield* Hosting
-        const settings = yield* makeSettings(mixed, null, hosting.saves, device)
+        const settings = createSettings(mixed, null, plainSaves(hosting.saves), device)
         expect(current(settings).audio).toEqual({ muted: false, music: 0.3 })
       }).pipe(Effect.provide(HostingTest())),
     )
@@ -185,10 +186,10 @@ describe('settings fields kept on the device', () => {
       Effect.gen(function* () {
         const hosting = yield* Hosting
         const account = JSON.stringify({ version: 1, name: 7, locale: 'ja' })
-        const settings = yield* makeSettings(
+        const settings = createSettings(
           mixed,
           account,
-          hosting.saves,
+          plainSaves(hosting.saves),
           memoryDevice({ [DEVICE_KEY]: '{oops' }),
         )
         expect(settings.store?.get()).toEqual({ name: 'Player', locale: 'ja', audio: AUDIO_DEFAULT })
@@ -201,7 +202,7 @@ describe('settings fields kept on the device', () => {
       Effect.gen(function* () {
         const hosting = yield* Hosting
         const { sentByGame } = yield* FakeHostHandle
-        const settings = yield* makeSettings(mixed, null, hosting.saves, memoryDevice())
+        const settings = createSettings(mixed, null, plainSaves(hosting.saves), memoryDevice())
         for (const music of [0.9, 0.8, 0.7, 0.6])
           settings.store?.update((value) => ({ ...(value as Mixed), audio: { muted: false, music } }))
         yield* settled
@@ -219,7 +220,7 @@ describe('settings fields kept on the device', () => {
       Effect.gen(function* () {
         const hosting = yield* Hosting
         const { host } = yield* FakeHostHandle
-        const settings = yield* makeSettings(mixed, null, hosting.saves, blockedDevice)
+        const settings = createSettings(mixed, null, plainSaves(hosting.saves), blockedDevice)
         expect(current(settings).audio).toEqual(AUDIO_DEFAULT)
 
         expect(() =>
@@ -249,7 +250,7 @@ describe('settings fields kept on the device', () => {
       runScoped(
         Effect.gen(function* () {
           const hosting = yield* Hosting
-          yield* makeSettings(typo, null, hosting.saves, memoryDevice())
+          createSettings(typo, null, plainSaves(hosting.saves), memoryDevice())
         }).pipe(Effect.provide(HostingTest())),
       ),
     ).rejects.toThrow(/'sound'/)
@@ -262,7 +263,7 @@ describe('settings fields kept on the device', () => {
         const hosting = yield* Hosting
         const { sentByGame } = yield* FakeHostHandle
         const device = memoryDevice()
-        const settings = yield* makeSettings(plain, null, hosting.saves, device)
+        const settings = createSettings(plain, null, plainSaves(hosting.saves), device)
         settings.store?.update((value) => ({ ...(value as Mixed), audio: { muted: true, music: 1 } }))
         yield* settled
         expect(writtenTo(sentByGame('saves.set'))[0]?.value).toMatchObject({ audio: { muted: true } })

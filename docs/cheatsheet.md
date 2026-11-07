@@ -13,10 +13,10 @@
 - `AnalogOptions` (interface): The `analog` option of `keys()`.
 - `AnalogReading` (interface): The analog input at one fixed step, read once after `Input.poll()`.
 - `AnalyticsProps` (type): The properties of one analytics event: flat names to strings, numbers or booleans.
-- `AppLoop` (interface): The frame loop service: `run` steps a sim at its fixed tick rate from display frames, with the commands for each tick, and the renderer draws every frame.
-- `Audio` (interface): The audio service: one-shot sounds and looping music on the audio buses, unlocked by the first gesture after `session.ready`; the game runs silent when no audio context can be built.
+- `AppLoop` (type): The frame loop service: `run` steps a sim at its fixed tick rate from display frames, with the commands for each tick, and the renderer draws every frame.
+- `Audio` (type): The audio service: one-shot sounds and looping music on the audio buses, unlocked by the first gesture after `session.ready`; the game runs silent when no audio context can be built.
 - `AUDIO_BUS_NAMES` (const): The core audio buses: `master` carries the other four, `voice` is announcers and dialogue.
-- `AudioBuses` (interface): The audio-bus seam.
+- `AudioBuses` (type): The audio-bus seam.
 - `audioBusGainsSchema` (const): Validates saved bus gains; a bus left out is at full gain.
 - `AudioChange` (interface): The host's audio state: focus (an ad or overlay may duck or mute the game), the master volume, and the gain.
 - `AudioChangeSchema` (const): Checks an audio change.
@@ -36,6 +36,7 @@
 - `Chip` (const): A short status label (M4 spec §4.12).
 - `classifyFormFactor(width, height)`: The form factor of a layout viewport: a portrait one narrower than 600 px is `phone-portrait`, any other portrait one `tablet-portrait`; a landscape one shorter than 500 px is `phone-landscape`, otherwise `desktop`.
 - `classifyHeightTier(height)`: The height tier of a layout height in CSS px: `compact` below 340, `short` up to 600, otherwise `undefined`.
+- `Clock` (interface): Time as the runtime reads it: `now()` and timeouts.
 - `Command` (interface): Input to the sim, the only way gameplay state changes from outside.
 - `CommandDef` (interface): A command the sim accepts as input: an id and the Zod schema its payload must match.
 - `CompiledContentData` (interface): The compiled JSON content read by the runtime.
@@ -62,6 +63,8 @@
 - `Dialog` (const): A question that needs an answer before the screen goes on (M1.6 spec §3.4; from Ruken `packages/ui/src/Dialog.svelte` at b30d31b).
 - `DisplayMetricsPayload` (interface): The game's display: insets the game must keep clear, the area the host reserves for its own controls, and the UI scale hint (1.333 on a TV: enlarge text and targets, never CSS zoom).
 - `DisplayMetricsPayloadSchema` (const): Checks display metrics.
+- `Disposables` (interface): A list of "undo this" functions, run together once: what a screen, a run or a service holds open.
+- `disposables()`: Makes an empty `Disposables`.
 - `DrawContext` (interface): What `draw` receives each frame.
 - `DrawEntity` (interface): One entity, read-only: its components' values are frozen copies.
 - `DrawSim` (interface): The sim at this frame, read-only.
@@ -77,7 +80,7 @@
 - `filterPrograms(name, fragmentGlsl, fragmentWgsl)`: Builds a filter's programs from its GLSL and WGSL fragment stages on the shared vertex stages, so WebGL2 stays at parity with WebGPU (AGENTS.md).
 - `findRukenSdkMarkers(code)`: The markers found in `code` (built JavaScript), each named once; empty means no Ruken SDK code.
 - `findTauriMarkers(code)`: The Tauri markers found in `code` (built JavaScript), each named once; empty means no Tauri IPC code.
-- `Flow` (interface): The screen flow service: the current screen, `dispatch` to follow an event's transition from it, `openMenu` for the current screen's menu, and `settled` once no transition is pending.
+- `Flow` (interface): The screen flow service: the current screen, `dispatch` to follow an event's transition from it, `openMenu` for the current screen's menu, and `settled()` once no transition is pending.
 - `FormFactor` (type): The four form factors.
 - `FrameInfo` (interface): One display frame: the interpolation alpha between the last two ticks, the frame's length in ms, and whether time is paused.
 - `FullscreenRes` (interface): The answer to a fullscreen request: the new state, and how this device can go fullscreen at all.
@@ -129,7 +132,7 @@
 - `LifecyclePayloadSchema` (const): Checks a lifecycle change.
 - `LifecycleReason` (type): Why the game is in the background.
 - `LoaderOverlay` (const): The loader over a screen while its assets load (M1.6 spec §3.4; from FloorFifty `ui/components/LoaderOverlay.svelte` at 122a220).
-- `Locale` (interface): The locale service: the game's locales, the one text is drawn in now, the player's choice and the text direction.
+- `Locale` (type): The locale service: the game's locales, the one text is drawn in now, the player's choice and the text direction.
 - `MAX_TURN_UNITS_PER_STEP` (const): The most one step's `camera-turn` may carry either way: 45°.
 - `measureGeometry(input)`: Turns what the browser and the host report into one `Geometry`.
 - `Modal` (const): A panel over the screen with a visible Close (M4 spec §4.12; the rules of FloorFifty `ui/components/Modal.svelte` at ac72660).
@@ -165,26 +168,28 @@
 - `RuntimeFacts` (interface): Every fact the runtime publishes on the presentation bus, by name.
 - `RuntimeHandle` (interface): Controls the running game: shutdown closes the runtime scope.
 - `RuntimeSeams` (interface): Test seams injected into the runtime boot program.
+- `RuntimeServices` (interface): The runtime services a screen may use, as one plain object: boot builds them in order and hands them over.
 - `Save` (interface): A game's save: its slots' states, load, write and remove, and the progress `touch` keeps for the autosave triggers to write.
 - `SaveDef` (interface): A game's save: one record, or a fixed number of slots, each one Ruken key.
-- `Saves` (interface): The booted game's save as a runtime service, as `Settings` is for settings: its key and the `Save`, both undefined for a game without saves.
+- `Saves` (type): The booted game's save as a runtime service, as `Settings` is for settings: its key and the `Save`, both undefined for a game without saves.
 - `SavesChangedPayload` (interface): Another device's write, or the host's conflict choice, reached this session.
 - `SavesChangedPayloadSchema` (const): Checks a saves change.
 - `SavesFlushRes` (interface): Where a flush left the saves: the host's outbox, its server, or the device's own storage (`'device'`, the `web`, `itch` and `tauri` targets).
 - `SavesFlushResSchema` (const): Checks a flush answer.
 - `SavesStatus` (type): Where the player's saves stand with the host.
 - `SavesStatusSchema` (const): Checks a saves status.
-- `ScreenDef` (interface): One screen of the flow: its id, whether it pauses the sim, its kind and fonts, and `enter`, which mounts it in its scope (closing the scope leaves the screen).
+- `ScreenContext` (interface): What a screen's `enter` is given: where to mount, where it came from, what to undo, and the runtime's services.
+- `ScreenDef` (interface): One screen of the flow: its id, whether it pauses the sim, its kind and fonts, and `enter`, which mounts it.
 - `ScreenFrame` (const): Every screen's frame: the visible region, a corner row, then a hero and a body (M1.6 spec §3.4; from FloorFifty `ui/layout/ScreenFrame.svelte` at 122a220).
 - `ScreensCopy` (interface): Every word the default title, play, paused and settings screens show.
 - `ScreensCopyInput` (type): A game's words for the default screens: a part of the record, or a function of the player's locale returning one.
 - `ScreensCopyOverrides` (type): A part of `ScreensCopy` with every group optional, down to the words; a word or a function is replaced whole.
 - `ScreensGame` (interface): What the default screens need from the game.
 - `ScrollList` (const): A list that keeps its rows (M1.6 spec §3.4; from FloorFifty `ui/layout/ScrollList.svelte` at 122a220).
-- `Settings` (interface): The booted game's settings as a runtime service: its key and store, both undefined for a game without settings.
+- `Settings` (type): The booted game's settings as a runtime service: its key and store, both undefined for a game without settings.
 - `SettingsDef` (interface): A game's settings: the key it is saved under, its version, schema, defaults and migration steps, and which fields stay on one device.
 - `SettingsScreenCopy` (interface): The Settings screen's own words: its title, Back, the tabs and the overflow count.
-- `settingsStore(def)`: Returns the booted settings store when def.key matches.
+- `settingsStore(def)`: Returns the booted settings store when `def.key` matches; dies with a defect when it does not.
 - `Sheet` (const): A Modal on the bottom edge at every form factor (M4 spec §4.12): the same scoping, Close and scroll region, where a thumb reaches the actions.
 - `Sim` (interface): A running simulation, stepped with commands, that can snapshot, restore and hash its state.
 - `SimContext` (interface): What a system's `run` receives each tick.
@@ -200,7 +205,7 @@
 - `suppressPageGestures(doc)`: Turns off the browser's document gestures over the game.
 - `SystemDef` (interface): A system: a name, the phase it runs in, the systems it must run `before` or `after` within that phase, and its `run`, called once per tick.
 - `TAURI_MARKERS` (const): String literals only Tauri's IPC code contains, which survive minification: the global the webview injects (`@tauri-apps/api/core`) and the process plugin's exit command (`@tauri-apps/plugin-process`).
-- `Time` (interface): The time service: whether the sim is paused, and why; each reason pauses until it is resumed.
+- `Time` (type): The time service: whether the sim is paused, and why; each reason pauses until it is resumed.
 - `Toast` (const): A passing message (M4 spec §4.12): "Pad connected", "Saved", "This controller is not supported".
 - `Toggle` (const): An on/off setting (M4 spec §4.12): a native checkbox with the switch role, so the browser gives Space and the focus navigator's `adjust` flips it.
 - `TouchButton` (interface): One on-screen touch button: every key bound to the same payload shares it.

@@ -1,5 +1,5 @@
 import type { SimEvent } from '@mcthaydt/automata-sim'
-import { Context, Effect, type Scope } from 'effect'
+import { Context } from 'effect'
 import type { ErrorCode } from '../../host/error-code.schema.ts'
 import type { BoardState } from '../board-state.js'
 import type { GlyphFamily } from '../glyph-family.js'
@@ -79,82 +79,77 @@ interface QueuedFact {
   readonly fact: unknown
 }
 
-export function makePresentationBus(
+/** Builds the bus. `dispose()` drops every listener and every queued fact; later publishes do nothing. */
+export function createPresentationBus(
   log: (error: unknown) => void = console.error,
-): Effect.Effect<PresentationBus, never, Scope.Scope> {
-  return Effect.gen(function* () {
-    const listeners = new Map<string, Set<(fact: any) => void>>()
-    const queue: QueuedFact[] = []
-    let delivering = false
-    let closed = false
+): PresentationBus & { dispose(): void } {
+  const listeners = new Map<string, Set<(fact: any) => void>>()
+  const queue: QueuedFact[] = []
+  let delivering = false
+  let closed = false
 
-    const close = () => {
-      closed = true
-      queue.length = 0
-      listeners.clear()
-    }
+  return {
+    publish(name, fact) {
+      if (closed) return
+      queue.push({ name, fact })
+      if (delivering) return
 
-    yield* Effect.addFinalizer(() => Effect.sync(close))
+      delivering = true
+      try {
+        while (queue.length > 0) {
+          if (closed) break
+          const current = queue.shift()!
+          const set = listeners.get(current.name)
+          if (!set || set.size === 0) continue
 
-    const bus: PresentationBus = {
-      publish(name, fact) {
-        if (closed) return
-        queue.push({ name, fact })
-        if (delivering) return
-
-        delivering = true
-        try {
-          while (queue.length > 0) {
+          // Snapshot the listeners set so additions during delivery do not run immediately,
+          // but check membership before calling so unsubscribed listeners do not run.
+          const snapshot = Array.from(set)
+          for (const listener of snapshot) {
             if (closed) break
-            const current = queue.shift()!
-            const set = listeners.get(current.name)
-            if (!set || set.size === 0) continue
-
-            // Snapshot the listeners set so additions during delivery do not run immediately,
-            // but check membership before calling so unsubscribed listeners do not run.
-            const snapshot = Array.from(set)
-            for (const listener of snapshot) {
-              if (closed) break
-              if (!set.has(listener)) continue
+            if (!set.has(listener)) continue
+            try {
+              listener(current.fact)
+            } catch (err) {
               try {
-                listener(current.fact)
-              } catch (err) {
-                try {
-                  log(err)
-                } catch {
-                  // Do not let logger failures derail bus delivery
-                }
+                log(err)
+              } catch {
+                // Do not let logger failures derail bus delivery
               }
             }
           }
-        } finally {
-          delivering = false
         }
-      },
+      } finally {
+        delivering = false
+      }
+    },
 
-      subscribe(name, listener) {
-        if (closed) return () => {}
-        let set = listeners.get(name)
-        if (!set) {
-          set = new Set()
-          listeners.set(name, set)
+    subscribe(name, listener) {
+      if (closed) return () => {}
+      let set = listeners.get(name)
+      if (!set) {
+        set = new Set()
+        listeners.set(name, set)
+      }
+      set.add(listener)
+
+      let unsubscribed = false
+      return () => {
+        if (unsubscribed) return
+        unsubscribed = true
+        set?.delete(listener)
+        if (set?.size === 0) {
+          listeners.delete(name)
         }
-        set.add(listener)
+      }
+    },
 
-        let unsubscribed = false
-        return () => {
-          if (unsubscribed) return
-          unsubscribed = true
-          set?.delete(listener)
-          if (set?.size === 0) {
-            listeners.delete(name)
-          }
-        }
-      },
-    }
-
-    return bus
-  })
+    dispose() {
+      closed = true
+      queue.length = 0
+      listeners.clear()
+    },
+  }
 }
 
 /**

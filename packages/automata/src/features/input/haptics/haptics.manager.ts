@@ -9,7 +9,6 @@
 // - Otherwise nothing, and nothing fails.
 //
 // The player's Vibration setting turns it all off. Haptics are presentation: nothing here reads into the sim.
-import { Context } from 'effect'
 
 /** One pulse: a pad's dual-rumble (milliseconds, each motor 0..1), and a phone's buzz in `navigator.vibrate`'s terms. */
 export interface HapticPulse {
@@ -32,10 +31,6 @@ export interface Haptics {
   /** The player's Vibration setting. */
   setEnabled(enabled: boolean): void
 }
-
-export const Haptics: Context.Tag<Haptics, Haptics> = Context.GenericTag<Haptics>(
-  '@mcthaydt/automata-runtime/Haptics',
-)
 
 interface Actuator {
   playEffect(

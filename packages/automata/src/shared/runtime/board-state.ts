@@ -1,12 +1,11 @@
 // What a leaderboard call ended as, for a screen to show. Every host answer maps to one named
 // state; none of them keeps a local board instead (host authority).
 
-import type { Effect } from 'effect'
-import type { HostError } from '../host/errors.ts'
-import type { HostingLeaderboards } from '../host/hosting.ts'
+import type { LeaderboardSubmitRes } from '../host/leaderboards.schema.ts'
+import type { HostRefusal } from '../host/plain-errors.ts'
 
 /** The host's answer to a submit (Ruken's `LeaderboardSubmitRes`), as `Hosting.leaderboards` relays it. */
-export type SubmitAnswer = Effect.Effect.Success<ReturnType<HostingLeaderboards['submit']>>
+export type SubmitAnswer = LeaderboardSubmitRes
 
 /** The state of a board after the game's last submit to it. */
 export type BoardState =
@@ -28,7 +27,7 @@ export function boardStateFromSubmit(res: SubmitAnswer): BoardState {
 
 /** `OFFLINE` and `TIMEOUT` are the network; `INVALID_PAYLOAD` is the score; everything else leaves no board here. */
 export function boardStateFromError(
-  error: HostError,
+  error: Pick<HostRefusal, 'code'>,
 ): Extract<BoardState, { state: 'refused' | 'unavailable' | 'offline' }> {
   switch (error.code) {
     case 'OFFLINE':

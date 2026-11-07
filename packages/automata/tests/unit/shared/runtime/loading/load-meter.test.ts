@@ -1,10 +1,42 @@
-import { Chunk, Duration, Effect, Fiber, TestClock, TestContext, type TestServices } from 'effect'
 import { describe, expect, it, vi } from 'vitest'
-import type { LoadStalled } from '#src/shared/runtime/boot-error.ts'
-import { makeLoadMeter, SLOW_MS, STALL_MS } from '#src/shared/runtime/load-meter.ts'
+import { LoadStalled } from '#src/shared/runtime/boot-error.ts'
+import { createLoadMeter, SLOW_MS, STALL_MS } from '#src/shared/runtime/load-meter.ts'
+import { fakeClock } from '#src/testing/fake-clock.ts'
+import { settle } from '#src/testing/settle.ts'
 
-const runTest = <A, E>(effect: Effect.Effect<A, E, TestServices.TestServices>): Promise<A> =>
-  Effect.runPromise(Effect.provide(effect, TestContext.TestContext) as Effect.Effect<A, E, never>)
+/** A wait that never ends on its own, and says when the meter aborted it. */
+function hangingWait(): { readonly wait: (signal: AbortSignal) => Promise<never>; aborted(): boolean } {
+  let aborted = false
+  return {
+    wait: (signal) =>
+      new Promise<never>((_, reject) => {
+        signal.addEventListener('abort', () => {
+          aborted = true
+          reject(new Error('aborted'))
+        })
+      }),
+    aborted: () => aborted,
+  }
+}
+
+/** Follows a promise so a test can ask whether it has settled yet, and how. */
+function watch<A>(promise: Promise<A>): {
+  readonly state: () => 'pending' | 'resolved' | 'rejected'
+  error: () => unknown
+} {
+  let state: 'pending' | 'resolved' | 'rejected' = 'pending'
+  let error: unknown
+  promise.then(
+    () => {
+      state = 'resolved'
+    },
+    (reason: unknown) => {
+      state = 'rejected'
+      error = reason
+    },
+  )
+  return { state: () => state, error: () => error }
+}
 
 describe('LoadMeter', () => {
   it('defines STALL_MS as 30000 and SLOW_MS as 8000', () => {
@@ -13,190 +45,146 @@ describe('LoadMeter', () => {
   })
 
   it('fails with LoadStalled at 30000ms (not at 29999ms) and aborts the wait', async () => {
-    await Effect.gen(function* () {
-      const meter = yield* makeLoadMeter
-      let aborted = false
+    const clock = fakeClock()
+    const meter = createLoadMeter(clock)
+    const hang = hangingWait()
+    const guarded = watch(meter.guard(hang.wait, { url: 'test://file', bytesSoFar: () => 1024 }))
 
-      const slowFetch = Effect.tryPromise({
-        try: (signal) =>
-          new Promise<never>((_, reject) => {
-            signal.addEventListener('abort', () => {
-              aborted = true
-              reject(new Error('aborted'))
-            })
-          }),
-        catch: (e) => e,
-      })
+    clock.advance(29_999)
+    await settle()
+    expect(guarded.state()).toBe('pending')
+    expect(hang.aborted()).toBe(false)
 
-      const fiber = yield* Effect.fork(
-        meter.guard(slowFetch, {
-          url: 'test://file',
-          bytesSoFar: () => 1024,
-        }),
-      )
-
-      yield* TestClock.adjust(Duration.millis(29_999))
-      let poll = yield* Fiber.poll(fiber)
-      expect(poll._tag).toBe('None')
-      expect(aborted).toBe(false)
-
-      yield* TestClock.adjust(Duration.millis(1))
-      poll = yield* Fiber.poll(fiber)
-      expect(poll._tag).toBe('Some')
-      if (poll._tag === 'Some' && poll.value._tag === 'Failure') {
-        const cause = poll.value.cause
-        if (cause._tag === 'Fail') {
-          const err = cause.error as LoadStalled
-          expect(err._tag).toBe('LoadStalled')
-          expect(err.url).toBe('test://file')
-          expect(err.bytesSoFar).toBe(1024)
-          expect(err.stalledMs).toBe(30_000)
-        }
-      }
-      expect(aborted).toBe(true)
-    }).pipe(runTest)
+    clock.advance(1)
+    await settle()
+    expect(guarded.state()).toBe('rejected')
+    const error = guarded.error() as LoadStalled
+    expect(error).toBeInstanceOf(LoadStalled)
+    expect(error._tag).toBe('LoadStalled')
+    expect(error.url).toBe('test://file')
+    expect(error.bytesSoFar).toBe(1024)
+    expect(error.stalledMs).toBe(30_000)
+    expect(hang.aborted()).toBe(true)
   })
 
   it('never fails if progress() is reported every 10s for 300s', async () => {
-    await Effect.gen(function* () {
-      const meter = yield* makeLoadMeter
-      const neverEnd = Effect.never
+    const clock = fakeClock()
+    const meter = createLoadMeter(clock)
+    const controller = new AbortController()
+    const guarded = watch(meter.guard(hangingWait().wait, { url: 'test://steady' }, controller.signal))
 
-      const fiber = yield* Effect.fork(meter.guard(neverEnd, { url: 'test://steady' }))
-
-      for (let i = 0; i < 30; i++) {
-        yield* TestClock.adjust(Duration.seconds(10))
-        meter.progress()
-      }
-
-      const poll = yield* Fiber.poll(fiber)
-      expect(poll._tag).toBe('None')
-      yield* Fiber.interrupt(fiber)
-    }).pipe(runTest)
+    for (let i = 0; i < 30; i++) {
+      clock.advance(10_000)
+      meter.progress()
+    }
+    await settle()
+    expect(guarded.state()).toBe('pending')
+    controller.abort()
   })
 
   it('counts silence from the last report, not from the start', async () => {
-    await Effect.gen(function* () {
-      const meter = yield* makeLoadMeter
-      const neverEnd = Effect.never
+    const clock = fakeClock()
+    const meter = createLoadMeter(clock)
+    const guarded = watch(meter.guard(hangingWait().wait, { url: 'test://reset' }))
 
-      const fiber = yield* Effect.fork(meter.guard(neverEnd, { url: 'test://reset' }))
+    clock.advance(20_000)
+    meter.progress()
+    clock.advance(20_000)
+    await settle()
+    expect(guarded.state()).toBe('pending')
 
-      yield* TestClock.adjust(Duration.millis(20_000))
-      meter.progress()
-
-      yield* TestClock.adjust(Duration.millis(20_000))
-      let poll = yield* Fiber.poll(fiber)
-      expect(poll._tag).toBe('None')
-
-      yield* TestClock.adjust(Duration.millis(10_000))
-      poll = yield* Fiber.poll(fiber)
-      expect(poll._tag).toBe('Some')
-      if (poll._tag === 'Some') {
-        expect(poll.value._tag).toBe('Failure')
-      }
-    }).pipe(runTest)
+    clock.advance(10_000)
+    await settle()
+    expect(guarded.state()).toBe('rejected')
   })
 
-  it('passes error from the wait through unchanged and leaves no sleep on TestClock', async () => {
-    await Effect.gen(function* () {
-      const meter = yield* makeLoadMeter
-      class CustomError {
-        readonly _tag = 'CustomError'
-      }
+  it('passes an error from the wait through unchanged and leaves no timer behind', async () => {
+    const clock = fakeClock()
+    const meter = createLoadMeter(clock)
+    class CustomError extends Error {}
 
-      const failingWait = Effect.fail(new CustomError())
-      const result = yield* Effect.flip(meter.guard(failingWait, { url: 'test://err' }))
-      expect(result).toBeInstanceOf(CustomError)
-
-      // TestClock should advance freely with no uncompleted sleeps
-      yield* TestClock.adjust(Duration.seconds(30))
-      const sleeps = yield* TestClock.sleeps()
-      expect(Chunk.size(sleeps)).toBe(0)
-    }).pipe(runTest)
+    await expect(
+      meter.guard(() => Promise.reject(new CustomError()), { url: 'test://err' }),
+    ).rejects.toBeInstanceOf(CustomError)
+    expect(clock.pending()).toBe(0)
   })
 
-  it('finishing counts as progress and leaves no sleep behind', async () => {
-    await Effect.gen(function* () {
-      const meter = yield* makeLoadMeter
-      const quick = Effect.succeed('ok')
+  it('finishing counts as progress and leaves no timer behind', async () => {
+    const clock = fakeClock()
+    const meter = createLoadMeter(clock)
 
-      const result = yield* meter.guard(quick, { url: 'test://quick' })
-      expect(result).toBe('ok')
-
-      yield* TestClock.adjust(Duration.seconds(30))
-      const sleeps = yield* TestClock.sleeps()
-      expect(Chunk.size(sleeps)).toBe(0)
-    }).pipe(runTest)
+    await expect(meter.guard(async () => 'ok', { url: 'test://quick' })).resolves.toBe('ok')
+    expect(clock.pending()).toBe(0)
   })
 
   it('does not inherit an idle stretch before a wait begins', async () => {
-    await Effect.gen(function* () {
-      const meter = yield* makeLoadMeter
-      yield* TestClock.adjust(Duration.seconds(100))
+    const clock = fakeClock()
+    const meter = createLoadMeter(clock)
+    clock.advance(100_000)
 
-      const fiber = yield* Effect.fork(meter.guard(Effect.never, { url: 'test://after-idle' }))
+    const guarded = watch(meter.guard(hangingWait().wait, { url: 'test://after-idle' }))
+    clock.advance(29_999)
+    await settle()
+    expect(guarded.state()).toBe('pending')
 
-      yield* TestClock.adjust(Duration.millis(29_999))
-      let poll = yield* Fiber.poll(fiber)
-      expect(poll._tag).toBe('None')
-
-      yield* TestClock.adjust(Duration.millis(1))
-      poll = yield* Fiber.poll(fiber)
-      expect(poll._tag).toBe('Some')
-    }).pipe(runTest)
+    clock.advance(1)
+    await settle()
+    expect(guarded.state()).toBe('rejected')
   })
 
   it('does not put off the first wait stall when a second wait starts later', async () => {
-    await Effect.gen(function* () {
-      const meter = yield* makeLoadMeter
+    const clock = fakeClock()
+    const meter = createLoadMeter(clock)
+    const first = watch(meter.guard(hangingWait().wait, { url: 'test://first' }))
 
-      const fiber1 = yield* Effect.fork(meter.guard(Effect.never, { url: 'test://first' }))
+    clock.advance(20_000)
+    const controller = new AbortController()
+    meter.guard(hangingWait().wait, { url: 'test://second' }, controller.signal).catch(() => undefined)
+    clock.advance(10_000)
+    await settle()
 
-      yield* TestClock.adjust(Duration.millis(20_000))
-
-      const fiber2 = yield* Effect.fork(meter.guard(Effect.never, { url: 'test://second' }))
-
-      yield* TestClock.adjust(Duration.millis(10_000))
-
-      // fiber1 has experienced 30s of silence since it started (and starting fiber2 shouldn't delay fiber1's timeout)
-      const poll1 = yield* Fiber.poll(fiber1)
-      expect(poll1._tag).toBe('Some')
-
-      yield* Fiber.interrupt(fiber2)
-    }).pipe(runTest)
+    // The first wait has had 30 s of silence since it started; the second one starting must not delay it.
+    expect(first.state()).toBe('rejected')
+    controller.abort()
   })
 
   it('runs the slow callback at 8000ms while the wait is pending', async () => {
-    await Effect.gen(function* () {
-      const meter = yield* makeLoadMeter
-      const onSlow = vi.fn()
+    const clock = fakeClock()
+    const meter = createLoadMeter(clock)
+    const onSlow = vi.fn()
+    const controller = new AbortController()
+    meter.guard(hangingWait().wait, { url: 'test://slow', onSlow }, controller.signal).catch(() => undefined)
 
-      const fiber = yield* Effect.fork(meter.guard(Effect.never, { url: 'test://slow', onSlow }))
-
-      yield* TestClock.adjust(Duration.millis(7_999))
-      expect(onSlow).not.toHaveBeenCalled()
-
-      yield* TestClock.adjust(Duration.millis(1))
-      expect(onSlow).toHaveBeenCalledTimes(1)
-
-      yield* Fiber.interrupt(fiber)
-    }).pipe(runTest)
+    clock.advance(7_999)
+    expect(onSlow).not.toHaveBeenCalled()
+    clock.advance(1)
+    expect(onSlow).toHaveBeenCalledTimes(1)
+    controller.abort()
   })
 
   it('does not run the slow callback for a wait that ended first', async () => {
-    await Effect.gen(function* () {
-      const meter = yield* makeLoadMeter
-      const onSlow = vi.fn()
+    const clock = fakeClock()
+    const meter = createLoadMeter(clock)
+    const onSlow = vi.fn()
 
-      const result = yield* meter.guard(Effect.succeed('done'), {
-        url: 'test://fast',
-        onSlow,
-      })
-      expect(result).toBe('done')
+    await expect(meter.guard(async () => 'done', { url: 'test://fast', onSlow })).resolves.toBe('done')
+    clock.advance(10_000)
+    expect(onSlow).not.toHaveBeenCalled()
+  })
 
-      yield* TestClock.adjust(Duration.millis(10_000))
-      expect(onSlow).not.toHaveBeenCalled()
-    }).pipe(runTest)
+  it('a caller that aborts stops the wait and its timers', async () => {
+    const clock = fakeClock()
+    const meter = createLoadMeter(clock)
+    const hang = hangingWait()
+    const controller = new AbortController()
+    const guarded = watch(
+      meter.guard(hang.wait, { url: 'test://cancel', onSlow: vi.fn() }, controller.signal),
+    )
+
+    controller.abort()
+    await settle()
+    expect(hang.aborted()).toBe(true)
+    expect(guarded.state()).toBe('rejected')
+    expect(clock.pending()).toBe(0)
   })
 })

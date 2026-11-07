@@ -5,18 +5,9 @@
 // Play is the default play screen with one addition: the sim's `goal.reached` ends the round as complete and moves on to
 // the end screen. The round starts when play is entered from the menu and ends as `quit` when Quit leaves paused for the
 // menu.
-import {
-  defaultScreens,
-  Flow,
-  Hosting,
-  Locale,
-  PresentationBus,
-  type ScreenDef,
-  type ScreensGame,
-} from '@mcthaydt/automata'
+import { type Disposables, defaultScreens, type ScreenDef, type ScreensGame } from '@mcthaydt/automata'
 import { resolveExtensions } from '@mcthaydt/automata/extension'
 import type { Sim } from '@mcthaydt/automata-sim'
-import { Effect, type Scope } from 'effect'
 import { flushSync, mount, unmount } from 'svelte'
 import { TICK_HZ } from '../constants/index.ts'
 import { GoalReached } from '../events.ts'
@@ -30,39 +21,20 @@ export const SPLASH_MS = 1500
 
 /** Mounts a panel in the screen's layer for as long as the screen is open, rendered now for the flow's focus step. */
 function show<Props extends Record<string, unknown>>(
+  screen: Disposables,
   component: Parameters<typeof mount<Props, Record<string, never>>>[0],
   target: HTMLElement,
   props: Props,
-): Effect.Effect<void, never, Scope.Scope> {
-  return Effect.acquireRelease(
-    Effect.sync(() => {
-      const instance = mount(component, { target, props })
-      flushSync()
-      return instance
-    }),
-    (instance) => Effect.promise(() => unmount(instance)),
-  ).pipe(Effect.asVoid)
+): void {
+  const instance = mount(component, { target, props })
+  flushSync()
+  screen.add(() => void unmount(instance))
 }
 
-/** The game's words (copy.ts) kept in the player's language for as long as the screen is open (DX.2d's way). */
-const followTheLocale: Effect.Effect<void, never, Scope.Scope | Locale> = Effect.gen(function* () {
-  const locale = yield* Locale
-  yield* Effect.acquireRelease(
-    Effect.sync(() => followLocale(locale)),
-    (stop) => Effect.sync(stop),
-  )
-})
-
 /** A window listener for as long as the screen is open. */
-function listen<K extends keyof WindowEventMap>(
-  target: Window,
-  type: K,
-  listener: (event: WindowEventMap[K]) => void,
-): Effect.Effect<void, never, Scope.Scope> {
-  return Effect.acquireRelease(
-    Effect.sync(() => target.addEventListener(type, listener)),
-    () => Effect.sync(() => target.removeEventListener(type, listener)),
-  )
+function listen(screen: Disposables, target: Window, type: string, listener: () => void): void {
+  target.addEventListener(type, listener)
+  screen.add(() => target.removeEventListener(type, listener))
 }
 
 const byId = (screens: readonly ScreenDef[], id: string): ScreenDef => {
@@ -95,65 +67,53 @@ export function base3dScreens(game: ScreensGame): ScreenDef[] {
 
   const splash: ScreenDef = {
     id: 'splash',
-    enter: ({ layer }) =>
-      Effect.gen(function* () {
-        const flow = yield* Flow
-        const target = layer.ownerDocument.defaultView ?? window
-        yield* show(SplashScreen, layer, { title: game.title })
-        const next = (): void => void flow.dispatch('continue')
-        yield* listen(target, 'keydown', next)
-        yield* listen(target, 'pointerdown', next)
-        yield* Effect.acquireRelease(
-          Effect.sync(() => target.setTimeout(next, SPLASH_MS)),
-          (timer) => Effect.sync(() => target.clearTimeout(timer)),
-        )
-      }),
+    enter: ({ layer, screen, services }) => {
+      const target = layer.ownerDocument.defaultView ?? window
+      show(screen, SplashScreen, layer, { title: game.title })
+      const next = (): void => void services.flow.dispatch('continue')
+      listen(screen, target, 'keydown', next)
+      listen(screen, target, 'pointerdown', next)
+      const timer = services.clock.setTimeout(next, SPLASH_MS)
+      screen.add(() => services.clock.clearTimeout(timer))
+    },
   }
 
   const menu: ScreenDef = {
     ...title,
-    enter: (context) =>
-      Effect.gen(function* () {
-        if (context.from === 'paused') yield* (yield* Hosting).round.end('quit')
-        yield* title.enter(context)
-      }),
+    enter: (context) => {
+      if (context.from === 'paused') context.services.hosting.round.end('quit')
+      return title.enter(context)
+    },
   }
 
   const room: ScreenDef = {
     ...play,
-    enter: (context) =>
-      Effect.gen(function* () {
-        const flow = yield* Flow
-        const hosting = yield* Hosting
-        const bus = yield* PresentationBus
-        if (context.from === 'title') yield* hosting.round.start
-        yield* followTheLocale
-        yield* Effect.acquireRelease(
-          Effect.sync(() =>
-            bus.subscribe('sim.events', (events) => {
-              if (events.some((event) => event.type === GoalReached.id)) {
-                seconds = (running?.tick ?? 0) / TICK_HZ
-                Effect.runFork(hosting.round.end('complete'))
-                flow.dispatch('goal')
-              }
-            }),
-          ),
-          (stop) => Effect.sync(stop),
-        )
-        yield* play.enter(context)
-      }),
+    enter: (context) => {
+      const { flow, hosting, bus, locale } = context.services
+      if (context.from === 'title') hosting.round.start()
+      // The game's words (copy.ts) kept in the player's language for as long as the screen is open (DX.2d's way).
+      context.screen.add(followLocale(locale))
+      context.screen.add(
+        bus.subscribe('sim.events', (events) => {
+          if (events.some((event) => event.type === GoalReached.id)) {
+            seconds = (running?.tick ?? 0) / TICK_HZ
+            hosting.round.end('complete')
+            flow.dispatch('goal')
+          }
+        }),
+      )
+      return play.enter(context)
+    },
   }
 
   const end: ScreenDef = {
     id: 'end',
-    enter: ({ layer }) =>
-      Effect.gen(function* () {
-        const flow = yield* Flow
-        yield* show(EndScreen, layer, {
-          time: `${seconds.toFixed(2)} s`,
-          onMenu: () => void flow.dispatch('quit'),
-        })
-      }),
+    enter: ({ layer, screen, services }) => {
+      show(screen, EndScreen, layer, {
+        time: `${seconds.toFixed(2)} s`,
+        onMenu: () => void services.flow.dispatch('quit'),
+      })
+    },
   }
 
   const replaced = [title, play]

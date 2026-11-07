@@ -6,14 +6,13 @@ import {
   defineSystem,
   SimFaultedError,
 } from '@mcthaydt/automata-sim'
-import { Context, Effect, Exit, Scope } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { AppLoop, makeAppLoop } from '#src/shared/runtime/loop/app-loop.manager.ts'
-import { makePresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
-import { makeTime } from '#src/shared/runtime/time/time.manager.ts'
+import { createAppLoop } from '#src/shared/runtime/loop/app-loop.manager.ts'
+import { createPresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
+import { createTime } from '#src/shared/runtime/time/time.manager.ts'
 import { manualFrames } from '#src/testing/runtime/manual-frames.ts'
-import { type NullRendererEntry, nullRenderer } from '#src/testing/runtime/null-renderer.ts'
+import { type NullRendererEntry, nullGameRenderer } from '#src/testing/runtime/null-renderer.ts'
 
 describe('AppLoop', () => {
   const Ping = defineCommand('ping', z.object({ value: z.number() }))
@@ -41,15 +40,10 @@ describe('AppLoop', () => {
     const frames = manualFrames(0)
     const renderLog: NullRendererEntry[] = []
 
-    await Effect.gen(function* () {
-      const scope = yield* Scope.make()
-      const bus = yield* makePresentationBus().pipe(Scope.extend(scope))
-      const time = makeTime(bus)
-      const renderer = yield* nullRenderer(renderLog)({
-        host: document.createElement('div'),
-        geometry: {} as any,
-        assets: { get: () => undefined },
-      }).pipe(Scope.extend(scope))
+    {
+      const bus = createPresentationBus()
+      const time = createTime(bus)
+      const renderer = nullGameRenderer(renderLog)
 
       const loggedErrors: unknown[] = []
       const busEvents: unknown[] = []
@@ -58,7 +52,7 @@ describe('AppLoop', () => {
       })
 
       const callOrder: string[] = []
-      const loop = yield* makeAppLoop({
+      const loop = createAppLoop({
         frames,
         renderer: {
           apply: (res) => {
@@ -72,7 +66,7 @@ describe('AppLoop', () => {
         bus,
         onFault: () => {},
         logError: (err) => loggedErrors.push(err),
-      }).pipe(Scope.extend(scope))
+      })
 
       // Run with commands function
       loop.run({
@@ -111,9 +105,9 @@ describe('AppLoop', () => {
       frames.advance(1000 / 60)
       expect(busEvents.length).toBe(0)
 
-      yield* Scope.close(scope, Exit.void)
+      loop.dispose()
       sim.dispose()
-    }).pipe(Effect.runPromise)
+    }
   })
 
   it('draws every display frame with alpha; while Time is paused, frames draw without stepping', async () => {
@@ -121,23 +115,18 @@ describe('AppLoop', () => {
     const frames = manualFrames(0)
     const renderLog: NullRendererEntry[] = []
 
-    await Effect.gen(function* () {
-      const scope = yield* Scope.make()
-      const bus = yield* makePresentationBus().pipe(Scope.extend(scope))
-      const time = makeTime(bus)
-      const renderer = yield* nullRenderer(renderLog)({
-        host: document.createElement('div'),
-        geometry: {} as any,
-        assets: { get: () => undefined },
-      }).pipe(Scope.extend(scope))
+    {
+      const bus = createPresentationBus()
+      const time = createTime(bus)
+      const renderer = nullGameRenderer(renderLog)
 
-      const loop = yield* makeAppLoop({
+      const loop = createAppLoop({
         frames,
         renderer,
         time,
         bus,
         onFault: () => {},
-      }).pipe(Scope.extend(scope))
+      })
 
       loop.run({
         sim,
@@ -158,9 +147,9 @@ describe('AppLoop', () => {
       expect(renderLog).toEqual([{ type: 'draw', alpha: 1 }])
       expect(sim.tick).toBe(0)
 
-      yield* Scope.close(scope, Exit.void)
+      loop.dispose()
       sim.dispose()
-    }).pipe(Effect.runPromise)
+    }
   })
 
   it('run replaces the sim, calls renderer.reset() and resets the accumulator; stop stops stepping and drawing; running reflects both', async () => {
@@ -169,23 +158,18 @@ describe('AppLoop', () => {
     const frames = manualFrames(0)
     const renderLog: NullRendererEntry[] = []
 
-    await Effect.gen(function* () {
-      const scope = yield* Scope.make()
-      const bus = yield* makePresentationBus().pipe(Scope.extend(scope))
-      const time = makeTime(bus)
-      const renderer = yield* nullRenderer(renderLog)({
-        host: document.createElement('div'),
-        geometry: {} as any,
-        assets: { get: () => undefined },
-      }).pipe(Scope.extend(scope))
+    {
+      const bus = createPresentationBus()
+      const time = createTime(bus)
+      const renderer = nullGameRenderer(renderLog)
 
-      const loop = yield* makeAppLoop({
+      const loop = createAppLoop({
         frames,
         renderer,
         time,
         bus,
         onFault: () => {},
-      }).pipe(Scope.extend(scope))
+      })
 
       expect(loop.running).toBe(false)
 
@@ -215,10 +199,10 @@ describe('AppLoop', () => {
       expect(renderLog).toEqual([])
       expect(sim2.tick).toBe(0)
 
-      yield* Scope.close(scope, Exit.void)
+      loop.dispose()
       sim1.dispose()
       sim2.dispose()
-    }).pipe(Effect.runPromise)
+    }
   })
 
   it('a step that throws stops the loop, calls onFault(cause) once and requests no more frames; the loop does not restart it', async () => {
@@ -238,23 +222,18 @@ describe('AppLoop', () => {
     const frames = manualFrames(0)
     const faults: unknown[] = []
 
-    await Effect.gen(function* () {
-      const scope = yield* Scope.make()
-      const bus = yield* makePresentationBus().pipe(Scope.extend(scope))
-      const time = makeTime(bus)
-      const renderer = yield* nullRenderer()({
-        host: document.createElement('div'),
-        geometry: {} as any,
-        assets: { get: () => undefined },
-      }).pipe(Scope.extend(scope))
+    {
+      const bus = createPresentationBus()
+      const time = createTime(bus)
+      const renderer = nullGameRenderer()
 
-      const loop = yield* makeAppLoop({
+      const loop = createAppLoop({
         frames,
         renderer,
         time,
         bus,
         onFault: (cause) => faults.push(cause),
-      }).pipe(Scope.extend(scope))
+      })
 
       loop.run({ sim, commands: () => [] })
       expect(loop.running).toBe(true)
@@ -276,39 +255,34 @@ describe('AppLoop', () => {
       loop.run({ sim, commands: () => [] })
       expect(loop.running).toBe(false)
 
-      yield* Scope.close(scope, Exit.void)
+      loop.dispose()
       sim.dispose()
-    }).pipe(Effect.runPromise)
+    }
   })
 
   it('closing the scope cancels the pending frame and a later run does not start the loop', async () => {
     const sim = await createSim({ seed: 1, plugins: [pingPlugin] })
     const frames = manualFrames(0)
 
-    await Effect.gen(function* () {
-      const scope = yield* Scope.make()
-      const bus = yield* makePresentationBus().pipe(Scope.extend(scope))
-      const time = makeTime(bus)
-      const renderer = yield* nullRenderer()({
-        host: document.createElement('div'),
-        geometry: {} as any,
-        assets: { get: () => undefined },
-      }).pipe(Scope.extend(scope))
+    {
+      const bus = createPresentationBus()
+      const time = createTime(bus)
+      const renderer = nullGameRenderer()
 
-      const loop = yield* makeAppLoop({
+      const loop = createAppLoop({
         frames,
         renderer,
         time,
         bus,
         onFault: () => {},
-      }).pipe(Scope.extend(scope))
+      })
 
       loop.run({ sim, commands: () => [] })
       expect(loop.running).toBe(true)
       expect(frames.pending).toBe(true)
 
       // Close scope
-      yield* Scope.close(scope, Exit.void)
+      loop.dispose()
 
       expect(loop.running).toBe(false)
       expect(frames.pending).toBe(false)
@@ -319,37 +293,6 @@ describe('AppLoop', () => {
       expect(frames.pending).toBe(false)
 
       sim.dispose()
-    }).pipe(Effect.runPromise)
-  })
-
-  it('the AppLoop tag provides the service', async () => {
-    const sim = await createSim({ seed: 1, plugins: [pingPlugin] })
-    const frames = manualFrames(0)
-
-    await Effect.gen(function* () {
-      const scope = yield* Scope.make()
-      const bus = yield* makePresentationBus().pipe(Scope.extend(scope))
-      const time = makeTime(bus)
-      const renderer = yield* nullRenderer()({
-        host: document.createElement('div'),
-        geometry: {} as any,
-        assets: { get: () => undefined },
-      }).pipe(Scope.extend(scope))
-
-      const loop = yield* makeAppLoop({
-        frames,
-        renderer,
-        time,
-        bus,
-        onFault: () => {},
-      }).pipe(Scope.extend(scope))
-
-      const context = Context.make(AppLoop, loop)
-      const resolved = Context.get(context, AppLoop)
-      expect(resolved).toBe(loop)
-
-      yield* Scope.close(scope, Exit.void)
-      sim.dispose()
-    }).pipe(Effect.runPromise)
+    }
   })
 })

@@ -1,6 +1,5 @@
 import type { ContentSchemaDef } from '@mcthaydt/automata-content'
 import type { PluginDef } from '@mcthaydt/automata-sim'
-import { Context, Effect, Layer } from 'effect'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
   defineExtension,
@@ -9,10 +8,7 @@ import {
 } from '#src/features/extension/define-extension.ts'
 import { ExtensionError } from '#src/features/extension/extension-error.ts'
 import { resolveExtensions } from '#src/features/extension/resolve-extensions.ts'
-import { Hosting } from '../../../src/shared/host/hosting.ts'
 import type { UiComponent } from '../../../src/shared/ui/slots/ui-slot.ts'
-import { HostingTest } from '../../../src/testing/host/page/ruken/hosting-test.ts'
-import { runScoped } from '../../../src/testing/host/page/run.ts'
 
 // Extensions are defined inline: test files are exempt from the `*.extension.ts` role rule.
 const ext = (name: string, requires: string[] = []): ExtensionDef => defineExtension({ name, requires })
@@ -181,53 +177,18 @@ describe('contributions', () => {
   })
 })
 
-describe('layers', () => {
-  interface Probe {
-    readonly label: string
-  }
-  const Probe = Context.GenericTag<Probe>('test/Probe')
-  interface Derived {
-    readonly label: string
-  }
-  const Derived = Context.GenericTag<Derived>('test/Derived')
-
-  it('builds an empty layer when there are no extensions', async () => {
-    const context = await runScoped(Layer.build(resolveExtensions([]).layer))
-
-    expect(Context.isContext(context)).toBe(true)
+describe('services', () => {
+  // Effect layers left with Effect (D2); nothing used them. A plain hook comes back when a game needs one.
+  it('has no layers to build', () => {
+    expect('layer' in resolveExtensions([])).toBe(false)
   })
+})
 
-  it('lets a later extension use a service an earlier one provides', async () => {
-    const a = defineExtension({ name: 'a', layers: Layer.succeed(Probe, { label: 'from-a' }) })
-    const b = defineExtension({
-      name: 'b',
-      requires: ['a'],
-      layers: Layer.effect(
-        Derived,
-        Effect.map(Probe, (probe) => ({ label: `b saw ${probe.label}` })),
-      ),
-    })
-    // The array order is reversed on purpose: resolution, not the caller, decides the order.
-    const resolved = resolveExtensions([b, a])
-
-    const context = await runScoped(Layer.build(resolved.layer))
-
-    expect(Context.get(context, Probe).label).toBe('from-a')
-    expect(Context.get(context, Derived).label).toBe('b saw from-a')
-  })
-
-  it('provides runtime services to extension layers', async () => {
-    const needsHosting = defineExtension({
-      name: 'needs-hosting',
-      layers: Layer.effect(
-        Probe,
-        Effect.map(Hosting, (hosting) => ({ label: `hosting ${typeof hosting.saves}` })),
-      ),
-    })
-    const resolved = resolveExtensions([needsHosting])
-
-    const context = await runScoped(Layer.build(resolved.layer.pipe(Layer.provide(HostingTest()))))
-
-    expect(Context.get(context, Probe).label).toBe('hosting object')
+describe('ExtensionError', () => {
+  it('is a plain Error that names the reason and the extensions', () => {
+    const error = thrownBy(() => resolveExtensions([ext('a'), ext('a')]))
+    expect(error).toBeInstanceOf(Error)
+    expect(error).toMatchObject({ _tag: 'ExtensionError', reason: 'duplicate', names: ['a'] })
+    expect((error as Error).message).toBe('duplicate: a')
   })
 })

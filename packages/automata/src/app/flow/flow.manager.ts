@@ -1,16 +1,5 @@
 import type { FlowGraph } from '@mcthaydt/automata-content'
-import {
-  Cause,
-  Context,
-  Deferred,
-  Effect,
-  ExecutionStrategy,
-  Exit,
-  FiberId,
-  Option,
-  Queue,
-  Scope,
-} from 'effect'
+import { type Disposables, disposables } from '../../shared/lib/disposables.ts'
 import type { Assets } from '../../shared/runtime/assets.manager.js'
 import type { PageLayers } from '../../shared/runtime/page-layers.svelte.js'
 import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
@@ -23,20 +12,19 @@ import type { Veil } from './veil.js'
 
 /**
  * The screen flow service: the current screen, `dispatch` to follow an event's transition from it, `openMenu`
- * for the current screen's menu, and `settled` once no transition is pending.
+ * for the current screen's menu, and `settled()` once no transition is pending.
  */
 export interface Flow {
   readonly current: string | undefined
   dispatch(event: string): boolean
   openMenu(): boolean
-  readonly settled: Effect.Effect<void>
+  /** Resolves once no transition is queued or running (at once when the flow is idle). */
+  settled(): Promise<void>
 }
 
-export const Flow: Context.Tag<Flow, Flow> = Context.GenericTag<Flow>('@mcthaydt/automata-runtime/Flow')
-
-export interface MakeFlowOptions<R = never> {
+export interface FlowOptions {
   readonly graph: FlowGraph
-  readonly screens: readonly ScreenDef<R>[]
+  readonly screens: readonly ScreenDef[]
   readonly layers: PageLayers
   readonly assets: Assets
   readonly time: Time
@@ -44,21 +32,28 @@ export interface MakeFlowOptions<R = never> {
   readonly geometry: GeometryOwner
   readonly veil: Veil
   readonly copy?: Partial<BootFailureCopy> & { readonly loading?: string; readonly slow?: string }
-  readonly services: () => Context.Context<RuntimeServices | R>
+  /** Read when a screen enters: boot builds the services after the flow, which is one of them. */
+  readonly services: () => RuntimeServices
   readonly logUnmatched?: (screen: string, event: string) => void
   /**
-   * What every screen gets as `ScreenContext.runtime`. Boot forks it before the save, so it closes after the save's
-   * last flush; absent, the flow forks one before its own finalizer, so it closes after the current screen.
+   * What every screen gets as `ScreenContext.runtime`. Boot makes it, and disposes it after the save's last flush;
+   * absent, the flow makes one and disposes it after the current screen.
    */
-  readonly runtime?: Scope.Scope
+  readonly runtime?: Disposables
   /** Hears why a screen could not load or enter, after the error panel is up (`RuntimeSeams.onFailure`). */
   readonly onFailure?: (cause: unknown) => void
 }
 
 export interface FlowHandle {
   readonly flow: Flow
-  readonly start: () => Effect.Effect<void>
-  readonly reportFailure: (failure: FlowFailure) => void
+  /** Enters the graph's entry screen and resolves once it has entered (or failed to). */
+  start(): Promise<void>
+  reportFailure(failure: FlowFailure): void
+  /**
+   * Stops the flow: nothing queued runs, the current screen is left (its `screen` disposed) and the veil revealed.
+   * A flow that made its own `runtime` disposes it last.
+   */
+  dispose(): Promise<void>
 }
 
 interface QueuedTransition {
@@ -89,335 +84,285 @@ function findByName(root: HTMLElement, name: FocusName): HTMLElement | null {
 }
 
 /**
- * Creates the Flow service and transition queue manager.
- * Follows the 9-step transition order, coordinates single-flight screens,
- * veil fading, loader overlay over missing assets, and menu pauses.
+ * Creates the Flow service and its transition queue.
+ * Follows the 9-step transition order, runs one transition at a time, fades through the veil, shows the loader
+ * over a screen whose files are missing, and pauses the sim for menu screens.
  */
-export function makeFlow<R = never>(
-  options: MakeFlowOptions<R>,
-): Effect.Effect<FlowHandle, never, Scope.Scope> {
-  return Effect.gen(function* () {
-    const runtimeScope = yield* Scope.Scope
-    // Forked before the finalizer below is added, so it closes after that finalizer has closed the current screen.
-    const keptAcrossScreens =
-      options.runtime ?? (yield* Scope.fork(runtimeScope, ExecutionStrategy.sequential))
-    const queue: QueuedTransition[] = []
-    const trigger = yield* Queue.unbounded<void>()
-    const loggedUnmatched = new Set<string>()
+export function createFlow(options: FlowOptions): FlowHandle {
+  const ownRuntime = options.runtime === undefined ? disposables() : undefined
+  const keptAcrossScreens = options.runtime ?? (ownRuntime as Disposables)
+  const queue: QueuedTransition[] = []
+  const loggedUnmatched = new Set<string>()
 
-    let busy = false
-    let closed = false
-    let isCovered = false
-    let currentScreenId: string | undefined
-    let currentScreenDef: ScreenDef<R> | undefined
-    let currentScreenScope: Scope.CloseableScope | null = null
+  let running = false
+  let closed = false
+  let isCovered = false
+  let currentScreenId: string | undefined
+  let currentScreenDef: ScreenDef | undefined
+  let currentScreen: Disposables | null = null
 
-    let idleDeferred: Deferred.Deferred<void, never> = yield* Deferred.make<void>()
-    yield* Deferred.succeed(idleDeferred, undefined)
+  // Who waits for the queue to run dry: `settled()` hands each caller this promise while a transition is pending.
+  let idle: Promise<void> = Promise.resolve()
+  let markIdle: () => void = () => undefined
 
-    const enqueueTransition = (to: string, style: string, from?: string, force?: boolean): void => {
-      if (closed) return
-      if (!busy && queue.length === 0) {
-        idleDeferred = Deferred.unsafeMake<void>(FiberId.none)
+  /** Per screen, the name of the control that had focus when the player last left it (F-b). */
+  const lastFocus = new Map<string, FocusName>()
+
+  const enqueueTransition = (to: string, style: string, from?: string, force?: boolean): void => {
+    if (closed) return
+    queue.push({ from, to, style, force })
+    if (running) return
+    running = true
+    idle = new Promise((resolve) => {
+      markIdle = resolve
+    })
+    void drain()
+  }
+
+  /** Runs queued transitions one at a time until the queue is empty or the flow is disposed. */
+  async function drain(): Promise<void> {
+    // Started on the next microtask, so a dispatch that queues two transitions in a row sees them both queued.
+    await Promise.resolve()
+    try {
+      while (queue.length > 0 && !closed) {
+        const next = queue.shift()
+        if (next !== undefined) await runTransition(next)
       }
-      queue.push({ from, to, style, force })
-      Queue.unsafeOffer(trigger, undefined)
+    } finally {
+      running = false
+      markIdle()
+    }
+  }
+
+  const reveal = async (): Promise<void> => {
+    await options.veil.reveal()
+    isCovered = false
+  }
+
+  /** Leaves the current screen: its undo functions run, last added first. */
+  const leaveScreen = (): void => {
+    const leaving = currentScreen
+    currentScreen = null
+    currentScreenDef = undefined
+    leaving?.dispose()
+  }
+
+  const showStartFailure = (screen: string, style: string, from: string | undefined): void => {
+    const dismiss = options.layers.showError({
+      code: 'start',
+      message: options.copy?.start ?? BOOT_FAILURE_COPY_EN.start,
+      actions: [
+        {
+          id: 'retry',
+          label: options.copy?.retry ?? BOOT_FAILURE_COPY_EN.retry,
+          kind: 'primary',
+          onSelect: () => {
+            dismiss()
+            enqueueTransition(screen, style, from, true)
+          },
+        },
+      ],
+    })
+  }
+
+  async function runTransition(next: QueuedTransition): Promise<void> {
+    if (closed) return
+    if (next.to === currentScreenId && !next.force) {
+      if (isCovered && queue.length === 0) await reveal()
+      return
     }
 
-    /** Per screen, the name of the control that had focus when the player last left it (F-b). */
-    const lastFocus = new Map<string, FocusName>()
+    const targetScreen = options.screens.find((s) => s.id === next.to)
+    if (!targetScreen) return
 
-    const runTransition = (next: QueuedTransition): Effect.Effect<void> =>
-      Effect.gen(function* () {
-        if (closed) return
-        if (next.to === currentScreenId && !next.force) {
-          if (isCovered && queue.length === 0) {
-            yield* options.veil.reveal()
-            isCovered = false
-          }
-          return
-        }
-
-        const targetScreen = options.screens.find((s) => s.id === next.to)
-        if (!targetScreen) {
-          return
-        }
-
-        // (1) Load target's files and fonts with LoaderOverlay over the current screen when anything is missing (Q8)
-        if (!options.assets.isLoaded(targetScreen.id)) {
-          const loader = options.layers.showLoader({
-            label: options.copy?.loading ?? 'Loading…',
-            slowLabel: options.copy?.slow ?? 'Taking a while…',
-          })
-          const loadResult = yield* Effect.exit(
-            options.assets.load(targetScreen.id, (fraction) => loader.setProgress(fraction)),
-          )
-          loader.close()
-          if (Exit.isFailure(loadResult)) {
-            const errorOpt = Cause.failureOption(loadResult.cause)
-            const isStalled = Option.isSome(errorOpt) && errorOpt.value._tag === 'LoadStalled'
-            const code = isStalled ? 'download-stalled' : 'download'
-            const message = isStalled
-              ? (options.copy?.['download-stalled'] ?? BOOT_FAILURE_COPY_EN['download-stalled'])
-              : (options.copy?.download ?? BOOT_FAILURE_COPY_EN.download)
-            const dismiss = options.layers.showError({
-              code,
-              message,
-              actions: [
-                {
-                  id: 'retry',
-                  label: options.copy?.retry ?? BOOT_FAILURE_COPY_EN.retry,
-                  kind: 'primary',
-                  onSelect: () => {
-                    dismiss()
-                    enqueueTransition(targetScreen.id, next.style, next.from, true)
-                  },
-                },
-              ],
-            })
-            queue.length = 0
-            options.onFailure?.(Option.isSome(errorOpt) ? errorOpt.value : Cause.squash(loadResult.cause))
-            return
-          }
-        }
-
-        // (2) Cover, for `fade`
-        if (next.style === 'fade' && !isCovered) {
-          const coveredOk = yield* options.veil.cover()
-          if (coveredOk) {
-            isCovered = true
-          } else {
-            // A veil that fails to cover makes the edge a cut
-            isCovered = false
-          }
-        }
-
-        // (3) Remember what had focus on the screen being left, then close the current screen's
-        // scope (its finalizers run in reverse order, replacing DisposeBag)
-        if (currentScreenId !== undefined) {
-          const name = focusName(options.layers.screens)
-          if (name === undefined) lastFocus.delete(currentScreenId)
-          else lastFocus.set(currentScreenId, name)
-        }
-        if (currentScreenScope) {
-          yield* Scope.close(currentScreenScope, Exit.void)
-          currentScreenScope = null
-          currentScreenDef = undefined
-        }
-
-        // (4) Set `current` to the target before awaiting its enter
-        const previousScreen = currentScreenId
-        currentScreenId = targetScreen.id
-        currentScreenDef = targetScreen
-
-        // (5) Run `enter` in a new child scope of the runtime scope, inside the screen layer
-        const childScope = yield* Scope.fork(runtimeScope, ExecutionStrategy.sequential)
-        currentScreenScope = childScope
-
-        const doc =
-          options.layers.screens.ownerDocument ?? (typeof document !== 'undefined' ? document : undefined)
-        const section = doc ? doc.createElement('section') : ({} as HTMLElement)
-        if (section.setAttribute) {
-          section.setAttribute('data-screen', targetScreen.id)
-          options.layers.screens.appendChild(section)
-        }
-
-        // First finalizer removes section, so in sequential LIFO execution it runs last
-        yield* Scope.addFinalizer(
-          childScope,
-          Effect.sync(() => {
-            try {
-              if (typeof section.remove === 'function') {
-                section.remove()
-              } else if (section.parentElement) {
-                section.parentElement.removeChild(section)
-              }
-            } catch {
-              // ignore DOM cleanup error
-            }
-          }),
-        )
-
-        const context: ScreenContext = {
-          layer: section,
-          from: previousScreen,
-          runtime: keptAcrossScreens,
-        }
-
-        const enterResult = yield* Effect.exit(
-          targetScreen
-            .enter(context)
-            .pipe(Effect.provideService(Scope.Scope, childScope), Effect.provide(options.services())),
-        )
-
-        if (Exit.isFailure(enterResult)) {
-          yield* Scope.close(childScope, Exit.void)
-          currentScreenScope = null
-          currentScreenDef = undefined
-          currentScreenId = undefined
-          queue.length = 0
-          if (isCovered) {
-            yield* options.veil.reveal()
-            isCovered = false
-          }
-          const dismiss = options.layers.showError({
-            code: 'start',
-            message: options.copy?.start ?? BOOT_FAILURE_COPY_EN.start,
-            actions: [
-              {
-                id: 'retry',
-                label: options.copy?.retry ?? BOOT_FAILURE_COPY_EN.retry,
-                kind: 'primary',
-                onSelect: () => {
-                  dismiss()
-                  enqueueTransition(targetScreen.id, next.style, previousScreen, true)
-                },
-              },
-            ],
-          })
-          options.onFailure?.(Cause.squash(enterResult.cause))
-          return
-        }
-
-        // (6) Set or clear Time's `menu` reason from `pausesSim`
-        if (targetScreen.pausesSim) {
-          options.time.pause('menu')
-        } else {
-          options.time.resume('menu')
-        }
-
-        // (7) geometry.remeasure(), then focus: on a return, the control the player left from, matched
-        // by name because the screen remounted; else [data-autofocus], the first [data-kind="primary"] control, or the
-        // first tabbable (ui tabbables)
-        options.geometry.remeasure()
-        if (typeof section.querySelector === 'function') {
-          const remembered = lastFocus.get(targetScreen.id)
-          const target =
-            (remembered === undefined ? null : findByName(section, remembered)) ??
-            section.querySelector<HTMLElement>('[data-autofocus]') ??
-            section.querySelector<HTMLElement>('[data-kind="primary"]') ??
-            tabbables(section)[0] ??
-            null
-          if (target !== null && typeof target.focus === 'function') target.focus()
-        }
-
-        // (8) Reveal
-        if (isCovered && queue.length === 0) {
-          yield* options.veil.reveal()
-          isCovered = false
-        }
-
-        // (9) Publish `screen.entered`
-        options.bus.publish('screen.entered', {
-          screen: targetScreen.id,
-          from: previousScreen,
-        })
+    // (1) Load target's files and fonts with LoaderOverlay over the current screen when anything is missing (Q8)
+    if (!options.assets.isLoaded(targetScreen.id)) {
+      const loader = options.layers.showLoader({
+        label: options.copy?.loading ?? 'Loading…',
+        slowLabel: options.copy?.slow ?? 'Taking a while…',
       })
-
-    // Fork queue runner fiber in the runtime scope
-    yield* Effect.forkScoped(
-      Effect.forever(
-        Effect.gen(function* () {
-          yield* Queue.take(trigger)
-          while (queue.length > 0 && !closed) {
-            busy = true
-            const next = queue.shift()
-            if (!next) break
-            yield* runTransition(next)
-          }
-          busy = false
-          yield* Deferred.succeed(idleDeferred, undefined)
-        }),
-      ),
-    )
-
-    yield* Effect.addFinalizer(() =>
-      Effect.gen(function* () {
-        closed = true
-        queue.length = 0
-        if (currentScreenScope) {
-          yield* Scope.close(currentScreenScope, Exit.void)
-          currentScreenScope = null
-        }
-        if (isCovered) {
-          yield* options.veil.reveal()
-          isCovered = false
-        }
-        yield* Deferred.succeed(idleDeferred, undefined)
-      }),
-    )
-
-    const flow: Flow = {
-      get current(): string | undefined {
-        return currentScreenId
-      },
-      dispatch(event: string): boolean {
-        if (closed) return false
-        const effectiveScreen = queue.length > 0 ? queue[queue.length - 1]?.to : currentScreenId
-        if (!effectiveScreen) return false
-
-        const transition = options.graph.transitions.find(
-          (t) => t.from === effectiveScreen && t.event === event,
-        )
-
-        if (!transition) {
-          const pair = `${effectiveScreen}:${event}`
-          if (!loggedUnmatched.has(pair)) {
-            loggedUnmatched.add(pair)
-            if (options.logUnmatched) {
-              options.logUnmatched(effectiveScreen, event)
-            } else if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
-              console.warn(`[flow] Unmatched event "${event}" on screen "${effectiveScreen}"`)
-            }
-          }
-          return false
-        }
-
-        if (transition.to === effectiveScreen) {
-          return true
-        }
-
-        enqueueTransition(transition.to, transition.transition, effectiveScreen)
-        return true
-      },
-      openMenu(): boolean {
-        if (closed || busy || queue.length > 0) return false
-        if (!currentScreenDef?.openMenu) return false
-        return currentScreenDef.openMenu()
-      },
-      get settled(): Effect.Effect<void> {
-        return Deferred.await(idleDeferred)
-      },
-    }
-
-    return {
-      flow,
-      start: (): Effect.Effect<void> =>
-        Effect.gen(function* () {
-          if (closed) return
-          enqueueTransition(options.graph.entry, 'cut', undefined, true)
-          yield* flow.settled
-        }),
-      reportFailure: (failure: FlowFailure): void => {
-        if (closed) return
-        if (failure._tag === 'ScreenFailed') {
-          const dismiss = options.layers.showError({
-            code: 'start',
-            message: options.copy?.start ?? BOOT_FAILURE_COPY_EN.start,
-            actions: [
-              {
-                id: 'retry',
-                label: options.copy?.retry ?? BOOT_FAILURE_COPY_EN.retry,
-                kind: 'primary',
-                onSelect: () => {
-                  dismiss()
-                  enqueueTransition(failure.screen, 'cut', failure.screen, true)
-                },
+      const loadResult = await options.assets
+        .load(targetScreen.id, (fraction) => loader.setProgress(fraction))
+        .finally(() => loader.close())
+      if (closed) return
+      if (!loadResult.ok) {
+        const isStalled = loadResult.reason._tag === 'LoadStalled'
+        const code = isStalled ? 'download-stalled' : 'download'
+        const message = isStalled
+          ? (options.copy?.['download-stalled'] ?? BOOT_FAILURE_COPY_EN['download-stalled'])
+          : (options.copy?.download ?? BOOT_FAILURE_COPY_EN.download)
+        const dismiss = options.layers.showError({
+          code,
+          message,
+          actions: [
+            {
+              id: 'retry',
+              label: options.copy?.retry ?? BOOT_FAILURE_COPY_EN.retry,
+              kind: 'primary',
+              onSelect: () => {
+                dismiss()
+                enqueueTransition(targetScreen.id, next.style, next.from, true)
               },
-            ],
-          })
-        }
-      },
+            },
+          ],
+        })
+        queue.length = 0
+        options.onFailure?.(loadResult.reason)
+        return
+      }
     }
-  })
+
+    // (2) Cover, for `fade`. A veil that fails to cover makes the edge a cut.
+    if (next.style === 'fade' && !isCovered) isCovered = await options.veil.cover()
+    if (closed) return
+
+    // (3) Remember what had focus on the screen being left, then leave it
+    if (currentScreenId !== undefined) {
+      const name = focusName(options.layers.screens)
+      if (name === undefined) lastFocus.delete(currentScreenId)
+      else lastFocus.set(currentScreenId, name)
+    }
+    leaveScreen()
+
+    // (4) Set `current` to the target before awaiting its enter
+    const previousScreen = currentScreenId
+    currentScreenId = targetScreen.id
+    currentScreenDef = targetScreen
+
+    // (5) Run `enter` with the screen's own undo list, inside the screen layer
+    const screen = disposables()
+    currentScreen = screen
+
+    const doc =
+      options.layers.screens.ownerDocument ?? (typeof document !== 'undefined' ? document : undefined)
+    const section = doc ? doc.createElement('section') : ({} as HTMLElement)
+    if (section.setAttribute) {
+      section.setAttribute('data-screen', targetScreen.id)
+      options.layers.screens.appendChild(section)
+    }
+    // Added first, so it runs last: the screen's own undo functions still find their elements in the page.
+    screen.add(() => {
+      try {
+        if (typeof section.remove === 'function') section.remove()
+        else section.parentElement?.removeChild(section)
+      } catch {
+        // A page that refuses the removal has nothing left to undo.
+      }
+    })
+
+    const context: ScreenContext = {
+      layer: section,
+      from: previousScreen,
+      screen,
+      runtime: keptAcrossScreens,
+      services: options.services(),
+    }
+
+    let failure: { readonly cause: unknown } | undefined
+    try {
+      await targetScreen.enter(context)
+    } catch (cause) {
+      failure = { cause }
+    }
+    // Disposed while entering: `dispose()` has already left this screen.
+    if (closed) return
+
+    if (failure !== undefined) {
+      screen.dispose()
+      currentScreen = null
+      currentScreenDef = undefined
+      currentScreenId = undefined
+      queue.length = 0
+      if (isCovered) await reveal()
+      showStartFailure(targetScreen.id, next.style, previousScreen)
+      options.onFailure?.(failure.cause)
+      return
+    }
+
+    // (6) Set or clear Time's `menu` reason from `pausesSim`
+    if (targetScreen.pausesSim) options.time.pause('menu')
+    else options.time.resume('menu')
+
+    // (7) geometry.remeasure(), then focus: on a return, the control the player left from, matched
+    // by name because the screen remounted; else [data-autofocus], the first [data-kind="primary"] control, or the
+    // first tabbable (ui tabbables)
+    options.geometry.remeasure()
+    if (typeof section.querySelector === 'function') {
+      const remembered = lastFocus.get(targetScreen.id)
+      const target =
+        (remembered === undefined ? null : findByName(section, remembered)) ??
+        section.querySelector<HTMLElement>('[data-autofocus]') ??
+        section.querySelector<HTMLElement>('[data-kind="primary"]') ??
+        tabbables(section)[0] ??
+        null
+      if (target !== null && typeof target.focus === 'function') target.focus()
+    }
+
+    // (8) Reveal
+    if (isCovered && queue.length === 0) await reveal()
+
+    // (9) Publish `screen.entered`
+    options.bus.publish('screen.entered', { screen: targetScreen.id, from: previousScreen })
+  }
+
+  const flow: Flow = {
+    get current(): string | undefined {
+      return currentScreenId
+    },
+    dispatch(event: string): boolean {
+      if (closed) return false
+      const effectiveScreen = queue.length > 0 ? queue[queue.length - 1]?.to : currentScreenId
+      if (!effectiveScreen) return false
+
+      const transition = options.graph.transitions.find(
+        (t) => t.from === effectiveScreen && t.event === event,
+      )
+
+      if (!transition) {
+        const pair = `${effectiveScreen}:${event}`
+        if (!loggedUnmatched.has(pair)) {
+          loggedUnmatched.add(pair)
+          if (options.logUnmatched) {
+            options.logUnmatched(effectiveScreen, event)
+          } else if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
+            console.warn(`[flow] Unmatched event "${event}" on screen "${effectiveScreen}"`)
+          }
+        }
+        return false
+      }
+
+      if (transition.to === effectiveScreen) return true
+
+      enqueueTransition(transition.to, transition.transition, effectiveScreen)
+      return true
+    },
+    openMenu(): boolean {
+      if (closed || running || queue.length > 0) return false
+      if (!currentScreenDef?.openMenu) return false
+      return currentScreenDef.openMenu()
+    },
+    settled: () => idle,
+  }
+
+  return {
+    flow,
+    async start() {
+      if (closed) return
+      enqueueTransition(options.graph.entry, 'cut', undefined, true)
+      await idle
+    },
+    reportFailure(failure) {
+      if (closed) return
+      if (failure._tag === 'ScreenFailed') showStartFailure(failure.screen, 'cut', failure.screen)
+    },
+    async dispose() {
+      if (closed) return
+      closed = true
+      queue.length = 0
+      leaveScreen()
+      if (isCovered) await reveal()
+      ownRuntime?.dispose()
+      markIdle()
+    },
+  }
 }

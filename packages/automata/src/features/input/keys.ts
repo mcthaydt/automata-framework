@@ -4,13 +4,12 @@
 // the last one's, so a replay stays a pure function of the command stream.
 
 import type { Command, CommandDef } from '@mcthaydt/automata-sim'
-import { Effect, Exit, Scope } from 'effect'
 import type { z } from 'zod'
 import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.ts'
 import { CAMERA_SETTINGS_DEFAULT } from './analog/camera-settings.schema.ts'
 import { type AnalogOptions, type AnalogReading, analogReading } from './analog-reading.ts'
 import type { GestureSink } from './gestures/swipe-tracker.ts'
-import { makeInput } from './input.manager.ts'
+import { createInput } from './input.manager.ts'
 import {
   type GestureName,
   type InputProfile,
@@ -286,10 +285,9 @@ export function keys<Z extends z.ZodType>(
     touchStick: analog?.touchStick === true,
     toCommand: toCommandWith,
     attach(target) {
-      // The Input service over `target`, in a scope of its own that `dispose` closes. Nothing here listens to
+      // The Input service over `target`, which `dispose` takes down. Nothing here listens to
       // its facts, so it publishes to a bus no one reads.
-      const scope = Effect.runSync(Scope.make())
-      const input = Effect.runSync(makeInput({ target, profile, bus: SILENT_BUS }).pipe(Scope.extend(scope)))
+      const input = createInput({ target, profile, bus: SILENT_BUS })
       return {
         commands(tick) {
           input.poll()
@@ -298,7 +296,7 @@ export function keys<Z extends z.ZodType>(
         hold: (buttonId) => input.hold(buttonId),
         release: (buttonId) => input.release(buttonId),
         gesture: input.gesture,
-        dispose: () => Effect.runSync(Scope.close(scope, Exit.void)),
+        dispose: () => input.dispose(),
       }
     },
   }
