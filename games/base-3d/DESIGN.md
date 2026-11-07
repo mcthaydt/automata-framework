@@ -10,9 +10,9 @@
 ## 1. What it is
 
 - **Flow:** splash → menu (New game, Continue, Settings) → play → pause (Resume, Settings, Quit) → end (the goal ember).
-- **Room:** `src/content/levels/room.af-sector.json`, an `af-sector/1` file: three platforms and two 2 m channels that
+- **Room:** `content/levels/room.af-sector.json`, an `af-sector/1` file: three platforms and two 2 m channels that
   walking cannot cross and the roll's 3.2 m lunge does, five embers and the goal ember. The converter
-  (`src/content/levels/sector-area.ts`) reads it as the sim's area; the camera views are in `src/content/room.ts`
+  (`src/features/room/sector-area.ts`) reads it as the sim's area; the camera views are in `src/features/room/room.ts`
   (editor gap EG-3).
 - **Verb:** the roll (24 ticks, 3.2 m, in the way Wick faces). Walking into a channel puts him back on the last safe spot,
   with his embers kept (`hero.fell`).

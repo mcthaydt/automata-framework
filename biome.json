@@ -11,7 +11,6 @@
       "!**/__goldens__",
       "!tooling/api-index/fixtures",
       "!packages/editor-3d/src/testing/fixtures",
-      "!games/base-3d/src/content/generated",
       "!**/*.af2d.json",
       "!games/emberwick/content/generated",
       "!examples/2d/content/hot-reload/content/generated",

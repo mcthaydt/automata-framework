@@ -16,7 +16,7 @@ export default defineConfig(
         name: 'spike-3d-look',
         enforce: 'pre',
         transform(code: string, id: string) {
-          if (!id.endsWith('games/base-3d/src/main.ts')) return null
+          if (!id.endsWith('games/base-3d/main.ts')) return null
           let out = `import { spikeLook } from '/@fs${SPIKE}'\n${code}`
           // A low-resolution field: the short side is 180 (spec 6), the long side follows 844:390.
           if (MODE !== 'full')

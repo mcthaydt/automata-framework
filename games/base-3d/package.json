@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "imports": {
+    "#src/*": "./src/*"
+  },
   "scripts": {
     "dev": "vite --configLoader runner",
     "build": "vite build --configLoader runner",
@@ -10,9 +13,9 @@
     "check": "pnpm typecheck && pnpm test:unit && automata-check-boundaries --game src",
     "prepare-ruken": "automata ship prepare --target ruken",
     "test": "vitest run --configLoader runner",
-    "test:unit": "vitest run --configLoader runner --project node --project dom",
-    "test:browser": "vitest run --configLoader runner --project browsers --project layout",
-    "test:evidence": "vitest run --configLoader runner --project node --project browsers src/game.test.ts src/enemies.test.ts src/boss.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
+    "test:unit": "vitest run --configLoader runner --project unit",
+    "test:browser": "vitest run --configLoader runner --project layout --project sim",
+    "test:evidence": "vitest run --configLoader runner --project unit --project sim tests/browser/sim/game.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
     "typecheck": "tsc -p . && tsc -p tsconfig.node.json",
     "e2e:game": "vite build --configLoader runner && vite preview --configLoader runner --base $AF_E2E_GAME_PATH --strictPort --host localhost --port $AF_E2E_PREVIEW_PORT",
     "test:e2e": "playwright test"
@@ -28,10 +31,12 @@
   },
   "devDependencies": {
     "@automata/content": "workspace:*",
+    "@automata/editor": "workspace:*",
     "@automata/evidence": "workspace:*",
     "@automata/examples-runner": "workspace:*",
     "@automata/playwright-preset": "workspace:*",
     "@automata/tools": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
     "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",

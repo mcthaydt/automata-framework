@@ -33,8 +33,8 @@ The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history
 - Inside a package, `src/` is `app/`, `features/<x>/`, `shared/`, `entries/` and `testing/`. A feature imports
   only itself and `shared/`; `app/` wires features together; `entries/` only re-exports. `pnpm boundaries` enforces it.
 - A game's `src/` has the same shape. Sim files are found by role suffix (`.component.ts`, `.system.ts`,
-  `.command.ts`, `.event.ts`, `.resource.ts`, `.plugin.ts`) and by what they import. `games/base-3d` keeps its
-  role files until the 3D phase.
+  `.command.ts`, `.event.ts`, `.resource.ts`, `.plugin.ts`) and by what they import. `games/emberwick` and
+  `games/base-3d` both have it.
 - Tests live in `tests/` beside `src/`: `unit/<feature>/`, `browser/`, `e2e/`, `fixtures/`, and where a package needs
   them `bench/` (timings), `slow/` (needs a real browser or the network, run by hand) and `install/` (installs a packed
   package outside the workspace). One suffix, `.test.ts`. A test imports the code it tests as `#src/…`, never by a

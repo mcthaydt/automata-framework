@@ -88,7 +88,7 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `src/features/lighting/library/times.json` | `packages/3d/src/shared/time-of-day/library/times.json` | rewritten: merged with the environment source's six times of day into one entry each (exposure, lift, ambient and tint are `figure` and `scene.grade`) |
 | `src/features/actors/actions.ts` | `packages/3d/src/features/figures/clips/figure-action.ts` | rewritten: the envelope (wind-up, action, recovery, hold) compiles to a clip the one player plays; the pose-spec keys and the repeat range wait for the other actions |
 | `src/features/actors/pose-spec.ts` | | left out: the pose-spec's arms, feet and face-turn are for the nineteen actions beyond reach, look and flinch, which are not ported yet |
-| `src/features/actors/library/actions.json` | `games/base-3d/src/content/figure-actions/look.toml` | rewritten: `look` only; reach and flinch come from the older extraction's motion, as `figure-action` files; the other eighteen are not ported yet |
+| `src/features/actors/library/actions.json` | `games/base-3d/content/figure-actions/look.toml` | rewritten: `look` only; reach and flinch come from the older extraction's motion, as `figure-action` files; the other eighteen are not ported yet |
 | `.gitignore` | | left out: the builder's own readme, rules or editor settings; AF's are its own |
 | `.vscode/settings.json` | | left out: the builder's own readme, rules or editor settings; AF's are its own |
 | `CLAUDE.md` | | left out: the builder's own readme, rules or editor settings; AF's are its own |

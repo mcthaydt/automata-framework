@@ -8,7 +8,13 @@
     "allowJs": true,
     "checkJs": false
   },
-  "include": ["src/**/*.ts"],
+  "include": [
+    "main.ts",
+    "src/**/*.ts",
+    "tests/unit/**/*.ts",
+    "tests/browser/**/*.ts",
+    "content/generated/*.d.ts"
+  ],
   // It reads Node-only files (ship.config.ts, package.json); tsconfig.node.json checks it.
-  "exclude": ["src/ship-config.test.ts"]
+  "exclude": ["tests/unit/ship-config.test.ts"]
 }
