@@ -25,6 +25,37 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
+## The refactor's record (task 5.5, draft: 3.8 and 3.9 are not in yet)
+
+Lines of TypeScript from `wc -l`, `src` without test files, and test files alone, in `mcthaydt/automata-plus` at `1766c62` (before) and in `extensions/` on this branch (after). `server` is `net-server` now.
+
+| Extension | `src` before | `src` after | Test lines before | Test lines after |
+| --- | ---: | ---: | ---: | ---: |
+| `audio-synth` | 1405 | 1524 | 940 | 956 |
+| `cutscenes` | 1038 | 1337 | 730 | 953 |
+| `debug` | 459 | 527 | 761 | 761 |
+| `feel` | 878 | 958 | 795 | 802 |
+| `narrative` | 3919 | 3927 | 2298 | 2305 |
+| `nav` | 631 | 639 | 348 | 340 |
+| `net` | 4224 | 4544 | 4135 | 4227 |
+| `net-ui` | 221 | 257 | 321 | 329 |
+| `physics` | 1595 | 1597 | 1306 | 1307 |
+| `puzzle` | 2419 | 2607 | 906 | 910 |
+| `sectors` | 1007 | 1061 | 820 | 981 |
+| `net-server` | 5387 | 5653 | 5730 | 5722 |
+| `systems` | 3443 | 3447 | 1359 | 1397 |
+| all thirteen | 26626 | 28078 | 20449 | 20990 |
+
+Read it plainly: the thirteen did **not** get smaller, they got more structured. `src` grew by 5.5% (26,626 to 28,078) and tests by 2.6%, because every package gained its `entries/`, `app/` and feature folders, the packages that lost Effect (`feel`, `net`) gained a small watchable and a stopper in its place, and the packages that moved onto core's level geometry (`sectors`, `cutscenes`) gained the code that calls it. Where the refactor removed duplicated work, it shows only inside the figures: `sectors` 1,007 to 1,061 *after* dropping its own copy of the level geometry (`resolveLevel` now comes from core). Two new extensions came out of core's scope trim and have no "before" in Plus: `character-kit` (2,060 lines of `src` against the 2,317 that left core) and `world-kit` (3,503; its generators 1,379 against 1,488). The kits' own rows and the three browser-checked packages will be added when 3.8 and 3.9 land.
+
+Findings left open, each with its reason:
+
+- WebKit and Firefox parity for every browser suite is pending on the Owner's Mac; sessions run Chromium only.
+- `pnpm api-index --write` needs each extension's build, which only `release-checks` makes; it was not run for the extensions (the three published packages' index is unchanged, and `pnpm api-report --update` was run).
+- `pnpm check` through turbo stops at `pipelines`' audio test when the Playwright path is stripped from the environment; those tests were run by hand with `PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`.
+- Kit goldens (`character-kit/goldens/dress.json`) are the recording taken before the move; a fresh recording on another machine differs by about 1e-13, so they compare at 1e-9, as core's do.
+- The world-kit's apartment and block make different levels than the old generators for the same seed (AF's seeded stream replaces the old one); each is deterministic. No test pins the old output.
+
 ## Where to resume (2026-11-07, stage 4 in progress)
 
 Branch `claude/project-thread-d62n7h` (PR #458, on #457). Tasks 1.1 to 1.4, 2.1 to 2.8, 3.1 to 3.4, 3.6, 3.7, 4.1 and 5.1 to 5.4 are done; the plan's execution log
