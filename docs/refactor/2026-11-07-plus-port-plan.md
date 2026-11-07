@@ -558,3 +558,11 @@ reads only this plan and the spec. One fix belongs to the 3D build (its task 7.1
 ## Execution log
 
 (The build writes one entry per task: counts, rulings, deviations with evidence.)
+
+| Task | Result |
+| --- | --- |
+| 1.1 | Plus's packages imported as `extensions/<name>` with history (subtree), renamed `@automata/<name>`, manifests normalised. Unit counts: feel 72, net 376, net-server 437, puzzle 43, physics 71, audio-synth 81, sectors 34, net-ui 28, nav 21, narrative 135, debug 64, cutscenes 56, systems 60, ui-screens 40 (41 before: the CLI manifest-schema test read `.core/af`), pipelines 185 (blockout cut), dev-tools 62. |
+| 1.2 | `@automata/framework` exports the UI names extensions build on (`UiComponent`, `UiSlotName`, `ErrorPanel`, `ErrorAction`, `SettingsScreen`, `SettingsTab`). |
+| 1.3 | `boundaries --no-extension-imports`: core never imports an extension; `extension-manifests` check in repo-hygiene; knip, workflows and `AGENTS.md` updated. |
+| 2.1 | `style` accepts a role file that exports a factory under any name (Plus's role files do not all use `create<Name>`). Ruling in the ledger. |
+| 1.4 | `pnpm check` on the old layout: every step green except `@automata/api-report` `committed-reports`, which fails on `3d.api.md` (stale on the 3D build's branch, not this PR's files; the 3D build must run `pnpm api-report --update`). `site` (340) and `examples-runner` (64) pass when run alone (turbo stopped them after the api-report failure). `changeset status` and `check-changesets` (42, 0 problems) pass. Chromium: physics 2, puzzle 1, debug 6, cutscenes 1, narrative 1, nav 2, sectors 2, systems 1 (`browsers`), ui-screens 550 and net-ui 50 (`layout`). The eight parity files' golden hashes are identical to Plus at `1766c622`. WebKit and Firefox: pending, Owner's Mac. |
