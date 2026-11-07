@@ -116,7 +116,11 @@ describe('automata', () => {
       ...names.map((n) => `\`${n}\``),
     ])
       expect(skill, text).toContain(text)
-    expect(skill).toContain('docs/guides/publish-to-')
+    // A game made by `create-game` has no `docs/guides/` folder (it is the framework repository's), so the skill sends
+    // an agent to the site's Docs pages, as the game's own README does.
+    expect(skill).not.toContain('docs/guides/')
+    for (const page of ['web', 'itch', 'ruken', 'desktop'])
+      expect(skill).toContain(`/docs/publish-to-${page}`)
   })
 })
 

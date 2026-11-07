@@ -67,9 +67,10 @@ never `Object.keys` or `for…in`. Prefer integers (subpixels, ticks) for anythi
   `automata-editor` skill).
 - **Shipping**: `pnpm build:<target>`, then `pnpm prepare:<target>` (it runs `automata ship prepare --target <target>`) to
   check the build, and `automata ship publish --target <target>` to send it where that target has a publish step. The
-  target is `web`, `itch`, `ruken` or `tauri`, and each has a publish guide in the framework's docs
-  (`docs/guides/publish-to-web.md`, `publish-to-itch.md`, `publish-to-ruken.md`, `publish-to-desktop.md`). Saving and
-  the player's account go through `Hosting` and `ship.config.ts`, never the browser's own storage.
+  target is `web`, `itch`, `ruken` or `tauri`, and each has a step-by-step guide in the Docs on the Automata Framework
+  site (the pages `/docs/publish-to-web`, `/docs/publish-to-itch`, `/docs/publish-to-ruken` and
+  `/docs/publish-to-desktop`; the desktop one covers `tauri`). Saving and the player's account go through `Hosting` and
+  `ship.config.ts`, never the browser's own storage.
 
 Before calling any framework function, look it up in the `automata-api` skill: it lists every export of this version,
 and an export that is not listed does not exist.
