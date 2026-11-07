@@ -57,6 +57,6 @@ onMount(() => {
     inline-size: 12px;
     block-size: 12px;
     border-radius: 50%;
-    background: #fb6b1d;
+    background: #e37840;
   }
 </style>

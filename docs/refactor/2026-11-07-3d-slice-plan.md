@@ -86,15 +86,14 @@ Apply each when the task is reached, and tick it in the execution log:
 - [ ] **13.2:** drop the 3D skills and the 3D API reference from `agents/` (they return in 20.1).
 - [ ] **20.1:** add them when `@automata/3d` goes public. A new test fails on any unpublished package named in `agents/`.
 - [ ] **10.1:** keep a single environment-builder pattern, since skills task 2.4 may add it first.
-- [ ] **5.1:** add one "How it looks" skill line.
+- [x] **5.1:** add one "How it looks" skill line.
 - [ ] **5.2:** add create-game's template colours (`0xffc825`, `0x64748b`) to its file list.
 - [ ] **11.1:** delete `ROLE_LAYOUT_GAMES` and the hook's role list.
 - [ ] **13.1:** keep the editor skill at "2D level files" until phase 20.
 
 ## Notes from the automata-plus audit (PR #40, relayed 2026-11-07 11:49)
 
-Not decided; read when the task is reached. X1 (task 7.1): `shared/level/sim/` and `simLevel()` overlap Plus's `sectors`
-package; check Plus PR #40 for the outcome (P-D4) before building them. X2 (`shared/timeline/`): Plus's `cutscenes` is a
+Decided by the Owner (2026-11-07 15:05): Plus becomes AF extensions, and the sim part of the level and the stage move to the Plus port (see the Plus port spec (`2026-11-07-plus-port-spec.md`, AF PR #457) section 9, which holds the exact changes to this plan). X1 is settled: `shared/level/sim/` and `simLevel()` are not built here (the `sectors` extension); task 7.4's stage is cut down to the piece states (the `cutscenes` extension builds the director and the `stage-script` kind). X2 (`shared/timeline/`): Plus's `cutscenes` is a
 fourth keyed-time model; core's timeline owns keys and eases, so the design stands. X3 (task 4.1): deleting
 `blockout` breaks Plus's `pipe blockout`; agreed (D3). X4: keep the 12 names Plus imports from sector-format's root
 (`SectorDef`, `WallDef`, `Corner`, `Trim`, `STEP`, `WALL_THICK` and others) exported from `@automata/3d/level` with the
@@ -764,7 +763,7 @@ Ports from `../EnvironmentBuilder` at `6d82a52`, with `sources.md` rows.
 
 **Files:**
 - Create: `packages/3d/src/shared/level/af-sector-2.schema.ts` (every row of spec 9's table),
-  `af-sector-1-to-2.migration.ts`, `shared/level/sim/` (floors, walls, pits, things and their fields, spawn),
+  `af-sector-1-to-2.migration.ts`,
   `packages/3d/scripts/convert-builder-maps.ts` (run in task 7.3)
 - Modify: `shared/level/af-sector.schema.ts` (reads `/1` and `/2`, returns `/2`),
   `games/base-3d/src/content/levels/room.af-sector.json` (migrated), `games/base-3d/src/content/levels/sector-area.ts`
@@ -777,8 +776,7 @@ Ports from `../EnvironmentBuilder` at `6d82a52`, with `sources.md` rows.
 - Produces: `interface LevelProblem extends Problem { where: string; name?: string }` in
   `shared/level/problem.ts` (`Problem` is `@automata/content`'s `{ path, code, message }`, so `automata check` places it
   in its file); `type AfSector2` and `afSector2Schema`; `readLevel(json: unknown): { level: AfSector2; migrated:
-  boolean; problems: LevelProblem[] }`; `migrateAfSector1(level: AfSector): AfSector2`; `simLevel(level: AfSector2): SimLevel`
-  (what the sim reads, from `@automata/3d/sim`); `convertBuilderMap(plan: unknown): AfSector2`.
+  boolean; problems: LevelProblem[] }`; `migrateAfSector1(level: AfSector): AfSector2`; `convertBuilderMap(plan: unknown): AfSector2`.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -787,7 +785,6 @@ it('migrates every /1 fixture losslessly', () => {
   for (const f of V1_FIXTURES) {
     const two = migrateAfSector1(f)
     expect(afSector2Schema.parse(JSON.parse(JSON.stringify(two)))).toEqual(two)
-    expect(simLevel(two)).toEqual(simLevelOfV1(f))
   }
 })
 it('reads a bare-number floor as a plane', () => {
@@ -801,7 +798,7 @@ it('converts a builder map: rect sectors to corners, sprites to props and cast',
 })
 ```
 
-- [ ] **Step 2:** FAIL. **Step 3:** the schema, the migration, `simLevel`, the converter. **Step 4:** PASS; base-3d's
+- [ ] **Step 2:** FAIL. **Step 3:** the schema, the migration, the converter (the `entries/sim.ts` re-exports only `features/camera/sim`; `simEntries` stays `["./sim", "./level"]`; what the sim reads from a level is the `sectors` extension's, not built here). **Step 4:** PASS; base-3d's
   unit tests (82) and golden replay pass with the migrated room, sim hash unchanged. **Step 5: Commit**
   `feat(3d): af-sector/2, one level format for the game, the editor and the world`
 
@@ -887,43 +884,36 @@ it('apartment@1 and block@1 generate valid /2 levels', () => {
   dressing is presentation); its journeys pass in Chromium with the dressed room; images in the PR, each change
   explained. Rows. **Commit** `feat(3d): props, furnished rooms, lamps and generated maps`
 
-### Task 7.4: The stage (spec 8.3)
+### Task 7.4: The piece states (spec 8.3; cut down on the Owner's word, 2026-11-07)
 
-**Source files:** EnvironmentBuilder `src/features/stage/{actor,cast,camera,runtime,state}.ts`,
-`src/features/view/shots.ts`; FigureBuilder `src/features/actors/actor.ts` (the script).
+The director, the `stage-script` content kind and the sequences move to the `@automata/cutscenes` extension (Plus port
+spec section 9). What stays is the small thing the renderer needs to move a door or a lamp: the state of the world's
+pieces, and applying a change of it.
+
+**Source files:** EnvironmentBuilder `src/features/stage/state.ts` (the state a scene is in).
 
 **Files:**
-- Create: `packages/3d/src/features/stage/{stage-script.schema.ts,stage.content.ts,scene-state.ts,director.ts,
-  sequence.ts}`, `app/update-pieces.ts` (in `app/`: it reads the stage's state and the world's view)
-- Modify: `app/compose-scene.ts` (gives the director `startClip`)
-- Test: `tests/unit/stage/*.test.ts`
+- Create: `packages/3d/src/shared/level/piece-states.ts` (`PieceStates`, `LampState`, `PropState`),
+  `app/update-pieces.ts` (reads the world's view and two `PieceStates`)
+- Modify: `app/compose-scene.ts` (gives the scene a `startClip(who, clip, atTick)` callback, so a cue from outside, such
+  as the extension's, can start a figure's clip)
+- Test: `tests/unit/shared/level/piece-states.test.ts`, `tests/unit/app/update-pieces.test.ts`
 
 **Interfaces:**
-- Consumes: `Track`, `sample` (task 6.3); piece ids as plain strings (the stage imports nothing from `world/`).
-- Produces: `createDirector(script: StageScript, startClip: (who: string, clip: string, atTick: number) => void):
-  Director`; `Director.stateAt(t: number): SceneState`; `SceneState { camera; doors: Record<string, number>; lamps:
-  Record<string, LampState>; time: string; grade: string; props: Record<string, PropState> }`;
-  `updatePieces(view: WorldView, before: SceneState, after: SceneState): number` (pieces changed).
+- Consumes: `Track`, `sample` (task 6.3); piece ids as plain strings.
+- Produces: `PieceStates { doors: Record<string, number>; lamps: Record<string, LampState>; props: Record<string, PropState> }`;
+  `updatePieces(view: WorldView, before: PieceStates, after: PieceStates): number` (pieces changed).
 
-- [ ] **Step 1: Write the failing tests**
+- [ ] **Step 1: Write the failing test**
 
 ```ts
-it('a state at t comes from the keys alone', () => {
-  expect(createDirector(script, noop).stateAt(1.5)).toEqual(createDirector(script, noop).stateAt(1.5))
-})
 it('a door key changes only that door', () => {
-  expect(updatePieces(view, stateAt(0), stateAt(1))).toBe(piecesOf(view, 'door-1').length)
-})
-it('a cue starts its clip at its tick', () => {
-  const calls: unknown[] = []; const d = createDirector(cueAt(2, 'wick', 'reach'), (...a) => calls.push(a))
-  d.stateAt(1.9); expect(calls).toEqual([]); d.stateAt(2); expect(calls).toEqual([['wick', 'reach', 2]])
+  expect(updatePieces(view, statesAt(0), statesAt(1))).toBe(piecesOf(view, 'door-1').length)
 })
 ```
 
-- [ ] **Step 2:** FAIL. **Step 3:** implement. **Step 4:** PASS; `boundaries` keeps `Date` and `performance` out of
-  `features/stage` (add `--forbid-globals packages/3d/src/features/stage:Date,performance` if the tool lacks a rule,
-  with its own test in `packages/tools/tests/unit/boundaries/`). `grep -rn "class Actor\|Troupe" packages/3d/src` →
-  none. Rows. **Commit** `feat(3d): the stage plays scripts on the one timeline`
+- [ ] **Step 2:** FAIL. **Step 3:** implement. **Step 4:** PASS. No `features/stage/`, no `stage-script` kind and no
+  director here: `@automata/cutscenes` builds them. Rows. **Commit** `feat(3d): the world's pieces move on the one timeline`
 
 ---
 
@@ -1157,11 +1147,11 @@ it('the room fills the stage on an iPad', async () => { expect(await roomBoxHeig
 **Files:**
 - Modify: `examples/3d/{figures,render3d}/*` (imports from `@automata/3d`; `// --- <role> ---` sections)
 - Create: `examples/3d/{figures-stand-and-sliders,figures-hair,figures-wardrobe,look-pixel-art,world-furnished-room,
-  world-generated-map,world-time-of-day,stage-script}.ts`, `examples/3d/README.md`
+  world-generated-map,world-time-of-day}.ts`, `examples/3d/README.md`
 - Test: `examples/3d/e2e/*.e2e.ts` (each boots and reaches ready), the examples runner's list
 
-- [ ] **Step 1:** Failing journeys for the eight. **Step 2:** four examples. **Session break here if needed.**
-  **Step 3:** the other four. **Step 4:** PASS in Chromium. **Step 5: Commit** `feat(examples): the 3D examples show
+- [ ] **Step 1:** Failing journeys for the seven. **Step 2:** four examples. **Session break here if needed.**
+  **Step 3:** the other three. **Step 4:** PASS in Chromium. **Step 5: Commit** `feat(examples): the 3D examples show
   the figures, the world and the look`
 
 ### Task 12.2: `create-game --template 3d`
@@ -1560,3 +1550,5 @@ reads only this plan and the spec. DUEL's author and licence stay the Owner's op
 - Task 3.1: done. The four source files and four tests that imported `effect` are plain TypeScript; `no-effect.test.ts` is replaced by `--forbid packages/3d:effect games/base-3d:effect` in `boundaries` (0 findings in 202 files). 3d unit 822 and Chromium parity 41 pass + 2 skipped as before; base-3d unit 82; `pnpm build`, `api-report --update` and `api-index --write` run. Rulings: (1) the content compile and the ship helpers are Effect APIs in published packages, so plain-value forms were added there rather than keeping `effect` in 3D: `compileContentResult` (`@automata/content`), `manifestOf` and `rukenHeadersOf` (`@automata/tools` internal); each has its own test. Cost if wrong: three small exports that a later cleanup can fold into one. (2) `createPixi3dRenderer(options)` takes `clock` inside `Pixi3dOptions`, not a second `seams` argument, and `Pixi3dSeams` is gone; `systemClock` and `TimeoutHandle` are now exported from `@automata/framework`, `fakeClock` and `FakeClock` from `@automata/framework/testing`. (3) A Try again that finishes after `dispose` throws the new app away instead of drawing into a dead renderer. Changeset: `.changeset/3d-without-effect.md` (framework, content, tools; patch).
 - Task 4.1: done. Deleted the source game's level format and everything that read it: `packages/3d` `./blockout` entry, `shared/level/blockout/` and its two tests (2 files); in `packages/editor-3d` the `format/` folder, `profile/last-light-*`, `checks/facility/` and `checks/last-light/`, `model/facility-*`, the facility editor, and `testing/{toy-blockout,shipped-facility,geometry-golden,game-facts}` with the Last Light fixtures; `registry.ts` now has the one profile (`PROFILES = [afSectorProfile]`, one sentence for a file that is not af-sector). Tests that mixed Last Light into generic coverage were moved to the depot and the toy level, or to a synthetic profile (a `pinned` list, no `definitions`, a refusing `materials`, a test-held `links` table, a `zone` definition with an `area`), so the Things tool's rectangles and links, the material picker's "no list", the cut refusal and the definitions sheet's "fixed" note are still covered. Tests that could only mean Last Light (connector surfaces, nav, facility, pilaster walls) were deleted. Counts (Chromium, 2026-11-07): editor-3d unit+dom 2,196 pass (151 files); layout+canvas 203 pass, journeys 16 pass, typecheck 0 errors, knip clean. Rulings: (1) X3 holds: Plus's `pipe blockout` breaks, as agreed (D3). (2) X4 holds with no work: `@automata/3d/level` still exports `sector.schema.ts` (`SectorDef`, `WallDef`, `Corner`, `Trim`, `STEP`, `WALL_THICK` and the rest). (3) `format/af-sector.schema.ts` was a re-export of `@automata/3d/level` kept for old names; its five test importers now import `@automata/3d/level`, and it is gone. (4) The Home test for a "facility" row and `LevelSummary`'s facility rule are gone with the facility. Resume at task 4.2.
 - Task 4.2: done. The recorder is `packages/3d/scripts/record-goldens.ts` (`recordGoldens(outDir)`, run with `pnpm --filter @automata/3d goldens [--out <dir>]`); `scripts/extensionless-ts.ts` is a Node resolve hook the package script loads with `--import`, because `@automata/content` writes relative imports without `.ts` and plain Node cannot load it. The three goldens are `tests/fixtures/goldens/{dress,motion,actions}.json`; `src/testing/hand-on-hip.ts` (`HAND_ON_HIP`); the three source-checkout scripts are gone. RED: with one number of `actions.json` changed, `goldens-fresh.test.ts` fails on `ends.look-out[0][0]` (0.5 against 1e-9); GREEN with the file restored. Counts (Chromium, 2026-11-07): 3d unit 812 in 88 files (the two blockout tests went in 4.1, `goldens-fresh` adds 2); Chromium browser 41 pass + 2 skipped as before (the parity golden test now reads `dress.json`); `tsc`, knip, style, source-names and boundaries clean. Rulings: (1) The plan says moving the goldens, but the recorder writes AF's own output, which cannot equal files the source produced (its nameplate and pendant anchor were cut, the pony's cuffs added). So the files are re-recorded once here, after checking the old against the new within the readers' own 1e-9: geometry 23,068 numbers, worst difference 0 (the cuffs and the cut plate and pendant aside); locomotion, holds and stands identical (the two chain outfits' crossed arms are now recorded too, so the readers' PENDANT skip, the `cut` marker and the cuff filter are gone); actions differ by at most 1.4e-4 figure units (the clips are fitted to 1e-3, so the F-g check now guards the clips against drifting from their own recorded end pose); the hair spring's steps 22 to 39 differ because AF's walking head has no idle twitch (the twitch is idle's), so the recorded head, and the spring that follows it, are AF's — cost if wrong: the hair spring is no longer checked against the source's head, only against AF's. (2) The recorder compares with 1e-9 in the test, not byte for byte, because the files keep 12 and 13 digits and platforms' `Math` differ in the last bit (the same tolerance the readers use). (3) `figureOf` moved to `testing/golden-outfits.ts` and `surfaceOf` to `testing/stand-surface.ts` so the recorder and the tests share them (neither imports vitest). (4) `hand-on-hip.ts` keeps its recorded numbers; they are a table, not recomputed. (5) `tsconfig` now includes `scripts/`. (6) Source names stay in the header comments of base/stands/hold tests ("Ported from ...") outside the golden sentences; the later source-names work (spec 8) takes them. Resume at task 5.1.
+- Task 5.1 to 5.3: done, as one commit. Rulings: (1) the three land together because the default palette cannot be green until every consumer is remapped (a commit with only 5.1 fails knip and the 3d swatch tests); `endesga-64.txt` was deleted in 5.2, not 5.1, for the same reason — cost if wrong: one larger commit. (2) The theme's contrast floor is the WCAG minimums plus at least 85% of the Endesga theme's ratios, because DUEL has no pure white and the old ratios cannot all be met — cost: a slightly lower contrast on a few pairs, all still AA. (3) The 32 ramp names are AF's own labels (DUEL names none); `duel.md` says so. (4) The editors' and editor-3d's colours are chrome fallbacks, not Endesga-bound, and were left alone. (5) Swatch colours came from the FigureBuilder row and step comments where a TOML had one, else from the OKLab remap; hex colours in the 3D views and examples (not white, which the lighting multiplies by) moved to the nearest DUEL colour. The 3D player-yellow test's classifier loosened from `b < 70` to `b < 90` because DUEL's nearest orange has more blue — cost: none. (6) The goldens did not need re-recording: they record geometry, not palette indexes, and `goldens-fresh` stays green. (7) `swatchColourProblems` stays, now checking the resolved index against a game's own palette.
+- Plan change from the Owner (2026-11-07 15:05, via the coordinator; exact edits from the Plus port spec section 9, PR #457, at 15:15): Plus becomes AF extensions and two pieces move to the Plus port. Task 7.1 drops `shared/level/sim/`, `simLevel()` and the `simLevel` assertion (the round trip stays; `entries/sim.ts` re-exports only `features/camera/sim`; `simEntries` stays `["./sim", "./level"]`). Task 7.4 shrinks to `shared/level/piece-states.ts`, `app/update-pieces.ts` and compose-scene's `startClip`; only the "a door key changes only that door" test stays; no `features/stage/`, `stage-script` kind or director (`@automata/cutscenes`). Task 12.1 makes seven examples, not eight (no `stage-script.ts`). The 3D spec's sections 3, 7, 8.3 and 9 and the plan's audit notes now say so. No 3D task waits on the port. Pass this on at every handoff.

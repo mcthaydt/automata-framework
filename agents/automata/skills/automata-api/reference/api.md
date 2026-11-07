@@ -247,7 +247,7 @@ const DEFAULT_OUT_DIR = "content/generated";
 
 #### `DEFAULT_PALETTE` (const)
 
-The palette a game gets when it has no `content/palette.toml`: Endesga 64.
+The palette a game gets when it has no `content/palette.toml`: DUEL, its ramps row-major (colour `r * 8 + s`).
 
 ```ts
 const DEFAULT_PALETTE: Palette;
@@ -1788,10 +1788,51 @@ function snakeKey(value: string): string;
 
 #### `DEFAULT_PALETTE` (const)
 
-The palette a game gets when it has no `content/palette.toml`: Endesga 64.
+The palette a game gets when it has no `content/palette.toml`: DUEL, its ramps row-major (colour `r * 8 + s`).
 
 ```ts
 const DEFAULT_PALETTE: Palette;
+```
+
+#### `DUEL_RAMP_NAMES` (const)
+
+One lowercase word for each ramp, in ramp order, so a swatch can say `{ ramp = "skin", step = 5 }` instead of a bare
+number. The words are AF's own labels for what each ramp looks like; DUEL itself names none.
+
+```ts
+const DUEL_RAMP_NAMES: readonly ["grey", "sand", "skin", "sea", "flame", "dusk", "moss", "sky", "pine", "rose", "slate", "clay", "mud", "plum", "teal", "wood", "wine", "indigo", "cherry", "rust", "olive", "amber", "mauve", "forest", "brick", "sage", "ocean", "dawn", "violet", "navy", "blush", "ember"];
+```
+
+#### `DUEL_RAMPS` (const)
+
+DUEL's 32 ramps of 8 `#rrggbb` colours, dark to light: colour `r * 8 + s` is ramp `r`, step `s`.
+
+```ts
+const DUEL_RAMPS: readonly (readonly string[])[];
+```
+
+#### `duelIndex` (function)
+
+The palette index (0 to 255) of step `at` (0 dark to 7 light) on the ramp called `name`.
+
+```ts
+function duelIndex(name: DuelRampName, at: number): number;
+```
+
+#### `DuelRampName` (type)
+
+A ramp's name.
+
+```ts
+type DuelRampName = (typeof DUEL_RAMP_NAMES)[number];
+```
+
+#### `nearestDuel` (function)
+
+The palette index of the DUEL colour nearest `hex` (`#rrggbb`) in OKLab; the first wins a tie.
+
+```ts
+function nearestDuel(hex: string): number;
 ```
 
 #### `Palette` (interface)
@@ -1804,6 +1845,22 @@ interface Palette {
   /** `#rrggbb`, lowercase, in authored order. */
   readonly colors: readonly string[];
 }
+```
+
+#### `rampOf` (function)
+
+The ramp (0 to 31) a palette index is on.
+
+```ts
+function rampOf(index: number): number;
+```
+
+#### `step` (function)
+
+`index` moved `by` steps along its own ramp (negative is darker), stopping at the ramp's ends.
+
+```ts
+function step(index: number, by: number): number;
 ```
 
 ### `import { … } from '@automata/content/schema'`

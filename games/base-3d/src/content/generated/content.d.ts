@@ -130,11 +130,12 @@ declare module 'virtual:automata/content' {
   export type FigureSwatchId = 'boot-brown' | 'boot-sole' | 'brass' | 'brow' | 'charcoal' | 'eye-dark' | 'lid' | 'mouth' | 'navy-deep' | 'pale' | 'pale-lid' | 'sole' | 'starch' | 'starch-shade' | 'steel-grey' | 'tweed' | 'wick-boot' | 'wick-cloak' | 'wick-cloak-shade' | 'wick-eye' | 'wick-shadow' | 'wick-trim' | 'wood'
   export type FigureSwatch = {
     readonly about?: string
-    readonly colour: number
     readonly flat?: boolean
     readonly gloss?: number
     readonly kind?: 'cloth' | 'knit' | 'denim' | 'leather' | 'twill' | 'rubber' | 'metal' | 'lens' | 'thread'
+    readonly ramp: 'grey' | 'sand' | 'skin' | 'sea' | 'flame' | 'dusk' | 'moss' | 'sky' | 'pine' | 'rose' | 'slate' | 'clay' | 'mud' | 'plum' | 'teal' | 'wood' | 'wine' | 'indigo' | 'cherry' | 'rust' | 'olive' | 'amber' | 'mauve' | 'forest' | 'brick' | 'sage' | 'ocean' | 'dawn' | 'violet' | 'navy' | 'blush' | 'ember'
     readonly role?: 'main' | 'rib' | 'inside' | 'trim' | 'stitch' | 'sole' | 'hardware' | 'lens'
+    readonly step: number
   }
 
   export type FigureGaitId = 'bounce' | 'elderly'

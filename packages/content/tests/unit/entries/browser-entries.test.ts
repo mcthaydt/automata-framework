@@ -71,10 +71,10 @@ describe('the browser-safe entries', () => {
     expect(externalsOf(BROWSER_ENTRIES['./level-2d'].source)).toEqual(['zod'])
   })
 
-  it('./palette serves the default palette, Endesga 64', async () => {
+  it('./palette serves the default palette, DUEL', async () => {
     const { DEFAULT_PALETTE } = await import('#src/entries/palette.ts')
-    expect(DEFAULT_PALETTE.name).toBe('Endesga 64')
-    expect(DEFAULT_PALETTE.colors[45]).toBe('#94fdff')
+    expect(DEFAULT_PALETTE.name).toBe('DUEL')
+    expect(DEFAULT_PALETTE.colors[45]).toBe('#96b2d9')
   })
 
   it('the root entry is the compiler and does reach Node (why the browser entries exist)', () => {

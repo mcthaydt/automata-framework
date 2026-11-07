@@ -1,5 +1,5 @@
 // The base's art, as palette-indexed pixel maps: each character in a row is a key into the sprite's palette
-// (Endesga 64 colors only, checked by art.test.ts), and `.` is transparent. Pixel maps in source keep the art
+// (DUEL colours only, checked by art.test.ts), and `.` is transparent. Pixel maps in source keep the art
 // diffable and exactly on palette; the renderer turns them into textures. Provenance: PROVENANCE.md.
 //
 // The look (2026-10-11, after the Owner asked for something less like a clone): Wick, a small hooded wanderer
@@ -8,7 +8,7 @@
 export interface PixelSprite {
   readonly width: number
   readonly height: number
-  /** Key → `#rrggbb`, every value an Endesga 64 color. */
+  /** Key → `#rrggbb`, every value a DUEL colour. */
   readonly palette: Readonly<Record<string, string>>
   readonly rows: readonly string[]
 }
@@ -20,18 +20,18 @@ function sprite(palette: Readonly<Record<string, string>>, rows: readonly string
 // Wick, 16 × 16, facing right, feet on the bottom row. The renderer mirrors it to face left. Colored outlines
 // (deep navy, not black) and a cyan rim light on the hood, as modern pixel art does.
 const WICK_COLORS = {
-  O: '#03193f', // outline (Endesga 52)
-  L: '#00cdf9', // rim light (43)
-  C: '#0098dc', // cloak, lit (42)
-  c: '#0069aa', // cloak (41)
-  s: '#00396d', // cloak, shade (40)
-  f: '#0e071b', // the dark under the hood (15)
-  e: '#ffeb57', // eyes (32)
-  g: '#edab50', // cloak trim (24)
-  b: '#391f21', // boots (17)
-  h: '#8a4836', // lantern handle (19)
-  y: '#ffc825', // lantern glass (31)
-  w: '#ffffff', // lantern flame (8)
+  O: '#001b40', // outline (DUEL 208)
+  L: '#52d2ff', // rim light (62)
+  C: '#4097ea', // cloak, lit (213)
+  c: '#105da2', // cloak (211)
+  s: '#03315f', // cloak, shade (209)
+  f: '#1d1d21', // the dark under the hood (224)
+  e: '#ffe949', // eyes (39)
+  g: '#f99b4e', // cloak trim (37)
+  b: '#372423', // boots (192)
+  h: '#885041', // lantern handle (18)
+  y: '#ffcf05', // lantern glass (253)
+  w: '#f5f7fa', // lantern flame (7)
 }
 
 // The head is the same in every frame but the jump and fall, which tilt the hood tip.
@@ -140,10 +140,10 @@ export const WICK_FALL: PixelSprite = sprite(WICK_COLORS, [
 // Stone, 8 × 8, in slate blues. The renderer picks a variant per tile from its position, then lays the moss
 // cap and the edge shading over it where a side is open (a small autotiler).
 const STONE_COLORS = {
-  l: '#657392', // lit (11)
-  b: '#424c6e', // stone (12)
-  s: '#2a2f4e', // shade (13)
-  d: '#1a1932', // seam (14)
+  l: '#73737f', // lit (83)
+  b: '#3a4568', // stone (41)
+  s: '#23324d', // shade (57)
+  d: '#181f2f', // seam (56)
 }
 
 export const STONE_A: PixelSprite = sprite(STONE_COLORS, [
@@ -182,16 +182,16 @@ export const STONE_C: PixelSprite = sprite(STONE_COLORS, [
 // Moss over the top of a tile whose top is open, with a lit fringe and drips.
 export const MOSS_TOP: PixelSprite = sprite(
   {
-    t: '#99e65f', // tips (34)
-    g: '#5ac54f', // moss (35)
-    m: '#33984b', // shade (36)
-    d: '#1e6f50', // drips (37)
+    t: '#a6cc34', // tips (55)
+    g: '#7fbd39', // moss (191)
+    m: '#518822', // shade (53)
+    d: '#417455', // drips (68)
   },
   ['tgttgtgt', 'gggmgggg', 'mgmmmgmm', 'dm.dmd.m', '.d..d..d', '........', '........', '........'],
 )
 
 // Dark edges where a tile's side or underside is open, so platforms read as solid shapes.
-const EDGE_COLORS = { d: '#1a1932', s: '#2a2f4e' }
+const EDGE_COLORS = { d: '#181f2f', s: '#23324d' }
 export const EDGE_LEFT: PixelSprite = sprite(EDGE_COLORS, [
   'd.......',
   'd.......',
@@ -224,7 +224,7 @@ export const EDGE_BOTTOM: PixelSprite = sprite(EDGE_COLORS, [
 ])
 
 // Grass tufts standing on top of a mossy tile (drawn 8 × 4 above it).
-export const GRASS: PixelSprite = sprite({ t: '#99e65f', g: '#5ac54f', m: '#33984b' }, [
+export const GRASS: PixelSprite = sprite({ t: '#a6cc34', g: '#7fbd39', m: '#518822' }, [
   '.t....t.',
   '.g.t.tg.',
   'tgmg.gmt',
@@ -232,7 +232,7 @@ export const GRASS: PixelSprite = sprite({ t: '#99e65f', g: '#5ac54f', m: '#3398
 ])
 
 // A glowing mushroom on top of a mossy tile (8 × 6); the renderer gives it a small cyan light.
-export const MUSHROOM: PixelSprite = sprite({ o: '#03193f', c: '#00cdf9', C: '#94fdff', s: '#c7cfdd' }, [
+export const MUSHROOM: PixelSprite = sprite({ o: '#001b40', c: '#52d2ff', C: '#74f5fd', s: '#cdd2da' }, [
   '..oooo..',
   '.oCccco.',
   'ocCcCcco',
@@ -242,7 +242,7 @@ export const MUSHROOM: PixelSprite = sprite({ o: '#03193f', c: '#00cdf9', C: '#9
 ])
 
 // A vine hanging under a tile whose underside is open: a middle piece and an end piece, 8 × 8 each.
-const VINE_COLORS = { g: '#33984b', d: '#1e6f50', t: '#5ac54f' }
+const VINE_COLORS = { g: '#518822', d: '#417455', t: '#7fbd39' }
 export const VINE: PixelSprite = sprite(VINE_COLORS, [
   '...gd...',
   '...dg...',
@@ -267,12 +267,12 @@ export const VINE_END: PixelSprite = sprite(VINE_COLORS, [
 // The goal: an ember crystal, 16 × 16, floating over the goal tile. The renderer adds its glow and sparks.
 export const EMBER: PixelSprite = sprite(
   {
-    w: '#ffffff', // core (8)
-    Y: '#ffeb57', // lit face (32)
-    y: '#ffc825', // face (31)
-    o: '#ffa214', // shade (30)
-    r: '#ed7614', // deep shade (29)
-    R: '#8e251d', // outline (27)
+    w: '#f5f7fa', // core (7)
+    Y: '#ffe949', // lit face (39)
+    y: '#ffcf05', // face (253)
+    o: '#ffb108', // shade (252)
+    r: '#e37840', // deep shade (36)
+    R: '#82211d', // outline (73)
   },
   [
     '................',

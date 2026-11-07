@@ -1,5 +1,5 @@
 import type { PixiRendererOptions } from '@automata/framework'
-import { endesga } from '../../shared/art/palette.ts'
+import { duel } from '../../shared/art/palette.ts'
 import type { Room } from '../../shared/room.ts'
 import { createScene } from './scene.ts'
 
@@ -10,7 +10,7 @@ export interface WickAt {
   readonly tick: number
 }
 
-const NIGHT = Number.parseInt(endesga(15).slice(1), 16)
+const NIGHT = Number.parseInt(duel(224).slice(1), 16)
 
 /**
  * The options `startGame` gives render-pixi for Emberwick: its scene on the stage, fed each step and drawn

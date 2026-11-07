@@ -13,20 +13,20 @@ import { box, createPixi3dRenderer, render3dExtension, sceneLightingSchema } fro
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
 
 // A game with content writes this in content/lighting/<room>.toml (kind scene-lighting); here it is inline.
-// Colours are Endesga 64. The pillar blocks the warm lamp's light from the floor behind it.
+// Colours are DUEL. The pillar blocks the warm lamp's light from the floor behind it.
 const lighting = sceneLightingSchema.parse({
   ambient: 0.4,
-  ambientColor: 0x8fd3ff,
+  ambientColor: 0x88d6ff,
   lamps: [
-    { id: 'warm', x: -1.8, y: 2, z: 0.2, color: 0xffc825, strength: 5, range: 4.5 },
-    { id: 'cool', x: 2.2, y: 2, z: -0.8, color: 0x0ce6f2, strength: 3, range: 4 },
+    { id: 'warm', x: -1.8, y: 2, z: 0.2, color: 0xffcf05, strength: 5, range: 4.5 },
+    { id: 'cool', x: 2.2, y: 2, z: -0.8, color: 0x00deda, strength: 3, range: 4 },
   ],
   boxes: [{ id: 'pillar', x: -0.4, y: 0, z: -0.2, width: 0.5, height: 2, depth: 0.5 }],
   planes: [
     { x: 0, y: 0, z: 0, normal: [0, 1, 0], width: 12, height: 12 },
     { x: 0, y: 1.5, z: -2.5, normal: [0, 0, 1], width: 12, height: 3 },
   ],
-  fog: { near: 5, far: 11, color: 0x193c3e },
+  fog: { near: 5, far: 11, color: 0x2f3f38 },
 })
 
 // Positions in metres (y up). Scenery is entities too: each kind of block is drawn by its own static box view.
@@ -77,10 +77,10 @@ export default defineGame({
       lamps: LampSwitch.id,
       views: {
         // 'static' bakes once and rebakes on a lamp change; 'moving' is tinted every frame.
-        [Floor.id]: box({ width: 12, height: 0.1, depth: 12 }, { color: 0xc7dcd0, lit: 'static' }),
-        [Wall.id]: box({ width: 12, height: 3, depth: 0.2 }, { color: 0xc7dcd0, lit: 'static' }),
-        [Pillar.id]: box({ width: 0.5, height: 2, depth: 0.5 }, { color: 0x9babb2, lit: 'static' }),
-        [Crate.id]: box({ width: 0.6, height: 0.6, depth: 0.6 }, { color: 0xcd683d, lit: 'static' }),
+        [Floor.id]: box({ width: 12, height: 0.1, depth: 12 }, { color: 0xcdd2da, lit: 'static' }),
+        [Wall.id]: box({ width: 12, height: 3, depth: 0.2 }, { color: 0xcdd2da, lit: 'static' }),
+        [Pillar.id]: box({ width: 0.5, height: 2, depth: 0.5 }, { color: 0xa6aeba, lit: 'static' }),
+        [Crate.id]: box({ width: 0.6, height: 0.6, depth: 0.6 }, { color: 0xcd5e46, lit: 'static' }),
         [Walker.id]: box({ width: 0.4, height: 1.2, depth: 0.4 }, { color: 0xffffff, lit: 'moving' }),
       },
       scene: (view) => {

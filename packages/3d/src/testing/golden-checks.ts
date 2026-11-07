@@ -62,12 +62,12 @@ export function expectSound(built: Built): void {
     expect([...d.at, ...d.normal].every(Number.isFinite), d.material).toBe(true)
     expect(d.bone >= 0 && d.bone < JOINTS.length).toBe(true)
   }
-  // Every material a part or decal names is a palette colour (Endesga 64: 64 colours).
+  // Every material a part or decal names is a palette colour (DUEL: 256 colours).
   for (const name of [...built.parts.map((p) => p.material), ...built.decals.map((d) => d.material)]) {
     const material = built.materials[name]
     expect(material, `material ${name}`).toBeDefined()
     expect(Number.isInteger(material?.colour) && (material?.colour ?? -1) >= 0, name).toBe(true)
-    expect(material?.colour ?? 64, name).toBeLessThan(64)
+    expect(material?.colour ?? 256, name).toBeLessThan(256)
   }
   expect(built.clearance.every((c) => c >= 0 && c <= 0.6)).toBe(true)
 }

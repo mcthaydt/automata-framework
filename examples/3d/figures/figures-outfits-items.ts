@@ -9,17 +9,22 @@
 // Tier: core
 import '@automata/3d/no-eval'
 import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
-import type { FigureDef, FigureLibrary, Gait, ItemDef } from '@automata/3d/figures'
+import type { FigureDef, FigureLibrary, Gait, ItemDef, Swatch } from '@automata/3d/figures'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
 
 // Content a game compiles from content/figure-swatches/*.toml and content/figure-items/*.toml, written as compiled.
-// Swatch colours are Endesga 64 indices. The item is FigureBuilder's hand lamp (src/render/figure/library at a1f7246).
-const cloak = { 'wick-cloak': { colour: 41 }, 'wick-cloak-shade': { colour: 40 } }
-const trim = { 'wick-trim': { colour: 24, gloss: 0.9 }, 'wick-boot': { colour: 17 } }
-const shade = { 'wick-shadow': { colour: 15, flat: true }, 'wick-eye': { colour: 32, flat: true } }
-const face = { sole: { colour: 15, flat: true }, lid: { colour: 10, flat: true } }
-const brows = { brow: { colour: 17, flat: true }, mouth: { colour: 18, flat: true } }
-const lamp = { brass: { colour: 21, gloss: 0.93 }, glass: { colour: 23, flat: true }, cream: { colour: 7 } }
+// Swatch colours are DUEL ramps and steps. The item is FigureBuilder's hand lamp (src/render/figure/library at a1f7246).
+const duel = (ramp: Swatch['ramp'], step: number, more = {}): Swatch => ({ ramp, step, ...more })
+const cloak = { 'wick-cloak': duel('ocean', 3), 'wick-cloak-shade': duel('ocean', 1) }
+const trim = { 'wick-trim': duel('flame', 5, { gloss: 0.9 }), 'wick-boot': duel('brick', 0) }
+const shade = { 'wick-shadow': duel('plum', 0, { flat: true }), 'wick-eye': duel('flame', 7, { flat: true }) }
+const face = { sole: duel('plum', 0, { flat: true }), lid: duel('grey', 5, { flat: true }) }
+const brows = { brow: duel('brick', 0, { flat: true }), mouth: duel('skin', 0, { flat: true }) }
+const lamp = {
+  brass: duel('clay', 5, { gloss: 0.93 }),
+  glass: duel('blush', 7, { flat: true }),
+  cream: duel('sand', 4),
+}
 // A lamp hung from the hand at the side, the arm nearly straight: a brass cap, a glass body and a brass base.
 const handLamp: ItemDef = {
   hold: {
@@ -104,7 +109,7 @@ export default defineGame({
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
-      backgroundColor: 0x193c3e,
+      backgroundColor: 0x2f3f38,
       views: {
         [Model.id]: figure(wick, { library, motion, state: (c) => worn(c[Model.id]) }),
       },
@@ -112,8 +117,8 @@ export default defineGame({
       scene: (view, _stage, occluders) => {
         view.camera.position.set(0, 1.4, 3)
         view.camera.lookAt({ x: 0, y: 0.8, z: 0 })
-        view.environment = { skyColor: 0xc7dcd0, groundColor: 0x3e3546 }
-        occluders.box({ min: [-3, -0.1, -3], max: [3, 0, 3] }, 0x8b9bb4)
+        view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
+        occluders.box({ min: [-3, -0.1, -3], max: [3, 0, 3] }, 0x8690b2)
         return undefined
       },
     }),

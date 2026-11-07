@@ -9,16 +9,25 @@
 // Tier: core
 import '@automata/3d/no-eval'
 import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
-import type { FigureClipDef, FigureDef, FigureLibrary, Gait, PoseLibrary, Vec3 } from '@automata/3d/figures'
-import { MASK_GROUPS } from '@automata/3d/figures'
+import {
+  type FigureClipDef,
+  type FigureDef,
+  type FigureLibrary,
+  type Gait,
+  MASK_GROUPS,
+  type PoseLibrary,
+  type Swatch,
+  type Vec3,
+} from '@automata/3d/figures'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
 
 // Wick, his swatches and the `bounce` gait as in figures-walk (FigureBuilder a1f7246), written as compiled.
-const cloak = { 'wick-cloak': { colour: 41 }, 'wick-cloak-shade': { colour: 40 } }
-const trim = { 'wick-trim': { colour: 24, gloss: 0.9 }, 'wick-boot': { colour: 17 } }
-const shade = { 'wick-shadow': { colour: 15, flat: true }, 'wick-eye': { colour: 32, flat: true } }
-const face = { sole: { colour: 15, flat: true }, lid: { colour: 10, flat: true } }
-const brows = { brow: { colour: 17, flat: true }, mouth: { colour: 18, flat: true } }
+const duel = (ramp: Swatch['ramp'], step: number, more = {}): Swatch => ({ ramp, step, ...more })
+const cloak = { 'wick-cloak': duel('ocean', 3), 'wick-cloak-shade': duel('ocean', 1) }
+const trim = { 'wick-trim': duel('flame', 5, { gloss: 0.9 }), 'wick-boot': duel('brick', 0) }
+const shade = { 'wick-shadow': duel('plum', 0, { flat: true }), 'wick-eye': duel('flame', 7, { flat: true }) }
+const face = { sole: duel('plum', 0, { flat: true }), lid: duel('grey', 5, { flat: true }) }
+const brows = { brow: duel('brick', 0, { flat: true }), mouth: duel('skin', 0, { flat: true }) }
 const swatches = { ...cloak, ...trim, ...shade, ...face, ...brows }
 const library: FigureLibrary = { swatches, hair: {}, headwear: {}, items: {} }
 const stride = { cycle: 0.46, speed: 3, stride: 0.6, duty: 0.54, lift: 0.065, bob: 0.05, crouch: 0.01 }
@@ -93,7 +102,7 @@ export default defineGame({
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
-      backgroundColor: 0x193c3e,
+      backgroundColor: 0x2f3f38,
       views: {
         [Model.id]: figure(wick, { library, motion, now: () => seconds, state: (c) => posed(c[Model.id]) }),
       },
@@ -101,8 +110,8 @@ export default defineGame({
       scene: (view, _stage, occluders) => {
         view.camera.position.set(0, 1.1, 2)
         view.camera.lookAt({ x: 0, y: 0.6, z: 0 })
-        view.environment = { skyColor: 0xc7dcd0, groundColor: 0x3e3546 }
-        occluders.box({ min: [-3, -0.1, -3], max: [3, 0, 3] }, 0x8b9bb4)
+        view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
+        occluders.box({ min: [-3, -0.1, -3], max: [3, 0, 3] }, 0x8690b2)
         return {
           apply: (result) => {
             seconds = result.tick / 60

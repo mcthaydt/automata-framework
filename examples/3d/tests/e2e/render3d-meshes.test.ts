@@ -31,7 +31,7 @@ const canvasColours = (frame: Frame): Promise<number> =>
       }),
   )
 
-/** The share of the canvas's pixels within 2 of the sky colour (0xc7dcd0, the example's `backgroundColor`). */
+/** The share of the canvas's pixels within 2 of the sky colour (0xcdd2da, the example's `backgroundColor`). */
 const skyShare = (frame: Frame): Promise<number> =>
   frame.evaluate(
     () =>

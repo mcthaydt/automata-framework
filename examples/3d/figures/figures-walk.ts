@@ -10,18 +10,19 @@
 // Tier: core
 import '@automata/3d/no-eval'
 import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
-import type { FigureDef, FigureLibrary, Gait } from '@automata/3d/figures'
+import type { FigureDef, FigureLibrary, Gait, Swatch } from '@automata/3d/figures'
 import { CameraHeading, cameraView, enterView, START } from '@automata/3d/sim'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
 
 // A game writes these in content/figures/wick.toml, content/figure-swatches/*.toml and content/figure-gaits/*.toml
 // and the content compiler checks them and fills their defaults; here they are inline, written as compiled.
-// Swatch colours are Endesga 64 indices; sole, lid, brow and mouth are the defaults a boot and a face name.
-const cloak = { 'wick-cloak': { colour: 41 }, 'wick-cloak-shade': { colour: 40 } }
-const trim = { 'wick-trim': { colour: 24, gloss: 0.9 }, 'wick-boot': { colour: 17 } }
-const shade = { 'wick-shadow': { colour: 15, flat: true }, 'wick-eye': { colour: 32, flat: true } }
-const face = { sole: { colour: 15, flat: true }, lid: { colour: 10, flat: true } }
-const brows = { brow: { colour: 17, flat: true }, mouth: { colour: 18, flat: true } }
+// Swatch colours are DUEL ramps and steps; sole, lid, brow and mouth are the defaults a boot and a face name.
+const duel = (ramp: Swatch['ramp'], step: number, more = {}): Swatch => ({ ramp, step, ...more })
+const cloak = { 'wick-cloak': duel('ocean', 3), 'wick-cloak-shade': duel('ocean', 1) }
+const trim = { 'wick-trim': duel('flame', 5, { gloss: 0.9 }), 'wick-boot': duel('brick', 0) }
+const shade = { 'wick-shadow': duel('plum', 0, { flat: true }), 'wick-eye': duel('flame', 7, { flat: true }) }
+const face = { sole: duel('plum', 0, { flat: true }), lid: duel('grey', 5, { flat: true }) }
+const brows = { brow: duel('brick', 0, { flat: true }), mouth: duel('skin', 0, { flat: true }) }
 const swatches = { ...cloak, ...trim, ...shade, ...face, ...brows }
 const library: FigureLibrary = { swatches, hair: {}, headwear: {}, items: {} }
 
@@ -99,7 +100,7 @@ export default defineGame({
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
-      backgroundColor: 0x193c3e,
+      backgroundColor: 0x2f3f38,
       views: {
         [Hero.id]: figure(wick, {
           library,
@@ -109,8 +110,8 @@ export default defineGame({
       },
       camera: { views: [FOLLOW], initial: FOLLOW.id, follow: Hero.id },
       scene: (view, _stage, occluders) => {
-        view.environment = { skyColor: 0xc7dcd0, groundColor: 0x3e3546 }
-        occluders.box({ min: [-4, -0.1, -4], max: [4, 0, 4] }, 0x8b9bb4)
+        view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
+        occluders.box({ min: [-4, -0.1, -4], max: [4, 0, 4] }, 0x8690b2)
         return undefined
       },
     }),

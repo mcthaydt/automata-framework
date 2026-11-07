@@ -54,7 +54,7 @@ export interface FigureViewOptions {
   readonly motion: MotionLibrary
   /** Reads the figure's state from its render row's components; standing in its default outfit when left out. */
   readonly state?: ((components: Components) => FigureViewState) | undefined
-  /** The palette materials index, as `#rrggbb` strings (Endesga 64 by default). */
+  /** The palette materials index, as `#rrggbb` strings (DUEL by default). */
   readonly palette?: readonly string[] | undefined
   /** Presentation time in seconds (the frame clock). */
   readonly now?: (() => number) | undefined

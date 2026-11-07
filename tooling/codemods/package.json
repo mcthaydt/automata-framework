@@ -12,6 +12,7 @@
     "typecheck": "tsc -p ."
   },
   "dependencies": {
+    "@automata/content": "workspace:*",
     "oxc-parser": "0.152.0"
   },
   "devDependencies": {

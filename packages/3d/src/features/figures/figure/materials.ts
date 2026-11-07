@@ -6,11 +6,11 @@
 // no gloss (`matte`). New here; it replaces FigureBuilder's DUEL ramp tones (`paintOf`, `own`, `lighter`,
 // `mark`, `flatTone`, hair.ts `finish`, the ears' and a cap seam's tones; src/render/figure at a1f7246).
 
-import type { Swatch } from '../content/swatch.schema.ts'
+import { type Swatch, swatchColour } from '../content/swatch.schema.ts'
 
 /** A material as the view draws it. */
 export interface BuiltMaterial {
-  /** A 0-based index into the game's palette (Endesga 64 by default). */
+  /** A 0-based index into the game's palette (DUEL by default). */
   readonly colour: number
   /** 0–1: how glossy (hair, shoes, buckles). */
   readonly gloss?: number
@@ -52,7 +52,7 @@ export function variant(made: Made, of: string, role: string, change: Variant): 
 }
 
 const fromSwatch = (s: Swatch): BuiltMaterial => ({
-  colour: s.colour,
+  colour: swatchColour(s),
   ...(s.gloss !== undefined ? { gloss: s.gloss } : {}),
   ...(s.flat ? { flat: true } : {}),
 })

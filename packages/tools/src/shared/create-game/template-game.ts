@@ -72,7 +72,7 @@ import { SQUARE_SIZE } from '../../shared/constants.ts'
 import { Square } from './square.component.ts'
 
 /** How the square is drawn: a yellow box. */
-export const squareView = { [Square.id]: rect({ w: SQUARE_SIZE, h: SQUARE_SIZE, color: 0xffc825 }) }
+export const squareView = { [Square.id]: rect({ w: SQUARE_SIZE, h: SQUARE_SIZE, color: 0xffcf05 }) }
 `,
   },
 ]

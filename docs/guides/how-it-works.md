@@ -42,7 +42,7 @@ never a number to update.
 
 ## Drawing
 
-A **view** says how a component looks: `rect({ w: 8, h: 8, color: 0xffc825 })` draws a yellow box wherever a square
+A **view** says how a component looks: `rect({ w: 8, h: 8, color: 0xffcf05 })` draws a yellow box wherever a square
 stands. The game draws with PixiJS, on WebGL2 by default. The screen often refreshes faster than the sim ticks, so
 between two ticks each view is drawn part of the way from where it was to where it is now. Movement stays smooth and
 the rules stay in whole ticks.

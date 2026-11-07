@@ -13,12 +13,12 @@ export interface EmberLook {
   readonly beam?: { readonly height: number; readonly colour: number } | undefined
 }
 
-export const EMBER_LOOK: EmberLook = { side: 0.3, core: 0xfb6b1d, halo: 0xfeae34 }
+export const EMBER_LOOK: EmberLook = { side: 0.3, core: 0xe37840, halo: 0xffb108 }
 export const GOAL_LOOK: EmberLook = {
   side: 0.5,
-  core: 0xfee761,
-  halo: 0xfeae34,
-  beam: { height: 6, colour: 0xfee761 },
+  core: 0xffe949,
+  halo: 0xffb108,
+  beam: { height: 6, colour: 0xffe949 },
 }
 
 /** The pulse at `seconds`: 1 ± 0.14, four radians a second, offset by `phase` so neighbours do not beat together. */

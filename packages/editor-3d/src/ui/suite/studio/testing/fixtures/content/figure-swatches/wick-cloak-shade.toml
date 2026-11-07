@@ -1,4 +1,5 @@
-# Wick's cloak in shade, from Emberwick's sprite colours (games/emberwick/src/art/sprites.ts WICK_COLORS): the cloak's shade, #00396d, index 40.
+# Wick's cloak in shade, from Emberwick's sprite colours (games/emberwick/src/shared/art/sprites.ts WICK_COLORS). Colour: DUEL ramp 26 (ocean), step 1 (#03315f), nearest in OKLab.
 # Not from FigureBuilder. Copied into base-3d from figures' test fixtures (packages/3d/tests/fixtures/content at 077484c7).
 
-colour = 40
+ramp = "ocean"
+step = 1

@@ -64,17 +64,17 @@ export default defineGame({
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
-      backgroundColor: 0xc7dcd0, // the sky around the room: the light's sky colour
-      views: { [Body.id]: box({ width: 0.5, height: 1.62, depth: 0.3 }, { color: 0xf9c22b }) },
+      backgroundColor: 0xcdd2da, // the sky around the room: the light's sky colour
+      views: { [Body.id]: box({ width: 0.5, height: 1.62, depth: 0.3 }, { color: 0xffbc4e }) },
       camera: { views: [ROOM], initial: ROOM.id, follow: Body.id },
       // The room is static scenery, registered with the occluder rule: walls, the ceiling and a tall prop.
       scene: (view, _stage, occluders) => {
-        view.environment = { skyColor: 0xc7dcd0, groundColor: 0x3e3546 }
-        occluders.box({ min: [0, -0.1, 0], max: [4, 0, 4] }, 0x8b9bb4)
+        view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
+        occluders.box({ min: [0, -0.1, 0], max: [4, 0, 4] }, 0x8690b2)
         for (const [ax, az, bx, bz] of WALLS)
-          occluders.wall({ a: { x: ax, z: az }, b: { x: bx, z: bz }, height: 2.5, color: 0x5a6988 })
-        occluders.ceiling(occluders.box({ min: [0, 2.5, 0], max: [4, 2.6, 4] }, 0x262b44))
-        occluders.prop(occluders.box(PILLAR, 0xc0cbdc), { bounds: PILLAR })
+          occluders.wall({ a: { x: ax, z: az }, b: { x: bx, z: bz }, height: 2.5, color: 0x615f84 })
+        occluders.ceiling(occluders.box({ min: [0, 2.5, 0], max: [4, 2.6, 4] }, 0x282b4a))
+        occluders.prop(occluders.box(PILLAR, 0xbac7db), { bounds: PILLAR })
         return undefined
       },
     }),

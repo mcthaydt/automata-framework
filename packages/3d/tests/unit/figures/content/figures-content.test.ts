@@ -57,7 +57,7 @@ describe('the fixture figures and libraries compile as content', () => {
     const { face: _face, ...keeper } = figures.keeper?.sliders ?? {}
     expect(keeper).toEqual(KEEPER_SLIDERS)
   })
-  it('names only colours of the default palette, Endesga 64 (ported: every swatch colour is on the palette)', async () => {
+  it('names only colours of the default palette, DUEL (ported: every swatch colour is on the palette)', async () => {
     const result = await compileFixture()
     if (!result.ok) throw new Error(result.message)
     const swatches = result.content.data['figure-swatch'] as Parameters<typeof swatchColourProblems>[0]
@@ -198,13 +198,13 @@ describe('impossible skeletons fail content compile, naming the slider', () => {
   })
   it("FigureBuilder's painter fields are not swatch fields", async () => {
     const file = 'content/figure-swatches/fair.toml'
-    const diagnostics = await diagnosticsAfter(file, 'colour = 22', 'colour = 22\nramp = 27')
+    const diagnostics = await diagnosticsAfter(file, 'step = 5', 'step = 5\nbase = 27')
     expect(diagnostics).toContainEqual(
       expect.objectContaining({
         code: 'unknownField',
         file,
-        keyPath: 'ramp',
-        message: 'unknown field: ramp',
+        keyPath: 'base',
+        message: 'unknown field: base',
       }),
     )
   })

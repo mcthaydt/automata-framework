@@ -1,19 +1,19 @@
-/* Colors are Endesga 64 (src/shared/art/palette.ts). Contrast: --text on --panel is about 13:1, --ink on --accent
+/* Colors are DUEL (src/shared/art/palette.ts). Contrast: --text on --panel is about 13:1, --ink on --accent
    about 14:1, and the --focus ring on --panel about 12:1. The type is Pixelify Sans (OFL, bundled), drawn
    with hard offset shadows and no blur, so the interface reads as part of the pixel art. */
 :root {
-  --bg: #0e071b;
-  --panel: #1a1932;
-  --panel-edge: #03193f;
-  --text: #f9e6cf;
-  --muted: #c7cfdd;
-  --accent: #ffc825;
-  --accent-lit: #ffeb57;
-  --accent-shade: #e07438;
-  --ember: #ff5000;
-  --ink: #0e071b;
-  --focus: #0cf1ff;
-  --line: #424c6e;
+  --bg: #1d1d21;
+  --panel: #181f2f;
+  --panel-edge: #001b40;
+  --text: #ffe2cf;
+  --muted: #cdd2da;
+  --accent: #ffcf05;
+  --accent-lit: #ffe949;
+  --accent-shade: #e37840;
+  --ember: #e45c5f;
+  --ink: #1d1d21;
+  --focus: #74f5fd;
+  --line: #3a4568;
   --pixel-font: "Pixelify Sans", system-ui, sans-serif;
 }
 

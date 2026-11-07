@@ -1,5 +1,6 @@
 # `starch` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/swatches.json at a1f7246.
-# Colour: DUEL row 1, step 5 (#ccc3b1), nearest in OKLab: Endesga 64 index 7 (#b4b4b4).
+# Colour: DUEL ramp 1 (sand), step 5 (#ccc3b1).
 # Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
 
-colour = 7
+ramp = "sand"
+step = 5

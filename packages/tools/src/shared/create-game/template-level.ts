@@ -99,7 +99,7 @@ export const LEVEL: Level = levelOf(levelContentSchema.parse(compiled))
 import { type Level, SOLID } from './read-level.ts'
 
 /** The walls' colour: the editor's colour for Solid. */
-const WALL_COLOR = 0x64748b
+const WALL_COLOR = 0x73737f
 
 /** Draws the level's walls every frame: one rectangle for each run of wall cells in a row. */
 export function drawLevel(level: Level): (ctx: DrawContext) => void {

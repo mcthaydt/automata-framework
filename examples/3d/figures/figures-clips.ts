@@ -10,16 +10,17 @@
 // Tier: core
 import '@automata/3d/no-eval'
 import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
-import type { Ease, FigureClipDef, FigureDef, MotionLibrary, Vec3 } from '@automata/3d/figures'
+import type { Ease, FigureClipDef, FigureDef, MotionLibrary, Swatch, Vec3 } from '@automata/3d/figures'
 import { CameraHeading, cameraView, enterView, START } from '@automata/3d/sim'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
 
 // Wick, his swatches and the `bounce` gait as in figures-walk (FigureBuilder a1f7246), written as compiled.
-const cloak = { 'wick-cloak': { colour: 41 }, 'wick-cloak-shade': { colour: 40 } }
-const trim = { 'wick-trim': { colour: 24, gloss: 0.9 }, 'wick-boot': { colour: 17 } }
-const shade = { 'wick-shadow': { colour: 15, flat: true }, 'wick-eye': { colour: 32, flat: true } }
-const face = { sole: { colour: 15, flat: true }, lid: { colour: 10, flat: true } }
-const brows = { brow: { colour: 17, flat: true }, mouth: { colour: 18, flat: true } }
+const duel = (ramp: Swatch['ramp'], step: number, more = {}): Swatch => ({ ramp, step, ...more })
+const cloak = { 'wick-cloak': duel('ocean', 3), 'wick-cloak-shade': duel('ocean', 1) }
+const trim = { 'wick-trim': duel('flame', 5, { gloss: 0.9 }), 'wick-boot': duel('brick', 0) }
+const shade = { 'wick-shadow': duel('plum', 0, { flat: true }), 'wick-eye': duel('flame', 7, { flat: true }) }
+const face = { sole: duel('plum', 0, { flat: true }), lid: duel('grey', 5, { flat: true }) }
+const brows = { brow: duel('brick', 0, { flat: true }), mouth: duel('skin', 0, { flat: true }) }
 const swatches = { ...cloak, ...trim, ...shade, ...face, ...brows }
 const library = { swatches, hair: {}, headwear: {}, items: {} }
 const stride = { cycle: 0.46, speed: 3, stride: 0.6, duty: 0.54, lift: 0.065, bob: 0.05, crouch: 0.01 }
@@ -81,7 +82,6 @@ const walk = defineSystem('walk', (ctx) => {
   for (const hero of ctx.query(Hero)) hero.set(Hero, { x, yaw, clip: clip % 3, since: clip * 90 })
 })
 
-const loop = definePlugin({ name: 'loop', defs: [Hero, walk] })
 let seconds = 0 // the sim's tick in seconds at 60 Hz, the view's clock, which each step moves on
 const toSimTime = (result: { readonly tick: number }) => {
   seconds = result.tick / 60
@@ -97,7 +97,7 @@ export default defineGame({
   id: 'figures-clips',
   size: { width: 320, height: 180 },
   sim: {
-    plugins: [loop],
+    plugins: [definePlugin({ name: 'loop', defs: [Hero, walk] })],
     seed: 1,
     setup: (sim) => {
       sim.spawn([
@@ -110,12 +110,12 @@ export default defineGame({
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
-      backgroundColor: 0x193c3e,
+      backgroundColor: 0x2f3f38,
       views: { [Hero.id]: shown },
       camera: { views: [FOLLOW], initial: FOLLOW.id, follow: Hero.id },
       scene: (view, _stage, occluders) => {
-        view.environment = { skyColor: 0xc7dcd0, groundColor: 0x3e3546 }
-        occluders.box({ min: [-4, -0.1, -4], max: [4, 0, 4] }, 0x8b9bb4)
+        view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
+        occluders.box({ min: [-4, -0.1, -4], max: [4, 0, 4] }, 0x8690b2)
         return { apply: toSimTime }
       },
     }),

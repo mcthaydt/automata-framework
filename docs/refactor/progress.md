@@ -397,7 +397,7 @@ the site's 3D parts.
 | 1. Audit | Done, 2026-11-07 (PR stacked on #441): 10 structure (S1 to S10), 3 contracts (K1 to K3), 6 editor shipping (E1 to E6), 5 layout and look (V1 to V5), 6 tests (T1 to T6), 7 game (G1 to G7), 2 CI (Q1, Q2), 2 site (W1, W2), 10 copy (C1 to C10); and, the same day on the Owner's word, FigureBuilder and EnvironmentBuilder measured against AF (B1 to B10, section 9); 10 decisions for the Owner (D1 to D10); the Owner took D10 the same day: C on the card ("Their pixel-art look too"), then "Take everything basically", then "We use pixi3D, and 2D should also use the duel palette". 3,836 unit and DOM tests pass; the 3D editor's Chromium layout and canvas run 187 pass and 8 fail (the known 8); base-3d's journeys 8 of 8 and the 3D examples' 9 of 9 in Chromium. Headline: the 3D editor cannot open base-3d, and the Studio is unreachable | [2026-11-07-3d-slice-audit.md](2026-11-07-3d-slice-audit.md) |
 | 2. Plan and spec | Done, 2026-11-07, rewritten the same day with the superpowers plugin (`brainstorming`, `writing-plans`) in place of the hand-written first version (#443), with the paused plan audit's 21 findings folded in: D1 to D9 on the audit's recommendations, D10 as the Owner took it; four parts in the Owner's order, 20 phases, 53 tasks, each with files, interfaces and its failing tests; one `@automata/3d` package in `--features` layout (shared timeline, level and time of day), DUEL AF-wide, one timeline, one level format (`af-sector/2`, field by field), the look on Pixi 3D, `automata textures` in `-tools`, the 8 tests fixed in phase 1 | [spec](2026-11-07-3d-slice-spec.md), [plan](2026-11-07-3d-slice-plan.md) |
 | 3. Plan audit | Done, 2026-11-07, with the superpowers plugin (`writing-plans`' self-review), native: 26 findings against #444's head, the checkout and both builders, all fixed in place in the spec and the plan (the move map now follows today's imports, so `--features` holds: `shared/render/`, the occluders the camera's; the test mover's real flags; the goldens renamed and re-recorded once for FigureBuilder's newer fat; the 15 classic kinds; `Ease` keeps the cubic-bezier tuple; `LevelProblem`; `findCutByBar` in place of `findClipped`; the 2D slice's real-command harness reused; editor-3d's full move map; the look's target follows a phone in portrait; drunk grandma fixes to the new words). The paused audit's 21: 17 fixed by the rewrite, 4 finished here. DUEL's author and licence stay the Owner's | [record](2026-11-07-3d-slice-plan-audit.md) |
-| 4. Build | In progress (Sonnet, high): 12 of 53 tasks, see the build table below | [plan](2026-11-07-3d-slice-plan.md) |
+| 4. Build | In progress (Sonnet, high): 15 of 53 tasks, see the build table below | [plan](2026-11-07-3d-slice-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
@@ -408,7 +408,7 @@ both builders at FigureBuilder `025ffb4` and EnvironmentBuilder `6d82a52`. The p
 the site paths (19.1), the copy table and the 2D editor counts. Then the build (Sonnet, high) starts at task 1.1 with
 `superpowers:executing-plans`, natively in the session with no subagents, handing off after 90 minutes.
 
-### Build: 23% (12 of 53 tasks)
+### Build: 28% (15 of 53 tasks)
 
 One row per task of the [plan](2026-11-07-3d-slice-plan.md); a task is done when its checks have passed in the session that did it. The percentage is done tasks / 53.
 
@@ -426,9 +426,9 @@ One row per task of the [plan](2026-11-07-3d-slice-plan.md); a task is done when
 | 3.1 The renderer in plain TypeScript | 3 | Done, 2026-11-07 (3d and base-3d import no `effect`, enforced by `--forbid`; 3d unit 822, Chromium parity 41 + 2 skipped, base-3d unit 82; build, api-report and api-index regenerated; WebKit/Firefox and hosted CI not run) |
 | 4.1 The source game's level format goes | 4 | Done, 2026-11-07 (editor-3d unit+dom 2,196 pass (151 files) after deleting the Last Light tests and moving the generic ones to the depot, the toy level or synthetic profiles; Chromium layout+canvas 203 and journeys 16 pass; typecheck, knip clean; hosted CI not run) |
 | 4.2 Goldens recorded from AF's own code | 4 | Done, 2026-11-07 (3d unit 812; Chromium parity 41 + 2 skipped; the three goldens re-recorded once from AF's code after checking the old against the new within 1e-9: geometry, locomotion, holds and stands identical, actions within 1.4e-4, the hair spring's head is AF's; `goldens-fresh` RED then GREEN; tsc, knip, style, source-names and boundaries clean; WebKit/Firefox and hosted CI not run) |
-| 5.1 The palette in `-content` | 5 | Not started |
-| 5.2 Emberwick, the theme, the examples and the editors' game art on DUEL | 5 | Not started |
-| 5.3 The 3D swatches are DUEL steps | 5 | Not started |
+| 5.1 The palette in `-content` | 5 | Done, 2026-11-07 (DUEL's 32 ramps, `rampOf`, `step`, `nearestDuel` in OKLab, 32 ramp names and `duelIndex`; `docs/art/palettes/duel.txt` checked against the code; `endesga-64.ts` deleted; the remap codemod `tooling/codemods/src/remap-palette.ts`; hosted CI not run) |
+| 5.2 Emberwick, the theme, the examples and the editors' game art on DUEL | 5 | Done, 2026-11-07 (Emberwick's sprites, backdrop, scene, particles and page, the theme tokens, the create-game templates, the 2D examples' PNGs and atlases remapped by `nearestDuel` and regenerated; the sim golden hash did not move; the theme contrast test now holds the WCAG minimums and at least 85% of the old ratios; before/after screenshots in `/mnt/project-files/refactor/2026-11-07-duel-screens/`; hosted CI not run) |
+| 5.3 The 3D swatches are DUEL steps | 5 | Done, 2026-11-07 (a swatch is `{ ramp, step }`; 95 TOMLs and the five figures examples converted; the 3D views' and examples' hex colours moved to the nearest DUEL colour; `grep -ri endesga` finds only provenance, history and the codemod's test; goldens unchanged and fresh; hosted CI not run) |
 | 6.1 The provenance record | 6 | Not started |
 | 6.2 The body, the stand and the face | 6 | Not started |
 | 6.3 One timeline; lighting; actions as clips | 6 | Not started |

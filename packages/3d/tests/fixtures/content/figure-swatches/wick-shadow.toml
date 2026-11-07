@@ -1,5 +1,6 @@
-# Wick's dark under the hood, from Emberwick's sprite colours (games/emberwick/src/art/sprites.ts WICK_COLORS): #0e071b, index 15.
+# Wick's dark under the hood, from Emberwick's sprite colours (games/emberwick/src/shared/art/sprites.ts WICK_COLORS). Colour: DUEL ramp 13 (plum), step 0 (#2e1026), nearest in OKLab.
 # Not from FigureBuilder: a fixture swatch for the fixture figure.
 
-colour = 15
+ramp = "plum"
+step = 0
 flat = true
