@@ -1,4 +1,4 @@
-// defineGame: a `GameSpec` with every default filled in (DX spec §3.1, §5 step 1). Pure: it reads no document
+// defineGame: a `GameSpec` with every default filled in. Pure: it reads no document
 // until the runtime asks for the root, so a game module also loads in Node (the examples' golden parity).
 
 import { GAME_ID_PATTERN } from '@mcthaydt/automata-content/game-config'
@@ -26,7 +26,7 @@ import { defaultScreens } from './screens/default-screens.ts'
 import type { ScreensCopyInput } from './screens/screens-copy.ts'
 
 /**
- * What a game saves, and how the default screens read it from the sim and put it back (M5.2). The title lists the
+ * What a game saves, and how the default screens read it from the sim and put it back. The title lists the
  * save's slots; New game writes the starting data, Continue loads a slot, and play keeps it saved while it runs, on
  * the triggers the `def` declares (autosave).
  */
@@ -43,14 +43,14 @@ export interface GameSaves<D> {
   label?(slot: number): string
 }
 
-/** A game's words: the runtime's boot and failure copy, and the default screens' words (DX.2d). */
+/** A game's words: the runtime's boot and failure copy, and the default screens' words. */
 export type GameCopy = NonNullable<GameDefinition['copy']> & {
   /** The default screens' words, over their English defaults: a part of `ScreensCopy`, or a function of the locale. */
   readonly screens?: ScreensCopyInput | undefined
 }
 
 /**
- * A game in one object (DX spec §3.1): its id, size and sim, and optionally its title, input, views, sounds,
+ * A game in one object: its id, size and sim, and optionally its title, input, views, sounds,
  * scores, saves, content, screens, settings, extensions, draw layer and host and renderer options.
  * `defineGame` fills in every default.
  */
@@ -69,7 +69,7 @@ export interface GameSpec<S = never, D = unknown> {
     readonly setup?: (sim: Sim) => void
   }
   /**
-   * The orientation the game plays in, the same as the ship config's `runtime.orientation` (M4.7). On a phone held
+   * The orientation the game plays in, the same as the ship config's `runtime.orientation`. On a phone held
    * the other way a `portrait` or `landscape` game pauses behind the rotate hint. Default `any`.
    */
   readonly orientation?: GameOrientation
@@ -85,19 +85,19 @@ export interface GameSpec<S = never, D = unknown> {
    */
   readonly sounds?: EventSounds
   /**
-   * The board and score each sim event submits, by the event's id (M5.7):
+   * The board and score each sim event submits, by the event's id:
    * `{ [RunEnded.id]: { board: 'best', score: (payload) => RunEnded.schema.parse(payload).score } }`. The board is a key
    * of the ship config's `leaderboards`; the game then asks the host for `leaderboards`.
    */
   readonly scores?: EventScores
   /**
-   * The game's save (M5.2): its slots, how the sim is captured into them and put back. The game then asks the host
+   * The game's save: its slots, how the sim is captured into them and put back. The game then asks the host
    * for `saves`. Needs the default screens for the title's slot list; custom `screens` open the save themselves.
    */
   readonly saves?: GameSaves<D>
   /** A game with `content/` passes the compiler's output; `sim` is the sim's partition of it. */
   readonly content?: { readonly data: CompiledContentData; readonly hash: string; readonly sim?: unknown }
-  /** Default: title, play and paused (DX spec §7). */
+  /** Default: title, play and paused. */
   readonly screens?: readonly ScreenDef[]
   /** Default: `#game`. */
   readonly root?: HTMLElement
@@ -111,7 +111,7 @@ export interface GameSpec<S = never, D = unknown> {
   readonly extensions?: readonly ExtensionDef[]
   /**
    * Immediate-mode HUD, debug and prototype drawing over the entity views, once per display frame while the
-   * default screens hold a sim (PRODUCT spec §7). It reads the sim and never writes it. Needs the default screens.
+   * default screens hold a sim. It reads the sim and never writes it. Needs the default screens.
    */
   readonly draw?: (ctx: DrawContext) => void
   /** Merged over the defaults (`pixelArt`, the logical size and the views). */
@@ -123,18 +123,18 @@ export interface GameSpec<S = never, D = unknown> {
    */
   readonly createRenderer?: (options: PixiRendererOptions) => RendererFactory
   /**
-   * Files the runtime fetches with the preload screens, with byte progress and the 30 s stall rule (M1.5), before
+   * Files the runtime fetches with the preload screens, with byte progress and the 30 s stall rule, before
    * the renderer starts: model files a 3D view draws, for example. They stay out of the content and its hash, so a
    * new origin or a rebuilt file never changes the hash a save is stamped with.
    */
   readonly preload?: readonly string[]
   /**
    * The game's words: the runtime's boot and failure copy, and `screens`, the default screens' words over their
-   * English defaults (DX.2d). `screens` may be a function of the locale, run again on each language change, so a
+   * English defaults. `screens` may be a function of the locale, run again on each language change, so a
    * Paraglide game passes its messages: `screens: () => ({ title: { play: m.play() } })`.
    */
   readonly copy?: GameCopy
-  /** The game's languages (PRODUCT.L): Settings' Language group offers them. Absent, the content's one language. */
+  /** The game's languages: Settings' Language group offers them. Absent, the content's one language. */
   readonly locale?: GameDefinition['locale']
   /** Tests only. */
   readonly seams?: RuntimeSeams
@@ -168,8 +168,7 @@ const HASH = /^[0-9a-f]{16}$/
 const isSize = (value: number): boolean => Number.isInteger(value) && value > 0
 
 /**
- * The plugins the sim runs: the game's own, then every extension's `sim` plugins in extension order (M1 runtime
- * spec §3.2). `createSim` orders them by `dependsOn` and refuses a plugin listed twice.
+ * The plugins the sim runs: the game's own, then every extension's `sim` plugins in extension order. `createSim` orders them by `dependsOn` and refuses a plugin listed twice.
  */
 function simPluginsOf<S, D>(spec: GameSpec<S, D>): readonly PluginDef[] {
   if (spec.extensions === undefined || spec.extensions.length === 0) return spec.sim.plugins
@@ -207,7 +206,7 @@ function problemsOf<S, D>(spec: GameSpec<S, D>, plugins: readonly PluginDef[]): 
 
 /**
  * The capabilities the game asks for: the spec's, plus `saves` for the core settings when the game declares none
- * (M4.4) or has a save of its own (M5.2), and `leaderboards` when it has scores, each once.
+ * or has a save of its own, and `leaderboards` when it has scores, each once.
  */
 function wantsOf<S, D>(spec: GameSpec<S, D>): NonNullable<HostingOptions['wants']> {
   const wants = [...(spec.hosting?.wants ?? [])]
@@ -217,7 +216,7 @@ function wantsOf<S, D>(spec: GameSpec<S, D>): NonNullable<HostingOptions['wants'
   return wants
 }
 
-/** `spec.root`, else `#game`; a BootDefect when there is neither (DX spec §6). */
+/** `spec.root`, else `#game`; a BootDefect when there is neither. */
 function rootOf<S, D>(spec: GameSpec<S, D>): HTMLElement {
   const root = spec.root ?? (typeof document === 'undefined' ? null : document.getElementById('game'))
   if (root === null)
@@ -267,7 +266,7 @@ export function pixiOptions<S>(
  * Throws `BootDefect` (its cause a `GameSpecError`) for an invalid spec.
  */
 export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): DefinedGame<S> {
-  // The runtime gets its own copy; `screens` is the default screens' (DX.2d).
+  // The runtime gets its own copy; `screens` is the default screens'.
   const { screens: _screens, ...rest } = spec.copy ?? {}
   const runtimeCopy = spec.copy === undefined ? undefined : rest
   const plugins = simPluginsOf(spec)
@@ -284,7 +283,7 @@ export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): Define
   const content =
     spec.content === undefined ? defaultContent() : { data: spec.content.data, hash: spec.content.hash }
   const layer = spec.draw === undefined ? undefined : createDrawLayer(spec.draw, spec.size)
-  // The stage, once the renderer has made it: the default screens give it the player's quality (M4.4).
+  // The stage, once the renderer has made it: the default screens give it the player's quality.
   let stage: PixiStage | undefined
   const options = pixiOptions(spec, layer, (made) => {
     stage = made
@@ -318,7 +317,7 @@ export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): Define
         ...(spec.copy?.screens === undefined ? {} : { copy: spec.copy.screens }),
       }),
     renderer,
-    // Without settings of its own, the game keeps the player's bindings and quality in the core settings (M4.4).
+    // Without settings of its own, the game keeps the player's bindings and quality in the core settings.
     // They are not the game's `S`: only the default screens read them, through `Settings`.
     settings: spec.settings ?? (CORE_SETTINGS as unknown as SettingsDef<S>),
     ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),

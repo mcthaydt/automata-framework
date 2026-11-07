@@ -1,4 +1,4 @@
-// Standalone fullscreen (M4 spec §4.9, M4-D5). From FloorFifty `apps/client/src/ui/fullscreen.ts` at `ac72660`,
+// Standalone fullscreen. From FloorFifty `apps/client/src/ui/fullscreen.ts` at `ac72660`,
 // without its hosted branch: under Ruken the landscape gate is off and fullscreen is the host's
 // (`Hosting.setFullscreen`), so this is only ever the standalone page asking its own browser, never a way around a
 // host's answer. Ruken's SDK answers a standalone page's fullscreen request with `support: 'none'`.
@@ -36,7 +36,7 @@ type LockableOrientation = ScreenOrientation & { lock?: (orientation: string) =>
 
 /**
  * Enters element fullscreen, then asks for a landscape lock, which most phones refuse outside an installed app. A
- * refusal of either changes nothing: the game plays in the window (M4 spec §6).
+ * refusal of either changes nothing: the game plays in the window.
  */
 export async function enterFullscreen(doc: Document, screen?: Screen): Promise<void> {
   await doc.documentElement.requestFullscreen().catch(() => undefined)

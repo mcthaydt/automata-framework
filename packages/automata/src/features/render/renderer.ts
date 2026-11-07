@@ -39,7 +39,7 @@ export interface PixiRendererOptions {
   readonly barFraction?: number | undefined
   /** Bar color in hex. Default is 0x2e222f (FloorFifty plum black). */
   readonly barColor?: number | undefined
-  /** The graphics quality tier to start at (M4 spec §4.11); `PixiStage.setQuality` changes it. Default `high`. */
+  /** The graphics quality tier to start at; `PixiStage.setQuality` changes it. Default `high`. */
   readonly quality?: QualityTier | undefined
   /**
    * Draws the world and UI at the logical size and resolution 1, then nearest-upscales them into the letterbox
@@ -64,7 +64,7 @@ export interface PixiRendererOptions {
     | undefined
 }
 
-/** What a `setup` may return to hear every step, frame and reset (DX spec §3.4, DX.3 decision E-1). */
+/** What a `setup` may return to hear every step, frame and reset. */
 export interface PixiStageHooks {
   /** After the entity views took the step's render delta. */
   readonly apply?: ((result: StepResult) => void) | undefined
@@ -93,7 +93,7 @@ export interface PixiStage {
   readonly composite?: CompositeTarget | undefined
   /** Post-processing filters applied to the root rendered scene. Owned by `postFilters` once it is used. */
   filters: Filter[] | null
-  /** The post-filter slot over `filters`: each owner keeps its own filters by id and order (PRODUCT spec §2 F1). */
+  /** The post-filter slot over `filters`: each owner keeps its own filters by id and order. */
   readonly postFilters: PostFilterSlot
   /** The graphics quality tier now. */
   readonly quality: QualityTier
@@ -101,7 +101,7 @@ export interface PixiStage {
   setQuality(tier: QualityTier): void
   /**
    * Builds a filter, or returns `undefined` when it cannot be built or compiled: it then warns and publishes
-   * `render.filter.dropped` on the render target's bus, and the frame draws without it (M4 spec §6).
+   * `render.filter.dropped` on the render target's bus, and the frame draws without it.
    */
   tryFilter<F extends Filter>(id: string, make: () => F): F | undefined
 }

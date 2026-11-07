@@ -33,7 +33,7 @@ export interface RootAbsoluteReferenceFound {
   readonly reference: string
 }
 
-// Extensions in any case: a build can contain APP.JS.
+// Extensions in any case: a build can contain `INDEX.HTML`.
 const PAGE = /\.(?:html|htm|svg)$/i
 const STYLE = /\.css$/i
 const SCRIPT = /\.(?:js|mjs|cjs)$/i

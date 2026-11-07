@@ -1,6 +1,6 @@
 import { deflateSync } from 'node:zlib'
 
-// The app icon ship draws when a game names none (`tauri.icon`, DIST spec §6.2): a dark square with an ember-coloured
+// The app icon ship draws when a game names none (`tauri.icon`): a dark square with an ember-coloured
 // one inside, as an 8-bit RGBA PNG. Tauri needs an icon to build at all; a game ships its own.
 
 const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {

@@ -1,5 +1,5 @@
-// @mcthaydt/automata-content: the content compiler (M1.3). Extracted from FloorFifty's packages/content
-// (122a220) and generalized over game-registered schemas; see the M1.3 spec.
+// @mcthaydt/automata-content: the content compiler, generic over the schemas a game
+// registers.
 
 export type { ContentConfig } from '../app/cli/run-cli'
 export { type PreloadInput, preloadList } from '../features/preload/preload-list'

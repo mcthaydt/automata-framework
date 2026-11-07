@@ -1,4 +1,4 @@
-// inputs(): several `keys()` maps as one input map (M3.7b part 3a). A game whose sim takes its input as separate
+// inputs(): several `keys()` maps as one input map. A game whose sim takes its input as separate
 // commands (a move, a lock, the action buttons) sends each map's command every tick, from one Input over the merged
 // bindings: one poll, one set of touch buttons, one Controls section.
 

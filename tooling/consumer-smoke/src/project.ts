@@ -1,4 +1,4 @@
-// The game-like project consumer-smoke installs AF into (M2.4 spec §3.6): its package.json and .npmrc. It lives
+// The game-like project consumer-smoke installs AF into: its package.json and.npmrc. It lives
 // in a temp folder outside the workspace, so nothing resolves through workspace links: only what a game
 // repository would get from a tarball or from GitHub Packages.
 
@@ -13,7 +13,7 @@ export interface ToolVersions {
   readonly typesNode: string
   /** A game that defines content schemas imports zod itself. */
   readonly zod: string
-  /** PixiJS, a peer of render-pixi, game and the umbrella (DX.2a): the game installs it. */
+  /** PixiJS, a peer of render-pixi, game and the umbrella: the game installs it. */
   readonly pixi: string
 }
 

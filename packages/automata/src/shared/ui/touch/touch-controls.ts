@@ -1,5 +1,5 @@
 /**
- * The touch buttons' bookkeeping (M4 spec §4.4), from FloorFifty `systems/gameplay/touch-controls.ts` at
+ * The touch buttons' bookkeeping, from FloorFifty `systems/gameplay/touch-controls.ts` at
  * `ac72660`, over a game's action ids instead of its race's three.
  *
  * Multi-touch is the whole difficulty, and it lives here rather than in the component that draws the buttons. A
@@ -126,7 +126,7 @@ export class StickyPointers {
 }
 
 /**
- * The buttons to show (M4 spec §4.9, §6): every one while one row holds them at the primary size, else only the
+ * The buttons to show: every one while one row holds them at the primary size, else only the
  * `required` ones, so a target is never shrunk and the actions a game cannot be played without stay. A set with
  * nothing required is shown whole, wrapping onto a second row as it did before the reduced set.
  */

@@ -1,4 +1,4 @@
-// What the game asks of its host, in plain TypeScript (refactor spec §4): promises that answer with a `HostResult`,
+// What the game asks of its host, in plain TypeScript: promises that answer with a `HostResult`,
 // observed state as `Subscribable`, events as `Listenable`, and `dispose()` where Effect had a `Scope`.
 // Temporary name: task 5.4 deletes `hosting.ts` (the Effect version) and this file becomes `hosting.ts`.
 import type { Listenable, Subscribable } from '../lib/subscribable'
@@ -31,7 +31,7 @@ export interface HostingSaves {
   set(key: string, value: string): Promise<HostResult<void>>
   remove(key: string): Promise<HostResult<void>>
   flush(): Promise<HostResult<SavesFlushRes>>
-  /** Every key the session holds, sorted by code unit (M5 spec §4.1). Refused `CANCELLED` once Hosting is disposed. */
+  /** Every key the session holds, sorted by code unit. Refused `CANCELLED` once Hosting is disposed. */
   keys(): Promise<HostResult<readonly string[]>>
   /** Another device's write, or the host's conflict choice, reached this session. Only changes, no current value. */
   readonly changed: Listenable<SavesChangedPayload>

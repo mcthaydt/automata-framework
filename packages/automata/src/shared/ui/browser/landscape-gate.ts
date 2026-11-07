@@ -7,7 +7,7 @@
  * game asks for one tap to do so; where it cannot (Safari on iPhone), the
  * player turns the phone upright or opens the game from the Home Screen.
  *
- * The request itself and the gate's screen belong to the runtime (M1.5).
+ * The request itself and the gate's screen belong to the runtime.
  *
  * Only a phone: a touch screen in the phone-landscape form factor. A short
  * desktop window shares that form factor and has no bar to hide.

@@ -1,4 +1,4 @@
-// What a leaderboard call ended as, for a screen to show (M5 spec §4.8, §6). Every host answer maps to one named
+// What a leaderboard call ended as, for a screen to show. Every host answer maps to one named
 // state; none of them keeps a local board instead (host authority).
 
 import type { Effect } from 'effect'

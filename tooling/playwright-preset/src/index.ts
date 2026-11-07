@@ -16,7 +16,7 @@ type Env = Readonly<Record<string, string | undefined>>
 
 /**
  * How many workers the journeys start. Playwright's default is half the cores, which on the Owner's Mac (three CI
- * runners on one M1) is about four browsers per job, and three jobs at once left every failure a 30 s timeout
+ * runners on one Apple-silicon machine) is about four browsers per job, and three jobs at once left every failure a 30 s timeout
  * (hub, 2026-10-23). So CI gets two workers, a developer keeps Playwright's default (`undefined`), and
  * `AF_E2E_WORKERS` overrides both. A value that is not a positive integer throws: `Number('two')` would reach
  * Playwright as `NaN`.

@@ -1,4 +1,4 @@
-// The build's publish target picks the adapter: Ruken by default, the web adapter under `automata-web` (PUB spec §3).
+// The build's publish target picks the adapter: Ruken by default, the web adapter under `automata-web`.
 import { makeHosting } from '@mcthaydt/automata/target'
 import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
 import { Context, Duration, Effect, ExecutionStrategy, Layer, Scope, Stream } from 'effect'
@@ -44,7 +44,7 @@ import { notifyFailure } from './notify-failure.js'
 
 /**
  * The content hash formula: hex64(xxhash64(utf8(canonicalJson(data)))).
- * Matches @mcthaydt/automata-content's contentHash formula (M1.3), pinned by tests.
+ * Matches @mcthaydt/automata-content's contentHash formula, pinned by tests.
  */
 export function contentHashOf(data: unknown): string {
   return hex64(xxhash64(utf8(canonicalJson(data))))
@@ -67,12 +67,12 @@ function withPreload(
   return { ...assets, screens: { ...screens, [screen]: { files } } }
 }
 
-/** The context-lost panel's English default (M3 spec §5, §7), in Ruken's quiet tone. */
+/** The context-lost panel's English default, in Ruken's quiet tone. */
 const CONTEXT_LOST_COPY_EN = 'The picture stopped. Try again to bring it back.'
 
 /**
  * Ruken's save key pattern (/^[A-Za-z0-9._:-]{1,128}$/, sdk/src/save-map.ts).
- * Refused keys fail with HostError{code: 'INVALID_PAYLOAD', operation: 'saves.get'} (spec §4 step 3).
+ * Refused keys fail with HostError{code: 'INVALID_PAYLOAD', operation: 'saves.get'}.
  */
 const SAVE_KEY_RE = /^[A-Za-z0-9._:-]{1,128}$/
 
@@ -84,10 +84,8 @@ export interface BootProgramOptions {
 }
 
 /**
- * Builds the Context<RuntimeServices> containing all 14 runtime tags (spec §3.1, §4; `Locale` from PRODUCT.L1;
- * `Audio` and `AudioBuses`, one service, from M5.3; `Leaderboards` from M5.7; `Haptics` from the Settings redo;
- * `Saves` from M5.2).
- * Extracted so RuntimeTest reuses the exact service wiring (Task 18).
+ * Builds the Context<RuntimeServices> containing all 14 runtime tags (`Audio` and
+ * `AudioBuses` are one service). Its own function so RuntimeTest reuses the exact service wiring.
  */
 export function buildRuntimeServices(services: {
   readonly hosting: Hosting
@@ -123,7 +121,7 @@ export function buildRuntimeServices(services: {
 }
 
 /**
- * Executes the boot sequence (spec §4 steps 1-7 in order).
+ * Executes the boot sequence, its seven steps in order.
  * Errors are typed in BootError; unexpected defects are caught and mapped to BootDefect.
  */
 export function bootProgram<S>(
@@ -205,10 +203,10 @@ export function bootProgram<S>(
         )
       }
       // A target that does not grant saves (a web page with storage blocked) boots on the defaults and says so on the
-      // paused screen; reading would fail DENIED and stop a game that can run (DIST spec §8 flow 5).
+      // paused screen; reading would fail DENIED and stop a game that can run.
       if (savesKept(hosting)) rawSettings = yield* hosting.saves.get(game.settings.key)
     }
-    // Fields a game keeps on the device go to the frame's own storage unless a test hands over another (M5 spec §4.5).
+    // Fields a game keeps on the device go to the frame's own storage unless a test hands over another.
     const deviceStorage =
       game.seams?.deviceStorage ??
       (typeof window === 'undefined' ? undefined : liveDeviceStorage(window, game.hosting.gameId))
@@ -298,7 +296,7 @@ export function bootProgram<S>(
 
     const time = makeTime(bus)
 
-    // The locale is negotiated, and <html lang dir> set, before the first screen enters (PRODUCT spec §4, L-b).
+    // The locale is negotiated, and <html lang dir> set, before the first screen enters.
     const locale = yield* makeLocale({
       def: game.locale ?? singleLocale(game.content.data.game?.source_language ?? 'en'),
       hosting,
@@ -307,7 +305,7 @@ export function bootProgram<S>(
       element: doc.documentElement,
     })
 
-    // Built now and silent until the first gesture after ready (M5 spec §4.6, §5).
+    // Built now and silent until the first gesture after ready.
     const audio = yield* makeAudio({
       hosting,
       assets,
@@ -332,12 +330,12 @@ export function bootProgram<S>(
       yield* Effect.addFinalizer(() => Effect.sync(stopScores))
     }
 
-    // What a game keeps across screens, handed to each as `ScreenContext.runtime` (DX.2c). Forked here, before the
+    // What a game keeps across screens, handed to each as `ScreenContext.runtime`. Forked here, before the
     // save, because finalizers run last-in, first-out: at shutdown it closes after the current screen and the save's
     // last flush (which may still read what it holds), and before the renderer is destroyed and Hosting closes.
     const keptAcrossScreens = yield* Scope.fork(yield* Scope.Scope, ExecutionStrategy.sequential)
 
-    // The game's save: its slots read from the host now (M5 spec §5, boot step 1), its triggers and its exit flush
+    // The game's save: its slots read from the host now, its triggers and its exit flush
     // live for the session. A failure here is the host's, and boots to the failure panel like a refused settings read.
     const saves = yield* makeSaves(game.saves, { contentHash: game.content.hash }).pipe(
       Effect.provideService(Hosting, hosting),
@@ -420,7 +418,7 @@ export function bootProgram<S>(
 
     yield* flowHandle.start()
 
-    // The landscape gate (standalone) and the rotate hint, over every screen for the session (M4 spec §4.9).
+    // The landscape gate (standalone) and the rotate hint, over every screen for the session.
     yield* displayPolicy({
       orientation: game.orientation ?? 'any',
       rotateHint: game.rotateHint ?? 'block',

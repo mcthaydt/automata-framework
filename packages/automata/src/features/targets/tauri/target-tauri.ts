@@ -1,4 +1,4 @@
-// The `tauri` target's adapter entry points (DIST spec §5.3, §6.1); `entries/target/tauri.ts` re-exports them.
+// The `tauri` target's adapter entry points; `entries/target/tauri.ts` re-exports them.
 import {
   bridgeHosting,
   bridgeLayer,

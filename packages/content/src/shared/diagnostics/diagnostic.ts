@@ -20,20 +20,20 @@ export type DiagnosticCode =
   | 'invalidPalette'
   | 'invalidGame'
   | 'missingAsset'
-  /** A file an asset build reads is not what it should be: not a PNG, or too large for an atlas page (M5.6). */
+  /** A file an asset build reads is not what it should be: not a PNG, or too large for an atlas page. */
   | 'invalidAsset'
-  /** A drawn pixel of an atlas frame is not a colour of the game's declared palette (M5.6). */
+  /** A drawn pixel of an atlas frame is not a colour of the game's declared palette. */
   | 'offPalette'
   /**
    * A message, or a language's name in the language picker, has a character that no font subset of its language
-   * holds (M5.5, M5.5F, PRODUCT.L's L-e).
+   * holds.
    */
   | 'missingGlyph'
   | 'duplicateMessageKey'
   | 'staleTranslation'
   | 'staleArtifact'
   | 'reservedKey'
-  /** A sim kind refers to a kind the sim does not receive (M2.2). */
+  /** A sim kind refers to a kind the sim does not receive. */
   | 'simReference'
   /** A warning, never a refusal: a file in a content folder the compiler does not read. */
   | 'skippedFile'

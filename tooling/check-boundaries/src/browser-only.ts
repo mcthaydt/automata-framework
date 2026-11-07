@@ -5,7 +5,7 @@ import type { Finding } from './check.ts'
 import { collectSources } from './files.ts'
 import { readImports, resolveRelative } from './imports.ts'
 
-// The `--browser` check (core and 2D refactor spec §3.5 and §4, ADR 0003 as changed by decision D2): no file a
+// The `--browser` check (Effect stays in Node tooling, ADR 0003): no file a
 // browser entry reaches imports Effect, a Node built-in or a Node-only library. Reachability follows relative value
 // imports from the entry files in `src/entries/`. `import type` brings no code, so it neither counts nor leads
 // anywhere.

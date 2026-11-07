@@ -1,4 +1,4 @@
-// The HTML the runner generates (EX spec §5): one page per example and the index. No example has its own
+// The HTML the runner generates: one page per example and the index. No example has its own
 // index.html; every page comes from here.
 import { hostedQuery } from '../host/ports.ts'
 import type { CatalogEntry } from './catalog.ts'
@@ -54,7 +54,7 @@ export function examplePage(
   )
 }
 
-/** A pending example's page: it says what it waits for and runs nothing (EX spec §7). */
+/** A pending example's page: it says what it waits for and runs nothing. */
 export function pendingPage(entry: Pick<CatalogEntry, 'id'> & { readonly pending: string }): string {
   return page(
     `${entry.id}: pending`,
@@ -62,7 +62,7 @@ export function pendingPage(entry: Pick<CatalogEntry, 'id'> & { readonly pending
   )
 }
 
-/** One example's source, as written, for the viewer's second frame (EX.5). Static text: it runs nothing. */
+/** One example's source, as written, for the viewer's second frame. Static text: it runs nothing. */
 export function sourcePage(entry: Pick<CatalogEntry, 'id'>, source: string): string {
   return page(
     `${entry.id}: source`,

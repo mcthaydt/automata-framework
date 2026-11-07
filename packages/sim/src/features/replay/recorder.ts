@@ -1,4 +1,4 @@
-// Records a run as a Replay while stepping it (M2.3 spec §3.4 and §4). Nothing else may step the sim while it
+// Records a run as a Replay while stepping it. Nothing else may step the sim while it
 // records; the recorder notices when something did and refuses to continue, since the replay would be wrong.
 
 import { canonicalJson } from '../../shared/hash/canonical'

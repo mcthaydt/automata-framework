@@ -1,4 +1,4 @@
-// `content.d.ts`: typed access to compiled content (A0+A1 spec §5), so game code gets autocomplete and a
+// `content.d.ts`: typed access to compiled content, so game code gets autocomplete and a
 // type error for an ID that does not exist.
 //
 // Item types come from each schema through Zod's own `z.toJSONSchema` (output side), rendered to TypeScript
@@ -152,7 +152,7 @@ export function renderTypes(input: TypesInput): string {
   if (input.hasGame) lines.push('    readonly game: GameSource')
   if (input.hasAssets) lines.push('    readonly assets: AssetsSource')
   lines.push('  }', '')
-  // What the sim receives (M2.2 spec §3.3). A plain interface with no index signature, so a game's sim code
+  // What the sim receives. A plain interface with no index signature, so a game's sim code
   // that casts `ctx.content as SimContentData` gets a type error for anything the sim does not hold.
   lines.push('  export interface SimContentData {')
   lines.push(TUNING_FIELD, ...simFields)

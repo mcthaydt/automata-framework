@@ -1,5 +1,5 @@
-// `automata build [dir] [--debug]` (FR.3). `--debug` builds with the debug constant on (`__AUTOMATA_DEBUG__`), so a game's dev-only
-// tools (Plus's debug overlay) are present in the bundle; a release build, the default, drops them. `--target` arrives with M8.5.
+// `automata build [dir] [--debug]`. `--debug` builds with the debug constant on (`__AUTOMATA_DEBUG__`), so a game's dev-only
+// tools (Plus's debug overlay) are present in the bundle; a release build, the default, drops them. It takes no `--target` yet.
 
 export interface BuildOptions {
   /** The game folder; the working folder when undefined. */

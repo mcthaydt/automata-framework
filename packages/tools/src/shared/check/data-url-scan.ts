@@ -1,7 +1,7 @@
 import { globalName, isNode, type Node, parseBundle, stringValue, unwrap } from './bundle-ast.ts'
 import type { CheckFinding } from './check-report.ts'
 
-// The `data-urls` scan (DX.5a): finds the assets Vite inlined as `data:` URLs in a built bundle. Vite inlines any
+// The `data-urls` scan: finds the assets Vite inlined as `data:` URLs in a built bundle. Vite inlines any
 // asset under `build.assetsInlineLimit` (4 kB by default), and for `new URL('./sheet.png', import.meta.url)` it
 // writes `new URL("data:image/png;base64,…", "" + import.meta.url)`. Pixi's texture and JSON loaders and AF's audio
 // fetch such a URL, and Ruken's CSP has no `data:` in `connect-src` or `media-src` (only `img-src` and `font-src`

@@ -1,4 +1,4 @@
-// The evidence file (DX spec §3.10): what one parity run on `main` proved, for the website to render
+// The evidence file: what one parity run on `main` proved, for the website to render
 // instead of hard-coded claims. Every value is read from a run or an artifact by cli.ts; nothing here is typed by
 // hand. The website validates the file with this schema (cli.ts also writes it out as JSON Schema).
 import { z } from 'zod'
@@ -73,9 +73,8 @@ export const PackageSchema = z.object({
 })
 
 /**
- * The `automata check` results for the `create-game` output. Neither exists yet: `create-game` is DX.5 and
- * `automata check` is DX.6. Until they land the file says so, and a "checked" shape is added with them (02,
- * follow-up DX.9a); nothing else is accepted, so a file cannot claim results that were never produced.
+ * The `automata check` results for the `create-game` output. Until they are recorded the file says so, and a
+ * "checked" shape is added with them; nothing else is accepted, so a file cannot claim results that were never produced.
  */
 export const AutomataCheckSchema = z.object({
   status: z.literal('pending'),

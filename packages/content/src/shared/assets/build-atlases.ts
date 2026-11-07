@@ -1,4 +1,4 @@
-// The atlas build (M5 spec §4.7, M5-D8). Reads `content/atlases.toml`, packs each atlas's folder of PNG frames
+// The atlas build. Reads `content/atlases.toml`, packs each atlas's folder of PNG frames
 // with the deterministic packer, and returns the page images and Pixi's Spritesheet data, keyed by file name.
 // Writing them is the caller's (the CLI's): the build itself never touches the outputs, so a check can run it.
 //

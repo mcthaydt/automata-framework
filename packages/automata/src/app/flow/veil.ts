@@ -1,4 +1,4 @@
-// FloorFifty managers/veil.ts createDomVeil: full-cover DOM veil for screen transitions (spec §3.6)
+// FloorFifty managers/veil.ts createDomVeil: full-cover DOM veil for screen transitions
 import { Duration, Effect, type Scope } from 'effect'
 
 export const FADE_MS = 350
@@ -16,7 +16,7 @@ export interface MakeVeilOptions {
 }
 
 /**
- * Creates the fade veil (FloorFifty veil.ts createDomVeil; spec §3.6).
+ * Creates the fade veil.
  * Covers with --af-surface over 350 ms (100 ms under reduced motion) and reveals over 350 ms (100 ms).
  * Takes pointer events while covering and releases when reveal finishes.
  * If DOM insertion/writes fail, cover returns false and the transition edge becomes a cut.

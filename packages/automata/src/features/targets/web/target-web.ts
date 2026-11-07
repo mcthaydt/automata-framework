@@ -1,4 +1,4 @@
-// The `itch` and `web` targets' adapter entry points (DIST spec §5.3); `entries/target/web.ts` re-exports them.
+// The `itch` and `web` targets' adapter entry points; `entries/target/web.ts` re-exports them.
 // They take the Ruken adapter's arguments, so `@mcthaydt/automata/target` can swap one for the other; the second
 // argument is the Ruken SDK's test seam and means nothing here.
 import {

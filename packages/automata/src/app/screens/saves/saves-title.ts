@@ -1,4 +1,4 @@
-// What the default title does with a game's save (M5.2, M5 spec §5 "Load a slot", §7): the slot list as the screen
+// What the default title does with a game's save: the slot list as the screen
 // shows it, and the three things a player does with a slot. A slot is taken before play starts, so a load or write
 // the host refuses leaves the player on the title with the row marked, not in a game that cannot be kept.
 

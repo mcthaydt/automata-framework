@@ -2,7 +2,7 @@ import { Container, Graphics } from 'pixi.js'
 import { classifyFormFactor } from '../../../shared/ui/geometry/form-factor.ts'
 
 /**
- * The most room above the playfield in a portrait view, in screen px (the HUD's top margin, M1 render-pixi spec):
+ * The most room above the playfield in a portrait view, in screen px (the HUD's top margin):
  * the field sits this far down, or centred when centring leaves less room above it.
  */
 export const PORTRAIT_FIELD_TOP = 60

@@ -1,4 +1,4 @@
-// The three ways a compile can end without content (M1.3 spec §3.2). They are Effect tagged errors so a
+// The three ways a compile can end without content. They are Effect tagged errors so a
 // caller handles each by name (`Effect.catchTag`) and the CLI maps them to exit codes.
 
 import { type Cause, Data } from 'effect'

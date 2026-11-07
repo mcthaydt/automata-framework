@@ -16,14 +16,16 @@ task-by-task record; this page is the short version.
 
 ## Where the refactor is
 
-Core and 2D, stage 4 (build). Merged or open: package merge and test move (#393), plain host contract (#394),
-Emberwick rename, feature layout and a smaller root entry (#395). This page's own PR moves the 2026-10 documents to
-`docs/archive/` and rewrites the entry points.
+Core and 2D, stage 4 (build). Open and stacked: package merge and test move (#393), plain host contract (#394),
+Emberwick rename, feature layout and a smaller root entry (#395), the docs move (#396), copy and new Emberwick journeys
+(#397), comments that say why and the `create-game` journey (#398). `automata create-game` now writes a game that runs on
+the default screens.
 
 Still to do in core and 2D:
 
 1. Take Effect out of the runtime, by feature (task 5.4), then check the bundle.
-2. Comments that cite plans (7.2), copy table and new Emberwick journeys (8), the `create-game` journey (8.3).
+2. The rest of the copy table (Settings sections, CLI messages, READMEs) and the boot-failure journey, which needs a
+   refusal switch in Ruken's fake host.
 3. Branch clean-up (9.2), which waits for the Owner.
 
 ## What is next

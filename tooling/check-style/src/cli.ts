@@ -2,8 +2,8 @@
 // --plan-comments also flags comments that cite a milestone, task id or spec section (opt-in, for the roots passed).
 // Checks every production .ts and .svelte file. Tests are exempt by folder: anything under a tests/ folder (where
 // every moved package keeps them) or a testing/ folder (published test helpers). The *.test.ts and *.test.svelte
-// suffixes stay exempt only until the 3D and editor packages move their tests (core and 2D refactor, phase 3). Svelte files get the QB.2 rules (no {@html}, no platform chrome); .ts files the naming rules. Roots after
-// --role-layout are a game's src/ laid out by role (GL spec §5.1): only games/base-3d, until the 3D phase. A game laid out by feature is a package root.
+// suffixes stay exempt only until the 3D and editor packages move their tests. Svelte files get the markup rules (no {@html}, no platform chrome);.ts files the naming rules. Roots after
+// --role-layout are a game's src/ laid out by role: only games/base-3d, until the 3D phase. A game laid out by feature is a package root.
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { checkFile, checkGameRoot, type StyleFinding } from './style.ts'

@@ -1,5 +1,4 @@
-// Paraglide's compile of the content catalogs (PRODUCT spec §4 item 1). Extracted from FloorFifty
-// tools/i18n/compile.ts, apps/client/i18n.config.ts and apps/client/project.inlang/settings.json (ac72660).
+// Paraglide's compile of the content catalogs.
 //
 // FloorFifty commits a `project.inlang` naming its locales and the plugin's path in node_modules. Here the
 // inlang project is generated for each compile in a temporary folder, from the catalogs the content compiler
@@ -9,7 +8,7 @@
 // content's so a game key wins as FloorFifty's UI catalog does.
 //
 // Paraglide's own locale strategies (cookie, localStorage, URL) never run: `baseLocale` only, because the
-// runtime's `Locale` service answers `getLocale` (PRODUCT.L1, `bindParaglide`). Paraglide empties `outdir`
+// runtime's `Locale` service answers `getLocale` (`bindParaglide`). Paraglide empties `outdir`
 // before writing, so the compiler refuses an `outdir` that is not a folder of its own (`paraglideProblems`).
 
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'

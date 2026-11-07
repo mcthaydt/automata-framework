@@ -1,4 +1,4 @@
-// The default Settings screen (M4 spec §4.5, §4.8, §5 "Rebind", M4-D8), reached from paused. Its menu Input has the
+// The default Settings screen, reached from paused. Its menu Input has the
 // game's bindings and its settings, so a rebind saves through the settings store (memory first, then
 // `Hosting.saves`) and the next play session's Input reads it. The view's state is a `$state` object the screen
 // changes in place: a rebind, a pad connecting, a device switch or a capture's countdown never remount it.
@@ -146,7 +146,7 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
           }),
         )
 
-        // Sound that fails to start, and the host's volume, change the Audio group in place (M5.4).
+        // Sound that fails to start, and the host's volume, change the Audio group in place.
         yield* Effect.forkScoped(
           Stream.runForEach(audio.available.changes, (available) =>
             Effect.sync(() => {

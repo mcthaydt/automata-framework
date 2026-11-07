@@ -1,5 +1,5 @@
 /**
- * Boot failures and the state each one draws (M1 shared contracts §3; M1.6 spec §3.6).
+ * Boot failures and the state each one draws.
  *
  * The runtime owns `BootError`; ui draws it. `BootFailure` is the structural view the runtime's
  * union must satisfy, so ui never imports the runtime. The match is exhaustive: a new tag fails
@@ -8,7 +8,7 @@
 
 import type { ErrorCode as HostErrorCode } from '../../host/error-code.schema.ts'
 
-/** The host contract's error code (DIST spec §4.1). */
+/** The host contract's error code. */
 export type ErrorCode = HostErrorCode
 
 /**
@@ -32,12 +32,11 @@ export type BootFailure =
     }
   | { readonly _tag: 'RendererUnavailable'; readonly tried: readonly ('webgl2' | 'webgpu')[] }
   | { readonly _tag: 'BootDefect' }
-  /** A 3D model file that could not be read (M3 spec §6): `file` is its url, `reason` why. */
+  /** A 3D model file that could not be read: `file` is its url, `reason` why. */
   | { readonly _tag: 'ModelInvalid'; readonly file: string; readonly reason: string }
 
 /**
- * `Hosting['kind']` (shared contracts §1.1), written out because ui never imports host. A `web` session (PUB
- * spec §3) draws as `standalone`: it has no host to go back to.
+ * `Hosting['kind']`, written out because ui never imports host. A `web` session draws as `standalone`: it has no host to go back to.
  */
 export type HostKind = 'ruken' | 'standalone' | 'tauri'
 
@@ -74,7 +73,7 @@ export interface BootFailureViewModel {
 export type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction | 'quit', string>>
 
 /**
- * English defaults in Ruken's tone (quiet, human, no blame); replaced by Paraglide keys in M5. `{host}` is filled
+ * English defaults, quiet and human, with no blame; a game replaces them with its own copy. `{host}` is filled
  * with the host's name (`Hosting.hostName`: 'Ruken', 'itch.io' …) by `withHostName`.
  */
 export const BOOT_FAILURE_COPY_EN: BootFailureCopy = {
@@ -89,7 +88,7 @@ export const BOOT_FAILURE_COPY_EN: BootFailureCopy = {
   retry: 'Try again',
   continue: 'Continue without loading',
   exit: 'Back to {host}',
-  // The exit action's words on the desktop, where leaving the game quits the app (DIST spec §8 flow 2).
+  // The exit action's words on the desktop, where leaving the game quits the app.
   quit: 'Quit',
 }
 
@@ -114,7 +113,7 @@ export function withHostName(text: string, hostName: string): string {
 
 /**
  * Which state a failure draws and which ways forward it offers. `canExit` is whether the host granted `exit`;
- * without it "Back to …" is never offered (PUB spec §3.1).
+ * without it "Back to …" is never offered.
  *
  * - Host start (`init`): `Ruken.init` threw. Try again when Ruken says a retry can succeed;
  *   otherwise it is a build or config fault (a bad `gameId` or `wants`) the player cannot fix, so
@@ -124,7 +123,7 @@ export function withHostName(text: string, hostName: string): string {
  *   playing on without the player's saves would silently fork their progress.
  * - Renderer: nothing on this device can fix it. Inside Ruken the player goes back; a standalone
  *   page has nowhere to go, so its panel is final.
- * - Model: a 3D model file did not parse (M3 spec §6). Try again fetches it again in a fresh boot; when the file
+ * - Model: a 3D model file did not parse. Try again fetches it again in a fresh boot; when the file
  *   stays damaged, the host's way out is offered beside it.
  * - Everything else: Try again, which re-runs the boot program in a fresh scope (never a page reload
  *   inside a Ruken frame).
@@ -135,7 +134,7 @@ export function bootFailureView(
   canExit: boolean,
 ): BootFailureViewModel {
   const view = viewFor(failure, hostKind)
-  // "Back to …" needs the host's `exit` grant (PUB spec §3.1). Without it the panel offers what is left, or
+  // "Back to …" needs the host's `exit` grant. Without it the panel offers what is left, or
   // is final; it never turns exit into Continue, which would fork a hosted player's progress.
   return canExit ? view : { state: view.state, actions: view.actions.filter((action) => action !== 'exit') }
 }

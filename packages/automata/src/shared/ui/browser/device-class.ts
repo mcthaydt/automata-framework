@@ -1,6 +1,6 @@
 /**
- * Phone, tablet or desktop, from the primary pointer and the screen
- * (FloorFifty unlockables spec §3). Not `form-factor.ts`, which classifies the
+ * Phone, tablet or desktop, from the primary pointer and the screen.
+ * Not `form-factor.ts`, which classifies the
  * viewport's shape: a resized laptop window must not count as a second device.
  *
  * Decided once at boot. Rotating or resizing never changes it.

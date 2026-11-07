@@ -1,2 +1,2 @@
-// @mcthaydt/automata-content/locale: the browser-safe locale entry (PRODUCT.L2).
+// @mcthaydt/automata-content/locale: the browser-safe locale entry.
 export * from '../shared/locale/index'

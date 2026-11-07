@@ -10,7 +10,7 @@ export interface QualityBuild<T> {
 }
 
 /**
- * Keeps something built for the player's quality tier (M4 spec §4.11), rebuilding it when the tier changes.
+ * Keeps something built for the player's quality tier, rebuilding it when the tier changes.
  *
  * Quality decides which passes a build makes at all, so a change is a rebuild, not a toggle. The old build is
  * destroyed before the new one is made: two live builds would both hold their GPU resources. From FloorFifty

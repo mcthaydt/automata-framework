@@ -1,4 +1,4 @@
-// `content/fonts.toml` (M5 spec §4.7 Fonts, M5-D7): each source font by name, committed by the game, with the
+// `content/fonts.toml`: each source font by name, committed by the game, with the
 // sha256 of its bytes, its licence and the content languages it serves. From FloorFifty
 // packages/asset-contract/fonts-src/sources.json (ac72660), without the url: AF never fetches a font.
 //
@@ -36,7 +36,7 @@ export const fontsSchema: z.ZodType<FontsFile> = z.strictObject({
 
 /**
  * `fonts.json`, which `buildFonts` writes beside the subsets: for each font, its subset file for each language
- * (`{ "pixel": { "en": "pixel-en-0123abcd.woff2" } }`). The preload list reads it back (M5.6F.2).
+ * (`{ "pixel": { "en": "pixel-en-0123abcd.woff2" } }`). The preload list reads it back.
  */
 export type FontFiles = Readonly<Record<string, Readonly<Record<string, string>>>>
 

@@ -1,7 +1,7 @@
 import type { Snippet } from 'svelte'
 
 /**
- * The action bar's model (M1.6 spec §3.4; from FloorFifty `ui/layout/action-bar.ts` at 122a220).
+ * The action bar's model.
  *
  * One row of actions that gives way in a fixed order as its container narrows, so the primary
  * action is the last thing to lose its words:

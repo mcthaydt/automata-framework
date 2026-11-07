@@ -440,7 +440,8 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
       'pnpm install --frozen-lockfile',
       'pnpm check',
       'pnpm test:browser:core',
-      'pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples',
+      'pnpm exec turbo run build --filter @mcthaydt/automata-tools',
+      'pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples --filter @mcthaydt/automata-tools',
     ])
   })
 
@@ -525,7 +526,7 @@ describe('ci.yml (AF)', () => {
     expect(runs.some((run) => run.includes('test:dist'))).toBe(false)
   })
 
-  it('runs the 2D journeys on every ready pull request and push to main: Emberwick in Chromium and WebKit, and the examples', () => {
+  it('runs the 2D journeys on every ready pull request and push to main: Emberwick in Chromium and WebKit, the examples and create-game', () => {
     const job = ci.jobs['e2e-2d']
     expect(job?.needs).toBe('checks')
     expect(job?.if).toContain('!cancelled()')
@@ -533,7 +534,10 @@ describe('ci.yml (AF)', () => {
     expect(job?.if).toContain("needs.checks.outputs.docs_only != 'true'")
     expect(job?.['timeout-minutes']).toBe(30)
     const runs = (job?.steps ?? []).map((step) => step.run ?? '')
-    expect(runs).toContain('pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples')
+    expect(runs).toContain('pnpm exec turbo run build --filter @mcthaydt/automata-tools')
+    expect(runs).toContain(
+      'pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples --filter @mcthaydt/automata-tools',
+    )
     expect(JSON.stringify(job?.steps)).toContain('e2e-report')
   })
 

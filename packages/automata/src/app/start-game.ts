@@ -3,7 +3,7 @@ import { runGame } from './boot/run-game.ts'
 import { type DefinedGame, defineGame, type GameSpec, isDefinedGame } from './define-game.ts'
 
 /**
- * Boots a game (DX spec §3.1): `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting
+ * Boots a game: `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting
  * and the default screens, then the runtime's boot on the game's root. Takes a spec or a game `defineGame`
  * already returned. Throws `BootDefect` before anything mounts when the spec is invalid or there is no
  * root (`spec.root`, else `#game`); a failure after that shows on the runtime's boot failure panel.

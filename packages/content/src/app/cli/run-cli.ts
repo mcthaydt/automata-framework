@@ -1,4 +1,4 @@
-// The `automata-content` command (M1.3 spec §3.10). Ports FloorFifty packages/content/bin/content.ts
+// The `automata-content` command. Ports FloorFifty packages/content/bin/content.ts
 // (122a220): `check` compiles and writes nothing, `build` also writes the outputs, `docs` regenerates the
 // tunable table in the authoring guide, and `check --verify-artifact` is the repository gate that proves the
 // committed outputs and the guide still describe the TOML.
@@ -6,12 +6,12 @@
 // FloorFifty's `watch` is the Vite plugin's job here. Exit codes: 0 clean, 1 content problems (every one
 // printed), 2 a usage, config or write error.
 //
-// `assets` (M5.6, M5.5) builds the atlases named in `content/atlases.toml` into `<outDir>/atlases/` and the font
+// `assets` builds the atlases named in `content/atlases.toml` into `<outDir>/atlases/` and the font
 // subsets named in `content/fonts.toml` into `<outDir>/fonts/`. It is its own command because it reads image and
 // font files the content compile never touches, and its outputs are binary.
 //
 // Options come from `automata.content.ts` in the working directory (its default export, `ContentConfig`)
-// until M1.8's `automata.config.ts` replaces it. It is loaded through Vite's module runner, so it can be
+// for now; one `automata.config.ts` may replace it. It is loaded through Vite's module runner, so it can be
 // TypeScript and import the game's schemas the way the game's own code does.
 
 import { join } from 'node:path'

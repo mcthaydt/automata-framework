@@ -1,4 +1,4 @@
-// The committed API report of one core package (PRODUCT spec §2 F6): a heading per entry point, a heading and
+// The committed API report of one core package: a heading per entry point, a heading and
 // a `ts` block per export. It carries no version, so a release alone never makes it stale. `parseReport` reads
 // it back, so the break check can compare the report on `origin/main` with the current API.
 import type { ApiEntry, ApiExport, ApiKind, PackageApi } from './extract.ts'

@@ -8,7 +8,7 @@ export interface IncomingMessage {
 }
 
 /**
- * Which messages a frame acts on (website playground spec §5.1): one `run`, ever, and only from the page that framed
+ * Which messages a frame acts on: one `run`, ever, and only from the page that framed
  * it, which is `parentWindow` with the site's origin (the frame's document URL is on the site, though its own origin
  * is opaque). Anything else is dropped, and dropping it leaves the gate open for the real run.
  */

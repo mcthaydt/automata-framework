@@ -1,6 +1,6 @@
-// Where the asset build's outputs go (M5 spec §4.7). `automata-content assets` writes the atlases to
+// Where the asset build's outputs go. `automata-content assets` writes the atlases to
 // `<outDir>/atlases/` and the font subsets to `<outDir>/fonts/`, and a game's build serves them in the same
-// folders, `atlases/` and `fonts/` (M5.6F.2's preload list looks for them there; M5.6F.1's build hook puts them
+// folders, `atlases/` and `fonts/` (the preload list looks for them there; the build hook puts them
 // there). The writers and the readers take every name from here, so the layout has one owner.
 
 /** The atlas pages' folder, below `outDir` and in the build. */

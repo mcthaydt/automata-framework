@@ -9,8 +9,8 @@ import { type KitManifest, kitManifestSchema } from './kit-manifest.schema.ts'
 import { KitSource, type KitSourceError } from './kit-source.ts'
 import { entryKind, type Placement, placeFiles } from './place-files.ts'
 
-// `automata add <kit>` (PRODUCT spec §9, PRODUCT.5 plan 5d): read the installed core version, clone the Plus
-// repository at the matching `core-v<version>` tag (P5-D6), check the kit before touching the game, copy its files
+// `automata add <kit>`: read the installed core version, clone the Plus
+// repository at the matching `core-v<version>` tag, check the kit before touching the game, copy its files
 // as one change, then run `automata check`. The add itself runs nothing from the kit, but the check after it runs
 // the kit's tests and loads any config the kit adds (a `vite.config.ts`, say): once copied, a kit is trusted code.
 // The path rules in `kit-manifest.schema.ts` keep a kit out of `.git` and `node_modules`; they are not a sandbox.

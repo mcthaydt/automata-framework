@@ -1,5 +1,5 @@
-// What the default paused screen does with a game's save (M5.2, M5 spec §5 "Change while running", §7): the host's word
-// on the progress, and the choice offered once another device has changed the slot being played (M5-D6).
+// What the default paused screen does with a game's save: the host's word
+// on the progress, and the choice offered once another device has changed the slot being played.
 
 import { Effect, Runtime, type Scope, Stream } from 'effect'
 import type { Save } from '../../../features/saves/save.manager.ts'

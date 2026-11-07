@@ -3,7 +3,7 @@ import { exit } from '@tauri-apps/plugin-process'
 import { load } from '@tauri-apps/plugin-store'
 import type { DesktopPort, StoreLike } from './hosting-tauri'
 
-/** The store file in the app's data folder that holds the game's saves (DIST spec §6.1). */
+/** The store file in the app's data folder that holds the game's saves. */
 export const SAVES_STORE_FILE = 'saves.json'
 
 /**

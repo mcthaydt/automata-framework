@@ -1,4 +1,4 @@
-// The host contract (DIST spec §4): every name a game, a package or a target's adapter uses to talk about the host.
+// The host contract: every name a game, a package or a target's adapter uses to talk about the host.
 export { type AudioChange, AudioChangeSchema } from './audio.schema'
 export { CAPABILITIES, type Capability, CapabilitySchema } from './capability.schema'
 export {

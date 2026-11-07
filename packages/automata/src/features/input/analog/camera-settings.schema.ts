@@ -1,14 +1,14 @@
 import { z } from 'zod'
 
 /**
- * The range of "Camera turn speed" in degrees per dragged pixel (M4 spec §16.3.6, M3 spec §4.2): 0.25° by default,
+ * The range of "Camera turn speed" in degrees per dragged pixel: 0.25° by default,
  * so a 1,440 px sweep is one full turn. A Settings slider steps through it.
  */
 export const CAMERA_TURN_SPEED = { min: 0.05, max: 1, step: 0.05, default: 0.25 } as const
 
 /**
  * The player's camera choices, `camera` in the core settings: how far a dragged pixel turns the camera, and whether
- * the turn is inverted. The one owner of their shape: the game's Settings rows (GAME-3D) and its command mapping
+ * the turn is inverted. The one owner of their shape: the game's Settings rows and its command mapping
  * (`turnUnitsFromPixels`) read them from here.
  */
 export interface CameraSettings {

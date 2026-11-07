@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync
 import { join } from 'node:path'
 import { publishablePackages, workspacePackages } from '../../release/src/publishable-packages.ts'
 
-// Packs the workspace for a project outside it (PRODUCT.5b). Two consumers: the consumer smoke, which installs
+// Packs the workspace for a project outside it. Two consumers: the consumer smoke, which installs
 // what a game would get, and `automata-plus`, which installs core from a pinned commit while core has no
 // registry (P5-D1). A tarball from `pnpm pack` has `workspace:*` turned into exact versions and `publishConfig`
 // applied, so the project sees what the registry would serve; an override that points each `@mcthaydt/*` name at

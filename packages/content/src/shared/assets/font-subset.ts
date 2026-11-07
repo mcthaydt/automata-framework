@@ -1,5 +1,5 @@
 /// <reference path="./subset-font.d.ts" />
-// Font subsetting and coverage (M5 spec §4.7 Fonts, M5-D7). Extracted from FloorFifty
+// Font subsetting and coverage. Extracted from FloorFifty
 // packages/asset-contract/tools/subset-fonts.ts (`subset-font` to woff2) and tests/client/i18n/fonts.test.ts
 // (`fontkit` reading the subset back), at ac72660.
 //

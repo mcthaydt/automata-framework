@@ -7,7 +7,7 @@ import { makeExitHandlers } from '../exit-handlers'
 import { createWebHosting, type WebPage } from '../web/hosting-web'
 
 /*
- * The `tauri` adapter (DIST spec §4.3, §6.1): `Hosting` for a desktop build. The game runs in Tauri's webview, so the
+ * The `tauri` adapter: `Hosting` for a desktop build. The game runs in Tauri's webview, so the
  * web adapter observes lifecycle, input, display, audio and fullscreen from the page as it does in a browser. What
  * the desktop adds: saves in one store file in the app's data folder (never `localStorage`, never memory), Quit,
  * and the window's close request, both of which run the game's exiting handlers and the save flush before the app
@@ -47,7 +47,7 @@ export async function createTauriHosting(
 ): Promise<Hosting> {
   const web = createWebHosting(options, page, 'web')
   let open = true
-  // A store that cannot be read leaves saves ungranted (DIST-d): no fallback to the page's storage or to memory.
+  // A store that cannot be read leaves saves ungranted: no fallback to the page's storage or to memory.
   const store = await desktop.loadStore().then(
     (loaded): StoreLike | null => loaded,
     () => null,
@@ -76,7 +76,7 @@ export async function createTauriHosting(
         await s.save()
         return { persisted: 'device' as const }
       }),
-    // Code-unit order, as every adapter sorts (M5 spec §4.1).
+    // Code-unit order, as every adapter sorts.
     keys: () => onStore('saves.keys', async (s) => [...(await s.keys())].sort()),
     // One app, one writer: nothing else changes the store while the game runs.
     changed: web.saves.changed,

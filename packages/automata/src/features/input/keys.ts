@@ -1,6 +1,5 @@
-// keys(): held keys, on-screen touch buttons and gamepad buttons turned into one command per tick (DX spec
-// §3.3). Extracted from Emberwick's input (games/emberwick/src/input/keys.ts and devices.ts at the EX.2 move,
-// `6d8e5c7`): keys by `KeyboardEvent.code`, touch buttons that hold while pressed, everything released when the
+// keys(): held keys, on-screen touch buttons and gamepad buttons turned into one command per tick:
+// keys by `KeyboardEvent.code`, touch buttons that hold while pressed, everything released when the
 // window loses focus. It sends what is held, never a "pressed" edge: the sim compares this tick's command with
 // the last one's, so a replay stays a pure function of the command stream.
 
@@ -28,44 +27,44 @@ export interface TouchButton {
   readonly id: string
   readonly label: string
   readonly keys: readonly string[]
-  /** Which lower corner's group it sits in (M4 spec §4.4). Default `start`; a game moves buttons to `end` itself. */
+  /** Which lower corner's group it sits in. Default `start`; a game moves buttons to `end` itself. */
   readonly side?: 'start' | 'end' | undefined
-  /** The game cannot be played without it: where the touch buttons do not all fit, only these show (M4.7). */
+  /** The game cannot be played without it: where the touch buttons do not all fit, only these show. */
   readonly required?: boolean | undefined
 }
 
 /** The input map attached to a window for one play session. */
 export interface InputSource {
-  /** This tick's command, if any: one per tick, never an edge (DX spec §3.3). */
+  /** This tick's command, if any: one per tick, never an edge. */
   commands(tick: number): readonly Command[]
   /** A touch button pressed or released (its `TouchButton.id`). */
   hold(buttonId: string): void
   release(buttonId: string): void
-  /** Gestures from a `SwipeTracker` (M4.3): held swipes and one-tick flicks and taps. */
+  /** Gestures from a `SwipeTracker`: held swipes and one-tick flicks and taps. */
   readonly gesture: GestureSink
   dispose(): void
 }
 
-/** Held keys, touch buttons and gamepad buttons, turned into one command per tick (DX spec §3.3). */
+/** Held keys, touch buttons and gamepad buttons, turned into one command per tick. */
 export interface InputMap {
   readonly command: CommandDef
   /** Whether the play screen shows touch buttons when the player uses touch. */
   readonly touch: boolean
   readonly touchButtons: readonly TouchButton[]
-  /** How the play screen takes touch: its buttons, or swipes over the whole screen (M4 spec §4.4). */
+  /** How the play screen takes touch: its buttons, or swipes over the whole screen. */
   readonly touchMode: TouchMode
   /**
-   * The bindings as data (M4 spec §2.2): one action per distinct payload, id `<command id>-<n>`, with its keys, its
+   * The bindings as data: one action per distinct payload, id `<command id>-<n>`, with its keys, its
    * pad buttons and whether it has a touch button. Rebinding swaps the profile and never the command mapping.
    */
   readonly profile: InputProfile
-  /** Each action's name, as the Settings screen's Controls section lists it (M4.4). */
+  /** Each action's name, as the Settings screen's Controls section lists it. */
   readonly labels: Readonly<Record<string, string>>
   /** Whether the play screen shows the touch stick (the `analog.touchStick` option). */
   readonly touchStick: boolean
   /**
    * Pure: the one command for the held actions, merged in iteration order (a later action wins per field). With an
-   * `analog` option, `reading` adds the sticks and the drag (M4 spec §17); without one it is ignored.
+   * `analog` option, `reading` adds the sticks and the drag; without one it is ignored.
    */
   toCommand(held: Iterable<string>, tick: number, reading?: AnalogReading): readonly Command[]
   attach(target: Window): InputSource
@@ -85,16 +84,16 @@ export interface KeysOptions<Z extends z.ZodType> {
   readonly touch?: boolean
   /** Standard-mapping gamepad button index → payload, polled once per tick. */
   readonly pad?: Readonly<Record<number, Payload<Z>>>
-  /** Touch gesture → payload (M4.3): a swipe holds while the finger steers, a flick or a tap lasts one tick. */
+  /** Touch gesture → payload: a swipe holds while the finger steers, a flick or a tap lasts one tick. */
   readonly gestures?: Readonly<Partial<Record<GestureName, Payload<Z>>>>
-  /** Default `buttons` when the map has touch buttons, else `swipe`. The player's setting is M4.4's. */
+  /** Default `buttons` when the map has touch buttons, else `swipe`. The player's setting overrides it. */
   readonly touchMode?: TouchMode
-  /** A stick pushed past the deadzone in a direction (`left-left`, `right-up`, …) → payload (M4.2). */
+  /** A stick pushed past the deadzone in a direction (`left-left`, `right-up`, …) → payload. */
   readonly stick?: Readonly<Partial<Record<StickDirection, Payload<Z>>>>
   /** The payload with nothing held. Default: the schema's own defaults (`schema.parse({})`), when it has them. */
   readonly idle?: z.input<Z>
   /**
-   * Keys whose actions the game cannot be played without (M4.7): rebinding never leaves them unbound on a device
+   * Keys whose actions the game cannot be played without: rebinding never leaves them unbound on a device
    * (M4-D4), and where the touch buttons do not all fit, theirs are the ones that show.
    */
   readonly required?: readonly string[]
@@ -103,7 +102,7 @@ export interface KeysOptions<Z extends z.ZodType> {
    * command and payload (`move x -1`).
    */
   readonly labels?: Readonly<Record<string, string>>
-  /** The sticks and the camera drag, added to the held keys' payload each tick (M4 spec §17). */
+  /** The sticks and the camera drag, added to the held keys' payload each tick. */
   readonly analog?: AnalogOptions<Z>
 }
 
@@ -139,7 +138,7 @@ export function keys<Z extends z.ZodType>(
   // What every payload is merged over: the idle payload, or nothing when the schema has no idle state.
   const base = idleParse.success ? asRecord(idleParse.data) : asRecord(options.idle)
 
-  // A binding the schema refuses is a developer error, thrown now rather than dropped every tick (DX spec §6).
+  // A binding the schema refuses is a developer error, thrown now rather than dropped every tick.
   const check = (where: string, payload: unknown): void => {
     const parsed = schema.safeParse({ ...base, ...asRecord(payload) })
     if (!parsed.success) {
@@ -201,7 +200,7 @@ export function keys<Z extends z.ZodType>(
           ...(isRequired(action) ? { required: true } : {}),
         },
       ]),
-      // Binding the camera drag is what turns it on (M4 spec §16.3.1); it has no key and no button.
+      // Binding the camera drag is what turns it on; it has no key and no button.
       ...(analog?.drag === true
         ? [[`${command.id}-drag`, { keys: [], pad: [], touch: false, gesture: ['camera-drag'] }]]
         : []),

@@ -1,4 +1,4 @@
-// The Vite plugin (M1.3 spec §3.9): content compiles when Vite starts, and again on every save in dev.
+// The Vite plugin: content compiles when Vite starts, and again on every save in dev.
 // The dev half is FloorFifty's watcher (packages/content/src/watch.ts, 122a220) on Vite's own file watcher
 // and HMR channel instead of chokidar.
 //
@@ -70,7 +70,7 @@ function sameOutcome(previous: BuildOutcome | undefined, next: BuildOutcome): bo
 }
 
 // `simContent` is built from `content`'s own properties (`{ "room": content["room"], ... }`) rather than a
-// second JSON literal, so the bundle holds the data once and the two share their objects (M2.2 spec §3.2).
+// second JSON literal, so the bundle holds the data once and the two share their objects.
 const moduleCode = (content: CompiledContent): string => {
   const simFields = Object.keys(content.sim.data)
     .sort()
@@ -163,7 +163,7 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
     name: 'automata-content',
 
     // Every asset ships as a file. Vite would inline one under 4 kB as a `data:` URL, which Pixi's loader fetches
-    // and Ruken's CSP refuses (`connect-src` has no `data:`), so the asset would never load (DX.5a). A value the
+    // and Ruken's CSP refuses (`connect-src` has no `data:`), so the asset would never load. A value the
     // game sets is kept: this hook's result is merged over the game's own config.
     //
     // It also defines `__AUTOMATA_DEBUG__` (FR.3): true in the dev server and in a build made with `AUTOMATA_DEBUG=1`

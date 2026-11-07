@@ -1,4 +1,4 @@
-// `automata editor` (ED3D.14, ED2D.9): serve an editor against a game checkout, on the loopback by default, or on the
+// `automata editor`: serve an editor against a game checkout, on the loopback by default, or on the
 // network with a token (`--lan`) so a tablet can open it. The server is `serve-editor.ts`; this is the command around it:
 // which build to serve, what to print, and when to refuse. The dependencies are injected so the tests run no server.
 import { randomBytes } from 'node:crypto'

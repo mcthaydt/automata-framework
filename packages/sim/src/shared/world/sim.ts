@@ -29,7 +29,7 @@ import {
   viewSnapshot,
 } from './snapshot'
 
-/** Input to the sim (spec §4.4 rule 4). `source` is a player slot (u8), `seq` a per-source counter (u32). */
+/** Input to the sim, the only way gameplay state changes from outside. `source` is a player slot (u8), `seq` a per-source counter (u32). */
 export interface Command {
   readonly tick: number
   readonly source: number
@@ -102,12 +102,12 @@ export interface Sim {
   entity(sid: number): EntityRef | undefined
   query(...components: ComponentDef[]): EntityRef[]
   resource<Z extends z.ZodType>(def: ResourceDef<Z>): z.output<Z>
-  /** Canonical snapshot v1 bytes (spec §4.6). */
+  /** Canonical snapshot v1 bytes. */
   snapshot(): Uint8Array
   /** Replaces the whole state. Throws SnapshotFormatError / SnapshotMismatchError and leaves the sim unchanged. */
   restore(bytes: Uint8Array): void
   /**
-   * A readable view of `bytes`, or of the current state when none are given (M2.3 spec §3.1). Decodes and checks
+   * A readable view of `bytes`, or of the current state when none are given. Decodes and checks
    * the header as `restore` does (SnapshotFormatError / SnapshotMismatchError) but not restore's later
    * cross-checks, and changes nothing.
    */
@@ -130,7 +130,7 @@ export class SimDisposedError extends Error {
 
 /**
  * A system threw during `step`. The tick was left half-applied, so the sim refuses `step`, `snapshot` and
- * `hash` until a successful `restore` (M2.1 spec §10.2). Failing closed is cheaper than rolling back every tick.
+ * `hash` until a successful `restore`. Failing closed is cheaper than rolling back every tick.
  */
 export class SimFaultedError extends Error {
   readonly system: string
@@ -145,7 +145,7 @@ export class SimFaultedError extends Error {
 }
 
 /**
- * Each definition's id with its Zod schema as JSON Schema, sorted by id, for the schema hash (M2.1 spec §10.4).
+ * Each definition's id with its Zod schema as JSON Schema, sorted by id, for the schema hash.
  * `io: 'input'` describes what a snapshot or command must contain; parts JSON Schema cannot express (a
  * transform's function, a refinement) hash as "any", which is why restore also re-checks values (see restore).
  */
@@ -192,7 +192,7 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
     register('resource', resourceDefs, p.resources)
   }
 
-  // Content: an independent, canonical, deep-frozen copy (spec §4.4 rule 6).
+  // Content: an independent, canonical, deep-frozen copy, so the caller's later edits cannot reach the sim.
   const contentJson = canonicalJson(opts.content === undefined ? {} : opts.content)
   const content = deepFreeze(JSON.parse(contentJson))
   const contentHash = xxhash64(utf8(contentJson))
@@ -260,10 +260,10 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
 
   // Everything that must match for a snapshot to be restorable here.
   const sortedIds = (m: Map<string, unknown>) => [...m.keys()].sort()
-  // `stateful` is only present when a plugin keeps engine state, so every pre-M2.1 schema hash is unchanged.
+  // `stateful` is only present when a plugin keeps engine state, so the schema hash of a sim without such plugins is unchanged.
   const statefulNames = plugins.filter((p) => p.state).map((p) => p.name)
   const stateful = statefulNames.length > 0 ? { stateful: statefulNames } : {}
-  // Likewise `configs` only appears when a plugin has one (M2.1 spec §10.8).
+  // Likewise `configs` only appears when a plugin has one.
   const configured = plugins.filter((p) => p.config !== undefined).map((p) => [p.name, p.config])
   const configs = configured.length > 0 ? { configs: configured } : {}
   const schemaHash = xxhash64(
@@ -284,9 +284,9 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
   )
 
   // Everything above only validates. From here the sim takes resources that must be released if setup fails:
-  // a Koota world (16 per process) and each plugin's engine state (M2.1 spec §10.6).
+  // a Koota world (16 per process) and each plugin's engine state.
   let store = new EntityStore(componentList)
-  // Per-sim engine state (M2.1 spec §3.1), created in canonical plugin order. Only the owning plugin's systems
+  // Per-sim engine state, created in canonical plugin order. Only the owning plugin's systems
   // see it. If one setup rejects, the states already created are disposed before the error propagates.
   const states: Array<{ name: string; state: PluginState }> = []
   const stateOfSystem = new Map<string, PluginState>()
@@ -498,7 +498,7 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
       refuseIfDisposed()
       const data = decodeForThisSim(bytes)
       // Validate everything first, without touching this sim. Then free the old Koota world before building the
-      // new one, so a restore never needs a second world (Koota allows 16 per process; M2.1 spec §10.3).
+      // new one, so a restore never needs a second world (Koota allows 16 per process).
       let rows: Array<{ sid: number; parts: SpawnPart[] }>
       let nextResources: Map<string, unknown>
       let nextRngs: Map<string, Rng>

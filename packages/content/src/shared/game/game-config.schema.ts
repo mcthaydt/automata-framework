@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 /*
- * The keys of a game's `ship.config.ts` that every distribution target reads (DIST spec §4.4), owned by AF. They keep
+ * The keys of a game's `ship.config.ts` that every distribution target reads, owned by AF. They keep
  * the names and snake_case of Ruken's manifest, so a config reads like the `ruken.toml` the Ruken target writes from it;
  * `ruken/conformance.test.ts` holds AF's lists to Ruken's. Fields only Ruken uses (`game.sdk`, `loading`,
  * `leaderboards`) are optional here; the Ruken target requires what Ruken requires.

@@ -1,4 +1,4 @@
-// The playground's loop guard (website playground spec §7.3). The compile step puts a call to it at the top of every
+// The playground's loop guard. The compile step puts a call to it at the top of every
 // loop body. It counts calls and reads the clock once per LOOP_GUARD_SAMPLE of them; the first reading in a stretch of
 // synchronous work records when the stretch began and asks `onStretch` to call back when the stretch ends (the frame
 // posts to itself on a MessageChannel, delivered only once the event loop gets a turn; not animation frames or timers,

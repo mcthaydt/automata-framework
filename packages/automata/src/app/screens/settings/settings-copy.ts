@@ -1,5 +1,5 @@
-// The default Settings screen's English words (M4 spec §4.8): the `settings` part of `DEFAULT_SCREENS_COPY`
-// (screens-copy.ts), which a game overrides in its own language with `copy.screens` (DX.2d).
+// The default Settings screen's English words: the `settings` part of `DEFAULT_SCREENS_COPY`
+// (screens-copy.ts), which a game overrides in its own language with `copy.screens`.
 
 import type { PromptCopy } from '../../../shared/ui/prompts/prompt-label.ts'
 import type { AudioCopy } from './audio-section.ts'

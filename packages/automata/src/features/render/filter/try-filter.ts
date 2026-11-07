@@ -5,7 +5,7 @@ export type FilterDropped = (id: string, reason: string) => void
 
 /**
  * Builds a filter, or returns `undefined` and reports why when it cannot be built or its GLSL does not link
- * (M4 spec §6): a part that cannot be built is absent instead of throwing out of the mount, and the frame draws
+ *: a part that cannot be built is absent instead of throwing out of the mount, and the frame draws
  * without it.
  *
  * Pixi 8 does not throw on a broken program: it logs the shader log and renders with an unusable program

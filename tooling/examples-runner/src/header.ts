@@ -1,4 +1,4 @@
-// The header every example opens with (EX spec §2): a `//` comment block before the first import. The catalog,
+// The header every example opens with: a `//` comment block before the first import. The catalog,
 // the runner, the smoke test and the parity test all read it from here.
 
 /** Fake-host settings for the example (`Host: grant=saves; saves=best:12.5; offline`). */
@@ -24,7 +24,7 @@ export interface Header {
   readonly host?: HostSettings
   /** Ticks the parity test replays. */
   readonly golden?: number
-  /** The open task IDs whose verbs this example waits for, as written (`DX.2, DX.2b`). */
+  /** The open task IDs whose verbs this example waits for, as written, comma-separated. */
   readonly pending?: string
   /** How many lines the header takes, so the catalog counts only the code after it. */
   readonly lines: number

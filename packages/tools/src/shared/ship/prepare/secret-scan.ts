@@ -1,9 +1,9 @@
-// The bundle secret scan (QB spec §4.3, QB-b): a built game is public, so anything in it is published. Before
+// The bundle secret scan: a built game is public, so anything in it is published. Before
 // `ruken.toml` is written (and in `automata check`), every file of the build is read for three things:
-// - known key formats, reported under the rule IDs of the gitleaks release that QB.1 runs over the repository's
+// - known key formats, reported under the rule IDs of the gitleaks release that CI runs over the repository's
 //   history, so the two scans name a key the same way. gitleaks owns the IDs: tooling/repo-hygiene's
-//   gitleaks-rules.test.ts asks the pinned binary for each one (QB.2c). The GitHub and npm formats are also the
-//   Plus registry token's (QB spec §4.4);
+//   gitleaks-rules.test.ts asks the pinned binary for each one. The GitHub and npm formats are also the
+//   Plus registry token's;
 // - the value of any variable in the game folder's `.env*` files, 8 characters or longer (a shorter value such
 //   as `true` or `en` would match by chance). `VITE_` variables are skipped: Vite inlines exactly those into the
 //   bundle, so they are public by design (decided 2026-10-16). A known key format in one is still found above;

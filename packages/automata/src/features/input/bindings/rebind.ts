@@ -1,4 +1,4 @@
-// Rebinding (M4 spec §4.5, M4-D3, M4-D4), as pure functions over the game's profile and the player's overrides.
+// Rebinding, as pure functions over the game's profile and the player's overrides.
 // FloorFifty has no rebinding; these rules are the spec's.
 import { Data, Either } from 'effect'
 import type { TaggedErrorClass } from '../../../shared/runtime/boot-error.js'
@@ -29,7 +29,7 @@ function overrideProblem(override: BindingOverride): boolean {
 }
 
 /**
- * The game's profile with the player's overrides applied (M4 spec §6): an override for an unknown action, one that
+ * The game's profile with the player's overrides applied: an override for an unknown action, one that
  * binds a reserved input, or one with a pad button out of range is dropped and named in `dropped` (sorted), and the
  * defaults stand for it. Overrides saved against another profile are all dropped.
  */
@@ -125,7 +125,7 @@ function overridesFrom(
 }
 
 /**
- * Binds `capture` to `action` on `device` (M4 spec §4.5, M4-D4): it becomes the action's only input there and
+ * Binds `capture` to `action` on `device`: it becomes the action's only input there and
  * leaves every other action live in an overlapping context. Refused, with nothing changed, when the input is
  * reserved or when it would leave a `required` action with nothing on that device. The result is the overrides
  * over `defaults` for the whole profile, ready to save.

@@ -1,4 +1,4 @@
-// The one tsdown setup every published package builds with (M2.4 spec §3.2, §3.4). Each package's
+// The one tsdown setup every published package builds with. Each package's
 // `tsdown.config.ts` names only its entries, its platform and the Ruken packages it bundles.
 //
 // - ESM only, `target: 'es2022'`, `.js`/`.d.ts` names (never `.mjs`), declarations written by oxc from
@@ -10,11 +10,11 @@
 //   keep "external = dependencies" and "bundle Ruken" from ever disagreeing.
 // - A package that bundles Ruken gets a `VENDORED.md` naming the Ruken commit and tarball hashes.
 // - `unbundle` mirrors the source tree, one output file per module, for a package with Svelte rune modules
-//   (runtime, DX.2a): a game's Svelte plugin compiles only files named `*.svelte.js`, so a `.svelte.ts` module
+//: a game's Svelte plugin compiles only files named `*.svelte.js`, so a `.svelte.ts` module
 //   inlined into a bundle would throw `$state is not defined` in the game.
 // - `rukenTypes` are vendored packages the package imports types from, and nothing else. They stay imports in
 //   the declarations here; a declarations-only pass inlines them into `dist/vendor/` and `finishSvelteDist` points
-//   the imports there (ui's layout, M2.4 spec §3.4), because an unbundled build would otherwise copy them under
+//   the imports there (ui's layout), because an unbundled build would otherwise copy them under
 //   `dist/node_modules/`, which npm never publishes.
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'

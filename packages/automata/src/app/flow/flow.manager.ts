@@ -89,7 +89,7 @@ function findByName(root: HTMLElement, name: FocusName): HTMLElement | null {
 }
 
 /**
- * Creates the Flow service and transition queue manager (spec §3.6).
+ * Creates the Flow service and transition queue manager.
  * Follows the 9-step transition order, coordinates single-flight screens,
  * veil fading, loader overlay over missing assets, and menu pauses.
  */
@@ -192,7 +192,7 @@ export function makeFlow<R = never>(
           }
         }
 
-        // (3) Remember what had focus on the screen being left (M4 spec §4.7, F-b), then close the current screen's
+        // (3) Remember what had focus on the screen being left, then close the current screen's
         // scope (its finalizers run in reverse order, replacing DisposeBag)
         if (currentScreenId !== undefined) {
           const name = focusName(options.layers.screens)
@@ -286,7 +286,7 @@ export function makeFlow<R = never>(
           options.time.resume('menu')
         }
 
-        // (7) geometry.remeasure(), then focus (M4 spec §4.7): on a return, the control the player left from, matched
+        // (7) geometry.remeasure(), then focus: on a return, the control the player left from, matched
         // by name because the screen remounted; else [data-autofocus], the first [data-kind="primary"] control, or the
         // first tabbable (ui tabbables)
         options.geometry.remeasure()

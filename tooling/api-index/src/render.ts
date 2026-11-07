@@ -1,5 +1,5 @@
-// The API index's outputs (DX spec §3.8): `api.json` (data), the Markdown reference written as `api.md` (the
-// automata-api skill, §3.7) and `llms-api.txt` (the website), and `llms-full.txt` (the corpus, then the reference).
+// The API index's outputs: `api.json` (data), the Markdown reference written as `api.md` (the
+// automata-api skill) and `llms-api.txt` (the website), and `llms-full.txt` (the corpus, then the reference).
 import { readCorpus } from './corpus.ts'
 import type { ApiExport } from './rows.ts'
 

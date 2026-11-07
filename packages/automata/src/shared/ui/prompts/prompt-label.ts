@@ -1,4 +1,4 @@
-// Device prompts (M4 spec §4.6): what to show for an action on the device in the player's hand. The pad labels follow
+// Device prompts: what to show for an action on the device in the player's hand. The pad labels follow
 // FloorFifty `apps/client/src/ui/glyphs.ts` at `ac72660`: a label printed on the pad itself (A, B, ✕, ○, LB, L1) is
 // the same in every language, and a button known by a word (a generic pad's buttons, Start, Home) comes from the
 // game's words, so it follows a language switch. `ui` cannot read runtime's `Input`, so a prompt is told the binding
@@ -147,7 +147,7 @@ interface KeyboardWithLayout {
 
 /**
  * The keyboard's layout map where the browser has one (`navigator.keyboard`, Chromium), or undefined: where the
- * browser has none or refuses (a cross-origin frame may), prompts name keys by their `code` (M4 spec §6).
+ * browser has none or refuses (a cross-origin frame may), prompts name keys by their `code`.
  */
 export async function readKeyboardLayout(nav: Navigator): Promise<ReadonlyMap<string, string> | undefined> {
   try {

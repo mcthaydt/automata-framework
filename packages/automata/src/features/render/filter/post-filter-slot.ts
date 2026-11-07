@@ -8,12 +8,12 @@ export interface PostFilterTarget {
 }
 
 /**
- * The post-filter slot (PRODUCT spec §2 F1): each owner (an extension, quality tiers, the game) keeps its own
+ * The post-filter slot: each owner (an extension, quality tiers, the game) keeps its own
  * filters under its id, and the slot writes all of them to the target, ordered by `order` (lower first), then
  * by id. Once a slot is in use it owns the target's `filters`; assigning them directly is overwritten on the
  * next change. Filters stay GLSL + WGSL pairs (`filterPrograms`), so WebGL2 keeps parity with WebGPU.
  *
- * Quality tiers (M4 spec §4.11): an owner may declare the lowest tier it runs at. Below it, its filters are left
+ * Quality tiers: an owner may declare the lowest tier it runs at. Below it, its filters are left
  * out of the composed list but kept, so raising the tier brings them back in their place. An owner without a
  * `minTier` (the art direction, such as a palette lock) runs at every tier.
  */

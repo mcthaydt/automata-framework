@@ -1,4 +1,4 @@
-// The `ruken` target's adapter entry points (DIST spec §5.3); `entries/target/ruken.ts` re-exports them.
+// The `ruken` target's adapter entry points; `entries/target/ruken.ts` re-exports them.
 import {
   bridgeHosting,
   bridgeLayer,
@@ -18,5 +18,5 @@ export function createHosting(options: HostingOptions, seams?: HostingSeams): Pr
 /** The adapter the runtime still reads (an Effect), until task 5.4 converts it. */
 export const makeHosting: MakeHosting<HostingSeams> = bridgeHosting<HostingSeams>(createRukenHosting)
 
-/** The single `Hosting` layer for a `ruken` build (shared contracts §1.1). */
+/** The single `Hosting` layer for a `ruken` build. */
 export const HostingLive: HostingLayer<HostingSeams> = bridgeLayer<HostingSeams>(makeHosting)

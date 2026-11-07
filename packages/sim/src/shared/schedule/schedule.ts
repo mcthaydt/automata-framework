@@ -34,7 +34,7 @@ function stableTopo(
   return out
 }
 
-/** Plugins in dependency order, ties broken by name (spec §4.3). */
+/** Plugins in dependency order, ties broken by name. */
 export function orderPlugins(plugins: readonly PluginDef[]): PluginDef[] {
   const byName = new Map<string, PluginDef>()
   for (const p of plugins) {

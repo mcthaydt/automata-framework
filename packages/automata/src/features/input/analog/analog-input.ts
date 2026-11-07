@@ -1,4 +1,4 @@
-// The analog part of `Input` (M4 spec §16.3.4): the touch move stick and the camera drag's pixels. Kept apart from
+// The analog part of `Input`: the touch move stick and the camera drag's pixels. Kept apart from
 // `input.manager.ts`, which owns the held sets this reaches through `press` and `lift`.
 //
 // The touch stick is the left stick while a thumb holds it: its vector goes through the pad's dead zone and

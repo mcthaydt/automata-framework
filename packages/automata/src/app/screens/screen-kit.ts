@@ -1,4 +1,4 @@
-// What the default screens share (DX spec §7, M4 spec §4.7): mounting a component for the screen's life, a window
+// What the default screens share: mounting a component for the screen's life, a window
 // listener, the menu's controller and arrow keys, and the system back gesture.
 
 import { Duration, Effect, Runtime, type Scope } from 'effect'
@@ -45,7 +45,7 @@ export function listen(
 }
 
 /**
- * A menu's controller and arrow keys while it is open (M4 spec §4.7): an Input in the `menu` context, read each
+ * A menu's controller and arrow keys while it is open: an Input in the `menu` context, read each
  * animation frame, steers a `FocusNavigator`. The navigator's guard is armed for the screen change (F-a), so an Enter
  * held from the last screen does not click this one's focused button. `own` is a menu Input the screen made itself
  * (Settings', with the game's bindings); without one it makes one with none.
@@ -84,7 +84,7 @@ export function driveMenu(
 }
 
 /**
- * The system back gesture (an edge swipe, a mouse's back button) as the screen's Back while it is open (M4 spec §4.7).
+ * The system back gesture (an edge swipe, a mouse's back button) as the screen's Back while it is open.
  * Standalone only: hosted, the host owns system back (M4-D10, Ruken request R-2), so nothing is added to history.
  */
 export function backGesture(
@@ -107,7 +107,7 @@ export const windowOf = (layer: HTMLElement): Window => layer.ownerDocument.defa
 export const plain = (event: KeyboardEvent): boolean =>
   !event.repeat && !event.altKey && !event.ctrlKey && !event.metaKey
 
-/** The host's input mode for the screens' Input (M4 spec §4.2): under Ruken only; standalone the page decides. */
+/** The host's input mode for the screens' Input: under Ruken only; standalone the page decides. */
 export const hostInput: Effect.Effect<Hosting['input'] | undefined, never, Hosting> = Effect.map(
   Hosting,
   (hosting) => (hosting.kind === 'standalone' ? undefined : hosting.input),
@@ -116,7 +116,7 @@ export const hostInput: Effect.Effect<Hosting['input'] | undefined, never, Hosti
 /** How long a passing message stays on a screen. */
 const TOAST_FOR = Duration.seconds(4)
 
-/** What a pad without the standard mapping is told (M4 spec §6). */
+/** What a pad without the standard mapping is told. */
 export const PAD_UNSUPPORTED = 'This controller isn’t supported yet'
 
 /** A Toast on the layer for four seconds, taken away with it. */
@@ -128,14 +128,14 @@ const tell = (layer: HTMLElement, text: string, testId: string): Effect.Effect<v
   )
 
 /**
- * A pad without the standard mapping cannot drive bindings (M4 spec §6): while this screen is open, the first time
+ * A pad without the standard mapping cannot drive bindings: while this screen is open, the first time
  * such a pad connects the player is told so, in a Toast on the screen for four seconds. `told` is the game's, shared
  * by every screen, so each pad is told once a session (by id and index).
  */
 export function noticeUnsupportedPads(
   layer: HTMLElement,
   told: Set<string>,
-  /** The words, read when a pad is told: the screens' copy in the player's language (DX.2d). */
+  /** The words, read when a pad is told: the screens' copy in the player's language. */
   text: () => string = () => PAD_UNSUPPORTED,
 ): Effect.Effect<void, never, Scope.Scope | PresentationBus> {
   return Effect.gen(function* () {

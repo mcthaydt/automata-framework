@@ -1,11 +1,11 @@
-// How the host says no, in plain TypeScript (refactor spec §4). A refusal is an ordinary answer, so a host call
+// How the host says no, in plain TypeScript. A refusal is an ordinary answer, so a host call
 // returns it as a value (`{ ok: false, reason }`) and the caller must look; nothing throws and nothing falls back.
 // Temporary name: task 5.4 deletes `errors.ts` (the Effect version) and this file becomes `errors.ts`.
 import { type Result, refused } from '../lib/result'
 import type { ErrorCode } from './error-code.schema'
 
 export interface HostRefusal {
-  /** The contract's code (DIST spec §4.1); the Ruken adapter relays Ruken's unchanged. */
+  /** The contract's code; the Ruken adapter relays Ruken's unchanged. */
   readonly code: ErrorCode
   /** Whether a retry may succeed (Ruken's flag, relayed unchanged). */
   readonly retryable: boolean

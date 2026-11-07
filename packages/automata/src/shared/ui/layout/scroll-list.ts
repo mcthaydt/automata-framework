@@ -1,5 +1,5 @@
 /**
- * ScrollList's arithmetic (M1.6 spec §3.4; from FloorFifty `ui/layout/scroll-list.ts` at 122a220).
+ * ScrollList's arithmetic.
  *
  * A list reserves `minRows` before any sibling can take the height, so on a short screen the
  * actions shrink before a player's place disappears. Whatever is still out of view is counted,

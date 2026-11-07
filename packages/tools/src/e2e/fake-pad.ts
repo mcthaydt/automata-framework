@@ -1,4 +1,4 @@
-// A controller for a real built game (M4 spec §4.14), from FloorFifty `tests/e2e/support/fake-gamepad.ts` at
+// A controller for a real built game, from FloorFifty `tests/e2e/support/fake-gamepad.ts` at
 // `a28dc44`. An init script replaces `navigator.getGamepads` with one standard pad whose state lives on the page;
 // the helpers write it. Nothing reaches past the Gamepad API: the game's own poll, pad reading, focus navigation and
 // screens run as they do for a real pad. Connecting and unplugging dispatch `gamepadconnected` and

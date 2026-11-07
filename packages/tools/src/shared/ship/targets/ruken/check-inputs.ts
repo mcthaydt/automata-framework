@@ -1,6 +1,6 @@
-// `runtime.inputs` against the game's input bindings (M4 spec §4.13, I-g). A manifest that leaves out a device the
+// `runtime.inputs` against the game's input bindings. A manifest that leaves out a device the
 // game binds would have Ruken hide or refuse it; one that declares touch with nothing to touch promises a
-// control scheme the game does not have. Gamepad may stand alone: menus always read the pad (M4 spec §4.1).
+// control scheme the game does not have. Gamepad may stand alone: menus always read the pad.
 
 /**
  * What ship reads of a game's input profile. ship is published and the profile's owner (`runtime`) is private,

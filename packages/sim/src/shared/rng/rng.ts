@@ -1,5 +1,5 @@
 // xoshiro128** (Blackman & Vigna), 32-bit integer ops only, so it is bit-exact in every engine.
-// Seeded through splitmix32; each system gets its own substream (spec §4.4 rule 2).
+// Seeded through splitmix32; each system gets its own substream, so adding a system never shifts another's draws.
 
 /** The four 32-bit words of a generator's state, as `Rng.state()` copies them and snapshots store them. */
 export type RngState = [number, number, number, number]

@@ -1,4 +1,4 @@
-// The default screens' words (DX.2d, PRODUCT spec §4): one record, English by default, that a game overrides with
+// The default screens' words: one record, English by default, that a game overrides with
 // `copy.screens` in its own language. The screens read it through `screensCopy` (screens-copy.svelte.ts), so a
 // language change shows the new words without a remount (L-c).
 
@@ -41,7 +41,7 @@ export interface SettingsScreenCopy {
   readonly more: (count: number) => string
 }
 
-/** Every word the default title, play, paused and settings screens show (DX spec §7, M4 spec §4.8, M5 spec §4.8). */
+/** Every word the default title, play, paused and settings screens show. */
 export interface ScreensCopy {
   readonly title: { readonly play: string }
   /** The play screen's corner button and the touch stick, read by assistive technology. */
@@ -77,9 +77,9 @@ export interface ScreensCopy {
     readonly changedElsewhere: ChangedElsewhereCopy
     readonly changedElsewhereToast: string
   }
-  /** The scored board on the paused screen (M5.7). */
+  /** The scored board on the paused screen. */
   readonly board: LeaderboardCopy
-  /** Told once when a controller the input does not support is plugged in (M4 spec §6). */
+  /** Told once when a controller the input does not support is plugged in. */
   readonly padUnsupported: string
 }
 
@@ -98,7 +98,7 @@ export type ScreensCopyOverrides<T = ScreensCopy> = {
  */
 export type ScreensCopyInput = ScreensCopyOverrides | ((locale: string) => ScreensCopyOverrides)
 
-/** The board's words on the default paused screen (M5.7). */
+/** The board's words on the default paused screen. */
 export const BOARD_COPY: LeaderboardCopy = {
   title: 'Scores',
   loading: 'Loading scores…',

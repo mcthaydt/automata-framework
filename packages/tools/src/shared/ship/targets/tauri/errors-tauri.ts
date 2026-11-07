@@ -1,7 +1,7 @@
 import { Data } from 'effect'
 import type { TaggedErrorClass } from '../../../node/errors.ts'
 
-// The desktop target's failures (DIST spec §6.2), re-exported by `errors.ts` with every other ship error.
+// The desktop target's failures, re-exported by `errors.ts` with every other ship error.
 
 const TauriBuildInvalidBase: TaggedErrorClass<'TauriBuildInvalid', { readonly problems: readonly string[] }> =
   Data.TaggedError('TauriBuildInvalid')

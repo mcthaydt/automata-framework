@@ -1,5 +1,5 @@
-// The one export extractor (PRODUCT.1b3), shared by `pnpm api-report` (PRODUCT spec §2 F6) and
-// `pnpm api-index` (DX spec §3.8). Two inputs, one reader:
+// The one export extractor, shared by `pnpm api-report` and
+// `pnpm api-index`. Two inputs, one reader:
 // - `sourceExports` reads each core entry point from source. AF builds with `isolatedDeclarations`, so
 //   TypeScript 6's `transpileDeclaration` turns every source file into its declarations alone. Files outside
 //   the core packages' `src` (effect, zod, pixi.js) load as empty modules: only declaration text is read,

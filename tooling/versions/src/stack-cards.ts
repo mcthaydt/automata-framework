@@ -1,4 +1,4 @@
-// The prose of docs/stack.md (PRODUCT spec §8). Edit this file, then run `pnpm docs:stack`; never edit the page.
+// The prose of docs/stack.md. Edit this file, then run `pnpm docs:stack`; never edit the page.
 // Versions and licenses are not written here: stack.ts reads them from docs/versions.md and the installed packages.
 // Each card's claims cite where they come from (an ADR, a spec section, a package in this repo).
 

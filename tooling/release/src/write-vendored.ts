@@ -1,7 +1,7 @@
-// Writes `VENDORED.md` into a published package that bundles vendored Ruken code (D-8, M2.4 spec §3.2): which
+// Writes `VENDORED.md` into a published package that bundles vendored Ruken code: which
 // RukenApp commit it carries and each bundled package's tarball with its SHA-256, copied from
 // `vendor/ruken/README.md` so a published package always says which Ruken is inside it, and each bundled
-// package's licence with its text, read from the installed tarball (PRODUCT.4r): Ruken's packages are MIT, whose
+// package's licence with its text, read from the installed tarball: Ruken's packages are MIT, whose
 // notice must travel with every copy of the code. Run by each such package's build (`tsdown-shared.ts`).
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'

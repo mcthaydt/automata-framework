@@ -1,4 +1,4 @@
-// One section of the Settings screen (M4 spec §4.8): one of the screen's own, as a snippet, or one an extension put in
+// One section of the Settings screen: one of the screen's own, as a snippet, or one an extension put in
 // the `settings.sections` slot, as its component (it takes no props).
 import type { Snippet } from 'svelte'
 import type { UiComponent } from '../../../shared/ui/slots/ui-slot'

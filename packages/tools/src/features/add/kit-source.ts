@@ -3,7 +3,7 @@ import type { TaggedErrorClass } from '../../shared/node/errors.ts'
 import { ProcessRunner, type RunResult } from '../../shared/node/process-runner.ts'
 
 // Where `automata add` gets kits: the Automata Plus git repository, read with the buyer's own git credentials
-// (PRODUCT spec §6 and §9). A port, so `runAdd`'s tests use a fake repository and only the live
+//. A port, so `runAdd`'s tests use a fake repository and only the live
 // implementation runs git.
 
 const KitSourceErrorBase: TaggedErrorClass<

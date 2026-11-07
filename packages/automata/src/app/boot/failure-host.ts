@@ -6,15 +6,15 @@ export interface FailureHost {
   readonly hostKind: HostKind
   /** Fills "Back to {host}". */
   readonly hostName: string
-  /** The host granted `exit`; without it "Back to …" is hidden (PUB spec §3.1). */
+  /** The host granted `exit`; without it "Back to …" is hidden. */
   readonly canExit: boolean
 }
 
 /**
  * The panel's view of the host, or of the page before Hosting exists (then nothing can be exited).
  *
- * The name is the host's own (`Hosting.hostName`, PUB.1). A `web` session (PUB spec §3) draws as standalone: a page
- * has no host to go back to. A desktop session draws as `tauri`, whose exit action is Quit (DIST spec §8 flow 2).
+ * The name is the host's own (`Hosting.hostName`). A `web` session draws as standalone: a page
+ * has no host to go back to. A desktop session draws as `tauri`, whose exit action is Quit.
  */
 export function failureHost(
   hosting: Pick<Hosting, 'kind' | 'hostName' | 'granted'> | null | undefined,

@@ -1,4 +1,4 @@
-// The title's slot list as the screen keeps it (M5 spec §7): the runtime's `SlotState`s as the ui's `SaveSlotView`s,
+// The title's slot list as the screen keeps it: the runtime's `SlotState`s as the ui's `SaveSlotView`s,
 // with the activity only this screen knows. The model is a `$state` object the screen changes in place, so a slot
 // changing on the host never remounts the list.
 

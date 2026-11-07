@@ -1,4 +1,4 @@
-// A `.replay` file is raw deflate over the encoded bytes (M2.3 spec §3.5). The sim imports neither zlib nor
+// A `.replay` file is raw deflate over the encoded bytes. The sim imports neither zlib nor
 // CompressionStream: callers pass an adapter (testing/sim has one for Node and one for browsers).
 import { decodeReplay, encodeReplay } from './codec'
 import { ReplayFormatError } from './errors'

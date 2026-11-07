@@ -23,7 +23,7 @@ type ActionBar = ReturnType<typeof ActionBar>;
 
 #### `ActionKind` (type)
 
-The action bar's model (M1.6 spec §3.4; from FloorFifty `ui/layout/action-bar.ts` at 122a220).
+The action bar's model.
 
 One row of actions that gives way in a fixed order as its container narrows, so the primary
 action is the last thing to lose its words:
@@ -65,7 +65,7 @@ interface AnalogOptions<Z extends z.ZodType> {
      * refuses the merge (a `NaN`, a float in an integer field), the held payload is sent alone.
      */
     read(reading: AnalogReading, held: z.output<Z>): Partial<z.input<Z>>;
-    /** Bind the `camera-drag` gesture: the play screen mounts the drag surface (M4 spec §16.3.1). */
+    /** Bind the `camera-drag` gesture: the play screen mounts the drag surface. */
     readonly drag?: boolean;
     /** Show the touch stick; its vector is `stick('left')`. */
     readonly touchStick?: boolean;
@@ -117,7 +117,7 @@ const AppLoop: Context.Tag<AppLoop, AppLoop>;
 
 #### `Audio` (interface)
 
-The audio service (M5 spec §4.6): one-shot sounds and looping music on the audio buses, unlocked by the
+The audio service: one-shot sounds and looping music on the audio buses, unlocked by the
 first gesture after `session.ready`; the game runs silent when no audio context can be built.
 
 ```ts
@@ -149,8 +149,8 @@ const Audio: Context.Tag<Audio, Audio>;
 
 #### `AUDIO_BUS_NAMES` (const)
 
-The core audio buses (PRODUCT spec §2 F1): `master` carries the other four; M5-D3 added `voice` (announcers,
-dialogue). Every change to the set is an API change (PRODUCT spec §2 F6).
+The core audio buses: `master` carries the other four, `voice` is announcers and dialogue. Every change to
+the set is an API change.
 
 ```ts
 const AUDIO_BUS_NAMES: readonly ['master', 'music', 'sfx', 'ui', 'voice'];
@@ -158,11 +158,11 @@ const AUDIO_BUS_NAMES: readonly ['master', 'music', 'sfx', 'ui', 'voice'];
 
 #### `AudioBuses` (interface)
 
-The audio-bus seam (PRODUCT spec §2 F1). M5's core audio implements it over Web Audio (a gain node per bus
+The audio-bus seam. Core audio implements it over Web Audio (a gain node per bus
 into `master`, combined there with `Hosting.audio`'s volume and focus); an extension such as Plus
 `audio-stream`, or the game, connects its sources to `input(bus)` and never to the destination directly,
 so the player's gains and the host's ducking always apply.
-The `AudioBuses` service tag. Core provides no implementation until M5.
+The `AudioBuses` service tag. The Audio service implements it.
 
 ```ts
 interface AudioBuses {
@@ -227,7 +227,7 @@ interface AutosavePolicy {
 
 #### `AutosaveTrigger` (type)
 
-What can make the loaded slot write itself (M5 spec §4.4).
+What can make the loaded slot write itself.
 
 ```ts
 type AutosaveTrigger = 'screen-exit' | 'round-end' | 'background' | 'interval';
@@ -359,9 +359,9 @@ interface CameraRect {
 
 #### `CAPABILITIES` (const)
 
-What a game may ask its host for (DIST spec §4.1). The names are Ruken's (`@ruken/protocol` `CAPABILITIES`),
-kept where they fit; `ruken/conformance.test.ts` holds them to the vendored SDK. Which target grants which is in
-the DIST spec §4.3.
+What a game may ask its host for. The names are Ruken's (`@ruken/protocol` `CAPABILITIES`),
+kept where they fit; `ruken/conformance.test.ts` holds them to the vendored SDK. Each target's adapter says
+which it grants.
 
 ```ts
 const CAPABILITIES: readonly ["lifecycle", "input", "display", "audio", "exit", "menu", "saves", "leaderboards", "entitlements", "store", "ads", "telemetry", "analytics.custom", "links"];
@@ -430,7 +430,7 @@ function classifyHeightTier(height: number): HeightTier;
 
 #### `Command` (interface)
 
-Input to the sim (spec §4.4 rule 4). `source` is a player slot (u8), `seq` a per-source counter (u32).
+Input to the sim, the only way gameplay state changes from outside. `source` is a player slot (u8), `seq` a per-source counter (u32).
 
 ```ts
 interface Command {
@@ -457,7 +457,7 @@ interface CommandDef<Z extends z.ZodType = z.ZodType> {
 
 #### `CompiledContentData` (interface)
 
-The compiled JSON content read by the runtime (spec §3.3).
+The compiled JSON content read by the runtime.
 
 ```ts
 interface CompiledContentData {
@@ -491,7 +491,7 @@ interface ComponentDef<S extends FieldSchema = FieldSchema> {
 
 The content hash formula: hex64(xxhash64(utf8(canonicalJson(data)))).
 Matches
-@mcthaydt /automata-content's contentHash formula (M1.3), pinned by tests.
+@mcthaydt /automata-content's contentHash formula, pinned by tests.
 
 ```ts
 function contentHashOf(data: unknown): string;
@@ -514,11 +514,11 @@ The settings every game carries: input bindings, display, audio and vibration.
 interface CoreSettings {
     readonly input: InputSettings;
     readonly display: DisplaySettings;
-    /** The Audio group's choices (M5.4); a record saved before it reads them as the defaults. */
+    /** The Audio group's choices; a record saved before it reads them as the defaults. */
     readonly audio: AudioSettings;
     /** The Vibration group's toggle (Owner, 2026-10-18); a record saved before it reads it as on. */
     readonly haptics: HapticsSettings;
-    /** "Camera turn speed" and "Invert camera" (M4.12); a record saved before them reads them as the defaults. */
+    /** "Camera turn speed" and "Invert camera"; a record saved before them reads them as the defaults. */
     readonly camera: CameraSettings;
 }
 ```
@@ -572,7 +572,7 @@ function createT<Messages extends Record<string, unknown>>(messages: Messages): 
 
 #### `defaultContent` (function)
 
-The default flow `title → play ⇄ paused → title`, with `paused ⇄ settings` (M4.4), and its hash.
+The default flow `title → play ⇄ paused → title`, with `paused ⇄ settings`, and its hash.
 
 ```ts
 function defaultContent(): GameContent;
@@ -580,12 +580,12 @@ function defaultContent(): GameContent;
 
 #### `defaultScreens` (function)
 
-The title, play, paused and settings screens (DX spec §7, M4.4) over the default content's flow
+The title, play, paused and settings screens over the default content's flow
 (`title → play ⇄ paused → title`, `paused ⇄ settings`).
 
 The screens share one sim: play creates it on first entry (seed, plugins, content, then `setup`),
 paused keeps it, and the title drops it, so Quit to title and Play start again at tick 0. A runtime that shuts
-down with the sim alive drops it too, whichever screen is current (DX.2c). Returning
+down with the sim alive drops it too, whichever screen is current. Returning
 from paused re-sends the whole state to the renderer (G-5): `AppLoop.run` resets the renderer, so
 play restores the sim's own snapshot, which makes the next step a resync.
 
@@ -765,7 +765,7 @@ function defineSave<S>(def: SaveDef<S>): SaveDef<S>;
 #### `defineSystem` (function)
 
 A system: `defineSystem(name, run)` runs in `gameplay`, `defineSystem(name, phase, run)` in that phase, and the
-object form also takes `before`/`after`. All three build the same SystemDef (DX spec §3.2).
+object form also takes `before`/`after`. All three build the same SystemDef.
 
 ```ts
 function defineSystem(name: string, run: (ctx: SimContext) => void): SystemDef
@@ -960,7 +960,7 @@ interface EntityView<C extends SceneNode = Container> {
 
 #### `ERROR_CODES` (const)
 
-Why a host call failed (DIST spec §4.1). The codes are Ruken's (`@ruken/protocol` `ERROR_CODES`), kept where they
+Why a host call failed. The codes are Ruken's (`@ruken/protocol` `ERROR_CODES`), kept where they
 fit; `ruken/conformance.test.ts` holds them to the vendored SDK.
 
 ```ts
@@ -1037,7 +1037,7 @@ const Flow: Context.Tag<Flow, Flow>;
 
 #### `FormFactor` (type)
 
-The four form factors (M1.6 spec §3.1; from FloorFifty `ui/form-factor.ts` at 122a220).
+The four form factors.
 
 Decided from the layout viewport's size alone. Whether the pointer is coarse is a different
 question: it decides which controls mount, not how a screen is laid out. So a tablet with a
@@ -1084,7 +1084,7 @@ const FullscreenResSchema: z.ZodType<FullscreenRes>;
 
 #### `GameCopy` (type)
 
-A game's words: the runtime's boot and failure copy, and the default screens' words (DX.2d).
+A game's words: the runtime's boot and failure copy, and the default screens' words.
 
 ```ts
 type GameCopy = NonNullable<GameDefinition['copy']> & {
@@ -1095,7 +1095,7 @@ type GameCopy = NonNullable<GameDefinition['copy']> & {
 
 #### `GameDefinition` (interface)
 
-Everything a game provides to the runtime to boot (spec §3.3).
+Everything a game provides to the runtime to boot.
 
 ```ts
 interface GameDefinition<S = never> {
@@ -1108,20 +1108,20 @@ interface GameDefinition<S = never> {
     readonly screens: readonly ScreenDef[];
     /**
      * Files fetched with the preload screens' own (byte progress, the 30 s stall rule) before the renderer starts,
-     * outside the content: a game without `content/` lists its 3D models here (M3.4a). They are not part of
+     * outside the content: a game without `content/` lists its 3D models here. They are not part of
      * `content.hash`, so a new origin or a rebuilt file never changes the hash saves are stamped with.
      */
     readonly preload?: readonly string[] | undefined;
     readonly renderer: RendererFactory;
     readonly settings?: SettingsDef<S> | undefined;
     /**
-     * The game's save (M5): its slots, autosave and migrations. Boot opens it, wires its triggers and flushes it when
+     * The game's save: its slots, autosave and migrations. Boot opens it, wires its triggers and flushes it when
      * the host closes the game; a screen reaches it with `saveOf(def)`. Absent, the game has no save and the runtime
      * reads and writes nothing for one.
      */
     readonly saves?: SaveDef<unknown> | undefined;
     /**
-     * The orientation the game plays in, as the ship config's `runtime.orientation` says (M4.7). A `portrait` or
+     * The orientation the game plays in, as the ship config's `runtime.orientation` says. A `portrait` or
      * `landscape` game on a phone held the other way pauses behind the rotate hint. Default `any`.
      */
     readonly orientation?: GameOrientation | undefined;
@@ -1129,18 +1129,18 @@ interface GameDefinition<S = never> {
     readonly rotateHint?: RotateHintMode | undefined;
     /**
      * The game's languages: pass its Paraglide `runtime.js` (`import * as runtime from './paraglide/runtime.js'`).
-     * Absent, the game has one locale, the content's `source_language` (PRODUCT spec §4).
+     * Absent, the game has one locale, the content's `source_language`.
      */
     readonly locale?: LocaleDef | undefined;
     readonly extensions?: readonly ExtensionDef[] | undefined;
-    /** The sound each sim event plays, by the event's type (M5.3). */
+    /** The sound each sim event plays, by the event's type. */
     readonly sounds?: EventSounds | undefined;
-    /** The board and score each sim event submits, by the event's type (M5.7). Needs the `leaderboards` grant. */
+    /** The board and score each sim event submits, by the event's type. Needs the `leaderboards` grant. */
     readonly scores?: EventScores | undefined;
     readonly copy?: Partial<BootFailureCopy> & {
         readonly loading?: string;
         readonly slow?: string;
-        /** The panel when the renderer's graphics context is lost for good (M3 spec §5). */
+        /** The panel when the renderer's graphics context is lost for good. */
         readonly contextLost?: string;
     };
     readonly seams?: RuntimeSeams;
@@ -1161,7 +1161,7 @@ interface GameRenderer {
 
 #### `GameSaves` (interface)
 
-What a game saves, and how the default screens read it from the sim and put it back (M5.2). The title lists the
+What a game saves, and how the default screens read it from the sim and put it back. The title lists the
 save's slots; New game writes the starting data, Continue loads a slot, and play keeps it saved while it runs, on
 the triggers the `def` declares (autosave).
 
@@ -1182,7 +1182,7 @@ interface GameSaves<D> {
 
 #### `GameSpec` (interface)
 
-A game in one object (DX spec §3.1): its id, size and sim, and optionally its title, input, views, sounds,
+A game in one object: its id, size and sim, and optionally its title, input, views, sounds,
 scores, saves, content, screens, settings, extensions, draw layer and host and renderer options.
 `defineGame` fills in every default.
 
@@ -1205,7 +1205,7 @@ interface GameSpec<S = never, D = unknown> {
         readonly setup?: (sim: Sim) => void;
     };
     /**
-     * The orientation the game plays in, the same as the ship config's `runtime.orientation` (M4.7). On a phone held
+     * The orientation the game plays in, the same as the ship config's `runtime.orientation`. On a phone held
      * the other way a `portrait` or `landscape` game pauses behind the rotate hint. Default `any`.
      */
     readonly orientation?: GameOrientation;
@@ -1221,13 +1221,13 @@ interface GameSpec<S = never, D = unknown> {
      */
     readonly sounds?: EventSounds;
     /**
-     * The board and score each sim event submits, by the event's id (M5.7):
+     * The board and score each sim event submits, by the event's id:
      * `{ [RunEnded.id]: { board: 'best', score: (payload) => RunEnded.schema.parse(payload).score } }`. The board is a key
      * of the ship config's `leaderboards`; the game then asks the host for `leaderboards`.
      */
     readonly scores?: EventScores;
     /**
-     * The game's save (M5.2): its slots, how the sim is captured into them and put back. The game then asks the host
+     * The game's save: its slots, how the sim is captured into them and put back. The game then asks the host
      * for `saves`. Needs the default screens for the title's slot list; custom `screens` open the save themselves.
      */
     readonly saves?: GameSaves<D>;
@@ -1237,7 +1237,7 @@ interface GameSpec<S = never, D = unknown> {
         readonly hash: string;
         readonly sim?: unknown;
     };
-    /** Default: title, play and paused (DX spec §7). */
+    /** Default: title, play and paused. */
     readonly screens?: readonly ScreenDef[];
     /** Default: `#game`. */
     readonly root?: HTMLElement;
@@ -1251,7 +1251,7 @@ interface GameSpec<S = never, D = unknown> {
     readonly extensions?: readonly ExtensionDef[];
     /**
      * Immediate-mode HUD, debug and prototype drawing over the entity views, once per display frame while the
-     * default screens hold a sim (PRODUCT spec §7). It reads the sim and never writes it. Needs the default screens.
+     * default screens hold a sim. It reads the sim and never writes it. Needs the default screens.
      */
     readonly draw?: (ctx: DrawContext) => void;
     /** Merged over the defaults (`pixelArt`, the logical size and the views). */
@@ -1263,18 +1263,18 @@ interface GameSpec<S = never, D = unknown> {
      */
     readonly createRenderer?: (options: PixiRendererOptions) => RendererFactory;
     /**
-     * Files the runtime fetches with the preload screens, with byte progress and the 30 s stall rule (M1.5), before
+     * Files the runtime fetches with the preload screens, with byte progress and the 30 s stall rule, before
      * the renderer starts: model files a 3D view draws, for example. They stay out of the content and its hash, so a
      * new origin or a rebuilt file never changes the hash a save is stamped with.
      */
     readonly preload?: readonly string[];
     /**
      * The game's words: the runtime's boot and failure copy, and `screens`, the default screens' words over their
-     * English defaults (DX.2d). `screens` may be a function of the locale, run again on each language change, so a
+     * English defaults. `screens` may be a function of the locale, run again on each language change, so a
      * Paraglide game passes its messages: `screens: () => ({ title: { play: m.play() } })`.
      */
     readonly copy?: GameCopy;
-    /** The game's languages (PRODUCT.L): Settings' Language group offers them. Absent, the content's one language. */
+    /** The game's languages: Settings' Language group offers them. Absent, the content's one language. */
     readonly locale?: GameDefinition['locale'];
     /** Tests only. */
     readonly seams?: RuntimeSeams;
@@ -1337,7 +1337,7 @@ interface GeometryState {
 
 #### `HeightTier` (type)
 
-The height tiers (M1.6 spec §3.1; from FloorFifty `ui/height-tier.ts` at 122a220).
+The height tiers.
 
 The form factor says what shape a screen is; the tier says how much height it has to spend.
 Two screens of the same form factor can need different answers: a 1280 x 720 desktop and a
@@ -1352,7 +1352,7 @@ type HeightTier = 'short' | 'compact' | undefined;
 
 #### `HOST_EXIT_CAP` (const)
 
-How long the game may hold the host's close (Ruken P6 §4 "1 s cap"). Ruken's own grace is 1.5 s
+How long the game may hold the host's close (a 1 s cap). Ruken's own grace is 1.5 s
 (`sdk-host/src/bridge/defaults.ts` `EXIT_GRACE_MS`), so the game always answers before the host gives up on it;
 every adapter cuts the `onExiting` handlers and the flush off at this cap.
 
@@ -1373,7 +1373,7 @@ class HostError extends HostErrorBase {
 
 The page is inside a frame, but the SDK got no usable welcome and fell back
 to its standalone session. Not fatal: reported on `Hosting.handshake.fellBack`
-and logged once (shared contracts §1.2).
+and logged once.
 
 ```ts
 class HostHandshakeFailed extends HostHandshakeFailedBase {
@@ -1382,24 +1382,23 @@ class HostHandshakeFailed extends HostHandshakeFailedBase {
 
 #### `Hosting` (interface)
 
-Everything a game may ask of, or hear from, its host: the `Hosting` contract
-of the M1 shared contracts spec §1, implemented by the host lane.
+Everything a game may ask of, or hear from, its host: the `Hosting` contract,
+which each target's adapter implements.
 The `Hosting` service tag.
 
 ```ts
 interface Hosting {
     /**
      * Which session this is: 'ruken' when Ruken hosts it; 'standalone' when the Ruken adapter got the SDK's
-     * standalone session; 'web' for the web adapter of an `itch` or `web` build (PUB spec §3); 'tauri' for the
-     * desktop adapter (DIST spec §4.2).
+     * standalone session; 'web' for the web adapter of an `itch` or `web` build; 'tauri' for the
+     * desktop adapter.
      */
     readonly kind: 'ruken' | 'standalone' | 'web' | 'tauri';
     /**
-     * The host's name for UI: 'Ruken', 'itch.io', 'this page' (PUB spec §3), or the game's title on the desktop (DIST
-     * spec §4.2).
+     * The host's name for UI: 'Ruken', 'itch.io', 'this page', or the game's title on the desktop.
      */
     readonly hostName: string;
-    /** Some when the page is inside a frame but the SDK fell back to standalone (shared contracts §1.2). */
+    /** Some when the page is inside a frame but the SDK fell back to standalone. */
     readonly handshake: {
         readonly fellBack: Option.Option<HostHandshakeFailed>;
     };
@@ -1458,7 +1457,7 @@ const Hosting: Context.Tag<Hosting, Hosting>;
 
 #### `HostingLeaderboards` (interface)
 
-The host's leaderboards (Ruken's `LeaderboardsApi`, PRODUCT spec §2 F1). Needs the `leaderboards` grant.
+The host's leaderboards (Ruken's `LeaderboardsApi`). Needs the `leaderboards` grant.
 Each call relays the SDK's answer or error as a `HostError`: without the grant and standalone it fails
 `UNSUPPORTED`, offline it fails with the host's code. None keeps a local board instead.
 
@@ -1477,7 +1476,7 @@ interface HostingLeaderboards {
 
 #### `HostingOptions` (interface)
 
-What the game asks of its host. In M1 the game passes these by hand; later they come from content.
+What the game asks of its host. The game passes these by hand; content does not list them yet.
 
 ```ts
 interface HostingOptions {
@@ -1502,7 +1501,7 @@ interface HostingOptions {
 
 #### `HostingSaves` (interface)
 
-The player's saves (shared contracts §1.1). Each call relays the SDK's error as a `HostError`; none falls back.
+The player's saves. Each call relays the SDK's error as a `HostError`; none falls back.
 
 ```ts
 interface HostingSaves {
@@ -1510,11 +1509,10 @@ interface HostingSaves {
     set(key: string, value: string): Effect.Effect<void, HostError>;
     remove(key: string): Effect.Effect<void, HostError>;
     readonly flush: Effect.Effect<SavesFlushRes, HostError>;
-    /** Every key the session holds, sorted by code unit (M5 spec §4.1). Fails `CANCELLED` once Hosting has shut down. */
+    /** Every key the session holds, sorted by code unit. Fails `CANCELLED` once Hosting has shut down. */
     readonly keys: Effect.Effect<readonly string[], HostError>;
     /**
-     * Another device's write, or the host's conflict choice, reached this session (`SavesApi.on('changed')`, M5 spec
-     * §4.1). No current value: only changes. Ends when Hosting shuts down.
+     * Another device's write, or the host's conflict choice, reached this session (`SavesApi.on('changed')`). No current value: only changes. Ends when Hosting shuts down.
      */
     readonly changed: Stream.Stream<SavesChangedPayload>;
 }
@@ -1550,7 +1548,7 @@ type IconButton = ReturnType<typeof IconButton>;
 
 #### `Input` (interface)
 
-The input service (M4 spec §4.2): held actions from keys, pads, touch buttons and gestures under the game's
+The input service: held actions from keys, pads, touch buttons and gestures under the game's
 profile and the player's overrides, menu edges, the active device and pads, and rebinding.
 
 ```ts
@@ -1573,13 +1571,13 @@ interface Input {
     hold(action: string): void;
     release(action: string): void;
     /**
-     * Gestures from a `SwipeTracker` (M4.3), as touch: a held gesture holds its actions until released, and a pulse
+     * Gestures from a `SwipeTracker`, as touch: a held gesture holds its actions until released, and a pulse
      * (a flick or a tap) holds them for exactly one sample.
      */
     readonly gesture: GestureSink;
-    /** The overlay's move stick (M4.12): while held it is `stick('left')` and drives the `left-*` directions. */
+    /** The overlay's move stick: while held it is `stick('left')` and drives the `left-*` directions. */
     readonly touchStick: TouchStickSink;
-    /** Where a `CameraDragTracker` sends its pixels (M4.12). */
+    /** Where a `CameraDragTracker` sends its pixels. */
     readonly drag: DragSink;
     /** CSS px dragged to the right between the previous two `poll()`s; 0 unless a live action binds `camera-drag`. */
     cameraDrag(): number;
@@ -1590,7 +1588,7 @@ interface Input {
     /** The pads connected since this Input started, in connection order. */
     readonly pads: SubscriptionRef.SubscriptionRef<readonly PadInfo[]>;
     /**
-     * Binds the captured key or pad button to `action` on `device` (M4 spec §4.5, M4-D4), saved in the settings'
+     * Binds the captured key or pad button to `action` on `device`, saved in the settings'
      * `input` when the Input has settings; refused, with nothing changed, by `RebindError`.
      */
     rebind(action: string, device: 'keyboard' | 'gamepad', capture: Capture): Effect.Effect<void, RebindError>;
@@ -1608,7 +1606,7 @@ const Input: Context.Tag<Input, Input>;
 
 #### `InputMap` (interface)
 
-Held keys, touch buttons and gamepad buttons, turned into one command per tick (DX spec §3.3).
+Held keys, touch buttons and gamepad buttons, turned into one command per tick.
 
 ```ts
 interface InputMap {
@@ -1616,20 +1614,20 @@ interface InputMap {
     /** Whether the play screen shows touch buttons when the player uses touch. */
     readonly touch: boolean;
     readonly touchButtons: readonly TouchButton[];
-    /** How the play screen takes touch: its buttons, or swipes over the whole screen (M4 spec §4.4). */
+    /** How the play screen takes touch: its buttons, or swipes over the whole screen. */
     readonly touchMode: TouchMode;
     /**
-     * The bindings as data (M4 spec §2.2): one action per distinct payload, id `<command id>-<n>`, with its keys, its
+     * The bindings as data: one action per distinct payload, id `<command id>-<n>`, with its keys, its
      * pad buttons and whether it has a touch button. Rebinding swaps the profile and never the command mapping.
      */
     readonly profile: InputProfile;
-    /** Each action's name, as the Settings screen's Controls section lists it (M4.4). */
+    /** Each action's name, as the Settings screen's Controls section lists it. */
     readonly labels: Readonly<Record<string, string>>;
     /** Whether the play screen shows the touch stick (the `analog.touchStick` option). */
     readonly touchStick: boolean;
     /**
      * Pure: the one command for the held actions, merged in iteration order (a later action wins per field). With an
-     * `analog` option, `reading` adds the sticks and the drag (M4 spec §17); without one it is ignored.
+     * `analog` option, `reading` adds the sticks and the drag; without one it is ignored.
      */
     toCommand(held: Iterable<string>, tick: number, reading?: AnalogReading): readonly Command[];
     attach(target: Window): InputSource;
@@ -1668,8 +1666,8 @@ const InputModePayloadSchema: z.ZodType<InputModePayload>;
 
 #### `InputProfile` (interface)
 
-A named set of bindings, one per game action (PRODUCT spec §2 F1). It is data: a settings screen rebinds a
-copy and saves it in the game's `SettingsDef`; M4's input service reads it. Action ids are the game's own.
+A named set of bindings, one per game action. It is data: a settings screen rebinds a
+copy and saves it in the game's `SettingsDef`; the input service reads it. Action ids are the game's own.
 
 ```ts
 interface InputProfile {
@@ -1704,12 +1702,12 @@ The input map attached to a window for one play session.
 
 ```ts
 interface InputSource {
-    /** This tick's command, if any: one per tick, never an edge (DX spec §3.3). */
+    /** This tick's command, if any: one per tick, never an edge. */
     commands(tick: number): readonly Command[];
     /** A touch button pressed or released (its `TouchButton.id`). */
     hold(buttonId: string): void;
     release(buttonId: string): void;
-    /** Gestures from a `SwipeTracker` (M4.3): held swipes and one-tick flicks and taps. */
+    /** Gestures from a `SwipeTracker`: held swipes and one-tick flicks and taps. */
     readonly gesture: GestureSink;
     dispose(): void;
 }
@@ -1758,16 +1756,16 @@ interface KeysOptions<Z extends z.ZodType> {
     readonly touch?: boolean;
     /** Standard-mapping gamepad button index → payload, polled once per tick. */
     readonly pad?: Readonly<Record<number, Payload<Z>>>;
-    /** Touch gesture → payload (M4.3): a swipe holds while the finger steers, a flick or a tap lasts one tick. */
+    /** Touch gesture → payload: a swipe holds while the finger steers, a flick or a tap lasts one tick. */
     readonly gestures?: Readonly<Partial<Record<GestureName, Payload<Z>>>>;
-    /** Default `buttons` when the map has touch buttons, else `swipe`. The player's setting is M4.4's. */
+    /** Default `buttons` when the map has touch buttons, else `swipe`. The player's setting overrides it. */
     readonly touchMode?: TouchMode;
-    /** A stick pushed past the deadzone in a direction (`left-left`, `right-up`, …) → payload (M4.2). */
+    /** A stick pushed past the deadzone in a direction (`left-left`, `right-up`, …) → payload. */
     readonly stick?: Readonly<Partial<Record<StickDirection, Payload<Z>>>>;
     /** The payload with nothing held. Default: the schema's own defaults (`schema.parse({})`), when it has them. */
     readonly idle?: z.input<Z>;
     /**
-     * Keys whose actions the game cannot be played without (M4.7): rebinding never leaves them unbound on a device
+     * Keys whose actions the game cannot be played without: rebinding never leaves them unbound on a device
      * (M4-D4), and where the touch buttons do not all fit, theirs are the ones that show.
      */
     readonly required?: readonly string[];
@@ -1776,7 +1774,7 @@ interface KeysOptions<Z extends z.ZodType> {
      * command and payload (`move x -1`).
      */
     readonly labels?: Readonly<Record<string, string>>;
-    /** The sticks and the camera drag, added to the held keys' payload each tick (M4 spec §17). */
+    /** The sticks and the camera drag, added to the held keys' payload each tick. */
     readonly analog?: AnalogOptions<Z>;
 }
 ```
@@ -1941,7 +1939,7 @@ type LoaderOverlay = ReturnType<typeof LoaderOverlay>;
 
 #### `Locale` (interface)
 
-The locale service (PRODUCT spec §4): the game's locales, the one text is drawn in now, the player's choice
+The locale service: the game's locales, the one text is drawn in now, the player's choice
 and the text direction.
 
 ```ts
@@ -2003,7 +2001,7 @@ type Modal = ReturnType<typeof Modal>;
 
 #### `ModelInvalid` (class)
 
-A 3D model file could not be read (M3 spec §6): malformed, of an unknown type, not loaded, or a glTF with a skin,
+A 3D model file could not be read: malformed, of an unknown type, not loaded, or a glTF with a skin,
 which is not supported yet (M3R-D1). Boot shows the panel naming the file, with Try again.
 
 ```ts
@@ -2103,7 +2101,7 @@ interface PixiRendererOptions {
     readonly barFraction?: number | undefined;
     /** Bar color in hex. Default is 0x2e222f (FloorFifty plum black). */
     readonly barColor?: number | undefined;
-    /** The graphics quality tier to start at (M4 spec §4.11); `PixiStage.setQuality` changes it. Default `high`. */
+    /** The graphics quality tier to start at; `PixiStage.setQuality` changes it. Default `high`. */
     readonly quality?: QualityTier | undefined;
     /**
      * Draws the world and UI at the logical size and resolution 1, then nearest-upscales them into the letterbox
@@ -2147,7 +2145,7 @@ interface PixiStage {
     readonly composite?: CompositeTarget | undefined;
     /** Post-processing filters applied to the root rendered scene. Owned by `postFilters` once it is used. */
     filters: Filter[] | null;
-    /** The post-filter slot over `filters`: each owner keeps its own filters by id and order (PRODUCT spec §2 F1). */
+    /** The post-filter slot over `filters`: each owner keeps its own filters by id and order. */
     readonly postFilters: PostFilterSlot;
     /** The graphics quality tier now. */
     readonly quality: QualityTier;
@@ -2155,7 +2153,7 @@ interface PixiStage {
     setQuality(tier: QualityTier): void;
     /**
      * Builds a filter, or returns `undefined` when it cannot be built or compiled: it then warns and publishes
-     * `render.filter.dropped` on the render target's bus, and the frame draws without it (M4 spec §6).
+     * `render.filter.dropped` on the render target's bus, and the frame draws without it.
      */
     tryFilter<F extends Filter>(id: string, make: () => F): F | undefined;
 }
@@ -2163,7 +2161,7 @@ interface PixiStage {
 
 #### `PixiStageHooks` (interface)
 
-What a `setup` may return to hear every step, frame and reset (DX spec §3.4, DX.3 decision E-1).
+What a `setup` may return to hear every step, frame and reset.
 
 ```ts
 interface PixiStageHooks {
@@ -2341,7 +2339,7 @@ class RenderDeltaConsumer<C extends SceneNode = Container> {
 #### `RendererFactory` (type)
 
 Builds the game's renderer for a target. It fails with `RendererUnavailable` when no backend it accepts starts,
-and with `ModelInvalid` when a 3D renderer cannot read a model file it was given (M3 spec §6).
+and with `ModelInvalid` when a 3D renderer cannot read a model file it was given.
 
 ```ts
 type RendererFactory = (target: RenderTarget) => Effect.Effect<GameRenderer, RendererUnavailable | ModelInvalid, Scope.Scope>;
@@ -2370,7 +2368,7 @@ interface RenderTarget {
     readonly bus?: PresentationBus | undefined;
     /**
      * Shows the "picture stopped" panel with Try again, for a renderer whose graphics context is lost and will not
-     * come back by itself (M3 spec §5): Try again closes the panel and calls `retry`, which rebuilds the renderer from
+     * come back by itself: Try again closes the panel and calls `retry`, which rebuilds the renderer from
      * the sim's current state. Returns a function that closes the panel. Optional for tests and tools.
      */
     readonly reportLost?: ((retry: () => void) => () => void) | undefined;
@@ -2409,7 +2407,7 @@ const RoundOutcomeSchema: z.ZodType<RoundOutcome>;
 
 #### `RUKEN_SDK_MARKERS` (const)
 
-String literals only the Ruken SDK contains, which survive minification (PUB spec §3): the SDK's storage probe
+String literals only the Ruken SDK contains, which survive minification: the SDK's storage probe
 key (`env-browser.ts`) and its standalone refusal message (`standalone.ts`), at RukenApp d0fa2fe (as at
 b30d31b). An `itch` or `web` build must contain neither, because it bundles the web adapter instead of the SDK;
 a `ruken` build contains both. The web adapter's own probe key (`WEB_STORAGE_PROBE_KEY`) is deliberately different.
@@ -2422,7 +2420,7 @@ const RUKEN_SDK_MARKERS: readonly string[];
 
 #### `runGame` (function)
 
-Boots and runs the game in a runtime Scope (spec §4 Failure and Shutdown).
+Boots and runs the game in a runtime Scope: a failure draws the boot failure panel, and shutdown closes the scope.
 
 Each attempt runs in a fresh Scope. On failure, mounts BootFailurePanel and keeps
 the attempt scope open so Back to {host} can access its Hosting service. Try again
@@ -2459,75 +2457,75 @@ interface RuntimeFacts {
     readonly 'time.changed': {
         readonly paused: boolean;
     };
-    /** The player's language changed (PRODUCT spec §4 item 2). Screens redraw their text; nothing remounts. */
+    /** The player's language changed. Screens redraw their text; nothing remounts. */
     readonly 'locale.changed': {
         readonly locale: string;
         readonly previous: string;
     };
-    /** The player's last real input came from another device (M4 spec §4.2). Prompts and touch controls follow it. */
+    /** The player's last real input came from another device. Prompts and touch controls follow it. */
     readonly 'input.device.changed': {
         readonly device: InputDevice;
         readonly glyphs: GlyphFamily;
         readonly previous: InputDevice;
     };
-    /** The first gesture after `session.ready` built and resumed the audio graph (M5 spec §4.6). */
+    /** The first gesture after `session.ready` built and resumed the audio graph. */
     readonly 'audio.unlocked': Readonly<Record<never, never>>;
-    /** No audio context could be built or resumed; the game runs silent (M5 spec §6). */
+    /** No audio context could be built or resumed; the game runs silent. */
     readonly 'audio.unavailable': {
         readonly reason: string;
     };
-    /** A sound or a track could not be loaded or decoded; it is silent and nothing else stops (M5 spec §6). */
+    /** A sound or a track could not be loaded or decoded; it is silent and nothing else stops. */
     readonly 'audio.decode.failed': {
         readonly alias: string;
         readonly reason: string;
     };
-    /** A pad was plugged in (M4 spec §5). `standard: false` means it cannot drive bindings (§6). */
+    /** A pad was plugged in. `standard: false` means it cannot drive bindings. */
     readonly 'input.pad.connected': PadInfo;
-    /** A pad was unplugged; what it held is released (M4 spec §5). `wasActive`: it was the pad in use. */
+    /** A pad was unplugged; what it held is released. `wasActive`: it was the pad in use. */
     readonly 'input.pad.disconnected': PadInfo & {
         readonly wasActive: boolean;
     };
-    /** The player's bindings changed (M4 spec §4.5): `action` when one was rebound, none on a reset or a follow. */
+    /** The player's bindings changed: `action` when one was rebound, none on a reset or a follow. */
     readonly 'input.bindings.changed': {
         readonly action?: string;
     };
-    /** A post filter could not be built or compiled and was left out; the frame draws without it (M4 spec §6). */
+    /** A post filter could not be built or compiled and was left out; the frame draws without it. */
     readonly 'render.filter.dropped': {
         readonly id: string;
         readonly reason: string;
     };
-    /** The WebGL context was lost; the renderer draws nothing until it is restored (M3 spec §5). */
+    /** The WebGL context was lost; the renderer draws nothing until it is restored. */
     readonly 'render.context.lost': Readonly<Record<never, never>>;
     /**
-     * The WebGL context came back (M3 spec §5): Pixi re-uploads its GPU resources and the renderer draws again; the
+     * The WebGL context came back: Pixi re-uploads its GPU resources and the renderer draws again; the
      * views and the sim are untouched.
      */
     readonly 'render.context.restored': Readonly<Record<never, never>>;
-    /** A slot's save reached the host (M5 spec §4.3). `key` is the save's prefix (`SaveDef.key`). */
+    /** A slot's save reached the host. `key` is the save's prefix (`SaveDef.key`). */
     readonly 'save.written': {
         readonly key: string;
         readonly slot: number;
     };
-    /** The host refused a slot's write; the slot keeps its previous value (M5 spec §4.3, §6). */
+    /** The host refused a slot's write; the slot keeps its previous value. */
     readonly 'save.failed': {
         readonly key: string;
         readonly slot: number;
         readonly code: ErrorCode;
     };
-    /** A slot was loaded for play (M5 spec §5, "Load a slot"). */
+    /** A slot was loaded for play. */
     readonly 'save.loaded': {
         readonly key: string;
         readonly slot: number;
     };
     /**
-     * Another device changed the slot being played (M5 spec §5, M5-D6). Nothing was reloaded; the game offers Load
+     * Another device changed the slot being played. Nothing was reloaded; the game offers Load
      * newer or Keep playing.
      */
     readonly 'save.changedElsewhere': {
         readonly key: string;
         readonly slot: number;
     };
-    /** A submit to `board` changed state: `submitting`, then how the host answered (M5 spec §4.8). */
+    /** A submit to `board` changed state: `submitting`, then how the host answered. */
     readonly 'leaderboard.submitted': {
         readonly board: string;
         readonly state: BoardState;
@@ -2537,7 +2535,7 @@ interface RuntimeFacts {
 
 #### `RuntimeHandle` (interface)
 
-Controls the running game: shutdown closes the runtime scope (spec §3.3, planning note 11).
+Controls the running game: shutdown closes the runtime scope.
 
 ```ts
 interface RuntimeHandle {
@@ -2547,7 +2545,7 @@ interface RuntimeHandle {
 
 #### `RuntimeSeams` (interface)
 
-Test seams injected into the runtime boot program (spec §3.3, planning note 10).
+Test seams injected into the runtime boot program.
 
 ```ts
 interface RuntimeSeams {
@@ -2557,7 +2555,7 @@ interface RuntimeSeams {
     readonly sdkEnv?: () => NonNullable<HostingSeams['env']>;
     /**
      * Builds the game's `Hosting` in place of the build target's adapter (`@mcthaydt/automata-host/target`), for
-     * example `fakeHosting(…).make` from `@mcthaydt/automata-testing/host` (DIST spec §7). When given, `sdkEnv` is
+     * example `fakeHosting(…).make` from `@mcthaydt/automata-testing/host`. When given, `sdkEnv` is
      * not used.
      */
     readonly hosting?: (options: HostingOptions) => Effect.Effect<Hosting, HostError, Scope.Scope>;
@@ -2568,18 +2566,18 @@ interface RuntimeSeams {
     readonly createAudioContext?: () => AudioContextLike;
     /** The device's haptics, in place of the browser's (pads, `navigator.vibrate`, a coarse pointer). */
     readonly haptics?: Haptics;
-    /** Where settings fields that belong to the device are kept; defaults to the frame's `localStorage` (M5 spec §4.5). */
+    /** Where settings fields that belong to the device are kept; defaults to the frame's `localStorage`. */
     readonly deviceStorage?: DeviceStorage;
     /**
      * Hears what failed, after the runtime has shown it as usual: a boot failure's `BootError`, why a screen could not
      * load or enter, or what a running sim's step threw. Each Try again can fail again, so it can be called more than
-     * once. A throw from it is ignored. The playground reports the line in the reader's code from it (website
-     * playground spec §7.2).
+     * once. A throw from it is ignored. The website's playground reports the line in the reader's code
+     * from it.
      */
     readonly onFailure?: (cause: unknown) => void;
     /**
      * Reloads the game's frame: what Try again does after a boot failure inside a Ruken session, where the host answers
-     * one hello per frame load (M1 runtime spec §4, RT.BOOT1). Defaults to reloading the document's location.
+     * one hello per frame load. Defaults to reloading the document's location.
      */
     readonly reload?: () => void;
 }
@@ -2587,7 +2585,7 @@ interface RuntimeSeams {
 
 #### `Save` (interface)
 
-A game's save (M5 spec §4.3): its slots' states, load, write and remove, and the progress `touch` keeps for
+A game's save: its slots' states, load, write and remove, and the progress `touch` keeps for
 the autosave triggers to write.
 
 ```ts
@@ -2661,7 +2659,7 @@ interface SaveDef<S> {
 
 #### `Saves` (interface)
 
-The booted game's save as a runtime service (M5 spec §4.3), as `Settings` is for settings: its key and the
+The booted game's save as a runtime service, as `Settings` is for settings: its key and the
 `Save`, both undefined for a game without saves.
 
 ```ts
@@ -2696,7 +2694,7 @@ const SavesChangedPayloadSchema: z.ZodType<SavesChangedPayload>;
 #### `SavesFlushRes` (interface)
 
 Where a flush left the saves: the host's outbox, its server, or the device's own storage (`'device'`, the `web`,
-`itch` and `tauri` targets; DIST-D3).
+`itch` and `tauri` targets).
 
 ```ts
 interface SavesFlushRes {
@@ -2737,7 +2735,7 @@ in its scope (closing the scope leaves the screen).
 interface ScreenDef<R = never> {
     readonly id: string;
     readonly pausesSim?: boolean;
-    /** `gameplay` lets the cursor policy hide an idle pointer; a `menu` (the default) never does (M4 spec §4.7). */
+    /** `gameplay` lets the cursor policy hide an idle pointer; a `menu` (the default) never does. */
     readonly kind?: 'menu' | 'gameplay';
     readonly fonts?: readonly string[];
     enter(context: ScreenContext): Effect.Effect<void, unknown, Scope.Scope | RuntimeServices | R>;
@@ -2767,7 +2765,7 @@ type ScreenFrame = ReturnType<typeof ScreenFrame>;
 
 #### `ScreensCopy` (interface)
 
-Every word the default title, play, paused and settings screens show (DX spec §7, M4 spec §4.8, M5 spec §4.8).
+Every word the default title, play, paused and settings screens show.
 
 ```ts
 interface ScreensCopy {
@@ -2810,9 +2808,9 @@ interface ScreensCopy {
         readonly changedElsewhere: ChangedElsewhereCopy;
         readonly changedElsewhereToast: string;
     };
-    /** The scored board on the paused screen (M5.7). */
+    /** The scored board on the paused screen. */
     readonly board: LeaderboardCopy;
-    /** Told once when a controller the input does not support is plugged in (M4 spec §6). */
+    /** Told once when a controller the input does not support is plugged in. */
     readonly padUnsupported: string;
 }
 ```
@@ -2851,17 +2849,17 @@ interface ScreensGame {
         readonly content?: unknown;
     };
     readonly input?: InputMap | undefined;
-    /** Told the sim play runs, and `undefined` when the title drops it: the draw layer reads it (PRODUCT.2). */
+    /** Told the sim play runs, and `undefined` when the title drops it: the draw layer reads it. */
     readonly watchSim?: ((sim: Sim | undefined) => void) | undefined;
-    /** The board paused shows: the game's first scored board (M5.7). None: paused shows no board. */
+    /** The board paused shows: the game's first scored board. None: paused shows no board. */
     readonly board?: string | undefined;
-    /** Applies the player's graphics quality to the stage (M4.4): the saved one at the title, then each choice. */
+    /** Applies the player's graphics quality to the stage: the saved one at the title, then each choice. */
     readonly setQuality?: ((tier: QualityTier) => void) | undefined;
-    /** The game's save (M5.2): the title lists its slots and play keeps the loaded one saved. None: no slot list. */
+    /** The game's save: the title lists its slots and play keeps the loaded one saved. None: no slot list. */
     readonly saves?: GameSaves<unknown> | undefined;
-    /** The game's extensions: play draws their `hud.overlay` components (M4.7), Settings shows their `settings.sections` (M4.4). */
+    /** The game's extensions: play draws their `hud.overlay` components, Settings shows their `settings.sections`. */
     readonly extensions?: readonly ExtensionDef[] | undefined;
-    /** The game's words for these screens (`GameSpec.copy.screens`, DX.2d), over the English defaults. */
+    /** The game's words for these screens (`GameSpec.copy.screens`), over the English defaults. */
     readonly copy?: ScreensCopyInput | undefined;
 }
 ```
@@ -2910,7 +2908,7 @@ interface SettingsDef<S> {
     readonly migrations?: Readonly<Record<number, (record: Record<string, unknown>) => Record<string, unknown>>>;
     /**
      * Fields that belong to one device: kept in its `DeviceStorage`, never in the player's saves, and the saves'
-     * copy is never read (M5 spec §4.5). The rest of the record is the player's, as for any settings. Names, not
+     * copy is never read. The rest of the record is the player's, as for any settings. Names, not
      * `keyof S`, so a `SettingsDef<S>` stays assignable where `SettingsDef<unknown>` is wanted; `makeSettings`
      * refuses a name the defaults do not have.
      */
@@ -2970,12 +2968,12 @@ interface Sim {
   entity(sid: number): EntityRef | undefined
   query(...components: ComponentDef[]): EntityRef[]
   resource<Z extends z.ZodType>(def: ResourceDef<Z>): z.output<Z>
-  /** Canonical snapshot v1 bytes (spec §4.6). */
+  /** Canonical snapshot v1 bytes. */
   snapshot(): Uint8Array
   /** Replaces the whole state. Throws SnapshotFormatError / SnapshotMismatchError and leaves the sim unchanged. */
   restore(bytes: Uint8Array): void
   /**
-   * A readable view of `bytes`, or of the current state when none are given (M2.3 spec §3.1). Decodes and checks
+   * A readable view of `bytes`, or of the current state when none are given. Decodes and checks
    * the header as `restore` does (SnapshotFormatError / SnapshotMismatchError) but not restore's later
    * cross-checks, and changes nothing.
    */
@@ -2989,7 +2987,7 @@ interface Sim {
 
 #### `SimContext` (interface)
 
-What a system's `run` receives each tick (spec §4.1).
+What a system's `run` receives each tick.
 
 ```ts
 interface SimContext {
@@ -3078,7 +3076,7 @@ interface SpriteViewOptions {
     readonly anchor?: ViewAnchor | undefined;
     readonly frames?: SpriteFrames | undefined;
     /**
-     * A frame of a packed atlas (M5.6): `source` is the url of an atlas page's Spritesheet JSON, which
+     * A frame of a packed atlas: `source` is the url of an atlas page's Spritesheet JSON, which
      * `automata-content assets` writes, and `frame` names one of its frames. Not with `frames`.
      */
     readonly frame?: string | undefined;
@@ -3087,7 +3085,7 @@ interface SpriteViewOptions {
 
 #### `startGame` (function)
 
-Boots a game (DX spec §3.1): `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting
+Boots a game: `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting
 and the default screens, then the runtime's boot on the game's root. Takes a spec or a game `defineGame`
 already returned. Throws `BootDefect` before anything mounts when the spec is invalid or there is no
 root (`spec.root`, else `#game`); a failure after that shows on the runtime's boot failure panel.
@@ -3171,7 +3169,7 @@ interface SystemDef {
 
 String literals only Tauri's IPC code contains, which survive minification: the global the webview injects
 (`@tauri-apps/api/core`) and the process plugin's exit command (`@tauri-apps/plugin-process`). A `tauri` build holds
-both; a `web`, `itch` or `ruken` build holds neither (DIST spec §5.3). Re-check them after a Tauri upgrade:
+both; a `web`, `itch` or `ruken` build holds neither. Re-check them after a Tauri upgrade:
 `target.build.test.ts` fails if a `tauri` build stops containing them.
 
 ```ts
@@ -3233,9 +3231,9 @@ interface TouchButton {
     readonly id: string;
     readonly label: string;
     readonly keys: readonly string[];
-    /** Which lower corner's group it sits in (M4 spec §4.4). Default `start`; a game moves buttons to `end` itself. */
+    /** Which lower corner's group it sits in. Default `start`; a game moves buttons to `end` itself. */
     readonly side?: 'start' | 'end' | undefined;
-    /** The game cannot be played without it: where the touch buttons do not all fit, only these show (M4.7). */
+    /** The game cannot be played without it: where the touch buttons do not all fit, only these show. */
     readonly required?: boolean | undefined;
 }
 ```
@@ -3323,7 +3321,7 @@ function defineExtension<const N extends string>(def: ExtensionDef<N>): Extensio
 
 #### `ExtensionDef` (interface)
 
-One opt-in feature of a game (M1 shared contracts §2). Build it with `defineExtension`.
+One opt-in feature of a game. Build it with `defineExtension`.
 
 ```ts
 interface ExtensionDef<Name extends string = string> {
@@ -3358,7 +3356,7 @@ class ExtensionError extends ExtensionErrorBase {
 
 #### `GameConfig` (type)
 
-The parts of the game config an extension may read (content's `GameConfig`, DIST spec §4.4).
+The parts of the game config an extension may read (content's `GameConfig`).
 
 ```ts
 type GameConfig = Pick<FullGameConfig, 'game' | 'runtime' | 'content'>;
@@ -3397,7 +3395,7 @@ function resolveExtensions(defs: readonly ExtensionDef[]): ResolvedExtensions;
 
 #### `RukenManifestContribution` (type)
 
-What an extension may add to ruken.toml in M1: preload files. `wants` is not a manifest field (Q7).
+What an extension may add to ruken.toml: preload files. `wants` is not a manifest field.
 
 ```ts
 type RukenManifestContribution = {
@@ -4205,7 +4203,7 @@ function isDefinedGame<S>(value: GameSpec<S> | DefinedGame<S>): value is Defined
 
 What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a
 folder), and the atlases and fonts of the asset build it uses, by their names in `atlases.toml` and
-`fonts.toml`. A preloaded screen's atlas pages and font subsets join the preload list (M5.6F.2).
+`fonts.toml`. A preloaded screen's atlas pages and font subsets join the preload list.
 
 ```ts
 interface AssetsSource {
@@ -4261,7 +4259,7 @@ interface CompiledContent {
   readonly data: ContentData;
   /** Over all of `data`: the boot check and evidence identity. Never compared with `sim.hash`. */
   readonly hash: string;
-  /** What the sim receives, and the hash that gates snapshots and replays (M2.2 spec §3.2). */
+  /** What the sim receives, and the hash that gates snapshots and replays. */
   readonly sim: SimPartition;
   /** Each output path, relative to the output folder, to its exact text. Build and verify use the same bytes. */
   readonly files: ReadonlyMap<string, string>;
@@ -4276,7 +4274,7 @@ interface CompiledContent {
   readonly catalogs: ReadonlyMap<string, MessageCatalog>;
   /**
    * Where each language's messages are written, in `languages` order: a source message at its text in the
-   * TOML, a translated one at its key in `messages/<lang>.json`. The glyph gate names a message by these (M5.5).
+   * TOML, a translated one at its key in `messages/<lang>.json`. The glyph gate names a message by these.
    */
   readonly messageLocations: ReadonlyMap<string, ReadonlyMap<string, MessageLocation>>;
 }
@@ -4348,7 +4346,7 @@ interface ContentOptions {
   readonly generators?: readonly ContentGenerator[] | undefined;
   /** Relative to `root`. Default `content/generated`. */
   readonly outDir?: string | undefined;
-  /** Compile the catalogs with Paraglide on each build (PRODUCT.L2). Absent: no Paraglide output. */
+  /** Compile the catalogs with Paraglide on each build. Absent: no Paraglide output. */
   readonly paraglide?: ParaglideOptions | undefined;
 }
 ```
@@ -4372,7 +4370,7 @@ interface ContentSchemaDef<K extends string = string, S extends z.ZodType = z.Zo
   readonly schema: S;
   readonly place: ContentSchemaPlace;
   /**
-   * Whether the sim receives this kind (M2.2 spec §3.1). Default true: content is gameplay unless the game
+   * Whether the sim receives this kind. Default true: content is gameplay unless the game
    * says otherwise, so a forgotten flag can only refuse a snapshot, never let a gameplay change through.
    */
   readonly sim: boolean;
@@ -4613,7 +4611,7 @@ schemas, the message catalog and the tuning metadata.
 interface GeneratorInput {
   readonly data: ContentData;
   readonly hash: string;
-  /** The sim partition and its hash (M2.2), so a generator never re-derives it from `schemas`. */
+  /** The sim partition and its hash, so a generator never re-derives it from `schemas`. */
   readonly sim: SimPartition;
   readonly schemas: readonly ContentSchemaDef[];
   readonly messages: MessageCatalog;
@@ -5282,7 +5280,7 @@ function hasRawText(text: string): boolean;
 #### `localeCharacters` (function)
 
 A locale's own characters for its subset font: `ALWAYS_CHARACTERS` and the catalog's characters. The font build
-also adds every content language's name for the language picker (`endonymOf`, M5.5F).
+also adds every content language's name for the language picker (`endonymOf`).
 
 ```ts
 function localeCharacters(catalog: MessageCatalog): Set<string>;
@@ -5395,7 +5393,7 @@ Canonical JSON: object keys sorted at every depth, no whitespace. Numbers use th
 Number-to-string algorithm, which every engine implements identically, except that -0 is written as -0.
 Throws CanonicalJsonError for anything JSON can't represent exactly: NaN, Infinity, undefined, bigint,
 functions, symbols, and non-plain objects (a Date, Map, Set, typed array or class instance would otherwise
-serialize as {} and hash the same as every other one; M2.1 spec §10.7).
+serialize as {} and hash the same as every other one).
 
 ```ts
 function canonicalJson(value: unknown): string;
@@ -5413,7 +5411,7 @@ class CanonicalJsonError extends Error {
 
 #### `Command` (interface)
 
-Input to the sim (spec §4.4 rule 4). `source` is a player slot (u8), `seq` a per-source counter (u32).
+Input to the sim, the only way gameplay state changes from outside. `source` is a player slot (u8), `seq` a per-source counter (u32).
 
 ```ts
 interface Command {
@@ -5491,7 +5489,7 @@ function createSim(opts: SimOptions): Promise<Sim>;
 
 #### `Def` (type)
 
-Anything `definePlugin`'s flat `defs` list takes (DX spec §3.2).
+Anything `definePlugin`'s flat `defs` list takes.
 
 ```ts
 type Def = ComponentDef | CommandDef | EventDef | ResourceDef | SystemDef;
@@ -5562,7 +5560,7 @@ function defineResource<Z extends z.ZodType>(id: string, schema: Z, init: () => 
 #### `defineSystem` (function)
 
 A system: `defineSystem(name, run)` runs in `gameplay`, `defineSystem(name, phase, run)` in that phase, and the
-object form also takes `before`/`after`. All three build the same SystemDef (DX spec §3.2).
+object form also takes `before`/`after`. All three build the same SystemDef.
 
 ```ts
 function defineSystem(name: string, run: (ctx: SimContext) => void): SystemDef;
@@ -5665,7 +5663,7 @@ type Phase = (typeof PHASES)[number];
 
 #### `PHASES` (const)
 
-Fixed phase order (spec §4.3).
+Fixed phase order.
 
 ```ts
 const PHASES: readonly ["input", "prePhysics", "physics", "postPhysics", "gameplay", "cleanup"];
@@ -5699,7 +5697,7 @@ interface PluginDef {
 
 #### `PluginState` (interface)
 
-Engine state a plugin keeps outside the ECS, such as a Rapier world (M2.1 spec §3.1). `createSim` creates
+Engine state a plugin keeps outside the ECS, such as a Rapier world. `createSim` creates
 one per sim, so a PluginDef shared by many sims never shares engine state between them.
 
 ```ts
@@ -5764,7 +5762,7 @@ type RejectReason = "bad-header" | "unknown-command" | "wrong-tick" | "duplicate
 
 #### `RenderDelta` (interface)
 
-What changed for the renderer since the last delta (spec §4.7). `changed` rows carry the entity's full
+What changed for the renderer since the last delta. `changed` rows carry the entity's full
 render state, so a removed component shows up as its absence. `resync` deltas list every live render
 entity as added; the renderer drops everything it had first.
 
@@ -5846,12 +5844,12 @@ interface Sim {
   entity(sid: number): EntityRef | undefined;
   query(...components: ComponentDef[]): EntityRef[];
   resource<Z extends z.ZodType>(def: ResourceDef<Z>): z.output<Z>;
-  /** Canonical snapshot v1 bytes (spec §4.6). */
+  /** Canonical snapshot v1 bytes. */
   snapshot(): Uint8Array;
   /** Replaces the whole state. Throws SnapshotFormatError / SnapshotMismatchError and leaves the sim unchanged. */
   restore(bytes: Uint8Array): void;
   /**
-   * A readable view of `bytes`, or of the current state when none are given (M2.3 spec §3.1). Decodes and checks
+   * A readable view of `bytes`, or of the current state when none are given. Decodes and checks
    * the header as `restore` does (SnapshotFormatError / SnapshotMismatchError) but not restore's later
    * cross-checks, and changes nothing.
    */
@@ -5865,8 +5863,8 @@ interface Sim {
 
 #### `SIM_VERSION` (const)
 
-The sim package's version, written into replay headers for information only (M2.3 spec §3.2). A constant
-rather than a build-time define, so workspace tests and un-built replays carry the real version; M2.4's
+The sim package's version, written into replay headers for information only. A constant
+rather than a build-time define, so workspace tests and un-built replays carry the real version; the release's
 version step updates it with package.json, and version.test.ts keeps the two equal.
 
 ```ts
@@ -5885,7 +5883,7 @@ class SimCapacityError extends Error {
 
 #### `SimContext` (interface)
 
-What a system's `run` receives each tick (spec §4.1).
+What a system's `run` receives each tick.
 
 ```ts
 interface SimContext {
@@ -5937,7 +5935,7 @@ interface SimEvent {
 #### `SimFaultedError` (class)
 
 A system threw during `step`. The tick was left half-applied, so the sim refuses `step`, `snapshot` and
-`hash` until a successful `restore` (M2.1 spec §10.2). Failing closed is cheaper than rolling back every tick.
+`hash` until a successful `restore`. Failing closed is cheaper than rolling back every tick.
 
 ```ts
 class SimFaultedError extends Error {
@@ -5997,7 +5995,7 @@ class SnapshotMismatchError extends Error {
 
 #### `SnapshotView` (interface)
 
-A readable copy of a snapshot, for diffs and reports (M2.3 spec §3.1). Plugin bytes are opaque engine state,
+A readable copy of a snapshot, for diffs and reports. Plugin bytes are opaque engine state,
 so they are described by length and hash only.
 
 ```ts
@@ -6113,7 +6111,7 @@ Canonical JSON: object keys sorted at every depth, no whitespace. Numbers use th
 Number-to-string algorithm, which every engine implements identically, except that -0 is written as -0.
 Throws CanonicalJsonError for anything JSON can't represent exactly: NaN, Infinity, undefined, bigint,
 functions, symbols, and non-plain objects (a Date, Map, Set, typed array or class instance would otherwise
-serialize as {} and hash the same as every other one; M2.1 spec §10.7).
+serialize as {} and hash the same as every other one).
 
 ```ts
 function canonicalJson(value: unknown): string;
@@ -6406,7 +6404,7 @@ interface ReplayCompression {
 
 #### `ReplayFormatError` (class)
 
-Bytes that are not a valid `.replay` (M2.3 spec §5). `offset` is the byte where reading failed, when known.
+Bytes that are not a valid `.replay`. `offset` is the byte where reading failed, when known.
 
 ```ts
 class ReplayFormatError extends Error {
@@ -7192,8 +7190,8 @@ const isOrientationSource: (file: string) => boolean;
 
 #### `ITCH_FIRST_PUSH_CHECKLIST` (const)
 
-The one-time page settings butler cannot make (PUB spec §6), printed after a channel's first push. The
-"Publish to itch.io" guide (PUB.5) carries the same list.
+The one-time page settings butler cannot make, printed after a channel's first push. The
+"Publish to itch.io" guide carries the same list.
 
 ```ts
 const ITCH_FIRST_PUSH_CHECKLIST: string;
@@ -7235,7 +7233,7 @@ class ItchBuildInvalid extends ItchBuildInvalidBase {
 
 #### `ItchCheck` (type)
 
-The `prepare --target itch` check that failed, in the order they run (PUB spec §4).
+The `prepare --target itch` check that failed, in the order they run.
 
 ```ts
 type ItchCheck = "entry" | "file-count" | "path-length" | "file-size" | "case" | "ruken-toml";
@@ -7252,7 +7250,7 @@ interface ItchConfig {
   /** The butler channel. Defaults to `html5`. */
   readonly channel?: string | undefined;
   /**
-   * The butler channel of each desktop bundle (`publish --target itch --from tauri`, DIST spec §6.4). Each defaults to
+   * The butler channel of each desktop bundle (`publish --target itch --from tauri`). Each defaults to
    * its OS's name: `linux`, `mac`, `windows`.
    */
   readonly downloads?: {
@@ -7315,7 +7313,7 @@ function keysBindingsIn(file: string, code: string): ShipInputBindings | undefin
 
 #### `ManifestInputsMismatch` (class)
 
-`runtime.inputs` disagrees with the game's input bindings (M4 spec §4.13, I-g).
+`runtime.inputs` disagrees with the game's input bindings.
 
 ```ts
 class ManifestInputsMismatch extends ManifestInputsMismatchBase {
@@ -7335,7 +7333,7 @@ class ManifestInvalid extends ManifestInvalidBase {
 
 #### `OrientationMismatch` (class)
 
-The game plays in an orientation its ship config's `runtime.orientation` does not send Ruken (M4.7 follow-up).
+The game plays in an orientation its ship config's `runtime.orientation` does not send Ruken.
 
 ```ts
 class OrientationMismatch extends OrientationMismatchBase {
@@ -7384,7 +7382,7 @@ const PIXI3D_MARKERS: readonly string[];
 
 #### `Pixi3dExtrasInBuild` (class)
 
-A build contains `@pixi/3d/extras`, whose particle code probes `new Function` at load (M3 spec S7-g).
+A build contains `@pixi/3d/extras`, whose particle code probes `new Function` at load, which a no-eval CSP refuses.
 
 ```ts
 class Pixi3dExtrasInBuild extends Pixi3dExtrasInBuildBase {
@@ -7406,7 +7404,7 @@ interface Pixi3dFound {
 
 #### `Pixi3dInPublicBuild` (class)
 
-A build for a public target (Ruken's store, itch.io) contains `@pixi/3d`, a closed beta (M3 spec §4.8, X-b).
+A build for a public target (Ruken's store, itch.io) contains `@pixi/3d`, a closed beta.
 
 ```ts
 class Pixi3dInPublicBuild extends Pixi3dInPublicBuildBase {
@@ -7444,8 +7442,8 @@ function portsFor(checkoutPath: string, env: Readonly<Record<string, string | un
 
 #### `prepareBuild` (function)
 
-Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the
-entry page, root-absolute paths, secrets (QB-b), `@pixi/3d` (X-b, S7-g), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7) and the devices its `keys()` calls bind (M4.1), then writes `ruken.toml` once Ruken's parser accepts it. Every check
+Makes a built folder ready for `ruken publish` and the dev host: checks the tag, the
+entry page, root-absolute paths, secrets, `@pixi/3d`, the leaderboards the game names and the orientation it plays in and the devices its `keys()` calls bind, then writes `ruken.toml` once Ruken's parser accepts it. Every check
 runs before the write, so a failed prepare leaves the folder as it was. Zipping and Ruken's build checks
 (archive, size, file types) happen inside `ruken publish`, not here.
 
@@ -7468,13 +7466,13 @@ interface PrepareInput {
   /** The release tag being built, when there is one (`v1.2.3`). */
   readonly tag?: string | undefined;
   /**
-   * The game folder, whose `.env*` values must not appear in the build (QB-b). The CLI passes its working folder;
+   * The game folder, whose `.env*` values must not appear in the build. The CLI passes its working folder;
    * when it is left out, no `.env` file is read and only key formats and high-entropy strings are checked.
    */
   readonly gameDir?: string | undefined;
   /**
-   * The game's input bindings (its input map's `profile.bindings`), checked against `runtime.inputs` (I-g).
-   * Left out, the `keys()` calls in `gameDir`'s sources are read instead (M4.1 follow-up); with neither, nothing
+   * The game's input bindings (its input map's `profile.bindings`), checked against `runtime.inputs`.
+   * Left out, the `keys()` calls in `gameDir`'s sources are read instead; with neither, nothing
    * is checked.
    */
   readonly inputBindings?: ShipInputBindings | undefined;
@@ -7489,13 +7487,13 @@ interface PrepareInput {
 
 #### `prepareItch` (function)
 
-Makes a built folder ready for itch.io (PUB spec §4): the tag, root-absolute paths, secrets (QB.2: a page on
-itch.io is public, so the build is scanned as Ruken's is), `@pixi/3d` (X-b, S7-g), `index.html`, itch.io's
+Makes a built folder ready for itch.io: the tag, root-absolute paths, secrets (a page on
+itch.io is public, so the build is scanned as Ruken's is), `@pixi/3d`, `index.html`, itch.io's
 limits, reference case and a stray `ruken.toml` are checked in that order, and the first that fails stops
 prepare before anything is written. Then `<id>-<version>-itch.zip` is written beside the build folder (not in
 it, so `butler push <dist>` never uploads it), for a manual upload; butler pushes the folder itself.
 
-The build itself must already be an itch build (`resolve.conditions: ['automata-web']`, PUB.1); that is the
+The build itself must already be an itch build (`resolve.conditions: ['automata-web']`); that is the
 game's build step, not ship's.
 
 ```ts
@@ -7515,14 +7513,14 @@ interface PrepareItchInput {
   readonly config: ShipConfig;
   /** The release tag being built, when there is one (`v1.2.3`). */
   readonly tag?: string | undefined;
-  /** The game's folder, whose `.env*` values must not appear in the build (QB.2). Without it only keys and entropy are scanned. */
+  /** The game's folder, whose `.env*` values must not appear in the build. Without it only keys and entropy are scanned. */
   readonly gameDir?: string | undefined;
 }
 ```
 
 #### `prepareTauri` (function)
 
-Builds the desktop bundles for this OS (DIST spec §6.2). In order, and stopping at the first that fails: the
+Builds the desktop bundles for this OS. In order, and stopping at the first that fails: the
 release tag; the `tauri` section, a semver version, the `index.html` entry and a CSP without eval; the public-build
 scans (secrets, `@pixi/3d`); the toolchain (`cargo`, WebKitGTK on Linux, the `tauri` CLI). Only then is the
 project written to `<game>/.automata/tauri/` (its `target/` cache is kept between builds), `tauri build` run
@@ -7563,7 +7561,7 @@ interface PrepareTauriInput {
 
 #### `PrivatePublishNotLocal` (class)
 
-`publish --private` named a Ruken that is not the local stack (M3 spec §4.8): a private build stays local.
+`publish --private` named a Ruken that is not the local stack: a private build stays local.
 
 ```ts
 class PrivatePublishNotLocal extends PrivatePublishNotLocalBase {
@@ -7624,8 +7622,8 @@ class PublishAuth extends PublishAuthBase {
 
 #### `publishBuild` (function)
 
-`ship publish` for Ruken (ship spec §3.4): prepare the build, then hand it to Ruken's own CLI. A public publish
-(the default) refuses a build that contains `@pixi/3d` (X-b). A private one prepares with the closed beta allowed
+`ship publish` for Ruken: prepare the build, then hand it to Ruken's own CLI. A public publish
+(the default) refuses a build that contains `@pixi/3d`. A private one prepares with the closed beta allowed
 and uploads only to Ruken's local stack, checked before anything is prepared, so the beta never reaches a public
 Ruken through ship.
 
@@ -7644,8 +7642,8 @@ interface PublishBuildInput extends PublishInput {
   readonly config: ShipConfig;
   readonly tag?: string | undefined;
   /**
-   * A private upload, to Ruken's local stack only: the build may contain `@pixi/3d`, a closed beta (D-1, M3 spec
-   * §4.8). Refused unless `api` is a loopback or `.localhost` host.
+   * A private upload, to Ruken's local stack only: the build may contain `@pixi/3d`, a closed beta
+   * whose terms allow no public deployment. Refused unless `api` is a loopback or `.localhost` host.
    */
   readonly private?: boolean | undefined;
 }
@@ -7814,7 +7812,7 @@ class RootAbsoluteReference extends RootAbsoluteReferenceBase {
 #### `rukenCliPath` (function)
 
 The `ruken` bin of the vendored `@ruken/cli` package. The published `@mcthaydt/automata-tools` carries a copy of
-Ruken's built CLI in `dist/vendor/ruken-cli/` (D-8, M2.4 spec §3.4); every built module sits directly in
+Ruken's built CLI in `dist/vendor/ruken-cli/`; every built module sits directly in
 `dist/`, so the copy is `./vendor/ruken-cli/cli.js` next to it. Running from `src` in the workspace there is
 no copy, and the workspace's `@ruken/cli` dev dependency is used instead (`dist/cli.js`, next to its
 `dist/index.js`). `moduleUrl` and `exists` are parameters only so tests can stand in for a built package.
@@ -7826,7 +7824,7 @@ function rukenCliPath(moduleUrl?: string, exists?: (path: string) => boolean): s
 #### `rukenHeaders` (function)
 
 The headers Ruken serves a game's build with (Ruken's CSP, which allows no eval), from the game's config, for a
-game's `vite preview` or a dev host (DIST spec §5.1: the game imports no `@ruken/*` itself). Fails `ManifestInvalid`
+game's `vite preview` or a dev host (the game imports no `@ruken/*` itself). Fails `ManifestInvalid`
 when Ruken refuses the config.
 
 ```ts
@@ -7910,7 +7908,7 @@ interface SecretFound {
 
 #### `SecretInBuild` (class)
 
-The build holds a key, an `.env` value or a high-entropy string (QB-b). The message never holds the secret.
+The build holds a key, an `.env` value or a high-entropy string. The message never holds the secret.
 
 ```ts
 class SecretInBuild extends SecretInBuildBase {
@@ -7929,26 +7927,26 @@ const SHIP_PACKAGE = "@mcthaydt/automata-tools";
 #### `ShipConfig` (interface)
 
 What a game tells ship about itself: the game config every target reads (`@mcthaydt/automata-content`'s
-`GameConfig`, DIST spec §4.4) and each target's own section. Keys keep Ruken's manifest names and snake_case, so
+`GameConfig`) and each target's own section. Keys keep Ruken's manifest names and snake_case, so
 the config reads like the `ruken.toml` the Ruken target writes from it (ship fills in `schema` and `allow_eval`,
 always false); `prepare --target ruken` checks the whole of it with Ruken's own parser.
 
 ```ts
 interface ShipConfig extends GameConfig {
   /**
-   * Where `automata ship publish --target itch` pushes (PUB spec §4). Not a Ruken field: it is never written to
+   * Where `automata ship publish --target itch` pushes. Not a Ruken field: it is never written to
    * `ruken.toml`, and a Ruken build ignores it.
    */
   readonly itch?: ItchConfig | undefined;
   /**
-   * The desktop build's settings (`automata ship prepare --target tauri`, DIST spec §6.3). Not a Ruken field: it is
+   * The desktop build's settings (`automata ship prepare --target tauri`). Not a Ruken field: it is
    * never written to `ruken.toml`.
    */
   readonly tauri?: TauriConfig | undefined;
   /**
    * Who the game's builds are for. `private` is a game that carries `@pixi/3d`, a closed beta (D-1), until Pixi 3D's
    * public release: `automata ship prepare` then checks the build as private and writes no `ruken.toml`, and only
-   * `deploy-dev` and `publish --private` ship it (M3 spec §4.8). Not a Ruken field. Left out, a game is `public`.
+   * `deploy-dev` and `publish --private` ship it. Not a Ruken field. Left out, a game is `public`.
    */
   readonly audience?: "public" | "private" | undefined;
 }
@@ -8101,7 +8099,7 @@ type TestRemoteReason = "usage" | "detached" | "uncommitted" | "push" | "dispatc
 
 #### `UndeclaredBoard` (class)
 
-The game names a leaderboard its ship config's `leaderboards` does not declare (M5 spec §4.8, L-b).
+The game names a leaderboard its ship config's `leaderboards` does not declare.
 
 ```ts
 class UndeclaredBoard extends UndeclaredBoardBase {
@@ -8194,7 +8192,7 @@ interface FakePadOptions {
 
 #### `flick` (function)
 
-A quick vertical swipe of `dy` pixels within `ms` milliseconds from `from` (M4 spec I-f: 40 px in 180 ms).
+A quick vertical swipe of `dy` pixels within `ms` milliseconds from `from` (the gesture tests use 40 px in 180 ms).
 
 ```ts
 function flick(scope: Page | Frame, from: Point, dy: number, ms: number): Promise<void>;
@@ -8210,7 +8208,7 @@ function hold(target: Locator, until: () => Promise<boolean>): Promise<void>;
 
 #### `INPUT_MATRIX` (const)
 
-M4 spec §9.1's cells, in table order: 17 cells, 22 journeys (the desktop cells run under both hosts).
+The matrix's cells, in table order: 17 cells, 22 journeys (the desktop cells run under both hosts).
 
 ```ts
 const INPUT_MATRIX: readonly MatrixCell[];
@@ -8247,7 +8245,7 @@ interface MatrixCell {
 
 #### `MatrixFormFactor` (type)
 
-A matrix cell's form factor, each with one viewport (M4 spec §9.1).
+A matrix cell's form factor, each with one viewport.
 
 ```ts
 type MatrixFormFactor = "phone-portrait" | "phone-landscape" | "compact" | "tablet-portrait" | "desktop";

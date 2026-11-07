@@ -601,7 +601,7 @@ Then:
   why, not which plan asked for it. Explain the reason in plain words.`; `// The Pixi default is 1, too blurry on
   an iPad` passes.
 - [x] **Step 2:** Implement (comments only, via the AST's comment list; strings and URLs are not checked). Pass.
-- [ ] **Step 3:** Run it on core and 2D; rewrite each hit to the reason or delete it (audit: 1,385 hits). This is
+- [x] **Step 3:** Run it on core and 2D; rewrite each hit to the reason or delete it (audit: 1,385 hits). This is
   the long step: work file by file, commit per package, with a session break after each package or every 300 hits,
   whichever comes first. 3D and editors are exempt until their phase
   (`--exempt packages/editor-* ...`). Open the PR, green, merge.
@@ -628,23 +628,23 @@ Emberwick's screens are its own (splash, menu, room, paused, end); it has no sav
 screen, and this refactor adds no game features (spec section 2). So Emberwick's journeys cover what it has, and
 the features it lacks are journeyed on the one-file examples that show them:
 
-- [ ] **Pause on hide:** while playing, the page is hidden (`page.evaluate` dispatches `visibilitychange` with
+- [x] **Pause on hide:** while playing, the page is hidden (`page.evaluate` dispatches `visibilitychange` with
   `document.hidden` stubbed); on return the pause menu is showing and "Resume" continues.
 - [ ] **Boot failure:** the host refuses to start. The e2e host (`tests/e2e/ruken/host.ts`) gains a `?fail=boot`
   switch for this; it is test fixture code, not a game feature. The panel shows one plain sentence and a "Try
   again" button that reloads.
-- [ ] **Touch-only on the iPad:** the room can be finished with the on-screen buttons only, and every button is at
+- [x] **Touch-only on the iPad:** the room can be finished with the on-screen buttons only, and every button is at
   least 48 px (primary) or 44 px (secondary) tall (iPad projects).
-- [ ] **The end screen:** after the golden route, "Play again" starts a fresh round and "Menu" returns to the title
+- [x] **The end screen:** after the golden route, "Play again" starts a fresh round and "Menu" returns to the title
   (`@slow`, iPad projects only).
-- [ ] **Examples (`examples/tests/e2e/`, Chromium):** saves survive a reload (`core-saves`); a settings change
+- [x] **Examples (`examples/tests/e2e/`, Chromium):** saves survive a reload (`core-saves`); a settings change
   survives a reload (the example that has the settings screen, found with `grep -l settings examples/*/*.ts`); a slow
   content load shows the loading text before the menu (`page.route` delay on the content chunk). If no example has
   a feature, its journey is dropped and the execution log says so.
 
 ### Task 8.3: The framework's own journey
 
-- [ ] **`create-game` end to end** (`packages/tools/tests/e2e/create-game.test.ts`, Chromium only): in a temp folder,
+- [x] **`create-game` end to end** (`packages/tools/tests/e2e/create-game.test.ts`, Chromium only): in a temp folder,
   `automata create-game my-game`, `pnpm install` (workspace link), `pnpm build`, `vite preview` (on a port from the
   run's own range, never a shared one), open it, see the
   title screen, press Start, see the game canvas draw (a non-blank pixel), press Escape, see the pause menu. This
@@ -936,3 +936,29 @@ the features it lacks are journeyed on the one-file examples that show them:
   carried on to its menu), so the journey needs a refusal switch in the fake host, which is a request to Ruken. The touch-only
   journey already exists in the touch-button journey and the 44 px check; the examples' journeys (saves and settings surviving a
   reload, slow content load) and 8.3 (`create-game` journey) are not started.
+- **Tasks 7.2 step 3, 8.2 (rest) and 8.3, fifth session, 2026-11-05 (PR `claude/project-thread-ycalcf`, stacked on #397).**
+  7.2: every comment that cited a plan is rewritten to its reason or loses the citation, one commit per package: `automata` 399
+  hits, `sim` 39, `content` 69, `tools` 113, `tooling` 142. Parentheticals that held only a citation (`(M5.2)`, `(M4 spec §4.7)`)
+  were stripped by a script limited to the reported comment lines; the rest were rewritten by hand. Source-project provenance
+  notes on those lines went too (AGENTS.md: they live in `docs/provenance/sources.md`). `pnpm style` now runs `--plan-comments`
+  over Emberwick, `automata`, `sim`, `content`, `tools` and every `tooling/*/src`. Deviation 65: `tooling/codemods`'
+  `move-modules.ts` passed 600 lines once tooling joined the check, so reading specifiers moved to `module-specifiers.ts`.
+  Deviation 66: the docs move (task 7.1) had rewritten a `docs/` path inside two copied facility fixtures (editor-3d,
+  editor-kit) whose bytes and sha256 their tests pin; both are put back as copied (a turbo cache hit had hidden the red tests).
+  8.2: the examples' reload journeys already exist (`core-saves` "a second session lists the slot … (S-c)" and
+  `core-input-rebind` "a rebind is saved through the host and kept after a reload (I-h)", the Settings screen's Controls);
+  the slow-load journey is **dropped** (deviation 67): the only example with preload files is `render3d-meshes`, a 3D one, and
+  without preload files the loader shows only during boot, before the host answers, which `page.route` cannot slow. The
+  boot-failure journey stays blocked (deviation 64): a refused handshake (`gameId` mismatch) faults on the host's side and the
+  game falls back to standalone, so a Try again panel needs a refusal switch from Ruken; the no-WebGL device journey ("a device
+  with no canvas context gets the device message") covers the boot failure panel meanwhile. The touch-only journey exists
+  (touch buttons and the 44 px check). 8.3: `packages/tools/tests/e2e/create-game.test.ts` with `serve-new-game.ts` as its web
+  server (preview port + 500). It failed first for the right reason: the template's page only printed "My Game running on this
+  page", and once it booted the runtime its build failed on the framework's `.svelte` screens. Deviation 68: the template now
+  writes a game laid out by role (`constants.ts` to `views.ts`, `main.ts` with `startGame` on the default screens), its
+  `vite.config.ts` adds `@sveltejs/vite-plugin-svelte`, and it depends on `svelte` instead of `effect` (changeset
+  `create-game-boots-a-game`). The scaffold's dependencies are linked by hand (workspace packages, others from the copies the
+  workspace installed) instead of `pnpm install`, which would rewrite the lockfile from a folder outside the workspace; the
+  scaffold uses the built `dist/bin.js` because the source bin cannot load `editor-suite`'s extensionless imports under plain
+  Node. It runs in `e2e-2d` and `pnpm ci:local`. Passes here in Chromium (1 of 1). Not run: WebKit and Firefox (their
+  downloads are refused here, so the golden `421c5a1bf522299e` is still Chromium-only), hosted CI.

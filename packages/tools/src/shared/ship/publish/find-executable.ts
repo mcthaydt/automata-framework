@@ -2,7 +2,7 @@ import { accessSync, constants, statSync } from 'node:fs'
 import { delimiter, join } from 'node:path'
 
 // Where a program would be found on PATH, looked up on disk so `publish --target itch` can say butler is
-// missing before it starts any process (PUB spec §8).
+// missing before it starts any process.
 
 const WINDOWS_EXTENSIONS = ['.exe', '.cmd', '.bat', '']
 

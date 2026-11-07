@@ -3,7 +3,7 @@ import type { YieldableError } from 'effect/Cause'
 import type { ErrorCode } from './error-code.schema'
 
 /*
- * The typed failures of `Hosting` (M1 shared contracts §1.2).
+ * The typed failures of `Hosting`.
  *
  * Both are `Data.TaggedError`s, so callers handle them by tag
  * (`Effect.catchTag('HostError', …)`). The repo builds with
@@ -17,7 +17,7 @@ type TaggedErrorClass<Tag extends string, Fields> = new (
 ) => YieldableError & { readonly _tag: Tag } & Readonly<Fields>
 
 interface HostErrorFields {
-  /** The contract's code (DIST spec §4.1); the Ruken adapter relays Ruken's unchanged. */
+  /** The contract's code; the Ruken adapter relays Ruken's unchanged. */
   readonly code: ErrorCode
   /** Whether a retry may succeed (Ruken's flag, relayed unchanged). Retry only when true, with Effect's `Schedule`. */
   readonly retryable: boolean
@@ -38,6 +38,6 @@ const HostHandshakeFailedBase: TaggedErrorClass<'HostHandshakeFailed', HostHands
 /**
  * The page is inside a frame, but the SDK got no usable welcome and fell back
  * to its standalone session. Not fatal: reported on `Hosting.handshake.fellBack`
- * and logged once (shared contracts §1.2).
+ * and logged once.
  */
 export class HostHandshakeFailed extends HostHandshakeFailedBase {}

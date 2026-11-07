@@ -1,5 +1,4 @@
-// Authored TOML text in the active locale (PRODUCT spec §4 item 5). Extracted from FloorFifty
-// apps/client/src/i18n/content.ts (ac72660).
+// Authored TOML text in the active locale.
 //
 // The sim and the content artifact hold IDs and the source-language text; the words a player reads are looked
 // up at run time by the text's message key, built by `messageKey`, the one owner of the key format. A key with

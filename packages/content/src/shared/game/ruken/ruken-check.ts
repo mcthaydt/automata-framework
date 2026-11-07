@@ -5,7 +5,7 @@
 // The check writes a minimal `ruken.toml` around the fields content produces (`[content]`, `[analytics]`)
 // and every file `assets.toml` lists as `[loading] preload`, parses it, and places each refusal back at the
 // key in `game.toml` or `assets.toml` that produced it. The other tables are fixed placeholders that Ruken
-// accepts; ship (M1.2) writes the real ones.
+// accepts; ship writes the real ones.
 
 import { type ManifestError, parseManifest } from '@ruken/manifest'
 import type { DataPath, Problem } from '../../diagnostics/diagnostic'

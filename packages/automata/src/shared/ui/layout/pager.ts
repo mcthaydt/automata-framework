@@ -1,5 +1,5 @@
 /**
- * PagerDots' choice (M4 spec §4.8; from FloorFifty `ui/layout/pager.ts` at `ac72660`): dots while they fit on one
+ * PagerDots' choice: dots while they fit on one
  * row, a counter ("3 / 11") once they would not. Dots never wrap.
  */
 export function pagerMode(

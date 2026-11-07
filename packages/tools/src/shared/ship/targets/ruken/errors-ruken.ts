@@ -2,7 +2,7 @@ import type { ManifestError } from '@ruken/manifest'
 import { Data } from 'effect'
 import type { TaggedErrorClass } from '../../../node/errors.ts'
 
-// The Ruken target's own failure (DIST spec §5.2), re-exported by `errors.ts` with every other ship error.
+// The Ruken target's own failure, re-exported by `errors.ts` with every other ship error.
 
 const ManifestInvalidBase: TaggedErrorClass<
   'ManifestInvalid',

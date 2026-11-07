@@ -10,7 +10,7 @@ import { buildIdFor } from '../../deploy/build-id.ts'
 import { DeployFailed, type ManifestInvalid } from '../../errors.ts'
 import { checkManifest } from './check-manifest.ts'
 
-// `ship deploy-dev` (ship spec §3.5, D-4): sends a prepared build to the standalone dev host, where the host's
+// `ship deploy-dev`: sends a prepared build to the standalone dev host, where the host's
 // `deploy` script installs it at /builds/<buildId>/. The tarball carries the build folder as client/, a
 // build.json naming it, and headers.json: the headers Ruken would serve this build with (@ruken/manifest's
 // compileHeaders), so a build that breaks under Ruken's CSP breaks on the dev host too. The host is reached

@@ -1,4 +1,4 @@
-// What `automata editor` lets a browser touch in a game checkout (ED3D.14, ED2D.9; editor suite spec §4.2): with
+// What `automata editor` lets a browser touch in a game checkout: with
 // `content/editors.toml` the editor list decides (a file is written only through a row, never the list, `.git` or a
 // gate's records; a file that is read only is still readable, so the editor can show it); without one, the level files
 // (`*.json` outside the folders a build or a tool owns) are readable and writable. Paths outside the checkout are never

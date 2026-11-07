@@ -18,7 +18,7 @@ import type { SettingsDef } from '../../shared/runtime/settings/settings.manager
 import type { BootFailureCopy } from '../../shared/ui/status/boot-failure.ts'
 import type { ScreenDef } from '../flow/screen.js'
 
-/** The compiled JSON content read by the runtime (spec §3.3). */
+/** The compiled JSON content read by the runtime. */
 export interface CompiledContentData {
   readonly flow: FlowGraph
   readonly assets?: AssetsSource | undefined
@@ -26,7 +26,7 @@ export interface CompiledContentData {
   readonly [key: string]: unknown
 }
 
-/** Test seams injected into the runtime boot program (spec §3.3, planning note 10). */
+/** Test seams injected into the runtime boot program. */
 export interface RuntimeSeams {
   readonly fetch?: typeof fetch
   readonly frames?: FrameSource
@@ -34,7 +34,7 @@ export interface RuntimeSeams {
   readonly sdkEnv?: () => NonNullable<HostingSeams['env']>
   /**
    * Builds the game's `Hosting` in place of the build target's adapter (`@mcthaydt/automata-host/target`), for
-   * example `fakeHosting(…).make` from `@mcthaydt/automata-testing/host` (DIST spec §7). When given, `sdkEnv` is
+   * example `fakeHosting(…).make` from `@mcthaydt/automata-testing/host`. When given, `sdkEnv` is
    * not used.
    */
   readonly hosting?: (options: HostingOptions) => Effect.Effect<Hosting, HostError, Scope.Scope>
@@ -45,28 +45,28 @@ export interface RuntimeSeams {
   readonly createAudioContext?: () => AudioContextLike
   /** The device's haptics, in place of the browser's (pads, `navigator.vibrate`, a coarse pointer). */
   readonly haptics?: Haptics
-  /** Where settings fields that belong to the device are kept; defaults to the frame's `localStorage` (M5 spec §4.5). */
+  /** Where settings fields that belong to the device are kept; defaults to the frame's `localStorage`. */
   readonly deviceStorage?: DeviceStorage
   /**
    * Hears what failed, after the runtime has shown it as usual: a boot failure's `BootError`, why a screen could not
    * load or enter, or what a running sim's step threw. Each Try again can fail again, so it can be called more than
-   * once. A throw from it is ignored. The playground reports the line in the reader's code from it (website
-   * playground spec §7.2).
+   * once. A throw from it is ignored. The website's playground reports the line in the reader's code
+   * from it.
    */
   readonly onFailure?: (cause: unknown) => void
   /**
    * Reloads the game's frame: what Try again does after a boot failure inside a Ruken session, where the host answers
-   * one hello per frame load (M1 runtime spec §4, RT.BOOT1). Defaults to reloading the document's location.
+   * one hello per frame load. Defaults to reloading the document's location.
    */
   readonly reload?: () => void
 }
 
-/** Controls the running game: shutdown closes the runtime scope (spec §3.3, planning note 11). */
+/** Controls the running game: shutdown closes the runtime scope. */
 export interface RuntimeHandle {
   shutdown(): Promise<void>
 }
 
-/** Everything a game provides to the runtime to boot (spec §3.3). */
+/** Everything a game provides to the runtime to boot. */
 export interface GameDefinition<S = never> {
   readonly root: HTMLElement
   readonly hosting: Omit<HostingOptions, 'disclosedEvents'>
@@ -74,20 +74,20 @@ export interface GameDefinition<S = never> {
   readonly screens: readonly ScreenDef[]
   /**
    * Files fetched with the preload screens' own (byte progress, the 30 s stall rule) before the renderer starts,
-   * outside the content: a game without `content/` lists its 3D models here (M3.4a). They are not part of
+   * outside the content: a game without `content/` lists its 3D models here. They are not part of
    * `content.hash`, so a new origin or a rebuilt file never changes the hash saves are stamped with.
    */
   readonly preload?: readonly string[] | undefined
   readonly renderer: RendererFactory
   readonly settings?: SettingsDef<S> | undefined
   /**
-   * The game's save (M5): its slots, autosave and migrations. Boot opens it, wires its triggers and flushes it when
+   * The game's save: its slots, autosave and migrations. Boot opens it, wires its triggers and flushes it when
    * the host closes the game; a screen reaches it with `saveOf(def)`. Absent, the game has no save and the runtime
    * reads and writes nothing for one.
    */
   readonly saves?: SaveDef<unknown> | undefined
   /**
-   * The orientation the game plays in, as the ship config's `runtime.orientation` says (M4.7). A `portrait` or
+   * The orientation the game plays in, as the ship config's `runtime.orientation` says. A `portrait` or
    * `landscape` game on a phone held the other way pauses behind the rotate hint. Default `any`.
    */
   readonly orientation?: GameOrientation | undefined
@@ -95,18 +95,18 @@ export interface GameDefinition<S = never> {
   readonly rotateHint?: RotateHintMode | undefined
   /**
    * The game's languages: pass its Paraglide `runtime.js` (`import * as runtime from './paraglide/runtime.js'`).
-   * Absent, the game has one locale, the content's `source_language` (PRODUCT spec §4).
+   * Absent, the game has one locale, the content's `source_language`.
    */
   readonly locale?: LocaleDef | undefined
   readonly extensions?: readonly ExtensionDef[] | undefined
-  /** The sound each sim event plays, by the event's type (M5.3). */
+  /** The sound each sim event plays, by the event's type. */
   readonly sounds?: EventSounds | undefined
-  /** The board and score each sim event submits, by the event's type (M5.7). Needs the `leaderboards` grant. */
+  /** The board and score each sim event submits, by the event's type. Needs the `leaderboards` grant. */
   readonly scores?: EventScores | undefined
   readonly copy?: Partial<BootFailureCopy> & {
     readonly loading?: string
     readonly slow?: string
-    /** The panel when the renderer's graphics context is lost for good (M3 spec §5). */
+    /** The panel when the renderer's graphics context is lost for good. */
     readonly contextLost?: string
   }
   readonly seams?: RuntimeSeams

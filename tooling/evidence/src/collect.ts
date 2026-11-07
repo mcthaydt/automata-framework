@@ -1,4 +1,4 @@
-// Turns what the runs left behind into the evidence file (DX spec §3.10). Pure functions over their inputs, so
+// Turns what the runs left behind into the evidence file. Pure functions over their inputs, so
 // cli.ts only gathers inputs and writes the result. Each refusal names what is wrong: a file that cannot say what
 // it proves is not written at all.
 import { relative } from 'node:path'
@@ -143,7 +143,7 @@ export function runFromEnv(env: Readonly<Record<string, string | undefined>>): R
   }
 }
 
-/** `create-game` (DX.5) and `automata check` (DX.6) are not merged, so there are no results to report yet. */
+/** `create-game` and `automata check` are not merged, so there are no results to report yet. */
 export const AUTOMATA_CHECK_PENDING: Evidence['automataCheck'] = {
   status: 'pending',
   waitingOn: ['DX.5', 'DX.6'],

@@ -1,5 +1,5 @@
-// The default screens' save UI in English (M5 spec §7): the `saves` part of `DEFAULT_SCREENS_COPY` (screens-copy.ts),
-// which a game overrides in its own language with `copy.screens` (DX.2d).
+// The default screens' save UI in English: the `saves` part of `DEFAULT_SCREENS_COPY` (screens-copy.ts),
+// which a game overrides in its own language with `copy.screens`.
 
 import type { SaveStatusCopy } from '../../../shared/ui/status/save-status.ts'
 import type { SaveSlotsCopy } from './save-slots.ts'

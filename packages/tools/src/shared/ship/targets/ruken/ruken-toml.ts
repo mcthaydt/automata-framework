@@ -24,7 +24,7 @@ export function rukenToml(config: ShipConfig): string {
     `title = ${str(game.title)}`,
     `version = ${str(game.version)}`,
     `entry = ${str(game.entry)}`,
-    // Optional in the game config (DIST spec §4.4): without it Ruken's parser refuses the manifest, naming `game.sdk`.
+    // Optional in the game config: without it Ruken's parser refuses the manifest, naming `game.sdk`.
     ...(game.sdk === undefined ? [] : [`sdk = ${str(game.sdk)}`]),
     '',
     '[runtime]',

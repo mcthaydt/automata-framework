@@ -1,4 +1,4 @@
-// The examples catalog (EX spec §2, §5, §7): every `<module>/<module>-<name>.ts` under the examples folder, its
+// The examples catalog: every `<module>/<module>-<name>.ts` under the examples folder, its
 // header, and every rule it breaks. The runner serves the entries, the smoke and parity tests loop over them,
 // and catalog.test.ts fails on any problem, so adding an example adds one file and no test.
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { parseSync } from 'oxc-parser'
 import { type Header, parseHeader } from './header.ts'
 
-/** raylib's modules, mapped in the PRODUCT spec §7. Plus modules live in mcthaydt/automata-plus. */
+/** raylib's modules, the catalog's sections. Plus modules live in mcthaydt/automata-plus. */
 export const CORE_MODULES: readonly string[] = [
   'core',
   'shapes',
@@ -20,7 +20,7 @@ export const CORE_MODULES: readonly string[] = [
   'ui',
   // The 3D runtime is free (M3R-D20): its examples are core, though its package stays unpublished while D-1 stands.
   'render3d',
-  // Procedural characters, drawn only by render3d, so private with it (M3R-D7) and core like it (M3 spec §5).
+  // Procedural characters, drawn only by render3d, so private with it (M3R-D7) and core like it.
   'figures',
 ]
 export const PLUS_MODULES: readonly string[] = ['physics', 'net', 'feel', 'post']
@@ -62,20 +62,20 @@ const EXAMPLE_PATH = /^([a-z0-9]+)\/\1-([a-z0-9]+(?:-[a-z0-9]+)*)\.ts$/
 // Folders under the examples folder that never hold examples.
 const SKIPPED_DIRS: ReadonlySet<string> = new Set(['node_modules', 'dist', 'e2e', 'resources', '__goldens__'])
 const ROOT_FILES: ReadonlySet<string> = new Set(['vite.config.ts', 'playwright.config.ts'])
-// The core umbrella (PRODUCT.2): every core verb an example uses comes through it (EX spec §2, EX.6).
+// The core umbrella: every core verb an example uses comes through it.
 const UMBRELLA = '@mcthaydt/automata'
 // Zod is AF's only schema language: every command takes a Zod schema, and no core package re-exports `z`. It stays
 // a public import: re-exporting `z` would tie an example's schema library to the umbrella's pinned copy.
 const SCHEMA_LANGUAGE = 'zod'
 /**
- * The packages that are extensions rather than core (master spec §5): an example shows one by importing its
+ * The packages that are extensions rather than core: an example shows one by importing its
  * published entry. Every other `@mcthaydt/automata-*` package is core or tooling, and is reached through the
  * umbrella. A new extension package fails the catalog until it is listed here, which is when to decide its tier.
  */
 const EXTENSION_PACKAGES: ReadonlySet<string> = new Set(['@mcthaydt/automata-physics'])
 /**
  * Extensions that stay private for now, whose entries examples may still import: `render-pixi3d` is built on the
- * closed `@pixi/3d` beta (D-1, M3 spec §4.8) and is published when Pixi 3D is; `figures` stays private while its
+ * closed `@pixi/3d` beta and is published when Pixi 3D is; `figures` stays private while its
  * only renderer does (M3R-D7). The website's playground leaves their
  * examples out (`playgroundCatalog`), because it is public.
  */
@@ -96,7 +96,7 @@ interface PublicEntries {
   readonly packages: ReadonlySet<string>
 }
 
-/** Every `.ts` file under `root`, skipping tooling folders and nested packages (the old demos, until EX.4). */
+/** Every `.ts` file under `root`, skipping tooling folders and nested packages (the old demos). */
 function exampleFiles(root: string, dir = root): string[] {
   const files: string[] = []
   for (const item of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
@@ -232,7 +232,7 @@ export function readCatalog(root: string, options: CatalogOptions = {}): Catalog
         problems.push(`the title line names "${header.name}", not "${fileId}"`)
       if (known && header.tier !== (CORE_MODULES.includes(module) ? 'core' : 'plus'))
         problems.push(`Tier: ${header.tier} does not match the ${module} module`)
-      // `Pending:` names every open task whose verbs the example needs (`Pending: DX.2, DX.2b`).
+      // `Pending:` names every open task whose verbs the example needs (`Pending: <task ids>`).
       const waitingFor = pendingTasks(header)
       for (const task of waitingFor) {
         const ticked = tasks.get(task)

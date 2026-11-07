@@ -1,6 +1,6 @@
 // Usage: node tooling/release/src/check-changesets.ts
-// Before 1.0 every AF release is a `0.0.x` patch (M2.4 spec §2), so a changeset that asks for `minor` or
-// `major`, or names a package AF does not publish, fails CI's checks job, naming the file. The M8 spec is
+// Before 1.0 every AF release is a `0.0.x` patch, so a changeset that asks for `minor` or
+// `major`, or names a package AF does not publish, fails CI's checks job, naming the file. AF 1.0 is
 // what would change this rule.
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'

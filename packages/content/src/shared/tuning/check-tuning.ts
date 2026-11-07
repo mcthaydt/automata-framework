@@ -4,7 +4,7 @@
 //   - Code-owned (FloorFifty packages/content/src/validate/bounds.ts, 122a220): the game passes its
 //     declarations (type, inclusive range, default) and the TOML holds bare numbers. Content selects; it
 //     never widens a range. Every check and message here is FloorFifty's.
-//   - Authored (A0+A1 spec §5): the game declares nothing in code and each tunable may carry its own range
+//   - Authored: the game declares nothing in code and each tunable may carry its own range
 //     inline, `NAME = { value, min, max, step }`, which also feeds the debug sliders.
 
 import type { DataPath, Problem } from '../diagnostics/diagnostic'

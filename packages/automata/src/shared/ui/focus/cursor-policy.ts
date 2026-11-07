@@ -1,5 +1,5 @@
 /**
- * Whether the pointer is hidden (M4 spec §4.7).
+ * Whether the pointer is hidden.
  *
  * Only on a `gameplay` screen, only while not paused, and only when the player
  * is not using the mouse -- or has left it still for two seconds. Never on a

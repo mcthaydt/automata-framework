@@ -1,4 +1,4 @@
-// A playground frame's script (website playground spec §5.3, §7). It runs the reader's compiled example, once, and
+// A playground frame's script. It runs the reader's compiled example, once, and
 // tells the parent what happened. No-eval comes first, so nothing in the runtime reaches for eval under the policy.
 import '@mcthaydt/automata/no-eval'
 import type { DefinedGame } from '@mcthaydt/automata'
@@ -36,7 +36,7 @@ function post(message: FrameMessage): void {
 }
 
 // The loop guard's stretch ends when the event loop gets a turn: a message posted to this frame's own channel is
-// delivered only then (§7.3), and unlike animation frames it arrives in an off-screen frame too.
+// delivered only then, and unlike animation frames it arrives in an off-screen frame too.
 const stretchEnds: (() => void)[] = []
 const channel = new MessageChannel()
 channel.port1.onmessage = () => {

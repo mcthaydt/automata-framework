@@ -1,12 +1,10 @@
-// The files the asset build made for the atlases and fonts a screen names in `assets.toml` (M5 spec §4.7,
-// M5.6F.2), as paths in the game's build.
+// The files the asset build made for the atlases and fonts a screen names in `assets.toml`, as paths in the game's build.
 //
 // The names are checked against `content/atlases.toml` and `content/fonts.toml`, read with their own schemas.
 // Which files exist comes from the asset build's committed outputs below `outDir`, as `automata-content assets`
 // wrote them (`asset-outputs.ts` names the folders and files): an atlas's pages, and `fonts.json`, the map from
 // each font and language to its subset. Reading those outputs, rather than packing the atlases and cutting the
-// fonts again, keeps the preload list as cheap as it was; a stale output is `check --verify-artifact`'s to catch
-// (M5.6F.1).
+// fonts again, keeps the preload list as cheap as it was; a stale output is `check --verify-artifact`'s to catch.
 //
 // Nothing here fails: a name that cannot be resolved says why, and a broken declaration or `fonts.json` is a
 // diagnostic on that file. A name the broken file would have resolved is then left out, already reported, so

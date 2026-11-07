@@ -1,7 +1,6 @@
 // Usage: node tooling/consumer-smoke/src/run.ts --from packs|registry [--version 0.0.n] [--keep]
 //
-// Installs AF's published packages into a project outside the workspace and uses them as a game would (M2.4
-// spec §3.6). `packs` packs the workspace's built packages (run `pnpm build` first); `registry` installs a
+// Installs AF's published packages into a project outside the workspace and uses them as a game would. `packs` packs the workspace's built packages (run `pnpm build` first); `registry` installs a
 // published version from GitHub Packages (NODE_AUTH_TOKEN must be able to read it). Each check is a named step;
 // the run exits 0 only if every step passed, and removes its temp folder unless --keep.
 import { execFileSync } from 'node:child_process'
@@ -142,7 +141,7 @@ function packAll(project: string): ConsumerPackage[] {
 
 type Step = readonly [name: string, run: () => string | Promise<string>]
 
-/** AF's own code must not need eval: Ruken's CSP has no 'unsafe-eval' (spec §3.6). */
+/** AF's own code must not need eval: Ruken's CSP has no 'unsafe-eval'. */
 const EVAL = /\bnew Function\s*\(|(?<![.\w])eval\s*\(/
 
 /** A string only Ruken's SDK has; a bundle with two SDK copies has it twice. */
@@ -160,7 +159,7 @@ function steps(project: string): Step[] {
   const installed = join(project, 'node_modules/@mcthaydt')
   return [
     [
-      // QB.1: the root README's clone-to-Emberwick and check commands still name real scripts and files.
+      // The root README's clone-to-Emberwick and check commands still name real scripts and files.
       'readme: every command in the root README resolves',
       () => {
         const commands = readmeCommands(readFileSync(join(root, 'README.md'), 'utf8'))
@@ -239,7 +238,7 @@ function steps(project: string): Step[] {
       },
     ],
     [
-      // PUB spec §3: an itch.io or web build resolves `@mcthaydt/automata-host/target` to the web adapter, so the
+      // An itch.io or web build resolves `@mcthaydt/automata-host/target` to the web adapter, so the
       // published `dist` must let it drop every byte of the Ruken SDK.
       'bundle: vite build with the automata-web condition, no Ruken SDK',
       () => {
@@ -263,7 +262,7 @@ function steps(project: string): Step[] {
       },
     ],
     [
-      // DX.2a: runtime, render-pixi, game and the umbrella, installed from their packs, make one game whose
+      // Runtime, render-pixi, game and the umbrella, installed from their packs, make one game whose
       // Ruken build (the `automata-ruken` condition) carries the SDK once.
       'game: vite build of a minimal @mcthaydt/automata game for Ruken, one Ruken SDK',
       () => {
@@ -276,7 +275,7 @@ function steps(project: string): Step[] {
       },
     ],
     [
-      // DX.2a: the same game's web build boots in Chromium, under the headers Ruken would serve it with, to its
+      // The same game's web build boots in Chromium, under the headers Ruken would serve it with, to its
       // title, and Play starts it.
       "game: the web build boots in Chromium under Ruken's CSP and plays",
       async () => {

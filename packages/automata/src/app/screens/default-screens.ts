@@ -65,17 +65,17 @@ export interface ScreensGame {
     readonly content?: unknown
   }
   readonly input?: InputMap | undefined
-  /** Told the sim play runs, and `undefined` when the title drops it: the draw layer reads it (PRODUCT.2). */
+  /** Told the sim play runs, and `undefined` when the title drops it: the draw layer reads it. */
   readonly watchSim?: ((sim: Sim | undefined) => void) | undefined
-  /** The board paused shows: the game's first scored board (M5.7). None: paused shows no board. */
+  /** The board paused shows: the game's first scored board. None: paused shows no board. */
   readonly board?: string | undefined
-  /** Applies the player's graphics quality to the stage (M4.4): the saved one at the title, then each choice. */
+  /** Applies the player's graphics quality to the stage: the saved one at the title, then each choice. */
   readonly setQuality?: ((tier: QualityTier) => void) | undefined
-  /** The game's save (M5.2): the title lists its slots and play keeps the loaded one saved. None: no slot list. */
+  /** The game's save: the title lists its slots and play keeps the loaded one saved. None: no slot list. */
   readonly saves?: GameSaves<unknown> | undefined
-  /** The game's extensions: play draws their `hud.overlay` components (M4.7), Settings shows their `settings.sections` (M4.4). */
+  /** The game's extensions: play draws their `hud.overlay` components, Settings shows their `settings.sections`. */
   readonly extensions?: readonly ExtensionDef[] | undefined
-  /** The game's words for these screens (`GameSpec.copy.screens`, DX.2d), over the English defaults. */
+  /** The game's words for these screens (`GameSpec.copy.screens`), over the English defaults. */
   readonly copy?: ScreensCopyInput | undefined
 }
 
@@ -83,12 +83,12 @@ const asRecord = (value: unknown): Record<string, unknown> =>
   value !== null && typeof value === 'object' ? (value as Record<string, unknown>) : {}
 
 /**
- * The title, play, paused and settings screens (DX spec §7, M4.4) over the default content's flow
+ * The title, play, paused and settings screens over the default content's flow
  * (`title → play ⇄ paused → title`, `paused ⇄ settings`).
  *
  * The screens share one sim: play creates it on first entry (seed, plugins, content, then `setup`),
  * paused keeps it, and the title drops it, so Quit to title and Play start again at tick 0. A runtime that shuts
- * down with the sim alive drops it too, whichever screen is current (DX.2c). Returning
+ * down with the sim alive drops it too, whichever screen is current. Returning
  * from paused re-sends the whole state to the renderer (G-5): `AppLoop.run` resets the renderer, so
  * play restores the sim's own snapshot, which makes the next step a resync.
  */
@@ -98,7 +98,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
     Locale,
     (locale) => screensCopy(game.copy, locale),
   )
-  // The pads already told they are not supported (M4 spec §6), for the whole session.
+  // The pads already told they are not supported, for the whole session.
   const toldPads = new Set<string>()
   let sim: Sim | undefined
   let playFlow: Flow | undefined
@@ -114,7 +114,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
   /** The run whose shutdown drops the sim: each run of the runtime (a retried boot, a second `runGame`) has its own. */
   let droppedWith: Scope.Scope | undefined
   /**
-   * Drops the sim when the run's `runtime` scope closes (DX.2c), which is after the current screen and the save's last
+   * Drops the sim when the run's `runtime` scope closes, which is after the current screen and the save's last
    * flush have read it. Once per run: `dropSim` forgets the sim it disposes, so one the title dropped is not disposed
    * again, and a shutdown on the title disposes nothing.
    */
@@ -141,9 +141,9 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         // Quit to title: progress play kept is written while the sim that holds it still lives.
         if (game.saves !== undefined) yield* (yield* saveOf(game.saves.def)).flushPending
         dropSim()
-        // The player's saved quality reaches the stage before play draws anything (M4.4).
+        // The player's saved quality reaches the stage before play draws anything.
         const { store } = yield* Settings
-        // And the saved mix reaches the audio, so the first sound is at the player's levels (M5.4).
+        // And the saved mix reaches the audio, so the first sound is at the player's levels.
         applyAudio({ audio: yield* Audio, buses: yield* AudioBuses }, savedAudio(store))
         ;(yield* Haptics).setEnabled(savedHaptics(store))
         if (game.setQuality !== undefined && store !== undefined)
@@ -201,7 +201,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         let current = sim
         if (current === undefined) {
           // Kept the moment it is made. A runtime that shuts down while it is being made interrupts this enter, which
-          // aborts the signal: the run no longer holds a sim to drop, so the late one is disposed here (DX.2c).
+          // aborts the signal: the run no longer holds a sim to drop, so the late one is disposed here.
           // Waiting for it instead would hold shutdown on a plugin's engine setup.
           current = yield* Effect.promise((signal) =>
             freshSim().then((made) => {
@@ -214,10 +214,10 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           current.restore(current.snapshot())
         }
 
-        // The Input service for this play session (M4 spec §4.2): sampled once per fixed step, closed with the screen.
+        // The Input service for this play session: sampled once per fixed step, closed with the screen.
         const map = game.input
         const bus = yield* PresentationBus
-        // The player's bindings and touch mode, from the settings (M4.4).
+        // The player's bindings and touch mode, from the settings.
         const { store } = yield* Settings
         const input = yield* makeInput({
           target,
@@ -238,7 +238,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         // triggers (leaving play, a round's end, the page going to the background) write it.
         const save = game.saves === undefined ? undefined : yield* saveOf(game.saves.def)
         const keep = (): unknown => game.saves?.capture(running)
-        // An idle pointer hides while playing (M4 spec §4.7); leaving play detaches it and shows the pointer again.
+        // An idle pointer hides while playing; leaving play detaches it and shows the pointer again.
         const cursor = new CursorRunner(layer, { kind: () => 'gameplay' })
         const detachCursor = cursor.attach(target)
         yield* Effect.addFinalizer(() => Effect.sync(detachCursor))
@@ -321,7 +321,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         const flow = yield* Flow
         const time = yield* Time
         const target = windowOf(layer)
-        // Any device that reaches Resume or Quit lets the game go on (M4 spec §5, pad hot-plug).
+        // Any device that reaches Resume or Quit lets the game go on (a pad plugged in mid-game included).
         const clearReconnect = (): void => {
           reconnect = false
           time.resume('input')
@@ -335,7 +335,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           flow.dispatch('quit')
         }
         const boards = yield* Leaderboards
-        // Read from the host each time paused opens: what the host says, never a copy kept here (M5 spec §4.8).
+        // Read from the host each time paused opens: what the host says, never a copy kept here.
         const board =
           game.board === undefined
             ? undefined
@@ -353,7 +353,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
                   resume()
                 },
               } satisfies SavesStart)
-        // Mute is the Audio group's setting (M5.4), as FloorFifty's pause has it.
+        // Mute is the Audio group's setting, as FloorFifty's pause has it.
         const { store } = yield* Settings
         const targets = { audio: yield* Audio, buses: yield* AudioBuses }
         const copy = yield* words

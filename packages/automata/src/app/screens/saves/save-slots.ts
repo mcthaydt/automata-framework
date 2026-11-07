@@ -1,4 +1,4 @@
-// The SaveSlots list's contract (M5 spec §6, §7). The slot kinds are the runtime's `SlotState`, typed here because ui
+// The SaveSlots list's contract. The slot kinds are the runtime's `SlotState`, typed here because ui
 // does not depend on the runtime; the runtime's value fits it once the caller adds `activity`, which only the caller
 // knows (a write it started and has not finished, or one that failed).
 
@@ -23,7 +23,7 @@ export type SaveSlotsView =
   | { readonly state: 'loading' }
   | { readonly state: 'slots'; readonly slots: readonly SaveSlotView[] }
 
-/** Every word the list shows, in the game's language (each a PRODUCT.L message key). */
+/** Every word the list shows, in the game's language (each a message key). */
 export interface SaveSlotsCopy {
   /** The list's accessible name. */
   readonly title: string
@@ -69,7 +69,7 @@ export function defaultSlot(slots: readonly SaveSlotView[]): number | undefined 
 }
 
 /**
- * What a player may do with a slot (M5 spec §6). A slot that cannot be opened, or that a newer build made, can only be
+ * What a player may do with a slot. A slot that cannot be opened, or that a newer build made, can only be
  * deleted: writing over it is two steps, delete then New game, so it is never one tap.
  */
 export function slotActionsOf(slot: SaveSlotView): {

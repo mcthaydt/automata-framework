@@ -1,4 +1,4 @@
-// Touch for browser journeys (M4 spec §4.14): tap, hold, swipe and flick, as a finger's pointer events
+// Touch for browser journeys: tap, hold, swipe and flick, as a finger's pointer events
 // (`pointerType: 'touch'`). They are dispatched in the target's own frame, so they work under the fake Ruken host
 // and in every engine; WebKit has no CDP to synthesize real touches. Taps on ordinary controls can use Playwright's
 // own `locator.tap()`; these are for what holds or moves: the touch buttons and gesture surfaces.
@@ -66,7 +66,7 @@ export async function swipe(scope: Page | Frame, from: Point, to: Point, ms: num
   )
 }
 
-/** A quick vertical swipe of `dy` pixels within `ms` milliseconds from `from` (M4 spec I-f: 40 px in 180 ms). */
+/** A quick vertical swipe of `dy` pixels within `ms` milliseconds from `from` (the gesture tests use 40 px in 180 ms). */
 export async function flick(scope: Page | Frame, from: Point, dy: number, ms: number): Promise<void> {
   await swipe(scope, from, { x: from.x, y: from.y + dy }, ms)
 }

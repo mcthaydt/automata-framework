@@ -12,7 +12,7 @@
  * whether the player is clicked into it or not, so its sound does too.
  *
  * Waking and sleeping on Ruken's `lifecycle` belongs to the runtime, over
- * `Hosting` (M1.5); this module is the browser half only.
+ * `Hosting`; this module is the browser half only.
  *
  * Every gesture also asks the sound to come back from an interruption the
  * page was never told about: a call or Siri on a phone suspends the graph

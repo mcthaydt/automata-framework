@@ -1,10 +1,10 @@
 import type { Component } from 'svelte'
 
 /**
- * The named places an extension may add UI (M1 shared contracts §2; M1.6 spec §3.7).
+ * The named places an extension may add UI.
  *
- * Closed: an extension cannot add a slot. The screens that render each slot arrive with those
- * screens (title and pause in M1.5, settings and HUD in M4, the debug overlay in M6).
+ * Closed: an extension cannot add a slot. Each slot is rendered by its screen: title, pause,
+ * settings, the HUD and the debug overlay.
  */
 export const UI_SLOT_NAMES = [
   /** Extra buttons on the title screen's action bar. */

@@ -1,4 +1,4 @@
-// What a playground frame runs an example with (website playground spec §5.4). Browser code: the frame's build
+// What a playground frame runs an example with. Browser code: the frame's build
 // bundles it with the runtime, so the game, the sim and the fake host here are the same modules the example imports.
 import type { DefinedGame } from '@mcthaydt/automata'
 import { type RuntimeHandle, runGame } from '@mcthaydt/automata'

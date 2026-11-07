@@ -1,5 +1,5 @@
 /**
- * The last line of defence (release readiness §6.7).
+ * The last line of defence.
  *
  * An error nothing else caught is reported by its class alone -- never its
  * message or stack, which can hold a name or a room code -- and the caller

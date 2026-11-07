@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-// The `tauri` section of a game's ship.config.ts (DIST spec §6.3): what the desktop build needs beyond the game config.
+// The `tauri` section of a game's ship.config.ts: what the desktop build needs beyond the game config.
 
 /** What a game writes in `ship.config.ts` to build for the desktop. */
 export interface TauriConfig {

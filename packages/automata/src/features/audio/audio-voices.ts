@@ -1,4 +1,4 @@
-// One-shot sounds (M5 spec §4.6, A-d). From FloorFifty `apps/client/src/managers/audio/voices.ts` and `model.ts` at
+// One-shot sounds. From FloorFifty `apps/client/src/managers/audio/voices.ts` and `model.ts` at
 // `ac72660`, without its event de-duplication, far paths, panning and variation, which are FloorFifty's own.
 import type { AudioGraph, SubBus } from './audio-graph.js'
 

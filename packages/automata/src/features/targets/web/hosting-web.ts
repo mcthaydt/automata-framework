@@ -20,12 +20,12 @@ import { emitter, type Subscribable, subscribable } from '../../../shared/lib/su
 import { guardRounds } from '../rounds'
 
 /*
- * The web adapter (PUB spec §3.1): `Hosting` for a page outside Ruken, chosen at build time for the `itch` and
+ * The web adapter: `Hosting` for a page outside Ruken, chosen at build time for the `itch` and
  * `web` targets through `@mcthaydt/automata-host/target` (ADR 0005). It mirrors the SDK's standalone session
  * wherever the SDK defines one and adds what a page can observe. It never falls back to memory for saves: when
  * the browser blocks storage, `saves` is not granted and every call is refused `DENIED`.
  *
- * Every type comes from AF's host contract (DIST spec §4), so a bundle built with this adapter holds no Ruken SDK
+ * Every type comes from AF's host contract, so a bundle built with this adapter holds no Ruken SDK
  * code (`target.build.test.ts` builds one and checks for `RUKEN_SDK_MARKERS`).
  */
 
@@ -65,10 +65,10 @@ export interface WebPage extends WebEvents {
   matchMedia?(query: string): { readonly matches: boolean }
 }
 
-/** The build's publish target among those that use this adapter (PUB spec §3). */
+/** The build's publish target among those that use this adapter. */
 export type WebTarget = 'itch' | 'web'
 
-/** Set by an `itch` or `web` build through Vite's `define` (PUB spec §3); absent in tests and other builds. */
+/** Set by an `itch` or `web` build through Vite's `define`; absent in tests and other builds. */
 declare const __AUTOMATA_TARGET__: unknown
 
 /**
@@ -131,7 +131,7 @@ function listen(target: WebEvents, types: readonly string[], onEvent: PageListen
   }
 }
 
-/** A hidden tab or an unfocused page is in the background, so a game that pauses does (PUB spec §3.1). */
+/** A hidden tab or an unfocused page is in the background, so a game that pauses does. */
 function lifecycleOf(page: WebPage): LifecyclePayload {
   const reasons: LifecycleReason[] = []
   if (page.document.visibilityState === 'hidden') reasons.push('hidden')
@@ -156,7 +156,7 @@ interface InputTracker {
 }
 
 /**
- * The last input the player used, from real events (PUB spec §3.1). A phone starts in touch mode. Ruken's host
+ * The last input the player used, from real events. A phone starts in touch mode. Ruken's host
  * names the gamepad layout itself; outside it, AF reads 'xbox' from the gamepad's id and calls the rest 'other'.
  */
 function trackInput(page: WebPage): InputTracker {
@@ -309,10 +309,10 @@ export function createWebHosting(options: HostingOptions, page: WebPage, target:
       set: (key, value) => withStorage('saves.set', (local) => local.setItem(prefix + key, value)),
       remove: (key) => withStorage('saves.remove', (local) => local.removeItem(prefix + key)),
       // Writes reach localStorage synchronously, so there is nothing left to hand over: the saves are on this
-      // device (DIST-D3).
+      // device.
       flush: () => withStorage('saves.flush', () => ({ persisted: 'device' as const })),
       // Only this game's keys, without the prefix (the origin also holds other games' and the page's own),
-      // in code-unit order so a slot list reads the same on every engine (M5 spec §4.1).
+      // in code-unit order so a slot list reads the same on every engine.
       keys: () =>
         withStorage('saves.keys', (local) => {
           const keys: string[] = []
@@ -325,7 +325,7 @@ export function createWebHosting(options: HostingOptions, page: WebPage, target:
       // One browser, one writer: nothing outside this session writes these saves, so nothing changes under it.
       changed: emitter<never>(owner).events,
     },
-    // There is no board outside Ruken; calls are refused rather than keep a local one (PUB spec §3.1).
+    // There is no board outside Ruken; calls are refused rather than keep a local one.
     leaderboards: {
       submit: () => unsupported('leaderboard.submit'),
       get: () => unsupported('leaderboard.get'),
@@ -347,7 +347,7 @@ export function createWebHosting(options: HostingOptions, page: WebPage, target:
         return refuse('DENIED', false, 'display.fullscreen', cause)
       }
     },
-    // No host counts rounds, but the game's round-end autosave reads the ends (M5.2), so they are kept honest.
+    // No host counts rounds, but the game's round-end autosave reads the ends, so they are kept honest.
     round: {
       start: () => rounds.start(),
       end: (outcome) => rounds.end(outcome),
@@ -360,7 +360,7 @@ export function createWebHosting(options: HostingOptions, page: WebPage, target:
         console.warn(`track("${event}") dropped: not in the game's disclosed analytics events`)
       }
     },
-    // There is no host to go back to; the UI hides "Back to …" because `exit` is not granted (PUB spec §3.1).
+    // There is no host to go back to; the UI hides "Back to …" because `exit` is not granted.
     exit: async () => whileOpen('session.exit', () => refuse('UNSUPPORTED', false, 'session.exit')),
     // Nothing outside Ruken asks for the game's menu or closes the game, so these are registered and never called.
     onMenuRequest: () => () => undefined,

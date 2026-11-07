@@ -4,7 +4,7 @@ import type { HostSettings } from '../../header.ts'
 type FakeHostCreateOptions = Parameters<typeof createFakeHost>[0]
 type Capability = NonNullable<FakeHostCreateOptions['grant']>[number]
 
-/** What a playground frame hands Ruken's fake host for an example's `Host:` header (website playground spec §5.4). */
+/** What a playground frame hands Ruken's fake host for an example's `Host:` header. */
 export interface PlaygroundHostOptions {
   readonly create: Pick<FakeHostCreateOptions, 'grant' | 'saves'>
   /** The saves server and the leaderboards are unreachable. */

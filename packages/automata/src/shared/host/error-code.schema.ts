@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 /**
- * Why a host call failed (DIST spec §4.1). The codes are Ruken's (`@ruken/protocol` `ERROR_CODES`), kept where they
+ * Why a host call failed. The codes are Ruken's (`@ruken/protocol` `ERROR_CODES`), kept where they
  * fit; `ruken/conformance.test.ts` holds them to the vendored SDK.
  */
 export const ERROR_CODES = [

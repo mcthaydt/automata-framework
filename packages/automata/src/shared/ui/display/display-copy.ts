@@ -1,4 +1,4 @@
-// The words of the display covers (M4 spec §4.9, §7), in the game's language.
+// The words of the display covers, in the game's language.
 
 /** The landscape gate's words: one tap to fullscreen, or how to play where a browser cannot hide its bar. */
 export interface LandscapeGateCopy {

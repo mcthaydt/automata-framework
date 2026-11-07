@@ -2,7 +2,7 @@ import { globalName, isNode, type Node, parseBundle, stringValue, unwrap } from 
 import type { CheckFinding } from './check-report.ts'
 import { ALLOWED_EVAL_CALLS } from './no-eval-allowlist.ts'
 
-// The `no-eval` scan (DX spec §3.6): finds the call forms Ruken's CSP (no 'unsafe-eval') would block in a built
+// The `no-eval` scan: finds the call forms Ruken's CSP (no 'unsafe-eval') would block in a built
 // bundle. It works on the AST, so strings, comments, `x.eval(…)` and object methods named `eval` (Effect's fiber
 // primitives have them) are never findings. It reads syntax only: an alias such as `const F = Function; new F(…)`
 // is not seen. The `csp` step, which runs the build under the real policy, is the check for those.

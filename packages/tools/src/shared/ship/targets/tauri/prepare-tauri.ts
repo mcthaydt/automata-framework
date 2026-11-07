@@ -71,7 +71,7 @@ const osOf = (platform: NodeJS.Platform): keyof typeof BUNDLES =>
   platform === 'darwin' ? 'macos' : platform === 'win32' ? 'windows' : 'linux'
 
 /**
- * Builds the desktop bundles for this OS (DIST spec §6.2). In order, and stopping at the first that fails: the
+ * Builds the desktop bundles for this OS. In order, and stopping at the first that fails: the
  * release tag; the `tauri` section, a semver version, the `index.html` entry and a CSP without eval; the public-build
  * scans (secrets, `@pixi/3d`); the toolchain (`cargo`, WebKitGTK on Linux, the `tauri` CLI). Only then is the
  * project written to `<game>/.automata/tauri/` (its `target/` cache is kept between builds), `tauri build` run
@@ -101,7 +101,7 @@ export function prepareTauri(
     ]
     if (problems.length > 0 || settings === undefined) return yield* new TauriBuildInvalid({ problems })
 
-    // A desktop build is published, as an itch.io page is: the same scans (QB.2, X-b, S7-g).
+    // A desktop build is published, as an itch.io page is: the same scans.
     const secrets = yield* attempt(distDir, () => findSecretsInBuild(distDir, readEnvValues(gameDir)))
     if (secrets.length > 0) return yield* new SecretInBuild({ found: secrets })
     const pixi3d = yield* attempt(distDir, () => findPixi3d(distDir))

@@ -1,5 +1,5 @@
 // Usage: node tooling/release/src/verify-published.ts --version <0.0.n>
-// Run by release-packages.yml right after `changeset publish` (M2.4 spec §5). `changeset publish` exits 0 both
+// Run by release-packages.yml right after `changeset publish`. `changeset publish` exits 0 both
 // when it published and when it skipped everything, so its exit code proves nothing; this looks every
 // publishable package up on GitHub Packages at the released version and fails, naming each one still missing.
 // Re-running the release job then publishes exactly the missing ones (changesets skips versions already there).

@@ -1,6 +1,5 @@
-// The Audio service (M5 spec §4.6, §5, §6): the graph, its unlock, sleep and wake, the host's gain, one-shots,
-// music and ducks, behind one service that also implements PRODUCT.1's `AudioBuses` seam. The rules come from
-// FloorFifty `apps/client/src/managers/audio/engine.ts` and `ui/sleep-when-hidden.ts` at `ac72660`.
+// The Audio service: the graph, its unlock, sleep and wake, the host's gain, one-shots,
+// music and ducks, behind one service that also implements the `AudioBuses` seam.
 //
 // Audio is presentation: it never feeds the sim, and `sound` is a plain call that allocates no Effect, so a game
 // can call it from a presentation-bus listener every frame.
@@ -25,7 +24,7 @@ export interface SoundOptions {
 }
 
 /**
- * The audio service (M5 spec §4.6): one-shot sounds and looping music on the audio buses, unlocked by the
+ * The audio service: one-shot sounds and looping music on the audio buses, unlocked by the
  * first gesture after `session.ready`; the game runs silent when no audio context can be built.
  */
 export interface Audio {

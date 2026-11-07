@@ -1,4 +1,4 @@
-// The derived files every build writes (M1.3 spec §3.7). They are generators on the same hook a game uses,
+// The derived files every build writes. They are generators on the same hook a game uses,
 // so a game's generator sees exactly what they see, and a game generator that writes one of these paths is
 // refused as a clash. `content.json`, `content.hash`, `sim-content.json` and `sim-content.hash` come from the
 // `artifact` generator, which runs first.
@@ -29,7 +29,7 @@ export function builtInGenerators(facts: BuiltInFacts): ContentGenerator[] {
       files: {
         'content.json': canonicalFile(data),
         'content.hash': `${hash}\n`,
-        // The partition the sim receives and the hash that gates snapshots (M2.2), written from what the
+        // The partition the sim receives and the hash that gates snapshots, written from what the
         // compiler made rather than re-derived here.
         'sim-content.json': canonicalFile(sim.data),
         'sim-content.hash': `${sim.hash}\n`,

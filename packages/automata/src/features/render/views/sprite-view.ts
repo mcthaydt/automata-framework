@@ -20,7 +20,7 @@ export interface SpriteViewOptions {
   readonly anchor?: ViewAnchor | undefined
   readonly frames?: SpriteFrames | undefined
   /**
-   * A frame of a packed atlas (M5.6): `source` is the url of an atlas page's Spritesheet JSON, which
+   * A frame of a packed atlas: `source` is the url of an atlas page's Spritesheet JSON, which
    * `automata-content assets` writes, and `frame` names one of its frames. Not with `frames`.
    */
   readonly frame?: string | undefined

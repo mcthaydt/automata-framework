@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 /**
  * The highest button index of the W3C Gamepad standard mapping (0 = bottom face button … 16 = home). Only the
- * standard mapping is bound (DX spec §3.3); a pad without it is the device layer's to normalize.
+ * standard mapping is bound; a pad without it is the device layer's to normalize.
  */
 export const STANDARD_PAD_BUTTON_MAX = 16
 
@@ -25,7 +25,7 @@ const STICK_DIRECTIONS = [
   'right-right',
 ] as const
 /**
- * `camera-drag` (M4.12, M4 spec §16.3.1) is analog: a one-finger or secondary-button drag whose horizontal pixels
+ * `camera-drag` is analog: a one-finger or secondary-button drag whose horizontal pixels
  * `Input.cameraDrag()` reads. It never holds or pulses an action; binding it is what turns the drag on.
  */
 const GESTURE_NAMES = [
@@ -38,9 +38,9 @@ const GESTURE_NAMES = [
   'camera-drag',
 ] as const
 
-/** A stick pushed past its dead zone in one direction (M4.2 reads them). */
+/** A stick pushed past its dead zone in one direction (the input service reads them). */
 export type StickDirection = (typeof STICK_DIRECTIONS)[number]
-/** A touch gesture (M4.3 recognises the swipes, flick and tap; M4.12 the camera drag). */
+/** A touch gesture (the swipes, flick, tap and the camera drag). */
 export type GestureName = (typeof GESTURE_NAMES)[number]
 /** Where an action is live: during play, in menus, or both. */
 export type InputContext = 'play' | 'menu' | 'any'
@@ -52,15 +52,15 @@ export interface InputBinding {
   readonly touch: boolean
   readonly stick?: readonly StickDirection[] | undefined
   readonly gesture?: readonly GestureName[] | undefined
-  /** Rebinding may never leave it unbound on a device it had (M4.4). */
+  /** Rebinding may never leave it unbound on a device it had. */
   readonly required?: boolean | undefined
   /** Default `'play'`. */
   readonly context?: InputContext | undefined
 }
 
 /**
- * A named set of bindings, one per game action (PRODUCT spec §2 F1). It is data: a settings screen rebinds a
- * copy and saves it in the game's `SettingsDef`; M4's input service reads it. Action ids are the game's own.
+ * A named set of bindings, one per game action. It is data: a settings screen rebinds a
+ * copy and saves it in the game's `SettingsDef`; the input service reads it. Action ids are the game's own.
  */
 export interface InputProfile {
   readonly id: string
@@ -141,12 +141,12 @@ export function actionsForPadButton(profile: InputProfile, index: number): strin
   return boundActions(profile, (binding) => binding.pad.includes(index))
 }
 
-/** Every action `gesture` drives in `profile` (M4.3); none when it is unbound. */
+/** Every action `gesture` drives in `profile`; none when it is unbound. */
 export function actionsForGesture(profile: InputProfile, gesture: GestureName): string[] {
   return boundActions(profile, (binding) => binding.gesture?.includes(gesture) === true)
 }
 
-/** How touch drives play: the on-screen buttons, or swipes and flicks over the whole screen (M4 spec §4.4). */
+/** How touch drives play: the on-screen buttons, or swipes and flicks over the whole screen. */
 export type TouchMode = 'buttons' | 'swipe'
 
 /**

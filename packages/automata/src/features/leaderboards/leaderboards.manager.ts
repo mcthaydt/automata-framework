@@ -1,4 +1,4 @@
-// The game's leaderboards for screens (M5 spec §4.8): `Hosting.leaderboards` (PRODUCT.1) with each answer turned into
+// The game's leaderboards for screens: `Hosting.leaderboards` with each answer turned into
 // a named state. Ruken owns every board: nothing here keeps scores, so offline is "offline", never a local board.
 // Ruken checks a score's range on its side; AF only refuses what the SDK cannot send (a score that is not a whole
 // number), as FloorFifty's `scores-hosted` tests expect.

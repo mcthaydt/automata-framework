@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 
-// The automata-api skill's `reference/api.md` is DX.4's generated `api.md`, committed so a plugin installed from
+// The automata-api skill's `reference/api.md` is the API index's generated `api.md`, committed so a plugin installed from
 // git has it. It must be that file byte for byte, and the plugin's version must be the API version the file
 // states (Claude Code refreshes an installed plugin when its version changes).
 

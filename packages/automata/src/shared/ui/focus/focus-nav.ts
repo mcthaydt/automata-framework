@@ -1,12 +1,11 @@
 /**
- * Keyboard and controller focus navigation over the page's own DOM (M1.6 spec §3.5; from
- * FloorFifty `ui/focus-nav.ts` at 122a220, with `steer`, `page` and `adjust` from `ac72660` and the
- * keyboard repeat guard of M4 spec §4.7).
+ * Keyboard and controller focus navigation over the page's own DOM, with a
+ * keyboard repeat guard.
  *
  * Deliberately DOM order, the same order Tab walks: one order to keep right, so a keyboard player
  * and a controller player never disagree about what comes next. Only a `[data-focus-grid]` steers
  * spatially. An open modal is the whole world
- * while it is open. Input sources (M4's gamepad, a game's own bindings) call `move`, `confirm` and
+ * while it is open. Input sources (the gamepad, a game's own bindings) call `move`, `confirm` and
  * `back`; this module never reads a device.
  */
 
@@ -173,7 +172,7 @@ export class FocusNavigator {
   }
 
   /**
-   * Arms the pad guard (M4 spec §4.7, F-a): called on a screen change, it cancels repeating Enter and Space
+   * Arms the pad guard: called on a screen change, it cancels repeating Enter and Space
    * keydowns until the key comes up or is pressed afresh. A pad's own confirm is an edge from `Input`, which
    * cannot repeat, so only the keyboard needs this; `attach` must be listening.
    */
@@ -216,7 +215,7 @@ export class FocusNavigator {
   }
 
   /**
-   * One step in `direction` (M4 spec §4.7). Inside a `[data-focus-grid]` the move is spatial: the nearest control
+   * One step in `direction`. Inside a `[data-focus-grid]` the move is spatial: the nearest control
    * whose centre lies that way, scored by distance along the direction plus twice the sideways offset, so a
    * straight line wins over a diagonal. Elsewhere it is DOM order: down and right go next, up and left previous.
    * Returns false when nothing lies that way in the grid, so the caller can page or stay put.

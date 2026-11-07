@@ -1,4 +1,4 @@
-// The player's audio settings as the default screens use them (M5.4): read from the settings store, applied to the
+// The player's audio settings as the default screens use them: read from the settings store, applied to the
 // `Audio` service and its buses, and saved back. One place, so the title (at boot), Pause's Mute and Settings' Audio
 // group never disagree about what is saved and what is heard.
 

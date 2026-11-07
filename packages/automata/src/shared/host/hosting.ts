@@ -20,7 +20,7 @@ import type {
   SavesStatus,
 } from './index'
 
-/** What the game asks of its host. In M1 the game passes these by hand; later they come from content. */
+/** What the game asks of its host. The game passes these by hand; content does not list them yet. */
 export interface HostingOptions {
   /** The game config's `game.id`; a host that knows the game (Ruken) checks it. */
   readonly gameId: string
@@ -45,23 +45,22 @@ export interface HostingOptions {
  */
 export type AnalyticsProps = Record<string, string | number | boolean>
 
-/** The player's saves (shared contracts §1.1). Each call relays the SDK's error as a `HostError`; none falls back. */
+/** The player's saves. Each call relays the SDK's error as a `HostError`; none falls back. */
 export interface HostingSaves {
   get(key: string): Effect.Effect<string | null, HostError>
   set(key: string, value: string): Effect.Effect<void, HostError>
   remove(key: string): Effect.Effect<void, HostError>
   readonly flush: Effect.Effect<SavesFlushRes, HostError>
-  /** Every key the session holds, sorted by code unit (M5 spec §4.1). Fails `CANCELLED` once Hosting has shut down. */
+  /** Every key the session holds, sorted by code unit. Fails `CANCELLED` once Hosting has shut down. */
   readonly keys: Effect.Effect<readonly string[], HostError>
   /**
-   * Another device's write, or the host's conflict choice, reached this session (`SavesApi.on('changed')`, M5 spec
-   * §4.1). No current value: only changes. Ends when Hosting shuts down.
+   * Another device's write, or the host's conflict choice, reached this session (`SavesApi.on('changed')`). No current value: only changes. Ends when Hosting shuts down.
    */
   readonly changed: Stream.Stream<SavesChangedPayload>
 }
 
 /**
- * The host's leaderboards (Ruken's `LeaderboardsApi`, PRODUCT spec §2 F1). Needs the `leaderboards` grant.
+ * The host's leaderboards (Ruken's `LeaderboardsApi`). Needs the `leaderboards` grant.
  * Each call relays the SDK's answer or error as a `HostError`: without the grant and standalone it fails
  * `UNSUPPORTED`, offline it fails with the host's code. None keeps a local board instead.
  */
@@ -81,22 +80,21 @@ export interface HostingLeaderboards {
 }
 
 /**
- * Everything a game may ask of, or hear from, its host: the `Hosting` contract
- * of the M1 shared contracts spec §1, implemented by the host lane.
+ * Everything a game may ask of, or hear from, its host: the `Hosting` contract,
+ * which each target's adapter implements.
  */
 export interface Hosting {
   /**
    * Which session this is: 'ruken' when Ruken hosts it; 'standalone' when the Ruken adapter got the SDK's
-   * standalone session; 'web' for the web adapter of an `itch` or `web` build (PUB spec §3); 'tauri' for the
-   * desktop adapter (DIST spec §4.2).
+   * standalone session; 'web' for the web adapter of an `itch` or `web` build; 'tauri' for the
+   * desktop adapter.
    */
   readonly kind: 'ruken' | 'standalone' | 'web' | 'tauri'
   /**
-   * The host's name for UI: 'Ruken', 'itch.io', 'this page' (PUB spec §3), or the game's title on the desktop (DIST
-   * spec §4.2).
+   * The host's name for UI: 'Ruken', 'itch.io', 'this page', or the game's title on the desktop.
    */
   readonly hostName: string
-  /** Some when the page is inside a frame but the SDK fell back to standalone (shared contracts §1.2). */
+  /** Some when the page is inside a frame but the SDK fell back to standalone. */
   readonly handshake: { readonly fellBack: Option.Option<HostHandshakeFailed> }
   readonly player: { readonly id: string; readonly displayName: string }
   readonly locale: string
@@ -150,7 +148,7 @@ export interface Hosting {
 }
 
 /**
- * How long the game may hold the host's close (Ruken P6 §4 "1 s cap"). Ruken's own grace is 1.5 s
+ * How long the game may hold the host's close (a 1 s cap). Ruken's own grace is 1.5 s
  * (`sdk-host/src/bridge/defaults.ts` `EXIT_GRACE_MS`), so the game always answers before the host gives up on it;
  * every adapter cuts the `onExiting` handlers and the flush off at this cap.
  */

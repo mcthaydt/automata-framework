@@ -19,7 +19,7 @@ export interface RunOptions {
   /** The JSON list of export ids that may still be undocumented. A missing file is an empty list. */
   readonly baseline: string
   /**
-   * The committed cheatsheet (PRODUCT.3). With `write`, it is rewritten from the index; without, a missing or
+   * The committed cheatsheet. With `write`, it is rewritten from the index; without, a missing or
    * different page is a finding, like an undocumented export.
    */
   readonly cheatsheet?: { readonly file: string; readonly write: boolean }

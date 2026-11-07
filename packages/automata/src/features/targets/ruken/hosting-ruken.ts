@@ -76,7 +76,7 @@ function initSession(
 
 /**
  * Builds `Hosting` over `Ruken.init`. The SDK decides between a hosted session and its standalone one (shared
- * contracts §1.1), enforces grants and limits, and owns the handshake's timing; AF relays what it reports.
+ * contracts), enforces grants and limits, and owns the handshake's timing; AF relays what it reports.
  *
  * `dispose()` does, in this order: Hosting marks itself closed (later calls are refused `CANCELLED`), every
  * subscription stops, and then the session is disposed.

@@ -23,7 +23,7 @@ function describeNonPlain(value: object): string | undefined {
  * Number-to-string algorithm, which every engine implements identically, except that -0 is written as -0.
  * Throws CanonicalJsonError for anything JSON can't represent exactly: NaN, Infinity, undefined, bigint,
  * functions, symbols, and non-plain objects (a Date, Map, Set, typed array or class instance would otherwise
- * serialize as {} and hash the same as every other one; M2.1 spec §10.7).
+ * serialize as {} and hash the same as every other one).
  */
 export function canonicalJson(value: unknown): string {
   if (value === null) return 'null'
@@ -74,7 +74,7 @@ export function utf8(s: string): Uint8Array {
 /**
  * Strict UTF-8 decoding, the inverse of `utf8` for well-formed text. Throws RangeError on anything else: a stray
  * or missing continuation byte, an overlong form, an encoded surrogate, a code point past U+10FFFF or a truncated
- * sequence. Replays need it because their bytes come from outside (M2.3 spec §6); the snapshot decoder's loose
+ * sequence. Replays need it because their bytes come from outside; the snapshot decoder's loose
  * one only ever reads bytes the sim wrote.
  */
 export function decodeUtf8Strict(bytes: Uint8Array): string {

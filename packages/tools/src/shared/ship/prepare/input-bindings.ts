@@ -1,4 +1,4 @@
-// The inputs check (M4.1 follow-up): `runtime.inputs` against the game's input map (M4 spec §4.13, I-g). The map
+// The inputs check: `runtime.inputs` against the game's input map. The map
 // cannot be loaded under plain Node, so it is read from the `keys(command, bindings, options)` calls in the game's
 // sources, as the board and orientation checks read theirs, and turned into the bindings `inputsProblems` takes: that
 // function stays the one owner of the rule. `keys()` decides the two facts the rule needs from its arguments: each

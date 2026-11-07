@@ -1,4 +1,4 @@
-// The cheatsheet (PRODUCT spec §7): one page, grouped by module, one line per export, rendered from the API
+// The cheatsheet: one page, grouped by module, one line per export, rendered from the API
 // index's rows. It holds no list of its own: every name, kind, call form and summary comes from `ApiExport`, so
 // the page cannot drift from the published `.d.ts` (one contract owner). The full signatures stay in `api.md`.
 import ts from 'typescript'

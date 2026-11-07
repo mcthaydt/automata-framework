@@ -5,7 +5,7 @@ import { GAME_SIM_SET_NAMES } from './files.ts'
 import { kootaBindings, kootaSoaProblem } from './koota-soa.ts'
 import { simEntryVerdict } from './sim-entries.ts'
 
-// Determinism boundary for packages/sim (A0+A1 spec §3.3 and §11), plus one CSP rule, `koota-soa`
+// Determinism boundary for packages/sim, so a replay hashes the same in every engine, plus one CSP rule, `koota-soa`
 // (koota-soa.ts). Works on the AST, so comments, strings, property keys and type positions never produce false
 // findings.
 
@@ -151,7 +151,7 @@ export interface CheckOptions {
    */
   readonly allowImports?: readonly string[]
   /**
-   * Inline mode (EX spec §4), for a one-file example: the file is a browser file, so only the sim inside it is
+   * Inline mode, for a one-file example: the file is a browser file, so only the sim inside it is
    * checked, which is every argument of a `defineSystem` or `definePlugin` call (the system bodies, the plugin's
    * setup). File-level code and imports are not checked. A helper the sim calls that is declared outside those
    * calls is not checked either; a sim that big belongs in a game's `sim/` folder, under the per-file check.
@@ -160,7 +160,7 @@ export interface CheckOptions {
    */
   readonly inline?: boolean
   /**
-   * A game laid out by role (GL spec §4.5): the resolved paths of its sim files. A relative value import from a sim
+   * A game laid out by role: the resolved paths of its sim files. A relative value import from a sim
    * file must resolve to one of them; type-only imports stay free.
    */
   readonly simSet?: ReadonlySet<string>

@@ -207,11 +207,11 @@ jobs:
         run: for dir in /__w /__t; do [ ! -d "$dir" ] || chown -R "$(stat -c %u:%g /__w)" "$dir"; done
 
   e2e-2d:
-    name: 2D journeys (Emberwick in Chromium and WebKit, the examples)
+    name: 2D journeys (Emberwick in Chromium and WebKit, the examples, create-game)
     # Emberwick's journeys at a phone, the compact height and an iPad in Chromium and WebKit (iOS Safari is WebKit),
     # and the one-file examples' journeys, each under the fake host. The input matrix inside them also runs cells in
-    # WebKit and Firefox (M4.10), so all three engines are installed. Each area has its own Playwright config, so
-    # this job starts only these two areas' servers. A draft skips it, like parity.
+    # WebKit and Firefox, so all three engines are installed. Each area has its own Playwright config, so
+    # this job starts only these three areas' servers (the third is the game `automata create-game` writes). A draft skips it, like parity.
     needs: checks
     if: >-
       !cancelled() &&
@@ -240,8 +240,10 @@ jobs:
       # into its cache here (a no-op when it is already there).
       - run: pnpm exec playwright install chromium webkit firefox
         if: runner.environment == 'self-hosted'
+      # The create-game journey scaffolds with the built `automata` bin, the one a developer installs.
+      - run: pnpm exec turbo run build --filter @mcthaydt/automata-tools
       - name: 2D journeys
-        run: pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples
+        run: pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples --filter @mcthaydt/automata-tools
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:

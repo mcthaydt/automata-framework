@@ -18,47 +18,47 @@ export interface RuntimeFacts {
     readonly from: string | undefined
   }
   readonly 'time.changed': { readonly paused: boolean }
-  /** The player's language changed (PRODUCT spec §4 item 2). Screens redraw their text; nothing remounts. */
+  /** The player's language changed. Screens redraw their text; nothing remounts. */
   readonly 'locale.changed': { readonly locale: string; readonly previous: string }
-  /** The player's last real input came from another device (M4 spec §4.2). Prompts and touch controls follow it. */
+  /** The player's last real input came from another device. Prompts and touch controls follow it. */
   readonly 'input.device.changed': {
     readonly device: InputDevice
     readonly glyphs: GlyphFamily
     readonly previous: InputDevice
   }
-  /** The first gesture after `session.ready` built and resumed the audio graph (M5 spec §4.6). */
+  /** The first gesture after `session.ready` built and resumed the audio graph. */
   readonly 'audio.unlocked': Readonly<Record<never, never>>
-  /** No audio context could be built or resumed; the game runs silent (M5 spec §6). */
+  /** No audio context could be built or resumed; the game runs silent. */
   readonly 'audio.unavailable': { readonly reason: string }
-  /** A sound or a track could not be loaded or decoded; it is silent and nothing else stops (M5 spec §6). */
+  /** A sound or a track could not be loaded or decoded; it is silent and nothing else stops. */
   readonly 'audio.decode.failed': { readonly alias: string; readonly reason: string }
-  /** A pad was plugged in (M4 spec §5). `standard: false` means it cannot drive bindings (§6). */
+  /** A pad was plugged in. `standard: false` means it cannot drive bindings. */
   readonly 'input.pad.connected': PadInfo
-  /** A pad was unplugged; what it held is released (M4 spec §5). `wasActive`: it was the pad in use. */
+  /** A pad was unplugged; what it held is released. `wasActive`: it was the pad in use. */
   readonly 'input.pad.disconnected': PadInfo & { readonly wasActive: boolean }
-  /** The player's bindings changed (M4 spec §4.5): `action` when one was rebound, none on a reset or a follow. */
+  /** The player's bindings changed: `action` when one was rebound, none on a reset or a follow. */
   readonly 'input.bindings.changed': { readonly action?: string }
-  /** A post filter could not be built or compiled and was left out; the frame draws without it (M4 spec §6). */
+  /** A post filter could not be built or compiled and was left out; the frame draws without it. */
   readonly 'render.filter.dropped': { readonly id: string; readonly reason: string }
-  /** The WebGL context was lost; the renderer draws nothing until it is restored (M3 spec §5). */
+  /** The WebGL context was lost; the renderer draws nothing until it is restored. */
   readonly 'render.context.lost': Readonly<Record<never, never>>
   /**
-   * The WebGL context came back (M3 spec §5): Pixi re-uploads its GPU resources and the renderer draws again; the
+   * The WebGL context came back: Pixi re-uploads its GPU resources and the renderer draws again; the
    * views and the sim are untouched.
    */
   readonly 'render.context.restored': Readonly<Record<never, never>>
-  /** A slot's save reached the host (M5 spec §4.3). `key` is the save's prefix (`SaveDef.key`). */
+  /** A slot's save reached the host. `key` is the save's prefix (`SaveDef.key`). */
   readonly 'save.written': { readonly key: string; readonly slot: number }
-  /** The host refused a slot's write; the slot keeps its previous value (M5 spec §4.3, §6). */
+  /** The host refused a slot's write; the slot keeps its previous value. */
   readonly 'save.failed': { readonly key: string; readonly slot: number; readonly code: ErrorCode }
-  /** A slot was loaded for play (M5 spec §5, "Load a slot"). */
+  /** A slot was loaded for play. */
   readonly 'save.loaded': { readonly key: string; readonly slot: number }
   /**
-   * Another device changed the slot being played (M5 spec §5, M5-D6). Nothing was reloaded; the game offers Load
+   * Another device changed the slot being played. Nothing was reloaded; the game offers Load
    * newer or Keep playing.
    */
   readonly 'save.changedElsewhere': { readonly key: string; readonly slot: number }
-  /** A submit to `board` changed state: `submitting`, then how the host answered (M5 spec §4.8). */
+  /** A submit to `board` changed state: `submitting`, then how the host answered. */
   readonly 'leaderboard.submitted': { readonly board: string; readonly state: BoardState }
 }
 

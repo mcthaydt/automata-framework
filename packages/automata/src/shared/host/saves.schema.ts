@@ -23,7 +23,7 @@ export const SavesStatusSchema: z.ZodType<SavesStatus> = z.enum([
 
 /**
  * Where a flush left the saves: the host's outbox, its server, or the device's own storage (`'device'`, the `web`,
- * `itch` and `tauri` targets; DIST-D3).
+ * `itch` and `tauri` targets).
  */
 export interface SavesFlushRes {
   persisted: 'host-outbox' | 'server' | 'device'

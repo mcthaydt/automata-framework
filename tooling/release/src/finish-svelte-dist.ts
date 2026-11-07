@@ -1,5 +1,5 @@
 // The last step of the published build of a package with Svelte code: `ui` and `game` (after `svelte-package`)
-// and `runtime` (after tsdown's unbundled build) (M2.4 spec §3.3, §3.4; DX.2a). `svelte-package` turns all of
+// and `runtime` (after tsdown's unbundled build). `svelte-package` turns all of
 // `src/` into `dist/`, tests included, and both tools leave `import … from '@ruken/…'` in place, which would not
 // resolve in a game (Ruken is not published; D-8). So this:
 //

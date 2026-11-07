@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { z } from 'zod'
 
-// The agent package's layout rules (DX spec §3.7 "Install mechanics"): the marketplace at the repo root lists
+// The agent package's layout rules: the marketplace at the repo root lists
 // plugins by a `./` source; each plugin has `.claude-plugin/plugin.json`, `skills/<name>/SKILL.md` and
 // `hooks/hooks.json`. `claude plugin validate --strict` checks the manifests too (pnpm plugin:validate), but it
 // needs the CLI and the network; these checks run in every unit run and also cover the Agent Skills standard,

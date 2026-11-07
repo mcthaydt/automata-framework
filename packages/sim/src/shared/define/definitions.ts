@@ -6,7 +6,7 @@ import { sortedKeys } from '../util/sorted'
 import type { SimContext } from './context'
 import { defaultField, FIELD_TYPES, type FieldSchema, type FieldType } from './fields'
 
-/** Fixed phase order (spec §4.3). */
+/** Fixed phase order. */
 export const PHASES = ['input', 'prePhysics', 'physics', 'postPhysics', 'gameplay', 'cleanup'] as const
 /** One of the six phases a tick runs through, in `PHASES` order. */
 export type Phase = (typeof PHASES)[number]
@@ -148,7 +148,7 @@ export interface SystemSpec {
 
 /**
  * A system: `defineSystem(name, run)` runs in `gameplay`, `defineSystem(name, phase, run)` in that phase, and the
- * object form also takes `before`/`after`. All three build the same SystemDef (DX spec §3.2).
+ * object form also takes `before`/`after`. All three build the same SystemDef.
  */
 export function defineSystem(name: string, run: (ctx: SimContext) => void): SystemDef
 export function defineSystem(name: string, phase: Phase, run: (ctx: SimContext) => void): SystemDef
@@ -182,7 +182,7 @@ function defineSystemFrom(spec: SystemSpec): SystemDef {
 }
 
 /**
- * Engine state a plugin keeps outside the ECS, such as a Rapier world (M2.1 spec §3.1). `createSim` creates
+ * Engine state a plugin keeps outside the ECS, such as a Rapier world. `createSim` creates
  * one per sim, so a PluginDef shared by many sims never shares engine state between them.
  */
 export interface PluginState {
@@ -235,7 +235,7 @@ export interface PluginDef {
   readonly config: unknown
 }
 
-/** Anything `definePlugin`'s flat `defs` list takes (DX spec §3.2). */
+/** Anything `definePlugin`'s flat `defs` list takes. */
 export type Def = ComponentDef | CommandDef | EventDef | ResourceDef | SystemDef
 
 /**

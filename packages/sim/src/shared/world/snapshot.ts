@@ -1,7 +1,7 @@
-// Snapshot format v1 (spec §4.6), little-endian throughout:
+// Snapshot format v1, little-endian throughout:
 //   header   "AUTO" | version u16 | schemaHash u64 | contentHash u64 | tick u32 | tickHz u16
 //   sections [tag u8 | byteLength u32 | payload] in fixed order: 1 strings, 2 rng, 3 resources, 4 entities,
-//   then 6 plugin state (M2.1 spec §3.2) only when a plugin keeps engine state, so other snapshots are unchanged
+//   then 6 plugin state only when a plugin keeps engine state, so other snapshots are unchanged
 // Floats are written with DataView; values are finite by construction (coerceField), so bytes are canonical.
 
 import type { ComponentDef } from '../define/definitions'
@@ -321,7 +321,7 @@ function readHeader(rd: Reader): SnapshotHeader {
 
 /**
  * Only the fixed header, so a snapshot from another schema can be told apart before its body is decoded with
- * this build's component list (which would fail on the body's shape first, M2.3 spec §3.4).
+ * this build's component list (which would fail on the body's shape first).
  */
 export function decodeSnapshotHeader(bytes: Uint8Array): SnapshotHeader {
   return readHeader(new Reader(bytes))
@@ -414,7 +414,7 @@ export function decodeSnapshot(bytes: Uint8Array, components: readonly Component
 }
 
 /**
- * A readable copy of a snapshot, for diffs and reports (M2.3 spec §3.1). Plugin bytes are opaque engine state,
+ * A readable copy of a snapshot, for diffs and reports. Plugin bytes are opaque engine state,
  * so they are described by length and hash only.
  */
 export interface SnapshotView {
