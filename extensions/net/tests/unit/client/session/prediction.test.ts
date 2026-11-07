@@ -4,8 +4,7 @@ import type { NetSnapshot } from '#src/features/client/room/colyseus-transport.t
 import { Prediction } from '#src/features/client/session/prediction.ts'
 import { counterSim, move, moverX, spawn } from '#src/testing/counter-game.ts'
 
-// Reconciliation by restore and re-step (M7 spec §4.2; FloorFifty `local-simulation.ts`' rule, "step the same
-// simulation the server runs, over a state rebuilt from the last snapshot"). Core's `Sim.tick` is the next tick to
+// Reconciliation by restore and re-step. Core's `Sim.tick` is the next tick to
 // step, so a snapshot at T is the state before tick T, and its acks cover what the room took through T - 1.
 
 let authority: Sim

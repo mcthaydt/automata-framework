@@ -13,9 +13,8 @@ import {
 } from '#src/features/client/session/net-session.ts'
 import { counterSim, Move, moverX, spawn } from '#src/testing/counter-game.ts'
 
-// Ported from FloorFifty `tests/client/systems/netcode/race-netcode.test.ts` (677d4568), made game-agnostic: the
-// race's snapshot is the sim's own, an `InputIntent` is the commands a sampler returns for a tick, and the drawn
-// racer is the predicted sim. Cases FloorFifty had that are not here are listed, with the reason, in the M7.5b plan.
+// A game-agnostic client session: the snapshot is the sim's own, an `InputIntent` is the commands a sampler returns
+// for a tick, and the drawn state is the predicted sim.
 
 const TICK_MS = 1000 / 60
 const RIGHT: LocalCommand = { type: Move.id, payload: { dx: 1 } }
@@ -83,7 +82,7 @@ describe('the session', () => {
     expect(sent).toHaveLength(1)
     // Authority is at about tick 31 on the one clock; the command is stamped the lead's worth past it, which is when
     // it takes effect on both sides.
-    // Numbered from 1, as FloorFifty does: the room reads seq 0 from a returned seat as a restart (M7.3b), so 0 is
+    // Numbered from 1: the room reads seq 0 from a returned seat as a restart, so 0 is
     // never sent.
     expect(sent[0]).toMatchObject({ tick: session.sampledTick, source: 0, seq: 1, type: Move.id })
     expect((sent[0] as Command).tick - 31).toBeGreaterThanOrEqual(INITIAL_LEAD_TICKS - 1)
@@ -384,7 +383,7 @@ describe('a session that ended', () => {
   })
 })
 
-describe('a snapshot that fails its hash (N-d)', () => {
+describe('a snapshot that fails its hash', () => {
   const corrupt = (snapshot: NetSnapshot): NetSnapshot => ({
     ...snapshot,
     hash: snapshot.hash === '0000000000000000' ? '0000000000000001' : '0000000000000000',

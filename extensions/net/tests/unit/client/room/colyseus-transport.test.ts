@@ -8,8 +8,7 @@ import { createRequestIds } from '#src/features/client/room/request-ids.ts'
 import { NET_BYTES_CHANNEL, NET_CHANNEL } from '#src/shared/wire/room.ts'
 import { fakeColyseus } from '#src/testing/fake-colyseus.ts'
 
-// One SDK room on net's two channels (M7 spec §4.2 wire; FloorFifty `colyseus-network.ts` `adopt`, `command`,
-// `sendPing`). The ported cases name their FloorFifty original.
+// One SDK room on net's two channels.
 
 const HASH = '0123456789abcdef'
 
@@ -64,7 +63,6 @@ describe('the Colyseus transport', () => {
   })
 
   it('sends a command fire and forget, as JSON text on net’s channel', () => {
-    // FloorFifty "sends input fire-and-forget".
     const { transport, sentOn } = setup()
     transport.send({ t: 'cmd', seq: 1, tick: 40, type: 'move', payload: { dx: 1 } })
     expect(sentOn(NET_CHANNEL)).toEqual([{ t: 'cmd', seq: 1, tick: 40, type: 'move', payload: { dx: 1 } }])
@@ -83,7 +81,6 @@ describe('the Colyseus transport', () => {
   })
 
   it('rejects a refused request with the room’s code', () => {
-    // FloorFifty "rejects a refused command and reports the error to subscribers".
     const { room, transport, sentOn } = setup()
     const results: (string | undefined)[] = []
     transport.request({ t: 'bot.add' }, (error) => results.push(error))
@@ -105,7 +102,6 @@ describe('the Colyseus transport', () => {
   })
 
   it('settles every waiting request as offline when it detaches, so no caller hangs on a lost answer', () => {
-    // FloorFifty "rejects a command whose answer was lost when the room is left" and "… on dispose".
     const { transport } = setup()
     const results: (string | undefined)[] = []
     transport.request({ t: 'ready', ready: false }, (error) => results.push(error))
@@ -158,7 +154,6 @@ describe('the Colyseus transport', () => {
   })
 
   it('probes the room, measures the round trip, and reports the room’s slack', () => {
-    // FloorFifty "probes the room, measures the round trip, and reports the room's slack".
     const { room, transport, seen, sentOn, advance } = setup()
     const id = transport.ping(123.5)
     expect(sentOn(NET_CHANNEL)).toEqual([{ t: 'ping', id, tick: 123.5 }])
@@ -195,7 +190,6 @@ describe('the Colyseus transport', () => {
   })
 
   it('ignores callbacks already queued by a room it detached from, and stops counting', () => {
-    // FloorFifty "ignores callbacks already queued by a retired room, including command replies and close".
     const { room, transport, seen, sentOn } = setup()
     const results: (string | undefined)[] = []
     transport.request({ t: 'ready', ready: true }, (error) => results.push(error))

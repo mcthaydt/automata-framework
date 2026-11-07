@@ -6,8 +6,8 @@ import {
   MAX_LEAD_TICKS,
 } from '#src/features/client/session/input-lead.ts'
 
-// Ported from FloorFifty `tests/client/systems/netcode/input-lead.test.ts` (677d4568), all ten cases. FloorFifty's
-// constants become options; at 60 Hz with net's default `maxLeadTicks` (60) they are FloorFifty's numbers.
+// The input lead's constants are options; at 60 Hz with net's default `maxLeadTicks` (60) they are the numbers a
+// 60 Hz game wants.
 
 const TICK_MS = 1000 / 60
 

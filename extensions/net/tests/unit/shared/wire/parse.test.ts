@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { MAX_MESSAGE_BYTES } from '#src/shared/wire/limits.ts'
 import { parseClientMessage, parseServerMessage } from '#src/shared/wire/parse.ts'
 
-// SV-a (M7 spec §13): a message past the size cap is dropped before parsing.
+// A message past the size cap is dropped before parsing.
 
 /** A valid command whose JSON is exactly `bytes` long, padded in the payload. */
 function commandOfSize(bytes: number): string {

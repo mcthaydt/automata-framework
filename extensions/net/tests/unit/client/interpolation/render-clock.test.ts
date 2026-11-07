@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { RenderClock } from '#src/features/client/interpolation/render-clock.ts'
 
-// The interpolation half of FloorFifty's `RenderClock` (677d4568 `render-clock.ts`, tests `render-clock.test.ts`): the drawn moment
+// The interpolation half of the render clock: the drawn moment
 // is authority minus a delay that adapts to how late snapshots arrive. The authority half is `authority-clock.test.ts`.
 
 const FRAME_MS = 1000 / 60

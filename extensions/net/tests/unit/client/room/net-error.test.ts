@@ -3,9 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { NetError, refusalCode } from '#src/features/client/room/net-error.ts'
 import { NET_ERROR_CODES } from '#src/shared/wire/server-message.schema.ts'
 
-// How a refusal reaches a player (M7 spec §4.2 `NetError`, §6). FloorFifty's `refusalCode` read the words; Plus's
-// server writes every refusal, room and gate alike, with net's code first (`RATE_LIMITED: too many requests`), so
-// the code is read and the words are left for the log.
+// How a refusal reaches a player. The server writes every refusal, room and gate alike, with net's code first
+// (`RATE_LIMITED: too many requests`), so the code is read and the words are left for the log.
 
 describe('refusalCode', () => {
   it.each(NET_ERROR_CODES)('reads %s from a refusal that leads with it', (code) => {
@@ -13,7 +12,7 @@ describe('refusalCode', () => {
   })
 
   it('reads the code, never the words', () => {
-    // FloorFifty's "the server is full must not read as a full room", by construction.
+    // "The server is full" must not read as a full room, by construction.
     expect(refusalCode(new Error('SERVER_BUSY: the room is full'))).toBe('SERVER_BUSY')
   })
 
@@ -72,10 +71,15 @@ describe('refusalCode', () => {
 })
 
 describe('NetError', () => {
-  it('is a tagged error carrying the code and the operation', () => {
+  it('is an Error carrying the code and the operation', () => {
     const error = new NetError({ code: 'ROOM_FULL', operation: 'join' })
-    expect(error._tag).toBe('NetError')
+    expect(error).toBeInstanceOf(Error)
+    expect(error.name).toBe('NetError')
     expect(error).toMatchObject({ code: 'ROOM_FULL', operation: 'join' })
+  })
+
+  it('says which call failed and why, for a log', () => {
+    expect(new NetError({ code: 'ROOM_FULL', operation: 'join' }).message).toBe('join failed: ROOM_FULL')
   })
 })
 

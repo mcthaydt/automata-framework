@@ -6,8 +6,8 @@ import { NetDiagnostics } from '#src/features/client/session/net-diagnostics.ts'
 import { NetSession, type NetSessionOptions } from '#src/features/client/session/net-session.ts'
 import { counterSim, Move, moverX, spawn } from '#src/testing/counter-game.ts'
 
-// M7.5c: the session draws the other seats from the authoritative states (the view the game reads from each restored snapshot,
-// blended at the drawn moment), and feeds the diagnostics. Without `remote`, nothing changes from M7.5b.
+// The session draws the other seats from the authoritative states (the view the game reads from each restored snapshot,
+// blended at the drawn moment), and feeds the diagnostics. Without `remote`, the session is unchanged.
 
 const TICK_MS = 1000 / 60
 const sims: Sim[] = []
@@ -103,7 +103,7 @@ describe('remote interpolation in the session', () => {
     expect(reads).toEqual([6, 12])
   })
 
-  it('has no remote view without the option, and the frame is as in M7.5b', async () => {
+  it('has no remote view without the option, and the frame is as without it', async () => {
     const { session, room: authority } = await harness({ remote: undefined })
     session.observe(authority.at(6), 0)
     const frame = session.frame(none, 0)

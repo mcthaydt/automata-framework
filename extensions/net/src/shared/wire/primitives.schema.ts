@@ -12,7 +12,7 @@ export const hex16Schema: z.ZodType<string> = z
   .regex(/^[0-9a-f]{16}$/, 'a hash is 16 lower-case hex characters')
 
 /**
- * The only player-authored string on the wire (FloorFifty's `playerNameSchema`): letters, digits, spaces, hyphens
+ * The only player-authored string on the wire: letters, digits, spaces, hyphens
  * and underscores, so no later consumer (nameplate, roster, results row) needs an escaping rule of its own.
  */
 export const nameSchema: z.ZodType<string> = z
@@ -23,7 +23,7 @@ export const nameSchema: z.ZodType<string> = z
   .regex(/^[\p{L}\p{N} _-]+$/u, 'name may contain only letters, digits, spaces, hyphens and underscores')
 
 /**
- * A client-chosen correlation id (FloorFifty's `requestIdSchema`): printable ASCII, bounded. It addresses an
+ * A client-chosen correlation id: printable ASCII, bounded. It addresses an
  * answer and grants no authority; nothing branches on its value.
  */
 export const reqIdSchema: z.ZodType<string> = z

@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { commandTypeSchema, reqIdSchema, seatSchema, uintSchema } from './primitives.schema'
 
-// What a client may send (M7 spec §4.2). Every object is strict. A command's payload is `unknown` here: the room
+// What a client may send. Every object is strict. A command's payload is `unknown` here: the room
 // re-parses it with the sim's own command schema, which is its one owner.
 
 const command = z
@@ -15,8 +15,8 @@ const command = z
   .strict()
 
 /**
- * A clock probe: `tick` is the client's fractional tick from 0, or -1 before it has a clock (FloorFifty's
- * `pingSchema`; the spec writes `uint`, and the fraction is what lets the room measure slack finer than a tick).
+ * A clock probe: `tick` is the client's fractional tick from 0, or -1 before it has a clock (the fraction is what lets the
+ * room measure slack finer than a tick).
  */
 const ping = z
   .object({

@@ -1,9 +1,9 @@
-// The room contract a client reads (M7 spec §4.2, `RoomInfo`). net owns it; `server` imports it.
+// The room contract a client reads. net owns it; `server` imports it.
 
 /** Characters a player can read off a screen and type without ambiguity: `I`, `O`, `0` and `1` are omitted. */
 export const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 
-/** Six characters (FloorFifty's `ROOM_CODE_LENGTH`). */
+/** Six characters. */
 export const ROOM_CODE_LENGTH = 6
 
 /** Where a room is: `RoomInfo.phase`. */
@@ -20,7 +20,7 @@ export const ROOM_NAME = 'automata'
 
 /**
  * The channel every wire message travels on as JSON text, both ways: a `ClientMessage` from a client and a
- * `ServerMessage` from the room. Text, so the room measures a message before it parses it (SV-a).
+ * `ServerMessage` from the room. Text, so the room measures a message before it parses it.
  */
 export const NET_CHANNEL = 'net'
 

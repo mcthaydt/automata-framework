@@ -1,5 +1,5 @@
 /**
- * The per-frame netcode loop (FloorFifty `race-netcode.ts`, made game-agnostic; M7 spec §4.2, §5 "per client frame").
+ * The per-frame netcode loop.
  *
  * Three parts decide where the local player is: the authority clock (where the room is now), the input lead (how far
  * past it to predict) and the prediction (the room's last state plus this player's commands the room has not taken).
@@ -11,10 +11,10 @@
  *
  * Per snapshot: reconcile (`prediction.ts`); a frame that fails its hash is not stepped on, and the next snapshot,
  * a full state every `snapshotEvery` ticks, is the resync. Two such frames within ten seconds end the session: a hash
- * that differs is a bug to investigate, never something to retry silently (spec §6).
+ * that differs is a bug to investigate, never something to retry silently.
  *
  * Plain code, no Effect: `frame` runs every rendered frame and `observe` twenty times a second (ADR 0003).
- * `makeNetSession` wires it to a `NetRoom`.
+ * `createNetSession` wires it to a `NetRoom`.
  */
 
 import type { Command, Sim } from '@automata/sim'
@@ -43,7 +43,7 @@ export const MAX_CATCH_UP_TICKS = 12
  */
 export const MAX_PENDING_COMMANDS = 256
 
-/** Two hash mismatches this close together end the session (spec §6, N-d). */
+/** Two hash mismatches this close together end the session. */
 export const DESYNC_WINDOW_MS = 10_000
 
 /**
@@ -75,7 +75,7 @@ export interface NetFrame<T = RemoteView> {
   readonly remote: T | undefined
 }
 
-/** How the game draws the others (M7 spec §4.2): which entities are remote, read from each authoritative state, and how to blend. */
+/** How the game draws the others: which entities are remote, read from each authoritative state, and how to blend. */
 export interface RemoteSource<T = RemoteView> {
   /** The view of the remote entities in `sim`, right after a snapshot was restored (before the prediction steps on). */
   read(sim: Sim): T
@@ -109,7 +109,7 @@ export interface NetSessionOptions<T = RemoteView> {
   readonly now?: (() => number) | undefined
   /** Called once, when the session ends. */
   readonly onEnd?: ((end: SessionEnd) => void) | undefined
-  /** The others, drawn from the authoritative states (M7.5c). */
+  /** The others, drawn from the authoritative states. */
   readonly remote?: RemoteSource<T> | undefined
   /** net.toml's `snapshotEvery` [3]: the interpolation delay is never less than a snapshot's span. */
   readonly snapshotTicks?: number | undefined
@@ -134,8 +134,8 @@ export class NetSession<T = RemoteView> {
   /** The last tick input was sampled for: the tick the prediction stands at. */
   private inputTick: number | undefined
   /**
-   * The next command's seq. Numbering starts at 1, as FloorFifty's does: the room reads seq 0 from a seat that has
-   * just returned as a reloaded client restarting its numbering (M7.3b), so a resent first command must never be 0.
+   * The next command's seq. Numbering starts at 1: the room reads seq 0 from a seat that has
+   * just returned as a reloaded client restarting its numbering, so a resent first command must never be 0.
    */
   private nextSeq = 1
   private sincePing = Number.POSITIVE_INFINITY
@@ -211,7 +211,7 @@ export class NetSession<T = RemoteView> {
       this.mismatch(snapshot.tick, receivedAt ?? this.time())
       return
     }
-    // Every frame that passed its hash steers the clock, as FloorFifty's did: one at or behind the newest changes
+    // Every frame that passed its hash steers the clock, one at or behind the newest changes
     // nothing there, and one far behind (a restarted timeline) moves it back once half a second agrees.
     this.clock.observe(snapshot.tick, receivedAt)
     if (outcome === 'stale') return

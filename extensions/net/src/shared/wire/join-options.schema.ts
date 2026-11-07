@@ -3,7 +3,7 @@ import { SESSION_MAX_LENGTH } from './limits'
 import { hex16Schema, nameSchema, uintSchema } from './primitives.schema'
 
 /**
- * What a client presents when it joins (M7 spec §4.2). The schema and content hashes are the join check: two builds
+ * What a client presents when it joins. The schema and content hashes are the join check: two builds
  * with different content never share a room. Strict: an unrecognised field is a rejection.
  */
 /** What a client presents when it joins; `name` is trimmed by the schema. */

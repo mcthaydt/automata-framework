@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { netConfigSchema } from '#src/shared/net.schema.ts'
 
-// content/net.toml (M7 spec §4.2, NetConfig): defaults in brackets there.
+// content/net.toml: defaults in brackets there.
 
 describe('netConfigSchema', () => {
   it('fills the defaults', () => {

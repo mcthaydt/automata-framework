@@ -1,10 +1,11 @@
 {
   "extends": "../../tsconfig.base.json",
   // Node runs the bins straight from source with `--experimental-transform-types`: the core packages they load are
-  // TypeScript sources too, and those use parameter properties, which type stripping alone refuses.
+  // TypeScript sources too, and those use parameter properties, which type stripping alone refuses. `feel` pulls in the
+  // browser package, which reads `import.meta.env` and imports CSS, so the Vite client types are declared too.
   "compilerOptions": {
     "lib": ["ES2023", "DOM"],
-    "types": ["node"],
+    "types": ["node", "vite/client"],
     "allowImportingTsExtensions": true
   },
   "include": ["src/**/*.ts"]

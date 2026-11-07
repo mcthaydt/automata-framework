@@ -1,10 +1,10 @@
 /**
- * The room as a client sees it (M7 spec §4.2 `RoomInfo`, `SeatInfo`).
+ * The room as a client sees it.
  *
  * The server room keeps a small synchronized Colyseus state (code, phase, host seat, seats; `server`'s
  * `room-info.schema.ts`). Colyseus patches that state in place, which suits a transport and not a screen, so it is
- * projected here into a plain, frozen object holding no schema reference (FloorFifty `schemaToSnapshot`: "an
- * anti-corruption boundary, not a second protocol"). The projection is read through a schema: a state that does not
+ * projected here into a plain, frozen object holding no schema reference: an
+ * anti-corruption boundary, not a second protocol. The projection is read through a schema: a state that does not
  * parse (the empty state before the first patch, above all) is no room yet. `you` never comes from this state: only
  * the room's `seated` message says which seat is yours.
  */

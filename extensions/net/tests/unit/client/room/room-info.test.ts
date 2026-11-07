@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { type RoomInfo, roomInfoOf, sameRoomInfo } from '#src/features/client/room/room-info.ts'
 
-// The room as a client sees it (M7 spec §4.2 `RoomInfo`): the server room's small synchronized state, projected into
-// a plain object (FloorFifty `schemaToSnapshot`'s rule: "an anti-corruption boundary, not a second protocol").
+// The room as a client sees it: the server room's small synchronized state, projected into
+// a plain object.
 
 const seat = (index: number, extra: Record<string, unknown> = {}) => ({
   seat: index,

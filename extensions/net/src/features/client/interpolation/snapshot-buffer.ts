@@ -1,5 +1,5 @@
 /**
- * Remote interpolation (FloorFifty's `snapshot-buffer.ts`; M7 spec §4.2), over a view the game reads from each authoritative state.
+ * Remote interpolation, over a view the game reads from each authoritative state.
  *
  * Authority arrives at the snapshot rate while the screen draws at the display rate, so remote entities are drawn a little behind
  * the newest snapshot, interpolated between the pair that brackets the render moment. Holding a delay is what turns a 20 Hz feed

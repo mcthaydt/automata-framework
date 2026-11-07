@@ -3,7 +3,7 @@ import { createRequestIds, newLoadToken } from '#src/features/client/room/reques
 import { REQUEST_ID_MAX_LENGTH } from '#src/shared/wire/limits.ts'
 import { reqIdSchema } from '#src/shared/wire/primitives.schema.ts'
 
-// FloorFifty "numbers commands uniquely across two page loads": the room keeps the last answers per Colyseus session,
+// Commands are numbered uniquely across two page loads: the room keeps the last answers per Colyseus session,
 // and a session survives a reload's `resume`, so a reloaded client numbering from 1 again would collide with stored
 // answers and its requests would do nothing.
 describe('request ids', () => {

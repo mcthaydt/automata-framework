@@ -3,9 +3,8 @@ import { clientMessageSchema } from '#src/shared/wire/client-message.schema.ts'
 import { joinOptionsSchema } from '#src/shared/wire/join-options.schema.ts'
 import { serverMessageSchema } from '#src/shared/wire/server-message.schema.ts'
 
-// SV-a (M7 spec §13): every client message and the join options reject an unknown field, a wrong type and a value
-// past its bound. The strict rule is FloorFifty's (packages/shared/src/common/schemas.ts at 677d456): "an
-// unrecognised field is a rejection rather than a silent strip".
+// Every client message and the join options reject an unknown field, a wrong type and a value past its bound.
+// An unrecognised field is a rejection rather than a silent strip.
 
 const HASH = '0123456789abcdef'
 const join = { protocol: 1, schemaHash: HASH, contentHash: HASH, name: 'Ada' }
@@ -23,7 +22,7 @@ describe('JoinOptions', () => {
   })
 
   it.each([
-    ['an unknown field (FloorFifty: a client-supplied position)', { ...join, x: 3 }],
+    ['an unknown field', { ...join, x: 3 }],
     ['a wrong type', { ...join, protocol: '1' }],
     ['a fractional protocol', { ...join, protocol: 1.5 }],
     ['a hash that is not 16 hex characters', { ...join, schemaHash: 'ABCDEF0123456789' }],

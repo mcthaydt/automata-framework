@@ -1,17 +1,15 @@
 /**
- * net's wire over a seeded link (M7 spec §4.7; §12 "deterministic network"), so a room and its clients run on
- * `TestClock` with every delay, loss, duplicate and reorder drawn from a seed.
+ * net's wire over a seeded link, so a room and its clients run on a fake clock with every delay, loss, duplicate and
+ * reorder drawn from a seed.
  *
  * The client end is the real client: `ColyseusTransport` and the client port, over an SDK room whose messages come
  * from the link. The room end has the shape of `server`'s `RoomClient` (`send`, `sendBytes`, `close`), so the room
  * engine sends to it as to a socket. A `snap` or `replay` header and the bytes after it cross the link as one frame:
  * a socket delivers both or neither, in order, and the link's loss and reorder model whole frames.
  *
- * A link's `send` is an Effect on the link's clock; `run` runs it (a test passes its runtime's `runSync`). Test
- * support, not a client: M7.6's `createHeadlessClient` is the headless client.
+ * Test support, not a client: the headless client is a separate piece.
  */
 
-import type { Effect } from 'effect'
 import { ColyseusTransport } from '../features/client/room/colyseus-transport'
 import { type ClientNetworkPort, createClientPort } from '../features/client/room/net-port'
 import { createRequestIds } from '../features/client/room/request-ids'
@@ -19,9 +17,6 @@ import type { NetSdkRoom } from '../features/client/room/sdk'
 import { NET_BYTES_CHANNEL, NET_CHANNEL } from '../shared/wire/room'
 import type { ServerMessage } from '../shared/wire/server-message.schema'
 import type { Transport, WireData } from './link'
-
-/** Runs a link's send on the test's clock. */
-export type RunEffect = (effect: Effect.Effect<void>) => void
 
 const encoder = new TextEncoder()
 const decoder = new TextDecoder()
@@ -55,7 +50,7 @@ export interface LinkClient {
 }
 
 /** An SDK room whose messages come from `transport`, for `ColyseusTransport`. */
-function linkSdkRoom(transport: Transport, run: RunEffect): NetSdkRoom {
+function linkSdkRoom(transport: Transport): NetSdkRoom {
   const handlers = new Map<string, (payload: unknown) => void>()
   let off: (() => void) | undefined = transport.onMessage((data: WireData) => {
     if (typeof data === 'string') {
@@ -79,7 +74,7 @@ function linkSdkRoom(transport: Transport, run: RunEffect): NetSdkRoom {
     onStateChange: () => undefined,
     onLeave: () => undefined,
     send(_type, payload) {
-      if (off !== undefined && typeof payload === 'string') run(transport.send(payload))
+      if (off !== undefined && typeof payload === 'string') transport.send(payload)
     },
     leave: () => Promise.resolve(4000),
     removeAllListeners() {
@@ -90,17 +85,14 @@ function linkSdkRoom(transport: Transport, run: RunEffect): NetSdkRoom {
   }
 }
 
-export function linkClient(
-  transport: Transport,
-  options: { readonly run: RunEffect; readonly now: () => number },
-): LinkClient {
+export function linkClient(transport: Transport, options: { readonly now: () => number }): LinkClient {
   const hub = createClientPort()
   const requestIds = createRequestIds('link0001')
   let seat: number | undefined
   let current: ColyseusTransport | undefined
   const attach = (next: Transport): void => {
     current?.detach()
-    current = new ColyseusTransport(linkSdkRoom(next, options.run), {
+    current = new ColyseusTransport(linkSdkRoom(next), {
       events: {
         ...hub.events,
         seated: (value) => {
@@ -136,7 +128,7 @@ export interface LinkRoomClient {
 }
 
 /** The room's end of a link, in the shape of `server`'s `RoomClient`. */
-export function linkRoomClient(transport: Transport, run: RunEffect): LinkRoomClient {
+export function linkRoomClient(transport: Transport): LinkRoomClient {
   let header: string | undefined
   let closed = false
   return {
@@ -144,13 +136,13 @@ export function linkRoomClient(transport: Transport, run: RunEffect): LinkRoomCl
       if (closed) return
       const text = JSON.stringify(message)
       if (message.t === 'snap' || message.t === 'replay') header = text
-      else run(transport.send(text))
+      else transport.send(text)
     },
     sendBytes(bytes) {
       const held = header
       header = undefined
       if (closed || held === undefined) return
-      run(transport.send(frame(held, bytes)))
+      transport.send(frame(held, bytes))
     },
     close() {
       closed = true

@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Distribution, NetDiagnostics } from '#src/features/client/session/net-diagnostics.ts'
 
-// FloorFifty's `net-diagnostics.test.ts` (677d4568), generic: its race-specific cases (the sprite pull, respawn adoption, the
-// `?netstats` address) stay in the arcade source. `degraded` is new here (M7 spec §4.2).
+// The diagnostics are generic: game-specific cases (a sprite pull, respawn adoption) belong to the game.
 
 const make = (over: { time?: { now: number }; log?: string[] } = {}) => {
   const time = over.time ?? { now: 0 }

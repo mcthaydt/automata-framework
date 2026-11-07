@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { AuthorityClock } from '#src/features/client/interpolation/authority-clock.ts'
 
-// The authority half of FloorFifty's `RenderClock` (677d4568 `render-clock.ts`): where the room is now, on one clock
-// that runs on rendered time and that snapshots only steer. The drawn moment (the interpolation delay) is M7.5c's.
+// The authority half of the render clock: where the room is now, on one clock
+// that runs on rendered time and that snapshots only steer. The drawn moment (the interpolation delay) is `render-clock.test.ts`'s.
 
 const TICK_MS = 1000 / 60
 /** A clock on virtual time: the sum of frame deltas, as a test that draws frames means by time. */

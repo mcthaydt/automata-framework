@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { NetOwner, netPlugin, SeatJoin, SeatLeave } from '#src/entries/sim.ts'
 import { MAX_SEATS } from '#src/shared/sim/seat.schema.ts'
 
-// netPlugin (M7 spec §4.2, §4.4): the seat entity and the seat commands, as ordinary sim definitions. The room
+// netPlugin: the seat entity and the seat commands, as ordinary sim definitions. The room
 // sends seat.join and seat.leave; a game tags its own entities with net-owner to tie them to a seat.
 
 const Score = defineComponent('score', { value: 'i32' })
@@ -66,7 +66,7 @@ describe('netPlugin', () => {
     s.dispose()
   })
 
-  // Review of M7.2: despawn waits for the end of the tick, so the commands of one tick must see each other.
+  // Despawn waits for the end of the tick, so the commands of one tick must see each other.
   it('gives a seat to a join that follows a leave of it in the same tick', async () => {
     const s = await sim()
     s.step([{ ...join(3, 0), tick: s.tick }])
@@ -138,7 +138,7 @@ describe('netPlugin', () => {
   })
 })
 
-// PRODUCT.8b: the room's own command source lives on the sim side, so a game's sim can tell the room's commands from
+// The room's own command source lives on the sim side, so a game's sim can tell the room's commands from
 // a seat's without importing the server (which a sim may not). The server uses this same constant.
 describe('ROOM_SOURCE', () => {
   it('is 255, above every seat', async () => {

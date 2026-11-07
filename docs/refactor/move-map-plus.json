@@ -5,7 +5,8 @@
     "extensions/feel",
     "extensions/audio-synth",
     "extensions/debug",
-    "extensions/net"
+    "extensions/net",
+    "extensions/net-server"
   ],
   "moves": [
     {
@@ -515,6 +516,86 @@
     {
       "from": "extensions/net/src/testing/link-client.test.ts",
       "to": "extensions/net/src/testing/link-client.test.ts"
+    },
+    {
+      "from": "extensions/net-server/src/index.ts",
+      "to": "extensions/net-server/src/entries/index.ts"
+    },
+    {
+      "from": "extensions/net-server/src/testing/index.ts",
+      "to": "extensions/net-server/src/entries/testing.ts"
+    },
+    {
+      "from": "extensions/net-server/src/testing/room-driver.ts",
+      "to": "extensions/net-server/src/testing/room-driver.ts"
+    },
+    {
+      "from": "extensions/net-server/src/testing/room-driver.test.ts",
+      "to": "extensions/net-server/src/testing/room-driver.test.ts"
+    },
+    {
+      "from": "extensions/net-server/src/game",
+      "to": "extensions/net-server/src/shared/game"
+    },
+    {
+      "from": "extensions/net-server/src/session/session-verifier.ts",
+      "to": "extensions/net-server/src/shared/session-verifier.ts"
+    },
+    {
+      "from": "extensions/net-server/src/session/session-verifier.test.ts",
+      "to": "extensions/net-server/src/shared/session-verifier.test.ts"
+    },
+    {
+      "from": "extensions/net-server/src/gate/matchmake-version-gate.ts",
+      "to": "extensions/net-server/src/shared/matchmake-version-gate.ts"
+    },
+    {
+      "from": "extensions/net-server/src/gate/matchmake-version-gate.test.ts",
+      "to": "extensions/net-server/src/shared/matchmake-version-gate.test.ts"
+    },
+    {
+      "from": "extensions/net-server/src/gate",
+      "to": "extensions/net-server/src/features/gates"
+    },
+    {
+      "from": "extensions/net-server/src/room",
+      "to": "extensions/net-server/src/features/room/engine"
+    },
+    {
+      "from": "extensions/net-server/src/rooms",
+      "to": "extensions/net-server/src/features/room/rules"
+    },
+    {
+      "from": "extensions/net-server/src/server/start-server.ts",
+      "to": "extensions/net-server/src/app/start-server.ts"
+    },
+    {
+      "from": "extensions/net-server/src/server/start-server.test.ts",
+      "to": "extensions/net-server/src/app/start-server.test.ts"
+    },
+    {
+      "from": "extensions/net-server/src/server/server-process.ts",
+      "to": "extensions/net-server/src/app/server-process.ts"
+    },
+    {
+      "from": "extensions/net-server/src/server/server-process.test.ts",
+      "to": "extensions/net-server/src/app/server-process.test.ts"
+    },
+    {
+      "from": "extensions/net-server/src/server/server-operations.test.ts",
+      "to": "extensions/net-server/src/app/server-operations.test.ts"
+    },
+    {
+      "from": "extensions/net-server/src/server",
+      "to": "extensions/net-server/src/features/operations"
+    },
+    {
+      "from": "extensions/net-server/src/bin",
+      "to": "extensions/net-server/src/app"
+    },
+    {
+      "from": "extensions/net-server/src/test-support",
+      "to": "extensions/net-server/src/testing"
     }
   ],
   "entries": {}

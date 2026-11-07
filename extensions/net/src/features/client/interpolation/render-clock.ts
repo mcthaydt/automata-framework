@@ -1,5 +1,5 @@
 /**
- * The drawn moment (the interpolation half of FloorFifty's `render-clock.ts`; M7 spec §4.2).
+ * The drawn moment.
  *
  * Authority arrives at the snapshot rate while the screen draws at its own, so remote entities are drawn a little behind
  * authority, interpolated between the pair of snapshots that brackets that moment. The delay adapts to the link: it is measured

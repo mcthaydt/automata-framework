@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { reconnectDelay } from '#src/features/client/room/reconnect-delay.ts'
 
-// FloorFifty `tests/client/managers/network/colyseus-network.test.ts` "the reconnect backoff" (M7 spec §4.2).
 describe('the reconnect backoff', () => {
   it('doubles from 250 ms to a 2 s ceiling', () => {
     expect([0, 1, 2, 3, 4, 9].map((attempt) => reconnectDelay(attempt, () => 0.5))).toEqual([

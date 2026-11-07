@@ -5,10 +5,6 @@ const SOCKET_ORIGIN = /^wss?:\/\/[A-Za-z0-9.-]+(?::\d{1,5})?$/
 
 const ticks = (fallback: number, max: number) => z.number().int().min(1).max(max).default(fallback)
 
-/**
- * `content/net.toml` (M7 spec §4.2, `NetConfig`). The url must also be in `ruken.toml`'s `[network].connect`, which
- * ship prepare checks (M7.7a).
- */
 /** `content/net.toml` after parsing: every field present. */
 export interface NetConfig {
   readonly url: string
@@ -31,6 +27,10 @@ export interface NetConfigInput {
   readonly degradedGapMs?: number | undefined
 }
 
+/**
+ * `content/net.toml`. The url must also be one the game's target lets it connect to (each target has its own network
+ * setting, and building for that target checks it).
+ */
 export const netConfigSchema: z.ZodType<NetConfig, NetConfigInput> = z
   .object({
     url: z.string().regex(SOCKET_ORIGIN, 'url is a wss:// (or ws://) origin with no path'),

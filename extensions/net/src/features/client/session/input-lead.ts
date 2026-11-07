@@ -1,5 +1,5 @@
 /**
- * How far ahead of the room this client predicts (FloorFifty `input-lead.ts`, unchanged in shape; M7 spec §4.2).
+ * How far ahead of the room this client predicts.
  *
  * A command is stamped with the tick the client predicts it on, and the room holds it until then. For the two sides
  * to agree, the command has to *arrive* before the room reaches its tick, so the client has to lead the room by the
@@ -22,7 +22,7 @@ export const INITIAL_LEAD_TICKS = 4
 /**
  * The cap at net's default `maxLeadTicks` (60, one second at 60 Hz): half of it. The room refuses commands at its
  * bound; past half of that the link is not one a game can be played on as if local, and leading further only makes
- * every other player look more behind (FloorFifty's ratio).
+ * every other player look more behind.
  */
 export const MAX_LEAD_TICKS = 30
 

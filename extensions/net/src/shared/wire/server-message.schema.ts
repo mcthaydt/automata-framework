@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { MAX_SEATS } from './limits'
 import { hex16Schema, reqIdSchema, seatSchema, uintSchema } from './primitives.schema'
 
-/** The codes a room answers a refused request with (M7 spec §4.2, `NetError`). */
+/** The codes a room answers a refused request with. */
 export const NET_ERROR_CODES: readonly [
   'REFUSED',
   'VERSION_MISMATCH',
@@ -41,11 +41,11 @@ const acks = z
   })
   .pipe(z.record(z.string(), uintSchema))
 
-// What the room sends (M7 spec §4.2). `snap` and `replay` are headers: the snapshot or the packed replay follows as
+// What the room sends. `snap` and `replay` are headers: the snapshot or the packed replay follows as
 // a binary message.
 const snap = z.object({ t: z.literal('snap'), tick: uintSchema, hash: hex16Schema, acks }).strict()
 const seated = z.object({ t: z.literal('seated'), seat: seatSchema }).strict()
-/** `slack`: how many ticks early (positive) or late (negative) the probe's tick arrived (FloorFifty input lead). */
+/** `slack`: how many ticks early (positive) or late (negative) the probe's tick arrived. */
 const pong = z.object({ t: z.literal('pong'), id: uintSchema, slack: z.number().int() }).strict()
 const answer = z
   .object({ t: z.literal('answer'), req: reqIdSchema, error: z.enum(NET_ERROR_CODES).optional() })

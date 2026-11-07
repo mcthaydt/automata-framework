@@ -13,18 +13,18 @@
   "imports": {
     "#src/*": "./src/*"
   },
-  "svelte": "./src/index.ts",
+  "svelte": "./src/entries/index.ts",
   "exports": {
     ".": {
-      "svelte": "./src/index.ts",
-      "default": "./src/index.ts"
+      "svelte": "./src/entries/index.ts",
+      "default": "./src/entries/index.ts"
     }
   },
   "scripts": {
     "test": "vitest run",
-    "test:unit": "vitest run --project ui",
-    "test:layout": "vitest run --project layout",
-    "test:parity": "vitest run --project layout",
+    "test:unit": "vitest run --project unit",
+    "test:browser": "vitest run --project browser",
+    "test:parity": "vitest run --project browser",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "peerDependencies": {
@@ -36,7 +36,7 @@
     "@automata/content": "workspace:*",
     "@automata/framework": "workspace:*",
     "@automata/net": "workspace:*",
-    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@automata/vitest-preset": "workspace:*",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/svelte": "5.4.2",

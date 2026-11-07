@@ -1,5 +1,5 @@
 /**
- * Where the room is now, on one clock (the authority half of FloorFifty's `render-clock.ts`; M7 spec §4.2).
+ * Where the room is now, on one clock.
  *
  * Authority arrives at the snapshot rate and the display draws at its own, so something has to say what tick the
  * room is at between two snapshots. Taking it from the newest snapshot steps once per packet and passes jitter
@@ -11,7 +11,7 @@
  * An anchor is a tick *at a time*: a snapshot says where authority was when it arrived, so arrivals are timestamped,
  * and whether to snap is decided once per frame against the freshest anchor rather than on each snapshot of a burst.
  *
- * The prediction leads this clock by the input lead; M7.5c's render clock draws the others an interpolation delay
+ * The prediction leads this clock by the input lead; the render clock draws the others an interpolation delay
  * behind it. Plain code, no Effect: it runs every frame (ADR 0003).
  */
 

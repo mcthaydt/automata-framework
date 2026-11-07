@@ -1,5 +1,5 @@
 /**
- * What this client's netcode is doing, measured (FloorFifty's `net-diagnostics.ts`; M7 spec §4.2).
+ * What this client's netcode is doing, measured.
  *
  * The room is drawn from three moving parts that each fail quietly: a clock that tracks authority, a buffer that interpolates the
  * others, and a prediction that carries the local player ahead. When one is off the symptom is a feel ("floaty", "rubber-bandy")

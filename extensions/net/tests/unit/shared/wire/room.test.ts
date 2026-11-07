@@ -8,7 +8,7 @@ import {
   ROOM_NAME,
 } from '#src/shared/wire/room.ts'
 
-// The room contract a client reads (M7 spec §4.2, RoomInfo): net owns it, server imports it.
+// The room contract a client reads: net owns it, server imports it.
 
 describe('the room contract', () => {
   it('has six-character codes a player can read and type', () => {

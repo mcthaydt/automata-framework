@@ -1,5 +1,5 @@
 /**
- * The test room driver (FloorFifty `room-driver.ts`, generic; spec §4.3 `rooms/room-driver.ts` → `server/testing`).
+ * The test room driver.
  *
  * End-to-end tests need a game to move in seconds, and a browser test needs a screen to stay up on a slow machine.
  * The driver does both the only legitimate way: commands on the room's own input path (unmetered, because it
@@ -11,10 +11,10 @@
  * directly). No HTTP endpoint is mounted for it.
  */
 
-import type { RoomEngine } from '../room/room-engine'
-import type { SeatInfoView, SubmitOutcome } from '../room/room-types'
-import { type ClockName, isClockName } from '../rooms/clock-hold'
-import type { QueuedInput } from '../rooms/input-queue'
+import type { RoomEngine } from '../features/room/engine/room-engine'
+import type { SeatInfoView, SubmitOutcome } from '../features/room/engine/room-types'
+import { type ClockName, isClockName } from '../features/room/rules/clock-hold'
+import type { QueuedInput } from '../features/room/rules/input-queue'
 
 /** The most ticks one `step` call drives: five minutes at 60 Hz. */
 export const MAX_DRIVEN_TICKS: number = 60 * 60 * 5

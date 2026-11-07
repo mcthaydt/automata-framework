@@ -1,6 +1,5 @@
 /**
- * A scripted Colyseus SDK for the net client's tests (FloorFifty `tests/client/support/fakes/server.ts`
- * `fakeColyseusClient`, generic).
+ * A scripted Colyseus SDK for the net client's tests.
  *
  * A fake room records what the client sends and lets a test play the room's side: a wire message, the bytes that
  * follow a header, a state patch, a close. The fake client answers each matchmaking call with the next scripted

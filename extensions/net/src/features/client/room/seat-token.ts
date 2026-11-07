@@ -1,6 +1,5 @@
 /**
- * The reconnection token (M7 spec §3, §4.2; FloorFifty `colyseus-network.ts` `remember`, `forget`,
- * `readStoredSession`).
+ * The reconnection token.
  *
  * Colyseus's reconnection token is a bearer credential for one seat, so it lives in `sessionStorage`: it survives a
  * reload of this tab, which is what `resume` needs, and nothing longer. Never `localStorage` (it would outlive the

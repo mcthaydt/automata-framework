@@ -16,7 +16,7 @@ const byteLength = (raw: string | Uint8Array): number =>
 const decoder = new TextDecoder('utf-8', { fatal: true })
 
 /**
- * The cap comes first (SV-a): a message past MAX_MESSAGE_BYTES is dropped before `JSON.parse` sees it, so an
+ * The cap comes first: a message past MAX_MESSAGE_BYTES is dropped before `JSON.parse` sees it, so an
  * oversized message costs no parsing. Then JSON, then the strict schema.
  */
 function parseWith<S extends z.ZodType>(schema: S, raw: string | Uint8Array): ParseResult<z.output<S>> {

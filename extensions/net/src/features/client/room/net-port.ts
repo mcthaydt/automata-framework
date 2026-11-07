@@ -1,9 +1,8 @@
 /**
- * The client end of core's `NetworkPort` (`@automata/framework`, PRODUCT.1; M7 spec §4.2).
+ * The client end of core's `NetworkPort`.
  *
- * Core's runtime package is private until it publishes (DX.2a), so Plus cannot import the `NetworkPort` type; this
- * port has its four members with core's exact signatures, and is typed against core's once runtime publishes (a
- * request to core). A snapshot is core's `AuthoritativeSnapshot` with the acks beside it (`NetSnapshot`, M7-D3).
+ * This port has the four members of core's `NetworkPort` with core's exact signatures, so a game can hand it to
+ * anything that takes one. A snapshot is core's `AuthoritativeSnapshot` with the acks beside it (`NetSnapshot`).
  *
  * The port outlives any one room: `NetRoom` attaches the current room's transport and detaches it on a drop, so a
  * reconnect keeps every listener. A client is not the authority: it hears no remote commands and publishes no
@@ -15,7 +14,7 @@
 import type { Command } from '@automata/sim'
 import type { ColyseusTransport, NetSnapshot, Pong, TransportEvents } from './colyseus-transport'
 
-/** Round trips remembered for the estimate; the median of these is the answer (FloorFifty `RTT_SAMPLES`). */
+/** Round trips remembered for the estimate; the median of these is the answer. */
 const RTT_SAMPLES = 7
 
 export interface ClientNetworkPort {

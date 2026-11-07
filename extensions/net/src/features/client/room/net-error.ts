@@ -1,28 +1,26 @@
 /**
- * How a refusal reaches a player (M7 spec §4.2 `NetError`, §6; FloorFifty `colyseus-network.ts` `refusalCode`).
+ * How a refusal reaches a player.
  *
- * Every refusal Plus's server writes, from the room (`onAuth`, a refused request) or from a gate in front of
+ * Every refusal the server writes, from the room (`onAuth`, a refused request) or from a gate in front of
  * Colyseus, leads with net's code: `RATE_LIMITED: too many requests, try again shortly`. So the code is read, and the
  * words, which are for the log, never decide it. Colyseus's own matchmaking errors carry no code of ours and are read
  * by their fixed wording, and a request that never reached a server is `OFFLINE`.
  */
 
-import { type Cause, Data } from 'effect'
 import { NET_ERROR_CODES, type NetErrorCode } from '../../../shared/wire/server-message.schema'
 
-interface NetErrorFields {
+/** A `NetRoom` call that failed: net's code, and which call it was (`create`, `join`, `setReady`, ...). */
+export class NetError extends Error {
+  override readonly name: 'NetError' = 'NetError'
   readonly code: NetErrorCode
   readonly operation: string
+
+  constructor(fields: { readonly code: NetErrorCode; readonly operation: string }) {
+    super(`${fields.operation} failed: ${fields.code}`)
+    this.code = fields.code
+    this.operation = fields.operation
+  }
 }
-
-// `isolatedDeclarations` forbids `extends Data.TaggedError(…)` directly, so the base is typed first (as `server` does).
-const NetErrorBase: new (
-  fields: NetErrorFields,
-) => Cause.YieldableError & { readonly _tag: 'NetError' } & Readonly<NetErrorFields> =
-  Data.TaggedError('NetError')
-
-/** A `NetRoom` call that failed: net's code, and which call it was (`create`, `join`, `setReady`, …). */
-export class NetError extends NetErrorBase {}
 
 const LEADING_CODE = /^([A-Z_]+): /
 const isNetErrorCode = (value: string): value is NetErrorCode =>

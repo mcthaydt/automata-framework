@@ -6,7 +6,7 @@ import { createRequestIds } from '#src/features/client/room/request-ids.ts'
 import { NET_CHANNEL } from '#src/shared/wire/room.ts'
 import { fakeColyseus } from '#src/testing/fake-colyseus.ts'
 
-// The client end of core's `NetworkPort` (PRODUCT.1; M7 spec §4.2): local commands out, authoritative snapshots in.
+// The client end of core's `NetworkPort`: local commands out, authoritative snapshots in.
 // It outlives any one room, so a reconnect keeps every listener.
 
 const HASH = '0123456789abcdef'

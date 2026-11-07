@@ -1,6 +1,5 @@
 /**
- * One Colyseus room on net's two channels (M7 spec §4.2 wire; FloorFifty `colyseus-network.ts` `adopt`, `command`,
- * `sendPing`, the socket byte count).
+ * One Colyseus room on net's two channels.
  *
  * Everything a client says is JSON text on `NET_CHANNEL`; everything the room says is JSON text on the same channel,
  * and the snapshot or replay bytes that follow a `snap` or `replay` header arrive as binary on `NET_BYTES_CHANNEL`.
@@ -23,7 +22,7 @@ import type { NetSdkRoom } from './sdk'
 
 /**
  * One authoritative snapshot as it arrived: core's `AuthoritativeSnapshot` (`tick`, `bytes`, `hash`), plus the
- * per-seat acks that ride beside it on net's wire (M7-D3: the last `seq` the room applied for each seat).
+ * per-seat acks that ride beside it on net's wire (the last `seq` the room applied for each seat).
  */
 export interface NetSnapshot {
   readonly tick: number
@@ -65,7 +64,7 @@ export interface TransportOptions {
   readonly requestIds: RequestIds
 }
 
-/** Probes still awaited past this are forgotten (a drop, a reconnect): FloorFifty's 16. */
+/** Probes still awaited past this are forgotten (a drop, a reconnect). */
 const MAX_OUTSTANDING_PINGS = 16
 
 type SocketListener = (event: { readonly data: unknown }) => void
@@ -117,7 +116,7 @@ export class ColyseusTransport {
     this.now = options.now
     this.requestIds = options.requestIds
     // The 0.18 SDK retries a dropped socket by itself; ours reconnects with the stored token, which also survives a
-    // reload, so the SDK's loop stays off (FloorFifty).
+    // reload, so the SDK's loop stays off.
     room.reconnection.enabled = false
     room.onMessage(NET_CHANNEL, (payload) => {
       if (this.attached) this.receiveText(payload)
@@ -132,7 +131,7 @@ export class ColyseusTransport {
       if (this.attached) this.events.closed(code)
     })
     // Counted off the socket itself: the SDK decodes a state patch before anything here sees it, and a decoded
-    // schema has no size (FloorFifty).
+    // schema has no size.
     this.countBytes = (event) => {
       if (this.attached) this.events.bytes(byteCount(event.data))
     }

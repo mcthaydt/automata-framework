@@ -1,12 +1,11 @@
 /**
- * The predicted local state (M7 spec §3: owned by `net`'s reconciler; §4.2 reconciliation).
+ * The predicted local state.
  *
  * The client steps the same sim the room runs, from the last authoritative snapshot, with the local commands the room
  * has not acked yet. Every snapshot replaces the state: restore its bytes, check its hash, drop what it acks and step
  * forward again to where input has been sampled. Nothing is merged or nudged: the room's state is the truth, and
- * the prediction is the room's state plus this player's own commands that the room has not taken yet. FloorFifty's
- * rule ("step the same simulation the server runs, over a state rebuilt from the last snapshot") with the sim's own
- * bytes instead of a race rebuild.
+ * the prediction is the room's state plus this player's own commands that the room has not taken yet. The client steps the same
+ * simulation the server runs, over a state rebuilt from the last snapshot (the sim's own bytes).
  *
  * Ticks: core's `Sim.tick` is the next tick to step. A snapshot at T is the state before tick T, and its acks cover
  * every command the room took through T - 1. So a command not acked whose tick is before T arrived late (or was lost)

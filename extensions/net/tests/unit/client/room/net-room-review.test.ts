@@ -1,4 +1,3 @@
-import { Effect, Exit, Fiber } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { NetSdkClient, NetSdkRoom } from '#src/features/client/room/sdk.ts'
 import { type SeatStorage, seatTokenKey } from '#src/features/client/room/seat-token.ts'
@@ -7,13 +6,15 @@ import {
   GRACE_SECONDS,
   type Harness,
   memoryStorage,
+  outcome,
+  rejected,
   SEAT_KEY,
   startHarness,
   storedSeat,
 } from '#src/testing/net-room-harness.ts'
 
-// The cases the PR #13 review found (M7.5a): storage that fails, a seat stored for another server, handshakes that
-// never settle, a scope closed mid-reconnect, and an interrupted resume. TestClock throughout.
+// The cases the PR #13 review found: storage that fails, a seat stored for another server, handshakes that
+// never settle, a room closed mid-reconnect, and an aborted resume. A fake clock throughout.
 
 let harnesses: Harness[] = []
 afterEach(async () => {
@@ -25,8 +26,6 @@ const start = async (...args: Parameters<typeof startHarness>) => {
   harnesses.push(h)
   return h
 }
-const failureCode = (exit: Exit.Exit<unknown, unknown>) =>
-  Exit.isFailure(exit) && exit.cause._tag === 'Fail' ? exit.cause.error : undefined
 
 const throwing: SeatStorage = {
   getItem: () => {
@@ -48,7 +47,7 @@ describe('a drop with no working storage', () => {
     ['is switched off (a worker, a headless client)', null],
   ])('reconnects into its seat when storage %s', async (_, storage) => {
     const h = await start({ storage })
-    await h.run(h.room.create({ name: 'Ada' }))
+    await h.room.create({ name: 'Ada' })
     const token = h.fake.rooms[0]?.reconnectionToken
     h.fake.rooms[0]?.close(1006)
     await h.settle()
@@ -66,7 +65,7 @@ describe('a seat stored for another server', () => {
     // Even a record planted under this server's key for another url is not presented.
     storage.setItem(SEAT_KEY, storedSeat('XYZ789', 'XYZ789:theirs', 'wss://other-game.test'))
     const h = await start({ storage })
-    expect(await h.run(h.room.resume)).toBe('none')
+    expect(await h.room.resume()).toBe('none')
     expect(h.fake.calls).toEqual([])
     expect(storage.items.get(otherKey)).toBe(storedSeat('ABC234', 'ABC234:theirs', 'wss://other-game.test'))
   })
@@ -79,7 +78,7 @@ describe('a seat stored for another server', () => {
     storage.setItem(SEAT_KEY, storedSeat('XYZ789', 'XYZ789:ours'))
     const h = await start({ storage })
     h.fake.respond('reconnect', new Error('reconnection token invalid or expired.'))
-    expect(await h.run(h.room.resume)).toBe('expired')
+    expect(await h.room.resume()).toBe('expired')
     expect(storage.items.has(SEAT_KEY)).toBe(false)
     expect(storage.items.get(otherKey)).toBe(theirs)
   })
@@ -95,7 +94,7 @@ describe('a seat stored for another server', () => {
     })
     storage.setItem(SEAT_KEY, otherBuild)
     const h = await start({ storage })
-    await h.run(h.room.leave)
+    await h.room.leave()
     expect(storage.items.get(SEAT_KEY)).toBe(otherBuild)
   })
 })
@@ -105,13 +104,13 @@ describe('a late room for a retired intent', () => {
     const h = await start()
     let arrive!: (room: FakeRoom) => void
     h.fake.respond('joinById', new Promise<FakeRoom>((resolve) => (arrive = resolve)))
-    const first = h.start(h.room.join('XYZ789', { name: 'Ada' }))
+    const first = outcome(h.room.join('XYZ789', { name: 'Ada' }))
     await h.settle()
-    await h.run(h.room.join('XYZ789', { name: 'Ada' }))
+    await h.room.join('XYZ789', { name: 'Ada' })
     const second = h.fake.rooms.at(-1) as FakeRoom
     const late = h.fake.room('XYZ789')
     arrive(late)
-    await h.run(Fiber.await(first))
+    await first
     await h.settle()
     expect(late.leaves).toEqual([true])
     expect(late.closes).toBe(0)
@@ -121,12 +120,12 @@ describe('a late room for a retired intent', () => {
 
   it('a reconnect overtaken by a fresh join of the same room is left, not kept', async () => {
     const h = await start()
-    await h.run(h.room.join('XYZ789', { name: 'Ada' }))
+    await h.room.join('XYZ789', { name: 'Ada' })
     let arrive!: (room: FakeRoom) => void
     h.fake.respond('reconnect', new Promise<FakeRoom>((resolve) => (arrive = resolve)))
     h.fake.rooms[0]?.close(1006)
     await h.settle()
-    await h.run(h.room.join('XYZ789', { name: 'Ada' }))
+    await h.room.join('XYZ789', { name: 'Ada' })
     const joined = h.fake.rooms.at(-1) as FakeRoom
     const late = h.fake.room('XYZ789')
     arrive(late)
@@ -140,7 +139,7 @@ describe('a late room for a retired intent', () => {
 describe('a reconnect attempt that hangs', () => {
   it('is given up after 5 s, and the next attempt reconnects well inside the grace', async () => {
     const h = await start()
-    await h.run(h.room.create({ name: 'Ada' }))
+    await h.room.create({ name: 'Ada' })
     let arrive!: (room: FakeRoom) => void
     h.fake.respond('reconnect', new Promise<FakeRoom>((resolve) => (arrive = resolve)))
     h.fake.rooms[0]?.close(1006)
@@ -162,7 +161,7 @@ describe('a reconnect attempt that hangs', () => {
 describe('handshakes that never settle', () => {
   it('give the seat up when the grace passes, even mid-attempt', async () => {
     const h = await start()
-    await h.run(h.room.create({ name: 'Ada' }))
+    await h.room.create({ name: 'Ada' })
     h.fake.respondAlways('reconnect', never())
     h.fake.rooms[0]?.close(1006)
     await h.advance(GRACE_SECONDS * 1000 + 250)
@@ -172,7 +171,7 @@ describe('handshakes that never settle', () => {
 
   it('a room that arrives after the grace is left', async () => {
     const h = await start()
-    await h.run(h.room.create({ name: 'Ada' }))
+    await h.room.create({ name: 'Ada' })
     let arrive!: (room: FakeRoom) => void
     h.fake.respond('reconnect', new Promise<FakeRoom>((resolve) => (arrive = resolve)))
     h.fake.respondAlways('reconnect', never())
@@ -191,9 +190,9 @@ describe('handshakes that never settle', () => {
     const h = await start({ storage })
     let arrive!: (room: FakeRoom) => void
     h.fake.respond('reconnect', new Promise<FakeRoom>((resolve) => (arrive = resolve)))
-    const resume = h.start(h.room.resume)
+    const resume = outcome(h.room.resume())
     await h.advance(GRACE_SECONDS * 1000 + 250)
-    expect(failureCode(await h.run(Fiber.await(resume)))).toMatchObject({
+    expect(rejected(await resume)).toMatchObject({
       code: 'OFFLINE',
       operation: 'resume',
     })
@@ -213,7 +212,7 @@ describe('handshakes that never settle', () => {
 describe('closing the scope mid-reconnect', () => {
   it('keeps the seat: the rotated token is stored and the socket closed without leaving', async () => {
     const h = await start()
-    await h.run(h.room.create({ name: 'Ada' }))
+    await h.room.create({ name: 'Ada' })
     let arrive!: (room: FakeRoom) => void
     h.fake.respond('reconnect', new Promise<FakeRoom>((resolve) => (arrive = resolve)))
     h.fake.rooms[0]?.close(1006)
@@ -235,19 +234,21 @@ describe('resume', () => {
     const storage = memoryStorage()
     storage.setItem(SEAT_KEY, storedSeat('ABC234', 'ABC234:held'))
     const h = await start({ storage })
-    expect(await h.run(h.room.resume)).toBe('resumed')
+    expect(await h.room.resume()).toBe('resumed')
     expect(h.states).toEqual(['offline', 'reconnecting', 'connected'])
   })
 
-  it('gives up its intent when its caller is interrupted', async () => {
+  it('gives up its intent when its caller aborts', async () => {
     const storage = memoryStorage()
     storage.setItem(SEAT_KEY, storedSeat('ABC234', 'ABC234:held'))
     const h = await start({ storage })
     h.fake.respond('reconnect', never())
-    const resume = h.start(h.room.resume)
+    const abort = new AbortController()
+    const resume = outcome(h.room.resume({ signal: abort.signal }))
     await h.settle()
     expect(h.connection()).toBe('reconnecting')
-    await h.run(Fiber.interrupt(resume))
+    abort.abort()
+    expect(rejected(await resume)).toBe(abort.signal.reason)
     expect(h.connection()).toBe('offline')
   })
 })
@@ -256,7 +257,7 @@ describe('a handshake that settles at the cap', () => {
   it('is adopted or retired, never both, and the loop ends connected with no ghost room', async () => {
     let h!: Harness
     const handed: FakeRoom[] = []
-    // The first reconnect answers on the TestClock exactly when its attempt's 5 s cap runs out; later ones at once.
+    // The first reconnect answers on the fake clock exactly when its attempt's 5 s cap runs out; later ones at once.
     const client = (): NetSdkClient => ({
       ...h.fake.client,
       reconnect: (token) => {
@@ -264,11 +265,13 @@ describe('a handshake that settles at the cap', () => {
         const room = h.fake.room('ABC234')
         handed.push(room)
         const delay = handed.length === 1 ? 5_000 : 0
-        return h.run(Effect.sleep(delay).pipe(Effect.as(room as NetSdkRoom)))
+        return new Promise<NetSdkRoom>((resolve) =>
+          h.clock.setTimeout(() => resolve(room as NetSdkRoom), delay),
+        )
       },
     })
     h = await start({ client })
-    await h.run(h.room.create({ name: 'Ada' }))
+    await h.room.create({ name: 'Ada' })
     h.fake.rooms[0]?.close(1006)
     await h.advance(GRACE_SECONDS * 1000 + 1_000)
     expect(h.ended()).toBeUndefined()
@@ -287,7 +290,7 @@ describe('a handshake that settles at the cap', () => {
 describe('an abandoned attempt whose room arrives while the next is in flight', () => {
   it('is kept (closed without consent), and the attempts converge on its rotated token', async () => {
     const h = await start()
-    await h.run(h.room.create({ name: 'Ada' }))
+    await h.room.create({ name: 'Ada' })
     const first = h.fake.rooms[0] as FakeRoom
     const presented = first.reconnectionToken
     let arriveA!: (room: FakeRoom) => void

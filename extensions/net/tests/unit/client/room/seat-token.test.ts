@@ -7,8 +7,8 @@ import {
   sessionSeatStorage,
 } from '#src/features/client/room/seat-token.ts'
 
-// The reconnection token (M7 spec §3, §4.2): a bearer credential for one seat, kept for one page load in
-// sessionStorage, never localStorage and never the URL (FloorFifty `colyseus-network.ts` `remember`/`forget`). Kept
+// The reconnection token: a bearer credential for one seat, kept for one page load in
+// sessionStorage, never localStorage and never the URL. Kept
 // in memory too, written through, so a client with no storage (a worker, Node, blocked site data) still reconnects.
 // Stored per server: on itch.io every game shares one origin, so one game's seat must never reach another's server.
 

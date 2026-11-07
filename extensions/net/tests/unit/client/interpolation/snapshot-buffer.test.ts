@@ -5,8 +5,8 @@ import {
   SnapshotBuffer,
 } from '#src/features/client/interpolation/snapshot-buffer.ts'
 
-// FloorFifty's `snapshot-buffer.test.ts` (677d4568), over a generic view: entity -> fields. The arcade source's player and wrap
-// rule are the game's `blend`; here the generic `blendViews` takes a per-field jump threshold for the same job.
+// The snapshot buffer over a generic view: entity -> fields. A game's own wrap rule is its `blend`; the generic
+// `blendViews` takes a per-field jump threshold for the same job.
 
 const view = (entities: Record<string, Record<string, number | string | boolean>>): RemoteView => entities
 const buffer = (windowTicks = 48) =>
