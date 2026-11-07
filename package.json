@@ -39,7 +39,7 @@
     "api-index": "node tooling/api-index/src/cli.ts",
     "agent-skills": "node tooling/agent-skills/src/cli.ts",
     "source-names": "node tooling/repo-hygiene/src/source-names-cli.ts",
-    "plugin:validate": "pnpm dlx @anthropic-ai/claude-code@2.1.301 plugin validate agents/automata --strict && pnpm dlx @anthropic-ai/claude-code@2.1.301 plugin validate . --strict",
+    "plugin:validate": "rm -rf .mirror && node tooling/agent-skills/src/mirror-cli.ts --out .mirror/automata-skills && pnpm dlx @anthropic-ai/claude-code@2.1.301 plugin validate agents/automata --strict && pnpm dlx @anthropic-ai/claude-code@2.1.301 plugin validate . --strict && pnpm dlx @anthropic-ai/claude-code@2.1.301 plugin validate .mirror/automata-skills --strict",
     "test:browser": "VITEST_MAX_WORKERS=${VITEST_MAX_WORKERS:-${CI:+2}} turbo run test:browser --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000",
     "test:browser:2d": "VITEST_MAX_WORKERS=${VITEST_MAX_WORKERS:-${CI:+2}} turbo run test:browser --filter='!./packages/editor-3d' --filter='!@af-games/base-3d' --filter='!./packages/render-pixi3d' --filter='!./packages/figures' --filter='!./packages/sector-format' --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000",
     "test:browser:3d": "VITEST_MAX_WORKERS=${VITEST_MAX_WORKERS:-${CI:+2}} turbo run test:browser --filter='./packages/editor-3d' --filter='@af-games/base-3d' --filter='./packages/render-pixi3d' --filter='./packages/figures' --filter='./packages/sector-format' --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000",

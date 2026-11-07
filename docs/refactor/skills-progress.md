@@ -11,7 +11,7 @@ live in the framework's `docs/refactor/` (audit decision D1 A); `mcthaydt/automa
 | 1. Audit | Done, 2026-11-07 | [2026-11-07-skills-audit.md](2026-11-07-skills-audit.md) (moved here; first written in automata-skills PR #1) | automata-skills #1, `claude/project-thread-l4q4y1` |
 | 2. Plan and spec | Done, 2026-11-07 (accepted under "Auto accept all spec and plans") | [spec](2026-11-07-skills-spec.md), [plan](2026-11-07-skills-plan.md) | `claude/project-thread-wd20yh`, stacked on #444 |
 | 3. Plan audit | Done, 2026-11-07: 15 findings, fixed in place | [2026-11-07-skills-plan-audit.md](2026-11-07-skills-plan-audit.md) | #446, same branch |
-| 4. Build | Not started (5 parts, 17 tasks) | | |
+| 4. Build | In progress (5 parts, 17 tasks) | [execution ledger](#execution-ledger) | |
 | 5. Build audit | Not started | | |
 | 6. Fixes | Not started | | |
 
@@ -19,8 +19,8 @@ live in the framework's `docs/refactor/` (audit decision D1 A); `mcthaydt/automa
 
 | Task | Part | Status |
 |---|---|---|
-| 1.1 Mirror generator | 1 | Not started |
-| 1.2 Release job and checks use it | 1 | Not started |
+| 1.1 Mirror generator | 1 | Done, 2026-11-07 (13 tests) |
+| 1.2 Release job and checks use it | 1 | Done, 2026-11-07 |
 | 1.3 Part 1 close | 1 | Not started |
 | 2.1 Declarations only (C1) | 2 | Not started |
 | 2.2 What the reference leaves out (C2) | 2 | Not started |
@@ -54,3 +54,19 @@ live in the framework's `docs/refactor/` (audit decision D1 A); `mcthaydt/automa
 Build with `superpowers:executing-plans`, natively (no subagents), Sonnet at high effort. Read the plan's Global
 Constraints and Review Focus, then part 1. Part 1 lands before any `@automata/*` release. The plan's paths and lines
 were checked at `8ee84442` (stage 3); recheck any line number against the stack head before editing it.
+
+## Execution ledger
+
+Stage 4, `superpowers:executing-plans`, inline. Pre-flight: tasks 1.1 to 1.2 share the CLI and `writeMirror`; 4.1 consumes
+`writeMirror` (task 1.1); 5.1 reads the plugin:validate pin that 1.2 rewrites (the pin string is unchanged). No conflicts.
+
+- Task 1.1: complete (`tooling/agent-skills/tests/unit/mirror.test.ts`, 13 tests green; RED was "Cannot find module '#src/mirror.ts'").
+  Ruling: the CLI case became three tests (exit 0, 1, 2), so 13 tests not 10 — finer names, same coverage — none if wrong.
+  Ruling: `mirror.ts` imports only `node:` built-ins and does not import `./skill-tree.ts` (it needs no hashing) — the
+  plan allowed that import but nothing uses it — none if wrong.
+- Task 1.2: complete (`ci.test.ts` 3 new tests RED→GREEN; agent-skills 127/127; repo-hygiene 90/90). The three trees
+  (`agents/automata`, `.`, `.mirror/automata-skills`) validate `--strict` on Claude Code 2.1.301 ("Validation passed" x3).
+  Re-enacted on a clone of automata-skills (emptied but `.git`, CLI, `marketplace add`, `install`): `plugin details` says
+  "Skills (5) …", "Hooks (2) PostToolUse, Stop". Nothing pushed.
+  Ruling: `release-checks.yml` is not edited: it already runs `pnpm plugin:validate`, which now builds and validates the
+  mirror — an edit would run it twice — none if wrong.

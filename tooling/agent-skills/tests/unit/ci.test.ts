@@ -26,4 +26,27 @@ describe('the agent package in the gates', () => {
     expect(releaseChecks.indexOf('\n      - run: pnpm agent-skills\n')).toBeGreaterThan(apiIndex)
     expect(releaseChecks.indexOf('\n      - run: pnpm plugin:validate\n')).toBeGreaterThan(apiIndex)
   })
+
+  it('plugin:validate checks the mirror tree', () => {
+    const validate = scripts['plugin:validate'] ?? ''
+    expect(validate).toContain('node tooling/agent-skills/src/mirror-cli.ts --out .mirror/automata-skills')
+    expect(validate).toContain('plugin validate .mirror/automata-skills --strict')
+  })
+})
+
+describe('the release job that fills the mirror', () => {
+  const workflow = readFileSync(join(root, '.github/workflows/release-packages.yml'), 'utf8')
+  const job = workflow.slice(workflow.indexOf('\n  skills:\n'))
+
+  it('writes the mirror with the generator', () => {
+    expect(job).toContain('node tooling/agent-skills/src/mirror-cli.ts --out "$mirror"')
+    expect(job).toContain('actions/setup-node')
+    expect(job).not.toContain('cp -R agents/automata')
+  })
+
+  it('still empties the clone but .git first', () => {
+    const empty = job.indexOf('find "$mirror" -mindepth 1 -maxdepth 1 ! -name .git')
+    expect(empty).toBeGreaterThan(-1)
+    expect(job.indexOf('mirror-cli.ts')).toBeGreaterThan(empty)
+  })
 })
