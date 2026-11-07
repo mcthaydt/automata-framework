@@ -1,6 +1,6 @@
-// H3, the hair pieces: how one entry of a style's `pieces` is built. The base generators (scalp, rows, tail, fall,
-// bun, sweep, block, edges) are built into hair-parts.ts; a game's extension registers more kinds here, and a style then
-// carries `{ <kind> = { … } }` like any other piece. A name the generators or an earlier extension took is refused.
+// H3, the hair pieces: how one entry of a style's `pieces` is built. Core registers none: the generators (scalp, rows,
+// tail, fall, bun, sweep, block, edges) are @automata/character-kit's, and a game's own extension registers more here.
+// A style then carries `{ <kind> = { … } }`. A name an earlier registration took is refused.
 //
 // Ported from FigureBuilder (mcthaydt/FigureBuilder) src/features/hair/hair.ts at 025ffb4 (`HairPiece`,
 // `registerHairPiece`), with AF's strict types; a piece may carry a Zod schema, so its data is checked like the rest.
@@ -18,23 +18,11 @@ export interface HairPiece<T = unknown> {
   readonly crown?: boolean
 }
 
-/** The generators built into hair-parts.ts, which no registration may take. */
-export const BASE_HAIR_PIECES: readonly string[] = [
-  'scalp',
-  'rows',
-  'tail',
-  'fall',
-  'bun',
-  'sweep',
-  'block',
-  'edges',
-]
-
 const PIECES = new Map<string, HairPiece>()
 
 /** Registers a hair piece under `kind`, the key a style's piece carries. Throws on a name taken. */
 export function registerHairPiece<T>(kind: string, piece: HairPiece<T>): void {
-  if (BASE_HAIR_PIECES.includes(kind) || PIECES.has(kind)) throw new RegistryClash('hair piece', kind)
+  if (PIECES.has(kind)) throw new RegistryClash('hair piece', kind)
   PIECES.set(kind, piece as HairPiece)
 }
 

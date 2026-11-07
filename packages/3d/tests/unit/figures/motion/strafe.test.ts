@@ -33,7 +33,7 @@ const bodyOf = (name: string): FigureBody => {
  * long-legged body in the elderly shuffle and a brisk walk. */
 const CASES = (): [string, Skeleton, Gait][] => [
   ['wick bounce', skeleton(bodyOf('wick-wanderer')), gaitNamed('bounce')],
-  ['model strut', skeleton(bodyOf('model-nurse')), gaitNamed('strut')],
+  ['model strut', skeleton(bodyOf('model-bob')), gaitNamed('strut')],
   ['keeper elderly', skeleton(bodyOf('keeper-lamplighter')), gaitNamed('elderly')],
   ['keeper brisk', skeleton(bodyOf('keeper-lamplighter')), gaitNamed('brisk')],
 ]

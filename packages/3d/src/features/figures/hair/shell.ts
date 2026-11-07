@@ -7,10 +7,36 @@
 
 import { clamp, cross, dot, hash, lerp, normalize, smooth, sub, type V3 } from '../../../shared/math/math.ts'
 import type { Mesh } from '../body/mesh.ts'
-import type { Scalp } from '../content/hair.schema.ts'
+import type { Line, Vec2, Vec3 } from '../content/shapes.schema.ts'
 import type { HeadForm } from '../outfit/garments/head.ts'
 import { along, onHead, onSkull, type Skull } from './skull.ts'
 import { grid, spindle } from './sweep.ts'
+
+/** The options of a shell: the head's lines it runs between, how far it lifts, how it is combed and cut. A cap's dome
+ * is one; so is a scalp piece of the character kit. */
+export interface Scalp {
+  readonly from: Line
+  readonly to?: Line | undefined
+  readonly lift: number
+  readonly crown?: number | undefined
+  readonly edge?: number | undefined
+  readonly ridges?: Vec2 | undefined
+  readonly comb?: Vec3 | 'back' | undefined
+  readonly tone?: string | undefined
+  readonly cut?: { readonly at: number; readonly width: number; readonly height: number } | undefined
+  readonly sheen?:
+    | {
+        readonly count: number
+        readonly from: number
+        readonly to: number
+        readonly width?: number | undefined
+        readonly ragged?: number | undefined
+        readonly at?: number | undefined
+      }
+    | undefined
+  readonly grade?: readonly (readonly [number, string])[] | undefined
+  readonly span?: number | undefined
+}
 
 /**
  * The angle round the way the hair is combed: round the axis it is combed toward, or across the head (combed

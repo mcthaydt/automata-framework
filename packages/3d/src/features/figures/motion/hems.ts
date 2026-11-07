@@ -33,15 +33,13 @@ const BEHIND = 0.06
 
 /**
  * Writes the hems' turn and shift into `pose`, from `world` (the pose's FK with the legs placed). "Fore and
- * aft" is along `line` (root space x, z; the line the feet run walking, M3.5c), forward when left out. A `seated`
- * figure's hems follow its ankles all the way.
+ * aft" is along `line` (root space x, z; the line the feet run walking, M3.5c), forward when left out.
  */
 export function placeHems(
   s: Skeleton,
   pose: Pose,
   world: readonly M[],
   line?: readonly [number, number],
-  seated = false,
 ): void {
   const g = s.genes
   const k = g.height / 1.62
@@ -53,10 +51,7 @@ export function placeHems(
     const hip = apply(toRoot, position(at(world, J[`thigh.${side}`])))
     const lift = Math.max(0, ankle[1] - g.ankle)
     const behind = line ? (hip[0] - ankle[0]) * line[0] + (hip[2] - ankle[2]) * line[1] : hip[2] - ankle[2]
-    // Seated, the hem rides the ankle: the knee is forward and up, nowhere near plumb over it.
-    const follow = seated
-      ? 1
-      : lerp(PLANT, 1, Math.max(smooth(lift / (LIFT * k)), smooth(behind / (BEHIND * k))))
+    const follow = lerp(PLANT, 1, Math.max(smooth(lift / (LIFT * k)), smooth(behind / (BEHIND * k))))
     // Along the line the hem hangs `follow` of the way from the hip's plumb to the ankle; across it, at the ankle.
     const back = line ? (1 - follow) * behind : 0
     const place: V3 = line

@@ -99,7 +99,7 @@ describe('the walk (FigureBuilder form.test.ts, a1f7246)', () => {
   // Their knees at the strike are FigureBuilder's numbers (the goldens match): Wick's legs, a fifth of the
   // slider, bend 37° in the loose gait, and the elderly gait, not a street gait, shuffles on bent knees (38°).
   const cases = (): [string, FigureBody, readonly string[]][] => [
-    ...GOLDEN_OUTFITS.filter((o) => o.name === 'model-nurse' || o.name === 'tall-hoodie').map(
+    ...GOLDEN_OUTFITS.filter((o) => o.name === 'model-bob' || o.name === 'tall-hoodie').map(
       (o): [string, FigureBody, readonly string[]] => [o.name, { sliders: o.sliders }, STREET_GAITS],
     ),
     ...[...Array(10).keys()].map((i): [string, FigureBody, readonly string[]] => [

@@ -11,7 +11,7 @@
 import { type Made, variant } from '../figure/materials.ts'
 import { finishMatte } from '../registry/hair-finish-registry.ts'
 
-/** A finish's name: a base finish (coil, braid, loc, sleek, straight) or one an extension registered. */
+/** A finish's name: a base finish (sleek, straight) or one an extension registered. */
 export type Finish = string
 
 /** The hair's own tones; anything else is a swatch id, used as it is. */

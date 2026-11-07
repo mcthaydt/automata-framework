@@ -5,7 +5,7 @@
 // the source) and the generic half of `randomCharacter`: every slider drawn over its range (the lookbook's
 // narrower ones), an outfit composed layer by layer from the garment registry with a wardrobe's draws (the
 // caller's `wardrobe` draws, FigureBuilder's `WARDROBE`: an outer layer half the time over a top that goes under one), or,
-// where no registered garment has a layer (core's classic set has none), a classic outfit; a hair style with pieces,
+// where no registered garment has a layer (core's set has none), a core outfit; a hair style with pieces,
 // sometimes a cap, the face's marks. Not taken: the colourway and the sets (which skin goes with which lips,
 // eyes and hair, the label's colours, one loud hue: SNEKPRTY's), the stands (M3.5c) and the crew's own
 // swatches. A swatch field draws from the library's swatches of a kind its role takes and in a role it takes,
@@ -73,7 +73,7 @@ export interface RandomCharacter {
 export function randomCharacter(
   seed: number,
   library: FigureLibrary,
-  /** A wardrobe's draws, by registry garment; core's classic set needs none. */
+  /** A wardrobe's draws, by registry garment; core's set needs none. */
   wardrobe: Readonly<Record<string, Wear>> = {},
 ): RandomCharacter {
   const r = random(seed)
@@ -142,24 +142,20 @@ export function randomCharacter(
     garments.push(wear(pick(keys('bottom'))), wear(pick(keys('shoes'))))
     for (const key of keys('accessory')) if (r() < (wardrobe[key]?.chance ?? 0.5)) garments.push(wear(key))
   } else {
-    // No registered layers: core's classic garments, in plain colours.
+    // No registered layers: core's garments, in plain colours.
     const colour = () => pick(plain)
     garments.push(
       { top: colour(), sleeves: pick(['none', 'short', 'long'] as const) },
       { trousers: colour() },
       { shoes: colour(), ...(r() < 0.4 ? { boots: true } : {}) },
     )
-    if (r() < 0.4) garments.push({ coat: colour(), length: range(0.2, 0.9) })
-    if (r() < 0.4) garments.push({ belt: colour() })
     if (r() < 0.3) garments.push({ cape: colour(), length: range(0.3, 1) })
   }
-  // The head: a skin, a hair style with pieces in a plain colour, sometimes a cap (a mark on it half the
+  // The head: a skin, a hair style in a plain colour, sometimes a cap (a mark on it half the
   // time).
   const skins = SKINS.filter((id) => library.swatches[id] !== undefined)
   const skin = skins.length ? pick(skins) : pick(plain)
-  const styles = Object.keys(library.hair)
-    .sort()
-    .filter((id) => library.hair[id]?.pieces)
+  const styles = Object.keys(library.hair).sort()
   const caps = Object.keys(library.headwear)
     .sort()
     .filter((id) => library.headwear[id]?.cap)

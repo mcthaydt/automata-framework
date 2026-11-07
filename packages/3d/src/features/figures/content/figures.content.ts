@@ -13,7 +13,6 @@ import { hairStyleSchema } from './hair.schema.ts'
 import { headwearSchema } from './headwear.schema.ts'
 import { itemSchema } from './item.schema.ts'
 import { rigLimitsSchema } from './rig-limits.schema.ts'
-import { seatSchema } from './seat.schema.ts'
 import { standSchema } from './stand.schema.ts'
 import { swatchSchema } from './swatch.schema.ts'
 
@@ -61,12 +60,6 @@ export const figureStandContent: ContentSchemaDef<'figure-stand'> = defineConten
   { folder: 'figure-stands' },
   presentation,
 )
-export const figureSeatContent: ContentSchemaDef<'figure-seat'> = defineContentSchema(
-  'figure-seat',
-  seatSchema,
-  { folder: 'figure-seats' },
-  presentation,
-)
 export const figureRigContent: ContentSchemaDef<'figure-rig'> = defineContentSchema(
   'figure-rig',
   rigLimitsSchema,
@@ -104,7 +97,6 @@ export const FIGURE_CONTENT: readonly ContentSchemaDef[] = [
   figureHeadwearContent,
   figureItemContent,
   figureStandContent,
-  figureSeatContent,
   figureRigContent,
   figurePoseContent,
   figureClipContent,

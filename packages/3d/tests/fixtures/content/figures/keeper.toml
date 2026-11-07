@@ -1,5 +1,5 @@
 # The keeper, an old lamplighter: the second fixture figure, built from the libraries alone. Tall, long-legged
-# and long-armed, with a hunch and the elderly gait, a coat and a flat cap, cropped grey hair. Its sliders are
+# and long-armed, with a hunch and the elderly gait, a flat cap, cropped grey hair. Its sliders are
 # testing/fixture-sliders.ts KEEPER_SLIDERS.
 
 skin = "pale"
@@ -41,20 +41,12 @@ sleeves = "long"
 collar = "starch-shade"
 
 [[outfits.lamplighter]]
-waistcoat = "tweed"
-
-[[outfits.lamplighter]]
 trousers = "charcoal"
 
 [[outfits.lamplighter]]
 shoes = "boot-brown"
 sole = "boot-sole"
 boots = true
-
-[[outfits.lamplighter]]
-coat = "navy-deep"
-length = 0.8
-buttons = "brass"
 
 [[outfits.lamplighter]]
 hair = "steel-grey"
@@ -75,10 +67,6 @@ sleeves = "short"
 
 [[outfits.shirtsleeves]]
 trousers = "charcoal"
-
-[[outfits.shirtsleeves]]
-belt = "boot-brown"
-buckle = "brass"
 
 [[outfits.shirtsleeves]]
 shoes = "boot-brown"
