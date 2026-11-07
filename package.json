@@ -38,7 +38,7 @@
     "api-report": "node tooling/api-report/src/cli.ts",
     "api-index": "node tooling/api-index/src/cli.ts",
     "agent-skills": "node tooling/agent-skills/src/cli.ts",
-    "source-names": "node tooling/repo-hygiene/src/source-names-cli.ts --code packages/3d && node tooling/repo-hygiene/src/sources-md-cli.ts",
+    "source-names": "node tooling/repo-hygiene/src/source-names-cli.ts --code packages/3d && node tooling/repo-hygiene/src/sources-md-cli.ts --complete",
     "sources-md": "node tooling/repo-hygiene/src/sources-md-cli.ts",
     "plugin:validate": "pnpm dlx @anthropic-ai/claude-code@2.1.301 plugin validate agents/automata --strict && pnpm dlx @anthropic-ai/claude-code@2.1.301 plugin validate . --strict",
     "test:browser": "VITEST_MAX_WORKERS=${VITEST_MAX_WORKERS:-${CI:+2}} turbo run test:browser --concurrency=2 -- --browser.connectTimeout=240000 --testTimeout=90000 --hookTimeout=90000",

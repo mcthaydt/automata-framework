@@ -342,6 +342,36 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `tests/features/hair/options.test.ts` |  | left out: tests the hair finishes and pieces that moved to `@automata/character-kit` (3D slice task 7.6) |
 | `tests/features/body/bust-seat.test.ts` | `packages/3d/tests/unit/figures/body/diversity.test.ts` | rewritten: folded into the diversity cases (bust and seat are the default at 0.5) |
 | `tests/features/body/asymmetry.test.ts` | `packages/3d/tests/unit/figures/body/diversity.test.ts` | rewritten: folded into the diversity cases (asymmetry has defaults that change nothing) |
+| `base/base.ts` | `packages/3d/src/features/figures/base/base-pair.ts` | rewritten: the base pair as data; see the row for `base/base.ts` (FigureBuilder: `BASE`) in the environment source's table |
+| `src/features/actors/actor.ts` |  | left out: the scripted actor and its second player; an action is a clip the one player plays (`clips/figure-action.ts`), and a script of actors is the cutscenes extension's |
+| `src/features/body/parts.ts` | `packages/3d/src/shared/math/superquadric.ts` | rewritten: the part builders as ported at `a1f7246` and now the shared superquadric and limb meshes (`shared/math/limb.ts`, `features/figures/body/mesh.ts`), with the fat on the limbs |
+| `src/features/figure/cast.ts` | `packages/3d/src/features/figures/figure/figure.schema.ts` | rewritten: a character file is a `FigureDef` (Zod, the `figure` content kind, `content/figures.content.ts`), not a cast member |
+| `src/features/figure/cloth.ts` |  | left out: the cloth coordinates a fabric is laid by; the fabric painter is not taken (see the `fabric.ts` row), so nothing reads them |
+| `src/features/figure/figure.ts` | `packages/3d/src/features/figures/view/figure-view.ts` | rewritten: the runtime figure is the view (`figure-view.ts`) over `build` and the skeleton, drawn with Pixi 3D |
+| `src/features/figure/frames.ts` |  | left out: the review frames of the CPU painter; AF's goldens are the figure's built parts and the view's frames |
+| `src/features/hair/library/hair.json` | `packages/3d/tests/fixtures/content/figure-hair/bob.toml` | rewritten: hair styles are `figure-hair` content (TOML); core ships none, the tests keep `bob`, `cropped` and `curtain`, and the pieces' styles go to `@automata/character-kit` |
+| `src/features/motion/library/poses.json` | `packages/3d/tests/fixtures/content/figure-poses/stand.toml` | rewritten: poses are `figure-pose` content (TOML); core ships none, the tests keep twelve (`stand`, `guard-high`, `reach-out` and the rest) |
+| `src/features/motion/presets.ts` | `packages/3d/src/features/figures/content/gait.schema.ts` | rewritten: gait and pose presets are content (`figure-gait`, `figure-pose` and `figure-stand` TOML), checked by `gait.schema.ts`, `pose.schema.ts` and `stand.schema.ts` |
+| `src/features/outfit/garments.ts` | `packages/3d/src/features/figures/outfit/garments/classic.ts` | rewritten: the garment kinds, registered through `registry/garment-registry.ts`; core registers seven (`classic-kinds.ts`) and the rest went to `@automata/character-kit` (3D slice task 7.6) |
+| `src/features/outfit/items.ts` | `packages/3d/src/features/figures/figure/build.ts` | rewritten: a held item's parts are built in `build` from the `figure-item` content (`content/item.schema.ts`) |
+| `src/features/outfit/library/items.json` | `packages/3d/tests/fixtures/content/figure-items/torch.toml` | rewritten: items are `figure-item` content (TOML); core ships none, the tests keep `hand-lamp`, `lighter` and `torch` |
+| `src/features/outfit/library/swatches.json` | `packages/3d/tests/fixtures/content/figure-swatches/navy.toml` | rewritten: swatches are `figure-swatch` content (TOML) naming DUEL palette entries; core ships the base pair's (`BASE_PAIR_SWATCHES`) and the tests keep the rest |
+| `src/features/paint/duel-ramps.ts` | `packages/content/src/shared/palette/duel.ts` | rewritten: the DUEL palette as `@automata/content`'s default palette; the ramps a light steps along are `features/look/ramp-light.ts` |
+| `src/index.ts` |  | left out: the builder's public surface; AF's is `packages/3d/src/entries/` |
+| `src/lib/colour.ts` | `packages/3d/src/shared/math/colour.ts` | ported: `oklab`, `labDistance` and `hexToRgb`; the rest of the builder's snapping is the look's DUEL pass |
+| `tests/features/actors/actors.test.ts` | `packages/3d/tests/unit/figures/clips/actions.test.ts` | rewritten: the cases on the actions, run on clips |
+| `tests/features/body/ends.ts` | `packages/3d/tests/unit/figures/figure/slider-ends.test.ts` | rewritten: the list of sliders whose range is not 0 to 1 |
+| `tests/features/body/face-d2.test.ts` |  | left out: the face drawn at 2 pixels per texel by the CPU painter |
+| `tests/features/figure/cloth.test.ts` |  | left out: tests the cloth coordinates, which are not taken |
+| `tests/features/figure/eyes.test.ts` | `packages/3d/tests/unit/figures/body/diversity.test.ts` | rewritten: the eyes' size, spacing and tilt are folded into the diversity cases |
+| `tests/features/hair/densities.test.ts` |  | left out: hair drawn at the CPU painter's pixel densities |
+| `tests/features/motion/legacy-gait.test.ts` | `packages/3d/tests/unit/figures/motion/base.test.ts` | rewritten: the gait fields' cases are in the motion base test |
+| `tests/features/outfit/faces.test.ts` | `packages/3d/tests/unit/figures/figure/build.test.ts` | rewritten: the face marks (brow, mouth) are cases of `build`'s anchors and parts |
+| `tests/features/outfit/hooks.test.ts` | `packages/3d/tests/unit/figures/registry/outfit-hooks-registry.test.ts` | rewritten: the outfit hooks' cases |
+| `tests/features/outfit/items.test.ts` | `packages/3d/tests/unit/figures/figure/build.test.ts` | rewritten: the held item's parts are cases of `build` |
+| `tests/features/outfit/moods.test.ts` |  | left out: the drawn moods (smile, dead, gaze) are painted by the CPU painter |
+| `tests/features/outfit/options.test.ts` | `packages/3d/tests/unit/figures/outfit/fit.test.ts` | rewritten: the cuffs and the collar are sized from the body (`fit.test.ts`); the stubble is a swatch and a mark |
+| `tests/features/outfit/regions.test.ts` |  | left out: the shoe and sole regions of the CPU raster |
 
 ## The environment source
 
@@ -547,6 +577,31 @@ a row for every new file, run `pnpm sources-md`, and record the new commit here 
 | `tests/features/world/surface.test.ts` | `packages/3d/tests/unit/world/surface.test.ts` | ported: the cases on the surface types and `tileName` |
 | `tests/features/world/build.test.ts` | `packages/3d/tests/unit/world/build.test.ts` | rewritten: the cases run `buildWorld` over `/2` levels and check the `LevelProblem`s it reports |
 | `src/features/world/build.ts` | `packages/3d/src/features/world/build.ts` | rewritten: see the row for `src/features/world/map.ts` (`mapPieces`) |
+| `src/features/paint/occlusion.ts` | `packages/3d/src/shared/render/light/occlusion.ts` | rewritten: what blocks a lamp and the contact darkening, over a `SceneLighting`'s boxes and planes |
+| `src/features/paint/sky.ts` |  | left out: the sky goes to `@automata/world-kit` as a look pass (`addLookPass`); core keeps the sky and horizon colours of a time of day |
+| `src/features/paint/vertex-light.ts` | `packages/3d/src/shared/render/light/vertex-light.ts` | rewritten: direct light from a lamp at a point, over one `SceneLighting`; the stepped light is the look's |
+| `src/features/stage/actor.ts` |  | left out: a scripted actor in a scene is the cutscenes extension's; a figure in a level is a game's entity drawn by the figure view |
+| `src/features/stage/camera.ts` | `packages/3d/src/features/camera/angled-camera.ts` | rewritten: the camera is the angled 24 mm camera (`camera/`) a game drives; the source's shot cameras are the cutscenes extension's |
+| `src/features/stage/cast.ts` |  | left out: casting figures into a scene; the base scenes name the base pair (`BASE_SCENES`) and a game places its own figures |
+| `src/features/stage/runtime.ts` |  | left out: the stage's runtime state and timeline player; core keeps the pieces' state (`piece-states.ts`) and the one clip player |
+| `src/features/world/library/props.json` |  | left out: the prop library goes to `@automata/world-kit` (scope trim section 2); core keeps the five base props' generators |
+| `src/features/world/library/swatches.json` | `packages/3d/src/features/world/base/base-library.ts` | rewritten: only the swatches the base scenes name, as flat DUEL steps; the library goes to `@automata/world-kit` |
+| `src/index.ts` |  | left out: the builder's public surface; AF's is `packages/3d/src/entries/` |
+| `src/lib/colour.ts` | `packages/3d/src/shared/math/colour.ts` | ported: see the figure source's row |
+| `src/lib/figure.ts` |  | left out: the door to the figure builder, which is AF's own `features/figures` now |
+| `src/lib/rng.ts` | `packages/sim/src/shared/rng/rng.ts` | rewritten: the seeded generator is the sim's `createRng`, used by the world builder (`world/build.ts`) |
+| `tests/base/base.test.ts` | `packages/3d/tests/unit/base/base-scenes.test.ts` | rewritten: the base scenes' cases, over the levels and the library |
+| `tests/features/paint/occlusion.test.ts` | `packages/3d/tests/unit/shared/render/light/occlusion.test.ts` | rewritten: the cases over a `SceneLighting` |
+| `tests/features/paint/sky.test.ts` |  | left out: the sky is a look pass in the world kit |
+| `tests/features/paint/vertex-light.test.ts` | `packages/3d/tests/unit/shared/render/light/vertex-bake.test.ts` | rewritten: the light at a vertex, over a `SceneLighting` |
+| `tests/features/stage/actors.test.ts` |  | left out: scripted actors are the cutscenes extension's |
+| `tests/features/stage/camera.test.ts` | `packages/3d/tests/unit/camera/angled-camera.test.ts` | rewritten: the camera's cases are the angled camera's |
+| `tests/features/stage/state.test.ts` | `packages/3d/tests/unit/shared/level/piece-states.test.ts` | rewritten: the pieces' state (doors, lamps, props); the rest of the state script is the cutscenes extension's |
+| `tests/features/world/base-library.test.ts` | `packages/3d/tests/unit/base/base-scenes.test.ts` | rewritten: the library names only DUEL swatches and generators core has |
+| `tests/features/world/map.test.ts` | `packages/3d/tests/unit/world/build.test.ts` | rewritten: the map's pieces are built and checked by `buildWorld` |
+| `tests/features/world/small-props.test.ts` | `packages/3d/tests/unit/world/props.test.ts` | rewritten: the props' cases over `buildWorld` and the registry |
+| `tests/features/world/surface-library.test.ts` |  | left out: the surface library goes to `@automata/world-kit` |
+| `tests/features/world/surface-structure.test.ts` |  | left out: the texture structure checks go with the photo library to `@automata/world-kit` |
 
 ## Core: the doc comments that named their source (moved here 2026-11-07)
 
