@@ -84,6 +84,8 @@ export interface Tail {
   readonly swing?: number | undefined
   readonly matte?: boolean | undefined
   readonly off?: number | undefined
+  /** `down`: a low pony, tied where `at` says (the nape) and falling straight down the back: no rise and no arc over the crown. */
+  readonly hang?: 'down' | undefined
 }
 export interface Fall {
   readonly at: readonly (readonly number[])[]
@@ -217,6 +219,7 @@ const tail: z.ZodType<Tail> = z.strictObject({
   swing: n.optional(),
   matte: z.boolean().optional(),
   off: n.optional(),
+  hang: z.literal('down').optional(),
 })
 
 const fall: z.ZodType<Fall> = z.strictObject({
