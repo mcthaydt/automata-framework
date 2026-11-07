@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitest/config'
 
-// The install suite: real `claude` and `npx skills` installs in a throwaway config folder. Needs the `claude` CLI on
-// PATH, the npm registry, and PLAYWRIGHT_BROWSERS_PATH (the hook runs Emberwick's tests, browser projects included).
+// The install suite: real `claude` and `npx skills` installs in throwaway config folders, then the installed hook run
+// in a game made from the packs. Needs the `claude` CLI on PATH, the npm registry and packages built by `pnpm build`.
 // Not silent: each command and its output is the install log.
 export default defineConfig({
   test: {

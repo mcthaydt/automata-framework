@@ -33,8 +33,8 @@ live in the framework's `docs/refactor/` (audit decision D1 A); `mcthaydt/automa
 | 3.4 CSP, shipping, description (C6 to C8) | 3 | Done, 2026-11-07 |
 | 3.5 `automata check` runs a workspace game's tests (M5) | 3 | Done, 2026-11-07 |
 | 3.6 Part 3 close | 3 | Done, 2026-11-07 |
-| 4.1 Install suite | 4 | Not started |
-| 4.2 In release checks | 4 | Not started |
+| 4.1 Install suite | 4 | Done, 2026-11-07 |
+| 4.2 In release checks | 4 | Done, 2026-11-07 |
 | 5.1 Site offers the plugin (after the first mirror push) | 5 | Not started |
 
 ## Hand-offs
@@ -97,3 +97,14 @@ Stage 4, `superpowers:executing-plans`, inline. Pre-flight: tasks 1.1 to 1.2 sha
   the unit project runs, but `automata check --sim-only .` still ends "0 findings, 1 step could not run" because
   Emberwick's browser projects need Firefox and WebKit, which this session does not have (`browserType.launch:
   Executable doesn't exist … firefox-1543`). That is the session, not the code; the runner has them. Changeset added.
+- Task 4.1: complete (typecheck clean; ran the suite here: `pnpm --filter @automata/agent-skills test:install` → 10 passed,
+  28 s, with the pinned Claude Code 2.1.301 from the scratchpad on PATH). First attempt failed on a bug of mine (the
+  per-source config folders sat beside the mirror folder, so `writeMirror` refused it); fixed by putting them under `env/`.
+  The suite covers: version pin read from the root script; `--strict` validation of the plugin, the framework marketplace
+  and the mirror; for each source `marketplace add`, `install`, `details` (`Skills (5)`, `Hooks (2)  PostToolUse, Stop`)
+  and a byte-for-byte skills diff; the installed mirror hook blocking a seeded `effect` import (exit 2, rule `import`)
+  and passing a clean `move.system.ts` in a `create-game` game installed from the packs; `npx skills@1.7.0 add` of the
+  mirror for Claude Code, Codex and Cursor. The plan expected a session to refuse this; this one did not.
+- Task 4.2: complete (`ci.test.ts` RED→GREEN, agent-skills 151/151, repo-hygiene 93/93). `release-checks.yml` installs the
+  pinned CLI under `$RUNNER_TEMP`, puts it on `GITHUB_PATH` and runs `test:install` after the consumer smoke. The job's
+  40-minute limit stays (the suite took 28 s here). Step 5 (a first run on the runner) is the Owner's, or the job's first run.

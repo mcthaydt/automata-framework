@@ -72,6 +72,12 @@ jobs:
       - run: pnpm plugin:validate
       # The packed packages installed outside the workspace.
       - run: node tooling/consumer-smoke/src/run.ts --from packs
+      # The install suite installs the plugin from the framework's marketplace and from the mirror the release job
+      # pushes, and the skills with the Agent Skills installer, into a game made from the packs. It needs the pinned
+      # Claude Code CLI on PATH: it is installed into the job's temp folder, never globally.
+      - run: npm install --prefix "$RUNNER_TEMP/claude-code" @anthropic-ai/claude-code@2.1.301
+      - run: echo "$RUNNER_TEMP/claude-code/node_modules/.bin" >> "$GITHUB_PATH"
+      - run: pnpm --filter @automata/agent-skills test:install
       # The playground's feasibility and frame journeys (the website's embedded player), in every engine.
       - run: pnpm --filter @automata/site test:e2e:playground
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

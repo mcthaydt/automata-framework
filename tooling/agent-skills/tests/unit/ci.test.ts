@@ -34,6 +34,26 @@ describe('the agent package in the gates', () => {
   })
 })
 
+describe('the install suite in the release checks', () => {
+  const releaseChecks = readFileSync(join(root, '.github/workflows/release-checks.yml'), 'utf8')
+  const version =
+    /@anthropic-ai\/claude-code@(\d+\.\d+\.\d+)/.exec(scripts['plugin:validate'] ?? '')?.[1] ?? ''
+
+  it('runs after the consumer smoke, with the pinned CLI', () => {
+    expect(version).not.toBe('')
+    const install = releaseChecks.indexOf(
+      `npm install --prefix "$RUNNER_TEMP/claude-code" @anthropic-ai/claude-code@${version}`,
+    )
+    const onPath = releaseChecks.indexOf('"$RUNNER_TEMP/claude-code/node_modules/.bin" >> "$GITHUB_PATH"')
+    const suite = releaseChecks.indexOf('pnpm --filter @automata/agent-skills test:install')
+    const smoke = releaseChecks.indexOf('node tooling/consumer-smoke/src/run.ts --from packs')
+    expect(smoke).toBeGreaterThan(-1)
+    expect(install).toBeGreaterThan(smoke)
+    expect(onPath).toBeGreaterThan(install)
+    expect(suite).toBeGreaterThan(onPath)
+  })
+})
+
 describe('the release job that fills the mirror', () => {
   const workflow = readFileSync(join(root, '.github/workflows/release-packages.yml'), 'utf8')
   const job = workflow.slice(workflow.indexOf('\n  skills:\n'))
