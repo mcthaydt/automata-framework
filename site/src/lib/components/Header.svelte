@@ -86,6 +86,8 @@ const current = (href: string) => pathname === href || pathname.startsWith(href 
   .menu nav a {
     display: flex;
     align-items: center;
+    justify-content: center;
+    min-width: 44px;
     min-height: 44px;
     padding: 0 8px;
     color: var(--muted);
@@ -178,6 +180,7 @@ const current = (href: string) => pathname === href || pathname.startsWith(href 
     box-shadow: 0 24px 48px -24px rgb(17 21 28 / 0.25);
   }
   .menu nav a {
+    justify-content: flex-start;
     min-height: 48px;
     padding: 0;
     border-bottom: 1px solid var(--line);

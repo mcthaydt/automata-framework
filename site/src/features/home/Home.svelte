@@ -259,8 +259,10 @@ import ShapesPreview from './ShapesPreview.svelte'
   .cmd > span {
     color: var(--faint);
   }
+  /* The global `code` rule scales to 0.88em; the command keeps the box's own size so it stays readable on a phone. */
   .cmd code {
     flex: 1;
+    font-size: inherit;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -469,7 +471,7 @@ import ShapesPreview from './ShapesPreview.svelte'
       justify-content: center;
     }
     .cmd {
-      font-size: 12px;
+      font-size: 13px;
     }
     .reasons {
       grid-template-columns: 1fr;

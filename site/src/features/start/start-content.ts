@@ -27,7 +27,7 @@ export const STEPS: readonly Step[] = [
   {
     title: '4. Put it online',
     command: 'pnpm build:web && pnpm prepare:web',
-    what: 'A checked build in dist/, ready for any static host. itch.io, a desktop app and Ruken have their own guides.',
+    what: 'A checked build in dist/, ready for any static host.',
   },
 ]
 
