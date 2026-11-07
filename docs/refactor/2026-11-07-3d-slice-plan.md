@@ -100,6 +100,12 @@ fourth keyed-time model; core's timeline owns keys and eases, so the design stan
 (`SectorDef`, `WallDef`, `Corner`, `Trim`, `STEP`, `WALL_THICK` and others) exported from `@automata/3d/level` with the
 same shapes where af-sector/2 allows.
 
+Also from the automata-skills build (relayed 12:14): its part 2 puts the second builder's name
+(`environment[\s_-]?builder`, last entry) in `tooling/repo-hygiene` `SOURCE_NAMES` and scans `.md`/`.ts`/`.mjs`/`.json` under
+`agents/`; task 10.1 keeps one pattern and adds only what is missing. Task 13.2 puts no 3D skill text in `agents/automata`
+before phase 20: `tooling/agent-skills` `published-only.test.ts` fails on any unpublished `@automata/*` package named
+there (details: skills spec section 7).
+
 ## Builders' checkouts
 
 Clone both at the recorded commits beside the checkout: `git clone https://github.com/mcthaydt/figurebuilder
@@ -260,7 +266,7 @@ it('fits the room inside the area the sheet and tools leave', () => {
   '[data-region=topbar] :is(button,a,[role=tab],[role=menuitem]), [data-region=rail] :is(…), [data-region=panel]
   :is(…), [data-region=dock] :is(…), [data-region=tools] :is(…)'`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 it('reports a bar button its bar clips', () => {
@@ -278,11 +284,11 @@ it('reports a bar button another element covers', () => {
 })
 ```
 
-- [ ] **Step 2: Run, expect FAIL.** **Step 3: Implement.**
-- [ ] **Step 4: Run** both editors' layout suites in Chromium: only the Studio's phone portrait fails (Publish, T5);
+- [x] **Step 2: Run, expect FAIL.** **Step 3: Implement.**
+- [x] **Step 4: Run** both editors' layout suites in Chromium: only the Studio's phone portrait fails (Publish, T5);
   mark it `.fails` with the comment "Publish is clipped on a phone until the Characters redesign"; any other failure
   is fixed here.
-- [ ] **Step 5:** `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write`; changeset `patch` for
+- [x] **Step 5:** `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write`; changeset `patch` for
   `@automata/framework`. **Commit** `test(layout): every action in a bar is whole and uncovered`
 
 ### Task 1.6: The 3D editor's journeys in Chromium
@@ -1544,3 +1550,4 @@ reads only this plan and the spec. DUEL's author and licence stay the Owner's op
 - Task 1.2: done (66b8ac65). actionlint not run here (no Docker daemon): the Owner's. #425 comment and close pending the push.
 - Task 1.3: done. Ruling: no `inDialog` prop — ErrorPanel renders its own Dialog, so the dialog body is the one scroll region and the problems list is a plain labelled list (`aria-label=Problems`); the layout test reads it by that label — cost if wrong: a caller wanting a standalone panel adds the prop. open-flows 32 pass in Chromium.
 - Task 1.4: done. Ruling: the camera helper is `fitInto(bounds, usable, size)` in plan-viewport.ts and the controller gets `setUsable(Rect|undefined)`, with the kit's `Rect` ({x,y,w,h}) in place of the plan's `fitToRoom(room, {width,height})`/`PlanView` (PlanView is already the controller's hover state) — cost if wrong: a rename. The usable rect is computed by `ui/plan/usable-area.ts` (tool row 56 px, any docked sheet over the canvas bottom) and exposed as `data-usable`. The real cause of the iPad mini failure was a 24 px triangle collapsing on the snap grid / overlapping the hall (the band above the level is under 1 m), so the layout test now zooms out and draws a metre-wide triangle inside `data-usable`. editor-3d Chromium layout+canvas: 203 pass, 0 fail.
+- Task 1.5: done. Rulings: (1) test file is `packages/automata/tests/browser/testing/ui/actions-inside.test.ts` (mirrors src/testing/ui; there is no tests/browser/ui) — cost: none. (2) `findCovered` skips a control behind an open dialog (the topmost dialog is on top; the kit's scrim is a sibling of the dialog, so the page behind is covered on purpose, inert or not) and a control inside a declared scroll region (scrolled out of view is not covered; the region's own checks judge it), and takes an `excused(cover)` callback the contract uses for an ErrorPanel that had to rise — cost if wrong: a bar control hidden behind a non-modal popover is not reported. (3) The new checks found two real bugs, fixed here with the failing suites as their tests: the 2D document bar drew the problems chip over the Characters tab at 900 x 600 (`.switch` min-width:0 let the tabs shrink under the tools; now min-content, the name's track gives way) and the kit's Tabs panel scrolled without declaring `data-scroll-region` (it hid the Studio's steppers and the Definitions button from the check). (4) No Studio `.fails`: the Studio's phone layout test passes under the new checks (32/32), so there is nothing to mark; the suite's Publish clip is for the Characters redesign (17.1) to prove with its own test. Chromium: automata browser 2,124 pass; editor layout 446 pass; editor-3d layout+canvas 203 pass; WebKit/Firefox on the Owner's ci:local.

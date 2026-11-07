@@ -420,8 +420,9 @@
 
 ### `import { … } from '@automata/framework/testing'`
 
+- `BAR_ACTIONS` (const): The selector for the controls a player presses in a bar: the buttons, links, tabs and menu items inside a region a screen or an editor declares with `data-region` (`topbar`, `rail`, `panel`, `dock`, `tools`).
 - `byTestId(id)`: The element a test id names; throws when the fixture has none, so a missing part fails loudly.
-- `checkLayout(conditions, essentials)`: The checks every screen shares: the document never scrolls; every control is at least the conditions' target (primaries the primary target) at this scale, on screen unless in a declared scroll region, never under a reserved area or a touch button and never over the corner row; the corner row's controls and any `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), and no control's words run past its edge; and each of `essentials` is reachable without scrolling.
+- `checkLayout(conditions, essentials)`: The checks every screen shares: the document never scrolls; every control is at least the conditions' target (primaries the primary target) at this scale, on screen unless in a declared scroll region, never under a reserved area or a touch button and never over the corner row; the corner row's controls and any `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), no action in a bar is cut by it (`findCutByBar`) or covered (`findCovered`), and no control's words run past its edge; and each of `essentials` is reachable without scrolling.
 - `Conditions` (interface): The conditions a layout test runs under: the geometry published for a size and variant, and the regions that cover the page (the keyboard, Ruken's strip), which nothing may sit under.
 - `describeHostingContract(name, create, settled)`: Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`.
 - `documentScrolls(doc)`: The document itself never scrolls; screens scroll inside declared regions.
@@ -445,7 +446,9 @@
 - `fakeViewportWindow(size)`: A fake window of the given size.
 - `FakeVisualViewport` (interface): The visual viewport of `FakeViewportWindow`: its height (less the keyboard, if open), an offset, and listeners for `resize`.
 - `findClipped(root, selector)`: Each element `selector` names is tall enough for what it holds (a crushed row clips its content).
+- `findCovered(root, selector, excused?)`: Each visible control `selector` names is on top at its centre: what is drawn there is the control or inside it.
 - `findCutAtSide(root)`: No control is cut at a side of a declared scroll region that clips it (see `clippedBy`).
+- `findCutByBar(root, selector)`: Each visible control `selector` names is whole inside every ancestor that clips its overflow.
 - `findIntrusions(root, rects)`: No visible control intersects a reserved area (Ruken's strip, a keyboard), in viewport px, by its whole box.
 - `findOffscreenControls(root)`: Every visible control is on screen, unless a declared scroll region (`[data-scroll-region]`) clips it (see `clippedBy`): a fixed control, or one positioned outside the region, is judged where it is drawn, since scrolling the region would never bring it into view.
 - `findOverlaps(a, b)`: Two elements' boxes do not overlap.

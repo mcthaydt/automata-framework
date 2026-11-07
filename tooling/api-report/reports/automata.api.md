@@ -2213,6 +2213,12 @@ type RukenManifestContribution = {
 
 ## `./testing`
 
+### `BAR_ACTIONS` (const)
+
+```ts
+const BAR_ACTIONS: any;
+```
+
 ### `byTestId` (function)
 
 ```ts
@@ -2498,10 +2504,22 @@ interface FakeVisualViewport {
 function findClipped(root: ParentNode, selector: string): string[];
 ```
 
+### `findCovered` (function)
+
+```ts
+function findCovered(root: ParentNode, selector: string, excused?: (cover: Element) => boolean): string[];
+```
+
 ### `findCutAtSide` (function)
 
 ```ts
 function findCutAtSide(root: ParentNode): string[];
+```
+
+### `findCutByBar` (function)
+
+```ts
+function findCutByBar(root: ParentNode, selector: string): string[];
 ```
 
 ### `findIntrusions` (function)

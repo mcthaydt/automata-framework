@@ -183,6 +183,80 @@ export function findClipped(root: ParentNode, selector: string): string[] {
   return problems
 }
 
+const BAR_REGIONS = ['topbar', 'rail', 'panel', 'dock', 'tools']
+
+/**
+ * The selector for the controls a player presses in a bar: the buttons, links, tabs and menu items inside a region a
+ * screen or an editor declares with `data-region` (`topbar`, `rail`, `panel`, `dock`, `tools`). `findCutByBar` and
+ * `findCovered` take it as their `selector`, and `checkLayout` runs both with it.
+ */
+export const BAR_ACTIONS = BAR_REGIONS.map(
+  (region) => `[data-region=${region}] :is(button, a, [role=tab], [role=menuitem])`,
+).join(', ')
+
+/**
+ * Each visible control `selector` names is whole inside every ancestor that clips its overflow. `findClipped` measures
+ * a node's own vertical overflow, so a button that its bar cuts across (a phone's top bar hid Publish) is never seen
+ * by it. An ancestor that is a declared scroll region (`data-scroll-region`) may hold a control past its side: the
+ * player scrolls to it, and `findCutAtSide` judges the region.
+ */
+export function findCutByBar(root: ParentNode, selector: string): string[] {
+  const problems: string[] = []
+  for (const node of visibleControls(root)) {
+    if (!node.matches(selector)) continue
+    const box = node.getBoundingClientRect()
+    for (let bar = node.parentElement; bar !== null; bar = bar.parentElement) {
+      if (bar.hasAttribute('data-scroll-region')) break
+      const style = getComputedStyle(bar)
+      const clipsX = style.overflowX !== 'visible'
+      const clipsY = style.overflowY !== 'visible'
+      if (!clipsX && !clipsY) continue
+      const edge = bar.getBoundingClientRect()
+      const cut =
+        (clipsX && (box.left < edge.left - SLACK || box.right > edge.right + SLACK)) ||
+        (clipsY && (box.top < edge.top - SLACK || box.bottom > edge.bottom + SLACK))
+      if (cut) {
+        problems.push(
+          `${nameOf(node)} is cut by its ${bar.getAttribute('data-region') ?? bar.tagName.toLowerCase()}`,
+        )
+        break
+      }
+    }
+  }
+  return problems
+}
+
+/**
+ * Each visible control `selector` names is on top at its centre: what is drawn there is the control or inside it. A
+ * modal dialog may cover it (the page behind a modal is inert), and so may anything `excused` says may: an ErrorPanel
+ * that had to rise over the bar, for one. The same rule `findCoveredCorners` holds the corner row to.
+ */
+export function findCovered(
+  root: ParentNode,
+  selector: string,
+  excused: (cover: Element) => boolean = () => false,
+): string[] {
+  const problems: string[] = []
+  for (const node of visibleControls(root)) {
+    if (!node.matches(selector)) continue
+    // An open dialog puts a scrim over the page behind it: those controls are covered on purpose, whether or not the
+    // page is made inert, so only a control that is not behind a dialog is held to this rule.
+    // With several open, the last one is on top: the others are behind its scrim too.
+    const dialogs = node.ownerDocument.querySelectorAll('[aria-modal="true"], [role="dialog"], dialog[open]')
+    const top = dialogs[dialogs.length - 1]
+    if (top !== undefined && !top.contains(node)) continue
+    // A control in a declared scroll region is judged by the region's own checks: scrolled out of view is not covered.
+    if (scrollRegionsAround(node).length > 0) continue
+    const box = node.getBoundingClientRect()
+    const hit = node.ownerDocument.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+    if (hit === null || hit === node || node.contains(hit)) continue
+    if (hit.closest('[aria-modal="true"], [role="dialog"], dialog[open]') !== null) continue
+    if (excused(hit)) continue
+    problems.push(`${nameOf(node)} is covered by ${nameOf(hit)}`)
+  }
+  return problems
+}
+
 /** Whether two boxes share more than the rounding slack on both axes; touching edges do not count. */
 function intersects(a: LayoutRect, b: LayoutRect): boolean {
   const across = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x)

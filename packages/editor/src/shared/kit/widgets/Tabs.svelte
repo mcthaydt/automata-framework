@@ -100,7 +100,7 @@ function onKey(event: KeyboardEvent, index: number): void {
     {/each}
   </div>
   {#if selectedIndex >= 0}
-    <div class="panel" role="tabpanel" id={`${uid}-panel`} aria-labelledby={tabId(value)}>
+    <div class="panel" role="tabpanel" id={`${uid}-panel`} aria-labelledby={tabId(value)} data-scroll-region>
       {@render panel(value)}
     </div>
   {/if}

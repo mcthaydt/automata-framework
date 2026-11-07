@@ -5397,6 +5397,16 @@ type RukenManifestContribution = {
 
 ### `import { … } from '@automata/framework/testing'`
 
+#### `BAR_ACTIONS` (const)
+
+The selector for the controls a player presses in a bar: the buttons, links, tabs and menu items inside a region a
+screen or an editor declares with `data-region` (`topbar`, `rail`, `panel`, `dock`, `tools`). `findCutByBar` and
+`findCovered` take it as their `selector`, and `checkLayout` runs both with it.
+
+```ts
+const BAR_ACTIONS: string;
+```
+
 #### `byTestId` (function)
 
 The element a test id names; throws when the fixture has none, so a missing part fails loudly.
@@ -5412,8 +5422,8 @@ The checks every screen shares: the document never scrolls; every control is at 
 never under a reserved area or a touch button and never over the corner row; the corner row's controls and any
 `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no
 ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll
-region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), and no
-control's words run past its edge; and each of `essentials` is reachable without scrolling.
+region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), no
+action in a bar is cut by it (`findCutByBar`) or covered (`findCovered`), and no control's words run past its edge; and each of `essentials` is reachable without scrolling.
 
 ```ts
 function checkLayout(conditions: Conditions, essentials: readonly Element[]): string[];
@@ -5787,6 +5797,16 @@ Each element `selector` names is tall enough for what it holds (a crushed row cl
 function findClipped(root: ParentNode, selector: string): string[];
 ```
 
+#### `findCovered` (function)
+
+Each visible control `selector` names is on top at its centre: what is drawn there is the control or inside it. A
+modal dialog may cover it (the page behind a modal is inert), and so may anything `excused` says may: an ErrorPanel
+that had to rise over the bar, for one. The same rule `findCoveredCorners` holds the corner row to.
+
+```ts
+function findCovered(root: ParentNode, selector: string, excused?: (cover: Element) => boolean): string[];
+```
+
 #### `findCutAtSide` (function)
 
 No control is cut at a side of a declared scroll region that clips it (see `clippedBy`). A region scrolls up and
@@ -5798,6 +5818,17 @@ regions around it stops there. A checkbox or radio is judged by its label (`pres
 
 ```ts
 function findCutAtSide(root: ParentNode): string[];
+```
+
+#### `findCutByBar` (function)
+
+Each visible control `selector` names is whole inside every ancestor that clips its overflow. `findClipped` measures
+a node's own vertical overflow, so a button that its bar cuts across (a phone's top bar hid Publish) is never seen
+by it. An ancestor that is a declared scroll region (`data-scroll-region`) may hold a control past its side: the
+player scrolls to it, and `findCutAtSide` judges the region.
+
+```ts
+function findCutByBar(root: ParentNode, selector: string): string[];
 ```
 
 #### `findIntrusions` (function)

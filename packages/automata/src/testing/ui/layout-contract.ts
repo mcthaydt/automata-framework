@@ -6,9 +6,12 @@
 import { applyGeometry, type Geometry, measureGeometry } from '../../shared/ui/geometry/geometry'
 import { hostDisplay } from '../fixtures/viewport-window.ts'
 import {
+  BAR_ACTIONS,
   documentScrolls,
   findClipped,
+  findCovered,
   findCutAtSide,
+  findCutByBar,
   findIntrusions,
   findOffscreenControls,
   findOverlaps,
@@ -283,6 +286,15 @@ function findCoveredCorners(root: ParentNode): string[] {
 }
 
 /**
+ * The actions in a bar (`BAR_ACTIONS`) stay uncovered: nothing is drawn over them but a modal dialog or an ErrorPanel
+ * that had to rise, which are set aside the way `findCoveredCorners` sets them aside.
+ */
+function findCoveredBarActions(root: ParentNode): string[] {
+  const risen = [...document.querySelectorAll<HTMLElement>('[role="alert"]')].filter(roseBecauseItHadTo)
+  return findCovered(root, BAR_ACTIONS, (cover) => risen.some((panel) => panel.contains(cover)))
+}
+
+/**
  * No control of the screen under a touch button: the overlay is an intruder like the keyboard or
  * Ruken's strip, so a thumb never presses a control it cannot see, and no control hides a button.
  */
@@ -308,8 +320,8 @@ function findTouchIntrusions(root: ParentNode): string[] {
  * never under a reserved area or a touch button and never over the corner row; the corner row's controls and any
  * `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no
  * ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll
- * region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), and no
- * control's words run past its edge; and each of `essentials` is reachable without scrolling.
+ * region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), no
+ * action in a bar is cut by it (`findCutByBar`) or covered (`findCovered`), and no control's words run past its edge; and each of `essentials` is reachable without scrolling.
  */
 export function checkLayout(conditions: Conditions, essentials: readonly Element[]): string[] {
   const scale = conditions.geometry.scale
@@ -324,6 +336,8 @@ export function checkLayout(conditions: Conditions, essentials: readonly Element
     ...findWrappedBars(document.body),
     ...findClipped(document.body, '[data-row]'),
     ...findCutAtSide(document.body),
+    ...findCutByBar(document.body, BAR_ACTIONS),
+    ...findCoveredBarActions(document.body),
     ...findSpilledWords(document.body),
     ...findUnreachable(essentials),
   ]
