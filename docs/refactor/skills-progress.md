@@ -4,7 +4,7 @@ The Owner, 2026-11-07: "Have we been updating automata-skills, I know we worked 
 handle that". Each stage runs in its own thread and hands off through the documents listed here. From stage 2 on they
 live in the framework's `docs/refactor/` (audit decision D1 A); `mcthaydt/automata-skills` stays output only.
 
-**Progress: 4 of 6 stages done (67%).**
+**Progress: 5 of 6 stages done (83%).**
 
 | Stage | Status | Document | Pull request |
 |---|---|---|---|
@@ -12,7 +12,7 @@ live in the framework's `docs/refactor/` (audit decision D1 A); `mcthaydt/automa
 | 2. Plan and spec | Done, 2026-11-07 (accepted under "Auto accept all spec and plans") | [spec](2026-11-07-skills-spec.md), [plan](2026-11-07-skills-plan.md) | `claude/project-thread-wd20yh`, stacked on #444 |
 | 3. Plan audit | Done, 2026-11-07: 15 findings, fixed in place | [2026-11-07-skills-plan-audit.md](2026-11-07-skills-plan-audit.md) | #446, same branch |
 | 4. Build | Done 2026-11-07 (5 parts, 17 tasks; part 5 waits for the first mirror push) | [execution ledger](#execution-ledger) | #447 to #451, a stack on #446 |
-| 5. Build audit | Not started | | |
+| 5. Build audit | Done, 2026-11-07: 4 Important, 7 Minor, not fixed | [2026-11-07-skills-build-audit.md](2026-11-07-skills-build-audit.md) | stacked on #451 |
 | 6. Fixes | Not started | | |
 
 ## Build tracking
@@ -49,7 +49,13 @@ live in the framework's `docs/refactor/` (audit decision D1 A); `mcthaydt/automa
 - **The Owner:** the npm organisation, `NPM_TOKEN`, the release approval and `SKILLS_TOKEN` (M4); one run of the install
   suite on the runner (task 4.2).
 
-## Where stage 5 starts
+## Where stage 6 starts
+
+Fix the build audit's findings ([2026-11-07-skills-build-audit.md](2026-11-07-skills-build-audit.md), "For stage 6"),
+Sonnet at high effort, natively, each test first. First merge #446's head (`59ab1b53`, the secret-scan allowlist) up
+the stack (I4). Then I1 to I3, the three that change public text, before the first mirror push.
+
+## Where stage 5 started
 
 The Opus audit reads PRs #447 to #451 against the spec and this ledger's rulings. Part 4's install suite passed here (10/10, 28 s); the runner's first run is the Owner's. The first mirror push (token and release) is what unblocks #451.
 
