@@ -60,7 +60,7 @@ Findings left open, each with its reason:
 
 Branch `claude/project-thread-d62n7h` (PR #458, on #457). Tasks 1.1 to 1.4, 2.1 to 2.8, 3.1 to 3.4, 3.6, 3.7, 4.1 and 5.1 to 5.4 are done; the plan's execution log
 has each one's counts and the ledger (`.superpowers/sdd/2026-11-07-plus-port-plan/progress.md`, git-ignored) its rulings.
-Next: **3.8** needs 3D 8.2 (3.7 is done); 3.5 needs 3D 12.1, and 4.2 closes. 3.9 on 3.6 to 3.8 and 12.1, and 5.5 closes the refactor. 3.7 and 3.8 were amended at 20:01 (the base pair, the base interior and exterior and the sky stay in 3D core; see the plan).
+Next: **3.8** (3D 8.2 is merged in at `f162412c`: `addLookPass`, `Look`, the DUEL snap and outline effects; 3.7 is done); 3.5 needs 3D 12.1, and 4.2 closes. 3.9 on 3.6 to 3.8 and 12.1, and 5.5 closes the refactor. 3.7 and 3.8 were amended at 20:01 (the base pair, the base interior and exterior and the sky stay in 3D core; see the plan).
 The moves use `docs/refactor/move-map-plus.json` (rows per package, `entries` empty; give the mover a temporary map whose
 `sources` holds only the package being moved) with `node tooling/codemods/src/move-modules-cli.ts --map <map>`, then
 `tooling/codemods/src/cli.ts <pkg> --environment node|jsdom --feature-folders`; a test file with an unknown qualifier
