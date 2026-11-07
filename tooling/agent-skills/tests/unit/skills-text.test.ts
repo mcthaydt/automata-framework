@@ -27,6 +27,16 @@ describe('the skills', () => {
     for (const words of RETIRED) expect(text, words).not.toContain(words)
   })
 
+  it('say the no-eval rule once, and explain its proof without naming Ruken', () => {
+    // A stranger building for itch.io does not know what "Ruken's rules" are, so the proof line says what is done.
+    const verify = skills.find((skill) => skill.name === 'automata-verify')?.text ?? ''
+    expect(verify.match(/may not use `eval` on any target/g)).toHaveLength(1)
+    expect(verify).not.toContain("under Ruken's rules")
+    expect(verify).toContain(
+      'automata check --csp` opens your build in Chromium under a strict Content-Security-Policy',
+    )
+  })
+
   it('open the 2D editor with one command and no build step', () => {
     const editor = skills.find((skill) => skill.name === 'automata-editor')?.text ?? ''
     expect(editor).toContain('automata editor')

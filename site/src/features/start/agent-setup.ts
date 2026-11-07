@@ -44,6 +44,6 @@ Confirm Superpowers is installed, including using-superpowers and its planning/t
 Confirm the official PixiJS v8 skill collection is installed, including the pixijs router and relevant rendering skills.
 Confirm the Automata skills are installed (automata, automata-api, automata-editor, automata-feature, automata-verify).
 Read the applicable SKILL.md files and report their loaded paths or plugin names.
-If any of them is missing or cannot be loaded, stop and follow its upstream installation instructions before implementing.
+If any of them is missing or cannot be loaded, stop and follow its upstream installation instructions (for the Automata skills, ask me for the install steps on the Automata Framework site’s Start page) before implementing.
 Then read this checkout's AGENTS.md and current package types. Project rules take precedence.
 Do not report a skill as installed or loaded without evidence.`

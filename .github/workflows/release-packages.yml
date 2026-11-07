@@ -190,8 +190,9 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: node tooling/consumer-smoke/src/run.ts --from registry --version "$VERSION"
 
-  # The agent package's public home: after a release, `agents/automata` is copied to mcthaydt/automata-skills, where
-  # anyone installs it, because this repository is private. The copy needs SKILLS_TOKEN, a token that can push to
+  # The agent package's public home: after a release, the mirror generator (`tooling/agent-skills/src/mirror-cli.ts`) writes
+  # the plugin, its marketplace file, a README and the licence to mcthaydt/automata-skills, where anyone installs it,
+  # because this repository is private. The copy needs SKILLS_TOKEN, a token that can push to
   # that repository (the Owner's to create); until it exists the job says so and passes, so a release never fails
   # for want of it.
   skills:

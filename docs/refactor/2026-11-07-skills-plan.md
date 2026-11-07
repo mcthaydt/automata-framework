@@ -92,7 +92,7 @@ the [audit](2026-11-07-skills-audit.md) (finding ids M, C, T, D, V, P).
   - CLI: `node tooling/agent-skills/src/mirror-cli.ts --out <dir> [--repo <dir>]`; exit 0 written, 1 `MirrorError`,
     2 `agents/automata` missing.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 it('writes a tree Claude Code reads as a marketplace with the automata plugin', () => {
@@ -140,9 +140,9 @@ it('the CLI exits 1 on a non-empty folder and 2 without the agent package', () =
 `out` is a fresh `mkdtempSync` per test. `diffSkillTrees` walks `.git` too, so the `.git` case checks the returned list
 only.
 
-- [ ] **Step 2: Run** `pnpm --filter @automata/agent-skills test tests/unit/mirror.test.ts`. Expected: FAIL, "Cannot find
+- [x] **Step 2: Run** `pnpm --filter @automata/agent-skills test tests/unit/mirror.test.ts`. Expected: FAIL, "Cannot find
   module '#src/mirror.ts'".
-- [ ] **Step 3: Implement** `writeMirror` with `cpSync(join(repo, 'agents/automata'), out, { recursive: true })`, then
+- [x] **Step 3: Implement** `writeMirror` with `cpSync(join(repo, 'agents/automata'), out, { recursive: true })`, then
   writes `.claude-plugin/marketplace.json` (`JSON.stringify(…, null, 2) + '\n'`), `README.md` and `LICENSE`. The README
   (exact words, public, drunk-grandma read): heading `# Automata skills`; "Teaches your coding agent to build games
   with the Automata Framework: the framework's rules, how to add a feature test first, the exact API, and what
@@ -152,8 +152,8 @@ only.
   line in its own block; "Version <version>."; "## Please don't edit this repository": "Every file here is copied from
   the Automata Framework each time it is released, so a change made here is lost at the next release." The marketplace
   description: "Skills that teach a coding agent to build games with the Automata Framework."
-- [ ] **Step 4: Run** the same command. Expected: PASS (10 tests).
-- [ ] **Step 5: Commit** `feat(agent-skills): generate the public mirror tree`
+- [x] **Step 4: Run** the same command. Expected: PASS (10 tests).
+- [x] **Step 5: Commit** `feat(agent-skills): generate the public mirror tree`
 
 ### Task 1.2: The release job and the release checks use the generator
 
@@ -167,15 +167,15 @@ only.
 - Consumes: the CLI from task 1.1.
 - Produces: `plugin:validate` also validates `.mirror/automata-skills`.
 
-- [ ] **Step 1: Write the failing tests** in `ci.test.ts`:
+- [x] **Step 1: Write the failing tests** in `ci.test.ts`:
   - `the skills job writes the mirror with the generator`: the job's text contains
     `node tooling/agent-skills/src/mirror-cli.ts --out "$mirror"` and `actions/setup-node`, and not `cp -R agents/automata`.
   - `the skills job still empties the clone but .git first`: `find "$mirror" -mindepth 1 -maxdepth 1 ! -name .git` comes
     before the generator line.
   - `plugin:validate checks the mirror tree`: the script contains `node tooling/agent-skills/src/mirror-cli.ts --out
     .mirror/automata-skills` and `plugin validate .mirror/automata-skills --strict`.
-- [ ] **Step 2: Run** `pnpm --filter @automata/agent-skills test tests/unit/ci.test.ts`. Expected: FAIL on all three.
-- [ ] **Step 3: Implement.** The job gains `actions/setup-node` (the pinned SHA the other jobs use, `node-version-file:
+- [x] **Step 2: Run** `pnpm --filter @automata/agent-skills test tests/unit/ci.test.ts`. Expected: FAIL on all three.
+- [x] **Step 3: Implement.** The job gains `actions/setup-node` (the pinned SHA the other jobs use, `node-version-file:
   .nvmrc`) after checkout, both under `if: steps.token.outputs.present == 'true'`; `cp -R …` becomes the generator line.
   `plugin:validate` becomes `rm -rf .mirror && node tooling/agent-skills/src/mirror-cli.ts --out .mirror/automata-skills
   && <the two existing validates> && pnpm dlx @anthropic-ai/claude-code@2.1.301 plugin validate .mirror/automata-skills
@@ -183,18 +183,18 @@ only.
   and the licence") and the step's name ("Write the mirror to mcthaydt/automata-skills"). The existing `ci.test.ts`
   case `has root scripts for the package check and for Claude Code validation (pinned)` still passes unchanged (its
   two `toContain` lines stay true).
-- [ ] **Step 4: Run** the agent-skills unit tests and `pnpm --filter @automata/repo-hygiene test` (workflow invariants:
+- [x] **Step 4: Run** the agent-skills unit tests and `pnpm --filter @automata/repo-hygiene test` (workflow invariants:
   the fork guard, pinned actions, no secret in a URL). Expected: PASS. Then `pnpm plugin:validate` (or the scratchpad
   CLI, Global Constraints). Expected: three "Validation passed". Record the output in the PR.
-- [ ] **Step 5: Re-enact the job on a clone** of `automata-skills` in the scratchpad: empty it but `.git`, run the CLI,
+- [x] **Step 5: Re-enact the job on a clone** of `automata-skills` in the scratchpad: empty it but `.git`, run the CLI,
   then with a throwaway `CLAUDE_CONFIG_DIR`: `claude plugin marketplace add <clone>`, `plugin install
   automata@automata-skills`, `plugin details automata@automata-skills` → "Skills (5)", "Hooks (2) PostToolUse, Stop".
   Record it in the PR. No push.
-- [ ] **Step 6: Commit** `ci(release): the skills job writes the mirror with its marketplace, README and licence`
+- [x] **Step 6: Commit** `ci(release): the skills job writes the mirror with its marketplace, README and licence`
 
 ### Task 1.3: Part 1's close
 
-- [ ] **Step 1:** `pnpm format`, `pnpm check` pass. Open the PR ready, base `claude/project-thread-wd20yh`; its body
+- [x] **Step 1:** `pnpm format`, `pnpm check` pass. Open the PR ready, base `claude/project-thread-wd20yh`; its body
   quotes "Reminder that everything is auto approved and accepted, do not wait on me to do any approvals" for the
   workflow change and lists Step 4 and 5's output. Update `skills-progress.md`.
 
@@ -216,7 +216,7 @@ only.
   (the extra option is `paths`; nothing else changes); `indexRows(entries)` builds `paths` from `entries`
   (`'.'` → the package name, `./x` → `<package>/x`, each to `[typesFile]`).
 
-- [ ] **Step 1: Write the failing tests.** Fixture: `@fx/base` (`exports["."]` = `./src/index.ts` with
+- [x] **Step 1: Write the failing tests.** Fixture: `@fx/base` (`exports["."]` = `./src/index.ts` with
   `export function defineThing(id: string): string { return check(id) }`; `publishConfig.exports["."].types` =
   `./types/index.d.ts` with `export declare function defineThing(id: string): string;`), `@fx/umbrella`
   (`types/index.d.ts`: `export { defineThing } from '@fx/base'`), `@fx/chain` (re-exports `@fx/umbrella`). The test copies
@@ -251,22 +251,22 @@ it('no code in the reference has a function body', () => {
   `` ## `<package>` ``, then `` ### `import { … } from '<entry>'` ``, then `` #### `<name>` (<kind>) ``, the doc
   comment, and one ` ```ts ` block. The helper takes the text between `` ## `<pkg>` `` and the next `## ` line, finds
   `` #### `<name>` (function) `` in it, and returns that export's first ` ```ts ` block.
-- [ ] **Step 2: Run** `pnpm --filter @automata/api-index test tests/unit/rows.test.ts` and the agent-skills reference
+- [x] **Step 2: Run** `pnpm --filter @automata/api-index test tests/unit/rows.test.ts` and the agent-skills reference
   test. Expected: FAIL, the umbrella's signature holds `{ return check(id) }`, and `defineSystem`'s framework signature
   differs.
-- [ ] **Step 3: Implement** the `paths` option (passed straight into `ts.createProgram`'s options) and its map in
+- [x] **Step 3: Implement** the `paths` option (passed straight into `ts.createProgram`'s options) and its map in
   `indexRows`.
-- [ ] **Step 4: Run** `pnpm build` (the four published packages, `turbo build --filter`), `pnpm api-index --write`,
+- [x] **Step 4: Run** `pnpm build` (the four published packages, `turbo build --filter`), `pnpm api-index --write`,
   `pnpm agent-skills`, then both tests. Expected: PASS; the `api.md` diff removes bodies only (lines near 2489 to 2680 at
   the audit's head); `pnpm api-index` reports "0 undocumented". `pnpm --filter @automata/site test` (its API pages read
   `api.json`). Expected: PASS.
-- [ ] **Step 5: Commit** `fix(api-index): re-exported packages read their built declarations`
+- [x] **Step 5: Commit** `fix(api-index): re-exported packages read their built declarations`
 
 ### Task 2.2: What the reference leaves out (C2)
 
 **Files:** Modify `agents/automata/skills/automata-api/SKILL.md`. Test `tooling/agent-skills/tests/unit/skill-content.test.ts`.
 
-- [ ] **Step 1: Write the failing test** `names the entry points the reference leaves out`: for every published
+- [x] **Step 1: Write the failing test** `names the entry points the reference leaves out`: for every published
   package's `publishConfig.exports` key without a `types` target (read with `publishablePackages`), the skill contains
   `` `<package><key without ./>` `` (today `@automata/framework/target` and `@automata/framework/theme.css`).
   **Step 2:** FAIL. **Step 3:** one line: "Two entry points are not in it: `@automata/framework/target`, which the build
@@ -282,7 +282,7 @@ it('no code in the reference has a function body', () => {
   from `.md`, `.ts`, `.mjs`, `.json` below `dir`; a subpath `@automata/sim/math` counts as `@automata/sim`).
 - Consumes: `publishablePackages(root)` (`tooling/release/src/publishable-packages.ts`).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 it('finds a package named in the example .ts', () => {
@@ -309,7 +309,7 @@ it('the agent package names only published packages', () => {
 **Files:** Modify `tooling/repo-hygiene/src/source-names.ts:13-19` and `publishedSurfaces` (lines 41-54). Test
 `tooling/repo-hygiene/tests/unit/source-names.test.ts`.
 
-- [ ] **Step 1: Write the failing tests**: `stops the second builder's name` (plants `EnvironmentBuilder` in
+- [x] **Step 1: Write the failing tests**: `stops the second builder's name` (plants `EnvironmentBuilder` in
   `agents/automata/skills/api/SKILL.md`; one finding, entry 6); `reads .ts, .mjs and .json under agents/` (plants the
   first sample in `agents/automata/scripts/check.mjs`, `…/example/src/a.ts` and `…/plugin.json`; three findings);
   `still skips agents/**/node_modules`. **Step 2:** FAIL. **Step 3:** add
@@ -321,7 +321,7 @@ it('the agent package names only published packages', () => {
 
 ### Task 2.5: Part 2's close
 
-- [ ] **Step 1:** `pnpm format`, `pnpm check`, `pnpm plugin:validate` pass. Open the PR ready on part 1's branch. Send
+- [x] **Step 1:** `pnpm format`, `pnpm check`, `pnpm plugin:validate` pass. Open the PR ready on part 1's branch. Send
   the 3D plan audit the note that task 10.1's pattern now exists (spec 7). Update `skills-progress.md`.
 
 ---
@@ -337,7 +337,7 @@ the Tuner"). `USAGE` is a module-private `const` (no export, and none is added):
 `packages/tools/src/features/editor/editor-command.ts` as text and takes the template literal after `const USAGE = `,
 the way `checkRuleIds` reads the `Rule` union.
 
-- [ ] **Step 1: Write the failing tests**: `documents every editor flag but 3d` (each `--[a-z-]+` in `USAGE` is in the
+- [x] **Step 1: Write the failing tests**: `documents every editor flag but 3d` (each `--[a-z-]+` in `USAGE` is in the
   skill; `2d|suite` is, `3d` is not); `explains the Tuner` (the skill contains `Tuner`, `pnpm dev`, `--game-url` and
   `http://localhost:5173`); `names the 2D editor's views` (`Map`, `Tiles`, `Add tiles`, `Characters`, checked against the
   folder names in `packages/editor/src/features/`); `has no unreachable symptom` (`listening beyond the loopback` absent).
@@ -355,7 +355,7 @@ row). The test reads `IMPORT_ALLOWED` from `packages/tools/src/features/boundari
 strings inside `new Set([` … `])` after `export const IMPORT_ALLOWED`, the way `checkRuleIds` reads `check.ts`. No new
 dependency: `IMPORT_ALLOWED` is on none of `@automata/tools`' entry points, and a dev dependency could not reach it.
 
-- [ ] **Step 1: Write the failing tests**: `both skills list every import a sim file may make` (each `IMPORT_ALLOWED` name,
+- [x] **Step 1: Write the failing tests**: `both skills list every import a sim file may make` (each `IMPORT_ALLOWED` name,
   with `@automata/sim/hash` and `/math` allowed as "`/hash`", "`/math`" beside `@automata/sim`, is in both; both say
   `simEntries`); `physics entry points` is added to `RETIRED` in `skills-text.test.ts`. **Step 2:** FAIL. **Step 3:** one
   sentence, the same in both: "A sim file may import only `koota`, `zod`, `@dimforge/rapier2d-deterministic-compat`,
@@ -373,7 +373,7 @@ dependency: `IMPORT_ALLOWED` is on none of `@automata/tools`' entry points, and 
 test's table, checked against the `Rule` union (each must be in it) and against `check-steps.ts` (its boundaries call
 passes only `--game`).
 
-- [ ] **Step 1: Write the failing tests**: `lists the repository-only rules under their own heading` (each id appears
+- [x] **Step 1: Write the failing tests**: `lists the repository-only rules under their own heading` (each id appears
   after `## Only in the framework's own repository` and not before it); in `platform-imports.test.ts`, `suggests
   fakeHosting for @ruken/sdk-host` (message contains `@automata/framework/testing (fakeHosting)`). **Step 2:** FAIL.
   **Step 3:** move the ten rows; the heading's first line: "`automata check` never reports these on a game; they guard
@@ -387,7 +387,7 @@ passes only `--game`).
 rows), `automata/SKILL.md` ("Saving, publishing, the host" bullet), `agents/automata/.claude-plugin/plugin.json`
 (description). Tests `skills-text.test.ts`, `skill-content.test.ts`, `layout.test.ts`.
 
-- [ ] **Step 1: Write the failing tests**: `Ruken's CSP` and `Ruken's Content-Security-Policy` join `RETIRED`; `says how
+- [x] **Step 1: Write the failing tests**: `Ruken's CSP` and `Ruken's Content-Security-Policy` join `RETIRED`; `says how
   to ship` (the `automata` skill contains `automata build`, `automata ship prepare`, `automata ship publish` and every
   `DIST_TARGETS` value, and links `docs/guides/publish-to-`); `the plugin description names the editor`. **Step 2:**
   FAIL. **Step 3:** the reason becomes "Web games may not use `eval` on any target. `automata check --csp` opens your
@@ -413,7 +413,7 @@ loader loads a stranger's plain config too.
 **Files:** Modify `packages/tools/src/shared/check/check-steps.ts` (`testStep`'s vitest arguments). Test
 `packages/tools/tests/unit/shared/check/run-check.test.ts`.
 
-- [ ] **Step 1: Write the failing test**: in `run-check.test.ts`, the expected command list's vitest line becomes
+- [x] **Step 1: Write the failing test**: in `run-check.test.ts`, the expected command list's vitest line becomes
   `` `vitest run --configLoader runner --reporter=json --outputFile=${VITEST_REPORT} --includeTaskLocation` ``, in
   every case that lists it. **Step 2:** `pnpm --filter @automata/tools test tests/unit/shared/check/run-check.test.ts`
   → FAIL on that line. **Step 3:** add `'--configLoader', 'runner'` after `'run'`, with a one-line comment saying why
@@ -427,7 +427,7 @@ loader loads a stranger's plain config too.
 
 ### Task 3.6: Part 3's close
 
-- [ ] **Step 1:** `pnpm format`, `pnpm check`, `pnpm source-names`, `pnpm plugin:validate`. Read each changed skill
+- [x] **Step 1:** `pnpm format`, `pnpm check`, `pnpm source-names`, `pnpm plugin:validate`. Read each changed skill
   with the drunk grandma test and note it in the PR. Open the PR ready on part 2's branch; update `skills-progress.md`.
 
 ---
@@ -443,7 +443,7 @@ loader loads a stranger's plain config too.
 - Consumes: `writeMirror` (task 1.1); `strangerFolder`, `packOverrides`, `overridesYaml`
   (`tooling/consumer-smoke/src/stranger.ts`); `packAll(root, project)` (`commands.ts`); `readAgentPackage`.
 
-- [ ] **Step 1: Rewrite the suite.** Its cases (names are the test names):
+- [x] **Step 1: Rewrite the suite.** Its cases (names are the test names):
   - `runs on Claude Code 2.1.301` (the version is read from the root `plugin:validate` script's
     `@anthropic-ai/claude-code@<version>` pin, the one place it is written; the suite's typed `CLAUDE_VERSION` goes)
   - `validates strictly: the plugin, the framework marketplace and the mirror`
@@ -457,15 +457,15 @@ loader loads a stranger's plain config too.
     exits 0; a new `src/features/square/seeded.system.ts` importing `effect` exits 2 with `"rule":"import"`
   - `installs the skills for Claude Code, Codex and Cursor with the Agent Skills installer, byte for byte` (from the
     mirror tree; `SKILL_NAMES` from `readAgentPackage`)
-- [ ] **Step 2: Typecheck** `pnpm --filter @automata/agent-skills typecheck`. Expected: PASS. (The suite cannot run in a
+- [x] **Step 2: Typecheck** `pnpm --filter @automata/agent-skills typecheck`. Expected: PASS. (The suite cannot run in a
   cloud session: it downloads npm code. Say so in the PR.)
-- [ ] **Step 3: Commit** `test(agent-skills): the install suite installs from the mirror into a new game`
+- [x] **Step 3: Commit** `test(agent-skills): the install suite installs from the mirror into a new game`
 
 ### Task 4.2: Run it before every publish
 
 **Files:** Modify `.github/workflows/release-checks.yml` (after the consumer smoke), `tooling/agent-skills/tests/unit/ci.test.ts`.
 
-- [ ] **Step 1: Write the failing test** `release checks run the install suite after the consumer smoke, with the
+- [x] **Step 1: Write the failing test** `release checks run the install suite after the consumer smoke, with the
   pinned CLI`: the workflow has `npm install --prefix "$RUNNER_TEMP/claude-code" @anthropic-ai/claude-code@2.1.301`, adds
   `$RUNNER_TEMP/claude-code/node_modules/.bin` to `$GITHUB_PATH`, and `pnpm --filter @automata/agent-skills test:install`
   comes after `node tooling/consumer-smoke/src/run.ts --from packs`. **Step 2:** FAIL. **Step 3:** the two steps.
@@ -475,7 +475,7 @@ loader loads a stranger's plain config too.
 - [ ] **Step 5:** Ask the Owner (in the thread) to run `pnpm --filter @automata/agent-skills test:install` once on the
   runner, or dispatch `release checks` by hand on the part's branch; keep the first attempt's log in the PR whatever it
   shows. A red run blocks the merge until explained.
-- [ ] **Step 6: Commit** `ci(release-checks): the install suite before every publish`; open the PR ready on part 3's
+- [x] **Step 6: Commit** `ci(release-checks): the install suite before every publish`; open the PR ready on part 3's
   branch; update `skills-progress.md`.
 
 ---
@@ -492,7 +492,7 @@ plugin: '/plugin install automata@automata-skills', skills: 'npx skills add mcth
 'Claude Code 2.1.301' }`; `SKILL_PREFLIGHT` gains "Confirm the Automata skills are installed (automata, automata-api,
 automata-editor, automata-feature, automata-verify)."
 
-- [ ] **Step 1: Write the failing tests**: `offers the Automata plugin beside Superpowers and PixiJS` (the three lines);
+- [x] **Step 1: Write the failing tests**: `offers the Automata plugin beside Superpowers and PixiJS` (the three lines);
   `says which Claude Code version the lines were tested on` (`testedOn` is `Claude Code <version>`, the version read
   from the root `package.json`'s `plugin:validate` pin, as the install suite reads it; the site never imports a
   tooling test file); `the preflight lists every skill` (the folder names under `agents/automata/skills`, read with

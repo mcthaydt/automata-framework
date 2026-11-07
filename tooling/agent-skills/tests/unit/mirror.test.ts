@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -58,6 +58,16 @@ describe('the mirror tree', () => {
     expect(readme).toContain(pluginVersion)
   })
 
+  it('the README names the editor and says the automatic checks are Claude Code only', () => {
+    // The plugin's description names the editor (task 3.4), and only the plugin's hooks run `automata check`:
+    // `npx skills add` copies the skills and no hooks, so the README must not promise the checks to other agents.
+    writeMirror({ repo: REPO, out })
+    const readme = readFileSync(join(out, 'README.md'), 'utf8')
+    expect(readme).toContain('level editor')
+    expect(readme).toMatch(/In Claude Code, it also runs `automata check`/)
+    expect(readme).toContain('only the skills, not the automatic checks')
+  })
+
   it('copies the framework LICENSE byte for byte', () => {
     writeMirror({ repo: REPO, out })
     expect(readFileSync(join(out, 'LICENSE'))).toEqual(readFileSync(join(REPO, 'LICENSE')))
@@ -83,6 +93,51 @@ describe('the mirror tree', () => {
     for (const [path] of listSkillTree(out))
       for (const { pattern } of SOURCE_NAMES)
         expect(pattern.test(readFileSync(join(out, path), 'utf8')), path).toBe(false)
+  })
+})
+
+describe('the mirror reads like public text', () => {
+  // The skills and the API reference are built from doc comments in the packages, so a plan id, an internal record or
+  // a package that is not on the registry in a comment lands in a stranger's agent. Nothing else checks the words
+  // (`published-only.test.ts` reads `@automata/<name>` only), so this reads the mirror tree itself.
+  const INTERNAL_WORDS: readonly (readonly [string, RegExp])[] = [
+    ['a plan or decision id', /\b(?:plan )?D-\d+\b/],
+    ['an ADR number', /\bADR \d{4}\b/],
+    ['an Owner note', /\bOwner, 20\d\d/],
+    ['a closed beta', /closed beta/i],
+    ['the closed-beta 3D library', /@pixi\/3d/],
+  ]
+
+  /** How each private package under `packages/` could be named in prose: its folder, as a path or in code quotes (or
+   * bare when it has a hyphen, which no plain word does). Read from the manifests, not typed. */
+  function privatePackageForms(): [string, RegExp][] {
+    const forms: [string, RegExp][] = []
+    for (const folder of readdirSync(join(REPO, 'packages'))) {
+      const manifest = JSON.parse(readFileSync(join(REPO, 'packages', folder, 'package.json'), 'utf8')) as {
+        private?: boolean
+      }
+      if (manifest.private !== true) continue
+      const bare = folder.includes('-') ? `|(?<![\\w@/.-])${folder}(?![\\w-])` : ''
+      forms.push([`the private package ${folder}`, new RegExp(`packages/${folder}\\b|\`${folder}\`${bare}`)])
+    }
+    return forms
+  }
+
+  it('finds the private packages in the workspace (the reader itself works)', () => {
+    expect(privatePackageForms().map(([name]) => name)).toEqual(
+      expect.arrayContaining(['the private package render-pixi3d', 'the private package editor-3d']),
+    )
+  })
+
+  it('has no plan id, closed-beta text or private package name', () => {
+    writeMirror({ repo: REPO, out })
+    const found: string[] = []
+    for (const [path] of listSkillTree(out)) {
+      const text = readFileSync(join(out, path), 'utf8')
+      for (const [what, pattern] of [...INTERNAL_WORDS, ...privatePackageForms()])
+        if (pattern.test(text)) found.push(`${path}: ${what}`)
+    }
+    expect(found).toEqual([])
   })
 })
 

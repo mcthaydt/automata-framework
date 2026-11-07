@@ -236,7 +236,7 @@
 - `CoreSettings` (interface): The settings every game carries: input bindings, display, audio and vibration.
 - `createCamera2d(stage, options, seed?)`: A camera writing `stage`'s transform (usually `PixiStage.world`).
 - `createGeometryOwner(options)`: Creates the geometry owner of a document, the only writer of its geometry: make one per document.
-- `createPixiRenderer(options?)`: The core 2D renderer (ADR 0002) as a runtime `RendererFactory`: a letterboxed Pixi app on the render target, entity views from each step's render delta, interpolated each frame.
+- `createPixiRenderer(options?)`: The core 2D renderer as a runtime `RendererFactory`: a letterboxed Pixi app on the render target, entity views from each step's render delta, interpolated each frame.
 - `createPostFilterSlot(target)`: A post-filter slot writing its composed filters to `target`'s `filters`.
 - `createT(messages)`: `t` over a messages module (`import * as m from './paraglide/messages.js'`).
 - `defaultContent()`: The default flow `title → play ⇄ paused → title`, with `paused ⇄ settings`, and its hash.
@@ -440,7 +440,7 @@
 - `FakeHostingOptions` (interface): How the fake host starts.
 - `FakeResizeObserver` (interface): Controls the fake `ResizeObserver` `installFakeResizeObserver` put in place: report a width to every observer, then restore the original.
 - `FakeRoute` (interface): How `fakeFetch` answers one url: a status, the body in chunks, a content length or type, a hang or a network error.
-- `FakeTarget` (type): The four distribution targets a fake host can stand in for (ADR 0006).
+- `FakeTarget` (type): The four distribution targets a fake host can stand in for.
 - `FakeViewportWindow` (interface): A stand-in for the browser window the geometry owner reads: its size, `screen`, `navigator`, visual viewport and `resize` listeners, with methods to rotate, open the keyboard and count live listeners.
 - `fakeViewportWindow(size)`: A fake window of the given size.
 - `FakeVisualViewport` (interface): The visual viewport of `FakeViewportWindow`: its height (less the keyboard, if open), an offset, and listeners for `resize`.

@@ -39,7 +39,7 @@ export function mirrorMarketplace(): MirrorMarketplace {
 export function mirrorReadme(version: string): string {
   return `# Automata skills
 
-Teaches your coding agent to build games with the Automata Framework: the framework's rules, how to add a feature test first, the exact API, and what \`automata check\` finds. It also runs \`automata check\` for you after each change to your game's gameplay code and before your agent says it is done.
+Teaches your coding agent to build games with the Automata Framework: the framework's rules, how to add a feature test first, the exact API, how to use the level editor, and what \`automata check\` finds. In Claude Code, it also runs \`automata check\` for you after each change to your game's gameplay code and before your agent says it is done.
 
 ## Install
 
@@ -50,7 +50,7 @@ In Claude Code, type these two lines:
 /plugin install automata@${MIRROR_MARKETPLACE}
 \`\`\`
 
-For other agents (Codex, Cursor and more), run this in your game's folder:
+For other agents (Codex, Cursor and more), run this in your game's folder. It installs only the skills, not the automatic checks:
 
 \`\`\`
 npx skills add mcthaydt/${MIRROR_MARKETPLACE}

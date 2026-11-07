@@ -94,9 +94,9 @@ Findings use the compiler's code as the rule (`TS2322`, `TS2304`, …) with its 
 |---|---|---|
 | `levels` | A game file under a row's `exports` folder (`project.toml`, `world.toml`, `levels/<id>.toml`) is not what its level project exports, or is missing, or the project does not open | Open the level in the editor and press Save: it writes the project and every game file together. Never edit the generated TOML by hand |
 
-### `no-eval` (web games may not use `eval` on any target)
+### `no-eval`
 
-Web games may not use `eval` on any target. `automata check --csp` opens your build under Ruken's rules to prove it.
+Web games may not use `eval` on any target. `automata check --csp` opens your build in Chromium under a strict Content-Security-Policy (the headers Ruken sends) to prove it.
 
 | Rule | Means | Fix |
 |---|---|---|
@@ -142,6 +142,6 @@ boundaries checker is run with the flag in the row.
 | `entries-logic` | A file in `entries/` holds code instead of only re-exporting; run with `--features` | Move the code into `app/`, `features/` or `shared/` and re-export it |
 | `testing-import` | Product code imports `testing/`, the published test helpers; run with `--features` | Only `entries/` re-exports `testing/`; keep test helpers out of product code |
 | `alias-in-src` | A `#src/…` import in `src/`, where only tests use the alias; run with `--features` | Import by relative path |
-| `browser-import` | A file a browser entry reaches imports `effect`, a Node built-in or a Node-only library; run with `--browser` | Effect and Node's modules belong to the Node tooling package (ADR 0003); keep them out of browser code |
-| `forbidden-import` | A package imports a module it must never use (the 2D editor and `@pixi/3d`, for example); run with `--forbid <root>:<package>,...` | Take the dependency out; if the code needs 3D, it belongs in the 3D package |
+| `browser-import` | A file a browser entry reaches imports `effect`, a Node built-in or a Node-only library; run with `--browser` | Effect and Node's modules belong to the Node tooling package; keep them out of browser code |
+| `forbidden-import` | A package imports a module it must never use; run with `--forbid <root>:<package>,...` | Take the dependency out; if the code needs it, it belongs in the package that is allowed to use it |
 | `platform-import` | A distribution target's platform package (`@ruken/*`, `@tauri-apps/*`) imported outside a folder named for that target (`ruken/`, `tauri/`); run with `--platform-imports` | Use AF's own API instead (the message names it: `@automata/framework` for host types, `@automata/framework/testing` for a fake host, `@automata/content/game-config` for the game config), or move the file under the target's folder |

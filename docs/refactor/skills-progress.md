@@ -4,7 +4,7 @@ The Owner, 2026-11-07: "Have we been updating automata-skills, I know we worked 
 handle that". Each stage runs in its own thread and hands off through the documents listed here. From stage 2 on they
 live in the framework's `docs/refactor/` (audit decision D1 A); `mcthaydt/automata-skills` stays output only.
 
-**Progress: 5 of 6 stages done (83%).**
+**Progress: 6 of 6 stages done (100%); the stage 6 PR waits for review.**
 
 | Stage | Status | Document | Pull request |
 |---|---|---|---|
@@ -12,8 +12,8 @@ live in the framework's `docs/refactor/` (audit decision D1 A); `mcthaydt/automa
 | 2. Plan and spec | Done, 2026-11-07 (accepted under "Auto accept all spec and plans") | [spec](2026-11-07-skills-spec.md), [plan](2026-11-07-skills-plan.md) | `claude/project-thread-wd20yh`, stacked on #444 |
 | 3. Plan audit | Done, 2026-11-07: 15 findings, fixed in place | [2026-11-07-skills-plan-audit.md](2026-11-07-skills-plan-audit.md) | #446, same branch |
 | 4. Build | Done 2026-11-07 (5 parts, 17 tasks; part 5 waits for the first mirror push) | [execution ledger](#execution-ledger) | #447 to #451, a stack on #446 |
-| 5. Build audit | Done, 2026-11-07: 4 Important, 7 Minor, not fixed | [2026-11-07-skills-build-audit.md](2026-11-07-skills-build-audit.md) | stacked on #451 |
-| 6. Fixes | Not started | | |
+| 5. Build audit | Done, 2026-11-07: 4 Important, 7 Minor | [2026-11-07-skills-build-audit.md](2026-11-07-skills-build-audit.md) | #452, stacked on #451 |
+| 6. Fixes | Done, 2026-11-07: 4 Important and 7 Minor, see [the stage 6 log](#stage-6-log) | [2026-11-07-skills-build-audit.md](2026-11-07-skills-build-audit.md) | stacked on #452 |
 
 ## Build tracking
 
@@ -49,7 +49,39 @@ live in the framework's `docs/refactor/` (audit decision D1 A); `mcthaydt/automa
 - **The Owner:** the npm organisation, `NPM_TOKEN`, the release approval and `SKILLS_TOKEN` (M4); one run of the install
   suite on the runner (task 4.2).
 
-## Where stage 6 starts
+## Stage 6 log
+
+Stage 6, `superpowers:executing-plans` and `superpowers:receiving-code-review`, inline, Sonnet at high effort. One PR on
+#452 holds every fix, instead of one per part: the fixes touch all five parts, and a merge up a five-branch chain was the
+risk the audit itself named under I4. Each fix is a test that failed first.
+
+- I1: `automata-api` names `no-eval`, `target` and `theme.css` as the entry points the reference leaves out; the test now
+  reads the left-out list from the published `exports` maps and the reference (an entry with no `from '<entry>'` section),
+  so a fourth one fails it.
+- I2: `mirror.test.ts` reads the mirror tree for plan and decision ids, ADR numbers, Owner notes, "closed beta", `@pixi/3d`
+  and the private packages under `packages/` (read from their manifests). RED listed 8 hits; the doc comments in
+  `@automata/framework` and `@automata/tools` and the verify skill's two rows are reworded, and the reference is
+  regenerated. A `patch` changeset covers the two published packages.
+- I3: the shipping bullet names the site's Docs pages (`/docs/publish-to-web`, `-itch`, `-ruken`, `-desktop`); the test
+  forbids `docs/guides/`.
+- I4: already done by the merge thread: `350f4e9c`'s allowlist is in `claude/project-thread-r6rbj0` through
+  `claude/skills-site` (`.gitleaks.toml` is byte-identical to #446's). #452's branch was one step behind; merged
+  `claude/skills-site` into the stage 6 branch, so its scan has the allowlist too.
+- m1, m2: Start's checklist has four boxes (the Automata box joins), and the Automata card shows the picked agent's lines
+  (Claude Code's two, otherwise `npx skills add`); the preflight tells the agent where the Automata install steps are.
+- m3: the mirror README names the editor, says the checks run in Claude Code, and says `npx skills add` installs the
+  skills only.
+- m4: the `no-eval` section says its rule once and explains `--csp` without "Ruken's rules".
+- m5: the `skills` job's header comment says the generator writes the mirror (comment only, no step changed).
+- m6: the plan's steps are ticked; 4.2 step 5 (the runner's first install-suite run) and 5.1 step 5 (merge after the
+  first mirror push) stay open.
+- m7: no change, as the audit says; I2's mirror test is what covers unscoped private names.
+
+Ruling: one stacked PR instead of fixes on each part's branch — the audit allowed either, and a single PR avoids
+re-merging five heads — cost if wrong: part 2 and 3's branches still hold the old text until this PR merges, so the
+first mirror push must come after it.
+
+## Where stage 6 started
 
 Fix the build audit's findings ([2026-11-07-skills-build-audit.md](2026-11-07-skills-build-audit.md), "For stage 6"),
 Sonnet at high effort, natively, each test first. First merge #446's head (`59ab1b53`, the secret-scan allowlist) up

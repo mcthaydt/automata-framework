@@ -123,7 +123,7 @@ function resolvePreference(optionPreference?: RendererPreference): RendererPrefe
 }
 
 /**
- * The core 2D renderer (ADR 0002) as a runtime `RendererFactory`: a letterboxed Pixi app on the render
+ * The core 2D renderer as a runtime `RendererFactory`: a letterboxed Pixi app on the render
  * target, entity views from each step's render delta, interpolated each frame. Answers `RendererUnavailable`
  * when the renderer cannot start; `dispose` destroys the app and removes its canvas.
  */

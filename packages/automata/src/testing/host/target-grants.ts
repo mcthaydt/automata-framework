@@ -2,7 +2,7 @@ import type { Capability } from '../../shared/host/capability.schema.ts'
 import type { ErrorCode } from '../../shared/host/error-code.schema.ts'
 import type { Hosting } from '../../shared/host/hosting.ts'
 
-/** The four distribution targets a fake host can stand in for (ADR 0006). */
+/** The four distribution targets a fake host can stand in for. */
 export type FakeTarget = 'web' | 'itch' | 'ruken' | 'tauri'
 
 /** What every target grants a page: it can always observe these. */

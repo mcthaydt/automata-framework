@@ -20,9 +20,9 @@ export interface ShipConfig extends GameConfig {
    */
   readonly tauri?: TauriConfig | undefined
   /**
-   * Who the game's builds are for. `private` is a game that carries `@pixi/3d`, a closed beta (D-1), until Pixi 3D's
-   * public release: `automata ship prepare` then checks the build as private and writes no `ruken.toml`, and only
-   * `publish --private` ships it. Not a Ruken field. Left out, a game is `public`.
+   * Who the game's builds are for. `private` is a game that uses a 3D library that is not public yet:
+   * `automata ship prepare` then checks the build as private and writes no `ruken.toml`, and only `publish --private`
+   * ships it. Not a Ruken field. Left out, a game is `public`.
    */
   readonly audience?: 'public' | 'private' | undefined
 }

@@ -2409,7 +2409,7 @@ interface CoreSettings {
     readonly display: DisplaySettings;
     /** The Audio group's choices; a record saved before it reads them as the defaults. */
     readonly audio: AudioSettings;
-    /** The Vibration group's toggle (Owner, 2026-10-18); a record saved before it reads it as on. */
+    /** The Vibration group's toggle; a record saved before it reads it as on. */
     readonly haptics: HapticsSettings;
     /** "Camera turn speed" and "Invert camera"; a record saved before them reads them as the defaults. */
     readonly camera: CameraSettings;
@@ -2437,7 +2437,7 @@ function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwner;
 
 #### `createPixiRenderer` (function)
 
-The core 2D renderer (ADR 0002) as a runtime `RendererFactory`: a letterboxed Pixi app on the render
+The core 2D renderer as a runtime `RendererFactory`: a letterboxed Pixi app on the render
 target, entity views from each step's render delta, interpolated each frame. Answers `RendererUnavailable`
 when the renderer cannot start; `dispose` destroys the app and removes its canvas.
 
@@ -2688,7 +2688,7 @@ function disposables(): Disposables;
 
 #### `DrawContext` (interface)
 
-What `draw` receives each frame. Coordinates are logical playfield pixels (plan D-2).
+What `draw` receives each frame. Coordinates are logical playfield pixels.
 
 ```ts
 interface DrawContext {
@@ -3094,8 +3094,8 @@ interface GameSpec<S = never, D = unknown> {
     readonly renderer?: PixiRendererOptions;
     /**
      * Makes the renderer from the Pixi options `defineGame` built (the size, pixel art, the views, `renderer` and
-     * the draw layer's and Settings' `setup`): an extension's renderer, such as render-pixi3d's
-     * `(options) => createPixi3dRenderer({ ...options, views })`. Default: core's `createPixiRenderer`.
+     * the draw layer's and Settings' `setup`): an extension's renderer, such as a 3D one
+     * (`(options) => createPixi3dRenderer({ ...options, views })`). Default: core's `createPixiRenderer`.
      */
     readonly createRenderer?: (options: PixiRendererOptions) => RendererFactory;
     /**
@@ -5630,7 +5630,7 @@ interface FakeRoute {
 
 #### `FakeTarget` (type)
 
-The four distribution targets a fake host can stand in for (ADR 0006).
+The four distribution targets a fake host can stand in for.
 
 ```ts
 type FakeTarget = 'web' | 'itch' | 'ruken' | 'tauri';
@@ -7653,9 +7653,9 @@ interface ShipConfig extends GameConfig {
    */
   readonly tauri?: TauriConfig | undefined;
   /**
-   * Who the game's builds are for. `private` is a game that carries `@pixi/3d`, a closed beta (D-1), until Pixi 3D's
-   * public release: `automata ship prepare` then checks the build as private and writes no `ruken.toml`, and only
-   * `publish --private` ships it. Not a Ruken field. Left out, a game is `public`.
+   * Who the game's builds are for. `private` is a game that uses a 3D library that is not public yet:
+   * `automata ship prepare` then checks the build as private and writes no `ruken.toml`, and only `publish --private`
+   * ships it. Not a Ruken field. Left out, a game is `public`.
    */
   readonly audience?: "public" | "private" | undefined;
 }

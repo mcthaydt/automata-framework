@@ -31,7 +31,7 @@ export interface CoreSettings {
   readonly display: DisplaySettings
   /** The Audio group's choices; a record saved before it reads them as the defaults. */
   readonly audio: AudioSettings
-  /** The Vibration group's toggle (Owner, 2026-10-18); a record saved before it reads it as on. */
+  /** The Vibration group's toggle; a record saved before it reads it as on. */
   readonly haptics: HapticsSettings
   /** "Camera turn speed" and "Invert camera"; a record saved before them reads them as the defaults. */
   readonly camera: CameraSettings

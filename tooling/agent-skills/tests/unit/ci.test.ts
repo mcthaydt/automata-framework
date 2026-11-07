@@ -27,6 +27,12 @@ describe('the agent package in the gates', () => {
     expect(releaseChecks.indexOf('\n      - run: pnpm plugin:validate\n')).toBeGreaterThan(apiIndex)
   })
 
+  it("the release job's header says the generator writes the mirror, not that a folder is copied", () => {
+    const release = readFileSync(join(root, '.github/workflows/release-packages.yml'), 'utf8')
+    expect(release).not.toContain('`agents/automata` is copied to')
+    expect(release).toContain('the mirror generator (`tooling/agent-skills/src/mirror-cli.ts`) writes')
+  })
+
   it('plugin:validate checks the mirror tree', () => {
     const validate = scripts['plugin:validate'] ?? ''
     expect(validate).toContain('node tooling/agent-skills/src/mirror-cli.ts --out .mirror/automata-skills')

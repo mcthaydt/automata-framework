@@ -20,7 +20,7 @@ export interface DrawTextOptions {
   readonly size?: number | undefined
 }
 
-/** What `draw` receives each frame. Coordinates are logical playfield pixels (plan D-2). */
+/** What `draw` receives each frame. Coordinates are logical playfield pixels. */
 export interface DrawContext {
   /** The sim at this frame, read-only. */
   readonly sim: DrawSim
