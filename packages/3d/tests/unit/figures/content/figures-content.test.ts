@@ -39,11 +39,10 @@ describe('the fixture figures and libraries compile as content', () => {
     const data = result.content.data as Record<string, Record<string, unknown>>
     expect(Object.keys(data.figure ?? {}).sort()).toEqual(['keeper', 'wick'])
     expect(Object.keys(data['figure-gait'] ?? {})).toHaveLength(7)
-    expect(Object.keys(data['figure-hair'] ?? {})).toHaveLength(11)
+    expect(Object.keys(data['figure-hair'] ?? {})).toHaveLength(3)
     expect(Object.keys(data['figure-headwear'] ?? {})).toHaveLength(3)
     expect(Object.keys(data['figure-item'] ?? {})).toHaveLength(3)
     expect(Object.keys(data['figure-stand'] ?? {})).toHaveLength(7)
-    expect(Object.keys(data['figure-seat'] ?? {})).toHaveLength(8)
     expect(Object.keys(data['figure-rig'] ?? {})).toEqual(['default'])
     expect(Object.keys(data['figure-pose'] ?? {}).sort()).toEqual([...FIXTURE_POSE_IDS])
     expect(Object.keys(data['figure-clip'] ?? {}).sort()).toEqual([...FIXTURE_CLIP_IDS])
@@ -123,10 +122,10 @@ describe('F-e: a figure naming a missing library id fails content compile with i
     {
       what: 'garment swatch',
       file: keeper,
-      old: 'buttons = "brass"',
-      next: 'buttons = "gold"',
+      old: 'collar = "starch-shade"',
+      next: 'collar = "starch-gone"',
       kind: 'figure-swatch',
-      id: 'gold',
+      id: 'starch-gone',
     },
     {
       what: "an item's material",
@@ -195,7 +194,7 @@ describe('impossible skeletons fail content compile, naming the slider', () => {
     const file = 'content/figures/keeper.toml'
     const diagnostics = await diagnosticsAfter(file, 'lids = "pale-lid"', 'lids = "pale-lid"\nlips = "mouth"')
     expect(diagnostics).toContainEqual(
-      expect.objectContaining({ code: 'unknownField', file, keyPath: 'outfits.lamplighter.7.lips' }),
+      expect.objectContaining({ code: 'unknownField', file, keyPath: 'outfits.lamplighter.5.lips' }),
     )
   })
   it("FigureBuilder's painter fields are not swatch fields", async () => {
@@ -235,7 +234,7 @@ describe('inline values and unions report the inner field, not the whole union',
       'style = "cropped"',
       'style = [{ on = "head", at = [0, 0.7, 0] }]',
     )
-    expect(diagnostics.map((d) => d.keyPath)).toEqual(['outfits.lamplighter.5.style.0.r'])
+    expect(diagnostics.map((d) => d.keyPath)).toEqual(['outfits.lamplighter.3.style.0.r'])
   })
   it("a stand's hand placed at an unknown opening is reported at `at`", async () => {
     const diagnostics = await diagnosticsAfter(
@@ -305,7 +304,7 @@ describe("a garment's default swatches are checked at compile (M3.5b review)", (
       swatch: 'sole',
       file: 'content/figures/keeper.toml',
       garment: 'shoes = "boot-brown"\nboots = true\n\n[[outfits.shirtsleeves]]\nhair',
-      keyPath: 'outfits.shirtsleeves.3.sole',
+      keyPath: 'outfits.shirtsleeves.2.sole',
     },
   ]
   for (const c of cases)
@@ -343,7 +342,7 @@ describe("a garment's numbers and lists are bounded (M3.5b review)", () => {
   const top = 'top = "starch"\nsleeves = "short"'
   // Each would build badly. (The wardrobe's garments are bounded the same way: examples/3d/wardrobe/tests/unit/content.test.ts.)
   const cases: { garment: string; field: string }[] = [
-    { garment: 'skirt = "navy"\nlength = -1', field: 'length' },
+    { garment: 'cape = "navy"\nlength = -1', field: 'length' },
   ]
   for (const c of cases)
     it(`refuses ${c.garment.replace('\n', ', ')} at the field`, async () => {
@@ -376,7 +375,7 @@ describe('a hair garment with no style wears hairPieces (M3.5b decision 6)', () 
       expect.objectContaining({
         file,
         line: where(text, 'hair = "steel-grey"').line,
-        keyPath: 'outfits.lamplighter.5.hair',
+        keyPath: 'outfits.lamplighter.3.hair',
         message: expect.stringContaining('hairPieces'),
       }),
     )
@@ -393,12 +392,10 @@ describe("the fixture's default rig", () => {
 })
 
 describe('a garment no registered kind claims', () => {
-  it('is refused, naming the 15 classic kinds (a wardrobe extension adds the rest)', async () => {
+  it('is refused, naming the 7 core kinds (a wardrobe extension adds the rest)', async () => {
     const top = 'top = "starch"\nsleeves = "short"'
     const diagnostics = await diagnosticsAfter('content/figures/keeper.toml', top, 'bomber = "navy"')
     const named = diagnostics.map((d) => d.message).join('\n')
-    expect(named).toContain(
-      'a garment has one of: top, waistcoat, trousers, legs, shoes, skirt, apron, coat, belt, cape, gloves, hair, cap, eyes, mark',
-    )
+    expect(named).toContain('a garment has one of: top, trousers, shoes, cape, hair, cap, eyes')
   })
 })

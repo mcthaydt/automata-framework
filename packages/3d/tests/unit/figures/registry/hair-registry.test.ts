@@ -6,22 +6,30 @@ import { hairStyleSchema } from '#src/features/figures/content/hair.schema.ts'
 import { hairParts } from '#src/features/figures/hair/hair-parts.ts'
 import { toneOf } from '#src/features/figures/hair/tones.ts'
 import { fabricOf, labelAt, registerFabric } from '#src/features/figures/registry/fabric-registry.ts'
-import { finishMatte, registerFinish } from '#src/features/figures/registry/hair-finish-registry.ts'
+import {
+  finishMatte,
+  finishNames,
+  registerFinish,
+} from '#src/features/figures/registry/hair-finish-registry.ts'
 import { registerHairPiece } from '#src/features/figures/registry/hair-piece-registry.ts'
 import { RegistryClash } from '#src/shared/registry/registry-clash.ts'
 
 // FigureBuilder's H3 (hair pieces), H4 (finishes) and H5 (fabrics), as registries a game's extension fills: a name
 // taken, by the base set or an earlier registration, is a RegistryClash that names it.
 
+const LOCK = { on: 'head', at: [0, 0.5, 0], r: [1, 0.3, 1] } as const
 const m = measure({})
 const s = skeletonFromGenes(m.genes)
 const input = { m, s, hair: 'hair-dark', skin: 'fair', made: {} }
 
 describe('hair pieces (H3)', () => {
-  it('refuses a name the base generators or an earlier piece has taken', () => {
-    expect(() => registerHairPiece('tail', { build: () => {} })).toThrow(
-      'A hair piece called "tail" is already registered',
+  it('core registers no piece: a style naming a bun fails until the character kit registers one', () => {
+    expect(() => hairParts(input, { pieces: [{ bun: {} }] } as never)).toThrow(
+      'There is no hair piece called "bun"',
     )
+    expect(hairStyleSchema.safeParse({ pieces: [{ bun: {} }] }).success).toBe(false)
+  })
+  it('refuses a name an earlier piece has taken', () => {
     registerHairPiece('ribbon', { build: () => {} })
     expect(() => registerHairPiece('ribbon', { build: () => {} })).toThrow(RegistryClash)
   })
@@ -61,23 +69,19 @@ describe('hair pieces (H3)', () => {
 })
 
 describe('hair finishes (H4)', () => {
-  it('the base finishes are there, and a taken name is refused', () => {
-    expect(finishMatte('coil')).toBe(true)
+  it('core has the two glossy finishes; the matte ones (coil, braid, loc, curl) are the kit’s; a taken name is refused', () => {
+    expect(finishNames()).toEqual(['sleek', 'straight'])
     expect(finishMatte('straight')).toBe(false)
-    expect(finishMatte('smooth')).toBe(false)
-    expect(finishMatte('curl')).toBe(true)
-    expect(() => registerFinish('coil', { matte: false })).toThrow(
-      'A hair finish called "coil" is already registered',
+    expect(finishMatte('sleek')).toBe(false)
+    expect(() => registerFinish('sleek', { matte: true })).toThrow(
+      'A hair finish called "sleek" is already registered',
     )
   })
   it('a registered finish takes effect: a style names it, and its tones are matte when it is', () => {
     registerFinish('wax', { matte: true })
     expect(() => registerFinish('wax', { matte: true })).toThrow(RegistryClash)
     expect(finishMatte('wax')).toBe(true)
-    expect(
-      hairStyleSchema.safeParse({ finish: 'wax', pieces: [{ scalp: { from: [[0, 0]], lift: 0.1 } }] })
-        .success,
-    ).toBe(true)
+    expect(hairStyleSchema.safeParse({ finish: 'wax', locks: [LOCK] }).success).toBe(true)
     const made = {}
     expect(toneOf(made, 'hair-dark', 'fair', 'wax', 'hair')).not.toBe('hair-dark')
     expect(toneOf({}, 'hair-dark', 'fair', 'straight', 'hair')).toBe('hair-dark')
@@ -85,10 +89,10 @@ describe('hair finishes (H4)', () => {
   it('a finish nobody registered is refused by the schema, naming the ones there are', () => {
     const r = hairStyleSchema.safeParse({
       finish: 'glitter',
-      pieces: [{ scalp: { from: [[0, 0]], lift: 0.1 } }],
+      locks: [LOCK],
     })
     expect(r.success).toBe(false)
-    expect(JSON.stringify(r.error?.issues)).toContain('coil')
+    expect(JSON.stringify(r.error?.issues)).toContain('straight')
   })
 })
 

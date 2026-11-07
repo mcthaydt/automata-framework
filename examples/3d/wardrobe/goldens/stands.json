@@ -3210,7 +3210,7 @@
       ]
     ]
   },
-  "model-hoodie-fades arms-crossed": {
+  "model-hoodie arms-crossed": {
     "holds": [
       {
         "side": "L",
@@ -3327,7 +3327,7 @@
       ]
     ]
   },
-  "model-hoodie-fades hand-in-jacket-pocket": {
+  "model-hoodie hand-in-jacket-pocket": {
     "holds": [
       {
         "side": "R",
@@ -3444,7 +3444,7 @@
       ]
     ]
   },
-  "model-hoodie-fades hand-in-pocket": {
+  "model-hoodie hand-in-pocket": {
     "holds": [],
     "world": [
       [0, 0, 0, 0, 0, 0, 1],
@@ -3545,7 +3545,7 @@
       [-0.092164529321, 0.0850604355363, 0.064791752306, 0, 1.62630325873e-19, 1.73641754187e-18, 1]
     ]
   },
-  "model-hoodie-fades hand-on-hip": {
+  "model-hoodie hand-on-hip": {
     "holds": [
       {
         "side": "R",
@@ -3655,7 +3655,7 @@
       [-0.0569415, 0.0818518518519, -1.73472347598e-18, 0, -1.08420217249e-19, -3.46267068838e-18, 1]
     ]
   },
-  "model-hoodie-fades hip-and-pocket": {
+  "model-hoodie hip-and-pocket": {
     "holds": [
       {
         "side": "L",
@@ -3778,7 +3778,7 @@
       ]
     ]
   },
-  "model-hoodie-fades kangaroo-pocket": {
+  "model-hoodie kangaroo-pocket": {
     "holds": [
       {
         "side": "L",
@@ -3898,7 +3898,7 @@
       [-0.073184029321, 0.129265078346, 0.0944444444444, -1.38777878078e-17, 0, 3.03576608296e-18, 1]
     ]
   },
-  "model-hoodie-fades thumbs-in-pockets": {
+  "model-hoodie thumbs-in-pockets": {
     "holds": [],
     "world": [
       [0, 0, 0, 0, 0, 0, 1],
@@ -3999,7 +3999,7 @@
       ]
     ]
   },
-  "model-short-fade arms-crossed": {
+  "model-cropped arms-crossed": {
     "holds": [
       {
         "side": "L",
@@ -4119,7 +4119,7 @@
       [-0.118900885802, 0.0932883712605, 0.05861113195, 1.73472347598e-18, 0, -6.95244643106e-18, 1]
     ]
   },
-  "model-short-fade hand-in-jacket-pocket": {
+  "model-cropped hand-in-jacket-pocket": {
     "holds": [
       {
         "side": "R",
@@ -4227,7 +4227,7 @@
       [-0.0979132314815, 0.103336324363, 0.0975046710229, 0, 8.67361737988e-19, 2.57498015965e-19, 1]
     ]
   },
-  "model-short-fade hand-in-pocket": {
+  "model-cropped hand-in-pocket": {
     "holds": [],
     "world": [
       [0, 0, 0, 0, 0, 0, 1],
@@ -4333,7 +4333,7 @@
       ]
     ]
   },
-  "model-short-fade hand-on-hip": {
+  "model-cropped hand-on-hip": {
     "holds": [
       {
         "side": "R",
@@ -4446,7 +4446,7 @@
       [-0.0569415, 0.0865740740741, 3.46944695195e-18, -1.73472347598e-18, 0, -3.46605882016e-18, 1]
     ]
   },
-  "model-short-fade hip-and-pocket": {
+  "model-cropped hip-and-pocket": {
     "holds": [
       {
         "side": "L",
@@ -4568,7 +4568,7 @@
       ]
     ]
   },
-  "model-short-fade kangaroo-pocket": {
+  "model-cropped kangaroo-pocket": {
     "holds": [
       {
         "side": "L",
@@ -4691,7 +4691,7 @@
       ]
     ]
   },
-  "model-short-fade thumbs-in-pockets": {
+  "model-cropped thumbs-in-pockets": {
     "holds": [],
     "world": [
       [0, 0, 0, 0, 0, 0, 1],
@@ -4795,7 +4795,7 @@
       ]
     ]
   },
-  "model-cornrows arms-crossed": {
+  "model-cargos arms-crossed": {
     "holds": [
       {
         "side": "L",
@@ -4914,7 +4914,7 @@
       ]
     ]
   },
-  "model-cornrows hand-in-jacket-pocket": {
+  "model-cargos hand-in-jacket-pocket": {
     "holds": [
       {
         "side": "R",
@@ -5028,7 +5028,7 @@
       [-0.0991625555556, 0.100297020705, 0.094636886581, 0, -6.50521303491e-19, -1.21972744405e-19, 1]
     ]
   },
-  "model-cornrows hand-in-pocket": {
+  "model-cargos hand-in-pocket": {
     "holds": [],
     "world": [
       [0, 0, 0, 0, 0, 0, 1],
@@ -5132,7 +5132,7 @@
       ]
     ]
   },
-  "model-cornrows hand-on-hip": {
+  "model-cargos hand-on-hip": {
     "holds": [
       {
         "side": "R",
@@ -5245,7 +5245,7 @@
       [-0.058806, 0.0840277777778, -6.93889390391e-18, -1.73472347598e-18, 0, 0, 1]
     ]
   },
-  "model-cornrows hip-and-pocket": {
+  "model-cargos hip-and-pocket": {
     "holds": [
       {
         "side": "L",
@@ -5362,7 +5362,7 @@
       [-0.0893615555556, 0.119591328251, 0.101851851852, 0, 4.33680868994e-19, -3.03576608296e-18, 1]
     ]
   },
-  "model-cornrows kangaroo-pocket": {
+  "model-cargos kangaroo-pocket": {
     "holds": [
       {
         "side": "L",
@@ -5484,7 +5484,7 @@
       ]
     ]
   },
-  "model-cornrows thumbs-in-pockets": {
+  "model-cargos thumbs-in-pockets": {
     "holds": [],
     "world": [
       [0, 0, 0, 0, 0, 0, 1],

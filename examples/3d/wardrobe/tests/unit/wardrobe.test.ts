@@ -1,4 +1,4 @@
-// The wardrobe as an extension: once loaded, a figure may wear its eleven garments after core's fifteen; without it, a
+// The wardrobe as an extension: once loaded, a figure may wear its eleven garments after core's seven; without it, a
 // figure naming one is refused, at compile time and at dressing.
 
 import { registeredGarments } from '@automata/3d/figures-kit'
@@ -8,23 +8,7 @@ import wardrobeExtension from '../../wardrobe.extension.ts'
 
 const KEEPER = 'content/figures/keeper.toml'
 const SHIRT = 'top = "starch"\nsleeves = "short"'
-const CLASSIC = [
-  'top',
-  'waistcoat',
-  'trousers',
-  'legs',
-  'shoes',
-  'skirt',
-  'apron',
-  'coat',
-  'belt',
-  'cape',
-  'gloves',
-  'hair',
-  'cap',
-  'eyes',
-  'mark',
-]
+const CORE = ['top', 'trousers', 'shoes', 'cape', 'hair', 'cap', 'eyes']
 const STREETWEAR = [
   'tee',
   'hoodie',
@@ -53,8 +37,8 @@ describe('the wardrobe extension', () => {
     expect(wardrobeExtension.name).toBe('wardrobe')
     expect(wardrobeExtension.requires).toEqual(['figures'])
   })
-  it("registers its eleven garments after core's fifteen, in that order", () => {
-    expect(registeredGarments()).toEqual([...CLASSIC, ...STREETWEAR])
+  it("registers its eleven garments after core's seven, in that order", () => {
+    expect(registeredGarments()).toEqual([...CORE, ...STREETWEAR])
   })
   it('lets a figure wear a bomber: the figure file compiles', async () => {
     const { text } = await keeperIn('bomber = "navy"')
@@ -83,7 +67,7 @@ describe('without the wardrobe', () => {
     const { text } = await keeperIn('bomber = "navy"')
     const compiled = await core.compileFixture({ [KEEPER]: text })
     expect(compiled.ok).toBe(false)
-    expect(compiled.ok ? '' : compiled.message).toContain('a garment has one of: top, waistcoat')
+    expect(compiled.ok ? '' : compiled.message).toContain('a garment has one of: top, trousers')
     const fixture = await core.fixtureFigures()
     const def = core.figureOf({}, 'fair', [{ bomber: 'navy' }])
     expect(() => figures.build(def, figures.skeleton(def), 'golden', null, fixture.library)).toThrow(

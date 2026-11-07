@@ -69,7 +69,6 @@ export {
   figureItemContent,
   figurePoseContent,
   figureRigContent,
-  figureSeatContent,
   figureStandContent,
   figureSwatchContent,
 } from '../features/figures/content/figures.content.ts'
@@ -98,7 +97,6 @@ export {
   type RigLimits,
   rigLimitsSchema,
 } from '../features/figures/content/rig-limits.schema.ts'
-export { type Seat, type SeatHand, seatSchema } from '../features/figures/content/seat.schema.ts'
 export {
   type HandPlace,
   type Hang,
@@ -123,23 +121,15 @@ export {
   skeletonProblems,
 } from '../features/figures/figure/figure-skeleton.ts'
 export type {
-  Apron,
-  Belt,
   Cape,
   CapGarment,
   Classic,
-  Coat,
   CustomGarment,
   Eyes,
-  Gloves,
   HairGarment,
-  LegWear,
-  Mark,
   Shoes,
-  Skirt,
   Top,
   Trousers,
-  Waistcoat,
 } from '../features/figures/figure/garment.schema.ts'
 export { type Garment, garmentSchema } from '../features/figures/figure/garment.schema.ts'
 export type { BuiltMaterial } from '../features/figures/figure/materials.ts'
@@ -185,7 +175,6 @@ export {
 export type { SpaceContext } from '../features/figures/motion/pose-space.ts'
 export { canonicalPose, printPose, roundPoseNumber } from '../features/figures/motion/pose-spelling.ts'
 export { eulerOf } from '../features/figures/motion/rotation.ts'
-export { SIT, seated } from '../features/figures/motion/seated.ts'
 export { type Solved, solve } from '../features/figures/motion/solve.ts'
 export {
   CHAIN,

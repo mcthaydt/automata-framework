@@ -29,18 +29,6 @@ describe('build() matches its recorded goldens part for part', () => {
       expectMatchesGolden(outfit, library)
     })
   }
-  it("builds the pony's cuffs on every other braid (the source's density gate is a sprite's)", () => {
-    const outfit = GOLDEN_OUTFITS.find((o) => o.name === 'model-braids')
-    if (!outfit) throw new Error('no model-braids')
-    const def = figureOf(outfit.sliders, outfit.skin, outfit.garments)
-    const cuffs = build(def, skeleton(def), 'golden', null, library).parts.filter((p) => p.tag === 'cuff')
-    // Seven ropes, the four on top cuffed.
-    expect(cuffs).toHaveLength(4)
-    for (const cuff of cuffs) {
-      expect(cuff.material).toBe('chrome-dark')
-      expect(cuff.skin?.length).toBe(cuff.mesh.positions.length / 3)
-    }
-  })
 })
 
 describe('build() is platform-stable: a last-bit change moves no part past the goldens’ tolerance', () => {
@@ -101,14 +89,14 @@ describe('hairPieces (decision 6): a hair garment with no style wears the figure
     )
   it('in order, in the garment’s colour; a style on the garment wins; no hair garment, no hair', () => {
     const base = figureOf({}, 'fair', [{ top: 'navy' }, { hair: 'auburn' }, { eyes: 'eye-dark' }])
-    const def: FigureDef = { ...base, hairPieces: ['cropped', 'sleek-bun'] }
+    const def: FigureDef = { ...base, hairPieces: ['cropped', 'bob'] }
     const s = skeleton(def)
     const cropped = pieces(figureOf({}, 'fair', [{ hair: 'auburn', style: 'cropped' }]), s)
-    const bun = pieces(figureOf({}, 'fair', [{ hair: 'auburn', style: 'sleek-bun' }]), s)
+    const bob = pieces(figureOf({}, 'fair', [{ hair: 'auburn', style: 'bob' }]), s)
     const both = pieces(def, s)
     expect(cropped.length).toBeGreaterThan(0)
-    expect(bun.length).toBeGreaterThan(0)
-    expect(both).toEqual([...cropped, ...bun])
+    expect(bob.length).toBeGreaterThan(0)
+    expect(both).toEqual([...cropped, ...bob])
     const styled = { ...def, outfits: { golden: [{ hair: 'auburn', style: 'bob' }] } }
     expect(pieces(styled, s)).toEqual(pieces(figureOf({}, 'fair', [{ hair: 'auburn', style: 'bob' }]), s))
     expect(pieces({ ...def, outfits: { golden: [{ top: 'navy' }] } }, s)).toEqual([])

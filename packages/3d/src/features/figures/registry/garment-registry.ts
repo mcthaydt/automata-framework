@@ -1,5 +1,5 @@
 // The garment registry (H1): every garment kind by name, in the order a figure's garments are told apart. The
-// classic set (apron … waistcoat, outfit/garments/classic-kinds.ts) is core and registered the same way an
+// core set (cap … trousers, outfit/garments/classic-kinds.ts) is registered the same way an
 // extension's wardrobe is, so there is one path to a garment and one place that lists them.
 //
 // A kind is: the shape of its item (`schema`, which the figure's schema parses an item with), then either how it

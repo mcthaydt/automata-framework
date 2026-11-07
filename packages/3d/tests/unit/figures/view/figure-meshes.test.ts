@@ -70,8 +70,8 @@ describe('drawFigure', () => {
     const drawing = drawFigure(build(keeper, s, 'lamplighter', null, library), s, DEFAULT_PALETTE.colors, {
       lit: false,
     })
-    // The two open eyes (their `when` names neutral) and the three marks with no face state.
-    expect(drawing.decals).toBe(5)
+    // The two open eyes (their `when` names neutral).
+    expect(drawing.decals).toBe(2)
     drawing.pose(fk(s, restPose()))
     drawing.destroy()
   })

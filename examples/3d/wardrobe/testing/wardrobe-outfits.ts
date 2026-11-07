@@ -1,5 +1,5 @@
 // The outfits the wardrobe's geometry goldens (goldens/dress.json) are taken on: every streetwear garment on four
-// bodies, with the hair styles and caps they were first worn with. scripts/record-goldens.ts dresses each one;
+// bodies, with the core hair styles (locks) and caps they are worn with. scripts/record-goldens.ts dresses each one;
 // tests/unit/outfits.test.ts dresses them again and compares part by part.
 
 import type { GoldenOutfit } from '@automata/3d/testing'
@@ -29,7 +29,7 @@ export const WARDROBE_OUTFITS: readonly GoldenOutfit[] = [
       { chain: 'chrome', links: 'silver', drop: 0.12 },
       { hoops: 'brass', size: 0.3 },
       { shades: 'glass', frame: 'black', up: true },
-      { hair: 'ink-black', style: 'box-braid-pony' },
+      { hair: 'ink-black', style: 'bob' },
       eyes,
     ],
   },
@@ -42,7 +42,7 @@ export const WARDROBE_OUTFITS: readonly GoldenOutfit[] = [
       { cargos: 'tweed', hardware: 'brass', cuff: true, stitch: 'stitch' },
       { sneakers: 'black', sole: 'midsole', outsole: 'outsole' },
       { shades: 'glass', frame: 'chrome-dark' },
-      { hair: 'ink-black', style: 'high-top-fade' },
+      { hair: 'ink-black', style: 'curtain' },
       { cap: 'red-trim', style: 'fitted-back', mark: 'badge' },
       eyes,
     ],
@@ -57,7 +57,7 @@ export const WARDROBE_OUTFITS: readonly GoldenOutfit[] = [
       { cargos: 'work-green', width: 0.8 },
       { sneakers: 'starch', laces: 'cord' },
       { hoops: 'silver', size: 0.1 },
-      { hair: 'auburn', style: 'sleek-bun' },
+      { hair: 'auburn', style: 'cropped' },
       eyes,
     ],
   },
@@ -71,32 +71,32 @@ export const WARDROBE_OUTFITS: readonly GoldenOutfit[] = [
       { wideLegs: 'navy' },
       { sneakers: 'flat-grey', court: false },
       { chain: 'brass' },
-      { hair: 'ink-black', style: 'locs' },
+      { hair: 'ink-black', style: 'bob' },
       eyes,
     ],
   },
   {
-    name: 'model-hoodie-fades',
+    name: 'model-hoodie',
     sliders: { ...MODEL, chunk: 0.4, head: 0.6 },
     skin: 'auburn',
     garments: [
       { hoodie: 'navy' },
       { cargos: 'charcoal' },
       { sneakers: 'cream' },
-      { hair: 'brown', style: 'quiff-fade' },
+      { hair: 'brown', style: 'curtain' },
       eyes,
     ],
   },
   {
-    name: 'model-short-fade',
+    name: 'model-cropped',
     sliders: MODEL,
     skin: 'brown',
-    garments: [{ tee: 'navy' }, { wideLegs: 'denim' }, { hair: 'black', style: 'short-fade' }, eyes],
+    garments: [{ tee: 'navy' }, { wideLegs: 'denim' }, { hair: 'black', style: 'cropped' }, eyes],
   },
   {
-    name: 'model-cornrows',
+    name: 'model-cargos',
     sliders: { ...MODEL, height: 165, frame: 1 },
     skin: 'brown',
-    garments: [{ tee: 'maroon' }, { cargos: 'tweed' }, { hair: 'black', style: 'cornrows' }, eyes],
+    garments: [{ tee: 'maroon' }, { cargos: 'tweed' }, { hair: 'black', style: 'bob' }, eyes],
   },
 ]

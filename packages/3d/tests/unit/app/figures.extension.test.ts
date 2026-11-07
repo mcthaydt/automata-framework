@@ -15,7 +15,6 @@ describe('figuresExtension', () => {
       'figure-item',
       'figure-pose',
       'figure-rig',
-      'figure-seat',
       'figure-stand',
       'figure-swatch',
     ])
