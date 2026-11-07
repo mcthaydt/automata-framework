@@ -214,6 +214,10 @@ two bugs, both fixed with tests: the content plugin did not watch a content fold
 save wrote the game's level file before the project's own write was refused. Next, in plan order: **15.1**, 16.1 to
 16.4, 19.1, 19.2, 20.1, 21.1. 14.1 has its name (`@automata`) but is its own PR on its own branch
 (`claude/refactor-scope`), so it needs its own thread; 14.2, 21.0's DNS and 21.2 are the Owner's. WebKit for the editor's journeys (`editor-ipad-webkit`) is the Owner's: WebKit is not installed in sessions.
+For 15.1, found while reading: ship `template-ci/` the way `template-content/` ships (`tsdown.config.ts` copies the
+folder into `dist/`; `template-content.ts` reads it by a relative URL); the itch.io job belongs only in a game made
+with the `itch` target (`targetsOf(options)`), and its pinned, checksum-checked butler install and its
+`BUTLER_API_KEY` check can come from `.github/workflows/game-release.yml`.
 
 **Where to resume (2026-11-07, session 22):** branch `claude/project-thread-68k16x`, stacked on #434
 (`claude/project-thread-51wjcc`). Session 22: **18.0, 18.4 and 18.5 are done** (the plan's log, "Phase 18, part
