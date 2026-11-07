@@ -1,0 +1,448 @@
+# The adventure source's prologue line records (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+[[lines]]
+id = "prologue.handover"
+kind = "note"
+text = "prologue.handover"
+motifs = [ "handwriting", "line" ]
+
+[[lines]]
+id = "prologue.handoverBack"
+kind = "note"
+text = "prologue.handoverBack"
+motifs = [ "handwriting", "four" ]
+
+[[lines]]
+id = "prologue.handoverAgain"
+kind = "examine"
+speaker = "ada"
+text = "prologue.handoverAgain"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "prologue.register"
+kind = "note"
+text = "prologue.register"
+motifs = [ "line" ]
+
+[[lines]]
+id = "prologue.clock"
+kind = "examine"
+speaker = "ada"
+text = "prologue.clock"
+motifs = [ "clocks" ]
+
+[[lines]]
+id = "prologue.monitor"
+kind = "examine"
+speaker = "ada"
+text = "prologue.monitor"
+motifs = [ "four" ]
+
+[[lines]]
+id = "prologue.record"
+kind = "examine"
+speaker = "ada"
+text = "prologue.record"
+
+[[lines]]
+id = "prologue.bedBare"
+kind = "examine"
+speaker = "ada"
+text = "prologue.bedBare"
+motifs = [ "four" ]
+
+[[lines]]
+id = "prologue.bedWait"
+kind = "examine"
+speaker = "ada"
+text = "prologue.bedWait"
+motifs = [ "four" ]
+
+[[lines]]
+id = "prologue.bedMade"
+kind = "examine"
+speaker = "ada"
+text = "prologue.bedMade"
+motifs = [ "four", "warmth" ]
+
+[[lines]]
+id = "prologue.curtain"
+kind = "examine"
+speaker = "ada"
+text = "prologue.curtain"
+
+[[lines]]
+id = "prologue.sink"
+kind = "examine"
+speaker = "ada"
+text = "prologue.sink"
+
+[[lines]]
+id = "prologue.nightstandLamp"
+kind = "examine"
+speaker = "ada"
+text = "prologue.nightstandLamp"
+
+[[lines]]
+id = "prologue.nightstandParaffin"
+kind = "examine"
+speaker = "ada"
+text = "prologue.nightstandParaffin"
+
+[[lines]]
+id = "prologue.nightstandMore"
+kind = "examine"
+speaker = "ada"
+text = "prologue.nightstandMore"
+
+[[lines]]
+id = "prologue.nightstandEmpty"
+kind = "examine"
+speaker = "ada"
+text = "prologue.nightstandEmpty"
+
+[[lines]]
+id = "prologue.trolley"
+kind = "examine"
+speaker = "ada"
+text = "prologue.trolley"
+
+[[lines]]
+id = "prologue.cabinetOpen"
+kind = "examine"
+speaker = "ada"
+text = "prologue.cabinetOpen"
+
+[[lines]]
+id = "prologue.doorLocked"
+kind = "examine"
+speaker = "ada"
+text = "prologue.doorLocked"
+
+[[lines]]
+id = "prologue.doorOpened"
+kind = "examine"
+speaker = "ada"
+text = "prologue.doorOpened"
+
+[[lines]]
+id = "prologue.doorOpen"
+kind = "examine"
+speaker = "ada"
+text = "prologue.doorOpen"
+
+[[lines]]
+id = "prologue.shelfDark"
+kind = "examine"
+speaker = "ada"
+text = "prologue.shelfDark"
+
+[[lines]]
+id = "prologue.shelfSheets"
+kind = "examine"
+speaker = "ada"
+text = "prologue.shelfSheets"
+
+[[lines]]
+id = "prologue.shelfEmpty"
+kind = "examine"
+speaker = "ada"
+text = "prologue.shelfEmpty"
+
+[[lines]]
+id = "prologue.exit"
+kind = "examine"
+speaker = "ada"
+text = "prologue.exit"
+
+[[lines]]
+id = "prologue.fuseBox"
+kind = "examine"
+speaker = "ada"
+text = "prologue.fuseBox"
+
+[[lines]]
+id = "prologue.valve"
+kind = "examine"
+speaker = "ada"
+text = "prologue.valve"
+
+[[lines]]
+id = "prologue.noEffect"
+kind = "examine"
+speaker = "ada"
+text = "prologue.noEffect"
+
+[[lines]]
+id = "prologue.lighterEmpty"
+kind = "examine"
+speaker = "ada"
+text = "prologue.lighterEmpty"
+
+[[lines]]
+id = "prologue.torchOut"
+kind = "examine"
+speaker = "ada"
+text = "prologue.torchOut"
+
+[[lines]]
+id = "prologue.combineTorch"
+kind = "examine"
+speaker = "ada"
+text = "prologue.combineTorch"
+
+[[lines]]
+id = "prologue.combineFluid"
+kind = "examine"
+speaker = "ada"
+text = "prologue.combineFluid"
+motifs = [ "warmth" ]
+
+[[lines]]
+id = "prologue.lampDry"
+kind = "examine"
+speaker = "ada"
+text = "prologue.lampDry"
+
+[[lines]]
+id = "prologue.keypadWrong"
+kind = "examine"
+speaker = "ada"
+text = "prologue.keypadWrong"
+
+[[lines]]
+id = "prologue.keypadRight"
+kind = "examine"
+speaker = "ada"
+text = "prologue.keypadRight"
+
+[[lines]]
+id = "prologue.item.handLamp.name"
+kind = "item"
+text = "prologue.item.handLamp.name"
+
+[[lines]]
+id = "prologue.item.handLamp"
+kind = "item"
+speaker = "ada"
+text = "prologue.item.handLamp"
+motifs = [ "warmth" ]
+
+[[lines]]
+id = "prologue.item.paraffin.name"
+kind = "item"
+text = "prologue.item.paraffin.name"
+
+[[lines]]
+id = "prologue.item.paraffin"
+kind = "item"
+speaker = "ada"
+text = "prologue.item.paraffin"
+
+[[lines]]
+id = "prologue.item.supplyKey.name"
+kind = "item"
+text = "prologue.item.supplyKey.name"
+
+[[lines]]
+id = "prologue.item.supplyKey"
+kind = "item"
+speaker = "ada"
+text = "prologue.item.supplyKey"
+motifs = [ "tags" ]
+
+[[lines]]
+id = "prologue.item.sheets.name"
+kind = "item"
+text = "prologue.item.sheets.name"
+
+[[lines]]
+id = "prologue.item.sheets"
+kind = "item"
+speaker = "ada"
+text = "prologue.item.sheets"
+motifs = [ "four" ]
+
+[[lines]]
+id = "prologue.registerAsk"
+kind = "note"
+text = "prologue.registerAsk"
+motifs = [ "line" ]
+
+[[lines]]
+id = "prologue.registerSign"
+kind = "dialogue"
+speaker = "ada"
+text = "prologue.registerSign"
+
+[[lines]]
+id = "prologue.registerLeave"
+kind = "dialogue"
+speaker = "ada"
+text = "prologue.registerLeave"
+
+[[lines]]
+id = "prologue.registerSigned"
+kind = "file"
+text = "prologue.registerSigned"
+motifs = [ "handwriting", "line" ]
+
+[[lines]]
+id = "prologue.st.p0.blanket"
+kind = "examine"
+speaker = "ada"
+text = "prologue.st.p0.blanket"
+motifs = [ "warmth", "pools", "four" ]
+
+[[lines]]
+id = "prologue.st.p0.jug"
+kind = "examine"
+speaker = "ada"
+text = "prologue.st.p0.jug"
+motifs = [ "four" ]
+
+[[lines]]
+id = "prologue.st.p0.window"
+kind = "examine"
+speaker = "ada"
+text = "prologue.st.p0.window"
+motifs = [ "clocks" ]
+
+[[lines]]
+id = "prologue.register.code"
+kind = "note"
+text = "prologue.register.code"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "prologue.register.supplyKey"
+kind = "note"
+text = "prologue.register.supplyKey"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "prologue.register.fillLamp"
+kind = "note"
+text = "prologue.register.fillLamp"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "prologue.register.darkShelf"
+kind = "note"
+text = "prologue.register.darkShelf"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "prologue.register.makeBed"
+kind = "note"
+text = "prologue.register.makeBed"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "prologue.register.vigil"
+kind = "note"
+text = "prologue.register.vigil"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "prologue.cutscene.opening.1"
+kind = "caption"
+text = "prologue.cutscene.opening.1"
+motifs = [ "clocks" ]
+
+[[lines]]
+id = "prologue.cutscene.opening.2"
+kind = "caption"
+speaker = "ada"
+text = "prologue.cutscene.opening.2"
+
+[[lines]]
+id = "prologue.cutscene.opening.3"
+kind = "caption"
+speaker = "ada"
+text = "prologue.cutscene.opening.3"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "prologue.cutscene.keypad.1"
+kind = "caption"
+text = "prologue.cutscene.keypad.1"
+
+[[lines]]
+id = "prologue.cutscene.lightsOut.1"
+kind = "caption"
+speaker = "ada"
+text = "prologue.cutscene.lightsOut.1"
+motifs = [ "warmth" ]
+
+[[lines]]
+id = "prologue.cutscene.lightsOut.2"
+kind = "caption"
+speaker = "ada"
+text = "prologue.cutscene.lightsOut.2"
+
+[[lines]]
+id = "prologue.cutscene.found.1"
+kind = "caption"
+speaker = "ada"
+text = "prologue.cutscene.found.1"
+motifs = [ "four" ]
+
+[[lines]]
+id = "prologue.cutscene.rest.1"
+kind = "caption"
+speaker = "ada"
+text = "prologue.cutscene.rest.1"
+motifs = [ "line" ]
+
+[[lines]]
+id = "prologue.cutscene.rest.2"
+kind = "caption"
+speaker = "ada"
+text = "prologue.cutscene.rest.2"
+
+[[lines]]
+id = "prologue.objective.note"
+kind = "objective"
+text = "prologue.objective.note"
+
+[[lines]]
+id = "prologue.objective.key"
+kind = "objective"
+text = "prologue.objective.key"
+
+[[lines]]
+id = "prologue.objective.lamp"
+kind = "objective"
+text = "prologue.objective.lamp"
+
+[[lines]]
+id = "prologue.objective.fill"
+kind = "objective"
+text = "prologue.objective.fill"
+
+[[lines]]
+id = "prologue.objective.closet"
+kind = "objective"
+text = "prologue.objective.closet"
+
+[[lines]]
+id = "prologue.objective.sheets"
+kind = "objective"
+text = "prologue.objective.sheets"
+
+[[lines]]
+id = "prologue.objective.bed"
+kind = "objective"
+text = "prologue.objective.bed"
+
+[[lines]]
+id = "prologue.objective.hide"
+kind = "objective"
+text = "prologue.objective.hide"
+
+[[lines]]
+id = "prologue.objective.rest"
+kind = "objective"
+text = "prologue.objective.rest"

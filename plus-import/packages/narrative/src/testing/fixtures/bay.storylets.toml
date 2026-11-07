@@ -1,0 +1,57 @@
+# The adventure source's bay storylet deck (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+[[storylets]]
+id = "st.p2.lighter"
+trigger = "system:light.on"
+phase = "P2"
+lines = [ "bay.st.p2.lighter" ]
+once = true
+
+[[storylets.when]]
+[[storylets.when.any]]
+fact = "porterMet"
+is = "staff"
+
+[[storylets.when.any]]
+fact = "porterMet"
+is = "unsure"
+
+[[storylets.when.any]]
+fact = "porterMet"
+is = "yours"
+
+[[storylets.when]]
+fact = "flameReachesHim"
+is = true
+
+[[storylets]]
+id = "st.p2.drawer"
+trigger = "inspect:drawer4"
+phase = "P2"
+lines = [ "bay.st.p2.drawer" ]
+once = true
+
+[[storylets.when]]
+fact = "read.ledger"
+is = true
+
+[[storylets.when]]
+fact = "read.drawer4"
+is = true
+
+[[storylets.when]]
+fact = "hidden"
+is = false
+
+[[storylets]]
+id = "st.sys.fuel.low"
+trigger = "system:fuel.low"
+phase = "P2"
+lines = [ "bay.st.sys.fuel.low" ]
+
+[[storylets]]
+id = "st.sys.grapple.porter"
+trigger = "system:grapple.porter"
+phase = "P2"
+lines = [ "bay.st.sys.grapple.porter" ]
+hints = [ "porterTouch" ]

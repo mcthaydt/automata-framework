@@ -1,0 +1,63 @@
+{
+  "name": "@mcthaydt/automata-physics",
+  "version": "0.0.3",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-plus.git",
+    "directory": "packages/physics"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./2d": "./src/2d.ts",
+    "./3d": "./src/3d.ts"
+  },
+  "automata": {
+    "simEntries": [
+      "./2d",
+      "./3d"
+    ]
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "exports": {
+      "./2d": {
+        "types": "./dist/2d.d.ts",
+        "import": "./dist/2d.js"
+      },
+      "./3d": {
+        "types": "./dist/3d.d.ts",
+        "import": "./dist/3d.js"
+      }
+    }
+  },
+  "scripts": {
+    "test": "vitest run --project node --project browsers",
+    "bench": "vitest run --project bench",
+    "test:unit": "vitest run --project node",
+    "test:parity": "vitest run --project browsers",
+    "test:evidence": "vitest run --project node --project browsers src/physics-2d.parity.test.ts src/physics-3d.parity.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
+    "typecheck": "tsc -p .",
+    "build": "tsdown"
+  },
+  "dependencies": {
+    "@dimforge/rapier2d-deterministic-compat": "0.21.0",
+    "@dimforge/rapier3d-deterministic-compat": "0.21.0",
+    "zod": "4.6.6"
+  },
+  "peerDependencies": {
+    "@mcthaydt/automata-sim": "0.0.3"
+  },
+  "devDependencies": {
+    "@mcthaydt/automata-sim": "0.0.3",
+    "@mcthaydt/automata-testing": "0.0.3",
+    "@mcthaydt/evidence": "0.0.0",
+    "@vitest/browser-playwright": "5.0.3",
+    "playwright": "1.63.0",
+    "vitest": "5.0.3"
+  }
+}

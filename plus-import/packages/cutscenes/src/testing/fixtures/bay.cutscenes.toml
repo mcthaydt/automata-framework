@@ -1,0 +1,1048 @@
+# The adventure source's bay cutscenes (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/cutscenes/scripts/convert-adventure-cutscenes.ts, each evaluated in one context. Do not edit.
+[[cutscenes]]
+id = "arrival"
+duration = 22
+
+[[cutscenes.camera]]
+t = 0
+pos = [ 1.6, 4.4, 2.2 ]
+look = [ -3.6999999999999997, 1.7, -1.9 ]
+cut = true
+lens = 22
+
+[[cutscenes.camera]]
+t = 4.6
+pos = [ 0.9, 3.8, 1.3 ]
+look = [ -3.8999999999999995, 1.8, -1.9 ]
+lens = 24
+ease = "out"
+
+[[cutscenes.camera]]
+t = 4.6
+pos = [ -1.1999999999999997, 2.5, -0.3999999999999999 ]
+look = [ -4.1, 2.15, -1.9 ]
+cut = true
+lens = 20
+
+[[cutscenes.camera]]
+t = 10
+pos = [ -1.5999999999999996, 2.45, -0.5999999999999999 ]
+look = [ -4.1, 2.15, -1.9 ]
+lens = 20
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 10
+pos = [ 2.55, 3.16, -1 ]
+look = [ 3.65, 1.8599999999999999, 0.9 ]
+cut = true
+lens = 28
+
+[[cutscenes.camera]]
+t = 15.7
+pos = [ 2.85, 2.8099999999999996, -0.6 ]
+look = [ 3.35, 1.8599999999999999, 0 ]
+lens = 34
+ease = "smooth"
+
+[[cutscenes.camera]]
+t = 15.7
+pos = [ -1.2, 1.75, -2.4000000000000004 ]
+look = [ 0.5, 1.35, -5.2 ]
+cut = true
+lens = 20
+
+[[cutscenes.camera]]
+t = 22
+pos = [ -0.95, 1.7, -2.8000000000000003 ]
+look = [ 0.5, 1.4, -5.2 ]
+lens = 21
+ease = "linear"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0
+x = -4.6
+z = -1.9
+facing = 1.5707963267948966
+
+[[cutscenes.actor]]
+who = "player"
+t = 2.2
+x = -4.1
+z = -1.9
+facing = 1.5707963267948966
+moving = true
+
+[[cutscenes.actor]]
+who = "player"
+t = 3
+x = -4.1
+z = -1.9
+facing = 1.5707963267948966
+
+[[cutscenes.actor]]
+who = "player"
+t = 5
+x = -4.1
+z = -1.9
+facing = 1.5707963267948966
+pose = "look"
+
+[[cutscenes.actor]]
+who = "player"
+t = 9.6
+x = -4.1
+z = -1.9
+facing = 1.5707963267948966
+pose = "look"
+
+[[cutscenes.actor]]
+who = "player"
+t = 9.7
+x = -4.1
+z = -1.9
+facing = 1.5707963267948966
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 0
+x = 0.5
+z = -5.2
+alpha = 1
+facing = 3.141592653589793
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 15.75
+x = 0.5
+z = -5.2
+alpha = 1
+facing = 3.141592653589793
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 15.8
+x = 0.5
+z = -5.2
+alpha = 1
+facing = 3.141592653589793
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 15.92
+x = 0.5
+z = -5.2
+alpha = 1
+facing = 3.872625719583828
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 16.04
+x = 0.5
+z = -5.2
+alpha = 1
+facing = 4.603658785577863
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 16.1
+x = 0.5
+z = -5.2
+alpha = 1
+facing = -0.948493455607689
+pose = "mutter"
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 16.16
+x = 0.5
+z = -5.2
+alpha = 1
+facing = 5.334691851571897
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 22
+x = 0.5
+z = -5.2
+alpha = 1
+facing = -0.948493455607689
+pose = "mutter"
+
+[[cutscenes.caption]]
+t = 4.6
+until = 10.066666666666666
+line = "bay.cutscene.arrival.1"
+speaker = "ada"
+
+[[cutscenes.caption]]
+t = 10.2
+until = 15.799999999999999
+line = "bay.cutscene.arrival.2"
+
+[[cutscenes.caption]]
+t = 16.2
+until = 21.799999999999997
+line = "bay.cutscene.arrival.3"
+speaker = "the porter"
+
+[[cutscenes.light]]
+t = 10
+lamp = "bayFill"
+level = 2.4
+
+[[cutscenes.light]]
+t = 15.65
+lamp = "bayFill"
+level = 2.4
+
+[[cutscenes.light]]
+t = 15.7
+lamp = "bayFill"
+level = 0.6
+
+[[cutscenes.light]]
+t = 10
+lamp = "eastFill"
+level = 0.9
+
+[[cutscenes.light]]
+t = 15.65
+lamp = "eastFill"
+level = 0.9
+
+[[cutscenes.sound]]
+t = 0.2
+kind = "door"
+
+[[cutscenes.sound]]
+t = 15.7
+kind = "rattle"
+
+[[cutscenes.fade]]
+t = 0
+value = 0
+
+[[cutscenes.fade]]
+t = 21.3
+value = 0
+
+[[cutscenes.fade]]
+t = 22
+value = 1
+
+[[cutscenes]]
+id = "caught"
+duration = 6
+shake = [ [ 0, 0.5, 0.03 ] ]
+
+[[cutscenes.camera]]
+t = 0
+pos = [ -0.928309317263181, 1.9, -6.15146298705559 ]
+look = [ -0.22499999999999964, 1.25, -2.825 ]
+cut = true
+lens = 16
+
+[[cutscenes.camera]]
+t = 2.4
+pos = [ -0.8720445718821266, 1.8, -5.8853459480911425 ]
+look = [ -0.22499999999999964, 1.25, -2.825 ]
+lens = 16
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 2.4
+pos = [ 2.61359156061849, 1.75, -6.20956278785423 ]
+look = [ 4.15, 1.5, -3.75 ]
+cut = true
+lens = 15.5
+
+[[cutscenes.camera]]
+t = 6
+pos = [ 2.767232404556641, 1.7, -5.963606509068807 ]
+look = [ 4.15, 1.5, -3.75 ]
+lens = 15
+ease = "linear"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0
+x = -4.6
+z = -1.9
+facing = 1.7791563595225954
+pose = "flinch"
+
+[[cutscenes.actor]]
+who = "player"
+t = 1.2
+x = -4.6
+z = -1.9
+facing = 1.7791563595225954
+pose = "flinch"
+
+[[cutscenes.actor]]
+who = "player"
+t = 1.3
+x = -4.6
+z = -1.9
+facing = 1.7791563595225954
+shiver = 0.012
+
+[[cutscenes.actor]]
+who = "player"
+t = 6
+x = -4.6
+z = -1.9
+facing = 1.7791563595225954
+shiver = 0.012
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 0
+x = 4.15
+z = -3.75
+alpha = 1
+facing = 4.920749013112388
+
+[[cutscenes.caption]]
+t = 0.2
+until = 6
+line = "bay.caught.porter"
+speaker = "he found you."
+
+[[cutscenes.fade]]
+t = 0
+value = 0
+
+[[cutscenes.fade]]
+t = 4.8
+value = 0.15
+
+[[cutscenes.fade]]
+t = 6
+value = 1
+
+[[cutscenes]]
+id = "caughtCrew"
+duration = 6
+shake = [ [ 0, 0.5, 0.03 ] ]
+
+[[cutscenes.camera]]
+t = 0
+pos = [ -0.928309317263181, 1.9, -6.15146298705559 ]
+look = [ -0.22499999999999964, 1.25, -2.825 ]
+cut = true
+lens = 16
+
+[[cutscenes.camera]]
+t = 2.4
+pos = [ -0.8720445718821266, 1.8, -5.8853459480911425 ]
+look = [ -0.22499999999999964, 1.25, -2.825 ]
+lens = 16
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 2.4
+pos = [ 2.61359156061849, 1.75, -6.20956278785423 ]
+look = [ 4.15, 1.5, -3.75 ]
+cut = true
+lens = 15.5
+
+[[cutscenes.camera]]
+t = 6
+pos = [ 2.767232404556641, 1.7, -5.963606509068807 ]
+look = [ 4.15, 1.5, -3.75 ]
+lens = 15
+ease = "linear"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0
+x = -4.6
+z = -1.9
+facing = 1.7791563595225954
+pose = "flinch"
+
+[[cutscenes.actor]]
+who = "player"
+t = 1.2
+x = -4.6
+z = -1.9
+facing = 1.7791563595225954
+pose = "flinch"
+
+[[cutscenes.actor]]
+who = "player"
+t = 1.3
+x = -4.6
+z = -1.9
+facing = 1.7791563595225954
+shiver = 0.012
+
+[[cutscenes.actor]]
+who = "player"
+t = 6
+x = -4.6
+z = -1.9
+facing = 1.7791563595225954
+shiver = 0.012
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 0
+x = 4.15
+z = -3.75
+alpha = 1
+facing = 4.920749013112388
+pose = "reach"
+
+[[cutscenes.caption]]
+t = 0.2
+until = 6
+line = "bay.caught.crew"
+speaker = "the crew found you."
+
+[[cutscenes.fade]]
+t = 0
+value = 0
+
+[[cutscenes.fade]]
+t = 4.8
+value = 0.15
+
+[[cutscenes.fade]]
+t = 6
+value = 1
+
+[[cutscenes]]
+id = "dawn"
+duration = 23.4
+
+[[cutscenes.camera]]
+t = 0
+pos = [ 0.6, 0.95, -3.1000000000000005 ]
+look = [ 0.5, 1.6, -6 ]
+cut = true
+lens = 13
+
+[[cutscenes.camera]]
+t = 4.8
+pos = [ 0.65, 1.2, -3.2 ]
+look = [ 0.5, 2.1, -6 ]
+lens = 13
+ease = "out"
+
+[[cutscenes.camera]]
+t = 4.8
+pos = [ 3.5239009663000593, 1.7, -5.002198067399882 ]
+look = [ 4.15, 1.35, -3.75 ]
+cut = true
+lens = 17
+
+[[cutscenes.camera]]
+t = 8.2
+pos = [ 3.5990328503440523, 1.65, -4.851934299311896 ]
+look = [ 4.15, 1.35, -3.75 ]
+lens = 17
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 8.2
+pos = [ 3.95, 2.6, -2.95 ]
+look = [ 4.7, 1.8, -3.65 ]
+cut = true
+lens = 30
+
+[[cutscenes.camera]]
+t = 14.399999999999999
+pos = [ 4.1000000000000005, 2.45, -3.0999999999999996 ]
+look = [ 4.7, 1.8, -3.65 ]
+lens = 34
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 14.399999999999999
+pos = [ 0.65, 1.7, -3.1000000000000005 ]
+look = [ 0.5, 1.45, -5.4 ]
+cut = true
+lens = 14
+
+[[cutscenes.camera]]
+t = 17.4
+pos = [ 0.7, 1.65, -3.3000000000000003 ]
+look = [ 0.5, 1.45, -5.4 ]
+lens = 13.5
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 17.4
+pos = [ 0.6, 0.9, -3.2 ]
+look = [ 0.5, 1.7, -7.800000000000001 ]
+cut = true
+lens = 13
+
+[[cutscenes.camera]]
+t = 23.4
+pos = [ 0.6, 1, -3.4000000000000004 ]
+look = [ 0.5, 1.7, -7.800000000000001 ]
+lens = 13
+ease = "linear"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0
+x = -4.6
+z = -1.9
+facing = 3.141592653589793
+
+[[cutscenes.actor]]
+who = "player"
+t = 1
+x = 0.5
+z = -5.4
+facing = 3.141592653589793
+moving = true
+
+[[cutscenes.actor]]
+who = "player"
+t = 14.299999999999999
+x = 0.5
+z = -5.4
+facing = 3.141592653589793
+
+[[cutscenes.actor]]
+who = "player"
+t = 14.399999999999999
+x = 0.5
+z = -5.4
+facing = 0
+pose = "look"
+
+[[cutscenes.actor]]
+who = "player"
+t = 17.299999999999997
+x = 0.5
+z = -5.4
+facing = 0
+pose = "look"
+
+[[cutscenes.actor]]
+who = "player"
+t = 17.4
+x = 0.5
+z = -5.4
+facing = 0
+
+[[cutscenes.actor]]
+who = "player"
+t = 17.52
+x = 0.5
+z = -5.4
+facing = 0.7853981633974483
+
+[[cutscenes.actor]]
+who = "player"
+t = 17.639999999999997
+x = 0.5
+z = -5.4
+facing = 1.5707963267948966
+
+[[cutscenes.actor]]
+who = "player"
+t = 17.759999999999998
+x = 0.5
+z = -5.4
+facing = 2.356194490192345
+
+[[cutscenes.actor]]
+who = "player"
+t = 17.88
+x = 0.5
+z = -5.4
+facing = 3.141592653589793
+
+[[cutscenes.actor]]
+who = "player"
+t = 20.799999999999997
+x = 0.5
+z = -5.44
+facing = 3.141592653589793
+moving = true
+through = true
+
+[[cutscenes.actor]]
+who = "player"
+t = 21.799999999999997
+x = 0.5
+z = -5.48
+alpha = 0
+through = true
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 0
+x = 4.15
+z = -3.75
+alpha = 1
+facing = -2.677945044588987
+pose = "write"
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 7.9
+x = 4.15
+z = -3.75
+alpha = 1
+facing = -2.677945044588987
+pose = "write"
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 8
+x = 4.15
+z = -3.75
+alpha = 1
+facing = -2.677945044588987
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 8.09
+x = 4.15
+z = -3.75
+alpha = 1
+facing = -3.141592653589793
+
+[[cutscenes.caption]]
+t = 0.6
+until = 4.7333333333333325
+line = "bay.cutscene.dawn.1"
+
+[[cutscenes.caption]]
+t = 5.2
+until = 7.9
+line = "bay.cutscene.dawn.3"
+speaker = "the porter"
+
+[[cutscenes.caption]]
+t = 8.399999999999999
+until = 14.2
+line = "bay.cutscene.dawn.2"
+
+[[cutscenes.caption]]
+t = 14.799999999999999
+until = 17.14
+line = "bay.cutscene.dawn.4"
+speaker = "ada"
+
+[[cutscenes.caption]]
+t = 17.599999999999998
+until = 22.53333333333333
+line = "bay.cutscene.dawn.5"
+
+[[cutscenes.light]]
+t = 0
+lamp = "dawn"
+level = 0
+
+[[cutscenes.light]]
+t = 4
+lamp = "dawn"
+level = 0.35
+
+[[cutscenes.light]]
+t = 4.8
+lamp = "officeLamp"
+level = 2.6
+
+[[cutscenes.light]]
+t = 8.2
+lamp = "officeLamp"
+level = 2.6
+
+[[cutscenes.light]]
+t = 14.399999999999999
+lamp = "officeLamp"
+level = 0.9
+
+[[cutscenes.light]]
+t = 8.2
+lamp = "deskLamp"
+level = 2.2
+
+[[cutscenes.light]]
+t = 14.349999999999998
+lamp = "deskLamp"
+level = 2.2
+
+[[cutscenes.light]]
+t = 14.399999999999999
+lamp = "deskLamp"
+level = 1
+
+[[cutscenes.states]]
+t = 0.4
+state = "shutter.open"
+
+[[cutscenes]]
+id = "grapple"
+duration = 3.4
+shake = [ [ 0, 0.3, 0.02 ] ]
+
+[[cutscenes.camera]]
+t = 0
+pos = [ 2.2451840288911615, 2.55, -4.950698178648028 ]
+look = [ 4.15, 1.25, -3.75 ]
+lens = 14
+
+[[cutscenes.camera]]
+t = 2.4
+pos = [ 2.2451840288911615, 2.55, -4.950698178648028 ]
+look = [ 4.15, 1.25, -3.75 ]
+lens = 15
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 2.4
+pos = [ -3.3441940789751747, 2.55, -3.768943950127716 ]
+look = [ -4.6, 1.25, -1.9 ]
+cut = true
+lens = 14
+
+[[cutscenes.camera]]
+t = 3.4
+pos = [ -3.3441940789751747, 2.55, -3.768943950127716 ]
+look = [ -4.6, 1.25, -1.9 ]
+lens = 15.5
+ease = "out"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0
+x = -4.6
+z = -1.9
+facing = 1.7791563595225954
+pose = "thrust"
+
+[[cutscenes.actor]]
+who = "player"
+t = 3.4
+x = -4.6
+z = -1.9
+facing = 1.7791563595225954
+pose = "thrust"
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 0
+x = 4.15
+z = -3.75
+alpha = 1
+facing = 4.920749013112388
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 0.2
+x = 4.15
+z = -3.75
+alpha = 1
+facing = 4.920749013112388
+pose = "cup"
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 3.4
+x = 4.15
+z = -3.75
+alpha = 1
+facing = 4.920749013112388
+pose = "cup"
+
+[[cutscenes.caption]]
+t = 0.2
+until = 2.3600000000000003
+line = "bay.cutscene.grapple.1"
+speaker = "the porter"
+
+[[cutscenes]]
+id = "grappleCrew"
+duration = 3.4
+shake = [ [ 0, 0.3, 0.02 ] ]
+
+[[cutscenes.camera]]
+t = 0
+pos = [ 2.2451840288911615, 2.55, -4.950698178648028 ]
+look = [ 4.15, 1.25, -3.75 ]
+lens = 14
+
+[[cutscenes.camera]]
+t = 2.4
+pos = [ 2.2451840288911615, 2.55, -4.950698178648028 ]
+look = [ 4.15, 1.25, -3.75 ]
+lens = 15
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 2.4
+pos = [ -3.3441940789751747, 2.55, -3.768943950127716 ]
+look = [ -4.6, 1.25, -1.9 ]
+cut = true
+lens = 14
+
+[[cutscenes.camera]]
+t = 3.4
+pos = [ -3.3441940789751747, 2.55, -3.768943950127716 ]
+look = [ -4.6, 1.25, -1.9 ]
+lens = 15.5
+ease = "out"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0
+x = -4.6
+z = -1.9
+facing = 1.7791563595225954
+pose = "thrust"
+
+[[cutscenes.actor]]
+who = "player"
+t = 3.4
+x = -4.6
+z = -1.9
+facing = 1.7791563595225954
+pose = "thrust"
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 0
+x = 4.15
+z = -3.75
+alpha = 1
+facing = 4.920749013112388
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 0.2
+x = 4.15
+z = -3.75
+alpha = 1
+facing = 4.920749013112388
+pose = "radio"
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 3.4
+x = 4.15
+z = -3.75
+alpha = 1
+facing = 4.920749013112388
+pose = "radio"
+
+[[cutscenes.caption]]
+t = 0.2
+until = 6.333333333333334
+line = "bay.cutscene.grappleCrew.1"
+speaker = "the crew"
+
+[[cutscenes]]
+id = "latched"
+duration = 10
+shake = [ [ 0.6, 0.9, 0.025 ], [ 1.6, 1.9, 0.025 ] ]
+
+[[cutscenes.camera]]
+t = 0
+pos = [ -2.3, 1.5, -2.6625 ]
+look = [ -1.8, 1.05, -5.0625 ]
+cut = true
+lens = 30
+
+[[cutscenes.camera]]
+t = 2.6
+pos = [ -2.2, 1.45, -3.0625 ]
+look = [ -1.8, 1.05, -5.0625 ]
+lens = 32
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 2.6
+pos = [ -0.7999999999999998, 1.85, 1.1102230246251565e-16 ]
+look = [ -3.5999999999999996, 1.3, -0.9999999999999999 ]
+cut = true
+lens = 20
+
+[[cutscenes.camera]]
+t = 10
+pos = [ -1.0999999999999996, 1.8, -0.09999999999999987 ]
+look = [ -3.5999999999999996, 1.3, -0.9999999999999999 ]
+lens = 21
+ease = "linear"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0
+x = -3.5999999999999996
+z = -0.9999999999999999
+facing = 3.141592653589793
+cut = true
+
+[[cutscenes.actor]]
+who = "player"
+t = 0.6
+x = -3.5999999999999996
+z = -0.9999999999999999
+facing = 3.141592653589793
+pose = "flinch"
+
+[[cutscenes.actor]]
+who = "player"
+t = 1.2
+x = -3.5999999999999996
+z = -0.9999999999999999
+facing = 3.141592653589793
+
+[[cutscenes.actor]]
+who = "player"
+t = 1.6
+x = -3.5999999999999996
+z = -0.9999999999999999
+facing = 3.141592653589793
+pose = "flinch"
+
+[[cutscenes.actor]]
+who = "player"
+t = 2.4
+x = -3.5999999999999996
+z = -0.9999999999999999
+facing = 3.141592653589793
+
+[[cutscenes.actor]]
+who = "player"
+t = 4.4
+x = -3.5999999999999996
+z = -0.9999999999999999
+facing = 3.141592653589793
+
+[[cutscenes.actor]]
+who = "player"
+t = 4.54
+x = -3.5999999999999996
+z = -0.9999999999999999
+facing = 2.356194490192345
+
+[[cutscenes.actor]]
+who = "player"
+t = 4.680000000000001
+x = -3.5999999999999996
+z = -0.9999999999999999
+facing = 1.5707963267948966
+
+[[cutscenes.actor]]
+who = "player"
+t = 5
+x = -3.5999999999999996
+z = -0.9999999999999999
+facing = 1.5707963267948966
+pose = "look"
+
+[[cutscenes.actor]]
+who = "player"
+t = 8.2
+x = -3.5999999999999996
+z = -0.9999999999999999
+facing = 1.5707963267948966
+pose = "look"
+
+[[cutscenes.actor]]
+who = "player"
+t = 8.3
+x = -3.5999999999999996
+z = -0.9999999999999999
+facing = 1.5707963267948966
+
+[[cutscenes.actor]]
+who = "player"
+t = 9.2
+x = -4.6
+z = -1.9
+facing = 3.141592653589793
+moving = true
+
+[[cutscenes.actor]]
+who = "player"
+t = 10
+x = -4.6
+z = -1.9
+facing = 3.141592653589793
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 0
+x = -1.8
+z = -5.0625
+alpha = 0
+
+[[cutscenes.caption]]
+t = 0.4
+until = 4.133333333333334
+line = "bay.cutscene.latched.1"
+
+[[cutscenes.caption]]
+t = 4.4
+until = 9.133333333333333
+line = "bay.cutscene.latched.2"
+speaker = "the porter"
+
+[[cutscenes.light]]
+t = 0
+lamp = "shutterFill"
+level = 1.6
+
+[[cutscenes.light]]
+t = 2.55
+lamp = "shutterFill"
+level = 1.6
+
+[[cutscenes.light]]
+t = 2.6
+lamp = "shutterFill"
+level = 0.2
+
+[[cutscenes.light]]
+t = 0
+lamp = "doorFill"
+level = 2.4
+
+[[cutscenes.light]]
+t = 2.55
+lamp = "doorFill"
+level = 2.4
+
+[[cutscenes.light]]
+t = 2.6
+lamp = "doorFill"
+level = 0
+
+[[cutscenes.sound]]
+t = 0.6
+kind = "bang"
+
+[[cutscenes.sound]]
+t = 1.6
+kind = "bang"
+
+[[cutscenes.fade]]
+t = 0
+value = 0
+
+[[cutscenes.fade]]
+t = 9.3
+value = 0
+
+[[cutscenes.fade]]
+t = 10
+value = 1
+
+[[cutscenes.states]]
+t = 0
+state = "mortuaryDoor.latched"

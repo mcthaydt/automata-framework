@@ -1,0 +1,140 @@
+# The clinic map of the adventure source (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/sectors/scripts/convert-adventure-map.ts. Do not edit: it is SC-a's input.
+[[sectors]]
+id = "hall"
+zone = "hall"
+floor = 0
+ceiling = 4.9
+light = 1
+open = true
+corners = [ [ -1.475, -0.875, { next = "mouth" } ], [ 1.475, -0.875, { thick = 0, trim = { skirting = 0.3, capital = 3.35 }, trimDepth = { skirting = 0.05 }, trimTexture = { skirting = "cap" }, cut = "north-east" } ], [ 1.475, -0.725, { thick = 0, trim = { skirting = 0.3, capital = 3.35 }, trimDepth = { skirting = 0.05 }, trimTexture = { skirting = "cap" }, cut = "north-east" } ], [ 2, -0.725, { thick = 0, trim = { skirting = 0.3, capital = 3.35 }, trimDepth = { skirting = 0.05 }, trimTexture = { skirting = "cap" }, cut = "north-east" } ], [ 2, -0.875, { cut = "north-east" } ], [ 4.875, -0.875, { cut = "east" } ], [ 4.875, 6.875, { cut = "south" } ], [ -4.875, 6.875, { cut = "west" } ], [ -4.875, 3.5, { cut = "west" } ], [ -5.225, 3.5, { cut = "west" } ], [ -5.225, 2.5, { cut = "west" } ], [ -4.875, 2.5, { cut = "west" } ], [ -4.875, -0.875, { next = "ward" } ], [ -1.9, -0.875, { thick = 0, trim = { skirting = 0.3, capital = 3.35 }, trimDepth = { skirting = 0.05 }, trimTexture = { skirting = "cap" }, cut = "north-west" } ] ]
+holes = [ [ [ 2.55, 0.1, { next = "counter", cut = "counter", trim = { skirting = 0.1, wainscot = 1.02, rail = 0.08 }, trimTexture = { skirting = "kick", wainscot = "counterFront", rail = "counterTop" }, trimDepth = { skirting = -0.06, wainscot = 0.016, rail = 0.05 } } ], [ 2.55, 3.4, { next = "counter", cut = "counter", trim = { skirting = 0.1, wainscot = 1.02, rail = 0.08 }, trimTexture = { skirting = "kick", wainscot = "counterFront", rail = "counterTop" }, trimDepth = { skirting = -0.06, wainscot = 0.016, rail = 0.05 } } ], [ 3.35, 3.4, { next = "counter", cut = "counter", trim = { skirting = 0.1, wainscot = 1.02, rail = 0.08 }, trimTexture = { skirting = "kick", wainscot = "counterFront", rail = "counterTop" }, trimDepth = { skirting = -0.06, wainscot = 0.016, rail = 0.05 } } ], [ 3.35, 0.8, { next = "counter", cut = "counter", trim = { skirting = 0.1, wainscot = 1.02, rail = 0.08 }, trimTexture = { skirting = "kick", wainscot = "counterFront", rail = "counterTop" }, trimDepth = { skirting = -0.06, wainscot = 0.016, rail = 0.05 } } ], [ 4.6, 0.8, { next = "counter", cut = "counter", trim = { skirting = 0.1, wainscot = 1.02, rail = 0.08 }, trimTexture = { skirting = "kick", wainscot = "counterFront", rail = "counterTop" }, trimDepth = { skirting = -0.06, wainscot = 0.016, rail = 0.05 } } ], [ 4.6, 0.1, { next = "counter", cut = "counter", trim = { skirting = 0.1, wainscot = 1.02, rail = 0.08 }, trimTexture = { skirting = "kick", wainscot = "counterFront", rail = "counterTop" }, trimDepth = { skirting = -0.06, wainscot = 0.016, rail = 0.05 } } ] ] ]
+
+[[sectors]]
+id = "counter"
+zone = "hall"
+floor = 1.1
+ceiling = 4.9
+light = 1
+open = true
+floorTexture = "counterTop"
+corners = [ [ 2.55, 0.1, { next = "hall" } ], [ 4.6, 0.1, { next = "hall" } ], [ 4.6, 0.8, { next = "hall" } ], [ 3.35, 0.8, { next = "hall" } ], [ 3.35, 3.4, { next = "hall" } ], [ 2.55, 3.4, { next = "hall" } ] ]
+
+[sectors.trim]
+skirting = 0
+wainscot = 0
+rail = 0
+cap = true
+
+[[sectors]]
+id = "ward"
+zone = "hall"
+floor = 0
+ceiling = 4.9
+light = 1.2
+open = true
+corners = [ [ -4.875, -3.8, { cut = "ward-back", window = { at = 0.875, width = 0.7, y0 = 3.05, y1 = 3.75, bars = 4, moon = true } } ], [ -1.9, -3.8, { cut = "ward-east", thick = 0.2125 } ], [ -1.9, -0.875, { next = "hall" } ], [ -4.875, -0.875, { cut = "west" } ] ]
+
+[[sectors]]
+id = "mouth"
+zone = "corridor"
+floor = 0
+ceiling = 4.9
+light = 1
+open = true
+corners = [ [ -1.475, -1.4, { next = "corridor", cut = "bulkhead", hideFrom = [ "hall" ], frame = false } ], [ 1.475, -1.4, { cut = "corridor-east" } ], [ 1.475, -0.875, { next = "hall" } ], [ -1.475, -0.875, { cut = "corridor-west", thick = 0.2125 } ] ]
+
+[[sectors]]
+id = "corridor"
+zone = "corridor"
+floor = 0
+ceiling = 3.2
+light = 1
+ceilingTexture = "ceilingTile"
+corners = [ [ -1.475, -6.875, { cut = "end", door = { at = 1.475, width = 1.5, height = 2.1, id = "exit" }, window = { at = 0.525, width = 0.55, y0 = 2.45, y1 = 2.95, bars = 3, moon = true } } ], [ 1.475, -6.875, { cut = "corridor-east-north", handrail = 0.92 } ], [ 1.475, -4.5, { next = "doorway", cut = "corridor-east" } ], [ 1.475, -3.5, { cut = "corridor-east", handrail = 0.92 } ], [ 1.475, -1.4, { next = "mouth" } ], [ -1.475, -1.4, { cut = "corridor-west", door = { at = 0.95, width = 0.9, height = 2.05, id = "staff" }, handrail = 0.92, thick = 0.2125 } ] ]
+
+[[sectors]]
+id = "doorway"
+zone = "corridor"
+floor = 0
+ceiling = 2.1
+light = 1
+corners = [ [ 1.475, -4.5, { thick = 0 } ], [ 1.725, -4.5, { next = "closet" } ], [ 1.725, -3.5, { thick = 0 } ], [ 1.475, -3.5, { next = "corridor" } ] ]
+
+[sectors.trim]
+skirting = 0
+wainscot = 0
+rail = 0
+cap = true
+
+[[sectors]]
+id = "closet"
+zone = "closet"
+floor = 0
+ceiling = 4.9
+light = 1
+open = true
+floorTexture = "floorDim"
+corners = [ [ 1.725, -6.375, { cut = "closet-north" } ], [ 4.475, -6.375, { cut = "closet-east" } ], [ 4.475, -2.625, { cut = "closet-south" } ], [ 1.725, -2.625, { cut = "corridor-east" } ], [ 1.725, -3.5, { next = "doorway", cut = "corridor-east" } ], [ 1.725, -4.5, { cut = "corridor-east-north" } ] ]
+
+[[masses]]
+top = 0.24
+
+[[masses.points]]
+x = 1.725
+z = -2.375
+
+[[masses.points]]
+x = 4.875
+z = -2.375
+
+[[masses.points]]
+x = 4.875
+z = -1.125
+
+[[masses.points]]
+x = 1.725
+z = -1.125
+
+[[masses]]
+top = 4.9
+
+[[masses.points]]
+x = -1.6875
+z = -3.8
+
+[[masses.points]]
+x = -1.475
+z = -3.8
+
+[[masses.points]]
+x = -1.475
+z = -1.4
+
+[[masses.points]]
+x = -1.6875
+z = -1.4
+
+[masses.faces]
+edges = [ 1 ]
+from = 3.2
+
+[[masses]]
+top = 4.9
+cut = "north-east"
+
+[[masses.points]]
+x = 1.475
+z = -1
+
+[[masses.points]]
+x = 2
+z = -1
+
+[[masses.points]]
+x = 2
+z = -0.725
+
+[[masses.points]]
+x = 1.475
+z = -0.725

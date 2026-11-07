@@ -1,0 +1,19 @@
+// Copied unchanged from mcthaydt/automata-framework at b7ef19d978d4751eaf08d1374dcfbcf2459d8c2b (tsconfig.base.json),
+// so a Plus package type-checks under the same rules as core. Re-copy it when core.ref moves and the file changed.
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "isolatedDeclarations": true,
+    "declaration": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  }
+}

@@ -1,0 +1,3 @@
+# The adventure source's prologue dialogue graphs (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+graphs = []

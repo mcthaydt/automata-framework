@@ -1,0 +1,799 @@
+# The adventure source's clinic-dawn line records (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+[[lines]]
+id = "clinic-dawn.exitBack"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.exitBack"
+hints = [ "nurseCatch" ]
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "clinic-dawn.receptionLocked"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.receptionLocked"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "clinic-dawn.receptionOpened"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.receptionOpened"
+motifs = [ "thresholds", "handwriting" ]
+
+[[lines]]
+id = "clinic-dawn.receptionOpen"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.receptionOpen"
+
+[[lines]]
+id = "clinic-dawn.counter"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.counter"
+
+[[lines]]
+id = "clinic-dawn.counterHook"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.counterHook"
+
+[[lines]]
+id = "clinic-dawn.counterEmpty"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.counterEmpty"
+
+[[lines]]
+id = "clinic-dawn.closetOpen"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.closetOpen"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "clinic-dawn.boltBack"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.boltBack"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "clinic-dawn.wheelchairDawn"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.wheelchairDawn"
+motifs = [ "faces" ]
+
+[[lines]]
+id = "clinic-dawn.ivStand"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.ivStand"
+motifs = [ "faces" ]
+
+[[lines]]
+id = "clinic-dawn.bucket"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.bucket"
+
+[[lines]]
+id = "clinic-dawn.bucketEmpty"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.bucketEmpty"
+
+[[lines]]
+id = "clinic-dawn.trolleyKey"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.trolleyKey"
+facts = [ "recordNoName", "lightsOn" ]
+motifs = [ "tags", "handwriting", "pools" ]
+
+[[lines]]
+id = "clinic-dawn.trolleyEmpty"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.trolleyEmpty"
+
+[[lines]]
+id = "clinic-dawn.bed"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.bed"
+motifs = [ "four" ]
+
+[[lines]]
+id = "clinic-dawn.record"
+kind = "note"
+text = "clinic-dawn.record"
+facts = [ "recordNoName", "lightsOn" ]
+motifs = [ "four", "pools" ]
+
+[[lines]]
+id = "clinic-dawn.clock"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.clock"
+facts = [ "clockMoves" ]
+motifs = [ "clocks" ]
+
+[[lines]]
+id = "clinic-dawn.monitor"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.monitor"
+motifs = [ "line", "faces" ]
+
+[[lines]]
+id = "clinic-dawn.cabinet"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.cabinet"
+motifs = [ "tags", "handwriting" ]
+
+[[lines]]
+id = "clinic-dawn.curtain"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.curtain"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "clinic-dawn.noEffect"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.noEffect"
+
+[[lines]]
+id = "clinic-dawn.crewWheels"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.crewWheels"
+hints = [ "crewTouch" ]
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "clinic-dawn.crewCap"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.crewCap"
+hints = [ "crewTouch" ]
+facts = [ "crewAnswered" ]
+motifs = [ "faces" ]
+
+[[lines]]
+id = "clinic-dawn.crew.patrol.1"
+kind = "bark"
+speaker = "crew"
+text = "clinic-dawn.crew.patrol.1"
+facts = [ "crewAnswered" ]
+motifs = [ "four" ]
+
+[[lines]]
+id = "clinic-dawn.crew.patrol.2"
+kind = "bark"
+speaker = "crew"
+text = "clinic-dawn.crew.patrol.2"
+facts = [ "crewControl" ]
+motifs = [ "four" ]
+
+[[lines]]
+id = "clinic-dawn.crew.investigate.1"
+kind = "bark"
+speaker = "crew"
+text = "clinic-dawn.crew.investigate.1"
+motifs = [ "four" ]
+
+[[lines]]
+id = "clinic-dawn.crew.investigate.2"
+kind = "bark"
+speaker = "crew"
+text = "clinic-dawn.crew.investigate.2"
+
+[[lines]]
+id = "clinic-dawn.crew.hunt.1"
+kind = "bark"
+speaker = "crew"
+text = "clinic-dawn.crew.hunt.1"
+hints = [ "crewTouch" ]
+
+[[lines]]
+id = "clinic-dawn.crew.hunt.2"
+kind = "bark"
+speaker = "crew"
+text = "clinic-dawn.crew.hunt.2"
+hints = [ "crewTouch" ]
+
+[[lines]]
+id = "clinic-dawn.crew.follow.1"
+kind = "bark"
+speaker = "crew"
+text = "clinic-dawn.crew.follow.1"
+
+[[lines]]
+id = "clinic-dawn.crew.follow.2"
+kind = "bark"
+speaker = "crew"
+text = "clinic-dawn.crew.follow.2"
+
+[[lines]]
+id = "clinic-dawn.crew.hold.1"
+kind = "bark"
+speaker = "crew"
+text = "clinic-dawn.crew.hold.1"
+motifs = [ "four", "thresholds" ]
+
+[[lines]]
+id = "clinic-dawn.crew.hold.2"
+kind = "bark"
+speaker = "crew"
+text = "clinic-dawn.crew.hold.2"
+facts = [ "crewControl" ]
+motifs = [ "four" ]
+
+[[lines]]
+id = "clinic-dawn.crew.ambush.1"
+kind = "bark"
+speaker = "crew"
+text = "clinic-dawn.crew.ambush.1"
+facts = [ "crewAnswered" ]
+motifs = [ "four", "clocks" ]
+
+[[lines]]
+id = "clinic-dawn.crew.ambush.2"
+kind = "bark"
+speaker = "crew"
+text = "clinic-dawn.crew.ambush.2"
+facts = [ "crewControl" ]
+motifs = [ "four" ]
+
+[[lines]]
+id = "clinic-dawn.first.vigil"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic-dawn.first.vigil"
+
+[[lines]]
+id = "clinic-dawn.first.between"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic-dawn.first.between"
+
+[[lines]]
+id = "clinic-dawn.first.release"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic-dawn.first.release"
+
+[[lines]]
+id = "clinic-dawn.registerPage"
+kind = "note"
+text = "clinic-dawn.registerPage"
+beat = "clinic-dawn.register"
+motifs = [ "handwriting", "line" ]
+
+[[lines]]
+id = "clinic-dawn.nurse.last"
+kind = "dialogue"
+speaker = "nurse"
+text = "clinic-dawn.nurse.last"
+beat = "clinic-dawn.nurseLast"
+motifs = [ "clocks", "pools" ]
+
+[[lines]]
+id = "clinic-dawn.registerAsk"
+kind = "note"
+text = "clinic-dawn.registerAsk"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "clinic-dawn.registerVigil"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic-dawn.registerVigil"
+
+[[lines]]
+id = "clinic-dawn.registerRelease"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic-dawn.registerRelease"
+
+[[lines]]
+id = "clinic-dawn.registerHandover"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic-dawn.registerHandover"
+
+[[lines]]
+id = "clinic-dawn.registerVigilSign"
+kind = "note"
+text = "clinic-dawn.registerVigilSign"
+motifs = [ "handwriting", "clocks" ]
+
+[[lines]]
+id = "clinic-dawn.registerReleaseBlank"
+kind = "note"
+text = "clinic-dawn.registerReleaseBlank"
+motifs = [ "line" ]
+
+[[lines]]
+id = "clinic-dawn.registerHandoverWrite"
+kind = "note"
+text = "clinic-dawn.registerHandoverWrite"
+facts = [ "lightsOn" ]
+motifs = [ "handwriting", "four", "pools" ]
+
+[[lines]]
+id = "clinic-dawn.registerHandoverCall"
+kind = "note"
+text = "clinic-dawn.registerHandoverCall"
+facts = [ "doa", "noRelief" ]
+motifs = [ "four", "clocks", "line" ]
+
+[[lines]]
+id = "clinic-dawn.registerAccountDuty"
+kind = "note"
+text = "clinic-dawn.registerAccountDuty"
+motifs = [ "four", "handwriting" ]
+
+[[lines]]
+id = "clinic-dawn.registerAccountUnsure"
+kind = "note"
+text = "clinic-dawn.registerAccountUnsure"
+motifs = [ "four", "handwriting" ]
+
+[[lines]]
+id = "clinic-dawn.registerAccountAsleep"
+kind = "note"
+text = "clinic-dawn.registerAccountAsleep"
+motifs = [ "four", "handwriting" ]
+
+[[lines]]
+id = "clinic-dawn.registerTell"
+kind = "note"
+text = "clinic-dawn.registerTell"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "clinic-dawn.registerHandoverClose"
+kind = "note"
+text = "clinic-dawn.registerHandoverClose"
+motifs = [ "handwriting", "pools", "line" ]
+
+[[lines]]
+id = "clinic-dawn.st.sys.fuel.low"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.st.sys.fuel.low"
+hints = [ "nurseCatch" ]
+motifs = [ "warmth", "pools" ]
+
+[[lines]]
+id = "clinic-dawn.st.sys.grapple.nurse"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.st.sys.grapple.nurse"
+hints = [ "nurseCatch" ]
+motifs = [ "warmth" ]
+
+[[lines]]
+id = "clinic-dawn.st.sys.barricade.set"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.st.sys.barricade.set"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "clinic-dawn.st.sys.barricade.open"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.st.sys.barricade.open"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "clinic-dawn.st.sys.decoy.wheelchair"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.st.sys.decoy.wheelchair"
+motifs = [ "faces" ]
+
+[[lines]]
+id = "clinic-dawn.st.sys.decoy.coat"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.st.sys.decoy.coat"
+motifs = [ "faces" ]
+
+[[lines]]
+id = "clinic-dawn.st.p3.room.ward.vigil"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.st.p3.room.ward.vigil"
+facts = [ "clockMoves" ]
+motifs = [ "clocks", "four" ]
+
+[[lines]]
+id = "clinic-dawn.st.p3.room.ward.between"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.st.p3.room.ward.between"
+facts = [ "clockMoves" ]
+motifs = [ "clocks", "four" ]
+
+[[lines]]
+id = "clinic-dawn.st.p3.room.ward.release"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.st.p3.room.ward.release"
+facts = [ "clockMoves" ]
+motifs = [ "clocks", "pools" ]
+
+[[lines]]
+id = "clinic-dawn.st.p3.room.corridor"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.st.p3.room.corridor"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "clinic-dawn.st.p3.room.closet"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.st.p3.room.closet"
+motifs = [ "pools" ]
+
+[[lines]]
+id = "clinic-dawn.st.p3.room.reception"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.st.p3.room.reception"
+facts = [ "clockMoves" ]
+motifs = [ "handwriting", "clocks" ]
+
+[[lines]]
+id = "clinic-dawn.st.p3.watch"
+kind = "examine"
+speaker = "ada"
+text = "clinic-dawn.st.p3.watch"
+facts = [ "clockMoves" ]
+motifs = [ "clocks" ]
+
+[[lines]]
+id = "clinic-dawn.register.keyWhere"
+kind = "note"
+text = "clinic-dawn.register.keyWhere"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "clinic-dawn.register.mopReach"
+kind = "note"
+text = "clinic-dawn.register.mopReach"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "clinic-dawn.register.keyFits"
+kind = "note"
+text = "clinic-dawn.register.keyFits"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "clinic-dawn.register.registerWaits"
+kind = "note"
+text = "clinic-dawn.register.registerWaits"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "clinic-dawn.cutscene.grapple.1"
+kind = "caption"
+speaker = "ada"
+text = "clinic-dawn.cutscene.grapple.1"
+hints = [ "nurseCatch" ]
+motifs = [ "warmth" ]
+
+[[lines]]
+id = "clinic-dawn.cutscene.grappleCrew.1"
+kind = "caption"
+speaker = "crew"
+text = "clinic-dawn.cutscene.grappleCrew.1"
+motifs = [ "four", "warmth" ]
+
+[[lines]]
+id = "clinic-dawn.cutscene.arrival.1"
+kind = "caption"
+text = "clinic-dawn.cutscene.arrival.1"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "clinic-dawn.cutscene.arrival.2"
+kind = "caption"
+speaker = "ada"
+text = "clinic-dawn.cutscene.arrival.2"
+beat = "clinic-dawn.arrival"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "clinic-dawn.cutscene.arrival.3"
+kind = "caption"
+speaker = "ada"
+text = "clinic-dawn.cutscene.arrival.3"
+facts = [ "clockMoves" ]
+beat = "clinic-dawn.arrival"
+motifs = [ "clocks", "handwriting" ]
+
+[[lines]]
+id = "clinic-dawn.cutscene.finaleVigil.1"
+kind = "caption"
+text = "clinic-dawn.cutscene.finaleVigil.1"
+motifs = [ "clocks", "four" ]
+
+[[lines]]
+id = "clinic-dawn.cutscene.finaleVigil.2"
+kind = "caption"
+text = "clinic-dawn.cutscene.finaleVigil.2"
+beat = "clinic-dawn.ending"
+motifs = [ "handwriting", "pools" ]
+
+[[lines]]
+id = "clinic-dawn.cutscene.finaleRelease.1"
+kind = "caption"
+text = "clinic-dawn.cutscene.finaleRelease.1"
+motifs = [ "handwriting", "warmth" ]
+
+[[lines]]
+id = "clinic-dawn.cutscene.finaleRelease.2"
+kind = "caption"
+speaker = "porter"
+text = "clinic-dawn.cutscene.finaleRelease.2"
+facts = [ "releasedWritten" ]
+beat = "clinic-dawn.ending"
+motifs = [ "line", "four" ]
+
+[[lines]]
+id = "clinic-dawn.cutscene.finaleRelease.3"
+kind = "caption"
+text = "clinic-dawn.cutscene.finaleRelease.3"
+motifs = [ "thresholds", "warmth" ]
+
+[[lines]]
+id = "clinic-dawn.cutscene.finaleHandover.1"
+kind = "caption"
+text = "clinic-dawn.cutscene.finaleHandover.1"
+motifs = [ "thresholds", "faces" ]
+
+[[lines]]
+id = "clinic-dawn.cutscene.finaleHandover.2"
+kind = "caption"
+speaker = "dayNurse"
+text = "clinic-dawn.cutscene.finaleHandover.2"
+facts = [ "handoverRead", "lightsOn" ]
+motifs = [ "four", "pools" ]
+
+[[lines]]
+id = "clinic-dawn.cutscene.finaleHandover.3"
+kind = "caption"
+speaker = "dayNurse"
+text = "clinic-dawn.cutscene.finaleHandover.3"
+motifs = [ "four", "clocks" ]
+
+[[lines]]
+id = "clinic-dawn.cutscene.finaleHandover.4"
+kind = "caption"
+speaker = "dayNurse"
+text = "clinic-dawn.cutscene.finaleHandover.4"
+motifs = [ "pools", "handwriting" ]
+
+[[lines]]
+id = "clinic-dawn.cutscene.finaleHandover.5"
+kind = "caption"
+speaker = "dayNurse"
+text = "clinic-dawn.cutscene.finaleHandover.5"
+beat = "clinic-dawn.ending"
+motifs = [ "line" ]
+
+[[lines]]
+id = "clinic-dawn.item.lighter.name"
+kind = "item"
+text = "clinic-dawn.item.lighter.name"
+
+[[lines]]
+id = "clinic-dawn.item.lighter"
+kind = "item"
+speaker = "ada"
+text = "clinic-dawn.item.lighter"
+
+[[lines]]
+id = "clinic-dawn.item.basin.name"
+kind = "item"
+text = "clinic-dawn.item.basin.name"
+
+[[lines]]
+id = "clinic-dawn.item.basin"
+kind = "item"
+speaker = "ada"
+text = "clinic-dawn.item.basin"
+
+[[lines]]
+id = "clinic-dawn.item.scalpel.name"
+kind = "item"
+text = "clinic-dawn.item.scalpel.name"
+
+[[lines]]
+id = "clinic-dawn.item.scalpel"
+kind = "item"
+speaker = "ada"
+text = "clinic-dawn.item.scalpel"
+
+[[lines]]
+id = "clinic-dawn.item.cloth.name"
+kind = "item"
+text = "clinic-dawn.item.cloth.name"
+
+[[lines]]
+id = "clinic-dawn.item.cloth"
+kind = "item"
+speaker = "ada"
+text = "clinic-dawn.item.cloth"
+
+[[lines]]
+id = "clinic-dawn.item.torch.name"
+kind = "item"
+text = "clinic-dawn.item.torch.name"
+
+[[lines]]
+id = "clinic-dawn.item.torch"
+kind = "item"
+speaker = "ada"
+text = "clinic-dawn.item.torch"
+
+[[lines]]
+id = "clinic-dawn.item.bottle.name"
+kind = "item"
+text = "clinic-dawn.item.bottle.name"
+
+[[lines]]
+id = "clinic-dawn.item.bottle"
+kind = "item"
+speaker = "ada"
+text = "clinic-dawn.item.bottle"
+
+[[lines]]
+id = "clinic-dawn.item.brassKey.name"
+kind = "item"
+text = "clinic-dawn.item.brassKey.name"
+
+[[lines]]
+id = "clinic-dawn.item.brassKey"
+kind = "item"
+speaker = "ada"
+text = "clinic-dawn.item.brassKey"
+
+[[lines]]
+id = "clinic-dawn.item.fuse.name"
+kind = "item"
+text = "clinic-dawn.item.fuse.name"
+
+[[lines]]
+id = "clinic-dawn.item.fuse"
+kind = "item"
+speaker = "ada"
+text = "clinic-dawn.item.fuse"
+
+[[lines]]
+id = "clinic-dawn.item.fluid.name"
+kind = "item"
+text = "clinic-dawn.item.fluid.name"
+
+[[lines]]
+id = "clinic-dawn.item.fluid"
+kind = "item"
+speaker = "ada"
+text = "clinic-dawn.item.fluid"
+
+[[lines]]
+id = "clinic-dawn.item.matches.name"
+kind = "item"
+text = "clinic-dawn.item.matches.name"
+
+[[lines]]
+id = "clinic-dawn.item.matches"
+kind = "item"
+speaker = "ada"
+text = "clinic-dawn.item.matches"
+
+[[lines]]
+id = "clinic-dawn.item.spirit.name"
+kind = "item"
+text = "clinic-dawn.item.spirit.name"
+
+[[lines]]
+id = "clinic-dawn.item.spirit"
+kind = "item"
+speaker = "ada"
+text = "clinic-dawn.item.spirit"
+
+[[lines]]
+id = "clinic-dawn.item.petrol.name"
+kind = "item"
+text = "clinic-dawn.item.petrol.name"
+
+[[lines]]
+id = "clinic-dawn.item.petrol"
+kind = "item"
+speaker = "ada"
+text = "clinic-dawn.item.petrol"
+
+[[lines]]
+id = "clinic-dawn.item.keys.name"
+kind = "item"
+text = "clinic-dawn.item.keys.name"
+
+[[lines]]
+id = "clinic-dawn.item.keys"
+kind = "item"
+speaker = "ada"
+text = "clinic-dawn.item.keys"
+
+[[lines]]
+id = "clinic-dawn.item.receptionKey.name"
+kind = "item"
+text = "clinic-dawn.item.receptionKey.name"
+
+[[lines]]
+id = "clinic-dawn.item.receptionKey"
+kind = "item"
+speaker = "ada"
+text = "clinic-dawn.item.receptionKey"
+motifs = [ "tags" ]
+
+[[lines]]
+id = "clinic-dawn.item.mop.name"
+kind = "item"
+text = "clinic-dawn.item.mop.name"
+
+[[lines]]
+id = "clinic-dawn.item.mop"
+kind = "item"
+speaker = "ada"
+text = "clinic-dawn.item.mop"
+
+[[lines]]
+id = "clinic-dawn.caught.nurse.title"
+kind = "caught"
+text = "clinic-dawn.caught.nurse.title"
+
+[[lines]]
+id = "clinic-dawn.caught.nurse"
+kind = "caught"
+text = "clinic-dawn.caught.nurse"
+
+[[lines]]
+id = "clinic-dawn.caught.crew.title"
+kind = "caught"
+text = "clinic-dawn.caught.crew.title"
+
+[[lines]]
+id = "clinic-dawn.caught.crew"
+kind = "caught"
+text = "clinic-dawn.caught.crew"
+hints = [ "crewTouch" ]
+motifs = [ "four" ]
+
+[[lines]]
+id = "clinic-dawn.objective.register"
+kind = "objective"
+text = "clinic-dawn.objective.register"
+
+[[lines]]
+id = "clinic-dawn.objective.door"
+kind = "objective"
+text = "clinic-dawn.objective.door"
+
+[[lines]]
+id = "clinic-dawn.objective.write"
+kind = "objective"
+text = "clinic-dawn.objective.write"

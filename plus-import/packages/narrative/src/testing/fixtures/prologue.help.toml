@@ -1,0 +1,240 @@
+# The adventure source's prologue puzzle help (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+[[hints]]
+id = "lamp"
+puzzle = "Fill the hand lamp with paraffin."
+
+[[hints.done]]
+[hints.done.not]
+fact = "fuel"
+is = 0
+
+[[hints.levels]]
+line = "prologue.handoverBack"
+at = "noticeboard"
+
+[[hints.levels]]
+line = "prologue.nightstandLamp"
+at = "nightstand"
+
+[[hints.levels]]
+line = "prologue.item.paraffin"
+at = "item:paraffin"
+
+[[hints]]
+id = "cabinet"
+puzzle = "Open the key cabinet by the desk with its four-digit code."
+
+[[hints.done]]
+fact = "cabinetOpen"
+is = true
+
+[[hints.levels]]
+line = "prologue.cutscene.opening.3"
+at = "cutscene:opening"
+
+[[hints.levels]]
+line = "prologue.clock"
+at = "clock"
+
+[[hints.levels]]
+line = "prologue.handover"
+at = "noticeboard"
+
+[[hints]]
+id = "supplyDoor"
+puzzle = "Open the supply room with the supply key."
+
+[[hints.done]]
+fact = "closetOpen"
+is = true
+
+[[hints.levels]]
+line = "prologue.keypadRight"
+at = "cabinet"
+
+[[hints.levels]]
+line = "prologue.item.supplyKey"
+at = "item:supplyKey"
+
+[[hints.levels]]
+line = "prologue.doorLocked"
+at = "closetDoor"
+
+[[hints]]
+id = "sheets"
+puzzle = "Find the clean sheets on the supply room shelf, by lamplight."
+
+[[hints.done]]
+fact = "shelfTaken"
+is = true
+
+[[hints.levels]]
+line = "prologue.handoverBack"
+at = "noticeboard"
+
+[[hints.levels]]
+line = "prologue.shelfDark"
+at = "shelf"
+
+[[hints.levels]]
+line = "prologue.item.handLamp"
+at = "item:handLamp"
+
+[[hints]]
+id = "bed"
+puzzle = "Make up Bed 04 with the clean sheets."
+
+[[hints.done]]
+fact = "bedMade"
+is = true
+
+[[hints.levels]]
+line = "prologue.handoverBack"
+at = "noticeboard"
+
+[[hints.levels]]
+line = "prologue.bedBare"
+at = "bed"
+
+[[hints.levels]]
+line = "prologue.item.sheets"
+at = "item:sheets"
+
+[[hints]]
+id = "rest"
+puzzle = "Outlast the figure in the dark, then sit down at Bed 04."
+
+[[hints.levels]]
+line = "prologue.cutscene.lightsOut.2"
+at = "cutscene:lightsOut"
+
+[[hints.levels]]
+line = "prologue.bedWait"
+at = "bed"
+
+[[hints.levels]]
+line = "prologue.handoverBack"
+at = "noticeboard"
+
+[[deductions]]
+id = "code"
+learn = "The cabinet's code is 2000, the hour the day shift goes home."
+for = [ "cabinet" ]
+
+[[deductions.clues]]
+line = "prologue.cutscene.opening.1"
+at = "cutscene:opening"
+
+[[deductions.clues]]
+line = "prologue.clock"
+at = "clock"
+
+[[deductions.clues]]
+line = "prologue.handover"
+at = "noticeboard"
+
+[[deductions.clues]]
+line = "prologue.keypadWrong"
+at = "cabinet"
+
+[[deductions]]
+id = "supplyKey"
+learn = "The key from the cabinet opens the supply room in the corridor."
+for = [ "supplyDoor" ]
+
+[[deductions.clues]]
+line = "prologue.handover"
+at = "noticeboard"
+
+[[deductions.clues]]
+line = "prologue.keypadRight"
+at = "cabinet"
+
+[[deductions.clues]]
+line = "prologue.item.supplyKey"
+at = "item:supplyKey"
+
+[[deductions.clues]]
+line = "prologue.doorLocked"
+at = "closetDoor"
+
+[[deductions]]
+id = "fillLamp"
+learn = "The hand lamp is dry, and the paraffin from the same drawer fills it."
+for = [ "lamp" ]
+
+[[deductions.clues]]
+line = "prologue.handoverBack"
+at = "noticeboard"
+
+[[deductions.clues]]
+line = "prologue.nightstandLamp"
+at = "nightstand"
+
+[[deductions.clues]]
+line = "prologue.item.paraffin"
+at = "item:paraffin"
+
+[[deductions.clues]]
+line = "prologue.item.handLamp"
+at = "item:handLamp"
+
+[[deductions]]
+id = "darkShelf"
+learn = "The supply room is dark: the sheets are found only with the lamp lit."
+for = [ "sheets" ]
+
+[[deductions.clues]]
+line = "prologue.shelfDark"
+at = "shelf"
+
+[[deductions.clues]]
+line = "prologue.item.handLamp"
+at = "item:handLamp"
+
+[[deductions.clues]]
+line = "prologue.handoverBack"
+at = "noticeboard"
+
+[[deductions]]
+id = "makeBed"
+learn = "Bed 04 is the bed to make up, with the clean sheets."
+for = [ "bed" ]
+
+[[deductions.clues]]
+line = "prologue.handoverBack"
+at = "noticeboard"
+
+[[deductions.clues]]
+line = "prologue.bedBare"
+at = "bed"
+
+[[deductions.clues]]
+line = "prologue.item.sheets"
+at = "item:sheets"
+
+[[deductions.clues]]
+line = "prologue.monitor"
+at = "monitor"
+
+[[deductions]]
+id = "vigil"
+learn = "She does her round and goes: keep the lamp lit or hide, and sit down only once she has gone."
+for = [ "rest" ]
+
+[[deductions.clues]]
+line = "prologue.cutscene.lightsOut.2"
+at = "cutscene:lightsOut"
+
+[[deductions.clues]]
+line = "prologue.bedWait"
+at = "bed"
+
+[[deductions.clues]]
+line = "prologue.handoverBack"
+at = "noticeboard"
+
+[[deductions.clues]]
+line = "prologue.item.handLamp"
+at = "item:handLamp"
