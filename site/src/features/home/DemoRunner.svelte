@@ -1,6 +1,6 @@
 <script lang="ts">
 // A game demo in a frame: a poster until the visitor presses Play (or at once, with `autoStart`), then the built game
-// from /demos/, with Stop and Restart beside it. Stopping drops the frame, so a stopped demo costs nothing.
+// from /demos/, with Stop and Start over beside it. Stopping drops the frame, so a stopped demo costs nothing.
 import { onMount, untrack } from 'svelte'
 import { previewSrcset } from '../../shared/previews'
 import { demoStatus } from './demo-status'
@@ -77,14 +77,14 @@ async function fullscreen() {
   fullscreenPending = true
   const impatient = setTimeout(() => {
     fullscreenPending = false
-    fullscreenMessage = 'Fullscreen did not start. Open the demo in a new tab.'
+    fullscreenMessage = "Full screen didn't start. Try Open in a new tab."
   }, FULLSCREEN_PATIENCE_MS)
   try {
     if (document.fullscreenElement) await document.exitFullscreen()
     else await container.requestFullscreen()
     fullscreenMessage = ''
   } catch {
-    fullscreenMessage = 'Fullscreen is unavailable. Open the demo in a new tab.'
+    fullscreenMessage = "Full screen isn't available here. Try Open in a new tab."
   } finally {
     clearTimeout(impatient)
     fullscreenPending = false
@@ -97,11 +97,11 @@ async function fullscreen() {
     <!-- The controls show only while the demo plays; stopped, the poster's Play is the one control. -->
     {#if active}
       <div class="control-row">
-        <button type="button" aria-label="Restart demo" onclick={() => { attempt++; active = true }}>Restart</button>
-        <button type="button" aria-label="Toggle fullscreen" aria-busy={fullscreenPending ? 'true' : undefined} onclick={fullscreen}>Fullscreen</button>
-        {#if allowed}<a href={src} target="_blank" rel="noopener noreferrer">Open demo</a>{/if}
+        <button type="button" onclick={() => { attempt++; active = true }}>Start over</button>
+        <button type="button" aria-busy={fullscreenPending ? 'true' : undefined} onclick={fullscreen}>Full screen</button>
+        {#if allowed}<a href={src} target="_blank" rel="noopener noreferrer">Open in a new tab</a>{/if}
         <!-- While stopped, the viewport overlay owns the single "Play demo" control. -->
-        <button type="button" onclick={() => active = false}>Stop demo</button>
+        <button type="button" onclick={() => active = false}>Stop</button>
       </div>
     {/if}
   </div>
@@ -118,5 +118,5 @@ async function fullscreen() {
     {/if}
   </div>
   {#if fullscreenMessage}<p class="small" role="status">{fullscreenMessage}</p>{/if}
-  <noscript><p>JavaScript is required for the embedded controls. <a href={src}>Open the standalone demo</a>.</p></noscript>
+  <noscript><p>Playing here needs JavaScript. <a href={src}>Open the game on its own page</a>.</p></noscript>
 </div>

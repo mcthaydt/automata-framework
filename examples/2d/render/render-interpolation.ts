@@ -1,4 +1,4 @@
-// render-interpolation: a square drawn between sim ticks, beside a line where the sim says it is
+// render-interpolation: A square that moves smoothly between the game's steps
 //
 // Shows: a view draws the blend of the last two ticks by the frame's alpha (0 is the previous tick, 1 the
 //   current one), so motion stays smooth when display frames and sim ticks do not line up. The pink line is the

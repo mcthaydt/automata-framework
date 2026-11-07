@@ -1,4 +1,4 @@
-// shapes-rects: rectangles that move, slide and spin
+// shapes-rects: Rectangles that move, slide and spin
 //
 // Shows: rect() draws one view per component id, interpolated between ticks: position, an anchor,
 //   and an angle that turns along the shorter arc.

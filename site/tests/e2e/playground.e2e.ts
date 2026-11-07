@@ -42,7 +42,7 @@ test('an example page starts the original after load with no input, and shows it
   expect(requests[0]!.path).toBe('/playground/compiled/shapes-rects.js')
   const frame = page.locator('.playground iframe')
   await expect(frame).toHaveCount(1)
-  await expect(frame).toHaveAttribute('title', 'Preview: rectangles that move, slide and spin')
+  await expect(frame).toHaveAttribute('title', 'Preview: Rectangles that move, slide and spin')
   await expect(frame).not.toHaveAttribute('inert', /.*/)
   await expect(page.getByText('Running. Edit the code and the preview updates as you type.')).toBeVisible()
   // The game's canvas is in the revealed frame (its pixels are a cross-origin frame's, which the page cannot read).
@@ -192,7 +192,7 @@ test('the editor is named and described, has 16 px text, wraps, shows the focus 
   await page.goto('/examples/shapes-rects')
   await tapLine(page, 3)
   const content = page.getByRole('textbox', {
-    name: 'Code for rectangles that move, slide and spin. Changes update the preview.',
+    name: 'Code for Rectangles that move, slide and spin. Changes update the preview.',
   })
   await expect(content).toBeFocused()
   const statusId = await page.locator('.playground-status').getAttribute('id')
@@ -620,7 +620,7 @@ test('a default export that is not defineGame(...) is named, and the preview kee
   // `export default 1;` takes the place of the defineGame call, which is left as an unused expression.
   await typeAfter(page, 'export default', ' 1;\nconst game =')
   await expect(page.locator('.playground-status')).toContainText(
-    "The example's default export must be defineGame(...)",
+    "This code doesn't make a game any more. Press Reset to start again",
     { timeout: 10_000 },
   )
   await expect(page.locator('.playground-status')).toContainText(
@@ -665,7 +665,7 @@ test('when the compile worker fails, the status line says so and Play still runs
   await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 10_000 })
   await typeAfter(page, "defineSystem('move', (ctx) => {", '\nconst edited = 1')
   await expect(page.locator('.playground-status')).toHaveText(
-    'Live updates are unavailable in this browser. Play still runs the original.',
+    'This browser can’t update the game as you type. Press Play to see the original.',
     { timeout: 5_000 },
   )
   await expect(root(page)).toHaveAttribute('data-run-id', '1')
@@ -809,7 +809,7 @@ test('a share link with no compile worker runs the original', async ({ page }) =
       Buffer.from(await new Response(stream).arrayBuffer()).toString('base64url'),
   )
   await expect(page.locator('.playground-status')).toHaveText(
-    'Live updates are unavailable in this browser. Play still runs the original.',
+    'This browser can’t update the game as you type. Press Play to see the original.',
     { timeout: 10_000 },
   )
   await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })

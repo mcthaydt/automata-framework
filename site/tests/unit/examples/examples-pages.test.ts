@@ -83,7 +83,7 @@ afterEach(() => {
 describe('the example data', () => {
   it('has all 17 catalog examples, each findable by id', () => {
     expect(getExamples()).toHaveLength(17)
-    expect(getExample('shapes-rects')?.title).toBe('rectangles that move, slide and spin')
+    expect(getExample('shapes-rects')?.title).toBe('Rectangles that move, slide and spin')
     expect(getExample('nope')).toBeUndefined()
   })
 
@@ -198,7 +198,7 @@ describe('/examples/<id>', () => {
   it('shows the poster with the example’s title until a run is on show', async () => {
     const view = render(ExamplePage, { props: { data: await pageData('shapes-rects') } })
     expect(view.container.querySelector('[data-testid="preview-poster"]')?.textContent).toContain(
-      'rectangles that move, slide and spin',
+      'Rectangles that move, slide and spin',
     )
   })
 

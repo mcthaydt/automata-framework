@@ -1,8 +1,9 @@
 # Publish to the web
 
-A game built for `web` is a static site: `dist/` is the whole artifact, and any static host serves it. Saves stay in
-the browser's storage on the player's device; when the browser blocks storage, the game runs on and its paused screen
-says progress won't be kept.
+Run `pnpm build:web && pnpm prepare:web`, then upload everything in the `dist` folder to any web host. That's it.
+
+A game built for `web` is a plain website: the `dist` folder holds all of it. Saves stay in the player's browser;
+when the browser blocks storage, the game still runs and its paused screen says progress won't be kept.
 
 ## Build
 

@@ -1,4 +1,4 @@
-// render-filter: two screen-space filters over the picture, and the quality tier that decides which run
+// render-filter: Two filters over the whole picture, chosen by graphics quality
 //
 // Shows: postFilter(name, { glsl, wgsl }) declares a filter over the whole picture, once for WebGL2 and once for
 //   WebGPU, so both renderers look the same. `dusk` warms the picture and darkens its corners at every tier.

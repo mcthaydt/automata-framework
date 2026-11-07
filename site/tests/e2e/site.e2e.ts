@@ -259,9 +259,7 @@ test.describe('desktop 1280×800', () => {
     await open(page, '/')
     await page.getByRole('button', { name: 'Search the docs and the API' }).click()
     await page.getByLabel('Search pages, docs, API and demos').fill('qqzzxxnothing')
-    await expect(page.getByRole('dialog').getByRole('status')).toHaveText(
-      'No matches. Try a function name or topic.',
-    )
+    await expect(page.getByRole('dialog').getByRole('status')).toHaveText('Nothing found. Try another word.')
   })
 })
 

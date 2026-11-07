@@ -4,7 +4,7 @@
 import { randomBytes } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import { networkInterfaces } from 'node:os'
-import { dirname, resolve } from 'node:path'
+import { basename, dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { type EditorApp, parseEditorArgs } from './editor-args.ts'
 import { type EditorServerOptions, type RunningEditor, serveEditor } from './serve-editor.ts'
@@ -40,6 +40,13 @@ you were editing. Without content/editors.toml, it opens only level files (*.af2
 The Tuner shows your game beside its settings: start it with pnpm dev, and give --game-url if it is not on
 http://localhost:5173.
 `
+
+/** What the first line calls each app: the words a person uses, not the flag's value. */
+const APP_WORDS: Readonly<Record<EditorApp, string>> = {
+  '2d': 'the level editor',
+  '3d': 'the 3D editor',
+  suite: 'the editors',
+}
 
 /** Where each editor's build is, from the repository root, and the package that builds it. */
 const BUILDS: Readonly<Record<EditorApp, { readonly folder: string; readonly pkg: string }>> = {
@@ -106,7 +113,7 @@ export async function editorCommand(
     return 2
   }
   const query = secret === undefined ? '' : `/?token=${secret}`
-  io.stdout(`Editing ${root} with the ${app} editor.\n  This computer: ${running.url}${query}\n`)
+  io.stdout(`Opened ${basename(root)} in ${APP_WORDS[app]}.\n  This computer: ${running.url}${query}\n`)
   if (lan)
     for (const address of deps.lanAddresses())
       io.stdout(`  On the network: http://${address}:${running.port}${query}\n`)

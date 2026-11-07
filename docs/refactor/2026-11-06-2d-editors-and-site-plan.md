@@ -1437,12 +1437,12 @@ before it. The footer's contact address stays as it is until the Owner decides (
 - Modify: `docs/refactor/copy.md` ("Site", plus the CLI's editor and check messages), every site page and CLI message
   it changes
 
-- [ ] **Step 1:** List every visible string on the seven pages (from the built HTML) and the CLI's editor and check
+- [x] **Step 1:** List every visible string on the seven pages (from the built HTML) and the CLI's editor and check
   output; each passes the four questions or is rewritten. Two audiences, one path (WG1): Home and Start speak to a game
   maker; How it works and API are where the engine words live. Keep the voice of WG4.
-- [ ] **Step 2:** The visitor journey asserts Home's headline, Start's steps and the Editor page's button by role and
+- [x] **Step 2:** The visitor journey asserts Home's headline, Start's steps and the Editor page's button by role and
   name. `pnpm check`, site e2e in Chromium. Commit, mark ready. `docs(site): plain words on every page`
-- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) sections 3 and 4, finding 19):** every row of the audit's section 4; the guides (`docs/guides/*.md`) are in the string list (`editor.md` drops "build it first" and opens with run, open, draw, Save); the search placeholder and ranking, the playground's messages (the Determinism row behind "For developers"), the examples' titles as sentences, and the CLI's "Opened Emberwick in the level editor."
+- [x] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) sections 3 and 4, finding 19):** every row of the audit's section 4; the guides (`docs/guides/*.md`) are in the string list (`editor.md` drops "build it first" and opens with run, open, draw, Save); the search placeholder and ranking, the playground's messages (the Determinism row behind "For developers"), the examples' titles as sentences, and the CLI's "Opened Emberwick in the level editor."
 
 ---
 
@@ -2783,3 +2783,17 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   (pinned the package's name and two dependencies), `tests/unit/shared/core-only.test.ts` (pinned that physics left
   for Plus, which is history), and `audit-regressions.test.ts`'s "Restored claims" block (pinned DX.10a's restored
   sentences word for word; phase 20 owns the copy). Site unit 333, `check:site` passes.
+  *20.1 (session 24):* the strings of the seven pages were listed from the built HTML (a JSDOM pass over `build/`,
+  headers, footers and code left out), with the search dialog, the demo's controls, the playground's messages, the
+  guides' first screens and the CLI's editor and check output. Each row is in `docs/refactor/copy.md`, "Site and the
+  CLI's editor and check output": 17 changed rows (the demo's controls and messages, search's title, placeholder,
+  empty state and order, the examples' lead and their 17 titles as sentences, the playground's not-a-game and
+  live-off lines, the determinism row folded under "For developers", Start's agent setup, the default description,
+  the editor and web guides' first screens, `automata editor`'s first line: "Opened my-game in the level editor."),
+  and the kept rows with their reasons. Deviation: the audit's Home subline and actions rows are not applied; the
+  Owner approved the mockup's hero after the audit (2026-11-06 20:31), so the approved words stand. The demo's buttons
+  lost their `aria-label`s, so each control's name is the word on it. Step 2: the visitor journey now asserts Home's
+  headline (level 1) and Start's four step headings; the Editor page's Try the editor was already by role. Gates: site
+  unit 333, `check:site` (35 pages), the site suite in Chromium 345 passed (visitor journey on desktop and phone
+  included), the playground frame suite in Chromium; tools editor unit 55; editor harness unit 4; examples-runner unit
+  76. WebKit and Firefox not installed here.

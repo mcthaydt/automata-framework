@@ -131,3 +131,54 @@ Every player-facing string of core and Emberwick, checked against the four quest
 - The other `automata` usage lines, `ship` errors (secrets, root-absolute paths, boards, orientation, inputs,
   `ruken publish` exits) and `--targets` errors: they say what is wrong and what to change. They are for game
   authors, so names like `ship.config.ts` stay.
+
+## Site and the CLI's editor and check output (task 20.1, 2026-11-07)
+
+Every visible string of the seven pages (Home, Start, Editor, Docs, Examples, API, the 404) was listed from the built
+HTML, plus the search dialog, the demo's controls, the playground's messages, the guides the docs show and the CLI's
+editor and check output. The [grandma audit](2026-11-06-grandma-ux-copy-audit.md)'s section 4 rows were applied where
+the string still exists; rows whose string phase 18 already removed are under "Gone before this pass".
+
+### Changed
+
+| Where | Old text | New text | Failed |
+|---|---|---|---|
+| Demo controls (while playing) | `Restart` · `Fullscreen` · `Open demo` · `Stop demo` (with the labels "Restart demo", "Toggle fullscreen") | `Start over` · `Full screen` · `Open in a new tab` · `Stop` (the visible words are the names) | 4 ("demo", "toggle"); the label did not match the word |
+| Demo, full screen refused | `Fullscreen is unavailable. Open the demo in a new tab.` | `Full screen isn't available here. Try Open in a new tab.` | 2 (names the button to press) |
+| Demo, full screen silent | `Fullscreen did not start. Open the demo in a new tab.` | `Full screen didn't start. Try Open in a new tab.` | 2 |
+| Demo, no script | `JavaScript is required for the embedded controls. Open the standalone demo.` | `Playing here needs JavaScript. Open the game on its own page.` | 4 ("embedded", "standalone") |
+| Search title | `Find your way` | `Search` | 1 |
+| Search placeholder | `Try createSim or snapshot` | `Search, e.g. jump, save, level` | 4 (API names) |
+| Search, nothing found | `No matches. Try a function name or topic.` | `Nothing found. Try another word.` | 4 ("function") |
+| Search order | pages, examples (as `id: title`), guides, API | pages, guides, examples (their title; the id still matches), API | a plain question met an example id first |
+| Examples lead and "How an example runs" | `One file each. Open an example and it runs beside its code.` and a paragraph on preview frames, compile errors at a line and column, and Restart | `Small games, one file each. Open one and change its code: the game beside it updates as you type.` (the paragraph is gone) | 3 (long) and 4 ("preview frame", "compiled") |
+| Example titles (17, from each file's first line) | lowercase fragments in engine words: `a chime on a sim event`, `the sim stands still while the host has the game in the background`, `a square drawn between sim ticks…`, `sprites drawn from a packed atlas` | sentences that say what you see: `A chime that plays when the game says so`, `The game stops and pauses while its tab is in the background`, `A square that moves smoothly between the game's steps`, `Pictures cut from one packed image` (all 17 in `examples/README.md`) | 4 ("sim", "tick", "host", "atlas") |
+| Playground, not a game | `The example's default export must be defineGame(...)` | `This code doesn't make a game any more. Press Reset to start again` | 2 and 4 |
+| Playground, live updates off | `Live updates are unavailable in this browser. Play still runs the original.` | `This browser can't update the game as you type. Press Play to see the original.` | 2 |
+| Playground, the determinism row | shown under every preview (`these 120 ticks replay … Hash 9ea9…`) | folded under `For developers`; it opens itself when the hashes differ (a bug to report) | 4 (for developers only) |
+| Start, agent setup | `Prepare your agent.`; `Use Superpowers for the development workflow and the official PixiJS v8 skills for rendering guidance…`; `Run this in the game checkout…`; `Ask your agent to verify readiness`; `Skill preflight to copy`; `Confirm the preflight result`; `3 of 3 confirmed by you. Your agent preflight is complete.`; `This page cannot inspect another app's installed skills. These confirmations record your preflight check, not automatic detection…` | `Set up your agent once.`; `Give your agent two sets of skills: Superpowers, which plans and tests each change, and PixiJS, which knows how the game draws.`; `Run this in your game's folder, pick your agent when it asks, and install the whole PixiJS collection.`; `Ask your agent to check`; `Copy this to your agent`; `What your agent said`; `3 of 3 ticked. Your agent is ready.`; `This page can't see what your agent has installed, and nothing you tick is sent anywhere. Tick them again when you change agents.` | 3 and 4 ("preflight", "checkout", "readiness") |
+| Default page description | `Automata is an AI-first TypeScript game framework. Build with coding agents, verify their work, author the content and stay in control of the source.` | `Make 2D games for the web: draw the levels, let your coding agent write the code, and put the game online.` | 4 ("AI-first") and 3 |
+| Guide "Draw levels in the editor", first screen | `automata editor opens the editors on your game's own files … the command is a small local server beside them` and `with the editor built once: pnpm --filter @mcthaydt/automata-editor build` | Run `pnpm exec automata editor`, open the address, draw, press Save, Ctrl+C; the server sentence moves under "Open it"; no build step (the editor ships inside the tools) | 2 (opened on internals) and untrue (build it first) |
+| Guide "Publish to the web", first screen | `dist/ is the whole artifact, and any static host serves it` | `Run pnpm build:web && pnpm prepare:web, then upload everything in the dist folder to any web host. That's it.` | 2 and 4 ("artifact") |
+| `automata editor`, first line | `Editing /home/ada/my-game with the 2d editor.` (`with the suite editor.`) | `Opened my-game in the level editor.` (`in the editors.`, `in the 3D editor.`) | 4 (a path and a flag value) |
+
+### Kept, with the reason
+
+| Where | Text | Why it passes |
+|---|---|---|
+| Home headline and lead | `Make browser games with your coding agent.`, `Automata is a framework for 2D web games. Your agent writes the code and the tests; you draw the levels and play the result in a browser tab.` | The Owner approved them in the mockup (2026-11-06 20:31), after the audit's row; "coding agent" is who the site is for. |
+| Home's three reasons, code, editor and publish sections | as built in 18.2 | From the approved mockup; the engine words ("components and systems") sit under "The code", for the reader who wants them (WG1). |
+| Start's four steps | `1. Make a game` … `4. Put it online`, each a command and what you see | One command each and what happens; the visitor journey now asserts all four headings. |
+| Editor page | `Paint a room, then place its characters.`, `Try the editor`, `On your own game` | What you see, and one button. |
+| How it works, API | engine words (`sim`, `tick`, `hash`, `Complete API reference`) | This is where the engine words live (WG1). |
+| Demo failed | `This demo couldn't start. Try again or open it in a new tab.` | The audit kept it. |
+| Playground boot timeout | `The preview did not start within 10 seconds.` | The button beside it depends on the state (Play or Retry), so the line does not name one. |
+| 404, Privacy, Terms | as built | The audit passed them. |
+| `automata check` output | `pass  typecheck (120 ms)`, `FAIL  levels`, findings as `file:line  rule  message`, `automata check: 2 findings` | For game authors and their agents; the JSON shape is a contract, and the steps' names are what `--help` explains (8.1). |
+| Search hint | `Use arrow keys to move, Enter to open, Escape to close.` | The audit kept it. |
+
+### Gone before this pass
+
+The audit's rows for the Home subline and actions, the demo's poster and caption, the footer's tagline and links, the
+old Editors page, the FAQ and the targets sentence: phase 18 replaced those strings (the footer is Docs, Examples,
+Reference, Privacy, Terms and Contact; the targets are named by the publish section and the guides).

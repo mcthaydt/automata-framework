@@ -15,8 +15,8 @@ describe('Start: using a coding agent', () => {
       'My agent reported and loaded the required skills',
     ])
       await fireEvent.click(view.getByLabelText(label))
-    expect(view.getByText(/3 of 3 confirmed by you/)).toBeTruthy()
-    expect(view.getByRole('group', { name: 'Skill readiness' })).toBeTruthy()
+    expect(view.getByText(/3 of 3 ticked/)).toBeTruthy()
+    expect(view.getByRole('group', { name: 'What your agent said' })).toBeTruthy()
     await fireEvent.change(view.getByLabelText('Your coding agent'), { target: { value: 'Claude Code' } })
     expect(copies()).toHaveLength(4)
   })

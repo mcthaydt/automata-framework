@@ -1,11 +1,15 @@
 # Draw levels in the editor
 
-`automata editor` opens the editors on your game's own files: the level you draw is the level your game plays. The
-editors run in the browser; the command is a small local server beside them.
+In your game's folder, run:
+
+```sh
+pnpm exec automata editor
+```
+
+Open the address it prints. Draw, then press Save: your game plays the new level the next time it loads. Stop the
+editor with Ctrl+C.
 
 ## Open it
-
-In your game's folder (with the editor built once: `pnpm --filter @mcthaydt/automata-editor build`):
 
 ```sh
 automata editor                 # the level editor on the game in this folder
@@ -14,7 +18,8 @@ automata editor --app suite     # the level editor and the Tuner together
 automata editor --port 4173     # a port you choose (default: a free one)
 ```
 
-Open the address it prints. Stop it with Ctrl+C.
+The editor runs in your browser, and the command is a small server on your computer that reads and writes your game's
+files for it.
 
 ## Draw
 
