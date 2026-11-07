@@ -111,7 +111,7 @@ export function builtPages(root: string): string[] {
 
 /**
  * Checks a static build and returns one message per failure (an empty list means it passed).
- * Each rule is a regression gate from the quality-bar spec; tests/site-checks.test.ts holds a failing fixture for each.
+ * Each rule is a regression gate from the quality-bar spec; tests/unit/scripts/site-checks.test.ts holds a failing fixture for each.
  */
 export function checkSite(root: string, { now = new Date() }: { now?: Date } = {}): string[] {
   const pages = builtPages(root)
