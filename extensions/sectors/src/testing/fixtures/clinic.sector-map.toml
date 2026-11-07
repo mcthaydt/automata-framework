@@ -1,5 +1,4 @@
-# The clinic map of the adventure source (provenance: the framework's docs/provenance/sources.md), converted once
-# by packages/sectors/scripts/convert-adventure-map.ts. Do not edit: it is SC-a's input.
+# The clinic map (provenance: the framework's docs/provenance/sources.md), converted once from an earlier game. Do not edit: the resolve test reads it.
 [[sectors]]
 id = "hall"
 zone = "hall"

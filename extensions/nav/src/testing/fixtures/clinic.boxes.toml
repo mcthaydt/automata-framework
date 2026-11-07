@@ -1,5 +1,4 @@
-# The adventure source's clinic boxes (provenance: the framework's docs/provenance/sources.md), converted once
-# by packages/nav/scripts/convert-adventure-nav.ts. Do not edit.
+# The clinic boxes (provenance: the framework's docs/provenance/sources.md), converted once from an earlier game. Do not edit.
 [[boxes]]
 id = "closetDoor"
 x = 1.6

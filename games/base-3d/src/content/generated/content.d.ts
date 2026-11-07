@@ -201,7 +201,7 @@ declare module 'virtual:automata/content' {
   export type FigureHairId = 'cropped'
   export type FigureHair = {
     readonly about?: string
-    readonly finish?: 'coil' | 'braid' | 'loc' | 'sleek' | 'straight'
+    readonly finish?: string
     readonly locks?: readonly ({
       readonly at: readonly [number, number, number]
       readonly cut?: {

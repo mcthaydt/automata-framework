@@ -1,9 +1,9 @@
-// The four adventure scenes' converted cutscenes (Node only: it reads the fixture files).
+// The four original scenes' converted cutscenes (Node only: it reads the fixture files).
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { join } from 'node:path'
 import { parse } from 'smol-toml'
-import type { CutsceneScript } from '../sim/index'
+import type { CutsceneScript } from '../shared/sim/cutscene.schema'
 
 export const SCENES = ['prologue', 'clinic', 'clinic-dawn', 'bay'] as const
 export type Scene = (typeof SCENES)[number]

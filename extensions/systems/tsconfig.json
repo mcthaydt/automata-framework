@@ -1,8 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "lib": ["ES2023"],
-    "types": ["node"]
+    // The `requires` test builds a game with `defineGame`, so the typecheck reads the framework's browser sources too.
+    "lib": ["ES2023", "DOM"],
+    "types": ["node", "vite/client"]
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "tests/**/*.ts"]
 }

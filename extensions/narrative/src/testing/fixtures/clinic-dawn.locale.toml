@@ -1,5 +1,4 @@
-# The adventure source's clinic-dawn line text (en) (provenance: the framework's docs/provenance/sources.md), converted once
-# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+# The clinic-dawn line text (en) (provenance: the framework's docs/provenance/sources.md), converted once from an earlier game. Do not edit.
 "clinic-dawn.exitBack" = "The door I came in by. Grey air outside, real air. Not yet. You have one more thing to write."
 "clinic-dawn.receptionLocked" = "The reception door is locked. Through the glass, its key hangs on a hook on the inside, close enough to touch if the glass were not there."
 "clinic-dawn.receptionOpened" = "The key turns. The door to reception swings in, slowly, as if it is letting me in on something. The register lies open on the desk."

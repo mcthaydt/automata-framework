@@ -1,4 +1,4 @@
-// A test game for cutscenes (M6.9a): it loads scripts by command, starts one by command, and counts the steps in which its
+// A test game for cutscenes: it loads scripts by command, starts one by command, and counts the steps in which its
 // own input command was applied. `hit` stands for gameplay input; it is ignored while a cutscene holds `locked`.
 import {
   type Command,
@@ -11,8 +11,8 @@ import {
   type StepResult,
 } from '@automata/sim'
 import { z } from 'zod'
-import { type Cutscenes, type CutscenesOptions, createCutscenes } from '../sim/cutscene.plugin'
-import type { CutsceneScript } from '../sim/cutscene.schema'
+import { type Cutscenes, type CutscenesOptions, createCutscenes } from '../shared/sim/cutscene.plugin'
+import type { CutsceneScript } from '../shared/sim/cutscene.schema'
 
 const Load = defineCommand('cut.load', z.strictObject({}))
 const Play = defineCommand('cut.play', z.strictObject({ id: z.string() }))

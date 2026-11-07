@@ -1,5 +1,4 @@
-# The adventure source's prologue cutscenes (provenance: the framework's docs/provenance/sources.md), converted once
-# by packages/cutscenes/scripts/convert-adventure-cutscenes.ts, each evaluated in one context. Do not edit.
+# The prologue cutscenes (provenance: the framework's docs/provenance/sources.md), converted once from an earlier game, each evaluated in one context. Do not edit.
 [[cutscenes]]
 id = "found"
 duration = 7

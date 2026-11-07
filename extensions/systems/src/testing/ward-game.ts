@@ -17,14 +17,10 @@ import {
   type StepResult,
 } from '@automata/sim'
 import { z } from 'zod'
-import {
-  type AgentRecord,
-  createSystems,
-  type SystemsDef,
-  SystemsEnv,
-  type SystemsOptions,
-  SystemsState,
-} from '../sim/index'
+import { createSystems } from '../shared/sim/systems.plugin'
+import { type AgentRecord, SystemsEnv, SystemsState } from '../shared/sim/systems.resource'
+import type { SystemsDef } from '../shared/sim/systems.schema'
+import type { SystemsOptions } from '../shared/sim/world'
 
 const point = z.strictObject({ x: z.number(), z: z.number() })
 const Load = defineCommand('ward.load', z.strictObject({ places: z.record(z.string(), point) }))
@@ -103,7 +99,7 @@ export async function createWardGame(
     plugins: [
       sectorsPlugin,
       createNavPlugin({ blocked: (ctx, doors) => clinicBlocked(resolvedMap(ctx), doors) }),
-      // Puzzle's noises are heard by the systems on the verb's step (SY-D2).
+      // Puzzle's noises are heard by the systems on the verb's step.
       createPuzzlePlugin({
         noise: systems.hear,
         ...(options.facts === undefined ? {} : { facts: options.facts }),

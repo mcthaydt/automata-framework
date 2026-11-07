@@ -1,5 +1,7 @@
-// Toy conversations for the dialogue tools' tests (M6.8b): a tiny story with a porter, a player and a register.
-import type { Canon, DialogueGraph, LineKind, LineRecord } from '../sim/index'
+// Toy conversations for the dialogue tools' tests: a tiny story with a porter, a player and a register.
+import type { Canon } from '../shared/sim/canon.schema'
+import type { DialogueGraph } from '../shared/sim/dialogue.schema'
+import type { LineKind, LineRecord } from '../shared/sim/lines.schema'
 
 export const rec = (
   id: string,

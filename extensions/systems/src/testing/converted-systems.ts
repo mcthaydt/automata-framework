@@ -1,8 +1,8 @@
-// The four adventure scenes' converted systems (Node only: it reads the fixture files).
+// The four original scenes' converted systems (Node only: it reads the fixture files).
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parse } from 'smol-toml'
-import type { SystemsDef } from '../sim/systems.schema'
+import type { SystemsDef } from '../shared/sim/systems.schema'
 
 export const SCENES = ['prologue', 'clinic', 'clinic-dawn', 'bay'] as const
 

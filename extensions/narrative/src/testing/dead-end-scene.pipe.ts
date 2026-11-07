@@ -1,6 +1,6 @@
 // The toy scene with a conversation that never ends: two nodes that lead to each other, so no node reaches an exit.
-// `narrative check` fails it (NR-c).
-import type { NarrativeToolsScene } from '../tools/scene'
+// `narrative check` fails it.
+import type { NarrativeToolsScene } from '../features/tools/scene'
 import { toyNarrativeScene, toyTraceGame } from './toy-trace'
 
 export const narrative: NarrativeToolsScene = toyNarrativeScene({

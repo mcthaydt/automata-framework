@@ -1,4 +1,4 @@
-// The nav golden (M6 spec §4.9): the clinic with three walkers for 600 steps, straight or restored from a snapshot.
+// The nav golden: the clinic with three walkers for 600 steps, straight or restored from a snapshot.
 // Walker 1 crosses the ward into the corridor and back; walker 2 tries the supply room while its door is shut
 // (unreachable), the door opens at step 200, and it tries again at 210; walker 3 walks to three nodes in turn, the
 // second one given mid-walk.

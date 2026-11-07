@@ -1,4 +1,4 @@
-// The narrative golden (M6 spec §4.9): the clinic's converted graphs, deck and canon in the talk game, played by a fixed
+// The narrative golden: the clinic's converted graphs, deck and canon in the talk game, played by a fixed
 // script for 600 steps (conversations started, advanced and answered, the player walked through the rooms, bare-hand
 // verbs at the deck's hotspots, the deck's system events), straight or restored from a snapshot.
 
@@ -6,7 +6,10 @@ import type { PuzzleDef } from '@automata/puzzle/sim'
 import { canonicalJson, type Sim } from '@automata/sim'
 import { hex64, utf8, xxhash64 } from '@automata/sim/hash'
 import { parse } from 'smol-toml'
-import type { Canon, DialogueFile, NarrativeScene, StoryletsFile } from '../sim/index'
+import type { Canon } from '../shared/sim/canon.schema'
+import type { DialogueFile } from '../shared/sim/dialogue.schema'
+import type { NarrativeScene } from '../shared/sim/load-narrative'
+import type { StoryletsFile } from '../shared/sim/storylet.schema'
 import canonToml from './fixtures/canon.toml?raw'
 import dialogueToml from './fixtures/clinic.dialogue.toml?raw'
 import storyletsToml from './fixtures/clinic.storylets.toml?raw'

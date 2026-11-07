@@ -1,5 +1,5 @@
 // The ward scene with a cautious-bot win-rate floor no run can meet (above 1), for the pipeline's failing check.
-import type { SystemsScene } from '../bots/scene'
+import type { SystemsScene } from '../features/bots/scene'
 import { WARD_SYSTEMS, wardScene } from './ward-scene'
 
 const def = WARD_SYSTEMS()

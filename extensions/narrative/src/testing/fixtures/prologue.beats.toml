@@ -1,5 +1,4 @@
-# The adventure source's prologue story beats (provenance: the framework's docs/provenance/sources.md), converted once
-# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+# The prologue story beats (provenance: the framework's docs/provenance/sources.md), converted once from an earlier game. Do not edit.
 [[beats]]
 id = "prologue.handover"
 required = true

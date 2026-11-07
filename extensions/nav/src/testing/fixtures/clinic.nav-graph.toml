@@ -1,5 +1,4 @@
-# The adventure source's clinic nav graph (provenance: the framework's docs/provenance/sources.md), converted once
-# by packages/nav/scripts/convert-adventure-nav.ts. Do not edit.
+# The clinic nav graph (provenance: the framework's docs/provenance/sources.md), converted once from an earlier game. Do not edit.
 edges = [ [ "end", "cmid" ], [ "cmid", "closet", "closetDoor" ], [ "closet", "closetN" ], [ "cmid", "mouth" ], [ "mouth", "hallN" ], [ "hallN", "ward" ], [ "hallN", "recep" ], [ "hallN", "hallS" ], [ "hallN", "recepN" ], [ "ward", "bench" ], [ "wardSouth", "hallS" ], [ "ward", "hallS" ], [ "ward", "bedside" ], [ "bedside", "alcoveMouth" ], [ "alcoveMouth", "alcove" ], [ "bedside", "sinkSide" ], [ "bench", "hallS" ], [ "recep", "recepSW" ], [ "recepSW", "recepS" ], [ "recepSW", "hallS" ], [ "recepS", "hallS" ], [ "recep", "recepN" ] ]
 
 [nodes.alcove]

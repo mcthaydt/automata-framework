@@ -1,4 +1,4 @@
-// A toy game to play routes in (M6.8b step 5): a drawer that gives a key, a door it unlocks that starts a conversation
+// A toy game to play routes in: a drawer that gives a key, a door it unlocks that starts a conversation
 // and a cutscene, and a storylet on the drawer. It has the talk game's shape (sectors, puzzle and narrative loaded by
 // a command) with its own load command, so the narrative golden's commands stay as they are.
 import { createPuzzlePlugin, loadPuzzle, type PuzzleDef } from '@automata/puzzle/sim'
@@ -9,11 +9,14 @@ import clinicMapToml from '@automata/sectors/testing/fixtures/clinic.sector-map.
 import { createSim, defineCommand, definePlugin, defineSystem } from '@automata/sim'
 import { parse } from 'smol-toml'
 import { z } from 'zod'
-import { createNarrative, type DialogueGraph, type LineRecord, type Storylet } from '../sim/index'
-import type { Beat } from '../tools/beats.schema'
-import type { SceneHelp } from '../tools/help.schema'
-import type { NarrativeToolsScene } from '../tools/scene'
-import type { TraceGame } from '../tools/traces'
+import type { NarrativeToolsScene } from '../features/tools/scene'
+import type { TraceGame } from '../features/tools/traces'
+import type { Beat } from '../shared/beats.schema'
+import type { SceneHelp } from '../shared/help.schema'
+import type { DialogueGraph } from '../shared/sim/dialogue.schema'
+import type { LineRecord } from '../shared/sim/lines.schema'
+import { createNarrative } from '../shared/sim/narrative.plugin'
+import type { Storylet } from '../shared/sim/storylet.schema'
 import { CANON, rec, TALK } from './toy-dialogue'
 
 const Load = defineCommand('toy.load', z.strictObject({ entry: z.string() }))

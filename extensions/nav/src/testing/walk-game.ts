@@ -11,7 +11,7 @@ import {
   type StepResult,
 } from '@automata/sim'
 import { z } from 'zod'
-import { createNavPlugin, loadNavGraph, NavAgent, type NavOptions } from '../sim/index'
+import { createNavPlugin, loadNavGraph, NavAgent, type NavOptions } from '../entries/sim'
 import { clinicBlocked, clinicGraph, clinicMap } from './clinic'
 
 const Load = defineCommand('walk-game.load', z.strictObject({}))

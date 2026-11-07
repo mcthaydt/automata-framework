@@ -1,5 +1,4 @@
-# The adventure source's clinic line text (en) (provenance: the framework's docs/provenance/sources.md), converted once
-# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+# The clinic line text (en) (provenance: the framework's docs/provenance/sources.md), converted once from an earlier game. Do not edit.
 "clinic.bedFirst" = "Bed 04. The sheets are still warm, shaped like me. My wristband reads A. VOSS.\nUnder the pillow, a scalpel. Somebody put it there for me. Somebody thought I would need it."
 "clinic.bed" = "Bed 04. I do not want to lie down again."
 "clinic.monitorFirst" = "ST. AGNES / BED 04\nPATIENT: VOSS, A.  ADMITTED 04:17\nThere is a red button marked ALARM."

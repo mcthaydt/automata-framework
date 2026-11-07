@@ -1,5 +1,4 @@
-# The adventure source's prologue line text (en) (provenance: the framework's docs/provenance/sources.md), converted once
-# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+# The prologue line text (en) (provenance: the framework's docs/provenance/sources.md), converted once from an earlier game. Do not edit.
 "prologue.handover" = "To nights. Handed over to A. Voss. Sorry, bus. You’ll be fine.\nSign the register when you come on. Everyone does. They check.\nSupply key in the cabinet by the desk. Code is the hour we go home: 2000. Not 0800.\nTurn over."
 "prologue.handoverBack" = "Lamp and paraffin in the bedside drawer. Fill it before the corridor, that bulb has gone again. I rang.\nMake up 04 for the morning. Sheets in supply.\nLights go? Lamp lit, or behind the screen. Do not sit till she goes.\nIf you hear the pipes knocking, it is the pipes."
 "prologue.handoverAgain" = "Her writing leans hard to the right, already halfway out the door. “It is the pipes” is underlined three times. That is two more than a pipe needs. And at the top, my name, after “Handed over to”. Nobody has ever handed me anything."

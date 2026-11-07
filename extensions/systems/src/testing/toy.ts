@@ -1,6 +1,6 @@
 // The source tests' small definitions, re-pointed at AF: a world-rule toy (an alarm that wakes a watchman), the toy
 // watchman agent that patrols the clinic's corridor, and a chaser for pursuit.
-import type { AgentDef, SystemsDef } from '../sim/systems.schema'
+import type { AgentDef, SystemsDef } from '../shared/sim/systems.schema'
 
 const base = {
   objects: [
@@ -17,7 +17,7 @@ const base = {
   },
 }
 
-/** The source's `systems.test.ts` toy: the alarm rings every 2 s while the power is off, and wakes the watchman. */
+/** The original's `systems.test.ts` toy: the alarm rings every 2 s while the power is off, and wakes the watchman. */
 export const alarmToy = (): SystemsDef => ({
   scene: 'clinic',
   ...base,
@@ -74,7 +74,7 @@ export const alarmToy = (): SystemsDef => ({
   ],
 })
 
-/** The source's `agents.test.ts` watchman: patrols the corridor, hunts what it sees, investigates what it hears. */
+/** The original's `agents.test.ts` watchman: patrols the corridor, hunts what it sees, investigates what it hears. */
 export const watchman = (): AgentDef => ({
   id: 'watchman',
   modes: ['patrol', 'investigate', 'hunt', 'stunned'],

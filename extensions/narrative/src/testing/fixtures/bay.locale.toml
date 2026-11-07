@@ -1,5 +1,4 @@
-# The adventure source's bay line text (en) (provenance: the framework's docs/provenance/sources.md), converted once
-# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+# The bay line text (en) (provenance: the framework's docs/provenance/sources.md), converted once from an earlier game. Do not edit.
 "bay.arrivalDoor" = "The clinic door. It locked behind me, and there is no handle on this side."
 "bay.ambulanceFirst" = "The rear doors hang open. On the stretcher, a clipboard with a run sheet. Under it, a box of matches and a can of petrol."
 "bay.runSheet" = "RUN SHEET  21.01.87\nCALL 04:09  ST. AGNES WARD\nPT: VOSS, A. (STAFF NURSE)\nFOUND AT BED 04\nDOA 04:17"

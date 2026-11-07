@@ -1,7 +1,7 @@
 // The talk game's toy content: a phone that starts a conversation, a bed with its own line, and a deck with one
 // storylet of each trigger. The conversation is the dialogue runtime's toy graph.
 import type { PuzzleDef } from '@automata/puzzle/sim'
-import type { NarrativeScene } from '../sim/index'
+import type { NarrativeScene } from '../shared/sim/load-narrative'
 
 export const TALK_PUZZLE: PuzzleDef = {
   scene: 'talk',

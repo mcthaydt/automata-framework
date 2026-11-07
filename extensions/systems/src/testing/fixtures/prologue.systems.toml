@@ -1,5 +1,4 @@
-# The adventure source's prologue systems (provenance: the framework's docs/provenance/sources.md), converted once
-# by packages/systems/scripts/convert-adventure-systems.ts. Do not edit.
+# The prologue systems (provenance: the framework's docs/provenance/sources.md), converted once from an earlier game. Do not edit.
 scene = "prologue"
 
 [[objects]]

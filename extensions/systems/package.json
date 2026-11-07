@@ -14,9 +14,9 @@
     "#src/*": "./src/*"
   },
   "exports": {
-    ".": "./src/index.ts",
-    "./sim": "./src/sim/index.ts",
-    "./bots": "./src/bots/index.ts",
+    ".": "./src/entries/index.ts",
+    "./sim": "./src/entries/sim.ts",
+    "./bots": "./src/entries/bots.ts",
     "./testing/ward-scene.pipe": "./src/testing/ward-scene.pipe.ts",
     "./testing/ward-scene-strict.pipe": "./src/testing/ward-scene-strict.pipe.ts"
   },
@@ -26,9 +26,9 @@
     ]
   },
   "scripts": {
-    "test": "vitest run --project node --project browsers",
-    "test:unit": "vitest run --project node",
-    "test:parity": "vitest run --project browsers",
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:browser": "vitest run --project browser",
     "typecheck": "tsc -p ."
   },
   "dependencies": {
@@ -50,10 +50,10 @@
     "@automata/puzzle": "workspace:*",
     "@automata/sectors": "workspace:*",
     "@automata/sim": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
     "@types/node": "24.19.1",
-    "@vitest/browser-playwright": "5.0.3",
-    "playwright": "1.63.0",
     "smol-toml": "1.9.0",
+    "vite": "8.3.3",
     "vitest": "5.0.3"
   }
 }

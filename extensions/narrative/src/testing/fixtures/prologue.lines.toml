@@ -1,5 +1,4 @@
-# The adventure source's prologue line records (provenance: the framework's docs/provenance/sources.md), converted once
-# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+# The prologue line records (provenance: the framework's docs/provenance/sources.md), converted once from an earlier game. Do not edit.
 [[lines]]
 id = "prologue.handover"
 kind = "note"

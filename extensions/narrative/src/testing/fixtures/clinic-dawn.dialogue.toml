@@ -1,5 +1,4 @@
-# The adventure source's clinic-dawn dialogue graphs (provenance: the framework's docs/provenance/sources.md), converted once
-# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+# The clinic-dawn dialogue graphs (provenance: the framework's docs/provenance/sources.md), converted once from an earlier game. Do not edit.
 [[graphs]]
 id = "clinic-dawn.first"
 speaker = "ada"

@@ -13,8 +13,8 @@ import {
   type StepResult,
 } from '@automata/sim'
 import { z } from 'zod'
-import { InSector, loadSectorMap, type SectorMap, sectorsPlugin } from '../sim/index'
-import { loadSectorMapWithColliders, sectorCollidersPlugin } from '../sim/physics/index'
+import { loadSectorMapWithColliders, sectorCollidersPlugin } from '../entries/physics'
+import { InSector, loadSectorMap, type SectorMap, sectorsPlugin } from '../entries/sim'
 
 const Load = defineCommand('walkers.load', z.object({ map: z.string() }))
 const Spawn = defineCommand('walkers.spawn', z.object({ x: z.number(), z: z.number() }))

@@ -1,9 +1,9 @@
-// The clinic fixture: the adventure source's clinic map as `sector-map` content, and the source's own resolution of it
+// The clinic fixture: the original game's clinic map as `sector-map` content, and the original's own resolution of it
 // (both written once by scripts/convert-adventure-map.ts).
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parse } from 'smol-toml'
-import type { SectorMap } from '../sim/sector-map.schema'
+import type { SectorMap } from '../shared/sim/sector-map.schema'
 
 const fixture = (name: string): string => readFileSync(join(import.meta.dirname, 'fixtures', name), 'utf8')
 

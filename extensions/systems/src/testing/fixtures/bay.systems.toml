@@ -1,5 +1,4 @@
-# The adventure source's bay systems (provenance: the framework's docs/provenance/sources.md), converted once
-# by packages/systems/scripts/convert-adventure-systems.ts. Do not edit.
+# The bay systems (provenance: the framework's docs/provenance/sources.md), converted once from an earlier game. Do not edit.
 scene = "bay"
 
 [[objects]]

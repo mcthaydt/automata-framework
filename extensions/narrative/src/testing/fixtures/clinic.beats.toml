@@ -1,5 +1,4 @@
-# The adventure source's clinic story beats (provenance: the framework's docs/provenance/sources.md), converted once
-# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+# The clinic story beats (provenance: the framework's docs/provenance/sources.md), converted once from an earlier game. Do not edit.
 [[beats]]
 id = "clinic.wake"
 required = true

@@ -1,5 +1,4 @@
-# The adventure source's clinic-dawn cutscenes (provenance: the framework's docs/provenance/sources.md), converted once
-# by packages/cutscenes/scripts/convert-adventure-cutscenes.ts, each evaluated in one context. Do not edit.
+# The clinic-dawn cutscenes (provenance: the framework's docs/provenance/sources.md), converted once from an earlier game, each evaluated in one context. Do not edit.
 [[cutscenes]]
 id = "arrival"
 duration = 19.566666666666666

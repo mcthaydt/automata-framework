@@ -1,5 +1,4 @@
-# The adventure source's canon (provenance: the framework's docs/provenance/sources.md), converted once
-# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+# The canon (provenance: the framework's docs/provenance/sources.md), converted once from an earlier game. Do not edit.
 glossary = [ "Ada", "Ada Voss", "Voss", "A. Voss", "A. VOSS", "VOSS, A.", "Night Nurse", "Nurse", "Porter", "F. Lamb", "F. LAMB", "F.L.", "Lamb", "Mr. Lamb", "Drawer Four", "Keats", "Control", "Echo Four", "ECHO FOUR", "St. Agnes", "ST. AGNES", "St. Agnes Clinic", "St. Agnes ward", "ST. AGNES WARD", "St. Agnes' Eve", "The Eve of St. Agnes", "Bed 04", "BED 04", "ALARM", "SUPPLY", "EMERGENCY POWER", "NIGHT REGISTER", "STAFF NOTICE", "PATIENT RECORD", "PATIENT", "ADMISSION", "ADMITTED", "ADM", "SIGNED ON", "HANDED OVER TO", "RECEIVED", "RELEASED", "RELEASE AT FIRST LIGHT", "DRAWER 4", "Drawer 4", "CALL", "PT", "STAFF NURSE", "FOUND AT BED 04", "DOA", "ACT ONE", "ACT TWO", "ACT THREE", "NIGHT SHIFT", "THE PORTER", "FIRST LIGHT", "Vigil", "Release", "Handover", "VIGIL", "RELEASE", "HANDOVER" ]
 motifs = [ "four", "pools", "handwriting", "faces", "tags", "thresholds", "clocks", "warmth", "line" ]
 

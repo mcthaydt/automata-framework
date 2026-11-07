@@ -1,5 +1,4 @@
-# The adventure source's prologue storylet deck (provenance: the framework's docs/provenance/sources.md), converted once
-# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+# The prologue storylet deck (provenance: the framework's docs/provenance/sources.md), converted once from an earlier game. Do not edit.
 [[storylets]]
 id = "st.p0.blanket"
 trigger = "inspect:bed"

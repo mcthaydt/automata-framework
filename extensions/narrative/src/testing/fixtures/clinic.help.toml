@@ -1,5 +1,4 @@
-# The adventure source's clinic puzzle help (provenance: the framework's docs/provenance/sources.md), converted once
-# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+# The clinic puzzle help (provenance: the framework's docs/provenance/sources.md), converted once from an earlier game. Do not edit.
 [[hints]]
 id = "cabinet"
 puzzle = "Open the key cabinet behind reception with its four-digit code."

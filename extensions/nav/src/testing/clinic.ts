@@ -1,12 +1,12 @@
 // The clinic fixture for nav's tests, in Node and the browsers (`?raw`, no `node:fs`): sectors' converted clinic map,
-// the clinic's nav graph, and its boxes behind a game-side `Blocked` like the source's (boxes are the game's, not nav's).
+// the clinic's nav graph, and its boxes behind a game-side `Blocked` like the original's (boxes are the game's, not nav's).
 
 import { type Point, type ResolvedMap, resolveMap, type SectorMap } from '@automata/sectors/sim'
 import clinicMapToml from '@automata/sectors/testing/fixtures/clinic.sector-map.toml?raw'
 import { parse } from 'smol-toml'
-import { blockedBy } from '../sim/blocked'
-import type { NavGraph } from '../sim/nav-graph.schema'
-import type { Blocked } from '../sim/route'
+import { blockedBy } from '../shared/sim/blocked'
+import type { NavGraph } from '../shared/sim/nav-graph.schema'
+import type { Blocked } from '../shared/sim/route'
 import boxesToml from './fixtures/clinic.boxes.toml?raw'
 import graphToml from './fixtures/clinic.nav-graph.toml?raw'
 
@@ -23,7 +23,7 @@ interface Box {
 }
 const boxes = (parse(boxesToml) as unknown as { boxes: Box[] }).boxes
 
-/** Liang–Barsky clip of segment a→b against a box footprint grown by `margin` (the source's `segmentHitsBox`). */
+/** Liang–Barsky clip of segment a→b against a box footprint grown by `margin` (the original's `segmentHitsBox`). */
 function segmentHitsBox(a: Point, b: Point, box: Box, margin: number): boolean {
   let near = 0
   let far = 1
@@ -49,7 +49,7 @@ const inside = (p: Point, box: Box, margin: number): boolean =>
 
 /**
  * The clinic's walls (sectors) and boxes: an exit always blocks, a door while it is shut, furniture always. For sight
- * (`furniture: false`) furniture does not block, as the source's `wallsOnly` line of sight.
+ * (`furniture: false`) furniture does not block, as the original's `wallsOnly` line of sight.
  */
 export function clinicBlocked(
   map: ResolvedMap,

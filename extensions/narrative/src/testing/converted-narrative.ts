@@ -1,4 +1,4 @@
-// The four adventure scenes' converted narrative content (Node only: it reads the fixture files).
+// The four original scenes' converted narrative content (Node only: it reads the fixture files).
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parse } from 'smol-toml'
