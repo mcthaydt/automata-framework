@@ -86,7 +86,7 @@ The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history
 - Only published packages get a changeset, and it is `patch`. Private ones (the editors, figures) need none.
 - Browser, visual and journey suites run on the GPU runner, and cross-engine parity runs in Chromium, WebKit and
   Firefox. Report what you ran, what you left out and what is pending.
-- Packages publish as `@automata/<name>` to GitHub Packages.
+- Packages publish publicly as `@automata/<name>` to npmjs.org (the Owner's `NPM_TOKEN`; no token to install them).
 
 ## Branches and pull requests
 

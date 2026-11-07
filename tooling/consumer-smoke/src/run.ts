@@ -1,7 +1,7 @@
 // Usage: node tooling/consumer-smoke/src/run.ts --from packs|registry [--version 0.0.n] [--keep]
 //
 // Installs AF's published packages into a project outside the workspace and uses them as a game would. `packs` packs the workspace's built packages (run `pnpm build` first); `registry` installs a
-// published version from GitHub Packages (NODE_AUTH_TOKEN must be able to read it). Each check is a named step;
+// published version from npmjs.org (public: no token). Each check is a named step;
 // the run exits 0 only if every step passed, and removes its temp folder unless --keep.
 import { execFileSync } from 'node:child_process'
 import {
@@ -22,13 +22,7 @@ import { publishablePackages } from '../../release/src/publishable-packages.ts'
 import { bootGame } from './boot-game.ts'
 import { packAll, sh } from './commands.ts'
 import { fetchEditorPage } from './editor.ts'
-import {
-  type ConsumerPackage,
-  consumerManifest,
-  consumerNpmrc,
-  consumerWorkspace,
-  type ToolVersions,
-} from './project.ts'
+import { type ConsumerPackage, consumerManifest, consumerWorkspace, type ToolVersions } from './project.ts'
 import { readmeCommands, readWorkspace, unresolvedCommands } from './readme.ts'
 import { rukenHeaders } from './ruken/ruken-headers.ts'
 import { serveStatic } from './serve.ts'
@@ -179,7 +173,11 @@ function steps(project: string): Step[] {
       // The editor makes the tools package bigger; this is the budget, so the growth is a decision and not an accident.
       `size: the packed -tools stays under ${TOOLS_PACK_BUDGET_MB} MB`,
       () => {
-        const pack = readdirSync(join(project, 'packs')).find((file) => /automata-tools-.*\.tgz$/.test(file))
+        // A registry run has no `packs` folder: nothing was packed, so there is nothing to measure.
+        const packs = join(project, 'packs')
+        const pack = existsSync(packs)
+          ? readdirSync(packs).find((file) => /automata-tools-.*\.tgz$/.test(file))
+          : undefined
         if (pack === undefined) return 'installed from the registry: not measured'
         const bytes = statSync(join(project, 'packs', pack)).size
         if (bytes > TOOLS_PACK_BUDGET_MB * 1024 * 1024)
@@ -317,7 +315,7 @@ async function main(): Promise<void> {
       join(project, 'pnpm-workspace.yaml'),
       consumerWorkspace({ from: args.from, version: args.version, packages }),
     )
-    writeFileSync(join(project, '.npmrc'), consumerNpmrc())
+    // The packages are public on npmjs.org, so the project needs no .npmrc and no token, as for a stranger.
     // No workspace above the temp folder, so this is a plain install, as in a game repository.
     sh(project, 'pnpm', ['install', '--no-frozen-lockfile'])
     console.log('✓ install')

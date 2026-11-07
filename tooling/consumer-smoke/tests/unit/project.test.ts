@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { consumerManifest, consumerNpmrc, consumerWorkspace } from '#src/project.ts'
+import { consumerManifest, consumerWorkspace } from '#src/project.ts'
 
 const PNPM = 'pnpm@10.34.6+sha512.abc'
 const tools = {
@@ -95,13 +95,5 @@ describe('consumerManifest (the project outside the workspace, M2.4 spec §3.6)'
     expect(() =>
       consumerManifest({ from: 'packs', packages: [{ name: 'a' }], tools, packageManager: PNPM }),
     ).toThrow(/tarball/)
-  })
-})
-
-describe('consumerNpmrc', () => {
-  it('sends @mcthaydt to GitHub Packages with the token from the environment, never a literal token', () => {
-    const npmrc = consumerNpmrc()
-    expect(npmrc).toContain('@mcthaydt:registry=https://npm.pkg.github.com')
-    expect(npmrc).toContain(`//npm.pkg.github.com/:_authToken=\${NODE_AUTH_TOKEN}`)
   })
 })

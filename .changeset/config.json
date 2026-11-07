@@ -4,7 +4,7 @@
   "commit": false,
   "fixed": [["@automata/framework", "@automata/content", "@automata/sim", "@automata/tools"]],
   "linked": [],
-  "access": "restricted",
+  "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [],

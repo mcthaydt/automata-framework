@@ -26,7 +26,8 @@
     "automata-check-boundaries": "./src/features/boundaries/cli.ts"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
+    "registry": "https://registry.npmjs.org",
+    "access": "public",
     "exports": {
       ".": {
         "types": "./dist/index.d.ts",

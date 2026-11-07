@@ -35,7 +35,8 @@
     "automata-content": "./src/app/cli/main.ts"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
+    "registry": "https://registry.npmjs.org",
+    "access": "public",
     "exports": {
       ".": {
         "types": "./dist/index.d.ts",

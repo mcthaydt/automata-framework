@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { publishablePackages, type WorkspacePackage, workspacePackages } from '#src/publishable-packages.ts'
 
-// What AF publishes to GitHub Packages, and how (M2.4 spec §3.1, §3.2, §3.4). Changing the list is a deliberate
+// What AF publishes to npmjs.org, and how (M2.4 spec §3.1, §3.2, §3.4). Changing the list is a deliberate
 // act: an example, `render-pixi3d` (D-1) or a tool marked publishable fails here before anything is released.
 // Physics is an Automata Plus extension and publishes from automata-plus (PRODUCT.5g).
 const root = fileURLToPath(new URL('../../../..', import.meta.url))
@@ -18,7 +18,7 @@ const EXPECTED: readonly string[] = [
   '@automata/tools',
 ]
 
-const REGISTRY = 'https://npm.pkg.github.com'
+const REGISTRY = 'https://registry.npmjs.org'
 
 /** `.changeset/config.json`'s fixed groups: package names, or patterns where `*` matches any characters. */
 const changesets = JSON.parse(readFileSync(join(root, '.changeset/config.json'), 'utf8')) as {
@@ -135,15 +135,18 @@ describe('the published packages', () => {
   )
 
   it(
-    'ship only dist (and VENDORED.md), to GitHub Packages',
+    'ship only dist (and VENDORED.md), publicly, to npmjs.org',
     each(({ manifest }) => {
       expect(manifest.files, manifest.name).toContain('dist')
       expect(manifest.publishConfig?.registry, manifest.name).toBe(REGISTRY)
+      expect((manifest.publishConfig as { access?: string } | undefined)?.access, manifest.name).toBe(
+        'public',
+      )
     }),
   )
 
   it(
-    "name this repository, so the release job's GITHUB_TOKEN may publish them (GitHub links a package by it)",
+    'name this repository, so a visitor to the package page finds the source',
     each(({ dir, manifest }) => {
       expect(manifest.repository, manifest.name).toEqual({
         type: 'git',

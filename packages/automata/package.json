@@ -41,7 +41,8 @@
     "#src/*": "./src/*"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
+    "registry": "https://registry.npmjs.org",
+    "access": "public",
     "exports": {
       ".": {
         "types": "./dist/entries/index.d.ts",

@@ -1,6 +1,6 @@
-// The game-like project consumer-smoke installs AF into: its package.json and.npmrc. It lives
+// The game-like project consumer-smoke installs AF into: its package.json and workspace file. It lives
 // in a temp folder outside the workspace, so nothing resolves through workspace links: only what a game
-// repository would get from a tarball or from GitHub Packages.
+// repository would get from a tarball or from npmjs.org.
 
 export interface ToolVersions {
   readonly typescript: string
@@ -89,13 +89,4 @@ export function consumerWorkspace(options: PackageSource): string {
   if (options.from === 'registry') return 'overrides: {}\n'
   const lines = Object.entries(dependenciesOf(options)).map(([name, spec]) => `  '${name}': '${spec}'`)
   return ['overrides:', ...lines, ''].join('\n')
-}
-
-/** `${NODE_AUTH_TOKEN}` is expanded by pnpm at install time, so no token is ever written to disk. */
-export function consumerNpmrc(): string {
-  return [
-    '@mcthaydt:registry=https://npm.pkg.github.com',
-    `//npm.pkg.github.com/:_authToken=\${NODE_AUTH_TOKEN}`,
-    '',
-  ].join('\n')
 }

@@ -11,8 +11,8 @@
 //   mcthaydt-automata-<version> → automata-framework-<version>   (`npm pack` file names: `@a/b` packs as `a-b-…tgz`)
 //   mcthaydt-automata-<name>    → automata-<name>
 //
-// What stays: `@mcthaydt` as a registry scope (`@mcthaydt:registry=…` in `.npmrc`, the release job's `scope:`), which
-// goes when the packages move to npmjs.org; the GitHub owner in `mcthaydt/automata-framework` URLs and `CODEOWNERS`;
+// What stayed until the packages moved to npmjs.org: `@mcthaydt` as a registry scope (`.npmrc`, the release job's `scope:`), now gone;
+// the GitHub owner in `mcthaydt/automata-framework` URLs and `CODEOWNERS`;
 // and the history (`docs/archive/`, `docs/refactor/`, every `CHANGELOG.md`), which records the names as they were.
 // Patterns written as regular expressions (`@mcthaydt\/automata(?:-…)?`) are rewritten by the same rules but encode
 // the old naming scheme (main package = the bare prefix), so the CLI lists them for a person to check by eye.
