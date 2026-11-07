@@ -394,7 +394,7 @@ the site's 3D parts.
 
 | Stage | Status | Record |
 |---|---|---|
-| 1. Audit | Done, 2026-11-07 (PR stacked on #441): 9 structure (S1 to S9), 3 contracts (K1 to K3), 6 editor shipping (E1 to E6), 4 layout and look (V1 to V4), 4 tests (T1 to T4), 3 game (G1 to G3), 2 CI (Q1, Q2), 2 site (W1, W2), 8 copy (C1 to C8); 8 decisions for the Owner (D1 to D8). 3,836 unit and DOM tests pass; the 3D editor's Chromium layout and canvas run 187 pass and 8 fail (the known 8); base-3d's journeys 8 of 8 and the 3D examples' 9 of 9 in Chromium. Headline: the 3D editor cannot open base-3d, and the Studio is unreachable | [2026-11-07-3d-slice-audit.md](2026-11-07-3d-slice-audit.md) |
+| 1. Audit | Done, 2026-11-07 (PR stacked on #441): 10 structure (S1 to S10), 3 contracts (K1 to K3), 6 editor shipping (E1 to E6), 5 layout and look (V1 to V5), 6 tests (T1 to T6), 7 game (G1 to G7), 2 CI (Q1, Q2), 2 site (W1, W2), 10 copy (C1 to C10); 8 decisions for the Owner (D1 to D8). 3,836 unit and DOM tests pass; the 3D editor's Chromium layout and canvas run 187 pass and 8 fail (the known 8); base-3d's journeys 8 of 8 and the 3D examples' 9 of 9 in Chromium. Headline: the 3D editor cannot open base-3d, and the Studio is unreachable | [2026-11-07-3d-slice-audit.md](2026-11-07-3d-slice-audit.md) |
 | 2. Plan and spec | Next (Opus, medium), from the audit's section 8 | |
 | 3. Plan audit | Not started | |
 | 4. Build | Not started | |

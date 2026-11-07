@@ -151,6 +151,7 @@ Each finding has an ID so the plan can point at it.
 | T3 | `pnpm check` runs no 3D unit test; `ci:local` runs no 3D suite; the 3D editor's journeys run in WebKit only, so a session cannot run them. | root `package.json`; `journey-project.ts` |
 | T4 | 24 review-image canvas tests are skipped unless `ED3D_VISUALS=1`; nothing compares their pictures. | canvas run |
 | T5 | The Studio's layout test passes at phone portrait while Publish is clipped (V5): it checks the stage, the modes and the timeline, not that every top-bar action is whole and inside the screen. The phone checks in general prove sizes, not that a person can do the job (V1 passed its tests too). | `studio.layout.test.ts`; screen |
+| T6 | base-3d's browser run can fail before its tests run. Every Vite server the run starts compiles the game's words with Paraglide, which empties `src/paraglide` and writes it again; a server whose dependency scan reads the folder in that gap fails ("Could not load src/paraglide/messages/title.js"), finds its dependencies late, reloads the test page, and `hud.layout.test.ts` never becomes ready (60 s). It happened on this PR's second `3D - parity` run (78 tests passed, 1 error) and not on its first; a Chromium-only run here empties the folder three times in 1.7 s, so the gap is real and only its timing varies. The fix belongs in `-content`'s compile (compile into the temporary folder, then copy over only what changed, so the folder is never empty and an unchanged compile writes nothing). It reaches any game that sets `paraglide`; today only base-3d does. | Actions run 42359697986, job `3D - parity`; `compile-messages.ts` (`compileInFolder`); a 2 ms poll of `src/paraglide/messages/title.js` during `vitest run --project 'layout (chromium)' --project 'browsers (chromium)'` |
 
 ## 5. Findings: the game, the examples, CI and the site
 
@@ -241,10 +242,10 @@ Each has a recommendation; the plan stage builds on the recommended option unles
 
 ### Work the plan should cover, in order
 
-1. **Gates first** (Q1, T1, T3, T5): bring #425's pause into the stack or turn 3D back on deliberately; fix the 8 tests
+1. **Gates first** (Q1, T1, T3, T5, T6): bring #425's pause into the stack or turn 3D back on deliberately; fix the 8 tests
    (read the list's own region, one scroll region per dialog, the plan clear of the sheet at iPad mini landscape); put
    the 3D unit tests in a 3D `check` the plan names; run the 3D editor's journeys in Chromium as well as WebKit; phone
-   checks that every action of a screen is whole and inside it.
+   checks that every action of a screen is whole and inside it; Paraglide compiled without emptying its folder.
 2. **Open the 3D game in the editor** (E1, E2, G1, G3): base-3d gets `content/editors.toml` and moves its content to
    `content/`; the full suite opens the checkout; one Playwright journey per editor against the real `automata editor`
    on a temporary copy of base-3d (open the room, draw, save, the file changes, `automata check` passes, the game
