@@ -188,8 +188,15 @@ export function sourceExports(packages: readonly CorePackage[]): ExportsOf {
   return readExports(ts.createProgram(files, options, host))
 }
 
-/** Each emitted `.d.ts` entry file's exports, read as written, with doc comments. */
-export function declarationExports(files: readonly string[]): ExportsOf {
+/**
+ * Each emitted `.d.ts` entry file's exports, read as written, with doc comments. `paths` maps an import specifier
+ * to the declaration file it must resolve to: without it, an import of another workspace package follows its
+ * `node_modules` link to the package's manifest, whose `exports` point at source, and the re-export prints the source.
+ */
+export function declarationExports(
+  files: readonly string[],
+  paths?: Readonly<Record<string, readonly string[]>>,
+): ExportsOf {
   const program = ts.createProgram(files, {
     // Only declarations, aliases and doc comments are read, never types, so the default lib and @types are
     // not loaded (loading them made each run several seconds slower). Diagnostics are not read.
@@ -200,6 +207,7 @@ export function declarationExports(files: readonly string[]): ExportsOf {
     target: ts.ScriptTarget.ES2022,
     module: ts.ModuleKind.ESNext,
     moduleResolution: ts.ModuleResolutionKind.Bundler,
+    ...(paths === undefined ? {} : { paths: { ...paths } }),
   })
   return readExports(program)
 }

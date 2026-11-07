@@ -1,0 +1,15 @@
+{
+  "name": "@fx/base",
+  "version": "1.0.0",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./types/index.d.ts",
+        "import": "./types/index.js"
+      }
+    }
+  }
+}

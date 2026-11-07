@@ -249,7 +249,7 @@
 - `definePlugin(spec)`: Defines a plugin from a name, its dependencies and its definitions, given in the keyed lists or in one flat `defs` list sorted by kind.
 - `defineResource(id, schema, init)`: Defines a resource by id, schema and starting value.
 - `defineSave(def)`: Declares a save.
-- `defineSystem(name, run)`, `defineSystem(name, phase, run)`, `defineSystem(spec)`, `defineSystem(nameOrSpec, phaseOrRun?, run?)`: A system: `defineSystem(name, run)` runs in `gameplay`, `defineSystem(name, phase, run)` in that phase, and the object form also takes `before`/`after`.
+- `defineSystem(name, run)`, `defineSystem(name, phase, run)`, `defineSystem(spec)`: A system: `defineSystem(name, run)` runs in `gameplay`, `defineSystem(name, phase, run)` in that phase, and the object form also takes `before`/`after`.
 - `Dialog` (const): A question that needs an answer before the screen goes on.
 - `DisplayMetricsPayload` (interface): The game's display: insets the game must keep clear, the area the host reserves for its own controls, and the UI scale hint (1.333 on a TV: enlarge text and targets, never CSS zoom).
 - `DisplayMetricsPayloadSchema` (const): Checks display metrics.

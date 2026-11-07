@@ -25,7 +25,14 @@ const byName = new Intl.Collator('en', { sensitivity: 'base' }).compare
 
 /** Every export of `entries`, sorted by package, entry point and name. */
 export function indexRows(entries: readonly EntryPoint[]): ApiExport[] {
-  const exportsOf = declarationExports(entries.map((entry) => entry.typesFile))
+  // An import of another published package resolves to that package's built declaration (`<package>` or
+  // `<package>/<entry>`), the same way the source reader maps workspace imports to source.
+  const paths: Record<string, string[]> = {}
+  for (const entry of entries) paths[`${entry.package}${entry.entryPoint.slice(1)}`] = [entry.typesFile]
+  const exportsOf = declarationExports(
+    entries.map((entry) => entry.typesFile),
+    paths,
+  )
   const rows: ApiExport[] = []
   for (const entry of entries) {
     const exported = exportsOf(entry.typesFile)

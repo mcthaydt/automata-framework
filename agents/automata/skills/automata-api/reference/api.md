@@ -2328,11 +2328,11 @@ Input to the sim, the only way gameplay state changes from outside. `source` is 
 
 ```ts
 interface Command {
-  readonly tick: number
-  readonly source: number
-  readonly seq: number
-  readonly type: string
-  readonly payload: unknown
+  readonly tick: number;
+  readonly source: number;
+  readonly seq: number;
+  readonly type: string;
+  readonly payload: unknown;
 }
 ```
 
@@ -2343,9 +2343,9 @@ A command the sim accepts as input: an id and the Zod schema its payload must ma
 
 ```ts
 interface CommandDef<Z extends z.ZodType = z.ZodType> {
-  readonly kind: 'command'
-  readonly id: string
-  readonly schema: Z
+  readonly kind: "command";
+  readonly id: string;
+  readonly schema: Z;
 }
 ```
 
@@ -2369,15 +2369,15 @@ addresses entity data through the definition, never through `trait`.
 
 ```ts
 interface ComponentDef<S extends FieldSchema = FieldSchema> {
-  readonly kind: 'component'
-  readonly id: string
-  readonly fields: S
+  readonly kind: "component";
+  readonly id: string;
+  readonly fields: S;
   /** Field names in sorted order: the order used by snapshots. */
-  readonly fieldNames: readonly string[]
+  readonly fieldNames: readonly string[];
   /** Included in RenderDelta rows (default true). */
-  readonly render: boolean
+  readonly render: boolean;
   /** Internal Koota storage. Game code never touches it. */
-  readonly trait: Trait
+  readonly trait: Trait;
 }
 ```
 
@@ -2492,10 +2492,7 @@ Defines a command by id and payload schema. Throws for an id that is not lower-c
 or dashes.
 
 ```ts
-function defineCommand<Z extends z.ZodType>(id: string, schema: Z): CommandDef<Z> {
-  checkId('command', id)
-  return { kind: 'command', id, schema }
-}
+function defineCommand<Z extends z.ZodType>(id: string, schema: Z): CommandDef<Z>;
 ```
 
 #### `defineComponent` (function)
@@ -2505,28 +2502,9 @@ type. `render: false` keeps it out of the renderer's deltas. Throws for a bad id
 name or an unknown field type.
 
 ```ts
-function defineComponent<S extends FieldSchema>(
-  id: string,
-  fields: S,
-  opts: { render?: boolean } = {},
-): ComponentDef<S> {
-  checkId('component', id)
-  const fieldNames = sortedKeys(fields)
-  if (fieldNames.length === 0) throw new Error(`component "${id}" needs at least one field`)
-  const defaults: Record<string, number | boolean | string> = {}
-  for (const name of fieldNames) {
-    const type = fields[name] as FieldType
-    if (!FIELD_RE.test(name)) throw new Error(`component "${id}" has invalid field name "${name}"`)
-    if (!FIELD_TYPES.includes(type))
-      throw new Error(`component "${id}" field "${name}" has unknown field type "${type}"`)
-    defaults[name] = defaultField(type)
-  }
-  // A factory, not a schema object: Koota builds structure-of-arrays accessors for a schema object with
-  // `new Function`, which Ruken's CSP (no 'unsafe-eval') blocks. Each entity holds its own record instead
-  // (array-of-structures); the entity store always writes whole records, so nothing else changes.
-  const traitDef = trait(() => ({ ...defaults }))
-  return { kind: 'component', id, fields, fieldNames, render: opts.render ?? true, trait: traitDef }
-}
+function defineComponent<S extends FieldSchema>(id: string, fields: S, opts?: {
+  render?: boolean;
+}): ComponentDef<S>;
 ```
 
 #### `DefinedGame` (interface)
@@ -2557,10 +2535,7 @@ Defines an event by id and payload schema, to emit from a system with `ctx.emit`
 `StepResult.events`; `ctx.emit` throws for a payload that fails the schema.
 
 ```ts
-function defineEvent<Z extends z.ZodType>(id: string, schema: Z): EventDef<Z> {
-  checkId('event', id)
-  return { kind: 'event', id, schema }
-}
+function defineEvent<Z extends z.ZodType>(id: string, schema: Z): EventDef<Z>;
 ```
 
 #### `defineGame` (function)
@@ -2582,53 +2557,18 @@ hash. `config` is copied as canonical, frozen JSON, so anything that cannot hash
 
 ```ts
 function definePlugin(spec: {
-  name: string
-  dependsOn?: readonly string[]
+  name: string;
+  dependsOn?: readonly string[];
   /** One flat list, sorted into the keyed lists by `kind`; each entry follows that list's keyed entries. */
-  defs?: readonly Def[]
-  components?: readonly ComponentDef[]
-  commands?: readonly CommandDef[]
-  events?: readonly EventDef[]
-  resources?: readonly ResourceDef[]
-  systems?: readonly SystemDef[]
-  state?: (setup: PluginStateSetup) => Promise<PluginState>
-  config?: unknown
-}): PluginDef {
-  checkId('plugin', spec.name)
-  // A canonical, frozen copy: it throws CanonicalJsonError for anything that cannot hash exactly, and nobody
-  // can change it after it joins the schema hash.
-  const config = spec.config === undefined ? undefined : deepFreeze(JSON.parse(canonicalJson(spec.config)))
-  // Keyed entries first, then `defs` in order, so a plugin written either way registers the same lists in the
-  // same order and gets the same schema hash. Duplicates are left for createSim to reject, as they are today.
-  const components = [...(spec.components ?? [])]
-  const commands = [...(spec.commands ?? [])]
-  const events = [...(spec.events ?? [])]
-  const resources = [...(spec.resources ?? [])]
-  const systems = [...(spec.systems ?? [])]
-  for (const def of spec.defs ?? []) {
-    if (def.kind === 'component') components.push(def)
-    else if (def.kind === 'command') commands.push(def)
-    else if (def.kind === 'event') events.push(def)
-    else if (def.kind === 'resource') resources.push(def)
-    else if (def.kind === 'system') systems.push(def)
-    else
-      throw new Error(
-        `plugin "${spec.name}" defs has an entry of unknown kind "${(def as { kind: unknown }).kind}"`,
-      )
-  }
-  return {
-    kind: 'plugin',
-    name: spec.name,
-    dependsOn: spec.dependsOn ?? [],
-    components,
-    commands,
-    events,
-    resources,
-    systems,
-    state: spec.state,
-    config,
-  }
-}
+  defs?: readonly Def[];
+  components?: readonly ComponentDef[];
+  commands?: readonly CommandDef[];
+  events?: readonly EventDef[];
+  resources?: readonly ResourceDef[];
+  systems?: readonly SystemDef[];
+  state?: (setup: PluginStateSetup) => Promise<PluginState>;
+  config?: unknown;
+}): PluginDef;
 ```
 
 #### `defineResource` (function)
@@ -2637,14 +2577,7 @@ Defines a resource by id, schema and starting value. `createSim` parses `init()`
 start fails there.
 
 ```ts
-function defineResource<Z extends z.ZodType>(
-  id: string,
-  schema: Z,
-  init: () => z.input<Z>,
-): ResourceDef<Z> {
-  checkId('resource', id)
-  return { kind: 'resource', id, schema, init }
-}
+function defineResource<Z extends z.ZodType>(id: string, schema: Z, init: () => z.input<Z>): ResourceDef<Z>;
 ```
 
 #### `defineSave` (function)
@@ -2661,23 +2594,9 @@ A system: `defineSystem(name, run)` runs in `gameplay`, `defineSystem(name, phas
 object form also takes `before`/`after`. All three build the same SystemDef.
 
 ```ts
-function defineSystem(name: string, run: (ctx: SimContext) => void): SystemDef
-function defineSystem(name: string, phase: Phase, run: (ctx: SimContext) => void): SystemDef
-function defineSystem(spec: SystemSpec): SystemDef
-function defineSystem(
-  nameOrSpec: string | SystemSpec,
-  phaseOrRun?: Phase | ((ctx: SimContext) => void),
-  run?: (ctx: SimContext) => void,
-): SystemDef {
-  if (typeof nameOrSpec !== 'string') return defineSystemFrom(nameOrSpec)
-  if (typeof phaseOrRun === 'function')
-    return defineSystemFrom({ name: nameOrSpec, phase: 'gameplay', run: phaseOrRun })
-  return defineSystemFrom({
-    name: nameOrSpec,
-    phase: phaseOrRun as Phase,
-    run: run as (ctx: SimContext) => void,
-  })
-}
+function defineSystem(name: string, run: (ctx: SimContext) => void): SystemDef;
+function defineSystem(name: string, phase: Phase, run: (ctx: SimContext) => void): SystemDef;
+function defineSystem(spec: SystemSpec): SystemDef;
 ```
 
 #### `Dialog` (const)
@@ -2853,12 +2772,12 @@ A live entity, addressed by its StableId. Writes are coerced per field type and 
 
 ```ts
 interface EntityRef {
-  readonly sid: number
-  has(component: ComponentDef): boolean
-  get<S extends FieldSchema>(component: ComponentDef<S>): Readonly<FieldValues<S>>
-  set<S extends FieldSchema>(component: ComponentDef<S>, values: Partial<FieldValues<S>>): void
-  add<S extends FieldSchema>(component: ComponentDef<S>, values?: Partial<FieldValues<S>>): void
-  remove(component: ComponentDef): void
+  readonly sid: number;
+  has(component: ComponentDef): boolean;
+  get<S extends FieldSchema>(component: ComponentDef<S>): Readonly<FieldValues<S>>;
+  set<S extends FieldSchema>(component: ComponentDef<S>, values: Partial<FieldValues<S>>): void;
+  add<S extends FieldSchema>(component: ComponentDef<S>, values?: Partial<FieldValues<S>>): void;
+  remove(component: ComponentDef): void;
 }
 ```
 
@@ -2906,9 +2825,9 @@ An event a system emits: an id and the Zod schema its payload must match. Create
 
 ```ts
 interface EventDef<Z extends z.ZodType = z.ZodType> {
-  readonly kind: 'event'
-  readonly id: string
-  readonly schema: Z
+  readonly kind: "event";
+  readonly id: string;
+  readonly schema: Z;
 }
 ```
 
@@ -4098,21 +4017,21 @@ the plugins it depends on, and optionally per-sim engine state and `config`. Cre
 
 ```ts
 interface PluginDef {
-  readonly kind: 'plugin'
-  readonly name: string
+  readonly kind: "plugin";
+  readonly name: string;
   /** Creates this plugin's per-sim engine state; its systems see it as `ctx.pluginState`. */
-  readonly state: ((setup: PluginStateSetup) => Promise<PluginState>) | undefined
-  readonly dependsOn: readonly string[]
-  readonly components: readonly ComponentDef[]
-  readonly commands: readonly CommandDef[]
-  readonly events: readonly EventDef[]
-  readonly resources: readonly ResourceDef[]
-  readonly systems: readonly SystemDef[]
+  readonly state: ((setup: PluginStateSetup) => Promise<PluginState>) | undefined;
+  readonly dependsOn: readonly string[];
+  readonly components: readonly ComponentDef[];
+  readonly commands: readonly CommandDef[];
+  readonly events: readonly EventDef[];
+  readonly resources: readonly ResourceDef[];
+  readonly systems: readonly SystemDef[];
   /**
    * Settings that change what the plugin simulates (physics gravity), as plain JSON. Part of the schema hash,
    * so a snapshot never restores into a sim configured differently. Undefined when the plugin has none.
    */
-  readonly config: unknown
+  readonly config: unknown;
 }
 ```
 
@@ -4301,10 +4220,10 @@ value. Create one with `defineResource`.
 
 ```ts
 interface ResourceDef<Z extends z.ZodType = z.ZodType> {
-  readonly kind: 'resource'
-  readonly id: string
-  readonly schema: Z
-  readonly init: () => z.input<Z>
+  readonly kind: "resource";
+  readonly id: string;
+  readonly schema: Z;
+  readonly init: () => z.input<Z>;
 }
 ```
 
@@ -4934,31 +4853,31 @@ only way gameplay state changes. Create one with `createSim`, and `dispose` it w
 
 ```ts
 interface Sim {
-  readonly seed: number
-  readonly tickHz: number
-  readonly tick: number
+  readonly seed: number;
+  readonly tickHz: number;
+  readonly tick: number;
   /** XXH64 of the canonical content this sim was created with, 16 hex digits; the snapshot header's value. */
-  readonly contentHash: string
-  step(commands: readonly Command[]): StepResult
+  readonly contentHash: string;
+  step(commands: readonly Command[]): StepResult;
   /** Setup and inspection outside `step` (tests, scene setup). Runtime changes go through commands. */
-  spawn(parts: readonly SpawnPart[]): number
-  entity(sid: number): EntityRef | undefined
-  query(...components: ComponentDef[]): EntityRef[]
-  resource<Z extends z.ZodType>(def: ResourceDef<Z>): z.output<Z>
+  spawn(parts: readonly SpawnPart[]): number;
+  entity(sid: number): EntityRef | undefined;
+  query(...components: ComponentDef[]): EntityRef[];
+  resource<Z extends z.ZodType>(def: ResourceDef<Z>): z.output<Z>;
   /** Canonical snapshot v1 bytes. */
-  snapshot(): Uint8Array
+  snapshot(): Uint8Array;
   /** Replaces the whole state. Throws SnapshotFormatError / SnapshotMismatchError and leaves the sim unchanged. */
-  restore(bytes: Uint8Array): void
+  restore(bytes: Uint8Array): void;
   /**
    * A readable view of `bytes`, or of the current state when none are given. Decodes and checks
    * the header as `restore` does (SnapshotFormatError / SnapshotMismatchError) but not restore's later
    * cross-checks, and changes nothing.
    */
-  describeSnapshot(bytes?: Uint8Array): SnapshotView
+  describeSnapshot(bytes?: Uint8Array): SnapshotView;
   /** xxhash64 of the snapshot, 16 hex digits. */
-  hash(): string
+  hash(): string;
   /** Frees the Koota world and every plugin's engine. Idempotent; any later call throws SimDisposedError. */
-  dispose(): void
+  dispose(): void;
 }
 ```
 
@@ -4968,27 +4887,27 @@ What a system's `run` receives each tick.
 
 ```ts
 interface SimContext {
-  readonly tick: number
+  readonly tick: number;
   /** Fixed step, 1 / tickHz. */
-  readonly dt: number
+  readonly dt: number;
   /** This system's own RNG substream. */
-  readonly rng: Rng
+  readonly rng: Rng;
   /** Compiled content, deep-frozen. */
-  readonly content: unknown
+  readonly content: unknown;
   /** Live entities that have every listed component, in ascending StableId order. */
-  query(...components: ComponentDef[]): EntityRef[]
-  entity(sid: number): EntityRef | undefined
+  query(...components: ComponentDef[]): EntityRef[];
+  entity(sid: number): EntityRef | undefined;
   /** Spawns immediately; returns the new StableId. */
-  spawn(...parts: SpawnPart[]): number
+  spawn(...parts: SpawnPart[]): number;
   /** Despawn is deferred to the end of the tick (built-in `entities.flush`). */
-  despawn(sid: number): void
+  despawn(sid: number): void;
   readonly commands: {
-    of<Z extends z.ZodType>(def: CommandDef<Z>): ReadonlyArray<CommandRecord<z.output<Z>>>
-  }
-  emit<Z extends z.ZodType>(def: EventDef<Z>, payload: z.input<Z>): void
-  resource<Z extends z.ZodType>(def: ResourceDef<Z>): z.output<Z>
+    of<Z extends z.ZodType>(def: CommandDef<Z>): ReadonlyArray<CommandRecord<z.output<Z>>>;
+  };
+  emit<Z extends z.ZodType>(def: EventDef<Z>, payload: z.input<Z>): void;
+  resource<Z extends z.ZodType>(def: ResourceDef<Z>): z.output<Z>;
   /** The per-sim state of the plugin that registered this system (`definePlugin({ state })`), else undefined. */
-  readonly pluginState: unknown
+  readonly pluginState: unknown;
 }
 ```
 
@@ -5094,11 +5013,11 @@ rejected.
 ```ts
 interface StepResult {
   /** The tick the sim is at after this step. */
-  readonly tick: number
-  readonly events: readonly SimEvent[]
-  readonly render: RenderDelta
+  readonly tick: number;
+  readonly events: readonly SimEvent[];
+  readonly render: RenderDelta;
   /** Invalid commands, in input order. The sim has no I/O, so it reports instead of logging. */
-  readonly rejected: readonly RejectedCommand[]
+  readonly rejected: readonly RejectedCommand[];
 }
 ```
 
@@ -5148,12 +5067,12 @@ its `run`, called once per tick. Create one with `defineSystem`.
 
 ```ts
 interface SystemDef {
-  readonly kind: 'system'
-  readonly name: string
-  readonly phase: Phase
-  readonly before: readonly string[]
-  readonly after: readonly string[]
-  readonly run: (ctx: SimContext) => void
+  readonly kind: "system";
+  readonly name: string;
+  readonly phase: Phase;
+  readonly before: readonly string[];
+  readonly after: readonly string[];
+  readonly run: (ctx: SimContext) => void;
 }
 ```
 
