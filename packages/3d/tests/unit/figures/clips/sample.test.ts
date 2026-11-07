@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { fk, J, restPose } from '#src/features/figures/body/rig.ts'
 import type { FigureClipDef } from '#src/features/figures/clips/clip.schema.ts'
-import { easeAt } from '#src/features/figures/clips/ease.ts'
 import { chestFrame, type PoseLibrary, sample } from '#src/features/figures/clips/sample.ts'
 import { blend } from '#src/features/figures/motion/blend.ts'
 import type { PoseDef } from '#src/features/figures/motion/pose.schema.ts'
@@ -19,6 +18,7 @@ import {
   qmat,
   rotationOf,
 } from '#src/shared/math/math.ts'
+import { easeAt } from '#src/shared/timeline/ease.ts'
 import { unit, WICK } from '#src/testing/solve-fixtures.ts'
 
 const up: PoseDef = { effectors: { handR: { pos: [-0.1, 1.3, 0.25] }, chest: { rot: [5, 0, 0] } } }

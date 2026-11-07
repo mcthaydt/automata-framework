@@ -8,12 +8,12 @@
 // the channel. Channels whose spaces agree stay in their space.
 
 import { invertRigid, type M, mmul } from '../../../shared/math/math.ts'
+import { bracket } from '../../../shared/timeline/sample.ts'
 import { at, J, type Skeleton } from '../body/rig.ts'
 import { blendAt } from '../motion/blend.ts'
 import type { PoseDef } from '../motion/pose.schema.ts'
 import type { SpaceContext } from '../motion/pose-space.ts'
 import type { ClipKey, FigureClipDef } from './clip.schema.ts'
-import { easeAt } from './ease.ts'
 
 /** The `figure-pose` content a clip's keys name, by id. */
 export type PoseLibrary = Readonly<Record<string, PoseDef>>
@@ -40,14 +40,9 @@ export function sample(
   poses: PoseLibrary,
   context: SpaceContext = {},
 ): PoseDef {
-  const { keys } = clip
-  const time = Math.min(Math.max(t, 0), clip.length)
-  let i = 0
-  while (i + 1 < keys.length && (keys[i + 1]?.t ?? Number.POSITIVE_INFINITY) <= time) i++
-  const from = at(keys, i)
-  const to = keys[i + 1]
-  if (!to) return poseOf(from, poses)
-  const u = easeAt(to.ease, (time - from.t) / (to.t - from.t))
+  const place = bracket(clip.keys, Math.min(Math.max(t, 0), clip.length))
+  if (!place) throw new RangeError('a clip has no keys')
+  const { a: from, b: to, u } = place
   if (u === 0) return poseOf(from, poses)
   if (u === 1) return poseOf(to, poses)
   // Mixed spaces convert through the chest frame (pose-space.ts); overshooting eases extrapolate.

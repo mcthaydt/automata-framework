@@ -6,9 +6,9 @@ import { contentHash } from '#src/shared/hash/content-hash.ts'
 
 test('a fixed content value hashes to the same id in every engine', () => {
   const data = {
-    palette: { colors: ['#ff0040', '#131313'], name: 'Endesga 64' },
+    palette: { colors: ['#ff0040', '#131313'], name: 'DUEL' },
     tuning: { GRAVITY: -275.5, LIVES: 3 },
     text: 'Café ☕',
   }
-  expect(contentHash(data)).toBe('277afcf17068dfb7')
+  expect(contentHash(data)).toBe('641c825a559b3865')
 })

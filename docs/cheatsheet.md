@@ -25,7 +25,7 @@
 - `ContentSchemaPlace` (type): Where a kind's files are: every TOML file under a folder (a collection), or one file (a document).
 - `ContentWriteFailed` (class): An output could not be written.
 - `DEFAULT_OUT_DIR` (const): Where outputs go when `outDir` is not set: `content/generated`, relative to the project root.
-- `DEFAULT_PALETTE` (const): The palette a game gets when it has no `content/palette.toml`: Endesga 64.
+- `DEFAULT_PALETTE` (const): The palette a game gets when it has no `content/palette.toml`: DUEL, its ramps row-major (colour `r * 8 + s`).
 - `defineContentGenerator(name, generate)`: Defines a generator by name and `generate` function.
 - `defineContentSchema(kind, schema, place, options?)`: Registers a content kind: a name, its Zod schema, and a folder (every TOML file in it is an item) or one file (a single document).
 - `Diagnostic` (interface): One authoring problem: a stable `code`, the file to open, the 1-based line and column, the dotted key inside it and a message that says what to write instead.
@@ -176,8 +176,15 @@
 
 ### `import { … } from '@automata/content/palette'`
 
-- `DEFAULT_PALETTE` (const): The palette a game gets when it has no `content/palette.toml`: Endesga 64.
+- `DEFAULT_PALETTE` (const): The palette a game gets when it has no `content/palette.toml`: DUEL, its ramps row-major (colour `r * 8 + s`).
+- `DUEL_RAMP_NAMES` (const): One lowercase word for each ramp, in ramp order, so a swatch can say `{ ramp = "skin", step = 5 }` instead of a bare number.
+- `DUEL_RAMPS` (const): DUEL's 32 ramps of 8 `#rrggbb` colours, dark to light: colour `r * 8 + s` is ramp `r`, step `s`.
+- `duelIndex(name, at)`: The palette index (0 to 255) of step `at` (0 dark to 7 light) on the ramp called `name`.
+- `DuelRampName` (type): A ramp's name.
+- `nearestDuel(hex)`: The palette index of the DUEL colour nearest `hex` (`#rrggbb`) in OKLab; the first wins a tie.
 - `Palette` (interface): The game's palette: a name and its colors.
+- `rampOf(index)`: The ramp (0 to 31) a palette index is on.
+- `step(index, by)`: `index` moved `by` steps along its own ramp (negative is darker), stopping at the ramp's ends.
 
 ### `import { … } from '@automata/content/schema'`
 

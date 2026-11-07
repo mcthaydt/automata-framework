@@ -13,6 +13,7 @@ import { type Headwear, headwearSchema, type Lock, lockSchema } from '../content
 import { keyedUnion } from '../content/keyed-union.ts'
 import { refOrInline } from '../content/ref-or-inline.ts'
 import { side } from '../content/shapes.schema.ts'
+import { GARMENTS } from '../registry/garment-registry.ts'
 import { GARMENT_DEFAULTS } from './garment-defaults.ts'
 
 // ─── garments.ts ───
@@ -270,7 +271,7 @@ const cap: z.ZodType<CapGarment> = z.strictObject({
 })
 
 // Keyed in the order the builder tells garments apart (garments/dress.ts): a cap's `mark` is the cap's.
-const GARMENTS: Readonly<Record<string, z.ZodType<Garment>>> = {
+const CLASSIC: Readonly<Record<string, z.ZodType<Garment>>> = {
   // garments.ts
   top: z.strictObject({
     top: swatch,
@@ -315,7 +316,9 @@ const GARMENTS: Readonly<Record<string, z.ZodType<Garment>>> = {
     mouth: optionalSwatch,
   }),
   mark: z.strictObject({ mark: z.enum(['watch', 'badge']), colour: swatch, side }),
-  // streetwear.ts
+}
+
+const STREETWEAR: Readonly<Record<string, z.ZodType<Garment>>> = {
   puffer: z.strictObject({
     puffer: swatch,
     trim: optionalSwatch,
@@ -388,7 +391,17 @@ const withDefaults = (key: string, schema: z.ZodType<Garment>): z.ZodType<Garmen
   }) as unknown as z.ZodType<Garment>
 }
 
-export const garmentSchema: z.ZodType<Garment> = keyedUnion<Garment>(
-  'garment',
-  Object.fromEntries(Object.entries(GARMENTS).map(([key, schema]) => [key, withDefaults(key, schema)])),
+const withAllDefaults = (
+  kinds: Readonly<Record<string, z.ZodType<Garment>>>,
+): Record<string, z.ZodType<Garment>> =>
+  Object.fromEntries(Object.entries(kinds).map(([key, schema]) => [key, withDefaults(key, schema)]))
+
+/** The classic garments' item schemas by name, in the order they are told apart; `classic-kinds.ts` registers them. */
+export const CLASSIC_SCHEMAS: Readonly<Record<string, z.ZodType<Garment>>> = withAllDefaults(CLASSIC)
+/** The streetwear garments' item schemas by name (until the wardrobe moves to the examples); its registry registers them. */
+export const STREETWEAR_SCHEMAS: Readonly<Record<string, z.ZodType<Garment>>> = withAllDefaults(STREETWEAR)
+
+/** A garment: parsed by the schema of the first registered kind whose name is one of its keys. */
+export const garmentSchema: z.ZodType<Garment> = keyedUnion<Garment>('garment', () =>
+  Object.fromEntries(Object.entries(GARMENTS).map(([name, kind]) => [name, kind.schema])),
 )

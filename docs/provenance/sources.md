@@ -54,6 +54,53 @@ STANDALONE.2 extends this file to every earlier extraction; until then it holds 
 | Commit | `18525fc` |
 | Used | `docs/references/Narrative Architecture.md` (layered storylets; one shared state of facts, relationships, promises and reputations) as design input for `narrative` (row M6.8a; Owner, 2026-10-30: "Steal everything you need to") |
 
+## The figure source
+
+Repository: `mcthaydt/FigureBuilder`. Commit read: `025ffb48b941043e16ab680c847d33e2eb40eab4`. Licence: none recorded
+(the Owner's private repository). Every file at that commit is listed in `builders-manifest.json`; each file's row below
+says where it went in AF (3D slice task 6.1, spec 8.4).
+
+Earlier extraction: the first port of the figures, at `a1f7246` (M3, `packages/3d/src/features/figures/` as
+`packages/figures`), took the generators, rig, motion and clips; the 3D slice's phase 6 ports everything since, from
+`025ffb4`, tests first.
+
+Pull again: clone the builder, `git diff 025ffb4..<new> -- <the rows' source paths>`, port each hunk (tests first), add
+a row for every new file, run `pnpm sources-md`, and record the new commit here and in the manifest. A row says
+*ported*, *rewritten: what* or *left out: why*.
+
+| Source file | AF file | How |
+| --- | --- | --- |
+| `src/features/body/genes.ts` | `packages/3d/src/features/figures/body/genes.ts` | rewritten: fat on the limbs, neck and jaw, `bust`, `seat`, the eyes' size, spacing and tilt, and the face and body asymmetry; the sliders' names and numbers are the builder's |
+| `src/features/body/rig.ts` | `packages/3d/src/features/figures/body/rig.ts` | rewritten: the `sideBend` gene only; the rest was ported at `a1f7246` |
+| `src/features/body/head.ts` | `packages/3d/src/features/figures/outfit/garments/head.ts` | rewritten: the jaw's underside widens with fat and the jaw with asymmetry (`HeadForm.width` takes a side) |
+| `src/features/outfit/fit.ts` | `packages/3d/src/features/figures/body/profiles.ts` | rewritten: `profiles`, `ringAt`, `girth`, `clearance`, `Body` and `bodyOf` as one query of the body's rings, in `body/` where the layers allow it; the clearance is one texel at the fixed `FIGURE_PPM` (no cell density); the cuffs and the collar are sized from it in `outfit/garments/classic.ts` |
+| `src/features/paint/fabric.ts` | `packages/3d/src/features/figures/registry/fabric-registry.ts` | rewritten: the registry only (`Fabric`, `registerFabric`, `fabricOf`, `labelAt`), a taken name a `RegistryClash`; the painter that reads the labels is not taken, so no base look moves |
+| `src/features/motion/motion.ts` | `packages/3d/src/features/figures/motion/base.ts` | rewritten: the natural stand (`relaxed`, the neck's slide, the chest's lift), `standElbow`, `standOut` and the side bend; the actions stay clips, and `seated` waits for the seats |
+| `src/features/motion/library/gaits.json` | `packages/3d/tests/fixtures/content/figure-gaits/strut.toml` | rewritten: `standOut` is the whole value and `standElbow` is new, so the fixture gaits (strut, loose, bounce, still, with games/base-3d's bounce) carry both |
+| `tests/features/body/fat.test.ts` | `packages/3d/tests/unit/figures/body/diversity.test.ts` | rewritten: the fat classes, rings, jaw, bust and seat, the new genes' defaults and the face asymmetry, on the base pair |
+| `src/features/lighting/lamps.ts` | `packages/3d/src/features/figures/lighting/lamps.ts` | rewritten: the lamp, its strength (flicker, light style, level) and the steps it lifts a point, as typed functions with `noise3` from `paint/raster.ts`; the lamp is `FigureLamp` |
+| `src/features/lighting/grade.ts` | | left out: the colour moves along the DUEL ramps belong to the look's sprite light (3D slice task 8.2) |
+| `src/features/lighting/light.ts` | | left out: `lightFigure` paints a CPU cell; the look's sprite light and its reference (task 8.2) replace it |
+| `src/features/lighting/library/times.json` | `packages/3d/src/shared/time-of-day/library/times.json` | rewritten: merged with the environment source's six times of day into one entry each (exposure, lift, ambient and tint are `figure` and `scene.grade`) |
+| `src/features/actors/actions.ts` | `packages/3d/src/features/figures/clips/figure-action.ts` | rewritten: the envelope (wind-up, action, recovery, hold) compiles to a clip the one player plays; the pose-spec keys and the repeat range wait for the other actions |
+| `src/features/actors/pose-spec.ts` | | left out: the pose-spec's arms, feet and face-turn are for the nineteen actions beyond reach, look and flinch, which are not ported yet |
+| `src/features/actors/library/actions.json` | `games/base-3d/src/content/figure-actions/look.toml` | rewritten: `look` only; reach and flinch come from the older extraction's motion, as `figure-action` files; the other eighteen are not ported yet |
+
+## The environment source
+
+Repository: `mcthaydt/environmentbuilder`. Commit read: `6d82a527bf0e6ae9c771b14f2cb5bfa487438ab0`. Licence: none
+recorded (the Owner's private repository). Every file at that commit is listed in `builders-manifest.json`. Left out on
+purpose: its `vendor/FigureBuilder` submodule (its door, `src/lib/figure.ts`, becomes AF imports), `docs/reference/`,
+both `docs/superpowers/` folders and the review tooling.
+
+Pull again: clone the builder, `git diff 6d82a52..<new> -- <the rows' source paths>`, port each hunk (tests first), add
+a row for every new file, run `pnpm sources-md`, and record the new commit here and in the manifest.
+
+| Source file | AF file | How |
+| --- | --- | --- |
+| `src/features/world/timeline.ts` | `packages/3d/src/shared/timeline/sample.ts` | rewritten: the key is `{ t, value, ease? }` (`v` is `value`), no ease is linear (the source's was `inOut`), `hold` reads as `step`, and the ease and the sampling are AF's, shared with the figures' clips; `wobble`, `lerpAngle` and `lerpV` wait for the shots |
+| `src/features/paint/library/times.json` | `packages/3d/src/shared/time-of-day/library/times.json` | rewritten: merged with the figure source's six times of day (the light, haze and sky are `scene`) |
+
 ## Core: the doc comments that named their source (moved here 2026-11-07)
 
 The published doc comments below named the arcade source (`SNEKPRTY/FloorFifty`); the doc comments no longer do, so
@@ -102,6 +149,7 @@ themselves are not ported, and the fixtures stay as they are.
 | Asset | Source | Licence |
 | --- | --- | --- |
 | `packages/editor/src/shared/kit/icons/paths.ts`: 33 icon drawings (the editor's tools, history, layers, zoom and brush size, document actions, the level picker's chevron, Fit, the inspector, the list, and the suite's Home, Tuner, level editors and Review) | [Lucide](https://lucide.dev), npm `lucide-static` 0.460.0, `icons/*.svg`, copied as the markup inside each svg on 2026-11-06 | ISC (Lucide Contributors; the portions from Feather are MIT, Cole Bemis). The licence asks that its copyright and permission notice appear in copies; the header of `paths.ts` carries the notice |
+| `packages/content/src/shared/palette/duel.ts` and `docs/art/palettes/duel.{txt,md}`: the DUEL palette, 32 ramps of 8 (replaces Endesga 64, removed 2026-11, 3D slice task 5.1) | The 3D builders' copy of the DUEL look-up table (`mcthaydt/FigureBuilder` `src/features/paint/duel-ramps.ts` at `025ffb4`, generated from the table) | Author and licence not recorded yet: a placeholder until the Owner supplies them |
 
 ## Original assets made in this repository
 

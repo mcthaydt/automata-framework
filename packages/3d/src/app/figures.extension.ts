@@ -3,6 +3,9 @@
 // @automata/3d (M3.5d).
 
 import { defineExtension, type ExtensionDef } from '@automata/framework/extension'
+// The classic garment set registers when this file loads (core, so Wick needs no wardrobe of his own); an
+// extension's own garments register the same way, through `registerGarment` from `@automata/3d/figures`.
+import '../features/figures/outfit/garments/classic-kinds.ts'
 import { FIGURE_CONTENT } from '../features/figures/content/figures.content.ts'
 
 export const figuresExtension: ExtensionDef<'figures'> = defineExtension({

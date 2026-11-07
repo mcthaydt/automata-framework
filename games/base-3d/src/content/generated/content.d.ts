@@ -45,6 +45,7 @@ declare module 'virtual:automata/content' {
       readonly spring?: number
       readonly stance?: number
       readonly stanceLead?: number
+      readonly standElbow?: number
       readonly standOut?: number
       readonly stride?: number
       readonly sway?: number
@@ -73,6 +74,7 @@ declare module 'virtual:automata/content' {
       readonly neck?: number
       readonly posture?: number
       readonly shoulders?: number
+      readonly sideBend?: number
     }
     readonly hair?: {
       readonly bounce?: number
@@ -90,8 +92,11 @@ declare module 'virtual:automata/content' {
     readonly sliders: {
       readonly age?: number
       readonly arms?: number
+      readonly bodyAsymmetry?: number
+      readonly bust?: number
       readonly chunk?: number
       readonly face?: {
+        readonly asymmetry?: number
         readonly bridge?: number
         readonly browArch?: number
         readonly browHeight?: number
@@ -100,6 +105,9 @@ declare module 'virtual:automata/content' {
         readonly cheekWidth?: number
         readonly chin?: number
         readonly crease?: number
+        readonly eyeSize?: number
+        readonly eyeSpacing?: number
+        readonly eyeTilt?: number
         readonly hood?: number
         readonly jaw?: number
         readonly liner?: number
@@ -122,6 +130,7 @@ declare module 'virtual:automata/content' {
       readonly neck?: number
       readonly neckLength?: number
       readonly posture?: number
+      readonly seat?: number
       readonly shoulders?: number
     }
     readonly stand?: FigureStandId
@@ -130,11 +139,12 @@ declare module 'virtual:automata/content' {
   export type FigureSwatchId = 'boot-brown' | 'boot-sole' | 'brass' | 'brow' | 'charcoal' | 'eye-dark' | 'lid' | 'mouth' | 'navy-deep' | 'pale' | 'pale-lid' | 'sole' | 'starch' | 'starch-shade' | 'steel-grey' | 'tweed' | 'wick-boot' | 'wick-cloak' | 'wick-cloak-shade' | 'wick-eye' | 'wick-shadow' | 'wick-trim' | 'wood'
   export type FigureSwatch = {
     readonly about?: string
-    readonly colour: number
     readonly flat?: boolean
     readonly gloss?: number
     readonly kind?: 'cloth' | 'knit' | 'denim' | 'leather' | 'twill' | 'rubber' | 'metal' | 'lens' | 'thread'
+    readonly ramp: 'grey' | 'sand' | 'skin' | 'sea' | 'flame' | 'dusk' | 'moss' | 'sky' | 'pine' | 'rose' | 'slate' | 'clay' | 'mud' | 'plum' | 'teal' | 'wood' | 'wine' | 'indigo' | 'cherry' | 'rust' | 'olive' | 'amber' | 'mauve' | 'forest' | 'brick' | 'sage' | 'ocean' | 'dawn' | 'violet' | 'navy' | 'blush' | 'ember'
     readonly role?: 'main' | 'rib' | 'inside' | 'trim' | 'stitch' | 'sole' | 'hardware' | 'lens'
+    readonly step: number
   }
 
   export type FigureGaitId = 'bounce' | 'elderly'
@@ -177,6 +187,7 @@ declare module 'virtual:automata/content' {
     readonly spring?: number
     readonly stance: number
     readonly stanceLead: number
+    readonly standElbow?: number
     readonly standOut?: number
     readonly stride: number
     readonly sway: number
@@ -362,7 +373,7 @@ declare module 'virtual:automata/content' {
     }
   }
 
-  export type FigurePoseId = 'free' | 'guard-high' | 'guard-low' | 'pickup-low' | 'point' | 'stand'
+  export type FigurePoseId = 'flinch' | 'free' | 'guard-high' | 'guard-low' | 'look-across' | 'look-out' | 'pickup-low' | 'point' | 'reach-out' | 'stand'
   export type FigurePose = {
     readonly about?: string
     readonly effectors: {
@@ -468,7 +479,7 @@ declare module 'virtual:automata/content' {
       readonly t: number
     })[]
     readonly keys: readonly ({
-      readonly ease?: 'step' | 'linear' | 'in' | 'out' | 'inOut' | readonly [number, number, number, number]
+      readonly ease?: 'step' | 'linear' | 'in' | 'out' | 'inOut' | 'smooth' | unknown /* figure-clip.keys.ease has no JSON form */ | readonly [number, number, number, number]
       readonly pose: unknown /* figure-clip.keys.pose has no JSON form */
       readonly t: number
     })[]
@@ -478,6 +489,22 @@ declare module 'virtual:automata/content' {
     readonly mask: readonly ('root' | 'pelvis' | 'torso' | 'head' | 'armL' | 'armR' | 'legL' | 'legR')[]
     readonly mode?: 'override' | 'additive'
     readonly rate?: number
+  }
+
+  export type FigureActionId = 'flinch' | 'look' | 'reach'
+  export type FigureAction = {
+    readonly about?: string
+    readonly action: number
+    readonly anticipation: number
+    readonly enter?: number
+    readonly hold?: boolean
+    readonly keys: readonly ({
+      readonly ease?: 'step' | 'linear' | 'in' | 'out' | 'inOut' | 'smooth' | unknown /* figure-action.keys.ease has no JSON form */ | readonly [number, number, number, number]
+      readonly pose: unknown /* figure-action.keys.pose has no JSON form */
+      readonly t: number
+    })[]
+    readonly mask: readonly ('root' | 'pelvis' | 'torso' | 'head' | 'armL' | 'armR' | 'legL' | 'legR')[]
+    readonly recovery: number
   }
 
   export type ScreenId = never
@@ -495,6 +522,7 @@ declare module 'virtual:automata/content' {
     readonly 'figure-rig': Readonly<Record<FigureRigId, FigureRig>>
     readonly 'figure-pose': Readonly<Record<FigurePoseId, FigurePose>>
     readonly 'figure-clip': Readonly<Record<FigureClipId, FigureClip>>
+    readonly 'figure-action': Readonly<Record<FigureActionId, FigureAction>>
     readonly tuning: Readonly<Record<TuningName, number | boolean | string>>
     readonly palette: Palette
   }

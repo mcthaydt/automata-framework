@@ -63,6 +63,13 @@ function curve(keys: readonly (readonly [number, number])[]): (t: number) => num
 }
 
 /**
+ * A slider's range widened about its middle: the old range's middle (`mid`, what a slider at 0.5 drew) held exactly,
+ * the ends at `lo` and `hi`; two lerps meeting there, so a face at 0.5 is the one drawn before the range grew.
+ */
+const spread = (v: number, lo: number, mid: number, hi: number): number =>
+  v < 0.5 ? lerp(lo, mid, v / 0.5) : lerp(mid, hi, (v - 0.5) / 0.5)
+
+/**
  * A head's form: its half-width and its front and back at each height t (0 the chin's point … 1 the crown's),
  * `h` tall; each section a superellipse, its front half a little squarer than its back (a face's planes
  * before a round skull), rounding again over the cranium. One form for the head's skin and for whatever hugs
@@ -70,12 +77,19 @@ function curve(keys: readonly (readonly [number, number])[]): (t: number) => num
  */
 export interface HeadForm {
   h: number
-  width: (t: number) => number
+  /**
+   * The half-width at t. With a side (+1 the figure's left, −1 its right) the jaw's width on that side below t 0.3 (the
+   * face's asymmetry); without one, the mirrored form. From t 0.3 up (the cranium, which the hair hugs) both sides
+   * are one.
+   */
+  width: (t: number, side?: 1 | -1) => number
   front: (t: number) => number
   back: (t: number) => number
 }
-/** The front half's roundness at height t: under the eyes a rounded wedge, from the eyes up full, over the
- * cranium round again. The back half is an ellipse. */
+/** The front half's roundness at height t: under the eyes a rounded wedge, the cheeks falling back from the nose and
+ * the mouth (so at three-quarters the nose breaks the far cheek's line); from the eyes up full, the brow running
+ * across to the temples (so the far eye shows inside the contour); over the cranium round again. The back half is an
+ * ellipse. */
 export const faceRound = (t: number): number =>
   lerp(lerp(1.3, 0.88, smooth((t - 0.32) / 0.1)), 1, smooth((t - 0.7) / 0.24))
 /**
@@ -89,13 +103,17 @@ export function headAt(f: HeadForm, t: number, v: number): V3 {
   const c = Math.cos(v)
   const sn = Math.sin(v)
   const e = sn > 0 ? faceRound(t) : 1
-  return [Math.max(0, f.width(t)) * pow(c, e), t * f.h, (fr + b) / 2 + ((fr - b) / 2) * pow(sn, e)]
+  return [
+    Math.max(0, f.width(t, c < 0 ? -1 : 1)) * pow(c, e),
+    t * f.h,
+    (fr + b) / 2 + ((fr - b) / 2) * pow(sn, e),
+  ]
 }
 /** Whether a point (the head's space) lies inside its form: what hair and a cap are fitted round. */
 export function insideHead(f: HeadForm, p: V3): boolean {
   const t = p[1] / f.h
   if (t <= 0 || t >= 1) return false
-  const W = f.width(t)
+  const W = f.width(t, p[0] < 0 ? -1 : 1)
   const fr = f.front(t)
   const b = f.back(t)
   const H = (fr - b) / 2
@@ -155,19 +173,25 @@ export function headForm(m: Measure, s: Skeleton): HeadForm {
   // cranium's.
   const z = (u: number) => hd * (g.faceAhead + u)
   const back = (u: number) => hd * (g.faceAhead * 0.5 + u)
-  const chin = lerp(0.22, 0.34, F.chin)
-  const jaw = lerp(0.6, 0.84, F.jaw)
+  const chin = spread(F.chin, 0.16, lerp(0.22, 0.34, 0.5), 0.4)
+  const jaw = spread(F.jaw, 0.5, lerp(0.6, 0.84, 0.5), 0.94)
+  // One way to show per slider: cheekWidth by this outline (the width at the cheekbone), so the cheekbone's height
+  // and the lips' front are held at their middle whatever those sliders say.
   const cheek = lerp(0.88, 1, F.cheekWidth)
-  const cheekT = lerp(0.34, 0.44, F.cheekHeight)
+  const cheekT = lerp(0.34, 0.44, 0.5)
+  const lipsOut = 0.04 * 0.5
+  // Fat fills the jaw's underside (genes.ts Measure.fat.chin): the width under the chin grows, and the front a little
+  // forward of the chin's point (which stays), so a heavy chin meets the neck in a curve, not a corner.
+  const full = m.fat.chin
   const width = curve(
     (
       [
         [0, 0],
-        [0.03, chin * 0.8],
-        [0.08, chin],
-        [0.14, lerp(chin, jaw, 0.6)],
+        [0.03, chin * 0.8 * full],
+        [0.08, chin * full],
+        [0.14, lerp(chin, jaw, 0.6) * full],
         [0.21, jaw],
-        [0.29, lerp(0.84, 0.94, F.width)],
+        [0.29, spread(F.width, 0.79, lerp(0.84, 0.94, 0.5), 0.99)],
         [cheekT, cheek],
         [0.5, 0.95],
         [0.62, 0.97],
@@ -183,13 +207,14 @@ export function headForm(m: Measure, s: Skeleton): HeadForm {
   const point = z(0.7) - 0.04 * hd * F.chin
   // The profile: the chin, the hollow under the lower lip, the lips, the philtrum, the eyes set in, the brow,
   // the forehead.
+  const under = (v: number): number => (full === 1 ? v : point + (v - point) * full)
   const front = curve([
     [0, point],
-    [0.03, z(0.9)],
-    [0.07, z(0.95 + 0.04 * F.chin)],
+    [0.03, under(z(0.9))],
+    [0.07, under(z(0.97 + 0.08 * (F.chin - 0.5)))],
     [0.11, z(0.93)],
-    [0.15, z(0.98 + 0.04 * F.lips)],
-    [0.19, z(0.99 + 0.04 * F.lips)],
+    [0.15, z(0.98 + lipsOut)],
+    [0.19, z(0.99 + lipsOut)],
     [0.24, z(0.97)],
     [0.32, z(0.99)],
     [0.42, z(0.97)],
@@ -216,7 +241,11 @@ export function headForm(m: Measure, s: Skeleton): HeadForm {
     [0.97, back(-0.42)],
     [1, crown],
   ])
-  return { h, width, front, back: backOf }
+  // The jaw's width per side below the cheekbones (the face's asymmetry): exactly 1 from t 0.3 up and at no asymmetry.
+  const a = F.asymmetry
+  const sided = (t: number, side?: 1 | -1): number =>
+    a && side ? width(t) * (1 + 0.12 * a * side * (1 - smooth(t / 0.3))) : width(t)
+  return { h, width: sided, front, back: backOf }
 }
 
 /**

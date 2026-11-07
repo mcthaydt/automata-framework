@@ -32,9 +32,9 @@ import type { Chain, Hoops, Shades, Sneakers } from '../../figure/garment.schema
 import { GARMENT_DEFAULTS } from '../../figure/garment-defaults.ts'
 import { variant } from '../../figure/materials.ts'
 import { CROWN, onSkull, skull, toHead } from '../../hair/skull.ts'
+import { GARMENTS, garmentOf } from '../../registry/garment-registry.ts'
 import { ear, headForm, SIDES } from '../garments/head.ts'
 import { frontOf, loft, type Section, torus } from './loft.ts'
-import { GARMENTS, garmentOf } from './registry.ts'
 import { tops } from './tops.ts'
 import { type Fit, FRONT, local, piece, SEAM, stroke, under, type Wearing } from './under.ts'
 

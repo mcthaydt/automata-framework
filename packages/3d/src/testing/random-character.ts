@@ -20,13 +20,15 @@ import { at } from '../features/figures/body/rig.ts'
 import type { FigureLibrary } from '../features/figures/figure/build.ts'
 import type { FigureDef } from '../features/figures/figure/figure.schema.ts'
 import type { Garment } from '../features/figures/figure/garment.schema.ts'
+import '../features/figures/outfit/garments/classic-kinds.ts'
+import '../features/figures/outfit/streetwear/registry.ts'
 import {
   fieldRole,
   GARMENTS,
   type Layer,
   roleOf,
   TAKES,
-} from '../features/figures/outfit/streetwear/registry.ts'
+} from '../features/figures/registry/garment-registry.ts'
 
 /** A seeded random in [0, 1) (mulberry32): the same seed, the same cast. */
 export function random(seed: number): () => number {

@@ -1,7 +1,7 @@
 // Holds: an item's grip is applied last and changes only the holding arm (F-b). Ported from The Last Light
 // (mcthaydt/PixiJS3D_Experiment_001) tests/procedural-figure.test.ts at 92e6704 ("holding an item changes only
 // the holding arm", "the hold is applied after the base pose and leaves the base untouched") onto AF's
-// fixture figures and items, and checked against FigureBuilder's (a1f7246) holds.
+// fixture figures and items, and checked against the recorded holds.
 
 import { beforeAll, describe, expect, it } from 'vitest'
 import { armChain, at, JOINTS } from '#src/features/figures/body/rig.ts'
@@ -76,7 +76,7 @@ describe('F-b: holding an item changes only the holding arm', () => {
   })
 })
 
-describe("holds match FigureBuilder's (goldens, a1f7246)", () => {
+describe('holds match their recorded goldens', () => {
   it("every item's hold on Wick's and the keeper's bodies, each hand, in walk, idle and turn", () => {
     const bodies: Record<string, FigureDef['sliders']> = {
       wick: at(GOLDEN_OUTFITS, 0).sliders,

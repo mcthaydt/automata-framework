@@ -216,3 +216,4 @@ Reference, Privacy, Terms and Contact; the targets are named by the publish sect
 | Palette rows | name only | the number key at the row's right edge for the first nine (1 to 9 choose them) | 2 (the mockup) |
 | Home, no levels | `Make your first one to start drawing.` and a second `New level` button | `Press New level to start drawing.` (the top bar's button is the one) | 2 (one button for one job) |
 | Tiles, no tiles yet | an `Add tiles` button in the panel and another in the stage | the stage's only; the panel's appears once there is a first tileset | 2 |
+| A 3D swatch file, a step past the ramp (task 5.3) | a bare colour number past the palette | `step is 0 to 7`, and for a game palette that is too small `ember step 7 (colour 255) is not in the palette Sixteen (0 to 15)` | 2 (the message gives the range) and 4 (a ramp has a name, not an index) |

@@ -14,9 +14,9 @@ import { sgnPow } from '../../body/mesh.ts'
 import { at, type Skeleton } from '../../body/rig.ts'
 import type { Superquadric } from '../../body/superquadric.ts'
 import type { Garment } from '../../figure/garment.schema.ts'
+import { GARMENTS, garmentOf } from '../../registry/garment-registry.ts'
 import { SIDES } from '../garments/head.ts'
 import type { Section, Shell } from './loft.ts'
-import { GARMENTS, garmentOf } from './registry.ts'
 import { type Under, under } from './under.ts'
 
 /** The trouser legs' inseam gap (m at 1.62 m). */

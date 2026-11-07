@@ -36,4 +36,5 @@ stance = 0.04
 stanceLead = 0.08
 hang = 0.04
 idleElbow = 0.25
+standOut = 0
 idlePoses = 8

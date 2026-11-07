@@ -2,7 +2,7 @@
  * AF's default theme tokens. Every primitive reads these; a game overrides the
  * colours and type in its own stylesheet, loaded after this one, and never lowers the targets.
  *
- * Colours come from the Endesga 64 palette, with Bubble Bobble mixed with Celeste as the visual
+ * Colours come from the DUEL palette, with Bubble Bobble mixed with Celeste as the visual
  * reference (Owner art direction, 2026-10-11): a deep night-blue ground, bright saturated accents,
  * chunky light outlines. Every text pair meets 4.5:1 and every edge and focus ring 3:1 against the
  * surfaces (art README; pinned by theme.test.ts).
@@ -27,20 +27,20 @@
   --af-text-body: calc(16px * var(--af-scale, 1));
   --af-text-small: calc(13px * var(--af-scale, 1));
 
-  --af-surface: #1a1932;
-  --af-panel: #2a2f4e;
-  --af-edge: #92a1b9;
-  --af-ink: #ffffff;
-  --af-muted: #92a1b9;
-  --af-accent: #ffc825;
-  --af-on-accent: #1a1932;
-  --af-danger: #c42430;
-  --af-on-danger: #ffffff;
+  --af-surface: #181f2f;
+  --af-panel: #23324d;
+  --af-edge: #a6aeba;
+  --af-ink: #f5f7fa;
+  --af-muted: #a6aeba;
+  --af-accent: #ffcf05;
+  --af-on-accent: #181f2f;
+  --af-danger: #b63c35;
+  --af-on-danger: #f5f7fa;
   /* Tone edges (a Chip's or a Toast's border): --af-danger fills behind white text but is too dark for an edge. */
-  --af-danger-edge: #f5555d;
-  --af-success: #5ac54f;
-  --af-ring: #0cf1ff;
-  --af-scrim: color-mix(in srgb, #0e071b 72%, transparent);
+  --af-danger-edge: #e45c5f;
+  --af-success: #7fbd39;
+  --af-ring: #74f5fd;
+  --af-scrim: color-mix(in srgb, #1d1d21 72%, transparent);
 }
 
 /* Short and compact screens spend less on space; the targets stay whole. */

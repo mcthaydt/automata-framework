@@ -60,7 +60,8 @@ never `Object.keys` or `for…in`. Prefer integers (subpixels, ticks) for anythi
 - **New gameplay** (a move, a rule, a score): a new folder in `src/features/` (or the feature it belongs to): a command
   if the player triggers it, components for its state, a system for the rule, and a golden test in
   `tests/unit/<name>/`. Follow the `automata-feature` skill.
-- **How it looks**: the feature's `*.view.ts`, reading components and events. Never compute gameplay there.
+- **How it looks**: the feature's `*.view.ts`, reading components and events. Never compute gameplay there. Colours
+  are DUEL steps (`DUEL_RAMPS`, `step` and `nearestDuel` from `@automata/content/palette`), not hex literals.
 - **A screen or menu**: the framework's UI primitives (44 px touch targets, 48 px primary actions, layout from the
   container size).
 - **A level or tuning number**: content, not code. Levels are edited in the level editor (`automata editor`; see the

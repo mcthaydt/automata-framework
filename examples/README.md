@@ -8,7 +8,7 @@ Two packages, one per dimension. Each file is one example of one feature.
   `pnpm examples:3d` and checked by their journeys in `3d/tests` in the 3D workflow.
 
 Emberwick, the 2D game, is in [`games/emberwick`](../games/emberwick/); the 3D game is in
-[`games/base-3d`](../games/base-3d/). Art keeps to the [art direction](../docs/art/README.md) and its Endesga 64 colour palette.
+[`games/base-3d`](../games/base-3d/). Art keeps to the [art direction](../docs/art/README.md) and its DUEL colour palette.
 
 A file starts with a header (what it shows, its controls, its base and its packages), and the catalog test checks it.
 

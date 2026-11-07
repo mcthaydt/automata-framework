@@ -5,11 +5,10 @@
 // (a `contentRef`, so the compiler gives its file, line and column), and an inline pose failing the pose checks.
 
 import { z } from 'zod'
+import { type Ease, easeSchema } from '../../../shared/timeline/ease.ts'
 import { refOrInline } from '../content/ref-or-inline.ts'
 import { type PoseDef, poseSchema } from '../motion/pose.schema.ts'
 
-/** How a key is eased into: CSS's named curves, a held step, or a CSS cubic-bezier(x1, y1, x2, y2). */
-export type Ease = 'step' | 'linear' | 'in' | 'out' | 'inOut' | readonly [number, number, number, number]
 export const MASK_GROUPS = ['root', 'pelvis', 'torso', 'head', 'armL', 'armR', 'legL', 'legR'] as const
 export type MaskGroup = (typeof MASK_GROUPS)[number]
 
@@ -36,15 +35,10 @@ export interface FigureClipDef {
   readonly cues?: readonly { readonly t: number; readonly id: string }[] | undefined
 }
 
-const unit = z.number().min(0).max(1)
-const ease = z.union([
-  z.enum(['step', 'linear', 'in', 'out', 'inOut']),
-  z.tuple([unit, z.number(), unit, z.number()]),
-])
 const key = z.strictObject({
   t: z.number().min(0),
   pose: refOrInline<PoseDef>('figure-pose', { object: poseSchema }),
-  ease: ease.optional(),
+  ease: easeSchema.optional(),
 })
 
 export const clipSchema: z.ZodType<FigureClipDef> = z

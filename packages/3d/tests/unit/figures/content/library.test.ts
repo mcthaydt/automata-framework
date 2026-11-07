@@ -2,21 +2,9 @@ import { DEFAULT_PALETTE } from '@automata/content'
 import { describe, expect, it } from 'vitest'
 import { gaitSchema } from '#src/features/figures/content/gait.schema.ts'
 import { DEFAULT_RIG_LIMITS, rigLimitsSchema } from '#src/features/figures/content/rig-limits.schema.ts'
-import { swatchSchema } from '#src/features/figures/content/swatch.schema.ts'
 import { swatchColourProblems } from '#src/features/figures/content/swatch-colours.ts'
 
 describe('library schemas', () => {
-  it('reads a swatch as a palette colour and the material fields a mesh uses', () => {
-    expect(swatchSchema.parse({ colour: 22 })).toEqual({ colour: 22 })
-    expect(
-      swatchSchema.parse({ colour: 45, gloss: 0.9, flat: true, kind: 'metal', role: 'hardware' }),
-    ).toMatchObject({
-      kind: 'metal',
-    })
-    expect(swatchSchema.safeParse({ colour: 1.5 }).success).toBe(false)
-    expect(swatchSchema.safeParse({ colour: -1 }).success).toBe(false)
-    expect(swatchSchema.safeParse({ colour: 3, paint: ['#ffffff'] }).success).toBe(false)
-  })
   it('requires every gait number the motion reads', () => {
     expect(gaitSchema.safeParse({ cycle: 0.5 }).success).toBe(false)
   })
@@ -38,9 +26,12 @@ describe('library schemas', () => {
 })
 
 describe('swatchColourProblems', () => {
-  it("reports a colour index past the end of the game's palette, at the swatch", () => {
-    expect(swatchColourProblems({ fair: { colour: 22 }, glow: { colour: 64 } }, DEFAULT_PALETTE)).toEqual([
-      { swatch: 'glow', message: 'colour 64 is not in the palette Endesga 64 (0 to 63)' },
+  it("reports a swatch whose colour is past the end of the game's palette, at the swatch", () => {
+    const small = { name: 'Sixteen', colors: DEFAULT_PALETTE.colors.slice(0, 16) }
+    expect(
+      swatchColourProblems({ fair: { ramp: 'grey', step: 7 }, glow: { ramp: 'ember', step: 7 } }, small),
+    ).toEqual([
+      { swatch: 'glow', message: 'ember step 7 (colour 255) is not in the palette Sixteen (0 to 15)' },
     ])
   })
 })

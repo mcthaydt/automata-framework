@@ -1,8 +1,9 @@
 # `stitch` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/swatches.json at a1f7246.
-# Colour: DUEL row 10, step 2 (#5b5c69), nearest in OKLab: Endesga 64 index 5 (#5d5d5d).
+# Colour: DUEL ramp 10 (slate), step 2 (#5b5c69).
 # Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
 
-colour = 5
+ramp = "slate"
+step = 2
 flat = true
 kind = "thread"
 role = "stitch"

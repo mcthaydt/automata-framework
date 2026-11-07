@@ -10,38 +10,33 @@
 // Tier: core
 import '@automata/3d/no-eval'
 import { createPixi3dRenderer, figure, render3dExtension } from '@automata/3d'
-import type { FigureDef, FigureLibrary, Gait } from '@automata/3d/figures'
+import type { FigureDef, FigureLibrary, Gait, Swatch } from '@automata/3d/figures'
 import { CameraHeading, cameraView, enterView, START } from '@automata/3d/sim'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@automata/framework'
 
 // A game writes these in content/figures/wick.toml, content/figure-swatches/*.toml and content/figure-gaits/*.toml
 // and the content compiler checks them and fills their defaults; here they are inline, written as compiled.
-// Swatch colours are Endesga 64 indices; sole, lid, brow and mouth are the defaults a boot and a face name.
-const cloak = { 'wick-cloak': { colour: 41 }, 'wick-cloak-shade': { colour: 40 } }
-const trim = { 'wick-trim': { colour: 24, gloss: 0.9 }, 'wick-boot': { colour: 17 } }
-const shade = { 'wick-shadow': { colour: 15, flat: true }, 'wick-eye': { colour: 32, flat: true } }
-const face = { sole: { colour: 15, flat: true }, lid: { colour: 10, flat: true } }
-const brows = { brow: { colour: 17, flat: true }, mouth: { colour: 18, flat: true } }
+// Swatch colours are DUEL ramps and steps; sole, lid, brow and mouth are the defaults a boot and a face name.
+const duel = (ramp: Swatch['ramp'], step: number, more = {}): Swatch => ({ ramp, step, ...more })
+const cloak = { 'wick-cloak': duel('ocean', 3), 'wick-cloak-shade': duel('ocean', 1) }
+const trim = { 'wick-trim': duel('flame', 5, { gloss: 0.9 }), 'wick-boot': duel('brick', 0) }
+const shade = { 'wick-shadow': duel('plum', 0, { flat: true }), 'wick-eye': duel('flame', 7, { flat: true }) }
+const face = { sole: duel('plum', 0, { flat: true }), lid: duel('grey', 5, { flat: true }) }
+const brows = { brow: duel('brick', 0, { flat: true }), mouth: duel('skin', 0, { flat: true }) }
 const swatches = { ...cloak, ...trim, ...shade, ...face, ...brows }
 const library: FigureLibrary = { swatches, hair: {}, headwear: {}, items: {} }
 
-// FigureBuilder's `bounce` gait (src/render/figure/library/gaits.json at a1f7246), grouped by what each part moves.
+// FigureBuilder's `bounce` gait (src/features/motion/library/gaits.json at 025ffb4), grouped by what each part moves.
 const stride = { cycle: 0.46, speed: 3, stride: 0.6, duty: 0.54, lift: 0.065, bob: 0.05, crouch: 0.01 }
-const hips = {
-  sway: 0.03,
-  hipYaw: 0.09,
-  hipRoll: 0.08,
-  chestCounter: 0.5,
-  lean: 0.03,
-  heel: 0.24,
-  push: 0.35,
-}
+const hips = { sway: 0.03, hipYaw: 0.09, hipRoll: 0.08, chestCounter: 0.5, lean: 0.03 }
+// The feet's heel and push walking; standOut and standElbow (how the arms hang standing) ride along.
+const feet = { heel: 0.24, push: 0.35, standOut: 0, standElbow: 0.36 }
 const arms = { armSwing: 0.5, armOut: 0.08, elbow: 0.45, elbowSwing: 0.45, armLag: 0.04, shoulderRoll: 0.75 }
 const head = { headLevel: 0, headStabilize: 0.8, drag: 0, track: 0.3, spring: 0.6, chin: 0.04 }
-const stand = { stance: 0.045, stanceLead: 0.07, hang: 0.04, idleElbow: 0.3, standOut: 0.04, reach: 1.4 }
+const stand = { stance: 0.045, stanceLead: 0.07, hang: 0.04, idleElbow: 0.3, reach: 1.4 }
 const clock = { poseRate: 12, walkPoses: 8, idlePoses: 8, turnRate: 0.785, twitch: 0, twitchEvery: 3 }
 const breath = { breath: 0.03, breathPeriod: 3.4, shift: 0.012, shiftPeriod: 5.5, headLead: 0.785 }
-const bounce: Gait = { ...stride, ...hips, ...arms, ...head, ...stand, ...clock, ...breath }
+const bounce: Gait = { ...stride, ...hips, ...feet, ...arms, ...head, ...stand, ...clock, ...breath }
 const motion = { gaits: { bounce }, poses: {}, clips: {}, items: library.items, stands: {}, rigs: {} }
 
 // Wick, Emberwick's hero, in a cloak with gold cuffs, a cape, boots and eyes glowing under the hood's shadow.
@@ -99,7 +94,7 @@ export default defineGame({
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
-      backgroundColor: 0x193c3e,
+      backgroundColor: 0x2f3f38,
       views: {
         [Hero.id]: figure(wick, {
           library,
@@ -109,8 +104,8 @@ export default defineGame({
       },
       camera: { views: [FOLLOW], initial: FOLLOW.id, follow: Hero.id },
       scene: (view, _stage, occluders) => {
-        view.environment = { skyColor: 0xc7dcd0, groundColor: 0x3e3546 }
-        occluders.box({ min: [-4, -0.1, -4], max: [4, 0, 4] }, 0x8b9bb4)
+        view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
+        occluders.box({ min: [-4, -0.1, -4], max: [4, 0, 4] }, 0x8690b2)
         return undefined
       },
     }),

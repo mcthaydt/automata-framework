@@ -3,7 +3,8 @@
 // is a handful of numbers. Sliders run 0–1; a little past either end is allowed, for figures meant to look wrong.
 //
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/genes.ts at a1f7246, with AF's strict
-// types. The formulas are the source's.
+// types, and brought up to src/features/body/genes.ts at 025ffb4 (fat on the limbs, the neck and the jaw; bust and
+// seat; the eyes' size, spacing and tilt; a body's and a face's asymmetry). The formulas are the source's.
 
 import { lerp } from '../../../shared/math/math.ts'
 import type { Genes } from './rig.ts'
@@ -38,12 +39,21 @@ export interface Sliders {
   faceForward: number
   /** 0 square shoulders … 1 a hunch: the shoulders up and rounded forward, the head sunk forward between them. */
   hunch: number
+  /** −1…1, 0 a level figure: one shoulder lower (the figure's left for +1, up to 3 cm), the trunk curved sideways (the chest
+   * rolled against the spine by up to 6°) and the head set level over it, as a body compensates. The stand and the gait
+   * carry it; a diversity control. */
+  bodyAsymmetry: number
+  /** 0.5 the default chest, for any frame: the chest's ring over a real range of depths (0 flatter … 1 fuller, 0.92 to
+   * 1.15 of the default), its underside keeping its turn, so in profile it is a form, not a deeper tube. */
+  bust: number
+  /** 0.5 the default seat: the hips' rings deeper behind (0.93 to 1.12) and a little wider (0.94 to 1.06). */
+  seat: number
   /** The head's own structure (HeadShape); left out, an average head. */
   face?: Partial<HeadShape>
 }
 /**
- * The head's structure, 0–1 each (0.5 the average): the bones and features that make four heads four people.
- * Eyes are never among them: every face's eyes are one size, differing only in the lid line.
+ * The head's structure, 0–1 each (0.5 the average): the bones and features that make four heads four people. The
+ * eyes differ in three ways (eyeSize, eyeSpacing, eyeTilt), each 0.5 the eye drawn without them, and in the lid line.
  */
 export interface HeadShape {
   /** The face's width under the cranium (0 narrow … 1 broad), and the jaw's at its angle (0 tapered … 1 square). */
@@ -68,6 +78,14 @@ export interface HeadShape {
   crease: number
   hood: number
   liner: number
+  /** The eyes: their width (0 narrower … 1 wider), how far apart they are set (0 closer … 1 further) and their tilt
+   * (0 the outer corner drooping … 1 lifted). */
+  eyeSize: number
+  eyeSpacing: number
+  eyeTilt: number
+  /** An uneven face, −1…1 (0 the mirrored face; the sign picks the side, +1 the figure's left): the jaw 12% wider on
+   * that side below the cheekbones, and the features off the centre line toward it. A diversity control. */
+  asymmetry: number
 }
 export const DEFAULT_HEAD: Readonly<HeadShape> = {
   width: 0.5,
@@ -84,6 +102,10 @@ export const DEFAULT_HEAD: Readonly<HeadShape> = {
   crease: 0.5,
   hood: 0.3,
   liner: 0,
+  eyeSize: 0.5,
+  eyeSpacing: 0.5,
+  eyeTilt: 0.5,
+  asymmetry: 0,
 }
 export const DEFAULT_SLIDERS: Readonly<Sliders> = {
   frame: 0.5,
@@ -105,6 +127,9 @@ export const DEFAULT_SLIDERS: Readonly<Sliders> = {
   chunk: 1,
   faceForward: 0.7,
   hunch: 0,
+  bodyAsymmetry: 0,
+  bust: 0.5,
+  seat: 0.5,
 }
 /** Everything the body and the garments need, in metres. */
 export interface Measure {
@@ -125,7 +150,19 @@ export interface Measure {
   foot: number
   /** The head's structure. */
   face: HeadShape
+  /** How fat fills the body (multipliers, exactly 1 at fat 0): the limbs' swells most of all and the joints (elbow,
+   * knee, the calf) more, so the notch between them closes and the contour goes soft; the thigh's top and the
+   * deltoid's cap less; the wrists and ankles by a tenth at most, so they still read; the neck; and the jaw's
+   * underside. Past 1 the growth keeps its proportion. */
+  fat: { swell: number; joint: number; hipTop: number; end: number; neck: number; chin: number }
+  /** The chest's depth factor and forward offset (m at k 1), exactly 1 and 0 at bust 0.5; and the seat's depth and
+   * width factors and backward offset (m at k 1), exactly 1, 1 and 0 at seat 0.5. */
+  bust: { rz: number; dz: number }
+  seat: { rz: number; dz: number; rx: number }
 }
+/** A range widened about its middle: `lo` at 0, exactly 1 at 0.5, `hi` at 1 (two lerps meeting at 1; one lerp would not be 1). */
+const about = (v: number, lo: number, hi: number): number =>
+  v < 0.5 ? lerp(lo, 1, v / 0.5) : lerp(1, hi, (v - 0.5) / 0.5)
 export function measure(input: Partial<Sliders>): Measure {
   const s: Sliders = { ...DEFAULT_SLIDERS, ...input },
     H = s.height / 100,
@@ -155,6 +192,7 @@ export function measure(input: Partial<Sliders>): Measure {
     headPitch: lerp(0.15, -0.04, s.posture) + 0.08 * s.age,
     faceAhead: lerp(0, 0.5, s.faceForward),
     hunch: s.hunch,
+    sideBend: s.bodyAsymmetry,
   }
   return {
     sliders: s,
@@ -170,5 +208,19 @@ export function measure(input: Partial<Sliders>): Measure {
     leg: lerp(1, 1.2, c),
     foot: lerp(1, 1.25, c),
     face: { ...DEFAULT_HEAD, ...s.face },
+    bust: { rz: about(s.bust, 0.92, 1.15), dz: 0.01 * (s.bust - 0.5) * 2 },
+    seat: {
+      rz: about(s.seat, 0.93, 1.12),
+      dz: 0.012 * (0.5 - s.seat) * 2,
+      rx: about(s.seat, 0.94, 1.06),
+    },
+    fat: {
+      swell: 1 + 0.35 * s.fat,
+      joint: 1 + 0.5 * s.fat,
+      hipTop: 1 + 0.2 * s.fat,
+      end: 1 + 0.08 * s.fat,
+      neck: 1 + 0.2 * s.fat,
+      chin: 1 + 0.25 * s.fat,
+    },
   }
 }

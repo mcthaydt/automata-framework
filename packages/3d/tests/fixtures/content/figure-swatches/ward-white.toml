@@ -1,5 +1,6 @@
 # `wardWhite` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/swatches.json at a1f7246.
-# Colour: DUEL row 10, step 6 (#bac7db), nearest in OKLab: Endesga 64 index 9 (#c7cfdd).
+# Colour: DUEL ramp 10 (slate), step 6 (#bac7db).
 # Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
 
-colour = 9
+ramp = "slate"
+step = 6

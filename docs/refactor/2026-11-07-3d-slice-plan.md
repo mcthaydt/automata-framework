@@ -86,15 +86,14 @@ Apply each when the task is reached, and tick it in the execution log:
 - [ ] **13.2:** drop the 3D skills and the 3D API reference from `agents/` (they return in 20.1).
 - [ ] **20.1:** add them when `@automata/3d` goes public. A new test fails on any unpublished package named in `agents/`.
 - [ ] **10.1:** keep a single environment-builder pattern, since skills task 2.4 may add it first.
-- [ ] **5.1:** add one "How it looks" skill line.
+- [x] **5.1:** add one "How it looks" skill line.
 - [ ] **5.2:** add create-game's template colours (`0xffc825`, `0x64748b`) to its file list.
 - [ ] **11.1:** delete `ROLE_LAYOUT_GAMES` and the hook's role list.
 - [ ] **13.1:** keep the editor skill at "2D level files" until phase 20.
 
 ## Notes from the automata-plus audit (PR #40, relayed 2026-11-07 11:49)
 
-Not decided; read when the task is reached. X1 (task 7.1): `shared/level/sim/` and `simLevel()` overlap Plus's `sectors`
-package; check Plus PR #40 for the outcome (P-D4) before building them. X2 (`shared/timeline/`): Plus's `cutscenes` is a
+Decided by the Owner (2026-11-07 15:05): Plus becomes AF extensions, and the sim part of the level and the stage move to the Plus port (see the Plus port spec (`2026-11-07-plus-port-spec.md`, AF PR #457) section 9, which holds the exact changes to this plan). X1 is settled: `shared/level/sim/` and `simLevel()` are not built here (the `sectors` extension); task 7.4's stage is cut down to the piece states (the `cutscenes` extension builds the director and the `stage-script` kind). X2 (`shared/timeline/`): Plus's `cutscenes` is a
 fourth keyed-time model; core's timeline owns keys and eases, so the design stands. X3 (task 4.1): deleting
 `blockout` breaks Plus's `pipe blockout`; agreed (D3). X4: keep the 12 names Plus imports from sector-format's root
 (`SectorDef`, `WallDef`, `Corner`, `Trim`, `STEP`, `WALL_THICK` and others) exported from `@automata/3d/level` with the
@@ -485,7 +484,7 @@ it('no 3D source imports effect', () => {
   the goldens are AF's record of its own behaviour; a port that moves them re-records them in a named commit with the
   change explained (phase 6).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 it('recording into a temporary folder reproduces the committed goldens', async () => {
@@ -494,7 +493,7 @@ it('recording into a temporary folder reproduces the committed goldens', async (
 })
 ```
 
-- [ ] **Step 2: Run, expect FAIL** (no script). **Step 3:** implement. **Step 4: Run, expect PASS**; a difference
+- [x] **Step 2: Run, expect FAIL** (no script). **Step 3:** implement. **Step 4: Run, expect PASS**; a difference
   here is a bug in the move, not a rebaseline. **Step 5: Commit** `test(3d): goldens recorded from AF's own code`
 
 ---
@@ -603,7 +602,7 @@ pair (`base/base.ts`) is the fixture each port is checked on.
   `sources-md`, chained into `source-names` (`... source-names-cli.ts && node .../sources-md-cli.ts`); `--complete`
   makes a missing row an error (turned on in task 10.2).
 
-- [ ] **Step 1: Write the failing tests**: `each builder section names a 40-character commit and the pull procedure`;
+- [x] **Step 1: Write the failing tests**: `each builder section names a 40-character commit and the pull procedure`;
   `every row's AF path exists or says left out`; `with --complete, every manifest file has a row`. **Step 2:** FAIL.
   **Step 3:** the sections and the manifest. **Step 4:** PASS (without `--complete`); `pnpm source-names` passes.
   **Step 5: Commit** `docs(provenance): where the figures and the world come from, and how to pull again`
@@ -624,7 +623,7 @@ pair (`base/base.ts`) is the fixture each port is checked on.
   the existing `fat` (default 0.4) takes FigureBuilder's newer reading (the limbs, the neck and the jaw swell; every
   multiplier 1 at fat 0); `naturalStand(m: Measure): Pose`, the stand of a figure that names none (spec 8.2).
 
-- [ ] **Step 1: Port the tests, failing**, e.g.
+- [x] **Step 1: Port the tests, failing**, e.g.
 
 ```ts
 it('fat thickens the limb rings, and fat 0 changes nothing', () => {
@@ -639,7 +638,7 @@ it('the natural stand puts the head over the shoulders', () => {
 })
 ```
 
-- [ ] **Step 2:** FAIL. **Session break here if needed.** **Step 3:** port the code. **Step 4:** unit tests pass;
+- [x] **Step 2:** FAIL. **Session break here if needed.** **Step 3:** port the code. **Step 4:** unit tests pass;
   every slider pushed to both ends builds (`sliders.test.ts`). The new `fat` moves Wick (fat 0.3) and the fixtures with
   fat above 0: re-record with `record-goldens.ts` in its own commit, `test(3d): re-record the figure goldens for the
   new fat`, with before and after contact sheets (`look-sheet.ts` once it lands; until then the parity images) opened
@@ -672,7 +671,7 @@ model), `src/features/paint/library/times.json`.
   bounce }; label: string }` (the editor's words: Day, Golden hour, Dusk, Night, Lamplight, Bar light) and
   `timeOfDay(name: string, overrides?): TimeOfDay`.
 
-- [ ] **Step 1: Write the failing tests** (both sources' cases):
+- [x] **Step 1: Write the failing tests** (both sources' cases):
 
 ```ts
 it('holds the first value before the first key and the last after the last', () => {
@@ -694,7 +693,7 @@ it('each source action compiles to a clip that matches the source actor', () => 
 })
 ```
 
-- [ ] **Step 2:** FAIL. **Step 3:** the timeline, then clips read from it (clip tests pass unchanged), then the
+- [x] **Step 2:** FAIL. **Step 3:** the timeline, then clips read from it (clip tests pass unchanged), then the
   action kind, the merged times and lighting. **Step 4:** 3D unit and goldens pass (Wick unchanged);
   `grep -rn "type Ease\b" packages/3d/src` → only `shared/timeline/ease.ts`. **Step 5:** rows. **Commit**
   `feat(3d): one timeline; actions are clips; one time of day`
@@ -764,7 +763,7 @@ Ports from `../EnvironmentBuilder` at `6d82a52`, with `sources.md` rows.
 
 **Files:**
 - Create: `packages/3d/src/shared/level/af-sector-2.schema.ts` (every row of spec 9's table),
-  `af-sector-1-to-2.migration.ts`, `shared/level/sim/` (floors, walls, pits, things and their fields, spawn),
+  `af-sector-1-to-2.migration.ts`,
   `packages/3d/scripts/convert-builder-maps.ts` (run in task 7.3)
 - Modify: `shared/level/af-sector.schema.ts` (reads `/1` and `/2`, returns `/2`),
   `games/base-3d/src/content/levels/room.af-sector.json` (migrated), `games/base-3d/src/content/levels/sector-area.ts`
@@ -777,8 +776,7 @@ Ports from `../EnvironmentBuilder` at `6d82a52`, with `sources.md` rows.
 - Produces: `interface LevelProblem extends Problem { where: string; name?: string }` in
   `shared/level/problem.ts` (`Problem` is `@automata/content`'s `{ path, code, message }`, so `automata check` places it
   in its file); `type AfSector2` and `afSector2Schema`; `readLevel(json: unknown): { level: AfSector2; migrated:
-  boolean; problems: LevelProblem[] }`; `migrateAfSector1(level: AfSector): AfSector2`; `simLevel(level: AfSector2): SimLevel`
-  (what the sim reads, from `@automata/3d/sim`); `convertBuilderMap(plan: unknown): AfSector2`.
+  boolean; problems: LevelProblem[] }`; `migrateAfSector1(level: AfSector): AfSector2`; `convertBuilderMap(plan: unknown): AfSector2`.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -787,9 +785,9 @@ it('migrates every /1 fixture losslessly', () => {
   for (const f of V1_FIXTURES) {
     const two = migrateAfSector1(f)
     expect(afSector2Schema.parse(JSON.parse(JSON.stringify(two)))).toEqual(two)
-    expect(simLevel(two)).toEqual(simLevelOfV1(f))
   }
 })
+it('carries zone, masses, and a wall\'s cut and hideFrom through the migration unchanged', () => { /* one assertion per field; `AfWall` no longer omits cut and hideFrom */ })
 it('reads a bare-number floor as a plane', () => {
   expect(readLevel(withFloor(1.5)).level.sectors[0].floor).toEqual({ z: 1.5 })
 })
@@ -801,7 +799,7 @@ it('converts a builder map: rect sectors to corners, sprites to props and cast',
 })
 ```
 
-- [ ] **Step 2:** FAIL. **Step 3:** the schema, the migration, `simLevel`, the converter. **Step 4:** PASS; base-3d's
+- [ ] **Step 2:** FAIL. **Step 3:** the schema, the migration, the converter (the `entries/sim.ts` re-exports only `features/camera/sim`; `simEntries` stays `["./sim", "./level"]`; what the sim reads from a level is the `sectors` extension's, not built here). **Step 4:** PASS; base-3d's
   unit tests (82) and golden replay pass with the migrated room, sim hash unchanged. **Step 5: Commit**
   `feat(3d): af-sector/2, one level format for the game, the editor and the world`
 
@@ -887,43 +885,36 @@ it('apartment@1 and block@1 generate valid /2 levels', () => {
   dressing is presentation); its journeys pass in Chromium with the dressed room; images in the PR, each change
   explained. Rows. **Commit** `feat(3d): props, furnished rooms, lamps and generated maps`
 
-### Task 7.4: The stage (spec 8.3)
+### Task 7.4: The piece states (spec 8.3; cut down on the Owner's word, 2026-11-07)
 
-**Source files:** EnvironmentBuilder `src/features/stage/{actor,cast,camera,runtime,state}.ts`,
-`src/features/view/shots.ts`; FigureBuilder `src/features/actors/actor.ts` (the script).
+The director, the `stage-script` content kind and the sequences move to the `@automata/cutscenes` extension (Plus port
+spec section 9). What stays is the small thing the renderer needs to move a door or a lamp: the state of the world's
+pieces, and applying a change of it.
+
+**Source files:** EnvironmentBuilder `src/features/stage/state.ts` (the state a scene is in).
 
 **Files:**
-- Create: `packages/3d/src/features/stage/{stage-script.schema.ts,stage.content.ts,scene-state.ts,director.ts,
-  sequence.ts}`, `app/update-pieces.ts` (in `app/`: it reads the stage's state and the world's view)
-- Modify: `app/compose-scene.ts` (gives the director `startClip`)
-- Test: `tests/unit/stage/*.test.ts`
+- Create: `packages/3d/src/shared/level/piece-states.ts` (`PieceStates`, `LampState`, `PropState`),
+  `app/update-pieces.ts` (reads the world's view and two `PieceStates`)
+- Modify: `app/compose-scene.ts` (gives the scene a `startClip(who, clip, atTick)` callback, so a cue from outside, such
+  as the extension's, can start a figure's clip)
+- Test: `tests/unit/shared/level/piece-states.test.ts`, `tests/unit/app/update-pieces.test.ts`
 
 **Interfaces:**
-- Consumes: `Track`, `sample` (task 6.3); piece ids as plain strings (the stage imports nothing from `world/`).
-- Produces: `createDirector(script: StageScript, startClip: (who: string, clip: string, atTick: number) => void):
-  Director`; `Director.stateAt(t: number): SceneState`; `SceneState { camera; doors: Record<string, number>; lamps:
-  Record<string, LampState>; time: string; grade: string; props: Record<string, PropState> }`;
-  `updatePieces(view: WorldView, before: SceneState, after: SceneState): number` (pieces changed).
+- Consumes: `Track`, `sample` (task 6.3); piece ids as plain strings.
+- Produces: `PieceStates { doors: Record<string, number>; lamps: Record<string, LampState>; props: Record<string, PropState> }`;
+  `updatePieces(view: WorldView, before: PieceStates, after: PieceStates): number` (pieces changed).
 
-- [ ] **Step 1: Write the failing tests**
+- [ ] **Step 1: Write the failing test**
 
 ```ts
-it('a state at t comes from the keys alone', () => {
-  expect(createDirector(script, noop).stateAt(1.5)).toEqual(createDirector(script, noop).stateAt(1.5))
-})
 it('a door key changes only that door', () => {
-  expect(updatePieces(view, stateAt(0), stateAt(1))).toBe(piecesOf(view, 'door-1').length)
-})
-it('a cue starts its clip at its tick', () => {
-  const calls: unknown[] = []; const d = createDirector(cueAt(2, 'wick', 'reach'), (...a) => calls.push(a))
-  d.stateAt(1.9); expect(calls).toEqual([]); d.stateAt(2); expect(calls).toEqual([['wick', 'reach', 2]])
+  expect(updatePieces(view, statesAt(0), statesAt(1))).toBe(piecesOf(view, 'door-1').length)
 })
 ```
 
-- [ ] **Step 2:** FAIL. **Step 3:** implement. **Step 4:** PASS; `boundaries` keeps `Date` and `performance` out of
-  `features/stage` (add `--forbid-globals packages/3d/src/features/stage:Date,performance` if the tool lacks a rule,
-  with its own test in `packages/tools/tests/unit/boundaries/`). `grep -rn "class Actor\|Troupe" packages/3d/src` →
-  none. Rows. **Commit** `feat(3d): the stage plays scripts on the one timeline`
+- [ ] **Step 2:** FAIL. **Step 3:** implement. **Step 4:** PASS. No `features/stage/`, no `stage-script` kind and no
+  director here: `@automata/cutscenes` builds them. Rows. **Commit** `feat(3d): the world's pieces move on the one timeline`
 
 ---
 
@@ -1157,14 +1148,16 @@ it('the room fills the stage on an iPad', async () => { expect(await roomBoxHeig
 **Files:**
 - Modify: `examples/3d/{figures,render3d}/*` (imports from `@automata/3d`; `// --- <role> ---` sections)
 - Create: `examples/3d/{figures-stand-and-sliders,figures-hair,figures-wardrobe,look-pixel-art,world-furnished-room,
-  world-generated-map,world-time-of-day,stage-script}.ts`, `examples/3d/README.md`
+  world-generated-map,world-time-of-day}.ts`, `examples/3d/README.md`
 - Test: `examples/3d/e2e/*.e2e.ts` (each boots and reaches ready), the examples runner's list
 
-- [ ] **Step 1:** Failing journeys for the eight. **Step 2:** four examples. **Session break here if needed.**
-  **Step 3:** the other four. **Step 4:** PASS in Chromium. **Step 5: Commit** `feat(examples): the 3D examples show
+- [ ] **Step 1:** Failing journeys for the seven. **Step 2:** four examples. **Session break here if needed.**
+  **Step 3:** the other three. **Step 4:** PASS in Chromium. **Step 5: Commit** `feat(examples): the 3D examples show
   the figures, the world and the look`
 
 ### Task 12.2: `create-game --template 3d`
+
+When the Plus port's task 3.4 lands, the 3D template lists `@automata/sectors` (Plus port spec section 9); until then it does not.
 
 **Files:**
 - Create: `packages/tools/src/shared/create-game/template-3d.ts`
@@ -1559,3 +1552,14 @@ reads only this plan and the spec. DUEL's author and licence stay the Owner's op
 - Task 2.2: done. 96 test files moved by the mover (unit 89, browser 6, bench 1) into `tests/{unit,browser,bench}`; counts unchanged: unit 821, Chromium browser 41 pass + 2 skipped; the bench runs (1). Rulings: (1) the package's browser project is now `browser` (the preset's name; it was `browsers`), so the Chromium command is `--project 'browser (chromium)'`; vitest.config.ts is `defineTests({ svelte, optimizeDeps, browserCommands })` with no `alsoInNode` (the parity tests need WebGL). (2) `src/testing/{__goldens__,fixtures}` went to `tests/fixtures/{__goldens__,content}` and their readers follow; the nightstand model fixture stays in `src/testing/model/fixtures` (not named by the plan; it is a prop, not a figures fixture). (3) The six "check by eye" tests: camera-view, browser-imports, actions, parse-glb, pixi3d-bundle, sector-format; `browser-imports` had read `dirname` as the source folder and would have passed on an empty list, so it now asserts it found over 100 source files. (4) `tsconfig` includes `tests/`; `--features packages/3d` and `style --test-imports packages/3d` are in the root scripts and find 0.
 - Task 3.1: done. The four source files and four tests that imported `effect` are plain TypeScript; `no-effect.test.ts` is replaced by `--forbid packages/3d:effect games/base-3d:effect` in `boundaries` (0 findings in 202 files). 3d unit 822 and Chromium parity 41 pass + 2 skipped as before; base-3d unit 82; `pnpm build`, `api-report --update` and `api-index --write` run. Rulings: (1) the content compile and the ship helpers are Effect APIs in published packages, so plain-value forms were added there rather than keeping `effect` in 3D: `compileContentResult` (`@automata/content`), `manifestOf` and `rukenHeadersOf` (`@automata/tools` internal); each has its own test. Cost if wrong: three small exports that a later cleanup can fold into one. (2) `createPixi3dRenderer(options)` takes `clock` inside `Pixi3dOptions`, not a second `seams` argument, and `Pixi3dSeams` is gone; `systemClock` and `TimeoutHandle` are now exported from `@automata/framework`, `fakeClock` and `FakeClock` from `@automata/framework/testing`. (3) A Try again that finishes after `dispose` throws the new app away instead of drawing into a dead renderer. Changeset: `.changeset/3d-without-effect.md` (framework, content, tools; patch).
 - Task 4.1: done. Deleted the source game's level format and everything that read it: `packages/3d` `./blockout` entry, `shared/level/blockout/` and its two tests (2 files); in `packages/editor-3d` the `format/` folder, `profile/last-light-*`, `checks/facility/` and `checks/last-light/`, `model/facility-*`, the facility editor, and `testing/{toy-blockout,shipped-facility,geometry-golden,game-facts}` with the Last Light fixtures; `registry.ts` now has the one profile (`PROFILES = [afSectorProfile]`, one sentence for a file that is not af-sector). Tests that mixed Last Light into generic coverage were moved to the depot and the toy level, or to a synthetic profile (a `pinned` list, no `definitions`, a refusing `materials`, a test-held `links` table, a `zone` definition with an `area`), so the Things tool's rectangles and links, the material picker's "no list", the cut refusal and the definitions sheet's "fixed" note are still covered. Tests that could only mean Last Light (connector surfaces, nav, facility, pilaster walls) were deleted. Counts (Chromium, 2026-11-07): editor-3d unit+dom 2,196 pass (151 files); layout+canvas 203 pass, journeys 16 pass, typecheck 0 errors, knip clean. Rulings: (1) X3 holds: Plus's `pipe blockout` breaks, as agreed (D3). (2) X4 holds with no work: `@automata/3d/level` still exports `sector.schema.ts` (`SectorDef`, `WallDef`, `Corner`, `Trim`, `STEP`, `WALL_THICK` and the rest). (3) `format/af-sector.schema.ts` was a re-export of `@automata/3d/level` kept for old names; its five test importers now import `@automata/3d/level`, and it is gone. (4) The Home test for a "facility" row and `LevelSummary`'s facility rule are gone with the facility. Resume at task 4.2.
+- Task 4.2: done. The recorder is `packages/3d/scripts/record-goldens.ts` (`recordGoldens(outDir)`, run with `pnpm --filter @automata/3d goldens [--out <dir>]`); `scripts/extensionless-ts.ts` is a Node resolve hook the package script loads with `--import`, because `@automata/content` writes relative imports without `.ts` and plain Node cannot load it. The three goldens are `tests/fixtures/goldens/{dress,motion,actions}.json`; `src/testing/hand-on-hip.ts` (`HAND_ON_HIP`); the three source-checkout scripts are gone. RED: with one number of `actions.json` changed, `goldens-fresh.test.ts` fails on `ends.look-out[0][0]` (0.5 against 1e-9); GREEN with the file restored. Counts (Chromium, 2026-11-07): 3d unit 812 in 88 files (the two blockout tests went in 4.1, `goldens-fresh` adds 2); Chromium browser 41 pass + 2 skipped as before (the parity golden test now reads `dress.json`); `tsc`, knip, style, source-names and boundaries clean. Rulings: (1) The plan says moving the goldens, but the recorder writes AF's own output, which cannot equal files the source produced (its nameplate and pendant anchor were cut, the pony's cuffs added). So the files are re-recorded once here, after checking the old against the new within the readers' own 1e-9: geometry 23,068 numbers, worst difference 0 (the cuffs and the cut plate and pendant aside); locomotion, holds and stands identical (the two chain outfits' crossed arms are now recorded too, so the readers' PENDANT skip, the `cut` marker and the cuff filter are gone); actions differ by at most 1.4e-4 figure units (the clips are fitted to 1e-3, so the F-g check now guards the clips against drifting from their own recorded end pose); the hair spring's steps 22 to 39 differ because AF's walking head has no idle twitch (the twitch is idle's), so the recorded head, and the spring that follows it, are AF's — cost if wrong: the hair spring is no longer checked against the source's head, only against AF's. (2) The recorder compares with 1e-9 in the test, not byte for byte, because the files keep 12 and 13 digits and platforms' `Math` differ in the last bit (the same tolerance the readers use). (3) `figureOf` moved to `testing/golden-outfits.ts` and `surfaceOf` to `testing/stand-surface.ts` so the recorder and the tests share them (neither imports vitest). (4) `hand-on-hip.ts` keeps its recorded numbers; they are a table, not recomputed. (5) `tsconfig` now includes `scripts/`. (6) Source names stay in the header comments of base/stands/hold tests ("Ported from ...") outside the golden sentences; the later source-names work (spec 8) takes them. Resume at task 5.1.
+- Task 5.1 to 5.3: done, as one commit. Rulings: (1) the three land together because the default palette cannot be green until every consumer is remapped (a commit with only 5.1 fails knip and the 3d swatch tests); `endesga-64.txt` was deleted in 5.2, not 5.1, for the same reason — cost if wrong: one larger commit. (2) The theme's contrast floor is the WCAG minimums plus at least 85% of the Endesga theme's ratios, because DUEL has no pure white and the old ratios cannot all be met — cost: a slightly lower contrast on a few pairs, all still AA. (3) The 32 ramp names are AF's own labels (DUEL names none); `duel.md` says so. (4) The editors' and editor-3d's colours are chrome fallbacks, not Endesga-bound, and were left alone. (5) Swatch colours came from the FigureBuilder row and step comments where a TOML had one, else from the OKLab remap; hex colours in the 3D views and examples (not white, which the lighting multiplies by) moved to the nearest DUEL colour. The 3D player-yellow test's classifier loosened from `b < 70` to `b < 90` because DUEL's nearest orange has more blue — cost: none. (6) The goldens did not need re-recording: they record geometry, not palette indexes, and `goldens-fresh` stays green. (7) `swatchColourProblems` stays, now checking the resolved index against a game's own palette.
+- Plan change from the Owner (2026-11-07 15:05, via the coordinator; exact edits from the Plus port spec section 9, PR #457, at 15:15): Plus becomes AF extensions and two pieces move to the Plus port. Task 7.1 drops `shared/level/sim/`, `simLevel()` and the `simLevel` assertion (the round trip stays; `entries/sim.ts` re-exports only `features/camera/sim`; `simEntries` stays `["./sim", "./level"]`). Task 7.4 shrinks to `shared/level/piece-states.ts`, `app/update-pieces.ts` and compose-scene's `startClip`; only the "a door key changes only that door" test stays; no `features/stage/`, `stage-script` kind or director (`@automata/cutscenes`). Task 12.1 makes seven examples, not eight (no `stage-script.ts`). The 3D spec's sections 3, 7, 8.3 and 9 and the plan's audit notes now say so. No 3D task waits on the port. Pass this on at every handoff.
+- Plan change (2026-11-07 15:28, via the coordinator; Plus port plan audit, #457 at f991018a): task 7.1's `af-sector/2` also carries `zone` on a sector, `masses` on the level, and `cut` and `hideFrom` on a corner's wall (`AfWall` stops omitting them), each with a spec section 9 table row (added) and a migration test (one assertion per field). Task 12.2: the 3D template lists `@automata/sectors` once port task 3.4 lands. Pass on at every handoff.
+- Task 6.1: done (62f032fc). `checkSources(md, manifest, {complete?, exists?})` and `pnpm sources-md [--complete]` (chained into `pnpm source-names`); the manifests are the file lists at `025ffb4` (figure, 300) and `6d82a52` (environment, 214). `--complete` reports 514 findings today, one per file with no row, and goes on in task 10.2 (Ruling: the plan's step 4 says "PASS without --complete"; that is what the commit gates on).
+- Task 6.2: done. Ruling: the plan's `naturalStand(m): Pose` does not exist in the source; the natural stand is `relaxed` (RELAX 0.4: a lighter contrapposto, the free foot a quarter ahead) plus `STAND_SLIDE` (the neck slides back 3 cm times the figure's scale) and `STAND_LIFT` (the chest 0.02 rad up) inside `base`, so the test is on `base` with a stand (`natural-stand.test.ts`). Ruling: the face's asymmetry is `face.asymmetry` and both asymmetries run -1 to 1, as the source's, not `[0, 1]`. Ruling: `standOut` is now the whole value (the source's `standOut ?? armOut`), so the fixture gaits and the five figures examples carry `standOut: 0` and the source's `standElbow` (strut 0.26, loose 0.34, bounce 0.36, still 0.22). The body's new ring numbers moved the leg at every fat, not just above 0 (the profiles are one query now, `body/profiles.ts`), so all three figure goldens were re-recorded once, in this commit with their cause: the body geometry (fat, the leg rings), the stand (`relaxed`, the neck's slide, the chest's lift, the stand leg's 0.9995) and the fixture gaits' `standElbow`. The sim hash did not move. The `Sliders` ends sweep (`slider-ends.test.ts`, 80 cases) passed first run: it guards the sliders, it does not drive new code. `seated` and the seats wait for 6.4.
+- Task 6.3: done (session fov5js, 2026-11-07). Rulings: (1) `TimeOfDay` is `{ name, label, scene: { light, sky, haze?, stars?, grade }, figure: { exposure, lift, key } }`, not the plan's `figure: { key, fill, bounce }`: the figure source has no per-time `fill` or `bounce` (a bounce is the floor and a glow at the figure's feet, per lighting, not per time), so inventing them would put fields in the library with no source; `exposure` and `lift` (its `exposure` and `figureLift`) are what the sprite light reads, and `grade` is the source's ambient colour and `tint`. Colours stay `#rrggbb` as both sources and the editors have them. Cost if wrong: a rename when 8.2 consumes it. (2) Only reach, look and flinch become `figure-action` files (the plan's file list names them); the source's nineteen pose-spec actions (wave to handshake) need its spec-to-pose IK and are `left out` in `sources.md` with the reason, as are `lighting/grade.ts` and `light.ts` (the colour moves and `lightFigure` are the look's sprite light and reference, 8.2). Cost if wrong: those actions are a later pull. (3) An action compiles to a clip (`compileAction`) and `clipsWithActions(clips, actions)` merges them, so `evaluate` stays the only player; the content kind's id clashes with a `figure-clip` id are an error naming it. The `loop: [from, to]` repeat range of the source is not carried (no consumer). (4) `Ease` gained `smooth` and reads `hold` as `step` through `easeSchema`, in `shared/timeline/ease.ts`; `Key`, `Track`, `sample`, `bracket` and `wrapTime` are generic over the clip's own `{ t, ease? }` keys, so a clip's authored keys are not copied per frame. A key with no ease is linear (the environment source's default was `inOut`; the maps converter, 7.3, writes `inOut` explicitly). (5) Reach, look and flinch moved from fixture clips to fixture actions and are also copied into base-3d with their four poses (the plan's `games/base-3d/src/content/figure-actions/`; 11.1 moves them again); the recorded F-g end poses pass unchanged. (6) The lamp is `FigureLamp` (`features/figures/lighting/lamps.ts`) to keep it apart from the scene-lighting `Lamp`; the level's lamp kit (7.3) decides how they meet. Counts (Chromium not needed): 3d unit 963 in 96 files, base-3d unit 82. Resume at task 6.4.
+- Task 6.4 part 1: done (session fov5js, 2026-11-07). Rulings: (1) The garment registry (`registry/garment-registry.ts`, `registerGarment`, `RegistryClash`) holds the classic kinds with a `wear` function and the streetwear kinds with a `build`; `dress` dispatches on whichever the kind has, and a kind none of the registry knows is `No garment called "x" is registered`. The registry files are `*-registry.ts`, not `*.registry.ts`, because `pnpm style` has no `registry` role. (2) `ExtensionDef` has no setup hook, so kinds register when their module loads (`classic-kinds.ts`, and the 6.5 wardrobe extension on import); `figure.schema.ts` imports both so a schema parse always sees them. (3) `keyedUnion` takes a thunk for its members and reads it on every parse, so a kind registered after the schema is built is accepted. (4) The plan's test `core registers only the classic set` waits for 6.5, which removes streetwear from core; today the test checks the classic set is a subset. Session break: inside 6.4, after the garment and outfit-hook registries; the hair pieces, finishes and fabrics registries, the fit work (`girth`, `ringAt`, collar, cuffs), the seats and the head-wear fold remain. Cost if wrong: none.
+- Task 6.4 part 2 (fit): done (session fov5js, 2026-11-07). Rulings: (1) `girth`, `clearance`, `Body` and `bodyOf` live in `body/profiles.ts` beside `profiles`, not in `outfit/fit.ts`, because the layers let the body's query be read by the garments and the source's `fit.ts` imported the hair file only for `PPM`; the clearance is one texel at the fixed `FIGURE_PPM` (`bodyOf(m, s)` has no density argument, AF draws at one density). (2) The plan says "Wick unchanged", but a cuff that hugs the arm is the task, so Wick's and the keeper's cuffs move: `dress.json` is re-recorded in this commit with its cause; the other recorded files (`motion.json`, `actions.json`) and the 24 Chromium figure goldens did not move. The sim hash did not move. (3) `Wearing` (streetwear/registry kinds' context) gained `body: Body` and `Dressing` gained the same, so a kind sized from `body.girth(...)` plus `body.clear` clears any body. The tests are `tests/unit/figures/outfit/fit.test.ts` (girth box, clearance floor, `bodyOf`, cuff = girth + one texel for both bases and both sleeves, cuffs at the ends of fat, muscle and frame, fat grows the cuff, the collar rides the neck and not the bust); the source's mesh-against-ellipse clearance sweep over every slider end at three densities is not carried because AF has one density and the cuff test reads the same girth the cuff is built from.
+- Task 6.4 part 3 (hair, finish and fabric registries): done (session fov5js, 2026-11-07). Rulings: (1) `registerHairPiece(kind, { schema?, build, crown? })`, `registerFinish(name, { matte })` and `registerFabric(name, fabric)` each throw `RegistryClash` (`A hair piece called "x" is already registered`) and the base generators (scalp, rows, tail, fall, bun, sweep, block, edges) and base finishes (coil, braid, loc, sleek, straight) count as taken. A finish is only `matte` in the 3D look (tones are swatch variants), not the source's `tones` triple. (2) A registered piece's data is read through its own `schema` (or any value when it has none) in the hair style schema, which reads the registry at every parse, as `keyedUnion` already does for garments; a style naming a finish no one registered is refused with the list of finishes there are. (3) A fall the cap leaves out stays silent; a piece that is not a base generator and not registered is a `RangeError` naming it, at build. (4) Fabrics have a registry and `labelAt` but no consumer: the painter that reads the labels is not taken (spec section 4.4.1), so nothing in the look moves. Cost if wrong: a later pull of the painter.
+- Task 6.4 part 4 (low pony): done (session fov5js, 2026-11-07). `Tail.hang = "down"` ties the pony where `at` says (the nape) and sends it straight down the back, no rise and no arc; the base figures and goldens did not move (the field is optional). Test: `tests/unit/figures/hair/tail-hang.test.ts` (a low pony's top is under the head's middle where a high one reaches the crown; the schema takes `down` only). Still open in 6.4: the bun's `flat`, the new fall's `curl` and `volume` (AF's `fall` is the older lock list, so the new one needs a shape that tells them apart), seats, and folding the `figure-headwear` kind into the garment registry.

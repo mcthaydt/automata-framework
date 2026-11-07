@@ -12,6 +12,8 @@ import { type Gait, gaitOverridesSchema, gaitSchema } from '../content/gait.sche
 import { refOrInline } from '../content/ref-or-inline.ts'
 import { partialOf, side } from '../content/shapes.schema.ts'
 import { skeletonProblems } from './figure-skeleton.ts'
+import '../outfit/garments/classic-kinds.ts' // the garments a figure's outfits may name register when the schema loads
+import '../outfit/streetwear/registry.ts'
 import { type Garment, garmentSchema } from './garment.schema.ts'
 
 /** The hair's spring (FigureBuilder cast.ts `HairPhysics`): stiffness and damping, trail, bounce, sway, hang. */
@@ -57,6 +59,8 @@ export interface FigureDef {
  * past either end, for figures meant to look wrong.
  */
 const beyond = z.number().min(-1).max(2)
+/** The signed sliders (the sign picks the side) run −1 to 1. */
+const signed = z.number().min(-1).max(1)
 const headShape: z.ZodType<Partial<HeadShape>> = partialOf<HeadShape>(
   z.strictObject({
     width: beyond.optional(),
@@ -73,6 +77,10 @@ const headShape: z.ZodType<Partial<HeadShape>> = partialOf<HeadShape>(
     crease: beyond.optional(),
     hood: beyond.optional(),
     liner: beyond.optional(),
+    eyeSize: beyond.optional(),
+    eyeSpacing: beyond.optional(),
+    eyeTilt: beyond.optional(),
+    asymmetry: signed.optional(),
   }),
 )
 const sliders: z.ZodType<Partial<Sliders>> = partialOf<Sliders>(
@@ -96,6 +104,9 @@ const sliders: z.ZodType<Partial<Sliders>> = partialOf<Sliders>(
     chunk: beyond.optional(),
     faceForward: beyond.optional(),
     hunch: beyond.optional(),
+    bodyAsymmetry: signed.optional(),
+    bust: beyond.optional(),
+    seat: beyond.optional(),
     face: headShape.optional(),
   }),
 )
@@ -121,6 +132,7 @@ const genes: z.ZodType<Partial<Genes>> = partialOf<Genes>(
     headPitch: n,
     faceAhead: n,
     hunch: n,
+    sideBend: n,
   }),
 )
 const hairDynamics: z.ZodType<Partial<HairDynamics>> = partialOf<HairDynamics>(

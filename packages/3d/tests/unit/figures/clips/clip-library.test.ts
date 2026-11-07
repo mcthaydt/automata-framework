@@ -8,7 +8,7 @@ import { clipWarnings } from '#src/features/figures/clips/clip-warnings.ts'
 import { sample } from '#src/features/figures/clips/sample.ts'
 import type { PoseDef } from '#src/features/figures/motion/pose.schema.ts'
 import { compileFixture, FIXTURE_ROOT } from '#src/testing/compile-fixture.ts'
-import { FIXTURE_CLIP_IDS, fixtureClips } from '#src/testing/fixture-clips.ts'
+import { FIXTURE_ACTION_IDS, FIXTURE_CLIP_IDS, fixtureClips } from '#src/testing/fixture-clips.ts'
 
 const fileOf = (id: string): string => `content/figure-clips/${id}.toml`
 const fixtureText = (id: string): string => readFileSync(join(FIXTURE_ROOT, fileOf(id)), 'utf8')
@@ -26,8 +26,9 @@ const clip = (id: string): FigureClipDef => {
 
 describe('the fixture clips', () => {
   it('compile, and none changes space between keys', () => {
-    expect(Object.keys(clips).sort()).toEqual([...FIXTURE_CLIP_IDS])
-    for (const id of FIXTURE_CLIP_IDS) expect(clipWarnings(clip(id), poses), id).toEqual([])
+    const ids = [...FIXTURE_CLIP_IDS, ...FIXTURE_ACTION_IDS].sort()
+    expect(Object.keys(clips).sort()).toEqual(ids)
+    for (const id of ids) expect(clipWarnings(clip(id), poses), id).toEqual([])
   })
 })
 

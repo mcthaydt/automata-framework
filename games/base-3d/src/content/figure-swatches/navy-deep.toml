@@ -1,5 +1,6 @@
 # `navyDeep` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/swatches.json at a1f7246.
-# Colour: DUEL row 5, step 0 (#282b4a), nearest in OKLab: Endesga 64 index 13 (#2a2f4e).
+# Colour: DUEL ramp 5 (dusk), step 0 (#282b4a).
 # Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
 
-colour = 13
+ramp = "dusk"
+step = 0

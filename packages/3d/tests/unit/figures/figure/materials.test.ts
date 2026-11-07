@@ -18,8 +18,8 @@ describe('swatch variants', () => {
     // The cap's (hair/cap.ts) and the jacket's and bomber's (streetwear/) role names.
     const cap = variant(made, 'navy', 'cap-seam', { flat: true, shade: -1 })
     const jacket = variant(made, 'navy', 'seam', { flat: true, shade: 1 })
-    const resolved = resolveMaterials([cap, jacket], made, { navy: { colour: 12 } })
-    expect(resolved[cap]).toEqual({ colour: 12, flat: true, shade: -1 })
-    expect(resolved[jacket]).toEqual({ colour: 12, flat: true, shade: 1 })
+    const resolved = resolveMaterials([cap, jacket], made, { navy: { ramp: 'slate', step: 4 } })
+    expect(resolved[cap]).toEqual({ colour: 84, flat: true, shade: -1 })
+    expect(resolved[jacket]).toEqual({ colour: 84, flat: true, shade: 1 })
   })
 })

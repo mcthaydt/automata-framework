@@ -1,6 +1,7 @@
 # `lid` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/swatches.json at a1f7246.
-# Colour: DUEL row 27, step 3 (#b98c93), nearest in OKLab: Endesga 64 index 10 (#92a1b9).
+# Colour: DUEL ramp 27 (dawn), step 3 (#b98c93).
 # Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
 
-colour = 10
+ramp = "dawn"
+step = 3
 flat = true

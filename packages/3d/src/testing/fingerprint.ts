@@ -1,12 +1,11 @@
-// A part's geometry fingerprint, for the FigureBuilder goldens (tests/fixtures/__goldens__/figurebuilder-dress.json).
-// The same function runs in build.test.ts on AF's parts and in scripts/figurebuilder-goldens.ts on
-// FigureBuilder's, so it imports nothing (the script loads it with Node's type stripping).
+// A part's geometry fingerprint, for the geometry goldens (tests/fixtures/goldens/dress.json). The same function
+// runs in build.test.ts and in scripts/record-goldens.ts, so it imports nothing.
 //
 // First moments alone miss a uniform scale or a radius change on a symmetric part (the sums stay near the
 // centre's), so each of positions and normals also has its second moments (Σx², Σy², Σz², Σxy) and an
 // order-sensitive sum (Σ (k + 1)·p_k per axis, k the vertex), and the skin its weighted bone sum.
 
-/** The part fields a fingerprint reads (AF's Part and FigureBuilder's Part both have them). */
+/** The part fields a fingerprint reads (the figure builder's Part has them). */
 export interface Fingerprinted {
   readonly mesh: {
     readonly positions: readonly number[]

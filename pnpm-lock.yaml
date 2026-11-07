@@ -1533,6 +1533,9 @@ importers:
 
   tooling/codemods:
     dependencies:
+      '@automata/content':
+        specifier: workspace:*
+        version: link:../../packages/content
       oxc-parser:
         specifier: 0.152.0
         version: 0.152.0

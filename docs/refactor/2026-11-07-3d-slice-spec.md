@@ -116,7 +116,7 @@ into the one suite); the host contract (ADR 0006).
   `docs/design/editor-3d` archived.
 - **Part D, the site** and the release phase.
 
-**Out:** Plus; the paid editor apps; the 2D editor's own features; rigged glTF characters; networking; any 3D feature
+**Out:** Plus (its sim level reader, `sectors`, and its cutscene director, `cutscenes`, are extensions, per the Plus port spec section 9); the paid editor apps; the 2D editor's own features; rigged glTF characters; networking; any 3D feature
 neither builder nor the audit names.
 
 ## 4. Owner decisions, as taken
@@ -213,12 +213,11 @@ packages/3d/
     look/         the passes (ramp light, DUEL snap, outline, sky, rain, post, sprite light)
     figures/      body/, motion/, hair/, outfit/, figure/, lighting/, clips/, content/, registry/, view/ (the Pixi
                   meshes of a figure: meshes, colour, skin, joints, decals, figure view)
-    stage/        the presentation director, scene state, sequences
     world/        the world builder and library/ (kits, props, swatches, glyphs, maps, tiles)
   src/shared/     math, parity helpers, render/ (what every feature draws through: the render views box, mesh,
                   pose-3d, shared material and view-3d; model loading and geometry; light: lamps, occlusion, scene
                   light, vertex light and bake, fog), timeline/ (keys, eases, sampling), level/ (the af-sector schema,
-                  its types, the migration, occlude, the level problem, sim/), time-of-day/
+                  its types, the migration, occlude, the level problem, piece states), time-of-day/
   src/testing/    public.ts (fixtures, golden checks), look-reference/
   tests/          unit/, browser/ (parity, goldens, look), fixtures/
   scripts/        record-goldens.ts, convert-builder-maps.ts
@@ -230,11 +229,11 @@ packages/3d/
   and the figure view, the camera driver and the occluders import the render views, so these are the shared base, not
   one feature's). `app/` composes: `app/create-renderer.ts` (today's `create-pixi3d-renderer.ts`, which imports the
   camera, the occluders, the light and the models) builds the app, gives it the look's passes and the figures' views,
-  draws the world's pieces (`app/world-view.ts`) and applies the stage's state to them (`app/update-pieces.ts`), and
-  gives the stage a `startClip` callback, so no feature imports another. The renderer's 11 imports of `figures` today
+  draws the world's pieces (`app/world-view.ts`) and applies a change of their states (`app/update-pieces.ts`), and
+  gives the scene a `startClip` callback for an extension's cues, so no feature imports another. The renderer's 11 imports of `figures` today
   become the figures' own `view/` folder, composed in `app/compose-scene.ts`.
-- **The sim:** `"automata": { "simEntries": ["./sim"] }`; `entries/sim.ts` re-exports `features/camera/sim` and
-  `shared/level/sim`. `pnpm boundaries` lists `packages/3d/src/features/camera/sim`, `packages/3d/src/shared/level` and
+- **The sim:** `"automata": { "simEntries": ["./sim"] }`; `entries/sim.ts` re-exports `features/camera/sim`
+  only (what the sim reads from a level is the `sectors` extension's). `pnpm boundaries` lists `packages/3d/src/features/camera/sim`, `packages/3d/src/shared/level` and
   `packages/3d/src/entries/sim.ts` under the sim's rules.
 - **Other rules:** `--features packages/3d`, `--forbid packages/3d:effect`, `--platform-imports` (no `node:` under
   `src/`), `style --plan-comments` and `--test-imports` for `packages/3d`.
@@ -284,10 +283,10 @@ them from its `setup`.
 - **Figures:** a clip is a set of tracks over poses; `evaluate()` is the only player. FigureBuilder's actions
   (`actors/{actions,pose-spec}.ts`, `library/actions.json`) become a `figure-action` content kind whose entries compile
   to clips.
-- **The stage** (`features/stage/`; EnvironmentBuilder `stage/{actor,cast,camera,runtime,state}.ts`, `view/shots.ts`,
-  FigureBuilder `actors/actor.ts`'s script): a `stage-script` content kind of tracks (camera, doors, lamps, time of
-  day, grade, props) and cues that start clips. The director takes the presentation's interpolated tick time as an
-  argument, reads no clock and holds no gameplay state; the sim's events start a script.
+- **The pieces' states** (`shared/level/piece-states.ts`, `app/update-pieces.ts`): doors, lamps and props each have a
+  state a track can drive; `updatePieces` applies a change of it. The director, the `stage-script` content kind (camera,
+  doors, lamps, time of day, grade, props and cues that start clips) and the sequences are the `@automata/cutscenes`
+  extension's (Plus port spec section 9), which reads no clock and holds no gameplay state either.
 
 ### 8.4 Provenance and pulling again
 
@@ -311,8 +310,7 @@ add new files as rows, record the new commit. `source-names` learns EnvironmentB
 
 ## 9. One level format: `af-sector/2` (B6, B7, K2; audit notes 10, 12)
 
-- **Owner:** `shared/level/` (the former `sector-format`), exported as `@automata/3d/level`, its sim part through
-  `./sim`.
+- **Owner:** `shared/level/` (the former `sector-format`), exported as `@automata/3d/level`, its schema, migration and types (the sim part is the `sectors` extension's).
 - **`/2` = `/1` plus these, field by field from EnvironmentBuilder's `world/types.ts`:**
 
 | EnvironmentBuilder field | `/2` field | Note |
@@ -338,6 +336,9 @@ add new files as rows, record the new commit. `source-names` learns EnvironmentB
 | `seed` | `seed` | seeds generated maps and dressing |
 | `reads` | `reads: { minEdge?, hot? }` | read by the checks |
 | — | `decals`, `lettering` | from `world/decals.ts`, `lettering.ts` |
+| — | `zone` on a sector | a name the sim's rules can read (Plus's clinic uses it; the `sectors` extension reads it) |
+| — | `masses` on the level | solid blocks that are not sectors (the clinic's) |
+| — | `cut`, `hideFrom` on a corner's wall (`AfWall` stops omitting them) | which part of a wall is cut away and which views hide it |
 | — | entity definitions with `fields` (EG-2); pits as a sector flag `pit: true` (EG-3) | AF's own gaps |
 
 - **Migration:** `shared/level/af-sector-1-to-2.migration.ts`; the editor opens a `/1` file, says "This level was made
@@ -353,8 +354,8 @@ add new files as rows, record the new commit. `source-names` learns EnvironmentB
 - **Problems:** the level, the world builder and the checks report a `LevelProblem` (`shared/level/problem.ts`): content's
   `Problem` (`path`, `code`, `message`, so `automata check` places it in its file) plus `where` (the room, prop or lamp
   id) and `name` (the missing kit, prop, swatch or time). Nothing in them throws on a level it cannot build.
-- **The game-facing meaning (K2):** what the sim reads (floors, walls, pits, things and their fields, spawn) is
-  `shared/level/sim/`; dressing, lamps, decals, time, views, cast and sky are presentation.
+- **The game-facing meaning (K2):** what the sim reads (floors, walls, pits, things and their fields, spawn) is the
+  `sectors` extension's reader (Plus port spec section 9), not built here; dressing, lamps, decals, time, views, cast and sky are presentation.
 - **Surfaces and photos** (audit note 13): a swatch names a DUEL ramp and step, or a tile. The photo pipeline
   (EnvironmentBuilder `photo/`, `lib/png.ts`) is `packages/tools/src/features/textures/`, Node-only, run by
   `automata textures <photos> --out <folder>`. The library's photos (Poly Haven CC0, 2.9 MB) live in

@@ -51,16 +51,16 @@ export default defineGame({
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
-      backgroundColor: 0xc7dcd0, // the sky behind the meshes: the light's sky colour
+      backgroundColor: 0xcdd2da, // the sky behind the meshes: the light's sky colour
       views: {
-        [Crate.id]: box({ width: 0.6, height: 0.6, depth: 0.6 }, { color: 0xf9c22b }),
+        [Crate.id]: box({ width: 0.6, height: 0.6, depth: 0.6 }, { color: 0xffbc4e }),
         [Stand.id]: mesh(glb, { height: 0.8 }),
         [Packed.id]: mesh(bin, { height: 0.8 }),
       },
       // The camera and a sky-and-ground light, set once before the first frame (the angled camera rig and baked
       // lamps arrive with M3.4b and M3.4d).
       scene: (view) => {
-        view.environment = { skyColor: 0xc7dcd0, groundColor: 0x3e3546 }
+        view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
         view.camera.position.set(0, 2.4, 4.2)
         view.camera.lookAt({ x: 0, y: 0.4, z: 0 })
         return undefined

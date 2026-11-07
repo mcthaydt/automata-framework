@@ -9,7 +9,7 @@ import { expect, type Frame, test } from '@playwright/test'
 const gameUrl = `http://localhost:${examples3dPort}/render3d/angled-camera/`
 const ID = 'render3d-angled-camera'
 
-/** The share of the canvas's pixels that are the player's yellow (0xf9c22b, lit and shaded down to about 0x9a7a1c). */
+/** The share of the canvas's pixels that are the player's yellow (0xffbc4e, lit and shaded down to a darker orange). */
 const playerShare = (frame: Frame): Promise<number> =>
   frame.evaluate(
     () =>
@@ -26,14 +26,14 @@ const playerShare = (frame: Frame): Promise<number> =>
           let yellow = 0
           for (let i = 0; i < data.length; i += 4) {
             const [r, g, b] = [data[i] ?? 0, data[i + 1] ?? 0, data[i + 2] ?? 0]
-            if (r > 100 && g > 70 && b < 70 && r > b + 60 && g > b + 40) yellow += 1
+            if (r > 100 && g > 70 && b < 90 && r > b + 60 && g > b + 25) yellow += 1
           }
           resolve(yellow / (data.length / 4))
         })
       }),
   )
 
-/** The share of the canvas's pixels within 2 of the sky colour (0xc7dcd0, the example's `backgroundColor`). */
+/** The share of the canvas's pixels within 2 of the sky colour (0xcdd2da, the example's `backgroundColor`). */
 const skyShare = (frame: Frame): Promise<number> =>
   frame.evaluate(
     () =>

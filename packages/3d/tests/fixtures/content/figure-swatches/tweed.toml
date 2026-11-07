@@ -1,5 +1,6 @@
 # `tweed` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/swatches.json at a1f7246.
-# Colour: DUEL row 12, step 3 (#725a51), nearest in OKLab: Endesga 64 index 5 (#5d5d5d).
+# Colour: DUEL ramp 12 (mud), step 3 (#725a51).
 # Painter-only fields (ramp, base, lift, floor, grain, strands, rim, wear, streaks, paint, tones, holo) are dropped.
 
-colour = 5
+ramp = "mud"
+step = 3

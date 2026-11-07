@@ -3,7 +3,8 @@
 // paths, or a stand's feet, into IK), then the hems. Nothing here reads a hold; holds come after (hold.ts).
 //
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/motion.ts at a1f7246 (`base`,
-// `relaxed`), its formulas and their order. Changed for AF: no action branches (reach, look and flinch become
+// `relaxed`), its formulas and their order, then brought up to 025ffb4 for the natural stand (the head over the
+// shoulders, a lighter contrapposto, `standElbow` and `standOut`) and the body's side bend. Changed for AF: no action branches (reach, look and flinch become
 // clips in M3.6); no sprite cheats (`lookUp`, `view`, `pitch` and the walk-level neck correction that reads
 // them), so the gait's chin lift is its attitude at full weight (M3.5c decision 5); the twitch is idle's, so
 // the walk repeats exactly after one cycle (decision 10, F-c); the feet run along `moveDir` (decision 4, F-h).
@@ -30,15 +31,43 @@ const WRIST = 0.45
 const SWING_BULK = 0.3
 const CLOSE = 0.55
 
-/** The idle's stand from the gait: the weight a little over the right leg, the left foot leading, the arms hanging. */
+/** How much of the gait's stance the relaxed stand leans into its weight leg: a quarter of what a posed contrapposto does. */
+const RELAX = 0.4
+/**
+ * How far the neck slides back (m, times the figure's scale) in any stand, carrying the head over the shoulders as the
+ * plumb line through the ear and the shoulder's tip has it. A slide, not a rotation: the neck's bottom ring sits below
+ * its joint, so turning it back would swing that ring forward through the collar, where a slide swings nothing.
+ */
+const STAND_SLIDE = 0.03
+/** How much the chest lifts (rad) in any stand, standing the back up; the head takes it back so the face stays level. */
+const STAND_LIFT = 0.02
+
+/**
+ * The idle's stand from the gait: a plain, relaxed one. A trace of contrapposto (the hip a little out over the weight
+ * leg and rolled up, the shoulder over it dropped against it), the free foot a quarter as far ahead as the gait sets
+ * it, turned out a touch and flat, its heel down, the arms hanging.
+ */
 export const relaxed = (gait: Gait): Stand => ({
   weight: 'R',
-  shift: gait.stance,
-  roll: gait.stance * 1.4,
+  shift: gait.stance * RELAX,
+  roll: gait.stance * 1.4 * RELAX,
   under: 0.25,
-  free: [gait.stanceLead, gait.stance ? 0.01 : 0, gait.stance ? 0.22 : 0, gait.stance ? 0.08 : 0],
-  chest: [gait.stance * 1.2, 0, 0],
+  free: [gait.stanceLead * 0.25, gait.stance ? 0.01 : 0, gait.stance ? 0.11 : 0, 0],
+  chest: [gait.stance * 0.3 * RELAX, 0, 0],
 })
+
+/**
+ * The body's sideways curve (the `bodyAsymmetry` slider) as rolls. `world` is the chest's roll in the world, which puts
+ * the two shoulders 3 cm apart at the figure's scale at full strength (the left the lower for +1); the chest is rolled
+ * 6 degrees against the spine, so the trunk curves rather than leans, and `local` is the chest's own share of it. Both
+ * are exactly 0, and the pose is the straight one's, when there is none.
+ */
+function sideBend(g: Skeleton['genes']): { world: number; local: number } {
+  const b = g.sideBend
+  if (!b) return { world: 0, local: 0 }
+  const apart = (0.03 * (g.height / 1.62) * Math.abs(b)) / (2 * g.shoulders)
+  return { world: -Math.asin(Math.min(1, apart)) * Math.sign(b), local: (-6 * Math.PI * b) / 180 }
+}
 
 /** Two poses blended: each joint's turn by a normalised lerp (the shorter way), its shift linearly. */
 function blendPoses(a: Pose, b: Pose, u: number): Pose {
@@ -134,24 +163,31 @@ function baseOn(s: Skeleton, gait: Gait, st: MotionState, way: Travel): Evaluate
     pelvisY = -0.012 * k * (0.5 + 0.5 * cos2)
   }
   const breath = walking ? 0 : gait.breath * Math.sin((TAU * st.t) / gait.breathPeriod)
+  const { world: sideRoll, local: sideLocal } = sideBend(g)
+  // Any stand stands the back up a touch; the head takes it back, below, so the face stays level.
+  const chestLift = stand ? STAND_LIFT : 0
   pose.shift[J.pelvis] = [pelvisX, pelvisY, 0]
   pose.rot[J.pelvis] = euler(0, hipYaw, hipRoll)
   // The waist takes the hips' turn and roll back; the chest adds its own.
-  pose.rot[J.spine] = euler(lean * 0.5 + g.posture * 0.3, -hipYaw, -hipRoll)
+  pose.rot[J.spine] = euler(lean * 0.5 + g.posture * 0.3, -hipYaw, -hipRoll + sideRoll - sideLocal)
   pose.rot[J.chest] = euler(
-    lean * 0.5 + g.posture * 0.7 - breath + chestPitch,
+    lean * 0.5 + g.posture * 0.7 - breath + chestPitch - chestLift,
     -hipYaw * gait.chestCounter + chestYaw,
-    chestRoll,
+    chestRoll + sideLocal,
   )
   // ─── Head ───
   // The neck takes back the chest's turn (walking, by the gait's stabilise; standing, all of it) and most of its
   // roll, so the head is set on the body, then turned by the stand.
   const counter = walking ? hipYaw * gait.chestCounter * gait.headStabilize : -chestYaw
-  let headRoll = g.headTilt - chestRoll * 0.7 + (stand?.head?.[1] ?? 0)
+  let headRoll = g.headTilt - chestRoll * 0.7 - sideRoll + (stand?.head?.[1] ?? 0)
   // Walking, the head sits level with the chin a touch down (NOD), the eyes on the way ahead; the gait's chin
   // lift is an attitude.
   const headPitch =
-    g.headPitch - (lean + g.posture) * 0.6 - (gait.chin ?? 0) + (walking ? NOD : 0) + (stand?.head?.[2] ?? 0)
+    g.headPitch -
+    (lean + g.posture - chestLift) * 0.6 -
+    (gait.chin ?? 0) +
+    (walking ? NOD : 0) +
+    (stand?.head?.[2] ?? 0)
   const headYaw = st.headYaw + (stand?.head?.[0] ?? 0)
   // A twitch now and then, standing: its slot's hash says which way (no Math.random).
   if (gait.twitch && !walking) {
@@ -162,8 +198,9 @@ function baseOn(s: Skeleton, gait: Gait, st: MotionState, way: Travel): Evaluate
   // A hunch sinks the head forward on the neck; the head turns back up by as much, so the face still looks ahead.
   pose.rot[J.neck] = euler(headPitch * 0.4 + 0.55 * g.hunch, counter + headYaw * 0.4, headRoll * 0.4)
   pose.rot[J.head] = euler(headPitch * 0.6 - 0.55 * g.hunch, headYaw * 0.6, headRoll * 0.6)
-  // A head that rides level: the neck takes up the pelvis bob, all but the least that reads.
-  pose.shift[J.neck] = [0, -pelvisY * (walking ? headLevel : gait.headLevel), 0]
+  // A head that rides level: the neck takes up the pelvis bob, all but the least that reads. Standing, it also
+  // slides back over the shoulders (STAND_SLIDE).
+  pose.shift[J.neck] = [0, -pelvisY * (walking ? headLevel : gait.headLevel), stand ? -STAND_SLIDE * k : 0]
   // The hair hangs from its pivots, swung by its spring; the sides swing less and splay with the roll.
   if (st.hair) {
     pose.rot[J['hair.back']] = euler(st.hair.pitch, 0, st.hair.roll)
@@ -194,7 +231,7 @@ function baseOn(s: Skeleton, gait: Gait, st: MotionState, way: Travel): Evaluate
     const ends = walking ? Math.abs(swing) / Math.max(1e-6, amp) : 0
     const hang = walking ? 0 : gait.hang + (hung?.swing ?? 0)
     const out = Math.max(
-      gait.armOut + (walking ? 0 : hung ? hung.out : (gait.standOut ?? 0)),
+      walking ? gait.armOut : hung ? gait.armOut + hung.out : (gait.standOut ?? gait.armOut),
       clear * (1 - CLOSE * ends),
     )
     const bend = walking
@@ -204,13 +241,15 @@ function baseOn(s: Skeleton, gait: Gait, st: MotionState, way: Travel): Evaluate
         )
       : hung
         ? hung.bend
-        : gait.elbow + gait.idleElbow * (side === 'L' ? 1 : 0.7)
+        : gait.standElbow !== undefined
+          ? gait.standElbow * (side === 'L' ? 1 : 0.75)
+          : gait.elbow + gait.idleElbow * (side === 'L' ? 1 : 0.7)
     // `plumb` of the torso's bend taken back at the shoulder, so a stooped figure's arms hang down rather than
     // swing back with the chest; the chest's roll taken back too, so the arms hang plumb from shoulders that tilt.
     pose.rot[J[`upperArm.${side}`]] = euler(
       swing + idleSway * 0.5 - hang - (gait.plumb ?? 0) * (lean + g.posture),
       0,
-      x * out - chestRoll,
+      x * out - chestRoll - sideRoll,
     )
     pose.rot[J[`foreArm.${side}`]] = euler(-(bend + Math.abs(idleSway)), 0, 0)
     // The hand hangs from the wrist, back toward plumb by a share of the forearm's angle forward of it.

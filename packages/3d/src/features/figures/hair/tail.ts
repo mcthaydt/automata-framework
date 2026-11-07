@@ -1,11 +1,12 @@
-// A high ponytail: tied on the crown, its ropes gathered in a ring at the tie, rising out of it, arcing back
+// A ponytail: a high one tied on the crown, its ropes gathered in a ring at the tie, rising out of it, arcing back
 // over the top and falling onto the back of the head still gathered, then down the back, fanning a little,
 // clear of the dressed trunk by a rope and a texel. Every other rope is thinner and in the hair's deep, sunk
 // between its neighbours: the partings. Their plaits run on a slant, turned against their neighbours' and
-// half a bead apart, so the tail reads as ropes running down in a herringbone.
+// half a bead apart, so the tail reads as ropes running down in a herringbone. A low pony (`hang`) is tied at the nape
+// and falls straight down the back, with no rise and no arc over the crown.
 //
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/hair.ts at a1f7246 (`hairParts`'s
-// `tail`), with AF's strict types; the formulas and their order are the source's. Changed: a texel is the
+// `tail`, with its `hang`), with AF's strict types; the formulas and their order are the source's. Changed: a texel is the
 // fixed ppm's, and the cuffs, which the source builds only from 1.5 × its ppm (a sprite's legibility floor),
 // are always built (M3.5b decision 4).
 
@@ -37,9 +38,11 @@ export function tail(b: HairBuild, o: Tail): void {
   const base = toHead(form, k, o.at, 0.05)
   const g = s.genes
   const kk = m.k
-  const up = normalize(sub(base, k.c))
-  const side = normalize(cross(up, [0, 0, 1]))
-  const fore = cross(side, up)
+  // A low pony's ropes gather in a ring across the fall (horizontal), its axis straight up; a high one's axis is out of
+  // the crown.
+  const up: V3 = o.hang ? [0, 1, 0] : normalize(sub(base, k.c))
+  const side: V3 = o.hang ? [1, 0, 0] : normalize(cross(up, [0, 0, 1]))
+  const fore: V3 = o.hang ? [0, 0, 1] : cross(side, up)
   const texel = 1 / FIGURE_PPM
   const ar = o.rope.r * hw
   const shoulder = s.shoulderY - head[1]
@@ -76,13 +79,27 @@ export function tail(b: HairBuild, o: Tail): void {
     const x = (w: number) => u * lerp(bundle, x1, w)
     const around = (p: V3, w: number) =>
       add(p, add(scale(side, Math.cos(ring) * bundle * w), scale(fore, Math.sin(ring) * bundle * w)))
+    // A low pony runs from its tie straight down the back of the head to the nape: no rise, no arc.
+    const down = (y: number): V3 => [
+      x(0.15),
+      y,
+      Math.min(headBack(y) - off * 0.6 * k.r[2], base[2]) - clear - layer,
+    ]
     const path: V3[] = [
       around(base, 0.8),
       around(tie, 1),
-      // Up out of the tie, over the top still gathered, and down onto the back of the head.
-      add(around(tie, 1.05), add(scale(up, rise * 0.45), [0, 0, -0.25 * k.r[2]])),
-      add(around(tie, 1.15), [0, rise * 0.3, -0.62 * k.r[2] - layer]),
-      [x(0.15), k.c[1] + 0.5 * k.r[1], headBack(k.c[1] + 0.5 * k.r[1]) - off * 0.6 * k.r[2] - clear - layer],
+      ...(o.hang
+        ? [down((base[1] + nape) / 2)]
+        : [
+            // Up out of the tie, over the top still gathered, and down onto the back of the head.
+            add(around(tie, 1.05), add(scale(up, rise * 0.45), [0, 0, -0.25 * k.r[2]])),
+            add(around(tie, 1.15), [0, rise * 0.3, -0.62 * k.r[2] - layer]),
+            [
+              x(0.15),
+              k.c[1] + 0.5 * k.r[1],
+              headBack(k.c[1] + 0.5 * k.r[1]) - off * 0.6 * k.r[2] - clear - layer,
+            ] as V3,
+          ]),
       [x(0.4), nape, napeZ - layer],
       [x(0.85), shoulder, Math.min(napeZ, hang) - layer],
       [x(1), end + jit * 0.1 * g.head, hang - layer - 0.01 * kk],

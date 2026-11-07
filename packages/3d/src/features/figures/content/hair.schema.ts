@@ -5,13 +5,14 @@
 
 import { contentRef } from '@automata/content/schema'
 import { z } from 'zod'
+import { finishNames } from '../registry/hair-finish-registry.ts'
+import { registeredHairPieces } from '../registry/hair-piece-registry.ts'
 import { type Lock, lockSchema } from './headwear.schema.ts'
 import { keyedUnion } from './keyed-union.ts'
 import { about, type Line, line, type Vec2, type Vec3, vec2, vec3 } from './shapes.schema.ts'
 
 /** The hair's own tones (hair.ts `Tone`); anything else is a swatch id. */
 export const HAIR_TONES = ['hair', 'lit', 'crest', 'fade1', 'fade2', 'scalp', 'parting', 'fade'] as const
-export const HAIR_FINISHES = ['coil', 'braid', 'loc', 'sleek', 'straight'] as const
 type Tone = string
 /** A pony or bun's tie: `true` the wearer's own, or a swatch id. */
 type Tie = boolean | string
@@ -83,6 +84,8 @@ export interface Tail {
   readonly swing?: number | undefined
   readonly matte?: boolean | undefined
   readonly off?: number | undefined
+  /** `down`: a low pony, tied where `at` says (the nape) and falling straight down the back: no rise and no arc over the crown. */
+  readonly hang?: 'down' | undefined
 }
 export interface Fall {
   readonly at: readonly (readonly number[])[]
@@ -138,7 +141,7 @@ export type Piece =
   | { readonly edges: Edges }
 export interface HairStyle {
   readonly about?: string | undefined
-  readonly finish?: (typeof HAIR_FINISHES)[number] | undefined
+  readonly finish?: string | undefined
   readonly pieces?: readonly Piece[] | undefined
   readonly locks?: readonly Lock[] | undefined
 }
@@ -216,6 +219,7 @@ const tail: z.ZodType<Tail> = z.strictObject({
   swing: n.optional(),
   matte: z.boolean().optional(),
   off: n.optional(),
+  hang: z.literal('down').optional(),
 })
 
 const fall: z.ZodType<Fall> = z.strictObject({
@@ -261,7 +265,7 @@ const edges: z.ZodType<Edges> = z.strictObject({
   tone: tone.optional(),
 })
 
-const piece: z.ZodType<Piece> = keyedUnion<Piece>('hair piece', {
+const BASE_PIECES: Readonly<Record<string, z.ZodType<Piece>>> = {
   scalp: z.strictObject({ scalp }),
   rows: z.strictObject({ rows }),
   tail: z.strictObject({ tail }),
@@ -270,13 +274,30 @@ const piece: z.ZodType<Piece> = keyedUnion<Piece>('hair piece', {
   sweep: z.strictObject({ sweep }),
   block: z.strictObject({ block }),
   edges: z.strictObject({ edges }),
+}
+
+/** The base pieces, then the ones an extension registered (read at each parse: a kind can arrive after this module loads). A
+ * registered piece's data is typed as the base pieces are, though only its own schema vouches for it. */
+const piece: z.ZodType<Piece> = keyedUnion<Piece>('hair piece', () => ({
+  ...BASE_PIECES,
+  ...Object.fromEntries(
+    registeredHairPieces().map(([kind, p]) => [
+      kind,
+      z.strictObject({ [kind]: p.schema ?? z.unknown() }) as unknown as z.ZodType<Piece>,
+    ]),
+  ),
+}))
+
+/** A finish is a base one or one an extension registered (read at each parse). */
+const finish = z.string().refine((name) => finishNames().includes(name), {
+  error: (issue) => `a finish is one of: ${finishNames().join(', ')} (not "${String(issue.input)}")`,
 })
 
 /** A hair style's body: its pieces or its locks (shared by the library kind and a figure's inline style). */
 export const hairStyleSchema: z.ZodType<HairStyle> = z
   .strictObject({
     about,
-    finish: z.enum(HAIR_FINISHES).optional(),
+    finish: finish.optional(),
     pieces: z.array(piece).min(1).optional(),
     locks: z.array(lockSchema).min(1).optional(),
   })

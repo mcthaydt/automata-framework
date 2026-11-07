@@ -13,9 +13,9 @@ import { solve } from '#src/features/figures/motion/solve.ts'
 import type { EffectorId, Vec3 } from '#src/features/figures/motion/targets.ts'
 import { apply, scale } from '#src/shared/math/math.ts'
 import { compileFixture, FIXTURE_ROOT } from '#src/testing/compile-fixture.ts'
-import { FIGUREBUILDER_HAND_ON_HIP } from '#src/testing/figurebuilder-hand-on-hip.ts'
 import { fixtureLimits } from '#src/testing/fixture-limits.ts'
 import { FIXTURE_POSE_IDS, fixturePoses, posesOf } from '#src/testing/fixture-poses.ts'
+import { HAND_ON_HIP } from '#src/testing/hand-on-hip.ts'
 import { at3, distance, KEEPER, unit, WICK } from '#src/testing/solve-fixtures.ts'
 
 const FIGURES: readonly (readonly ['wick' | 'keeper', Skeleton])[] = [
@@ -78,16 +78,16 @@ describe('I-f: mirror, canonical spelling and blend over the library', () => {
   })
 })
 
-describe("hands-on-hips matches FigureBuilder's handOnHip", () => {
-  /** Within this many figure units (1 cm on a 1.62 m figure) of where FigureBuilder places each figure's hands. */
+describe('hands-on-hips puts the hands on the hips', () => {
+  /** Within this many figure units (1 cm on a 1.62 m figure) of where each figure's hands sit on the hip. */
   const TOLERANCE = 0.01
-  it("starts from the same pelvis as FigureBuilder's skeleton", () => {
+  it('starts from the recorded pelvis', () => {
     for (const [name, skeleton] of FIGURES) {
       const pelvis = scale(skeleton.rest[J.pelvis] ?? [0, 0, 0], 1 / unit(skeleton))
-      expect(distance(pelvis, [...FIGUREBUILDER_HAND_ON_HIP[name].pelvis])).toBeLessThan(1e-6)
+      expect(distance(pelvis, [...HAND_ON_HIP[name].pelvis])).toBeLessThan(1e-6)
     }
   })
-  it(`puts both hands within ${TOLERANCE} figure units of FigureBuilder's places, on Wick and the keeper`, () => {
+  it(`puts both hands within ${TOLERANCE} figure units of the recorded places, on Wick and the keeper`, () => {
     for (const [name, skeleton] of FIGURES) {
       const k = unit(skeleton)
       const input = applyPose(skeleton, restPose(), pose('hands-on-hips'))
@@ -95,7 +95,7 @@ describe("hands-on-hips matches FigureBuilder's handOnHip", () => {
       const root = world[J.root]
       if (!root) throw new Error('no root')
       for (const hand of ['handL', 'handR'] as const) {
-        const placed: Vec3 = FIGUREBUILDER_HAND_ON_HIP[name][hand]
+        const placed: Vec3 = HAND_ON_HIP[name][hand]
         const want = apply(root, scale([...placed], k))
         const joint = hand === 'handL' ? J['hand.L'] : J['hand.R']
         expect(distance(at3(world, joint), want) / k, `${hand} on ${name}`).toBeLessThan(TOLERANCE)

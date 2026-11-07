@@ -11,6 +11,7 @@
 import { lerp, normalize, smooth, type V3 } from '../../../../shared/math/math.ts'
 import type { Measure } from '../../body/genes.ts'
 import type { Decal, Mesh, Part, Weight } from '../../body/mesh.ts'
+import type { Body } from '../../body/profiles.ts'
 import { at, J, type Side, type Skeleton } from '../../body/rig.ts'
 import { hemSkin, weights } from '../../body/skin-weights.ts'
 import { type Superquadric, superquadric } from '../../body/superquadric.ts'
@@ -68,6 +69,8 @@ export interface Wearing {
   garments: readonly Garment[]
   made: Made
   worn: readonly Part[]
+  /** The body under the clothes as a query: size a sleeve end, a cuff or a hem from `body.girth(...)` plus `body.clear`. */
+  body: Body
 }
 
 /** Each garment's surfaces (the body's are 3000–3004). */

@@ -1361,6 +1361,36 @@ function snakeKey(value: string): string;
 const DEFAULT_PALETTE: Palette;
 ```
 
+### `DUEL_RAMP_NAMES` (const)
+
+```ts
+const DUEL_RAMP_NAMES: readonly ["grey", "sand", "skin", "sea", "flame", "dusk", "moss", "sky", "pine", "rose", "slate", "clay", "mud", "plum", "teal", "wood", "wine", "indigo", "cherry", "rust", "olive", "amber", "mauve", "forest", "brick", "sage", "ocean", "dawn", "violet", "navy", "blush", "ember"];
+```
+
+### `DUEL_RAMPS` (const)
+
+```ts
+const DUEL_RAMPS: readonly (readonly string[])[];
+```
+
+### `duelIndex` (function)
+
+```ts
+function duelIndex(name: DuelRampName, at: number): number;
+```
+
+### `DuelRampName` (type)
+
+```ts
+type DuelRampName = (typeof DUEL_RAMP_NAMES)[number];
+```
+
+### `nearestDuel` (function)
+
+```ts
+function nearestDuel(hex: string): number;
+```
+
 ### `Palette` (interface)
 
 ```ts
@@ -1368,6 +1398,18 @@ interface Palette {
     readonly name: string;
     readonly colors: readonly string[];
 }
+```
+
+### `rampOf` (function)
+
+```ts
+function rampOf(index: number): number;
+```
+
+### `step` (function)
+
+```ts
+function step(index: number, by: number): number;
 ```
 
 ## `./schema`

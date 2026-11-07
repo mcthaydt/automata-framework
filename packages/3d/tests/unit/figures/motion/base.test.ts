@@ -1,4 +1,4 @@
-// Locomotion: base() against FigureBuilder's goldens, and the walk's own checks. Ported from FigureBuilder
+// Locomotion: base() against its recorded goldens, and the walk's own checks. Ported from FigureBuilder
 // (mcthaydt/FigureBuilder) tests/form.test.ts "the walk" at a1f7246 and The Last Light
 // (mcthaydt/PixiJS3D_Experiment_001) tests/procedural-figure.test.ts at 92e6704 ("plants both feet on the
 // floor when standing", "walks a closed cycle"), onto AF's fixture figures. F-c and F-h are M3 spec §13's.
@@ -53,7 +53,7 @@ const expectWorldsClose = (a: readonly M[], b: readonly M[], what: string): void
 const rootSpace = (world: readonly M[], joint: number): V3 =>
   apply(invertRigid(at(world, J.root)), position(at(world, joint)))
 
-describe("base() matches FigureBuilder's base() joint for joint (goldens, a1f7246)", () => {
+describe('base() matches its recorded goldens joint for joint', () => {
   for (const [id, body] of Object.entries(GOLDEN_BODIES)) {
     it(`${id}: walk, idle and turn in every fixture gait`, () => {
       const s = skeleton(body)

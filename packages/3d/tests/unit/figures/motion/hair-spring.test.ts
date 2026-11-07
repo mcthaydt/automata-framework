@@ -1,6 +1,5 @@
-// The hair spring as a pure step (M3 spec §4.4.1, §4.4.5 step 7): FigureBuilder's (mcthaydt/FigureBuilder)
-// `Figure.swingHair` (src/render/figure/figure.ts at a1f7246), state in and state out, checked step for step
-// against the source's numbers (tests/fixtures/__goldens__/figurebuilder-motion.json `hair`).
+// The hair spring as a pure step: state in and state out, checked step for step against the recorded numbers
+// (tests/fixtures/goldens/motion.json `hair`).
 
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_HAIR } from '#src/features/figures/motion/gait-of.ts'
@@ -34,7 +33,7 @@ const settle = (input: HairInput, seconds: number, dt = 1 / 60): HairSpring => {
 }
 
 describe('hairStep', () => {
-  it("matches FigureBuilder's spring step for step (40 steps: standing, walking, turning, mixed frame times)", () => {
+  it('matches the recorded spring step for step (40 steps: standing, walking, turning, mixed frame times)', () => {
     expect(MOTION_GOLDENS.hair).toHaveLength(40)
     for (const [n, step] of MOTION_GOLDENS.hair.entries()) {
       const input: HairInput = {

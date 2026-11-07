@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_RIG_LIMITS } from '#src/features/figures/content/rig-limits.schema.ts'
 import { swatchColourProblems } from '#src/features/figures/content/swatch-colours.ts'
 import { compileFixture, FIXTURE_ROOT } from '#src/testing/compile-fixture.ts'
-import { FIXTURE_CLIP_IDS } from '#src/testing/fixture-clips.ts'
+import { FIXTURE_ACTION_IDS, FIXTURE_CLIP_IDS } from '#src/testing/fixture-clips.ts'
 import { FIXTURE_POSE_IDS } from '#src/testing/fixture-poses.ts'
 import { KEEPER_SLIDERS, WICK_SLIDERS } from '#src/testing/fixture-sliders.ts'
 
@@ -46,6 +46,7 @@ describe('the fixture figures and libraries compile as content', () => {
     expect(Object.keys(data['figure-rig'] ?? {})).toEqual(['default'])
     expect(Object.keys(data['figure-pose'] ?? {}).sort()).toEqual([...FIXTURE_POSE_IDS])
     expect(Object.keys(data['figure-clip'] ?? {}).sort()).toEqual([...FIXTURE_CLIP_IDS])
+    expect(Object.keys(data['figure-action'] ?? {}).sort()).toEqual([...FIXTURE_ACTION_IDS])
     // FigureBuilder's 56 swatches and Wick's six.
     expect(Object.keys(data['figure-swatch'] ?? {})).toHaveLength(62)
   })
@@ -57,7 +58,7 @@ describe('the fixture figures and libraries compile as content', () => {
     const { face: _face, ...keeper } = figures.keeper?.sliders ?? {}
     expect(keeper).toEqual(KEEPER_SLIDERS)
   })
-  it('names only colours of the default palette, Endesga 64 (ported: every swatch colour is on the palette)', async () => {
+  it('names only colours of the default palette, DUEL (ported: every swatch colour is on the palette)', async () => {
     const result = await compileFixture()
     if (!result.ok) throw new Error(result.message)
     const swatches = result.content.data['figure-swatch'] as Parameters<typeof swatchColourProblems>[0]
@@ -198,13 +199,13 @@ describe('impossible skeletons fail content compile, naming the slider', () => {
   })
   it("FigureBuilder's painter fields are not swatch fields", async () => {
     const file = 'content/figure-swatches/fair.toml'
-    const diagnostics = await diagnosticsAfter(file, 'colour = 22', 'colour = 22\nramp = 27')
+    const diagnostics = await diagnosticsAfter(file, 'step = 5', 'step = 5\nbase = 27')
     expect(diagnostics).toContainEqual(
       expect.objectContaining({
         code: 'unknownField',
         file,
-        keyPath: 'ramp',
-        message: 'unknown field: ramp',
+        keyPath: 'base',
+        message: 'unknown field: base',
       }),
     )
   })

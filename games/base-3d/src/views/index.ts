@@ -4,7 +4,14 @@
 // back (law 1).
 
 import type { Box3, FigureViewState, Occluders, PlanPoint, SceneFog, View3dFactory } from '@automata/3d'
-import type { FigureClipDef, FigureDef, FigureLibrary, MotionLibrary } from '@automata/3d/figures'
+import type {
+  FigureAction,
+  FigureClipDef,
+  FigureDef,
+  FigureLibrary,
+  MotionLibrary,
+} from '@automata/3d/figures'
+import { clipsWithActions } from '@automata/3d/figures'
 import { Q16 } from '@automata/3d/sim'
 import type { FieldRecord } from '@automata/sim'
 import type { View3D } from '@pixi/3d'
@@ -137,19 +144,19 @@ export function sceneOf(area: AreaSource): Scene {
   }
 }
 
-/** The room's fog: none for 5 m, full at 14 m, its colour the sky the fogged walls meet (Endesga 64 #2e222f). */
-export const FOG: SceneFog = { near: 5, far: 14, color: 0x2e222f }
+/** The room's fog: none for 5 m, full at 14 m, its colour the sky the fogged walls meet (DUEL, ramp 12 step 0). */
+export const FOG: SceneFog = { near: 5, far: 14, color: 0x31222a }
 
-// The room's colours (Endesga 64): a lighter floor than the walls so the platforms read, a dark lava below the channels, and
+// The room's colours (DUEL): a lighter floor than the walls so the platforms read, a dark lava below the channels, and
 // a bright lip along each channel's edge so the player can see where to roll from.
-const COLOURS = { wall: 0x3a4466, floor: 0x8b9bb4, ceiling: 0x262b44, lava: 0x7a2a12, lip: 0xfeae34 } as const
+const COLOURS = { wall: 0x3a4568, floor: 0x8690b2, ceiling: 0x282b4a, lava: 0x82211d, lip: 0xffb108 } as const
 /** The channels' floor, metres below the platforms, and the lip's height and width. */
 const LAVA_DEPTH = 3
 const LIP = { height: 0.06, width: 0.12 } as const
 
 /** Builds the area under the view's root (the renderer's `scene` hook): the walls cut away by the occluder rule, the floors and the ceilings the angled view never draws. */
 export function buildScene(view: View3D, occluders: Occluders, area: AreaSource): void {
-  view.environment = { skyColor: 0xc7dcd0, groundColor: COLOURS.floor }
+  view.environment = { skyColor: 0xcdd2da, groundColor: COLOURS.floor }
   const scene = sceneOf(area)
   for (const floor of scene.floors) occluders.box(floor, COLOURS.floor)
   for (const wall of scene.walls) occluders.wall({ ...wall, color: COLOURS.wall })
@@ -186,6 +193,7 @@ interface FigureKinds {
   readonly 'figure-gait': MotionLibrary['gaits']
   readonly 'figure-pose': MotionLibrary['poses']
   readonly 'figure-clip': Kind<FigureClipDef>
+  readonly 'figure-action': Kind<FigureAction>
   readonly 'figure-stand': MotionLibrary['stands']
   readonly 'figure-rig': MotionLibrary['rigs']
 }
@@ -212,7 +220,7 @@ export function figureContent(content: unknown): {
     motion: {
       gaits: kinds['figure-gait'],
       poses: kinds['figure-pose'],
-      clips: kinds['figure-clip'],
+      clips: clipsWithActions(kinds['figure-clip'], kinds['figure-action']),
       items: kinds['figure-item'],
       stands: kinds['figure-stand'],
       rigs: kinds['figure-rig'],
