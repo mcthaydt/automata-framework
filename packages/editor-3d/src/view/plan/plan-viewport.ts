@@ -73,6 +73,22 @@ export function fitPlan(bounds: Rect, size: Size, padding = 24): Camera {
   return cameraOf(planViewport({ x: 0, z: 0, zoom: 1 }, size).fit(bounds, padding))
 }
 
+/**
+ * The camera that centres `bounds` in `usable` (a rectangle of the canvas, in pixels) and shows all of it inside
+ * `padding` px of that rectangle's edge. `usable` is what a bar of tools along the top and a sheet along the bottom
+ * leave of the canvas: the plan is drawn under them, but the level should sit clear of them. With `usable` the whole
+ * canvas it is `fitPlan`.
+ */
+export function fitInto(bounds: Rect, usable: Rect, size: Size, padding = 24): Camera {
+  const inner = fitPlan(bounds, { w: usable.w, h: usable.h }, padding)
+  // The room's centre is the inner camera's. The canvas centre sits off the usable area's centre by (dx, dy) px, so
+  // the camera that puts the room at the area's centre is that far from the room, the other way.
+  const px = planViewport(inner, size).zoom
+  const dx = usable.x + usable.w / 2 - size.w / 2
+  const dy = usable.y + usable.h / 2 - size.h / 2
+  return { x: inner.x - dx / px, z: inner.z - dy / px, zoom: inner.zoom }
+}
+
 /** Grid lines are never nearer than this on screen; zoomed out the step doubles until they are not. */
 const MIN_LINE_GAP_PX = 16
 const FALLBACK_STEP = 0.25

@@ -26,6 +26,7 @@ import { planGestures } from './plan-gestures'
 import type { PlanRenderer, PlanRendererFactory } from './plan-renderer'
 import SectorOptions from './SectorOptions.svelte'
 import ThingsPalette from './ThingsPalette.svelte'
+import { usableArea } from './usable-area'
 
 interface Props {
   editor: LevelEditor<unknown>
@@ -68,6 +69,9 @@ let labels = $state.raw<readonly ToolLabel[]>([])
 /** Where the nudge pad sits while it shows (touch or Pencil, corners placed; ED3D.6g-b). */
 let pad = $state.raw<'left' | 'right' | undefined>(undefined)
 
+/** What the tools and the sheet leave of the canvas, as `x y w h` in canvas pixels; the tests read it from the page. */
+let usableText = $state<string>()
+
 let size: Size | undefined
 let view: PlanRenderer | undefined
 const stops: (() => void)[] = []
@@ -89,7 +93,10 @@ function measured(next: Size): void {
   if (next.w <= 0 || next.h <= 0) return
   const first = size === undefined
   size = next
+  const area = host === undefined ? undefined : usableArea(host, next)
+  usableText = area === undefined ? undefined : `${area.x} ${area.y} ${area.w} ${area.h}`
   if (first) {
+    tools.select.setUsable(area)
     tools.resize(next)
     tools.select.fit()
     stops.push(editor.history.subscribe(draw), editor.selection.subscribe(draw), editor.view.subscribe(draw))
@@ -194,6 +201,7 @@ onDestroy(() => {
   bind:this={host}
   data-testid="plan-canvas"
   data-phase={phase}
+  data-usable={usableText}
   role="application"
   aria-label="Plan"
   aria-roledescription="level plan"

@@ -997,3 +997,26 @@ describe('the camera', () => {
     expect(editor.history.undoLabel).toBe('Move sector dock')
   })
 })
+
+describe('fit', () => {
+  it('frames the level inside the usable area when the view says what covers the canvas', () => {
+    const { editor, controller } = setup()
+    const usable = { x: 0, y: 56, w: 744, h: 220 }
+    controller.setUsable(usable)
+    controller.fit()
+    const viewport = planViewport(editor.view.state.camera, SIZE)
+    const topLeft = toScreen(viewport, { x: 0, z: 0 })
+    const bottomRight = toScreen(viewport, { x: 14, z: 6 })
+    expect(topLeft.y).toBeGreaterThanOrEqual(usable.y)
+    expect(bottomRight.y).toBeLessThanOrEqual(usable.y + usable.h)
+    expect(bottomRight.x).toBeLessThanOrEqual(usable.x + usable.w)
+  })
+
+  it('frames the whole canvas until it is told otherwise', () => {
+    const { editor, controller } = setup()
+    controller.fit()
+    const viewport = planViewport(editor.view.state.camera, SIZE)
+    expect(toScreen(viewport, { x: 0, z: 0 }).y).toBeGreaterThanOrEqual(0)
+    expect(toScreen(viewport, { x: 14, z: 6 }).y).toBeLessThanOrEqual(SIZE.h)
+  })
+})

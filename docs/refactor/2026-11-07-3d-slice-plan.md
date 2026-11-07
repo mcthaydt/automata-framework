@@ -227,7 +227,7 @@ it('declares no scroll region of its own inside a dialog', () => {
 - Produces: `fitToRoom(room: Bounds, usable: Rect): PlanView` in `plan-controller.ts`; the page exposes the usable
   rectangle as `data-usable="x y w h"` on the plan stage for tests.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 it('fits the room inside the area the sheet and tools leave', () => {
@@ -236,9 +236,9 @@ it('fits the room inside the area the sheet and tools leave', () => {
 })
 ```
 
-- [ ] **Step 2: Run, expect FAIL.** **Step 3: Implement**; the layout test draws inside `data-usable`.
-- [ ] **Step 4: Run** the editor-3d Chromium set → 195 pass, 0 fail (187 + 8).
-- [ ] **Step 5: Commit** `fix(editor-3d): fit the plan to the area the sheet and tools leave`
+- [x] **Step 2: Run, expect FAIL.** **Step 3: Implement**; the layout test draws inside `data-usable`.
+- [x] **Step 4: Run** the editor-3d Chromium set → 195 pass, 0 fail (187 + 8).
+- [x] **Step 5: Commit** `fix(editor-3d): fit the plan to the area the sheet and tools leave`
 
 ### Task 1.5: Every action whole and uncovered (spec 5; audit note 17)
 
@@ -1543,3 +1543,4 @@ reads only this plan and the spec. DUEL's author and licence stay the Owner's op
 - Task 1.1: done (7eb54b3b). pnpm check green with every unit test.
 - Task 1.2: done (66b8ac65). actionlint not run here (no Docker daemon): the Owner's. #425 comment and close pending the push.
 - Task 1.3: done. Ruling: no `inDialog` prop — ErrorPanel renders its own Dialog, so the dialog body is the one scroll region and the problems list is a plain labelled list (`aria-label=Problems`); the layout test reads it by that label — cost if wrong: a caller wanting a standalone panel adds the prop. open-flows 32 pass in Chromium.
+- Task 1.4: done. Ruling: the camera helper is `fitInto(bounds, usable, size)` in plan-viewport.ts and the controller gets `setUsable(Rect|undefined)`, with the kit's `Rect` ({x,y,w,h}) in place of the plan's `fitToRoom(room, {width,height})`/`PlanView` (PlanView is already the controller's hover state) — cost if wrong: a rename. The usable rect is computed by `ui/plan/usable-area.ts` (tool row 56 px, any docked sheet over the canvas bottom) and exposed as `data-usable`. The real cause of the iPad mini failure was a 24 px triangle collapsing on the snap grid / overlapping the hall (the band above the level is under 1 m), so the layout test now zooms out and draws a metre-wide triangle inside `data-usable`. editor-3d Chromium layout+canvas: 203 pass, 0 fail.

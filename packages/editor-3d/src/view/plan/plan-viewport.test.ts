@@ -8,6 +8,7 @@ import { loadFixture } from '../../testing/fixtures'
 import { toyAfSector } from '../../testing/toy-af-sector'
 import {
   cameraOf,
+  fitInto,
   fitPlan,
   gridLines,
   gridStep,
@@ -184,5 +185,35 @@ describe('snapStep and snapValue', () => {
     expect(snapValue(1.4737, 0.01)).toBe(1.47)
     expect(snapValue(1.47372, 0)).toBe(1.4737)
     expect(Object.is(snapValue(-0.01, 0.05), 0)).toBe(true)
+  })
+})
+
+describe('fitInto', () => {
+  // A 744 by 420 px area with its top at y = 56, in a canvas 869 px wide and 662 tall: what a top bar of tools and a
+  // sheet along the bottom leave of it.
+  const canvas = { w: 869, h: 662 }
+  const usable = { x: 0, y: 56, w: 744, h: 420 }
+  const room = { x: 0, y: 0, w: 10, h: 6 }
+
+  it('fits the room inside the area the sheet and tools leave', () => {
+    const viewport = planViewport(fitInto(room, usable, canvas), canvas)
+    const topLeft = toScreen(viewport, { x: 0, z: 0 })
+    const bottomRight = toScreen(viewport, { x: 10, z: 6 })
+    expect(topLeft.x).toBeGreaterThanOrEqual(usable.x)
+    expect(topLeft.y).toBeGreaterThanOrEqual(usable.y)
+    expect(bottomRight.x).toBeLessThanOrEqual(usable.x + usable.w)
+    expect(bottomRight.y).toBeLessThanOrEqual(usable.y + usable.h)
+  })
+
+  it('centres the room in the area, not in the canvas', () => {
+    const viewport = planViewport(fitInto(room, usable, canvas), canvas)
+    const centre = toScreen(viewport, { x: 5, z: 3 })
+    expect(centre.x).toBeCloseTo(usable.x + usable.w / 2, 6)
+    expect(centre.y).toBeCloseTo(usable.y + usable.h / 2, 6)
+  })
+
+  it('is fitPlan when the area is the whole canvas', () => {
+    const whole = { x: 0, y: 0, ...canvas }
+    expect(fitInto(room, whole, canvas)).toEqual(fitPlan(room, canvas))
   })
 })

@@ -69,15 +69,48 @@ function penTap(x: number, y: number): void {
     )
 }
 
-/** Three corners above the framed level (the fit leaves a band there), clear of the toolbar and the actions. */
+/** The part of the plan the sheet and tools leave (`data-usable="x y w h"`), in canvas pixels. */
+function usable(): { x: number; y: number; w: number; h: number } {
+  const [x = 0, y = 0, w = 0, h = 0] = (plan().getAttribute('data-usable') ?? '').split(' ').map(Number)
+  return { x, y, w, h }
+}
+
+/** Zooms the plan out about its centre (a Ctrl wheel), so there is bare plan round the level to draw on. */
+async function zoomOut(): Promise<void> {
+  const box = plan().getBoundingClientRect()
+  for (let n = 0; n < 6; n++)
+    plan().dispatchEvent(
+      new WheelEvent('wheel', {
+        bubbles: true,
+        cancelable: true,
+        ctrlKey: true,
+        deltaY: 100,
+        clientX: box.left + box.width / 2,
+        clientY: box.top + box.height / 2,
+      }),
+    )
+  await arrived()
+}
+
+/** Pixels to a metre, from the status line ("59 px per metre"). */
+function pixelsPerMetre(): number {
+  const text = document.querySelector('[data-widget="status-line"]')?.textContent ?? ''
+  return Number(/([\d.]+) px per metre/.exec(text)?.[1] ?? 32)
+}
+
+/**
+ * Three corners at the top of the area the sheet and tools leave (the fit leaves a band there above the level), a metre
+ * apart so the snap grid keeps them three corners, clear of the toolbar and the actions.
+ */
 function margin(): readonly (readonly [number, number])[] {
-  const { width, height } = plan().getBoundingClientRect()
-  const x = Math.round(width * 0.3)
-  const y = Math.max(84, Math.round(height * 0.12))
+  const area = usable()
+  const step = Math.ceil(pixelsPerMetre())
+  const x = Math.round(area.x + area.w * 0.3)
+  const y = Math.round(area.y + 12)
   return [
     [x, y],
-    [x + 24, y],
-    [x + 24, y + 20],
+    [x + step, y],
+    [x + step, y + step],
   ]
 }
 
@@ -105,6 +138,7 @@ describe.each(SIZES)('the Plan tools at $name ($width x $height)', (size) => {
       'Merge',
     ])
     expect(checkLayout(conditions, radios)).toEqual([])
+    await zoomOut()
     const [first, second] = margin()
     penTap(...(first as [number, number]))
     penTap(...(second as [number, number]))
@@ -115,19 +149,36 @@ describe.each(SIZES)('the Plan tools at $name ($width x $height)', (size) => {
       expect(action.getBoundingClientRect().bottom).toBeLessThanOrEqual(statusTop())
   })
 
+  test('the area the level is framed in is clear of the sheet and the tool row', async () => {
+    await openDepot(size)
+    const area = usable()
+    expect(area.w, 'the canvas names its usable area').toBeGreaterThan(0)
+    const box = plan().getBoundingClientRect()
+    expect(area.y, 'below the tool row').toBeGreaterThanOrEqual(56)
+    for (const sheet of document.querySelectorAll<HTMLElement>('[data-region=dock]')) {
+      const covers = sheet.getBoundingClientRect()
+      if (covers.top < box.bottom && covers.bottom > box.top)
+        expect(box.top + area.y + area.h, 'above the sheet').toBeLessThanOrEqual(covers.top + 0.5)
+    }
+  })
+
   test.runIf(size.mode !== 'compact')(
     'journey: a Pencil draws a room and closes it on its first corner',
     async () => {
       await openDepot(size)
       railButton('Sector').click()
-      await arrived()
+      await zoomOut()
       const corners = margin()
       for (const [x, y] of corners) penTap(x, y)
       const [x0, y0] = corners[0] as [number, number]
       penTap(x0, y0)
       await arrived()
-      expect(byTestId('undo').getAttribute('aria-label')).toMatch(/^Undo Draw sector/)
-      expect(document.querySelector('[data-testid="tool-refusal"]')).toBeNull()
+      const refusal = document.querySelector('[data-testid="tool-refusal"]')?.textContent
+      expect(
+        byTestId('undo').getAttribute('aria-label'),
+        `refused: ${refusal} at ${JSON.stringify(corners)} in ${JSON.stringify(usable())}`,
+      ).toMatch(/^Undo Draw sector/)
+      expect(refusal).toBeUndefined()
     },
   )
 })

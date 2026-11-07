@@ -3,7 +3,7 @@
 // kit's gesture recogniser says (canvas pixels, the pointer kind and the modifier keys), reads `view` and paints what it
 // says. The level stays in the editor's history, the selection in its selection and the camera in its view store, so the
 // controller keeps only what a pointer is in the middle of; undo, redo and a change of layers need nothing from the view.
-import type { PointerKind, Point as ScreenPoint, Size, Viewport2D } from '@automata/editor/kit/core'
+import type { PointerKind, Rect, Point as ScreenPoint, Size, Viewport2D } from '@automata/editor/kit/core'
 import { sectorSelection } from '../checks/check'
 import type { Point } from '../format/sector.schema'
 import { moveCorner, moveSector } from '../model/corner-edits'
@@ -21,6 +21,7 @@ import {
 import { gridRounded, type SnapResult, snapPlan } from '../view/plan/plan-snap'
 import {
   cameraOf,
+  fitInto,
   fitPlan,
   levelBounds,
   planViewport,
@@ -74,8 +75,13 @@ export interface PlanController {
   panBy(dx: number, dy: number): void
   /** Multiplies the zoom by `factor` about a canvas point, which stays where it is; the zoom is held to the plan's limits. */
   zoomAt(at: ScreenPoint, factor: number): void
-  /** Shows every sector, centred, inside a margin. */
+  /** Shows every sector, centred, inside a margin (in the usable area, when the view has named one). */
   fit(): void
+  /**
+   * The part of the canvas the tools and the sheet leave clear, in canvas pixels, or `undefined` for all of it. Only
+   * `fit` reads it: the plan is still drawn on the whole canvas, under them.
+   */
+  setUsable(area: Rect | undefined): void
   /** The canvas has a new size: the camera keeps its centre. */
   resize(size: Size): void
   /** Stops following the editor. */
@@ -117,6 +123,7 @@ interface SectorDrag<D> extends Drag<D> {
 export function createPlanController<D>(editor: LevelEditor<D>, canvas: Size): PlanController {
   const listeners = new Set<() => void>()
   let size = canvas
+  let usable: Rect | undefined
   let view: PlanView = IDLE
   let pointer: PlanPointer | undefined
   let gesture: CornerDrag<D> | SectorDrag<D> | undefined
@@ -348,7 +355,13 @@ export function createPlanController<D>(editor: LevelEditor<D>, canvas: Size): P
       showCamera(currentViewport().zoomAt(at, factor))
     },
     fit() {
-      editor.view.set({ camera: fitPlan(levelBounds(geometry().layers), size) })
+      const bounds = levelBounds(geometry().layers)
+      editor.view.set({
+        camera: usable === undefined ? fitPlan(bounds, size) : fitInto(bounds, usable, size),
+      })
+    },
+    setUsable(area) {
+      usable = area
     },
     resize(next) {
       size = next
