@@ -109,7 +109,7 @@ $effect(() => {
     panBy: (dx: number, dy: number) => worldCamera.panBy(dx, dy),
     zoomAt: (point: { x: number; y: number }, factor: number) => worldCamera.zoomAt(point, factor),
   }
-  return attachGestures(element, worldGestures(target, services))
+  return attachGestures(element, worldGestures(target, services), { clock: services.gestureClock })
 })
 
 function addOne(): void {

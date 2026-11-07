@@ -14,7 +14,7 @@ function attachGestures(element: HTMLElement, handlers: GestureHandlers, options
 
 ```ts
 interface AttachOptions extends GestureOptions {
-    readonly clock?: GestureClock;
+    readonly clock?: GestureClock | undefined;
     readonly preventContextMenu?: boolean;
 }
 ```

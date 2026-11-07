@@ -2764,3 +2764,8 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   controls alone). A playing demo now stands 3 by 4 on an upright phone; the poster keeps the wide frame. Chromium: the
   journey 6 of 6 over three repeats, the whole site suite 345 passed. WebKit: not installed here, so not run. Step V:
   the audit's section 7 (0 sideways, 0 small text, 18 small targets, all Start's explained checkboxes).
+  *Follow-up (session 23):* the platformer journey's two-finger undo flaked once in CI (#416): the recognizer timed
+  the tap on the browser's clock, so a slow runner held the fingers past the 300 ms a tap may last. The level and world
+  views now take a `gestureClock` through the view services, and the journey harness passes its test clock. The
+  journey holds the fingers 400 ms of real time to prove it: on the real clock it fails ("undone: expected 1 to be 2"),
+  on the test clock it passes. Editor journeys (Chromium) 28, unit 3,385, svelte-check 0.
