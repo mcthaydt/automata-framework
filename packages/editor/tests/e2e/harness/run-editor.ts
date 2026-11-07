@@ -4,7 +4,7 @@ import { type ChildProcess, spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
 /** `packages/tools/dist/bin.js`: build the tools first (`pnpm --filter @mcthaydt/automata-tools build`). */
-const BIN = fileURLToPath(new URL('../../../../tools/dist/bin.js', import.meta.url))
+export const BIN = fileURLToPath(new URL('../../../../tools/dist/bin.js', import.meta.url))
 
 export interface RunningEditor {
   /** The address the command printed under "This computer". */
