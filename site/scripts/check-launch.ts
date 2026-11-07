@@ -1,7 +1,7 @@
 // The deploy's own check, run before the site goes to its host (`.github/workflows/site.yml`): the site's contact and
-// security addresses must be the project's, not a person's mailbox (W9). The addresses come from site.js, the one
-// place the footer, Privacy, Terms and security.txt take them from. Until the Owner names the project's address (D8),
-// this fails, so nothing deploys with a personal mailbox on every page.
+// security addresses must be the project's, not a person's mailbox. The addresses come from site.js, the one
+// place the footer, Privacy, Terms and security.txt take them from. Until the Owner names the project's address, this
+// fails, so nothing deploys with a personal mailbox on every page.
 import { pathToFileURL } from 'node:url'
 import { CONTACT_EMAIL, SECURITY_EMAIL } from '../src/shared/site.js'
 

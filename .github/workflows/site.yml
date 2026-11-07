@@ -4,9 +4,9 @@ name: site
 # website" step), so there is no second build or required check here: ci.yml calls this after that job passes on a
 # push to main.
 #
-# The host is the Owner's (task 21.2). Until its token is a repository secret, the job prints "No host configured
-# yet." and passes. With the token, it builds the site, refuses a personal contact address (`check:launch`, W9), and
-# uploads `site/build/` with the host's own step, which 21.2 writes once the host is chosen.
+# The host is the Owner's to choose. Until its token is a repository secret, the job prints "No host configured
+# yet." and passes. With the token, it builds the site, refuses a personal contact address (`check:launch`: the site speaks for
+# the project, not a person), and uploads `site/build/` with the host's own step, written once the host is chosen.
 
 on:
   workflow_call:
@@ -68,5 +68,5 @@ jobs:
         env:
           SITE_DEPLOY_TOKEN: ${{ secrets.SITE_DEPLOY_TOKEN }}
         run: |
-          echo "::error::The host's upload step is not written yet: task 21.2 adds it with the host the Owner chooses."
+          echo "::error::The host's upload step is not written yet: it is added with the host (docs/runbook.md, Launch the website)."
           exit 1
