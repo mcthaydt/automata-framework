@@ -1,8 +1,8 @@
-// The room as it was written by hand in `src/content/room.ts` before the 2D editor authored it. Kept as a fixture, not in
+// The room as it was written by hand in `src/shared/room.ts` before the 2D editor authored it. Kept as a fixture, not in
 // `src/`: the equivalence test replays the golden route against it and against the compiled content, and the sim's own
 // tests use it as the known room. Tiles: `#` solid, `.` empty, `P` start, `G` the ember.
 
-import type { RoomSource } from '../src/content/room.ts'
+import type { RoomSource } from '../src/shared/room.ts'
 
 export const ROOM: RoomSource = {
   id: 'room-1',

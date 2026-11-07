@@ -147,7 +147,7 @@ export interface CheckOptions {
   readonly root?: string
   /**
    * More import specifiers this root may use, by exact name: another sim folder's entry point that is checked
-   * on its own (a demo's sim on its base's sim, `@af-examples/base-2d/sim`).
+   * on its own (a demo's sim on its base's sim, `@af-games/emberwick/sim`).
    */
   readonly allowImports?: readonly string[]
   /**

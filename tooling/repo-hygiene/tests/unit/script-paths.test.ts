@@ -6,7 +6,7 @@ import { type WorkspacePackage, workspacePackages } from '../../../release/src/p
 
 // A package script that reaches out of its own folder (`check ../../games/emberwick`) breaks without a sound when
 // the folder it names moves, and a script nothing calls stays broken: the cli's `check:example` named
-// `examples/base-2d` for two weeks after EX.2 moved it (DX.6c). This test holds every such path to one that exists.
+// `examples/emberwick` for two weeks after EX.2 moved it (DX.6c). This test holds every such path to one that exists.
 
 const root = fileURLToPath(new URL('../../../..', import.meta.url))
 

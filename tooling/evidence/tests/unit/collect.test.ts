@@ -54,13 +54,13 @@ describe('engineOf', () => {
 describe('goldensFromReports', () => {
   it('groups each scenario’s four engines, in engine order, with the files that ran it', () => {
     const goldens = goldensFromReports([fixture()], '/repo')
-    expect(goldens.map((golden) => golden.scenario)).toEqual(['base-2d/golden-route', 'testing/bounce'])
+    expect(goldens.map((golden) => golden.scenario)).toEqual(['emberwick/golden-route', 'testing/bounce'])
     expect(goldens[0]).toEqual({
-      scenario: 'base-2d/golden-route',
+      scenario: 'emberwick/golden-route',
       seed: 1,
       ticks: 342,
       enginesAgree: true,
-      sources: ['examples/base-2d/src/golden.parity.test.ts', 'examples/base-2d/src/golden.test.ts'],
+      sources: ['examples/emberwick/src/golden.parity.test.ts', 'examples/emberwick/src/golden.test.ts'],
       hashes: [
         { engine: 'node', version: 'v24.21.0', hash: '31f50888ccb4cf0a' },
         { engine: 'chromium', version: '153.0.8010.12', hash: '31f50888ccb4cf0a' },
@@ -122,12 +122,12 @@ describe('goldensFromReports', () => {
   it('refuses a seed that differs between engines', () => {
     let changed = false
     const report = edited((assertion) => {
-      if (!changed && evidenceOf(assertion).scenario === 'base-2d/golden-route') {
+      if (!changed && evidenceOf(assertion).scenario === 'emberwick/golden-route') {
         evidenceOf(assertion).seed = 2
         changed = true
       }
     })
-    expect(() => goldensFromReports([report], '/repo')).toThrow(/base-2d\/golden-route.*seed/)
+    expect(() => goldensFromReports([report], '/repo')).toThrow(/emberwick\/golden-route.*seed/)
   })
 
   it('refuses evidence that is not the recorded shape, naming the test', () => {

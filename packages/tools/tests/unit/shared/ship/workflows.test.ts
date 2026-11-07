@@ -160,8 +160,8 @@ describe("runners (D-5: the Owner's self-hosted runners; hosted jobs get no runn
     for (const step of steps) expect(step.env?.HOME).toBeUndefined()
   })
 
-  it('passes the same runner to base-2d through game-ci', () => {
-    expect(ci.jobs['base-2d']?.with?.runner).toBe(
+  it('passes the same runner to emberwick through game-ci', () => {
+    expect(ci.jobs['emberwick']?.with?.runner).toBe(
       "${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}",
     )
   })
@@ -259,8 +259,8 @@ describe('parity across packages', () => {
   })
 
   // af-linux is one PC shared with Ruken's GPU runs. Under that load, tests that build worlds or import whole
-  // entry modules ran past vitest's 5 s default (main after #16: sim's snapshot test at 5.2 s; #15: base-2d's
-  // exports test), and then past 30 s while Ruken's CI ran alongside (2026-10-16: base-2d's exports test at
+  // entry modules ran past vitest's 5 s default (main after #16: sim's snapshot test at 5.2 s; #15: emberwick's
+  // exports test), and then past 30 s while Ruken's CI ran alongside (2026-10-16: emberwick's exports test at
   // 30.5 s, physics parity at 32–33 s, content's render-types file at 70.7 s). The root script passes a 90 s
   // default to every package's vitest, which still catches a hang; a test's own timeout still wins.
   it('gives every unit suite a 90 s default timeout through the root test:unit script', () => {
@@ -440,7 +440,7 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
       'pnpm install --frozen-lockfile',
       'pnpm check',
       'pnpm test:browser:core',
-      'pnpm test:e2e --filter @af-examples/base-2d --filter @af-examples/examples',
+      'pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples',
     ])
   })
 
@@ -533,7 +533,7 @@ describe('ci.yml (AF)', () => {
     expect(job?.if).toContain("needs.checks.outputs.docs_only != 'true'")
     expect(job?.['timeout-minutes']).toBe(30)
     const runs = (job?.steps ?? []).map((step) => step.run ?? '')
-    expect(runs).toContain('pnpm test:e2e --filter @af-examples/base-2d --filter @af-examples/examples')
+    expect(runs).toContain('pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples')
     expect(JSON.stringify(job?.steps)).toContain('e2e-report')
   })
 
@@ -597,11 +597,12 @@ describe('ci.yml (AF)', () => {
     for (const install of installs) expect(install).toMatch(/chromium webkit firefox$/)
   })
 
-  it('builds base-2d through the reusable game workflow, with the determinism check on its sim', () => {
-    expect(ci.jobs['base-2d']?.uses).toBe('./.github/workflows/game-ci.yml')
-    expect(ci.jobs['base-2d']?.with?.['working-directory']).toBe('games/emberwick')
-    expect(ci.jobs['base-2d']?.with?.['sim-roots']).toBe('src/sim')
-    expect(ci.jobs['base-2d']?.with?.runner).toBe(
+  it('builds emberwick through the reusable game workflow, with the determinism check on its sim', () => {
+    expect(ci.jobs['emberwick']?.uses).toBe('./.github/workflows/game-ci.yml')
+    expect(ci.jobs['emberwick']?.with?.['working-directory']).toBe('games/emberwick')
+    // Inside this repository `pnpm boundaries` checks Emberwick's sim, by role suffix and by import.
+    expect(ci.jobs['emberwick']?.with?.['sim-roots']).toBeUndefined()
+    expect(ci.jobs['emberwick']?.with?.runner).toBe(
       "${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}",
     )
   })
@@ -1241,7 +1242,7 @@ describe('what a pull request runs (docs-only and draft scope)', () => {
     )
   })
 
-  it.each(['e2e-2d', 'base-2d', 'parity'])(
+  it.each(['e2e-2d', 'emberwick', 'parity'])(
     '%s waits for the checks and, on a pull request, runs only a ready one that changes more than documentation',
     (name) => {
       const job = ci.jobs[name]
@@ -1335,7 +1336,7 @@ describe('what a pull request runs (docs-only and draft scope)', () => {
           [
             'tooling/x/src/run.ts',
             'examples/core/core-basic-window.ts',
-            'games/emberwick/src/game.ts',
+            'games/emberwick/src/app/game.ts',
             'docs/a.md',
           ],
           'parity_full',

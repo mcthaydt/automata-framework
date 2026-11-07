@@ -1,7 +1,7 @@
 # How Wick moves: Celeste's published constants (Maddy Thorson, `Player.cs`, 2018) in the sim's units, whole numbers of
 # subpixels per tick at 60 ticks a second, so every step is exact in every engine. Each tunable carries its own range,
 # which the content compiler checks and the Tuner shows as a slider. SUB, TICK_HZ and the hitbox stay in code
-# (`src/sim/tuning.ts`): they change what a tick or a pixel means, not how the character feels.
+# (`src/shared/tuning.ts`): they change what a tick or a pixel means, not how the character feels.
 
 # Celeste: 90 px/s.
 MAX_RUN = { value = 384, min = 128, max = 768, step = 1 }

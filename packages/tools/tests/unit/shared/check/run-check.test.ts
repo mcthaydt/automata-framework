@@ -208,6 +208,16 @@ describe('runCheck', () => {
     },
   )
 
+  // A game laid out by feature (src/app, src/features/<x>) has its sim by role suffix and by import; `--game src` finds it.
+  it('a game laid out by feature runs boundaries with --game src', async () => {
+    const game = fakeGame()
+    game.files.delete(`${GAME}/src/sim/game.plugin.ts`)
+    game.files.set(`${GAME}/src/features/player/player-move.system.ts`, '')
+    const { report } = await check(game, { simOnly: true })
+    expect(report.steps[0]).toMatchObject({ name: 'boundaries', ok: true })
+    expect(game.ran[0]).toBe('automata-check-boundaries --game src')
+  })
+
   it('a game with both layouts checks both in one run (GL spec B6)', async () => {
     const game = fakeGame({ files: new Map([[`${GAME}/src/sim.ts`, '']]) })
     await check(game, { simOnly: true })

@@ -1,12 +1,12 @@
 import { checkManifest, inputsProblems, rukenToml, type ShipInputBindings } from '@mcthaydt/automata-tools'
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { input } from '#src/game.ts'
-import { GAME_ID } from '#src/game-id.ts'
+import { input } from '#src/app/game.ts'
+import { GAME_ID } from '#src/shared/game-id.ts'
 import packageJson from '../../package.json' with { type: 'json' }
 import config from '../../ship.config.ts'
 
-describe('base-2d ship.config.ts', () => {
+describe('emberwick ship.config.ts', () => {
   it("is a manifest Ruken's parser accepts, rendered with WebGL2", () => {
     const manifest = Effect.runSync(checkManifest(rukenToml(config)))
     expect(manifest.game.entry).toBe('index.html')
@@ -16,6 +16,11 @@ describe('base-2d ship.config.ts', () => {
   it('names the game the page tells the SDK, at the package version', () => {
     expect(config.game.id).toBe(GAME_ID)
     expect(config.game.version).toBe(packageJson.version)
+  })
+
+  it('is called Emberwick, by id and by title', () => {
+    expect(config.game.id).toBe('emberwick')
+    expect(config.game.title).toBe('Emberwick')
   })
 
   it('asks for no network and no eval', () => {

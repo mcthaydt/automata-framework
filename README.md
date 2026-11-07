@@ -8,7 +8,7 @@ Chromium, WebKit and Firefox. Everything outside the simulation runs on Effect, 
 ## Run Emberwick from a fresh clone
 
 Emberwick is AF's 2D reference game: Wick, a hooded lantern-bearer, walks and jumps through one room of mossy
-ruins to an ember. It is the workspace package `@af-examples/base-2d`, in [`games/emberwick`](games/emberwick/)
+ruins to an ember. It is the workspace package `@af-games/emberwick`, in [`games/emberwick`](games/emberwick/)
 (EX.2 moved the folder there and kept the package name, so the `--filter` line below is unchanged).
 
 You need Git, and Node 24.21.0 (the version in `.nvmrc`). Corepack then runs the pinned pnpm.
@@ -18,7 +18,7 @@ git clone https://github.com/mcthaydt/automata-framework.git
 cd automata-framework
 corepack enable
 pnpm install
-pnpm --filter @af-examples/base-2d dev    # open the printed URL; arrows or A/D move, Space jumps
+pnpm --filter @af-games/emberwick dev    # open the printed URL; arrows or A/D move, Space jumps
 ```
 
 Opened on its own, Emberwick runs standalone. Inside Ruken it completes the host handshake first.

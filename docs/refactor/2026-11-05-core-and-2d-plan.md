@@ -532,14 +532,14 @@ Then:
 
 ### Task 6.1: Emberwick is Emberwick
 
-- [ ] **Step 1: Failing test** in `games/emberwick/tests/unit/ship-config.test.ts`: id `emberwick`, title
+- [x] **Step 1: Failing test** in `games/emberwick/tests/unit/ship-config.test.ts`: id `emberwick`, title
   `Emberwick`.
-- [ ] **Step 2:** Package `@af-games/emberwick`; id in `ship.config.ts` and `src/game.ts`; the sim plugin
+- [x] **Step 2:** Package `@af-games/emberwick`; id in `ship.config.ts` and `src/game.ts`; the sim plugin
   `base-2d.plugin.ts` → `emberwick.plugin.ts` with `name: 'emberwick'`; the golden evidence scenario name; CI job
   name `emberwick`; `pnpm --filter` uses everywhere, including the hot-reload demo's dependency and imports,
   `check-boundaries`' tests and `ship`'s `workflows.test.ts` (`grep -rn "base-2d" --exclude-dir=node_modules` lists
   none in core or 2D afterwards, except the history in `docs/archive/` and `docs/refactor/`).
-- [ ] **Step 3: The golden hash.** The plugin name is part of the state hash (`sim/src/world/sim.ts`), so
+- [x] **Step 3: The golden hash.** The plugin name is part of the state hash (`sim/src/world/sim.ts`), so
   `golden.test.ts` now fails on `GOLDEN_HASH`. Confirm the route and `GOLDEN_GOAL_TICK` are unchanged, re-record the
   hash once in Node (`AUTOMATA_UPDATE_GOLDENS=1` or by hand in `golden.ts`, with the old hash in its comment like
   the earlier re-records), then run `test:browser`: Chromium, WebKit and Firefox must match the new hash. The
@@ -547,13 +547,13 @@ Then:
 
 ### Task 6.2: Emberwick imports one package
 
-- [ ] Rewrite Emberwick's imports to `@mcthaydt/automata` (and `@mcthaydt/automata-tools` in config and tests).
+- [x] Rewrite Emberwick's imports to `@mcthaydt/automata` (and `@mcthaydt/automata-tools` in config and tests).
   Any name it needs that the root entry lacks is added to `entries/index.ts` with a doc comment. Journeys pass.
   Commit.
 
 ### Task 6.3: Emberwick by feature
 
-- [ ] Move `games/emberwick/src` to the layout in spec section 3.3 with the module codemod (a small map in
+- [x] Move `games/emberwick/src` to the layout in spec section 3.3 with the module codemod (a small map in
   `docs/refactor/move-map.json` under `"emberwick"`). Its package exports (`./sim`, `./room`, `./render`, `./game`,
   `./no-eval`) follow the files, and the hot-reload demo's imports with them; `ci.yml`'s `emberwick` job passes the
   new sim roots to `game-ci` (or none, if the in-repository check covers it, as base-3d's comment explains).
@@ -565,10 +565,10 @@ Then:
 
 ### Task 6.4: The surface
 
-- [ ] **Step 1:** Run the codemod's surface report over Emberwick, the examples, 3D and the editors. Every export
+- [x] **Step 1:** Run the codemod's surface report over Emberwick, the examples, 3D and the editors. Every export
   of `@mcthaydt/automata` that none of them imports is removed (or made internal), unless it is part of a documented
   API in `docs/guides/` (list those, then decide each in the execution log).
-- [ ] **Step 2:** API report, changeset (`patch`, listing what left). Record the export count before and after in
+- [x] **Step 2:** API report, changeset (`patch`, listing what left). Record the export count before and after in
   `progress.md`
   (audit: 1,042 across twelve packages). Open the PR, green, merge.
 
@@ -892,3 +892,26 @@ the features it lacks are journeyed on the one-file examples that show them:
   `makePresentationBus` as an Effect), so it runs after phases 6 to 8 in its own PR. ADR 0003 is amended
   (Effect leaves the browser). Unit tests: automata 1,922; one tools test (`workflows.test.ts`, a regex that read `}, 10)` as a
   test timeout) failed on new tests and the tests were reshaped.
+- **Tasks 6.1 to 6.3, fourth session, 2026-11-05 (PR `claude/refactor-2d-emberwick`, stacked on #394).** 6.1: package
+  `@af-games/emberwick`, id, title and plugin are `emberwick`; the golden test failed first on the hash only (the route and
+  goal tick unchanged), `GOLDEN_HASH` went `94285fae634fdba9` → `421c5a1bf522299e`, and Chromium agrees (WebKit and Firefox
+  are not installable here: their run is left to CI). 6.2 was already true after 4.3 (only stale comments named old packages).
+  6.3 ran the module codemod with `docs/refactor/move-map-emberwick.json` (49 files, 42 rewritten). Deviations: (56) the strict
+  feature rule (no feature imports another) forced a different split than the spec's sketch: `player` and `goal` share
+  the player component and events, so those live in `shared/`; `art` is `shared/art/` because the scene and `pixels.ts` both draw
+  from it; the draw code is the `scene` feature; `golden.ts` and `golden-run.ts` are `testing/`. (57) The `./sim` package
+  entry is `entries/sim.ts` (a re-export file, like `game-entry.ts` was); inside the game nothing imports it. (58)
+  `automata check` accepts a `src/features` folder and runs `--game src`; `check-style` takes `--role-layout` (base-3d only) and
+  Emberwick is a plain package root; `ci.yml`'s `emberwick` job has no `sim-roots` (the step is skipped inside this repository
+  and `pnpm boundaries` covers the sim by suffix and import). Tests pass: Emberwick 109 unit, tools 669, check-style 72,
+  check-boundaries 145; `pnpm boundaries`, `style`, `knip`, typecheck pass.
+- **Task 6.4, fourth session, 2026-11-05.** The codemod's surface report reads old entries, which are gone, so the report was
+  rebuilt as a script over the API report and every `import … from '@mcthaydt/automata[/entry]'` outside the package
+  (scratch script, not kept): of the 600 root names, 480 were imported by nothing. Deviations: (59) Only the root entry was cut
+  (600 → 274); `/testing`, `/extension` and `/target` keep their lists (their consumers are tests and the Plus repository,
+  which this repository cannot see). Kept besides the imported names: the define verbs and the `defineGame` types (the
+  "one import"), the host contract (`export *`, the vocabulary every target shares), the seams `public-seams.test.ts` and `tooling/api-report/src/seams.ts` pin, the
+  names `entries/*` tests import, and `Translate` (a retained export's declared type). (60) The per-old-package export-list
+  tests (`from-render-pixi`, `from-runtime`, `from-ui`; 92 tests) are deleted: the API report pins the surface now.
+  `AudioLive` and `audioLayer` had no user and are deleted. Repo-wide typecheck, `knip`, `api-report` (0 breaks, 0 undeclared),
+  automata unit tests (1,830) pass. Export counts (API reports): automata 600 → 274; the ten reports 2,109 → 1,783.

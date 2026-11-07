@@ -5,12 +5,12 @@
 // Audio is presentation: it never feeds the sim, and `sound` is a plain call that allocates no Effect, so a game
 // can call it from a presentation-bus listener every frame.
 
-import { Context, Effect, Layer, type Scope, Stream, type Subscribable, SubscriptionRef } from 'effect'
-import { Hosting } from '../../shared/host/hosting.ts'
-import { Assets } from '../../shared/runtime/assets.manager.js'
+import { Context, Effect, type Scope, Stream, type Subscribable, SubscriptionRef } from 'effect'
+import type { Hosting } from '../../shared/host/hosting.ts'
+import type { Assets } from '../../shared/runtime/assets.manager.js'
 import { AssetLoadFailed } from '../../shared/runtime/boot-error.js'
-import { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
-import { AudioBuses, type AudioBusName } from './audio-buses.js'
+import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
+import type { AudioBuses, AudioBusName } from './audio-buses.js'
 import { AudioDecodeFailed } from './audio-error.js'
 import { type AudioContextLike, AudioGraph } from './audio-graph.js'
 import { type MusicOptions, MusicSlot } from './audio-music.js'
@@ -309,23 +309,3 @@ export const makeAudio = (
     }
     return audio
   })
-
-/** `makeAudio` with its defaults, reading `Hosting`, `Assets` and `PresentationBus` from the runtime. */
-export const audioLayer = (
-  options: AudioOptions = {},
-): Layer.Layer<Audio | AudioBuses, never, Hosting | Assets | PresentationBus> =>
-  Layer.scopedContext(
-    Effect.gen(function* () {
-      const audio = yield* makeAudio({
-        ...options,
-        hosting: yield* Hosting,
-        assets: yield* Assets,
-        bus: yield* PresentationBus,
-      })
-      return Context.make(Audio, audio).pipe(Context.add(AudioBuses, audio))
-    }),
-  )
-
-/** The Audio service with its defaults: the browser's `AudioContext`, `window`, `document` and `fetch`. */
-export const AudioLive: Layer.Layer<Audio | AudioBuses, never, Hosting | Assets | PresentationBus> =
-  audioLayer()

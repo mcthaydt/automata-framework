@@ -15,7 +15,7 @@ describe('vite.config.ts', () => {
     expect(config.build.assetsInlineLimit).toBe(0)
   })
   // The game ships to Ruken (its preview serves Ruken's headers, and its journeys run in the fake Ruken host's frame),
-  // so the build takes the Ruken adapter: with no AF condition, `@mcthaydt/automata-host/target` is the web adapter
+  // so the build takes the Ruken adapter: with no AF condition, `@mcthaydt/automata/target` is the web adapter
   // (DIST spec §5.3).
   it('builds for the ruken target', async () => {
     const config = await resolveConfig(

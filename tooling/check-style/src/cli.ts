@@ -1,8 +1,8 @@
-// Usage: node tooling/check-style/src/cli.ts <package-src>... [--game <game-src>...]
+// Usage: node tooling/check-style/src/cli.ts <package-src>... [--role-layout <game-src>...]
 // Checks every production .ts and .svelte file. Tests are exempt by folder: anything under a tests/ folder (where
 // every moved package keeps them) or a testing/ folder (published test helpers). The *.test.ts and *.test.svelte
 // suffixes stay exempt only until the 3D and editor packages move their tests (core and 2D refactor, phase 3). Svelte files get the QB.2 rules (no {@html}, no platform chrome); .ts files the naming rules. Roots after
-// --game are a game's src/, where the sim may be grouped by role (GL spec §5.1).
+// --role-layout are a game's src/ laid out by role (GL spec §5.1): only games/base-3d, until the 3D phase. A game laid out by feature is a package root.
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { checkFile, checkGameRoot, type StyleFinding } from './style.ts'
@@ -19,11 +19,11 @@ function collect(dir: string, out: string[]): void {
 }
 
 const args = process.argv.slice(2)
-const gameFlag = args.indexOf('--game')
+const gameFlag = args.indexOf('--role-layout')
 const packageRoots = gameFlag === -1 ? args : args.slice(0, gameFlag)
 const gameRoots = gameFlag === -1 ? [] : args.slice(gameFlag + 1)
 if (packageRoots.length + gameRoots.length === 0) {
-  console.error('usage: check-style <package-src>... [--game <game-src>...]')
+  console.error('usage: check-style <package-src>... [--role-layout <game-src>...]')
   process.exit(2)
 }
 

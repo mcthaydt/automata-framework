@@ -16,12 +16,6 @@ component from '../shared/ui/layout/ActionBar.svelte'
 type ActionKind = 'primary' | 'secondary' | 'utility';
 ```
 
-### `actionsForGesture` (function)
-
-```ts
-function actionsForGesture(profile: InputProfile, gesture: GestureName): string[];
-```
-
 ### `actionsForKey` (function)
 
 ```ts
@@ -32,15 +26,6 @@ function actionsForKey(profile: InputProfile, code: string): string[];
 
 ```ts
 function actionsForPadButton(profile: InputProfile, index: number): string[];
-```
-
-### `ActiveDevice` (interface)
-
-```ts
-interface ActiveDevice {
-    readonly device: InputDevice;
-    readonly glyphs: GlyphFamily;
-}
 ```
 
 ### `AnalogOptions` (interface)
@@ -86,51 +71,6 @@ interface AppLoop {
 const AppLoop: Context.Tag<AppLoop, AppLoop>;
 ```
 
-### `applyDocumentLocale` (function)
-
-```ts
-function applyDocumentLocale(element: HTMLElement, locale: string): void;
-```
-
-### `applyGeometry` (function)
-
-```ts
-function applyGeometry(root: HTMLElement, geometry: Geometry): void;
-```
-
-### `applyOverrides` (function)
-
-```ts
-function applyOverrides(defaults: InputProfile, saved: InputSettings): {
-    readonly profile: InputProfile;
-    readonly dropped: readonly string[];
-};
-```
-
-### `arrowKeyNav` (function)
-
-```ts
-function arrowKeyNav(event: KeyboardEvent): NavDirection | undefined;
-```
-
-### `AssetLoadFailed` (class)
-
-```ts
-class AssetLoadFailed extends AssetLoadFailedBase {
-}
-```
-
-### `Assets` (interface)
-
-```ts
-interface Assets {
-    load(screen: string, onProgress?: (fraction: number | undefined) => void): Effect.Effect<void, AssetLoadFailed | LoadStalled>;
-    get(path: string): Blob | undefined;
-    isLoaded(screen: string): boolean;
-}
-const Assets: Context.Tag<Assets, Assets>;
-```
-
 ### `Audio` (interface)
 
 ```ts
@@ -154,24 +94,6 @@ const Audio: Context.Tag<Audio, Audio>;
 const AUDIO_BUS_NAMES: readonly ['master', 'music', 'sfx', 'ui', 'voice'];
 ```
 
-### `AUDIO_BUSES` (const)
-
-```ts
-const AUDIO_BUSES: readonly AudioBus[];
-```
-
-### `AUDIO_SETTINGS_DEFAULT` (const)
-
-```ts
-const AUDIO_SETTINGS_DEFAULT: AudioSettings;
-```
-
-### `AudioBus` (type)
-
-```ts
-type AudioBus = 'master' | 'music' | 'sfx' | 'ui' | 'voice';
-```
-
 ### `AudioBuses` (interface)
 
 ```ts
@@ -183,22 +105,10 @@ interface AudioBuses {
 const AudioBuses: Context.Tag<AudioBuses, AudioBuses>;
 ```
 
-### `AudioBusGains` (type)
-
-```ts
-type AudioBusGains = Readonly<Record<AudioBusName, number>>;
-```
-
 ### `audioBusGainsSchema` (const)
 
 ```ts
 const audioBusGainsSchema: z.ZodType<AudioBusGains, Partial<Record<AudioBusName, number | undefined>>>;
-```
-
-### `AudioBusName` (type)
-
-```ts
-type AudioBusName = (typeof AUDIO_BUS_NAMES)[number];
 ```
 
 ### `AudioChange` (interface)
@@ -221,130 +131,6 @@ interface AudioChange {
 
 ```ts
 const AudioChangeSchema: z.ZodType<AudioChange>;
-```
-
-### `AudioContextLike` (type)
-
-```ts
-type AudioContextLike = Pick<AudioContext, 'currentTime' | 'destination' | 'createGain' | 'createBufferSource' | 'createBuffer' | 'sampleRate' | 'decodeAudioData' | 'resume' | 'suspend' | 'close'> & {
-    readonly state: AudioContextState | 'interrupted';
-};
-```
-
-### `AudioCopy` (interface)
-
-```ts
-interface AudioCopy {
-    readonly title: string;
-    readonly mute: string;
-    readonly muteUnfocused: string;
-    readonly on: string;
-    readonly off: string;
-    readonly buses: Readonly<Record<AudioBus, string>>;
-    percent(value: number): string;
-    readonly unavailable: string;
-    readonly hostVolume: string;
-}
-```
-
-### `AudioDecodeFailed` (class)
-
-```ts
-class AudioDecodeFailed extends AudioDecodeFailedBase {
-}
-```
-
-### `AudioDecodeFailedFields` (interface)
-
-```ts
-interface AudioDecodeFailedFields {
-    readonly alias: string;
-    readonly cause: unknown;
-}
-```
-
-### `audioLayer` (const)
-
-```ts
-const audioLayer: (options?: AudioOptions) => Layer.Layer<Audio | AudioBuses, never, Hosting | Assets | PresentationBus>;
-```
-
-### `AudioLive` (const)
-
-```ts
-const AudioLive: Layer.Layer<Audio | AudioBuses, never, Hosting | Assets | PresentationBus>;
-```
-
-### `AudioOptions` (interface)
-
-```ts
-interface AudioOptions {
-    readonly createContext?: () => AudioContextLike;
-    readonly window?: Pick<EventTarget, 'addEventListener' | 'removeEventListener'>;
-    readonly document?: Pick<EventTarget, 'addEventListener' | 'removeEventListener'> & {
-        readonly visibilityState: DocumentVisibilityState;
-    };
-    readonly muteUnfocused?: boolean;
-    readonly fetch?: typeof fetch;
-}
-```
-
-### `AudioSection` (svelte)
-
-```ts
-component from '../app/screens/settings/AudioSection.svelte'
-```
-
-### `AudioSectionChange` (type)
-
-```ts
-type AudioSectionChange = {
-    readonly kind: 'muted';
-    readonly value: boolean;
-} | {
-    readonly kind: 'muteUnfocused';
-    readonly value: boolean;
-} | {
-    readonly kind: 'gain';
-    readonly bus: AudioBus;
-    readonly value: number;
-};
-```
-
-### `AudioServices` (interface)
-
-```ts
-interface AudioServices {
-    readonly hosting: Pick<Hosting, 'ready' | 'lifecycle' | 'audio'>;
-    readonly assets: Pick<Assets, 'get'>;
-    readonly bus: PresentationBus;
-}
-```
-
-### `AudioSettings` (interface)
-
-```ts
-interface AudioSettings {
-    readonly muted: boolean;
-    readonly muteUnfocused: boolean;
-    readonly gains: AudioBusGains;
-}
-```
-
-### `audioSettingsSchema` (const)
-
-```ts
-const audioSettingsSchema: z.ZodType<AudioSettings, unknown>;
-```
-
-### `AudioValue` (interface)
-
-```ts
-interface AudioValue {
-    readonly muted: boolean;
-    readonly muteUnfocused: boolean;
-    readonly gains: Readonly<Record<AudioBus, number>>;
-}
 ```
 
 ### `AutosavePolicy` (interface)
@@ -378,176 +164,10 @@ interface BarAction {
 }
 ```
 
-### `BarSample` (type)
-
-```ts
-type BarSample = {
-    screenHeight: number;
-    innerHeight: number;
-    portrait: boolean;
-    editing: boolean;
-    fullscreen: boolean;
-    settled: boolean;
-};
-```
-
-### `BindingOverride` (interface)
-
-```ts
-interface BindingOverride {
-    readonly keys?: readonly string[] | undefined;
-    readonly pad?: readonly number[] | undefined;
-}
-```
-
-### `BoardEntry` (type)
-
-```ts
-type BoardEntry = Effect.Effect.Success<ReturnType<HostingLeaderboards['get']>>['entries'][number];
-```
-
-### `BoardQuery` (type)
-
-```ts
-type BoardQuery = NonNullable<Parameters<HostingLeaderboards['get']>[1]>;
-```
-
-### `BoardState` (type)
-
-```ts
-type BoardState = {
-    readonly state: 'idle';
-} | {
-    readonly state: 'submitting';
-} | {
-    readonly state: 'accepted';
-    readonly personalBest: number;
-    readonly rank?: number;
-} | {
-    readonly state: 'refused';
-} | {
-    readonly state: 'unavailable';
-} | {
-    readonly state: 'offline';
-};
-```
-
-### `BoardView` (type)
-
-```ts
-type BoardView = {
-    readonly state: 'entries';
-    readonly entries: readonly BoardEntry[];
-} | {
-    readonly state: 'empty';
-} | {
-    readonly state: 'unavailable';
-} | {
-    readonly state: 'offline';
-};
-```
-
-### `BOOT_FAILURE_COPY_EN` (const)
-
-```ts
-const BOOT_FAILURE_COPY_EN: BootFailureCopy;
-```
-
-### `BootDefect` (class)
-
-```ts
-class BootDefect extends BootDefectBase {
-}
-```
-
-### `bootDeviceClass` (function)
-
-```ts
-function bootDeviceClass(win?: Window): DeviceClass;
-```
-
-### `BootError` (type)
-
-```ts
-type BootError = HostError | ContentHashMismatch | AssetLoadFailed | LoadStalled | RendererUnavailable | ModelInvalid | BootDefect;
-```
-
-### `BootFailure` (type)
-
-```ts
-type BootFailure = {
-    readonly _tag: 'HostError';
-    readonly code: ErrorCode;
-    readonly retryable: boolean;
-    readonly operation: string;
-} | {
-    readonly _tag: 'ContentHashMismatch';
-    readonly expected: string;
-    readonly actual: string;
-} | {
-    readonly _tag: 'AssetLoadFailed';
-    readonly url: string;
-    readonly status: number;
-} | {
-    readonly _tag: 'LoadStalled';
-    readonly url: string;
-    readonly bytesSoFar: number;
-    readonly stalledMs: number;
-} | {
-    readonly _tag: 'RendererUnavailable';
-    readonly tried: readonly ('webgl2' | 'webgpu')[];
-} | {
-    readonly _tag: 'BootDefect';
-} | {
-    readonly _tag: 'ModelInvalid';
-    readonly file: string;
-    readonly reason: string;
-};
-```
-
-### `BootFailureAction` (type)
-
-```ts
-type BootFailureAction = 'retry' | 'continue' | 'exit';
-```
-
-### `BootFailureCopy` (type)
-
-```ts
-type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction | 'quit', string>>;
-```
-
 ### `BootFailurePanel` (svelte)
 
 ```ts
 component from '../shared/ui/status/BootFailurePanel.svelte'
-```
-
-### `BootFailureState` (type)
-
-```ts
-type BootFailureState = 'start' | 'connect' | 'progress' | 'damaged' | 'download' | 'download-stalled' | 'unsupported' | 'model-invalid';
-```
-
-### `bootFailureView` (function)
-
-```ts
-function bootFailureView(failure: BootFailure, hostKind: HostKind, canExit: boolean): BootFailureViewModel;
-```
-
-### `BootFailureViewModel` (interface)
-
-```ts
-interface BootFailureViewModel {
-    readonly state: BootFailureState;
-    readonly actions: BootFailureAction[];
-}
-```
-
-### `browserHaptics` (function)
-
-```ts
-function browserHaptics(target: Window): Haptics;
 ```
 
 ### `Button` (svelte)
@@ -592,53 +212,10 @@ interface Camera2dOptions {
 }
 ```
 
-### `CAMERA_SETTINGS_DEFAULT` (const)
-
-```ts
-const CAMERA_SETTINGS_DEFAULT: CameraSettings;
-```
-
-### `CAMERA_TURN_SPEED` (const)
-
-```ts
-const CAMERA_TURN_SPEED: {
-    readonly min: 0.05;
-    readonly max: 1;
-    readonly step: 0.05;
-    readonly default: 0.25;
-};
-```
-
 ### `CameraDragSurface` (svelte)
 
 ```ts
 component from '../shared/ui/touch/CameraDragSurface.svelte'
-```
-
-### `CameraDragSurfaceProps` (interface)
-
-```ts
-interface CameraDragSurfaceProps {
-    tracker: DragTracker;
-    testId?: string | undefined;
-}
-```
-
-### `CameraDragTracker` (class)
-
-```ts
-class CameraDragTracker {
-    private readonly sink;
-    private pointerId;
-    private lastX;
-    private pointer;
-    constructor(sink: DragSink);
-    get dragging(): boolean;
-    down(id: number, x: number, start: DragStart): boolean;
-    move(id: number, x: number): void;
-    up(id: number): void;
-    cancel(): void;
-}
 ```
 
 ### `CameraRect` (interface)
@@ -650,27 +227,6 @@ interface CameraRect {
     readonly width: number;
     readonly height: number;
 }
-```
-
-### `CameraSettings` (interface)
-
-```ts
-interface CameraSettings {
-    readonly degPerPixel: number;
-    readonly invert: boolean;
-}
-```
-
-### `cameraSettingsSchema` (const)
-
-```ts
-const cameraSettingsSchema: z.ZodType<CameraSettings, unknown>;
-```
-
-### `canvasResolutionFor` (function)
-
-```ts
-function canvasResolutionFor(formFactor: FormFactor, devicePixelRatio: number, tier?: QualityTier): number;
 ```
 
 ### `CAPABILITIES` (const)
@@ -691,16 +247,6 @@ type Capability = (typeof CAPABILITIES)[number];
 const CapabilitySchema: z.ZodType<Capability>;
 ```
 
-### `Capture` (type)
-
-```ts
-type Capture = {
-    readonly code: string;
-} | {
-    readonly button: number;
-};
-```
-
 ### `ChangedElsewhereCopy` (interface)
 
 ```ts
@@ -718,16 +264,6 @@ interface ChangedElsewhereCopy {
 component from '../shared/ui/status/Chip.svelte'
 ```
 
-### `classifyDevice` (function)
-
-```ts
-function classifyDevice(input: {
-    coarse: boolean;
-    screenWidth: number;
-    screenHeight: number;
-}): DeviceClass;
-```
-
 ### `classifyFormFactor` (function)
 
 ```ts
@@ -738,18 +274,6 @@ function classifyFormFactor(width: number, height: number): FormFactor;
 
 ```ts
 function classifyHeightTier(height: number): HeightTier;
-```
-
-### `CollapseLevel` (type)
-
-```ts
-type CollapseLevel = 0 | 1 | 2 | 3;
-```
-
-### `collapseLevel` (function)
-
-```ts
-function collapseLevel(available: number, widths: readonly [number, number, number]): CollapseLevel;
 ```
 
 ### `Command` (interface)
@@ -772,12 +296,6 @@ interface CommandDef<Z extends z.ZodType = z.ZodType> {
     readonly id: string;
     readonly schema: Z;
 }
-```
-
-### `COMPACT_MAX_HEIGHT` (const)
-
-```ts
-const COMPACT_MAX_HEIGHT = 340;
 ```
 
 ### `CompiledContentData` (interface)
@@ -804,109 +322,10 @@ interface ComponentDef<S extends FieldSchema = FieldSchema> {
 }
 ```
 
-### `CompositeTarget` (class)
-
-```ts
-class CompositeTarget {
-    readonly stage: Container;
-    readonly sprite: Sprite;
-    readonly texture: RenderTexture;
-    private readonly width;
-    constructor(size: {
-        readonly width: number;
-        readonly height: number;
-    });
-    adopt(frame: LetterboxFrame): void;
-    resize(height: number): void;
-    destroy(): void;
-}
-```
-
-### `ContentHashMismatch` (class)
-
-```ts
-class ContentHashMismatch extends ContentHashMismatchBase {
-}
-```
-
 ### `contentHashOf` (function)
 
 ```ts
 function contentHashOf(data: unknown): string;
-```
-
-### `ControlsCopy` (interface)
-
-```ts
-interface ControlsCopy {
-    readonly title: string;
-    readonly keyboard: string;
-    readonly gamepad: string;
-    readonly touch: string;
-    readonly inUse: string;
-    readonly reset: string;
-    readonly press: string;
-    rebind(action: string, device: string): string;
-    capturing(action: string, device: string, secondsLeft: number): string;
-    conflict(action: string, other: string): string;
-    reserved(action: string): string;
-    timedOut(action: string): string;
-    saved(action: string): string;
-}
-```
-
-### `controlsMessage` (function)
-
-```ts
-function controlsMessage(state: ControlsState, copy: ControlsCopy, labelOf: (action: string) => string): string;
-```
-
-### `ControlsRow` (interface)
-
-```ts
-interface ControlsRow {
-    readonly id: string;
-    readonly label: string;
-    readonly binding: PromptBinding;
-}
-```
-
-### `ControlsSection` (svelte)
-
-```ts
-component from '../app/screens/settings/ControlsSection.svelte'
-```
-
-### `ControlsState` (type)
-
-```ts
-type ControlsState = {
-    readonly kind: 'list';
-} | {
-    readonly kind: 'capturing';
-    readonly action: string;
-    readonly device: RebindDevice;
-    readonly secondsLeft: number;
-} | {
-    readonly kind: 'conflict';
-    readonly action: string;
-    readonly with: string;
-} | {
-    readonly kind: 'reserved';
-    readonly action: string;
-} | {
-    readonly kind: 'timed-out';
-    readonly action: string;
-} | {
-    readonly kind: 'saved';
-    readonly action: string;
-};
-```
-
-### `ControlsTouchMode` (type)
-
-```ts
-type ControlsTouchMode = 'buttons' | 'swipe';
 ```
 
 ### `CORE_SETTINGS` (const)
@@ -927,12 +346,6 @@ interface CoreSettings {
 }
 ```
 
-### `CornerControls` (svelte)
-
-```ts
-component from '../shared/ui/layout/CornerControls.svelte'
-```
-
 ### `createCamera2d` (function)
 
 ```ts
@@ -943,12 +356,6 @@ function createCamera2d(stage: Container, options: Camera2dOptions, seed?: numbe
 
 ```ts
 function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwner;
-```
-
-### `createHaptics` (function)
-
-```ts
-function createHaptics(options: HapticsOptions): Haptics;
 ```
 
 ### `createPixiRenderer` (function)
@@ -969,73 +376,6 @@ function createPostFilterSlot(target: PostFilterTarget): PostFilterSlot;
 function createT<Messages extends Record<string, unknown>>(messages: Messages): Translate<Messages>;
 ```
 
-### `CURSOR_IDLE_MS` (const)
-
-```ts
-const CURSOR_IDLE_MS = 2000;
-```
-
-### `cursorHidden` (function)
-
-```ts
-function cursorHidden(state: {
-    kind: ScreenKind | undefined;
-    paused: boolean;
-    lastInput: CursorInput;
-    msSincePointerMove: number;
-}): boolean;
-```
-
-### `CursorInput` (type)
-
-```ts
-type CursorInput = 'pointer' | 'keyboard' | 'gamepad' | 'touch';
-```
-
-### `CursorRunner` (class)
-
-```ts
-class CursorRunner {
-    private readonly target;
-    private readonly options;
-    private lastInput;
-    private movedAt;
-    private readonly now;
-    constructor(target: HTMLElement, options?: {
-        now?: () => number;
-        kind?: () => ScreenKind | undefined;
-        paused?: () => boolean;
-    });
-    noteInput(input: CursorInput): void;
-    attach(events?: EventTarget): () => void;
-    tick(): void;
-}
-```
-
-### `DEFAULT_BAR_COLOR` (const)
-
-```ts
-const DEFAULT_BAR_COLOR = 3023407;
-```
-
-### `DEFAULT_BAR_FRACTION` (const)
-
-```ts
-const DEFAULT_BAR_FRACTION = 0.05;
-```
-
-### `DEFAULT_FIELD_COLOR` (const)
-
-```ts
-const DEFAULT_FIELD_COLOR = 0;
-```
-
-### `DEFAULT_QUALITY` (const)
-
-```ts
-const DEFAULT_QUALITY: QualityTier;
-```
-
 ### `defaultContent` (function)
 
 ```ts
@@ -1046,12 +386,6 @@ function defaultContent(): GameContent;
 
 ```ts
 function defaultScreens(game: ScreensGame): ScreenDef[];
-```
-
-### `defaultSlot` (function)
-
-```ts
-function defaultSlot(slots: readonly SaveSlotView[]): number | undefined;
 ```
 
 ### `defineCommand` (function)
@@ -1137,42 +471,10 @@ function defineSystem(name: string, phase: Phase, run: (ctx: SimContext) => void
 function defineSystem(spec: SystemSpec): SystemDef;
 ```
 
-### `DeviceClass` (type)
-
-```ts
-type DeviceClass = 'phone' | 'tablet' | 'desktop';
-```
-
-### `DeviceStorage` (interface)
-
-```ts
-interface DeviceStorage {
-    get(key: string): string | null;
-    set(key: string, value: string): void;
-    remove(key: string): void;
-}
-```
-
 ### `Dialog` (svelte)
 
 ```ts
 component from '../shared/ui/dialog/Dialog.svelte'
-```
-
-### `DISPLAY_QUALITIES` (const)
-
-```ts
-const DISPLAY_QUALITIES: readonly DisplayQuality[];
-```
-
-### `DisplayCopy` (interface)
-
-```ts
-interface DisplayCopy {
-    readonly gate: LandscapeGateCopy;
-    readonly rotate: Readonly<Record<'portrait' | 'landscape', RotateHintCopy>>;
-    readonly toast: RotateToastCopy;
-}
 ```
 
 ### `DisplayMetricsPayload` (interface)
@@ -1204,71 +506,6 @@ interface DisplayMetricsPayload {
 
 ```ts
 const DisplayMetricsPayloadSchema: z.ZodType<DisplayMetricsPayload>;
-```
-
-### `DisplayQuality` (type)
-
-```ts
-type DisplayQuality = 'high' | 'medium' | 'low';
-```
-
-### `DisplaySection` (svelte)
-
-```ts
-component from '../app/screens/settings/DisplaySection.svelte'
-```
-
-### `DisplaySettings` (interface)
-
-```ts
-interface DisplaySettings {
-    readonly quality: QualityTier;
-}
-```
-
-### `displaySettingsSchema` (const)
-
-```ts
-const displaySettingsSchema: z.ZodType<DisplaySettings, {
-    quality?: unknown;
-}>;
-```
-
-### `DragPointer` (type)
-
-```ts
-type DragPointer = 'touch' | 'mouse';
-```
-
-### `DragSink` (interface)
-
-```ts
-interface DragSink {
-    drag(dxPx: number, pointer: DragPointer): void;
-}
-```
-
-### `DragStart` (interface)
-
-```ts
-interface DragStart {
-    readonly pointerType: string;
-    readonly button: number;
-}
-```
-
-### `DragTracker` (interface)
-
-```ts
-interface DragTracker {
-    down(id: number, x: number, start: {
-        readonly pointerType: string;
-        readonly button: number;
-    }): boolean;
-    move(id: number, x: number): void;
-    up(id: number): void;
-    cancel(): void;
-}
 ```
 
 ### `DrawContext` (interface)
@@ -1316,18 +553,6 @@ interface DrawTextOptions {
 }
 ```
 
-### `endonymOf` (function)
-
-```ts
-function endonymOf(tag: string): string;
-```
-
-### `enterFullscreen` (function)
-
-```ts
-function enterFullscreen(doc: Document, screen?: Screen): Promise<void>;
-```
-
 ### `EntitlementsPayload` (interface)
 
 ```ts
@@ -1368,33 +593,10 @@ interface EntityView<C extends SceneNode = Container> {
 }
 ```
 
-### `EntityViewFactory` (type)
-
-```ts
-type EntityViewFactory<C extends SceneNode = Container> = (row: RenderRow, componentId?: string) => EntityView<C> | undefined;
-```
-
-### `EntityViewResolver` (type)
-
-```ts
-type EntityViewResolver<C extends SceneNode = Container> = EntityViewFactory<C> | Readonly<Record<string, EntityViewFactory<C>>>;
-```
-
 ### `ERROR_CODES` (const)
 
 ```ts
 const ERROR_CODES: readonly ["UNSUPPORTED", "NOT_READY", "TIMEOUT", "RATE_LIMITED", "QUOTA_EXCEEDED", "INVALID_PAYLOAD", "DENIED", "OFFLINE", "CANCELLED", "INTERNAL"];
-```
-
-### `ErrorAction` (interface)
-
-```ts
-interface ErrorAction {
-    readonly id: string;
-    readonly label: string;
-    readonly kind: 'primary' | 'secondary';
-    readonly onSelect: () => void;
-}
 ```
 
 ### `ErrorCode` (type)
@@ -1409,12 +611,6 @@ type ErrorCode = (typeof ERROR_CODES)[number];
 const ErrorCodeSchema: z.ZodType<ErrorCode>;
 ```
 
-### `ErrorPanel` (svelte)
-
-```ts
-component from '../shared/ui/status/ErrorPanel.svelte'
-```
-
 ### `EventDef` (interface)
 
 ```ts
@@ -1425,44 +621,10 @@ interface EventDef<Z extends z.ZodType = z.ZodType> {
 }
 ```
 
-### `EventScores` (type)
-
-```ts
-type EventScores = Readonly<Record<string, {
-    readonly board: string;
-    readonly score: (payload: unknown) => number;
-}>>;
-```
-
-### `EventSounds` (type)
-
-```ts
-type EventSounds = Readonly<Record<string, string | {
-    readonly alias: string;
-    readonly bus?: AudioBusName;
-    readonly gain?: number;
-}>>;
-```
-
-### `FILTER_VERTEX` (const)
-
-```ts
-const FILTER_VERTEX = "\nin vec2 aPosition;\nout vec2 vTextureCoord;\nout vec2 vPixelCoord;\n\nuniform vec4 uInputSize;\nuniform vec4 uOutputFrame;\nuniform vec4 uOutputTexture;\n\nvec4 filterVertexPosition(void) {\n    vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;\n    position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;\n    position.y = position.y * (2.0 * uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;\n    return vec4(position, 0.0, 1.0);\n}\n\nvec2 filterTextureCoord(void) {\n    return aPosition * (uOutputFrame.zw * uInputSize.zw);\n}\n\nvoid main(void) {\n    gl_Position = filterVertexPosition();\n    vTextureCoord = filterTextureCoord();\n    vPixelCoord = aPosition * uOutputFrame.zw + uOutputFrame.xy;\n}\n";
-```
-
 ### `filterPrograms` (function)
 
 ```ts
 function filterPrograms(name: string, fragmentGlsl: string, fragmentWgsl: string): FilterProgramsResult;
-```
-
-### `FilterProgramsResult` (interface)
-
-```ts
-interface FilterProgramsResult {
-    readonly glProgram: GlProgram;
-    readonly gpuProgram: GpuProgram;
-}
 ```
 
 ### `findRukenSdkMarkers` (function)
@@ -1477,18 +639,6 @@ function findRukenSdkMarkers(code: string): string[];
 function findTauriMarkers(code: string): string[];
 ```
 
-### `fitColumns` (function)
-
-```ts
-function fitColumns<T>(shape: GridShape, groups: readonly PageGroup<T>[]): GridShape;
-```
-
-### `fitShape` (function)
-
-```ts
-function fitShape(most: GridShape, box: GridBox, minTile: number, gap: number): GridShape;
-```
-
 ### `Flow` (interface)
 
 ```ts
@@ -1499,62 +649,6 @@ interface Flow {
     readonly settled: Effect.Effect<void>;
 }
 const Flow: Context.Tag<Flow, Flow>;
-```
-
-### `FlowFailure` (type)
-
-```ts
-type FlowFailure = AssetLoadFailed | LoadStalled | {
-    readonly _tag: 'ScreenFailed';
-    readonly screen: string;
-    readonly cause: unknown;
-};
-```
-
-### `FocusNavigator` (class)
-
-```ts
-class FocusNavigator {
-    private engaged;
-    private paused;
-    private guarded;
-    private readonly root;
-    constructor(root?: () => ParentNode);
-    attach(target?: EventTarget): () => void;
-    guard(): void;
-    setPaused(paused: boolean): void;
-    recover(): void;
-    move(direction: 'next' | 'previous'): void;
-    steer(direction: NavDirection): boolean;
-    page(delta: -1 | 1): boolean;
-    adjust(delta: -1 | 1): boolean;
-    confirm(): void;
-    back(): void;
-}
-```
-
-### `formatDateTime` (const)
-
-```ts
-const formatDateTime: (locale: string, epochMs: number, options?: Intl.DateTimeFormatOptions) => string;
-```
-
-### `formatDuration` (function)
-
-```ts
-function formatDuration(locale: string, milliseconds: number): string;
-```
-
-### `formatNumber` (const)
-
-```ts
-const formatNumber: (locale: string, value: number, options?: Intl.NumberFormatOptions) => string;
-```
-
-### `formatPercent` (const)
-
-```ts
-const formatPercent: (locale: string, fraction: number) => string;
 ```
 
 ### `FormFactor` (type)
@@ -1586,18 +680,6 @@ interface FullscreenRes {
 
 ```ts
 const FullscreenResSchema: z.ZodType<FullscreenRes>;
-```
-
-### `FullscreenSupport` (type)
-
-```ts
-type FullscreenSupport = FullscreenRes['support'];
-```
-
-### `fullscreenSupport` (function)
-
-```ts
-function fullscreenSupport(doc: Document, nav: Navigator): FullscreenSupport;
 ```
 
 ### `GameCopy` (type)
@@ -1636,12 +718,6 @@ interface GameDefinition<S = never> {
     };
     readonly seams?: RuntimeSeams;
 }
-```
-
-### `GameOrientation` (type)
-
-```ts
-type GameOrientation = 'portrait' | 'landscape' | 'any';
 ```
 
 ### `GameRenderer` (interface)
@@ -1716,18 +792,6 @@ class GameSpecError extends Error {
 }
 ```
 
-### `GateInputs` (type)
-
-```ts
-type GateInputs = {
-    formFactor: FormFactor;
-    coarse: boolean;
-    support: FullscreenSupport;
-    fullscreen: boolean;
-    installed: boolean;
-};
-```
-
 ### `Geometry` (interface)
 
 ```ts
@@ -1752,52 +816,6 @@ interface Geometry {
 }
 ```
 
-### `GeometryInput` (interface)
-
-```ts
-interface GeometryInput {
-    readonly layout: {
-        readonly width: number;
-        readonly height: number;
-    };
-    readonly visual?: {
-        readonly height: number;
-        readonly offsetTop: number;
-    } | undefined;
-    readonly envSafeArea: Insets;
-    readonly host?: HostDisplay | undefined;
-    readonly hiddenBarBottom?: number | undefined;
-    readonly restingLayout?: {
-        readonly width: number;
-        readonly height: number;
-    } | undefined;
-}
-```
-
-### `GeometryOwner` (interface)
-
-```ts
-interface GeometryOwner {
-    readonly geometry: GeometryState;
-    onChange(listener: (geometry: Geometry) => void): () => void;
-    setHostDisplay(display: HostDisplay | undefined): void;
-    remeasure(): void;
-    dispose(): void;
-}
-```
-
-### `GeometryOwnerOptions` (interface)
-
-```ts
-interface GeometryOwnerOptions {
-    readonly window: ViewportWindow;
-    readonly root: HTMLElement;
-    readonly host?: HostDisplay | undefined;
-    readonly timers?: Timers | undefined;
-    readonly readEnvSafeArea?: (() => Insets) | undefined;
-}
-```
-
 ### `GeometryState` (interface)
 
 ```ts
@@ -1806,150 +824,16 @@ interface GeometryState {
 }
 ```
 
-### `GESTURE_TUNING` (const)
-
-```ts
-const GESTURE_TUNING: GestureTuning;
-```
-
-### `GestureName` (type)
-
-```ts
-type GestureName = (typeof GESTURE_NAMES)[number];
-```
-
-### `GestureSink` (interface)
-
-```ts
-interface GestureSink {
-    hold(gesture: Exclude<GestureName, 'camera-drag'>): void;
-    release(gesture: Exclude<GestureName, 'camera-drag'>): void;
-    pulse(gesture: Exclude<GestureName, 'camera-drag'>): void;
-}
-```
-
-### `GestureTuning` (interface)
-
-```ts
-interface GestureTuning {
-    readonly deadZonePx: number;
-    readonly saturationPx: number;
-    readonly flickPx: number;
-    readonly flickMs: number;
-}
-```
-
-### `GlyphFamily` (type)
-
-```ts
-type GlyphFamily = 'xbox' | 'playstation' | 'generic';
-```
-
-### `GridBox` (interface)
-
-```ts
-interface GridBox {
-    readonly width: number;
-    readonly height: number;
-}
-```
-
-### `GridPage` (interface)
-
-```ts
-interface GridPage<T> {
-    readonly key: string;
-    readonly groupId: string;
-    readonly title: string;
-    readonly slots: readonly (T | undefined)[];
-}
-```
-
-### `GridShape` (interface)
-
-```ts
-interface GridShape {
-    readonly columns: number;
-    readonly rows: number;
-}
-```
-
-### `HapticPulse` (interface)
-
-```ts
-interface HapticPulse {
-    readonly duration: number;
-    readonly strong: number;
-    readonly weak: number;
-    readonly phone?: number | readonly number[] | undefined;
-}
-```
-
-### `Haptics` (interface)
-
-```ts
-interface Haptics {
-    pulse(pulse: HapticPulse): void;
-    readonly supported: boolean;
-    setEnabled(enabled: boolean): void;
-}
-const Haptics: Context.Tag<Haptics, Haptics>;
-```
-
-### `HapticsOptions` (interface)
-
-```ts
-interface HapticsOptions {
-    readonly getGamepads?: () => readonly (PadLike | null)[];
-    readonly vibrate?: (pattern: number | number[]) => boolean;
-    readonly touch: () => boolean;
-}
-```
-
-### `HapticsSettings` (interface)
-
-```ts
-interface HapticsSettings {
-    readonly enabled: boolean;
-}
-```
-
-### `hapticsSettingsSchema` (const)
-
-```ts
-const hapticsSettingsSchema: z.ZodType<HapticsSettings, unknown>;
-```
-
 ### `HeightTier` (type)
 
 ```ts
 type HeightTier = 'short' | 'compact' | undefined;
 ```
 
-### `HiddenBrowserBar` (class)
-
-```ts
-class HiddenBrowserBar {
-    static readonly FALLBACK_HEIGHT = 64;
-    static readonly MIN_PORTRAIT_GAP = 80;
-    static readonly MIN_HEIGHT = 40;
-    static readonly MAX_HEIGHT = 120;
-    static readonly MAX_LEARNED_GAP = 200;
-    private readonly honestGap;
-    measure(sample: BarSample): number;
-}
-```
-
 ### `HOST_EXIT_CAP` (const)
 
 ```ts
 const HOST_EXIT_CAP: Duration.Duration;
-```
-
-### `HostDisplay` (type)
-
-```ts
-type HostDisplay = Pick<DisplayMetricsPayload, 'safeArea' | 'hostReserved' | 'scale'>;
 ```
 
 ### `HostError` (class)
@@ -2048,21 +932,6 @@ interface HostingSeams {
 }
 ```
 
-### `HostKind` (type)
-
-```ts
-type HostKind = 'ruken' | 'standalone' | 'tauri';
-```
-
-### `hostReservedInsets` (function)
-
-```ts
-function hostReservedInsets(host: HostDisplay | undefined): {
-    left: number;
-    right: number;
-};
-```
-
 ### `IconButton` (svelte)
 
 ```ts
@@ -2097,44 +966,6 @@ interface Input {
 const Input: Context.Tag<Input, Input>;
 ```
 
-### `INPUT_SETTINGS_DEFAULT` (const)
-
-```ts
-const INPUT_SETTINGS_DEFAULT: InputSettings;
-```
-
-### `InputBinding` (interface)
-
-```ts
-interface InputBinding {
-    readonly keys: readonly string[];
-    readonly pad: readonly number[];
-    readonly touch: boolean;
-    readonly stick?: readonly StickDirection[] | undefined;
-    readonly gesture?: readonly GestureName[] | undefined;
-    readonly required?: boolean | undefined;
-    readonly context?: InputContext | undefined;
-}
-```
-
-### `InputContext` (type)
-
-```ts
-type InputContext = 'play' | 'menu' | 'any';
-```
-
-### `InputContextNow` (type)
-
-```ts
-type InputContextNow = 'play' | 'menu';
-```
-
-### `InputDevice` (type)
-
-```ts
-type InputDevice = 'keyboard' | 'gamepad' | 'touch';
-```
-
 ### `InputMap` (interface)
 
 ```ts
@@ -2148,22 +979,6 @@ interface InputMap {
     readonly touchStick: boolean;
     toCommand(held: Iterable<string>, tick: number, reading?: AnalogReading): readonly Command[];
     attach(target: Window): InputSource;
-}
-```
-
-### `InputMethod` (type)
-
-```ts
-type InputMethod = 'keyboard' | 'gamepad' | 'touch';
-```
-
-### `InputMethodTracker` (class)
-
-```ts
-class InputMethodTracker {
-    method: InputMethod;
-    note(method: InputMethod): void;
-    attach(target?: EventTarget): () => void;
 }
 ```
 
@@ -2191,41 +1006,12 @@ interface InputModePayload {
 const InputModePayloadSchema: z.ZodType<InputModePayload>;
 ```
 
-### `InputOptions` (interface)
-
-```ts
-interface InputOptions {
-    readonly target: Window;
-    readonly profile: InputProfile;
-    readonly bus: PresentationBus;
-    readonly settings?: SettingsStore<unknown> | undefined;
-    readonly hostInput?: Hosting['input'] | undefined;
-}
-```
-
 ### `InputProfile` (interface)
 
 ```ts
 interface InputProfile {
     readonly id: string;
     readonly bindings: Readonly<Record<string, InputBinding>>;
-}
-```
-
-### `InputProfileInput` (interface)
-
-```ts
-interface InputProfileInput {
-    readonly id: string;
-    readonly bindings: Readonly<Record<string, {
-        readonly keys?: readonly string[] | undefined;
-        readonly pad?: readonly number[] | undefined;
-        readonly touch?: boolean | undefined;
-        readonly stick?: readonly StickDirection[] | undefined;
-        readonly gesture?: readonly GestureName[] | undefined;
-        readonly required?: boolean | undefined;
-        readonly context?: InputContext | undefined;
-    }>>;
 }
 ```
 
@@ -2241,22 +1027,6 @@ const inputProfileSchema: z.ZodType<InputProfile, InputProfileInput>;
 function inputs(...maps: readonly InputMap[]): InputMap;
 ```
 
-### `InputSettings` (interface)
-
-```ts
-interface InputSettings {
-    readonly profile: string;
-    readonly overrides: Readonly<Record<string, BindingOverride>>;
-    readonly touchMode?: TouchMode | undefined;
-}
-```
-
-### `inputSettingsSchema` (const)
-
-```ts
-const inputSettingsSchema: z.ZodType<InputSettings, unknown>;
-```
-
 ### `InputSource` (interface)
 
 ```ts
@@ -2269,63 +1039,16 @@ interface InputSource {
 }
 ```
 
-### `Insets` (interface)
-
-```ts
-interface Insets {
-    readonly top: number;
-    readonly right: number;
-    readonly bottom: number;
-    readonly left: number;
-}
-```
-
 ### `installGlobalErrorHandlers` (function)
 
 ```ts
 function installGlobalErrorHandlers(win: Window, onFatal: (errorClass: string) => void, onRejection?: (errorClass: string) => void): () => void;
 ```
 
-### `interceptBackGesture` (function)
-
-```ts
-function interceptBackGesture(win: Window, onBack: () => boolean): () => void;
-```
-
-### `interpolatePose` (function)
-
-```ts
-function interpolatePose(curr: Readonly<FieldRecord>, prev: Readonly<FieldRecord> | undefined, alpha: number): Pose;
-```
-
-### `isDuckDuckGo` (function)
-
-```ts
-function isDuckDuckGo(nav: object): boolean;
-```
-
-### `isFullscreen` (function)
-
-```ts
-function isFullscreen(doc: Document): boolean;
-```
-
-### `isTap` (function)
-
-```ts
-function isTap(dx: number, dy: number): boolean;
-```
-
 ### `KeyBindings` (type)
 
 ```ts
 type KeyBindings<Z extends z.ZodType> = Readonly<Record<string, Payload<Z>>>;
-```
-
-### `keyLabel` (function)
-
-```ts
-function keyLabel(code: string, layout?: ReadonlyMap<string, string>): string;
 ```
 
 ### `keys` (function)
@@ -2350,65 +1073,6 @@ interface KeysOptions<Z extends z.ZodType> {
 }
 ```
 
-### `LandscapeGate` (svelte)
-
-```ts
-component from '../shared/ui/display/LandscapeGate.svelte'
-```
-
-### `landscapeGate` (function)
-
-```ts
-function landscapeGate(inputs: GateInputs): LandscapeGateState;
-```
-
-### `LandscapeGateCopy` (interface)
-
-```ts
-interface LandscapeGateCopy {
-    readonly title: string;
-    readonly body: string;
-    readonly go: string;
-    readonly uprightTitle: string;
-    readonly uprightBody: string;
-}
-```
-
-### `LandscapeGateState` (type)
-
-```ts
-type LandscapeGateState = 'none' | 'fullscreen' | 'rotate-or-install';
-```
-
-### `LanguageCopy` (interface)
-
-```ts
-interface LanguageCopy {
-    readonly title: string;
-    readonly automatic: string;
-}
-```
-
-### `LanguageSection` (svelte)
-
-```ts
-component from '../app/screens/settings/LanguageSection.svelte'
-```
-
-### `LeaderboardCopy` (interface)
-
-```ts
-interface LeaderboardCopy {
-    readonly title: string;
-    readonly loading: string;
-    readonly empty: string;
-    readonly unavailable: string;
-    readonly offline: string;
-    readonly you: string;
-    readonly more: (count: number) => string;
-}
-```
-
 ### `LeaderboardEntry` (interface)
 
 ```ts
@@ -2417,17 +1081,6 @@ interface LeaderboardEntry {
     displayName: string;
     score: number;
     isMe: boolean;
-}
-```
-
-### `LeaderboardEntryView` (interface)
-
-```ts
-interface LeaderboardEntryView {
-    readonly rank: number;
-    readonly displayName: string;
-    readonly score: number;
-    readonly isMe: boolean;
 }
 ```
 
@@ -2466,17 +1119,6 @@ interface LeaderboardQuery {
 const LeaderboardQuerySchema: z.ZodType<LeaderboardQuery>;
 ```
 
-### `Leaderboards` (interface)
-
-```ts
-interface Leaderboards<Board extends string = string> {
-    submitScore(board: Board, score: number): Effect.Effect<BoardState>;
-    readBoard(board: Board, query?: BoardQuery): Effect.Effect<BoardView>;
-    state(board: Board): BoardState;
-}
-const Leaderboards: Context.Tag<Leaderboards, Leaderboards>;
-```
-
 ### `LeaderboardSubmitMeta` (type)
 
 ```ts
@@ -2505,23 +1147,6 @@ interface LeaderboardSubmitRes {
 const LeaderboardSubmitResSchema: z.ZodType<LeaderboardSubmitRes>;
 ```
 
-### `LeaderboardView` (type)
-
-```ts
-type LeaderboardView = {
-    readonly state: 'loading';
-} | {
-    readonly state: 'entries';
-    readonly entries: readonly LeaderboardEntryView[];
-} | {
-    readonly state: 'empty';
-} | {
-    readonly state: 'unavailable';
-} | {
-    readonly state: 'offline';
-};
-```
-
 ### `lerp` (function)
 
 ```ts
@@ -2532,70 +1157,6 @@ function lerp(a: number, b: number, t: number): number;
 
 ```ts
 function lerpAngle(a: number, b: number, t: number): number;
-```
-
-### `LetterboxFrame` (class)
-
-```ts
-class LetterboxFrame {
-    readonly scene: Container;
-    readonly backdrop: Container;
-    readonly root: Container;
-    readonly world: Container;
-    readonly ui: Container;
-    readonly field: Graphics;
-    readonly mask: Graphics;
-    readonly bars: Container;
-    readonly topBar: Graphics;
-    readonly bottomBar: Graphics;
-    private readonly logicalWidth;
-    private readonly logicalHeight;
-    private readonly barFraction;
-    private readonly barColor;
-    private readonly fieldColor;
-    constructor(options: LetterboxOptions);
-    layout(viewWidth: number, viewHeight: number): LetterboxGeometry;
-    setBarBlack(amount: number): void;
-    destroy(): void;
-}
-```
-
-### `LetterboxGeometry` (interface)
-
-```ts
-interface LetterboxGeometry {
-    scale: number;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    gameplay: {
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-    };
-    scenery: {
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-    };
-    portrait: boolean;
-    fieldHeight: number;
-}
-```
-
-### `LetterboxOptions` (interface)
-
-```ts
-interface LetterboxOptions {
-    readonly logicalWidth: number;
-    readonly logicalHeight: number;
-    readonly barFraction?: number | undefined;
-    readonly barColor?: number | undefined;
-    readonly fieldColor?: number | undefined;
-}
 ```
 
 ### `LifecyclePayload` (interface)
@@ -2619,43 +1180,10 @@ const LifecyclePayloadSchema: z.ZodType<LifecyclePayload>;
 type LifecycleReason = 'hidden' | 'blurred' | 'host-overlay' | 'ad' | 'offline-grace';
 ```
 
-### `liveDeviceStorage` (function)
-
-```ts
-function liveDeviceStorage(win: Pick<Window, 'localStorage'>, prefix: string): DeviceStorage | undefined;
-```
-
-### `Loaded` (interface)
-
-```ts
-interface Loaded<S> {
-    readonly slot: number;
-    readonly data: S;
-    readonly meta: SlotMeta | undefined;
-    readonly snapshot?: Uint8Array;
-}
-```
-
 ### `LoaderOverlay` (svelte)
 
 ```ts
 component from '../shared/ui/status/LoaderOverlay.svelte'
-```
-
-### `LoadMeter` (interface)
-
-```ts
-interface LoadMeter {
-    progress(): void;
-    guard<A, E, R>(wait: Effect.Effect<A, E, R>, info: GuardInfo): Effect.Effect<A, E | LoadStalled, R>;
-}
-```
-
-### `LoadStalled` (class)
-
-```ts
-class LoadStalled extends LoadStalledBase {
-}
 ```
 
 ### `Locale` (interface)
@@ -2673,87 +1201,6 @@ interface Locale {
 const Locale: Context.Tag<Locale, Locale>;
 ```
 
-### `LOCALE_SAVE_KEY` (const)
-
-```ts
-const LOCALE_SAVE_KEY = "automata.locale";
-```
-
-### `LocaleCandidates` (interface)
-
-```ts
-interface LocaleCandidates {
-    readonly hosted: string | undefined;
-    readonly saved: string | undefined;
-    readonly browser: readonly string[];
-    readonly locales: readonly string[];
-    readonly baseLocale: string;
-}
-```
-
-### `LocaleDef` (interface)
-
-```ts
-interface LocaleDef {
-    readonly locales: readonly string[];
-    readonly baseLocale: string;
-    overwriteGetLocale?(fn: () => string): void;
-    overwriteSetLocale?(fn: (locale: string) => void): void;
-}
-```
-
-### `lockOverscroll` (function)
-
-```ts
-function lockOverscroll(node: HTMLElement): {
-    destroy(): void;
-};
-```
-
-### `makeAudio` (const)
-
-```ts
-const makeAudio: (options: AudioServices & AudioOptions) => Effect.Effect<Audio & AudioBuses, never, Scope.Scope>;
-```
-
-### `makeInput` (function)
-
-```ts
-function makeInput(options: InputOptions): Effect.Effect<Input, never, Scope.Scope>;
-```
-
-### `makeLeaderboards` (const)
-
-```ts
-const makeLeaderboards: Effect.Effect<Leaderboards, never, Hosting | PresentationBus>;
-```
-
-### `makeSaves` (function)
-
-```ts
-function makeSaves(def: SaveDef<unknown> | undefined, options: {
-    readonly contentHash: string;
-}): Effect.Effect<Saves, HostError, Hosting | PresentationBus | Scope.Scope>;
-```
-
-### `matchLocale` (function)
-
-```ts
-function matchLocale(requested: string, locales: readonly string[]): string | undefined;
-```
-
-### `MAX_FRAME_MS` (const)
-
-```ts
-const MAX_FRAME_MS = 100;
-```
-
-### `MAX_RESOLUTION` (const)
-
-```ts
-const MAX_RESOLUTION = 2;
-```
-
 ### `MAX_TURN_UNITS_PER_STEP` (const)
 
 ```ts
@@ -2766,45 +1213,10 @@ const MAX_TURN_UNITS_PER_STEP = 8192;
 function measureGeometry(input: GeometryInput): Geometry;
 ```
 
-### `meetsTier` (function)
-
-```ts
-function meetsTier(tier: QualityTier, min: QualityTier): boolean;
-```
-
-### `MenuAction` (type)
-
-```ts
-type MenuAction = 'nav-up' | 'nav-down' | 'nav-left' | 'nav-right' | 'confirm' | 'back' | 'page-prev' | 'page-next' | 'adjust-dec' | 'adjust-inc' | 'pause';
-```
-
-### `MessageFunction` (type)
-
-```ts
-type MessageFunction = (inputs?: any) => string;
-```
-
 ### `Modal` (svelte)
 
 ```ts
 component from '../shared/ui/dialog/Modal.svelte'
-```
-
-### `ModalProps` (interface)
-
-```ts
-interface ModalProps {
-    title: string;
-    closeLabel: string;
-    onclose: () => void;
-    onbackdrop?: (() => void) | undefined;
-    children?: Snippet | undefined;
-    head?: Snippet | undefined;
-    wide?: boolean | undefined;
-    fill?: boolean | undefined;
-    actions?: Snippet | undefined;
-    testId?: string | undefined;
-}
 ```
 
 ### `ModelInvalid` (class)
@@ -2814,90 +1226,10 @@ class ModelInvalid extends ModelInvalidBase {
 }
 ```
 
-### `MusicOptions` (interface)
-
-```ts
-interface MusicOptions {
-    readonly fromSeconds?: number;
-    readonly loop?: {
-        readonly start: number;
-        readonly end: number;
-    };
-}
-```
-
-### `NavDirection` (type)
-
-```ts
-type NavDirection = 'up' | 'down' | 'left' | 'right';
-```
-
-### `nearestTarget` (function)
-
-```ts
-function nearestTarget(x: number, y: number, targets: readonly TouchTarget[], margin?: number): string | undefined;
-```
-
-### `negotiateLocale` (function)
-
-```ts
-function negotiateLocale(candidates: LocaleCandidates): string;
-```
-
-### `onFullscreenChange` (function)
-
-```ts
-function onFullscreenChange(doc: Document, listener: () => void): () => void;
-```
-
 ### `OptionGroup` (svelte)
 
 ```ts
 component from '../shared/ui/layout/OptionGroup.svelte'
-```
-
-### `PAD_FOCUS` (const)
-
-```ts
-const PAD_FOCUS: FocusOptions;
-```
-
-### `PadInfo` (interface)
-
-```ts
-interface PadInfo {
-    readonly index: number;
-    readonly id: string;
-    readonly standard: boolean;
-}
-```
-
-### `padKeyEvents` (const)
-
-```ts
-const padKeyEvents: WeakSet<Event>;
-```
-
-### `padLabel` (function)
-
-```ts
-function padLabel(button: number, glyphs: PromptGlyphs, copy: PromptCopy): string;
-```
-
-### `PadWord` (type)
-
-```ts
-type PadWord = 'bottom' | 'right' | 'left' | 'top' | 'leftBumper' | 'rightBumper' | 'leftTrigger' | 'rightTrigger' | 'select' | 'start' | 'leftStick' | 'rightStick' | 'home';
-```
-
-### `PAGE_SWIPE` (const)
-
-```ts
-const PAGE_SWIPE: {
-    readonly tapSlopPx: 8;
-    readonly flickPxPerMs: 0.4;
-    readonly wheelStepPx: 40;
-};
 ```
 
 ### `PagedGrid` (svelte)
@@ -2906,79 +1238,10 @@ const PAGE_SWIPE: {
 component from '../shared/ui/layout/PagedGrid.svelte'
 ```
 
-### `PagedGridProps` (interface)
-
-```ts
-interface PagedGridProps<T> {
-    label: string;
-    groups: readonly PageGroup<T>[];
-    most: GridShape;
-    page: number;
-    onpage: (page: number) => void;
-    item: Snippet<[T]>;
-    minTile?: number | undefined;
-    gap?: number | undefined;
-    continued?: ((title: string, part: number) => string) | undefined;
-    dotLabel?: ((position: number, total: number) => string) | undefined;
-    testId?: string | undefined;
-}
-```
-
-### `PageGroup` (interface)
-
-```ts
-interface PageGroup<T> {
-    readonly id: string;
-    readonly title: string;
-    readonly items: readonly T[];
-}
-```
-
-### `pageOf` (function)
-
-```ts
-function pageOf<T extends {
-    readonly id: string;
-}>(pages: readonly GridPage<T>[], id: string): number;
-```
-
 ### `PagerDots` (svelte)
 
 ```ts
 component from '../shared/ui/layout/PagerDots.svelte'
-```
-
-### `pagerMode` (function)
-
-```ts
-function pagerMode(count: number, max?: number, available?: number, dotSize?: number): 'dots' | 'counter';
-```
-
-### `paginate` (function)
-
-```ts
-function paginate<T>(groups: readonly PageGroup<T>[], capacity: number, continued?: (title: string, part: number) => string): GridPage<T>[];
-```
-
-### `ParaglideRuntime` (interface)
-
-```ts
-interface ParaglideRuntime {
-    readonly locales: readonly string[];
-    readonly baseLocale: string;
-    overwriteGetLocale(fn: () => string): void;
-    overwriteSetLocale(fn: (locale: string) => void): void;
-}
-```
-
-### `pastEdge` (function)
-
-```ts
-function pastEdge(scroller: {
-    scrollTop: number;
-    scrollHeight: number;
-    clientHeight: number;
-}, dy: number): boolean;
 ```
 
 ### `PauseBehavior` (type)
@@ -2991,24 +1254,6 @@ type PauseBehavior = 'pause' | 'continue';
 
 ```ts
 const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
-```
-
-### `PauseReason` (type)
-
-```ts
-type PauseReason = 'lifecycle' | 'menu' | 'input' | 'display';
-```
-
-### `PHONE_LANDSCAPE_MAX_HEIGHT` (const)
-
-```ts
-const PHONE_LANDSCAPE_MAX_HEIGHT = 500;
-```
-
-### `PHONE_PORTRAIT_MAX_WIDTH` (const)
-
-```ts
-const PHONE_PORTRAIT_MAX_WIDTH = 600;
 ```
 
 ### `PixiRenderer` (interface)
@@ -3084,55 +1329,6 @@ interface PluginDef {
 }
 ```
 
-### `pluralCategory` (const)
-
-```ts
-const pluralCategory: (locale: string, count: number, type?: Intl.PluralRuleType) => Intl.LDMLPluralRule;
-```
-
-### `PointerLatch` (class)
-
-```ts
-class PointerLatch {
-    private readonly onInput;
-    private readonly active;
-    constructor(onInput: (action: string, active: boolean) => void);
-    isHeld(action: string): boolean;
-    press(action: string, pointerId: number): void;
-    release(action: string, pointerId: number): void;
-    releaseAll(): void;
-}
-```
-
-### `PointerTracker` (interface)
-
-```ts
-interface PointerTracker {
-    readonly tuning: {
-        readonly saturationPx: number;
-    };
-    readonly indicator: SwipeIndicatorView | undefined;
-    down(id: number, x: number, y: number, t: number, options?: {
-        readonly steers?: boolean;
-    }): void;
-    move(id: number, x: number, y: number, t: number): void;
-    up(id: number, x: number, y: number, t: number): void;
-    cancel(): void;
-}
-```
-
-### `PORTRAIT_FIELD_TOP` (const)
-
-```ts
-const PORTRAIT_FIELD_TOP = 60;
-```
-
-### `portraitFieldHeight` (function)
-
-```ts
-function portraitFieldHeight(viewHeight: number, scale: number, band: number, baseHeight?: number): number;
-```
-
 ### `Pose` (interface)
 
 ```ts
@@ -3141,12 +1337,6 @@ interface Pose {
     readonly y: number;
     readonly angle: number;
 }
-```
-
-### `poseComponent` (function)
-
-```ts
-function poseComponent(components: Components, componentId?: string | undefined): Readonly<FieldRecord> | undefined;
 ```
 
 ### `postFilter` (function)
@@ -3167,26 +1357,6 @@ interface PostFilterDef {
 }
 ```
 
-### `PostFilterOptions` (interface)
-
-```ts
-interface PostFilterOptions {
-    readonly minTier?: QualityTier | undefined;
-}
-```
-
-### `PostFilterSlot` (interface)
-
-```ts
-interface PostFilterSlot {
-    set(id: string, filters: readonly Filter[], order?: number, options?: PostFilterOptions): () => void;
-    remove(id: string): void;
-    readonly ids: readonly string[];
-    readonly tier: QualityTier;
-    setTier(tier: QualityTier): void;
-}
-```
-
 ### `PostFilterSpec` (interface)
 
 ```ts
@@ -3195,14 +1365,6 @@ interface PostFilterSpec {
     readonly wgsl: string;
     readonly order?: number | undefined;
     readonly minTier?: QualityTier | undefined;
-}
-```
-
-### `PostFilterTarget` (interface)
-
-```ts
-interface PostFilterTarget {
-    filters: Filter[] | null;
 }
 ```
 
@@ -3216,174 +1378,10 @@ interface PresentationBus<Facts = RuntimeFacts> {
 const PresentationBus: Context.Tag<PresentationBus, PresentationBus>;
 ```
 
-### `probeEnvSafeArea` (function)
-
-```ts
-function probeEnvSafeArea(root: HTMLElement): Insets;
-```
-
-### `Prompt` (svelte)
-
-```ts
-component from '../shared/ui/prompts/Prompt.svelte'
-```
-
-### `PromptBinding` (interface)
-
-```ts
-interface PromptBinding {
-    readonly keys: readonly string[];
-    readonly pad: readonly number[];
-    readonly touch: boolean;
-}
-```
-
-### `PromptCopy` (interface)
-
-```ts
-interface PromptCopy {
-    readonly unbound: string;
-    readonly touch: string;
-    readonly pad: Readonly<Record<PadWord, string>>;
-}
-```
-
-### `PromptDevice` (type)
-
-```ts
-type PromptDevice = 'keyboard' | 'gamepad' | 'touch';
-```
-
-### `PromptGlyphs` (type)
-
-```ts
-type PromptGlyphs = 'xbox' | 'playstation' | 'generic';
-```
-
-### `PromptView` (type)
-
-```ts
-type PromptView = {
-    readonly kind: 'key' | 'pad' | 'touch' | 'unbound';
-    readonly label: string;
-};
-```
-
-### `promptView` (function)
-
-```ts
-function promptView(binding: PromptBinding, device: PromptDevice, glyphs: PromptGlyphs, copy: PromptCopy, layout?: ReadonlyMap<string, string>): PromptView;
-```
-
-### `QUALITY_TIERS` (const)
-
-```ts
-const QUALITY_TIERS: readonly ["high", "medium", "low"];
-```
-
-### `QualityBuild` (interface)
-
-```ts
-interface QualityBuild<T> {
-    current(): T;
-    dispose(): void;
-}
-```
-
 ### `QualityTier` (type)
 
 ```ts
 type QualityTier = (typeof QUALITY_TIERS)[number];
-```
-
-### `qualityTierSchema` (const)
-
-```ts
-const qualityTierSchema: z.ZodType<QualityTier, unknown>;
-```
-
-### `readKeyboardLayout` (function)
-
-```ts
-function readKeyboardLayout(nav: Navigator): Promise<ReadonlyMap<string, string> | undefined>;
-```
-
-### `REBIND_TIMEOUT_MS` (const)
-
-```ts
-const REBIND_TIMEOUT_MS = 10000;
-```
-
-### `RebindCancelled` (class)
-
-```ts
-class RebindCancelled extends RebindCancelledBase {
-}
-```
-
-### `RebindConflict` (class)
-
-```ts
-class RebindConflict extends RebindConflictBase {
-}
-```
-
-### `RebindDevice` (type)
-
-```ts
-type RebindDevice = 'keyboard' | 'gamepad';
-```
-
-### `RebindError` (type)
-
-```ts
-type RebindError = RebindConflict | RebindReserved | RebindUnknown;
-```
-
-### `rebindProfile` (function)
-
-```ts
-function rebindProfile(defaults: InputProfile, current: InputProfile, action: string, device: 'keyboard' | 'gamepad', capture: Capture): Either.Either<Record<string, BindingOverride>, RebindError>;
-```
-
-### `RebindReserved` (class)
-
-```ts
-class RebindReserved extends RebindReservedBase {
-}
-```
-
-### `RebindTimedOut` (class)
-
-```ts
-class RebindTimedOut extends RebindTimedOutBase {
-}
-```
-
-### `RebindUnknown` (class)
-
-```ts
-class RebindUnknown extends RebindUnknownBase {
-}
-```
-
-### `rebuildOnQuality` (function)
-
-```ts
-function rebuildOnQuality<S, T extends {
-    destroy(): void;
-}>(settings: SettingsStore<S>, read: (settings: S) => QualityTier, build: (tier: QualityTier) => T, onBuilt?: (built: T) => void): QualityBuild<T>;
-```
-
-### `Rect` (interface)
-
-```ts
-interface Rect {
-    readonly x: number;
-    readonly y: number;
-    readonly width: number;
-    readonly height: number;
-}
 ```
 
 ### `rect` (function)
@@ -3409,12 +1407,6 @@ interface RectViewOptions {
 function reducedMotion(win?: Pick<Window, 'matchMedia'>): boolean;
 ```
 
-### `releaseStep` (function)
-
-```ts
-function releaseStep(dx: number, dtMs: number, pageWidth: number): -1 | 0 | 1;
-```
-
 ### `RenderDeltaConsumer` (class)
 
 ```ts
@@ -3433,22 +1425,10 @@ class RenderDeltaConsumer<C extends SceneNode = Container> {
 }
 ```
 
-### `Renderer` (const)
-
-```ts
-const Renderer: Context.Tag<GameRenderer, GameRenderer>;
-```
-
 ### `RendererFactory` (type)
 
 ```ts
 type RendererFactory = (target: RenderTarget) => Effect.Effect<GameRenderer, RendererUnavailable | ModelInvalid, Scope.Scope>;
-```
-
-### `RendererPreference` (type)
-
-```ts
-type RendererPreference = 'webgl' | 'webgpu';
 ```
 
 ### `RendererUnavailable` (class)
@@ -3470,24 +1450,6 @@ interface RenderTarget {
 }
 ```
 
-### `RESERVED_KEYS` (const)
-
-```ts
-const RESERVED_KEYS: readonly string[];
-```
-
-### `RESERVED_PAD_BUTTONS` (const)
-
-```ts
-const RESERVED_PAD_BUTTONS: readonly number[];
-```
-
-### `RESOLUTION_CAPS` (const)
-
-```ts
-const RESOLUTION_CAPS: Readonly<Record<QualityTier, number>>;
-```
-
 ### `ResourceDef` (interface)
 
 ```ts
@@ -3496,64 +1458,6 @@ interface ResourceDef<Z extends z.ZodType = z.ZodType> {
     readonly id: string;
     readonly schema: Z;
     readonly init: () => z.input<Z>;
-}
-```
-
-### `RETRY_DELAYS_MS` (const)
-
-```ts
-const RETRY_DELAYS_MS: readonly number[];
-```
-
-### `RetryTimers` (type)
-
-```ts
-type RetryTimers = {
-    setTimeout(run: () => void, ms: number): ReturnType<typeof setTimeout>;
-    clearTimeout(handle: ReturnType<typeof setTimeout> | undefined): void;
-};
-```
-
-### `retryUrl` (function)
-
-```ts
-function retryUrl(src: string, attempt: number): string;
-```
-
-### `RotateHint` (svelte)
-
-```ts
-component from '../shared/ui/display/RotateHint.svelte'
-```
-
-### `RotateHintCopy` (interface)
-
-```ts
-interface RotateHintCopy {
-    readonly title: string;
-    readonly body: string;
-}
-```
-
-### `RotateHintMode` (type)
-
-```ts
-type RotateHintMode = 'block' | 'toast';
-```
-
-### `RotateToast` (svelte)
-
-```ts
-component from '../shared/ui/display/RotateToast.svelte'
-```
-
-### `RotateToastCopy` (interface)
-
-```ts
-interface RotateToastCopy {
-    readonly text: string;
-    readonly ok: string;
-    readonly dismiss: string;
 }
 ```
 
@@ -3678,12 +1582,6 @@ interface RuntimeSeams {
 }
 ```
 
-### `RuntimeServices` (type)
-
-```ts
-type RuntimeServices = Hosting | PresentationBus | Time | Flow | Settings | Saves | AppLoop | Assets | GameRenderer | Locale | Audio | AudioBuses | Leaderboards | Haptics;
-```
-
 ### `Save` (interface)
 
 ```ts
@@ -3702,14 +1600,6 @@ interface Save<S> {
 }
 ```
 
-### `SAVE_STATUS_TONES` (const)
-
-```ts
-const SAVE_STATUS_TONES: {
-    readonly [State in SaveStatusState]: SaveStatusTone;
-};
-```
-
 ### `SaveDef` (interface)
 
 ```ts
@@ -3723,66 +1613,6 @@ interface SaveDef<S> {
         readonly count: number;
     };
     readonly autosave?: AutosavePolicy;
-}
-```
-
-### `SaveEnvelope` (interface)
-
-```ts
-interface SaveEnvelope {
-    readonly format: 1;
-    readonly version: number;
-    readonly contentHash: string;
-    readonly savedAt: number;
-    readonly label?: string;
-    readonly data: Record<string, unknown>;
-    readonly snapshot?: string;
-}
-```
-
-### `SaveFromNewerBuild` (class)
-
-```ts
-class SaveFromNewerBuild extends SaveFromNewerBuildBase {
-}
-```
-
-### `SaveFromNewerBuildFields` (interface)
-
-```ts
-interface SaveFromNewerBuildFields {
-    readonly key: string;
-    readonly slot: number;
-    readonly version: number;
-}
-```
-
-### `SaveMigration` (type)
-
-```ts
-type SaveMigration = (record: Record<string, unknown>) => Record<string, unknown>;
-```
-
-### `saveOf` (function)
-
-```ts
-function saveOf<S>(def: SaveDef<S>): Effect.Effect<Save<S>, never, Saves>;
-```
-
-### `SaveRefused` (class)
-
-```ts
-class SaveRefused extends SaveRefusedBase {
-}
-```
-
-### `SaveRefusedFields` (interface)
-
-```ts
-interface SaveRefusedFields {
-    readonly key: string;
-    readonly slot: number;
-    readonly reason: 'newer';
 }
 ```
 
@@ -3812,20 +1642,6 @@ interface SavesChangedPayload {
 const SavesChangedPayloadSchema: z.ZodType<SavesChangedPayload>;
 ```
 
-### `saveService` (function)
-
-```ts
-function saveService<S>(def: SaveDef<S>, options: SaveServiceOptions): Effect.Effect<Save<S>, HostError, Hosting | PresentationBus | Scope.Scope>;
-```
-
-### `SaveServiceOptions` (interface)
-
-```ts
-interface SaveServiceOptions {
-    readonly contentHash: string;
-}
-```
-
 ### `SavesFlushRes` (interface)
 
 ```ts
@@ -3840,78 +1656,6 @@ interface SavesFlushRes {
 const SavesFlushResSchema: z.ZodType<SavesFlushRes>;
 ```
 
-### `SaveSlotActivity` (type)
-
-```ts
-type SaveSlotActivity = 'writing' | 'failed';
-```
-
-### `SaveSlots` (svelte)
-
-```ts
-component from '../app/screens/saves/SaveSlots.svelte'
-```
-
-### `SaveSlotsCopy` (interface)
-
-```ts
-interface SaveSlotsCopy {
-    readonly title: string;
-    readonly loading: string;
-    readonly slot: (slot: number) => string;
-    readonly empty: string;
-    readonly unreadable: string;
-    readonly newer: string;
-    readonly otherContent: string;
-    readonly writing: string;
-    readonly failed: string;
-    readonly load: string;
-    readonly newGame: string;
-    readonly delete: string;
-    readonly deleteTitle: string;
-    readonly deleteBody: (name: string) => string;
-    readonly deleteNewerBody: string;
-    readonly deleteConfirm: string;
-    readonly cancel: string;
-    readonly more: (count: number) => string;
-}
-```
-
-### `SaveSlotsView` (type)
-
-```ts
-type SaveSlotsView = {
-    readonly state: 'loading';
-} | {
-    readonly state: 'slots';
-    readonly slots: readonly SaveSlotView[];
-};
-```
-
-### `SaveSlotView` (type)
-
-```ts
-type SaveSlotView = {
-    readonly kind: 'empty';
-    readonly slot: number;
-    readonly activity?: SaveSlotActivity;
-} | {
-    readonly kind: 'ready' | 'other-content';
-    readonly slot: number;
-    readonly savedAt: number;
-    readonly label?: string;
-    readonly activity?: SaveSlotActivity;
-} | {
-    readonly kind: 'unreadable';
-    readonly slot: number;
-    readonly activity?: SaveSlotActivity;
-} | {
-    readonly kind: 'newer';
-    readonly slot: number;
-    readonly activity?: SaveSlotActivity;
-};
-```
-
 ### `SavesStatus` (type)
 
 ```ts
@@ -3922,85 +1666,6 @@ type SavesStatus = 'checking' | 'syncing' | 'saved' | 'offline-queued' | 'retry'
 
 ```ts
 const SavesStatusSchema: z.ZodType<SavesStatus>;
-```
-
-### `SaveStatus` (svelte)
-
-```ts
-component from '../shared/ui/status/SaveStatus.svelte'
-```
-
-### `SaveStatusCopy` (type)
-
-```ts
-type SaveStatusCopy = {
-    readonly [State in SaveStatusState]: string;
-};
-```
-
-### `SaveStatusState` (type)
-
-```ts
-type SaveStatusState = 'checking' | 'syncing' | 'saved' | 'offline-queued' | 'retry' | 'conflict' | 'recovered' | 'no-grant';
-```
-
-### `SaveStatusTone` (type)
-
-```ts
-type SaveStatusTone = 'info' | 'success' | 'warning';
-```
-
-### `SaveUnreadable` (class)
-
-```ts
-class SaveUnreadable extends SaveUnreadableBase {
-}
-```
-
-### `SaveUnreadableFields` (interface)
-
-```ts
-interface SaveUnreadableFields {
-    readonly key: string;
-    readonly slot: number;
-    readonly reason: string;
-}
-```
-
-### `SaveWriteOptions` (interface)
-
-```ts
-interface SaveWriteOptions {
-    readonly label?: string;
-    readonly snapshot?: Uint8Array;
-}
-```
-
-### `SceneNode` (interface)
-
-```ts
-interface SceneNode {
-    readonly parent: unknown;
-    removeFromParent(): void;
-}
-```
-
-### `SceneParent` (interface)
-
-```ts
-interface SceneParent<C extends SceneNode> {
-    addChild(child: C): unknown;
-}
-```
-
-### `ScreenContext` (interface)
-
-```ts
-interface ScreenContext {
-    readonly layer: HTMLElement;
-    readonly from: string | undefined;
-    readonly runtime: Scope.Scope;
-}
 ```
 
 ### `ScreenDef` (interface)
@@ -4020,12 +1685,6 @@ interface ScreenDef<R = never> {
 
 ```ts
 component from '../shared/ui/layout/ScreenFrame.svelte'
-```
-
-### `ScreenKind` (type)
-
-```ts
-type ScreenKind = 'menu' | 'gameplay';
 ```
 
 ### `ScreensCopy` (interface)
@@ -4114,26 +1773,6 @@ interface ScreensGame {
 component from '../shared/ui/layout/ScrollList.svelte'
 ```
 
-### `scrollWithin` (function)
-
-```ts
-function scrollWithin(element: HTMLElement): void;
-```
-
-### `selectPlural` (function)
-
-```ts
-function selectPlural(locale: string, count: number, forms: Partial<Record<Intl.LDMLPluralRule, string>> & {
-    readonly other: string;
-}): string;
-```
-
-### `sendBack` (function)
-
-```ts
-function sendBack(doc: Document): boolean;
-```
-
 ### `Settings` (interface)
 
 ```ts
@@ -4157,12 +1796,6 @@ interface SettingsDef<S> {
 }
 ```
 
-### `SettingsScreen` (svelte)
-
-```ts
-component from '../app/screens/settings/SettingsScreen.svelte'
-```
-
 ### `SettingsScreenCopy` (interface)
 
 ```ts
@@ -4176,70 +1809,16 @@ interface SettingsScreenCopy {
 }
 ```
 
-### `SettingsSection` (type)
-
-```ts
-type SettingsSection = {
-    readonly snippet: Snippet;
-} | {
-    readonly component: UiComponent;
-};
-```
-
-### `SettingsStore` (interface)
-
-```ts
-interface SettingsStore<S> {
-    get(): S;
-    subscribe(listener: (value: S) => void): () => void;
-    update(change: (value: S) => S): void;
-}
-```
-
 ### `settingsStore` (function)
 
 ```ts
 function settingsStore<S>(def: SettingsDef<S>): Effect.Effect<SettingsStore<S>, never, Settings>;
 ```
 
-### `SettingsTab` (interface)
-
-```ts
-interface SettingsTab {
-    readonly id: string;
-    readonly label: string;
-    readonly sections: readonly SettingsSection[];
-}
-```
-
-### `SETTLE_DELAYS_MS` (const)
-
-```ts
-const SETTLE_DELAYS_MS: readonly number[];
-```
-
-### `SHAKE_DECAY` (const)
-
-```ts
-const SHAKE_DECAY = 1.5;
-```
-
-### `SHAKE_MAX_OFFSET` (const)
-
-```ts
-const SHAKE_MAX_OFFSET = 8;
-```
-
 ### `Sheet` (svelte)
 
 ```ts
 component from '../shared/ui/dialog/Sheet.svelte'
-```
-
-### `SHORT_MAX_HEIGHT` (const)
-
-```ts
-const SHORT_MAX_HEIGHT = 600;
 ```
 
 ### `Sim` (interface)
@@ -4284,101 +1863,16 @@ interface SimContext {
 }
 ```
 
-### `Sleeper` (type)
-
-```ts
-type Sleeper = {
-    sleep(): Promise<void>;
-    wake(): Promise<void>;
-    resumeOnGesture?(): Promise<void>;
-};
-```
-
-### `sleepWhenHidden` (function)
-
-```ts
-function sleepWhenHidden(doc: Document, sleeper: Sleeper, win?: Window): () => void;
-```
-
 ### `Slider` (svelte)
 
 ```ts
 component from '../shared/ui/controls/Slider.svelte'
 ```
 
-### `slotActionsOf` (function)
-
-```ts
-function slotActionsOf(slot: SaveSlotView): {
-    readonly load: boolean;
-    readonly newGame: boolean;
-    readonly remove: boolean;
-};
-```
-
-### `SlotMeta` (interface)
-
-```ts
-interface SlotMeta {
-    readonly version: number;
-    readonly contentHash: string;
-    readonly savedAt: number;
-    readonly label?: string;
-    readonly snapshot: boolean;
-}
-```
-
-### `SlotState` (type)
-
-```ts
-type SlotState = {
-    readonly kind: 'empty';
-    readonly slot: number;
-} | {
-    readonly kind: 'ready';
-    readonly slot: number;
-    readonly meta: SlotMeta;
-} | {
-    readonly kind: 'unreadable';
-    readonly slot: number;
-    readonly reason: string;
-} | {
-    readonly kind: 'newer';
-    readonly slot: number;
-    readonly version: number;
-} | {
-    readonly kind: 'other-content';
-    readonly slot: number;
-    readonly meta: SlotMeta;
-};
-```
-
-### `SLOW_MS` (const)
-
-```ts
-const SLOW_MS = 8000;
-```
-
-### `SoundOptions` (interface)
-
-```ts
-interface SoundOptions {
-    readonly bus?: AudioBusName;
-    readonly gain?: number;
-    readonly rate?: number;
-}
-```
-
 ### `Split` (svelte)
 
 ```ts
 component from '../shared/ui/layout/Split.svelte'
-```
-
-### `splitMode` (function)
-
-```ts
-function splitMode(available: number, min: number, gap: number): 'row' | 'stack';
 ```
 
 ### `sprite` (function)
@@ -4407,18 +1901,6 @@ interface SpriteViewOptions {
 }
 ```
 
-### `STALL_MS` (const)
-
-```ts
-const STALL_MS = 30000;
-```
-
-### `STANDARD_PAD_BUTTON_MAX` (const)
-
-```ts
-const STANDARD_PAD_BUTTON_MAX = 16;
-```
-
 ### `startGame` (function)
 
 ```ts
@@ -4436,30 +1918,10 @@ interface StepResult {
 }
 ```
 
-### `StickDirection` (type)
-
-```ts
-type StickDirection = (typeof STICK_DIRECTIONS)[number];
-```
-
 ### `STICKY_MARGIN_PX` (const)
 
 ```ts
 const STICKY_MARGIN_PX = 24;
-```
-
-### `StickyPointers` (class)
-
-```ts
-class StickyPointers {
-    private readonly latch;
-    private readonly owned;
-    constructor(latch: PointerLatch);
-    down(pointerId: number, action: string | undefined): boolean;
-    move(pointerId: number, action: string | undefined): void;
-    up(pointerId: number): void;
-    releaseAll(): void;
-}
 ```
 
 ### `SubscriptionEntitlement` (interface)
@@ -4480,79 +1942,6 @@ interface SubscriptionEntitlement {
 function suppressPageGestures(doc: Document): () => void;
 ```
 
-### `SwipeIndicator` (interface)
-
-```ts
-interface SwipeIndicator {
-    readonly anchor: {
-        readonly x: number;
-        readonly y: number;
-    };
-    readonly thumb: {
-        readonly x: number;
-        readonly y: number;
-    };
-    readonly steering: boolean;
-}
-```
-
-### `SwipeIndicatorView` (interface)
-
-```ts
-interface SwipeIndicatorView {
-    readonly anchor: {
-        readonly x: number;
-        readonly y: number;
-    };
-    readonly thumb: {
-        readonly x: number;
-        readonly y: number;
-    };
-    readonly steering: boolean;
-}
-```
-
-### `SwipeSurface` (svelte)
-
-```ts
-component from '../shared/ui/touch/SwipeSurface.svelte'
-```
-
-### `SwipeSurfaceProps` (interface)
-
-```ts
-interface SwipeSurfaceProps {
-    tracker: PointerTracker;
-    steers?: ((x: number, y: number) => boolean) | undefined;
-    testId?: string | undefined;
-}
-```
-
-### `SwipeTracker` (class)
-
-```ts
-class SwipeTracker {
-    private readonly sink;
-    readonly tuning: GestureTuning;
-    private readonly fingers;
-    private steerer;
-    private readonly anchor;
-    private readonly thumb;
-    private readonly direction;
-    constructor(sink: GestureSink, tuning?: Partial<GestureTuning>);
-    get indicator(): SwipeIndicator | undefined;
-    down(id: number, x: number, y: number, t: number, options?: {
-        readonly steers?: boolean;
-    }): void;
-    move(id: number, x: number, y: number, t: number): void;
-    up(id: number, _x: number, _y: number, t: number): void;
-    cancel(): void;
-    private steer;
-    private stopSteering;
-    private setDirection;
-}
-```
-
 ### `SystemDef` (interface)
 
 ```ts
@@ -4566,32 +1955,10 @@ interface SystemDef {
 }
 ```
 
-### `tabbables` (function)
-
-```ts
-function tabbables(root: ParentNode): HTMLElement[];
-```
-
 ### `TAURI_MARKERS` (const)
 
 ```ts
 const TAURI_MARKERS: readonly string[];
-```
-
-### `textDirection` (function)
-
-```ts
-function textDirection(locale: string): 'ltr' | 'rtl';
-```
-
-### `tileSide` (function)
-
-```ts
-function tileSide(shape: GridShape, box: GridBox, gap: number, limits: {
-    readonly peek: number;
-    readonly min: number;
-    readonly max: number;
-}): number;
 ```
 
 ### `Time` (interface)
@@ -4604,15 +1971,6 @@ interface Time {
     resume(reason: PauseReason): void;
 }
 const Time: Context.Tag<Time, Time>;
-```
-
-### `Timers` (interface)
-
-```ts
-interface Timers {
-    set(callback: () => void, ms: number): unknown;
-    clear(handle: unknown): void;
-}
 ```
 
 ### `Toast` (svelte)
@@ -4639,114 +1997,16 @@ interface TouchButton {
 }
 ```
 
-### `TouchButtonSpec` (interface)
-
-```ts
-interface TouchButtonSpec {
-    readonly action: string;
-    readonly label: string;
-    readonly ariaLabel?: string | undefined;
-    readonly side?: 'start' | 'end' | undefined;
-    readonly required?: boolean | undefined;
-}
-```
-
 ### `TouchControls` (svelte)
 
 ```ts
 component from '../shared/ui/touch/TouchControls.svelte'
 ```
 
-### `TouchControlsProps` (interface)
-
-```ts
-interface TouchControlsProps {
-    buttons: readonly TouchButtonSpec[];
-    onhold: (action: string) => void;
-    onrelease: (action: string) => void;
-    shown?: boolean | undefined;
-    stick?: TouchStickSpec | undefined;
-    onstick?: ((x: number, y: number) => void) | undefined;
-    onstickend?: (() => void) | undefined;
-    testId?: string | undefined;
-}
-```
-
-### `TouchCopy` (interface)
-
-```ts
-interface TouchCopy {
-    readonly title: string;
-    readonly mode: string;
-    readonly modes: Readonly<Record<ControlsTouchMode, string>>;
-}
-```
-
-### `TouchMode` (type)
-
-```ts
-type TouchMode = 'buttons' | 'swipe';
-```
-
-### `touchModesFor` (function)
-
-```ts
-function touchModesFor(profile: InputProfile): TouchMode[];
-```
-
-### `TouchSection` (svelte)
-
-```ts
-component from '../app/screens/settings/TouchSection.svelte'
-```
-
-### `TouchStickSink` (interface)
-
-```ts
-interface TouchStickSink {
-    set(x: number, y: number): void;
-    release(): void;
-}
-```
-
-### `TouchStickSpec` (interface)
-
-```ts
-interface TouchStickSpec {
-    readonly label: string;
-}
-```
-
-### `TouchTarget` (interface)
-
-```ts
-interface TouchTarget {
-    readonly action: string;
-    readonly rect: {
-        readonly left: number;
-        readonly top: number;
-        readonly right: number;
-        readonly bottom: number;
-    };
-}
-```
-
 ### `Translate` (type)
 
 ```ts
 type Translate<Messages> = <K extends keyof Messages & string>(key: K, ...inputs: InputsOf<Messages[K]>) => string;
-```
-
-### `trimRows` (function)
-
-```ts
-function trimRows<T>(shape: GridShape, groups: readonly PageGroup<T>[]): GridShape;
-```
-
-### `TURN_UNITS_PER_TURN` (const)
-
-```ts
-const TURN_UNITS_PER_TURN = 65536;
 ```
 
 ### `turnUnitsFromPixels` (function)
@@ -4759,50 +2019,6 @@ function turnUnitsFromPixels(dxPx: number, degPerPixel: number, invert: boolean)
 
 ```ts
 function typedBus<GameFacts>(bus: PresentationBus<object>): PresentationBus<GameFacts>;
-```
-
-### `UI_SLOT_NAMES` (const)
-
-```ts
-const UI_SLOT_NAMES: readonly ["title.actions", "pause.actions", "settings.sections", "hud.overlay", "debug.panels"];
-```
-
-### `UiComponent` (type)
-
-```ts
-type UiComponent = Component<Record<string, never>>;
-```
-
-### `UiSlotName` (type)
-
-```ts
-type UiSlotName = (typeof UI_SLOT_NAMES)[number];
-```
-
-### `VibrationCopy` (interface)
-
-```ts
-interface VibrationCopy {
-    readonly title: string;
-    readonly toggle: string;
-    readonly on: string;
-    readonly off: string;
-}
-```
-
-### `VibrationSection` (svelte)
-
-```ts
-component from '../app/screens/settings/VibrationSection.svelte'
-```
-
-### `ViewAnchor` (type)
-
-```ts
-type ViewAnchor = number | {
-    readonly x: number;
-    readonly y: number;
-};
 ```
 
 ### `ViewportWindow` (interface)
@@ -4825,41 +2041,6 @@ interface ViewportWindow {
     addEventListener: Listen;
     removeEventListener: Listen;
 }
-```
-
-### `watchImage` (function)
-
-```ts
-function watchImage(src: string, onRetry: (url: string) => void, timers?: RetryTimers): () => void;
-```
-
-### `WGSL_FILTER_HEADER` (const)
-
-```ts
-const WGSL_FILTER_HEADER = "\nstruct GlobalFilterUniforms {\n    uInputSize: vec4<f32>,\n    uInputPixel: vec4<f32>,\n    uInputClamp: vec4<f32>,\n    uOutputFrame: vec4<f32>,\n    uGlobalFrame: vec4<f32>,\n    uOutputTexture: vec4<f32>,\n};\n\n@group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;\n@group(0) @binding(1) var uTexture: texture_2d<f32>;\n@group(0) @binding(2) var uSampler: sampler;\n\nstruct VSOutput {\n    @builtin(position) position: vec4<f32>,\n    @location(0) uv: vec2<f32>,\n    @location(1) pixelCoord: vec2<f32>,\n};\n\nfn filterVertexPosition(aPosition: vec2<f32>, gfu: GlobalFilterUniforms) -> vec4<f32> {\n    var position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;\n    position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;\n    position.y = position.y * (2.0 * gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;\n    return vec4(position, 0.0, 1.0);\n}\n\nfn filterTextureCoord(aPosition: vec2<f32>, gfu: GlobalFilterUniforms) -> vec2<f32> {\n    return aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);\n}\n\n@vertex\nfn mainVertex(@location(0) aPosition: vec2<f32>, @builtin(instance_index) instanceIndex: u32) -> VSOutput {\n    var output: VSOutput;\n    output.position = filterVertexPosition(aPosition, gfu);\n    output.uv = filterTextureCoord(aPosition, gfu);\n    output.pixelCoord = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;\n    return output;\n}\n";
-```
-
-### `WheelPager` (class)
-
-```ts
-class WheelPager {
-    private travel;
-    private spent;
-    push(deltaX: number, deltaY: number): -1 | 0 | 1;
-    reset(): void;
-}
-```
-
-### `withHostName` (function)
-
-```ts
-function withHostName(text: string, hostName: string): string;
-```
-
-### `wrapPage` (function)
-
-```ts
-function wrapPage(index: number, count: number): number;
 ```
 
 ## `./no-eval`

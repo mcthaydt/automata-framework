@@ -6,7 +6,7 @@ import { scanForEval } from '#src/shared/check/no-eval-scan.ts'
 describe('scanForEval', () => {
   it('passes code that only looks like eval', () => {
     const clean = [
-      // Effect's fiber primitives are objects with an `eval` method (seen in the base-2d build).
+      // Effect's fiber primitives are objects with an `eval` method (seen in the emberwick build).
       'const Success = make({ op: `Success`, eval(e) { return e.next() } })',
       'Success.eval(fiber); obj["eval"](1)',
       'const message = "do not call eval( here"',
@@ -40,7 +40,7 @@ describe('scanForEval', () => {
   })
 
   it('allows the documented vendor probes inside try, and only there', () => {
-    // pixi.js 8 `unsafeEvalSupported` and Zod 4 `allowsEval`, as Rolldown minified them in the base-2d build.
+    // pixi.js 8 `unsafeEvalSupported` and Zod 4 `allowsEval`, as Rolldown minified them in the emberwick build.
     const probes = [
       'function pe(){if(typeof k==`boolean`)return k;try{k=Function(`param1`,`param2`,`param3`,`return param1[param2] === param3;`)({a:`b`},`a`,`b`)===!0}catch{k=!1}return k}',
       'const ae=c(()=>{if(navigator?.userAgent?.includes(`Cloudflare`))return!1;try{return Function(``),!0}catch{return!1}})',

@@ -27,7 +27,7 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 53% (16 of 30 tasks)
+### Build: 63% (19 of 30 tasks)
 
 Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) has the steps.
 
@@ -52,10 +52,10 @@ Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) h
 | 5.2 Plain-TypeScript helpers | 5 | Done locally, 2026-11-05 (CI run pending): `Clock`/`fakeClock`, `Disposables`, `Result`, `Subscribable`/`emitter`; 22 unit tests | PR to open |
 | 5.3 Host contract and targets | 5 | Done locally, 2026-11-05 (CI run pending): plain host contract, web, Ruken and Tauri adapters, contract suite and fake host take a `Clock` and `AbortSignal`; ADR 0003 amended. A temporary bridge keeps the Effect runtime working; deleting it moved to 5.4 (deviation 55) | PR to open |
 | 5.4 Runtime features and the app | 5 | Deferred behind phases 6 to 8 (deviation 55) | |
-| 6.1 Emberwick is Emberwick | 6 | Not started | |
-| 6.2 Emberwick imports one package | 6 | Not started | |
-| 6.3 Emberwick by feature | 6 | Not started | |
-| 6.4 The surface | 6 | Not started | |
+| 6.1 Emberwick is Emberwick | 6 | Done locally, 2026-11-05 (CI run pending): renamed everywhere; `GOLDEN_HASH` re-recorded once (`94285fae634fdba9` → `421c5a1bf522299e`), Chromium agrees; WebKit and Firefox left to CI | PR to open |
+| 6.2 Emberwick imports one package | 6 | Done locally, 2026-11-05: only `@mcthaydt/automata`, `-sim`, `-tools` and `-content` remain | PR to open |
+| 6.3 Emberwick by feature | 6 | Done locally, 2026-11-05 (CI run pending): `app/`, `features/{player,goal,room,scene,screens}`, `shared/`, `entries/`, `testing/`; `--features games/emberwick` and the sim rule pass (deviations 56 to 58) | PR to open |
+| 6.4 The surface | 6 | Done locally, 2026-11-05 (CI run pending): `@mcthaydt/automata` root 600 → 274 names; the ten API reports 2,109 → 1,783 exports (audit's 1,042 was counted differently); changeset `trim-the-root-entry` | PR to open |
 | 7.1 Docs and AGENTS.md | 7 | Not started | |
 | 7.2 Comments that cite plans | 7 | Not started | |
 | 8.1 The copy table | 8 | Not started | |

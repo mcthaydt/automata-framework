@@ -26,8 +26,8 @@ describe('changesetProblems (patch only before 1.0)', () => {
   })
 
   it('fails a package that is not published', () => {
-    expect(changesetProblems({ 'u.md': file("'@af-examples/base-2d': patch") }, published)).toEqual([
-      'u.md: @af-examples/base-2d is not a published package',
+    expect(changesetProblems({ 'u.md': file("'@af-games/emberwick': patch") }, published)).toEqual([
+      'u.md: @af-games/emberwick is not a published package',
     ])
   })
 

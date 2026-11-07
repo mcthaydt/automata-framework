@@ -15,7 +15,7 @@
     "e2e:dev": "rm -rf .e2e && mkdir .e2e && cp -R content .e2e/content && AF_DEMO_CONTENT_ROOT=$PWD/.e2e vite --configLoader runner --strictPort --host localhost --port $AF_E2E_DEMO_PORT"
   },
   "dependencies": {
-    "@af-examples/base-2d": "workspace:*",
+    "@af-games/emberwick": "workspace:*",
     "@fontsource/pixelify-sans": "5.3.0",
     "@mcthaydt/automata": "workspace:*"
   },

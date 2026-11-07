@@ -7,18 +7,18 @@
 // compiled; the next good save clears it. A production build embeds the content and its hash, and never
 // reloads.
 // Controls: arrows or A/D to move, Space, Z, W or Up to jump; on-screen buttons on touch.
-// Base: base-2d (`@af-examples/base-2d`: its whole game, built here over this demo's room by `makeEmberwick`).
+// Base: emberwick (`@af-games/emberwick`: its whole game, built here over this demo's room by `makeEmberwick`).
 // Packages: @mcthaydt/automata-content (its Vite plugin and `virtual:automata/content`),
-// @mcthaydt/automata-game (`startGame`), and the base's own.
-import '@af-examples/base-2d/no-eval'
+// @mcthaydt/automata (`startGame`), and the base's own.
+import '@af-games/emberwick/no-eval'
 import '@fontsource/pixelify-sans/latin-400.css'
 import '@fontsource/pixelify-sans/latin-700.css'
-import '@af-examples/base-2d/style.css'
+import '@af-games/emberwick/style.css'
 import './content-panel.css'
 import { content, contentHash } from 'virtual:automata/content'
-import { makeEmberwick } from '@af-examples/base-2d/make-game'
-import { parseRoom } from '@af-examples/base-2d/room'
-import { tuning } from '@af-examples/base-2d/sim'
+import { makeEmberwick } from '@af-games/emberwick/make-game'
+import { parseRoom } from '@af-games/emberwick/room'
+import { tuning } from '@af-games/emberwick/sim'
 import { startGame } from '@mcthaydt/automata'
 
 /** Must equal `[game] id` in ship.config.ts; the host checks it. */
