@@ -26,6 +26,19 @@
     {
       "includes": ["packages/sim/**"],
       "linter": { "rules": { "style": { "useExponentiationOperator": "off" } } }
+    },
+    {
+      "includes": [
+        "extensions/narrative/**",
+        "extensions/puzzle/**",
+        "extensions/systems/**",
+        "extensions/cutscenes/**"
+      ],
+      "linter": { "rules": { "suspicious": { "noThenProperty": "off" } } }
+    },
+    {
+      "includes": ["extensions/**/*.svelte"],
+      "linter": { "rules": { "correctness": { "noUnusedVariables": "off", "noUnusedImports": "off" } } }
     }
   ]
 }
