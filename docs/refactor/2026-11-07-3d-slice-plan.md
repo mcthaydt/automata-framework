@@ -15,8 +15,9 @@ computer; the site showing 3D beside 2D; the release written and waiting for Pix
 > core: it draws the game's own data and ships no ready-made library. Libraries, furnishing, generators, the photo
 > pipeline, the sky and rain, and the extra clothes and hairstyles go to `@automata/world-kit` and
 > `@automata/character-kit` in the Plus port. The ruling, the refactor findings R1 to R11 and the port's addendum are in
-> [2026-11-07-3d-scope-trim.md](2026-11-07-3d-scope-trim.md). Task numbers are kept; 9.1 and 9.2 moved to the port, 7.5
-> and 7.6 are new, so there are still 53. Where a task below and the trim document differ, the trim document wins.
+> [2026-11-07-3d-scope-trim.md](2026-11-07-3d-scope-trim.md). Task numbers are kept; 9.1 and 9.2 moved to the port, 7.5,
+> 7.6 and 7.7 are new, so there are 54. The base pair and the base interior and exterior stay core (Owner, 19:58: "The
+> base M and F figure should be in 3D though, base interior and exterior too"; task 7.7). Where a task below and the trim document differ, the trim document wins.
 
 **Architecture:** Four parts in the Owner's order (3D core, the rest of AF using 3D, the editors, the site), 20 phases,
 one stacked PR per phase. Contracts shared by two features live in `packages/3d/src/shared/` (timeline, level,
@@ -85,7 +86,7 @@ behind it: the [audit](2026-11-07-3d-slice-audit.md).
 ## Tracking
 
 `docs/refactor/progress.md`'s "3D" slice gets one row per task during stage 4; the build's percentage is `done tasks /
-53`. At the end of each task set its row to "Done, <date>, <engines run>", recompute both percentages, and commit with
+54`. At the end of each task set its row to "Done, <date>, <engines run>", recompute both percentages, and commit with
 the task.
 
 ## Changes from the automata-skills plan (PR #446, skills spec section 7; relayed 2026-11-07 11:48)
@@ -953,7 +954,7 @@ Sector geometry is written three times today: `packages/editor-3d/src/geometry/{
 - Produces: the seven functions with the editor's signatures (the editor's tests are the most complete); where the
   extension's sim version and the editor's differ, the sim-safe one is the body and both callers' tests must pass.
 
-- [ ] **Step 1:** move the editor's geometry tests to the new file, importing `#src/shared/level/geometry.ts` → FAIL.
+- [x] **Step 1:** move the editor's geometry tests to the new file, importing `#src/shared/level/geometry.ts` → FAIL.
   **Step 2:** the file, sim-safe (only the allowed `Math` members). **Step 3:** PASS; world builder tests and base-3d's
   replay unchanged; `pnpm boundaries` green. editor-3d switches in task 14.1, the extension in port task 5.1. Rows.
   **Commit** `refactor(3d): one sector geometry, in the level entry`
@@ -980,6 +981,36 @@ Sector geometry is written three times today: `packages/editor-3d/src/geometry/{
   `grep -rn "waistcoat\|seated\|bun" packages/3d/src` → none. **Commit** `refactor(3d): the wardrobe and hairstyles
   leave core for the character kit`
 
+
+### Task 7.7: The base pair and the base scenes (new, 2026-11-07 19:58; scope trim section 2)
+
+The Owner: "The base M and F figure should be in 3D though, base interior and exterior too". As in both builders,
+they are the set every visual change is judged on, so they are core and public.
+
+**Source files:** FigureBuilder `base/base.ts`; EnvironmentBuilder `base/base.ts` (the two bare scenes), and from
+`78e0ca7f` the generators `table` (`props/furniture.ts`), `bin` and `lamp` (`props/small-things.ts`), `streetLamp`
+(`props/street.ts`), `tree` (`props/nature.ts`), the presets and the swatches the scenes name.
+
+**Files:**
+- Create: `packages/3d/src/features/base/{base-pair.ts,base-scenes.ts}`, `features/base/library/{props,swatches}.json`
+  (only what the scenes use), `features/base/levels/{base-interior,base-exterior}.af-sector.json` (converted once from
+  the builder's plans; written, not generated at run time), `packages/3d/src/entries/base.ts` (`@automata/3d/base`)
+- Modify: `features/world/props/primitives.ts` (registers `table`, `bin`, `lamp`, `streetLamp`, `tree` beside `box`
+  and `cylinder`), `packages/3d/package.json` (`./base`), `tests/fixtures/base-pair.ts` (re-exports the core one)
+- Test: `tests/unit/base/{base-pair,base-scenes}.test.ts`
+
+**Interfaces:**
+- Produces: `BASE_PAIR: Readonly<Record<'man' | 'woman', Figure>>` (bodies only, painted-on blocks, barefoot);
+  `BASE_SCENES: Readonly<Record<'base-interior' | 'base-exterior', AfSector2>>` (each naming its time: `lampLit`,
+  `day`, and casting the base pair); `baseLibrary: WorldLibrary`.
+
+- [ ] **Step 1: Write the failing tests**: `both base scenes build with no problem from core alone`; `the interior is lit
+  at lamplight by its pendant and the exterior has open sky and a horizon`; `the base pair build and wear nothing`;
+  `core registers exactly box, cylinder, table, bin, lamp, streetLamp and tree`.
+- [ ] **Step 2:** FAIL. **Step 3:** the generators (ported with their source tests), the presets and swatches, the
+  two levels, the entry. **Step 4:** PASS; `buildWorld` on each scene gives the same pieces as the builder's map built
+  through `78e0ca7f` (recorded before the trim's deletions, from that commit). 8.2's parity images and the editors'
+  samples use these scenes. Rows. **Commit** `feat(3d): the base pair and the base interior and exterior`
 ---
 
 ## Phase 8: The look on Pixi 3D (PR `claude/3d-look`)
@@ -999,8 +1030,10 @@ with Wick), `docs/adr/0007-3d-look.md`.
 ### Task 8.2: The passes (**session break** after the filters; audit note 14; trimmed 2026-11-07, scope trim section 2)
 
 Trimmed: no CPU reference painters and no `look-sheet.ts` (2D proves its look with parity images from the real
-renderer, and so does 3D); sky, stars, rain and bloom are `@automata/world-kit`'s (port task 3.8), added through
-`addLookPass`. Ignore those names in the lists below.
+renderer, and so does 3D); stars, rain and bloom are `@automata/world-kit`'s (port task 3.8), added through
+`addLookPass`. The sky and its horizon silhouette stay core (`sky.ts`): the base exterior is judged under them. The
+parity images include `base-interior` at lamplight and `base-exterior` by day, each with the base pair (task 7.7).
+Ignore the moved names in the lists below.
 
 **Source files:** EnvironmentBuilder `src/features/paint/*`, `src/features/stage/sprite-light.ts`; FigureBuilder
 `src/features/paint/{paint,raster,fabric}.ts`, `src/features/lighting/light.ts`.
@@ -1649,3 +1682,5 @@ reads only this plan and the spec. DUEL's author and licence stay the Owner's op
 - Task 7.3: done as the scope ruling trimmed it (session 50d3sw, 2026-11-07; the Owner's 19:28 word: 3D as light as 2D, the rest in extensions; the ruling came from the "Trim 3D core to match 2D" thread). Rulings: (1) The first half was built whole (commit 78e0ca7f: 70 prop presets and their generators, the kits, lettering, the lamp kit) and then cut back: that commit stays on the branch as the source the world-kit extension ports from; the dresser (`dress/*`, `world-kit.schema.ts`, written but never committed) is in project files `af-world-kit-source/`, with `props.json` and `swatches.json`. (2) Core keeps: `placeProps`, `props/piece.ts`, `props/resolve.ts`, a generator registry (`registerPropGenerator`, throwing `RegistryClash` on a taken name, also core's `box` and `cylinder`), the lamp kit and the level's lamps and a prop's lights, the `world-swatch` and `world-prop` content kinds, doors and windows. `RegistryClash` moved to `shared/registry/` so the figures' registries and this one share it. (3) Out of core: the furniture, small-thing, street, nature and sign generators, the prop, swatch and kit libraries (`CORE_LIBRARY`, `mergeLibrary`), lettering, glyphs and `stream.ts`, the dresser, the `world-kit` content kind, decals, `generateMap` (apartment and block), the converted builder maps, `convert-builder-map.ts` and its script, test and fixture (task 7.1 built them; the `/2` schema's comment now names the extension's converter). `world-prop`'s schema checks only that `kind` is a string: an extension's kind may register after the content is read, so a kind with no generator is `unknown-generator` from the builder. (4) The `Marking` decals and lettering fields of `/2` stay in the schema, carried as written; core draws none. (5) The superquadric and limb primitives, noise and colour helpers moved to `shared/math` for the world's props; they stay there (the figures import them from it), the cost being one more shared folder if wrong. (6) Ember Hall's room has no kit: its file places five crates and barrels (`props`); its swatches (`wall`, `floor`, `ceiling`, `lava`, `crate`, `barrel`, DUEL steps, the colours the views had) and its two presets (a `box` and a `cylinder`) are TOML under `games/base-3d/src/content/world-swatches/` and `world-props/`, compiled with the `world-swatch` and `world-prop` kinds (new Node-safe entry `@automata/3d/world-content`, listed in the game's `vite.config.ts`), and `roomWorld(content)` builds the room from them; the views read each colour from the swatch (`swatchColour`), only the lip's stays in code. It has no lamp or time of day: nothing in base-3d lights from a lamp until 8.2's look, so a lamp written now would be dead data. Cost if wrong: one lamp and one `time` added to the file. (7) A room with `dress` (its own or the level's, unless the level's `keep` is false) is drawn bare with a `needs-extension` problem (`name: 'world-kit'`, the scope trim's words). The generator registry holds core's `box` and `cylinder` from the start (`registeredPropGenerators()`), and `world-prop` accepts any `kind` string. The sim hash and goldens are unchanged (85 unit tests; `sim-content.hash` did not move, `content.hash` did for the new TOML); the crates and barrels stand clear of the embers and the roll path. Frames: project files `refactor/2026-11-07-3d-7-3-room-shots/` (`before.png`, `after.png`: the far wall of the first room now has two crates and a barrel). Evidence: 107 world and app unit tests, base-3d's 7 Chromium journeys, knip, boundaries and style clean. Resume at task 7.4 (the stage); 8.2's passes, 9.1, 9.2 and the 6.x follow-ups are held until the amended plan.
 - Scope trim (session 2kk058, 2026-11-07, Opus): the Owner at 19:28, "Make sure we're not overscoping 3D, it should be as lightweight as 2D, everything else should go into plus", and at 19:31, "we aren't just moving stuff around right?". Ruled feature by feature against 2D core in [2026-11-07-3d-scope-trim.md](2026-11-07-3d-scope-trim.md) (measured at `78e0ca7f`): 7.3 trimmed to placement through a generator registry, `box` and `cylinder`, lamps and the two content kinds; 7.5 (one sector geometry) and 7.6 (clothes, hairstyles and seats leave core) added; 8.2 without reference painters or sky and rain; 9.1 and 9.2 moved to the Plus port (3.8); 12.1, 12.2, 13.3, 14.1, 16.1 to 16.3 and 17.2 amended; refactor findings R1 to R11 placed in tasks here and in the port's addendum (section 6 of the trim document). Accepted under "Reminder that everything is auto approved and accepted, do not wait on me to do any approvals" (Owner, 2026-10-31).
 - Task 7.4: done (session 50d3sw, 2026-11-07). Rulings: (1) `PieceStates` is `{ doors, lamps, props }` as the plan says; a door is its room's (`doors[<room id>]`, a hinged door being a doorway sector's), clamped to 0..1; a prop's state is `{ at?, turn?, hidden? }` about its base; a lamp's is `{ level, color? }`. (2) `updatePieces(view, before, after)` touches only the pieces whose state differs and returns how many; a door turns about its hinge by `swing × open`, a prop's pieces move, turn and hide together. To know which pieces those are, `WorldView` now carries its `pieces` and a prop's `WorldPiece` carries `prop: { id, at }`. (3) A lamp is not a piece: its state reaches the light through `sceneLamps(lamps, night, states)` (level scaled, colour replaced), next to the sim's own lamp switches. (4) No `app/compose-scene.ts` and no `startClip`: the plan said to give the scene a `startClip(who, clip, atTick)` callback, but there is no composer (task 7.2's ruling 10) and the figure view already starts a clip from the `action` of the state a game hands it, so a cue from outside sets that; adding a callback now would be a second way to do the same. Cost if wrong: one callback, added where the extension needs it. (5) `PieceStates` and its helpers are exported from `@automata/3d/level` (pure data, so a sim or a cutscene extension reads the same shape); `updatePieces` from the main entry. Evidence: 6 unit tests for the states, 7 for `updatePieces` (a door key changes only that door; the hinge stays put; a prop turns about its base), 1 for `sceneLamps`; knip, boundaries and style clean. WebKit and Firefox not run.
+- Scope trim, amended (session 2kk058, 2026-11-07 20:05): the Owner, 19:58, "The base M and F figure should be in 3D though, base interior and exterior too". Nothing they need had left core except the generators and swatches of the two base scenes and the sky; task 7.7 brings those back for the base scenes only, 8.2 keeps the sky and its horizon, and the dressed variants are the world kit's (port 3.7). 54 tasks.
+- Task 7.5: done (session 50d3sw, 2026-11-07). Rulings: (1) `shared/level/geometry.ts` takes the editor's signatures (`crossing(px,pz,qx,qz,a,b)`, `segmentDistance`, `insideSector`, `polygonArea`, `opening`, `walkBlocker`, `triangulate(outline, holes) → {points, triangles}`) with structural parameter types, so a caller needs no resolved level. (2) `Math.hypot` is not allowed in a sim entry (`math-member` rule), so `segmentDistance` uses `Math.sqrt` of the sum of squares, which is correctly rounded everywhere; the one test that pinned a hypot value to the last digit now compares to 12 places. Cost if wrong: a caller comparing distances to the last ulp (none does). (3) `features/world/sectors.ts` keeps `inside`, `signedArea` and `fill` as thin `[x, z]` adapters and loses its own ear clipping, so the world builder, the editor (14.1) and the extension (port 5.1) triangulate one way. (4) The seven functions and their types are exported from `@automata/3d/level`. Evidence: 44 geometry tests (the editor's cases moved), 1172 3D unit tests pass, base-3d unit tests pass with the sim hash unchanged; knip, boundaries and style clean. WebKit and Firefox not run.
