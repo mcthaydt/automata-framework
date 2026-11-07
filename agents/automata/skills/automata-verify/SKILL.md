@@ -48,7 +48,7 @@ delete or skip a test, loosen a rule or re-record a golden to get past it.
 
 | Rule | Means | Fix |
 |---|---|---|
-| `import` | The sim imports something outside its allowlist (Effect, DOM libraries, Node modules, another layer of the game) | Import only `@automata/sim` (and `/math`, `/hash`), `zod`, the physics entry points, or relative sim files. Move I/O or Effect code out of the sim files (and what they import) and pass results in as commands or content |
+| `import` | The sim imports something outside its allowlist (Effect, DOM libraries, Node modules, another layer of the game) | A sim file may import only `koota`, `zod`, `@dimforge/rapier2d-deterministic-compat`, `@dimforge/rapier3d-deterministic-compat`, `@automata/sim` (and `/hash`, `/math`), the sim entries an installed extension declares in its `package.json` (`"automata": { "simEntries": […] }`), and relative files. Move I/O or Effect code out of the sim files (and what they import) and pass results in as commands or content |
 | `banned-global` | A host or clock global such as `Date`, `setTimeout`, `console`, `window`, `fetch`, `crypto`, `performance`, `Intl` | Time is `ctx.tick`; randomness is the sim's seeded RNG; logging and I/O belong outside the sim |
 | `banned-member` | `.constructor` on a value, which reaches `Function` | Don't build code from strings; call the function directly |
 | `math-member` | A `Math` member outside `sqrt`, `fround`, `round`, `floor`, `ceil`, `trunc`, `abs`, `min`, `max`, `sign`, `imul` (including `Math.random`) | Use `@automata/sim/math` for the rest, and the sim's RNG for random numbers |

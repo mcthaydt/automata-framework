@@ -116,18 +116,22 @@ describe('automata-api', () => {
 describe('automata-editor', () => {
   const skill = readFileSync(join(SKILLS, 'automata-editor/SKILL.md'), 'utf8')
   // `USAGE` is private to editor-command.ts, so its text is read the way `checkRuleIds` reads the Rule union.
-  const usage = /const USAGE = `([\s\S]*?)`/.exec(read('packages/tools/src/features/editor/editor-command.ts'))?.[1] ?? ''
+  const usage =
+    /const USAGE = `([\s\S]*?)`/.exec(read('packages/tools/src/features/editor/editor-command.ts'))?.[1] ?? ''
 
   it('documents every editor flag but 3d', () => {
     const flags = [...new Set(usage.match(/--[a-z][a-z-]*/g) ?? [])]
-    expect(flags).toEqual(expect.arrayContaining(['--app', '--app-dir', '--game-url', '--lan', '--token', '--port']))
+    expect(flags).toEqual(
+      expect.arrayContaining(['--app', '--app-dir', '--game-url', '--lan', '--token', '--port']),
+    )
     for (const flag of flags) expect(skill, flag).toContain(flag)
     expect(skill).toContain('2d|suite')
     expect(skill).not.toMatch(/\b3d\b/i)
   })
 
   it('explains the Tuner', () => {
-    for (const text of ['Tuner', 'pnpm dev', '--game-url', 'http://localhost:5173']) expect(skill).toContain(text)
+    for (const text of ['Tuner', 'pnpm dev', '--game-url', 'http://localhost:5173'])
+      expect(skill).toContain(text)
   })
 
   it("names the 2D editor's views", () => {
@@ -146,5 +150,28 @@ describe('automata-editor', () => {
   it('has no unreachable symptom', () => {
     // The command never listens beyond the loopback without a token (--lan makes one), so no one meets that message.
     expect(skill).not.toContain('listening beyond the loopback')
+  })
+})
+
+describe('what a sim file may import', () => {
+  // One list, read from the checker: the names inside `IMPORT_ALLOWED`'s `new Set([ … ])`, without the comments.
+  const source = read('packages/tools/src/features/boundaries/sim-rules.ts')
+  const block = /export const IMPORT_ALLOWED[^=]*= new Set\(\[([\s\S]*?)\]\)/.exec(source)?.[1] ?? ''
+  const allowed = [...block.replace(/\/\/.*$/gm, '').matchAll(/'([^']+)'/g)].map((match) => match[1] ?? '')
+
+  it('finds the allowed imports in the checker (the reader itself works)', () => {
+    expect(allowed).toEqual(expect.arrayContaining(['koota', 'zod', '@automata/sim', '@automata/sim/hash']))
+  })
+
+  it.each(['automata', 'automata-verify'])('%s lists every import a sim file may make', (name) => {
+    const skill = readFileSync(join(SKILLS, name, 'SKILL.md'), 'utf8')
+    for (const importName of allowed) {
+      // `@automata/sim/hash` and `/math` are written beside `@automata/sim` as `/hash` and `/math`.
+      const written = importName.startsWith('@automata/sim/')
+        ? `\`${importName.slice('@automata/sim'.length)}\``
+        : `\`${importName}\``
+      expect(skill, importName).toContain(written)
+    }
+    expect(skill).toContain('simEntries')
   })
 })

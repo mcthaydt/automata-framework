@@ -25,5 +25,7 @@ export function packageNamesIn(dir: string): Map<string, string[]> {
     }
   }
   walk('')
-  return new Map([...found].sort(([a], [b]) => (a < b ? -1 : 1)).map(([name, files]) => [name, [...files].sort()]))
+  return new Map(
+    [...found].sort(([a], [b]) => (a < b ? -1 : 1)).map(([name, files]) => [name, [...files].sort()]),
+  )
 }

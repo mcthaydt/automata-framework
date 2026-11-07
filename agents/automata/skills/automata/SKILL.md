@@ -50,8 +50,8 @@ system uses is sim code too). `automata check` refuses a game that keeps its sim
 | Content (`content/`) | Levels, tuning, strings, compiled and hashed | Passed to the sim as content |
 | Host (`Hosting`, from `@automata/framework`) | Saves, identity, lifecycle | Never directly; the runtime wires it |
 
-Inside a sim file, use only `@automata/sim` (and `/math`, `/hash`), `zod`, `koota` through the sim's API,
-and relative imports. Use `Math` only for `sqrt`, `fround`, `round`, `floor`, `ceil`, `trunc`, `abs`, `min`, `max`,
+A sim file may import only `koota`, `zod`, `@dimforge/rapier2d-deterministic-compat`, `@dimforge/rapier3d-deterministic-compat`, `@automata/sim` (and `/hash`, `/math`), the sim entries an installed extension declares in its `package.json` (`"automata": { "simEntries": […] }`), and relative files.
+Use `Math` only for `sqrt`, `fround`, `round`, `floor`, `ceil`, `trunc`, `abs`, `min`, `max`,
 `sign` and `imul`; `@automata/sim/math` has the rest. Iterate objects with `sortedKeys`/`sortedEntries`,
 never `Object.keys` or `for…in`. Prefer integers (subpixels, ticks) for anything that moves.
 

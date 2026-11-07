@@ -2,8 +2,8 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { publishablePackages } from '../../../release/src/publishable-packages.ts'
 import { packageNamesIn } from '#src/package-names.ts'
+import { publishablePackages } from '../../../release/src/publishable-packages.ts'
 
 // Only published packages may be named in the public agent package: an agent told to install a package that is not
 // on the registry fails in a way the person cannot fix. 3D skill text joins this package in the same change that
@@ -51,7 +51,9 @@ describe('packageNamesIn', () => {
 describe('the agent package', () => {
   it('names only published packages', () => {
     const published = new Set(publishablePackages(REPO).map((p) => p.manifest.name))
-    const unpublished = [...packageNamesIn(join(REPO, 'agents/automata'))].filter(([name]) => !published.has(name))
+    const unpublished = [...packageNamesIn(join(REPO, 'agents/automata'))].filter(
+      ([name]) => !published.has(name),
+    )
     expect(unpublished).toEqual([])
   })
 })
