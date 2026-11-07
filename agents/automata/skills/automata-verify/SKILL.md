@@ -19,7 +19,7 @@ folder (or pass the folder): `automata check [dir] [--json] [--sim-only] [--csp]
 | `levels` | each level project the editor list's `exports` rows name, exported again and compared with the game files on disk | `--sim-only`, or a game with no such row |
 | `no-eval` | `vite build`, then a scan of `dist/**/*.js` | `--sim-only` |
 | `data-urls` | a scan of the `dist/**/*.js` that `no-eval` built for assets Vite inlined as `data:` URLs | `--sim-only` |
-| `csp` | serves `dist/` with Ruken's Content-Security-Policy and loads it in Chromium until the game is ready | unless `--csp` |
+| `csp` | serves `dist/` with a strict Content-Security-Policy (the headers Ruken sends) and loads it in Chromium until the game is ready | unless `--csp` |
 
 Every step runs even after one fails, so one run shows everything; `--fail-fast` stops at the first failing step, and
 `--only <step>` runs just the one named.
@@ -55,7 +55,7 @@ delete or skip a test, loosen a rule or re-record a golden to get past it.
 | `pow-operator` | `**`, which is not bit-exact across engines | Multiply, or use the sim math module |
 | `key-enumeration` | `Object.keys`/`values`/`entries`, `for…in`, or a computed member on them, whose order can differ | `sortedKeys` / `sortedEntries` from `@automata/sim` |
 | `locale` | `localeCompare`, `toLocaleString` and similar, which depend on the engine's locale data | Compare and format explicitly |
-| `koota-soa` | koota's `trait` or a `relation` store given an object schema (or one the checker cannot see), which koota compiles with `new Function`; Ruken's CSP refuses it | Use `defineComponent` from `@automata/sim`, or pass koota a factory: `trait(() => ({ x: 0 }))`, `relation({ store: () => ({ amount: 0 }) })` |
+| `koota-soa` | koota's `trait` or a `relation` store given an object schema (or one the checker cannot see), which koota compiles with `new Function`; no web target allows that | Use `defineComponent` from `@automata/sim`, or pass koota a factory: `trait(() => ({ x: 0 }))`, `relation({ store: () => ({ amount: 0 }) })` |
 | `parse-error` | The file could not be parsed | Fix the syntax error at the location |
 
 ### `typecheck`
@@ -94,7 +94,9 @@ Findings use the compiler's code as the rule (`TS2322`, `TS2304`, …) with its 
 |---|---|---|
 | `levels` | A game file under a row's `exports` folder (`project.toml`, `world.toml`, `levels/<id>.toml`) is not what its level project exports, or is missing, or the project does not open | Open the level in the editor and press Save: it writes the project and every game file together. Never edit the generated TOML by hand |
 
-### `no-eval` (Ruken's CSP has no `unsafe-eval`)
+### `no-eval` (web games may not use `eval` on any target)
+
+Web games may not use `eval` on any target. `automata check --csp` opens your build under Ruken's rules to prove it.
 
 | Rule | Means | Fix |
 |---|---|---|
@@ -108,14 +110,14 @@ Findings use the compiler's code as the rule (`TS2322`, `TS2304`, …) with its 
 
 | Rule | Means | Fix |
 |---|---|---|
-| `data-url` | Vite inlined an asset under `build.assetsInlineLimit` (4 kB by default) as a `data:` URL for a `new URL('./file', import.meta.url)`. Pixi's texture and JSON loaders and AF's audio fetch it, and Ruken's CSP has no `data:` in `connect-src` or `media-src`, so the fetch is refused and the asset never loads. An inlined font is not reported: Pixi loads it through `FontFace`, under `font-src`, which allows `data:` | Set `build.assetsInlineLimit: 0` in `vite.config.ts` (the content Vite plugin and `create-game` set it), so the asset ships as a file from the game's own origin |
+| `data-url` | Vite inlined an asset under `build.assetsInlineLimit` (4 kB by default) as a `data:` URL for a `new URL('./file', import.meta.url)`. Pixi's texture and JSON loaders and AF's audio fetch it, and a strict Content-Security-Policy such as Ruken's has no `data:` in `connect-src` or `media-src`, so the fetch is refused and the asset never loads. An inlined font is not reported: Pixi loads it through `FontFace`, under `font-src`, which allows `data:` | Set `build.assetsInlineLimit: 0` in `vite.config.ts` (the content Vite plugin and `create-game` set it), so the asset ships as a file from the game's own origin |
 | `build` | `vite build` failed, or `no-eval` could not run or read `dist/`, so nothing was scanned | Fix what `no-eval` reports |
 
 ### `csp` (with `--csp`)
 
 | Rule | Means | Fix |
 |---|---|---|
-| `csp-violation` | The page did something Ruken's Content-Security-Policy blocks (eval, an inline script, a remote origin) | Remove what the message names; load assets from the game's own files |
+| `csp-violation` | The page did something the strict Content-Security-Policy blocks (eval, an inline script, a remote origin) | Remove what the message names; load assets from the game's own files |
 | `boot-failed` | The game reached its failed state | Read the boot error the page shows and fix its cause |
 | `not-ready` | The game never reported ready within 20 s | The boot hangs: check the entry point and the host handshake |
 

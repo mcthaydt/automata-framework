@@ -65,7 +65,11 @@ never `Object.keys` or `for…in`. Prefer integers (subpixels, ticks) for anythi
   container size).
 - **A level or tuning number**: content, not code. Levels are edited in the level editor (`automata editor`; see the
   `automata-editor` skill).
-- **Saving, publishing, the host**: `Hosting` and `ship.config.ts`; never browser storage directly.
+- **Shipping**: `pnpm build:<target>`, then `pnpm prepare:<target>` (it runs `automata ship prepare --target <target>`) to
+  check the build, and `automata ship publish --target <target>` to send it where that target has a publish step. The
+  target is `web`, `itch`, `ruken` or `tauri`, and each has a publish guide in the framework's docs
+  (`docs/guides/publish-to-web.md`, `publish-to-itch.md`, `publish-to-ruken.md`, `publish-to-desktop.md`). Saving and
+  the player's account go through `Hosting` and `ship.config.ts`, never the browser's own storage.
 
 Before calling any framework function, look it up in the `automata-api` skill: it lists every export of this version,
 and an export that is not listed does not exist.

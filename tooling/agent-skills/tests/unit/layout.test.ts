@@ -183,6 +183,12 @@ describe("AF's own agent package", () => {
     ])
   })
 
+  it('describes the plugin, the editor included, in one line a person can read', () => {
+    expect(result.plugin?.description).toBe(
+      'Automata Framework skills (rules, test-first features, the exact API, the editor, check findings) and hooks that run automata check after sim edits and before a turn ends.',
+    )
+  })
+
   it('lists plugin automata from ./agents/automata in marketplace automata-framework', () => {
     expect(result.marketplace).toMatchObject({
       name: 'automata-framework',

@@ -12,7 +12,15 @@ const skills = readdirSync(SKILLS).map((name) => ({
   text: readFileSync(join(SKILLS, name, 'SKILL.md'), 'utf8'),
 }))
 
-const RETIRED = ['src/sim/', 'reference host', 'networked truth', 'vitest run src/', 'physics entry points']
+const RETIRED = [
+  'src/sim/',
+  'reference host',
+  'networked truth',
+  'vitest run src/',
+  'physics entry points',
+  "Ruken's CSP",
+  "Ruken's Content-Security-Policy",
+]
 
 describe('the skills', () => {
   it.each(skills)('$name names nothing the framework retired', ({ text }) => {

@@ -98,6 +98,28 @@ describe('automata-verify', () => {
   })
 })
 
+describe('automata', () => {
+  const skill = readFileSync(join(SKILLS, 'automata/SKILL.md'), 'utf8')
+
+  it('says how to ship', () => {
+    // The targets and the commands are the tools', read from them: `pnpm build:<target>` and `prepare:<target>` are
+    // the scripts create-game writes, `automata ship` is the command they run.
+    const targets = /DIST_TARGETS = \[([^\]]*)\]/.exec(
+      read('packages/tools/src/shared/create-game/create-game-targets.ts'),
+    )?.[1]
+    const names = [...(targets ?? '').matchAll(/'([a-z]+)'/g)].map((match) => match[1] ?? '')
+    expect(names).toEqual(['web', 'itch', 'ruken', 'tauri'])
+    for (const text of [
+      'pnpm build:',
+      'automata ship prepare',
+      'automata ship publish',
+      ...names.map((n) => `\`${n}\``),
+    ])
+      expect(skill, text).toContain(text)
+    expect(skill).toContain('docs/guides/publish-to-')
+  })
+})
+
 describe('automata-feature', () => {
   const skill = readFileSync(join(SKILLS, 'automata-feature/SKILL.md'), 'utf8')
   // The example is laid out as a new game is: the feature's code in src/features/, its test in tests/unit/.
