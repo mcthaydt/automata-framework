@@ -27,14 +27,15 @@ let next = $derived(docs[index + 1])
     {#each blocks as block}
       {#if block.type === 'h2'}<h2 id={block.headingId}>{block.content}</h2>
       {:else if block.type === 'h3'}<h3 id={block.headingId}>{block.content}</h3>
-      {:else if block.type === 'code'}<CodeBlock code={block.code ?? ''} lang={block.lang} />
+      {:else if block.type === 'code'}<CodeBlock code={block.code} lang={block.lang} />
       {:else if block.type === 'callout'}<aside data-callout={block.calloutType} class="callout"><p><InlineText text={block.content} /></p></aside>
       {:else if block.type === 'table'}<!-- Keyboard access to horizontally overflowing tables. -->
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-      <div class="table-scroll" tabindex="0" role="region" aria-label={'Table in ' + active.title}><table><thead><tr>{#each block.tableHeaders ?? [] as cell}<th scope="col"><InlineText text={cell} /></th>{/each}</tr></thead><tbody>{#each block.tableRows ?? [] as row}<tr>{#each row as cell}<td><InlineText text={cell} /></td>{/each}</tr>{/each}</tbody></table></div>
-      {:else if block.type === 'ul'}<ul>{#each block.listItems ?? [] as item}<li><InlineText text={item} /></li>{/each}</ul>
-      {:else if block.type === 'ol'}<ol>{#each block.listItems ?? [] as item}<li><InlineText text={item} /></li>{/each}</ol>
-      {:else}<p><InlineText text={block.content} /></p>{/if}
+      <div class="table-scroll" tabindex="0" role="region" aria-label={'Table in ' + active.title}><table><thead><tr>{#each block.tableHeaders as cell}<th scope="col"><InlineText text={cell} /></th>{/each}</tr></thead><tbody>{#each block.tableRows as row}<tr>{#each row as cell}<td><InlineText text={cell} /></td>{/each}</tr>{/each}</tbody></table></div>
+      {:else if block.type === 'ul' || block.type === 'ol'}
+        {#snippet items()}{#each block.items as item}<li><InlineText text={item.text} />{#if item.code}<CodeBlock code={item.code.code} lang={item.code.lang} />{/if}</li>{/each}{/snippet}
+        {#if block.type === 'ul'}<ul>{@render items()}</ul>{:else}<ol>{@render items()}</ol>{/if}
+      {:else if block.type === 'p'}<p><InlineText text={block.content} /></p>{/if}
     {/each}
     <nav class="doc-pagination" aria-label="Previous and next guide">{#if previous}<a href={'/docs/' + previous.slug}>Previous: {previous.title}</a>{/if}{#if next}<a href={'/docs/' + next.slug}>Next: {next.title}</a>{/if}</nav>
   </article>

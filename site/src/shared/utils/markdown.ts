@@ -1,168 +1,145 @@
-export interface ParsedBlock {
-  type: 'p' | 'callout' | 'code' | 'h2' | 'h3' | 'table' | 'ul' | 'ol'
-  content?: string
-  calloutType?: 'note' | 'tip' | 'warning' | 'important'
-  calloutTitle?: string
-  code?: string
-  lang?: string
-  headingId?: string
-  tableHeaders?: string[]
-  tableRows?: string[][]
-  listItems?: string[]
+// The small Markdown reader behind the docs pages. The guides (docs/guides/*.md) are written for GitHub's renderer
+// and wrapped at 120 columns, so this reads the part of Markdown they use, the way GitHub would: headings, paragraphs,
+// fenced code, tables, `> [!NOTE]` callouts, and lists whose items wrap onto indented lines and may hold a code block.
+// Anything else is a paragraph. Inline text (code, bold, links) is `parseInline`'s, below; neither ever yields HTML.
+
+export interface CodeSample {
+  lang: string
+  code: string
 }
 
+export interface ListItem {
+  /** The item's words, its wrapped lines joined with spaces. */
+  text: string
+  /** A fenced block indented under the item, such as the config a step asks for. */
+  code?: CodeSample
+}
+
+export type ParsedBlock =
+  | { type: 'p'; content: string }
+  | { type: 'h2' | 'h3'; content: string; headingId: string }
+  | ({ type: 'code' } & CodeSample)
+  | { type: 'callout'; calloutType: 'note' | 'tip' | 'warning' | 'important'; content: string }
+  | { type: 'table'; tableHeaders: string[]; tableRows: string[][] }
+  | { type: 'ul' | 'ol'; items: ListItem[] }
+
+/** A heading's anchor, as GitHub makes it: lower case, letters, digits and dashes. "On this page" links to it. */
+export function headingId(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+}
+
+const BULLET = /^[-*]\s+/
+const NUMBER = /^\d+\.\s+/
+const CALLOUT = /^>\s*\[!(NOTE|TIP|WARNING|IMPORTANT)\]\s*(.*)$/i
+const isTableRow = (line: string) => line.trim().startsWith('|') && line.trim().endsWith('|')
+const cells = (row: string) =>
+  row
+    .split('|')
+    .slice(1, -1)
+    .map((cell) => cell.trim())
+/** A line that starts a block of its own, so it ends a paragraph. */
+const startsBlock = (line: string) => /^(#|```|>|\|)/.test(line) || BULLET.test(line) || NUMBER.test(line)
+
+/** Reads the lines one block at a time; each reader takes the lines it owns and says where the next block starts. */
 export function parseMarkdown(md: string): ParsedBlock[] {
   const lines = md.split('\n')
   const blocks: ParsedBlock[] = []
   let i = 0
-
   while (i < lines.length) {
     const line = lines[i]
-
-    if (!line.trim()) {
+    // A blank line separates blocks; the page draws the `#` title itself.
+    if (!line.trim() || line.startsWith('# ')) i++
+    else if (line.startsWith('```')) i = readCode(lines, i, blocks)
+    else if (CALLOUT.test(line)) i = readCallout(lines, i, blocks)
+    else if (line.startsWith('## ') || line.startsWith('### ')) {
+      const text = line.replace(/^#+\s+/, '').trim()
+      blocks.push({ type: line.startsWith('## ') ? 'h2' : 'h3', content: text, headingId: headingId(text) })
       i++
-      continue
-    }
-
-    // Skip title h1 since it's in header
-    if (line.startsWith('# ')) {
-      i++
-      continue
-    }
-
-    // Callout box (> [!NOTE], > [!TIP], etc.)
-    const calloutMatch = line.match(/^>\s*\[!(NOTE|TIP|WARNING|IMPORTANT)\]\s*(.*)$/i)
-    if (calloutMatch) {
-      const type = calloutMatch[1].toLowerCase() as 'note' | 'tip' | 'warning' | 'important'
-      const initialText = calloutMatch[2].trim()
-      const textLines: string[] = initialText ? [initialText] : []
-      i++
-      while (i < lines.length && lines[i].startsWith('>')) {
-        textLines.push(lines[i].replace(/^>\s?/, ''))
-        i++
-      }
-      blocks.push({
-        type: 'callout',
-        calloutType: type,
-        calloutTitle: type.toUpperCase(),
-        content: textLines.join('\n').trim(),
-      })
-      continue
-    }
-
-    // Code blocks (```lang ... ```)
-    if (line.startsWith('```')) {
-      const lang = line.replace(/^```/, '').trim() || 'typescript'
-      const codeLines: string[] = []
-      i++
-      while (i < lines.length && !lines[i].startsWith('```')) {
-        codeLines.push(lines[i])
-        i++
-      }
-      if (i < lines.length && lines[i].startsWith('```')) {
-        i++
-      }
-      blocks.push({
-        type: 'code',
-        lang,
-        code: codeLines.join('\n'),
-      })
-      continue
-    }
-
-    // Headings (## or ###)
-    if (line.startsWith('## ')) {
-      const text = line.replace(/^##\s+/, '').trim()
-      const headingId = text
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .trim()
-        .replace(/\s+/g, '-')
-      blocks.push({ type: 'h2', content: text, headingId })
-      i++
-      continue
-    }
-
-    if (line.startsWith('### ')) {
-      const text = line.replace(/^###\s+/, '').trim()
-      const headingId = text
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .trim()
-        .replace(/\s+/g, '-')
-      blocks.push({ type: 'h3', content: text, headingId })
-      i++
-      continue
-    }
-
-    // Table (| col | col |)
-    if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
-      const tableLines: string[] = []
-      while (i < lines.length && lines[i].trim().startsWith('|') && lines[i].trim().endsWith('|')) {
-        tableLines.push(lines[i])
-        i++
-      }
-      if (tableLines.length >= 2) {
-        const headerRow = tableLines[0]
-          .split('|')
-          .slice(1, -1)
-          .map((s) => s.trim())
-        const bodyRows = tableLines.slice(2).map((r) =>
-          r
-            .split('|')
-            .slice(1, -1)
-            .map((s) => s.trim()),
-        )
-        blocks.push({
-          type: 'table',
-          tableHeaders: headerRow,
-          tableRows: bodyRows,
-        })
-        continue
-      }
-    }
-
-    // Lists
-    if (line.match(/^[-*]\s+/)) {
-      const items: string[] = []
-      while (i < lines.length && lines[i].match(/^[-*]\s+/)) {
-        items.push(lines[i].replace(/^[-*]\s+/, '').trim())
-        i++
-      }
-      blocks.push({ type: 'ul', listItems: items })
-      continue
-    }
-
-    if (line.match(/^\d+\.\s+/)) {
-      const items: string[] = []
-      while (i < lines.length && lines[i].match(/^\d+\.\s+/)) {
-        items.push(lines[i].replace(/^\d+\.\s+/, '').trim())
-        i++
-      }
-      blocks.push({ type: 'ol', listItems: items })
-      continue
-    }
-
-    // Paragraph fallback: always advances at least 1 line
-    const pLines: string[] = [line]
-    i++
-    while (
-      i < lines.length &&
-      lines[i].trim() &&
-      !lines[i].startsWith('#') &&
-      !lines[i].startsWith('```') &&
-      !lines[i].startsWith('>') &&
-      !lines[i].startsWith('|') &&
-      !lines[i].match(/^[-*]\s+/) &&
-      !lines[i].match(/^\d+\.\s+/)
-    ) {
-      pLines.push(lines[i])
-      i++
-    }
-    blocks.push({ type: 'p', content: pLines.join(' ') })
+    } else if (isTableRow(line) && isTableRow(lines[i + 1] ?? '')) i = readTable(lines, i, blocks)
+    else if (BULLET.test(line) || NUMBER.test(line)) i = readList(lines, i, blocks)
+    else i = readParagraph(lines, i, blocks)
   }
-
   return blocks
+}
+
+/** A fenced block; `indent` is the list item's indentation it sits under, removed from each line. */
+function fence(lines: readonly string[], at: number, indent = 0): { sample: CodeSample; next: number } {
+  const lang = lines[at].trim().replace(/^```/, '').trim() || 'typescript'
+  const code: string[] = []
+  let i = at + 1
+  while (i < lines.length && !lines[i].trim().startsWith('```')) code.push(lines[i++].slice(indent))
+  // Past the closing fence, if there is one: an unclosed block runs to the end, as on GitHub.
+  return { sample: { lang, code: code.join('\n') }, next: i + 1 }
+}
+
+function readCode(lines: readonly string[], at: number, blocks: ParsedBlock[]): number {
+  const { sample, next } = fence(lines, at)
+  blocks.push({ type: 'code', ...sample })
+  return next
+}
+
+function readCallout(lines: readonly string[], at: number, blocks: ParsedBlock[]): number {
+  const match = CALLOUT.exec(lines[at]) as RegExpExecArray
+  const text = match[2].trim() ? [match[2].trim()] : []
+  let i = at + 1
+  while (i < lines.length && lines[i].startsWith('>')) text.push(lines[i++].replace(/^>\s?/, ''))
+  const calloutType = match[1].toLowerCase() as 'note' | 'tip' | 'warning' | 'important'
+  blocks.push({ type: 'callout', calloutType, content: text.join('\n').trim() })
+  return i
+}
+
+function readTable(lines: readonly string[], at: number, blocks: ParsedBlock[]): number {
+  let i = at
+  const rows: string[] = []
+  while (i < lines.length && isTableRow(lines[i])) rows.push(lines[i++])
+  // The second row is the `|---|` line under the headers.
+  blocks.push({ type: 'table', tableHeaders: cells(rows[0]), tableRows: rows.slice(2).map(cells) })
+  return i
+}
+
+/**
+ * A list, one item per bullet or number. An indented line continues the item above it, a fenced block indented under
+ * an item belongs to it, and a blank line ends the list only when what follows is not indented and not another item.
+ */
+function readList(lines: readonly string[], at: number, blocks: ParsedBlock[]): number {
+  const marker = BULLET.test(lines[at]) ? BULLET : NUMBER
+  const items: ListItem[] = []
+  let i = at
+  while (i < lines.length) {
+    const line = lines[i]
+    const indent = line.length - line.trimStart().length
+    if (marker.test(line)) {
+      items.push({ text: line.replace(marker, '').trim() })
+      i++
+    } else if (indent > 0 && line.trimStart().startsWith('```')) {
+      const { sample, next } = fence(lines, i, indent)
+      items[items.length - 1].code = sample
+      i = next
+    } else if (indent > 0 && line.trim()) {
+      const item = items[items.length - 1]
+      item.text = `${item.text} ${line.trim()}`
+      i++
+    } else if (!line.trim()) {
+      const following = lines.slice(i).find((l) => l.trim()) ?? ''
+      const continues = marker.test(following) || following.startsWith(' ')
+      if (!continues) break
+      i++
+    } else break
+  }
+  blocks.push({ type: marker === BULLET ? 'ul' : 'ol', items })
+  return i
+}
+
+function readParagraph(lines: readonly string[], at: number, blocks: ParsedBlock[]): number {
+  const text = [lines[at]]
+  let i = at + 1
+  while (i < lines.length && lines[i].trim() && !startsBlock(lines[i])) text.push(lines[i++])
+  blocks.push({ type: 'p', content: text.map((line) => line.trim()).join(' ') })
+  return i
 }
 
 export type InlinePart =

@@ -1,4 +1,5 @@
 import guides from 'virtual:framework/guides'
+import { headingId } from '../../shared/utils/markdown'
 
 // The docs pages are the framework's guides (`docs/guides/`, in the order of its index.md), read when the site is
 // built (src/shared/framework/guides.ts). The site writes no docs of its own, so the docs and the framework cannot
@@ -22,7 +23,7 @@ export interface DocSection {
   toc: TocItem[]
 }
 
-/** The `##` and `###` headings, with the ids `parseMarkdown` gives them (src/shared/utils/markdown.ts). */
+/** The `##` and `###` headings, with the ids `parseMarkdown` gives them. */
 export function extractToc(markdown: string): TocItem[] {
   const toc: TocItem[] = []
   let inCode = false
@@ -32,12 +33,7 @@ export function extractToc(markdown: string): TocItem[] {
     const match = inCode ? null : /^(#{2,3})\s+(.+)$/.exec(line)
     if (!match) continue
     const text = match[2].trim().replace(/`/g, '')
-    const id = text
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .trim()
-      .replace(/\s+/g, '-')
-    toc.push({ id, text, level: match[1].length === 2 ? 2 : 3 })
+    toc.push({ id: headingId(text), text, level: match[1].length === 2 ? 2 : 3 })
   }
   return toc
 }
