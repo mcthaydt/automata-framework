@@ -5,20 +5,22 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
+import { checkSite } from '../../../scripts/site-checks'
 import {
   BANNED_PHRASES,
+  checkTargets,
+  FRAMING_PHRASES,
+  STANDALONE_NAMES,
+  TARGETS_SENTENCE_PAGES,
+} from '../../../scripts/site-checks/copy'
+import {
   checkCompileWorker,
   checkEditorChunk,
-  checkSite,
-  checkTargets,
   EDITOR_SOURCE,
-  FRAMING_PHRASES,
   MAX_COMPILE_WORKER_GZIP_BYTES,
   MAX_EDITOR_CHUNK_GZIP_BYTES,
   MAX_PRELOADED_SCRIPT_BYTES,
-  STANDALONE_NAMES,
-  TARGETS_SENTENCE_PAGES,
-} from '../../../scripts/site-checks'
+} from '../../../scripts/site-checks/javascript'
 import { writeSeoFiles } from '../../../scripts/write-seo-files'
 import { withContentSecurityPolicy } from '../../../src/shared/html/csp'
 

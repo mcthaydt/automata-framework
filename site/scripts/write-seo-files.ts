@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { SITE_ORIGIN } from '../src/shared/site.js'
-import { builtPages } from './site-checks.ts'
+import { builtPages } from './site-checks/pages.ts'
 
 /**
  * Writes sitemap.xml and robots.txt into a static build (spec F-3). The sitemap lists the canonical URL of every

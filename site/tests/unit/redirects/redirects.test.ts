@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { JSDOM } from 'jsdom'
 import { afterEach, describe, expect, it } from 'vitest'
-import { builtPages } from '../../../scripts/site-checks.ts'
+import { builtPages } from '../../../scripts/site-checks/pages.ts'
 import { writeRedirects } from '../../../scripts/write-redirects.ts'
 import { REDIRECTS, redirectPage } from '../../../src/features/redirects/redirects'
 

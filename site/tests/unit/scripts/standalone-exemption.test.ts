@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { STANDALONE_NAMES } from '../../../scripts/site-checks'
+import { STANDALONE_NAMES } from '../../../scripts/site-checks/copy'
 import { readApiIndex } from '../../../src/shared/framework/api.ts'
 import { playgroundExamples } from '../../../src/shared/framework/examples.ts'
 
