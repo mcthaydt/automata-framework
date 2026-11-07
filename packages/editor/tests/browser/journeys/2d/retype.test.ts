@@ -46,7 +46,7 @@ describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-la
       levelFields.click()
       await arrived()
       const before = open.document.history.revision
-      await press('radio', 'int')
+      await press('radio', 'Whole number')
       const dialog = document.querySelector<HTMLElement>('[role="dialog"]')
       expect(dialog?.textContent, 'the refusal names the level').toContain('level-1')
       expect(open.document.history.revision, 'nothing changed yet').toBe(before)
@@ -56,7 +56,7 @@ describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-la
       expect(musicType()).toBe('text')
       expect(open.document.history.revision).toBe(before)
 
-      await press('radio', 'int')
+      await press('radio', 'Whole number')
       await pressButton('Change anyway')
       expect(musicType()).toBe('int')
       expect(open.document.history.revision).toBe(before + 1)
