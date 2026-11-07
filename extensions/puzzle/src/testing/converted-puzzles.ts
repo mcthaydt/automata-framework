@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parse } from 'smol-toml'
-import type { PuzzleDef } from '../sim/index'
+import type { PuzzleDef } from '../entries/sim'
 
 export const SCENES = ['prologue', 'clinic', 'clinic-dawn', 'bay'] as const
 

@@ -1,4 +1,4 @@
-// The mixed 3D scene used by the snapshot and parity tests (M2.1 spec §7): balls, cuboids, a kinematic
+// The mixed 3D scene used by the snapshot and parity tests: balls, cuboids, a kinematic
 // capsule driven by a command, a sensor zone, lone colliders, and spawns and despawns mid-run, including a
 // despawn on the tick before the restore point so the snapshot carries a dead-sid row.
 import {
@@ -21,7 +21,7 @@ import {
   RigidBody3D,
   Transform3D,
   transform3d,
-} from '../3d'
+} from '../entries/3d'
 
 const Kill = defineCommand('kill', z.object({ sid: z.number().int() }))
 const Drop = defineCommand('drop', z.object({ x: z.number(), z: z.number() }))
@@ -29,7 +29,7 @@ const Walk = defineCommand('walk', z.object({ x: z.number() }))
 const Edit = defineCommand('edit', z.object({ index: z.number().int() }))
 
 /**
- * Component edits a game makes between ticks, applied by index from the `edit` command (spec §7): each one
+ * Component edits a game makes between ticks, applied by index from the `edit` command: each one
  * goes through a different sync-in path (collider rebuild, sensor toggle, velocity, kind, damping, removal
  * and re-adding of a collider, teleport, size and groups).
  */
@@ -116,7 +116,7 @@ export function spawnScene3D(sim: Sim): void {
         ? collider3d.cuboid(0.3, 0.3, 0.3)
         : collider3d.ball(0.35, { friction: 0.7, restitution: 0.4 }),
     ])
-  // A tilted lone ramp, whose rotation Rapier stores normalized (spec §3.4).
+  // A tilted lone ramp, whose rotation Rapier stores normalized.
   sim.spawn([transform3d({ x: -6, y: 0.5, qz: 0.2588, qw: 0.9659 }), collider3d.cuboid(1.5, 0.1, 1.5)])
 }
 

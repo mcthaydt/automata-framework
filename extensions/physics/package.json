@@ -16,8 +16,8 @@
     "dist"
   ],
   "exports": {
-    "./2d": "./src/2d.ts",
-    "./3d": "./src/3d.ts"
+    "./2d": "./src/entries/2d.ts",
+    "./3d": "./src/entries/3d.ts"
   },
   "automata": {
     "simEntries": [
@@ -39,11 +39,11 @@
     }
   },
   "scripts": {
-    "test": "vitest run --project node --project browsers",
-    "bench": "vitest run --project bench",
-    "test:unit": "vitest run --project node",
-    "test:parity": "vitest run --project browsers",
-    "test:evidence": "vitest run --project node --project browsers src/physics-2d.parity.test.ts src/physics-3d.parity.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
+    "test": "vitest run",
+    "bench": "AF_BENCH=1 vitest run --project bench",
+    "test:unit": "vitest run --project unit",
+    "test:browser": "vitest run --project browser",
+    "test:evidence": "vitest run --project unit --project browser tests/browser/2d/physics-2d.test.ts tests/browser/3d/physics-3d.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
     "typecheck": "tsc -p .",
     "build": "tsdown"
   },
@@ -58,6 +58,7 @@
   "devDependencies": {
     "@automata/evidence": "workspace:*",
     "@automata/sim": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
     "@vitest/browser-playwright": "5.0.3",
     "playwright": "1.63.0",
     "vitest": "5.0.3"

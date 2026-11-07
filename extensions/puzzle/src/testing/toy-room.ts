@@ -9,7 +9,7 @@ import {
   type StepResult,
 } from '@automata/sim'
 import { z } from 'zod'
-import { createPuzzlePlugin, loadPuzzle, type PuzzleDef, type PuzzleOptions } from '../sim/index'
+import { createPuzzlePlugin, loadPuzzle, type PuzzleDef, type PuzzleOptions } from '../entries/sim'
 
 export const TOY: PuzzleDef = {
   scene: 'toy',

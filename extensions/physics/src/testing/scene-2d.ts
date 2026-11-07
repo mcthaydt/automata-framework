@@ -1,4 +1,4 @@
-// The mixed 2D scene for the snapshot and parity tests (M2.1 spec §7), the 2D twin of scene-3d.ts.
+// The mixed 2D scene for the snapshot and parity tests, the 2D twin of scene-3d.ts.
 import {
   type Command,
   createSim,
@@ -19,7 +19,7 @@ import {
   RigidBody2D,
   Transform2D,
   transform2d,
-} from '../2d'
+} from '../entries/2d'
 
 const Kill = defineCommand('kill', z.object({ sid: z.number().int() }))
 const Drop = defineCommand('drop', z.object({ x: z.number() }))
@@ -30,7 +30,7 @@ const Edit = defineCommand('edit', z.object({ index: z.number().int() }))
 const WALKER_SID = 1
 
 /**
- * Component edits a game makes between ticks, applied by index from the `edit` command (spec §7): each one
+ * Component edits a game makes between ticks, applied by index from the `edit` command: each one
  * goes through a different sync-in path (collider rebuild, sensor toggle, velocity, kind, damping, removal
  * and re-adding of a collider, teleport, size and groups).
  */
@@ -104,7 +104,7 @@ export function spawnScene2D(sim: Sim): void {
       body2d(BodyKind.dynamic, { linearDamping: 0.05 }),
       i % 3 === 0 ? collider2d.cuboid(0.3, 0.3) : collider2d.ball(0.35, { friction: 0.7, restitution: 0.4 }),
     ])
-  // A tilted lone ramp: its angle reads back from Rapier differently from the authored 0.3 (spec §3.4).
+  // A tilted lone ramp: its angle reads back from Rapier differently from the authored 0.3.
   sim.spawn([transform2d({ x: -6, y: 0.5, rotation: 0.3 }), collider2d.cuboid(1.5, 0.1)])
 }
 

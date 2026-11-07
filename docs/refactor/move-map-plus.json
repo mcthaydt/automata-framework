@@ -1,0 +1,170 @@
+{
+  "sources": ["extensions/physics", "extensions/puzzle"],
+  "moves": [
+    {
+      "from": "extensions/physics/src/2d.ts",
+      "to": "extensions/physics/src/entries/2d.ts"
+    },
+    {
+      "from": "extensions/physics/src/3d.ts",
+      "to": "extensions/physics/src/entries/3d.ts"
+    },
+    {
+      "from": "extensions/physics/src/kinds.ts",
+      "to": "extensions/physics/src/shared/kinds.ts"
+    },
+    {
+      "from": "extensions/physics/src/checks.ts",
+      "to": "extensions/physics/src/shared/checks.ts"
+    },
+    {
+      "from": "extensions/physics/src/physics-world.ts",
+      "to": "extensions/physics/src/shared/physics-world.ts"
+    },
+    {
+      "from": "extensions/physics/src/physics-world.test.ts",
+      "to": "extensions/physics/src/shared/physics-world.test.ts"
+    },
+    {
+      "from": "extensions/physics/src/physics.system.ts",
+      "to": "extensions/physics/src/shared/physics.system.ts"
+    },
+    {
+      "from": "extensions/physics/src/gravity-config.test.ts",
+      "to": "extensions/physics/src/shared/gravity-config.test.ts"
+    },
+    {
+      "from": "extensions/physics/src/init-retry.test.ts",
+      "to": "extensions/physics/src/shared/init-retry.test.ts"
+    },
+    {
+      "from": "extensions/physics/src/lazy-load.test.ts",
+      "to": "extensions/physics/src/shared/lazy-load.test.ts"
+    },
+    {
+      "from": "extensions/physics/src/snapshot-property.test.ts",
+      "to": "extensions/physics/src/shared/snapshot-property.test.ts"
+    },
+    {
+      "from": "extensions/physics/src/physics.bench.test.ts",
+      "to": "extensions/physics/src/shared/physics.bench.test.ts"
+    },
+    {
+      "from": "extensions/physics/src/physics-2d.ts",
+      "to": "extensions/physics/src/features/2d/physics-2d.ts"
+    },
+    {
+      "from": "extensions/physics/src/physics-2d.component.ts",
+      "to": "extensions/physics/src/features/2d/physics-2d.component.ts"
+    },
+    {
+      "from": "extensions/physics/src/physics-2d.event.ts",
+      "to": "extensions/physics/src/features/2d/physics-2d.event.ts"
+    },
+    {
+      "from": "extensions/physics/src/rapier-2d.ts",
+      "to": "extensions/physics/src/features/2d/rapier-2d.ts"
+    },
+    {
+      "from": "extensions/physics/src/spawn-2d.ts",
+      "to": "extensions/physics/src/features/2d/spawn-2d.ts"
+    },
+    {
+      "from": "extensions/physics/src/physics-2d.test.ts",
+      "to": "extensions/physics/src/features/2d/physics-2d.test.ts"
+    },
+    {
+      "from": "extensions/physics/src/physics-2d-snapshot.test.ts",
+      "to": "extensions/physics/src/features/2d/physics-2d-snapshot.test.ts"
+    },
+    {
+      "from": "extensions/physics/src/physics-2d.parity.test.ts",
+      "to": "extensions/physics/src/features/2d/physics-2d.parity.test.ts"
+    },
+    {
+      "from": "extensions/physics/src/physics-3d.ts",
+      "to": "extensions/physics/src/features/3d/physics-3d.ts"
+    },
+    {
+      "from": "extensions/physics/src/physics-3d.component.ts",
+      "to": "extensions/physics/src/features/3d/physics-3d.component.ts"
+    },
+    {
+      "from": "extensions/physics/src/physics-3d.event.ts",
+      "to": "extensions/physics/src/features/3d/physics-3d.event.ts"
+    },
+    {
+      "from": "extensions/physics/src/rapier-3d.ts",
+      "to": "extensions/physics/src/features/3d/rapier-3d.ts"
+    },
+    {
+      "from": "extensions/physics/src/spawn-3d.ts",
+      "to": "extensions/physics/src/features/3d/spawn-3d.ts"
+    },
+    {
+      "from": "extensions/physics/src/physics-3d.test.ts",
+      "to": "extensions/physics/src/features/3d/physics-3d.test.ts"
+    },
+    {
+      "from": "extensions/physics/src/physics-3d-events.test.ts",
+      "to": "extensions/physics/src/features/3d/physics-3d-events.test.ts"
+    },
+    {
+      "from": "extensions/physics/src/physics-3d-shell.test.ts",
+      "to": "extensions/physics/src/features/3d/physics-3d-shell.test.ts"
+    },
+    {
+      "from": "extensions/physics/src/physics-3d-snapshot.test.ts",
+      "to": "extensions/physics/src/features/3d/physics-3d-snapshot.test.ts"
+    },
+    {
+      "from": "extensions/physics/src/physics-3d.parity.test.ts",
+      "to": "extensions/physics/src/features/3d/physics-3d.parity.test.ts"
+    },
+    {
+      "from": "extensions/physics/src/testing",
+      "to": "extensions/physics/src/testing"
+    },
+    {
+      "from": "extensions/puzzle/src/index.ts",
+      "to": "extensions/puzzle/src/entries/index.ts"
+    },
+    {
+      "from": "extensions/puzzle/src/sim/index.ts",
+      "to": "extensions/puzzle/src/entries/sim.ts"
+    },
+    {
+      "from": "extensions/puzzle/src/solver/index.ts",
+      "to": "extensions/puzzle/src/entries/solver.ts"
+    },
+    {
+      "from": "extensions/puzzle/src/puzzle.content.ts",
+      "to": "extensions/puzzle/src/features/rules/puzzle.content.ts"
+    },
+    {
+      "from": "extensions/puzzle/src/puzzle.content.test.ts",
+      "to": "extensions/puzzle/src/features/rules/puzzle.content.test.ts"
+    },
+    {
+      "from": "extensions/puzzle/src/puzzle.extension.ts",
+      "to": "extensions/puzzle/src/features/rules/puzzle.extension.ts"
+    },
+    {
+      "from": "extensions/puzzle/src/puzzle.extension.test.ts",
+      "to": "extensions/puzzle/src/features/rules/puzzle.extension.test.ts"
+    },
+    {
+      "from": "extensions/puzzle/src/sim",
+      "to": "extensions/puzzle/src/shared/sim"
+    },
+    {
+      "from": "extensions/puzzle/src/solver",
+      "to": "extensions/puzzle/src/features/solver"
+    },
+    {
+      "from": "extensions/puzzle/src/testing",
+      "to": "extensions/puzzle/src/testing"
+    }
+  ],
+  "entries": {}
+}

@@ -1,7 +1,7 @@
 // The source pipeline tests' toy scene as a `PuzzleScene`: a drawer that gives a key, a door it unlocks.
 
-import type { PuzzleDef } from '../sim/index'
-import type { PuzzleScene } from '../solver/index'
+import type { PuzzleDef } from '../entries/sim'
+import type { PuzzleScene } from '../entries/solver'
 
 const AT: Record<string, { x: number; z: number }> = { drawer: { x: 3, z: 0 }, door: { x: 3, z: 4 } }
 

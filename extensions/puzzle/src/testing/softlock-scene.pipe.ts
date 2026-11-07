@@ -1,5 +1,5 @@
 // A toy scene with a softlock (the only key used up in the wrong lock), for the pipeline's failing check (P-d).
-import type { PuzzleScene } from '../solver/index'
+import type { PuzzleScene } from '../entries/solver'
 import { toyScene } from './toy-scene'
 
 const scene = toyScene([
