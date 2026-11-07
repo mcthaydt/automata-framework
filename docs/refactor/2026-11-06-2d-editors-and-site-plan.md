@@ -35,8 +35,8 @@ own Playwright for its configs.
 14.2 that makes the first public version 0.1.0. Only published packages get one (`-sim`, `-content`, `-tools`,
 `automata`); the private `editor`, `editor-3d` and `site` get none.
 
-**Pull requests:** each phase is a draft PR stacked on the one before (the first on this plan's branch), marked ready
-once its checks pass locally, so the gated jobs that skip drafts run on its head. The agent may merge its own PR once
+**Pull requests:** each phase is a PR stacked on the one before (the first on this plan's branch), opened ready, not
+draft (the Owner, 2026-11-06), so the gated jobs that skip drafts run on its head. The agent may merge its own PR once
 every check, parity included, is green on the head (AGENTS.md, Owner 2026-10-30).
 
 **Code standard:** every task's code meets spec section 17 (minimal, elegant, well documented, not over-engineered);
@@ -63,10 +63,10 @@ the same commit, old and new, and passes the four questions of the core spec's s
 ## Tracking
 
 `docs/refactor/progress.md` holds the stage table for each slice. During stage 4 (build) it also holds this table, one
-row per task, and the build's percentage is `done tasks / 63`:
+row per task, and the build's percentage is `done tasks / 68` (63 at first; 12.3b, 12.6, 12.7, 18.0 and 21.0 were added):
 
 ```markdown
-### Build: 0% (0 of 63 tasks)
+### Build: 0% (0 of 68 tasks)
 
 | Task | Phase | Status | PR |
 |---|---|---|---|

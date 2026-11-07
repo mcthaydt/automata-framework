@@ -36,7 +36,7 @@ export interface TextureManager {
   destroy(): void
 }
 
-/** Placeholders are drawn at 4 × their tile so the number stays legible when zoomed, but never over 256 px a side. */
+/** Placeholders are drawn at 4 × their tile so the edge stays crisp when zoomed, but never over 256 px a side. */
 const PLACEHOLDER_SCALE = 4
 const PLACEHOLDER_MAX = 256
 
@@ -48,7 +48,7 @@ async function decode(bytes: Uint8Array): Promise<ImageBitmap | undefined> {
   }
 }
 
-function drawPlaceholder(label: string, color: string, size: Size): Texture {
+function drawPlaceholder(color: string, size: Size): Texture {
   const scale = Math.min(PLACEHOLDER_SCALE, PLACEHOLDER_MAX / Math.max(size.w, size.h, 1))
   const w = Math.max(1, Math.round(size.w * scale))
   const h = Math.max(1, Math.round(size.h * scale))
@@ -66,11 +66,8 @@ function drawPlaceholder(label: string, color: string, size: Size): Texture {
       w - context.lineWidth,
       h - context.lineWidth,
     )
-    context.fillStyle = 'rgba(255, 255, 255, 0.9)'
-    context.font = `600 ${Math.round(Math.min(w, h) * 0.45)}px sans-serif`
-    context.textAlign = 'center'
-    context.textBaseline = 'middle'
-    context.fillText(label, w / 2, h / 2)
+    // No tile number is drawn on the cell: a number means nothing to someone painting a level (the label only keeps
+    // one texture per tile).
   }
   return new Texture({ source: new CanvasSource({ resource: canvas as unknown as HTMLCanvasElement }) })
 }
@@ -158,7 +155,7 @@ export function createTextureManager(store: TextureStore): TextureManager {
       const key = `${label}|${color}|${size.w}x${size.h}`
       let texture = placeholders.get(key)
       if (texture === undefined) {
-        texture = drawPlaceholder(label, color, size)
+        texture = drawPlaceholder(color, size)
         placeholders.set(key, texture)
       }
       return texture

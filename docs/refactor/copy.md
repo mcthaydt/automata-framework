@@ -198,4 +198,7 @@ Reference, Privacy, Terms and Contact; the targets are named by the publish sect
 | Characters, "Only one per level" | a button that looked pressed | a switch | 2 |
 | Map, Arrange levels | a bare choice | `Where your levels sit on the map. Drag a level to move it.` under it | 1 |
 | Map, `Depth` | `Depth` | `Floor` | 4 |
+| Level canvas, a tile with no picture | the tile's number drawn on every cell (`30`, `46`) | the cell's colour and a darker edge, no number | 4 |
+| Start, step 1 | `A folder called my-game with a small working platformer in it: a level, a player and its tests.` | `A folder called my-game with a small working game in it: a square you move around a level, and its tests.` | 1 (it said what the template is not) |
+| Home, "Built for agents" | `Agent skills teach your coding agent where gameplay lives, which rules it must keep and how to test a change.` | `Your game comes with tests, so your coding agent can check its own work after every change.` | untrue until AF's skills are public (audit C6) |
 

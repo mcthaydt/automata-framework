@@ -12,7 +12,7 @@ export const STEPS: readonly Step[] = [
   {
     title: '1. Make a game',
     command: 'npx @automata/tools create-game my-game',
-    what: 'A folder called my-game with a small working platformer in it: a level, a player and its tests.',
+    what: 'A folder called my-game with a small working game in it: a square you move around a level, and its tests.',
   },
   {
     title: '2. Play it',

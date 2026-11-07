@@ -10,7 +10,7 @@ export const REASONS = [
   {
     icon: 'terminal',
     title: 'Built for agents',
-    body: 'Agent skills teach your coding agent where gameplay lives, which rules it must keep and how to test a change.',
+    body: 'Your game comes with tests, so your coding agent can check its own work after every change.',
   },
   {
     icon: 'check',
