@@ -8,7 +8,7 @@ import { fixtureEditor } from '@automata/editor/suite/testing'
 import { editorList, type OpenedSuite, openSuite } from '@automata/editor/suite/testing/layout'
 import { checkLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, test } from 'vitest'
-import { page } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 import barrelProp from '#src/app/suite/sample-3d/content/world-props/barrel.toml?raw'
 import crateProp from '#src/app/suite/sample-3d/content/world-props/crate.toml?raw'
 import hall from '#src/app/suite/sample-3d/hall.af-sector.json?raw'
@@ -338,5 +338,73 @@ describe.each(CASES)('Changing a room in the suite at $label', ({ size, finger }
       (candidate) => candidate.getAttribute('aria-label') ?? '',
     )
     expect(labels.some((label) => /^Undo Set the heights of/.test(label))).toBe(true)
+  })
+})
+
+// The on-screen keyboard (plan 16.1, spec 10.3): typing a number into a room's card shrinks the window by the keyboard's
+// height. The layout the person started in must stay (a phone stays compact, an iPad held sideways stays medium and is
+// not thrown into the phone's), the field they are typing in must stay on screen, and the top bar must stay whole.
+const KEYBOARD = [
+  { name: 'phone-portrait', height: 300 },
+  { name: 'ipad-mini-landscape', height: 340 },
+] as const
+
+describe.each(KEYBOARD)('A keyboard over the room’s card at $name', ({ name, height }) => {
+  test('keeps the layout, the focused field and the top bar', async () => {
+    const size = SIZES.find((each) => each.name === name)
+    if (size === undefined) throw new Error(`no size ${name}`)
+    opened = await openSuite(
+      size,
+      [
+        fixtureEditor as SuiteEditor<unknown>,
+        createLevels3d({ now: () => 0, renderer, schedule: () => () => {} }) as SuiteEditor<unknown>,
+      ],
+      FILES,
+      '[data-testid="plan-canvas"]',
+      'Levels',
+    )
+    await expect.poll(() => plan().dataset.phase, { timeout: 10_000 }).not.toBe('starting')
+    const pageOf = await calibrate()
+    for (const type of ['pointermove', 'pointerdown', 'pointerup']) pointerAt(type, pageOf(3, 3))
+    await arrived()
+    const details = document.querySelector<HTMLElement>('button[aria-label="Details"]')
+    if (details !== null && details.getAttribute('aria-expanded') !== 'true') {
+      details.click()
+      await arrived()
+    }
+    const shellMode = (): string | undefined => document.querySelector<HTMLElement>('.shell')?.dataset.mode
+    const before = shellMode()
+    expect(before, 'the layout this window has to begin with').toBe(size.mode)
+    const floor = [...document.querySelectorAll<HTMLElement>('[role="spinbutton"]')].find(
+      (each) =>
+        document.getElementById(each.getAttribute('aria-labelledby') ?? '')?.textContent?.trim() === 'Floor',
+    )
+    if (floor === undefined) throw new Error('no Floor field')
+    floor.focus()
+    await userEvent.keyboard('{Enter}')
+    await arrived()
+    const typing = document.activeElement
+    expect(typing?.tagName, 'Enter opens the Floor text field and focuses it').toBe('INPUT')
+
+    // The keyboard comes up: the window is that much shorter, the width the same.
+    await page.viewport(size.width, size.height - height)
+    await arrived()
+
+    expect(window.innerHeight).toBe(size.height - height)
+    expect(shellMode(), 'the layout the person started in').toBe(before)
+    expect(document.activeElement, 'the field they are typing in').toBe(typing)
+    const field = (typing as HTMLElement).getBoundingClientRect()
+    expect(field.height).toBeGreaterThan(0)
+    expect(field.top).toBeGreaterThanOrEqual(0)
+    expect(field.bottom).toBeLessThanOrEqual(window.innerHeight)
+    const undo = [...document.querySelectorAll<HTMLElement>('button')].find((each) =>
+      /^Undo/.test(each.getAttribute('aria-label') ?? ''),
+    )
+    const bar = undo?.getBoundingClientRect()
+    expect(bar?.top, 'the top bar stays at the top').toBeGreaterThanOrEqual(0)
+    expect(bar?.bottom).toBeLessThanOrEqual(window.innerHeight)
+    expect(document.documentElement.scrollWidth, 'nothing scrolls sideways').toBeLessThanOrEqual(
+      window.innerWidth,
+    )
   })
 })
