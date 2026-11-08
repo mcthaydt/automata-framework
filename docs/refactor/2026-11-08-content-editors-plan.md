@@ -228,3 +228,7 @@ compose yet show their sentence read only with "Edit this in the file for now."
   half done and parked (`291d4c3d`; not on the page; Play not wired). The Owner then asked for a spec and plan per editor
   (spec section 7b): Tasks 5 to 8 move to those plans, Schematic first, and Feel and Audio are brought in line with
   theirs. Not run: Chromium layout tests as a suite project, journeys, WebKit, Firefox.
+- **2026-11-08, first session, later.** Wrote a spec and plan for each editor (Schematic, Feel, Audio, Writer,
+  Sequence; spec section 7b). Writer saves a line's words in the line as a `localized()` field, so the content-in-play
+  dialogue box reads them through `wordsOf`. Section 8 now points at the content-in-play plan for 2D animation, default
+  controls, 2D games and the dialogue box. Each plan goes to its plan audit next; no editor code changed.

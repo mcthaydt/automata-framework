@@ -28,6 +28,10 @@ Tuner's split view and adds one window message to the debug overlay.
 - Watch's message listener checks both `event.source` and `event.origin`.
 - Fair play and the solver run in Node through the checks port; the page never imports `@automata/systems/bots` or
   `@automata/puzzle/solver`.
+- Nothing Schematic adds reads the world except through the `places` contract (content-in-play spec 3.4): a place is
+  a nav node or a plan point in metres, in 2D and 3D. In a 2D game the light and warmth senses show the lint's words
+  ("2D levels have no lamps, so this sense never notices anything unless the game's code says how bright it is."),
+  tested in Task 7 with a game whose editor list names a 2D level.
 
 ## Review Focus
 

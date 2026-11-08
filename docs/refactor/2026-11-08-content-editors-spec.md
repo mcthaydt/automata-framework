@@ -112,35 +112,37 @@ The Owner, 2026-11-08: "Each editor needs its own plan and spec." This document 
 package, the session, the look, the words, the suite's changes). Each editor has its own spec and plan, written,
 audited and built through the project's pipeline before its code merges:
 
-| Editor | Spec | State |
+| Editor | Spec and plan | State |
 | --- | --- | --- |
-| Schematic (the game's AI: how enemies and other characters behave) | `2026-11-08-schematic-spec.md` | First |
-| Feel | `2026-11-08-feel-spec.md` | Built ahead of its spec; brought in line with it |
-| Audio | `2026-11-08-audio-spec.md` | Half built ahead of its spec; finished against it |
-| Writer | `2026-11-08-writer-spec.md` | Not started |
-| Sequence | `2026-11-08-sequence-spec.md` | Not started |
+| Schematic (the game's AI: how enemies and other characters behave) | `2026-11-08-schematic-{spec,plan}.md` | Written; plan audit next |
+| Feel | `2026-11-08-feel-{spec,plan}.md` | Built ahead of its spec; the plan brings it in line |
+| Audio | `2026-11-08-audio-{spec,plan}.md` | Half built ahead of its spec; the plan finishes it |
+| Writer | `2026-11-08-writer-{spec,plan}.md` | Written; saves a line's words in the line (Writer spec, section 4) |
+| Sequence | `2026-11-08-sequence-{spec,plan}.md` | Written |
 
-## 8. Not in this work (for the Owner to decide)
+`shared/game-events.ts` (the game's events, for Feel and Audio) is made by whichever of Feel's Task 2 and Audio's
+Task 4 runs first.
 
-The suite has no editor for these. Each would be its own spec. None is built unless the Owner asks.
+## 8. Not in this work
 
-1. **2D sprites and animation.** Art comes in by import (Add tiles), but nothing draws or animates a 2D sprite.
-2. **Menus and HUD.** The `ui-screens` kit is code; there is no screen or HUD layout editor.
-3. **Item and enemy tables.** The Tuner edits single numbers; there is no table of items or enemies with their stats.
-4. **Default controls.** Players can rebind in the game; nothing edits the game's default bindings.
+Owned by the content-in-play plan (project files, `2026-11-08-content-in-play-spec.md` and its plan, PR #479):
 
-Three runtime gaps limit what these editors' content does in a game. This work does not take them on. The Owner
-approved closing them (2026-11-08), and the "Plan a whole game with no code" work owns them (see
-`2026-11-08-complete-game-gaps.md` in the project files):
+1. **2D sprites and animation** (its section 4, animation clips).
+2. **Default controls** (`controls.toml`, edited in the Tuner; its Task 9 adds that row to the template's
+   `editors.toml` beside these editors' rows).
+3. **2D games.** Narrative, cutscenes, nav and systems read the world through `@automata/places`, so what Writer,
+   Sequence and Schematic's characters make plays in 2D and 3D. The editors add nothing that reads the world another
+   way (Schematic spec, section 2).
+4. **The dialogue box and captions.** The box shows `words(key)` from the game's message catalog; the Writer spec
+   says where Writer saves the words (Writer spec, section 4), and the content-in-play journey edits a line in Writer
+   and sees the box show it.
 
-5. **2D games.** The narrative, cutscenes and systems extensions require `sectors` (3D) today, so what Writer, Sequence
-   and Schematic's characters make plays only in a 3D game. Feel, Audio and puzzles work in 2D. The editors themselves
-   edit the files either way.
-6. **A dialogue box and captions.** Nothing in the framework or the extensions draws a dialogue line, a choice or a
-   cutscene caption yet; the cutscene director hands a caption to a renderer no package has. Writer and Sequence write
-   the content; the runtime work adds the box that draws it.
-7. **Combat.** Schematic's characters sneak, chase and search; no extension has health or damage, so there is nothing
-   for an editor to set there until the runtime work adds health and damage.
+Still for the Owner to decide, each its own spec if wanted:
+
+5. **Menus and HUD.** Cut by the content-in-play audit: a HUD's numbers are the game's code, and its words already go
+   through the game's messages.
+6. **Item and enemy tables.** The Tuner edits single numbers; there is no table of items or enemies with their stats.
+7. **Combat.** Schematic's characters sneak, chase and search; no extension has health or damage yet.
 
 ## 9. Checks
 

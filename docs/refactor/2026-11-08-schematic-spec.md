@@ -42,9 +42,17 @@ Schematic also edits the scene's puzzle (items, facts, actions, the goal), the o
 and effects, the goal, and lethal and systemic notes; its solver finds whether the puzzle can be finished and where a
 player can get stuck.
 
-What it cannot say yet: health, damage or attacks, and 2D levels (systems requires 3D `sectors`). The "Plan a whole
-game with no code" work owns both (content editors spec, section 8). Schematic is built so that their new conditions
-and actions appear in it without changing the editor (section 5.4).
+What it cannot say yet: health, damage or attacks. That belongs to the "Plan a whole game with no code" work (content
+editors spec, section 8). Schematic is built so that new conditions and actions appear in it without changing the
+editor (section 5.4).
+
+**2D and 3D alike.** Today systems needs 3D `sectors`. The content-in-play plan (project files,
+`2026-11-08-content-in-play-spec.md`, section 3.4) changes how systems reads the world: positions, rooms, walls and
+sight go through a `places` contract (`@automata/places`), which `sectors` provides in 3D and `level-2d` in 2D. It
+leaves the systems schema alone. Schematic adds nothing to the schema that reads the world any other way. A place is
+a nav graph node or a plan point in metres, in both kinds of game. The light and warmth senses need the game's own
+derived facts in a 2D level, which has no lamps, so Schematic shows the systems lint's words beside those senses:
+"2D levels have no lamps, so this sense never notices anything unless the game's code says how bright it is."
 
 ## 3. What a person does in Schematic
 
