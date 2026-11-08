@@ -466,7 +466,7 @@ One row per task of the [plan](2026-11-07-3d-slice-plan.md); a task is done when
 | 14.1 Feature folders and `tests/` | 14 | Done, 2026-11-08 (session ngqsn7; 406 files by a 130-row map, Levels 3D one feature with a folder per screen and the Studio another, `shared/` for what two use; `--features packages/editor-3d --components` finds 0 and runs in `pnpm boundaries`; unit 2181 (was 2196: the retired architecture test is 10, the purity cases 5), layout 189, canvas 14, journeys 16 all as before in Chromium; the duplicated geometry deleted for the level entry's; WebKit and Firefox not run) |
 | 14.2 Dead entries, the shim and the tokens | 14 | Done, 2026-11-08 (session ngqsn7; `style --tokens` finds 52 uses of 13 unknown names in editor-3d and 0 after the fix; the shim, the `.` and `./suite` entries and the barrel are gone; unit 2159, layout 189, canvas 14; colours move from the fallbacks to the kit's tokens, the Owner's GPU run is where they are looked at) |
 | 15.1 The full suite opens the checkout | 15 | Done, 2026-11-08 (session ngqsn7; `openSuite3d` opens the checkout through `openSuitePorts` and the 3D sample (a room and Wick) only when no server answers; 2 tests; base-3d's editor list gives the Studio only `content/figures/*.toml`, noted for 17.x) |
-| 15.2 One page, chosen by the game | 15 | Not started |
+| 15.2 One page, chosen by the game | 15 | Paused: the suite's Levels editor lacks the 2D views the standalone page has (Owner's call asked) |
 | 15.3 The cuts | 15 | Not started |
 | 15.4 The suite on a phone | 15 | Not started |
 | 16.1 The frame, phone first | 16 | Not started |
