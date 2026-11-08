@@ -5,9 +5,9 @@ import { afterEach, describe, expect, test } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import WidgetGallery from '#src/testing/kit/WidgetGallery.svelte'
 
-// The widgets with production CSS in a real browser: every control has its
-// hit area, the page never scrolls sideways, every kind of control shows its focus ring, and a dialog stays on a
-// phone screen. Chromium only until EDK.6; WebKit and Firefox go through a test-request on the Orchestrator bus.
+// The widgets with production CSS in a real browser: every control has its hit area (44 px, a primary action 48 px),
+// the page never scrolls sideways, every kind of control shows its 2 px cobalt focus ring, and a dialog stays on a
+// phone screen, where it is a sheet from the bottom with its primary action in view.
 interface Size {
   readonly name: string
   readonly width: number
@@ -90,6 +90,18 @@ describe.each(SIZES)('widgets at $name ($width x $height)', (size) => {
     expect(primary?.getBoundingClientRect().height).toBeGreaterThanOrEqual(PRIMARY - 0.5)
   })
 
+  test('buttons are 44 px, a primary one 48 px, and an icon button a 44 px circle with a name', async () => {
+    await open(size)
+    const plain = page.getByRole('button', { name: 'Duplicate level' }).element() as HTMLElement
+    const primary = page.getByRole('button', { name: 'New level' }).element() as HTMLElement
+    const icon = page.getByRole('button', { name: 'Undo last edit' }).element() as HTMLElement
+    expect(plain.getBoundingClientRect().height).toBeGreaterThanOrEqual(HIT - 0.5)
+    expect(primary.getBoundingClientRect().height).toBeGreaterThanOrEqual(PRIMARY - 0.5)
+    const box = icon.getBoundingClientRect()
+    expect([Math.round(box.width), Math.round(box.height)]).toEqual([HIT, HIT])
+    expect(icon.querySelector('svg')).not.toBeNull()
+  })
+
   test('an open menu stays on screen with every item at its hit area', async () => {
     await open(size)
     await userEvent.click(page.getByRole('button', { name: 'Layer actions' }))
@@ -118,10 +130,17 @@ describe.each(SIZES)('widgets at $name ($width x $height)', (size) => {
   })
 })
 
-/** Whether the focused element shows the kit's ring: an outline two pixels or wider. */
+/** The focus colour, cobalt (`--focus`), as the browser computes it. */
+const COBALT = 'rgb(29, 39, 138)'
+
+/** Whether the focused element shows the kit's ring: a 2 px cobalt outline. */
 function hasRing(element: Element): boolean {
   const style = getComputedStyle(element)
-  return Number.parseFloat(style.outlineWidth) >= 2 && style.outlineStyle !== 'none'
+  return (
+    Number.parseFloat(style.outlineWidth) === 2 &&
+    style.outlineStyle !== 'none' &&
+    style.outlineColor === COBALT
+  )
 }
 
 /** Presses Tab from the first control until focus comes back round (or leaves `within`), checking each stop. */
@@ -141,6 +160,28 @@ async function tabThrough(within?: HTMLElement): Promise<{ names: string[]; miss
   return { names, missing }
 }
 
+describe('dialog on a phone', () => {
+  test('is a sheet from the bottom, as wide as the screen, with its primary action in view', async () => {
+    await open(SIZES[2] as Size, { dialogOpen: true })
+    const dialog = document.querySelector<HTMLElement>('[role="dialog"]') as HTMLElement
+    const box = dialog.getBoundingClientRect()
+    expect(Math.round(box.bottom)).toBe(844)
+    expect(Math.round(box.left)).toBe(0)
+    expect(Math.round(box.right)).toBe(390)
+    const primary = dialog.querySelector<HTMLElement>('[data-primary]') as HTMLElement
+    const action = primary.getBoundingClientRect()
+    expect(action.top).toBeGreaterThanOrEqual(0)
+    expect(action.bottom).toBeLessThanOrEqual(844)
+  })
+
+  test('is a centred card on an iPad', async () => {
+    await open(SIZES[0] as Size, { dialogOpen: true })
+    const box = (document.querySelector('[role="dialog"]') as HTMLElement).getBoundingClientRect()
+    expect(box.bottom).toBeLessThan(834 - 16)
+    expect(box.left).toBeGreaterThan(16)
+  })
+})
+
 describe('focus ring', () => {
   test('every kind of control in the gallery shows a visible ring when reached by keyboard', async () => {
     await open(SIZES[0] as Size)
@@ -158,6 +199,8 @@ describe('focus ring', () => {
       'role=tab',
       'Layer actions',
       'Terrain:',
+      'Duplicate level',
+      'Undo last edit',
       'Reorder Fog',
       'Undo',
     ]) {

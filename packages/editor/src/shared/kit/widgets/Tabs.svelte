@@ -114,31 +114,43 @@ function onKey(event: KeyboardEvent, index: number): void {
   }
   .list {
     display: flex;
-    gap: var(--space-1);
+    gap: 2px;
+    width: fit-content;
+    max-width: 100%;
+    padding: 3px;
     overflow-x: auto;
-    border-bottom: 1px solid var(--color-border-default);
+    border: 1px solid var(--line);
+    border-radius: var(--pill);
+    background: var(--glass);
   }
   .tab {
     flex: 0 0 auto;
     min-width: var(--size-hit);
     min-height: var(--size-hit);
-    padding: 0 var(--space-3);
+    padding: 0 var(--space-4);
     border: 0;
-    border-bottom: 2px solid transparent;
+    border-radius: var(--pill);
     background: transparent;
-    color: var(--color-text-dim);
+    color: var(--muted);
     font: var(--text-body-13-medium);
     cursor: pointer;
   }
+  .tab:hover:not([aria-selected='true']) {
+    color: var(--ink);
+  }
+  /* The chosen tab is paper with ink, and a cobalt underline drawn inside the pill. */
   .tab[aria-selected='true'] {
-    border-bottom-color: var(--color-accent-default);
-    color: var(--color-text-primary);
+    background: var(--paper);
+    box-shadow:
+      inset 0 -2px 0 var(--cobalt),
+      var(--shadow);
+    color: var(--ink);
   }
   .tab[aria-disabled='true'] {
     opacity: 0.45;
   }
   .tab:focus-visible {
-    outline: 2px solid var(--color-accent-default);
+    outline: 2px solid var(--focus);
     outline-offset: -2px;
   }
   .panel {

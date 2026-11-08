@@ -60,7 +60,7 @@ Published versions live in GitHub Packages, and from DX.11 also on npmjs.org.
 | Game repository secrets and variables (`AF_READ_TOKEN`, `RUKEN_TOKEN`, `RUKEN_API`, `RUKEN_GAME`, `SHIP_DEV_*`) | Each game repository | Create new tokens, as in "Lost credentials" |
 | The `af-linux` self-hosted runner | The Owner's PC (WSL2 Ubuntu with Docker) | Register a new runner with the label `af-linux` (Ruken's `docs/self-hosted-runner.md`) |
 | The Renovate app installation | GitHub Apps | Install it on the repository again; `renovate.json` holds the configuration |
-| The domain `ruken.com` and its DNS | The registrar | Not in AF; the website's deploy (DX.12, QB.4) depends on it |
+| The domain `automataframework.com` and its DNS | The registrar | The website's address (`SITE_ORIGIN` in `site/src/lib/site.js`); point it at the site's host again |
 
 **Rebuild, step by step:**
 

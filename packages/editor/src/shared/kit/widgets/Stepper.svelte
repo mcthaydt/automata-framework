@@ -267,16 +267,17 @@ $effect(() => {
     align-items: center;
     gap: var(--space-1);
     min-height: var(--size-hit);
-    color: var(--color-text-primary);
+    color: var(--ink);
     font: var(--text-body-13);
   }
   .label {
-    flex: 1 1 4rem;
+    flex: 0 1 auto;
+    margin-right: var(--space-2);
     min-width: 0;
     min-height: var(--size-hit);
     display: flex;
     align-items: center;
-    color: var(--color-text-dim);
+    color: var(--muted);
     cursor: ew-resize;
     user-select: none;
     overflow: hidden;
@@ -284,16 +285,16 @@ $effect(() => {
     white-space: nowrap;
   }
   .stepper[data-state='scrubbing'] .label {
-    color: var(--color-accent-default);
+    color: var(--cobalt);
   }
   .step,
   .value,
   .field {
     box-sizing: border-box;
     min-height: var(--size-hit);
-    border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
-    background: var(--color-bg-field);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--paper);
     color: inherit;
     font: var(--text-mono-12);
   }
@@ -318,11 +319,11 @@ $effect(() => {
     cursor: text;
   }
   .unit {
-    color: var(--color-text-faint);
+    color: var(--muted);
   }
   .stepper[data-state='invalid'] .value,
   .stepper[data-state='invalid'] .field {
-    border-color: var(--color-state-bad);
+    border-color: var(--bad);
   }
   /* The stop: the button that would go past a bound dims. */
   .stepper[data-at-limit='max'] .step:last-of-type,
@@ -335,12 +336,12 @@ $effect(() => {
   .step:focus-visible,
   .value:focus-visible,
   .field:focus-visible {
-    outline: 2px solid var(--color-accent-default);
+    outline: 2px solid var(--focus);
     outline-offset: 1px;
   }
   .message {
     flex: 1 1 100%;
-    color: var(--color-state-bad);
+    color: var(--bad);
     font: var(--text-label-12);
   }
   /* The reason is for assistive technology and the tooltip; the dimmed look is the visible cue. */

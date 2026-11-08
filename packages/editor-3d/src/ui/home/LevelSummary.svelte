@@ -36,7 +36,7 @@ const summary = $derived(entry === undefined ? undefined : summaryOf(entry))
     <header>
       <h2>{card.title}</h2>
       <div class="pills">
-        <Pill tone={card.badge.tone}>{card.badge.text}</Pill>
+        {#if card.badge}<Pill tone={card.badge.tone}>{card.badge.text}</Pill>{/if}
         <Pill accent={card.accent}>{card.kind}</Pill>
       </div>
     </header>

@@ -163,7 +163,7 @@ describe('ProjectList', () => {
       mount()
       expect(option(/Mossgate/).style.getPropertyValue('--kind')).toBe('var(--color-layer-tiles)')
       expect(option(/draft\.note/).style.getPropertyValue('--kind')).toBe('var(--color-layer-sky)')
-      expect(option(/stage\.toml/).style.getPropertyValue('--kind')).toBe('var(--color-text-dim)')
+      expect(option(/stage\.toml/).style.getPropertyValue('--kind')).toBe('var(--muted)')
     })
   })
 

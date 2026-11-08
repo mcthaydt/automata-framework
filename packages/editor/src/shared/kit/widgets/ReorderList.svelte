@@ -369,22 +369,22 @@ function transformOf(index: number, id: string): string | undefined {
     display: flex;
     align-items: center;
     min-height: var(--size-hit);
-    border-bottom: 1px solid var(--color-border-default);
-    background: var(--color-bg-surface);
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
     transition: transform 120ms ease;
   }
   .row[data-dragging] {
     position: relative;
     z-index: 2;
-    background: var(--color-bg-raised);
-    box-shadow: 0 4px 16px rgb(0 0 0 / 0.4);
+    background: var(--glass);
+    box-shadow: var(--shadow);
     transition: none;
   }
   .row[data-lifted] {
-    background: var(--color-accent-soft);
+    background: var(--cobalt-soft);
   }
   .row[data-locked] {
-    color: var(--color-text-dim);
+    color: var(--muted);
   }
   @media (prefers-reduced-motion: reduce) {
     .row {
@@ -398,7 +398,7 @@ function transformOf(index: number, id: string): string | undefined {
     align-self: stretch;
     border: 0;
     background: transparent;
-    color: var(--color-text-dim);
+    color: var(--muted);
     font: var(--text-body-13);
     letter-spacing: -2px;
     cursor: grab;
@@ -412,7 +412,7 @@ function transformOf(index: number, id: string): string | undefined {
     cursor: not-allowed;
   }
   .handle:focus-visible {
-    outline: 2px solid var(--color-accent-default);
+    outline: 2px solid var(--focus);
     outline-offset: -2px;
   }
   .content {

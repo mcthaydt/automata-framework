@@ -14,15 +14,17 @@ const plural = (count: number, one: string, many: string): string => `${count} $
 
 // --- words on a card --------------------------------------------------------------------------------------------
 
-/** The pill on a card and on the summary: what the project's checks found, or why it cannot be opened plainly. */
-export function entryBadge(entry: ProjectEntry): { readonly tone: Tone; readonly text: string } {
+/**
+ * The pill on a card and on the summary: how many problems the level's checks found (errors and warnings are one
+ * count, red when any is an error), or why it cannot be opened plainly. A level with nothing wrong has no pill: every
+ * card is a level, so a "Valid" on each would say nothing.
+ */
+export function entryBadge(entry: ProjectEntry): { readonly tone: Tone; readonly text: string } | undefined {
   if (entry.status === 'broken') return { tone: 'bad', text: 'Can’t open' }
   if (entry.status === 'ambiguous') return { tone: 'neutral', text: 'Choose a profile' }
-  const errors = plural(entry.errors, 'error', 'errors')
-  const warnings = plural(entry.warnings, 'warning', 'warnings')
-  if (entry.errors > 0) return { tone: 'bad', text: entry.warnings > 0 ? `${errors} · ${warnings}` : errors }
-  if (entry.warnings > 0) return { tone: 'warn', text: warnings }
-  return { tone: 'ok', text: 'Valid' }
+  const problems = entry.errors + entry.warnings
+  if (problems === 0) return undefined
+  return { tone: entry.errors > 0 ? 'bad' : 'warn', text: plural(problems, 'problem', 'problems') }
 }
 
 /** Accents for the kind of a project, taken in turn by the profile's place in the registry (never by its name). */
@@ -160,8 +162,9 @@ function refusal(name: string, reason: 'unrecognised' | 'notText' | 'tooLarge'):
   }
 }
 
-export function removeMessage(path: string): Notice {
-  return { kind: 'info', text: `Deleted ${baseName(path)}.` }
+/** Said after a delete, naming the level as its card did (`cardTitle`), never its file. */
+export function removeMessage(name: string): Notice {
+  return { kind: 'info', text: `Deleted ${name}.` }
 }
 
 /** The toasts for a batch of imports: the files kept as one line (named when it is one), then a line for each that was not. */

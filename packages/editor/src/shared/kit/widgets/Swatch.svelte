@@ -62,15 +62,15 @@ let {
     width: 28px;
     height: 28px;
     border-radius: var(--radius-sm);
-    border: 1px solid var(--color-border-strong);
+    border: 1px solid var(--line-strong);
   }
   .swatch[aria-pressed='true'] .chip,
   .swatch[aria-selected='true'] .chip {
-    outline: 2px solid var(--color-accent-default);
+    outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
   .swatch:focus-visible {
-    outline: 2px solid var(--color-accent-default);
+    outline: 2px solid var(--focus);
     outline-offset: -2px;
   }
 </style>

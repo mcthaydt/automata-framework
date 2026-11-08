@@ -150,15 +150,16 @@ function onClick(event: MouseEvent): void {
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    background: rgb(0 0 0 / 0.45);
+    background: var(--scrim);
   }
   .popover {
     position: fixed;
     overflow: auto;
-    border: 1px solid var(--color-border-strong);
-    border-radius: var(--radius-md);
-    background: var(--color-bg-raised);
-    color: var(--color-text-primary);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper);
+    box-shadow: var(--shadow-sheet);
+    color: var(--ink);
     pointer-events: auto;
   }
   .sheet {
@@ -167,19 +168,20 @@ function onClick(event: MouseEvent): void {
     width: min(40rem, 100%);
     max-height: min(70%, 32rem);
     padding-bottom: max(var(--space-4), env(safe-area-inset-bottom, 0px));
-    border: 1px solid var(--color-border-strong);
+    border: 1px solid var(--line);
     border-bottom: 0;
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    background: var(--color-bg-raised);
-    color: var(--color-text-primary);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    background: var(--paper);
+    box-shadow: var(--shadow-sheet);
+    color: var(--ink);
   }
   .grip {
     flex: 0 0 auto;
     width: 36px;
     height: 4px;
     margin: var(--space-2) auto;
-    border-radius: 2px;
-    background: var(--color-border-strong);
+    border-radius: var(--pill);
+    background: var(--line-strong);
   }
   .scroll {
     min-height: 0;

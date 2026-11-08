@@ -9,9 +9,9 @@ From the game folder, with the editor built once (`pnpm --filter @mcthaydt/autom
 `pnpm --filter @mcthaydt/automata-editor-3d build` for the 3D one):
 
 ```sh
-automata editor --app 2d        # the 2D editor against this folder, at http://127.0.0.1:<port>
-automata editor ../my-game --app 2d   # another checkout
-automata editor                 # the 3D level editor (--app suite for the editor suite)
+automata editor                 # the level editor on the game in this folder, at http://127.0.0.1:<port>
+automata editor ../my-game      # the game in another folder
+automata editor --app suite     # the level editor and the Tuner together (in this repository only)
 automata editor --port 4173     # a port you choose (default: a free one)
 ```
 

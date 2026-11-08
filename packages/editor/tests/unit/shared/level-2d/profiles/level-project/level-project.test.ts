@@ -174,16 +174,16 @@ describe('the level-project profile', () => {
 
   it('gives every template a hint for its card', () => {
     expect(levelProject.templates.map((t) => [t.id, t.hint])).toEqual([
-      ['platformer', 'side view'],
-      ['topdown-rpg', 'maps · NPCs'],
-      ['blank', 'own layers'],
+      ['platformer', 'jump between platforms'],
+      ['topdown-rpg', 'walk around a map'],
+      ['blank', 'start from nothing'],
     ])
   })
 
   it('offers the three templates, each creating a project that opens', () => {
     expect(levelProject.templates.map((t) => [t.id, t.label])).toEqual([
       ['platformer', 'Platformer'],
-      ['topdown-rpg', 'Top-down RPG'],
+      ['topdown-rpg', 'Top-down'],
       ['blank', 'Blank'],
     ])
     for (const template of levelProject.templates) {

@@ -22,7 +22,7 @@ writeFileSync(join(dir, 'lonely', 'index.html'), html)
 writeFileSync(join(dir, '404.html'), '<title>gone</title>')
 mkdirSync(join(dir, 'playground', 'runtime'), { recursive: true })
 writeFileSync(join(dir, 'playground', 'runtime', 'automata-1a2b.js'), 'export {}')
-const framePage = `<!doctype html><meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'self' https://automata.ruken.com; frame-src 'none'" /><title>frame</title>`
+const framePage = `<!doctype html><meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'self' https://automataframework.com; frame-src 'none'" /><title>frame</title>`
 mkdirSync(join(dir, 'playground', 'examples', 'shapes', 'rects'), { recursive: true })
 writeFileSync(join(dir, 'playground', 'examples', 'shapes', 'rects', 'index.html'), framePage)
 mkdirSync(join(dir, 'playground', 'examples', 'shapes', 'broken'), { recursive: true })
@@ -117,7 +117,7 @@ describe('serve-static', () => {
     const response = await fetch(`${origin}/playground/examples/core/basic-window/`)
     expect(response.status).toBe(200)
     expect(response.headers.get('access-control-allow-origin')).toBe('*')
-    expect(await response.text()).toBe(framePage.replace('https://automata.ruken.com', origin))
+    expect(await response.text()).toBe(framePage.replace('https://automataframework.com', origin))
   })
 
   it('answers 500 for a frame page with no connect-src origin, and keeps serving', async () => {

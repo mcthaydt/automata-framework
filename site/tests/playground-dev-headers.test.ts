@@ -58,7 +58,7 @@ describe('playgroundDevHeaders', () => {
   it("serves a frame page with the dev server's own origin in connect-src (R-2)", () => {
     const dir = mkdtempSync(join(tmpdir(), 'playground-dev-'))
     mkdirSync(join(dir, 'playground/examples/core/basic-window'), { recursive: true })
-    const page = `<meta http-equiv="Content-Security-Policy" content="connect-src 'self' https://automata.ruken.com" />`
+    const page = `<meta http-equiv="Content-Security-Policy" content="connect-src 'self' https://automataframework.com" />`
     writeFileSync(join(dir, 'playground/examples/core/basic-window/index.html'), page)
     const sent: { status?: number; headers: Record<string, string>; body?: string } = { headers: {} }
     let nexted = false
@@ -81,7 +81,7 @@ describe('playgroundDevHeaders', () => {
       },
     )
     expect(nexted).toBe(false)
-    expect(sent.body).toBe(page.replace('https://automata.ruken.com', 'http://localhost:5173'))
+    expect(sent.body).toBe(page.replace('https://automataframework.com', 'http://localhost:5173'))
     expect(sent.headers['Content-Type']).toBe('text/html; charset=utf-8')
     expect(sent.headers['Access-Control-Allow-Origin']).toBe('*')
     rmSync(dir, { recursive: true })

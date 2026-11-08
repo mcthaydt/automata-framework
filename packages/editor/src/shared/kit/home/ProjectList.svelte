@@ -157,14 +157,14 @@ $effect(() => {
   }
   /* The listbox holds the focus, so the ring is drawn on the card it points at. */
   .list:focus-visible :global([aria-selected='true']) {
-    outline: 2px solid var(--color-accent-default);
+    outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
   .placeholder {
     min-height: 6.5rem;
-    border: 1px solid var(--color-border-default);
+    border: 1px solid var(--line);
     border-radius: var(--radius-lg);
-    background: var(--color-bg-surface);
+    background: var(--paper);
     opacity: 0.6;
   }
   .empty {
@@ -173,9 +173,9 @@ $effect(() => {
     align-items: flex-start;
     gap: var(--space-2);
     padding: var(--space-5) var(--space-4);
-    border: 1px dashed var(--color-border-strong);
+    border: 1px dashed var(--line-strong);
     border-radius: var(--radius-lg);
-    color: var(--color-text-dim);
+    color: var(--muted);
     font: var(--text-body-13);
   }
   .empty p {
@@ -183,7 +183,7 @@ $effect(() => {
     overflow-wrap: anywhere;
   }
   .headline {
-    color: var(--color-text-primary);
+    color: var(--ink);
     font: var(--text-title-15);
   }
 </style>

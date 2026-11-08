@@ -55,6 +55,6 @@ function choose(run: () => void, close: () => void): void {
 <style>
   p {
     margin: 0;
-    color: var(--color-text-dim);
+    color: var(--muted);
   }
 </style>

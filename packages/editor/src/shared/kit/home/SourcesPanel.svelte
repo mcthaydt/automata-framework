@@ -59,12 +59,12 @@ const uid = $props.id()
   .storage {
     margin-top: auto;
     padding-top: var(--space-3);
-    border-top: 1px solid var(--color-border-default);
+    border-top: 1px solid var(--line);
   }
   h2 {
     margin: 0;
     padding: 0 var(--space-2);
-    color: var(--color-text-dim);
+    color: var(--muted);
     font: var(--text-eyebrow-11);
     letter-spacing: var(--text-eyebrow-11-tracking);
     text-transform: uppercase;
@@ -74,15 +74,15 @@ const uid = $props.id()
     flex-direction: column;
     min-height: var(--size-hit);
     padding: var(--space-2) var(--space-3);
-    border: 1px solid color-mix(in srgb, var(--color-accent-default) 60%, transparent);
+    border: 1px solid color-mix(in srgb, var(--cobalt) 60%, transparent);
     border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--color-accent-default) 12%, transparent);
+    background: color-mix(in srgb, var(--cobalt) 12%, transparent);
   }
   .name {
     font: var(--text-body-13-medium);
   }
   .subtitle {
-    color: var(--color-text-dim);
+    color: var(--muted);
     font: var(--text-mono-11);
   }
   ul {
@@ -100,7 +100,7 @@ const uid = $props.id()
     gap: var(--space-2);
   }
   li[data-tone='info'] {
-    color: var(--color-text-dim);
+    color: var(--muted);
     font: var(--text-label-12);
   }
   .dot {
@@ -108,9 +108,9 @@ const uid = $props.id()
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--color-state-ok);
+    background: var(--ok);
   }
   li[data-tone='warn'] .dot {
-    background: var(--color-state-warn);
+    background: var(--warn);
   }
 </style>

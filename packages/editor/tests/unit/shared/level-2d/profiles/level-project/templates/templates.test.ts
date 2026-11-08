@@ -56,7 +56,7 @@ describe('every template', () => {
   })
 
   it('has labels in the template list', () => {
-    expect(TEMPLATES.map((template) => template.label)).toEqual(['Platformer', 'Top-down RPG', 'Blank'])
+    expect(TEMPLATES.map((template) => template.label)).toEqual(['Platformer', 'Top-down', 'Blank'])
   })
 })
 

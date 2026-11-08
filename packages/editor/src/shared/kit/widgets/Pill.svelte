@@ -26,26 +26,26 @@ const { tone, accent, children }: Props = $props()
 
 <style>
   .pill {
-    --pill-color: var(--color-text-dim);
+    --pill-color: var(--muted);
     display: inline-flex;
     align-items: center;
     gap: var(--space-1);
     min-height: 22px;
     padding: 0 var(--space-2);
     border: 1px solid color-mix(in srgb, var(--pill-color) 45%, transparent);
-    border-radius: var(--radius-sm);
+    border-radius: var(--pill);
     background: color-mix(in srgb, var(--pill-color) 14%, transparent);
     color: var(--pill-color);
     font: var(--text-label-12);
     white-space: nowrap;
   }
   .pill[data-tone='ok'] {
-    --pill-color: var(--color-state-ok);
+    --pill-color: var(--ok);
   }
   .pill[data-tone='warn'] {
-    --pill-color: var(--color-state-warn);
+    --pill-color: var(--warn);
   }
   .pill[data-tone='bad'] {
-    --pill-color: var(--color-state-bad);
+    --pill-color: var(--bad);
   }
 </style>

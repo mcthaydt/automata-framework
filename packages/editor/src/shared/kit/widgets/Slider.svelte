@@ -172,12 +172,12 @@ $effect(() => {
     align-items: center;
     gap: var(--space-1) var(--space-2);
     min-height: var(--size-hit);
-    color: var(--color-text-primary);
+    color: var(--ink);
     font: var(--text-body-13);
   }
   .label {
     flex: 1 1 100%;
-    color: var(--color-text-dim);
+    color: var(--muted);
   }
   .track {
     position: relative;
@@ -193,14 +193,14 @@ $effect(() => {
   .rail {
     width: 100%;
     height: 6px;
-    border-radius: 3px;
-    background: var(--color-bg-field);
-    border: 1px solid var(--color-border-default);
+    border-radius: var(--pill);
+    background: var(--paper);
+    border: 1px solid var(--line);
     overflow: hidden;
   }
   .fill {
     height: 100%;
-    background: var(--color-accent-default);
+    background: var(--cobalt);
   }
   .thumb {
     position: absolute;
@@ -209,15 +209,16 @@ $effect(() => {
     height: 24px;
     margin: -12px 0 0 -12px;
     border-radius: 50%;
-    background: var(--color-bg-raised);
-    border: 2px solid var(--color-accent-default);
+    background: var(--paper);
+    box-shadow: var(--shadow);
+    border: 2px solid var(--cobalt);
     pointer-events: none;
   }
   .slider[data-state='dragging'] .thumb {
-    background: var(--color-accent-default);
+    background: var(--cobalt);
   }
   .track:focus-visible {
-    outline: 2px solid var(--color-accent-default);
+    outline: 2px solid var(--focus);
     outline-offset: 1px;
   }
   .readout {
@@ -229,7 +230,7 @@ $effect(() => {
   }
   .unit {
     margin-left: 2px;
-    color: var(--color-text-faint);
+    color: var(--muted);
   }
   .slider[data-state='disabled'] {
     opacity: 0.55;

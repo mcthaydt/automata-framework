@@ -7,13 +7,13 @@ import { framePageForOrigin } from '../scripts/playground-origin'
 const policy = (origin: string) =>
   `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-x='; connect-src 'self' ${origin}; frame-src 'none'" />`
 const page = (origin: string) =>
-  `<!doctype html><html><head>${policy(origin)}<title>https://automata.ruken.com</title></head></html>`
+  `<!doctype html><html><head>${policy(origin)}<title>https://automataframework.com</title></head></html>`
 
 describe('framePageForOrigin', () => {
   it('names the given origin in connect-src and changes nothing else', () => {
-    expect(framePageForOrigin(page('https://automata.ruken.com'), 'http://127.0.0.1:4650')).toBe(
-      page('https://automata.ruken.com').replace(
-        policy('https://automata.ruken.com'),
+    expect(framePageForOrigin(page('https://automataframework.com'), 'http://127.0.0.1:4650')).toBe(
+      page('https://automataframework.com').replace(
+        policy('https://automataframework.com'),
         policy('http://127.0.0.1:4650'),
       ),
     )
@@ -24,7 +24,7 @@ describe('framePageForOrigin', () => {
       /connect-src/,
     )
     expect(() =>
-      framePageForOrigin(page('https://automata.ruken.com'), 'http://127.0.0.1:4650/path'),
+      framePageForOrigin(page('https://automataframework.com'), 'http://127.0.0.1:4650/path'),
     ).toThrow(/origin/)
   })
 })

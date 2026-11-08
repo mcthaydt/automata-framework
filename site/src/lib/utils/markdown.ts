@@ -182,11 +182,11 @@ export function parseInline(text: string): InlinePart[] {
       const target = match[4]
       let safe = false
       try {
-        const url = new URL(target, 'https://automata.ruken.com')
+        const url = new URL(target, 'https://automataframework.com')
         safe =
           target.startsWith('https://') ||
           ((target.startsWith('/') || target.startsWith('#')) &&
-            url.origin === 'https://automata.ruken.com' &&
+            url.origin === 'https://automataframework.com' &&
             !target.includes('\\'))
       } catch {
         /* Malformed links remain ordinary text. */

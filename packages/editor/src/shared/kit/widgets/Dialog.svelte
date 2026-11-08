@@ -117,18 +117,20 @@ function onClick(event: MouseEvent): void {
     padding-right: max(var(--space-4), env(safe-area-inset-right, 0px));
     padding-bottom: max(var(--space-4), env(safe-area-inset-bottom, 0px));
     padding-left: max(var(--space-4), env(safe-area-inset-left, 0px));
-    background: rgb(0 0 0 / 0.55);
+    background: var(--scrim);
     outline: none;
   }
   .dialog {
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     width: min(26rem, 100%);
     max-height: 100%;
-    border: 1px solid var(--color-border-strong);
+    border: 1px solid var(--line);
     border-radius: var(--radius-lg);
-    background: var(--color-bg-raised);
-    color: var(--color-text-primary);
+    background: var(--paper);
+    box-shadow: var(--shadow-sheet);
+    color: var(--ink);
     outline: none;
   }
   .dialog[data-width='wide'] {
@@ -136,13 +138,15 @@ function onClick(event: MouseEvent): void {
   }
   .title {
     margin: 0;
-    padding: var(--space-4) var(--space-4) var(--space-2);
+    padding: var(--space-5) var(--space-5) var(--space-2);
     font: var(--text-title-15);
+    letter-spacing: -0.01em;
   }
   .body {
     min-height: 0;
-    padding: 0 var(--space-4);
+    padding: 0 var(--space-5);
     overflow: auto;
+    color: var(--muted);
     font: var(--text-body-13);
   }
   .actions {
@@ -150,7 +154,7 @@ function onClick(event: MouseEvent): void {
     flex-wrap: wrap;
     justify-content: flex-end;
     gap: var(--space-2);
-    padding: var(--space-4);
+    padding: var(--space-5);
   }
   .actions :global(button) {
     min-width: var(--size-hit);
@@ -163,7 +167,40 @@ function onClick(event: MouseEvent): void {
     min-height: var(--size-primary);
   }
   .actions :global(button:focus-visible) {
-    outline: 2px solid var(--color-accent-default);
+    outline: 2px solid var(--focus);
     outline-offset: 2px;
+  }
+  /* The scrim covers the viewport, so the viewport is the dialog's container here.
+     On a phone-width screen the dialog is a sheet from the bottom, edge to edge, with a grab handle; the actions stack
+     with the primary one first and full width, so it is always in reach of a thumb and never off screen. */
+  @media (max-width: 37.5rem) {
+    .scrim {
+      align-items: flex-end;
+      padding: 0;
+    }
+    .dialog,
+    .dialog[data-width='wide'] {
+      width: 100%;
+      max-height: calc(100% - var(--space-6));
+      border-bottom: 0;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    .dialog::before {
+      content: '';
+      align-self: center;
+      width: 36px;
+      height: 4px;
+      margin-top: var(--space-2);
+      border-radius: var(--pill);
+      background: var(--line-strong);
+    }
+    .actions {
+      flex-direction: column-reverse;
+      align-items: stretch;
+    }
+    .actions :global(button) {
+      min-height: var(--size-primary);
+    }
   }
 </style>

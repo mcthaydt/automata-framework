@@ -91,8 +91,11 @@ still run, in the 3D workflow. Its refactor is the 3D slice.
 `games/base-3d`, `vendor/pixi-3d`, 3D pages); shipping the suite (D3: it waits for 3D, when there are two level
 editors to hold); wiring the suite's Ship, Ask, checks and gates (E6: they move with the suite and stay unwired);
 making the repository public (D2); porting Automata Plus (D12); new editor features beyond Save writing the game and what the redesign needs;
-redesigning `editor-3d`'s screens, the Studio and the suite (they pick up the new tokens, section 11.6; the Owner asked
-for "the editors" to be redesigned, so the 3D slice owes their redesign in this look, and `progress.md` records it);
+redesigning `editor-3d`'s screens, the Studio and Levels 3D (they pick up the new tokens, section 11.6; the Owner asked
+for "the editors" to be redesigned, so the 3D slice owes their redesign in this look, and `progress.md` records it).
+Every editor that is not 3D is audited and redesigned here (the Owner, 2026-11-06: "We should be redesigning and
+auditing all editors that aren't 3D, not just the 2D level editor"): the 2D level editor, the Tuner and the suite's 2D
+page (plan tasks 12.6 and 12.7);
 Plus; the paid editor apps.
 
 ## 3. The editor package (D6)
@@ -199,8 +202,9 @@ beta inside is one `cp` from being hosted:
   holds no `@pixi/3d`, and the closed-beta scan (section 7.3) runs on it in `-tools`' build.
 - The Studio (`editor-suite/src/editors/studio`) and Levels 3D (`editor-3d/src/ui/suite`, already in `editor-3d`) are
   registered by `editor-3d`'s own suite page, `packages/editor-3d/suite.html`, which imports `createSuite` from
-  `@mcthaydt/automata-editor/suite` and adds its editors to the list. `automata editor --app suite` serves that build
-  from a checkout, as today.
+  `@mcthaydt/automata-editor/suite` and adds its editors to the list. `automata editor --app suite` serves the 2D page
+  (`packages/editor/dist/suite`), and `editor-3d`'s full suite is served with `--app-dir` (changed 2026-11-06 on the
+  drunk grandma audit: the full suite showed a sample game to someone who asked for theirs).
 - The rail lists only the editors registered in the build (`SUITE_ENTRIES` becomes the registered list), and Cmd 1 to
   9 follow it. The "It comes with the Plus editors (editor-plus)" card goes (S2, G4).
 - The page opens the sample game only when no checkout answers `/api/ping`. Served by `automata editor` it opens the

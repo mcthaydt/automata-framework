@@ -73,7 +73,7 @@ function clearNoteOnLeave(event: FocusEvent): void {
     box-sizing: border-box;
     display: flex;
     min-width: 0;
-    color: var(--color-text-primary);
+    color: var(--ink);
     font: var(--text-body-13);
   }
 
@@ -121,7 +121,7 @@ function clearNoteOnLeave(event: FocusEvent): void {
   .message {
     margin: 0;
     overflow-wrap: anywhere;
-    color: var(--color-state-bad);
+    color: var(--bad);
     font: var(--text-label-12);
   }
 
@@ -139,9 +139,9 @@ function clearNoteOnLeave(event: FocusEvent): void {
     resize: none;
     padding: var(--space-1) var(--space-2);
     font: var(--text-mono-11);
-    color: var(--color-text-dim);
-    background: var(--color-bg-raised);
-    border: 1px solid var(--color-border-default);
+    color: var(--muted);
+    background: var(--glass);
+    border: 1px solid var(--line);
     border-radius: var(--radius-md);
     user-select: text;
     -webkit-user-select: text;
@@ -160,15 +160,15 @@ function clearNoteOnLeave(event: FocusEvent): void {
     min-height: var(--size-hit);
     padding: 0 var(--space-3);
     font: var(--text-label-12);
-    color: var(--color-text-primary);
-    background: var(--color-bg-raised);
-    border: 1px solid var(--color-border-strong);
+    color: var(--ink);
+    background: var(--glass);
+    border: 1px solid var(--line-strong);
     border-radius: var(--radius-md);
     cursor: pointer;
   }
 
   .copy:focus-visible {
-    outline: 2px solid var(--color-accent-default);
+    outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
 
@@ -188,6 +188,6 @@ function clearNoteOnLeave(event: FocusEvent): void {
 
   .note {
     font: var(--text-label-12);
-    color: var(--color-text-dim);
+    color: var(--muted);
   }
 </style>

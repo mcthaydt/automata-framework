@@ -198,7 +198,7 @@ function onTextBlur(event: FocusEvent): void {
     min-width: 0;
   }
   .label {
-    color: var(--color-text-dim);
+    color: var(--muted);
     font: var(--text-label-12);
   }
   .text {
@@ -206,10 +206,10 @@ function onTextBlur(event: FocusEvent): void {
     width: 100%;
     min-height: 44px;
     padding: var(--space-2);
-    border: 1px solid var(--color-border-strong);
+    border: 1px solid var(--line-strong);
     border-radius: var(--radius-md);
-    background: var(--color-bg-field);
-    color: var(--color-text-primary);
+    background: var(--paper);
+    color: var(--ink);
     font: var(--text-body-13);
   }
   .pair {
@@ -219,12 +219,12 @@ function onTextBlur(event: FocusEvent): void {
     gap: var(--space-2);
   }
   .value {
-    color: var(--color-text-primary);
+    color: var(--ink);
     font: var(--text-body-13);
   }
   .message {
     margin: 0;
-    color: var(--color-state-bad);
+    color: var(--bad);
     font: var(--text-body-13);
   }
 </style>

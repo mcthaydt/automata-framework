@@ -88,9 +88,9 @@ function toggle(chip: Chip): void {
   .chip {
     display: inline-flex;
     align-items: stretch;
-    border: 1px solid var(--color-border-default);
-    border-radius: calc(var(--size-hit) / 2);
-    background: var(--color-bg-field);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--pill);
+    background: var(--glass);
     overflow: hidden;
   }
   .body,
@@ -98,7 +98,7 @@ function toggle(chip: Chip): void {
     min-height: var(--size-hit);
     border: 0;
     background: transparent;
-    color: var(--color-text-dim);
+    color: var(--muted);
     font: var(--text-body-13-medium);
     cursor: pointer;
   }
@@ -110,16 +110,19 @@ function toggle(chip: Chip): void {
     padding: 0;
     font-size: 18px;
   }
+  .chip:has(.body[aria-pressed='true']) {
+    border-color: var(--cobalt);
+    background: var(--cobalt-soft);
+  }
   .body[aria-pressed='true'] {
-    background: var(--color-accent-soft);
-    color: var(--color-text-primary);
+    color: var(--cobalt);
   }
   .body[aria-disabled='true'] {
     opacity: 0.45;
   }
   .body:focus-visible,
   .remove:focus-visible {
-    outline: 2px solid var(--color-accent-default);
+    outline: 2px solid var(--focus);
     outline-offset: -2px;
   }
   .reason {

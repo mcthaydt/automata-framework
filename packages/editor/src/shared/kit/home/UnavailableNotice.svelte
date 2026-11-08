@@ -27,9 +27,9 @@ const { message, onretry }: Props = $props()
     align-items: flex-start;
     gap: var(--space-2);
     padding: var(--space-4);
-    border: 1px solid var(--color-state-bad);
+    border: 1px solid var(--bad);
     border-radius: var(--radius-lg);
-    background: var(--color-bg-surface);
+    background: var(--paper);
   }
   h2 {
     margin: 0;
@@ -37,7 +37,7 @@ const { message, onretry }: Props = $props()
   }
   p {
     margin: 0;
-    color: var(--color-text-dim);
+    color: var(--muted);
     font: var(--text-body-13);
     overflow-wrap: anywhere;
   }

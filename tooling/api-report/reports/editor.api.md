@@ -408,15 +408,9 @@ component from '../shared/kit/shell/EditorShell.svelte'
 
 ```ts
 interface EditorTokens {
-    readonly color: Readonly<Record<string, Readonly<Record<string, string>>>>;
-    readonly space: Readonly<Record<string, number>>;
-    readonly radius: Readonly<Record<string, number>>;
-    readonly size: Readonly<Record<string, number>>;
-    readonly font: {
-        readonly sans: string;
-        readonly mono: string;
-        readonly ramp: Readonly<Record<string, RampEntry>>;
-    };
+    readonly colorScheme: 'light' | 'dark';
+    readonly tokens: Readonly<Record<string, string>>;
+    readonly aliases: Readonly<Record<string, string>>;
 }
 ```
 
@@ -822,10 +816,10 @@ interface HistoryOptions {
 interface HomeCard {
     readonly path: string;
     readonly title: string;
-    readonly badge: {
+    readonly badge?: {
         readonly tone: Tone;
         readonly text: string;
-    };
+    } | undefined;
     readonly kind: string;
     readonly accent: string | undefined;
     readonly size: number;
@@ -852,6 +846,24 @@ interface HoverGesture {
     readonly tiltY: number;
     readonly modifiers: Modifiers;
 }
+```
+
+### `Icon` (svelte)
+
+```ts
+component from '../shared/kit/icons/Icon.svelte'
+```
+
+### `IconButton` (svelte)
+
+```ts
+component from '../shared/kit/widgets/IconButton.svelte'
+```
+
+### `IconName` (type)
+
+```ts
+type IconName = keyof typeof ICONS;
 ```
 
 ### `InstanceCode` (type)
@@ -1170,18 +1182,6 @@ interface ProjectStore {
     write(path: string, data: Uint8Array | string, expected?: WriteExpectation): Promise<WriteResult>;
     remove(path: string): Promise<void>;
     watch?(path: string, listener: () => void): () => void;
-}
-```
-
-### `RampEntry` (interface)
-
-```ts
-interface RampEntry {
-    readonly family: 'sans' | 'mono';
-    readonly weight: number;
-    readonly size: number;
-    readonly line: number;
-    readonly tracking: number;
 }
 ```
 
@@ -1676,7 +1676,7 @@ interface ToastStore {
 ### `tokensToCss` (function)
 
 ```ts
-function tokensToCss(tokens: EditorTokens): string;
+function tokensToCss({ colorScheme, tokens, aliases }: EditorTokens): string;
 ```
 
 ### `Tone` (type)
@@ -2176,10 +2176,10 @@ interface HistoryOptions {
 interface HomeCard {
     readonly path: string;
     readonly title: string;
-    readonly badge: {
+    readonly badge?: {
         readonly tone: Tone;
         readonly text: string;
-    };
+    } | undefined;
     readonly kind: string;
     readonly accent: string | undefined;
     readonly size: number;
