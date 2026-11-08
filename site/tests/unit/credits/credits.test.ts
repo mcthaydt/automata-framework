@@ -84,6 +84,25 @@ describe('the credits list', () => {
     expect(credited).toContain('koota')
   })
 
+  it('thanks PixiJS once, as what draws both 2D and 3D, with its Pixi 3D add-on named in the same entry', () => {
+    const pixi = CREDITS.filter((credit) => credit.packages.includes('pixi.js'))
+    expect(pixi).toHaveLength(1)
+    expect(pixi[0]?.packages).toContain('@pixi/3d')
+    expect(pixi[0]?.what).toMatch(/2D/)
+    expect(pixi[0]?.what).toMatch(/3D/)
+    expect(pixi[0]?.what).toMatch(/Pixi 3D/)
+    expect(CREDITS.filter((credit) => credit.name === 'Pixi 3D')).toEqual([])
+  })
+
+  it('credits the DUEL palette to its Lospec page and its submitter, claiming no author or licence the page does not state', () => {
+    const duel = CREDITS.find((credit) => credit.name === 'DUEL palette')
+    expect(duel?.url).toBe('https://lospec.com/palette-list/duel')
+    expect(duel?.what).toContain('Arilyn')
+    expect(duel?.what).toMatch(/Lospec/)
+    expect(duel?.licence).toBe('No licence stated')
+    expect(duel?.packages).toEqual([])
+  })
+
   it('gives each entry a plain line, a licence and a link to its home', () => {
     for (const credit of CREDITS) {
       expect(credit.what.length, credit.name).toBeGreaterThan(10)

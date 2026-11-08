@@ -1,8 +1,10 @@
 // The open-source work Automata is built on, for /credits. Written by hand and held to the workspace by
 // tests/unit/credits/credits.test.ts: every `packages` name is in a manifest, and every outside package a manifest
 // needs to run is thanked here. Licences and homes were read from each package's registry entry on 2026-11-08; a
-// licence is the package's own and is shown as it states it. `what` is one plain line for someone who has never
-// opened a terminal. Ruken is a place a game is published, not a tool we thank here, so it is not listed.
+// licence is the package's own and is shown as it states it. The DUEL palette's Lospec page states none and leaves its
+// `author` field empty; only the submitter, Arilyn, is named, so that is all the page claims. `what` is one plain line
+// for someone who has never opened a terminal. Ruken is a place a game is published, not a tool we thank here, so it is
+// not listed.
 
 export type CreditGroupId = 'game' | 'ship' | 'editors' | 'checks' | 'art'
 
@@ -39,26 +41,18 @@ export const CREDIT_GROUPS: readonly CreditGroup[] = [
     title: 'Keeps the work honest',
     intro: 'What tests, checks and publishes Automata itself.',
   },
-  { id: 'art', title: 'Pictures and type', intro: 'The photos and fonts we did not make.' },
+  { id: 'art', title: 'Pictures, colours and type', intro: 'The photos, colours and fonts we did not make.' },
 ]
 
 export const CREDITS: readonly Credit[] = [
   // Draws and runs your game
   {
     name: 'PixiJS',
-    what: 'Draws everything you see in a game, in 2D and in 3D.',
+    what: 'Draws everything you see, in 2D and in 3D. The 3D comes from its Pixi 3D add-on, still in beta.',
     licence: 'MIT',
     url: 'https://pixijs.com',
     group: 'game',
-    packages: ['pixi.js'],
-  },
-  {
-    name: 'Pixi 3D',
-    what: 'Adds 3D models, lights and cameras to PixiJS. Still in beta.',
-    licence: 'MIT',
-    url: 'https://pixijs.com',
-    group: 'game',
-    packages: ['@pixi/3d'],
+    packages: ['pixi.js', '@pixi/3d'],
   },
   {
     name: 'Klipp',
@@ -398,6 +392,14 @@ export const CREDITS: readonly Credit[] = [
     what: 'Free photos of brick, wood, plaster and more, which the 3D starter’s walls and floors are made from.',
     licence: 'CC0',
     url: 'https://polyhaven.com',
+    group: 'art',
+    packages: [],
+  },
+  {
+    name: 'DUEL palette',
+    what: 'The 256 colours the pixel art is limited to. Listed on Lospec, submitted by Arilyn.',
+    licence: 'No licence stated',
+    url: 'https://lospec.com/palette-list/duel',
     group: 'art',
     packages: [],
   },
