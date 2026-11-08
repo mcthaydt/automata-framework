@@ -1771,6 +1771,117 @@ The font cut to `characters`, as woff2. A character the font lacks is simply not
 function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>): Promise<Uint8Array>;
 ```
 
+### `import { … } from '@automata/content/controls'`
+
+#### `ControlAction` (interface)
+
+One action: what it sends, and every way to do it.
+
+```ts
+interface ControlAction {
+  readonly id: string;
+  /** Its name in the Controls section of Settings and in the Tuner. */
+  readonly label?: string | undefined;
+  /** The command's fields this action sets while held. The game checks them against the command's own schema. */
+  readonly send: Readonly<Record<string, unknown>>;
+  readonly keys?: readonly string[] | undefined;
+  readonly pad?: readonly number[] | undefined;
+  /** Whether the play screen shows a button for it on touch screens. Default yes, when it has a key. */
+  readonly touch?: boolean | undefined;
+  readonly stick?: readonly StickDirection[] | undefined;
+  readonly gesture?: readonly GestureName[] | undefined;
+  /** The game cannot be played without it: rebinding never leaves it unbound. */
+  readonly required?: boolean | undefined;
+}
+```
+
+#### `ControlsFile` (interface)
+
+What `content/controls.toml` holds.
+
+```ts
+interface ControlsFile {
+  /** The id of the command the actions send. */
+  readonly command: string;
+  readonly action: readonly ControlAction[];
+}
+```
+
+#### `controlsFileSchema` (const)
+
+The schema of `content/controls.toml`: at least one action, and no two with one id.
+
+```ts
+const controlsFileSchema: z.ZodType<ControlsFile>;
+```
+
+#### `controlsKind` (function)
+
+The kind a game registers to read `content/controls.toml`.
+
+```ts
+function controlsKind(): ContentSchemaDef;
+```
+
+#### `GESTURE_NAMES` (const)
+
+`camera-drag` is analog: a one-finger or secondary-button drag whose horizontal pixels
+`Input.cameraDrag()` reads. It never holds or pulses an action; binding it is what turns the drag on.
+
+```ts
+const GESTURE_NAMES: readonly ["swipe-left", "swipe-right", "swipe-up", "swipe-down", "flick-down", "tap", "camera-drag"];
+```
+
+#### `GestureName` (type)
+
+A touch gesture (the swipes, flick, tap and the camera drag).
+
+```ts
+type GestureName = (typeof GESTURE_NAMES)[number];
+```
+
+#### `RESERVED_KEYS` (const)
+
+Keys never bindable in a game's profile: Escape (the one back path) and Tab (focus).
+
+```ts
+const RESERVED_KEYS: readonly string[];
+```
+
+#### `RESERVED_PAD_BUTTONS` (const)
+
+Never bindable in a game's profile: Ruken's SDK summons the host on pad 8 (View), 16 is Home, Escape is the
+one back path and Tab moves focus.
+
+```ts
+const RESERVED_PAD_BUTTONS: readonly number[];
+```
+
+#### `STANDARD_PAD_BUTTON_MAX` (const)
+
+The highest button index of the W3C Gamepad standard mapping (0 = bottom face button … 16 = home). Only the
+standard mapping is bound; a pad without it is the device layer's to normalize.
+
+```ts
+const STANDARD_PAD_BUTTON_MAX = 16;
+```
+
+#### `STICK_DIRECTIONS` (const)
+
+_No doc comment._
+
+```ts
+const STICK_DIRECTIONS: readonly ["left-up", "left-down", "left-left", "left-right", "right-up", "right-down", "right-left", "right-right"];
+```
+
+#### `StickDirection` (type)
+
+A stick pushed past its dead zone in one direction (the input service reads them).
+
+```ts
+type StickDirection = (typeof STICK_DIRECTIONS)[number];
+```
+
 ### `import { … } from '@automata/content/game-config'`
 
 #### `GAME_ID_PATTERN` (const)
@@ -1919,6 +2030,22 @@ const RENDERERS: readonly ["webgl2", "webgl", "canvas2d", "wasm-webgl2"];
 
 ### `import { … } from '@automata/content/level-2d'`
 
+#### `animationSchema` (const)
+
+At least one clip, and no two with one name.
+
+```ts
+const animationSchema: z.ZodType<ContentAnimation>;
+```
+
+#### `autoStacks` (function)
+
+The grids of an auto layer, one per stack depth, depth 0 first (the order they are drawn in).
+
+```ts
+function autoStacks(level: ContentLevel, layer: string): readonly (readonly (readonly (TileCell | undefined)[])[])[];
+```
+
 #### `checkEntityDef` (function)
 
 Problems with an entity definition: its id and color, then each field's problems tagged with the field's id and
@@ -1945,6 +2072,32 @@ and the field's own rules; whether a reference resolves is the editor's check.
 function checkFieldValue(def: FieldDef, value: unknown): FieldValueProblem | undefined;
 ```
 
+#### `ContentAnimation` (interface)
+
+A character's animation: a picture cut into `frame`-sized cells, and clips over those cells.
+
+```ts
+interface ContentAnimation {
+  readonly image: string;
+  readonly frame: ContentSize;
+  readonly clips: readonly ContentClip[];
+}
+```
+
+#### `ContentClip` (interface)
+
+One named run of frames of a character's picture: `frames` are indexes into the picture cut into equal cells.
+
+```ts
+interface ContentClip {
+  readonly id: string;
+  readonly frames: readonly number[];
+  /** Frames a second, 1 to 60. */
+  readonly fps: number;
+  readonly loop: boolean;
+}
+```
+
 #### `ContentEntityDef` (type)
 
 An entity definition in `project.toml`: a typed-field definition plus how the editor draws and places it.
@@ -1962,6 +2115,7 @@ type ContentEntityDef = EntityDef & {
     readonly tileset: string;
     readonly index: number;
   } | undefined;
+  readonly animation?: ContentAnimation | undefined;
   readonly tags: readonly string[];
   readonly min?: {
     readonly per: "level" | "project";
@@ -2482,6 +2636,63 @@ The strict schema of `levels/<id>.toml`.
 const levelContentSchema: z.ZodType<ContentLevel>;
 ```
 
+#### `objectsOf` (function)
+
+The items of an objects layer, in file order. Throws for a missing or other layer.
+
+```ts
+function objectsOf(level: ContentLevel, layer: string): readonly ContentObjectItem[];
+```
+
+#### `parseTileToken` (function)
+
+A tile token without its repeat (`7`, `7h`, `7hv`) as a tile, or undefined when it is not one.
+
+```ts
+function parseTileToken(base: string): TileCell | undefined;
+```
+
+#### `Picture` (type)
+
+_No doc comment._
+
+```ts
+type Picture = {
+  readonly kind: "tile";
+  readonly tileset: string;
+  readonly index: number;
+} | {
+  readonly kind: "flat";
+  readonly shape: "rect" | "ellipse" | "point";
+  readonly color: string;
+};
+```
+
+#### `pictureOf` (function)
+
+The picture of a definition: its tile, else its colour as its flat shape.
+
+```ts
+function pictureOf(def: Pick<ContentEntityDef, "shape" | "tile" | "color">): Picture;
+```
+
+#### `PLACEHOLDER_COLORS` (const)
+
+Twelve flat colours far enough apart to tell neighbouring indices apart; tile `n` takes colour `n % 12`, so a
+placeholder looks the same wherever it is drawn and whatever happened to the image.
+
+```ts
+const PLACEHOLDER_COLORS: readonly string[];
+```
+
+#### `placeholderColor` (const)
+
+The placeholder colour of tile `tile`.
+
+```ts
+const placeholderColor: (tile: number) => string;
+```
+
 #### `Point` (interface)
 
 A position with `x` and `y`.
@@ -2511,6 +2722,37 @@ interface RefValue {
   /** The level or sector that holds the target. */
   readonly container?: string | undefined;
 }
+```
+
+#### `TileCell` (interface)
+
+One drawn tile: its index in the tileset and whether it is mirrored.
+
+```ts
+interface TileCell {
+  readonly tile: number;
+  readonly flipX: boolean;
+  readonly flipY: boolean;
+}
+```
+
+#### `tileFrame` (function)
+
+The rectangle of tile `tile` in the tileset's picture, or undefined when the index is past the set.
+
+```ts
+function tileFrame(tileset: Pick<ContentTileset, "tile" | "columns" | "rows" | "spacing" | "padding">, tile: number): (ContentSize & {
+  readonly x: number;
+  readonly y: number;
+}) | undefined;
+```
+
+#### `tileRows` (function)
+
+The cells of a tiles layer, one array per row (undefined is empty). Throws for a missing or other layer.
+
+```ts
+function tileRows(level: ContentLevel, layer: string): readonly (readonly (TileCell | undefined)[])[];
 ```
 
 #### `worldContentSchema` (const)
@@ -4089,6 +4331,15 @@ Matches `@automata/content`'s contentHash formula, pinned by tests.
 function contentHashOf(data: unknown): string;
 ```
 
+#### `controlsFrom` (function)
+
+The input map for a controls file. Throws when the file is for another command, and when an action's `send` is
+not something the command takes, naming the action.
+
+```ts
+function controlsFrom<Z extends z.ZodType>(command: CommandDef<Z>, file: ControlsFile): InputMap;
+```
+
 #### `CORE_SETTINGS` (const)
 
 The `settings` save, version 1: the player's bindings (`input`), graphics quality (`display`), audio (`audio`),
@@ -4904,6 +5155,12 @@ interface GameSpec<S = never, D = unknown> {
      * default screens hold a sim. It reads the sim and never writes it. Needs the default screens.
      */
     readonly draw?: (ctx: DrawContext) => void;
+    /**
+     * The 2D level the game shows: the tiles, auto tiles, objects and placed characters painted in the editor, drawn
+     * under the entity views (`levelScene`). Needs the default screens, which hand it the sim, and a 2D game: a 3D game
+     * draws its rooms itself.
+     */
+    readonly level?: LevelScene;
     /** Merged over the defaults (`pixelArt`, the logical size and the views). */
     readonly renderer?: PixiRendererOptions;
     /**
@@ -5373,6 +5630,15 @@ By `KeyboardEvent.code`, so the keys sit in the same place on every keyboard lay
 type KeyBindings<Z extends z.ZodType> = Readonly<Record<string, Payload<Z>>>;
 ```
 
+#### `keyLabel` (function)
+
+A key's label: the keyboard layout's own (`navigator.keyboard.getLayoutMap()`, a letter in capitals) when there
+is one, else its `code` without the `Key` and `Digit` prefixes, an arrow as its arrow.
+
+```ts
+function keyLabel(code: string, layout?: ReadonlyMap<string, string>): string;
+```
+
 #### `keys` (function)
 
 An input map sending `command` once per tick with the payload of what is held: keys by
@@ -5536,6 +5802,85 @@ view at rest shows the sim's own value rather than an equivalent angle 2π away.
 function lerpAngle(a: number, b: number, t: number): number;
 ```
 
+#### `LevelDraw` (interface)
+
+What a level shows: its backdrop, its things back to front, and the sentences for anything that fell back.
+
+```ts
+interface LevelDraw {
+    readonly background: {
+        readonly color: string;
+        readonly image?: string | undefined;
+        readonly mode: ContentLevel['background']['mode'];
+    };
+    readonly items: readonly DrawItem[];
+    /** Each in the words of the thing a person made, once ("The level "Cave" uses tile 70, but …"). */
+    readonly problems: readonly string[];
+}
+```
+
+#### `levelDrawList` (function)
+
+Builds one level's list. `images` holds the picture paths the game has; `live` the characters the game draws itself.
+
+```ts
+function levelDrawList(project: ContentProject, level: ContentLevel, images: ReadonlySet<string>, live: readonly string[]): LevelDraw;
+```
+
+#### `LevelScene` (interface)
+
+A level the game shows, from `levelScene`; pass it as `defineGame({ level })`.
+
+```ts
+interface LevelScene {
+    /** Adds a hook called each frame after the scene's own redraw check (the 2D cutscene stage is the first). */
+    add(hooks: LevelSceneHooks): void;
+}
+```
+
+#### `levelScene` (function)
+
+Validates the options now and returns the scene; the Pixi objects are made on the first frame.
+
+```ts
+function levelScene(options: LevelSceneOptions): LevelScene;
+```
+
+#### `LevelSceneHooks` (interface)
+
+What a hook draws in the scene: the sim now, the scene's container and a way to hide one placed item's drawing.
+
+```ts
+interface LevelSceneHooks {
+    draw(sim: DrawSim, scene: {
+        readonly container: Container;
+        hide(itemId: string, hidden: boolean): void;
+    }): void;
+}
+```
+
+#### `LevelSceneOptions` (interface)
+
+What `levelScene` needs: the exported content, the pictures the build gave the game, and where to start.
+
+```ts
+interface LevelSceneOptions {
+    readonly project: ContentProject;
+    readonly levels: Readonly<Record<string, ContentLevel>>;
+    /** A workspace path (`assets/terrain.png`) to the url the build gave it. */
+    readonly images: Readonly<Record<string, string>>;
+    /** The level shown first (its id). */
+    readonly start: string;
+    /**
+     * Characters (definition ids) the game spawns and draws itself, with `pictureView`. Core leaves out their placed
+     * items, so one is not drawn twice. Also the way to keep a marker (an area, a spawn point) out of the picture.
+     */
+    readonly live?: readonly string[] | undefined;
+    /** The level to show now, read from the sim each frame. Default: always `start`. */
+    readonly current?: ((sim: DrawSim) => string) | undefined;
+}
+```
+
 #### `LifecyclePayload` (interface)
 
 Whether the game is in front, and if not, why.
@@ -5675,6 +6020,14 @@ interface OwnedRenderer extends GameRenderer {
 }
 ```
 
+#### `padLabel` (function)
+
+A standard-mapping pad button's label on a pad of `glyphs`.
+
+```ts
+function padLabel(button: number, glyphs: PromptGlyphs, copy: PromptCopy): string;
+```
+
 #### `PagedGrid` (const)
 
 A grid of items in pages that never scrolls. Each group starts its own page; the shape is `most`, cut to what the measured box holds at
@@ -5715,6 +6068,39 @@ Checks a pause behavior.
 
 ```ts
 const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
+```
+
+#### `pictureView` (function)
+
+An entity drawn as its character looks in the editor: the tile Characters gave it, else its colour as its shape.
+The view follows the entity's `x`, `y` and `angle` like `rect` and `sprite`, and is anchored at the character's
+pivot. A picture that has not arrived (or a tile past its set) shows the tile's flat colour, never a blank:
+`registerViews({ [Body.id]: pictureView(project, 'player-start', images) })`.
+
+```ts
+function pictureView(project: ContentProject, def: string, images: Readonly<Record<string, string>>, options?: PictureViewOptions): EntityViewFactory;
+```
+
+#### `PictureViewOptions` (interface)
+
+A `pictureView`'s options.
+
+```ts
+interface PictureViewOptions {
+    /**
+     * The name of the clip to play now, read from the entity's components each frame. Code picks the clip by name;
+     * what the clip looks like is the character's, edited in Characters.
+     */
+    readonly clip?: ((components: Readonly<Record<string, Readonly<FieldRecord>>>) => string) | undefined;
+    /**
+     * Moves the picture off the entity's position, for a game whose position is not the character's pivot (a body
+     * whose `x`, `y` is its centre while the character stands on its pivot, its feet). Default none.
+     */
+    readonly offset?: {
+        readonly x: number;
+        readonly y: number;
+    } | undefined;
+}
 ```
 
 #### `PixiRenderer` (interface)
@@ -5823,6 +6209,19 @@ interface PixiStageHooks {
 }
 ```
 
+#### `PlayHandle` (interface)
+
+What `usePlay()` hands a slot component.
+
+```ts
+interface PlayHandle {
+    /** The game as it is now, read-only; undefined until play has a sim. Reading it in a template or `$derived` follows each frame. */
+    readonly sim: DrawSim | undefined;
+    /** Queues `command` for the next tick, after the input map's own, in the order sent. */
+    send(command: SentCommand): void;
+}
+```
+
 #### `PluginDef` (interface)
 
 A bundle of definitions the sim registers together: components, commands, events, resources and systems,
@@ -5914,6 +6313,28 @@ describe what happened; they never change gameplay state.
 interface PresentationBus<Facts = RuntimeFacts> {
     publish<K extends keyof Facts & string>(name: K, fact: Facts[K]): void;
     subscribe<K extends keyof Facts & string>(name: K, listener: (fact: Facts[K]) => void): () => void;
+}
+```
+
+#### `PROMPT_COPY` (const)
+
+_No doc comment._
+
+```ts
+const PROMPT_COPY: PromptCopy;
+```
+
+#### `PromptCopy` (interface)
+
+Every word a prompt shows, in the game's language.
+
+```ts
+interface PromptCopy {
+    /** An action with nothing on the active device. */
+    readonly unbound: string;
+    /** An action with an on-screen button, on touch. */
+    readonly touch: string;
+    readonly pad: Readonly<Record<PadWord, string>>;
 }
 ```
 
@@ -6592,6 +7013,14 @@ const ScrollList: import("svelte").Component<Props, {}, "">;
 type ScrollList = ReturnType<typeof ScrollList>;
 ```
 
+#### `SentCommand` (type)
+
+What a slot component asks the game for: a command, without the tick, source and seq the stream fills in.
+
+```ts
+type SentCommand = Pick<Command, 'type' | 'payload'>;
+```
+
 #### `Settings` (interface)
 
 The booted game's settings as a runtime service: its key and store, both undefined for a game without
@@ -7048,6 +7477,15 @@ Safe because PresentationBus stores facts dynamically by string key.
 
 ```ts
 function typedBus<GameFacts>(bus: PresentationBus<object>): PresentationBus<GameFacts>;
+```
+
+#### `usePlay` (function)
+
+The running game, for a component the play screen draws (the `hud.overlay` slot): read it, and send it commands.
+Call it while the component is being made, as any Svelte context.
+
+```ts
+function usePlay(): PlayHandle;
 ```
 
 #### `ViewportWindow` (interface)
@@ -7780,6 +8218,14 @@ render is finished. Mounts into `target`, or into a new `div` in `document.body`
 function mountFixture<Props extends Record<string, unknown>>(component: Component<Props>, props: Props, target?: HTMLElement): MountedFixture;
 ```
 
+#### `mountInPlay` (function)
+
+Mounts `slot` (a `hud.overlay` component) over `sim` with the play context, into `target` or a new element of the page.
+
+```ts
+function mountInPlay(slot: UiComponent, sim: Sim | undefined, target?: HTMLElement): PlayMount;
+```
+
 #### `nullRenderer` (function)
 
 A renderer that draws nothing and records each call in `log`, for runtime tests without a GPU.
@@ -7825,6 +8271,39 @@ reason. Whatever opened before a throw is closed.
 
 ```ts
 function openRuntimeTest(options?: RuntimeTestOptions): Promise<RuntimeTestSession>;
+```
+
+#### `PlayMount` (interface)
+
+A slot component mounted as the play screen draws it: the element it is in, the session it reads and sends through, and how to remove it.
+
+```ts
+interface PlayMount {
+    readonly host: HTMLElement;
+    /** `refresh()` says a frame passed; `commands(tick, [])` takes what the component sent. */
+    readonly session: PlaySession;
+    unmount(): void;
+}
+```
+
+#### `PlaySession` (class)
+
+One play screen's link to the running game: the reactive read-only view, the queue of sent commands and the
+per-frame refresh. The default screens make one when play starts and give it to `PlayScreen`.
+
+```ts
+class PlaySession {
+    #private;
+    readonly handle: PlayHandle;
+    constructor(sim: Sim | undefined);
+    /** Says a frame passed, so what reads the sim reads it again. */
+    refresh(): void;
+    /**
+     * The commands for `tick`: the input map's (`input`), then the sent ones in send order, each given this tick, source 0 and a
+     * seq of its own (the input map's is the tick, and a seq is used once per source in a step).
+     */
+    commands(tick: number, input: readonly Command[]): readonly Command[];
+}
 ```
 
 #### `pressedPart` (function)
