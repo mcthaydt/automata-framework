@@ -69,6 +69,9 @@ const chosen = $derived(session.chosen)
 <style>
   .list {
     display: grid;
+    /* One column that may be narrower than its widest line: a ready-made character's description must wrap or clip
+       inside the rail, not stretch the rail's buttons past it. */
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-3);
     padding: var(--space-3);
   }
@@ -108,6 +111,8 @@ const chosen = $derived(session.chosen)
   }
   select {
     min-height: var(--size-hit);
+    min-width: 0;
+    max-width: 100%;
     padding: 0 var(--space-3);
     border: 1px solid var(--color-border-default);
     border-radius: var(--edge-sm);

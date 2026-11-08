@@ -9,6 +9,13 @@ describe('contentEditors', () => {
     expect(ids).toEqual(['feel', 'schematic'])
     expect(new Set(ids).size).toBe(ids.length)
   })
+
+  it('keep the same order when the game has an address to watch', () => {
+    expect(contentEditors({ gameUrl: 'http://localhost:5173/' }).map((editor) => editor.id)).toEqual([
+      'feel',
+      'schematic',
+    ])
+  })
 })
 
 describe('the sample game', () => {

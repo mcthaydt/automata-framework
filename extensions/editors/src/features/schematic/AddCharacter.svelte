@@ -34,12 +34,14 @@ function add(choice: string): void {
 <style>
   .add {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-1);
     color: var(--color-text-dim);
     font: var(--text-body-13);
   }
   select {
     min-height: var(--size-hit);
+    min-width: 0;
     max-width: 100%;
     padding: 0 var(--space-3);
     border: 1px solid var(--color-border-default);

@@ -19,7 +19,7 @@ openContentSuite({ origin: location.origin, search: location.search, sessionStor
     const editors = [
       createTuner({ gameUrl }),
       createLevels2d({ ids: randomIds((bytes) => crypto.getRandomValues(bytes)) }),
-      ...contentEditors(),
+      ...contentEditors({ gameUrl }),
     ]
     return startSuite(target, {
       window,
