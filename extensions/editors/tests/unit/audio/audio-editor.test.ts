@@ -97,7 +97,7 @@ describe('Audio: when things happen', () => {
     await userEvent.click(screen.getByRole('button', { name: 'thud' }))
     await userEvent.click(screen.getByRole('button', { name: 'When things happen' }))
     await userEvent.click(screen.getByRole('button', { name: 'Add what happens' }))
-    await userEvent.click(screen.getByRole('button', { name: 'cutscene started' }))
+    await userEvent.click(screen.getByRole('button', { name: 'a cutscene starts' }))
     await vi.waitFor(async () => expect(await text(ports)).toContain('on = "cutscene.started"\ncue = "thud"'))
   })
 })

@@ -20,8 +20,11 @@ test.use({ tracks: ['calm.wav', 'chase.wav'] })
 const played = (page: import('@playwright/test').Page) =>
   page.evaluate(
     () =>
-      (globalThis as unknown as { __storyLog: { music: string | null; cues: string[]; tracks: string[] } })
-        .__storyLog,
+      (
+        globalThis as unknown as {
+          __storyLog: { music: string | null; cues: string[]; tracks: string[]; faults: string[] }
+        }
+      ).__storyLog,
   )
 
 test('music tracks and rules made in Audio are what the played game plays', async ({
@@ -81,4 +84,6 @@ test('music tracks and rules made in Audio are what the played game plays', asyn
   } finally {
     await game.keyboard.up('ArrowRight')
   }
+  // Nothing the editor made was left unplayable: no sound or track the player could not make.
+  expect((await played(game)).faults).toEqual([])
 })

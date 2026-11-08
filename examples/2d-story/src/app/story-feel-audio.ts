@@ -27,6 +27,8 @@ export interface FeelAudioLog {
   music: string | null
   /** The music files the game found. */
   readonly tracks: readonly string[]
+  /** What the sound player could not do (a sound it could not make, a track it could not load); empty when all went well. */
+  readonly faults: string[]
   /** What the player saw: the frames a shake, a flash and a tint were on, and the words that showed. */
   readonly felt: { shake: number; flash: number; tint: number; words: string[] }
 }
@@ -34,6 +36,7 @@ export const log: FeelAudioLog = {
   cues: [],
   music: null,
   tracks: Object.keys(tracks),
+  faults: [],
   felt: { shake: 0, flash: 0, tint: 0, words: [] },
 }
 
@@ -97,7 +100,10 @@ export const audio: GameAudioStart = (services) => {
       sounds = handle
     },
     watch: note,
-    onFault: (message) => console.warn(message),
+    onFault: (message) => {
+      log.faults.push(message)
+      console.warn(message)
+    },
   })(services)
   return () => {
     stopWatching()

@@ -108,6 +108,15 @@ describe('the channels', () => {
     expect(all.filter((f) => f.flash !== null).length).toBeLessThanOrEqual(3)
     expect(all[0]?.flash?.alpha).toBe(0.85)
   })
+  it('draws a flash at least once, however slow the frame it lands on is', () => {
+    const feel = make({
+      content: () => ({ ...content, entry: [{ on: 'slam', visual: [{ flash: 'white', frames: 1 }] }] }),
+    })
+    feel.hear(0, [slam(7)])
+    // A frame a quarter of a second long (4 fps) is longer than the whole flash; the flash is still drawn, then gone.
+    expect(feel.frame(0, 0, 0.25).flash).not.toBeNull()
+    expect(feel.frame(1, 0, 0.25).flash).toBeNull()
+  })
   it('steps a tint down to nothing over its time, and a word lives its time then goes', () => {
     const feel = make()
     feel.hear(0, [slam(7)])

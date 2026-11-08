@@ -11,8 +11,20 @@ const SQUARE_FILES: readonly TemplateFile[] = [
     path: 'src/features/square/square.component.ts',
     content: () => `import { defineComponent } from '@automata/sim'
 
-/** Where the square's centre is, in the game's pixels. */
-export const Square = defineComponent('square', { x: 'f32', y: 'f32' })
+/** Where the square's centre is, in the game's pixels, and whether it was pressed into a wall last tick. */
+export const Square = defineComponent('square', { x: 'f32', y: 'f32', blocked: 'bool' })
+`,
+  },
+  {
+    path: 'src/features/square/bumped.event.ts',
+    content: () => `import { defineEvent } from '@automata/sim'
+import { z } from 'zod'
+
+/**
+ * The square met a wall it was pushed into. Feel and Audio answer events like this one: open \`content/feel/feel.toml\`
+ * or \`content/audio/audio.toml\` in the editors and change what the player feels and hears.
+ */
+export const Bumped = defineEvent('square.bumped', z.object({}))
 `,
   },
   {
@@ -32,24 +44,28 @@ export const Move = defineCommand('move', z.object({ x: axis, y: axis }))
 import { SPEED, SQUARE_SIZE } from '../../shared/constants.ts'
 import { levelIn } from '../level/read-level.ts'
 import { hitsWall } from '../level/walls.ts'
+import { Bumped } from './bumped.event.ts'
 import { Move } from './move.command.ts'
 import { Square } from './square.component.ts'
 
 /**
- * Moves the square by what the player holds, unless a wall is in the way. Only the sim changes the game, so a replay
- * ends where play did.
+ * Moves the square by what the player holds, unless a wall is in the way, and says so once when it first is. Only the
+ * sim changes the game, so a replay ends where play did.
  */
 export const move = defineSystem('move', (ctx) => {
   const level = levelIn(ctx.content)
   for (const { payload } of ctx.commands.of(Move))
     for (const square of ctx.query(Square)) {
-      const { x, y } = square.get(Square)
+      const { x, y, blocked } = square.get(Square)
       // One axis at a time, so a square pushed into a wall at an angle slides along it instead of stopping.
       const nextX = x + payload.x * SPEED
       const movedX = hitsWall(level, nextX, y, SQUARE_SIZE) ? x : nextX
       const nextY = y + payload.y * SPEED
       const movedY = hitsWall(level, movedX, nextY, SQUARE_SIZE) ? y : nextY
-      square.set(Square, { x: movedX, y: movedY })
+      // Pressed into a wall: a move was asked for and none of it happened. Said once, not every tick it is held.
+      const pressed = (payload.x !== 0 || payload.y !== 0) && movedX === x && movedY === y
+      if (pressed && !blocked) ctx.emit(Bumped, {})
+      square.set(Square, { x: movedX, y: movedY, blocked: pressed })
     }
 })
 `,
@@ -57,12 +73,13 @@ export const move = defineSystem('move', (ctx) => {
   {
     path: 'src/features/square/square.plugin.ts',
     content: (options) => `import { definePlugin } from '@automata/sim'
+import { Bumped } from './bumped.event.ts'
 import { Move } from './move.command.ts'
 import { move } from './move.system.ts'
 import { Square } from './square.component.ts'
 
-/** The square's part of the sim: what it holds, what it hears and what runs each tick. */
-export const squarePlugin = definePlugin({ name: '${options.id}', defs: [Square, Move, move] })
+/** The square's part of the sim: what it holds, what it hears, what it says and what runs each tick. */
+export const squarePlugin = definePlugin({ name: '${options.id}', defs: [Square, Move, Bumped, move] })
 `,
   },
   {
@@ -112,6 +129,7 @@ import { Square } from '../features/square/square.component.ts'
 import { squarePlugin } from '../features/square/square.plugin.ts'
 import { squareView } from '../features/square/square.view.ts'
 import { SQUARE_SIZE } from '../shared/constants.ts'
+import { audio, feelOnStage } from './feel-audio.ts'
 
 /** The default controls, as content/controls.toml (arrows or WASD, the pad's D-pad, and touch buttons). */
 if (content.controls === undefined) throw new Error('There is no controls file. Add content/controls.toml.')
@@ -137,7 +155,69 @@ export const game = defineGame({
   views: squareView,
   // The level's tiles and placed characters, drawn by core from what the editor saved.
   level: LEVEL_SCENE,
+  // What the player feels (shake, flash, words) and hears, from the files the Feel and Audio editors write.
+  renderer: { setup: feelOnStage },
+  audio,
 })
+`,
+  },
+  {
+    path: 'src/app/feel-audio.ts',
+    content: () => `import { content } from 'virtual:automata/content'
+import { audioSchema } from '@automata/audio-synth'
+import { type AudioStageHandle, audioStage, tracksFrom } from '@automata/audio-synth/stage'
+import { feelSchema } from '@automata/feel'
+import { feelStage } from '@automata/feel/stage'
+import type { GameAudioStart, PixiStage, PixiStageHooks } from '@automata/framework'
+import { LEVEL } from '../features/level/level.ts'
+
+// What the player feels and hears, from the files the Feel and Audio editors write (content/feel/feel.toml,
+// content/audio/audio.toml and the tracks in assets/music). Both only present: they hear the sim's events and never write
+// it. A file saved in the editors shows the next time the game starts, which \`pnpm dev\` does for you.
+
+const feelTable = feelSchema.parse(content.feel?.feel ?? {})
+const audioTable = audioSchema.parse(content.audio?.audio ?? {})
+
+/** The music files a person put in assets/music, by their names in Audio. */
+const found: Record<string, string> = import.meta.glob('/assets/music/*', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+})
+const tracks = tracksFrom(found)
+
+/** The sound player once audio runs: Feel plays the sounds it names through it. */
+let sounds: AudioStageHandle | undefined
+
+/** Feel on the renderer's stage: shakes, flashes, freezes, squashes and words, with its sounds and rumbles handed on. */
+export function feelOnStage(stage: PixiStage): PixiStageHooks {
+  return feelStage({
+    content: () => feelTable,
+    size: { width: LEVEL.width, height: LEVEL.height },
+    onCue: (cue) => void sounds?.cue(cue),
+    onHaptic: (pulse) => {
+      // A phone buzzes once; a game pad's motors are the host's to drive.
+      if (pulse.phoneMs !== undefined) navigator.vibrate?.(pulse.phoneMs)
+    },
+  })(stage)
+}
+
+/** The audio player: the sounds the events name, and the music the rules pick (rules that ask for nothing play at once). */
+export const audio: GameAudioStart = (services) => {
+  const stop = audioStage({
+    content: () => audioTable,
+    tracks,
+    state: () => ({}),
+    ready: (handle) => {
+      sounds = handle
+    },
+    onFault: (message) => console.warn(message),
+  })(services)
+  return () => {
+    stop?.()
+    sounds = undefined
+  }
+}
 `,
   },
   {
@@ -217,6 +297,7 @@ describe('reading a level', () => {
     content: (options) => `import { createSim } from '@automata/sim'
 import { describe, expect, it } from 'vitest'
 import { LEVEL } from '../../../src/features/level/level.ts'
+import { Bumped } from '../../../src/features/square/bumped.event.ts'
 import { Move } from '../../../src/features/square/move.command.ts'
 import { Square } from '../../../src/features/square/square.component.ts'
 import { squarePlugin } from '../../../src/features/square/square.plugin.ts'
@@ -240,17 +321,27 @@ async function squareAfter(moves: readonly { x?: number; y?: number }[], from = 
 describe('${options.title}: the square', () => {
   it('moves one step in the direction the player holds', async () => {
     const { position } = await squareAfter([{ x: 1 }])
-    expect(position).toEqual({ x: OPEN.x + SPEED, y: OPEN.y })
+    expect(position).toMatchObject({ x: OPEN.x + SPEED, y: OPEN.y })
   })
 
   it('stays put when the player holds nothing', async () => {
     const { position } = await squareAfter([{}])
-    expect(position).toEqual(OPEN)
+    expect(position).toMatchObject(OPEN)
   })
 
   it('stops at the floor', async () => {
     const { position } = await squareAfter([{ y: 1 }, { y: 1 }], ON_THE_START)
-    expect(position).toEqual(ON_THE_START)
+    expect(position).toMatchObject(ON_THE_START)
+  })
+
+  it('says it bumped once when it is pressed into the floor, not every tick it is held there', async () => {
+    const sim = await createSim({ seed: 1, tickHz: 60, plugins: [squarePlugin], content: LEVEL })
+    sim.spawn([[Square, ON_THE_START]])
+    const press = () =>
+      sim.step([{ tick: sim.tick, source: 0, seq: sim.tick, type: Move.id, payload: { x: 0, y: 1 } }])
+    const bumps = [press(), press(), press()].map((result) => result.events.filter((e) => e.type === Bumped.id).length)
+    expect(bumps).toEqual([1, 0, 0])
+    sim.dispose()
   })
 
   it('ends in the same state every time the same moves are played', async () => {

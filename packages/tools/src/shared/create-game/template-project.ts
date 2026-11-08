@@ -216,13 +216,17 @@ body {
 /** The 2D game's project files, written beside its code. */
 export const PROJECT_FILES: readonly TemplateFile[] = [
   readmeFile(SQUARE_WHERE),
-  packageFile(() => ({})),
+  packageFile((options) => ({
+    // Feel and Audio play what their editors make, so the game asks for the packages that play it.
+    '@automata/audio-synth': frameworkSpec(options),
+    '@automata/feel': frameworkSpec(options),
+  })),
   shipConfigFile('any'),
   viteConfigFile({
     imports:
-      "import { controlsKind } from '@automata/content/controls'\nimport { level2dKinds } from '@automata/content/level-2d'",
-    schemas: '[...level2dKinds(), controlsKind()]',
-    compiles: 'the level the editor writes and the default controls',
+      "import { audioContent } from '@automata/audio-synth'\nimport { controlsKind } from '@automata/content/controls'\nimport { level2dKinds } from '@automata/content/level-2d'\nimport { feelContent } from '@automata/feel'",
+    schemas: '[...level2dKinds(), controlsKind(), feelContent, audioContent]',
+    compiles: 'the level the editor writes, the default controls, and what Feel and Audio write',
   }),
   ...SHARED_PROJECT_FILES,
 ]

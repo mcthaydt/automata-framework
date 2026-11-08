@@ -19,7 +19,8 @@ const WORD = 'Here we go!'
 const felt = (page: import('@playwright/test').Page) =>
   page.evaluate(
     () =>
-      (globalThis as unknown as { __storyLog: { felt: { flash: number; words: string[] } } }).__storyLog.felt,
+      (globalThis as unknown as { __storyLog: { felt: { shake: number; flash: number; words: string[] } } })
+        .__storyLog.felt,
   )
 
 test('a word and a flash given to the cutscene in Feel are what the played game shows', async ({
@@ -29,7 +30,7 @@ test('a word and a flash given to the cutscene in Feel are what the played game 
   story,
 }) => {
   await openEditor(page, editor, 'Feel')
-  await pressInList(page, 'When cutscene started')
+  await pressInList(page, 'When a cutscene starts')
 
   await page.getByRole('button', { name: 'Add an effect' }).click()
   await page.getByRole('button', { name: 'Show a word' }).click()
@@ -41,7 +42,7 @@ test('a word and a flash given to the cutscene in Feel are what the played game 
   await page.getByLabel('How many frames').fill('30')
   await pressInList(page, 'Never more than')
   await page.getByLabel('Most flash frames').fill('30')
-  await pressInList(page, 'When cutscene started')
+  await pressInList(page, 'When a cutscene starts')
   await savedInto(story, 'content/feel/feel.toml', 'flash_frames = 30')
   await savedInto(story, 'content/feel/feel.toml', WORD)
   await servedWith(editor, WORD)
@@ -59,4 +60,35 @@ test('a word and a flash given to the cutscene in Feel are what the played game 
   const seen = await felt(game)
   expect(seen.flash).toBeGreaterThan(0)
   await game.screenshot({ path: test.info().outputPath('cutscene-with-feel.png') })
+})
+
+// What a person gets with no tuning: a shake added with the editor's own numbers, under the limits it came with, moves the
+// screen. (The first journey raises a limit; this one must not need to.)
+test('a shake added in Feel with its default numbers moves the played screen', async ({
+  page,
+  context,
+  editor,
+  story,
+}) => {
+  await openEditor(page, editor, 'Feel')
+  await pressInList(page, 'When a cutscene starts')
+  await page.getByRole('button', { name: 'Add an effect' }).click()
+  await page.getByRole('button', { name: 'Shake the screen' }).click()
+  await savedInto(story, 'content/feel/feel.toml', 'shake')
+  await servedWith(editor, 'shake')
+
+  const game = await context.newPage()
+  await playStory(game, editor)
+  expect((await felt(game)).shake).toBe(0)
+  await walkToKeeper(game)
+  await game.getByRole('button', { name: /Show me the gate/ }).click()
+  await game.getByRole('button', { name: 'Next' }).click()
+  await expect.poll(async () => (await felt(game)).shake).toBeGreaterThan(0)
+})
+
+// The guard's changes of mode are offered in Feel (the story lists its systems for the Schematic), in words.
+test('Feel offers the guard’s changes of mode', async ({ page, editor }) => {
+  await openEditor(page, editor, 'Feel')
+  await page.getByRole('button', { name: 'Add a feel' }).click()
+  await expect(page.getByRole('button', { name: 'a character changes mode' })).toBeVisible()
 })

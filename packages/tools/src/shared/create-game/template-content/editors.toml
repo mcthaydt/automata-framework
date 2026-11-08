@@ -10,8 +10,9 @@ exports = "content"
 gates = []
 checks = ["content"]
 
-# The content editors: what the player feels (Feel), the sounds and the music's order (Audio), the words (Writer) and
-# the cutscenes (Sequence). A file that is not there yet is started from its editor's page.
+# The content editors the game plays: what the player feels (Feel) and the sounds and the music's order (Audio). A file
+# that is not there yet is started from its editor's page. Writer and Sequence are listed once the game has a dialogue
+# box and cutscenes to show what they make.
 [[file]]
 glob = "content/feel/*.toml"
 editor = "feel"
@@ -30,27 +31,6 @@ checks = []
 [[file]]
 glob = "assets/music/*"
 editor = "audio"
-modes = ["edit"]
-gates = []
-checks = []
-
-[[file]]
-glob = "content/lines/*.toml"
-editor = "writer"
-modes = ["edit"]
-gates = []
-checks = []
-
-[[file]]
-glob = "content/dialogue/*.toml"
-editor = "writer"
-modes = ["edit"]
-gates = []
-checks = []
-
-[[file]]
-glob = "content/cutscenes/*.toml"
-editor = "sequence"
 modes = ["edit"]
 gates = []
 checks = []

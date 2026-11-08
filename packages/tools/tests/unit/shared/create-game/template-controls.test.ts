@@ -46,7 +46,7 @@ describe('the new game’s controls', () => {
     expect(game).toContain('controlsFrom(Move, CONTROLS)')
     expect(game).not.toContain('keys(')
     expect(read('vite.config.ts')).toContain(
-      'automataContent({ schemas: [...level2dKinds(), controlsKind()] })',
+      'automataContent({ schemas: [...level2dKinds(), controlsKind(), feelContent, audioContent] })',
     )
     expect(read('src/features/level/compiled-content.d.ts')).toContain('readonly controls?: unknown')
   })

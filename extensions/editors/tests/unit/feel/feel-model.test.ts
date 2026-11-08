@@ -32,6 +32,16 @@ describe('eventWords', () => {
   })
 })
 
+describe('eventWords for the extensions’ events', () => {
+  it('says them as a person would, never as an id with the dots taken out', () => {
+    expect(eventWords('systems.mode')).toBe('a character changes mode')
+    expect(eventWords('narrative.choices')).toBe('a conversation offers choices')
+    expect(eventWords('cutscene.ended')).toBe('a cutscene ends')
+    expect(eventWords('narrative.*')).toBe('any conversation event')
+    expect(eventWords('cutscene.*')).toBe('any cutscene event')
+  })
+})
+
 describe('a shake a person can feel', () => {
   it('moves the screen whole pixels, so a small shake rounds to none and says so', () => {
     expect(shakeReach(0.3, 3)).toBe(0)

@@ -29,12 +29,14 @@ afterAll(() => rmSync(join(dir, '..'), { recursive: true, force: true }))
 describe('the new game’s files', () => {
   it('keeps its code in two features, with the app and the shared numbers beside them', () => {
     expect(files.filter((file) => file.startsWith('src/') || file.startsWith('tests/'))).toEqual([
+      'src/app/feel-audio.ts',
       'src/app/game.ts',
       'src/features/level/compiled-content.d.ts',
       'src/features/level/level-scene.ts',
       'src/features/level/level.ts',
       'src/features/level/read-level.ts',
       'src/features/level/walls.ts',
+      'src/features/square/bumped.event.ts',
       'src/features/square/move.command.ts',
       'src/features/square/move.system.ts',
       'src/features/square/square.component.ts',
@@ -49,8 +51,10 @@ describe('the new game’s files', () => {
 
   it('has a level the 2D editor opens, and the game files its Save writes', () => {
     expect(files.filter((file) => file.startsWith('content/'))).toEqual([
+      'content/audio/audio.toml',
       'content/controls.toml',
       'content/editors.toml',
+      'content/feel/feel.toml',
       'content/levels/start.af2d.json',
       'content/levels/start.toml',
       'content/project.toml',
@@ -64,7 +68,9 @@ describe('the new game’s files', () => {
 
   it('compiles the level into the game with the content plugin', () => {
     const config = read('vite.config.ts')
-    expect(config).toContain('automataContent({ schemas: [...level2dKinds(), controlsKind()] })')
+    expect(config).toContain(
+      'automataContent({ schemas: [...level2dKinds(), controlsKind(), feelContent, audioContent] })',
+    )
     expect(read('.gitignore').split('\n')).toContain('content/generated/')
   })
 
@@ -161,6 +167,40 @@ describe('the new game’s scripts and config', () => {
     expect(test).toContain('SPEED')
     expect(test).toContain('stops at the floor')
     expect(test).toContain('hash()')
+  })
+})
+
+describe('the new game plays what Feel and Audio make', () => {
+  it('asks for the packages that play them, in the version that made the game', () => {
+    const dependencies = (JSON.parse(read('package.json')) as { dependencies: Record<string, string> })
+      .dependencies
+    expect(dependencies['@automata/feel']).toBe(dependencies['@automata/framework'])
+    expect(dependencies['@automata/audio-synth']).toBe(dependencies['@automata/framework'])
+  })
+
+  it('puts Feel on the renderer and Audio on the audio, both read from the files the editors write', () => {
+    const game = read('src/app/game.ts')
+    expect(game).toContain('renderer: { setup: feelOnStage }')
+    expect(game).toContain('audio,')
+    const wiring = read('src/app/feel-audio.ts')
+    expect(wiring).toContain('feelSchema.parse(content.feel?.feel ?? {})')
+    expect(wiring).toContain('audioSchema.parse(content.audio?.audio ?? {})')
+    expect(wiring).toContain('/assets/music/*')
+  })
+
+  it('has something to feel and hear at once: the square bumping into a wall', () => {
+    expect(read('src/features/square/bumped.event.ts')).toContain("defineEvent('square.bumped'")
+    expect(read('src/features/square/move.system.ts')).toContain('ctx.emit(Bumped')
+    expect(read('content/feel/feel.toml')).toContain('on = "square.bumped"')
+    expect(read('content/audio/audio.toml')).toContain('on = "square.bumped"')
+  })
+
+  it('lists Feel and Audio, which it plays, and not Writer and Sequence, which it has no box or cutscenes for', () => {
+    const list = read('content/editors.toml')
+    expect(list).toContain('editor = "feel"')
+    expect(list).toContain('editor = "audio"')
+    expect(list).not.toContain('editor = "writer"')
+    expect(list).not.toContain('editor = "sequence"')
   })
 })
 

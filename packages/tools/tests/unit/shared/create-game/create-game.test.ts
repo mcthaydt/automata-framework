@@ -280,7 +280,7 @@ describe('createGame', () => {
       expect(viteConfig).toContain("ADAPTER_CONDITIONS[mode] ?? 'automata-web'")
       expect(viteConfig).toContain('...defaultClientConditions')
       expect(viteConfig).toContain(
-        'plugins: [svelte(), automataContent({ schemas: [...level2dKinds(), controlsKind()] })]',
+        'plugins: [svelte(), automataContent({ schemas: [...level2dKinds(), controlsKind(), feelContent, audioContent] })]',
       )
     })
 
