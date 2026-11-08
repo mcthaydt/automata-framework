@@ -252,12 +252,12 @@ async function mountLevel(size: [number, number] = [1194, 834], options: { share
 const switcher = (): HTMLElement => screen.getByRole('radiogroup', { name: 'Views' })
 
 describe('DocumentScreen: the view switcher', () => {
-  it('lists the four views in plain words and opens on the first, the Level view', async () => {
+  it('lists the views in plain words and opens on the first, the Level view', async () => {
     await mountLevel()
     const options = within(switcher())
       .getAllByRole('radio')
       .map((option) => option.textContent?.trim())
-    expect(options).toEqual(['Level', 'Map', 'Tiles', 'Characters'])
+    expect(options).toEqual(['Level', 'Characters'])
     expect(within(switcher()).getByRole('radio', { name: 'Level' })).toHaveAttribute('aria-checked', 'true')
     expect(screen.getByTestId('level-view')).toBeInTheDocument()
     expect(screen.queryByRole('tablist', { name: 'Views' })).toBeNull()
@@ -267,8 +267,8 @@ describe('DocumentScreen: the view switcher', () => {
     const { opened } = await mountLevel()
     opened.document.history.apply('Rename', (project) => ({ ...(project as object), name: 'Moss' }))
     flushSync()
-    await userEvent.click(within(switcher()).getByRole('radio', { name: 'Map' }))
-    expect(screen.getByTestId('world-view')).toBeInTheDocument()
+    await userEvent.click(within(switcher()).getByRole('radio', { name: 'Characters' }))
+    expect(screen.getByTestId('entities-view')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Undo Rename' })).toBeEnabled()
     await userEvent.click(within(switcher()).getByRole('radio', { name: 'Level' }))
     expect(screen.getByTestId('level-view')).toBeInTheDocument()
@@ -279,10 +279,13 @@ describe('DocumentScreen: the view switcher', () => {
     await mountLevel()
     within(switcher()).getByRole('radio', { name: 'Level' }).focus()
     await userEvent.keyboard('{ArrowRight}')
-    expect(within(switcher()).getByRole('radio', { name: 'Map' })).toHaveAttribute('aria-checked', 'true')
-    expect(within(switcher()).getByRole('radio', { name: 'Map' })).toHaveFocus()
-    await userEvent.keyboard('{End}')
+    expect(within(switcher()).getByRole('radio', { name: 'Characters' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
     expect(within(switcher()).getByRole('radio', { name: 'Characters' })).toHaveFocus()
+    await userEvent.keyboard('{Home}')
+    expect(within(switcher()).getByRole('radio', { name: 'Level' })).toHaveFocus()
   })
 
   it('is a menu named after the open view on a phone', async () => {
@@ -290,10 +293,10 @@ describe('DocumentScreen: the view switcher', () => {
     expect(screen.queryByRole('radiogroup', { name: 'Views' })).toBeNull()
     await userEvent.click(screen.getByRole('button', { name: 'Level' }))
     await userEvent.click(
-      within(screen.getByRole('menu', { name: 'Level' })).getByRole('menuitem', { name: 'Tiles' }),
+      within(screen.getByRole('menu', { name: 'Level' })).getByRole('menuitem', { name: 'Characters' }),
     )
-    expect(screen.getByTestId('tilesets-view')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Tiles' })).toBeInTheDocument()
+    expect(screen.getByTestId('entities-view')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Characters' })).toBeInTheDocument()
   })
 })
 

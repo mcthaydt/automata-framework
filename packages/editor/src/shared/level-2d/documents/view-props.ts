@@ -6,8 +6,6 @@ import type { DrawView } from '../canvas/draw/draw-list-types'
 import type { Camera } from '../canvas/level-view'
 import type { IdSource } from '../model/ids'
 import type { Project } from '../model/project-types'
-import type { WorldLink } from '../model/world/world-links'
-import type { WorldRect } from '../model/world/world-model'
 import type { OpenDocument } from './editor-app'
 
 // What every view (Level, Map, Tiles, Characters) is given. The document screen draws the parts every view shares (the
@@ -50,20 +48,6 @@ export interface ViewServices {
    * tests pass a plain stand-in, as editor-3d's plan canvas takes a renderer factory.
    */
   readonly canvas?: Component<LevelCanvasProps> | undefined
-  /** The world map; the Pixi `WorldCanvas` when absent. jsdom has no WebGL, so the DOM tests pass a stand-in. */
-  readonly worldCanvas?: Component<WorldCanvasProps> | undefined
-}
-
-/** What the World view hands its map (`WorldCanvas.svelte`'s props). */
-export interface WorldCanvasProps {
-  /** The project the levels' pictures are drawn from. */
-  readonly project: Project
-  /** Reads a workspace file's bytes, for the pictures' images. */
-  readonly read: (path: string) => Promise<Uint8Array | undefined>
-  readonly rects: readonly WorldRect[]
-  readonly camera: Camera
-  /** The links between the levels, drawn over them. */
-  readonly links: readonly WorldLink[]
 }
 
 /** What the Level view hands its canvas (`LevelCanvas.svelte`'s props). */

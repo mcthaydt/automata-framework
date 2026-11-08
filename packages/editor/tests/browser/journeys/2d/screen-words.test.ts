@@ -54,7 +54,7 @@ describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-la
       async (template) => {
         editor = await openJourneyEditor(profile, template)
         const found: string[] = []
-        for (const view of ['Level', 'Map', 'Tiles', 'Characters']) {
+        for (const view of ['Level', 'Characters']) {
           await press('radio', view)
           await arrived()
           found.push(...strayWords(view, document.body.innerText))

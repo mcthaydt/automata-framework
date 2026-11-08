@@ -26,12 +26,7 @@ import type { ProjectStore } from '../../shared/kit/storage/project-store'
 import type { Workspace } from '../../shared/kit/storage/workspace'
 import ToastRegion from '../../shared/kit/widgets/ToastRegion.svelte'
 import type { ToastStore } from '../../shared/kit/widgets/toasts'
-import type {
-  LevelCanvasProps,
-  ObjectUrls,
-  ViewServices,
-  WorldCanvasProps,
-} from '../../shared/level-2d/documents/view-props'
+import type { LevelCanvasProps, ObjectUrls, ViewServices } from '../../shared/level-2d/documents/view-props'
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import { componentOf } from './views'
 
@@ -49,8 +44,6 @@ interface Props {
   objectUrls?: ObjectUrls | undefined
   /** The level canvas; the DOM tests pass a stand-in. */
   canvas?: Component<LevelCanvasProps> | undefined
-  /** The world map; the DOM tests pass a stand-in. */
-  worldCanvas?: Component<WorldCanvasProps> | undefined
   /** The gestures' time; the browser's when absent. Journeys pass their test clock. */
   gestureClock?: GestureClock | undefined
   /** Where the Share menu sends the level; without it there is no Share menu. */
@@ -68,7 +61,6 @@ const {
   ids,
   objectUrls,
   canvas,
-  worldCanvas,
   gestureClock,
   workspace,
   onback,
@@ -144,7 +136,6 @@ const services = $derived<ViewServices>({
   ids,
   objectUrls,
   canvas,
-  worldCanvas,
   gestureClock,
   onundo: undo,
   onredo: redo,
