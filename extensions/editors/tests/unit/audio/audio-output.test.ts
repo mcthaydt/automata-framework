@@ -70,6 +70,31 @@ describe('browserAudio', () => {
     expect(started.length).toBeGreaterThan(0)
   })
 
+  it('plays through the overall volume the file sets', async () => {
+    const { context } = fakeContext()
+    const gains: { gain: { value: number }; connect: ReturnType<typeof vi.fn> }[] = []
+    const createGain = context.createGain as unknown as ReturnType<typeof vi.fn>
+    const original = createGain.getMockImplementation() as () => (typeof gains)[number]
+    createGain.mockImplementation(() => {
+      const gain = original()
+      gains.push(gain)
+      return gain
+    })
+    const output = browserAudio(() => context)
+    await output.play({ ...content, master_gain: 0.25 }, { kind: 'sound', id: 'coin' })
+    const master = gains.find((gain) => gain.gain.value === 0.25)
+    expect(master).toBeDefined()
+    expect(master?.connect).toHaveBeenCalledWith(context.destination)
+  })
+
+  it('checks the sounds with the renderer it is given', async () => {
+    const render = vi.fn(async () => [new Float32Array(48000), new Float32Array(48000)])
+    const output = browserAudio(() => fakeContext().context, render)
+    const found = await output.check(content)
+    expect(render).toHaveBeenCalledWith(content, 'coin', expect.any(Number))
+    expect(found).toEqual([{ sound: 'coin', kind: 'quiet', value: null }])
+  })
+
   it('says in words when the sound is not in the file', async () => {
     const output = browserAudio(() => fakeContext().context)
     await expect(output.play(content, { kind: 'sound', id: 'boom' })).rejects.toThrow(
