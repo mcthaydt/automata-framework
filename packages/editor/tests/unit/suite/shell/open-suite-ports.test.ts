@@ -123,6 +123,17 @@ describe('openSuitePorts', () => {
     expect(opened.gameUrl).toBe('http://localhost:5173/')
   })
 
+  it("reads the content build's outputs through generated(), which a served page names", async () => {
+    const { env } = page({
+      [EDITOR_LIST_PATH]: LIST,
+      'content/generated/events.json': '["player.jumped"]',
+      'content/other.txt': 'x',
+    })
+    const { ports } = await openSuitePorts(env)
+    expect(await ports.workspace.generated('content/generated/events.json')).toBe('["player.jumped"]')
+    expect(await ports.workspace.generated('content/other.txt')).toBeUndefined()
+  })
+
   it('keeps the sample game in the browser’s own storage, so a level made there is there after a reload', async () => {
     const opfs = createFakeOpfs()
     const storage = { getDirectory: () => Promise.resolve(opfs) }

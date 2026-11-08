@@ -20,6 +20,7 @@ import type {
 import { TRANSLATIONS_FOLDER } from '../../shared/compile/read-sources'
 import { buildContent } from '../../shared/compile/write-outputs'
 import { formatDiagnostic } from '../../shared/diagnostics/diagnostic'
+import { isEventFile, writeEventIds } from './event-ids'
 
 /** The import path of the compiled content: `content`, `contentHash`, `simContent` and `simContentHash`. */
 export const VIRTUAL_MODULE_ID = 'virtual:automata/content'
@@ -189,6 +190,8 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
     },
 
     async buildStart() {
+      // The events are written whether or not the content compiles: the editors read them on their own.
+      if (options !== undefined) await writeEventIds(options.root, outDirOf(options)).catch(() => undefined)
       const outcome = await enqueue()
       lastOutcome = outcome
       if (outcome.ok) return
@@ -202,7 +205,11 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
       // another folder, as a journey's temp copy is) is added, so a save there still rebuilds; adding a folder
       // already inside the root changes nothing. `configResolved` has always run by now.
       if (options !== undefined) server.watcher.add(join(options.root, 'content'))
+      // A new, renamed or changed event file changes the list of events; it is not content, so nothing is rebuilt.
+      if (options !== undefined) server.watcher.add(join(options.root, 'src'))
       server.watcher.on('all', (_event, path) => {
+        if (options !== undefined && isEventFile(path))
+          void writeEventIds(options.root, outDirOf(options)).catch(() => undefined)
         if (!isWatchedSource(path)) return
         if (timer !== undefined) clearTimeout(timer)
         timer = setTimeout(() => {

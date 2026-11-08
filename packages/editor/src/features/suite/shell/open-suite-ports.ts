@@ -32,6 +32,9 @@ export interface OpenedSuitePorts {
 
 const decoder = new TextDecoder()
 
+/** Where the content build writes what it makes. */
+const GENERATED_FOLDER = 'content/generated/'
+
 export interface SuitePortsEnv
   extends Pick<ServedWorkspaceEnv, 'origin' | 'search' | 'fetch' | 'sessionStorage' | 'storage'> {
   /** The sample game's files, opened when no editor server answers; the 2D sample by default. */
@@ -63,6 +66,8 @@ export async function openSuitePorts(env: SuitePortsEnv): Promise<OpenedSuitePor
   const { ports } = await createMemoryPorts({
     store,
     classify: list.classify,
+    // The compiler's outputs (`tuning-meta.json`, `events.json`) are read from the checkout, never written.
+    generated: (path) => path.startsWith(GENERATED_FOLDER),
     listChanged: list.replace,
   })
   return { ports, sample: false, gameUrl, playOff, game, publish }

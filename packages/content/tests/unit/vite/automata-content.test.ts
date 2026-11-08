@@ -2,7 +2,7 @@
 // behavior worth pinning is recovery. A bad save reports, keeps the last good bytes and module, and leaves
 // the watcher alive, so the fix is one more save rather than a restarted server.
 
-import { readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Effect } from 'effect'
 import { build, createLogger, createServer, type HotPayload, type ViteDevServer } from 'vite'
@@ -169,6 +169,50 @@ describe('the sim content (M2.2)', () => {
     expect(module.simContent.tuning).toBe(module.content.tuning)
     expect(module.simContentHash).toBe(
       readFileSync(join(root, 'content/generated/sim-content.hash'), 'utf8').trim(),
+    )
+  }, 90_000)
+})
+
+describe('the game’s events', () => {
+  const eventsPath = (root: string) => join(root, 'content/generated/events.json')
+  const writeEventFile = (root: string, name: string, id: string) => {
+    mkdirSync(join(root, 'src'), { recursive: true })
+    writeFileSync(join(root, 'src', name), `export const E = defineEvent('${id}', at)\n`)
+  }
+
+  it('are written for Feel and Audio when the dev server starts: a JSON array of ids, sorted', async () => {
+    const root = copyFixture('valid')
+    writeEventFile(root, 'square.event.ts', 'square.bumped')
+    writeEventFile(root, 'door.event.ts', 'door.opened')
+    await devServer(root)
+    expect(JSON.parse(readFileSync(eventsPath(root), 'utf8'))).toEqual(['door.opened', 'square.bumped'])
+  }, 90_000)
+
+  it('are written when a build starts, an empty list for a game with none', async () => {
+    const root = copyFixture('valid')
+    writeFileSync(
+      join(root, 'main.js'),
+      "import { contentHash } from 'virtual:automata/content'\nconsole.log(contentHash)\n",
+    )
+    await build({
+      root,
+      configFile: false,
+      logLevel: 'silent',
+      plugins: [automataContent(options(root))],
+      build: { write: false, rolldownOptions: { input: join(root, 'main.js') } },
+    })
+    expect(existsSync(eventsPath(root))).toBe(true)
+    expect(JSON.parse(readFileSync(eventsPath(root), 'utf8'))).toEqual([])
+  }, 90_000)
+
+  it('follow a new event file without a restart', async () => {
+    const root = copyFixture('valid')
+    await devServer(root)
+    expect(JSON.parse(readFileSync(eventsPath(root), 'utf8'))).toEqual([])
+    writeEventFile(root, 'wick.event.ts', 'wick.bumped')
+    await waitFor(
+      () => JSON.parse(readFileSync(eventsPath(root), 'utf8')).includes('wick.bumped'),
+      'the new event to be listed',
     )
   }, 90_000)
 })
