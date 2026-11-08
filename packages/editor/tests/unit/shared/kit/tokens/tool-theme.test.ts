@@ -34,35 +34,69 @@ describe('tool-theme.css', () => {
     expect(Object.keys(theme.dark).sort()).toEqual(Object.keys(theme.light).sort())
   })
 
-  test("the light values are today's", () => {
-    const today: Record<string, string> = {
-      'tool-bg': '#f7f7f8',
+  // Spec §4's table, key by key: the editors' v2 palette (site v2's), in both looks.
+  const V2: Record<(typeof LOOKS)[number], Record<string, string>> = {
+    dark: {
+      'tool-bg': '#0b0c0e',
+      'tool-panel': '#111316',
+      'tool-raise': '#181b20',
+      'tool-hover': '#1b1e23',
+      'tool-selected': '#1c2333',
+      'tool-line': '#22252b',
+      'tool-line-strong': '#33373e',
+      'tool-line-hover': '#4a4f58',
+      ink: '#f2f3f5',
+      'tool-muted': '#a6abb3',
+      'tool-faint': '#8f959e',
+      cobalt: '#8ea2ff',
+      warn: '#f5b14c',
+      bad: '#ff7a6e',
+      ok: '#6fd08c',
+      'lime-hover': '#d8f77d',
+      'on-lime': '#11151c',
+      'tool-stage': '#08090b',
+      'tool-dot': '#1d2026',
+    },
+    light: {
+      'tool-bg': '#f4f4f5',
       'tool-panel': '#ffffff',
-      'tool-hover': '#f2f2f4',
+      'tool-raise': '#f7f7f8',
+      'tool-hover': '#f0f0f2',
       'tool-selected': '#eceef8',
       'tool-line': '#e7e7ea',
       'tool-line-strong': '#d4d4d8',
+      'tool-line-hover': '#a1a1aa',
+      ink: '#18181b',
       'tool-muted': '#5f5f6a',
       'tool-faint': '#6b6b76',
-      'tool-stage': '#0e1014',
-      ink: '#11151c',
       cobalt: '#1d278a',
-      ok: '#1e6b34',
-      bad: '#b42318',
       warn: '#8a5300',
-      'danger-wash': 'rgb(180 35 24 / 0.08)',
-      scrim: 'rgb(17 21 28 / 0.32)',
-      'shadow-lift': 'rgb(17 21 28 / 0.06)',
-      'shadow-ink': 'rgb(17 21 28 / 0.12)',
-      'shadow-ring': 'rgb(17 21 28 / 0.1)',
+      bad: '#b42318',
+      ok: '#1e6b34',
+      'lime-hover': '#d8f77d',
       'on-lime': '#11151c',
-      'primary-edge': '#11151c',
-    }
-    for (const [name, value] of Object.entries(today)) expect(at('light', name), name).toBe(value)
-    // Where the website's token file already names it, the light value is that one.
-    for (const name of Object.keys(theme.light)) {
-      const site = shared[name]
-      if (site !== undefined && /^(#|rgb)/.test(site)) expect(at('light', name), name).toBe(site)
+      'tool-stage': '#08090b',
+      'tool-dot': '#1d2026',
+    },
+  }
+
+  test.each(LOOKS)('the %s values are the v2 palette', (look) => {
+    for (const [name, value] of Object.entries(V2[look])) expect(at(look, name), name).toBe(value)
+  })
+
+  test('every key the file held before v2 is still there', () => {
+    for (const name of [
+      'stage-warn',
+      'danger-wash',
+      'scrim',
+      'shadow-ink',
+      'shadow-ring',
+      'shadow-lift',
+      'on-accent',
+      'primary-edge',
+    ]) {
+      expect(theme.light[name], `light ${name}`).toBeDefined()
+      expect(theme.dark[name], `dark ${name}`).toBeDefined()
     }
   })
 
@@ -76,19 +110,38 @@ describe('tool-theme.css', () => {
     }
   })
 
-  test('the cabinet does not change, and is darker than the dark field', () => {
+  test('the cabinet is the same in both looks, and as dark as the dark window or darker', () => {
     expect(at('dark', 'tool-stage')).toBe(at('light', 'tool-stage'))
-    expect(contrast(at('dark', 'tool-bg'), at('dark', 'tool-stage'))).toBeGreaterThan(1)
-    expect(at('dark', 'tool-stage')).toBe('#0e1014')
+    expect(at('dark', 'tool-stage')).toBe('#08090b')
   })
 
-  test.each(LOOKS)('words read in %s', (look) => {
-    for (const fg of ['ink', 'tool-muted', 'tool-faint', 'cobalt', 'ok', 'bad', 'warn']) {
-      for (const bg of ['tool-bg', 'tool-panel', 'tool-hover', 'tool-selected']) {
-        expect(contrast(at(look, fg), at(look, bg)), `${fg} on ${bg}`).toBeGreaterThanOrEqual(4.5)
+  // Spec §4's Contrast paragraph: one test per pair, so a failure names it.
+  const WORDS = ['ink', 'tool-muted', 'tool-faint']
+  const SURFACES = ['tool-panel', 'tool-raise', 'tool-hover', 'tool-selected']
+  const SIGNS = ['warn', 'bad', 'ok', 'cobalt']
+  const BACKS = ['tool-panel', 'tool-raise']
+  for (const look of LOOKS) {
+    for (const fg of WORDS) {
+      for (const bg of SURFACES) {
+        test(`${fg} on ${bg}, ${look}`, () => {
+          expect(contrast(at(look, fg), at(look, bg))).toBeGreaterThanOrEqual(4.5)
+        })
       }
     }
-  })
+    for (const fg of SIGNS) {
+      for (const bg of BACKS) {
+        test(`${fg} on ${bg}, ${look}`, () => {
+          expect(contrast(at(look, fg), at(look, bg))).toBeGreaterThanOrEqual(4.5)
+        })
+      }
+    }
+    test(`tool-faint on tool-bg, ${look}`, () => {
+      expect(contrast(at(look, 'tool-faint'), at(look, 'tool-bg'))).toBeGreaterThanOrEqual(4.5)
+    })
+    test(`on-lime on lime-hover, ${look}`, () => {
+      expect(contrast(at(look, 'on-lime'), at(look, 'lime-hover'))).toBeGreaterThanOrEqual(4.5)
+    })
+  }
 
   test.each(LOOKS)('words on a colour read in %s', (look) => {
     expect(contrast(at(look, 'on-lime'), fixed('lime')), 'on-lime on lime').toBeGreaterThanOrEqual(4.5)
@@ -136,7 +189,7 @@ describe('tool-chrome.css', () => {
     expect(chrome.trimStart().startsWith('@import "./tool-theme.css";')).toBe(true)
     expect(chrome).toMatch(/--primary-ink:\s*var\(--on-lime\);/)
     expect(chrome).toMatch(/--color-accent-ink:\s*var\(--on-accent\);/)
-    expect(chrome).toMatch(/--primary-hover:\s*color-mix\(in oklab, var\(--lime\) 86%, var\(--on-lime\)\);/)
+    expect(chrome).toMatch(/--primary-hover:\s*var\(--lime-hover\);/)
     expect(chrome).toMatch(/--shadow:\s*0 1px 2px var\(--shadow-lift\);/)
     expect(chrome).toMatch(
       /--shadow-sheet:\s*0 0 0 1px var\(--shadow-ring\), 0 12px 32px var\(--shadow-ink\);/,
@@ -147,14 +200,14 @@ describe('tool-chrome.css', () => {
 describe('toolThemeToCss', () => {
   const ok: ToolTheme = { light: { 'tool-bg': '#ffffff' }, dark: { 'tool-bg': '#000000' } }
 
-  test('writes light on :root, dark for a dark device and for a forced dark choice', () => {
+  test("writes dark on :root as the default, light when the page says so, and the device's look for Match device", () => {
     const out = toolThemeToCss(ok)
-    expect(out).toContain(':root {\n  color-scheme: light dark;\n  --tool-bg: #ffffff;\n}')
+    expect(out).toContain(':root {\n  color-scheme: dark;\n  --tool-bg: #000000;\n}')
+    expect(out).toContain(':root[data-theme="light"] {\n  color-scheme: light;\n  --tool-bg: #ffffff;\n}')
     expect(out).toContain(
-      '@media (prefers-color-scheme: dark) {\n  :root:not([data-theme="light"]) {\n    color-scheme: dark;\n    --tool-bg: #000000;',
+      '@media (prefers-color-scheme: light) {\n  :root[data-theme="device"] {\n    color-scheme: light;\n    --tool-bg: #ffffff;\n  }\n}',
     )
-    expect(out).toContain(':root[data-theme="light"] {\n  color-scheme: light;\n}')
-    expect(out).toContain(':root[data-theme="dark"] {\n  color-scheme: dark;\n  --tool-bg: #000000;\n}')
+    expect(out).not.toContain('prefers-color-scheme: dark')
   })
 
   test('refuses a key in one look and not the other', () => {

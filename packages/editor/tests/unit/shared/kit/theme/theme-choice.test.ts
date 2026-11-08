@@ -22,50 +22,51 @@ afterEach(() => {
 })
 
 describe('readThemeChoice', () => {
-  test('a stored light or dark is that choice', () => {
+  test('a stored light, dark or device is that choice', () => {
     expect(readThemeChoice(reading('dark'))).toBe('dark')
     expect(readThemeChoice(reading('light'))).toBe('light')
+    expect(readThemeChoice(reading('device'))).toBe('device')
   })
 
-  test('nothing stored, another value, no storage, or a storage that throws means Match device', () => {
-    expect(readThemeChoice(reading(null))).toBe('device')
-    expect(readThemeChoice(reading('blue'))).toBe('device')
-    expect(readThemeChoice(() => undefined)).toBe('device')
-    expect(readThemeChoice(reading('throws'))).toBe('device')
+  test('nothing stored, another value, no storage, or a storage that throws means Dark', () => {
+    expect(readThemeChoice(reading(null))).toBe('dark')
+    expect(readThemeChoice(reading('blue'))).toBe('dark')
+    expect(readThemeChoice(() => undefined)).toBe('dark')
+    expect(readThemeChoice(reading('throws'))).toBe('dark')
   })
 })
 
 describe('writeThemeChoice', () => {
-  test('stores light or dark under the key', () => {
+  test('stores light, dark or device under the key', () => {
     const setItem = vi.fn()
-    writeThemeChoice('dark', () => ({ setItem, removeItem: vi.fn() }))
+    writeThemeChoice('dark', () => ({ setItem }))
     expect(setItem).toHaveBeenCalledWith(THEME_KEY, 'dark')
   })
 
-  test('Match device removes the key', () => {
-    const removeItem = vi.fn()
-    writeThemeChoice('device', () => ({ setItem: vi.fn(), removeItem }))
-    expect(removeItem).toHaveBeenCalledWith(THEME_KEY)
+  test('Match device is written as "device", because a missing key now means Dark', () => {
+    const setItem = vi.fn()
+    writeThemeChoice('device', () => ({ setItem }))
+    expect(setItem).toHaveBeenCalledWith(THEME_KEY, 'device')
   })
 
   test('a store that refuses does not throw', () => {
     const refuse = (): never => {
       throw new Error('quota')
     }
-    expect(() => writeThemeChoice('dark', () => ({ setItem: refuse, removeItem: refuse }))).not.toThrow()
+    expect(() => writeThemeChoice('dark', () => ({ setItem: refuse }))).not.toThrow()
     expect(() => writeThemeChoice('dark', () => undefined)).not.toThrow()
   })
 })
 
 describe('applyThemeChoice', () => {
-  test('sets data-theme to a forced choice and removes it for Match device', () => {
+  test('always sets data-theme to the choice, Match device included', () => {
     const root = document.documentElement
     applyThemeChoice('dark', root)
     expect(root.dataset.theme).toBe('dark')
     applyThemeChoice('light', root)
     expect(root.dataset.theme).toBe('light')
     applyThemeChoice('device', root)
-    expect(root.hasAttribute('data-theme')).toBe(false)
+    expect(root.dataset.theme).toBe('device')
   })
 })
 
@@ -88,20 +89,27 @@ describe('THEME_BOOT, the script that runs before the first paint', () => {
     expect(document.documentElement.dataset.theme).toBe('light')
   })
 
-  test('another stored value, or nothing, sets nothing', () => {
-    localStorage.setItem(THEME_KEY, 'blue')
+  test('a stored device sets the attribute', () => {
+    localStorage.setItem(THEME_KEY, 'device')
     run()
-    expect(document.documentElement.hasAttribute('data-theme')).toBe(false)
-    localStorage.clear()
-    run()
-    expect(document.documentElement.hasAttribute('data-theme')).toBe(false)
+    expect(document.documentElement.dataset.theme).toBe('device')
   })
 
-  test('a storage that throws sets nothing and throws nothing', () => {
+  test('another stored value, or nothing, opens Dark', () => {
+    localStorage.setItem(THEME_KEY, 'blue')
+    run()
+    expect(document.documentElement.dataset.theme).toBe('dark')
+    document.documentElement.removeAttribute('data-theme')
+    localStorage.clear()
+    run()
+    expect(document.documentElement.dataset.theme).toBe('dark')
+  })
+
+  test('a storage that throws opens Dark and throws nothing', () => {
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new Error('blocked')
     })
     expect(run).not.toThrow()
-    expect(document.documentElement.hasAttribute('data-theme')).toBe(false)
+    expect(document.documentElement.dataset.theme).toBe('dark')
   })
 })

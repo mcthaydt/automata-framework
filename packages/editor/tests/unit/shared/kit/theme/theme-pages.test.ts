@@ -38,8 +38,8 @@ describe.each(PAGES)('%s', (page) => {
     }
   })
 
-  test('says it is made for light and dark', () => {
-    expect(html).toContain('<meta name="color-scheme" content="light dark" />')
+  test('says it is made for dark and light, dark first', () => {
+    expect(html).toContain('<meta name="color-scheme" content="dark light" />')
   })
 })
 

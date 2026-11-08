@@ -13,47 +13,47 @@ afterEach(() => {
 const group = (): HTMLElement => screen.getByRole('radiogroup', { name: 'Editor colours' })
 
 describe('ThemeChoice', () => {
-  test('says Editor colours in visible words, with Light, Dark and Match device in that order', () => {
+  test('says Editor colours in visible words, with Dark, Light and Match device in that order', () => {
     render(ThemeChoice)
     expect(screen.getByText('Editor colours', { selector: '.label' })).toBeTruthy()
     const options = Array.from(group().querySelectorAll('[role="radio"]')).map((o) => o.textContent?.trim())
-    expect(options).toEqual(['Light', 'Dark', 'Match device'])
+    expect(options).toEqual(['Dark', 'Light', 'Match device'])
   })
 
-  test('with nothing stored, Match device is chosen', () => {
-    render(ThemeChoice)
-    expect(screen.getByRole('radio', { name: 'Match device' }).getAttribute('aria-checked')).toBe('true')
-  })
-
-  test('shows the stored choice', () => {
-    localStorage.setItem(THEME_KEY, 'dark')
+  test('with nothing stored, Dark is chosen', () => {
     render(ThemeChoice)
     expect(screen.getByRole('radio', { name: 'Dark' }).getAttribute('aria-checked')).toBe('true')
   })
 
-  test('choosing Dark looks dark at once, remembers it and keeps focus on Dark', async () => {
+  test('shows the stored choice', () => {
+    localStorage.setItem(THEME_KEY, 'device')
     render(ThemeChoice)
-    const dark = screen.getByRole('radio', { name: 'Dark' })
-    await userEvent.click(dark)
-    expect(document.documentElement.dataset.theme).toBe('dark')
-    expect(localStorage.getItem(THEME_KEY)).toBe('dark')
-    expect(document.activeElement).toBe(dark)
+    expect(screen.getByRole('radio', { name: 'Match device' }).getAttribute('aria-checked')).toBe('true')
   })
 
-  test('choosing Match device forgets the choice and lets the device decide', async () => {
+  test('choosing Light looks light at once, remembers it and keeps focus on Light', async () => {
+    render(ThemeChoice)
+    const light = screen.getByRole('radio', { name: 'Light' })
+    await userEvent.click(light)
+    expect(document.documentElement.dataset.theme).toBe('light')
+    expect(localStorage.getItem(THEME_KEY)).toBe('light')
+    expect(document.activeElement).toBe(light)
+  })
+
+  test('choosing Match device keeps the choice as "device" and lets the device decide', async () => {
     localStorage.setItem(THEME_KEY, 'dark')
     document.documentElement.dataset.theme = 'dark'
     render(ThemeChoice)
     await userEvent.click(screen.getByRole('radio', { name: 'Match device' }))
-    expect(document.documentElement.hasAttribute('data-theme')).toBe(false)
-    expect(localStorage.getItem(THEME_KEY)).toBeNull()
+    expect(document.documentElement.dataset.theme).toBe('device')
+    expect(localStorage.getItem(THEME_KEY)).toBe('device')
   })
 
   test('arrow keys change the look too', async () => {
     render(ThemeChoice)
-    screen.getByRole('radio', { name: 'Match device' }).focus()
-    await userEvent.keyboard('{ArrowLeft}')
-    expect(document.documentElement.dataset.theme).toBe('dark')
+    screen.getByRole('radio', { name: 'Dark' }).focus()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(document.documentElement.dataset.theme).toBe('light')
   })
 
   test('a store that refuses still changes the look for this visit, and throws nothing', async () => {
@@ -63,7 +63,7 @@ describe('ThemeChoice', () => {
     render(ThemeChoice, {
       storage: () => ({ getItem: refuse, setItem: refuse, removeItem: refuse }) as unknown as Storage,
     })
-    await userEvent.click(screen.getByRole('radio', { name: 'Dark' }))
-    expect(document.documentElement.dataset.theme).toBe('dark')
+    await userEvent.click(screen.getByRole('radio', { name: 'Light' }))
+    expect(document.documentElement.dataset.theme).toBe('light')
   })
 })

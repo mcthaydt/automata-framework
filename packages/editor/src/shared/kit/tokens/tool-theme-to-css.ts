@@ -15,11 +15,11 @@ function declarations(values: Readonly<Record<string, string>>, indent: string):
 
 /**
  * Renders the two looks as plain values, not `light-dark()`: a script that reads a token with `getPropertyValue` (the
- * level canvas) gets a colour in either look, and older iPads draw it. `:root` holds the light values and
- * `color-scheme: light dark`; the dark values are written twice, once for a device set to dark (unless the page forces
- * light) and once for a forced `data-theme="dark"`. Pure and deterministic, so the CSS can be checked byte for byte.
- * It refuses a key in one look only, a bad name and a value that is not a plain colour (a shadow or a mix is built from
- * these in `tool-chrome.css`, never stored here).
+ * level canvas) gets a colour in either look, and older iPads draw it. The editors open Dark, so `:root` holds the dark
+ * values and `color-scheme: dark`, and a page whose boot script did not run is dark too. `data-theme="light"` forces the
+ * light values; `data-theme="device"` (Match device) takes them only while the device asks for light. Pure and
+ * deterministic, so the CSS can be checked byte for byte. It refuses a key in one look only, a bad name and a value
+ * that is not a plain colour (a shadow or a mix is built from these in `tool-chrome.css`, never stored here).
  */
 export function toolThemeToCss({ light, dark }: ToolTheme): string {
   const names = Object.keys(light)
@@ -36,21 +36,18 @@ export function toolThemeToCss({ light, dark }: ToolTheme): string {
   }
   return `${HEADER}
 :root {
-  color-scheme: light dark;
-${declarations(light, '  ')}
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-${declarations(dark, '    ')}
-  }
+  color-scheme: dark;
+${declarations(dark, '  ')}
 }
 :root[data-theme="light"] {
   color-scheme: light;
+${declarations(light, '  ')}
 }
-:root[data-theme="dark"] {
-  color-scheme: dark;
-${declarations(dark, '  ')}
+@media (prefers-color-scheme: light) {
+  :root[data-theme="device"] {
+    color-scheme: light;
+${declarations(light, '    ')}
+  }
 }
 `
 }

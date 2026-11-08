@@ -16,20 +16,20 @@ const rgb = (hex: string): string => {
 for (const look of ['light', 'dark'] as const) {
   for (const dialog of [false, true]) {
     test(`the board in ${look}${dialog ? ' with its dialog open' : ''}`, async ({ page }, info) => {
-      await page.emulateMedia({ colorScheme: look })
+      // The editors open Dark whatever the device says, so a look is asked for the way a person asks: by choosing it.
+      await page.emulateMedia({ colorScheme: look === 'dark' ? 'light' : 'dark' })
+      await page.addInitScript((choice) => localStorage.setItem('automata-editor:theme', choice), look)
       const errors: string[] = []
       page.on('pageerror', (error) => errors.push(error.message))
       await page.goto(`/design.html${dialog ? '?dialog' : ''}`)
       await expect(page.locator('[data-board-ready]')).toBeVisible()
       const sideways = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)
       expect(sideways).toBe(false)
-      // The look is the device's: the field is the look's own `--tool-bg`, and the page says which look it is in.
+      // The look is the person's choice, not the device's (the emulated device asks for the other look): the field is the
+      // look's own `--tool-bg`, and the page says which look it is in.
       const field = await page.evaluate(() => getComputedStyle(document.body).backgroundColor)
       expect(field).toBe(rgb(theme[look]['tool-bg'] as string))
-      // Light is `light dark` (the device decides, and it says light); dark is `dark`.
-      expect(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).toBe(
-        look === 'dark' ? 'dark' : 'light dark',
-      )
+      expect(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).toBe(look)
       await page.screenshot({
         path: `tests/e2e/screens/${info.project.name}-${look}${dialog ? '-dialog' : ''}.png`,
         fullPage: !dialog,

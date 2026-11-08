@@ -1,12 +1,12 @@
 /*
- * The editors' tool chrome, from the redesign mockup the Owner approved on 2026-11-06: one neutral palette for every
+ * The editors' tool chrome, from the v2 mockup the Owner approved on 2026-11-08: one neutral palette for every
  * editor screen. It puts the `--tool-*` tokens under the names the kit's components already read (the field, paper,
  * the hover surface, the hairlines, the grey, the selection wash and the level's cabinet), so every view takes the look without each one
  * changing. Editor pages import it once, after tokens.css; the website does not, so it keeps its own field.
  *
- * Each colour has a light and a dark value (`tool-theme.css`, generated from `tool-theme.json`): a device set to dark gets
- * dark unless the page says `data-theme="light"`, and `data-theme="dark"` forces it. Everything below names a colour
- * and never holds one, so the two looks differ in one place.
+ * Each colour has a light and a dark value (`tool-theme.css`, generated from `tool-theme.json`): the editors open Dark,
+ * `data-theme="light"` forces the light values and `data-theme="device"` follows the device. Everything below names a
+ * colour and never holds one, so the two looks differ in one place.
  */
 @import "./tool-theme.css";
 
@@ -23,11 +23,14 @@
   --charcoal: var(--tool-stage);
 
   /* Words and edges on a colour read their own fixed tokens: `--ink` turns light in dark, which would put light words
-     on the lime and a washed-out hover on it. The hover mixes with the lime button's own words, so it is a step darker
-     in both looks. */
+     on the lime. The hover is its own token, a step lighter, the same in both looks. */
   --primary-ink: var(--on-lime);
-  --primary-hover: color-mix(in oklab, var(--lime) 86%, var(--on-lime));
+  --primary-hover: var(--lime-hover);
   --color-accent-ink: var(--on-accent);
+
+  /* Sizes chosen by pointer: the defaults are the mouse's, the blocks below change them. */
+  --size-field: 28px;
+  --shell-topbar: 48px;
 
   /* A shadow is not a colour, so it is built here from colour tokens; in light these are the values it always had. */
   --shadow: 0 1px 2px var(--shadow-lift);
@@ -44,6 +47,8 @@
   :root {
     --size-hit: 32px;
     --size-primary: 32px;
+    --size-field: 28px;
+    --shell-topbar: 48px;
   }
 }
 
@@ -51,5 +56,7 @@
   :root {
     --size-hit: 44px;
     --size-primary: 48px;
+    --size-field: 44px;
+    --shell-topbar: 56px;
   }
 }

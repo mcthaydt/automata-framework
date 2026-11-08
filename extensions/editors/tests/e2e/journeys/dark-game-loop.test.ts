@@ -42,7 +42,7 @@ test('a new game is made, edited, played and published in the dark editors', asy
   try {
     await openEditor(page, editor, 'Tuner')
     // Dark on a dark device, chosen by nobody: the field is the dark one and the controls are drawn dark too.
-    expect(await look(page)).toEqual({ scheme: 'dark', field: 'rgb(19, 20, 23)', chosen: undefined })
+    expect(await look(page)).toEqual({ scheme: 'dark', field: 'rgb(11, 12, 14)', chosen: 'dark' })
     await expect(page.getByText('This game has no settings file yet.')).toBeVisible()
     await page.screenshot({ path: test.info().outputPath('dark-tuner.png') })
 
@@ -64,7 +64,7 @@ test('a new game is made, edited, played and published in the dark editors', asy
 
     // The editor list a new game starts with names no Writer; Audio is on it, and opens dark.
     await openEditor(page, editor, 'Audio')
-    expect((await look(page)).field).toBe('rgb(19, 20, 23)')
+    expect((await look(page)).field).toBe('rgb(11, 12, 14)')
 
     await servedWith(editor, WORD)
     await servedWith(editor, '.*5 1 .*26')
@@ -81,7 +81,7 @@ test('a new game is made, edited, played and published in the dark editors', asy
       chosen: document.documentElement.dataset.theme,
       field: getComputedStyle(document.documentElement).getPropertyValue('--bg'),
     }))
-    expect(gameLook).toEqual({ chosen: undefined, field: '' })
+    expect(gameLook).toEqual({ chosen: 'dark', field: '' })
     await play.getByRole('button', { name: /play/i }).first().click()
     await expect
       .poll(

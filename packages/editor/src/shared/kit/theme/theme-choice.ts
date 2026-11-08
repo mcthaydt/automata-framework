@@ -1,6 +1,6 @@
-// The look an editor opens in. `<html data-theme>` forces one; no attribute follows the device
-// (`prefers-color-scheme`, see tool-theme.css). The choice is kept in this browser only, as a per-visitor
-// convenience like the last-opened game: it is not game state and is never written to a game folder.
+// The look an editor opens in: Dark, until the person chooses. `<html data-theme>` holds the choice (`dark`, `light` or
+// `device`, which follows `prefers-color-scheme`; see tool-theme.css). The choice is kept in this browser only, as a
+// per-visitor convenience like the last-opened game: it is not game state and is never written to a game folder.
 
 /** What the person picked: a look, or "Match device". */
 export type ThemeChoice = 'light' | 'dark' | 'device'
@@ -9,32 +9,33 @@ export type ThemeChoice = 'light' | 'dark' | 'device'
 export const THEME_KEY = 'automata-editor:theme'
 
 type Reader = () => Pick<Storage, 'getItem'> | undefined
-type Writer = () => Pick<Storage, 'setItem' | 'removeItem'> | undefined
+type Writer = () => Pick<Storage, 'setItem'> | undefined
 
-/** The stored choice. A missing store, a refusal (a private window may throw) or any other value is Match device. */
+/** The stored choice. A missing key, a missing store, a refusal (a private window may throw) or any other value is Dark. */
 export function readThemeChoice(storage: Reader): ThemeChoice {
   try {
     const stored = storage()?.getItem(THEME_KEY)
-    return stored === 'light' || stored === 'dark' ? stored : 'device'
+    return stored === 'light' || stored === 'device' ? stored : 'dark'
   } catch {
-    return 'device'
+    return 'dark'
   }
 }
 
-/** Remembers the choice; Match device forgets it. A store that refuses is not an error: the look still changes for this visit. */
+/**
+ * Remembers the choice. Match device is written as `device`, not forgotten: a missing key means Dark. A store that
+ * refuses is not an error: the look still changes for this visit.
+ */
 export function writeThemeChoice(choice: ThemeChoice, storage: Writer): void {
   try {
-    if (choice === 'device') storage()?.removeItem(THEME_KEY)
-    else storage()?.setItem(THEME_KEY, choice)
+    storage()?.setItem(THEME_KEY, choice)
   } catch {
     // The choice holds until the page closes.
   }
 }
 
-/** Puts the choice on the page: a forced look sets `data-theme`, Match device removes it so the device decides. */
+/** Puts the choice on the page, Match device included: the stylesheet reads the attribute and asks the device itself. */
 export function applyThemeChoice(choice: ThemeChoice, root: HTMLElement): void {
-  if (choice === 'device') root.removeAttribute('data-theme')
-  else root.dataset.theme = choice
+  root.dataset.theme = choice
 }
 
 /**
@@ -45,8 +46,9 @@ export function applyThemeChoice(choice: ThemeChoice, root: HTMLElement): void {
  */
 export const THEME_BOOT: string = `try {
   const stored = localStorage.getItem('${THEME_KEY}')
-  if (stored === 'light' || stored === 'dark') document.documentElement.dataset.theme = stored
+  document.documentElement.dataset.theme = stored === 'light' || stored === 'device' ? stored : 'dark'
 } catch {
-  // Storage refused: the device decides.
+  // Storage refused: the editors open Dark.
+  document.documentElement.dataset.theme = 'dark'
 }
 `
