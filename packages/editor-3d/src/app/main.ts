@@ -1,4 +1,5 @@
 import '@automata/editor/tokens.css'
+import '@automata/editor/tool-chrome.css'
 import '@automata/editor/fonts.css'
 import './main.css'
 import { openServedWorkspace } from '@automata/editor/kit/core'

@@ -107,6 +107,13 @@ describe('tool-theme.css', () => {
     for (const name of ['stage-ink', 'stage-muted']) {
       expect(contrast(fixed(name), at('light', 'tool-stage')), name).toBeGreaterThanOrEqual(4.5)
     }
+    for (const look of LOOKS) {
+      expect(at(look, 'stage-warn'), look).toBe(at('light', 'stage-warn'))
+      expect(
+        contrast(at(look, 'stage-warn'), at(look, 'tool-stage')),
+        `stage-warn in ${look}`,
+      ).toBeGreaterThanOrEqual(4.5)
+    }
   })
 
   test('control edges show in dark at least as well as in light', () => {

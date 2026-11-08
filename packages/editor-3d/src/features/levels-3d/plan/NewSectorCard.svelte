@@ -81,7 +81,7 @@ const placed = $derived(edges.filter((edge) => !edge.pending))
   .number.last {
     border-color: var(--color-accent-default);
     background: var(--color-accent-default);
-    color: var(--color-accent-ink, #1a1206);
+    color: var(--color-accent-ink);
   }
   .at {
     flex: 1;

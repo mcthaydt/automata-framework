@@ -77,7 +77,8 @@ const hold =
     position: absolute;
     inset: 0;
     pointer-events: none;
-    color: var(--color-text-primary);
+    /* The HUD sits on the game view, which is the same in both looks, so its words are the fixed on-stage ones. */
+    color: var(--stage-ink);
     font: var(--text-body-13);
   }
   .crosshair {
@@ -113,7 +114,7 @@ const hold =
   }
   .warning {
     top: calc(var(--space-3) + 36px);
-    color: var(--color-state-warn, #e0a030);
+    color: var(--stage-warn);
     white-space: normal;
     max-width: 80%;
     text-align: center;
@@ -128,8 +129,8 @@ const hold =
     background: color-mix(in srgb, var(--color-bg-canvas) 80%, transparent);
   }
   .room {
-    fill: color-mix(in srgb, var(--color-text-dim, #8a919e) 35%, transparent);
-    stroke: var(--color-text-dim, #8a919e);
+    fill: color-mix(in srgb, var(--stage-muted) 35%, transparent);
+    stroke: var(--stage-muted);
     stroke-width: 1;
   }
   .eye {

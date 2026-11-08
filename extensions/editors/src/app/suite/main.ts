@@ -1,4 +1,5 @@
 import '@automata/editor/tokens.css'
+import '@automata/editor/tool-chrome.css'
 import '@automata/editor/fonts.css'
 import '@automata/editor/suite.css'
 import type { SuiteEditor } from '@automata/editor/kit/ports'

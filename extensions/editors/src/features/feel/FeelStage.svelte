@@ -101,7 +101,9 @@ $effect(() => {
     min-height: 200px;
     max-height: 40dvh;
     border-radius: var(--edge-sm);
-    background: var(--color-bg-field);
+    /* A small cabinet, the same in both looks like the game's: the square is drawn in this colour, read at each frame. */
+    background: var(--charcoal);
+    color: var(--stage-ink);
     object-fit: contain;
   }
   figcaption {
