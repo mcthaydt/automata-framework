@@ -1,6 +1,6 @@
 import type { LevelThumbnails } from '../../shared/level-2d/canvas/level-thumbnails'
 
-// Home's thumbnails behind a dynamic import (ED2D.4c3b): `main.ts` hands `load` an `import()` of the Pixi module, so
+// Home's thumbnails behind a dynamic import: `main.ts` hands `load` an `import()` of the Pixi module, so
 // the editor starts without Pixi and fetches it with the first card that has a level to show. Only a type is imported
 // here, so this file pulls no renderer into the main chunk.
 

@@ -2,7 +2,7 @@ import type { History } from '../../kit/history/history.ts'
 import type { Project } from '../model/project-types'
 import type { EditHistory } from './level-editor'
 
-// The open document's history seen as the Level view's (plan ED2D.4c4a decision 2). The app holds every document as a
+// The open document's history seen as the Level view's. The app holds every document as a
 // `History<unknown>`, since it names no profile; the Level view is offered only by a profile whose value is a
 // `Project`, so the value is one. A document that is not (a profile that names the Level view by mistake) gets no
 // history, and the view says it cannot show the document instead of throwing in a pointer handler.

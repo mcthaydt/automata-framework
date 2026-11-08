@@ -1,3 +1,5 @@
+// Reads and writes a level project file. Reading checks the file against the schema and the project's own rules and
+// reports each problem with its path in the file; it never throws on a bad file.
 import { type CellKind, decodeRows, encodeRows } from './cells-codec'
 import type { Grid } from './grid'
 import { layerCells } from './level-layers'
@@ -13,10 +15,10 @@ import type {
   Size,
 } from './project-types'
 
-// Between the file shape and the model (2D editor spec §6.1, ED2D.1 decisions 1 and 4). `decodeProject` turns a file
+// Between the file shape and the model. `decodeProject` turns a file
 // the schema accepted into a `Project`, and refuses what decoding and every later lookup depend on. Values that fit
 // the shape but not the world (a tile index past its tileset, a ref to nothing, an instance of an unknown entity) open
-// and become Checks (ED2D.3). `encodeProject` is its inverse; `printProject` is the canonical text.
+// and become Checks. `encodeProject` is its inverse; `printProject` is the canonical text.
 
 /** One thing wrong with a file: a stable `code`, the `path` in the file (`levels[moss-steps].layers[collision].rows[3]`) and a sentence. */
 export interface OpenIssue {
@@ -29,7 +31,7 @@ export type DecodeResult =
   | { readonly ok: true; readonly project: Project }
   | { readonly ok: false; readonly issues: OpenIssue[] }
 
-/** A layer is at most this many cells on a side (ED2D-D13), checked before a grid is allocated. */
+/** A layer is at most this many cells on a side, checked before a grid is allocated. */
 export const MAX_LAYER_CELLS = 1024
 
 // -- decoding ----------------------------------------------------------------------------------------------------

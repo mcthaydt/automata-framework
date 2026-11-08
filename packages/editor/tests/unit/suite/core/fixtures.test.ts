@@ -1,5 +1,5 @@
-// The two games' editor lists (editor suite spec §8, §12): The Last Light's Bay scene, converted AF-side at 92e6704,
-// and FloorFifty at 677d456, which has no gates and says so.
+// The two games' editor lists: the adventure source's Bay scene, converted AF-side,
+// and the arcade source, which has no gates and says so.
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { loadEditorList } from '#src/shared/editor-list/editor-list.ts'
@@ -10,8 +10,8 @@ const fixture = (name: string): string =>
   readFileSync(
     new URL(
       // The sample game's list ships with the suite page; the other game's list is a test fixture.
-      name === 'floorfifty'
-        ? '../../../../src/features/suite/shell/sample-game.editors.toml'
+      name === 'platformer'
+        ? '../../../../src/features/suite/shell/platformer.editors.toml'
         : `../../../../src/testing/suite/fixtures/${name}.editors.toml`,
       import.meta.url,
     ),
@@ -35,14 +35,14 @@ const opened = (list: EditorList, path: string) => {
   }
 }
 
-describe("FloorFifty's editor list (677d456)", () => {
-  const list = load('floorfifty')
+describe("the arcade source's editor list", () => {
+  const list = load('platformer')
 
   it('declares no gates, and every row says so with an empty list', () => {
     expect(list.gate).toEqual([])
     expect(list.file.length).toBeGreaterThan(0)
     for (const row of list.file) expect(row.gates, row.glob).toEqual([])
-    expect(fixture('floorfifty')).toMatch(/^gates = \[\]$/m)
+    expect(fixture('platformer')).toMatch(/^gates = \[\]$/m)
   })
 
   it('has no scenes', () => {
@@ -66,14 +66,10 @@ describe("FloorFifty's editor list (677d456)", () => {
     expect(fileAccess(list, 'content/characters/frog.toml')).toMatchObject({ reason: 'unlisted' })
     expect(fileAccess(list, 'content/editors.toml')).toMatchObject({ reason: 'never' })
   })
-
-  it('names its source commit', () => {
-    expect(fixture('floorfifty')).toContain('677d456')
-  })
 })
 
-describe("The Last Light's Bay editor list (92e6704)", () => {
-  const list = load('last-light-bay')
+describe("the adventure source's Bay editor list", () => {
+  const list = load('bay')
 
   it('opens each Bay file in its editor with its gates and its scene', () => {
     expect(opened(list, 'content/scenes/bay/puzzle.toml')).toEqual({
@@ -119,9 +115,5 @@ describe("The Last Light's Bay editor list (92e6704)", () => {
 
   it('has scenes', () => {
     expect(list.scenes).toBe('content/scenes/{scene}/')
-  })
-
-  it('names its source commit', () => {
-    expect(fixture('last-light-bay')).toContain('92e6704')
   })
 })

@@ -1,5 +1,5 @@
 <!--
-  The first write's title (editor suite spec §5 flow 3): a change set opens from it, and its branch is named from it,
+  The first write's title: a change set opens from it, and its branch is named from it,
   so Start waits for a letter or a digit. Cancel writes nothing.
 -->
 <script lang="ts">

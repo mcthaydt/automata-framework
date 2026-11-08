@@ -1,5 +1,5 @@
 <!--
-  The profile choice (plan ED2D.4c2b, decision 4): a file that two or more profiles claim. Each profile is a button
+  The profile choice: a file that two or more profiles claim. Each profile is a button
   named by its label; choosing one reads the file again with it, which may open it or show the error panel. Cancel and
   Escape open nothing. The candidates come from the registry, so nothing here names a profile.
 -->

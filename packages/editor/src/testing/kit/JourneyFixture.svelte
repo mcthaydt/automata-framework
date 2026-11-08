@@ -1,5 +1,5 @@
 <!--
-  The page the kit's iPad journeys drive (plan EDK.6b decision 4; kit spec §9): a stepper and, below a tall gap in the
+  The page the kit's iPad journeys drive: a stepper and, below a tall gap in the
   same scroll region, a slider with as much room below it, both editing a kit `History` the journey holds; and a
   surface that reports every gesture the kit's recogniser makes of what lands on it. `data-mount` changes only when the
   fixture mounts again, so a journey can tell a remount from a re-render.

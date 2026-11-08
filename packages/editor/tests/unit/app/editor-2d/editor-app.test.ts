@@ -6,12 +6,12 @@ import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import { createAppProfiles } from '#src/shared/level-2d/profiles/app-profiles.ts'
 import { createProfileRegistry } from '#src/shared/level-2d/profiles/profile.ts'
 import type { OpenDocument, OpenOutcome } from '#src/shared/level-2d/session/editor-app-types.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace, textOf } from '#src/testing/level-2d/memory-workspace.ts'
 import { noteText, plantedProfile, savedCount } from '#src/testing/level-2d/planted-profile.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// Creating, opening and saving documents over the kit's workspace (plan ED2D.4c1 step 3). The level project is the real
+// Creating, opening and saving documents over the kit's workspace. The level project is the real
 // profile; the planted note stands in for a second one, and for a codec that patches the text it loaded.
 
 function setup(plant = false) {

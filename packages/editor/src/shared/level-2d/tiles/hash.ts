@@ -1,4 +1,4 @@
-// The integer hash behind auto-tile chance and variants and the random dice (2D editor spec §5.6). It uses only
+// The integer hash behind auto-tile chance and variants and the random dice. It uses only
 // `Math.imul`, shifts and xor on 32-bit integers, so every engine computes the same bits and a project exports the same
 // tiles in Node, Chromium, WebKit and Firefox (spec G-d). A float anywhere here would break that.
 

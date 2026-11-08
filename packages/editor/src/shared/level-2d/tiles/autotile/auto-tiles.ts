@@ -4,7 +4,7 @@ import type { Point } from '../footprint'
 import { hashCell } from '../hash'
 import { type AutoTile, type CompiledRules, evaluateCell } from './match'
 
-// The auto-tile result of a whole layer (2D editor spec §5.6): derived from the source IntGrid and the rules, never
+// The auto-tile result of a whole layer: derived from the source IntGrid and the rules, never
 // stored. `autoTiles` evaluates everything (opening a project, export); `patchAutoTiles` re-evaluates only the cells a
 // change can reach (painting); the two are equal, which a property test checks on random rules and edits.
 

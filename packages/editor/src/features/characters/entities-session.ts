@@ -1,3 +1,5 @@
+// The Characters view's editing: add, change and remove entity definitions and their fields. A change that would
+// break instances is refused with the list of uses, unless the person confirms it.
 import type { FieldDef, FieldType } from '../../shared/kit/fields/field-types.ts'
 import type { History } from '../../shared/kit/history/history.ts'
 import { projectHistory } from '../../shared/level-2d/editor/edit-history'
@@ -20,7 +22,7 @@ import {
   withType,
 } from './entities-model'
 
-// One Entities view's state over an open document (plan ED2D.5c decisions 1 to 6; 2D editor spec §8 flow 5, G-f): what
+// One Entities view's state over an open document: what
 // is selected, and every edit the view offers as one undo step through `commitEdit`. A delete or a field change that
 // would break values comes back as the list of uses with nothing applied; the view asks, and calls the same action
 // again with `anyway`, which applies the change and the removals as one step. The selection is kept as the person made
@@ -62,7 +64,7 @@ export interface EntitiesSessionOptions {
 
 const OK: FieldCommit = { ok: true }
 
-/** A new definition (decision 6): a 16 × 16 rect standing on its bottom centre, with no fields. */
+/** A new definition: a 16 × 16 rect standing on its bottom centre, with no fields. */
 const newDefinition = (id: string): EntityDef2D => ({
   id,
   color: '#94a3b8',

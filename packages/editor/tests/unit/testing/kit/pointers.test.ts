@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { createPointers, type PointerTarget } from '#src/testing/kit/pointers.ts'
 
-// The journey helpers' event sequences (plan EDK.6b step 2), in Node: a target that records what it is sent, events
+// The journey helpers' event sequences, in Node: a target that records what it is sent, events
 // made as plain records, and no waiting. In the journeys the same helpers make real `PointerEvent`s and wait a frame.
 
 interface Sent {

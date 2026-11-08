@@ -1,6 +1,6 @@
 import { DocumentSyntaxError, openDocument } from '../../../shared/kit/documents/content-document.ts'
 
-// What the Tuner reads of `content/tuning.toml` (editor suite spec §6.1, EDS-D18): each top-level row as a tunable with its
+// What the Tuner reads of `content/tuning.toml`: each top-level row as a tunable with its
 // kind, value, bounds, unit and note. Pure: the text (and the compiler's `tuning-meta.json` when the game declares its
 // tunables in code) in, the list out. A row that is a table or an array is listed as "Ask only": the Tuner never edits
 // what is not one literal.

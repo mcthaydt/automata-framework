@@ -1,4 +1,4 @@
-<!-- The Levels 2D status line (plan EDS.2d): the open file, the group's other files, and why a write was refused. -->
+<!-- The Levels 2D status line: the open file, the group's other files, and why a write was refused. -->
 <script lang="ts">
 import { onDestroy } from 'svelte'
 import type { Levels2dSession } from './levels-2d-session'

@@ -13,7 +13,7 @@ import {
   withObjects,
 } from './project-edit'
 
-// The two sample projects of the 2D editor spec §14: Mossgate (a platformer) and Hollowmere (a top-down RPG). Both are
+// The two sample projects of the 2D editor: Mossgate (a platformer) and Hollowmere (a top-down RPG). Both are
 // built from the built-in templates with the same helpers, so they prove one editor holds both genres. They are the
 // fixtures of acceptance G-i (export) and the content a journey test opens.
 

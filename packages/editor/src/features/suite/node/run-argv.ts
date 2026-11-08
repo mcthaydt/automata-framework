@@ -1,5 +1,4 @@
-// One command, run as argv with no shell (editor suite spec §4.2: the list's `run` is argv; The Last Light's runner
-// rules at `92e6704`, `editor/src/server/checks.ts`). Output past `OUTPUT_CAP` is cut, not buffered, so a chatty
+// One command, run as argv with no shell (the editor list's `run` is an argv array). Output past `OUTPUT_CAP` is cut, not buffered, so a chatty
 // command cannot fill the server's memory. It never rejects: a command that cannot start, is aborted or runs past its
 // time gives `error`, and the caller decides what that means.
 import { spawn } from 'node:child_process'

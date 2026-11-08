@@ -1,5 +1,5 @@
 <!--
-  The rail (plan ED2D.4c4a decision 1; 2D editor spec §8, §12): the profile's views as tabs, a column beside the canvas
+  The rail: the profile's views as tabs, a column beside the canvas
   in `wide` and a tab bar along the foot below it. Arrow keys move between the tabs (one tab stop), Enter or a tap
   opens one (the view it opens remounts the rail, which then takes the focus back), and the current view is `aria-selected`. Every tab is at least 44 px each way.
 -->

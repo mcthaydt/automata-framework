@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { EDITOR_LIST_PATH } from '#src/features/suite/core/index.ts'
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
-import { FLOORFIFTY_SAMPLE, samplePorts } from '#src/features/suite/shell/sample-ports.ts'
+import { SAMPLE_GAME, samplePorts } from '#src/features/suite/shell/sample-ports.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 
 // The suite started the way `main.ts` starts it, over memory ports (editor suite spec §5 flows 1 and 2, §9, §11).
@@ -38,7 +38,7 @@ checks = []
 
 describe('Suite Home', () => {
   it("shows a card for each editor the game's list names, with the files each edits", async () => {
-    await start(FLOORFIFTY_SAMPLE)
+    await start(SAMPLE_GAME)
     const tuner = await screen.findByRole('region', { name: 'Tuner' })
     expect(within(tuner).getByRole('button', { name: /content\/tuning\.toml/ })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Levels 2D' })).toBeInTheDocument()
@@ -84,7 +84,7 @@ describe('Suite Home', () => {
 
 describe('Suite entries', () => {
   it("an entry's page lists its cards; Review opens the desk; Home brings the cards back", async () => {
-    await start(FLOORFIFTY_SAMPLE)
+    await start(SAMPLE_GAME)
     await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
     expect(screen.getByRole('tab', { name: 'Levels' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('region', { name: 'Levels 2D' })).toBeInTheDocument()
@@ -96,7 +96,7 @@ describe('Suite entries', () => {
   })
 
   it('an entry the list names no files for says so', async () => {
-    await start(FLOORFIFTY_SAMPLE)
+    await start(SAMPLE_GAME)
     await userEvent.click(await screen.findByRole('tab', { name: 'Studio' }))
     expect(screen.getByText(/names no files for Studio/)).toBeInTheDocument()
   })
@@ -115,7 +115,7 @@ describe('Suite entries', () => {
       open,
       regions: { panel: text('groups'), canvas: text('sliders'), inspector: text('details') },
     } as unknown as SuiteEditor<unknown>
-    await start(FLOORFIFTY_SAMPLE, [tuner])
+    await start(SAMPLE_GAME, [tuner])
     await userEvent.click(await screen.findByRole('tab', { name: 'Tuner' }))
     expect(await screen.findByText('sliders: tuning session')).toBeInTheDocument()
     expect(screen.getByText('groups: tuning session')).toBeInTheDocument()

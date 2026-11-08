@@ -1,8 +1,10 @@
+// Checks a whole instance (all of an entity's values) against its fields, for the editor and for a retype preview.
 import { defaultFieldValue } from './check-field-def'
 import { checkFieldValue } from './check-field-value'
 import type { FieldDef, FieldValue, FieldValues, InstanceProblem } from './field-types'
 
-const hasValue = (values: FieldValues, id: string): boolean =>
+/** Whether an instance holds a value for the field: a key set to `undefined` holds none. */
+export const hasValue = (values: FieldValues, id: string): boolean =>
   Object.hasOwn(values, id) && values[id] !== undefined
 
 /**

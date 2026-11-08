@@ -1,7 +1,7 @@
-// Records `literals.golden.json`: the number literals The Last Light's own `listJsonLiterals`
+// Records `literals.golden.json`: the number literals the adventure source's own `listJsonLiterals`
 // (scripts/pipeline/json-edit.ts, which finds spans with TypeScript's JSON parser) reports for the five shipped files.
-// Each entry is [path, start, end]; the text and value come from the fixture itself. Last Light's TypeScript is 5.9.3:
-// copy json-edit.ts at 92e6704 next to a node_modules that has `typescript@5.9.3`, then run with Node 22.18 or later:
+// Each entry is [path, start, end]; the text and value come from the fixture itself. the adventure source's TypeScript is 5.9.3:
+// copy json-edit.ts next to a node_modules that has `typescript@5.9.3`, then run with Node 22.18 or later:
 //
 //   node --experimental-strip-types src/documents/testing/fixtures/record-literals.mjs <copy of json-edit.ts> src/documents/testing/fixtures/literals.golden.json
 import { readFileSync, writeFileSync } from 'node:fs'

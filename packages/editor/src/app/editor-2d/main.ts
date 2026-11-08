@@ -3,11 +3,12 @@ import '../../shared/kit/fonts.css'
 import './main.css'
 import { lazyThumbnails } from '../../features/home/lazy-thumbnails'
 import { storedLastOpened } from '../../features/home/stored-last-opened'
+import { systemClock } from '../../shared/kit/storage/clock.ts'
 import { openServedWorkspace } from '../../shared/kit/storage/workspace.ts'
 import { createColorResolver } from '../../shared/level-2d/canvas/colors'
 import { startEditor } from './boot'
 
-// The only file that reaches for the page's globals (plan ED2D.4c2a, decision 9); everything else gets them through
+// The only file that reaches for the page's globals; everything else gets them through
 // `startEditor`'s environment.
 
 /** The tab's session storage, or nothing where the browser refuses it (a private window may throw). */
@@ -34,11 +35,7 @@ startEditor(target, {
   ...(served === undefined ? {} : { workspace: served }),
   window,
   document,
-  clock: {
-    now: () => Date.now(),
-    setTimer: (ms, run) => window.setTimeout(run, ms),
-    clearTimer: (handle) => window.clearTimeout(handle as number),
-  },
+  clock: systemClock,
   fillRandom: (bytes) => {
     crypto.getRandomValues(bytes)
   },

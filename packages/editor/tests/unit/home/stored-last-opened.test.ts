@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { storedLastOpened } from '#src/features/home/stored-last-opened.ts'
 
-// Where the last open project is kept (ED2D.8): a key in the browser's storage, which may be absent or may throw (a
+// Where the last open project is kept: a key in the browser's storage, which may be absent or may throw (a
 // private window, blocked site data), in which case Home simply selects the newest as before.
 
 const memory = () => {

@@ -1,7 +1,7 @@
 import type { LevelTool } from '../../shared/level-2d/editor/level-editor'
 import type { Point } from '../../shared/level-2d/tiles/footprint'
 
-// The Level view's keyboard shortcuts (2D editor spec §12; plan ED2D.4c4b decision 3). Each one is also a visible
+// The Level view's keyboard shortcuts. Each one is also a visible
 // control, so nothing here is keyboard-only. While focus is in a text field only undo and redo pass, so typing a name
 // never switches tools; arrows nudge only where the view says they may (the canvas or the position row), so a list's
 // own arrow keys keep working. `Mod` is Command or Control, whichever the keyboard has.

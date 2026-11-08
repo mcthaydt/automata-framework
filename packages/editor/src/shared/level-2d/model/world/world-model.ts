@@ -5,7 +5,7 @@ import { projectLinks } from '../refs/ref-links'
 import { findLevel, type NewLevel } from './level-edits'
 import { findWorld } from './world-layout'
 
-// The World view's map (plan ED2D.6b step 3; 2D editor spec §8, the World row): each placed level as a rectangle in
+// The World view's map: each placed level as a rectangle in
 // world pixels, the camera that fits them all in the canvas, which level a point falls on, and where a drag puts a
 // level. Pure; the Pixi canvas draws the rectangles and the view turns pointer events into these calls.
 
@@ -85,7 +85,7 @@ export function dragPosition(start: Point, travel: Point, scale: number): Point 
 const NEW_LEVEL_GAP = 32
 
 /**
- * What "Add level" adds (plan ED2D.6c decision 6): the first free `level-N` (named `Level N`), the size of the project's
+ * What "Add level" adds: the first free `level-N` (named `Level N`), the size of the project's
  * first level, placed right of the world's rightmost level with a gap and level with its topmost; the world's layout
  * then snaps or sequences it.
  */
@@ -106,7 +106,7 @@ export function newLevelInput(project: Project, worldId: string): NewLevel {
   }
 }
 
-/** What Duplicate names a copy of `level` (plan ED2D.8a decision 3): `<name> copy`, the first free `<id>-copy[-n]`. */
+/** What Duplicate names a copy of `level`: `<name> copy`, the first free `<id>-copy[-n]`. */
 export function copyLevelInput(project: Project, level: string): { id: string; name: string } {
   const taken = new Set(project.levels.map((each) => each.id))
   let id = `${level}-copy`
@@ -127,7 +127,7 @@ interface Box {
 }
 
 /**
- * The part of the map no open drawer or sheet covers (plan ED2D.8b decision 2), in the map's own coordinates. `map` and
+ * The part of the map no open drawer or sheet covers, in the map's own coordinates. `map` and
  * `covers` are page rectangles. A cover as tall as the map is a drawer from the left or the right; one that reaches the
  * map's bottom is a sheet; one that reaches its top is a bar. A cover that misses the map changes nothing.
  */

@@ -4,7 +4,7 @@ import { edgeRules, valueRule } from './blob-rules'
 import { placeholderTileset } from './placeholder-tileset'
 import { editCells, placeEntities, starterProject } from './starter'
 
-// The top-down RPG start (2D editor spec §7): a 320 × 240 level on a 16 px grid. `walls` is an IntGrid of what blocks
+// The top-down RPG start: a 320 × 240 level on a 16 px grid. `walls` is an IntGrid of what blocks
 // the player; the `walls-art` auto layer draws it with a 16-tile wall set, so painting a wall paints its edges. The
 // ground is plain hand-placed tiles and the props free-placed objects. The placeholder tileset `overworld` is 8 × 4:
 //   0 to 7 ground (grass, flowers, path, sand, water, floor, dark floor, bridge), 8 to 23 walls (the edge set),

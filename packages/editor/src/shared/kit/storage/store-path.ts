@@ -1,4 +1,4 @@
-// The path rules every ProjectStore shares (kit spec §4.7): relative, '/'-separated, and nothing that could
+// The path rules every ProjectStore shares: relative, '/'-separated, and nothing that could
 // climb out of the store. A bad path is a bug in the caller, so the stores throw instead of returning a result;
 // `storePathProblem` asks the same question without throwing, for paths that come from outside (an import).
 
@@ -44,3 +44,6 @@ export function assertStorePrefix(prefix: string): void {
 export function comparePaths(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0
 }
+
+/** The file name of a store path: `stages/a.toml` is `a.toml`. */
+export const baseName = (path: string): string => path.slice(path.lastIndexOf('/') + 1)

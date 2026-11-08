@@ -1,3 +1,5 @@
+// Checks one value against its field definition and says what is wrong in a stable code plus a sentence; a list
+// reports the item at fault.
 import { type FieldDef, type FieldValueProblem, HEX_COLOR } from './field-types'
 
 const problem = (
@@ -75,7 +77,7 @@ function checkList(def: FieldDef, value: unknown): FieldValueProblem | undefined
 
 /**
  * Whether `value` fits the field: `undefined` when it does, else the first problem. It checks the value's shape
- * and the field's own rules; whether a reference resolves is the editor's check. Spec §4.8.
+ * and the field's own rules; whether a reference resolves is the editor's check.
  */
 export function checkFieldValue(def: FieldDef, value: unknown): FieldValueProblem | undefined {
   return def.list ? checkList(def, value) : checkScalar(def, value)

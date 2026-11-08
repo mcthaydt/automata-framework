@@ -1,5 +1,5 @@
 <!--
-  The reference picker (plan ED2D.6c decision 2; 2D editor spec §8 flow 4): first the levels that hold something the
+  The reference picker: first the levels that hold something the
   field may point at, each with its count, then that level's choices (the level itself first when it may be one). Back
   returns to the levels; picking closes the dialog and hands the value back, which the field commits as one step.
   Choices are 44 px buttons in a scroll region.

@@ -1,5 +1,5 @@
 <!--
-  A number with a drag-to-scrub label (kit spec §4.6).
+  A number with a drag-to-scrub label.
 
     label     drag left or right to scrub: one `step` for every `pixelsPerStep` pixels from where the press began
     - / +     step buttons, 44 px each

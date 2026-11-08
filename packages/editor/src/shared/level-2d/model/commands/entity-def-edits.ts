@@ -6,7 +6,7 @@ import { tilesetTiles } from '../tileset-grid'
 import { checkShape, tilesetOf } from './def-lookup'
 import { entityDefOf } from './field-owner'
 
-// Entity definition edits (2D editor spec §5.5, §8 flow 5). A definition is checked with the kit's `checkEntityDef`
+// Entity definition edits. A definition is checked with the kit's `checkEntityDef`
 // (its messages are the ones a person reads), then with the file schema, then against the project (a new id, a tile
 // its tileset has). What changes the meaning of existing instances, its fields, is `field-edits.ts`; deleting one is
 // `deleteDefinition`.

@@ -10,7 +10,7 @@ import { createTuner } from '#src/features/suite/tuner/tuner-suite-editor.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { TUNING_FIXTURE, tunerFixtureFiles } from '#src/testing/suite/tuner-fixtures.ts'
 
-// The Tuner in the suite shell (EDS.4a; editor suite spec §6.1): the editor list's `tuner` row opens it (Home no longer says
+// The Tuner in the suite shell: the editor list's `tuner` row opens it (Home no longer says
 // "not installed"), a change asks for the change set's title once and then writes through the port, and Undo takes it back.
 
 const LIST = `format = "af-editors/1"

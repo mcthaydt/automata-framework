@@ -1,5 +1,5 @@
 <!--
-  The Levels 2D regions in the editor suite's shell (plan EDS.2d; editor suite spec §4.1, §4.7, EDS-D12): the Level
+  The Levels 2D regions in the editor suite's shell: the Level
   view's panel, canvas, inspector and dock, each drawn from the session the suite keeps, so a switch and return finds
   the level, layer, tool, selection and camera as they were. The suite owns the top bar (Undo and Redo among it) and the
   Panel and Details toggles, so the stage leaves those to it.

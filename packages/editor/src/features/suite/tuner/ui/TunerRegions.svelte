@@ -1,5 +1,5 @@
 <!--
-  The Tuner's regions in the editor suite's shell (EDS.4a; editor suite spec §4.1, §6.1): the search and the list as the
+  The Tuner's regions in the editor suite's shell: the search and the list as the
   panel, the rows as the canvas, the chosen tunable as the inspector. Each is drawn from the controller the suite keeps, so a
   switch and return finds the search, the choice and the locks as they were.
 -->

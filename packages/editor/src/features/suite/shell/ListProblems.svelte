@@ -1,6 +1,6 @@
 <!--
-  The game's editor list did not load (editor suite spec §11, EDS-m): what is wrong and where, in the list's own key
-  names, and that every editor is read only until it is fixed. "Start a list" comes with the host's write path (EDS.1d).
+  The game's editor list did not load: what is wrong and where, in the list's own key
+  names, and that every editor is read only until it is fixed. "Start a list" comes with the host's write path.
 -->
 <script lang="ts">
 import { EDITOR_LIST_PATH, type EditorListProblem } from '../core'

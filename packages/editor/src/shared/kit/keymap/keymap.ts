@@ -1,3 +1,5 @@
+// Turns a key press into a command. It sees a plain description of the key, not a DOM event, so it is testable; `mod`
+// in a shortcut means Cmd on Apple keyboards and Ctrl elsewhere.
 import type { Command, CommandRegistry } from '../commands/command'
 import { parseShortcut, type Shortcut } from '../commands/shortcut'
 

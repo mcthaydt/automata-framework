@@ -1,6 +1,6 @@
 import type { GestureHandlers } from './gesture-events'
 
-// Two or more touch pointers that are down together (editor kit spec §4.5). The first two are the pair that pans and
+// Two or more touch pointers that are down together. The first two are the pair that pans and
 // pinches; every finger counts toward a `multiTap`. A cluster lives from its second finger down to its last finger
 // up, and what it does is decided once: it becomes a transform when the pair travels past the slop, a multi-tap when
 // every finger lifts quickly and still, and otherwise nothing.

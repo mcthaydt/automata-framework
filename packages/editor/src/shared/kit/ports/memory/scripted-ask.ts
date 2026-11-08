@@ -1,4 +1,4 @@
-// A scripted `AskProvider` (editor suite spec §4.3): it records each request and answers with whatever the script
+// A scripted `AskProvider`: it records each request and answers with whatever the script
 // returns, a promise the test settles itself included; a script that throws is an assistant that failed. The script
 // is the assistant's client: it is given the request and the output limit the provider sets, which is the budget.
 // With a change set, each proposal's tokens are spent through `ChangeSet.spend` while one is open, as the suite does.

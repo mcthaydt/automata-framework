@@ -1,5 +1,5 @@
 // The suite's headless core (editor suite spec EDS-D1): no Svelte, no DOM, no Node and no clock, so the suite app,
-// the Node adapters (EDS.1d) and the tests share it.
+// the Node adapters and the tests share it.
 
 export {
   type EditorListLoad,

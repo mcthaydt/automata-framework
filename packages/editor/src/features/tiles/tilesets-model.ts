@@ -1,3 +1,5 @@
+// What the Tilesets view shows: the rows for tilesets, auto layers, rule groups and rules, and the inspector for a
+// selected rule. It only reads the project.
 import { type TileItem, tileItems } from '../../shared/level-2d/editor/palette-model'
 import type {
   AutoLayerDef,
@@ -9,7 +11,7 @@ import type {
 import { tilesetTiles } from '../../shared/level-2d/model/tileset-grid'
 import type { PatternCell, Rule } from '../../shared/level-2d/tiles/autotile/rule.schema'
 
-// What the Tilesets view shows (plan ED2D.5b decisions 1 to 3; 2D editor spec §5.4, §5.6, §8 the Tilesets row): the
+// What the Tilesets view shows: the
 // panel's rows, what is selected once the project has had its say, and the selected rule as the inspector edits it.
 // Plain functions of the project, so the Node tests decide what the Svelte files only draw.
 

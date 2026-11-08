@@ -1,5 +1,5 @@
 <!--
-  A menu button and its menu (kit spec §4.6), the WAI-ARIA menu button pattern on a `Popup`. Enter, Space and
+  A menu button and its menu, the WAI-ARIA menu button pattern on a `Popup`. Enter, Space and
   ArrowDown open it with the first enabled item focused, ArrowUp with the last; arrows, Home and End move through
   the enabled items and wrap, type-ahead jumps by first letters, Enter or a press chooses (`onselect`, close,
   focus back on the trigger), and Escape or a press outside closes it. A disabled item stays in the menu, says why

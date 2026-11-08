@@ -1,6 +1,6 @@
 import type { Profile, ViewDef } from '../../shared/level-2d/profiles/profile'
 
-// Which view an open document shows (plan ED2D.4c4a decision 1; 2D editor spec §7, §8). The profile lists its views as
+// Which view an open document shows. The profile lists its views as
 // data (`ViewDef`), so the rail and the route come from the registry and the app names no profile (G-s).
 
 /** The rail's destinations, in the profile's order. */

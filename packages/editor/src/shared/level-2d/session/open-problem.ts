@@ -1,10 +1,10 @@
+import { baseName } from '../../kit/storage/store-path.ts'
 import type { OpenOutcome } from './editor-app-types'
 
 // The one line a toast says when an open or create ends without a document. Home and the document screen say the same
 // words, so they share it.
 
 const MEGABYTE = 1024 * 1024
-const baseName = (path: string): string => path.slice(path.lastIndexOf('/') + 1)
 
 /** One line for every way an open or create can end without a document: what a toast says. */
 export function openProblem(outcome: Exclude<OpenOutcome, { readonly status: 'opened' }>): string {

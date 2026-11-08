@@ -1,4 +1,4 @@
-// The Tuner's session (EDS.4a; editor suite spec §6.1, EDS-a to EDS-d): the tuning file of one game, one history over its
+// The Tuner's session: the tuning file of one game, one history over its
 // text, each edit one literal's span, written through the workspace port before it counts and taken back by Undo.
 import { describe, expect, it } from 'vitest'
 import type { Tunable } from '#src/features/suite/tuner/tuner-content.ts'

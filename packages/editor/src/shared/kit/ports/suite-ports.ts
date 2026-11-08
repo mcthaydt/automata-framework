@@ -1,7 +1,7 @@
-// The ports of the editor suite (editor suite spec §4.3, EDS.1b): what a suite editor asks of the world around it and
+// The ports of the editor suite: what a suite editor asks of the world around it and
 // does not provide. The spec owns these shapes; the code lives here, below editor-2d, editor-3d and the suite, so every
 // one of them shares one definition. Types only: the fakes and the contract suites are `./ports/testing`, the Node
-// adapters are `editor-suite/node` (EDS.1d).
+// adapters are `editor-suite/node`.
 //
 // A missing optional port is the feature off, never an error: no `changeSet` and edits save to the workspace with Ship
 // hidden; no `gates` and the gate pill says "Gates not readable"; no `ask` and there is no Ask button.
@@ -96,7 +96,7 @@ export interface ChangeSet {
   }>
   /**
    * Records `tokens` the assistant used against the open change set; rejects when none is open, or for a count that is
-   * not a whole number of zero or more. The suite records each proposal's use, rejected or accepted (§4.3).
+   * not a whole number of zero or more. The suite records each proposal's use, rejected or accepted.
    */
   spend(tokens: number): Promise<void>
   /** Raises the open change set's token cap; only the person does this. Rejects a cap that is not above the current. */
@@ -107,7 +107,7 @@ export interface ChangeSet {
    * With nothing open it does nothing.
    */
   close(): Promise<void>
-  /** The open change sets, from the adapter's journal (§4.5): the Review desk. */
+  /** The open change sets, from the adapter's journal: the Review desk. */
   list(): Promise<readonly ChangeSetSummary[]>
 }
 
@@ -143,7 +143,7 @@ export interface ChangeSetCheck {
   readonly after?: readonly CheckMeasure[] | undefined
 }
 
-/** One check of the editor list (`[[check]]`, §4.2). The built-in `content` check is the suite's, not the runner's. */
+/** One check of the editor list (`[[check]]`). The built-in `content` check is the suite's, not the runner's. */
 export interface CheckDef {
   readonly id: string
   /** `before`: runs on the candidate text and a failure refuses the write; `after`: runs on what was written (EDS-D8). */
@@ -156,7 +156,7 @@ export interface CheckDef {
   readonly measure: boolean
 }
 
-/** The game's own checks. One run per check id at a time: a newer run of an id cancels that id in the older run (§7). */
+/** The game's own checks. One run per check id at a time: a newer run of an id cancels that id in the older run. */
 export interface ChecksRunner {
   declared(): readonly CheckDef[]
   /** `candidates`: text a `before` check reads instead of the file at that path. */

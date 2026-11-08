@@ -1,5 +1,5 @@
 <!--
-  Every widget of EDK.4 on one page, for the layout tests (kit spec §4.6, §8): production CSS in a real browser
+  Every kit widget on one page, for the layout tests: production CSS in a real browser
   checks that each interactive element has its hit area, that nothing makes the page scroll sideways, that every
   kind of control shows a focus ring, and that a dialog stays on a phone screen. `presentation` is what the
   editor would pick from the shell mode: popovers on wide, sheets below.

@@ -5,7 +5,7 @@ import { afterEach, describe, expect, test } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import WidgetGallery from '#src/testing/kit/WidgetGallery.svelte'
 
-// The widgets with production CSS in a real browser (kit spec §4.6, EDK.4 plan decision 4): every control has its
+// The widgets with production CSS in a real browser: every control has its
 // hit area, the page never scrolls sideways, every kind of control shows its focus ring, and a dialog stays on a
 // phone screen. Chromium only until EDK.6; WebKit and Firefox go through a test-request on the Orchestrator bus.
 interface Size {

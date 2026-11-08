@@ -1,4 +1,4 @@
-// Typed fields and entity definitions (editor kit spec §4.8, EDK-D8).
+// Typed fields and entity definitions.
 //
 // A definition says what a thing is and which typed fields it carries; an instance holds the values. Both
 // editors store their own definitions and instances in their own formats and extend `EntityDef` by

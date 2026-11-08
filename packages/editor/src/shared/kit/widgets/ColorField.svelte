@@ -1,5 +1,5 @@
 <!--
-  A colour, palette first (kit spec §4.6). The trigger shows the current colour and its hex; pressing it opens a
+  A colour, palette first. The trigger shows the current colour and its hex; pressing it opens a
   panel with a listbox of palette swatches (arrows move, Enter or a press picks and closes) and a "Custom" button
   that reveals a hex field (`#rrggbb`, refused with a message otherwise) beside the browser's colour input. Picking is a
   `set` edit event; picking the colour it already has emits nothing. Escape closes and returns focus to the trigger.

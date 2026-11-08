@@ -6,7 +6,7 @@ import type { EditHistory, LevelEditorView } from '../../shared/level-2d/editor/
 import type { Project } from '../../shared/level-2d/model/project-types'
 import type { LevelSession } from './level-session'
 
-// What a Level region draws from (plan EDS.2d step 2): the session's view and camera and the document, as Svelte state
+// What a Level region draws from: the session's view and camera and the document, as Svelte state
 // that follows them. Each region component calls this while it is set up and stops following when it goes, so the
 // session outlives the regions (the suite keeps it across a switch, EDS-D12) and the standalone Level view alike.
 

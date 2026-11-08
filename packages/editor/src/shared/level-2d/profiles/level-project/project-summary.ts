@@ -1,7 +1,7 @@
 import type { Project } from '../../model/project-types'
 import type { ProfileSummary } from '../profile'
 
-// What Home shows about a project (2D editor spec §8): its name and four counts, worded for a person.
+// What Home shows about a project: its name and four counts, worded for a person.
 
 const plural = (count: number, one: string, many: string): string => `${count} ${count === 1 ? one : many}`
 

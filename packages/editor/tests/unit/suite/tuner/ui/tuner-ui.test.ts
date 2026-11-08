@@ -8,7 +8,7 @@ import TunerPanel from '#src/features/suite/tuner/ui/TunerPanel.svelte'
 import TunerRows from '#src/features/suite/tuner/ui/TunerRows.svelte'
 import { TUNING_FIXTURE, tunerFixtureFiles, tunerFixturePorts } from '#src/testing/suite/tuner-fixtures.ts'
 
-// The Tuner's components in jsdom (EDS.4a; editor suite spec §6.1): the list, the rows (slider and number box, toggle,
+// The Tuner's components in jsdom: the list, the rows (slider and number box, toggle,
 // text, Ask only), the refusal of a value past a bound (EDS-c), the lock (EDS-d) and the search. What reaches the file is
 // checked through the controller's session.
 

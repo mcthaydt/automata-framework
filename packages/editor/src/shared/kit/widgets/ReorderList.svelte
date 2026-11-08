@@ -1,5 +1,5 @@
 <!--
-  A list whose rows the person puts in order (kit spec §4.6). Each row has a handle, 44 px wide, and the list
+  A list whose rows the person puts in order. Each row has a handle, 44 px wide, and the list
   reports exactly one `onreorder({ id, from, to })` per move, on the drop. The editor applies it and passes the new
   `items`; the list never reorders itself.
 

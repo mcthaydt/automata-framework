@@ -3,8 +3,7 @@ import type { ChangeSet, SuiteWorkspace } from '../../shared/kit/ports/suite-por
 
 /**
  * The game an adapter under the workspace contract is built on: these files, `content/editors.toml` among them. The
- * adapter takes its policy from that list (editor-suite's `fileAccess`, through `workspaceFile`), as the disk adapter
- * of EDS.1d does with a real checkout, so nothing here restates the policy.
+ * adapter takes its policy from that list (editor-suite's `fileAccess`, through `workspaceFile`), as the disk adapter does with a real checkout, so nothing here restates the policy.
  */
 export interface WorkspaceScenario {
   readonly files: Readonly<Record<string, string>>
@@ -102,8 +101,7 @@ const EXPECTED_FILES = {
 } as const
 
 /**
- * What every `SuiteWorkspace` promises (editor suite spec §4.3), run against the in-memory fake and, in EDS.1d, the
- * disk adapter, each built fresh on the same scenario per test.
+ * What every `SuiteWorkspace` promises, run against the in-memory fake and the disk adapter, each built fresh on the same scenario per test.
  */
 export function describeSuiteWorkspace(name: string, make: MakeWorkspace): void {
   describe(`SuiteWorkspace contract: ${name}`, () => {

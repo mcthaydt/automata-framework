@@ -2,7 +2,7 @@ import type { Point } from '../../tiles/footprint'
 import type { Placement, Project, World } from '../project-types'
 import { arrangeWorld, findWorld, replaceWorld, snapPosition } from './world-layout'
 
-// Where a level sits on the world map (2D editor spec §5.1, §5.7): moving it in its world, placing it in a world
+// Where a level sits on the world map: moving it in its world, placing it in a world
 // (out of any other), and its depth. Each result is arranged by the world's layout (`world-layout.ts`), so a free world
 // gets whole pixels, a grid world snapped positions and a sequence a new order with derived positions.
 

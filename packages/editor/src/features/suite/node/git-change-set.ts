@@ -1,5 +1,5 @@
-// The change set over the game's git checkout (editor suite spec §4.3, §4.5, EDS-D10), after The Last Light's
-// `ChangeSets` (`92e6704`, `editor/src/server/changeset.ts`): one branch `edit/<slug>` per change set, one open at a
+// The change set over the game's git checkout, after the adventure source's
+// `ChangeSets`: one branch `edit/<slug>` per change set, one open at a
 // time, a checkpoint commits only the recorded files, and Ship checkpoints, pushes and opens a draft PR with the
 // person's own `gh`, or gives the compare link without it. The change set stays open after Ship.
 //
@@ -15,7 +15,7 @@ import { runArgv } from './run-argv'
 export interface GitChangeSetOptions {
   /** The game's checkout. */
   readonly root: string
-  /** The assistant's tokens one change set may use (default 200 000, The Last Light's). */
+  /** The assistant's tokens one change set may use (default 200 000, the adventure source's). */
   readonly tokenCap?: number | undefined
   /** The repository's web address for the compare link; default: read from the `origin` remote. */
   readonly webUrl?: string | undefined
@@ -24,7 +24,7 @@ export interface GitChangeSetOptions {
 }
 
 export interface GitChangeSet extends ChangeSet {
-  /** The workspace created `path` (a write expecting `'absent'`), so `remove` may take it back (EDS.1d-b). */
+  /** The workspace created `path` (a write expecting `'absent'`), so `remove` may take it back. */
   noteCreated(path: string): Promise<void>
 }
 

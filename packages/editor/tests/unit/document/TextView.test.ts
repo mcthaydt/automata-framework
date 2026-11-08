@@ -3,7 +3,7 @@ import { render, screen, within } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import TextView from '#src/features/document/TextView.svelte'
 
-// The read-only text of a file that does not open (plan ED2D.4c2b, decision 3).
+// The read-only text of a file that does not open.
 
 const numbered = (n: number): string => Array.from({ length: n }, (_, at) => `line ${at + 1}`).join('\n')
 const lines = (): HTMLElement[] => [...document.querySelectorAll<HTMLElement>('.line')]

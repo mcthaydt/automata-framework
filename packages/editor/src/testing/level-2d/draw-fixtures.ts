@@ -3,7 +3,7 @@ import { decodeProject } from '../../shared/level-2d/model/project-codec'
 import type { Project } from '../../shared/level-2d/model/project-types'
 import { richProjectFile } from './projects'
 
-// Inputs for the draw-list tests (ED2D.4c3a): the rich fixture as a project, and a Level view state that names its
+// Inputs for the draw-list tests: the rich fixture as a project, and a Level view state that names its
 // level `start` and the `decor` tiles layer, with the brush and nothing hidden, locked, hovered or selected.
 
 export function richProject(): Project {

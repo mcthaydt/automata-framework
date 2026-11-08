@@ -1,4 +1,4 @@
-// What the autosave journal holds (kit spec §4.7): one JSON file per document, next to where its autosave would be
+// What the autosave journal holds: one JSON file per document, next to where its autosave would be
 // found again. The payload is the editor's own snapshot string; the kit never looks inside it.
 
 const FORMAT = 'af-autosave/1'

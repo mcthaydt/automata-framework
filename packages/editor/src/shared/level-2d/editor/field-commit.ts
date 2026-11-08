@@ -5,7 +5,7 @@ import type { Project } from '../model/project-types'
 import { setLevelField } from '../model/world/level-edits'
 import type { EditHistory } from './level-editor'
 
-// One inspector field committed as one undo step (plan ED2D.4c4b decision 1, G-e). The commands refuse a value the
+// One inspector field committed as one undo step. The commands refuse a value the
 // field's rules reject with a `RangeError` carrying the kit's `checkFieldValue` message; here that refusal becomes a
 // result the field editor shows under the field, and nothing is applied, so the stored value stays and the history
 // gains no step. The command runs once against the current state first, so a refusal never reaches the history and an

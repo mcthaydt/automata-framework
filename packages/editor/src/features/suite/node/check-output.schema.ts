@@ -1,4 +1,4 @@
-// What a game's check prints on stdout (EDS.1d-a plan, decision 1). Two shapes are read: the suite's own, the port's
+// What a game's check prints on stdout. Two shapes are read: the suite's own, the port's
 // findings and measures as they are, and `automata check --json`'s report (`packages/cli/src/check/check-report.ts`),
 // whose findings are mapped to errors. Other keys are ignored, so a command may print more than the suite reads.
 

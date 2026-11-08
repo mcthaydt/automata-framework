@@ -1,10 +1,10 @@
 <!--
-  The level canvas on the page (plan ED2D.4c3b; 2D editor spec §8, §13). It loads the level's images from the
+  The level canvas on the page. It loads the level's images from the
   workspace (a missing or broken one draws numbered placeholders, never an error), builds the draw list and draws it
   with Pixi, fitted to its box unless a camera is given. While the WebGL context is lost it says "Preview paused" and
   draws again once the browser gives the context back; without WebGL it says "Preview unavailable" and the rest of the
   editor works. `data-state` (loading, drawn, paused, unavailable) is what the tests and the review images wait on.
-  The Level view of ED2D.4c4a mounts this and feeds it the controller's view and its viewport's camera.
+  The Level view mounts this and feeds it the controller's view and its viewport's camera.
 -->
 <script lang="ts">
 import { onMount } from 'svelte'

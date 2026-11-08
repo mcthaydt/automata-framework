@@ -7,7 +7,7 @@ import { page } from 'vitest/browser'
 import { EDITOR_LIST_PATH } from '#src/features/suite/core/index.ts'
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
-import { FLOORFIFTY_SAMPLE, samplePorts } from '#src/features/suite/shell/sample-ports.ts'
+import { SAMPLE_GAME, samplePorts } from '#src/features/suite/shell/sample-ports.ts'
 import { type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
 
 // The suite with the production CSS in a real browser at the editors' window sizes (editor suite spec §10, §12):
@@ -23,7 +23,7 @@ afterEach(async () => {
   target = undefined
 })
 
-async function open(size: EditorSize, files: Record<string, string> = FLOORFIFTY_SAMPLE) {
+async function open(size: EditorSize, files: Record<string, string> = SAMPLE_GAME) {
   await page.viewport(size.width, size.height)
   const conditions = publishConditions(document.documentElement, size, REST)
   target = document.body.appendChild(document.createElement('div'))

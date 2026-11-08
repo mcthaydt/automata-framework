@@ -1,5 +1,5 @@
 <!--
-  A widget with a bug, for the shell's error-boundary tests (kit spec §6): it throws while it first renders, or, with
+  A widget with a bug, for the shell's error-boundary tests: it throws while it first renders, or, with
   `breaks="click"`, renders a button whose click makes its next render throw (an error from a later update).
 -->
 <script lang="ts">

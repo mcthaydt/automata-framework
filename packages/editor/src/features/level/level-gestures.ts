@@ -4,8 +4,7 @@ import type { PointerKind } from '../../shared/kit/gestures/pointer-sample.ts'
 import type { LevelEditor } from '../../shared/level-2d/editor/level-editor'
 import type { LevelSession } from './level-session'
 
-// What each gesture of the kit's recogniser does on the level canvas (plan ED2D.4c4a decision 3; 2D editor spec §5.9;
-// kit spec §4.5). One finger, the pen and the mouse's main button drive the tools through the ED2D.4b controller in level
+// What each gesture of the kit's recogniser does on the level canvas. One finger, the pen and the mouse's main button drive the tools through the level editor in level
 // pixels; the middle button, two fingers and the wheel move the camera; a two-finger tap undoes and three fingers redo.
 // Once a pen has been used on the canvas a finger only navigates (a drag pans, a tap does nothing), so a hand resting
 // or steadying the view never paints. A plain function of the session, so the mapping is a unit test and the view only

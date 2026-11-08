@@ -431,18 +431,18 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
   4.2); `docs/design/editor-3d` stays for the 3D slice
 - Modify: `docs/guides/editor.md` (first step builds nothing; `automata editor` opens the 2D editor; full rewrite in 12.5)
 
-- [ ] **Step 1:** Add `packages/editor` to `style`'s `--plan-comments`, `--comments-only` and `--test-imports`. Run
+- [x] **Step 1:** Add `packages/editor` to `style`'s `--plan-comments`, `--comments-only` and `--test-imports`. Run
   → expected about 943 plan-ID findings (audit S5). Rewrite each comment to say why in plain words, or remove it
   when the code says it. Re-run until 0. **Session breaks** by area (kit, level-2d, features, suite), logging the
   findings left.
-- [ ] **Step 2:** Rename the fixtures away from the source projects: `floorfifty.editors.toml` → `platformer.editors.toml`,
+- [x] **Step 2:** Rename the fixtures away from the source projects: `floorfifty.editors.toml` → `platformer.editors.toml`,
   `last-light-bay.editors.toml` → `bay.editors.toml`, `FLOORFIFTY_SAMPLE` → `SAMPLE_GAME`, and the strings inside.
   `grep -rniE "floorfifty|last light|last-light" packages/editor` → 0.
-- [ ] **Step 3:** `pnpm knip` → remove what it reports unused in `packages/editor` (the trimmed root entry's leftovers,
+- [x] **Step 3:** `pnpm knip` → remove what it reports unused in `packages/editor` (the trimmed root entry's leftovers,
   S3). The suite's Node adapters stay: they are imported inside `features/suite` (E6). Re-run tests: counts drop
   only by the deleted files' tests, listed in the execution log.
-- [ ] **Step 4:** Archive the mock-ups. `docs/README.md` points at `docs/archive/design/`.
-- [ ] **Step 5:** `pnpm check` passes. Commit, mark ready.
+- [x] **Step 4:** Archive the mock-ups. `docs/README.md` points at `docs/archive/design/`.
+- [x] **Step 5:** `pnpm check` passes. Commit, mark ready.
   `refactor(editor): plain comments, neutral fixtures, no unused entries, mock-ups archived`
 
 ### Task 4.6: The code refactor of the editor package (PR `claude/refactor-ed-quality`)
@@ -451,7 +451,7 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
 `*-controller.ts`, `*-session.ts`, commands), `packages/editor/src/app/**`, their tests, `packages/editor/README.md`.
 The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4).
 
-- [ ] **Step 1: The read.** Spec 17.3's checks over the package, area by area (kit core and storage, documents and
+- [x] **Step 1: The read.** Spec 17.3's checks over the package, area by area (kit core and storage, documents and
   history, commands and selection, the 2D model and codecs, the canvas, tiles and auto-tile, the profile and export, the
   editor list, the suite's logic). Findings list in the execution log before any change. Record the unit and Chromium
   browser counts.
@@ -1470,3 +1470,58 @@ listed as left with the reason.
   expected a single `browsers` project; it now accepts any project names.
 - Handoff: next is task 4.5. Run the style roots on `packages/editor` (about 943 plan-ID comments), area by area.
 
+### 2026-11-06, session 4 (continued): task 4.5
+
+- Step 1: the editor joined `style`'s `--plan-comments` and `--comments-only` (`--test-imports` already had it).
+  446 plan-citing comment lines in `src/` and the same kind in `tests/` were rewritten: a throwaway script removed the
+  parentheticals that held only a plan code, a decision, a step or a spec section (about 370), and 73 more were worded by
+  hand (what a moved file was, what a later task would add). Comments now say what the code does and why; none names a
+  plan. `pnpm style`: 0 findings in 2,041 files.
+- Step 2: fixtures `floorfifty.editors.toml` is `platformer.editors.toml`, `last-light-bay.editors.toml` is
+  `bay.editors.toml`, `floorfifty-tuning.toml` and `-juice.toml` are `platformer-*.toml`, `FLOORFIFTY_SAMPLE` is `SAMPLE_GAME`
+  (the package's suite entry and `editor-3d`'s suite page follow). The documents fixtures' `SOURCE.json` names its origins
+  `adventure` and `arcade` and points at `docs/provenance/sources.md`, and one fixture's French word was neutral-ised and
+  its byte count and sha repinned. `grep -rniE "floorfifty|last light|last-light" packages/editor` finds nothing.
+- Step 3: `pnpm knip` reports nothing unused in `packages/editor` (the earlier moves and the root entry trim had
+  already taken what was dead). Unit tests 3,270 → 3,268: the two tests that checked a fixture file names its source
+  commit are gone, since the commit now lives only in `SOURCE.json` and the provenance file.
+- Step 4: the 2D editor's, the suite's and the kit's mock-ups are in `docs/archive/design/` (`docs/design/editor-3d`
+  stays for the 3D slice); `docs/README.md` and `knip.jsonc` follow; `docs/guides/editor.md` names the 2D editor's build
+  and `--app 2d` (the default switches in 7.1, the full rewrite is 12.5).
+- Handoff: next is task 4.6 (the editor's logic refactor). Read area by area, log the findings first.
+
+### 2026-11-06, session 4 (continued): task 4.6, the read and the first fixes
+
+Step 1, the findings over `packages/editor/src` (288 `.ts` files, measured, not guessed). Counts before: unit 3,268;
+Chromium browser projects 527 pass, 6 skipped.
+
+| Check | Found |
+|---|---|
+| Unused code | `pnpm knip` clean (4.5 removed it). |
+| Single-implementation abstractions | 55 `create*` factories; the ones with one implementation are the sessions and controllers the views and tests drive, which are the seams 17.2 allows. None folded. |
+| Forwarding layers | `shared/kit/documents/index.ts` (a barrel, 8 of 17 lines re-export) and `app/suite/levels-2d/index.ts`; both stay, since `entries/` and the app import through them. |
+| Duplicates | Two `createTestClock` (merged, fixed below). Two `memory-workspace.ts` are not copies: the testing one is a plain in-memory `Workspace`, the suite one is the editor list's policy over a store. Two JSON scanners (`model/json-syntax.ts` finds the first syntax error; `kit/documents/json/locate.ts` locates literals) share a tokenizer shape; merging them would change the error panel's engine-independent messages, so left for a later task with its own tests. Two `text-diff.ts` and two `home-model.ts` are different things. |
+| Long files (over 300) | `kit/documents/json/structure.ts` 401, `level/level-editor.ts` 397, `kit/documents/json/patch.ts` 365, `editor-list/write-path.ts` 336, `kit/gestures/recognizer.ts` 330, `level-2d/documents/editor-app.ts` 313, `level-2d/model/project-codec.ts` 311, `kit/documents/content-document.ts` 308. |
+| Long functions (over 60) | 40 functions; the longest are `createLevelEditor` 285, `createRecognizer` 256, `createWritePath` 240, `createGitChangeSet` 199, `createTilesetsSession` 193. |
+| Missing explanations | 34 files had no header comment before their first code line. |
+| Tests that test the implementation | Not yet read. |
+
+Fixes done: one test clock for the storage and gesture tests (`testing/kit/test-clock.ts`; the second copy and its 32
+imports are gone; the storage tests pass with the shared default start); header comments for 33 of the 34 (the other, `handle-store.ts`, explains itself in a comment under its imports)
+none (checked against each file's exports).
+
+More fixes (one concern per commit): `json/structure.ts` 401 → 258 lines (`shape.ts` holds the file's reading and the shape
+error, `render-like.ts` the writing of a value like its neighbours); `json/patch.ts` 365 → 255 (`patch-check.ts` holds the
+refusal reasons and the guard that every result reads as the model it should); `level-editor.ts` 397 → 343
+(`level-editor-support.ts` holds the gesture types, the layer lookup and the pointer-to-cell arithmetic). Two comments
+that still named a source project across a wrapped line were reworded (the earlier grep read one line at a time). Unused
+imports in three files removed. Unit tests 3,268 equal after each. A second duplicate scan (the same name defined in two source files) found and merged
+three more: `systemClock` (the editor app and `main.ts` each had a copy of `kit/storage/clock.ts`'s), `baseName` (five
+copies, now one in `store-path.ts`, also used by two inline spellings) and `hasValue` (two copies). Other same-name
+pairs are different things (`clamp` has four different signatures; the two `firstDifference` and `firstUnwritable`
+are the generic and the JSON-number-style versions).
+
+Left: the files still over 300 lines (`write-path.ts` 336, `recognizer.ts` 330, `editor-app.ts` 313, `project-codec.ts`
+311, `content-document.ts` 308, `level-editor.ts` 343), the longest functions (`createLevelEditor` 250, `createRecognizer`
+256, `createWritePath` 240), the tests read for implementation coupling, and the JSON scanner question. The next session
+continues here.

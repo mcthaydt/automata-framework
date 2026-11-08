@@ -1,4 +1,4 @@
-// scene-interchange v2 for AF (editor suite spec §4.8, EDS-D15): the open scene's listed files (or the whole game
+// scene-interchange v2 for AF: the open scene's listed files (or the whole game
 // without scenes) as one document of values, grouped editor → path → the file's parsed value, and the way back in.
 //
 // Export reads each file's value through the content documents and prints the document with sorted keys and no
@@ -8,7 +8,7 @@
 // each change's diff, gates and checks and what it refuses and why; Apply writes it through the write path as one
 // undo step, with each file's mtime from the plan, so a file that moved on since refuses the whole apply.
 //
-// Provenance is not written (decision 2 of the EDS.2c plan): every value's file and key path is its place in
+// Provenance is not written (a deliberate choice): every value's file and key path is its place in
 // `sections`. Plain TypeScript: no DOM, no clock.
 
 import { parse as parseToml, stringify as stringifyToml } from 'smol-toml'

@@ -1,9 +1,9 @@
 <!--
-  A shell with every region filled the way the 2D editor fills them (kit spec §7, §8): a top bar that
+  A shell with every region filled the way the 2D editor fills them: a top bar that
   toggles the three openable regions, a rail of five destinations, a scrolling panel, an inspector of
   fields, a dock of scene buttons and a canvas with a text field. Used by the unit tests (behavior) and
   by the layout tests (production CSS in a real browser). It shows `orientation` and the open flags so
-  a test can read what the shell told it. `broken` puts a widget with a bug in one region (kit spec §6).
+  a test can read what the shell told it. `broken` puts a widget with a bug in one region.
 -->
 <script lang="ts">
 import type { GeometryState } from '@mcthaydt/automata'

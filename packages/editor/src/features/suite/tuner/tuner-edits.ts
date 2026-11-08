@@ -1,7 +1,7 @@
 import type { ContentEdit } from '../../../shared/kit/documents/content-document.ts'
 import type { Tunable } from './tuner-content'
 
-// The Tuner's typed edit (editor suite spec §6.1): a person's new value for one tunable, held to its kind and bounds
+// The Tuner's typed edit: a person's new value for one tunable, held to its kind and bounds
 // before anything is written (EDS-c), and the content edit that makes it. Pure. The compiler's own check still judges the
 // file as the `content` check; this refuses what a person can see is wrong in words of their own.
 

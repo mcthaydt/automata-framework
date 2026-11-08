@@ -12,7 +12,7 @@ import type {
   Result,
 } from '../profiles/profile'
 
-// The contract between the 2D editor's app and its views (2D editor spec §4, §8): what the editor's session over a
+// The contract between the 2D editor's app and its views: what the editor's session over a
 // workspace offers (`EditorApp`), the open document it hands out, how each action can end, and the project list Home
 // shows. Types only, so a feature depends on this and not on the app that implements it.
 
@@ -64,7 +64,7 @@ export interface OpenDocument {
   /** Save as copy: the first unused `name copy.ext`; the document keeps its own path. */
   saveCopy(): Promise<SaveOutcome>
   /** Applies an autosave as one undoable step, which leaves the document dirty. Refused, changing nothing, when the payload no longer parses. */
-  /** The text the document was loaded or last saved as, which a profile's export targets patch (plan ED2D.7b). */
+  /** The text the document was loaded or last saved as, which a profile's export targets patch. */
   base(): string
   restore(recovery: Recovery): Result<true, readonly ParseError[]>
   discardRecovery(): Promise<void>

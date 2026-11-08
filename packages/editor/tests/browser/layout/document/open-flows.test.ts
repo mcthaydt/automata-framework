@@ -11,11 +11,11 @@ import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import { createAppProfiles } from '#src/shared/level-2d/profiles/app-profiles.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The open flows with the production CSS in a real browser (plan ED2D.4c2b step 7; 2D editor spec §12 and §13): the
+// The open flows with the production CSS in a real browser: the
 // error panel with a long file, the Restore and conflict dialogs, and the document's top bar, at the eight window sizes
 // of Home's layout test. jsdom has no layout, so room (inside the screen, target sizes, what covers what, which part
 // scrolls) is only checked here. The editor starts as `main.ts` starts it, over a memory workspace.

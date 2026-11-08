@@ -3,7 +3,7 @@ import type { DragEndGesture, DragGesture, GestureHandlers } from './gesture-eve
 import type { PointerKind, PointerSample, WheelInput } from './pointer-sample'
 import { createCluster, type TouchCluster, type TouchPoint } from './touch-cluster'
 
-// The pointer pipeline's rules (editor kit spec §4.5) over plain samples, with no DOM: slop, timings, tap counting
+// The pointer pipeline's rules over plain samples, with no DOM: slop, timings, tap counting
 // and drag. The adapter (`attach-gestures.ts`) turns Pointer Events into samples; tests feed samples by hand with a
 // fake clock.
 

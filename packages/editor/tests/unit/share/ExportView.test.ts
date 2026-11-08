@@ -18,12 +18,12 @@ import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import { createAppProfiles } from '#src/shared/level-2d/profiles/app-profiles.ts'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
 import { textOf } from '#src/testing/level-2d/memory-workspace.ts'
 import { withLayer } from '#src/testing/level-2d/project-edit.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The Export view in jsdom (plan ED2D.7b step 5), mounted the way the app mounts it and reached from the rail.
+// The Export view in jsdom, mounted the way the app mounts it and reached from the rail.
 
 const quietPage = (): { document: LifecycleDocument; window: LifecycleWindow } => ({
   document: { visibilityState: 'visible', addEventListener: () => {}, removeEventListener: () => {} },

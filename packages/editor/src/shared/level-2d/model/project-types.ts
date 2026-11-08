@@ -2,7 +2,7 @@ import type { EntityDef, FieldDef, FieldValues } from '../../kit/fields/field-ty
 import type { RuleGroup } from '../tiles/autotile/rule.schema'
 import type { Grid } from './grid'
 
-// The project model of the 2D editor spec §5. One model, two shapes (ED2D.1 decision 1): `Project` holds grids as
+// The project model. One model, two shapes: `Project` holds grids as
 // `Grid`, and `ProjectFile` is the same tree with each grid as its row strings, which is what `*.af2d.json` stores and
 // what `project.schema.ts` validates. The only difference is a layer instance, so `Project` and `Level` take its type
 // as a parameter instead of repeating every field.

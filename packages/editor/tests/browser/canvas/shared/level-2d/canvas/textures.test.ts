@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { createTextureManager, type TextureManager } from '#src/shared/level-2d/canvas/textures.manager.ts'
 import { cellsPng } from '#src/testing/level-2d/png.ts'
 
-// The texture manager over the workspace's images (ED2D.4c3b, plan decision 5), in Chromium.
+// The texture manager over the workspace's images, in Chromium.
 
 let manager: TextureManager | undefined
 afterEach(() => {

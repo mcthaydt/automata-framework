@@ -8,11 +8,11 @@ import { type EditorHandle, startEditor } from '#src/app/editor-2d/boot.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import { uncoveredArea } from '#src/shared/level-2d/model/world/world-model.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { hollowmere } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The World view with the production CSS in a real browser (plan ED2D.6b step 7; 2D editor spec §12), at the kit's
+// The World view with the production CSS in a real browser, at the kit's
 // eight window sizes in Chromium, WebKit and Firefox: the map fills the canvas and has drawn (or says why not), the
 // layout switch, the level rows and the inspector's controls are at least 44 px and never clipped (below wide, from the
 // Levels and Inspector drawers), and the page never scrolls. The editor starts as `main.ts` starts it, over a memory
@@ -145,7 +145,7 @@ describe.each(SIZES)('World view at $name ($width x $height)', (size) => {
     const [left, right] = (mapElement.dataset.levelsSpan ?? '').split(',').map(Number)
     expect(left).toBeGreaterThanOrEqual(0)
     expect(right).toBeLessThanOrEqual(map.width + 0.5)
-    // Fit sits over the map, a full-size target in view (plan ED2D.8a).
+    // Fit sits over the map, a full-size target in view.
     await expectTarget(buttonNamed(view(), 'Fit'), size)
 
     await openDrawer(size, 'Levels', 'panel')

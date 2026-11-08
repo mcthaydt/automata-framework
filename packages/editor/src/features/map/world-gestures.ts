@@ -3,9 +3,8 @@ import type { GestureHandlers } from '../../shared/kit/gestures/gesture-events.t
 import type { PointerKind } from '../../shared/kit/gestures/pointer-sample.ts'
 import type { WorldDrag } from './world-drag'
 
-// What each gesture of the kit's recogniser does on the World view's map (plan ED2D.8a decision 1; 2D editor spec §8
-// flow 7, §12), the Level view's mapping (`level-gestures.ts`) for levels instead of tools. A tap selects the level under
-// it (or clears the selection); a drag that starts on a level moves it through ED2D.6b's `WorldDrag`, one undo step; a
+// What each gesture of the kit's recogniser does on the World view's map, the Level view's mapping (`level-gestures.ts`) for levels instead of tools. A tap selects the level under
+// it (or clears the selection); a drag that starts on a level moves it through `WorldDrag`, one undo step; a
 // drag on empty space, the middle button, two fingers and the wheel move the camera, and a pinch or Ctrl/Meta+wheel
 // zooms. Once a pen has touched the map a finger only navigates, so a resting hand never moves a level. Two- and
 // three-finger taps undo and redo.

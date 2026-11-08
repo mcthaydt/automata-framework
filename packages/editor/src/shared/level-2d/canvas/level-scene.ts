@@ -1,3 +1,4 @@
+// The Pixi scene for one level: a container per layer, kept between edits so only what changed is rebuilt.
 import { Container, Graphics } from 'pixi.js'
 import type { ColorResolver } from './colors'
 import type { LayerDraw, LevelDrawList } from './draw/draw-list-types'
@@ -15,11 +16,11 @@ import {
 } from './scene-items'
 import type { TextureManager } from './textures.manager'
 
-// A draw list as a Pixi scene (ED2D.4c3b, plan decision 3; 2D editor spec §5.3, ED2D-D4). The draw list hands back
+// A draw list as a Pixi scene. The draw list hands back
 // the same chunk object for every chunk a stroke did not touch, so the scene keeps the Pixi container it built for each
 // chunk object and builds only for the new ones; a chunk object that is not in the next list is destroyed with its
 // container. Entities and objects are kept per instance id while what they draw is unchanged. The overlays (grid,
-// footprint, selection) are one `Graphics` redrawn on each update: a few hundred lines at most. The links (ED2D.6c)
+// footprint, selection) are one `Graphics` redrawn on each update: a few hundred lines at most. The links
 // are rebuilt over them on each update too.
 
 export interface LevelSceneOptions {

@@ -1,6 +1,5 @@
 <!--
-  The pattern editor (plan ED2D.5b; 2D editor spec §5.6, §8 flow 6, §12: 44 px rule cells, every cell reachable from
-  the keyboard). A tap cycles a cell any, empty, filled, is, not with the chosen IntGrid value; the cell being decided
+  The pattern editor. A tap cycles a cell any, empty, filled, is, not with the chosen IntGrid value; the cell being decided
   is marked. Each cell says what it holds in words, so the pattern is not colour alone.
 -->
 <script lang="ts">

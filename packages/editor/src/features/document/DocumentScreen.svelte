@@ -1,6 +1,5 @@
 <!--
-  An open document (plan ED2D.4c4a decision 1; plans ED2D.4c2a decision 10 and ED2D.4c2b decisions 5 to 8 for what it
-  kept from the frame it replaces). The profile's views are the rail; the chosen one fills the shell with its panel,
+  An open document (it keeps what the older frame did: the top bar, the dialogs and the toasts). The profile's views are the rail; the chosen one fills the shell with its panel,
   canvas and inspector, and this screen hands it what every view shares: the top bar (Back, the title, Undo, Redo, Save),
   the rail, the status line, the Restore and conflict dialogs and the toasts. Switching views remounts the view only;
   the document, its history and its save state stay. A document replaced by Take theirs remounts the view on the new
@@ -75,7 +74,7 @@ function snapshot(source: DocumentController): DocumentState {
   return current
 }
 
-/** What the last Undo or Redo did, for a screen reader (ED2D.8): the buttons, the keys and the two-finger tap all land here. */
+/** What the last Undo or Redo did, for a screen reader: the buttons, the keys and the two-finger tap all land here. */
 let heard = $state({ text: '', count: 0 })
 function undo(): void {
   const label = shown.undoLabel

@@ -5,7 +5,7 @@ import { entityChecks } from './checks/entities'
 import { levelChecksOf } from './checks/levels'
 import { linkChecks } from './checks/links'
 
-// The checks of the `level-project` profile (2D editor spec §9): one pure function over a project. Each group finds
+// The checks of the `level-project` profile: one pure function over a project. Each group finds
 // what its part of the document can get wrong; this puts them together, errors first, then warnings, then info, and
 // within a severity in the order found (definitions, worlds and levels, entities, links), so the same project always
 // lists the same way.

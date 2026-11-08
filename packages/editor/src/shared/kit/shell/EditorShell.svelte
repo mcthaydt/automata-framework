@@ -1,5 +1,5 @@
 <!--
-  The editor's responsive shell (kit spec §4.2; layout from the Figma mockups in docs/design/editor-2d).
+  The editor's responsive shell.
 
   Seven regions, each a snippet: topbar, rail, panel, canvas, inspector, dock, status. The mode comes from
   the geometry owner's form factor and nothing else (`shellModeOf`):
@@ -25,7 +25,7 @@
   `dockOpen` left `undefined` follows `defaultDockOpen`. The editor puts its own toggles in the top bar or the
   rail and binds these.
 
-  Each region's content sits in its own error boundary (kit spec §6): content that throws while rendering or updating
+  Each region's content sits in its own error boundary: content that throws while rendering or updating
   is replaced by `RegionError` (the message, the details and Copy details) inside the same region box, and the other
   regions carry on. A sheet's handle is outside its boundary, so a broken sheet can still be resized and closed. Errors
   thrown by an event handler are not caught by a boundary; they leave the region as it was.

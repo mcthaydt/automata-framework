@@ -5,7 +5,7 @@ import LevelCanvas from '#src/features/level/LevelCanvas.svelte'
 import { drawView, richProject } from '#src/testing/level-2d/draw-fixtures.ts'
 import { withDefs } from '#src/testing/level-2d/project-edit.ts'
 
-// The canvas component (ED2D.4c3b, plan decisions 5 and 8; spec §13) in Chromium: it loads the level's images from the
+// The canvas component in Chromium: it loads the level's images from the
 // workspace, draws, and says "Preview paused" while the WebGL context is lost.
 
 afterEach(() => {

@@ -1,4 +1,4 @@
-// Which cells a brush and a stroke touch (2D editor spec §5.9). Pure geometry on whole cell coordinates; cells outside
+// Which cells a brush and a stroke touch. Pure geometry on whole cell coordinates; cells outside
 // the level are dropped later, by the grid.
 
 export interface Point {

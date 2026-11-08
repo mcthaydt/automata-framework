@@ -1,6 +1,6 @@
 import type { ProjectStore, StorageFailure } from './project-store.ts'
 
-// Writing an export into a game folder (plan ED2D.7b decision 4; 2D editor spec G-m). The Export view remembers each
+// Writing an export into a game folder. The Export view remembers each
 // file's version when it lists the files; a guarded write first checks every one of them again, so a file that changed
 // in the meantime stops the whole write before anything is written, and the conflict dialog decides. The store has no
 // transaction: a failure part-way leaves the files written before it.

@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import DocumentBar from '#src/features/document/DocumentBar.svelte'
 
-// The document's top bar (plan ED2D.4c2b, decision 8; mockup `level-platformer`): Back, the title over the path, the
+// The document's top bar: Back, the title over the path, the
 // profile, then Undo, Redo and Save.
 
 interface Props {

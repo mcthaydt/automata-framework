@@ -3,7 +3,7 @@ import type { TilesetDef } from '../../model/project-types'
 import { tilesetTiles } from '../../model/tileset-grid'
 import type { PlaceholderReason, TileDraw } from './draw-list-types'
 
-// Where a tile comes from (2D editor spec §5.4, §13, ED2D-D11): a frame of its tileset's image when that image is
+// Where a tile comes from: a frame of its tileset's image when that image is
 // loaded and the index is inside the set, otherwise a flat placeholder with the index on it. Never a fake picture, and
 // never a crash: a missing image degrades its tiles, not the document.
 

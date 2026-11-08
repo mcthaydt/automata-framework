@@ -9,7 +9,7 @@ import type { ParseError, Profile } from '../../../shared/level-2d/profiles/prof
 import { readDocument } from '../../../shared/level-2d/profiles/read-document'
 import type { LevelCanvasProps } from '../../../shared/level-2d/session/view-props'
 
-// The Levels 2D session (plan EDS.2d; editor suite spec §4.1, §4.7, EDS-D12): what the suite keeps for the 2D level
+// The Levels 2D session: what the suite keeps for the 2D level
 // editor while the person is elsewhere. It holds the document's kit history and the Level view's session (the level,
 // layer, tool, selection and camera), so a switch and return finds them as they were. Every new step is written through
 // the suite's workspace, whose write path records it for the top bar's Undo; the session's own undo and redo only move

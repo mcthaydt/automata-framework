@@ -1,7 +1,7 @@
 import { type UnpackedTile, unpackTile } from '../model/cells-codec'
 import type { Grid } from '../model/grid'
 
-// Reading and flipping a tile cell (2D editor spec §5.3 and §5.9). The palette's flip keys and the picker use these;
+// Reading and flipping a tile cell. The palette's flip keys and the picker use these;
 // the packing itself lives in the cell codec.
 
 const FLIP_X = 0x40000000

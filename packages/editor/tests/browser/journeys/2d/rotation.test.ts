@@ -13,7 +13,7 @@ import {
   openJourneyEditor,
 } from '#src/testing/level-2d/journey-editor.ts'
 
-// ED2D.8 journey (2D editor spec §15 G-k): the iPad turns during a Pencil stroke. iPadOS cancels the touches in flight,
+// ED2D.8 journey: the iPad turns during a Pencil stroke. iPadOS cancels the touches in flight,
 // so the stroke is cancelled with nothing half-painted, the canvas is the same element (no remount), and the chosen
 // layer and tool are kept.
 

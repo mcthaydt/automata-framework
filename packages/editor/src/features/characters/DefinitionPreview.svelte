@@ -1,5 +1,5 @@
 <!--
-  The selected definition drawn as it will stand in a level (plan ED2D.5c decision 7; mockup `entities`): a header with
+  The selected definition drawn as it will stand in a level: a header with
   its id, where it is used, its size and its pivot, then the shape at a whole-number scale on a grid of its own size,
   the pivot marked and the sides labelled. A definition with a tile draws the tile's sprite in the shape's box.
 -->

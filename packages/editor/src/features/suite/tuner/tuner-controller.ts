@@ -3,7 +3,7 @@ import type { SuitePorts } from '../../../shared/kit/ports/suite-ports.ts'
 import type { Tunable } from './tuner-content'
 import { openTuner, type TunerOutcome, type TunerSession } from './tuner-session'
 
-// What a person does in the Tuner (EDS.4a): each action reads what is chosen, goes through the session (which holds the
+// What a person does in the Tuner: each action reads what is chosen, goes through the session (which holds the
 // kind, the bounds, the lock and the write) and keeps a refusal in words until the next action. The components call these
 // and draw what comes back; nothing here draws.
 

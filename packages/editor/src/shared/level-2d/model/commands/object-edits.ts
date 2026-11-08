@@ -3,7 +3,7 @@ import { tilesetTiles } from '../tileset-grid'
 import { findLayer, idInUse, type LayerTarget, updateLayer } from './layer-target'
 import { wholePixels } from './pixels'
 
-// The edits of an objects layer (2D editor spec §5.1): free-placed tiles such as trees, props and decoration, with a
+// The edits of an objects layer: free-placed tiles such as trees, props and decoration, with a
 // flip on each axis. Same rules as `entity-edits.ts`: a missing target is a `RangeError`, an edit that changes nothing
 // returns the same project, and positions are whole pixels (snapping is the tool's business).
 

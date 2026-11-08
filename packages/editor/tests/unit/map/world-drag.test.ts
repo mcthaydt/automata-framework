@@ -7,7 +7,7 @@ import { setWorldLayout } from '#src/shared/level-2d/model/world/world-layout.ts
 import { platformerTemplate } from '#src/shared/level-2d/profiles/level-project/templates/platformer.ts'
 import { withNewLevel } from '#src/testing/level-2d/project-edit.ts'
 
-// A drag on the World view's map (plan ED2D.6b step 5): pressing on a level selects it, moving drags it live, and
+// A drag on the World view's map: pressing on a level selects it, moving drags it live, and
 // letting go makes the move one undo step; a press that never moves only selects. Positions are screen pixels.
 
 const CAMERA = { x: 0, y: 0, scale: 0.5 }

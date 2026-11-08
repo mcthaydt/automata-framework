@@ -1,5 +1,5 @@
 <!--
-  The Ask diff dialog (`ask-diff`, editor suite spec §5 flow 5, §9, §11): the prompt and its scope chip, the token
+  The Ask diff dialog: the prompt and its scope chip, the token
   meter, then the proposal as a line diff with the `before` findings under the lines they name, the check results,
   and Accept, Reject and Rewrite. Accept is disabled with its reason (a failing check, a locked key, a path Ask may not
   write); Rewrite asks again with the findings. Over budget and a failed provider are alerts. The state is the Ask

@@ -1,4 +1,4 @@
-<!-- The Level view's inspector (plan EDS.2d step 2): Entity, Level and Checks, drawn from the session. -->
+<!-- The Level view's inspector: Entity, Level and Checks, drawn from the session. -->
 <script lang="ts">
 import type { History } from '../../shared/kit/history/history'
 import type { IdSource } from '../../shared/level-2d/model/ids'

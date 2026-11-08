@@ -1,6 +1,6 @@
 <!--
-  The World view's map on the page (plan ED2D.6b step 4): the world's levels drawn by Pixi at the camera the view fits,
-  each with its picture (ED2D.8b): the images every level uses are loaded once, and each level keeps its own draw list
+  The World view's map on the page: the world's levels drawn by Pixi at the camera the view fits,
+  each with its picture: the images every level uses are loaded once, and each level keeps its own draw list
   maker so an unchanged level reuses what it drew.
   While the WebGL context is lost it says "Preview paused" and draws again once the browser gives it back; without
   WebGL it says "Preview unavailable" and the rest of the view (the list, the inspector) still works. `data-state`

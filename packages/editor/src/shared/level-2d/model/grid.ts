@@ -1,4 +1,4 @@
-// The chunked immutable grid (2D editor spec §5.3, ED2D-D4): a sparse map of 16×16-cell chunks of `Uint32Array`.
+// The chunked immutable grid: a sparse map of 16×16-cell chunks of `Uint32Array`.
 // Every edit returns a new `Grid` that shares each chunk it did not touch, so a `History` snapshot costs only the
 // chunks a stroke changed, and an undo is a reference swap. A chunk that is all zero is not stored, so an empty
 // level costs nothing and two grids with the same cells have the same chunk keys (which `equals` relies on).
@@ -16,7 +16,7 @@ export interface GridEditor {
   fillRect(x: number, y: number, w: number, h: number, value: number): void
 }
 
-/** One stored chunk of a grid, for a renderer that draws a chunk at a time (ED2D.4c3a). */
+/** One stored chunk of a grid, for a renderer that draws a chunk at a time. */
 export interface GridChunk {
   /** The chunk's column and row, in chunks. */
   readonly cx: number

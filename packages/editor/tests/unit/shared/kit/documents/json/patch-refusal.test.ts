@@ -1,6 +1,6 @@
 // @vitest-environment node
 // ED3-o: what a patch refuses, and that a refusal carries no text a caller could save by mistake. Four reasons
-// (spec §4.5): a value that cannot be written, text that is not JSON, a `before` that is not what the text holds, and
+//: a value that cannot be written, text that is not JSON, a `before` that is not what the text holds, and
 // a result that does not read as the new model.
 import { describe, expect, it } from 'vitest'
 import { type PatchRules, patchJson, verifyPatched } from '#src/shared/kit/documents/json/patch.ts'

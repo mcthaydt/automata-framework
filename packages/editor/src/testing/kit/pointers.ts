@@ -1,4 +1,4 @@
-// Touch, Pencil and mouse input for the editors' iPad journeys (plan EDK.6b decision 2; kit spec §8, "Tablet journeys").
+// Touch, Pencil and mouse input for the editors' iPad journeys.
 // Each helper sends the `PointerEvent`s an iPad sends for that gesture to one element, a frame apart, so the kit's own
 // recogniser sees a finger, a Pencil with pressure and tilt, or a palm (a wide touch) as a person makes them. Points are
 // in the target's own pixels; the events carry page coordinates. Every new contact gets its own pointer id. `down`

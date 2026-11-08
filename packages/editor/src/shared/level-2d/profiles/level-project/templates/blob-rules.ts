@@ -1,6 +1,6 @@
 import type { PatternCell, Rule } from '../../../tiles/autotile/rule.schema'
 
-// The terrain rules the templates ship (2D editor spec §7): one rule per neighbourhood a solid cell can tell apart, so
+// The terrain rules the templates ship: one rule per neighbourhood a solid cell can tell apart, so
 // ground, walls and walls' corners draw themselves from an IntGrid. Both sets read a 3 × 3 window around the cell
 // (row-major: NW N NE / W C E / SW S SE), are exclusive (exactly one rule matches any neighbourhood, which the tests
 // prove) and read beyond the level edge as the cell itself, so a wall runs on past the edge instead of ending in one.

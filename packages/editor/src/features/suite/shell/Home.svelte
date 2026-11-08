@@ -1,5 +1,5 @@
 <!--
-  Suite Home and an entry's page (editor suite spec §5 flow 2, §9 `suite-home`): the cards of the editors the game's
+  Suite Home and an entry's page: the cards of the editors the game's
   list names (all of them on Home, the entry's on its page), or the list's problems. One vertical scroll region.
 -->
 <script lang="ts">

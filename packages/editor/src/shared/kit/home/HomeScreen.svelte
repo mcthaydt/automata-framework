@@ -1,5 +1,5 @@
 <!--
-  Home (plan ED2D.4c2a; moved into the kit in ED3D.5c so both editors share it): where a session starts. It is the
+  Home (both editors share it): where a session starts. It is the
   kit's shell with no rail: the sources panel on the left, the projects with a search (and whatever the editor puts
   below them, such as templates) in one scroll region of their own, and the selected project on the right. Below `wide`
   the panel and the inspector are drawers (medium) or sheets (compact); two buttons in the top bar open them, and

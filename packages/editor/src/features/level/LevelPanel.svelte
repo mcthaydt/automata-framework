@@ -1,5 +1,5 @@
 <!--
-  The Level view's panel (plan EDS.2d step 2, split out of `LevelView.svelte`): the layers above the palette, drawn from
+  The Level view's panel: the layers above the palette, drawn from
   a session that outlives it. Palette sprites: each tileset image is read once and shown through an object URL, let go
   when the panel goes.
 -->

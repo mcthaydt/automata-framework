@@ -1,4 +1,4 @@
-// What Home shows (editor suite spec §5 flow 2, §9 `suite-home`, §11): one card per editor the game's list names, in
+// What Home shows: one card per editor the game's list names, in
 // the order the list first names it, or the list's problems when it does not load, in which case every editor is read
 // only and there are no cards (the files cannot be listed without a list).
 import type { WorkspaceFile } from '../../../shared/kit/ports/suite-ports.ts'

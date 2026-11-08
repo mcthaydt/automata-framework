@@ -1,4 +1,4 @@
-// `@mcthaydt/automata-editor-kit/ports` (editor suite spec §4.1, §4.3): the suite editor shape and the ports it is
+// `@mcthaydt/automata-editor-kit/ports`: the suite editor shape and the ports it is
 // given. Headless; the fakes and contract suites are `./ports/testing`.
 export {
   type ContributionPoint,

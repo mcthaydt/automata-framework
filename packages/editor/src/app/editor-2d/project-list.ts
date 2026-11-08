@@ -1,4 +1,5 @@
 import { classifyStorageError } from '../../shared/kit/storage/project-store.ts'
+import { baseName } from '../../shared/kit/storage/store-path.ts'
 import type { Workspace } from '../../shared/kit/storage/workspace.ts'
 import { levelImages } from '../../shared/level-2d/canvas/draw/level-images'
 import type { LevelPreview, ProfileRegistry, ProfileSummary } from '../../shared/level-2d/profiles/profile'
@@ -10,12 +11,11 @@ import type {
   ProjectEntry,
 } from '../../shared/level-2d/session/editor-app-types'
 
-// The projects Home shows (2D editor spec §8): one entry for each file in the workspace that a profile claims, and
+// The projects Home shows: one entry for each file in the workspace that a profile claims, and
 // nothing for images, journals or anything else. Reading a whole workspace on each refresh is fine at the size a tablet
 // session has; if it ever is not, this is the one place to add a cache.
 
 const ref = (profile: ProfileRef): ProfileRef => ({ id: profile.id, label: profile.label })
-const baseName = (path: string): string => path.slice(path.lastIndexOf('/') + 1)
 
 /** Rejects when the workspace cannot be listed (a `StorageError`); a file that cannot be read becomes a broken entry. */
 export async function listProjects(

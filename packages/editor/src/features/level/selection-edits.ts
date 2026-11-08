@@ -5,7 +5,7 @@ import type { EntityInstance, Project } from '../../shared/level-2d/model/projec
 import { findLevel } from '../../shared/level-2d/model/world/level-edits'
 import type { Point } from '../../shared/level-2d/tiles/footprint'
 
-// What the inspector's buttons and the shortcuts do to the whole selection (plan ED2D.4c4b decision 2, §12): delete,
+// What the inspector's buttons and the shortcuts do to the whole selection: delete,
 // duplicate and nudge, each one project change the view applies as one undo step. The selection may span entities
 // layers, so each instance is edited on its own layer; an id the level no longer has is skipped, since the selection
 // is refreshed only after the history changes.

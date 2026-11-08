@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import ProjectSummary from '#src/features/home/ProjectSummary.svelte'
 import type { ProjectEntry } from '#src/shared/level-2d/session/editor-app-types.ts'
 
-// The inspector of Home (plan ED2D.4c2a): the selected project, what its profile says about it, and the three things a
+// The inspector of Home: the selected project, what its profile says about it, and the three things a
 // person does with it. Entries are written by hand; the component knows no profile.
 
 const NOW = 1_700_000_000_000

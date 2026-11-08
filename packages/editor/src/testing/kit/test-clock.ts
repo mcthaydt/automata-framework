@@ -1,12 +1,15 @@
-import type { GestureClock } from '../../shared/kit/gestures/gesture-clock'
+import type { StorageClock } from '../../shared/kit/storage/clock.ts'
 
-export interface TestClock extends GestureClock {
+// A clock the tests move by hand. It starts at a real-looking epoch time because the storage layer compares an
+// autosave's `savedAt` with file modification times; it is structurally a `GestureClock` too, so the recognizer's
+// tests share it.
+
+export interface TestClock extends StorageClock {
   /** Moves time forward, running every timer that falls due on the way, in order, each seeing its own due time. */
   advance(ms: number): void
 }
 
-/** A fake `now` and timer set for the renderer-free tests (kit spec §8, fixture `TestClock`). */
-export function createTestClock(start = 0): TestClock {
+export function createTestClock(start = 1_700_000_000_000): TestClock {
   let time = start
   let next = 1
   const timers = new Map<number, { due: number; run: () => void }>()

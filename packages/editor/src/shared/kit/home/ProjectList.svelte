@@ -1,5 +1,5 @@
 <!--
-  The projects of the workspace (plan ED2D.4c2a, decision 3; moved into the kit in ED3D.5c): one listbox with one tab stop, so a tablet with a
+  The projects of the workspace: one listbox with one tab stop, so a tablet with a
   keyboard reaches everything below it with a single Tab. The listbox keeps focus and points at the selected card
   (`aria-activedescendant`); arrows (left and right, up and down alike), Home and End step through the list in order
   whatever the number of columns, Enter opens, Delete asks to delete. A click or a tap selects; a double click opens,

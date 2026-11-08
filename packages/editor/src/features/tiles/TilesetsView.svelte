@@ -1,5 +1,5 @@
 <!--
-  The Tilesets view (plan ED2D.5b; 2D editor spec §5.4, §5.6, §8 the Tilesets row and flow 6, §12; mockup `tileset`).
+  The Tilesets view.
   The panel lists the tilesets, the auto layers, the selected layer's rule groups and the selected group's rules as a
   strip a grip reorders; the canvas shows the tileset as tiles with its tags, above the live preview; the inspector
   edits the selected rule or group. Everything that decides is plain TypeScript (`tilesets-model.ts`,

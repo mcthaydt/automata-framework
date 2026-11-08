@@ -5,8 +5,8 @@ import type { LevelSession } from './level-session'
 import type { LevelShortcut } from './level-shortcuts'
 import { deleteSelected, duplicateSelected, nudgeSelected } from './selection-edits'
 
-// What the Level regions do with the session (plan EDS.2d step 2, moved out of `LevelView.svelte` unchanged): Delete,
-// Duplicate and the §12 shortcuts. Each reads the editor's view as it is now. Undo and Redo are the host's: the
+// What the Level regions do with the session: Delete,
+// Duplicate and the keyboard shortcuts. Each reads the editor's view as it is now. Undo and Redo are the host's: the
 // standalone view passes its document's, and in the suite the top bar owns them, so a shortcut with no handler is left
 // for the suite to take.
 

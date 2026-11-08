@@ -1,4 +1,4 @@
-/** Steps kept before the oldest drops (kit spec §4.3). */
+/** Steps kept before the oldest drops. */
 const DEFAULT_LIMIT = 500
 /** Two applies with one coalesce key closer than this are one step (EDK-D5). */
 const DEFAULT_COALESCE_WINDOW_MS = 600
@@ -77,7 +77,7 @@ interface OpenTransaction<S> {
 }
 
 /**
- * The editor's undo history over immutable document snapshots (kit spec §4.3, EDK-D4): each step keeps the
+ * The editor's undo history over immutable document snapshots: each step keeps the
  * state before and after it, so undo and redo are exact and need no patch language.
  */
 export function createHistory<S>(initial: S, options: HistoryOptions = {}): History<S> {

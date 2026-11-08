@@ -1,4 +1,4 @@
-// Every suite port in memory, wired the way the Node adapters share their journal (editor suite spec §4.5): what the
+// Every suite port in memory, wired the way the Node adapters share their journal: what the
 // workspace creates goes to the open change set, the Ask spends its tokens through `ChangeSet.spend`, and
 // `ChangeSet.list()` reads both. A port left
 // out is the feature off (no gates, no Ask), and `changeSet: false` is a suite with no change sets at all.

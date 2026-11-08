@@ -1,5 +1,5 @@
 <!--
-  The palette for the selected layer (plan ED2D.4c4a decisions 4 and 5; 2D editor spec §8, §12): tiles as 44 px cells
+  The palette for the selected layer: tiles as 44 px cells
   cut from the tileset image (numbered flat placeholders without it, as the canvas draws them), IntGrid values and
   entity definitions as rows with their colour and name. One choice at a time (`radiogroup`), held by the controller.
 -->

@@ -10,7 +10,7 @@ import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import type { Proposal } from '#src/shared/kit/ports/suite-ports.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
 
-// Editing inside the suite (editor suite spec §5 flows 3 to 8, §11, EDS-D19): the title prompt, the pills, Undo and
+// Editing inside the suite: the title prompt, the pills, Undo and
 // the Ask diff dialog, with the fixture editor over memory ports.
 const TUNING = 'content/tuning.toml'
 const START = 'MAX_MOVE_SPEED = 7\n'

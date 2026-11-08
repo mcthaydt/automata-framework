@@ -4,7 +4,7 @@ import { TUNING_PATH } from './tuner-content'
 import { createTunerController, type TunerController } from './tuner-controller'
 import { canvas, inspector, panel } from './ui/TunerRegions.svelte'
 
-// The Tuner as a suite editor (EDS.4a; editor suite spec §4.1, §6.1, EDS-D12, EDS-D18): `tuner` in the editor list, opened
+// The Tuner as a suite editor: `tuner` in the editor list, opened
 // once and kept for the app's life. Its Ask target is `content/tuning.toml`; the locks the person set are what the shell's
 // Ask refuses a proposal to change, and an accepted proposal is one undo step.
 

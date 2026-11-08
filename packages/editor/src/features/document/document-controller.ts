@@ -1,3 +1,5 @@
+// What an open document needs around it beyond editing: saving, the autosave journal, the conflict and recovery
+// prompts, and letting go cleanly when the page is hidden or closed.
 import {
   autosaveProblem,
   recoveryUnreadable,
@@ -20,7 +22,7 @@ import type { EditorApp, OpenDocument, OpenOutcome } from '../../shared/level-2d
 import { documentHeading, restoreRefused } from '../../shared/level-2d/session/open-flow-model'
 import { openProblem } from '../../shared/level-2d/session/open-problem'
 
-// One open document's flows (plan ED2D.4c2b, decisions 5 to 9; kit spec §5 flows 3 and 4, §6), in plain TypeScript so
+// One open document's flows, in plain TypeScript so
 // Node tests drive them: the top bar's undo, redo and Save, what each save outcome does (a conflict opens the Keep mine
 // / Take theirs / Save as copy choice, a failure toasts with Retry or Re-grant), the Restore decision for an autosave,
 // and writing the journal before the page or the document goes away. It follows the Svelte store contract, so the

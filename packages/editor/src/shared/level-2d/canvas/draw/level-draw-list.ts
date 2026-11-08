@@ -1,3 +1,5 @@
+// Turns a level and its project into a flat list of things to draw, in order. It reads the model and knows nothing
+// about Pixi, so what is drawn can be tested without a canvas.
 import { entityBounds, entityDefOf } from '../../model/commands/entity-geometry'
 import type {
   Background,
@@ -14,7 +16,7 @@ import type { EntityDraw, LayerDraw, LevelDrawInput, LevelDrawList, ObjectDraw }
 import { footprint, gridLines, linkChips, selectionBoxes } from './overlays'
 import { tileDraw } from './tile-draw'
 
-// The level canvas as data (ED2D.4c3a, 2D editor spec §8): from the project, the Level view's state and the images the
+// The level canvas as data: from the project, the Level view's state and the images the
 // texture manager holds, everything the Pixi canvas draws, back to front, in level pixels. Pure: no Pixi, DOM or clock
 // (`architecture.test.ts` holds `canvas/draw/` to the headless core's rules), so it is tested in Node.
 

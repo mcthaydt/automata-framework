@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs'
 
-// The documents' fixtures (editor suite spec §12): shipped files of three games, copied byte for byte. SOURCE.json
+// The documents' fixtures: shipped files of three games, copied byte for byte. SOURCE.json
 // records each one's repository, commit, path, length and sha256; fixtures.test.ts checks them.
 
-/** The Last Light's shipped blockouts and facility (92e6704), the same bytes editor-3d tests its codecs on. */
+/** the adventure source's shipped blockouts and facility, the same bytes editor-3d tests its codecs on. */
 export const FIXTURE_NAMES = [
   'blockout-clinic',
   'blockout-clinic-dawn',
@@ -14,20 +14,20 @@ export const FIXTURE_NAMES = [
 
 export type FixtureName = (typeof FIXTURE_NAMES)[number]
 
-/** A Last Light fixture's text exactly as shipped: byte identity is what the codec tests assert. */
+/** A the adventure source fixture's text exactly as shipped: byte identity is what the codec tests assert. */
 export function loadFixture(name: FixtureName): string {
   return readFileSync(new URL(`./fixtures/${name}.json`, import.meta.url), 'utf8')
 }
 
-/** Files recorded once from Last Light's own code (SOURCE.json says how), to compare ported code against. */
+/** Files recorded once from the adventure source's own code (SOURCE.json says how), to compare ported code against. */
 export function loadGolden(name: 'literals'): string {
   return readFileSync(new URL(`./fixtures/${name}.golden.json`, import.meta.url), 'utf8')
 }
 
-/** Every content file the documents are tested on, by file name: TOML of FloorFifty and AF, JSON of Last Light and AF. */
+/** Every content file the documents are tested on, by file name: TOML of the arcade source and AF, JSON of the adventure source and AF. */
 export const DOCUMENT_FIXTURES = [
-  'floorfifty-tuning.toml',
-  'floorfifty-juice.toml',
+  'platformer-tuning.toml',
+  'platformer-juice.toml',
   'af-game.toml',
   'af-flow.toml',
   'af-stage-dawn.toml',

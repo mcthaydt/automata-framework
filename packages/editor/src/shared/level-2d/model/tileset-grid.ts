@@ -1,6 +1,6 @@
 import type { TilesetDef } from './project-types'
 
-// How many tiles a tileset holds (2D editor spec §5.4): columns and rows derive from the image size, the tile size, the
+// How many tiles a tileset holds: columns and rows derive from the image size, the tile size, the
 // spacing between tiles and the padding around the image. A tileset without an image is a placeholder, and its
 // `imageSize` is what the image will be, so the count is the same.
 

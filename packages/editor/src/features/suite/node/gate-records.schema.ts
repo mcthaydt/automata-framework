@@ -1,5 +1,5 @@
-// A gate records file as the gates reader reads it (EDS.1d-a plan, decision 3): `{ "gates": [{ id, decision,
-// decidedAt?, url? }] }`, other keys ignored. The pipelines platform owns the real shape (automata-plus, M3.8a) and
+// A gate records file as the gates reader reads it: `{ "gates": [{ id, decision,
+// decidedAt?, url? }] }`, other keys ignored. The pipelines platform owns the real shape (the Plus pipelines) and
 // replaces this when it lands. A decision outside the three is an unreadable record, never a guess.
 import { z } from 'zod'
 

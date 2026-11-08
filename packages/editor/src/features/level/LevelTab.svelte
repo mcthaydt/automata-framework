@@ -1,6 +1,6 @@
 <!--
-  The inspector's Level tab (plan ED2D.4c4b step 6): the level's name and size, and its typed fields, each change one
-  undo step. Renaming and resizing a level are the World view's (ED2D.6b), where a resize that loses cells is confirmed.
+  The inspector's Level tab: the level's name and size, and its typed fields, each change one
+  undo step. Renaming and resizing a level are the World view's, where a resize that loses cells is confirmed.
 -->
 <script lang="ts">
 import FieldEditor from '../../shared/kit/fields/FieldEditor.svelte'

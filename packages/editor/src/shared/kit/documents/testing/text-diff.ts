@@ -1,4 +1,4 @@
-// Helpers the JSON codec tests share (moved from editor-3d with them, EDS.1a): what changed between two texts of one file.
+// Helpers the JSON codec tests share: what changed between two texts of one file.
 import { expect } from 'vitest'
 import { scan } from '../json/locate'
 

@@ -1,5 +1,5 @@
 <!--
-  Asks once before a project goes (plan ED2D.4c2a, decision 7). Says what goes with the file and names the destructive
+  Asks once before a project goes. Says what goes with the file and names the destructive
   action. Cancel has focus first, so a stray Enter keeps the file; the kit's dialog returns focus to where it was.
 -->
 <script lang="ts">

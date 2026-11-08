@@ -7,7 +7,7 @@ import { patchToml } from './toml/patch-toml'
 import { readTomlLiterals, TomlPositionError } from './toml/toml-literals'
 import { firstDifference, isTable } from './values'
 
-// The content documents every editor writes through (editor suite spec §4.4): one text, edited by key path, where a
+// The content documents every editor writes through: one text, edited by key path, where a
 // value edit rewrites only its literal's span and an unchanged document prints byte for byte. Each edit is turned into
 // the whole new value and handed to its format's patcher (`patchToml`, `patchJson`), which writes only what differs
 // and re-parses its result; a document never holds a text it did not verify. Schema validation is the editor's.
@@ -116,7 +116,7 @@ const TOML: Format = {
 
 /**
  * Content JSON has no member order to keep and no ids to align by: positions and keys are the whole story. Numbers
- * round-trip exactly (EDS.1a review, 2026-10-30), unlike the blockout style ED3D writes its level files in.
+ * round-trip exactly (a content file's numbers never change when saved), unlike the blockout style the 3D level files are written in.
  */
 const JSON_RULES = { idArrays: [], memberOrder: () => undefined, numbers: EXACT_NUMBERS }
 

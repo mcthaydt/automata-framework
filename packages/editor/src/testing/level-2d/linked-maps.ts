@@ -4,7 +4,7 @@ import { topdownRpgTemplate } from '../../shared/level-2d/profiles/level-project
 import { entity, renameLevel, withEntities, withLevel, withNewLevel } from './project-edit'
 
 /**
- * Two linked RPG maps (plan ED2D.6c): the village (`map-1`, with the template's player start at 160, 120) and the inn
+ * Two linked RPG maps: the village (`map-1`, with the template's player start at 160, 120) and the inn
  * (`inn`, placed at 400, 0), a door each way, and a chest in the inn. The template's door and warp point at a
  * `player-start`, a `door` or a `warp`.
  */

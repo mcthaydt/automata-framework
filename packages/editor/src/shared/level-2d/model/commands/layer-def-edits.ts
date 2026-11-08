@@ -5,7 +5,7 @@ import type { IntGridLayerDef, IntValueDef, LayerDef, LayerInstance, Project } f
 import { checkShape, insertItem, layerDefOf, moveItem, replaceLayerDef, tilesetOf } from './def-lookup'
 import { checkGroups } from './rule-edits'
 
-// Layer definition edits (2D editor spec §5.1, §5.2, §5.8). Every level holds one instance of every layer definition
+// Layer definition edits. Every level holds one instance of every layer definition
 // in the definitions' order, so adding or moving a definition does the same to each level in the same step and a
 // level is never half-shaped. A definition is checked against the file schema and against the rest of the project
 // (its tileset exists, an auto layer reads an IntGrid layer, no level grows past the cell limit), so the editor never

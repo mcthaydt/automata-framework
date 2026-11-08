@@ -6,7 +6,7 @@ import SourcesPanel from '#src/shared/kit/home/SourcesPanel.svelte'
 import { createMemoryStore } from '#src/shared/kit/storage/memory-store.ts'
 import type { Workspace } from '#src/shared/kit/storage/workspace.ts'
 
-// The left of Home (plan ED2D.4c2a; moved from editor-2d in ED3D.5c). The editor's import controls are a snippet.
+// The left of Home. The editor's import controls are a snippet.
 
 const stored = (): Workspace => ({
   store: createMemoryStore(),

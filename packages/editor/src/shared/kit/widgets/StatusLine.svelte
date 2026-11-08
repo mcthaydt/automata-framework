@@ -1,5 +1,5 @@
 <!--
-  The foot of the editor (kit spec §4.6): the last thing that happened, whatever the editor wants beside it (a cursor
+  The foot of the editor: the last thing that happened, whatever the editor wants beside it (a cursor
   position, a zoom), and where the project stands on saving. The message is a polite live region, so keep it for
   what just happened, not for a readout that changes with the pointer; put that in `children`, which is not
   announced. The save pill is announced only when it goes wrong or the project cannot be saved here.

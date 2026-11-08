@@ -1,3 +1,5 @@
+// The Tilesets view's editing: tilesets, tags, auto-tile groups and rules. Each edit is one undoable step; a refused
+// edit answers with a sentence for the person.
 import type { History } from '../../shared/kit/history/history.ts'
 import { projectHistory } from '../../shared/level-2d/editor/edit-history'
 import { commitEdit, type FieldCommit } from '../../shared/level-2d/editor/field-commit'
@@ -27,7 +29,7 @@ import {
   type TilesetsSelection,
 } from './tilesets-model'
 
-// One Tilesets view's state over an open document (plan ED2D.5b decisions 1, 2 and 7; 2D editor spec §8 flow 6): what
+// One Tilesets view's state over an open document: what
 // is selected, and every edit the view offers as one undo step through `commitEdit`, so a value the model refuses comes
 // back as its message with nothing applied. The selection is kept as the person made it and resolved against the
 // project on every read, so an undo that removes the selected rule falls back to the first remaining one.

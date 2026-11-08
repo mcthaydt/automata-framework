@@ -7,7 +7,7 @@ import { lineDiff } from '#src/features/suite/core/text-diff.ts'
 import InterchangeDialog from '#src/features/suite/shell/InterchangeDialog.svelte'
 import type { WriteOutcome } from '#src/shared/editor-list/write-path.ts'
 
-// The `interchange` and `interchange-export` frames (editor suite spec §4.8, §9, §11): export as TOML or JSON; import
+// The `interchange` and `interchange-export` frames: export as TOML or JSON; import
 // as a plan of changes, diffs, gates, checks and refusals, with Apply only on an applicable plan.
 const TUNING = 'content/tuning.toml'
 const CLEAN: ImportPlan = {

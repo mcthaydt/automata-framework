@@ -4374,12 +4374,6 @@ function createSuite(options: {
 function createTuner(): SuiteEditor<TunerSuiteSession>;
 ```
 
-### `FLOORFIFTY_SAMPLE` (const)
-
-```ts
-const FLOORFIFTY_SAMPLE: Readonly<Record<string, string>>;
-```
-
 ### `Levels2dOptions` (interface)
 
 ```ts
@@ -4423,6 +4417,12 @@ type Levels2dState = {
 
 ```ts
 function randomIds(fill: (bytes: Uint8Array<ArrayBuffer>) => void): IdSource;
+```
+
+### `SAMPLE_GAME` (const)
+
+```ts
+const SAMPLE_GAME: Readonly<Record<string, string>>;
 ```
 
 ### `samplePorts` (function)

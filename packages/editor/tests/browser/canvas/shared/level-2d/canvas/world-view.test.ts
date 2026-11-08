@@ -6,7 +6,7 @@ import { createWorldView, type WorldView } from '#src/shared/level-2d/canvas/wor
 import type { WorldLink } from '#src/shared/level-2d/model/world/world-links.ts'
 import type { WorldRect } from '#src/shared/level-2d/model/world/world-model.ts'
 
-// The World view's map (plan ED2D.6b step 4) in Chromium with WebGL2: a rectangle per level on the canvas background,
+// The World view's map in Chromium with WebGL2: a rectangle per level on the canvas background,
 // the selected one outlined in the accent.
 
 const TOKENS: Readonly<Record<string, string>> = {

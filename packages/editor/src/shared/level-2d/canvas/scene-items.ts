@@ -1,3 +1,5 @@
+// Builds the Pixi objects for one draw item (a tile, an entity, a background), with a numbered placeholder when an
+// image is not loaded.
 import { Container, Graphics, Sprite, Text, type Texture, TilingSprite } from 'pixi.js'
 import type { Background, Size } from '../model/project-types'
 import type { ColorResolver } from './colors'
@@ -12,7 +14,7 @@ import type {
 } from './draw/draw-list-types'
 import type { TextureManager } from './textures.manager'
 
-// The Pixi objects for each item of a draw list (ED2D.4c3b). Every function here only turns data into display
+// The Pixi objects for each item of a draw list. Every function here only turns data into display
 // objects; which ones to keep from one update to the next is `level-scene.ts`'s business. Positions are level pixels;
 // `px` is the size of one screen pixel in level pixels (1 / the camera's scale), so lines and labels stay thin and
 // legible at any zoom.
@@ -176,7 +178,7 @@ const CHIP_PAD = 4
 const CHIP_DROP = 6
 
 /**
- * The links of the level (plan ED2D.6c decision 4), rebuilt on each update into `container`: a line to a target in the
+ * The links of the level, rebuilt on each update into `container`: a line to a target in the
  * same level, and a chip naming the target just below the source's anchor (left of it near the right edge), both in
  * the source's colour (the accent when the source is selected). Drawn at screen size like the entity labels; a level
  * has a handful of links.

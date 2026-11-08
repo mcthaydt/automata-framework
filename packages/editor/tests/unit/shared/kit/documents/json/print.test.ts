@@ -1,5 +1,5 @@
 // @vitest-environment node
-// The `formatJsonNumber` case of The Last Light editor/tests/json-edit.test.ts (92e6704), and the scalar printing
+// The `formatJsonNumber` case of the adventure source editor/tests/json-edit.test.ts, and the scalar printing
 // the model diff uses for a value it has to write.
 import { describe, expect, it } from 'vitest'
 import { scan } from '#src/shared/kit/documents/json/locate.ts'

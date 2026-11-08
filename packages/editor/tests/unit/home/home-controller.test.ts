@@ -8,12 +8,12 @@ import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import { createAppProfiles } from '#src/shared/level-2d/profiles/app-profiles.ts'
 import type { EditorApp, OpenOutcome, ProjectEntry } from '#src/shared/level-2d/session/editor-app-types.ts'
 import type { ChoiceOutcome, PanelOutcome } from '#src/shared/level-2d/session/open-flow-model.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { noteText, plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
 import { hollowmere, mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The state machine behind Home (plan ED2D.4c2a step 5), over a memory workspace, the real level project and a planted
+// The state machine behind Home, over a memory workspace, the real level project and a planted
 // second profile. The controller never navigates: it tells its owner when a document opened.
 
 type Opened = Extract<OpenOutcome, { status: 'opened' }>

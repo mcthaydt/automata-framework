@@ -5,12 +5,13 @@ file in your checkout. The editor runs in the browser; the command is a small lo
 
 ## Start it
 
-From the game folder, with the editor built once (`pnpm --filter @mcthaydt/automata-editor-3d build`):
+From the game folder, with the editor built once (`pnpm --filter @mcthaydt/automata-editor build` for the 2D editor,
+`pnpm --filter @mcthaydt/automata-editor-3d build` for the 3D one):
 
 ```sh
-automata editor                 # the 3D level editor against this folder, at http://127.0.0.1:<port>
-automata editor ../my-game      # another checkout
-automata editor --app 2d        # the 2D editor (--app suite for the editor suite)
+automata editor --app 2d        # the 2D editor against this folder, at http://127.0.0.1:<port>
+automata editor ../my-game --app 2d   # another checkout
+automata editor                 # the 3D level editor (--app suite for the editor suite)
 automata editor --port 4173     # a port you choose (default: a free one)
 ```
 

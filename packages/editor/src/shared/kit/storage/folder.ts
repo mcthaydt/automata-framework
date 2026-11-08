@@ -1,7 +1,7 @@
 import { createHandleStore, type DirectoryLike } from './handle-store'
 import { classifyStorageError, type ProjectStore, StorageError } from './project-store'
 
-// The folder upgrade (kit spec §4.7): on desktop Chromium a person can point the editor at a real folder, so Save
+// The folder upgrade: on desktop Chromium a person can point the editor at a real folder, so Save
 // writes the game's own files. iPad Safari has no directory picker, so none of this is needed there; the OPFS
 // workspace is the default and these are an extra.
 

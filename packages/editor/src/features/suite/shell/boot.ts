@@ -1,4 +1,4 @@
-// Starting the suite (editor suite spec §5 flows 1 and 2): read the game's editor list through the workspace port,
+// Starting the suite: read the game's editor list through the workspace port,
 // list the files of each editor it names, and mount the suite with the kit's geometry owner. `main.ts` is the only
 // caller with the page's globals; tests hand in the window and memory ports.
 

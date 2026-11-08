@@ -1,5 +1,5 @@
 <!--
-  The Level view's dock (plan ED2D.4c4b step 7, decision 4; 2D editor spec §8, the Level row): the world's levels as
+  The Level view's dock: the world's levels as
   cards in the world's order, the open one marked. The shell places it: 148 px under the canvas in `wide`, a bottom
   sheet below it and on the short `wide` height, where the toolbar's Levels button opens it. The row scrolls sideways
   rather than shrinking a card under 44 px. Cards are keyed by level id, so the tapped card keeps focus.

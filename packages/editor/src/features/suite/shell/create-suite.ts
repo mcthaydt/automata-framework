@@ -1,4 +1,4 @@
-// The suite's composition of editors (editor suite spec §4.1): the free build passes its editors, the Plus build
+// The suite's composition of editors: the free build passes its editors, the Plus build
 // (EDS.P) passes the free ones and its own. Two editors with one id would make the list's rows ambiguous, so they fail
 // here, when the build starts, rather than whichever registered last winning.
 import type { SuiteEditor } from '../../../shared/kit/ports/suite-editor.ts'

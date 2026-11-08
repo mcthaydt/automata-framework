@@ -5,7 +5,7 @@ import { linkName, projectLinks } from '../../model/refs/ref-links'
 import { brushCells, type Point } from '../../tiles/footprint'
 import type { DrawView, Footprint, GridLines, LinkDraw } from './draw-list-types'
 
-// What the canvas draws over the layers (2D editor spec §5.9, §8): the active layer's grid, the cells the next pointer
+// What the canvas draws over the layers: the active layer's grid, the cells the next pointer
 // down would edit, and the selected instances. Each follows the controller's view, so the canvas shows exactly what a
 // tap would do: no footprint where the pointer does nothing (a locked or hidden layer, the select tool).
 
@@ -90,7 +90,7 @@ export function selectionBoxes(
 }
 
 /**
- * The links whose source is an instance of `level` on a visible layer (plan ED2D.6c decision 4), in the project's link
+ * The links whose source is an instance of `level` on a visible layer, in the project's link
  * order. A broken ref is no link, so it draws nothing (G-g); a link to something in the same level also gets a line.
  */
 export function linkChips(project: Project, level: Level, view: DrawView): LinkDraw[] {

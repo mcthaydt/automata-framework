@@ -1,6 +1,6 @@
 import type { Diagnostic, Severity } from '../../shared/level-2d/profiles/profile'
 
-// What the Checks view shows (plan ED2D.7a step 3; 2D editor spec §8, the Checks row): the profile's findings grouped
+// What the Checks view shows: the profile's findings grouped
 // by severity, the label of the repair each names, and the object each points at.
 
 export interface CheckGroup {

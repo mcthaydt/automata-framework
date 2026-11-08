@@ -26,9 +26,8 @@ const PROPOSAL: Proposal = {
 }
 
 /**
- * What every `AskProvider` promises (editor suite spec §4.3, EDS-D9), against the scripted fake and, in EDS.1d, the
- * provider over the developer's credentials with a stubbed client. The provider only proposes: checking a proposal
- * before it is written (the `before` checks, the diff, Accept) is the suite's, EDS.2b, on ED3D.10a's controller.
+ * What every `AskProvider` promises, against the scripted fake and the provider over the developer's credentials with a stubbed client. The provider only proposes: checking a proposal
+ * before it is written (the `before` checks, the diff, Accept) is the suite's.
  */
 export function describeAskProvider(
   name: string,

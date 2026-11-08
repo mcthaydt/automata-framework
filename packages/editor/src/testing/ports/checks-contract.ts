@@ -48,8 +48,7 @@ export const CHECKS_SCENARIO: readonly ScenarioCheck[] = [
 const definition = ({ behaviour: _, ...def }: ScenarioCheck): CheckDef => def
 
 /**
- * What every `ChecksRunner` promises (editor suite spec §4.3 and §7), run against the in-memory fake and, in EDS.1d,
- * the argv runner, built per test on `CHECKS_SCENARIO`.
+ * What every `ChecksRunner` promises, run against the in-memory fake and the argv runner, built per test on `CHECKS_SCENARIO`.
  */
 export function describeChecksRunner(
   name: string,

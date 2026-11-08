@@ -1,7 +1,7 @@
 import { parseDocument } from '@decimalturn/toml-patch'
 import { type KeyPath, keyPathText } from '../key-path'
 
-// Where every value of a TOML text is written, and the comments around each key (editor suite spec §4.4). It reads the
+// Where every value of a TOML text is written, and the comments around each key. It reads the
 // concrete syntax tree of `@decimalturn/toml-patch`, the parser the documents write through, so the two agree on what a
 // text means. The tree gives 1-based lines and UTF-16 columns; a span is [start, end) in the text, and each one is
 // checked to slice to its literal's own text, so a disagreement throws here instead of becoming a wrong edit.

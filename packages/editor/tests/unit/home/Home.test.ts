@@ -13,12 +13,12 @@ import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import { createAppProfiles } from '#src/shared/level-2d/profiles/app-profiles.ts'
 import type { EditorApp, OpenOutcome } from '#src/shared/level-2d/session/editor-app-types.ts'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { noteText, plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
 import { hollowmere, mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// Home as a person meets it (plan ED2D.4c2a step 6): the real app over a memory workspace, the real level project and a
+// Home as a person meets it: the real app over a memory workspace, the real level project and a
 // planted second profile, drawn inside the kit's shell with the geometry stand-in. The parts have their own tests; this
 // one proves they are wired: what a click, a key or a file does to the list, the summary and the toasts.
 

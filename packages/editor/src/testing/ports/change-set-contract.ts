@@ -12,11 +12,11 @@ export interface ChangeSetProject {
 }
 
 /**
- * What every `ChangeSet` promises (editor suite spec §4.3, §4.5; The Last Light's `ChangeSets` at `92e6704`), run
- * against the in-memory fake and, in EDS.1d, the git adapter. The cases only change files through `edit` and then
- * `record` them, as the suite does, so they hold for an adapter that reads the checkout. What EDS.1d must do:
+ * What every `ChangeSet` promises, run
+ * against the in-memory fake and the git adapter. The cases only change files through `edit` and then
+ * `record` them, as the suite does, so they hold for an adapter that reads the checkout. What an adapter must do:
  *
- * - `close()` with a recorded file that has changes no checkpoint holds rejects and keeps the branch (The Last Light
+ * - `close()` with a recorded file that has changes no checkpoint holds rejects and keeps the branch (the adventure source
  *   refuses to close over uncommitted changes); after a checkpoint it goes back to the base and the change set leaves
  *   `list()` (its journal under `.git/automata-editor/` is removed or marked closed). With nothing open it does nothing.
  * - `checkpoint` commits only the recorded files; one with nothing new returns the last commit (HEAD).

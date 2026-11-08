@@ -2,7 +2,7 @@ import type { Point } from '../../tiles/footprint'
 import type { EntityDef2D, EntityInstance, Project } from '../project-types'
 import { findLayer, type LayerTarget } from './layer-target'
 
-// Where an entity is on the canvas (2D editor spec §5.5, §5.9). The canvas draws it, the select tool hits it and the
+// Where an entity is on the canvas. The canvas draws it, the select tool hits it and the
 // resize handles sit on it, so the maths is here once: an instance is stored by its pivot point, and its bounds follow
 // from the definition's size and pivot unless the instance was resized.
 

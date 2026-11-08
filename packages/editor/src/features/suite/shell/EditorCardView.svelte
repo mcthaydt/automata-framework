@@ -1,7 +1,7 @@
 <!--
-  One editor the game's list names (editor suite spec §9 `suite-home`): what it edits, file by file. An installed
+  One editor the game's list names: what it edits, file by file. An installed
   editor's files open it; an editor this build does not have says so in plain words, names the package that brings it
-  (§11, EDS-l) and opens its files read only.
+ and opens its files read only.
 -->
 <script lang="ts">
 import type { WorkspaceFile } from '../../../shared/kit/ports/suite-ports'

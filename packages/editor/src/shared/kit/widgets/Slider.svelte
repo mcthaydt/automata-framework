@@ -1,5 +1,5 @@
 <!--
-  A number on a track (kit spec §4.6). The track is at least 44 px high; dragging anywhere on it moves the value to
+  A number on a track. The track is at least 44 px high; dragging anywhere on it moves the value to
   the pointer, snapped to `step` and clamped to the range. A single tap changes nothing; a double tap resets to
   `defaultValue`. Arrows step, the Page keys move a tenth of the range, Home and End go to the ends.
 

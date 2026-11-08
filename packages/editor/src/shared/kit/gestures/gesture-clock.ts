@@ -1,4 +1,4 @@
-/** The recognizer's only sources of time, injected so its rules run on a fake clock (kit spec §4.5). */
+/** The recognizer's only sources of time, injected so its rules run on a fake clock. */
 export interface GestureClock {
   now(): number
   setTimer(ms: number, run: () => void): unknown

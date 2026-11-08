@@ -1,6 +1,6 @@
 import type { Project } from '../../shared/level-2d/model/project-types'
 
-// Where Locate opens the Level view (plan ED2D.7a step 4): the level, layer and instance a finding's path names.
+// Where Locate opens the Level view: the level, layer and instance a finding's path names.
 
 export interface LevelFocus {
   readonly level: string

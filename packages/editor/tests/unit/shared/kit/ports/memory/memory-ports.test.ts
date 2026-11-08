@@ -90,7 +90,7 @@ describeAskProvider(
 )
 
 describe('memory change set', () => {
-  test('names branches as The Last Light does, from the base it was given', async () => {
+  test('names branches as the adventure source does, from the base it was given', async () => {
     const changeSet = createMemoryChangeSet({ base: 'trunk' })
     await changeSet.begin('Bay: arrival timing!')
     expect(await changeSet.current()).toEqual({

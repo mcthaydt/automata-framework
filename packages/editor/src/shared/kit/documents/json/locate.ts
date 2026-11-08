@@ -1,4 +1,4 @@
-// Grown from The Last Light editor/src/client/plan.ts `scanJson` (92e6704), the browser-safe scanner its plan view
+// Grown from the adventure source editor/src/client/plan.ts `scanJson`, the browser-safe scanner its plan view
 // already runs. The server of that editor finds spans with TypeScript's JSON parser, which an iPad cannot load; this
 // one reads the text in a single pass and answers the same question: where does each value sit?
 //

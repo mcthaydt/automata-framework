@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { createColorResolver, NEUTRAL } from '#src/shared/level-2d/canvas/colors.ts'
 
-// Colours as the project holds them (`#rrggbb` or a kit token name) turned into numbers for Pixi (ED2D.4c3b).
+// Colours as the project holds them (`#rrggbb` or a kit token name) turned into numbers for Pixi.
 
 const vars: Record<string, string> = { '--color-layer-entities': ' #e07a6a', '--color-state-ok': '#6fb' }
 const resolve = createColorResolver((name) => vars[name] ?? '')

@@ -1,3 +1,5 @@
+// The level project's file format as a Zod schema, with the limits a file may not exceed (level size, number of
+// levels and layers).
 import { z } from 'zod'
 import {
   entityDefIssues,
@@ -11,12 +13,12 @@ import { DEF_ID, ITEM_ID } from './ids'
 import { FILE_VERSION } from './migrations/migration'
 import type { EntityDef2D, LayerDef, ProjectFile, TilesetDef } from './project-types'
 
-// The strict file schema of the 2D editor spec §6.1 over the shapes of §5. Strict means an unknown key at any depth is
+// The strict file schema over the project model's shapes. Strict means an unknown key at any depth is
 // an `unrecognized_keys` issue at its parent, which `openProject` turns into a read-only open (G-p). Keys are listed in
 // the order the canonical printer writes them. What a value means in the world (a tile index inside its tileset, a ref
 // that resolves) is not decided here: that opens fine and becomes a Check.
 //
-// Guard rails (ED2D-D13) are bounds here. The fifth, the 1024-cell limit of a layer, needs the level and the layer's
+// Guard rails are bounds here. The fifth, the 1024-cell limit of a layer, needs the level and the layer's
 // grid together, so `decodeProject` checks it before it allocates a grid.
 
 export const MAX_LEVEL_SIDE = 16384

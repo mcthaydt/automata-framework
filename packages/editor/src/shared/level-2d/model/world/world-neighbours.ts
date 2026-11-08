@@ -1,6 +1,6 @@
 import type { Project, World } from '../project-types'
 
-// Neighbours for room-scrolling games (2D editor spec §5.7 and §6.2): in a `grid` world, the levels whose edge touches
+// Neighbours for room-scrolling games: in a `grid` world, the levels whose edge touches
 // a level's edge. A touch needs a span of positive length, so two levels that meet only at a corner are not neighbours.
 // Depth is ignored: a world that stacks levels at different depths is not a room map. The export writes these into
 // `world.toml` and the World view shows them, so both read this one rule.

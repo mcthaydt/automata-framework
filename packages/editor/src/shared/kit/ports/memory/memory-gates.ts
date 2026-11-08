@@ -1,4 +1,4 @@
-// The in-memory gate records (editor suite spec §4.3, §7): read only, so there is no way here to record a decision.
+// The in-memory gate records: read only, so there is no way here to record a decision.
 // `'unreadable'` stands for records that cannot be read, which the gate pill shows as "Gates not readable".
 import type { GateState, Gates } from '../suite-ports'
 

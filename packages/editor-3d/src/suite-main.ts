@@ -6,8 +6,8 @@ import {
   createLevels2d,
   createSuite,
   createTuner,
-  FLOORFIFTY_SAMPLE,
   randomIds,
+  SAMPLE_GAME,
   samplePorts,
   startSuite,
 } from '@mcthaydt/automata-editor/suite'
@@ -46,7 +46,7 @@ const editors = [
   }),
 ]
 
-samplePorts(FLOORFIFTY_SAMPLE)
+samplePorts(SAMPLE_GAME)
   .then((ports) =>
     startSuite(target, {
       window,

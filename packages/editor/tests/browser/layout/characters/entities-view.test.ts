@@ -7,11 +7,11 @@ import { page } from 'vitest/browser'
 import { type EditorHandle, startEditor } from '#src/app/editor-2d/boot.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The Entities view with the production CSS in a real browser (plan ED2D.5c step 6; 2D editor spec §12), at the kit's
+// The Entities view with the production CSS in a real browser, at the kit's
 // eight window sizes in Chromium, WebKit and Firefox: every control at least 44 px and never clipped, the page never
 // scrolling, the definition form's Duplicate and Delete reachable, the field editor's type chips full-size targets,
 // and the refusal dialog's list and actions inside the window (below wide, from the Definitions and Inspector

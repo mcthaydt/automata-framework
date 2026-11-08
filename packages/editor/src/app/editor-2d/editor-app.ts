@@ -1,5 +1,7 @@
+// The editor's app logic without a view: listing, creating, opening, copying, importing and removing documents, each
+// answering with an outcome the views turn into screens.
 import { createHistory, type History } from '../../shared/kit/history/history.ts'
-import type { StorageClock } from '../../shared/kit/storage/clock.ts'
+import { type StorageClock, systemClock } from '../../shared/kit/storage/clock.ts'
 import {
   createDocumentSession,
   type DocumentSession,
@@ -16,6 +18,7 @@ import {
   type Recovery,
   discardRecovery as removeJournal,
 } from '../../shared/kit/storage/recovery.ts'
+import { baseName } from '../../shared/kit/storage/store-path.ts'
 import type { Workspace } from '../../shared/kit/storage/workspace.ts'
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import type { ParseError, Profile, ProfileRegistry, Result } from '../../shared/level-2d/profiles/profile'
@@ -29,10 +32,10 @@ import type {
 } from '../../shared/level-2d/session/editor-app-types'
 import { listProjects } from './project-list'
 
-// The editor's session over a workspace (2D editor spec §4, §8; kit spec §4.7 and §5): creating a document from a
+// The editor's session over a workspace: creating a document from a
 // template, opening a file with the profile that claims it, and keeping it saved. Plain TypeScript with no Svelte, so
-// the views of ED2D.4c2 to 4c4 and the tests use the same object. Nothing here names a profile: the registry says which
-// ones exist, and the first export of each is its working file (decision 2 of the ED2D.4c1 plan).
+// the views and the tests use the same object. Nothing here names a profile: the registry says which
+// ones exist, and the first export of each is its working file.
 
 export interface EditorAppOptions {
   readonly workspace: Workspace
@@ -43,12 +46,6 @@ export interface EditorAppOptions {
   readonly clock?: StorageClock
 }
 
-const systemClock: StorageClock = {
-  now: () => Date.now(),
-  setTimer: (ms, run) => setTimeout(run, ms),
-  clearTimer: (handle) => clearTimeout(handle as ReturnType<typeof setTimeout>),
-}
-
 /** A refused write as the storage failure the views know: `conflict` only comes with an `expected` mtime, which a plain write never passes. */
 const failureOf = (written: {
   reason: WriteFailure
@@ -57,8 +54,6 @@ const failureOf = (written: {
   reason: written.reason === 'conflict' ? 'io' : written.reason,
   message: written.message,
 })
-
-const baseName = (path: string): string => path.slice(path.lastIndexOf('/') + 1)
 
 /** The stem and the extension of `path`; the extension starts at the first dot of the file name, so `a.af2d.json` keeps both parts, and a name that starts with a dot has none. */
 function splitName(path: string): { stem: string; extension: string } {

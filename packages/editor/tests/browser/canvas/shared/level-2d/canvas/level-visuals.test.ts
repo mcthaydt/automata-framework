@@ -12,14 +12,14 @@ import { PLACEHOLDER_COLORS } from '#src/shared/level-2d/canvas/draw/tile-draw.t
 import { createLevelThumbnails } from '#src/shared/level-2d/canvas/level-thumbnails.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { drawView } from '#src/testing/level-2d/draw-fixtures.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { cellsPng } from '#src/testing/level-2d/png.ts'
 import { withDefs } from '#src/testing/level-2d/project-edit.ts'
 import { hollowmere, mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// Images of the canvas for review (ED2D.4c3b, plan decision 10; spec §14: visual acceptance, never auto-promoted). Run
+// Images of the canvas for review. Run
 // with `ED2D_VISUALS=1 pnpm test:canvas level-visuals` to write them to `docs/evidence/owner-visual/2026-10-30-ed2d-4c3b/`.
 // No test compares against them: they are pictures for a person, not goldens.
 
@@ -31,7 +31,7 @@ declare module 'vitest' {
 
 /** From this file's folder to the evidence folder (screenshot paths are relative to the test file). */
 const OUT = '../../../../docs/evidence/owner-visual/2026-10-30-ed2d-4c3b'
-/** The Level view's canvas on an iPad 11" in landscape (spec §12). */
+/** The Level view's canvas on an iPad 11" in landscape. */
 const CANVAS = { w: 554, h: 602 }
 
 let handle: EditorHandle | undefined

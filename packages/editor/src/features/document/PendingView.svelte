@@ -1,5 +1,5 @@
 <!--
-  A rail destination whose view is not built yet (plan ED2D.4c4a decision 1). It says so in plain words and that the
+  A rail destination whose view is not built yet. It says so in plain words and that the
   project is safe, inside the same shell, so the top bar, the rail and the status line stay where they are.
 -->
 <script lang="ts">

@@ -1,5 +1,5 @@
 // Ids of instances (entities, objects) are generated, never typed: they stay stable across edits and duplication so
-// references survive (2D editor spec §5.1). The source is injected so `model/` holds no randomness and tests are exact.
+// references survive. The source is injected so `model/` holds no randomness and tests are exact.
 
 export interface IdSource {
   next(): string

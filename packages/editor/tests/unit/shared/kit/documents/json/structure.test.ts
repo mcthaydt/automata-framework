@@ -1,5 +1,5 @@
 // @vitest-environment node
-// The span-preserving insert and remove cases of The Last Light editor/tests/level-edits.test.ts (92e6704), run on the
+// The span-preserving insert and remove cases of the adventure source editor/tests/level-edits.test.ts, run on the
 // ported structure edits and the new scanner.
 import { describe, expect, it } from 'vitest'
 import { scan } from '#src/shared/kit/documents/json/locate.ts'
@@ -102,7 +102,7 @@ describe('span-preserving JSON inserts and removals on the shipped blockouts', (
 
   it('writes the file layouts it meets: tight braces, tabs, and a file that expands everything', () => {
     const tight = '{\n  "xs": [{"a":1}, {"a":2}]\n}\n'
-    // Last Light writes a new object with a space after each colon, but keeps the neighbour's tight braces.
+    // the adventure source writes a new object with a space after each colon, but keeps the neighbour's tight braces.
     expect(insertElement(tight, ['xs'], { a: 3 })).toBe(tight.replace('{"a":2}]', '{"a":2}, {"a": 3}]'))
     const tabs = '{\n\t"xs": [\n\t\t{ "a": 1 }\n\t]\n}\n'
     expect(insertElement(tabs, ['xs'], { a: 2 })).toBe(

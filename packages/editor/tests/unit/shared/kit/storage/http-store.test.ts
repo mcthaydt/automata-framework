@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createHttpStore } from '#src/shared/kit/storage/http-store.ts'
 import { StorageError } from '#src/shared/kit/storage/project-store.ts'
 
-// The store of a served game checkout (ED3D.14; `automata editor`): the kit's `ProjectStore` over HTTP, with the server's
+// The store of a served game checkout: the kit's `ProjectStore` over HTTP, with the server's
 // mtime guard. Run against a scripted `fetch`, so the requests it sends and the failures it sorts are exactly these.
 
 interface Sent {

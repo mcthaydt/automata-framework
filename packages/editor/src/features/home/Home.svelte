@@ -1,6 +1,6 @@
 <!--
-  The 2D editor's Home (plan ED2D.4c2a; 2D editor spec §8): the kit's `HomeScreen` (the sources panel, the projects
-  with a search, the selected project; shared with the 3D editor since ED3D.5c) with what is the 2D editor's own: Import
+  The 2D editor's Home: the kit's `HomeScreen` (the sources panel, the projects
+  with a search, the selected project, shared with the 3D editor) with what is the 2D editor's own: Import
   files, the template cards under the list, the summary with Open, Duplicate and Delete, and the delete dialog.
 
   This component only wires: the controller decides (see `home-controller.ts` and `home-model.ts`). It knows no
@@ -31,7 +31,7 @@ interface Props {
   toasts: ToastStore
   /** The time the ages on the cards are told against. */
   clock: { now(): number }
-  /** Draws the cards' preview levels (ED2D.4c3b); absent, every card shows its initial. */
+  /** Draws the cards' preview levels; absent, every card shows its initial. */
   thumbnails?: LevelThumbnails | undefined
 }
 

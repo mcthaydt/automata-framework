@@ -1,5 +1,5 @@
 <!--
-  Choose one thing from a list (kit spec §4.6): a layer, a tileset, a texture, an entity. The closed picker shows
+  Choose one thing from a list: a layer, a tileset, a texture, an entity. The closed picker shows
   the chosen option or the placeholder; opened on a `Popup` it is a listbox, optionally under group headings and
   with a search field (on by default above eight options, `searchable` decides otherwise).
 

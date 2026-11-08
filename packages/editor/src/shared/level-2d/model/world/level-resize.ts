@@ -5,7 +5,7 @@ import type { LayerDef, LayerInstance, Level, Project, Size } from '../project-t
 import { checkLevelSize, findLevel } from './level-edits'
 import { arrangeWorld, cellStep, lcm } from './world-layout'
 
-// Resizing a level about an anchor (2D editor spec §5.8, §13). The anchor is the side of each axis that stays put on
+// Resizing a level about an anchor. The anchor is the side of each axis that stays put on
 // the world map: the content moves inside the level by the size change (`end`) or half of it (`centre`), and the
 // level's placement moves the other way, so nothing jumps. The move is rounded toward zero to whole cells of every
 // cell layer and, in a grid world, whole steps of the world grid (the least common multiple of those), so a cell stays a

@@ -1,5 +1,5 @@
 <!--
-  The Entities view's panel (plan ED2D.5c; mockup `entities`): the entity definitions, each with its colour, id and a
+  The Entities view's panel: the entity definitions, each with its colour, id and a
   summary, then the level fields every level carries. Choosing a definition or "Level fields" sets whose fields the
   inspector edits; the add buttons make a new definition or a new level field, each one undo step.
 -->

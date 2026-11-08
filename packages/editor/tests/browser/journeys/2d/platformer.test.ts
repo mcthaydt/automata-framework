@@ -15,7 +15,7 @@ import {
   pressButton,
 } from '#src/testing/level-2d/journey-editor.ts'
 
-// ED2D.8 journey 1 (2D editor spec §14, §15 G-j): a platformer level on an iPad, end to end with real pointer events:
+// ED2D.8 journey 1: a platformer level on an iPad, end to end with real pointer events:
 // the Pencil's hover shows the brush footprint, a Pencil stroke paints as one undo step, a two-finger tap undoes it,
 // an entity is placed with the Pencil, the Checks view has no errors, and Export downloads the working file and the game
 // files. What real hardware does with them stays the Owner's device pass.

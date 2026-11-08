@@ -6,7 +6,7 @@ import type { AskState } from '#src/features/suite/core/ask-session.ts'
 import { lineDiff } from '#src/features/suite/core/text-diff.ts'
 import AskDialog from '#src/features/suite/shell/AskDialog.svelte'
 
-// The `ask-diff` frame (editor suite spec §9, §11): prompt, scope chip, diff, checks, token meter, Accept, Reject and
+// The `ask-diff` frame: prompt, scope chip, diff, checks, token meter, Accept, Reject and
 // Rewrite, in each of its states.
 const BEFORE = '# speeds\nMAX_MOVE_SPEED = 7\nJUMP = 3\n'
 const AFTER = BEFORE.replace('= 7', '= 12')

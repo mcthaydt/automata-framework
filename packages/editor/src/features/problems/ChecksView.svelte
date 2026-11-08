@@ -1,5 +1,5 @@
 <!--
-  The Checks view (plan ED2D.7a step 5; 2D editor spec §8, the Checks row): every finding of the profile, grouped
+  The Checks view: every finding of the profile, grouped
   Errors, Warnings, Info with counts, each with the object it names, Locate (when the screen can locate) and the
   repair the finding names. A repair is one undo step through `commitEdit`; a refusal (a stale finding) shows as the
   view's message and adds no step. The list is recomputed from the history after every edit, undo included.

@@ -1,5 +1,9 @@
+// Finds where a layer, entity or tileset definition is used, so deleting one can say what it would break first;
+// deleting then removes it along with what depended on it.
+
 import { defaultFieldValue } from '../../../kit/fields/check-field-def.ts'
 import type { FieldValues } from '../../../kit/fields/field-types.ts'
+import { hasValue } from '../../../kit/fields/field-values.ts'
 import type { LayerInstance, Project } from '../project-types'
 import { type DefinitionUse, type GuardedEdit, layerDefOf } from './def-lookup'
 import {
@@ -13,7 +17,7 @@ import {
   withFields,
 } from './field-owner'
 
-// Deleting a definition that is in use (2D editor spec §8 flow 5, §13; acceptance G-f). `definitionUses` lists what
+// Deleting a definition that is in use. `definitionUses` lists what
 // the delete would take with it, so the refusal dialog names the exact instances; `deleteDefinition` refuses with
 // that list, and with `anyway` ("Delete anyway") removes the definition and its uses in one returned project, which
 // the app applies as one `History` step. A definition nothing uses is deleted without asking.
@@ -26,9 +30,6 @@ export type DefinitionRef =
   | { readonly kind: 'layer'; readonly id: string }
   | { readonly kind: 'entity'; readonly id: string }
   | { readonly kind: 'field'; readonly owner: FieldOwner; readonly id: string }
-
-const hasValue = (values: FieldValues, id: string): boolean =>
-  Object.hasOwn(values, id) && values[id] !== undefined
 
 /** How much a level's instance of a layer holds; 0 is an empty layer, which deleting loses nothing from. */
 function contentOf(layer: LayerInstance): number {

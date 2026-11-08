@@ -1,3 +1,5 @@
+// Commands that place, move, resize, duplicate and delete entity instances on an entities layer, and set their
+// fields.
 import { checkFieldValue } from '../../../kit/fields/check-field-value.ts'
 import type { FieldValue } from '../../../kit/fields/field-types.ts'
 import { valuesWithDefaults } from '../../../kit/fields/field-values.ts'
@@ -13,7 +15,7 @@ import type {
 import { findLayer, idInUse, type LayerTarget, updateLayer } from './layer-target'
 import { wholePixels } from './pixels'
 
-// The entity tools' edits on a project (2D editor spec §5.5, §5.8, §5.9). An instance is placed, moved, resized,
+// The entity tools' edits on a project. An instance is placed, moved, resized,
 // given field values, copied and deleted here; where it sits on screen is `entity-geometry.ts`. A missing level,
 // layer, instance or definition is a programmer error and throws `RangeError`; a value a person typed that the
 // definition rejects throws one too, carrying the kit's message, so the inspector can show it and keep the old value.

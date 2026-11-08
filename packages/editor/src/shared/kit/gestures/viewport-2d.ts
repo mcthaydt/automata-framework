@@ -1,4 +1,4 @@
-// The 2D canvas's pan and zoom (editor kit spec §4.5): where the world is on the screen, and the conversions. An
+// The 2D canvas's pan and zoom: where the world is on the screen, and the conversions. An
 // immutable value: every method returns a new viewport, so a pinch, a wheel step and a "fit" are plain functions of the
 // previous state and the editor can keep the viewport in a Svelte store without cloning.
 

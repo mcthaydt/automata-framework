@@ -1,6 +1,6 @@
 <!--
-  The Level view's canvas region (plan EDS.2d step 2, split out of `LevelView.svelte`): the toolbar over the Pixi level
-  canvas, with the kit's gesture recogniser on it feeding the session through the gesture map, and the §12 shortcuts.
+  The Level view's canvas region: the toolbar over the Pixi level
+  canvas, with the kit's gesture recogniser on it feeding the session through the gesture map, and the keyboard shortcuts.
   A locked or hidden layer says so over the canvas instead of ignoring the pen without a word. The toggles for the
   panel, inspector and dock are the host shell's, so they come in as props.
 -->

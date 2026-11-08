@@ -1,5 +1,5 @@
 <!--
-  The Entities view's inspector (plan ED2D.5c; mockup `entities`): tabs Definition and Fields. Definition edits the
+  The Entities view's inspector: tabs Definition and Fields. Definition edits the
   selected entity definition (id, label, colour, shape, size, pivot, single, tile) and offers Duplicate and Delete;
   Fields lists the owner's fields, adds one, and edits the selected one (`FieldDefEditor.svelte`). For the level fields
   only the Fields tab has content. A refused value shows its message; a delete or a field change in use opens the

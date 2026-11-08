@@ -35,13 +35,13 @@ function changedRegion(before: string, after: string): { at: number; removed: st
   }
 }
 
-const TUNING = loadDocumentFixture('floorfifty-tuning.toml')
-const JUICE = loadDocumentFixture('floorfifty-juice.toml')
+const TUNING = loadDocumentFixture('platformer-tuning.toml')
+const JUICE = loadDocumentFixture('platformer-juice.toml')
 
 describe('patchToml', () => {
   for (const name of [
-    'floorfifty-tuning.toml',
-    'floorfifty-juice.toml',
+    'platformer-tuning.toml',
+    'platformer-juice.toml',
     'af-game.toml',
     'af-flow.toml',
     'af-stage-dawn.toml',

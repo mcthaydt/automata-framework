@@ -1,5 +1,5 @@
 <!--
-  The save conflict (plan ED2D.4c2b, decision 7; moved into the kit in ED3D.5c; kit spec §5 flow 3; G-m, EK-e): the file changed since it was opened,
+  The save conflict: the file changed since it was opened,
   so the save wrote nothing. Keep mine writes the edits over it; Take theirs reloads the file and drops the edits (the
   destructive one); Save as copy keeps both and has focus, since it loses nothing. Cancel and Escape leave the edits
   as they are. The three choices are disabled while one runs.

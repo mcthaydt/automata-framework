@@ -7,7 +7,7 @@ import type { Profile } from '#src/shared/level-2d/profiles/profile.ts'
 import type { ChoiceOutcome } from '#src/shared/level-2d/session/open-flow-model.ts'
 import { plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
 
-// The profile choice (plan ED2D.4c2b, decision 4): a file two profiles claim opens with the one the person picks.
+// The profile choice: a file two profiles claim opens with the one the person picks.
 
 const choice: ChoiceOutcome = {
   status: 'choose',

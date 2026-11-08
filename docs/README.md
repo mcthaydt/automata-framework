@@ -28,7 +28,8 @@ A game is built for one of four peer targets, chosen at build time: `web`, `itch
 - [`guides/`](guides/): publish to the web, itch.io, Ruken or the desktop; the editor.
 - [`runbook.md`](runbook.md): how to run and release.
 - [`art/`](art/README.md): the look: Endesga 64, Bubble Bobble with Celeste.
-- [`archive/`](archive/): the 2026-10 specs, plans and task lists. History, not a task list.
+- [`archive/`](archive/): the 2026-10 specs, plans and task lists. History, not a task list. The 2D editor's and the
+  suite's mock-ups are in [`archive/design/`](archive/design/); the 3D editor's are still in `design/`.
 
 ## Principles
 

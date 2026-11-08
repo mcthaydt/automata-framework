@@ -1,5 +1,5 @@
 // What an editor's component tests borrow from the kit (`@mcthaydt/automata-editor-kit/testing`): the one stand-in for
-// the geometry owner, the window sizes of the layout tests, and the iPad journey harness (EDK.6b), so no editor keeps its
+// the geometry owner, the window sizes of the layout tests, and the iPad journey harness, so no editor keeps its
 // own copy of them.
 
 export { IPAD_PROFILES, type IpadProfile, turned } from './ipad-profiles'

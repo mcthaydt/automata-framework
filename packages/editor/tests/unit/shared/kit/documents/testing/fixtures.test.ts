@@ -14,7 +14,8 @@ interface Recorded {
   readonly sha256: string
 }
 interface Origin {
-  readonly repository: string
+  readonly repository?: string
+  readonly source?: string
   readonly commit: string
   readonly files: Record<string, Recorded>
   readonly goldens?: Record<string, { bytes: number; sha256: string; recordedBy: string }>
@@ -31,11 +32,11 @@ const sha256 = (text: string): string => createHash('sha256').update(Buffer.from
 
 describe('the documents fixtures', () => {
   it('record the repository and commit of each game they were copied from', () => {
-    expect(SOURCE.lastLight).toMatchObject({
-      repository: 'mcthaydt/PixiJS3D_Experiment_001',
+    expect(SOURCE.adventure).toMatchObject({
+      source: expect.stringContaining('provenance'),
       commit: '92e6704',
     })
-    expect(SOURCE.floorFifty).toMatchObject({ repository: 'mcthaydt/FloorFifty', commit: '677d456' })
+    expect(SOURCE.arcade).toMatchObject({ source: expect.stringContaining('provenance'), commit: '677d456' })
     expect(SOURCE.automata).toMatchObject({ repository: 'mcthaydt/automata-framework', commit: '30e9606c' })
   })
 
@@ -54,7 +55,7 @@ describe('the documents fixtures', () => {
   }
 
   it('the literals golden has the recorded byte length and sha256, and says how it was recorded', () => {
-    const recorded = SOURCE.lastLight?.goldens?.['literals.golden.json']
+    const recorded = SOURCE.adventure?.goldens?.['literals.golden.json']
     const text = loadGolden('literals')
     expect(Buffer.byteLength(text, 'utf8')).toBe(recorded?.bytes)
     expect(sha256(text)).toBe(recorded?.sha256)

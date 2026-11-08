@@ -13,7 +13,7 @@ import type { LevelCanvasProps, ObjectUrls } from '../../shared/level-2d/session
 import App from './App.svelte'
 import { createEditorApp } from './editor-app'
 
-// The editor's boot (plan ED2D.4c2a, decision 9): everything it touches comes in through `env`, so a test hands it a
+// The editor's boot: everything it touches comes in through `env`, so a test hands it a
 // window, a document, a clock and a workspace and gets the real app, and `main.ts` is the only file that reaches for
 // the globals.
 
@@ -32,7 +32,7 @@ export interface EditorEnv {
   /** A workspace that is already open, in place of opening the browser's: tests hand one in. */
   readonly workspace?: Workspace
   /**
-   * Makes Home's card thumbnails over the open workspace (ED2D.4c3b). `main.ts` passes the Pixi one; without it every
+   * Makes Home's card thumbnails over the open workspace. `main.ts` passes the Pixi one; without it every
    * card shows its initial, so the jsdom tests never load a renderer.
    */
   readonly thumbnails?: (workspace: Workspace) => LevelThumbnails

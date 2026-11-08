@@ -1,6 +1,6 @@
 import type { TilesetDef } from '../../../model/project-types'
 
-// A tileset a template starts with (2D editor spec §7, ED2D-D11): a definition with no image. The canvas draws each
+// A tileset a template starts with: a definition with no image. The canvas draws each
 // tile as a flat colour with its index, and the Assets list says "placeholder"; importing a PNG of the same size sets
 // `image` and keeps every tile index, so a project built on placeholders moves to real art by one replace.
 

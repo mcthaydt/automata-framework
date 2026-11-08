@@ -12,11 +12,11 @@ import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import type { AutoLayerDef, Project } from '#src/shared/level-2d/model/project-types.ts'
 import { createAppProfiles } from '#src/shared/level-2d/profiles/app-profiles.ts'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The Tilesets view in jsdom (plan ED2D.5b step 7), mounted the way the app mounts it and reached from the rail: the
+// The Tilesets view in jsdom, mounted the way the app mounts it and reached from the rail: the
 // panel, the sheet, the inspector and the preview, and that each edit is one undo step. Layout and hit sizes are
 // checked in real browsers (`tilesets-view.layout.test.ts`).
 

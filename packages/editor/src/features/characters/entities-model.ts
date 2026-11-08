@@ -2,7 +2,7 @@ import type { FieldDef, FieldType, FieldValue } from '../../shared/kit/fields/fi
 import type { FieldOwner } from '../../shared/level-2d/model/commands/field-owner'
 import type { EntityDef2D, Project } from '../../shared/level-2d/model/project-types'
 
-// What the Entities view shows (plan ED2D.5c decisions 1, 4, 5, 7 and 8; 2D editor spec §8, the Entities row): the
+// What the Entities view shows: the
 // definition and level-field rows of the panel, the selection resolved against the project, the preview's geometry and
 // the field list's summaries. Plain functions of the project, so the Svelte files only draw them.
 

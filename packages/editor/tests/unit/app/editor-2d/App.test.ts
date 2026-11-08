@@ -9,12 +9,12 @@ import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { createAppProfiles } from '#src/shared/level-2d/profiles/app-profiles.ts'
 import type { EditorApp } from '#src/shared/level-2d/session/editor-app-types.ts'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { noteText, plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The root (plan ED2D.4c2a step 7): Home or a document, and what happens to a document when the person leaves it.
+// The root: Home or a document, and what happens to a document when the person leaves it.
 
 const quietPage = () => ({
   document: { visibilityState: 'visible', addEventListener: () => {}, removeEventListener: () => {} },

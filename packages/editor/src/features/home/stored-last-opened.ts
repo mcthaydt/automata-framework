@@ -1,6 +1,6 @@
 import type { LastOpened } from './home-controller'
 
-// The last open project in the browser's `localStorage` (ED2D.8): a per-visitor convenience, never state the project
+// The last open project in the browser's `localStorage`: a per-visitor convenience, never state the project
 // depends on, so every access is guarded and a failure means "no last project".
 
 const KEY = 'automata-editor-2d:last-opened'

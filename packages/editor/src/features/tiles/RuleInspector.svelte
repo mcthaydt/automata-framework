@@ -1,5 +1,5 @@
 <!--
-  The Tilesets view's inspector (plan ED2D.5b; 2D editor spec §5.6, §8 flow 6; mockup `tileset`): tabs Rule and Group.
+  The Tilesets view's inspector: tabs Rule and Group.
   Rule: on or off, the pattern size, the pattern editor with the IntGrid value its cycle uses, the outputs (each
   removable; "Add selected tiles" takes the sheet's selection), chance, Flip X, Flip Y, Break on match, what is read
   beyond the level edge, Duplicate and Delete. Group: its name, on or off, Delete group. Each change is one undo step;

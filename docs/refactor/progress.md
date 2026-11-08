@@ -67,7 +67,7 @@ Counted from the rows below: 27 are done, 2.1 and 8.2 are partly done and 9.2 ha
 | 4.1 The boundaries rules | 4 | Done locally, 2026-11-05 (hosted CI not run); the file-list comparison fails on Emberwick (12 vs 10), so the `boundaries` line switches in task 6.3 | [#392](https://github.com/mcthaydt/automata-framework/pull/392) |
 | 4.2 The move map and import codemod | 4 | Done locally, 2026-11-05 (hosted CI not run): map and codemod tested; the dry run moves 764 files, none unmapped, none clashing; not applied until 4.3 | [#392](https://github.com/mcthaydt/automata-framework/pull/392) |
 | 4.3 Build `packages/automata` | 4 | Step 1 done locally, 2026-11-05: the 764 files moved, it typechecks, builds and its unit tests pass (1,891). Step 2 done locally (2026-11-05): `--features packages/automata` finds 0 (was 120; flow, screens, settings and loading services now under `app/` and `shared/runtime/`), 1,897 unit tests and the full `pnpm test:unit` (31 tasks) pass. Chromium browser suites (21 files, 2,116 tests) and Emberwick's 28 journeys pass (stage 6 run); the 3D and editor unit suites pass; WebKit and Firefox are the Owner's. Changeset and API report written | [#393](https://github.com/mcthaydt/automata-framework/pull/393) |
-| 4.4 `tools`, and `sim` and `content` inside | 4 | Steps 1 and 2 done locally with 4.3 (same PR): one `automata` bin, `automata-ship` alias, `sim/testing`, tools unit tests pass (670). Step 3 part done: sim (hash, rng, define, schedule, world shared; replay the feature), tools (ship, check, create-game shared) and content (assets, compile, flow, game, generate, locale, palette, parse, tuning shared, because they call each other in a cycle; preload and vite are the features) find 0 under `--features`; all 31 unit tasks pass. Step 3 done locally (deviation 54): `assets` is Node-only so it leaves the `--browser` list; `game-config` and `locale` are browser-safe and `pnpm boundaries` checks them. Browser (Chromium) and journey suites pass here: 25 of 25 Emberwick journeys, 3 browser test files | [#393](https://github.com/mcthaydt/automata-framework/pull/393) |
+| 4.4 Feature folders and the boundaries rules | 4 | Done, 2026-11-06 (Chromium only; `--forbid` 0 findings, `--features` 77 → 0 after Svelte files were read, `--shared-island kit` 0; unit 3,270 = 3,270, Chromium 527 pass and 6 skipped = 4.3; lint, typecheck, boundaries, style, knip, changesets pass; WebKit, Firefox, editor-3d's suites and hosted CI not run) | [#412](https://github.com/mcthaydt/automata-framework/pull/412) |
 | 5.1 Bundle report, before | 5 | Done locally, 2026-11-05 (hosted CI not run): `tooling/bundle-report`, run on Emberwick (below) | [#392](https://github.com/mcthaydt/automata-framework/pull/392) |
 | 5.2 Plain-TypeScript helpers | 5 | Done locally, 2026-11-05 (hosted CI not run): `Clock`/`fakeClock`, `Disposables`, `Result`, `Subscribable`/`emitter`; 22 unit tests | [#394](https://github.com/mcthaydt/automata-framework/pull/394) |
 | 5.3 Host contract and targets | 5 | Done locally, 2026-11-05 (hosted CI not run): plain host contract, web, Ruken and Tauri adapters, contract suite and fake host take a `Clock` and `AbortSignal`; ADR 0003 amended. A temporary bridge keeps the Effect runtime working; deleting it moved to 5.4 (deviation 55) | [#394](https://github.com/mcthaydt/automata-framework/pull/394) |
@@ -203,19 +203,18 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 1. Audit | Done, 2026-11-06: 7 editor shipping gaps (E1 to E7), 7 sprawl (S1 to S7), 2 contracts (K1, K2), 5 tests (T1 to T5), 5 copy (G1 to G5); 9 website shipping gaps (W1 to W9), 6 sprawl (WS1 to WS6), 2 tests (WT1, WT2), 4 copy (WG1 to WG4); 8 decisions (D1 to D8); the Owner took all eight recommendations the same day. The widened scope's audit, the same day: 7 new-game gaps (N1 to N7), 7 published-tools (U1 to U7), 7 release (R1 to R7), 7 Plus and other repositories (P1 to P7), 7 agent package and docs (A1 to A7), 5 CI and tooling (Q1 to Q5), 4 copy (Y1 to Y4); 9 decisions (D9 to D17); the Owner took all nine recommendations the same day | [2026-11-06-2d-editors-and-site-audit.md](2026-11-06-2d-editors-and-site-audit.md), [2026-11-06-2d-ship-rest-audit.md](2026-11-06-2d-ship-rest-audit.md) |
 | 2. Plan and spec | Done, 2026-11-06 (draft PR [#406](https://github.com/mcthaydt/automata-framework/pull/406)): 21 phases, 63 tasks. Built on D1 to D17 as the Owner took them; adds the editor redesign in the website's look and the code refactor to the core slice's standard (minimal, elegant, documented), both asked for by the Owner the same day. Stage 3 reviews it | [spec](2026-11-06-2d-editors-and-site-spec.md), [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 3. Plan audit | Done, 2026-11-06 (draft PR, stacked on #406 and #407): 30 findings (12 that would have stopped the build, 18 that would have caused harm or rework), all fixed in the spec and plan; three veto defaults added (14 to 16); the Owner's calls are the npm organisation's name and D8/D17's inputs. Stage 4 starts at task 1.1 | [plan audit](2026-11-06-2d-editors-and-site-plan-audit.md) |
-| 4. Build | In progress: 14 of 63 tasks (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
+| 4. Build | In progress: 16 of 63 tasks (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 24% (15 of 63 tasks)
+### Build: 25% (16 of 63 tasks)
 
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
 
-**Where to resume (2026-11-06, session 4 ended after task 4.4):** branch `claude/project-thread-pbmc59`, [PR #412](https://github.com/mcthaydt/automata-framework/pull/412)
-(stacked on #411). Next is task 4.5 (plan-ID comments, neutral fixture names, the mock-ups archived), then 4.6 (the editor's
-logic refactor). Task 14.1 waits for the Owner to confirm the `automata` npm organisation. The plan's execution log has the
-counts, deviations and gates of every task so far.
+**Where to resume (2026-11-06, session 4, inside task 4.6):** branch `claude/project-thread-nw26wp`, stacked on #412's
+head (`claude/project-thread-pbmc59`). Continue task 4.6 at step 2 (the plan's log lists what is left: long files, long functions, tests). Task 14.1 waits for the Owner to confirm the `automata`
+npm organisation. The plan's execution log has the counts, deviations and gates of every task so far.
 
 | Task | Phase | Status | PR |
 |---|---|---|---|
@@ -233,9 +232,9 @@ counts, deviations and gates of every task so far.
 | 4.1 The move map and the package skeleton | 4 | Done, 2026-11-06 (764 files move by rename, none unmapped, none clashing; the skeleton typechecks and builds once they land in 4.2) | |
 | 4.2 Merge the three packages | 4 | Done, 2026-11-06 (Chromium only; typecheck, build, `pnpm lint`, boundaries, style and knip pass; the editor's unit and DOM tests 3,348 → 3,268 and editor-3d's 2,857 → 2,932, every difference named in the log; editor browser tests in Chromium: 452 pass in layout, kit layout and parity, canvas 49 pass and 6 skipped; WebKit, Firefox, the journeys and hosted CI not run) | |
 | 4.3 Tests into tests/ | 4 | Done, 2026-11-06 (Chromium only; unit 3,270 (3,268 + two tests of `journeyInstance`); browser projects parity, layout, storage, canvas and journeys 527 pass, 6 skipped, 0 fail; preset, codemod, lint, typecheck, boundaries, style and knip pass; WebKit, Firefox and hosted CI not run) | |
-| 4.4 Feature folders and the boundaries rules | 4 | Done, 2026-11-06 (Chromium only; `--forbid` 0 findings, `--features` 77 → 0 after Svelte files were read, `--shared-island kit` 0; unit 3,270 = 3,270, Chromium 527 pass and 6 skipped = 4.3; lint, typecheck, boundaries, style, knip, changesets pass; WebKit, Firefox, editor-3d's suites and hosted CI not run) | [#412](https://github.com/mcthaydt/automata-framework/pull/412) |
-| 4.5 Comments, fixtures, unused code and the mock-ups | 4 | Not started | |
-| 4.6 The code refactor of the editor package | 4 | Not started | |
+| 4.4 Feature folders and the boundaries rules | 4 | Done, 2026-11-06 (Chromium only; `--forbid` and `--shared-island kit` added to `-tools` with tests, 39 findings fixed to 0; unit 3,270 before and after; Chromium browser projects 527 pass, 6 skipped; WebKit, Firefox, the journeys' WebKit half and hosted CI not run) | |
+| 4.5 Comments, fixtures, unused code and the mock-ups | 4 | Done, 2026-11-06 (Chromium only; `style` 0 findings with the editor in it; unit 3,268 (two source-commit tests deleted); knip clean; WebKit, Firefox and hosted CI not run) | |
+| 4.6 The code refactor of the editor package | 4 | In progress, 2026-11-06 (step 1 done: findings in the plan's log; one test clock; header comments on the 34 files that had none; the JSON edit, the JSON diff and the Level editor split; unit 3,268 equal. Left: six files still over 300 lines, the longest functions, read the tests, the JSON scanner question) | |
 | 5.1 The level-2d entry | 5 | Not started | |
 | 5.2 The editor and Emberwick import it | 5 | Not started | |
 | 6.1 exports in the editor list and the policy | 6 | Not started | |

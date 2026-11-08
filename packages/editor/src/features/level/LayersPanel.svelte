@@ -1,5 +1,5 @@
 <!--
-  The layer list (plan ED2D.4c4a decision 4; 2D editor spec §8, mockup `level-platformer`): the level's layers front to
+  The layer list: the level's layers front to
   back, each with its kind in plain words, a Show or Hide button and a Lock or Unlock button. Choosing a row makes it the
   layer the tools draw on. The list is a `listbox` with one tab stop; arrows move the choice. Every button is 44 px.
 -->

@@ -7,13 +7,13 @@ import {
   interchangeSchema,
   planImport,
 } from '#src/features/suite/core/interchange.ts'
-import floorfiftyList from '#src/features/suite/shell/sample-game.editors.toml?raw'
+import sampleList from '#src/features/suite/shell/platformer.editors.toml?raw'
 import { loadEditorList } from '#src/shared/editor-list/editor-list.ts'
 import { EDITOR_LIST_PATH } from '#src/shared/editor-list/editors.schema.ts'
 import { workspaceFile } from '#src/shared/editor-list/workspace-policy.ts'
 import { createWritePath } from '#src/shared/editor-list/write-path.ts'
 import { createMemoryPorts } from '#src/shared/kit/ports/memory/memory-ports.ts'
-import lastLightList from '#src/testing/suite/fixtures/last-light-bay.editors.toml?raw'
+import bayList from '#src/testing/suite/fixtures/bay.editors.toml?raw'
 
 // An excerpt of FloorFifty's content/tuning.toml (SNEKPRTY/FloorFifty 677d456, the kit's documents fixture).
 const TUNING = 'content/tuning.toml'
@@ -35,19 +35,19 @@ const loaded = (text: string) => {
   if (!load.ok) throw new Error('fixture list does not load')
   return load.list
 }
-const FLOORFIFTY = loaded(floorfiftyList)
-const LAST_LIGHT = loaded(lastLightList)
+const PLATFORMER = loaded(sampleList)
+const BAY = loaded(bayList)
 
-async function floorfifty(extra: Readonly<Record<string, string>> = {}) {
+async function platformer(extra: Readonly<Record<string, string>> = {}) {
   const memory = await createMemoryPorts({
-    files: { [EDITOR_LIST_PATH]: floorfiftyList, [TUNING]: TUNING_TEXT, [STAGE]: STAGE_TEXT, ...extra },
-    classify: (path) => workspaceFile(FLOORFIFTY, path),
+    files: { [EDITOR_LIST_PATH]: sampleList, [TUNING]: TUNING_TEXT, [STAGE]: STAGE_TEXT, ...extra },
+    classify: (path) => workspaceFile(PLATFORMER, path),
   })
   const writePath = createWritePath({ ports: memory.ports, title: async () => 'Import' })
   const { workspace } = memory.ports
   const plan = (text: string, options: { installed?: readonly string[]; locked?: readonly string[] } = {}) =>
     planImport(text, {
-      list: FLOORFIFTY,
+      list: PLATFORMER,
       read: (path) => workspace.read(path),
       installed: options.installed ?? ['tuner', 'levels-2d'],
       locked: () => options.locked ?? [],
@@ -61,7 +61,7 @@ const exported = (format: 'toml' | 'json' = 'toml') =>
       { path: TUNING, editor: 'tuner', text: TUNING_TEXT },
       { path: STAGE, editor: 'levels-2d', text: STAGE_TEXT },
     ],
-    { format, commit: '677d456' },
+    { format, commit: 'a1b2c3d' },
   )
 
 const changesOf = (plan: ImportPlan) => {
@@ -78,7 +78,7 @@ describe('scene-interchange v2 export (spec §4.8)', () => {
       expect(document).toMatchObject({
         format: 'scene-interchange',
         version: 2,
-        source: { commit: '677d456' },
+        source: { commit: 'a1b2c3d' },
       })
       expect(document.sections.tuner?.[TUNING]).toMatchObject({ MAX_MOVE_SPEED: 356 })
       expect(document.sections['levels-2d']?.[STAGE]).toEqual({ id: 'floor-01', width: 120 })
@@ -95,7 +95,7 @@ describe('scene-interchange v2 export (spec §4.8)', () => {
   })
 
   test('another format or version is refused with what was found', async () => {
-    const { plan } = await floorfifty()
+    const { plan } = await platformer()
     const v1 = JSON.stringify({ format: 'scene-interchange', version: 1, sections: {} })
     expect(await plan(v1)).toEqual({
       error: 'scene-interchange version 1 is not supported; this suite reads version 2',
@@ -107,7 +107,7 @@ describe('scene-interchange v2 export (spec §4.8)', () => {
 
 describe('the import plan (spec §4.8, §11)', () => {
   test('EDS-o: change MAX_MOVE_SPEED in a TOML export; the plan has that one change, no gates, its checks', async () => {
-    const { plan } = await floorfifty()
+    const { plan } = await platformer()
     const edited = exported('toml').replace('MAX_MOVE_SPEED = 356', 'MAX_MOVE_SPEED = 400')
     const result = changesOf(await plan(edited))
     expect(result.refused).toEqual([])
@@ -128,7 +128,7 @@ describe('the import plan (spec §4.8, §11)', () => {
   })
 
   test('EDS-p: an export imported unchanged is an empty plan that cannot apply', async () => {
-    const { plan } = await floorfifty()
+    const { plan } = await platformer()
     for (const format of ['toml', 'json'] as const) {
       const result = changesOf(await plan(exported(format)))
       expect(result).toEqual({ changes: [], refused: [], applicable: false })
@@ -136,7 +136,7 @@ describe('the import plan (spec §4.8, §11)', () => {
   })
 
   test('EDS-p2: a sequence section in the free build is refused as not installed; the rest still applies', async () => {
-    const { plan } = await floorfifty()
+    const { plan } = await platformer()
     const document = JSON.parse(exported('json'))
     document.sections.tuner[TUNING].MAX_MOVE_SPEED = 400
     document.sections.sequence = { 'content/cutscenes/intro.toml': { shots: 1 } }
@@ -149,7 +149,7 @@ describe('the import plan (spec §4.8, §11)', () => {
   })
 
   test('an unlisted path, a never path, a wrong editor and a locked key are refused and disable Apply', async () => {
-    const { plan } = await floorfifty({ 'package.json': '{}\n' })
+    const { plan } = await platformer({ 'package.json': '{}\n' })
     const document = JSON.parse(exported('json'))
     document.sections.tuner[TUNING].MAX_MOVE_SPEED = 400
     document.sections.tuner['src/main.ts'] = { a: 1 }
@@ -167,7 +167,7 @@ describe('the import plan (spec §4.8, §11)', () => {
   })
 
   test('a path that does not exist yet is planned as created, printed from its value', async () => {
-    const { plan } = await floorfifty()
+    const { plan } = await platformer()
     const document = JSON.parse(exportInterchange([], { format: 'json' }))
     document.sections['levels-2d'] = { 'content/stages/floor-02.toml': { id: 'floor-02' } }
     const result = changesOf(await plan(JSON.stringify(document)))
@@ -182,7 +182,7 @@ describe('the import plan (spec §4.8, §11)', () => {
   })
 
   test('a key added and a key dropped become an insert and a remove; comments survive', async () => {
-    const { plan } = await floorfifty()
+    const { plan } = await platformer()
     const document = JSON.parse(exported('json'))
     delete document.sections.tuner[TUNING].FAST_FALL_VELOCITY
     document.sections.tuner[TUNING].PLAYER_WIDTH = 59
@@ -192,18 +192,18 @@ describe('the import plan (spec §4.8, §11)', () => {
     expect(after).toContain('# `540 / 4.2`, written to the precision that round-trips.')
   })
 
-  test('a scene export of The Last Light keeps each section under its row', async () => {
+  test('a scene export of the adventure source keeps each section under its row', async () => {
     const story = 'content/scenes/bay/story.toml'
     const memory = await createMemoryPorts({
       files: { [story]: 'title = "Bay"\n' },
-      classify: (path) => workspaceFile(LAST_LIGHT, path),
+      classify: (path) => workspaceFile(BAY, path),
     })
     const text = exportInterchange([{ path: story, editor: 'writer', text: 'title = "Bay"\n' }], {
       format: 'toml',
       scene: 'bay',
     })
     const result = await planImport(text.replace('"Bay"', '"The Bay"'), {
-      list: LAST_LIGHT,
+      list: BAY,
       read: (path) => memory.ports.workspace.read(path),
       installed: ['writer'],
       locked: () => [],
@@ -214,7 +214,7 @@ describe('the import plan (spec §4.8, §11)', () => {
 
 describe('apply (one change-set undo step, EDS-D19)', () => {
   test('EDS-o: Apply writes the file once, journals it, and one Undo puts it back', async () => {
-    const { ports, plan, writePath, changeSet } = await floorfifty()
+    const { ports, plan, writePath, changeSet } = await platformer()
     const result = await plan(exported('toml').replace('MAX_MOVE_SPEED = 356', 'MAX_MOVE_SPEED = 400'))
     expect(await applyImport(result, writePath)).toMatchObject({ written: true })
     expect((await ports.workspace.read(TUNING))?.text).toContain('MAX_MOVE_SPEED = 400.0')
@@ -225,7 +225,7 @@ describe('apply (one change-set undo step, EDS-D19)', () => {
   })
 
   test('a file changed after the plan refuses the apply and writes nothing', async () => {
-    const { ports, plan, writePath } = await floorfifty()
+    const { ports, plan, writePath } = await platformer()
     const result = await plan(exported('toml').replace('MAX_MOVE_SPEED = 356', 'MAX_MOVE_SPEED = 400'))
     const current = await ports.workspace.read(TUNING)
     await ports.workspace.write(TUNING, `${TUNING_TEXT}# moved\n`, { mtime: current?.mtime ?? 0 })
@@ -235,7 +235,7 @@ describe('apply (one change-set undo step, EDS-D19)', () => {
   })
 
   test('a plan that cannot apply writes nothing', async () => {
-    const { plan, writePath } = await floorfifty()
+    const { plan, writePath } = await platformer()
     expect(await applyImport(await plan(exported('toml')), writePath)).toEqual({ refused: 'plan' })
     expect(writePath.canUndo()).toBe(false)
   })

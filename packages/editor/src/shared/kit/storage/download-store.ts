@@ -1,7 +1,7 @@
 import { classifyStorageError, type ProjectStore, toBytes, type WriteResult } from './project-store'
-import { assertStorePath, assertStorePrefix } from './store-path'
+import { assertStorePath, assertStorePrefix, baseName } from './store-path'
 
-// The write-only store (kit spec §4.7): where Export goes when nothing can be kept on the device. A write is a
+// The write-only store: where Export goes when nothing can be kept on the device. A write is a
 // browser download; on a tablet the share sheet is the way a file leaves, so that is a separate call; text can also
 // be copied. Nothing is ever read back.
 
@@ -39,7 +39,7 @@ const TYPES: Readonly<Record<string, string>> = {
 
 function fileFor(path: string, data: Uint8Array | string): DownloadFile {
   assertStorePath(path)
-  const name = path.slice(path.lastIndexOf('/') + 1)
+  const name = baseName(path)
   const dot = name.lastIndexOf('.')
   const type = (dot > 0 ? TYPES[name.slice(dot + 1).toLowerCase()] : undefined) ?? 'application/octet-stream'
   return { name, type, data: toBytes(data) }

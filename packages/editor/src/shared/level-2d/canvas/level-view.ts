@@ -1,3 +1,5 @@
+// The level canvas: the camera that places the level on screen, and the view that owns the Pixi application and draws
+// the scene into it.
 import {
   type AutoDetectOptions,
   autoDetectRenderer,
@@ -12,7 +14,7 @@ import type { LevelDrawList } from './draw/draw-list-types'
 import { createLevelScene } from './level-scene'
 import type { TextureManager } from './textures.manager'
 
-// The level canvas (ED2D.4c3b; 2D editor spec §4, §8, §13; plan decisions 2, 7 and 8): a WebGL2 Pixi renderer on the
+// The level canvas: a WebGL2 Pixi renderer on the
 // page's canvas element, drawing a draw list at a camera. Losing the WebGL context (the GPU reset, the tab put to
 // sleep) is not an error: Pixi keeps every texture source and re-uploads it once the browser restores the context, so
 // the view only stops drawing, says it is paused, and draws the latest list again on `webglcontextrestored`. The

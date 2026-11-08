@@ -8,12 +8,12 @@ import { type EditorHandle, startEditor } from '#src/app/editor-2d/boot.ts'
 import { packTile } from '#src/shared/level-2d/model/cells-codec.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { entity, withEntities, withLayer } from '#src/testing/level-2d/project-edit.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The Export view with the production CSS in a real browser (plan ED2D.7b step 7; 2D editor spec §12), at the eight
+// The Export view with the production CSS in a real browser, at the eight
 // window sizes, in Chromium, WebKit and Firefox: Download 48 px, the other actions and the target cards 44 px, all in
 // view and never clipped (the files scroll in their own region, the actions stay at the foot), and the page never
 // scrolling. The Mossgate sample is seeded with the Checks view's findings, so the error callout shows.

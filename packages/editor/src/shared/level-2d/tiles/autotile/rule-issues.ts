@@ -1,8 +1,7 @@
 import { type Check, KIND, ruleVariants, type Variant } from './match'
 import type { PatternCell, Rule, RuleGroup } from './rule.schema'
 
-// What can be wrong with a set of auto-tile rules (2D editor spec §5.6). This returns data; the Checks list of ED2D.3
-// turns it into diagnostics with paths and fixes. Rules that are off (inactive, or in an inactive group) are skipped:
+// What can be wrong with a set of auto-tile rules. This returns data; the Checks list turns it into diagnostics with paths and fixes. Rules that are off (inactive, or in an inactive group) are skipped:
 // they are off on purpose.
 
 export interface RuleIssue {

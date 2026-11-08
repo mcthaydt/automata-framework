@@ -1,4 +1,4 @@
-// Upgrading a file from an older `version` (2D editor spec §6.1). Each step is a pure function over the parsed JSON
+// Upgrading a file from an older `version`. Each step is a pure function over the parsed JSON
 // that moves it from one version to the next; the chain runs in memory when a file is opened and the file changes only
 // when it is saved. A step's fixtures are a before and an after file kept beside it, so a migration is reviewed by
 // diff. The list is empty at version 1: the mechanism is tested with injected steps.

@@ -1,3 +1,5 @@
+// One open document's saving: the Save button, the autosave beside it, and the single list of problems a failed save
+// or a stopped autosave leaves for the view to show.
 import type { History } from '../history/history'
 import { type AutosaveProblem, createAutosave } from './autosave'
 import { type StorageClock, systemClock } from './clock'
@@ -40,7 +42,7 @@ export interface DocumentSessionOptions<S> {
   /** `Workspace.persistent === false`: nothing is kept on this device, so the status stays `device`. */
   readonly deviceOnly?: boolean
   readonly clock?: StorageClock
-  /** Default 800 ms (kit spec §4.7). */
+  /** Default 800 ms. */
   readonly debounceMs?: number
   /** Called when a problem appears, so the shell can toast it. */
   onproblem?(problem: Problem): void
@@ -74,7 +76,7 @@ function splitExtension(path: string): { stem: string; extension: string } {
 }
 
 /**
- * The save flow of the editor kit (kit spec §5 flows 3 and 4) for one open document: it owns the file's last known
+ * The save flow of the editor kit for one open document: it owns the file's last known
  * `mtime`, the autosave journal and the save state the status line shows. The editor calls `save` and reacts to
  * the outcome (a conflict opens the Keep mine / Take theirs / Save as copy dialog; a failure toasts), and tells the
  * session nothing else: edits reach it through the history.

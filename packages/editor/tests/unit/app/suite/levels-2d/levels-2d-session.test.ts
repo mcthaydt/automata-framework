@@ -7,7 +7,7 @@ import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import { levelProject } from '#src/shared/level-2d/profiles/level-project/level-project.ts'
 import { platformerTemplate } from '#src/shared/level-2d/profiles/level-project/templates/platformer.ts'
 
-// The Levels 2D session in Node (plan EDS.2d step 1; editor suite spec §4.1, §4.7, EDS-D12): it is opened over the
+// The Levels 2D session in Node: it is opened over the
 // suite's ports, holds the document's history and the Level view's session, and writes every new step through the
 // suite's workspace. The platformer's `level-1` is 512 × 288 on a 16 px grid; the view opens on its entity layer, so a tap places one.
 

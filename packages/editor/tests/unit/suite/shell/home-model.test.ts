@@ -9,8 +9,8 @@ const fixture = (name: string): string =>
   readFileSync(
     new URL(
       // The sample game's list ships with the suite page; the other game's list is a test fixture.
-      name === 'floorfifty'
-        ? '../../../../src/features/suite/shell/sample-game.editors.toml'
+      name === 'platformer'
+        ? '../../../../src/features/suite/shell/platformer.editors.toml'
         : `../../../../src/testing/suite/fixtures/${name}.editors.toml`,
       import.meta.url,
     ),
@@ -29,9 +29,9 @@ const file = (path: string, editor: string): WorkspaceFile => ({
 const empty = createSuite({ editors: [] })
 
 describe('Home (editor suite spec §5 flow 2, §9 suite-home, §11)', () => {
-  it("gives one card per editor FloorFifty's list names, in list order, with its files", () => {
+  it("gives one card per editor the arcade source's list names, in list order, with its files", () => {
     const tuning = file('content/tuning.toml', 'tuner')
-    const state = homeOf(loadEditorList(fixture('floorfifty')), new Map([['tuner', [tuning]]]), empty)
+    const state = homeOf(loadEditorList(fixture('platformer')), new Map([['tuner', [tuning]]]), empty)
     if (state.kind !== 'cards') throw new Error(state.kind)
     expect(state.cards.map((card) => [card.editor, card.label, card.entry])).toEqual([
       ['tuner', 'Tuner', 'tuner'],
@@ -41,8 +41,8 @@ describe('Home (editor suite spec §5 flow 2, §9 suite-home, §11)', () => {
     expect(state.cards[1]?.files).toEqual([])
   })
 
-  it("lists The Last Light's editors once each", () => {
-    const state = homeOf(loadEditorList(fixture('last-light-bay')), new Map(), empty)
+  it("lists the adventure source's editors once each", () => {
+    const state = homeOf(loadEditorList(fixture('bay')), new Map(), empty)
     if (state.kind !== 'cards') throw new Error(state.kind)
     expect(state.cards.map((card) => card.editor)).toEqual([
       'writer',
@@ -85,7 +85,7 @@ describe('Home (editor suite spec §5 flow 2, §9 suite-home, §11)', () => {
 
   it('marks an editor the suite was given as installed', () => {
     const state = homeOf(
-      loadEditorList(fixture('floorfifty')),
+      loadEditorList(fixture('platformer')),
       new Map(),
       createSuite({ editors: [{ id: 'tuner' } as never] }),
     )

@@ -1,5 +1,5 @@
 <!--
-  The World view (plan ED2D.6b; 2D editor spec §8, the World row, flow 7; mockup `world`): the panel holds the world's
+  The World view: the panel holds the world's
   layout switch and its levels as a list; the canvas is the map, where a level is pressed to select it and dragged to
   move it (one undo step; a sequence reorders and the Level view's dock follows); the inspector edits the selected
   level. The map is fitted to its box (plan decision 1); the camera holds still while a drag is under way, so the level
@@ -122,7 +122,7 @@ $effect(() => {
 const pageBox = (rect: DOMRect) => ({ x: rect.left, y: rect.top, w: rect.width, h: rect.height })
 
 /**
- * The part of the map no open drawer or sheet covers (plan ED2D.8b decision 2); the whole map in wide, where nothing
+ * The part of the map no open drawer or sheet covers; the whole map in wide, where nothing
  * covers it, and before the map is in the page.
  */
 function openArea(): ReturnType<typeof uncoveredArea> | undefined {
@@ -141,7 +141,7 @@ function openArea(): ReturnType<typeof uncoveredArea> | undefined {
 }
 
 // The camera follows the map's box and the drawers: until the person pans or zooms it fits the levels into the part of
-// the map nothing covers (plan ED2D.8a decision 2, ED2D.8b decision 2).
+// the map nothing covers.
 $effect(() => {
   const size = box
   untrack(() => worldCamera.measure(size, rects, openArea()))
@@ -166,7 +166,7 @@ $effect(() => {
   }
 })
 
-// The gestures go on the map once it is in the page (plan ED2D.8a decision 1).
+// The gestures go on the map once it is in the page.
 $effect(() => {
   const element = map
   if (element === undefined || drag === undefined) return

@@ -1,3 +1,5 @@
+// Keeps the shell's regions (panel, inspector, dock) from covering each other: on a compact screen only one sheet is
+// open at a time.
 import type { ShellMode, ShellRegion } from './shell-mode'
 
 export interface OpenState {

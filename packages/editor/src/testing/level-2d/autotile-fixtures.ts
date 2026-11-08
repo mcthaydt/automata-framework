@@ -3,7 +3,7 @@ import type { RuleGroup } from '../../shared/level-2d/tiles/autotile/rule.schema
 import { seededRandom } from './random'
 import { makeGroup, makeRule } from './rules'
 
-// The platformer rule set and cave map the auto-tile goldens run on (2D editor spec §14). Pattern characters are
+// The platformer rule set and cave map the auto-tile goldens run on. Pattern characters are
 // those of `rules.ts`: `1` is ground, `2` is water, `a` is "not ground", `?` is any. Every rule reads beyond the level
 // edge as the cell itself (`outside: 'same'`), so ground runs on past the edge instead of ending in a wall.
 

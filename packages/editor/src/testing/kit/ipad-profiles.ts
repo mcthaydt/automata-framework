@@ -1,4 +1,4 @@
-// The iPads the editors' journeys run at (plan EDK.6b decision 3; kit spec §7): iPad 11" in landscape and portrait,
+// The iPads the editors' journeys run at: iPad 11" in landscape and portrait,
 // iPad mini and iPad 13". A journey sets the window with `page.viewport(width, height)`.
 
 export interface IpadProfile {

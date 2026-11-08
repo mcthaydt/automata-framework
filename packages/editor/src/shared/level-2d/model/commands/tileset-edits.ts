@@ -3,7 +3,7 @@ import type { Project, Size, TilesetDef } from '../project-types'
 import { tilesetTiles } from '../tileset-grid'
 import { checkShape, replaceById, tilesetOf, withDefinitions } from './def-lookup'
 
-// Tileset edits (2D editor spec §5.4). A tileset starts as a placeholder or with an image; importing an image swaps
+// Tileset edits. A tileset starts as a placeholder or with an image; importing an image swaps
 // `image` and records its size, and keeps every tile index, so a project drawn on placeholders moves to real art in
 // one step. Tags name tiles for palettes and rules; a tile in a tag is always one the tileset has.
 

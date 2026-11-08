@@ -1,6 +1,6 @@
-// Opening a stored file (kit spec §4.7): the stat goes first and the read second, so the mtime a later save is guarded
+// Opening a stored file: the stat goes first and the read second, so the mtime a later save is guarded
 // by is the one from before the bytes. A write that lands between the two can then only make that save a conflict;
-// it is never overwritten silently. Both editors open files through this (moved here from editor-3d, ED3D.5c).
+// it is never overwritten silently. Both editors open files through this.
 import { classifyStorageError, type ProjectStore, type StorageFailure, statPath } from './project-store'
 
 export type Stored =

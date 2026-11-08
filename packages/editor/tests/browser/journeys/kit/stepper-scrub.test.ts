@@ -8,7 +8,7 @@ import { IPAD_PROFILES } from '#src/testing/kit/ipad-profiles.ts'
 import JourneyFixture, { type JourneyState } from '#src/testing/kit/JourneyFixture.svelte'
 import { createPointers } from '#src/testing/kit/pointers.ts'
 
-// EK-a (kit spec §9) on each iPad: a finger drags the stepper's label 40 px right and lifts. One undo step; the value
+// EK-a on each iPad: a finger drags the stepper's label 40 px right and lifts. One undo step; the value
 // moved by the configured rate (one step per 8 px, so 5); undo puts it back.
 
 let mounted: MountedFixture | undefined

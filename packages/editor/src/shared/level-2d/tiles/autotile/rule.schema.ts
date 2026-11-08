@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { ITEM_ID } from '../../model/ids'
 
-// Auto-tile rule shapes (2D editor spec §5.6). The engine that evaluates them is ED2D.2; the shapes live here because
+// Auto-tile rule shapes. The engine that evaluates them is `autotile/`; the shapes live here because
 // a layer definition carries its rule groups and the project schema has to validate them.
 
 /** One cell of a rule's pattern, read against the source IntGrid layer. */

@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { LevelCard } from '#src/features/level/dock-model.ts'
 import LevelDock from '#src/features/level/LevelDock.svelte'
 
-// The dock of level cards (plan ED2D.4c4b step 7): one 44 px card per level, the open one marked; a tap opens the level
+// The dock of level cards: one 44 px card per level, the open one marked; a tap opens the level
 // and focus stays on the card, so a keyboard or switch user keeps their place.
 
 const cards = (current: string): readonly LevelCard[] => [

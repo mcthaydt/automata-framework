@@ -5,7 +5,7 @@ import { projectFileSchema } from './project.schema'
 import { decodeProject, type OpenIssue } from './project-codec'
 import type { Project } from './project-types'
 
-// Opening a working file (2D editor spec §6.1 and §13). There are three outcomes and no fourth: the file opens, or it
+// Opening a working file. There are three outcomes and no fourth: the file opens, or it
 // opens read-only because writing it back could lose something, or it fails with a reason the error panel can show.
 
 /** A file is at most this many characters (the spec's 16 MB; a character is at least a byte, so this never refuses a smaller file). */

@@ -2,7 +2,7 @@ import type { FolderStore } from '../storage/folder'
 import type { ProjectStore, StorageFailure } from '../storage/project-store'
 import type { ToastAction, ToastStore } from '../widgets/toasts'
 
-// The action a failed save offers (plan ED2D.4c2b, decision 6; moved from editor-2d in ED3D.5c; kit spec §6): Retry, or Re-grant when the workspace is
+// The action a failed save offers: Retry, or Re-grant when the workspace is
 // a folder the person picked and its permission has lapsed. A folder's permission can only be asked for again from a
 // user gesture, which is why this is a button on the toast and never automatic. Nothing is lost either way: the edits
 // stay in the history.

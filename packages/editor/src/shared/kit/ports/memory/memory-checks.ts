@@ -1,4 +1,4 @@
-// The in-memory checks runner (editor suite spec §4.3, §7): each declared check answers through `respond`. One run per
+// The in-memory checks runner: each declared check answers through `respond`. One run per
 // check id at a time: a newer run of an id ends that id in the older run as `error` ("replaced"), and `cancel` ends the
 // run's unfinished checks as `error` ("cancelled"); `respond` gets an `AbortSignal` that fires then. A run never
 // rejects: a check that throws is `error` with its message, and an id the list does not declare is `error` too.

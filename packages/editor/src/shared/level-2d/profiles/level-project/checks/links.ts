@@ -4,7 +4,7 @@ import { isRefValue, type RefIndex, refIndex, resolveRef } from '../../../model/
 import type { Diagnostic } from '../../profile'
 import { diagnostic, itemPath, levelPath } from './diagnostics'
 
-// Checks of references between things (2D editor spec §9, "Links"). What a value points at is `resolveRef`'s rule
+// Checks of references between things. What a value points at is `resolveRef`'s rule
 // (`model/refs/`), which the reference picker and the canvases share. Whether a value has the right shape is the kit's
 // check (`fieldInvalid`); here only a well-formed ref is followed.
 
