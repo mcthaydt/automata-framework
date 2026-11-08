@@ -86,6 +86,34 @@ tag = "decor"
 tiles = [ 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63 ]
 
 [[entities]]
+id = "area"
+label = "Area"
+color = "#38bdf8"
+shape = "rect"
+resizable = "xy"
+tags = [ "area" ]
+
+[[entities.fields]]
+id = "name"
+type = "text"
+label = "Name"
+default = ""
+
+[[entities.fields]]
+id = "zone"
+type = "text"
+label = "Zone"
+default = ""
+
+[entities.size]
+w = 64
+h = 64
+
+[entities.pivot]
+x = 0
+y = 0
+
+[[entities]]
 id = "checkpoint"
 label = "Checkpoint"
 color = "#2dd4bf"

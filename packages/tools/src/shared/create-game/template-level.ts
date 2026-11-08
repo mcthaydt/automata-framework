@@ -1,9 +1,10 @@
 import type { TemplateFile } from './template-file.ts'
 
 // The new game's level feature: the level the 2D editor exported, read into walls and a start; the wall test the sim
-// runs; and the walls drawn. The level itself is in the game's `content/` (template-content.ts).
+// runs; and the level scene core draws from the same files. The level itself is in the game's `content/`
+// (template-content.ts).
 
-/** The level feature: the editor's level read into walls and a start, the wall test the sim runs, and the walls drawn. */
+/** The level feature: the editor's level read into walls and a start, the wall test the sim runs, and the scene drawn. */
 export const LEVEL_FILES: readonly TemplateFile[] = [
   {
     path: 'src/features/level/read-level.ts',
@@ -69,11 +70,12 @@ export function hitsWall(level: Level, x: number, y: number, size: number): bool
   {
     path: 'src/features/level/compiled-content.d.ts',
     content:
-      () => `// The content plugin's module (vite.config.ts), typed as far as this game reads it: the compiled levels, by id. The
-// plugin also writes a full declaration into content/generated/ on the first \`pnpm dev\` or build; this one lets the
-// game type-check before that.
+      () => `// The content plugin's module (vite.config.ts), typed as far as this game reads it: the compiled levels, by id, and the
+// editor's project and levels that the screen draws. The plugin also writes a full declaration into content/generated/
+// on the first \`pnpm dev\` or build; this one lets the game type-check before that.
 declare module 'virtual:automata/content' {
   export const simContent: { readonly levels?: Readonly<Record<string, unknown>> }
+  export const content: { readonly project?: unknown; readonly levels?: Readonly<Record<string, unknown>> }
 }
 `,
   },
@@ -94,29 +96,35 @@ export const LEVEL: Level = levelOf(levelContentSchema.parse(compiled))
 `,
   },
   {
-    path: 'src/features/level/level.view.ts',
-    content: () => `import type { DrawContext } from '@automata/framework'
-import { type Level, SOLID } from './read-level.ts'
+    path: 'src/features/level/level-scene.ts',
+    content: () => `import { content } from 'virtual:automata/content'
+import { levelContentSchema, projectContentSchema } from '@automata/content/level-2d'
+import { levelScene } from '@automata/framework'
 
-/** The walls' colour: the editor's colour for Solid. */
-const WALL_COLOR = 0x73737f
+// What the game shows of the level: core draws the tiles, auto tiles, objects and placed characters the editor made,
+// from the same files the sim reads. Press Save in the editor and the game shows the change.
 
-/** Draws the level's walls every frame: one rectangle for each run of wall cells in a row. */
-export function drawLevel(level: Level): (ctx: DrawContext) => void {
-  const runs: { x: number; y: number; w: number }[] = []
-  level.cells.forEach((row, y) => {
-    let x = 0
-    while (x < row.length) {
-      const from = x
-      while (row[x] === SOLID) x++
-      if (x > from) runs.push({ x: from * level.tile, y: y * level.tile, w: (x - from) * level.tile })
-      else x++
-    }
-  })
-  return (ctx) => {
-    for (const run of runs) ctx.rect(run.x, run.y, run.w, level.tile, WALL_COLOR)
-  }
-}
+/** The pictures Add tiles put in \`assets/\`, by the path the editor knows them by (\`assets/terrain.png\`). */
+const found: Record<string, string> = import.meta.glob('/assets/*.{png,webp,jpg,jpeg}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+})
+export const images: Readonly<Record<string, string>> = Object.fromEntries(
+  Object.entries(found).map(([path, url]) => [path.slice(1), url]),
+)
+
+/** The editor's project: the characters, tilesets and layers the levels are made from. */
+export const project = projectContentSchema.parse(content.project)
+
+const levels = Object.fromEntries(
+  Object.entries(content.levels ?? {}).map(([id, level]) => [id, levelContentSchema.parse(level)]),
+)
+
+/**
+ * The scene. The square is the player start, so the game draws it itself (\`live\`); an area is a zone, not a picture.
+ */
+export const LEVEL_SCENE = levelScene({ project, levels, images, start: 'start', live: ['player-start', 'area'] })
 `,
   },
 ]

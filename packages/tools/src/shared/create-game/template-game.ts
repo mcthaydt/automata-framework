@@ -67,12 +67,18 @@ export const squarePlugin = definePlugin({ name: '${options.id}', defs: [Square,
   },
   {
     path: 'src/features/square/square.view.ts',
-    content: () => `import { rect } from '@automata/framework'
+    content: () => `import { pictureView } from '@automata/framework'
+import { images, project } from '../level/level-scene.ts'
 import { SQUARE_SIZE } from '../../shared/constants.ts'
 import { Square } from './square.component.ts'
 
-/** How the square is drawn: a yellow box. */
-export const squareView = { [Square.id]: rect({ w: SQUARE_SIZE, h: SQUARE_SIZE, color: 0xffcf05 }) }
+/**
+ * How the square is drawn: as the player start looks in the editor (change it in Characters, press Save). The square's
+ * position is its centre and the character stands on its pivot, its feet, so the picture sits half a square lower.
+ */
+export const squareView = {
+  [Square.id]: pictureView(project, 'player-start', images, { offset: { x: 0, y: SQUARE_SIZE / 2 } }),
+}
 `,
   },
 ]
@@ -98,7 +104,7 @@ export const SQUARE_SIZE = 8
     path: 'src/app/game.ts',
     content: (options) => `import { defaultContent, defineGame, keys } from '@automata/framework'
 import { LEVEL } from '../features/level/level.ts'
-import { drawLevel } from '../features/level/level.view.ts'
+import { LEVEL_SCENE } from '../features/level/level-scene.ts'
 import { Move } from '../features/square/move.command.ts'
 import { Square } from '../features/square/square.component.ts'
 import { squarePlugin } from '../features/square/square.plugin.ts'
@@ -136,7 +142,8 @@ export const game = defineGame({
     { pad: { 14: { x: -1 }, 15: { x: 1 }, 12: { y: -1 }, 13: { y: 1 } } },
   ),
   views: squareView,
-  draw: drawLevel(LEVEL),
+  // The level's tiles and placed characters, drawn by core from what the editor saved.
+  level: LEVEL_SCENE,
 })
 `,
   },

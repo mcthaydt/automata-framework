@@ -18,6 +18,11 @@ export interface PictureViewOptions {
    * what the clip looks like is the character's, edited in Characters.
    */
   readonly clip?: ((components: Readonly<Record<string, Readonly<FieldRecord>>>) => string) | undefined
+  /**
+   * Moves the picture off the entity's position, for a game whose position is not the character's pivot (a body
+   * whose `x`, `y` is its centre while the character stands on its pivot, its feet). Default none.
+   */
+  readonly offset?: { readonly x: number; readonly y: number } | undefined
 }
 
 const report = (message: string): void => globalThis.reportError?.(new Error(message))
@@ -46,7 +51,7 @@ export function pictureView(
   project: ContentProject,
   def: string,
   images: Readonly<Record<string, string>>,
-  _options: PictureViewOptions = {},
+  options: PictureViewOptions = {},
 ): EntityViewFactory {
   const character = project.entities.find((candidate) => candidate.id === def)
   if (character === undefined) throw new Error(`There is no character "${def}" in the project.`)
@@ -115,6 +120,8 @@ export function pictureView(
       container,
       update(curr, prev, alpha = 1) {
         placeView(container, curr, prev, alpha, componentId)
+        if (options.offset !== undefined)
+          container.position.set(container.x + options.offset.x, container.y + options.offset.y)
       },
       destroy() {
         stop?.()

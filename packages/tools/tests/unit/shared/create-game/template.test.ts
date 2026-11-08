@@ -31,8 +31,8 @@ describe('the new game’s files', () => {
     expect(files.filter((file) => file.startsWith('src/') || file.startsWith('tests/'))).toEqual([
       'src/app/game.ts',
       'src/features/level/compiled-content.d.ts',
+      'src/features/level/level-scene.ts',
       'src/features/level/level.ts',
-      'src/features/level/level.view.ts',
       'src/features/level/read-level.ts',
       'src/features/level/walls.ts',
       'src/features/square/move.command.ts',
@@ -94,7 +94,9 @@ describe('the new game’s files', () => {
   })
 
   it('keeps the sim free of the renderer, so its tests need no browser', () => {
-    for (const file of files.filter((each) => /^src\/features\/(square|level)\/(?!\w+\.view)/.test(each))) {
+    for (const file of files.filter((each) =>
+      /^src\/features\/(square|level)\/(?!\w+\.view|level-scene)/.test(each),
+    )) {
       expect(read(file), file).not.toMatch(/from '@automata\/framework'|pixi/)
     }
   })
@@ -158,5 +160,32 @@ describe('the new game’s scripts and config', () => {
     expect(test).toContain('SPEED')
     expect(test).toContain('stops at the floor')
     expect(test).toContain('hash()')
+  })
+})
+
+describe('the new game shows what the editor made', () => {
+  it('draws the level with core and its square as the player start looks, not with its own rectangles', () => {
+    const game = read('src/app/game.ts')
+    expect(game).toContain('level: LEVEL_SCENE')
+    expect(read('src/features/square/square.view.ts')).toContain(
+      "pictureView(project, 'player-start', images",
+    )
+    expect(game).not.toContain('drawLevel')
+    for (const file of files.filter((name) => name.startsWith('src/')))
+      expect(read(file), file).not.toContain('WALL_COLOR')
+  })
+
+  it('reads its pictures from assets/, where Add tiles writes them, and leaves the player start to its own view', () => {
+    const scene = read('src/features/level/level-scene.ts')
+    expect(scene).toContain("import.meta.glob('/assets/*.{png,webp,jpg,jpeg}'")
+    expect(scene).toContain("live: ['player-start', 'area']")
+    expect(scene).toContain("start: 'start'")
+  })
+
+  it('ships an Area definition, so a person can place and stretch areas in Levels', () => {
+    const project = read('content/project.toml')
+    expect(project).toContain('id = "area"')
+    expect(project).toContain('tags = [ "area" ]')
+    expect(project).toContain('resizable = "xy"')
   })
 })
