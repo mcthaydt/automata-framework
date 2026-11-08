@@ -3,8 +3,6 @@ import { BASE_PAIR, BASE_PAIR_SWATCHES } from '@automata/3d/base'
 import { clipsWithActions, type FigureLibrary, type MotionLibrary } from '@automata/3d/figures'
 import { Actor } from './actor.component.ts'
 
-type Kind<T> = Readonly<Record<string, T>>
-
 interface FigureKinds {
   readonly 'figure-swatch'?: FigureLibrary['swatches']
   readonly 'figure-hair'?: FigureLibrary['hair']
