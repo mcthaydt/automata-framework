@@ -7,7 +7,7 @@ import { networkInterfaces } from 'node:os'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { type EditorApp, parseEditorArgs } from './editor-args.ts'
-import { type EditorServerOptions, type RunningEditor, serveEditor } from './serve-editor.ts'
+import type { EditorServerOptions, RunningEditor } from './serve-editor.ts'
 
 export interface EditorCommandIo {
   readonly stdout: (message: string) => void
@@ -101,7 +101,9 @@ export async function editorCommand(
 /** The real dependencies: the repository's build of each editor, this machine's network and Ctrl+C. */
 export function liveEditorDeps(): EditorCommandDeps {
   return {
-    serve: serveEditor,
+    // Loaded on use: the server reads the editor suite, whose sources Node cannot run from the workspace bin, and no
+    // other command needs it.
+    serve: async (options) => (await import('./serve-editor.ts')).serveEditor(options),
     builtApp: (app) => resolve(repositoryRoot(), BUILDS[app].folder),
     exists: existsSync,
     lanAddresses: () =>

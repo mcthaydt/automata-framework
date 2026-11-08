@@ -37,14 +37,13 @@ The PRs are stacked, in this order: #388 (phase 1, not a draft) ← #389 ← #39
 
 **Everything that can be done from a cloud session is done.** What is left is the Owner's:
 
-1. **Run the cross-engine checks:** `pnpm ci:local` on a Mac or a runner (WebKit and Firefox are not installable in cloud
-   sessions), and `pnpm lint:actions` (needs Docker). Criterion 1 ("journeys pass in Chromium and WebKit") is unproven until then.
-2. **Mark the PRs ready and merge them bottom up** (draft pull requests skip `e2e-2d` and `parity`). Squashing the stack into
-   fewer pull requests is an option; it is the Owner's call.
-3. **2.1:** push the tag `pre-refactor-2d` (refused with HTTP 403 from a cloud session), then deprecate the old package names in the registry.
-4. **8.2:** ask Ruken for a refusal switch in its fake host, then add the boot-failure journey.
-5. **9.2:** say go, and the branch clean-up runs.
-6. Play Emberwick on the iPad from the last build.
+1. **8.2 boot failure:** a request to Ruken for a refusal switch in the fake host (deviation 64).
+2. **9.2** waits for the Owner's go; **2.1**'s tag push is the Owner's (HTTP 403 from here).
+3. WebKit, Firefox and hosted CI runs for the whole stack.
+4. **Consumer smoke after the package merge** (found by the first CI run, 2026-11-06; [comment on #400](https://github.com/mcthaydt/automata-framework/pull/400#issuecomment-6678595019)):
+   setup is fixed; 6 steps still fail at #400: the Node fixture imports the old packages, the published Ruken `.d.ts` import
+   `@ruken/sdk`, `./testing` does not publish `openHostingTest`, the packed tools bin has an `eval`, and the
+   `automata-web` bundle fixture meets uncompiled `.svelte`. Needs its own task before the post-build audit.
 
 Next area: 3D. It starts when the Owner has taken 1 to 3 and the stack is merged.
 
@@ -116,8 +115,14 @@ plain type); the consumer smoke's fixtures still imported the six packages the m
 the `repo-hygiene` cache input and a comment named folders that no longer exist. Two tests that the copy change made stale were
 updated (base-3d's quit question, the `start-final` code in `run-game`).
 
-**Left for the Owner:** `pnpm ci:local` where WebKit and Firefox install; `pnpm lint:actions` (needs Docker); marking the PRs ready and
-merging bottom up. One more thing the audit did not list: about 200 comments in `packages/*/src` name FloorFifty, which AGENTS.md says
+**E1, run on the Owner's Mac (2026-11-05, Chromium, WebKit and Firefox):** `pnpm lint:actions` reports nothing. `pnpm ci:local`
+found two failures in the examples' journeys, both fixed: the examples config's `runner` projects picked up the playground
+journeys once this PR moved them to `tests/e2e` (74 failures, nothing serving the playground), so they now skip `playground-*`,
+which run from the runner's own config (109 passed in the three engines); and the gamepad matrix cell's pause tapped Start for
+one frame, which play reads once per sim step, so WebKit missed it about one run in three (fixed in #388, 24 of 24 after).
+Then: examples 139 passed, Emberwick 47, `create-game` 1.
+
+**Left for the Owner:** hosted CI; marking the PRs ready and merging bottom up. One more thing the audit did not list: about 200 comments in `packages/*/src` name FloorFifty, which AGENTS.md says
 published text never does (`docs/provenance/sources.md` is where it belongs). That is a rewrite of its own.
 
 **Bundle before D2 (Emberwick, `vite build --sourcemap`, measured 2026-11-05 on `claude/project-thread-f01qmj` with
