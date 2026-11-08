@@ -583,7 +583,7 @@ Normal dev pipeline (no stage 1 audit; the investigation is
 | 5. Build audit | Not started |
 | 6. Fixes | Not started |
 
-## Dark mode for the editors: 17% (1 of 6: stage 1)
+## Dark mode for the editors: 20% (1 of 5: stage 1)
 
 Normal dev pipeline. The Owner, 2026-11-08: "Also, do a dark mode for the editors, I can't imagine working in that for
 hours."
