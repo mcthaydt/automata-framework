@@ -2,4 +2,4 @@
 
 [[entry]]
 on = "cutscene.started"
-camera = [{ shake = 0.3 }]
+camera = [{ shake = 0.8 }]

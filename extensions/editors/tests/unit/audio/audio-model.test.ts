@@ -1,4 +1,5 @@
 import type { AudioContent } from '@automata/audio-synth'
+import { openDocument } from '@automata/editor/kit/documents'
 import { describe, expect, it } from 'vitest'
 import {
   addEventEdit,
@@ -99,15 +100,21 @@ describe('the edits', () => {
   it('add a sound with a name no other sound has, that can be heard at once', () => {
     expect(newSoundId(content)).toBe('sound-1')
     expect(newSoundId({ cue: [{ id: 'sound-1', bus: 'sfx', voices: [] }] })).toBe('sound-2')
-    expect(addSoundEdit(content, 'sound-1')).toEqual({
-      keyPath: ['cue'],
-      insert: {
-        id: 'sound-1',
-        bus: 'sfx',
-        voices: [{ tone: 'square', from: 660, to: 330, length: 0.12, volume: 0.4 }],
+    expect(addSoundEdit(content, 'sound-1')).toEqual([
+      {
+        keyPath: ['cue'],
+        insert: {
+          id: 'sound-1',
+          bus: 'sfx',
+          voices: [{ tone: 'square', from: 660, to: 330, length: 0.12, volume: 0.4 }],
+        },
       },
-    })
-    expect(addSoundEdit({}, 'sound-1')).toMatchObject({ keyPath: ['cue'], insert: [{ id: 'sound-1' }] })
+    ])
+    // A file with no sounds yet makes its list first, which the top-level key of a real file needs.
+    const file = openDocument('content/audio/audio.toml', '[[event]]\non = "a"\nsilent = true\n')
+    const edited = file.edit(addSoundEdit({}, 'sound-1'))
+    expect(edited.ok).toBe(true)
+    if (edited.ok) expect(edited.document.value()).toMatchObject({ cue: [{ id: 'sound-1' }] })
   })
 
   it('add a tone or a hiss to a sound', () => {
@@ -128,10 +135,14 @@ describe('the edits', () => {
   })
 
   it('add an event that plays a sound', () => {
-    expect(addEventEdit(content, 'enemy.died', 'coin')).toEqual({
-      keyPath: ['event'],
-      insert: { on: 'enemy.died', cue: 'coin' },
-    })
+    expect(addEventEdit(content, 'enemy.died', 'coin')).toEqual([
+      { keyPath: ['event'], insert: { on: 'enemy.died', cue: 'coin' } },
+    ])
+    const file = openDocument('content/audio/audio.toml', '[[cue]]\nid = "coin"\nbus = "sfx"\nvoices = []\n')
+    const edited = file.edit(addEventEdit({}, 'enemy.died', 'coin'))
+    expect(edited.ok).toBe(true)
+    if (edited.ok)
+      expect(edited.document.value()).toMatchObject({ event: [{ on: 'enemy.died', cue: 'coin' }] })
   })
 })
 

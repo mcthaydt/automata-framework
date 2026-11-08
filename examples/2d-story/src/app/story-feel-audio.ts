@@ -1,7 +1,7 @@
 import { content } from 'virtual:automata/content'
 import { audioSchema, type MusicState } from '@automata/audio-synth'
 import { type AudioNote, type AudioStageHandle, audioStage, tracksFrom } from '@automata/audio-synth/stage'
-import { feelSchema } from '@automata/feel'
+import { type FeelFrame, feelSchema } from '@automata/feel'
 import { feelStage } from '@automata/feel/stage'
 import type { GameAudioStart, PixiStage, PixiStageHooks } from '@automata/framework'
 import { LEVEL } from '../features/level/level.ts'
@@ -27,8 +27,28 @@ export interface FeelAudioLog {
   music: string | null
   /** The music files the game found. */
   readonly tracks: readonly string[]
+  /** What the player saw: the frames a shake, a flash and a tint were on, and the words that showed. */
+  readonly felt: { shake: number; flash: number; tint: number; words: string[] }
 }
-export const log: FeelAudioLog = { cues: [], music: null, tracks: Object.keys(tracks) }
+export const log: FeelAudioLog = {
+  cues: [],
+  music: null,
+  tracks: Object.keys(tracks),
+  felt: { shake: 0, flash: 0, tint: 0, words: [] },
+}
+
+// The journeys read this log from the dev page (what played, what the player saw). It is set again each time the module is
+// evaluated, which a saved change to the files above does. A release build defines `__AUTOMATA_DEBUG__` false: it never ships.
+declare const __AUTOMATA_DEBUG__: boolean
+if (__AUTOMATA_DEBUG__) (globalThis as { __storyLog?: unknown }).__storyLog = log
+
+/** Counts one drawn frame into `log.felt`. */
+export function noteFrame(frame: FeelFrame): void {
+  if (frame.offset[0] !== 0 || frame.offset[1] !== 0) log.felt.shake += 1
+  if (frame.flash !== null) log.felt.flash += 1
+  if (frame.tint !== null) log.felt.tint += 1
+  for (const word of frame.words) if (word.words !== undefined) log.felt.words.push(word.words)
+}
 
 /** The sound player's handle once audio runs: Feel plays the sounds it names through it. */
 let sounds: AudioStageHandle | undefined
@@ -38,6 +58,7 @@ export function feelOnStage(stage: PixiStage): PixiStageHooks {
   return feelStage({
     content: () => feelTable,
     size: { width: LEVEL.width, height: LEVEL.height },
+    onFrame: noteFrame,
     onCue: (cue) => void sounds?.cue(cue),
     onHaptic: (pulse) => {
       // A phone buzzes once; a game pad's motors are the host's to drive.

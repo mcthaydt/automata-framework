@@ -62,14 +62,14 @@ function conditionOf(op: 'is' | 'atLeast' | 'atMost', text: string): Condition {
 async function useTrack(path: string): Promise<void> {
   if (content === undefined) return
   const at = content.slot?.length ?? 0
-  const outcome = await session.change(`Use the track ${trackAlias(path)}`, [addTrackEdit(content, path)])
+  const outcome = await session.change(`Use the track ${trackAlias(path)}`, addTrackEdit(content, path))
   if (outcome.ok) session.chosen = { kind: 'track', index: at }
 }
 
 async function addRule(): Promise<void> {
   const first = content?.slot?.[0]?.id
   if (content === undefined || first === undefined) return
-  await session.change('Add a music rule', [addRuleEdit(content, first)])
+  await session.change('Add a music rule', addRuleEdit(content, first))
 }
 
 async function addCondition(rule: number): Promise<void> {

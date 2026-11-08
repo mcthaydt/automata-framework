@@ -22,7 +22,7 @@ async function addSound(): Promise<void> {
   if (content === undefined) return
   const id = newSoundId(content)
   const index = content.cue?.length ?? 0
-  const outcome = await session.change(`Add the sound ${id}`, [addSoundEdit(content, id)])
+  const outcome = await session.change(`Add the sound ${id}`, addSoundEdit(content, id))
   if (outcome.ok) session.chosen = { kind: 'sound', index }
 }
 </script>

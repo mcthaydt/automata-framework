@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { audio, log } from '#src/app/story-feel-audio.ts'
+import { audio, log, noteFrame } from '#src/app/story-feel-audio.ts'
 
 // The story hears its sim: the event map's sound plays once the audio is unlocked, and the music rules read the guard's mode.
 // Core's audio and the presentation bus are stand-ins here (the real ones need a browser); the served journeys play the
@@ -41,6 +41,23 @@ function fakeServices() {
 }
 
 describe('the story’s feel and audio', () => {
+  it('counts what the player saw, frame by frame, for a debug panel or a journey', () => {
+    const before = { ...log.felt, words: [...log.felt.words] }
+    const still = { offset: [0, 0], flash: null, tint: null, words: [] }
+    noteFrame(still as never)
+    expect(log.felt).toEqual(before)
+    noteFrame({
+      offset: [2, 0],
+      flash: { colour: 'white', alpha: 0.5 },
+      tint: { colour: 'red', alpha: 0.2 },
+      words: [{ words: 'Gate!' }, { words: undefined }],
+    } as never)
+    expect(log.felt.shake).toBe(before.shake + 1)
+    expect(log.felt.flash).toBe(before.flash + 1)
+    expect(log.felt.tint).toBe(before.tint + 1)
+    expect(log.felt.words).toEqual([...before.words, 'Gate!'])
+  })
+
   it('plays the event map’s sound when the keeper speaks, and undoes itself at shutdown', () => {
     const { services, emit, started } = fakeServices()
     const stop = audio(services as never)

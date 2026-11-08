@@ -5,7 +5,7 @@ import type { AudioContent, Condition, MusicRule, Slot } from '@automata/audio-s
 import { isTrackFile, trackAlias } from '@automata/audio-synth/stage'
 import type { ContentEdit } from '@automata/editor/kit/documents'
 import type { SuiteWorkspace } from '@automata/editor/kit/ports'
-import { type Field, setOrInsert } from '../../shared/fields.ts'
+import { appendEdits, type Field, setOrInsert } from '../../shared/fields.ts'
 
 export { isTrackFile, trackAlias }
 
@@ -20,13 +20,10 @@ export function unusedTracks(content: AudioContent, files: readonly string[]): s
   return files.filter((path) => isTrackFile(path) && !used.has(trackAlias(path)))
 }
 
-const append = (key: string, present: boolean, row: object): ContentEdit =>
-  present ? { keyPath: [key], insert: row } : { keyPath: [key], insert: [row] }
-
 /** A track from a file: it loops, at a level that sits under the effects. */
-export function addTrackEdit(content: AudioContent, path: string): ContentEdit {
+export function addTrackEdit(content: AudioContent, path: string): ContentEdit[] {
   const id = trackAlias(path)
-  return append('slot', content.slot !== undefined, { id, mode: 'loop', volume: 0.7, sound: id })
+  return appendEdits(['slot'], content.slot !== undefined, { id, mode: 'loop', volume: 0.7, sound: id })
 }
 
 const seconds = (key: string, label: string, value: number, max: number): Field => ({
@@ -105,8 +102,8 @@ export function ruleLines(content: AudioContent): RuleLine[] {
   })
 }
 
-export function addRuleEdit(content: AudioContent, slot: string): ContentEdit {
-  return append('music_rule', content.music_rule !== undefined, { when: {}, slot })
+export function addRuleEdit(content: AudioContent, slot: string): ContentEdit[] {
+  return appendEdits(['music_rule'], content.music_rule !== undefined, { when: {}, slot })
 }
 
 /** A rule moved from one place to another: the first matching rule plays, so the order is the meaning. */

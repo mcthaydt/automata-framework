@@ -1,4 +1,5 @@
 import type { AudioContent } from '@automata/audio-synth'
+import { openDocument } from '@automata/editor/kit/documents'
 import { describe, expect, it } from 'vitest'
 import {
   addRuleEdit,
@@ -47,14 +48,16 @@ describe('the files that are tracks', () => {
   })
 
   it('start as a loop at a level that sits under the effects', () => {
-    expect(addTrackEdit(content, 'assets/music/boss.ogg')).toEqual({
-      keyPath: ['slot'],
-      insert: { id: 'boss', mode: 'loop', volume: 0.7, sound: 'boss' },
-    })
-    expect(addTrackEdit({}, 'assets/music/boss.ogg')).toEqual({
-      keyPath: ['slot'],
-      insert: [{ id: 'boss', mode: 'loop', volume: 0.7, sound: 'boss' }],
-    })
+    expect(addTrackEdit(content, 'assets/music/boss.ogg')).toEqual([
+      { keyPath: ['slot'], insert: { id: 'boss', mode: 'loop', volume: 0.7, sound: 'boss' } },
+    ])
+  })
+
+  it('make the list first when the file has no tracks yet, which is what the first track a person adds meets', () => {
+    const file = openDocument('content/audio/audio.toml', '[[cue]]\nid = "talk"\nbus = "ui"\nvoices = []\n')
+    const edited = file.edit(addTrackEdit({}, 'assets/music/boss.ogg'))
+    expect(edited.ok).toBe(true)
+    if (edited.ok) expect(edited.document.value()).toMatchObject({ slot: [{ id: 'boss', sound: 'boss' }] })
   })
 })
 
@@ -105,14 +108,17 @@ describe('ruleLines', () => {
 
 describe('rule edits', () => {
   it('add a rule that plays a track whatever the game’s state', () => {
-    expect(addRuleEdit(content, 'chase')).toEqual({
-      keyPath: ['music_rule'],
-      insert: { when: {}, slot: 'chase' },
-    })
-    expect(addRuleEdit({}, 'chase')).toEqual({
-      keyPath: ['music_rule'],
-      insert: [{ when: {}, slot: 'chase' }],
-    })
+    expect(addRuleEdit(content, 'chase')).toEqual([
+      { keyPath: ['music_rule'], insert: { when: {}, slot: 'chase' } },
+    ])
+    const file = openDocument(
+      'content/audio/audio.toml',
+      '[[slot]]\nid = "chase"\nmode = "loop"\nvolume = 0.7\n',
+    )
+    const edited = file.edit(addRuleEdit({}, 'chase'))
+    expect(edited.ok).toBe(true)
+    if (edited.ok)
+      expect(edited.document.value()).toMatchObject({ music_rule: [{ when: {}, slot: 'chase' }] })
   })
 
   it('move a rule up by taking it out and putting it back one place earlier, in one change', () => {

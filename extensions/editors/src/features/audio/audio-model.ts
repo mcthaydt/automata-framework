@@ -3,7 +3,7 @@
 import type { AudioContent, BusId, Cue, Voice } from '@automata/audio-synth'
 import type { ContentEdit } from '@automata/editor/kit/documents'
 import { eventWords } from '../../shared/event-words.ts'
-import { type Field, setOrInsert } from '../../shared/fields.ts'
+import { appendEdits, type Field, setOrInsert } from '../../shared/fields.ts'
 import type { Problem } from '../../shared/toml-session.ts'
 
 const BUS_WORDS: Readonly<Record<BusId, string>> = {
@@ -146,12 +146,8 @@ export function newSoundId(content: AudioContent): string {
 const NEW_TONE: Voice = { tone: 'square', from: 660, to: 330, length: 0.12, volume: 0.4 }
 const NEW_HISS: Voice = { hiss: 2000, q: 1, length: 0.1, volume: 0.3 }
 
-/** An insert at the end of an array of tables, or the array itself when the file has none yet. */
-const append = (key: string, present: boolean, row: object): ContentEdit =>
-  present ? { keyPath: [key], insert: row } : { keyPath: [key], insert: [row] }
-
-export const addSoundEdit = (content: AudioContent, id: string): ContentEdit =>
-  append('cue', content.cue !== undefined, { id, bus: 'sfx', voices: [NEW_TONE] })
+export const addSoundEdit = (content: AudioContent, id: string): ContentEdit[] =>
+  appendEdits(['cue'], content.cue !== undefined, { id, bus: 'sfx', voices: [NEW_TONE] })
 
 export const addVoiceEdit = (cue: number, kind: 'tone' | 'hiss'): ContentEdit => ({
   keyPath: ['cue', cue, 'voices'],
@@ -160,8 +156,8 @@ export const addVoiceEdit = (cue: number, kind: 'tone' | 'hiss'): ContentEdit =>
 
 export const removeEdit = (...keyPath: (string | number)[]): ContentEdit => ({ keyPath, remove: true })
 
-export const addEventEdit = (content: AudioContent, on: string, cue: string): ContentEdit =>
-  append('event', content.event !== undefined, { on, cue })
+export const addEventEdit = (content: AudioContent, on: string, cue: string): ContentEdit[] =>
+  appendEdits(['event'], content.event !== undefined, { on, cue })
 
 /** The edits that make one event play `cue`: a silent row loses its reason, since a row is one or the other. */
 export function eventSoundEdits(content: AudioContent, index: number, cue: string): ContentEdit[] {

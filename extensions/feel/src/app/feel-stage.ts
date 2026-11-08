@@ -38,6 +38,11 @@ export interface FeelStageOptions {
    * game's content text). Without it the authored words show.
    */
   readonly translate?: ((path: readonly (string | number)[], authored: string) => string) | undefined
+  /**
+   * What was drawn, once per frame, after it was drawn: the shake's offset, the flash and tint, the words and the squashes.
+   * For a debug panel or a journey that checks what the player saw; the stage itself needs nothing from it.
+   */
+  readonly onFrame?: ((frame: FeelFrame) => void) | undefined
   /** The playfield's logical size: a word with no subject shows in the middle of it. Default 320 by 180. */
   readonly size?: { readonly width: number; readonly height: number } | undefined
 }
@@ -154,6 +159,7 @@ export function feelStage(options: FeelStageOptions): (stage: PixiStage) => Pixi
         showWords(frame.words)
         for (const cue of frame.cues) options.onCue?.(cue)
         for (const pulse of frame.haptics) options.onHaptic?.(pulse)
+        options.onFrame?.(frame)
       },
       reset(): void {
         stage.consumer?.hold(new Set())

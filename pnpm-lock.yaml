@@ -540,12 +540,18 @@ importers:
       '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
+      '@automata/playwright-preset':
+        specifier: workspace:*
+        version: link:../../tooling/playwright-preset
       '@automata/sim':
         specifier: workspace:*
         version: link:../../packages/sim
       '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
+      '@playwright/test':
+        specifier: 1.63.0
+        version: 1.63.0
       '@sveltejs/vite-plugin-svelte':
         specifier: 7.3.1
         version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))

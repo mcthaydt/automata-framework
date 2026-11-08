@@ -6,6 +6,7 @@ import type { SimEvent, StepResult } from '@automata/sim'
 import { Container, Text } from 'pixi.js'
 import { describe, expect, it, vi } from 'vitest'
 import { feelStage } from '#src/app/feel-stage.ts'
+import type { FeelFrame } from '#src/features/frame/feel.ts'
 import { content, slam } from '#src/testing/feel-table.ts'
 
 const fakeStage = (): PixiStage =>
@@ -56,6 +57,19 @@ describe('feelStage', () => {
     hooks.draw?.({ alpha: 0, frameMs: 16, paused: false })
     expect(stage.ui.children.length).toBeGreaterThan(0)
     expect(stage.ui.children.some((child) => child.visible && child.alpha > 0)).toBe(true)
+  })
+
+  it('tells a watcher what it drew on each frame, the flash and the shake included', () => {
+    const seen: FeelFrame[] = []
+    const { hooks } = setup({ onFrame: (frame) => void seen.push(frame) })
+    hooks.draw?.({ alpha: 0, frameMs: 16, paused: false })
+    expect(seen).toHaveLength(1)
+    expect(seen[0]?.flash).toBeNull()
+    hooks.apply?.(step(1, [slam(7)]))
+    hooks.draw?.({ alpha: 0, frameMs: 16, paused: false })
+    expect(seen).toHaveLength(2)
+    expect(seen[1]?.flash).not.toBeNull()
+    expect(seen[1]?.offset).not.toEqual([0, 0])
   })
 
   it('hands the cues and rumbles to the game’s ports, once', () => {

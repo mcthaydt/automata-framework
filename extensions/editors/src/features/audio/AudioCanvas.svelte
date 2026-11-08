@@ -76,9 +76,10 @@ async function addEvent(): Promise<void> {
   const on = adding.trim()
   const first = cueIds[0]
   if (on === '' || content === undefined || first === undefined) return
-  const outcome = await session.change('Add what plays when something happens', [
+  const outcome = await session.change(
+    'Add what plays when something happens',
     addEventEdit(content, on, first),
-  ])
+  )
   if (outcome.ok) adding = ''
 }
 </script>

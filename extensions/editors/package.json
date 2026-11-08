@@ -21,6 +21,7 @@
     "build": "vite build",
     "dev": "vite --open /suite.html",
     "test": "vitest run",
+    "test:e2e": "playwright test -c playwright.journeys.config.ts",
     "test:unit": "vitest run --project unit",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
@@ -42,7 +43,9 @@
     "@automata/sim": "workspace:^"
   },
   "devDependencies": {
+    "@automata/playwright-preset": "workspace:*",
     "@automata/vitest-preset": "workspace:*",
+    "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",
