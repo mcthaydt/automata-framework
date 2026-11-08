@@ -105,9 +105,11 @@ describe('the session', () => {
 describe('the Controls section', () => {
   const rowOf = (name: string) => screen.getByTestId(`controls-row-${name}`)
 
-  it('shows no section for a game without controls', async () => {
+  it('says the controls are in the code for a game without a controls file, and offers no rows', async () => {
     render(TunerRows, { controller: await open(tunerFixtureFiles()) })
-    expect(screen.queryByRole('region', { name: 'Controls' })).toBeNull()
+    const section = screen.getByRole('region', { name: 'Controls' })
+    expect(within(section).getByText('This game’s controls are in its code.')).toBeTruthy()
+    expect(within(section).queryByRole('group')).toBeNull()
   })
 
   it('shows one row per action with its name, its keys and its pad buttons', async () => {

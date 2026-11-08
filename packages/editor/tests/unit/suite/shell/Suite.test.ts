@@ -86,6 +86,23 @@ describe('Suite Home', () => {
   })
 })
 
+// What a person reads on Home is about their game, not about where it keeps its files: no path, file kind or package name.
+// (A list that cannot be read is the exception: it has to say which file to fix, and where in it.)
+const FILE_TALK = /content\/|\.toml|@automata\/|editors\.toml/
+
+describe('the words on Home', () => {
+  it('name no file, folder or package, for a game with a list and for a game with an editor the build lacks', async () => {
+    await start(SAMPLE_GAME)
+    await screen.findByRole('region', { name: 'Tuner' })
+    expect(document.body.textContent ?? '').not.toMatch(FILE_TALK)
+    await started?.dispose()
+    document.body.innerHTML = ''
+    await start({ [EDITOR_LIST_PATH]: feelList, 'content/feel.toml': '[limits]\nshake = 0.4\n' })
+    await screen.findByRole('region', { name: 'Feel' })
+    expect(document.body.textContent ?? '').not.toMatch(FILE_TALK)
+  })
+})
+
 describe('Home for an editor the game has no files for', () => {
   const feelEditor = {
     id: 'feel',

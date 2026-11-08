@@ -11,8 +11,8 @@ gates = []
 checks = ["content"]
 
 # The content editors the game plays: what the player feels (Feel) and the sounds and the music's order (Audio). A file
-# that is not there yet is started from its editor's page. Writer and Sequence are listed once the game has a dialogue
-# box and cutscenes to show what they make.
+# that is not there yet is started from its editor's page. Writer and Sequence are added to this list where the game has
+# the story (a keeper who talks, a cutscene), because that is what they make.
 [[file]]
 glob = "content/feel/*.toml"
 editor = "feel"
@@ -35,7 +35,8 @@ modes = ["edit"]
 gates = []
 checks = []
 
-# Characters and their places, for Schematic (a game that uses the systems extension). Nothing is listed until the files exist.
+# Characters that think and the places they walk between, for Schematic. A game that plays them has the files; the rows
+# wait for them here.
 [[file]]
 glob = "content/systems/*.toml"
 editor = "schematic"

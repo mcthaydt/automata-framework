@@ -68,7 +68,7 @@ describe('Feel', () => {
   it('adds a feel for something that happens, and an effect to it', async () => {
     const { ports } = await open({ [FEEL_PATH]: FILE })
     await userEvent.click(screen.getByRole('button', { name: 'Add a feel' }))
-    await userEvent.type(screen.getByLabelText('Something else'), 'enemy.died')
+    await userEvent.type(screen.getByLabelText('Another event (its name in the code)'), 'enemy.died')
     await userEvent.click(screen.getByRole('button', { name: 'Add' }))
     expect(await screen.findByRole('heading', { name: 'When enemy died happens' })).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Add an effect' }))
@@ -184,7 +184,7 @@ describe('Feel', () => {
     render(FeelPanel, { props: { session } })
     render(FeelCanvas, { props: { session } })
     await userEvent.click(screen.getByRole('button', { name: 'Add a feel' }))
-    await userEvent.type(screen.getByLabelText('Something else'), 'enemy.died')
+    await userEvent.type(screen.getByLabelText('Another event (its name in the code)'), 'enemy.died')
     await userEvent.click(screen.getByRole('button', { name: 'Add' }))
     expect(screen.getByRole('button', { name: 'Add an effect' })).toBeDisabled()
     release()
@@ -195,7 +195,7 @@ describe('Feel', () => {
   it('changes what a feel answers, keeping its effects, and refuses an event another feel answers', async () => {
     const { ports } = await open({ [FEEL_PATH]: FILE })
     await userEvent.click(screen.getByRole('button', { name: 'Change' }))
-    await userEvent.type(screen.getByLabelText('Something else'), 'enemy.died')
+    await userEvent.type(screen.getByLabelText('Another event (its name in the code)'), 'enemy.died')
     await userEvent.click(screen.getByRole('button', { name: 'Use this' }))
     await vi.waitFor(async () =>
       expect(await text(ports)).toContain('on = "enemy.died"\ncamera = [{ shake = 0.2 }]'),

@@ -67,3 +67,14 @@ describe('the Tuner in the suite', () => {
     expect((await ports.workspace.read('content/tuning.toml'))?.text).toBe(TUNING_FIXTURE)
   })
 })
+
+describe('the Tuner of a game whose controls are not a file', () => {
+  it('says the controls are in the game’s code, instead of showing nothing', async () => {
+    await start()
+    await userEvent.click(await screen.findByRole('tab', { name: 'Tuner' }))
+    await screen.findByTestId('tuner-rows')
+    const controls = await screen.findByTestId('tuner-controls')
+    expect(within(controls).getByText('This game’s controls are in its code.')).toBeInTheDocument()
+    expect(within(controls).queryByRole('group')).toBeNull()
+  })
+})

@@ -2,9 +2,9 @@ import { loadEditorList } from '@automata/editor/editor-list'
 
 // Which page `automata editor` serves: the game's own editor list decides, so there is no flag to remember. A game whose
 // list names a 3D editor or a content editor gets the full page (every editor: the core ones, Levels 3D and Characters,
-// Feel, Audio, Writer, Sequence and Schematic; the rail shows only the ones the list names). Every other game gets the
-// 2D page (Levels and the Tuner). A game with no list, or one that does not load, gets the 2D page, which is the one
-// that shows a list's problems in words.
+// Feel, Audio, Writer, Sequence and Schematic; the rail shows each one the game's kind can use, whether or not the list
+// names it). Every other game gets the 2D page (Levels, Characters and the Tuner). A game with no list, or one that
+// does not load, gets the 2D page, which is the one that shows a list's problems in words.
 
 export type EditorPage = 'suite-2d' | 'suite-full'
 
