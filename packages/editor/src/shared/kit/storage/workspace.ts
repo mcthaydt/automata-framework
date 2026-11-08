@@ -5,6 +5,7 @@ import { createOpfsStore, type DirectoryLike } from './handle-store'
 import { createHttpStore } from './http-store'
 import { createMemoryStore } from './memory-store'
 import { classifyStorageError, type ProjectStore } from './project-store'
+import { createPublishClient, type PublishClient } from './publish-client'
 
 export interface Workspace {
   /** Where documents live: an OPFS directory, or memory when OPFS cannot be used. */
@@ -82,8 +83,10 @@ export interface ServedStore {
   readonly store: ProjectStore
   /** The game's name in words ("Emberwick"), from a server that sends one. */
   readonly game: string | undefined
-  /** The game's dev page (`automata editor --game-url`), which the Tuner shows beside its settings. */
+  /** The game's page, which `automata editor` runs beside the editor: Play opens it and the Tuner shows it. */
   readonly gameUrl: string | undefined
+  /** Builds the game into a zip to upload, from a server that can; none from one that cannot. */
+  readonly publish: PublishClient | undefined
 }
 
 /**
@@ -97,6 +100,7 @@ export async function openServedStore(
   const fetchFn = env.fetch ?? ((...args: Parameters<typeof fetch>) => fetch(...args))
   let game: string | undefined
   let gameUrl: string | undefined
+  let publishes = false
   try {
     const ping = await fetchFn(`${env.origin}/api/ping`)
     const body: unknown = await ping.json()
@@ -105,13 +109,19 @@ export async function openServedStore(
     if ('game' in body && typeof body.game === 'string' && body.game !== '') game = body.game
     if ('gameUrl' in body && typeof body.gameUrl === 'string' && URL.canParse(body.gameUrl))
       gameUrl = body.gameUrl
+    publishes = 'publish' in body && body.publish === true
   } catch {
     return undefined
   }
   const given = new URLSearchParams(env.search).get('token') ?? undefined
   if (given !== undefined) env.sessionStorage?.setItem(TOKEN_KEY, given)
   const token = given ?? env.sessionStorage?.getItem(TOKEN_KEY) ?? undefined
-  return { store: createHttpStore({ base: env.origin, token, fetch: fetchFn }), game, gameUrl }
+  return {
+    store: createHttpStore({ base: env.origin, token, fetch: fetchFn }),
+    game,
+    gameUrl,
+    publish: publishes ? createPublishClient({ base: env.origin, token, fetch: fetchFn }) : undefined,
+  }
 }
 
 /**

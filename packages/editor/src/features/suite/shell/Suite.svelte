@@ -4,7 +4,7 @@
   the app's life, so the editor's session (documents, history, selection, view state) outlives a switch (EDS-D12),
   and its regions fill the shell's. Any other entry shows its cards. The shell stays mounted through every switch and
   rotation; only what is inside its regions changes. Home is `SuiteHome`, Ask's wiring is `SuiteAsk`, Publish and
-  Export/Import are `SuitePublish`, Undo and Redo are `suite-history`, and what a refused write says is
+  Export/Import are `SuitePublish` (Publish on a game's own folder is `PublishGameDialog`), Undo and Redo are `suite-history`, and what a refused write says is
   `core/write-messages` (split by responsibility in 12.7 and 12.5).
 -->
 <script lang="ts">
@@ -15,6 +15,7 @@ import type { SuiteEditor } from '../../../shared/kit/ports/suite-editor'
 import type { CheckFinding, SuitePorts, WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
 import EditorShell from '../../../shared/kit/shell/EditorShell.svelte'
 import { defaultDockOpen, dockPlacementOf, shellModeAt } from '../../../shared/kit/shell/shell-mode'
+import type { GamePublish } from '../../../shared/kit/storage/publish-client'
 import Button from '../../../shared/kit/widgets/Button.svelte'
 import IconButton from '../../../shared/kit/widgets/IconButton.svelte'
 import ToastRegion from '../../../shared/kit/widgets/ToastRegion.svelte'
@@ -26,6 +27,7 @@ import { findingMessage, refusalMessage } from '../core/write-messages'
 import type { Suite } from './create-suite'
 import Home from './Home.svelte'
 import type { EditorCard, HomeState } from './home-model'
+import PublishGameDialog from './PublishGameDialog.svelte'
 import ReadOnlyFile from './ReadOnlyFile.svelte'
 import ReviewDesk from './ReviewDesk.svelte'
 import SuiteAsk from './SuiteAsk.svelte'
@@ -46,9 +48,13 @@ interface Props {
   sample: boolean
   /** The game's name in words, from the server; the title. */
   game?: string | undefined
+  /** The running game's page, from the server: Play opens it. */
+  playUrl?: string | undefined
+  /** Builds the game into a zip to upload, on a game's own folder: Publish opens it. */
+  publish?: GamePublish | undefined
 }
 
-const { geometry, home, suite, ports, sample, game }: Props = $props()
+const { geometry, home, suite, ports, sample, game, playUrl, publish }: Props = $props()
 
 let current = $state<string | undefined>()
 let reading = $state<WorkspaceFile | undefined>()
@@ -147,6 +153,7 @@ function refused(outcome: WriteOutcome | undefined): void {
 
 // Publish (Ship in the spec, flow 9), the Review desk (flow 10) and Export and Import (flow 11).
 let publishing = $state(false)
+let publishingGame = $state(false)
 let reviews = $state<readonly ReviewChangeSet[]>()
 let interchange = $state<'export' | 'import'>()
 
@@ -218,8 +225,13 @@ function openCard(card: EditorCard): void {
       onundo={history.undo}
       onredo={history.redo}
       onask={ask === undefined ? undefined : () => (askOpen = true)}
-      onpublish={editing.canShip() ? () => (publishing = true) : undefined}
-      {shippable}
+      {playUrl}
+      onpublish={editing.canShip()
+        ? () => (publishing = true)
+        : publish !== undefined
+          ? () => (publishingGame = true)
+          : undefined}
+      shippable={shippable || (!editing.canShip() && publish !== undefined)}
       tools={mounted?.editor.regions.tools ? editorTools : undefined}
     />
     {#if mounted?.editor.regions.panel && mode !== 'wide'}
@@ -281,6 +293,7 @@ function openCard(card: EditorCard): void {
     onrefused={refused}
   />
 {/if}
+{#if publish !== undefined}<PublishGameDialog {publish} bind:open={publishingGame} />{/if}
 <SuitePublish
   session={editing}
   locked={(path) => (askTarget?.path === path ? askTarget.locked() : [])}

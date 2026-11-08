@@ -1,6 +1,6 @@
 <!--
   The middle of the suite's top bar, between Home and the sheet toggles: the game's name, where edits are saved, the
-  pills, then Undo, Redo, Ask, Publish and the open editor's own tools. The pills and the tools scroll sideways when
+  pills, then Undo, Redo, Ask, Play, Publish and the open editor's own tools. The pills and the tools scroll sideways when
   the bar is short of room. Only what has something to say is shown: no history hides Undo and Redo, no Ask hides
   Ask, nothing to publish hides Publish (12.7 Step G). Split out of `Suite.svelte` (12.7). Drawn as the document's
   bar is: the name in the title's weight, the saved note a quiet status with a tick, Undo and Redo icon buttons named
@@ -37,6 +37,8 @@ interface Props {
   onredo: () => void
   /** Opens Ask; `undefined` hides it. */
   onask: (() => void) | undefined
+  /** The running game's page: Play opens it in a new tab; `undefined` hides Play. */
+  playUrl: string | undefined
   /** Opens Publish; `undefined` hides it. */
   onpublish: (() => void) | undefined
   /** There is something to publish: Publish is the primary; otherwise it is quiet and its dialog says why. */
@@ -55,6 +57,7 @@ const {
   onundo,
   onredo,
   onask,
+  playUrl,
   onpublish,
   shippable,
   tools,
@@ -81,6 +84,7 @@ const {
     />
   {/if}
   {#if onask !== undefined}<Button onclick={onask}>Ask</Button>{/if}
+  {#if playUrl !== undefined}<a class="play" href={playUrl} target="_blank" rel="noreferrer">Play</a>{/if}
   {#if onpublish !== undefined}<Button variant={shippable ? 'primary' : 'plain'} onclick={onpublish}>Publish</Button>{/if}
   {@render tools?.()}
 </div>
@@ -100,6 +104,20 @@ const {
     margin-left: var(--space-2);
     color: var(--muted);
     font: var(--text-body-13);
+    white-space: nowrap;
+  }
+  /* Play is a link (it opens the game in a new tab), drawn as a plain button: a 44 px target with a hairline. */
+  .play {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--size-hit);
+    padding: 0 var(--space-4);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--edge-sm);
+    background: var(--paper);
+    color: var(--ink);
+    font: var(--text-body-13-medium);
+    text-decoration: none;
     white-space: nowrap;
   }
   .spacer {

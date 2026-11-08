@@ -7,6 +7,7 @@ import { createSuite } from '../../features/suite/shell/create-suite.ts'
 import { openSuitePorts } from '../../features/suite/shell/open-suite-ports.ts'
 import { createTuner } from '../../features/suite/tuner/tuner-suite-editor.ts'
 import type { SuiteEditor } from '../../shared/kit/ports/suite-editor.ts'
+import { browserPublish } from '../../shared/kit/storage/publish-client.ts'
 import { randomIds } from '../../shared/level-2d/model/ids.ts'
 import { createLevels2d } from './levels-2d/levels-2d-suite-editor.ts'
 
@@ -20,7 +21,7 @@ const target = document.getElementById('app')
 if (target === null) throw new Error('suite.html has no #app element')
 
 openSuitePorts({ origin: location.origin, search: location.search, sessionStorage })
-  .then(({ ports, sample, gameUrl, game }) => {
+  .then(({ ports, sample, gameUrl, game, publish }) => {
     // The Tuner shows the game's dev page beside its settings, so it is made once the server has named it.
     const editors = [
       createTuner({ gameUrl }),
@@ -39,6 +40,8 @@ openSuitePorts({ origin: location.origin, search: location.search, sessionStorag
       suite: createSuite({ editors: editors as SuiteEditor<unknown>[] }),
       sample,
       game,
+      playUrl: gameUrl,
+      publish: publish === undefined ? undefined : browserPublish(publish, document),
     })
   })
   .catch((error: unknown) => {

@@ -4437,6 +4437,7 @@ interface OpenedSuitePorts {
     readonly sample: boolean;
     readonly gameUrl: string | undefined;
     readonly game: string | undefined;
+    readonly publish: PublishClient | undefined;
 }
 ```
 
@@ -4489,6 +4490,8 @@ interface SuiteEnv {
     readonly suite: Suite;
     readonly sample?: boolean;
     readonly game?: string | undefined;
+    readonly playUrl?: string | undefined;
+    readonly publish?: GamePublish | undefined;
 }
 ```
 

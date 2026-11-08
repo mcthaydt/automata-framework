@@ -13,6 +13,8 @@ function setup(overrides: Partial<EditorCommandDeps> = {}) {
   const err: string[] = []
   const served: EditorServerOptions[] = []
   const closed = vi.fn()
+  const started: string[] = []
+  const stopped = vi.fn()
   const deps: EditorCommandDeps = {
     serve: async (options) => {
       served.push(options)
@@ -28,20 +30,25 @@ function setup(overrides: Partial<EditorCommandDeps> = {}) {
     lanAddresses: () => ['192.168.1.20'],
     makeToken: () => 'tok123',
     untilStopped: async () => {},
+    startGame: async (root) => {
+      started.push(root)
+      return { url: 'http://localhost:5199/', stop: async () => stopped() }
+    },
+    publishGame: async () => ({ ok: true, file: '/work/my-game-0.1.0-itch.zip' }),
     cwd: '/work',
     ...overrides,
   }
   const io = { stdout: (text: string) => out.push(text), stderr: (text: string) => err.push(text) }
-  return { deps, io, out, err, served, closed }
+  return { deps, io, out, err, served, closed, started, stopped }
 }
 
 describe('editorCommand', () => {
-  it('serves the 2D editor against the working folder on the loopback and says where', async () => {
+  it('serves the editors page against the working folder on the loopback and says where', async () => {
     const { deps, io, out, served, closed } = setup()
     expect(await editorCommand([], io, deps)).toBe(0)
     expect(served[0]).toMatchObject({
       root: '/work',
-      appDir: '/repo/builds/2d',
+      appDir: '/repo/builds/suite',
       host: '127.0.0.1',
       token: undefined,
     })
@@ -79,11 +86,44 @@ describe('editorCommand', () => {
     expect(served[0]).toMatchObject({ root: '/game', appDir: '/repo/builds/suite' })
   })
 
-  it("passes the game's dev page on to the server: Vite's own port unless told", async () => {
-    const { deps, io, served } = setup()
-    await editorCommand(['--app', 'suite'], io, deps)
+  it('starts the game itself, hands its page to the server for Play and the Tuner, says where it is, and stops it at the end', async () => {
+    const { deps, io, out, served, started, stopped } = setup()
+    expect(await editorCommand(['../my-game', '--app', 'suite'], io, deps)).toBe(0)
+    expect(started).toEqual(['/my-game'])
+    expect(served[0]?.gameUrl).toBe('http://localhost:5199/')
+    expect(out.join('')).toContain('Your game is running: http://localhost:5199/')
+    expect(stopped).toHaveBeenCalled()
+  })
+
+  it('uses the game page it was given and starts no game of its own', async () => {
+    const { deps, io, served, started } = setup()
     await editorCommand(['--app', 'suite', '--game-url', 'http://localhost:5180'], io, deps)
-    expect(served.map((each) => each.gameUrl)).toEqual(['http://localhost:5173/', 'http://localhost:5180/'])
+    expect(started).toEqual([])
+    expect(served[0]?.gameUrl).toBe('http://localhost:5180/')
+  })
+
+  it('says in plain words when the game cannot start, and still opens the editor without Play', async () => {
+    const { deps, io, out, served } = setup({
+      startGame: async () => {
+        throw new Error('Your game’s packages are not installed. Run pnpm install in its folder.')
+      },
+    })
+    expect(await editorCommand([], io, deps)).toBe(0)
+    expect(served[0]?.gameUrl).toBeUndefined()
+    expect(out.join('')).toContain('Play is off: Your game’s packages are not installed.')
+  })
+
+  it('hands the server the way to publish the game it opened', async () => {
+    const published: string[] = []
+    const { deps, io, served } = setup({
+      publishGame: async (root) => {
+        published.push(root)
+        return { ok: true, file: `${root}/my-game-0.1.0-itch.zip` }
+      },
+    })
+    await editorCommand(['../my-game'], io, deps)
+    expect(await served[0]?.publish?.()).toEqual({ ok: true, file: '/my-game/my-game-0.1.0-itch.zip' })
+    expect(published).toEqual(['/my-game'])
   })
 
   it('--lan listens on every address, makes a token, and prints the address a tablet opens with the token in it', async () => {
@@ -103,7 +143,10 @@ describe('editorCommand', () => {
   it('says the 3D editor and the suite are not in this release when run outside the repository, and starts nothing', async () => {
     for (const [app, says] of [
       ['3d', 'The 3D editor is not in this release yet.'],
-      ['suite', 'The editor suite is not in this release yet. Run automata editor to open the level editor.'],
+      [
+        'suite',
+        'The editors are missing from this copy of the tools. Install them again: pnpm add -D @automata/tools',
+      ],
     ] as const) {
       // A release without the suite's page: nothing is at the build folder.
       const { deps, io, err, served } = setup({ inRepository: false, exists: () => false })

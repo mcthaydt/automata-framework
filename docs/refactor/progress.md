@@ -401,6 +401,23 @@ the site's 3D parts.
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
+**The whole game loop (2026-11-08, session 6rfl3t, PR stacked on #473; the Owner asked whether a whole game can be made
+from the editors).** The 2D editors audit's E1 to E5 are fixed on the open stack, each with a served journey (E1
+`save-reaches-the-game`, E2 and E3 `new-game-opens`, E4 the 2D default, E5 `suite-opens-the-checkout`); none is on
+`main` yet. E6 was not: Play needed a second terminal (`pnpm dev`) and Publish was a change-set flow only a sample has,
+so nothing shipped a game from the editors. Now `automata editor` opens the editors page by default (the suite, ahead of
+15.2), starts the game's own Vite beside it (`features/editor/game-runner.ts`; `--game-url` still names a running one,
+and a game with no packages installed opens with "Play is off" and what to run), and serves `/api/publish`
+(`publish-game.ts`: the game's `vite build --mode itch`, then `automata ship prepare --target itch`, one zip). The
+suite's top bar has Play (a link to the running game) and, on a game's own folder, Publish (`PublishGameDialog`:
+Build my game, then Download the zip). The journey `whole-game-loop` runs the loop on a fresh `create-game` game: paint,
+saved to the level file, `check --only levels`, Play shows the wall in the running game, Publish, the downloaded zip
+holds `index.html` and the wall. All 20 journeys pass twice in Chromium at iPad and phone size; WebKit and Firefox not
+run (not in cloud sessions). `pnpm check`: green except `serve-editor.test.ts` "writes an mtime a later guarded write
+can use", which fails on this PR's base too (the container's file clock), not touched here. For 15.2 and 15.3: the default
+is already the suite; 15.3 cuts the change-set Publish, Export changes and Import changes, and keeps Play and the game's
+Publish. Screens: `/mnt/project-files/whole-game-loop/`.
+
 **Where to resume (2026-11-08, session us0s9k, 15.1b (a) to (d) and (f) half done):** branch `claude/project-thread-us0s9k`, PR #473 stacked on #472. Next is 15.1b (e), then the last journey and the site's Try-it page, then 15.2 to 15.4; the plan's log ("Task 15.1b" entries) has each ruling and a design note for (e). `pnpm install --frozen-lockfile` first in a fresh container; a commit that exports a type needs `pnpm build`, `pnpm api-report --update` first or the hook fails on the editor report; the served journeys run with `pnpm exec playwright test -c playwright.journeys.config.ts --project=editor-ipad-chromium` in `packages/editor` (`PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`, tools built).
 
 **Where to resume (2026-11-08, session ngqsn7 after 14.1):** the build continues at task 15.2 (one page, chosen by the game) on branch `claude/project-thread-ngqsn7`, stacked on #467 (PR #472). 14.1, 14.2 and 15.1 are done (the plan's log has the rulings). Facts a fresh session needs: `editor-3d`'s tests are in `tests/{unit,browser/{layout,canvas,journeys}}` and import the code as `#src/...`; run them with `pnpm exec vitest run --project unit`, `--project 'layout (chromium)'`, `--project canvas`, `--project 'journeys (chromium)'` in `packages/editor-3d` (`PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`); a mover does not rewrite `new URL(...)`, `import.meta.glob(...)` or path strings in data.

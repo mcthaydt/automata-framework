@@ -7,6 +7,8 @@ import { networkInterfaces } from 'node:os'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { type EditorApp, parseEditorArgs } from './editor-args.ts'
+import { gameVite, type RunningGame, startGame } from './game-runner.ts'
+import { type PublishOutcome, publishGame, runStep } from './publish-game.ts'
 import { type EditorServerOptions, gameName, type RunningEditor, serveEditor } from './serve-editor.ts'
 
 export interface EditorCommandIo {
@@ -26,19 +28,23 @@ export interface EditorCommandDeps {
   readonly makeToken: () => string
   /** Resolves when the person stops the command (Ctrl+C). */
   readonly untilStopped: () => Promise<void>
+  /** Starts the game in this folder as `pnpm dev` does, for Play and the Tuner; throws a sentence the person can act on. */
+  readonly startGame: (root: string) => Promise<RunningGame>
+  /** Builds the game in this folder and makes the zip to upload (the editor's Publish). */
+  readonly publishGame: (root: string) => Promise<PublishOutcome>
   readonly cwd: string
 }
 
 const USAGE = `Usage: automata editor [folder] [--app 2d|3d|suite] [--app-dir <build>] [--port <n>] [--lan] [--token <t>]
        [--game-url <address>]
 
-Opens the level editor on the game in <folder> (default: this folder) until you press Ctrl+C.
+Opens the editors on the game in <folder> (default: this folder) until you press Ctrl+C.
 Only this computer can open it, unless you add --lan: then a tablet on your network can too, and a token is needed
 (one is made for you if you give none). Open the address it prints, with the token in it.
 The editor saves to the files listed in content/editors.toml, and it will not overwrite a file that changed while
 you were editing. Without content/editors.toml, it opens only level files (*.af2d.json and *.af-sector.json).
-The Tuner shows your game beside its settings: start it with pnpm dev, and give --game-url if it is not on
-http://localhost:5173.
+It starts your game too, so Play and the Tuner can show it, and Publish builds it into a zip to upload.
+If your game is already running (pnpm dev), give its address with --game-url and it starts no other.
 `
 
 /** Where each editor's build is, from the repository root, and the package that builds it. */
@@ -86,7 +92,7 @@ export async function editorCommand(
   ) {
     io.stderr(
       app === 'suite'
-        ? 'Error: The editor suite is not in this release yet. Run automata editor to open the level editor.\n'
+        ? 'Error: The editors are missing from this copy of the tools. Install them again: pnpm add -D @automata/tools\n'
         : 'Error: The 3D editor is not in this release yet.\n',
     )
     return 2
@@ -96,6 +102,16 @@ export async function editorCommand(
     return 2
   }
   const secret = lan ? (token ?? deps.makeToken()) : token
+  // The game runs beside the editor unless the person already runs it; a game that cannot start leaves the editor
+  // working, with Play off and the reason printed.
+  let game: RunningGame | undefined
+  let gameProblem: string | undefined
+  if (gameUrl === undefined)
+    try {
+      game = await deps.startGame(root)
+    } catch (error) {
+      gameProblem = error instanceof Error ? error.message : String(error)
+    }
   let running: RunningEditor
   try {
     running = await deps.serve({
@@ -104,9 +120,11 @@ export async function editorCommand(
       host: lan ? '0.0.0.0' : '127.0.0.1',
       port,
       token: secret,
-      gameUrl,
+      gameUrl: gameUrl ?? game?.url,
+      publish: () => deps.publishGame(root),
     })
   } catch (error) {
+    await game?.stop()
     io.stderr(`Error: ${error instanceof Error ? error.message : String(error)}\n`)
     return 2
   }
@@ -115,9 +133,12 @@ export async function editorCommand(
   if (lan)
     for (const address of deps.lanAddresses())
       io.stdout(`  On the network: http://${address}:${running.port}${query}\n`)
+  if (game !== undefined) io.stdout(`  Your game is running: ${game.url}\n`)
+  if (gameProblem !== undefined) io.stdout(`  Play is off: ${gameProblem}\n`)
   io.stdout('Press Ctrl+C to stop.\n')
   await deps.untilStopped()
   await running.close()
+  await game?.stop()
   return 0
 }
 
@@ -148,6 +169,9 @@ export function liveEditorDeps(): EditorCommandDeps {
         process.once('SIGINT', done)
         process.once('SIGTERM', done)
       }),
+    startGame,
+    publishGame: (root) =>
+      publishGame(root, { vite: gameVite(root), bin: process.argv[1] ?? '', run: runStep }),
     cwd: process.cwd(),
   }
 }

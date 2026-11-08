@@ -7,7 +7,7 @@ export const ROOT_HELP = `Usage: automata <command>
   create-game <folder>   Make a new game in a new folder.
   check [folder]         Check a game before you ship it.
   build [folder]         Build a game.
-  editor [folder]        Open the level editor on a game.
+  editor [folder]        Open the editors on a game, play it and publish it.
   ship <command>         Check a build for a place to publish it, and publish it.
 Run automata <command> --help for more.
 `
