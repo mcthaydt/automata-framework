@@ -8,6 +8,7 @@
 import type { TouchButton } from '../../features/input/keys.ts'
 import { type InputMethodTracker } from '../../shared/ui/browser/input-method.svelte'
 import ScreenFrame from '../../shared/ui/layout/ScreenFrame.svelte'
+import { PlaySession, providePlay } from '../../shared/ui/slots/play-context.svelte.ts'
 import { type UiComponent } from '../../shared/ui/slots/ui-slot'
 import CameraDragSurface from '../../shared/ui/touch/CameraDragSurface.svelte'
 import { type DragTracker } from '../../shared/ui/touch/camera-drag-surface'
@@ -28,6 +29,8 @@ interface Props {
   swipe?: PointerTracker | undefined
   /** The extensions' `hud.overlay` components, drawn over the game inside the visible region. */
   hud?: readonly UiComponent[] | undefined
+  /** The running game, for `usePlay()` in the `hud` components; none makes the hud components' `usePlay()` throw. */
+  play?: PlaySession | undefined
   /** The camera-drag tracker, when the input map binds `camera-drag`; none draws no surface. */
   drag?: DragTracker | undefined
   /** The touch stick, when the input map asks for it: its vector and its release. */
@@ -42,10 +45,26 @@ const {
   onRelease,
   swipe,
   hud = [],
+  play,
   copy,
   drag,
   stick,
 }: Props = $props()
+
+// Svelte contexts are read while a component is made, so it is given before the hud components are.
+// svelte-ignore state_referenced_locally
+if (play !== undefined) providePlay(play)
+// The hud components read the game each frame, so the session is told when one passes; nothing to do with no hud.
+$effect(() => {
+  if (play === undefined || hud.length === 0) return
+  let frame = 0
+  const tick = (): void => {
+    play.refresh()
+    frame = requestAnimationFrame(tick)
+  }
+  frame = requestAnimationFrame(tick)
+  return () => cancelAnimationFrame(frame)
+})
 
 const touching = $derived(tracker.method === 'touch')
 const showButtons = $derived(

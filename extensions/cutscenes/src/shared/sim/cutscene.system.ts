@@ -8,6 +8,8 @@ import { CutsceneEnded, CutsceneStarted } from './cutscene.event'
 import { CutsceneScene, CutsceneState } from './cutscene.resource'
 
 export interface CutscenesOptions {
+  /** What provides the game's places, so the extension requires it: sectors' 3D rooms (the default) or a 2D level. */
+  readonly places?: { readonly provider: string }
   /** Where a named anchor stands now (`player`, `actor:nurse`, a hotspot or nav node); undefined when the scene lacks it. */
   readonly anchor?: (ctx: SimContext, name: string) => { readonly x: number; readonly z: number } | undefined
 }

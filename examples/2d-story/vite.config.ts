@@ -1,5 +1,9 @@
 import { level2dKinds } from '@automata/content/level-2d'
 import { automataContent } from '@automata/content/vite'
+import { cutsceneContent } from '@automata/cutscenes/content'
+import { dialogueContent, linesContent } from '@automata/narrative/content'
+import { navGraphContent } from '@automata/nav'
+import { systemsContent } from '@automata/systems'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { defaultClientConditions, defineConfig } from 'vite'
 
@@ -14,8 +18,21 @@ export default defineConfig(({ mode }) => ({
   base: './',
   resolve: { conditions: [ADAPTER_CONDITIONS[mode] ?? 'automata-web', ...defaultClientConditions] },
   // The framework's screens are Svelte components, compiled with the game. The content plugin compiles `content/`
-  // (the level the editor writes) into `virtual:automata/content`, again on every save while `pnpm dev` runs.
-  plugins: [svelte(), automataContent({ schemas: level2dKinds() })],
+  // (the level the editor writes, the keeper's words, the cutscene and the guard) into `virtual:automata/content`,
+  // again on every save while `pnpm dev` runs.
+  plugins: [
+    svelte(),
+    automataContent({
+      schemas: [
+        ...level2dKinds(),
+        linesContent,
+        dialogueContent,
+        cutsceneContent,
+        navGraphContent,
+        systemsContent({ hooks: [] }),
+      ],
+    }),
+  ],
   build: {
     outDir: 'dist',
     emptyOutDir: true,

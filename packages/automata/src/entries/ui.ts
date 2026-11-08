@@ -42,6 +42,11 @@ export { default as ScreenFrame } from '../shared/ui/layout/ScreenFrame.svelte'
 export { default as ScrollList } from '../shared/ui/layout/ScrollList.svelte'
 export { default as Split } from '../shared/ui/layout/Split.svelte'
 export { keyLabel, type PromptCopy, padLabel } from '../shared/ui/prompts/prompt-label'
+export {
+  type PlayHandle,
+  type SentCommand,
+  usePlay,
+} from '../shared/ui/slots/play-context.svelte.ts'
 export { default as BootFailurePanel } from '../shared/ui/status/BootFailurePanel.svelte'
 export { default as Chip } from '../shared/ui/status/Chip.svelte'
 export { default as ErrorPanel } from '../shared/ui/status/ErrorPanel.svelte'

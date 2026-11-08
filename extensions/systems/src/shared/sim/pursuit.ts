@@ -1,14 +1,13 @@
 // Pursuit: where the player crosses into another zone, hiding, and who saw her
-// hide. The crossing is read from the player's `InSector.sector`, which sectors decides in `cleanup`, so it is the
-// sector at the end of the last step.
-import { InSector, type Point, type Sector } from '@automata/sectors/sim'
+// hide. The crossing is read from the player's room (`places.roomOf`), which in 3D sectors decides in `cleanup`, so it
+// is the room at the end of the last step.
+import { type PlanRoom, type PlanPoint as Point, THROUGH } from '@automata/places'
 import { sortedKeys } from '@automata/sim'
 import { hypot } from '@automata/sim/math'
 import type { Crossing } from './systems.resource'
 import type { SystemsWorld } from './world'
 
-/** How far into the far sector an agent comes through a portal, in metres. */
-export const THROUGH = 0.5
+export { THROUGH }
 /** Door-follow's clearance: never within this of the player. */
 export const FOLLOW_CLEAR = 1.5
 /** Noises the agents never hear: an agent's own footfalls, which are for the player's ears. */
@@ -16,48 +15,43 @@ export const UNHEARD: readonly string[] = ['footfall']
 
 export const dist = (a: Point, b: Point): number => hypot(a.x - b.x, a.z - b.z)
 
-/** The zone a point is in (its sector's), or undefined off the map. */
-export const zoneAt = (w: SystemsWorld, p: Point): string | undefined => w.map.sectorAt(p)?.zone
+/** The zone a point is in (its room's), or undefined off the map. */
+export const zoneAt = (w: SystemsWorld, p: Point): string | undefined =>
+  w.rooms[w.places.roomAt(w.ctx, p) - 1]?.zone
 
-/** A crossing from `from` into `to` through the edge between them, or null when they do not touch. */
-export function crossingOf(w: SystemsWorld, from: Sector, to: Sector): Crossing | null {
-  const index = w.map.sectors.indexOf(to)
-  for (const loop of from.loops)
-    for (const edge of loop) {
-      if (edge.next !== index) continue
-      const x = (edge.a.x + edge.b.x) / 2
-      const z = (edge.a.z + edge.b.z) / 2
-      // The edge's normal points into `from`: the far side is against it.
-      return {
+/** A crossing from room `from` into room `to` through the edge between them, or null when they do not touch. */
+export function crossingOf(w: SystemsWorld, from: PlanRoom, to: PlanRoom): Crossing | null {
+  const through = w.places.crossing(w.ctx, from.id, to.id)
+  return through === null
+    ? null
+    : {
         portal: `${from.id}>${to.id}`,
         from: from.id,
         to: to.id,
         zone: to.zone,
-        x,
-        z,
-        into: { x: x - edge.normal.x * THROUGH, z: z - edge.normal.z * THROUGH },
+        x: through.x,
+        z: through.z,
+        into: through.into,
       }
-    }
-  return null
 }
 
 /** A portal by id (`from>to`), as a crossing. */
 export function portal(w: SystemsWorld, id: string): Crossing | null {
   const [a, b] = id.split('>')
-  const from = w.map.sectors.find((s) => s.id === a)
-  const to = w.map.sectors.find((s) => s.id === b)
+  const from = w.rooms.find((room) => room.id === a)
+  const to = w.rooms.find((room) => room.id === b)
   return from !== undefined && to !== undefined ? crossingOf(w, from, to) : null
 }
 
-/** Notes the player's sector for this step, and whether she crossed into another zone since the last one. */
+/** Notes the player's room for this step, and whether she crossed into another zone since the last one. */
 export function track(w: SystemsWorld): void {
   const p = w.pursuit
   p.crossed = null
-  const index = w.env.player === 0 ? 0 : (w.ctx.entity(w.env.player)?.get(InSector).sector ?? 0)
-  const now = index === 0 ? undefined : w.map.sectors[index - 1]
+  const index = w.env.player === 0 ? 0 : w.places.roomOf(w.ctx, w.env.player)
+  const now = index === 0 ? undefined : w.rooms[index - 1]
   if (now === undefined) return
   if (p.sector !== '' && p.sector !== now.id) {
-    const before = w.map.sectors.find((s) => s.id === p.sector)
+    const before = w.rooms.find((room) => room.id === p.sector)
     if (before !== undefined && before.zone !== now.zone) {
       const c = crossingOf(w, before, now)
       if (c !== null) {

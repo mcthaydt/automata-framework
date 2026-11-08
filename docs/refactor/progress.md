@@ -504,7 +504,7 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
 
-## Edited content shows in play: 33% (2 of 6: stages 2 and 3)
+## Edited content shows in play: 67% (4 of 6: stages 2, 3 and 4; the build is done except three journey steps)
 
 Normal dev pipeline (no stage 1 audit; the investigation is
 [`2026-11-08-complete-game-gaps.md`](2026-11-08-complete-game-gaps.md)). The Owner approved steps 1 to 6 on 2026-11-08
@@ -515,7 +515,7 @@ Normal dev pipeline (no stage 1 audit; the investigation is
 | --- | --- |
 | 2. Spec and plan | Done: [spec](2026-11-08-content-in-play-spec.md), [plan](2026-11-08-content-in-play-plan.md), 16 tasks |
 | 3. Plan audit | Done: [audit](2026-11-08-content-in-play-plan-audit.md), 21 findings fixed in the spec and plan; 17 tasks |
-| 4. Build | In progress (7 of 17, plus 5b: tile readers, `levelScene`, `pictureView`, the new game draws the editor's level, animation schema and clips in play, Tiles from, the `examples/2d-story` skeleton, the Animation section in Characters; the journeys found and fixed a lost-save bug) |
+| 4. Build | Done on PR #484, except three journey steps (17 of 17 tasks): tile readers, `levelScene`, `pictureView` and clips, controls as data, `places`, `level-2d`, `usePlay`, the dialogue box, 2D cutscenes and captions, systems in 2D, and `examples/2d-story`, played in the served journey `story-in-play` (iPad and phone, Chromium). **Pending:** changing the keeper's words in Writer, the caption in Sequence and the guard's chase speed in Schematic: those editors (PR #478) are not on this branch, so the steps are not run and nothing was written behind an editor's back. Also pending: WebKit and Firefox (parity, journeys) on the runner. |
 | 5. Build audit | Not started |
 | 6. Fixes | Not started |
 

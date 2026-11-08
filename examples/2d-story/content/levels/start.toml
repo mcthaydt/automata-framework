@@ -40,9 +40,9 @@ zone = "hall"
 [[layers.items]]
 id = "00000003"
 def = "area"
-x = 272
+x = 256
 y = 0
-w = 240
+w = 256
 h = 256
 
 [layers.items.fields]

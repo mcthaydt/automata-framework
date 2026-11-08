@@ -1,0 +1,35 @@
+# What the keeper says: one record per line. The words are in words/en.json, under the same name.
+[[lines]]
+id = "keeper.hello"
+kind = "dialogue"
+speaker = "keeper"
+text = "keeper.hello"
+
+[[lines]]
+id = "keeper.passing"
+kind = "dialogue"
+speaker = "player"
+text = "keeper.passing"
+
+[[lines]]
+id = "keeper.gate"
+kind = "dialogue"
+speaker = "player"
+text = "keeper.gate"
+
+[[lines]]
+id = "keeper.farewell"
+kind = "dialogue"
+speaker = "keeper"
+text = "keeper.farewell"
+
+[[lines]]
+id = "keeper.follow"
+kind = "dialogue"
+speaker = "keeper"
+text = "keeper.follow"
+
+[[lines]]
+id = "keeper.later"
+kind = "caption"
+text = "keeper.later"

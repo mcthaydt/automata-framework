@@ -2,10 +2,10 @@
 // every walker in StableId order steps along its route by one stride (speed × dt), carrying what is left of a stride
 // past a point onto the next leg. A route is made once, and again only when the doors' version moves (never per tick).
 // Sectors' membership runs in `cleanup`, so it sees the moved position on the same step.
-import { InSector, type Point, resolvedMap } from '@automata/sectors/sim'
+import type { Places } from '@automata/places'
+import { type Point, sectorsPlaces } from '@automata/sectors/sim'
 import { defineSystem, type SimContext, type SystemDef, sortedKeys } from '@automata/sim'
 import { hypot } from '@automata/sim/math'
-import { blockedBy } from './blocked'
 import { NavDoor, WalkTo } from './nav.command'
 import { NavAgent } from './nav.component'
 import { NavArrived, NavUnreachable } from './nav.event'
@@ -13,7 +13,9 @@ import { NavDoors, NavGraphResource, type NavRoute, NavRoutes } from './nav.reso
 import { type Blocked, clear, route, WALK_MARGIN } from './route'
 
 export interface NavOptions {
-  /** The game's movement query (walls, steps and its own obstacles); by default sectors' walls and nav's doors. */
+  /** Where walkers stand and what blocks them; by default sectors' 3D rooms. A 2D game gives `level-2d`'s. */
+  readonly places?: Places
+  /** The game's movement query (walls, steps and its own obstacles); by default the places' walls and nav's doors. */
   readonly blocked?: (ctx: SimContext, doors: Readonly<Record<string, boolean>>) => Blocked
   /** While this holds (a cutscene is playing), new `walk-to` commands are ignored; walks under way go on (the `cutscenes` extension's `locked`). */
   readonly locked?: (ctx: SimContext) => boolean
@@ -46,29 +48,32 @@ function plan(
   }
 }
 
-export const navWalkSystem = (options: NavOptions): SystemDef =>
-  defineSystem('nav.walk', 'gameplay', (ctx) => {
+export const navWalkSystem = (options: NavOptions): SystemDef => {
+  const places = options.places ?? sectorsPlaces
+  return defineSystem('nav.walk', 'gameplay', (ctx) => {
     const doors = ctx.resource(NavDoors)
     for (const { payload } of ctx.commands.of(NavDoor)) {
       if ((doors.open[payload.door] === true) === payload.open) continue
       doors.open[payload.door] = payload.open
       doors.version += 1
     }
-    const blocked = options.blocked?.(ctx, doors.open) ?? blockedBy(resolvedMap(ctx), doors.open)
+    const blocked = options.blocked?.(ctx, doors.open) ?? places.walk(ctx, doors.open)
     const routes = ctx.resource(NavRoutes)
     // A walk-to names an entity that nav moves; any other is ignored.
     for (const { payload } of options.locked?.(ctx) === true ? [] : ctx.commands.of(WalkTo)) {
       const walker = ctx.entity(payload.entity)
-      if (walker === undefined || !walker.has(NavAgent) || !walker.has(InSector)) continue
-      const { x, z } = walker.get(InSector)
-      plan(ctx, blocked, routes, payload.entity, { x, z }, payload.to, doors.version)
+      const from = places.at(ctx, payload.entity)
+      if (walker === undefined || !walker.has(NavAgent) || from === undefined) continue
+      plan(ctx, blocked, routes, payload.entity, from, payload.to, doors.version)
     }
     for (const key of sortedKeys(routes)) if (ctx.entity(Number(key)) === undefined) delete routes[key]
-    for (const walker of ctx.query(NavAgent, InSector)) {
+    for (const walker of ctx.query(NavAgent)) {
       const key = String(walker.sid)
       let walk = routes[key]
       if (walk === undefined) continue
-      const { x, z } = walker.get(InSector)
+      const standing = places.at(ctx, walker.sid)
+      if (standing === undefined) continue
+      const { x, z } = standing
       if (walk.version !== doors.version) {
         plan(ctx, blocked, routes, walker.sid, { x, z }, walk.to, doors.version)
         walk = routes[key]
@@ -89,10 +94,11 @@ export const navWalkSystem = (options: NavOptions): SystemDef =>
           stride = 0
         }
       }
-      walker.set(InSector, { x: here.x, z: here.z })
+      places.move(ctx, walker.sid, { x: here.x, z: here.z })
       if (walk.points.length === 0) {
         delete routes[key]
         ctx.emit(NavArrived, { entity: walker.sid, at: { x: here.x, z: here.z } })
       }
     }
   })
+}

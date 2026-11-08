@@ -1,25 +1,49 @@
+import { placeScript } from '@automata/cutscenes/sim'
+import { cutsceneStage2d } from '@automata/cutscenes/stage-2d'
 import { defaultContent, defineGame, keys } from '@automata/framework'
 import { LEVEL } from '../features/level/level.ts'
-import { LEVEL_SCENE } from '../features/level/level-scene.ts'
+import { project, startLevel } from '../features/level/level-content.ts'
+import { images, LEVEL_SCENE } from '../features/level/level-scene.ts'
 import { Move } from '../features/square/move.command.ts'
-import { Square } from '../features/square/square.component.ts'
-import { squarePlugin } from '../features/square/square.plugin.ts'
 import { squareView } from '../features/square/square.view.ts'
-import { SQUARE_SIZE } from '../shared/constants.ts'
+import { EXTENSIONS } from '../features/story/story.extensions.ts'
+import { SCRIPTS } from '../features/story/story-content.ts'
+import { METRE } from '../shared/constants.ts'
+import { cutsceneCamera, storyCamera } from './story-camera.ts'
+import { PLUGINS, setup } from './story-sim.ts'
 
-/** 2D Story: a square the player moves around the level, on the default title, play and pause screens. */
+// The cutscenes' actors are the placed characters named in the editor, and their points are in metres, so they are placed
+// as written: this story's scripts name no anchor.
+const SCRIPTS_PLACED = Object.fromEntries(
+  Object.entries(SCRIPTS).map(([id, script]) => {
+    const placed = placeScript(script, () => undefined)
+    if (!placed.ok)
+      throw new Error(
+        `The cutscene "${id}" names ${placed.missing.join(', ')}, which this story cannot place.`,
+      )
+    return [id, placed.script] as const
+  }),
+)
+LEVEL_SCENE.add(
+  cutsceneStage2d({
+    scene: LEVEL_SCENE,
+    project,
+    level: startLevel,
+    images,
+    camera: cutsceneCamera,
+    metre: METRE,
+    scripts: SCRIPTS_PLACED,
+    view: { width: LEVEL.width, height: LEVEL.height },
+  }),
+)
+
+/** 2D Story: a square the player moves around the level, a keeper to talk to, a cutscene and a guard. */
 export const game = defineGame({
   id: 'story',
   title: '2D Story',
   size: { width: LEVEL.width, height: LEVEL.height },
-  sim: {
-    plugins: [squarePlugin],
-    seed: 1,
-    // The square stands on the level's player start: its bottom edge there, so its centre half a square higher.
-    setup: (sim) => {
-      sim.spawn([[Square, { x: LEVEL.start.x, y: LEVEL.start.y - SQUARE_SIZE / 2 }]])
-    },
-  },
+  sim: { plugins: PLUGINS, seed: 1, setup },
+  extensions: EXTENSIONS,
   // The default screens' flow, and the level as the sim's content (what its systems read as `ctx.content`).
   content: { ...defaultContent(), sim: LEVEL },
   // Arrows or WASD, or the pad's D-pad; on a touch screen, buttons.
@@ -40,4 +64,5 @@ export const game = defineGame({
   views: squareView,
   // The level's tiles and placed characters, drawn by core from what the editor saved.
   level: LEVEL_SCENE,
+  renderer: { setup: storyCamera },
 })

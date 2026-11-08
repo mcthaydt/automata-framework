@@ -531,19 +531,19 @@ The Owner's rule (2026-11-08): content made in the editors must be seen in play,
   cutscene.
 - Create: `examples/2d-story/tests/e2e/story-in-play.test.ts`
 
-- [ ] **Step 1: Failing unit test** in the example: a scripted run (touch the keeper, Advance, choose 2) reaches the
+- [x] **Step 1: Failing unit test** in the example: a scripted run (touch the keeper, Advance, choose 2) reaches the
   cutscene and then the guard's chase, with the same hash in Node twice.
-- [ ] **Step 2:** Build the example until it passes; `pnpm check`.
-- [ ] **Step 3: Served journey** (Chromium, phone and iPad projects): `automata editor` in the example serves the
+- [x] **Step 2:** Build the example until it passes; `pnpm check`.
+- [~] **Step 3: Served journey** (done for the colour, the box, the choice, the cutscene and the guard; the Writer, Sequence and Schematic edits are NOT run, see step 4) (Chromium, phone and iPad projects): `automata editor` in the example serves the
   editor and the game. In the suite: Writer changes the keeper's line to "The gate sticks in the rain."; Sequence
   changes the caption to "Later, at the gate."; Schematic changes the guard's chase speed; Save after each. Press
   Play. Walk into the keeper: the dialogue box shows "The gate sticks in the rain." with "Next"; tap the second choice;
   the caption "Later, at the gate." shows above the box's place and the keeper walks; then the guard sees the player
   through the gap and loses them behind the wall. Assert each in the DOM or by reading the sim through the test hook,
   and look at the screenshots and explain them in the log.
-- [ ] **Step 4:** If one of #478's Writer, Sequence or Schematic is not built yet, leave its step unchecked, say so in
+- [~] **Step 4:** If one of #478's Writer, Sequence or Schematic is not built yet, leave its step unchecked, say so in
   the log and the PR, and keep the rest of the journey running. Never write the TOML directly and count it as edited.
-- [ ] **Step 5:** Commit `test(examples): a 2D story edited in the suite shows in play`.
+- [x] **Step 5:** Commit `test(examples): a 2D story edited in the suite shows in play`.
 
 ### Task 17: Docs and the gate
 
@@ -601,3 +601,112 @@ The Owner's rule (2026-11-08): content made in the editors must be seen in play,
   long paint journey, so each journey stays one story; it presses Add key and J in the Tuner, Plays, holds J, and the
   square moves left (iPad and phone, Chromium; the first version flaked on iPad because it held J for a fixed 600 ms, now
   it looks again until the square has moved).
+- 2026-11-08 Task 10 done: `extensions/places` (private) holds the `Places` contract; `sectorsPlaces` (sectors) answers it with
+  exactly what nav, narrative and systems read before (`InSector`, the resolved map, `blockedBy`, systems' crossing maths),
+  so no 3D hash, golden or replay moved (unit suites: sectors 49, nav 25, narrative 137, cutscenes 71, systems 63,
+  pipelines 190, base-3d 105, all green). `blockedBy` moved from nav to sectors (nav re-exports it). Each consumer takes
+  `places?: Places` (default sectors) and its extension/plugin `requires`/`dependsOn` the provider. Rulings: (1) `Places`
+  gained `roomOf(ctx, sid)`, the room as of the last step, because narrative and systems read `InSector.sector` (membership
+  decided in sectors' `cleanup`), which can lag the position by a step; reading `roomAt(position)` instead would move a
+  3D hash. (2) The cutscene lint has no sim context, so it takes a structural `LintFloor` (`sectorAt`, `segmentBlocked`;
+  sectors' `ResolvedMap` fits) instead of `Places`; cutscenes' extension requires `options.places?.provider ?? 'sectors'` by
+  name and no longer lists `@automata/sectors` as a peer. (3) Nothing added to any plugin's `config`. Pre-existing and left:
+  `pnpm typecheck` fails in `extensions/editors` (svelte-check warning exits 1) and knip lists `examples/2d-story/ship.config.ts`,
+  `@automata/feel` and `@testing-library/user-event` in `extensions/editors`.
+- 2026-11-08 Task 11 done: `extensions/level-2d` (private, `@automata/level-2d`, sim entry `./sim`): `level2dPlaces`, `Level2dAt`,
+  `cellWalls`, `level2dExtension`. 15 unit tests (Node). Rulings: (1) a point on a shared edge goes to the first area, so
+  containment is on closed rectangles in file order (spec). (2) `cellWalls` with no margin treats touching a cell's edge as
+  not crossing it (a walker may stand on a floor's top edge); with a margin it is the distance from the segment to the cell
+  that must reach the margin. (3) A walls layer with no value called `solid` and no `solid` option throws a sentence, so a
+  mistyped layer does not silently mean "no walls"; a project with no IntGrid layer has no walls. (4) `roomOf` reads the
+  position now (no lag in 2D). (5) `Math.hypot` is refused by `pnpm boundaries` in sim code, so the maths uses `hypot` from
+  `@automata/sim/math`.
+- 2026-11-08 Task 12 done: `PlaySession` / `usePlay()` in `packages/automata/src/shared/ui/slots/play-context.svelte.ts`, exported from
+  `@automata/framework` (the `ui` entry; not `/extension`, which Node reads and must not pull in a `.svelte.ts`). `PlayScreen` provides the
+  context and refreshes the session each animation frame, only when a hud component exists. Rulings: (1) `send` takes
+  `{ type, payload }` (a full `Command` fits); the stream fills in tick, source 0 and a seq of its own (`tick + 1 + n`; the input
+  map's seq is the tick, and a seq may be used once per source in a step). (2) The recording is "the stream
+  `appLoop.run({ commands })` is given"; there is no recorder in the runtime. Tests: 6 in jsdom (read follows the frame, rAF
+  refresh, read-only view, the outside-a-screen sentence, order and seqs, a recorded stream replays to the same hash).
+- 2026-11-08 Task 13 done: the dialogue box (`extensions/narrative/src/features/box/`: `dialogue-box.ts` model, `DialogueBox.svelte`,
+  `box-slot.ts`). `narrativeExtension({ words, lines })` puts it in `hud.overlay` (only when `words` is given, so a 3D game
+  that draws its own lines is unchanged). Narrative now builds Svelte (svelte-check typecheck, jsdom tests name the environment
+  on their first line, `alsoInNode` narrowed to `tests/browser/shared` so the layout test runs only in browsers). Rulings:
+  (1) `lines` is a second option: line records are content and the sim does not hold them, so the box cannot find a line's
+  speaker and key without it (the spec named only `words`). (2) The box reads the conversation with `view()` over a reader
+  built from the draw layer's read-only view (`puzzleReader`, factored out of narrative.system so the sim and the box use
+  one function); a condition on a fact the game maps through `options.facts` is not visible to the box, so such a choice
+  could show that the sim then refuses (it does nothing). (3) The speaker is `words('speaker.<id>')`, else the id read aloud
+  (`nurse-jo` as `Nurse jo`); "Next" is `words('dialogue.next')`, else "Next". (4) The pad's A is read by the box itself
+  (the default play screen only steers its menus with a pad): it presses the focused button. (5) Core: `PlayHost`/`mountInPlay`
+  in `@automata/framework/testing` mounts a slot component in the real `PlayScreen`; `.af-game-play__field` is
+  `position: relative`. Tests: 15 DOM/model (jsdom), 3 layout (Chromium: 390x844, 844x390, 1024x768; WebKit and Firefox are
+  not installed here); core screens layout suite 401 passes in Chromium.
+- 2026-11-08 Task 14 done: cutscenes in a 2D level. Lint: `LintWorld.map` is a `LintFloor` (`sectorAt`, `segmentBlocked`), and
+  `dimensions: 2` adds the `3d-only` warning for lamps, doors, props, time, grade and flicker and skips the camera-position
+  checks. `@automata/cutscenes/stage-2d`: `cutsceneStage2d` is a `LevelSceneHooks` that reads `CutsceneState`, plays the script
+  with the director at `(tick - start) / tickHz`, points the camera at `look * metre`, draws each actor as the placed
+  character with the same `name` (hiding that item until the cutscene ends) and a black fade rectangle over the view.
+  `Caption.svelte` is cutscenes' own `hud.overlay` (above `--af-dialogue-box-height`, no focus, `pointer-events: none`),
+  reporting a caption with no words once. Rulings: (1) the options take `level` (the level the cutscenes play in, to find the
+  placed characters and their item ids), `view` (the fade's size), `tickHz` and an optional `viewOf` (default `pictureView`),
+  none of which the plan listed: `hide` needs an item id and the draw layer has no tick rate. (2) A cue changes the clip the
+  actor's `pictureView` is asked for; before the first cue it is the character's first clip, so no clip is reported missing.
+  (3) `cutscenesExtension` takes `words`, `lines` and `scripts` (the caption must read the script's captions, and the sim
+  holds only ids); the slot is drawn only when `words` and `scripts` are both given. (4) The stage points the camera each
+  frame while a cutscene is under way, so the game's own follow must not also set the target then. (5) Cutscenes does not
+  import narrative: `CaptionLine` is structural (`{ text }`). Cutscenes now builds Svelte (svelte-check typecheck, jsdom
+  tests name the environment). Tests: 5 lint (2D), 7 stage, 4 caption, 1 extension; 88 unit pass.
+- 2026-11-08 Task 15 done: systems in a 2D level. `extensions/level-2d/src/testing/patrol-2d.ts` is a 12 by 6 cell level (a Hall, a
+  Yard, a wall one cell thick with a two-cell gap) with a guard who patrols the Hall, hunts what he sees and follows through the gap;
+  tests (Node) show the patrol covers one cell (16 px) a second at 1 m/s, the guard sees across open cells and not behind a solid
+  one, and follows the player through the gap with the crossing at `hall>yard` (6, 3). The scripted golden (600 steps, whole and
+  restored from a snapshot into a new sim) is `tests/browser/sim/systems-2d.test.ts`: seed 2026, hash `de5df42656c162d7`, events
+  `2de9cdc012815412` (3 events), hunts at step 60, follows at step 131; recorded in Node and confirmed the same in Chromium;
+  WebKit and Firefox are not installed here, so they are left to the parity job, and level-2d now has a browser project (it is in
+  `test:browser:2d`). Ruling: the 2D light lint is `systemsWarnings(def, { flat, derived })`, a warning list beside `checkSystems`,
+  not an error, because the file is valid and `checkSystems` failures stop a load; the Schematic editor can show the warnings.
+- 2026-11-08 Task 16 done except the three editor steps (Sonnet high, third build session; merged #484's head e5c7f8a7 as the base).
+  `examples/2d-story` now plays: the keeper (a placed item, drawn by core, whose conversation starts when the player walks within
+  24 px; the second answer sets the fact `gate`, and a system starts the cutscene `gate` once the conversation has ended), a
+  cutscene (the keeper walks two cells, a caption), and a guard (`content/systems/guard.toml` patrols the Yard, sees through the
+  gap, follows into the Hall). Rulings: (1) the story's sim systems are built by `createStoryPlugin(options)` and get the
+  extensions' handles and the files as arguments, because `pnpm boundaries` (rightly) forbids a sim file to import a content
+  module, JSON or an extension's non-sim entry; the wiring is `story.extensions.ts` (not sim) and `app/story-sim.ts`. (2) The
+  guard is a second `Square` body (the places' position component is one component for every walker), told apart for drawing by
+  `systems.agent` and for moving by the `Hero` marker; `Hero.frozen` stops the player walking in a conversation or a cutscene
+  (`story.freeze`). (3) The Hall and Yard areas now share an edge (the Yard starts at the wall's column): `crossing` needs
+  touching areas, and the skeleton's 16 px gap between them meant the guard could never follow through the gap. (4) Words: a line's
+  `text` is a key and no catalog exists on this branch (translations must match source message keys, and a line has no `words`
+  field until Writer's PR #478), so the game reads `content/words/en.json`; when #478 lands, `wordsOf` should read where Writer
+  writes. (5) `narrative` and `cutscenes` gained a content-only entry (`/content`) so a Vite config can name their kinds: their main
+  entries pull Svelte, which a Node config cannot load. (6) The journey lives with the editor's harness
+  (`packages/editor/tests/e2e/journeys/story-in-play.test.ts`), not `examples/2d-story/tests/e2e`: it needs `runEditor`, the
+  phone and iPad projects and the PNG reader; `copyInstalledGame` links a game's own packages into a temp copy and points its
+  tsconfig at the repo base. (7) The Levels part of the journey is Characters: the keeper's colour changed to magenta and saved by
+  the editor, then the played canvas has a magenta keeper at his placed spot; a wall edit is already the job of `whole-game-loop`.
+  (8) That the guard loses a player behind the wall is proved by the sim unit test (`has the guard hunt a player he sees through the gap,
+  and not one behind the wall`), not the journey: once the guard comes through the gap he stands beside the player.
+  Tests: 13 unit (example, Node), the journey on editor-ipad-chromium and editor-phone-chromium (22 s each). Screenshots looked
+  at: the dialogue box (speaker in yellow, the line, two 48 px-high choices, focus ring on choice 1, the player's green square
+  beside the magenta keeper, the red guard in the Yard, the wall with its gap); the cutscene (caption "A moment later, at the gate."
+  at the bottom, the box gone, the keeper still at his spot: the caption shows at 0.5 s and he starts walking at 1 s); the guard
+  (on iPad: standing on the player's feet, left of the wall: he came through the gap). Copies in
+  `/mnt/project-files/content-in-play/2d-story/`. A finding: the guard acts while the player talks (the world is not paused), so a
+  slow reader is found by the guard; that is how the example plays, and a game that wants a pause says so in code.
+  **Not run, pending:** Writer (change the keeper's words), Sequence (change the caption), Schematic (change the guard's chase
+  speed): PR #478's editors are not on this branch. Also pending: WebKit and Firefox.
+- **2026-11-08, Task 17 (docs and the gate).** Docs: `docs/refactor/progress.md`, `docs/status.md`, `examples/README.md`,
+  `extensions/level-2d/README.md`. Knip: the 2d-story entry in `knip.jsonc`; `@automata/feel` and `@testing-library/user-event`
+  removed from `extensions/editors`. Fixed on the way: `narrative` and `cutscenes` (private) listed `pixi.js` / `svelte` peers as
+  ranges, which `tooling/versions` rejects for a private package; they are now the exact pins `world-kit` uses.
+  **Ran, green:** `pnpm format`; lint; typecheck for every package except `@automata/editors`; `boundaries`; `style` apart from
+  `source-names`; `knip`; `changeset status` and `check-changesets`; `pnpm test:unit` for every package apart from `@automata/release`
+  (physics, editor 3480 and editor-3d 2161 tests re-run on their own because turbo cancelled them); `pnpm build`, extensions built
+  with `turbo run build --filter='./extensions/*'`; `api-report --update`, `agent-skills --write`, `api-index --write` (wrote
+  `api.md`, `cheatsheet.md`; Node 22 container, Node 24 is the project's).
+  **Failing, not from this work (seen on the branch before these commits):** `source-names` (5 findings in `examples/3d` and
+  `SettingsScreen.svelte`); `@automata/editors` typecheck (svelte-check warning with no Svelte files until #478);
+  `@automata/release` `turbo.test.ts` (reads `site/turbo.json`, which has `//` comments, with `JSON.parse`); `api-index` exits 1 for
+  three exports with no doc comment (`STICK_DIRECTIONS`, `Picture` in `content/level-2d`, `PROMPT_COPY`).
+  **Not run, pending:** WebKit and Firefox; the GPU runner's journeys; the Writer, Sequence and Schematic journey steps (#478).

@@ -3,6 +3,7 @@
 // `load` for a scene change.
 
 import type { VerbReport } from '@automata/puzzle/sim'
+import { sectorsPlaces } from '@automata/sectors/sim'
 import { definePlugin, type PluginDef, type ResourceDef, type SimContext } from '@automata/sim'
 import type { z } from 'zod'
 import { loadNarrative, type NarrativeScene } from './load-narrative'
@@ -38,7 +39,7 @@ export function createNarrative(options: NarrativeOptions = {}): Narrative {
   return {
     plugin: definePlugin({
       name: 'narrative',
-      dependsOn: ['sectors', 'puzzle'],
+      dependsOn: [(options.places ?? sectorsPlaces).provider, 'puzzle'],
       config: { mappedFacts: options.facts !== undefined },
       resources: [NarrativeSceneResource, NarrativeDialogue, NarrativeStorylets, NarrativeEnv],
       commands: [StartCommand, AdvanceCommand, ChooseCommand],
