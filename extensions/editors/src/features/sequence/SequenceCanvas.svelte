@@ -66,6 +66,9 @@ const seconds = (value: number): string => String(Math.round(value * 10) / 10)
     display: grid;
     gap: var(--space-3);
     min-width: 0;
+    /* The timeline and the step's fields sit side by side only when the editor's own width has room for both: the window
+       is wider than the editor by its rail and list. */
+    container-type: inline-size;
   }
   .transport {
     display: flex;
@@ -82,7 +85,7 @@ const seconds = (value: number): string => String(Math.round(value * 10) / 10)
     gap: var(--space-3);
     min-width: 0;
   }
-  @media (min-width: 820px) {
+  @container (min-width: 760px) {
     .work {
       grid-template-columns: minmax(0, 1fr) 18rem;
       align-items: start;

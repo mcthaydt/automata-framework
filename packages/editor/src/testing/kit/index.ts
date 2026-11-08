@@ -19,3 +19,4 @@ export {
   type PointerTarget,
 } from './pointers'
 export { type ResizableGeometry, stubGeometry } from './stub-geometry.svelte'
+export { editorTargets } from './targets'

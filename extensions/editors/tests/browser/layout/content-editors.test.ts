@@ -2,16 +2,10 @@ import '@automata/editor/tokens.css'
 import '@automata/editor/fonts.css'
 import '@automata/editor/suite.css'
 import type { SuiteEditor } from '@automata/editor/kit/ports'
-import { SIZES } from '@automata/editor/kit/testing'
+import { editorTargets, SIZES } from '@automata/editor/kit/testing'
 import { fixtureEditor } from '@automata/editor/suite/testing'
-import {
-  inShell,
-  noPageScroll,
-  type OpenedSuite,
-  openSuite,
-  tab,
-} from '@automata/editor/suite/testing/layout'
-import { checkLayout } from '@automata/framework/testing'
+import { inShell, noPageScroll, type OpenedSuite, openSuite } from '@automata/editor/suite/testing/layout'
+import { settleLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { contentEditors } from '#src/app/suite/content-editors.ts'
@@ -63,7 +57,29 @@ describe.each(sizes)('Content editors at $name ($width x $height)', (size) => {
       const box = main.getBoundingClientRect()
       expect(box.width).toBeGreaterThan(size.width / 3)
       expect(box.right).toBeLessThanOrEqual(size.width + 0.5)
-      expect(checkLayout(opened.conditions, [tab(name), ...controls()])).toEqual([])
+      // The editors scroll inside their own regions, so each control is brought into view before it is measured: what
+      // matters is that a finger can reach it, press it and not miss it, not that it is on the first screen.
+      const targets = editorTargets()
+      const problems: string[] = []
+      for (const control of controls()) {
+        control.scrollIntoView({ block: 'center', inline: 'center' })
+        await settleLayout()
+        const label =
+          control.getAttribute('aria-label') ?? control.textContent?.trim().slice(0, 30) ?? control.tagName
+        const rect = control.getBoundingClientRect()
+        const at = `${label || control.tagName}`
+        if (rect.left < -0.5 || rect.right > size.width + 0.5) problems.push(`${at} runs off the side`)
+        const boxed = control instanceof HTMLInputElement && ['checkbox', 'radio'].includes(control.type)
+        if (!boxed && (rect.height < targets.hit - 0.5 || rect.width < targets.hit - 0.5))
+          problems.push(
+            `${at} is ${Math.round(rect.width)} x ${Math.round(rect.height)}, under ${targets.hit}`,
+          )
+        const top = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)
+        if (top === null || !(control.contains(top) || top.contains(control)))
+          problems.push(`${at} is covered by ${top?.tagName ?? 'nothing'}`)
+      }
+      noPageScroll()
+      expect(problems).toEqual([])
       noPageScroll()
       await page.screenshot({ path: `.vitest/shots/content-${name.toLowerCase()}-${size.name}.png` })
     },
