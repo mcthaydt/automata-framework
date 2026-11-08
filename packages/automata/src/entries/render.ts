@@ -1,4 +1,4 @@
-// @mcthaydt/automata-render-pixi: core 2D renderer for AutomataFramework
+// The core 2D renderer: cameras, views, draw shapes and filters.
 
 export {
   type Camera2d,

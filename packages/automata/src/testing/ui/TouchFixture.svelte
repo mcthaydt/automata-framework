@@ -1,5 +1,5 @@
 <!--
-  The touch buttons for the layout contracts (M4.3, M4.7): a play screen's frame with Pause in its corner and the
+  The touch buttons for the layout contracts: a play screen's frame with Pause in its corner and the
   buttons in the frame's actions row, as the default play screen puts them. `with-bar` puts an ActionBar above them
   and four buttons, the movement and Drop required and an Emote not, as a game's own screen might (D-a): where they
   do not all fit at the primary size, only the required ones show. Words are said in the `locale` the contract runs

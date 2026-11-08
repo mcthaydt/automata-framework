@@ -1,4 +1,4 @@
-// Every declaration kind both API tools read (PRODUCT.1b3). tooling/api-index/fixtures/kinds holds the .d.ts
+// Every declaration kind both API tools read. tooling/api-index/fixtures/kinds holds the .d.ts
 // tsdown emits for `.` and `./extra`, so the two pinned outputs describe one API.
 export * as helpers from './helpers.ts'
 export { internalScale as scale, subtract } from './shared.ts'

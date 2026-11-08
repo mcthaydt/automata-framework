@@ -1,11 +1,11 @@
 <!--
   @component
-  The floating move stick on the touch overlay (M4 spec §16.3.3), from The Last Light `src/input.ts` and
+  The floating move stick on the touch overlay, from The Last Light `src/input.ts` and
   `src/ui.ts` at `92e6704`: the stick's origin is where the thumb lands in its zone, and the thumb's offset from it
   over `TOUCH_STICK_RADIUS_PX` is the vector, clamped to length 1. One finger drives it; others on the zone are
   ignored. The zone captures that finger, so the release always arrives however far the thumb wanders.
 
-  The ring is drawn inside the region the geometry owner leaves visible (M4.12b): held, it centres on the landing
+  The ring is drawn inside the region the geometry owner leaves visible: held, it centres on the landing
   point moved the least distance that keeps all of it on screen and clear of the insets, while the vector still runs
   from where the thumb landed; at rest it sits inside the zone, which the frame keeps inside the insets.
 
@@ -138,7 +138,7 @@ onDestroy(end)
 
   /* A sideways phone has no height to spare (780 x 270): the zone keeps its width and one primary target of
      height. The stick floats, and the captured thumb may travel past the zone, so its reach is unchanged; the ring
-     is drawn on screen all the same (M4.12b). */
+     is drawn on screen all the same. */
   :global([data-height='compact']) .af-touch__stick {
     height: var(--af-target-primary);
   }

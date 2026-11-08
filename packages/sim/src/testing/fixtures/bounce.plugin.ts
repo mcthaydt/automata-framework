@@ -1,4 +1,4 @@
-// The bounce fixture (M2.3 spec §7): integer-math balls in a box, with RNG spawns, a resource and a command.
+// The bounce fixture: integer-math balls in a box, with RNG spawns, a resource and a command.
 import { definePlugin, type PluginDef } from '@mcthaydt/automata-sim'
 import { Kick } from './bounce.command'
 import { Ball } from './bounce.component'

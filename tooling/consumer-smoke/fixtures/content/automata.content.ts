@@ -1,4 +1,4 @@
-// The smallest content project: one kind of item, read from content/items (M2.4 spec §3.6).
+// The smallest content project: one kind of item, read from content/items.
 import type { ContentConfig } from '@mcthaydt/automata-content'
 import { defineContentSchema } from '@mcthaydt/automata-content'
 import { z } from 'zod'

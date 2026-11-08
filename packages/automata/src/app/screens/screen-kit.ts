@@ -82,7 +82,7 @@ export function driveMenu(
 
 /**
  * The system back gesture (an edge swipe, a mouse's back button) as the screen's Back while it is open.
- * Standalone only: hosted, the host owns system back (M4-D10, Ruken request R-2), so nothing is added to history.
+ * Standalone only: hosted, the host owns system back (Ruken's rule), so nothing is added to history.
  */
 export function backGesture(
   screen: Disposables,
@@ -162,7 +162,7 @@ export function noticeUnsupportedPads(
 
 /**
  * While this screen is open, a change to the save `key` that another device made is told in a Toast for four seconds
- * (M5-D6). Nothing is reloaded: the paused screen offers the choice.
+ *. Nothing is reloaded: the paused screen offers the choice.
  */
 export function noticeChangedElsewhere(
   screen: Disposables,

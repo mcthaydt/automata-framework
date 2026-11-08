@@ -12,25 +12,25 @@ import { createFakeHost } from '@ruken/sdk-host/testing'
 import { flushSync } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
+import type { RuntimeHandle } from '#src/app/boot/game-definition.ts'
+import { runGame } from '#src/app/boot/run-game.ts'
 import { type DefinedGame, defineGame, type GameSpec } from '#src/app/define-game.ts'
 import { defaultScreens } from '#src/app/screens/default-screens.ts'
-import { keys } from '#src/features/input/keys.ts'
-import { ok } from '#src/shared/lib/result.ts'
-import type { RuntimeHandle } from '../../../../../src/app/boot/game-definition.ts'
-import { runGame } from '../../../../../src/app/boot/run-game.ts'
 import {
   type FakeAudioContext,
   type FakeGainNode,
   fakeAudioContext,
-} from '../../../../../src/features/audio/testing/fake-audio-context.ts'
-import { defineExtension } from '../../../../../src/features/extension/define-extension.ts'
-import { createHaptics } from '../../../../../src/features/input/haptics/haptics.manager.ts'
-import type { GameRenderer, RendererFactory } from '../../../../../src/shared/runtime/render/renderer.ts'
-import { realClock } from '../../../../../src/testing/host/page/clocks.ts'
-import { TEST_GAME_ORIGIN } from '../../../../../src/testing/host/page/ruken/hosting-test.ts'
-import { fakeGamepads } from '../../../../../src/testing/input/fake-gamepads.ts'
-import { fakeFetch } from '../../../../../src/testing/runtime/fake-fetch.ts'
-import { type ManualFrames, manualFrames } from '../../../../../src/testing/runtime/manual-frames.ts'
+} from '#src/features/audio/testing/fake-audio-context.ts'
+import { defineExtension } from '#src/features/extension/define-extension.ts'
+import { createHaptics } from '#src/features/input/haptics/haptics.manager.ts'
+import { keys } from '#src/features/input/keys.ts'
+import { ok } from '#src/shared/lib/result.ts'
+import type { GameRenderer, RendererFactory } from '#src/shared/runtime/render/renderer.ts'
+import { realClock } from '#src/testing/host/page/clocks.ts'
+import { TEST_GAME_ORIGIN } from '#src/testing/host/page/ruken/hosting-test.ts'
+import { fakeGamepads } from '#src/testing/input/fake-gamepads.ts'
+import { fakeFetch } from '#src/testing/runtime/fake-fetch.ts'
+import { type ManualFrames, manualFrames } from '#src/testing/runtime/manual-frames.ts'
 import HudExtension from '../../../../fixtures/app/screens/HudExtension.test.svelte'
 import SettingsExtension from '../../../../fixtures/app/screens/SettingsExtension.test.svelte'
 
@@ -200,7 +200,7 @@ describe('default screens', () => {
     expect(button('quit-cancel')?.textContent?.trim()).toBe('Annuler')
     expect(paused.textContent).toContain('Quitter ? La partie est perdue.')
     expect(paused.querySelector('button[aria-label="Retour"]')).not.toBeNull()
-    expect(paused.textContent).not.toMatch(/Resume|Quit to title|Cancel/)
+    expect(paused.textContent).not.toMatch(/Resume|Back to menu|Keep playing/)
   })
 
   it.each(['Enter', 'Space'])('%s on the title goes to play', async (code) => {
@@ -326,7 +326,7 @@ describe('default screens', () => {
     await until(() => screen('play') !== null, 'play after Escape')
   })
 
-  it('pauses into a dialog over the dimmed game: Resume, Mute, Settings, Quit to title; Quit asks first (FloorFifty)', async () => {
+  it('pauses into a dialog over the dimmed game: Resume, Mute, Settings, Back to menu; it asks first', async () => {
     await boot()
     await toPlay()
     press('Escape')
@@ -347,7 +347,7 @@ describe('default screens', () => {
 
     button('quit')?.click()
     await until(() => button('quit-confirm') !== null, 'the confirm')
-    expect(screen('paused')?.textContent).toContain('Quit to title?')
+    expect(screen('paused')?.textContent).toContain('Leave this game?')
     expect(screen('title')).toBeNull()
     // Escape steps back one level: from the confirm to the menu, on Quit.
     press('Escape')

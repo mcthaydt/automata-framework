@@ -848,6 +848,72 @@ function pseudoMessages(file: {
 function snakeKey(value: string): string;
 ```
 
+## `./palette`
+
+### `DEFAULT_PALETTE` (const)
+
+```ts
+const DEFAULT_PALETTE: Palette;
+```
+
+### `Palette` (interface)
+
+```ts
+interface Palette {
+    readonly name: string;
+    readonly colors: readonly string[];
+}
+```
+
+## `./schema`
+
+### `contentRef` (function)
+
+```ts
+function contentRef<const K extends string>(kind: K): z.ZodType<string, string>;
+```
+
+### `ContentSchemaDef` (interface)
+
+```ts
+interface ContentSchemaDef<K extends string = string, S extends z.ZodType = z.ZodType> {
+    readonly kind: K;
+    readonly schema: S;
+    readonly place: ContentSchemaPlace;
+    readonly sim: boolean;
+}
+```
+
+### `ContentSchemaOptions` (interface)
+
+```ts
+interface ContentSchemaOptions {
+    readonly sim?: boolean;
+}
+```
+
+### `ContentSchemaPlace` (type)
+
+```ts
+type ContentSchemaPlace = {
+    readonly folder: string;
+} | {
+    readonly file: string;
+};
+```
+
+### `defineContentSchema` (function)
+
+```ts
+function defineContentSchema<const K extends string, S extends z.ZodType>(kind: K, schema: S, place: ContentSchemaPlace, options?: ContentSchemaOptions): ContentSchemaDef<K, S>;
+```
+
+### `localized` (function)
+
+```ts
+function localized(): z.ZodType<string, string>;
+```
+
 ## `./vite`
 
 ### `automataContent` (function)

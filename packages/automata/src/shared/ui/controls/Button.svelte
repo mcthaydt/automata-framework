@@ -1,6 +1,6 @@
 <!--
   @component
-  The framework's button (M4 spec §4.12): an `.af-control` of one kind. A primary carries
+  The framework's button: an `.af-control` of one kind. A primary carries
   `data-kind="primary"`, which both sizes it to the 48 px primary target and tells the layout check
   to hold it to that size. The words are the caller's, in the game's language.
 -->

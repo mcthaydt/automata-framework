@@ -1,8 +1,8 @@
 import { expect, type Page, test } from '@playwright/test'
 import { playgroundOrigin } from '../../host/ports.ts'
 
-// WEB.PLAY.1 (website playground spec §17): can the playground's design run at all? Each case frames the site's
-// frame page in `sandbox="allow-scripts"` (an opaque origin) under the §11.2 policy and reads what the frame
+// Can the playground's design run at all? Each case frames the site's
+// frame page in `sandbox="allow-scripts"` (an opaque origin) under the frame policy and reads what the frame
 // reports. The parent page's `probe` (static/parent.js) resolves with the frame's one report.
 
 interface Report {
@@ -98,7 +98,7 @@ test('the frame has no browser storage and cannot reach the page around it', asy
 })
 
 // R-1, measured: does a second fresh frame fetch the immutable runtime module again? The answer is recorded in the
-// WEB.PLAY.1 plan for PLAY-D5, not asserted, because either answer has a design. Both frames ask for this test's own
+// playground plan, not asserted, because either answer has a design. Both frames ask for this test's own
 // copy (`?run=`), so the other engines' runs, in parallel, cannot change the count.
 test('two fresh frames in turn both run the immutable module (R-1 measurement)', async ({
   page,

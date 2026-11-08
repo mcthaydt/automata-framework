@@ -1,5 +1,6 @@
 // What the game asks of its host, in plain TypeScript: promises that answer with a `HostResult`,
 // observed state as `Subscribable`, events as `Listenable`, and `dispose()` where Effect had a `Scope`.
+import type { Clock } from '../lib/clock'
 import type { Listenable, Subscribable } from '../lib/subscribable'
 import type { HostHandshakeFailed, HostResult } from './errors'
 import type {
@@ -20,6 +21,21 @@ import type {
   SavesFlushRes,
   SavesStatus,
 } from './index'
+
+/**
+ * Test seams of a target's adapter. Games pass nothing. `env` is the host SDK's environment (Ruken's `SdkEnv`); the
+ * adapter that reads it gives it that type, so no SDK type reaches the declarations a game installs.
+ */
+export interface HostingSeams {
+  readonly env?: object
+  /** The clock AF's own timing (the exit cap) runs on; a test passes `fakeClock()`. */
+  readonly clock?: Clock
+  /**
+   * Gives up waiting for the handshake. Inside a frame that is not Ruken's the SDK waits up to 10 s for a welcome;
+   * boot may stop sooner. A session that arrives after the abort is disposed at once instead of leaking.
+   */
+  readonly signal?: AbortSignal
+}
 
 /** What the game asks of its host. The game passes these by hand; content does not list them yet. */
 export interface HostingOptions {

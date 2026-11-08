@@ -1,5 +1,5 @@
 <!--
-  A representative screen for the layout contracts (M1.6 plan Task 11): every frame part in use.
+  A representative screen for the layout contracts: every frame part in use.
   Back and a corner control, a header, a hero, a list of rows that keeps two whole, and an action
   bar with a primary, a secondary and a utility. Stack on a portrait form factor, split otherwise,
   as a screen root would choose. Words are said in the `locale` the contract runs in.

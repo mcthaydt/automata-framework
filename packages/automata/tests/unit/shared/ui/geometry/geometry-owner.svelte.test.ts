@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import type { Geometry } from '#src/shared/ui/geometry/geometry.ts'
 import { createGeometryOwner, SETTLE_DELAYS_MS } from '#src/shared/ui/geometry/geometry-owner.svelte.ts'
-import { fakeViewportWindow, hostDisplay } from '../../../../../src/testing/fixtures/viewport-window.ts'
+import { fakeViewportWindow, hostDisplay } from '#src/testing/fixtures/viewport-window.ts'
 
 const NO_ENV = () => ({ top: 0, right: 0, bottom: 0, left: 0 })
 

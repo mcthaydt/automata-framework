@@ -1,6 +1,6 @@
 <!--
   @component
-  A board's rows, or why there are none (M5 spec §7): loading, entries (the player's row marked "you"
+  A board's rows, or why there are none: loading, entries (the player's row marked "you"
   in words, not only by colour), empty, unavailable and offline. The rows are read, not chosen, so
   they are out of the focus order; only the action row (Back, Play again) takes focus. Unavailable
   and offline are what the host said: the panel never shows a board kept on the device instead.
@@ -56,7 +56,7 @@ const message = $derived(view.state === 'entries' ? undefined : copy[view.state]
 
 <style>
   /* The panel fills what its parent gives it; the rows take what is left after the title and the action row, and
-     scroll inside it, so the action row never goes below the fold (§8, 780×270 included). */
+     scroll inside it, so the action row never goes below the fold (780×270 included). */
   .af-leaderboard {
     display: flex;
     flex-direction: column;

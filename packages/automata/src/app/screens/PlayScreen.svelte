@@ -1,7 +1,7 @@
 <!--
-  The default play screen (DX spec §7): the game shows through; the frame holds the corner Pause and, while the
+  The default play screen: the game shows through; the frame holds the corner Pause and, while the
   player uses touch, the input map's touch input. In touch mode `buttons` that is the ui `TouchControls` along the
-  foot (sticky, several thumbs at once, M4.3); in touch mode `swipe` it is a `SwipeSurface` over the whole screen,
+  foot (sticky, several thumbs at once); in touch mode `swipe` it is a `SwipeSurface` over the whole screen,
   under Pause, feeding the swipe tracker.
 -->
 <script lang="ts">
@@ -18,7 +18,7 @@ import type { LiveScreensCopy } from './screens-copy.svelte.ts'
 
 interface Props {
   onPause: () => void
-  /** The screens' words in the player's language (DX.2d). */
+  /** The screens' words in the player's language. */
   copy: LiveScreensCopy
   tracker: InputMethodTracker
   touchButtons: readonly TouchButton[]
@@ -26,11 +26,11 @@ interface Props {
   onRelease: (id: string) => void
   /** The swipe tracker, in touch mode `swipe`; none in mode `buttons`. */
   swipe?: PointerTracker | undefined
-  /** The extensions' `hud.overlay` components, drawn over the game inside the visible region (M4.7). */
+  /** The extensions' `hud.overlay` components, drawn over the game inside the visible region. */
   hud?: readonly UiComponent[] | undefined
-  /** The camera-drag tracker, when the input map binds `camera-drag` (M4 spec §16.4); none draws no surface. */
+  /** The camera-drag tracker, when the input map binds `camera-drag`; none draws no surface. */
   drag?: DragTracker | undefined
-  /** The touch stick, when the input map asks for it (M4 spec §17.1): its vector and its release. */
+  /** The touch stick, when the input map asks for it: its vector and its release. */
   stick?: { onstick: (x: number, y: number) => void; onstickend: () => void } | undefined
 }
 

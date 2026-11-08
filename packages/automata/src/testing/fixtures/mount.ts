@@ -1,5 +1,5 @@
 /**
- * Mounts a Svelte component with fixture props and no renderer, host or server (M1.6 spec §3.10),
+ * Mounts a Svelte component with fixture props and no renderer, host or server,
  * the way layout contracts and demos put a primitive on the page.
  */
 

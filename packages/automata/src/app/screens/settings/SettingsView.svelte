@@ -1,6 +1,6 @@
 <!--
-  The default Settings screen (M4 spec §4.8, M4-D8), in FloorFifty's two tabs (`SettingsPanel.svelte` at a28dc44):
-  Settings holds Language, Audio (M5.4), Vibration (where the device can), Display, Touch controls (on a coarse pointer, when the game offers buttons and swipes), then every
+  The default Settings screen, in FloorFifty's two tabs (`SettingsPanel.svelte` at a28dc44):
+  Settings holds Language, Audio, Vibration (where the device can), Display, Touch controls (on a coarse pointer, when the game offers buttons and swipes), then every
   component the extensions put in the `settings.sections` slot; Controls holds the controls by device, when the game
   has an input map. `view` is the screen's live state
   (`settings-screen.svelte.ts`), so a rebind, a device switch or a capture's countdown updates in place.
@@ -31,7 +31,7 @@ interface Props {
   onreset: () => void
   ontouchmode: (mode: ControlsTouchMode) => void
   onquality: (quality: DisplayQuality) => void
-  /** A change in the Audio group (M5.4), applied and saved by the screen. */
+  /** A change in the Audio group, applied and saved by the screen. */
   onaudio: (change: AudioSectionChange) => void
   /** A volume let go: its sample (`Audio.sample`). */
   onsample: (bus: AudioBus) => void
@@ -40,7 +40,7 @@ interface Props {
   /** The Vibration toggle (`Haptics.setEnabled`), applied and saved by the screen. */
   onhaptics: (enabled: boolean) => void
   onback: () => void
-  /** The screens' words in the player's language (DX.2d). */
+  /** The screens' words in the player's language. */
   copy: LiveScreensCopy
 }
 

@@ -1,7 +1,7 @@
 import { render } from '@testing-library/svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import ScreenFrame from '#src/shared/ui/layout/ScreenFrame.svelte'
-import { textSnippet } from '../../../../../src/testing/fixtures/text-snippet.ts'
+import { textSnippet } from '#src/testing/fixtures/text-snippet.ts'
 
 describe('ScreenFrame', () => {
   afterEach(() => {

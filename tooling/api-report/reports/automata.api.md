@@ -942,7 +942,7 @@ interface HostingSaves {
 
 ```ts
 interface HostingSeams {
-    readonly env?: SdkEnv;
+    readonly env?: object;
     readonly clock?: Clock;
     readonly signal?: AbortSignal;
 }

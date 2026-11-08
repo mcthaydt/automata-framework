@@ -1,9 +1,8 @@
-// The `Hosting` contract cases every adapter passes (PUB spec §7 and §12 PUB-a; shared contracts §1.1, §1.5).
+// The `Hosting` contract cases every adapter passes.
 // `ruken/hosting-ruken.contract.test.ts` runs them against the Ruken adapter (over the fake Ruken host) and
 // `web/hosting-web.test.ts` against the web adapter (over a fake page). A case that only one adapter can pass is
 // not here: it lives beside that adapter, and every intended difference has its own test named after it. Published
-// as `@mcthaydt/automata-host/contract-suite` so `FakeHosting` in `@mcthaydt/automata-testing` runs the same cases
-// (DIST spec §7); it needs Vitest.
+// in `@mcthaydt/automata/testing` so `FakeHosting` runs the same cases; it needs Vitest.
 import { describe, expect, it } from 'vitest'
 import type { HostResult } from '../../shared/host/errors'
 import type { Hosting } from '../../shared/host/hosting'
@@ -27,7 +26,7 @@ const observedOf = (hosting: Hosting) => ({
 /**
  * Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`. `create` builds a fresh
  * `Hosting` for each case, with `saves` granted; `settled` lets the host answer (for example one macrotask). Every
- * target's adapter and `FakeHosting` pass these cases (DIST spec §7). Each case disposes its `Hosting`.
+ * target's adapter and `FakeHosting` pass these cases. Each case disposes its `Hosting`.
  */
 export function describeHostingContract(name: string, create: HostingFactory, settled: Settle): void {
   /** Runs `program` on a fresh `Hosting`, disposing it afterwards. */

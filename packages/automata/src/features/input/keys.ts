@@ -93,7 +93,7 @@ export interface KeysOptions<Z extends z.ZodType> {
   readonly idle?: z.input<Z>
   /**
    * Keys whose actions the game cannot be played without: rebinding never leaves them unbound on a device
-   * (M4-D4), and where the touch buttons do not all fit, theirs are the ones that show.
+   *, and where the touch buttons do not all fit, theirs are the ones that show.
    */
   readonly required?: readonly string[]
   /**
@@ -205,7 +205,7 @@ export function keys<Z extends z.ZodType>(
         : []),
     ]),
   })
-  // A reserved key or pad button is a developer error, thrown now (M4-D3, I-j).
+  // A reserved key or pad button is a developer error, thrown now.
   if (!parsedProfile.success)
     throw new Error(`keys(): ${parsedProfile.error.issues.map((issue) => issue.message).join('; ')}`)
   const profile = parsedProfile.data

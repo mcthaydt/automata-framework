@@ -1,7 +1,7 @@
 import { flushSync, mount, unmount } from 'svelte'
 import { afterEach, describe, expect, it } from 'vitest'
 import ScrollList from '#src/shared/ui/layout/ScrollList.svelte'
-import { textSnippet } from '../../../../../src/testing/fixtures/text-snippet.ts'
+import { textSnippet } from '#src/testing/fixtures/text-snippet.ts'
 
 // Ported from FloorFifty tests/client/ui/layout/scroll-list.test.ts at 122a220.
 let component: ReturnType<typeof mount> | undefined

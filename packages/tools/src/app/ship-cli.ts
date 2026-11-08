@@ -55,7 +55,7 @@ function exitCodeFor(failure: Failure): number {
 }
 
 async function program(
-  command: Exclude<CliCommand, { command: 'usage' }>,
+  command: Exclude<CliCommand, { command: 'usage' | 'help' }>,
 ): Promise<Effect.Effect<string, Failure, never>> {
   const layers = Layer.merge(FilesLive, ProcessRunnerLive)
   if (command.command === 'test-remote') {
@@ -177,6 +177,10 @@ async function program(
 /** Runs one ship command (`args` are the words after `automata ship`) and returns the process exit code. */
 export async function runShip(args: readonly string[]): Promise<number> {
   const command = parseCliArgs([...args])
+  if (command.command === 'help') {
+    process.stdout.write(`${USAGE}\n`)
+    return 0
+  }
   if (command.command === 'usage') {
     process.stderr.write(`${command.problem}\n\n${USAGE}\n`)
     return 2

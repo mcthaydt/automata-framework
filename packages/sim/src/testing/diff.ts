@@ -1,4 +1,4 @@
-// Structural diff of two snapshot views (M2.3 spec §3.6): what differs, field by field, in a fixed order so a
+// Structural diff of two snapshot views: what differs, field by field, in a fixed order so a
 // report reads the same in every engine: header, rng, resources, nextId, entities, plugin bytes.
 import type { SnapshotView } from '@mcthaydt/automata-sim'
 

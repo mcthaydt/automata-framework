@@ -7,7 +7,7 @@ import { z } from 'zod'
 export const STANDARD_PAD_BUTTON_MAX = 16
 
 /**
- * Never bindable in a game's profile (M4-D3): Ruken's SDK summons the host on pad 8 (View), 16 is Home, Escape is the
+ * Never bindable in a game's profile: Ruken's SDK summons the host on pad 8 (View), 16 is Home, Escape is the
  * one back path and Tab moves focus.
  */
 export const RESERVED_PAD_BUTTONS: readonly number[] = [8, 16]
@@ -98,7 +98,7 @@ const bindingSchema = z.object({
 
 /**
  * Validates an input profile, filling left-out binding fields with "unbound". A reserved key or pad button fails
- * the parse with the action named (M4-D3, I-j): at boot that is a developer error before anything renders.
+ * the parse with the action named: at boot that is a developer error before anything renders.
  */
 export const inputProfileSchema: z.ZodType<InputProfile, InputProfileInput> = z
   .object({

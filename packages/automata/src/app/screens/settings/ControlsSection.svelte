@@ -1,10 +1,10 @@
 <!--
   @component
-  The Controls tab's section (M4 spec §4.5, §7), laid out as FloorFifty's Controls tab (`SettingsPanel.svelte` at
+  The Controls tab's section, laid out as FloorFifty's Controls tab (`SettingsPanel.svelte` at
   a28dc44): one section per device the player can use, the one in their hand first and marked. Keyboard and
   Controller list each action with one rebind button showing that device's prompt; the Controller appears once a pad
   has connected (`devices`). Touch, when shown, says what the on-screen buttons do; they are the game's, so there is
-  nothing to rebind (§4.5). A status line says each step of a rebind (`state`), and Reset puts every binding back.
+  nothing to rebind. A status line says each step of a rebind (`state`), and Reset puts every binding back.
   Every row is a 44 px target; long labels wrap, and the targets never shrink.
 -->
 <script lang="ts">

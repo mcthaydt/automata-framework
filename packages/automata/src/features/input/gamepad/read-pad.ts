@@ -91,7 +91,7 @@ export function stickDirections(side: 'left' | 'right', x: number, y: number): S
 }
 
 /**
- * A stick as integers in −127..127 per axis (M4-D2): small and exact in every engine, centred inside the radial
+ * A stick as integers in −127..127 per axis: small and exact in every engine, centred inside the radial
  * deadzone. Halves round away from zero, so a push left reads as the same size as the same push right.
  */
 export function quantizeStick(x: number, y: number): { readonly x: number; readonly y: number } {

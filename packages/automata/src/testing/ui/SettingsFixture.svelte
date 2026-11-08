@@ -1,6 +1,6 @@
 <!--
-  The core Settings screen for the layout contracts (M4 spec §4.8, M4.4), in FloorFifty's two tabs: `settings` shows
-  the Settings tab (Language, Audio, Vibration, Display, Touch controls, in FloorFifty's order); `controls` the Controls tab with four actions, both devices and touch; `controls-capturing`
+  The core Settings screen for the layout contracts, in two tabs: `settings` shows
+  the Settings tab (Language, Audio, Vibration, Display, Touch controls, in the order a player expects); `controls` the Controls tab with four actions, both devices and touch; `controls-capturing`
   shows its first row waiting for a press; `settings-short` the Settings tab with Display alone, for the sheet's height. Words are English stand-ins of a typical length, said in the `locale` the contract runs in.
 -->
 <script lang="ts" module>

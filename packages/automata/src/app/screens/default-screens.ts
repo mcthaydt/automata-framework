@@ -91,7 +91,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
   const toldPads = new Set<string>()
   let sim: Sim | undefined
   let playFlow: Flow | undefined
-  /** Set when play paused because the pad in use was unplugged (M4-D9); Resume or Quit clears it. */
+  /** Set when play paused because the pad in use was unplugged; Resume or Quit clears it. */
   let reconnect = false
 
   const dropSim = (): void => {
@@ -247,7 +247,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
       screen.add(() => appLoop.stop())
 
       const pause = (): void => void flow.dispatch('pause')
-      // The pad in use unplugged mid-play pauses with a reconnect message (M4-D9), under the `input` reason so
+      // The pad in use unplugged mid-play pauses with a reconnect message, under the `input` reason so
       // nothing else resumes the sim behind the player's back. Another pad or the keyboard in use: play on.
       screen.add(
         bus.subscribe('input.pad.disconnected', (pad) => {

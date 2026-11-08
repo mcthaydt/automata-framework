@@ -1,4 +1,4 @@
-// Exit 4 (M2.3 spec §3.7): snapshot -> restore -> continue equals an uninterrupted run, over many seeds, run
+// Exit 4: snapshot -> restore -> continue equals an uninterrupted run, over many seeds, run
 // lengths and restore points, restoring both into a fresh sim and into one that has moved on ("dirty").
 import {
   type Command,

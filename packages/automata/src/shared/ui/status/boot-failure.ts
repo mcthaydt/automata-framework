@@ -41,11 +41,12 @@ export type BootFailure =
 export type HostKind = 'ruken' | 'standalone' | 'tauri'
 
 /**
- * What a boot failure draws: `start`, `connect`, `progress`, `damaged`, `download`, `download-stalled`,
+ * What a boot failure draws: `start`, `start-final`, `connect`, `progress`, `damaged`, `download`, `download-stalled`,
  * `unsupported` or `model-invalid`.
  */
 export type BootFailureState =
   | 'start'
+  | 'start-final'
   | 'connect'
   | 'progress'
   | 'damaged'
@@ -78,6 +79,8 @@ export type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureActi
  */
 export const BOOT_FAILURE_COPY_EN: BootFailureCopy = {
   start: "Couldn't start the game.",
+  // A retry cannot help, so the words say what to do instead.
+  'start-final': "Couldn't start the game. Close it and open it again.",
   connect: "Couldn't connect to Ruken.",
   progress: "Couldn't load your progress.",
   damaged: 'This copy of the game is damaged. Download it again.',
@@ -142,7 +145,11 @@ export function bootFailureView(
 function viewFor(failure: BootFailure, hostKind: HostKind): BootFailureViewModel {
   switch (failure._tag) {
     case 'HostError':
-      if (failure.operation === 'init') return { state: 'start', actions: failure.retryable ? ['retry'] : [] }
+      if (failure.operation === 'init') {
+        if (failure.retryable) return { state: 'start', actions: ['retry'] }
+        // A build or config fault: no retry. A hosted player goes back; a standalone page has nowhere to go.
+        return { state: 'start-final', actions: hostKind === 'standalone' ? [] : ['exit'] }
+      }
       if (!failure.operation.startsWith('saves.')) return { state: 'connect', actions: ['retry'] }
       if (failure.retryable) return { state: 'progress', actions: ['retry'] }
       return { state: 'progress', actions: [hostKind === 'ruken' ? 'exit' : 'continue'] }

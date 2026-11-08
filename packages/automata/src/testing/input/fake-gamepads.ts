@@ -1,4 +1,4 @@
-// The unit-test fake gamepad (M4 spec §4.14): a `navigator.getGamepads` stand-in a game's unit tests install
+// The unit-test fake gamepad: a `navigator.getGamepads` stand-in a game's unit tests install
 // (`Object.defineProperty(navigator, 'getGamepads', { value: pads.getGamepads })`) and drive. Four slots, as browsers
 // give; each read is a snapshot, as a real `Gamepad` is. The browser journeys' pad is `FakePad` (`../e2e`).
 

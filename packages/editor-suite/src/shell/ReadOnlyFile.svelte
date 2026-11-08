@@ -31,7 +31,7 @@ const text = $derived(workspace.read(file.path))
     {:else}
       <!-- A scroll region takes the focus so the keyboard can scroll it (WCAG 2.1.1). -->
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-      <pre tabindex="0" aria-label="File text">{found.text}</pre>
+      <pre data-selectable tabindex="0" aria-label="File text">{found.text}</pre>
     {/if}
   {:catch}
     <p class="note">This file could not be read.</p>

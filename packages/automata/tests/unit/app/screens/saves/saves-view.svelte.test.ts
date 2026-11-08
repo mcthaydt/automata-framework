@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createSlotsModel, slotViewOf } from '#src/app/screens/saves/saves-view.svelte.ts'
-import type { SlotState } from '../../../../../src/features/saves/save.schema.ts'
+import type { SlotState } from '#src/features/saves/save.schema.ts'
 
 // The title's slot list as a view of the runtime's `SlotState` (M5 spec §4.3, §7): the same five kinds, with the
 // slot's header copied out, and the activity only the screen knows (a write it started, or one that failed).

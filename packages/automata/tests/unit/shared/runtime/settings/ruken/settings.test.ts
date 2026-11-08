@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { type SettingsDef, writeSettings } from '#src/shared/runtime/settings/migrate-settings.ts'
 import { createSettings, settingsStore } from '#src/shared/runtime/settings/settings.manager.ts'
-import { withHostingTest } from '../../../../../../src/testing/host/page/ruken/hosting-test.ts'
+import { withHostingTest } from '#src/testing/host/page/ruken/hosting-test.ts'
 
 interface PlayerSettings {
   name: string

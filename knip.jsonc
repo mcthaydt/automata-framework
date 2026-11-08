@@ -27,23 +27,23 @@
     "tooling/agent-skills": { "ignoreDependencies": ["@mcthaydt/automata-sim"] },
     // DX.7: the plugin's hook runs Emberwick's own `automata` bin from node_modules/.bin (install.test.ts).
     "games/emberwick": {
-      // The journeys sit in tests/e2e (refactor task 3.3); the config names its directory, which knip does not follow.
+      // The journeys sit in tests/e2e; the config names its directory, which knip does not follow.
       "entry": ["playwright.config.ts", "tests/e2e/*.test.ts"],
       "playwright": false
     },
-    // Each game or example set has its own playwright.config.ts (core-and-2D refactor, task 1.1). They are entries,
+    // Each game or example set has its own playwright.config.ts. They are entries,
     // listed with the journeys they run, because a config's projects name test folders in other workspaces.
     "examples": { "entry": ["playwright.config.ts", "tests/e2e/*.test.ts"], "playwright": false },
     "examples/content/hot-reload": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
     "examples/ui/primitives": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
     "tooling/examples-runner": {
       "ignore": ["playground/static/**"],
-      "entry": ["playwright.config.ts", "tests/e2e/*.test.ts", "playground/e2e/*.e2e.ts"],
+      "entry": ["playwright.config.ts", "tests/e2e/*.test.ts"],
       "playwright": false
     },
-    // Run by hand on one package at a time (core and 2D refactor, task 3.2): `node tooling/codemods/src/cli.ts <package>`.
+    // Run by hand on one package at a time: `node tooling/codemods/src/cli.ts <package>`.
     "tooling/codemods": { "entry": ["src/cli.ts", "src/move-modules-cli.ts"] },
-    // Run by hand on a build made with `vite build --sourcemap` (core and 2D refactor, task 5.1).
+    // Run by hand on a build made with `vite build --sourcemap`.
     "tooling/bundle-report": { "entry": ["src/cli.ts"] },
     // EDK.1: src/fonts.css imports the IBM Plex families with CSS @import, which knip does not follow.
     "packages/editor-kit": {

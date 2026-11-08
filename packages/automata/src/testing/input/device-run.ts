@@ -1,4 +1,4 @@
-// I-a (M4 spec §13): one scripted 120-tick run, played three times, by the keyboard, a standard pad and touch
+// I-a: one scripted 120-tick run, played three times, by the keyboard, a standard pad and touch
 // buttons, through `keys().attach` (the Input service and `toCommand`) into a real sim. Shared by the Node test
 // and the browser parity test so both play exactly the same script.
 import {
@@ -61,7 +61,7 @@ function heldAt(tick: number): Direction[] {
 
 /**
  * The sim hash the script ends on, in every engine (pinned 2026-10-17 from the Node run, `pnpm --filter
- * @mcthaydt/automata-game exec vitest run --project unit src/input/keys.devices.test.ts`). A mismatch is a defect
+ * @mcthaydt/automata exec vitest run --project unit tests/unit/input/keys.devices.test.ts`). A mismatch is a defect
  * to find, never a value to update per engine.
  */
 export const DEVICE_RUN_HASH = 'df59895cfb81d1a0'

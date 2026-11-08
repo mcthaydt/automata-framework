@@ -1,4 +1,4 @@
-// simGolden: A0+A1's light pin (M2.3 spec §3.6). It records the sim's hash every `every` ticks into a JSON file
+// simGolden: A0+A1's light pin. It records the sim's hash every `every` ticks into a JSON file
 // that reads well in a PR diff, and reports the first recorded tick that differs. For the fields behind a
 // difference, use replayGolden.
 import {

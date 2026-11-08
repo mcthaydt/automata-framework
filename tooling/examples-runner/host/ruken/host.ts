@@ -2,7 +2,7 @@
 // (`@ruken/sdk-host/testing`, real-iframe mode) around the demo named in the query string, served from another
 // origin. `?game=<url>&id=<game id>[&saves=<json>][&grant=<a,b>][&offline=1][&source=<url>]`: `saves` seeds the
 // player's server saves, `grant` grants exactly those capabilities (empty denies all), `offline` takes the network
-// down (the saves server and, since M5.7, the leaderboards are unreachable), `source` frames that page beside the
+// down (the saves server and, the leaderboards are unreachable), `source` frames that page beside the
 // game (the examples index's View). `hostedUrl` in ports.ts builds the query. Test and examples only; never part of
 // a game build that ships.
 import { createFakeHost } from '@ruken/sdk-host/testing'
@@ -46,7 +46,7 @@ host.fakes.saves.offline = offline
 host.fakes.leaderboards.offline = offline
 iframe.src = game
 
-// `source=<url>` (the examples index's View, EX.5): the example's source page in a second frame beside the game.
+// `source=<url>` (the examples index's View): the example's source page in a second frame beside the game.
 // index.html lays the two out side by side when the page is wider than tall, and stacked otherwise.
 const source = query.get('source')
 if (source !== null) {
@@ -61,7 +61,7 @@ if (source !== null) {
 Object.assign(window, {
   hostTrace: () => host.messages.map((entry) => entry.msg.type),
   hostBridge: host.bridge,
-  // What the player's account holds, by key; and a write from another device (the saves journeys, M5.2).
+  // What the player's account holds, by key; and a write from another device (the saves journeys).
   hostSlots: () => Object.fromEntries([...host.fakes.server.slots].map(([key, slot]) => [key, slot.value])),
   hostRemoteWrite: (key: string, value: string, deviceLabel: string) =>
     host.fakes.server.remoteWrite(key, value, deviceLabel),

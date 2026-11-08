@@ -1,5 +1,5 @@
 <!--
-  A 3D play screen's touch input for the DOM and layout tests (M4.12): the camera drag surface under a frame with
+  A 3D play screen's touch input for the DOM and layout tests: the camera drag surface under a frame with
   Pause in its corner and the overlay in its actions row, the move stick at the start and two buttons at the end.
   `with-bar` puts an ActionBar above the overlay and an unrequired button beside the required one (D-a): where they
   do not all fit at the primary size, the stick and the required button stay. `start-button` adds a button beside
@@ -61,7 +61,7 @@ const none = (): void => undefined
 </div>
 
 <style>
-  /* The play screen's pass-through (packages/game screens.css, M4 spec §16.3.7): the frame lets the pointer through
+  /* The play screen's pass-through (screens.css): the frame lets the pointer through
      to the scene and the drag surface under it; only its controls take it. */
   .af-play-fixture :global([data-screen-frame]) {
     pointer-events: none;

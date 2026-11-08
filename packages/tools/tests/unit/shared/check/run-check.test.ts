@@ -3,9 +3,9 @@ import { describe, expect, it } from 'vitest'
 import { exitCodeFor, type StepResult } from '#src/shared/check/check-report.ts'
 import { CheckToolError, CspProbe, type CspProbeResult } from '#src/shared/check/csp-probe.ts'
 import { runCheck } from '#src/shared/check/run-check.ts'
-import { FileError } from '../../../../src/shared/node/errors.ts'
-import { Files } from '../../../../src/shared/node/files.ts'
-import { ProcessRunner, type RunResult } from '../../../../src/shared/node/process-runner.ts'
+import { FileError } from '#src/shared/node/errors.ts'
+import { Files } from '#src/shared/node/files.ts'
+import { ProcessRunner, type RunResult } from '#src/shared/node/process-runner.ts'
 
 const GAME = '/work/game'
 const BIN = `${GAME}/node_modules/.bin`

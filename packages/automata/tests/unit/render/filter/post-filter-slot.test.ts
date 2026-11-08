@@ -1,6 +1,6 @@
 import type { Filter } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
-import { createPostFilterSlot } from '#src/entries/from-render-pixi.ts'
+import { createPostFilterSlot } from '#src/entries/render.ts'
 
 // The post-filter slot (PRODUCT spec §2 F1, §5 "Post-processing"): several owners (an extension such as Plus
 // `post-retro`, quality tiers, the game) each keep their own filters on the scene without overwriting another's.

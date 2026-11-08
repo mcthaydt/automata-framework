@@ -450,6 +450,8 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
     const inCi = (ci.jobs.checks?.steps ?? [])
       .map((step) => step.run ?? '')
       .filter((run) => inCheck.includes(run))
+    // The changeset checks run in CI as two steps on pull requests only (nothing to compare with on a push to main),
+    // so `pnpm check` runs them through one script that holds the same two commands.
     expect(inCheck).toEqual([
       'pnpm lint',
       'pnpm typecheck',
@@ -457,8 +459,12 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
       'pnpm style',
       'pnpm knip',
       'pnpm test:unit:core',
+      'pnpm check:changesets',
     ])
-    expect(inCi).toEqual(inCheck)
+    expect(inCi).toEqual(inCheck.filter((run) => run !== 'pnpm check:changesets'))
+    expect(scripts['check:changesets']).toBe(
+      'changeset status --since=origin/main && node tooling/release/src/check-changesets.ts',
+    )
   })
 
   it('runs the same journeys as the e2e-2d job, and the same parity suites as the parity job', () => {

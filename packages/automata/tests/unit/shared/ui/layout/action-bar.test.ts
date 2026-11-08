@@ -2,8 +2,8 @@ import { flushSync, mount, unmount } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ActionBar from '#src/shared/ui/layout/ActionBar.svelte'
 import type { BarAction } from '#src/shared/ui/layout/action-bar.ts'
-import { installFakeResizeObserver } from '../../../../../src/testing/fixtures/resize-observer.ts'
-import { textSnippet } from '../../../../../src/testing/fixtures/text-snippet.ts'
+import { installFakeResizeObserver } from '#src/testing/fixtures/resize-observer.ts'
+import { textSnippet } from '#src/testing/fixtures/text-snippet.ts'
 
 // Ported from FloorFifty tests/client/ui/layout/action-bar.test.ts at 122a220 (pad guard and sounds stay in the game).
 let component: ReturnType<typeof mount> | undefined

@@ -6,7 +6,7 @@ import { build } from 'vite'
 import { afterAll, describe, expect, it } from 'vitest'
 import { scanForDataUrls } from '#src/shared/check/data-url-scan.ts'
 import { headersFor } from '#src/shared/check/ruken/csp-probe-live.ts'
-import { defineShipConfig } from '../../../../src/shared/ship/config/ship-config.ts'
+import { defineShipConfig } from '#src/shared/ship/config/ship-config.ts'
 
 // The `data-urls` step's scan (DX.5a). The real-build cases build a game-like page with Vite itself, so a Vite that
 // changes how it writes an inlined asset fails here instead of letting the scan go blind.

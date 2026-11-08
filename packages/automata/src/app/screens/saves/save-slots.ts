@@ -35,7 +35,7 @@ export interface SaveSlotsCopy {
   readonly unreadable: string
   /** `newer`: "Saved by a newer version of the game". */
   readonly newer: string
-  /** `other-content`: saved with other game content; its progress loads, its snapshot does not (M5-D5). */
+  /** `other-content`: saved with other game content; its progress loads, its snapshot does not. */
   readonly otherContent: string
   readonly writing: string
   readonly failed: string

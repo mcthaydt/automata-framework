@@ -166,7 +166,7 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
     // and Ruken's CSP refuses (`connect-src` has no `data:`), so the asset would never load. A value the
     // game sets is kept: this hook's result is merged over the game's own config.
     //
-    // It also defines `__AUTOMATA_DEBUG__` (FR.3): true in the dev server and in a build made with `AUTOMATA_DEBUG=1`
+    // It also defines `__AUTOMATA_DEBUG__`: true in the dev server and in a build made with `AUTOMATA_DEBUG=1`
     // (`automata build --debug`), false in a release build. A block a game guards with it is dropped from a release bundle, so a
     // dev-only overlay (Plus's `debug`) never ships. The game declares it: `declare const __AUTOMATA_DEBUG__: boolean`.
     config(userConfig, { command }) {

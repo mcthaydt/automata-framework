@@ -3,9 +3,9 @@ import { Application, type ApplicationOptions, Container, type Filter } from 'pi
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 import { postFilter } from '#src/features/render/filter/post-filter.ts'
 import { createPixiRenderer, type PixiRenderer } from '#src/features/render/renderer.ts'
-import type { RendererUnavailable } from '../../../src/shared/runtime/boot-error.ts'
-import type { FrameInfo } from '../../../src/shared/runtime/loop/frames.ts'
-import type { Geometry } from '../../../src/shared/ui/geometry/geometry.ts'
+import type { RendererUnavailable } from '#src/shared/runtime/boot-error.ts'
+import type { FrameInfo } from '#src/shared/runtime/loop/frames.ts'
+import type { Geometry } from '#src/shared/ui/geometry/geometry.ts'
 
 /** Every renderer a test built, disposed when its `scoped` block ends (what closing the Effect scope did). */
 let opened: PixiRenderer[] = []

@@ -30,6 +30,21 @@ describe('teardown', () => {
     expect(reported).toEqual([new Error('broken undo')])
   })
 
+  it('a second close waits for the first instead of returning at once', async () => {
+    const order: string[] = []
+    const owned = teardown()
+    owned.add(async () => {
+      await Promise.resolve()
+      await Promise.resolve()
+      order.push('slow undo')
+    })
+    const first = owned.close()
+    await owned.close()
+    order.push('second close returned')
+    await first
+    expect(order).toEqual(['slow undo', 'second close returned'])
+  })
+
   it('runs an undo added after close at once, so nothing opened late is leaked', async () => {
     const ran: string[] = []
     const owned = teardown()

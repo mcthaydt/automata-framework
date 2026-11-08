@@ -1,11 +1,11 @@
 <!--
-  The default paused screen (DX spec §7), laid out and behaving as FloorFifty's pause overlay
+  The default paused screen, laid out and behaving as FloorFifty's pause overlay
   (`ui/components/PauseOverlay.svelte` at a28dc44, Owner 2026-10-18: "match the layout and function, not the style"):
   a dialog over the dimmed game, titled Paused, with Resume (primary, focused), Mute, Settings and Quit to title, two
   across once the dialog is 340 px wide. Quit asks first, because the run is lost. Escape (the pad's B, the system
   back) steps back one level: from the confirm to the menu, on Quit; from the menu it resumes.
-  A game with a save (M5.2) adds the host's word on the progress under the menu, and, once another device has changed
-  the slot being played, a step of its own before the menu: Load newer or Keep playing (M5-D6). It is a step and not
+  A game with a save adds the host's word on the progress under the menu, and, once another device has changed
+  the slot being played, a step of its own before the menu: Load newer or Keep playing. It is a step and not
   more lines in the menu so the menu's actions never move off a short screen; its two buttons are the dialog's actions,
   outside the body that scrolls, so a short screen scrolls the words and never the buttons.
 -->
@@ -21,19 +21,19 @@ import type { LiveScreensCopy } from './screens-copy.svelte.ts'
 interface Props {
   onResume: () => void
   onQuit: () => void
-  /** Opens Settings (M4.4), where the player rebinds controls and picks the quality. */
+  /** Opens Settings, where the player rebinds controls and picks the quality. */
   onSettings: () => void
-  /** Whether sound is muted when paused opens: the Audio group's Mute (M5.4). */
+  /** Whether sound is muted when paused opens: the Audio group's Mute. */
   muted: boolean
   /** Mute was pressed: the new state, applied and saved by the caller. */
   onMute: (muted: boolean) => void
-  /** Play paused because the controller in use was unplugged (M4-D9): says to reconnect it. */
+  /** Play paused because the controller in use was unplugged: says to reconnect it. */
   reconnect?: boolean | undefined
-  /** The game's scored board (M5.7): read from the host when paused opens. */
+  /** The game's scored board: read from the host when paused opens. */
   board?: { load: () => Promise<LeaderboardView> } | undefined
-  /** The game's save (M5.2): the host's word on the progress, and the choice once another device changed it. */
+  /** The game's save: the host's word on the progress, and the choice once another device changed it. */
   saves?: PausedSaves | undefined
-  /** The screens' words in the player's language (DX.2d). */
+  /** The screens' words in the player's language. */
   copy: LiveScreensCopy
 }
 

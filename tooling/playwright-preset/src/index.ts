@@ -38,7 +38,7 @@ export function defineJourneys(config: PlaywrightTestConfig, env: Env = process.
   const workers = e2eWorkers(env)
   return defineConfig({
     // Journeys end in `.e2e.ts` in an area that has not moved yet and are `*.test.ts` under `tests/e2e/` in one that has
-    // (core and 2D refactor, task 3.3). Playwright fails a run that matches nothing. When the last area has moved this
+    // (the test-move codemod). Playwright fails a run that matches nothing. When the last area has moved this
     // is `**/*.test.ts` alone.
     testMatch: ['**/*.e2e.ts', '**/*.test.ts'],
     forbidOnly: env.CI !== undefined,

@@ -208,6 +208,16 @@ describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-la
       expect(document.querySelector('[data-testid="studio-track"] .key[aria-pressed="true"]')).not.toBeNull()
     })
 
+    it('a double tap on a button leaves the page at scale 1 (the Owner: a double tap zoomed the iPad)', async () => {
+      await open(profile)
+      const target = button('Pose')
+      await createPointers(target).tap({ x: 10, y: 10 }, { kind: 'touch' })
+      await createPointers(target).tap({ x: 10, y: 10 }, { kind: 'touch' })
+      await arrived()
+      expect(window.visualViewport?.scale ?? 1).toBe(1)
+      expect(getComputedStyle(document.documentElement).touchAction).toBe('manipulation')
+    })
+
     it('EDS-aa: a new pose is a new file, and Undo takes the file away', async () => {
       const { ports } = await open(profile)
       await press('New pose')

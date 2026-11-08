@@ -1,9 +1,9 @@
-// consumer-smoke's types step (M2.4 spec §3.6): the published declarations, read by TypeScript 7.0.2 and by
-// 6.0.3 (ship spec §3.1: TS 6 consumers can read AF's .d.ts). One use of each entry's main types.
+// consumer-smoke's types step: the published declarations, read by TypeScript 7.0.2 and by
+// 6.0.3 (a TS 6 consumer can read AF's .d.ts). One use of each entry's main types.
 
 import type { Hosting } from '@mcthaydt/automata'
 import { createHosting } from '@mcthaydt/automata/target'
-import { openHostingTest, REFERENCE_SIZES, type ReferenceSize } from '@mcthaydt/automata/testing'
+import { fakeHosting, REFERENCE_SIZES, type ReferenceSize } from '@mcthaydt/automata/testing'
 import type { CompiledContent, ContentConfig, Diagnostic } from '@mcthaydt/automata-content'
 import { type ContentText, createContentText } from '@mcthaydt/automata-content/locale'
 import { automataContent } from '@mcthaydt/automata-content/vite'
@@ -45,7 +45,7 @@ import { checkLayout, manualFrames, withRuntimeTest } from '@mcthaydt/automata/t
 export const sizes: readonly ReferenceSize[] = REFERENCE_SIZES
 export const factor: FormFactor = classifyFormFactor(390, 844)
 export type Uses = [CompiledContent, ContentConfig, Diagnostic, Hosting, FilesService, ShipConfig, Geometry]
-// DX.2a: runtime, render-pixi, game and the umbrella, published.
+// The umbrella package, published: the runtime, renderer, game call and host contract.
 export type GameUses = [GameDefinition, RuntimeHandle, ExtensionDef, PixiRendererOptions, GameSpec]
 export const gameValues = [runGame, startGame, keys, createPixiRenderer, rect, manualFrames, withRuntimeTest]
 export const extension: ExtensionDef<'smoke'> = defineExtension({ name: 'smoke' })
@@ -55,7 +55,7 @@ export const game: DefinedGame = defineGame({
   sim: { plugins: [] },
 })
 export const hp = umbrellaComponent('hp', { value: 'f32' })
-export const values = [automataContent, createHosting, openHostingTest, ProcessRunner, prepareBuild]
+export const values = [automataContent, createHosting, fakeHosting, ProcessRunner, prepareBuild]
 export const component: typeof Dialog = Dialog
 export const layout: typeof checkLayout = checkLayout
 export const position = defineComponent('position', { x: 'f32', y: 'f32' })

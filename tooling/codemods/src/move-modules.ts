@@ -1,4 +1,4 @@
-// The module-move codemod (core and 2D refactor plan, task 4.2; spec section 3.3).
+// The module-move codemod.
 //
 // It plans the move of whole source folders from several packages into the four new ones, by a map written once
 // (`docs/refactor/move-map.json`): which file goes where, and which new public entry every old one becomes. It

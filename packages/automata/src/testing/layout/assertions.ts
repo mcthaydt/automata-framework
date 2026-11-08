@@ -1,5 +1,5 @@
 /**
- * Layout assertions as plain DOM functions (M1.6 spec §3.10), from FloorFifty's
+ * Layout assertions as plain DOM functions, from FloorFifty's
  * `tests/e2e/support/layout.ts` at 122a220 (`expectReachable`, `expectControlsFit`,
  * `expectRowsWhole`, `expectApart`, `expectNoDocumentScroll`).
  *

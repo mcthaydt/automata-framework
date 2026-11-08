@@ -5,7 +5,7 @@ import { defineTests } from '@mcthaydt/vitest-preset'
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url))
 
 // Node runs every unit test, including the examples' golden replays (tests/browser/examples.test.ts); the browser
-// project replays the same goldens in Chromium, WebKit and Firefox (EX spec §4). tests/fixtures/ holds example
+// project replays the same goldens in Chromium, WebKit and Firefox. tests/fixtures/ holds example
 // files, not tests.
 export default defineTests({
   // An example's default export is a whole game (`defineGame`), whose default screens are Svelte components.

@@ -13,6 +13,7 @@ import { describeBootError, runGame } from '#src/app/boot/run-game.ts'
 import type { Flow } from '#src/app/flow/flow.manager.ts'
 import { defineSave } from '#src/features/saves/save.schema.ts'
 import { saveOf } from '#src/features/saves/saves.manager.ts'
+import type { Hosting as PlainHosting } from '#src/shared/host/hosting.ts'
 import { ok, refused } from '#src/shared/lib/result.ts'
 import {
   AssetLoadFailed,
@@ -24,13 +25,12 @@ import {
   RendererUnavailable,
 } from '#src/shared/runtime/boot-error.ts'
 import { STALL_MS } from '#src/shared/runtime/load-meter.ts'
+import { fakeHosting } from '#src/testing/host/fake-hosting.ts'
+import { realClock } from '#src/testing/host/page/clocks.ts'
+import { TEST_GAME_ORIGIN } from '#src/testing/host/page/ruken/hosting-test.ts'
 import { fakeFetch } from '#src/testing/runtime/fake-fetch.ts'
 import { type ManualFrames, manualFrames } from '#src/testing/runtime/manual-frames.ts'
 import { nullRenderer } from '#src/testing/runtime/null-renderer.ts'
-import type { Hosting as PlainHosting } from '../../../../../src/shared/host/hosting.ts'
-import { fakeHosting } from '../../../../../src/testing/host/fake-hosting.ts'
-import { realClock } from '../../../../../src/testing/host/page/clocks.ts'
-import { TEST_GAME_ORIGIN } from '../../../../../src/testing/host/page/ruken/hosting-test.ts'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -163,7 +163,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
   })
 
   describe('boot failure drawing: each tag mounts BootFailurePanel with correct data-code and data-state="failed"', () => {
-    it('HostError(init) -> data-code="start", hostKind is standalone before step 2 succeeds', async () => {
+    it('HostError(init) a retry cannot fix -> data-code="start-final"', async () => {
       const frames = manualFrames()
       const game: GameDefinition = {
         root,
@@ -188,7 +188,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
 
       const alert = root.querySelector('[role="alert"]')
       expect(alert).not.toBeNull()
-      expect(alert?.getAttribute('data-code')).toBe('start')
+      expect(alert?.getAttribute('data-code')).toBe('start-final')
       expect(document.documentElement.getAttribute('data-state')).toBe('failed')
 
       await handle.shutdown()

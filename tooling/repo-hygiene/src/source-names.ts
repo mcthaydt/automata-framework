@@ -1,4 +1,4 @@
-// The names of the projects AF's code was first proven in (FR.4). AF is standalone (Owner, 2026-10-31): the text it publishes names
+// The names of the projects AF's code was first proven in. AF is standalone (Owner, 2026-10-31): the text it publishes names
 // none of them; where code came from is recorded only in docs/provenance/sources.md. The names live here, in private tooling, and
 // nowhere that ships. A finding says the file, the line and which entry matched, never the name.
 import { existsSync, readdirSync, readFileSync } from 'node:fs'

@@ -1,5 +1,5 @@
 // Every file the compiler touches goes through this module, so the package has one place that knows about
-// the disk. It uses `node:fs` inside Effect today; when `@mcthaydt/automata-node` lands, swapping it in is a
+// the disk. It uses `node:fs` inside Effect today; the `Files` service in `@mcthaydt/automata-tools` could replace it; that swap is a
 // change to this file alone. The rest of the package sees Effects that fail with `FileError`.
 
 import { randomUUID } from 'node:crypto'

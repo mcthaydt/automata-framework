@@ -25,14 +25,14 @@ export interface KitSourceService {
   clone(repo: string, tag: string, into: string): Effect.Effect<void, KitSourceError>
 }
 
-/** The service's tag; see `Files` in `@mcthaydt/automata-node` for why it is not a `Context.Tag` class. */
+/** The service's tag; see `Files` in `shared/node/files.ts` for why it is not a `Context.Tag` class. */
 export interface KitSource {
   readonly _KitSource: unique symbol
 }
 export const KitSource: Context.Tag<KitSource, KitSourceService> = Context.GenericTag<
   KitSource,
   KitSourceService
->('@mcthaydt/automata-cli/KitSource')
+>('@mcthaydt/automata-tools/KitSource')
 
 /**
  * git with the buyer's own credentials (their credential helper or SSH agent). `GIT_TERMINAL_PROMPT=0` makes a

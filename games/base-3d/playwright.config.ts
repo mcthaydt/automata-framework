@@ -1,4 +1,9 @@
-import { demoHostOrigin, demoHostPort, examplesPort } from '@mcthaydt/examples-runner/host/ports'
+import {
+  base3dDevPort,
+  demoHostOrigin,
+  demoHostPort,
+  examplesPort,
+} from '@mcthaydt/examples-runner/host/ports'
 import { defineJourneys } from '@mcthaydt/playwright-preset'
 import { devices } from '@playwright/test'
 import { gameBuildPath, gamePort, gameUrl } from './e2e/origin.ts'
@@ -15,6 +20,17 @@ export default defineJourneys({
       name: 'base-3d',
       testDir: 'e2e',
       use: { ...devices['Pixel 7 landscape'], viewport: { width: 844, height: 390 } },
+    },
+    // The same game from its Vite dev server, in Chromium and WebKit (the Owner's iPad is WebKit).
+    {
+      name: 'base-3d-dev',
+      testDir: 'tests/e2e-dev',
+      use: { ...devices['Pixel 7 landscape'], viewport: { width: 844, height: 390 } },
+    },
+    {
+      name: 'base-3d-dev-webkit',
+      testDir: 'tests/e2e-dev',
+      use: { ...devices['iPad (gen 7) landscape'] },
     },
     // The 3D examples (render3d, and figures since M3.5d) in WebKit too (M3.4a): headless Firefox here has no WebGL.
     {
@@ -34,6 +50,11 @@ export default defineJourneys({
         AF_E2E_GAME_PATH: gameBuildPath,
         AF_E2E_HOST_ORIGIN: demoHostOrigin,
       },
+      reuseExistingServer: reuse,
+    },
+    {
+      command: `pnpm exec vite --configLoader runner --strictPort --port ${base3dDevPort}`,
+      url: `http://localhost:${base3dDevPort}/`,
       reuseExistingServer: reuse,
     },
     {

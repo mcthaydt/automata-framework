@@ -1,6 +1,8 @@
 import '#src/shared/ui/theme.css'
 import { describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
+import { mountFixture } from '#src/testing/fixtures/mount.ts'
+import { REFERENCE_SIZES, VARIANTS } from '#src/testing/layout/reference-sizes.ts'
 import { byTestId, type Conditions, checkLayout, publishConditions } from '#src/testing/ui/layout-contract.ts'
 import { FIXTURE_LOCALES, findUntranslated } from '#src/testing/ui/locale-fixture.ts'
 import PrimitivesFixture, {
@@ -9,8 +11,6 @@ import PrimitivesFixture, {
   WORDED_TILE,
 } from '#src/testing/ui/PrimitivesFixture.svelte'
 import { settleLayout } from '#src/testing/ui/settle.ts'
-import { mountFixture } from '../../../../src/testing/fixtures/mount.ts'
-import { REFERENCE_SIZES, VARIANTS } from '../../../../src/testing/layout/reference-sizes.ts'
 
 // U-a (M4 spec §4.12): each M4.6 primitive at every reference size and variant, keyboard, Ruken's strip and TV
 // scale included, with production CSS, in Chromium, WebKit and Firefox. `checkLayout` holds every control to the

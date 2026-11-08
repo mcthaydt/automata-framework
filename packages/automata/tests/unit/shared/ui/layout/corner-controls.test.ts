@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import CornerControls from '#src/shared/ui/layout/CornerControls.svelte'
-import { textSnippet } from '../../../../../src/testing/fixtures/text-snippet.ts'
+import { textSnippet } from '#src/testing/fixtures/text-snippet.ts'
 
 describe('CornerControls', () => {
   it('shows Back only when the screen has somewhere to go back to', () => {

@@ -1,5 +1,5 @@
 <!--
-  SaveSlots for the layout contract (M5 spec §8), in a screen with Back in its corner row as a game would draw it.
+  SaveSlots for the layout contract, in a screen with Back in its corner row as a game would draw it.
   `slots` is six slots of every kind; `slots-long` gives each the longest labels and times a player could have, so
   the clamp to two lines is what is measured; `newer` is a single slot from a newer build, which offers only
   Delete…; `loading` is the moment before the slots arrive. Words are English stand-ins of a typical length, said in

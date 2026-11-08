@@ -3,7 +3,7 @@ import type { PresentationBus } from '../presentation/presentation-bus.manager.j
 
 export type PauseBehavior = HostingOptions['pauseBehavior']
 /**
- * `input`: the active pad was unplugged during play (M4-D9); Resume on the pause screen clears it. `display`: a phone
+ * `input`: the active pad was unplugged during play; Resume on the pause screen clears it. `display`: a phone
  * is held the other way from the game's orientation; turning it back clears it.
  */
 export type PauseReason = 'lifecycle' | 'menu' | 'input' | 'display'

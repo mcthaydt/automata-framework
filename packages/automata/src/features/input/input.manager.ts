@@ -51,7 +51,7 @@ import { isMenuActionLive, MENU_BINDINGS, type MenuAction, menuActionsFor } from
 export interface Input {
   /** The actions held now, the union over devices, in first-press order. Read once per fixed step; never copied. */
   held(): ReadonlySet<string>
-  /** The active pad's stick, each axis an integer in −127..127, centred inside the deadzone (M4-D2). */
+  /** The active pad's stick, each axis an integer in −127..127, centred inside the deadzone. */
   stick(side: 'left' | 'right'): { readonly x: number; readonly y: number }
   /** Menu and pause edges, never sent to the sim. Returns the unsubscribe. */
   onPress(action: MenuAction, listener: () => void): () => void

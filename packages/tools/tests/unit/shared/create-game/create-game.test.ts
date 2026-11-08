@@ -4,7 +4,7 @@ import { Effect, Exit } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { CreateGameError, createGame } from '#src/shared/create-game/create-game.ts'
 import type { DistTarget } from '#src/shared/create-game/create-game-targets.ts'
-import { tauriConfigSchema } from '../../../../src/shared/ship/config/tauri-config.schema.ts'
+import { tauriConfigSchema } from '#src/shared/ship/config/tauri-config.schema.ts'
 
 describe('createGame', () => {
   const testDir = join(process.cwd(), 'scratch-test-game')
@@ -100,6 +100,10 @@ describe('createGame', () => {
       expect(existsSync(join(testDir, 'tsconfig.json'))).toBe(true)
       expect(existsSync(join(testDir, 'index.html'))).toBe(true)
       expect(existsSync(join(testDir, 'style.css'))).toBe(true)
+      // A double tap must not zoom and a hold must not select the screen like text.
+      const style = readFileSync(join(testDir, 'style.css'), 'utf8')
+      expect(style).toContain('touch-action: manipulation')
+      expect(style).toContain('-webkit-user-select: none')
       // Laid out by role, the sim's files first: `automata check` reads constants.ts to state.ts as the sim.
       for (const role of ['constants', 'components', 'commands', 'systems', 'state', 'views', 'main'])
         expect(existsSync(join(testDir, `src/${role}.ts`))).toBe(true)

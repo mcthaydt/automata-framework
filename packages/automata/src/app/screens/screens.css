@@ -1,5 +1,5 @@
 /*
- * The default screens' layout (DX spec §7). The runtime's three layers fill the game's root: the
+ * The default screens' layout. The runtime's three layers fill the game's root: the
  * renderer's stage at the back, the screens over it, status overlays on top. The ui frame
  * (`ScreenFrame`) fills the visible region itself; these rules only say what lets the game show
  * through and what takes the pointer.
@@ -54,7 +54,7 @@
   min-height: 0;
 }
 
-/* The touch buttons (ui TouchControls, M4.3), centred along the foot as before, one group of them. */
+/* The touch buttons (the ui TouchControls), centred along the foot as before, one group of them. */
 .af-game-play .af-touch[data-testid] {
   justify-content: center;
 }
@@ -70,7 +70,7 @@
   font-size: calc(var(--af-text-body) * 1.5);
 }
 
-/* The title of a game with a save (M5.2): the name above, the slot list under it taking the rest of the height. */
+/* The title of a game with a save: the name above, the slot list under it taking the rest of the height. */
 .af-game-menu__body--saves {
   display: flex;
   flex-direction: column;

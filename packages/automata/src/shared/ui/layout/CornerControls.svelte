@@ -1,8 +1,7 @@
 <!--
   @component
   Back at the start, the game's own corner controls (Mute, a language flag) at the end, in the
-  same row on every screen (M1.6 spec §3.4; from FloorFifty `ui/layout/CornerControls.svelte` at
-  122a220). A screen does not render its own. `header` sits between them in the same row, on the
+  same row on every screen. A screen does not render its own. `header` sits between them in the same row, on the
   screen's centre line, so a short screen spends no row of its own on it.
 -->
 <script lang="ts">

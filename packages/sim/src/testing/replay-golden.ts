@@ -1,4 +1,4 @@
-// replayGolden (M2.3 spec §3.6): a golden that is a `.replay` with reference data, so when a run diverges the
+// replayGolden: a golden that is a `.replay` with reference data, so when a run diverges the
 // report names the exact tick and every field that differs there.
 import { createSim, type PluginDef, type Sim, SnapshotMismatchError } from '@mcthaydt/automata-sim'
 import {
@@ -137,7 +137,7 @@ function fastPath(stepper: ReplayStepper, replay: Replay): { checks: number } | 
 
 /**
  * With reference data: restore the latest reference snapshot at or before the last good check (or the start),
- * then step one tick at a time, comparing every tick's hash, to find the first that differs (spec §3.6).
+ * then step one tick at a time, comparing every tick's hash, to find the first that differs.
  */
 function bisect(
   stepper: ReplayStepper,

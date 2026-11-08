@@ -13,8 +13,8 @@ export default defineTests({
   plugins: [svelteTesting()],
   css: true,
   setupFiles: ['./tests/fixtures/setup.ts'],
-  // Boot runs over Ruken's fake host here, so `@mcthaydt/automata/target` must be the Ruken adapter (DIST spec §5.3)
-  // until these tests move to `FakeHosting` (DIST.4).
+  // Boot runs over Ruken's fake host here, so `@mcthaydt/automata/target` must be the Ruken adapter
+  // until these tests move to `FakeHosting`.
   conditions: ['automata-ruken'],
   // Compiles the Paraglide fixture once, in Node (src/features/locale/testing/global-setup.ts).
   globalSetup: ['./src/features/locale/testing/global-setup.ts'],

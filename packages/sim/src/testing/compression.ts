@@ -1,4 +1,4 @@
-// Deflate adapters for `.replay` files (M2.3 spec §3.8): Node's zlib and the web's CompressionStream, both raw
+// Deflate adapters for `.replay` files: Node's zlib and the web's CompressionStream, both raw
 // deflate, so each reads the other's bytes. Both stop inflating once the output passes the cap, so a small
 // file cannot expand into gigabytes.
 import { type ReplayCompression, ReplayFormatError } from '@mcthaydt/automata-sim/replay'

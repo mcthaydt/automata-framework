@@ -1,17 +1,17 @@
 import '#src/shared/ui/theme.css'
 import { describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
-import { byTestId, checkLayout, publishConditions } from '#src/testing/ui/layout-contract.ts'
-import { FIXTURE_LOCALES, findUntranslated } from '#src/testing/ui/locale-fixture.ts'
-import ScreenFixture from '#src/testing/ui/ScreenFixture.svelte'
-import { settleLayout } from '#src/testing/ui/settle.ts'
-import { mountFixture } from '../../../../../src/testing/fixtures/mount.ts'
+import { mountFixture } from '#src/testing/fixtures/mount.ts'
 import {
   REFERENCE_SIZES,
   type ReferenceSize,
   VARIANTS,
   type Variant,
-} from '../../../../../src/testing/layout/reference-sizes.ts'
+} from '#src/testing/layout/reference-sizes.ts'
+import { byTestId, checkLayout, publishConditions } from '#src/testing/ui/layout-contract.ts'
+import { FIXTURE_LOCALES, findUntranslated } from '#src/testing/ui/locale-fixture.ts'
+import ScreenFixture from '#src/testing/ui/ScreenFixture.svelte'
+import { settleLayout } from '#src/testing/ui/settle.ts'
 
 // ScreenFrame, CornerControls, ScrollList and ActionBar together, at every reference size and
 // variant, with production CSS (M1.6 spec §7, plan Task 11), in English and again in the xx-long pseudo-locale (PRODUCT

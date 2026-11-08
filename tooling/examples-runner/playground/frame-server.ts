@@ -9,10 +9,10 @@ import { playgroundHeaders } from '../src/playground/playground-headers.ts'
 import { runtimeFromViteManifest } from '../src/playground/vite-runtime.ts'
 import { fileUnder, sendFile } from './static-files.ts'
 
-// The playground frame's test server (WEB.PLAY.2): the runtime build (playground/vite.config.ts), a frame page per
+// The playground frame's test server: the runtime build (playground/vite.config.ts), a frame page per
 // catalog example, each example's public files, the shared resources and the goldens, all under /playground/ with
-// the §11.3 headers, as the site will publish them (website playground spec §5.5). `/` is a test parent page whose
-// script (static/frame-parent.js) frames an example and speaks the protocol. WEB.PLAY.3 turns the same pieces into
+// the frame policy's headers, as the site will publish them. `/` is a test parent page whose
+// script (static/frame-parent.js) frames an example and speaks the protocol. The playground build turns the same pieces into
 // the build the site syncs.
 
 const here = fileURLToPath(new URL('.', import.meta.url))

@@ -8,6 +8,9 @@ Every player-facing string of core and Emberwick, checked against the four quest
 
 | Where | Old text | New text | Failed |
 |---|---|---|---|
+| Paused (default screens), the leave button, question and confirm | `Quit to title`, `Quit to title? This run is lost.`, `Quit to title` and `Cancel` | `Back to menu`, `Leave this game? Unsaved progress is lost.`, `Leave` and `Keep playing` | 4 ("title" and "run" are game-maker words) and 2 (the confirm button repeated the button just pressed; "this run is lost" was untrue for a game with saves) |
+| Saves, a failed write | `Couldn't save this slot` | `Couldn't save your game. Try again.` | 4 ("slot") and 2 |
+| Boot failure, a start that a retry cannot fix | `Couldn't start the game.` with no button | In Ruken or a desktop app: the same sentence and `Back to {host}`. Standalone: `Couldn't start the game. Close it and open it again.` | 2 (no next step) |
 | Emberwick, paused screen | `Quit` | `Back to menu` | 1 (quit what? the app, the round?) |
 | Boot failure, `damaged` (`shared/ui/status/boot-failure.ts`) | `This copy of the game is damaged.` | `This copy of the game is damaged. Download it again.` | 2 (no next step) |
 | Settings, audio (`settings/settings-copy.ts`) | `Your device’s volume in the host also applies.` | `Your device’s own volume also applies.` | 4 ("the host") |
@@ -41,11 +44,11 @@ Every player-facing string of core and Emberwick, checked against the four quest
 | Emberwick end | `The ember is yours`, `Play again`, `Menu` | Says what happened and the two choices. |
 | Emberwick pause (touch) | `Pause` (a button) | Named by role. |
 | Paused (default screens) | `Paused`, `Resume`, `Back`, `Mute`, `Unmute`, `Settings` | One to three words. |
-| Quit confirm | `Quit to title? This run is lost.`, `Quit to title`, `Cancel` | Says what is lost. |
+| Leave confirm | `Leave this game? Unsaved progress is lost.`, `Leave`, `Keep playing` | Says what is lost, and the two buttons say what each does. |
 | Controller | `Reconnect your controller` | Says what to do. |
 | Saves | `Saving…`, `Progress saved`, `Empty`, `Continue`, `New game`, `Delete this save?`, `Keep it` | Plain words. |
-| Saves, failure | `Couldn't save this slot`, `This save can't be opened`, `Could not save yet; trying again` | Say what happened and, where it matters, that it retries. |
-| Boot failure | `Couldn't start the game.`, `Couldn't connect to Ruken.`, `Couldn't load your progress.`, `This device can't run the game.`, `Still waiting for the game to download.` and `Try again`, `Continue without loading`, `Back to {host}` | One sentence plus a button that fixes the usual cause. `connect` only shows when the host is Ruken. |
+| Saves, failure | `Couldn't save your game. Try again.`, `This save can't be opened`, `Could not save yet; trying again` | Say what happened and, where it matters, that it retries. |
+| Boot failure | `Couldn't start the game.`, `Couldn't start the game. Close it and open it again.`, `Couldn't connect to Ruken.`, `Couldn't load your progress.`, `This device can't run the game.`, `Still waiting for the game to download.` and `Try again`, `Continue without loading`, `Back to {host}` | One sentence plus a button that fixes the usual cause. `connect` only shows when the host is Ruken. |
 | Scores | `Loading scores…`, `No scores yet`, `You're offline` | Plain words. |
 
 ## Checked and kept

@@ -16,7 +16,7 @@
  * at load would be stepped over and the swipe would leave anyway.
  *
  * From FloorFifty `apps/client/src/ui/back-gesture.ts` at `ac72660`; the history
- * key is `afBackGuard`. Standalone only (M4-D10): hosted, the host owns system
+ * key is `afBackGuard`. Standalone only: hosted, the host owns system
  * back (Ruken request R-2), so the default screens do not install it there.
  */
 

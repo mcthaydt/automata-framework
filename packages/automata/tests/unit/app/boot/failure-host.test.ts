@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { failureHost } from '#src/app/boot/failure-host.ts'
-import type { Hosting } from '../../../../src/shared/host/hosting.ts'
+import type { Hosting } from '#src/shared/host/hosting.ts'
 
 type Capability = Hosting['granted'] extends ReadonlySet<infer Each> ? Each : never
 

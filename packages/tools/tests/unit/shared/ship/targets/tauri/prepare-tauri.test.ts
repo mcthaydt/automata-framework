@@ -3,10 +3,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
+import type { RunResult } from '#src/shared/node/process-runner.ts'
 import { defineShipConfig, type ShipConfig } from '#src/shared/ship/config/ship-config.ts'
 import { prepareTauri } from '#src/shared/ship/targets/tauri/prepare-tauri.ts'
 import { fakeProcessRunner, type RecordedRun } from '#src/shared/ship/testing/fake-process-runner.ts'
-import type { RunResult } from '../../../../../../src/shared/node/process-runner.ts'
 
 // DIST spec §6.2: `automata ship prepare --target tauri` checks the build and the toolchain before writing anything,
 // writes the Tauri project into `.automata/tauri/`, runs `tauri build` for the host OS and copies the bundles.

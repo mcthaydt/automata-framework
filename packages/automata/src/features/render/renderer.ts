@@ -275,7 +275,7 @@ export function createPixiRenderer(
       },
       tryFilter: (id, make) =>
         tryFilter(app.renderer, id, make, (dropped, reason) => {
-          console.warn(`[automata-render-pixi] filter "${dropped}" dropped: ${reason}`)
+          console.warn(`[automata] filter "${dropped}" dropped: ${reason}`)
           target.bus?.publish('render.filter.dropped', { id: dropped, reason })
         }),
     }

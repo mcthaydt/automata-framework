@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import type { HostRefusal } from '#src/shared/host/errors.ts'
 import { boardStateFromError, boardStateFromSubmit } from '#src/shared/runtime/board-state.ts'
-import type { HostRefusal } from '../../../../src/shared/host/errors.ts'
 
 const hostError = (code: HostRefusal['code']): HostRefusal => ({
   code,

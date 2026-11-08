@@ -23,6 +23,17 @@ function source<A>(initial: A) {
 }
 
 describe('subscribable', () => {
+  it('tells a listener nothing when its owner is already disposed', () => {
+    const s = source(1)
+    const owner = disposables()
+    owner.dispose()
+    const seen: number[] = []
+    subscribable(s.get, s.listen, owner).subscribe((v) => seen.push(v))
+    s.set(2)
+    expect(seen).toEqual([])
+    expect(s.listenerCount()).toBe(0)
+  })
+
   it('gives the current value first, then every change', () => {
     const s = source(1)
     const seen: number[] = []

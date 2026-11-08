@@ -1,7 +1,6 @@
 <!--
   @component
-  A failure, and what the player can do about it (M1.6 spec §3.4; from FloorFifty
-  `ui/components/ErrorPanel.svelte` at 122a220).
+  A failure, and what the player can do about it.
 
   `role="alert"` rather than `role="status"`, because this interrupts: the player usually just
   pressed something and needs to know it did not work. The panel is opaque, because a failure is

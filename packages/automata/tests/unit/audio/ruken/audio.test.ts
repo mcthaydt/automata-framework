@@ -16,7 +16,7 @@ import {
   createPresentationBus,
   type RuntimeFacts,
 } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
-import { withHostingTest } from '../../../../src/testing/host/page/ruken/hosting-test.ts'
+import { withHostingTest } from '#src/testing/host/page/ruken/hosting-test.ts'
 
 // The Audio service (M5 spec §4.6, §5, §6; A-a to A-c). The unlock, sleep and host-gain rules come from FloorFifty
 // `managers/audio/engine.ts` and `ui/sleep-when-hidden.ts` at `ac72660`, and its tests `audio.test.ts` and

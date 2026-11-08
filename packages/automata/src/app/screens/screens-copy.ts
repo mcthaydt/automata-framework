@@ -60,7 +60,7 @@ export interface ScreensCopy {
     readonly quitPrompt: string
     readonly quitConfirm: string
     readonly cancel: string
-    /** Why play paused when a controller in use was unplugged (M4-D9). */
+    /** Why play paused when a controller in use was unplugged. */
     readonly reconnect: string
   }
   readonly settings: {
@@ -123,10 +123,10 @@ export const DEFAULT_SCREENS_COPY: ScreensCopy = {
     mute: 'Mute',
     unmute: 'Unmute',
     settings: 'Settings',
-    quit: 'Quit to title',
-    quitPrompt: 'Quit to title? This run is lost.',
-    quitConfirm: 'Quit to title',
-    cancel: 'Cancel',
+    quit: 'Back to menu',
+    quitPrompt: 'Leave this game? Unsaved progress is lost.',
+    quitConfirm: 'Leave',
+    cancel: 'Keep playing',
     reconnect: 'Reconnect your controller',
   },
   settings: {

@@ -6,11 +6,11 @@ import type { CompiledContentData, GameDefinition } from '#src/app/boot/game-def
 import { runGame } from '#src/app/boot/run-game.ts'
 import { createT } from '#src/features/locale/paraglide.ts'
 import { loadParaglideFixture, type ParaglideFixture } from '#src/features/locale/testing/load-fixture.ts'
+import { realClock } from '#src/testing/host/page/clocks.ts'
+import { TEST_GAME_ORIGIN } from '#src/testing/host/page/ruken/hosting-test.ts'
 import { fakeFetch } from '#src/testing/runtime/fake-fetch.ts'
 import { type ManualFrames, manualFrames } from '#src/testing/runtime/manual-frames.ts'
 import { nullRenderer } from '#src/testing/runtime/null-renderer.ts'
-import { realClock } from '../../../../../src/testing/host/page/clocks.ts'
-import { TEST_GAME_ORIGIN } from '../../../../../src/testing/host/page/ruken/hosting-test.ts'
 
 // PRODUCT spec §4, acceptance L-b and L-c at the runtime level: booted under the fake Ruken host.
 

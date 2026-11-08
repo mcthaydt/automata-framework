@@ -3,7 +3,7 @@
 // places the hands on the outfit's openings is M3.5c's; this is the content shape. `fallback` names other
 // stands, checked like every library reference.
 
-import { contentRef } from '@mcthaydt/automata-content'
+import { contentRef } from '@mcthaydt/automata-content/schema'
 import { z } from 'zod'
 import { keyedUnion } from './keyed-union'
 import { about, side, type Vec3, vec3 } from './shapes.schema'

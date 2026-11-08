@@ -1,6 +1,6 @@
 // The floating move stick, from The Last Light `src/input.ts` at `92e6704` (`STICK_RADIUS`,
 // `stickVector`). Its dead zone (`STICK_DEAD` 0.25) is not here: runtime's `Input.touchStick` applies the pad's
-// radial dead zone, 0.25 too, so the pad and the thumb share one (M4-D13).
+// radial dead zone, 0.25 too, so the pad and the thumb share one.
 
 /** The stick's reach in CSS px: a thumb this far from where it landed is a full push. */
 export const TOUCH_STICK_RADIUS_PX = 48

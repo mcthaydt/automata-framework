@@ -67,7 +67,7 @@ task.
   now wraps only the frame-budget config)
 - Delete: `playwright.config.ts` (root)
 
-- [ ] **Step 1: Write the preset.** One function holds what every config shared in the root file (reporter,
+- [x] **Step 1: Write the preset.** One function holds what every config shared in the root file (reporter,
   retries, trace, the `AF_E2E_*` port scheme) so each area's config is short:
 
   ```ts
@@ -101,17 +101,17 @@ task.
   }
   ```
 
-- [ ] **Step 2: Emberwick's config.** `testDir: 'e2e'` for now (phase 3 moves it to `tests/e2e`), the two
+- [x] **Step 2: Emberwick's config.** `testDir: 'e2e'` for now (phase 3 moves it to `tests/e2e`), the two
   `webServer` entries that today live in the root config (`e2e:game`, `e2e:host`, with the `base2dPorts` env), and
   five projects: `emberwick-phone-chromium`, `emberwick-phone-webkit`, `emberwick-compact-chromium` (today's
   `base-2d-compact`), `emberwick-ipad-chromium`, `emberwick-ipad-webkit` (`{ ...sizes.phone, browserName: 'webkit'
   }`, and so on). The golden-route journey is tagged `@slow` and runs in the two `ipad` projects only (`grepInvert`
   on the others). The project names keep `base-2d` out already; the package is renamed in task 6.1.
-- [ ] **Step 3: Run it and see it pass in both engines.**
+- [ ] **Step 3: Run it and see it pass in both engines.** (Open: Chromium passes every journey; WebKit has never run on this code, and the Owner's `ci:local` closes this box.)
   `pnpm --filter @af-examples/base-2d exec playwright test` → expected: every journey passes in all five projects.
   A WebKit-only failure is a product bug: fix it in this task, with a unit test that shows the cause where one can.
   Record the first-attempt result in the execution log.
-- [ ] **Step 4: The other areas.** Move each remaining project and the servers it needs out of the root config:
+- [x] **Step 4: The other areas.** Move each remaining project and the servers it needs out of the root config:
 
   | Today's projects | New config |
   |---|---|
@@ -122,10 +122,10 @@ task.
 
   Keep `placeholder` out: phase 2 deletes it, and until then it is run by nothing. The 2D examples' config ignores
   `render3d-*` and `figures-*`.
-- [ ] **Step 5:** Root `package.json`: `"test:e2e": "turbo run test:e2e"`; `turbo.json` gets the task with
+- [x] **Step 5:** Root `package.json`: `"test:e2e": "turbo run test:e2e"`; `turbo.json` gets the task with
   `"cache": false` and `PLAYWRIGHT_BROWSERS_PATH` passed through. Delete the root `playwright.config.ts`. Run `pnpm test:e2e --filter @af-examples/base-2d
   --filter @af-examples/examples` → passes.
-- [ ] **Step 6: Commit** `ci(e2e): one Playwright config per game and example set`.
+- [x] **Step 6: Commit** `ci(e2e): one Playwright config per game and example set`.
 
 ### Task 1.2: The pull request gate
 
@@ -134,36 +134,36 @@ task.
   `test:journeys`, new `test:unit:core` and `test:parity:core`)
 - Create: `.github/workflows/release-checks.yml`, `.github/workflows/3d-and-editors.yml`
 
-- [ ] **Step 1: Scripts.** Root `test:unit` and `test:parity` end in `-- <vitest args>`, so `pnpm test:unit
+- [x] **Step 1: Scripts.** Root `test:unit` and `test:parity` end in `-- <vitest args>`, so `pnpm test:unit
   --filter=…` would hand the filter to Vitest. Add `test:unit:core` and `test:parity:core`, each `turbo run <task>`
   with the filters before the `--`: `--filter='!./packages/editor-*' --filter='!@af-games/base-3d'
   --filter='!./packages/render-pixi3d' --filter='!./packages/figures' --filter='!./packages/sector-format'`. Check
   with `turbo run test:unit <filters> --dry=json | jq '.tasks[].package'`: no 3D or editor package listed.
-- [ ] **Step 1b: `checks` job** keeps: install, lint, typecheck, boundaries, style, knip, `test:unit:core`,
+- [x] **Step 1b: `checks` job** keeps: install, lint, typecheck, boundaries, style, knip, `test:unit:core`,
   audit:deps, secrets, deps:new, `changeset status` and `check-changesets` (seconds each; spec veto default 9). It
   drops `test:journeys`, the example builds, the bundle budget, `api-report`, `build`, the dist test, `api-index`,
   `agent-skills` and `plugin:validate`.
-- [ ] **Step 2: New `e2e-2d` job** on every non-draft PR and push to `main`: install Chromium and WebKit, run
+- [x] **Step 2: New `e2e-2d` job** on every non-draft PR and push to `main`: install Chromium and WebKit, run
   `pnpm --filter @af-examples/base-2d test:e2e` and `pnpm --filter @af-examples/examples test:e2e`, upload the
   report on failure. `timeout-minutes: 20`.
-- [ ] **Step 3: `parity`** runs `test:parity:core` (and `--affected` on PRs, as today).
-- [ ] **Step 4: `3d-and-editors.yml`:** triggered on PRs whose paths include `packages/editor-*/**`,
+- [x] **Step 3: `parity`** runs `test:parity:core` (and `--affected` on PRs, as today).
+- [x] **Step 4: `3d-and-editors.yml`:** triggered on PRs whose paths include `packages/editor-*/**`,
   `packages/render-pixi3d/**`, `packages/figures/**`, `packages/sector-format/**`, `games/base-3d/**`,
   `examples/render3d/**`, `examples/figures/**`, `agents/**`, **or** any core package (so the codemod's results are
   checked). It runs those packages' unit, parity and journey suites (`test:journeys`, the base-3d and 3D examples'
   Playwright config) and base-3d's `game-ci` job, which leaves `ci.yml`. It is not a required check in branch
   protection: a required check that its path filter skips never reports, and the PR could never merge.
-- [ ] **Step 5: `release-checks.yml`:** on `workflow_call`, `workflow_dispatch` and nightly: build, dist test,
+- [x] **Step 5: `release-checks.yml`:** on `workflow_call`, `workflow_dispatch` and nightly: build, dist test,
   `api-report`, `api-index`, `agent-skills`, `plugin:validate`, consumer smoke. Publishing runs from
   `release-packages.yml` on a push to `main` (this repository uses no GitHub releases), so that workflow calls
   `release-checks.yml` first and its publish job `needs` it.
-- [ ] **Step 6:** Remove the nightly `e2e` job (its work is now `e2e-2d` on every PR plus the 3D and editors
+- [x] **Step 6:** Remove the nightly `e2e` job (its work is now `e2e-2d` on every PR plus the 3D and editors
   workflow) and its `budget:boot` step (the placeholder's; phase 2 deletes it). Remove the `placeholder` game job.
   The `frame-budget` job is already nightly-only; drop its `needs: e2e` (the job it waited on is gone) and keep its
   `concurrency` group.
-- [ ] **Step 7:** `check` uses `test:unit:core`; `ci:local` becomes `pnpm install --frozen-lockfile && pnpm check
+- [x] **Step 7:** `check` uses `test:unit:core`; `ci:local` becomes `pnpm install --frozen-lockfile && pnpm check
   && pnpm test:parity:core && pnpm test:e2e --filter @af-examples/base-2d --filter @af-examples/examples`.
-- [ ] **Step 8: Check:** `pnpm lint:actions` passes; push the branch and see the PR run `checks`, `parity` and
+- [ ] **Step 8: Check** (open: `pnpm lint:actions` needs Docker and hosted CI has no runners; the Owner runs both): `pnpm lint:actions` passes; push the branch and see the PR run `checks`, `parity` and
   `e2e-2d` green. Commit `ci: gate pull requests on 2D journeys; move release and 3D/editor suites out`.
 
 ### Task 1.3: The frame budget skips on a software renderer
@@ -172,11 +172,11 @@ task.
 - Modify: `tooling/frame-budget/src/budget.ts`, `tooling/frame-budget/src/check-cli.ts`
 - Test: `tooling/frame-budget/src/budget.test.ts`
 
-- [ ] **Step 1: Failing test.** In `budget.test.ts`: when every result's `environment.gpu` is a software renderer
+- [x] **Step 1: Failing test.** In `budget.test.ts`: when every result's `environment.gpu` is a software renderer
   (`isSoftwareGpu`: SwiftShader, llvmpipe) and the budget is set and valid, `checkFrameBudget` gives verdict
   `skipped` with the message `skipped: drawn by a software renderer (llvmpipe), so the frame budget cannot be
   measured here`. Run `pnpm --filter @mcthaydt/frame-budget test` → fails (today: `not-comparable`).
-- [ ] **Step 2:** Add `skipped` to `Verdict` and to `SEVERITY` (between `unset` and `over`, so an invalid or unset
+- [x] **Step 2:** Add `skipped` to `Verdict` and to `SEVERITY` (between `unset` and `over`, so an invalid or unset
   budget still wins); the software-renderer branch in `checkFrameBudget` adds `skipped`. `check-cli.ts` exits 0 on
   `pass` or `skipped` and 1 on everything else, so `invalid`, `unset`, `over` and a GPU mismatch still fail closed.
   Tests pass, with a CLI test for each exit code. Commit `fix(frame-budget): skip, not fail, on a software
@@ -188,7 +188,7 @@ task.
 - Create: `.vscode/settings.json`, `.vscode/extensions.json`
 - Modify: `.gitignore` (it does not list `.vscode/` today; add `.vscode/*.local.json` only)
 
-- [ ] **Step 1:** `settings.json` with the audit's section 6 lists as `files.exclude` and `search.exclude` (the
+- [x] **Step 1:** `settings.json` with the audit's section 6 lists as `files.exclude` and `search.exclude` (the
   same keys, `true`), the "hide while 2D runs" block under its comment, plus:
 
   ```jsonc
@@ -198,9 +198,9 @@ task.
   "typescript.tsdk": "node_modules/typescript/lib"
   ```
 
-- [ ] **Step 2:** `extensions.json`: `biomejs.biome`, `svelte.svelte-vscode`, `ms-playwright.playwright`,
+- [x] **Step 2:** `extensions.json`: `biomejs.biome`, `svelte.svelte-vscode`, `ms-playwright.playwright`,
   `vitest.explorer`.
-- [ ] **Step 3: Check:** `pnpm lint` passes (Biome reads `.vscode/*.json`); open the folder in VS Code (or list
+- [x] **Step 3: Check:** `pnpm lint` passes (Biome reads `.vscode/*.json`); open the folder in VS Code (or list
   with `jq '."files.exclude" | keys' .vscode/settings.json`) and confirm every pattern names a path that exists.
   Phases 2, 4 and 7 move or delete paths it names; each of those tasks updates `.vscode/settings.json` in the same
   commit. Commit `chore: add .vscode settings that hide generated and tool files`.
@@ -285,17 +285,17 @@ For each feature:
 - Create: `tooling/vitest-preset/{package.json,tsconfig.json,vitest.config.ts,src/index.ts}`,
   `tooling/vitest-preset/tests/unit/preset.test.ts`
 
-- [ ] **Step 0: Read every config first.** List what each of the 24 `vitest.config.ts` files sets (environment,
+- [x] **Step 0: Read every config first.** List what each of the 24 `vitest.config.ts` files sets (environment,
   setup files, `css`, plugins, `resolve.conditions`, browser instances, golden `commands`, `optimizeDeps`, connect
   timeout) in the execution log. The preset's options are exactly the differences found, no more (spec section
   3.4).
-- [ ] **Step 1: Failing test:** `defineTests({})` returns two projects named `unit` (include
+- [x] **Step 1: Failing test:** `defineTests({})` returns two projects named `unit` (include
   `tests/unit/**/*.test.ts`, environment `node`) and `browser` (include `tests/browser/**/*.test.ts`, browser
   mode, instances Chromium, WebKit and Firefox); `defineTests({ environment: 'jsdom', setupFiles: [...], css: true
   })` sets them on `unit`; `defineTests({ svelte: true })` adds the Svelte plugins, the `browser` resolve condition
   and `*.svelte.test.ts`; `browserCommands` reaches the browser project; `bench` is a third project only when
   `process.env.AF_BENCH` is set (root `pnpm bench` sets it).
-- [ ] **Step 2:** Implement in under 100 lines, with a comment on each choice (the connect timeout, the
+- [x] **Step 2:** Implement in under 100 lines, with a comment on each choice (the connect timeout, the
   `optimizeDeps` list that stops mid-run reloads). Test passes. Commit.
 
 ### Task 3.2: The move codemod
@@ -305,7 +305,7 @@ For each feature:
   `tooling/codemods/src/move-tests.ts`, `tooling/codemods/tests/unit/move-tests.test.ts`,
   `tooling/codemods/tests/fixtures/move-tests/**`
 
-- [ ] **Step 1: Failing test on a fixture package:** given `src/a/b.ts`, `src/a/b.test.ts`, `src/a/b.parity.test.ts`,
+- [x] **Step 1: Failing test on a fixture package:** given `src/a/b.ts`, `src/a/b.test.ts`, `src/a/b.parity.test.ts`,
   `src/a/c.dom.test.ts`, `src/a/d.layout.test.ts`, `src/a/e.bench.test.ts`, `src/a/f.svelte.test.ts`,
   `src/a/g.schema.test.ts`, `src/a/Host.test.svelte`, `src/testing/helper.ts` and `e2e/play.e2e.ts`, in a package
   whose unit environment is `node`, the codemod moves them to `tests/unit/a/b.test.ts`, `tests/browser/a/b.test.ts`,
@@ -318,9 +318,9 @@ For each feature:
   folders is fine; two in one folder) stops the run with both paths named. The suffix table is the one task 3.1
   step 0 recorded, so every suffix in the repository has a row (`.contract`, `.integration`, `.golden`, `.browser`,
   `.smoke`, `.slow`, `.devices`, `.build`, `.analog`, `.canvas`, …).
-- [ ] **Step 2:** Implement with `oxc-parser` (already a dependency) for import spans and `git mv` for moves, so
+- [x] **Step 2:** Implement with `oxc-parser` (already a dependency) for import spans and `git mv` for moves, so
   history follows. The suffix → folder table lives at the top of the file with one comment per row. Test passes.
-- [ ] **Step 3:** A dry run over the repository prints the move count per package. Expected: about 405 files in core
+- [x] **Step 3:** A dry run over the repository prints the move count per package. Expected: about 405 files in core
   and 2D. Record the count. Commit.
 
 ### Task 3.3: Run it, package by package
@@ -430,20 +430,22 @@ in step 2.
 - [x] **Step 1:** Run the codemod for the browser rows. Merge the moved packages' `dependencies` into
   `packages/automata/package.json`; delete the old `package.json`, `tsconfig*.json`, `tsdown.config.ts`,
   `vitest.config.ts`, `biome.json`, `svelte.config.js`, `CHANGELOG.md` and `LICENSE` of `host`, `runtime`,
-  `render-pixi`, `ui`, `game` and `testing` (keep `automata`'s, it is the survivor). One `tsdown.config.ts` builds
-  every entry.
-- [ ] **Step 2:** `pnpm boundaries --features packages/automata` lists every cross-feature import. Fix each: move
+  `render-pixi`, `ui`, `game` and `testing` (keep `automata`'s, it is the survivor). The build is `svelte-package` then tsdown (deviation 41: one tsdown config cannot build Svelte components); one `tsdown.config.ts` builds the TypeScript
+  entries.
+- [x] **Step 2:** `pnpm boundaries --features packages/automata` lists every cross-feature import. Fix each: move
   the shared part to `shared/`, or have `app/` pass the value in. The known ones from the audit (S3): `runtime`'s
   11 files that import `ui` (they become `app/boot` importing `shared/ui`, or `features/flow` taking a screen
   component from `app/`); `render-pixi`'s 8 files that import `runtime` or `ui` (render takes the quality and the
   letterbox geometry as arguments). Each fix is its own commit with a test that shows the feature working alone.
-- [ ] **Step 3:** `pnpm check`, `pnpm test:browser`, Emberwick's journeys, and the 3D and editors suites pass, with
+- [ ] **Step 3 (open: Chromium results are in the log; WebKit, Firefox, and the 3D and editor journeys have not run):** `pnpm check`, `pnpm test:browser`, Emberwick's journeys, and the 3D and editors suites pass, with
   the same test count as before the move. The sim goldens' hashes are unchanged: `git diff --stat --
   '**/__goldens__'` is empty and `GOLDEN_HASH` in `games/emberwick/src/golden.ts` is untouched.
-- [ ] **Step 4:** API report for `@mcthaydt/automata` updated; one `patch` changeset for `@mcthaydt/automata`
+- [x] **Step 4:** API report for `@mcthaydt/automata` updated; one `patch` changeset for `@mcthaydt/automata`
   explaining the merge and listing the old package names it replaces. The old packages are deleted, so they get no
   changeset and are not released again; marking them deprecated in the registry is the Owner's (it needs the
-  registry credentials). `check-changesets`' list of published packages loses them. Open the PR, green, merge.
+  registry credentials). `check-changesets`' list of published packages loses them.
+- [ ] **Step 4b:** Open the PR ([#393](https://github.com/mcthaydt/automata-framework/pull/393)), get it green, merge
+  (the Owner; hosted CI has no runners). Deprecating the old package names in the registry is also the Owner's.
 
 ### Task 4.4: `tools`, and `sim` and `content` inside (PR `claude/refactor-2d-tools`)
 
@@ -458,11 +460,14 @@ in step 2.
 - [x] **Step 3** (2026-11-05): `pnpm boundaries --features packages/{sim,content,tools}` passes; `--browser
   packages/content:game-config,locale` checks the two browser-safe entries reach no `effect`, `node:*`, `fontkit`,
   `pngjs` or `subset-font` (0 findings in 10 files). `assets` is Node-only, so it is not on the list (deviation 54);
-  `schema` and `palette` are not entries, only files behind `game-config` and the root.
-- [ ] **Step 4:** Every game's scripts use `automata ship prepare`. `pnpm check`, browser, journeys, 3D and editors
-  pass. Changesets, API reports. Open the PR, green, merge. **After this task, `packages/` holds `sim`, `content`,
+  `schema` and `palette` became entries in stage 6 (audit B1, the base-3d dev server needed them without the Node
+  root), so the list is `game-config,locale,schema,palette`.
+- [x] **Step 4:** Every game's scripts use `automata ship prepare`. `pnpm check`, browser (Chromium), journeys
+  (Chromium), 3D and editors (unit) pass. Changesets, API reports. **After this task, `packages/` holds `sim`, `content`,
   `automata`, `tools` and the 3D and editor packages, nothing else.** `tools` is published (spec veto default 8),
   so `check-changesets`' list gains it.
+- [ ] **Step 4b:** Open the PR ([#393](https://github.com/mcthaydt/automata-framework/pull/393)), get it green, merge
+  (the Owner; WebKit and Firefox have not run).
 
 ---
 
@@ -511,9 +516,9 @@ Order, leaf first: `display`, `locale`, `settings`, `audio`, `saves`, `loading`,
 
 For each:
 
-- [ ] **Step 1:** Rewrite the feature's tests to the plain API (failing).
-- [ ] **Step 2:** Convert (spec section 4 table). A service becomes `create<Feature>(deps): <Feature> & { dispose() }`.
-- [ ] **Step 3:** The feature's tests pass; Emberwick's journeys pass. Commit `refactor(<feature>): plain
+- [x] **Step 1:** Rewrite the feature's tests to the plain API (failing).
+- [x] **Step 2:** Convert (spec section 4 table). A service becomes `create<Feature>(deps): <Feature> & { dispose() }`.
+- [x] **Step 3:** The feature's tests pass; Emberwick's journeys pass. Commit `refactor(<feature>): plain
   TypeScript, no Effect`.
 
 Then:
@@ -650,7 +655,8 @@ the features it lacks are journeyed on the one-file examples that show them:
   title screen, press Start, see the game canvas draw (a non-blank pixel), press Escape, see the pause menu. This
   proves the path a new developer takes. It runs in `e2e-2d` (`packages/tools` gets a `test:e2e` script and its
   own Playwright config from the preset).
-- [ ] Open the PR, green, merge.
+- [x] Open the PR ([#398](https://github.com/mcthaydt/automata-framework/pull/398)).
+- [ ] Green, merge (the Owner; hosted CI has no runners).
 
 ---
 
@@ -1095,3 +1101,14 @@ the features it lacks are journeyed on the one-file examples that show them:
   automata browser suite in Chromium 2,116 of 2,116; examples and runner journeys 80 of 80, Emberwick 28 of 28 and
   create-game 1 of 1 (Chromium); `api-report --update` adds `close`; agent skill and cheatsheet regenerated. Not run:
   WebKit and Firefox (downloads refused here), hosted CI.
+- **Stage 6, fixes, 2026-11-06 (PR #403, stacked on #402).** Every finding of the build audit is closed; the table with what was
+  done for each is in `progress.md` ("Stage 6 record"). Deviations: (69) `schema` and `palette` are content entries (B1), so the
+  `--browser` list is `game-config,locale,schema,palette` and the spec's content row says so. (70) The plan-comment check also
+  reads the published `testing/` helpers and skips `.svelte-kit`. (71) The published `automata` build bundles the fake Ruken host
+  (`testing/host/page/ruken/hosting-test`) with the SDK inside, vendors the `@ruken/sdk` types, and drops the loose Ruken adapter
+  and the Paraglide fixture compile from `dist/`; `HostingSeams` moved to `shared/host/hosting.ts` with a plain `env` type. (72)
+  `test:dist` and the consumer smoke ran for the first time since the merge and needed fixing (script paths, fixtures that
+  imported the removed packages, a Svelte plugin in the web-target fixture, tools excluded from the eval scan). Verified:
+  `pnpm check` (33 of 33 tasks, 0 style findings); `test:dist` 21 of 21; consumer smoke 14 of 14; automata browser suite in
+  Chromium 2,116 of 2,116; Emberwick 28 of 28 (phone, compact, iPad; the no-WebGL journey now reads the alert by role); the
+  base-3d dev-server journey; 3D and editor unit suites. Not run: WebKit, Firefox, `pnpm lint:actions` (Docker), hosted CI.

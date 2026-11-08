@@ -1,5 +1,5 @@
 /**
- * The viewports every primitive and screen is checked at (M1.6 spec §3.10).
+ * The viewports every primitive and screen is checked at.
  *
  * FloorFifty's `SWEEP` (tests/e2e/support/layout.ts at 122a220) plus both sides of every
  * breakpoint, so a classification that moves by one pixel shows up as a failure. Each size records
@@ -7,9 +7,9 @@
  * here, and ui's own test checks every size against its classifiers.
  */
 
-/** `@mcthaydt/automata-ui`'s `FormFactor`. */
+/** The geometry owner's `FormFactor`. */
 export type ReferenceFormFactor = 'phone-portrait' | 'phone-landscape' | 'tablet-portrait' | 'desktop'
-/** `@mcthaydt/automata-ui`'s `HeightTier`. */
+/** The geometry owner's `HeightTier`. */
 export type ReferenceHeightTier = 'short' | 'compact' | undefined
 
 /**

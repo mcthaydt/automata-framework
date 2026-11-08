@@ -33,7 +33,7 @@ it('passes clean Svelte files and skips *.test.svelte and testing/ folders', () 
       'testing/Fixture.svelte': '<p>{@html text}</p>\n',
     }),
   )
-  expect(result.stdout).toContain('check-style: 1 files, 0 findings')
+  expect(result.stdout).toContain('check-style: 2 files, 0 findings')
   expect(result.status).toBe(0)
 })
 
@@ -76,4 +76,52 @@ it('passes a clean game root', () => {
   const result = spawnSync(process.execPath, [CLI, '--role-layout', game], { encoding: 'utf8', cwd: game })
   expect(result.stdout).toContain('check-style: 2 files, 0 findings')
   expect(result.status).toBe(0)
+})
+
+const runWith = (dir: string, ...args: string[]) =>
+  spawnSync(process.execPath, [CLI, ...args], { encoding: 'utf8', cwd: dir })
+
+it('reads the comments of a testing/ folder (published helpers) but applies no other rule there', () => {
+  const dir = src({
+    'layout/Frame.svelte': '<div>{title}</div>\n',
+    'testing/Fixture.svelte': '<!-- the M4 primitives -->\n<p>{@html text}</p>\n',
+    'testing/helper.ts': '// spec §4.9 asked for this\nexport const x = 1\n',
+    'testing/Weird_Name.ts': 'export const y = 1\n',
+  })
+  const result = runWith(dir, '--plan-comments', dir)
+  expect(result.stdout).toContain('testing/Fixture.svelte:1  plan-comment')
+  expect(result.stdout).toContain('testing/helper.ts:1  plan-comment')
+  expect(result.stdout).not.toContain('no-html')
+  expect(result.stdout).not.toContain('file-name')
+  expect(result.status).toBe(1)
+})
+
+it('reads only the comments under --comments-only: a config file is not named by role, a CSS comment is read', () => {
+  const dir = src({
+    'tool/vitest.config.ts': '// Chosen in M5-D6\nexport default {}\n',
+    'tool/page.css': '/* task 6.4 cut this */\n',
+    'tool/node_modules/dep/index.ts': '// M5-D6\n',
+  })
+  const result = runWith(dir, '--plan-comments', '--comments-only', dir)
+  expect(result.stdout).toContain('tool/vitest.config.ts:1  plan-comment')
+  expect(result.stdout).toContain('tool/page.css:1  plan-comment')
+  expect(result.stdout).not.toContain('file-name')
+  expect(result.stdout).not.toContain('node_modules')
+  expect(result.status).toBe(1)
+})
+
+it('fails on a test that reaches into src by a relative chain, and passes #src and non-import strings', () => {
+  // The chain is built here so this file does not itself look like a test that reaches into src.
+  const chain = '../../'
+  const dir = src({
+    'pkg/tests/unit/bad.test.ts': `import { a } from '${chain}src/a.ts'\nvi.mock('${chain}src/b.ts')\n`,
+    'pkg/tests/unit/good.test.ts': `import { a } from '#src/a.ts'\nconst font = join(here, '${chain}src/x.woff2')\n`,
+    'pkg/src/a.ts': `import { b } from '${chain}src/b.ts'\n`,
+  })
+  const result = runWith(dir, '--test-imports', dir)
+  expect(result.stdout).toContain('pkg/tests/unit/bad.test.ts:1  test-src-chain')
+  expect(result.stdout).toContain('pkg/tests/unit/bad.test.ts:2  test-src-chain')
+  expect(result.stdout).not.toContain('good.test.ts')
+  expect(result.stdout).not.toContain('pkg/src/a.ts')
+  expect(result.status).toBe(1)
 })

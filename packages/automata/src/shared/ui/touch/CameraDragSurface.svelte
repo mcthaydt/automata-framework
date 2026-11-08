@@ -1,6 +1,6 @@
 <!--
   @component
-  The camera drag surface (M4 spec §16.3.7, M3 spec §4.2 and §7): the player turns the camera by dragging the scene,
+  The camera drag surface: the player turns the camera by dragging the scene,
   a finger anywhere outside the controls or the mouse with its secondary button.
 
   All the rules of who drags are the tracker's (runtime `CameraDragTracker`); this forwards pointer events with their
@@ -130,7 +130,7 @@ function blockPageGestures(node: HTMLElement): () => void {
 ></div>
 
 <style>
-  /* The visible area less the host's strip: a contact in `hostReserved` stays the host's (M3 spec §7). */
+  /* The visible area less the host's strip: a contact in `hostReserved` stays the host's. */
   .af-camera-drag {
     position: fixed;
     inset: 0 var(--af-host-reserved-right, 0px) var(--af-visual-inset-bottom, 0px)

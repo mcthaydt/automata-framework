@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import * as host from '#src/entries/from-host.ts'
+import * as host from '#src/entries/host-contract.ts'
 import * as testing from '#src/testing/host/page/index.ts'
 
 describe('public entry points', () => {

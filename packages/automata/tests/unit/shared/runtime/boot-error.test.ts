@@ -9,7 +9,7 @@ import {
   ModelInvalid,
   RendererUnavailable,
 } from '#src/shared/runtime/boot-error.ts'
-import { type BootFailure, bootFailureView } from '../../../../src/shared/ui/status/boot-failure.ts'
+import { type BootFailure, bootFailureView } from '#src/shared/ui/status/boot-failure.ts'
 
 describe('BootError', () => {
   it('is structurally assignable to UI BootFailure', () => {

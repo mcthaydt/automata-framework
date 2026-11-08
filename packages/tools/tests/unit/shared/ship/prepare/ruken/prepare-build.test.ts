@@ -4,9 +4,9 @@ import { join } from 'node:path'
 import { parseManifest } from '@ruken/manifest'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
+import { FilesLive } from '#src/shared/node/files.ts'
 import { defineShipConfig, type ShipConfig } from '#src/shared/ship/config/ship-config.ts'
 import { checkBuild, type PrepareInput, prepareBuild } from '#src/shared/ship/prepare/prepare-build.ts'
-import { FilesLive } from '../../../../../../src/shared/node/files.ts'
 
 const prepare = (input: PrepareInput) => Effect.provide(prepareBuild(input), FilesLive)
 const check = (input: PrepareInput) => Effect.provide(checkBuild(input), FilesLive)

@@ -1,8 +1,8 @@
 import '#src/shared/ui/theme.css'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
+import { REFERENCE_SIZES, VARIANTS } from '#src/testing/layout/reference-sizes.ts'
 import { checkLayout, publishConditions } from '#src/testing/ui/layout-contract.ts'
-import { REFERENCE_SIZES, VARIANTS } from '../../../../src/testing/layout/reference-sizes.ts'
 
 // The checks the contract adds to the shared assertions (M1.6 spec §3.4, §5), each against a
 // planted problem. Real browsers: the checks read laid-out boxes.

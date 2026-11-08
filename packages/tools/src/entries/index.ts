@@ -84,4 +84,4 @@ export {
   prepareTauri,
   TAURI_CLI,
 } from '../shared/ship/targets/tauri/prepare-tauri.ts'
-export * from './from-node.ts'
+export * from './node-services.ts'

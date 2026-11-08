@@ -1,13 +1,13 @@
 import '#src/shared/ui/theme.css'
 import { describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
+import { mountFixture } from '#src/testing/fixtures/mount.ts'
+import { findUnreachable } from '#src/testing/layout/assertions.ts'
+import { REFERENCE_SIZES, TIGHT_SIZES, VARIANTS } from '#src/testing/layout/reference-sizes.ts'
 import { byTestId, checkLayout, errorPanelFloor, publishConditions } from '#src/testing/ui/layout-contract.ts'
 import { FIXTURE_LOCALES, findUntranslated } from '#src/testing/ui/locale-fixture.ts'
 import StatusFixture from '#src/testing/ui/StatusFixture.svelte'
 import { settleLayout } from '#src/testing/ui/settle.ts'
-import { mountFixture } from '../../../../../src/testing/fixtures/mount.ts'
-import { findUnreachable } from '../../../../../src/testing/layout/assertions.ts'
-import { REFERENCE_SIZES, TIGHT_SIZES, VARIANTS } from '../../../../../src/testing/layout/reference-sizes.ts'
 
 // LoaderOverlay, the boot failure panel and an ErrorPanel at every reference size and variant,
 // keyboard included, with production CSS (M1.6 spec §7, plan Task 11). A failure can arrive while

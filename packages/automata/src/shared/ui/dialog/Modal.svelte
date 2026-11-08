@@ -1,7 +1,6 @@
 <!--
   @component
-  A panel over the screen with a visible Close (M4 spec §4.12; the rules of FloorFifty
-  `ui/components/Modal.svelte` at ac72660). Where Dialog asks a question that needs an answer,
+  A panel over the screen with a visible Close. Where Dialog asks a question that needs an answer,
   Modal shows something the player can close at any time: a level list, a credits page.
 
   It holds the page by the rules Dialog uses (`modal-scope.ts`): the page behind is inert, focus

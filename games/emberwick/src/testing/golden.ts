@@ -42,7 +42,7 @@ export const GOLDEN_GOAL_TICK = 342
 /**
  * The sim's state hash after the whole golden route, with seed 1. Re-recorded when physics (#9) merged: its
  * schema hash also covers resource and command schemas (was `a40a6dbda55f4932`; same route, same goal tick). Re-recorded
- * again when the room and the tunables became compiled content (GAME-2D.ED; was `31f50888ccb4cf0a`; same route, same
+ * again when the room and the tunables became compiled content (was `31f50888ccb4cf0a`; same route, same
  * goal tick, same state on every tick, see `golden-equivalence.test.ts`): the sim's content now carries the room and the
  * tuning, and the content hash is part of the state hash (`world/sim.ts`). Re-recorded once more when the game became
  * Emberwick (was `94285fae634fdba9`): the plugin's name is part of the state hash and it went from `base-2d` to

@@ -1,9 +1,10 @@
 import { spawnSync } from 'node:child_process'
 import { existsSync, readFileSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { parseArgs, runCli } from '#src/app/cli.ts'
 import { ALIAS_NOTICE, runShipAlias } from '#src/app/ship-alias.ts'
+import { runShip } from '#src/app/ship-cli.ts'
 import { PLUS_REPOSITORY } from '#src/features/add/add-args.ts'
 import { AddError, type AddResult, type RunAddOptions } from '#src/features/add/run-add.ts'
 import type { BuildResult } from '#src/features/build/run-build.ts'
@@ -480,6 +481,26 @@ describe('bin cli', () => {
     it('the help names `automata ship`', async () => {
       const { stdout } = await runShipCli(['--help'])
       expect(stdout).toContain('automata ship <command>')
+    })
+
+    it('prints the usage on stdout and exits 0 for `ship --help`, and for the old name with --help', async () => {
+      let stdout = ''
+      let stderr = ''
+      const write = (target: 'stdout' | 'stderr') =>
+        vi.spyOn(process[target], 'write').mockImplementation((chunk) => {
+          if (target === 'stdout') stdout += String(chunk)
+          else stderr += String(chunk)
+          return true
+        })
+      const spies = [write('stdout'), write('stderr')]
+      try {
+        expect(await runShip(['--help'])).toBe(0)
+        expect(await runShipAlias(['--help'], () => undefined, runShip)).toBe(0)
+      } finally {
+        for (const spy of spies) spy.mockRestore()
+      }
+      expect(stdout).toContain('automata ship prepare')
+      expect(stderr).toBe('')
     })
 
     it('the old name prints that it is going away, then runs the same lane with the same arguments', async () => {

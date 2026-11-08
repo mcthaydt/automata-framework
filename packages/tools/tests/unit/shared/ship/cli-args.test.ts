@@ -59,6 +59,12 @@ describe('parseCliArgs', () => {
     })
   })
 
+  it('answers help for --help, -h and help, so a developer asking for help gets the usage and no error', () => {
+    for (const word of ['--help', '-h', 'help']) {
+      expect(parseCliArgs([word])).toEqual({ command: 'help' })
+    }
+  })
+
   it('answers usage for no command, an unknown command or an unknown flag', () => {
     expect(parseCliArgs([])).toEqual({ command: 'usage', problem: 'no command' })
     expect(parseCliArgs(['pack'])).toEqual({ command: 'usage', problem: 'unknown command: pack' })

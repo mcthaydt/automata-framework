@@ -73,7 +73,7 @@ interface ReservedFields {
 interface UnknownFields {
   readonly action: string
 }
-/** Refused: the input would leave `with`, a required action, with nothing on that device (M4-D4). */
+/** Refused: the input would leave `with`, a required action, with nothing on that device. */
 export class RebindConflict extends Error {
   readonly _tag = 'RebindConflict' as const
   readonly action: string
@@ -86,7 +86,7 @@ export class RebindConflict extends Error {
     this.with = fields.with
   }
 }
-/** Refused: Escape, Tab, pad 8 or pad 16 (M4-D3), or a pad button the standard mapping does not have. */
+/** Refused: Escape, Tab, pad 8 or pad 16, or a pad button the standard mapping does not have. */
 export class RebindReserved extends Error {
   readonly _tag = 'RebindReserved' as const
   readonly action: string

@@ -1,6 +1,6 @@
 <!--
   @component
-  The on-screen touch buttons (M4 spec §4.4), from FloorFifty `ui/components/TouchControls.svelte` at `ac72660`.
+  The on-screen touch buttons, from FloorFifty `ui/components/TouchControls.svelte` at `ac72660`.
 
   This is the element that produces pointer events and nothing more; the multi-touch bookkeeping is
   `touch-controls.ts`. Each side's group takes the pointers, not the buttons, and reaches `STICKY_MARGIN_PX` past
@@ -41,7 +41,7 @@ const sync = (): void => {
 
 let root = $state<HTMLElement | null | undefined>(undefined)
 
-// The reduced set (M4 spec §4.9): `needed` is one row's width with every button, measured while they all show;
+// The reduced set: `needed` is one row's width with every button, measured while they all show;
 // where the controls are narrower than that, only the required buttons show. Widening past it shows them all again.
 let reduced = $state(false)
 let needed = 0
@@ -50,7 +50,7 @@ function fit(width: number): void {
   // A bound element is null, not undefined, once it goes.
   if (root == null) return
   if (!reduced) {
-    // The stick (M4.12) is never dropped, but it takes its share of the row.
+    // The stick is never dropped, but it takes its share of the row.
     const groups = [...root.querySelectorAll<HTMLElement>('.af-touch__stick, .af-touch__side')]
     const gap = Number.parseFloat(getComputedStyle(root).columnGap) || 0
     // The stick's box, not its scroll width: a held ring drawn past the zone's edge takes no room in the row.
@@ -181,7 +181,7 @@ function blockPageGestures(node: HTMLElement): () => void {
     justify-content: space-between;
     gap: 8px;
     /* Only the stick and the button groups take the pointer: the gaps between them are the scene's, so a camera drag
-       can start there (M4.12). */
+       can start there. */
     pointer-events: none;
     touch-action: none;
     user-select: none;
@@ -194,8 +194,7 @@ function blockPageGestures(node: HTMLElement): () => void {
 
   /* The sticky margin: an invisible box past the buttons that belongs to the group, so a near miss lands on the
      group and is resolved to the nearest button. Painted under the buttons, and changing no layout. It reaches
-     sideways and down, never up: what sits above the buttons (an ActionBar, a screen's controls) keeps its taps
-     (M4 spec §4.9, D-a). */
+     sideways and down, never up: what sits above the buttons (an ActionBar, a screen's controls) keeps its taps. */
   .af-touch__side {
     position: relative;
     z-index: 0;
@@ -203,7 +202,7 @@ function blockPageGestures(node: HTMLElement): () => void {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
-    /* A side may be narrower than its buttons in one row: a long label in another language wraps the row (DX.2d). */
+    /* A side may be narrower than its buttons in one row: a long label in another language wraps the row. */
     min-width: 0;
   }
 
@@ -222,7 +221,7 @@ function blockPageGestures(node: HTMLElement): () => void {
   .af-touch__button {
     min-width: var(--af-target-primary);
     min-height: var(--af-target-primary);
-    /* A label longer than the row breaks inside the button rather than pushing the row off screen (xx-long, DX.2d). */
+    /* A label longer than the row breaks inside the button rather than pushing the row off screen (the xx-long pseudo-locale). */
     overflow-wrap: anywhere;
     touch-action: none;
   }

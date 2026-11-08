@@ -1,6 +1,6 @@
 <!--
   @component
-  The state a boot failure draws (M1 shared contracts §3; M1.6 spec §3.6): an ErrorPanel with the
+  The state a boot failure draws: an ErrorPanel with the
   failure's copy and its ways forward. The runtime passes its `BootError` and the handlers; this
   component decides nothing beyond `bootFailureView`.
 -->
@@ -23,7 +23,7 @@ interface Props {
   hostKind: HostKind
   /** `Hosting.hostName` ('Ruken', 'itch.io' …): fills "Back to {host}". */
   hostName: string
-  /** Whether the host granted `exit`. Without it "Back to …" is never drawn (PUB spec §3.1). */
+  /** Whether the host granted `exit`. Without it "Back to …" is never drawn. */
   canExit: boolean
   /** The game's copy, merged over the English defaults. */
   copy?: Partial<BootFailureCopy> | undefined

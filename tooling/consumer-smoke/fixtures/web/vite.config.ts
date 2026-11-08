@@ -1,7 +1,7 @@
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { defaultClientConditions, defineConfig } from 'vite'
 
-// A Ruken build (DIST spec §5.3): the `automata-ruken` condition picks the Ruken adapter, in front of Vite's defaults.
+// A Ruken build: the `automata-ruken` condition picks the Ruken adapter, in front of Vite's defaults.
 export default defineConfig({
   root: import.meta.dirname,
   resolve: { conditions: ['automata-ruken', ...defaultClientConditions] },

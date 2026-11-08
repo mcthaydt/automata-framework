@@ -1,5 +1,5 @@
-import { browserSafePort } from '../../src/shared/ship/ports/browser-safe-port.ts'
-import { portsFor } from '../../src/shared/ship/ports/ports-for.ts'
+import { browserSafePort } from '#src/shared/ship/ports/browser-safe-port.ts'
+import { portsFor } from '#src/shared/ship/ports/ports-for.ts'
 
 // Where the new game's preview listens: 500 above the checkout's preview port (5200–5299), clear of the other
 // areas' servers (the ui demo +100, the frame budget +200, Emberwick +300, the examples' host on the server port

@@ -1,4 +1,4 @@
-import '../../../../src/shared/ui/theme.css'
+import '#src/shared/ui/theme.css'
 import '#src/app/screens/screens.css'
 import { hasRawText, PSEUDO_LOCALE, pseudoLocalize } from '@mcthaydt/automata-content/locale'
 import { describe, expect, test } from 'vitest'
@@ -11,16 +11,16 @@ import { createPausedSavesView, createSlotsModel } from '#src/app/screens/saves/
 import { DEFAULT_SCREENS_COPY, type ScreensCopy } from '#src/app/screens/screens-copy.ts'
 import TitleScreen from '#src/app/screens/TitleScreen.svelte'
 import type { TouchButton } from '#src/features/input/keys.ts'
-import { InputMethodTracker } from '../../../../src/shared/ui/browser/input-method.svelte.ts'
-import { mountFixture } from '../../../../src/testing/fixtures/mount.ts'
+import { InputMethodTracker } from '#src/shared/ui/browser/input-method.svelte.ts'
+import { mountFixture } from '#src/testing/fixtures/mount.ts'
 import {
   REFERENCE_SIZES,
   type ReferenceSize,
   VARIANTS,
   type Variant,
-} from '../../../../src/testing/layout/reference-sizes.ts'
-import { byTestId, checkLayout, publishConditions } from '../../../../src/testing/ui/layout-contract.ts'
-import { settleLayout } from '../../../../src/testing/ui/settle.ts'
+} from '#src/testing/layout/reference-sizes.ts'
+import { byTestId, checkLayout, publishConditions } from '#src/testing/ui/layout-contract.ts'
+import { settleLayout } from '#src/testing/ui/settle.ts'
 
 // The default screens' layout contract (M1.6 spec §7) with production CSS, at every reference size and
 // variant: no document scroll, whole 44 px targets (48 px primaries), nothing off screen or under the host's

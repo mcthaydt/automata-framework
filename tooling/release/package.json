@@ -9,7 +9,7 @@
   "scripts": {
     "test": "vitest run",
     "test:unit": "vitest run",
-    "test:dist": "AF_CHECK_DIST=1 vitest run src/release-list.test.ts src/private-build.test.ts",
+    "test:dist": "AF_CHECK_DIST=1 vitest run tests/unit/release-list.test.ts tests/unit/private-build.test.ts",
     "typecheck": "tsc -p ."
   },
   "devDependencies": {

@@ -1,12 +1,12 @@
 import '#src/shared/ui/theme.css'
 import { describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
+import { mountFixture } from '#src/testing/fixtures/mount.ts'
+import { REFERENCE_SIZES, VARIANTS } from '#src/testing/layout/reference-sizes.ts'
 import { byTestId, checkLayout, publishConditions } from '#src/testing/ui/layout-contract.ts'
 import { FIXTURE_LOCALES, findUntranslated } from '#src/testing/ui/locale-fixture.ts'
 import SettingsFixture, { SETTINGS_SHOWS, type SettingsShow } from '#src/testing/ui/SettingsFixture.svelte'
 import { settleLayout } from '#src/testing/ui/settle.ts'
-import { mountFixture } from '../../../../../src/testing/fixtures/mount.ts'
-import { REFERENCE_SIZES, VARIANTS } from '../../../../../src/testing/layout/reference-sizes.ts'
 
 // The core Settings screen (M4 spec §4.8, §7, §8) at every reference size and variant, keyboard, Ruken's strip and
 // TV scale included, with production CSS, in Chromium, WebKit and Firefox. Every rebind button and option is a whole

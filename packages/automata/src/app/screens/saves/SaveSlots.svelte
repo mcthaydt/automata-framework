@@ -1,6 +1,6 @@
 <!--
   @component
-  The save slots (M5 spec §6, §7): a row for each slot, and the few things a player does with one. Rows are chosen,
+  The save slots: a row for each slot, and the few things a player does with one. Rows are chosen,
   not acted on: the chosen row (the newest slot that can be continued, to begin with) decides the actions in the bar
   under the list. Continue for a slot that can be opened, New game for an empty one, and Delete… for any that holds
   something. A save that cannot be opened, or that a newer build made, offers nothing but Delete…, so writing over
@@ -27,7 +27,7 @@ import {
 interface Props {
   view: SaveSlotsView
   copy: SaveSlotsCopy
-  /** How a save's time reads: the caller's locale formatting (PRODUCT.L). */
+  /** How a save's time reads: the caller's locale formatting. */
   formatTime: (savedAt: number) => string
   /** Continue this slot. */
   onload: (slot: number) => void

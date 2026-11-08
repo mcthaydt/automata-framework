@@ -36,7 +36,6 @@
     // Tool config that rarely changes.
     ".changeset": true,
     ".claude-plugin": true,
-    ".superpowers": true,
     ".gitleaks.toml": true,
     ".gitleaksignore": true,
     ".npmrc": true,
@@ -85,7 +84,6 @@
     "SECURITY.md": true,
     ".changeset": true,
     ".claude-plugin": true,
-    ".superpowers": true,
     ".gitleaks.toml": true,
     ".gitleaksignore": true,
     ".npmrc": true,

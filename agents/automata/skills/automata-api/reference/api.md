@@ -8,8 +8,7 @@
 
 #### `ActionBar` (const)
 
-One row of actions that collapses as its container narrows (M1.6 spec §3.4; from FloorFifty
-`ui/layout/ActionBar.svelte` at 122a220).
+One row of actions that collapses as its container narrows.
 
 It gives way in a fixed order as its container narrows (`collapseLevel`): utilities to their icon,
 then secondaries to their short label, and only then a wrap with the primary on its own row.
@@ -78,7 +77,7 @@ The analog input at one fixed step, read once after `Input.poll()`.
 
 ```ts
 interface AnalogReading {
-    /** The active pad's stick, or the touch stick, as integers −127..127 (M4-D2). */
+    /** The active pad's stick, or the touch stick, as integers −127..127. */
     stick(side: 'left' | 'right'): {
         readonly x: number;
         readonly y: number;
@@ -258,7 +257,7 @@ interface BarAction {
 
 #### `BootFailurePanel` (const)
 
-The state a boot failure draws (M1 shared contracts §3; M1.6 spec §3.6): an ErrorPanel with the
+The state a boot failure draws: an ErrorPanel with the
 failure's copy and its ways forward. The runtime passes its `BootError` and the handlers; this
 component decides nothing beyond `bootFailureView`.
 
@@ -269,7 +268,7 @@ type BootFailurePanel = ReturnType<typeof BootFailurePanel>;
 
 #### `Button` (const)
 
-The framework's button (M4 spec §4.12): an `.af-control` of one kind. A primary carries
+The framework's button: an `.af-control` of one kind. A primary carries
 `data-kind="primary"`, which both sizes it to the 48 px primary target and tells the layout check
 to hold it to that size. The words are the caller's, in the game's language.
 
@@ -329,7 +328,7 @@ interface Camera2dOptions {
 
 #### `CameraDragSurface` (const)
 
-The camera drag surface (M4 spec §16.3.7, M3 spec §4.2 and §7): the player turns the camera by dragging the scene,
+The camera drag surface: the player turns the camera by dragging the scene,
 a finger anywhere outside the controls or the mouse with its secondary button.
 
 All the rules of who drags are the tracker's (runtime `CameraDragTracker`); this forwards pointer events with their
@@ -384,7 +383,7 @@ const CapabilitySchema: z.ZodType<Capability>;
 
 #### `ChangedElsewhereCopy` (interface)
 
-The words of the choice paused offers once another device has changed the slot being played (M5-D6).
+The words of the choice paused offers once another device has changed the slot being played.
 
 ```ts
 interface ChangedElsewhereCopy {
@@ -398,7 +397,7 @@ interface ChangedElsewhereCopy {
 
 #### `Chip` (const)
 
-A short status label (M4 spec §4.12). Its tone is `data-tone` and an edge colour, and never only
+A short status label. Its tone is `data-tone` and an edge colour, and never only
 that: every tone but `info` also shows a glyph a sighted player reads and says `toneLabel` to
 assistive technology, so the tone survives with every colour removed. A warning or danger chip
 without words throws while it mounts.
@@ -801,8 +800,7 @@ function defineSystem(
 
 #### `Dialog` (const)
 
-A question that needs an answer before the screen goes on (M1.6 spec §3.4; from Ruken
-`packages/ui/src/Dialog.svelte` at b30d31b). The screen renders it only while it is open
+A question that needs an answer before the screen goes on. The screen renders it only while it is open
 (`{#if open}<Dialog>`) and decides what each action does; `onclose` is what Escape means, and it
 should mean the safe choice.
 
@@ -1563,7 +1561,7 @@ type HostResult<T> = Result<T, HostRefusal>;
 
 #### `IconButton` (const)
 
-A button whose face is an icon (M4 spec §4.12). Its accessible name is `label`, which it cannot
+A button whose face is an icon. Its accessible name is `label`, which it cannot
 do without: an empty label throws while it mounts, so a nameless icon button fails its first test
 instead of reaching a player. The icon is decoration and hidden from assistive technology.
 
@@ -1581,7 +1579,7 @@ profile and the player's overrides, menu edges, the active device and pads, and 
 interface Input {
     /** The actions held now, the union over devices, in first-press order. Read once per fixed step; never copied. */
     held(): ReadonlySet<string>;
-    /** The active pad's stick, each axis an integer in −127..127, centred inside the deadzone (M4-D2). */
+    /** The active pad's stick, each axis an integer in −127..127, centred inside the deadzone. */
     stick(side: 'left' | 'right'): {
         readonly x: number;
         readonly y: number;
@@ -1704,7 +1702,7 @@ interface InputProfile {
 #### `inputProfileSchema` (const)
 
 Validates an input profile, filling left-out binding fields with "unbound". A reserved key or pad button fails
-the parse with the action named (M4-D3, I-j): at boot that is a developer error before anything renders.
+the parse with the action named: at boot that is a developer error before anything renders.
 
 ```ts
 const inputProfileSchema: z.ZodType<InputProfile, InputProfileInput>;
@@ -1791,7 +1789,7 @@ interface KeysOptions<Z extends z.ZodType> {
     readonly idle?: z.input<Z>;
     /**
      * Keys whose actions the game cannot be played without: rebinding never leaves them unbound on a device
-     * (M4-D4), and where the touch buttons do not all fit, theirs are the ones that show.
+     *, and where the touch buttons do not all fit, theirs are the ones that show.
      */
     readonly required?: readonly string[];
     /**
@@ -1837,7 +1835,7 @@ const LeaderboardGetResSchema: z.ZodType<LeaderboardGetRes>;
 
 #### `LeaderboardPanel` (const)
 
-A board's rows, or why there are none (M5 spec §7): loading, entries (the player's row marked "you"
+A board's rows, or why there are none: loading, entries (the player's row marked "you"
 in words, not only by colour), empty, unavailable and offline. The rows are read, not chosen, so
 they are out of the focus order; only the action row (Back, Play again) takes focus. Unavailable
 and offline are what the host said: the panel never shows a board kept on the device instead.
@@ -1951,8 +1949,7 @@ type LifecycleReason = 'hidden' | 'blurred' | 'host-overlay' | 'ad' | 'offline-g
 
 #### `LoaderOverlay` (const)
 
-The loader over a screen while its assets load (M1.6 spec §3.4; from FloorFifty
-`ui/components/LoaderOverlay.svelte` at 122a220). It shows real progress when the runtime has it
+The loader over a screen while its assets load. It shows real progress when the runtime has it
 and an indeterminate bar before the first byte, says what is loading in words, and after the
 runtime's slow threshold says quietly that it is slow, not failing. The slow line always holds
 its height, so nothing shifts when it appears.
@@ -2007,8 +2004,7 @@ function measureGeometry(input: GeometryInput): Geometry;
 
 #### `Modal` (const)
 
-A panel over the screen with a visible Close (M4 spec §4.12; the rules of FloorFifty
-`ui/components/Modal.svelte` at ac72660). Where Dialog asks a question that needs an answer,
+A panel over the screen with a visible Close. Where Dialog asks a question that needs an answer,
 Modal shows something the player can close at any time: a level list, a credits page.
 
 It holds the page by the rules Dialog uses (`modal-scope.ts`): the page behind is inert, focus
@@ -2039,7 +2035,7 @@ class ModelInvalid extends Error {
 
 #### `OptionGroup` (const)
 
-A choice of one (M4 spec §4.8; the rules of FloorFifty `ui/layout/OptionGroup.svelte` at `ac72660`): a
+A choice of one: a
 segmented row whose chosen option is filled and marked, never only underlined or only coloured.
 
 Native radios in a fieldset, where FloorFifty used `<button role="radio">`: the browser gives the arrow keys,
@@ -2065,8 +2061,7 @@ interface OwnedRenderer extends GameRenderer {
 
 #### `PagedGrid` (const)
 
-A grid of items in pages that never scrolls (M4 spec §4.8; the page arithmetic of FloorFifty `ui/tile-pages.ts`
-at `ac72660`). Each group starts its own page; the shape is `most`, cut to what the measured box holds at
+A grid of items in pages that never scrolls. Each group starts its own page; the shape is `most`, cut to what the measured box holds at
 `minTile` and to what the largest group fills. PagerDots show where it is.
 
 The page is controlled: it reports `onpage` and shows the `page` it is given. A `[data-focus-grid]`, so the
@@ -2082,7 +2077,7 @@ type PagedGrid<T extends {
 
 #### `PagerDots` (const)
 
-Where a paged view is (M4 spec §4.8; from FloorFifty `ui/layout/PagerDots.svelte` at `ac72660`): one row of
+Where a paged view is: one row of
 dots, each a whole touch target, or "3 / 11" once the dots would not fit on one row. It never wraps.
 
 ```ts
@@ -2692,7 +2687,7 @@ interface Save<S> {
      */
     autosave(trigger: AutosaveTrigger): Promise<void>;
     /**
-     * True while the loaded slot holds something another device wrote after it was loaded (M5-D6). Nothing is
+     * True while the loaded slot holds something another device wrote after it was loaded. Nothing is
      * reloaded, and no trigger writes that slot over the other device's until the player answers. Lowered by
      * `keepPlaying`, `loadNewer` or any load.
      */
@@ -2723,7 +2718,7 @@ interface SaveDef<S> {
     readonly slots?: {
         readonly count: number;
     };
-    /** Absent: save on `screen-exit`, `round-end` and `background`, with no timer (M5-D10). `{ on: [] }` turns it off. */
+    /** Absent: save on `screen-exit`, `round-end` and `background`, with no timer. `{ on: [] }` turns it off. */
     readonly autosave?: AutosavePolicy;
 }
 ```
@@ -2841,8 +2836,7 @@ interface ScreenDef {
 
 #### `ScreenFrame` (const)
 
-Every screen's frame: the visible region, a corner row, then a hero and a body (M1.6 spec §3.4; from
-FloorFifty `ui/layout/ScreenFrame.svelte` at 122a220).
+Every screen's frame: the visible region, a corner row, then a hero and a body.
 
 It fills the visible region: the layout viewport less the insets the geometry owner publishes
 (safe area and Ruken's reserved strip), ending above whatever the browser lays over the page's
@@ -2887,7 +2881,7 @@ interface ScreensCopy {
         readonly quitPrompt: string;
         readonly quitConfirm: string;
         readonly cancel: string;
-        /** Why play paused when a controller in use was unplugged (M4-D9). */
+        /** Why play paused when a controller in use was unplugged. */
         readonly reconnect: string;
     };
     readonly settings: {
@@ -2964,7 +2958,7 @@ interface ScreensGame {
 
 #### `ScrollList` (const)
 
-A list that keeps its rows (M1.6 spec §3.4; from FloorFifty `ui/layout/ScrollList.svelte` at 122a220).
+A list that keeps its rows.
 
 It reserves `min(minRows, rowCount)` rows of `--af-row-h` as its minimum height, so on a short
 screen its siblings shrink before a row is lost. The reserve is capped at the height its parent
@@ -3039,7 +3033,7 @@ function settingsStore<S>(settings: Settings, def: SettingsDef<S>): SettingsStor
 
 #### `Sheet` (const)
 
-A Modal on the bottom edge at every form factor (M4 spec §4.12): the same scoping, Close and
+A Modal on the bottom edge at every form factor: the same scoping, Close and
 scroll region, where a thumb reaches the actions. Settings' sub-pages and a "more" menu use it.
 
 ```ts
@@ -3114,7 +3108,7 @@ interface SimContext {
 
 #### `Slider` (const)
 
-A number in a range (M4 spec §4.12): a labelled native `<input type="range">`, so the browser
+A number in a range: a labelled native `<input type="range">`, so the browser
 gives the arrow keys and the focus navigator's `adjust` steps it. `valueText` gives the value its
 words for assistive technology (`aria-valuetext`), and the same words show beside the track. The
 thumb is a 44 px target, checked by the layout contract.
@@ -3126,8 +3120,7 @@ type Slider = ReturnType<typeof Slider>;
 
 #### `Split` (const)
 
-Two panes side by side where both fit at `min` px, stacked otherwise (M4 spec §4.8; from FloorFifty
-`ui/layout/Split.svelte` at `ac72660`). Measured, because a container query cannot read a prop; stacked
+Two panes side by side where both fit at `min` px, stacked otherwise. Measured, because a container query cannot read a prop; stacked
 until the first measurement, so a pane never starts squeezed.
 
 ```ts
@@ -3288,7 +3281,7 @@ interface Time {
 
 #### `Toast` (const)
 
-A passing message (M4 spec §4.12): "Pad connected", "Saved", "This controller is not supported".
+A passing message: "Pad connected", "Saved", "This controller is not supported".
 The owner shows it and takes it away; Toast neither times itself nor takes focus, so a player
 in the middle of a menu is never moved.
 
@@ -3306,7 +3299,7 @@ type Toast = ReturnType<typeof Toast>;
 
 #### `Toggle` (const)
 
-An on/off setting (M4 spec §4.12): a native checkbox with the switch role, so the browser gives
+An on/off setting: a native checkbox with the switch role, so the browser gives
 Space and the focus navigator's `adjust` flips it. The state shows in words (`onLabel`,
 `offLabel`) beside the track, never in colour alone.
 
@@ -3336,7 +3329,7 @@ interface TouchButton {
 
 #### `TouchControls` (const)
 
-The on-screen touch buttons (M4 spec §4.4), from FloorFifty `ui/components/TouchControls.svelte` at `ac72660`.
+The on-screen touch buttons, from FloorFifty `ui/components/TouchControls.svelte` at `ac72660`.
 
 This is the element that produces pointer events and nothing more; the multi-touch bookkeeping is
 `touch-controls.ts`. Each side's group takes the pointers, not the buttons, and reaches `STICKY_MARGIN_PX` past
@@ -3382,7 +3375,7 @@ function typedBus<GameFacts>(bus: PresentationBus<object>): PresentationBus<Game
 
 #### `ViewportWindow` (interface)
 
-The parts of `window` the owner reads; a fake from `@mcthaydt/automata-testing` stands in for it in tests.
+The parts of `window` the owner reads; a fake from `@mcthaydt/automata/testing` stands in for it in tests.
 
 ```ts
 interface ViewportWindow {
@@ -4116,7 +4109,7 @@ const REFERENCE_SIZES: readonly ReferenceSize[];
 
 #### `ReferenceFormFactor` (type)
 
-`@mcthaydt/automata-ui`'s `FormFactor`.
+The geometry owner's `FormFactor`.
 
 ```ts
 type ReferenceFormFactor = 'phone-portrait' | 'phone-landscape' | 'tablet-portrait' | 'desktop';
@@ -4124,7 +4117,7 @@ type ReferenceFormFactor = 'phone-portrait' | 'phone-landscape' | 'tablet-portra
 
 #### `ReferenceHeightTier` (type)
 
-`@mcthaydt/automata-ui`'s `HeightTier`.
+The geometry owner's `HeightTier`.
 
 ```ts
 type ReferenceHeightTier = 'short' | 'compact' | undefined;
@@ -5460,6 +5453,97 @@ function pseudoMessages(file: {
 
 ```ts
 function snakeKey(value: string): string;
+```
+
+### `import { … } from '@mcthaydt/automata-content/palette'`
+
+#### `DEFAULT_PALETTE` (const)
+
+The palette a game gets when it has no `content/palette.toml`: Endesga 64.
+
+```ts
+const DEFAULT_PALETTE: Palette;
+```
+
+#### `Palette` (interface)
+
+The game's palette: a name and its colors.
+
+```ts
+interface Palette {
+  readonly name: string;
+  /** `#rrggbb`, lowercase, in authored order. */
+  readonly colors: readonly string[];
+}
+```
+
+### `import { … } from '@mcthaydt/automata-content/schema'`
+
+#### `contentRef` (function)
+
+The ID of another content item of `kind`. Checked to exist, and to be that kind, after parsing.
+
+```ts
+function contentRef<const K extends string>(kind: K): z.ZodType<string, string>;
+```
+
+#### `ContentSchemaDef` (interface)
+
+A content kind a game registers: its name, the Zod schema each item must match, where its TOML files live,
+and whether the sim receives it. Create one with `defineContentSchema`.
+
+```ts
+interface ContentSchemaDef<K extends string = string, S extends z.ZodType = z.ZodType> {
+  readonly kind: K;
+  readonly schema: S;
+  readonly place: ContentSchemaPlace;
+  /**
+   * Whether the sim receives this kind. Default true: content is gameplay unless the game
+   * says otherwise, so a forgotten flag can only refuse a snapshot, never let a gameplay change through.
+   */
+  readonly sim: boolean;
+}
+```
+
+#### `ContentSchemaOptions` (interface)
+
+Options for `defineContentSchema`; `sim: false` keeps the kind out of the sim's content and its hash.
+
+```ts
+interface ContentSchemaOptions {
+  readonly sim?: boolean;
+}
+```
+
+#### `ContentSchemaPlace` (type)
+
+Where a kind's files are: every TOML file under a folder (a collection), or one file (a document).
+
+```ts
+type ContentSchemaPlace = {
+  readonly folder: string;
+} | {
+  readonly file: string;
+};
+```
+
+#### `defineContentSchema` (function)
+
+Registers a content kind: a name, its Zod schema, and a folder (every TOML file in it is an item) or one
+file (a single document). The sim receives the kind unless `{ sim: false }`. A bad registration (a name
+that does not start with a lower-case letter followed by lower-case letters, digits and dashes, a built-in
+name, a duplicate, or a place two kinds share) is reported when content compiles, as `InvalidContentConfig`.
+
+```ts
+function defineContentSchema<const K extends string, S extends z.ZodType>(kind: K, schema: S, place: ContentSchemaPlace, options?: ContentSchemaOptions): ContentSchemaDef<K, S>;
+```
+
+#### `localized` (function)
+
+Text a player reads, written in the source language. It gets a message key for translators.
+
+```ts
+function localized(): z.ZodType<string, string>;
 ```
 
 ### `import { … } from '@mcthaydt/automata-content/vite'`
@@ -8350,7 +8434,7 @@ interface MatrixCell {
   readonly device: InputDevice;
   readonly engine: Engine;
   readonly hosts: readonly MatrixHost[];
-  /** M4-D11: the cells that run locally and in hosted CI; the rest belong to the GPU runner's nightly. */
+  /** The cells that run locally and in hosted CI; the rest belong to the GPU runner's nightly. */
   readonly local: boolean;
 }
 ```
