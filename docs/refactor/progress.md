@@ -549,3 +549,18 @@ The Owner, 2026-11-08: "all editors should work between 2D and 3D unless obvious
 | 1. Audit | Done, 2026-11-08, on PR #508: 5 high (S1 to S5), 8 medium (S6 to S13), 3 low (S14 to S16), one decision for the Owner (D1, what Characters means in a 2D game; the Owner chose A the same day: one Characters editor on the rail in both kinds). A 2D and a 3D game were made in the editors, played and seen; the 2D game's Feel and Audio players were wired into a 3D game by hand and worked | [audit](2026-11-08-shared-editors-audit.md) |
 | 2. Plan and spec | Done, 2026-11-08: D1 = A (one Characters rail entry; in 2D it opens Levels 2D's Characters view). 18 tasks in 6 phases: the rail by game kind, Characters, a list that grows itself, players and events, Feel on 3D characters, cutscenes and Sequence in 3D, both templates playing every editor. The web and app split (S4, S10) is left to the apps work | [spec](2026-11-08-shared-editors-spec.md), [plan](2026-11-08-shared-editors-plan.md) |
 | 3. Plan audit | Done, 2026-11-08: 21 findings (12 would have stopped the build, 9 smaller), all fixed in the spec and plan. The biggest: the 2D story is behind a gate so the published tools stay installable, the editor list may grow only by whole rows, the server reads the list again, and the events file is an array the page can read. Task 16 is split, so the plan has 19 tasks. No decision for the Owner | [plan audit](2026-11-08-shared-editors-plan-audit.md) |
+
+## Editors v2: the editors' new look (stage 2 of 6 done, 2026-11-08)
+
+The Owner, 2026-11-08: the editors' whole look redesigned after site v2, "not even just the dark mode, the entire
+aesthetic". Approved at 18:45 UTC with "Approve, open in Dark": the editors open Dark; Light and Match device stay on
+Home.
+
+| Stage | Status | Record |
+|---|---|---|
+| 1. Design | Done, 2026-11-08: a mockup of all 11 non-3D screens at seven sizes, 48 pictures and 5 boards in the project's shared folder (`refactor/2026-11-06-redesign-mockups/editors-v2/`); approved by the Owner | [patterns](../design/editors-v2/PATTERNS.md) |
+| 2. Plan and spec | Done, 2026-11-08: 14 tasks in 4 phases: merge dark mode into the shared-editors build, the v2 colours with Dark as the default, the site's own colour scheme and a contrast check on every page, ten kit parts (inset shell, sidebar, editor icons, breadcrumb header, rows and fields, blocks, floating toolbar, sheets, tab bar, empty state), then every screen, then proof in play | [spec](2026-11-08-editors-v2-spec.md), [plan](2026-11-08-editors-v2-plan.md) |
+| 3. Plan audit | Not started | |
+| 4. Build | Not started | |
+| 5. Build audit | Not started; it must make a small game in the rebuilt editors, play it, and see what was made | |
+| 6. Fixes | Not started | |
