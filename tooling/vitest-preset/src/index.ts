@@ -3,7 +3,9 @@
 // A package's tests sit in `tests/`, and the folder says what kind a test is:
 //   tests/unit/     Node, or jsdom when the package's default says so (one file can override it with a
 //                   vitest-environment comment on its first line)
-//   tests/browser/  Vitest browser mode, in real Chromium, WebKit and Firefox (parity, layout, goldens)
+//   tests/browser/  Vitest browser mode, in real Chromium, WebKit and Firefox (parity, layout, goldens). A package with
+//                   kinds of browser test that need different engines or contexts splits it into named folders
+//                   (`tests/browser/layout/`, `tests/browser/journeys/`): see `browserProjects`.
 //   tests/bench/    timings, run by `pnpm bench` only (AF_BENCH=1), never in a gate
 // A package's `vitest.config.ts` is one call: `export default defineTests({ ... })`. The options are what the old
 // per-package configs differed by, and nothing more.
@@ -14,6 +16,27 @@ import type { ViteUserConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
 
 export type Engine = 'chromium' | 'webkit' | 'firefox'
+
+/** One Vitest browser instance: an engine, and whatever Vitest takes beside it (a provider, a viewport, `include`). */
+export interface BrowserInstance {
+  readonly browser: Engine
+  readonly [option: string]: unknown
+}
+
+/** One kind of browser test: the files in `tests/browser/<folder>/`, run as one Vitest project. */
+export interface BrowserProject {
+  /** The project's name, as `--project` takes it (`layout`). Two projects may not share one. */
+  readonly name: string
+  /** The folder under `tests/browser/`. */
+  readonly folder: string
+  /** The engines this kind of test runs in (a canvas test needs no Firefox, a journey runs in WebKit first). */
+  readonly engines: readonly Engine[]
+  /**
+   * The instance for an engine, when it is more than `{ browser }`: a persistent profile, an iPad context. It may return
+   * several, so one engine can run once with a profile and once without.
+   */
+  readonly instance?: (engine: Engine) => BrowserInstance | readonly BrowserInstance[]
+}
 
 export interface TestOptions {
   /** What `tests/unit` runs in. Node unless the package's tests mostly need a DOM. */
@@ -32,6 +55,11 @@ export interface TestOptions {
   readonly conditions?: readonly string[]
   /** The engines `tests/browser` runs in. All three by default; `[]` for a package with no browser tests. */
   readonly browsers?: readonly Engine[]
+  /**
+   * Named browser projects, one per folder of `tests/browser/`, in place of the one `browser` project (and `browsers`).
+   * `[]` for a package with no browser tests.
+   */
+  readonly browserProjects?: readonly BrowserProject[]
   /** Commands a browser test can call (the golden file reader). */
   readonly browserCommands?: Readonly<Record<string, BrowserCommand<never[]>>>
   /** Dependencies Vite pre-bundles up front: on a cold cache it otherwise reloads test pages mid-run. */
@@ -69,11 +97,13 @@ export function defineTests(options: TestOptions = {}): ViteUserConfig {
     },
   }
 
-  const browser = {
+  // Every browser project shares the commands, the timeout and the headless Playwright provider; they differ in the files
+  // they take and the instances they run.
+  const browserProject = (name: string, include: string, instances: readonly BrowserInstance[]) => ({
     extends: true,
     test: {
-      name: 'browser',
-      include: ['tests/browser/**/*.test.ts'],
+      name,
+      include: [include],
       // A browser test can take as long as the golden harness does in Node.
       ...(options.testTimeout === undefined ? {} : { testTimeout: options.testTimeout }),
       browser: {
@@ -81,10 +111,33 @@ export function defineTests(options: TestOptions = {}): ViteUserConfig {
         headless: true,
         provider: playwright(),
         ...(options.browserCommands ? { commands: options.browserCommands } : {}),
-        instances: engines.map((name) => ({ browser: name })),
+        instances: [...instances],
       },
     },
+  })
+  const named = options.browserProjects
+  if (named) {
+    const names = named.map((project) => project.name)
+    const repeated = names.find((name, at) => names.indexOf(name) !== at)
+    if (repeated !== undefined) throw new Error(`defineTests: two browser projects are named "${repeated}"`)
   }
+  const browserProjects = named
+    ? named.map((project) =>
+        browserProject(
+          project.name,
+          `tests/browser/${project.folder}/**/*.test.ts`,
+          project.engines.flatMap((engine) => project.instance?.(engine) ?? { browser: engine }),
+        ),
+      )
+    : engines.length > 0
+      ? [
+          browserProject(
+            'browser',
+            'tests/browser/**/*.test.ts',
+            engines.map((browser) => ({ browser })),
+          ),
+        ]
+      : []
 
   // Timings measure the machine as much as the code, so they stay out of every gate; root `pnpm bench` sets AF_BENCH.
   const bench = {
@@ -97,7 +150,7 @@ export function defineTests(options: TestOptions = {}): ViteUserConfig {
     ...(conditions.length > 0 ? { resolve: { conditions } } : {}),
     ...(options.optimizeDeps ? { optimizeDeps: { include: [...options.optimizeDeps] } } : {}),
     test: {
-      projects: [unit, ...(engines.length > 0 ? [browser] : []), ...(process.env.AF_BENCH ? [bench] : [])],
+      projects: [unit, ...browserProjects, ...(process.env.AF_BENCH ? [bench] : [])],
     },
   } as ViteUserConfig
 }

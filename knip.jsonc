@@ -42,10 +42,14 @@
     "tooling/codemods": { "entry": ["src/cli.ts", "src/move-modules-cli.ts"] },
     // Run by hand on a build made with `vite build --sourcemap`.
     "tooling/bundle-report": { "entry": ["src/cli.ts"] },
-    // EDK.1: src/fonts.css imports the IBM Plex families with CSS @import, which knip does not follow.
-    "packages/editor-kit": {
+    // The editor's pages and entries are what the build and its consumers start from; `src/shared/kit/fonts.css`
+    // imports the IBM Plex families with CSS @import, which knip does not follow.
+    "packages/editor": {
+      "entry": ["src/entries/*.ts", "src/app/*/main.ts", "scripts/*.ts"],
       "ignoreDependencies": ["@fontsource/ibm-plex-mono", "@fontsource/ibm-plex-sans"]
     },
+    // `suite.html` starts the full suite page (`vite build --mode suite`), which knip does not read from the HTML.
+    "packages/editor-3d": { "entry": ["src/suite-main.ts"] },
     // M3.5b: the FigureBuilder goldens' generator is run by hand with node (its header says how).
     "packages/figures": {
       "entry": [

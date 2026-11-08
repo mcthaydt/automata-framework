@@ -1,90 +1,24 @@
 import { existsSync } from 'node:fs'
-import { basename, dirname, join } from 'node:path'
+import { basename, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Effect } from 'effect'
 import { Files } from '../node/files.ts'
-import { ProcessRunner, type RunResult } from '../node/process-runner.ts'
-import { boardNamesIn, declaredBoardsIn, isBoardSource } from '../ship/prepare/board-names.ts'
-import { declaredInputsIn, isInputsSource, keysBindingsIn } from '../ship/prepare/input-bindings.ts'
-import {
-  declaredOrientationIn,
-  gameOrientationsIn,
-  isOrientationSource,
-} from '../ship/prepare/orientation.ts'
+import { ProcessRunner } from '../node/process-runner.ts'
 import { readEnvValues, scanTextForSecrets } from '../ship/prepare/secret-scan.ts'
-import { inputsProblems, type ShipInputBindings } from '../ship/targets/ruken/check-inputs.ts'
 import type { CheckFinding } from './check-report.ts'
+import { findingsOrToolError, runTool, type StepEffect, TOOLS, tail } from './check-tool.ts'
 import { CheckToolError, CspProbe } from './csp-probe.ts'
 import { scanForDataUrls } from './data-url-scan.ts'
 import { scanForEval } from './no-eval-scan.ts'
 import { parseBoundaries, parseTsc, parseVitestJson } from './tool-output.ts'
 
-// The steps of `automata check`. Each runs the game's own tool, found in `node_modules/.bin`
-// from the game folder upwards (a workspace hoists tools to its root), with the game folder as the working
-// folder. A step returns its findings, or fails with CheckToolError when it could not run: a missing tool, or a
-// tool that exits non-zero without printing anything this file can read. A tool error is never a pass.
+// The steps of `automata check` that run something: the boundaries checker and the game's own tools (`tsc`,
+// `vitest`, `vite`), then the scans of the `dist/` the build left, and the page load that proves the CSP. The scans
+// that compare the game's sources with its `ship.config.ts` are in `check-source-steps.ts`; the tools and what a step
+// returns are in `check-tool.ts`.
 
 /** How long the `csp` step waits for the game's ready signal. */
 export const CSP_READY_TIMEOUT_MS = 20_000
-
-export interface Tool {
-  readonly bin: string
-  /** The npm package that provides the bin. */
-  readonly pkg: string
-}
-
-export const TOOLS: Readonly<Record<'boundaries' | 'tsc' | 'vitest' | 'vite', Tool>> = {
-  boundaries: { bin: 'automata-check-boundaries', pkg: '@mcthaydt/automata-check-boundaries' },
-  tsc: { bin: 'tsc', pkg: 'typescript' },
-  vitest: { bin: 'vitest', pkg: 'vitest' },
-  vite: { bin: 'vite', pkg: 'vite' },
-}
-
-type StepEffect = Effect.Effect<readonly CheckFinding[], CheckToolError, ProcessRunner | Files | CspProbe>
-
-/** The last lines of a tool's output, for a message. */
-const tail = (result: RunResult, lines = 20): string =>
-  `${result.stdout}\n${result.stderr}`.trim().split('\n').slice(-lines).join('\n')
-
-export const findBin = (gameDir: string, tool: Tool): Effect.Effect<string, CheckToolError, Files> =>
-  Effect.gen(function* () {
-    const files = yield* Files
-    let dir = gameDir
-    for (;;) {
-      const candidate = join(dir, 'node_modules', '.bin', tool.bin)
-      if (yield* files.exists(candidate)) return candidate
-      const parent = dirname(dir)
-      if (parent === dir) break
-      dir = parent
-    }
-    return yield* new CheckToolError({
-      kind: 'missing',
-      tool: tool.bin,
-      detail: `install it: npm install --save-dev ${tool.pkg}`,
-    })
-  })
-
-const runTool = (gameDir: string, tool: Tool, args: readonly string[]) =>
-  Effect.gen(function* () {
-    const bin = yield* findBin(gameDir, tool)
-    const runner = yield* ProcessRunner
-    return yield* Effect.mapError(
-      runner.run(bin, args, { cwd: gameDir }),
-      (error) => new CheckToolError({ kind: 'failed', tool: tool.bin, detail: error.message }),
-    )
-  })
-
-/** A non-zero exit with nothing parseable means the tool itself failed, not the game. */
-const findingsOrToolError = (tool: Tool, result: RunResult, findings: readonly CheckFinding[]) =>
-  result.exitCode === 0 || findings.length > 0
-    ? Effect.succeed(findings)
-    : Effect.fail(
-        new CheckToolError({
-          kind: 'failed',
-          tool: tool.bin,
-          detail: `exited ${result.exitCode}: ${tail(result)}`,
-        }),
-      )
 
 /**
  * The boundaries checker, as the path of the CLI that `node` runs. It is part of this package, so a new game does not
@@ -246,121 +180,6 @@ export const secretsStep = (gameDir: string): StepEffect =>
       }
     }
     return findings
-  })
-
-/**
- * The board scan `prepare-ruken` runs, over the game's sources, against the boards its
- * `ship.config.ts` declares under `leaderboards` (read as written). No `ship.config.ts` declares no boards.
- */
-export const boardsStep = (gameDir: string): StepEffect =>
-  Effect.gen(function* () {
-    const files = yield* Files
-    const toolError = (detail: string) => new CheckToolError({ kind: 'failed', tool: 'boards', detail })
-    const configPath = join(gameDir, 'ship.config.ts')
-    const declared = (yield* files.exists(configPath))
-      ? declaredBoardsIn(
-          yield* Effect.mapError(files.readText(configPath), (error) => toolError(error.message)),
-        )
-      : []
-    if (declared === undefined)
-      return yield* toolError(
-        'cannot read the leaderboards in ship.config.ts: write them as an object literal',
-      )
-    const known = new Set(declared)
-    const listed = yield* Effect.mapError(files.listFiles(gameDir), (error) => toolError(error.message))
-    const findings: CheckFinding[] = []
-    for (const file of listed.filter(isBoardSource).sort()) {
-      const code = yield* Effect.mapError(files.readText(join(gameDir, file)), (error) =>
-        toolError(error.message),
-      )
-      for (const name of boardNamesIn(file, code) ?? []) {
-        if (known.has(name.board)) continue
-        findings.push({
-          file,
-          line: name.line,
-          col: name.col,
-          rule: 'undeclared-board',
-          message: `board "${name.board}" is not declared in ship.config.ts leaderboards`,
-        })
-      }
-    }
-    return findings
-  })
-
-/**
- * The scan `prepare-ruken` runs over the game's sources for the orientation each `defineGame`
- * plays in, against the `runtime.orientation` its `ship.config.ts` sends Ruken (read as written). A game with no
- * `ship.config.ts`, or with no `defineGame` to compare, finds nothing; a config whose orientation is not a
- * literal, with a `defineGame` to compare against it, is a tool error, never a pass.
- */
-export const orientationStep = (gameDir: string): StepEffect =>
-  Effect.gen(function* () {
-    const files = yield* Files
-    const toolError = (detail: string) => new CheckToolError({ kind: 'failed', tool: 'orientation', detail })
-    const configPath = join(gameDir, 'ship.config.ts')
-    if (!(yield* files.exists(configPath))) return []
-    const listed = yield* Effect.mapError(files.listFiles(gameDir), (error) => toolError(error.message))
-    const played: { file: string; line: number; col: number; orientation: string }[] = []
-    for (const file of listed.filter(isOrientationSource).sort()) {
-      const code = yield* Effect.mapError(files.readText(join(gameDir, file)), (error) =>
-        toolError(error.message),
-      )
-      for (const found of gameOrientationsIn(file, code) ?? []) played.push({ file, ...found })
-    }
-    if (played.length === 0) return []
-    const declared = declaredOrientationIn(
-      yield* Effect.mapError(files.readText(configPath), (error) => toolError(error.message)),
-    )
-    if (declared === undefined)
-      return yield* toolError(
-        'cannot read runtime.orientation in ship.config.ts: write it as a string literal',
-      )
-    return played
-      .filter((found) => found.orientation !== declared)
-      .map((found) => ({
-        file: found.file,
-        line: found.line,
-        col: found.col,
-        rule: 'orientation-mismatch',
-        message: `defineGame plays "${found.orientation}", but ship.config.ts runtime.orientation is "${declared}"`,
-      }))
-  })
-
-/**
- * The scan `prepare-ruken` runs over the game's sources for what its `keys()` calls bind, against
- * the `runtime.inputs` its `ship.config.ts` sends Ruken (read as written), with `inputsProblems`' own rule. A game
- * with no `ship.config.ts`, or with no `keys()` call to compare, finds nothing; a config whose inputs are not
- * string literals, with a `keys()` call to compare against them, is a tool error, never a pass.
- */
-export const inputsStep = (gameDir: string): StepEffect =>
-  Effect.gen(function* () {
-    const files = yield* Files
-    const toolError = (detail: string) => new CheckToolError({ kind: 'failed', tool: 'inputs', detail })
-    const configPath = join(gameDir, 'ship.config.ts')
-    if (!(yield* files.exists(configPath))) return []
-    const listed = yield* Effect.mapError(files.listFiles(gameDir), (error) => toolError(error.message))
-    const bound: { [action: string]: ShipInputBindings[string] } = {}
-    for (const file of listed.filter(isInputsSource).sort()) {
-      const code = yield* Effect.mapError(files.readText(join(gameDir, file)), (error) =>
-        toolError(error.message),
-      )
-      Object.assign(bound, keysBindingsIn(file, code))
-    }
-    if (Object.keys(bound).length === 0) return []
-    const declared = declaredInputsIn(
-      yield* Effect.mapError(files.readText(configPath), (error) => toolError(error.message)),
-    )
-    if (declared === undefined)
-      return yield* toolError(
-        'cannot read runtime.inputs in ship.config.ts: write it as an array of string literals',
-      )
-    return inputsProblems(declared.inputs, bound).map((message) => ({
-      file: 'ship.config.ts',
-      line: declared.line,
-      col: declared.col,
-      rule: 'inputs-mismatch',
-      message,
-    }))
   })
 
 export const cspStep = (gameDir: string): StepEffect =>

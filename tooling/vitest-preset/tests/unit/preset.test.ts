@@ -17,7 +17,7 @@ type Project = {
       enabled: boolean
       headless: boolean
       commands?: Record<string, unknown>
-      instances: { browser: string }[]
+      instances: { browser: string; [key: string]: unknown }[]
     }
   }
 }
@@ -31,6 +31,9 @@ const named = (config: ReturnType<typeof defineTests>, name: string): Project =>
 }
 
 afterEach(() => vi.unstubAllEnvs())
+
+const engines = (project: Project): (string | undefined)[] =>
+  (project.test.browser?.instances ?? []).map((instance) => instance.browser)
 
 describe('defineTests', () => {
   it('returns a Node unit project and a three-engine browser project, with nothing else set', () => {
@@ -122,5 +125,71 @@ describe('defineTests', () => {
 
   it('has the unit project inherit the shared plugins and conditions', () => {
     for (const project of projectsOf(defineTests({ svelte: true }))) expect(project.extends).toBe(true)
+  })
+
+  describe('browserProjects', () => {
+    const projects = [
+      { name: 'parity', folder: 'parity', engines: ['chromium', 'webkit', 'firefox'] as const },
+      { name: 'canvas', folder: 'canvas', engines: ['chromium', 'webkit'] as const },
+    ]
+
+    it('replaces the one browser project with a named one per folder, each in its own engines', () => {
+      const config = defineTests({ browserProjects: projects })
+      expect(projectsOf(config).map((project) => project.test.name)).toEqual(['unit', 'parity', 'canvas'])
+      expect(named(config, 'parity').test.include).toEqual(['tests/browser/parity/**/*.test.ts'])
+      expect(named(config, 'canvas').test.include).toEqual(['tests/browser/canvas/**/*.test.ts'])
+      expect(engines(named(config, 'parity'))).toEqual(['chromium', 'webkit', 'firefox'])
+      expect(engines(named(config, 'canvas'))).toEqual(['chromium', 'webkit'])
+      expect(named(config, 'canvas').test.browser).toMatchObject({ enabled: true, headless: true })
+      expect(named(config, 'canvas').extends).toBe(true)
+    })
+
+    it('lets a project build its own instance for an engine, and run an engine more than once', () => {
+      const config = defineTests({
+        browserProjects: [
+          {
+            name: 'journeys',
+            folder: 'journeys',
+            engines: ['webkit', 'chromium'],
+            instance: (engine) =>
+              engine === 'webkit'
+                ? [
+                    { browser: engine, viewport: { width: 1194, height: 834 } },
+                    { browser: engine, name: 'webkit, again' },
+                  ]
+                : { browser: engine },
+          },
+        ],
+      })
+      expect(named(config, 'journeys').test.browser?.instances).toEqual([
+        { browser: 'webkit', viewport: { width: 1194, height: 834 } },
+        { browser: 'webkit', name: 'webkit, again' },
+        { browser: 'chromium' },
+      ])
+    })
+
+    it('gives each project the browser commands and the timeout', () => {
+      const commands = { readGolden: () => null }
+      const config = defineTests({
+        browserProjects: projects,
+        browserCommands: commands,
+        testTimeout: 90_000,
+      })
+      for (const name of ['parity', 'canvas']) {
+        expect(named(config, name).test.browser?.commands).toBe(commands)
+        expect(named(config, name).test.testTimeout).toBe(90_000)
+      }
+    })
+
+    it('leaves the single browser project alone when the option is absent, and drops it for none', () => {
+      expect(projectsOf(defineTests({})).map((project) => project.test.name)).toEqual(['unit', 'browser'])
+      expect(projectsOf(defineTests({ browserProjects: [] })).map((project) => project.test.name)).toEqual([
+        'unit',
+      ])
+    })
+
+    it('refuses two projects with one name, which Vitest would merge', () => {
+      expect(() => defineTests({ browserProjects: [projects[0], projects[0]] as never })).toThrow(/parity/)
+    })
   })
 })

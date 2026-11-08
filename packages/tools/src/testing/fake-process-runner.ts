@@ -1,3 +1,5 @@
+// A stand-in for the `ProcessRunner` service, so a test can run a ship or check step without starting `git`, `cargo`
+// or `butler`: it records every call and answers from a function the test writes.
 import { Effect, Layer } from 'effect'
 import { ProcessRunner, type RunOptions, type RunResult } from '../shared/node/process-runner.ts'
 

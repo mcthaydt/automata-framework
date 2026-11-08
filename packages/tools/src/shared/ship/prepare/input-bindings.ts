@@ -70,7 +70,7 @@ function bindingsOf(call: Node, where: string): ShipInputBindings {
   if (written === undefined) return { [`${where} keys`]: { touch: true } }
 
   const touch = property(written, 'touch')?.value
-  const touchOption = touch === undefined ? true : isNode(touch) && touch.value === false ? false : true
+  const touchOption = touch === undefined || !(isNode(touch) && touch.value === false)
   const result: { [action: string]: { pad?: number[]; touch?: boolean; gesture?: string[] } } = {
     [`${where} keys`]: { touch: touchOption && keyCount !== 0 },
   }

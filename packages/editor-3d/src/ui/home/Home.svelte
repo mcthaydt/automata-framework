@@ -6,8 +6,8 @@
 -->
 <script lang="ts">
 import type { GeometryState } from '@mcthaydt/automata'
-import { Button, FilePick, HomeScreen } from '@mcthaydt/automata-editor-kit'
-import type { ToastStore, Workspace } from '@mcthaydt/automata-editor-kit/core'
+import { Button, FilePick, HomeScreen } from '@mcthaydt/automata-editor/kit'
+import type { ToastStore, Workspace } from '@mcthaydt/automata-editor/kit/core'
 import type { HomeController } from '../../app/home/home-controller'
 import { levelCard } from '../../app/home/home-model'
 import type { ProjectEntry } from '../../app/project-list'

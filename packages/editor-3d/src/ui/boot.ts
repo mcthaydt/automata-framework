@@ -11,7 +11,7 @@ import {
   type StorageClock,
   type Workspace,
   type WorkspaceEnv,
-} from '@mcthaydt/automata-editor-kit/core'
+} from '@mcthaydt/automata-editor/kit/core'
 import { mount, unmount } from 'svelte'
 import { createEditorApp } from '../app/editor-app'
 import App from './App.svelte'

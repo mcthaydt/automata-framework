@@ -64,7 +64,7 @@
     }
   },
   "devDependencies": {
-    "@mcthaydt/automata-editor-suite": "workspace:*",
+    "@mcthaydt/automata-editor": "workspace:*",
     "@mcthaydt/vitest-preset": "workspace:*",
     "@playwright/test": "1.63.0",
     "@ruken/cli": "file:../../vendor/ruken/ruken-cli-0.0.0.tgz",

@@ -33,7 +33,7 @@ export {
   sameLine,
   scan,
   setMember,
-} from '@mcthaydt/automata-editor-kit/documents'
+} from '@mcthaydt/automata-editor/kit/documents'
 export {
   type AcceptResult,
   type Ask,

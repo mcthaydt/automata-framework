@@ -4,7 +4,7 @@ import {
   createPointers,
   type IpadProfile,
   type Pointers,
-} from '@mcthaydt/automata-editor-kit/testing'
+} from '@mcthaydt/automata-editor/kit/testing'
 import { expect } from 'vitest'
 import { page } from 'vitest/browser'
 import depotText from './fixtures/depot.af-sector.json?raw'

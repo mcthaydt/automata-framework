@@ -1,3 +1,6 @@
+// `automata`'s command line: it reads the words after the command name and hands each command to its own feature
+// (`create-game`, `check`, `build`, `ship`, `editor`). This file only parses arguments, wires the real files,
+// processes and browser, and prints; the work is in the features and `shared/`, where tests run it with fakes.
 import { basename, resolve } from 'node:path'
 import { Effect, Layer } from 'effect'
 import { parseBuildArgs } from '../features/build/build-args.ts'

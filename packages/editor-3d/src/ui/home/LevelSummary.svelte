@@ -6,8 +6,8 @@
   half-height sheet on a phone shows it without scrolling.
 -->
 <script lang="ts">
-import { Button, Pill } from '@mcthaydt/automata-editor-kit'
-import { modifiedLabel, sizeLabel } from '@mcthaydt/automata-editor-kit/core'
+import { Button, Pill } from '@mcthaydt/automata-editor/kit'
+import { modifiedLabel, sizeLabel } from '@mcthaydt/automata-editor/kit/core'
 import { levelCard, summaryOf } from '../../app/home/home-model'
 import type { ProjectEntry } from '../../app/project-list'
 

@@ -13,10 +13,11 @@ export interface Violation {
   readonly message: string
 }
 
-/** The page entry: the one file outside `ui/` that starts the views. */
-const ENTRY = 'main.ts'
-/** Packages that are views: Svelte, the kit's Svelte root and the geometry owner. Their sub-entries count too. */
-const VIEW_PACKAGES = /^(svelte(\/.*)?|@mcthaydt\/automata-editor-kit|@mcthaydt\/automata-ui(\/.*)?)$/
+/** The page entries: the only files outside `ui/` that start the views (the editor's page and the full suite's). */
+const ENTRIES: ReadonlySet<string> = new Set(['main.ts', 'suite-main.ts'])
+/** Packages that are views: Svelte, the kit's Svelte root, the suite shell and the geometry owner. Svelte's and the geometry owner's sub-entries count too; the kit's headless ones (`kit/core`, `kit/fields`) do not. */
+const VIEW_PACKAGES =
+  /^(svelte(\/.*)?|@mcthaydt\/automata-editor\/(kit|suite)|@mcthaydt\/automata-ui(\/.*)?)$/
 /** What the views must not read for themselves: the boot hands them a clock. */
 const CLOCK =
   /^(Date|setTimeout|setInterval|clearTimeout|clearInterval|requestAnimationFrame|queueMicrotask|performance\.now|Math\.random)$/
@@ -53,7 +54,7 @@ export function checkArchitecture(files: ReadonlyMap<string, string>): Violation
       const relative = specifier.startsWith('.')
       const target = relative ? posix.normalize(posix.join(posix.dirname(file), specifier)) : specifier
       if (!inUi(file)) {
-        if (file === ENTRY) continue
+        if (ENTRIES.has(file)) continue
         const view =
           (relative && (inUi(target) || target.endsWith('.svelte'))) ||
           (!relative && VIEW_PACKAGES.test(specifier))

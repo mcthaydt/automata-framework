@@ -1,11 +1,11 @@
 // The Ask as plain TypeScript (ED3D.10a, ED3D spec §5.3 flow 8): a prompt goes to the provider with the selection and a
 // budget, the proposal is read into a copy of the level and shown as a ghost with its check results. No Svelte, DOM or
-// clock in here; the provider is the suite's `AskProvider` port (editor-kit `./ports`, editor suite spec §4.3), and
+// clock in here; the provider is the suite's `AskProvider` port (the editor package's `kit/ports`, editor suite spec §4.3), and
 // without one the Ask is off.
 //
 // A proposal is made for the level the person had when they asked, so it is only ever shown, and only ever accepted,
 // over that level: an edit, an undo or a redo while it is on its way or on show drops it.
-import type { AskProvider } from '@mcthaydt/automata-editor-kit/ports'
+import type { AskProvider } from '@mcthaydt/automata-editor/kit/ports'
 import type { CheckResult } from '../checks/check'
 import { ok } from '../model/edit'
 import type { LevelEditor } from '../model/level-editor'

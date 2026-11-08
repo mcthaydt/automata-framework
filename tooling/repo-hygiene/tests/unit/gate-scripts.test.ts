@@ -28,10 +28,10 @@ describe('the 2D gate', () => {
     const script = scripts[name]
     expect(script, `${name} exists`).toBeDefined()
     const { excluded } = filters(script as string)
-    // `editor-*` would drop `editor-kit` and `editor-2d` with the 3D editors.
+    // `editor-*` would drop `editor` with the 3D editor.
     expect(excluded).not.toContain('./packages/editor-*')
     expect(excluded).toContain('./packages/editor-3d')
-    expect(excluded).toContain('./packages/editor-suite')
+    expect(excluded).not.toContain('./packages/editor')
   })
 
   it('has no gate named for the old "core" split', () => {
@@ -50,7 +50,7 @@ describe('the 3D gate', () => {
     expect(script, `${name} exists`).toBeDefined()
     const { included } = filters(script as string)
     expect(included).toContain('./packages/editor-3d')
-    expect(included).toContain('./packages/editor-suite')
+    expect(included).not.toContain('./packages/editor')
     expect(included).not.toContain('./packages/editor-*')
   })
 })

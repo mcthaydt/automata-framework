@@ -2,7 +2,7 @@
 // links between them, the grid and the rulers. Plain numbers and colours, so a renderer only strokes and fills what it
 // is given and every rule here is a unit test: a hidden layer is not painted (a locked one is), a selection is outlined
 // in the accent, a group keeps its fill wherever it is. No Pixi, no DOM.
-import type { Point as ScreenPoint, Viewport2D } from '@mcthaydt/automata-editor-kit/core'
+import type { Point as ScreenPoint, Viewport2D } from '@mcthaydt/automata-editor/kit/core'
 import { entitySelection } from '../../checks/check'
 import type { ThingDef } from '../../entities/thing-def.schema'
 import type { EntityKit, Thing } from '../../entities/things'

@@ -43,90 +43,95 @@ function exitCodeFor(failure: Failure): number {
   return failure._tag === 'ItchSettingMissing' ? 2 : 1
 }
 
-async function program(
-  command: Exclude<CliCommand, { command: 'usage' | 'help' }>,
-): Promise<Effect.Effect<string, Failure, never>> {
-  const layers = Layer.merge(FilesLive, ProcessRunnerLive)
-  const config = await loadConfig()
-  const distDir = resolve(cwd, command.dist)
+/** What every target's command needs: the game's config, the build folder and the command as typed. */
+interface ShipRun {
+  readonly config: ShipConfig
+  readonly distDir: string
+  readonly command: Exclude<CliCommand, { command: 'usage' | 'help' }>
+}
 
-  // The desktop: ship checks the given build and runs tauri build for this OS.
-  if (command.command === 'prepare' && command.target === 'tauri') {
-    return Effect.provide(
-      Effect.map(prepareTauri({ distDir, gameDir: cwd, config, tag: command.tag }), (result) =>
-        result.bundles.map((bundle) => `wrote ${bundle}`).join('\n'),
-      ),
-      layers,
-    )
-  }
+type ShipResult = Effect.Effect<string, Failure, never>
 
-  // The web: ship checks the given build for the rules every public host shares; there is nothing to pack.
-  if (command.command === 'prepare' && command.target === 'web') {
+const layers = Layer.merge(FilesLive, ProcessRunnerLive)
+
+/** The desktop: ship checks the given build and runs tauri build for this OS. */
+function prepareForTauri({ config, distDir, command }: ShipRun): ShipResult {
+  return Effect.provide(
+    Effect.map(prepareTauri({ distDir, gameDir: cwd, config, tag: command.tag }), (result) =>
+      result.bundles.map((bundle) => `wrote ${bundle}`).join('\n'),
+    ),
+    layers,
+  )
+}
+
+/** The web: ship checks the given build for the rules every public host shares; there is nothing to pack. */
+function prepareForWeb({ config, distDir, command }: ShipRun): ShipResult {
+  return Effect.map(
+    prepareWeb({ distDir, gameDir: cwd, config, tag: command.tag }),
+    (result) => `checked ${result.files} files in ${command.dist}; upload the folder to any static host`,
+  )
+}
+
+/** itch.io: ship checks and zips the given build, and butler pushes it. Ruken is untouched. */
+function shipItch({ config, distDir, command }: ShipRun): ShipResult {
+  if (command.command === 'prepare') {
     return Effect.map(
-      prepareWeb({ distDir, gameDir: cwd, config, tag: command.tag }),
-      (result) => `checked ${result.files} files in ${command.dist}; upload the folder to any static host`,
+      prepareItch({ distDir, gameDir: cwd, config, tag: command.tag }),
+      (result) => `wrote ${result.zipPath}`,
     )
   }
-
-  // itch.io: ship checks and zips the given build, and butler pushes it. Ruken is untouched.
-  if (command.target === 'itch') {
-    if (command.command === 'prepare') {
-      return Effect.map(
-        prepareItch({ distDir, gameDir: cwd, config, tag: command.tag }),
-        (result) => `wrote ${result.zipPath}`,
-      )
-    }
-    if (command.from === 'tauri') {
-      const downloads = publishDownloadsToItch({
-        gameDir: cwd,
-        config,
-        apiKey: process.env.BUTLER_API_KEY,
-        butlerPath: findExecutable('butler'),
-      })
-      return Effect.provide(
-        Effect.map(downloads, (result) => `pushed to itch.io: ${result.pushed.join(', ')}`),
-        layers,
-      )
-    }
-    const publish = publishToItch({
-      distDir,
+  const apiKey = process.env.BUTLER_API_KEY
+  if (command.from === 'tauri') {
+    const downloads = publishDownloadsToItch({
       gameDir: cwd,
       config,
-      tag: command.tag,
-      apiKey: process.env.BUTLER_API_KEY,
+      apiKey,
       butlerPath: findExecutable('butler'),
     })
     return Effect.provide(
-      Effect.map(publish, (result) =>
-        result.firstPush ? `pushed to itch.io\n\n${ITCH_FIRST_PUSH_CHECKLIST}` : 'pushed to itch.io',
-      ),
+      Effect.map(downloads, (result) => `pushed to itch.io: ${result.pushed.join(', ')}`),
       layers,
     )
   }
+  const publish = publishToItch({
+    distDir,
+    gameDir: cwd,
+    config,
+    tag: command.tag,
+    apiKey,
+    butlerPath: findExecutable('butler'),
+  })
+  return Effect.provide(
+    Effect.map(publish, (result) =>
+      result.firstPush ? `pushed to itch.io\n\n${ITCH_FIRST_PUSH_CHECKLIST}` : 'pushed to itch.io',
+    ),
+    layers,
+  )
+}
 
-  // `prepare` follows the game's audience, writing no ruken.toml for a private game. `publish --private` checks for
-  // Ruken's local stack itself (publishBuild).
-  const mode = prepareMode(config)
-  const input = { distDir, gameDir: cwd, config, tag: command.tag, audience: mode.audience }
-  const prepare = prepareBuild(input)
+/**
+ * Ruken. `prepare` follows the game's audience, writing no ruken.toml for a private game. `publish --private` checks
+ * for Ruken's local stack itself (publishBuild).
+ */
+function shipRuken({ config, distDir, command }: ShipRun): ShipResult {
   if (command.command === 'prepare') {
+    const mode = prepareMode(config)
+    const input = { distDir, gameDir: cwd, config, tag: command.tag, audience: mode.audience }
     const done = mode.writeManifest
-      ? Effect.map(prepare, (result) => `wrote ${result.manifestPath}`)
+      ? Effect.map(prepareBuild(input), (result) => `wrote ${result.manifestPath}`)
       : Effect.as(
           checkBuild(input),
           'checked a private build; no ruken.toml written (publish --private ships it)',
         )
     return Effect.provide(done, layers)
   }
-  const api = setting('RUKEN_API')
-  const token = setting('RUKEN_TOKEN')
   const publish = publishBuild({
     distDir,
     cwd,
     config,
     tag: command.tag,
-    api,
-    token,
+    api: setting('RUKEN_API'),
+    token: setting('RUKEN_TOKEN'),
     activate: command.activate,
     game: command.game,
     private: command.private === true,
@@ -135,6 +140,15 @@ async function program(
     Effect.map(publish, (result) => result.url ?? 'published'),
     layers,
   )
+}
+
+/** Picks the target's program. A missing setting throws here, before any work starts. */
+async function program(command: ShipRun['command']): Promise<ShipResult> {
+  const run: ShipRun = { command, config: await loadConfig(), distDir: resolve(cwd, command.dist) }
+  if (command.command === 'prepare' && command.target === 'tauri') return prepareForTauri(run)
+  if (command.command === 'prepare' && command.target === 'web') return prepareForWeb(run)
+  if (command.target === 'itch') return shipItch(run)
+  return shipRuken(run)
 }
 
 /** Runs one ship command (`args` are the words after `automata ship`) and returns the process exit code. */

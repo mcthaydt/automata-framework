@@ -3,7 +3,7 @@
   are the file's own, the materials-table editor, in tabs. A format that fixes both says so and offers neither.
 -->
 <script lang="ts">
-import { Button, Dialog, Tabs } from '@mcthaydt/automata-editor-kit'
+import { Button, Dialog, Tabs } from '@mcthaydt/automata-editor/kit'
 import { onDestroy } from 'svelte'
 import { createDefinitionsController, type DefinitionsView } from '../../app/definitions-controller'
 import type { LevelEditor } from '../../model/level-editor'

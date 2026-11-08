@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { type EditorCommandDeps, editorCommand } from '#src/features/editor/editor-command.ts'
+import { type EditorCommandDeps, editorCommand, liveEditorDeps } from '#src/features/editor/editor-command.ts'
 import type { EditorServerOptions } from '#src/features/editor/serve-editor.ts'
 
 // `automata editor` (ED3D.14, ED2D.9): what it says, which build it serves, and when it will not start. The server itself
@@ -19,7 +19,7 @@ function setup(overrides: Partial<EditorCommandDeps> = {}) {
         close: async () => closed(),
       }
     },
-    builtApp: (app) => `/repo/packages/editor-${app}/dist`,
+    builtApp: (app) => `/repo/builds/${app}`,
     exists: () => true,
     lanAddresses: () => ['192.168.1.20'],
     makeToken: () => 'tok123',
@@ -37,7 +37,7 @@ describe('editorCommand', () => {
     expect(await editorCommand([], io, deps)).toBe(0)
     expect(served[0]).toMatchObject({
       root: '/work',
-      appDir: '/repo/packages/editor-3d/dist',
+      appDir: '/repo/builds/3d',
       host: '127.0.0.1',
       token: undefined,
     })
@@ -48,7 +48,7 @@ describe('editorCommand', () => {
   it('serves the app and the folder it was told', async () => {
     const { deps, io, served } = setup()
     await editorCommand(['../game', '--app', 'suite'], io, deps)
-    expect(served[0]).toMatchObject({ root: '/game', appDir: '/repo/packages/editor-suite/dist' })
+    expect(served[0]).toMatchObject({ root: '/game', appDir: '/repo/builds/suite' })
   })
 
   it('--lan listens on every address, makes a token, and prints the address a tablet opens with the token in it', async () => {
@@ -68,7 +68,7 @@ describe('editorCommand', () => {
   it('says to build the editor when its build is not there, and starts nothing', async () => {
     const { deps, io, err, served } = setup({ exists: () => false })
     expect(await editorCommand(['--app', '2d'], io, deps)).toBe(2)
-    expect(err.join('')).toContain('pnpm --filter @mcthaydt/automata-editor-2d build')
+    expect(err.join('')).toContain('pnpm --filter @mcthaydt/automata-editor build')
     expect(served).toEqual([])
   })
 
@@ -94,5 +94,14 @@ describe('editorCommand', () => {
     expect(await editorCommand(['--app', 'vr'], io, deps)).toBe(2)
     expect(err.join('')).toContain('--app is 2d, 3d or suite')
     expect(err.join('')).toContain('automata editor')
+  })
+})
+
+describe('liveEditorDeps', () => {
+  it('finds each editor build where its package writes it', () => {
+    const { builtApp } = liveEditorDeps()
+    expect(builtApp('2d')).toMatch(/packages\/editor\/dist\/2d$/)
+    expect(builtApp('3d')).toMatch(/packages\/editor-3d\/dist$/)
+    expect(builtApp('suite')).toMatch(/packages\/editor-3d\/dist\/suite$/)
   })
 })

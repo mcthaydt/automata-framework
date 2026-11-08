@@ -1,5 +1,5 @@
 // Last Light's fixed things in the shared entity model (ED3D.1b2 step 3): the definitions, and the arrays read as things.
-import { checkValues } from '@mcthaydt/automata-editor-kit/fields'
+import { checkValues } from '@mcthaydt/automata-editor/kit/fields'
 import { describe, expect, it } from 'vitest'
 import { lastLightChecks } from '../checks/last-light/last-light-checks'
 import { thingDefSchema } from '../entities/thing-def.schema'

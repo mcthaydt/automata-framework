@@ -2,7 +2,7 @@
 // Sector, Vertex, Portal, Door and Window; while a sector is being drawn Enter closes it, Backspace takes the last corner
 // back and Escape drops the drawing. T chooses Things, and Delete removes the selected things (ED3D.7d). Each is a kit command, so the keymap, a menu and later tools share one registry,
 // and a command that would do nothing is disabled so its key falls through to the page.
-import { type Command, defineCommand } from '@mcthaydt/automata-editor-kit/core'
+import { type Command, defineCommand } from '@mcthaydt/automata-editor/kit/core'
 import type { PlanToolId, PlanTools } from './plan-tools'
 
 const CHOOSE: readonly (readonly [key: string, tool: PlanToolId, title: string])[] = [

@@ -4,7 +4,7 @@
 // finishes its open portal offers (the walls stay solid) and drops an outline that was never closed, so changing tools
 // never loses a sector that was drawn, and never leaves half of one. Polygon and Rectangle are one Sector tool in two
 // shapes, so changing the shape mid-outline is refused in the tool's own sentence.
-import type { PointerKind, Size } from '@mcthaydt/automata-editor-kit/core'
+import type { PointerKind, Size } from '@mcthaydt/automata-editor/kit/core'
 import type { LevelEditor } from '../model/level-editor'
 import { createThingsTool, type ThingsTool, type ThingsToolView } from '../things/things-tool-controller'
 import { createMergeTool, type MergeTool, type MergeToolView } from './merge-tool-controller'

@@ -3,7 +3,7 @@
 // model's `def.*` and `material.*` edits. A change answers `undefined` when it was made and the model's own sentence when
 // it was refused (and nothing changed). A format whose definitions or materials the game fixes (Last Light's) has no rows
 // for them, and `fixed` says so.
-import type { FieldDef } from '@mcthaydt/automata-editor-kit/fields'
+import type { FieldDef } from '@mcthaydt/automata-editor/kit/fields'
 import type { ThingDef, ThingShape } from '../entities/thing-def.schema'
 import type { AfMaterial, AfSector } from '../format/af-sector.schema'
 import {

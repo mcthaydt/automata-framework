@@ -9,7 +9,7 @@ import {
   HistoryError,
   type Selection,
   type Transaction,
-} from '@mcthaydt/automata-editor-kit/core'
+} from '@mcthaydt/automata-editor/kit/core'
 import type { Facility } from '../format/facility.schema'
 import { type EditResult, refuse } from './edit'
 import { parseFacilitySelection } from './facility-selection'

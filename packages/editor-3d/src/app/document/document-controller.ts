@@ -20,7 +20,7 @@ import {
   savedCopyMessage,
   saveFailure,
   type ToastStore,
-} from '@mcthaydt/automata-editor-kit/core'
+} from '@mcthaydt/automata-editor/kit/core'
 import type { EditorApp, OpenOutcome } from '../editor-app'
 import type { FacilityOutcome, OpenLevel } from '../open-level'
 import type { DocumentSaveOutcome, PatchRefused } from '../patched-document'

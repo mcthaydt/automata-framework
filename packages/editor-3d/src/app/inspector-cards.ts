@@ -1,7 +1,7 @@
 // The inspector's cards as plain data (ED3D.5f, plan decision 1; ED3D spec §9): what is selected, read from the live
 // level through the profile, so the cards work for both formats. Several selected show the first and say how many (plan
 // decision 2). A selection naming nothing the level has shows the none card.
-import type { FieldRow } from '@mcthaydt/automata-editor-kit/fields'
+import type { FieldRow } from '@mcthaydt/automata-editor/kit/fields'
 import type { DoorDef, Occlude, WindowDef } from '../format/sector.schema'
 import type { LevelEditor } from '../model/level-editor'
 import { parseSelection } from '../model/selection-ref'
