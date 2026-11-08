@@ -72,6 +72,7 @@ export const game = defineGame({
     navExtension,
     puzzleExtension({ extensions: ['systems'] }),
     systems.extension,
+    ...(__AUTOMATA_DEBUG__ ? [debugExtension] : []),
   ],
   input: inputs(MOVE, TURN),
   // The default screens' flow, and the room and tuning as the sim's content (what its systems read as ctx.content).
