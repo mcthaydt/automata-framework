@@ -1,4 +1,5 @@
 import { SQUARE_WHERE } from './create-game-targets.ts'
+import { agentFilesStory } from './template-agent.ts'
 import { frameworkSpec, type TemplateFile } from './template-file.ts'
 import { GAME_FILES } from './template-game.ts'
 import { packageFile, readmeFile, viteConfigFile } from './template-project.ts'
@@ -31,6 +32,7 @@ function swap(text: string, from: string, to: string): string {
 /** The files of the story that the options and the plain game shape. */
 export const STORY_GAME_FILES: readonly TemplateFile[] = [
   readmeFile(SQUARE_WHERE + STORY_WHERE),
+  ...agentFilesStory(SQUARE_WHERE + STORY_WHERE),
   packageFile((options) => ({
     // Feel and Audio play what their editors make, the rest is what the story plays on.
     '@automata/audio-synth': frameworkSpec(options),

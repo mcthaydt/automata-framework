@@ -667,3 +667,9 @@ want, itch will be first output". Spec §11.
   the package's unit tests (115) and typecheck pass. `claude plugin validate agents/automata --strict` and `validate .
   --strict`, then `marketplace add <agents/automata> --scope project` and `install automata@automata --scope project`
   all passed on 2.1.319. The install test gained the same case but was not run: it pins 2.1.301 and needs the network.
+- Task 2 done: `template-agent.ts` writes `AGENTS.md`, `CLAUDE.md` and `.claude/settings.json` for the plain, story and 3D
+  games; `.gitignore` gains `.claude/settings.local.json`. 127 unit tests of `create-game` pass (one existing `.gitignore`
+  expectation moved). A story game made with `--link-workspace` in `games/` (then removed): `pnpm exec vitest run
+  --configLoader runner` passes (3 files, 14 tests); `pnpm check` fails in the workspace only on steps that load the
+  workspace sources with Node's own loader (typecheck, test, no-eval: extensionless imports, the plan audit's A7), and its
+  Biome output names none of the new files. The consumer smoke (Task 5's stranger journey) covers the published path.

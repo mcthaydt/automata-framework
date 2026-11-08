@@ -1,4 +1,5 @@
 import { TEMPLATE_3D_FILES } from './template-3d.ts'
+import { AGENT_FILES_2D } from './template-agent.ts'
 import { CI_FILES } from './template-ci.ts'
 import { CONTENT_FILES } from './template-content.ts'
 import type { TemplateFile, TemplateOptions } from './template-file.ts'
@@ -16,6 +17,7 @@ export type { TemplateFile, TemplateOptions } from './template-file.ts'
 /** Every file of a new game, in the order they are written. */
 export const TEMPLATE_FILES: readonly TemplateFile[] = [
   ...PROJECT_FILES,
+  ...AGENT_FILES_2D,
   ...GAME_FILES,
   ...CONTENT_FILES,
   ...CI_FILES,

@@ -1,6 +1,7 @@
 import { CONTENT_3D_FILES } from './template-3d-content.ts'
 import { GAME_3D_FILES } from './template-3d-game.ts'
 import { STORY_3D_FILES } from './template-3d-story.ts'
+import { agentFiles3d } from './template-agent.ts'
 import { CI_FILES } from './template-ci.ts'
 import { feelAudioFile } from './template-feel-audio.ts'
 import { frameworkSpec, type TemplateFile } from './template-file.ts'
@@ -42,6 +43,7 @@ const WHERE = `- \`src/features/wick/\`: Wick and how he walks. One folder for e
 /** Every file of a new 3D game, in the order they are written. */
 export const TEMPLATE_3D_FILES: readonly TemplateFile[] = [
   readmeFile(WHERE),
+  ...agentFiles3d(WHERE),
   packageFile((options) => ({
     '@automata/3d': frameworkSpec(options),
     '@pixi/3d':

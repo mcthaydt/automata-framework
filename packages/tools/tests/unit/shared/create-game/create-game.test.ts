@@ -252,7 +252,13 @@ describe('createGame', () => {
       expect(shipConfig).not.toContain('tauri:')
       expect(shipConfig).not.toContain('itch:')
       expect(shipConfig).not.toContain('sdk:')
-      expect(read('.gitignore').split('\n')).toEqual(['node_modules/', 'dist/', 'content/generated/', ''])
+      expect(read('.gitignore').split('\n')).toEqual([
+        'node_modules/',
+        'dist/',
+        'content/generated/',
+        '.claude/settings.local.json',
+        '',
+      ])
     })
 
     it('gives the desktop target an identifier ship accepts, and ignores its generated project and bundles', async () => {

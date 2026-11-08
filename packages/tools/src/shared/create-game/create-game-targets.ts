@@ -65,8 +65,9 @@ export function targetDependencies(targets: readonly DistTarget[]): {
 
 /** What each target's packaging writes beside the source: ship's itch zip, its Tauri project and the bundles. */
 export function targetGitignore(targets: readonly DistTarget[]): string {
-  // `content/generated/` is what the content plugin compiles from `content/` on every dev start and build.
-  const lines = ['node_modules/', 'dist/', 'content/generated/']
+  // `content/generated/` is what the content plugin compiles from `content/` on every dev start and build. A person's
+  // own Claude settings stay out; the shared ones (`.claude/settings.json`) are the game's.
+  const lines = ['node_modules/', 'dist/', 'content/generated/', '.claude/settings.local.json']
   if (targets.includes('itch')) lines.push('*-itch.zip')
   if (targets.includes('tauri')) lines.push('.automata/', 'dist-tauri/')
   return `${lines.join('\n')}\n`
