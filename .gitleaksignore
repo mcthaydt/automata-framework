@@ -9,3 +9,6 @@
 350bc5c0e6b8e1a1acb859dffacfa4e77a5c89e2:src/data/api-index.json:generic-api-key:7
 c8231955d9ee13490cfd48e255bec8dbcd825bab:tests/workflows.test.ts:private-key:165
 c8231955d9ee13490cfd48e255bec8dbcd825bab:.github/workflows/ci.yml:private-key:62
+# raw-upgrade.ts holds the RFC 6455 sample Sec-WebSocket-Key, a public test vector, not a secret (Owner's OK, 2026-11-08).
+1ec4f7d60133651d2672a179aeeca138b9c19d14:packages/server/src/test-support/raw-upgrade.ts:generic-api-key:118
+be0a8f08402dd7e2cdf87d5153305cb7a315ff61:packages/server/src/test-support/raw-upgrade.ts:generic-api-key:19
