@@ -50,10 +50,12 @@ function resultOf(outcome: WriteOutcome, mtime: number | undefined) {
 export interface SuiteSessionOptions {
   /** The typing registry: its open visit joins the writes of one visit to a field into one Undo step. */
   readonly drafts?: TypingDrafts | undefined
+  /** Called on every write; the first asks the browser to keep this site's files (P7). Asks once. */
+  readonly keep?: (() => Promise<void>) | undefined
 }
 
 export function createSuiteSession(raw: SuitePorts, options: SuiteSessionOptions = {}): SuiteSession {
-  const { drafts } = options
+  const { drafts, keep } = options
   const listeners = new Set<() => void>()
   const changed = () => {
     for (const listener of listeners) listener()
@@ -67,6 +69,7 @@ export function createSuiteSession(raw: SuitePorts, options: SuiteSessionOptions
   ): Promise<ReturnType<typeof resultOf>> {
     inFlight++
     changed()
+    void keep?.()
     try {
       const result = await job()
       // A check's refusal and a file that moved are the person's to settle; anything else means the work is not kept.
@@ -75,7 +78,7 @@ export function createSuiteSession(raw: SuitePorts, options: SuiteSessionOptions
       return result
     } finally {
       inFlight--
-      drafts?.wrote()
+      drafts?.wrote(inFlight === 0)
       changed()
     }
   }

@@ -109,6 +109,18 @@ describe('the session behind the suite’s editors', () => {
     expect(session.failed).toBeUndefined()
   })
 
+  test('asks to keep the browser’s storage on a write, through the function it is given', async () => {
+    const memory = await createMemoryPorts({
+      files: FILES,
+      classify: (path) => workspaceFile(loadedList(), path),
+    })
+    const keep = vi.fn(() => Promise.resolve())
+    const session = createSuiteSession(memory.ports, { keep })
+    expect(keep).not.toHaveBeenCalled()
+    await session.portsFor('tuner').workspace.write(TUNING, 'MAX_MOVE_SPEED = 400.0\n', { mtime: 0 })
+    expect(keep).toHaveBeenCalled()
+  })
+
   test('counts the writes in flight and tells its listeners when the count moves', async () => {
     const { session } = await setup()
     const heard: number[] = []
