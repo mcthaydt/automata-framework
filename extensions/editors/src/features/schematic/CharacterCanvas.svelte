@@ -24,6 +24,11 @@ let tab = $state<'diagram' | 'list'>('diagram')
 const MIN_ZOOM = 0.85
 let zoom = $state(1)
 let scroller = $state<HTMLElement>()
+// What the pane holds and what the diagram needs: Fit cannot show a diagram whole when it is wider than the pane at the
+// smallest zoom (a phone), and the button and a line then say so rather than promise it.
+let room = $state(0)
+let natural = $state(0)
+const wide = $derived(room > 0 && natural * MIN_ZOOM > room)
 let watching = $state(false)
 let heard = $state<WatchState>(EMPTY_WATCH)
 const live = $derived(
@@ -34,6 +39,20 @@ const live = $derived(
       }
     : undefined,
 )
+
+function measure(): void {
+  room = scroller?.clientWidth ?? 0
+  natural = scroller?.querySelector('svg')?.viewBox.baseVal.width ?? 0
+}
+$effect(() => {
+  // Measured again for another character, and whenever the pane changes size (rotation, the keyboard, a window).
+  void character
+  if (scroller === undefined) return
+  void tick().then(measure)
+  const watcher = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(measure)
+  watcher?.observe(scroller)
+  return () => watcher?.disconnect()
+})
 
 /** Fit: as much of the diagram as the pane holds without going under the finger floor, opened on where it starts. */
 async function fit(): Promise<void> {
@@ -82,8 +101,11 @@ const notes = $derived(
     <div class="tools">
       <Button onclick={() => (zoom = Math.min(2, zoom + 0.25))}>Bigger</Button>
       <Button onclick={() => (zoom = Math.max(MIN_ZOOM, zoom - 0.25))}>Smaller</Button>
-      <Button onclick={fit}>Fit</Button>
+      <Button onclick={fit}>{wide ? 'Show the start' : 'Fit'}</Button>
     </div>
+    {#if wide}
+      <p class="wide" role="note">This diagram is wider than the screen. Slide it sideways to see the rest, or read the list of switches.</p>
+    {/if}
     <div class="scroll" tabindex="-1" bind:this={scroller}>
       <Diagram {character} {names} selected={session.selected} {zoom} {live} onselect={(selection) => (session.selected = selection)} />
     </div>
@@ -157,6 +179,11 @@ const notes = $derived(
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2);
+  }
+  .wide {
+    margin: 0;
+    color: var(--color-text-dim);
+    font: var(--text-body-13);
   }
   .scroll {
     overflow: auto;

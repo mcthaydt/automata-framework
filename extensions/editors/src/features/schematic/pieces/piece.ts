@@ -11,6 +11,8 @@ export interface Names {
   readonly places: readonly string[]
   readonly hooks: readonly string[]
   readonly doorways: readonly string[]
+  /** The character these names are for; a rule belongs to none. */
+  readonly self?: string | undefined
   /** A puzzle's items; a behaviour file has none. */
   readonly items?: readonly string[]
 }

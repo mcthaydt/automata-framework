@@ -2,7 +2,7 @@
   Watch: the game running beside the diagram. The game is the Tuner's frame, and each saved change restarts it. When the
   game has the debug extension, it tells this page each mode change (`watch-bridge.ts`), and the page lights the mode,
   flashes the arrow and keeps a log in words. Until the game says it is listening the pane says to press Play (a game on its title screen has not started its debug
-  extension yet); only after a wait does it say what to add.
+  extension yet); only once someone has been in the game and a wait has passed does it say what to add.
 -->
 <script lang="ts">
 import { GameFrame } from '@automata/editor/kit'
@@ -15,7 +15,7 @@ interface Props {
   session: SchematicSession
   /** Told every time something is heard, so the diagram can light up. */
   onchange: (state: WatchState) => void
-  /** How long a game that is up may stay silent before the pane also asks for the debug extension. */
+  /** How long a game someone has gone into may stay silent before the pane also asks for the debug extension. */
   waitMs?: number
 }
 
@@ -28,25 +28,36 @@ let heard = $state<WatchState>(EMPTY_WATCH)
 let silent = $state(false)
 let stopBridge: (() => void) | undefined
 let timer: ReturnType<typeof setTimeout> | undefined
+let stopFocus: (() => void) | undefined
 
 function onframe(frame: HTMLIFrameElement | undefined): void {
   stopBridge?.()
   stopBridge = undefined
+  stopFocus?.()
+  stopFocus = undefined
   clearTimeout(timer)
+  timer = undefined
   if (frame === undefined || url === undefined) return
   silent = false
   stopBridge = watchBridge(frame, new URL(url).origin, (event) => {
     heard = hearWatch(heard, event)
     onchange(heard)
   })
-  // A game that is up and has said nothing in this long cannot say anything: it has no debug extension.
-  timer = setTimeout(() => {
-    if (!heard.listening) silent = true
-  }, waitMs)
+  // The page cannot see inside the frame, but it can see that someone went in: the page loses focus and the frame holds
+  // it. Only from then on is a silent game one that cannot speak. Before that it may simply be on its title screen.
+  const wentIn = (): void => {
+    if (document.activeElement !== frame || timer !== undefined) return
+    timer = setTimeout(() => {
+      if (!heard.listening) silent = true
+    }, waitMs)
+  }
+  window.addEventListener('blur', wentIn)
+  stopFocus = () => window.removeEventListener('blur', wentIn)
 }
 
 onDestroy(() => {
   stopBridge?.()
+  stopFocus?.()
   clearTimeout(timer)
   onchange(EMPTY_WATCH)
 })

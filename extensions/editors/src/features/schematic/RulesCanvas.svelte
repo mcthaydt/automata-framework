@@ -22,6 +22,18 @@ const names = $derived.by(() => {
 })
 const conditions = $derived(def === undefined || names === undefined ? [] : ruleConditions(def, names))
 const actions = $derived(def === undefined || names === undefined ? [] : ruleActions(def, names))
+/** The file's design table as lines: what each thing is, then which does what to which. */
+const notes = $derived(
+  def === undefined
+    ? []
+    : [
+        ...def.objects.map((object) => `${object.name}: ${object.signal}`),
+        ...def.matrix.map(
+          (cell) =>
+            `${cell.row} ${cell.verb} ${cell.col}${cell.rule === undefined ? '' : ` (rule ${cell.rule})`}`,
+        ),
+      ],
+)
 const set = (rule: number, label: string, next: NonNullable<typeof def>['rules'][number]): void =>
   void session.setRule(label, rule, next)
 </script>
@@ -81,7 +93,12 @@ const set = (rule: number, label: string, next: NonNullable<typeof def>['rules']
     <Button onclick={() => void session.addRule()}>Add a rule</Button>
   {/if}
   <!-- The design table (`objects`, `matrix`) is notes for people. It is in the file and changes no behaviour. -->
-  <p class="dim">Design notes, kept in the file. They change no behaviour, so they are not edited here.</p>
+  {#if notes.length > 0}
+    <p class="dim">Design notes, kept in the file. They change no behaviour, so they are not edited here.</p>
+    <ul class="notes" aria-label="Design notes">
+      {#each notes as note (note)}<li>{note}</li>{/each}
+    </ul>
+  {/if}
 </section>
 
 <style>
@@ -105,6 +122,10 @@ const set = (rule: number, label: string, next: NonNullable<typeof def>['rules']
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+  .notes {
+    color: var(--color-text-dim);
+    font: var(--text-body-13);
   }
   .card {
     display: grid;

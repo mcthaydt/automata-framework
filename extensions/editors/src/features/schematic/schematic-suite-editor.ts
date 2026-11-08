@@ -4,6 +4,7 @@ import {
   defineSuiteEditor,
   type SuiteAskTarget,
   type SuiteEditor,
+  type SuitePorts,
   type SuiteUndo,
   type WorkspaceFile,
 } from '@automata/editor/kit/ports'
@@ -60,6 +61,20 @@ export function homeFilesOf(files: readonly WorkspaceFile[]): WorkspaceFile[] {
   return [...byScene.values()]
 }
 
+/**
+ * The name a game's first scene should have: its level's, when it has exactly one, so the files Schematic writes are named
+ * as the game's level is. A game with no level or several to choose between starts on `main`.
+ */
+async function levelScene(ports: SuitePorts): Promise<string | undefined> {
+  const names = new Set<string>()
+  for (const editor of ['levels-2d', 'levels-3d'])
+    for (const file of await ports.workspace.files(editor)) {
+      const name = /^content\/levels\/([^/.]+)\./.exec(file.path)?.[1]
+      if (name !== undefined) names.add(name)
+    }
+  return names.size === 1 ? [...names][0] : undefined
+}
+
 export function createSchematic(options: SchematicOptions = {}): SuiteEditor<SchematicSession> {
   return defineSuiteEditor<SchematicSession>({
     id: 'schematic',
@@ -67,10 +82,12 @@ export function createSchematic(options: SchematicOptions = {}): SuiteEditor<Sch
     icon: 'list',
     hue: 'color/ed/schematic',
     async open(files, ports) {
+      const scenes = scenesOf(files.map((file) => file.path))
+      const first = scenes.length === 0 ? await levelScene(ports) : undefined
       const session = new SchematicSession(
         ports,
         await findFacts(ports, options.gameUrl),
-        scenesOf(files.map((file) => file.path)),
+        first === undefined ? scenes : [first],
       )
       await session.select(session.scenes[0] ?? 'main')
       return session

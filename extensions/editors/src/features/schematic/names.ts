@@ -54,6 +54,7 @@ export function namesOf(
   return {
     modes: character?.modes ?? [],
     agents: def.agents.map((a) => a.id),
+    self: character?.id,
     facts: [...new Set([...puzzleFacts, ...factsOf(def)])],
     places,
     hooks: character?.hooks ?? [],

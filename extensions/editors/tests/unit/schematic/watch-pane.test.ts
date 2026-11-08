@@ -62,6 +62,7 @@ beforeEach(() => {
   )
 })
 afterEach(() => {
+  delete (document as { activeElement?: unknown }).activeElement
   vi.useRealTimers()
   vi.unstubAllGlobals()
   document.body.innerHTML = ''
@@ -122,7 +123,14 @@ describe('Watch', () => {
     expect(screen.queryByText(/went from/)).toBeNull()
   })
 
-  it('asks for the debug extension when the game never says it is listening', async () => {
+  /** The person clicks (or tabs) into the game: the page loses focus and the frame holds it. */
+  function intoTheGame(): void {
+    const frame = screen.getByTitle('Your game') as HTMLIFrameElement
+    Object.defineProperty(document, 'activeElement', { get: () => frame, configurable: true })
+    window.dispatchEvent(new Event('blur'))
+  }
+
+  it('keeps saying to press Play until someone has been in the game, however long it is quiet', async () => {
     await open({ gameUrl: GAME })
     vi.useFakeTimers()
     await fireEvent.click(screen.getByRole('button', { name: 'Watch it run' }))
@@ -130,7 +138,20 @@ describe('Watch', () => {
     expect(screen.queryByText(/Ask whoever writes your game’s code/)).toBeNull()
     // A game on its title screen has not started its debug extension yet, so the first thing said is to press Play.
     expect(screen.getByText(/Press Play in the game/)).toBeInTheDocument()
-    await vi.advanceTimersByTimeAsync(10_000)
+    await vi.advanceTimersByTimeAsync(60_000)
+    expect(screen.getByText(/Press Play in the game/)).toBeInTheDocument()
+    expect(screen.queryByText(/Ask whoever writes your game’s code/)).toBeNull()
+  })
+
+  it('asks for the debug extension when the game stays silent after someone went into it', async () => {
+    await open({ gameUrl: GAME })
+    vi.useFakeTimers()
+    await fireEvent.click(screen.getByRole('button', { name: 'Watch it run' }))
+    await vi.advanceTimersByTimeAsync(0)
+    intoTheGame()
+    await vi.advanceTimersByTimeAsync(5_000)
+    expect(screen.queryByText(/Ask whoever writes your game’s code/)).toBeNull()
+    await vi.advanceTimersByTimeAsync(5_000)
     expect(
       screen.getByText(
         'Pressed Play and still nothing? Then the game cannot say which mode each character is in. Ask whoever writes your game’s code to add the debug extension.',

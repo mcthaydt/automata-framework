@@ -36,10 +36,19 @@ export function placeWords(spot: Spot): string {
   return `the point ${num(spot.x)} across, ${num(spot.z)} down`
 }
 
-/** The fields that choose a place: the choice, and for a point the two numbers. */
-export function placeFields(key: string, label: string, spot: Spot, names: Names): Field[] {
+/**
+ * The fields that choose a place: the choice, and for a point the two numbers. `leaveOut` names choices that make no
+ * sense here; one the file already holds is still shown, so nothing is silently changed.
+ */
+export function placeFields(
+  key: string,
+  label: string,
+  spot: Spot,
+  names: Names,
+  leaveOut: readonly (string | undefined)[] = [],
+): Field[] {
   const current = typeof spot === 'string' ? spot : POINT
-  const known = placeChoices(names)
+  const known = placeChoices(names).filter((choice) => !leaveOut.includes(choice.value))
   const options = known.some((choice) => choice.value === current)
     ? known.map((choice) => ({ value: choice.value, label: choice.words }))
     : [

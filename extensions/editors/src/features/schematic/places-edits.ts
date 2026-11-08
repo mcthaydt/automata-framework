@@ -85,12 +85,14 @@ export function renamePlaceEdits(
   const id = to.trim()
   if (id === '') return { refused: 'A place needs a name.' }
   if (id !== from && id in nav.nodes) return { refused: `There is already a place called “${id}”.` }
-  const at = nav.nodes[from]
-  if (at === undefined) return { refused: 'That place is not in this scene any more.' }
-  const navEdits: ContentEdit[] = [
-    { keyPath: ['nodes', from], remove: true },
-    { keyPath: ['nodes', id], insert: at },
-  ]
+  if (nav.nodes[from] === undefined) return { refused: 'That place is not in this scene any more.' }
+  // One edit for the whole table with the key renamed where it stands: removing it and inserting the new name would
+  // move the place to the top of the file and rewrite its table as an inline one.
+  const renamed = Object.fromEntries(
+    Object.entries(nav.nodes).map(([name, node]) => [name === from ? id : name, node]),
+  )
+  const navEdits: ContentEdit[] =
+    id === from ? [] : [{ keyPath: ['nodes'], expected: nav.nodes, set: renamed }]
   nav.edges.forEach((edge, i) => {
     for (const end of [0, 1] as const)
       if (edge[end] === from) navEdits.push({ keyPath: ['edges', i, end], expected: from, set: id })

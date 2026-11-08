@@ -53,8 +53,13 @@ describe('places', () => {
     const edits = renamePlaceEdits(nav(), hall(), 'desk', 'counter')
     if ('refused' in edits) throw new Error(edits.refused)
     const n = navGraphSchema.parse(apply(NAV_TEXT, edits.nav).value())
-    expect(Object.keys(n.nodes)).toContain('counter')
-    expect(Object.keys(n.nodes)).not.toContain('desk')
+    // Renamed where it stands: the list of places keeps its order and the file keeps its tables.
+    expect(Object.keys(n.nodes)).toEqual(['door', 'counter', 'window'])
+    const text = apply(NAV_TEXT, edits.nav).text
+    expect(text).toContain('[nodes.counter]')
+    expect(text).not.toContain('nodes.counter =')
+    expect(text.indexOf('[nodes.door]')).toBeLessThan(text.indexOf('[nodes.counter]'))
+    expect(text.indexOf('[nodes.counter]')).toBeLessThan(text.indexOf('[nodes.window]'))
     expect(n.edges).toEqual([
       ['door', 'counter'],
       ['counter', 'window'],

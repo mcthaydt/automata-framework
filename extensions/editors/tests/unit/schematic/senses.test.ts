@@ -24,12 +24,17 @@ const NAV = CONTENT_SAMPLE_GAME['content/nav/hall.toml'] as string
 
 describe('the sentences', () => {
   it('say each sense in words', () => {
-    // The game: a sense that leaves `wallsOnly` out (or says true) is blocked by walls only; false adds boxes.
+    // In the games a person makes (sectors, level-2d) a wall or a closed door blocks sight whatever `wallsOnly` says
+    // (`sight-boxes.test.ts` in systems), so the sentence says that and offers no setting.
     expect(senseWords({ sight: { range: 4.5 } })).toBe(
-      'Sees up to 4.5 m. Boxes and closed doors block its view: no',
+      'Sees up to 4.5 m. Walls and closed doors block its view',
     )
-    expect(senseWords({ sight: { range: 4.5, wallsOnly: true } })).toContain('block its view: no')
-    expect(senseWords({ sight: { range: 4.5, wallsOnly: false } })).toContain('block its view: yes')
+    expect(senseWords({ sight: { range: 4.5, wallsOnly: true } })).toBe(
+      'Sees up to 4.5 m. Walls and closed doors block its view',
+    )
+    expect(senseWords({ sight: { range: 4.5, wallsOnly: false } })).toBe(
+      'Sees up to 4.5 m. Walls and closed doors block its view',
+    )
     expect(senseWords({ sound: { reach: 8 } })).toBe('Hears up to 8 m')
     expect(senseWords({ sound: {} })).toBe('Hears from anywhere')
     expect(senseWords({ touch: { radius: 0.6 } })).toBe('Touches within 0.6 m')
@@ -40,12 +45,11 @@ describe('the sentences', () => {
 
   it('write a field back into its own sense', () => {
     expect(writeSense({ sight: { range: 4 } }, 'range', 6)).toEqual({ sight: { range: 6 } })
-    expect(writeSense({ sight: { range: 4 } }, 'blocked', 'yes')).toEqual({
-      sight: { range: 4, wallsOnly: false },
+    // A setting the file already has stays when the range changes; the editor never writes or offers it.
+    expect(writeSense({ sight: { range: 4, wallsOnly: false } }, 'range', 6)).toEqual({
+      sight: { range: 6, wallsOnly: false },
     })
-    expect(writeSense({ sight: { range: 4, wallsOnly: false } }, 'blocked', 'no')).toEqual({
-      sight: { range: 4 },
-    })
+    expect(senseFields({ sight: { range: 4 } }).map((field) => field.key)).toEqual(['range'])
     expect(writeSense({ sound: {} }, 'limit', 'near')).toEqual({ sound: { reach: 10 } })
     expect(writeSense({ sound: { reach: 9 } }, 'limit', 'anywhere')).toEqual({ sound: {} })
     expect(writeSense({ warmth: { sources: { a: 1 } } }, 'radius:a', 4)).toEqual({
@@ -114,9 +118,7 @@ describe('the character in the inspector', () => {
   it('shows where it starts, its senses and its patrol', async () => {
     await open()
     expect(await screen.findByText(/its first patrol stop, door/)).toBeInTheDocument()
-    expect(
-      screen.getByText('Sees up to 4.5 m. Boxes and closed doors block its view: no'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Sees up to 4.5 m. Walls and closed doors block its view')).toBeInTheDocument()
     expect(screen.getByText('Touches within 0.6 m')).toBeInTheDocument()
     expect(screen.getByText('Stop 1')).toBeInTheDocument()
     expect(screen.getByText('Stop 3')).toBeInTheDocument()

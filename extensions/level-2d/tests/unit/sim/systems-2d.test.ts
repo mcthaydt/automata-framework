@@ -1,4 +1,4 @@
-import { SystemsPursuit } from '@automata/systems/sim'
+import { type AgentDef, SystemsPursuit } from '@automata/systems/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { CELL, createPatrol2d, type Patrol2d, runPatrol2dGolden } from '#src/testing/patrol-2d.ts'
 
@@ -41,6 +41,43 @@ describe('systems in a 2D level', () => {
     g.run(0.5)
     expect(g.mode()).toBe('patrol')
   })
+
+  // Schematic says "Walls and closed doors block its view" and offers no setting: in this game's places sight is the
+  // walking query, so a solid cell blocks it whatever `wallsOnly` says.
+  it.each([
+    ['leaves wallsOnly out', undefined],
+    ['says wallsOnly is true', true],
+    ['says wallsOnly is false', false],
+  ] as const)(
+    'a guard that %s is blocked by a solid cell and sees across open ones',
+    async (_, wallsOnly) => {
+      const sight = wallsOnly === undefined ? { range: 4.5 } : { range: 4.5, wallsOnly }
+      const agent: AgentDef = {
+        id: 'guard',
+        modes: ['stand', 'seen'],
+        initial: 'stand',
+        speed: { stand: 0, seen: 0 },
+        senses: [{ sight }],
+        transitions: [{ from: 'stand', to: 'seen', when: [{ sees: true }], priority: 10, do: [] }],
+      }
+      const behind = await createPatrol2d({ x: 5, z: 0.5 }, { agent })
+      try {
+        behind.putPlayer(8, 0.5) // the wall's cells are at x 6 to 7, rows 0 and 1
+        behind.run(0.5)
+        expect(behind.mode()).toBe('stand')
+      } finally {
+        behind.sim.dispose()
+      }
+      const across = await createPatrol2d({ x: 2, z: 3 }, { agent })
+      try {
+        across.putPlayer(4.5, 3)
+        across.run(0.5)
+        expect(across.mode()).toBe('seen')
+      } finally {
+        across.sim.dispose()
+      }
+    },
+  )
 
   it('follows the player through the gap, into the touching area', async () => {
     const g = await open()

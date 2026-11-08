@@ -33,6 +33,13 @@ async function press(words: string): Promise<void> {
   await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
 }
 
+/** Presses Fit, or "Show the start" where the pane cannot hold the diagram. */
+const pressFit = async (): Promise<void> => {
+  const named = (words: string) =>
+    [...document.querySelectorAll('button')].some((b) => b.textContent?.trim() === words)
+  await press(named('Fit') ? 'Fit' : 'Show the start')
+}
+
 const SIZES = [
   { name: 'phone', width: 390, height: 844 },
   { name: 'iPad', width: 820, height: 1180 },
@@ -91,8 +98,22 @@ describe.each(SIZES)('the diagram on a $name', (size) => {
     const before = svg?.getBoundingClientRect().width ?? 0
     await press('Bigger')
     expect(svg?.getBoundingClientRect().width ?? 0).toBeGreaterThan(before)
-    await press('Fit')
+    await pressFit()
     expect(svg?.getBoundingClientRect().width ?? 0).toBeLessThanOrEqual(before)
+  })
+
+  test('the button says what it does, and a line says why when the diagram is wider than the pane', async () => {
+    await start(size)
+    const region = document.querySelector<HTMLElement>('.scroll') as HTMLElement
+    const natural = document.querySelector<SVGSVGElement>('svg.diagram')?.viewBox.baseVal.width ?? 0
+    // The smallest zoom keeps a label at 44 px, so a diagram wider than the pane at that zoom cannot be fitted whole.
+    const wide = natural * 0.85 > region.clientWidth
+    const buttons = [...document.querySelectorAll('button')].map((b) => b.textContent?.trim())
+    const note = document.querySelector('[role="note"]')
+    expect(buttons.includes('Fit')).toBe(!wide)
+    expect(buttons.includes('Show the start')).toBe(wide)
+    if (wide) expect(note?.textContent).toContain('wider than the screen')
+    else expect(note).toBeNull()
   })
 
   test('Smaller shrinks the diagram below its natural size, and no target goes under 44 px', async () => {
@@ -112,7 +133,7 @@ describe.each(SIZES)('the diagram on a $name', (size) => {
     await start(size)
     await press('Bigger')
     await press('Bigger')
-    await press('Fit')
+    await pressFit()
     const region = document.querySelector<HTMLElement>('.scroll')?.getBoundingClientRect()
     const where = document.querySelector<SVGGElement>('svg .box[data-start="true"]')?.getBoundingClientRect()
     expect(where).toBeDefined()

@@ -20,6 +20,29 @@ const names: Names = {
 
 const words = (effect: SysEffect): string => actionWords(effect, names)
 
+describe('running away', () => {
+  const fields = (self?: string) =>
+    ACTIONS.find((piece) => piece.kind === 'flee')?.fields({ flee: 'player' }, { ...names, self }) ?? []
+  const offered = (self?: string): string[] => {
+    const [from] = fields(self)
+    return from?.kind === 'choice' ? from.options.map((option) => option.value) : []
+  }
+
+  it('does not offer itself, or the character it is, as something to run from', () => {
+    expect(offered('nurse')).not.toContain('self')
+    expect(offered('nurse')).not.toContain('nurse')
+    expect(offered('nurse')).toEqual(expect.arrayContaining(['player', 'porter', 'noise', 'bedside']))
+  })
+
+  it('still shows a file that already runs from itself', () => {
+    const [from] =
+      ACTIONS.find((piece) => piece.kind === 'flee')?.fields({ flee: 'self' }, { ...names, self: 'nurse' }) ??
+      []
+    expect(from?.kind === 'choice' ? from.value : '').toBe('self')
+    expect(from?.kind === 'choice' ? from.options.map((o) => o.value) : []).toContain('self')
+  })
+})
+
 describe('what an action says', () => {
   it.each<[string, SysEffect, string]>([
     ['switch mode', { setMode: 'hunt' }, 'switch to Hunt'],

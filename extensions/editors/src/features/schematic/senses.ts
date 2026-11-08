@@ -3,7 +3,7 @@
 import type { Sense } from '@automata/systems/sim'
 import type { Field } from '../../shared/fields.ts'
 import { metres } from './pieces/conditions.ts'
-import { num, spaced, YES_NO } from './pieces/piece.ts'
+import { num, spaced } from './pieces/piece.ts'
 
 export type SenseKind = 'sight' | 'sound' | 'touch' | 'light' | 'warmth'
 
@@ -41,13 +41,13 @@ export function freshSense(kind: SenseKind): Sense {
   }
 }
 
-/** Whether boxes and shut doors block this sight: only `wallsOnly: false` says so (the sim's `probe.ts`). */
-const blocksView = (sight: { readonly wallsOnly?: boolean | undefined }): boolean => sight.wallsOnly === false
-
 /** The sentence for a sense. */
 export function senseWords(sense: Sense): string {
   if ('sight' in sense)
-    return `Sees up to ${num(sense.sight.range)} m. Boxes and closed doors block its view: ${blocksView(sense.sight) ? 'yes' : 'no'}`
+    // Sectors and level-2d answer sight with the walking query, so a wall or a closed door always blocks it and
+    // `wallsOnly` changes nothing (`sight-boxes.test.ts` in systems). It is a line, not a setting: a setting that does
+    // nothing in the game a person made would lie.
+    return `Sees up to ${num(sense.sight.range)} m. Walls and closed doors block its view`
   if ('sound' in sense)
     return sense.sound.reach === undefined ? 'Hears from anywhere' : `Hears up to ${num(sense.sound.reach)} m`
   if ('touch' in sense) return `Touches within ${num(sense.touch.radius)} m`
@@ -60,17 +60,7 @@ export function senseWords(sense: Sense): string {
 
 /** The fields a sense shows. Warmth shows a pair for each thing it feels. */
 export function senseFields(sense: Sense): Field[] {
-  if ('sight' in sense)
-    return [
-      metres('range', 'Sees up to', sense.sight.range),
-      {
-        key: 'blocked',
-        label: 'Boxes and closed doors block its view',
-        kind: 'choice',
-        value: blocksView(sense.sight) ? 'yes' : 'no',
-        options: YES_NO,
-      },
-    ]
+  if ('sight' in sense) return [metres('range', 'Sees up to', sense.sight.range)]
   if ('sound' in sense)
     return [
       {
@@ -97,11 +87,6 @@ export function senseFields(sense: Sense): Field[] {
 export function writeSense(sense: Sense, key: string, next: unknown): Sense {
   if ('sight' in sense) {
     if (key === 'range') return { sight: { ...sense.sight, range: Number(next) } }
-    if (key === 'blocked') {
-      // The game's default (no field) is walls only, so "no" removes the field and "yes" has to write it.
-      const { wallsOnly: _gone, ...rest } = sense.sight
-      return { sight: next === 'yes' ? { ...rest, wallsOnly: false } : rest }
-    }
     return sense
   }
   if ('sound' in sense) {

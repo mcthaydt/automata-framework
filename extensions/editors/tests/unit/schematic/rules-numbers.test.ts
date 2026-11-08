@@ -26,11 +26,15 @@ const def = {
   ],
 }
 
-async function open(canvas: typeof RulesCanvas | typeof NumbersCanvas, kind: 'rules' | 'numbers') {
+async function open(
+  canvas: typeof RulesCanvas | typeof NumbersCanvas,
+  kind: 'rules' | 'numbers',
+  shown: typeof def = def,
+) {
   const { ports } = await createMemoryPorts({
     files: {
       [EDITOR_LIST_PATH]: CONTENT_SAMPLE_GAME[EDITOR_LIST_PATH] as string,
-      'content/systems/hall.toml': systemsFileText(def),
+      'content/systems/hall.toml': systemsFileText(shown),
       'content/nav/hall.toml': CONTENT_SAMPLE_GAME['content/nav/hall.toml'] as string,
     },
     classify: (path) => ({
@@ -54,10 +58,18 @@ afterEach(() => {
 })
 
 describe('the design notes', () => {
-  it('are kept in the file, read only, on the rules page', async () => {
+  it('are kept in the file, read only, on the rules page, and listed', async () => {
     await open(RulesCanvas, 'rules')
     expect(await screen.findByText(/^Design notes, kept in the file\./)).toBeInTheDocument()
     expect(screen.getByText(/They change no behaviour/)).toBeInTheDocument()
+    const notes = screen.getByRole('list', { name: 'Design notes' })
+    expect(within(notes).getByText('light repels figure (rule R1)')).toBeInTheDocument()
+  })
+
+  it('are not mentioned when the file has none', async () => {
+    await open(RulesCanvas, 'rules', { ...def, objects: [], matrix: [] })
+    expect(await screen.findByText('Light repels.')).toBeInTheDocument()
+    expect(screen.queryByText(/Design notes/)).toBeNull()
   })
 })
 

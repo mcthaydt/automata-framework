@@ -103,7 +103,8 @@ const flee: Piece<{ flee: string }> = {
   menu: 'run from something',
   matches: (value): value is { flee: string } => only('flee')(value),
   words: (value) => `run from ${placeWords(value.flee)}`,
-  fields: (value, names) => placeFields('place', 'From', value.flee, names).slice(0, 1),
+  // Running from yourself is nothing a person could want, so neither "itself" nor the character's own name is offered.
+  fields: (value, names) => placeFields('place', 'From', value.flee, names, ['self', names.self]).slice(0, 1),
   write: (value, key, next) => (key === 'place' ? { flee: String(next) } : value),
   fresh: () => ({ flee: 'player' }),
 }
