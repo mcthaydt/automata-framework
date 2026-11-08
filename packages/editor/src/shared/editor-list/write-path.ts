@@ -12,7 +12,7 @@
 // journalled like an edit; a step any of whose files no longer reads what this path wrote is refused with that path and kept
 //. Each editor has its own history, named by its id (EDS-D19: the top bar's Undo acts on the active editor's
 // document, so a switch to the Tuner and back still undoes the level's own step, EDS-k); the suite's own steps (an
-// import) are the unnamed owner `''`. Beginning a change set, and `clear()` (closing one), empty every history. Plain
+// import) are the unnamed owner `''` (`write-history.ts` keeps the stacks). Beginning a change set, and `clear()` (closing one), empty every history. Plain
 // TypeScript: no DOM, no clock.
 import type {
   ChangeSetCheck,
@@ -24,6 +24,8 @@ import type {
   SuiteWorkspace,
   WorkspaceFile,
 } from '../kit/ports/suite-ports.ts'
+import { createWriteHistories, type Step } from './write-history.ts'
+import { createWriteJournal } from './write-journal.ts'
 
 type WriteFailure = Extract<Awaited<ReturnType<SuiteWorkspace['write']>>, { ok: false }>['reason']
 
@@ -72,17 +74,6 @@ export interface WritePath {
   subscribe(listener: () => void): () => void
 }
 
-interface StepFile {
-  readonly path: string
-  readonly before: string | undefined
-  readonly after: string
-}
-
-interface Step {
-  readonly label: string
-  readonly files: readonly StepFile[]
-}
-
 /** A file checked and ready to write: what it reads now and the check ids its row names. */
 interface Prepared {
   readonly path: string
@@ -95,20 +86,9 @@ const unique = (ids: readonly string[]): string[] => [...new Set(ids)]
 
 export function createWritePath({ ports, title }: WritePathOptions): WritePath {
   const { workspace, changeSet, checks } = ports
-  /** Each owner's steps, and how many of them are done. */
-  const histories = new Map<string, { steps: Step[]; done: number }>()
-  const historyOf = (owner: string) => {
-    let history = histories.get(owner)
-    if (history === undefined) {
-      history = { steps: [], done: 0 }
-      histories.set(owner, history)
-    }
-    return history
-  }
+  const histories = createWriteHistories()
   /** The mtime each path had when this path last wrote it. */
   const wrote = new Map<string, number>()
-  /** Each measure check's measures before the open change set's first write. */
-  let baseline = new Map<string, readonly CheckMeasure[]>()
   let pending: Promise<unknown> = Promise.resolve()
   const listeners = new Set<() => void>()
   const changed = () => {
@@ -120,34 +100,7 @@ export function createWritePath({ ports, title }: WritePathOptions): WritePath {
     changed()
   }
 
-  const declaredFor = (ids: readonly string[], when: 'before' | 'after') =>
-    checks.declared().filter((check) => check.when === when && ids.includes(check.id))
-
-  /** Opens a change set when the port is there and none is; false when the person cancels the title. */
-  async function ensureChangeSet(checkIds: readonly string[]): Promise<boolean> {
-    if (changeSet === undefined || (await changeSet.current()) !== undefined) return true
-    const named = await title()
-    if (named === undefined) return false
-    await changeSet.begin(named)
-    clear()
-    // The measure checks' values before any write: the "before" the pill and the Review desk compare with.
-    const measures = declaredFor(checkIds, 'after').filter((check) => check.measure)
-    const results =
-      measures.length === 0 ? [] : await (await checks.run({ checks: measures.map((c) => c.id) })).result()
-    baseline = new Map(
-      results.flatMap((result) => (result.measure === undefined ? [] : [[result.check, result.measure]])),
-    )
-    return true
-  }
-
-  function journal(results: readonly CheckResult[]): ChangeSetCheck[] {
-    return results.map(({ check, status, findings, measure }) => ({
-      check,
-      status,
-      findings,
-      ...(measure === undefined ? {} : { before: baseline.get(check) ?? measure, after: measure }),
-    }))
-  }
+  const { declaredFor, ensureChangeSet, journal } = createWriteJournal({ ports, title, onBegin: clear })
 
   /** The policy and mtime of one file, before anything is written. */
   async function prepare(
@@ -283,13 +236,10 @@ export function createWritePath({ ports, title }: WritePathOptions): WritePath {
     const befores = await Promise.all(files.map(async (file) => (await workspace.read(file.path))?.text))
     const outcome = await applyAll(files)
     if ('written' in outcome) {
-      const history = historyOf(owner)
-      history.steps.length = history.done
-      history.steps.push({
+      histories.push(owner, {
         label,
         files: files.map((file, index) => ({ path: file.path, before: befores[index], after: file.text })),
       })
-      history.done = history.steps.length
       changed()
     }
     return outcome
@@ -299,31 +249,29 @@ export function createWritePath({ ports, title }: WritePathOptions): WritePath {
     write: (path, text, label, owner) => writeAll([{ path, text }], label, owner),
     writeAll,
     async undo(owner = '') {
-      const history = historyOf(owner)
-      const step = history.steps[history.done - 1]
+      const step = histories.nextUndo(owner)
       if (step === undefined) return undefined
       const outcome = await replay(step, 'before')
       if ('written' in outcome) {
-        history.done--
+        histories.undone(owner)
         changed()
       }
       return outcome
     },
     async redo(owner = '') {
-      const history = historyOf(owner)
-      const step = history.steps[history.done]
+      const step = histories.nextRedo(owner)
       if (step === undefined) return undefined
       const outcome = await replay(step, 'after')
       if ('written' in outcome) {
-        history.done++
+        histories.redone(owner)
         changed()
       }
       return outcome
     },
-    canUndo: (owner = '') => historyOf(owner).done > 0,
-    canRedo: (owner = '') => historyOf(owner).done < historyOf(owner).steps.length,
-    undoLabel: (owner = '') => historyOf(owner).steps[historyOf(owner).done - 1]?.label,
-    redoLabel: (owner = '') => historyOf(owner).steps[historyOf(owner).done]?.label,
+    canUndo: (owner = '') => histories.nextUndo(owner) !== undefined,
+    canRedo: (owner = '') => histories.nextRedo(owner) !== undefined,
+    undoLabel: (owner = '') => histories.nextUndo(owner)?.label,
+    redoLabel: (owner = '') => histories.nextRedo(owner)?.label,
     clear,
     async settled() {
       await pending

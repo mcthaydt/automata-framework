@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { ITEM_ID } from '../../model/ids'
+import { ITEM_ID } from '../../model/ids.ts'
 
 // Auto-tile rule shapes. The engine that evaluates them is `autotile/`; the shapes live here because
 // a layer definition carries its rule groups and the project schema has to validate them.

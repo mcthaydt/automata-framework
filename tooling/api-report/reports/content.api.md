@@ -750,6 +750,493 @@ type Renderer = (typeof RENDERERS)[number];
 const RENDERERS: readonly ["webgl2", "webgl", "canvas2d", "wasm-webgl2"];
 ```
 
+## `./level-2d`
+
+### `checkEntityDef` (function)
+
+```ts
+function checkEntityDef(def: EntityDef): readonly EntityDefProblem[];
+```
+
+### `checkFieldDef` (function)
+
+```ts
+function checkFieldDef(def: FieldDef): readonly FieldProblem<FieldDefCode>[];
+```
+
+### `checkFieldValue` (function)
+
+```ts
+function checkFieldValue(def: FieldDef, value: unknown): FieldValueProblem | undefined;
+```
+
+### `ContentEntityDef` (type)
+
+```ts
+type ContentEntityDef = EntityDef & {
+    readonly shape: 'rect' | 'ellipse' | 'point' | 'tile';
+    readonly size: ContentSize;
+    readonly pivot: {
+        readonly x: number;
+        readonly y: number;
+    };
+    readonly resizable: 'none' | 'x' | 'y' | 'xy';
+    readonly tile?: {
+        readonly tileset: string;
+        readonly index: number;
+    } | undefined;
+    readonly tags: readonly string[];
+    readonly min?: {
+        readonly per: 'level' | 'project';
+        readonly count: number;
+    } | undefined;
+};
+```
+
+### `ContentEntityItem` (interface)
+
+```ts
+interface ContentEntityItem {
+    readonly id: string;
+    readonly def: string;
+    readonly x: number;
+    readonly y: number;
+    readonly w?: number | undefined;
+    readonly h?: number | undefined;
+    readonly fields: FieldValues;
+}
+```
+
+### `ContentLevel` (interface)
+
+```ts
+interface ContentLevel {
+    readonly format: 'af2d-content';
+    readonly version: 1;
+    readonly id: string;
+    readonly name: string;
+    readonly size: ContentSize;
+    readonly background: {
+        readonly color: string;
+        readonly image?: string | undefined;
+        readonly mode: 'fit' | 'cover' | 'repeat' | 'repeat-x';
+    };
+    readonly fields: FieldValues;
+    readonly layers: readonly ContentLevelLayer[];
+}
+```
+
+### `ContentLevelLayer` (type)
+
+```ts
+type ContentLevelLayer = {
+    readonly def: string;
+    readonly kind: 'tiles';
+    readonly rows: readonly string[];
+} | {
+    readonly def: string;
+    readonly kind: 'intgrid';
+    readonly rows: readonly string[];
+} | {
+    readonly def: string;
+    readonly kind: 'auto';
+    readonly stack: readonly ContentRows[];
+} | {
+    readonly def: string;
+    readonly kind: 'entities';
+    readonly items: readonly ContentEntityItem[];
+} | {
+    readonly def: string;
+    readonly kind: 'objects';
+    readonly items: readonly ContentObjectItem[];
+};
+```
+
+### `ContentNeighbours` (interface)
+
+```ts
+interface ContentNeighbours {
+    readonly level: string;
+    readonly north: readonly string[];
+    readonly east: readonly string[];
+    readonly south: readonly string[];
+    readonly west: readonly string[];
+}
+```
+
+### `ContentObjectItem` (interface)
+
+```ts
+interface ContentObjectItem {
+    readonly id: string;
+    readonly tile: number;
+    readonly x: number;
+    readonly y: number;
+    readonly flipX: boolean;
+    readonly flipY: boolean;
+}
+```
+
+### `ContentProject` (interface)
+
+```ts
+interface ContentProject {
+    readonly format: 'af2d-content';
+    readonly version: 1;
+    readonly name: string;
+    readonly template: string;
+    readonly layers: readonly ContentProjectLayer[];
+    readonly tilesets: readonly ContentTileset[];
+    readonly entities: readonly ContentEntityDef[];
+    readonly levelFields: readonly FieldDef[];
+}
+```
+
+### `ContentProjectLayer` (type)
+
+```ts
+type ContentProjectLayer = {
+    readonly id: string;
+    readonly kind: 'tiles';
+    readonly grid: number;
+    readonly tileset: string;
+} | {
+    readonly id: string;
+    readonly kind: 'intgrid';
+    readonly grid: number;
+    readonly values: readonly {
+        readonly value: number;
+        readonly id: string;
+    }[];
+} | {
+    readonly id: string;
+    readonly kind: 'auto';
+    readonly grid: number;
+    readonly source: string;
+    readonly tileset: string;
+} | {
+    readonly id: string;
+    readonly kind: 'entities';
+    readonly grid: number;
+    readonly snap: boolean;
+} | {
+    readonly id: string;
+    readonly kind: 'objects';
+    readonly tileset: string;
+    readonly snap: number;
+};
+```
+
+### `ContentRows` (interface)
+
+```ts
+interface ContentRows {
+    readonly rows: readonly string[];
+}
+```
+
+### `ContentSize` (interface)
+
+```ts
+interface ContentSize {
+    readonly w: number;
+    readonly h: number;
+}
+```
+
+### `ContentTileset` (interface)
+
+```ts
+interface ContentTileset {
+    readonly id: string;
+    readonly tile: ContentSize;
+    readonly columns: number;
+    readonly rows: number;
+    readonly spacing: number;
+    readonly padding: number;
+    readonly image?: string | undefined;
+    readonly placeholder: boolean;
+    readonly tags: readonly {
+        readonly tag: string;
+        readonly tiles: readonly number[];
+    }[];
+}
+```
+
+### `ContentWorld` (interface)
+
+```ts
+interface ContentWorld {
+    readonly format: 'af2d-content';
+    readonly version: 1;
+    readonly worlds: readonly {
+        readonly id: string;
+        readonly layout: 'free' | 'grid' | 'horizontal' | 'vertical';
+        readonly grid?: ContentSize | undefined;
+        readonly placements: readonly {
+            readonly level: string;
+            readonly x: number;
+            readonly y: number;
+            readonly depth: number;
+        }[];
+        readonly neighbours?: readonly ContentNeighbours[] | undefined;
+    }[];
+}
+```
+
+### `defaultFieldValue` (function)
+
+```ts
+function defaultFieldValue(def: FieldDef): FieldValue | undefined;
+```
+
+### `entitiesOf` (function)
+
+```ts
+function entitiesOf(level: ContentLevel, layer: string): readonly ContentEntityItem[];
+```
+
+### `ENTITY_ID` (const)
+
+```ts
+const ENTITY_ID: RegExp;
+```
+
+### `EntityDef` (interface)
+
+```ts
+interface EntityDef {
+    readonly id: string;
+    readonly label?: string | undefined;
+    readonly color?: string | undefined;
+    readonly single?: boolean | undefined;
+    readonly fields: readonly FieldDef[];
+}
+```
+
+### `EntityDefCode` (type)
+
+```ts
+type EntityDefCode = FieldDefCode | 'badEntityId' | 'badEntityColor' | 'duplicateFieldId';
+```
+
+### `EntityDefIssue` (interface)
+
+```ts
+interface EntityDefIssue {
+    readonly message: string;
+    readonly path: (string | number)[];
+}
+```
+
+### `entityDefIssues` (function)
+
+```ts
+function entityDefIssues(def: EntityDef): readonly EntityDefIssue[];
+```
+
+### `EntityDefProblem` (interface)
+
+```ts
+interface EntityDefProblem extends FieldProblem<EntityDefCode> {
+    readonly fieldId?: string;
+    readonly fieldIndex?: number;
+}
+```
+
+### `entityDefSchema` (const)
+
+```ts
+const entityDefSchema: z.ZodType<EntityDef>;
+```
+
+### `entityDefShape` (const)
+
+```ts
+const entityDefShape: {
+    id: z.ZodString;
+    label: z.ZodOptional<z.ZodString>;
+    color: z.ZodOptional<z.ZodString>;
+    single: z.ZodOptional<z.ZodBoolean>;
+    fields: z.ZodArray<z.ZodType<FieldDef>>;
+};
+```
+
+### `FIELD_ID` (const)
+
+```ts
+const FIELD_ID: RegExp;
+```
+
+### `FIELD_TYPES` (const)
+
+```ts
+const FIELD_TYPES: readonly FieldType[];
+```
+
+### `FieldDef` (interface)
+
+```ts
+interface FieldDef {
+    readonly id: string;
+    readonly type: FieldType;
+    readonly label?: string | undefined;
+    readonly list?: boolean | undefined;
+    readonly required?: boolean | undefined;
+    readonly default?: FieldValue | undefined;
+    readonly min?: number | undefined;
+    readonly max?: number | undefined;
+    readonly step?: number | undefined;
+    readonly options?: readonly string[] | undefined;
+    readonly multiline?: boolean | undefined;
+    readonly to?: readonly string[] | undefined;
+}
+```
+
+### `FieldDefCode` (type)
+
+```ts
+type FieldDefCode = 'badId' | 'badBounds' | 'badStep' | 'noOptions' | 'duplicateOption' | 'badDefault' | 'wrongTypeProperty';
+```
+
+### `fieldDefSchema` (const)
+
+```ts
+const fieldDefSchema: z.ZodType<FieldDef>;
+```
+
+### `FieldProblem` (interface)
+
+```ts
+interface FieldProblem<Code extends string = string> {
+    readonly code: Code;
+    readonly message: string;
+}
+```
+
+### `FieldType` (type)
+
+```ts
+type FieldType = 'int' | 'float' | 'bool' | 'text' | 'enum' | 'color' | 'angle' | 'ref' | 'point';
+```
+
+### `FieldValue` (type)
+
+```ts
+type FieldValue = number | boolean | string | Point | RefValue | readonly FieldValue[];
+```
+
+### `FieldValueCode` (type)
+
+```ts
+type FieldValueCode = 'wrongType' | 'notInteger' | 'belowMin' | 'aboveMax' | 'notAnOption' | 'badColor' | 'badRef' | 'badPoint' | 'badListItem';
+```
+
+### `FieldValueProblem` (interface)
+
+```ts
+interface FieldValueProblem extends FieldProblem<FieldValueCode> {
+    readonly index?: number;
+    readonly cause?: FieldValueProblem;
+}
+```
+
+### `FieldValues` (type)
+
+```ts
+type FieldValues = Readonly<Record<string, FieldValue>>;
+```
+
+### `fieldValueSchema` (const)
+
+```ts
+const fieldValueSchema: z.ZodType<FieldValue>;
+```
+
+### `fieldValuesSchema` (const)
+
+```ts
+const fieldValuesSchema: z.ZodType<FieldValues>;
+```
+
+### `HEX_COLOR` (const)
+
+```ts
+const HEX_COLOR: RegExp;
+```
+
+### `InstanceCode` (type)
+
+```ts
+type InstanceCode = FieldValueCode | 'fieldMissing' | 'unknownField';
+```
+
+### `InstanceProblem` (interface)
+
+```ts
+interface InstanceProblem extends FieldProblem<InstanceCode> {
+    readonly fieldId: string;
+    readonly index?: number;
+    readonly cause?: FieldValueProblem;
+}
+```
+
+### `intGridRows` (function)
+
+```ts
+function intGridRows(level: ContentLevel, layer: string): readonly (readonly number[])[];
+```
+
+### `level2dKinds` (function)
+
+```ts
+function level2dKinds(options?: Level2dKindsOptions): ContentSchemaDef[];
+```
+
+### `Level2dKindsOptions` (interface)
+
+```ts
+interface Level2dKindsOptions {
+    readonly folder?: string | undefined;
+}
+```
+
+### `levelContentSchema` (const)
+
+```ts
+const levelContentSchema: z.ZodType<ContentLevel>;
+```
+
+### `Point` (interface)
+
+```ts
+interface Point {
+    readonly x: number;
+    readonly y: number;
+}
+```
+
+### `projectContentSchema` (const)
+
+```ts
+const projectContentSchema: z.ZodType<ContentProject>;
+```
+
+### `RefValue` (interface)
+
+```ts
+interface RefValue {
+    readonly target: string;
+    readonly container?: string | undefined;
+}
+```
+
+### `worldContentSchema` (const)
+
+```ts
+const worldContentSchema: z.ZodType<ContentWorld>;
+```
+
 ## `./locale`
 
 ### `ALWAYS_CHARACTERS` (const)

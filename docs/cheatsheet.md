@@ -395,6 +395,58 @@
 - `Renderer` (type): One renderer a game may ask for.
 - `RENDERERS` (const): The renderers a game may ask for.
 
+### `import { … } from '@mcthaydt/automata-content/level-2d'`
+
+- `checkEntityDef(def)`: Problems with an entity definition: its id and color, then each field's problems tagged with the field's id and index, with a repeated field id reported at its later occurrence.
+- `checkFieldDef(def)`: Problems with one field definition, in a stable order: id, misplaced properties, bounds, step, options, default.
+- `checkFieldValue(def, value)`: Whether `value` fits the field: `undefined` when it does, else the first problem.
+- `ContentEntityDef` (type): An entity definition in `project.toml`: a typed-field definition plus how the editor draws and places it.
+- `ContentEntityItem` (interface): One placed entity in a level: its definition, its position (and size when resizable) and its field values.
+- `ContentLevel` (interface): A level as `levels/<id>.toml` holds it, after parsing the TOML.
+- `ContentLevelLayer` (type): One layer of a level, by kind: tile rows, IntGrid rows, auto-tile stacks, entities or objects.
+- `ContentNeighbours` (interface): One level's neighbours in `world.toml`, each side ordered by position and then id.
+- `ContentObjectItem` (interface): One placed tile object in an objects layer.
+- `ContentProject` (interface): The project as `project.toml` holds it: the layer, tileset and entity definitions every level uses.
+- `ContentProjectLayer` (type): A layer definition in `project.toml`, by kind.
+- `ContentRows` (interface): One stack entry of an auto layer: run-length row strings.
+- `ContentSize` (interface): A width and height in pixels.
+- `ContentTileset` (interface): A tileset in `project.toml`: its tile size, grid, optional image and tags.
+- `ContentWorld` (interface): The worlds as `world.toml` holds them: layout, level placements and, for a grid world, each level's neighbours.
+- `defaultFieldValue(def)`: The value an instance gets when it has none: the field's `default`, else the type's zero (moved into a number's bounds), else `[]` for a list.
+- `entitiesOf(level, layer)`: The items of an entities layer, in file order.
+- `ENTITY_ID` (const): An entity definition id.
+- `EntityDef` (interface): A thing a game places: an id, a label and the typed fields its instances carry.
+- `EntityDefCode` (type): The reasons `checkEntityDef` can refuse an entity definition.
+- `EntityDefIssue` (interface): One problem found in a parsed entity definition, with the path of the field at fault.
+- `entityDefIssues(def)`: The entity-level problems of a definition, for `superRefine`: its id and color, and a repeated field id at the later field's path.
+- `EntityDefProblem` (interface): A problem with a definition; `fieldId` and `fieldIndex` (its place in `fields`) say which field when the problem is in one.
+- `entityDefSchema` (const): The schema of an entity definition: strict shape, then the rules `checkEntityDef` applies.
+- `entityDefShape` (const): The keys of an entity definition, for an editor to extend (`z.strictObject({ ...entityDefShape, shape: … })`) so its own entity schema never copies the kit's keys (`EntityDef2D = EntityDef & { shape, size, … }`).
+- `FIELD_ID` (const): A field id as an inspector shows it and a file stores it.
+- `FIELD_TYPES` (const): Every field type, in the order a picker lists them.
+- `FieldDef` (interface): The definition of one typed field: its id, type and the bounds, options or target its type needs.
+- `FieldDefCode` (type): The reasons `checkFieldDef` can refuse a field definition.
+- `fieldDefSchema` (const): The schema of a field definition: strict shape, then the rules `checkFieldDef` applies.
+- `FieldProblem` (interface): A problem with a field, with a stable `code` and a sentence to show.
+- `FieldType` (type): The kind of value a field holds: int, float, bool, text, enum, color, angle, ref or point.
+- `FieldValue` (type): A value a field can hold: a number, boolean, string, point, reference or a list of those.
+- `FieldValueCode` (type): The reasons `checkFieldValue` can refuse a value.
+- `FieldValueProblem` (interface): `badListItem` carries the index of the first bad item and that item's own problem as `cause`.
+- `FieldValues` (type): The values an instance holds, by field id.
+- `fieldValueSchema` (const): Any well-formed value shape.
+- `fieldValuesSchema` (const): The schema of the values an instance holds, by field id.
+- `HEX_COLOR` (const): A field's color value: `#rrggbb`, either case.
+- `InstanceCode` (type): The reasons an instance's values can disagree with its definition.
+- `InstanceProblem` (interface): A problem with one value of an instance, found by `checkValues`.
+- `intGridRows(level, layer)`: The cells of an IntGrid layer, one array of numbers per row (0 is empty).
+- `level2dKinds(options?)`: The kinds `levels` (in the sim's content), `project` and `world` (outside it).
+- `Level2dKindsOptions` (interface): Options for `level2dKinds`.
+- `levelContentSchema` (const): The strict schema of `levels/<id>.toml`.
+- `Point` (interface): A position with `x` and `y`.
+- `projectContentSchema` (const): The strict schema of `project.toml`.
+- `RefValue` (interface): `target` and `container` are opaque to the kit: whether they resolve is the editor's check.
+- `worldContentSchema` (const): The strict schema of `world.toml`.
+
 ### `import { … } from '@mcthaydt/automata-content/locale'`
 
 - `ALWAYS_CHARACTERS` (const): Printable ASCII, CJK symbols and punctuation, half- and full-width forms, and the symbols the UI draws.

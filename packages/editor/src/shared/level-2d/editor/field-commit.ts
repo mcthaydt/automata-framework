@@ -1,9 +1,9 @@
-import type { FieldDef, FieldValue } from '../../kit/fields/field-types.ts'
+import type { FieldDef, FieldValue } from '@mcthaydt/automata-content/level-2d'
 import { setEntityField } from '../model/commands/entity-edits'
 import { findLayer } from '../model/commands/layer-target'
 import type { Project } from '../model/project-types'
 import { setLevelField } from '../model/world/level-edits'
-import type { EditHistory } from './level-editor'
+import type { EditHistory } from './level-editor-api'
 
 // One inspector field committed as one undo step. The commands refuse a value the
 // field's rules reject with a `RangeError` carrying the kit's `checkFieldValue` message; here that refusal becomes a

@@ -104,7 +104,7 @@ checks = []
     expect(reasonOf('Docs/Art/bay/Puzzle/review.json')).toBe('never')
   })
 
-  it("refuses the adventure source's always-refused paths: agent and CI config, and env files", () => {
+  it('refuses the always-refused paths: agent and CI config, and env files', () => {
     for (const path of [
       '.claude/settings.json',
       '.github/workflows/ci.yml',

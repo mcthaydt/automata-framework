@@ -13,6 +13,7 @@ import {
   typecheckStep,
 } from './check-steps.ts'
 import type { CspProbe } from './csp-probe.ts'
+import { levelsStep } from './levels-step.ts'
 
 // `automata check`: the steps in order, each timed with Effect's Clock. Without --fail-fast every
 // step runs, so one report lists every problem; with it, the first step that does not pass ends the run.
@@ -23,29 +24,46 @@ export interface RunCheckOptions {
   readonly simOnly: boolean
   readonly csp: boolean
   readonly failFast: boolean
+  /** Run only this step. */
+  readonly only?: StepName | undefined
 }
 
 type Step = readonly [StepName, (gameDir: string) => ReturnType<typeof boundariesStep>]
 
+/** Every step, in the order a full run takes them. */
+const STEPS: readonly Step[] = [
+  ['boundaries', boundariesStep],
+  ['typecheck', typecheckStep],
+  ['test', testStep],
+  ['boards', boardsStep],
+  ['orientation', orientationStep],
+  ['inputs', inputsStep],
+  ['levels', levelsStep],
+  ['no-eval', noEvalStep],
+  ['secrets', secretsStep],
+  ['data-urls', dataUrlsStep],
+  ['csp', cspStep],
+]
+
+/** The steps that run without `--sim-only`: the source scans, the build and what reads it. */
+const NEEDS_SOURCES: ReadonlySet<StepName> = new Set([
+  'boards',
+  'orientation',
+  'inputs',
+  'levels',
+  'no-eval',
+  'secrets',
+  'data-urls',
+  'csp',
+])
+
 function stepsFor(options: RunCheckOptions): readonly Step[] {
-  const steps: Step[] = [
-    ['boundaries', boundariesStep],
-    ['typecheck', typecheckStep],
-    ['test', testStep],
-  ]
-  // --sim-only checks a sim edit: it skips the board, orientation and inputs scans, the build, and the secrets,
-  // data-urls and csp steps that read it.
-  if (!options.simOnly)
-    steps.push(
-      ['boards', boardsStep],
-      ['orientation', orientationStep],
-      ['inputs', inputsStep],
-      ['no-eval', noEvalStep],
-      ['secrets', secretsStep],
-      ['data-urls', dataUrlsStep],
-    )
-  if (!options.simOnly && options.csp) steps.push(['csp', cspStep])
-  return steps
+  // `--only` names one step, which then runs whatever the other flags say.
+  if (options.only !== undefined) return STEPS.filter(([name]) => name === options.only)
+  // --sim-only checks a sim edit: it skips the scans, the build, and the steps that read it. The csp step also needs --csp.
+  return STEPS.filter(
+    ([name]) => !(options.simOnly && NEEDS_SOURCES.has(name)) && (name !== 'csp' || options.csp),
+  )
 }
 
 /** The steps that scan the `dist/` the `no-eval` step builds. */

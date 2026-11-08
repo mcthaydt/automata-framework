@@ -1,8 +1,8 @@
 // Finds where a layer, entity or tileset definition is used, so deleting one can say what it would break first;
 // deleting then removes it along with what depended on it.
 
-import { defaultFieldValue } from '../../../kit/fields/check-field-def.ts'
-import type { FieldValues } from '../../../kit/fields/field-types.ts'
+import type { FieldValues } from '@mcthaydt/automata-content/level-2d'
+import { defaultFieldValue } from '@mcthaydt/automata-content/level-2d'
 import { hasValue } from '../../../kit/fields/field-values.ts'
 import type { LayerInstance, Project } from '../project-types'
 import { type DefinitionUse, type GuardedEdit, layerDefOf } from './def-lookup'

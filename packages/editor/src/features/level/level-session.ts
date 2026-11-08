@@ -1,9 +1,10 @@
-import type { Point } from '../../shared/kit/fields/field-types.ts'
+import type { Point } from '@mcthaydt/automata-content/level-2d'
 import { createViewport, type Size, type Viewport2D } from '../../shared/kit/gestures/viewport-2d.ts'
 import type { History } from '../../shared/kit/history/history.ts'
 import type { Camera } from '../../shared/level-2d/canvas/level-view'
 import { projectHistory } from '../../shared/level-2d/editor/edit-history'
-import { createLevelEditor, type LevelEditor } from '../../shared/level-2d/editor/level-editor'
+import { createLevelEditor } from '../../shared/level-2d/editor/level-editor'
+import type { LevelEditor } from '../../shared/level-2d/editor/level-editor-api'
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import type { LevelFocus } from './level-focus'
 

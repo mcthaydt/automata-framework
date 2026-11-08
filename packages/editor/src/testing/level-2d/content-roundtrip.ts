@@ -1,13 +1,13 @@
+import {
+  type ContentLevel,
+  levelContentSchema,
+  projectContentSchema,
+  worldContentSchema,
+} from '@mcthaydt/automata-content/level-2d'
 import { parse } from 'smol-toml'
 import { decodeRows, packTile } from '../../shared/level-2d/model/cells-codec'
 import { Grid } from '../../shared/level-2d/model/grid'
 import type { LayerInstance, Level, Project } from '../../shared/level-2d/model/project-types'
-import {
-  type ContentLevel,
-  contentLevelSchema,
-  contentProjectSchema,
-  contentWorldSchema,
-} from '../../shared/level-2d/profiles/level-project/content.schema'
 import { exportContent } from '../../shared/level-2d/profiles/level-project/content-export'
 import { applyOverrides, autoTiles } from '../../shared/level-2d/tiles/autotile/auto-tiles'
 import { compileRules } from '../../shared/level-2d/tiles/autotile/match'
@@ -107,15 +107,15 @@ export function contentMismatches(project: Project): string[] {
   for (const file of exportContent(project)) {
     const data = parse(file.contents)
     if (file.path === 'project.toml') {
-      const result = contentProjectSchema.safeParse(data)
+      const result = projectContentSchema.safeParse(data)
       if (!result.success) found.push(`${file.path}: ${result.error.issues[0]?.message}`)
     } else if (file.path === 'world.toml') {
-      const result = contentWorldSchema.safeParse(data)
+      const result = worldContentSchema.safeParse(data)
       if (!result.success) found.push(`${file.path}: ${result.error.issues[0]?.message}`)
       else if (result.data.worlds.length !== project.worlds.length)
         found.push('world.toml: world count differs')
     } else {
-      const result = contentLevelSchema.safeParse(data)
+      const result = levelContentSchema.safeParse(data)
       if (!result.success) {
         found.push(`${file.path}: ${result.error.issues[0]?.message}`)
         continue

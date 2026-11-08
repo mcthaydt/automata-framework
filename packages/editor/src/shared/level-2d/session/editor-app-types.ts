@@ -63,9 +63,11 @@ export interface OpenDocument {
   overwrite(): Promise<SaveOutcome>
   /** Save as copy: the first unused `name copy.ext`; the document keeps its own path. */
   saveCopy(): Promise<SaveOutcome>
-  /** Applies an autosave as one undoable step, which leaves the document dirty. Refused, changing nothing, when the payload no longer parses. */
+  /** The folder Save also writes the game's files into (a checkout whose editor list says so); `undefined` otherwise. */
+  readonly gameFolder: string | undefined
   /** The text the document was loaded or last saved as, which a profile's export targets patch. */
   base(): string
+  /** Applies an autosave as one undoable step, which leaves the document dirty. Refused, changing nothing, when the payload no longer parses. */
   restore(recovery: Recovery): Result<true, readonly ParseError[]>
   discardRecovery(): Promise<void>
   dispose(): void

@@ -1,5 +1,5 @@
+import type { FieldValue } from '@mcthaydt/automata-content/level-2d'
 import { describe, expect, it } from 'vitest'
-import type { FieldValue } from '#src/shared/kit/fields/field-types.ts'
 import { createHistory, type History } from '#src/shared/kit/history/history.ts'
 import { projectHistory } from '#src/shared/level-2d/editor/edit-history.ts'
 import { commitEdit, commitField, type FieldTarget } from '#src/shared/level-2d/editor/field-commit.ts'

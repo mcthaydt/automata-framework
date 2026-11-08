@@ -1,4 +1,4 @@
-import type { LevelTool } from '../../shared/level-2d/editor/level-editor'
+import type { LevelTool } from '../../shared/level-2d/editor/level-editor-api'
 import type { Point } from '../../shared/level-2d/tiles/footprint'
 
 // The Level view's keyboard shortcuts. Each one is also a visible

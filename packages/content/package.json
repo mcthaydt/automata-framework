@@ -17,6 +17,7 @@
     ".": "./src/entries/index.ts",
     "./assets": "./src/entries/assets.ts",
     "./game-config": "./src/entries/game-config.ts",
+    "./level-2d": "./src/entries/level-2d.ts",
     "./locale": "./src/entries/locale.ts",
     "./palette": "./src/entries/palette.ts",
     "./schema": "./src/entries/schema.ts",
@@ -24,6 +25,11 @@
   },
   "imports": {
     "#src/*": "./src/*"
+  },
+  "automata": {
+    "simEntries": [
+      "./level-2d"
+    ]
   },
   "bin": {
     "automata-content": "./src/app/cli/main.ts"
@@ -42,6 +48,10 @@
       "./game-config": {
         "types": "./dist/game-config.d.ts",
         "import": "./dist/game-config.js"
+      },
+      "./level-2d": {
+        "types": "./dist/level-2d.d.ts",
+        "import": "./dist/level-2d.js"
       },
       "./locale": {
         "types": "./dist/locale.d.ts",

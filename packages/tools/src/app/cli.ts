@@ -116,8 +116,8 @@ async function checkCommand(
     io.stderr(`Error: ${parsed.problem}\n\n${CHECK_HELP}`)
     return 2
   }
-  const { dir, json, simOnly, csp, failFast } = parsed.options
-  const report = await check({ gameDir: resolve(process.cwd(), dir ?? '.'), simOnly, csp, failFast })
+  const { dir, json, simOnly, csp, failFast, only } = parsed.options
+  const report = await check({ gameDir: resolve(process.cwd(), dir ?? '.'), simOnly, csp, failFast, only })
   io.stdout(json ? `${toJson(report)}\n` : formatText(report))
   return exitCodeFor(report)
 }

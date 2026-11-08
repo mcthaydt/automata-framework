@@ -87,7 +87,7 @@ describe('openDocument', () => {
     })
   }
 
-  it("EDS-a, EDS-b: the arcade source's tuning.toml round-trips, and MAX_MOVE_SPEED's edit is that number's span", () => {
+  it("EDS-a, EDS-b: the platformer's tuning.toml round-trips, and MAX_MOVE_SPEED's edit is that number's span", () => {
     const document = openDocument('content/tuning.toml', TUNING)
     expect(edited(document.edit([])).text).toBe(TUNING)
     const after = edited(document.edit([{ keyPath: ['MAX_MOVE_SPEED'], expected: 356, set: 400 }]))

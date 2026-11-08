@@ -1,5 +1,10 @@
-// The editor's app logic without a view: listing, creating, opening, copying, importing and removing documents, each
-// answering with an outcome the views turn into screens.
+// The editor's app logic without a view: listing, creating from a template, opening a file with the profile that claims
+// it, copying, importing and removing documents, and keeping an open one saved. Each answers with an outcome the views
+// turn into screens. Plain TypeScript with no Svelte, so the views and the tests use the same object. Nothing here names
+// a profile: the registry says which ones exist, and the first export of each is its working file.
+import { loadEditorList } from '../../shared/editor-list/editor-list'
+import { EDITOR_LIST_PATH } from '../../shared/editor-list/editors.schema'
+import { fileAccess } from '../../shared/editor-list/workspace-policy'
 import { createHistory, type History } from '../../shared/kit/history/history.ts'
 import { type StorageClock, systemClock } from '../../shared/kit/storage/clock.ts'
 import {
@@ -31,11 +36,8 @@ import type {
   OpenOutcome,
 } from '../../shared/level-2d/session/editor-app-types'
 import { listProjects } from './project-list'
-
-// The editor's session over a workspace: creating a document from a
-// template, opening a file with the profile that claims it, and keeping it saved. Plain TypeScript with no Svelte, so
-// the views and the tests use the same object. Nothing here names a profile: the registry says which
-// ones exist, and the first export of each is its working file.
+import { createGameSave, type GameSave } from './save-to-game'
+import { splitName, uniqueName } from './unique-name'
 
 export interface EditorAppOptions {
   readonly workspace: Workspace
@@ -55,16 +57,37 @@ const failureOf = (written: {
   message: written.message,
 })
 
-/** The stem and the extension of `path`; the extension starts at the first dot of the file name, so `a.af2d.json` keeps both parts, and a name that starts with a dot has none. */
-function splitName(path: string): { stem: string; extension: string } {
-  const name = path.lastIndexOf('/') + 1
-  const dot = path.indexOf('.', name + 1)
-  return dot === -1 ? { stem: path, extension: '' } : { stem: path.slice(0, dot), extension: path.slice(dot) }
-}
-
 export function createEditorApp(options: EditorAppOptions): EditorApp {
   const { workspace, registry, ids } = options
   const clock = options.clock ?? systemClock
+
+  /**
+   * On a served game checkout, the game save of a document whose editor-list row names an `exports` folder and whose
+   * profile says which of its exports a game reads. Anything else (browser storage, no list, a list that does not
+   * load, a document no row exports) saves the document alone.
+   */
+  async function gameSaveFor(
+    path: string,
+    profile: Profile<unknown>,
+    value: unknown,
+    loaded: string,
+  ): Promise<GameSave | undefined> {
+    const target = profile.exports.find((candidate) => candidate.id === profile.gameTarget)
+    if (workspace.served !== true || target === undefined) return undefined
+    let listText: string | undefined
+    try {
+      const bytes = await workspace.store.read(EDITOR_LIST_PATH)
+      listText = bytes === undefined ? undefined : new TextDecoder().decode(bytes)
+    } catch {
+      return undefined
+    }
+    const loadedList = loadEditorList(listText)
+    if (!loadedList.ok) return undefined
+    const access = fileAccess(loadedList.list, path)
+    const folder = access.row?.exports
+    if (!access.writable || folder === undefined) return undefined
+    return createGameSave(workspace.store, target, folder, { value, base: loaded })
+  }
 
   /** Opens a stored file. `readStored` stats first, so a file that changes after it can only make the next save a conflict, never overwrite silently. */
   async function open(path: string, as?: string): Promise<OpenOutcome> {
@@ -80,7 +103,8 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
     } catch (error) {
       recoveryError = classifyStorageError(error).message
     }
-    const document = openDocument(path, mtime, read.profile, read.value, read.text)
+    const game = await gameSaveFor(path, read.profile, read.value, read.text)
+    const document = openDocument(path, mtime, read.profile, read.value, read.text, game)
     return recoveryError === undefined
       ? { status: 'opened', document, recovery }
       : { status: 'opened', document, recovery, recoveryError }
@@ -92,6 +116,7 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
     profile: Profile<unknown>,
     value: unknown,
     loaded: string,
+    game: GameSave | undefined,
   ): OpenDocument {
     // The text a codec may patch: as last read or written (decision 5).
     let base = loaded
@@ -110,6 +135,7 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
         return printed
       },
       snapshot: (state) => profile.print(base, state),
+      ...(game === undefined ? {} : { beforeSave: (mode) => game.write(history.state, () => base, mode) }),
     })
 
     // Saves run one at a time, so `printed` (set while the save serialises, which a saved outcome always did) is the text of the save that just finished.
@@ -129,6 +155,7 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
       path,
       history,
       session,
+      gameFolder: game?.folder,
       save: () => writing(() => session.save(), true),
       overwrite: () => writing(() => session.overwrite(), true),
       saveCopy: () => writing(() => session.saveCopy(), false),
@@ -147,11 +174,8 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
 
   /** `path` itself, or the first of `name 2.ext`, `name 3.ext` that the workspace does not have. */
   async function firstFree(path: string): Promise<string> {
-    const { stem, extension } = splitName(path)
-    const taken = new Set((await workspace.store.list(stem)).map((entry) => entry.path))
-    let free = path
-    for (let n = 2; taken.has(free); n += 1) free = `${stem} ${n}${extension}`
-    return free
+    const taken = await workspace.store.list(splitName(path).stem)
+    return uniqueName(path, new Set(taken.map((entry) => entry.path)))
   }
 
   async function create(profileId: string, templateId: string): Promise<OpenOutcome> {
@@ -177,10 +201,8 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
     try {
       const bytes = await workspace.store.read(path)
       if (bytes === undefined) return { status: 'missing', path }
-      const { stem, extension } = splitName(path)
-      const taken = new Set((await workspace.store.list(`${stem} copy`)).map((entry) => entry.path))
-      let copy = `${stem} copy${extension}`
-      for (let n = 2; taken.has(copy); n += 1) copy = `${stem} copy ${n}${extension}`
+      const taken = await workspace.store.list(`${splitName(path).stem} copy`)
+      const copy = uniqueName(path, new Set(taken.map((entry) => entry.path)), ' copy')
       const written = await workspace.store.write(copy, bytes)
       return written.ok ? { status: 'copied', path: copy } : { status: 'failed', path, ...failureOf(written) }
     } catch (error) {

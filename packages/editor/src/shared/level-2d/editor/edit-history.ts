@@ -1,6 +1,6 @@
 import type { History } from '../../kit/history/history.ts'
 import type { Project } from '../model/project-types'
-import type { EditHistory } from './level-editor'
+import type { EditHistory } from './level-editor-api'
 
 // The open document's history seen as the Level view's. The app holds every document as a
 // `History<unknown>`, since it names no profile; the Level view is offered only by a profile whose value is a

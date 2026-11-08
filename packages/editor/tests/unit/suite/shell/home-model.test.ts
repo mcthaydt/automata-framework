@@ -29,7 +29,7 @@ const file = (path: string, editor: string): WorkspaceFile => ({
 const empty = createSuite({ editors: [] })
 
 describe('Home (editor suite spec §5 flow 2, §9 suite-home, §11)', () => {
-  it("gives one card per editor the arcade source's list names, in list order, with its files", () => {
+  it("gives one card per editor the platformer's list names, in list order, with its files", () => {
     const tuning = file('content/tuning.toml', 'tuner')
     const state = homeOf(loadEditorList(fixture('platformer')), new Map([['tuner', [tuning]]]), empty)
     if (state.kind !== 'cards') throw new Error(state.kind)
@@ -41,7 +41,7 @@ describe('Home (editor suite spec §5 flow 2, §9 suite-home, §11)', () => {
     expect(state.cards[1]?.files).toEqual([])
   })
 
-  it("lists the adventure source's editors once each", () => {
+  it("lists the Bay game's editors once each", () => {
     const state = homeOf(loadEditorList(fixture('bay')), new Map(), empty)
     if (state.kind !== 'cards') throw new Error(state.kind)
     expect(state.cards.map((card) => card.editor)).toEqual([

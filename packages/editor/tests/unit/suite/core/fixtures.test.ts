@@ -1,5 +1,5 @@
-// The two games' editor lists: the adventure source's Bay scene, converted AF-side,
-// and the arcade source, which has no gates and says so.
+// The two games' editor lists: the Bay game's scene, converted AF-side,
+// and the platformer, which has no gates and says so.
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { loadEditorList } from '#src/shared/editor-list/editor-list.ts'
@@ -35,7 +35,7 @@ const opened = (list: EditorList, path: string) => {
   }
 }
 
-describe("the arcade source's editor list", () => {
+describe("the platformer's editor list", () => {
   const list = load('platformer')
 
   it('declares no gates, and every row says so with an empty list', () => {
@@ -68,7 +68,7 @@ describe("the arcade source's editor list", () => {
   })
 })
 
-describe("the adventure source's Bay editor list", () => {
+describe("the Bay game's editor list", () => {
   const list = load('bay')
 
   it('opens each Bay file in its editor with its gates and its scene', () => {

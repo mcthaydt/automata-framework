@@ -25,10 +25,10 @@ function tree(files: Record<string, string>): ReadonlyMap<string, string> {
 }
 
 describe('checkArchitecture: the pure core (model and tiles)', () => {
-  it('accepts relative imports, zod and the kit field rules', () => {
+  it('accepts relative imports, zod, the level format and the kit field rules', () => {
     const files = tree({
       'model/a.ts':
-        "import { z } from 'zod'\nimport { b } from './b'\nexport const a = z.string()\nexport const c = b",
+        "import { z } from 'zod'\nimport type { FieldDef } from '@mcthaydt/automata-content/level-2d'\nimport { b } from './b'\nexport const a = z.string()\nexport const c = b",
       'model/b.ts': "import { checkValues } from '../../kit/fields/check'\nexport const b = checkValues",
       'shared/kit/fields/check.ts': 'export const checkValues = 1',
       'tiles/t.ts': "import { a } from '../model/a'\nexport const t = a",

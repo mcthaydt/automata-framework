@@ -43,6 +43,7 @@ function externalsOf(entry: string): string[] {
 }
 
 const BROWSER_ENTRIES = {
+  './level-2d': { source: './src/entries/level-2d.ts', build: 'level-2d' },
   './palette': { source: './src/entries/palette.ts', build: 'palette' },
   './schema': { source: './src/entries/schema.ts', build: 'schema' },
 } as const
@@ -55,7 +56,7 @@ describe('the browser-safe entries', () => {
         types: `./dist/${build}.d.ts`,
         import: `./dist/${build}.js`,
       })
-      expect(tsdown).toContain(`${build}: '${source.slice(2)}'`)
+      expect(tsdown).toMatch(new RegExp(`['"]?${build}['"]?: '${source.slice(2)}'`))
       for (const external of externalsOf(source))
         expect(external, `${entry} imports ${external}`).not.toMatch(/^node:/)
     })
@@ -64,6 +65,10 @@ describe('the browser-safe entries', () => {
     const schema = await import('#src/entries/schema.ts')
     expect(Object.keys(schema).sort()).toEqual(['contentRef', 'defineContentSchema', 'localized'])
     expect(externalsOf(BROWSER_ENTRIES['./schema'].source)).toEqual(['zod'])
+  })
+
+  it("./level-2d imports only zod, so a game's sim may use it", () => {
+    expect(externalsOf(BROWSER_ENTRIES['./level-2d'].source)).toEqual(['zod'])
   })
 
   it('./palette serves the default palette, Endesga 64', async () => {

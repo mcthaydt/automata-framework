@@ -95,4 +95,5 @@ export const levelProject: Profile<Project> = {
   templates: [platformerTemplate, topdownRpgTemplate, blankTemplate],
   views,
   exports,
+  gameTarget: 'af-content',
 }

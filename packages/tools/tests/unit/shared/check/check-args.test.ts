@@ -5,15 +5,27 @@ describe('parseCheckArgs', () => {
   it('defaults to the working folder with every option off', () => {
     expect(parseCheckArgs([])).toEqual({
       ok: true,
-      options: { dir: undefined, json: false, simOnly: false, csp: false, failFast: false },
+      options: { dir: undefined, json: false, simOnly: false, csp: false, failFast: false, only: undefined },
     })
   })
 
   it('reads each flag and a folder in any order', () => {
     expect(parseCheckArgs(['--json', 'games/x', '--sim-only', '--csp', '--fail-fast'])).toEqual({
       ok: true,
-      options: { dir: 'games/x', json: true, simOnly: true, csp: true, failFast: true },
+      options: { dir: 'games/x', json: true, simOnly: true, csp: true, failFast: true, only: undefined },
     })
+  })
+
+  it('reads --only with a step name, and refuses a missing or unknown one', () => {
+    expect(parseCheckArgs(['--only', 'levels', 'games/x'])).toEqual({
+      ok: true,
+      options: { dir: 'games/x', json: false, simOnly: false, csp: false, failFast: false, only: 'levels' },
+    })
+    for (const args of [['--only'], ['--only', 'nope'], ['--only', '--json']])
+      expect(parseCheckArgs(args)).toMatchObject({
+        ok: false,
+        problem: expect.stringContaining('--only needs a step'),
+      })
   })
 
   it('rejects an unknown flag and a second folder', () => {

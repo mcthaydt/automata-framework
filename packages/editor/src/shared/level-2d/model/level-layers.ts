@@ -1,5 +1,5 @@
-import { Grid } from './grid'
-import type { LayerDef, LayerInstance, Size } from './project-types'
+import { Grid } from './grid.ts'
+import type { LayerDef, LayerInstance, Size } from './project-types.ts'
 
 // The empty layers of a new level: a level holds one instance of every layer definition, in the
 // definitions' order, so a template and `addLevel` both start from here.

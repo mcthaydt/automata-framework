@@ -2,7 +2,7 @@ import { tileDraw } from '../canvas/draw/tile-draw'
 import { packTile } from '../model/cells-codec'
 import type { Project, Size, TilesetDef } from '../model/project-types'
 import { tilesetTiles } from '../model/tileset-grid'
-import type { LevelEditorView } from './level-editor'
+import type { LevelEditorView } from './level-editor-api'
 
 // What the palette offers for the selected layer: a tiles, auto or
 // objects layer paints its tileset's tiles (on an auto layer the brush stamps an override), an IntGrid layer its

@@ -1,18 +1,13 @@
-import type { Project, World } from '../project-types'
+import type { ContentNeighbours } from '@mcthaydt/automata-content/level-2d'
+import type { Project, World } from '../project-types.ts'
 
 // Neighbours for room-scrolling games: in a `grid` world, the levels whose edge touches
 // a level's edge. A touch needs a span of positive length, so two levels that meet only at a corner are not neighbours.
 // Depth is ignored: a world that stacks levels at different depths is not a room map. The export writes these into
 // `world.toml` and the World view shows them, so both read this one rule.
 
-/** One level's neighbours, each side ordered by position and then id. */
-export interface LevelNeighbours {
-  readonly level: string
-  readonly north: readonly string[]
-  readonly east: readonly string[]
-  readonly south: readonly string[]
-  readonly west: readonly string[]
-}
+/** One level's neighbours, each side ordered by position and then id: the shape `world.toml` holds. */
+export type LevelNeighbours = ContentNeighbours
 
 interface Box {
   readonly level: string

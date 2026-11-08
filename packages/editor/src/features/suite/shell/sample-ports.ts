@@ -1,5 +1,5 @@
 // Memory ports over a game's files, classed by the files' own `content/editors.toml` the way the disk adapter classes a checkout; with no loadable list every file is read only. The DOM and layout tests use it, and
-// `main.ts` serves the arcade source's list through it until `automata editor` serves a real checkout.
+// `main.ts` serves a sample game's list through it until `automata editor` serves a real checkout.
 
 import { createMemoryPorts } from '../../../shared/kit/ports/memory/memory-ports.ts'
 import type { SuitePorts } from '../../../shared/kit/ports/suite-ports.ts'
@@ -18,7 +18,7 @@ export async function samplePorts(files: Readonly<Record<string, string>>): Prom
   return ports
 }
 
-/** the arcade source's list with a tuning file, for the sample app and the tests. */
+/** A sample game's list with a tuning file, for the sample app and the tests. */
 export const SAMPLE_GAME: Readonly<Record<string, string>> = {
   [EDITOR_LIST_PATH]: sampleList,
   'content/tuning.toml': '[player]\nspeed = 6.5 # m/s\n',

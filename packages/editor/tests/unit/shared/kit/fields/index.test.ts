@@ -22,14 +22,18 @@ describe('the ./fields entry', () => {
     expect(manifest.exports['./kit/fields']).toBe('./src/entries/kit-fields.ts')
   })
 
-  test('imports only zod and its own folder, so a Node import never loads the shell', () => {
+  test('imports only zod, the level format and its own folder, so a Node import never loads the shell', () => {
     const sources = readdirSync(FOLDER).filter((name) => name.endsWith('.ts') && !name.endsWith('.test.ts'))
     expect(sources.length).toBeGreaterThan(1)
     for (const name of sources) {
       const text = readFileSync(new URL(name, FOLDER), 'utf8')
       const specifiers = [...text.matchAll(/from '([^']+)'/g)].map((match) => match[1])
       for (const specifier of specifiers) {
-        expect(specifier === 'zod' || specifier?.startsWith('./')).toBe(true)
+        expect(
+          specifier === 'zod' ||
+            specifier === '@mcthaydt/automata-content/level-2d' ||
+            specifier?.startsWith('./'),
+        ).toBe(true)
       }
     }
   })

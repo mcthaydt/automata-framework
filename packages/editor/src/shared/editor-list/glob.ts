@@ -1,5 +1,4 @@
-// The editor list's globs. Extracted from the adventure source editor/src/shared/manifest.ts `globToRegExp`, the
-// rules its guard uses: `*` and `?` stay within one path segment, `**` crosses segments, and `**/` also matches no
+// The editor list's globs, with the rules the write guard uses: `*` and `?` stay within one path segment, `**` crosses segments, and `**/` also matches no
 // folder at all. Added here: `{scene}` matches one non-empty segment and is captured as the file's scene, so one row
 // covers every scene. Paths are root-relative POSIX paths; the caller rejects anything else first.
 

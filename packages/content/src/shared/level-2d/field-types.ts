@@ -7,8 +7,10 @@
 // Optional properties accept an explicit `undefined` (`exactOptionalPropertyTypes` is on in this repo) so the zod
 // schemas, whose output types say `T | undefined`, are assignable to these interfaces.
 
+/** The kind of value a field holds: int, float, bool, text, enum, color, angle, ref or point. */
 export type FieldType = 'int' | 'float' | 'bool' | 'text' | 'enum' | 'color' | 'angle' | 'ref' | 'point'
 
+/** Every field type, in the order a picker lists them. */
 export const FIELD_TYPES: readonly FieldType[] = [
   'int',
   'float',
@@ -28,6 +30,7 @@ export const ENTITY_ID: RegExp = /^[a-z][a-z0-9-]*$/
 /** A field's color value: `#rrggbb`, either case. */
 export const HEX_COLOR: RegExp = /^#[0-9a-fA-F]{6}$/
 
+/** A position with `x` and `y`. */
 export interface Point {
   readonly x: number
   readonly y: number
@@ -40,10 +43,13 @@ export interface RefValue {
   readonly container?: string | undefined
 }
 
+/** A value a field can hold: a number, boolean, string, point, reference or a list of those. */
 export type FieldValue = number | boolean | string | Point | RefValue | readonly FieldValue[]
 
+/** The values an instance holds, by field id. */
 export type FieldValues = Readonly<Record<string, FieldValue>>
 
+/** The definition of one typed field: its id, type and the bounds, options or target its type needs. */
 export interface FieldDef {
   readonly id: string
   readonly type: FieldType
@@ -66,6 +72,7 @@ export interface FieldDef {
   readonly to?: readonly string[] | undefined
 }
 
+/** A thing a game places: an id, a label and the typed fields its instances carry. */
 export interface EntityDef {
   readonly id: string
   readonly label?: string | undefined
@@ -76,11 +83,13 @@ export interface EntityDef {
   readonly fields: readonly FieldDef[]
 }
 
+/** A problem with a field, with a stable `code` and a sentence to show. */
 export interface FieldProblem<Code extends string = string> {
   readonly code: Code
   readonly message: string
 }
 
+/** The reasons `checkFieldValue` can refuse a value. */
 export type FieldValueCode =
   | 'wrongType'
   | 'notInteger'
@@ -98,6 +107,7 @@ export interface FieldValueProblem extends FieldProblem<FieldValueCode> {
   readonly cause?: FieldValueProblem
 }
 
+/** The reasons `checkFieldDef` can refuse a field definition. */
 export type FieldDefCode =
   | 'badId'
   | 'badBounds'
@@ -107,6 +117,7 @@ export type FieldDefCode =
   | 'badDefault'
   | 'wrongTypeProperty'
 
+/** The reasons `checkEntityDef` can refuse an entity definition. */
 export type EntityDefCode = FieldDefCode | 'badEntityId' | 'badEntityColor' | 'duplicateFieldId'
 
 /** A problem with a definition; `fieldId` and `fieldIndex` (its place in `fields`) say which field when the problem is in one. */
@@ -115,6 +126,7 @@ export interface EntityDefProblem extends FieldProblem<EntityDefCode> {
   readonly fieldIndex?: number
 }
 
+/** The reasons an instance's values can disagree with its definition. */
 export type InstanceCode = FieldValueCode | 'fieldMissing' | 'unknownField'
 
 /** A problem with one value of an instance, found by `checkValues`. */

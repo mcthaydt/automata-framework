@@ -1,9 +1,11 @@
 // The Level editor's small pure pieces: finding a layer, the shape of an open gesture, and the arithmetic that turns a
-// pointer position into a cell or a snapped coordinate. Nothing here holds state.
+// pointer position into a cell or a snapped coordinate, and what a view patch or the project says about ids. Nothing
+// here holds state.
 import { packTile } from '../model/cells-codec'
 import type { LayerTarget } from '../model/commands/layer-target'
 import type { LayerDef, Project } from '../model/project-types'
 import type { Point } from '../tiles/footprint'
+import type { LevelEditorView } from './level-editor-api'
 
 export function layerDef(project: Project, id: string): LayerDef {
   const found = project.defs.layers.find((candidate) => candidate.id === id)
@@ -74,3 +76,32 @@ export function cellAt(def: LayerDef, at: Point): Point {
 
 /** A pointer coordinate moved to the layer's grid when it snaps, otherwise to a whole pixel. */
 export const snapped = (value: number, step: number): number => Math.round(value / step) * step
+
+/** The instance ids of the entities layers of level `levelId`. */
+export function aliveIds(project: Project, levelId: string): ReadonlySet<string> {
+  const level = project.levels.find((candidate) => candidate.id === levelId)
+  return new Set(
+    level?.layers.flatMap((layer) => (layer.kind === 'entities' ? layer.items.map((item) => item.id) : [])),
+  )
+}
+
+/** The id of the instance of a `single` definition the level already has, wherever it is: `placeEntity` moves that one. */
+export function existingSingle(project: Project, levelId: string, defId: string): string | undefined {
+  if (project.defs.entities.find((candidate) => candidate.id === defId)?.single !== true) return undefined
+  const level = project.levels.find((candidate) => candidate.id === levelId)
+  for (const layer of level?.layers ?? [])
+    if (layer.kind === 'entities') {
+      const found = layer.items.find((item) => item.def === defId)
+      if (found !== undefined) return found.id
+    }
+  return undefined
+}
+
+/** Whether applying `patch` to `view` changes anything a listener would see; selections and hover compare by value. */
+export function changesView(view: LevelEditorView, patch: Partial<LevelEditorView>): boolean {
+  return (Object.keys(patch) as (keyof LevelEditorView)[]).some((key) => {
+    if (key === 'selected') return !sameList(view.selected, patch.selected ?? [])
+    if (key === 'hover') return !samePoint(view.hover, patch.hover)
+    return view[key] !== patch[key]
+  })
+}

@@ -4,7 +4,16 @@
 // published version from GitHub Packages (NODE_AUTH_TOKEN must be able to read it). Each check is a named step;
 // the run exits 0 only if every step passed, and removes its temp folder unless --keep.
 import { execFileSync } from 'node:child_process'
-import { cpSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  cpSync,
+  existsSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -12,6 +21,7 @@ import { findRukenSdkMarkers } from '../../../packages/automata/src/features/tar
 import { publishablePackages } from '../../release/src/publishable-packages.ts'
 import { bootGame } from './boot-game.ts'
 import { packAll, sh } from './commands.ts'
+import { fetchEditorPage } from './editor.ts'
 import {
   type ConsumerPackage,
   consumerManifest,
@@ -111,6 +121,9 @@ function filesBelow(dir: string): string[] {
 
 type Step = readonly [name: string, run: () => string | Promise<string>]
 
+/** The most the packed `@mcthaydt/automata-tools` (with the 2D editor inside) may weigh. */
+const TOOLS_PACK_BUDGET_MB = 3
+
 /** AF's own code must not need eval: Ruken's CSP has no 'unsafe-eval'. */
 const EVAL = /\bnew Function\s*\(|(?<![.\w])eval\s*\(/
 
@@ -155,6 +168,23 @@ function steps(project: string): Step[] {
         const usage = output(project, bin('automata'), ['ship', '--help'])
         if (!usage.includes('prepare') || !usage.includes('publish')) throw new Error(`no usage:\n${usage}`)
         return 'usage printed'
+      },
+    ],
+    [
+      // The editor is inside the tools package: the packed bin opens it with nothing else installed.
+      'editor: the packed automata editor serves the 2D editor',
+      () => fetchEditorPage(bin('automata'), join(project, 'content')),
+    ],
+    [
+      // The editor makes the tools package bigger; this is the budget, so the growth is a decision and not an accident.
+      `size: the packed -tools stays under ${TOOLS_PACK_BUDGET_MB} MB`,
+      () => {
+        const pack = readdirSync(join(project, 'packs')).find((file) => /automata-tools-.*\.tgz$/.test(file))
+        if (pack === undefined) return 'installed from the registry: not measured'
+        const bytes = statSync(join(project, 'packs', pack)).size
+        if (bytes > TOOLS_PACK_BUDGET_MB * 1024 * 1024)
+          throw new Error(`${pack} is ${(bytes / 1024 / 1024).toFixed(2)} MB`)
+        return `${pack} is ${Math.round(bytes / 1024)} kB`
       },
     ],
     [

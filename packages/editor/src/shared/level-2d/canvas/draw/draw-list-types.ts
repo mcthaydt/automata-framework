@@ -1,4 +1,4 @@
-import type { LevelEditorView } from '../../editor/level-editor'
+import type { LevelEditorView } from '../../editor/level-editor-api'
 import type { Bounds } from '../../model/commands/entity-geometry'
 import type { Background, EntityShape, Project, Size } from '../../model/project-types'
 import type { Point } from '../../tiles/footprint'

@@ -1,4 +1,4 @@
-import { checkEntityDef } from '../../../../kit/fields/check-field-def.ts'
+import { checkEntityDef } from '@mcthaydt/automata-content/level-2d'
 import type { Project } from '../../../model/project-types'
 import { tilesetTiles } from '../../../model/tileset-grid'
 import { ruleIssues } from '../../../tiles/autotile/rule-issues'

@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { z } from 'zod'
+import { FIELD_TYPES, type FieldDef } from '#src/shared/level-2d/field-types.ts'
 import {
   entityDefIssues,
   entityDefSchema,
@@ -7,8 +8,7 @@ import {
   fieldDefSchema,
   fieldValueSchema,
   fieldValuesSchema,
-} from '#src/shared/kit/fields/field.schema.ts'
-import { FIELD_TYPES, type FieldDef } from '#src/shared/kit/fields/field-types.ts'
+} from '#src/shared/level-2d/fields.schema.ts'
 
 const sample: Record<(typeof FIELD_TYPES)[number], FieldDef> = {
   int: { id: 'hp', type: 'int', label: 'Hit points', min: 0, max: 9, step: 1, default: 3 },

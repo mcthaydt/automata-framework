@@ -10,7 +10,7 @@ import type { EditEvent } from '../../shared/kit/widgets/edit-event'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'
 import { commitEdit, commitField } from '../../shared/level-2d/editor/field-commit'
 import type { EntityInspector } from '../../shared/level-2d/editor/inspector-model'
-import type { EditHistory } from '../../shared/level-2d/editor/level-editor'
+import type { EditHistory } from '../../shared/level-2d/editor/level-editor-api'
 import { moveEntity, resizeEntity } from '../../shared/level-2d/model/commands/entity-edits'
 
 interface Props {

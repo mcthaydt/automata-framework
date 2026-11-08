@@ -4,10 +4,10 @@ import { parseEditorArgs } from '#src/features/editor/editor-args.ts'
 // `automata editor [dir] [--app 2d|3d|suite] [--app-dir <dir>] [--port <n>] [--lan] [--token <t>]` (ED3D.14, ED2D.9).
 
 describe('parseEditorArgs', () => {
-  it('defaults to the 3D editor, the working folder, the loopback and a free port', () => {
+  it('defaults to the 2D editor, the working folder, the loopback and a free port', () => {
     expect(parseEditorArgs([])).toEqual({
       ok: true,
-      options: { dir: '.', app: '3d', appDir: undefined, port: 0, lan: false, token: undefined },
+      options: { dir: '.', app: '2d', appDir: undefined, port: 0, lan: false, token: undefined },
     })
   })
 

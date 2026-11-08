@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
+
+import type { FieldDef, FieldValue } from '@mcthaydt/automata-content/level-2d'
 import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import FieldEditor from '#src/shared/kit/fields/FieldEditor.svelte'
 import { type FieldCommit, fieldRow } from '#src/shared/kit/fields/field-row.ts'
-import type { FieldDef, FieldValue } from '#src/shared/kit/fields/field-types.ts'
 
 // One inspector row per widget kind: a stepper, toggle, segmented control or picker
 // commits on change, text on blur or Enter; a refused value shows the message and the field shows the stored value.

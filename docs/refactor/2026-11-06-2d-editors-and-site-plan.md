@@ -455,11 +455,11 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
   history, commands and selection, the 2D model and codecs, the canvas, tiles and auto-tile, the profile and export, the
   editor list, the suite's logic). Findings list in the execution log before any change. Record the unit and Chromium
   browser counts.
-- [ ] **Step 2: Fix, one area per commit** (session breaks between areas as needed; log what is left): unused options and
+- [x] **Step 2: Fix, one area per commit** (session breaks between areas as needed; log what is left): unused options and
   exports out; single-implementation interfaces folded, keeping the seams tests and targets swap (store, clock,
   renderer); duplicates merged (one memory workspace, one toast model, one id helper); files over 300 lines split by
   responsibility; header comments and whys added.
-- [ ] **Step 3:** Counts equal (or lower only by listed dead code); the auto-tile goldens unchanged in Node and
+- [x] **Step 3:** Counts equal (or lower only by listed dead code); the auto-tile goldens unchanged in Node and
   Chromium; `editor-3d`'s tests pass in the 3D workflow; `pnpm check`. Mark ready.
   `refactor(editor): minimal, documented internals`
 
@@ -478,20 +478,20 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
 - Delete (moved): `packages/editor/src/shared/level-2d/profiles/level-project/content.schema.ts`; the four kit field
   files become re-exports of `-content/level-2d`
 
-- [ ] **Step 1: Move the tests first.** `content-export.test.ts`'s schema assertions and the kit's `field.schema` and
+- [x] **Step 1: Move the tests first.** `content-export.test.ts`'s schema assertions and the kit's `field.schema` and
   `check-field-*` tests move to `packages/content/tests/unit/level-2d/` importing `#src/shared/level-2d/...` → they
   fail (no files yet).
-- [ ] **Step 2: Move the files** (`git mv`, then fix imports). Run → they pass with the same counts.
-- [ ] **Step 3: `level2dKinds`, test first.** A test compiles a temporary content folder holding Emberwick's three
+- [x] **Step 2: Move the files** (`git mv`, then fix imports). Run → they pass with the same counts.
+- [x] **Step 3: `level2dKinds`, test first.** A test compiles a temporary content folder holding Emberwick's three
   exported files with `level2dKinds()` and expects `levels` in the sim's content and `project`, `world` outside it; a
   level with an unknown key fails with the schema's path in the message.
-- [ ] **Step 4: `intGridRows` and `entitiesOf`, test first.** Emberwick's `room-1.toml` collision layer decodes to the
+- [x] **Step 4: `intGridRows` and `entitiesOf`, test first.** Emberwick's `room-1.toml` collision layer decodes to the
   same rows `level-room.ts`'s `decodeRow` produces today (copy its current test's expectations); a row with a bad token
   throws `Level room-1, layer collision, row 3: "x*2" is not a number.` The file passes `pnpm boundaries`' sim rule.
-- [ ] **Step 5: The entry, the API report, the agent skills.** `pnpm --filter @mcthaydt/automata-content build`,
+- [x] **Step 5: The entry, the API report, the agent skills.** `pnpm --filter @mcthaydt/automata-content build`,
   `pnpm api-report --update`, `pnpm agent-skills --write`; changeset `patch`: "New `@mcthaydt/automata-content/level-2d`:
   the 2D level format the editor writes and games read."
-- [ ] **Step 6: Commit.** `feat(content): the 2D level format has one owner`
+- [x] **Step 6: Commit.** `feat(content): the 2D level format has one owner`
 
 ### Task 5.2: The editor and Emberwick import it (same PR)
 
@@ -501,13 +501,13 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
   wherever `EMBERWICK_KINDS` is passed), `games/emberwick/tests/unit/room/*.test.ts`
 - Delete: `games/emberwick/src/shared/kinds.ts`
 
-- [ ] **Step 1:** Emberwick's tests that read the room keep their expectations; switch the code to `level2dKinds()`,
+- [x] **Step 1:** Emberwick's tests that read the room keep their expectations; switch the code to `level2dKinds()`,
   `intGridRows` and `entitiesOf`, deleting `LevelLike`, `decodeRow` and `kinds.ts`.
-- [ ] **Step 2: The golden must not move.** `pnpm --filter @af-games/emberwick test:unit` → `GOLDEN_HASH` still
+- [x] **Step 2: The golden must not move.** `pnpm --filter @af-games/emberwick test:unit` → `GOLDEN_HASH` still
   `421c5a1bf522299e`. If it moved, stop and find out why (the sim must get the same values); never re-record it.
-- [ ] **Step 3:** The editor imports its schemas from `@mcthaydt/automata-content/level-2d`. Editor unit count equal
+- [x] **Step 3:** The editor imports its schemas from `@mcthaydt/automata-content/level-2d`. Editor unit count equal
   to before less the tests that moved to `-content`.
-- [ ] **Step 4:** `pnpm check`, Emberwick's Chromium journeys (`pnpm --filter @af-games/emberwick test:e2e
+- [x] **Step 4:** `pnpm check`, Emberwick's Chromium journeys (`pnpm --filter @af-games/emberwick test:e2e
   --project='*-chromium'`) pass. Commit, mark ready. `refactor(emberwick): read the room through the shared level format`
 
 ---
@@ -521,13 +521,13 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
   `packages/tools/src/features/editor/editor-policy.ts`, `games/emberwick/content/editors.toml`
 - Test: `packages/editor/tests/unit/editor-list/exports.test.ts`, `packages/tools/tests/unit/editor/editor-policy.test.ts`
 
-- [ ] **Step 1: Failing tests.** (a) A row with `exports = "content"` loads; `fileAccess(list, 'content/project.toml')`,
+- [x] **Step 1: Failing tests.** (a) A row with `exports = "content"` loads; `fileAccess(list, 'content/project.toml')`,
   `'content/world.toml'`, `'content/levels/room-1.toml'` are writable; `'content/tuning.toml'` is not (unless its own
   row says so); `'content/levels/x.json'` is not. (b) Two rows whose projects share an `exports` folder fail to load
   with spec section 6.1's message. (c) The server policy agrees with (a).
-- [ ] **Step 2:** Implement in `editor-list` (one function, `exportPaths(row)`, used by `fileAccess`). The policy
+- [x] **Step 2:** Implement in `editor-list` (one function, `exportPaths(row)`, used by `fileAccess`). The policy
   needs no change beyond using `fileAccess`. Add `exports = "content"` to Emberwick's row.
-- [ ] **Step 3: Commit.** `feat(editor-list): a level row names the folder its game files go into`
+- [x] **Step 3: Commit.** `feat(editor-list): a level row names the folder its game files go into`
 
 ### Task 6.2: Save writes the game files, then the project
 
@@ -541,7 +541,7 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
 - Test: `packages/editor/tests/unit/level-2d/save-to-game.test.ts`, `.../document/document-controller.test.ts`,
   `.../share/export-model.test.ts`, `.../home/project-browse.test.ts`
 
-- [ ] **Step 1: Failing tests** on a memory store (`src/testing/memory-workspace.ts`) with Emberwick's list:
+- [x] **Step 1: Failing tests** on a memory store (`src/testing/memory-workspace.ts`) with Emberwick's list:
   - Save writes `content/project.toml`, `content/world.toml`, `content/levels/room-1.toml` and then the project, in that
     order (the store records the order), with bytes equal to `exportContent(project)`.
   - A game file changed on disk since it was read → nothing is written, the result is `{ conflict: path }`, the
@@ -551,10 +551,10 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
   - No `exports` row (browser storage) → only the project is written, as today.
   - The export model on a checkout with `exports` offers no "Write to folder" and never says "Open a game folder to
     write into it."; the home storage line says "Saved in your game folder".
-- [ ] **Step 2:** `save-to-game.ts` composes `exportContent` and `writeToFolder(store, files, seen, 'guarded')`
+- [x] **Step 2:** `save-to-game.ts` composes `exportContent` and `writeToFolder(store, files, seen, 'guarded')`
   (reused, not copied) and writes the project last. `app/editor-2d` passes it in; the document feature does not
   import `share` (spec 3.3).
-- [ ] **Step 3:** Run the editor's unit and Chromium browser tests → pass. Copy rows in `copy.md`. Commit.
+- [x] **Step 3:** Run the editor's unit and Chromium browser tests → pass. Copy rows in `copy.md`. Commit.
   `feat(editor): Save writes the game files the game reads`
 
 ### Task 6.3: The drift check
@@ -566,14 +566,14 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
   `packages/tools/tsdown.config.ts`
 - Test: `packages/tools/tests/unit/shared/check/levels-step.test.ts` (fixtures: a temp copy of Emberwick's `content/`)
 
-- [ ] **Step 1: Failing tests.** In sync → pass; a hand edit to `levels/room-1.toml` → fails with spec 6.3's two lines;
+- [x] **Step 1: Failing tests.** In sync → pass; a hand edit to `levels/room-1.toml` → fails with spec 6.3's two lines;
   a project that does not open → fails with its first problem and the same last line; no `editors.toml` or no
   `exports` row → the step is skipped with "No level files to check."; and the real `games/emberwick` is in sync (this
   is what keeps Emberwick's room and its game files together in `pnpm check`: `-tools`' `check:example` script runs in
   no gate).
-- [ ] **Step 2:** Implement with `@mcthaydt/automata-editor/level-export` (Effect, as the other steps are: `-tools`
+- [x] **Step 2:** Implement with `@mcthaydt/automata-editor/level-export` (Effect, as the other steps are: `-tools`
   is Node tooling). Bundled by tsdown like the editor list.
-- [ ] **Step 3:** `node packages/tools/src/app/bin.ts check games/emberwick --only levels` → passes (from source:
+- [x] **Step 3:** `node packages/tools/src/app/bin.ts check games/emberwick --only levels` → passes (from source:
   confirms the entry loads in Node). `pnpm check` passes. Commit. `feat(check): catch a level and its game files
   disagreeing`
 
@@ -584,11 +584,11 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
   (usage text)
 - Test: `packages/tools/tests/unit/editor/editor-policy.test.ts`
 
-- [ ] **Step 1: Failing test:** with no list, `package.json`, `tsconfig.json` and `content/data.json` are neither readable
+- [x] **Step 1: Failing test:** with no list, `package.json`, `tsconfig.json` and `content/data.json` are neither readable
   nor writable; `levels/a.af2d.json` is both.
-- [ ] **Step 2:** The fallback matches `**/*.af2d.json` outside tool folders. Usage text: "Without
+- [x] **Step 2:** The fallback matches `**/*.af2d.json` outside tool folders. Usage text: "Without
   content/editors.toml, it opens only level files (*.af2d.json)."
-- [ ] **Step 3:** `pnpm check`. Commit, mark the PR ready. `fix(editor): without an editor list, only level files are reachable`
+- [x] **Step 3:** `pnpm check`. Commit, mark the PR ready. `fix(editor): without an editor list, only level files are reachable`
 
 ---
 
@@ -601,13 +601,13 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
 - Test: `packages/tools/tests/unit/editor/{editor-args.test.ts,editor-command.test.ts}`,
   `packages/tools/tests/unit/app/editor-from-source.test.ts` (create; spawns the source bin)
 
-- [ ] **Step 1: Failing tests.** `parseEditorArgs([])` → `app: '2d'`. The command resolves `2d` to
+- [x] **Step 1: Failing tests.** `parseEditorArgs([])` → `app: '2d'`. The command resolves `2d` to
   `<bin dir>/editors/2d` when it exists and to the checkout's `packages/editor/dist/2d` otherwise; `3d` and `suite`
   outside a checkout print "The 3D editor is not in this release yet." and exit 2. The spawned source bin
   (`node packages/tools/src/app/bin.ts editor games/emberwick --port 0`) prints its address within 20 s and serves
   `/api/ping` (then is stopped).
-- [ ] **Step 2:** Implement. The usage and messages per spec 7.1 (copy rows).
-- [ ] **Step 3: Commit.** `feat(editor): automata editor opens the 2D editor and runs from source`
+- [x] **Step 2:** Implement. The usage and messages per spec 7.1 (copy rows).
+- [x] **Step 3: Commit.** `feat(editor): automata editor opens the 2D editor and runs from source`
 
 ### Task 7.2: The build inside `-tools`, and the closed-beta scan
 
@@ -621,14 +621,14 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
 - Test: `packages/tools/tests/unit/scripts/copy-editor.test.ts` (`findPixi3d` keeps its own tests in
   `tests/unit/shared/ship/prepare/pixi3d-markers.test.ts`)
 
-- [ ] **Step 1: Failing tests.** `copy-editor` scans `packages/editor/dist/2d` and `packages/editor/dist/suite` with the
+- [x] **Step 1: Failing tests.** `copy-editor` scans `packages/editor/dist/2d` and `packages/editor/dist/suite` with the
   existing `findPixi3d` (one scan, the one `ship prepare` already runs: nothing is moved or copied), fails with spec
   7.3's message naming the file when either holds the beta, and otherwise copies `dist/2d` to `dist/editors/2d`.
-- [ ] **Step 2:** Implement; `ship prepare`'s existing tests stay green (unchanged).
-- [ ] **Step 3: Verify the package.** `pnpm --filter @mcthaydt/automata-tools build && cd packages/tools && pnpm pack`
+- [x] **Step 2:** Implement; `ship prepare`'s existing tests stay green (unchanged).
+- [x] **Step 3: Verify the package.** `pnpm --filter @mcthaydt/automata-tools build && cd packages/tools && pnpm pack`
   → the tarball lists `dist/editors/2d/index.html`; size recorded. Run the consumer smoke (14 steps plus "the packed
   `automata editor` serves the editor": a new step that starts it on the fixture game and fetches `/`).
-- [ ] **Step 4:** Changeset `patch`: "`automata editor` now includes the 2D editor." Commit.
+- [x] **Step 4:** Changeset `patch`: "`automata editor` now includes the 2D editor." Commit.
   `feat(tools): ship the 2D editor inside the tools package`
 
 ### Task 7.3: `create-game` makes a level
@@ -1525,3 +1525,134 @@ Left: the files still over 300 lines (`write-path.ts` 336, `recognizer.ts` 330, 
 311, `content-document.ts` 308, `level-editor.ts` 343), the longest functions (`createLevelEditor` 250, `createRecognizer`
 256, `createWritePath` 240), the tests read for implementation coupling, and the JSON scanner question. The next session
 continues here.
+
+### 2026-11-06, session 5: task 4.6 finished
+
+Left over from session 4, all closed:
+
+- **Files over 300 lines, all under now.** `write-path.ts` 336 → 284 (`write-history.ts` holds the undo and redo stacks per
+  owner, `write-journal.ts` the change set's title prompt, baseline measures and journal entries); `recognizer.ts` 330 →
+  294 (`sample-gestures.ts` builds the drag, hover and wheel events from a sample); `project-codec.ts` 313 → 218
+  (`project-checks.ts` holds the id and reference checks and `OpenIssue`); `editor-app.ts` 313 → 294 (`unique-name.ts`
+  holds the name arithmetic that `firstFree` and `duplicate` each had a loop for; five new unit tests, written with it);
+  `content-document.ts` 308 → 271 (`edit-ranges.ts` holds the range arithmetic); `level-editor.ts` 343 → 283
+  (`level-editor-api.ts` holds the interface, `level-editor-support.ts` the id lookups and the view-change test).
+- **Longest functions: left as they are, on purpose.** `createLevelEditor` (about 230 lines), `createRecognizer` (about
+  230), `createWritePath` (about 210) are closures over one piece of state, made of named inner functions of under 40
+  lines each. Splitting them would pass that state through parameters to no gain; the extractions above took out every
+  part that held no state.
+- **Tests read for implementation coupling.** Three files use `vi.mock`, all to inject a fault so a guard's refusal can
+  be reached (`patch-codec-bug`, `patch-toml-codec-bug`, `patch-toml-guards`); none reaches into a private name. The
+  43 files that assert calls do so on callbacks the views pass, which are the contract. No change.
+- **The two JSON scanners stay two.** `locate.ts` builds the tree of values with spans; `json-syntax.ts` only words the
+  first error for the error panel after `JSON.parse` threw, and its messages are pinned by that panel's tests. Each
+  header now says why the other exists.
+- **Source-project phrases.** The earlier scrub left 35 lines that said "the adventure source" or "the arcade source"
+  and cited file paths of another project, some with broken grammar. All rewritten to say what the code does; only
+  `SOURCE.json` (the fixtures' provenance record) keeps the two keys, as provenance belongs to
+  `docs/provenance/sources.md`.
+- **Counts.** Editor unit 3,275 (3,270 + the five new `unique-name` tests), 272 files, all pass; typecheck 0 errors, 0
+  warnings; biome clean of errors. Chromium browser projects: see the task's row.
+
+### 2026-11-06, session 5 (continued): phase 5, the 2D level contract in `-content`
+
+Tasks 5.1 and 5.2, one commit group on PR #415.
+
+- **Moved with `git mv`:** `content.schema.ts`, `field-types.ts`, `field.schema.ts` (now `fields.schema.ts`),
+  `check-field-def.ts` and `check-field-value.ts` into `packages/content/src/shared/level-2d/`; the three tests of the
+  field rules into `packages/content/tests/unit/level-2d/` (52 tests, same counts). The schemas are now
+  `levelContentSchema`, `projectContentSchema` and `worldContentSchema` (spec section 5). `ContentNeighbours` is
+  written out in `-content`; the editor's `LevelNeighbours` is an alias of it.
+- **Deviation 82 (re-exports):** the plan said the four kit field files "become re-exports". They were deleted instead
+  and the editor's 47 importing files now import `@mcthaydt/automata-content/level-2d` directly (a codemod over the
+  specifiers; biome sorted the imports), so there is one copy and no forwarding file. `kit/fields/index.ts` stays the
+  kit's public entry and re-exports from `-content`. The editor's `pure-imports` architecture rule and the fields entry
+  test now allow `@mcthaydt/automata-content/level-2d` (it imports only zod; a `-content` test pins that).
+- **New in `-content`:** `entries/level-2d.ts`, `level2dKinds({ folder })`, `intGridRows`, `entitiesOf`
+  (sim-safe: `pnpm boundaries` scans `read-level.ts` with the sim rule; `./level-2d` is in `simEntries` and in the
+  browser-entry list). Tests first: `level-2d-kinds.test.ts` (compiles a copy of the base game's three exported files;
+  a stray key fails with the file and the key), `read-level.test.ts` (the room's 24 collision rows, the bad-token
+  sentence `Level room-1, layer collision, row 3: "x*2" is not a number.`), and the browser-entry test.
+- **Emberwick:** `shared/kinds.ts`, `LevelLike` and `decodeRow` deleted; `vite.config.ts` registers
+  `level2dKinds()`; `level-room.ts` reads through `intGridRows` and `entitiesOf`. The compiled `levels` type is a
+  looser shape than `ContentLevel` (the content generator cannot write the field-value union), so
+  `emberwick-content.ts` parses the compiled level once with `levelContentSchema` to get the typed level.
+- **The golden did not move.** With the strict schemas, `content/generated/sim-content.json` and `content.json` are
+  byte-identical to before, `sim-content.hash` is still `5fd77abd159d6a5e`, and the golden-equivalence test passes
+  (`GOLDEN_HASH` unchanged); only `content.d.ts` changed (more precise types). Emberwick unit 109 pass.
+- **Gates:** `pnpm check` exit 0 (editor unit 3,275 less the 3 tests that moved to `-content`, plus none lost);
+  `pnpm build`; API reports, agent reference and cheatsheet regenerated; changeset `level-2d-contract` (patch).
+
+### 2026-11-06, session 5 (continued): phase 6, Save writes the game
+
+Tasks 6.1 to 6.4, one commit group on PR #415.
+
+- **6.1 `exports`.** `FileRow.exports` (optional, so the format stays `af-editors/1`); `exportPathsMatch(exports, path)`
+  in `workspace-policy.ts` is the one function `fileAccess` uses, so the suite and the server agree; two rows with the
+  same folder fail to load with "Two level projects would write content/project.toml. Give each its own exports
+  folder." Emberwick's row names `exports = "content"`. The server's policy needed no change (it calls `fileAccess`);
+  `editor-policy.test.ts` pins it.
+- **6.2 Save.** `createGameSave` (`shared/level-2d/documents/save-to-game.ts`) exports through the same
+  `exportContent` the Export view uses, writes the game files with the guarded write and the project last, and
+  refreshes the mtimes it expects for the files it reached. `DocumentSession` gained `beforeSave(mode)`: a stop with a
+  conflict opens the conflict dialog with nothing written; a failure part-way keeps what was written, leaves the
+  document in `error` with the store's message, and the next Save writes everything. **Deviation 83:** the plan put
+  `save-to-game.ts` under `profiles/level-project/`; it is in `documents/` beside `editor-app.ts`, which composes it,
+  and `OpenDocument.gameFolder` tells the Share view and Home. Browser storage and a row without `exports` write the
+  project only. The Share view offers no "Write to folder" where Save writes the game; Home says "Saved in your game
+  folder" (rows in `copy.md`).
+- **6.3 The drift check.** `levels` step (`shared/check/levels-step.ts`): for each row that names `exports`, open each
+  matching project, export it and compare bytes with the files on disk; a project that does not open is reported with
+  its first problem; the last line of every finding is "Open the level in the editor and press Save." `StepName` became
+  `STEP_NAMES`, and `--only <step>` runs one step (`--only levels` is the plan's check). **Deviation 84:** the editor
+  package is loaded with `import()` only when a game has an editor list: Node cannot load its source, and `bin.ts`
+  from source must still start for every other game (phase 7.1 makes the editor run from source). Run from source,
+  `--only levels` therefore waits for 7.1; the unit tests over a copy of Emberwick's `content/` and over the real
+  `games/emberwick` run in `pnpm check` and pass. The help's step label `tests` became `test`, the name `--only` takes.
+- **6.4 The narrow fallback.** With no editor list, only `**/*.af2d.json` outside tool folders is readable and
+  writable. Tests in `checkout.test.ts` and `serve-editor.test.ts` use `.af2d.json` names now.
+- **Skill.** `automata-verify` documents the `levels` rule and `--only`; the API reports, agent reference and cheatsheet
+  were regenerated.
+- **Counts.** Editor unit 3,242 in 271 files, all pass (3,275 after task 4.6; phase 5 moved the field-rule tests to
+  `-content`, and phase 6 added the save, exports and export-model tests); `-tools` unit 835 (809 after task 3.5).
+  Chromium: parity, layout and storage 452 pass; canvas and journeys 75 pass, 6 skipped. `pnpm check` exit 0.
+  WebKit, Firefox and hosted CI not run.
+
+### 2026-11-06, session 5 (continued): phase 7, task 7.1
+
+Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
+
+- **Runs from source.** The editor's two headless entries (`editor-list`, `level-export`) and the files they reach
+  (27 in `packages/editor/src`, 9 in `packages/content/src`) now import with `.ts` extensions (50 and 18 specifiers),
+  and the three classes that used constructor parameter properties (`Stop` in `json-syntax.ts`, `ContentRefMarker`
+  and `LocalizedMarker` in `content-schema.ts`) assign their fields, because Node strips types but does not compile
+  them. **Deviation 85:** the spec said the extensionless imports "are rewritten in the package merge"; they were
+  not, so this task rewrote only the files the Node-run entries reach, not the whole editor package. `automata check
+  --only levels` and `automata editor` both run from source now; `levels-step.ts` imports the editor statically again
+  (the lazy `import()` of deviation 84 is gone).
+- **The command.** `--app` defaults to `2d`. The 2D build is the copy next to the running bin
+  (`dist/editors/2d`) when there is one, else the repository's `packages/editor/dist/2d`. `3d` and `suite` outside the
+  repository, with no `--app-dir`, print "The 3D editor is not in this release yet." and exit 2. Usage: "Opens the
+  level editor on the game in <folder>".
+- **Tests.** `editor-args` and `editor-command` tests updated and extended; `tests/unit/app/editor-from-source.test.ts`
+  spawns `node packages/tools/src/app/bin.ts editor games/emberwick --app-dir <stand-in> --port 0`, reads the address
+  within 20 s and fetches `/api/ping`. **Deviation 86:** it serves a stand-in `index.html` through `--app-dir` instead
+  of the real build, so the unit gate does not depend on the editor having been built.
+- **Gates.** `pnpm check` exit 0; the editor, content and tools builds succeed; the built bin
+  (`packages/tools/dist/bin.js check games/emberwick --only levels`) passes.
+
+### 2026-11-06, session 5 (continued): phase 7, task 7.2
+
+- **`scripts/copy-editor.ts`.** `copyEditor(editorDist, outDir)` reads `packages/editor/dist/2d` and `dist/suite` with
+  `findPixi3d` (the existing scan, nothing moved), throws "This build contains the private Pixi 3D beta (2d/<file>).
+  It cannot be published." naming the file, and otherwise replaces `dist/editors/2d` with a copy of the 2D build. With no
+  2D build it says to build the editor first. Six tests, one with a planted marker per build and per marker kind. The
+  real 2D and suite builds scan clean.
+- **Build.** `-tools`' `build` is `tsdown && node scripts/copy-editor.ts`. **Deviation 87:** the plan's `turbo.json`
+  change was not needed: `-tools` already has the editor as a devDependency, and turbo's `^build` orders a package after
+  its devDependencies. `internal.ts` already exports `findPixi3d` (task 19.2 uses it).
+- **Packed size.** `pnpm pack` of `-tools`: 791,076 bytes (about 773 kB), 34 files under `dist/editors/2d/`, including
+  `index.html`. The consumer smoke has two new steps: the packed `automata editor` serves the page on the smoke
+  project's `content` folder, and the packed tarball is under a 3 MB budget (it measured 773 kB). The smoke passes from
+  packs: 17 steps, including the stranger's game booting in Chromium under Ruken's CSP.
+- Changeset `editor-in-tools`.

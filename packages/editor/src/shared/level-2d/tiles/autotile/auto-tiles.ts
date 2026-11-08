@@ -1,8 +1,8 @@
-import { unpackTile } from '../../model/cells-codec'
-import type { Grid } from '../../model/grid'
-import type { Point } from '../footprint'
-import { hashCell } from '../hash'
-import { type AutoTile, type CompiledRules, evaluateCell } from './match'
+import { unpackTile } from '../../model/cells-codec.ts'
+import type { Grid } from '../../model/grid.ts'
+import type { Point } from '../footprint.ts'
+import { hashCell } from '../hash.ts'
+import { type AutoTile, type CompiledRules, evaluateCell } from './match.ts'
 
 // The auto-tile result of a whole layer: derived from the source IntGrid and the rules, never
 // stored. `autoTiles` evaluates everything (opening a project, export); `patchAutoTiles` re-evaluates only the cells a

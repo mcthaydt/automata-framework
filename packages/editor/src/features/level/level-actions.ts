@@ -1,5 +1,5 @@
 import { commitEdit } from '../../shared/level-2d/editor/field-commit'
-import type { EditHistory } from '../../shared/level-2d/editor/level-editor'
+import type { EditHistory } from '../../shared/level-2d/editor/level-editor-api'
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import type { LevelSession } from './level-session'
 import type { LevelShortcut } from './level-shortcuts'

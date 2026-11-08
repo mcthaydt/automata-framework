@@ -46,7 +46,7 @@ export interface AskSessionOptions {
   readonly writePath: WritePath
   /** The history on the write path an accepted proposal joins: the open editor's id (EDS-D19). */
   readonly owner?: string | undefined
-  /** The budget with no change set open (default 200 000, the adventure source's cap). */
+  /** The budget with no change set open (default 200 000). */
   readonly cap?: number | undefined
 }
 

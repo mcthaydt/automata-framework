@@ -77,4 +77,12 @@ describe('exportState', () => {
     // Errors never stop a download.
     expect(exportState(targets, all, 2, folder).download).toBe(true)
   })
+
+  it('offers Write to folder everywhere except where Save already writes the game files', () => {
+    expect(exportState(targets, all, 0, device).offersWrite).toBe(true)
+    expect(exportState(targets, all, 0, { kind: 'http', persistent: true }).offersWrite).toBe(true)
+    const saves = { kind: 'http', persistent: true, savesGame: true } as const
+    expect(exportState(targets, all, 0, saves).offersWrite).toBe(false)
+    expect(exportState(targets, all, 0, saves).download).toBe(true)
+  })
 })

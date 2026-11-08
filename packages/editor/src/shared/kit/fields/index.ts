@@ -3,31 +3,16 @@
 export {
   checkEntityDef,
   checkFieldDef,
+  checkFieldValue,
   defaultFieldValue,
-} from './check-field-def'
-export { checkFieldValue } from './check-field-value'
-export {
-  type EntityDefIssue,
-  entityDefIssues,
-  entityDefSchema,
-  entityDefShape,
-  fieldDefSchema,
-  fieldValueSchema,
-  fieldValuesSchema,
-} from './field.schema'
-export {
-  type FieldCommit,
-  type FieldRow,
-  type FieldWidget,
-  fieldRow,
-  type RefChoice,
-  type RefTargetGroup,
-} from './field-row'
-export {
   ENTITY_ID,
   type EntityDef,
   type EntityDefCode,
+  type EntityDefIssue,
   type EntityDefProblem,
+  entityDefIssues,
+  entityDefSchema,
+  entityDefShape,
   FIELD_ID,
   FIELD_TYPES,
   type FieldDef,
@@ -38,12 +23,23 @@ export {
   type FieldValueCode,
   type FieldValueProblem,
   type FieldValues,
+  fieldDefSchema,
+  fieldValueSchema,
+  fieldValuesSchema,
   HEX_COLOR,
   type InstanceCode,
   type InstanceProblem,
   type Point,
   type RefValue,
-} from './field-types'
+} from '@mcthaydt/automata-content/level-2d'
+export {
+  type FieldCommit,
+  type FieldRow,
+  type FieldWidget,
+  fieldRow,
+  type RefChoice,
+  type RefTargetGroup,
+} from './field-row'
 export { checkValues, renameFieldValues, valuesWithDefaults } from './field-values'
 export {
   checkRetype,

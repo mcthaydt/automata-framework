@@ -15,7 +15,7 @@ import { createWritePath } from '#src/shared/editor-list/write-path.ts'
 import { createMemoryPorts } from '#src/shared/kit/ports/memory/memory-ports.ts'
 import bayList from '#src/testing/suite/fixtures/bay.editors.toml?raw'
 
-// An excerpt of FloorFifty's content/tuning.toml (SNEKPRTY/FloorFifty 677d456, the kit's documents fixture).
+// An excerpt of the platformer's content/tuning.toml (the kit's documents fixture).
 const TUNING = 'content/tuning.toml'
 const TUNING_TEXT = `# Base gameplay tuning.
 
@@ -192,7 +192,7 @@ describe('the import plan (spec §4.8, §11)', () => {
     expect(after).toContain('# `540 / 4.2`, written to the precision that round-trips.')
   })
 
-  test('a scene export of the adventure source keeps each section under its row', async () => {
+  test('a scene export of the Bay game keeps each section under its row', async () => {
     const story = 'content/scenes/bay/story.toml'
     const memory = await createMemoryPorts({
       files: { [story]: 'title = "Bay"\n' },

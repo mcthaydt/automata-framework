@@ -2,7 +2,7 @@ import { onDestroy } from 'svelte'
 import type { History } from '../../shared/kit/history/history.ts'
 import type { Camera } from '../../shared/level-2d/canvas/level-view'
 import { projectHistory } from '../../shared/level-2d/editor/edit-history'
-import type { EditHistory, LevelEditorView } from '../../shared/level-2d/editor/level-editor'
+import type { EditHistory, LevelEditorView } from '../../shared/level-2d/editor/level-editor-api'
 import type { Project } from '../../shared/level-2d/model/project-types'
 import type { LevelSession } from './level-session'
 

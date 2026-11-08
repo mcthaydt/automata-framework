@@ -7,7 +7,7 @@
 <script lang="ts">
 import Tabs from '../../shared/kit/widgets/Tabs.svelte'
 import { entityInspector, levelChecks, levelInspector } from '../../shared/level-2d/editor/inspector-model'
-import type { EditHistory } from '../../shared/level-2d/editor/level-editor'
+import type { EditHistory } from '../../shared/level-2d/editor/level-editor-api'
 import type { Project } from '../../shared/level-2d/model/project-types'
 import type { Diagnostic } from '../../shared/level-2d/profiles/profile'
 import ChecksTab from './ChecksTab.svelte'

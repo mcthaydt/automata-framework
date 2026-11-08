@@ -1,16 +1,16 @@
-// Which files the suite may write, from the game's editor list. Modelled on the adventure
-// source's `canWrite`, in its order: outside the root, then never, then
+// Which files the suite may write, from the game's editor list. The rules run in
+// this order: outside the root, then never, then
 // generated, then the first editable row. The Node workspace puts every write through this; it is pure, so
 // the browser shows the same reasons before anything is sent.
 
 import type { UnlistedFile, WorkspaceFile } from '../kit/ports/suite-ports.ts'
-import { EDITOR_LIST_PATH, type EditorList, type FileRow } from './editors.schema'
-import { globMatch } from './glob'
+import { EDITOR_LIST_PATH, type EditorList, type FileRow } from './editors.schema.ts'
+import { globMatch } from './glob.ts'
 
 /**
  * Never written, whatever the list says: the list itself (the suite cannot widen its own allowlist, and an Ask diff
  * cannot add a command to a check's `run`), git's internals and gate records (an editor never records a gate), and
- * what the adventure source's policy always refused besides: agent and
+ * what is always refused besides: agent and
  * CI configuration and env files. Each declared gate's `records` glob joins these. They match in any letter case, as a
  * case-insensitive disk (macOS, Windows) would open `Content/Editors.toml` as the list.
  *
@@ -48,6 +48,14 @@ function insideRoot(path: string): boolean {
   return path.split('/').every((segment) => segment !== '' && segment !== '.' && segment !== '..')
 }
 
+/** The game files a level project writes into its `exports` folder: the project, the world and one file per level. */
+export function exportPathsMatch(exports: string, path: string): boolean {
+  if (!path.startsWith(`${exports}/`)) return false
+  const rest = path.slice(exports.length + 1)
+  if (rest === 'project.toml' || rest === 'world.toml') return true
+  return rest.startsWith('levels/') && rest.endsWith('.toml') && !rest.slice('levels/'.length).includes('/')
+}
+
 /** The first row whose glob matches `path`, with the scene its `{scene}` matched. */
 function firstRow(list: EditorList, path: string): { row: FileRow; scene?: string } | undefined {
   for (const row of list.file) {
@@ -55,7 +63,9 @@ function firstRow(list: EditorList, path: string): { row: FileRow; scene?: strin
     if (match === undefined) continue
     return match.scene === undefined ? { row } : { row, scene: match.scene }
   }
-  return undefined
+  // No row lists the file: it may still be a game file some level project exports.
+  const exporter = list.file.find((row) => row.exports !== undefined && exportPathsMatch(row.exports, path))
+  return exporter === undefined ? undefined : { row: exporter }
 }
 
 const readOnly = (

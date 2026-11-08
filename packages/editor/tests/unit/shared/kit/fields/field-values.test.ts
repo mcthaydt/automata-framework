@@ -1,5 +1,5 @@
+import type { FieldDef } from '@mcthaydt/automata-content/level-2d'
 import { describe, expect, test } from 'vitest'
-import type { FieldDef } from '#src/shared/kit/fields/field-types.ts'
 import { checkValues, renameFieldValues, valuesWithDefaults } from '#src/shared/kit/fields/field-values.ts'
 
 const npc: readonly FieldDef[] = [

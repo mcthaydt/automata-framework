@@ -1,6 +1,7 @@
 import { type GestureClock, realClock } from './gesture-clock'
-import type { DragEndGesture, DragGesture, GestureHandlers } from './gesture-events'
+import type { DragEndGesture, GestureHandlers } from './gesture-events'
 import type { PointerKind, PointerSample, WheelInput } from './pointer-sample'
+import { dragGesture, hoverGesture, wheelGesture } from './sample-gestures'
 import { createCluster, type TouchCluster, type TouchPoint } from './touch-cluster'
 
 // The pointer pipeline's rules over plain samples, with no DOM: slop, timings, tap counting
@@ -25,10 +26,6 @@ export interface GestureOptions {
 const DEFAULT_SLOP: Readonly<Record<PointerKind, number>> = { touch: 8, pen: 4, mouse: 3 }
 /** Taps in a row may land this many slops apart. */
 const REPEAT_SLOPS = 3
-/** A zoom step never counts for more than this many wheel pixels, so a notched mouse wheel is not a lurch. */
-const WHEEL_STEP_LIMIT = 100
-/** Wheel pixels that double the zoom. */
-const WHEEL_PIXELS_PER_DOUBLING = 200
 
 export interface Recognizer {
   down(sample: PointerSample): void
@@ -99,21 +96,6 @@ export function createRecognizer(
   let cluster: TouchCluster | undefined
   let disposed = false
 
-  const dragEvent = (sample: PointerSample, p: Press, dx: number, dy: number): DragGesture => ({
-    x: sample.x,
-    y: sample.y,
-    startX: p.startX,
-    startY: p.startY,
-    dx,
-    dy,
-    pressure: sample.pressure,
-    tiltX: sample.tiltX,
-    tiltY: sample.tiltY,
-    pointerType: p.kind,
-    button: p.button,
-    modifiers: sample.modifiers,
-  })
-
   function endPress(): void {
     if (press?.timer !== undefined) clock.clearTimer(press.timer)
     press = undefined
@@ -134,7 +116,7 @@ export function createRecognizer(
   function finishDrag(sample: PointerSample, p: Press, cancelled: boolean): void {
     const dx = cancelled ? 0 : sample.x - p.last.x
     const dy = cancelled ? 0 : sample.y - p.last.y
-    const event: DragEndGesture = { ...dragEvent(sample, p, dx, dy), cancelled }
+    const event: DragEndGesture = { ...dragGesture(sample, p, dx, dy), cancelled }
     handlers.dragEnd?.(event)
   }
 
@@ -261,11 +243,11 @@ export function createRecognizer(
         if (p.timer !== undefined) clock.clearTimer(p.timer)
         p.timer = undefined
         handlers.dragStart?.({
-          ...dragEvent(sample, p, sample.x - p.startX, sample.y - p.startY),
+          ...dragGesture(sample, p, sample.x - p.startX, sample.y - p.startY),
           afterLongPress: p.longPressed,
         })
       } else {
-        handlers.drag?.(dragEvent(sample, p, sample.x - p.last.x, sample.y - p.last.y))
+        handlers.drag?.(dragGesture(sample, p, sample.x - p.last.x, sample.y - p.last.y))
       }
       p.last = sample
     },
@@ -287,30 +269,12 @@ export function createRecognizer(
     hover(sample) {
       if (disposed || sample.kind === 'touch') return
       if (sample.kind === 'pen') penSeenAt = clock.now()
-      handlers.hover?.({
-        x: sample.x,
-        y: sample.y,
-        pointerType: sample.kind,
-        pressure: sample.pressure,
-        tiltX: sample.tiltX,
-        tiltY: sample.tiltY,
-        modifiers: sample.modifiers,
-      })
+      handlers.hover?.(hoverGesture(sample))
     },
 
     wheel(input) {
       if (disposed) return
-      const zoom = input.modifiers.ctrl || input.modifiers.meta
-      const step = Math.max(-WHEEL_STEP_LIMIT, Math.min(WHEEL_STEP_LIMIT, input.deltaY))
-      handlers.wheel?.({
-        mode: zoom ? 'zoom' : 'pan',
-        x: input.x,
-        y: input.y,
-        dx: zoom ? 0 : -input.deltaX,
-        dy: zoom ? 0 : -input.deltaY,
-        scale: zoom ? 2 ** (-step / WHEEL_PIXELS_PER_DOUBLING) : 1,
-        modifiers: input.modifiers,
-      })
+      handlers.wheel?.(wheelGesture(input))
     },
 
     cancel(id) {

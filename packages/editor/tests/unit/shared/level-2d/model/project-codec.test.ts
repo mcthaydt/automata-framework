@@ -1,12 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { packTile } from '#src/shared/level-2d/model/cells-codec.ts'
 import { projectFileSchema } from '#src/shared/level-2d/model/project.schema.ts'
-import {
-  decodeProject,
-  encodeProject,
-  type OpenIssue,
-  printProject,
-} from '#src/shared/level-2d/model/project-codec.ts'
+import type { OpenIssue } from '#src/shared/level-2d/model/project-checks.ts'
+import { decodeProject, encodeProject, printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import type { Project, ProjectFile } from '#src/shared/level-2d/model/project-types.ts'
 import { edited as editedFile, type Path } from '#src/testing/level-2d/edit-file.ts'
 import { minimalProjectFile, richProjectFile } from '#src/testing/level-2d/projects.ts'

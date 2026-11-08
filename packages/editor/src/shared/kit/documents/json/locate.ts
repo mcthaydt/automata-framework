@@ -1,6 +1,7 @@
-// Grown from the adventure source editor/src/client/plan.ts `scanJson`, the browser-safe scanner its plan view
-// already runs. The server of that editor finds spans with TypeScript's JSON parser, which an iPad cannot load; this
-// one reads the text in a single pass and answers the same question: where does each value sit?
+// The browser-safe JSON scanner: where does each value sit? A server could find spans with TypeScript's JSON parser, but
+// an iPad cannot load that, so this reads the text in a single pass. (`level-2d/model/json-syntax.ts` is the other
+// scanner on purpose: it only words the first error for the error panel, after `JSON.parse` has thrown, and its
+// messages are pinned by that panel's tests. This one builds the tree and refuses a bad text with its own error.)
 //
 // It accepts exactly what `JSON.parse` accepts (JSON whitespace only, no comments, no trailing commas) and refuses a
 // duplicate key in one object, because a path would then name two values. The text is never changed here.

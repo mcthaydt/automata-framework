@@ -43,7 +43,7 @@
     "test:unit": "vitest run",
     "test:slow": "vitest run --config vitest.slow.config.ts",
     "typecheck": "tsc -p .",
-    "build": "tsdown",
+    "build": "tsdown && node scripts/copy-editor.ts",
     "check:example": "node src/app/bin.ts check ../../games/emberwick --csp"
   },
   "dependencies": {

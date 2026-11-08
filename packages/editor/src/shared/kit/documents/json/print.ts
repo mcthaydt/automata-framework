@@ -1,5 +1,4 @@
-// Extracted from the adventure source scripts/pipeline/json-edit.ts: how a value is written into one of these
-// files. The blockout files are formatted by hand, so a number never prints with an exponent and never with float
+// How a value is written into one of these hand-formatted JSON files. The blockout files are formatted by hand, so a number never prints with an exponent and never with float
 // noise (`0.1 + 0.2` is `0.3`); a value the file already has keeps its own text and is not printed at all.
 
 /** A value cannot be written the way these files write it. */

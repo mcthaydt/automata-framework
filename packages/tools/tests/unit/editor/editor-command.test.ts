@@ -20,6 +20,7 @@ function setup(overrides: Partial<EditorCommandDeps> = {}) {
       }
     },
     builtApp: (app) => `/repo/builds/${app}`,
+    inRepository: true,
     exists: () => true,
     lanAddresses: () => ['192.168.1.20'],
     makeToken: () => 'tok123',
@@ -32,12 +33,12 @@ function setup(overrides: Partial<EditorCommandDeps> = {}) {
 }
 
 describe('editorCommand', () => {
-  it('serves the 3D build against the working folder on the loopback and says where', async () => {
+  it('serves the 2D editor against the working folder on the loopback and says where', async () => {
     const { deps, io, out, served, closed } = setup()
     expect(await editorCommand([], io, deps)).toBe(0)
     expect(served[0]).toMatchObject({
       root: '/work',
-      appDir: '/repo/builds/3d',
+      appDir: '/repo/builds/2d',
       host: '127.0.0.1',
       token: undefined,
     })
@@ -63,6 +64,21 @@ describe('editorCommand', () => {
     await editorCommand(['--lan', '--token', 'mine'], io, deps)
     expect(served[0]?.token).toBe('mine')
     expect(out.join('')).toContain('?token=mine')
+  })
+
+  it('says the 3D editor is not in this release when run outside the repository, and starts nothing', async () => {
+    for (const app of ['3d', 'suite']) {
+      const { deps, io, err, served } = setup({ inRepository: false })
+      expect(await editorCommand(['--app', app], io, deps)).toBe(2)
+      expect(err.join('')).toContain('The 3D editor is not in this release yet.')
+      expect(served).toEqual([])
+    }
+  })
+
+  it('serves a 3D build given with --app-dir even outside the repository', async () => {
+    const { deps, io, served } = setup({ inRepository: false })
+    expect(await editorCommand(['--app', '3d', '--app-dir', '/builds/mine'], io, deps)).toBe(0)
+    expect(served[0]).toMatchObject({ appDir: '/builds/mine' })
   })
 
   it('says to build the editor when its build is not there, and starts nothing', async () => {
@@ -100,8 +116,13 @@ describe('editorCommand', () => {
 describe('liveEditorDeps', () => {
   it('finds each editor build where its package writes it', () => {
     const { builtApp } = liveEditorDeps()
+    // From source there is no copy next to the bin, so the 2D editor is the repository's build.
     expect(builtApp('2d')).toMatch(/packages\/editor\/dist\/2d$/)
     expect(builtApp('3d')).toMatch(/packages\/editor-3d\/dist$/)
     expect(builtApp('suite')).toMatch(/packages\/editor-3d\/dist\/suite$/)
+  })
+
+  it('knows it runs inside the repository from source', () => {
+    expect(liveEditorDeps().inRepository).toBe(true)
   })
 })

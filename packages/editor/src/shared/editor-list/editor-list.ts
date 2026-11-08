@@ -7,7 +7,7 @@ import {
   EDITOR_LIST_PATH,
   type EditorList,
   editorListSchema,
-} from './editors.schema'
+} from './editors.schema.ts'
 
 export interface EditorListProblem {
   /** `missing`: no file; `syntax`: not TOML; `invalid`: not `af-editors/1`; `newer-format`: a later major. */
@@ -71,7 +71,18 @@ function crossRowProblems(list: EditorList): EditorListProblem[] {
       problems.push(invalid(['gate', index, 'id'], `gate "${gate.id}" is declared twice`))
     gates.add(gate.id)
   })
+  const exportFolders = new Set<string>()
   list.file.forEach((row, rowIndex) => {
+    if (row.exports !== undefined) {
+      if (exportFolders.has(row.exports))
+        problems.push(
+          invalid(
+            ['file', rowIndex, 'exports'],
+            `Two level projects would write ${row.exports}/project.toml. Give each its own exports folder.`,
+          ),
+        )
+      exportFolders.add(row.exports)
+    }
     row.checks.forEach((id, index) => {
       if (!checks.has(id)) {
         problems.push(

@@ -33,6 +33,12 @@ Every player-facing string of core and Emberwick, checked against the four quest
 | Root `README.md`, first screen | `… web games that run inside Ruken …`, `Inside Ruken it completes the host handshake first.` | `You write a game once and ship it to the web, itch.io, Ruken or a desktop app.`, `The same build runs on its own in a browser and inside Ruken.` | 1 (Ruken is one target of four, ADR 0006) and 4 ("host handshake") |
 | `tooling/consumer-smoke/README.md`, first screen | one 14-line paragraph citing `M2.4 spec §3.6`, `DX.2a`, `QB.1` | what it is for in one paragraph, then its four steps as a list | 3 (long) and 4 (plan numbers) |
 | `examples/README.md` | `Art keeps to the art direction: Endesga 64.` | `… and its Endesga 64 colour palette.` | 4 (a palette's name alone) |
+| Editor Home, the storage line on a checkout | `Kept in your game’s checkout, on the computer running automata editor` | `Saved in your game folder` | 3 (long) and 4 ("checkout") |
+| Editor Share, on a checkout whose Save writes the game files | `Open a game folder to write into it.` | Nothing: the button is not offered; `Save already writes your game’s files into content.` | 2 (a folder to open was never needed) |
+| `automata check --help`, the drift step | (new) | `levels  a level and the game files saved from it match (for a game whose editor list sets exports)`; and a finding says `content/levels/room-1.toml does not match content/rooms/room-1.af2d.json. Open the level in the editor and press Save.` | 2 (it names the file and the button) |
+| `automata editor --help`, first line | `Opens an editor on the game in <folder>` | `Opens the level editor on the game in <folder>` | 1 (which editor?) |
+| `automata editor --app 3d`, in a published copy | (a missing-build error about pnpm) | `The 3D editor is not in this release yet.` | 2 (the pnpm line is for the repository's developers) |
+| `automata editor --help`, with no editor list | `(or the .json files, if there is none)` | `Without content/editors.toml, it opens only level files (*.af2d.json).` | 1 (which .json files?) |
 
 ## Kept, with the reason
 
@@ -51,7 +57,7 @@ Every player-facing string of core and Emberwick, checked against the four quest
 | Boot failure | `Couldn't start the game.`, `Couldn't start the game. Close it and open it again.`, `Couldn't connect to Ruken.`, `Couldn't load your progress.`, `This device can't run the game.`, `Still waiting for the game to download.` and `Try again`, `Continue without loading`, `Back to {host}` | One sentence plus a button that fixes the usual cause. `connect` only shows when the host is Ruken. |
 | Scores | `Loading scores…`, `No scores yet`, `You're offline` | Plain words. |
 | `automata --help` | Thirty lines: exit codes, `D-1`, `__AUTOMATA_DEBUG__`, kit commands, every option of every command | Seven lines: one for each command, then `Run automata <command> --help for more.` | 3 (long) and 4 (codes, constants) |
-| `automata check --help` | `(exit 0 pass, 1 findings, 2 a tool could not run)` inside a paragraph, steps named but not explained | Each step in one plain line (`tests  the game's own tests pass`), the options, and `Exit status:` last | 1 and 4 |
+| `automata check --help` | `(exit 0 pass, 1 findings, 2 a tool could not run)` inside a paragraph, steps named but not explained | Each step in one plain line (`test  the game's own tests pass`), the options, and `Exit status:` last | 1 and 4 |
 | `automata ship --help` | `prepare` wrote `ruken.toml` for a Ruken game without being asked; `(D-1)`; `@tauri-apps/cli` | `Every command names its target.`, one line per target, no package names | 2 and 4 |
 | `automata editor --help` | `It listens on the loopback only` | `Only this computer can open it, unless you add --lan` | 4 ("loopback") |
 | `automata build`, done with `--debug` | `built with the debug constant on` | `built with the developer tools in` | 4 ("constant") |
