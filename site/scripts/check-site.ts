@@ -1,6 +1,9 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { builtPages, checkCompileWorker, checkEditorChunk, checkSite, checkTargets } from './site-checks.ts'
+import { checkTargets } from './site-checks/copy.ts'
+import { checkCompileWorker, checkEditorChunk } from './site-checks/javascript.ts'
+import { builtPages } from './site-checks/pages.ts'
+import { checkSite } from './site-checks.ts'
 
 const root = resolve('build')
 // The Vite manifest stays in SvelteKit's output, next to the build it describes; it names the editor's chunk.

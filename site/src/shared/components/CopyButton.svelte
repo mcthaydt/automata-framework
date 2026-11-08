@@ -1,4 +1,6 @@
 <script lang="ts">
+// Copies `text` and says so in words beside the button (a status region, so a screen reader hears it); when the
+// browser refuses, it says how to copy by hand instead of failing silently.
 import { onDestroy } from 'svelte'
 
 let {

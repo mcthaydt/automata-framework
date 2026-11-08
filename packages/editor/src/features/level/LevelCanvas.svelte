@@ -3,7 +3,9 @@
   workspace (a missing or broken one draws numbered placeholders, never an error), builds the draw list and draws it
   with Pixi, fitted to its box unless a camera is given. While the WebGL context is lost it says "Preview paused" and
   draws again once the browser gives the context back; without WebGL it says "Preview unavailable" and the rest of the
-  editor works. `data-state` (loading, drawn, paused, unavailable) is what the tests and the review images wait on.
+  editor works. `data-state` (loading, drawn, paused, unavailable) is what the tests and the review images wait on;
+  `data-camera` ("x,y,scale": a level pixel p is drawn at x + p * scale in the box) is the camera of the last draw,
+  so a journey can tap a cell of the real canvas.
   The Level view mounts this and feeds it the controller's view and its viewport's camera.
 -->
 <script lang="ts">
@@ -38,6 +40,8 @@ let levelView = $state.raw<LevelView | undefined>(undefined)
 let unavailable = $state(false)
 let paused = $state(false)
 let drawn = $state(false)
+/** The camera of the last draw, published as `data-camera`. */
+let drawnCamera = $state.raw<Camera | undefined>(undefined)
 /** The box in CSS pixels and the device pixels per CSS pixel. */
 type Box = Size & { readonly resolution: number }
 let size = $state.raw<Box>({ w: 1, h: 1, resolution: 1 })
@@ -122,12 +126,20 @@ $effect(() => {
     drawnAt = box
   }
   const list = drawList({ project, view, images: textures.loaded, generations: textures.generations })
-  current.render(list, camera ?? fitCamera(list.size, box))
+  const used = camera ?? fitCamera(list.size, box)
+  current.render(list, used)
+  drawnCamera = used
   drawn = true
 })
 </script>
 
-<div class="level-canvas" data-level-canvas data-state={phase} bind:this={host}>
+<div
+  class="level-canvas"
+  data-level-canvas
+  data-state={phase}
+  data-camera={drawnCamera && `${drawnCamera.x},${drawnCamera.y},${drawnCamera.scale}`}
+  bind:this={host}
+>
   <!-- Chromium paints a lost canvas white with a broken-image glyph, so it is hidden while there is no picture. -->
   <canvas bind:this={canvas} class:hidden={paused || unavailable}></canvas>
   <p class="notice" role="status" hidden={message === ''}>{message}</p>

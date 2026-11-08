@@ -47,7 +47,7 @@ interface Props {
   sample: boolean
   /** The game's name in words, from the server; the title. */
   game?: string | undefined
-  /** The toasts' timers; the page's clock when absent. */
+  /** What the toasts time out on; the page's clock unless a test holds one. */
   clock?: GestureClock | undefined
 }
 
@@ -98,7 +98,8 @@ $effect(() => {
 // Editing (flows 3 to 8): every editor is opened with ports whose writes take the suite's write path; the pills,
 // Undo and Ask follow it. The session lives as long as the suite; a reload reads the pills back from the journal.
 const editing = $derived(createSuiteSession(ports, { installed: suite.editors.map((editor) => editor.id) }))
-// svelte-ignore state_referenced_locally (the clock is fixed for the suite's life)
+// The toasts are made once, with the clock the suite started with.
+// svelte-ignore state_referenced_locally
 const toasts = createToasts({ clock })
 let pills = $state<readonly Pill[]>([])
 let titleOpen = $state(false)

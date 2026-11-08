@@ -199,6 +199,10 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
     },
 
     configureServer(server) {
+      // Vite watches its own root. Content kept elsewhere (a game served from its checkout with its content in
+      // another folder, as a journey's temp copy is) is added, so a save there still rebuilds; adding a folder
+      // already inside the root changes nothing. `configResolved` has always run by now.
+      if (options !== undefined) server.watcher.add(join(options.root, 'content'))
       server.watcher.on('all', (_event, path) => {
         if (!isWatchedSource(path)) return
         if (timer !== undefined) clearTimeout(timer)

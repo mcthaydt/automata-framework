@@ -104,8 +104,7 @@ async function open(size: EditorSize) {
     document,
     ports: memory.ports,
     suite: createSuite({ editors: [fixtureEditor as SuiteEditor<unknown>] }),
-    // Time stands still for the toasts, so the reload toast is still there however long a loaded runner takes to lay
-    // the page out (with the page's clock it went after 5 s, before the test could measure it).
+    // A clock nothing advances: the reload toast stays however slow the runner is (it measures the toast's place).
     clock: createTestClock(),
   })
   await expect.poll(() => document.querySelector('[data-testid="suite-home"]')).not.toBeNull()

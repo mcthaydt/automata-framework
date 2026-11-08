@@ -232,6 +232,28 @@ describe('vite dev', () => {
     expect(await loadHash(server)).toBe(events[2]?.data.hash)
   }, 90_000)
 
+  it("watches content that lives outside Vite's root, as a journey's temp copy of a game does", async () => {
+    // Vite watches its own root; a game served from its checkout with its content pointed at another folder
+    // (AF_E2E_CONTENT_ROOT) must still see a save there.
+    const content = copyFixture('valid')
+    const server = await createServer({
+      root: copyFixture('valid'),
+      configFile: false,
+      logLevel: 'silent',
+      plugins: [automataContent(fixtureOptions(content))],
+      server: { middlewareMode: true, hmr: false },
+    })
+    servers.push(server)
+    const events: CustomEvent[] = []
+    server.ws.send = ((payload: HotPayload) => {
+      if (payload.type === 'custom') events.push(payload as unknown as CustomEvent)
+    }) as typeof server.ws.send
+    await loadHash(server)
+    editFile(content, 'characters/cyan.toml', (text) => text.replace('"Cyan"', '"Cyan Two"'))
+    await waitFor(() => events.length === 1, 'the rebuild for a save outside the root')
+    expect(events[0]?.event).toBe('automata:content')
+  }, 90_000)
+
   it('serves the module under a query too, so a page can import the new content after a save', async () => {
     // The browser keeps every module it imported, so a page that hears `automata:content` imports the module
     // again under a new URL (examples/2d/content/hot-reload). The query must not change what is served.

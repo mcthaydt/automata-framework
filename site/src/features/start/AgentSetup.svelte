@@ -1,11 +1,8 @@
 <script lang="ts">
+// Start's "Using a coding agent": the install steps for the agent the visitor picks, and a checklist they tick
+// themselves. The site cannot see their agent, so the count says what they confirmed, not what is installed.
 import CodeBlock from '../../shared/components/CodeBlock.svelte'
-import {
-  AGENT_INSTALL_OPTIONS,
-  PIXIJS_INSTALL,
-  SKILL_PREFLIGHT,
-  SKILL_SOURCES,
-} from '../../shared/content/agent-setup'
+import { AGENT_INSTALL_OPTIONS, PIXIJS_INSTALL, SKILL_PREFLIGHT, SKILL_SOURCES } from './agent-setup'
 
 let { ready = $bindable(false) }: { ready?: boolean } = $props()
 let agent = $state('Codex')

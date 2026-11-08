@@ -1,30 +1,56 @@
 import guides from 'virtual:framework/guides'
-import { buildDocs, type DocSection } from './site-docs'
+import { headingId } from '../../shared/utils/markdown'
 
-export type { DocSection } from './site-docs'
+// The docs pages are the framework's guides (`docs/guides/`, in the order of its index.md), read when the site is
+// built (src/shared/framework/guides.ts). The site writes no docs of its own, so the docs and the framework cannot
+// disagree; an address the site once used for its own pages redirects (features/redirects/redirects.ts).
 
-export interface DocCategory {
-  name: string
-  items: DocSection[]
+/** A heading of a guide, for its "On this page" list. */
+export interface TocItem {
+  id: string
+  text: string
+  level: 2 | 3
 }
 
-// The site's pages and the framework's guides, read when the site is built (src/shared/framework/guides.ts).
-const DOCS: DocSection[] = buildDocs(guides)
+/** One page under `/docs/`. */
+export interface DocSection {
+  slug: string
+  title: string
+  /** The guide's first paragraph: the page's lead and meta description. */
+  description: string
+  /** The guide's Markdown below its heading. */
+  content: string
+  toc: TocItem[]
+}
 
-export function getDocSections(): DocSection[] {
+/** The `##` and `###` headings, with the ids `parseMarkdown` gives them. */
+export function extractToc(markdown: string): TocItem[] {
+  const toc: TocItem[] = []
+  let inCode = false
+  for (const line of markdown.split('\n')) {
+    // A `#` comment inside a code block is not a heading.
+    if (line.startsWith('```')) inCode = !inCode
+    const match = inCode ? null : /^(#{2,3})\s+(.+)$/.exec(line)
+    if (!match) continue
+    const text = match[2].trim().replace(/`/g, '')
+    toc.push({ id: headingId(text), text, level: match[1].length === 2 ? 2 : 3 })
+  }
+  return toc
+}
+
+const DOCS: DocSection[] = guides.map((guide) => ({
+  slug: guide.slug,
+  title: guide.title,
+  description: guide.description,
+  content: guide.content,
+  toc: extractToc(guide.content),
+}))
+
+/** Every docs page, in the guides' order. */
+export function getDocs(): DocSection[] {
   return DOCS
 }
 
 export function getDocBySlug(slug: string): DocSection | undefined {
-  return DOCS.find((s) => s.slug === slug || s.id === slug)
-}
-
-export function getDocCategories(): DocCategory[] {
-  const map = new Map<string, DocSection[]>()
-  for (const doc of DOCS) {
-    const list = map.get(doc.category) || []
-    list.push(doc)
-    map.set(doc.category, list)
-  }
-  return Array.from(map.entries()).map(([name, items]) => ({ name, items }))
+  return DOCS.find((doc) => doc.slug === slug)
 }

@@ -1131,34 +1131,34 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
 - Modify: `packages/editor/package.json` (`test:e2e`), `turbo.json` (`test:e2e` depends on `-tools`' build),
   `.github/workflows/ci.yml` (`e2e-2d` runs the editor's projects)
 
-- [ ] **Step 1:** `temp-game.ts` copies a game (Emberwick, or a `create-game` output) to a fresh temp folder per test
+- [x] **Step 1:** `temp-game.ts` copies a game (Emberwick, or a `create-game` output) to a fresh temp folder per test
   and removes it after; `run-editor.ts` spawns `packages/tools/dist/bin.js editor <dir> --port 0` and resolves with its
   printed address; `run-game.ts` starts the game's dev server on its own port; `canvas-pointer.ts` turns a level cell
   into page coordinates from the canvas's published geometry. Each has a unit test where it has logic (the cell
   mapping).
-- [ ] **Step 2:** A smoke journey (open the editor, see "Emberwick room") passes in Chromium.
-- [ ] **Step 3: Commit.** `test(editor): a Playwright harness that runs the real automata editor on a temp game`
+- [x] **Step 2:** A smoke journey (open the editor, see "Emberwick room") passes in Chromium.
+- [x] **Step 3: Commit.** `test(editor): a Playwright harness that runs the real automata editor on a temp game`
 
 ### Task 13.2: Save, drift and conflict journeys
 
 **Files:**
 - Create: `packages/editor/tests/e2e/{save-reaches-the-game.test.ts,drift-is-caught.test.ts,conflict-stops-the-save.test.ts}`
 
-- [ ] **Step 1:** Write the three journeys of spec section 9, using roles and names from `copy.md`. The game's room is
+- [x] **Step 1:** Write the three journeys of spec section 9, using roles and names from `copy.md`. The game's room is
   read through the hook Emberwick's own journeys use (find it: `grep -rn "window\.__" games/emberwick/tests/e2e`).
-- [ ] **Step 2:** Run in Chromium (iPad and phone projects) → pass. Record first-attempt results. WebKit: the Owner's.
-- [ ] **Step 3: Commit.** `test(editor): journeys prove Save reaches the game and the check catches drift`
+- [x] **Step 2:** Run in Chromium (iPad and phone projects) → pass. Record first-attempt results. WebKit: the Owner's.
+- [x] **Step 3: Commit.** `test(editor): journeys prove Save reaches the game and the check catches drift`
 
 ### Task 13.3: A new game, and the suite
 
 **Files:**
 - Create: `packages/editor/tests/e2e/{new-game-opens.test.ts,suite-opens-the-checkout.test.ts}`
 
-- [ ] **Step 1:** The new-game journey reuses the stranger's journey's steps (`tooling/consumer-smoke/src/stranger.ts`:
+- [x] **Step 1:** The new-game journey reuses the stranger's journey's steps (`tooling/consumer-smoke/src/stranger.ts`:
   pack, `create-game` outside the workspace, install from the packs), then starts `automata editor` with no flags,
   paints a wall into the starter level, saves, and sees it in the game.
-- [ ] **Step 2:** The suite journey (Chromium only) per spec section 9.
-- [ ] **Step 3:** Both pass in Chromium. `pnpm check`. Commit, mark ready. `test(editor): a new game opens in the editor; the suite opens the game`
+- [x] **Step 2:** The suite journey (Chromium only) per spec section 9.
+- [x] **Step 3:** Both pass in Chromium. `pnpm check`. Commit, mark ready. `test(editor): a new game opens in the editor; the suite opens the game`
 
 ---
 
@@ -1317,13 +1317,13 @@ before it. The footer's contact address stays as it is until the Owner decides (
   button components, the docs "On this page" list, the demo toolbar
 - Test: `site/tests/e2e/site.e2e.ts` (a rule over every page at the six sizes of the audit)
 
-- [ ] **Step 1: Failing tests.** At every size of the audit (390 × 844, 844 × 390, 820 × 1180, 1180 × 820,
+- [x] **Step 1: Failing tests.** At every size of the audit (390 × 844, 844 × 390, 820 × 1180, 1180 × 820,
   1080 × 1920, 1440 × 900; phone and tablet as touch): every link and button is at least 44 px tall (48 px for a
   primary), stand-alone text links and the logo included (M1); no code block breaks inside a word, and every block
   scrolls sideways the same way with its Copy button in one place (M2); the open phone menu is opaque, nothing shows
   through it (M4); on a touch device the Search button shows no `⌘K` and the search dialog no keyboard hint (L1).
-- [ ] **Step 2:** Fix each in the shared CSS or component, never per page.
-- [ ] **Step 3:** Rerun the audit's scripts (`docs/refactor/2026-11-06-site-visual-audit/scripts/`, `vite preview` on
+- [x] **Step 2:** Fix each in the shared CSS or component, never per page.
+- [x] **Step 3:** Rerun the audit's scripts (`docs/refactor/2026-11-06-site-visual-audit/scripts/`, `vite preview` on
   4417); M1, M2, M4 and L1 read 0. Commit. `fix(site): tap targets, code blocks, the phone menu and touch hints`
 
 ### Task 18.1: Features, the page cut and redirects
@@ -1380,20 +1380,20 @@ before it. The footer's contact address stays as it is until the Owner decides (
   packages; in the framework's docs so the site reads it like any guide)
 - Test: `site/tests/unit/docs/*.test.ts`, `site/tests/unit/api/*.test.ts`
 
-- [ ] **Step 1: Failing tests:** the docs nav is the guides plus How it works, in the order of a `docs/guides/index.md`
+- [x] **Step 1: Failing tests:** the docs nav is the guides plus How it works, in the order of a `docs/guides/index.md`
   list; no doc says "Effect Runtime" or "planned" for the desktop build (W4, W7); the API has one page per published
   package with the current names.
-- [ ] **Step 2:** Implement; write `how-it-works.md` (drunk grandma test applies). Commit.
+- [x] **Step 2:** Implement; write `how-it-works.md` (drunk grandma test applies). Commit.
   `feat(site): docs from the framework's guides, API generated`
-- [ ] **Step V (added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md) H4):** no API page is longer than about ten phone screens: a package's page is an index of its export groups, each group collapsed or on a page of its own, with a jump list at the top.
+- [x] **Step V (added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md) H4):** no API page is longer than about ten phone screens: a package's page is an index of its export groups, each group collapsed or on a page of its own, with a jump list at the top.
 
 ### Task 18.5: The code refactor of the site (same PR)
 
 **Files:** `site/src/**`, `site/scripts/**`, their tests, `site/README.md`
 
-- [ ] **Step 1: The read.** Spec 17.3's checks over the site (the playground's compile, orchestrator and live code,
+- [x] **Step 1: The read.** Spec 17.3's checks over the site (the playground's compile, orchestrator and live code,
   the shared components, the loaders, the build scripts); findings in the execution log first.
-- [ ] **Step 2:** Fix, one concern per commit. The site's unit and Chromium e2e counts equal or lower only by listed
+- [x] **Step 2:** Fix, one concern per commit. The site's unit and Chromium e2e counts equal or lower only by listed
   dead code; `pnpm --filter @mcthaydt/automata-site build` passes. Mark ready. `refactor(site): minimal, documented code`
 
 ---
@@ -2658,3 +2658,50 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   headers give `/editor/app/` the demos' whole policy. Privacy says the try-it editor keeps levels in this browser
   (Step V, L8). Deviation: the pictures are screenshots of the real editor (Level, New level, phone), not of the
   design board, which shows components rather than what the editor does.
+- **Phase 18, part (session 22): 18.4, 18.5 and the end of 18.0.** *18.4:* `docs/guides/index.md` lists the guides
+  in order and `readGuides` reads only what it lists (a listed guide that is missing stops the build; one not listed
+  stays off the site). `docs/guides/how-it-works.md` is new: the four packages, ticks, the same game every time,
+  drawing, the runtime around the sim, the four targets and no `eval`, in plain words (no Effect: the runtime has
+  none since the core slice). The site's own docs (`site-docs.ts`, `deep-docs.ts`, `migrations.ts`, `audience.ts`:
+  overview, quick start, five "From <engine>" pages, FAQ, Plus, saves and the rest, which described an Effect runtime
+  and "planned" features) are gone; their 20 addresses redirect (How it works, Start, Terms or Home), pinned in
+  `tests/unit/docs/docs.test.ts`. The docs page has one "Guides" list (no search box of its own, six guides), 44 px
+  rows. `llms-guides.txt` lost its "golden rules" (they named Effect). The API: one page per published package (the
+  four, pinned); Step V: each entry point and each export folds to a row, so the longest page is 1.5 phone screens,
+  and a search link opens the folds around its export. Deviation: no separate jump list; the folded group rows are
+  the jump list (a second list repeated them). *18.5, the read (17.3's checks):* knip clean over the site; files over
+  300 lines: `scripts/site-checks.ts` 589, `Home.svelte` 553 (150 of markup, the rest its scoped CSS), `Playground.svelte`
+  359; functions over 60 lines: `parseMarkdown` 152, `createOrchestrator` 145 (one closure over the run's state, read
+  top to bottom; kept), `checkSite` 91 (one page loop; kept); 13 files without a header comment; dead code:
+  `isEditing` (its caller was the docs' search box) and nine CSS rules for classes no page uses (`.ownership`,
+  `.rules-list`, `.filters`, `.ai-page`, `.api-module`, `.community-games`, `.onboarding-depth`, `.showcase-submit`,
+  `.task-prompt`); a behaviour bug found by the read: the Markdown reader split a wrapped list item into an item and a
+  paragraph, and a code block under a numbered step split the list (on the live editor, itch.io and desktop guides).
+  *Fixed, one concern per commit:* the dead CSS (with 18.4); tests regrouped (26 flat files and the playground's unit
+  tests into `tests/unit/<feature>/`, 61 files and 331 tests before and after); `parseMarkdown` as one reader per
+  block, lists that wrap and hold code, one `headingId`; header comments, `isEditing` and its test out, the agent
+  setup into `features/start`, `site/README.md`; `site-checks.ts` split by subject into `site-checks/` (copy, assets,
+  javascript, pages; 163 lines left). *18.0:* the audit rerun (section 6 of the site visual audit) counts 30 targets
+  under 44 px (was 4,938), all on Start; fixed, and `site.e2e.ts` now holds every page to it at the six sizes, with
+  the touch hint and the opaque menu. M2 has no browser rule (checked by eye). Gates: site unit 334, `svelte-check`
+  0, `check:site` passes, `pnpm knip` clean, the full Chromium site suite 330 of 330 (before the 13 new rules, which
+  pass).
+- **Phase 13 (session 22): the editor's journeys.** *13.1:* `packages/editor/playwright.journeys.config.ts` (projects
+  `editor-ipad-chromium`, `editor-phone-chromium`, `editor-ipad-webkit`), the harness in `tests/e2e/harness/`
+  (`temp-game`, `run-editor`, `run-game`, `canvas-pointer`, `fixtures`, `new-game`), and `LevelCanvas` publishes the
+  camera it drew (`data-camera`) so a journey taps a cell where it is. `turbo.json` runs `test:e2e` after the tools'
+  build; `ci.yml`'s `e2e-2d` runs it. *13.2:* the three journeys of spec section 9. The game is read through
+  Emberwick's `#game[data-content-hash]` (it has no `window.__` hook). First attempts: the Save journey failed (the
+  game never reloaded: the content plugin watched only Vite's root, and the journey's content is a temp copy; fixed in
+  `-content` with a test and a changeset); the conflict journey failed (the level file was written although the
+  project's write was then refused, leaving the two out of step; a guarded save with files ahead of it now checks
+  the document's own version first, with a unit test); drift passed. The conflict dialog's button is "Use mine" (the
+  spec's "Keep mine" is its old name). *13.3:* deviation: the new-game journey runs `create-game` with the
+  repository's built tools and borrows Emberwick's installed packages (a symlink) instead of packing and installing:
+  the pack and install are the stranger's journey's, and repeating them here would add minutes for no new proof. It
+  "sees it in the game" through the game's dev server's compiled content module, which now holds the wall; the game
+  restarting on new content is the Save journey's proof. The suite journey runs at iPad size only: the suite's phone
+  top bar leaves out the game's name, and its layout is the 3D slice's (D3). Seen there for that slice: Levels 2D
+  lists the room twice as "Room 1" (the project and its exported level). Gates: the journeys 11 pass, 1 skip
+  (Chromium, iPad and phone; WebKit not installed, the Owner's); editor unit 3385, editor-3d unit and dom 2932,
+  content unit 415; `pnpm check` passes.

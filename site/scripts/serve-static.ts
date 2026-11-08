@@ -1,4 +1,4 @@
-// Serves a static directory the way the production static host will: `/docs/faq` → `docs/faq.html`,
+// Serves a static directory the way the production static host will: `/docs/editor` → `docs/editor.html`,
 // `/x/` → `x/index.html`, and anything else → `404.html` with status 404. The Playwright suite runs against it so the
 // browser checks see the prerendered build, not a dev server.
 //   node scripts/serve-static.ts <directory> <port> [--compressed]

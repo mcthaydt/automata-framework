@@ -3,13 +3,14 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { JSDOM } from 'jsdom'
 import { afterEach, describe, expect, it } from 'vitest'
-import { builtPages } from '../../../scripts/site-checks.ts'
+import { builtPages } from '../../../scripts/site-checks/pages.ts'
 import { writeRedirects } from '../../../scripts/write-redirects.ts'
 import { REDIRECTS, redirectPage } from '../../../src/features/redirects/redirects'
 
 describe('the cut pages redirect', () => {
+  // The site's old docs pages redirect too; tests/unit/docs/docs.test.ts names them.
   it('sends each old address to the page that took its place', () => {
-    expect(REDIRECTS).toEqual({
+    expect(REDIRECTS).toMatchObject({
       '/ai': '/docs/how-it-works',
       '/inside': '/docs/how-it-works',
       '/cheatsheet': '/api',

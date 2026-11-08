@@ -1,4 +1,5 @@
 <script lang="ts">
+// The page's title and description, for the tab, search results and link previews. Every page sets its own.
 let {
   title,
   description = 'Automata is an AI-first TypeScript game framework. Build with coding agents, verify their work, author the content and stay in control of the source.',

@@ -1,4 +1,5 @@
 <script lang="ts">
+// One shell command and its Copy button, drawn as a terminal line.
 import CopyButton from './CopyButton.svelte'
 
 let { command = '' }: { command?: string } = $props()

@@ -22,7 +22,7 @@ export interface SuiteEnv {
   readonly sample?: boolean
   /** The game's name in words, from the server's ping: the top bar's title. */
   readonly game?: string | undefined
-  /** The toasts' timers (the page's clock by default); a test holds it still so a toast stays to be measured. */
+  /** What the toasts time out on; the page's clock unless a test holds one. */
   readonly clock?: GestureClock | undefined
 }
 

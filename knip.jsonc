@@ -64,7 +64,7 @@
     // imports the Geist families with CSS @import, which knip does not follow. `src/app/design/main.ts` is the design
     // board, started from `design.html` by the dev server.
     "packages/editor": {
-      "entry": ["src/entries/*.ts", "src/app/*/main.ts", "scripts/*.ts"],
+      "entry": ["src/entries/*.ts", "src/app/*/main.ts", "scripts/*.ts", "tests/e2e/**/*.test.ts"],
       "ignoreDependencies": ["@fontsource-variable/geist", "@fontsource-variable/geist-mono"]
     },
     // `suite.html` starts the full suite page (`vite build --mode suite`), which knip does not read from the HTML.

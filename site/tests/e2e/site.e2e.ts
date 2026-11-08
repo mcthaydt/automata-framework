@@ -10,6 +10,7 @@ import {
   deadButtons,
   horizontalOverflow,
   keyboardProblems,
+  smallTapTargets,
   storageKeys,
   watchPage,
 } from './gates'
@@ -105,6 +106,57 @@ for (const viewport of VIEWPORTS) {
         }
       }
     })
+  })
+}
+
+// The six sizes of the site visual audit (M1, L1): phones and tablets as touch screens.
+const AUDIT_SIZES = [
+  { name: 'phone portrait', width: 390, height: 844, touch: true },
+  { name: 'phone landscape', width: 844, height: 390, touch: true },
+  { name: 'tablet portrait', width: 820, height: 1180, touch: true },
+  { name: 'tablet landscape', width: 1180, height: 820, touch: true },
+  { name: 'desktop portrait', width: 1080, height: 1920, touch: false },
+  { name: 'desktop landscape', width: 1440, height: 900, touch: false },
+]
+
+for (const size of AUDIT_SIZES) {
+  test.describe(`${size.name} ${size.width}×${size.height}`, () => {
+    test.use({
+      viewport: { width: size.width, height: size.height },
+      hasTouch: size.touch,
+      isMobile: size.touch && size.width < 900,
+    })
+
+    test('every link and button on every page is big enough to tap', async ({ page }) => {
+      test.setTimeout(180_000)
+      const small: string[] = []
+      for (const path of PAGES) {
+        await open(page, path)
+        for (const target of await smallTapTargets(page)) small.push(`${path}: ${target}`)
+      }
+      expect(small).toEqual([])
+    })
+
+    if (size.width < 760)
+      test('the open menu is opaque: nothing on the page shows through it', async ({ page }) => {
+        await open(page, '/')
+        await page.getByLabel('Menu').click()
+        const menu = page.getByRole('navigation', { name: 'Mobile navigation' })
+        await expect(menu).toBeVisible()
+        const background = await menu.evaluate((element) => getComputedStyle(element).backgroundColor)
+        // rgb(…) has no alpha; rgba(…, a) and transparent let the page show through.
+        expect(background).toMatch(/^rgb\(/)
+      })
+
+    test(
+      size.touch
+        ? 'search shows no keyboard shortcut on a touch screen'
+        : 'search shows its keyboard shortcut',
+      async ({ page }) => {
+        await open(page, '/')
+        await expect(page.locator('header kbd').locator('visible=true')).toHaveCount(size.touch ? 0 : 1)
+      },
+    )
   })
 }
 

@@ -1,6 +1,6 @@
-import { getDocSections } from '../../features/docs/docs-loader'
+import { getDocs } from '../../features/docs/docs-loader'
 import { llmsGuides } from '../../features/docs/llms'
 import { textFile } from '../../shared/html/text-file'
 
 export const prerender = true
-export const GET = () => textFile(llmsGuides(getDocSections()))
+export const GET = () => textFile(llmsGuides(getDocs()))

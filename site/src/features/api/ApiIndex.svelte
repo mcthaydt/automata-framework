@@ -1,4 +1,5 @@
 <script lang="ts">
+// /api: the reference's front page, one link per published package for each version the site keeps.
 import PageMeta from '../../shared/components/PageMeta.svelte'
 import { apiVersions, getApiReference } from '../../shared/framework/api-reference'
 
