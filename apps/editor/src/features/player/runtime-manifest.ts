@@ -1,3 +1,5 @@
+import { frameworkCore, frameworkPackage } from '../../shared/framework-packages.ts'
+
 // The runtime a phone carries: the framework's browser packages and the few a 2D game imports, already built, served
 // to a game through an import map. A game is compiled against this list, so a game that names anything else is told
 // so before it is run. `three` is not here on purpose: the phone does not run it.
@@ -9,7 +11,7 @@ export interface RuntimeEntry {
   readonly url: string
 }
 
-/** The runtime the app carries. Keys are the specifiers a game writes (`pixi.js`, `@mcthaydt/automata/no-eval`). */
+/** The runtime the app carries. Keys are the specifiers a game writes (`pixi.js`, `zod`, a framework entry). */
 export interface RuntimeManifest {
   readonly packages: Readonly<Record<string, RuntimeEntry>>
 }
@@ -21,20 +23,20 @@ export interface RuntimeManifest {
 export const RUNTIME_SPECIFIERS: readonly string[] = [
   '@fontsource/pixelify-sans/latin-400.css',
   '@fontsource/pixelify-sans/latin-700.css',
-  '@mcthaydt/automata',
-  '@mcthaydt/automata-content/compile',
-  '@mcthaydt/automata-content/level-2d',
-  '@mcthaydt/automata-content/palette',
-  '@mcthaydt/automata-content/schema',
-  '@mcthaydt/automata-sim',
-  '@mcthaydt/automata-sim/hash',
-  '@mcthaydt/automata-sim/math',
-  '@mcthaydt/automata/no-eval',
-  '@mcthaydt/automata/theme.css',
+  frameworkCore(),
+  frameworkCore('no-eval'),
+  frameworkCore('theme.css'),
+  frameworkPackage('content', 'compile'),
+  frameworkPackage('content', 'level-2d'),
+  frameworkPackage('content', 'palette'),
+  frameworkPackage('content', 'schema'),
+  frameworkPackage('sim'),
+  frameworkPackage('sim', 'hash'),
+  frameworkPackage('sim', 'math'),
   'pixi.js',
   'pixi.js/unsafe-eval',
   'zod',
-]
+].sort()
 
 /** The framework package whose version a game is checked against: every framework package shares it. */
-export const FRAMEWORK_ENTRY = '@mcthaydt/automata'
+export const FRAMEWORK_ENTRY: string = frameworkCore()

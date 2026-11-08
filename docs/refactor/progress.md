@@ -577,7 +577,9 @@ a branch off the plan's. The page side of each task waits for the merged base (t
 | 4.1 The app's own store | 4 | Done, 2026-11-08 (`apps/editor`, a new private package): the kit's `ProjectStore` contract suite passes on it, a stale-mtime write is a `conflict`, `notifyChanged` and its own writes fire `watch`, a write is in the app's folder before it resolves (a new store over the same folder, a restart, reads it), a full disk says so; `.git/` and `.automata/` never list. The page's `flushOnHide` wiring waits for the editors base. Chromium not needed (pure TypeScript) | |
 | 4.2 A new game on a phone | 4 | Half: `templateFiles` (a browser-safe entry of the tools) equals what `create-game` writes, byte for byte, and the starter level is embedded; the phone's "Make a new game" and the 3D kind wait | |
 | 4.3, 4.4 | 4 | Not started | |
-| 5.1 to 5.4 GitHub sync | 5 | Not started | |
+| 5.1 Secrets and sign-in, 5.2 the git engine | 5 | Not started | |
+| 5.3 Pull, push and the status line | 5 | Half, 2026-11-08: `startSync` (pull on start, on coming back and every 60 s; one commit 10 s after the last save, named by what was edited; an offline or signed-out push leaves the commit and the next pull pushes that same one; a quit before the push is pushed by the next start; a push is never forced) and the status words, tested against a fake engine and fake timers. The real engine (5.2), the header line and `suite-ports` `sync` wait | |
+| 5.4 Merges by file kind | 5 | Half, 2026-11-08: TOML and JSON merge by key, lists of tables by `id` or `on`, other text by lines, pictures ask ("keep both" names `<name>-github.png`), deletions ask; the lines merge keeps comments; no conflict marker is ever written; the files made again from a level are named. The conflict dialog's words wait for the editors base | |
 | 5.5 `AGENTS.md` and getting a game | 5 | Half: a new game's `AGENTS.md` and `.automata/` in its `.gitignore` are done; "Get a game from GitHub" is not | |
 | 6.1 to 6.4 The Review page | 6 | Not started | |
 | 7.1 to 7.4 Building and proving | 7 | Not started | |

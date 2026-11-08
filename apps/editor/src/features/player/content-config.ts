@@ -1,5 +1,9 @@
-import type { CompileOptions } from '@mcthaydt/automata-content/compile'
+import * as compile from '@mcthaydt/automata-content/compile'
+import * as level2d from '@mcthaydt/automata-content/level-2d'
+import * as palette from '@mcthaydt/automata-content/palette'
+import * as schema from '@mcthaydt/automata-content/schema'
 import { transform } from 'sucrase'
+import { frameworkPackage } from '../../shared/framework-packages.ts'
 
 // A game's `content.config.ts` is a plain file the app reads on a phone, where there is no Node and no Vite: it is
 // stripped of types, turned into CommonJS and run against the browser-safe content entries the app carries. A file
@@ -9,12 +13,12 @@ import { transform } from 'sucrase'
 export type ConfigModules = Readonly<Record<string, unknown>>
 
 /** The content package's browser entries as a config can import them. */
-export async function defaultConfigModules(): Promise<ConfigModules> {
+export function defaultConfigModules(): ConfigModules {
   return {
-    '@mcthaydt/automata-content/compile': await import('@mcthaydt/automata-content/compile'),
-    '@mcthaydt/automata-content/level-2d': await import('@mcthaydt/automata-content/level-2d'),
-    '@mcthaydt/automata-content/palette': await import('@mcthaydt/automata-content/palette'),
-    '@mcthaydt/automata-content/schema': await import('@mcthaydt/automata-content/schema'),
+    [frameworkPackage('content', 'compile')]: compile,
+    [frameworkPackage('content', 'level-2d')]: level2d,
+    [frameworkPackage('content', 'palette')]: palette,
+    [frameworkPackage('content', 'schema')]: schema,
   }
 }
 
@@ -23,7 +27,7 @@ export function loadContentConfig(
   source: string,
   modules: ConfigModules,
 ):
-  | { readonly ok: true; readonly options: CompileOptions }
+  | { readonly ok: true; readonly options: compile.CompileOptions }
   | { readonly ok: false; readonly message: string } {
   try {
     const { code } = transform(source, {
@@ -39,7 +43,7 @@ export function loadContentConfig(
     const options = exports.contentConfig ?? exports.default
     if (typeof options !== 'object' || options === null || !('schemas' in options))
       return { ok: false, message: 'it does not export contentConfig' }
-    return { ok: true, options: options as CompileOptions }
+    return { ok: true, options: options as compile.CompileOptions }
   } catch (error) {
     return { ok: false, message: String((error as Error).message ?? error) }
   }

@@ -327,7 +327,7 @@ async function compile(
           "This game has no content.config.ts, so the phone can't build its content. Open it on a computer once to add it.",
         ),
       )
-    const loaded = loadContentConfig(configText, deps.configModules ?? (await defaultConfigModules()))
+    const loaded = loadContentConfig(configText, deps.configModules ?? defaultConfigModules())
     if (!loaded.ok) throw new Refused(refusal('content', `${configPath}: ${loaded.message}`, configPath))
     out.set(CONTENT_MODULE, contentModuleText(await compileContent(paths, readText, loaded.options)))
   }
