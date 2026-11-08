@@ -25,6 +25,19 @@ describe('changesetProblems (patch only before 1.0)', () => {
     ])
   })
 
+  it('allows the one-time minor of the first public release, in its own file only', () => {
+    const minor = file("'@automata/sim': minor")
+    expect(changesetProblems({ 'first-public-release.md': minor }, published)).toEqual([])
+    expect(changesetProblems({ 'other.md': minor }, published)).toEqual([
+      'other.md: @automata/sim is a minor bump; before 1.0 every AF changeset is a patch',
+    ])
+    expect(
+      changesetProblems({ 'first-public-release.md': file("'@automata/sim': major") }, published),
+    ).toEqual([
+      'first-public-release.md: @automata/sim is a major bump; before 1.0 every AF changeset is a patch',
+    ])
+  })
+
   it('fails a package that is not published', () => {
     expect(changesetProblems({ 'u.md': file("'@af-games/emberwick': patch") }, published)).toEqual([
       'u.md: @af-games/emberwick is not a published package',

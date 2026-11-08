@@ -1,5 +1,5 @@
-import type { EditHistory } from '../../shared/level-2d/model/edit-history'
-import { commitEdit } from '../../shared/level-2d/model/field-commit'
+import { commitEdit } from '../../shared/level-2d/editor/field-commit'
+import type { EditHistory } from '../../shared/level-2d/editor/level-editor-api'
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import { paletteOf } from '../../shared/level-2d/tiles/palette-model'
 import type { LevelSession } from './level-session'

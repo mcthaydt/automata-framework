@@ -7,10 +7,10 @@ import FieldEditor from '../../shared/kit/fields/FieldEditor.svelte'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import type { EditEvent } from '../../shared/kit/widgets/edit-event'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'
-import type { EntityInspector } from '../../shared/level-2d/documents/inspector-model'
+import { commitEdit, commitField } from '../../shared/level-2d/editor/field-commit'
+import type { EntityInspector } from '../../shared/level-2d/editor/inspector-model'
+import type { EditHistory } from '../../shared/level-2d/editor/level-editor-api'
 import { moveEntity, resizeEntity } from '../../shared/level-2d/model/commands/entity-edits'
-import type { EditHistory } from '../../shared/level-2d/model/edit-history'
-import { commitEdit, commitField } from '../../shared/level-2d/model/field-commit'
 
 interface Props {
   /** What is chosen; with nothing chosen the inspector shows the level instead. */

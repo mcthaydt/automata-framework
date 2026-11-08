@@ -83,7 +83,7 @@ The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history
   commit what they write.
 - The 2D gate (`pnpm check`, `pnpm test:unit:2d`, `pnpm test:browser:2d`) includes the 2D editors' unit, layout, canvas and
   journey tests; the 3D editor, the suite and the other 3D packages run in `.github/workflows/3d.yml`.
-- Only published packages get a changeset, and it is `patch`. Private ones (the editors, figures) need none.
+- Only published packages get a changeset, and it is `patch`. Private ones (the editors, figures) need none. The one exception is `.changeset/first-public-release.md`, a `minor` that takes the shared version to 0.1.0 once.
 - Browser, visual and journey suites run on the GPU runner, and cross-engine parity runs in Chromium, WebKit and
   Firefox. Report what you ran, what you left out and what is pending.
 - Packages publish publicly as `@automata/<name>` to npmjs.org (the Owner's `NPM_TOKEN`; no token to install them).

@@ -7,11 +7,11 @@ import type { LifecycleWindow } from '../../shared/kit/storage/page-lifecycle.ts
 import { openWorkspace, type Workspace, type WorkspaceEnv } from '../../shared/kit/storage/workspace.ts'
 import { createToasts } from '../../shared/kit/widgets/toasts.ts'
 import type { LevelThumbnails } from '../../shared/level-2d/canvas/level-thumbnails'
-import { createEditorApp } from '../../shared/level-2d/documents/editor-app'
-import type { LevelCanvasProps, ObjectUrls } from '../../shared/level-2d/documents/view-props'
 import { randomIds } from '../../shared/level-2d/model/ids'
+import { createAppProfiles } from '../../shared/level-2d/profiles/app-profiles'
+import type { LevelCanvasProps, ObjectUrls } from '../../shared/level-2d/session/view-props'
 import App from './App.svelte'
-import { createAppProfiles } from './profiles'
+import { createEditorApp } from './editor-app'
 
 // The editor's boot: everything it touches comes in through `env`, so a test hands it a
 // window, a document, a clock and a workspace and gets the real app, and `main.ts` is the only file that reaches for

@@ -3,7 +3,7 @@
   DOM test can read the level, the layer, the tool and the camera the Level view passed down.
 -->
 <script lang="ts">
-import type { LevelCanvasProps } from '../../shared/level-2d/documents/view-props'
+import type { LevelCanvasProps } from '../../shared/level-2d/session/view-props'
 
 const { view, camera }: LevelCanvasProps = $props()
 </script>
