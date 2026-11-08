@@ -33,6 +33,25 @@ const BLIP: Cue = {
 const SPEECH: Cue = { id: 'speech', bus: 'voice', voices: [{ hiss: 800, length: 1, volume: 0.1 }] }
 const RULES: DuckRule[] = [{ bus: 'voice', duck: ['music', 'sfx'], db: -9, attack: 0.08, release: 0.4 }]
 
+describe('the overall volume', () => {
+  it('plays a cue through a gain of the overall volume into its bus', () => {
+    const { ctx, p, inputs } = port()
+    createMixer({ port: p, ducks: [], master: 0.5 }).play(BLIP, { when: 0 })
+    const master = (ctx as unknown as { nodes: FakeNode[] }).nodes.find(
+      (node) => node.kind === 'gain' && node.params.gain?.value === 0.5,
+    )
+    expect(master?.connections).toContain(inputs.get('sfx'))
+  })
+
+  it('adds no stage at full volume', () => {
+    const { ctx, p } = port()
+    createMixer({ port: p, ducks: [], master: 1 }).play(BLIP, { when: 0 })
+    expect(
+      (ctx as unknown as { nodes: FakeNode[] }).nodes.filter((node) => node.params.gain?.value === 0.5),
+    ).toEqual([])
+  })
+})
+
 describe('spatial', () => {
   const ears = { x: 0, z: 0, yaw: 0 }
   it('is full level and centred at the listener, and within the reference distance', () => {

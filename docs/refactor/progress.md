@@ -568,6 +568,14 @@ Built on `claude/project-thread-2salzc`, stacked on #478 (plans' Logs have the e
   box and cutscenes. Journeys: the 5 served journeys pass on a phone and an iPad in Chromium. Deferred: L9 (the kit writes inserted
   tables inline), Audio's mix and sound checks (unbuilt, unchanged). Not run: WebKit, Firefox, the GPU runner.
 
+- Audio mix and checks (2026-11-08, PR stacked on #498): L9 fixed (the kit writes a table it adds as a section, as the file
+  writes its own, read back and compared). Audio's sound picture, switches (`about`, `world`, `no_duck`, `draft`), hiss range,
+  shadowed event rows, **Mix** (overall volume and ducks) and **Check the sounds** are built, and the overall volume is now
+  **heard in play** (the mixer and the music player read `master_gain`). Proved by two served journeys with a probe on the page's
+  audio parameters, one in the story and one in a `create-game` game (run with `--workers=1`), and by layout tests at 390 x 844
+  and 820 x 1180. Not run: WebKit, Firefox, the GPU runner, hosted CI; the pre-commit gitleaks download answered 504, so the
+  other checks were run by hand. Details: the Audio plan's "Mix and checks log".
+
 ## Edited content shows in play: 67% (4 of 6: stages 2, 3 and 4; the build is done except three journey steps)
 
 Normal dev pipeline (no stage 1 audit; the investigation is

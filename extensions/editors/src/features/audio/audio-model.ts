@@ -88,13 +88,16 @@ function voiceLine(voice: Voice, index: number): VoiceLine {
     seconds('length', 'Lasts', voice.length, 0.01),
   ]
   if (voice.hiss !== undefined) {
-    // A hiss whose centre is picked from a range each time keeps its range; the editor shows its middle read only.
-    const around = typeof voice.hiss === 'number' ? voice.hiss : (voice.hiss[0] + voice.hiss[1]) / 2
+    // A hiss whose pitch is picked from a range each time keeps its range: two pitches, and neither is lost.
+    const pitch =
+      typeof voice.hiss === 'number'
+        ? [hz('hiss', 'Pitch', voice.hiss)]
+        : [hz('hissLow', 'Lowest pitch', voice.hiss[0]), hz('hissHigh', 'Highest pitch', voice.hiss[1])]
     return {
       index,
       words: 'Hiss',
       fields: [
-        hz('hiss', 'Around', around),
+        ...pitch,
         { key: 'q', label: 'How narrow', kind: 'number', min: 0.1, max: 30, step: 0.1, value: voice.q ?? 1 },
         ...timing,
         loudness('volume', voice.volume),
@@ -115,6 +118,39 @@ function voiceLine(voice: Voice, index: number): VoiceLine {
 }
 
 export const voiceLines = (cue: Cue): VoiceLine[] => cue.voices.map(voiceLine)
+
+/** The edit that sets one of a voice's fields; a range's two pitches are the two ends of the file's one `hiss`. */
+export function voiceFieldEdit(
+  cue: number,
+  index: number,
+  voice: Voice,
+  field: Field,
+  value: number | string,
+): ContentEdit {
+  const at = ['cue', cue, 'voices', index]
+  if (field.key === 'hissLow' || field.key === 'hissHigh') {
+    const end = field.key === 'hissLow' ? 0 : 1
+    return setOrInsert([...at, 'hiss', end], Array.isArray(voice.hiss) ? voice.hiss[end] : undefined, value)
+  }
+  return setOrInsert([...at, field.key], (voice as unknown as Record<string, unknown>)[field.key], value)
+}
+
+const FLAGS = [
+  { key: 'no_duck', label: 'Never quiets other sounds' },
+  { key: 'draft', label: 'Not final yet' },
+] as const
+export type SoundFlag = (typeof FLAGS)[number]['key']
+
+/** A sound's yes-or-no switches in words. */
+export const soundFlags = (cue: Cue): { key: SoundFlag; label: string; on: boolean }[] =>
+  FLAGS.map(({ key, label }) => ({ key, label, on: cue[key] === true }))
+
+/** A switch turned on is written; turned off it is taken out of the file, so the file says only what is so. */
+export function flagEdit(cue: number, sound: Cue, key: SoundFlag, on: boolean): ContentEdit[] {
+  const there = sound[key] !== undefined
+  if (on) return there && sound[key] === true ? [] : [setOrInsert(['cue', cue, key], sound[key], true)]
+  return there ? [{ keyPath: ['cue', cue, key], remove: true }] : []
+}
 
 export interface EventLine {
   readonly index: number

@@ -150,6 +150,37 @@ describe('audioStage: the game’s own hooks', () => {
   })
 })
 
+describe('audioStage: the overall volume', () => {
+  const quiet = { ...CONTENT, master_gain: 0.5 } as AudioContent
+
+  it('plays a cue at the overall volume the file says, read at each event', () => {
+    let content: AudioContent = quiet
+    const { step, context, unlock } = setup({ content: () => content })
+    unlock()
+    step(1, 'coin.picked')
+    const halves = () =>
+      context.nodes.filter((node) => node.kind === 'gain' && node.params.gain?.value === 0.5)
+    expect(halves()).toHaveLength(1)
+    content = CONTENT
+    step(2, 'coin.picked')
+    expect(halves()).toHaveLength(1)
+  })
+
+  it('plays the music at the overall volume, and follows a change to it', async () => {
+    let content: AudioContent = quiet
+    const { clock, unlock, sources, flush } = setup({ content: () => content })
+    unlock()
+    clock.advance(200)
+    await flush()
+    const gain = (sources()[0]?.connections[0] as FakeNode).params.gain as { calls: string[] }
+    expect(gain.calls.at(-1)).toBe('lin 0.25 @1')
+    content = { ...CONTENT, master_gain: 1 } as AudioContent
+    clock.advance(200)
+    await flush()
+    expect(gain.calls.at(-1)).toMatch(/^lin 0\.5 @/)
+  })
+})
+
 describe('audioStage: music', () => {
   it('starts the track the rules pick once the audio is unlocked, and switches when the state changes', async () => {
     const { clock, unlock, sources, setMode, flush } = setup()

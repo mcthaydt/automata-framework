@@ -1,4 +1,4 @@
-import type { AudioContent } from '@automata/audio-synth'
+import type { AudioContent, Voice } from '@automata/audio-synth'
 import { openDocument } from '@automata/editor/kit/documents'
 import { describe, expect, it } from 'vitest'
 import {
@@ -9,8 +9,11 @@ import {
   busWords,
   eventLines,
   eventSoundEdits,
+  flagEdit,
   newSoundId,
   soundFields,
+  soundFlags,
+  voiceFieldEdit,
   voiceLines,
 } from '#src/features/audio/audio-model.ts'
 
@@ -74,12 +77,59 @@ describe('the words', () => {
     ])
     expect(hiss?.words).toBe('Hiss')
     expect(hiss?.fields.map((field) => [field.label, field.value])).toEqual([
-      ['Around', 4000],
+      ['Pitch', 4000],
       ['How narrow', 2],
       ['Begins after', 0.02],
       ['Lasts', 0.05],
       ['Loudness', 0.1],
     ])
+  })
+
+  it('say a hiss that picks its pitch from a range as two pitches, and keep it a range', () => {
+    const cue = {
+      id: 'wind',
+      bus: 'sfx' as const,
+      voices: [{ hiss: [400, 1200] as [number, number], q: 1, length: 1, volume: 0.2 }],
+    }
+    const voice = cue.voices[0] as Voice
+    const [hiss] = voiceLines(cue)
+    expect(hiss?.fields.slice(0, 2).map((field) => [field.label, field.value])).toEqual([
+      ['Lowest pitch', 400],
+      ['Highest pitch', 1200],
+    ])
+    const lowest = hiss?.fields[0] as NonNullable<typeof hiss>['fields'][number]
+    const highest = hiss?.fields[1] as NonNullable<typeof hiss>['fields'][number]
+    expect(voiceFieldEdit(0, 0, voice, lowest, 300)).toEqual({
+      keyPath: ['cue', 0, 'voices', 0, 'hiss', 0],
+      expected: 400,
+      set: 300,
+    })
+    expect(voiceFieldEdit(0, 0, voice, highest, 1500)).toEqual({
+      keyPath: ['cue', 0, 'voices', 0, 'hiss', 1],
+      expected: 1200,
+      set: 1500,
+    })
+    const file = openDocument(
+      'audio.toml',
+      '[[cue]]\nid = "wind"\nbus = "sfx"\nvoices = [{ hiss = [400, 1200], q = 1, length = 1, volume = 0.2 }]\n',
+    )
+    const edited = file.edit([voiceFieldEdit(0, 0, voice, lowest, 300)])
+    expect(edited.ok && edited.document.value()).toMatchObject({ cue: [{ voices: [{ hiss: [300, 1200] }] }] })
+  })
+
+  it("give a sound's switches in words: it never quiets other sounds, and it is not final yet", () => {
+    expect(soundFlags({ id: 'a', bus: 'sfx', voices: [], no_duck: true })).toEqual([
+      { key: 'no_duck', label: 'Never quiets other sounds', on: true },
+      { key: 'draft', label: 'Not final yet', on: false },
+    ])
+  })
+
+  it('turn a switch on by writing it, and off by taking it out', () => {
+    const cue = { id: 'a', bus: 'sfx' as const, voices: [], no_duck: true }
+    expect(flagEdit(2, cue, 'draft', true)).toEqual([{ keyPath: ['cue', 2, 'draft'], insert: true }])
+    expect(flagEdit(2, cue, 'no_duck', false)).toEqual([{ keyPath: ['cue', 2, 'no_duck'], remove: true }])
+    expect(flagEdit(2, cue, 'no_duck', true)).toEqual([])
+    expect(flagEdit(2, cue, 'draft', false)).toEqual([])
   })
 
   it('say what happens on each event', () => {

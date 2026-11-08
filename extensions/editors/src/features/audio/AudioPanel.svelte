@@ -10,13 +10,10 @@ import type { AudioChoice, AudioSession } from './audio-session.svelte.ts'
 const { session }: { session: AudioSession } = $props()
 const content = $derived(session.content)
 
+// A choice with an index (a sound, a track) is the chosen one only at the same index; the others are single pages.
 const isChosen = (choice: AudioChoice): boolean =>
   session.chosen.kind === choice.kind &&
-  (choice.kind === 'events' ||
-    choice.kind === 'rules' ||
-    (session.chosen.kind !== 'events' &&
-      session.chosen.kind !== 'rules' &&
-      session.chosen.index === choice.index))
+  (!('index' in choice) || ('index' in session.chosen && session.chosen.index === choice.index))
 
 async function addSound(): Promise<void> {
   if (content === undefined) return
@@ -38,7 +35,7 @@ async function addSound(): Promise<void> {
             aria-current={isChosen({ kind: 'sound', index })}
             onclick={() => (session.chosen = { kind: 'sound', index })}
           >
-            {cue.id}{#if cue.draft}<span class="tag"> Placeholder</span>{/if}
+            {cue.id}{#if cue.draft}<span class="tag"> Placeholder</span>{/if}{#if session.findingsFor(cue.id).length > 0}<span class="tag"> Needs a look</span>{/if}
           </button>
         </li>
       {/each}
@@ -75,6 +72,15 @@ async function addSound(): Promise<void> {
           onclick={() => (session.chosen = { kind: 'events' })}
         >
           When things happen
+        </button>
+      </li>
+      <li>
+        <button
+          type="button"
+          aria-current={isChosen({ kind: 'mix' })}
+          onclick={() => (session.chosen = { kind: 'mix' })}
+        >
+          Mix
         </button>
       </li>
     </ul>

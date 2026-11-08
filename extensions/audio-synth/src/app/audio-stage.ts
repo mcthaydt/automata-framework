@@ -95,6 +95,7 @@ export function audioStage(options: AudioStageOptions): GameAudioStart {
         director = createMusicDirector({ slots: content.slot ?? [], rules: content.music_rule ?? [] })
         directedFor = content
       }
+      player.setMaster(content.master_gain ?? 1)
       const picked = director.step(options.state?.() ?? {}, seconds)
       const slot = picked === null ? null : ((content.slot ?? []).find((each) => each.id === picked) ?? null)
       player.play(slot)

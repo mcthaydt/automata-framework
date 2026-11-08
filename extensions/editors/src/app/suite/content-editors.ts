@@ -21,7 +21,11 @@ export function contentEditors(options: ContentEditorOptions = {}): SuiteEditor<
       ...(options.outputs === undefined ? {} : { outputs: options.outputs }),
       ...(options.audio === undefined ? {} : { audio: options.audio.play }),
     }),
-    createAudio({ play: (options.audio ?? silentAudio).play }),
+    createAudio({
+      play: (options.audio ?? silentAudio).play,
+      check: (options.audio ?? silentAudio).check,
+      started: (options.audio ?? silentAudio).started,
+    }),
     createWriter(),
     createSequence(),
   ] as SuiteEditor<unknown>[]

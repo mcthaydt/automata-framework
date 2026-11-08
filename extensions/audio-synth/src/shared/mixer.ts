@@ -72,19 +72,27 @@ export interface Mixer {
 export interface MixerOptions {
   readonly port: MixerPort
   readonly ducks: readonly DuckRule[]
+  /** The overall volume, 0..1 (`master_gain`): every cue is played through a gain of it. Full when left out. */
+  readonly master?: number | undefined
 }
 
 /**
  * Makes a mixer that plays into the buses the game already has. It never makes an audio context or
  * a bus of its own.
  */
-export function createMixer({ port, ducks }: MixerOptions): Mixer {
+export function createMixer({ port, ducks, master = 1 }: MixerOptions): Mixer {
   let ears: Listener | null = null
   return {
     play(cue, options = {}) {
       let into: AudioNode = port.input(cue.bus)
       const ctx = into.context as BaseAudioContext
       const when = options.when ?? ctx.currentTime
+      if (master !== 1) {
+        const overall = ctx.createGain()
+        overall.gain.value = master
+        overall.connect(into)
+        into = overall
+      }
       if (cue.world === true && options.at !== undefined && ears !== null) {
         const { pan, gain } = spatial(ears, options.at)
         const g = ctx.createGain()
