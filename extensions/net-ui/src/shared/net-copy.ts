@@ -20,7 +20,7 @@ export const NET_COPY_EN: Readonly<Record<NetCopyKey, string>> = {
   'net.reconnect.countdown': 'Trying to get you back in. {seconds} s left.',
   'net.reconnect.expired': 'Could not reconnect. Check your connection, then leave and join again.',
   'net.reconnect.leave': 'Leave',
-  'net.error.REFUSED': 'The room refused you. Try another room.',
+  'net.error.REFUSED': 'This room won’t let you in right now. Try another room.',
   'net.error.VERSION_MISMATCH':
     'This room runs a different version. Reload the page to update, then try again.',
   'net.error.ROOM_NOT_FOUND': 'That room does not exist any more. Check the code and try again.',

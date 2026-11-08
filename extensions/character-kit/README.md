@@ -47,6 +47,6 @@ goes. `seated(skeleton, gait, seat, time)` gives the sitting pose.
 
 ## Try it
 
-`tests/fixtures/content` has eight hairstyles and eight seats to copy from. `pnpm --filter @automata/character-kit test`
+The repository's `extensions/character-kit/tests/fixtures/content` has eight hairstyles and eight seats to copy from (they are not in the npm package). `pnpm --filter @automata/character-kit test`
 checks everything, and `pnpm --filter @automata/character-kit goldens` re-records the pictures the tests compare
 against. Only do that on purpose, and say why in the commit.

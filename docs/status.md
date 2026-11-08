@@ -14,6 +14,9 @@ the task-by-task record; this page is the short version.
 - **Packages.** `@automata/framework` (everything a game imports in the browser), `-sim`, `-content` and `-tools`.
   `-content` has browser-safe entries for `game-config`, `locale`, `schema` and `palette`, so a dev server page never
   loads Node modules.
+- **Extensions.** Opt-in extras in `extensions/`, each `@automata/<name>` with its own README: physics, feel, audio-synth,
+  debug, puzzle, online play (net, net-ui, net-server), screens, the level and story tools (sectors, nav, systems,
+  narrative, cutscenes) and the 3D kits (character-kit, world-kit). Nine publish to npm; the rest are private for now.
 - **Tools.** One `automata` command: create-game, add, check, build, editor, ship. `automata --help` works.
 - **Examples.** 27 single-file examples and the content hot-reload demo.
 - **Editors.** Every unit test, 2D and 3D, runs in the gate; the 2D editors' layout, canvas and journey tests run in the 2D
