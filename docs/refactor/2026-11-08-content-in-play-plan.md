@@ -576,4 +576,10 @@ The Owner's rule (2026-11-08): content made in the editors must be seen in play,
   content build's temp file vanished between readdir and stat, and the Levels 2D save queue then stayed rejected, so
   later edits were never saved. Fixed both (list skips a vanished file; a save that throws shows as a refusal and the
   queue goes on), each with a failing test first.
+- 2026-11-08 Task 5 done: `ContentAnimation`, `ContentClip`, `animationSchema` in `@automata/content/level-2d`; the editor's
+  `EntityDef2D.animation` and project schema take it; the export carries it.
+- 2026-11-08 Task 5b (added on the coordinator's word, after Task 5): the gap Task 4 found. The Level panel shows a "Tiles
+  from" picker for a tiles or objects layer once the game has more than one tileset; choosing one is a step
+  (`setLayerTileset`: tiles the new set has keep their number, cells past its end are cleared in every level). The
+  journey now paints Decor with Add-tiles tile 5 and plays: the pixel at the cell is that tile's colour. iPad and phone.
 

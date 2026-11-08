@@ -7,16 +7,14 @@ import { boxOf, readPng } from '../harness/read-png.ts'
 import { runEditor } from '../harness/run-editor.ts'
 import { tilesPng } from '../harness/tiles-picture.ts'
 
-// What a person makes in the editors is what the game shows. A new game is made, a tile is painted in Levels, a picture
-// of tiles is added and the player start is given one of its tiles in Characters, all saved by the editor itself; the
-// game's own Play button then opens it, and the pixels on its canvas are looked at: the painted cell is drawn in the
-// colour the editor showed, and the player's square wears the picture the person added. Nothing here writes a game file.
+// What a person makes in the editors is what the game shows. A new game is made, a picture of tiles is added, Decor is
+// pointed at it and a cell painted with one of its tiles, and the player start is given another tile in Characters, all
+// saved by the editor itself; the game's own Play button then opens it, and the pixels on its canvas are looked at:
+// the painted cell and the player's square are drawn from the picture the person added. Nothing here writes a game file.
 
 const STARTER_TILE = 16
 /** The level's background, which the canvas shows around everything else. */
 const BACKGROUND: readonly [number, number, number] = [0x1b, 0x25, 0x40]
-/** The colour the starter tileset's tile 5 has in the editor's palette, which the game draws it in too. */
-const TILE_5: readonly [number, number, number] = [109, 90, 138]
 /** The added picture: 4 x 2 tiles of 16 px, each its own colour, so the tile the game drew shows in the pixel. */
 const KIT: readonly (readonly [number, number, number])[] = [
   [200, 50, 50],
@@ -28,9 +26,11 @@ const KIT: readonly (readonly [number, number, number])[] = [
   [250, 130, 20],
   [130, 20, 250],
 ]
+/** The tile the player start wears, and the tile painted on Decor: both from the picture the person added. */
 const KIT_TILE = 2
+const PAINTED_TILE = 5
 
-test('a tile painted and a character given a picture in the editors are what the played game draws', async ({
+test('a tile painted with an added picture and a character given one are what the played game draws', async ({
   page,
   context,
 }) => {
@@ -55,14 +55,16 @@ test('a tile painted and a character given a picture in the editors are what the
     await dialog.getByRole('button', { name: 'Add tiles' }).click()
     await expect(dialog).toBeHidden()
 
-    // Paint one cell of the Decor layer with the starter tileset's tile 5.
+    // Decor paints with the added picture's tiles now, and one cell of it gets tile 5.
     await page.getByRole('radio', { name: 'Level' }).click()
     await expect(page.locator('[data-level-canvas]')).toHaveAttribute('data-state', 'drawn')
     const layer = page.getByRole('button', { name: /^Decor/ })
     if (!(await layer.isVisible())) await page.getByRole('button', { name: 'Panel' }).click()
     await layer.click()
+    await page.getByRole('button', { name: /^Tiles from/ }).click()
+    await page.getByRole('option', { name: 'Kit' }).click()
     await page.getByRole('radio', { name: 'Brush' }).click()
-    await page.getByRole('radio', { name: 'Tile 5', exact: true }).click()
+    await page.getByRole('radio', { name: `Tile ${PAINTED_TILE}`, exact: true }).click()
     const canvas = page.locator('[data-level-canvas]')
     await expect(canvas).toHaveAttribute('data-state', 'drawn')
     const cell = { col: 10, row: 4 }
@@ -119,7 +121,7 @@ test('a tile painted and a character given a picture in the editors are what the
       (r + 0.5) * STARTER_TILE,
     ]
 
-    expect(at(...middle(cell.col, cell.row)), 'the painted cell').toEqual(TILE_5)
+    expect(at(...middle(cell.col, cell.row)), 'the painted cell').toEqual(KIT[PAINTED_TILE])
     // The player start stands at x 48, y 256 (its bottom edge); the square is drawn from the added picture's tile.
     expect(at(48, 256 - 12), 'the player start').toEqual(KIT[KIT_TILE])
     await play.close()
