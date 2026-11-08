@@ -1525,32 +1525,41 @@ listed as left with the reason.
   `packages/tools/src/features/boundaries/` (the fixture test first), then the shared-island rule, then run both on
   `packages/editor` and fix each finding by passing the function in from `app/editor-2d/` or `app/suite/`.
 
-### 2026-11-06, session 4 (Sonnet, high): task 4.4
+### 2026-11-06, session 4: task 4.4
 
-- Task 4.4 done on `claude/project-thread-nw26wp` (stacked on #412's head). `--forbid <root>:<package>,...` is
-  `features/boundaries/forbid.ts` (8 fixture tests; value, type, dynamic and re-export imports, tests and Svelte included, a
-  name in a string or comment ignored, `@pixi/3d-extras` is not `@pixi/3d`). `--features ... --shared-island kit` makes
-  `shared/kit/` import only itself (3 tests, two through the real CLI). Both are in the root `boundaries` script.
-- Findings on `packages/editor`: `--forbid` 0 (705 files). `--features --shared-island kit` 39 on the first run (the
-  kit island itself had none). How each went to 0, with no behaviour change (unit 3,270 before and after, every test
-  moved by name):
-  - The Level view's logic is a feature: `app/editor-2d/level-editor.ts` is `features/level/level-editor.ts`. The types
-    other areas read are shared: `EditHistory` and `projectHistory` (`shared/level-2d/model/edit-history.ts`),
-    `LevelTool` and `LevelEditorView` (`.../model/editor-view.ts`, which the canvas reads), `field-commit.ts`,
-    `tile-sprite.ts`, `palette-model.ts`, and the map's `world-links.ts` and `world-model.ts` (`.../model/world/`).
-  - The documents model that Home and the document screen both use is `shared/level-2d/documents/`: `editor-app.ts`,
-    `project-list.ts`, `read-document.ts`, and `open-flow-model.ts` with `openProblem`, which moved there from Home's model
-    (its test went with it). `createAppProfiles` stays in `app/editor-2d/profiles.ts`.
-  - The view router (`views.ts`) is in `app/editor-2d/`; Levels 2D as a suite editor (session, regions, status, the
-    suite editor) is `app/suite/levels-2d/`, since it composes the Level and document features.
-  - The in-memory suite ports (`memory-*.ts`, `scripted-ask.ts`) and `sample-ports.ts` with the sample game's editor list
-    are product code, because the suite page opens the sample when no checkout answers: they are
-    `features/suite/memory/`. `testing/ports` contracts import them. `GateRecords` is defined beside `createMemoryGates`.
-- Deviations: (1) the plan said to pass functions in from `app/`; for these files the code was shared or one feature's
-  own, so it moved instead (the spec allows "or moving a file that two features use to `shared/`"); (2) the sample
-  game's `floorfifty.editors.toml` moved with the ports, so two tests read it from there (4.5 renames it).
-- Browser (Chromium, `--project '*chromium*'`): see the row in `progress.md`.
-- Handoff: next is task 4.5. Run `style` with the editor added and rewrite the plan-ID comments by area.
+- Task 4.4 done: `--forbid` and `--shared-island` are in `packages/tools/src/features/boundaries/` (`forbid.ts`,
+  `features.ts`), each with its fixture test first (five `forbid` tests, three island tests, one for Svelte, four CLI
+  tests; the boundaries tests are 159, were 149). Both run in the root `boundaries` script:
+  `--features packages/editor --shared-island kit` and `--forbid packages/editor:@pixi/3d,@mcthaydt/automata-editor-3d,
+  @mcthaydt/automata-render-pixi3d,@mcthaydt/automata-figures`.
+- Findings. First run: `--forbid` 0 and `--shared-island kit` 0, so the kit island and the 3D wall already held. `--features`
+  found 39 in `.ts` files. It did not read Svelte components, which carry most of the views' imports, so it now does
+  (`collectPlatformSources`, the other packages stay at 0): 77 in all. Fixed to 0, with no behaviour change (unit 3,270 =
+  3,270; Chromium 527 pass and 6 skipped, as in 4.3):
+  - Moved into `shared/level-2d/editor/`: `level-editor` (was `app/editor-2d/`), `edit-history`, `field-commit`,
+    `palette-model`, `inspector-model` (were in `features/level`), `tile-sprite` (was in the app). Level, map, tiles and
+    characters all used them.
+  - Moved into `shared/level-2d/model/world/`: `world-links`, `world-model` (map's, used by the canvas and the view props).
+  - Moved into `shared/level-2d/session/`: `open-flow-model`, `view-props` (document's), and two new files cut out of
+    `app/editor-2d/` and `home-model`: `editor-app-types.ts` (`EditorApp`, `OpenDocument` and the outcomes, `ProjectEntry`)
+    and `open-problem.ts`. The app implements the types; features depend only on them.
+  - Moved into `shared/level-2d/profiles/`: `read-document`, and `profiles.ts` as `app-profiles.ts` (the one file that
+    registers profiles; the 2D architecture test's `REGISTRATION_FILE` and its generic folders follow).
+  - `DocumentScreen` takes the view table as a `viewOf` prop; `app/editor-2d/views.ts` owns it (it names every feature).
+  - The Levels 2D suite editor (`levels-2d-session`, its two components, the entry) moved from `features/suite/` to
+    `app/suite/levels-2d/`: it composes the level and document features, which a feature may not.
+  - The in-memory suite ports (`memory-*`, `scripted-ask`) moved from `testing/ports/` to `shared/kit/ports/memory/`, and
+    the sample game (`sample-ports.ts`, its editor list as `sample-game.editors.toml`) to `features/suite/shell/`: the
+    suite page's sample mode is product code, and product code never imports `testing/`. `GateRecords` sits with
+    `memory-gates`; `testing/ports` re-exports it.
+  - Tests of moved files moved with them (mirrored folders). The API reports did not change.
+- Changeset: `.changeset/check-boundaries-forbid.md` (patch, `-tools`).
+- Gates run: `pnpm lint`, typecheck of `editor`, `editor-3d` and `-tools`, `pnpm boundaries`, `pnpm style`, `pnpm knip`,
+  `pnpm check:changesets`, the editor's unit tests and Chromium browser projects, `pnpm build`, `pnpm api-report`. Not run:
+  WebKit and Firefox (not installed here), `editor-3d`'s own unit and browser suites (the 3D workflow), hosted CI.
+- CI fixes on the way: `editor.api.md` was stale after 4.3 (`journeyInstance`), and the parity-across-packages check
+  expected a single `browsers` project; it now accepts any project names.
+- Handoff: next is task 4.5. Run the style roots on `packages/editor` (about 943 plan-ID comments), area by area.
 
 ### 2026-11-06, session 4 (continued): task 4.5
 
