@@ -19,9 +19,20 @@ interface Props {
   /** How much bigger than the smallest size the diagram is drawn; never below 1, so no target is under 44 px. */
   zoom: number
   onselect: (selection: Selection) => void
+  /** While Watch runs: the mode this character is in now, and the switch that fired last. */
+  live?:
+    | {
+        readonly mode: string | undefined
+        readonly flash: { readonly from: string; readonly to: string } | undefined
+      }
+    | undefined
 }
 
-const { character, names, selected, zoom, onselect }: Props = $props()
+const { character, names, selected, zoom, onselect, live }: Props = $props()
+
+// The "Any mode" arrow also fires when a switch from any mode does.
+const fired = (from: string, to: string): boolean =>
+  live?.flash !== undefined && live.flash.to === to && (from === live.flash.from || from === '*')
 
 // Drawn at the smallest size a finger can use: a box is 64 px tall and a label 52.
 const SIZE = { box: { w: 160, h: 64 }, gap: 168, label: 52, labelW: 144 }
@@ -75,6 +86,7 @@ const TAGS = { always: '', hears: 'when it hears', stops: 'when it stops' } as c
       class="line"
       data-timing={arrow.timing}
       data-selected={hasSwitch(arrow.switches)}
+      data-flash={fired(arrow.from, arrow.to)}
       points={arrow.points.map(([x, y]) => `${x},${y}`).join(' ')}
       marker-end="url(#arrow-head)"
     />
@@ -112,6 +124,7 @@ const TAGS = { always: '', hears: 'when it hears', stops: 'when it stops' } as c
       tabindex="0"
       data-start={box.start}
       data-still={box.still}
+      data-live={live?.mode === box.mode}
       aria-pressed={isMode(box.mode)}
       aria-label={`${boxName(box.mode)}, ${speedWords(box.mode)}${box.start ? ', where it starts' : ''}`}
       onclick={pick({ kind: 'mode', mode: box.mode })}
@@ -156,6 +169,25 @@ const TAGS = { always: '', hears: 'when it hears', stops: 'when it stops' } as c
   }
   .box[data-still='true'] rect:not(.start) {
     stroke-dasharray: 2 3;
+  }
+  .box[data-live='true'] rect:not(.start) {
+    stroke: var(--color-accent);
+    stroke-width: 3;
+  }
+  .line[data-flash='true'] {
+    stroke: var(--color-accent);
+    stroke-width: 3;
+    animation: flash 1.2s ease-out;
+  }
+  @keyframes flash {
+    from {
+      stroke-width: 6;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .line[data-flash='true'] {
+      animation: none;
+    }
   }
   .start {
     fill: var(--color-accent);

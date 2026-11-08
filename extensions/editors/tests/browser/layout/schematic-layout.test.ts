@@ -37,11 +37,11 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
-async function start(size: (typeof SIZES)[number]) {
+async function start(size: (typeof SIZES)[number], gameUrl?: string) {
   await page.viewport(size.width, size.height)
   const session = new SchematicSession(
     ports,
-    { usesSystems: true, listsSystems: true, listsNav: true, gameUrl: undefined, twoD: false },
+    { usesSystems: true, listsSystems: true, listsNav: true, gameUrl, twoD: false },
     ['bay'],
   )
   await session.select('bay')
@@ -88,5 +88,25 @@ describe.each(SIZES)('the diagram on a $name', (size) => {
     buttons.find((b) => b.textContent?.trim() === 'Fit')?.click()
     await new Promise((resolve) => requestAnimationFrame(resolve))
     expect(svg?.getBoundingClientRect().width ?? 0).toBeCloseTo(before, 0)
+  })
+})
+
+describe.each(SIZES)('Watch on a $name', (size) => {
+  test('opens beside the diagram without widening the page, and its button is at least 44 px', async () => {
+    await start(size, 'http://localhost:5173/')
+    const toggle = [...document.querySelectorAll('button')].find(
+      (b) => b.textContent?.trim() === 'Watch it run',
+    )
+    expect(toggle).toBeDefined()
+    expect(toggle?.getBoundingClientRect().height).toBeGreaterThanOrEqual(44)
+    toggle?.click()
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    const pane = document.querySelector<HTMLElement>('section[aria-label="Watch"]')
+    expect(pane).not.toBeNull()
+    expect(pane?.getBoundingClientRect().width ?? 0).toBeLessThanOrEqual(window.innerWidth)
+    expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(window.innerWidth)
+    // The diagram is still there to look at, with its targets still as large as before.
+    for (const target of document.querySelectorAll<SVGGElement>('svg [role="button"]'))
+      expect(target.getBoundingClientRect().height).toBeGreaterThanOrEqual(44)
   })
 })

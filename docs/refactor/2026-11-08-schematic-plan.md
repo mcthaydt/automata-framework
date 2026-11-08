@@ -160,8 +160,8 @@ patrol scene and its Task 16 `examples/2d-story`. Tasks 1 to 7 and 9 to 13 need 
 
 **Interfaces:** debug: `forwardEvents(bus: BusPort, location: Location, parent: Window): () => void`: reads `af-watch` (an origin) and `events` (comma list) from the page's address; when both are present and `parent !== window`, subscribes to `sim.events` and posts `{ type: 'af-sim-event', name, payload }` for each named event to `parent` with `targetOrigin` = that origin. Editor: `watchBridge(frame: HTMLIFrameElement, gameOrigin: string, on: (event) => void)`.
 
-- [ ] **Step 1: Failing tests:** debug posts nothing unframed, nothing without `af-watch`, never with `*` as the target origin, and only the named events; the editor ignores a message whose source is not the frame's window or whose origin is not the game's; a good `systems.mode` lights the box, flashes the from-to arrow (or the Any-mode arrow), and logs "12.4 s: guard went from Patrol to Hunt"; with no game URL the pane shows the Tuner's line; with the game up but no event within the first restart, the "Ask whoever writes your game's code to add the debug extension" line shows; while the file has problems, the pane says the game is still playing the last version that worked.
-- [ ] **Steps 2 to 4:** see them fail; implement; pass. **Step 5:** Commit `feat(editors,debug): Watch a character's modes as the game runs`.
+- [x] **Step 1: Failing tests:** debug posts nothing unframed, nothing without `af-watch`, never with `*` as the target origin, and only the named events; the editor ignores a message whose source is not the frame's window or whose origin is not the game's; a good `systems.mode` lights the box, flashes the from-to arrow (or the Any-mode arrow), and logs "12.4 s: guard went from Patrol to Hunt"; with no game URL the pane shows the Tuner's line; with the game up but no event within the first restart, the "Ask whoever writes your game's code to add the debug extension" line shows; while the file has problems, the pane says the game is still playing the last version that worked.
+- [x] **Steps 2 to 4:** see them fail; implement; pass. **Step 5:** Commit `feat(editors,debug): Watch a character's modes as the game runs`.
 
 ### Task 12: Fair play
 
@@ -264,3 +264,11 @@ template's controls. It moves no other 3D hash, golden or replay.
   (`rule-text.ts`, the same text rewrite as a switch, read back with both readers; the last rule out puts `rules = []`
   back). The rule menus offer exactly what the game's own checks accept (`rule-menu.ts` asks `checkSystems`, so the list
   cannot drift). A rule the design notes point to cannot be removed, in words. Editors unit 297 pass.
+- 2026-11-08, Task 11 (Watch) done in three commits: `@automata/editor`'s kit exports the Tuner's frame as `GameFrame`
+  (gains `query` and `onframe`); `@automata/debug` gains `forwardEvents` (wired in the overlay, changeset added); Schematic gets
+  `WatchPane`, `watch-bridge.ts`, `watch-log.ts` and the lit diagram. Ruling: debug also posts one `af-watch-ready` message
+  when it starts listening, which the plan did not name; without it a quiet game cannot be told from one with no debug
+  extension, and the "Ask whoever writes your game's code" line would be a guess. Cost if wrong: one extra message type.
+  Ruling: seconds are the sim tick over `tickHz` (new optional field on `installDebug`, default 60), computed in debug.
+  Evidence: editors unit 315 pass, debug unit 74 pass, editor-package tuner-game and kit tests pass, Chromium layout 8 pass
+  (6 diagram, 2 Watch at 390x844 and 820x1180), typechecks and biome clean.

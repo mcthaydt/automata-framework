@@ -10,6 +10,8 @@ import { namesOf } from './names.ts'
 import { modeWords } from './pieces/piece.ts'
 import SwitchList from './SwitchList.svelte'
 import type { SchematicSession } from './schematic-session.svelte.ts'
+import WatchPane from './WatchPane.svelte'
+import { EMPTY_WATCH, type WatchState } from './watch-log.ts'
 
 const { session }: { session: SchematicSession } = $props()
 const character = $derived(session.character)
@@ -21,6 +23,16 @@ const names = $derived(
 )
 let tab = $state<'diagram' | 'list'>('diagram')
 let zoom = $state(1)
+let watching = $state(false)
+let heard = $state<WatchState>(EMPTY_WATCH)
+const live = $derived(
+  watching && character !== undefined
+    ? {
+        mode: heard.modes[character.id],
+        flash: heard.flash?.agent === character.id ? heard.flash : undefined,
+      }
+    : undefined,
+)
 const notes = $derived(
   character === undefined
     ? []
@@ -39,7 +51,12 @@ const notes = $derived(
       <button type="button" role="tab" aria-selected={tab === 'diagram'} onclick={() => (tab = 'diagram')}>Diagram</button>
       <button type="button" role="tab" aria-selected={tab === 'list'} onclick={() => (tab = 'list')}>List</button>
     </div>
+    <button type="button" class="watch-toggle" aria-pressed={watching} onclick={() => (watching = !watching)}>Watch it run</button>
   </header>
+
+  {#if watching}
+    <WatchPane {session} onchange={(state) => (heard = state)} />
+  {/if}
 
   <section class="panel" data-active={tab === 'diagram'} aria-label="Diagram">
     <div class="tools">
@@ -48,7 +65,7 @@ const notes = $derived(
       <Button onclick={() => (zoom = 1)}>Fit</Button>
     </div>
     <div class="scroll" tabindex="-1">
-      <Diagram {character} {names} selected={session.selected} {zoom} onselect={(selection) => (session.selected = selection)} />
+      <Diagram {character} {names} selected={session.selected} {zoom} {live} onselect={(selection) => (session.selected = selection)} />
     </div>
     {#if notes.length > 0}
       <ul class="notes">
@@ -96,6 +113,17 @@ const notes = $derived(
     font: var(--text-body-13);
     cursor: pointer;
   }
+  .watch-toggle {
+    min-height: var(--size-hit);
+    padding: 0 var(--space-4);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--edge-sm);
+    background: transparent;
+    color: var(--color-text-primary);
+    font: var(--text-body-13);
+    cursor: pointer;
+  }
+  .watch-toggle[aria-pressed='true'],
   .tabs button[aria-selected='true'] {
     border-color: var(--color-accent);
     background: var(--color-accent-soft);

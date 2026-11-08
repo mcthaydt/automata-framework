@@ -56,6 +56,8 @@ export function forwardEvents(
   )
   if (origin === undefined || names.size === 0 || !framed(parent)) return () => {}
   const hz = options.tickHz ?? 60
+  // Said once, so the editor can tell a game that is quiet from one that cannot say anything at all.
+  parent.postMessage({ type: 'af-watch-ready' }, origin)
   return bus.subscribe('sim.step', (fact) => {
     if (!isStep(fact)) return
     for (const event of fact.events) {

@@ -38,8 +38,8 @@ describe('forwardEvents', () => {
         { type: 'systems.noise', payload: { kind: 'step' } },
       ),
     )
-    expect(up.postMessage).toHaveBeenCalledTimes(1)
-    expect(up.postMessage).toHaveBeenCalledWith(
+    expect(up.postMessage).toHaveBeenCalledTimes(2)
+    expect(up.postMessage).toHaveBeenLastCalledWith(
       {
         type: 'af-sim-event',
         name: 'systems.mode',
@@ -51,12 +51,20 @@ describe('forwardEvents', () => {
     )
   })
 
+  it('says once that it is listening, so the editor can tell a quiet game from one that cannot say', () => {
+    const { bus } = fakeBus()
+    const up = parent()
+    forwardEvents(bus, { search: `?af-watch=${encodeURIComponent(EDITOR)}&events=systems.mode` }, up)
+    expect(up.postMessage).toHaveBeenCalledTimes(1)
+    expect(up.postMessage).toHaveBeenCalledWith({ type: 'af-watch-ready' }, EDITOR)
+  })
+
   it('counts seconds at the sim’s own rate when the game says it', () => {
     const { bus, publish } = fakeBus()
     const up = parent()
     forwardEvents(bus, { search: `?af-watch=${encodeURIComponent(EDITOR)}&events=a` }, up, { tickHz: 30 })
     publish('sim.step', step(90, { type: 'a', payload: 1 }))
-    expect(up.postMessage.mock.calls[0]?.[0]).toMatchObject({ tick: 90, seconds: 3 })
+    expect(up.postMessage.mock.calls[1]?.[0]).toMatchObject({ tick: 90, seconds: 3 })
   })
 
   it('names several events with a comma, and posts each one', () => {
@@ -67,7 +75,7 @@ describe('forwardEvents', () => {
       'sim.step',
       step(1, { type: 'a', payload: 1 }, { type: 'b', payload: 2 }, { type: 'c', payload: 3 }),
     )
-    expect(up.postMessage.mock.calls.map((c) => (c[0] as { name: string }).name)).toEqual(['a', 'b'])
+    expect(up.postMessage.mock.calls.slice(1).map((c) => (c[0] as { name: string }).name)).toEqual(['a', 'b'])
   })
 
   it('does not even listen when the page is not framed', () => {
@@ -99,6 +107,7 @@ describe('forwardEvents', () => {
     const off = forwardEvents(bus, { search: `?af-watch=${encodeURIComponent(EDITOR)}&events=a` }, up)
     off()
     expect(count('sim.step')).toBe(0)
+    up.postMessage.mockClear()
     publish('sim.step', step(1, { type: 'a', payload: 1 }))
     expect(up.postMessage).not.toHaveBeenCalled()
   })
