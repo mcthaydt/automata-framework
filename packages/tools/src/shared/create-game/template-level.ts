@@ -8,7 +8,13 @@ import type { TemplateFile } from './template-file.ts'
 export const LEVEL_FILES: readonly TemplateFile[] = [
   {
     path: 'src/features/level/read-level.ts',
-    content: () => `import { type ContentLevel, entitiesOf, intGridRows } from '@automata/content/level-2d'
+    content: () => `import {
+  type ContentLevel,
+  type ContentProject,
+  type ContentWorld,
+  entitiesOf,
+  intGridRows,
+} from '@automata/content/level-2d'
 
 // Reads a level the 2D editor exported into what this game plays: its size, its walls and where the player starts.
 // Pure, so the sim can hold the result.
@@ -38,6 +44,20 @@ export function levelOf(level: ContentLevel): Level {
   if (starts.length !== 1 || start === undefined)
     throw new Error(\`Level "\${level.id}" needs one player start. It has \${starts.length}.\`)
   return { width: level.size.w, height: level.size.h, tile: level.size.w / columns, cells, start: { x: start.x, y: start.y } }
+}
+
+/**
+ * The level the game opens on: the first one the world places that the game has. It is not fixed to one id, because the
+ * editor saves a level under its own name (\`level-1\` from a template, or whatever a person renamed it to).
+ */
+export function startLevelId(world: ContentWorld, levels: Readonly<Record<string, ContentLevel>>): string {
+  for (const placed of world.worlds.flatMap((each) => each.placements)) if (placed.level in levels) return placed.level
+  throw new Error('There is no level to play. Open the editor, make a level and press Save.')
+}
+
+/** The characters this game draws itself or keeps out of the picture, among those the project defines. */
+export function liveCharacters(project: ContentProject): readonly string[] {
+  return ['player-start', 'area'].filter((id) => project.entities.some((def) => def.id === id))
 }
 
 /** The level a system finds in \`ctx.content\`: the app gives the sim \`LEVEL\` as its content (src/app/game.ts). */
@@ -77,6 +97,7 @@ declare module 'virtual:automata/content' {
   export const simContent: { readonly levels?: Readonly<Record<string, unknown>> }
   export const content: {
     readonly project?: unknown
+    readonly world?: unknown
     readonly controls?: unknown
     readonly levels?: Readonly<Record<string, unknown>>
     readonly feel?: Readonly<Record<string, unknown>>
@@ -87,18 +108,23 @@ declare module 'virtual:automata/content' {
   },
   {
     path: 'src/features/level/level.ts',
-    content: () => `import { simContent } from 'virtual:automata/content'
-import { levelContentSchema } from '@automata/content/level-2d'
-import { type Level, levelOf } from './read-level.ts'
+    content: () => `import { content, simContent } from 'virtual:automata/content'
+import { levelContentSchema, worldContentSchema } from '@automata/content/level-2d'
+import { type Level, levelOf, startLevelId } from './read-level.ts'
 
-// The level this game plays: content/levels/start.toml, which the 2D editor's Save writes, compiled by the content
-// plugin (vite.config.ts). Change it in the editor (\`pnpm exec automata editor\`), then press Save.
+// The level this game plays: the first one content/world.toml places, which the 2D editor's Save writes into
+// content/levels/, compiled by the content plugin (vite.config.ts). Change it in the editor (\`pnpm exec automata editor\`),
+// then press Save.
 
-const compiled = simContent.levels?.start
-if (compiled === undefined) throw new Error('There is no level "start". Open the level in the editor and press Save.')
+const levels = Object.fromEntries(
+  Object.entries(simContent.levels ?? {}).map(([id, level]) => [id, levelContentSchema.parse(level)]),
+)
+
+/** The id of the level the game opens on. */
+export const START: string = startLevelId(worldContentSchema.parse(content.world), levels)
 
 /** The level, read once: its size, walls and player start. The sim gets it as its content. */
-export const LEVEL: Level = levelOf(levelContentSchema.parse(compiled))
+export const LEVEL: Level = levelOf(levels[START]!)
 `,
   },
   {
@@ -106,6 +132,8 @@ export const LEVEL: Level = levelOf(levelContentSchema.parse(compiled))
     content: () => `import { content } from 'virtual:automata/content'
 import { levelContentSchema, projectContentSchema } from '@automata/content/level-2d'
 import { levelScene } from '@automata/framework'
+import { START } from './level.ts'
+import { liveCharacters } from './read-level.ts'
 
 // What the game shows of the level: core draws the tiles, auto tiles, objects and placed characters the editor made,
 // from the same files the sim reads. Press Save in the editor and the game shows the change.
@@ -130,7 +158,7 @@ const levels = Object.fromEntries(
 /**
  * The scene. The square is the player start, so the game draws it itself (\`live\`); an area is a zone, not a picture.
  */
-export const LEVEL_SCENE = levelScene({ project, levels, images, start: 'start', live: ['player-start', 'area'] })
+export const LEVEL_SCENE = levelScene({ project, levels, images, start: START, live: liveCharacters(project) })
 `,
   },
 ]

@@ -4702,3 +4702,11 @@ type OpenResult = {
     readonly issues?: readonly OpenIssue[] | undefined;
 };
 ```
+
+## `./level-templates`
+
+### `newProject` (function)
+
+```ts
+function newProject(templateId: string): Project;
+```

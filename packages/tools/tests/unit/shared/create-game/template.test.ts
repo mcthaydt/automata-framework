@@ -219,8 +219,8 @@ describe('the new game shows what the editor made', () => {
   it('reads its pictures from assets/, where Add tiles writes them, and leaves the player start to its own view', () => {
     const scene = read('src/features/level/level-scene.ts')
     expect(scene).toContain("import.meta.glob('/assets/*.{png,webp,jpg,jpeg}'")
-    expect(scene).toContain("live: ['player-start', 'area']")
-    expect(scene).toContain("start: 'start'")
+    expect(scene).toContain('live: liveCharacters(project)')
+    expect(scene).toContain('start: START')
   })
 
   it('ships an Area definition, so a person can place and stretch areas in Levels', () => {
