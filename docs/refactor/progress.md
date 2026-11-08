@@ -446,7 +446,7 @@ sentences start with a capital and say what to do; W12 the guide gives `pnpm bui
 create-game line. Run: tools unit 775, editor unit and layout (Chromium) for the changed files, all 22 journeys at iPad and
 phone size in Chromium, the loop by hand outside the repository (create-game, editor, Game menu on a phone, Publish, a
 failed Publish with a syntax error, with `eval`, with a hand-edited level, Play off with no packages, `--lan`), `pnpm
-check` green except the site Start test, which is fixed and passes. Not run: WebKit, Firefox, the GPU runner.
+check` green except the site Start test, which is fixed and passes. Not run: WebKit, Firefox, the GPU runner. CI's layout suites then caught that the phone Game menu also swallowed a change set's Publish (`pnpm check` runs no browser layout suites): the menu now takes only the game's own zip, with a unit test and the layout suites in Chromium (mouse and touch) green.
 
 **Where to resume (2026-11-08, session us0s9k, 15.1b (a) to (d) and (f) half done):** branch `claude/project-thread-us0s9k`, PR #473 stacked on #472. Next is 15.1b (e), then the last journey and the site's Try-it page, then 15.2 to 15.4; the plan's log ("Task 15.1b" entries) has each ruling and a design note for (e). `pnpm install --frozen-lockfile` first in a fresh container; a commit that exports a type needs `pnpm build`, `pnpm api-report --update` first or the hook fails on the editor report; the served journeys run with `pnpm exec playwright test -c playwright.journeys.config.ts --project=editor-ipad-chromium` in `packages/editor` (`PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`, tools built).
 

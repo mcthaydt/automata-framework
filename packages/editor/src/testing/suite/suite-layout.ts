@@ -42,7 +42,8 @@ export async function openSuite(
   const started: SuiteHandle = await startSuite(target, {
     window,
     document,
-    ports: await samplePorts(files),
+    // A served game has no change set; the sample (no game options) has one.
+    ports: await samplePorts(files, Object.keys(game).length > 0 ? { changeSet: false } : {}),
     suite: createSuite({ editors }),
     ...game,
   })

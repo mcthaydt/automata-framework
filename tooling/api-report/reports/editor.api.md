@@ -4463,7 +4463,9 @@ const SAMPLE_GAME: Readonly<Record<string, string>>;
 ### `samplePorts` (function)
 
 ```ts
-function samplePorts(files: Readonly<Record<string, string>>): Promise<SuitePorts>;
+function samplePorts(files: Readonly<Record<string, string>>, options?: {
+    readonly changeSet?: false;
+}): Promise<SuitePorts>;
 ```
 
 ### `startSuite` (function)

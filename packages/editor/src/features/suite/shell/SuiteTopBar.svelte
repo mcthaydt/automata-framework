@@ -45,6 +45,8 @@ interface Props {
   onplayoff: () => void
   /** A phone: Play and Publish share one Game menu that stays in view, instead of two buttons the bar has no room for. */
   gameMenu: boolean
+  /** Publish is the game's own zip (not a change set's Publish): on a phone only that one moves into the Game menu. */
+  publishIsGame: boolean
   /** Opens Publish; `undefined` hides it. */
   onpublish: (() => void) | undefined
   /** There is something to publish: Publish is the primary; otherwise it is quiet and its dialog says why. */
@@ -67,6 +69,7 @@ const {
   playOff,
   onplayoff,
   gameMenu,
+  publishIsGame,
   onpublish,
   shippable,
   tools,
@@ -80,7 +83,7 @@ const gameItems = $derived([
         { id: 'play', label: 'Play your game', detail: playUrl === undefined ? 'Off' : undefined },
       ]
     : []),
-  ...(onpublish !== undefined ? [{ id: 'publish', label: 'Make it ready to upload' }] : []),
+  ...(publishIsGame && onpublish !== undefined ? [{ id: 'publish', label: 'Make it ready to upload' }] : []),
 ])
 
 function chooseGame(id: string): void {
@@ -114,7 +117,9 @@ function chooseGame(id: string): void {
   {#if !gameMenu}
     {#if playUrl !== undefined}<a class="play" href={playUrl} target="_blank" rel="noreferrer">Play</a>
     {:else if playOff !== undefined}<Button aria-disabled="true" class="play-off" onclick={onplayoff}>Play</Button>{/if}
-    {#if onpublish !== undefined}<Button variant={shippable ? 'primary' : 'plain'} onclick={onpublish}>Publish</Button>{/if}
+  {/if}
+  {#if onpublish !== undefined && !(gameMenu && publishIsGame)}
+    <Button variant={shippable ? 'primary' : 'plain'} onclick={onpublish}>Publish</Button>
   {/if}
   {@render tools?.()}
 </div>

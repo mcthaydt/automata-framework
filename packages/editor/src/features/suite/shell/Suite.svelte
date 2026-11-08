@@ -233,6 +233,7 @@ function openCard(card: EditorCard): void {
       {playOff}
       onplayoff={() => (playOffOpen = true)}
       gameMenu={mode === 'compact'}
+      publishIsGame={!editing.canShip() && publish !== undefined}
       onpublish={editing.canShip()
         ? () => (publishing = true)
         : publish !== undefined
