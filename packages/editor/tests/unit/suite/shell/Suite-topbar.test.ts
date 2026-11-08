@@ -35,6 +35,7 @@ async function start(
   options: {
     sample?: boolean
     game?: string
+    gameKey?: string
     kept?: boolean
     where?: 'device' | 'nowhere' | 'folder'
     initialEditor?: string
@@ -158,5 +159,17 @@ describe("the suite's top bar", () => {
     screen.getByRole('button', { name: 'Home' }).click()
     await screen.findByRole('heading', { name: 'What do you want to change?' })
     expect(heard).toEqual([undefined])
+  })
+
+  it('on the person’s own game, the title goes back to all their games', async () => {
+    await start({ game: 'Lantern Run', gameKey: 'lantern-run', where: 'device' })
+    const title = await screen.findByRole('link', { name: 'Lantern Run: all your games' })
+    expect(title).toHaveAttribute('href', '?games')
+  })
+
+  it('on a served game, the title is only its name', async () => {
+    await start({ game: 'Emberwick' })
+    await screen.findByText('Emberwick')
+    expect(screen.queryByRole('link', { name: /all your games/ })).toBeNull()
   })
 })

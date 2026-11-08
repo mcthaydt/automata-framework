@@ -51,11 +51,12 @@
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "dependencies": {
+    "@automata/content": "workspace:*",
+    "@automata/framework": "workspace:*",
     "@decimalturn/toml-patch": "3.3.1",
     "@fontsource-variable/geist": "5.3.0",
     "@fontsource-variable/geist-mono": "5.3.0",
-    "@automata/framework": "workspace:*",
-    "@automata/content": "workspace:*",
+    "fflate": "0.8.3",
     "pixi.js": "8.22.0",
     "smol-toml": "1.9.0",
     "svelte": "5.57.1",
@@ -63,10 +64,10 @@
   },
   "devDependencies": {
     "@automata/playwright-preset": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
     "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@testing-library/dom": "10.4.2",
-    "@automata/vitest-preset": "workspace:*",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/svelte": "5.4.2",
     "@testing-library/user-event": "14.6.7",

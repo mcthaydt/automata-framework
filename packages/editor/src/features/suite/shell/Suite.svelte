@@ -313,6 +313,7 @@ function openCard(card: EditorCard): void {
     <SuiteTopBar
       title={sample ? 'Sample game' : (game ?? 'Your game')}
       {line}
+      titleHref={gameKey !== undefined ? '?games' : undefined}
       pills={pillsToShow(pills)}
       {compact}
       onlocate={locate}

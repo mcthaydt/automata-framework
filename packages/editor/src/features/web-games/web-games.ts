@@ -7,8 +7,8 @@ import type { ProjectStore } from '../../shared/kit/storage/project-store'
 import { openPrivateStores } from '../../shared/kit/storage/workspace'
 import {
   type GameEntry,
-  type LastOpened,
   gameId,
+  type LastOpened,
   newestFirst,
   parseIndex,
   rebuiltIndex,
@@ -28,6 +28,11 @@ export interface WebGamesEnv {
   now(): number
 }
 
+/** A file of a game: text, or bytes for a picture or a sound. */
+export type GameFile =
+  | { readonly path: string; readonly text: string }
+  | { readonly path: string; readonly bytes: Uint8Array }
+
 export interface WebGames {
   /** False when nothing is kept on this device. */
   readonly kept: boolean
@@ -35,7 +40,7 @@ export interface WebGames {
   readonly reason?: string | undefined
   /** Newest change first. */
   list(): Promise<readonly GameEntry[]>
-  create(title: string, files: readonly { path: string; text: string }[]): Promise<GameEntry>
+  create(title: string, files: readonly GameFile[]): Promise<GameEntry>
   /** The files of one game. */
   store(id: string): Promise<ProjectStore>
   /** The game changed just now. */
@@ -106,7 +111,7 @@ export async function openWebGames(env: WebGamesEnv): Promise<WebGames> {
         )
         const store = await gameStore(id)
         for (const file of files) {
-          const written = await store.write(file.path, file.text)
+          const written = await store.write(file.path, 'bytes' in file ? file.bytes : file.text)
           if (!written.ok) throw new Error(written.message)
         }
         const entry: GameEntry = { id, title: title.trim() || id, changed: env.now() }
@@ -131,7 +136,10 @@ export async function openWebGames(env: WebGamesEnv): Promise<WebGames> {
         }
         await save()
       }),
-    last: () => Promise.resolve(index.last && index.games.some((game) => game.id === index.last?.game) ? index.last : undefined),
+    last: () =>
+      Promise.resolve(
+        index.last && index.games.some((game) => game.id === index.last?.game) ? index.last : undefined,
+      ),
     remember: (game, editor) =>
       change(async () => {
         index = { ...index, last: editor === undefined ? { game } : { game, editor } }

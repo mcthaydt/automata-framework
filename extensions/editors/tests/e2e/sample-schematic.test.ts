@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 // A person trying the editors on the site opens Schematic, lengthens how far the guard sees, and takes it back with
 // Undo. The page has no server behind it, so the game is the sample held in memory.
 test('Schematic on the sample game: the guard sees further, then Undo puts it back', async ({ page }) => {
-  await page.goto('/suite.html')
+  await page.goto('/suite.html?sample')
   await page.getByText('Schematic', { exact: true }).last().click()
   await page.getByText('Hall', { exact: true }).first().click()
   await expect(page.getByRole('region', { name: 'Schematic' })).toBeVisible()

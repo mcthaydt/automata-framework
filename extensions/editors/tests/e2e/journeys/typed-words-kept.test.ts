@@ -111,7 +111,7 @@ test('on the web, with no editor server: words typed in Writer survive a reload 
   try {
     const first = await open()
     const page = await first.newPage()
-    await page.goto(site.url)
+    await page.goto(`${site.url}?sample`)
     await openFromRail(page, 'Writer')
     const line = page.getByRole('textbox', { name: 'What it says' }).first()
     await expect(line).toBeVisible()
@@ -125,7 +125,7 @@ test('on the web, with no editor server: words typed in Writer survive a reload 
     await first.close()
     const second = await open()
     const again = await second.newPage()
-    await again.goto(site.url)
+    await again.goto(`${site.url}?sample`)
     await openFromRail(again, 'Writer')
     await expect(again.getByRole('textbox', { name: 'What it says' }).first()).toHaveValue(TYPED)
     await second.close()

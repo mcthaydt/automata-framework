@@ -20,6 +20,8 @@ import SuitePills from './SuitePills.svelte'
 interface Props {
   /** The game's name, on a phone too: it is how a person knows which game this is. `undefined` hides it. */
   title: string | undefined
+  /** Where the title goes when pressed (the person's list of games, on the web); the title is plain text without it. */
+  titleHref?: string | undefined
   /** Where the work stands, in words, at every size: Saving…, Saved on this device, Not saved: … (`saveLine`). */
   line: SaveLine | undefined
   pills: readonly Pill[]
@@ -52,6 +54,7 @@ interface Props {
 
 const {
   title,
+  titleHref,
   line,
   pills,
   compact,
@@ -86,7 +89,7 @@ function chooseGame(id: string): void {
 }
 </script>
 
-{#if title !== undefined}<span class="brand">{title}</span>{/if}
+{#if title !== undefined}{#if titleHref !== undefined}<a class="brand home-link" href={titleHref} aria-label={`${title}: all your games`}>{title}</a>{:else}<span class="brand">{title}</span>{/if}{/if}
 {#if line !== undefined}
   <span class="where" data-state={line.state} role="status">
     <Icon name={line.state === 'failed' ? 'alert' : 'check'} size={16} />{line.words}
@@ -128,6 +131,20 @@ function chooseGame(id: string): void {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .home-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--size-hit);
+    color: inherit;
+    text-decoration: none;
+  }
+  .home-link:hover {
+    text-decoration: underline;
+  }
+  .home-link:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
   }
   .where {
     display: flex;

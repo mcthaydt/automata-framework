@@ -45,5 +45,11 @@ export async function openContentPage(env: ContentPageEnv): Promise<ContentPage>
       reason: games.reason,
     },
   })
-  return { kind: 'game', opened, game, games, ...(last?.game === game.id && last.editor !== undefined ? { editor: last.editor } : {}) }
+  return {
+    kind: 'game',
+    opened,
+    game,
+    games,
+    ...(last?.game === game.id && last.editor !== undefined ? { editor: last.editor } : {}),
+  }
 }
