@@ -580,5 +580,5 @@ Normal dev pipeline (no stage 1 audit; the investigation is
 | 2. Spec and plan | Done: [spec](2026-11-08-content-in-play-spec.md), [plan](2026-11-08-content-in-play-plan.md), 16 tasks |
 | 3. Plan audit | Done: [audit](2026-11-08-content-in-play-plan-audit.md), 21 findings fixed in the spec and plan; 17 tasks |
 | 4. Build | Done on PR #484, except three journey steps (17 of 17 tasks): tile readers, `levelScene`, `pictureView` and clips, controls as data, `places`, `level-2d`, `usePlay`, the dialogue box, 2D cutscenes and captions, systems in 2D, and `examples/2d-story`, played in the served journey `story-in-play` (iPad and phone, Chromium). **Pending:** changing the keeper's words in Writer, the caption in Sequence and the guard's chase speed in Schematic: those editors (PR #478) are not on this branch, so the steps are not run and nothing was written behind an editor's back. Also pending: WebKit and Firefox (parity, journeys) on the runner. |
-| 5. Build audit | Not started |
-| 6. Fixes | Not started |
+| 5. Build audit | Done: [audit](2026-11-08-content-in-play-build-audit.md), 2 High, 5 Medium, 9 Low |
+| 6. Fixes | Done on this branch except H2 (needs #478's editors; named step in the plan log) and the Writer, Sequence and Schematic journey steps. WebKit, Firefox and the GPU runner not run |

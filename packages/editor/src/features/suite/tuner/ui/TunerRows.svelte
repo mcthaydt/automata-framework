@@ -75,10 +75,7 @@ const shownOf = (tunable: Tunable) => {
 
 <section class="rows" aria-label="Tunables" data-testid="tuner-rows" data-scroll-region="vertical">
   {#if !hasFile}
-    <div class="state">
-      <p>This game has no settings file yet.</p>
-      <Button variant="primary" onclick={() => void controller.create()}>Make one</Button>
-    </div>
+    <!-- Nothing here: the offer to make a settings file comes after the controls, which a new game came for. -->
   {:else if 'problem' in read}
     <p class="problem" role="alert">{read.problem}</p>
   {:else}
@@ -180,6 +177,12 @@ const shownOf = (tunable: Tunable) => {
     {/each}
   {/if}
   <ControlsSection {controller} />
+  {#if !hasFile}
+    <div class="state">
+      <p>This game has no settings file yet.</p>
+      <Button onclick={() => void controller.create()}>Make one</Button>
+    </div>
+  {/if}
   {#if $refusal !== undefined}
     <p class="refusal" role="status" data-testid="tuner-refusal">{$refusal}</p>
   {/if}

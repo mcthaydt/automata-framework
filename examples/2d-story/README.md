@@ -12,6 +12,10 @@ The keeper's words, the cutscene and the guard's patrol arrive with the dialogue
 - `pnpm exec automata editor` opens the editors on `content/` and starts the game beside them.
 - `content/levels/start.af2d.json` is the level the 2D editor edits; Save writes `content/project.toml`,
   `content/levels/start.toml` and `content/world.toml`, which the game reads.
+- The cutscene starts the keeper at `at = "actor:keeper"`, so moving him in Levels moves where the scene begins.
+- `content/controls.toml` holds the default keys and pad buttons; the Tuner edits it and the game reads it.
+- The guard keeps hunting while the player is frozen in a conversation: the world is not paused for the dialogue box. A
+  game that wants a pause says so in code.
 
 ## What the editors change in play
 

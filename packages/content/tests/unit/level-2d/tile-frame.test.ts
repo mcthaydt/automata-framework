@@ -57,4 +57,38 @@ describe('pictureOf', () => {
     expect(pictureOf(def({ color: '#facc15' }))).toEqual({ kind: 'flat', shape: 'ellipse', color: '#facc15' })
     expect(pictureOf(def({ color: undefined })).kind).toBe('flat')
   })
+
+  describe('a character with an animation', () => {
+    const animation = {
+      image: 'art/coin.png',
+      frame: { w: 8, h: 8 },
+      clips: [
+        { id: 'spin', frames: [2, 3], fps: 8, loop: true },
+        { id: 'idle', frames: [0], fps: 4, loop: false },
+      ],
+    }
+
+    it('is the first frame of its first clip, with the look it falls back to while the picture is missing', () => {
+      expect(pictureOf(def({ color: '#facc15', animation }))).toEqual({
+        kind: 'clip',
+        image: 'art/coin.png',
+        cell: { w: 8, h: 8 },
+        index: 2,
+        still: { kind: 'flat', shape: 'ellipse', color: '#facc15' },
+      })
+    })
+
+    it('falls back to its tile when it is a tile character', () => {
+      const tile = { tileset: 'terrain', index: 3 }
+      expect(pictureOf(def({ shape: 'tile', tile, animation }))).toMatchObject({
+        kind: 'clip',
+        still: { kind: 'tile', tileset: 'terrain', index: 3 },
+      })
+    })
+
+    it('is its still look when no clip has a frame', () => {
+      const empty = { ...animation, clips: [{ id: 'spin', frames: [], fps: 8, loop: true }] }
+      expect(pictureOf(def({ color: '#facc15', animation: empty })).kind).toBe('flat')
+    })
+  })
 })

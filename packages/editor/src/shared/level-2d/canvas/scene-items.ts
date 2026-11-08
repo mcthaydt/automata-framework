@@ -4,6 +4,7 @@ import { Container, Graphics, Sprite, Text, type Texture, TilingSprite } from 'p
 import type { Background, Size } from '../model/project-types'
 import type { ColorResolver } from './colors'
 import type {
+  ClipDraw,
   EntityDraw,
   IntChunk,
   LevelDrawList,
@@ -61,13 +62,41 @@ export function intChunkView(chunk: IntChunk, context: ItemContext): Container {
 }
 
 /** Everything that decides how an entity looks, so an unchanged one keeps its view (`level-scene.ts`). */
-/** The generation of the image a tile is cut from (0 for a placeholder), so a reloaded image rebuilds its views. */
-function generationOf(tile: TileDraw | undefined, context: ItemContext): number {
-  return tile?.kind === 'image' ? (context.textures.generations.get(tile.image) ?? 0) : 0
+/** The generation of the image a tile or a clip is cut from (0 for a placeholder), so a reloaded image rebuilds its views. */
+function generationOf(
+  source: { readonly image: string } | { readonly kind: 'placeholder' } | undefined,
+  context: ItemContext,
+): number {
+  return source !== undefined && 'image' in source ? (context.textures.generations.get(source.image) ?? 0) : 0
 }
 
 export function entityKey(entity: EntityDraw, px: number, context: ItemContext): string {
-  return JSON.stringify([entity, px, generationOf(entity.tile, context)])
+  return JSON.stringify([entity, px, generationOf(entity.tile ?? entity.clip, context)])
+}
+
+/**
+ * A character's first animation frame as a sprite filling its box. The frame's place in the picture follows from the
+ * picture's width and the cell size, as the game works it out; nothing is drawn if the picture has gone or is too
+ * narrow for one cell, and the outline still marks the character.
+ */
+function clipSprite(entity: EntityDraw, clip: ClipDraw, context: ItemContext): Sprite | undefined {
+  const sheet = context.textures.texture(clip.image)
+  if (sheet === undefined) return undefined
+  const { w, h } = clip.cell
+  const columns = Math.floor(sheet.width / w)
+  if (columns < 1) return undefined
+  const texture = context.textures.frame(clip.image, {
+    x: (clip.index % columns) * w,
+    y: Math.floor(clip.index / columns) * h,
+    w,
+    h,
+  })
+  if (texture === undefined) return undefined
+  const sprite = new Sprite(texture)
+  sprite.position.set(entity.x, entity.y)
+  sprite.width = entity.w
+  sprite.height = entity.h
+  return sprite
 }
 
 export function entityView(entity: EntityDraw, context: ItemContext, px: number): Container {
@@ -76,7 +105,10 @@ export function entityView(entity: EntityDraw, context: ItemContext, px: number)
   const shape = new Graphics()
   const { x, y, w, h, pivot } = entity
   if (entity.shape === 'tile' && entity.tile !== undefined) view.addChild(tileSprite(entity.tile, context))
-  switch (entity.shape) {
+  const clip = entity.clip === undefined ? undefined : clipSprite(entity, entity.clip, context)
+  if (clip !== undefined) view.addChild(clip)
+  // A character drawn from a picture is only outlined, like a tile: a tinted fill would dull the picture.
+  switch (clip === undefined ? entity.shape : 'tile') {
     case 'ellipse':
       shape
         .ellipse(x + w / 2, y + h / 2, w / 2, h / 2)

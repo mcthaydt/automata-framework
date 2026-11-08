@@ -167,6 +167,40 @@ describe('level draw list: the level', () => {
     })
   })
 
+  describe('a character with an animation', () => {
+    const animation = {
+      image: 'art/slime.png',
+      frame: { w: 24, h: 16 },
+      clips: [{ id: 'wobble', frames: [3, 4], fps: 6, loop: true }],
+    }
+    const animated = () =>
+      withDefs(richProject(), (defs) => ({
+        ...defs,
+        entities: defs.entities.map((def) => (def.id === 'slime' ? { ...def, animation } : def)),
+      }))
+    const slime = (list: ReturnType<ReturnType<typeof createLevelDrawList>>) => {
+      const entities = layerOf(list.layers, 'entities')
+      if (entities.kind !== 'entities') throw new Error('not an entities layer')
+      return entities.entities.find((entity) => entity.def === 'slime')
+    }
+
+    it('is drawn as the first frame of its first clip once its picture is loaded, as the game draws it', () => {
+      const list = createLevelDrawList()({
+        project: animated(),
+        view: drawView(),
+        images: new Set(['art/slime.png']),
+      })
+      // The same rule the game reads (`pictureOf`): the first clip's first frame, cut in the animation's cell size.
+      expect(slime(list)?.clip).toEqual({ image: 'art/slime.png', cell: { w: 24, h: 16 }, index: 3 })
+    })
+
+    it('keeps its flat look while the picture is not loaded', () => {
+      const list = createLevelDrawList()({ project: animated(), view: drawView(), images: noImages })
+      expect(slime(list)?.clip).toBeUndefined()
+      expect(slime(list)?.shape).toBe('ellipse')
+    })
+  })
+
   it('draws each entity as its box, pivot, shape, colour and label, in the layer’s order', () => {
     const list = createLevelDrawList()({ project: richProject(), view: drawView(), images: noImages })
     const entities = layerOf(list.layers, 'entities')

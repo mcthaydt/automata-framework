@@ -12,8 +12,8 @@ export interface Pictures {
     path: string,
     frame: { readonly x: number; readonly y: number; readonly w: number; readonly h: number },
   ): Texture | undefined
-  /** Calls `listener` when a picture arrives; returns the way to stop. */
-  onLoad(listener: () => void): () => void
+  /** Calls `listener` with the path of each picture as it arrives; returns the way to stop. */
+  onLoad(listener: (path: string) => void): () => void
 }
 
 const shared = new WeakMap<object, Pictures>()
@@ -27,7 +27,7 @@ export function picturesOf(images: Readonly<Record<string, string>>): Pictures {
   const textures = new Map<string, Texture>()
   const cuts = new Map<string, Texture>()
   const requested = new Set<string>()
-  const listeners = new Set<() => void>()
+  const listeners = new Set<(path: string) => void>()
 
   const made: Pictures = {
     texture(path) {
@@ -45,7 +45,7 @@ export function picturesOf(images: Readonly<Record<string, string>>): Pictures {
       Assets.load<Texture>({ src: url, parser: 'loadTextures' }).then(
         (loaded) => {
           textures.set(path, loaded)
-          for (const listener of [...listeners]) listener()
+          for (const listener of [...listeners]) listener(path)
         },
         () => report(`The picture "${path}" could not be loaded.`),
       )

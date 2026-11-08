@@ -1278,6 +1278,7 @@ function levelScene(options: LevelSceneOptions): LevelScene;
 interface LevelSceneHooks {
     draw(sim: DrawSim, scene: {
         readonly container: Container;
+        readonly overlay: Container;
         hide(itemId: string, hidden: boolean): void;
     }): void;
 }

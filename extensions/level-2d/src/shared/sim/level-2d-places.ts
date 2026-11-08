@@ -99,12 +99,11 @@ function wallsOf(
   return { rows: intGridRows(options.level, layer.id), grid: layer.grid, solid }
 }
 
-/** A 2D level as `Places`: its areas as rooms, its solid cells as walls, and the game's own position component. */
-export function level2dPlaces(options: Level2dPlacesOptions): Places {
+/** The areas and walls of a level in metres, which `level2dPlaces` and `level2dLintFloor` both read, so they cannot disagree. */
+function floorOf(options: Level2dPlacesOptions) {
   const walls = wallsOf(options)
   const metre = options.metre ?? walls?.grid ?? 16
   const tag = options.areas ?? 'area'
-  const position = options.position ?? { component: Level2dAt, x: 'x', y: 'y' }
   const areaDefs = new Map(
     options.project.entities.filter((def) => def.tags.includes(tag)).map((def) => [def.id, def]),
   )
@@ -118,15 +117,48 @@ export function level2dPlaces(options: Level2dPlacesOptions): Places {
       areas.push({ room: { id, zone: textOf(item.fields.zone) ?? id }, rect: rectOf(def, item, metre) })
     }
   }
-  const rooms: readonly PlanRoom[] = areas.map((area) => area.room)
   const blocked = walls === null ? () => false : cellWalls(walls.rows, walls.grid / metre, walls.solid)
-  const roomAt = (_: unknown, p: { x: number; z: number }): number => {
-    // Closed rectangles in file order: the first area wins, and a point on a shared edge belongs to it.
-    const index = areas.findIndex(
+  /** The index of the area a point is in, or -1. Closed rectangles in file order: the first area wins, and a point on a shared edge belongs to it. */
+  const areaAt = (p: { x: number; z: number }): number =>
+    areas.findIndex(
       ({ rect }) => p.x >= rect.left && p.x <= rect.right && p.z >= rect.top && p.z <= rect.bottom,
     )
-    return index + 1
+  return { metre, areas, blocked, areaAt }
+}
+
+/**
+ * The floor a cutscene lint checks a scene against (`LintFloor` in `@automata/cutscenes/tools`): which area a point in
+ * metres is in, and whether a walk is blocked by a wall. It reads the same areas and walls as `level2dPlaces`, so what the
+ * lint calls floor is what the game lets a character walk on. A level with no areas has no floor to judge, so every point
+ * counts as floor there.
+ */
+export function level2dLintFloor(options: Level2dPlacesOptions): {
+  sectorAt(p: { readonly x: number; readonly z: number }): unknown
+  segmentBlocked(
+    a: { readonly x: number; readonly z: number },
+    b: { readonly x: number; readonly z: number },
+    margin: number,
+  ): boolean
+} {
+  const { areas, blocked, areaAt } = floorOf(options)
+  return {
+    sectorAt: (p) => (areas.length === 0 ? 'level' : areas[areaAt(p)]?.room.id),
+    segmentBlocked: (a, b, margin) => blocked(a, b, margin),
   }
+}
+
+/**
+ * A 2D level as `Places`: its areas as rooms, its solid cells as walls, and the game's own position component.
+ *
+ * It describes ONE level. A game with several levels builds one `level2dPlaces` for the level it needs (the rooms,
+ * walls and crossings are that level's); the places do not follow the level the player is in, because `Places` does not
+ * ask the sim which level is current. Two levels in one game's AI or dialogue need the game to say which one.
+ */
+export function level2dPlaces(options: Level2dPlacesOptions): Places {
+  const { metre, areas, blocked, areaAt } = floorOf(options)
+  const position = options.position ?? { component: Level2dAt, x: 'x', y: 'y' }
+  const rooms: readonly PlanRoom[] = areas.map((area) => area.room)
+  const roomAt = (_: unknown, p: { x: number; z: number }): number => areaAt(p) + 1
   const at: Places['at'] = (ctx, sid) => {
     const walker = ctx.entity(sid)
     if (walker === undefined || !walker.has(position.component)) return undefined

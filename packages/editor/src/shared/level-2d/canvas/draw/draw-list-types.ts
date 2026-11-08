@@ -63,6 +63,15 @@ export interface EntityDraw extends Bounds {
   readonly label: string
   /** For a `tile` shape with a tile: the tile drawn in the box. */
   readonly tile: TileDraw | undefined
+  /** For a character with an animation whose picture is loaded: its first clip's first frame, drawn in the box. */
+  readonly clip: ClipDraw | undefined
+}
+
+/** A frame of an animation's picture: `index` counts the picture's `cell`-sized cells, left to right, top to bottom. */
+export interface ClipDraw {
+  readonly image: string
+  readonly cell: Size
+  readonly index: number
 }
 
 export type ObjectDraw = TileDraw & { readonly id: string }

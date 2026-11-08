@@ -2200,6 +2200,25 @@ and the field's own rules; whether a reference resolves is the editor's check.
 function checkFieldValue(def: FieldDef, value: unknown): FieldValueProblem | undefined;
 ```
 
+#### `ClipPicture` (interface)
+
+A character with an animation: frame `index` of its first clip, cut from the picture `image` in `cell`-sized cells
+(the frame's place depends on the picture's width, so whoever has the picture works it out). `still` is the look
+to show while the picture is not there.
+
+```ts
+interface ClipPicture {
+  readonly kind: "clip";
+  readonly image: string;
+  readonly cell: {
+    readonly w: number;
+    readonly h: number;
+  };
+  readonly index: number;
+  readonly still: StillPicture;
+}
+```
+
 #### `ContentAnimation` (interface)
 
 A character's animation: a picture cut into `frame`-sized cells, and clips over those cells.
@@ -2782,26 +2801,18 @@ function parseTileToken(base: string): TileCell | undefined;
 
 #### `Picture` (type)
 
-_No doc comment._
+How a character looks: its first animation frame when it has a clip, else a tile or a flat colour.
 
 ```ts
-type Picture = {
-  readonly kind: "tile";
-  readonly tileset: string;
-  readonly index: number;
-} | {
-  readonly kind: "flat";
-  readonly shape: "rect" | "ellipse" | "point";
-  readonly color: string;
-};
+type Picture = StillPicture | ClipPicture;
 ```
 
 #### `pictureOf` (function)
 
-The picture of a definition: its tile, else its colour as its flat shape.
+The picture of a definition: its animation's first frame, else its tile, else its colour as its flat shape.
 
 ```ts
-function pictureOf(def: Pick<ContentEntityDef, "shape" | "tile" | "color">): Picture;
+function pictureOf(def: Pick<ContentEntityDef, "shape" | "tile" | "color" | "animation">): Picture;
 ```
 
 #### `PLACEHOLDER_COLORS` (const)
@@ -2850,6 +2861,22 @@ interface RefValue {
   /** The level or sector that holds the target. */
   readonly container?: string | undefined;
 }
+```
+
+#### `StillPicture` (type)
+
+A look with no animation: a tile of a tileset, or a flat shape.
+
+```ts
+type StillPicture = {
+  readonly kind: "tile";
+  readonly tileset: string;
+  readonly index: number;
+} | {
+  readonly kind: "flat";
+  readonly shape: "rect" | "ellipse" | "point";
+  readonly color: string;
+};
 ```
 
 #### `TileCell` (interface)
@@ -6064,12 +6091,18 @@ function levelScene(options: LevelSceneOptions): LevelScene;
 
 #### `LevelSceneHooks` (interface)
 
-What a hook draws in the scene: the sim now, the scene's container and a way to hide one placed item's drawing.
+What a hook draws in the scene: the sim now, the scene's container (under the game's own views), an overlay over
+everything the world shows, and a way to hide one placed item's drawing.
 
 ```ts
 interface LevelSceneHooks {
     draw(sim: DrawSim, scene: {
         readonly container: Container;
+        /**
+         * A layer over the world and every view in it, in view coordinates (the camera does not move it): the place for a
+         * fade or a flash, which must cover the game's own characters too.
+         */
+        readonly overlay: Container;
         hide(itemId: string, hidden: boolean): void;
     }): void;
 }

@@ -15,20 +15,17 @@ export interface BoxModel {
   readonly choices: readonly { readonly index: number; readonly text: string }[]
   /** Line ids that have no record or no words, in the order met. */
   readonly missing: readonly string[]
+  /** Speaker ids the game gave no name (`speaker.<id>`), at most one: the speaker is then shown with no name. */
+  readonly missingSpeakers: readonly string[]
 }
 
 /** The CSS variable the box sets on the play field to its own height, so a caption sits above it. */
 export const BOX_HEIGHT_VAR = '--af-dialogue-box-height'
 
-/** A speaker id read aloud: `nurse-jo` as `Nurse jo`, for a game that has not given the speaker words. */
-const spoken = (id: string): string => {
-  const plain = id.replaceAll(/[-_]+/g, ' ').trim()
-  return plain === '' ? '' : plain.charAt(0).toUpperCase() + plain.slice(1)
-}
-
 /**
  * What the box shows for `view`, or null when no conversation is under way. `fallbackSpeaker` is the graph's speaker,
- * used where the line names none; a speaker is shown as `words('speaker.<id>')` when the game has it, else read aloud.
+ * used where the line names none. A speaker is shown as `words('speaker.<id>')`; a game that has not named one shows no name
+ * (an id is never read to a player) and `missingSpeakers` says which, so the box can tell whoever writes the game.
  */
 export function dialogueBoxModel(
   view: View | null,
@@ -50,11 +47,13 @@ export function dialogueBoxModel(
   const speaker = spoke ?? fallbackSpeaker
   const text = view.line === null ? '' : textOf(view.line)
   const choices = view.choices.map((choice) => ({ index: choice.index, text: textOf(choice.line) }))
+  const name = words(`speaker.${speaker}`)
   return {
-    speaker: words(`speaker.${speaker}`) ?? spoken(speaker),
+    speaker: name ?? '',
     text,
     next: choices.length === 0,
     choices,
     missing,
+    missingSpeakers: name === undefined && speaker !== '' ? [speaker] : [],
   }
 }

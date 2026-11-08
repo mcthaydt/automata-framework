@@ -1,4 +1,5 @@
 import type { ContentLevel, ContentProject } from '@automata/content/level-2d'
+import { placeholderColor } from '@automata/content/level-2d'
 import { Container, Graphics, Sprite, TilingSprite } from 'pixi.js'
 import type { DrawSim } from '../../../shared/draw/read-sim.ts'
 import { clipSprite, clipTextures } from './clips.ts'
@@ -27,11 +28,22 @@ export interface LevelSceneOptions {
   readonly current?: ((sim: DrawSim) => string) | undefined
 }
 
-/** What a hook draws in the scene: the sim now, the scene's container and a way to hide one placed item's drawing. */
+/**
+ * What a hook draws in the scene: the sim now, the scene's container (under the game's own views), an overlay over
+ * everything the world shows, and a way to hide one placed item's drawing.
+ */
 export interface LevelSceneHooks {
   draw(
     sim: DrawSim,
-    scene: { readonly container: Container; hide(itemId: string, hidden: boolean): void },
+    scene: {
+      readonly container: Container
+      /**
+       * A layer over the world and every view in it, in view coordinates (the camera does not move it): the place for a
+       * fade or a flash, which must cover the game's own characters too.
+       */
+      readonly overlay: Container
+      hide(itemId: string, hidden: boolean): void
+    },
   ): void
 }
 
@@ -43,16 +55,19 @@ export interface LevelScene {
 
 interface Internals {
   readonly container: Container
+  readonly overlay: Container
   frame(sim: DrawSim | undefined): void
 }
 
 /** The parts `defineGame` and the draw layer drive; not part of the public surface. */
 const internals = new WeakMap<LevelScene, Internals>()
 
-/** Puts the scene under the entity views. */
-export function mountLevelScene(scene: LevelScene, world: Container): void {
+/** Puts the scene under the entity views of `world`, and its overlay on `ui`, over everything the world shows. */
+export function mountLevelScene(scene: LevelScene, world: Container, ui: Container): void {
   const found = internals.get(scene)
-  if (found !== undefined) world.addChildAt(found.container, 0)
+  if (found === undefined) return
+  world.addChildAt(found.container, 0)
+  ui.addChild(found.overlay)
 }
 
 /** Draws one display frame. With no sim (no game running) the scene is hidden. */
@@ -78,6 +93,7 @@ export function levelScene(options: LevelSceneOptions): LevelScene {
       throw new Error(`There is no character "${id}" in the project. Check the \`live\` list.`)
 
   const container = new Container({ label: 'level' })
+  const overlay = new Container({ label: 'level-overlay' })
   const hooks: LevelSceneHooks[] = []
   const imageSet = new Set(Object.keys(images))
   const pictures = picturesOf(images)
@@ -99,7 +115,12 @@ export function levelScene(options: LevelSceneOptions): LevelScene {
   function itemView(item: DrawItem): Container {
     if (item.kind === 'animation') {
       const clip = item.animation.clips[0]
-      const textures = clip === undefined ? undefined : clipTextures(pictures, item.animation, clip)
+      const textures =
+        clip === undefined
+          ? undefined
+          : clipTextures(pictures, item.animation, clip, (frame, count) =>
+              once(`The clip "${clip.id}" uses frame ${frame}, but the picture has ${count}.`),
+            )
       if (clip !== undefined && textures !== undefined) {
         const sprite = clipSprite(textures, clip)
         sprite.anchor.set(0.5)
@@ -108,8 +129,8 @@ export function levelScene(options: LevelSceneOptions): LevelScene {
         sprite.height = item.h
         return sprite
       }
-      // The picture has not arrived yet: a grey box, as a tile waiting for its picture is.
-      return new Graphics().rect(item.x, item.y, item.w, item.h).fill(0x808080)
+      // The picture has not arrived yet: the character's own colour, as the editor shows it.
+      return new Graphics().rect(item.x, item.y, item.w, item.h).fill(hexNumber(item.waiting))
     }
     if (item.kind === 'tile') {
       const f = item.frame
@@ -123,8 +144,7 @@ export function levelScene(options: LevelSceneOptions): LevelScene {
         return sprite
       }
       // The picture has not arrived yet: the tile's own colour, as the editor shows a tile with no picture.
-      const waiting = new Graphics().rect(item.x, item.y, item.w, item.h).fill(0x808080)
-      return waiting
+      return new Graphics().rect(item.x, item.y, item.w, item.h).fill(hexNumber(placeholderColor(item.tile)))
     }
     const shape = new Graphics()
     if (item.ellipse) shape.ellipse(item.x + item.w / 2, item.y + item.h / 2, item.w / 2, item.h / 2)
@@ -198,8 +218,10 @@ export function levelScene(options: LevelSceneOptions): LevelScene {
   }
   internals.set(scene, {
     container,
+    overlay,
     frame(sim) {
       container.visible = sim !== undefined
+      overlay.visible = sim !== undefined
       if (sim === undefined) return
       const id = options.current?.(sim) ?? start.id
       if (id !== shown || dirty) {
@@ -207,7 +229,7 @@ export function levelScene(options: LevelSceneOptions): LevelScene {
         dirty = false
         rebuild(id)
       }
-      for (const hook of hooks) hook.draw(sim, { container, hide: api.hide })
+      for (const hook of hooks) hook.draw(sim, { container, overlay, hide: api.hide })
     },
   })
   return scene

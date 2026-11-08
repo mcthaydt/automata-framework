@@ -40,6 +40,37 @@ describe('lintCutscene in a 2D game', () => {
     expect(rules(SCRIPT)).toEqual([])
   })
 
+  it('lets a character stand beside a wall: its point is where it stands, not the middle of a body', () => {
+    // Blocked only within a body's clearance of the bottom wall, as the 3D floor is.
+    const floor: LintFloor = {
+      sectorAt: FLOOR.sectorAt,
+      segmentBlocked: (a, b, margin) => (margin > 0 ? Math.max(a.z, b.z) > 4.9 : Math.max(a.z, b.z) > 5),
+    }
+    const standing = { ...SCRIPT, actor: SCRIPT.actor?.map((key) => ({ ...key, z: 5 })) }
+    expect(rules(standing, { map: floor })).toEqual([])
+    expect(rules(standing, { map: floor, dimensions: 3 })).toContain('error wall')
+    // Inside a wall is still wrong.
+    const inside = { ...SCRIPT, actor: SCRIPT.actor?.map((key) => ({ ...key, z: 5.5 })) }
+    expect(rules(inside, { map: floor })).toContain('error wall')
+  })
+
+  it('warns when a character starts the scene somewhere other than where the level places it', () => {
+    const found = lintCutscene(
+      SCRIPT,
+      world({ anchor: (name) => (name === 'actor:ada' ? { x: 6.5, z: 2 } : undefined) }),
+    )
+    expect(found.map((f) => [f.level, f.rule, f.detail])).toEqual([
+      ['warning', 'start', 'ada starts this cutscene at 2, 2 but stands at 6.5, 2 in the level.'],
+    ])
+  })
+
+  it('does not warn when the character starts where the level places it, or the level does not place it', () => {
+    expect(rules(SCRIPT, { anchor: (name) => (name === 'actor:ada' ? { x: 2, z: 2 } : undefined) })).toEqual(
+      [],
+    )
+    expect(rules(SCRIPT)).toEqual([])
+  })
+
   it('warns that lamps, doors, props, the time of day, the grade and flicker only work in 3D games', () => {
     const found = lintCutscene(
       {

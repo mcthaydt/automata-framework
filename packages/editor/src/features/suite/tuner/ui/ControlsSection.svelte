@@ -1,7 +1,7 @@
 <!--
   The Tuner's Controls section: what a new player starts with, one card per action. Each card has the action's name
   (editable), its keys as chips by the names the game shows a player (an arrow is "←", KeyA is "A"), the pad's buttons
-  the same way, "Add key" and "Show a button on touch screens". Add key says "Press a key on your keyboard." and waits
+  the same way but marked "Pad" so a key and a pad button are never alike, "Add key" and "Show a button on touch screens". Add key says "Press a key on your keyboard." and waits
   for the next key; Cancel ends it with no edit, since a phone has no Escape. Tab is never taken (it moves focus), and
   Escape only ends the wait. Players still rebind in the game's Settings; this changes the starting point.
 -->
@@ -82,7 +82,7 @@ const rename = (row: ControlRow, event: Event & { currentTarget: HTMLInputElemen
               </li>
             {/each}
             {#each row.pads as pad (pad.button)}
-              <li class="chip pad"><span>{pad.label}</span></li>
+              <li class="chip pad"><span>Pad {pad.label}</span></li>
             {/each}
           </ul>
           {#if listening === row.id}

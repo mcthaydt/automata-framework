@@ -187,4 +187,15 @@ describe('the Tuner in plain words', () => {
     expect(screen.getByTestId('tuner-rows')).toHaveTextContent('This game has no settings file yet.')
     expect(screen.getByRole('button', { name: 'Make one' })).toBeTruthy()
   })
+
+  it('puts the controls above the offer to make a settings file, which is not what a new game came for', async () => {
+    const controller = await open({
+      'content/controls.toml': '[[action]]\nid = "left"\nkeys = ["ArrowLeft"]\n',
+    })
+    render(TunerRows, { controller })
+    const controls = screen.getByTestId('tuner-controls')
+    const offer = screen.getByRole('button', { name: 'Make one' })
+    expect(controls.compareDocumentPosition(offer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(offer.getAttribute('data-kind')).not.toBe('primary')
+  })
 })

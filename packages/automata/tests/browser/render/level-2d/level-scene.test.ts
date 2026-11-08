@@ -1,5 +1,5 @@
 import type { ContentLevel, ContentProject } from '@automata/content/level-2d'
-import { Application, Container, Sprite } from 'pixi.js'
+import { Application, Assets, Container, Graphics, Sprite } from 'pixi.js'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { drawLevelScene, levelScene, mountLevelScene } from '#src/features/render/level-2d/level-scene.ts'
 import type { DrawSim } from '#src/shared/draw/read-sim.ts'
@@ -60,6 +60,7 @@ const level: ContentLevel = {
 
 let app: Application | undefined
 afterEach(() => {
+  vi.restoreAllMocks()
   app?.destroy(true)
   app = undefined
 })
@@ -84,7 +85,7 @@ describe('levelScene in a real engine', () => {
     })
     const world = new Container()
     app.stage.addChild(world)
-    mountLevelScene(scene, world)
+    mountLevelScene(scene, world, new Container())
 
     // The picture loads on the first frame; draw again until the tiles are sprites.
     await vi.waitFor(() => {
@@ -98,5 +99,132 @@ describe('levelScene in a real engine', () => {
       Array.from(pixels.slice((y * width + x) * 4, (y * width + x) * 4 + 3))
     expect(at(8, 8)).toEqual([255, 0, 0])
     expect(at(24, 8)).toEqual([0, 0, 255])
+  })
+
+  it('has an overlay that covers every view the game adds to the world, even one made after the scene was mounted', async () => {
+    const url = await tilesetPicture()
+    const scene = levelScene({
+      project,
+      levels: { start: level },
+      images: { 'assets/terrain.png': url },
+      start: 'start',
+    })
+    scene.add({
+      draw: (_sim, { overlay }) => {
+        if (overlay.children.length === 0) overlay.addChild(new Graphics().rect(0, 0, 32, 16).fill(0x000000))
+      },
+    })
+    app = new Application()
+    await app.init({
+      width: 32,
+      height: 16,
+      preference: 'webgl',
+      autoStart: false,
+      antialias: false,
+      resolution: 1,
+    })
+    const world = new Container()
+    const ui = new Container()
+    app.stage.addChild(world)
+    app.stage.addChild(ui)
+    mountLevelScene(scene, world, ui)
+    // A live entity's view, added after the scene and so drawn over the level, as the game's own views are.
+    world.addChild(new Graphics().rect(4, 4, 8, 8).fill(0xff0000))
+
+    drawLevelScene(scene, sim)
+    app.renderer.render({ container: app.stage })
+    const { pixels, width } = app.renderer.extract.pixels({ target: app.stage })
+    const at = (x: number, y: number): number[] =>
+      Array.from(pixels.slice((y * width + x) * 4, (y * width + x) * 4 + 3))
+    expect(at(8, 8)).toEqual([0, 0, 0])
+  })
+
+  it('shows a tile in its own colour while its picture is still arriving, not grey', async () => {
+    vi.spyOn(Assets, 'load').mockReturnValue(new Promise(() => {}) as never)
+    const scene = levelScene({
+      project,
+      levels: { start: level },
+      images: { 'assets/terrain.png': 'never-arrives.png' },
+      start: 'start',
+    })
+    app = new Application()
+    await app.init({
+      width: 32,
+      height: 16,
+      preference: 'webgl',
+      autoStart: false,
+      antialias: false,
+      resolution: 1,
+    })
+    const world = new Container()
+    app.stage.addChild(world)
+    mountLevelScene(scene, world, new Container())
+    drawLevelScene(scene, sim)
+    app.renderer.render({ container: app.stage })
+    const { pixels, width } = app.renderer.extract.pixels({ target: app.stage })
+    const at = (x: number, y: number): number[] =>
+      Array.from(pixels.slice((y * width + x) * 4, (y * width + x) * 4 + 3))
+    // Tile 0 and tile 1 each wait in the colour the editor gives them (not grey).
+    expect(at(8, 8)).toEqual([0x8a, 0x6d, 0x5a])
+    expect(at(24, 8)).toEqual([0x5a, 0x7d, 0x8a])
+  })
+
+  it('plays a placed character’s clip from its picture, in the box its pivot gives (L7)', async () => {
+    const url = await tilesetPicture()
+    const withCoin: ContentProject = {
+      ...project,
+      layers: [{ id: 'things', kind: 'entities', grid: 16, snap: true }],
+      entities: [
+        {
+          id: 'coin',
+          fields: [],
+          shape: 'rect',
+          size: { w: 16, h: 16 },
+          pivot: { x: 0, y: 0 },
+          resizable: 'none',
+          tags: [],
+          color: '#facc15',
+          // The clip starts on the picture's second cell (blue), so the first frame cannot be mistaken for the tile.
+          animation: {
+            image: 'assets/terrain.png',
+            frame: { w: 16, h: 16 },
+            clips: [{ id: 'spin', frames: [1, 0], fps: 8, loop: true }],
+          },
+        },
+      ],
+    }
+    const placed: ContentLevel = {
+      ...level,
+      layers: [
+        { def: 'things', kind: 'entities', items: [{ id: 'c', def: 'coin', x: 16, y: 0, fields: {} }] },
+      ],
+    }
+    const scene = levelScene({
+      project: withCoin,
+      levels: { start: placed },
+      images: { 'assets/terrain.png': url },
+      start: 'start',
+    })
+    app = new Application()
+    await app.init({
+      width: 32,
+      height: 16,
+      preference: 'webgl',
+      autoStart: false,
+      antialias: false,
+      resolution: 1,
+    })
+    const world = new Container()
+    app.stage.addChild(world)
+    mountLevelScene(scene, world, new Container())
+    const engine = app
+    await vi.waitFor(() => {
+      drawLevelScene(scene, sim)
+      engine.renderer.render({ container: engine.stage })
+      const { pixels, width } = engine.renderer.extract.pixels({ target: engine.stage })
+      const at = (x: number, y: number): number[] =>
+        Array.from(pixels.slice((y * width + x) * 4, (y * width + x) * 4 + 3))
+      expect(at(24, 8)).toEqual([0, 0, 255])
+    })
   })
 })
