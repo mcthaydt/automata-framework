@@ -7,7 +7,6 @@ import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { createLevels2d } from '#src/app/suite/levels-2d/levels-2d-suite-editor.ts'
 import { EDITOR_LIST_PATH } from '#src/features/suite/core/index.ts'
-import { SAMPLE_GAME } from '#src/features/suite/memory/sample-ports.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { SIZES } from '#src/testing/kit/layout-sizes.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
@@ -86,34 +85,5 @@ describe.each(SIZES)('Suite Levels 2D at $name ($width x $height)', (size) => {
     await settleLayout()
     expect(document.querySelector(READY)?.getAttribute('data-tool')).toBe('eraser')
     noPageScroll()
-  })
-
-  test('on the sample game with no level, the templates fill the stage, each a full-size target', async () => {
-    const sample = createLevels2d({
-      ids: { next: () => 'thing' },
-      canvas: StandInLevelCanvas,
-      templates: true,
-    })
-    opened = await openSuite(
-      size,
-      [sample as SuiteEditor<unknown>],
-      SAMPLE_GAME,
-      '[data-testid="levels-2d-start"]',
-      'Levels',
-    )
-    const cards = [...document.querySelectorAll<HTMLElement>('[aria-label="Templates"] button')]
-    expect(cards.map((card) => card.textContent?.trim().split(/\s+/)[1])).toEqual([
-      'Platformer',
-      'Top-down',
-      'Blank',
-    ])
-    // The cards scroll in the stage's own region on a short screen: scrolled to, each is wholly in view.
-    for (const card of cards) {
-      card.scrollIntoView({ block: 'nearest' })
-      await settleLayout()
-      expect(checkLayout(opened.conditions, [tab('Levels'), card])).toEqual([])
-    }
-    noPageScroll()
-    await page.screenshot({ path: `.vitest/shots/suite-levels-2d-start-${size.name}.png` })
   })
 })

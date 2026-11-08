@@ -92,20 +92,6 @@ describe('set', () => {
     expect(await tuner.set('NOPE', 1)).toEqual({ ok: false, message: 'NOPE: there is no such tunable' })
   })
 
-  it('refuses a tunable that is locked, naming it (EDS-d)', async () => {
-    const ports = await tunerFixturePorts()
-    const tuner = await openTuner(ports)
-    tuner.lock('MAX_RUN')
-    expect(tuner.locked()).toEqual(['MAX_RUN'])
-    expect(await tuner.set('MAX_RUN', 400)).toEqual({
-      ok: false,
-      message: 'MAX_RUN is locked: unlock it to change it',
-    })
-    expect(await read(ports)).toBe(TUNING_FIXTURE)
-    tuner.unlock('MAX_RUN')
-    expect(await tuner.set('MAX_RUN', 400)).toEqual({ ok: true })
-  })
-
   it('refuses, with the port’s reason, when the file is read only here, and leaves the history alone', async () => {
     const ports = await tunerFixturePorts(undefined, { writable: false })
     const tuner = await openTuner(ports)

@@ -102,7 +102,7 @@ const argumentSchema = z
   })
 
 const modesSchema = z
-  .array(z.enum(['edit', 'ask']))
+  .array(z.enum(['edit']))
   .min(1)
   .refine((modes) => new Set(modes).size === modes.length, { message: 'each mode is listed once' })
 

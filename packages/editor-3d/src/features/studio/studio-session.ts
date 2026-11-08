@@ -6,8 +6,8 @@ import { kindOf, readStudioContent, readValue, type StudioContent } from './stud
 // The Studio's session (EDS.9a; editor suite spec §4.4, §6.2, EDS-D12): the figure content of one game, kept for the
 // app's life. One kit `History` holds the text of every file, so an edit, a new file and their Undo are all steps of
 // one list. An edit is a span-preserving change of one literal (the kit's content documents) that the figures schemas
-// must still accept; it is written through the workspace port before it counts (the port's rules, the mtime guard and
-// the change set's journal stay the port's), and Undo and Redo write the files back. A write the port refuses is a
+// must still accept; it is written through the workspace port before it counts (the port's rules and the mtime
+// guard stay the port's), and Undo and Redo write the files back. A write the port refuses is a
 // message naming the file, and the history is left as it was.
 
 export interface StudioState {

@@ -3,19 +3,17 @@
 // one of them shares one definition. Types only: the fakes and the contract suites are `./ports/testing`, the Node
 // adapters are `editor-suite/node`.
 //
-// A missing optional port is the feature off, never an error: no `changeSet` and edits save to the workspace with Ship
-// hidden; no `gates` and the gate pill says "Gates not readable".
+// A missing optional port is the feature off, never an error: no `gates` and the gate pill says "Gates not readable".
 import type { WriteExpectation, WriteResult } from '../storage/project-store.ts'
 
 export interface SuitePorts {
   readonly workspace: SuiteWorkspace
-  readonly changeSet?: ChangeSet | undefined
   readonly checks: ChecksRunner
   readonly gates?: Gates | undefined
 }
 
-/** `edit`: direct value and structure edits; `ask`: the assistant may propose a diff (an editor-list row's `modes`). */
-export type EditMode = 'edit' | 'ask'
+/** `edit`: direct value and structure edits (an editor-list row's `modes`). */
+export type EditMode = 'edit'
 
 /** One file of the game as the editor list sees it: which editor edits it, under which rules. */
 export interface WorkspaceFile {
@@ -67,7 +65,7 @@ export interface SuiteWorkspace {
   read(path: string): Promise<{ readonly text: string; readonly mtime: number } | undefined>
   /**
    * Writes a file a writable row matches. `{ mtime }`: the file must still read so (a `conflict` otherwise);
-   * `'absent'`: it must not exist yet (a new figure, pose or clip), and the open change set records it as created.
+   * `'absent'`: it must not exist yet (a new figure, pose or clip), and the workspace remembers it created it.
    */
   write(path: string, text: string, expected: WriteExpectation): Promise<WriteResult>
   /**
@@ -94,81 +92,17 @@ export interface SuiteWorkspace {
       readonly force?: boolean
     }[],
   ): Promise<WriteResult>
-  /** Removes a file the open change set created, at the mtime it was read with; `policy` for any other file. */
+  /** Removes a file this workspace created, at the mtime it was read with; `policy` for any other file. */
   remove(path: string, expected: { readonly mtime: number }): Promise<WriteResult>
   /** A compiler output, read only (`tuning-meta.json`), or `undefined` when there is none. */
   generated(path: string): Promise<string | undefined>
 }
 
-/** The change a person is working on: a branch per edit session, its files, and Ship. */
-export interface ChangeSet {
-  /** The open change set, or `undefined`. */
-  current(): Promise<{ readonly title: string; readonly branch: string; readonly base: string } | undefined>
-  /** Opens one from `title`; rejects while one is open, or when the title gives no branch name. */
-  begin(title: string): Promise<void>
-  /**
-   * Adds written files to it, and each write's text to its journal (a write's path is recorded too); rejects when none
-   * is open.
-   */
-  record(files: readonly string[], writes?: readonly ChangeSetWrite[]): Promise<void>
-  /** Keeps each run as its check id's latest in the journal, so a reload shows the pills and measures; rejects when none is open. */
-  note(checks: readonly ChangeSetCheck[]): Promise<void>
-  /** Commits the files recorded since the last checkpoint; with none, gives the last commit again. */
-  checkpoint(message: string): Promise<{ readonly commit: string }>
-  /** Checkpoints, pushes and opens a draft PR (or gives only the compare link); the change set stays open. */
-  ship(draft: { readonly title: string; readonly body: string }): Promise<{
-    readonly branch: string
-    readonly pushed: boolean
-    readonly pr?: string | undefined
-    readonly compareUrl: string
-  }>
-  /**
-   * Records `tokens` the assistant used against the open change set; rejects when none is open, or for a count that is
-   * not a whole number of zero or more. The suite records each proposal's use, rejected or accepted.
-   */
-  spend(tokens: number): Promise<void>
-  /** Raises the open change set's token cap; only the person does this. Rejects a cap that is not above the current. */
-  raiseCap(cap: number): Promise<void>
-  /**
-   * Closes it and goes back to the base; it then leaves `list()`. Rejects, closing nothing, while a recorded file has
-   * changes no checkpoint holds ("checkpoint them first"), so a close never carries edits to the base or drops them.
-   * With nothing open it does nothing.
-   */
-  close(): Promise<void>
-  /** The open change sets, from the adapter's journal: the Review desk. */
-  list(): Promise<readonly ChangeSetSummary[]>
-}
-
-export interface ChangeSetSummary {
-  readonly title: string
-  readonly branch: string
-  readonly base: string
-  /** The files recorded, sorted. */
-  readonly files: readonly string[]
-  /** The files it created (written with `expected: 'absent'`), sorted: the only ones `remove` may take. */
-  readonly created: readonly string[]
-  /** The assistant's tokens it has used, and its cap; only the person raises the cap. */
-  readonly tokens: { readonly used: number; readonly cap: number }
-  /** Each write in the order it happened, with its text: the Review desk's diff and an import's undo. */
-  readonly writes: readonly ChangeSetWrite[]
-  /** The latest run of each check id, sorted by id. */
-  readonly checks: readonly ChangeSetCheck[]
-}
-
-/** One write to a file: its text before (`undefined` when the write created it) and after. */
-export interface ChangeSetWrite {
-  readonly path: string
-  readonly before: string | undefined
-  readonly after: string
-}
-
-/** A check's latest run in the journal, with its measures before the change set's writes and after them. */
-export interface ChangeSetCheck {
+/** A check's latest run. */
+export interface CheckReport {
   readonly check: string
   readonly status: CheckResult['status']
   readonly findings: readonly CheckFinding[]
-  readonly before?: readonly CheckMeasure[] | undefined
-  readonly after?: readonly CheckMeasure[] | undefined
 }
 
 /** One check of the editor list (`[[check]]`). The built-in `content` check is the suite's, not the runner's. */
@@ -178,7 +112,7 @@ export interface CheckDef {
   readonly when: 'before' | 'after'
   /** The argv the runner runs in the game's checkout, with no shell. */
   readonly run: readonly string[]
-  /** Generated files a passing run adds to the change set (a blockout generate). */
+  /** Generated files a passing run adds to the game (a blockout generate). */
   readonly joins: readonly string[]
   /** True when its results carry a before-and-after measure (the Tuner's fairness). */
   readonly measure: boolean

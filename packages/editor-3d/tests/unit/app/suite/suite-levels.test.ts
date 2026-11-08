@@ -43,7 +43,7 @@ checks = []
 [[file]]
 glob = "content/levels/*.af-sector.json"
 editor = "levels-3d"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = []
 checks = []
 `
@@ -140,9 +140,6 @@ describe('Levels 3D in the suite', () => {
 
     await userEvent.click(screen.getByRole('tab', { name: 'Tuner' }))
     await userEvent.click(await screen.findByRole('button', { name: 'Raise speed' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Name this change' })
-    await userEvent.type(within(dialog).getByRole('textbox', { name: 'Title' }), 'Faster')
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Start' }))
     expect(await screen.findByRole('button', { name: 'Undo Raise speed' })).toBeEnabled()
 
     await userEvent.click(screen.getByRole('tab', { name: 'Levels 3D' }))

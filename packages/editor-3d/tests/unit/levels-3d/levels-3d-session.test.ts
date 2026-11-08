@@ -26,7 +26,7 @@ const file = (path: string): WorkspaceFile => ({
 const now = () => 0
 
 async function setup(text = DEPOT) {
-  const memory = await createMemoryPorts({ files: { [PATH]: text }, classify: file, changeSet: false })
+  const memory = await createMemoryPorts({ files: { [PATH]: text }, classify: file })
   const session = await openLevels3d([file(PATH)], memory.ports, { now })
   return { ports: memory.ports, session }
 }

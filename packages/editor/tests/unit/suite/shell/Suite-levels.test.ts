@@ -101,10 +101,6 @@ describe('Levels 2D in the suite', () => {
     const surface = screen.getByTestId('level-surface')
     press(surface, 'pointerdown', 40, 40)
     press(surface, 'pointerup', 40, 40)
-    // The first edit asks for the change set's title, then writes.
-    const dialog = await screen.findByRole('dialog', { name: 'Name this change' })
-    await userEvent.type(within(dialog).getByRole('textbox', { name: 'Title' }), 'Slimes')
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Start' }))
     expect(await screen.findByRole('button', { name: 'Undo Place entity' })).toBeEnabled()
     const placed = selected()
     expect(placed).not.toBe('')
@@ -167,9 +163,6 @@ describe('A level changed somewhere else', () => {
     const surface = screen.getByTestId('level-surface')
     press(surface, 'pointerdown', 40, 40)
     press(surface, 'pointerup', 40, 40)
-    const title = await screen.findByRole('dialog', { name: 'Name this change' })
-    await userEvent.type(within(title).getByRole('textbox', { name: 'Title' }), 'Slimes')
-    await userEvent.click(within(title).getByRole('button', { name: 'Start' }))
     await screen.findByRole('button', { name: 'Undo Place entity' })
 
     const path = 'content/levels/world.af2d.json'
@@ -206,7 +199,7 @@ describe('A level to try, on the sample game with none', () => {
   })
 
   async function tryIt() {
-    const ports = await samplePorts(TRY_FILES, { changeSet: false })
+    const ports = await samplePorts(TRY_FILES)
     await start([levels2d({ templates: 'content/levels', share })], TRY_FILES, ports, true)
     return ports
   }

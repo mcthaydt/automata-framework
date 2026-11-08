@@ -11,12 +11,11 @@ import sampleList from './platformer.editors.toml?raw'
 /**
  * `store` is where the files are kept (memory by default; the site's try-it passes this browser's storage, so a level
  * made there is there after a reload). A file already in it is the visitor's and stays, except the editor list, which is
- * always `files`' own: the list is AF's, not the visitor's. `changeSet: false` is a sample with no change sets, which
- * is the try-it page's: a visitor is never asked to name a change.
+ * always `files`' own: the list is AF's, not the visitor's.
  */
 export async function samplePorts(
   files: Readonly<Record<string, string>>,
-  options: { readonly changeSet?: false; readonly store?: ProjectStore } = {},
+  options: { readonly store?: ProjectStore } = {},
 ): Promise<SuitePorts> {
   const { store = createMemoryStore() } = options
   const load = loadEditorList(files[EDITOR_LIST_PATH])
@@ -24,7 +23,6 @@ export async function samplePorts(
     if (path === EDITOR_LIST_PATH || (await store.read(path)) === undefined) await store.write(path, text)
   const { ports } = await createMemoryPorts({
     store,
-    changeSet: options.changeSet,
     classify: (path) =>
       load.ok
         ? workspaceFile(load.list, path)

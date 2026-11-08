@@ -3,7 +3,6 @@
 // there), so here the workspace gets a small hand-written policy for its fake-only cases.
 import { describe, expect, test } from 'vitest'
 import type { UnlistedFile, WorkspaceFile } from '#src/shared/kit/ports/suite-ports.ts'
-import { describeChangeSet } from '#src/testing/ports/change-set-contract.ts'
 import {
   CHECK_FINDING,
   CHECK_MEASURE,
@@ -12,15 +11,12 @@ import {
 } from '#src/testing/ports/checks-contract.ts'
 import { describeGates } from '#src/testing/ports/gates-contract.ts'
 import {
-  createMemoryChangeSet,
   createMemoryChecks,
   createMemoryGates,
   createMemoryPorts,
   createMemoryWorkspace,
   type MemoryCheck,
 } from '#src/testing/ports/index.ts'
-
-describeChangeSet('memory', () => ({ changeSet: createMemoryChangeSet(), edit: async () => undefined }))
 
 const POSE = 'content/figures/poses/wave.toml'
 
@@ -77,41 +73,6 @@ describeChecksRunner('memory', (scenario) => createMemoryChecks(scenario.map(mem
 
 describeGates('memory', (records) => createMemoryGates(records))
 
-describe('memory change set', () => {
-  test('names branches `edit/<slug>`, from the base it was given', async () => {
-    const changeSet = createMemoryChangeSet({ base: 'trunk' })
-    await changeSet.begin('Bay: arrival timing!')
-    expect(await changeSet.current()).toEqual({
-      title: 'Bay: arrival timing!',
-      branch: 'edit/bay-arrival-timing',
-      base: 'trunk',
-    })
-  })
-
-  test('ship gives a draft PR only when gh is there; the compare link carries the draft', async () => {
-    const without = createMemoryChangeSet({ remote: 'https://github.com/owner/game' })
-    await without.begin('Faster')
-    expect(await without.ship({ title: 'Tuning: faster', body: 'Lens 28 → 30.' })).toEqual({
-      branch: 'edit/faster',
-      pushed: true,
-      compareUrl:
-        'https://github.com/owner/game/compare/main...edit/faster?expand=1&title=Tuning%3A%20faster&body=Lens%2028%20%E2%86%92%2030.',
-    })
-    const withGh = createMemoryChangeSet({ gh: true })
-    await withGh.begin('Faster')
-    expect((await withGh.ship({ title: 'x', body: '' })).pr).toMatch(/\/pull\/\d+$/)
-  })
-
-  test('the token cap is 200 000 unless given', async () => {
-    const changeSet = createMemoryChangeSet()
-    await changeSet.begin('A')
-    expect((await changeSet.list())[0]?.tokens).toEqual({ used: 0, cap: 200_000 })
-    const capped = createMemoryChangeSet({ tokenCap: 500 })
-    await capped.begin('B')
-    expect((await capped.list())[0]?.tokens.cap).toBe(500)
-  })
-})
-
 describe('memory checks', () => {
   test('give a check that respects the abort signal its cancellation', async () => {
     let aborted = false
@@ -154,37 +115,39 @@ describe('memory workspace', () => {
     expect(await workspace.write('README.md', 'x\n', 'absent')).toMatchObject({ ok: false, reason: 'policy' })
   })
 
-  test('without a change set nothing it created can be removed', async () => {
-    const workspace = await createMemoryWorkspace({ classify })
+  test('removes only what it created, at the mtime it made', async () => {
+    const workspace = await createMemoryWorkspace({
+      classify,
+      files: { 'content/figures/poses/old.toml': 'x = 1\n' },
+    })
     const created = await workspace.write(POSE, 'name = "wave"\n', 'absent')
     if (!created.ok) throw new Error('the create should go through')
-    expect(await workspace.remove(POSE, { mtime: created.mtime })).toMatchObject({
+    const old = await workspace.read('content/figures/poses/old.toml')
+    expect(
+      await workspace.remove('content/figures/poses/old.toml', { mtime: old?.mtime ?? 0 }),
+    ).toMatchObject({
       ok: false,
       reason: 'policy',
     })
+    expect(await workspace.remove(POSE, { mtime: created.mtime })).toMatchObject({ ok: true })
   })
 })
 
 describe('createMemoryPorts', () => {
-  test('wires the workspace, the change set, checks and gates over one journal', async () => {
+  test('wires the workspace, the checks and the gates', async () => {
     const memory = await createMemoryPorts({
       classify,
       gates: { 'S-G1': { name: 'Scene blockout', decision: 'open' } },
     })
-    const { workspace, changeSet, gates, checks } = memory.ports
-    if (changeSet === undefined || gates === undefined) throw new Error('every port is there')
+    const { workspace, gates, checks } = memory.ports
+    if (gates === undefined) throw new Error('every port is there')
     expect(checks.declared()).toEqual([])
     expect(await gates.states(['S-G1'])).toMatchObject([{ decision: 'open' }])
-
-    await changeSet.begin('A wave pose')
-    await workspace.write(POSE, 'name = "wave"\n', 'absent')
-    expect(await changeSet.list()).toEqual([expect.objectContaining({ created: [POSE] })])
+    expect(await workspace.write(POSE, 'name = "wave"\n', 'absent')).toMatchObject({ ok: true })
   })
 
-  test('without a change set, that port is absent: the feature is off', async () => {
-    const { ports } = await createMemoryPorts({ classify, changeSet: false })
-    expect(ports.changeSet).toBeUndefined()
+  test('a port left out is the feature off', async () => {
+    const { ports } = await createMemoryPorts({ classify })
     expect(ports.gates).toBeUndefined()
-    expect(await ports.workspace.write(POSE, 'x = 1\n', 'absent')).toMatchObject({ ok: true })
   })
 })

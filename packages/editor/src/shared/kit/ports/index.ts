@@ -8,13 +8,10 @@ export {
   type SuiteUndo,
 } from './suite-editor'
 export type {
-  ChangeSet,
-  ChangeSetCheck,
-  ChangeSetSummary,
-  ChangeSetWrite,
   CheckDef,
   CheckFinding,
   CheckMeasure,
+  CheckReport,
   CheckResult,
   CheckRun,
   ChecksRunner,

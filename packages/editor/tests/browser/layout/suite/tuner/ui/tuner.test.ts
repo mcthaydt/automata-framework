@@ -20,9 +20,9 @@ const targets = editorTargets()
 
 // The Tuner in the suite's one shell with the production CSS in Chromium, WebKit and Firefox at the eight window sizes
 //: every control is a 44 px target in a declared scroll region (reached by scrolling
-// it, never by shrinking it), the page never scrolls, and a rotation keeps the chosen tunable (EDS-x).
+// it, never by shrinking it), the page never scrolls.
 
-const LIST = `format = "af-editors/1"\n[[file]]\nglob = "content/tuning.toml"\neditor = "tuner"\nmodes = ["edit", "ask"]\ngates = []\nchecks = []\n`
+const LIST = `format = "af-editors/1"\n[[file]]\nglob = "content/tuning.toml"\neditor = "tuner"\nmodes = ["edit"]\ngates = []\nchecks = []\n`
 
 let started: SuiteHandle | undefined
 let target: HTMLElement | undefined
@@ -87,7 +87,7 @@ describe.each(SIZES)('Tuner at $name ($width x $height)', (size) => {
       ...rows.querySelectorAll<HTMLElement>(
         '[role="slider"], [role="spinbutton"], [role="radio"], button, input[type="text"]',
       ),
-    ].filter((control) => !control.classList.contains('pick'))
+    ]
     expect(controls.length).toBeGreaterThan(10)
     for (const control of controls) {
       reveal(control)
@@ -136,17 +136,5 @@ describe.each(SIZES)('Tuner at $name ($width x $height)', (size) => {
     expect(rowsBox.height).toBeGreaterThanOrEqual(120)
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/tuner-split-${size.name}.png` })
-  })
-
-  test('a rotation keeps the chosen tunable (EDS-x)', async () => {
-    await open(size)
-    document.querySelector<HTMLElement>('[data-testid="tuner-row-GRAVITY"] .pick')?.click()
-    await settleLayout()
-    await page.viewport(size.height, size.width)
-    await settleLayout()
-    expect(document.querySelector('[data-testid="tuner-row-GRAVITY"]')?.classList.contains('chosen')).toBe(
-      true,
-    )
-    noPageScroll()
   })
 })

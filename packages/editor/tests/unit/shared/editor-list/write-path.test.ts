@@ -16,7 +16,7 @@ const classify = (path: string): WorkspaceFile | UnlistedFile => {
       editor: 'tuner',
       gates: ['g-feel'],
       checks: ['content', 'speed', 'fair'],
-      modes: ['edit', 'ask'],
+      modes: ['edit'],
       writable: true,
     }
   if (path === MODE)
@@ -69,7 +69,7 @@ const CHECKS: MemoryCheck[] = [
   },
 ]
 
-async function setup(options: { changeSet?: false; title?: string | undefined } = {}) {
+async function setup() {
   const memory = await createMemoryPorts({
     files: {
       [TUNING]: 'MAX_MOVE_SPEED = 7\n',
@@ -79,17 +79,9 @@ async function setup(options: { changeSet?: false; title?: string | undefined } 
     },
     classify,
     checks: CHECKS,
-    ...(options.changeSet === false ? { changeSet: false } : {}),
   })
-  const titles: number[] = []
-  const path = createWritePath({
-    ports: memory.ports,
-    title: async () => {
-      titles.push(1)
-      return 'title' in options ? options.title : 'Faster'
-    },
-  })
-  return { ...memory, path, titles }
+  const path = createWritePath({ ports: memory.ports })
+  return { ...memory, path }
 }
 
 const text = async (ports: { workspace: { read(path: string): Promise<{ text: string } | undefined> } }) =>
@@ -97,62 +89,36 @@ const text = async (ports: { workspace: { read(path: string): Promise<{ text: st
 
 describe('the write path (flows 3 and 4)', () => {
   test('a failing before check writes nothing and returns its findings (EDS-g)', async () => {
-    const { ports, path, changeSet } = await setup()
+    const { ports, path } = await setup()
     const outcome = await path.write(TUNING, 'MAX_MOVE_SPEED = 12\n', 'Raise speed')
     expect(outcome).toMatchObject({ refused: 'checks', findings: [{ message: 'too fast', line: 1 }] })
     expect(await text(ports)).toBe('MAX_MOVE_SPEED = 7\n')
-    expect((await changeSet?.list())?.[0]?.writes).toEqual([])
     expect(path.canUndo()).toBe(false)
   })
 
-  test('a pass writes once, records the write with its text, and starts the after checks', async () => {
-    const { ports, path, changeSet, titles } = await setup()
+  test('a pass writes once and starts the after checks', async () => {
+    const { ports, path } = await setup()
     const outcome = await path.write(TUNING, 'MAX_MOVE_SPEED = 8\n', 'Raise speed')
     expect(outcome).toMatchObject({ written: true })
-    expect(titles).toHaveLength(1)
     expect(await text(ports)).toBe('MAX_MOVE_SPEED = 8\n')
-    const [summary] = (await changeSet?.list()) ?? []
-    expect(summary).toMatchObject({ title: 'Faster', files: [TUNING] })
-    expect(summary?.writes).toEqual([
-      { path: TUNING, before: 'MAX_MOVE_SPEED = 7\n', after: 'MAX_MOVE_SPEED = 8\n' },
-    ])
     if (!('written' in outcome)) throw new Error('not written')
     expect((await outcome.after?.result())?.map((result) => result.status)).toEqual(['pass'])
     await path.settled()
-    expect((await changeSet?.list())?.[0]?.checks).toMatchObject([
-      { check: 'fair', status: 'pass', before: [{ value: 1 }], after: [{ value: 1 }] },
-      { check: 'speed', status: 'pass' },
-    ])
     expect(path.undoLabel()).toBe('Raise speed')
   })
 
-  test('the title is asked once; cancelling it writes nothing and opens no change set', async () => {
-    const { ports, path, changeSet } = await setup({ title: undefined })
-    expect(await path.write(TUNING, 'MAX_MOVE_SPEED = 8\n', 'Raise speed')).toEqual({ cancelled: true })
-    expect(await text(ports)).toBe('MAX_MOVE_SPEED = 7\n')
-    expect(await changeSet?.current()).toBeUndefined()
-  })
-
-  test('without a change set port the edit goes straight to the workspace, with no title asked', async () => {
-    const { ports, path, titles } = await setup({ changeSet: false })
-    expect(await path.write(TUNING, 'MAX_MOVE_SPEED = 8\n', 'Raise speed')).toMatchObject({ written: true })
-    expect(titles).toEqual([])
-    expect(await text(ports)).toBe('MAX_MOVE_SPEED = 8\n')
-  })
-
-  test('a never path and an unlisted path are refused with why, and nothing is written or opened', async () => {
-    const { ports, path, changeSet } = await setup()
+  test('a never path and an unlisted path are refused with why, and nothing is written', async () => {
+    const { ports, path } = await setup()
     expect(await path.write(NEVER, 'key = 2\n', 'Edit')).toEqual({ refused: 'policy', why: 'a never path' })
     expect(await path.write('notes.txt', 'x', 'Edit')).toEqual({
       refused: 'policy',
       why: 'no row of the editor list names it',
     })
-    expect(await changeSet?.current()).toBeUndefined()
     expect((await ports.workspace.read(NEVER))?.text).toBe('key = 1\n')
   })
 
   test('undo writes the old text back through the same path, and redo writes it again', async () => {
-    const { ports, path, changeSet } = await setup()
+    const { ports, path } = await setup()
     await path.write(TUNING, 'MAX_MOVE_SPEED = 8\n', 'Raise speed')
     expect(await path.undo()).toMatchObject({ written: true })
     expect(await text(ports)).toBe('MAX_MOVE_SPEED = 7\n')
@@ -160,11 +126,6 @@ describe('the write path (flows 3 and 4)', () => {
     expect(path.redoLabel()).toBe('Raise speed')
     expect(await path.redo()).toMatchObject({ written: true })
     expect(await text(ports)).toBe('MAX_MOVE_SPEED = 8\n')
-    expect((await changeSet?.list())?.[0]?.writes.map((write) => write.after)).toEqual([
-      'MAX_MOVE_SPEED = 8\n',
-      'MAX_MOVE_SPEED = 7\n',
-      'MAX_MOVE_SPEED = 8\n',
-    ])
   })
 
   test('undo of a write that created a file removes it, and redo creates it again', async () => {
@@ -211,16 +172,13 @@ describe('the write path (flows 3 and 4)', () => {
     expect(await path.write(TUNING, 'MAX_MOVE_SPEED = 7\n', 'Raise speed')).toMatchObject({ written: true })
   })
 
-  test('beginning a change set and clear() empty the history, and listeners hear each change', async () => {
+  test('listeners hear each change', async () => {
     const { path } = await setup()
     let heard = 0
     path.subscribe(() => heard++)
     await path.write(TUNING, 'MAX_MOVE_SPEED = 8\n', 'Raise speed')
     expect(path.canUndo()).toBe(true)
     expect(heard).toBeGreaterThan(0)
-    path.clear()
-    expect(path.canUndo()).toBe(false)
-    expect(path.canRedo()).toBe(false)
   })
 })
 
@@ -231,7 +189,7 @@ describe('writeAll: one step over several files (an import, EDS-D19)', () => {
   ) => (await ports.workspace.read(path))?.text
 
   test('writes every file as one step; one Undo puts all back and one Redo writes all again', async () => {
-    const { ports, path, changeSet } = await setup()
+    const { ports, path } = await setup()
     const outcome = await path.writeAll(
       [
         { path: TUNING, text: 'MAX_MOVE_SPEED = 8\n' },
@@ -242,7 +200,6 @@ describe('writeAll: one step over several files (an import, EDS-D19)', () => {
     expect(outcome).toMatchObject({ written: true })
     expect(path.undoLabel()).toBe('Import')
     expect(await read(ports, MODE)).toBe('MAX_MOVE_SPEED = 4\n')
-    expect((await changeSet?.list())?.[0]?.files).toEqual([MODE, TUNING])
     expect(await path.undo()).toMatchObject({ written: true })
     expect([await read(ports, TUNING), await read(ports, MODE)]).toEqual([
       'MAX_MOVE_SPEED = 7\n',
@@ -301,7 +258,7 @@ describe('writeAll: one step over several files (an import, EDS-D19)', () => {
             : ports.workspace.write(target, body, expected),
       },
     }
-    const path = createWritePath({ ports: failing, title: async () => 'Faster' })
+    const path = createWritePath({ ports: failing })
     const outcome = await path.writeAll(
       [
         { path: TUNING, text: 'MAX_MOVE_SPEED = 8\n' },
@@ -365,7 +322,5 @@ describe('one history per editor (EDS-D19, EDS-k)', () => {
 
     await path.redo('levels-2d')
     expect((await ports.workspace.read(MODE))?.text).toBe('MAX_MOVE_SPEED = 4\n')
-    path.clear()
-    expect(path.canUndo('levels-2d') || path.canUndo('tuner')).toBe(false)
   })
 })

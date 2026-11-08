@@ -8,7 +8,7 @@ import TunerRows from '#src/features/suite/tuner/ui/TunerRows.svelte'
 import { TUNING_FIXTURE, tunerFixtureFiles, tunerFixturePorts } from '#src/testing/suite/tuner-fixtures.ts'
 
 // The Tuner's components in jsdom: the settings (a slider or a number box, never both; a toggle, text, a table that says to change it in the file), the
-// bounds a slider cannot leave (EDS-c) and the lock (EDS-d). What reaches the file is checked through the
+// bounds a slider cannot leave (EDS-c). What reaches the file is checked through the
 // controller's session.
 
 const PATH = 'content/tuning.toml'
@@ -77,22 +77,6 @@ describe('TunerRows', () => {
     expect(text(controller)).toContain('MAX_RUN = { value = 128,')
   })
 
-  it('locks a tunable: its controls refuse and say why (EDS-d)', async () => {
-    const user = userEvent.setup()
-    const controller = await open()
-    render(TunerRows, { controller })
-    const row = screen.getByTestId('tuner-row-MAX_RUN')
-    await user.click(within(row).getByRole('button', { name: 'Lock MAX_RUN' }))
-    expect(controller.session.locked()).toEqual(['MAX_RUN'])
-    expect(
-      within(row)
-        .getByRole('slider', { name: /MAX_RUN/ })
-        .getAttribute('aria-disabled'),
-    ).toBe('true')
-    await user.click(within(row).getByRole('button', { name: 'Unlock MAX_RUN' }))
-    expect(controller.session.locked()).toEqual([])
-  })
-
   it('offers to create tuning.toml when the game has none', async () => {
     const user = userEvent.setup()
     const controller = await open({})
@@ -128,7 +112,7 @@ describe('the Tuner’s regions', () => {
 })
 
 // The grandma audit, section 6.2: a setting is shown by its label and what a player feels, never by its constant name
-// or the other game's numbers in the comment; a lock is the lock icon.
+// or the other game's numbers in the comment.
 describe('the Tuner in plain words', () => {
   const LABELLED = [
     '# Celeste: 90 px/s.',
@@ -163,22 +147,6 @@ describe('the Tuner in plain words', () => {
     await user.keyboard('{ArrowRight}')
     expect(text(controller)).toContain('value = 388')
     expect(screen.getByTestId('tuner-row-MAX_RUN')).not.toHaveTextContent(/384|768/)
-  })
-
-  it('locks a setting with the lock icon, and says what locking does', async () => {
-    const user = userEvent.setup()
-    const controller = await open({ [PATH]: LABELLED })
-    render(TunerRows, { controller })
-    const lock = within(screen.getByTestId('tuner-row-MAX_RUN')).getByRole('button', {
-      name: 'Lock Running speed',
-    })
-    expect(lock).toHaveAttribute('aria-pressed', 'false')
-    await user.click(lock)
-    expect(controller.session.locked()).toEqual(['MAX_RUN'])
-    expect(
-      within(screen.getByTestId('tuner-row-MAX_RUN')).getByRole('button', { name: 'Unlock Running speed' }),
-    ).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByTestId('tuner-rows')).not.toHaveTextContent(/Keep|Kept/)
   })
 
   it('offers to make the settings file without naming it', async () => {

@@ -47,7 +47,6 @@ describe('openSuitePorts', () => {
       'content/rooms/room-1.af2d.json',
     ])
     expect((await opened.ports.workspace.read(EDITOR_LIST_PATH))?.text).toBe(LIST)
-    expect(opened.ports.changeSet).toBeUndefined()
     expect(asked[0]).toBe('/api/ping')
     // The Tuner shows the game's dev page beside its settings.
     expect(opened.gameUrl).toBe('http://localhost:5173/')

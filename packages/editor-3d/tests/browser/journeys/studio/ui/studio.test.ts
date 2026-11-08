@@ -40,8 +40,6 @@ async function open(profile: IpadProfile) {
   await page.viewport(profile.width, profile.height)
   publishConditions(document.documentElement, { ...profile, mode: 'wide' } as never, REST)
   const ports = await samplePorts(FILES)
-  // A change set is already open, so the first edit does not stop to ask for its title.
-  await ports.changeSet?.begin('Studio journey')
   target = document.body.appendChild(document.createElement('div'))
   target.id = 'app'
   const studio = createStudio({

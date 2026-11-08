@@ -3,8 +3,7 @@
   editor an entry opens. An entry that exactly one installed editor covers opens it: `open` runs once per entry for
   the app's life, so the editor's session (documents, history, selection, view state) outlives a switch (EDS-D12),
   and its regions fill the shell's. Any other entry shows its cards. The shell stays mounted through every switch and
-  rotation; only what is inside its regions changes. Home is `SuiteHome`, Publish and
-  Export/Import are `SuitePublish`, Undo and Redo are `suite-history`, and what a refused write says is
+  rotation; only what is inside its regions changes. Home is `SuiteHome`, Undo and Redo are `suite-history`, and what a refused write says is
   `core/write-messages` (split by responsibility in 12.7 and 12.5).
 -->
 <script lang="ts">
@@ -20,21 +19,17 @@ import IconButton from '../../../shared/kit/widgets/IconButton.svelte'
 import ToastRegion from '../../../shared/kit/widgets/ToastRegion.svelte'
 import { createToasts } from '../../../shared/kit/widgets/toasts'
 import { type Pill, pillsToShow } from '../core/pills-model'
-import type { ReviewChangeSet } from '../core/review-model'
 import { findingMessage, refusalMessage } from '../core/write-messages'
 import type { Suite } from './create-suite'
 import Home from './Home.svelte'
 import type { EditorCard, HomeState } from './home-model'
 import ReadOnlyFile from './ReadOnlyFile.svelte'
-import ReviewDesk from './ReviewDesk.svelte'
 import SuiteHome from './SuiteHome.svelte'
-import SuitePublish from './SuitePublish.svelte'
 import SuiteRail from './SuiteRail.svelte'
 import SuiteTopBar from './SuiteTopBar.svelte'
 import { suiteEntries } from './suite-entries'
 import { suiteHistory } from './suite-history.svelte'
 import { createSuiteSession } from './suite-session'
-import TitlePrompt from './TitlePrompt.svelte'
 
 interface Props {
   geometry: GeometryState
@@ -65,8 +60,8 @@ const mode = $derived(shellModeAt(geometry.current))
 // Where the dock is a sheet (below `wide`, or short), the top bar opens and closes it, as Panel and Details do theirs.
 const dockIsSheet = $derived(dockPlacementOf(mode, geometry.current.heightTier) !== 'inline')
 const dockShown = $derived(dockOpen ?? defaultDockOpen(mode, geometry.current.heightTier))
-// The rail: the editors this page registered, then Review when there are change sets to review.
-const entries = $derived(suiteEntries(suite.editors, ports.changeSet !== undefined))
+// The rail: the editors this page registered.
+const entries = $derived(suiteEntries(suite.editors))
 const entry = $derived(entries.find((candidate) => candidate.id === current))
 
 // The installed editor the chosen entry opens: only when exactly one of its editors is both named and installed.
@@ -94,15 +89,11 @@ $effect(() => {
   )
 })
 
-// Editing (flows 3 to 8): every editor is opened with ports whose writes take the suite's write path; the pills,
-// Undo and Ask follow it. The session lives as long as the suite; a reload reads the pills back from the journal.
-const editing = $derived(createSuiteSession(ports, { installed: suite.editors.map((editor) => editor.id) }))
+// Editing (flows 3 to 8): every editor is opened with ports whose writes take the suite's write path; the pills and
+// Undo follow it. The session lives as long as the suite.
+const editing = $derived(createSuiteSession(ports))
 const toasts = createToasts()
 let pills = $state<readonly Pill[]>([])
-let titleOpen = $state(false)
-let tokens = $state<{ readonly used: number; readonly cap: number }>()
-/** An open change set to publish: Publish is the lime primary only then, and a quiet button otherwise. */
-let shippable = $state(false)
 // Icons with counts in the `short` tier and on a phone, where full labels leave no room; never hidden.
 const compact = $derived(geometry.current.heightTier === 'short' || mode === 'compact')
 
@@ -110,18 +101,10 @@ $effect(() => {
   const session = editing
   const read = () => {
     pills = session.pills()
-    titleOpen = session.asking()
-    tokens = session.tokens()
-    if (session.canShip()) void session.review().then(([open]) => (shippable = open !== undefined))
   }
   const stop = session.subscribe(read)
   read()
   void session.refresh()
-  // Locks live only in the page (EDS-D18), so a change set still open from before the reload has lost them.
-  void ports.changeSet?.current().then((open) => {
-    if (open !== undefined)
-      toasts.push({ kind: 'info', message: 'Locked values were cleared when the page reloaded.' })
-  })
   return stop
 })
 
@@ -139,17 +122,6 @@ function refused(outcome: WriteOutcome | undefined): void {
   const message = refusalMessage(outcome)
   if (message !== undefined) toasts.push({ kind: 'error', message })
 }
-
-// Publish (Ship in the spec, flow 9), the Review desk (flow 10) and Export and Import (flow 11).
-let publishing = $state(false)
-let reviews = $state<readonly ReviewChangeSet[]>()
-let interchange = $state<'export' | 'import'>()
-
-$effect(() => {
-  if (entry?.id !== 'review') return
-  reviews = undefined
-  void editing.review().then((read) => (reviews = read))
-})
 
 function locate(finding: CheckFinding): void {
   toasts.push({ kind: 'info', message: findingMessage(finding) })
@@ -204,15 +176,13 @@ function openCard(card: EditorCard): void {
     <!-- The game's name is the title; the sample says it is one in a banner over Home instead (12.7, Step G). -->
     <SuiteTopBar
       title={mode === 'compact' ? undefined : sample ? 'Sample game' : (game ?? 'Your game')}
-      saved={!sample && ports.changeSet === undefined && !compact}
+      saved={!sample && !compact}
       pills={pillsToShow(pills)}
       {compact}
       onlocate={locate}
       history={undoHook !== undefined || history.canUndo || history.canRedo ? history : undefined}
       onundo={history.undo}
       onredo={history.redo}
-      onpublish={editing.canShip() ? () => (publishing = true) : undefined}
-      {shippable}
       tools={mounted?.editor.regions.tools ? editorTools : undefined}
     />
     {#if mounted?.editor.regions.panel && mode !== 'wide'}
@@ -243,9 +213,7 @@ function openCard(card: EditorCard): void {
     {:else if mounted}
       {@render mounted.editor.regions.canvas(mounted.session)}
     {:else if entry === undefined}
-      <SuiteHome {home} {sample} onopen={openCard} onread={(file) => (reading = file)} oninterchange={(mode) => (interchange = mode)} />
-    {:else if entry.id === 'review'}
-      <ReviewDesk {reviews} />
+      <SuiteHome {home} {sample} onopen={openCard} onread={(file) => (reading = file)} />
     {:else}
       <Home
         title={entry.label}
@@ -260,14 +228,6 @@ function openCard(card: EditorCard): void {
 </EditorShell>
 
 <svelte:window onkeydown={shortcuts} />
-
-<TitlePrompt open={titleOpen} onsubmit={(title) => editing.answerTitle(title)} oncancel={() => editing.answerTitle(undefined)} />
-<SuitePublish
-  session={editing}
-  locked={() => []}
-  bind:publishing
-  bind:interchange
-/>
 
 {#snippet editorTools()}{#if mounted?.editor.regions.tools}{@render mounted.editor.regions.tools(mounted.session)}{/if}{/snippet}
 {#snippet panel()}{#if mounted?.editor.regions.panel}{@render mounted.editor.regions.panel(mounted.session)}{/if}{/snippet}

@@ -8,8 +8,8 @@ import { checkValue, valueEdit } from './tuner-edits'
 // app's life. One kit `History` holds the file's text, so a value, a drag and their Undo are
 // all steps of one list. An edit is a span-preserving change of one literal (the kit's content documents), held to the
 // tunable's kind and bounds before it is made, and written through the workspace port before it counts (the port's
-// rules, the mtime guard and the change set's journal stay the port's); a write the port refuses is a message and the
-// history is left as it was. Locks live here, never in a file.
+// rules and the mtime guard stay the port's); a write the port refuses is a message and the
+// history is left as it was.
 
 /** The compiler's bounds for a code-owned game: its output, read through the workspace. */
 export const TUNING_META_PATH = 'content/generated/tuning-meta.json'
@@ -40,10 +40,6 @@ export interface TunerSession {
   hasFile(): boolean
   /** True when the compiler's `tuning-meta.json` is absent: a code-owned game's bare numbers then have no bounds. */
   boundsUnavailable(): boolean
-  /** The tunables the person locked in this session, as the key paths an import refuses to change (EDS-D18). */
-  locked(): readonly string[]
-  lock(name: string): void
-  unlock(name: string): void
   /** One new value of one tunable, as one undo step. */
   set(name: string, value: number | boolean | string): Promise<TunerOutcome>
   readonly drag: TunerDrag
@@ -68,7 +64,6 @@ export async function openTuner(ports: SuitePorts): Promise<TunerSession> {
   const generated = await workspace.generated(TUNING_META_PATH)
   const meta: TuningMeta | undefined = parseMeta(generated)
   const history = createHistory<TunerState>({ text: read?.text })
-  const locks = new Set<string>()
 
   let cached: { readonly text: string | undefined; readonly result: TuningRead } | undefined
   const current = (): TuningRead => {
@@ -113,9 +108,8 @@ export async function openTuner(ports: SuitePorts): Promise<TunerSession> {
     return written
   }
 
-  /** The new text for one tunable's value, or why it cannot be made (the check, the lock, the patcher). */
+  /** The new text for one tunable's value, or why it cannot be made (the check, the patcher). */
   function textFor(name: string, value: number | boolean | string): { text: string } | { message: string } {
-    if (locks.has(name)) return { message: `${name} is locked: unlock it to change it` }
     const parsed = current()
     if ('problem' in parsed) return { message: parsed.problem }
     const tunable = parsed.tunables.find((entry) => entry.name === name)
@@ -153,7 +147,6 @@ export async function openTuner(ports: SuitePorts): Promise<TunerSession> {
     start(name) {
       const problem = unwritable()
       if (problem !== undefined) return refused(problem)
-      if (locks.has(name)) return refused(`${name} is locked: unlock it to change it`)
       const parsed = current()
       if ('problem' in parsed) return refused(parsed.problem)
       if (!parsed.tunables.some((entry) => entry.name === name && entry.editable))
@@ -194,9 +187,6 @@ export async function openTuner(ports: SuitePorts): Promise<TunerSession> {
     read: current,
     hasFile: () => history.state.text !== undefined,
     boundsUnavailable: () => meta === undefined,
-    locked: () => [...locks].sort(),
-    lock: (name) => void locks.add(name),
-    unlock: (name) => void locks.delete(name),
     async set(name, value) {
       const problem = unwritable()
       if (problem !== undefined) return refused(problem)

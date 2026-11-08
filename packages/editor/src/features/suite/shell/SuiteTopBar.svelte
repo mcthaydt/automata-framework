@@ -1,15 +1,14 @@
 <!--
   The middle of the suite's top bar, between Home and the sheet toggles: the game's name, where edits are saved, the
-  pills, then Undo, Redo, Publish and the open editor's own tools. The pills and the tools scroll sideways when
-  the bar is short of room. Only what has something to say is shown: no history hides Undo and Redo, nothing to publish hides Publish (12.7 Step G). Split out of `Suite.svelte` (12.7). Drawn as the document's
-  bar is: the name in the title's weight, the saved note a quiet status with a tick, Undo and Redo icon buttons named
-  with the step they take, and Publish the one lime button.
+  pills, then Undo, Redo and the open editor's own tools. The pills and the tools scroll sideways when the bar is short
+  of room. Only what has something to say is shown: no history hides Undo and Redo (12.7 Step G). Split out of
+  `Suite.svelte` (12.7). Drawn as the document's bar is: the name in the title's weight, the saved note a quiet status
+  with a tick, and Undo and Redo icon buttons named with the step they take.
 -->
 <script lang="ts">
 import type { Snippet } from 'svelte'
 import Icon from '../../../shared/kit/icons/Icon.svelte'
 import type { CheckFinding } from '../../../shared/kit/ports/suite-ports'
-import Button from '../../../shared/kit/widgets/Button.svelte'
 import IconButton from '../../../shared/kit/widgets/IconButton.svelte'
 import type { Pill } from '../core/pills-model'
 import SuitePills from './SuitePills.svelte'
@@ -34,27 +33,11 @@ interface Props {
     | undefined
   onundo: () => void
   onredo: () => void
-  /** Opens Publish; `undefined` hides it. */
-  onpublish: (() => void) | undefined
-  /** There is something to publish: Publish is the primary; otherwise it is quiet and its dialog says why. */
-  shippable: boolean
   /** The open editor's own tools. */
   tools: Snippet | undefined
 }
 
-const {
-  title,
-  saved,
-  pills,
-  compact,
-  onlocate,
-  history,
-  onundo,
-  onredo,
-  onpublish,
-  shippable,
-  tools,
-}: Props = $props()
+const { title, saved, pills, compact, onlocate, history, onundo, onredo, tools }: Props = $props()
 </script>
 
 {#if title !== undefined}<span class="brand">{title}</span>{/if}
@@ -76,7 +59,6 @@ const {
       onclick={onredo}
     />
   {/if}
-  {#if onpublish !== undefined}<Button variant={shippable ? 'primary' : 'plain'} onclick={onpublish}>Publish</Button>{/if}
   {@render tools?.()}
 </div>
 

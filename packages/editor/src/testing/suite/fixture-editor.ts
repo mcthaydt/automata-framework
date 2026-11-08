@@ -1,7 +1,7 @@
 // A suite editor for the DOM and layout tests (beside the level editors): one TOML file, a
 // kit history of its whole text, a "Raise speed" control that adds one to the first number and writes the result
 // through the ports it was opened with, and the Undo hook. A refused write takes its own step back, as a kit
-// widget's refusal state keeps the old value. `locked` holds the key paths the test locks for the session.
+// widget's refusal state keeps the old value.
 
 import { createRawSnippet } from 'svelte'
 import { createHistory, type History } from '../../shared/kit/history/history.ts'
@@ -12,7 +12,6 @@ export interface FixtureSession {
   readonly path: string
   readonly history: History<string>
   readonly ports: SuitePorts
-  readonly locked: string[]
   /** The last refusal the write reported, for the canvas. */
   refusal: string | undefined
 }
@@ -36,7 +35,7 @@ export const fixtureEditor: SuiteEditor<FixtureSession> = defineSuiteEditor<Fixt
   async open(files: readonly WorkspaceFile[], ports: SuitePorts) {
     const path = files[0]?.path ?? 'content/tuning.toml'
     const text = (await ports.workspace.read(path))?.text ?? ''
-    return { path, history: createHistory(text), ports, locked: [], refusal: undefined }
+    return { path, history: createHistory(text), ports, refusal: undefined }
   },
   regions: {
     panel: createRawSnippet(() => ({ render: () => '<p>Fixture panel</p>' })),

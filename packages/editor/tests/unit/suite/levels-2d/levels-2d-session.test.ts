@@ -25,7 +25,7 @@ const file = (path: string): WorkspaceFile => ({
 })
 
 async function setup(text = levelProject.print('', platformerTemplate.create(counterIds()))) {
-  const memory = await createMemoryPorts({ files: { [PATH]: text }, classify: file, changeSet: false })
+  const memory = await createMemoryPorts({ files: { [PATH]: text }, classify: file })
   const session = await openLevels2d([file(PATH)], memory.ports, { ids: counterIds(500) })
   return { ports: memory.ports, session }
 }
@@ -74,7 +74,6 @@ describe('Levels 2D session', () => {
     const memory = await createMemoryPorts({
       files: { [PATH]: levelProject.print('', platformerTemplate.create(counterIds())) },
       classify: (path) => ({ ...file(path), writable: false, why: 'generated' }),
-      changeSet: false,
     })
     const session = await openLevels2d([file(PATH)], memory.ports, { ids: counterIds(500) })
     if (session.state.kind !== 'open') throw new Error(session.state.kind)
@@ -92,7 +91,6 @@ describe('Levels 2D session', () => {
       const memory = await createMemoryPorts({
         files: { [PATH]: levelProject.print('', platformerTemplate.create(counterIds())) },
         classify: exportingFile,
-        changeSet: false,
       })
       const suite = createSuiteSession(memory.ports)
       const session = await openLevels2d([exportingFile(PATH)], suite.portsFor('levels-2d'), {
@@ -190,7 +188,6 @@ describe('Levels 2D session', () => {
       const memory = await createMemoryPorts({
         files: { [PATH]: levelProject.print('', platformerTemplate.create(counterIds())) },
         classify: file,
-        changeSet: false,
       })
       await memory.ports.workspace.writeBytes?.('assets/tiles.png', PICTURE, 'absent')
       const session = await openLevels2d([file(PATH)], memory.ports, { ids: counterIds(500) })
@@ -207,7 +204,6 @@ describe('Levels 2D session', () => {
       const memory = await createMemoryPorts({
         files: { [PATH]: levelProject.print('', platformerTemplate.create(counterIds())) },
         classify: file,
-        changeSet: false,
       })
       const session = await openLevels2d([file(PATH)], memory.ports, { ids: counterIds(500) })
       const files = session.files
@@ -226,7 +222,7 @@ describe('Levels 2D on a game with no level yet (the try-it sample)', () => {
   const exportingFile = (path: string): WorkspaceFile => ({ ...file(path), exports: 'content' })
 
   async function sample(options: { templates?: string } = { templates: 'content/levels' }) {
-    const memory = await createMemoryPorts({ files: {}, classify: exportingFile, changeSet: false })
+    const memory = await createMemoryPorts({ files: {}, classify: exportingFile })
     const suite = createSuiteSession(memory.ports)
     const session = await openLevels2d([], suite.portsFor('levels-2d'), { ids: counterIds(500), ...options })
     return { memory, session }
@@ -266,7 +262,6 @@ describe('Levels 2D on a game with no level yet (the try-it sample)', () => {
     const memory = await createMemoryPorts({
       files: {},
       classify: (path) => ({ ...exportingFile(path), writable: false, why: 'Read only.' }),
-      changeSet: false,
     })
     const session = await openLevels2d([], memory.ports, {
       ids: counterIds(500),

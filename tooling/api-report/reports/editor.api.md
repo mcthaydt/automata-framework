@@ -3528,77 +3528,6 @@ function valuesWithDefaults(fields: readonly FieldDef[], values: FieldValues): F
 
 ## `./kit/ports`
 
-### `ChangeSet` (interface)
-
-```ts
-interface ChangeSet {
-    current(): Promise<{
-        readonly title: string;
-        readonly branch: string;
-        readonly base: string;
-    } | undefined>;
-    begin(title: string): Promise<void>;
-    record(files: readonly string[], writes?: readonly ChangeSetWrite[]): Promise<void>;
-    note(checks: readonly ChangeSetCheck[]): Promise<void>;
-    checkpoint(message: string): Promise<{
-        readonly commit: string;
-    }>;
-    ship(draft: {
-        readonly title: string;
-        readonly body: string;
-    }): Promise<{
-        readonly branch: string;
-        readonly pushed: boolean;
-        readonly pr?: string | undefined;
-        readonly compareUrl: string;
-    }>;
-    spend(tokens: number): Promise<void>;
-    raiseCap(cap: number): Promise<void>;
-    close(): Promise<void>;
-    list(): Promise<readonly ChangeSetSummary[]>;
-}
-```
-
-### `ChangeSetCheck` (interface)
-
-```ts
-interface ChangeSetCheck {
-    readonly check: string;
-    readonly status: CheckResult['status'];
-    readonly findings: readonly CheckFinding[];
-    readonly before?: readonly CheckMeasure[] | undefined;
-    readonly after?: readonly CheckMeasure[] | undefined;
-}
-```
-
-### `ChangeSetSummary` (interface)
-
-```ts
-interface ChangeSetSummary {
-    readonly title: string;
-    readonly branch: string;
-    readonly base: string;
-    readonly files: readonly string[];
-    readonly created: readonly string[];
-    readonly tokens: {
-        readonly used: number;
-        readonly cap: number;
-    };
-    readonly writes: readonly ChangeSetWrite[];
-    readonly checks: readonly ChangeSetCheck[];
-}
-```
-
-### `ChangeSetWrite` (interface)
-
-```ts
-interface ChangeSetWrite {
-    readonly path: string;
-    readonly before: string | undefined;
-    readonly after: string;
-}
-```
-
 ### `CheckDef` (interface)
 
 ```ts
@@ -3633,6 +3562,16 @@ interface CheckMeasure {
     readonly value: number;
     readonly threshold?: number | undefined;
     readonly ok: boolean;
+}
+```
+
+### `CheckReport` (interface)
+
+```ts
+interface CheckReport {
+    readonly check: string;
+    readonly status: CheckResult['status'];
+    readonly findings: readonly CheckFinding[];
 }
 ```
 
@@ -3689,7 +3628,7 @@ function defineSuiteEditor<S>(editor: SuiteEditor<S>): SuiteEditor<S>;
 ### `EditMode` (type)
 
 ```ts
-type EditMode = 'edit' | 'ask';
+type EditMode = 'edit';
 ```
 
 ### `Gates` (interface)
@@ -3732,7 +3671,6 @@ interface SuiteEditor<S> {
 ```ts
 interface SuitePorts {
     readonly workspace: SuiteWorkspace;
-    readonly changeSet?: ChangeSet | undefined;
     readonly checks: ChecksRunner;
     readonly gates?: Gates | undefined;
 }
@@ -3849,12 +3787,6 @@ type CheckOutcome = Omit<CheckResult, 'check'>;
 const CHECKS_SCENARIO: readonly ScenarioCheck[];
 ```
 
-### `createMemoryChangeSet` (function)
-
-```ts
-function createMemoryChangeSet(options?: MemoryChangeSetOptions): MemoryChangeSet;
-```
-
 ### `createMemoryChecks` (function)
 
 ```ts
@@ -3877,12 +3809,6 @@ function createMemoryPorts(options: MemoryPortsOptions): Promise<MemoryPorts>;
 
 ```ts
 function createMemoryWorkspace(options: MemoryWorkspaceOptions): Promise<SuiteWorkspace>;
-```
-
-### `describeChangeSet` (function)
-
-```ts
-function describeChangeSet(name: string, make: () => Promise<ChangeSetProject> | ChangeSetProject): void;
 ```
 
 ### `describeChecksRunner` (function)
@@ -3920,29 +3846,7 @@ const GATES_SCENARIO: GateRecords;
 ```ts
 type MakeWorkspace = (scenario: WorkspaceScenario) => Promise<{
     readonly workspace: SuiteWorkspace;
-    readonly changeSet: ChangeSet;
 }>;
-```
-
-### `MemoryChangeSet` (interface)
-
-```ts
-interface MemoryChangeSet extends ChangeSet {
-    noteCreated(path: string): void;
-    noteRemoved(path: string): void;
-    created(path: string): boolean;
-}
-```
-
-### `MemoryChangeSetOptions` (interface)
-
-```ts
-interface MemoryChangeSetOptions {
-    readonly base?: string | undefined;
-    readonly tokenCap?: number | undefined;
-    readonly remote?: string | undefined;
-    readonly gh?: boolean | undefined;
-}
 ```
 
 ### `MemoryCheck` (interface)
@@ -3964,7 +3868,6 @@ interface MemoryCheck extends CheckDef {
 ```ts
 interface MemoryPorts {
     readonly ports: SuitePorts;
-    readonly changeSet: MemoryChangeSet | undefined;
 }
 ```
 
@@ -3978,7 +3881,6 @@ interface MemoryPortsOptions {
     readonly store?: ProjectStore | undefined;
     readonly checks?: readonly MemoryCheck[] | undefined;
     readonly gates?: GateRecords | 'unreadable' | undefined;
-    readonly changeSet?: MemoryChangeSetOptions | false | undefined;
 }
 ```
 
@@ -3989,7 +3891,6 @@ interface MemoryWorkspaceOptions {
     readonly files?: Readonly<Record<string, string>> | undefined;
     readonly classify: (path: string) => WorkspaceFile | UnlistedFile;
     readonly generated?: ((path: string) => boolean) | undefined;
-    readonly changeSet?: Pick<MemoryChangeSet, 'noteCreated' | 'noteRemoved' | 'created'> | undefined;
     readonly store?: ProjectStore | undefined;
 }
 ```
@@ -4387,7 +4288,6 @@ const SAMPLE_GAME: Readonly<Record<string, string>>;
 
 ```ts
 function samplePorts(files: Readonly<Record<string, string>>, options?: {
-    readonly changeSet?: false;
     readonly store?: ProjectStore;
 }): Promise<SuitePorts>;
 ```
@@ -4529,7 +4429,7 @@ const CONTENT_CHECK = "content";
 ### `EditMode` (type)
 
 ```ts
-type EditMode = 'edit' | 'ask';
+type EditMode = 'edit';
 ```
 
 ### `EDITOR_LIST_FORMAT` (const)

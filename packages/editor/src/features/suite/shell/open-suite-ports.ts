@@ -41,7 +41,7 @@ export async function openSuitePorts(env: SuitePortsEnv): Promise<OpenedSuitePor
     // The sample is kept in this browser's private storage where it has one (memory where it has not), so the try-it
     // page keeps a visitor's level through a reload, as the site says.
     const [store = createMemoryStore()] = (await openPrivateStores([SAMPLE_FOLDER], env.storage)).stores
-    const ports = await samplePorts(env.sample ?? SAMPLE_GAME, { changeSet: false, store })
+    const ports = await samplePorts(env.sample ?? SAMPLE_GAME, { store })
     return { ports, sample: true, gameUrl: undefined, game: undefined }
   }
   const { store, gameUrl, game } = served
@@ -53,7 +53,6 @@ export async function openSuitePorts(env: SuitePortsEnv): Promise<OpenedSuitePor
       load.ok
         ? workspaceFile(load.list, path)
         : { path, writable: false, why: 'The editor list has a problem.' },
-    changeSet: false,
   })
   return { ports, sample: false, gameUrl, game }
 }
