@@ -35,6 +35,7 @@ import { fogSkyColor, viewFog } from '../shared/render/light/view-fog.ts'
 import { loadModels, type ModelLibrary, type ModelStore } from '../shared/render/model/load-models.ts'
 import type { EntityView3d, EntityViewResolver3d } from '../shared/render/views/view-3d.ts'
 import { type TimeOfDay, timeOfDay } from '../shared/time-of-day/time-of-day.ts'
+import { characters3d } from './characters-3d.ts'
 
 export interface Pixi3dOptions extends PixiRendererOptions {
   /** Component id → its 3D view (`mesh`, `box`). `entityViews` stays the 2D layer's, drawn over the 3D view. */
@@ -171,6 +172,8 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   for (const [id, factory] of Object.entries(options.views))
     resolver[id] = (row, componentId) => factory(row, componentId, models, light)
   const consumer = new RenderDeltaConsumer<Container3D>(view.root, resolver)
+  // Feel and its kind squash, hold and label characters through the stage; here they are 3D models, not 2D views.
+  stage.useCharacters(characters3d(consumer, view, stage.ui))
   const entities: PixiStageHooks = {
     apply: (result) => {
       const levels = switches?.apply(result.render)
