@@ -1,0 +1,46 @@
+{
+  "name": "@automata/level-2d",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-framework.git",
+    "directory": "extensions/level-2d"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    ".": "./src/entries/index.ts",
+    "./sim": "./src/entries/sim.ts"
+  },
+  "automata": {
+    "simEntries": [
+      "./sim"
+    ]
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "typecheck": "tsc -p ."
+  },
+  "peerDependencies": {
+    "@automata/content": "workspace:^",
+    "@automata/framework": "workspace:^",
+    "@automata/places": "workspace:^",
+    "@automata/sim": "workspace:^"
+  },
+  "devDependencies": {
+    "@automata/content": "workspace:*",
+    "@automata/framework": "workspace:*",
+    "@automata/places": "workspace:*",
+    "@automata/sim": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
+    "@types/node": "24.19.1",
+    "vitest": "5.0.3",
+    "zod": "4.6.6"
+  }
+}

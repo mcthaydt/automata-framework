@@ -613,3 +613,11 @@ The Owner's rule (2026-11-08): content made in the editors must be seen in play,
   name and no longer lists `@automata/sectors` as a peer. (3) Nothing added to any plugin's `config`. Pre-existing and left:
   `pnpm typecheck` fails in `extensions/editors` (svelte-check warning exits 1) and knip lists `examples/2d-story/ship.config.ts`,
   `@automata/feel` and `@testing-library/user-event` in `extensions/editors`.
+- 2026-11-08 Task 11 done: `extensions/level-2d` (private, `@automata/level-2d`, sim entry `./sim`): `level2dPlaces`, `Level2dAt`,
+  `cellWalls`, `level2dExtension`. 15 unit tests (Node). Rulings: (1) a point on a shared edge goes to the first area, so
+  containment is on closed rectangles in file order (spec). (2) `cellWalls` with no margin treats touching a cell's edge as
+  not crossing it (a walker may stand on a floor's top edge); with a margin it is the distance from the segment to the cell
+  that must reach the margin. (3) A walls layer with no value called `solid` and no `solid` option throws a sentence, so a
+  mistyped layer does not silently mean "no walls"; a project with no IntGrid layer has no walls. (4) `roomOf` reads the
+  position now (no lag in 2D). (5) `Math.hypot` is refused by `pnpm boundaries` in sim code, so the maths uses `hypot` from
+  `@automata/sim/math`.
