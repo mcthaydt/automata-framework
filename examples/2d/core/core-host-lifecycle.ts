@@ -31,11 +31,11 @@ export default defineGame({
     seed: 1,
     setup: (sim) => void sim.spawn([[Pacer, { x: 8, y: 90, vx: 1.5 }]]),
   },
-  views: { [Pacer.id]: rect({ w: 12, h: 12, color: 0x5ee6a8 }) },
+  views: { [Pacer.id]: rect({ w: 12, h: 12, color: 0x91daa1 }) },
   draw: (ctx) => {
-    ctx.rect(4, 40, 150, 14, 0x2e222f)
+    ctx.rect(4, 40, 150, 14, 0x31222a)
     ctx.text(`tick ${ctx.sim.tick}   ${ctx.frame.paused ? 'paused' : 'running'}`, 8, 43, {
-      color: 0xffffff,
+      color: 0xf5f7fa,
       size: 8,
     })
   },

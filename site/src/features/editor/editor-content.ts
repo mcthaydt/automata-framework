@@ -1,8 +1,14 @@
-// The words and pictures of the Editor page: what the 2D level editor does, in three pictures of the real
-// editor, and how to open it. The pictures are screenshots of the build this site serves at /editor/app/.
+// The words of the Editor page: what the 2D level editor does, in three pictures of the real editor, and how to open
+// it. The pictures are taken by scripts/take-pictures.ts from the build this site serves at /editor/app/, and each
+// one's size comes from the list that script reads, so the box and the picture cannot disagree.
+import { pictureOf } from '../../shared/pictures'
 
 /** The command that opens the editor on a game made with `create-game` (Start's step 3). */
 export const EDITOR_COMMAND = 'pnpm exec automata editor'
+
+/** What the try-it editor does and does not do, said once on the page (Owner choice R8: no Play here yet). */
+export const EDITOR_PLAY_NOTE =
+  'The try-it editor cannot play a level. To play one, open the editor on your own game with the command below.'
 
 export interface EditorPicture {
   readonly caption: string
@@ -13,26 +19,25 @@ export interface EditorPicture {
   readonly height: number
 }
 
+function picture(name: string, caption: string, alt: string): EditorPicture {
+  const { width, height } = pictureOf(name)
+  return { caption, alt, src: `/previews/${name}.jpg`, width, height }
+}
+
 export const PICTURES: readonly EditorPicture[] = [
-  {
-    caption: 'Paint a room, then place its characters.',
-    alt: 'The level editor on Emberwick: the layers on the left, the room in the middle, its details on the right',
-    src: '/previews/editor.jpg',
-    width: 1600,
-    height: 1000,
-  },
-  {
-    caption: 'Start from a platformer, a top-down map or nothing.',
-    alt: 'The New level box: Platformer, Top-down and Blank',
-    src: '/previews/editor-new.jpg',
-    width: 992,
-    height: 964,
-  },
-  {
-    caption: 'It works on a phone and a tablet too.',
-    alt: 'The level editor on a phone: the room fills the screen and the tools sit along the bottom',
-    src: '/previews/editor-phone.jpg',
-    width: 390,
-    height: 844,
-  },
+  picture(
+    'editor',
+    'Paint a room, then place its characters.',
+    'The level editor on a new platformer: the layers on the left, the room in the middle, a few coins and a slime placed in it',
+  ),
+  picture(
+    'editor-new',
+    'Start from a platformer, a top-down map or nothing.',
+    'The New level box: Platformer, Top-down and Blank',
+  ),
+  picture(
+    'editor-phone',
+    'It works on a phone and a tablet too.',
+    'The level editor on a phone: the room fills the screen and the tools sit along the bottom',
+  ),
 ]

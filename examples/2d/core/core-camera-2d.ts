@@ -43,7 +43,7 @@ const world = definePlugin({ name: 'world', defs: [Body, Marker, Move, move] })
 
 // The camera follows what is drawn, so it reads the square's interpolated view rather than the sim.
 let squareView: { readonly position: { readonly x: number; readonly y: number } } | undefined
-const drawSquare = rect({ w: HALF * 2, h: HALF * 2, color: 0xffc825 })
+const drawSquare = rect({ w: HALF * 2, h: HALF * 2, color: 0xffcf05 })
 const trackSquare: typeof drawSquare = (row, componentId) => {
   const view = drawSquare(row, componentId)
   squareView = view?.container
@@ -76,7 +76,7 @@ export default defineGame({
     ArrowDown: { y: 1 },
     KeyS: { y: 1 },
   }),
-  views: { [Marker.id]: rect({ w: 6, h: 6, color: 0x3e3546 }), [Body.id]: trackSquare },
+  views: { [Marker.id]: rect({ w: 6, h: 6, color: 0x3b303c }), [Body.id]: trackSquare },
   renderer: {
     setup: (stage) => {
       const camera = createCamera2d(stage.world, {

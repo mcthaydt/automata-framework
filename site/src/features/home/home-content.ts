@@ -67,7 +67,7 @@ export default defineGame({
   id: 'shapes-rects',
   size: { width: 320, height: 180 },
   views: {
-    [Block.id]: rect({ w: 16, h: 16, color: 0x00cdf9 }),
+    [Block.id]: rect({ w: 16, h: 16, color: 0x52d2ff }),
   },
 })`
 

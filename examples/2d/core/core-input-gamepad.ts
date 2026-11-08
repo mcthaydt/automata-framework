@@ -51,5 +51,5 @@ export default defineGame({
       stick: { 'left-left': { x: -1 }, 'left-right': { x: 1 }, 'left-up': { y: -1 }, 'left-down': { y: 1 } },
     },
   ),
-  views: { [Body.id]: rect({ w: 8, h: 8, color: 0x4fc3f7 }) },
+  views: { [Body.id]: rect({ w: 8, h: 8, color: 0x6dccff }) },
 })

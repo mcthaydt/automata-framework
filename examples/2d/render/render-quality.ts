@@ -39,7 +39,7 @@ export default defineGame({
         sim.spawn([[Drift, { x: row * 60, y: 40 + row * 24, vx: 0.5 + row * 0.25 }]])
     },
   },
-  views: { [Drift.id]: rect({ w: 12, h: 12, color: 0xf9c22b }) },
+  views: { [Drift.id]: rect({ w: 12, h: 12, color: 0xffbc4e }) },
   renderer: {
     // The tier is presentation: it never reaches the sim, so the keys go straight to the stage.
     setup: (pixi) => {
@@ -59,9 +59,9 @@ export default defineGame({
   draw: (ctx) => {
     if (stage === undefined) return
     // y = 40: a wide phone shows only the band between about y = 35 and y = 145 of the 180-high field.
-    ctx.rect(4, 40, 168, 14, 0x2e222f)
+    ctx.rect(4, 40, 168, 14, 0x31222a)
     ctx.text(`quality ${stage.quality}   resolution ${stage.app.renderer.resolution}`, 8, 43, {
-      color: 0xffffff,
+      color: 0xf5f7fa,
       size: 8,
     })
   },

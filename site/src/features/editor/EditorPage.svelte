@@ -8,7 +8,7 @@ import CodeBlock from '../../shared/components/CodeBlock.svelte'
 import Icon from '../../shared/components/Icon.svelte'
 import PageMeta from '../../shared/components/PageMeta.svelte'
 import PageShell from '../../shared/components/PageShell.svelte'
-import { EDITOR_COMMAND, PICTURES } from './editor-content'
+import { EDITOR_COMMAND, EDITOR_PLAY_NOTE, PICTURES } from './editor-content'
 
 const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
 </script>
@@ -29,7 +29,7 @@ const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
     <p class="cta"><a class="button" href="/editor/app/" data-sveltekit-reload>Try the editor <Icon name="arrowRight" /></a></p>
     <p class="note">
       Nothing to install. The try-it editor keeps your levels in this browser and nowhere else. Share sends one out as a
-      file.
+      file. {EDITOR_PLAY_NOTE}
     </p>
   </header>
 

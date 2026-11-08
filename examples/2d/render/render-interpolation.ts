@@ -24,7 +24,7 @@ const track = definePlugin({ name: 'track', defs: [Runner, run] })
 
 // Presentation only: whether the view blends between ticks. It never reaches the sim.
 let blend = true
-const square = rect({ w: 12, h: 12, color: 0xf9c22b })
+const square = rect({ w: 12, h: 12, color: 0xffbc4e })
 
 // The view's own `update` gets the frame's alpha; asking for 1 shows the current tick as it is.
 const blended: typeof square = (row, componentId) => {
@@ -56,11 +56,11 @@ export default defineGame({
   draw: (ctx) => {
     for (const runner of ctx.sim.query(Runner)) {
       const { x, y } = runner.get(Runner)
-      ctx.line(x, y - 14, x, y + 14, 0xff5d8f, 1)
+      ctx.line(x, y - 14, x, y + 14, 0xf85d80, 1)
     }
-    ctx.rect(4, 40, 150, 14, 0x2e222f)
+    ctx.rect(4, 40, 150, 14, 0x31222a)
     ctx.text(`blend ${blend ? 'on' : 'off'}   alpha ${ctx.frame.alpha.toFixed(2)}`, 8, 43, {
-      color: 0xffffff,
+      color: 0xf5f7fa,
       size: 8,
     })
   },

@@ -341,9 +341,9 @@ async function redPixels(page: Page): Promise<number> {
 test('an edit updates the preview with no button', async ({ page }) => {
   const watch = watchPage(page, ORIGIN)
   await page.goto('/examples/shapes-rects')
-  await tapLine(page, await lineOf(page, '0x00cdf9'))
+  await tapLine(page, await lineOf(page, '0x52d2ff'))
   expect(await redPixels(page)).toBeLessThan(100)
-  await replaceWord(page, '0x00cdf9', '0xff0000')
+  await replaceWord(page, '0x52d2ff', '0xff0000')
   await expect(root(page)).toHaveAttribute('data-run-id', '2', { timeout: 10_000 })
   await expect(page.locator('.playground iframe')).toHaveCount(1)
   await expect(page.locator('.playground-status')).toHaveText('Preview updated.')
@@ -470,7 +470,7 @@ test('an edit before the first run replaces it, and the original is not run afte
   await staticCode(page).focus()
   await expect(root(page)).toHaveAttribute('data-code', 'ready', { timeout: 10_000 })
   await expect(root(page)).toHaveAttribute('data-preview', 'poster')
-  await replaceWord(page, '0x00cdf9', '0xff0000')
+  await replaceWord(page, '0x52d2ff', '0xff0000')
   await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
   await expect(root(page)).toHaveAttribute('data-run-id', '1')
   await expect.poll(() => redPixels(page), { timeout: 5_000 }).toBeGreaterThan(100)
@@ -490,7 +490,7 @@ test('with reduced motion an edit runs nothing until Play, then edits update the
   await page.goto('/examples/shapes-rects')
   await staticCode(page).focus()
   await expect(root(page)).toHaveAttribute('data-code', 'ready', { timeout: 10_000 })
-  await replaceWord(page, '0x00cdf9', '0xff0000')
+  await replaceWord(page, '0x52d2ff', '0xff0000')
   await expect(root(page)).toHaveAttribute('data-compile', 'ok', { timeout: 2_000 })
   await page.waitForTimeout(500)
   expect(requests).toEqual([])
@@ -501,7 +501,7 @@ test('with reduced motion an edit runs nothing until Play, then edits update the
   // Play ran the edited code, not the precompiled original.
   expect(requests.map((request) => request.path)).not.toContain('/playground/compiled/shapes-rects.js')
   await expect.poll(() => redPixels(page), { timeout: 5_000 }).toBeGreaterThan(100)
-  await replaceWord(page, '0xff0000', '0x00cdf9')
+  await replaceWord(page, '0xff0000', '0x52d2ff')
   await expect(root(page)).toHaveAttribute('data-run-id', '2', { timeout: 10_000 })
   await expect.poll(() => redPixels(page), { timeout: 5_000 }).toBeLessThan(100)
 })
@@ -641,9 +641,9 @@ test('a later frame that never starts is removed after 10 s, and the running pre
     return route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>stuck</title>' })
   })
   await page.goto('/examples/shapes-rects')
-  await tapLine(page, await lineOf(page, '0x00cdf9'))
+  await tapLine(page, await lineOf(page, '0x52d2ff'))
   await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 10_000 })
-  await replaceWord(page, '0x00cdf9', '0xff0000')
+  await replaceWord(page, '0x52d2ff', '0xff0000')
   await expect(page.locator('.playground iframe')).toHaveCount(2, { timeout: 5_000 })
   expect(frames).toBe(2)
   await expect(page.locator('.playground-status')).toHaveText(
@@ -698,8 +698,8 @@ test('offline, the first frame times out and Retry starts a fresh one', async ({
 
 test('a share link opens the edited code in a new context and runs it', async ({ page, browser }) => {
   await page.goto('/examples/shapes-rects')
-  await tapLine(page, await lineOf(page, '0x00cdf9'))
-  await replaceWord(page, '0x00cdf9', '0xff0000')
+  await tapLine(page, await lineOf(page, '0x52d2ff'))
+  await replaceWord(page, '0x52d2ff', '0xff0000')
   await expect(root(page)).toHaveAttribute('data-run-id', '2', { timeout: 10_000 })
   await expect.poll(() => new URL(page.url()).hash).toMatch(/^#code=1\.[\w-]+$/)
   const context = await browser.newContext()
@@ -708,7 +708,7 @@ test('a share link opens the edited code in a new context and runs it', async ({
   await friend.goto(page.url())
   await expect(root(friend)).toHaveAttribute('data-code', 'ready', { timeout: 10_000 })
   await expect(friend.locator('.cm-content')).toContainText('0xff0000')
-  await expect(friend.locator('.cm-content')).not.toContainText('0x00cdf9')
+  await expect(friend.locator('.cm-content')).not.toContainText('0x52d2ff')
   await expect(root(friend)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
   await expect.poll(() => redPixels(friend), { timeout: 5_000 }).toBeGreaterThan(100)
   expect(watch.problems).toEqual([])
@@ -736,7 +736,7 @@ for (const [name, fragment] of [
     )
     await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
     await expect(root(page)).toHaveAttribute('data-compile', 'original')
-    await expect(staticCode(page)).toContainText('0x00cdf9')
+    await expect(staticCode(page)).toContainText('0x52d2ff')
     expect(watch.problems).toEqual([])
   })
 }
@@ -755,9 +755,9 @@ test('Reset puts the original back byte for byte, removes the fragment and runs 
 }) => {
   await page.goto('/examples/shapes-rects')
   const reset = page.getByRole('button', { name: 'Reset' })
-  await tapLine(page, await lineOf(page, '0x00cdf9'))
+  await tapLine(page, await lineOf(page, '0x52d2ff'))
   await expect(reset).toHaveCount(0)
-  await replaceWord(page, '0x00cdf9', '0xff0000')
+  await replaceWord(page, '0x52d2ff', '0xff0000')
   await expect(root(page)).toHaveAttribute('data-run-id', '2', { timeout: 10_000 })
   await expect.poll(() => new URL(page.url()).hash).toMatch(/^#code=1\./)
   const box = (await reset.boundingBox())!
@@ -785,8 +785,8 @@ test('Copy link copies the address with the edit, and Copy code the edited text'
   )
   await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: ORIGIN })
   await page.goto('/examples/shapes-rects')
-  await tapLine(page, await lineOf(page, '0x00cdf9'))
-  await replaceWord(page, '0x00cdf9', '0xff0000')
+  await tapLine(page, await lineOf(page, '0x52d2ff'))
+  await replaceWord(page, '0x52d2ff', '0xff0000')
   await expect.poll(() => new URL(page.url()).hash).toMatch(/^#code=1\./)
   const copyLink = page.getByRole('button', { name: 'Copy link' })
   expect((await copyLink.boundingBox())!.height).toBeGreaterThanOrEqual(44)
@@ -842,8 +842,8 @@ test('the unedited original replays its golden in this browser, and the row name
 test('an edit hashes its own run and claims no golden', async ({ page }) => {
   const watch = watchPage(page, ORIGIN)
   await page.goto('/examples/shapes-rects')
-  await tapLine(page, await lineOf(page, '0x00cdf9'))
-  await replaceWord(page, '0x00cdf9', '0xff0000')
+  await tapLine(page, await lineOf(page, '0x52d2ff'))
+  await replaceWord(page, '0x52d2ff', '0xff0000')
   await expect(root(page)).toHaveAttribute('data-run-id', '2', { timeout: 10_000 })
   await expect(row(page)).toHaveText(
     /^Your edit: 120 ticks hash to [0-9a-f]{16} in this browser\. The golden belongs to the original code; agreement across engines is checked in the framework's CI\.$/,

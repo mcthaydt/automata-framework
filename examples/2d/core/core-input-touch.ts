@@ -53,5 +53,5 @@ export default defineGame({
       gestures: { 'swipe-left': { x: -1 }, 'swipe-right': { x: 1 }, 'flick-down': { drop: true } },
     },
   ),
-  views: { [Body.id]: rect({ w: 8, h: 8, color: 0x0cf1ff }) },
+  views: { [Body.id]: rect({ w: 8, h: 8, color: 0x74f5fd }) },
 })

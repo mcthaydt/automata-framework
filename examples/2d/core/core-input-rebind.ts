@@ -59,5 +59,5 @@ export default defineGame({
       labels: { ArrowLeft: 'Move left', ArrowRight: 'Move right', Space: 'Jump', KeyF: 'Fire' },
     },
   ),
-  views: { [Runner.id]: rect({ w: 10, h: 10, color: 0x5ac54f, anchor: { x: 0.5, y: 0.5 } }) },
+  views: { [Runner.id]: rect({ w: 10, h: 10, color: 0x7fbd39, anchor: { x: 0.5, y: 0.5 } }) },
 })

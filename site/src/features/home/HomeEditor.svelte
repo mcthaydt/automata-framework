@@ -1,6 +1,9 @@
 <script lang="ts">
 // "The editor": one picture of the level editor, loaded only when the reader nears it.
 import NearView from '../../shared/components/NearView.svelte'
+import { pictureOf } from '../../shared/pictures'
+
+const editor = pictureOf('editor')
 </script>
 
 <section class="home-section">
@@ -19,15 +22,15 @@ import NearView from '../../shared/components/NearView.svelte'
           <source media="(max-width: 760px)" srcset="/previews/editor-phone.jpg" />
           <source
             type="image/webp"
-            srcset="/previews/editor-800.webp 800w, /previews/editor.webp 1600w"
+            srcset="/previews/editor-640.webp 640w, /previews/editor.webp 1600w"
             sizes="(max-width: 1200px) 92vw, 1120px"
           />
           <img
             src="/previews/editor.jpg"
-            width="1600"
-            height="1000"
+            width={editor.width}
+            height={editor.height}
             loading="lazy"
-            alt="The level editor on Emberwick: the layers on the left, the room in the middle, its details on the right"
+            alt="The level editor on a new platformer: the layers on the left, the room in the middle, its details on the right"
           />
         </picture>
       </NearView>

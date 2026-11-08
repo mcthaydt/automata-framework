@@ -44,9 +44,9 @@ export default defineGame({
     },
   },
   views: {
-    [Block.id]: rect({ w: 16, h: 16, color: 0x00cdf9 }),
+    [Block.id]: rect({ w: 16, h: 16, color: 0x52d2ff }),
     // Anchored at its left edge, so x is where the bar starts.
-    [Bar.id]: rect({ w: 64, h: 6, color: 0x5ac54f, anchor: { x: 0, y: 0.5 } }),
-    [Spinner.id]: rect({ w: 48, h: 12, color: 0xf5555d }),
+    [Bar.id]: rect({ w: 64, h: 6, color: 0x7fbd39, anchor: { x: 0, y: 0.5 } }),
+    [Spinner.id]: rect({ w: 48, h: 12, color: 0xe45c5f }),
   },
 })

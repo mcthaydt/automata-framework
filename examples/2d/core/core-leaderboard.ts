@@ -49,6 +49,6 @@ export default defineGame({
       sim.spawn([[Runner, { x: 0, y: 90, laps: 0 }]])
     },
   },
-  views: { [Runner.id]: rect({ w: 16, h: 16, color: 0x5ac54f, anchor: { x: 0.5, y: 0.5 } }) },
+  views: { [Runner.id]: rect({ w: 16, h: 16, color: 0x7fbd39, anchor: { x: 0.5, y: 0.5 } }) },
   scores: { [RunEnded.id]: { board: 'best', score: (payload) => RunEnded.schema.parse(payload).score } },
 })

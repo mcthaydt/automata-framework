@@ -2289,6 +2289,9 @@ importers:
 
   tooling/repo-hygiene:
     devDependencies:
+      '@automata/content':
+        specifier: workspace:*
+        version: link:../../packages/content
       '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
