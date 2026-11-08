@@ -2,7 +2,7 @@ import { defineTests } from '@automata/vitest-preset'
 import { svelteTesting } from '@testing-library/svelte/vite'
 import { playwright } from '@vitest/browser-playwright'
 
-// The editors' models and components run in jsdom through Testing Library (`unit`).
+// The editors' models and components run in jsdom through Testing Library (`unit`); their layout runs in a real browser.
 export default defineTests({
   environment: 'jsdom',
   svelte: true,

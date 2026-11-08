@@ -84,6 +84,9 @@ importers:
       '@automata/cutscenes':
         specifier: workspace:*
         version: link:../../extensions/cutscenes
+      '@automata/debug':
+        specifier: workspace:*
+        version: link:../../extensions/debug
       '@automata/feel':
         specifier: workspace:*
         version: link:../../extensions/feel
@@ -121,9 +124,15 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
+      '@automata/playwright-preset':
+        specifier: workspace:*
+        version: link:../../tooling/playwright-preset
       '@automata/tools':
         specifier: workspace:*
         version: link:../../packages/tools
+      '@playwright/test':
+        specifier: 1.63.0
+        version: 1.63.0
       '@sveltejs/vite-plugin-svelte':
         specifier: 7.3.1
         version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
@@ -259,6 +268,70 @@ importers:
       vite:
         specifier: 8.3.3
         version: 8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+
+  examples/3d-story:
+    dependencies:
+      '@automata/3d':
+        specifier: workspace:*
+        version: link:../../packages/3d
+      '@automata/content':
+        specifier: workspace:*
+        version: link:../../packages/content
+      '@automata/debug':
+        specifier: workspace:*
+        version: link:../../extensions/debug
+      '@automata/framework':
+        specifier: workspace:*
+        version: link:../../packages/automata
+      '@automata/nav':
+        specifier: workspace:*
+        version: link:../../extensions/nav
+      '@automata/puzzle':
+        specifier: workspace:*
+        version: link:../../extensions/puzzle
+      '@automata/sectors':
+        specifier: workspace:*
+        version: link:../../extensions/sectors
+      '@automata/sim':
+        specifier: workspace:*
+        version: link:../../packages/sim
+      '@automata/systems':
+        specifier: workspace:*
+        version: link:../../extensions/systems
+      pixi.js:
+        specifier: 8.22.0
+        version: 8.22.0
+      svelte:
+        specifier: 5.57.1
+        version: 5.57.1
+      zod:
+        specifier: 4.6.6
+        version: 4.6.6
+    devDependencies:
+      '@automata/playwright-preset':
+        specifier: workspace:*
+        version: link:../../tooling/playwright-preset
+      '@automata/tools':
+        specifier: workspace:*
+        version: link:../../packages/tools
+      '@playwright/test':
+        specifier: 1.63.0
+        version: 1.63.0
+      '@sveltejs/vite-plugin-svelte':
+        specifier: 7.3.1
+        version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@types/node':
+        specifier: 24.19.1
+        version: 24.19.1
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+      vite:
+        specifier: 8.3.3
+        version: 8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
   examples/3d/wardrobe:
     dependencies:
@@ -518,12 +591,18 @@ importers:
       '@automata/narrative':
         specifier: workspace:*
         version: link:../narrative
+      '@automata/nav':
+        specifier: workspace:*
+        version: link:../nav
       '@automata/puzzle':
         specifier: workspace:*
         version: link:../puzzle
       '@automata/systems':
         specifier: workspace:*
         version: link:../systems
+      smol-toml:
+        specifier: 1.9.0
+        version: 1.9.0
       svelte:
         specifier: 5.57.1
         version: 5.57.1

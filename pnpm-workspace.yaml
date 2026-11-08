@@ -9,6 +9,7 @@ packages:
   - examples/3d
   - examples/3d/wardrobe
   - examples/2d-story
+  - examples/3d-story
   - examples/2d/*/*
   # The website (automata.dev), moved in with its history on 2026-11-06.
   - site

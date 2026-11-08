@@ -47,8 +47,22 @@ gates = []
 checks = []
 
 [[file]]
+glob = "content/systems/*.toml"
+editor = "schematic"
+modes = ["edit", "ask"]
+gates = []
+checks = []
+
+[[file]]
 glob = "assets/music/*"
 editor = "audio"
 modes = ["edit"]
+gates = []
+checks = []
+
+[[file]]
+glob = "content/nav/*.toml"
+editor = "schematic"
+modes = ["edit", "ask"]
 gates = []
 checks = []

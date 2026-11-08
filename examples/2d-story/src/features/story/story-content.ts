@@ -34,7 +34,7 @@ export const SCRIPTS = Object.fromEntries(
 
 /** Where the guard may walk: the one file in `content/nav`. */
 const nav = filesOf(content['nav-graph'])[0]
-if (nav === undefined) throw new Error('There is no walking graph. Add content/nav/story.toml.')
+if (nav === undefined) throw new Error('There is no walking graph. Add content/nav/guard.toml.')
 export const NAV = navGraphSchema.parse(nav)
 
 /** How the guard behaves: the one file in `content/systems`. */

@@ -55,14 +55,20 @@ modes = ["edit"]
 gates = []
 checks = []
 
-# The guard's behaviour is the Schematic's. It is listed so the content editors can offer the events it makes
-# (the guard changes mode, the guard catches the player) to Feel and Audio.
+# The guard and where he may walk, for Schematic. The game reads these two files; Save and Play shows the change.
 [[file]]
 glob = "content/systems/*.toml"
 editor = "schematic"
-modes = ["edit"]
+modes = ["edit", "ask"]
 gates = []
-checks = []
+checks = ["content"]
+
+[[file]]
+glob = "content/nav/*.toml"
+editor = "schematic"
+modes = ["edit", "ask"]
+gates = []
+checks = ["content"]
 
 # The game's default controls, which the Tuner edits.
 [[file]]

@@ -64,6 +64,8 @@ export interface SummaryPort {
 export interface DebugHost {
   readonly panels: readonly DebugPanelDef[]
   readonly bus?: BusPort | undefined
+  /** The sim's ticks a second, when the game does not run it at 60: Watch's times in seconds need it. */
+  readonly tickHz?: number | undefined
   /** The facts to record for the bus panel; the runtime's by default. */
   readonly facts?: readonly string[] | undefined
   readonly sim?: SimProbe | undefined

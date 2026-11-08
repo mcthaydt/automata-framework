@@ -7,28 +7,23 @@ import {
   createLevels2d,
   createSuite,
   createTuner,
-  openSuitePorts,
   randomIds,
-  samplePorts,
   startSuite,
 } from '@automata/editor/suite'
 import { browserAudio } from '../../features/audio/audio-output.ts'
 import { browserOutputs } from '../../features/feel/feel-stage.ts'
 import { contentEditors } from './content-editors.ts'
-import { CONTENT_SAMPLE_GAME } from './sample-game.ts'
+import { openContentSuite } from './open-content-suite.ts'
 
-// The suite page with the content editors: the core editors (the Tuner, Levels 2D), then Feel, Audio, Writer and Sequence. The only
-// file that reaches for the page's globals. It opens the checkout it is served on (the game's own content and its Play and
-// Publish) or, when none answers, a sample game held in memory, and says so in the top bar (`openSuitePorts`).
+// The suite page with the content editors: the core editors (the Tuner, Levels 2D), then Feel, Audio, Writer, Sequence
+// and Schematic. The only file that reaches for the page's globals. It opens the game it is served on (its content, its
+// Play and its Publish); with no editor server it opens a sample game held in memory and says so in the top bar.
 
 const target = document.getElementById('app')
 if (target === null) throw new Error('suite.html has no #app element')
 
-openSuitePorts({ origin: location.origin, search: location.search, sessionStorage })
-  .then(async (opened) => {
-    // With no checkout answering, open the content sample (the core's has none of the content editors' files).
-    const { sample, gameUrl, game, publish } = opened
-    const ports = sample ? await samplePorts(CONTENT_SAMPLE_GAME) : opened.ports
+openContentSuite({ origin: location.origin, search: location.search, sessionStorage })
+  .then(({ ports, sample, gameUrl, game, publish }) => {
     // The Tuner shows the game's dev page beside its settings, so it is made once the server has named it.
     const editors = [
       createTuner({ gameUrl }),
@@ -39,7 +34,7 @@ openSuitePorts({ origin: location.origin, search: location.search, sessionStorag
           revoke: (url) => URL.revokeObjectURL(url),
         },
       }),
-      ...contentEditors({ audio: browserAudio(() => new AudioContext()), outputs: browserOutputs() }),
+      ...contentEditors({ audio: browserAudio(() => new AudioContext()), outputs: browserOutputs(), gameUrl }),
     ]
     return startSuite(target, {
       window,

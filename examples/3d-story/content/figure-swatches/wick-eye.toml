@@ -1,0 +1,6 @@
+# `wick-eye`: a colour from the DUEL palette.
+# Colour: DUEL ramp flame, step 7.
+
+ramp = "flame"
+step = 7
+flat = true

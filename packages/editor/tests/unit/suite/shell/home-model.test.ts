@@ -144,6 +144,30 @@ checks = ["content"]
     ])
   })
 
+  it('lets an editor show fewer rows than it has files (one scene across several files)', () => {
+    const file = (path: string): WorkspaceFile => ({
+      path,
+      editor: 'tuner',
+      gates: [],
+      checks: [],
+      modes: ['edit'],
+      writable: true,
+    })
+    const files = new Map([['tuner', [file('a/hall.toml'), file('b/hall.toml'), file('a/yard.toml')]]])
+    const keepFirstOfEach = (listed: readonly WorkspaceFile[]) => [
+      ...new Map(listed.map((f) => [fileTitle(f.path), f])).values(),
+    ]
+    const state = homeOf(
+      loadEditorList(fixture('platformer')),
+      files,
+      createSuite({ editors: [{ id: 'tuner', label: 'Tuner', homeFiles: keepFirstOfEach } as never] }),
+    )
+    if (state.kind !== 'cards') throw new Error(state.kind)
+    expect(state.cards[0]?.rows.map((f) => f.path)).toEqual(['b/hall.toml', 'a/yard.toml'])
+    // Opening the card still gives the editor every file.
+    expect(state.cards[0]?.files).toHaveLength(3)
+  })
+
   it('EDS-m: a row without gates gives the problems, with that row key path, and no cards', () => {
     const list =
       'format = "af-editors/1"\n[[file]]\nglob = "content/tuning.toml"\neditor = "tuner"\nmodes = ["edit"]\nchecks = []\n'

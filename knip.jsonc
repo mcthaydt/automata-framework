@@ -41,8 +41,15 @@
       "entry": ["playwright.config.ts", "tests/e2e/*.test.ts", "*/*.ts"],
       "playwright": false
     },
-    // `automata ship prepare` reads the ship config by path; the game's vite.config.ts does not import it.
-    "examples/2d-story": { "entry": ["ship.config.ts"] },
+    // The stories' ship.config.ts is read by `automata ship` by path; the 3D story's journeys are named by its config.
+    "examples/2d-story": {
+      "entry": ["ship.config.ts", "playwright.config.ts", "tests/e2e/*.test.ts"],
+      "playwright": false
+    },
+    "examples/3d-story": {
+      "entry": ["ship.config.ts", "playwright.config.ts", "tests/e2e/*.test.ts"],
+      "playwright": false
+    },
     "examples/2d/content/hot-reload": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
     "examples/2d/ui/primitives": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
     // The site: the compile worker starts from `new URL(...)`, which knip does not follow; the scripts and the playground

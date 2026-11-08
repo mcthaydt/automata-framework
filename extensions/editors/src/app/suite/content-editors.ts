@@ -5,6 +5,7 @@ import { type AudioOutput, silentAudio } from '../../features/audio/audio-output
 import { createAudio } from '../../features/audio/audio-suite-editor.ts'
 import type { StageOutputs } from '../../features/feel/feel-stage.ts'
 import { createFeel } from '../../features/feel/feel-suite-editor.ts'
+import { createSchematic } from '../../features/schematic/schematic-suite-editor.ts'
 import { createSequence } from '../../features/sequence/sequence-suite-editor.ts'
 import { createWriter } from '../../features/writer/writer-suite-editor.ts'
 
@@ -13,6 +14,8 @@ export interface ContentEditorOptions {
   readonly audio?: AudioOutput
   /** What a Feel stage can reach on the device (rumble). */
   readonly outputs?: StageOutputs
+  /** The game's dev page, which Schematic shows beside its diagram (Watch); the editor server names it. */
+  readonly gameUrl?: string | undefined
 }
 
 export function contentEditors(options: ContentEditorOptions = {}): SuiteEditor<unknown>[] {
@@ -24,5 +27,6 @@ export function contentEditors(options: ContentEditorOptions = {}): SuiteEditor<
     createAudio({ play: (options.audio ?? silentAudio).play }),
     createWriter(),
     createSequence(),
+    createSchematic({ gameUrl: options.gameUrl }),
   ] as SuiteEditor<unknown>[]
 }
