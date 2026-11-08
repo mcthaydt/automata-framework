@@ -4368,7 +4368,7 @@ interface OpenedSuitePorts {
 ### `openSuitePorts` (function)
 
 ```ts
-function openSuitePorts(env: Pick<ServedWorkspaceEnv, 'origin' | 'search' | 'fetch' | 'sessionStorage'>): Promise<OpenedSuitePorts>;
+function openSuitePorts(env: SuitePortsEnv): Promise<OpenedSuitePorts>;
 ```
 
 ### `randomIds` (function)
@@ -4388,6 +4388,7 @@ const SAMPLE_GAME: Readonly<Record<string, string>>;
 ```ts
 function samplePorts(files: Readonly<Record<string, string>>, options?: {
     readonly changeSet?: false;
+    readonly store?: ProjectStore;
 }): Promise<SuitePorts>;
 ```
 
@@ -4424,6 +4425,14 @@ interface SuiteEnv {
 ```ts
 interface SuiteHandle {
     dispose(): Promise<void>;
+}
+```
+
+### `SuitePortsEnv` (interface)
+
+```ts
+interface SuitePortsEnv extends Pick<ServedWorkspaceEnv, 'origin' | 'search' | 'fetch' | 'sessionStorage' | 'storage'> {
+    readonly sample?: Readonly<Record<string, string>> | undefined;
 }
 ```
 
