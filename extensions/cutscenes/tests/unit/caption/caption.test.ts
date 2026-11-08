@@ -6,7 +6,7 @@ import { flushSync } from 'svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { captionSlot } from '#src/features/caption/caption-slot.ts'
 import type { CutsceneScript } from '#src/shared/sim/cutscene.schema.ts'
-import { createCutGame, load, type Order, play, step } from '#src/testing/cut-game.ts'
+import { createCutGame, load, type Order, play } from '#src/testing/cut-game.ts'
 
 // The caption on the play screen: the words of the caption the playing cutscene has at this moment, above the dialogue
 // box's place. It reads the sim and nothing else, takes no focus, and never shows a locale key.
