@@ -4357,7 +4357,7 @@ function createSuite(options: {
 ### `createTuner` (function)
 
 ```ts
-function createTuner(): SuiteEditor<TunerSuiteSession>;
+function createTuner(options?: TunerOptions): SuiteEditor<TunerSuiteSession>;
 ```
 
 ### `Levels2dOptions` (interface)
@@ -4441,6 +4441,7 @@ interface SuiteEnv {
     readonly ports: SuitePorts;
     readonly suite: Suite;
     readonly sample?: boolean;
+    readonly game?: string | undefined;
 }
 ```
 
@@ -4457,6 +4458,7 @@ interface SuiteHandle {
 ```ts
 interface TunerSuiteSession {
     readonly controller: TunerController;
+    readonly gameUrl: string | undefined;
 }
 ```
 

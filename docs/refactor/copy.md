@@ -64,6 +64,13 @@ Every player-facing string of core and Emberwick, checked against the four quest
 | Suite rail | nine tabs: `Tuner`, `Studio`, `Audio`, `Feel`, `Writer`, `Schematic`, `Sequence`, `Levels`, `Review` | the page's editors, by their own names (`Tuner`, `Levels 2D`), and `Review` when there are change sets | 1 (seven of the nine opened nothing) |
 | Suite import, a section for an editor this build does not have | `editor not installed (editor-plus)` | `editor not installed` | 4 (a package name) |
 | Suite page, served by `automata editor` | `Sample game` in the top bar, always | the game's own files; `Sample game` only when no editor server answers | 1 (it said sample on a real game) |
+| Suite top bar, the title | `Editors` | the game's name (`Emberwick`), `Sample game` on the sample | 1 (it named the tool, not the game) |
+| Suite top bar, on a game folder | (nothing) | `Saved in your game folder` | 3 (where did my change go?) |
+| Suite top bar, the pills with nothing to say | `No change set` · `No checks run` · `Gates not readable` | not shown until they mean something | 1 and 4 ("change set", "gates") |
+| Suite top bar, Undo and Redo | `↶` · `↷` | `Undo` · `Redo` (the arrows on a phone) | 1 |
+| Suite Home, the sample | a small `Sample game` chip | `This is a sample game, not yours. Run automata editor inside your game's folder to edit it.` | 3 (why can't I find my game?) |
+| Tuner, the game pane | (none) | `Your game` (the frame's name) · `Start your game with pnpm dev to see your changes here.` · `Your game shows here when you open the editors in your game's folder.` | new |
+| `automata editor --help` | (none) | `The Tuner shows your game beside its settings: start it with pnpm dev, and give --game-url if it is not on http://localhost:5173.` · `--game-url is a web address, like http://localhost:5173` | new |
 
 ## Kept, with the reason
 

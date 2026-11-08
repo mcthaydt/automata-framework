@@ -48,6 +48,11 @@ describe('serveEditor', () => {
     })
   })
 
+  it("hands the game's dev page to the editor in the ping, for the Tuner's game pane", async () => {
+    const { url } = await start({ gameUrl: 'http://localhost:5173/' })
+    expect(await (await api(url, '/api/ping')).json()).toMatchObject({ gameUrl: 'http://localhost:5173/' })
+  })
+
   it('serves the editor’s build, with a page for a path without a file', async () => {
     const { url } = await start()
     expect(await (await fetch(`${url}/`)).text()).toContain('<title>editor</title>')

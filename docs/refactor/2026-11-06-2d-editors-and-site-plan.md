@@ -2305,3 +2305,42 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   The Tuner's canvas becomes two regions: the settings and a game pane (an `iframe` of that page, `title="Your game"`),
   side by side from iPad landscape up and stacked, game on top, on a phone; with no dev page answering, the pane says
   "Start your game with pnpm dev to see your changes here." in plain words. No "Play to try it" button.
+- **12.6, the split view built (session 14).** *(a) The content plugin sends a real HMR update:* after a good save it
+  reloads `virtual:automata/content` through each environment's `reloadModule`, so Vite walks up its importers to the
+  module that accepts it, or reloads the page when none does (`automata:content` and `automata:content-error` are still
+  sent). The hot-reload example accepts the module itself (`import.meta.hot.accept('virtual:automata/content')`), so its
+  `?v=<hash>` import is gone. Found while building it: Vite finds what a module accepts by reading
+  `import.meta.hot.accept(...)` as written, so an alias (`const hot = import.meta.hot`) made every save a full reload.
+  *(b) The game restarts:* Emberwick's `main.ts` and the create-game template's accept `game.ts` and restart the game
+  through `startGame`'s `shutdown()`, one restart after another; Emberwick shows `#game[data-content-hash]`. The
+  template's `tsconfig.json` gains `types: ['node', 'vite/client']` for `import.meta.hot`. A new journey,
+  `emberwick-dev-chromium` (`tests/e2e/dev.test.ts`), runs Emberwick's dev server on a copy of `content/` (`pnpm
+  e2e:dev`, `AF_E2E_CONTENT_ROOT`): a saved tuning value changes the hash on the same page with one canvas; without the
+  accept it fails (the page reloads). Emberwick's plumbing budget is 430 lines (was 420; about fifteen for this).
+  *(c) `automata editor --game-url`* (default `http://localhost:5173/`, Vite's own port; anything but an http or https
+  address is refused in words) is handed to the editor in `/api/ping` as `gameUrl`. The suite reads it
+  (`openServedStore`, `openSuitePorts`) and `createTuner({ gameUrl })` gives it to the session. The Tuner's canvas is
+  `TunerCanvas`: `TunerGame` (an `iframe` titled "Your game") and the rows, side by side in a canvas 480 px wide and up
+  (every iPad, a phone held sideways), stacked with the game on top below that (a phone upright, the 900 x 600 window,
+  whose panels leave the canvas 260 px). **Deviation 115:** the split follows the canvas's own width (a container
+  query), not the shell's `wide` mode: at 900 x 600 the wide shell leaves the canvas 260 px, and a phone held sideways
+  is too short to stack (94 px of rows). Until something answers at the address the pane says "Start your game with pnpm
+  dev to see your changes here." and looks again every two seconds; the sample says "Your game shows here when you open
+  the editors in your game's folder." Gates: content's plugin tests 10 → 11, the hot-reload example's journeys 2,
+  Emberwick unit 109 and the dev journey 1, tools' editor tests 47 → 54 and create-game 44, editor unit 3,311 → 3,315
+  and Chromium layout (suite, tuner) 121 including the split at eight sizes, `pnpm check` green; WebKit, Firefox and
+  hosted CI not run. **Left for 12.6:** a restart lands on the game's first screen (Emberwick's splash, then the menu),
+  so a person tuning presses Play after each change; going back to the screen they were on needs a runtime option to
+  start at a screen, and the room's assets load with the splash (`preload_screens`), so it is not a one-line change:
+  the next session designs it. The unit a player can feel (px/s) is still to do. The pane's colours wait for the look.
+- **12.7, part (session 14): the top bar in plain words (Step G).** Step 0's size check: `Suite.svelte` is 420 lines,
+  over the 300 the task allows, and is the one file to split (by responsibility: the editing, Ask and Ship wiring
+  leave the markup); every other shell file is under 300. Done: the title is the game's name from the ping (`Your
+  game` when a server sends none, `Sample game` on the sample) in place of `Editors`; `Saved in your game folder` beside
+  it when edits write the game's files (no change sets); the pills with nothing to say (`No change set`, `No checks
+  run`, `No gates`) are hidden until they mean something (`pillsToShow`; with no gate records and nothing reopened the
+  gates pill is now `No gates`, not `Gates not readable`); Undo and Redo say so in words (the arrows on a phone); the
+  sample's chip is a full-width note over Home: "This is a sample game, not yours. Run automata editor inside your
+  game's folder to edit it." Gates: editor unit (suite) 286, Chromium layout (suite) 121. **Left for 12.7:** the split
+  of `Suite.svelte`; Ship becomes Publish with its dialog's words (the dialog is the 3D slice's change-set flow, E6, so
+  the rename covers both together); Home's levels by name; Step 1's dialog checks.

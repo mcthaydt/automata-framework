@@ -12,6 +12,23 @@ import '@mcthaydt/automata/no-eval'
 import '@fontsource/pixelify-sans/latin-400.css'
 import '@fontsource/pixelify-sans/latin-700.css'
 import { startGame } from '@mcthaydt/automata'
-import { emberwick } from './src/app/game.ts'
+import { emberwick, SIM_CONTENT_HASH } from './src/app/game.ts'
 
-startGame(emberwick)
+/** Starts a game and shows which content it plays (`#game[data-content-hash]`, read by the dev journey). */
+const start = (game: typeof emberwick, hash: string) => {
+  document.getElementById('game')?.setAttribute('data-content-hash', hash)
+  return startGame(game)
+}
+let running = start(emberwick, SIM_CONTENT_HASH)
+
+// In dev, each good content save reaches here as an HMR update through game.ts. A sim keeps its content for life, so
+// the game shuts down and a new one starts on the new content, one restart after another, on the same page. Vite
+// finds `import.meta.hot.accept` by name: never alias it. A build has no `import.meta.hot`, so this never ships.
+let restarts = Promise.resolve()
+import.meta.hot?.accept('./src/app/game.ts', (fresh) => {
+  if (fresh !== undefined)
+    restarts = restarts.then(async () => {
+      await running.shutdown()
+      running = start(fresh.emberwick, fresh.SIM_CONTENT_HASH)
+    })
+})

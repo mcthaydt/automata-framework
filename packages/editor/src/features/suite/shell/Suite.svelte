@@ -17,7 +17,7 @@ import Button from '../../../shared/kit/widgets/Button.svelte'
 import ToastRegion from '../../../shared/kit/widgets/ToastRegion.svelte'
 import { createToasts } from '../../../shared/kit/widgets/toasts'
 import { type AskState, createAskSession } from '../core/ask-session'
-import type { Pill } from '../core/pills-model'
+import { type Pill, pillsToShow } from '../core/pills-model'
 import type { ReviewChangeSet } from '../core/review-model'
 import AskDialog from './AskDialog.svelte'
 import type { Suite } from './create-suite'
@@ -39,9 +39,11 @@ interface Props {
   suite: Suite
   ports: SuitePorts
   sample: boolean
+  /** The game's name in words, from the server; the title. */
+  game?: string | undefined
 }
 
-const { geometry, home, suite, ports, sample }: Props = $props()
+const { geometry, home, suite, ports, sample, game }: Props = $props()
 
 let current = $state<string | undefined>()
 let reading = $state<WorkspaceFile | undefined>()
@@ -273,18 +275,21 @@ function openCard(card: EditorCard): void {
     <Button aria-current={current === undefined && reading === undefined ? 'page' : undefined} onclick={() => choose(undefined)}
       >Home</Button
     >
-    {#if mode !== 'compact'}<span class="brand">Editors</span>{/if}
-    {#if sample}<span class="sample">Sample game</span>{/if}
+    <!-- The game's name is the title; the sample says it is one in a banner over Home instead (12.7, Step G). -->
+    {#if mode !== 'compact'}<span class="brand">{sample ? 'Sample game' : (game ?? 'Your game')}</span>{/if}
+    <!-- Without change sets, an edit writes the game's own file: say where it went, once, as status. -->
+    {#if !sample && ports.changeSet === undefined && !compact}<span class="where">Saved in your game folder</span>{/if}
     <!-- The pills and the editing tools scroll sideways when the bar is short of room; Home, Panel and Details stay. -->
     <div class="tools" data-scroll-region="both">
-    <SuitePills {pills} {compact} onlocate={locate} />
+    <SuitePills pills={pillsToShow(pills)} {compact} onlocate={locate} />
     <span class="spacer"></span>
     {#if undoHook !== undefined || history.canUndo || history.canRedo}
+      <!-- Named in words where there is room; the arrows alone on a phone, where the full name is the label. -->
       <Button disabled={!history.canUndo} aria-label={history.canUndo ? `Undo ${history.undoLabel}` : 'Undo'} onclick={undo}
-        >↶</Button
+        >{compact ? '↶' : 'Undo'}</Button
       >
       <Button disabled={!history.canRedo} aria-label={history.canRedo ? `Redo ${history.redoLabel}` : 'Redo'} onclick={redo}
-        >↷</Button
+        >{compact ? '↷' : 'Redo'}</Button
       >
     {/if}
     {#if ask !== undefined}<Button onclick={() => (askOpen = true)}>Ask</Button>{/if}
@@ -313,9 +318,16 @@ function openCard(card: EditorCard): void {
       {@render mounted.editor.regions.canvas(mounted.session)}
     {:else if entry === undefined}
       <div class="home">
-        <div class="share">
-          <Button onclick={() => (interchange = 'export')}>Export</Button>
-          <Button onclick={() => (interchange = 'import')}>Import</Button>
+        <div>
+          {#if sample}
+            <p class="banner" role="note">
+              This is a sample game, not yours. Run automata editor inside your game's folder to edit it.
+            </p>
+          {/if}
+          <div class="share">
+            <Button onclick={() => (interchange = 'export')}>Export</Button>
+            <Button onclick={() => (interchange = 'import')}>Import</Button>
+          </div>
         </div>
         <Home title="This game's editors" {home} empty="The editor list names no files." onopen={openCard} onread={(file) => (reading = file)} />
       </div>
@@ -377,12 +389,17 @@ function openCard(card: EditorCard): void {
   .brand {
     font: var(--text-title-15);
   }
-  .sample {
-    padding: 2px var(--space-2);
-    border: 1px solid var(--color-border-strong);
-    border-radius: var(--edge-sm);
+  .where {
     color: var(--color-text-dim);
     font: var(--text-eyebrow-11);
+    white-space: nowrap;
+  }
+  .banner {
+    margin: 0;
+    padding: var(--space-3) var(--space-5);
+    border-bottom: 1px solid var(--color-border-strong);
+    background: var(--color-bg-app);
+    font: var(--text-body-13);
   }
   .spacer {
     flex: 1;

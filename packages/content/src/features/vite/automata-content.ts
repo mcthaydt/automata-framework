@@ -144,10 +144,16 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
       })
       return
     }
-    // Every environment (client, SSR) re-imports the module on its next request.
+    // Every environment (client, SSR) re-imports the module on its next request, and gets a real HMR update for
+    // it: Vite walks up its importers to the module that accepts it (a game's main.ts restarts its game on the new
+    // content, so the Tuner's game pane changes as you drag) or reloads the page when none does. A content file
+    // is not a module, so Vite's own file watcher never sends this update. `reloadModule` needs HMR on; a server
+    // with it off only invalidates.
     for (const environment of Object.values(server.environments)) {
       const module = environment.moduleGraph.getModuleById(RESOLVED_ID)
-      if (module !== undefined) environment.moduleGraph.invalidateModule(module)
+      if (module === undefined) continue
+      environment.moduleGraph.invalidateModule(module)
+      void environment.reloadModule(module)
     }
     server.ws.send({ type: 'custom', event: 'automata:content', data: { hash: outcome.content.hash } })
   }

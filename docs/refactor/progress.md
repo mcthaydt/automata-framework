@@ -212,21 +212,21 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
 
-**Where to resume (2026-11-06, session 13):** branch `claude/project-thread-y8td1l`, PR
-[#424](https://github.com/mcthaydt/automata-framework/pull/424), stacked on #423 (`claude/project-thread-mjpkpk`, 12.3's
-structure), itself on #421. Session 13 finished 12.4 (the Level view's floating pill on Map, Tiles and Characters, the
-kit's `StagePill`; plain tab names; the conflict and restore dialogs) and 12.6's Step 0 and Step G (each setting's
-label and feel from `tuning.toml`; Keep). Next: 12.6's split view as designed in the plan's log (three parts: the
-runtime takes new tuning in development, `automata editor --game-url`, the game pane), then the feelable unit, then
-12.7, 12.5 and 17.3, in that order. 12.3's styling (the charcoal cabinet, the canvas colours) still waits for the Owner's
-verdict on the design thread's mockup (`refactor/2026-11-06-redesign-mockups/` in the shared folder); until it is
-handed over, change layout, behaviour and copy only. Adding a tileset ("Add tiles", deviation 112) is the Owner's
-question: do not build it unless they say yes. Two Owner rules hold for everything left: every editor keeps only
-essential features (name each cut in the plan's log), and the look is the design thread's. **Phase 18 waits** for the
-site direction's final tokens, then runs with the site visual audit's fixes; task 14.1 waits for the Owner to confirm
-the `automata` npm organisation. Node 24 is not in a fresh session: unpack nodejs.org's 24.21.0 into `/opt/node24`
-and enable corepack there. In a fresh clone, run `node site/scripts/build-demos.ts` before `pnpm check`. The design
-board: `pnpm --filter @mcthaydt/automata-editor design:board`.
+**Where to resume (2026-11-06, session 14):** branch `claude/project-thread-emf20i`, its PR stacked on #424
+(`claude/project-thread-y8td1l`), itself on #423 and #421. Session 14 built 12.6's split view (a content save sends a
+real HMR update, the game restarts on it through `shutdown()`, `automata editor --game-url`, the Tuner's game pane) and
+12.7's top bar words. Next, in order: 12.6's two leftovers (a restart should land on the screen the person was on, not
+the splash, which needs a runtime "start at" design because the room's assets load with the splash; the unit a player
+can feel), then 12.7 (split `Suite.svelte`, Publish, Home's levels by name), 12.5 and 17.3. 12.3's styling still waits
+for the Owner's verdict on the design thread's mockup (`refactor/2026-11-06-redesign-mockups/` in the shared folder);
+until it is handed over, change layout, behaviour and copy only. Adding a tileset ("Add tiles", deviation 112) is the
+Owner's question: do not build it unless they say yes. Two Owner rules hold for everything left: every editor keeps
+only essential features (name each cut in the plan's log), and the look is the design thread's. **Phase 18 waits** for
+the site direction's final tokens; task 14.1 waits for the Owner to confirm the `automata` npm organisation. Node 24 is
+not in a fresh session: unpack nodejs.org's latest 24 into `/opt/node24`, enable corepack, and put it first on `PATH`
+in every command (the hooks otherwise run on Node 22). In a fresh clone, run `node site/scripts/build-demos.ts` before
+`pnpm check`. Browser tests in a cloud session: `--project 'layout (chromium)'` (WebKit and Firefox are not
+installed). The design board: `pnpm --filter @mcthaydt/automata-editor design:board`.
 
 | Task | Phase | Status | PR |
 |---|---|---|---|
@@ -439,8 +439,8 @@ so far. The design board: `pnpm --filter @mcthaydt/automata-editor design:board`
 | 12.3 The Level view | 12 | In progress (sessions 11 and 12): the tools are icons in one pill floating over the canvas, the brush size a 44 px number button; layer rows with colour, plain kind words, eye and lock; the inspector opens on selection, Details opens it below wide; the level picker with New level in the top bar replaces the strip of cards (the suite too). Left: the charcoal cabinet and the canvas colours, from the design thread's mockup once the Owner approves it | #421, this session's PR |
 | 12.4 Map, Tiles, Characters and the dialogs | 12 | Done, 2026-11-06 (sessions 12 and 13): Step G words; the Level view's floating pill on all three views (the kit's `StagePill`); tabs Selected, Level, Problems and Character, Settings; the conflict and restore dialogs in plain words with one primary each; editor unit 3,307, editor-3d 2,932, Chromium layout and journeys pass; WebKit, Firefox and hosted CI not run | this session's PR |
 | 12.5 The copy table and the guide (runs after 12.6 and 12.7) | 12 | Not started | |
-| 12.6 The Tuner, audited and redesigned as a split view beside the live game (added 2026-11-06) | 12 | In progress (session 13): Step 0 audit and Step G done (labels and feels from `tuning.toml`, Keep, plain words); the split view designed in the plan's log (runtime takes new tuning in dev, `automata editor --game-url`, the game pane), not built | this session's PR |
-| 12.7 The 2D suite page, audited and redesigned (added 2026-11-06) | 12 | Not started | |
+| 12.6 The Tuner, audited and redesigned as a split view beside the live game (added 2026-11-06) | 12 | In progress (sessions 13 and 14): Step 0 audit and Step G done (labels and feels, Keep, plain words); the split view built: a content save sends a real HMR update, Emberwick and new games restart on it in place (dev journey), `automata editor --game-url`, the game beside the settings (Chromium layout at eight sizes). Left: a restart lands on the splash, not the room; the unit a player can feel | #424, this session's PR |
+| 12.7 The 2D suite page, audited and redesigned (added 2026-11-06) | 12 | In progress (session 14): Step 0's size check (`Suite.svelte` 420 lines, to split); the top bar's words (the game's name, `Saved in your game folder`, quiet pills hidden, Undo and Redo named, the sample's banner). Left: the split, Publish, Home's levels by name | this session's PR |
 | 13.1 The harness | 13 | Not started | |
 | 13.2 Save, drift and conflict journeys | 13 | Not started | |
 | 13.3 A new game, and the suite | 13 | Not started | |

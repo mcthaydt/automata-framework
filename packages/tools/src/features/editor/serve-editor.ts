@@ -24,6 +24,8 @@ export interface EditorServerOptions {
   readonly port?: number | undefined
   /** Required off the loopback: the API answers 401 without `Authorization: Bearer <token>`. */
   readonly token?: string | undefined
+  /** The game's dev page, handed to the editor in the ping for the Tuner's game pane. The server never fetches it. */
+  readonly gameUrl?: string | undefined
   /** What may be touched; the checkout's editor list decides when this is left out. */
   readonly policy?: EditorPolicy | undefined
 }
@@ -124,6 +126,12 @@ function gameName(root: string): string {
   return words.charAt(0).toUpperCase() + words.slice(1)
 }
 
+/** What the ping tells the editor: the game's name and, when there is one, its dev page. */
+interface PingFacts {
+  readonly game: string
+  readonly gameUrl?: string | undefined
+}
+
 /** The `/api` routes: ping (with the game's name), list and file; a token is checked first when the server has one. */
 async function api(
   req: IncomingMessage,
@@ -132,10 +140,10 @@ async function api(
   token: string | undefined,
   policy: EditorPolicy,
   checkout: Checkout,
-  game: string,
+  facts: PingFacts,
 ): Promise<void> {
   if (url.pathname === '/api/ping')
-    return reply(res, 200, { automata: 'editor', token: token !== undefined, game })
+    return reply(res, 200, { automata: 'editor', token: token !== undefined, ...facts })
   if (token !== undefined) {
     const bearer = /^Bearer (.+)$/.exec(req.headers.authorization ?? '')?.[1]
     if (!sameToken(bearer, token))
@@ -192,7 +200,11 @@ export async function serveEditor(options: EditorServerOptions): Promise<Running
     options.policy ??
     editorPolicy(await readFile(join(root, 'content/editors.toml'), 'utf8').catch(() => undefined))
   const checkout = openCheckout(root, policy)
-  const game = gameName(root)
+  // `gameUrl` is left out of the ping when there is none, so an older editor reads the same answer.
+  const facts: PingFacts = {
+    game: gameName(root),
+    ...(options.gameUrl === undefined ? {} : { gameUrl: options.gameUrl }),
+  }
 
   const server: Server = createServer((req, res) => {
     void (async () => {
@@ -200,7 +212,7 @@ export async function serveEditor(options: EditorServerOptions): Promise<Running
         const refused = refusal(req, isLoopback(host))
         if (refused !== undefined) return reply(res, 403, { message: refused })
         const url = new URL(req.url ?? '/', 'http://editor')
-        if (url.pathname.startsWith('/api/')) return await api(req, res, url, token, policy, checkout, game)
+        if (url.pathname.startsWith('/api/')) return await api(req, res, url, token, policy, checkout, facts)
         return await staticFile(res, appDir, url.pathname)
       } catch (error) {
         if (!res.headersSent)

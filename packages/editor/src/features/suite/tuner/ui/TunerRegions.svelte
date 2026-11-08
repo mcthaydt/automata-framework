@@ -1,13 +1,13 @@
 <!--
   The Tuner's regions in the editor suite's shell: the search and the list as the
-  panel, the rows as the canvas, the chosen tunable as the inspector. Each is drawn from the controller the suite keeps, so a
+  panel, the running game beside the rows as the canvas (`TunerCanvas`), the chosen tunable as the inspector. Each is drawn from the controller the suite keeps, so a
   switch and return finds the search, the choice and the locks as they were.
 -->
 <script module lang="ts">
 import type { TunerSuiteSession } from '../tuner-suite-editor'
+import TunerCanvas from './TunerCanvas.svelte'
 import TunerInspector from './TunerInspector.svelte'
 import TunerPanel from './TunerPanel.svelte'
-import TunerRows from './TunerRows.svelte'
 
 export { canvas, inspector, panel }
 </script>
@@ -17,7 +17,7 @@ export { canvas, inspector, panel }
 {/snippet}
 
 {#snippet canvas(session: TunerSuiteSession)}
-  <TunerRows controller={session.controller} />
+  <TunerCanvas {session} />
 {/snippet}
 
 {#snippet inspector(session: TunerSuiteSession)}

@@ -5,21 +5,29 @@ import { createTunerController, type TunerController } from './tuner-controller'
 import { canvas, inspector, panel } from './ui/TunerRegions.svelte'
 
 // The Tuner as a suite editor: `tuner` in the editor list, opened
-// once and kept for the app's life. Its Ask target is `content/tuning.toml`; the locks the person set are what the shell's
+// once and kept for the app's life. Its canvas is a split view: the game's dev page running beside the settings, so
+// each change shows in the game as it is written (the content plugin restarts the game on the new tuning). Its Ask target is `content/tuning.toml`; the locks the person set are what the shell's
 // Ask refuses a proposal to change, and an accepted proposal is one undo step.
 
 export interface TunerSuiteSession {
   readonly controller: TunerController
+  /** The game's dev page the canvas shows beside the settings, or none (the sample game has no game to run). */
+  readonly gameUrl: string | undefined
 }
 
-export function createTuner(): SuiteEditor<TunerSuiteSession> {
+export interface TunerOptions {
+  /** The game's dev page, from `automata editor`'s ping (`--game-url`). */
+  readonly gameUrl?: string | undefined
+}
+
+export function createTuner(options: TunerOptions = {}): SuiteEditor<TunerSuiteSession> {
   return defineSuiteEditor<TunerSuiteSession>({
     id: 'tuner',
     label: 'Tuner',
     icon: 'sliders',
     hue: 'color/ed/tuner',
     async open(_files, ports) {
-      return { controller: await createTunerController(ports) }
+      return { controller: await createTunerController(ports), gameUrl: options.gameUrl }
     },
     regions: { panel, canvas, inspector },
     undo: (session) => ({
