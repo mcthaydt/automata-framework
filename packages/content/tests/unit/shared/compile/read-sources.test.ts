@@ -31,6 +31,15 @@ describe('readSources', () => {
     expect(tree.diagnostics).toEqual([])
   })
 
+  it("is quiet about the editors' own project files and loud about a misnamed one", async () => {
+    const root = copyFixture('valid')
+    writeFileSync(join(root, 'content/songs/start.af2d.json'), '{}')
+    writeFileSync(join(root, 'content/songs/room.af-sector.json'), '{}')
+    writeFileSync(join(root, 'content/songs/notes.md'), 'x')
+    const tree = await Effect.runPromise(readSources(root, schemas))
+    expect(tree.warnings.map((warning) => warning.file)).toEqual(['content/songs/notes.md'])
+  })
+
   it('gives nested files path IDs and refuses a name that is not an ID', async () => {
     const root = copyFixture('valid')
     mkdirSync(join(root, 'content/songs/night'))

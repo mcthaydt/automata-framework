@@ -55,12 +55,16 @@ const ID_SEGMENT = /^[a-z0-9-]+$/
 const isSource = (name: string): boolean => name.endsWith('.toml') && !name.endsWith('.toml.example')
 
 /**
- * Files that are meant to be skipped without a word: drafts kept as `.toml.example` and hidden files the
- * operating system or an editor leaves behind (`.DS_Store`, `.dusk-run.toml.swp`). Anything else the
+ * Files that are meant to be skipped without a word: drafts kept as `.toml.example`, the editors' own project files
+ * and hidden files the operating system or an editor leaves behind (`.DS_Store`, `.dusk-run.toml.swp`). Anything else the
  * compiler skips is most likely a misnamed file (`dusk-run.TOML`), so it gets a warning (audit of PR #8).
  */
 const isQuietlySkipped = (name: string): boolean =>
-  name.endsWith('.toml.example') || (name.split('/').at(-1) ?? '').startsWith('.')
+  name.endsWith('.toml.example') ||
+  // The editors' own project files sit beside the game files they export (start.af2d.json beside start.toml).
+  name.endsWith('.af2d.json') ||
+  name.endsWith('.af-sector.json') ||
+  (name.split('/').at(-1) ?? '').startsWith('.')
 
 /** Edits (insert, delete, replace one character) that turn `a` into `b`. */
 function editDistance(a: string, b: string): number {

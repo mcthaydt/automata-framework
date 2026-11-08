@@ -695,3 +695,7 @@ want, itch will be first output". Spec §11.
   asks `git rev-parse --is-inside-work-tree` and leaves a folder inside a repository alone (Review Focus 1: a game made in
   a person's own monorepo must not get a nested history); the plan's test list gained that call. A `--link-workspace`
   game never starts a history. Checked for real with the live git in the journey (Task 18).
+- Task 9 done: the content compiler skips `*.af2d.json` and `*.af-sector.json` without a warning (a misnamed file still
+  gets one), and every kind of new game writes `svelte.config.js`. 465 `-content` and 144 `-tools` create-game unit tests
+  pass. A story game made with `--link-workspace` (then removed): its test output holds neither `skippedFile` nor the
+  Svelte warning (18 tests pass). The published path is the consumer smoke's, not run here.

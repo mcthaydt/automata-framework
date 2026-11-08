@@ -92,6 +92,10 @@ describe('the agent files of a new game', () => {
     }
   })
 
+  it.each(KINDS)('a %s game has a Svelte config', (kind) => {
+    expect(contentOf(kind, 'svelte.config.js')).toBe('export default {}\n')
+  })
+
   it('exports the files of a plain 2D game for the other templates to reuse', () => {
     expect(AGENT_FILES_2D.map((file) => file.path)).toEqual([
       'AGENTS.md',

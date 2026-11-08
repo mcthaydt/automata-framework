@@ -86,6 +86,11 @@ describe('the new game’s files', () => {
     expect(read('src/features/square/move.system.ts')).toContain('tuning.SPEED')
   })
 
+  it('writes a Svelte config, so the Svelte plugin does not warn on every test run', () => {
+    expect(files).toContain('svelte.config.js')
+    expect(read('svelte.config.js')).toBe('export default {}\n')
+  })
+
   it('has no src/sim folder and no files laid out by role', () => {
     expect(files.some((file) => file.startsWith('src/sim/'))).toBe(false)
     expect(

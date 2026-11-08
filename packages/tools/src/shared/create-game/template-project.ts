@@ -170,6 +170,12 @@ export const SHARED_PROJECT_FILES: readonly TemplateFile[] = [
       ) + '\n',
   },
   {
+    // The Svelte plugin looks for this file and warns on every test run when it is not there; the game has no Svelte
+    // components of its own, so it is empty.
+    path: 'svelte.config.js',
+    content: () => 'export default {}\n',
+  },
+  {
     path: 'index.html',
     content: (options) => `<!doctype html>
 <html lang="en">
