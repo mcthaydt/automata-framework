@@ -34,18 +34,13 @@ export function setOrInsert(
 }
 
 /**
- * A row added to a list that may not be there yet. The kit cannot add a new top-level list with its first row in one
- * edit, so a missing list is made empty first; both edits go in one change and are one undo step.
+ * A row added to a list that may not be there yet. A list the file lacks is made with its first row in one edit, so it is
+ * one undo step and the document writes it as the file writes its other lists.
  */
 export function appendEdits(
   keyPath: readonly (string | number)[],
   exists: boolean,
   row: unknown,
 ): ContentEdit[] {
-  return exists
-    ? [{ keyPath: [...keyPath], insert: row }]
-    : [
-        { keyPath: [...keyPath], insert: [] },
-        { keyPath: [...keyPath], insert: row },
-      ]
+  return [exists ? { keyPath: [...keyPath], insert: row } : { keyPath: [...keyPath], insert: [row] }]
 }

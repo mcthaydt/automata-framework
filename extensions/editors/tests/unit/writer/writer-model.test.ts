@@ -87,10 +87,9 @@ describe('edits', () => {
 
   it('adds the first line when the file has no lines key', () => {
     expect(addLineEdits(undefined, line)).toEqual([
-      { keyPath: ['lines'], insert: [] },
       {
         keyPath: ['lines'],
-        insert: { id: 'shop.hi', kind: 'dialogue', speaker: 'shopkeeper', text: 'shop.hi', words: 'Hi.' },
+        insert: [{ id: 'shop.hi', kind: 'dialogue', speaker: 'shopkeeper', text: 'shop.hi', words: 'Hi.' }],
       },
     ])
   })

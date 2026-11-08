@@ -132,8 +132,7 @@ describe('addKeyEdits', () => {
   })
   it('adds a shake, a fade at how dark it is now, and makes a missing track first', () => {
     expect(addKeyEdits({ ...script, shake: undefined }, 'shake', 2, state)).toEqual([
-      { keyPath: ['shake'], insert: [] },
-      { keyPath: ['shake'], insert: [2, 2.5, 0.1] },
+      { keyPath: ['shake'], insert: [[2, 2.5, 0.1]] },
     ])
     expect(addKeyEdits(script, 'fade', 2, state)).toEqual([
       { keyPath: ['fade'], insert: { t: 2, value: 0.5 }, at: 0 },
