@@ -91,7 +91,13 @@ export default defineConfig({
           // A journey drives real pointer events and waits for frames; the runners draw WebGL in software, so one
           // took more than Vitest's 15 s default (the Studio's Animate journey) and a slow tap sequence missed its
           // close. A stuck journey still fails at its own step's wait.
-          test: { ...journeys.test, testTimeout: 60_000, hookTimeout: 60_000 },
+          // The same goes for a poll (a stage drawing its first frame): Vitest's poll gives up after 1 s.
+          test: {
+            ...journeys.test,
+            testTimeout: 60_000,
+            hookTimeout: 60_000,
+            expect: { poll: { timeout: 30_000 } },
+          },
         }
       })(),
     ],
