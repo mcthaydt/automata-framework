@@ -25,8 +25,9 @@ plan is [2026-11-08-site-motion-plan.md](2026-11-08-site-motion-plan.md). The ed
   after the page is live, is never preloaded, and is not downloaded at all for a visitor who asks for less motion or
   for less data. The first screen never moves on load, so the speed scores do not move.
 - **GSAP is free but not open source.** Its licence (the "Standard 'no charge' license", owned by Webflow since 2025) is
-  fine for a website. It is a question for the editors, which are sold as apps and include animation tools (section 9),
-  so this proposal recommends the browser's own animation there instead.
+  fine for a website, and fine for the editors' own buttons, dialogs and panels. The one line not to cross: GSAP never
+  becomes the engine behind what people animate in their games (Feel, Sequence), because the licence bars using it to
+  power a visual animation builder (section 9).
 
 ## 2. What is there today (audit, measured 2026-11-08 on #520's tip `09d5a347`)
 
@@ -264,15 +265,19 @@ Could a drunk grandma tell what is happening and what to press?
 ## 9. The editors, later
 
 The Owner: "do the same for the editors, we can do that when it makes sense to". That is after the editors v2 build
-(AF #519's plan) and its audit land. Recommendation for that stage, for the Owner to confirm:
+(AF #519's plan) and its audit land. The plan for that stage:
 
-- **No smooth scrolling in the editors.** Their panels, lists and inspector are tools: a wheel there should move exactly
-  as far as the hand did, and on the canvas the wheel zooms and pans. Lenis also cannot smooth the many nested scroll
-  regions (`data-scroll-region`) without one instance each.
-- **The same motion language without GSAP:** the same tokens and curve, through the browser's own Web Animations API
-  and CSS. It costs nothing to download, and it keeps the GSAP licence out of the paid apps, which charge users and
-  include animation tools (Sequence's timeline, Feel) that could read as a "Competitive Product" (section 2.4). If the
-  Owner prefers GSAP there, ask Webflow first.
+- **GSAP for the editors' own interface, never for the game.** The Owner, 2026-11-08: "Use gsap for the editor UI
+  motion", after asking "How is my app competing with webflow?" It is not: Webflow builds websites, and the editors make games. The licence's words are broad
+  ("Competitive Products" is any tool where people "create, edit, or manage animations through a visual interface",
+  which Feel and Sequence are), but what it bars is using GSAP *to power* such a builder. So GSAP may animate the
+  editors' buttons, dialogs and panels, the same tokens and curve as the site. It must never drive what a person
+  animates in their game: Feel's juice, Sequence's timeline and every in-game move stay the framework's own code. A
+  test in the editors' build should fail if `extensions/feel`, the cutscene runtime or any game imports `gsap`.
+- **Smooth scrolling where the editors read like a page, not in the tools.** Home's list of games and levels can glide
+  like the site. Panels, lists, the inspector and the canvas stay exact: a wheel there should move as far as the hand
+  did, and on the canvas the wheel zooms and pans. Each glide region needs its own Lenis instance on that region
+  (`data-scroll-region`), so there are only as many as there are page-like lists.
 - **Where it fits:**
   - switching editors in the sidebar or tab bar: the work panel's content fades in, 160 ms, no travel;
   - dialogs and phone sheets (New level, Publish, Export, Import, Ask, the conflict and recovery dialogs): the dialog
@@ -295,7 +300,7 @@ The Owner: "do the same for the editors, we can do that when it makes sense to".
 
 ## 11. For the Owner
 
-1. The editors: the browser's own animation and no smooth scrolling (recommended), or GSAP and Lenis like the site
-   after a word with Webflow. Asked on a card; nothing is built until the editors' turn.
+1. The editors (section 9): GSAP for their own interface only, and smooth scrolling on Home's lists but not in the
+   tool panels. Say if the panels should glide too. Nothing is built until the editors' turn.
 2. GSAP on the credits page reads "GSAP Standard License: free to use, not open source". Say if it should be worded
    differently.
