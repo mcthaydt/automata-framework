@@ -51,7 +51,11 @@ open in the dark look.
 - **Review.** The mockup draws a Review page under "Waiting for you". The suite has no Review: it was deleted with the
   change-set desk (`a15c7b36`, "the change-set desk, Tuner locks and the ask mode are gone"), on both bases. Building
   it again is a feature, so it is not in this plan: no "Waiting for you" group, no Review row, card, tab or empty
-  page. The `review` icon stays in the kit, unused by the suite. (Plan audit A1; the Owner may ask for it later.)
+  page. The `review` icon stays in the kit, unused by the suite. (Plan audit A1.) **The Owner, 2026-11-08 19:12 UTC,
+  chose "Leave Review out"** of this redesign, and asked that coding agents use the project's own workflow: an agent
+  works on a branch and opens a pull request, and the person says yes or no. Review comes back with the apps
+  pipeline's GitHub sync as a page of the agent's branches ("Play it", "Use this change", "Not this one"), not as the
+  old change set.
 - **The game's pictures.** Canvases keep their pixels; only the stage around them changes (section 6).
 - **The site's own look.** The site is not redrawn. Because the site imports the editor kit's `tokens.css`, it must stay
   legible after the token change; section 8 says how that is proved.
