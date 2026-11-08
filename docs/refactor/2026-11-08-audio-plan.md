@@ -16,20 +16,26 @@ so none passes 600 lines. Play goes through an injected `AudioPlay` port; the pa
 **Spec:** [`2026-11-08-audio-spec.md`](2026-11-08-audio-spec.md), with the shared
 [`2026-11-08-content-editors-spec.md`](2026-11-08-content-editors-spec.md).
 
+**Audit:** [`2026-11-08-audio-plan-audit.md`](2026-11-08-audio-plan-audit.md) (A1 to A8, fixed below). Tasks 5 and 6
+were added by it: a sound picked here must be heard in play. Task 3 (music pieces and rules) waits for the Owner's call
+(A4); until then it is not built.
+
 ## Global Constraints
 
 - The content editors plan's constraints hold (no "Plus", core never imports this package, feature folders, tests in
   `tests/`, 600 lines a file, drunk grandma copy, 44/48 px targets, span-preserving edits, test first).
 - Words are the spec's section 4 table, verbatim. No key (`cue`, `bus`, `slot`, `no_duck`, `master_gain`) on screen.
 - Nothing plays without a tap; playing never writes the file.
-- The audio pipeline runs in Node through the checks port; the page never imports `@automata/pipelines`.
+- **Check the sounds** renders and measures in the page (`@automata/audio-synth/render` and `/measure`); the page never
+  imports `@automata/pipelines` and uses no checks port for it (audit A5).
+- What a person changes in Audio is heard in play, in a served journey (the Owner, 2026-11-08): Tasks 5 and 6. A
+  journey step that could not run is left unchecked and named, never replaced by writing the file directly.
 
 ## Review Focus
 
-1. **A rule list with `hold` and `silence`.** Shown as "Keep what plays" / "Play nothing"; reordering keeps the rest
-   of each rule's text. Test in Task 3.
-2. **A music piece whose file does not exist and has no placeholder.** Play says "There is no file chase yet." and
-   plays nothing. Test in Task 3.
+1. **Two event rows that both match** (`player.*` above `player.hit`). Only the first plays (`rowFor`); the second
+   says "Never plays: any player event above answers first." and **Move up** fixes it in one undo step. Test in Task 4.
+2. **A sound picked for an event, then Play.** The game plays it when the event happens. Served journey in Task 6.
 3. **Play pressed twice quickly, or a bed playing when another is chosen.** One sound at a time for beds; Stop works
    after switching pages. Test in Task 1.
 4. **A hiss with a pitch range** (`hiss = [400, 1200]`). Shown as two fields, From and To, and kept as a range. Test in
@@ -42,18 +48,20 @@ so none passes 600 lines. Play goes through an injected `AudioPlay` port; the pa
 ### Task 1: On the page, and Play that sounds
 
 **Files:**
+
 - Create: `extensions/editors/src/features/audio/audio-output.ts`
 - Modify: `audio-suite-editor.ts`, `AudioCanvas.svelte`, `extensions/editors/src/app/suite/content-editors.ts`,
   `main.ts`, `sample/editors.toml`, add `sample/audio.toml`
 - Test: `tests/unit/audio/audio-output.test.ts`, `tests/unit/audio/audio-editor.test.ts`, `tests/unit/app/content-editors.test.ts`
 
 **Interfaces:**
+
 - Consumes: the existing `AudioPlay = (content, what: { kind: 'sound' | 'bed'; id }) => Promise<void>`.
 - Produces: `interface AudioOutput { readonly play: AudioPlay; stop(): void; close(): void; readonly unlocked: boolean }`
   and `browserAudio(make: () => AudioContext): AudioOutput` (makes the context on the first `play`; a sound plays once
   through `playCue`; a bed starts through `startBed` and stops any other; `stop()` stops the bed; `close()` closes the
   context). `AudioSession` gains `stop()` and `unlocked`. `contentEditors({ audio }?)` returns `[createFeel(),
-  createAudio({ play: audio.play })]`.
+createAudio({ play: audio.play })]`.
 
 - [ ] **Step 1: Write the failing tests** with a fake `AudioContext`: no context before the first Play; Play makes one
   and schedules the cue's voices; a second bed stops the first; Stop stops it; the button reads **Tap to hear** until
@@ -64,33 +72,42 @@ so none passes 600 lines. Play goes through an injected `AudioPlay` port; the pa
 ### Task 2: Every sound and bed field, and the sound's picture
 
 **Files:**
+
 - Modify: `audio-model.ts`, `AudioCanvas.svelte`
 - Create: `audio-picture.ts`, `AudioPicture.svelte`
 - Test: `tests/unit/audio/audio-model.test.ts`, `tests/unit/audio/audio-picture.test.ts`
 
 **Interfaces:**
+
 - Produces: `soundFields` gains `about`, `world`, `no_duck`, `draft`, `sound` (a toggle sets `true` or removes the
   key); `bedFields` gains noise and pulse groups with add and remove; `picture(cue: Cue, width: number, height: number):
-  { x: number; w: number; y0: number; y1: number; kind: 'tone' | 'hiss' }[]` (pitch on a log scale, 50 Hz to 8 kHz).
+{ x: number; w: number; y0: number; y1: number; kind: 'tone' | 'hiss' }[]` (pitch on a log scale, 50 Hz to 8 kHz).
 
 - [ ] **Step 1: Write the failing tests** for the section 4 words and Review Focus 4; `picture` places a tone from 0 s
   to half the length across half the width, rising when `to` > `from`.
 - [ ] **Step 2–4: Run, implement, run.**
 - [ ] **Step 5: Commit** `feat(editors): Audio edits every sound field and draws its shape`.
 
-### Task 3: Music pieces and rules
+### Task 3: Music pieces and rules (waits for the Owner, audit A4)
+
+Not built until the Owner says so: no game plays music pieces (`createMusicDirector` is unused) and a rule's state
+comes only from game code, so nothing edited here would be heard in play. If the Owner keeps it, this task gains an
+in-play step like Task 5's (the music director on the stage, with the game's state) and a journey step in Task 6, and a
+rule with no conditions writes `when = {}` (`when` is required). The steps below stay as written for that day.
 
 **Files:**
+
 - Create: `music-model.ts`, `AudioMusic.svelte`
 - Modify: `audio-session.svelte.ts` (`AudioChoice` gains `{ kind: 'music'; index }` and `{ kind: 'rules' }`),
   `AudioPanel.svelte`
 - Test: `tests/unit/audio/music-model.test.ts`, `audio-editor.test.ts`
 
 **Interfaces:**
+
 - Produces: `musicFields(slot: Slot): Field[]`; `addSlotEdit`, `fallbackEdits`; `ruleLines(rules: readonly MusicRule[],
-  slots): { words: string; index: number }[]` ("When danger is at least 2: play Chase"; a rule with no `when` is
+slots): { words: string; index: number }[]` ("When danger is at least 2: play Chase"; a rule with no `when` is
   "Otherwise: …"); `addRuleEdit`, `moveRuleEdits(from, to)`, `conditionEdit(rule, key, condition)`; `soundFiles(workspace):
-  Promise<string[]>`.
+Promise<string[]>`.
 
 - [ ] **Step 1: Write the failing tests** including Review Focus 1 and 2.
 - [ ] **Step 2–4: Run, implement, run.**
@@ -99,24 +116,77 @@ so none passes 600 lines. Play goes through an injected `AudioPlay` port; the pa
 ### Task 4: When things happen, the mix, and the checks
 
 **Files:**
-- Create: `mix-model.ts`, `AudioMix.svelte`, `audio-findings.ts`
+
+- Create: `mix-model.ts`, `AudioMix.svelte`, `audio-findings.ts`, `audio-check.ts` (render and measure in the page)
 - Modify: the events page in `AudioCanvas.svelte` (uses `gameEvents` from `shared/game-events.ts`; Feel's plan Task 2
   creates it, or this task does if it runs first)
 - Test: `tests/unit/audio/mix-model.test.ts`, `tests/unit/audio/audio-findings.test.ts`, `audio-editor.test.ts`
 
 **Interfaces:**
+
 - Produces: `duckLines(content): { words: string; index: number }[]` ("While a voice plays, music drops 6 dB (in 0.1 s,
   back in 0.5 s)"), duck add/remove/field edits, `masterEdit(content, value)`; `unanswered(content, events: GameEvent[]):
-  GameEvent[]`; `findingWords(finding): { sound?: string; words: string }` for true peak, clicks, loudness, duck depth,
-  world pan and missing events, with the spec section 3.7 sentences.
+GameEvent[]`; `shadowed(content): { index: number; by: number }[]` (a row a row above it answers first, `rowFor`'s
+  rule) and `moveRowEdits(from, to)`; `checkSounds(content, make: () => OfflineAudioContext): Promise<SoundFinding[]>`
+  (each cue through `renderCue`, then `truePeak`, `clicks` and `integratedLoudness` from `@automata/audio-synth/measure`)
+  where `SoundFinding = { sound: string; kind: 'peak' | 'clicks' | 'loudness'; value: number }`;
+  `findingWords(finding): string` with the spec section 3.7 sentences.
 
 - [ ] **Step 1: Write the failing tests** including Review Focus 5 (findings carry the content text they were run on;
   a changed text moves them to "Out of date").
-- [ ] **Step 2–4: Run, implement, run.** **Check the sounds** declares the `after` check `audio` in the sample game's
-  checks.
+- [ ] **Step 2–4: Run, implement, run.** **Check the sounds** runs `checkSounds` with the page's
+  `OfflineAudioContext` (a fake in jsdom that returns fixed samples: a clipped one, one with a click, a clean one).
+  Review Focus 1 (shadowed rows) is tested here.
 - [ ] **Step 5: Commit** `feat(editors): Audio's events, mix and sound checks`.
 
-### Task 5: Layout, template, proof and records
+### Task 5: Audio in play
+
+The Owner's rule (2026-11-08): what a person changes in an editor must be seen (here, heard) in play. Today nothing in
+a game plays `audio.toml`: `audioSynthExtension` registers only the content kind and no game calls `createAudioSynth`
+(audit A1).
+
+**Files:**
+
+- Create: `extensions/audio-synth/src/features/stage/audio-stage.ts`, entry `src/entries/stage.ts`
+  (`@automata/audio-synth/stage`, in `package.json` `exports`); `extensions/audio-synth/tests/unit/stage/audio-stage.test.ts`;
+  `.changeset/audio-synth-stage.md` (`patch`)
+- Possibly modify: `packages/automata` (see Step 1)
+
+**Interfaces:**
+
+- Consumes: `createAudioSynth`, `MixerPort`; `PixiStage`, `PixiStageHooks`, `FrameInfo` from `@automata/framework`;
+  `StepResult` from `@automata/sim`.
+- Produces: `audioStage(options: { content: () => AudioContent; port: MixerPort }): { setup(stage: PixiStage):
+PixiStageHooks; played(): readonly string[] }`: `apply(result)` hears `result.events` at `result.tick`; `draw` calls
+  `frame(lastTick)` and keeps the ids it played for the game's test hook.
+
+- [ ] **Step 1: Find the game's way to core's audio buses.** `MixerPort` is `AudioBuses.input(bus)` and
+  `Audio.duck(bus, amount, seconds)`; core exports `AudioBuses` only as a type today
+  (`packages/automata/src/entries/runtime.ts`). Find how a game's code reaches its running buses; if it cannot, add the
+  smallest public way to core (a `mixerPort()` from the running game), test it, and give it a `patch` changeset. Record
+  which in the log.
+- [ ] **Step 2: Write the failing tests** with a fake port: an event a row answers plays its cue once when the drawn
+  tick reaches it; a shadowed row never plays; a `world` cue pans; a duck rule calls `duck`.
+- [ ] **Step 3–4: Run, implement, run.** `pnpm build`, `pnpm api-report --update`, `pnpm agent-skills --write`.
+- [ ] **Step 5: Commit** `feat(audio-synth): a game plays its sounds when things happen`.
+
+### Task 6: A sound picked in Audio plays in the game (served journey)
+
+**Files:**
+
+- Modify: `examples/2d-story/` (content-in-play Task 16): `src/` passes `audioStage({ … }).setup` in `renderer.setup`
+  and exposes `played()` on the game's test hook; `content/editors.toml` gains the audio row.
+- Create: `examples/2d-story/tests/e2e/audio-in-play.test.ts`
+
+- [ ] **Step 1: Served journey** (Chromium, phone and iPad projects): `automata editor` in the example. In the suite,
+  open Audio, make a sound "Alarm" (one tone), and under **When things happen** pick it for "systems mode" (the guard
+  changes mode); Save. Press **Play**, tap once so the page may play sound, walk into the guard's sight; assert through
+  the test hook that `alarm` was played. Explain the run in the log.
+- [ ] **Step 2:** If `examples/2d-story` has not landed, leave this step unchecked, say so in the log and the PR, and
+  do not count Audio as done. Never write the TOML directly and count it as edited.
+- [ ] **Step 3: Commit** `test(examples): a sound picked in Audio plays in the game`.
+
+### Task 7: Layout, template, proof and records
 
 - [ ] Chromium layout test at 390×844 and 820×1180; screens to the project files, looked at before they are kept.
 - [ ] Add Audio's row to the create-game template `editors.toml` (`content/audio/*.toml`).

@@ -117,10 +117,10 @@ audited and built through the project's pipeline before its code merges:
 | Editor | Spec and plan | State |
 | --- | --- | --- |
 | Schematic (the game's AI: how enemies and other characters behave) | `2026-11-08-schematic-{spec,plan}.md` | Plan audited (`2026-11-08-schematic-plan-audit.md`); build next |
-| Feel | `2026-11-08-feel-{spec,plan}.md` | Built ahead of its spec; the plan brings it in line |
-| Audio | `2026-11-08-audio-{spec,plan}.md` | Half built ahead of its spec; the plan finishes it |
-| Writer | `2026-11-08-writer-{spec,plan}.md` | Written; saves a line's words in the line (Writer spec, section 4) |
-| Sequence | `2026-11-08-sequence-{spec,plan}.md` | Written |
+| Feel | `2026-11-08-feel-{spec,plan}.md` | Built ahead of its spec; plan audited (`2026-11-08-feel-plan-audit.md`): the plan brings it in line and makes the game play it; build next |
+| Audio | `2026-11-08-audio-{spec,plan}.md` | Half built ahead of its spec; plan audited (`2026-11-08-audio-plan-audit.md`): the plan finishes it and makes the game play it; music waits for the Owner; build next |
+| Writer | `2026-11-08-writer-{spec,plan}.md` | Plan audited (`2026-11-08-writer-plan-audit.md`); saves a line's words in the line (Writer spec, section 4); build next |
+| Sequence | `2026-11-08-sequence-{spec,plan}.md` | Plan audited (`2026-11-08-sequence-plan-audit.md`); build next |
 
 `shared/game-events.ts` (the game's events, for Feel and Audio) is made by whichever of Feel's Task 2 and Audio's
 Task 4 runs first.
@@ -152,3 +152,6 @@ Still for the Owner to decide, each its own spec if wanted:
   and one Chromium layout test at phone and iPad sizes.
 - The package joins `pnpm check` (lint, typecheck, boundaries, style, knip, unit tests).
 - A journey on the sample game per editor: open it from Home, change one thing, see the file change, Undo.
+- And each editor's change seen in play, in a served journey (the Owner, 2026-11-08): Feel and Audio play on the game's
+  stage (their plans add the player each lacked); Writer and Sequence run their steps of the content-in-play journey in
+  `examples/2d-story`. An editor is not done until its journey runs.

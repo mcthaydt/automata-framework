@@ -36,7 +36,7 @@ its journey edits a line in Writer and sees the box show it, so this spec must s
 2. **Write lines** as a script: "Shopkeeper: Welcome in. Mind the step." Each line shows who says it, the words, and
    its kind in words ("Said in a conversation", "Called out", "On screen in a cutscene", "Read when you look at
    something"). **Add a line** asks who says it and what they say; the id is made from the scene and the first words
-   (`shop.welcome_in`), and the person never types a key.
+   (`shop.welcome_in_mind_the`, at most 40 characters, unique in the scene), and the person never types a key.
 3. **Write a conversation** as a branching script, read top to bottom from the start:
    - each part ("node") shows its lines as the script, then either "Then: Goodbye" (its `next`) or the player's
      choices, each as "You say: I'm just looking. Goes to: Browsing.";
@@ -46,7 +46,8 @@ its journey edits a line in Writer and sees the box show it, so this spec must s
    - a part's **Only if** conditions in words ("Only if the player has the key", "Only if trust is at least 2");
    - a small computed map of the parts beside the script (boxes and arrows, no saved layout, tap to go there).
 4. **See what is wrong** in words, beside the part it is about: "Nothing leads to Browsing, so no one can reach it.",
-   "Goodbye is never reached from here, so this conversation never ends.", "There is no line shop.thanks yet."
+   "Goodbye is never reached from here, so this conversation never ends.", "This part says a line that no longer
+   exists."
 5. **Read it through.** **Play it** walks the conversation in the editor: the lines appear in turn, the choices are
    buttons, and the facts it sets are kept for the walk only. It reads the file; it never runs the game.
 6. **Rename and remove** a part, a choice or a line. Removing a line that a conversation or a cutscene still says asks
@@ -69,21 +70,32 @@ text = "shop.welcome_in"
 words = "Welcome in. Mind the step."
 ```
 
-`@automata/narrative` exports `wordsOf(lines, translation?)`: the map from each line's `text` to its words (the
-translation's for that line's message key when given, else the source words). The game passes it as
+`@automata/narrative` exports `wordsOf(files, text?)`: the map from each line's `text` to its words, in the active
+locale when given the game's `createContentText` lookup (`@automata/content/locale`, the one owner of the message key),
+else the source words. It takes the lines files by their content id, because a line's message key is made from its
+file's id and its place in the file. The game passes it as
 `narrativeExtension({ words })`, which the dialogue box and captions read (content-in-play spec, "Words"). A line with
 no `words` is not an error to the compiler; Writer shows it as "No words yet" and the box reports it once, as that spec
 says.
 
 Why here: AF's source-language text lives in the TOML it belongs to (`localized()` fields), and translations are the
 only JSON a person edits by hand. A separate words file would split a line from its words and leave translators a
-second catalog. The cost: the compiler keys a message by its path, so moving a line inside its file renames its key and
-marks translations stale. Writer never reorders a lines file; it shows lines in its own order and adds new ones at the
-end.
+second catalog. The cost: the compiler keys a message by its path (`content_lines_<file>_lines_<i>_words`), and it
+fails a translation that lacks a source key or has an extra one. So in a translated game, adding a line, or removing
+one (which moves every later line's key), stops the content build until each translation is updated; Writer says so
+after the change ("French needs this change before the game builds."). Writer never reorders a lines file; it shows
+lines in its own order and adds new ones at the end. Empty words are not words (`localized()` needs one character):
+clearing them removes `words`.
 
 `lineSchema` is also exported from `@automata/narrative/sim`, and a `localized()` field turns its text into a marker
 object when parsed. So `words` is `localized()` only in the `lines` content kind's schema (`narrative.content.ts`
 extends `lineSchema` for it); the sim's `lineSchema` takes `words` as plain optional text. The sim never reads `words`.
+
+## 4b. Two files, two steps
+
+A conversation's choice is a line the player says, so **Add a choice** writes a line into the lines file and the choice
+into the dialogue file. An editor writes one file per undo step, so this is two steps: Undo takes back the choice, then
+the player's line. (One step would need the suite to give editors a several-file write; not in this work.)
 
 ## 5. Choices from the file
 
@@ -110,9 +122,12 @@ keyboard.
 - DOM: add a line (no key typed), edit words, add a choice to a new part, set standing and remembers, rename a part
   (every `next` and choice that names it follows), remove a line that is still said (asks first), Play it.
 - Chromium layout at 390×844 and 820×1180, the on-screen keyboard at phone size (the words field stays in view).
+- In play: content-in-play's served journey in `examples/2d-story`, run with Writer's edits (plan Task 7).
 
 ## 8. Open choices
 
 1. **Words in the line** (section 4) or a separate words file per scene. Recommended: in the line.
-2. **Storylets, beats and hints** stay out of Writer for now (content editors spec, section 2). Recommended: keep them
+2. **Message keys by line id.** Keying a line's message by its id instead of its place would let a line be removed
+   without re-keying the rest. It is a content compiler change, asked of the framework if translated games need it.
+3. **Storylets, beats and hints** stay out of Writer for now (content editors spec, section 2). Recommended: keep them
    out until a game made in the editor needs them.

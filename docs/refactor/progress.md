@@ -477,3 +477,15 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 2026-11-06: "completely redesign the editors for ux, copy, and ui"; the 2D slice redesigns the kit and the 2D editor),
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
+
+## Content editors: Feel, Audio, Writer, Sequence (plan audit done, 2026-11-08)
+
+Each editor's plan audited against its spec, the shared content-editors spec, the content-in-play plan and the code:
+[`2026-11-08-feel-plan-audit.md`](2026-11-08-feel-plan-audit.md) (F1 to F11),
+[`2026-11-08-audio-plan-audit.md`](2026-11-08-audio-plan-audit.md) (A1 to A8),
+[`2026-11-08-writer-plan-audit.md`](2026-11-08-writer-plan-audit.md) (W1 to W11),
+[`2026-11-08-sequence-plan-audit.md`](2026-11-08-sequence-plan-audit.md) (S1 to S10). The findings are fixed in the
+specs and plans. Chief among them: nothing in a game played `feel.toml` or `audio.toml`, so Feel and Audio gain a
+stage player and a served journey each; Writer and Sequence prove themselves in content-in-play's `examples/2d-story`
+journey, whose Sequence step changes (a caption's words are written in Writer). Audio's music pieces and rules wait for
+the Owner's call. Next: the builds (Sonnet, high).

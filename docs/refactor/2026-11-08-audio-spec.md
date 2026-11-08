@@ -29,6 +29,13 @@ the music the game switches between, the mix, and the checks that keep a sound f
 - **Music rules** (`music_rule`): when every named piece of the game's state holds (a value, one of a list, or within a
   range), play this music, keep what plays (`hold`) or play nothing (`silence`).
 - **Master volume** (`master_gain`).
+- **Only the first row that matches an event plays** (`rowFor`), unlike Feel, where every matching entry plays. So the
+  order of "When things happen" matters.
+- **Who else plays sounds.** A game may also map events to recorded files in its code (`defineGame({ sounds })`). Those
+  are the code's; Audio shows and edits only its own rows. A sound with a recorded file (`sound`) plays that file
+  through the same mixer.
+
+Nothing in a game plays this file yet: the extension registers only the content kind. Section 5b adds the player.
 
 `playCue`, `startBed` and `createMixer` play all of it on any `AudioContext`. The audio pipeline
 (`automata-pipe audio run <scene> --json`) renders every sound and checks true peak, clicks, loudness, the ducks and
@@ -45,16 +52,18 @@ event coverage, in Node.
    then the button says **Tap to hear**. Playing never writes the file. After each change to a sound, its picture
    updates; it plays again only when asked.
 4. **Say what plays when things happen**, from the game's events (the list Feel uses, `shared/game-events.ts`): each
-   row "When player hit: plays hit" or "When door opens: quiet, because the door is silent in the dark". A game event
-   nothing answers is listed under "Nothing plays yet" with **Pick a sound** and **Keep it quiet**.
-5. **Set up the music**: each piece's file, **Loops** or **Plays once**, loudness, fade in, and the rest in words
+   row "When player hit: plays hit" or "When door opens: quiet, because the door is silent in the dark", in file order.
+   A row a row above it answers first says "Never plays: any player event above answers first." with **Move up**. A
+   game event nothing answers is listed under "Nothing plays yet" with **Pick a sound** and **Keep it quiet**.
+5. **Set up the music** (waits for the Owner's call: no game plays music pieces yet; plan Task 3): each piece's file, **Loops** or **Plays once**, loudness, fade in, and the rest in words
    (section 4); its placeholders. Then the rules, read top to bottom as the game reads them: "When danger is at least
    2: play Chase", "When in the menu: keep what plays", "Otherwise: play Calm". **Play** on a piece plays its file, or
    its first placeholder that exists.
 6. **Mix**: **Overall volume**, and the ducks as sentences: "While a voice plays, music drops 6 dB (in 0.1 s, back in
    0.5 s)".
-7. **Check it**: **Check the sounds** runs the audio pipeline through the checks port and shows each finding beside its
-   sound in words: "Too loud at its peak: −0.4 dB. Keep it under −1 dB.", "Clicks at 0.12 s.", "Music is 3 LU quieter
+7. **Check it**: **Check the sounds** renders each sound in the page (`@automata/audio-synth/render`, an
+   `OfflineAudioContext`) and measures it (`@automata/audio-synth/measure`), then shows each finding beside its sound in
+   words: "Too loud at its peak: −0.4 dB. Keep it under −1 dB.", "Clicks at 0.12 s.", "Music is 3 LU quieter
    than its target." The findings are marked out of date after a change.
 
 ## 4. Every field, in words
@@ -73,14 +82,20 @@ event coverage, in Node.
 | rule | `when`, `slot`, `why` | When (each: is, is one of, at least, at most), Play / Keep what plays / Play nothing, Because |
 | file | `master_gain` | Overall volume |
 
-A file field offers the game's sound files (the names under the game's `assets` that the asset manifest lists, through
-the workspace) and takes a typed name; a name with no file is named: "There is no file chase yet; its placeholder plays."
+A file field offers the game's sound files (the names the asset manifest `content/assets.toml` lists, read through
+`workspace.read`) and takes a typed name; a name with no file is named: "There is no file chase yet; its placeholder plays."
 
 ## 5. Layout
 
 Panel: Sounds, Music beds, Music, When things happen, Mix. Canvas: the chosen page. The picture of a sound is at most
 120 px tall and spans the canvas. Play and Stop are primary (48 px). The page wires `createAudio({ play })` to a real
 `AudioContext` made on the first Play and closed when the editor closes.
+
+## 5b. In play
+
+`@automata/audio-synth/stage` adds `audioStage`, a renderer `setup` a game passes beside its level scene: it hears each
+step's events and plays what "When things happen" says, through core's audio buses, when the picture reaches the
+event. A served journey picks a sound in Audio, presses Play and hears it (plan Tasks 5, 6).
 
 ## 6. Checks
 
@@ -95,4 +110,5 @@ Panel: Sounds, Music beds, Music, When things happen, Mix. Canvas: the chosen pa
 
 1. **Recorded music files.** Audio picks files the game already has; bringing a new file in is the assets importer's
    job, as for tiles. Recommended: keep it that way.
-2. **Check the sounds** runs the pipeline on request, not on every change, because rendering every sound takes seconds.
+2. **Check the sounds** runs on request, not on every change, because rendering every sound takes seconds.
+3. **Music pieces and rules** (section 3.5) wait until a game plays music. Recommended: wait; the Owner decides.
