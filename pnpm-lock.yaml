@@ -497,9 +497,15 @@ importers:
 
   extensions/editors:
     dependencies:
+      '@automata/audio-synth':
+        specifier: workspace:*
+        version: link:../audio-synth
       '@automata/editor':
         specifier: workspace:*
         version: link:../../packages/editor
+      '@automata/feel':
+        specifier: workspace:*
+        version: link:../feel
       svelte:
         specifier: 5.57.1
         version: 5.57.1
@@ -522,6 +528,9 @@ importers:
       '@testing-library/svelte':
         specifier: 5.4.2
         version: 5.4.2(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(vitest@5.0.3)
+      '@testing-library/user-event':
+        specifier: 14.6.7
+        version: 14.6.7(@testing-library/dom@10.4.2)
       '@types/node':
         specifier: 24.19.1
         version: 24.19.1

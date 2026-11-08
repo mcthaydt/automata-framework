@@ -30,23 +30,6 @@ describe('the rail entries', () => {
     expect(entries.map((entry) => entry.icon)).toEqual(['sliders', 'grid', 'grid', 'list', 'review'])
   })
 
-  it("list only the editors the game's list names, so a game with no sounds never sees Audio", () => {
-    const feel = { id: 'feel', label: 'Feel' }
-    expect(
-      suiteEntries([tuner, levels, feel], false, new Set(['tuner', 'levels-2d'])).map((entry) => entry.id),
-    ).toEqual(['tuner', 'levels-2d'])
-    expect(suiteEntries([tuner, levels, feel], true, new Set()).map((entry) => entry.id)).toEqual(['review'])
-  })
-
-  it('list every registered editor when the game has no readable list', () => {
-    const feel = { id: 'feel', label: 'Feel' }
-    expect(suiteEntries([tuner, levels, feel], false, undefined).map((entry) => entry.id)).toEqual([
-      'tuner',
-      'levels-2d',
-      'feel',
-    ])
-  })
-
   it('are empty for a build with no editors and no change sets', () => {
     expect(suiteEntries([], false)).toEqual([])
   })

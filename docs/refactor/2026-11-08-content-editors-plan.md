@@ -39,7 +39,8 @@ Vite 8.3.3.
 3. **Two rows with the same name** (two feel entries answering one event, two cues with one id). The schema's issue
    shows on the second row in words; the editor never merges or drops either. Test in Task 3 (Feel).
 4. **An empty or missing file.** One "Start …" button makes it; nothing else is offered. Test in Task 1 and each editor.
-5. **A game whose list names none of the five.** The rail shows none of them. Test in Task 2.
+5. **A game whose list names none of the five.** The rail still shows all five, and each opens on its "start" page
+   (spec section 7; each editor's plan tests its page).
 
 ---
 
@@ -219,3 +220,15 @@ compose yet show their sentence read only with "Edit this in the file for now."
 ## Log
 
 (Each session records what it did here, with evidence.)
+
+- **2026-11-08, first session.** Task 1 done (`4b5defbb`; 15 unit tests). Task 2 built (`a930be8a`) and then reverted on
+  the Owner's word: hiding an editor the list does not name leaves no way to start its first file (spec section 7).
+  Task 3, Feel, done (`0651911b`; 23 unit and DOM tests). Task 4, the suite page, done (`d3dd2e0e`; checked in Chromium
+  at 390x844 and 820x1180, screens in the project files `refactor/2026-11-08-content-editors-screens/`). Task 5, Audio,
+  half done and parked (`291d4c3d`; not on the page; Play not wired). The Owner then asked for a spec and plan per editor
+  (spec section 7b): Tasks 5 to 8 move to those plans, Schematic first, and Feel and Audio are brought in line with
+  theirs. Not run: Chromium layout tests as a suite project, journeys, WebKit, Firefox.
+- **2026-11-08, first session, later.** Wrote a spec and plan for each editor (Schematic, Feel, Audio, Writer,
+  Sequence; spec section 7b). Writer saves a line's words in the line as a `localized()` field, so the content-in-play
+  dialogue box reads them through `wordsOf`. Section 8 now points at the content-in-play plan for 2D animation, default
+  controls, 2D games and the dialogue box. Each plan goes to its plan audit next; no editor code changed.
