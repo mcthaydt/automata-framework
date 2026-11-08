@@ -4,19 +4,22 @@
 -->
 <script lang="ts">
 import { Button } from '@automata/editor/kit'
-import type { FeelEntry } from '@automata/feel'
+import { type FeelEntry, resolveLimits } from '@automata/feel'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
+import FeelPlayer from './FeelPlayer.svelte'
 import {
   addEffectEdit,
   EFFECT_KINDS,
+  type EffectField,
   type EffectKind,
   type EffectLine,
   effectLines,
   eventWords,
   feelProblemWords,
-  fieldEdit,
+  fieldChange,
   limitEdit,
   limitLines,
+  limitNote,
   removeEffectEdit,
   removeFeelEdit,
 } from './feel-model.ts'
@@ -48,23 +51,14 @@ function rowOf(chosen: FeelEntry, line: EffectLine): Record<string, unknown> {
   return (chosen[line.channel]?.[line.index] ?? {}) as Record<string, unknown>
 }
 
-async function setField(
-  chosen: FeelEntry,
-  line: EffectLine,
-  key: string,
-  label: string,
-  value: number | string,
-) {
+async function setField(chosen: FeelEntry, line: EffectLine, field: EffectField, value: number | string) {
   if (index === undefined) return
-  const before = rowOf(chosen, line)[key]
-  const edit =
-    before === undefined
-      ? { keyPath: ['entry', index, line.channel, line.index, key], insert: value }
-      : fieldEdit(index, line, key, before, value)
+  const edit = fieldChange(index, line, field, rowOf(chosen, line)[field.key], value)
+  if (edit === undefined) return
   await session.change(
-    `${line.words}: ${label.toLowerCase()}`,
+    `${line.words}: ${field.label.toLowerCase()}`,
     [edit],
-    `${index}.${line.channel}.${line.index}.${key}`,
+    `${index}.${line.channel}.${line.index}.${field.key}`,
   )
 }
 
@@ -89,6 +83,8 @@ async function removeFeel(chosen: FeelEntry) {
   {#if session.message !== undefined}
     <p class="refused" role="alert">{session.message}</p>
   {/if}
+  <div class="split">
+  <div class="sentences">
 
   {#if read.kind === 'missing'}
     <div class="empty">
@@ -127,7 +123,7 @@ async function removeFeel(chosen: FeelEntry) {
   {:else}
     <h2>When {eventWords(entry.on)} happens</h2>
     {#if problemAt('on') !== undefined}<p class="refused" role="alert">{problemAt('on')}</p>{/if}
-    {#each effectLines(entry) as line (`${line.channel}.${String(line.index)}`)}
+    {#each effectLines(entry, resolveLimits(content ?? {})) as line (`${line.channel}.${String(line.index)}`)}
       <article class="effect" aria-label={line.words}>
         <header>
           <h3>{line.words}</h3>
@@ -141,17 +137,24 @@ async function removeFeel(chosen: FeelEntry) {
         </header>
         <div class="fields">
           {#each line.fields as field (field.key)}
+            {@const note = content === undefined ? undefined : limitNote(content, line, field.key)}
             <FieldRow
               label={field.label}
               kind={field.kind}
               value={field.value}
+              options={field.kind === 'choice' ? field.options : undefined}
               unit={field.kind === 'number' ? field.unit : undefined}
               min={field.kind === 'number' ? field.min : undefined}
               max={field.kind === 'number' ? field.max : undefined}
               step={field.kind === 'number' ? field.step : undefined}
               problem={problemAt(line.channel, line.index, field.key) ?? problemAt(line.channel, line.index)}
-              onchange={(value) => void setField(entry, line, field.key, field.label, value)}
+              onchange={(value) => void setField(entry, line, field, value)}
             />
+            {#if note !== undefined}<p class="note" role="status">{note}</p>{/if}
+            {#if line.channel === 'audio' && field.key === 'cue' && !session.cues.includes(String(field.value))}
+              <p class="note">The game has no sound “{field.value}” yet.</p>
+            {/if}
+            {#if field.hint !== undefined}<p class="note">{field.hint}</p>{/if}
           {/each}
         </div>
       </article>
@@ -181,20 +184,53 @@ async function removeFeel(chosen: FeelEntry) {
       </div>
     {/if}
   {/if}
+  </div>
+  {#if read.kind === 'syntax'}
+    <p class="lead">Fix the file to play it.</p>
+  {:else if read.kind !== 'missing' && index !== undefined && entry !== undefined}
+    <FeelPlayer {session} />
+  {/if}
+  </div>
 </section>
 
 <style>
+  .note {
+    margin: 0;
+    color: var(--color-text-dim);
+    font: var(--text-body-13);
+  }
   /* A page of sentences, not a stage: it fills the canvas region with the app's paper so the text tokens read. */
   .canvas {
     display: grid;
     align-content: start;
-    grid-template-columns: minmax(0, 40rem);
+    grid-template-columns: minmax(0, 1fr);
+    container-type: inline-size;
     gap: var(--space-4);
     box-sizing: border-box;
     height: 100%;
     padding: var(--space-5);
     overflow-y: auto;
     background: var(--color-bg-app);
+  }
+  .split {
+    display: grid;
+    align-content: start;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+  .sentences {
+    display: grid;
+    align-content: start;
+    gap: var(--space-4);
+    min-width: 0;
+    max-width: 40rem;
+  }
+  /* Beside each other when the canvas is wide enough for both, stacked (the stage first) when it is not. */
+  @container (min-width: 560px) {
+    .split {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 18rem);
+      align-items: start;
+    }
   }
   h2 {
     margin: 0;

@@ -3,9 +3,9 @@
 // content edits by key path, so the file keeps its comments and order.
 
 import type { ContentEdit } from '@automata/editor/kit/documents'
-import { DEFAULT_LIMITS, type FeelContent, type FeelEntry, type Limits } from '@automata/feel'
+import { DEFAULT_LIMITS, type FeelContent, type FeelEntry, type Limits, resolveLimits } from '@automata/feel'
 import { eventWords } from '../../shared/event-words.ts'
-import { appendEdits } from '../../shared/fields.ts'
+import { appendEdits, type Field, setOrInsert } from '../../shared/fields.ts'
 import type { Problem } from '../../shared/toml-session.ts'
 
 export { eventWords }
@@ -18,18 +18,13 @@ export interface EffectPlace {
   readonly index: number
 }
 
-export type EffectField =
-  | {
-      readonly key: string
-      readonly label: string
-      readonly kind: 'number'
-      readonly unit?: string
-      readonly min: number
-      readonly max: number
-      readonly step: number
-      readonly value: number
-    }
-  | { readonly key: string; readonly label: string; readonly kind: 'text'; readonly value: string }
+/** A field of a sentence: the shared kind plus what to say beside it and the value that means "not written". */
+export type EffectField = Field & {
+  /** A choice that sets this value removes the key, so the file stays as short as the person wrote it. */
+  readonly fallback?: number | string
+  /** A line under the field (what it means at its limit). */
+  readonly hint?: string
+}
 
 export interface EffectLine extends EffectPlace {
   readonly words: string
@@ -73,19 +68,30 @@ const strength = (key: string, label: string, value: number): EffectField => ({
   step: 0.05,
   value,
 })
-const ms = (key: string, label: string, value: number): EffectField => ({
+const ms = (key: string, label: string, value: number, max = 1000): EffectField => ({
   key,
   label,
   unit: 'ms',
   kind: 'number',
   min: 1,
-  max: 1000,
+  max,
   step: 10,
   value,
 })
+const choice = (
+  key: string,
+  label: string,
+  value: string,
+  options: readonly { readonly value: string; readonly label: string }[],
+  fallback: string,
+): EffectField => ({ key, label, kind: 'choice', value, options, fallback })
 const text = (key: string, label: string, value: string): EffectField => ({ key, label, kind: 'text', value })
 
-function visualLine(row: NonNullable<FeelEntry['visual']>[number], index: number): EffectLine {
+function visualLine(
+  row: NonNullable<FeelEntry['visual']>[number],
+  index: number,
+  limits: Limits,
+): EffectLine {
   if (row.flash !== undefined)
     return {
       channel: 'visual',
@@ -101,6 +107,13 @@ function visualLine(row: NonNullable<FeelEntry['visual']>[number], index: number
           max: 30,
           step: 1,
           value: row.frames ?? 1,
+        },
+        {
+          // Unset plays the most the limits allow, so the field has no default to fall back to.
+          ...strength('alpha', 'How bright', row.alpha ?? limits.flash_alpha),
+          ...(row.alpha === undefined
+            ? { hint: `As bright as allowed (${String(limits.flash_alpha)})` }
+            : {}),
         },
       ],
     }
@@ -134,7 +147,7 @@ function visualLine(row: NonNullable<FeelEntry['visual']>[number], index: number
 }
 
 /** Every effect of one entry, as sentences, channel by channel. */
-export function effectLines(entry: FeelEntry): EffectLine[] {
+export function effectLines(entry: FeelEntry, limits: Limits = DEFAULT_LIMITS): EffectLine[] {
   const lines: EffectLine[] = []
   for (const channel of CHANNELS) {
     const rows = entry[channel] ?? []
@@ -144,23 +157,50 @@ export function effectLines(entry: FeelEntry): EffectLine[] {
           channel,
           index,
           words: 'Shake the screen',
-          fields: [strength('shake', 'How hard', row.shake)],
+          fields: [
+            { ...strength('shake', 'How hard', row.shake), hint: `At full: ${String(limits.shake_px)} px` },
+          ],
         })
       else if (channel === 'pose' && 'hit_stop_ms' in row)
         lines.push({
           channel,
           index,
           words: 'Freeze the action',
-          fields: [ms('hit_stop_ms', 'How long', row.hit_stop_ms)],
+          fields: [
+            ms('hit_stop_ms', 'How long', row.hit_stop_ms),
+            choice(
+              'target',
+              'What freezes',
+              row.target ?? 'everything',
+              [
+                { value: 'everything', label: 'Everything' },
+                { value: 'subject', label: 'Only what was hit' },
+              ],
+              'everything',
+            ),
+          ],
         })
       else if (channel === 'visual')
-        lines.push(visualLine(row as NonNullable<FeelEntry['visual']>[number], index))
+        lines.push(visualLine(row as NonNullable<FeelEntry['visual']>[number], index, limits))
       else if (channel === 'word' && 'key' in row)
         lines.push({
           channel,
           index,
           words: 'Show a word',
-          fields: [text('key', 'Which word', row.key), ms('ms', 'How long', row.ms ?? 800)],
+          fields: [
+            text('key', 'Which word', row.key),
+            choice(
+              'at',
+              'Where',
+              row.at ?? 'middle',
+              [
+                { value: 'subject', label: 'Over what was hit' },
+                { value: 'middle', label: 'Middle of the screen' },
+              ],
+              'middle',
+            ),
+            ms('ms', 'How long', row.ms ?? 800, 5000),
+          ],
         })
       else if (channel === 'haptic' && 'strong' in row)
         lines.push({
@@ -171,6 +211,17 @@ export function effectLines(entry: FeelEntry): EffectLine[] {
             strength('strong', 'Strong motor', row.strong),
             strength('weak', 'Light motor', row.weak),
             ms('ms', 'How long', row.ms),
+            {
+              key: 'phone_ms',
+              label: 'Phone buzz',
+              kind: 'number',
+              unit: 'ms',
+              min: 0,
+              max: 1000,
+              step: 10,
+              value: row.phone_ms ?? 0,
+              fallback: 0,
+            },
           ],
         })
       else if (channel === 'audio' && 'cue' in row)
@@ -188,6 +239,42 @@ export function fieldEdit(
   set: number | string,
 ): ContentEdit {
   return { keyPath: ['entry', entry, place.channel, place.index, key], expected, set }
+}
+
+/**
+ * The edit a field's new value makes: a value equal to the field's `fallback` removes the key (nothing, when the key was
+ * never there), an absent key gets an insert, and anything else changes the value in place.
+ */
+export function fieldChange(
+  entry: number,
+  place: EffectPlace,
+  field: EffectField,
+  before: unknown,
+  value: number | string,
+): ContentEdit | undefined {
+  const keyPath = ['entry', entry, place.channel, place.index, field.key]
+  if (field.fallback !== undefined && value === field.fallback)
+    return before === undefined ? undefined : { keyPath, remove: true }
+  return setOrInsert(keyPath, before, value)
+}
+
+/** What to say under a field whose value is above a limit; the game plays the limit instead. */
+export function limitNote(content: FeelContent, line: EffectLine, key: string): string | undefined {
+  const limits = resolveLimits(content)
+  const field = line.fields.find((candidate) => candidate.key === key)
+  if (field?.kind !== 'number') return undefined
+  if (line.channel === 'pose' && key === 'hit_stop_ms' && field.value > limits.hit_stop_ms)
+    return `Above the longest freeze. Players feel ${String(limits.hit_stop_ms)} ms.`
+  if (line.channel === 'visual' && key === 'frames' && field.value > limits.flash_frames)
+    return `Above the most flash frames. Players see ${String(limits.flash_frames)}.`
+  if (
+    line.channel === 'visual' &&
+    key === 'alpha' &&
+    line.words === 'Flash the screen' &&
+    field.value > limits.flash_alpha
+  )
+    return `Brighter than allowed. Players see ${String(limits.flash_alpha)}.`
+  return undefined
 }
 
 export function addFeelEdit(content: FeelContent, on: string): ContentEdit[] {

@@ -20,6 +20,7 @@ on = "door.*"
 async function open(files: Record<string, string>) {
   const { ports } = await createMemoryPorts({
     files,
+    generated: (path) => path.startsWith('content/generated/'),
     classify: (path) => ({ path, editor: 'feel', gates: [], checks: [], modes: ['edit'], writable: true }),
     changeSet: false,
   })
@@ -68,7 +69,7 @@ describe('Feel', () => {
   it('adds a feel for something that happens, and an effect to it', async () => {
     const { ports } = await open({ [FEEL_PATH]: FILE })
     await userEvent.click(screen.getByRole('button', { name: 'Add a feel' }))
-    await userEvent.type(screen.getByLabelText('What happens in the game?'), 'enemy.died')
+    await userEvent.type(screen.getByLabelText('Something else'), 'enemy.died')
     await userEvent.click(screen.getByRole('button', { name: 'Add' }))
     expect(await screen.findByRole('heading', { name: 'When enemy died happens' })).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Add an effect' }))
@@ -125,5 +126,97 @@ describe('Feel', () => {
     document.body.innerHTML = ''
     render(FeelCanvas, { props: { session: session as FeelSession } })
     expect(screen.getByRole('heading', { name: 'When any door event happens' })).toBeInTheDocument()
+  })
+
+  it('writes “Only what was hit” as a key and removes it again for “Everything”', async () => {
+    const { ports } = await open({
+      [FEEL_PATH]: '[[entry]]\non = "player.hit"\npose = [{ hit_stop_ms = 60 }]\n',
+    })
+    const choose = screen.getByLabelText('What freezes')
+    await userEvent.selectOptions(choose, 'Only what was hit')
+    await vi.waitFor(async () => expect(await text(ports)).toContain('target = "subject"'))
+    await userEvent.selectOptions(screen.getByLabelText('What freezes'), 'Everything')
+    await vi.waitFor(async () => expect(await text(ports)).not.toContain('target'))
+  })
+
+  it('says beside a freeze above the limit what the player gets', async () => {
+    await open({ [FEEL_PATH]: '[[entry]]\non = "player.hit"\npose = [{ hit_stop_ms = 200 }]\n' })
+    expect(screen.getByText('Above the longest freeze. Players feel 120 ms.')).toBeInTheDocument()
+  })
+
+  it('offers what happens in the game by name, and adds a feel for one with a tap', async () => {
+    const { ports } = await open({
+      [FEEL_PATH]: FILE,
+      'content/generated/events.json': JSON.stringify([{ id: 'player.hit' }, { id: 'player.jumped' }]),
+    })
+    await userEvent.click(screen.getByRole('button', { name: 'Add a feel' }))
+    // player hit is already answered, so only the new one is offered; and “any player event” covers the kind.
+    expect(screen.queryByRole('button', { name: 'player hit' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'any player event' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'player jumped' }))
+    await vi.waitFor(async () => expect(await text(ports)).toContain('on = "player.jumped"'))
+    expect(await screen.findByRole('heading', { name: 'When player jumped happens' })).toBeInTheDocument()
+  })
+
+  it('plays the chosen feel again after a change, and on Play again', async () => {
+    const { session } = await open({ [FEEL_PATH]: FILE })
+    const before = session.replay
+    const field = within(screen.getByRole('article', { name: 'Shake the screen' })).getByLabelText('How hard')
+    await userEvent.clear(field)
+    await userEvent.type(field, '0.5{Enter}')
+    await vi.waitFor(() => expect(session.replay).toBe(before + 1))
+    await userEvent.click(screen.getByRole('button', { name: 'Play again' }))
+    expect(session.replay).toBe(before + 2)
+  })
+
+  it('tries the player’s settings on the stage without touching the file', async () => {
+    const { ports, session } = await open({ [FEEL_PATH]: FILE })
+    expect(screen.getByText('Only changes this preview.')).toBeInTheDocument()
+    await userEvent.click(screen.getByLabelText('Less flashing'))
+    await userEvent.click(screen.getByLabelText('Rumble'))
+    await userEvent.click(screen.getByLabelText('Reduce motion'))
+    await userEvent.selectOptions(screen.getByLabelText('Strength'), 'Half')
+    expect(session.preview).toEqual({ reduceFlashing: true, haptics: false, intensity: 0.5, reduced: true })
+    expect(await text(ports)).toBe(FILE)
+  })
+
+  it('says which other feel also plays, and goes to it on a tap', async () => {
+    const { session } = await open({
+      [FEEL_PATH]: '[[entry]]\non = "player.hit"\n\n[[entry]]\non = "player.*"\n',
+    })
+    expect(screen.getByText(/Also plays:/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'any player event' }))
+    expect(session.chosen).toBe(1)
+  })
+
+  it('says what a rumble or a missing sound would do, in words, on the stage', async () => {
+    await open({
+      [FEEL_PATH]:
+        '[[entry]]\non = "player.hit"\nhaptic = [{ strong = 0.5, weak = 0.3, ms = 100 }]\naudio = [{ cue = "hit" }]\n',
+    })
+    await vi.waitFor(() => {
+      const said = screen.getByLabelText('The feel playing').nextElementSibling?.textContent ?? ''
+      expect(said).toContain('Rumble: strong 0.5, light 0.3 for 100 ms')
+      expect(said).toContain('Plays the sound hit')
+    })
+  })
+
+  it('shows no stage for a file with a mistake, and says why', async () => {
+    await open({ [FEEL_PATH]: '[[entry]\n' })
+    expect(screen.getByText('Fix the file to play it.')).toBeInTheDocument()
+    expect(screen.queryByLabelText('The feel playing')).toBeNull()
+  })
+
+  it('keeps a sound the game lacks and names it in words', async () => {
+    await open({ [FEEL_PATH]: '[[entry]]\non = "player.hit"\naudio = [{ cue = "hit" }]\n' })
+    expect(screen.getByText('The game has no sound “hit” yet.')).toBeInTheDocument()
+  })
+
+  it('does not name a sound the game has', async () => {
+    await open({
+      [FEEL_PATH]: '[[entry]]\non = "player.hit"\naudio = [{ cue = "hit" }]\n',
+      'content/audio/audio.toml': '[[cue]]\nid = "hit"\n',
+    })
+    expect(screen.queryByText(/The game has no sound/)).toBeNull()
   })
 })

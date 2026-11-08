@@ -6,9 +6,11 @@ import {
   effectLines,
   eventWords,
   feelProblemWords,
+  fieldChange,
   fieldEdit,
   limitEdit,
   limitLines,
+  limitNote,
   removeEffectEdit,
 } from '#src/features/feel/feel-model.ts'
 
@@ -51,7 +53,16 @@ describe('effectLines', () => {
   it('gives each effect its fields, named for a person, with their values', () => {
     const [shake, freeze] = effectLines(entry)
     expect(shake?.fields).toEqual([
-      { key: 'shake', label: 'How hard', kind: 'number', min: 0, max: 1, step: 0.05, value: 0.2 },
+      {
+        key: 'shake',
+        label: 'How hard',
+        kind: 'number',
+        min: 0,
+        max: 1,
+        step: 0.05,
+        value: 0.2,
+        hint: 'At full: 3 px',
+      },
     ])
     expect(freeze?.fields).toEqual([
       {
@@ -64,9 +75,25 @@ describe('effectLines', () => {
         step: 10,
         value: 80,
       },
+      {
+        key: 'target',
+        label: 'What freezes',
+        kind: 'choice',
+        value: 'everything',
+        options: [
+          { value: 'everything', label: 'Everything' },
+          { value: 'subject', label: 'Only what was hit' },
+        ],
+        fallback: 'everything',
+      },
     ])
     const rumble = effectLines(entry).find((line) => line.words === 'Rumble')
-    expect(rumble?.fields.map((field) => field.label)).toEqual(['Strong motor', 'Light motor', 'How long'])
+    expect(rumble?.fields.map((field) => field.label)).toEqual([
+      'Strong motor',
+      'Light motor',
+      'How long',
+      'Phone buzz',
+    ])
     const sound = effectLines(entry).find((line) => line.words === 'Play a sound')
     expect(sound?.fields).toEqual([{ key: 'cue', label: 'Which sound', kind: 'text', value: 'thud' }])
   })
@@ -164,5 +191,62 @@ describe('feelProblemWords', () => {
     expect(
       feelProblemWords({ keyPath: ['entry', 0, 'camera', 0, 'shake'], message: 'Must be 1 or less.' }, []),
     ).toBe('Must be 1 or less.')
+  })
+})
+
+describe('every field of the file', () => {
+  const entry: FeelEntry = {
+    on: 'player.hit',
+    pose: [{ hit_stop_ms: 200, target: 'subject' }],
+    visual: [{ flash: 'white', frames: 5, alpha: 0.9 }, { flash: 'red' }],
+    word: [{ key: 'ouch', at: 'subject' }],
+    haptic: [{ strong: 0.6, weak: 0.2, ms: 90, phone_ms: 40 }],
+  }
+  const lines = effectLines(entry)
+  const field = (words: string, key: string, at = 0) =>
+    lines.filter((line) => line.words === words)[at]?.fields.find((candidate) => candidate.key === key)
+
+  it('has the choices and controls of the spec’s table', () => {
+    expect(field('Freeze the action', 'target')).toMatchObject({ value: 'subject', fallback: 'everything' })
+    expect(field('Flash the screen', 'alpha')).toMatchObject({ kind: 'number', value: 0.9, min: 0, max: 1 })
+    expect(field('Show a word', 'at')).toMatchObject({ value: 'subject', fallback: 'middle' })
+    expect(field('Show a word', 'ms')).toMatchObject({ max: 5000, value: 800 })
+    expect(field('Rumble', 'phone_ms')).toMatchObject({ value: 40, max: 1000, fallback: 0 })
+  })
+
+  it('says an unset flash plays the most allowed, and has no value to fall back to', () => {
+    const plain = field('Flash the screen', 'alpha', 1)
+    expect(plain).toMatchObject({ value: 0.85, hint: 'As bright as allowed (0.85)' })
+    expect(plain).not.toHaveProperty('fallback')
+  })
+
+  it('removes a key when a choice goes back to its default, and adds one when it leaves it', () => {
+    const target = field('Freeze the action', 'target')
+    if (target === undefined) throw new Error('no field')
+    const place = { channel: 'pose', index: 0 } as const
+    expect(fieldChange(0, place, target, 'subject', 'everything')).toEqual({
+      keyPath: ['entry', 0, 'pose', 0, 'target'],
+      remove: true,
+    })
+    expect(fieldChange(0, place, target, undefined, 'everything')).toBeUndefined()
+    expect(fieldChange(0, place, target, undefined, 'subject')).toEqual({
+      keyPath: ['entry', 0, 'pose', 0, 'target'],
+      insert: 'subject',
+    })
+    expect(fieldChange(0, place, target, 'subject', 'subject')).toEqual({
+      keyPath: ['entry', 0, 'pose', 0, 'target'],
+      expected: 'subject',
+      set: 'subject',
+    })
+  })
+
+  it('says when a value is above a limit, and the value the player gets', () => {
+    const freeze = lines.find((line) => line.words === 'Freeze the action')
+    const flash = lines.find((line) => line.words === 'Flash the screen')
+    if (freeze === undefined || flash === undefined) throw new Error('no line')
+    expect(limitNote({}, freeze, 'hit_stop_ms')).toBe('Above the longest freeze. Players feel 120 ms.')
+    expect(limitNote({ limits: { hit_stop_ms: 300 } }, freeze, 'hit_stop_ms')).toBeUndefined()
+    expect(limitNote({}, flash, 'frames')).toBe('Above the most flash frames. Players see 3.')
+    expect(limitNote({}, flash, 'alpha')).toBe('Brighter than allowed. Players see 0.85.')
   })
 })

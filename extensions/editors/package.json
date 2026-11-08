@@ -31,8 +31,11 @@
     "@automata/cutscenes": "workspace:*",
     "@automata/editor": "workspace:*",
     "@automata/feel": "workspace:*",
+    "@automata/framework": "workspace:*",
     "@automata/narrative": "workspace:*",
     "@automata/puzzle": "workspace:*",
+    "@automata/sim": "workspace:*",
+    "@automata/systems": "workspace:*",
     "svelte": "5.57.1",
     "zod": "4.6.6"
   },
