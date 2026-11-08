@@ -13,6 +13,7 @@ describe('the docs', () => {
     expect(docs.map((doc) => doc.slug)).toEqual([
       'how-it-works',
       'editor',
+      'extensions',
       'publish-to-web',
       'publish-to-itch',
       'publish-to-desktop',
@@ -79,6 +80,6 @@ describe('the docs', () => {
     expect(links.map((link) => link.getAttribute('href'))).toEqual(docs.map((doc) => '/docs/' + doc.slug))
     expect(nav.querySelector('[aria-current="page"]')?.textContent).toBe('Draw levels in the editor')
     expect(view.getByRole('link', { name: 'Previous: How it works' })).toBeTruthy()
-    expect(view.getByRole('link', { name: 'Next: Publish to the web' })).toBeTruthy()
+    expect(view.getByRole('link', { name: 'Next: Extensions: add what your game needs' })).toBeTruthy()
   })
 })

@@ -1,5 +1,5 @@
 <!--
-  The site's header, from the approved Home mockup: the logo, four links (Docs, Examples, Editor, API), Search and
+  The site's header, from the approved Home mockup: the logo, four links (Docs, Examples, Editor, Reference), Search and
   Get started. Below 760 px the links fold into Menu, an opaque sheet under the bar, and Get started stays in view.
   Search shows its ⌘K hint only where there is a keyboard (a fine pointer), never on a touch screen.
 -->
@@ -10,7 +10,7 @@ const links = [
   ['/docs', 'Docs'],
   ['/examples', 'Examples'],
   ['/editor', 'Editor'],
-  ['/api', 'API'],
+  ['/api', 'Reference'],
 ] as const
 
 let menu: HTMLDetailsElement | undefined = $state()

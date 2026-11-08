@@ -236,3 +236,7 @@ Reference, Privacy, Terms and Contact; the targets are named by the publish sect
 | A code box | a header with the language (`typescript`, `text`) or a file name | no header; where a caller says where the code goes, words above the box (`In your terminal`, `Copy this to your agent`) | 4 (a language name is a programmer's word) |
 | Header, the current page | the link turned bold, so the others moved | the link keeps its weight and is underlined | 1 (nothing should shift under the pointer) |
 | Editor page | three pictures of the Emberwick room and the New level box | the New level box, a new platformer with coins and a slime placed, and a phone; plus `The try-it editor cannot play a level. To play one, open the editor on your own game with the command below.` | 5 (it said nothing about what the try-it cannot do) |
+| Header | `API` | `Reference` (the footer already said it) | 6 (API is a programmer's word) |
+| Reference index | one flat list of packages under each version | `Core` and `Extensions` | 4 (a visitor can tell what every game uses from what is optional) |
+| Docs | no page about extensions | `Extensions: add what your game needs`: what one is, `pnpm add`, a table of nine in a line each | 3 |
+| How it works | `The four packages` and a count in the opening | `The core packages`, no count | 3 (a count goes stale when a package is added) |

@@ -13,11 +13,24 @@ describe('readGuides', () => {
     expect(guides.map((guide) => guide.slug)).toEqual([
       'how-it-works',
       'editor',
+      'extensions',
       'publish-to-web',
       'publish-to-itch',
       'publish-to-desktop',
       'publish-to-ruken',
     ])
+  })
+
+  it('has a guide that says what an extension is and how to add one, and links the Reference', () => {
+    const extensions = guides.find((guide) => guide.slug === 'extensions')
+    expect(extensions?.title).toBe('Extensions: add what your game needs')
+    expect(extensions?.content).toContain('pnpm add @automata/')
+    expect(extensions?.content).toContain('](/api)')
+  })
+
+  it('names no count of packages in How it works, so adding one cannot make it wrong', () => {
+    const text = guides.find((guide) => guide.slug === 'how-it-works')?.content ?? ''
+    expect(text).not.toMatch(/\b(four|\d+) packages\b/i)
   })
 
   it('takes each title from its heading and keeps the body below it', () => {

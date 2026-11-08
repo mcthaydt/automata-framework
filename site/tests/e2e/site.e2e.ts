@@ -26,7 +26,7 @@ const VIEWPORTS = [
   { name: 'desktop', width: 1280, height: 800 },
   { name: 'landscape phone', width: 780, height: 270 },
 ]
-const PRIMARY_LINKS = ['Docs', 'Examples', 'Editor', 'API']
+const PRIMARY_LINKS = ['Docs', 'Examples', 'Editor', 'Reference']
 
 /** Loads a page and waits for semantic readiness: no network in flight and the web fonts applied. */
 async function open(page: Page, path: string): Promise<void> {

@@ -27,7 +27,7 @@ describe('UI Components', () => {
       'Docs',
       'Examples',
       'Editor',
-      'API',
+      'Reference',
     ])
     expect(view.getByRole('link', { name: 'Get started' }).getAttribute('href')).toBe('/start')
   })

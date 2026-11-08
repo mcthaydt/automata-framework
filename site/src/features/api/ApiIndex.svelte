@@ -3,7 +3,7 @@
 import PageMeta from '../../shared/components/PageMeta.svelte'
 import PageShell from '../../shared/components/PageShell.svelte'
 import './api.css'
-import { apiVersions, getApiReference } from '../../shared/framework/api-reference'
+import { apiVersions, getApiReference, groupPackages } from '../../shared/framework/api-reference'
 
 const versions = apiVersions()
 </script>
@@ -15,9 +15,15 @@ const versions = apiVersions()
   {#each versions as version}
     {@const reference = getApiReference(version)}
     {#if reference}
+      {@const groups = groupPackages(reference)}
       <section aria-labelledby={'v-' + version}>
         <h2 id={'v-' + version}>Version {version}</h2>
-        <ul>{#each reference.packages as pkg}<li><a href={'/api/' + version + '/' + pkg.slug}>{pkg.name}</a> <span class="small">({pkg.entryPoints.reduce((n, e) => n + e.entries.length, 0)} exports)</span></li>{/each}</ul>
+        {#each [['Core', groups.core], ['Extensions', groups.extensions]] as const as [name, packages] (name)}
+          {#if packages.length > 0}
+            <h3>{name}</h3>
+            <ul>{#each packages as pkg (pkg.slug)}<li><a href={'/api/' + version + '/' + pkg.slug}>{pkg.name}</a> <span class="small">({pkg.entryPoints.reduce((n, e) => n + e.entries.length, 0)} exports)</span></li>{/each}</ul>
+          {/if}
+        {/each}
       </section>
     {/if}
   {/each}

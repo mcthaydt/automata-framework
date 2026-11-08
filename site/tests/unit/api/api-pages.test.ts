@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { fireEvent, render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import Index from '../../../src/features/api/ApiIndex.svelte'
@@ -15,6 +17,25 @@ describe('/api', () => {
     const reference = getApiReference(version)!
     for (const pkg of reference.packages)
       expect(view.container.querySelector(`a[href="/api/${version}/${pkg.slug}"]`), pkg.slug).toBeTruthy()
+  })
+
+  it('groups the packages under Core and Extensions, every extensions/* package under Extensions', () => {
+    const view = render(Index)
+    const listed = (heading: string): string[] => {
+      const list = view.getByRole('heading', { level: 3, name: heading }).nextElementSibling
+      return [...(list?.querySelectorAll('a') ?? [])].map((link) => link.textContent ?? '')
+    }
+    const core = listed('Core')
+    const extensions = listed('Extensions')
+    expect(core).toEqual(['@automata/content', '@automata/framework', '@automata/sim', '@automata/tools'])
+    const published = readdirSync(resolve('../extensions'), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => JSON.parse(readFileSync(resolve('../extensions', entry.name, 'package.json'), 'utf8')))
+      .filter((manifest) => manifest.private !== true)
+      .map((manifest) => manifest.name as string)
+    expect(published.length).toBeGreaterThan(0)
+    for (const name of published) expect(extensions, name).toContain(name)
+    expect(extensions.filter((name) => core.includes(name))).toEqual([])
   })
 
   it('has one page for each published package, under its current name', () => {
