@@ -88,7 +88,7 @@ const THRESHOLDS = [
     </ul>
 
     <h3>Tried one by one</h3>
-    {#if def.scenarios.length === 0}<p class="dim">No scenarios yet. The game’s code writes them.</p>{/if}
+    {#if def.scenarios.length === 0}<p class="dim">No scenarios yet. A scenario is a made-up player tried on this scene, and this scene’s file has none.</p>{/if}
     <ul>
       {#each def.scenarios as scenario, i (scenario.id)}
         <li class="card">

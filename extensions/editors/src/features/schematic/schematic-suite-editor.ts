@@ -5,6 +5,7 @@ import {
   type SuiteAskTarget,
   type SuiteEditor,
   type SuiteUndo,
+  type WorkspaceFile,
 } from '@automata/editor/kit/ports'
 import { canvas, inspector, panel, status } from './SchematicRegions.svelte'
 import { findFacts } from './schematic-facts.ts'
@@ -40,6 +41,25 @@ function askOf(session: SchematicSession): SuiteAskTarget {
   }
 }
 
+const FOLDER_RANK = ['content/systems/', 'content/nav/', 'content/puzzles/']
+
+/**
+ * One row on Home for a scene, not one for each of its files: the characters', the places' and the puzzle's files share
+ * a name, and "Hall" three times says nothing a person can tell apart. The scene's characters file stands for it.
+ */
+export function homeFilesOf(files: readonly WorkspaceFile[]): WorkspaceFile[] {
+  const rank = (file: WorkspaceFile): number => {
+    const at = FOLDER_RANK.findIndex((folder) => file.path.startsWith(folder))
+    return at === -1 ? FOLDER_RANK.length : at
+  }
+  const byScene = new Map<string, WorkspaceFile>()
+  for (const file of [...files].sort((a, b) => rank(a) - rank(b))) {
+    const scene = scenesOf([file.path])[0] ?? file.path
+    if (!byScene.has(scene)) byScene.set(scene, file)
+  }
+  return [...byScene.values()]
+}
+
 export function createSchematic(options: SchematicOptions = {}): SuiteEditor<SchematicSession> {
   return defineSuiteEditor<SchematicSession>({
     id: 'schematic',
@@ -55,6 +75,7 @@ export function createSchematic(options: SchematicOptions = {}): SuiteEditor<Sch
       await session.select(session.scenes[0] ?? 'main')
       return session
     },
+    homeFiles: homeFilesOf,
     regions: { panel, canvas, inspector, status },
     undo: undoOf,
     ask: askOf,

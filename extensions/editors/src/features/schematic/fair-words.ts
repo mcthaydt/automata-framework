@@ -13,11 +13,11 @@ export const FAIR_CHECK = 'fair-play'
 
 const percent = (fraction: number): string => `${num(Math.round(fraction * 1000) / 10)} %`
 
-/** "A careful player who hides gets past the porter: a careful player, is at lobby within 90 s, at least 80 % of 20 tries." */
+/** "A careful player who hides gets past the porter: a careful player is at lobby within 90 s, in at least 80 % of 20 tries." */
 export function scenarioWords(scenario: Scenario, names: Names): string {
   const what = scenario.expect.condition.map((probe) => conditionWords(probe, names)).join(' and ')
   const claim = scenario.claims ?? modeWords(scenario.id)
-  return `${claim}: a ${scenario.policy} player, ${what === '' ? 'plays' : what} within ${num(scenario.expect.within)} s, at least ${percent(scenario.expect.probability)} of ${num(scenario.seeds)} tries.`
+  return `${claim}: a ${scenario.policy} player ${what === '' ? 'plays' : what} within ${num(scenario.expect.within)} s, in at least ${percent(scenario.expect.probability)} of ${num(scenario.seeds)} tries.`
 }
 
 const lower = (text: string): string => text.charAt(0).toLowerCase() + text.slice(1)

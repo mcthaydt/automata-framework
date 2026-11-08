@@ -3776,6 +3776,7 @@ interface SuiteEditor<S> {
     readonly icon: string;
     readonly hue: string;
     open(files: readonly WorkspaceFile[], ports: SuitePorts): Promise<S>;
+    readonly homeFiles?: ((files: readonly WorkspaceFile[]) => readonly WorkspaceFile[]) | undefined;
     readonly regions: SuiteRegions<S>;
     readonly contributions?: readonly ContributionPoint[] | undefined;
     readonly undo?: ((session: S) => SuiteUndo) | undefined;

@@ -62,6 +62,11 @@ export interface SuiteEditor<S> {
    * history, selection and view state, which outlive the view (EDS-D12). Never rejects for a bad file: that is a state.
    */
   open(files: readonly WorkspaceFile[], ports: SuitePorts): Promise<S>
+  /**
+   * The rows Home shows for this editor's files, when fewer than one per file reads better (Schematic's scene is three
+   * files and one thing to open). Opening a row opens the editor with all of its files either way (`EditorCard.files`).
+   */
+  readonly homeFiles?: ((files: readonly WorkspaceFile[]) => readonly WorkspaceFile[]) | undefined
   readonly regions: SuiteRegions<S>
   readonly contributions?: readonly ContributionPoint[] | undefined
   /** The session's history; an editor without it has no Undo in the top bar. */

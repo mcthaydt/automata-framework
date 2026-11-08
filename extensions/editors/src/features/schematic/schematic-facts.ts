@@ -11,14 +11,21 @@ glob = "content/systems/*.toml"
 editor = "schematic"
 modes = ["edit", "ask"]
 gates = []
-checks = []
+checks = ["content"]
 
 [[file]]
 glob = "content/nav/*.toml"
 editor = "schematic"
 modes = ["edit", "ask"]
 gates = []
-checks = []
+checks = ["content"]
+
+[[file]]
+glob = "content/puzzles/*.toml"
+editor = "schematic"
+modes = ["edit", "ask"]
+gates = []
+checks = ["content"]
 `
 
 async function usesSystems(ports: SuitePorts): Promise<boolean> {

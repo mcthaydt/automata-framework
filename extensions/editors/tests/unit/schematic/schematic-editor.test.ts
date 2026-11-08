@@ -8,7 +8,7 @@ import { CONTENT_SAMPLE_GAME } from '#src/app/suite/sample-game.ts'
 import SchematicCanvas from '#src/features/schematic/SchematicCanvas.svelte'
 import SchematicPanel from '#src/features/schematic/SchematicPanel.svelte'
 import SchematicStatus from '#src/features/schematic/SchematicStatus.svelte'
-import { createSchematic } from '#src/features/schematic/schematic-suite-editor.ts'
+import { createSchematic, homeFilesOf } from '#src/features/schematic/schematic-suite-editor.ts'
 
 const HALL = CONTENT_SAMPLE_GAME['content/systems/hall.toml'] as string
 const NAV = CONTENT_SAMPLE_GAME['content/nav/hall.toml'] as string
@@ -62,6 +62,20 @@ function expectNoKeys(): void {
   const text = document.body.textContent ?? ''
   for (const key of KEYS) expect(text.toLowerCase(), key).not.toContain(key.toLowerCase())
 }
+
+describe('Home', () => {
+  const file = (path: string) =>
+    ({ path, editor: 'schematic', gates: [], checks: [], modes: ['edit'], writable: true }) as never
+  it('shows one row for a scene, not one for each of its three files', () => {
+    const rows = homeFilesOf([
+      file('content/puzzles/hall.toml'),
+      file('content/nav/hall.toml'),
+      file('content/systems/hall.toml'),
+      file('content/nav/yard.toml'),
+    ])
+    expect(rows.map((row) => row.path)).toEqual(['content/systems/hall.toml', 'content/nav/yard.toml'])
+  })
+})
 
 describe('Schematic', () => {
   it('lists the scene’s characters by name', async () => {

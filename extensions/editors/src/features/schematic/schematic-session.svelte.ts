@@ -91,6 +91,11 @@ export function scenesOf(paths: readonly string[]): string[] {
   return [...scenes].sort()
 }
 
+interface Step {
+  readonly label: string
+  readonly sessions: readonly TomlSession<unknown>[]
+}
+
 export class SchematicSession {
   #revision = $state(0)
   readonly ports: SuitePorts
@@ -104,8 +109,8 @@ export class SchematicSession {
   selected: Selection | undefined = $state()
   /** Why the last change was not made, until the next one is. */
   message: string | undefined = $state()
-  /** The last fair-play run: what it found, and the behaviour file's text it ran on. */
-  fair: { readonly result: CheckResult; readonly text: string } | undefined = $state()
+  /** The last fair-play run: what it found, the behaviour file's text it ran on, and how many steps had been written. */
+  fair: { readonly result: CheckResult; readonly text: string; readonly steps: number } | undefined = $state()
   /** Whether a fair-play run is going. */
   fairRunning: boolean = $state(false)
   #files: SceneFiles | undefined = $state.raw()
@@ -113,8 +118,8 @@ export class SchematicSession {
    * Every write the editor made, as the files it changed, newest last: the same steps the suite's write path keeps, so Undo
    * and Redo move the files that step changed (a rename of a place changes two). Redo has what Undo took back.
    */
-  #steps: { readonly label: string; readonly sessions: readonly TomlSession<unknown>[] }[] = []
-  #redone: { readonly label: string; readonly sessions: readonly TomlSession<unknown>[] }[] = []
+  #steps: Step[] = []
+  #redone: Step[] = []
   readonly #listeners = new Set<() => void>()
   readonly #unsubscribe: (() => void)[] = []
 
@@ -470,37 +475,34 @@ export class SchematicSession {
     return this.files.puzzle?.history.state.text
   }
 
-  async addPuzzleItem(name: string): Promise<Outcome> {
+  /** An item or a fact of the puzzle added or taken out by name: `edits` works out what to write, or why not. */
+  async #puzzleNamed(
+    label: string,
+    edits: (def: PuzzleDef, name: string) => ContentEdit[] | { readonly refused: string },
+    name: string,
+  ): Promise<Outcome> {
     const def = this.puzzleDef
     return def === undefined
       ? this.refuse('This scene has no puzzle.')
-      : this.puzzleEdit('Add an item', addItemEdits(def, name))
+      : this.puzzleEdit(label, edits(def, name))
   }
 
-  async removePuzzleItem(name: string): Promise<Outcome> {
-    const def = this.puzzleDef
-    return def === undefined
-      ? this.refuse('This scene has no puzzle.')
-      : this.puzzleEdit('Remove an item', removeItemEdits(def, name))
-  }
-
-  async addPuzzleFact(name: string): Promise<Outcome> {
-    const def = this.puzzleDef
-    return def === undefined
-      ? this.refuse('This scene has no puzzle.')
-      : this.puzzleEdit('Add a fact', addFactEdits(def, name))
-  }
-
-  async removePuzzleFact(name: string): Promise<Outcome> {
-    const def = this.puzzleDef
-    return def === undefined
-      ? this.refuse('This scene has no puzzle.')
-      : this.puzzleEdit('Remove a fact', removeFactEdits(def, name))
-  }
+  addPuzzleItem = (name: string): Promise<Outcome> => this.#puzzleNamed('Add an item', addItemEdits, name)
+  removePuzzleItem = (name: string): Promise<Outcome> =>
+    this.#puzzleNamed('Remove an item', removeItemEdits, name)
+  addPuzzleFact = (name: string): Promise<Outcome> => this.#puzzleNamed('Add a fact', addFactEdits, name)
+  removePuzzleFact = (name: string): Promise<Outcome> =>
+    this.#puzzleNamed('Remove a fact', removeFactEdits, name)
 
   /** Whether the game declares the check Fair play runs. */
   get fairAvailable(): boolean {
     return this.ports.checks.declared().some((check) => check.id === FAIR_CHECK)
+  }
+
+  /** How many changes ago fair play was checked: 0 on the version it ran on, `undefined` when it never has. */
+  get fairAge(): number | undefined {
+    void this.#revision
+    return this.fair === undefined ? undefined : Math.max(0, this.#steps.length - this.fair.steps)
   }
 
   /** Whether the file has changed since the last fair-play run. */
@@ -524,7 +526,7 @@ export class SchematicSession {
         candidates: [{ path: systems.path, text }],
       })
       const result = (await run.result())[0]
-      if (result !== undefined) this.fair = { result, text }
+      if (result !== undefined) this.fair = { result, text, steps: this.#steps.length }
     } finally {
       this.fairRunning = false
     }

@@ -11,6 +11,7 @@ import { CONTENT_SAMPLE_GAME } from '#src/app/suite/sample-game.ts'
 import FairCanvas from '#src/features/schematic/FairCanvas.svelte'
 import { fairVerdict, scenarioWords } from '#src/features/schematic/fair-words.ts'
 import { namesOf } from '#src/features/schematic/names.ts'
+import SchematicStatus from '#src/features/schematic/SchematicStatus.svelte'
 import { createSchematic } from '#src/features/schematic/schematic-suite-editor.ts'
 import { newAgent, newSystemsFile } from '#src/features/schematic/starter.ts'
 
@@ -80,7 +81,7 @@ afterEach(() => {
 describe('what the scenarios say', () => {
   it('reads a scenario as a sentence', () => {
     expect(scenarioWords(scene.scenarios[0] as SystemsDef['scenarios'][number], namesOf(scene, 0))).toBe(
-      'A careful player who hides gets past the porter: a careful player, is at lobby within 90 s, at least 80 % of 20 tries.',
+      'A careful player who hides gets past the porter: a careful player is at lobby within 90 s, in at least 80 % of 20 tries.',
     )
   })
 
@@ -170,6 +171,23 @@ describe('the Fair play page', () => {
     await waitFor(() =>
       expect(screen.getByText('This is from before your last change. Check again.')).toBeInTheDocument(),
     )
+  })
+
+  it('says on the status line when fair play was last checked, in changes', async () => {
+    const { session } = await open()
+    const statusText = () =>
+      screen
+        .getAllByRole('status')
+        .map((s) => s.textContent)
+        .join(' ')
+    render(SchematicStatus, { props: { session } })
+    expect(statusText()).toContain('Fair play: not checked yet.')
+    await userEvent.click(await screen.findByRole('button', { name: 'Check now' }))
+    await waitFor(() => expect(statusText()).toContain('Fair play: checked on this version.'))
+    const field = screen.getByLabelText('A careful player wins at least')
+    await userEvent.clear(field)
+    await userEvent.type(field, '80{Enter}')
+    await waitFor(() => expect(statusText()).toContain('Fair play: last checked 1 change ago.'))
   })
 
   it('says what is missing when the game has no fair-play check', async () => {

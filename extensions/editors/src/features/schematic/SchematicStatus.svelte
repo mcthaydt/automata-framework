@@ -15,6 +15,13 @@ const count = $derived(session.problems.length)
   {:else if session.read.kind === 'ok'}
     No problems.
   {/if}
+  {#if session.fairAge === undefined}
+    Fair play: not checked yet.
+  {:else if session.fairAge === 0}
+    Fair play: checked on this version.
+  {:else}
+    Fair play: last checked {session.fairAge === 1 ? '1 change' : `${session.fairAge} changes`} ago.
+  {/if}
 </p>
 
 <style>

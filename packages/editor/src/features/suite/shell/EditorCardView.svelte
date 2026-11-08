@@ -25,11 +25,11 @@ const headingId = $derived(`card-${card.editor}`)
   {#if !card.installed}
     <p class="note">{card.label} isn't in this build. Its files open read only.</p>
   {/if}
-  {#if card.files.length === 0}
+  {#if card.rows.length === 0}
     <p class="note">No files yet.</p>
   {:else}
     <ul>
-      {#each card.files as file (file.path)}
+      {#each card.rows as file (file.path)}
         <li>
           <button type="button" onclick={() => (card.installed ? onopen(card) : onread(file))}>
             <span class="name">{fileTitle(file.path)}</span>
