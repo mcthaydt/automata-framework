@@ -1,6 +1,6 @@
 # Automata Plus as framework extensions: progress
 
-**Overall: 67% (4 of 6 stages done; the build, stage 4, is 27 of 27 tasks).**
+**Overall: 83% (5 of 6 stages done; the build audit found 7 Important and 12 Minor findings for stage 6).**
 
 The Owner, 2026-11-07: "do automata-plus too" (11:19); then, on where: "Actually no make them extensions because
 they're free anyway, and move the stuff 3D is doing here, and cut the starter" (15:05). Plus's packages are ported into
@@ -22,7 +22,7 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 | 2. Plan and spec | Done, 2026-11-07, with the superpowers plugin (`brainstorming`, `writing-plans`), native: P-D2 to P-D11 decided (P-D11 departs from the audit: B, because core never imports an extension); 3 parts, 4 phases, 19 tasks; the 3D plan's tasks 7.1, 7.4 and 12.1 change (spec section 9) | [spec](2026-11-07-plus-port-spec.md), [plan](2026-11-07-plus-port-plan.md) |
 | 3. Plan audit | Done, 2026-11-07, with the superpowers plugin (`writing-plans`' self-review), native: 16 findings (F1 to F16), all fixed in the spec and the plan; P-D11 B confirmed sound with F5's fix; one change to the 3D plan's 7.1 (`zone`, `masses`, `cut`, `hideFrom` in `af-sector/2`, spec section 9). Spec accepted | [plan audit](2026-11-07-plus-port-plan-audit.md) |
 | 4. Build | Done, PR #458 (on #457): phase 1 done and gated (tasks 1.1 to 1.4, 2.1); tasks 2.2 (physics, puzzle), 2.3 (feel without Effect, audio-synth, debug) 2.4 (net without Effect, net-server, net-ui) 2.5 (`ui-screens` as a package) 2.6 (`sectors`, `nav`, `systems`, `narrative`, `cutscenes` by feature) and 2.7 (`pipelines` on the editor's gate shape, `dev-tools` tests in `tests/`) and 2.8 (the catalog, the stack page, the pins, the README) done; part A is complete. Part B: 3.1 (`@automata/3d/timeline`, after 3D 6.3) done; 3.2 and 3.3 (`cutscenes` takes the director) are done, 3.4 and 3.6 (`character-kit`: eight garments, nine hair pieces, five finishes, seats) too; 3.7 (`world-kit`: props, the dresser, signs, generated maps, the dressed base scenes) is done; 3.5 and 3.9 (the seven examples of `cutscenes`, `characterkit` and `worldkit`) are done, as are 5.5 and 4.2. WebKit and Firefox parity pending on the Owner's Mac | [plan execution log](2026-11-07-plus-port-plan.md) |
-| 5. Build audit | Not started | |
+| 5. Build audit | Done, 2026-11-08, with the superpowers plugin (`verification-before-completion`), native: no Critical, 7 Important (I1 task 3.4 undone by a merge but logged as done; I2 three re-recorded goldens without a state pin; I3 heavy unit tests time out at 5 s under load; I4 extension wiring in `features/`, not `app/`; I5 the cutscene example fakes its lamp; I6 no READMEs on the extensions; I7 `props-kit` too wide, two `tube`s), 12 Minor. Gates green; WebKit and Firefox pending on the Owner's Mac | [build audit](2026-11-07-plus-port-build-audit.md) |
 | 6. Fixes | Not started | |
 
 ## The refactor's record (task 5.5)
