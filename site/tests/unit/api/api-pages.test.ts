@@ -19,7 +19,22 @@ describe('/api', () => {
 
   it('has one page for each published package, under its current name', () => {
     const names = getApiReference(latestApiVersion())!.packages.map((pkg) => pkg.name)
-    expect(names).toEqual(['@automata/content', '@automata/framework', '@automata/sim', '@automata/tools'])
+    // The four core packages and the nine free extensions, which are published too.
+    expect(names).toEqual([
+      '@automata/audio-synth',
+      '@automata/content',
+      '@automata/debug',
+      '@automata/feel',
+      '@automata/framework',
+      '@automata/net',
+      '@automata/net-server',
+      '@automata/net-ui',
+      '@automata/physics',
+      '@automata/puzzle',
+      '@automata/sim',
+      '@automata/tools',
+      '@automata/ui-screens',
+    ])
   })
 
   it('prerenders one page per package of each version', async () => {

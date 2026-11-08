@@ -1,26 +1,52 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "extends": ["//"],
+  // The API index lists every published package, and the nine free extensions are among them, so the pages, their
+  // search and the tests that read the index wait for those builds too (they are not the site's dependencies).
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build",
+        "@automata/physics#build",
+        "@automata/puzzle#build",
+        "@automata/feel#build",
+        "@automata/audio-synth#build",
+        "@automata/debug#build",
+        "@automata/net#build",
+        "@automata/net-server#build",
+        "@automata/net-ui#build",
+        "@automata/ui-screens#build"
+      ],
       "outputs": ["build/**"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/docs/guides/**",
         "$TURBO_ROOT$/examples/2d/**",
         "$TURBO_ROOT$/games/emberwick/**",
-        "$TURBO_ROOT$/packages/*/src/**"
+        "$TURBO_ROOT$/packages/*/src/**",
+        "$TURBO_ROOT$/extensions/*/src/**"
       ]
     },
     "test:unit": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build",
+        "@automata/physics#build",
+        "@automata/puzzle#build",
+        "@automata/feel#build",
+        "@automata/audio-synth#build",
+        "@automata/debug#build",
+        "@automata/net#build",
+        "@automata/net-server#build",
+        "@automata/net-ui#build",
+        "@automata/ui-screens#build"
+      ],
       "inputs": [
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/docs/guides/**",
         "$TURBO_ROOT$/examples/2d/**",
         "$TURBO_ROOT$/games/emberwick/**",
-        "$TURBO_ROOT$/packages/*/src/**"
+        "$TURBO_ROOT$/packages/*/src/**",
+        "$TURBO_ROOT$/extensions/*/src/**"
       ]
     },
     "test:e2e": {
