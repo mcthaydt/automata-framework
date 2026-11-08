@@ -1,6 +1,6 @@
 # Refactor progress
 
-**Overall: 44% (8 of 18 stages done).**
+**Overall: 42% (10 of 24 stages done).** The apps area adds six stages to the eighteen of the three slices; two of its six are done.
 
 The Owner's order: finish one slice completely before starting the next. On 2026-11-05 it was core and 2D, then 3D, then
 the editors, then the website. On 2026-11-06 the Owner changed the later slices to vertical ones: "we do the editor
@@ -540,7 +540,7 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
 
-## The paid apps: desktop and mobile (stage 1 of 6 done, 2026-11-08)
+## The paid apps: desktop and mobile: 33% (2 of 6 stages done, 2026-11-08)
 
 The Owner, 2026-11-08 14:53: "should we get to using tauri to package to desktop, ios, and android? Also let's use
 nomad sculpt economics $19.99 for mobile, $39.99 for desktop; lets keep essentials on web, everything open source except
@@ -549,4 +549,8 @@ deployment, but the full suite requires the app desktop or mobile; it needs to b
 | Stage | Status | Record |
 |---|---|---|
 | 1. Audit | Done, 2026-11-08, on PR #511: 8 high (A1 to A8), 9 medium (A9 to A17), 3 low (A18 to A20), one decision for the Owner (D1, which editors stay on the web), settled 21:25: every editor is free on the web and the apps sell the download. A Tauri desktop build opened the full suite on a new game; a wall, a key and a longer flash were made in it, played in it and seen. Play needed an `on_new_window` handler to open at all | [audit](2026-11-08-apps-audit.md) |
-| 2. Plan and spec | Not started; D1 is settled (every editor free on the web). It includes the Review page: the Owner, 2026-11-08 19:11, wants coding agents to work on a branch and open a pull request, and the person says yes or no in the editors, or (19:16) a switch uses changes without asking. Review is built new: the stack deleted the old desk (audit section 7). An MCP server for the editors in the downloaded apps, on computers and phones and never in the browser, is a later stage (the Owner, 21:26); the plan leaves room for it (audit section 7). The apps go on sale when Pixi 3D is public (the Owner, 2026-10-23) | |
+| 2. Plan and spec | Done, 2026-11-08: [spec](2026-11-08-apps-spec.md) and [plan](2026-11-08-apps-plan.md), 30 build tasks in 8 phases (0 the start, 1 seams in the editors, 2 the desktop app, 3 play with no computer, 4 the phone app, 5 GitHub sync, 6 the Review page, 7 building and proving), then MCP as a later stage (4 tasks: on a computer through the app's sidecar, on a phone over local Wi-Fi only, no relay ever: the Owner, 21:29). A phone needs no computer: the app carries a prebuilt runtime and compiles the game inside itself. Owner, 21:33: every editor free on the web, the app never names FigureBuilder or EnvironmentBuilder, no 2D-only app, launch waits for Pixi 3D. The DUEL palette has no stated licence on Lospec; the Owner asks Arilyn | [spec](2026-11-08-apps-spec.md), [plan](2026-11-08-apps-plan.md) |
+| 3. Plan audit | Not started | |
+| 4. Build | Not started (0 of 30 tasks) | |
+| 5. Build audit | Not started | |
+| 6. Fixes | Not started | |
