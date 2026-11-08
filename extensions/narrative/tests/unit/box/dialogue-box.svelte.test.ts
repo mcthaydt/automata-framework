@@ -30,7 +30,9 @@ let sim: Sim
 let play: PlayMount | undefined
 const reported: string[] = []
 const lines = (id: string) => RECORDS.find((record) => record.id === id)
-const words = (key: string) => TEXT[key]
+/** The toy catalog's words, and the porter's name: a player is never shown an id. */
+const NAMES: Record<string, string> = { ...TEXT, 'speaker.porter': 'Porter' }
+const words = (key: string) => NAMES[key]
 
 async function open(options: { words?: (key: string) => string | undefined } = {}) {
   const narrative = createNarrative({ places: flat })
@@ -106,6 +108,22 @@ describe('the dialogue box', () => {
     expect(q('dialogue-box')).toBeNull()
   })
 
+  it('leaves keys 1 to 9 alone while a menu has the keyboard', async () => {
+    await open()
+    stepOnce({ type: 'narrative.start', payload: { graph: 'meet' } })
+    q('dialogue-next')?.click()
+    stepOnce()
+    // The pause menu is another screen; a key pressed in it is for the menu, not for an answer behind it.
+    const menu = document.body.appendChild(document.createElement('div'))
+    menu.dataset.gameScreen = 'paused'
+    const item = menu.appendChild(document.createElement('button'))
+    item.dispatchEvent(new KeyboardEvent('keydown', { key: '2', bubbles: true }))
+    expect(play?.session.commands(sim.tick, [])).toEqual([])
+    menu.remove()
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: '2' }))
+    expect(play?.session.commands(sim.tick, []).map((command) => command.type)).toEqual(['narrative.choose'])
+  })
+
   it('moves the focus to the first choice when they appear, and back to the game when the talk ends', async () => {
     await open()
     const before = document.body.appendChild(document.createElement('button'))
@@ -139,7 +157,7 @@ describe('the dialogue box', () => {
 
   it('shows the speaker with an empty line, never the key, and reports a line with no words once', async () => {
     vi.stubGlobal('reportError', (error: unknown) => reported.push((error as Error).message))
-    await open({ words: (key) => (key === 'toy.hello' ? undefined : TEXT[key]) })
+    await open({ words: (key) => (key === 'toy.hello' ? undefined : NAMES[key]) })
     stepOnce({ type: 'narrative.start', payload: { graph: 'meet' } })
     expect(q('dialogue-speaker')?.textContent).toBe('Porter')
     expect(q('dialogue-line')?.textContent).toBe('')
@@ -147,6 +165,19 @@ describe('the dialogue box', () => {
     stepOnce()
     stepOnce()
     expect(reported).toEqual(['The line "toy.hello" has no words yet. Write them in Writer.'])
+  })
+
+  it('shows no name, never the id, for a speaker with no words, and reports it once', async () => {
+    vi.stubGlobal('reportError', (error: unknown) => reported.push((error as Error).message))
+    await open({ words: (key) => (key === 'speaker.porter' ? undefined : NAMES[key]) })
+    stepOnce({ type: 'narrative.start', payload: { graph: 'meet' } })
+    expect(q('dialogue-speaker')).toBeNull()
+    expect(play?.host.textContent).not.toMatch(/porter/i)
+    stepOnce()
+    stepOnce()
+    expect(reported).toEqual([
+      'The speaker "porter" has no name yet. Write it in Writer as "speaker.porter".',
+    ])
   })
 
   it('is asked to advance by a pad’s A when it is the focused button', async () => {

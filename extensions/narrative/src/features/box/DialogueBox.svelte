@@ -62,6 +62,13 @@ $effect(() => {
     told.add(id)
     globalThis.reportError?.(new Error(`The line "${id}" has no words yet. Write them in Writer.`))
   }
+  for (const id of model?.missingSpeakers ?? []) {
+    if (told.has(`speaker:${id}`)) continue
+    told.add(`speaker:${id}`)
+    globalThis.reportError?.(
+      new Error(`The speaker "${id}" has no name yet. Write it in Writer as "speaker.${id}".`),
+    )
+  }
 })
 
 let box: HTMLElement | undefined = $state()
@@ -106,6 +113,9 @@ onMount(() => {
   // Keys 1 to 9 take the choice with that number.
   const onKey = (event: KeyboardEvent): void => {
     if (event.altKey || event.ctrlKey || event.metaKey || !/^[1-9]$/.test(event.key)) return
+    // A menu on top (Pause) has the keyboard: a number pressed there is for the menu, not for an answer behind it.
+    const screen = event.target instanceof Element ? event.target.closest('[data-game-screen]') : null
+    if (screen !== null && screen.getAttribute('data-game-screen') !== 'play') return
     const choice = model?.choices[Number(event.key) - 1]
     if (choice === undefined) return
     event.preventDefault()
@@ -141,7 +151,9 @@ onMount(() => {
 
 {#if model !== null}
   <section class="af-dialogue-box" data-testid="dialogue-box" aria-live="polite" bind:this={box}>
-    <p class="speaker" data-testid="dialogue-speaker">{model.speaker}</p>
+    {#if model.speaker !== ''}
+      <p class="speaker" data-testid="dialogue-speaker">{model.speaker}</p>
+    {/if}
     <p class="line" data-testid="dialogue-line">{model.text}</p>
     {#if model.choices.length > 0}
       <ol class="choices">
