@@ -528,7 +528,11 @@ The Owner's rule (2026-11-08): content made in the editors must be seen in play,
   `level2dExtension`, `narrativeExtension({ places, words })`, `cutscenesExtension({ places, words })`,
   `createNavExtension({ places })`, `systemsExtension({ places })`, `levelScene`, `pictureView` and
   `cutsceneStage2d`. Its behaviour is code: touching the keeper sends `StartCommand`; the second choice starts the
-  cutscene.
+  cutscene. It passes the level's placed characters' points to `loadSystems` by name (its `places` argument), so a
+  character added in Schematic starts where the level places it, not at its first patrol stop or the origin.
+- Create: `examples/2d-story/src/testing/story-hook.ts`, a dev-only test hook that reads the sim (each agent's mode
+  and plan position, the dialogue view, the cutscene under way); the journey here and Schematic's Task 14 journey
+  (#478) both read it.
 - Create: `examples/2d-story/tests/e2e/story-in-play.test.ts`
 
 - [ ] **Step 1: Failing unit test** in the example: a scripted run (touch the keeper, Advance, choose 2) reaches the
@@ -540,7 +544,8 @@ The Owner's rule (2026-11-08): content made in the editors must be seen in play,
   Play. Walk into the keeper: the dialogue box shows "The gate sticks in the rain." with "Next"; tap the second choice;
   the caption "Later, at the gate." shows above the box's place and the keeper walks; then the guard sees the player
   through the gap and loses them behind the wall. Assert each in the DOM or by reading the sim through the test hook,
-  and look at the screenshots and explain them in the log.
+  and look at the screenshots and explain them in the log. The chase-speed edit is a smoke check here; Schematic's
+  Task 14 journey (#478) measures it (speed over 1 s, sight range at a fixed distance) on this same example.
 - [ ] **Step 4:** If one of #478's Writer, Sequence or Schematic is not built yet, leave its step unchecked, say so in
   the log and the PR, and keep the rest of the journey running. Never write the TOML directly and count it as edited.
 - [ ] **Step 5:** Commit `test(examples): a 2D story edited in the suite shows in play`.
