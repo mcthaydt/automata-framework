@@ -90,7 +90,7 @@ describe('/editor', () => {
     expect(app.className).toContain('secondary')
     expect(view.container.querySelectorAll('a.button:not(.secondary)')).toHaveLength(1)
     expect(view.container.textContent).toContain(
-      'More editors, made for your phone, tablet or computer: the Automata app.',
+      'Every editor is free on the web. Pay only if you want to download the app for your phone, tablet or computer.',
     )
   })
 })

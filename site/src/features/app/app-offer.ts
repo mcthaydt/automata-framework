@@ -1,4 +1,4 @@
-// What the Automata app costs, where to buy it and what it adds to the free editors on the web. Every price, place to
+// What the Automata app costs, where to buy it and what downloading it gives you. Every editor is free on the web. Every price, place to
 // buy and list on /app is read from here, so when the app goes on sale this file is the one thing that changes.
 
 export interface PlaceToBuy {
@@ -18,7 +18,7 @@ export interface AppOffer {
   readonly computer: Purchase
   /** What the editors in the browser do, free. */
   readonly web: readonly string[]
-  /** What the app adds. */
+  /** What you get by downloading the app (never an editor: they are all free on the web). */
   readonly app: readonly string[]
 }
 
@@ -36,20 +36,16 @@ export const APP_OFFER: AppOffer = {
     devices: 'Mac, Windows and Linux',
     buy: [{ label: 'Buy for your computer', url: null }],
   },
-  // Which editors stay free on the web is the Owner's call; this is the split the apps audit recommends (its option A).
-  // Checked against the free `automata editor` on 2026-11-08: its Home marks Feel, Audio and Schematic "Not in this
-  // build", and lists no Writer or Sequence at all, so those two are not promised here until the apps pipeline gates
-  // them. The page says only what is true on the day it is read.
+  // The Owner, 2026-11-08 21:25: "all editors are free on Web, you only have to pay to download". This replaces the
+  // 14:53 split (essentials on the web, the full suite in the app). So no editor is named in `app`: what the price buys
+  // is the download itself.
   web: [
-    'Levels for 2D games, with Characters and Add tiles',
-    'The Tuner',
+    'All the editors, for 2D and 3D games: Levels, Characters, Add tiles, the Tuner, Feel, Audio, Schematic and more',
     'Play and Publish, once you open the free editor on your own game',
   ],
   app: [
-    'Levels for 3D games, with Walk and 3D Characters',
-    'Feel and Audio',
-    'Schematic',
-    'Sync with GitHub',
-    'Editors made for your phone and tablet',
+    'The editors on your phone, tablet or computer, made for touch',
+    'Your games sync with GitHub, so you can edit them anywhere',
+    'It installs in one step and keeps itself up to date',
   ],
 }

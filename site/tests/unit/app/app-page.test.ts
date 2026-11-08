@@ -40,15 +40,22 @@ describe('/app', () => {
     )
   })
 
-  it('lists what is free in the browser and what is in the app, from the offer', () => {
+  it('lists what is free in the browser and what downloading gives, from the offer', () => {
     const view = render(AppPage)
     expect(view.getByRole('heading', { name: 'Free in your browser' })).toBeTruthy()
-    expect(view.getByRole('heading', { name: 'In the app' })).toBeTruthy()
+    expect(view.getByRole('heading', { name: 'When you download' })).toBeTruthy()
     for (const item of [...APP_OFFER.web, ...APP_OFFER.app]) expect(view.getByText(item)).toBeTruthy()
   })
 
-  it('does not promise Writer or Sequence, which the free editor does not show at all', () => {
-    expect(APP_OFFER.app.join(' ')).not.toMatch(/\b(Writer|Sequence)\b/)
+  it('says every editor is free on the web and charges only for the download (Owner, 2026-11-08 21:25)', () => {
+    const text = render(AppPage).container.textContent ?? ''
+    expect(text).toContain('Every editor is free on the web. You pay only to download the app')
+    expect(APP_OFFER.web[0]).toMatch(/^All the editors/)
+    // No editor is held back for the app: the download list names none.
+    expect(APP_OFFER.app.join(' ')).not.toMatch(
+      /\b(Levels|Characters|Tuner|Feel|Audio|Schematic|Writer|Sequence)\b/,
+    )
+    expect(text).not.toMatch(/more editors|full suite/i)
   })
 
   it('has a help section with the project’s address', () => {

@@ -17,14 +17,14 @@ const purchases: readonly { readonly name: string; readonly purchase: Purchase }
 
 <PageMeta
   title="Get the Automata app"
-  description="The Automata editors, made for your phone, tablet or computer. $19.99 once for phone and tablet, $39.99 once for computer."
+  description="Every editor is free on the web. Download the app for your phone, tablet or computer: $19.99 once for phone and tablet, $39.99 once for computer."
 />
 <PageShell>
   <header>
     <p class="kicker">The app</p>
     <h1>Get the Automata app</h1>
     <p class="lead">
-      Make your game on the web for free. The app adds more editors and works on your phone, tablet or computer.
+      Every editor is free on the web. You pay only to download the app, made for your phone, tablet or computer.
     </p>
   </header>
 
@@ -58,14 +58,14 @@ const purchases: readonly { readonly name: string; readonly purchase: Purchase }
       <ul>{#each offer.web as item (item)}<li>{item}</li>{/each}</ul>
     </section>
     <section>
-      <h2>In the app</h2>
+      <h2>When you download</h2>
       <ul>{#each offer.app as item (item)}<li>{item}</li>{/each}</ul>
     </section>
   </div>
 
   <p>
-    All of Automata's code is open source (MIT). You pay for the ready-made app: it installs in one step, keeps itself up to
-    date and runs on your phone.
+    All of Automata's code is open source (MIT). You pay for the download: the ready-made app, which installs in one step and
+    keeps itself up to date.
   </p>
 
   <section id="help">

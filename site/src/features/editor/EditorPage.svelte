@@ -30,7 +30,7 @@ const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
       <a class="button secondary" href="/app">Get the app</a>
     </p>
     <p class="note">Your level stays in this page and is gone when you close it. {EDITOR_PLAY_NOTE}</p>
-    <p class="note">More editors, made for your phone, tablet or computer: the Automata app.</p>
+    <p class="note">Every editor is free on the web. Pay only if you want to download the app for your phone, tablet or computer.</p>
   </header>
 
   <div class="pictures">
