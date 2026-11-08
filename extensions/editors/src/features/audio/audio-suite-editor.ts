@@ -8,7 +8,7 @@ import { gameEvents } from '../../shared/game-events.ts'
 import { undoOf } from '../../shared/session-hooks.ts'
 import { openTomlSession } from '../../shared/toml-session.ts'
 import { canvas, panel, status } from './AudioRegions.svelte'
-import { AudioSession } from './audio-session.svelte.ts'
+import { type AudioCheck, AudioSession } from './audio-session.svelte.ts'
 import { trackFiles } from './music-model.ts'
 
 export const AUDIO_PATH = 'content/audio/audio.toml'

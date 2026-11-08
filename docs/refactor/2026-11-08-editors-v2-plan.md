@@ -462,3 +462,15 @@ iPad size, in Dark and once in Light; and apply the drunk grandma test to every 
   this plan. The biggest: Review does not exist (deleted in `a15c7b36`), so it is out (A1); the editors stay a
   `tablist` of `tab`s so the journeys still find them (A2); the problem count keeps every checks state (A3); the 3D
   editors' 11 lime buttons turn secondary (A4); the Door's words were wrong about what a Door leads to (A5).
+- 2026-11-08, build, Task 1: the shared-editors build still has no branch, so the build branch is #508's head
+  (`89db7336`) with the plan's three documents brought over and PR #506's head (`30667aa3`) merged in. Ruling: the
+  rail the shared-editors plan changes (one entry per editor, `person`, More) is not here; the shared-editors build
+  merges this branch's rail work when it lands, and Tasks 5 and 8 build on today's rail. Conflicts (19) were resolved
+  for #508's side wherever #506's side only held an older copy of the content editors, Publish and Play (the
+  Publish dialog, `playOff`, `shared/audio-play.ts`, the editor lists, the `figure*` glob); #506's side won every
+  colour, the theme files and the Audio mix and Check the sounds (`audio-findings.ts`), whose imports were joined.
+  Merge leftovers fixed: a second `publishingGame` in `Suite.svelte`, a second `figure-*` row in three editor lists,
+  `newGame`'s argument order in `new-3d-game-plays-its-edits`, and `exactOptionalPropertyTypes` in `dark-levels-3d`.
+  Dark mode's build audit is now in `docs/refactor/` because its progress row linked to it. Ran: `pnpm format`,
+  `pnpm typecheck` (51 of 51), `boundaries`, `style`, `source-names`, `knip`, `check:changesets`, `pnpm test:unit`
+  (61 of 61 tasks). Not run yet: `test:browser:2d`.

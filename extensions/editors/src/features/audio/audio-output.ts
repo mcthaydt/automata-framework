@@ -2,6 +2,7 @@
 // plays once through its own voices; playing never writes the file.
 import { type AudioContent, playCue } from '@automata/audio-synth'
 import type { AudioPlay } from '../../shared/audio-play.ts'
+import { checkSounds, pageRender, type RenderCue, type SoundFinding } from './audio-findings.ts'
 
 export interface AudioOutput {
   readonly play: AudioPlay

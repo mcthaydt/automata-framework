@@ -20,7 +20,7 @@ This is stage 2 (spec and plan) of the editors v2 pipeline. The plan is
 
 **The baseline.** Two lines of work meet here, and neither holds the other yet:
 
-- the shared-editors build (spec [`2026-11-08-shared-editors-spec.md`](2026-11-08-shared-editors-spec.md), built on
+- the shared-editors build (spec `2026-11-08-shared-editors-spec.md` on PR #512, built on
   PR #508, `claude/complete-game-journeys`), which gives the rail one entry per editor, Characters on the rail in both
   kinds, the `person` icon, and the phone tab bar's More (its Task 4);
 - dark mode, PR #504 and its fixes PR #506 (`claude/project-thread-6mtkk6`, with Levels 3D merged in), which gives

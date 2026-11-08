@@ -70,8 +70,6 @@ const home = $derived(latest ?? given)
 
 let current = $state<string | undefined>()
 let reading = $state<WorkspaceFile | undefined>()
-// Publish on a game's own folder: the dialog that builds the zip.
-let publishingGame = $state(false)
 let panelOpen = $state(false)
 let inspectorOpen = $state(false)
 /** `undefined` follows the shell's default for the size. */
