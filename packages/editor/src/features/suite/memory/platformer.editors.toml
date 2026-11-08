@@ -27,6 +27,15 @@ modes = ["edit", "ask"]
 gates = []
 checks = ["content", "content-check"]
 
+# The try-it page's level: "New level" makes one here, and Levels writes the game's files beside it (`exports`).
+[[file]]
+glob = "content/levels/*.af2d.json"
+editor = "levels-2d"
+exports = "content"
+modes = ["edit"]
+gates = []
+checks = []
+
 [[check]]
 id = "content-check"
 run = ["pnpm", "content:check"]

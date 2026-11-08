@@ -26,7 +26,12 @@ export async function openSuitePorts(
 ): Promise<OpenedSuitePorts> {
   const served = await openServedStore(env)
   if (served === undefined)
-    return { ports: await samplePorts(SAMPLE_GAME), sample: true, gameUrl: undefined, game: undefined }
+    return {
+      ports: await samplePorts(SAMPLE_GAME, { changeSet: false }),
+      sample: true,
+      gameUrl: undefined,
+      game: undefined,
+    }
   const { store, gameUrl, game } = served
   const bytes = await store.read(EDITOR_LIST_PATH)
   const load = loadEditorList(bytes === undefined ? undefined : decoder.decode(bytes))

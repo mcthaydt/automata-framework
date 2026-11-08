@@ -7,6 +7,7 @@ import { createSuite } from '../../features/suite/shell/create-suite.ts'
 import { openSuitePorts } from '../../features/suite/shell/open-suite-ports.ts'
 import { createTuner } from '../../features/suite/tuner/tuner-suite-editor.ts'
 import type { SuiteEditor } from '../../shared/kit/ports/suite-editor.ts'
+import { createDownloadStore } from '../../shared/kit/storage/download-store.ts'
 import { randomIds } from '../../shared/level-2d/model/ids.ts'
 import { createLevels2d } from './levels-2d/levels-2d-suite-editor.ts'
 
@@ -25,6 +26,9 @@ openSuitePorts({ origin: location.origin, search: location.search, sessionStorag
     const editors = [
       createTuner({ gameUrl }),
       createLevels2d({
+        // The sample has no game folder to keep a level in, so a visitor starts from a template and shares the result.
+        templates: sample ? 'content/levels' : undefined,
+        share: sample ? createDownloadStore() : undefined,
         ids: randomIds((bytes) => crypto.getRandomValues(bytes)),
         objectUrls: {
           create: (bytes) => URL.createObjectURL(new Blob([bytes as Uint8Array<ArrayBuffer>])),

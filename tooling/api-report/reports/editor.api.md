@@ -4388,6 +4388,8 @@ interface Levels2dOptions {
     readonly read?: ((path: string) => Promise<Uint8Array | undefined>) | undefined;
     readonly objectUrls?: ObjectUrls | undefined;
     readonly canvas?: Component<LevelCanvasProps> | undefined;
+    readonly templates?: string | undefined;
+    readonly share?: DownloadStore | undefined;
 }
 ```
 
@@ -4407,6 +4409,10 @@ interface Levels2dSession {
     read(path: string): Promise<Uint8Array | undefined>;
     readonly files: Pick<ProjectStore, 'list' | 'write'> | undefined;
     readonly state: Levels2dState;
+    readonly current: Readable<Levels2dState>;
+    readonly shared: Writable<string | undefined>;
+    readonly share: ((action: ShareAction) => Promise<void>) | undefined;
+    start(profileId: string, templateId: string): Promise<void>;
     readonly refusal: string | undefined;
     settled(): Promise<void>;
     quietly(change: () => void): void;
@@ -4422,6 +4428,9 @@ type Levels2dState = {
     readonly history: History<unknown>;
     readonly level: LevelSession;
     readonly tiles: TilesetsSession;
+} | {
+    readonly kind: 'empty';
+    readonly cards: readonly TemplateCard[];
 } | {
     readonly kind: 'error';
     readonly message: string;
@@ -4461,7 +4470,9 @@ const SAMPLE_GAME: Readonly<Record<string, string>>;
 ### `samplePorts` (function)
 
 ```ts
-function samplePorts(files: Readonly<Record<string, string>>): Promise<SuitePorts>;
+function samplePorts(files: Readonly<Record<string, string>>, options?: {
+    readonly changeSet?: false;
+}): Promise<SuitePorts>;
 ```
 
 ### `startSuite` (function)

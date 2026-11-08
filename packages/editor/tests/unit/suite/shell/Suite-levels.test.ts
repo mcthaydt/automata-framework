@@ -8,6 +8,7 @@ import { samplePorts } from '#src/features/suite/memory/sample-ports.ts'
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
+import { createDownloadStore } from '#src/shared/kit/storage/download-store.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
 import platformer from '#src/testing/suite/fixtures/platformer.af2d.json?raw'
 import StandInLevelCanvas from '#src/testing/suite/StandInLevelCanvas.svelte'
@@ -50,6 +51,7 @@ async function start(
   editors: SuiteEditor<unknown>[],
   files: Record<string, string> = FILES,
   ports?: Awaited<ReturnType<typeof samplePorts>>,
+  sample = false,
 ) {
   const target = document.body.appendChild(document.createElement('div'))
   started = await startSuite(target, {
@@ -57,11 +59,12 @@ async function start(
     document,
     ports: ports ?? (await samplePorts(files)),
     suite: createSuite({ editors }),
+    sample,
   })
 }
 
 let next = 0
-const levels2d = () =>
+const levels2d = (more: Partial<Parameters<typeof createLevels2d>[0]> = {}) =>
   createLevels2d({
     ids: {
       next: () => {
@@ -70,6 +73,7 @@ const levels2d = () =>
       },
     },
     canvas: StandInLevelCanvas,
+    ...more,
   }) as SuiteEditor<unknown>
 
 function press(target: HTMLElement, type: 'pointerdown' | 'pointerup', x: number, y: number): void {
@@ -189,5 +193,71 @@ describe('A level changed somewhere else', () => {
     const { ports, path } = await drawTwice('Use theirs')
     expect(screen.queryByText(/Not saved/)).not.toBeInTheDocument()
     expect((await ports.workspace.read(path))?.text).not.toContain('slime-2')
+  })
+})
+
+describe('A level to try, on the sample game with none', () => {
+  const TRY_LIST = LIST.replace('editor = "levels-2d"', 'editor = "levels-2d"\nexports = "content"')
+  const TRY_FILES = { [EDITOR_LIST_PATH]: TRY_LIST, 'content/tuning.toml': '[player]\nspeed = 6\n' }
+  const downloads: { name: string; text: string }[] = []
+  const share = createDownloadStore({
+    now: () => 0,
+    download: (file) => downloads.push({ name: file.name, text: new TextDecoder().decode(file.data) }),
+  })
+
+  async function tryIt() {
+    const ports = await samplePorts(TRY_FILES, { changeSet: false })
+    await start([levels2d({ templates: 'content/levels', share })], TRY_FILES, ports, true)
+    return ports
+  }
+
+  it('offers New level on the Levels card, which opens the starting points', async () => {
+    await tryIt()
+    await userEvent.click(await screen.findByRole('button', { name: 'New level' }))
+    expect(
+      await screen.findByText('Pick a starting point. You can change everything later.'),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Platformer/ })).toBeInTheDocument()
+  })
+
+  it('draws the chosen starting point and keeps it in the game folder', async () => {
+    const ports = await tryIt()
+    await userEvent.click(await screen.findByRole('button', { name: 'New level' }))
+    await userEvent.click(await screen.findByRole('button', { name: /Platformer/ }))
+    expect(await screen.findByTestId('level-canvas')).toHaveAttribute('data-level', 'level-1')
+    expect((await ports.workspace.read('content/levels/untitled-platformer.af2d.json'))?.text).toContain(
+      '"levels"',
+    )
+    // Undo has nothing to undo yet, and the Levels card now lists the level.
+    expect(screen.queryByText('Pick a starting point. You can change everything later.')).toBeNull()
+  })
+
+  it('has Share as the one primary action once there is a level, and Download hands the level over', async () => {
+    await tryIt()
+    expect(screen.queryByRole('button', { name: 'Share' })).toBeNull()
+    await userEvent.click(await screen.findByRole('button', { name: 'New level' }))
+    await userEvent.click(await screen.findByRole('button', { name: /Platformer/ }))
+    const button = await screen.findByRole('button', { name: 'Share' })
+    expect(button).toHaveAttribute('data-kind', 'primary')
+    await userEvent.click(button)
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Download' }))
+    expect(await screen.findByText('Downloaded your level.')).toBeInTheDocument()
+    expect(downloads.at(-1)?.name).toBe('untitled-platformer.af2d.json')
+    expect(JSON.parse(downloads.at(-1)?.text ?? '{}').levels.length).toBeGreaterThan(0)
+  })
+
+  it('shows no New level on a game folder, where a missing level is a file that is not there', async () => {
+    await start([levels2d()], TRY_FILES)
+    await screen.findByText('No files yet.')
+    expect(screen.queryByRole('button', { name: 'New level' })).toBeNull()
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    expect(await screen.findByTestId('levels-2d-refused')).toBeInTheDocument()
+  })
+
+  it('shows no Share on a game folder, whose Save already writes the game', async () => {
+    await start([levels2d()])
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    await screen.findByTestId('level-canvas')
+    expect(screen.queryByRole('button', { name: 'Share' })).toBeNull()
   })
 })

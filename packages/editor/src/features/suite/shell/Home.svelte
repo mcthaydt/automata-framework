@@ -19,11 +19,13 @@ interface Props {
   empty: string
   onopen: (card: EditorCard) => void
   onread: (file: WorkspaceFile) => void
+  /** For an editor with no file yet, the words on the button that starts one (the try-it sample's "New level"). */
+  starts?: Readonly<Record<string, string>> | undefined
   /** Buttons at the end of the heading's row. */
   actions?: Snippet | undefined
 }
 
-const { title, home, editors, empty, onopen, onread, actions }: Props = $props()
+const { title, home, editors, empty, onopen, onread, starts, actions }: Props = $props()
 
 const cards = $derived(
   home.kind === 'cards'
@@ -44,7 +46,7 @@ const cards = $derived(
   {:else}
     <div class="cards">
       {#each cards as card (card.editor)}
-        <EditorCardView {card} {onopen} {onread} />
+        <EditorCardView {card} {onopen} {onread} start={starts?.[card.editor]} />
       {/each}
     </div>
   {/if}

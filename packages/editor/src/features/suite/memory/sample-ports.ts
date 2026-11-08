@@ -6,10 +6,15 @@ import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '../core'
 import { createMemoryPorts } from './memory-ports.ts'
 import sampleList from './platformer.editors.toml?raw'
 
-export async function samplePorts(files: Readonly<Record<string, string>>): Promise<SuitePorts> {
+/** `changeSet: false` is a sample with no change sets, which is the try-it page's: a visitor is never asked to name a change. */
+export async function samplePorts(
+  files: Readonly<Record<string, string>>,
+  options: { readonly changeSet?: false } = {},
+): Promise<SuitePorts> {
   const load = loadEditorList(files[EDITOR_LIST_PATH])
   const { ports } = await createMemoryPorts({
     files,
+    changeSet: options.changeSet,
     classify: (path) =>
       load.ok
         ? workspaceFile(load.list, path)

@@ -29,7 +29,14 @@ const { home, sample, onopen, onread, oninterchange }: Props = $props()
       <span>This is a sample game, not yours. Run automata editor inside your game's folder to edit it.</span>
     </p>
   {/if}
-  <Home title="What do you want to change?" {home} empty="This game has nothing to edit yet." {onopen} {onread}>
+  <Home
+    title="What do you want to change?"
+    {home}
+    empty="This game has nothing to edit yet."
+    {onopen}
+    {onread}
+    starts={sample ? { 'levels-2d': 'New level' } : undefined}
+  >
     {#snippet actions()}
       <Button title="Copy your game's settings as text, to keep or to share" onclick={() => oninterchange('export')}>Export changes</Button>
       <Button title="Bring in settings someone sent you as text" onclick={() => oninterchange('import')}>Import changes</Button>

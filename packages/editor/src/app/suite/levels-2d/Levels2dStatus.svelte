@@ -6,11 +6,14 @@ const { session }: { session: Levels2dSession } = $props()
 
 // svelte-ignore state_referenced_locally
 const refused = session.refused
+// svelte-ignore state_referenced_locally
+const shared = session.shared
 </script>
 
 <p class="status">
   <span>{session.path}</span>
   {#if session.others.length > 0}<span>{session.others.length} more in this group</span>{/if}
+  {#if $shared !== undefined}<span role="status">{$shared}</span>{/if}
   {#if $refused !== undefined}<span role="alert">Not saved: {$refused}</span>{/if}
 </p>
 
