@@ -154,19 +154,75 @@ describe('Tiles in the suite’s Levels', () => {
   })
 })
 
-describe('Characters in the suite’s Levels', () => {
-  it('lists the game’s characters and edits one, as one step Undo takes back', async () => {
+describe('Characters on the rail of a 2D game', () => {
+  it('opens the game’s characters without Levels’ views or its level picker, and edits one', async () => {
     await start([fixtureEditor as SuiteEditor<unknown>, levels2d()])
-    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
-    const views = await screen.findByRole('radiogroup', { name: 'Views' })
-    await userEvent.click(within(views).getByRole('radio', { name: 'Characters' }))
+    await userEvent.click(await screen.findByRole('tab', { name: 'Characters' }))
     expect(await screen.findByTestId('entities-panel')).toBeInTheDocument()
     expect(screen.queryByTestId('level-canvas')).not.toBeInTheDocument()
+    expect(screen.queryByRole('radiogroup', { name: 'Views' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: /level/i })).not.toBeInTheDocument()
     // The preview shows the chosen character, and the details edit it.
     await userEvent.click(await screen.findByRole('radio', { name: /Slime/ }))
     expect(await screen.findByTestId('entity-preview')).toBeInTheDocument()
-    await userEvent.click(within(views).getByRole('radio', { name: 'Level' }))
+  })
+
+  it('leaves Levels with two views, Level and Tiles, and the rail is the way back to the level', async () => {
+    await start([fixtureEditor as SuiteEditor<unknown>, levels2d()])
+    await userEvent.click(await screen.findByRole('tab', { name: 'Characters' }))
+    await screen.findByTestId('entities-panel')
+    await userEvent.click(screen.getByRole('tab', { name: 'Levels' }))
+    const views = await screen.findByRole('radiogroup', { name: 'Views' })
+    expect(
+      within(views)
+        .getAllByRole('radio')
+        .map((radio) => radio.getAttribute('aria-label') ?? radio.textContent),
+    ).toEqual(['Level', 'Tiles'])
     expect(await screen.findByRole('listbox', { name: 'Layers' })).toBeInTheDocument()
+    expect(screen.getByTestId('level-canvas')).toHaveAttribute('data-level', 'level-1')
+  })
+
+  it('opens one session for Characters, Levels, Characters again', async () => {
+    let opened = 0
+    const editor = levels2d() as SuiteEditor<unknown>
+    const open = editor.open.bind(editor)
+    await start([{ ...editor, open: (files, ports) => (opened++, open(files, ports)) }])
+    await userEvent.click(await screen.findByRole('tab', { name: 'Characters' }))
+    await screen.findByTestId('entities-panel')
+    await userEvent.click(screen.getByRole('tab', { name: 'Levels' }))
+    await screen.findByTestId('level-canvas')
+    await userEvent.click(screen.getByRole('tab', { name: 'Characters' }))
+    await screen.findByTestId('entities-panel')
+    expect(opened).toBe(1)
+  })
+
+  it('keeps the Tiles view through a trip to another editor and back', async () => {
+    await start([fixtureEditor as SuiteEditor<unknown>, levels2d()])
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    const views = await screen.findByRole('radiogroup', { name: 'Views' })
+    await userEvent.click(within(views).getByRole('radio', { name: 'Tiles' }))
+    await screen.findByRole('heading', { name: 'Your tiles' })
+    await userEvent.click(screen.getByRole('tab', { name: 'Tuner' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Levels' }))
+    expect(await screen.findByRole('heading', { name: 'Your tiles' })).toBeInTheDocument()
+  })
+
+  it('has one history: Undo in Characters takes back the last change and names it (Levels’ older steps wait)', async () => {
+    await start([levels2d()])
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    await userEvent.click(await screen.findByRole('radio', { name: 'Slime' }))
+    const surface = screen.getByTestId('level-surface')
+    press(surface, 'pointerdown', 40, 40)
+    press(surface, 'pointerup', 40, 40)
+    await screen.findByRole('button', { name: 'Undo Place entity' })
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Characters' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Add a character' }))
+    const undo = await screen.findByRole('button', { name: /^Undo (?!Place entity)\S/ })
+    expect(undo).toBeEnabled()
+    await userEvent.click(undo)
+    // The Levels step is still there to take back: Characters' step went first.
+    expect(await screen.findByRole('button', { name: 'Undo Place entity' })).toBeEnabled()
   })
 })
 
@@ -295,7 +351,7 @@ describe('A level to try, on the sample game with none', () => {
 
   it('shows no New level on a game folder, where a missing level is a file that is not there', async () => {
     await start([levels2d()], TRY_FILES)
-    await screen.findByText('No files yet.')
+    await screen.findAllByText('Nothing made yet. Open it to start.')
     expect(screen.queryByRole('button', { name: 'New level' })).toBeNull()
     await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
     expect(await screen.findByTestId('levels-2d-refused')).toBeInTheDocument()

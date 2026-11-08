@@ -1,13 +1,13 @@
-// What Home shows: one card per editor the game's list names, in
-// the order the list first names it, or the list's problems when it does not load, in which case every editor is read
-// only and there are no cards (the files cannot be listed without a list).
+// What Home shows: a card for every entry on the rail, in the rail's order, then one for each editor the list names that
+// this build lacks; or the list's problems when it does not load, in which case every editor is read only and there
+// are no cards (the files cannot be listed without a list).
 
 import { writtenBySave } from '../../../shared/editor-list/workspace-policy'
 import type { EditorKind } from '../../../shared/kit/ports/suite-editor.ts'
 import type { WorkspaceFile } from '../../../shared/kit/ports/suite-ports.ts'
 import type { EditorListLoad, EditorListProblem } from '../core'
 import type { Suite } from './create-suite'
-import { editorLabel } from './suite-entries'
+import { editorLabel, suiteEntries } from './suite-entries'
 
 export interface EditorCard {
   /** The id the list names. */
@@ -52,29 +52,43 @@ export function homeOf(
   suite: Suite,
 ): HomeState {
   if (!load.ok) return { kind: 'problems', problems: load.problems }
-  // The cards come in the rail's order (the editors the page registered), then the editors this build lacks in the
-  // list's order, so Home and the rail never disagree about which comes first.
   const listed = [...new Set(load.list.file.map((row) => row.editor))]
-  const rank = (editor: string): number => {
-    const place = suite.editors.findIndex((installed) => installed.id === editor)
-    return place === -1 ? suite.editors.length : place
-  }
-  const named = listed
-    .map((editor, order) => ({ editor, order }))
-    .sort((a, b) => rank(a.editor) - rank(b.editor) || a.order - b.order)
-  const cards = named.map(({ editor }): EditorCard => {
-    const installed = suite.editor(editor)
-    // Only the files a person opens (a level), not the game files and pictures a level's Save writes beside it.
-    const opened = (files.get(editor) ?? []).filter((file) => !writtenBySave(load.list, file.path))
-    return {
-      editor,
-      label: editorLabel(installed ?? unbuilt(editor), listed, suite.editors),
-      entry: installed?.id,
-      installed: installed !== undefined,
-      files: opened,
-      rows: (installed?.homeFiles ?? ((all) => all))(opened),
-    }
+  // Only the files a person opens (a level), not the game files and pictures a level's Save writes beside it.
+  const opened = (editor: string) =>
+    (files.get(editor) ?? []).filter((file) => !writtenBySave(load.list, file.path))
+  // One card for every entry on the rail, listed or not (an editor the list does not name has no files and opens on its
+  // start page), in the rail's order so Home and the rail never disagree; then the listed editors this build lacks, in
+  // the list's order. An editor with several entries has a card for each, over the same files: the entry decides the view.
+  const entries = suiteEntries(suite.editors, listed)
+  const cards = entries.flatMap((entry): EditorCard[] => {
+    const editor = entry.editors[0]
+    const installed = editor === undefined ? undefined : suite.editor(editor)
+    if (editor === undefined || installed === undefined) return []
+    const own = opened(editor)
+    return [
+      {
+        editor,
+        label: entry.label,
+        entry: entry.id,
+        installed: true,
+        files: own,
+        rows: (installed.homeFiles ?? ((all) => all))(own),
+      },
+    ]
   })
+  const lacking = listed.filter((editor) => suite.editor(editor) === undefined)
+  cards.push(
+    ...lacking.map(
+      (editor): EditorCard => ({
+        editor,
+        label: editorLabel(unbuilt(editor), listed, suite.editors),
+        entry: undefined,
+        installed: false,
+        files: opened(editor),
+        rows: opened(editor),
+      }),
+    ),
+  )
   return { kind: 'cards', cards }
 }
 

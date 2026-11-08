@@ -75,6 +75,97 @@ checks = ["content"]
     expect(state.cards.map((card) => card.label)).toEqual(['Tuner', 'Levels', 'Characters'])
   })
 
+  it('gives a second rail entry of an editor its own card, with the editor’s files', () => {
+    const list = `format = "af-editors/1"
+[[file]]
+glob = "content/levels/*.af2d.json"
+editor = "levels-2d"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+`
+    const levels = {
+      id: 'levels-2d',
+      label: 'Levels',
+      kind: '2d',
+      regions: {},
+      entries: [
+        { id: 'levels-2d', label: 'Levels', icon: 'grid', kind: '2d', view: 'level' },
+        { id: 'characters-2d', label: 'Characters', icon: 'person', kind: '2d', view: 'characters' },
+      ],
+    } as never
+    const world = file('content/levels/world.af2d.json', 'levels-2d')
+    const state = homeOf(
+      loadEditorList(list),
+      new Map([['levels-2d', [world]]]),
+      createSuite({ editors: [levels] }),
+    )
+    if (state.kind !== 'cards') throw new Error(state.kind)
+    expect(state.cards.map((card) => [card.editor, card.label, card.entry])).toEqual([
+      ['levels-2d', 'Levels', 'levels-2d'],
+      ['levels-2d', 'Characters', 'characters-2d'],
+    ])
+    expect(state.cards[1]?.rows).toEqual([world])
+  })
+
+  it('gives a card to every editor of the game’s kinds the page registers, listed or not', () => {
+    const list = `format = "af-editors/1"
+[[file]]
+glob = "content/levels/*.af2d.json"
+editor = "levels-2d"
+modes = ["edit"]
+gates = []
+checks = []
+`
+    const installed = (id: string, label: string, kind?: string) =>
+      ({ id, label, kind, regions: {} }) as never
+    const suite = createSuite({
+      editors: [
+        installed('feel', 'Feel'),
+        installed('levels-2d', 'Levels', '2d'),
+        installed('levels-3d', 'Levels', '3d'),
+        installed('studio', 'Characters', '3d'),
+      ],
+    })
+    const state = homeOf(loadEditorList(list), new Map(), suite)
+    if (state.kind !== 'cards') throw new Error(state.kind)
+    expect(state.cards.map((card) => [card.editor, card.entry, card.installed, card.files])).toEqual([
+      ['feel', 'feel', true, []],
+      ['levels-2d', 'levels-2d', true, []],
+    ])
+  })
+
+  it('puts the editors the page lacks after the rail’s cards, in the list’s order', () => {
+    const list = `format = "af-editors/1"
+[[file]]
+glob = "content/a.toml"
+editor = "sequence"
+modes = ["edit"]
+gates = []
+checks = []
+[[file]]
+glob = "content/b.toml"
+editor = "tuner"
+modes = ["edit"]
+gates = []
+checks = []
+[[file]]
+glob = "content/c.toml"
+editor = "writer"
+modes = ["edit"]
+gates = []
+checks = []
+`
+    const suite = createSuite({ editors: [{ id: 'tuner', label: 'Tuner', regions: {} } as never] })
+    const state = homeOf(loadEditorList(list), new Map(), suite)
+    if (state.kind !== 'cards') throw new Error(state.kind)
+    expect(state.cards.map((card) => [card.editor, card.installed])).toEqual([
+      ['tuner', true],
+      ['sequence', false],
+      ['writer', false],
+    ])
+  })
+
   it('names a studio card Characters when the build lacks the editor', () => {
     const list = `format = "af-editors/1"
 [[file]]
@@ -159,7 +250,7 @@ checks = ["content"]
     const tuner = { id: 'tuner' } as never
     const state = homeOf(loadEditorList(list), new Map(), createSuite({ editors: [tuner] }))
     if (state.kind !== 'cards') throw new Error(state.kind)
-    expect(state.cards[0]).toMatchObject({
+    expect(state.cards.find((card) => card.editor === 'feel')).toMatchObject({
       editor: 'feel',
       label: 'Feel',
       entry: undefined,

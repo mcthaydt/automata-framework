@@ -11,8 +11,8 @@ import ListProblems from './ListProblems.svelte'
 interface Props {
   title: string
   home: HomeState
-  /** Only these editors' cards; every card on Home. */
-  editors?: readonly string[] | undefined
+  /** Only this rail entry's cards; every card on Home. */
+  entry?: string | undefined
   /** Said when no card is left to show. */
   empty: string
   onopen: (card: EditorCard) => void
@@ -21,27 +21,28 @@ interface Props {
   starts?: Readonly<Record<string, string>> | undefined
 }
 
-const { title, home, editors, empty, onopen, onread, starts }: Props = $props()
+const { title, home, entry, empty, onopen, onread, starts }: Props = $props()
 
 const cards = $derived(
-  home.kind === 'cards'
-    ? home.cards.filter((card) => editors === undefined || editors.includes(card.editor))
-    : [],
+  home.kind === 'cards' ? home.cards.filter((card) => entry === undefined || card.entry === entry) : [],
 )
 </script>
 
 <div class="scroll" data-testid="suite-home">
-  <header>
-    <h1>{title}</h1>
-  </header>
+  <!-- An entry's own page has one card, which names the editor: the title would say it twice. -->
+  {#if entry === undefined || cards.length === 0}
+    <header>
+      <h1>{title}</h1>
+    </header>
+  {/if}
   {#if home.kind === 'problems'}
     <ListProblems problems={home.problems} />
   {:else if cards.length === 0}
     <p class="note">{empty}</p>
   {:else}
     <div class="cards">
-      {#each cards as card (card.editor)}
-        <EditorCardView {card} {onopen} {onread} start={starts?.[card.editor]} />
+      {#each cards as card (card.entry ?? card.editor)}
+        <EditorCardView {card} {onopen} {onread} start={starts?.[card.entry ?? card.editor]} />
       {/each}
     </div>
   {/if}

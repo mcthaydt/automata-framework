@@ -17,7 +17,7 @@ interface Props {
 
 const { card, onopen, onread, start }: Props = $props()
 
-const headingId = $derived(`card-${card.editor}`)
+const headingId = $derived(`card-${card.entry ?? card.editor}`)
 </script>
 
 <section class="card" aria-labelledby={headingId} data-editor={card.editor}>
@@ -29,9 +29,9 @@ const headingId = $derived(`card-${card.editor}`)
     <p class="note">{card.label} isn't in this build. Its files open read only.</p>
   {/if}
   {#if card.rows.length === 0}
-    <p class="note">No files yet.</p>
-    {#if start !== undefined && card.installed}
-      <Button onclick={() => onopen(card)}>{start}</Button>
+    <p class="note">{card.installed ? 'Nothing made yet. Open it to start.' : 'No files yet.'}</p>
+    {#if card.installed}
+      <Button onclick={() => onopen(card)}>{start ?? 'Open'}</Button>
     {/if}
   {:else}
     <ul>

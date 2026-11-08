@@ -198,23 +198,24 @@ test('a new 3D game is made with every editor it has and played', async ({ page,
 })
 
 // The editors a new 3D game cannot use yet. Each does the first thing a person would try and is marked as failing until
-// it passes; the reason is the mark's description.
+// it passes; the reason is the mark's description. "On the rail" alone proves nothing: each opens the editor and looks
+// for what the new game would play.
 
-for (const [name, reason] of [
-  ['Feel', 'a new 3D game has no feel player, so its editor list does not name Feel'],
-  ['Audio', 'a new 3D game has no sound player, so its editor list does not name Audio'],
-  ['Writer', 'a new 3D game has no dialogue box, so its editor list does not name Writer'],
-  ['Sequence', 'a new 3D game has no cutscenes, so its editor list does not name Sequence'],
-  ['Schematic', 'a new 3D game has no thinking characters, so its editor list does not name Schematic'],
+for (const [name, reason, made] of [
+  ['Feel', 'a new 3D game has no feel file to change yet', /bump/i],
+  ['Audio', 'a new 3D game has no sounds to change yet', /bump/i],
+  ['Writer', 'a new 3D game has no conversation to change yet', /keeper/i],
+  ['Sequence', 'a new 3D game has no cutscene to change yet', /look/i],
+  ['Schematic', 'a new 3D game has no thinking characters yet', /guard/i],
 ] as const)
-  test(`${name} is on a new 3D game's rail`, async ({ page }) => {
+  test(`${name} shows what a new 3D game plays`, async ({ page }) => {
     test.fail(true, reason)
     const game = await newGame(BASE_3D, '3d')
     const editor = await runEditor(game.dir)
     try {
       await page.goto(editor.url)
-      await expect(railHas(page, 'Levels')).toBeVisible()
-      await expect(railHas(page, name)).toBeVisible({ timeout: 5_000 })
+      await openEditor(page, editor, name)
+      await expect(page.getByText(made).first()).toBeVisible({ timeout: 5_000 })
     } finally {
       await editor.stop()
       game.remove()

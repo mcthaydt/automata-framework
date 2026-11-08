@@ -86,6 +86,32 @@ describe('Suite Home', () => {
   })
 })
 
+describe('Home for an editor the game has no files for', () => {
+  const feelEditor = {
+    id: 'feel',
+    label: 'Feel',
+    open: async () => ({}),
+    regions: {
+      canvas: createRawSnippet(() => ({ render: () => '<p>Start a feel file</p>' })),
+    },
+  } as unknown as SuiteEditor<unknown>
+
+  it('says "Nothing made yet. Open it to start." under the editor’s name, once, and opens its start page', async () => {
+    await start(SAMPLE_GAME, [feelEditor])
+    const feel = await screen.findByRole('region', { name: 'Feel' })
+    expect(within(feel).getByText('Nothing made yet. Open it to start.')).toBeInTheDocument()
+    expect(within(feel).queryByText('No files yet.')).toBeNull()
+    await userEvent.click(within(feel).getByRole('button', { name: 'Open' }))
+    expect(await screen.findByText('Start a feel file')).toBeInTheDocument()
+  })
+
+  it('names the editor once on its own page while it opens', async () => {
+    await start(SAMPLE_GAME, [{ ...feelEditor, open: () => new Promise(() => {}) } as SuiteEditor<unknown>])
+    await userEvent.click(await screen.findByRole('tab', { name: 'Feel' }))
+    expect(await screen.findAllByRole('heading', { name: 'Feel' })).toHaveLength(1)
+  })
+})
+
 describe('Suite entries', () => {
   it('lists only the registered editors', async () => {
     const editor = (id: string, label: string) =>

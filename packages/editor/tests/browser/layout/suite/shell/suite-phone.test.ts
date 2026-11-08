@@ -98,7 +98,7 @@ describe.each(PHONES)('Suite on a phone: $name ($width x $height)', (size) => {
         menu.click()
         await arrived()
         const items = [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')]
-        expect(items.map((item) => item.textContent?.trim())).toEqual(['Tuner', 'Levels'])
+        expect(items.map((item) => item.textContent?.trim())).toEqual(['Tuner', 'Levels', 'Characters'])
         for (const item of items)
           expect(item.getBoundingClientRect().height).toBeGreaterThanOrEqual(targets.hit)
         items[0]?.click()
@@ -107,7 +107,7 @@ describe.each(PHONES)('Suite on a phone: $name ($width x $height)', (size) => {
         expect(checkLayout(conditions, [home(), menu])).toEqual([])
       } else {
         const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')]
-        expect(tabs.map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels'])
+        expect(tabs.map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels', 'Characters'])
         for (const tab of tabs) expect(tab.getBoundingClientRect().height).toBeGreaterThanOrEqual(targets.hit)
         expect(Math.round(region('rail').getBoundingClientRect().height)).toBe(64)
         expect(checkLayout(conditions, [home(), ...tabs])).toEqual([])

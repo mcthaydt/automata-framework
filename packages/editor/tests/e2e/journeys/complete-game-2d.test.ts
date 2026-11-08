@@ -64,9 +64,9 @@ test('a new 2D game is made with every editor it has, played and published', asy
   const game = await newGame(EMBERWICK)
   const editor = await runEditor(game.dir)
   try {
-    // The rail offers the editors the new game lists: Levels, the Tuner, Feel, Audio and Schematic.
+    // The rail offers the editors the new game lists: Levels, Characters, the Tuner, Feel, Audio and Schematic.
     await page.goto(editor.url)
-    for (const name of ['Levels', 'Tuner', 'Feel', 'Audio', 'Schematic'])
+    for (const name of ['Levels', 'Characters', 'Tuner', 'Feel', 'Audio', 'Schematic'])
       await expect(railHas(page, name)).toBeVisible()
 
     // Levels 2D: add a picture of tiles, paint a cell of Decor with one, and give the player start another (Characters).
@@ -96,7 +96,7 @@ test('a new 2D game is made with every editor it has, played and published', asy
     await expect(canvas).toHaveAttribute('data-state', 'drawn')
     const point = await cellOnCanvas(canvas, PAINTED, STARTER_TILE)
     await page.mouse.click(point.x, point.y)
-    await page.getByRole('radio', { name: 'Characters' }).click()
+    await railHas(page, 'Characters').click()
     await page.getByRole('radio', { name: /Player start/ }).click()
     const details = page.getByRole('button', { name: 'Details' })
     if ((await details.getAttribute('aria-expanded')) === 'false') await details.click()
@@ -221,18 +221,19 @@ test('a new 2D game is made with every editor it has, played and published', asy
 // The editors a new 2D game cannot use yet. Each does the first thing a person would try and is marked as failing until
 // it passes; the reason is the mark's description.
 
-for (const [name, reason] of [
-  ['Writer', 'a new 2D game has no dialogue box, so its editor list does not name Writer'],
-  ['Sequence', 'a new 2D game has no cutscenes, so its editor list does not name Sequence'],
+// "On the rail" alone proves nothing: each opens the editor and looks for what the new game would play.
+for (const [name, reason, made] of [
+  ['Writer', 'a new 2D game has no conversation to change yet', /keeper/i],
+  ['Sequence', 'a new 2D game has no cutscene to change yet', /look/i],
 ] as const)
-  test(`${name} is on a new 2D game's rail`, async ({ page }) => {
+  test(`${name} shows what a new 2D game plays`, async ({ page }) => {
     test.fail(true, reason)
     const game = await newGame(EMBERWICK)
     const editor = await runEditor(game.dir)
     try {
       await page.goto(editor.url)
-      await expect(railHas(page, 'Levels')).toBeVisible()
-      await expect(railHas(page, name)).toBeVisible({ timeout: 5_000 })
+      await openEditor(page, editor, name)
+      await expect(page.getByText(made).first()).toBeVisible({ timeout: 5_000 })
     } finally {
       await editor.stop()
       game.remove()

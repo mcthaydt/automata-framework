@@ -86,6 +86,54 @@ describe('the rail entries', () => {
     })
   })
 
+  describe('of an editor with more than one', () => {
+    const levels2d = {
+      id: 'levels-2d',
+      label: 'Levels',
+      kind: '2d' as const,
+      entries: [
+        { id: 'levels-2d', label: 'Levels', icon: 'grid' as const, kind: '2d' as const, view: 'level' },
+        {
+          id: 'characters-2d',
+          label: 'Characters',
+          icon: 'person' as const,
+          kind: '2d' as const,
+          view: 'characters',
+        },
+      ],
+    }
+    const levels3d = { id: 'levels-3d', label: 'Levels', kind: '3d' as const }
+    const studio = { id: 'studio', label: 'Characters', kind: '3d' as const }
+    const feel = { id: 'feel', label: 'Feel' }
+
+    it('are one rail entry each, right after the editor’s first, each opening its editor at its view', () => {
+      const entries = suiteEntries([tuner, levels2d, feel], ['levels-2d'])
+      expect(entries.map((entry) => entry.id)).toEqual(['tuner', 'levels-2d', 'characters-2d', 'feel'])
+      expect(entries[2]).toMatchObject({ editors: ['levels-2d'], view: 'characters', label: 'Characters' })
+      expect(entries[1]).toMatchObject({ editors: ['levels-2d'], view: 'level' })
+    })
+
+    it('name both kinds apart when the game has both', () => {
+      const labels = suiteEntries([levels2d, levels3d, studio], ['levels-2d', 'levels-3d']).map(
+        (entry) => entry.label,
+      )
+      expect(labels).toEqual(['Levels 2D', 'Characters 2D', 'Levels 3D', 'Characters 3D'])
+    })
+
+    it('draw both kinds’ Characters alike, with the person', () => {
+      const entries = suiteEntries([levels2d, levels3d, studio], ['levels-2d', 'levels-3d'])
+      const icons = Object.fromEntries(entries.map((entry) => [entry.id, entry.icon]))
+      expect(icons['characters-2d']).toBe('person')
+      expect(icons.studio).toBe('person')
+    })
+
+    it('are dropped with the editor for a kind the game is not', () => {
+      expect(suiteEntries([levels2d, levels3d], ['levels-3d']).map((entry) => entry.id)).toEqual([
+        'levels-3d',
+      ])
+    })
+  })
+
   it('are empty for a build with no editors', () => {
     expect(suiteEntries([])).toEqual([])
   })

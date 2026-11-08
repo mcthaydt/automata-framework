@@ -48,6 +48,15 @@ export interface Levels2dOptions {
 
 export type Levels2dView = 'level' | 'tiles' | 'characters'
 
+/**
+ * Shows the view a rail entry names. Choosing Levels from Characters returns to the level; choosing it from Tiles
+ * leaves Tiles, so a trip away and back finds the view the person left.
+ */
+export function showLevels2dView(session: Levels2dSession, view: string): void {
+  if (view === 'characters') session.view.set('characters')
+  else if (get(session.view) === 'characters') session.view.set('level')
+}
+
 export type Levels2dState =
   | {
       readonly kind: 'open'

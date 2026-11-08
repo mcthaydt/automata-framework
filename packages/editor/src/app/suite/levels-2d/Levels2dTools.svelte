@@ -1,6 +1,7 @@
 <!--
-  Levels 2D's place in the suite's top bar: the views (Level, Tiles, Characters) as quiet tabs and, in the Level
-  view the level picker. On the try-it sample, Share is the bar's one primary action: the level has no game folder to
+  Levels 2D's place in the suite's top bar: the views (Level, Tiles) as quiet tabs and, in the Level view the level
+  picker. The Characters entry shows neither, so the rail and the canvas never disagree about where the person is; the
+  rail is the way back to Levels. On the try-it sample, Share is the bar's one primary action: the level has no game folder to
   be saved into, so this is how it leaves. The suite owns Undo, Redo and the Panel and Details toggles.
 -->
 <script lang="ts">
@@ -22,15 +23,16 @@ const view = session.view
 const VIEWS: readonly { id: Levels2dView; label: string }[] = [
   { id: 'level', label: 'Level' },
   { id: 'tiles', label: 'Tiles' },
-  { id: 'characters', label: 'Characters' },
 ]
 // svelte-ignore state_referenced_locally
 const current = session.current
-const choose = (id: string) => view.set(id === 'tiles' || id === 'characters' ? id : 'level')
+const choose = (id: string) => view.set(id === 'tiles' ? id : 'level')
 </script>
 
 {#if $current.kind === 'open'}
-  <Segmented label="Views" look="tabs" options={VIEWS} value={$view} onedit={(event) => choose(event.value)} />
+  {#if $view !== 'characters'}
+    <Segmented label="Views" look="tabs" options={VIEWS} value={$view} onedit={(event) => choose(event.value)} />
+  {/if}
   {#if $view === 'level'}
     <LevelPicker session={$current.level} history={$current.history} />
   {/if}
