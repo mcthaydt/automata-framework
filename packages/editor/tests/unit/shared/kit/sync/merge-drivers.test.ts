@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { type MergeOutcome, mergeFile } from '#src/features/sync/merge-drivers.ts'
+import { type MergeOutcome, mergeFile } from '#src/shared/kit/sync/merge-drivers.ts'
 
 const bytes = (text: string): Uint8Array => new TextEncoder().encode(text)
 const text = (data: string | Uint8Array): string =>

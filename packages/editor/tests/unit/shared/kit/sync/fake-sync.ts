@@ -1,6 +1,6 @@
-import type { GitEngine, PullOutcome, PushResult } from '#src/features/sync/git-engine.ts'
-import { OfflineError } from '#src/features/sync/git-engine.ts'
-import type { Timers, Visibility } from '#src/features/sync/sync-loop.ts'
+import type { GitEngine, PullOutcome, PushResult } from '#src/shared/kit/sync/git-engine.ts'
+import { OfflineError } from '#src/shared/kit/sync/git-engine.ts'
+import type { Timers, Visibility } from '#src/shared/kit/sync/sync-loop.ts'
 
 /** Timers the test moves by hand. */
 export class FakeTimers implements Timers {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { generatedFolders, generatedNote, isGeneratedPath } from '#src/features/sync/generated-files.ts'
+import { generatedFolders, generatedNote, isGeneratedPath } from '#src/shared/kit/sync/generated-files.ts'
 
 const EDITORS = `format = "af-editors/1"
 

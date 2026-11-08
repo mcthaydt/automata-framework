@@ -1,4 +1,4 @@
-import type { AskReason } from './merge-drivers.ts'
+import type { AskReason } from './merge-drivers'
 
 // What the sync loop needs of git. The app's engine (isomorphic-git over the app's folder, with the platform's HTTP
 // client) implements it; the loop's tests use a fake. Every call that reaches GitHub says so by throwing

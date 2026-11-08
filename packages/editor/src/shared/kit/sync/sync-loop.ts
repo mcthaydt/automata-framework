@@ -1,11 +1,5 @@
-import { type GitEngine, OfflineError } from './git-engine.ts'
-import {
-  commitMessage,
-  createStatusStore,
-  type StatusStore,
-  savedWithNotes,
-  statusOf,
-} from './sync-status.ts'
+import { type GitEngine, OfflineError } from './git-engine'
+import { commitMessage, createStatusStore, type StatusStore, savedWithNotes, statusOf } from './sync-status'
 
 // Keeps a game and its GitHub repository in step while the app is open: it pulls when it starts, when the app comes
 // back to the front and every minute; it commits what the person edited once they stop for ten seconds, as one

@@ -15,7 +15,6 @@
   "dependencies": {
     "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-editor": "workspace:*",
-    "smol-toml": "1.9.0",
     "sucrase": "3.35.1"
   },
   "devDependencies": {

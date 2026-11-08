@@ -1,4 +1,4 @@
-import { generatedNote } from './generated-files.ts'
+import { generatedNote } from './generated-files'
 
 // The line in the header that says where the game's changes are: the words a person reads, in one place.
 

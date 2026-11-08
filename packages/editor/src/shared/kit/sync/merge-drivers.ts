@@ -1,5 +1,5 @@
 import { parse as parseToml, stringify as stringifyToml } from 'smol-toml'
-import { mergeLines } from './line-merge.ts'
+import { mergeLines } from './line-merge'
 
 // How the app merges a file that changed both here and on GitHub (you in the app, Claude Code on a branch). A TOML or
 // JSON file merges by key, and a list of tables by the table's `id` or `on`, so a person's flash and Claude's shake

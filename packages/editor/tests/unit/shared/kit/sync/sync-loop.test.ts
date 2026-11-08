@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { type SyncHandle, startSync } from '#src/features/sync/sync-loop.ts'
-import { FakeEngine, FakeTimers, FakeVisibility, settle } from './fake-sync.ts'
+import { type SyncHandle, startSync } from '#src/shared/kit/sync/sync-loop.ts'
+import { FakeEngine, FakeTimers, FakeVisibility, settle } from './fake-sync'
 
 let engine: FakeEngine
 let timers: FakeTimers
