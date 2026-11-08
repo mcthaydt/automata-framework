@@ -13,9 +13,12 @@
     "typecheck": "tsc -p ."
   },
   "dependencies": {
-    "@mcthaydt/automata-editor": "workspace:*"
+    "@mcthaydt/automata-content": "workspace:*",
+    "@mcthaydt/automata-editor": "workspace:*",
+    "sucrase": "3.35.1"
   },
   "devDependencies": {
+    "@mcthaydt/automata-tools": "workspace:*",
     "@mcthaydt/vitest-preset": "workspace:*",
     "@types/node": "24.19.1",
     "typescript": "6.0.3",
