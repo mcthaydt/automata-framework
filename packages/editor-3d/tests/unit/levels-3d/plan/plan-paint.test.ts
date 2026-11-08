@@ -50,6 +50,34 @@ function inputOf(level: AfSector2File, more: Partial<PlanPaintInput> = {}): Plan
   }
 }
 
+describe('a pit', () => {
+  const level = toyAfSector({
+    sectors: [toyAfSector().sectors[0]!, { ...toyAfSector().sectors[1]!, pit: true }],
+  })
+  const paint = (pits: ReadonlySet<string>) =>
+    planPaint(
+      inputOf(level, {
+        scene: planScene(afSectorProfile.geometry(level).layers, selectionOf(afSectorProfile, level), {
+          pits,
+        }),
+      }),
+    )
+
+  it('is filled in its own dark colour and named "Pit" at the middle of the room', () => {
+    const drawn = paint(new Set(['dock']))
+    expect(drawn.fills.map((fill) => [fill.sector, fill.color === PLAN_COLORS.pit])).toEqual([
+      ['hall', false],
+      ['dock', true],
+    ])
+    // The dock runs from (8, 0) to (14, 6): its middle is (11, 3).
+    expect(drawn.marks).toEqual([{ text: 'Pit', at: px(11, 3) }])
+  })
+
+  it('leaves a room that is not a pit alone', () => {
+    expect(paint(new Set()).marks).toEqual([])
+  })
+})
+
 describe('colours', () => {
   it('reads the mockups’ hex colours as numbers', () => {
     expect(parseHex('#5aa9e6')).toBe(0x5aa9e6)

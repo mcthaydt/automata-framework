@@ -40,6 +40,8 @@ describe('inspectorOf', () => {
       ceilingTexture: undefined,
       wallTexture: 'brick',
       view: undefined,
+      pit: false,
+      views: [],
       walls: 4,
       portals: 1,
     })

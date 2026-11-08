@@ -20,6 +20,8 @@ const hall: InspectorCard = {
   ceilingTexture: undefined,
   wallTexture: 'brick',
   view: undefined,
+  pit: false,
+  views: [],
   walls: 4,
   portals: 1,
 }
@@ -84,6 +86,46 @@ describe('Inspector', () => {
     expect(screen.getByText('tile')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Increase Floor' }))
     expect(onchange).toHaveBeenCalledWith({ kind: 'sector', id: 'hall', floor: 0.05 }, 'set')
+  })
+
+  it('Pit is a checkbox that says "Pit (the player falls in)"', async () => {
+    const onchange = mount(hall)
+    const box = screen.getByRole('checkbox', { name: 'Pit (the player falls in)' })
+    expect(box).not.toBeChecked()
+    await userEvent.click(box)
+    expect(onchange).toHaveBeenCalledWith({ kind: 'sector', id: 'hall', pit: true }, 'set')
+  })
+
+  it('a pit shows ticked', () => {
+    mount({ ...hall, pit: true })
+    expect(screen.getByRole('checkbox', { name: 'Pit (the player falls in)' })).toBeChecked()
+  })
+
+  it('Camera lists the room’s views by name and None, and picking one changes it', async () => {
+    const onchange = mount({ ...hall, view: 'middle', views: ['start', 'middle', 'goal'] })
+    const camera = screen.getByRole('button', { name: /Camera/ })
+    expect(camera).toHaveTextContent('Middle')
+    await userEvent.click(camera)
+    expect(screen.getAllByRole('option').map((each) => each.textContent?.trim())).toEqual([
+      'Start',
+      'Middle',
+      'Goal',
+      'None',
+    ])
+    await userEvent.click(screen.getByRole('option', { name: 'Goal' }))
+    expect(onchange).toHaveBeenCalledWith({ kind: 'sector', id: 'hall', view: 'goal' }, 'set')
+  })
+
+  it('Camera None takes the camera off, and a room whose file has no views has no Camera', async () => {
+    const onchange = mount({ ...hall, view: 'middle', views: ['start', 'middle'] })
+    await userEvent.click(screen.getByRole('button', { name: /Camera/ }))
+    await userEvent.click(screen.getByRole('option', { name: 'None' }))
+    expect(onchange).toHaveBeenCalledWith({ kind: 'sector', id: 'hall', view: null }, 'set')
+  })
+
+  it('has no Camera when the file names no views', () => {
+    mount(hall)
+    expect(screen.queryByRole('button', { name: /Camera/ })).toBeNull()
   })
 
   it('shows the model’s sentence when a change is refused', async () => {

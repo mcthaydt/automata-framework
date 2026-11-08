@@ -7,7 +7,14 @@ import type { Occlude } from '@automata/3d/level'
 import type { FieldValue } from '@automata/editor/kit/fields'
 import type { Edit } from '../../../shared/edit/edit'
 import type { EditSession, LevelEditor } from '../../../shared/edit/level-editor'
-import { type SetMaterialsArgs, setHeights, setLight, setMaterials } from '../../../shared/edit/sector-edits'
+import {
+  type SetMaterialsArgs,
+  setHeights,
+  setLight,
+  setMaterials,
+  setPit,
+  setView,
+} from '../../../shared/edit/sector-edits'
 import { removeThing, setThingField } from '../../../shared/edit/thing-edits'
 import {
   type DoorArgs,
@@ -42,6 +49,9 @@ export type InspectorChange =
   | { readonly kind: 'sector'; readonly id: string; readonly floor: number }
   | { readonly kind: 'sector'; readonly id: string; readonly ceiling: number }
   | { readonly kind: 'sector'; readonly id: string; readonly light: number }
+  | { readonly kind: 'sector'; readonly id: string; readonly pit: boolean }
+  /** `null` takes the camera off. */
+  | { readonly kind: 'sector'; readonly id: string; readonly view: string | null }
   | { readonly kind: 'sector'; readonly id: string; readonly materials: Without<SetMaterialsArgs, 'id'> }
   | ({ readonly kind: 'wall'; readonly sector: string; readonly corner: number } & (
       | { readonly type: 'solid' | 'door' | 'window' }
@@ -69,6 +79,8 @@ function editOf<D>(change: InspectorChange): Edit<D> {
     if ('floor' in change) return setHeights({ id: change.id, floor: change.floor })
     if ('ceiling' in change) return setHeights({ id: change.id, ceiling: change.ceiling })
     if ('light' in change) return setLight({ id: change.id, light: change.light })
+    if ('pit' in change) return setPit({ id: change.id, pit: change.pit })
+    if ('view' in change) return setView({ id: change.id, view: change.view })
     return setMaterials({ id: change.id, ...change.materials })
   }
   const wall = { sector: change.sector, corner: change.corner }

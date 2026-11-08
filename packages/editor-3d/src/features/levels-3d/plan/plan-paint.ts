@@ -36,6 +36,12 @@ export interface PaintFill {
   readonly selected: boolean
 }
 
+/** A word on the plan at a screen point: "Pit" at the middle of a room that is one. */
+export interface PaintMark {
+  readonly text: string
+  readonly at: ScreenPoint
+}
+
 export interface PaintStroke {
   readonly a: ScreenPoint
   readonly b: ScreenPoint
@@ -86,6 +92,8 @@ export interface PlanPaint {
   readonly gridColor: number
   readonly grid: readonly PaintGridLine[]
   readonly fills: readonly PaintFill[]
+  /** Words laid over the fills. */
+  readonly marks: readonly PaintMark[]
   readonly walls: readonly PaintStroke[]
   readonly links: readonly PaintLine[]
   readonly things: readonly PaintThing[]
@@ -167,9 +175,17 @@ export function planPaint(input: PlanPaintInput): PlanPaint {
         return [at.x, at.y]
       }),
     ),
-    color: groupColor(fill.group),
+    color: fill.pit === true ? PLAN_COLORS.pit : groupColor(fill.group),
     selected: fill.selection !== undefined && input.selected.has(fill.selection),
   }))
+  // The middle of the outline's box: a pit's word sits inside it for any room that is not a crescent.
+  const marks = scene.fills.flatMap((fill): PaintMark[] => {
+    if (fill.pit !== true || fill.outline.length === 0) return []
+    const xs = fill.outline.map((point) => point.x)
+    const zs = fill.outline.map((point) => point.z)
+    const middle = { x: (Math.min(...xs) + Math.max(...xs)) / 2, z: (Math.min(...zs) + Math.max(...zs)) / 2 }
+    return [{ text: 'Pit', at: toScreen(viewport, middle) }]
+  })
   const selectedSectors = new Set(fills.filter((fill) => fill.selected).map((fill) => fill.sector))
   const walls = scene.walls.flatMap((wall) => wallStrokes(wall, viewport))
   // The accent goes over everything else: a selected wall, and the walls of a selected sector.
@@ -235,6 +251,7 @@ export function planPaint(input: PlanPaintInput): PlanPaint {
     gridColor: PLAN_COLORS.grid,
     grid,
     fills,
+    marks,
     walls: [...walls, ...accents],
     links,
     things,

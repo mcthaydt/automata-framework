@@ -32,6 +32,19 @@ const SQUARE = [
   [0, 6],
 ] as const
 
+describe('planScene pits', () => {
+  it('marks the fill of a room that is a pit, and no other', () => {
+    const level = toyAfSector({ sectors: [toyHall, { ...toyDock, pit: true }] })
+    const { fills } = planScene(afSectorProfile.geometry(level).layers, selectionOf(afSectorProfile, level), {
+      pits: new Set(['dock']),
+    })
+    expect(fills.map((fill) => [fill.sector, fill.pit === true])).toEqual([
+      ['hall', false],
+      ['dock', true],
+    ])
+  })
+})
+
 describe('planScene fills', () => {
   it('has one fill for each sector, with its outline, no holes, its heights and light', () => {
     const level = depot()

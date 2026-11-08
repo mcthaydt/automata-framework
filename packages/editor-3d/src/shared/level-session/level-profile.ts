@@ -54,6 +54,8 @@ export interface LevelProfile<D> extends FileCodec<D> {
   readonly things: ThingAccess<D>
   /** What the material picker offers (ED3D.8a): the file's table. */
   materials(doc: D): MaterialList
+  /** The camera views the level names, for a room to take one (the Camera picker); a format with none leaves it out. */
+  views?(doc: D): readonly string[]
   /** The unit, Walk's eye and lens, and the snap (ED3D.8a). */
   readonly hints: LevelHints
   /** The things the level joins in pairs (ED3D.7c: Last Light's nav edges); a format with none leaves it out. */

@@ -11,6 +11,7 @@ import {
   setHeights,
   setLight,
   setMaterials,
+  setPit,
   setView,
 } from '#src/shared/edit/sector-edits.ts'
 import { afSectorCodec } from '#src/shared/level-session/af-sector/af-codec.ts'
@@ -721,9 +722,42 @@ describe('sector.setView (ED3D.4b)', () => {
     const edit = setView({ id: 'hall', view: 'hall-view' })
     expect([edit.id, edit.label, edit.coalesce]).toEqual([
       'sector.setView',
-      'Set the view of hall',
+      'Set the camera of hall',
       'view:hall',
     ])
+  })
+})
+
+describe('sector.setPit', () => {
+  const pit = (id: string, on: boolean, level = depot) => run(afSectorProfile, level, setPit({ id, pit: on }))
+
+  it('makes a room a pit, and taking it back leaves the file as it was', () => {
+    const made = levelOf(pit('hall', true))
+    expect(sector(made, 'hall').pit).toBe(true)
+    const undone = levelOf(pit('hall', false, made))
+    expect(undone).toEqual(depot)
+    expect('pit' in sector(undone, 'hall')).toBe(false)
+  })
+
+  it('changes nothing for a room that already is, or is not, a pit', () => {
+    const made = levelOf(pit('hall', true))
+    expect(levelOf(pit('hall', true, made))).toBe(made)
+    expect(levelOf(pit('hall', false))).toBe(depot)
+  })
+
+  it('writes only the room’s `pit` member, and Undo puts the text back byte for byte', () => {
+    const made = levelOf(pit('hall', true))
+    const text = afSectorCodec.patch(depotText, depot, made)
+    if (!text.ok) throw new Error(text.detail)
+    const back = afSectorCodec.patch(text.text, made, depot)
+    expect(back.ok && back.text).toBe(depotText)
+  })
+
+  it('is called sector.setPit, says what it does in words, and refuses a room that is not there', () => {
+    const edit = setPit({ id: 'hall', pit: true })
+    expect([edit.id, edit.label]).toEqual(['sector.setPit', 'Make hall a pit'])
+    expect(setPit({ id: 'hall', pit: false }).label).toBe('Make hall not a pit')
+    expect(reasonOf(pit('nowhere', true))).toBe('no sector nowhere')
   })
 })
 

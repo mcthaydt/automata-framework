@@ -17,20 +17,37 @@ import { planViewport, toWorld } from './plan-viewport'
 /** The plan for a canvas of `size`, through the view's camera or, for the loupe, a `camera` of its own. */
 export function createPlanPicture<D>(editor: LevelEditor<D>): (size: Size, camera?: Camera) => PlanPaint {
   const geometry = createGeometryCache(editor)
-  let things: { readonly level: D; readonly kit: EntityKit; readonly links: readonly ThingLink[] } | undefined
+  let things:
+    | {
+        readonly level: D
+        readonly kit: EntityKit
+        readonly links: readonly ThingLink[]
+        readonly pits: ReadonlySet<string>
+      }
+    | undefined
 
   const thingsOf = (level: D) => {
     if (things?.level !== level)
-      things = { level, kit: editor.profile.entities(level), links: editor.profile.links?.list(level) ?? [] }
+      things = {
+        level,
+        kit: editor.profile.entities(level),
+        links: editor.profile.links?.list(level) ?? [],
+        pits: new Set(
+          editor.profile.sectors
+            .list(level)
+            .filter((sector) => sector.pit === true)
+            .map((sector) => sector.id),
+        ),
+      }
     return things
   }
 
   return (size, camera = editor.view.state.camera) => {
     const { layers, select, level } = geometry()
     const { hidden, grid } = editor.view.state
-    const { kit, links } = thingsOf(level)
+    const { kit, links, pits } = thingsOf(level)
     return planPaint({
-      scene: planScene(layers, select, { hidden }),
+      scene: planScene(layers, select, { hidden, pits }),
       kit,
       links,
       linkDef: editor.profile.links?.def,

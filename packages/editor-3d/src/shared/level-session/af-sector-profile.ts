@@ -35,6 +35,7 @@ export const afSectorProfileFor = (library: GameLibrary): LevelProfile<AfSector2
   sectors: afSectorAccess,
   things: afThingAccess,
   materials: (level) => afMaterials(level, library),
+  views: (level) => Object.keys(level.views ?? {}),
   hints: SECTOR_HINTS,
 })
 

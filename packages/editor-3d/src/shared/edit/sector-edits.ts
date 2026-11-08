@@ -199,6 +199,25 @@ export function setLight<D>(args: { readonly id: string; readonly light: number 
 }
 
 /**
+ * Whether the room is a pit: a drop the player falls into (the flag, not a floor below 0). Taking it off writes no `pit`
+ * at all, so the file is as it was before the room was one.
+ */
+export function setPit<D>(args: { readonly id: string; readonly pit: boolean }): Edit<D> {
+  return {
+    id: 'sector.setPit',
+    label: args.pit ? `Make ${args.id} a pit` : `Make ${args.id} not a pit`,
+    run(profile, level) {
+      const sector = sectorOf(profile, level, args.id)
+      if (sector === undefined) return noSector(args.id)
+      if ((sector.pit ?? false) === args.pit) return ok(level)
+      if (args.pit) return replaceSector(profile, level, args.id, { ...sector, pit: true })
+      const { pit: _cleared, ...rest } = sector
+      return replaceSector(profile, level, args.id, rest)
+    },
+  }
+}
+
+/**
  * The camera view the game takes while the player is in the sector (the 3D direction spec §4.2), by the id of a
  * `camera-view` of the game's content: the editor holds the id, and the content check of the game says whether there is
  * one. `null` takes it off. A Last Light room has none to hold, and the profile says so when the sector is written.
@@ -206,7 +225,7 @@ export function setLight<D>(args: { readonly id: string; readonly light: number 
 export function setView<D>(args: { readonly id: string; readonly view: string | null }): Edit<D> {
   return {
     id: 'sector.setView',
-    label: `Set the view of ${args.id}`,
+    label: `Set the camera of ${args.id}`,
     coalesce: `view:${args.id}`,
     run(profile, level) {
       const sector = sectorOf(profile, level, args.id)

@@ -24,6 +24,10 @@ export type InspectorCard = { readonly selected: number } & (
       readonly ceilingTexture: string | undefined
       readonly wallTexture: string | undefined
       readonly view: string | undefined
+      /** The room is a drop the player falls into. */
+      readonly pit: boolean
+      /** The camera views the file names, for the Camera picker; none when the format has none to name. */
+      readonly views: readonly string[]
       readonly walls: number
       readonly portals: number
     }
@@ -118,6 +122,8 @@ export function inspectorOf<D>(
       ceilingTexture: sector.ceilingTexture,
       wallTexture: sector.wallTexture,
       view: sector.view,
+      pit: sector.pit === true,
+      views: editor.profile.views?.(editor.level) ?? [],
       walls: sector.corners.length,
       portals: walls.filter((wall) => wall?.next !== undefined).length,
     }

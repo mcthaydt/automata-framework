@@ -6,6 +6,8 @@ export const PLAN_COLORS = {
   background: 0x0c0d10,
   /** A sector of no zone or style. */
   fill: 0x1f232b,
+  /** A room the player falls into: darker than any other fill, and named "Pit" on the plan. */
+  pit: 0x07080a,
   wall: 0xb4bac6,
   portal: 0x5aa9e6,
   door: 0xd98c5f,
