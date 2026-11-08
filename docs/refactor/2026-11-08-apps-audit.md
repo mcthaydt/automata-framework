@@ -303,14 +303,34 @@ sides can.
    A change whose checks failed says so ("This change broke a check: Feel") and still offers all three buttons. The
    diff is behind "Show the files", not on the card.
 
-   Today's Review desk is the start (`ReviewDesk.svelte`, `review-model.ts`). It reads the local change-set journal and
-   shows branch names, code diffs and token counts. It has no button: "there is no button here, only links to where a
-   decision is made". The app reads the game's open pull requests instead and adds the three buttons.
+   **Use changes without asking.** The Owner, 2026-11-08 19:16: "We should have an auto option too where it doesn't
+   ask it just works". This is a switch at the top of the Review page, one per game, and it is off at first. When it
+   is on, each change is used as soon as its checks pass, with no card. The app does the merge itself when it pulls
+   (on open, on coming to the front, and every 60 s), because GitHub's own auto-merge is not available on private
+   repositories on the Free plan. A change made while the app is closed is used the next time it opens. The switch
+   still stops and asks in two cases:
+   - A check failed. The change waits on the page with "This change broke a check: Feel".
+   - The merge rules below cannot settle an overlap with the person's own edits. The conflict dialog opens.
+
+   Each change it uses shows a notice for a few seconds: "Claude's change is in: Feel, Levels (Start). Undo". Undo is a
+   new commit that reverts it, never a force-push. The Review page lists the last changes used this way, each with
+   Undo, so one can be taken back after the notice has gone.
+
+   **Build it new.** There is no Review page to start from. Main still has a Review desk (`ReviewDesk.svelte`,
+   `review-model.ts`) that showed the local change-set journal with no buttons. The stack deletes it with the
+   change-set desk (`a15c7b36`, "a real game never had a change set"); `DiffView.svelte` goes with it. The editors v2
+   spec (PR #519) leaves Review out on purpose: "Building it again is a feature, so it is not in this plan". So the
+   plan builds all of it:
+   - the "Waiting for you" group, the Review row with its count, the page and its cards;
+   - the switch and the Undo;
+   - a diff view;
+   - the empty page from the editors v2 mockup: "Nothing waiting for you".
+
+   The `review` icon is still in the kit. The page reads the game's open pull requests through the sync engine.
 
    **Play it** needs something that does not exist yet: the game runner must play a second checkout of the branch
    (`.automata/review/<branch>`), not the open game's folder. On a phone it needs the in-app player (A4).
 
-   With nothing waiting, the page keeps the empty state the v2 spec already gives Review: "Nothing waiting for you".
    The page needs GitHub, so it is in the apps (D1).
 3. **Told to push to `main`.** The app pulls it like any change. The game's `AGENTS.md` (A6) tells a coding agent to
    use a branch and a pull request, so this happens only when the person asks for it.
@@ -352,6 +372,7 @@ without it, so Apple's 4.8 (Sign in with Apple) does not apply.
 - "Saved and on GitHub".
 - "Getting changes from GitHub…".
 - "Waiting for you": "Play it", "Use this change", "Not this one".
+- "Use changes without asking". "Claude's change is in: Feel, Levels (Start). Undo".
 - "A file changed here and on GitHub. Choose which to keep."
 
 ### The desktop app
