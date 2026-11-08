@@ -41,10 +41,13 @@ export function freshSense(kind: SenseKind): Sense {
   }
 }
 
+/** Whether boxes and shut doors block this sight: only `wallsOnly: false` says so (the sim's `probe.ts`). */
+const blocksView = (sight: { readonly wallsOnly?: boolean | undefined }): boolean => sight.wallsOnly === false
+
 /** The sentence for a sense. */
 export function senseWords(sense: Sense): string {
   if ('sight' in sense)
-    return `Sees up to ${num(sense.sight.range)} m. Boxes and closed doors block its view: ${sense.sight.wallsOnly === true ? 'no' : 'yes'}`
+    return `Sees up to ${num(sense.sight.range)} m. Boxes and closed doors block its view: ${blocksView(sense.sight) ? 'yes' : 'no'}`
   if ('sound' in sense)
     return sense.sound.reach === undefined ? 'Hears from anywhere' : `Hears up to ${num(sense.sound.reach)} m`
   if ('touch' in sense) return `Touches within ${num(sense.touch.radius)} m`
@@ -64,7 +67,7 @@ export function senseFields(sense: Sense): Field[] {
         key: 'blocked',
         label: 'Boxes and closed doors block its view',
         kind: 'choice',
-        value: sense.sight.wallsOnly === true ? 'no' : 'yes',
+        value: blocksView(sense.sight) ? 'yes' : 'no',
         options: YES_NO,
       },
     ]
@@ -95,8 +98,9 @@ export function writeSense(sense: Sense, key: string, next: unknown): Sense {
   if ('sight' in sense) {
     if (key === 'range') return { sight: { ...sense.sight, range: Number(next) } }
     if (key === 'blocked') {
+      // The game's default (no field) is walls only, so "no" removes the field and "yes" has to write it.
       const { wallsOnly: _gone, ...rest } = sense.sight
-      return { sight: next === 'no' ? { ...rest, wallsOnly: true } : rest }
+      return { sight: next === 'yes' ? { ...rest, wallsOnly: false } : rest }
     }
     return sense
   }

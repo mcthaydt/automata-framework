@@ -24,10 +24,12 @@ const NAV = CONTENT_SAMPLE_GAME['content/nav/hall.toml'] as string
 
 describe('the sentences', () => {
   it('say each sense in words', () => {
+    // The game: a sense that leaves `wallsOnly` out (or says true) is blocked by walls only; false adds boxes.
     expect(senseWords({ sight: { range: 4.5 } })).toBe(
-      'Sees up to 4.5 m. Boxes and closed doors block its view: yes',
+      'Sees up to 4.5 m. Boxes and closed doors block its view: no',
     )
     expect(senseWords({ sight: { range: 4.5, wallsOnly: true } })).toContain('block its view: no')
+    expect(senseWords({ sight: { range: 4.5, wallsOnly: false } })).toContain('block its view: yes')
     expect(senseWords({ sound: { reach: 8 } })).toBe('Hears up to 8 m')
     expect(senseWords({ sound: {} })).toBe('Hears from anywhere')
     expect(senseWords({ touch: { radius: 0.6 } })).toBe('Touches within 0.6 m')
@@ -38,10 +40,10 @@ describe('the sentences', () => {
 
   it('write a field back into its own sense', () => {
     expect(writeSense({ sight: { range: 4 } }, 'range', 6)).toEqual({ sight: { range: 6 } })
-    expect(writeSense({ sight: { range: 4 } }, 'blocked', 'no')).toEqual({
-      sight: { range: 4, wallsOnly: true },
+    expect(writeSense({ sight: { range: 4 } }, 'blocked', 'yes')).toEqual({
+      sight: { range: 4, wallsOnly: false },
     })
-    expect(writeSense({ sight: { range: 4, wallsOnly: true } }, 'blocked', 'yes')).toEqual({
+    expect(writeSense({ sight: { range: 4, wallsOnly: false } }, 'blocked', 'no')).toEqual({
       sight: { range: 4 },
     })
     expect(writeSense({ sound: {} }, 'limit', 'near')).toEqual({ sound: { reach: 10 } })
@@ -113,7 +115,7 @@ describe('the character in the inspector', () => {
     await open()
     expect(await screen.findByText(/its first patrol stop, door/)).toBeInTheDocument()
     expect(
-      screen.getByText('Sees up to 4.5 m. Boxes and closed doors block its view: yes'),
+      screen.getByText('Sees up to 4.5 m. Boxes and closed doors block its view: no'),
     ).toBeInTheDocument()
     expect(screen.getByText('Touches within 0.6 m')).toBeInTheDocument()
     expect(screen.getByText('Stop 1')).toBeInTheDocument()
