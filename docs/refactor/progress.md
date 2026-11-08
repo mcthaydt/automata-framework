@@ -1,6 +1,6 @@
 # Refactor progress
 
-**Overall: 44% (8 of 18 stages done).**
+**Overall: 42% (10 of 24 stages done; the customer value pipeline's six stages are counted from 2026-11-08).**
 
 The Owner's order: finish one slice completely before starting the next. On 2026-11-05 it was core and 2D, then 3D, then
 the editors, then the website. On 2026-11-06 the Owner changed the later slices to vertical ones: "we do the editor
@@ -540,7 +540,7 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
 
-## Customer value for AI game makers (stage 1 of 6 done, 2026-11-08)
+## Customer value for AI game makers: 33% (2 of 6 stages done, 2026-11-08)
 
 The Owner, 2026-11-08 21:35: "Do an audit that the editors and framework actually deliver on the value expected from the
 customer - we are customer obsessed, we are crafting the perfect product from someone who is making games with AI".
@@ -548,4 +548,8 @@ customer - we are customer obsessed, we are crafting the perfect product from so
 | Stage | Status | Record |
 |---|---|---|
 | 1. Audit | Done, 2026-11-08: 3 critical (V1 to V3), 5 high (V4 to V8), 6 medium (V9 to V14), 5 low (V15 to V19), one decision for the Owner (D1, whether Publish puts the game on itch.io). A game made from the packed tools outside the workspace was given a coin feature by an agent, edited in the editors, played, reloaded, reopened and published to a zip that played; the story and 3D games were edited in every editor. Typed words were lost on reload (V2, sent to the sign-in and saving thread) | [audit](2026-11-08-customer-value-audit.md) |
-| 2. Plan and spec | Not started; V1, V3, V4 and V6 make one "agent experience" slice; V2, V5 and V8 belong to running threads | |
+| 2. Plan and spec | Done, 2026-11-08: 18 tasks in six phases. Phase 1 is the agent experience (V1, V3, V4, V6): the skills mirror becomes a marketplace, `create-game` writes `AGENTS.md`, `CLAUDE.md` and `.claude/settings.json`, a sixth skill `automata-content`, the API reference covers every package a template imports, the editor command recognises the repository by name, and the player collides with the box it is drawn in. Then the first minute (V9, V12, V17), extension events and landscape fit (V10, V8), sharing for both answers of D1 (V11), site copy (V7, V13, V14) and tidy-ups (V19). Left out: V2 (the saving thread, #528). Handed off with acceptance lines: V5, V8's HUD, V15, V16, V18. Waiting: Task 14 on D1, Task 15 on the free web editor work, Task 16 on the DUEL licence answer | [spec](2026-11-08-customer-value-spec.md), [plan](2026-11-08-customer-value-plan.md) |
+| 3. Plan audit | Not started | |
+| 4. Build | Not started | |
+| 5. Build audit | Not started | |
+| 6. Fixes | Not started | |
