@@ -53,10 +53,10 @@ describe('/editor', () => {
     expect(text).toContain(EDITOR_COMMAND)
   })
 
-  it('opens the try-it editor, says where it keeps levels, and how to open it on a game', () => {
+  it('opens the try-it editor, says its levels are not kept, and how to open it on a game', () => {
     const view = render(EditorPage)
     expect(view.getByRole('link', { name: 'Try the editor' }).getAttribute('href')).toBe('/editor/app/')
-    expect(view.container.textContent).toContain('keeps your levels in this browser')
+    expect(view.container.textContent).toContain('Your levels stay in this page')
     expect(EDITOR_COMMAND).toBe('pnpm exec automata editor')
     expect(view.getByText(EDITOR_COMMAND)).toBeTruthy()
   })

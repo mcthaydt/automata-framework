@@ -1,6 +1,6 @@
 <!--
   The Editor page: what the 2D level editor does in three pictures, "Try the editor" (the page `automata editor`
-  serves a 2D game, here on a sample game kept in this browser) and the command that opens it on a game. Home's look: one
+  serves a 2D game, here on a sample game that lives in the page) and the command that opens it on a game. Home's look: one
   lime button, white panels on hairlines, 4/6/8 px corners.
 -->
 <script lang="ts">
@@ -28,7 +28,7 @@ const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
     <!-- The editor is a page of its own, not one of the site's routes, so the browser loads it whole. -->
     <p class="cta"><a class="button" href="/editor/app/" data-sveltekit-reload>Try the editor <Icon name="arrowRight" /></a></p>
     <p class="note">
-      Nothing to install. The try-it editor keeps your levels in this browser and nowhere else. Share sends one out as a
+      Nothing to install. Your levels stay in this page and are gone when you close it, so press Share to save one as a
       file. {EDITOR_PLAY_NOTE}
     </p>
   </header>
