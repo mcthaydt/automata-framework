@@ -82,11 +82,18 @@ export default defineConfig({
         },
       },
       // The Svelte plugins and the Pixi pre-bundle sit on the project, as on the other browser projects (see above).
-      {
-        ...journeyProject(playwright, { browsers: ['chromium', 'webkit'] }),
-        plugins: [svelte(), svelteTesting()],
-        optimizeDeps: { include: ['pixi.js'] },
-      },
+      (() => {
+        const journeys = journeyProject(playwright, { browsers: ['chromium', 'webkit'] })
+        return {
+          ...journeys,
+          plugins: [svelte(), svelteTesting()],
+          optimizeDeps: { include: ['pixi.js'] },
+          // A journey drives real pointer events and waits for frames; the runners draw WebGL in software, so one
+          // took more than Vitest's 15 s default (the Studio's Animate journey) and a slow tap sequence missed its
+          // close. A stuck journey still fails at its own step's wait.
+          test: { ...journeys.test, testTimeout: 60_000, hookTimeout: 60_000 },
+        }
+      })(),
     ],
   },
 })
