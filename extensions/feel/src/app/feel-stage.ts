@@ -5,13 +5,16 @@
 
 import {
   type Clock,
+  createHudText,
   type FrameInfo,
+  type HudLabel,
   type PixiStage,
   type PixiStageHooks,
   systemClock,
+  WORD_TEXT_FLOOR,
 } from '@automata/framework'
 import type { StepResult } from '@automata/sim'
-import { Graphics, Text } from 'pixi.js'
+import { Graphics } from 'pixi.js'
 import {
   createFeel,
   DEFAULT_SETTINGS,
@@ -46,6 +49,9 @@ export interface FeelStageOptions {
   /** The playfield's logical size: a word with no subject shows in the middle of it. Default 320 by 180. */
   readonly size?: { readonly width: number; readonly height: number } | undefined
 }
+
+/** A word's size in logical px, before the floor raises it for a small screen. */
+const WORD_SIZE_PX = 10
 
 /** A word rises as it ages (unless motion is reduced) and sits above its subject's view. */
 const WORD_RISE_PX_PER_SECOND = 16
@@ -84,33 +90,37 @@ export function feelStage(options: FeelStageOptions): (stage: PixiStage) => Pixi
       layer.alpha = overlay.alpha
     }
 
-    // A pool of words, one Text each, reused from frame to frame.
-    const wordTexts: Text[] = []
+    // A pool of words, one canvas label each, reused from frame to frame. Words draw on the stage's hud layer, above the
+    // flash and tint and outside the post filters, in the baked font at no less than 14 CSS px (the framework's
+    // `createHudText`). The labels are children of the hud, so the renderer's teardown removes them; nothing here needs
+    // disposing.
+    const hudText = createHudText(stage)
+    const wordLabels: HudLabel[] = []
     const showWords = (words: FeelFrame['words']): void => {
       const size = options.size ?? { width: 320, height: 180 }
       let used = 0
       for (const word of words) {
         if (word.words === undefined) continue
-        let text = wordTexts[used]
-        if (text === undefined) {
-          text = new Text({
-            text: '',
-            style: { fontSize: 10, fill: 0xffffff, stroke: { color: 0x000000, width: 2 }, align: 'center' },
-          })
-          text.anchor.set(0.5, 1)
-          text.eventMode = 'none'
-          wordTexts.push(text)
-          stage.ui.addChild(text)
+        let label = wordLabels[used]
+        if (label === undefined) {
+          label = hudText.label()
+          wordLabels.push(label)
         }
         used += 1
-        text.text = options.translate?.(word.path ?? [], word.words) ?? word.words
+        const text = options.translate?.(word.path ?? [], word.words) ?? word.words
         const subject = word.at === null ? undefined : stage.characters.point(word.at)
         const at = subject ?? { x: size.width / 2, y: size.height / 2 }
         const rise = word.still ? 0 : word.age * WORD_RISE_PX_PER_SECOND
-        text.position.set(at.x, at.y - (subject === undefined ? 0 : WORD_ABOVE_PX) - rise)
-        text.visible = true
+        label.set(text, at.x, at.y - (subject === undefined ? 0 : WORD_ABOVE_PX) - rise, {
+          size: WORD_SIZE_PX,
+          floor: WORD_TEXT_FLOOR,
+          color: 0xffffff,
+          shadow: true,
+          // Centred over its subject, standing on the point the table gives.
+          anchor: { x: 0.5, y: 1 },
+        })
       }
-      for (let i = used; i < wordTexts.length; i += 1) (wordTexts[i] as Text).visible = false
+      for (let i = used; i < wordLabels.length; i += 1) (wordLabels[i] as HudLabel).hide()
     }
 
     // The refs squashed on the last frame, so the ones the spring has settled are put back exactly once.
@@ -150,7 +160,7 @@ export function feelStage(options: FeelStageOptions): (stage: PixiStage) => Pixi
         stage.characters.hold(new Set())
         for (const ref of squashed) stage.characters.rest(ref)
         squashed.clear()
-        for (const text of wordTexts) text.visible = false
+        for (const label of wordLabels) label.hide()
         shake([0, 0])
         feel = make()
         tick = 0

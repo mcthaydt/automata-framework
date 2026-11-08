@@ -3,8 +3,8 @@
 import type { PixiStage, StageCharacters } from '@automata/framework'
 import { fakeClock } from '@automata/framework/testing'
 import type { SimEvent, StepResult } from '@automata/sim'
-import { Container, Text } from 'pixi.js'
-import { describe, expect, it, vi } from 'vitest'
+import { CanvasTextMetrics, Container, Text } from 'pixi.js'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { feelStage } from '#src/app/feel-stage.ts'
 import type { FeelFrame } from '#src/features/frame/feel.ts'
 import { content, slam } from '#src/testing/feel-table.ts'
@@ -19,9 +19,22 @@ const fakeStage = (): PixiStage =>
   ({
     world: new Container(),
     ui: new Container(),
+    hud: new Container(),
+    hudScale: () => ({ cssPerLogical: 3, devicePerCss: 1, hostScale: 1 }),
     backdrop: new Container(),
     characters: noCharacters,
   }) as unknown as PixiStage
+
+// Words are canvas text, and Node has no 2D canvas to measure a `Text` with; a fixed advance per letter stands in. No
+// baked page loads here either, so every word draws in the fallback face: the framework's browser tests cover the
+// bitmap path, and the complete-game journeys play the real thing.
+beforeEach(() => {
+  vi.spyOn(CanvasTextMetrics, 'measureText').mockImplementation(((value: string, style: { fontSize: number }) => ({
+    width: [...value].length * 5,
+    height: style.fontSize * 1.2,
+  })) as never)
+})
+afterEach(() => vi.restoreAllMocks())
 
 const step = (tick: number, events: readonly SimEvent[]): StepResult =>
   ({ tick, events, render: {}, rejected: [] }) as unknown as StepResult
@@ -231,8 +244,13 @@ describe('feelStage: words', () => {
     ...content,
     entry: [{ on: 'slam', word: [{ key: 'slam.word', words: 'Ouch!', at: 'subject' as const }] }],
   }
+  // One container per label on the hud; the fill is the last Text in it (the shadow comes first).
   const texts = (stage: PixiStage): Text[] =>
-    stage.ui.children.filter((c): c is Text => c instanceof Text && c.visible)
+    stage.hud.children
+      .filter((label) => label.visible)
+      .map((label) => label.children.filter((c): c is Text => c instanceof Text && c.visible).at(-1) as Text)
+  // A word is anchored by the middle of its bottom edge: that is the point the table places.
+  const anchorOf = (t: Text | undefined) => ({ x: (t?.x ?? 0) + (t?.width ?? 0) / 2, y: (t?.y ?? 0) + (t?.height ?? 0) })
 
   it('shows a word over its subject’s view and takes it away when its time is up', () => {
     const view = new Container()
@@ -245,8 +263,8 @@ describe('feelStage: words', () => {
     hooks.draw?.(frameInfo)
     const [word] = texts(stage)
     expect(word?.text).toBe('Ouch!')
-    expect(Math.abs((word?.x ?? 0) - 40)).toBeLessThan(1)
-    expect(word?.y ?? 99).toBeLessThan(60)
+    expect(Math.abs(anchorOf(word).x - 40)).toBeLessThan(1)
+    expect(anchorOf(word).y).toBeLessThan(60)
     for (let i = 0; i < 80; i += 1) {
       clock.advance(16)
       hooks.draw?.(frameInfo)
@@ -289,7 +307,7 @@ describe('feelStage: words', () => {
     hooks.draw?.(frameInfo)
     const shown = texts(stage)
     expect(shown.map((t) => t.text)).toEqual(['Mid'])
-    expect([shown[0]?.x, shown[0]?.y]).toEqual([100, 50])
+    expect([anchorOf(shown[0]).x, anchorOf(shown[0]).y]).toEqual([100, 50])
   })
 
   it('holds a word still for reduced motion', () => {
@@ -303,5 +321,57 @@ describe('feelStage: words', () => {
     clock.advance(200)
     hooks.draw?.(frameInfo)
     expect(texts(stage)[0]?.y).toBe(before)
+  })
+
+  it('draws words on the hud layer, not in the picture, so the flash and tint cannot wash them out', () => {
+    const { stage } = withViews({ 7: new Container() })
+    const hooks = feelStage({ content: () => said, clock: fakeClock() })(stage)
+    hooks.apply?.(step(1, [slam(7)]))
+    hooks.draw?.(frameInfo)
+    expect(texts(stage)).toHaveLength(1)
+    expect(stage.ui.children.some((child) => child instanceof Text)).toBe(false)
+    expect(stage.hud.children).toHaveLength(1)
+  })
+
+  it('draws a word at least 14 CSS px tall even when a logical pixel is smaller than a CSS pixel', () => {
+    const { stage } = withViews({ 7: new Container() })
+    stage.hudScale = () => ({ cssPerLogical: 0.77, devicePerCss: 3, hostScale: 1 })
+    const hooks = feelStage({ content: () => said, clock: fakeClock() })(stage)
+    hooks.apply?.(step(1, [slam(7)]))
+    hooks.draw?.(frameInfo)
+    expect(texts(stage)[0]?.style.fontSize).toBeCloseTo(14 / 0.77, 3)
+  })
+
+  it('puts a dark shadow behind a word', () => {
+    const { stage } = withViews({ 7: new Container() })
+    const hooks = feelStage({ content: () => said, clock: fakeClock() })(stage)
+    hooks.apply?.(step(1, [slam(7)]))
+    hooks.draw?.(frameInfo)
+    const label = stage.hud.children[0]
+    const [shadow, fill] = (label?.children ?? []).filter((c): c is Text => c instanceof Text && c.visible)
+    expect(shadow?.style.fill).toBe(0x000000)
+    expect(fill?.style.fill).toBe(0xffffff)
+  })
+
+  it('draws a Chinese word in the device face and still shows it', () => {
+    const { stage } = withViews({ 7: new Container() })
+    const hooks = feelStage({
+      content: () => said,
+      clock: fakeClock(),
+      translate: () => '好痛！',
+    })(stage)
+    hooks.apply?.(step(1, [slam(7)]))
+    hooks.draw?.(frameInfo)
+    expect(texts(stage)[0]?.text).toBe('好痛！')
+  })
+
+  it('hides every word when it starts over', () => {
+    const { stage } = withViews({ 7: new Container() })
+    const hooks = feelStage({ content: () => said, clock: fakeClock() })(stage)
+    hooks.apply?.(step(1, [slam(7)]))
+    hooks.draw?.(frameInfo)
+    expect(texts(stage)).toHaveLength(1)
+    hooks.reset?.()
+    expect(texts(stage)).toHaveLength(0)
   })
 })
