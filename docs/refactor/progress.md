@@ -702,3 +702,13 @@ this build", and the 3D editors are not held back because the launch waits for P
   wall at column 5 no longer matches the story template's level, which now has a wall column at 16 (stale expectation, not changed here).
   `standalone-exemption.test.ts` failed once in the site's unit run before a build and passed after; it fails the same on #522.
 - Do not publish `@automata/tools` or deploy the site before `@pixi/3d` is public: both now carry it.
+
+## Customer value for AI game makers (stage 1 of 6 done, 2026-11-08)
+
+The Owner, 2026-11-08 21:35: "Do an audit that the editors and framework actually deliver on the value expected from the
+customer - we are customer obsessed, we are crafting the perfect product from someone who is making games with AI".
+
+| Stage | Status | Record |
+|---|---|---|
+| 1. Audit | Done, 2026-11-08: 3 critical (V1 to V3), 5 high (V4 to V8), 6 medium (V9 to V14), 5 low (V15 to V19), one decision for the Owner (D1, whether Publish puts the game on itch.io). A game made from the packed tools outside the workspace was given a coin feature by an agent, edited in the editors, played, reloaded, reopened and published to a zip that played; the story and 3D games were edited in every editor. Typed words were lost on reload (V2, sent to the sign-in and saving thread) | [audit](2026-11-08-customer-value-audit.md) |
+| 2. Plan and spec | Not started; V1, V3, V4 and V6 make one "agent experience" slice; V2, V5 and V8 belong to running threads | |
