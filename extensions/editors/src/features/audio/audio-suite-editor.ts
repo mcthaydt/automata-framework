@@ -7,6 +7,7 @@ import { askOf, undoOf } from '../../shared/session-hooks.ts'
 import { openTomlSession } from '../../shared/toml-session.ts'
 import { canvas, panel, status } from './AudioRegions.svelte'
 import { type AudioPlay, AudioSession } from './audio-session.svelte.ts'
+import { trackFiles } from './music-model.ts'
 
 export const AUDIO_PATH = 'content/audio/audio.toml'
 
@@ -21,7 +22,7 @@ export function createAudio(options: { readonly play: AudioPlay }): SuiteEditor<
     async open(files, ports) {
       const path = files.find((file) => file.path.endsWith('.toml'))?.path ?? AUDIO_PATH
       const toml = await openTomlSession<AudioContent>({ path, ports, schema: audioSchema, empty: EMPTY })
-      return new AudioSession(toml, options.play)
+      return new AudioSession(toml, options.play, await trackFiles(ports.workspace))
     },
     regions: { panel, canvas, status },
     undo: (session) => undoOf(session.toml),

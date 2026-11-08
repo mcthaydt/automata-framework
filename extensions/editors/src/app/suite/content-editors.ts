@@ -1,10 +1,25 @@
 // The content editors, in the order the rail lists them. A suite page adds them after the core editors; the rail
 // shows every one; an editor whose files the game lacks opens on a page that offers to start one.
 import type { SuiteEditor } from '@automata/editor/kit/ports'
+import { type AudioOutput, silentAudio } from '../../features/audio/audio-output.ts'
+import { createAudio } from '../../features/audio/audio-suite-editor.ts'
+import type { StageOutputs } from '../../features/feel/feel-stage.ts'
 import { createFeel } from '../../features/feel/feel-suite-editor.ts'
 import { createSequence } from '../../features/sequence/sequence-suite-editor.ts'
 import { createWriter } from '../../features/writer/writer-suite-editor.ts'
 
-export function contentEditors(): SuiteEditor<unknown>[] {
-  return [createFeel(), createWriter(), createSequence()] as SuiteEditor<unknown>[]
+export interface ContentEditorOptions {
+  /** What makes sound in the page; the page that cannot says so when Play is pressed. */
+  readonly audio?: AudioOutput
+  /** What a Feel stage can reach on the device (rumble). */
+  readonly outputs?: StageOutputs
+}
+
+export function contentEditors(options: ContentEditorOptions = {}): SuiteEditor<unknown>[] {
+  return [
+    createFeel(options.outputs === undefined ? {} : { outputs: options.outputs }),
+    createAudio({ play: (options.audio ?? silentAudio).play }),
+    createWriter(),
+    createSequence(),
+  ] as SuiteEditor<unknown>[]
 }

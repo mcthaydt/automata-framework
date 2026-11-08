@@ -5,7 +5,6 @@ import {
   addSoundEdit,
   addVoiceEdit,
   audioProblemWords,
-  bedFields,
   busWords,
   eventLines,
   eventSoundEdits,
@@ -27,7 +26,6 @@ const content: AudioContent = {
     },
     { id: 'door', bus: 'sfx', voices: [], draft: true },
   ],
-  bed: [{ id: 'cave', bus: 'music', volume: 0.3, drones: [{ wave: 'sine', freq: 55 }] }],
   event: [
     { on: 'coin.picked', cue: 'coin' },
     { on: 'player.jump', silent: 'the jump is felt, not heard' },
@@ -81,11 +79,6 @@ describe('the words', () => {
       ['Lasts', 0.05],
       ['Loudness', 0.1],
     ])
-  })
-
-  it("give a bed's fields and its drones", () => {
-    const bed = content.bed?.[0] as NonNullable<AudioContent['bed']>[number]
-    expect(bedFields(bed).map((field) => field.label)).toEqual(['What you hear', 'Plays on', 'Loudness'])
   })
 
   it('say what happens on each event', () => {

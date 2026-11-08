@@ -59,7 +59,7 @@ interface Actuator {
 }
 
 /** A connected pad's motors, else the phone's buzz; the cue is played by whoever knows the game's sounds. */
-export function browserOutputs(play: (cue: string) => boolean): StageOutputs {
+export function browserOutputs(play: (cue: string) => boolean = () => true): StageOutputs {
   return {
     cue: play,
     rumble(pulse) {

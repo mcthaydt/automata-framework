@@ -10,10 +10,12 @@ import {
   samplePorts,
   startSuite,
 } from '@automata/editor/suite'
+import { browserAudio } from '../../features/audio/audio-output.ts'
+import { browserOutputs } from '../../features/feel/feel-stage.ts'
 import { contentEditors } from './content-editors.ts'
 import { CONTENT_SAMPLE_GAME } from './sample-game.ts'
 
-// The suite page with the content editors: the core editors (the Tuner, Levels 2D), then Feel and the rest. The only
+// The suite page with the content editors: the core editors (the Tuner, Levels 2D), then Feel, Audio, Writer and Sequence. The only
 // file that reaches for the page's globals. It opens a sample game held in memory and says so in the top bar.
 
 const target = document.getElementById('app')
@@ -22,7 +24,7 @@ if (target === null) throw new Error('suite.html has no #app element')
 const editors = [
   createTuner(),
   createLevels2d({ ids: randomIds((bytes) => crypto.getRandomValues(bytes)) }),
-  ...contentEditors(),
+  ...contentEditors({ audio: browserAudio(() => new AudioContext()), outputs: browserOutputs() }),
 ]
 
 samplePorts(CONTENT_SAMPLE_GAME)

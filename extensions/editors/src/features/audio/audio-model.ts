@@ -1,6 +1,6 @@
-// The audio file as a person reads it: sounds made of tones and hisses, music beds made of drones, and what plays when
-// something happens. Every name on screen is a person's ("Plays on Effects", "Loudness"); the keys stay in the file.
-import type { AudioContent, Bed, BusId, Cue, Voice } from '@automata/audio-synth'
+// The audio file as a person reads it: sounds made of tones and hisses, and what plays when something happens. (Music is
+// imported and arranged, never made: see music-model.ts.) Every name on screen is a person's ("Plays on Effects", "Loudness"); the keys stay in the file.
+import type { AudioContent, BusId, Cue, Voice } from '@automata/audio-synth'
 import type { ContentEdit } from '@automata/editor/kit/documents'
 import { eventWords } from '../../shared/event-words.ts'
 import { type Field, setOrInsert } from '../../shared/fields.ts'
@@ -116,18 +116,6 @@ function voiceLine(voice: Voice, index: number): VoiceLine {
 
 export const voiceLines = (cue: Cue): VoiceLine[] => cue.voices.map(voiceLine)
 
-export function bedFields(bed: Bed): Field[] {
-  return [about(bed.about), busField(bed.bus), loudness('volume', bed.volume)]
-}
-
-export function droneFields(drone: Bed['drones'][number]): Field[] {
-  return [
-    waveField('wave', drone.wave),
-    hz('freq', 'Pitch', drone.freq),
-    loudness('volume', drone.volume ?? 1),
-  ]
-}
-
 export interface EventLine {
   readonly index: number
   readonly on: string
@@ -192,11 +180,11 @@ export function audioProblemWords(problem: Problem, content: AudioContent): stri
   if (list === 'event' && key === 'on' && typeof index === 'number' && /^two entries answer/i.test(message))
     return `Another row already answers ${eventWords(content.event?.[index]?.on ?? '')}.`
   if (
-    (list === 'cue' || list === 'bed') &&
+    (list === 'cue' || list === 'slot') &&
     key === 'id' &&
     typeof index === 'number' &&
     / is listed twice/i.test(message)
   )
-    return `Another ${list === 'cue' ? 'sound' : 'music bed'} is called ${String(content[list]?.[index]?.id ?? '')}.`
+    return `Another ${list === 'cue' ? 'sound' : 'track'} is called ${String(content[list]?.[index]?.id ?? '')}.`
   return message
 }

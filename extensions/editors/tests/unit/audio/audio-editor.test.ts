@@ -14,11 +14,24 @@ about = "A bright blip"
 bus = "sfx"
 voices = [{ tone = "square", from = 880, to = 1320, length = 0.08, volume = 0.4 }]
 
-[[bed]]
-id = "cave"
-bus = "music"
-volume = 0.3
-drones = [{ wave = "sine", freq = 55 }]
+[[slot]]
+id = "calm"
+mode = "loop"
+volume = 0.6
+sound = "calm-theme"
+
+[[slot]]
+id = "chase"
+mode = "loop"
+volume = 0.9
+
+[[music_rule]]
+when = { danger = { atLeast = 2 } }
+slot = "chase"
+
+[[music_rule]]
+when = {}
+slot = "calm"
 
 [[event]]
 on = "coin.picked"
@@ -50,7 +63,8 @@ describe('Audio', () => {
     await open({ [AUDIO_PATH]: FILE })
     const list = screen.getByRole('navigation', { name: 'Sounds and music' })
     expect(within(list).getByRole('button', { name: 'coin' })).toBeInTheDocument()
-    expect(within(list).getByRole('button', { name: 'cave' })).toBeInTheDocument()
+    expect(within(list).getByRole('button', { name: 'calm' })).toBeInTheDocument()
+    expect(within(list).getByRole('button', { name: 'What music plays when' })).toBeInTheDocument()
     expect(within(list).getByRole('button', { name: 'When things happen' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'coin' })).toBeInTheDocument()
     expect(screen.getByLabelText('Plays on')).toHaveDisplayValue('Effects')
@@ -108,6 +122,55 @@ describe('Audio', () => {
   it('shows no key names', async () => {
     await open({ [AUDIO_PATH]: FILE })
     const words = document.body.textContent ?? ''
-    for (const word of ['sfx', 'cue', 'voices', 'bus', 'toml']) expect(words).not.toContain(word)
+    for (const word of ['sfx', 'cue', 'voices', 'bus', 'toml', 'slot', 'music_rule'])
+      expect(words).not.toContain(word)
+  })
+
+  it('shows a track as how the game switches to it, and writes a change', async () => {
+    const { ports } = await open({ [AUDIO_PATH]: FILE, 'assets/music/calm-theme.ogg': '' })
+    await userEvent.click(screen.getByRole('button', { name: 'chase' }))
+    expect(screen.getByRole('heading', { name: 'chase' })).toBeInTheDocument()
+    const fade = screen.getByLabelText('Fades in over')
+    await userEvent.clear(fade)
+    await userEvent.type(fade, '1.5{Enter}')
+    await vi.waitFor(async () => expect(await text(ports)).toContain('fade = 1.5'))
+    // Nothing on the page composes music: no tones, voices or drones for a track.
+    expect(screen.queryByRole('button', { name: 'Add a tone' })).toBeNull()
+  })
+
+  it('names a track whose file the game folder does not have', async () => {
+    await open({ [AUDIO_PATH]: FILE })
+    await userEvent.click(screen.getByRole('button', { name: 'calm' }))
+    expect(screen.getByText('The game has no music file called calm-theme yet.')).toBeInTheDocument()
+  })
+
+  it('offers a track file the game folder has, to use as a track', async () => {
+    const { ports } = await open({ [AUDIO_PATH]: FILE, 'assets/music/boss.ogg': '' })
+    await userEvent.click(screen.getByRole('button', { name: 'What music plays when' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Use this track' }))
+    await vi.waitFor(async () => expect(await text(ports)).toContain('sound = "boss"'))
+    expect(await screen.findByRole('heading', { name: 'boss' })).toBeInTheDocument()
+  })
+
+  it('reads the music rules as sentences and moves one up in one step', async () => {
+    const { ports, session } = await open({ [AUDIO_PATH]: FILE })
+    await userEvent.click(screen.getByRole('button', { name: 'What music plays when' }))
+    expect(screen.getByRole('article', { name: 'When danger is at least 2: play chase' })).toBeInTheDocument()
+    expect(screen.getByRole('article', { name: 'Otherwise: play calm' })).toBeInTheDocument()
+    const otherwise = screen.getByRole('article', { name: 'Otherwise: play calm' })
+    await userEvent.click(within(otherwise).getByRole('button', { name: 'Move up' }))
+    await vi.waitFor(async () => expect(await text(ports)).toMatch(/slot = "calm"[\s\S]*slot = "chase"/))
+    expect(session.toml.history.undoLabel).toBe('Move a music rule up')
+  })
+
+  it('waits for something: adds a condition to a rule', async () => {
+    const { ports } = await open({ [AUDIO_PATH]: FILE })
+    await userEvent.click(screen.getByRole('button', { name: 'What music plays when' }))
+    const otherwise = screen.getByRole('article', { name: 'Otherwise: play calm' })
+    await userEvent.click(within(otherwise).getByRole('button', { name: 'Wait for something' }))
+    await userEvent.type(within(otherwise).getByLabelText('What does the game keep track of?'), 'indoors')
+    await userEvent.type(within(otherwise).getByLabelText('Value'), 'yes')
+    await userEvent.click(within(otherwise).getByRole('button', { name: 'Add' }))
+    await vi.waitFor(async () => expect(await text(ports)).toContain('indoors = true'))
   })
 })

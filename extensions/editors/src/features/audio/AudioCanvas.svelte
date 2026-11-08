@@ -1,22 +1,21 @@
 <!--
-  The chosen sound, music bed or event page as sentences. A sound is its tones and hisses, each with its pitch, timing
+  The chosen sound, music track, music order or event page as sentences. A sound is its tones and hisses, each with its pitch, timing
   and loudness; Play sounds it in the page, and nothing plays by itself. The event page says, for each thing that
   happens, which sound plays or why it is silent.
 -->
 <script lang="ts">
-import type { Bed, Cue } from '@automata/audio-synth'
+import type { Cue } from '@automata/audio-synth'
 import { Button } from '@automata/editor/kit'
 import { problemAt } from '../../shared/content-session.svelte.ts'
 import type { Field } from '../../shared/fields.ts'
 import { setOrInsert } from '../../shared/fields.ts'
 import EditorPage from '../../shared/ui/EditorPage.svelte'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
+import AudioMusic from './AudioMusic.svelte'
 import {
   addEventEdit,
   addVoiceEdit,
   audioProblemWords,
-  bedFields,
-  droneFields,
   eventLines,
   eventSoundEdits,
   removeEdit,
@@ -34,7 +33,6 @@ const read = $derived(session.read)
 const content = $derived(session.content)
 const chosen = $derived(session.chosen)
 const cue = $derived(chosen.kind === 'sound' ? content?.cue?.[chosen.index] : undefined)
-const bed = $derived(chosen.kind === 'bed' ? content?.bed?.[chosen.index] : undefined)
 const cueIds = $derived((content?.cue ?? []).map((one) => one.id))
 
 function wordsAt(path: readonly (string | number)[]): string | undefined {
@@ -55,11 +53,11 @@ function set(
   )
 }
 
-async function play(kind: 'sound' | 'bed', id: string): Promise<void> {
+async function play(id: string): Promise<void> {
   if (content === undefined || playing) return
   playing = true
   try {
-    await session.play(content, { kind, id })
+    await session.play(content, { kind: 'sound', id })
   } catch (error) {
     session.message = `That could not be played: ${error instanceof Error ? error.message : String(error)}`
   } finally {
@@ -67,12 +65,11 @@ async function play(kind: 'sound' | 'bed', id: string): Promise<void> {
   }
 }
 
-async function removeChosen(kind: 'cue' | 'bed', index: number, name: string): Promise<void> {
-  const outcome = await session.change(`Remove ${name}`, [removeEdit(kind, index)])
+async function removeChosen(index: number, name: string): Promise<void> {
+  const outcome = await session.change(`Remove ${name}`, [removeEdit('cue', index)])
   if (!outcome.ok) return
   removing = false
-  session.chosen =
-    index > 0 ? { kind: kind === 'cue' ? 'sound' : 'bed', index: index - 1 } : { kind: 'events' }
+  session.chosen = index > 0 ? { kind: 'sound', index: index - 1 } : { kind: 'events' }
 }
 
 async function addEvent(): Promise<void> {
@@ -104,7 +101,7 @@ async function addEvent(): Promise<void> {
 {#snippet soundView(sound: Cue, index: number)}
   <header class="actions">
     <h2>{sound.id}</h2>
-    <Button variant="primary" disabled={playing} onclick={() => void play('sound', sound.id)}>Play</Button>
+    <Button variant="primary" disabled={playing} onclick={() => void play(sound.id)}>Play</Button>
   </header>
   <div class="fields">
     {#each soundFields(sound) as one (one.key)}{@render field(['cue', index], sound, one)}{/each}
@@ -133,34 +130,15 @@ async function addEvent(): Promise<void> {
   <div class="actions">
     <Button onclick={() => void session.change('Add a tone', [addVoiceEdit(index, 'tone')])}>Add a tone</Button>
     <Button onclick={() => void session.change('Add a hiss', [addVoiceEdit(index, 'hiss')])}>Add a hiss</Button>
-    {@render remover('cue', index, sound.id)}
+    {@render remover(index, sound.id)}
   </div>
 {/snippet}
 
-{#snippet bedView(music: Bed, index: number)}
-  <header class="actions">
-    <h2>{music.id}</h2>
-    <Button variant="primary" disabled={playing} onclick={() => void play('bed', music.id)}>Play</Button>
-  </header>
-  <div class="fields">
-    {#each bedFields(music) as one (one.key)}{@render field(['bed', index], music, one)}{/each}
-  </div>
-  {#each music.drones as drone, at (at)}
-    <article class="card" aria-label="Drone">
-      <h3>Drone</h3>
-      <div class="fields">
-        {#each droneFields(drone) as one (one.key)}{@render field(['bed', index, 'drones', at], drone, one)}{/each}
-      </div>
-    </article>
-  {/each}
-  <div class="actions">{@render remover('bed', index, music.id)}</div>
-{/snippet}
-
-{#snippet remover(kind: 'cue' | 'bed', index: number, name: string)}
+{#snippet remover(index: number, name: string)}
   {#if removing}
     <span class="actions" role="group" aria-label={`Remove ${name}?`}>
       <p>Remove {name}? Anything that plays it will play nothing.</p>
-      <Button variant="danger" onclick={() => void removeChosen(kind, index, name)}>Remove</Button>
+      <Button variant="danger" onclick={() => void removeChosen(index, name)}>Remove</Button>
       <Button variant="quiet" onclick={() => (removing = false)}>Keep it</Button>
     </span>
   {:else}
@@ -172,7 +150,7 @@ async function addEvent(): Promise<void> {
   {#if session.message !== undefined}<p class="bad" role="alert">{session.message}</p>{/if}
   {#if read.kind === 'missing'}
     <h2>This game has no audio file yet.</h2>
-    <p>An audio file holds the game's sounds and music, and says which sound plays when something happens.</p>
+    <p>An audio file holds the game's sounds, which music track plays when, and which sound plays when something happens.</p>
     <div class="actions"><Button variant="primary" onclick={() => void session.start()}>Start an audio file</Button></div>
   {:else if read.kind === 'syntax'}
     <h2>The audio file has a mistake{read.line === undefined ? '' : ` on line ${String(read.line)}`}.</h2>
@@ -228,8 +206,8 @@ async function addEvent(): Promise<void> {
     {/if}
   {:else if cue !== undefined && chosen.kind === 'sound'}
     {@render soundView(cue, chosen.index)}
-  {:else if bed !== undefined && chosen.kind === 'bed'}
-    {@render bedView(bed, chosen.index)}
+  {:else if chosen.kind === 'track' || chosen.kind === 'rules'}
+    <AudioMusic {session} />
   {:else}
     <h2>No sounds yet.</h2>
     <p>Add a sound, then choose when it plays.</p>

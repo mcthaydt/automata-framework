@@ -33,7 +33,11 @@ export class FeelSession extends ContentSession<FeelContent, number | 'limits'> 
     super(toml, 0, 'Start a feel file')
     this.events = extras.events ?? []
     this.cues = extras.cues ?? []
-    this.outputs = extras.outputs ?? { rumble: () => false, cue: (id) => this.cues.includes(id) }
+    // A sound plays only when the game has it; the device decides whether it can rumble.
+    this.outputs = {
+      rumble: (pulse) => extras.outputs?.rumble(pulse) ?? false,
+      cue: (id) => this.cues.includes(id) && (extras.outputs?.cue(id) ?? true),
+    }
   }
 
   override async change(label: string, edits: readonly ContentEdit[], coalesce?: string): Promise<Outcome> {

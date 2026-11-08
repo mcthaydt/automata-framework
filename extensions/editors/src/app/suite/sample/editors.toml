@@ -38,3 +38,17 @@ editor = "sequence"
 modes = ["edit"]
 gates = []
 checks = []
+
+[[file]]
+glob = "content/audio/*.toml"
+editor = "audio"
+modes = ["edit", "ask"]
+gates = []
+checks = []
+
+[[file]]
+glob = "assets/music/*"
+editor = "audio"
+modes = ["edit"]
+gates = []
+checks = []

@@ -1,5 +1,5 @@
 <!--
-  Audio's list: the sounds, the music beds, and the page of what plays when things happen. A new sound is added here,
+  Audio's list: the sounds, the music tracks and the order they play in, and the page of what plays when things happen. A new sound is added here,
   with a name no other sound has, and can be played at once.
 -->
 <script lang="ts">
@@ -12,7 +12,11 @@ const content = $derived(session.content)
 
 const isChosen = (choice: AudioChoice): boolean =>
   session.chosen.kind === choice.kind &&
-  (choice.kind === 'events' || (session.chosen.kind !== 'events' && session.chosen.index === choice.index))
+  (choice.kind === 'events' ||
+    choice.kind === 'rules' ||
+    (session.chosen.kind !== 'events' &&
+      session.chosen.kind !== 'rules' &&
+      session.chosen.index === choice.index))
 
 async function addSound(): Promise<void> {
   if (content === undefined) return
@@ -40,22 +44,29 @@ async function addSound(): Promise<void> {
       {/each}
     </ul>
     <Button variant="primary" onclick={() => void addSound()}>Add a sound</Button>
-    {#if (content.bed ?? []).length > 0}
-      <h2>Music</h2>
-      <ul>
-        {#each content.bed ?? [] as bed, index (index)}
-          <li>
-            <button
-              type="button"
-              aria-current={isChosen({ kind: 'bed', index })}
-              onclick={() => (session.chosen = { kind: 'bed', index })}
-            >
-              {bed.id}
-            </button>
-          </li>
-        {/each}
-      </ul>
-    {/if}
+    <h2>Music</h2>
+    <ul>
+      {#each content.slot ?? [] as track, index (index)}
+        <li>
+          <button
+            type="button"
+            aria-current={isChosen({ kind: 'track', index })}
+            onclick={() => (session.chosen = { kind: 'track', index })}
+          >
+            {track.id}
+          </button>
+        </li>
+      {/each}
+      <li>
+        <button
+          type="button"
+          aria-current={isChosen({ kind: 'rules' })}
+          onclick={() => (session.chosen = { kind: 'rules' })}
+        >
+          What music plays when
+        </button>
+      </li>
+    </ul>
     <ul>
       <li>
         <button

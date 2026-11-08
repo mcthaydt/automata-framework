@@ -1,4 +1,4 @@
-<!-- Audio's regions in the suite's frame: the list, the chosen sound, bed or event page, and the file's problems. -->
+<!-- Audio's regions in the suite's frame: the list, the chosen sound, music or event page, and the file's problems. -->
 <script module lang="ts">
 import ProblemCount from '../../shared/ui/ProblemCount.svelte'
 import AudioCanvas from './AudioCanvas.svelte'
