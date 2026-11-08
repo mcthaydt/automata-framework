@@ -10,10 +10,30 @@ export const WICK_FILES: readonly TemplateFile[] = [
     content: () => `import { defineComponent } from '@automata/sim'
 
 /**
- * Wick: where his feet are on the floor (metres, y up), the way he faces (radians, 0 toward +z and growing toward +x)
- * and whether he is walking. The screen reads these to place and pose his figure.
+ * Wick: where his feet are on the floor (metres, y up), the way he faces (radians, 0 toward +z and growing toward +x),
+ * whether he is walking, and whether he was pressed into a wall last tick. The screen reads these to place and pose his
+ * figure.
  */
-export const Wick = defineComponent('wick', { x: 'f32', y: 'f32', z: 'f32', yaw: 'f32', walking: 'bool' })
+export const Wick = defineComponent('wick', {
+  x: 'f32',
+  y: 'f32',
+  z: 'f32',
+  yaw: 'f32',
+  walking: 'bool',
+  blocked: 'bool',
+})
+`,
+  },
+  {
+    path: 'src/features/wick/bumped.event.ts',
+    content: () => `import { defineEvent } from '@automata/sim'
+import { z } from 'zod'
+
+/**
+ * Wick met a wall or a prop he was pushed into. Feel and Audio answer events like this one: open \`content/feel/feel.toml\`
+ * or \`content/audio/audio.toml\` in the editors and change what the player feels and hears.
+ */
+export const Bumped = defineEvent('wick.bumped', z.object({}))
 `,
   },
   {
@@ -35,13 +55,14 @@ import { defineSystem } from '@automata/sim'
 import { atan2 } from '@automata/sim/math'
 import { playIn, standsAt } from '../room/read-room.ts'
 import { TICK_HZ, WICK_HALF } from '../../shared/constants.ts'
+import { Bumped } from './bumped.event.ts'
 import { Move } from './move.command.ts'
 import { Wick } from './wick.component.ts'
 
 /**
  * Walks Wick the way the stick points, seen from the camera, at the walking speed scaled by how far the stick is
- * pushed. He faces the way he goes. Walls and props stop him. Only the sim changes the game, so a replay ends where
- * play did.
+ * pushed. He faces the way he goes. Walls and props stop him, and he says so once when he first is. Only the sim
+ * changes the game, so a replay ends where play did.
  */
 export const walk = defineSystem('walk', (ctx) => {
   const { room, tuning } = playIn(ctx.content)
@@ -58,12 +79,11 @@ export const walk = defineSystem('walk', (ctx) => {
     const x = standsAt(room, here.x + dx, here.z, WICK_HALF) ? here.x + dx : here.x
     const z = standsAt(room, x, here.z + dz, WICK_HALF) ? here.z + dz : here.z
     const pushing = dx !== 0 || dz !== 0
-    wick.set(Wick, {
-      x,
-      z,
-      yaw: pushing ? atan2(dx, dz) : here.yaw,
-      walking: x !== here.x || z !== here.z,
-    })
+    const walking = x !== here.x || z !== here.z
+    // Pressed into something: a move was asked for and none of it happened. Said once, not every tick it is held.
+    const blocked = pushing && !walking
+    if (blocked && !here.blocked) ctx.emit(Bumped, {})
+    wick.set(Wick, { x, z, yaw: pushing ? atan2(dx, dz) : here.yaw, walking, blocked })
   }
 })
 `,
@@ -74,6 +94,7 @@ export const walk = defineSystem('walk', (ctx) => {
 import { definePlugin, type PluginDef, type Sim } from '@automata/sim'
 import { FOLLOW } from '../../shared/constants.ts'
 import type { Room } from '../room/read-room.ts'
+import { Bumped } from './bumped.event.ts'
 import { Move } from './move.command.ts'
 import { walk } from './walk.system.ts'
 import { Wick } from './wick.component.ts'
@@ -82,13 +103,13 @@ import { Wick } from './wick.component.ts'
 export const wickPlugin: PluginDef = definePlugin({
   name: 'wick',
   dependsOn: ['camera-heading'],
-  defs: [Wick, Move, walk],
+  defs: [Wick, Move, Bumped, walk],
 })
 
 /** Puts Wick on the room's start point, facing away from the camera, with the camera on him. */
 export function spawnWick(sim: Sim, room: Room): void {
   sim.spawn([
-    [Wick, { x: room.start.x, y: 0, z: room.start.z, yaw: 0, walking: false }],
+    [Wick, { x: room.start.x, y: 0, z: room.start.z, yaw: 0, walking: false, blocked: false }],
     [CameraHeading, enterView(START, FOLLOW, { x: 0, y: 0 })],
   ])
 }

@@ -1,7 +1,8 @@
 format = "af-editors/1"
 
 # The room opens in the 3D level editor (Levels 3D), Wick and what he is made of in Characters (every content/figure*
-# folder: he names his swatches and gait), and the walk speed in the Tuner. The game has no gates, so every row says
+# folder: he names his swatches and gait), the walk speed in the Tuner, and what the player feels (Feel) and hears (Audio)
+# when Wick bumps a wall. The game has no gates, so every row says
 # `gates = []`.
 [[file]]
 glob = "content/levels/*.af-sector.json"
@@ -23,3 +24,26 @@ editor = "tuner"
 modes = ["edit"]
 gates = []
 checks = ["content"]
+
+# What the player feels, the sounds and the music's order. Music is imported: the tracks a person puts in assets/music
+# show up in Audio to set up.
+[[file]]
+glob = "content/feel/*.toml"
+editor = "feel"
+modes = ["edit"]
+gates = []
+checks = []
+
+[[file]]
+glob = "content/audio/*.toml"
+editor = "audio"
+modes = ["edit"]
+gates = []
+checks = []
+
+[[file]]
+glob = "assets/music/*"
+editor = "audio"
+modes = ["edit"]
+gates = []
+checks = []

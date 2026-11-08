@@ -2,11 +2,13 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { editorRows } from '@automata/editor/editor-list'
 import { Effect } from 'effect'
 import { parse } from 'smol-toml'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createGame } from '#src/shared/create-game/create-game.ts'
 import { TEMPLATE_3D_CONTENT_PATHS } from '#src/shared/create-game/template-3d-content.ts'
+import { feelAudioFile } from '#src/shared/create-game/template-feel-audio.ts'
 import { THREE_D_NOT_PUBLIC } from '#src/shared/create-game/three-d-gate.ts'
 
 // What a new 3D game is made of: one room, Wick walking in it, a tuning file, the editor list, and the same feature
@@ -41,11 +43,13 @@ describe('the new 3D game’s files', () => {
   it('keeps its code in features, with the app and the shared numbers beside them', () => {
     expect(files.filter((file) => file.startsWith('src/') || file.startsWith('tests/'))).toEqual([
       'src/app/controls.ts',
+      'src/app/feel-audio.ts',
       'src/app/game.ts',
       'src/features/room/compiled-content.d.ts',
       'src/features/room/read-room.ts',
       'src/features/room/room.ts',
       'src/features/room/room.view.ts',
+      'src/features/wick/bumped.event.ts',
       'src/features/wick/move.command.ts',
       'src/features/wick/walk.system.ts',
       'src/features/wick/wick.component.ts',
@@ -53,6 +57,7 @@ describe('the new 3D game’s files', () => {
       'src/features/wick/wick.view.ts',
       'src/main.ts',
       'src/shared/constants.ts',
+      'src/shared/screen.ts',
       'src/shared/tuning.ts',
       'tests/unit/content/content.test.ts',
       'tests/unit/room/read-room.test.ts',
@@ -72,6 +77,9 @@ describe('the new 3D game’s files', () => {
       ['content/levels/*.af-sector.json', 'levels-3d'],
       ['content/figure*/*.toml', 'studio'],
       ['content/tuning.toml', 'tuner'],
+      ['content/feel/*.toml', 'feel'],
+      ['content/audio/*.toml', 'audio'],
+      ['assets/music/*', 'audio'],
     ])
   })
 
@@ -90,6 +98,47 @@ describe('the new 3D game’s files', () => {
     expect([...kinds].sort()).toEqual(['box', 'cylinder'])
     expect(new Set(room.props.map((prop) => prop.use))).toEqual(new Set(['crate', 'barrel']))
     expect(room.entities.filter((entity) => entity.def === 'spawn')).toHaveLength(1)
+  })
+
+  it('has something to feel and hear at once: Wick bumping into a wall', () => {
+    expect(read('src/features/wick/bumped.event.ts')).toContain("defineEvent('wick.bumped'")
+    expect(read('src/features/wick/walk.system.ts')).toContain('ctx.emit(Bumped')
+    expect(read('content/feel/feel.toml')).toContain('on = "wick.bumped"')
+    expect(read('content/audio/audio.toml')).toContain('on = "wick.bumped"')
+    for (const row of ['feel', 'audio'])
+      expect(editorRows(row)?.match(/glob = "([^"]+)"/g)?.length, row).toBeGreaterThan(0)
+    const rows = (parse(read('content/editors.toml')) as { file: { glob: string; editor: string }[] }).file
+    for (const id of ['feel', 'audio'])
+      for (const glob of (editorRows(id)?.match(/glob = "([^"]+)"/g) ?? []).map((line) => line.slice(8, -1)))
+        expect(
+          rows.some((row) => row.glob === glob && row.editor === id),
+          `${id} ${glob}`,
+        ).toBe(true)
+  })
+
+  it('plays what Feel and Audio make: on the renderer and on the audio, read from the files the editors write', () => {
+    const game = read('src/app/game.ts')
+    expect(game).toContain('setup: feelOnStage')
+    expect(game).toContain('audio,')
+    const wiring = read('src/app/feel-audio.ts')
+    expect(wiring).toContain('feelSchema.parse(content.feel?.feel ?? {})')
+    expect(wiring).toContain('audioSchema.parse(content.audio?.audio ?? {})')
+    expect(wiring).toContain('/assets/music/*')
+    expect(read('src/shared/screen.ts')).toContain('targetSize(')
+  })
+
+  it('plays Feel and Audio the way the 2D game does, differing only in where the size comes from', () => {
+    const twoD = feelAudioFile({
+      import: "import { LEVEL } from '../features/level/level.ts'",
+      expr: '{ width: LEVEL.width, height: LEVEL.height }',
+    }).content({ id: 'g', title: 'G' } as never)
+    const swapped = twoD
+      .replace(
+        "import { LEVEL } from '../features/level/level.ts'",
+        "import { SIZE } from '../shared/screen.ts'",
+      )
+      .replace('{ width: LEVEL.width, height: LEVEL.height }', 'SIZE')
+    expect(read('src/app/feel-audio.ts')).toBe(swapped)
   })
 
   it('names no source project and no plan id in anything it writes', () => {
@@ -120,6 +169,9 @@ describe('the new 3D game’s project', () => {
       '@pixi/3d',
     ])
       expect(dependencies[name], name).toBeDefined()
+    // Feel and Audio play what their editors make, in the version that made the game.
+    expect(dependencies['@automata/feel']).toBe(dependencies['@automata/framework'])
+    expect(dependencies['@automata/audio-synth']).toBe(dependencies['@automata/framework'])
   })
 
   it('tests and checks with one command each, like the 2D game', () => {
@@ -135,6 +187,8 @@ describe('the new 3D game’s project', () => {
     expect(config).toContain('figuresExtension.content')
     expect(config).toContain('worldSwatchContent')
     expect(config).toContain('worldPropContent')
+    expect(config).toContain('feelContent')
+    expect(config).toContain('audioContent')
     expect(read('.gitignore').split('\n')).toContain('content/generated/')
   })
 

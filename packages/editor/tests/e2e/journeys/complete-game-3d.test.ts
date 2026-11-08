@@ -2,13 +2,17 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Page } from '@playwright/test'
 import {
+  brightestSince,
   expectOnRail,
   framesMeasured,
   openEditor,
   openFromRail,
+  pitchesPlayed,
   playFromEditors,
+  pressInList,
   publishFromEditors,
   recordBrightness,
+  recordPitches,
   secondsMoving,
 } from '../harness/complete-game.ts'
 import { BASE_3D, expect, test } from '../harness/fixtures.ts'
@@ -25,8 +29,7 @@ import { runEditor } from '../harness/run-editor.ts'
 // draws: the far wall's colour, how tall Wick's blue cloak stands on the screen, and how long he takes to walk to that
 // wall. Nothing here writes a game file.
 //
-// The editors a new 3D game cannot use yet each have a journey below, marked as failing with the reason: Feel, Audio,
-// Writer, Sequence and Schematic are not on its rail, Levels 3D has no way to change a floor's material, and Publish
+// The editors a new 3D game cannot use yet each have a journey below, marked as failing with the reason: Writer, Sequence and Schematic are not on its rail, Levels 3D has no way to change a floor's material, and Publish
 // refuses the game while Pixi 3D is a closed beta. Each one's mark comes off when it passes.
 
 /**
@@ -198,13 +201,73 @@ test('a new 3D game is made with every editor it has and played', async ({ page,
   }
 })
 
+/** The pitch the bump starts at once Audio has changed it (the new game's bump starts at 220 Hz). */
+const BUMP_PITCH = 880
+
+test('Feel and Audio change what Wick bumping a wall looks and sounds like', async ({ page, context }) => {
+  test.setTimeout(300_000)
+  await recordBrightness(context)
+  await recordPitches(context)
+  const game = await newGame(BASE_3D, '3d')
+  const editor = await runEditor(game.dir)
+  try {
+    await page.goto(editor.url)
+    // Feel: Wick bumping a wall flashes the screen, long enough to be seen (the limit is raised to match).
+    await openEditor(page, editor, 'Feel')
+    await pressInList(page, /wick bumped/i)
+    await page.getByRole('button', { name: 'Add an effect' }).click()
+    await page.getByRole('button', { name: 'Flash the screen' }).click()
+    await page.getByLabel('How many frames').fill('30')
+    await pressInList(page, 'Never more than')
+    await page.getByLabel('Most flash frames').fill('30')
+    await pressInList(page, /wick bumped/i)
+    await expect
+      .poll(() => readFileSync(join(game.dir, 'content/feel/feel.toml'), 'utf8'), { timeout: 30_000 })
+      .toContain('flash_frames = 30')
+
+    // Audio: the bump starts an octave and more higher.
+    await openEditor(page, editor, 'Audio')
+    await pressInList(page, 'bump')
+    const startsAt = page.getByLabel('Starts at').first()
+    await startsAt.fill(String(BUMP_PITCH))
+    await startsAt.blur()
+    await expect
+      .poll(() => readFileSync(join(game.dir, 'content/audio/audio.toml'), 'utf8'), { timeout: 30_000 })
+      .toContain(`from = ${BUMP_PITCH}`)
+
+    // Play, and walk Wick into the far wall: the screen flashes and the bump plays at the pitch Audio was given.
+    const play = await playFromEditors(page, context, sideways)
+    try {
+      await settled(play)
+      const mark = await framesMeasured(play)
+      const heardBefore = (await pitchesPlayed(play)).length
+      await play.keyboard.down('KeyW')
+      try {
+        await expect
+          .poll(async () => (await pitchesPlayed(play)).slice(heardBefore), {
+            message: 'the bump plays at the pitch set in Audio',
+            timeout: 30_000,
+          })
+          .toContain(BUMP_PITCH)
+      } finally {
+        await play.keyboard.up('KeyW')
+      }
+      const { first, brightest } = await brightestSince(play, mark)
+      expect(brightest, 'the bump flashes the screen').toBeGreaterThan(first + 40)
+    } finally {
+      await play.close()
+    }
+  } finally {
+    await editor.stop()
+    game.remove()
+  }
+})
+
 // The editors a new 3D game cannot use yet. Each does the first thing a person would try and is marked as failing until
 // it passes; the reason is the mark's description. "On the rail" alone proves nothing: each opens the editor and looks
 // for what the new game would play.
 
 for (const [name, reason, made] of [
-  ['Feel', 'a new 3D game has no feel file to change yet', /bump/i],
-  ['Audio', 'a new 3D game has no sounds to change yet', /bump/i],
   ['Writer', 'a new 3D game has no conversation to change yet', /keeper/i],
   ['Sequence', 'a new 3D game has no cutscene to change yet', /look/i],
   ['Schematic', 'a new 3D game has no thinking characters yet', /guard/i],

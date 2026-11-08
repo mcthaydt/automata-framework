@@ -1,14 +1,16 @@
 import { readFileSync } from 'node:fs'
 import type { TemplateFile } from './template-file.ts'
 
-// What a new 3D game starts with: one room, Wick, the swatches and props they use, a tuning file and the editor list.
+// What a new 3D game starts with: one room, Wick, the swatches and props they use, a tuning file, what Feel and Audio make of his bump, and the editor list.
 // Real files in `template-3d-content/`, written into the game's `content/`, so each can be opened in the editor that
 // reads it. From source the folder is next to this file; in the published build `tsdown.config.ts` copies it to
 // `dist/template-3d-content/`, next to the bundle this file is part of, so one relative URL finds it in both.
 
 /** The files under `template-3d-content/`, as written into the game's `content/`. */
 export const TEMPLATE_3D_CONTENT_PATHS: readonly string[] = [
+  'audio/audio.toml',
   'editors.toml',
+  'feel/feel.toml',
   'figure-gaits/bounce.toml',
   'figure-swatches/brow.toml',
   'figure-swatches/lid.toml',

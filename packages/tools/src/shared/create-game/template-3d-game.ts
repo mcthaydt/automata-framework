@@ -48,12 +48,23 @@ export function tuningOf(content: unknown): Tuning {
 }
 `,
   },
+  {
+    path: 'src/shared/screen.ts',
+    content: () => `import { DEFAULT_LOOK, targetSize } from '@automata/3d'
+
+// The screen's size, which the game and what the player feels (Feel's shakes and flashes are drawn to it) both read. It is
+// the pixel-art look's field: its short side is the look's, the long side a phone held sideways.
+
+/** The size of the game's screen. */
+export const SIZE = targetSize({ width: 844, height: 390 }, DEFAULT_LOOK.pixel.short)
+`,
+  },
   ...ROOM_FILES,
   ...WICK_FILES,
   {
     path: 'src/app/game.ts',
     content: (options) => `import { content } from 'virtual:automata/content'
-import { createPixi3dRenderer, DEFAULT_LOOK, render3dExtension, targetSize } from '@automata/3d'
+import { createPixi3dRenderer, DEFAULT_LOOK, render3dExtension } from '@automata/3d'
 import { CameraTurn, STICK_MAX } from '@automata/3d/sim'
 import { defaultContent, defineGame, inputs, keys } from '@automata/framework'
 import { cameraTurnUnits, labelled, moveFromStick } from './controls.ts'
@@ -65,7 +76,9 @@ import { spawnWick, wickPlugin } from '../features/wick/wick.plugin.ts'
 import { Wick } from '../features/wick/wick.component.ts'
 import { wickView } from '../features/wick/wick.view.ts'
 import { FOLLOW, TICK_HZ } from '../shared/constants.ts'
+import { SIZE } from '../shared/screen.ts'
 import { tuningOf } from '../shared/tuning.ts'
+import { audio, feelOnStage } from './feel-audio.ts'
 
 const TUNING = tuningOf(content)
 const ROOM = roomIn(content)
@@ -105,8 +118,7 @@ const TURN = labelled(
 export const game = defineGame({
   id: '${options.id}',
   title: '${options.title}',
-  // The pixel-art look's field: its short side is the look's, the long side a phone held sideways.
-  size: targetSize({ width: 844, height: 390 }, DEFAULT_LOOK.pixel.short),
+  size: SIZE,
   orientation: 'landscape',
   sim: { plugins: [wickPlugin], seed: 1, setup: (sim) => spawnWick(sim, ROOM) },
   // The camera's heading is a sim plugin of the 3D extension; defineGame adds it.
@@ -117,6 +129,8 @@ export const game = defineGame({
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
+      // What the player feels (shake, flash, words), from the file the Feel editor writes.
+      setup: feelOnStage,
       look: DEFAULT_LOOK,
       views: { [Wick.id]: wickView(content, TUNING) },
       camera: { views: [FOLLOW], initial: FOLLOW.id, follow: Wick.id },
@@ -126,6 +140,8 @@ export const game = defineGame({
         return undefined
       },
     }),
+  // What the player hears, from the file the Audio editor writes.
+  audio,
 })
 `,
   },
@@ -235,6 +251,7 @@ import { type PlayContent, roomOf } from '../../../src/features/room/read-room.t
 import { Move } from '../../../src/features/wick/move.command.ts'
 import { Wick } from '../../../src/features/wick/wick.component.ts'
 import { spawnWick, wickPlugin } from '../../../src/features/wick/wick.plugin.ts'
+import { Bumped } from '../../../src/features/wick/bumped.event.ts'
 import { TICK_HZ } from '../../../src/shared/constants.ts'
 
 // The sim is plain code, so its test needs no browser: make a sim on a small room, send it commands, read what it holds.
@@ -312,6 +329,23 @@ describe('${options.title}: Wick', () => {
     const { position } = await wickAfter(holding(FORWARD, TICK_HZ * 2))
     expect(position?.z).toBeLessThan(3 - 0.3)
     expect(position?.walking).toBe(false)
+  })
+
+  it('says he bumped once when he is pushed into the wall, not every tick he is held there', async () => {
+    const sim = await createSim({
+      seed: 1,
+      tickHz: TICK_HZ,
+      plugins: [cameraHeadingPlugin, wickPlugin],
+      content: CONTENT,
+    })
+    spawnWick(sim, ROOM)
+    const step = () =>
+      sim.step([{ tick: sim.tick, source: 0, seq: sim.tick, type: Move.id, payload: FORWARD }])
+    // Two seconds of pushing forward carry him into the crate and hold him there: he says so once, not every tick after.
+    let bumps = 0
+    for (let tick = 0; tick < TICK_HZ * 2; tick++) bumps += step().events.filter((e) => e.type === Bumped.id).length
+    expect(bumps).toBe(1)
+    sim.dispose()
   })
 
   it('ends in the same state every time the same moves are played', async () => {
