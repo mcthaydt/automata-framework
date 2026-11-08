@@ -505,3 +505,7 @@ Built on `claude/project-thread-2salzc`, stacked on #478 (plans' Logs have the e
 - **Not run:** any browser (layout) test, WebKit, Firefox. **No journey has run:** `examples/2d-story` has not landed,
   so no editor is done by the Owner's rule until its served journey runs and shows the change in play. Feel and Audio
   also lack their in-play stage.
+
+- Update (2026-11-08 06:05): Feel's `@automata/feel/stage` (shake, flash, tint, cues, rumbles) is built. Still open: hit-stop,
+  squash, words, the Audio in-play player, the journeys and the layout tests; hand-off notes are in the Feel and Audio plan logs.
+  A follow-up thread based on #484 plus #487 wires both players into `examples/2d-story` and runs them.

@@ -222,3 +222,14 @@ PixiStageHooks; played(): readonly string[] }`: `apply(result)` hears `result.ev
 - Task 7, partly: template rows (`content/audio/*.toml`, `assets/music/*`). Not done: the Chromium layout test and screens.
 - Ran: `test:unit` (all pass), `typecheck`, `pnpm boundaries`, `pnpm style`, `pnpm knip`. Did not run: WebKit, Firefox,
   any browser test, any journey.
+
+**Hand-off (build session, 2026-11-08, after the first log).** Not built: `@automata/audio-synth/stage` and the small in-play
+music player. The bus question, answered: core has the seam `AudioBuses` (`@automata/framework`, `features/audio/audio-buses.ts`):
+`input(bus)` returns the `AudioNode` a source connects to, `gain(bus)` / `setGain(bus, g)` are the player's gains. So the stage
+takes the game's `AudioBuses` and the `AudioContext`, plays a cue with `playCue(ctx, buses.input(cue.bus), cue)` when an event
+row matches, and plays the `music_rule` winner's track (an `<audio>` or decoded buffer from `assets/music`, connected to
+`buses.input('music')`) with the slot's `fade` for the switch. The editor's own `browserAudio` (`src/features/audio/audio-output.ts`)
+plays sounds on a throwaway context and is the pattern to copy. Still to find: where a game gets the `AudioContext` that core's
+`AudioBuses` uses (the manager in `features/audio/audio.manager.ts`), and how track files in `assets/music` are served in play.
+Also not built in the editor: the mix, shadowed rows, Check the sounds, the sound's picture, and the `about`/`world`/`no_duck`/`draft`
+toggles. No served journey has run.
