@@ -422,6 +422,15 @@ in the editor is drawn in the running game`, is marked `test.fail` until 2D core
 today at the screen check, after the save; under `--lan` the game listens on the network and a tablet's Play and
 Tuner point at the computer's address.
 
+**Whole game loop build audit (2026-11-08, session pv36dl, PR stacked on #480).** Done by hand: create-game outside the
+repository, `automata editor`, paint a wall, Play (the wall is in the running game), Publish, the zip unzipped and
+played. E1 to E5 hold on the stack; E6 is partly fixed (Play and Publish work; Ask, checks and gates hidden, not wired).
+12 findings in `2026-11-08-whole-game-loop-audit.md`: W1 (High, painted tiles not drawn in play) waits for #479;
+Medium W2 (`--lan` game open without the token), W3 (colour codes and stack frames in a failed Publish), W4 (Play
+vanishes with no reason), W5 (Publish cut off at phone size), W6 (Publish runs no `automata check`); Low W7 to W12.
+Journeys `whole-game-loop` pass at iPad and phone in Chromium; WebKit and Firefox not run; `pnpm check` not run in
+full. Next: Sonnet high fixes.
+
 **Where to resume (2026-11-08, session us0s9k, 15.1b (a) to (d) and (f) half done):** branch `claude/project-thread-us0s9k`, PR #473 stacked on #472. Next is 15.1b (e), then the last journey and the site's Try-it page, then 15.2 to 15.4; the plan's log ("Task 15.1b" entries) has each ruling and a design note for (e). `pnpm install --frozen-lockfile` first in a fresh container; a commit that exports a type needs `pnpm build`, `pnpm api-report --update` first or the hook fails on the editor report; the served journeys run with `pnpm exec playwright test -c playwright.journeys.config.ts --project=editor-ipad-chromium` in `packages/editor` (`PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`, tools built).
 
 **Where to resume (2026-11-08, session ngqsn7 after 14.1):** the build continues at task 15.2 (one page, chosen by the game) on branch `claude/project-thread-ngqsn7`, stacked on #467 (PR #472). 14.1, 14.2 and 15.1 are done (the plan's log has the rulings). Facts a fresh session needs: `editor-3d`'s tests are in `tests/{unit,browser/{layout,canvas,journeys}}` and import the code as `#src/...`; run them with `pnpm exec vitest run --project unit`, `--project 'layout (chromium)'`, `--project canvas`, `--project 'journeys (chromium)'` in `packages/editor-3d` (`PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`); a mover does not rewrite `new URL(...)`, `import.meta.glob(...)` or path strings in data.
