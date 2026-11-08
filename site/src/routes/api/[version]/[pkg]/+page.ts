@@ -1,13 +1,11 @@
 import { error } from '@sveltejs/kit'
-import { apiVersions, getApiReference } from '../../../../shared/framework/api-reference'
+import { API_VERSION, getApiReference } from '../../../../shared/framework/api-reference'
 import type { EntryGenerator, PageLoad } from './$types'
 
 export const prerender = true
 
 export const entries: EntryGenerator = () =>
-  apiVersions().flatMap((version) =>
-    (getApiReference(version)?.packages ?? []).map((pkg) => ({ version, pkg: pkg.slug })),
-  )
+  (getApiReference(API_VERSION)?.packages ?? []).map((pkg) => ({ version: API_VERSION, pkg: pkg.slug }))
 
 export const load: PageLoad = ({ params }) => {
   const reference = getApiReference(params.version)

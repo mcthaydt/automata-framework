@@ -1,6 +1,6 @@
 // The generated puzzle doc, from the adventure source's `renderDoc`: the solver's findings, the routes
 // with their times, the lock graph, the actions, the item × hotspot matrix, the systemic set-ups and the lethal rules.
-// Stamped with its sources' XXH64 hashes, so `check` can tell a stale doc (PZ-D4).
+// Stamped with its sources' XXH64 hashes, so `check` can tell a stale doc.
 import type { Effect } from '../../shared/sim/puzzle.schema'
 import type { Cond, Value } from '../../shared/sim/value.schema'
 import { type Analysis, keypadOf, keySet, timing } from './analyse'

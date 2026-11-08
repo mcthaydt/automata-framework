@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
-import Start from '../../../src/features/start/Start.svelte'
-import { STEPS } from '../../../src/features/start/start-content'
+import Start from '#src/features/start/Start.svelte'
+import { STEPS } from '#src/features/start/start-content'
 
 const repo = resolve(process.cwd(), '..')
 const read = (path: string) => readFileSync(resolve(repo, path), 'utf8')

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { GET as llmsIndex } from '../../../src/routes/llms.txt/+server'
-import { GET as llmsGuides } from '../../../src/routes/llms-guides.txt/+server'
+import { GET as llmsIndex } from '#src/routes/llms.txt/+server'
+import { GET as llmsGuides } from '#src/routes/llms-guides.txt/+server'
 
 describe('LLMs.txt & Docs Pipeline', () => {
   it('links no page the site cut', async () => {

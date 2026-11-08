@@ -5,11 +5,11 @@ import {
   createLiveCompile,
   EDIT_QUIET_MS,
   type LiveResult,
-} from '../../../src/features/playground/live'
-import type { Clock } from '../../../src/features/playground/orchestrator'
-import { diagnosticText } from '../../../src/features/playground/status'
+} from '#src/features/playground/live'
+import type { Clock } from '#src/features/playground/orchestrator'
+import { diagnosticText } from '#src/features/playground/status'
 
-// The live compile (spec F3, §5.2's last paragraph): the quiet period, `seq`, and latest-wins, with a fake clock and a
+// The live compile: the quiet period, `seq`, and latest-wins, with a fake clock and a
 // fake worker.
 
 class FakeClock implements Clock {
@@ -120,7 +120,7 @@ describe('createLiveCompile', () => {
 
 describe('diagnosticText', () => {
   const diagnostic = { line: 21, column: 18, message: 'Unexpected token' }
-  it('names the line and says the last good preview is still running (§8.3)', () => {
+  it('names the line and says the last good preview is still running', () => {
     expect(diagnosticText(diagnostic, true)).toBe(
       'Line 21: Unexpected token. The preview is still running your last working version.',
     )

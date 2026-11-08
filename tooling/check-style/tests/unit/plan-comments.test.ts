@@ -24,6 +24,8 @@ describe('citations in a .ts comment', () => {
     ['// the editor loads late (spec F2)\nexport const a = 1\n'],
     ['// the editor loads late (spec F-4)\nexport const a = 1\n'],
     ['// as plan 12.3 says\nexport const a = 1\n'],
+    ['// the host default (D8) waits\nexport const a = 1\n'],
+    ['// the playground frame (PLAY-D6) needs it\nexport const a = 1\n'],
   ])('%j is flagged', (code) => {
     expect(check(code)).toEqual([finding('/p/a.ts', 1)])
   })
@@ -34,6 +36,7 @@ describe('citations in a .ts comment', () => {
     '// HTTP/2 and UTF-8 both work here\nexport const a = 1\n',
     '// Uses a 3.4 GHz clock in the benchmark\nexport const a = 1\n',
     '// The M4-style layout is two columns\nexport const a = 1\n',
+    '// A (D) marker or the word D8 outside brackets is not a decision code\nexport const a = 1\n',
     '// The spec is the file the user wrote, so it is read as it is\nexport const a = 1\n',
     '// A plan for 3 days of food, spec by spec\nexport const a = 1\n',
   ])('%j passes', (code) => {

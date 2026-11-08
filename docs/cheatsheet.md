@@ -362,7 +362,7 @@
 - `shippedPanels` (const): The panels debug comes with: Sim, Bus, Feel, Audio and Net.
 - `SimProbe` (interface): What the sim panel shows, read each time the panel refreshes.
 - `summaryPanel(id, title)`: A panel for an extension's summary: it lists `host.summaries[id].summary()` as rows.
-- `SummaryPort` (interface): An extension's debug summary (DBG-D4): a plain object the extension builds from its own state, shown as rows by `summaryPanel`.
+- `SummaryPort` (interface): An extension's debug summary: a plain object the extension builds from its own state, shown as rows by `summaryPanel`.
 - `SummaryRow` (interface): One row of a diagnostics summary: a dotted name and its value as text.
 - `summaryRows(summary, prefix?)`: Turns a diagnostics summary into rows: nested objects get dotted names, a distribution (count, last, min, p50, p95, max) takes one row and long fractions are rounded.
 

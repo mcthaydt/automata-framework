@@ -238,7 +238,7 @@ let playedThisVisit = false
       if (startWanted) start()
       return
     }
-    // The original's precompiled module is not run: the shared code is (PLAY-D1), once compiled.
+    // The original's precompiled module is not run: the shared code is, once compiled.
     await codePanel?.open(shared)
     onedit(shared, true)
   }

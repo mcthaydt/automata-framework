@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { offsetIn } from '../../../src/features/playground/caret'
+import { offsetIn } from '#src/features/playground/caret'
 
 // The static code is one span per line holding highlighted pieces; the line numbers are CSS counters, not text.
 function staticCode(): HTMLElement {

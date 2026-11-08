@@ -5,7 +5,6 @@ import PageMeta from '../../shared/components/PageMeta.svelte'
 import PageShell from '../../shared/components/PageShell.svelte'
 import type { ApiEntry, ApiPackage } from '../../shared/framework/api'
 import './api.css'
-import { apiVersions } from '../../shared/framework/api-reference'
 
 // One package's reference, short enough to scan on a phone (site visual audit H4): each entry point folded to a row
 // of its own, so the folded rows are the page's jump list, and inside each one row per export: its name, kind and
@@ -24,7 +23,6 @@ const points = $derived(
     }))
     .filter((point) => point.entries.length),
 )
-const others = $derived(apiVersions().filter((v) => v !== data.version))
 
 /** The doc comment's first sentence, for the folded row. */
 function summary(entry: ApiEntry): string {
@@ -53,7 +51,6 @@ onMount(() => {
   <p class="small"><a href="/api">All packages</a></p>
   <h1>{data.pkg.name}</h1>
   <p class="lead">Version {data.version}. Every export, from the published types. Open a group, then an export, to see its signature.</p>
-  {#if others.length}<p class="small">Other versions: {#each others as v}<a href={'/api/' + v + '/' + data.pkg.slug}>{v}</a> {/each}</p>{/if}
   <label for="pkg-search">Filter this package</label>
   <input id="pkg-search" type="search" bind:value={query} placeholder="A name or a word" />
   {#each points as point (point.path)}

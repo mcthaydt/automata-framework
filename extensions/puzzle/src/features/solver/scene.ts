@@ -1,4 +1,4 @@
-// How a game plugs into the solver's tools and the `puzzle` pipeline (PZ-D2): a `PuzzleScene` adapter gives its puzzle,
+// How a game plugs into the solver's tools and the `puzzle` pipeline: a `PuzzleScene` adapter gives its puzzle,
 // its solver model and what the doc and the checks need to know about the scene. The tools never import a game.
 import type { PuzzleDef } from '../../shared/sim/puzzle.schema'
 import type { Walk } from './matrix'
@@ -25,6 +25,6 @@ export interface PuzzleScene {
   readonly cutscenes: readonly string[]
   /** Metres walked between two hotspots (null: from the spawn), every door open. */
   readonly walk: Walk
-  /** The files the generated doc depends on, relative to the scene folder, with their XXH64 hashes (PZ-D4). */
+  /** The files the generated doc depends on, relative to the scene folder, with their XXH64 hashes. */
   readonly sources: readonly { readonly path: string; readonly hash: string }[]
 }

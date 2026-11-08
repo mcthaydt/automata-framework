@@ -1,4 +1,4 @@
-// Encodes WebP copies of the JPEG previews at 640 px and at full width (spec §4.2: AVIF or WebP previews with a
+// Encodes WebP copies of the JPEG previews at 640 px and at full width (AVIF or WebP previews with a
 // fallback, and no image more than 2× its rendered size). It uses the Playwright Chromium already installed for the
 // browser suite, so the site needs no native image library. Run it after adding or replacing a preview:
 //   PLAYWRIGHT_BROWSERS_PATH=/home/user/pw node scripts/encode-previews.ts

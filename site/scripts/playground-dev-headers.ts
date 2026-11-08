@@ -5,7 +5,7 @@ import { playgroundHeaders } from '../src/features/playground/headers.ts'
 import { framePageForOrigin, isFramePage } from './playground-origin.ts'
 
 /**
- * The dev server's /playground/ CORS and CORP headers (spec §11.3), the rule the static server and the production host
+ * The dev server's /playground/ CORS and CORP headers, the rule the static server and the production host
  * use. Its Cache-Control is advisory here: Vite's static middleware sets its own afterwards, which is right for a
  * server whose files change under it; the static server is where the cache rule is tested. A frame page is answered
  * here, naming the dev server's own origin in its connect-src (R-2).

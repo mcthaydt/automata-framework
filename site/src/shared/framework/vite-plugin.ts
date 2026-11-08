@@ -3,7 +3,6 @@ import { readApiIndex } from './api.ts'
 import { demoList } from './demos.ts'
 import { playgroundExamples } from './examples.ts'
 import { readGuides } from './guides.ts'
-import { publishedPackages } from './packages.ts'
 import { repositoryRoot } from './root.ts'
 
 // The framework's files as the pages import them: `import guides from 'virtual:framework/guides'`. Each module is
@@ -15,7 +14,6 @@ const MODULES = {
   guides: () => readGuides(),
   examples: () => playgroundExamples(),
   demos: () => demoList(),
-  packages: () => publishedPackages(),
   api: () => readApiIndex().reference,
   'api-search': () => readApiIndex().search,
   llms: () => {

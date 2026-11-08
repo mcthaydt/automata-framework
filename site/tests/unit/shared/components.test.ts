@@ -1,9 +1,9 @@
 import { render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
-import CodeBlock from '../../../src/shared/components/CodeBlock.svelte'
-import Footer from '../../../src/shared/components/Footer.svelte'
-import Header from '../../../src/shared/components/Header.svelte'
-import { highlightCode } from '../../../src/shared/utils/highlight'
+import CodeBlock from '#src/shared/components/CodeBlock.svelte'
+import Footer from '#src/shared/components/Footer.svelte'
+import Header from '#src/shared/components/Header.svelte'
+import { highlightCode } from '#src/shared/utils/highlight'
 
 describe('UI Components', () => {
   it('the command box renders command text and a copy button', () => {

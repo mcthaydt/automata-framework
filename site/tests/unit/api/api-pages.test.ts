@@ -2,17 +2,17 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { fireEvent, render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
-import Index from '../../../src/features/api/ApiIndex.svelte'
-import Package from '../../../src/features/api/ApiPackage.svelte'
-import { entries, load } from '../../../src/routes/api/[version]/[pkg]/+page'
-import type { ApiPackage } from '../../../src/shared/framework/api.ts'
-import { apiVersions, getApiReference, latestApiVersion } from '../../../src/shared/framework/api-reference'
+import Index from '#src/features/api/ApiIndex.svelte'
+import Package from '#src/features/api/ApiPackage.svelte'
+import { entries, load } from '#src/routes/api/[version]/[pkg]/+page'
+import type { ApiPackage } from '#src/shared/framework/api.ts'
+import { API_VERSION, getApiReference } from '#src/shared/framework/api-reference'
 
 // M10.4: the complete generated reference, one page per package and version.
 describe('/api', () => {
   it('lists every version the site keeps, with its packages linked', () => {
     const view = render(Index)
-    const version = latestApiVersion()
+    const version = API_VERSION
     expect(view.getByRole('heading', { level: 2, name: `Version ${version}` })).toBeTruthy()
     const reference = getApiReference(version)!
     for (const pkg of reference.packages)
@@ -39,7 +39,7 @@ describe('/api', () => {
   })
 
   it('has one page for each published package, under its current name', () => {
-    const names = getApiReference(latestApiVersion())!.packages.map((pkg) => pkg.name)
+    const names = getApiReference(API_VERSION)!.packages.map((pkg) => pkg.name)
     // The four core packages and the nine free extensions, which are published too.
     expect(names).toEqual([
       '@automata/audio-synth',
@@ -58,15 +58,16 @@ describe('/api', () => {
     ])
   })
 
-  it('prerenders one page per package of each version', async () => {
-    const expected = apiVersions().flatMap((v) =>
-      getApiReference(v)!.packages.map((p) => ({ version: v, pkg: p.slug })),
-    )
+  it('prerenders one page per package', async () => {
+    const expected = getApiReference(API_VERSION)!.packages.map((p) => ({
+      version: API_VERSION,
+      pkg: p.slug,
+    }))
     expect(await entries()).toEqual(expected)
   })
 
   it('a package page shows every export with its signature, filters by word, and 404s an unknown package', async () => {
-    const version = latestApiVersion()
+    const version = API_VERSION
     const data = load({ params: { version, pkg: 'sim' } } as never) as unknown as {
       version: string
       pkg: ApiPackage
@@ -90,7 +91,7 @@ describe('/api', () => {
   })
 
   it('a package page is short: its groups folded into a list of rows, and a filter opens what matches', async () => {
-    const version = latestApiVersion()
+    const version = API_VERSION
     const data = load({ params: { version, pkg: 'framework' } } as never) as unknown as {
       version: string
       pkg: ApiPackage
@@ -111,7 +112,7 @@ describe('/api', () => {
   })
 
   it('shows a doc comment’s backticks as code, not as raw marks', () => {
-    const version = latestApiVersion()
+    const version = API_VERSION
     const pkg = getApiReference(version)!.packages.find((candidate) =>
       candidate.entryPoints.some((point) => point.entries.some((entry) => entry.doc.includes('`'))),
     )!

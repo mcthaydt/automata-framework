@@ -3,8 +3,8 @@ import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { CONTACT_EMAIL, SECURITY_EMAIL } from '#src/shared/site.js'
 import { launchProblems } from '../../../scripts/check-launch'
-import { CONTACT_EMAIL, SECURITY_EMAIL } from '../../../src/shared/site.js'
 
 // W9: the site shows one contact address and one security address, both from site.js; the launch refuses a personal
 // mailbox for either. Until the Owner names the project's address (D8) the launch check fails, and the deploy with it.

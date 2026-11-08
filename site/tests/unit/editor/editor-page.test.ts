@@ -2,9 +2,9 @@ import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
-import EditorPage from '../../../src/features/editor/EditorPage.svelte'
-import { EDITOR_COMMAND, EDITOR_PLAY_NOTE, PICTURES } from '../../../src/features/editor/editor-content'
-import { PICTURES as TAKEN } from '../../../src/shared/pictures'
+import EditorPage from '#src/features/editor/EditorPage.svelte'
+import { EDITOR_COMMAND, EDITOR_PLAY_NOTE, PICTURES } from '#src/features/editor/editor-content'
+import { PICTURES as TAKEN } from '#src/shared/pictures'
 
 const staticFile = (url: string) => resolve(process.cwd(), 'static', url.slice(1))
 

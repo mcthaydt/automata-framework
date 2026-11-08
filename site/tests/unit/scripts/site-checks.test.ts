@@ -5,6 +5,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
+import { withContentSecurityPolicy } from '#src/shared/html/csp'
 import { checkSite } from '../../../scripts/site-checks'
 import {
   BANNED_PHRASES,
@@ -22,7 +23,6 @@ import {
   MAX_PRELOADED_SCRIPT_BYTES,
 } from '../../../scripts/site-checks/javascript'
 import { writeSeoFiles } from '../../../scripts/write-seo-files'
-import { withContentSecurityPolicy } from '../../../src/shared/html/csp'
 
 const ORIGIN = 'https://automataframework.com'
 const roots: string[] = []
@@ -123,6 +123,18 @@ describe('checkSite', () => {
     expect(checkSite(site.root, { now: NOW })).toEqual([])
     writeSeoFiles(site.root)
     expect(readFileSync(join(site.root, 'sitemap.xml'), 'utf8')).not.toContain('/playground/')
+  })
+
+  it('refuses a page that only redirects: the site cut its old pages, and an old address gets the 404 page', () => {
+    const site = goodSite()
+    site.write(
+      'ai.html',
+      page('/ai', { head: `${ICON_LINKS}<meta http-equiv="refresh" content="0; url=/docs/how-it-works" />` }),
+    )
+    site.write('sitemap.xml', sitemap(['/', '/ai', '/docs', '/privacy', '/terms']))
+    expect(checkSite(site.root, { now: NOW })).toContain(
+      'ai.html: a page that only redirects; cut pages get the 404 page',
+    )
   })
 
   it('still reports a missing link destination', () => {
@@ -571,7 +583,7 @@ describe('checkSite: standalone and target-neutral', () => {
   })
 })
 
-// WEB.PLAY.6 (playground spec §10.1): the editor chunk loads on the first tap or focus on the code, never with a page,
+// the editor chunk loads on the first tap or focus on the code, never with a page,
 // and its closure stays within 175 kB gzip. The build's Vite manifest names its file and the chunks it imports.
 describe('checkEditorChunk', () => {
   const manifest = (imports: string[] = []) => ({
@@ -630,7 +642,7 @@ describe('checkEditorChunk', () => {
   })
 })
 
-// WEB.PLAY.7 (playground spec §10.1): the compile worker (Babel and sucrase) starts with the editor, never with a page,
+// the compile worker (Babel and sucrase) starts with the editor, never with a page,
 // and stays within 125 kB gzip. Vite emits it under `_app/immutable/workers/` and leaves it out of the manifest.
 describe('checkCompileWorker', () => {
   const WORKER = '_app/immutable/workers/compile.worker-abc123.js'

@@ -1,4 +1,4 @@
-// R-2 (spec §11.2): WebKit does not match a frame page's `'self'` to the site for a fetch, so each frame page's
+// R-2: WebKit does not match a frame page's `'self'` to the site for a fetch, so each frame page's
 // connect-src names the one origin that serves it. The published pages are built for the site's origin; the local
 // servers (scripts/serve-static.ts and the dev server) answer with the same page naming their own.
 

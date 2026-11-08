@@ -1,5 +1,5 @@
 // The solver's state and its plain effects. A verb's conditions are read with puzzle's own `holds`, through a reader
-// over this state, so `held` and `code` are the verb's virtual facts exactly as in the interpreter (PZ-D1).
+// over this state, so `held` and `code` are the verb's virtual facts exactly as in the interpreter.
 import { holds as condHolds, type Reader } from '../../shared/sim/interpret'
 import type { Effect } from '../../shared/sim/puzzle.schema'
 import type { Cond } from '../../shared/sim/value.schema'

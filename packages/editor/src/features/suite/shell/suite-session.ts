@@ -9,7 +9,7 @@ import { checksPill, type Pill } from '../core/pills-model'
 export interface SuiteSession {
   /** The ports the suite's own writes take. */
   readonly ports: SuitePorts
-  /** The ports an editor is opened with: its writes join its own history on the write path (EDS-D19). */
+  /** The ports an editor is opened with: its writes join its own history on the write path. */
   portsFor(editor: string): SuitePorts
   readonly writePath: WritePath
   pills(): readonly Pill[]

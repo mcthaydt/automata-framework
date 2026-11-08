@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { playgroundDevHeaders } from '../../../scripts/playground-dev-headers'
 
 // `pnpm dev` serves /playground/ to an opaque-origin frame too, and Vite's default CORS does not allow Origin: null
-// (spec §11.3), so the dev server adds the same headers as the static server.
+//, so the dev server adds the same headers as the static server.
 type Middleware = (
   request: { url?: string; headers?: Record<string, string> },
   response: { setHeader(name: string, value: string): void; statusCode?: number; end?(body: string): void },

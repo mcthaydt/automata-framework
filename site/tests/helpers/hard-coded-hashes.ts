@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 
-// DX spec §3.10: "A hard-coded hash on the site becomes a website test failure." A sim hash is XXH64, 16 hex digits.
+// "A hard-coded hash on the site becomes a website test failure." A sim hash is XXH64, 16 hex digits.
 // No hash may appear in the site's sources: the framework's files are read at build time, never copied into src/, so
 // any hash in src/ is one someone typed.
 

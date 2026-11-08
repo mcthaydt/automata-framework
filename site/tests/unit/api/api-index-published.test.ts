@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { GET as llmsIndex } from '../../../src/routes/llms.txt/+server'
-import { GET as llmsApi } from '../../../src/routes/llms-api.txt/+server'
-import { GET as llmsFull } from '../../../src/routes/llms-full.txt/+server'
+import { GET as llmsIndex } from '#src/routes/llms.txt/+server'
+import { GET as llmsApi } from '#src/routes/llms-api.txt/+server'
+import { GET as llmsFull } from '#src/routes/llms-full.txt/+server'
 
-// The framework's generated llms-full.txt and llms-api.txt are served unchanged (DX.10a, DX spec §2.3), read from
+// The framework's generated llms-full.txt and llms-api.txt are served unchanged, read from
 // tooling/api-index/dist when the site is built: no copy to drift from what `pnpm api-index` wrote.
 const dist = resolve(import.meta.dirname, '../../../../tooling/api-index/dist')
 const read = (name: string): string => readFileSync(resolve(dist, name), 'utf8')

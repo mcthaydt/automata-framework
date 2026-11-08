@@ -7,7 +7,7 @@ import DemoRunner from '#src/features/home/DemoRunner.svelte'
 import { demoStatus } from '#src/features/home/demo-status.ts'
 import { DEMO_BAR } from '#src/features/home/home-content.ts'
 
-// The gallery's ?demo= and ?file= selection is retired with the gallery (WEB.PLAY.5): /examples is one prerendered
+// The gallery's ?demo= and ?file= selection is retired with the gallery: /examples is one prerendered
 // index whatever the query (tests/examples-pages.test.ts).
 describe('Demo readiness', () => {
   it('does not equate document load with game readiness', () => {

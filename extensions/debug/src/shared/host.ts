@@ -1,4 +1,4 @@
-// The handles debug panels read (DBG-D1): core gives slot components no services context, so the game hands `installDebug` what
+// The handles debug panels read: core gives slot components no services context, so the game hands `installDebug` what
 // it wants shown and the overlay passes it down through Svelte context. Every handle is optional; a panel whose handle is missing
 // says so instead of throwing. Nothing here writes the sim: the only game-changing handles are Flow's pause and the feel board.
 import type { DebugPanelDef } from './panels'
@@ -53,7 +53,7 @@ export interface AudioBoardPort {
 export interface NetDiagnosticsPort {
   summary(): unknown
 }
-/** An extension's debug summary (DBG-D4): a plain object the extension builds from its own state, shown as rows by `summaryPanel`. */
+/** An extension's debug summary: a plain object the extension builds from its own state, shown as rows by `summaryPanel`. */
 export interface SummaryPort {
   summary(): unknown
 }
@@ -72,11 +72,11 @@ export interface DebugHost {
   readonly feel?: FeelBoardPort | undefined
   readonly audio?: AudioBoardPort | undefined
   readonly net?: NetDiagnosticsPort | undefined
-  /** Each extension's summary, by the id of its `summaryPanel` (DBG-D4). */
+  /** Each extension's summary, by the id of its `summaryPanel`. */
   readonly summaries?: Readonly<Record<string, SummaryPort>> | undefined
   /** Flow's existing pause, for the overlay's "Pause the game" toggle. */
   readonly setPaused?: ((paused: boolean) => void) | undefined
-  /** The game's test driver (DBG-D3): named functions a Playwright playthrough calls, exposed as `window.__automataDebug`. */
+  /** The game's test driver: named functions a Playwright playthrough calls, exposed as `window.__automataDebug`. */
   readonly driver?: Readonly<Record<string, (...args: never[]) => unknown>> | undefined
 }
 

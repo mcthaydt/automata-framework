@@ -121,7 +121,7 @@ async function drawAndShareALevel(page: Page): Promise<void> {
 async function canvasPicture(page: Page, canvas: Locator): Promise<Buffer> {
   await page.mouse.move(0, 0)
   await expect(canvas).toHaveAttribute('data-state', 'drawn')
-  // The buttons over the canvas (fullscreen, the inspector, the tool dock) are the page's, not the level's, and a
+  // The buttons over the canvas are the page's, not the level's, and a
   // focus ring or a hover edge on one would read as a change: they are masked out.
   return canvas.screenshot({ animations: 'disabled', mask: [page.getByRole('button')] })
 }

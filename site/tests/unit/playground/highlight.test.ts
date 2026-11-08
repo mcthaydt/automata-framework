@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { highlightLines } from '../../../src/features/playground/highlight'
+import { highlightLines } from '#src/features/playground/highlight'
 
 const join = (lines: ReturnType<typeof highlightLines>) =>
   lines

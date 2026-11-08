@@ -20,10 +20,7 @@ export function groupPackages(reference: ApiReference): { core: ApiPackage[]; ex
   }
 }
 
-export function apiVersions(): string[] {
-  return [reference.version]
-}
-export const latestApiVersion = (): string => reference.version
+export const API_VERSION: string = reference.version
 
 export function getApiReference(version: string): ApiReference | undefined {
   return version === reference.version ? reference : undefined

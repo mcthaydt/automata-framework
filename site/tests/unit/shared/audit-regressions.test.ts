@@ -1,9 +1,9 @@
 import { resolve } from 'node:path'
 import { fireEvent, render, waitFor } from '@testing-library/svelte'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
-import CommandMenu from '../../../src/features/search/CommandMenu.svelte'
-import CodeBlock from '../../../src/shared/components/CodeBlock.svelte'
-import Header from '../../../src/shared/components/Header.svelte'
+import CommandMenu from '#src/features/search/CommandMenu.svelte'
+import CodeBlock from '#src/shared/components/CodeBlock.svelte'
+import Header from '#src/shared/components/Header.svelte'
 import { findHardCodedHashes, siteSourceFiles } from '../../helpers/hard-coded-hashes'
 
 beforeAll(() => {

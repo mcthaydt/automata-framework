@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { DEMO_POLICY, securityHeaders } from '../../../src/shared/html/security-headers'
+import { DEMO_POLICY, securityHeaders } from '#src/shared/html/security-headers'
 
-// QB.4a: the header set every response carries (quality-bar spec QB.4). A site page's script policy is a <meta> in the
+// QB.4a: the header set every response carries. A site page's script policy is a <meta> in the
 // page (src/shared/html/csp.ts), so its header adds only what a <meta> cannot: the frame policy. The demos are copied in as
 // built and never pass through the page hook, so their header carries their whole policy.
 describe('securityHeaders', () => {
@@ -28,7 +28,7 @@ describe('securityHeaders', () => {
     expect(securityHeaders('/demosx/')['Content-Security-Policy']).toBe("frame-ancestors 'self'")
   })
 
-  // WEB.PLAY.5: an example page's preview is a sandboxed frame with an opaque origin, which `(self)` never matches, so
+  // an example page's preview is a sandboxed frame with an opaque origin, which `(self)` never matches, so
   // the input examples' getGamepads() threw "disallowed by permissions policy". Example pages and the frame pages they
   // load allow the two features to any origin; a frame still gets them only through its `allow` attribute, which only
   // the playground's frames carry. Every other page keeps `(self)`.

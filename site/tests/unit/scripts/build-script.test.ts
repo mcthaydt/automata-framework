@@ -22,6 +22,10 @@ describe('the build script', () => {
     expect(move).toBeLessThan(sitemap)
   })
 
+  it('writes no redirect pages', () => {
+    expect(steps.filter((step) => step.includes('redirect'))).toEqual([])
+  })
+
   it('asks adapter-static for no fallback page, and for addresses from the root so a nested 404 keeps its styles', async () => {
     const config = (await import('../../../svelte.config.js')).default
     expect(config.kit.adapter).toBeDefined()

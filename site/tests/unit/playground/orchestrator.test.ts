@@ -7,11 +7,11 @@ import {
   FIRST_BOOT_TIMEOUT_MS,
   type OrchestratorView,
   type PreviewFrame,
-} from '../../../src/features/playground/orchestrator'
-import type { RunMessage } from '../../../src/features/playground/protocol'
+} from '#src/features/playground/orchestrator'
+import type { RunMessage } from '#src/features/playground/protocol'
 
-// The orchestrator (spec §8.1) with a fake clock and fake frames: what it creates, posts, reveals and removes, and
-// which messages it believes (§5.1).
+// The orchestrator with a fake clock and fake frames: what it creates, posts, reveals and removes, and
+// which messages it believes.
 
 const FRAMEWORK = 'f8023a907725cccd84277372c0d4f1b73d2da90c'
 
@@ -206,7 +206,7 @@ describe('the orchestrator', () => {
     expect(view().stopped).toBe('Stopped: line 30: x.')
   })
 
-  it('names a hang in the spec’s words, by phase (§7.2, §7.3)', () => {
+  it('names a hang in the spec’s words, by phase', () => {
     const { orchestrator, frames, booted, say, start, view } = setup()
     const first = start()
     orchestrator.run('hangs at boot')
@@ -310,7 +310,7 @@ describe('the orchestrator', () => {
   })
 })
 
-// WEB.PLAY.10 (spec §13, F6): the determinism request goes out with the run, and the row shows only the frame on show.
+// the determinism request goes out with the run, and the row shows only the frame on show.
 describe('the determinism row', () => {
   const ORIGINAL = { ticks: 120, replay: '/playground/goldens/shapes-rects.replay' }
   const HASH = '0123456789abcdef'

@@ -1,5 +1,5 @@
 <script lang="ts">
-// An extension's summary (DBG-D4) as rows, read four times a second. Which summary is the panel's own id, set by the overlay.
+// An extension's summary as rows, read four times a second. Which summary is the panel's own id, set by the overlay.
 import { getContext, onMount } from 'svelte'
 import { type DebugHost, HOST_CONTEXT, PANEL_CONTEXT } from './host'
 import { summaryRows } from './summary-rows'

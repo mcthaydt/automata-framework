@@ -23,7 +23,7 @@ export interface WorkspaceFile {
   readonly editor: string
   /** The scene the row's `{scene}` matched, when it has one. */
   readonly scene?: string | undefined
-  /** The gates the row names; empty when it names none (EDS-D7). */
+  /** The gates the row names; empty when it names none. */
   readonly gates: readonly string[]
   /** The check ids the row names, `content` included when it is listed. */
   readonly checks: readonly string[]
@@ -114,7 +114,7 @@ export interface CheckReport {
 /** One check of the editor list (`[[check]]`). The built-in `content` check is the suite's, not the runner's. */
 export interface CheckDef {
   readonly id: string
-  /** `before`: runs on the candidate text and a failure refuses the write; `after`: runs on what was written (EDS-D8). */
+  /** `before`: runs on the candidate text and a failure refuses the write; `after`: runs on what was written. */
   readonly when: 'before' | 'after'
   /** The argv the runner runs in the game's checkout, with no shell. */
   readonly run: readonly string[]

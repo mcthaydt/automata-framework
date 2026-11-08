@@ -1,11 +1,10 @@
 import { render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
-import DocsPage from '../../../src/features/docs/DocsPage.svelte'
-import { getDocBySlug, getDocs } from '../../../src/features/docs/docs-loader'
-import { REDIRECTS } from '../../../src/features/redirects/redirects'
-import { entries, load } from '../../../src/routes/docs/[slug]/+page'
+import DocsPage from '#src/features/docs/DocsPage.svelte'
+import { getDocBySlug, getDocs } from '#src/features/docs/docs-loader'
+import { entries, load } from '#src/routes/docs/[slug]/+page'
 
-// The docs are the framework's guides and nothing else (spec 10.2, W4, W7): the site keeps no copy of its own.
+// The docs are the framework's guides and nothing else: the site keeps no copy of its own.
 describe('the docs', () => {
   const docs = getDocs()
 
@@ -68,7 +67,6 @@ describe('the docs', () => {
       'from-web',
     ]) {
       expect(getDocBySlug(slug), slug).toBeUndefined()
-      expect(pages.has(REDIRECTS['/docs/' + slug] ?? ''), slug).toBe(true)
     }
   })
 

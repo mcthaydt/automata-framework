@@ -97,7 +97,7 @@ describe('serve-static', () => {
   })
 
   // The playground's frame has an opaque origin, so everything it loads from /playground/ is a cross-origin request
-  // with Origin: null (spec §11.3).
+  // with Origin: null.
   it('serves /playground/ with CORS and cross-origin CORP, caching the hashed runtime for good', async () => {
     const origin = await serve()
     const runtime = await fetch(`${origin}/playground/runtime/automata-1a2b.js`, {
@@ -111,7 +111,7 @@ describe('serve-static', () => {
     expect(page.headers.get('cache-control')).toBe('no-cache')
   })
 
-  // R-2: the frame page's connect-src names the origin that serves it, so the browser suite's frames can fetch.
+  // the frame page's connect-src names the origin that serves it, so the browser suite's frames can fetch.
   it('serves a playground frame page with its own origin in connect-src', async () => {
     const origin = await serve()
     const response = await fetch(`${origin}/playground/examples/core/basic-window/`)

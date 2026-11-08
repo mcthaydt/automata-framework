@@ -1,4 +1,4 @@
-// Renders the PNG icons of the favicon set from static/favicon.svg (spec §4.2): a 32 px favicon for browsers that
+// Renders the PNG icons of the favicon set from static/favicon.svg: a 32 px favicon for browsers that
 // ignore SVG icons and the 180 px apple-touch-icon for iOS home screens. It uses the Playwright Chromium installed for
 // the browser suite. Run it after changing favicon.svg:
 //   PLAYWRIGHT_BROWSERS_PATH=/home/user/pw node scripts/render-favicons.ts

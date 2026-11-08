@@ -1,13 +1,13 @@
-// WEB.PLAY.5 in a real browser (playground spec §6 F1, §7.4, A-2, A-11, A-12, A-13): an example page runs its original
+// in a real browser: an example page runs its original
 // on arrival with no input, requests nothing under /playground/ before `load`, and under reduced motion requests
 // nothing there before Play; /examples runs nothing. Run `pnpm build` first.
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, type Page, test } from '@playwright/test'
+import { BOOT_TIMEOUT_MS, FIRST_BOOT_TIMEOUT_MS } from '#src/features/playground/orchestrator'
+import { LOOP_GUARD_MS } from '#src/features/playground/protocol'
+import { playgroundExamples } from '#src/shared/framework/examples'
 import { SITE_PORT } from '../../playwright.config'
-import { BOOT_TIMEOUT_MS, FIRST_BOOT_TIMEOUT_MS } from '../../src/features/playground/orchestrator'
-import { LOOP_GUARD_MS } from '../../src/features/playground/protocol'
-import { playgroundExamples } from '../../src/shared/framework/examples'
 import { watchPage } from './gates'
 
 const ORIGIN = `http://127.0.0.1:${SITE_PORT}`
@@ -114,7 +114,7 @@ test('following a link to another example replaces the preview with that example
   )
 })
 
-// WEB.PLAY.6 (spec F2, §9.2, §9.3): the first tap or focus on the code swaps in the editor, in the same box.
+// the first tap or focus on the code swaps in the editor, in the same box.
 const staticCode = (page: Page) => page.getByTestId('static-code')
 const box = async (page: Page, selector: string) => (await page.locator(selector).boundingBox())!
 
@@ -270,7 +270,7 @@ test('a preview that starts while the reader is in the code leaves focus in the 
   await expect(page.locator('.cm-content')).toBeFocused()
 })
 
-// WEB.PLAY.7 (spec F3–F5, §7.4, A-1, A-3, A-4, A-13): edits compile in a worker after a quiet period and replace the
+// edits compile in a worker after a quiet period and replace the
 // preview through a candidate frame, with no button; a broken edit marks its line and keeps the last good preview.
 
 /** The editor's line `line` (1-based). */
@@ -552,7 +552,7 @@ test('an IME composition compiles once, when it ends', async ({ page, browserNam
   await expect(root(page)).toHaveAttribute('data-run-id', '2')
 })
 
-// WEB.PLAY.8 (spec §7.2, A-5, A-6, A-7): each failure shows its text, keeps the last good preview where the spec says
+// each failure shows its text, keeps the last good preview where the spec says
 // so, and the next good edit, Restart or Retry recovers.
 
 test('a loop that never ends is stopped and named, and the next good edit runs', async ({ page }) => {
@@ -565,7 +565,7 @@ test('a loop that never ends is stopped and named, and the next good edit runs',
   // orchestrator's BOOT_TIMEOUT_MS before it is a failure of its own, so the stop is awaited for that plus the guard.
   await expect(root(page)).toHaveAttribute('data-compile', 'ok', { timeout: 10_000 })
   await expect(page.locator('.playground-status')).toHaveText(
-    // By phase (§7.2): a stop while running is "Stopped: line N", a candidate that never got going "Line N".
+    // By phase: a stop while running is "Stopped: line N", a candidate that never got going "Line N".
     new RegExp(
       `^(Stopped: line|Line) ${move + 1}: this loop ran for over a second without a break, so the preview stopped it\\.`,
     ),
@@ -694,7 +694,7 @@ test('offline, the first frame times out and Retry starts a fresh one', async ({
   await expect(retry).toHaveCount(0)
 })
 
-// WEB.PLAY.9 (spec §5.6, F7–F9, A-8, A-9): Reset, the share link, and opening one.
+// Reset, the share link, and opening one.
 
 test('a share link opens the edited code in a new context and runs it', async ({ page, browser }) => {
   await page.goto('/examples/shapes-rects')
@@ -815,7 +815,7 @@ test('a share link with no compile worker runs the original', async ({ page }) =
   await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
 })
 
-// WEB.PLAY.10 (spec §13, F6, A-10): the determinism row says only what this browser checked.
+// the determinism row says only what this browser checked.
 const row = (page: Page) => page.locator('.determinism-row')
 
 test('the unedited original replays its golden in this browser, and the row names the hash and the framework', async ({

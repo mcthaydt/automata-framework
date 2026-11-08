@@ -1,7 +1,7 @@
 import { fireEvent, render, waitFor } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
-import CommandMenu from '../../../src/features/search/CommandMenu.svelte'
-import { getApiReference, latestApiVersion } from '../../../src/shared/framework/api-reference'
+import CommandMenu from '#src/features/search/CommandMenu.svelte'
+import { API_VERSION, getApiReference } from '#src/shared/framework/api-reference'
 
 // M10.4: search reaches the complete generated reference, not only the selected APIs, and links to the package page.
 describe('CommandMenu searches the complete API', () => {
@@ -12,7 +12,7 @@ describe('CommandMenu searches the complete API', () => {
     HTMLDialogElement.prototype.close ??= function (this: HTMLDialogElement) {
       this.removeAttribute('open')
     }
-    const version = latestApiVersion()
+    const version = API_VERSION
     const reference = getApiReference(version)!
     const sim = reference.packages.find((p) => p.slug === 'sim')!
     const target = sim.entryPoints.flatMap((e) => e.entries).find((e) => /^[a-z][A-Za-z]{9,}$/.test(e.name))!

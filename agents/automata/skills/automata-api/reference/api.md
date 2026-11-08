@@ -3329,11 +3329,11 @@ interface DebugHost {
     readonly feel?: FeelBoardPort | undefined;
     readonly audio?: AudioBoardPort | undefined;
     readonly net?: NetDiagnosticsPort | undefined;
-    /** Each extension's summary, by the id of its `summaryPanel` (DBG-D4). */
+    /** Each extension's summary, by the id of its `summaryPanel`. */
     readonly summaries?: Readonly<Record<string, SummaryPort>> | undefined;
     /** Flow's existing pause, for the overlay's "Pause the game" toggle. */
     readonly setPaused?: ((paused: boolean) => void) | undefined;
-    /** The game's test driver (DBG-D3): named functions a Playwright playthrough calls, exposed as `window.__automataDebug`. */
+    /** The game's test driver: named functions a Playwright playthrough calls, exposed as `window.__automataDebug`. */
     readonly driver?: Readonly<Record<string, (...args: never[]) => unknown>> | undefined;
 }
 ```
@@ -3553,7 +3553,7 @@ function summaryPanel(id: string, title: string): DebugPanelDef;
 
 #### `SummaryPort` (interface)
 
-An extension's debug summary (DBG-D4): a plain object the extension builds from its own state, shown as rows by `summaryPanel`.
+An extension's debug summary: a plain object the extension builds from its own state, shown as rows by `summaryPanel`.
 
 ```ts
 interface SummaryPort {
@@ -14064,7 +14064,7 @@ interface PuzzleScene {
   readonly cutscenes: readonly string[];
   /** Metres walked between two hotspots (null: from the spawn), every door open. */
   readonly walk: Walk;
-  /** The files the generated doc depends on, relative to the scene folder, with their XXH64 hashes (PZ-D4). */
+  /** The files the generated doc depends on, relative to the scene folder, with their XXH64 hashes. */
   readonly sources: readonly {
     readonly path: string;
     readonly hash: string;

@@ -1,10 +1,10 @@
 // @vitest-environment node
 import { createHash } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
-import { CSP_META_PREFIX, withContentSecurityPolicy } from '../../../src/shared/html/csp'
-import { finishPage } from '../../../src/shared/html/finish-page'
+import { CSP_META_PREFIX, withContentSecurityPolicy } from '#src/shared/html/csp'
+import { finishPage } from '#src/shared/html/finish-page'
 
-// QB.4a: the pages' Content-Security-Policy, without `unsafe-inline` for scripts (quality-bar spec QB.4). Every inline
+// QB.4a: the pages' Content-Security-Policy, without `unsafe-inline` for scripts. Every inline
 // script is allowed by its own hash, computed from the final HTML, after QB.3j's hydration rewrite.
 
 const START = '<script>\n\t\t\t\t{ console.log("start") }\n\t\t\t</script>'

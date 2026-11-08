@@ -1,4 +1,4 @@
-// What the debug overlay shows of the puzzle (DBG-D4): a plain object built from the play state. `debug` imports no extension, so
+// What the debug overlay shows of the puzzle: a plain object built from the play state. `debug` imports no extension, so
 // the game hands this over under a `summaryPanel` id. It reads the state and never writes it.
 import { sortedKeys } from '@automata/sim'
 import type { PuzzleStateValue } from './puzzle.resource'

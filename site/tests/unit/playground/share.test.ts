@@ -1,5 +1,5 @@
 // @vitest-environment node
-// The share link (spec §5.6): `#code=1.<payload>`, the UTF-8 source compressed with deflate-raw, in base64url; decoding
+// The share link: `#code=1.<payload>`, the UTF-8 source compressed with deflate-raw, in base64url; decoding
 // stops at MAX_SHARED_SOURCE_BYTES decompressed and refuses a fragment longer than MAX_FRAGMENT_CHARS.
 import { describe, expect, it } from 'vitest'
 import {
@@ -8,7 +8,7 @@ import {
   MAX_FRAGMENT_CHARS,
   MAX_SHARED_SOURCE_BYTES,
   ShareError,
-} from '../../../src/features/playground/share'
+} from '#src/features/playground/share'
 
 async function deflate(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
   const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'))

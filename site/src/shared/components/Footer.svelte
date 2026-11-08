@@ -1,6 +1,6 @@
 <!--
   The site's footer: the logo, the licence and the pages a visitor looks for last. The contact address stays as it
-  is until the Owner decides what it should be (D8).
+  is until the Owner decides what it should be.
 -->
 <script lang="ts">
 import { CONTACT_EMAIL } from '../site.js'

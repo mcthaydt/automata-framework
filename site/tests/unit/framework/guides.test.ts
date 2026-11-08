@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { readGuides } from '../../../src/shared/framework/guides.ts'
+import { readGuides } from '#src/shared/framework/guides.ts'
 
 // The docs come from the framework's own `docs/guides/` at build time (W7): moving or renaming a guide fails here.
 describe('readGuides', () => {

@@ -13,7 +13,7 @@ export const MAX_CODE_CHARS = 262_144
 export const MAX_FAILURE_CHARS = 2_000
 /** How long `running` waits for an animation frame once the runtime is ready (an off-screen frame gets none). */
 export const RUNNING_FRAME_WAIT_MS = 250
-/** How long one stretch of synchronous work may run loops before the guard stops it (PLAY-D15). */
+/** How long one stretch of synchronous work may run loops before the guard stops it. */
 export const LOOP_GUARD_MS = 1_000
 
 const v = z.literal(PROTOCOL_VERSION)

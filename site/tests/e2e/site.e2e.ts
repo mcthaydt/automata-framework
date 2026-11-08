@@ -1,4 +1,4 @@
-// QB.3 browser gates on the built site (quality-bar spec §4.2). Run `pnpm build` first; the pages come from the built
+// QB.3 browser gates on the built site. Run `pnpm build` first; the pages come from the built
 // sitemap.xml, so a new page is covered without editing this file.
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -383,7 +383,7 @@ test.describe('without script', () => {
   })
 })
 
-// One shell (spec 4.1): every page starts at the header logo's left edge, titles are one weight, and the header does
+// One shell: every page starts at the header logo's left edge, titles are one weight, and the header does
 // not move from page to page.
 const SHELL_PAGES = [
   '/',

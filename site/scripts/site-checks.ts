@@ -51,6 +51,9 @@ export function checkSite(
   }
   for (const file of pages) {
     const html = readFileSync(join(root, file), 'utf8')
+    // A cut page gets the 404 page, not a redirect: a meta refresh page is a page the site no longer wants.
+    if (/http-equiv=["']refresh["']/i.test(html))
+      failures.push(file + ': a page that only redirects; cut pages get the 404 page')
     const window = new JSDOM(html).window
     const doc = window.document
     pageIds.set(file, new Set(Array.from(doc.querySelectorAll('[id]'), (element) => element.id)))
@@ -122,7 +125,7 @@ export function checkSite(
   return failures
 }
 
-/** sitemap.xml lists exactly the canonical URL of every page, and robots.txt points at it (spec F-3). */
+/** sitemap.xml lists exactly the canonical URL of every page, and robots.txt points at it. */
 function checkSeoFiles(root: string, canonicals: Set<string>): string[] {
   const failures: string[] = []
   const sitemapPath = join(root, 'sitemap.xml')
@@ -142,7 +145,7 @@ function checkSeoFiles(root: string, canonicals: Set<string>): string[] {
   return failures
 }
 
-/** Every page's footer reaches the privacy and terms pages and a contact email (spec F-4, QB-D3). */
+/** Every page's footer reaches the privacy and terms pages and a contact email. */
 function checkFooter(file: string, doc: Document): string[] {
   const failures: string[] = []
   const hrefs = Array.from(doc.querySelectorAll('footer a[href]'), (anchor) => anchor.getAttribute('href')!)
@@ -155,7 +158,7 @@ function checkFooter(file: string, doc: Document): string[] {
   return failures
 }
 
-/** RFC 9116: a Contact, an Expires in the future (renewed at least yearly) and the Canonical URL (spec F-4). */
+/** RFC 9116: a Contact, an Expires in the future (renewed at least yearly) and the Canonical URL. */
 function checkSecurityTxt(root: string, now: Date): string[] {
   const file = '.well-known/security.txt'
   const path = join(root, file)

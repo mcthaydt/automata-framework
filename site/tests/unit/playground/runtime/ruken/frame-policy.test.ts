@@ -50,7 +50,7 @@ describe('framePolicy', () => {
   })
 
   // WebKit does not match 'self' to the site for a fetch from an opaque-origin document, though it does for scripts
-  // and images (WEB.PLAY.1, R-2), so the site's origin is named beside it.
+  // and images, so the site's origin is named beside it.
   it("names the site's origin in connect-src beside 'self'", () => {
     expect(directives(framePolicy(IMPORT_MAP, SITE)).get('connect-src')).toBe(`'self' ${SITE}`)
   })

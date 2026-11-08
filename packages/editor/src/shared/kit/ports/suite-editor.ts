@@ -5,7 +5,7 @@ import type { Snippet } from 'svelte'
 import type { SuitePorts, WorkspaceFile } from './suite-ports'
 
 /**
- * The points an editor offers other editors to add to (EDS-D5): a source of bounded tunables in the Tuner and a tab in
+ * The points an editor offers other editors to add to: a source of bounded tunables in the Tuner and a tab in
  * the Audio editor. Their contribution shapes land with their first consumers.
  */
 export type ContributionPoint = 'tuner.source' | 'audio.panel'
@@ -22,7 +22,7 @@ export interface SuiteRegions<S> {
   readonly tools?: Snippet<[S]> | undefined
 }
 
-/** The active editor's history, as the suite's top bar sees it: Undo, Redo, `Mod+Z` and `Mod+Shift+Z` (EDS-D19). */
+/** The active editor's history, as the suite's top bar sees it: Undo, Redo, `Mod+Z` and `Mod+Shift+Z`. */
 export interface SuiteUndo {
   canUndo(): boolean
   canRedo(): boolean
@@ -45,7 +45,7 @@ export interface SuiteEditor<S> {
   readonly hue: string
   /**
    * Opens the files of one editor-list row group for a scene (or the whole game) into a session: its documents,
-   * history, selection and view state, which outlive the view (EDS-D12). Never rejects for a bad file: that is a state.
+   * history, selection and view state, which outlive the view. Never rejects for a bad file: that is a state.
    */
   open(files: readonly WorkspaceFile[], ports: SuitePorts): Promise<S>
   /**

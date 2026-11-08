@@ -1,7 +1,7 @@
 <!--
   The suite: one kit `EditorShell` around Home, the nine-entry switcher and the
   editor an entry opens. An entry that exactly one installed editor covers opens it: `open` runs once per entry for
-  the app's life, so the editor's session (documents, history, selection, view state) outlives a switch (EDS-D12),
+  the app's life, so the editor's session (documents, history, selection, view state) outlives a switch,
   and its regions fill the shell's. Any other entry shows its cards. The shell stays mounted through every switch and
   rotation; only what is inside its regions changes. Home is `SuiteHome`, Undo and Redo are `suite-history`, and what a refused write says is
   `core/write-messages` (split by responsibility in 12.7 and 12.5).
@@ -130,7 +130,7 @@ $effect(() => {
   return stop
 })
 
-// Undo and Redo act on the open editor's own history, or the suite's (an import) with none open (EDS-D19).
+// Undo and Redo act on the open editor's own history, or the suite's (an import) with none open.
 const owner = $derived(mounted?.editor.id ?? '')
 const undoHook = $derived(mounted?.editor.undo?.(mounted.session))
 const history = suiteHistory({

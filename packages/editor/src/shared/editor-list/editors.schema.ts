@@ -24,7 +24,7 @@ export interface FileRow {
   /** The `SuiteEditor` id, e.g. `tuner`; an id no installed editor provides is Home's "not installed" state. */
   readonly editor: string
   readonly modes: readonly EditMode[]
-  /** The gates a change to these files reopens. Required, possibly empty (EDS-D7). */
+  /** The gates a change to these files reopens. Required, possibly empty. */
   readonly gates: readonly string[]
   /** Check ids: `content` (built in) or a `[[check]]` id. */
   readonly checks: readonly string[]
