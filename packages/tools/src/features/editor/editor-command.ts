@@ -2,7 +2,7 @@
 // network with a token (`--lan`) so a tablet can open it. The server is `serve-editor.ts`; this is the command around it:
 // which build to serve, what to print, and when to refuse. The dependencies are injected so the tests run no server.
 import { randomBytes } from 'node:crypto'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { networkInterfaces } from 'node:os'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -52,11 +52,29 @@ const BUILD = { folder: 'extensions/editors/dist/suite', pkg: '@automata/editors
 
 const here = dirname(fileURLToPath(import.meta.url))
 
-/** The repository's root: the nearest folder above this file with a `pnpm-workspace.yaml` (source and build sit at different depths). */
-function repositoryRoot(): string {
-  for (let dir = here; dirname(dir) !== dir; dir = dirname(dir))
-    if (existsSync(resolve(dir, 'pnpm-workspace.yaml'))) return dir
-  return resolve(here, '../../../..')
+/** The name in the `package.json` of `dir`, if it has one. */
+function packageName(dir: string): string | undefined {
+  try {
+    return (JSON.parse(readFileSync(resolve(dir, 'package.json'), 'utf8')) as { name?: unknown })
+      .name as string
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * The AutomataFramework repository above `start`: the nearest folder whose `package.json` is named
+ * `automata-framework`. A `pnpm-workspace.yaml` does not tell it from a game: a game installed from the registry is
+ * often in a workspace of its own, and the tools run from inside its `node_modules`.
+ */
+export function findRepositoryRoot(
+  start: string,
+  readName: (dir: string) => string | undefined,
+): string | undefined {
+  for (let dir = start; ; dir = dirname(dir)) {
+    if (readName(dir) === 'automata-framework') return dir
+    if (dirname(dir) === dir) return undefined
+  }
 }
 
 export async function editorCommand(
@@ -146,7 +164,7 @@ const packedPage = (): string | undefined => {
   return existsSync(resolve(folder, 'index.html')) ? folder : undefined
 }
 
-const isRepository = (): boolean => existsSync(resolve(repositoryRoot(), 'pnpm-workspace.yaml'))
+const repository = (): string | undefined => findRepositoryRoot(here, packageName)
 
 /** The real dependencies: the editors' builds, this machine's network and Ctrl+C. */
 export function liveEditorDeps(): EditorCommandDeps {
@@ -154,8 +172,8 @@ export function liveEditorDeps(): EditorCommandDeps {
     // Loaded on use: the server reads the editor suite, whose sources Node cannot run from the workspace bin, and no
     // other command needs it.
     serve: async (options) => (await import('./serve-editor.ts')).serveEditor(options),
-    builtApp: () => packedPage() ?? resolve(repositoryRoot(), BUILD.folder),
-    inRepository: isRepository(),
+    builtApp: () => packedPage() ?? resolve(repository() ?? here, BUILD.folder),
+    inRepository: repository() !== undefined,
     exists: existsSync,
     lanAddresses: () =>
       Object.values(networkInterfaces())

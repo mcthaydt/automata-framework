@@ -1,3 +1,4 @@
+import { spawn } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -7,7 +8,7 @@ import { serveStatic } from '#src/serve.ts'
 import { overridesYaml, packOverrides, strangerFolder } from '#src/stranger.ts'
 
 // A stranger's first hour, from an empty folder to an itch.io zip, using only what the repository publishes:
-//   make a game, install it, check it, test it, play it in a browser, make the itch.io zip.
+//   make a game, install it, check it, test it, play it in a browser, make the itch.io zip, open its editors.
 // Nothing here links into the repository. The packs stand in for the registry (a `pnpm-workspace.yaml` of overrides,
 // the one thing the journey adds to what `create-game` wrote), and the folder sits outside any pnpm workspace.
 
@@ -62,6 +63,49 @@ async function hold(page: Page, key: string, ms: number): Promise<void> {
   await page.keyboard.down(key)
   await page.waitForTimeout(ms)
   await page.keyboard.up(key)
+}
+
+/**
+ * Runs `automata editor` in the game's folder until it says where it opened, fetches that page and stops it. The game
+ * is the stranger's own, installed from the packs, so this is the editors as a customer meets them: the folder sits in
+ * a `pnpm-workspace.yaml` of its own, which once made the tools think they ran from the repository.
+ */
+async function openEditors(gameDir: string): Promise<{ address: string; html: string }> {
+  // A game address is given so no game is started: the step is about the editors' page, not about Vite.
+  const child = spawn('pnpm', ['exec', 'automata', 'editor', '--game-url', 'http://127.0.0.1:9/'], {
+    cwd: gameDir,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+  let printed = ''
+  child.stdout.on('data', (chunk) => {
+    printed += String(chunk)
+  })
+  child.stderr.on('data', (chunk) => {
+    printed += String(chunk)
+  })
+  try {
+    const address = await new Promise<string>((found, fail) => {
+      const timer = setTimeout(() => fail(new Error(`the editors did not open in 60 s\n${printed}`)), 60_000)
+      const look = setInterval(() => {
+        const match = /This computer: (http:\/\/\S+)/.exec(printed)
+        if (match?.[1] !== undefined) {
+          clearTimeout(timer)
+          clearInterval(look)
+          found(match[1])
+        }
+      }, 200)
+      child.once('exit', (code) => {
+        clearTimeout(timer)
+        clearInterval(look)
+        fail(new Error(`automata editor exited ${code ?? '?'}\n${printed}`))
+      })
+    })
+    const response = await fetch(address)
+    expect(response.status, 'the editors page is served').toBe(200)
+    return { address, html: await response.text() }
+  } finally {
+    child.kill('SIGINT')
+  }
 }
 
 test('a stranger makes a game, checks it, plays it and makes the itch.io zip', async ({ page }) => {
@@ -169,6 +213,11 @@ test('a stranger makes a game, checks it, plays it and makes the itch.io zip', a
       sh(gameDir, 'pnpm', ['build:itch'])
       sh(gameDir, 'pnpm', ['prepare:itch'])
       expect(existsSync(join(gameDir, `${GAME}-0.1.0-itch.zip`)), 'the zip is beside the build').toBe(true)
+    })
+
+    await step('open its editors', async () => {
+      const { html } = await openEditors(gameDir)
+      expect(html, 'the page of the editors, not an error').toContain('<html')
     })
     finished = true
   } finally {

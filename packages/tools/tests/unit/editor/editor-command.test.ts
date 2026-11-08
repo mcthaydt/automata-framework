@@ -2,7 +2,12 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
-import { type EditorCommandDeps, editorCommand, liveEditorDeps } from '#src/features/editor/editor-command.ts'
+import {
+  type EditorCommandDeps,
+  editorCommand,
+  findRepositoryRoot,
+  liveEditorDeps,
+} from '#src/features/editor/editor-command.ts'
 import type { EditorServerOptions } from '#src/features/editor/serve-editor.ts'
 
 // `automata editor`: what it says, the one page it serves (every editor, whatever the game's editor list names), and when it will not start. The server itself
@@ -258,5 +263,23 @@ describe('liveEditorDeps', () => {
 
   it('knows it runs inside the repository from source', () => {
     expect(liveEditorDeps().inRepository).toBe(true)
+  })
+})
+
+describe('findRepositoryRoot', () => {
+  const names: Record<string, string> = {
+    '/repo': 'automata-framework',
+    '/repo/packages/tools': '@automata/tools',
+    '/game': 'my-game',
+  }
+  const readName = (dir: string) => names[dir]
+
+  it('is the nearest folder above the start that is the AutomataFramework repository', () => {
+    expect(findRepositoryRoot('/repo/packages/tools/src/features/editor', readName)).toBe('/repo')
+  })
+
+  it('is not fooled by a game folder that has a pnpm-workspace.yaml of its own', () => {
+    // A stranger’s game, installed from the registry, sits in its own workspace; the tools run from its node_modules.
+    expect(findRepositoryRoot('/game/node_modules/.pnpm/@automata+tools@1/dist', readName)).toBeUndefined()
   })
 })

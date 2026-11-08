@@ -716,3 +716,8 @@ want, itch will be first output". Spec §11.
   baseline ignores beta rows. Two published exports (`STICK_DIRECTIONS`, `PROMPT_COPY`) had no doc comment and failed
   `pnpm api-index`; they now have one (changeset). `pnpm api-report` still reports 112 breaks against its base: it was red
   before this task and is not touched here. 53 api-index, 43 api-report and 131 agent-skills unit tests pass.
+- Task 5 done: `findRepositoryRoot(start, readName)` takes the repository to be the nearest folder whose `package.json` is
+  named `automata-framework` (not one with a `pnpm-workspace.yaml`), so a game in a workspace of its own is not mistaken for
+  it; `builtApp` is left as it is. Two unit tests (107 editor unit tests pass). The stranger journey gains a last step,
+  "open its editors" (`automata editor` in the stranger's game, fetch the page it prints). That journey needs the packed
+  tools and a registry, so it did not run here; Task 18 runs the customer journey from the packed tools.
