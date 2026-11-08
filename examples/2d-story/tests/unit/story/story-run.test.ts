@@ -5,7 +5,7 @@ import { SystemsState } from '@automata/systems/sim'
 import { describe, expect, it } from 'vitest'
 import { createStorySim } from '#src/app/story-sim.ts'
 import { Move } from '#src/features/square/move.command.ts'
-import { Square } from '#src/features/square/square.component.ts'
+import { Square } from '#src/shared/square.component.ts'
 
 // A scripted play of the story, on the sim alone: walk to the keeper, answer, watch the cutscene, then be seen by the
 // guard through the gap in the wall. Every order is a command, so a replay of them ends in the same state.

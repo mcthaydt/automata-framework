@@ -80,6 +80,28 @@ test('the guard stays on patrol for 3 s while the player is 22 m away, outside i
   await page.screenshot({ path: test.info().outputPath('1-guard-patrols.png') })
 })
 
+test('Watch: walking into the guard’s sight lights Hunt on the diagram and logs the switch', async ({
+  context,
+}) => {
+  const editors = await context.newPage()
+  await openGuard(editors)
+  await editors.getByRole('button', { name: 'Watch it run' }).click()
+  const pane = editors.getByRole('region', { name: 'Watch' })
+  await expect(pane).toBeVisible()
+  const game = pane.frameLocator('iframe')
+  await game.getByRole('button', { name: 'Play' }).click()
+  // The player starts 22 m away and the guard sees 9 m: walking right (toward the guard) brings it into sight.
+  await editors.keyboard.down('ArrowRight')
+  await expect(editors.getByRole('log', { name: 'What happened' })).toContainText(
+    'went from Patrol to Hunt',
+    { timeout: 30_000 },
+  )
+  await editors.keyboard.up('ArrowRight')
+  await expect(editors.getByRole('region', { name: 'Watch' })).not.toContainText('Ask whoever writes')
+  await expect(editors.locator('[data-live="true"]').first()).toHaveAccessibleName(/^Hunt, /)
+  await editors.screenshot({ path: test.info().outputPath('watch-hunt.png') })
+})
+
 test('raising the guard’s sight to 24 m in Schematic makes it hunt within 1 s', async ({ page, context }) => {
   const editors = await context.newPage()
   await openGuard(editors)

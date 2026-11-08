@@ -1,11 +1,11 @@
 import { createSim } from '@automata/sim'
 import { describe, expect, it } from 'vitest'
-import { LEVEL } from '../../../src/features/level/level.ts'
-import { Hero } from '../../../src/features/square/hero.component.ts'
-import { Move } from '../../../src/features/square/move.command.ts'
-import { Square } from '../../../src/features/square/square.component.ts'
-import { squarePlugin } from '../../../src/features/square/square.plugin.ts'
-import { SPEED, SQUARE_SIZE } from '../../../src/shared/constants.ts'
+import { Move } from '#src/features/square/move.command.ts'
+import { squarePlugin } from '#src/features/square/square.plugin.ts'
+import { SPEED, SQUARE_SIZE } from '#src/shared/constants.ts'
+import { Hero } from '#src/shared/hero.component.ts'
+import { LEVEL } from '#src/shared/level/level.ts'
+import { Square } from '#src/shared/square.component.ts'
 
 // The sim is plain code, so its test needs no browser: make a sim on the level, send it commands, read what it holds.
 const OPEN = { x: 100, y: 50 }

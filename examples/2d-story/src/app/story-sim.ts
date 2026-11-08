@@ -1,12 +1,12 @@
 import { resolveExtensions } from '@automata/framework/extension'
 import { createSim, type Sim } from '@automata/sim'
-import { LEVEL } from '../features/level/level.ts'
-import { itemOf } from '../features/level/level-items.ts'
-import { Hero } from '../features/square/hero.component.ts'
-import { Square } from '../features/square/square.component.ts'
 import { squarePlugin } from '../features/square/square.plugin.ts'
-import { EXTENSIONS, storyPlugin } from '../features/story/story.extensions.ts'
+import { EXTENSIONS, storyPlugin } from '../features/story/story-extensions.ts'
 import { SQUARE_SIZE } from '../shared/constants.ts'
+import { Hero } from '../shared/hero.component.ts'
+import { LEVEL } from '../shared/level/level.ts'
+import { itemOf } from '../shared/level/level-items.ts'
+import { Square } from '../shared/square.component.ts'
 
 // The sim of the story, apart from the screen: the game's own plugins, the extensions' (`resolveExtensions` orders and checks
 // them as `defineGame` does) and the player at the level's start. The game (game.ts) and its tests make theirs from this.

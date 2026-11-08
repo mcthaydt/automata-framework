@@ -1,10 +1,10 @@
 import { defineSystem } from '@automata/sim'
 import { SPEED, SQUARE_SIZE } from '../../shared/constants.ts'
-import { levelIn } from '../level/read-level.ts'
-import { hitsWall } from '../level/walls.ts'
-import { Hero } from './hero.component.ts'
+import { Hero } from '../../shared/hero.component.ts'
+import { levelIn } from '../../shared/level/read-level.ts'
+import { hitsWall } from '../../shared/level/walls.ts'
+import { Square } from '../../shared/square.component.ts'
 import { Move } from './move.command.ts'
-import { Square } from './square.component.ts'
 
 /**
  * Moves the hero's square by what the player holds, unless a wall is in the way or the hero is frozen. Only the sim changes the game, so a replay

@@ -1,14 +1,15 @@
 import { placeScript } from '@automata/cutscenes/sim'
 import { cutsceneStage2d } from '@automata/cutscenes/stage-2d'
+import { debugExtension } from '@automata/debug'
 import { defaultContent, defineGame, keys } from '@automata/framework'
-import { LEVEL } from '../features/level/level.ts'
-import { project, startLevel } from '../features/level/level-content.ts'
-import { images, LEVEL_SCENE } from '../features/level/level-scene.ts'
 import { Move } from '../features/square/move.command.ts'
-import { squareView } from '../features/square/square.view.ts'
-import { EXTENSIONS } from '../features/story/story.extensions.ts'
+import { squareView } from '../features/square/square-view.ts'
 import { SCRIPTS } from '../features/story/story-content.ts'
+import { EXTENSIONS } from '../features/story/story-extensions.ts'
 import { METRE } from '../shared/constants.ts'
+import { LEVEL } from '../shared/level/level.ts'
+import { project, startLevel } from '../shared/level/level-content.ts'
+import { images, LEVEL_SCENE } from '../shared/level/level-scene.ts'
 import { cutsceneCamera, storyCamera } from './story-camera.ts'
 import { PLUGINS, setup } from './story-sim.ts'
 
@@ -43,7 +44,8 @@ export const game = defineGame({
   title: '2D Story',
   size: { width: LEVEL.width, height: LEVEL.height },
   sim: { plugins: PLUGINS, seed: 1, setup },
-  extensions: EXTENSIONS,
+  // A development build also opens the debug overlay, which answers Schematic's Watch (app/debug.ts feeds it).
+  extensions: [...EXTENSIONS, ...(__AUTOMATA_DEBUG__ ? [debugExtension] : [])],
   // The default screens' flow, and the level as the sim's content (what its systems read as `ctx.content`).
   content: { ...defaultContent(), sim: LEVEL },
   // Arrows or WASD, or the pad's D-pad; on a touch screen, buttons.

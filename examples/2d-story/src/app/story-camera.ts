@@ -1,5 +1,5 @@
 import { type Camera2d, createCamera2d, type PixiStage, type PixiStageHooks } from '@automata/framework'
-import { LEVEL } from '../features/level/level.ts'
+import { LEVEL } from '../shared/level/level.ts'
 import { debugHooks } from './debug.ts'
 
 // The one camera of the story. The renderer makes its stage (and with it the container a camera moves) after the game is

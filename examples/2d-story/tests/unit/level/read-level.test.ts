@@ -1,7 +1,7 @@
 import { levelContentSchema } from '@automata/content/level-2d'
 import { describe, expect, it } from 'vitest'
-import { LEVEL } from '../../../src/features/level/level.ts'
-import { levelOf, SOLID } from '../../../src/features/level/read-level.ts'
+import { LEVEL } from '#src/shared/level/level.ts'
+import { levelOf, SOLID } from '#src/shared/level/read-level.ts'
 
 // A level as the editor exports it, cut down: 4 cells wide on a 16 px grid, a floor, and the player start on it.
 const small = (items: { id: string; def: string; x: number; y: number }[]) =>

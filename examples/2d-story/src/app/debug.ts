@@ -1,14 +1,16 @@
 import { installDebug, shippedPanels } from '@automata/debug'
 import type { PixiStageHooks } from '@automata/framework'
 import { SystemsAgent } from '@automata/systems/sim'
-import { Hero } from '../features/square/hero.component.ts'
-import { Square } from '../features/square/square.component.ts'
 import { SYSTEMS } from '../features/story/story-content.ts'
 import { METRE } from '../shared/constants.ts'
+import { Hero } from '../shared/hero.component.ts'
+import { Square } from '../shared/square.component.ts'
 import { createProbe } from './probe.ts'
+import { stepBus } from './step-bus.ts'
 
 // A development build tells a journey what the sim does: `window.__automataDebug` answers where the characters are and
-// which mode each is in. It reads each step the screen draws and never writes the sim. A release build leaves it out.
+// which mode each is in, and the overlay (`debugExtension`, in game.ts) tells an editor that framed the game which events
+// happen (Schematic's Watch). It reads each step the screen draws and never writes the sim. A release build leaves it out.
 
 /** Hooks for the renderer's `setup` that feed the probe, or none in a release build. */
 export function debugHooks(): PixiStageHooks | undefined {
@@ -19,8 +21,10 @@ export function debugHooks(): PixiStageHooks | undefined {
     { agent: SystemsAgent.id, at: Square.id, hero: Hero.id },
     METRE,
   )
+  const bus = stepBus()
   installDebug({
     panels: shippedPanels,
+    bus,
     driver: {
       tick: probe.tick,
       agents: probe.agents,
@@ -29,5 +33,10 @@ export function debugHooks(): PixiStageHooks | undefined {
       trail: probe.trail,
     },
   })
-  return { apply: (result) => probe.apply(result) }
+  return {
+    apply: (result) => {
+      probe.apply(result)
+      bus.apply(result)
+    },
+  }
 }
