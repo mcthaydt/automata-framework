@@ -48,6 +48,8 @@ export const ROLES: ReadonlySet<string> = new Set([
   'content',
   'generator',
   'extension',
+  // A plain options module a tool reads, such as a game's `content.config.ts`; nothing registers it.
+  'config',
 ])
 
 /** define* factory -> the role suffix its exported results require. */

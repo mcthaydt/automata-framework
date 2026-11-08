@@ -62,6 +62,10 @@ test.each([
   expect(findings[0]?.message).toContain(message)
 })
 
+test('a game may keep its content options in content.config.ts, a plain module that registers nothing', () => {
+  expect(checkFile('/p/src/content.config.ts', 'export const contentConfig = { schemas: [] }\n')).toEqual([])
+})
+
 test('a role file may export several definitions of its own role and plain helpers alongside', () => {
   const code = `${comp}export const Mana = defineComponent('mana', { mp: 'i32' })\nexport const MAX = 9\n`
   expect(checkFile('/p/src/stats.component.ts', code)).toEqual([])

@@ -30,6 +30,7 @@ describe('the new game’s files', () => {
   it('keeps its code in two features, with the app and the shared numbers beside them', () => {
     expect(files.filter((file) => file.startsWith('src/') || file.startsWith('tests/'))).toEqual([
       'src/app/game.ts',
+      'src/content.config.ts',
       'src/features/level/compiled-content.d.ts',
       'src/features/level/level.ts',
       'src/features/level/level.view.ts',
@@ -63,8 +64,21 @@ describe('the new game’s files', () => {
 
   it('compiles the level into the game with the content plugin', () => {
     const config = read('vite.config.ts')
-    expect(config).toContain('automataContent({ schemas: level2dKinds() })')
+    expect(config).toContain("import { contentConfig } from './src/content.config.ts'")
+    expect(config).toContain('automataContent(contentConfig)')
     expect(read('.gitignore').split('\n')).toContain('content/generated/')
+  })
+
+  it('keeps what the content compiler is given in one plain module, so the app can compile the game without Vite', () => {
+    const config = read('src/content.config.ts')
+    expect(config).toContain("import { level2dKinds } from '@mcthaydt/automata-content/level-2d'")
+    expect(config).toContain('export const contentConfig: CompileOptions = { schemas: level2dKinds() }')
+    // Only the plain module and the kinds: a file the app compiles with sucrase must not need Node or Vite.
+    expect(config.match(/^import .*$/gm)).toEqual([
+      "import type { CompileOptions } from '@mcthaydt/automata-content/compile'",
+      "import { level2dKinds } from '@mcthaydt/automata-content/level-2d'",
+    ])
+    expect(read('vite.config.ts')).not.toContain('level2dKinds')
   })
 
   it('has no src/sim folder and no files laid out by role', () => {

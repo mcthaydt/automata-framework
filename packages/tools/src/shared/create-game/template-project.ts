@@ -90,10 +90,10 @@ export default defineShipConfig({
   },
   {
     path: 'vite.config.ts',
-    content: (options) => `import { level2dKinds } from '@mcthaydt/automata-content/level-2d'
-import { automataContent } from '@mcthaydt/automata-content/vite'
+    content: (options) => `import { automataContent } from '@mcthaydt/automata-content/vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { defaultClientConditions, defineConfig } from 'vite'
+import { contentConfig } from './src/content.config.ts'
 
 // Each build holds one target's host adapter (\`vite build --mode <target>\`), picked through the package condition;
 // any other mode (plain \`vite\` while developing) gets the web adapter, the default.
@@ -106,7 +106,8 @@ export default defineConfig(({ mode }) => ({
   resolve: { conditions: [ADAPTER_CONDITIONS[mode] ?? 'automata-web', ...defaultClientConditions] },
   // The framework's screens are Svelte components, compiled with the game. The content plugin compiles \`content/\`
   // (the level the editor writes) into \`virtual:automata/content\`, again on every save while \`pnpm dev\` runs.
-  plugins: [svelte(), automataContent({ schemas: level2dKinds() })],
+  // What it is given is \`src/content.config.ts\`, a plain file the Automata app reads too.
+  plugins: [svelte(), automataContent(contentConfig)],
   build: {
     outDir: 'dist',
     emptyOutDir: true,
@@ -115,6 +116,16 @@ export default defineConfig(({ mode }) => ({
     assetsInlineLimit: 0,
   },
 }))
+`,
+  },
+  {
+    path: 'src/content.config.ts',
+    content: () => `import type { CompileOptions } from '@mcthaydt/automata-content/compile'
+import { level2dKinds } from '@mcthaydt/automata-content/level-2d'
+
+// What the content compiler is given: the kinds of content this game has. Add a kind of your own here. Keep this
+// file to plain imports like these two: the Automata app compiles it on a phone, where there is no Node or Vite.
+export const contentConfig: CompileOptions = { schemas: level2dKinds() }
 `,
   },
   {
