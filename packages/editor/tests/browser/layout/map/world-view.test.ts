@@ -20,6 +20,7 @@ import { openView, switcherControls } from '#src/testing/level-2d/view-switcher.
 // workspace with the Hollowmere sample (an RPG map set), and the rail opens World.
 
 const PROJECT = 'hollowmere.af2d.json'
+const DRAW_TIMEOUT_MS = 30_000
 
 let started: EditorHandle | undefined
 let target: HTMLElement | undefined
@@ -58,8 +59,11 @@ async function start(size: EditorSize) {
   await expect.poll(() => document.querySelector('[data-testid="level-view"]')).not.toBeNull()
   await openView('Map')
   await expect.poll(() => document.querySelector('[data-testid="world-view"]')).not.toBeNull()
+  // The first draw in a cold browser can take longer than the default poll on a loaded runner.
   await expect
-    .poll(() => document.querySelector<HTMLElement>('[data-world-canvas]')?.dataset.state)
+    .poll(() => document.querySelector<HTMLElement>('[data-world-canvas]')?.dataset.state, {
+      timeout: DRAW_TIMEOUT_MS,
+    })
     .toMatch(/^(drawn|unavailable)$/)
   await arrived()
   return { conditions }
