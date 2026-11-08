@@ -16,6 +16,7 @@ import type {
   ObjectsLayerDef,
   Project,
 } from '../../shared/level-2d/model/project-types'
+import { firstBrush } from '../../shared/level-2d/tiles/first-brush'
 import { brushCells, lineCells, type Point } from '../../shared/level-2d/tiles/footprint'
 import type { LevelEditor, LevelEditorOptions } from './level-editor-api'
 import {
@@ -50,7 +51,7 @@ export function createLevelEditor(options: LevelEditorOptions): LevelEditor {
   const firstLayer = project().defs.layers[0]
   if (!project().levels.some((level) => level.id === options.level))
     throw new RangeError(`no level "${options.level}"`)
-  const startLayer = options.layer ?? firstLayer?.id
+  const startLayer = options.layer ?? (firstLayer === undefined ? undefined : firstBrush(project()).layer)
   if (startLayer === undefined) throw new RangeError('the project has no layers')
   const startDef = layerDef(project(), startLayer)
 

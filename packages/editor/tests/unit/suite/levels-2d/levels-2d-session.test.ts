@@ -55,6 +55,8 @@ describe('Levels 2D session', () => {
     undo.subscribe(() => (heard += 1))
 
     const { editor } = session.state.level
+    // A level opens on its ground; the step this test names places a character.
+    editor.setLayer('entities')
     editor.pointerDown({ x: 8, y: 8 })
     editor.pointerUp()
     expect(undo.canUndo()).toBe(true)
@@ -141,6 +143,7 @@ describe('Levels 2D session', () => {
 
     it('puts every one of those files back with one Undo of the suite', async () => {
       const { memory, suite, session, level } = await game()
+      level.editor.setLayer('entities')
       level.editor.pointerDown({ x: 8, y: 8 })
       level.editor.pointerUp()
       await session.settled()

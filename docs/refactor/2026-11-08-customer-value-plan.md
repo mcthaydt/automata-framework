@@ -721,3 +721,12 @@ want, itch will be first output". Spec §11.
   it; `builtApp` is left as it is. Two unit tests (107 editor unit tests pass). The stranger journey gains a last step,
   "open its editors" (`automata editor` in the stranger's game, fetch the page it prints). That journey needs the packed
   tools and a registry, so it did not run here; Task 18 runs the customer journey from the packed tools.
+- Task 10 done: a level opens on its ground, never on a character (`firstBrush` in `tiles/first-brush.ts`: the first value of
+  the first IntGrid layer, else the first tile of the first tiles layer; `createLevelEditor` starts there when it is given no
+  layer, so the served editor does too: in a new game Levels no longer opens with the zone `Area` chosen). The Platformer
+  template has three platforms above its floor. The sample's note reads "A sample game to try. Make your own with one
+  command." with `npx @automata/tools create-game my-game` under it. Eighteen existing tests that assumed the entities layer
+  came first now choose it (they place characters). Ruling: the plan's phone-layout failure (brush-size control cut, title
+  "Sa…") did not reproduce at 390 × 844 in Chromium (the title, the note, the command and the brush size are all inside the
+  screen); a new layout test pins that and the plan's claim stays unconfirmed. Not run: WebKit and Firefox layout, the
+  site's try-it e2e (needs a built site). The Tuner controls layout test (16 cases) fails on this base without the change.

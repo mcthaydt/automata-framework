@@ -316,7 +316,7 @@ describe('level draw list: the templates', () => {
     }
   })
 
-  it('draws the platformer’s floor as solid IntGrid cells and its auto ground as tiles over them', () => {
+  it('draws the platformer’s floor and platforms as solid IntGrid cells and its auto ground as tiles over them', () => {
     const project = platformerTemplate.create(counterIds())
     const list = createLevelDrawList()({
       project,
@@ -325,11 +325,12 @@ describe('level draw list: the templates', () => {
     })
     const collision = layerOf(list.layers, 'collision')
     const cells = collision.kind === 'intgrid' ? collision.chunks.flatMap((chunk) => chunk.cells) : []
-    expect(cells).toHaveLength(64)
+    // The two-row floor (64 cells) and three five-cell platforms.
+    expect(cells).toHaveLength(79)
     expect(new Set(cells.map((cell) => cell.color))).toEqual(new Set(['#64748b']))
     const ground = layerOf(list.layers, 'ground')
     const tiles = ground.kind === 'auto' ? ground.chunks.flatMap((chunk) => chunk.tiles) : []
-    expect(new Set(tiles.map((tile) => tile.y))).toEqual(new Set([256, 272]))
+    expect(new Set(tiles.map((tile) => tile.y))).toEqual(new Set([160, 208, 256, 272]))
   })
 })
 

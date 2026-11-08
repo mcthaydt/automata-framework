@@ -117,6 +117,25 @@ describe('the platformer template', () => {
     expect(project.defs.levelFields.map((f) => [f.id, f.type])).toEqual([['music', 'text']])
   })
 
+  it('has platforms to jump between above the floor, so the first level is a platformer and not a flat line', () => {
+    const collision = layer(project, 0, 'collision', 'intgrid').cells
+    // A run is a row of at least three solid cells; each is higher than the floor, which starts at row 16.
+    const runs: number[] = []
+    for (let row = 0; row < 16; row++) {
+      let length = 0
+      for (let col = 0; col <= collision.cols; col++) {
+        if (col < collision.cols && collision.get(col, row) === 1) length++
+        else {
+          if (length >= 3) runs.push(row)
+          length = 0
+        }
+      }
+    }
+    expect(runs.length).toBeGreaterThanOrEqual(3)
+    // A jump is about four cells: no platform is more than four rows above the floor or the platform before it.
+    expect(Math.min(...runs)).toBeGreaterThanOrEqual(8)
+  })
+
   it('starts one 512 × 288 level with a floor to stand on and a player start on it', () => {
     const level = project.levels[0]
     expect(level?.size).toEqual({ w: 512, h: 288 })

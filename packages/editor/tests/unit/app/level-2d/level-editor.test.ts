@@ -27,11 +27,12 @@ function setup(layer?: string) {
 }
 
 describe('level editor: state', () => {
-  it('starts on the first layer with the brush, size 1 and that layer’s default word', () => {
+  it('starts on the ground, never on a character: the brush, size 1 and the first value of the collision layer', () => {
     const { editor } = setup()
     expect(editor.view).toMatchObject({
       level: 'level-1',
-      layer: 'entities',
+      layer: 'collision',
+      word: 1,
       tool: 'brush',
       brushSize: 1,
       selected: [],
@@ -111,7 +112,7 @@ describe('level editor: state', () => {
     expect(heard).toHaveBeenCalledTimes(1)
     editor.setTool('fill')
     editor.setBrushSize(1)
-    editor.setLayer('entities')
+    editor.setLayer('collision')
     expect(heard).toHaveBeenCalledTimes(1)
     editor.setBrushSize(2)
     expect(heard).toHaveBeenCalledTimes(2)
@@ -185,7 +186,7 @@ describe('level editor: state', () => {
     const editor = createLevelEditor({ history, ids: counterIds(100), level: 'level-1' })
     editor.setLevel('level-2')
     expect(editor.view.level).toBe('level-2')
-    expect(editor.view.layer).toBe('entities')
+    expect(editor.view.layer).toBe('collision')
   })
 })
 

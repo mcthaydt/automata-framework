@@ -193,8 +193,14 @@ export const platformerTemplate: TemplateDef<Project> = {
       },
       (layers) =>
         placeEntities(
-          // A two-cell floor along the bottom, and the player standing on it.
-          editCells(layers, 'collision', (cells) => cells.fillRect(0, 16, 32, 2, SOLID)),
+          // A two-cell floor along the bottom, the player standing on it, and three platforms to climb, each a short
+          // jump above the one before, so the first thing a person sees is a level to play, not a line.
+          editCells(layers, 'collision', (cells) => {
+            cells.fillRect(0, 16, 32, 2, SOLID)
+            cells.fillRect(6, 13, 5, 1, SOLID)
+            cells.fillRect(14, 10, 5, 1, SOLID)
+            cells.fillRect(22, 13, 5, 1, SOLID)
+          }),
           'entities',
           [{ id: ids.next(), def: 'player-start', x: 3 * TILE, y: 16 * TILE, fields: {} }],
         ),

@@ -66,9 +66,12 @@ async function mount(size: [number, number] = [1194, 834]) {
 
 const canvas = (): HTMLElement => screen.getByTestId('fake-canvas')
 const layers = (): HTMLElement => screen.getByRole('listbox', { name: 'Layers' })
+/** A level opens on its ground; a test that places things first chooses the characters' layer. */
+const chooseCharacters = (): Promise<void> =>
+  userEvent.click(within(layers()).getByText('Characters and items'))
 
 describe('Level view: layers', () => {
-  it('lists the layers front to back with their kind in plain words, the first chosen', async () => {
+  it('lists the layers front to back with their kind in plain words, the ground chosen', async () => {
     await mount()
     const rows = within(layers()).getAllByRole('option')
     expect(rows.map((row) => row.querySelector('.label')?.textContent)).toEqual([
@@ -92,8 +95,9 @@ describe('Level view: layers', () => {
     expect(
       within(rows[0] as HTMLElement).getByRole('button', { name: 'Lock Characters and items' }),
     ).toBeInTheDocument()
-    expect(rows[0]).toHaveAttribute('aria-selected', 'true')
-    expect(canvas()).toHaveAttribute('data-layer', 'entities')
+    // A new level opens on its ground, not on the characters: the first tap makes a floor, not a Player start.
+    expect(rows[3]).toHaveAttribute('aria-selected', 'true')
+    expect(canvas()).toHaveAttribute('data-layer', 'collision')
   })
 
   it('choosing a layer draws on it and shows its palette', async () => {
@@ -111,7 +115,7 @@ describe('Level view: layers', () => {
   it('arrow keys move the chosen layer', async () => {
     await mount()
     layers().focus()
-    await userEvent.keyboard('{ArrowDown}{ArrowDown}')
+    await userEvent.keyboard('{ArrowUp}')
     expect(canvas()).toHaveAttribute('data-layer', 'ground')
   })
 
@@ -140,6 +144,7 @@ describe('Level view: palette', () => {
 
   it('lists the definitions on an entities layer', async () => {
     await mount()
+    await chooseCharacters()
     await userEvent.click(screen.getByRole('radio', { name: 'Coin' }))
     expect(screen.getByRole('radio', { name: 'Coin' })).toHaveAttribute('aria-checked', 'true')
   })
@@ -288,6 +293,7 @@ function press(target: HTMLElement, type: 'pointerdown' | 'pointerup', x: number
 
 /** Places a Slime with the brush; jsdom lays nothing out, so a canvas point is a level pixel. */
 async function placeSlime(x = 40, y = 40): Promise<HTMLElement> {
+  await chooseCharacters()
   await userEvent.click(screen.getByRole('radio', { name: 'Slime' }))
   const surface = screen.getByTestId('level-surface')
   press(surface, 'pointerdown', x, y)
@@ -373,6 +379,7 @@ describe('Level view: shortcuts (§12)', () => {
 
   it('the number keys choose what to paint with: 2 is the palette’s second row, and a tile layer has none', async () => {
     await mount()
+    await chooseCharacters()
     expect(screen.getByRole('radio', { name: 'Checkpoint' })).toHaveAttribute('aria-checked', 'true')
     await userEvent.keyboard('2')
     expect(screen.getByRole('radio', { name: 'Coin' })).toHaveAttribute('aria-checked', 'true')

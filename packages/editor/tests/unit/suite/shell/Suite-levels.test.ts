@@ -97,6 +97,7 @@ describe('Levels 2D in the suite', () => {
   it('EDS-k: a switch to the Tuner and back keeps the selection, and Undo undoes the level’s own step', async () => {
     await start([fixtureEditor as SuiteEditor<unknown>, levels2d()])
     await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    await userEvent.click(await screen.findByText('Characters and items'))
     await userEvent.click(await screen.findByRole('radio', { name: 'Slime' }))
     const surface = screen.getByTestId('level-surface')
     press(surface, 'pointerdown', 40, 40)
@@ -210,6 +211,7 @@ describe('Characters on the rail of a 2D game', () => {
   it('has one history: Undo in Characters takes back the last change and names it (Levels’ older steps wait)', async () => {
     await start([levels2d()])
     await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    await userEvent.click(await screen.findByText('Characters and items'))
     await userEvent.click(await screen.findByRole('radio', { name: 'Slime' }))
     const surface = screen.getByTestId('level-surface')
     press(surface, 'pointerdown', 40, 40)
@@ -231,6 +233,7 @@ describe('A level changed somewhere else', () => {
     const ports = await samplePorts(FILES)
     await start([levels2d()], FILES, ports)
     await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    await userEvent.click(await screen.findByText('Characters and items'))
     await userEvent.click(await screen.findByRole('radio', { name: 'Slime' }))
     const surface = screen.getByTestId('level-surface')
     press(surface, 'pointerdown', 40, 40)
@@ -276,6 +279,7 @@ describe('A save that fails to answer', () => {
     })
     await start([levels2d()], FILES, ports)
     await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    await userEvent.click(await screen.findByText('Characters and items'))
     await userEvent.click(await screen.findByRole('radio', { name: 'Slime' }))
     const surface = screen.getByTestId('level-surface')
     press(surface, 'pointerdown', 40, 40)

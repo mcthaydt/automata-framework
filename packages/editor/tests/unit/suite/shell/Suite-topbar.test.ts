@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { screen } from '@testing-library/svelte'
+import { screen, within } from '@testing-library/svelte'
 import { afterEach, describe, expect, it } from 'vitest'
 import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '#src/features/suite/core/index.ts'
 import { createMemoryPorts } from '#src/features/suite/memory/memory-ports.ts'
@@ -103,13 +103,12 @@ describe("the suite's top bar", () => {
     expect(words).toEqual([])
   })
 
-  it('on the sample, a banner says it is not your game and how to open yours', async () => {
+  it('on the sample, a note says it is a game to try and shows the one command that makes your own', async () => {
     await start({ sample: true })
-    expect(
-      await screen.findByText(
-        "This is a sample game, not yours. Run automata editor inside your game's folder to edit it.",
-      ),
-    ).toBeInTheDocument()
+    const note = await screen.findByRole('note')
+    expect(note).toHaveTextContent('A sample game to try. Make your own with one command.')
+    // The command is there to copy, under the sentence, not buried in it.
+    expect(within(note).getByText('npx @automata/tools create-game my-game')).toBeInTheDocument()
     expect(screen.queryByText('Saved in your game folder')).toBeNull()
     // The title says it too, in place of the small chip beside it.
     expect(screen.getAllByText('Sample game')).toHaveLength(1)
@@ -124,7 +123,7 @@ describe("the suite's top bar", () => {
 
   it('on a sample the browser keeps, the banner promises no loss', async () => {
     await start({ sample: true, kept: true })
-    await screen.findByText('This is a sample game, not yours.', { exact: false })
+    await screen.findByText('A sample game to try.', { exact: false })
     expect(screen.queryByText('lost when you close', { exact: false })).toBeNull()
   })
 })

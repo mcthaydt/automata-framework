@@ -25,9 +25,10 @@ const { home, sample, kept, onopen, onread }: Props = $props()
   {#if sample}
     <p class="banner" role="note">
       <Icon name="alert" size={16} />
-      <span>
-        This is a sample game, not yours. Run automata editor inside your game's folder to edit it.
-        {#if !kept}Your changes are lost when you close this page.{/if}
+      <span class="words">
+        A sample game to try. Make your own with one command.
+        <code>npx @automata/tools create-game my-game</code>
+        {#if !kept}<span>Your changes are lost when you close this page.</span>{/if}
       </span>
     </p>
   {/if}
@@ -58,6 +59,23 @@ const { home, sample, kept, onopen, onread }: Props = $props()
     border-bottom: 1px solid var(--line);
     background: var(--paper);
     font: var(--text-body-13);
+  }
+  /* The command sits on its own line so it can be selected whole and does not wrap through the middle on a phone. */
+  .words {
+    display: grid;
+    gap: var(--space-1);
+    min-width: 0;
+  }
+  .words code {
+    justify-self: start;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    padding: 2px var(--space-2);
+    border: 1px solid var(--line);
+    border-radius: var(--edge-sm);
+    background: var(--bg);
+    font: var(--text-mono-12);
+    user-select: all;
   }
   .banner :global(svg) {
     margin-top: 1px;

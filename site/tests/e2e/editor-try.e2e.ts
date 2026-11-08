@@ -18,7 +18,7 @@ test('the Editor page shows three pictures and opens every try-it editor on a sa
   await expect(page.locator('main figure')).toHaveCount(3)
   await page.getByRole('link', { name: 'Try the editor' }).click()
   await expect(page).toHaveURL(/\/editor\/app\/$/)
-  await expect(page.getByText('This is a sample game, not yours.', { exact: false })).toBeVisible()
+  await expect(page.getByText('A sample game to try.', { exact: false })).toBeVisible()
 
   // Every editor is there to open, the 3D ones too, and the page holds none back.
   const rail = page.getByRole('tablist', { name: 'Editors' })
