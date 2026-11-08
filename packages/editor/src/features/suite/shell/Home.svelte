@@ -3,6 +3,7 @@
   list names (all of them on Home, the entry's on its page), or the list's problems. One vertical scroll region.
 -->
 <script lang="ts">
+import type { Snippet } from 'svelte'
 import type { WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
 import EditorCardView from './EditorCardView.svelte'
 import type { EditorCard, HomeState } from './home-model'
@@ -19,9 +20,11 @@ interface Props {
   onread: (file: WorkspaceFile) => void
   /** For an editor with no file yet, the words on the button that starts one (the try-it sample's "New level"). */
   starts?: Readonly<Record<string, string>> | undefined
+  /** What goes under the cards, inside the scrolling page (Home's Editor colours). */
+  foot?: Snippet | undefined
 }
 
-const { title, home, editors, empty, onopen, onread, starts }: Props = $props()
+const { title, home, editors, empty, onopen, onread, starts, foot }: Props = $props()
 
 const cards = $derived(
   home.kind === 'cards'
@@ -45,6 +48,7 @@ const cards = $derived(
       {/each}
     </div>
   {/if}
+  {#if foot}<footer>{@render foot()}</footer>{/if}
 </div>
 
 <style>
@@ -61,6 +65,11 @@ const cards = $derived(
     overscroll-behavior: contain;
     touch-action: pan-y;
     background: var(--bg);
+  }
+  footer {
+    width: 100%;
+    max-width: 960px;
+    margin-top: auto;
   }
   header {
     width: 100%;

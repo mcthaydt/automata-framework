@@ -217,8 +217,7 @@ describe('Only if…', () => {
 
   it('makes the part’s list of conditions first when it has none', () => {
     expect(addConditionEdits(0, 'hello', { say: [] }, { has: 'key' })).toEqual([
-      { keyPath: ['graphs', 0, 'nodes', 'hello', 'when'], insert: [] },
-      { keyPath: ['graphs', 0, 'nodes', 'hello', 'when'], insert: { has: 'key' } },
+      { keyPath: ['graphs', 0, 'nodes', 'hello', 'when'], insert: [{ has: 'key' }] },
     ])
     expect(addConditionEdits(0, 'hello', { say: [], when: [{ has: 'a' }] }, { has: 'key' })).toEqual([
       { keyPath: ['graphs', 0, 'nodes', 'hello', 'when'], insert: { has: 'key' } },

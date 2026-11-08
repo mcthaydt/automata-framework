@@ -118,7 +118,7 @@ onDestroy(() => {
   }
   .from p {
     margin: var(--space-1) 0 0;
-    color: var(--color-danger, #b91c1c);
+    color: var(--color-state-bad);
     font: var(--text-body-13);
   }
 </style>

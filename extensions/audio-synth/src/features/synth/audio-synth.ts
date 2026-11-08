@@ -64,13 +64,20 @@ export function createAudioSynth(options: AudioSynthOptions): AudioSynth {
       const content = options.content()
       const cue = (content.cue ?? []).find((c) => c.id === id)
       if (cue === undefined) return false
-      createMixer({ port: options.port, ducks: content.duck ?? [] }).play(cue, { at, random })
+      createMixer({ port: options.port, ducks: content.duck ?? [], master: content.master_gain }).play(cue, {
+        at,
+        random,
+      })
       return true
     },
     hear: (tick, events) => beats.noteAt(tick, events),
     frame(drawnTick, listener = null) {
       const content = options.content()
-      const mixer = createMixer({ port: options.port, ducks: content.duck ?? [] })
+      const mixer = createMixer({
+        port: options.port,
+        ducks: content.duck ?? [],
+        master: content.master_gain,
+      })
       mixer.listener(listener)
       const cues = new Map<string, Cue>((content.cue ?? []).map((c) => [c.id, c]))
       const played: string[] = []

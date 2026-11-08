@@ -77,10 +77,16 @@
     // The editor's pages and entries are what the build and its consumers start from; `src/shared/kit/fonts.css`
     // imports the Geist families with CSS @import, which knip does not follow. `src/app/design/main.ts` is the design
     // board, started from `design.html` by the dev server.
+    // `public/theme-boot.js` is the script the pages load before the first paint (`<script src="/theme-boot.js">`); it is
+    // a file, not an import, because the site's try-it editor runs under `script-src 'self'`. The same in the two
+    // other editor packages below.
     "packages/editor": {
       "entry": ["src/entries/*.ts", "src/app/*/main.ts", "scripts/*.ts", "tests/e2e/**/*.test.ts"],
+      "ignore": ["public/theme-boot.js"],
       "ignoreDependencies": ["@fontsource-variable/geist", "@fontsource-variable/geist-mono"]
     },
+    "packages/editor-3d": { "ignore": ["public/theme-boot.js"] },
+    "extensions/editors": { "ignore": ["public/theme-boot.js"] },
     // pixi3d-bundle.test.ts builds the fixture page scripts in `src/testing/bundle/` with Vite by path, and nothing
     // imports them. (The goldens' recorder is the package's `goldens` script, which knip reads.)
     "packages/3d": {

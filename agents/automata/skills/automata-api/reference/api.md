@@ -208,7 +208,7 @@ Makes a mixer that plays into the buses the game already has. It never makes an 
 a bus of its own.
 
 ```ts
-function createMixer({ port, ducks }: MixerOptions): Mixer;
+function createMixer({ port, ducks, master }: MixerOptions): Mixer;
 ```
 
 #### `createMusicDirector` (function)
@@ -370,6 +370,8 @@ What `createMixer` needs: the port into the game's audio buses and the ducking r
 interface MixerOptions {
   readonly port: MixerPort;
   readonly ducks: readonly DuckRule[];
+  /** The overall volume, 0..1 (`master_gain`): every cue is played through a gain of it. Full when left out. */
+  readonly master?: number | undefined;
 }
 ```
 
@@ -961,6 +963,8 @@ Plays the slot the game's state calls for.
 interface MusicPlayer {
   /** The slot to be hearing now, or `null` for silence. Asked again for the same slot, it does nothing. */
   play(slot: Slot | null): void;
+  /** The overall volume, 0..1 (`master_gain`): every track plays at its own level times this, and a change is followed at once. */
+  setMaster(volume: number): void;
   /** The id of the slot being asked for, whether or not it has started yet. */
   wanted(): string | null;
   /** Fades out and lets go. */
@@ -3344,6 +3348,8 @@ is optional: a panel whose handle is missing says so instead of failing.
 interface DebugHost {
     readonly panels: readonly DebugPanelDef[];
     readonly bus?: BusPort | undefined;
+    /** The sim's ticks a second, when the game does not run it at 60: Watch's times in seconds need it. */
+    readonly tickHz?: number | undefined;
     /** The facts to record for the bus panel; the runtime's by default. */
     readonly facts?: readonly string[] | undefined;
     readonly sim?: SimProbe | undefined;
@@ -3431,6 +3437,32 @@ interface FeelBoardPort {
     entries(): readonly string[];
     fire(on: string): void;
 }
+```
+
+#### `ForwardedEvent` (interface)
+
+What the editor hears for each event.
+
+```ts
+interface ForwardedEvent {
+    readonly type: 'af-sim-event';
+    readonly name: string;
+    readonly payload: unknown;
+    /** The sim tick that emitted it, and that tick in seconds. */
+    readonly tick: number;
+    readonly seconds: number;
+}
+```
+
+#### `forwardEvents` (function)
+
+Starts forwarding when the page is framed and its address carries `af-watch` (the editor's origin) and `events` (the
+event names, comma between). Returns the stop; it returns at once, having listened to nothing, otherwise.
+
+```ts
+function forwardEvents(bus: BusPort, location: Pick<Location, 'search'>, parent: Pick<Window, 'postMessage'>, options?: {
+    readonly tickHz?: number;
+}): () => void;
 ```
 
 #### `installDebug` (function)

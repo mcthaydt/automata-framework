@@ -54,8 +54,10 @@ const hold =
   <div class="modes">
     <Segmented label="Walk mode" options={modes} value={view.mode} onedit={(event) => onmode(event.value as WalkMode)} />
   </div>
-  <p class="chip" data-testid="walk-chip" role="status">{words}</p>
-  {#if view.warning !== undefined}<p class="warning" role="status" data-testid="walk-warning">{view.warning}</p>{/if}
+  <div class="under">
+    <p class="chip" data-testid="walk-chip" role="status">{words}</p>
+    {#if view.warning !== undefined}<p class="warning" role="status" data-testid="walk-warning">{view.warning}</p>{/if}
+  </div>
   <svg class="minimap" viewBox="0 0 120 90" role="img" aria-label="Minimap" data-testid="walk-minimap">
     {#each minimap.rooms as room, index (index)}
       <polygon points={room.join(' ')} class="room" />
@@ -77,8 +79,14 @@ const hold =
     position: absolute;
     inset: 0;
     pointer-events: none;
-    color: var(--color-text-primary);
+    /* The HUD sits on the game view, which is the same in both looks, so its words are the fixed on-stage ones. */
+    color: var(--stage-ink);
     font: var(--text-body-13);
+    /* The words sit over the picture, so they carry their own dark plate and light words, whatever the editor's look:
+       the plate is the cabinet's colour, which is the same in both looks, and the words are the fixed on-stage ones. */
+    --plate: color-mix(in srgb, var(--tool-stage) 82%, transparent);
+    --plate-text: var(--stage-ink);
+    --minimap-height: 90px;
   }
   .crosshair {
     position: absolute;
@@ -97,31 +105,37 @@ const hold =
     left: var(--space-3);
     pointer-events: auto;
   }
+  /* Under the mode switch and the minimap, which are the top row, so the words never sit over either: the row's height
+     is the minimap's, one number both read, so a taller row moves the words with it. The chip and the warning stack in
+     this column, so one cannot lie over the other. */
+  .under {
+    position: absolute;
+    top: calc(var(--space-3) + var(--minimap-height) + var(--space-2));
+    left: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    max-width: calc(100% - 2 * var(--space-3));
+    transform: translateX(-50%);
+  }
   .chip,
   .warning {
-    position: absolute;
-    left: 50%;
     margin: 0;
     padding: var(--space-1) var(--space-3);
-    transform: translateX(-50%);
     border-radius: var(--edge-lg);
-    /* Over the picture, so it carries its own dark plate and light words, whatever the editor's theme. */
-    background: rgba(12, 13, 16, 0.82);
-    color: #f2f4f8;
+    background: var(--plate);
+    color: var(--plate-text);
     white-space: nowrap;
   }
-  /* Under the mode switch and the minimap, which are the top row, so the words never sit over either. */
   .chip {
-    top: calc(var(--space-3) + 90px + var(--space-2));
-    max-width: calc(100% - 2 * var(--space-3));
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .warning {
-    top: calc(var(--space-3) + 90px + var(--space-2) + 36px);
-    color: #f0b44c;
+    color: var(--stage-warn);
     white-space: normal;
-    max-width: 80%;
     text-align: center;
   }
   .minimap {
@@ -129,13 +143,13 @@ const hold =
     top: var(--space-3);
     right: var(--space-3);
     width: 120px;
-    height: 90px;
+    height: var(--minimap-height);
     border-radius: var(--edge-lg);
     background: color-mix(in srgb, var(--color-bg-canvas) 80%, transparent);
   }
   .room {
-    fill: color-mix(in srgb, var(--color-text-dim, #8a919e) 35%, transparent);
-    stroke: var(--color-text-dim, #8a919e);
+    fill: color-mix(in srgb, var(--stage-muted) 35%, transparent);
+    stroke: var(--stage-muted);
     stroke-width: 1;
   }
   .eye {

@@ -187,7 +187,10 @@ export function backgroundView(list: LevelDrawList, context: ItemContext): Conta
 /** How strongly the grid lines show over the level. */
 const GRID_ALPHA = 0.16
 
-/** The grid, the footprint and the selection, over the layers. */
+/**
+ * The grid, the footprint and the selection, over the layers. They are drawn on the level's own picture, which is the
+ * same in both looks of the editor, so they read the fixed `stage/*` colours and never a chrome token.
+ */
 export function drawOverlays(overlay: Graphics, list: LevelDrawList, context: ItemContext, px: number): void {
   overlay.clear()
   const { grid, footprint, selection, size } = list
@@ -195,16 +198,16 @@ export function drawOverlays(overlay: Graphics, list: LevelDrawList, context: It
     for (const x of grid.xs) overlay.moveTo(x, 0).lineTo(x, size.h)
     for (const y of grid.ys) overlay.moveTo(0, y).lineTo(size.w, y)
     // Faint: the level reads first and the grid only shows where a stroke will land (the approved mockup).
-    overlay.stroke({ color: context.colors('border/strong'), width: px, alpha: GRID_ALPHA })
+    overlay.stroke({ color: context.colors('stage/grid'), width: px, alpha: GRID_ALPHA })
   }
   if (footprint !== undefined) {
-    const color = context.colors(footprint.erase ? 'state/bad' : 'accent/default')
+    const color = context.colors(footprint.erase ? 'stage/bad' : 'stage/accent')
     overlay
       .rect(footprint.x, footprint.y, footprint.w, footprint.h)
       .fill({ color, alpha: 0.2 })
       .stroke({ color, width: 1.5 * px, alignment: 1 })
   }
-  const accent = context.colors('accent/default')
+  const accent = context.colors('stage/accent')
   for (const box of selection)
     overlay.rect(box.x, box.y, box.w, box.h).stroke({ color: accent, width: 2 * px })
 }
@@ -229,7 +232,7 @@ export function drawLinks(
   for (const old of container.removeChildren()) old.destroy({ children: true })
   for (const link of links) {
     const color = link.selected
-      ? context.colors('accent/default')
+      ? context.colors('stage/accent')
       : context.colors(link.color ?? 'layer/entities')
     const view = new Container()
     if (link.to !== undefined) {
@@ -247,7 +250,7 @@ export function drawLinks(
     })
     const chip = new Graphics()
       .roundRect(0, 0, label.width + 2 * CHIP_PAD, label.height + CHIP_PAD, 6)
-      .fill({ color: context.colors('bg/surface'), alpha: 0.9 })
+      .fill({ color: context.colors('stage/chip'), alpha: 0.9 })
       .stroke({ color, width: 1 })
     label.position.set(CHIP_PAD, CHIP_PAD / 2)
     const tag = new Container()

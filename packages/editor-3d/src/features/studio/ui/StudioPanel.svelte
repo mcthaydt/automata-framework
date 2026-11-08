@@ -124,7 +124,7 @@ async function add(): Promise<void> {
   }
   li button[aria-pressed='true'] {
     border-color: var(--color-accent-default);
-    background: var(--color-accent-soft, rgb(217 164 65 / 0.14));
+    background: var(--color-accent-soft);
   }
   .flag {
     color: var(--color-state-bad);

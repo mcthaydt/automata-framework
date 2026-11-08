@@ -3,7 +3,7 @@ import '@automata/editor/fonts.css'
 import '@automata/editor/suite.css'
 import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
 import type { SuiteEditor } from '@automata/editor/kit/ports'
-import { contrastRatio, SIZES } from '@automata/editor/kit/testing'
+import { contrast, SIZES } from '@automata/editor/kit/testing'
 import { fixtureEditor } from '@automata/editor/suite/testing'
 import {
   dockToggle,
@@ -86,10 +86,10 @@ describe.each(SIZES)('Suite Levels 3D at $name ($width x $height)', (size) => {
     const heading = card.querySelector('h2') as HTMLElement
     const background = backdropOf(card)
     expect(heading.textContent).toBe("Depot can't be opened.")
-    expect(contrastRatio(getComputedStyle(heading).color, background)).toBeGreaterThanOrEqual(4.5)
+    expect(contrast(getComputedStyle(heading).color, background)).toBeGreaterThanOrEqual(4.5)
     for (const text of card.querySelectorAll('p, summary'))
       expect(
-        contrastRatio(getComputedStyle(text).color, background),
+        contrast(getComputedStyle(text).color, background),
         text.textContent ?? '',
       ).toBeGreaterThanOrEqual(4.5)
     for (const line of card.querySelectorAll('h2, :scope > p'))

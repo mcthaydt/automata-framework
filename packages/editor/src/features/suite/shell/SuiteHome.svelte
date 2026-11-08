@@ -5,6 +5,7 @@
 <script lang="ts">
 import Icon from '../../../shared/kit/icons/Icon.svelte'
 import type { WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
+import ThemeChoice from '../../../shared/kit/theme/ThemeChoice.svelte'
 import Home from './Home.svelte'
 import type { EditorCard, HomeState } from './home-model'
 
@@ -33,7 +34,9 @@ const { home, sample, onopen, onread }: Props = $props()
     {onopen}
     {onread}
     starts={sample ? { 'levels-2d': 'New level' } : undefined}
-  />
+  >
+    {#snippet foot()}<ThemeChoice />{/snippet}
+  </Home>
 </div>
 
 <style>

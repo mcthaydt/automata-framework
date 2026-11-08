@@ -295,6 +295,28 @@ describe('fitOrbit', () => {
       expect(reach(box, SIZE, 24)).toBeCloseTo(1, 9)
   })
 
+  it('frames the box inside the part of the canvas that is left, centred in it', () => {
+    const size = { w: 570, h: 1049 }
+    // A card over the bottom right of the canvas leaves the strip above it.
+    const usable = { x: 0, y: 0, w: 570, h: 600 }
+    const orbit = fitOrbit(hall, size, { usable })
+    const view = orbitCamera(orbit)
+    const middle = projectPoint(view, size, [7, 1.75, 3])
+    expect(middle?.x).toBeCloseTo(usable.x + usable.w / 2, 0)
+    expect(middle?.y).toBeCloseTo(usable.y + usable.h / 2, 0)
+    for (const corner of corners(hall)) {
+      const hit = projectPoint(view, size, corner)
+      expect(hit?.y as number).toBeLessThan(usable.y + usable.h)
+      expect(hit?.x as number).toBeGreaterThan(usable.x)
+      expect(hit?.x as number).toBeLessThan(usable.x + usable.w)
+    }
+  })
+
+  it('frames the whole canvas when no part is named, as it did', () => {
+    const size = { w: 570, h: 1049 }
+    expect(fitOrbit(hall, size, { usable: { x: 0, y: 0, w: 570, h: 1049 } })).toEqual(fitOrbit(hall, size))
+  })
+
   it('stands further off for a bigger box, and for a bigger padding', () => {
     const small: Box3 = { min: [0, 0, 0], max: [4, 3, 4] }
     const big: Box3 = { min: [0, 0, 0], max: [40, 30, 40] }

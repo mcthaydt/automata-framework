@@ -10,21 +10,25 @@ import { attachGestures } from '@automata/editor/kit'
 import type { Size } from '@automata/editor/kit/core'
 import { onDestroy } from 'svelte'
 import type { LevelEditor } from '../../../shared/edit/level-editor'
+import { cardClearArea } from './card-clear-area'
 import { createDollhouseController, type DollhouseController } from './dollhouse-controller'
 import { dollhouseGestures } from './dollhouse-gestures'
 import { dollhousePaint, type SurfaceColours } from './dollhouse-paint'
 import type { DollhouseRenderer, DollhouseRendererFactory } from './dollhouse-renderer'
+import type { GameScene } from './game-scene'
 
 interface Props {
   editor: LevelEditor<unknown>
   renderer: DollhouseRendererFactory
   /** The game's colour for a material by name; without it every surface keeps the blockout's grey. */
   colours?: SurfaceColours | undefined
+  /** The level as the game draws it (`createSceneCache`); without it, or for a level it cannot build, the flat blockout. */
+  scene?: (() => GameScene | undefined) | undefined
   onundo: () => void
   onredo: () => void
 }
 
-const { editor, renderer: makeRenderer, colours, onundo, onredo }: Props = $props()
+const { editor, renderer: makeRenderer, colours, scene, onundo, onredo }: Props = $props()
 
 type Phase = 'starting' | 'drawing' | 'unavailable'
 
@@ -42,7 +46,7 @@ const stops: (() => void)[] = []
 function draw(): void {
   if (size === undefined || view === undefined || controller === undefined) return
   const { mesh, orbit } = controller.view
-  view.draw(dollhousePaint(mesh, orbit, size, new Set(editor.selection.ids), colours))
+  view.draw(dollhousePaint(mesh, orbit, size, new Set(editor.selection.ids), colours, scene?.()))
 }
 
 function measured(next: Size): void {
@@ -51,10 +55,12 @@ function measured(next: Size): void {
   size = next
   if (first) {
     controller = createDollhouseController(editor, next)
-    stops.push(controller.subscribe(draw), editor.selection.subscribe(draw))
+    // A change that moves a prop, a thing or the time of day leaves the rooms' mesh alone, so the history is heard too.
+    stops.push(controller.subscribe(draw), editor.selection.subscribe(draw), editor.history.subscribe(draw))
     if (host !== undefined)
       stops.push(attachGestures(host, dollhouseGestures(controller, { onundo, onredo }), { rotate: true }))
   } else controller?.resize(next)
+  clearArea()
   if (view === undefined) void start()
   else {
     view.resize({ ...next, resolution: resolution() })
@@ -63,6 +69,11 @@ function measured(next: Size): void {
 }
 
 const resolution = (): number => host?.ownerDocument.defaultView?.devicePixelRatio ?? 1
+
+/** The room is framed where the details card (or a sheet) does not cover it, and again when the card opens or moves. */
+function clearArea(): void {
+  if (host !== undefined && size !== undefined) controller?.setUsable(cardClearArea(host, size))
+}
 
 let starting = false
 async function start(): Promise<void> {
@@ -105,6 +116,19 @@ $effect(() => {
   return () => observer.disconnect()
 })
 
+$effect(() => {
+  const document = host?.ownerDocument
+  const Observer = document?.defaultView?.MutationObserver
+  if (document === undefined || Observer === undefined) return
+  const observer = new Observer(clearArea)
+  observer.observe(document.body, {
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['data-open', 'data-detent', 'data-presentation'],
+  })
+  return () => observer.disconnect()
+})
+
 onDestroy(() => {
   for (const stop of stops.splice(0)) stop()
   controller?.dispose()
@@ -124,7 +148,7 @@ onDestroy(() => {
   {#key attempt}
     <canvas bind:this={canvas} class:hidden={phase !== 'drawing' || paused}></canvas>
   {/key}
-  <span class="tag" aria-hidden="true">3D · orbit</span>
+  <span class="tag" aria-hidden="true">Drag to turn the room</span>
   <div class="notice" role="status" hidden={phase !== 'unavailable' && !paused}>
     {#if phase === 'unavailable'}
       <p>This browser can’t draw the 3D view: it needs WebGL2. The plan still works and your level is safe.</p>
@@ -150,6 +174,8 @@ onDestroy(() => {
     display: block;
     width: 100%;
     height: 100%;
+    /* The game's picture is a small field of pixels scaled up whole. */
+    image-rendering: pixelated;
   }
   canvas.hidden {
     visibility: hidden;
@@ -162,7 +188,7 @@ onDestroy(() => {
     border-radius: var(--edge-sm);
     background: color-mix(in srgb, var(--color-bg-app) 85%, transparent);
     color: var(--color-text-dim);
-    font: 500 11px / 16px var(--font-mono, monospace);
+    font: var(--text-body-13);
     pointer-events: none;
   }
   .notice {

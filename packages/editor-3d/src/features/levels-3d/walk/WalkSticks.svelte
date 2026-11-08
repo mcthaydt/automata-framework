@@ -87,7 +87,7 @@ const pad =
     place-items: center;
     width: 120px;
     height: 120px;
-    border: 2px solid color-mix(in srgb, var(--color-text-dim, #8a919e) 60%, transparent);
+    border: 2px solid color-mix(in srgb, var(--stage-muted) 60%, transparent);
     border-radius: 50%;
     background: color-mix(in srgb, var(--color-bg-canvas) 55%, transparent);
     touch-action: none;

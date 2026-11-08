@@ -20,7 +20,7 @@
 - `coverage(content, wanted)`: Every event the game declares, with where it comes from, against the event map: cued, silent with a reason, or missing.
 - `Coverage` (interface): Whether every event a game can produce is answered: `missing` lists events with no row, and `silent` lists events that are silent on purpose, with the reason.
 - `createAudioSynth(options)`: Starts the audio runtime.
-- `createMixer({ port, ducks })`: Makes a mixer that plays into the buses the game already has.
+- `createMixer({ port, ducks, master })`: Makes a mixer that plays into the buses the game already has.
 - `createMusicDirector(options)`: Turns the rows' answer into the slot to play.
 - `Cue` (interface): A short sound as a recipe of voices, played on a bus.
 - `cueLength(cue)`: Seconds from a cue's start to its last voice's end (a tone rings 0.05 s past its ramp).
@@ -352,6 +352,8 @@
 - `FactLog` (interface): The bus panel's record of the last facts heard.
 - `feelBoard(content, feel, tick)`: Builds the feel board for the debug overlay: every event the feel content reacts to, and a way to fire one.
 - `FeelBoardPort` (interface): The feel board: every event the content reacts to, and a way to fire one.
+- `ForwardedEvent` (interface): What the editor hears for each event.
+- `forwardEvents(bus, location, parent, options?)`: Starts forwarding when the page is framed and its address carries `af-watch` (the editor's origin) and `events` (the event names, comma between).
 - `installDebug(host)`: Makes `host` the one the overlay shows, and its driver (if any) `window.__automataDebug`, with `panels()` added.
 - `NetDiagnosticsPort` (interface): The net diagnostics: a summary object (`NetDiagnostics.summary()`), read as rows.
 - `Overlay` (interface): The overlay's state and its dev-input rules, apart from any view: toggle, close, pick a tab, pause, and handle a key or a touch count.

@@ -25,6 +25,8 @@ export interface MusicPlayerOptions {
 export interface MusicPlayer {
   /** The slot to be hearing now, or `null` for silence. Asked again for the same slot, it does nothing. */
   play(slot: Slot | null): void
+  /** The overall volume, 0..1 (`master_gain`): every track plays at its own level times this, and a change is followed at once. */
+  setMaster(volume: number): void
   /** The id of the slot being asked for, whether or not it has started yet. */
   wanted(): string | null
   /** Fades out and lets go. */
@@ -35,7 +37,12 @@ interface Playing {
   readonly slot: Slot
   readonly source: AudioBufferSourceNode
   readonly gain: GainNode
+  /** The track's own level, before the overall volume. */
+  readonly volume: number
 }
+
+/** Seconds a change of the overall volume takes, so it is heard as a turn of a knob and not a click. */
+const MASTER_RAMP_SECONDS = 0.05
 
 async function fetchBytes(url: string): Promise<ArrayBuffer> {
   const response = await fetch(url)
@@ -54,6 +61,7 @@ export function createMusicPlayer(options: MusicPlayerOptions): MusicPlayer {
   let wanted: Slot | null = null
   let playing: Playing | null = null
   let disposed = false
+  let master = 1
 
   const buffer = (alias: string): Promise<AudioBuffer> => {
     const known = decoded.get(alias)
@@ -86,7 +94,7 @@ export function createMusicPlayer(options: MusicPlayerOptions): MusicPlayer {
     source.loop = slot.mode === 'loop'
     const gain = context.createGain()
     gain.gain.setValueAtTime(0, now)
-    gain.gain.linearRampToValueAtTime(pick.volume, now + (slot.delay ?? 0) + fade)
+    gain.gain.linearRampToValueAtTime(pick.volume * master, now + (slot.delay ?? 0) + fade)
     let tail: AudioNode = source
     if (pick.filter !== undefined) {
       const { highpass, lowpass } = FILTERS[pick.filter]
@@ -108,7 +116,7 @@ export function createMusicPlayer(options: MusicPlayerOptions): MusicPlayer {
       gain.disconnect?.()
     }
     source.start(now + (slot.delay ?? 0))
-    playing = { slot, source, gain }
+    playing = { slot, source, gain, volume: pick.volume }
   }
 
   return {
@@ -134,6 +142,16 @@ export function createMusicPlayer(options: MusicPlayerOptions): MusicPlayer {
             options.onFault?.(`The music “${slot.id}” would not play (${why(cause)}).`)
         },
       )
+    },
+    setMaster(volume) {
+      if (volume === master) return
+      master = volume
+      if (playing === null) return
+      const now = context.currentTime
+      const param = playing.gain.gain
+      param.cancelScheduledValues(now)
+      param.setValueAtTime(param.value, now)
+      param.linearRampToValueAtTime(playing.volume * master, now + MASTER_RAMP_SECONDS)
     },
     wanted: () => wanted?.id ?? null,
     dispose() {

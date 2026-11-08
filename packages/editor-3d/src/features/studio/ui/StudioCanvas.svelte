@@ -363,8 +363,8 @@ function capture(event: PointerEvent): void {
     background: var(--lime);
   }
   .handle.amber {
-    border-color: var(--color-state-warn, #e0a030);
-    background: color-mix(in srgb, var(--color-state-warn, #e0a030) 40%, transparent);
+    border-color: var(--stage-warn);
+    background: color-mix(in srgb, var(--stage-warn) 40%, transparent);
   }
   .notice {
     position: absolute;
@@ -374,7 +374,7 @@ function capture(event: PointerEvent): void {
     gap: var(--space-3);
     padding: var(--space-5);
     background: var(--color-bg-canvas);
-    color: var(--color-text-dim);
+    color: var(--stage-muted);
     font: var(--text-body-13);
     text-align: center;
   }

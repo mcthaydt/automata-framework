@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, test } from 'vitest'
-import { contrastRatio } from '#src/shared/kit/tokens/contrast.ts'
+import { contrast } from '#src/shared/kit/tokens/contrast.ts'
 import type { EditorTokens } from '#src/shared/kit/tokens/editor-tokens.ts'
 import { tokensToCss } from '#src/shared/kit/tokens/tokens-to-css.ts'
 
@@ -89,24 +89,24 @@ describe('token contrast', () => {
   }
 
   test('ink on the field reads at 7:1', () => {
-    expect(contrastRatio(color('ink'), color('bg'))).toBeGreaterThanOrEqual(7)
+    expect(contrast(color('ink'), color('bg'))).toBeGreaterThanOrEqual(7)
   })
 
   test('muted text on paper reads at 4.5:1', () => {
-    expect(contrastRatio(color('muted'), color('paper'))).toBeGreaterThanOrEqual(4.5)
+    expect(contrast(color('muted'), color('paper'))).toBeGreaterThanOrEqual(4.5)
   })
 
   test('light ink on cobalt reads at 4.5:1', () => {
-    expect(contrastRatio(color('stage-ink'), color('cobalt'))).toBeGreaterThanOrEqual(4.5)
+    expect(contrast(color('stage-ink'), color('cobalt'))).toBeGreaterThanOrEqual(4.5)
   })
 
   test('ink on the chartreuse primary reads at 4.5:1', () => {
-    expect(contrastRatio(color('ink'), color('lime'))).toBeGreaterThanOrEqual(4.5)
+    expect(contrast(color('ink'), color('lime'))).toBeGreaterThanOrEqual(4.5)
   })
 
   test('the state colours read as text on paper at 4.5:1', () => {
     for (const state of ['ok', 'bad', 'warn']) {
-      expect(contrastRatio(color(state), color('paper')), state).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(color(state), color('paper')), state).toBeGreaterThanOrEqual(4.5)
     }
   })
 })

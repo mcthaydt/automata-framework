@@ -6,6 +6,7 @@
 <script lang="ts">
 import { onMount } from 'svelte'
 import { ICON_NAMES } from '../../shared/kit/icons/paths'
+import ThemeChoice from '../../shared/kit/theme/ThemeChoice.svelte'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import Chips from '../../shared/kit/widgets/Chips.svelte'
 import ColorField from '../../shared/kit/widgets/ColorField.svelte'
@@ -52,6 +53,9 @@ toasts.push({ message: 'Layer deleted', action: { label: 'Undo', run: () => {} }
 
 <main class="board" data-board-ready={ready || undefined}>
   <h1>Editor kit</h1>
+
+  <!-- Both looks are one click away, so a reviewer sees every widget below in each. -->
+  <ThemeChoice />
 
   <section>
     <h2>Buttons</h2>

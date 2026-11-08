@@ -3,7 +3,13 @@
  * editor screen. It puts the `--tool-*` tokens under the names the kit's components already read (the field, paper,
  * the hover surface, the hairlines, the grey, the selection wash and the level's cabinet), so every view takes the look without each one
  * changing. Editor pages import it once, after tokens.css; the website does not, so it keeps its own field.
+ *
+ * Each colour has a light and a dark value (`tool-theme.css`, generated from `tool-theme.json`): a device set to dark gets
+ * dark unless the page says `data-theme="light"`, and `data-theme="dark"` forces it. Everything below names a colour
+ * and never holds one, so the two looks differ in one place.
  */
+@import "./tool-theme.css";
+
 :root {
   --bg: var(--tool-bg);
   --paper: var(--tool-panel);
@@ -15,6 +21,17 @@
   /* The cabinet around the level (the stage and the home cards' wash): the mockup's near-black, a step darker than
      the website's charcoal, so the level reads as the brightest thing on screen. */
   --charcoal: var(--tool-stage);
+
+  /* Words and edges on a colour read their own fixed tokens: `--ink` turns light in dark, which would put light words
+     on the lime and a washed-out hover on it. The hover mixes with the lime button's own words, so it is a step darker
+     in both looks. */
+  --primary-ink: var(--on-lime);
+  --primary-hover: color-mix(in oklab, var(--lime) 86%, var(--on-lime));
+  --color-accent-ink: var(--on-accent);
+
+  /* A shadow is not a colour, so it is built here from colour tokens; in light these are the values it always had. */
+  --shadow: 0 1px 2px var(--shadow-lift);
+  --shadow-sheet: 0 0 0 1px var(--shadow-ring), 0 12px 32px var(--shadow-ink);
 }
 
 /*

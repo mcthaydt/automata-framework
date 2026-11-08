@@ -376,6 +376,6 @@ function frameStyle(index: number, scale: number): string {
   }
   .problem,
   .message {
-    color: var(--color-danger, #b91c1c);
+    color: var(--color-state-bad);
   }
 </style>

@@ -86,7 +86,7 @@ const ARROWS = [
     width: 48px;
     height: 48px;
     background: var(--color-accent-default);
-    color: var(--color-accent-ink, #1a1206);
+    color: var(--color-accent-ink);
   }
   button:focus-visible {
     outline: 2px solid var(--color-accent-default);

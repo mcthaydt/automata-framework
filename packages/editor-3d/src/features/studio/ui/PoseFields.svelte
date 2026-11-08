@@ -93,6 +93,6 @@ const short = (error: number, degrees: boolean): string =>
   }
   .amber {
     margin: 0;
-    color: var(--color-state-warn, #e0a030);
+    color: var(--color-state-warn);
   }
 </style>

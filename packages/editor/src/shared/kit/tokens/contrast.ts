@@ -1,31 +1,42 @@
-// WCAG contrast between two CSS colours, for tests that read what the page really draws (`getComputedStyle` answers in
-// `rgb(…)`) and for the token tests (which read `#rrggbb`).
+/**
+ * WCAG 2.x contrast of two colours, each a `#rrggbb` or an `rgb(r g b / a)` (also `rgb(r, g, b)` and `rgba(…)`, which
+ * is what `getComputedStyle` answers in); the second is the background.
+ */
+
+type Rgb = readonly [number, number, number]
+
+function parse(color: string): { rgb: Rgb; alpha: number } {
+  const hex = /^#([0-9a-f]{6})$/i.exec(color.trim())
+  if (hex !== null) {
+    const n = Number.parseInt(hex[1] as string, 16)
+    return { rgb: [(n >> 16) & 255, (n >> 8) & 255, n & 255], alpha: 1 }
+  }
+  const fn = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)(?:\s*[,/]\s*([\d.]+))?\s*\)$/.exec(color.trim())
+  if (fn !== null) {
+    return {
+      rgb: [Number(fn[1]), Number(fn[2]), Number(fn[3])],
+      alpha: fn[4] === undefined ? 1 : Number(fn[4]),
+    }
+  }
+  throw new Error(`not a colour: ${color}`)
+}
 
 function channel(value: number): number {
   const s = value / 255
   return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
 }
 
-/** The red, green and blue (0 to 255) of `#rrggbb` or `rgb(r, g, b)` / `rgba(r, g, b, a)`; anything else throws. */
-function channels(color: string): [number, number, number] {
-  const text = color.trim()
-  if (/^#[0-9a-f]{6}$/i.test(text)) {
-    const n = Number.parseInt(text.slice(1), 16)
-    return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
-  }
-  const match = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/.exec(text)
-  if (match === null) throw new Error(`contrast: cannot read the colour "${color}"`)
-  return [Number(match[1]), Number(match[2]), Number(match[3])]
-}
-
-/** WCAG relative luminance of a colour. */
-function luminance(color: string): number {
-  const [r, g, b] = channels(color)
+function luminance([r, g, b]: Rgb): number {
   return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
 }
 
-/** The WCAG contrast ratio of two colours, 1 to 21. */
-export function contrastRatio(foreground: string, background: string): number {
-  const [light, dark] = [luminance(foreground), luminance(background)].sort((a, b) => b - a)
+/** The ratio, 1 to 21. A translucent `a` is laid over `b` first, as the browser draws it; `b` must be opaque. */
+export function contrast(a: string, b: string): number {
+  const back = parse(b).rgb
+  const front = parse(a)
+  const over = front.rgb.map(
+    (c, i) => c * front.alpha + (back[i] as number) * (1 - front.alpha),
+  ) as unknown as Rgb
+  const [light, dark] = [luminance(over), luminance(back)].sort((x, y) => y - x)
   return ((light as number) + 0.05) / ((dark as number) + 0.05)
 }

@@ -1,3 +1,7 @@
+// Pixi 3D checks, as it loads, that no Pixi texture has been made yet (its own are the first ones), and the plan's renderer is
+// the first the editor makes: so it comes in before any renderer is, here, whichever view is shown first. The 3D view and
+// Walk draw with it (`dollhouse/game-view.ts`).
+import '@automata/3d/no-eval'
 import type { Point as ScreenPoint } from '@automata/editor/kit/core'
 import {
   type AutoDetectOptions,

@@ -15,6 +15,7 @@ import { onMount, type Snippet } from 'svelte'
 import EditorShell from '../shell/EditorShell.svelte'
 import { shellModeAt } from '../shell/shell-mode'
 import type { Workspace } from '../storage/workspace'
+import ThemeChoice from '../theme/ThemeChoice.svelte'
 import Button from '../widgets/Button.svelte'
 import StatusLine from '../widgets/StatusLine.svelte'
 import ToastRegion from '../widgets/ToastRegion.svelte'
@@ -192,6 +193,8 @@ function onWindowKeydown(event: KeyboardEvent): void {
       {/if}
 
       {#if below}{@render below({ busy })}{/if}
+
+      <ThemeChoice />
     </div>
   {/snippet}
 
