@@ -21,36 +21,83 @@ const { content, on, settings, reduced, outputs, replay }: Props = $props()
 
 const FPS = 60
 const SECONDS = 1.5
-const SIZE = { w: 240, h: 160 }
+// The word as play draws it (spec D10): Geist semibold at the floor size, white over a black copy 1.5 CSS px down
+// and right, so it reads on any colour the flash or tint puts behind it.
+const WORD_FONT = '600 14px "Geist Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+const SHADOW_PX = 1.5
+const SQUARE_COLOUR = '#f9c22b'
 let canvas: HTMLCanvasElement | undefined = $state()
 let said = $state<string[]>([])
+// Set once the face is loaded: a word drawn before it would be in a stand-in and then jump.
+let faceReady = $state(false)
+// Bumped when the stage's box changes size, which starts the preview over at the new size.
+let resized = $state(0)
+
+$effect(() => {
+  let gone = false
+  const done = (): void => {
+    if (!gone) faceReady = true
+  }
+  const loading = document.fonts?.load(WORD_FONT)
+  if (loading === undefined) done()
+  else loading.then(done, done)
+  return () => {
+    gone = true
+  }
+})
+
+$effect(() => {
+  if (!canvas || typeof ResizeObserver === 'undefined') return
+  const watch = new ResizeObserver(() => {
+    resized += 1
+  })
+  watch.observe(canvas)
+  return () => watch.disconnect()
+})
+
+/** Backs the canvas with one pixel per device pixel of its box and returns the box in CSS px. */
+function sizeBacking(target: HTMLCanvasElement): { w: number; h: number; dpr: number } {
+  const box = target.getBoundingClientRect()
+  const dpr = window.devicePixelRatio || 1
+  const w = Math.max(1, Math.round(box.width))
+  const h = Math.max(1, Math.round(box.height))
+  if (target.width !== Math.round(w * dpr)) target.width = Math.round(w * dpr)
+  if (target.height !== Math.round(h * dpr)) target.height = Math.round(h * dpr)
+  return { w, h, dpr }
+}
 
 function draw(frame: FeelFrame | undefined): void {
-  const ctx = canvas?.getContext('2d')
-  if (ctx === null || ctx === undefined) return
-  ctx.clearRect(0, 0, SIZE.w, SIZE.h)
+  if (!canvas) return
+  const ctx = canvas.getContext('2d')
+  if (ctx === null) return
+  const { w, h, dpr } = sizeBacking(canvas)
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  ctx.clearRect(0, 0, w, h)
   const squash = frame?.squash.get(STAGE_SUBJECT) ?? [1, 1]
   const side = 64
   ctx.save()
-  ctx.translate(SIZE.w / 2 + (frame?.offset[0] ?? 0), SIZE.h / 2 + (frame?.offset[1] ?? 0))
+  ctx.translate(w / 2 + (frame?.offset[0] ?? 0), h / 2 + (frame?.offset[1] ?? 0))
   ctx.scale(squash[0], squash[1])
-  ctx.fillStyle = 'currentColor'
-  ctx.fillStyle = getComputedStyle(canvas as HTMLCanvasElement).color
+  ctx.fillStyle = SQUARE_COLOUR
   ctx.fillRect(-side / 2, -side / 2, side, side)
   ctx.restore()
   for (const overlay of [frame?.tint, frame?.flash]) {
     if (overlay === null || overlay === undefined) continue
     ctx.globalAlpha = overlay.alpha
     ctx.fillStyle = overlay.colour
-    ctx.fillRect(0, 0, SIZE.w, SIZE.h)
+    ctx.fillRect(0, 0, w, h)
     ctx.globalAlpha = 1
   }
-  ctx.fillStyle = getComputedStyle(canvas as HTMLCanvasElement).color
-  ctx.font = '14px sans-serif'
+  ctx.font = WORD_FONT
   ctx.textAlign = 'center'
   for (const word of frame?.words ?? []) {
     const said = wordText(word)
-    if (said !== undefined) ctx.fillText(said, SIZE.w / 2, SIZE.h / 2 - 48 - (word.still ? 0 : word.age * 20))
+    if (said === undefined) continue
+    const y = h / 2 - 48 - (word.still ? 0 : word.age * 20)
+    ctx.fillStyle = '#000000'
+    ctx.fillText(said, w / 2 + SHADOW_PX, y + SHADOW_PX)
+    ctx.fillStyle = '#ffffff'
+    ctx.fillText(said, w / 2, y)
   }
 }
 
@@ -61,7 +108,9 @@ $effect(() => {
       ? []
       : stageFrames(content, on, settings, reduced, 1 / FPS, Math.round(SECONDS * FPS))
   void replay
+  void resized
   said = []
+  if (!faceReady) return
   if (frames.length === 0) {
     draw(undefined)
     return
@@ -85,7 +134,7 @@ $effect(() => {
 </script>
 
 <figure class="stage">
-  <canvas bind:this={canvas} width={SIZE.w} height={SIZE.h} aria-label="The feel playing"></canvas>
+  <canvas bind:this={canvas} aria-label="The feel playing"></canvas>
   <figcaption aria-live="polite">{said.join(' · ')}</figcaption>
 </figure>
 
@@ -101,8 +150,7 @@ $effect(() => {
     min-height: 200px;
     max-height: 40dvh;
     border-radius: var(--edge-sm);
-    background: var(--color-bg-field);
-    object-fit: contain;
+    background: var(--color-bg-canvas);
   }
   figcaption {
     min-height: 1.5em;
