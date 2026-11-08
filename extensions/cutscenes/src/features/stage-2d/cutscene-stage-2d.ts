@@ -155,14 +155,11 @@ export function cutsceneStage2d(options: CutsceneStage2dOptions): LevelSceneHook
           fade = new Graphics()
           fade.label = 'cutscene-fade'
         }
-        const { x, y, scale } = camera.transform
-        fade
-          .clear()
-          .rect(-x / scale, -y / scale, view.width / scale, view.height / scale)
-          .fill(0x000000)
+        // On the overlay, over the world and every view the game added to it (the player, the guard), and in view
+        // coordinates, so it covers the whole view whatever the camera does.
+        fade.clear().rect(0, 0, view.width, view.height).fill(0x000000)
         fade.alpha = at.fade
-        // Last, so it covers the characters too.
-        scene.container.addChild(fade)
+        scene.overlay.addChild(fade)
       } else if (fade !== undefined) {
         fade.destroy()
         fade = undefined

@@ -1,5 +1,5 @@
 import type { ContentLevel, ContentProject } from '@automata/content/level-2d'
-import { Application, Container, Sprite } from 'pixi.js'
+import { Application, Container, Graphics, Sprite } from 'pixi.js'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { drawLevelScene, levelScene, mountLevelScene } from '#src/features/render/level-2d/level-scene.ts'
 import type { DrawSim } from '#src/shared/draw/read-sim.ts'
@@ -84,7 +84,7 @@ describe('levelScene in a real engine', () => {
     })
     const world = new Container()
     app.stage.addChild(world)
-    mountLevelScene(scene, world)
+    mountLevelScene(scene, world, new Container())
 
     // The picture loads on the first frame; draw again until the tiles are sprites.
     await vi.waitFor(() => {
@@ -98,5 +98,43 @@ describe('levelScene in a real engine', () => {
       Array.from(pixels.slice((y * width + x) * 4, (y * width + x) * 4 + 3))
     expect(at(8, 8)).toEqual([255, 0, 0])
     expect(at(24, 8)).toEqual([0, 0, 255])
+  })
+
+  it('has an overlay that covers every view the game adds to the world, even one made after the scene was mounted', async () => {
+    const url = await tilesetPicture()
+    const scene = levelScene({
+      project,
+      levels: { start: level },
+      images: { 'assets/terrain.png': url },
+      start: 'start',
+    })
+    scene.add({
+      draw: (_sim, { overlay }) => {
+        if (overlay.children.length === 0) overlay.addChild(new Graphics().rect(0, 0, 32, 16).fill(0x000000))
+      },
+    })
+    app = new Application()
+    await app.init({
+      width: 32,
+      height: 16,
+      preference: 'webgl',
+      autoStart: false,
+      antialias: false,
+      resolution: 1,
+    })
+    const world = new Container()
+    const ui = new Container()
+    app.stage.addChild(world)
+    app.stage.addChild(ui)
+    mountLevelScene(scene, world, ui)
+    // A live entity's view, added after the scene and so drawn over the level, as the game's own views are.
+    world.addChild(new Graphics().rect(4, 4, 8, 8).fill(0xff0000))
+
+    drawLevelScene(scene, sim)
+    app.renderer.render({ container: app.stage })
+    const { pixels, width } = app.renderer.extract.pixels({ target: app.stage })
+    const at = (x: number, y: number): number[] =>
+      Array.from(pixels.slice((y * width + x) * 4, (y * width + x) * 4 + 3))
+    expect(at(8, 8)).toEqual([0, 0, 0])
   })
 })
