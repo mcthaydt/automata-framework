@@ -531,19 +531,19 @@ The Owner's rule (2026-11-08): content made in the editors must be seen in play,
   cutscene.
 - Create: `examples/2d-story/tests/e2e/story-in-play.test.ts`
 
-- [ ] **Step 1: Failing unit test** in the example: a scripted run (touch the keeper, Advance, choose 2) reaches the
+- [x] **Step 1: Failing unit test** in the example: a scripted run (touch the keeper, Advance, choose 2) reaches the
   cutscene and then the guard's chase, with the same hash in Node twice.
-- [ ] **Step 2:** Build the example until it passes; `pnpm check`.
-- [ ] **Step 3: Served journey** (Chromium, phone and iPad projects): `automata editor` in the example serves the
+- [x] **Step 2:** Build the example until it passes; `pnpm check`.
+- [~] **Step 3: Served journey** (done for the colour, the box, the choice, the cutscene and the guard; the Writer, Sequence and Schematic edits are NOT run, see step 4) (Chromium, phone and iPad projects): `automata editor` in the example serves the
   editor and the game. In the suite: Writer changes the keeper's line to "The gate sticks in the rain."; Sequence
   changes the caption to "Later, at the gate."; Schematic changes the guard's chase speed; Save after each. Press
   Play. Walk into the keeper: the dialogue box shows "The gate sticks in the rain." with "Next"; tap the second choice;
   the caption "Later, at the gate." shows above the box's place and the keeper walks; then the guard sees the player
   through the gap and loses them behind the wall. Assert each in the DOM or by reading the sim through the test hook,
   and look at the screenshots and explain them in the log.
-- [ ] **Step 4:** If one of #478's Writer, Sequence or Schematic is not built yet, leave its step unchecked, say so in
+- [~] **Step 4:** If one of #478's Writer, Sequence or Schematic is not built yet, leave its step unchecked, say so in
   the log and the PR, and keep the rest of the journey running. Never write the TOML directly and count it as edited.
-- [ ] **Step 5:** Commit `test(examples): a 2D story edited in the suite shows in play`.
+- [x] **Step 5:** Commit `test(examples): a 2D story edited in the suite shows in play`.
 
 ### Task 17: Docs and the gate
 
@@ -666,3 +666,47 @@ The Owner's rule (2026-11-08): content made in the editors must be seen in play,
   WebKit and Firefox are not installed here, so they are left to the parity job, and level-2d now has a browser project (it is in
   `test:browser:2d`). Ruling: the 2D light lint is `systemsWarnings(def, { flat, derived })`, a warning list beside `checkSystems`,
   not an error, because the file is valid and `checkSystems` failures stop a load; the Schematic editor can show the warnings.
+- 2026-11-08 Task 16 done except the three editor steps (Sonnet high, third build session; merged #484's head e5c7f8a7 as the base).
+  `examples/2d-story` now plays: the keeper (a placed item, drawn by core, whose conversation starts when the player walks within
+  24 px; the second answer sets the fact `gate`, and a system starts the cutscene `gate` once the conversation has ended), a
+  cutscene (the keeper walks two cells, a caption), and a guard (`content/systems/guard.toml` patrols the Yard, sees through the
+  gap, follows into the Hall). Rulings: (1) the story's sim systems are built by `createStoryPlugin(options)` and get the
+  extensions' handles and the files as arguments, because `pnpm boundaries` (rightly) forbids a sim file to import a content
+  module, JSON or an extension's non-sim entry; the wiring is `story.extensions.ts` (not sim) and `app/story-sim.ts`. (2) The
+  guard is a second `Square` body (the places' position component is one component for every walker), told apart for drawing by
+  `systems.agent` and for moving by the `Hero` marker; `Hero.frozen` stops the player walking in a conversation or a cutscene
+  (`story.freeze`). (3) The Hall and Yard areas now share an edge (the Yard starts at the wall's column): `crossing` needs
+  touching areas, and the skeleton's 16 px gap between them meant the guard could never follow through the gap. (4) Words: a line's
+  `text` is a key and no catalog exists on this branch (translations must match source message keys, and a line has no `words`
+  field until Writer's PR #478), so the game reads `content/words/en.json`; when #478 lands, `wordsOf` should read where Writer
+  writes. (5) `narrative` and `cutscenes` gained a content-only entry (`/content`) so a Vite config can name their kinds: their main
+  entries pull Svelte, which a Node config cannot load. (6) The journey lives with the editor's harness
+  (`packages/editor/tests/e2e/journeys/story-in-play.test.ts`), not `examples/2d-story/tests/e2e`: it needs `runEditor`, the
+  phone and iPad projects and the PNG reader; `copyInstalledGame` links a game's own packages into a temp copy and points its
+  tsconfig at the repo base. (7) The Levels part of the journey is Characters: the keeper's colour changed to magenta and saved by
+  the editor, then the played canvas has a magenta keeper at his placed spot; a wall edit is already the job of `whole-game-loop`.
+  (8) That the guard loses a player behind the wall is proved by the sim unit test (`has the guard hunt a player he sees through the gap,
+  and not one behind the wall`), not the journey: once the guard comes through the gap he stands beside the player.
+  Tests: 13 unit (example, Node), the journey on editor-ipad-chromium and editor-phone-chromium (22 s each). Screenshots looked
+  at: the dialogue box (speaker in yellow, the line, two 48 px-high choices, focus ring on choice 1, the player's green square
+  beside the magenta keeper, the red guard in the Yard, the wall with its gap); the cutscene (caption "A moment later, at the gate."
+  at the bottom, the box gone, the keeper still at his spot: the caption shows at 0.5 s and he starts walking at 1 s); the guard
+  (on iPad: standing on the player's feet, left of the wall: he came through the gap). Copies in
+  `/mnt/project-files/content-in-play/2d-story/`. A finding: the guard acts while the player talks (the world is not paused), so a
+  slow reader is found by the guard; that is how the example plays, and a game that wants a pause says so in code.
+  **Not run, pending:** Writer (change the keeper's words), Sequence (change the caption), Schematic (change the guard's chase
+  speed): PR #478's editors are not on this branch. Also pending: WebKit and Firefox.
+- **2026-11-08, Task 17 (docs and the gate).** Docs: `docs/refactor/progress.md`, `docs/status.md`, `examples/README.md`,
+  `extensions/level-2d/README.md`. Knip: the 2d-story entry in `knip.jsonc`; `@automata/feel` and `@testing-library/user-event`
+  removed from `extensions/editors`. Fixed on the way: `narrative` and `cutscenes` (private) listed `pixi.js` / `svelte` peers as
+  ranges, which `tooling/versions` rejects for a private package; they are now the exact pins `world-kit` uses.
+  **Ran, green:** `pnpm format`; lint; typecheck for every package except `@automata/editors`; `boundaries`; `style` apart from
+  `source-names`; `knip`; `changeset status` and `check-changesets`; `pnpm test:unit` for every package apart from `@automata/release`
+  (physics, editor 3480 and editor-3d 2161 tests re-run on their own because turbo cancelled them); `pnpm build`, extensions built
+  with `turbo run build --filter='./extensions/*'`; `api-report --update`, `agent-skills --write`, `api-index --write` (wrote
+  `api.md`, `cheatsheet.md`; Node 22 container, Node 24 is the project's).
+  **Failing, not from this work (seen on the branch before these commits):** `source-names` (5 findings in `examples/3d` and
+  `SettingsScreen.svelte`); `@automata/editors` typecheck (svelte-check warning with no Svelte files until #478);
+  `@automata/release` `turbo.test.ts` (reads `site/turbo.json`, which has `//` comments, with `JSON.parse`); `api-index` exits 1 for
+  three exports with no doc comment (`STICK_DIRECTIONS`, `Picture` in `content/level-2d`, `PROMPT_COPY`).
+  **Not run, pending:** WebKit and Firefox; the GPU runner's journeys; the Writer, Sequence and Schematic journey steps (#478).

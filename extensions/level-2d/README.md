@@ -13,4 +13,7 @@ Give `level2dPlaces({ level, project })` to those extensions and they work in a 
 - **Crossing** between two areas is the middle of the edge they share; two areas that meet only at a corner do not touch.
 - The plan is in metres. One metre is one cell of the walls layer unless `metre` says otherwise.
 
+[`examples/2d-story`](../../examples/2d-story/) uses it with all four, and its tests show the keeper, the cutscene and the guard
+running in a 2D level.
+
 It is free, MIT licensed and optional. It is not published to npm yet.

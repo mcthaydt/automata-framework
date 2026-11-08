@@ -41,7 +41,7 @@
       "entry": ["playwright.config.ts", "tests/e2e/*.test.ts", "*/*.ts"],
       "playwright": false
     },
-    // `automata ship` loads ship.config.ts by name, so nothing imports it.
+    // `automata ship prepare` reads the ship config by path; the game's vite.config.ts does not import it.
     "examples/2d-story": { "entry": ["ship.config.ts"] },
     "examples/2d/content/hot-reload": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
     "examples/2d/ui/primitives": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },

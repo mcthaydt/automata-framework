@@ -43,8 +43,8 @@
     "@automata/content": "workspace:^",
     "@automata/framework": "workspace:^",
     "@automata/sim": "workspace:^",
-    "pixi.js": "^8.22.0",
-    "svelte": "^5.57.1"
+    "pixi.js": "8.22.0",
+    "svelte": "5.57.1"
   },
   "devDependencies": {
     "@automata/3d": "workspace:*",
