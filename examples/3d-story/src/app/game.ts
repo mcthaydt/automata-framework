@@ -1,6 +1,7 @@
 import { content } from 'virtual:automata/content'
 import { createPixi3dRenderer, DEFAULT_LOOK, render3dExtension, targetSize } from '@automata/3d'
 import { CameraTurn, STICK_MAX } from '@automata/3d/sim'
+import { debugExtension, installDebug, shippedPanels } from '@automata/debug'
 import { defaultContent, defineGame, inputs, keys } from '@automata/framework'
 import { navExtension } from '@automata/nav'
 import { puzzleExtension } from '@automata/puzzle'
@@ -17,6 +18,7 @@ import { spawnWick, wickPlugin } from '../features/wick/wick.plugin.ts'
 import { wickView } from '../features/wick/wick.view.ts'
 import { FOLLOW, TICK_HZ } from '../shared/constants.ts'
 import { cameraTurnUnits, labelled, moveFromStick } from './controls.ts'
+import { createProbe } from './probe.ts'
 
 const PLAY = storyOf(content)
 const TUNING = PLAY.tuning
@@ -74,8 +76,8 @@ export const game = defineGame({
   input: inputs(MOVE, TURN),
   // The default screens' flow, and the room and tuning as the sim's content (what its systems read as ctx.content).
   content: { ...defaultContent(), sim: PLAY },
-  createRenderer: (options) =>
-    createPixi3dRenderer({
+  createRenderer: (options) => {
+    const make = createPixi3dRenderer({
       ...options,
       look: DEFAULT_LOOK,
       views: { [Wick.id]: wickView(content, TUNING), [Actor.id]: actorView(content, TUNING.WALK_SPEED) },
@@ -85,5 +87,48 @@ export const game = defineGame({
         drawRoom(view.root, occluders, worldLibraryOf(content), DEFAULT_LOOK)
         return undefined
       },
-    }),
+    })
+    if (!__AUTOMATA_DEBUG__) return make
+    return async (target) => {
+      const made = await make(target)
+      if (!made.ok) return made
+      // A development build also tells the debug overlay what the sim does (Watch beside Schematic reads it) and gives a
+      // journey a way to ask where the characters are. It reads each step the screen draws and never writes the sim.
+      const agents = PLAY.systems.agents
+      const probe = createProbe(
+        agents.map((agent) => agent.id),
+        Object.fromEntries(agents.map((agent) => [agent.id, agent.initial])),
+        Actor.id,
+        Wick.id,
+      )
+      const drawn = made.value
+      const uninstall = installDebug({
+        panels: shippedPanels,
+        bus: target.bus,
+        tickHz: TICK_HZ,
+        driver: {
+          tick: probe.tick,
+          agents: probe.agents,
+          player: probe.player,
+          changes: probe.changes,
+          trail: probe.trail,
+        },
+      })
+      return {
+        ok: true,
+        value: {
+          apply: (result) => {
+            probe.apply(result)
+            drawn.apply(result)
+          },
+          draw: (frame) => drawn.draw(frame),
+          reset: () => drawn.reset(),
+          dispose: () => {
+            uninstall()
+            drawn.dispose()
+          },
+        },
+      }
+    }
+  },
 })

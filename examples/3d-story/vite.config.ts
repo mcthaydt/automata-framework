@@ -1,6 +1,7 @@
 import { figuresExtension } from '@automata/3d/figures'
 import { worldPropContent, worldSwatchContent } from '@automata/3d/world-content'
 import { automataContent } from '@automata/content/vite'
+import { debugBuild } from '@automata/debug/vite'
 import { navGraphContent } from '@automata/nav'
 import { puzzleContent } from '@automata/puzzle'
 import { systemsContent } from '@automata/systems'
@@ -14,7 +15,7 @@ const ADAPTER_CONDITIONS: Record<string, string> = {
   itch: 'automata-web',
 }
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ mode, command }) => ({
   base: './',
   resolve: { conditions: [ADAPTER_CONDITIONS[mode] ?? 'automata-web', ...defaultClientConditions] },
   // The framework's screens are Svelte components, compiled with the game. The content plugin compiles `content/`
