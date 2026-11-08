@@ -115,7 +115,7 @@ const noise: Piece<Noise> = {
   menu: 'make a noise',
   matches: (value): value is Noise => only('noise')(value),
   words: ({ noise: { at, loudness, kind } }) =>
-    `make a ${spaced(kind)} noise ${at === 'self' ? 'here' : `at ${placeWords(at)}`}, loudness ${num(loudness)}`,
+    `make ${/^[aeiou]/i.test(spaced(kind)) ? 'an' : 'a'} ${spaced(kind)} noise ${at === 'self' ? 'here' : `at ${placeWords(at)}`}, loudness ${num(loudness)}`,
   fields: ({ noise: { at, loudness, kind } }, names) => [
     { key: 'kind', label: 'Kind of noise', kind: 'text', value: kind },
     {

@@ -27,7 +27,7 @@ const {
   /** Whether the value is a "not" now, for the button's state. */
   negated?: boolean | undefined
   onwrite: (next: V) => void
-  onremove: () => void
+  onremove?: (() => void) | undefined
 } = $props()
 const words = $derived(piece === undefined ? fallback : piece.words(value, names))
 const fields = $derived(piece === undefined ? [] : piece.fields(value, names))
@@ -56,7 +56,7 @@ const fields = $derived(piece === undefined ? [] : piece.fields(value, names))
     {#if onnot !== undefined && piece !== undefined}
       <button type="button" aria-pressed={negated} aria-label={`Not: ${words}`} onclick={onnot}>Not</button>
     {/if}
-    <Button onclick={onremove} aria-label={`Remove: ${words}`}>Remove</Button>
+    {#if onremove !== undefined}<Button onclick={onremove} aria-label={`Remove: ${words}`}>Remove</Button>{/if}
   </div>
 </li>
 

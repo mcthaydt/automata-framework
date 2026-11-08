@@ -2,7 +2,9 @@
 <script lang="ts">
 import EditorPage from '../../shared/ui/EditorPage.svelte'
 import CharacterCanvas from './CharacterCanvas.svelte'
+import NumbersCanvas from './NumbersCanvas.svelte'
 import PlacesCanvas from './PlacesCanvas.svelte'
+import RulesCanvas from './RulesCanvas.svelte'
 import SchematicStart from './SchematicStart.svelte'
 import type { SchematicSession } from './schematic-session.svelte.ts'
 
@@ -17,6 +19,10 @@ const ready = $derived(session.facts.usesSystems && session.def !== undefined)
   {/if}
   {#if !ready}
     <SchematicStart {session} />
+  {:else if session.chosen.kind === 'rules'}
+    <RulesCanvas {session} />
+  {:else if session.chosen.kind === 'numbers'}
+    <NumbersCanvas {session} />
   {:else if session.chosen.kind === 'places'}
     <PlacesCanvas {session} />
   {:else if character !== undefined}

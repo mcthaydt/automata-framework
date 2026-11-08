@@ -374,6 +374,26 @@ export class SchematicSession {
     return this.change(`Rename ${from} to ${to}`, edits.systems)
   }
 
+  /** World rule `rule` made `next` when only values differ; adding or removing parts of a rule is not in the editor yet. */
+  async setRule(label: string, rule: number, next: SystemsDef['rules'][number]): Promise<Outcome> {
+    const before = this.def?.rules[rule]
+    if (before === undefined) return this.#refuse('That rule is not in this scene any more.')
+    if (!sameShape(before, next))
+      return this.#refuse(
+        'Adding or taking out the parts of a rule is not in the editor yet. Change what is there.',
+      )
+    return this.change(label, diffEdits(['rules', rule], before, next))
+  }
+
+  /** A number in the Numbers page. */
+  async setNumber(name: string, value: number): Promise<Outcome> {
+    const before = this.def?.tunables[name]
+    if (before === undefined) return this.#refuse('That number is not in this scene any more.')
+    return this.change(`Change ${name}`, [
+      { keyPath: ['tunables', name, 'value'], expected: before.value, set: value },
+    ])
+  }
+
   #refuse(message: string): Outcome {
     this.message = message
     return { ok: false, message }

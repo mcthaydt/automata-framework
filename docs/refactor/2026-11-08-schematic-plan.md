@@ -151,8 +151,8 @@ patrol scene and its Task 16 `examples/2d-story`. Tasks 1 to 7 and 9 to 13 need 
 
 **Files:** `RulesCanvas.svelte`, `NumbersCanvas.svelte`; tests.
 
-- [ ] **Step 1: Failing tests:** a rule reads "When … then …, every [n] s", with its design text as "What it is for"; a rule with no conditions reads as its text only and says which switches carry it out when its text names them; a rule's condition menu leaves out what needs a character (the check's `ruleProbeError` and `ruleEffectError` list); Numbers rows are label (the number's name in words), value, range and unit, with the note as help.
-- [ ] **Steps 2 to 4:** see them fail; implement; pass. **Step 5:** Commit.
+- [~] **Step 1: Failing tests:** a rule reads "When … then …, every [n] s", with its design text as "What it is for"; a rule with no conditions reads as its text only and says which switches carry it out when its text names them; a rule's condition menu leaves out what needs a character (the check's `ruleProbeError` and `ruleEffectError` list); Numbers rows are label (the number's name in words), value, range and unit, with the note as help.
+- [~] **Steps 2 to 4:** see them fail; implement; pass. **Step 5:** Commit.
 
 ### Task 11: Watch
 
@@ -248,3 +248,5 @@ template's controls. It moves no other 3D hash, golden or replay.
   `TomlSession.accept` as one undo step; value edits stay span-exact kit edits. A comment inside a rewritten item is
   lost. This replaces the plan's `addConditionEdit`-style kit edits. The M3 test on `bay` passes (rewrite of one
   switch, every other byte kept, round trip equal).
+- 2026-11-08, Task 9 (Places) done; Task 10 partial (`[~]`): Numbers done; Rules edit values only, adding or removing a
+  rule or its parts is refused in words and the rule condition menu limits are not built. Editors `pnpm test:unit` 280 pass.

@@ -44,6 +44,12 @@ const chosen = $derived(session.chosen)
       <li>
         <button type="button" aria-current={chosen.kind === 'places'} onclick={() => (session.chosen = { kind: 'places' })}>Places</button>
       </li>
+      <li>
+        <button type="button" aria-current={chosen.kind === 'rules'} onclick={() => (session.chosen = { kind: 'rules' })}>Rules</button>
+      </li>
+      <li>
+        <button type="button" aria-current={chosen.kind === 'numbers'} onclick={() => (session.chosen = { kind: 'numbers' })}>Numbers</button>
+      </li>
     </ul>
     {#if session.read.kind !== 'syntax' && session.read.kind !== 'invalid'}
       <Button variant="primary" disabled={!session.facts.listsSystems} onclick={() => void session.addCharacter()}>Add a character</Button>
