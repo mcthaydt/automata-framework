@@ -180,6 +180,8 @@ test('a Sentry added at the west end exists there in play and sounds the alarm w
   const ready = editors.getByLabel('Add a ready-made character')
   if (!(await ready.isVisible())) await editors.getByRole('button', { name: 'Panel' }).click()
   await ready.selectOption('sentry')
+  // The page is on the new character once its name heads the diagram; before that the inspector still shows the guard's stops.
+  await expect(editors.getByRole('heading', { name: 'Sentry', level: 2 })).toBeVisible()
   await inspector(editors, 'Place')
   await editors.getByLabel('Place', { exact: true }).first().selectOption('west')
   await fileHas(FILES[0] as string, 'id = "sentry"')

@@ -42,7 +42,10 @@
       "playwright": false
     },
     // The stories' ship.config.ts is read by `automata ship` by path; the 3D story's journeys are named by its config.
-    "examples/2d-story": { "entry": ["ship.config.ts"] },
+    "examples/2d-story": {
+      "entry": ["ship.config.ts", "playwright.config.ts", "tests/e2e/*.test.ts"],
+      "playwright": false
+    },
     "examples/3d-story": {
       "entry": ["ship.config.ts", "playwright.config.ts", "tests/e2e/*.test.ts"],
       "playwright": false

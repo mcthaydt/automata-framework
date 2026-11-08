@@ -10,12 +10,14 @@
     "prepare:web": "automata ship prepare --target web",
     "prepare:itch": "automata ship prepare --target itch",
     "typecheck": "tsc -p .",
-    "test": "vitest run --configLoader runner",
-    "check": "pnpm typecheck && pnpm test && automata-check-boundaries --game src"
+    "test": "vitest run tests/unit --configLoader runner",
+    "check": "pnpm typecheck && pnpm test && automata-check-boundaries --game src",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@automata/content": "workspace:*",
     "@automata/cutscenes": "workspace:*",
+    "@automata/debug": "workspace:*",
     "@automata/framework": "workspace:*",
     "@automata/level-2d": "workspace:*",
     "@automata/narrative": "workspace:*",
@@ -29,7 +31,9 @@
     "zod": "4.6.6"
   },
   "devDependencies": {
+    "@automata/playwright-preset": "workspace:*",
     "@automata/tools": "workspace:*",
+    "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",
     "typescript": "7.0.2",

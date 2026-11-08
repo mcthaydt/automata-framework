@@ -9,3 +9,18 @@ modes = ["edit"]
 exports = "content"
 gates = []
 checks = ["content"]
+
+# The guard and where he may walk, for Schematic. The game reads these two files; Save and Play shows the change.
+[[file]]
+glob = "content/systems/*.toml"
+editor = "schematic"
+modes = ["edit", "ask"]
+gates = []
+checks = ["content"]
+
+[[file]]
+glob = "content/nav/*.toml"
+editor = "schematic"
+modes = ["edit", "ask"]
+gates = []
+checks = ["content"]
