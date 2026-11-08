@@ -185,7 +185,7 @@ height (an `IntersectionObserver` with `rootMargin: '0px 0px -15% 0px'`), in rea
 Parts after the sixth in the sequence start with the sixth, so a long list does not trickle in.
 
 The steps come from one pure function (`revealSteps`) that reads those classes, so a new section built from Home's
-section classes (the copy rewrite on `claude/project-thread-fvbpvx` adds "Built in" and "Pricing" from them) arrives the
+section classes (the copy rewrite, AF #542, adds "Built in" and "Pricing" from them) arrives the
 same way with no new code. The hero, the numbers row, the logo strip and the closing lime band are never hidden: the
 first screen is what the visitor came for and is the LCP. Reading pages (Docs, Reference, Changelog, Start, Privacy,
 Terms, the examples) never use reveals: their content is the point.

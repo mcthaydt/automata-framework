@@ -681,6 +681,6 @@ only; the editors wait for the editors v2 build and its audit.
 | 6. Fixes | Not started | |
 
 **Where to resume (2026-11-08, stage 2 done):** the plan audit (Opus, medium) reads the spec and plan against the newest
-site tip (#520, plus #521 and the copy rewrite on `claude/project-thread-fvbpvx` if they are open), checks the GSAP pin
+site tip (#520, plus #521 and the copy rewrite #542 if they are open), checks the GSAP pin
 is at least 14 days old on the build day, and challenges the page-change mark (`data-page-change`) and the 36,000-byte
 budget. WebKit was not measured in the audit (not installed in the cloud container); the build's journeys run there.

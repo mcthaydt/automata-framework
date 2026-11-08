@@ -19,7 +19,7 @@ Playwright 1.63 (Chromium and WebKit), Lighthouse CI.
 **Spec:** [`2026-11-08-site-motion-spec.md`](2026-11-08-site-motion-spec.md).
 
 **Base:** this plan was written on AF #520's branch (`claude/project-thread-vw9kmv`, tip `09d5a347`). The build starts on
-this PR's branch. If AF #521 (the credits page) and the copy rewrite (`claude/project-thread-fvbpvx`, new Home sections)
+this PR's branch. If AF #521 (the credits page) and the copy rewrite (AF #542, new Home sections)
 are still open, merge both into the build branch first, in one merge-up pass, and name the base in the log. Every path
 below exists at `09d5a347` except the credits file (from #521).
 
