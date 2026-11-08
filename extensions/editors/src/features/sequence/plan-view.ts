@@ -1,6 +1,7 @@
 // The cutscene seen from above: the scene's state at the playhead turned into dots, a wedge and walls, fitted to a box.
 // It is drawn from the director's state alone, so the preview shows what the game would, without running the game.
 
+import { type AfSector2, readLevel } from '@automata/3d/level'
 import { type ContentLevel, intGridRows, levelContentSchema } from '@automata/content/level-2d'
 import type { SceneState } from '@automata/cutscenes/director'
 import { openDocument } from '@automata/editor/kit/documents'
@@ -29,9 +30,6 @@ export interface Plan {
   readonly scale: number
 }
 
-/** What the preview says in a 3D game, which has no 2D level to show walls from. */
-export const NO_WALLS_WORDS = 'Walls show for 2D levels only, for now.'
-
 const DEGREES = 180 / Math.PI
 
 /** The four walls of every solid cell of a level's collision layer, one metre a cell. */
@@ -50,11 +48,22 @@ export function wallsOfLevel(level: ContentLevel, layer = 'collision'): Segment[
   return walls
 }
 
-/** The walls of the level in `path`, read from its file; none when the file is missing or does not read. */
+/** The walls of a 3D level: one for each pair of corners of each room, the last corner back to the first, in metres. */
+export function wallsOfSectors(level: AfSector2): Segment[] {
+  return level.sectors.flatMap((sector) =>
+    sector.corners.map((corner, at): Segment => {
+      const next = sector.corners[(at + 1) % sector.corners.length] ?? corner
+      return [corner[0], corner[1], next[0], next[1]]
+    }),
+  )
+}
+
+/** The walls of the level in `path` (a 2D level's file or a 3D room's), read from its file; none when the file is missing or does not read. */
 export async function levelWalls(ports: SuitePorts, path: string): Promise<Segment[]> {
   const read = await ports.workspace.read(path)
   if (read === undefined) return []
   try {
+    if (path.endsWith('.af-sector.json')) return wallsOfSectors(readLevel(JSON.parse(read.text)).level)
     const parsed = levelContentSchema.safeParse(openDocument(path, read.text).value())
     return parsed.success ? wallsOfLevel(parsed.data) : []
   } catch {
