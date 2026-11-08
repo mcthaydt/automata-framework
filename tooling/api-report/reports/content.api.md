@@ -881,6 +881,21 @@ function checkFieldDef(def: FieldDef): readonly FieldProblem<FieldDefCode>[];
 function checkFieldValue(def: FieldDef, value: unknown): FieldValueProblem | undefined;
 ```
 
+### `ClipPicture` (interface)
+
+```ts
+interface ClipPicture {
+    readonly kind: 'clip';
+    readonly image: string;
+    readonly cell: {
+        readonly w: number;
+        readonly h: number;
+    };
+    readonly index: number;
+    readonly still: StillPicture;
+}
+```
+
 ### `ContentAnimation` (interface)
 
 ```ts
@@ -1355,21 +1370,13 @@ function parseTileToken(base: string): TileCell | undefined;
 ### `Picture` (type)
 
 ```ts
-type Picture = {
-    readonly kind: 'tile';
-    readonly tileset: string;
-    readonly index: number;
-} | {
-    readonly kind: 'flat';
-    readonly shape: 'rect' | 'ellipse' | 'point';
-    readonly color: string;
-};
+type Picture = StillPicture | ClipPicture;
 ```
 
 ### `pictureOf` (function)
 
 ```ts
-function pictureOf(def: Pick<ContentEntityDef, 'shape' | 'tile' | 'color'>): Picture;
+function pictureOf(def: Pick<ContentEntityDef, 'shape' | 'tile' | 'color' | 'animation'>): Picture;
 ```
 
 ### `PLACEHOLDER_COLORS` (const)
@@ -1406,6 +1413,20 @@ interface RefValue {
     readonly target: string;
     readonly container?: string | undefined;
 }
+```
+
+### `StillPicture` (type)
+
+```ts
+type StillPicture = {
+    readonly kind: 'tile';
+    readonly tileset: string;
+    readonly index: number;
+} | {
+    readonly kind: 'flat';
+    readonly shape: 'rect' | 'ellipse' | 'point';
+    readonly color: string;
+};
 ```
 
 ### `TileCell` (interface)

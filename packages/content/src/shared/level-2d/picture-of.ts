@@ -25,6 +25,7 @@ export interface ClipPicture {
   readonly still: StillPicture
 }
 
+/** How a character looks: its first animation frame when it has a clip, else a tile or a flat colour. */
 export type Picture = StillPicture | ClipPicture
 
 function hexOf(value: string | undefined): string {

@@ -168,4 +168,63 @@ describe('levelScene in a real engine', () => {
     expect(at(8, 8)).toEqual([0x8a, 0x6d, 0x5a])
     expect(at(24, 8)).toEqual([0x5a, 0x7d, 0x8a])
   })
+
+  it('plays a placed character’s clip from its picture, in the box its pivot gives (L7)', async () => {
+    const url = await tilesetPicture()
+    const withCoin: ContentProject = {
+      ...project,
+      layers: [{ id: 'things', kind: 'entities', grid: 16, snap: true }],
+      entities: [
+        {
+          id: 'coin',
+          fields: [],
+          shape: 'rect',
+          size: { w: 16, h: 16 },
+          pivot: { x: 0, y: 0 },
+          resizable: 'none',
+          tags: [],
+          color: '#facc15',
+          // The clip starts on the picture's second cell (blue), so the first frame cannot be mistaken for the tile.
+          animation: {
+            image: 'assets/terrain.png',
+            frame: { w: 16, h: 16 },
+            clips: [{ id: 'spin', frames: [1, 0], fps: 8, loop: true }],
+          },
+        },
+      ],
+    }
+    const placed: ContentLevel = {
+      ...level,
+      layers: [
+        { def: 'things', kind: 'entities', items: [{ id: 'c', def: 'coin', x: 16, y: 0, fields: {} }] },
+      ],
+    }
+    const scene = levelScene({
+      project: withCoin,
+      levels: { start: placed },
+      images: { 'assets/terrain.png': url },
+      start: 'start',
+    })
+    app = new Application()
+    await app.init({
+      width: 32,
+      height: 16,
+      preference: 'webgl',
+      autoStart: false,
+      antialias: false,
+      resolution: 1,
+    })
+    const world = new Container()
+    app.stage.addChild(world)
+    mountLevelScene(scene, world, new Container())
+    const engine = app
+    await vi.waitFor(() => {
+      drawLevelScene(scene, sim)
+      engine.renderer.render({ container: engine.stage })
+      const { pixels, width } = engine.renderer.extract.pixels({ target: engine.stage })
+      const at = (x: number, y: number): number[] =>
+        Array.from(pixels.slice((y * width + x) * 4, (y * width + x) * 4 + 3))
+      expect(at(24, 8)).toEqual([0, 0, 255])
+    })
+  })
 })

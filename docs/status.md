@@ -21,7 +21,7 @@ the task-by-task record; this page is the short version.
   saved; a character's clips, the default controls (Tuner), a dialogue box, cutscene captions and a 2D cutscene stage run from
   files; `narrative`, `cutscenes`, `nav` and `systems` work in a 2D level through `places` and `level-2d`. `examples/2d-story`
   plays all of it, and the journey `story-in-play` makes a change in the editor and plays it (iPad and phone, Chromium). Not yet
-  run: changing the words in Writer, a caption in Sequence and the guard's chase speed in Schematic (those editors are PR #478).
+  run: changing the words in Writer, a caption in Sequence and the guard's chase speed in Schematic (those editors are PR #478). The build audit's findings are fixed on the audit's follow-up PR, apart from wiring those editors.
 - **Tools.** One `automata` command: create-game, add, check, build, editor, ship. `automata --help` works.
 - **Examples.** 27 single-file examples and the content hot-reload demo.
 - **Editors.** Every unit test, 2D and 3D, runs in the gate; the 2D editors' layout, canvas and journey tests run in the 2D
