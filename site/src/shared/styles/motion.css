@@ -1,0 +1,21 @@
+/*
+ * The page-change mark (see shared/motion/motion-layer.ts): while a click's new page is swapping in, the part that is
+ * about to settle in is held invisible so it never shows at full strength first. The layer removes the mark within a
+ * second whatever happens. Only for a visitor who has not asked for less motion, and never in print.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-page-change="other"] main,
+  :root[data-page-change="same"] [data-page-content] {
+    opacity: 0;
+  }
+}
+/* Only what motion touched: the page's own transforms print as they are. */
+@media print {
+  main,
+  [data-motion] {
+    opacity: 1 !important;
+  }
+  [data-motion] {
+    transform: none !important;
+  }
+}
