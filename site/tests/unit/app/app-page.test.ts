@@ -56,6 +56,8 @@ describe('/app', () => {
       /\b(Levels|Characters|Tuner|Feel|Audio|Schematic|Writer|Sequence)\b/,
     )
     expect(text).not.toMatch(/more editors|full suite/i)
+    // GitHub sign-in and sync are free on the web (Owner, recorded in #528), so the download does not sell them.
+    expect(APP_OFFER.app.join(' ')).not.toMatch(/GitHub|sync/i)
   })
 
   it('has a help section with the project’s address', () => {

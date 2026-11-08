@@ -44,8 +44,8 @@ export const APP_OFFER: AppOffer = {
     'Play and Publish, once you open the free editor on your own game',
   ],
   app: [
-    'The editors on your phone, tablet or computer, made for touch',
-    'Your games sync with GitHub, so you can edit them anywhere',
     'It installs in one step and keeps itself up to date',
+    'The editors on your phone, tablet or computer, made for touch',
+    'Your coding agent can use the editors too, through MCP (coming later)',
   ],
 }
