@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { APP_OFFER, type AppOffer } from '#src/features/app/app-offer'
+import { APP_OFFER, type AppOffer } from '#src/features/app/app-offer.ts'
 import { checkAppOffer } from '../../../scripts/site-checks/app-offer.ts'
 
 const roots: string[] = []

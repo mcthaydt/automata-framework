@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { GET as llmsIndex } from '#src/routes/llms.txt/+server'
-import { GET as llmsApi } from '#src/routes/llms-api.txt/+server'
-import { GET as llmsFull } from '#src/routes/llms-full.txt/+server'
+import { GET as llmsIndex } from '#src/routes/llms.txt/+server.ts'
+import { GET as llmsApi } from '#src/routes/llms-api.txt/+server.ts'
+import { GET as llmsFull } from '#src/routes/llms-full.txt/+server.ts'
 
 // The framework's generated llms-full.txt and llms-api.txt are served unchanged, read from
 // tooling/api-index/dist when the site is built: no copy to drift from what `pnpm api-index` wrote.

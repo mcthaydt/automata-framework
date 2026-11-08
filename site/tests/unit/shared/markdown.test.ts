@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { headingId, parseMarkdown } from '#src/shared/utils/markdown'
+import { headingId, parseMarkdown } from '#src/shared/utils/markdown.ts'
 
 // The guides are written for GitHub's renderer, wrapped at 120 columns: the docs pages must read them the same way.
 describe('parseMarkdown', () => {

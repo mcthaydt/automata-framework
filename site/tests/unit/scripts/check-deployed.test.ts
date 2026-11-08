@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { securityHeaders } from '#src/shared/html/security-headers'
+import { securityHeaders } from '#src/shared/html/security-headers.ts'
 import { deployedProblems, type Probe } from '../../../scripts/check-deployed.ts'
 
 const ORIGIN = 'https://automataframework.com'

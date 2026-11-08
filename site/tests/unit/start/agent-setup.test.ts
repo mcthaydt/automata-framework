@@ -1,6 +1,6 @@
 import { fireEvent, render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
-import { SKILL_PREFLIGHT } from '#src/features/start/agent-setup'
+import { SKILL_PREFLIGHT } from '#src/features/start/agent-setup.ts'
 import Start from '#src/features/start/Start.svelte'
 
 // "Using a coding agent" on Start: the agent setup the old AI and docs pages held.

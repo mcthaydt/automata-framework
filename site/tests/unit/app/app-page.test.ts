@@ -1,7 +1,7 @@
 import { render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import AppPage from '#src/features/app/AppPage.svelte'
-import { APP_OFFER, type AppOffer } from '#src/features/app/app-offer'
+import { APP_OFFER, type AppOffer } from '#src/features/app/app-offer.ts'
 import { CONTACT_EMAIL } from '#src/shared/site.js'
 
 const withLinks: AppOffer = {

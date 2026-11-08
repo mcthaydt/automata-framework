@@ -5,7 +5,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { withContentSecurityPolicy } from '#src/shared/html/csp'
+import { withContentSecurityPolicy } from '#src/shared/html/csp.ts'
 import { checkSite } from '../../../scripts/site-checks'
 import {
   BANNED_PHRASES,

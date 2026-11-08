@@ -4,9 +4,9 @@ import { fireEvent, render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import Index from '#src/features/api/ApiIndex.svelte'
 import Package from '#src/features/api/ApiPackage.svelte'
-import { entries, load } from '#src/routes/api/[version]/[pkg]/+page'
+import { entries, load } from '#src/routes/api/[version]/[pkg]/+page.ts'
 import type { ApiPackage } from '#src/shared/framework/api.ts'
-import { API_VERSION, getApiReference } from '#src/shared/framework/api-reference'
+import { API_VERSION, getApiReference } from '#src/shared/framework/api-reference.ts'
 
 // M10.4: the complete generated reference, one page per package and version.
 describe('/api', () => {

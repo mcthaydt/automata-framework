@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { compileExample } from '#src/features/playground/compile'
-import { atOrigin } from '#src/features/playground/origin'
-import { getExample } from '#src/shared/framework/example-catalog'
+import { compileExample } from '#src/features/playground/compile.ts'
+import { atOrigin } from '#src/features/playground/origin.ts'
+import { getExample } from '#src/shared/framework/example-catalog.ts'
 import { SITE_ORIGIN } from '#src/shared/site.js'
 
 // The precompiled originals (static/playground/compiled/) are compiled for the site's origin, so an example's

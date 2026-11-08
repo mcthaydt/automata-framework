@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { DEMO_POLICY } from '#src/shared/html/security-headers'
+import { DEMO_POLICY } from '#src/shared/html/security-headers.ts'
 import { headerProblems, headersFile, matchHeaders } from '../../../scripts/site-checks/headers.ts'
 import { writeHeaders } from '../../../scripts/write-headers.ts'
 

@@ -7,8 +7,8 @@ import {
   FIRST_BOOT_TIMEOUT_MS,
   type OrchestratorView,
   type PreviewFrame,
-} from '#src/features/playground/orchestrator'
-import type { RunMessage } from '#src/features/playground/protocol'
+} from '#src/features/playground/orchestrator.ts'
+import type { RunMessage } from '#src/features/playground/protocol.ts'
 
 // The orchestrator with a fake clock and fake frames: what it creates, posts, reveals and removes, and
 // which messages it believes.

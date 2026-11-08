@@ -8,7 +8,7 @@ import {
   MAX_FRAGMENT_CHARS,
   MAX_SHARED_SOURCE_BYTES,
   ShareError,
-} from '#src/features/playground/share'
+} from '#src/features/playground/share.ts'
 
 async function deflate(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
   const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'))

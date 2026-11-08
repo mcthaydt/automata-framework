@@ -1,8 +1,8 @@
 import { render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import DocsPage from '#src/features/docs/DocsPage.svelte'
-import { getDocBySlug, getDocs } from '#src/features/docs/docs-loader'
-import { entries, load } from '#src/routes/docs/[slug]/+page'
+import { getDocBySlug, getDocs } from '#src/features/docs/docs-loader.ts'
+import { entries, load } from '#src/routes/docs/[slug]/+page.ts'
 
 // The docs are the framework's guides and nothing else: the site keeps no copy of its own.
 describe('the docs', () => {

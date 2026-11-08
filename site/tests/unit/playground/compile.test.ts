@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { compileExample, sucraseDiagnostic } from '#src/features/playground/compile'
+import { compileExample, sucraseDiagnostic } from '#src/features/playground/compile.ts'
 
 // The playground's compile step: the reader's TypeScript in, a module the frame can import out, or the
 // diagnostics at their lines. The example sources come from examples/2d.

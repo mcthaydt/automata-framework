@@ -28,8 +28,8 @@ describe('the build script', () => {
 
   it('asks adapter-static for no fallback page, and for addresses from the root so a nested 404 keeps its styles', async () => {
     const config = (await import('../../../svelte.config.js')).default
-    expect(config.kit.adapter).toBeDefined()
-    expect(config.kit.paths?.relative).toBe(false)
+    expect(config.kit?.adapter).toBeDefined()
+    expect(config.kit?.paths?.relative).toBe(false)
     expect(readFileSync(resolve('svelte.config.js'), 'utf8')).not.toContain('fallback')
   })
 })

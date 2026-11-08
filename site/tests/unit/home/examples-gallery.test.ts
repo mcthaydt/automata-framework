@@ -1,8 +1,8 @@
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { getDemosCatalog } from '#src/features/home/demos'
-import { demoPoster, previewSrcset } from '#src/shared/previews'
+import { getDemosCatalog } from '#src/features/home/demos.ts'
+import { demoPoster, previewSrcset } from '#src/shared/previews.ts'
 
 // QB.3h. The gallery used to start its demo on arrival, which cost /examples 8.8 s of blocking time under Lighthouse's
 // mobile throttling, so it waited for Play. WEB.PLAY.5 keeps that lesson in another form: the /examples

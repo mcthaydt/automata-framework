@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { DEMO_POLICY, securityHeaders } from '#src/shared/html/security-headers'
+import { DEMO_POLICY, securityHeaders } from '#src/shared/html/security-headers.ts'
 
 // QB.4a: the header set every response carries. A site page's script policy is a <meta> in the
 // page (src/shared/html/csp.ts), so its header adds only what a <meta> cannot: the frame policy. The demos are copied in as

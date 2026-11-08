@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { CREATE_COMMAND } from '#src/features/home/home-content'
+import { CREATE_COMMAND } from '#src/features/home/home-content.ts'
 import {
   installedPackage,
   mailboxProblems,
