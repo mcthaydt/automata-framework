@@ -46,6 +46,7 @@ const crate: InspectorCard = {
   kind: 'thing',
   selected: 1,
   definition: 'crate',
+  definitionLabel: 'crate',
   id: 'crate1',
   x: 11,
   z: 2,

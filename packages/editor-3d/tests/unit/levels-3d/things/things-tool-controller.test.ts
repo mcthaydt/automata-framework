@@ -15,7 +15,7 @@ import {
 } from '#src/features/levels-3d/things/things-tool-controller.ts'
 import { type Edit, ok } from '#src/shared/edit/edit.ts'
 import { createLevelEditor, type LevelEditor } from '#src/shared/edit/level-editor.ts'
-import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
+import { afSectorProfile, afSectorProfileFor } from '#src/shared/level-session/af-sector-profile.ts'
 import type { LevelProfile } from '#src/shared/level-session/level-profile.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 import { toyAfSector } from '#src/testing/toy-af-sector.ts'
@@ -66,6 +66,7 @@ describe('the palette', () => {
         label: 'spawn',
         shape: 'point',
         color: undefined,
+        group: 'things',
         layer: 'things:spawn',
         hidden: false,
         locked: false,
@@ -75,11 +76,48 @@ describe('the palette', () => {
         label: 'crate',
         shape: 'box',
         color: undefined,
+        group: 'things',
         layer: 'things:crate',
         hidden: false,
         locked: false,
       },
     ])
+  })
+
+  describe('what the game gives', () => {
+    const library = {
+      found: true,
+      swatches: new Map(),
+      props: new Map([['crate', { kind: 'box', size: [0.7, 0.6, 0.7] }]]),
+      figures: ['wick'],
+      problems: [],
+    }
+    const game = (): ReturnType<typeof setup<AfSector2File>> =>
+      setup(
+        toyAfSector({ lamps: [{ id: 'lamp-1', kind: 'pendant', at: [1, 1, 2] }] }),
+        afSectorProfileFor(library),
+      )
+
+    it('files furniture and characters under their own names, and leaves the lamps to their own tool', () => {
+      const { tool } = game()
+      expect(tool.view.palette.map((entry) => [entry.label, entry.group])).toEqual([
+        ['Crate', 'furniture'],
+        ['Wick', 'characters'],
+      ])
+    })
+
+    it('names the new furniture the way the file does: crate-1, crate-2', () => {
+      const { tool, editor, at } = game()
+      tool.pick('prop.crate')
+      tool.tap(at(2, 2))
+      tool.tap(at(4, 2))
+      expect(editor.profile.entities(editor.level).things.map((thing) => thing.id)).toEqual([
+        'crate-1',
+        'crate-2',
+        'lamp-1',
+      ])
+      expect(editor.history.undoLabel).toBe('Add crate')
+    })
   })
 
   it("takes a definition's label and colour when it has them", () => {

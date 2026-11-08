@@ -12,7 +12,13 @@ const SECTOR_FIELDS = ['floorTexture', 'ceilingTexture', 'wallTexture'] as const
  * texture and its trim pieces' textures. A sentence that comes up twice at one place is said once (an opening splits a
  * wall in two, and both halves are one wall of the file), and the walls round a pilaster are not a place of their own.
  */
-export function materialProblems(context: GeometryContext, known: ReadonlySet<string>): Problem[] {
+export function materialProblems(
+  context: GeometryContext,
+  known: { has(name: string): boolean },
+  /** The sentence for a name that is not known, at a sector (`where` is its id); by default the engine's own. */
+  sentence: (where: string, field: string, name: string) => string = (where, field, name) =>
+    `${where}: ${field} ${name} is not a material`,
+): Problem[] {
   const problems: Problem[] = []
   const said = new Set<string>()
   const say = (problem: Problem): void => {
@@ -26,7 +32,7 @@ export function materialProblems(context: GeometryContext, known: ReadonlySet<st
       const id = sector[field]
       if (id !== undefined && !known.has(id))
         say({
-          message: `${sector.id}: ${field} ${id} is not a material`,
+          message: sentence(sector.id, field, id),
           locator: place(() => sectorSelection(sector.id)),
         })
     }
@@ -42,7 +48,7 @@ export function materialProblems(context: GeometryContext, known: ReadonlySet<st
     for (const [name, id] of uses)
       if (id !== undefined && !known.has(id))
         say({
-          message: `${edge.sector.id}: wall ${name} ${id} is not a material`,
+          message: sentence(edge.sector.id, `wall ${name}`, id),
           locator: context.wall(edge),
         })
   }

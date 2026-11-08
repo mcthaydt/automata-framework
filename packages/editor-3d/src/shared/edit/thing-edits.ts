@@ -14,6 +14,7 @@ import { sectorAt } from '../geometry/sectors'
 import { GeometryError, type LevelProfile } from '../level-session/level-profile'
 import { ThingAccessError } from '../level-session/thing-access'
 import type { ThingDef } from '../things/thing-def.schema'
+import { thingLabel } from '../things/thing-words'
 import type { Thing } from '../things/things'
 import { type Edit, type EditResult, ok, refuse } from './edit'
 import { ID_PATTERN, numberProblem, round4 } from './sector-edit-support'
@@ -139,7 +140,7 @@ export function addThing<D>(args: AddThingArgs): Edit<D> {
   const { def, id } = args
   return {
     id: 'thing.add',
-    label: `Add ${def} ${id}`,
+    label: thingLabel('Add', def, id),
     run(profile, level) {
       const kit = profile.entities(level)
       const definition = kit.definitions.find((each) => each.id === def)
@@ -183,7 +184,7 @@ export function moveThing<D>(args: MoveThingArgs): Edit<D> {
   const { def, id } = args
   return {
     id: 'thing.move',
-    label: `Move ${def} ${id}`,
+    label: thingLabel('Move', def, id),
     coalesce: `move:${def}/${id}`,
     run(profile, level) {
       const at = placeOf(def, id)
@@ -248,7 +249,7 @@ export function removeThing<D>(args: { readonly def: string; readonly id: string
   const { def, id } = args
   return {
     id: 'thing.remove',
-    label: `Remove ${def} ${id}`,
+    label: thingLabel('Remove', def, id),
     run(profile, level) {
       const at = placeOf(def, id)
       // The access answers first, so a thing that is not there is not there, whatever still points at it.

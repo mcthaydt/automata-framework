@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/svelte'
+import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import ThingsPalette from '#src/features/levels-3d/plan/ThingsPalette.svelte'
@@ -13,6 +13,7 @@ const entry = (def: string, more: Partial<PaletteEntry> = {}): PaletteEntry => (
   label: def,
   shape: 'point',
   color: '#cc8844',
+  group: 'things',
   layer: `things:${def}`,
   hidden: false,
   locked: false,
@@ -39,5 +40,37 @@ describe('ThingsPalette', () => {
     expect(screen.getByRole('button', { name: 'crate' })).toHaveAccessibleDescription('Its layer is locked')
     await userEvent.click(screen.getByRole('button', { name: 'crate' }))
     expect(onpick).not.toHaveBeenCalled()
+  })
+
+  it('files the game’s furniture and characters under their own names, in words, never by id', () => {
+    render(ThingsPalette, {
+      palette: [
+        entry('ember', { label: 'Ember' }),
+        entry('prop.barrel', { label: 'Barrel', group: 'furniture' }),
+        entry('prop.crate', { label: 'Crate', group: 'furniture' }),
+        entry('cast.wick', { label: 'Wick', group: 'characters' }),
+      ],
+      active: undefined,
+      onpick: vi.fn(),
+    })
+    const groups = screen
+      .getAllByRole('group')
+      .filter((each) => each.getAttribute('aria-label') !== 'Things to place')
+    expect(groups.map((group) => group.getAttribute('aria-label'))).toEqual([
+      'Things',
+      'Furniture',
+      'Characters',
+    ])
+    expect(
+      within(groups[1] as HTMLElement)
+        .getAllByRole('button')
+        .map((b) => b.textContent?.trim()),
+    ).toEqual(['Barrel', 'Crate'])
+    expect(screen.queryByText(/prop\./)).toBeNull()
+  })
+
+  it('says nothing of groups when the level has only its own things', () => {
+    render(ThingsPalette, { palette: [entry('spawn')], active: undefined, onpick: vi.fn() })
+    expect(screen.queryByText('Things')).toBeNull()
   })
 })

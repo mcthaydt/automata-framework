@@ -5,7 +5,9 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { moveThing } from '#src/shared/edit/thing-edits.ts'
 import { afSectorCodec } from '#src/shared/level-session/af-sector/af-codec.ts'
-import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
+import { afSectorProfile, afSectorProfileFor } from '#src/shared/level-session/af-sector-profile.ts'
+import { readGameLibrary } from '#src/shared/level-session/game-library.ts'
+import { base3dWorkspace } from '#src/testing/game-files.ts'
 
 const EMBER_HALL_TEXT = readFileSync(
   new URL('../../../../../../../games/base-3d/content/levels/room.af-sector.json', import.meta.url),
@@ -25,8 +27,21 @@ describe('Ember Hall in the editor', () => {
       'ember-4',
       'ember-5',
       'goal',
+      // Its five pieces of furniture are things too.
+      'crate-1',
+      'crate-2',
+      'barrel-1',
+      'crate-3',
+      'barrel-2',
     ])
     expect(afSectorProfile.checks(emberHall).filter((check) => !check.ok)).toEqual([])
+  })
+
+  it('has no problems against the game it ships with either', async () => {
+    const library = await readGameLibrary('content/levels/room.af-sector.json', base3dWorkspace())
+    const profile = afSectorProfileFor(library)
+    expect(profile.checks(emberHall).filter((check) => !check.ok)).toEqual([])
+    expect(profile.checks(emberHall).map((check) => check.id)).toContain('library')
   })
 
   it('draws a bare definition as a point, and writes it back untouched', () => {

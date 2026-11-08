@@ -5,6 +5,7 @@
 // ref field's narrowed `to` asks the `ids` check's ref rule. The sentences are the reader's and the checks' own.
 import { checkRetype, checkValues, ENTITY_ID, type FieldDef } from '@automata/editor/kit/fields'
 import { entityRefProblems } from '../checks/entity-refs'
+import { readOnlyReason } from '../level-session/af-sector/af-placed'
 import type { DefinitionAccess } from '../level-session/definition-access'
 import type { LevelProfile } from '../level-session/level-profile'
 import type { ThingDef } from '../things/thing-def.schema'
@@ -24,6 +25,8 @@ function lookUp<D>(
 ): { readonly definition: ThingDef; readonly kit: EntityKit } | { readonly problem: string } {
   const kit = profile.entities(level)
   const definition = kit.definitions.find((each) => each.id === def)
+  // What the game gives (its furniture, characters and lamps) is not the level's to change.
+  if (definition?.readOnly === true) return { problem: readOnlyReason(definition) }
   if (definition !== undefined) return { definition, kit }
   const index = access.ids(level).indexOf(def)
   const unreadable =
@@ -218,8 +221,10 @@ export function removeDefinition<D>(args: { readonly def: string }): Edit<D> {
     run(profile, level) {
       const access = accessOf(profile)
       if (!isAccess(access)) return access
-      if (!access.ids(level).includes(def)) return refuse(`no entity definition ${def}`)
       const kit = profile.entities(level)
+      const given = kit.definitions.find((each) => each.id === def)
+      if (given?.readOnly === true) return refuse(readOnlyReason(given))
+      if (!access.ids(level).includes(def)) return refuse(`no entity definition ${def}`)
       // An instance the reader could not read still names the definition, so it is a use too.
       const instances = [
         ...kit.things.filter((thing) => thing.def === def).map((thing) => thing.id),

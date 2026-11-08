@@ -7,6 +7,7 @@ import { refsOf } from '../../things/thing-refs'
 import type { Thing } from '../../things/things'
 import { mergeMembers, newMembers, noThing, type ThingAccess } from '../thing-access'
 import { afEntityKit } from './af-entities'
+import { isPlacedDefinition, placedAccess, placedIds } from './af-placed'
 
 const entitiesOf = (level: AfSector2File): readonly AfEntity[] => level.entities ?? []
 
@@ -18,14 +19,18 @@ function indexOf(level: AfSector2File, def: string, id: string): number {
 }
 
 export const afThingAccess: ThingAccess<AfSector2File> = {
-  takenIds: (level) => entitiesOf(level).map((entity) => entity.id),
+  takenIds: (level) => [...entitiesOf(level).map((entity) => entity.id), ...placedIds(level)],
 
-  add: (level, thing) => ({
-    ...level,
-    entities: [...entitiesOf(level), newMembers(thing, { def: thing.def, id: thing.id }) as AfEntity],
-  }),
+  add: (level, thing) =>
+    isPlacedDefinition(thing.def)
+      ? placedAccess.add(level, thing)
+      : {
+          ...level,
+          entities: [...entitiesOf(level), newMembers(thing, { def: thing.def, id: thing.id }) as AfEntity],
+        },
 
   replace(level, def, id, thing) {
+    if (isPlacedDefinition(def)) return placedAccess.replace(level, def, id, thing)
     const at = indexOf(level, def, id)
     const entities = entitiesOf(level)
     const old = entities[at] as AfEntity
@@ -36,6 +41,7 @@ export const afThingAccess: ThingAccess<AfSector2File> = {
   },
 
   remove(level, def, id) {
+    if (isPlacedDefinition(def)) return placedAccess.remove(level, def, id)
     const at = indexOf(level, def, id)
     return { ...level, entities: entitiesOf(level).filter((_, index) => index !== at) }
   },

@@ -5,6 +5,8 @@
 // ED3D.2b).
 
 import type { AfSector2File, SectorDef } from '@automata/3d/level'
+import { hasSwatch, isFault, resolveProp } from '@automata/3d/world-content'
+import { fileTitle } from '@automata/editor/suite'
 import {
   type CheckResult,
   checkResult,
@@ -22,6 +24,7 @@ import { materialProblems } from '../../checks/materials'
 import { roomsProblem } from '../../checks/rooms-problem'
 import { wallLocator } from '../../checks/wall-locator'
 import { type ResolvedMap, resolveMap } from '../../geometry/sectors'
+import { EMPTY_LIBRARY, type GameLibrary, worldLibrary } from '../game-library'
 import { afEntityKit } from './af-entities'
 import { AfBuildError, buildSectors } from './build'
 
@@ -71,7 +74,51 @@ export function afIdProblems(level: AfSector2File): Problem[] {
   return problems.filter((found) => !said.has(found.message) && !!said.add(found.message))
 }
 
-export function afSectorChecks(level: AfSector2File): CheckResult[] {
+/** What a name the game lacks is told in: the room, the thing and the way out. */
+const missingMaterial = (room: string, _field: string, name: string): string =>
+  `The room "${room}" uses a material called "${name}", but the game has none. Choose another with Change materials.`
+
+/**
+ * The names the level uses that the game does not have, by core's own rules (`resolveProp`, `hasSwatch`, which accepts a
+ * seeded name such as `rust#2`), so the editor and the game never disagree; a character is checked against the game's
+ * figures. The records of the game that did not parse are named too. A game with no library asks nothing.
+ */
+export function libraryProblems(level: AfSector2File, library: GameLibrary): Problem[] {
+  if (!library.found) return []
+  const problems: Problem[] = library.problems.map((message) => ({ message }))
+  const known = worldLibrary(library)
+  for (const place of level.props ?? []) {
+    const found = resolveProp(place, known)
+    if (!isFault(found)) continue
+    const locator = placeLocator(propDefinition(place), place.id, place.at)
+    problems.push({
+      message:
+        found.code === 'unknown-prop'
+          ? `The room has furniture called "${found.name}", but the game has none. Remove it, or add it to the game.`
+          : `The room has furniture that needs a kind of shape the game can't make ("${found.name}"). Remove it, or change it in the game.`,
+      locator,
+    })
+  }
+  for (const place of level.cast ?? [])
+    if (!library.figures.includes(place.who))
+      problems.push({
+        message: `The room has a character called "${place.who}", but the game has none. Remove it, or add it in Characters.`,
+        locator: placeLocator(`cast.${place.who}`, place.id, place.at),
+      })
+  return problems
+}
+
+const propDefinition = (place: {
+  readonly use?: string | undefined
+  readonly kind?: string | undefined
+}): string => (place.use !== undefined ? `prop.${place.use}` : `kind.${place.kind ?? ''}`)
+
+function placeLocator(def: string, id: string, at: readonly number[]): Locator | undefined {
+  const [x = 0, z = 0] = at
+  return place(() => entitySelection(def, id), { x, z })
+}
+
+export function afSectorChecks(level: AfSector2File, library: GameLibrary = EMPTY_LIBRARY): CheckResult[] {
   let sectors: SectorDef[]
   try {
     sectors = buildSectors(level)
@@ -86,16 +133,41 @@ export function afSectorChecks(level: AfSector2File): CheckResult[] {
   } catch (error) {
     return [ids, checkResult('rooms', [roomsProblem(error)])]
   }
-  const kit = afEntityKit(level)
+  const kit = afEntityKit(level, library)
   const entities = checkResult('entities', entityProblems(kit, map), {
     ok: `${kit.things.length} things of ${kit.definitions.length} definitions`,
   })
   const wall = wallLocator(level.sectors)
   const table = level.materials === undefined ? null : Object.keys(level.materials)
+  // With the game's swatches, a name is known when the table or the game has it; without them only the table counts.
+  const game = library.swatches.size > 0 ? worldLibrary(library) : undefined
   const materials = checkResult(
     'materials',
-    table === null ? [] : materialProblems({ map, wall }, new Set(table)),
-    { ok: table === null ? 'no materials table' : `within the table of ${table.length} materials` },
+    table === null && game === undefined
+      ? []
+      : game === undefined
+        ? materialProblems({ map, wall }, new Set(table))
+        : materialProblems(
+            { map, wall },
+            { has: (name) => table?.includes(name) === true || hasSwatch(game, name) },
+            missingMaterial,
+          ),
+    {
+      ok:
+        game !== undefined
+          ? `within the ${library.swatches.size} materials of the game`
+          : table === null
+            ? 'no materials table'
+            : `within the table of ${table.length} materials`,
+    },
   )
-  return [ids, ...genericChecks({ map, wall }), entities, materials]
+  // Only a game with a library has names to check; without one the checks are the ones a level has on its own.
+  const names = library.found
+    ? [
+        checkResult('library', libraryProblems(level, library), {
+          ok: 'the furniture and characters are in the game',
+        }),
+      ]
+    : []
+  return [ids, ...genericChecks({ map, wall }), entities, materials, ...names]
 }

@@ -67,6 +67,13 @@ export async function createMemoryWorkspace(options: MemoryWorkspaceOptions): Pr
       })
     },
 
+    async list(folder) {
+      if (!insideRoot(folder)) return []
+      // A folder is its name and a slash, so `world-props.bak` is not in `world-props`.
+      const entries = await store.list(`${folder}/`)
+      return entries.map((entry) => entry.path)
+    },
+
     async read(path) {
       if (!insideRoot(path)) return undefined
       const entry = await statPath(store, path)

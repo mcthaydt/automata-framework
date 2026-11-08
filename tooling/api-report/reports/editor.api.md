@@ -3712,6 +3712,7 @@ interface SuiteWorkspace {
         readonly text: string;
         readonly mtime: number;
     } | undefined>;
+    list?(folder: string): Promise<readonly string[]>;
     write(path: string, text: string, expected: WriteExpectation): Promise<WriteResult>;
     readBytes?(path: string): Promise<Uint8Array | undefined>;
     writeBytes?(path: string, bytes: Uint8Array, expected: WriteExpectation): Promise<WriteResult>;

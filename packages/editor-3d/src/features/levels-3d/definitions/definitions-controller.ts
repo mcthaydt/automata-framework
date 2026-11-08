@@ -91,14 +91,17 @@ export function createDefinitionsController<D>(editor: LevelEditor<D>): Definiti
   const definitionsOf = (): readonly DefinitionRow[] | undefined => {
     if (editor.profile.definitions === undefined) return undefined
     const kit = editor.profile.entities(editor.level)
-    return kit.definitions.map((definition: ThingDef) => ({
-      id: definition.id,
-      label: definition.label ?? definition.id,
-      shape: definition.shape,
-      single: definition.single === true,
-      instances: kit.things.filter((thing) => thing.def === definition.id).length,
-      fields: definition.fields,
-    }))
+    // What the game gives (furniture, characters, lamps) is not edited here: it is listed where the game keeps it.
+    return kit.definitions
+      .filter((definition) => definition.readOnly !== true)
+      .map((definition: ThingDef) => ({
+        id: definition.id,
+        label: definition.label ?? definition.id,
+        shape: definition.shape,
+        single: definition.single === true,
+        instances: kit.things.filter((thing) => thing.def === definition.id).length,
+        fields: definition.fields,
+      }))
   }
 
   const read = (): DefinitionsView => {

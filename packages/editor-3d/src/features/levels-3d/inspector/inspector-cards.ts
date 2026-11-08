@@ -49,6 +49,8 @@ export type InspectorCard = { readonly selected: number } & (
   | {
       readonly kind: 'thing'
       readonly definition: string
+      /** What the definition is called to a person: its label, else its id. */
+      readonly definitionLabel: string
       readonly id: string
       readonly x: number
       readonly z: number
@@ -85,6 +87,7 @@ export function inspectorOf<D>(
       kind: 'thing',
       selected,
       definition: thing.def,
+      definitionLabel: definition?.label ?? thing.def,
       id: thing.id,
       x: thing.x,
       z: thing.z,

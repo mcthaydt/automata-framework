@@ -3,7 +3,9 @@ import type { SuitePorts, SuiteUndo, WorkspaceFile } from '@automata/editor/kit/
 import { fileTitle } from '@automata/editor/suite'
 import { ok } from '../../shared/edit/edit'
 import { createLevelEditor, type LevelEditor } from '../../shared/edit/level-editor'
+import { afSectorProfile, afSectorProfileFor } from '../../shared/level-session/af-sector-profile'
 import type { ParseIssue } from '../../shared/level-session/file-codec'
+import { EMPTY_LIBRARY, type GameLibrary, readGameLibrary } from '../../shared/level-session/game-library'
 import type { LevelProfile } from '../../shared/level-session/level-profile'
 import { readLevel } from './document/read-level'
 
@@ -42,6 +44,8 @@ export interface Levels3dSession {
   readonly refusal: string | undefined
   /** The file is from an older version: its first change writes it in the current one, and nothing in it is lost. */
   readonly upgraded: boolean
+  /** The game's furniture, materials and characters the level is read against; empty for a game that has none. */
+  readonly library: GameLibrary
   /** The level's text as the session last wrote or took it. */
   text(): string
   /** Resolves once every write started so far has finished. */
@@ -83,6 +87,7 @@ function failed(
     state: { kind: 'error', message: `${fileTitle(path || 'This row')} can't be opened.`, reason, details },
     refusal: undefined,
     upgraded: false,
+    library: EMPTY_LIBRARY,
     text: () => '',
     settled: () => Promise.resolve(),
     quietly: (change) => change(),
@@ -107,7 +112,11 @@ export async function openLevels3d(
   }
   if (outcome.status !== 'parsed') return failed(options, path, others, UNREADABLE)
 
-  const profile: LevelProfile<unknown> = outcome.profile
+  // The game's own furniture and materials, read once on open; a game that has none (or a workspace that cannot list)
+  // gives the empty library, and the room is read on its own.
+  const library = await readGameLibrary(path, ports.workspace).catch(() => EMPTY_LIBRARY)
+  const profile: LevelProfile<unknown> =
+    outcome.profile === afSectorProfile ? afSectorProfileFor(library) : outcome.profile
   const editor = createLevelEditor({ profile, level: outcome.value, now: options.now })
   /** The text the file holds (as far as this session knows) and the level it parses to: what the next patch is from. */
   // A file from an older version starts from its upgrade: nothing is written until a step, and the first step writes the
@@ -124,6 +133,7 @@ export async function openLevels3d(
     state: { kind: 'open', editor } as const,
     refusal: undefined as string | undefined,
     upgraded: outcome.upgraded,
+    library,
     text: () => base.text,
     settled: () => queue,
     quietly(change: () => void) {

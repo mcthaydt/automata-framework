@@ -6,8 +6,9 @@ import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { inspectorOf, thingRowsOf, wallRowsOf } from '#src/features/levels-3d/inspector/inspector-cards.ts'
 import { createLevelEditor } from '#src/shared/edit/level-editor.ts'
-import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
+import { afSectorProfile, afSectorProfileFor } from '#src/shared/level-session/af-sector-profile.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
+import { toyAfSector } from '#src/testing/toy-af-sector.ts'
 
 const depot: AfSector2File = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
@@ -67,6 +68,7 @@ describe('inspectorOf', () => {
       kind: 'thing',
       selected: 1,
       definition: 'crate',
+      definitionLabel: 'crate',
       id: 'crate1',
       x: 11,
       z: 2,
@@ -81,6 +83,25 @@ describe('inspectorOf', () => {
           options: ['supplies', 'tools', 'empty'],
         },
       ],
+    })
+  })
+
+  it('names what the game gives by its label, never by the id of its definition', () => {
+    const library = {
+      found: true,
+      swatches: new Map(),
+      props: new Map([['crate', { kind: 'box' }]]),
+      figures: [],
+      problems: [],
+    }
+    const level = toyAfSector({ props: [{ id: 'crate-1', use: 'crate', at: [2, 2], angle: 90 }] })
+    const editor = createLevelEditor({ profile: afSectorProfileFor(library), level })
+    editor.selection.set(['entity:prop.crate/crate-1'])
+    expect(inspectorOf(editor)).toMatchObject({
+      kind: 'thing',
+      definition: 'prop.crate',
+      definitionLabel: 'Crate',
+      fields: [{ id: 'angle', label: 'Turn', value: 90 }],
     })
   })
 

@@ -64,6 +64,12 @@ export interface SuiteWorkspace {
    */
   read(path: string): Promise<{ readonly text: string; readonly mtime: number } | undefined>
   /**
+   * The paths of the files under a folder of the game, sorted, listed by a row of the editor list or not; empty for a
+   * folder the game lacks or a path outside the root. A level reads the game's furniture and materials this way, which no
+   * row names. A workspace without it gives the level only the names its own file holds.
+   */
+  list?(folder: string): Promise<readonly string[]>
+  /**
    * Writes a file a writable row matches. `{ mtime }`: the file must still read so (a `conflict` otherwise);
    * `'absent'`: it must not exist yet (a new figure, pose or clip), and the workspace remembers it created it.
    */

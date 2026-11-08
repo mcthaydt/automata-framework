@@ -4,6 +4,7 @@ import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
 import { describe, expect, it } from 'vitest'
 import { levels3dUndo, openLevels3d } from '#src/features/levels-3d/levels-3d-session.ts'
 import { ok } from '#src/shared/edit/edit.ts'
+import { moveThing } from '#src/shared/edit/thing-edits.ts'
 import type { LevelProfile } from '#src/shared/level-session/level-profile.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 
@@ -44,6 +45,46 @@ const dimHall = {
     )
   },
 }
+
+describe('Levels 3D session and the game’s library', () => {
+  it('reads the game’s furniture on open, so Ember Hall’s crates are things, and writes a moved crate as `at`', async () => {
+    const level = JSON.stringify({
+      format: 'af-sector/2',
+      name: 'room',
+      sectors: [
+        {
+          id: 'start',
+          floor: 0,
+          ceiling: 4,
+          light: 1,
+          corners: [
+            [-4, 0],
+            [4, 0],
+            [4, 8],
+            [-4, 8],
+          ],
+        },
+      ],
+      props: [{ id: 'crate-1', use: 'crate', at: [-3, 6.5] }],
+    })
+    const memory = await createMemoryPorts({
+      files: {
+        'content/levels/room.json': level,
+        'content/world-props/crate.toml': 'kind = "box"\nsize = [0.7, 0.6, 0.7]\n',
+      },
+      classify: file,
+    })
+    const session = await openLevels3d([file('content/levels/room.json')], memory.ports, { now })
+    if (session.state.kind !== 'open') throw new Error(session.state.kind)
+    const { editor } = session.state
+    expect([...session.library.props.keys()]).toEqual(['crate'])
+    expect(editor.profile.entities(editor.level).things.map((each) => each.def)).toEqual(['prop.crate'])
+    editor.run(moveThing({ def: 'prop.crate', id: 'crate-1', x: 2, z: 6.5 }))
+    await session.settled()
+    const written = JSON.parse((await memory.ports.workspace.read('content/levels/room.json'))?.text ?? '{}')
+    expect(written.props).toEqual([{ id: 'crate-1', use: 'crate', at: [2, 6.5] }])
+  })
+})
 
 describe('Levels 3D session', () => {
   it('opens the row group’s level with its editor', async () => {

@@ -9,6 +9,9 @@ import { editorList, type OpenedSuite, openSuite } from '@automata/editor/suite/
 import { checkLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
+import barrelProp from '#src/app/suite/sample-3d/content/world-props/barrel.toml?raw'
+import crateProp from '#src/app/suite/sample-3d/content/world-props/crate.toml?raw'
+import hall from '#src/app/suite/sample-3d/hall.af-sector.json?raw'
 import { createLevels3d } from '#src/features/levels-3d/levels-3d-suite-editor.ts'
 import type { PlanRendererFactory } from '#src/features/levels-3d/plan/plan-renderer.ts'
 import depot from '#src/testing/fixtures/depot.af-sector.json?raw'
@@ -234,6 +237,56 @@ describe.each(CASES)('Placing a thing in the suite at $label', ({ size, finger }
       (candidate) => candidate.getAttribute('aria-label') ?? '',
     )
     expect(labels.some((label) => /^Undo Add crate/.test(label))).toBe(true)
+  })
+})
+
+// The sample game's hall names a crate and a barrel the game defines (`world-props`), which no row of the editor list
+// names: the palette still offers them by name, under Furniture.
+const GAME_FILES = {
+  [EDITOR_LIST_PATH]: editorList('content/levels/*.af-sector.json', 'levels-3d'),
+  'content/levels/hall.af-sector.json': hall,
+  'content/world-props/crate.toml': crateProp,
+  'content/world-props/barrel.toml': barrelProp,
+}
+
+describe.each(CASES)('Placing the game’s furniture in the suite at $label', ({ size, finger }) => {
+  test('Crate is under Furniture, a tap in the hall places it, and Undo reads "Undo Add crate"', async () => {
+    opened = await openSuite(
+      size,
+      [
+        fixtureEditor as SuiteEditor<unknown>,
+        createLevels3d({ now: () => 0, renderer, schedule: () => () => {} }) as SuiteEditor<unknown>,
+      ],
+      GAME_FILES,
+      '[data-testid="plan-canvas"]',
+      'Levels',
+    )
+    await expect.poll(() => plan().dataset.phase, { timeout: 10_000 }).not.toBe('starting')
+    const pageOf = await calibrate()
+    button('Thing').click()
+    await arrived()
+    const furniture = document.querySelector<HTMLElement>(
+      '[data-testid="things-palette"] [aria-label="Furniture"]',
+    )
+    if (furniture === null) throw new Error('the palette has no Furniture')
+    expect([...furniture.querySelectorAll('button')].map((each) => each.textContent?.trim())).toEqual([
+      'Barrel',
+      'Crate',
+    ])
+    // The words on screen never name the definition the editor made for it.
+    expect(document.querySelector('[data-testid="things-palette"]')?.textContent).not.toMatch(/prop\./)
+    const crate = [...furniture.querySelectorAll<HTMLElement>('button')].find(
+      (each) => each.textContent?.trim() === 'Crate',
+    )
+    if (crate === undefined) throw new Error('the palette has no Crate')
+    crate.click()
+    await arrived()
+    for (const type of ['pointermove', 'pointerdown', 'pointerup']) pointerAt(type, pageOf(4, 3), finger)
+    await arrived()
+    const labels = [...document.querySelectorAll<HTMLElement>('button')].map(
+      (candidate) => candidate.getAttribute('aria-label') ?? '',
+    )
+    expect(labels).toContain('Undo Add crate')
   })
 })
 
