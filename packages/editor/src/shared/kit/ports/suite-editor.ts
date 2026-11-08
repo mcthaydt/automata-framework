@@ -35,10 +35,16 @@ export interface SuiteUndo {
   subscribe(listener: () => void): () => void
 }
 
+/** The kind of game an editor is for: the level editors and the figure editors differ between them. */
+export type EditorKind = '2d' | '3d'
+
 export interface SuiteEditor<S> {
   /** The id the editor list names: `tuner`, `studio`, `feel`, `levels-2d`, ... */
   readonly id: string
+  /** The editor's name for one kind of game; the rail adds " 2D" or " 3D" only when it shows both kinds. */
   readonly label: string
+  /** The kind of game it is for; none means both. */
+  readonly kind?: EditorKind | undefined
   /** The icon's name in the suite's icon set. */
   readonly icon: string
   /** The editor's `color/ed/*` token. */

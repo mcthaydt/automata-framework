@@ -10,6 +10,7 @@ export function createLevels2d(options: Levels2dOptions): SuiteEditor<Levels2dSe
   return defineSuiteEditor<Levels2dSession>({
     id: 'levels-2d',
     label: 'Levels',
+    kind: '2d',
     icon: 'grid',
     hue: 'color/ed/levels',
     open: (files, ports) => openLevels2d(files, ports, options),

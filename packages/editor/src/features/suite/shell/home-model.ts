@@ -3,6 +3,7 @@
 // only and there are no cards (the files cannot be listed without a list).
 
 import { writtenBySave } from '../../../shared/editor-list/workspace-policy'
+import type { EditorKind } from '../../../shared/kit/ports/suite-editor.ts'
 import type { WorkspaceFile } from '../../../shared/kit/ports/suite-ports.ts'
 import type { EditorListLoad, EditorListProblem } from '../core'
 import type { Suite } from './create-suite'
@@ -36,7 +37,13 @@ const LABELS: Readonly<Record<string, string>> = {
   schematic: 'Schematic',
   sequence: 'Sequence',
   'levels-2d': 'Levels',
-  'levels-3d': 'Levels 3D',
+  'levels-3d': 'Levels',
+}
+
+// An editor this build lacks still names its kind, so its card reads like the rail's entries.
+const unbuilt = (id: string): { id: string; label: string; kind?: EditorKind } => {
+  const kind = id.endsWith('-2d') ? '2d' : id.endsWith('-3d') ? '3d' : undefined
+  return { id, label: LABELS[id] ?? id, ...(kind === undefined ? {} : { kind }) }
 }
 
 export function homeOf(
@@ -61,7 +68,7 @@ export function homeOf(
     const opened = (files.get(editor) ?? []).filter((file) => !writtenBySave(load.list, file.path))
     return {
       editor,
-      label: editorLabel(installed ?? { id: editor, label: LABELS[editor] ?? editor }, listed),
+      label: editorLabel(installed ?? unbuilt(editor), listed, suite.editors),
       entry: installed?.id,
       installed: installed !== undefined,
       files: opened,

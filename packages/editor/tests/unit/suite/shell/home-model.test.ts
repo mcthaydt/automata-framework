@@ -60,13 +60,14 @@ modes = ["edit"]
 gates = []
 checks = ["content"]
 `
-    const installed = (id: string, label: string) => ({ id, label, regions: {} }) as never
+    const installed = (id: string, label: string, kind?: string) =>
+      ({ id, label, kind, regions: {} }) as never
     const suite = createSuite({
       editors: [
         installed('tuner', 'Tuner'),
-        installed('levels-2d', 'Levels'),
-        installed('levels-3d', 'Levels 3D'),
-        installed('studio', 'Characters'),
+        installed('levels-2d', 'Levels', '2d'),
+        installed('levels-3d', 'Levels', '3d'),
+        installed('studio', 'Characters', '3d'),
       ],
     })
     const state = homeOf(loadEditorList(list), new Map(), suite)
