@@ -250,3 +250,13 @@ template's controls. It moves no other 3D hash, golden or replay.
   switch, every other byte kept, round trip equal).
 - 2026-11-08, Task 9 (Places) done; Task 10 partial (`[~]`): Numbers done; Rules edit values only, adding or removing a
   rule or its parts is refused in words and the rule condition menu limits are not built. Editors `pnpm test:unit` 280 pass.
+- 2026-11-08, hand-off for the build audit: self-review found one real defect and fixed it (RED then GREEN): the kit's
+  lenient TOML reader accepted `senses = []` beside `[[agents.senses]]` tables, which the game's strict reader
+  (smol-toml) refuses. Every structural change is now read back with both readers. Also run: `pnpm boundaries`,
+  `pnpm style`, `pnpm knip` clean; Chromium layout 6 pass at 390x844 and 820x1180 (it covers the diagram and list, not the
+  inspector). Final review is a self-review by the author (no subagent tool), not a fresh reviewer. Deferred minors: Rules
+  cannot add or remove parts; a place rename is two undo steps; comments inside a rewritten item are lost; a fact probe
+  reads "power" is no (quoted names and yes/no); the Places and Rules screens have no phone-size layout test; the
+  inspector has no phone-size layout test. The audit must make a small game in the editors, play it, and confirm the
+  edit shows up in play (Tasks 14 and 15 would have done this and have not been built).
+
