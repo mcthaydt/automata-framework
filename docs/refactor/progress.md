@@ -522,3 +522,5 @@ Normal dev pipeline (no stage 1 audit; the investigation is
 ## Schematic (the AI editor)
 
 [plan](2026-11-08-schematic-plan.md), AF PR #486 stacked on #478. 14 of 16 tasks done (about 88%), 2026-11-08: 1 conditions, 2 actions, 3 layout, 4 session and problems, 5 diagram and list, 6 inspector, 7 senses, start and patrol, 9 Places, 10 rules and Numbers, 11 Watch, 12 Fair play, 13 Puzzle, 15 the served 3D journey (`examples/3d-story`, 12 of 12 in Chromium at phone and iPad, Node scene hash `1addc88c39a912bf`), 16 sample journey, template and README. Not done: Task 14 and the 2D half of Task 8 (they need the content-in-play work, spec AF PR #479, which is not built). Not proven: Fair play in a served game (`automata editor` has no checks runner). Evidence: see the plan's log; WebKit, Firefox, the GPU runner and parity have not run.
+
+Build audit, 2026-11-08: [audit](2026-11-08-schematic-build-audit.md), PR stacked on #486. 3 high, 9 medium, 12 low. A behaviour built by hand in Schematic shows in play in the 3D story; the high ones are the sight setting that says the opposite of the game, Fair play that no game can run, and no 2D proof. Next: Sonnet fixes.

@@ -336,3 +336,8 @@ template's controls. It moves no other 3D hash, golden or replay.
   pass (43). `pnpm api-index --write` could not run (an extension's `dist` is not built here) and is not needed: `editor` is
   private. Not run: WebKit, Firefox, the GPU runner, parity, the 2D journeys (no 2D example is touched), `pnpm agent-skills`.
   Final review: self-review (no subagent tool).
+- 2026-11-08, build audit ([`2026-11-08-schematic-build-audit.md`](2026-11-08-schematic-build-audit.md)): 3 high, 9
+  medium, 12 low. Played by hand in the served 3D story: a character built from nothing (sight, a stop, a Flee mode, a
+  switch) flees in play; the 3D journey reproduced 12 of 12 (Chromium). High: the sight setting's words are the
+  reverse of the game's and cannot make boxes block view; Fair play runs in no game; Task 14 and the 2D presets test
+  are still to do (#484 now has the 2D story's guard).
