@@ -1,0 +1,62 @@
+name: windows-trial
+
+# A manual trial of AF's suites on the Owner's Windows PC itself (runner label af-windows), without WSL. It changes
+# nothing else: no pull request or push starts it, and ci.yml still runs where it did. Each step runs even when an
+# earlier one failed (`if: always()`), so one run lists everything that breaks on Windows, not just the first failure.
+# The runner needs Git for Windows (bash) and pnpm's script-shell set to it, because the root scripts are POSIX shell
+# (`VITEST_MAX_WORKERS=${...}` and `$AF_E2E_...`); `defaults.run.shell: bash` does the same for the steps below.
+# Container images and the `chown` step in ci.yml are Linux-only, so this file does not use them.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  checks:
+    name: lint, typecheck, boundaries, style, unit (Windows)
+    runs-on: af-windows
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+        if: always()
+      - run: pnpm typecheck
+        if: always()
+      - run: pnpm boundaries
+        if: always()
+      - run: pnpm style
+        if: always()
+      - run: pnpm test:unit:core
+        if: always()
+
+  browsers:
+    name: browser tests, Chromium, Firefox and WebKit (Windows)
+    runs-on: af-windows
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install chromium-headless-shell webkit firefox
+      - run: pnpm test:browser:core
