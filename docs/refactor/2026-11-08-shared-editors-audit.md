@@ -5,7 +5,8 @@ obviously not like 2D editor vs 3D editor."
 
 Read as: every editor except the two level editors (Levels 2D for a 2D game, Levels 3D with its Walk view for a 3D one)
 is on the rail of every new game of either kind, and what a person makes in it shows up when the game is played and in
-what Publish ships. Characters is the one editor whose reading is not obvious; it is decision D1 below.
+what Publish ships. Characters is the one editor whose reading was not obvious; the Owner decided it (D1, A): one
+Characters editor on the rail in both kinds.
 
 This is stage 1 (audit) of the pipeline. It was made on PR #508 (branch `claude/complete-game-journeys`, head
 `89db7336`), which joins the content editors (#498), content in play (#494), Schematic's fixes (#497), the whole-game
@@ -233,7 +234,7 @@ Feel's flash and Audio's sound.
 
 ## Decision for the Owner
 
-**D1. What does Characters mean in a 2D game?**
+**D1. What does Characters mean in a 2D game?** *Decided: A (the Owner, 2026-11-08 15:21).*
 
 - **A (recommended): one Characters editor on the rail in both kinds.** In a 2D game it edits each character's
   picture and animation, which live in Levels' Characters view today; placing characters stays in Levels. In a 3D game
@@ -241,6 +242,13 @@ Feel's flash and Audio's sound.
 - **B: Characters makes figures for both kinds.** A 2D game draws a figure as a pixel-art sprite in eight directions,
   as FigureBuilder was built to do. One editor for both, but a sprite baker in core, which is a large piece of work.
 - **C: keep it as it is.** Characters is 3D only; 2D characters stay inside Levels.
+
+Asked for the pros and cons first ("our figure builder was designed for 3D"), the Owner chose A. FigureBuilder builds a
+3D rig, but its own output is a pixel-art sprite in eight directions; AF draws the figure as a Pixi 3D mesh, and the 3D
+trim cut the CPU painters (`2026-11-07-3d-scope-trim.md`, task 8.2). So B is left for later, not ruled out: it would
+come as a "Build a figure" choice inside the same Characters editor, from an extension, with the painter run when the
+game is built and writing the picture-and-frames file a 2D character already reads, so a 2D game needs nothing new to
+play it. Nothing A builds is thrown away by B.
 
 ## Not run
 
