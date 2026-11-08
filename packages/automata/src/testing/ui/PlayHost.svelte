@@ -6,7 +6,7 @@
 <script lang="ts">
 import PlayScreen from '../../app/screens/PlayScreen.svelte'
 import { DEFAULT_SCREENS_COPY } from '../../app/screens/screens-copy.ts'
-import { InputMethodTracker } from '../../shared/ui/browser/input-method.svelte.ts'
+import { InputMethodTracker } from '../../shared/ui/browser/input-method.svelte'
 import type { PlaySession } from '../../shared/ui/slots/play-context.svelte.ts'
 import type { UiComponent } from '../../shared/ui/slots/ui-slot'
 
