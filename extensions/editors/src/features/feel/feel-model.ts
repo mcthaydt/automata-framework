@@ -55,7 +55,7 @@ export const EFFECT_KINDS: readonly { readonly kind: EffectKind; readonly words:
 
 // What a new effect starts as: a value a person can feel at once and then tune.
 const NEW_ROW: Readonly<Record<EffectKind, { readonly channel: Channel; readonly row: object }>> = {
-  shake: { channel: 'camera', row: { shake: 0.3 } },
+  shake: { channel: 'camera', row: { shake: 0.8 } },
   freeze: { channel: 'pose', row: { hit_stop_ms: 60 } },
   flash: { channel: 'visual', row: { flash: 'white', frames: 2 } },
   tint: { channel: 'visual', row: { tint: 'red', ms: 150, alpha: 0.4 } },
@@ -63,6 +63,19 @@ const NEW_ROW: Readonly<Record<EffectKind, { readonly channel: Channel; readonly
   word: { channel: 'word', row: { key: 'word', words: 'Pow!' } },
   rumble: { channel: 'haptic', row: { strong: 0.5, weak: 0.3, ms: 100 } },
   sound: { channel: 'audio', row: { cue: 'hit' } },
+}
+
+/**
+ * How far the screen moves at most, in whole pixels: the game rounds `shake² × Most shake` to whole pixels so a 2D picture
+ * stays crisp, so a small value moves nothing at all.
+ */
+export const shakeReach = (shake: number, limitPx: number): number => Math.round(shake * shake * limitPx)
+
+const shakeHint = (shake: number, limitPx: number): string => {
+  const reach = shakeReach(shake, limitPx)
+  return reach > 0
+    ? `Moves the screen up to ${String(reach)} px`
+    : 'Too small to move the screen. Raise it, or raise Most shake.'
 }
 
 const CHANNELS: readonly Channel[] = ['camera', 'pose', 'visual', 'word', 'haptic', 'audio']
@@ -166,7 +179,7 @@ export function effectLines(entry: FeelEntry, limits: Limits = DEFAULT_LIMITS): 
           index,
           words: 'Shake the screen',
           fields: [
-            { ...strength('shake', 'How hard', row.shake), hint: `At full: ${String(limits.shake_px)} px` },
+            { ...strength('shake', 'How hard', row.shake), hint: shakeHint(row.shake, limits.shake_px) },
           ],
         })
       else if (channel === 'pose' && 'hit_stop_ms' in row)

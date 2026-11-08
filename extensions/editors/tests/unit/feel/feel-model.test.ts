@@ -1,4 +1,4 @@
-import type { FeelEntry } from '@automata/feel'
+import { DEFAULT_LIMITS, type FeelEntry } from '@automata/feel'
 import { describe, expect, it } from 'vitest'
 import {
   addEffectEdit,
@@ -12,6 +12,7 @@ import {
   limitLines,
   limitNote,
   removeEffectEdit,
+  shakeReach,
   springEdit,
   springLines,
 } from '#src/features/feel/feel-model.ts'
@@ -25,6 +26,31 @@ describe('eventWords', () => {
   it('reads a pattern as any event of its kind', () => {
     expect(eventWords('door.*')).toBe('any door event')
     expect(eventWords('*')).toBe('anything')
+  })
+})
+
+describe('a shake a person can feel', () => {
+  it('moves the screen whole pixels, so a small shake rounds to none and says so', () => {
+    expect(shakeReach(0.3, 3)).toBe(0)
+    expect(shakeReach(0.8, 3)).toBe(2)
+    expect(shakeReach(1, 50)).toBe(50)
+  })
+
+  it('names what the value does in pixels', () => {
+    const line = (shake: number, shake_px?: number) =>
+      effectLines(
+        { on: 'a', camera: [{ shake }] },
+        shake_px === undefined ? undefined : { ...DEFAULT_LIMITS, shake_px },
+      )[0]?.fields[0]?.hint
+    expect(line(0.8)).toBe('Moves the screen up to 2 px')
+    expect(line(0.8, 10)).toBe('Moves the screen up to 6 px')
+    expect(line(0.1)).toBe('Too small to move the screen. Raise it, or raise Most shake.')
+  })
+
+  it('starts a new shake where it moves the screen', () => {
+    const edit = addEffectEdit({ on: 'a' }, 0, 'shake')
+    const row = (edit as { insert: [{ shake: number }] }).insert[0]
+    expect(shakeReach(row.shake, DEFAULT_LIMITS.shake_px)).toBeGreaterThanOrEqual(1)
   })
 })
 
@@ -63,7 +89,7 @@ describe('effectLines', () => {
         max: 1,
         step: 0.05,
         value: 0.2,
-        hint: 'At full: 3 px',
+        hint: 'Too small to move the screen. Raise it, or raise Most shake.',
       },
     ])
     expect(freeze?.fields).toEqual([
@@ -137,7 +163,7 @@ describe('the edits', () => {
   it('add an effect to its channel, or the channel when the feel has none of it', () => {
     expect(addEffectEdit({ on: 'a', camera: [{ shake: 0.1 }] }, 0, 'shake')).toEqual({
       keyPath: ['entry', 0, 'camera'],
-      insert: { shake: 0.3 },
+      insert: { shake: 0.8 },
     })
     expect(addEffectEdit({ on: 'a' }, 1, 'freeze')).toEqual({
       keyPath: ['entry', 1, 'pose'],
