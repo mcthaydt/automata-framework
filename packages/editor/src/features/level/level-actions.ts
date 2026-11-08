@@ -1,7 +1,7 @@
 import { commitEdit } from '../../shared/level-2d/editor/field-commit'
 import type { EditHistory } from '../../shared/level-2d/editor/level-editor-api'
+import { paletteOf } from '../../shared/level-2d/editor/palette-model'
 import type { IdSource } from '../../shared/level-2d/model/ids'
-import { paletteOf } from '../../shared/level-2d/tiles/palette-model'
 import type { LevelSession } from './level-session'
 import type { LevelShortcut } from './level-shortcuts'
 import { deleteSelected, duplicateSelected, nudgeSelected } from './selection-edits'
