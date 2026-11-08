@@ -1467,6 +1467,15 @@ interface PixiStageHooks {
 }
 ```
 
+### `PlayHandle` (interface)
+
+```ts
+interface PlayHandle {
+    readonly sim: DrawSim | undefined;
+    send(command: SentCommand): void;
+}
+```
+
 ### `PluginDef` (interface)
 
 ```ts
@@ -1985,6 +1994,12 @@ interface ScreensGame {
 component from '../shared/ui/layout/ScrollList.svelte'
 ```
 
+### `SentCommand` (type)
+
+```ts
+type SentCommand = Pick<Command, 'type' | 'payload'>;
+```
+
 ### `Settings` (interface)
 
 ```ts
@@ -2265,6 +2280,12 @@ function turnUnitsFromPixels(dxPx: number, degPerPixel: number, invert: boolean)
 
 ```ts
 function typedBus<GameFacts>(bus: PresentationBus<object>): PresentationBus<GameFacts>;
+```
+
+### `usePlay` (function)
+
+```ts
+function usePlay(): PlayHandle;
 ```
 
 ### `ViewportWindow` (interface)

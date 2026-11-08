@@ -621,3 +621,10 @@ The Owner's rule (2026-11-08): content made in the editors must be seen in play,
   mistyped layer does not silently mean "no walls"; a project with no IntGrid layer has no walls. (4) `roomOf` reads the
   position now (no lag in 2D). (5) `Math.hypot` is refused by `pnpm boundaries` in sim code, so the maths uses `hypot` from
   `@automata/sim/math`.
+- 2026-11-08 Task 12 done: `PlaySession` / `usePlay()` in `packages/automata/src/shared/ui/slots/play-context.svelte.ts`, exported from
+  `@automata/framework/ui` (not `/extension`, which Node reads and must not pull in a `.svelte.ts`). `PlayScreen` provides the
+  context and refreshes the session each animation frame, only when a hud component exists. Rulings: (1) `send` takes
+  `{ type, payload }` (a full `Command` fits); the stream fills in tick, source 0 and a seq of its own (`tick + 1 + n`; the input
+  map's seq is the tick, and a seq may be used once per source in a step). (2) The recording is "the stream
+  `appLoop.run({ commands })` is given"; there is no recorder in the runtime. Tests: 6 in jsdom (read follows the frame, rAF
+  refresh, read-only view, the outside-a-screen sentence, order and seqs, a recorded stream replays to the same hash).
