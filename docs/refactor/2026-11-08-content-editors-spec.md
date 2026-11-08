@@ -23,16 +23,18 @@ extensions' own (`*.content.ts`); the editors never redefine them.
 | `audio` | Audio | `@automata/audio-synth` | `content/audio/*.toml` | Makes and plays sounds and music beds; says which sound plays when something happens |
 | `writer` | Writer | `@automata/narrative` | `content/dialogue/*.toml`, `content/lines/*.toml` | Writes who says what, and the choices the player picks from |
 | `sequence` | Sequence | `@automata/cutscenes` | `content/cutscenes/*.toml` | Lays out a cutscene's steps in time: camera, actors, captions, sounds |
-| `schematic` | Schematic | `@automata/systems`, `@automata/puzzle` | `content/systems/*.toml`, `content/puzzles/*.toml` | Says how enemies and other characters behave, and the world's rules and puzzles |
+| `schematic` | Schematic | `@automata/systems`, `@automata/nav`, `@automata/puzzle` | `content/systems/*.toml`, `content/nav/*.toml`, `content/puzzles/*.toml` | Says how enemies and other characters behave, and the world's rules and puzzles |
 
 **Schematic covers enemy and NPC behaviour.** A `systems` file's agents are the game's enemies and other characters:
 what each one senses (sight, sound, light, warmth, touch), its modes (patrol, chase, search), how fast it moves in
 each, and when it switches mode ("From Patrol to Chase when it sees the player"). Its rules are the world's ("When the
 generator is off, the lights go out"). A `puzzle` file is the scene's items, facts and actions. Schematic shows all of
-these as sentences a person reads top to bottom, not as a node graph.
+these as sentences a person reads top to bottom; a character's modes and switches are also drawn as a diagram, and the
+scene's places (its nav graph) are a list (Schematic spec, sections 4.1 and 8).
 
 Left out on purpose (the Owner's rule, "editors have only essential features"): the narrative extension's canon,
-storylets, beats and puzzle help (`content/canon`, `storylets`, `beats`, `help`), and the nav graph. They are written
+storylets, beats and puzzle help (`content/canon`, `storylets`, `beats`, `help`). (The nav graph is Schematic's
+Places: without it a character has nowhere to patrol; the Schematic plan audit, H2.) They are written
 by the game's tools and pipelines today, and a person making a game does not start there. Their files open read only on
 Home with "No editor for this file yet." They can join Writer and Schematic later.
 
@@ -114,7 +116,7 @@ audited and built through the project's pipeline before its code merges:
 
 | Editor | Spec and plan | State |
 | --- | --- | --- |
-| Schematic (the game's AI: how enemies and other characters behave) | `2026-11-08-schematic-{spec,plan}.md` | Written; plan audit next |
+| Schematic (the game's AI: how enemies and other characters behave) | `2026-11-08-schematic-{spec,plan}.md` | Plan audited (`2026-11-08-schematic-plan-audit.md`); build next |
 | Feel | `2026-11-08-feel-{spec,plan}.md` | Built ahead of its spec; the plan brings it in line |
 | Audio | `2026-11-08-audio-{spec,plan}.md` | Half built ahead of its spec; the plan finishes it |
 | Writer | `2026-11-08-writer-{spec,plan}.md` | Written; saves a line's words in the line (Writer spec, section 4) |
