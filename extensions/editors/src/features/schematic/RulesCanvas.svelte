@@ -80,6 +80,8 @@ const set = (rule: number, label: string, next: NonNullable<typeof def>['rules']
     </ul>
     <Button onclick={() => void session.addRule()}>Add a rule</Button>
   {/if}
+  <!-- The design table (`objects`, `matrix`) is notes for people. It is in the file and changes no behaviour. -->
+  <p class="dim">Design notes, kept in the file. They change no behaviour, so they are not edited here.</p>
 </section>
 
 <style>

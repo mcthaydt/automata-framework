@@ -7,7 +7,7 @@ import AddPiece from './AddPiece.svelte'
 import PieceRow from './PieceRow.svelte'
 import { freshStop, startWords, stopFields, withoutStopAction, withStopAction, writeStop } from './patrol.ts'
 import { ACTIONS, actionPiece, actionWords } from './pieces/actions.ts'
-import { modeWords, type Names } from './pieces/piece.ts'
+import { modeWords, type Names, spaced } from './pieces/piece.ts'
 import type { SchematicSession } from './schematic-session.svelte.ts'
 import {
   freshSense,
@@ -99,7 +99,8 @@ function moveStop(i: number, by: number): void {
 
   <h4>Patrol</h4>
   {#if names.places.length === 0}
-    <p class="dim">Characters need places to walk between. Add the first place.</p>
+    <p class="dim">Characters need places to walk between.</p>
+    <Button onclick={() => (session.chosen = { kind: 'places' })}>Add the first place</Button>
   {:else}
     {#if stops.length === 0}<p class="dim">No stops yet. Add one and it walks between its stops, in order.</p>{/if}
     <ol>
@@ -141,6 +142,17 @@ function moveStop(i: number, by: number): void {
       {/each}
     </ol>
     <Button onclick={() => void session.changeList('Add a stop', { kind: 'add', list: 'routine', agent, next: freshStop(names.places, character.routine) })}>Add a stop</Button>
+  {/if}
+
+  <!-- What the game's own code does for this character is not edited here; it is named so the person knows it is there. -->
+  <h4>Things its game code does</h4>
+  {#if (character.hooks ?? []).length === 0}
+    <p class="dim">Nothing. It is all in this file.</p>
+  {:else}
+    <ul aria-label="Things its game code does" class="hooks">
+      {#each character.hooks ?? [] as hook (hook)}<li>{spaced(hook)}</li>{/each}
+    </ul>
+    <p class="dim">Written in the game’s code, so changed there.</p>
   {/if}
 </section>
 

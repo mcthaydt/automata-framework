@@ -28,6 +28,10 @@ const missingRows = $derived(!session.facts.listsSystems || !session.facts.lists
       <p>Your game's list of editors does not name these files yet. Add this to it, then come back:</p>
       <pre aria-label="What to add to your list of editors">{LIST_ROWS}</pre>
     {/if}
+    {#if session.places === undefined || Object.keys(session.places.nodes).length === 0}
+      <p>A character walks between places, so add the places first. One added now has nowhere to walk and stands in the corner.</p>
+      <Button disabled={!session.facts.listsNav} onclick={() => (session.chosen = { kind: 'places' })}>Add the first place</Button>
+    {/if}
     <Button variant="primary" disabled={!session.facts.listsSystems} onclick={() => void session.addCharacter()}>Add a character</Button>
   {/if}
 </div>

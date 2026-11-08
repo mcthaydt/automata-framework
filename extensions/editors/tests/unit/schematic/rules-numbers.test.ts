@@ -53,6 +53,14 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
+describe('the design notes', () => {
+  it('are kept in the file, read only, on the rules page', async () => {
+    await open(RulesCanvas, 'rules')
+    expect(await screen.findByText(/^Design notes, kept in the file\./)).toBeInTheDocument()
+    expect(screen.getByText(/They change no behaviour/)).toBeInTheDocument()
+  })
+})
+
 describe('rules', () => {
   it('read "When … then …, every n s", and a rule with nothing in it as its text only', async () => {
     await open(RulesCanvas, 'rules')

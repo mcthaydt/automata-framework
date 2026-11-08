@@ -168,9 +168,10 @@ describe('the character in the inspector', () => {
   })
 
   it('says a game with no places needs the first one', async () => {
-    await open({ nav: '# nothing\n' })
-    expect(
-      await screen.findByText('Characters need places to walk between. Add the first place.'),
-    ).toBeInTheDocument()
+    const session = await open({ nav: '# nothing\n' })
+    expect(await screen.findByText('Characters need places to walk between.')).toBeInTheDocument()
+    // The way there is one press away, not a sentence to remember.
+    await userEvent.click(screen.getByRole('button', { name: 'Add the first place' }))
+    expect(session.chosen.kind).toBe('places')
   })
 })

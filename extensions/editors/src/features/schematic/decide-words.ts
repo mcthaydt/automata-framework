@@ -1,5 +1,5 @@
 // How a character decides, in the interpreter's own rules (`agent-step.ts`), said once under the list. The editor teaches
-// the rules as they are: a test in the plan pins each against the interpreter.
+// the rules as they are: `extensions/systems/tests/unit/shared/sim/decide-rules.test.ts` pins each against the interpreter.
 import { type AgentDef, isStill, routineMode, type Transition } from '@automata/systems/sim'
 import { modeWords } from './pieces/piece.ts'
 
@@ -8,7 +8,8 @@ export const DECIDE_LINES: readonly string[] = [
   'Some switches are checked all the time, some the moment it hears a noise, and some after it stops or gets stuck. The order counts only inside each group.',
   'Switches are checked from the top. Every one whose conditions hold does its actions.',
   'A switch from “Any mode it moves in” leaves out the modes where it stands still.',
-  'The patrol only runs in the mode called Patrol.',
+  'It stops checking for that moment when a switch catches the player, starts a cutscene, or goes into or out of a mode where it stands still.',
+  'The patrol only runs in the mode called Routine, or Patrol when it has no Routine.',
   '“Has stood still more than” counts the time it stands still. Switching mode does not reset it; “reset its wait” does.',
   'In a mode where it stands still, only the switches checked all the time run.',
 ]

@@ -48,7 +48,7 @@ const KEYS = [
   'probe',
   'transition',
   'agent',
-  'routine',
+  // not 'routine': it is also a mode's name, which "How it decides" says the patrol runs in
   'tunables',
   'matrix',
   'priority',
@@ -94,6 +94,19 @@ describe('Schematic', () => {
     )
     expect(await screen.findByRole('button', { name: 'Character' })).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('No problems.')
+  })
+
+  it('lets a new game add its places before any character, and says to do so first', async () => {
+    const { session } = await open({ [EDITOR_LIST_PATH]: LIST })
+    // The start page offers the places first: a character with no places has nowhere to walk.
+    await userEvent.click(screen.getByRole('button', { name: 'Add the first place' }))
+    expect(session.chosen.kind).toBe('places')
+    expect(await screen.findByRole('region', { name: 'Places' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Add a place' }))
+    expect(Object.keys(session.places?.nodes ?? {})).toEqual(['new-place'])
+    // A guard added now patrols the place the scene has.
+    await session.addCharacter()
+    expect(session.def?.agents[0]?.id).toBe('character')
   })
 
   it('shows the rows to add when the list of editors does not name the files', async () => {

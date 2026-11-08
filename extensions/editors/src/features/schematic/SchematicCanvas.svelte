@@ -19,7 +19,10 @@ const ready = $derived(session.facts.usesSystems && session.def !== undefined)
   {#if session.message !== undefined}
     <p class="refused" role="alert">{session.message}</p>
   {/if}
-  {#if !ready}
+  {#if session.facts.usesSystems && session.chosen.kind === 'places' && session.read.kind !== 'syntax'}
+    <!-- A new game has no characters yet, but its places can be laid out first. -->
+    <PlacesCanvas {session} />
+  {:else if !ready}
     <SchematicStart {session} />
   {:else if session.chosen.kind === 'rules'}
     <RulesCanvas {session} />
@@ -29,8 +32,6 @@ const ready = $derived(session.facts.usesSystems && session.def !== undefined)
     <FairCanvas {session} />
   {:else if session.chosen.kind === 'numbers'}
     <NumbersCanvas {session} />
-  {:else if session.chosen.kind === 'places'}
-    <PlacesCanvas {session} />
   {:else if character !== undefined}
     <CharacterCanvas {session} />
   {:else if (session.def?.agents.length ?? 0) === 0}

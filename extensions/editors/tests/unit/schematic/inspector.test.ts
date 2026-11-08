@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
 import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
-import { render, screen } from '@testing-library/svelte'
+import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import { CONTENT_SAMPLE_GAME } from '#src/app/suite/sample-game.ts'
@@ -14,10 +14,14 @@ const FORBIDDEN =
   /sawHide|warmthWithin|followThrough|setMode|probe|transition|priority|routine|tunables|matrix|\bnode\b/
 
 async function open() {
+  return openWith(HALL)
+}
+
+async function openWith(hall: string) {
   const { ports } = await createMemoryPorts({
     files: {
       [EDITOR_LIST_PATH]: CONTENT_SAMPLE_GAME[EDITOR_LIST_PATH] as string,
-      'content/systems/hall.toml': HALL,
+      'content/systems/hall.toml': hall,
       'content/nav/hall.toml': NAV,
     },
     classify: (path) => ({
@@ -40,6 +44,22 @@ const text = (session: Awaited<ReturnType<typeof open>>['session']) =>
 
 afterEach(() => {
   document.body.innerHTML = ''
+})
+
+describe('a character', () => {
+  it('lists what its game code does, read only, and says when it does nothing', async () => {
+    const { session } = await open()
+    expect(await screen.findByRole('heading', { name: 'Things its game code does' })).toBeInTheDocument()
+    expect(screen.getByText('Nothing. It is all in this file.')).toBeInTheDocument()
+    const hooked = HALL.replace('id = "guard"', 'id = "guard"\nhooks = ["open-door"]')
+    expect(hooked).not.toBe(HALL)
+    document.body.innerHTML = ''
+    const again = await openWith(hooked)
+    expect(again.session.problems.length).toBeGreaterThanOrEqual(0)
+    const list = await screen.findByRole('list', { name: 'Things its game code does' })
+    expect(list).toHaveTextContent('open door')
+    expect(within(list).queryByRole('button')).toBeNull()
+  })
 })
 
 describe('a mode', () => {
