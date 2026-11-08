@@ -34,16 +34,21 @@ async function usesSystems(ports: SuitePorts): Promise<boolean> {
   }
 }
 
-async function listed(ports: SuitePorts): Promise<{ systems: boolean; nav: boolean }> {
+async function listed(ports: SuitePorts): Promise<{ systems: boolean; nav: boolean; twoD: boolean }> {
   const file = await ports.workspace.read(EDITOR_LIST_PATH)
-  if (file === undefined) return { systems: true, nav: true }
+  if (file === undefined) return { systems: true, nav: true, twoD: false }
   const load = loadEditorList(file.text)
-  if (!load.ok) return { systems: true, nav: true }
+  if (!load.ok) return { systems: true, nav: true, twoD: false }
   const writes = (path: string): boolean => {
     const row = workspaceFile(load.list, path)
     return row.editor === 'schematic' && row.writable
   }
-  return { systems: writes('content/systems/scene.toml'), nav: writes('content/nav/scene.toml') }
+  const editors = new Set(load.list.file.map((row) => row.editor))
+  return {
+    systems: writes('content/systems/scene.toml'),
+    nav: writes('content/nav/scene.toml'),
+    twoD: editors.has('levels-2d') && !editors.has('levels-3d'),
+  }
 }
 
 export async function findFacts(ports: SuitePorts, gameUrl: string | undefined): Promise<SchematicFacts> {
@@ -52,6 +57,7 @@ export async function findFacts(ports: SuitePorts, gameUrl: string | undefined):
     usesSystems: await usesSystems(ports),
     listsSystems: rows.systems,
     listsNav: rows.nav,
+    twoD: rows.twoD,
     gameUrl,
   }
 }

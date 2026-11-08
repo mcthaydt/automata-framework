@@ -1,5 +1,6 @@
 <!-- Schematic's inspector: the mode or the switch selected on the diagram or the list. -->
 <script lang="ts">
+import CharacterInspector from './CharacterInspector.svelte'
 import ModeInspector from './ModeInspector.svelte'
 import { namesOf } from './names.ts'
 import SwitchInspector from './SwitchInspector.svelte'
@@ -22,14 +23,6 @@ const selected = $derived(session.selected)
   {:else if selected?.kind === 'switch'}
     <SwitchInspector {session} {agent} {character} index={selected.index} {names} />
   {:else}
-    <p class="hint">Choose a mode or an arrow to change it.</p>
+    <CharacterInspector {session} {agent} {character} {names} />
   {/if}
 {/if}
-
-<style>
-  .hint {
-    margin: 0;
-    color: var(--color-text-dim);
-    font: var(--text-body-13);
-  }
-</style>

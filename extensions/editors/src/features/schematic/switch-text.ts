@@ -37,7 +37,8 @@ function headersOf(lines: readonly string[]): Header[] {
   return found
 }
 
-const SWITCH = 'agents.transitions'
+/** The lists of tables a character owns that are rewritten as text: its switches, its patrol stops and its senses. */
+export type CharacterList = 'transitions' | 'routine' | 'senses'
 
 interface Place {
   /** The first line of the switch's own table. */
@@ -49,6 +50,7 @@ interface Place {
 /** The lines that hold character `agent`'s switch `index`, or where a new one goes (`index` past the last). */
 function locate(
   lines: readonly string[],
+  list: CharacterList,
   agent: number,
   index: number,
 ): Place | { readonly at: number } | undefined {
@@ -60,14 +62,15 @@ function locate(
   const mine = headers.filter((h) => h.line > owner.line && h.line < ownerEnd)
   // Past the owner's last table that belongs to the file's other parts, so a new table never lands in someone else's.
   const inside = mine.filter((h) => h.name === 'agents' || h.name.startsWith('agents.'))
-  const switches = inside.filter((h) => h.name === SWITCH && h.array)
+  const own = `agents.${list}`
+  const switches = inside.filter((h) => h.name === own && h.array)
   const trimmed = (end: number): number => {
     let at = end
     while (at > 0 && /^\s*(#.*)?$/.test(lines[at - 1] ?? '')) at -= 1
     return at
   }
   const endAfter = (header: Header): number => {
-    const next = headers.find((h) => h.line > header.line && !h.name.startsWith(`${SWITCH}.`))
+    const next = headers.find((h) => h.line > header.line && !h.name.startsWith(`${own}.`))
     return trimmed(Math.min(next?.line ?? lines.length, ownerEnd))
   }
   const target = switches[index]
@@ -81,9 +84,9 @@ function locate(
 }
 
 /** One switch as the text of its tables, without the empty `[[agents]]` the writer puts first. */
-export function switchTables(switchDef: Transition): string[] {
-  const clean = JSON.parse(JSON.stringify(switchDef)) as Record<string, unknown>
-  const text = stringify({ agents: [{ transitions: [clean] }] })
+export function itemTables(list: CharacterList, item: unknown): string[] {
+  const clean = JSON.parse(JSON.stringify(item)) as Record<string, unknown>
+  const text = stringify({ agents: [{ [list]: [clean] }] })
   const lines = text.split('\n').slice(1)
   while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop()
   return lines
@@ -95,46 +98,59 @@ function splice(text: string, from: number, to: number, put: readonly string[]):
   return lines.join('\n')
 }
 
-/** The text with character `agent`'s switch `index` written as `next`, or `undefined` when the text has no such switch. */
-export function replaceSwitchText(
+/** The text with character `agent`'s item `index` of `list` written as `next`, or `undefined` when the text has no such item. */
+export function replaceItemText(
   text: string,
+  list: CharacterList,
   agent: number,
   index: number,
-  next: Transition,
+  next: unknown,
 ): string | undefined {
-  const place = locate(text.split('\n'), agent, index)
+  const place = locate(text.split('\n'), list, agent, index)
   if (place === undefined || !('start' in place)) return undefined
-  return splice(text, place.start, place.end, switchTables(next))
+  return splice(text, place.start, place.end, itemTables(list, next))
 }
 
 /** The text without that switch (and the blank line that set it apart), or `undefined` when there is no such switch. */
-export function removeSwitchText(text: string, agent: number, index: number): string | undefined {
+export function removeItemText(
+  text: string,
+  list: CharacterList,
+  agent: number,
+  index: number,
+): string | undefined {
   const lines = text.split('\n')
-  const place = locate(lines, agent, index)
+  const place = locate(lines, list, agent, index)
   if (place === undefined || !('start' in place)) return undefined
   const after = place.end < lines.length && (lines[place.end] ?? '').trim() === '' ? place.end + 1 : place.end
   return splice(text, place.start, after, [])
 }
 
-/** The text with a new switch after character `agent`'s last, or `undefined` when there is no such character. */
-export function appendSwitchText(
+/** The text with a new item after character `agent`'s last of `list`, or `undefined` when there is no such character. */
+export function appendItemText(
   text: string,
+  list: CharacterList,
   agent: number,
-  switchDef: Transition,
+  item: unknown,
   count: number,
 ): string | undefined {
   const lines = text.split('\n')
-  const place = locate(lines, agent, count)
+  const place = locate(lines, list, agent, count)
   if (place === undefined || !('at' in place)) return undefined
-  return splice(text, place.at, place.at, ['', ...switchTables(switchDef)])
+  return splice(text, place.at, place.at, ['', ...itemTables(list, item)])
 }
 
 // ── The change, checked ───────────────────────────────────────────────────────────────────────────────────────
 
-export type SwitchChange =
-  | { readonly kind: 'replace'; readonly agent: number; readonly index: number; readonly next: Transition }
-  | { readonly kind: 'remove'; readonly agent: number; readonly index: number }
-  | { readonly kind: 'add'; readonly agent: number; readonly next: Transition }
+export type ListChange =
+  | {
+      readonly kind: 'replace'
+      readonly list: CharacterList
+      readonly agent: number
+      readonly index: number
+      readonly next: unknown
+    }
+  | { readonly kind: 'remove'; readonly list: CharacterList; readonly agent: number; readonly index: number }
+  | { readonly kind: 'add'; readonly list: CharacterList; readonly agent: number; readonly next: unknown }
 
 /** A value as text with its keys in order, so two values that read the same compare the same. */
 function canonical(value: unknown): string {
@@ -154,10 +170,10 @@ const NOT_FOUND = 'That part of the file could not be found, so nothing was chan
  * The file's text with one switch replaced, removed or added, or why not. The result is read back and must hold exactly
  * the file as it was with that one change, so a text this cannot place is refused and never written.
  */
-export function changeSwitchText(
+export function changeListText(
   path: string,
   text: string,
-  change: SwitchChange,
+  change: ListChange,
 ): { readonly text: string } | { readonly refused: string } {
   let intended: Record<string, unknown>
   try {
@@ -169,18 +185,24 @@ export function changeSwitchText(
   const owner = Array.isArray(owners)
     ? (owners[change.agent] as Record<string, unknown> | undefined)
     : undefined
-  const list = owner?.transitions
-  if (owner === undefined || !Array.isArray(list)) return { refused: NOT_FOUND }
+  if (owner === undefined) return { refused: NOT_FOUND }
+  // A list the file does not have yet (no patrol): the first item makes it.
+  if (owner[change.list] === undefined && change.kind === 'add') owner[change.list] = []
+  const list = owner[change.list]
+  if (!Array.isArray(list)) return { refused: NOT_FOUND }
+  const copy = (value: unknown): unknown => JSON.parse(JSON.stringify(value))
   let next: string | undefined
   if (change.kind === 'replace') {
-    next = replaceSwitchText(text, change.agent, change.index, change.next)
-    list[change.index] = JSON.parse(JSON.stringify(change.next))
+    next = replaceItemText(text, change.list, change.agent, change.index, change.next)
+    list[change.index] = copy(change.next)
   } else if (change.kind === 'remove') {
-    next = removeSwitchText(text, change.agent, change.index)
+    next = removeItemText(text, change.list, change.agent, change.index)
     list.splice(change.index, 1)
+    // The last stop out takes the patrol with it, as the file never held an empty one.
+    if (list.length === 0 && change.list === 'routine') delete owner[change.list]
   } else {
-    next = appendSwitchText(text, change.agent, change.next, list.length)
-    list.push(JSON.parse(JSON.stringify(change.next)))
+    next = appendItemText(text, change.list, change.agent, change.next, list.length)
+    list.push(copy(change.next))
   }
   if (next === undefined) return { refused: NOT_FOUND }
   try {
@@ -190,3 +212,16 @@ export function changeSwitchText(
   }
   return { refused: NOT_FOUND }
 }
+
+/** The same, for a character's switches. */
+export type SwitchChange =
+  | { readonly kind: 'replace'; readonly agent: number; readonly index: number; readonly next: Transition }
+  | { readonly kind: 'remove'; readonly agent: number; readonly index: number }
+  | { readonly kind: 'add'; readonly agent: number; readonly next: Transition }
+
+export const changeSwitchText = (
+  path: string,
+  text: string,
+  change: SwitchChange,
+): { readonly text: string } | { readonly refused: string } =>
+  changeListText(path, text, { ...change, list: 'transitions' })

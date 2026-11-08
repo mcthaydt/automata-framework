@@ -46,7 +46,8 @@ describe('a mode', () => {
   it('renames in one undo step, and every place that names it follows', async () => {
     const { session } = await open()
     session.selected = { kind: 'mode', mode: 'hunt' }
-    const name = await screen.findByLabelText('Name')
+    await screen.findByRole('region', { name: 'Mode' })
+    const name = screen.getByLabelText('Name')
     await userEvent.clear(name)
     await userEvent.type(name, 'chase{Enter}')
     expect(session.def?.agents[0]?.modes).toEqual(['patrol', 'chase', 'search'])

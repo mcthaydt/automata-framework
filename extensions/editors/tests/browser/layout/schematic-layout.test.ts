@@ -41,7 +41,7 @@ async function start(size: (typeof SIZES)[number]) {
   await page.viewport(size.width, size.height)
   const session = new SchematicSession(
     ports,
-    { usesSystems: true, listsSystems: true, listsNav: true, gameUrl: undefined },
+    { usesSystems: true, listsSystems: true, listsNav: true, gameUrl: undefined, twoD: false },
     ['bay'],
   )
   await session.select('bay')

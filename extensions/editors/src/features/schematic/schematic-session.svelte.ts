@@ -26,7 +26,7 @@ import {
 } from './schematic-edits.ts'
 import { schematicProblems } from './schematic-problems.ts'
 import { newAgent, newSystemsFile, systemsFileText } from './starter.ts'
-import { changeSwitchText, type SwitchChange } from './switch-text.ts'
+import { type CharacterList, changeListText, type ListChange, type SwitchChange } from './switch-text.ts'
 
 /** What is selected on a character: a mode, or a switch by its place in the file. */
 export type Selection =
@@ -63,6 +63,8 @@ export interface SchematicFacts {
   readonly listsNav: boolean
   /** The address of the game's dev page, when the editors were opened in the game's folder. */
   readonly gameUrl: string | undefined
+  /** The editor list names a 2D level editor and no 3D one, so light and warmth need the game's own facts. */
+  readonly twoD: boolean
 }
 
 const EMPTY_SYSTEMS = "# How this scene's characters behave.\n"
@@ -178,19 +180,56 @@ export class SchematicSession {
     return outcome
   }
 
-  /** One character's switch replaced, removed or added as one undo step: the text of its own tables only (`switch-text.ts`). */
-  async changeSwitch(label: string, change: SwitchChange): Promise<Outcome> {
+  /**
+   * Items of a character's lists (a switch, a patrol stop, a sense) replaced, removed or added, in order, as one undo step:
+   * each is the text of its own tables (`switch-text.ts`), and the file is written once.
+   */
+  async changeLists(label: string, changes: readonly ListChange[]): Promise<Outcome> {
     const { systems } = this.files
-    const text = systems.history.state.text
-    const outcome: Outcome = await (async () => {
-      if (text === undefined) return { ok: false as const, message: 'There is no file to change yet.' }
-      const result = changeSwitchText(systems.path, text, change)
-      return 'refused' in result
-        ? { ok: false as const, message: result.refused }
-        : systems.accept(result.text, label)
-    })()
+    let text = systems.history.state.text
+    let refusal: string | undefined = text === undefined ? 'There is no file to change yet.' : undefined
+    for (const change of changes) {
+      if (text === undefined) break
+      const result = changeListText(systems.path, text, change)
+      if ('refused' in result) {
+        refusal = result.refused
+        break
+      }
+      text = result.text
+    }
+    const outcome: Outcome =
+      refusal !== undefined || text === undefined
+        ? { ok: false, message: refusal ?? 'There is no file to change yet.' }
+        : await systems.accept(text, label)
     this.message = outcome.ok ? undefined : outcome.message
     return outcome
+  }
+
+  changeList(label: string, change: ListChange): Promise<Outcome> {
+    return this.changeLists(label, [change])
+  }
+
+  async changeSwitch(label: string, change: SwitchChange): Promise<Outcome> {
+    return this.changeList(label, { ...change, list: 'transitions' })
+  }
+
+  /**
+   * Item `index` of `list` made `next`: each changed value is written in its own literal when the shape is the same, else
+   * the item's tables are rewritten.
+   */
+  async setItem(
+    label: string,
+    list: CharacterList,
+    agent: number,
+    index: number,
+    next: unknown,
+  ): Promise<Outcome> {
+    const before = (this.def?.agents[agent] as Record<string, unknown> | undefined)?.[list]
+    const item = Array.isArray(before) ? before[index] : undefined
+    if (item === undefined) return this.#refuse('That is not in this character any more.')
+    if (sameShape(item, next))
+      return this.change(label, diffEdits(['agents', agent, list, index], item, next))
+    return this.changeList(label, { kind: 'replace', list, agent, index, next })
   }
 
   /**
