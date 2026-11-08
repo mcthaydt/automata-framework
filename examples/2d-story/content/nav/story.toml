@@ -1,0 +1,22 @@
+# Where the guard may walk, in metres. The gap in the wall is the three cells at x 16, rows 13 to 15.
+edges = [ [ "hallW", "hallE" ], [ "hallE", "gate" ], [ "gate", "yardW" ], [ "yardW", "yardE" ] ]
+
+[nodes.hallW]
+x = 3
+z = 15.5
+
+[nodes.hallE]
+x = 14
+z = 15.5
+
+[nodes.gate]
+x = 16.5
+z = 15.5
+
+[nodes.yardW]
+x = 19
+z = 15.5
+
+[nodes.yardE]
+x = 23
+z = 15.5

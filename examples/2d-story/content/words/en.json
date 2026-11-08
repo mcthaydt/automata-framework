@@ -1,0 +1,11 @@
+{
+  "keeper.hello": "Hello there. Mind the gate on your way out.",
+  "keeper.passing": "Just passing through.",
+  "keeper.gate": "Show me the gate.",
+  "keeper.farewell": "Safe travels.",
+  "keeper.follow": "Right this way.",
+  "keeper.later": "A moment later, at the gate.",
+  "speaker.keeper": "Keeper",
+  "speaker.player": "You",
+  "dialogue.next": "Next"
+}

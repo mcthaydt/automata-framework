@@ -78,12 +78,33 @@ importers:
       '@automata/content':
         specifier: workspace:*
         version: link:../../packages/content
+      '@automata/cutscenes':
+        specifier: workspace:*
+        version: link:../../extensions/cutscenes
       '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
+      '@automata/level-2d':
+        specifier: workspace:*
+        version: link:../../extensions/level-2d
+      '@automata/narrative':
+        specifier: workspace:*
+        version: link:../../extensions/narrative
+      '@automata/nav':
+        specifier: workspace:*
+        version: link:../../extensions/nav
+      '@automata/places':
+        specifier: workspace:*
+        version: link:../../extensions/places
+      '@automata/puzzle':
+        specifier: workspace:*
+        version: link:../../extensions/puzzle
       '@automata/sim':
         specifier: workspace:*
         version: link:../../packages/sim
+      '@automata/systems':
+        specifier: workspace:*
+        version: link:../../extensions/systems
       pixi.js:
         specifier: 8.22.0
         version: 8.22.0
