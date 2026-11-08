@@ -4,9 +4,9 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, type Page, test } from '@playwright/test'
-import { BOOT_TIMEOUT_MS, FIRST_BOOT_TIMEOUT_MS } from '#src/features/playground/orchestrator'
-import { LOOP_GUARD_MS } from '#src/features/playground/protocol'
-import { playgroundExamples } from '#src/shared/framework/examples'
+import { BOOT_TIMEOUT_MS, FIRST_BOOT_TIMEOUT_MS } from '#src/features/playground/orchestrator.ts'
+import { LOOP_GUARD_MS } from '#src/features/playground/protocol.ts'
+import { playgroundExamples } from '#src/shared/framework/examples.ts'
 import { SITE_PORT } from '../../playwright.config'
 import { watchPage } from './gates'
 

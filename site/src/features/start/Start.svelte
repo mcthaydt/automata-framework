@@ -62,6 +62,8 @@ import { PUBLISH_GUIDES, STEPS } from './start-content'
   }
   .steps {
     display: grid;
+    /* minmax(0, …): a long command ellipsizes inside its box instead of widening the column past a phone. */
+    grid-template-columns: minmax(0, 1fr);
     gap: 16px;
     margin: 48px 0 0;
     padding: 0;
