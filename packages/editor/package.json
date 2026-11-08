@@ -25,6 +25,7 @@
     "./kit/testing": "./src/entries/kit-testing.ts",
     "./kit/journey-project": "./src/entries/kit-journey-project.ts",
     "./tokens.css": "./src/shared/kit/tokens.css",
+    "./tool-chrome.css": "./src/shared/kit/tool-chrome.css",
     "./fonts.css": "./src/shared/kit/fonts.css",
     "./suite": "./src/entries/suite.ts",
     "./suite/testing": "./src/entries/suite-testing.ts",

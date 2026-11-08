@@ -1,0 +1,81 @@
+/* Generated from src/shared/kit/tokens/tool-theme.json by scripts/generate-tokens.ts. Do not edit. */
+:root {
+  color-scheme: light dark;
+  --tool-bg: #f7f7f8;
+  --tool-panel: #ffffff;
+  --tool-hover: #f2f2f4;
+  --tool-selected: #eceef8;
+  --tool-line: #e7e7ea;
+  --tool-line-strong: #d4d4d8;
+  --tool-muted: #5f5f6a;
+  --tool-faint: #6b6b76;
+  --tool-stage: #0e1014;
+  --ink: #11151c;
+  --cobalt: #1d278a;
+  --ok: #1e6b34;
+  --bad: #b42318;
+  --warn: #8a5300;
+  --danger-wash: rgb(180 35 24 / 0.08);
+  --scrim: rgb(17 21 28 / 0.32);
+  --shadow-ink: rgb(17 21 28 / 0.12);
+  --shadow-ring: rgb(17 21 28 / 0.1);
+  --shadow-lift: rgb(17 21 28 / 0.06);
+  --on-lime: #11151c;
+  --on-accent: #eef1fb;
+  --primary-edge: #11151c;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --tool-bg: #131417;
+    --tool-panel: #1b1c20;
+    --tool-hover: #24252a;
+    --tool-selected: #262b45;
+    --tool-line: #2a2b31;
+    --tool-line-strong: #3a3b42;
+    --tool-muted: #a1a1aa;
+    --tool-faint: #9696a0;
+    --tool-stage: #0e1014;
+    --ink: #ececef;
+    --cobalt: #9aa5ff;
+    --ok: #5cc27a;
+    --bad: #ff8a7a;
+    --warn: #f0b450;
+    --danger-wash: rgb(255 138 122 / 0.12);
+    --scrim: rgb(0 0 0 / 0.55);
+    --shadow-ink: rgb(0 0 0 / 0.5);
+    --shadow-ring: #3a3b42;
+    --shadow-lift: rgb(0 0 0 / 0.4);
+    --on-lime: #11151c;
+    --on-accent: #11151c;
+    --primary-edge: #cbf25c;
+  }
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --tool-bg: #131417;
+  --tool-panel: #1b1c20;
+  --tool-hover: #24252a;
+  --tool-selected: #262b45;
+  --tool-line: #2a2b31;
+  --tool-line-strong: #3a3b42;
+  --tool-muted: #a1a1aa;
+  --tool-faint: #9696a0;
+  --tool-stage: #0e1014;
+  --ink: #ececef;
+  --cobalt: #9aa5ff;
+  --ok: #5cc27a;
+  --bad: #ff8a7a;
+  --warn: #f0b450;
+  --danger-wash: rgb(255 138 122 / 0.12);
+  --scrim: rgb(0 0 0 / 0.55);
+  --shadow-ink: rgb(0 0 0 / 0.5);
+  --shadow-ring: #3a3b42;
+  --shadow-lift: rgb(0 0 0 / 0.4);
+  --on-lime: #11151c;
+  --on-accent: #11151c;
+  --primary-edge: #cbf25c;
+}
