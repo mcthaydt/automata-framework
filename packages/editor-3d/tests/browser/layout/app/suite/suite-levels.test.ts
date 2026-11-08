@@ -67,11 +67,21 @@ describe.each(SIZES)('Suite Levels 3D at $name ($width x $height)', (size) => {
     await page.screenshot({ path: `.vitest/shots/suite-levels-3d-${size.name}.png` })
   })
 
-  test('the drawing tools are in the top bar, each by role and name, whole and 44 px, and a tap chooses one', async () => {
+  test('the drawing tools are in view (the top bar, or floating at a phone foot), each by role and name, whole and 44 px, and a tap chooses one', async () => {
     opened = await openSuite(size, editors(), FILES, '[data-testid="plan-canvas"]', 'Levels 3D')
     const bar = inShell('[data-region="topbar"]')
-    const toolbar = bar.querySelector<HTMLElement>('[role="toolbar"][aria-label="Tools"]')
-    if (toolbar === null) throw new Error('the top bar has no Tools')
+    const toolbar = document.querySelector<HTMLElement>('[role="toolbar"][aria-label="Tools"]')
+    if (toolbar === null) throw new Error('there are no Tools')
+    // A phone's top bar has no room for seven tools beside Undo, Redo and the View menu (they scrolled out of sight): there
+    // they float at the plan's foot, whole in view at the start, and everywhere else they lie along the top bar.
+    const compact = size.width <= 760 || size.height <= 520
+    expect(bar.contains(toolbar), 'in the top bar when there is room').toBe(!compact)
+    if (compact) {
+      expect(document.querySelector('[data-testid="tool-strip"]')?.contains(toolbar)).toBe(true)
+      const first = toolbar.querySelector('button')?.getBoundingClientRect()
+      expect(first?.left).toBeGreaterThanOrEqual(0)
+      expect(first?.bottom).toBeLessThanOrEqual(size.height)
+    }
     const buttons = [...toolbar.querySelectorAll<HTMLElement>('button')]
     expect(buttons.map((button) => button.textContent?.trim())).toEqual([
       'Select',
