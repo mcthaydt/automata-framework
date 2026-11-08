@@ -4397,6 +4397,8 @@ interface Levels2dSession {
     readonly path: string;
     readonly options: Levels2dOptions;
     readonly others: readonly string[];
+    readonly view: Writable<Levels2dView>;
+    readonly adding: Writable<boolean>;
     read(path: string): Promise<Uint8Array | undefined>;
     readonly files: Pick<ProjectStore, 'list' | 'write'> | undefined;
     readonly state: Levels2dState;
@@ -4414,6 +4416,7 @@ type Levels2dState = {
     readonly profile: Profile<unknown>;
     readonly history: History<unknown>;
     readonly level: LevelSession;
+    readonly tiles: TilesetsSession;
 } | {
     readonly kind: 'error';
     readonly message: string;

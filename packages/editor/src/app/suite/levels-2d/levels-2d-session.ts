@@ -1,5 +1,7 @@
 import type { Component } from 'svelte'
+import { type Writable, writable } from 'svelte/store'
 import { createLevelSession, type LevelSession } from '../../../features/level/level-session'
+import { createTilesetsSession, type TilesetsSession } from '../../../features/tiles/tilesets-session'
 import { createHistory, type History } from '../../../shared/kit/history/history.ts'
 import type { SuiteUndo } from '../../../shared/kit/ports/suite-editor.ts'
 import type { SuitePorts, WorkspaceFile } from '../../../shared/kit/ports/suite-ports.ts'
@@ -30,12 +32,16 @@ export interface Levels2dOptions {
   readonly canvas?: Component<LevelCanvasProps> | undefined
 }
 
+export type Levels2dView = 'level' | 'tiles'
+
 export type Levels2dState =
   | {
       readonly kind: 'open'
       readonly profile: Profile<unknown>
       readonly history: History<unknown>
       readonly level: LevelSession
+      /** The Tiles view's session, made with the document so a switch and return finds its selection. */
+      readonly tiles: TilesetsSession
     }
   | { readonly kind: 'error'; readonly message: string; readonly errors: readonly ParseError[] }
 
@@ -44,6 +50,10 @@ export interface Levels2dSession {
   readonly options: Levels2dOptions
   /** The other files of the row group, which this session does not open (one file per open, plan decision 2). */
   readonly others: readonly string[]
+  /** Which view fills the shell: the level, or the game's tiles. */
+  readonly view: Writable<Levels2dView>
+  /** Whether Add tiles' dialog is open; the Tiles panel and its stage both open it. */
+  readonly adding: Writable<boolean>
   /** Reads a picture's bytes (options' reader, else the workspace's). */
   read(path: string): Promise<Uint8Array | undefined>
   /** Where Add tiles writes its picture; absent when the workspace cannot write one. */
@@ -98,6 +108,8 @@ function failed(
     options,
     others,
     ...picturesOf(options, ports),
+    view: writable<Levels2dView>('level'),
+    adding: writable(false),
     state: { kind: 'error', message, errors },
     refusal: undefined,
     settled: () => Promise.resolve(),
@@ -132,7 +144,8 @@ export async function openLevels2d(
   const { profile } = outcome
   const history = createHistory<unknown>(outcome.value)
   const level = createLevelSession({ history, ids: options.ids })
-  if (level === undefined)
+  const tiles = createTilesetsSession({ history, ids: options.ids })
+  if (level === undefined || tiles === undefined)
     return failed(ports, options, path, others, `${name} can’t be opened: it has no level to draw.`)
 
   const base = read.text
@@ -157,7 +170,9 @@ export async function openLevels2d(
     options,
     others,
     ...picturesOf(options, ports),
-    state: { kind: 'open', profile, history, level } as const,
+    view: writable<Levels2dView>('level'),
+    adding: writable(false),
+    state: { kind: 'open', profile, history, level, tiles } as const,
     refusal: undefined as string | undefined,
     settled: () => queue,
     quietly(change: () => void) {

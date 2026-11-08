@@ -125,3 +125,27 @@ describe('Levels 2D in the suite', () => {
     expect(within(refused).getByText('Your file is unchanged.')).toBeInTheDocument()
   })
 })
+
+describe('Tiles in the suite’s Levels', () => {
+  it('switches the panel, the canvas and the details to the game’s tiles and back, keeping the level', async () => {
+    await start([fixtureEditor as SuiteEditor<unknown>, levels2d()])
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    const views = await screen.findByRole('radiogroup', { name: 'Views' })
+    await userEvent.click(within(views).getByRole('radio', { name: 'Tiles' }))
+    expect(await screen.findByRole('heading', { name: 'Your tiles' })).toBeInTheDocument()
+    expect(screen.queryByTestId('level-canvas')).not.toBeInTheDocument()
+    await userEvent.click(within(views).getByRole('radio', { name: 'Level' }))
+    expect(await screen.findByRole('listbox', { name: 'Layers' })).toBeInTheDocument()
+    expect(screen.getByTestId('level-canvas')).toHaveAttribute('data-level', 'level-1')
+  })
+
+  it('opens Add tiles from the panel, because this game folder can take a picture', async () => {
+    await start([fixtureEditor as SuiteEditor<unknown>, levels2d()])
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    await userEvent.click(
+      within(await screen.findByRole('radiogroup', { name: 'Views' })).getByRole('radio', { name: 'Tiles' }),
+    )
+    await userEvent.click((await screen.findAllByRole('button', { name: 'Add tiles' }))[0] as HTMLElement)
+    expect(await screen.findByRole('dialog', { name: 'Add tiles' })).toBeInTheDocument()
+  })
+})
