@@ -1,0 +1,6 @@
+{
+  "name": "automata",
+  "description": "Automata Framework's skills and check hooks for coding agents.",
+  "owner": { "name": "mcthaydt" },
+  "plugins": [{ "name": "automata", "source": "./" }]
+}
