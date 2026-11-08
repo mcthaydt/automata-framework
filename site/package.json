@@ -16,7 +16,7 @@
     "e2e:playground": "node playground/feasibility-server.ts",
     "e2e:playground-frame": "vite build -c playground/vite.config.ts && node playground/frame-server.ts",
     "test:e2e:playground": "playwright test -c playground/playwright.config.ts",
-    "lighthouse": "lhci autorun --config=lighthouserc.json"
+    "lighthouse": "lhci autorun --config=lighthouserc.cjs"
   },
   "dependencies": {
     "@babel/parser": "8.0.10",
