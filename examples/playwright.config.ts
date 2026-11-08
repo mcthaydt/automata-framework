@@ -28,6 +28,7 @@ const compact = { ...sizes.compact, ...PIXEL_RATIO }
 
 const MATRIX_SPEC = 'input-matrix.test.ts'
 const THREE_D = ['**/render3d-*.test.ts', '**/figures-*.test.ts']
+const RUNNER_TESTS = '../tooling/examples-runner/tests/e2e'
 const PLAYGROUND = 'playground-*.test.ts'
 
 // The input × form-factor matrix (M4.10, M4 spec §9.1): a project per cell, in the cell's engine and viewport, with a
@@ -52,14 +53,9 @@ export default defineJourneys({
     { name: 'examples', testDir: 'tests/e2e', testIgnore: [MATRIX_SPEC, ...THREE_D], use: phone },
     { name: 'examples-compact', testDir: 'tests/e2e', testIgnore: [MATRIX_SPEC, ...THREE_D], use: compact },
     // The runner's own stub example under the same fake host, and its index page (tooling/examples-runner). The
-    // playground journeys in that folder need the playground's servers, so they run from the runner's own config.
-    { name: 'runner', testDir: '../tooling/examples-runner/tests/e2e', testIgnore: PLAYGROUND, use: phone },
-    {
-      name: 'runner-compact',
-      testDir: '../tooling/examples-runner/tests/e2e',
-      testIgnore: PLAYGROUND,
-      use: compact,
-    },
+    // playground journeys beside them need the playground servers, which only the runner's own config starts.
+    { name: 'runner', testDir: RUNNER_TESTS, testIgnore: PLAYGROUND, use: phone },
+    { name: 'runner-compact', testDir: RUNNER_TESTS, testIgnore: PLAYGROUND, use: compact },
     // The feature demos on Emberwick, each under the shared fake host (tooling/examples-runner/host).
     { name: 'demos', testDir: 'content', testMatch: '*/tests/e2e/*.test.ts', use: devices['Pixel 7'] },
     { name: 'ui-primitives', testDir: 'ui/primitives/tests/e2e', use: devices['Pixel 7'] },

@@ -34,8 +34,8 @@ describe('Home (editor suite spec §5 flow 2, §9 suite-home, §11)', () => {
     const state = homeOf(loadEditorList(fixture('platformer')), new Map([['tuner', [tuning]]]), empty)
     if (state.kind !== 'cards') throw new Error(state.kind)
     expect(state.cards.map((card) => [card.editor, card.label, card.entry])).toEqual([
-      ['tuner', 'Tuner', 'tuner'],
-      ['levels-2d', 'Levels 2D', 'levels'],
+      ['tuner', 'Tuner', undefined],
+      ['levels-2d', 'Levels 2D', undefined],
     ])
     expect(state.cards[0]?.files).toEqual([tuning])
     expect(state.cards[1]?.files).toEqual([])
@@ -55,7 +55,7 @@ describe('Home (editor suite spec §5 flow 2, §9 suite-home, §11)', () => {
     ])
   })
 
-  it('EDS-l: marks Feel not installed in the free build, with the package that provides it', () => {
+  it('EDS-l: marks Feel not installed, naming no package', () => {
     const list =
       'format = "af-editors/1"\n[[file]]\nglob = "content/feel.toml"\neditor = "feel"\nmodes = ["edit"]\ngates = []\nchecks = []\n'
     const tuner = { id: 'tuner' } as never
@@ -64,12 +64,13 @@ describe('Home (editor suite spec §5 flow 2, §9 suite-home, §11)', () => {
     expect(state.cards[0]).toMatchObject({
       editor: 'feel',
       label: 'Feel',
+      entry: undefined,
       installed: false,
-      provider: 'editor-plus',
     })
+    expect(state.cards[0]).not.toHaveProperty('provider')
   })
 
-  it('marks an id no entry knows as not installed, by its id, with no provider', () => {
+  it('marks an id no editor has as not installed, by its id', () => {
     const list =
       'format = "af-editors/1"\n[[file]]\nglob = "x.toml"\neditor = "maps"\nmodes = ["edit"]\ngates = []\nchecks = []\n'
     const state = homeOf(loadEditorList(list), new Map(), empty)
@@ -80,17 +81,19 @@ describe('Home (editor suite spec §5 flow 2, §9 suite-home, §11)', () => {
       entry: undefined,
       installed: false,
     })
-    expect(state.cards[0]?.provider).toBeUndefined()
   })
 
-  it('marks an editor the suite was given as installed', () => {
+  it('marks an editor the suite was given as installed, with its own label and its rail entry', () => {
     const state = homeOf(
       loadEditorList(fixture('platformer')),
       new Map(),
-      createSuite({ editors: [{ id: 'tuner' } as never] }),
+      createSuite({ editors: [{ id: 'tuner', label: 'Tuner' } as never] }),
     )
     if (state.kind !== 'cards') throw new Error(state.kind)
-    expect(state.cards.map((card) => card.installed)).toEqual([true, false])
+    expect(state.cards.map((card) => [card.installed, card.entry])).toEqual([
+      [true, 'tuner'],
+      [false, undefined],
+    ])
   })
 
   it('EDS-m: a row without gates gives the problems, with that row key path, and no cards', () => {

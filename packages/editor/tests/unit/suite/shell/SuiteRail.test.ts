@@ -3,9 +3,15 @@ import { render, screen } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import SuiteRail from '#src/features/suite/shell/SuiteRail.svelte'
-import { SUITE_ENTRIES } from '#src/features/suite/shell/suite-entries.ts'
+import { type SuiteEntry, suiteEntries } from '#src/features/suite/shell/suite-entries.ts'
 
-// The switcher: nine tabs, one tab stop, arrows within it, Cmd or Ctrl 1 to 9 from anywhere.
+// The switcher: one tab per entry, one tab stop, arrows within it, Cmd or Ctrl 1 to 9 from anywhere. These tests use
+// nine entries, as many as the shortcuts reach; the 2D suite page has two.
+const NAMES = ['Tuner', 'Studio', 'Audio', 'Feel', 'Writer', 'Schematic', 'Sequence', 'Levels']
+const SUITE_ENTRIES: readonly SuiteEntry[] = suiteEntries(
+  NAMES.map((label) => ({ id: label.toLowerCase(), label })),
+  true,
+)
 const tabs = () => screen.getAllByRole('tab')
 
 describe('SuiteRail', () => {
@@ -84,6 +90,26 @@ describe('SuiteRail', () => {
     expect(onselect).toHaveBeenLastCalledWith('tuner')
     onselect.mockClear()
     await userEvent.keyboard('{Meta>}0{/Meta}9')
+    expect(onselect).not.toHaveBeenCalled()
+  })
+
+  it('with two entries, Cmd 1 and 2 choose them and Cmd 3 does nothing', async () => {
+    const onselect = vi.fn()
+    const two = suiteEntries(
+      [
+        { id: 'tuner', label: 'Tuner' },
+        { id: 'levels-2d', label: 'Levels 2D' },
+      ],
+      false,
+    )
+    render(SuiteRail, { entries: two, current: undefined, orientation: 'vertical', onselect })
+    expect(tabs().map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels 2D'])
+    await userEvent.keyboard('{Meta>}2{/Meta}')
+    expect(onselect).toHaveBeenLastCalledWith('levels-2d')
+    await userEvent.keyboard('{Meta>}1{/Meta}')
+    expect(onselect).toHaveBeenLastCalledWith('tuner')
+    onselect.mockClear()
+    await userEvent.keyboard('{Meta>}3{/Meta}')
     expect(onselect).not.toHaveBeenCalled()
   })
 })

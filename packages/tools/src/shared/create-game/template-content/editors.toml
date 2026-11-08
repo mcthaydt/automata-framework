@@ -1,0 +1,11 @@
+format = "af-editors/1"
+
+# What `automata editor` opens. The level is a level project the 2D editor edits; Save also writes the game's files
+# into `exports` (project.toml, world.toml, levels/<id>.toml), which the game reads.
+[[file]]
+glob = "content/levels/*.af2d.json"
+editor = "levels-2d"
+modes = ["edit"]
+exports = "content"
+gates = []
+checks = ["content"]

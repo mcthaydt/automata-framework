@@ -24,12 +24,13 @@ export interface OpenedSuite {
   close(): Promise<void>
 }
 
-/** Open the suite with `editors` over `files` at `size`, switch to the Levels tab and wait for `ready` to appear. */
+/** Open the suite with `editors` over `files` at `size`, choose the rail's `entry` tab and wait for `ready` to appear. */
 export async function openSuite(
   size: EditorSize,
   editors: SuiteEditor<unknown>[],
   files: Record<string, string>,
   ready: string,
+  entry: string,
 ): Promise<OpenedSuite> {
   await page.viewport(size.width, size.height)
   const conditions = publishConditions(document.documentElement, size, REST)
@@ -42,7 +43,7 @@ export async function openSuite(
     suite: createSuite({ editors }),
   })
   await settleLayout()
-  tab('Levels').click()
+  tab(entry).click()
   await expect.poll(() => document.querySelector(ready)).not.toBeNull()
   await settleLayout()
   return {

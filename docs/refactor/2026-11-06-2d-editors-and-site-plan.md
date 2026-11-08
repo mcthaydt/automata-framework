@@ -645,14 +645,14 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
   `packages/tools/tests/unit/shared/create-game/create-game.test.ts`, the template's own
   `tests/unit/level/read-level.test.ts`, the stranger's journey
 
-- [ ] **Step 1: Failing tests.** (a) `write-template-content.ts --check` regenerates the four game files from
+- [x] **Step 1: Failing tests.** (a) `write-template-content.ts --check` regenerates the four game files from
   `start.af2d.json` with `@mcthaydt/automata-editor/level-export` and they equal the checked-in ones. (b)
   `createGame` writes `content/editors.toml` and the five content files. (c) The existing `create-game` journey sees a
   wall where the level has one (read through the template's test hook) and still boots.
-- [ ] **Step 2:** Make the starter level in the editor's platformer template (one level, a floor, two platforms, a
+- [x] **Step 2:** Make the starter level in the editor's platformer template (one level, a floor, two platforms, a
   player start), write its game files with the script, and the template's sim reading them through `intGridRows`
   and `entitiesOf`.
-- [ ] **Step 3:** The stranger's journey and `pnpm --filter @mcthaydt/automata-tools test:e2e` (Chromium) pass, and
+- [x] **Step 3:** The stranger's journey and `pnpm --filter @mcthaydt/automata-tools test:e2e` (Chromium) pass, and
   `automata check` on the untouched game runs the `levels` step and passes. Changeset `patch`:
   "`create-game` starts every game with a level you can open in the editor." Commit, mark the PR ready.
   `feat(create-game): a new game has a level and an editor list`
@@ -672,11 +672,11 @@ The 2D-only page itself was written in task 4.2 step 4. The scan runs in `-tools
 editor's: the editor cannot run a `-tools` bin, because `-tools` depends on the editor (its editor list, its level
 export and its 2D build) and the reverse would be a dependency cycle.
 
-- [ ] **Step 1: Failing test:** `copy-editor` fails on a planted `dist/suite` chunk carrying a `PIXI3D_MARKERS` string.
-- [ ] **Step 2:** `pnpm --filter @mcthaydt/automata-tools build` (which builds the editor first) → both editor builds
+- [x] **Step 1: Failing test:** `copy-editor` fails on a planted `dist/suite` chunk carrying a `PIXI3D_MARKERS` string.
+- [x] **Step 2:** `pnpm --filter @mcthaydt/automata-tools build` (which builds the editor first) → both editor builds
   scanned clean. `pnpm --filter @mcthaydt/automata-editor-3d build` → its `suite/` holds the beta and is not scanned
   (it is not shipped; its Vite config's comment says so).
-- [ ] **Step 3: Commit.** `test(suite): the editor package's suite build is scanned for the closed beta`
+- [x] **Step 3: Commit.** `test(suite): the editor package's suite build is scanned for the closed beta`
 
 ### Task 8.2: The suite opens the checkout; the rail lists what is there
 
@@ -685,11 +685,11 @@ export and its 2D build) and the reverse would be a dependency cycle.
   `packages/editor/src/features/suite/shell/{suite-entries.ts,SuiteRail.svelte,Home.svelte,home-model.ts}`
 - Test: `packages/editor/tests/unit/suite/{suite-entries.test.ts,home-model.test.ts,boot.test.ts}`
 
-- [ ] **Step 1: Failing tests.** With two registered editors the rail has two entries and Cmd 1 and 2; Cmd 3 does
+- [x] **Step 1: Failing tests.** With two registered editors the rail has two entries and Cmd 1 and 2; Cmd 3 does
   nothing. No card says "Plus" or a package name. The boot uses the HTTP ports when `/api/ping` answers and the sample
   only when it does not.
-- [ ] **Step 2:** Implement: `SUITE_ENTRIES` becomes the registered list's order. Delete the not-built card.
-- [ ] **Step 3:** `pnpm check`; the editor's Chromium browser tests pass. Commit, mark ready.
+- [x] **Step 2:** Implement: `SUITE_ENTRIES` becomes the registered list's order. Delete the not-built card.
+- [x] **Step 3:** `pnpm check`; the editor's Chromium browser tests pass. Commit, mark ready.
   `fix(suite): open the game it is served on and list only its editors`
 
 ---
@@ -1656,3 +1656,69 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   project's `content` folder, and the packed tarball is under a 3 MB budget (it measured 773 kB). The smoke passes from
   packs: 17 steps, including the stranger's game booting in Chromium under Ruken's CSP.
 - Changeset `editor-in-tools`.
+
+### 2026-11-06, session 6: phase 7, task 7.3
+
+- **The starter level.** `packages/tools/src/shared/create-game/template-content/` holds `editors.toml` (one
+  `levels-2d` row, `exports = "content"`), `levels/start.af2d.json` (the editor's platformer template: one 512 × 288
+  level on a 16 px grid, the template's two-row floor, two six-cell platforms and the player start) and the game files
+  the editor's Save writes from it (`project.toml`, `world.toml`, `levels/start.toml`). `scripts/write-template-content.ts`
+  makes those three with `@mcthaydt/automata-editor/level-export` (`--check` lists any that differ); the plan said "four
+  game files", the export writes three and `editors.toml` is written by hand. `template-content.ts` reads the folder
+  next to itself; the build copies it to `dist/template-content/` (tsdown `copy`), next to the bundle.
+- **The template game.** A new `src/features/level/` (`read-level.ts` reads the walls and start through `intGridRows` and
+  `entitiesOf`; `walls.ts` is the sim's wall test, the level's edge counting as a wall; `level.ts` reads the compiled
+  level from `virtual:automata/content`; `level.view.ts` draws the walls with the draw layer; `compiled-content.d.ts`
+  types the virtual module so a fresh game type-checks before its first build). The square starts on the player start,
+  moves one axis at a time and stops at walls; the sim gets the level as `content.sim` beside `defaultContent()`. The
+  game's size is the level's. `vite.config.ts` adds `automataContent({ schemas: level2dKinds() })`, `package.json`
+  depends on `-content`, `.gitignore` ignores `content/generated/`, the README says where the level is and how to open
+  it. **Deviation 88:** the level feature's files went to `template-level.ts`, so `template-game.ts` stays under 300 lines.
+- **Tests.** `template-content.test.ts` (the export does not drift; the level is a floor, two platforms and one start on
+  the floor; a new game passes `levelsStep` as made); `template.test.ts` and `create-game.test.ts` updated (the file
+  list, the content files, the plugin, the dependency, the gitignore). The template's own tests: `read-level.test.ts`
+  and a "stops at the floor" case in `square-move.test.ts`. The stranger's journey holds Down on the start and checks
+  the square did not move, after a move right that proves the frames were drawn.
+- **Gates.** `-tools` unit 851 (835 before); `pnpm check` exit 0; the stranger's journey passes in Chromium (49 s:
+  install, `pnpm check` with the `levels` step, `pnpm test`, play, itch.io zip). Changeset `create-game-level`.
+  WebKit, Firefox and hosted CI not run.
+
+### 2026-11-06, session 6 (continued): phase 8, task 8.1
+
+- Steps 1 and 2 were already in the tree: task 4.2 made the 2D-only `suite.html` and the `--mode suite` build, and
+  task 7.2's `copy-editor.test.ts` has the planted-marker case for `dist/suite` (6 tests pass). Verified here: the
+  `-tools` build scanned the editor's `2d` and `suite` builds clean (`findPixi3d`: 0 and 0); `editor-3d`'s build
+  (`pnpm build`, both pages) holds the beta (2 findings in `dist/suite`) and is not scanned or shipped, which its
+  `vite.config.ts` comment now says. The suite page's `main.ts` comment says why only these two editors.
+  **Deviation 89:** no new test; the step-1 test existed (task 7.2).
+
+### 2026-11-06, session 6 (continued): phase 8, task 8.2
+
+- **The rail.** `SUITE_ENTRIES` and `PROVIDERS` are gone: `suiteEntries(editors, review)` makes one entry per editor the
+  page registers, in its order, each opening only itself, then Review when the ports have a change set. On the 2D page
+  served by `automata editor` the rail is `Tuner`, `Levels 2D`; Cmd 1 and 2 choose them and Cmd 3 does nothing (a
+  `SuiteRail` test). **Deviation 90:** the plan's "two registered editors, two entries" holds where there are no change
+  sets; with the sample game's change set Review stays as a third entry, because it is the only way to its desk, and
+  Review, Ship and the checks are wired in the 3D slice (spec 3.4, E6). The single `Levels` entry for both level editors
+  is gone with it: `editor-3d`'s suite page now has `Levels 2D` and `Levels 3D` tabs (its tests updated).
+- **Home.** No card or import message names a package or Plus: a card for an editor the build lacks says
+  "<Name> isn't in this build. Its files open read only." (copy table rows added). `EditorCard.provider` and the
+  `provider` options of the suite session and `planImport` are deleted; an installed editor's card takes its label and
+  its rail entry from the editor itself.
+- **Opening the checkout.** `openSuitePorts` (`features/suite/shell/open-suite-ports.ts`) asks the page's origin for
+  `/api/ping`; when an editor server answers, the ports are the memory ports over the kit's HTTP store (the list read
+  from the checkout, no change sets), otherwise the sample game. The ping and token code moved out of
+  `openServedWorkspace` into `openServedStore` in the kit's `workspace.ts`, which both the 2D editor and the suite use.
+- **Two bugs found by trying it on Emberwick** (`automata editor games/emberwick --app-dir packages/editor/dist/suite`):
+  (1) the suite builds of both packages wrote `suite.html` and no `index.html`, so no suite build could be served: the
+  `suite-page-is-index` plugin renamed a bundle key the bundler ignores. It now renames the written file
+  (`writeBundle`). (2) The server refused to read `content/editors.toml` (the list is `never` written, and the read rule
+  followed the write rule), so the served suite could not start. `editorPolicy` now always lets the list be read, also
+  when it does not load, so the suite can show its problem; two tests. After both, the page shows `Tuner` and
+  `Levels 2D`, no "Sample game", and Levels 2D lists `content/rooms/room-1.af2d.json`. **For the build audit:** that card
+  also lists the three exported game files, because the `exports` row matches them (task 6.1); opening them from the
+  card is the level editor's call to make.
+- **Gates.** `pnpm check` exit 0 (the editor's API report regenerated for `openSuite`'s new `entry`); editor unit 3,245; editor Chromium browser projects 527
+  pass, 6 skipped; `editor-3d` suite DOM and Chromium layout tests pass; `-tools` editor tests 48. WebKit, Firefox and
+  hosted CI not run.
+

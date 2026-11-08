@@ -65,7 +65,8 @@ export function targetDependencies(targets: readonly DistTarget[]): {
 
 /** What each target's packaging writes beside the source: ship's itch zip, its Tauri project and the bundles. */
 export function targetGitignore(targets: readonly DistTarget[]): string {
-  const lines = ['node_modules/', 'dist/']
+  // `content/generated/` is what the content plugin compiles from `content/` on every dev start and build.
+  const lines = ['node_modules/', 'dist/', 'content/generated/']
   if (targets.includes('itch')) lines.push('*-itch.zip')
   if (targets.includes('tauri')) lines.push('.automata/', 'dist-tauri/')
   return `${lines.join('\n')}\n`
@@ -101,6 +102,9 @@ export function targetReadme(title: string, targets: readonly DistTarget[]): str
 ## Where things are
 
 - \`src/features/square/\`: the square and how it moves. One folder for each thing in your game.
+- \`src/features/level/\`: how the game reads its level: the walls the square stops at, and where it starts.
+- \`content/levels/start.af2d.json\`: the level. \`pnpm exec automata editor\` opens it in the level editor; press Save
+  and the game plays the new level.
 - \`src/shared/constants.ts\`: numbers the game uses in more than one place.
 - \`src/app/game.ts\`: where the game is put together (the controls, the screen size).
 - \`tests/\`: tests. \`pnpm test\` runs them, and \`pnpm check\` runs every check a game has to pass before it is published.

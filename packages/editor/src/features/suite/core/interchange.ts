@@ -132,8 +132,6 @@ export interface PlanImportOptions {
   readonly read: (path: string) => Promise<{ readonly text: string; readonly mtime: number } | undefined>
   /** The editor ids this build has. */
   readonly installed: readonly string[]
-  /** The package that brings an editor, named when it is not installed. */
-  readonly provider?: ((editor: string) => string | undefined) | undefined
   /** The dotted keys the person locked in a file this session (EDS-D18). */
   readonly locked: (path: string) => readonly string[]
 }
@@ -240,9 +238,7 @@ export async function planImport(text: string, options: PlanImportOptions): Prom
   const refused: PlanRefusal[] = []
   for (const editor of Object.keys(interchange.sections).sort()) {
     if (!options.installed.includes(editor)) {
-      const provider = options.provider?.(editor)
-      const why = provider === undefined ? 'editor not installed' : `editor not installed (${provider})`
-      refused.push({ editor, reason: 'not-installed', why })
+      refused.push({ editor, reason: 'not-installed', why: 'editor not installed' })
       continue
     }
     const section = interchange.sections[editor] ?? {}

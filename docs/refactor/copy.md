@@ -39,6 +39,10 @@ Every player-facing string of core and Emberwick, checked against the four quest
 | `automata editor --help`, first line | `Opens an editor on the game in <folder>` | `Opens the level editor on the game in <folder>` | 1 (which editor?) |
 | `automata editor --app 3d`, in a published copy | (a missing-build error about pnpm) | `The 3D editor is not in this release yet.` | 2 (the pnpm line is for the repository's developers) |
 | `automata editor --help`, with no editor list | `(or the .json files, if there is none)` | `Without content/editors.toml, it opens only level files (*.af2d.json).` | 1 (which .json files?) |
+| Suite Home, the card of an editor this build does not have | `Feel isn't in this build. It comes with the Plus editors (editor-plus). Its files open read only.` | `Feel isn't in this build. Its files open read only.` | 4 ("Plus", a package name) and 2 (there is no such package to get) |
+| Suite rail | nine tabs: `Tuner`, `Studio`, `Audio`, `Feel`, `Writer`, `Schematic`, `Sequence`, `Levels`, `Review` | the page's editors, by their own names (`Tuner`, `Levels 2D`), and `Review` when there are change sets | 1 (seven of the nine opened nothing) |
+| Suite import, a section for an editor this build does not have | `editor not installed (editor-plus)` | `editor not installed` | 4 (a package name) |
+| Suite page, served by `automata editor` | `Sample game` in the top bar, always | the game's own files; `Sample game` only when no editor server answers | 1 (it said sample on a real game) |
 
 ## Kept, with the reason
 

@@ -42,14 +42,18 @@ describe('Suite Home', () => {
     const tuner = await screen.findByRole('region', { name: 'Tuner' })
     expect(within(tuner).getByRole('button', { name: /content\/tuning\.toml/ })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Levels 2D' })).toBeInTheDocument()
-    expect(screen.getAllByRole('tab')).toHaveLength(9)
+    // No editor is registered here, so the rail has only Review (the sample has change sets).
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent?.trim())).toEqual(['Review'])
   })
 
-  it('EDS-l: marks Feel not installed with its package, and its file opens read only', async () => {
+  it('EDS-l: marks Feel not in this build, naming no package, and its file opens read only', async () => {
     await start({ [EDITOR_LIST_PATH]: feelList, 'content/feel.toml': '[limits]\nshake = 0.4\n' })
     const feel = await screen.findByRole('region', { name: 'Feel' })
     expect(within(feel).getByText('Not in this build')).toBeInTheDocument()
-    expect(within(feel).getByText(/comes with the Plus editors \(editor-plus\)/)).toBeInTheDocument()
+    expect(
+      within(feel).getByText(/Feel isn't in this build\. Its files open read only\./),
+    ).toBeInTheDocument()
+    expect(within(feel).queryByText(/Plus|editor-plus|package/)).toBeNull()
     await userEvent.click(within(feel).getByRole('button', { name: /content\/feel\.toml/ }))
     const source = await screen.findByRole('region', { name: 'content/feel.toml' })
     expect(within(source).getByText('Read only')).toBeInTheDocument()
@@ -83,22 +87,24 @@ describe('Suite Home', () => {
 })
 
 describe('Suite entries', () => {
-  it("an entry's page lists its cards; Review opens the desk; Home brings the cards back", async () => {
+  it('Review opens the desk; Home brings the cards back', async () => {
     await start(SAMPLE_GAME)
-    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
-    expect(screen.getByRole('tab', { name: 'Levels' })).toHaveAttribute('aria-selected', 'true')
-    expect(screen.getByRole('region', { name: 'Levels 2D' })).toBeInTheDocument()
-    expect(screen.queryByRole('region', { name: 'Tuner' })).toBeNull()
-    await userEvent.click(screen.getByRole('tab', { name: 'Review' }))
+    await userEvent.click(await screen.findByRole('tab', { name: 'Review' }))
     expect(await screen.findByTestId('review-desk')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Home' }))
     expect(screen.getByRole('region', { name: 'Tuner' })).toBeInTheDocument()
   })
 
-  it('an entry the list names no files for says so', async () => {
-    await start(SAMPLE_GAME)
-    await userEvent.click(await screen.findByRole('tab', { name: 'Studio' }))
-    expect(screen.getByText(/names no files for Studio/)).toBeInTheDocument()
+  it('lists only the registered editors, then Review', async () => {
+    const editor = (id: string, label: string) =>
+      ({ id, label, open: async () => ({}), regions: {} }) as unknown as SuiteEditor<unknown>
+    await start(SAMPLE_GAME, [editor('tuner', 'Tuner'), editor('levels-2d', 'Levels 2D')])
+    await screen.findByRole('region', { name: 'Tuner' })
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent?.trim())).toEqual([
+      'Tuner',
+      'Levels 2D',
+      'Review',
+    ])
   })
 
   it('opens an installed editor once with its files, fills the regions, and keeps its session across a switch', async () => {
@@ -123,7 +129,7 @@ describe('Suite entries', () => {
     expect((open.mock.calls[0] as unknown[])[0]).toEqual([
       expect.objectContaining({ path: 'content/tuning.toml' }),
     ])
-    await userEvent.click(screen.getByRole('tab', { name: 'Levels' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Review' }))
     expect(screen.queryByText('sliders: tuning session')).toBeNull()
     await userEvent.click(screen.getByRole('tab', { name: 'Tuner' }))
     expect(await screen.findByText('sliders: tuning session')).toBeInTheDocument()

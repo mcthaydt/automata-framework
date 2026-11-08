@@ -24,8 +24,6 @@ export type ShipOutcome = Awaited<ReturnType<ChangeSet['ship']>> | { readonly er
 export interface SuiteSessionOptions {
   /** The editor ids this build has: an import's section for any other is refused as not installed. */
   readonly installed?: readonly string[] | undefined
-  /** The package that brings an editor id. */
-  readonly provider?: ((editor: string) => string | undefined) | undefined
 }
 
 export interface SuiteSession {
@@ -225,7 +223,6 @@ export function createSuiteSession(raw: SuitePorts, options: SuiteSessionOptions
         list: load.list,
         read: (path) => raw.workspace.read(path),
         installed: options.installed ?? [],
-        provider: options.provider,
         locked,
       })
     },

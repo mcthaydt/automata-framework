@@ -57,11 +57,11 @@ const READY = '[data-testid="level-canvas"]'
 
 describe.each(SIZES)('Suite Levels 2D at $name ($width x $height)', (size) => {
   test('fills the one shell: the stage has room, every target 44 px, a Dock toggle below wide', async () => {
-    opened = await openSuite(size, editors(), FILES, READY)
+    opened = await openSuite(size, editors(), FILES, READY, 'Levels 2D')
     const { conditions } = opened
     const surface = inShell('[data-testid="level-surface"]')
     inView(surface, size)
-    expect(checkLayout(conditions, [tab('Levels'), ...dockToggle()])).toEqual([])
+    expect(checkLayout(conditions, [tab('Levels 2D'), ...dockToggle()])).toEqual([])
     if (size.mode !== 'wide') expect(dockToggle()).toHaveLength(1)
     const [toggle] = dockToggle()
     if (toggle?.getAttribute('aria-expanded') === 'true') {
@@ -76,7 +76,7 @@ describe.each(SIZES)('Suite Levels 2D at $name ($width x $height)', (size) => {
   })
 
   test('a rotation keeps the session: the chosen tool is still chosen', async () => {
-    opened = await openSuite(size, editors(), FILES, READY)
+    opened = await openSuite(size, editors(), FILES, READY, 'Levels 2D')
     await page.getByRole('radio', { name: 'Eraser' }).click()
     await expect.poll(() => document.querySelector(READY)?.getAttribute('data-tool')).toBe('eraser')
     await page.viewport(size.height, size.width)

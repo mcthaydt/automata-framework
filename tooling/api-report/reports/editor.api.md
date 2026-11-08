@@ -4528,7 +4528,7 @@ interface OpenedSuite {
 ### `openSuite` (function)
 
 ```ts
-function openSuite(size: EditorSize, editors: SuiteEditor<unknown>[], files: Record<string, string>, ready: string): Promise<OpenedSuite>;
+function openSuite(size: EditorSize, editors: SuiteEditor<unknown>[], files: Record<string, string>, ready: string, entry: string): Promise<OpenedSuite>;
 ```
 
 ### `tab` (function)

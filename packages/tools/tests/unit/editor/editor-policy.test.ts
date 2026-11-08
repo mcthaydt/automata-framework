@@ -45,6 +45,19 @@ describe('editorPolicy with a row that names exports', () => {
     ])
       expect(policy.canWrite(path), path).toBe(false)
   })
+
+  it('reads the list itself, so the suite can show its rules', () => {
+    expect(policy.canRead('content/editors.toml')).toBe(true)
+  })
+})
+
+describe('editorPolicy with a list that does not load', () => {
+  it('reads only the list, so the suite can show its problem, and writes nothing', () => {
+    const policy = editorPolicy('format = "af-editors/2"\n')
+    expect(policy.canRead('content/editors.toml')).toBe(true)
+    expect(policy.canRead('content/tuning.toml')).toBe(false)
+    expect(policy.canWrite('content/editors.toml')).toBe(false)
+  })
 })
 
 describe('editorPolicy with no editor list', () => {
