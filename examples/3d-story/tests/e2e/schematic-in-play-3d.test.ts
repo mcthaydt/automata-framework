@@ -97,7 +97,8 @@ test('Watch: stepping the player into sight lights Hunt on the diagram and logs 
     },
   )
   await editors.keyboard.up('KeyA')
-  await expect(editors.locator('[data-live="true"]').first()).toHaveAccessibleName(/^Hunt, /)
+  // Half a second after it hunts, the guard has caught the player (the log says so too), so the lit box is Hunt or already Catch.
+  await expect(editors.locator('[data-live="true"]').first()).toHaveAccessibleName(/^(Hunt|Catch), /)
   await editors.screenshot({ path: test.info().outputPath('watch-hunt.png') })
 })
 
@@ -184,6 +185,9 @@ test('pointing Patrol to Hunt at Search instead: the guard’s first change is t
   if (!(await to.isVisible())) await editors.getByRole('button', { name: 'Details' }).click()
   await expect(to).toBeVisible()
   await to.selectOption('search')
+  await expect
+    .poll(() => readFileSync(`${root}content/systems/hall.toml`, 'utf8'))
+    .toMatch(/from = "patrol"\s+to = "search"/)
   await editors.screenshot({ path: test.info().outputPath('4-switch-to-search.png') })
   await play(page)
   await page.waitForFunction(

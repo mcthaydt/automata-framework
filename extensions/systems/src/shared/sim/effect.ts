@@ -45,21 +45,53 @@ export function place(w: SystemsWorld, target: string | Point, subject: Subject)
   }
 }
 
-/** The nav node to run to from `source`: far from it, not far from here, reachable and out of the light. */
+/** How near the player a flight may pass, in metres: closer than this it is running at them, not away. */
+export const FLEE_CLEARANCE = 1.5
+
+/** The distance from `p` to the segment a→b. */
+function segmentDistance(a: Point, b: Point, p: Point): number {
+  const dx = b.x - a.x
+  const dz = b.z - a.z
+  const length = dx * dx + dz * dz
+  const t = length === 0 ? 0 : Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.z - a.z) * dz) / length))
+  return dist({ x: a.x + t * dx, z: a.z + t * dz }, p)
+}
+
+/** Whether walking `path` from `from` comes within `FLEE_CLEARANCE` of `source`. */
+function passesNear(from: Point, path: readonly Point[], source: Point): boolean {
+  let last = from
+  for (const next of path) {
+    if (segmentDistance(last, next, source) < FLEE_CLEARANCE) return true
+    last = next
+  }
+  return false
+}
+
+/**
+ * The nav node to run to from `source`: far from it, not far from here, reachable, out of the light, and by a way that
+ * does not pass within `FLEE_CLEARANCE` of it. The farthest place can lie beyond the player; running there is running
+ * into them. Only when every way does (the fleer is cornered) is that rule dropped, and it runs as it always did.
+ */
 export function fleeNode(w: SystemsWorld, id: string, source: Point): Point | null {
   const from = w.at[id] as Point
-  let best: Point | null = null
-  let score = Number.NEGATIVE_INFINITY
+  let clearBest: Point | null = null
+  let clearScore = Number.NEGATIVE_INFINITY
+  let cornered: Point | null = null
+  let corneredScore = Number.NEGATIVE_INFINITY
   for (const nodeId of sortedKeys(w.graph.nodes)) {
     const node = w.graph.nodes[nodeId] as Point
     if (!reachable(w.ctx, nodeId, id) || lit(w, node) !== null) continue
     const s = dist(node, source) - dist(node, from) * 0.35
-    if (s > score) {
-      score = s
-      best = { x: node.x, z: node.z }
+    if (s > corneredScore) {
+      corneredScore = s
+      cornered = { x: node.x, z: node.z }
+    }
+    if (s > clearScore && !passesNear(from, route(from, node, w.graph, w.walk), source)) {
+      clearScore = s
+      clearBest = { x: node.x, z: node.z }
     }
   }
-  return best
+  return clearBest ?? cornered
 }
 
 /** Gives an agent a goal and the route to it from where it stands. */

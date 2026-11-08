@@ -207,6 +207,7 @@ test('pointing the sees-the-player switch at Follow instead: the guard’s first
   if (!(await to.isVisible())) await editors.getByRole('button', { name: 'Details' }).click()
   await expect(to).toBeVisible()
   await to.selectOption('follow')
+  await expect.poll(() => readFileSync(root + GUARD_FILE, 'utf8')).toMatch(/from = "\*"\s+to = "follow"/)
   await editors.screenshot({ path: test.info().outputPath('4-switch-to-follow.png') })
   await play(page)
   await page.waitForFunction(

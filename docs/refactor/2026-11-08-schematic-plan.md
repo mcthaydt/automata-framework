@@ -370,3 +370,34 @@ template's controls. It moves no other 3D hash, golden or replay.
   `style` or `boundaries` (it has `.view.ts`, `.extensions.ts` and a `.system.ts` with no system). `pnpm api-index
   --write` fails here on two undocumented exports it does not own (`Picture`, `PROMPT_COPY`), so the cheatsheet is not
   updated. Not run: WebKit, Firefox, the GPU runner, parity.
+- 2026-11-08, fixes for the fixes audit (Sonnet, inline), on #497. Each was written test first.
+  F1 (the "Boxes and closed doors block its view" setting did nothing: sectors' and level-2d's `sight` are their `walk`):
+  Schematic now says "Walls and closed doors block its view" and offers no box setting; `wallsOnly` is kept when the range
+  changes; both providers are pinned in `sight-boxes.test.ts` and `systems-2d.test.ts`. F2 (Watch in the 2D story): the story
+  installs the debug extension and `examples/2d-story/src/app/step-bus.ts` feeds the bus's `sim.step` from the renderer's
+  `apply`; a served journey walks into the guard's sight and sees Hunt light and the log line. M2 (Fit shows one box on a
+  phone): not a vertical layout, which was judged too heavy for the size of the problem. The button says "Show the start"
+  when the diagram is wider than the screen and a note says to slide it sideways or read the list; pinned in the layout
+  tests. F4: the 2D story is in `style`, `--test-imports` and `--features` and passes all three (its `features/level` went
+  to `shared/level`, three files were renamed to the role suffixes). L-a to L-e: renaming a place is one whole-table edit that
+  keeps the order, Home's first scene is the game's level name, a flee mode no longer offers the fleer itself, the silent-game
+  hint waits until someone has gone into the game, and the rules page lists the design notes.
+  H2 (the Owner, "A and A": build Fair play for real): `automata editor` serves `POST /api/checks/run` for the ids the
+  editor list declares (argv in the checkout, never a shell; a candidate outside the checkout is an error; the list is
+  read at start and no browser can write it) and says `checks` in the ping; the page declares the list's checks and runs them
+  through the server (`checks-client.ts`, `open-suite-ports.ts`). The 2D story's `fair-play` row runs
+  `examples/2d-story/fair-play/check.mjs`, which loads `scene.ts` (the bots' `SystemsScene` over the story's own sim) in
+  Vite's module runner and prints the share of tries that held for the two scenarios now in `guard.toml`. A served journey:
+  Check now says "Fair: 2 of 2 checks pass"; the guard's sight is cut from 9 to 6 m in Schematic; Check now says "Not fair
+  yet" and names the scenario. Ruling: no `systems.pipe.toml`. The pipelines' `automata-pipe` loads a scene module in plain
+  Node, which cannot read this story's Vite-only content; a file that cannot load would be a lie. The check reads the guard's
+  file as it stands on disk, which is where Schematic writes each change; `candidates` are sent but not read.
+  M9 (the Owner): `fleeNode` now skips a place whose route passes within 1.5 m of what is fled from, and keeps the old rule only
+  when every route does (cornered). `flee.test.ts`: a stub corridor, and the clinic's own sim, where the runner went to
+  0.23 m from the player before and now never nearer than 1.5 m. Not shown in a game made in the editors: the 2D story's
+  one-line level cannot make the runner's farthest place lie past the player unless the coward sees 3 m only and wanders by
+  its stops, so no journey claims it.
+  Two racy journey steps were fixed on the way: the 3D Watch test read the lit box half a second after Hunt, when the guard has
+  already caught the player (it now accepts Hunt or Catch), and the two "point a switch elsewhere" steps played before the
+  file was written (they now wait for the line). Served journeys in Chromium, phone and iPad: 2D 14 of 14, 3D 14 of 14.
+  Not run: WebKit, Firefox, the GPU runner, parity. `pnpm api-index --write` still needs a build here.

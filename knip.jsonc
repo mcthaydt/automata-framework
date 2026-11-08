@@ -42,9 +42,9 @@
       "playwright": false
     },
     // The stories' ship.config.ts is read by `automata ship` by path; the 3D story's journeys are named by its config.
-    // `fair-play/check.mjs` is the editor list's `fair-play` check, run by path.
+    // `fair-play/` is the editor list's `fair-play` check: `check.mjs` is run by path and loads the rest by string.
     "examples/2d-story": {
-      "entry": ["ship.config.ts", "playwright.config.ts", "tests/e2e/*.test.ts", "fair-play/check.mjs"],
+      "entry": ["ship.config.ts", "playwright.config.ts", "tests/e2e/*.test.ts", "fair-play/*"],
       "playwright": false
     },
     "examples/3d-story": {
