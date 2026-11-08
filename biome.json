@@ -32,7 +32,9 @@
         "extensions/narrative/**",
         "extensions/puzzle/**",
         "extensions/systems/**",
-        "extensions/cutscenes/**"
+        "extensions/cutscenes/**",
+        "extensions/editors/src/features/schematic/**",
+        "extensions/editors/tests/unit/schematic/**"
       ],
       "linter": { "rules": { "suspicious": { "noThenProperty": "off" } } }
     },

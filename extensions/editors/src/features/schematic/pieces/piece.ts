@@ -81,3 +81,23 @@ export function valueWords(value: unknown): string {
   if (typeof value === 'number') return num(value)
   return `“${String(value)}”`
 }
+
+export const YES_NO = [
+  { value: 'yes', label: 'yes' },
+  { value: 'no', label: 'no' },
+]
+
+/** The field for a fact's value: yes or no, a number, or text, as the value is now. */
+export function valueField(key: string, label: string, value: boolean | number | string): Field {
+  if (typeof value === 'boolean')
+    return { key, label, kind: 'choice', value: value ? 'yes' : 'no', options: YES_NO }
+  if (typeof value === 'number') return { key, label, kind: 'number', min: -1000, max: 1000, step: 1, value }
+  return { key, label, kind: 'text', value }
+}
+
+/** `next` from a field, in the type of the `current` value. */
+export function valueFrom(current: boolean | number | string, next: unknown): boolean | number | string {
+  if (typeof current === 'boolean') return next === 'yes' || next === true
+  if (typeof current === 'number') return Number(next)
+  return String(next)
+}

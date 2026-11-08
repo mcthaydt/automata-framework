@@ -3,7 +3,18 @@
 // `self.blocked`, `pursuit.hidden`, a character's own notes) are pieces of their own, so they read as what they mean.
 import { type Probe, probeSchema } from '@automata/systems/sim'
 import type { Field } from '../../../shared/fields.ts'
-import { hasShape, modeWords, type Names, num, type Piece, spaced, valueWords } from './piece.ts'
+import {
+  hasShape,
+  modeWords,
+  type Names,
+  num,
+  type Piece,
+  spaced,
+  valueField,
+  valueFrom,
+  valueWords,
+  YES_NO,
+} from './piece.ts'
 
 const isProbe = (value: unknown): value is Probe => probeSchema.safeParse(value).success
 
@@ -27,11 +38,6 @@ export function choices(
   const all = list.includes(current) || current === '' ? list : [...list, current]
   return all.map((value) => ({ value, label: words(value) }))
 }
-
-const YES_NO = [
-  { value: 'yes', label: 'yes' },
-  { value: 'no', label: 'no' },
-]
 
 /** The piece for a probe's kind, or `undefined` for a kind the table lacks. */
 export function conditionPiece(probe: unknown): Piece<Probe> | undefined {
@@ -243,21 +249,6 @@ const hidden: Piece<FactProbe> = {
   fresh: () => ({ fact: 'pursuit.hidden', is: '' }),
 }
 
-/** The value field of a fact: yes or no, a number, or text, as the value is now. */
-function valueField(value: FactProbe['is']): Field {
-  if (typeof value === 'boolean')
-    return { key: 'is', label: 'Is', kind: 'choice', value: value ? 'yes' : 'no', options: YES_NO }
-  if (typeof value === 'number')
-    return { key: 'is', label: 'Is', kind: 'number', min: -1000, max: 1000, step: 1, value }
-  return { key: 'is', label: 'Is', kind: 'text', value }
-}
-
-function writeValue(value: FactProbe, next: unknown): FactProbe {
-  if (typeof value.is === 'boolean') return { ...value, is: next === 'yes' || next === true }
-  if (typeof value.is === 'number') return { ...value, is: Number(next) }
-  return { ...value, is: String(next) }
-}
-
 const own: Piece<FactProbe> = {
   kind: 'own',
   group: 'true',
@@ -267,13 +258,13 @@ const own: Piece<FactProbe> = {
   words: (value) => `its own “${spaced(value.fact.slice(5))}” is ${valueWords(value.is)}`,
   fields: (value) => [
     { key: 'name', label: 'Its own note', kind: 'text', value: value.fact.slice(5) },
-    valueField(value.is),
+    valueField('is', 'Is', value.is),
   ],
   write: (value, key, next) =>
     key === 'name'
       ? { ...value, fact: `self.${String(next)}` }
       : key === 'is'
-        ? writeValue(value, next)
+        ? { ...value, is: valueFrom(value.is, next) }
         : value,
   fresh: () => ({ fact: 'self.seen', is: true }),
 }
@@ -293,10 +284,14 @@ const fact: Piece<FactProbe> = {
       value: value.fact,
       options: choices(names.facts, value.fact, spaced),
     },
-    valueField(value.is),
+    valueField('is', 'Is', value.is),
   ],
   write: (value, key, next) =>
-    key === 'fact' ? { ...value, fact: String(next) } : key === 'is' ? writeValue(value, next) : value,
+    key === 'fact'
+      ? { ...value, fact: String(next) }
+      : key === 'is'
+        ? { ...value, is: valueFrom(value.is, next) }
+        : value,
   fresh: (names) => ({ fact: names.facts[0] ?? 'alarm', is: true }),
 }
 
