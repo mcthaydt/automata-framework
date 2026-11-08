@@ -21,8 +21,6 @@ export {
   createMemoryWorkspace,
   type MemoryWorkspaceOptions,
 } from '../../features/suite/memory/memory-workspace'
-export { createScriptedAsk, type ScriptedAsk } from '../../features/suite/memory/scripted-ask'
-export { type AskScript, describeAskProvider } from './ask-contract'
 export { describeChangeSet } from './change-set-contract'
 export {
   CHECK_FINDING,

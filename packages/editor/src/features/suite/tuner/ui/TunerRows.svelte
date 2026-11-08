@@ -2,7 +2,7 @@
   The Tuner's settings, beside the game: one card per setting, in the file's order, named by its label and what a player
   feels when the file gives them (`shownName`, `shownNote`), else by its name in code and its comment. Each card has
   one control and one read-out: a slider for a number with bounds (its read-out is the value in its unit), a number box
-  for a number without, On or Off for a toggle, a text field for a string; a table or a list says "Ask only". A value outside the
+  for a number without, On or Off for a toggle, a text field for a string; a table or a list says to change it in the file. A value outside the
   bounds is refused before the write, with the bound named. The lock (the lock icon, as a layer's) makes a card refuse
   until it is unlocked. The states without cards: no file (an offer to create it), a file that does not parse (the
   parser's line), and a code-owned game whose bounds the compiler has not written. A setting with a scale is shown and
@@ -112,7 +112,7 @@ const shownOf = (tunable: Tunable) => {
         </div>
         <div class="control">
           {#if !tunable.editable}
-            <span class="ask-only">Ask only: a table or a list is changed with Ask.</span>
+            <span class="in-file">A table or a list: change it in the file.</span>
           {:else if tunable.kind === 'boolean'}
             <Segmented
               label={shown}
@@ -272,7 +272,7 @@ const shownOf = (tunable: Tunable) => {
     color: inherit;
     font: inherit;
   }
-  .ask-only,
+  .in-file,
   .hint,
   .state p {
     margin: 0;

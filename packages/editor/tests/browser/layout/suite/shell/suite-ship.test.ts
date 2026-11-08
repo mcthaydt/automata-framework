@@ -26,7 +26,7 @@ const LIST = `format = "af-editors/1"
 [[file]]
 glob = "${TUNING}"
 editor = "tuner"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = ["g-feel", "g-speed"]
 checks = ["lint"]
 
@@ -82,7 +82,6 @@ async function open(size: EditorSize) {
       },
       'g-speed': { name: 'Speed', decision: 'open', url: 'https://example.com/g-speed' },
     },
-    ask: () => ({ summary: 'Raise the top speed to 8', text: START.replace('= 7', '= 8'), tokens: 640 }),
   })
   const changeSet = memory.ports.changeSet
   await changeSet?.begin('Faster player')

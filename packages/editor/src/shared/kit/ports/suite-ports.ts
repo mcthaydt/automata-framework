@@ -4,7 +4,7 @@
 // adapters are `editor-suite/node`.
 //
 // A missing optional port is the feature off, never an error: no `changeSet` and edits save to the workspace with Ship
-// hidden; no `gates` and the gate pill says "Gates not readable"; no `ask` and there is no Ask button.
+// hidden; no `gates` and the gate pill says "Gates not readable".
 import type { WriteExpectation, WriteResult } from '../storage/project-store.ts'
 
 export interface SuitePorts {
@@ -12,7 +12,6 @@ export interface SuitePorts {
   readonly changeSet?: ChangeSet | undefined
   readonly checks: ChecksRunner
   readonly gates?: Gates | undefined
-  readonly ask?: AskProvider | undefined
 }
 
 /** `edit`: direct value and structure edits; `ask`: the assistant may propose a diff (an editor-list row's `modes`). */
@@ -249,36 +248,4 @@ export interface GateState {
   readonly decision: 'approved' | 'rejected' | 'open' | 'unknown'
   readonly decidedAt?: string | undefined
   readonly url?: string | undefined
-}
-
-/** What the editor tells the assistant beyond the document (the selected tunable, the playhead), as plain data. */
-export type AskContext = Readonly<Record<string, string | number | readonly string[]>>
-
-export interface AskRequest {
-  /** What the person asked for. */
-  readonly prompt: string
-  /** The document's path in the workspace. */
-  readonly path: string
-  /** The ids of the selection the prompt is about. */
-  readonly scope: readonly string[]
-  /** The document as the person sees it now, so the proposal is made against it and not the last save. */
-  readonly document: string
-  /** The tokens the proposal may use: what is left of the change set's cap. */
-  readonly budget: number
-  readonly context?: AskContext | undefined
-}
-
-/** What an assistant proposes for a request: one document, whole (EDS-D9). */
-export interface Proposal {
-  /** One sentence for the person: what the change does. It is the undo label's text. */
-  readonly summary: string
-  /** The whole document as the file would read after the change; the editor reads it with its own codec. */
-  readonly text: string
-  /** The tokens the proposal used. */
-  readonly tokens: number
-}
-
-export interface AskProvider {
-  /** Rejects with the reason when the assistant fails; the document is never touched by the provider. */
-  propose(request: AskRequest): Promise<Proposal>
 }

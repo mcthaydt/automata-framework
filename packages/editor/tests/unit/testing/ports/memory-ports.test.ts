@@ -3,7 +3,6 @@
 // there), so here the workspace gets a small hand-written policy for its fake-only cases.
 import { describe, expect, test } from 'vitest'
 import type { UnlistedFile, WorkspaceFile } from '#src/shared/kit/ports/suite-ports.ts'
-import { describeAskProvider } from '#src/testing/ports/ask-contract.ts'
 import { describeChangeSet } from '#src/testing/ports/change-set-contract.ts'
 import {
   CHECK_FINDING,
@@ -18,7 +17,6 @@ import {
   createMemoryGates,
   createMemoryPorts,
   createMemoryWorkspace,
-  createScriptedAsk,
   type MemoryCheck,
 } from '#src/testing/ports/index.ts'
 
@@ -78,16 +76,6 @@ function memoryCheck({ behaviour, ...def }: ScenarioCheck): MemoryCheck {
 describeChecksRunner('memory', (scenario) => createMemoryChecks(scenario.map(memoryCheck)))
 
 describeGates('memory', (records) => createMemoryGates(records))
-
-describeAskProvider(
-  'scripted',
-  (script) =>
-    createScriptedAsk((request, limits) => {
-      const answer = script(request, limits)
-      if (answer instanceof Error) throw answer
-      return answer
-    }).provider,
-)
 
 describe('memory change set', () => {
   test('names branches `edit/<slug>`, from the base it was given', async () => {
@@ -178,53 +166,25 @@ describe('memory workspace', () => {
 })
 
 describe('createMemoryPorts', () => {
-  test('wires the workspace, the change set, checks, gates and Ask over one journal', async () => {
+  test('wires the workspace, the change set, checks and gates over one journal', async () => {
     const memory = await createMemoryPorts({
       classify,
       gates: { 'S-G1': { name: 'Scene blockout', decision: 'open' } },
-      ask: () => ({ summary: 'Faster', text: 'MAX_MOVE_SPEED = 7.5\n', tokens: 300 }),
     })
-    const { workspace, changeSet, gates, ask, checks } = memory.ports
-    if (changeSet === undefined || ask === undefined || gates === undefined)
-      throw new Error('every port is there')
+    const { workspace, changeSet, gates, checks } = memory.ports
+    if (changeSet === undefined || gates === undefined) throw new Error('every port is there')
     expect(checks.declared()).toEqual([])
     expect(await gates.states(['S-G1'])).toMatchObject([{ decision: 'open' }])
 
     await changeSet.begin('A wave pose')
     await workspace.write(POSE, 'name = "wave"\n', 'absent')
-    const request = { prompt: 'p', path: 'content/tuning.toml', scope: [], document: '', budget: 1000 }
-    await ask.propose(request)
-    await ask.propose(request)
-    expect(await changeSet.list()).toEqual([
-      expect.objectContaining({ created: [POSE], tokens: { used: 600, cap: 200_000 } }),
-    ])
-    expect(memory.ask?.calls).toEqual([request, request])
+    expect(await changeSet.list()).toEqual([expect.objectContaining({ created: [POSE] })])
   })
 
-  test('the Ask spends through ChangeSet.spend, so the cap the person raised stays put', async () => {
-    const memory = await createMemoryPorts({ classify, ask: () => ({ summary: 's', text: '', tokens: 40 }) })
-    const { changeSet, ask } = memory.ports
-    await changeSet?.begin('A')
-    await changeSet?.raiseCap(250_000)
-    await ask?.propose({ prompt: 'p', path: 'a', scope: [], document: '', budget: 100 })
-    expect((await changeSet?.list())?.[0]?.tokens).toEqual({ used: 40, cap: 250_000 })
-  })
-
-  test('without a change set or an assistant, those ports are absent: the features are off', async () => {
+  test('without a change set, that port is absent: the feature is off', async () => {
     const { ports } = await createMemoryPorts({ classify, changeSet: false })
     expect(ports.changeSet).toBeUndefined()
-    expect(ports.ask).toBeUndefined()
     expect(ports.gates).toBeUndefined()
     expect(await ports.workspace.write(POSE, 'x = 1\n', 'absent')).toMatchObject({ ok: true })
-  })
-
-  test('tokens an Ask uses with no change set open are not counted against a later one', async () => {
-    const { ports } = await createMemoryPorts({
-      classify,
-      ask: () => ({ summary: 's', text: '', tokens: 50 }),
-    })
-    await ports.ask?.propose({ prompt: 'p', path: 'a', scope: [], document: '', budget: 100 })
-    await ports.changeSet?.begin('Later')
-    expect((await ports.changeSet?.list())?.[0]?.tokens.used).toBe(0)
   })
 })

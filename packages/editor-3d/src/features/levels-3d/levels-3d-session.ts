@@ -1,4 +1,4 @@
-import type { SuiteAskTarget, SuitePorts, SuiteUndo, WorkspaceFile } from '@automata/editor/kit/ports'
+import type { SuitePorts, SuiteUndo, WorkspaceFile } from '@automata/editor/kit/ports'
 import { ok } from '../../shared/edit/edit'
 import { createLevelEditor, type LevelEditor } from '../../shared/edit/level-editor'
 import type { ParseIssue } from '../../shared/level-session/file-codec'
@@ -9,8 +9,8 @@ import { readLevel } from './document/read-level'
 // editor while the person is elsewhere. It holds the level editor (its history, selection and view: mode, layer and
 // camera), so a switch and return finds them as they were. Each new step is patched into the file's text, byte for
 // byte outside what changed (the codec's `patch`, as the standalone app saves), and written through the suite's
-// workspace, whose write path records it for the top bar's Undo. The session's own undo and redo, and an accepted Ask
-// proposal (which the suite has already written), only move the history and the text it patches from. A step the patch
+// workspace, whose write path records it for the top bar's Undo. The session's own undo and redo only move the history
+// and the text it patches from, because that write path has already put the file back. A step the patch
 // refuses, or a write the workspace refuses, is taken back with the reason. A file that cannot be opened is a state.
 
 export interface Levels3dOptions {
@@ -34,10 +34,8 @@ export interface Levels3dSession {
   text(): string
   /** Resolves once every write started so far has finished. */
   settled(): Promise<void>
-  /** Runs `change` without writing what it does to the history (the suite's Undo and Redo, an accepted Ask). */
+  /** Runs `change` without writing what it does to the history (the suite's Undo and Redo). */
   quietly(change: () => void): void
-  /** Takes `text` (already written) as the level, one undo step labelled `summary`; false when it does not parse. */
-  take(text: string, summary: string): boolean
 }
 
 const encoder = new TextEncoder()
@@ -63,7 +61,6 @@ function failed(
     text: () => '',
     settled: () => Promise.resolve(),
     quietly: (change) => change(),
-    take: () => false,
   }
 }
 
@@ -116,13 +113,6 @@ export async function openLevels3d(
       } finally {
         quiet = was
       }
-    },
-    take(text: string, summary: string) {
-      const parsed = profile.parse(text)
-      if (!parsed.ok) return false
-      session.quietly(() => editor.run({ id: 'suite.ask', label: summary, run: () => ok(parsed.value) }))
-      base = { text, model: parsed.value }
-      return true
     },
   }
 
@@ -177,19 +167,5 @@ export function levels3dUndo(session: Levels3dSession): SuiteUndo {
     undo: () => session.quietly(() => history.undo()),
     redo: () => session.quietly(() => history.redo()),
     subscribe: (listener) => history.subscribe(() => listener()),
-  }
-}
-
-/** The level as Ask sees it: its text, the selection the prompt is about, and the taking of an accepted text. */
-export function levels3dAsk(session: Levels3dSession): SuiteAskTarget {
-  const { state } = session
-  return {
-    path: session.path,
-    text: () => session.text(),
-    scope: () => (state.kind === 'open' ? state.editor.selection.ids : []),
-    locked: () => [],
-    accept: (text, summary) => {
-      session.take(text, summary)
-    },
   }
 }

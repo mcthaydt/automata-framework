@@ -1,7 +1,7 @@
 <!--
   The Levels 3D regions in the editor suite's shell (plan EDS.2d; editor suite spec §4.1, §4.7, EDS-D12): the layers
   list, the Plan view and a status line, each drawn from the level editor the suite keeps, so a switch and return finds
-  the mode, layer, camera and selection as they were. The suite owns the top bar (Undo, Redo and Ask among it); the
+  the mode, layer, camera and selection as they were. The suite owns the top bar (Undo and Redo among it); the
   inspector shows what is selected and how the checks stand.
 -->
 <script module lang="ts">

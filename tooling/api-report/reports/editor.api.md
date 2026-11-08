@@ -3528,33 +3528,6 @@ function valuesWithDefaults(fields: readonly FieldDef[], values: FieldValues): F
 
 ## `./kit/ports`
 
-### `AskContext` (type)
-
-```ts
-type AskContext = Readonly<Record<string, string | number | readonly string[]>>;
-```
-
-### `AskProvider` (interface)
-
-```ts
-interface AskProvider {
-    propose(request: AskRequest): Promise<Proposal>;
-}
-```
-
-### `AskRequest` (interface)
-
-```ts
-interface AskRequest {
-    readonly prompt: string;
-    readonly path: string;
-    readonly scope: readonly string[];
-    readonly document: string;
-    readonly budget: number;
-    readonly context?: AskContext | undefined;
-}
-```
-
 ### `ChangeSet` (interface)
 
 ```ts
@@ -3739,28 +3712,6 @@ interface GateState {
 }
 ```
 
-### `Proposal` (interface)
-
-```ts
-interface Proposal {
-    readonly summary: string;
-    readonly text: string;
-    readonly tokens: number;
-}
-```
-
-### `SuiteAskTarget` (interface)
-
-```ts
-interface SuiteAskTarget {
-    readonly path: string;
-    text(): string;
-    scope(): readonly string[];
-    locked(): readonly string[];
-    accept(text: string, summary: string): void;
-}
-```
-
 ### `SuiteEditor` (interface)
 
 ```ts
@@ -3773,7 +3724,6 @@ interface SuiteEditor<S> {
     readonly regions: SuiteRegions<S>;
     readonly contributions?: readonly ContributionPoint[] | undefined;
     readonly undo?: ((session: S) => SuiteUndo) | undefined;
-    readonly ask?: ((session: S) => SuiteAskTarget) | undefined;
 }
 ```
 
@@ -3785,7 +3735,6 @@ interface SuitePorts {
     readonly changeSet?: ChangeSet | undefined;
     readonly checks: ChecksRunner;
     readonly gates?: Gates | undefined;
-    readonly ask?: AskProvider | undefined;
 }
 ```
 
@@ -3870,14 +3819,6 @@ interface WorkspaceFile {
 
 ## `./kit/ports/testing`
 
-### `AskScript` (type)
-
-```ts
-type AskScript = (request: AskRequest, client: {
-    readonly maxOutputTokens: number;
-}) => Proposal | Error;
-```
-
 ### `CHECK_FINDING` (const)
 
 ```ts
@@ -3936,20 +3877,6 @@ function createMemoryPorts(options: MemoryPortsOptions): Promise<MemoryPorts>;
 
 ```ts
 function createMemoryWorkspace(options: MemoryWorkspaceOptions): Promise<SuiteWorkspace>;
-```
-
-### `createScriptedAsk` (function)
-
-```ts
-function createScriptedAsk(respond: (request: AskRequest, limits: AskClientLimits) => Promise<Proposal> | Proposal, options?: {
-    readonly changeSet?: Pick<ChangeSet, 'current' | 'spend'> | undefined;
-}): ScriptedAsk;
-```
-
-### `describeAskProvider` (function)
-
-```ts
-function describeAskProvider(name: string, make: (script: AskScript) => Promise<AskProvider> | AskProvider): void;
 ```
 
 ### `describeChangeSet` (function)
@@ -4038,7 +3965,6 @@ interface MemoryCheck extends CheckDef {
 interface MemoryPorts {
     readonly ports: SuitePorts;
     readonly changeSet: MemoryChangeSet | undefined;
-    readonly ask: ScriptedAsk | undefined;
 }
 ```
 
@@ -4052,7 +3978,6 @@ interface MemoryPortsOptions {
     readonly store?: ProjectStore | undefined;
     readonly checks?: readonly MemoryCheck[] | undefined;
     readonly gates?: GateRecords | 'unreadable' | undefined;
-    readonly ask?: ((request: AskRequest, limits: AskClientLimits) => Promise<Proposal> | Proposal) | undefined;
     readonly changeSet?: MemoryChangeSetOptions | false | undefined;
 }
 ```
@@ -4074,15 +3999,6 @@ interface MemoryWorkspaceOptions {
 ```ts
 interface ScenarioCheck extends CheckDef {
     readonly behaviour: CheckBehaviour;
-}
-```
-
-### `ScriptedAsk` (interface)
-
-```ts
-interface ScriptedAsk {
-    readonly provider: AskProvider;
-    readonly calls: readonly AskRequest[];
 }
 ```
 

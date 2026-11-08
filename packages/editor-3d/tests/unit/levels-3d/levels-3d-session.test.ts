@@ -2,7 +2,7 @@ import type { AfSector } from '@automata/3d/level'
 import type { WorkspaceFile } from '@automata/editor/kit/ports'
 import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
 import { describe, expect, it } from 'vitest'
-import { levels3dAsk, levels3dUndo, openLevels3d } from '#src/features/levels-3d/levels-3d-session.ts'
+import { levels3dUndo, openLevels3d } from '#src/features/levels-3d/levels-3d-session.ts'
 import { ok } from '#src/shared/edit/edit.ts'
 import type { LevelProfile } from '#src/shared/level-session/level-profile.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
@@ -19,7 +19,7 @@ const file = (path: string): WorkspaceFile => ({
   editor: 'levels-3d',
   gates: [],
   checks: [],
-  modes: ['edit', 'ask'],
+  modes: ['edit'],
   writable: true,
 })
 
@@ -74,22 +74,5 @@ describe('Levels 3D session', () => {
     await session.settled()
     expect(undo.canUndo()).toBe(false)
     expect((await ports.workspace.read(PATH))?.text).toBe(written)
-  })
-
-  it('gives Ask the level’s text and selection, and takes an accepted text as one step it does not write again', async () => {
-    const { ports, session } = await setup()
-    if (session.state.kind !== 'open') throw new Error(session.state.kind)
-    session.state.editor.selection.set(['hall'])
-    const ask = levels3dAsk(session)
-    expect(ask.path).toBe(PATH)
-    expect(ask.text()).toBe(DEPOT)
-    expect(ask.scope()).toEqual(['hall'])
-    const proposal = DEPOT.replace('"hall"', '"great-hall"')
-    ask.accept(proposal, 'Rename the hall')
-    expect(levels3dUndo(session).undoLabel()).toBe('Rename the hall')
-    expect(ask.text()).toBe(proposal)
-    await session.settled()
-    // The suite's Ask wrote the proposal through its write path before calling `accept`.
-    expect((await ports.workspace.read(PATH))?.text).toBe(DEPOT)
   })
 })

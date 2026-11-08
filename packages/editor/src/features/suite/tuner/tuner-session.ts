@@ -5,7 +5,7 @@ import { readTuning, TUNING_PATH, type TuningMeta, type TuningRead } from './tun
 import { checkValue, valueEdit } from './tuner-edits'
 
 // The Tuner's session: `content/tuning.toml` of one game, kept for the
-// app's life. One kit `History` holds the file's text, so a value, a drag, an accepted Ask proposal and their Undo are
+// app's life. One kit `History` holds the file's text, so a value, a drag and their Undo are
 // all steps of one list. An edit is a span-preserving change of one literal (the kit's content documents), held to the
 // tunable's kind and bounds before it is made, and written through the workspace port before it counts (the port's
 // rules, the mtime guard and the change set's journal stay the port's); a write the port refuses is a message and the
@@ -40,15 +40,13 @@ export interface TunerSession {
   hasFile(): boolean
   /** True when the compiler's `tuning-meta.json` is absent: a code-owned game's bare numbers then have no bounds. */
   boundsUnavailable(): boolean
-  /** The tunables the person locked in this session, as the key paths Ask refuses to change (EDS-D18). */
+  /** The tunables the person locked in this session, as the key paths an import refuses to change (EDS-D18). */
   locked(): readonly string[]
   lock(name: string): void
   unlock(name: string): void
   /** One new value of one tunable, as one undo step. */
   set(name: string, value: number | boolean | string): Promise<TunerOutcome>
   readonly drag: TunerDrag
-  /** An accepted Ask proposal (the whole new text), as one undo step labelled `summary`. */
-  accept(text: string, summary: string): Promise<TunerOutcome>
   /** The file, when the game has none: a header and no tunables, as one undo step. */
   create(): Promise<TunerOutcome>
   undo(): Promise<TunerOutcome>
@@ -207,13 +205,6 @@ export async function openTuner(ports: SuitePorts): Promise<TunerSession> {
       return commit(`Set ${name} to ${String(value)}`, { text: made.text })
     },
     drag,
-    async accept(text, summary) {
-      const problem = unwritable()
-      if (problem !== undefined) return refused(problem)
-      const parsed = readTuning(text, meta ?? {})
-      if ('problem' in parsed) return refused(parsed.problem)
-      return commit(summary, { text })
-    },
     async create() {
       const problem = unwritable()
       if (problem !== undefined) return refused(problem)

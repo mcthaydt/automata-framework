@@ -7,7 +7,7 @@ import { createTuner } from '#src/features/suite/tuner/tuner-suite-editor.ts'
 import TunerRows from '#src/features/suite/tuner/ui/TunerRows.svelte'
 import { TUNING_FIXTURE, tunerFixtureFiles, tunerFixturePorts } from '#src/testing/suite/tuner-fixtures.ts'
 
-// The Tuner's components in jsdom: the settings (a slider or a number box, never both; a toggle, text, Ask only), the
+// The Tuner's components in jsdom: the settings (a slider or a number box, never both; a toggle, text, a table that says to change it in the file), the
 // bounds a slider cannot leave (EDS-c) and the lock (EDS-d). What reaches the file is checked through the
 // controller's session.
 
@@ -19,7 +19,7 @@ const text = (controller: TunerController): string => controller.session.history
 afterEach(() => document.body.replaceChildren())
 
 describe('TunerRows', () => {
-  it('draws each kind: a slider where there are bounds, a toggle, a text field, and "Ask only" for a table', async () => {
+  it('draws each kind: a slider where there are bounds, a toggle, a text field, and "change it in the file" for a table', async () => {
     const controller = await open()
     render(TunerRows, { controller })
     const maxRun = screen.getByTestId('tuner-row-MAX_RUN')
@@ -38,7 +38,7 @@ describe('TunerRows', () => {
     expect(
       within(screen.getByTestId('tuner-row-GREETING')).getByRole('textbox', { name: /GREETING/ }),
     ).toBeTruthy()
-    expect(within(screen.getByTestId('tuner-row-CURVE')).getByText(/Ask only/)).toBeTruthy()
+    expect(within(screen.getByTestId('tuner-row-CURVE')).getByText(/change it in the file/)).toBeTruthy()
   })
 
   // Build audit C2: one control and one read-out for a value, never a slider and a number box for the same number.

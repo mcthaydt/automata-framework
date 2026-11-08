@@ -3,15 +3,11 @@
 export {
   type ContributionPoint,
   defineSuiteEditor,
-  type SuiteAskTarget,
   type SuiteEditor,
   type SuiteRegions,
   type SuiteUndo,
 } from './suite-editor'
 export type {
-  AskContext,
-  AskProvider,
-  AskRequest,
   ChangeSet,
   ChangeSetCheck,
   ChangeSetSummary,
@@ -25,7 +21,6 @@ export type {
   EditMode,
   GateState,
   Gates,
-  Proposal,
   SuitePorts,
   SuiteWorkspace,
   UnlistedFile,

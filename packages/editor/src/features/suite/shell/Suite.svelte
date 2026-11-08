@@ -3,7 +3,7 @@
   editor an entry opens. An entry that exactly one installed editor covers opens it: `open` runs once per entry for
   the app's life, so the editor's session (documents, history, selection, view state) outlives a switch (EDS-D12),
   and its regions fill the shell's. Any other entry shows its cards. The shell stays mounted through every switch and
-  rotation; only what is inside its regions changes. Home is `SuiteHome`, Ask's wiring is `SuiteAsk`, Publish and
+  rotation; only what is inside its regions changes. Home is `SuiteHome`, Publish and
   Export/Import are `SuitePublish`, Undo and Redo are `suite-history`, and what a refused write says is
   `core/write-messages` (split by responsibility in 12.7 and 12.5).
 -->
@@ -19,7 +19,6 @@ import Button from '../../../shared/kit/widgets/Button.svelte'
 import IconButton from '../../../shared/kit/widgets/IconButton.svelte'
 import ToastRegion from '../../../shared/kit/widgets/ToastRegion.svelte'
 import { createToasts } from '../../../shared/kit/widgets/toasts'
-import { createAskSession } from '../core/ask-session'
 import { type Pill, pillsToShow } from '../core/pills-model'
 import type { ReviewChangeSet } from '../core/review-model'
 import { findingMessage, refusalMessage } from '../core/write-messages'
@@ -28,7 +27,6 @@ import Home from './Home.svelte'
 import type { EditorCard, HomeState } from './home-model'
 import ReadOnlyFile from './ReadOnlyFile.svelte'
 import ReviewDesk from './ReviewDesk.svelte'
-import SuiteAsk from './SuiteAsk.svelte'
 import SuiteHome from './SuiteHome.svelte'
 import SuitePublish from './SuitePublish.svelte'
 import SuiteRail from './SuiteRail.svelte'
@@ -132,13 +130,6 @@ const history = suiteHistory({
   hook: () => undoHook,
   onrefused: refused,
 })
-const askTarget = $derived(mounted?.editor.ask?.(mounted.session))
-const ask = $derived(
-  askTarget === undefined
-    ? undefined
-    : createAskSession({ target: askTarget, ports, writePath: editing.writePath, owner }),
-)
-let askOpen = $state(false)
 
 function refused(outcome: WriteOutcome | undefined): void {
   const message = refusalMessage(outcome)
@@ -160,7 +151,7 @@ function locate(finding: CheckFinding): void {
   toasts.push({ kind: 'info', message: findingMessage(finding) })
 }
 
-/** Mod+Z, Mod+Shift+Z and Mod+K, except in a text field, which keeps its own undo. */
+/** Mod+Z and Mod+Shift+Z, except in a text field, which keeps its own undo. */
 function shortcuts(event: KeyboardEvent): void {
   if (!(event.metaKey || event.ctrlKey) || event.altKey) return
   const field =
@@ -169,9 +160,6 @@ function shortcuts(event: KeyboardEvent): void {
   if (key === 'z' && field === null) {
     event.preventDefault()
     void (event.shiftKey ? history.redo() : history.undo())
-  } else if (key === 'k' && ask !== undefined && !event.shiftKey) {
-    event.preventDefault()
-    askOpen = true
   }
 }
 
@@ -217,7 +205,6 @@ function openCard(card: EditorCard): void {
       history={undoHook !== undefined || history.canUndo || history.canRedo ? history : undefined}
       onundo={history.undo}
       onredo={history.redo}
-      onask={ask === undefined ? undefined : () => (askOpen = true)}
       onpublish={editing.canShip() ? () => (publishing = true) : undefined}
       {shippable}
       tools={mounted?.editor.regions.tools ? editorTools : undefined}
@@ -269,21 +256,9 @@ function openCard(card: EditorCard): void {
 <svelte:window onkeydown={shortcuts} />
 
 <TitlePrompt open={titleOpen} onsubmit={(title) => editing.answerTitle(title)} oncancel={() => editing.answerTitle(undefined)} />
-{#if ask !== undefined && askTarget !== undefined}
-  <SuiteAsk
-    session={ask}
-    scope={askTarget.scope()}
-    {tokens}
-    undo={undoHook}
-    bind:open={askOpen}
-    onspent={() => void editing.refresh()}
-    onwritten={(outcome) => void editing.follow(outcome)}
-    onrefused={refused}
-  />
-{/if}
 <SuitePublish
   session={editing}
-  locked={(path) => (askTarget?.path === path ? askTarget.locked() : [])}
+  locked={() => []}
   bind:publishing
   bind:interchange
 />

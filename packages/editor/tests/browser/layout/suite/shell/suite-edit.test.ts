@@ -17,7 +17,7 @@ import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
 /** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
 const targets = editorTargets()
 
-// The pills and the Ask diff dialog with the production CSS in real browsers at the sizes of spec §10: the pills stay
+// The pills with the production CSS in real browsers at the sizes of spec §10: the pills stay
 // in the top bar at every size (icons with counts in the `short` tier and on a phone, never hidden), every target is
 // at least 44 px, the dialog's Accept and Reject are reachable at 48 px, and the page never scrolls.
 const TUNING = 'content/tuning.toml'
@@ -26,7 +26,7 @@ const LIST = `format = "af-editors/1"
 [[file]]
 glob = "${TUNING}"
 editor = "tuner"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = ["g-feel", "g-speed"]
 checks = ["lint"]
 
@@ -82,7 +82,6 @@ async function open(size: EditorSize) {
       },
       'g-speed': { name: 'Speed', decision: 'open', url: 'https://example.com/g-speed' },
     },
-    ask: () => ({ summary: 'Raise the top speed to 8', text: START.replace('= 7', '= 8'), tokens: 640 }),
   })
   const changeSet = memory.ports.changeSet
   await changeSet?.begin('Faster player')
@@ -162,34 +161,5 @@ describe.each(SIZES)('Suite editing at $name ($width x $height)', (size) => {
     await page.screenshot({ path: `.vitest/shots/suite-pills-${size.name}.png` })
     pills[1]?.click()
     noPageScroll()
-  })
-
-  test('the Ask diff dialog fits: Accept and Reject reachable at 48 px, the diff inside the window', async () => {
-    await open(size)
-    button('Ask').click()
-    await expect.poll(() => document.querySelector('[role="dialog"] textarea')).not.toBeNull()
-    const prompt = document.querySelector<HTMLTextAreaElement>('[role="dialog"] textarea')
-    if (prompt === null) throw new Error('no prompt')
-    prompt.value = 'A little faster on flat ground'
-    prompt.dispatchEvent(new Event('input', { bubbles: true }))
-    await settleLayout()
-    const dialog = document.querySelector<HTMLElement>('[role="dialog"]')
-    if (dialog === null) throw new Error('no dialog')
-    button('Ask', dialog).click()
-    await expect.poll(() => dialog.querySelector('[data-kind="added"]')).not.toBeNull()
-    await settleLayout()
-    for (const name of ['Accept', 'Reject']) {
-      const box = button(name, dialog).getBoundingClientRect()
-      expect(box.height, name).toBeGreaterThanOrEqual(targets.primary)
-      expect(box.bottom, name).toBeLessThanOrEqual(size.height + 0.5)
-      expect(box.right, name).toBeLessThanOrEqual(size.width + 0.5)
-      expect(box.left, name).toBeGreaterThanOrEqual(-0.5)
-    }
-    const diff = dialog
-      .querySelector<HTMLElement>('section[aria-label="Proposed change"]')
-      ?.getBoundingClientRect()
-    expect(diff?.right).toBeLessThanOrEqual(size.width + 0.5)
-    noPageScroll()
-    await page.screenshot({ path: `.vitest/shots/ask-diff-${size.name}.png` })
   })
 })

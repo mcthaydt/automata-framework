@@ -2,7 +2,7 @@ import { DocumentSyntaxError, openDocument } from '../../../shared/kit/documents
 
 // What the Tuner reads of `content/tuning.toml`: each top-level row as a tunable with its
 // kind, value, bounds, unit and note. Pure: the text (and the compiler's `tuning-meta.json` when the game declares its
-// tunables in code) in, the list out. A row that is a table or an array is listed as "Ask only": the Tuner never edits
+// tunables in code) in, the list out. A row that is a table or an array is listed read only: the Tuner never edits
 // what is not one literal.
 
 export const TUNING_PATH = 'content/tuning.toml'
@@ -26,7 +26,7 @@ export interface Tunable {
   readonly label?: string
   /** What a player feels when it changes, from the file's `feel` ("How fast Wick runs."). */
   readonly feel?: string
-  /** False for a table or an array: the Tuner shows it and sends changes to Ask. */
+  /** False for a table or an array: the Tuner shows it and says to change it in the file. */
   readonly editable: boolean
 }
 

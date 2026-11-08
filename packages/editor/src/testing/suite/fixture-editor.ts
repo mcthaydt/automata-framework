@@ -1,6 +1,6 @@
 // A suite editor for the DOM and layout tests (beside the level editors): one TOML file, a
 // kit history of its whole text, a "Raise speed" control that adds one to the first number and writes the result
-// through the ports it was opened with, and the Undo and Ask hooks. A refused write takes its own step back, as a kit
+// through the ports it was opened with, and the Undo hook. A refused write takes its own step back, as a kit
 // widget's refusal state keeps the old value. `locked` holds the key paths the test locks for the session.
 
 import { createRawSnippet } from 'svelte'
@@ -71,12 +71,5 @@ export const fixtureEditor: SuiteEditor<FixtureSession> = defineSuiteEditor<Fixt
     undo: () => session.history.undo(),
     redo: () => session.history.redo(),
     subscribe: (listener) => session.history.subscribe(() => listener()),
-  }),
-  ask: (session) => ({
-    path: session.path,
-    text: () => session.history.state,
-    scope: () => ['MAX_MOVE_SPEED'],
-    locked: () => session.locked,
-    accept: (text, summary) => session.history.apply(summary, () => text),
   }),
 })

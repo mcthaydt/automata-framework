@@ -1,8 +1,7 @@
 <!--
   The middle of the suite's top bar, between Home and the sheet toggles: the game's name, where edits are saved, the
-  pills, then Undo, Redo, Ask, Publish and the open editor's own tools. The pills and the tools scroll sideways when
-  the bar is short of room. Only what has something to say is shown: no history hides Undo and Redo, no Ask hides
-  Ask, nothing to publish hides Publish (12.7 Step G). Split out of `Suite.svelte` (12.7). Drawn as the document's
+  pills, then Undo, Redo, Publish and the open editor's own tools. The pills and the tools scroll sideways when
+  the bar is short of room. Only what has something to say is shown: no history hides Undo and Redo, nothing to publish hides Publish (12.7 Step G). Split out of `Suite.svelte` (12.7). Drawn as the document's
   bar is: the name in the title's weight, the saved note a quiet status with a tick, Undo and Redo icon buttons named
   with the step they take, and Publish the one lime button.
 -->
@@ -35,8 +34,6 @@ interface Props {
     | undefined
   onundo: () => void
   onredo: () => void
-  /** Opens Ask; `undefined` hides it. */
-  onask: (() => void) | undefined
   /** Opens Publish; `undefined` hides it. */
   onpublish: (() => void) | undefined
   /** There is something to publish: Publish is the primary; otherwise it is quiet and its dialog says why. */
@@ -54,7 +51,6 @@ const {
   history,
   onundo,
   onredo,
-  onask,
   onpublish,
   shippable,
   tools,
@@ -80,7 +76,6 @@ const {
       onclick={onredo}
     />
   {/if}
-  {#if onask !== undefined}<Button onclick={onask}>Ask</Button>{/if}
   {#if onpublish !== undefined}<Button variant={shippable ? 'primary' : 'plain'} onclick={onpublish}>Publish</Button>{/if}
   {@render tools?.()}
 </div>
