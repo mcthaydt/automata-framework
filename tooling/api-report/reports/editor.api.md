@@ -3832,6 +3832,7 @@ interface SuiteWorkspace {
         readonly path: string;
         readonly text: string;
         readonly expected?: WriteExpectation;
+        readonly force?: boolean;
     }[]): Promise<WriteResult>;
     remove(path: string, expected: {
         readonly mtime: number;
@@ -4397,6 +4398,10 @@ interface Levels2dSession {
     readonly path: string;
     readonly options: Levels2dOptions;
     readonly others: readonly string[];
+    readonly refused: Writable<string | undefined>;
+    readonly conflict: Writable<boolean>;
+    keepMine(): Promise<void>;
+    takeTheirs(): Promise<void>;
     readonly view: Writable<Levels2dView>;
     readonly adding: Writable<boolean>;
     read(path: string): Promise<Uint8Array | undefined>;

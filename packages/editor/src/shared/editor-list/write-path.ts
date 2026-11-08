@@ -53,6 +53,11 @@ export interface FileWrite {
   readonly text: string
   /** The file must still have this mtime, or not exist; refused as moved otherwise. */
   readonly expected?: { readonly mtime: number } | 'absent' | undefined
+  /**
+   * The person chose to write over what is there (a conflict's Use mine): the file may have moved on since this path
+   * last wrote it, and is written as it now stands. The path watches it again from this write.
+   */
+  readonly force?: boolean | undefined
 }
 
 export interface WritePath {
@@ -115,6 +120,7 @@ export function createWritePath({ ports, title }: WritePathOptions): WritePath {
     if (row === undefined && current !== undefined)
       return { refused: 'policy', why: 'no row of the editor list names it' }
     const known = wrote.get(path)
+    if (file.force === true) return { path, text, current, checks: row?.checks ?? [] }
     if (known !== undefined && current?.mtime !== known) return { refused: 'moved', path }
     if (
       expected === 'absent'

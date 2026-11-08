@@ -50,6 +50,14 @@ export interface Levels2dSession {
   readonly options: Levels2dOptions
   /** The other files of the row group, which this session does not open (one file per open, plan decision 2). */
   readonly others: readonly string[]
+  /** `refusal` as a store, for the status line, which must follow a write that finishes after its step. */
+  readonly refused: Writable<string | undefined>
+  /** True while the project changed somewhere else and the person has not yet chosen between the two versions. */
+  readonly conflict: Writable<boolean>
+  /** Use mine: writes the open project and the game's files over the other version. */
+  keepMine(): Promise<void>
+  /** Use theirs: takes the other version in, dropping the step that conflicted. */
+  takeTheirs(): Promise<void>
   /** Which view fills the shell: the level, or the game's tiles. */
   readonly view: Writable<Levels2dView>
   /** Whether Add tiles' dialog is open; the Tiles panel and its stage both open it. */
@@ -110,6 +118,10 @@ function failed(
     ...picturesOf(options, ports),
     view: writable<Levels2dView>('level'),
     adding: writable(false),
+    conflict: writable(false),
+    refused: writable<string | undefined>(undefined),
+    keepMine: () => Promise.resolve(),
+    takeTheirs: () => Promise.resolve(),
     state: { kind: 'error', message, errors },
     refusal: undefined,
     settled: () => Promise.resolve(),
@@ -148,7 +160,7 @@ export async function openLevels2d(
   if (level === undefined || tiles === undefined)
     return failed(ports, options, path, others, `${name} can’t be opened: it has no level to draw.`)
 
-  const base = read.text
+  let base = read.text
   let mtime = read.mtime
   // A game that exports has its files written with the project, as one step, so the game reads what was drawn. Each is
   // expected as it was found (or absent); once written here, the write path itself watches it.
@@ -165,6 +177,10 @@ export async function openLevels2d(
   }
   let quiet = false
   let queue: Promise<void> = Promise.resolve()
+  /** The next write is the person's choice to go over a version made somewhere else (Use mine, Use theirs). */
+  let force = false
+  const conflict = writable(false)
+  const refused = writable<string | undefined>(undefined)
   const session = {
     path,
     options,
@@ -172,6 +188,8 @@ export async function openLevels2d(
     ...picturesOf(options, ports),
     view: writable<Levels2dView>('level'),
     adding: writable(false),
+    conflict,
+    refused,
     state: { kind: 'open', profile, history, level, tiles } as const,
     refusal: undefined as string | undefined,
     settled: () => queue,
@@ -183,34 +201,66 @@ export async function openLevels2d(
         quiet = false
       }
     },
+    keepMine() {
+      force = true
+      queue = queue.then(() => save(history.state))
+      return queue
+    },
+    async takeTheirs() {
+      await queue
+      const found = await ports.workspace.read(path).catch(() => undefined)
+      const theirs = found === undefined ? undefined : profile.parse(found.text)
+      if (found === undefined || theirs === undefined || !theirs.ok) {
+        refuse('The other version can’t be opened, so yours stays.')
+        return
+      }
+      base = found.text
+      mtime = found.mtime
+      force = true
+      history.apply('Use theirs', () => theirs.value)
+      await queue
+    },
+  }
+
+  function refuse(message: string | undefined): void {
+    session.refusal = message
+    refused.set(message)
+  }
+
+  /** Writes `value`'s game files and then its project, with the versions this session last saw. */
+  async function save(value: unknown): Promise<void> {
+    const text = profile.print(base, value)
+    const exported = gameFiles(value, base)
+    const forced = force
+    force = false
+    const result =
+      ports.workspace.writeAll === undefined
+        ? await ports.workspace.write(path, text, { mtime })
+        : await ports.workspace.writeAll([
+            ...exported.map((file) => {
+              const expected = expectations.get(file.path)
+              return forced ? { ...file, force: true } : expected === undefined ? file : { ...file, expected }
+            }),
+            { path, text, expected: { mtime }, ...(forced ? { force: true } : {}) },
+          ])
+    if (result.ok) {
+      mtime = result.mtime
+      for (const file of exported) expectations.delete(file.path)
+      refuse(undefined)
+      conflict.set(false)
+      return
+    }
+    refuse(result.message)
+    // Another version is there: the step stays, and the person chooses (Use mine, Use theirs).
+    if (result.reason === 'conflict') conflict.set(true)
+    else session.quietly(() => history.undo())
   }
 
   // Writes run one at a time, each with the text its step left; a refused one takes that step back quietly.
   history.subscribe(() => {
     if (quiet) return
-    const text = profile.print(base, history.state)
     const value = history.state
-    queue = queue.then(async () => {
-      const exported = gameFiles(value, base)
-      const result =
-        exported.length === 0 || ports.workspace.writeAll === undefined
-          ? await ports.workspace.write(path, text, { mtime })
-          : await ports.workspace.writeAll([
-              ...exported.map((file) => {
-                const expected = expectations.get(file.path)
-                return expected === undefined ? file : { ...file, expected }
-              }),
-              { path, text, expected: { mtime } },
-            ])
-      if (result.ok) {
-        mtime = result.mtime
-        for (const file of exported) expectations.delete(file.path)
-        session.refusal = undefined
-        return
-      }
-      session.refusal = result.message
-      session.quietly(() => history.undo())
-    })
+    queue = queue.then(() => save(value))
   })
   return session
 }

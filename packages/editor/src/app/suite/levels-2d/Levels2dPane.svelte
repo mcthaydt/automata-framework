@@ -10,6 +10,7 @@ import LevelStage from '../../../features/level/LevelStage.svelte'
 import TilesInspector from '../../../features/tiles/TilesInspector.svelte'
 import TilesPanel from '../../../features/tiles/TilesPanel.svelte'
 import TilesStage from '../../../features/tiles/TilesStage.svelte'
+import Levels2dConflict from './Levels2dConflict.svelte'
 import type { Levels2dSession } from './levels-2d-session'
 
 interface Props {
@@ -44,6 +45,7 @@ const open = $derived(session.state.kind === 'open' ? session.state : undefined)
         files={session.files}
         bind:adding={$adding}
       />
+      <Levels2dConflict {session} />
     {:else}
       <TilesInspector session={open.tiles} {read} objectUrls={session.options.objectUrls} />
     {/if}
@@ -57,6 +59,7 @@ const open = $derived(session.state.kind === 'open' ? session.state : undefined)
       ids={session.options.ids}
       canvas={session.options.canvas}
     />
+    <Levels2dConflict {session} />
   {:else}
     <LevelInspector session={open.level} history={open.history} ids={session.options.ids} />
   {/if}

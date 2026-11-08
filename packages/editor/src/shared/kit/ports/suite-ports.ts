@@ -84,10 +84,16 @@ export interface SuiteWorkspace {
   /**
    * Several files as one undo step: every one is written or none is. Only the suite's own wrapper has it (an adapter's
    * `write` is the port); an editor that writes more than one file per step uses it when it is there. Each file's
-   * `expected` is as `write`'s, and a file the editor already wrote in this session needs none.
+   * `expected` is as `write`'s, and a file the editor already wrote in this session needs none. `force` is the
+   * person's choice to write over a file that changed somewhere else (a conflict's Use mine).
    */
   writeAll?(
-    files: readonly { readonly path: string; readonly text: string; readonly expected?: WriteExpectation }[],
+    files: readonly {
+      readonly path: string
+      readonly text: string
+      readonly expected?: WriteExpectation
+      readonly force?: boolean
+    }[],
   ): Promise<WriteResult>
   /** Removes a file the open change set created, at the mtime it was read with; `policy` for any other file. */
   remove(path: string, expected: { readonly mtime: number }): Promise<WriteResult>

@@ -1,3 +1,4 @@
+import { get } from 'svelte/store'
 import { describe, expect, it } from 'vitest'
 import { levels2dUndo, openLevels2d } from '#src/app/suite/levels-2d/levels-2d-session.ts'
 import { createMemoryPorts } from '#src/features/suite/memory/memory-ports.ts'
@@ -127,20 +128,58 @@ describe('Levels 2D session', () => {
       expect((await memory.ports.workspace.read('content/levels/level-1.toml'))?.text).toBe(before)
     })
 
-    it('writes nothing of the game when the project moved on disk, and says so', async () => {
-      const { memory, session, level } = await game()
+    /** The project changed somewhere else after it was opened, then the person draws another step. */
+    async function conflicted() {
+      const opened = await game()
+      const { memory, session, level } = opened
       level.editor.pointerDown({ x: 8, y: 8 })
       level.editor.pointerUp()
       await session.settled()
-      await memory.ports.workspace.write(PATH, `${(await memory.ports.workspace.read(PATH))?.text ?? ''}\n`, {
+      const theirs = `${(await memory.ports.workspace.read(PATH))?.text ?? ''}\n`
+      await memory.ports.workspace.write(PATH, theirs, {
         mtime: (await memory.ports.workspace.read(PATH))?.mtime ?? 0,
       })
-      const projectBefore = (await memory.ports.workspace.read('content/project.toml'))?.text
+      const projectBefore = (await memory.ports.workspace.read('content/levels/level-1.toml'))?.text
       level.editor.pointerDown({ x: 40, y: 40 })
       level.editor.pointerUp()
       await session.settled()
+      return { ...opened, theirs, projectBefore }
+    }
+
+    it('writes nothing of the game when the project moved on disk, keeps the step, and says so', async () => {
+      const { memory, session, projectBefore } = await conflicted()
       expect(session.refusal).toMatch(/changed/)
-      expect((await memory.ports.workspace.read('content/project.toml'))?.text).toBe(projectBefore)
+      expect(get(session.conflict)).toBe(true)
+      expect(session.state.kind === 'open' && session.state.history.canUndo).toBe(true)
+      expect((await memory.ports.workspace.read('content/levels/level-1.toml'))?.text).toBe(projectBefore)
+    })
+
+    it('Use mine writes the step and the game’s files over the other version', async () => {
+      const { memory, session, theirs, projectBefore } = await conflicted()
+      await session.keepMine()
+      expect(get(session.conflict)).toBe(false)
+      expect(session.refusal).toBeUndefined()
+      expect((await memory.ports.workspace.read(PATH))?.text).not.toBe(theirs)
+      expect((await memory.ports.workspace.read('content/levels/level-1.toml'))?.text).not.toBe(projectBefore)
+      // The next step writes as before.
+      if (session.state.kind !== 'open') throw new Error(session.state.kind)
+      session.state.level.editor.pointerDown({ x: 56, y: 56 })
+      session.state.level.editor.pointerUp()
+      await session.settled()
+      expect(session.refusal).toBeUndefined()
+    })
+
+    it('Use theirs takes the other version in and drops the step', async () => {
+      const { memory, session, theirs } = await conflicted()
+      await session.takeTheirs()
+      expect(get(session.conflict)).toBe(false)
+      expect(session.refusal).toBeUndefined()
+      if (session.state.kind !== 'open') throw new Error(session.state.kind)
+      const taken = levelProject.parse(theirs)
+      if (!taken.ok) throw new Error('their version does not parse')
+      expect(session.state.history.state).toEqual(taken.value)
+      const onDisk = levelProject.parse((await memory.ports.workspace.read(PATH))?.text ?? '')
+      expect(onDisk.ok && onDisk.value).toEqual(taken.value)
     })
   })
 
