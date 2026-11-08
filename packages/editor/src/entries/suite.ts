@@ -10,6 +10,10 @@ export {
 export { SAMPLE_GAME, samplePorts } from '../features/suite/memory/sample-ports'
 export { type SuiteEnv, type SuiteHandle, startSuite } from '../features/suite/shell/boot'
 export { createSuite, type Suite } from '../features/suite/shell/create-suite'
-export { type OpenedSuitePorts, openSuitePorts } from '../features/suite/shell/open-suite-ports'
+export {
+  type OpenedSuitePorts,
+  openSuitePorts,
+  type SuitePortsEnv,
+} from '../features/suite/shell/open-suite-ports'
 export { createTuner, type TunerSuiteSession } from '../features/suite/tuner/tuner-suite-editor'
 export { randomIds } from '../shared/level-2d/model/ids'

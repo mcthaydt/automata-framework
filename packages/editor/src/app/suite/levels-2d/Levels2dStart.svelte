@@ -15,7 +15,7 @@ interface Props {
 const { session, state }: Props = $props()
 </script>
 
-<div class="start" data-testid="levels-2d-start">
+<div class="page" data-testid="levels-2d-start" data-scroll-region="vertical"><div class="start">
   {#if state.templates.length > 0}
     <h2>Pick a starting point</h2>
     <p>You can change everything later.</p>
@@ -29,23 +29,29 @@ const { session, state }: Props = $props()
     <p>A level shows here once your game has one.</p>
   {/if}
   {#if state.problem}<p class="problem" role="alert">{state.problem}</p>{/if}
-</div>
+</div></div>
 
 <style>
+  /* A page on Home's ground, not the dark canvas: there is no level to draw on yet. */
+  .page {
+    box-sizing: border-box;
+    height: 100%;
+    overflow-y: auto;
+    background: var(--bg);
+    color: var(--ink);
+  }
   .start {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
     width: min(100%, 480px);
-    height: 100%;
     margin: 0 auto;
-    padding: var(--space-5) var(--space-4);
-    overflow-y: auto;
+    padding: var(--space-6) var(--space-4);
   }
   h2 {
     margin: 0;
-    font: var(--text-title-15);
+    font: var(--text-display-20);
   }
   p {
     margin: 0;

@@ -7,8 +7,8 @@ import { EDITOR_COMMAND, PICTURES } from '../../../src/features/editor/editor-co
 
 const staticFile = (url: string) => resolve(process.cwd(), 'static', url.slice(1))
 
-// Spec 10.2 (Editor): what the editor does in three pictures, and "Try the editor", which opens the same build
-// `automata editor` serves, on this browser's storage.
+// Spec 10.2 (Editor): what the editor does in three pictures, and "Try the editor", which opens the page
+// `automata editor` serves a 2D game, on a sample game kept in this browser's storage.
 describe('/editor', () => {
   it('shows what the editor does in three pictures, each one a real file with words for it', () => {
     const view = render(EditorPage)
@@ -27,6 +27,13 @@ describe('/editor', () => {
     expect(view.container.textContent).toContain('keeps your levels in this browser')
     expect(EDITOR_COMMAND).toBe('pnpm exec automata editor')
     expect(view.getByText(EDITOR_COMMAND)).toBeTruthy()
+  })
+
+  it('promises no Save button: the editor writes each change as it is made, and the try-it keeps it with Share', () => {
+    const text = render(EditorPage).container.textContent ?? ''
+    expect(text).not.toContain('press Save')
+    expect(text).not.toContain('Save writes')
+    expect(text).toContain('Share')
   })
 
   it('names no editor the 2D release does not ship', () => {

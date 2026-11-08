@@ -15,7 +15,7 @@ import { createLevels2d } from './levels-2d/levels-2d-suite-editor.ts'
 // carries no `@pixi/3d` (`-tools`' build scans it for the beta). Only these two: the other suite editors are 3D (Levels
 // 3D and the Studio, which `editor-3d`'s own suite page adds) or not built yet. The rail lists what is registered here.
 // The only file that reaches for the page's globals. It opens the checkout it is served on or, when none answers, a
-// sample game held in memory, and says so in the top bar (`open-suite-ports.ts`).
+// sample game kept in this browser, and says so in the top bar (`open-suite-ports.ts`).
 
 const target = document.getElementById('app')
 if (target === null) throw new Error('suite.html has no #app element')

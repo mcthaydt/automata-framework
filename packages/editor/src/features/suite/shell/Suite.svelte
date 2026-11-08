@@ -46,9 +46,13 @@ interface Props {
   sample: boolean
   /** The game's name in words, from the server; the title. */
   game?: string | undefined
+  /** Reads Home again (on each return to it); without it, Home stays as it was given. */
+  reread?: (() => Promise<HomeState>) | undefined
 }
 
-const { geometry, home, suite, ports, sample, game }: Props = $props()
+const { geometry, home: given, suite, ports, sample, game, reread }: Props = $props()
+let latest = $state<HomeState>()
+const home = $derived(latest ?? given)
 
 let current = $state<string | undefined>()
 let reading = $state<WorkspaceFile | undefined>()
@@ -176,6 +180,8 @@ function shortcuts(event: KeyboardEvent): void {
 }
 
 function choose(id: string | undefined): void {
+  // Opened sessions are kept whatever Home now lists; only the cards change.
+  void reread?.().then((read) => (latest = read))
   current = id
   reading = undefined
   panelOpen = false
