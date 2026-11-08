@@ -11,11 +11,11 @@
 // import (`player-move.system.ts` and the files it imports). A game root with no sim files exits 2.
 // `--platform-imports <root>...` runs only the platform check: every source under each root, tests
 // included, imports a target's platform packages (`@ruken/*`, `@tauri-apps/*`) only under that target's folder.
-// `--features <package-root>... [--shared-island <folder>]` runs only the feature-layout check: app/, features/<x>/,
-// shared/, entries/ and testing/ of each package's src/ import one way. With `--shared-island kit`, shared/kit/
-// may import only itself and other packages.
-// `--forbid <package-root>:<package>,<package>...` runs only the forbidden-import check: no source under the
-// root (tests included) imports those packages, or a path inside them (`packages/editor:@pixi/3d`).
+// `--features <package-root>...` runs only the feature-layout check: app/, features/<x>/,
+// shared/, entries/ and testing/ of each package's src/ import one way.
+// `--features` also takes `--shared-island <folder>`: that folder of shared/ imports only itself (`kit`).
+// `--forbid <package-root>:<package>,<package>...` runs only the forbidden-import check: no source or test
+// under the package root imports those packages (`packages/editor:@pixi/3d`).
 // `--browser <package-root>[:<entry>,<entry>]...` runs only the browser-only check: nothing a
 // browser entry reaches imports Effect, a Node built-in or a Node-only library. The entries after `:` name files in
 // src/entries/ (`packages/content:locale,assets`); with none, every file there is a browser entry.
@@ -56,38 +56,51 @@ if (process.argv[2] === '--platform-imports') {
   )
 }
 
-if (process.argv[2] === '--features' || process.argv[2] === '--browser' || process.argv[2] === '--forbid') {
-  const mode = process.argv[2]
-  const args = process.argv.slice(3)
-  // `--shared-island <folder>` may follow the roots of `--features`.
-  const islandAt = args.indexOf('--shared-island')
-  const sharedIsland = islandAt === -1 ? undefined : args[islandAt + 1]
-  if (islandAt !== -1 && (mode !== '--features' || sharedIsland === undefined)) {
-    console.error('usage: check-boundaries --features <package-root>... [--shared-island <folder>]')
+if (process.argv[2] === '--forbid') {
+  const specs = process.argv.slice(3)
+  const parsed = specs.map((spec) => {
+    const [packageRoot = spec, names = ''] = spec.split(':')
+    return { packageRoot, names: names.split(',').filter((name) => name !== '') }
+  })
+  if (parsed.length === 0 || parsed.some((spec) => spec.names.length === 0)) {
+    console.error('usage: check-boundaries --forbid <package-root>:<package>[,<package>...]...')
     process.exit(2)
   }
-  const roots = islandAt === -1 ? args : args.slice(0, islandAt)
+  const results = parsed.map((spec) => forbidFindings(spec.packageRoot, spec.names))
+  finish(
+    results.flatMap((result) => result.files),
+    results.flatMap((result) => result.findings),
+  )
+}
+
+if (process.argv[2] === '--features' || process.argv[2] === '--browser') {
+  const mode = process.argv[2]
+  const rest = process.argv.slice(3)
+  // `--shared-island <folder>` may sit among the roots; every other argument is a root.
+  const roots: string[] = []
+  const sharedIslands: string[] = []
+  for (let i = 0; i < rest.length; i++) {
+    if (mode === '--features' && rest[i] === '--shared-island') {
+      const folder = rest[++i]
+      if (folder === undefined) {
+        console.error('check-boundaries: --shared-island needs a folder name')
+        process.exit(2)
+      }
+      sharedIslands.push(folder)
+    } else roots.push(rest[i] as string)
+  }
   if (roots.length === 0) {
-    console.error(
-      `usage: check-boundaries ${mode} <package-root>${mode === '--forbid' ? ':<package>,...' : ''}...`,
-    )
+    console.error(`usage: check-boundaries ${mode} <package-root>...`)
     process.exit(2)
   }
   const files: string[] = []
   const findings: Finding[] = []
   for (const root of roots) {
-    const [packageRoot = root, list] = root.split(':')
-    const entries = list === undefined ? undefined : list.split(',')
-    if (mode === '--forbid' && entries === undefined) {
-      console.error(`check-boundaries: --forbid needs "${root}:<package>,<package>"`)
-      process.exit(2)
-    }
+    const [packageRoot = root, entries] = root.split(':')
     const result =
       mode === '--features'
-        ? featureFindings(packageRoot, sharedIsland)
-        : mode === '--forbid'
-          ? forbidFindings(packageRoot, entries as string[])
-          : browserOnlyFindings(packageRoot, entries)
+        ? featureFindings(packageRoot, { sharedIslands })
+        : browserOnlyFindings(packageRoot, entries === undefined ? undefined : entries.split(','))
     files.push(...result.files)
     findings.push(...result.findings)
   }

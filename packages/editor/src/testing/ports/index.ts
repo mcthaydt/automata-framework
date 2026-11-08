@@ -5,23 +5,23 @@ export {
   createMemoryChangeSet,
   type MemoryChangeSet,
   type MemoryChangeSetOptions,
-} from '../../features/suite/memory/memory-change-set'
+} from '../../shared/kit/ports/memory/memory-change-set'
 export {
   type CheckOutcome,
   createMemoryChecks,
   type MemoryCheck,
-} from '../../features/suite/memory/memory-checks'
-export { createMemoryGates } from '../../features/suite/memory/memory-gates'
+} from '../../shared/kit/ports/memory/memory-checks'
+export { createMemoryGates } from '../../shared/kit/ports/memory/memory-gates'
 export {
   createMemoryPorts,
   type MemoryPorts,
   type MemoryPortsOptions,
-} from '../../features/suite/memory/memory-ports'
+} from '../../shared/kit/ports/memory/memory-ports'
 export {
   createMemoryWorkspace,
   type MemoryWorkspaceOptions,
-} from '../../features/suite/memory/memory-workspace'
-export { createScriptedAsk, type ScriptedAsk } from '../../features/suite/memory/scripted-ask'
+} from '../../shared/kit/ports/memory/memory-workspace'
+export { createScriptedAsk, type ScriptedAsk } from '../../shared/kit/ports/memory/scripted-ask'
 export { type AskScript, describeAskProvider } from './ask-contract'
 export { describeChangeSet } from './change-set-contract'
 export {

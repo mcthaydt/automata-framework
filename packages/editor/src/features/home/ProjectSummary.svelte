@@ -8,7 +8,7 @@
 import { modifiedLabel, sizeLabel } from '../../shared/kit/home/project-browse'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import Pill from '../../shared/kit/widgets/Pill.svelte'
-import type { ProjectEntry } from '../../shared/level-2d/documents/project-list'
+import type { ProjectEntry } from '../../shared/level-2d/session/editor-app-types'
 import { cardTitle, entryBadge } from './home-model'
 
 interface Props {

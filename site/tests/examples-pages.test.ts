@@ -1,11 +1,11 @@
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
 import { fireEvent, render, waitFor } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { exampleIndex, getExample, getExamples } from '../src/data/examples'
 import examplesJson from '../src/data/examples.json'
 import CommandMenu from '../src/lib/components/CommandMenu.svelte'
+import { compileExample } from '../src/lib/playground/compile'
 import type { HighlightedLine } from '../src/lib/playground/highlight'
+import { SITE_ORIGIN } from '../src/lib/site.js'
 import { load as indexLoad } from '../src/routes/examples/+page.server'
 import IndexPage from '../src/routes/examples/+page.svelte'
 import { entries, load as exampleLoad } from '../src/routes/examples/[id]/+page.server'
@@ -15,7 +15,6 @@ import ExamplePage from '../src/routes/examples/[id]/+page.svelte'
 // own prerendered page whose preview runs the precompiled original once the page has loaded and the preview is near
 // the screen. With reduced motion, nothing under /playground/ is requested before Play.
 
-const root = resolve(import.meta.dirname, '..')
 const pageData = async (id: string) =>
   (await exampleLoad({ params: { id } } as never)) as {
     example: ReturnType<typeof getExample> & object
@@ -203,11 +202,15 @@ describe('/examples/<id>', () => {
     )
   })
 
-  it('keeps the precompiled originals in step with the catalog', () => {
-    for (const example of getExamples())
-      expect(readFileSync(resolve(root, 'static/playground/compiled', example.id + '.js'), 'utf8')).toContain(
-        '//# sourceURL=examples/' + example.path,
-      )
+  // The site build precompiles each example the same way (scripts/build-demos.ts); its output is not committed.
+  it('precompiles every catalog example, named by its path in the examples folder', () => {
+    for (const example of getExamples()) {
+      const result = compileExample(example.source, {
+        id: example.id,
+        moduleUrl: new URL(example.moduleUrl, SITE_ORIGIN).href,
+      })
+      expect(result.ok ? result.code : result.diagnostics).toContain(`//# sourceURL=examples/${example.path}`)
+    }
   })
 })
 
