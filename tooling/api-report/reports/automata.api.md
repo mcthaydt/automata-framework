@@ -371,6 +371,12 @@ function createCamera2d(stage: Container, options: Camera2dOptions, seed?: numbe
 function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwner;
 ```
 
+### `createHudText` (function)
+
+```ts
+function createHudText(surface: HudSurface, pages?: PageSource): HudText;
+```
+
 ### `createPixiRenderer` (function)
 
 ```ts
@@ -548,7 +554,7 @@ interface DrawContext {
     rect(x: number, y: number, w: number, h: number, color: number): void;
     circle(x: number, y: number, radius: number, color: number): void;
     line(x1: number, y1: number, x2: number, y2: number, color: number, width?: number): void;
-    text(value: string, x: number, y: number, options?: DrawTextOptions): void;
+    text(value: string, x: number, y: number, options?: DrawTextOptions): DrawTextBox;
 }
 ```
 
@@ -573,12 +579,23 @@ interface DrawSim {
 }
 ```
 
+### `DrawTextBox` (type)
+
+```ts
+type DrawTextBox = HudBox;
+```
+
 ### `DrawTextOptions` (interface)
 
 ```ts
 interface DrawTextOptions {
     readonly color?: number | undefined;
     readonly size?: number | undefined;
+    readonly anchor?: {
+        readonly x: number;
+        readonly y: number;
+    } | undefined;
+    readonly shadow?: boolean | undefined;
 }
 ```
 
@@ -1006,6 +1023,75 @@ interface HostRefusal {
 type HostResult<T> = Result<T, HostRefusal>;
 ```
 
+### `HUD_TEXT_FLOOR` (const)
+
+```ts
+const HUD_TEXT_FLOOR = 12;
+```
+
+### `HudBox` (interface)
+
+```ts
+interface HudBox {
+    readonly width: number;
+    readonly height: number;
+}
+```
+
+### `HudLabel` (interface)
+
+```ts
+interface HudLabel {
+    set(text: string, x: number, y: number, style: HudTextStyle): HudBox;
+    hide(): void;
+    readonly kind: 'bitmap' | 'fallback';
+}
+```
+
+### `HudScale` (interface)
+
+```ts
+interface HudScale {
+    readonly cssPerLogical: number;
+    readonly devicePerCss: number;
+    readonly hostScale: number;
+}
+```
+
+### `HudSurface` (interface)
+
+```ts
+interface HudSurface {
+    readonly hud: Container;
+    hudScale(): HudScale;
+}
+```
+
+### `HudText` (interface)
+
+```ts
+interface HudText {
+    label(): HudLabel;
+    destroy(): void;
+    readonly ready: Promise<void>;
+}
+```
+
+### `HudTextStyle` (interface)
+
+```ts
+interface HudTextStyle {
+    readonly size: number;
+    readonly floor: number;
+    readonly color: number;
+    readonly shadow: boolean;
+    readonly anchor?: {
+        readonly x: number;
+        readonly y: number;
+    } | undefined;
+}
+```
+
 ### `IconButton` (svelte)
 
 ```ts
@@ -1399,10 +1485,25 @@ function padLabel(button: number, glyphs: PromptGlyphs, copy: PromptCopy): strin
 component from '../shared/ui/layout/PagedGrid.svelte'
 ```
 
+### `PageId` (type)
+
+```ts
+type PageId = 'latin' | 'cyrillic';
+```
+
 ### `PagerDots` (svelte)
 
 ```ts
 component from '../shared/ui/layout/PagerDots.svelte'
+```
+
+### `PageSource` (interface)
+
+```ts
+interface PageSource {
+    load(page: PageId): Promise<unknown>;
+    familyIfLoaded(page: PageId): string | undefined;
+}
 ```
 
 ### `PauseBehavior` (type)
@@ -1471,6 +1572,8 @@ interface PixiStage {
     readonly world: Container;
     readonly ui: Container;
     readonly backdrop: Container;
+    readonly hud: Container;
+    hudScale(): HudScale;
     readonly consumer: RenderDeltaConsumer;
     readonly characters: StageCharacters;
     useCharacters(characters: StageCharacters): void;
@@ -2351,6 +2454,12 @@ interface ViewportWindow {
     addEventListener: Listen;
     removeEventListener: Listen;
 }
+```
+
+### `WORD_TEXT_FLOOR` (const)
+
+```ts
+const WORD_TEXT_FLOOR = 14;
 ```
 
 ## `./no-eval`

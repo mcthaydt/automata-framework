@@ -92,10 +92,10 @@ export default defineGame({
   },
   draw: (ctx) => {
     if (stage === undefined) return
-    ctx.rect(4, 40, 200, 14, 0x2e222f)
-    ctx.text(`quality ${stage.quality}   filters ${stage.postFilters.ids.join(' ')}`, 8, 43, {
+    const box = ctx.text(`quality ${stage.quality}   filters ${stage.postFilters.ids.join(' ')}`, 8, 43, {
       color: 0xffffff,
       size: 8,
     })
+    ctx.rect(4, 40, box.width + 8, box.height + 6, 0x2e222f)
   },
 })

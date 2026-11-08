@@ -2,12 +2,16 @@
 // a prototype, drawn each display frame over the entity views. It reads the sim through `readSim` and never
 // writes it (law 1). It is built on the renderer's stage hooks, so render-pixi is unchanged.
 //
-// Immediate mode on a retained scene graph (plan D-6): one Graphics is cleared and redrawn each frame, and Text
-// objects are pooled by call order (the nth `text` call reuses the nth Text, unused ones are hidden), so a steady
-// HUD allocates no display objects after its first frame.
+// Immediate mode on a retained scene graph (plan D-6): one Graphics is cleared and redrawn each frame, and text
+// labels are pooled by call order (the nth `text` call reuses the nth label, unused ones are hidden), so a steady
+// HUD allocates no display objects after its first frame. Shapes draw in the pixel picture; text draws on the
+// stage's `hud` layer above it, sharp at any screen size (spec D9).
 
 import type { Sim, StepResult } from '@automata/sim'
-import { Container, Graphics, Text } from 'pixi.js'
+import { Container, Graphics } from 'pixi.js'
+import type { HudBox, HudLabel } from '../../features/hud-text/hud-label.ts'
+import { HUD_TEXT_FLOOR } from '../../features/hud-text/hud-size.ts'
+import { createHudText, type HudText } from '../../features/hud-text/hud-text.ts'
 import {
   drawLevelScene,
   type LevelScene,
@@ -17,13 +21,23 @@ import type { PixiStage, PixiStageHooks } from '../../features/render/renderer.t
 import { type DrawSim, readSim } from '../../shared/draw/read-sim.ts'
 import type { FrameInfo } from '../../shared/runtime/loop/frames.ts'
 
-/** Options for `DrawContext.text`: colour and font size. */
+/**
+ * Options for `DrawContext.text`. Text is never smaller than 12 CSS px on screen, so a size in logical pixels that
+ * is smaller than that on this screen is raised to fit; the box `text` returns is the size it took.
+ */
 export interface DrawTextOptions {
   /** Default 0xffffff. */
   readonly color?: number | undefined
   /** Font size in logical pixels. Default 8. */
   readonly size?: number | undefined
+  /** Which point of the text's box sits at (x, y), 0 to 1 each way. Default `{ x: 0, y: 0 }`, the top-left. */
+  readonly anchor?: { readonly x: number; readonly y: number } | undefined
+  /** A dark shadow behind the letters, for text over busy art. Default off. */
+  readonly shadow?: boolean | undefined
 }
+
+/** The box a `text` call took, in logical pixels, after the size floor. */
+export type DrawTextBox = HudBox
 
 /** What `draw` receives each frame. Coordinates are logical playfield pixels (plan D-2). */
 export interface DrawContext {
@@ -36,15 +50,22 @@ export interface DrawContext {
   rect(x: number, y: number, w: number, h: number, color: number): void
   circle(x: number, y: number, radius: number, color: number): void
   line(x1: number, y1: number, x2: number, y2: number, color: number, width?: number): void
-  /** One line of text, its top-left at (x, y). */
-  text(value: string, x: number, y: number, options?: DrawTextOptions): void
+  /**
+   * One line of text, its top-left at (x, y) unless `anchor` says otherwise. It draws on the stage's `hud` layer
+   * (the canvas one, not the DOM `hud.overlay` slot), so it is above every shape whatever the call order and no
+   * post filter touches it. Returns the box it took, so a panel behind it can fit.
+   */
+  text(value: string, x: number, y: number, options?: DrawTextOptions): DrawTextBox
 }
 
 export interface DrawLayer {
   /** The sim to read from now on; `undefined` clears the layer and stops calling `draw`. */
   watch(sim: Sim | undefined): void
-  /** For `PixiRendererOptions.setup`: mounts the layer on the stage's ui layer and returns its frame hook. */
-  setup(stage: Pick<PixiStage, 'ui'> & Partial<Pick<PixiStage, 'world'>>): PixiStageHooks
+  /**
+   * For `PixiRendererOptions.setup`: mounts the shapes on the stage's ui layer, the text on its hud layer, and returns
+   * its frame hook.
+   */
+  setup(stage: Pick<PixiStage, 'ui' | 'hud' | 'hudScale'> & Partial<Pick<PixiStage, 'world'>>): PixiStageHooks
 }
 
 /** Every hook of each, called in the order given; `undefined` entries are skipped. */
@@ -76,16 +97,30 @@ export function createDrawLayer(
   const root = new Container({ label: 'draw' })
   const graphics = new Graphics()
   root.addChild(graphics)
-  const texts: Text[] = []
-  let textsUsed = 0
+  // Made on the first `text` call, so a `draw` that only writes shapes never loads a font.
+  let stage: Parameters<DrawLayer['setup']>[0] | undefined
+  let hudText: HudText | undefined
+  const labels: HudLabel[] = []
+  let labelsUsed = 0
 
-  const hideUnusedTexts = (): void => {
-    for (let i = textsUsed; i < texts.length; i++) (texts[i] as Text).visible = false
+  const hideUnusedLabels = (): void => {
+    for (let i = labelsUsed; i < labels.length; i++) (labels[i] as HudLabel).hide()
   }
   const clear = (): void => {
     graphics.clear()
-    textsUsed = 0
-    hideUnusedTexts()
+    labelsUsed = 0
+    hideUnusedLabels()
+  }
+  const nextLabel = (): HudLabel => {
+    let label = labels[labelsUsed]
+    if (label === undefined) {
+      if (stage === undefined) throw new Error('draw layer: text before setup')
+      hudText ??= createHudText(stage)
+      label = hudText.label()
+      labels.push(label)
+    }
+    labelsUsed++
+    return label
   }
 
   const ctx = (sim: DrawSim, frame: FrameInfo): DrawContext => ({
@@ -97,20 +132,14 @@ export function createDrawLayer(
     circle: (x, y, radius, color) => void graphics.circle(x, y, radius).fill(color),
     line: (x1, y1, x2, y2, color, width = 1) =>
       void graphics.moveTo(x1, y1).lineTo(x2, y2).stroke({ color, width }),
-    text: (value, x, y, options = {}) => {
-      let text = texts[textsUsed]
-      if (text === undefined) {
-        text = new Text({ text: '' })
-        texts.push(text)
-        root.addChild(text)
-      }
-      textsUsed++
-      text.text = value
-      text.style.fill = options.color ?? 0xffffff
-      text.style.fontSize = options.size ?? 8
-      text.position.set(x, y)
-      text.visible = true
-    },
+    text: (value, x, y, options = {}) =>
+      nextLabel().set(value, x, y, {
+        size: options.size ?? 8,
+        floor: HUD_TEXT_FLOOR,
+        color: options.color ?? 0xffffff,
+        shadow: options.shadow ?? false,
+        anchor: options.anchor,
+      }),
   })
 
   return {
@@ -121,9 +150,11 @@ export function createDrawLayer(
         if (level !== undefined) drawLevelScene(level, undefined)
       }
     },
-    setup(stage) {
-      stage.ui.addChild(root)
-      if (level !== undefined && stage.world !== undefined) mountLevelScene(level, stage.world, stage.ui)
+    setup(mountedOn) {
+      stage = mountedOn
+      mountedOn.ui.addChild(root)
+      if (level !== undefined && mountedOn.world !== undefined)
+        mountLevelScene(level, mountedOn.world, mountedOn.ui)
       return {
         draw(frame) {
           if (view === undefined) return
@@ -131,7 +162,7 @@ export function createDrawLayer(
           if (draw === undefined) return
           clear()
           draw(ctx(view, frame))
-          hideUnusedTexts()
+          hideUnusedLabels()
         },
       }
     },

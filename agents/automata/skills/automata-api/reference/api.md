@@ -4625,6 +4625,16 @@ the keyboard settle, and publishes each measure on the root.
 function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwner;
 ```
 
+#### `createHudText` (function)
+
+Canvas text that stays sharp (spec D2): each string is drawn from the first baked MSDF page that holds every one of
+its letters, else as one `Text` in the device's face at the screen's own resolution. It draws on `surface.hud`, above
+the pixel picture and outside every post filter.
+
+```ts
+function createHudText(surface: HudSurface, pages?: PageSource): HudText;
+```
+
 #### `createPixiRenderer` (function)
 
 The core 2D renderer (ADR 0002) as a runtime `RendererFactory`: a letterboxed Pixi app on the render
@@ -4972,8 +4982,12 @@ interface DrawContext {
     rect(x: number, y: number, w: number, h: number, color: number): void;
     circle(x: number, y: number, radius: number, color: number): void;
     line(x1: number, y1: number, x2: number, y2: number, color: number, width?: number): void;
-    /** One line of text, its top-left at (x, y). */
-    text(value: string, x: number, y: number, options?: DrawTextOptions): void;
+    /**
+     * One line of text, its top-left at (x, y) unless `anchor` says otherwise. It draws on the stage's `hud` layer
+     * (the canvas one, not the DOM `hud.overlay` slot), so it is above every shape whatever the call order and no
+     * post filter touches it. Returns the box it took, so a panel behind it can fit.
+     */
+    text(value: string, x: number, y: number, options?: DrawTextOptions): DrawTextBox;
 }
 ```
 
@@ -5003,9 +5017,18 @@ interface DrawSim {
 }
 ```
 
+#### `DrawTextBox` (type)
+
+The box a `text` call took, in logical pixels, after the size floor.
+
+```ts
+type DrawTextBox = HudBox;
+```
+
 #### `DrawTextOptions` (interface)
 
-Options for `DrawContext.text`: colour and font size.
+Options for `DrawContext.text`. Text is never smaller than 12 CSS px on screen, so a size in logical pixels that
+is smaller than that on this screen is raised to fit; the box `text` returns is the size it took.
 
 ```ts
 interface DrawTextOptions {
@@ -5013,6 +5036,13 @@ interface DrawTextOptions {
     readonly color?: number | undefined;
     /** Font size in logical pixels. Default 8. */
     readonly size?: number | undefined;
+    /** Which point of the text's box sits at (x, y), 0 to 1 each way. Default `{ x: 0, y: 0 }`, the top-left. */
+    readonly anchor?: {
+        readonly x: number;
+        readonly y: number;
+    } | undefined;
+    /** A dark shadow behind the letters, for text over busy art. Default off. */
+    readonly shadow?: boolean | undefined;
 }
 ```
 
@@ -5703,6 +5733,96 @@ What a host call answers: the value, or the host's refusal.
 type HostResult<T> = Result<T, HostRefusal>;
 ```
 
+#### `HUD_TEXT_FLOOR` (const)
+
+The smallest `ctx.text` letter, in CSS px: a phone held upright still reads it.
+
+```ts
+const HUD_TEXT_FLOOR = 12;
+```
+
+#### `HudBox` (interface)
+
+The box a label took, in logical px, after the floor.
+
+```ts
+interface HudBox {
+    readonly width: number;
+    readonly height: number;
+}
+```
+
+#### `HudLabel` (interface)
+
+One pooled line of canvas text. `set` draws it again each frame it is wanted; `hide` takes it off the screen.
+
+```ts
+interface HudLabel {
+    set(text: string, x: number, y: number, style: HudTextStyle): HudBox;
+    hide(): void;
+    /** `bitmap`: sharp letters from a baked page. `fallback`: the whole string in the device's face. */
+    readonly kind: 'bitmap' | 'fallback';
+}
+```
+
+#### `HudScale` (interface)
+
+How big a logical pixel is on this screen, which canvas text needs to stay readable: CSS px per logical px (the
+letterbox's scale), device px per CSS px (the renderer's resolution) and the host's own scale hint (1.333 in
+Ruken's TV mode).
+
+```ts
+interface HudScale {
+    readonly cssPerLogical: number;
+    readonly devicePerCss: number;
+    readonly hostScale: number;
+}
+```
+
+#### `HudSurface` (interface)
+
+What canvas text draws on: the `hud` layer and how big a logical pixel is. `PixiStage` satisfies it.
+
+```ts
+interface HudSurface {
+    readonly hud: Container;
+    hudScale(): HudScale;
+}
+```
+
+#### `HudText` (interface)
+
+A pool of canvas text labels on one `hud`.
+
+```ts
+interface HudText {
+    /** A new pooled label; it adds nothing to the hud until it is first set. */
+    label(): HudLabel;
+    /** Removes every label. A page that finishes loading afterwards changes nothing. */
+    destroy(): void;
+    /** Settles when the `latin` page is loaded (or failed, in which case labels use the fallback face). */
+    readonly ready: Promise<void>;
+}
+```
+
+#### `HudTextStyle` (interface)
+
+How a label looks. `size` is in logical px; `floor` is the smallest it may be on screen, in CSS px.
+
+```ts
+interface HudTextStyle {
+    readonly size: number;
+    readonly floor: number;
+    readonly color: number;
+    readonly shadow: boolean;
+    /** 0 to 1: which point of the text's box sits at (x, y). Default top-left. */
+    readonly anchor?: {
+        readonly x: number;
+        readonly y: number;
+    } | undefined;
+}
+```
+
 #### `IconButton` (const)
 
 A button whose face is an icon. Its accessible name is `label`, which it cannot
@@ -6329,6 +6449,14 @@ type PagedGrid<T extends {
 }> = InstanceType<typeof PagedGrid<T>>;
 ```
 
+#### `PageId` (type)
+
+The id of a baked font page. `latin` serves en es fr de it pt-BR pl tr; `cyrillic` serves ru uk.
+
+```ts
+type PageId = 'latin' | 'cyrillic';
+```
+
 #### `PagerDots` (const)
 
 Where a paged view is: one row of
@@ -6337,6 +6465,17 @@ dots, each a whole touch target, or "3 / 11" once the dots would not fit on one 
 ```ts
 const PagerDots: import("svelte").Component<Props, {}, "">;
 type PagerDots = ReturnType<typeof PagerDots>;
+```
+
+#### `PageSource` (interface)
+
+How pages reach Pixi. The real one loads the baked fonts; a test may bring its own.
+
+```ts
+interface PageSource {
+    load(page: PageId): Promise<unknown>;
+    familyIfLoaded(page: PageId): string | undefined;
+}
 ```
 
 #### `PauseBehavior` (type)
@@ -6459,8 +6598,23 @@ interface PixiStage {
     readonly ui: Container;
     /** The unclipped background scenery container. */
     readonly backdrop: Container;
+    /**
+     * The canvas layer for crisp overlays such as `ctx.text` and Feel's words: above every shape and sprite whatever the
+     * call order, outside every post filter, and clipped to the playfield. It has the stage's logical coordinates.
+     * Not the DOM `hud.overlay` slot.
+     */
+    readonly hud: Container;
+    /** How big a logical pixel is on this screen now, which canvas text sizes itself by. */
+    hudScale(): HudScale;
     /** The delta consumer tracking entity views. */
     readonly consumer: RenderDeltaConsumer;
+    /**
+     * How characters are squashed, held and found for a word above them. Read it each frame: a renderer that draws
+     * characters its own way replaces it (`useCharacters`) when it mounts.
+     */
+    readonly characters: StageCharacters;
+    /** Replaces `characters` with this renderer's own answer. */
+    useCharacters(characters: StageCharacters): void;
     /** The fixed-resolution composite the world and UI draw into, when it is on. */
     readonly composite?: CompositeTarget | undefined;
     /** Post-processing filters applied to the root rendered scene. Owned by `postFilters` once it is used. */
@@ -7542,6 +7696,26 @@ interface SpriteViewOptions {
 }
 ```
 
+#### `StageCharacters` (interface)
+
+The stage's port for characters, keyed by the sim's stable id of the character.
+
+```ts
+interface StageCharacters {
+    /** Where a word above a character sits, in `stage.ui`'s coordinates, or `undefined` when it has no view. */
+    point(ref: number): {
+        readonly x: number;
+        readonly y: number;
+    } | undefined;
+    /** Scales a character's view by `x` and `y` from the scale it rests at. */
+    squash(ref: number, x: number, y: number): void;
+    /** Puts a squashed character's scale back. */
+    rest(ref: number): void;
+    /** Holds these characters' poses until the next call. */
+    hold(refs: ReadonlySet<number>): void;
+}
+```
+
 #### `startGame` (function)
 
 Boots a game: `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting
@@ -7806,6 +7980,14 @@ interface ViewportWindow {
     addEventListener: Listen;
     removeEventListener: Listen;
 }
+```
+
+#### `WORD_TEXT_FLOOR` (const)
+
+The smallest Feel word, in CSS px: a word is a glance, so it is larger.
+
+```ts
+const WORD_TEXT_FLOOR = 14;
 ```
 
 ### `import { … } from '@automata/framework/extension'`

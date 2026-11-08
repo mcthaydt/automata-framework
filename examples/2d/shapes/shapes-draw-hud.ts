@@ -42,8 +42,14 @@ export default defineGame({
   views: { [Ball.id]: rect({ w: 8, h: 8, color: 0x00cdf9 }) },
   draw: (ctx) => {
     const all = ctx.sim.query(Ball)
-    ctx.rect(200, 126, 112, 14, 0x2e222f)
-    ctx.text(`tick ${ctx.sim.tick}   squares ${all.length}`, 204, 129, { color: 0xffffff, size: 8 })
+    // The text sizes its own panel: on a phone it is drawn larger than 8 so it stays readable, and it is anchored to
+    // the field's right edge so it never runs off it.
+    const box = ctx.text(`tick ${ctx.sim.tick}   squares ${all.length}`, ctx.width - 8, 129, {
+      color: 0xffffff,
+      size: 8,
+      anchor: { x: 1, y: 0 },
+    })
+    ctx.rect(ctx.width - 8 - box.width - 4, 126, box.width + 8, box.height + 6, 0x2e222f)
 
     const { x, y, w, h } = MAP
     ctx.rect(x, y, w, h, 0x3e3546)

@@ -33,10 +33,10 @@ export default defineGame({
   },
   views: { [Pacer.id]: rect({ w: 12, h: 12, color: 0x5ee6a8 }) },
   draw: (ctx) => {
-    ctx.rect(4, 40, 150, 14, 0x2e222f)
-    ctx.text(`tick ${ctx.sim.tick}   ${ctx.frame.paused ? 'paused' : 'running'}`, 8, 43, {
+    const box = ctx.text(`tick ${ctx.sim.tick}   ${ctx.frame.paused ? 'paused' : 'running'}`, 8, 43, {
       color: 0xffffff,
       size: 8,
     })
+    ctx.rect(4, 40, box.width + 8, box.height + 6, 0x2e222f)
   },
 })

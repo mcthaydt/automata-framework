@@ -10,7 +10,12 @@ export {
   type GameSpec,
   GameSpecError,
 } from '../app/define-game.ts'
-export { type DrawContext, type DrawTextOptions, mergeStageHooks } from '../app/draw/draw-layer.ts'
+export {
+  type DrawContext,
+  type DrawTextBox,
+  type DrawTextOptions,
+  mergeStageHooks,
+} from '../app/draw/draw-layer.ts'
 export { defaultScreens, type ScreensGame } from '../app/screens/default-screens.ts'
 export type { ChangedElsewhereCopy } from '../app/screens/saves/saves-copy.ts'
 // The default screens' words: a game passes its own in `copy.screens`, over the English defaults.

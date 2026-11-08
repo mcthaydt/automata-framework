@@ -16,6 +16,10 @@ export default defineGame({
   // A field the size of the window and one line of text in it: the smallest thing a game can show.
   draw: (ctx) => {
     ctx.rect(0, 0, ctx.width, ctx.height, 0x3e3546)
-    ctx.text('Your game runs here.', 76, 82, { color: 0xffffff, size: 16 })
+    ctx.text('Your game runs here.', ctx.width / 2, ctx.height / 2, {
+      color: 0xffffff,
+      size: 16,
+      anchor: { x: 0.5, y: 0.5 },
+    })
   },
 })

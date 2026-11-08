@@ -458,6 +458,7 @@
 - `CoreSettings` (interface): The settings every game carries: input bindings, display, audio and vibration.
 - `createCamera2d(stage, options, seed?)`: A camera writing `stage`'s transform (usually `PixiStage.world`).
 - `createGeometryOwner(options)`: Creates the geometry owner of a document, the only writer of its geometry: make one per document.
+- `createHudText(surface, pages?)`: Canvas text that stays sharp (spec D2): each string is drawn from the first baked MSDF page that holds every one of its letters, else as one `Text` in the device's face at the screen's own resolution.
 - `createPixiRenderer(options?)`: The core 2D renderer (ADR 0002) as a runtime `RendererFactory`: a letterboxed Pixi app on the render target, entity views from each step's render delta, interpolated each frame.
 - `createPostFilterSlot(target)`: A post-filter slot writing its composed filters to `target`'s `filters`.
 - `createT(messages)`: `t` over a messages module (`import * as m from './paraglide/messages.js'`).
@@ -480,7 +481,8 @@
 - `DrawContext` (interface): What `draw` receives each frame.
 - `DrawEntity` (interface): One entity, read-only: its components' values are frozen copies.
 - `DrawSim` (interface): The sim at this frame, read-only.
-- `DrawTextOptions` (interface): Options for `DrawContext.text`: colour and font size.
+- `DrawTextBox` (type): The box a `text` call took, in logical pixels, after the size floor.
+- `DrawTextOptions` (interface): Options for `DrawContext.text`.
 - `EntitlementsPayload` (interface): What the player owns: whether ads show, permanent items and subscriptions, and whether this is a dev build.
 - `EntitlementsPayloadSchema` (const): Checks entitlements.
 - `EntityRef` (interface): A live entity, addressed by its StableId.
@@ -519,6 +521,13 @@
 - `HostingSeams` (interface): Test seams of a target's adapter.
 - `HostRefusal` (interface): Why the host said no to a call: its contract code, whether a retry may succeed, and the call it refused.
 - `HostResult` (type): What a host call answers: the value, or the host's refusal.
+- `HUD_TEXT_FLOOR` (const): The smallest `ctx.text` letter, in CSS px: a phone held upright still reads it.
+- `HudBox` (interface): The box a label took, in logical px, after the floor.
+- `HudLabel` (interface): One pooled line of canvas text.
+- `HudScale` (interface): How big a logical pixel is on this screen, which canvas text needs to stay readable: CSS px per logical px (the letterbox's scale), device px per CSS px (the renderer's resolution) and the host's own scale hint (1.333 in Ruken's TV mode).
+- `HudSurface` (interface): What canvas text draws on: the `hud` layer and how big a logical pixel is.
+- `HudText` (interface): A pool of canvas text labels on one `hud`.
+- `HudTextStyle` (interface): How a label looks.
 - `IconButton` (const): A button whose face is an icon.
 - `Input` (interface): The input service: held actions from keys, pads, touch buttons and gestures under the game's profile and the player's overrides, menu edges, the active device and pads, and rebinding.
 - `InputMap` (interface): Held keys, touch buttons and gamepad buttons, turned into one command per tick.
@@ -566,7 +575,9 @@
 - `OwnedRenderer` (interface): A renderer the runtime owns: `dispose` destroys it (the canvas, its listeners, its GPU resources).
 - `padLabel(button, glyphs, copy)`: A standard-mapping pad button's label on a pad of `glyphs`.
 - `PagedGrid` (const): A grid of items in pages that never scrolls.
+- `PageId` (type): The id of a baked font page.
 - `PagerDots` (const): Where a paged view is: one row of dots, each a whole touch target, or "3 / 11" once the dots would not fit on one row.
+- `PageSource` (interface): How pages reach Pixi.
 - `PauseBehavior` (type): Whether the game pauses when it goes to the background; fixed for the game's whole life.
 - `PauseBehaviorSchema` (const): Checks a pause behavior.
 - `pictureView(project, def, images, options?)`: An entity drawn as its character looks in the editor: the tile Characters gave it, else its colour as its shape.
@@ -633,6 +644,7 @@
 - `sprite(source, options?)`: A sprite that follows its component's `x`, `y` and `angle`, interpolated between ticks.
 - `SpriteFrames` (interface): The texture is a sheet of equal frames, read left to right, top to bottom.
 - `SpriteViewOptions` (interface): A `sprite` view's anchor and either its sprite-sheet frames or one frame of a packed atlas.
+- `StageCharacters` (interface): The stage's port for characters, keyed by the sim's stable id of the character.
 - `startGame(game, start?)`: Boots a game: `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting and the default screens, then the runtime's boot on the game's root.
 - `StartOptions` (interface): How a game starts.
 - `StepResult` (interface): What one `step` produced: the new tick, the events emitted, the renderer's delta and the commands that were rejected.
@@ -653,6 +665,7 @@
 - `typedBus(bus)`: Cast a PresentationBus instance to a typed view with game-specific fact types.
 - `usePlay()`: The running game, for a component the play screen draws (the `hud.overlay` slot): read it, and send it commands.
 - `ViewportWindow` (interface): The parts of `window` the owner reads; a fake from `@automata/framework/testing` stands in for it in tests.
+- `WORD_TEXT_FLOOR` (const): The smallest Feel word, in CSS px: a word is a glance, so it is larger.
 
 ### `import { … } from '@automata/framework/extension'`
 

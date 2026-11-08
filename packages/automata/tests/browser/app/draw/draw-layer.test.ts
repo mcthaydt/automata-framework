@@ -30,7 +30,11 @@ describe('draw layer browser parity', () => {
       },
       { width: 64, height: 64 },
     )
-    const hooks = layer.setup({ ui: app.stage })
+    const hooks = layer.setup({
+      ui: app.stage,
+      hud: app.stage,
+      hudScale: () => ({ cssPerLogical: 1, devicePerCss: 1, hostScale: 1 }),
+    })
     layer.watch(sim)
     hooks.draw?.({ alpha: 1, frameMs: 16, paused: false })
 

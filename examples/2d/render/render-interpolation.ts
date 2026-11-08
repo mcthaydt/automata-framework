@@ -58,10 +58,10 @@ export default defineGame({
       const { x, y } = runner.get(Runner)
       ctx.line(x, y - 14, x, y + 14, 0xff5d8f, 1)
     }
-    ctx.rect(4, 40, 150, 14, 0x2e222f)
-    ctx.text(`blend ${blend ? 'on' : 'off'}   alpha ${ctx.frame.alpha.toFixed(2)}`, 8, 43, {
+    const box = ctx.text(`blend ${blend ? 'on' : 'off'}   alpha ${ctx.frame.alpha.toFixed(2)}`, 8, 43, {
       color: 0xffffff,
       size: 8,
     })
+    ctx.rect(4, 40, box.width + 8, box.height + 6, 0x2e222f)
   },
 })

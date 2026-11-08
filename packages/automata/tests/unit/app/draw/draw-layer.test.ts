@@ -1,8 +1,18 @@
 import { createSim, defineComponent, definePlugin, type Sim } from '@automata/sim'
-import { Container, Graphics, Text } from 'pixi.js'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { CanvasTextMetrics, Container, Graphics, Text } from 'pixi.js'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createDrawLayer, type DrawContext, mergeStageHooks } from '#src/app/draw/draw-layer.ts'
+import { loadPage } from '#src/features/hud-text/load-page.ts'
 import type { PixiStageHooks } from '#src/features/render/renderer.ts'
+import type { HudScale } from '#src/shared/draw/hud-scale.ts'
+
+// jsdom has no 2D canvas and no createImageBitmap: no baked page can load, so every label draws in the fallback face,
+// and a fixed advance per letter stands in for the font's metrics. The hud-text tests cover the bitmap path.
+vi.mock('#src/features/hud-text/load-page.ts', () => ({
+  loadPage: vi.fn(() => Promise.reject(new Error('no pages in jsdom'))),
+  pageFamilyIfLoaded: () => undefined,
+}))
+const SCALE: HudScale = { cssPerLogical: 3, devicePerCss: 1, hostScale: 1 }
 
 const Body = defineComponent('body', { x: 'f32', y: 'f32' })
 const plugin = definePlugin({ name: 'drawn', defs: [Body] })
@@ -10,9 +20,20 @@ const frame = { alpha: 0.5, frameMs: 16, paused: false }
 const size = { width: 320, height: 180 }
 
 let sim: Sim | undefined
+beforeEach(() => {
+  vi.spyOn(CanvasTextMetrics, 'measureText').mockImplementation(((
+    value: string,
+    style: { fontSize: number },
+  ) => ({
+    width: [...value].length * 5,
+    height: style.fontSize * 1.2,
+  })) as never)
+})
 afterEach(() => {
   sim?.dispose()
   sim = undefined
+  vi.restoreAllMocks()
+  vi.mocked(loadPage).mockClear()
 })
 
 async function oneBody(): Promise<Sim> {
@@ -24,12 +45,15 @@ async function oneBody(): Promise<Sim> {
 /** The layer on a bare `ui` container, as `createPixiRenderer` would call `setup`. */
 function mounted(draw: (ctx: DrawContext) => void) {
   const ui = new Container()
+  const hud = new Container()
   const layer = createDrawLayer(draw, size)
-  const hooks = layer.setup({ ui })
+  const hooks = layer.setup({ ui, hud, hudScale: () => SCALE })
   const root = ui.children[0] as Container
   const graphics = root.children.find((child) => child instanceof Graphics) as Graphics
-  const texts = () => root.children.filter((child) => child instanceof Text) as Text[]
-  return { ui, layer, hooks, root, graphics, texts }
+  // One container per label on the hud; its fill is the last Text in it.
+  const labels = () => hud.children as Container[]
+  const texts = () => labels().map((label) => label.children.filter((c) => c instanceof Text).at(-1) as Text)
+  return { ui, hud, layer, hooks, root, graphics, labels, texts }
 }
 
 const boundsOf = (graphics: Graphics) => {
@@ -100,14 +124,66 @@ describe('createDrawLayer', () => {
     expect(graphics.context.instructions).toHaveLength(0)
   })
 
-  it('reuses one Text per call index and hides the unused ones', async () => {
+  it('draws text on the hud layer, not in the picture', async () => {
+    const { ui, hud, hooks, layer, root } = mounted((ctx) => ctx.text('score 1', 4, 4))
+    layer.watch(await oneBody())
+    hooks.draw?.(frame)
+    expect(hud.children).toHaveLength(1)
+    expect(root.children.some((child) => child instanceof Text)).toBe(false)
+    expect(ui.children).toEqual([root])
+  })
+
+  it('returns the box the text took, at least as tall as the size asked', async () => {
+    const boxes: unknown[] = []
+    const { hooks, layer } = mounted((ctx) => {
+      boxes.push(ctx.text('score 1', 4, 4), ctx.text('x', 4, 20, { size: 16 }))
+    })
+    layer.watch(await oneBody())
+    hooks.draw?.(frame)
+    expect(boxes).toEqual([
+      { width: 35, height: 8 * 1.2 },
+      { width: 5, height: 16 * 1.2 },
+    ])
+  })
+
+  it('anchors text by its right edge when asked', async () => {
+    const { hooks, layer, texts } = mounted(
+      (ctx) => void ctx.text('score 1', 100, 4, { anchor: { x: 1, y: 0 } }),
+    )
+    layer.watch(await oneBody())
+    hooks.draw?.(frame)
+    expect(texts()[0]?.x).toBe(100 - 35)
+  })
+
+  it('draws a shadow only when asked', async () => {
+    const { hooks, layer, labels } = mounted((ctx) => {
+      ctx.text('a', 0, 0)
+      ctx.text('b', 0, 10, { shadow: true })
+    })
+    layer.watch(await oneBody())
+    hooks.draw?.(frame)
+    const visibleTexts = (label: Container | undefined) =>
+      (label?.children ?? []).filter((child) => child instanceof Text && child.visible).length
+    expect([visibleTexts(labels()[0]), visibleTexts(labels()[1])]).toEqual([1, 2])
+  })
+
+  it('loads no font and adds nothing to the hud when a draw writes no text', async () => {
+    const { hud, hooks, layer } = mounted((ctx) => ctx.rect(0, 0, 4, 4, 0xffffff))
+    layer.watch(await oneBody())
+    hooks.draw?.(frame)
+    expect(hud.children).toHaveLength(0)
+    expect(loadPage).not.toHaveBeenCalled()
+  })
+
+  it('reuses one label per call index and hides the unused ones', async () => {
     let lines = ['score 1', 'tick 0']
-    const { hooks, layer, texts } = mounted((ctx) => {
+    const { hooks, layer, texts, labels } = mounted((ctx) => {
       for (const [i, line] of lines.entries()) ctx.text(line, 4, 4 + i * 10, { color: 0xffffff, size: 8 })
     })
     layer.watch(await oneBody())
     hooks.draw?.(frame)
     const [first, second] = texts()
+    const [firstLabel, secondLabel] = labels()
     expect(texts()).toHaveLength(2)
     expect([first?.text, first?.x, first?.y, first?.visible]).toEqual(['score 1', 4, 4, true])
     expect([second?.text, second?.y]).toEqual(['tick 0', 14])
@@ -116,7 +192,7 @@ describe('createDrawLayer', () => {
     hooks.draw?.(frame)
     expect(texts()).toHaveLength(2)
     expect(texts()[0]).toBe(first)
-    expect([first?.text, first?.visible, second?.visible]).toEqual(['score 2', true, false])
+    expect([first?.text, firstLabel?.visible, secondLabel?.visible]).toEqual(['score 2', true, false])
   })
 
   it('clears and stops drawing when the sim is unwatched', async () => {
@@ -124,14 +200,14 @@ describe('createDrawLayer', () => {
       ctx.rect(0, 0, 4, 4, 0xffffff)
       ctx.text('hud', 0, 0)
     })
-    const { hooks, layer, graphics, texts } = mounted(draw)
+    const { hooks, layer, graphics, labels } = mounted(draw)
     layer.watch(await oneBody())
     hooks.draw?.(frame)
     layer.watch(undefined)
     hooks.draw?.(frame)
     expect(draw).toHaveBeenCalledTimes(1)
     expect(graphics.context.instructions).toHaveLength(0)
-    expect(texts().every((text) => !text.visible)).toBe(true)
+    expect(labels().every((label) => !label.visible)).toBe(true)
   })
 
   it('lets a throw inside draw propagate (D-5)', async () => {
