@@ -1,0 +1,80 @@
+// feelStage plays the feel table on the Pixi stage: the shake moves the world, the flash and tint are drawn over the
+// playfield, and cues and rumbles go to the game's own ports. It never writes the sim.
+import type { PixiStage } from '@automata/framework'
+import { fakeClock } from '@automata/framework/testing'
+import type { SimEvent, StepResult } from '@automata/sim'
+import { Container } from 'pixi.js'
+import { describe, expect, it, vi } from 'vitest'
+import { feelStage } from '#src/app/feel-stage.ts'
+import { content, slam } from '#src/testing/feel-table.ts'
+
+const fakeStage = (): PixiStage =>
+  ({ world: new Container(), ui: new Container(), backdrop: new Container() }) as unknown as PixiStage
+
+const step = (tick: number, events: readonly SimEvent[]): StepResult =>
+  ({ tick, events, render: {}, rejected: [] }) as unknown as StepResult
+
+const setup = (extra: Partial<Parameters<typeof feelStage>[0]> = {}) => {
+  const stage = fakeStage()
+  const clock = fakeClock()
+  const hooks = feelStage({ content: () => content, clock, ...extra })(stage)
+  return { stage, clock, hooks }
+}
+
+describe('feelStage', () => {
+  it('shakes the world while the table says so, then puts it back', () => {
+    const { stage, clock, hooks } = setup()
+    stage.world.position.set(10, 20)
+    hooks.apply?.(step(1, [slam(7)]))
+    hooks.draw?.({ alpha: 0, frameMs: 16, paused: false })
+    const moved = stage.world.position.x !== 10 || stage.world.position.y !== 20
+    expect(moved).toBe(true)
+    for (let i = 0; i < 120; i += 1) {
+      clock.advance(50)
+      hooks.draw?.({ alpha: 0, frameMs: 50, paused: false })
+    }
+    expect([stage.world.position.x, stage.world.position.y]).toEqual([10, 20])
+  })
+
+  it('draws the flash over the playfield for as long as it lasts', () => {
+    const { stage, hooks } = setup()
+    hooks.apply?.(step(1, [slam(7)]))
+    hooks.draw?.({ alpha: 0, frameMs: 16, paused: false })
+    expect(stage.ui.children.length).toBeGreaterThan(0)
+    expect(stage.ui.children.some((child) => child.visible && child.alpha > 0)).toBe(true)
+  })
+
+  it('hands the cues and rumbles to the game’s ports, once', () => {
+    const onCue = vi.fn()
+    const onHaptic = vi.fn()
+    const { clock, hooks } = setup({ onCue, onHaptic })
+    hooks.apply?.(step(1, [slam(7)]))
+    hooks.draw?.({ alpha: 0, frameMs: 16, paused: false })
+    clock.advance(16)
+    hooks.draw?.({ alpha: 0, frameMs: 16, paused: false })
+    expect(onCue).toHaveBeenCalledTimes(1)
+    expect(onCue).toHaveBeenCalledWith('slam')
+    expect(onHaptic).toHaveBeenCalledTimes(1)
+  })
+
+  it('does nothing with an event the table does not know', () => {
+    const { stage, hooks } = setup()
+    stage.world.position.set(3, 4)
+    hooks.apply?.(step(1, [{ type: 'nothing.happens', payload: {} } as unknown as SimEvent]))
+    hooks.draw?.({ alpha: 0, frameMs: 16, paused: false })
+    expect([stage.world.position.x, stage.world.position.y]).toEqual([3, 4])
+  })
+
+  it('reads the table at each event, so a saved change shows on the next one', () => {
+    let table = { ...content, entry: [] } as typeof content
+    const stage = fakeStage()
+    const hooks = feelStage({ content: () => table, clock: fakeClock() })(stage)
+    hooks.apply?.(step(1, [slam(7)]))
+    hooks.draw?.({ alpha: 0, frameMs: 16, paused: false })
+    expect(stage.world.position.x).toBe(0)
+    table = content
+    hooks.apply?.(step(2, [slam(7)]))
+    hooks.draw?.({ alpha: 0, frameMs: 16, paused: false })
+    expect(stage.world.position.x !== 0 || stage.world.position.y !== 0).toBe(true)
+  })
+})

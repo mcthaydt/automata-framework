@@ -363,6 +363,11 @@
 - `WordPop` (interface): A word on screen: its locale key, the view it belongs to, its age in seconds and whether it holds still for reduced motion.
 - `WordRow` (interface): A word that pops up, as a locale key, never as text.
 
+### `import { … } from '@automata/feel/stage'`
+
+- `feelStage(options)`: The setup to hand to `createPixiRenderer({ setup })`.
+- `FeelStageOptions` (interface): What a game gives `feelStage`: the table (read at each event, so a saved change shows on the next one) and its ports.
+
 ## `@automata/framework`
 
 ### `import { … } from '@automata/framework'`

@@ -4,6 +4,7 @@ import { publishedBuild } from '../../tooling/release/src/tsdown-shared.ts'
 export default publishedBuild(import.meta.url, {
   entry: {
     index: './src/entries/index.ts',
+    stage: './src/entries/stage.ts',
   },
   platform: 'browser',
 })

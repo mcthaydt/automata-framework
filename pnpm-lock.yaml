@@ -501,6 +501,9 @@ importers:
       '@types/node':
         specifier: 24.19.1
         version: 24.19.1
+      pixi.js:
+        specifier: 8.22.0
+        version: 8.22.0
       smol-toml:
         specifier: 1.9.0
         version: 1.9.0

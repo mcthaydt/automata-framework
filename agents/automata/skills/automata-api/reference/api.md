@@ -3584,6 +3584,34 @@ interface WordRow {
 }
 ```
 
+### `import { … } from '@automata/feel/stage'`
+
+#### `feelStage` (function)
+
+The setup to hand to `createPixiRenderer({ setup })`.
+
+```ts
+function feelStage(options: FeelStageOptions): (stage: PixiStage) => PixiStageHooks;
+```
+
+#### `FeelStageOptions` (interface)
+
+What a game gives `feelStage`: the table (read at each event, so a saved change shows on the next one) and its ports.
+
+```ts
+interface FeelStageOptions {
+  readonly content: () => FeelContent;
+  /** The player's feel settings; the defaults when the game has none yet. */
+  readonly settings?: (() => FeelSettings) | undefined;
+  readonly reducedMotion?: (() => boolean) | undefined;
+  readonly clock?: Clock | undefined;
+  /** An audio cue fires, once. The game plays it; without this the cue is not heard. */
+  readonly onCue?: ((cue: string) => void) | undefined;
+  /** A rumble fires, once. The game's haptics port plays it. */
+  readonly onHaptic?: ((pulse: Pulse) => void) | undefined;
+}
+```
+
 ## `@automata/framework`
 
 ### `import { … } from '@automata/framework'`
