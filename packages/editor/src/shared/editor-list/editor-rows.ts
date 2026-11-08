@@ -4,7 +4,6 @@
 // check (workspace-policy.ts `ALWAYS_NEVER`).
 
 import type { SuiteWorkspace } from '../kit/ports/suite-ports.ts'
-import type { WriteResult } from '../kit/storage/project-store.ts'
 import { loadEditorList } from './editor-list.ts'
 import { EDITOR_LIST_PATH, type FileRow } from './editors.schema.ts'
 
@@ -104,6 +103,9 @@ export function listGrowsBy(before: string, after: string): boolean {
   if (!a.file.every((row, index) => key(row) === key(b.file[index] as FileRow))) return false
   return b.file.slice(a.file.length).every((row) => ALLOWED.has(key(row)))
 }
+
+/** What a write of the list gives back, as the workspace port names it. */
+type WriteResult = Awaited<ReturnType<SuiteWorkspace['write']>>
 
 const UNCHANGED = { ok: true, unchanged: true } as const
 

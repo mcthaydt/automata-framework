@@ -32,7 +32,13 @@ export function createFeel(options: FeelOptions = {}): SuiteEditor<FeelSession> 
     async open(files, ports) {
       const play = options.audio
       const path = files.find((file) => file.path.endsWith('.toml'))?.path ?? FEEL_PATH
-      const toml = await openTomlSession<FeelContent>({ path, ports, schema: feelSchema, empty: EMPTY })
+      const toml = await openTomlSession<FeelContent>({
+        path,
+        ports,
+        schema: feelSchema,
+        empty: EMPTY,
+        editor: 'feel',
+      })
       return new FeelSession(toml, {
         events: await gameEvents(ports.workspace),
         cues: await audioCues(ports.workspace),

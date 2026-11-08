@@ -60,8 +60,8 @@ const chosen = $derived(session.chosen)
       {/if}
     </ul>
     {#if session.read.kind !== 'syntax' && session.read.kind !== 'invalid'}
-      <Button variant="primary" disabled={!session.facts.listsSystems} onclick={() => void session.addCharacter()}>Add a character</Button>
-      <AddCharacter {session} disabled={!session.facts.listsSystems} />
+      <Button variant="primary" onclick={() => void session.addCharacter()}>Add a character</Button>
+      <AddCharacter {session} />
     {/if}
   {/if}
 </nav>

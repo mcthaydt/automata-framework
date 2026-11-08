@@ -68,9 +68,6 @@ export interface SceneFiles {
 export interface SchematicFacts {
   /** The game's code uses the systems extension. */
   readonly usesSystems: boolean
-  /** The editor list names the behaviour files, and the places. */
-  readonly listsSystems: boolean
-  readonly listsNav: boolean
   /** The address of the game's dev page, when the editors were opened in the game's folder. */
   readonly gameUrl: string | undefined
   /** The editor list names a 2D level editor and no 3D one, so light and warmth need the game's own facts. */
@@ -143,6 +140,7 @@ export class SchematicSession {
         ports: this.ports,
         schema,
         empty,
+        editor: 'schematic',
         // A write of one file is one step of the log.
         onStep: (label) => this.jointStep(label, mine.session === undefined ? [] : [mine.session]),
       })

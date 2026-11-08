@@ -102,7 +102,7 @@
 - `MusicPlayer` (interface): Plays the slot the game's state calls for.
 - `MusicPlayerOptions` (interface): What the player needs: the context and bus input of core's audio graph, and where the tracks' files are.
 - `trackAlias(path)`: The name the game knows a track's sound by: the file's own name, lower case, words joined with dashes.
-- `tracksFrom(found)`: The player's `tracks` from the music files a bundler found (Vite's `import.meta.glob('/assets/music/*', { eager: true, query: '?url', import: 'default' })`): each file's name to the address it is served from.
+- `tracksFrom(found)`: The player's `tracks` from the music files a bundler found (Vite's `import.meta.glob('../../assets/music/*', { eager: true, query: '?url', import: 'default' })`): each file's name to the address it is served from.
 
 ## `@automata/content`
 
@@ -352,6 +352,8 @@
 - `FactLog` (interface): The bus panel's record of the last facts heard.
 - `feelBoard(content, feel, tick)`: Builds the feel board for the debug overlay: every event the feel content reacts to, and a way to fire one.
 - `FeelBoardPort` (interface): The feel board: every event the content reacts to, and a way to fire one.
+- `ForwardedEvent` (interface): What the editor hears for each event.
+- `forwardEvents(bus, location, parent, options?)`: Starts forwarding when the page is framed and its address carries `af-watch` (the editor's origin) and `events` (the event names, comma between).
 - `installDebug(host)`: Makes `host` the one the overlay shows, and its driver (if any) `window.__automataDebug`, with `panels()` added.
 - `NetDiagnosticsPort` (interface): The net diagnostics: a summary object (`NetDiagnostics.summary()`), read as rows.
 - `Overlay` (interface): The overlay's state and its dev-input rules, apart from any view: toggle, close, pick a tab, pause, and handle a key or a touch count.

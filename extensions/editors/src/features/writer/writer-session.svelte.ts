@@ -128,12 +128,14 @@ export class WriterSession {
         ports: this.ports,
         schema: linesFileSchema,
         empty: LINES_EMPTY,
+        editor: 'writer',
       })
       const dialogue = await openTomlSession({
         path: `content/dialogue/${scene}.toml`,
         ports: this.ports,
         schema: dialogueFileSchema,
         empty: DIALOGUE_EMPTY,
+        editor: 'writer',
       })
       this.trail.add(lines)
       this.trail.add(dialogue)

@@ -172,6 +172,7 @@ export class SequenceSession {
         ports: this.ports,
         schema: cutsceneSchema,
         empty: addCutsceneEdit(CUTSCENE_FILE.exec(path)?.[1] ?? 'cutscene', 5),
+        editor: 'sequence',
       })
       this.trail.add(toml)
       session = new ContentSession(toml, undefined as Selection, 'Start this cutscene')
@@ -195,6 +196,7 @@ export class SequenceSession {
       ports: this.ports,
       schema: cutsceneSchema,
       empty: addCutsceneEdit(id, Math.max(1, Math.round(length * 10) / 10)),
+      editor: 'sequence',
     })
     this.trail.add(toml)
     const session = new ContentSession(toml, undefined as Selection, 'Add a cutscene')

@@ -2,6 +2,7 @@
 // ports, except that `workspace.write` takes the write path, so every editor's edit is checked and written once) and
 // the checks pill, which follows each write's `after` run.
 
+import { ensureListed } from '../../../shared/editor-list/editor-rows'
 import { createWritePath, type WriteOutcome, type WritePath } from '../../../shared/editor-list/write-path'
 import type { CheckReport, SuitePorts } from '../../../shared/kit/ports/suite-ports.ts'
 import { checksPill, type Pill } from '../core/pills-model'
@@ -72,6 +73,7 @@ export function createSuiteSession(raw: SuitePorts): SuiteSession {
 
   const portsFor = (owner: string): SuitePorts => ({
     ...raw,
+    list: { ensure: (editor) => ensureListed(raw.workspace, editor) },
     workspace: {
       ...raw.workspace,
       async write(path, text) {

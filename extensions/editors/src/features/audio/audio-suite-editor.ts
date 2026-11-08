@@ -23,7 +23,13 @@ export function createAudio(options: { readonly play: AudioPlay }): SuiteEditor<
     hue: 'color/ed/audio',
     async open(files, ports) {
       const path = files.find((file) => file.path.endsWith('.toml'))?.path ?? AUDIO_PATH
-      const toml = await openTomlSession<AudioContent>({ path, ports, schema: audioSchema, empty: EMPTY })
+      const toml = await openTomlSession<AudioContent>({
+        path,
+        ports,
+        schema: audioSchema,
+        empty: EMPTY,
+        editor: 'audio',
+      })
       return new AudioSession(
         toml,
         options.play,

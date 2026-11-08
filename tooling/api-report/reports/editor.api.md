@@ -3637,6 +3637,17 @@ function defineSuiteEditor<S>(editor: SuiteEditor<S>): SuiteEditor<S>;
 type EditMode = 'edit';
 ```
 
+### `EditorListPort` (interface)
+
+```ts
+interface EditorListPort {
+    ensure(editor: string): Promise<WriteResult | {
+        readonly ok: true;
+        readonly unchanged: true;
+    }>;
+}
+```
+
 ### `Gates` (interface)
 
 ```ts
@@ -3663,12 +3674,15 @@ interface GateState {
 interface SuiteEditor<S> {
     readonly id: string;
     readonly label: string;
+    readonly kind?: EditorKind | undefined;
     readonly icon: string;
     readonly hue: string;
     open(files: readonly WorkspaceFile[], ports: SuitePorts): Promise<S>;
     readonly homeFiles?: ((files: readonly WorkspaceFile[]) => readonly WorkspaceFile[]) | undefined;
     readonly regions: SuiteRegions<S>;
     readonly contributions?: readonly ContributionPoint[] | undefined;
+    readonly entries?: readonly SuiteEntryDef[] | undefined;
+    readonly showView?: ((session: S, view: string) => void) | undefined;
     readonly undo?: ((session: S) => SuiteUndo) | undefined;
 }
 ```
@@ -3680,6 +3694,7 @@ interface SuitePorts {
     readonly workspace: SuiteWorkspace;
     readonly checks: ChecksRunner;
     readonly gates?: Gates | undefined;
+    readonly list?: EditorListPort | undefined;
 }
 ```
 
@@ -3889,6 +3904,7 @@ interface MemoryPortsOptions {
     readonly store?: ProjectStore | undefined;
     readonly checks?: readonly MemoryCheck[] | undefined;
     readonly gates?: GateRecords | 'unreadable' | undefined;
+    readonly listChanged?: ((text: string) => void) | undefined;
 }
 ```
 
@@ -3900,6 +3916,7 @@ interface MemoryWorkspaceOptions {
     readonly classify: (path: string) => WorkspaceFile | UnlistedFile;
     readonly generated?: ((path: string) => boolean) | undefined;
     readonly store?: ProjectStore | undefined;
+    readonly listChanged?: ((text: string) => void) | undefined;
 }
 ```
 
@@ -4545,6 +4562,18 @@ interface EditorListProblem {
 const editorListSchema: z.ZodType<EditorList>;
 ```
 
+### `editorRows` (function)
+
+```ts
+function editorRows(id: string): string | undefined;
+```
+
+### `ensureListed` (function)
+
+```ts
+function ensureListed(workspace: Pick<SuiteWorkspace, 'read' | 'write'>, id: string): Promise<WriteResult | typeof UNCHANGED>;
+```
+
 ### `FileAccess` (type)
 
 ```ts
@@ -4600,6 +4629,12 @@ function globMatch(glob: string, path: string, options?: {
 }): {
     readonly scene?: string;
 } | undefined;
+```
+
+### `listGrowsBy` (function)
+
+```ts
+function listGrowsBy(before: string, after: string): boolean;
 ```
 
 ### `loadEditorList` (function)

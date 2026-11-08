@@ -1,32 +1,9 @@
 // What the game has and has not, found once when the editor opens: whether its code uses the systems extension, and
-// whether its editor list names the files Schematic edits. A game without either gets a sentence saying what to add,
-// never a quiet fallback.
-import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '@automata/editor/editor-list'
+// what kind of game it is. A game without the extension gets a sentence saying what to add, never a quiet fallback.
+// The editor list is not asked: starting a file adds Schematic's rows to it (`ports.list.ensure`).
+import { EDITOR_LIST_PATH, loadEditorList } from '@automata/editor/editor-list'
 import type { SuitePorts } from '@automata/editor/kit/ports'
 import type { SchematicFacts } from './schematic-session.svelte.ts'
-
-/** The rows an editor list needs, to copy: one for each place Schematic writes. */
-export const LIST_ROWS = `[[file]]
-glob = "content/systems/*.toml"
-editor = "schematic"
-modes = ["edit"]
-gates = []
-checks = ["content"]
-
-[[file]]
-glob = "content/nav/*.toml"
-editor = "schematic"
-modes = ["edit"]
-gates = []
-checks = ["content"]
-
-[[file]]
-glob = "content/puzzles/*.toml"
-editor = "schematic"
-modes = ["edit"]
-gates = []
-checks = ["content"]
-`
 
 async function usesSystems(ports: SuitePorts): Promise<boolean> {
   const manifest = await ports.workspace.read('package.json')
@@ -41,30 +18,16 @@ async function usesSystems(ports: SuitePorts): Promise<boolean> {
   }
 }
 
-async function listed(ports: SuitePorts): Promise<{ systems: boolean; nav: boolean; twoD: boolean }> {
+/** The list names a 2D level editor and no 3D one, so light and warmth need the game's own facts. */
+async function isTwoD(ports: SuitePorts): Promise<boolean> {
   const file = await ports.workspace.read(EDITOR_LIST_PATH)
-  if (file === undefined) return { systems: true, nav: true, twoD: false }
+  if (file === undefined) return false
   const load = loadEditorList(file.text)
-  if (!load.ok) return { systems: true, nav: true, twoD: false }
-  const writes = (path: string): boolean => {
-    const row = workspaceFile(load.list, path)
-    return row.editor === 'schematic' && row.writable
-  }
+  if (!load.ok) return false
   const editors = new Set(load.list.file.map((row) => row.editor))
-  return {
-    systems: writes('content/systems/scene.toml'),
-    nav: writes('content/nav/scene.toml'),
-    twoD: editors.has('levels-2d') && !editors.has('levels-3d'),
-  }
+  return editors.has('levels-2d') && !editors.has('levels-3d')
 }
 
 export async function findFacts(ports: SuitePorts, gameUrl: string | undefined): Promise<SchematicFacts> {
-  const rows = await listed(ports)
-  return {
-    usesSystems: await usesSystems(ports),
-    listsSystems: rows.systems,
-    listsNav: rows.nav,
-    twoD: rows.twoD,
-    gameUrl,
-  }
+  return { usesSystems: await usesSystems(ports), twoD: await isTwoD(ports), gameUrl }
 }
