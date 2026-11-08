@@ -2,6 +2,7 @@
 <script lang="ts">
 import EditorPage from '../../shared/ui/EditorPage.svelte'
 import CharacterCanvas from './CharacterCanvas.svelte'
+import PlacesCanvas from './PlacesCanvas.svelte'
 import SchematicStart from './SchematicStart.svelte'
 import type { SchematicSession } from './schematic-session.svelte.ts'
 
@@ -16,6 +17,8 @@ const ready = $derived(session.facts.usesSystems && session.def !== undefined)
   {/if}
   {#if !ready}
     <SchematicStart {session} />
+  {:else if session.chosen.kind === 'places'}
+    <PlacesCanvas {session} />
   {:else if character !== undefined}
     <CharacterCanvas {session} />
   {:else if (session.def?.agents.length ?? 0) === 0}

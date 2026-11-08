@@ -144,8 +144,8 @@ patrol scene and its Task 16 `examples/2d-story`. Tasks 1 to 7 and 9 to 13 need 
 
 **Interfaces:** the scene's nav session (`navGraphSchema`); `renamePlaceEdits(nav, systems, puzzle?, from, to)` returns edits for both files as one step (patrol stops, `at` conditions, `goTo`/`noise.at`/`ambush.at` naming it, the nav edges); `removePlace` is refused while anything names it, with the list of what does.
 
-- [ ] **Step 1: Failing tests:** each place reads "[bedside]: [4] across, [2] down. Walks to [desk] [door]"; an edge with a door reads "through the [ward door]"; add a place; connect and disconnect two places (one undirected edge, never twice); rename changes every reference in both files in one undo step; remove is refused with what names it; a new game writes `content/nav/<scene>.toml` on its first place (with the list row check of Task 4); the nav schema's problems show in words.
-- [ ] **Steps 2 to 4:** see them fail; implement; pass. **Step 5:** Commit `feat(editors): Schematic's places`.
+- [x] **Step 1: Failing tests:** each place reads "[bedside]: [4] across, [2] down. Walks to [desk] [door]"; an edge with a door reads "through the [ward door]"; add a place; connect and disconnect two places (one undirected edge, never twice); rename changes every reference in both files in one undo step; remove is refused with what names it; a new game writes `content/nav/<scene>.toml` on its first place (with the list row check of Task 4); the nav schema's problems show in words.
+- [x] **Steps 2 to 4:** see them fail; implement; pass. **Step 5:** Commit `feat(editors): Schematic's places`.
 
 ### Task 10: World rules and Numbers
 

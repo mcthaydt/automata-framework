@@ -7,6 +7,7 @@ import type { SuitePorts } from '@automata/editor/kit/ports'
 import { type NavGraph, navGraphSchema } from '@automata/nav/sim'
 import { type PuzzleDef, puzzleDefShape } from '@automata/puzzle/sim'
 import { type AgentDef, type SystemsDef, systemsDefShape, type Transition } from '@automata/systems/sim'
+import { stringify } from 'smol-toml'
 import { contentOf } from '../../shared/content-session.svelte.ts'
 import {
   type Outcome,
@@ -15,6 +16,13 @@ import {
   type TomlRead,
   type TomlSession,
 } from '../../shared/toml-session.ts'
+import {
+  addPlaceEdits,
+  connectEdits,
+  disconnectEdits,
+  removePlaceEdits,
+  renamePlaceEdits,
+} from './places-edits.ts'
 import {
   addModeEdits,
   diffEdits,
@@ -298,6 +306,72 @@ export class SchematicSession {
     const outcome = await this.change('Add a mode', addModeEdits(agent, name))
     if (outcome.ok) this.selected = { kind: 'mode', mode: name }
     return outcome
+  }
+
+  /** Runs a places edit: `edits` for the places file, or why not. */
+  async #places(
+    label: string,
+    edits: readonly ContentEdit[] | { readonly refused: string },
+  ): Promise<Outcome> {
+    if ('refused' in edits) return this.#refuse(edits.refused)
+    const outcome = await this.files.nav.edit(label, edits)
+    this.message = outcome.ok ? undefined : outcome.message
+    return outcome
+  }
+
+  /** The first place makes the scene's places file (when the editor list lets Schematic write it). */
+  async addPlace(name: string, x: number, z: number): Promise<Outcome> {
+    if (!this.facts.listsNav)
+      return this.#refuse(
+        'The editor list does not name the places files yet. Add the rows shown on the start page.',
+      )
+    const nav = this.places
+    if (nav !== undefined) return this.#places('Add a place', addPlaceEdits(nav, name, x, z))
+    if (this.files.nav.exists())
+      return this.#refuse('The places file has a mistake, so it is read only until it is fixed.')
+    const id = name.trim()
+    if (id === '') return this.#refuse('A place needs a name.')
+    const text = `# The places in this scene that characters walk between.\n${stringify({ nodes: { [id]: { x, z } }, edges: [] })}`
+    const outcome = await this.files.nav.accept(text, 'Add the first place')
+    this.message = outcome.ok ? undefined : outcome.message
+    return outcome
+  }
+
+  async movePlace(place: string, axis: 'x' | 'z', value: number): Promise<Outcome> {
+    const at = this.places?.nodes[place]
+    if (at === undefined) return this.#refuse('That place is not in this scene any more.')
+    return this.#places('Move a place', [{ keyPath: ['nodes', place, axis], expected: at[axis], set: value }])
+  }
+
+  async connectPlaces(a: string, b: string): Promise<Outcome> {
+    const nav = this.places
+    return nav === undefined
+      ? this.#refuse('There are no places yet.')
+      : this.#places('Join two places', connectEdits(nav, a, b))
+  }
+
+  async disconnectPlaces(a: string, b: string): Promise<Outcome> {
+    const nav = this.places
+    return nav === undefined
+      ? this.#refuse('There are no places yet.')
+      : this.#places('Part two places', disconnectEdits(nav, a, b))
+  }
+
+  async removePlace(place: string): Promise<Outcome> {
+    const nav = this.places
+    if (nav === undefined) return this.#refuse('There are no places yet.')
+    return this.#places('Remove a place', removePlaceEdits(nav, this.def, place))
+  }
+
+  /** The places file first, then the references in the behaviour file; the two files keep their own histories. */
+  async renamePlace(from: string, to: string): Promise<Outcome> {
+    const nav = this.places
+    if (nav === undefined) return this.#refuse('There are no places yet.')
+    const edits = renamePlaceEdits(nav, this.def, from, to)
+    if ('refused' in edits) return this.#refuse(edits.refused)
+    const first = await this.#places(`Rename ${from} to ${to}`, edits.nav)
+    if (!first.ok || edits.systems.length === 0) return first
+    return this.change(`Rename ${from} to ${to}`, edits.systems)
   }
 
   #refuse(message: string): Outcome {
