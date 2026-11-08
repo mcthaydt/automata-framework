@@ -9,7 +9,9 @@ import { indexRows } from '#src/rows.ts'
 
 const repo = fileURLToPath(new URL('../../fixtures/repo', import.meta.url))
 const afRoot = fileURLToPath(new URL('../../../..', import.meta.url))
+const betaRepo = fileURLToPath(new URL('../../fixtures/beta-repo', import.meta.url))
 const exports = indexRows(entryPoints(repo))
+const withBeta = indexRows(entryPoints(betaRepo))
 
 describe('api.json', () => {
   it('carries the version and every field of every export', () => {
@@ -50,6 +52,32 @@ describe('the reference (api.md and llms-api.txt)', () => {
 
   it('says so when an export has no doc comment', () => {
     expect(md).toContain('#### `undocumented` (const)\n\n_No doc comment._\n\n```ts')
+  })
+})
+
+describe('beta packages in the reference', () => {
+  const md = apiReference(withBeta)
+
+  it('puts them under their own heading after the published ones, with the 3D line', () => {
+    const beta = md.indexOf(
+      '## Beta: works in a game made inside the AutomataFramework repository; not published yet',
+    )
+    expect(beta).toBeGreaterThan(md.indexOf("from '@automata/alpha'"))
+    expect(md.indexOf("from '@automata/narrative/sim'")).toBeGreaterThan(beta)
+    expect(md).toContain('The 3D packages are listed here when 3D is public.')
+  })
+
+  it("names the published version only, since a beta package's 0.0.0 is not a release", () => {
+    expect(md.split('\n')[0]).toBe('# Automata API reference, version 1.2.3')
+    expect(JSON.parse(apiJson(withBeta)).version).toBe('1.2.3')
+  })
+
+  it('keeps the doc comment of a beta export', () => {
+    expect(md).toContain('#### `advance` (function)\n\nMoves a story on by one line.')
+  })
+
+  it('has no Beta heading when there is no beta package', () => {
+    expect(apiReference(exports)).not.toContain('Beta')
   })
 })
 

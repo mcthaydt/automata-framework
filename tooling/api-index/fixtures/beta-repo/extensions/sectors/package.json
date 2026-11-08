@@ -1,0 +1,6 @@
+{
+  "name": "@automata/sectors",
+  "version": "0.0.0",
+  "private": true,
+  "exports": { "./sim": "./src/entries/sim.ts" }
+}

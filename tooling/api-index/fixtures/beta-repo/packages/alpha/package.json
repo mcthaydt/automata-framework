@@ -1,0 +1,7 @@
+{
+  "name": "@automata/alpha",
+  "version": "1.2.3",
+  "exports": {
+    ".": { "types": "./types/index.d.ts", "import": "./types/index.js" }
+  }
+}

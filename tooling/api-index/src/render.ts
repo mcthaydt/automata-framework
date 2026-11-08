@@ -3,9 +3,12 @@
 import { readCorpus } from './corpus.ts'
 import type { ApiExport } from './rows.ts'
 
-/** The one version the exports describe. A mixed set is refused: an index covers exactly one version. */
+/**
+ * The one version the exports describe. A mixed set is refused: an index covers exactly one version. Beta rows are
+ * left out: a private package's 0.0.0 is not a release.
+ */
 export function indexVersion(exports: readonly ApiExport[]): string {
-  const versions = [...new Set(exports.map((row) => row.version))].sort()
+  const versions = [...new Set(exports.filter((row) => !row.beta).map((row) => row.version))].sort()
   if (versions.length !== 1) {
     throw new Error(
       `the API index describes one version, but the exports have ${versions.join(', ') || 'none'}`,
@@ -22,12 +25,26 @@ function specifier(row: ApiExport): string {
   return row.entryPoint === '.' ? row.package : `${row.package}${row.entryPoint.slice(1)}`
 }
 
-/** The reference body: one section per package, one per entry point, one per export. */
+export const BETA_HEADING =
+  '## Beta: works in a game made inside the AutomataFramework repository; not published yet'
+
+const BETA_NOTE = [
+  'These packages have no release and no version. A game made with `create-game` inside this repository imports them from source, so they work there, and their API may change before they are published.',
+  'The 3D packages are listed here when 3D is public.',
+]
+
+/** The reference body: one section per package, one per entry point, one per export; beta ones last, under a heading. */
 function referenceBody(exports: readonly ApiExport[]): string[] {
   const lines: string[] = []
   let lastPackage = ''
   let lastSpecifier = ''
+  let inBeta = false
   for (const row of exports) {
+    if (row.beta && !inBeta) {
+      inBeta = true
+      lastPackage = ''
+      lines.push(BETA_HEADING, '', ...BETA_NOTE.flatMap((line) => [line, '']))
+    }
     if (row.package !== lastPackage) {
       lines.push(`## \`${row.package}\``, '')
       lastPackage = row.package

@@ -72,7 +72,8 @@ export function cheatsheet(exports: readonly ApiExport[]): string {
   }
   let lastPackage = ''
   let lastSpecifier = ''
-  for (const row of exports) {
+  // Beta packages are in the API reference; this page is for what is published.
+  for (const row of exports.filter((row) => !row.beta)) {
     if (row.package !== lastPackage) {
       heading(`## \`${row.package}\``)
       lastPackage = row.package

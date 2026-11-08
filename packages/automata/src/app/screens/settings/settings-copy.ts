@@ -9,6 +9,7 @@ import type { LanguageCopy } from './language-section.ts'
 import type { TouchCopy } from './touch-section.ts'
 import type { VibrationCopy } from './vibration-section.ts'
 
+/** The words the settings screen shows for the button, key and touch prompts a game binds. */
 export const PROMPT_COPY: PromptCopy = {
   unbound: 'Not set',
   touch: 'Tap',

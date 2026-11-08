@@ -1,0 +1,10 @@
+{
+  "name": "@automata/narrative",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/entries/index.ts",
+    "./sim": "./src/entries/sim.ts",
+    "./tools": "./src/entries/tools.ts"
+  }
+}

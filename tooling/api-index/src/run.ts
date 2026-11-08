@@ -81,7 +81,11 @@ export function runApiIndex(options: RunOptions): RunResult {
   writeFileSync(join(options.out, 'cheatsheet.md'), page)
 
   const baseline = readBaseline(options.baseline)
-  const { undocumented, stale } = checkDocs(exports, baseline)
+  // A beta package's comments are its own business until it is published; the baseline is for the published API.
+  const { undocumented, stale } = checkDocs(
+    exports.filter((row) => !row.beta),
+    baseline,
+  )
   const report = [
     `${exports.length} exports from ${entries.length} entry points at ${indexVersion(exports)}; ${baseline.length - stale.length} undocumented (baseline)`,
     `wrote api.json, api.md, llms-api.txt, llms-full.txt and cheatsheet.md to ${options.out}`,

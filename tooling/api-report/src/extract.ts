@@ -151,8 +151,11 @@ function readExports(program: ts.Program): ExportsOf {
   }
 }
 
-/** Each core entry point's exports, read from source (no build). Comments are not emitted: `doc` is empty. */
-export function sourceExports(packages: readonly CorePackage[]): ExportsOf {
+/**
+ * Each entry point's exports, read from source (no build). Comments are not emitted, so `doc` is empty, unless
+ * `keepComments` is set: the API index reads a package that has no build, and its reference carries the comments.
+ */
+export function sourceExports(packages: readonly CorePackage[], keepComments = false): ExportsOf {
   const sourceDirs = packages.map((pkg) => join(pkg.dir, 'src') + sep)
   const isCoreSource = (file: string) =>
     !file.endsWith('.d.ts') && /\.[cm]?ts$/.test(file) && sourceDirs.some((dir) => file.startsWith(dir))
@@ -179,7 +182,7 @@ export function sourceExports(packages: readonly CorePackage[]): ExportsOf {
     if (!isCoreSource(fileName)) return ts.createSourceFile(fileName, '', languageVersion, true)
     const declarations = ts.transpileDeclaration(readFileSync(fileName, 'utf8'), {
       fileName,
-      compilerOptions: { isolatedDeclarations: true, declaration: true, removeComments: true },
+      compilerOptions: { isolatedDeclarations: true, declaration: true, removeComments: !keepComments },
     }).outputText
     return ts.createSourceFile(fileName, declarations, languageVersion, true)
   }

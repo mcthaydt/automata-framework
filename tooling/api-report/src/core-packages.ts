@@ -36,7 +36,7 @@ interface Manifest {
 }
 
 /** The source file of one `exports` value: a string, or the `types`/`default`/`import`/`svelte` condition. */
-function sourceTarget(value: unknown): string | undefined {
+export function sourceTarget(value: unknown): string | undefined {
   if (typeof value === 'string') return value
   if (value === null || typeof value !== 'object') return undefined
   const conditions = value as Record<string, unknown>

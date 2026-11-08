@@ -1996,7 +1996,7 @@ const STANDARD_PAD_BUTTON_MAX = 16;
 
 #### `STICK_DIRECTIONS` (const)
 
-_No doc comment._
+The eight directions a stick can be bound to: each stick (left or right) pushed up, down, left or right.
 
 ```ts
 const STICK_DIRECTIONS: readonly ["left-up", "left-down", "left-left", "left-right", "right-up", "right-down", "right-left", "right-right"];
@@ -6461,6 +6461,13 @@ interface PixiStage {
     readonly backdrop: Container;
     /** The delta consumer tracking entity views. */
     readonly consumer: RenderDeltaConsumer;
+    /**
+     * How characters are squashed, held and found for a word above them. Read it each frame: a renderer that draws
+     * characters its own way replaces it (`useCharacters`) when it mounts.
+     */
+    readonly characters: StageCharacters;
+    /** Replaces `characters` with this renderer's own answer. */
+    useCharacters(characters: StageCharacters): void;
     /** The fixed-resolution composite the world and UI draw into, when it is on. */
     readonly composite?: CompositeTarget | undefined;
     /** Post-processing filters applied to the root rendered scene. Owned by `postFilters` once it is used. */
@@ -6603,7 +6610,7 @@ interface PresentationBus<Facts = RuntimeFacts> {
 
 #### `PROMPT_COPY` (const)
 
-_No doc comment._
+The words the settings screen shows for the button, key and touch prompts a game binds.
 
 ```ts
 const PROMPT_COPY: PromptCopy;
@@ -7539,6 +7546,26 @@ interface SpriteViewOptions {
      * `automata-content assets` writes, and `frame` names one of its frames. Not with `frames`.
      */
     readonly frame?: string | undefined;
+}
+```
+
+#### `StageCharacters` (interface)
+
+The stage's port for characters, keyed by the sim's stable id of the character.
+
+```ts
+interface StageCharacters {
+    /** Where a word above a character sits, in `stage.ui`'s coordinates, or `undefined` when it has no view. */
+    point(ref: number): {
+        readonly x: number;
+        readonly y: number;
+    } | undefined;
+    /** Scales a character's view by `x` and `y` from the scale it rests at. */
+    squash(ref: number, x: number, y: number): void;
+    /** Puts a squashed character's scale back. */
+    rest(ref: number): void;
+    /** Holds these characters' poses until the next call. */
+    hold(refs: ReadonlySet<number>): void;
 }
 ```
 
@@ -16064,4 +16091,5171 @@ that here by copying the slot list from `@automata/framework`'s title when you n
 ```ts
 const TitleScreen: import("svelte").Component<Props, {}, "">;
 type TitleScreen = ReturnType<typeof TitleScreen>;
+```
+
+## Beta: works in a game made inside the AutomataFramework repository; not published yet
+
+These packages have no release and no version. A game made with `create-game` inside this repository imports them from source, so they work there, and their API may change before they are published.
+
+The 3D packages are listed here when 3D is public.
+
+## `@automata/cutscenes`
+
+### `import { … } from '@automata/cutscenes'`
+
+#### `ActorKey` (interface)
+
+One row of an actor's path. `at` is an anchor, or `x` and `z` a plan point. `through`: the key may cross a solid (a door
+opening). `pose` and `frame`: a clip of the figure's, played from this key until a key without one (`frame` holds one
+frame). `y`: metres above the floor; `shiver`: a sideways tremble in metres. `density` and `face`: close-up detail.
+
+```ts
+interface ActorKey {
+    readonly who: string;
+    readonly t: number;
+    readonly at?: string | undefined;
+    readonly x?: number | undefined;
+    readonly z?: number | undefined;
+    readonly alpha?: number | undefined;
+    readonly facing?: number | undefined;
+    readonly moving?: boolean | undefined;
+    readonly cut?: boolean | undefined;
+    readonly through?: boolean | undefined;
+    readonly pose?: string | undefined;
+    readonly frame?: number | undefined;
+    readonly y?: number | undefined;
+    readonly shiver?: number | undefined;
+    readonly density?: number | undefined;
+    readonly face?: string | undefined;
+}
+```
+
+#### `AnchorOf` (type)
+
+The point of an anchor in metres, or undefined when the level lacks it. Pass it to `placeScript` and to the lint's world.
+
+```ts
+type AnchorOf = (anchor: string) => {
+    readonly x: number;
+    readonly z: number;
+} | undefined;
+```
+
+#### `anchorsOf` (function)
+
+The anchors a script names, once each, sorted.
+
+```ts
+function anchorsOf(script: CutsceneScript): string[];
+```
+
+#### `CameraKey` (interface)
+
+`lens`: focal length in mm for this key (default the script's), eased with the move. `cut`: arrive without easing.
+
+```ts
+interface CameraKey {
+    readonly t: number;
+    readonly pos: V3;
+    readonly look: V3;
+    readonly cut?: boolean | undefined;
+    readonly lens?: number | undefined;
+    readonly ease?: Ease | undefined;
+}
+```
+
+#### `Caption` (interface)
+
+_No doc comment._
+
+```ts
+interface Caption {
+    readonly t: number;
+    readonly until: number;
+    /** The line record's id; its text is the locale's. */
+    readonly line: string;
+    readonly speaker?: string | undefined;
+}
+```
+
+#### `createCutscenes` (function)
+
+_No doc comment._
+
+```ts
+function createCutscenes(options?: CutscenesOptions): Cutscenes;
+```
+
+#### `CueKey` (interface)
+
+At `at` seconds the figure `who` starts the clip `clip`.
+
+```ts
+interface CueKey {
+    readonly at: number;
+    readonly who: string;
+    readonly clip: string;
+}
+```
+
+#### `cutsceneContent` (const)
+
+_No doc comment._
+
+```ts
+const cutsceneContent: ContentSchemaDef<'cutscene', z.ZodType<CutsceneScript>>;
+```
+
+#### `CutsceneEnded` (const)
+
+_No doc comment._
+
+```ts
+const CutsceneEnded: EventDef<z.ZodType<EndedPayload>>;
+```
+
+#### `Cutscenes` (interface)
+
+_No doc comment._
+
+```ts
+interface Cutscenes {
+    readonly plugin: PluginDef;
+    start(ctx: SimContext, id: string): void;
+    load(ctx: SimContext, scripts: readonly CutsceneScript[]): void;
+    locked(ctx: SimContext): boolean;
+}
+```
+
+#### `CutsceneScene` (const)
+
+The scene's scripts; empty until the game loads them.
+
+```ts
+const CutsceneScene: ResourceDef<z.ZodType<CutsceneSceneValue>>;
+```
+
+#### `CutsceneSceneValue` (interface)
+
+_No doc comment._
+
+```ts
+interface CutsceneSceneValue {
+    scripts: SceneScript[];
+}
+```
+
+#### `cutsceneSchema` (const)
+
+_No doc comment._
+
+```ts
+const cutsceneSchema: z.ZodType<CutsceneScript>;
+```
+
+#### `CutsceneScript` (interface)
+
+_No doc comment._
+
+```ts
+interface CutsceneScript {
+    readonly id: string;
+    /** Seconds. */
+    readonly duration: number;
+    /** The focal length (mm) of a camera key that names none; the play lens, 50 mm, when unset. */
+    readonly lens?: number | undefined;
+    readonly camera: readonly CameraKey[];
+    readonly actor?: readonly ActorKey[] | undefined;
+    readonly caption?: readonly Caption[] | undefined;
+    readonly light?: readonly LightKey[] | undefined;
+    readonly sound?: readonly SoundKey[] | undefined;
+    readonly doors?: readonly DoorKey[] | undefined;
+    readonly time?: readonly TimeKey[] | undefined;
+    readonly grade?: readonly GradeKey[] | undefined;
+    readonly props?: readonly PropKey[] | undefined;
+    /** Clips the scene starts on figures, each once as the scene passes its time. */
+    readonly cues?: readonly CueKey[] | undefined;
+    /** Camera shake windows: [from, to, metres], strongest at `from` and dying out by `to`. */
+    readonly shake?: readonly (readonly [number, number, number])[] | undefined;
+    /** Lamp flicker windows: [from, to]. */
+    readonly flicker?: readonly (readonly [number, number])[] | undefined;
+    /** Fades to black: 0 clear, 1 black. */
+    readonly fade?: readonly {
+        readonly t: number;
+        readonly value: number;
+    }[] | undefined;
+    /** Prop states the scene shows from `t` on (`cabinet.open`): the script drives what its lines say. */
+    readonly states?: readonly {
+        readonly t: number;
+        readonly state: string;
+    }[] | undefined;
+    /** The game is won when this cutscene ends. */
+    readonly victory?: boolean | undefined;
+    /** Lint rules this script may break, each with the reason; `context` limits it to sample contexts whose name contains it. */
+    readonly lintAllow?: readonly {
+        readonly rule: string;
+        readonly reason: string;
+        readonly context?: string | undefined;
+    }[] | undefined;
+}
+```
+
+#### `CutscenesExtension` (interface)
+
+_No doc comment._
+
+```ts
+interface CutscenesExtension extends Cutscenes {
+    readonly extension: ExtensionDef<'cutscenes'>;
+}
+```
+
+#### `cutscenesExtension` (function)
+
+_No doc comment._
+
+```ts
+function cutscenesExtension(options?: CutscenesExtensionOptions): CutscenesExtension;
+```
+
+#### `CutscenesExtensionOptions` (interface)
+
+_No doc comment._
+
+```ts
+interface CutscenesExtensionOptions extends CutscenesOptions {
+    /** The game's message catalog (the one its screens use): the words for a line's locale key. With it and `scripts`, captions are drawn. */
+    readonly words?: (key: string) => string | undefined;
+    /** The game's line records by id (its `lines` content): the key of a caption's words. */
+    readonly lines?: (id: string) => CaptionLine | undefined;
+    /** The game's scripts by cutscene id, so the caption can read what is up at this moment. */
+    readonly scripts?: Readonly<Record<string, CutsceneScript>>;
+    /** The sim's ticks a second. Default 60. */
+    readonly tickHz?: number;
+}
+```
+
+#### `CutsceneSkip` (const)
+
+_No doc comment._
+
+```ts
+const CutsceneSkip: CommandDef<z.ZodType<Record<string, never>>>;
+```
+
+#### `CutscenesOptions` (interface)
+
+_No doc comment._
+
+```ts
+interface CutscenesOptions {
+    /** What provides the game's places, so the extension requires it: sectors' 3D rooms (the default) or a 2D level. */
+    readonly places?: {
+        readonly provider: string;
+    };
+    /** Where a named anchor stands now (`player`, `actor:nurse`, a hotspot or nav node); undefined when the scene lacks it. */
+    readonly anchor?: (ctx: SimContext, name: string) => {
+        readonly x: number;
+        readonly z: number;
+    } | undefined;
+}
+```
+
+#### `CutsceneStarted` (const)
+
+_No doc comment._
+
+```ts
+const CutsceneStarted: EventDef<z.ZodType<StartedPayload>>;
+```
+
+#### `CutsceneState` (const)
+
+_No doc comment._
+
+```ts
+const CutsceneState: ResourceDef<z.ZodType<CutsceneStateValue>>;
+```
+
+#### `CutsceneStateValue` (interface)
+
+_No doc comment._
+
+```ts
+interface CutsceneStateValue {
+    /** The cutscene under way, or null. */
+    id: string | null;
+    /** The tick it started on, and the tick it ends on. */
+    start: number;
+    end: number;
+}
+```
+
+#### `DoorKey` (interface)
+
+How far the door of room `door` stands open from `t` on: 0 shut … 1 open.
+
+```ts
+interface DoorKey {
+    readonly t: number;
+    readonly door: string;
+    readonly open: number;
+    readonly ease?: Ease | undefined;
+}
+```
+
+#### `EndedPayload` (interface)
+
+_No doc comment._
+
+```ts
+interface EndedPayload {
+    readonly id: string;
+    /** Skipped by a `cutscene.skip`, by a script that replaced it, or because an anchor was missing. */
+    readonly skipped: boolean;
+    /** The anchors the scene could not resolve; empty unless the script never started. */
+    readonly missing: readonly string[];
+}
+```
+
+#### `GradeKey` (interface)
+
+The mood grade (a level's `look.grade` name) the scene is graded with from `t` on.
+
+```ts
+interface GradeKey {
+    readonly t: number;
+    readonly grade: string;
+}
+```
+
+#### `levelAnchors` (function)
+
+The anchors of `level`'s named characters; `metre` is level pixels to a metre.
+
+```ts
+function levelAnchors(level: ContentLevel, metre: number): AnchorOf;
+```
+
+#### `LightKey` (interface)
+
+_No doc comment._
+
+```ts
+interface LightKey {
+    readonly t: number;
+    readonly lamp: string;
+    readonly level: number;
+}
+```
+
+#### `loadCutscenes` (function)
+
+Makes `scripts` the scene's cutscenes and drops any under way. Call it from a game system; a bad script throws.
+
+```ts
+function loadCutscenes(ctx: SimContext, scripts: readonly CutsceneScript[]): void;
+```
+
+#### `locked` (const)
+
+Whether a cutscene is under way.
+
+```ts
+const locked: (ctx: SimContext) => boolean;
+```
+
+#### `PlacedActorKey` (type)
+
+An actor key with its position settled to a point.
+
+```ts
+type PlacedActorKey = Omit<ActorKey, 'at' | 'x' | 'z'> & {
+    readonly x: number;
+    readonly z: number;
+};
+```
+
+#### `PlacedScript` (type)
+
+A script whose actors all stand at points: what `evaluate` takes.
+
+```ts
+type PlacedScript = Omit<CutsceneScript, 'actor'> & {
+    readonly actor?: readonly PlacedActorKey[] | undefined;
+};
+```
+
+#### `placeScript` (function)
+
+The script with every anchor replaced by its point, or the anchors `where` could not resolve.
+
+```ts
+function placeScript(script: CutsceneScript, where: (anchor: string) => {
+    readonly x: number;
+    readonly z: number;
+} | undefined): {
+    readonly ok: true;
+    readonly script: PlacedScript;
+} | {
+    readonly ok: false;
+    readonly missing: string[];
+};
+```
+
+#### `PropKey` (interface)
+
+A prop's whole state at `t` (see `PropState`): where it stands, how far it is turned, whether it has gone. A field
+a key leaves out is the prop as it was placed, and between two keys a field moves only when both name it.
+
+```ts
+interface PropKey {
+    readonly t: number;
+    readonly prop: string;
+    readonly at?: V3 | undefined;
+    readonly turn?: number | undefined;
+    readonly hidden?: boolean | undefined;
+    readonly ease?: Ease | undefined;
+}
+```
+
+#### `SceneScript` (interface)
+
+_No doc comment._
+
+```ts
+interface SceneScript {
+    readonly id: string;
+    /** Seconds. */
+    readonly duration: number;
+    readonly anchors: readonly string[];
+}
+```
+
+#### `SoundKey` (interface)
+
+_No doc comment._
+
+```ts
+interface SoundKey {
+    readonly t: number;
+    readonly kind: string;
+}
+```
+
+#### `startCutscene` (function)
+
+Starts cutscene `id` now. An id the scene does not have does nothing (a content error the compile catches).
+
+```ts
+function startCutscene(ctx: SimContext, id: string, options?: CutscenesOptions): void;
+```
+
+#### `StartedPayload` (interface)
+
+_No doc comment._
+
+```ts
+interface StartedPayload {
+    readonly id: string;
+    readonly start: number;
+    readonly end: number;
+}
+```
+
+#### `TimeKey` (interface)
+
+The time of day (a `TimeOfDay` name) the scene is lit by from `t` on.
+
+```ts
+interface TimeKey {
+    readonly t: number;
+    readonly time: string;
+}
+```
+
+#### `V3` (type)
+
+_No doc comment._
+
+```ts
+type V3 = readonly [number, number, number];
+```
+
+### `import { … } from '@automata/cutscenes/content'`
+
+#### `cutsceneContent` (const)
+
+_No doc comment._
+
+```ts
+const cutsceneContent: ContentSchemaDef<'cutscene', z.ZodType<CutsceneScript>>;
+```
+
+### `import { … } from '@automata/cutscenes/sim'`
+
+#### `ActorKey` (interface)
+
+One row of an actor's path. `at` is an anchor, or `x` and `z` a plan point. `through`: the key may cross a solid (a door
+opening). `pose` and `frame`: a clip of the figure's, played from this key until a key without one (`frame` holds one
+frame). `y`: metres above the floor; `shiver`: a sideways tremble in metres. `density` and `face`: close-up detail.
+
+```ts
+interface ActorKey {
+    readonly who: string;
+    readonly t: number;
+    readonly at?: string | undefined;
+    readonly x?: number | undefined;
+    readonly z?: number | undefined;
+    readonly alpha?: number | undefined;
+    readonly facing?: number | undefined;
+    readonly moving?: boolean | undefined;
+    readonly cut?: boolean | undefined;
+    readonly through?: boolean | undefined;
+    readonly pose?: string | undefined;
+    readonly frame?: number | undefined;
+    readonly y?: number | undefined;
+    readonly shiver?: number | undefined;
+    readonly density?: number | undefined;
+    readonly face?: string | undefined;
+}
+```
+
+#### `AnchorOf` (type)
+
+The point of an anchor in metres, or undefined when the level lacks it. Pass it to `placeScript` and to the lint's world.
+
+```ts
+type AnchorOf = (anchor: string) => {
+    readonly x: number;
+    readonly z: number;
+} | undefined;
+```
+
+#### `anchorsOf` (function)
+
+The anchors a script names, once each, sorted.
+
+```ts
+function anchorsOf(script: CutsceneScript): string[];
+```
+
+#### `CameraKey` (interface)
+
+`lens`: focal length in mm for this key (default the script's), eased with the move. `cut`: arrive without easing.
+
+```ts
+interface CameraKey {
+    readonly t: number;
+    readonly pos: V3;
+    readonly look: V3;
+    readonly cut?: boolean | undefined;
+    readonly lens?: number | undefined;
+    readonly ease?: Ease | undefined;
+}
+```
+
+#### `Caption` (interface)
+
+_No doc comment._
+
+```ts
+interface Caption {
+    readonly t: number;
+    readonly until: number;
+    /** The line record's id; its text is the locale's. */
+    readonly line: string;
+    readonly speaker?: string | undefined;
+}
+```
+
+#### `createCutscenes` (function)
+
+_No doc comment._
+
+```ts
+function createCutscenes(options?: CutscenesOptions): Cutscenes;
+```
+
+#### `CueKey` (interface)
+
+At `at` seconds the figure `who` starts the clip `clip`.
+
+```ts
+interface CueKey {
+    readonly at: number;
+    readonly who: string;
+    readonly clip: string;
+}
+```
+
+#### `CutsceneEnded` (const)
+
+_No doc comment._
+
+```ts
+const CutsceneEnded: EventDef<z.ZodType<EndedPayload>>;
+```
+
+#### `Cutscenes` (interface)
+
+_No doc comment._
+
+```ts
+interface Cutscenes {
+    readonly plugin: PluginDef;
+    start(ctx: SimContext, id: string): void;
+    load(ctx: SimContext, scripts: readonly CutsceneScript[]): void;
+    locked(ctx: SimContext): boolean;
+}
+```
+
+#### `CutsceneScene` (const)
+
+The scene's scripts; empty until the game loads them.
+
+```ts
+const CutsceneScene: ResourceDef<z.ZodType<CutsceneSceneValue>>;
+```
+
+#### `CutsceneSceneValue` (interface)
+
+_No doc comment._
+
+```ts
+interface CutsceneSceneValue {
+    scripts: SceneScript[];
+}
+```
+
+#### `cutsceneSchema` (const)
+
+_No doc comment._
+
+```ts
+const cutsceneSchema: z.ZodType<CutsceneScript>;
+```
+
+#### `CutsceneScript` (interface)
+
+_No doc comment._
+
+```ts
+interface CutsceneScript {
+    readonly id: string;
+    /** Seconds. */
+    readonly duration: number;
+    /** The focal length (mm) of a camera key that names none; the play lens, 50 mm, when unset. */
+    readonly lens?: number | undefined;
+    readonly camera: readonly CameraKey[];
+    readonly actor?: readonly ActorKey[] | undefined;
+    readonly caption?: readonly Caption[] | undefined;
+    readonly light?: readonly LightKey[] | undefined;
+    readonly sound?: readonly SoundKey[] | undefined;
+    readonly doors?: readonly DoorKey[] | undefined;
+    readonly time?: readonly TimeKey[] | undefined;
+    readonly grade?: readonly GradeKey[] | undefined;
+    readonly props?: readonly PropKey[] | undefined;
+    /** Clips the scene starts on figures, each once as the scene passes its time. */
+    readonly cues?: readonly CueKey[] | undefined;
+    /** Camera shake windows: [from, to, metres], strongest at `from` and dying out by `to`. */
+    readonly shake?: readonly (readonly [number, number, number])[] | undefined;
+    /** Lamp flicker windows: [from, to]. */
+    readonly flicker?: readonly (readonly [number, number])[] | undefined;
+    /** Fades to black: 0 clear, 1 black. */
+    readonly fade?: readonly {
+        readonly t: number;
+        readonly value: number;
+    }[] | undefined;
+    /** Prop states the scene shows from `t` on (`cabinet.open`): the script drives what its lines say. */
+    readonly states?: readonly {
+        readonly t: number;
+        readonly state: string;
+    }[] | undefined;
+    /** The game is won when this cutscene ends. */
+    readonly victory?: boolean | undefined;
+    /** Lint rules this script may break, each with the reason; `context` limits it to sample contexts whose name contains it. */
+    readonly lintAllow?: readonly {
+        readonly rule: string;
+        readonly reason: string;
+        readonly context?: string | undefined;
+    }[] | undefined;
+}
+```
+
+#### `CutsceneSkip` (const)
+
+_No doc comment._
+
+```ts
+const CutsceneSkip: CommandDef<z.ZodType<Record<string, never>>>;
+```
+
+#### `CutscenesOptions` (interface)
+
+_No doc comment._
+
+```ts
+interface CutscenesOptions {
+    /** What provides the game's places, so the extension requires it: sectors' 3D rooms (the default) or a 2D level. */
+    readonly places?: {
+        readonly provider: string;
+    };
+    /** Where a named anchor stands now (`player`, `actor:nurse`, a hotspot or nav node); undefined when the scene lacks it. */
+    readonly anchor?: (ctx: SimContext, name: string) => {
+        readonly x: number;
+        readonly z: number;
+    } | undefined;
+}
+```
+
+#### `CutsceneStarted` (const)
+
+_No doc comment._
+
+```ts
+const CutsceneStarted: EventDef<z.ZodType<StartedPayload>>;
+```
+
+#### `CutsceneState` (const)
+
+_No doc comment._
+
+```ts
+const CutsceneState: ResourceDef<z.ZodType<CutsceneStateValue>>;
+```
+
+#### `CutsceneStateValue` (interface)
+
+_No doc comment._
+
+```ts
+interface CutsceneStateValue {
+    /** The cutscene under way, or null. */
+    id: string | null;
+    /** The tick it started on, and the tick it ends on. */
+    start: number;
+    end: number;
+}
+```
+
+#### `DoorKey` (interface)
+
+How far the door of room `door` stands open from `t` on: 0 shut … 1 open.
+
+```ts
+interface DoorKey {
+    readonly t: number;
+    readonly door: string;
+    readonly open: number;
+    readonly ease?: Ease | undefined;
+}
+```
+
+#### `EndedPayload` (interface)
+
+_No doc comment._
+
+```ts
+interface EndedPayload {
+    readonly id: string;
+    /** Skipped by a `cutscene.skip`, by a script that replaced it, or because an anchor was missing. */
+    readonly skipped: boolean;
+    /** The anchors the scene could not resolve; empty unless the script never started. */
+    readonly missing: readonly string[];
+}
+```
+
+#### `GradeKey` (interface)
+
+The mood grade (a level's `look.grade` name) the scene is graded with from `t` on.
+
+```ts
+interface GradeKey {
+    readonly t: number;
+    readonly grade: string;
+}
+```
+
+#### `levelAnchors` (function)
+
+The anchors of `level`'s named characters; `metre` is level pixels to a metre.
+
+```ts
+function levelAnchors(level: ContentLevel, metre: number): AnchorOf;
+```
+
+#### `LightKey` (interface)
+
+_No doc comment._
+
+```ts
+interface LightKey {
+    readonly t: number;
+    readonly lamp: string;
+    readonly level: number;
+}
+```
+
+#### `loadCutscenes` (function)
+
+Makes `scripts` the scene's cutscenes and drops any under way. Call it from a game system; a bad script throws.
+
+```ts
+function loadCutscenes(ctx: SimContext, scripts: readonly CutsceneScript[]): void;
+```
+
+#### `locked` (const)
+
+Whether a cutscene is under way.
+
+```ts
+const locked: (ctx: SimContext) => boolean;
+```
+
+#### `PlacedActorKey` (type)
+
+An actor key with its position settled to a point.
+
+```ts
+type PlacedActorKey = Omit<ActorKey, 'at' | 'x' | 'z'> & {
+    readonly x: number;
+    readonly z: number;
+};
+```
+
+#### `PlacedScript` (type)
+
+A script whose actors all stand at points: what `evaluate` takes.
+
+```ts
+type PlacedScript = Omit<CutsceneScript, 'actor'> & {
+    readonly actor?: readonly PlacedActorKey[] | undefined;
+};
+```
+
+#### `placeScript` (function)
+
+The script with every anchor replaced by its point, or the anchors `where` could not resolve.
+
+```ts
+function placeScript(script: CutsceneScript, where: (anchor: string) => {
+    readonly x: number;
+    readonly z: number;
+} | undefined): {
+    readonly ok: true;
+    readonly script: PlacedScript;
+} | {
+    readonly ok: false;
+    readonly missing: string[];
+};
+```
+
+#### `PropKey` (interface)
+
+A prop's whole state at `t` (see `PropState`): where it stands, how far it is turned, whether it has gone. A field
+a key leaves out is the prop as it was placed, and between two keys a field moves only when both name it.
+
+```ts
+interface PropKey {
+    readonly t: number;
+    readonly prop: string;
+    readonly at?: V3 | undefined;
+    readonly turn?: number | undefined;
+    readonly hidden?: boolean | undefined;
+    readonly ease?: Ease | undefined;
+}
+```
+
+#### `SceneScript` (interface)
+
+_No doc comment._
+
+```ts
+interface SceneScript {
+    readonly id: string;
+    /** Seconds. */
+    readonly duration: number;
+    readonly anchors: readonly string[];
+}
+```
+
+#### `SoundKey` (interface)
+
+_No doc comment._
+
+```ts
+interface SoundKey {
+    readonly t: number;
+    readonly kind: string;
+}
+```
+
+#### `startCutscene` (function)
+
+Starts cutscene `id` now. An id the scene does not have does nothing (a content error the compile catches).
+
+```ts
+function startCutscene(ctx: SimContext, id: string, options?: CutscenesOptions): void;
+```
+
+#### `StartedPayload` (interface)
+
+_No doc comment._
+
+```ts
+interface StartedPayload {
+    readonly id: string;
+    readonly start: number;
+    readonly end: number;
+}
+```
+
+#### `TimeKey` (interface)
+
+The time of day (a `TimeOfDay` name) the scene is lit by from `t` on.
+
+```ts
+interface TimeKey {
+    readonly t: number;
+    readonly time: string;
+}
+```
+
+#### `V3` (type)
+
+_No doc comment._
+
+```ts
+type V3 = readonly [number, number, number];
+```
+
+### `import { … } from '@automata/cutscenes/stage-2d'`
+
+#### `cutsceneStage2d` (function)
+
+The cutscene stage. It adds itself to `options.scene` and is returned for a test to drive.
+
+```ts
+function cutsceneStage2d(options: CutsceneStage2dOptions): LevelSceneHooks;
+```
+
+#### `CutsceneStage2dOptions` (interface)
+
+_No doc comment._
+
+```ts
+interface CutsceneStage2dOptions {
+    /** The level scene to draw into (`levelScene(...)`). */
+    readonly scene: LevelScene;
+    readonly project: ContentProject;
+    /** The level the cutscenes play in: the characters in it are the actors. */
+    readonly level: ContentLevel;
+    /** The pictures the build gave the game, for the characters. */
+    readonly images: Readonly<Record<string, string>>;
+    /** The game's camera. The stage points it at the scene's `look` for as long as the cutscene lasts. */
+    readonly camera: Camera2d;
+    /** Level pixels to a metre; the same number `level2dPlaces` was given. */
+    readonly metre: number;
+    /** The placed scripts by cutscene id. */
+    readonly scripts: Readonly<Record<string, PlacedScript>>;
+    /** The size of the game's view in level pixels, for the fade to cover. */
+    readonly view: {
+        readonly width: number;
+        readonly height: number;
+    };
+    /** The sim's ticks a second. Default 60. */
+    readonly tickHz?: number | undefined;
+    /** How a character is drawn. Default: core's `pictureView`, which draws it as the editor shows it. */
+    readonly viewOf?: ((def: string, options: PictureViewOptions) => ViewFactory) | undefined;
+}
+```
+
+## `@automata/level-2d`
+
+### `import { … } from '@automata/level-2d'`
+
+#### `cellWalls` (function)
+
+The wall test for a grid: whether the plan segment a→b passes through a solid cell, or within `margin` metres of one
+(with no margin, touching a cell's edge is not passing through it). Nothing outside the grid is solid.
+
+```ts
+function cellWalls(rows: readonly (readonly number[])[], cell: number, solid: readonly number[]): (a: PlanPoint, b: PlanPoint, margin: number) => boolean;
+```
+
+#### `Level2dAt` (const)
+
+Where something stands in a 2D level, in the level's pixels. A game that already keeps a position of its own tells
+`level2dPlaces` to use that; this is for a game that has none, so the places still have somewhere to read and write.
+
+```ts
+const Level2dAt: ComponentDef<typeof level2dAtFields>;
+```
+
+#### `level2dExtension` (const)
+
+_No doc comment._
+
+```ts
+const level2dExtension: ExtensionDef<'level-2d'>;
+```
+
+#### `level2dLintFloor` (function)
+
+The floor a cutscene lint checks a scene against (`LintFloor` in `@automata/cutscenes/tools`): which area a point in
+metres is in, and whether a walk is blocked by a wall. It reads the same areas and walls as `level2dPlaces`, so what the
+lint calls floor is what the game lets a character walk on. A level with no areas has no floor to judge, so every point
+counts as floor there.
+
+```ts
+function level2dLintFloor(options: Level2dPlacesOptions): {
+    sectorAt(p: {
+        readonly x: number;
+        readonly z: number;
+    }): unknown;
+    segmentBlocked(a: {
+        readonly x: number;
+        readonly z: number;
+    }, b: {
+        readonly x: number;
+        readonly z: number;
+    }, margin: number): boolean;
+};
+```
+
+#### `level2dPlaces` (function)
+
+A 2D level as `Places`: its areas as rooms, its solid cells as walls, and the game's own position component.
+
+It describes ONE level. A game with several levels builds one `level2dPlaces` for the level it needs (the rooms,
+walls and crossings are that level's); the places do not follow the level the player is in, because `Places` does not
+ask the sim which level is current. Two levels in one game's AI or dialogue need the game to say which one.
+
+```ts
+function level2dPlaces(options: Level2dPlacesOptions): Places;
+```
+
+#### `Level2dPlacesOptions` (interface)
+
+_No doc comment._
+
+```ts
+interface Level2dPlacesOptions {
+    readonly level: ContentLevel;
+    readonly project: ContentProject;
+    /** The game's own position component. Default: the extension's `Level2dAt`. */
+    readonly position?: Level2dPosition;
+    /** Level pixels to a metre. Default: the walls layer's grid, else 16. */
+    readonly metre?: number;
+    /** The tag that makes a definition an area (a room). Default `area`. */
+    readonly areas?: string;
+    /** The IntGrid layer that holds the walls. Default: the project's first IntGrid layer, if any. */
+    readonly walls?: string;
+    /** The IntGrid values that are solid. Default: the values called `solid`. */
+    readonly solid?: readonly number[];
+}
+```
+
+#### `level2dPlugin` (const)
+
+The sim side of `level-2d`: the position component a game with none of its own uses.
+
+```ts
+const level2dPlugin: PluginDef;
+```
+
+#### `Level2dPosition` (interface)
+
+Where a 2D game keeps a walker's position: its own component, and the names of its two fields, in level pixels.
+
+```ts
+interface Level2dPosition {
+    readonly component: ComponentDef;
+    readonly x: string;
+    readonly y: string;
+}
+```
+
+### `import { … } from '@automata/level-2d/sim'`
+
+#### `cellWalls` (function)
+
+The wall test for a grid: whether the plan segment a→b passes through a solid cell, or within `margin` metres of one
+(with no margin, touching a cell's edge is not passing through it). Nothing outside the grid is solid.
+
+```ts
+function cellWalls(rows: readonly (readonly number[])[], cell: number, solid: readonly number[]): (a: PlanPoint, b: PlanPoint, margin: number) => boolean;
+```
+
+#### `Level2dAt` (const)
+
+Where something stands in a 2D level, in the level's pixels. A game that already keeps a position of its own tells
+`level2dPlaces` to use that; this is for a game that has none, so the places still have somewhere to read and write.
+
+```ts
+const Level2dAt: ComponentDef<typeof level2dAtFields>;
+```
+
+#### `level2dLintFloor` (function)
+
+The floor a cutscene lint checks a scene against (`LintFloor` in `@automata/cutscenes/tools`): which area a point in
+metres is in, and whether a walk is blocked by a wall. It reads the same areas and walls as `level2dPlaces`, so what the
+lint calls floor is what the game lets a character walk on. A level with no areas has no floor to judge, so every point
+counts as floor there.
+
+```ts
+function level2dLintFloor(options: Level2dPlacesOptions): {
+    sectorAt(p: {
+        readonly x: number;
+        readonly z: number;
+    }): unknown;
+    segmentBlocked(a: {
+        readonly x: number;
+        readonly z: number;
+    }, b: {
+        readonly x: number;
+        readonly z: number;
+    }, margin: number): boolean;
+};
+```
+
+#### `level2dPlaces` (function)
+
+A 2D level as `Places`: its areas as rooms, its solid cells as walls, and the game's own position component.
+
+It describes ONE level. A game with several levels builds one `level2dPlaces` for the level it needs (the rooms,
+walls and crossings are that level's); the places do not follow the level the player is in, because `Places` does not
+ask the sim which level is current. Two levels in one game's AI or dialogue need the game to say which one.
+
+```ts
+function level2dPlaces(options: Level2dPlacesOptions): Places;
+```
+
+#### `Level2dPlacesOptions` (interface)
+
+_No doc comment._
+
+```ts
+interface Level2dPlacesOptions {
+    readonly level: ContentLevel;
+    readonly project: ContentProject;
+    /** The game's own position component. Default: the extension's `Level2dAt`. */
+    readonly position?: Level2dPosition;
+    /** Level pixels to a metre. Default: the walls layer's grid, else 16. */
+    readonly metre?: number;
+    /** The tag that makes a definition an area (a room). Default `area`. */
+    readonly areas?: string;
+    /** The IntGrid layer that holds the walls. Default: the project's first IntGrid layer, if any. */
+    readonly walls?: string;
+    /** The IntGrid values that are solid. Default: the values called `solid`. */
+    readonly solid?: readonly number[];
+}
+```
+
+#### `level2dPlugin` (const)
+
+The sim side of `level-2d`: the position component a game with none of its own uses.
+
+```ts
+const level2dPlugin: PluginDef;
+```
+
+#### `Level2dPosition` (interface)
+
+Where a 2D game keeps a walker's position: its own component, and the names of its two fields, in level pixels.
+
+```ts
+interface Level2dPosition {
+    readonly component: ComponentDef;
+    readonly x: string;
+    readonly y: string;
+}
+```
+
+## `@automata/narrative`
+
+### `import { … } from '@automata/narrative'`
+
+#### `advance` (function)
+
+The next line, or on past a node with nothing to choose; the same place while a choice is waiting; null at the end.
+
+```ts
+function advance(graph: DialogueGraph, place: Place | null, r: Reader): Place | null;
+```
+
+#### `AdvanceCommand` (const)
+
+_No doc comment._
+
+```ts
+const AdvanceCommand: CommandDef<z.ZodType<Record<string, never>>>;
+```
+
+#### `AFTER` (const)
+
+The least time an action's own line stays up before a storylet follows it, in seconds.
+
+```ts
+const AFTER = 2;
+```
+
+#### `applyChoice` (function)
+
+A choice applied: stance moves by its amount, clamped to `bounds`, and its facts are set. A new state.
+
+```ts
+function applyChoice(state: DialogueState, choice: Pick<Choice, 'stance' | 'set'>, bounds: {
+    readonly min: number;
+    readonly max: number;
+}): DialogueState;
+```
+
+#### `beatsContent` (const)
+
+_No doc comment._
+
+```ts
+const beatsContent: ContentSchemaDef<'beats', z.ZodType<BeatsFile>>;
+```
+
+#### `Canon` (interface)
+
+_No doc comment._
+
+```ts
+interface Canon {
+    readonly people: Readonly<Record<string, {
+        readonly name: string;
+        readonly short?: string | undefined;
+        readonly role: string;
+    }>>;
+    readonly places: Readonly<Record<string, string>>;
+    readonly times: Readonly<Record<string, string>>;
+    readonly numbers: Readonly<Record<string, string>>;
+    readonly facts: readonly {
+        readonly id: string;
+        readonly text: string;
+        readonly revealedIn: readonly string[];
+    }[];
+    readonly tone: {
+        readonly banned: readonly string[];
+        readonly style: string;
+    };
+    readonly glossary: readonly string[];
+    readonly motifs?: readonly string[] | undefined;
+    /** The stance axis: the low end is vigil, the high end release. */
+    readonly stance?: {
+        readonly min: number;
+        readonly max: number;
+    } | undefined;
+}
+```
+
+#### `canonContent` (const)
+
+_No doc comment._
+
+```ts
+const canonContent: ContentSchemaDef<'canon', z.ZodType<Canon>>;
+```
+
+#### `canonSchema` (const)
+
+_No doc comment._
+
+```ts
+const canonSchema: z.ZodType<Canon>;
+```
+
+#### `Choice` (interface)
+
+_No doc comment._
+
+```ts
+interface Choice {
+    readonly line: string;
+    readonly stance?: number | undefined;
+    readonly set?: Readonly<Record<string, Value>> | undefined;
+    readonly next: string;
+}
+```
+
+#### `choose` (function)
+
+Takes choice `index` (of the node's own list) when it is on offer: the choice, and where the conversation goes.
+
+```ts
+function choose(graph: DialogueGraph, place: Place | null, index: number, r: Reader): {
+    choice: Choice;
+    at: Place | null;
+} | null;
+```
+
+#### `ChooseCommand` (const)
+
+_No doc comment._
+
+```ts
+const ChooseCommand: CommandDef<z.ZodType<ChoosePayload>>;
+```
+
+#### `createNarrative` (function)
+
+_No doc comment._
+
+```ts
+function createNarrative(options?: NarrativeOptions): Narrative;
+```
+
+#### `DEFAULT_STANCE` (const)
+
+The stance bounds when a canon gives none (the original's default).
+
+```ts
+const DEFAULT_STANCE: {
+    readonly min: number;
+    readonly max: number;
+};
+```
+
+#### `dialogueContent` (const)
+
+_No doc comment._
+
+```ts
+const dialogueContent: ContentSchemaDef<'dialogue', z.ZodType<DialogueFile>>;
+```
+
+#### `DialogueFile` (interface)
+
+_No doc comment._
+
+```ts
+interface DialogueFile {
+    readonly graphs: readonly DialogueGraph[];
+}
+```
+
+#### `dialogueFileSchema` (const)
+
+_No doc comment._
+
+```ts
+const dialogueFileSchema: z.ZodType<DialogueFile>;
+```
+
+#### `DialogueGraph` (interface)
+
+_No doc comment._
+
+```ts
+interface DialogueGraph {
+    readonly id: string;
+    readonly speaker: string;
+    readonly start: string;
+    readonly nodes: Readonly<Record<string, DialogueNode>>;
+}
+```
+
+#### `dialogueGraphSchema` (const)
+
+_No doc comment._
+
+```ts
+const dialogueGraphSchema: z.ZodType<DialogueGraph>;
+```
+
+#### `DialogueNode` (interface)
+
+_No doc comment._
+
+```ts
+interface DialogueNode {
+    /** Line ids, said in order. */
+    readonly say: readonly string[];
+    readonly choices?: readonly Choice[] | undefined;
+    readonly next?: string | undefined;
+    readonly when?: readonly Cond[] | undefined;
+}
+```
+
+#### `DialogueState` (interface)
+
+What choices have changed: stance (clamped to the canon's bounds) and the facts they set.
+
+```ts
+interface DialogueState {
+    readonly stance: number;
+    readonly facts: Readonly<Record<string, Value>>;
+}
+```
+
+#### `fresh` (function)
+
+Whether a storylet may play again: its `once` and `max`.
+
+```ts
+function fresh(state: StoryletState, s: Storylet): boolean;
+```
+
+#### `freshDialogue` (const)
+
+_No doc comment._
+
+```ts
+const freshDialogue: () => DialogueState;
+```
+
+#### `freshStorylets` (const)
+
+_No doc comment._
+
+```ts
+const freshStorylets: () => StoryletState;
+```
+
+#### `HeardVerb` (interface)
+
+A verb as puzzle's `verb` hook reports it.
+
+```ts
+interface HeardVerb {
+    readonly at: string;
+    readonly held: string | undefined;
+    readonly said: boolean;
+    readonly away: boolean;
+}
+```
+
+#### `helpContent` (const)
+
+_No doc comment._
+
+```ts
+const helpContent: ContentSchemaDef<'help', z.ZodType<SceneHelp>>;
+```
+
+#### `Here` (interface)
+
+The player this step.
+
+```ts
+interface Here {
+    readonly room: Room | null;
+    readonly moving: boolean;
+}
+```
+
+#### `LINE_KINDS` (const)
+
+_No doc comment._
+
+```ts
+const LINE_KINDS: readonly LineKind[];
+```
+
+#### `LineKind` (type)
+
+_No doc comment._
+
+```ts
+type LineKind = 'examine' | 'item' | 'bark' | 'caption' | 'note' | 'objective' | 'caught' | 'dialogue' | 'file';
+```
+
+#### `LineRecord` (interface)
+
+_No doc comment._
+
+```ts
+interface LineRecord {
+    /** `<scene>.<name>`. */
+    readonly id: string;
+    readonly kind: LineKind;
+    readonly speaker?: string | undefined;
+    /** The locale key of the line's text. */
+    readonly text: string;
+    /**
+     * What the line says, in the game's source language. The sim never reads it; the content kind marks it as
+     * translatable text and `wordsOf` hands it to the dialogue box.
+     */
+    readonly words?: string | undefined;
+    /** Canon fact ids this line states. */
+    readonly facts?: readonly string[] | undefined;
+    readonly beat?: string | undefined;
+    /** Lethal or systemic rule ids this line hints at. */
+    readonly hints?: readonly string[] | undefined;
+    readonly motifs?: readonly string[] | undefined;
+}
+```
+
+#### `lineSchema` (const)
+
+_No doc comment._
+
+```ts
+const lineSchema: z.ZodType<LineRecord>;
+```
+
+#### `linesContent` (const)
+
+_No doc comment._
+
+```ts
+const linesContent: ContentSchemaDef<'lines', z.ZodType<LinesFile>>;
+```
+
+#### `LinesFile` (interface)
+
+_No doc comment._
+
+```ts
+interface LinesFile {
+    readonly lines: readonly LineRecord[];
+}
+```
+
+#### `linesFileSchema` (const)
+
+_No doc comment._
+
+```ts
+const linesFileSchema: z.ZodType<LinesFile>;
+```
+
+#### `loadNarrative` (function)
+
+Makes `scene` the scene's narrative. Call it from a game system; a graph or storylet that fails its schema throws.
+
+```ts
+function loadNarrative(ctx: SimContext, scene: NarrativeScene): void;
+```
+
+#### `Narrative` (interface)
+
+_No doc comment._
+
+```ts
+interface Narrative {
+    readonly plugin: PluginDef;
+    /** Where the game names the player (`narrative.env`). */
+    readonly env: ResourceDef<z.ZodType<NarrativeEnvValue>>;
+    startDialogue(ctx: SimContext, id: string): void;
+    heardVerb(ctx: SimContext, report: VerbReport): void;
+    fireSystem(ctx: SimContext, event: string): void;
+    load(ctx: SimContext, scene: NarrativeScene): void;
+}
+```
+
+#### `NarrativeChoices` (const)
+
+_No doc comment._
+
+```ts
+const NarrativeChoices: EventDef<z.ZodType<ChoicesPayload>>;
+```
+
+#### `NarrativeDebugSummary` (interface)
+
+_No doc comment._
+
+```ts
+interface NarrativeDebugSummary {
+    readonly graph: string;
+    readonly place: string;
+    readonly stance: number;
+    readonly facts: Readonly<Record<string, Value>>;
+}
+```
+
+#### `narrativeDebugSummary` (function)
+
+_No doc comment._
+
+```ts
+function narrativeDebugSummary(dialogue: NarrativeDialogueValue): NarrativeDebugSummary;
+```
+
+#### `NarrativeDialogue` (const)
+
+The conversation under way, and what choices have changed (kept between conversations, as in the original).
+
+```ts
+const NarrativeDialogue: ResourceDef<z.ZodType<NarrativeDialogueValue>>;
+```
+
+#### `NarrativeEnded` (const)
+
+_No doc comment._
+
+```ts
+const NarrativeEnded: EventDef<z.ZodType<EndedPayload>>;
+```
+
+#### `NarrativeEnv` (const)
+
+_No doc comment._
+
+```ts
+const NarrativeEnv: ResourceDef<z.ZodType<NarrativeEnvValue>>;
+```
+
+#### `NarrativeExtension` (interface)
+
+_No doc comment._
+
+```ts
+interface NarrativeExtension extends Narrative {
+    readonly extension: ExtensionDef<'narrative'>;
+}
+```
+
+#### `narrativeExtension` (function)
+
+_No doc comment._
+
+```ts
+function narrativeExtension(options?: NarrativeExtensionOptions): NarrativeExtension;
+```
+
+#### `NarrativeExtensionOptions` (interface)
+
+_No doc comment._
+
+```ts
+interface NarrativeExtensionOptions extends NarrativeOptions {
+    /** The game's message catalog (the one its screens use): the words for a line's locale key. With it, the dialogue box is drawn. */
+    readonly words?: (key: string) => string | undefined;
+    /** The game's line records by id (its `lines` content): who speaks and the key of the words. */
+    readonly lines?: (id: string) => LineRecord | undefined;
+}
+```
+
+#### `NarrativeLine` (const)
+
+_No doc comment._
+
+```ts
+const NarrativeLine: EventDef<z.ZodType<LinePayload>>;
+```
+
+#### `NarrativeOptions` (interface)
+
+_No doc comment._
+
+```ts
+interface NarrativeOptions {
+    /** Where the player stands and which room it is in. Default: sectors' 3D rooms. A 2D game passes `level2dPlaces`. */
+    readonly places?: Places;
+    /** Facts the game keeps in its own fields (as puzzle's `facts.get`): undefined for a fact it does not map. */
+    readonly facts?: (ctx: SimContext, name: string) => Value | undefined;
+    /** While this holds (a cutscene is playing), the conversation commands are ignored (the `cutscenes` extension's `locked`). */
+    readonly locked?: (ctx: SimContext) => boolean;
+}
+```
+
+#### `NarrativeScene` (interface)
+
+_No doc comment._
+
+```ts
+interface NarrativeScene {
+    readonly canon?: Canon | undefined;
+    readonly graphs: readonly DialogueGraph[];
+    readonly storylets: readonly Storylet[];
+}
+```
+
+#### `NarrativeSceneResource` (const)
+
+_No doc comment._
+
+```ts
+const NarrativeSceneResource: ResourceDef<z.ZodType<NarrativeSceneValue>>;
+```
+
+#### `NarrativeStorylet` (const)
+
+_No doc comment._
+
+```ts
+const NarrativeStorylet: EventDef<z.ZodType<StoryletPayload>>;
+```
+
+#### `NarrativeStorylets` (const)
+
+_No doc comment._
+
+```ts
+const NarrativeStorylets: ResourceDef<z.ZodType<StoryletState>>;
+```
+
+#### `offered` (function)
+
+The choices a node offers now: those whose target node's `when` holds, with their index in the node.
+
+```ts
+function offered(graph: DialogueGraph, node: DialogueNode, r: Reader): {
+    index: number;
+    choice: Choice;
+}[];
+```
+
+#### `onStep` (function)
+
+A step: a waiting storylet plays when its step comes; while one waits nothing else does. Then an entry into a new
+zone or sector fires `enter`; otherwise standing still counts towards `dwell`.
+
+```ts
+function onStep(deck: readonly Storylet[], state: StoryletState, here: Here, at: {
+    readonly tick: number;
+    readonly dt: number;
+}, base: Reader): Outcome;
+```
+
+#### `onSystem` (function)
+
+A system event (the game's own, by name): its storylet plays at once, unless one is waiting.
+
+```ts
+function onSystem(deck: readonly Storylet[], state: StoryletState, event: string, base: Reader): Outcome;
+```
+
+#### `onVerb` (function)
+
+After a verb: whatever waited is dropped and the dwell clock restarts; then a bare-hand verb at a hotspot fires its
+inspect storylet, at once when the action said nothing and did not turn away, else AFTER seconds on.
+
+```ts
+function onVerb(deck: readonly Storylet[], state: StoryletState, verb: HeardVerb, at: {
+    readonly tick: number;
+    readonly dt: number;
+}, base: Reader): Outcome;
+```
+
+#### `Outcome` (interface)
+
+_No doc comment._
+
+```ts
+interface Outcome {
+    readonly state: StoryletState;
+    readonly plays: readonly Play[];
+}
+```
+
+#### `parseTrigger` (function)
+
+A trigger's parts, or null when it is not one of the four kinds.
+
+```ts
+function parseTrigger(t: string): Trigger | null;
+```
+
+#### `passes` (const)
+
+_No doc comment._
+
+```ts
+const passes: (node: DialogueNode, r: Reader) => boolean;
+```
+
+#### `Place` (interface)
+
+Where a conversation is: a node and the index of the line it is saying.
+
+```ts
+interface Place {
+    readonly node: string;
+    readonly line: number;
+}
+```
+
+#### `Play` (interface)
+
+One play: the storylet and the line id it says.
+
+```ts
+interface Play {
+    readonly id: string;
+    readonly line: string;
+}
+```
+
+#### `play` (function)
+
+A storylet played: its next line, counted.
+
+```ts
+function play(state: StoryletState, s: Storylet): Outcome;
+```
+
+#### `readerOf` (function)
+
+A dialogue state read over a base (puzzle's facts and items): `stance`, then the dialogue's facts, then the base.
+
+```ts
+function readerOf(state: DialogueState, base?: Partial<Reader>): Reader;
+```
+
+#### `Room` (interface)
+
+Where the player stands: the sector's id and its zone.
+
+```ts
+interface Room {
+    readonly sector: string;
+    readonly zone: string;
+}
+```
+
+#### `select` (function)
+
+The most salient storylet a trigger fires, or null.
+
+```ts
+function select(deck: readonly Storylet[], state: StoryletState, base: Reader, fired: (t: Trigger) => boolean): Storylet | null;
+```
+
+#### `settle` (function)
+
+Where a conversation goes from `id`: past nodes whose `when` fails and past empty joins (no lines, no choices on
+offer), following `next`. Null is the exit. A loop of skipped nodes is an error in the graph.
+
+```ts
+function settle(graph: DialogueGraph, id: string | undefined, r: Reader): string | null;
+```
+
+#### `start` (function)
+
+Where a conversation starts, or null when every node is passed over.
+
+```ts
+function start(graph: DialogueGraph, r: Reader): Place | null;
+```
+
+#### `StartCommand` (const)
+
+_No doc comment._
+
+```ts
+const StartCommand: CommandDef<z.ZodType<StartPayload>>;
+```
+
+#### `Storylet` (interface)
+
+_No doc comment._
+
+```ts
+interface Storylet {
+    readonly id: string;
+    readonly trigger: string;
+    readonly phase?: string | undefined;
+    readonly when?: readonly Cond[] | undefined;
+    /** Line ids; each play says the next. */
+    readonly lines: readonly string[];
+    /** A milestone: it plays once. */
+    readonly once?: boolean | undefined;
+    /** At most this many plays. */
+    readonly max?: number | undefined;
+    /** Breaks a tie on the number of conditions; higher wins. */
+    readonly priority?: number | undefined;
+    readonly hints?: readonly string[] | undefined;
+}
+```
+
+#### `storyletReader` (function)
+
+The reader a deck's `when` uses: `played.<id>`, then the base (dialogue, deck facts, puzzle).
+
+```ts
+function storyletReader(state: StoryletState, base: Reader): Reader;
+```
+
+#### `storyletSchema` (const)
+
+_No doc comment._
+
+```ts
+const storyletSchema: z.ZodType<Storylet>;
+```
+
+#### `storyletsContent` (const)
+
+_No doc comment._
+
+```ts
+const storyletsContent: ContentSchemaDef<'storylets', z.ZodType<StoryletsFile>>;
+```
+
+#### `StoryletsFile` (interface)
+
+_No doc comment._
+
+```ts
+interface StoryletsFile {
+    readonly storylets: readonly Storylet[];
+}
+```
+
+#### `storyletsFileSchema` (const)
+
+_No doc comment._
+
+```ts
+const storyletsFileSchema: z.ZodType<StoryletsFile>;
+```
+
+#### `StoryletState` (interface)
+
+_No doc comment._
+
+```ts
+interface StoryletState {
+    /** Plays so far, by storylet. */
+    readonly played: Readonly<Record<string, number>>;
+    /** Seconds standing still while a dwell storylet could play, or null. */
+    readonly still: number | null;
+    /** An inspect storylet waiting for the action's line: it plays on step `at`. */
+    readonly queued: {
+        readonly id: string;
+        readonly at: number;
+    } | null;
+    /** The room last step, to see an entry. */
+    readonly room: Room | null;
+}
+```
+
+#### `Trigger` (type)
+
+_No doc comment._
+
+```ts
+type Trigger = {
+    readonly kind: 'inspect' | 'enter' | 'system';
+    readonly target: string;
+} | {
+    readonly kind: 'dwell';
+    readonly target: string;
+    readonly seconds: number;
+};
+```
+
+#### `View` (interface)
+
+What the player sees: the node, its line, and the choices once its last line is up.
+
+```ts
+interface View {
+    readonly node: string;
+    readonly line: string | null;
+    readonly choices: readonly {
+        readonly index: number;
+        readonly line: string;
+    }[];
+    /** No choice and no line after this one: the next advance ends the conversation. */
+    readonly last: boolean;
+}
+```
+
+#### `view` (function)
+
+_No doc comment._
+
+```ts
+function view(graph: DialogueGraph, place: Place | null, r: Reader): View | null;
+```
+
+#### `wordsOf` (function)
+
+Each line that has `words`, keyed by its `text`: the words in the active locale when `text` is given, else the
+source words. `files` are keyed by the lines file's content id (`shop` for `content/lines/shop.toml`). A line with no
+words is absent, so the box can report it once.
+
+```ts
+function wordsOf(files: Readonly<Record<string, LinesFile>>, text?: ContentText): ReadonlyMap<string, string>;
+```
+
+### `import { … } from '@automata/narrative/content'`
+
+#### `beatsContent` (const)
+
+_No doc comment._
+
+```ts
+const beatsContent: ContentSchemaDef<'beats', z.ZodType<BeatsFile>>;
+```
+
+#### `canonContent` (const)
+
+_No doc comment._
+
+```ts
+const canonContent: ContentSchemaDef<'canon', z.ZodType<Canon>>;
+```
+
+#### `dialogueContent` (const)
+
+_No doc comment._
+
+```ts
+const dialogueContent: ContentSchemaDef<'dialogue', z.ZodType<DialogueFile>>;
+```
+
+#### `helpContent` (const)
+
+_No doc comment._
+
+```ts
+const helpContent: ContentSchemaDef<'help', z.ZodType<SceneHelp>>;
+```
+
+#### `linesContent` (const)
+
+_No doc comment._
+
+```ts
+const linesContent: ContentSchemaDef<'lines', z.ZodType<LinesFile>>;
+```
+
+#### `storyletsContent` (const)
+
+_No doc comment._
+
+```ts
+const storyletsContent: ContentSchemaDef<'storylets', z.ZodType<StoryletsFile>>;
+```
+
+### `import { … } from '@automata/narrative/sim'`
+
+#### `advance` (function)
+
+The next line, or on past a node with nothing to choose; the same place while a choice is waiting; null at the end.
+
+```ts
+function advance(graph: DialogueGraph, place: Place | null, r: Reader): Place | null;
+```
+
+#### `AdvanceCommand` (const)
+
+_No doc comment._
+
+```ts
+const AdvanceCommand: CommandDef<z.ZodType<Record<string, never>>>;
+```
+
+#### `AFTER` (const)
+
+The least time an action's own line stays up before a storylet follows it, in seconds.
+
+```ts
+const AFTER = 2;
+```
+
+#### `applyChoice` (function)
+
+A choice applied: stance moves by its amount, clamped to `bounds`, and its facts are set. A new state.
+
+```ts
+function applyChoice(state: DialogueState, choice: Pick<Choice, 'stance' | 'set'>, bounds: {
+    readonly min: number;
+    readonly max: number;
+}): DialogueState;
+```
+
+#### `Canon` (interface)
+
+_No doc comment._
+
+```ts
+interface Canon {
+    readonly people: Readonly<Record<string, {
+        readonly name: string;
+        readonly short?: string | undefined;
+        readonly role: string;
+    }>>;
+    readonly places: Readonly<Record<string, string>>;
+    readonly times: Readonly<Record<string, string>>;
+    readonly numbers: Readonly<Record<string, string>>;
+    readonly facts: readonly {
+        readonly id: string;
+        readonly text: string;
+        readonly revealedIn: readonly string[];
+    }[];
+    readonly tone: {
+        readonly banned: readonly string[];
+        readonly style: string;
+    };
+    readonly glossary: readonly string[];
+    readonly motifs?: readonly string[] | undefined;
+    /** The stance axis: the low end is vigil, the high end release. */
+    readonly stance?: {
+        readonly min: number;
+        readonly max: number;
+    } | undefined;
+}
+```
+
+#### `canonSchema` (const)
+
+_No doc comment._
+
+```ts
+const canonSchema: z.ZodType<Canon>;
+```
+
+#### `Choice` (interface)
+
+_No doc comment._
+
+```ts
+interface Choice {
+    readonly line: string;
+    readonly stance?: number | undefined;
+    readonly set?: Readonly<Record<string, Value>> | undefined;
+    readonly next: string;
+}
+```
+
+#### `choose` (function)
+
+Takes choice `index` (of the node's own list) when it is on offer: the choice, and where the conversation goes.
+
+```ts
+function choose(graph: DialogueGraph, place: Place | null, index: number, r: Reader): {
+    choice: Choice;
+    at: Place | null;
+} | null;
+```
+
+#### `ChooseCommand` (const)
+
+_No doc comment._
+
+```ts
+const ChooseCommand: CommandDef<z.ZodType<ChoosePayload>>;
+```
+
+#### `createNarrative` (function)
+
+_No doc comment._
+
+```ts
+function createNarrative(options?: NarrativeOptions): Narrative;
+```
+
+#### `DEFAULT_STANCE` (const)
+
+The stance bounds when a canon gives none (the original's default).
+
+```ts
+const DEFAULT_STANCE: {
+    readonly min: number;
+    readonly max: number;
+};
+```
+
+#### `DialogueFile` (interface)
+
+_No doc comment._
+
+```ts
+interface DialogueFile {
+    readonly graphs: readonly DialogueGraph[];
+}
+```
+
+#### `dialogueFileSchema` (const)
+
+_No doc comment._
+
+```ts
+const dialogueFileSchema: z.ZodType<DialogueFile>;
+```
+
+#### `DialogueGraph` (interface)
+
+_No doc comment._
+
+```ts
+interface DialogueGraph {
+    readonly id: string;
+    readonly speaker: string;
+    readonly start: string;
+    readonly nodes: Readonly<Record<string, DialogueNode>>;
+}
+```
+
+#### `dialogueGraphSchema` (const)
+
+_No doc comment._
+
+```ts
+const dialogueGraphSchema: z.ZodType<DialogueGraph>;
+```
+
+#### `DialogueNode` (interface)
+
+_No doc comment._
+
+```ts
+interface DialogueNode {
+    /** Line ids, said in order. */
+    readonly say: readonly string[];
+    readonly choices?: readonly Choice[] | undefined;
+    readonly next?: string | undefined;
+    readonly when?: readonly Cond[] | undefined;
+}
+```
+
+#### `DialogueState` (interface)
+
+What choices have changed: stance (clamped to the canon's bounds) and the facts they set.
+
+```ts
+interface DialogueState {
+    readonly stance: number;
+    readonly facts: Readonly<Record<string, Value>>;
+}
+```
+
+#### `fresh` (function)
+
+Whether a storylet may play again: its `once` and `max`.
+
+```ts
+function fresh(state: StoryletState, s: Storylet): boolean;
+```
+
+#### `freshDialogue` (const)
+
+_No doc comment._
+
+```ts
+const freshDialogue: () => DialogueState;
+```
+
+#### `freshStorylets` (const)
+
+_No doc comment._
+
+```ts
+const freshStorylets: () => StoryletState;
+```
+
+#### `HeardVerb` (interface)
+
+A verb as puzzle's `verb` hook reports it.
+
+```ts
+interface HeardVerb {
+    readonly at: string;
+    readonly held: string | undefined;
+    readonly said: boolean;
+    readonly away: boolean;
+}
+```
+
+#### `Here` (interface)
+
+The player this step.
+
+```ts
+interface Here {
+    readonly room: Room | null;
+    readonly moving: boolean;
+}
+```
+
+#### `LINE_KINDS` (const)
+
+_No doc comment._
+
+```ts
+const LINE_KINDS: readonly LineKind[];
+```
+
+#### `LineKind` (type)
+
+_No doc comment._
+
+```ts
+type LineKind = 'examine' | 'item' | 'bark' | 'caption' | 'note' | 'objective' | 'caught' | 'dialogue' | 'file';
+```
+
+#### `LineRecord` (interface)
+
+_No doc comment._
+
+```ts
+interface LineRecord {
+    /** `<scene>.<name>`. */
+    readonly id: string;
+    readonly kind: LineKind;
+    readonly speaker?: string | undefined;
+    /** The locale key of the line's text. */
+    readonly text: string;
+    /**
+     * What the line says, in the game's source language. The sim never reads it; the content kind marks it as
+     * translatable text and `wordsOf` hands it to the dialogue box.
+     */
+    readonly words?: string | undefined;
+    /** Canon fact ids this line states. */
+    readonly facts?: readonly string[] | undefined;
+    readonly beat?: string | undefined;
+    /** Lethal or systemic rule ids this line hints at. */
+    readonly hints?: readonly string[] | undefined;
+    readonly motifs?: readonly string[] | undefined;
+}
+```
+
+#### `lineSchema` (const)
+
+_No doc comment._
+
+```ts
+const lineSchema: z.ZodType<LineRecord>;
+```
+
+#### `LinesFile` (interface)
+
+_No doc comment._
+
+```ts
+interface LinesFile {
+    readonly lines: readonly LineRecord[];
+}
+```
+
+#### `linesFileSchema` (const)
+
+_No doc comment._
+
+```ts
+const linesFileSchema: z.ZodType<LinesFile>;
+```
+
+#### `loadNarrative` (function)
+
+Makes `scene` the scene's narrative. Call it from a game system; a graph or storylet that fails its schema throws.
+
+```ts
+function loadNarrative(ctx: SimContext, scene: NarrativeScene): void;
+```
+
+#### `Narrative` (interface)
+
+_No doc comment._
+
+```ts
+interface Narrative {
+    readonly plugin: PluginDef;
+    /** Where the game names the player (`narrative.env`). */
+    readonly env: ResourceDef<z.ZodType<NarrativeEnvValue>>;
+    startDialogue(ctx: SimContext, id: string): void;
+    heardVerb(ctx: SimContext, report: VerbReport): void;
+    fireSystem(ctx: SimContext, event: string): void;
+    load(ctx: SimContext, scene: NarrativeScene): void;
+}
+```
+
+#### `NarrativeChoices` (const)
+
+_No doc comment._
+
+```ts
+const NarrativeChoices: EventDef<z.ZodType<ChoicesPayload>>;
+```
+
+#### `NarrativeDebugSummary` (interface)
+
+_No doc comment._
+
+```ts
+interface NarrativeDebugSummary {
+    readonly graph: string;
+    readonly place: string;
+    readonly stance: number;
+    readonly facts: Readonly<Record<string, Value>>;
+}
+```
+
+#### `narrativeDebugSummary` (function)
+
+_No doc comment._
+
+```ts
+function narrativeDebugSummary(dialogue: NarrativeDialogueValue): NarrativeDebugSummary;
+```
+
+#### `NarrativeDialogue` (const)
+
+The conversation under way, and what choices have changed (kept between conversations, as in the original).
+
+```ts
+const NarrativeDialogue: ResourceDef<z.ZodType<NarrativeDialogueValue>>;
+```
+
+#### `NarrativeEnded` (const)
+
+_No doc comment._
+
+```ts
+const NarrativeEnded: EventDef<z.ZodType<EndedPayload>>;
+```
+
+#### `NarrativeEnv` (const)
+
+_No doc comment._
+
+```ts
+const NarrativeEnv: ResourceDef<z.ZodType<NarrativeEnvValue>>;
+```
+
+#### `NarrativeLine` (const)
+
+_No doc comment._
+
+```ts
+const NarrativeLine: EventDef<z.ZodType<LinePayload>>;
+```
+
+#### `NarrativeOptions` (interface)
+
+_No doc comment._
+
+```ts
+interface NarrativeOptions {
+    /** Where the player stands and which room it is in. Default: sectors' 3D rooms. A 2D game passes `level2dPlaces`. */
+    readonly places?: Places;
+    /** Facts the game keeps in its own fields (as puzzle's `facts.get`): undefined for a fact it does not map. */
+    readonly facts?: (ctx: SimContext, name: string) => Value | undefined;
+    /** While this holds (a cutscene is playing), the conversation commands are ignored (the `cutscenes` extension's `locked`). */
+    readonly locked?: (ctx: SimContext) => boolean;
+}
+```
+
+#### `NarrativeScene` (interface)
+
+_No doc comment._
+
+```ts
+interface NarrativeScene {
+    readonly canon?: Canon | undefined;
+    readonly graphs: readonly DialogueGraph[];
+    readonly storylets: readonly Storylet[];
+}
+```
+
+#### `NarrativeSceneResource` (const)
+
+_No doc comment._
+
+```ts
+const NarrativeSceneResource: ResourceDef<z.ZodType<NarrativeSceneValue>>;
+```
+
+#### `NarrativeStorylet` (const)
+
+_No doc comment._
+
+```ts
+const NarrativeStorylet: EventDef<z.ZodType<StoryletPayload>>;
+```
+
+#### `NarrativeStorylets` (const)
+
+_No doc comment._
+
+```ts
+const NarrativeStorylets: ResourceDef<z.ZodType<StoryletState>>;
+```
+
+#### `offered` (function)
+
+The choices a node offers now: those whose target node's `when` holds, with their index in the node.
+
+```ts
+function offered(graph: DialogueGraph, node: DialogueNode, r: Reader): {
+    index: number;
+    choice: Choice;
+}[];
+```
+
+#### `onStep` (function)
+
+A step: a waiting storylet plays when its step comes; while one waits nothing else does. Then an entry into a new
+zone or sector fires `enter`; otherwise standing still counts towards `dwell`.
+
+```ts
+function onStep(deck: readonly Storylet[], state: StoryletState, here: Here, at: {
+    readonly tick: number;
+    readonly dt: number;
+}, base: Reader): Outcome;
+```
+
+#### `onSystem` (function)
+
+A system event (the game's own, by name): its storylet plays at once, unless one is waiting.
+
+```ts
+function onSystem(deck: readonly Storylet[], state: StoryletState, event: string, base: Reader): Outcome;
+```
+
+#### `onVerb` (function)
+
+After a verb: whatever waited is dropped and the dwell clock restarts; then a bare-hand verb at a hotspot fires its
+inspect storylet, at once when the action said nothing and did not turn away, else AFTER seconds on.
+
+```ts
+function onVerb(deck: readonly Storylet[], state: StoryletState, verb: HeardVerb, at: {
+    readonly tick: number;
+    readonly dt: number;
+}, base: Reader): Outcome;
+```
+
+#### `Outcome` (interface)
+
+_No doc comment._
+
+```ts
+interface Outcome {
+    readonly state: StoryletState;
+    readonly plays: readonly Play[];
+}
+```
+
+#### `parseTrigger` (function)
+
+A trigger's parts, or null when it is not one of the four kinds.
+
+```ts
+function parseTrigger(t: string): Trigger | null;
+```
+
+#### `passes` (const)
+
+_No doc comment._
+
+```ts
+const passes: (node: DialogueNode, r: Reader) => boolean;
+```
+
+#### `Place` (interface)
+
+Where a conversation is: a node and the index of the line it is saying.
+
+```ts
+interface Place {
+    readonly node: string;
+    readonly line: number;
+}
+```
+
+#### `Play` (interface)
+
+One play: the storylet and the line id it says.
+
+```ts
+interface Play {
+    readonly id: string;
+    readonly line: string;
+}
+```
+
+#### `play` (function)
+
+A storylet played: its next line, counted.
+
+```ts
+function play(state: StoryletState, s: Storylet): Outcome;
+```
+
+#### `readerOf` (function)
+
+A dialogue state read over a base (puzzle's facts and items): `stance`, then the dialogue's facts, then the base.
+
+```ts
+function readerOf(state: DialogueState, base?: Partial<Reader>): Reader;
+```
+
+#### `Room` (interface)
+
+Where the player stands: the sector's id and its zone.
+
+```ts
+interface Room {
+    readonly sector: string;
+    readonly zone: string;
+}
+```
+
+#### `select` (function)
+
+The most salient storylet a trigger fires, or null.
+
+```ts
+function select(deck: readonly Storylet[], state: StoryletState, base: Reader, fired: (t: Trigger) => boolean): Storylet | null;
+```
+
+#### `settle` (function)
+
+Where a conversation goes from `id`: past nodes whose `when` fails and past empty joins (no lines, no choices on
+offer), following `next`. Null is the exit. A loop of skipped nodes is an error in the graph.
+
+```ts
+function settle(graph: DialogueGraph, id: string | undefined, r: Reader): string | null;
+```
+
+#### `start` (function)
+
+Where a conversation starts, or null when every node is passed over.
+
+```ts
+function start(graph: DialogueGraph, r: Reader): Place | null;
+```
+
+#### `StartCommand` (const)
+
+_No doc comment._
+
+```ts
+const StartCommand: CommandDef<z.ZodType<StartPayload>>;
+```
+
+#### `Storylet` (interface)
+
+_No doc comment._
+
+```ts
+interface Storylet {
+    readonly id: string;
+    readonly trigger: string;
+    readonly phase?: string | undefined;
+    readonly when?: readonly Cond[] | undefined;
+    /** Line ids; each play says the next. */
+    readonly lines: readonly string[];
+    /** A milestone: it plays once. */
+    readonly once?: boolean | undefined;
+    /** At most this many plays. */
+    readonly max?: number | undefined;
+    /** Breaks a tie on the number of conditions; higher wins. */
+    readonly priority?: number | undefined;
+    readonly hints?: readonly string[] | undefined;
+}
+```
+
+#### `storyletReader` (function)
+
+The reader a deck's `when` uses: `played.<id>`, then the base (dialogue, deck facts, puzzle).
+
+```ts
+function storyletReader(state: StoryletState, base: Reader): Reader;
+```
+
+#### `storyletSchema` (const)
+
+_No doc comment._
+
+```ts
+const storyletSchema: z.ZodType<Storylet>;
+```
+
+#### `StoryletsFile` (interface)
+
+_No doc comment._
+
+```ts
+interface StoryletsFile {
+    readonly storylets: readonly Storylet[];
+}
+```
+
+#### `storyletsFileSchema` (const)
+
+_No doc comment._
+
+```ts
+const storyletsFileSchema: z.ZodType<StoryletsFile>;
+```
+
+#### `StoryletState` (interface)
+
+_No doc comment._
+
+```ts
+interface StoryletState {
+    /** Plays so far, by storylet. */
+    readonly played: Readonly<Record<string, number>>;
+    /** Seconds standing still while a dwell storylet could play, or null. */
+    readonly still: number | null;
+    /** An inspect storylet waiting for the action's line: it plays on step `at`. */
+    readonly queued: {
+        readonly id: string;
+        readonly at: number;
+    } | null;
+    /** The room last step, to see an entry. */
+    readonly room: Room | null;
+}
+```
+
+#### `Trigger` (type)
+
+_No doc comment._
+
+```ts
+type Trigger = {
+    readonly kind: 'inspect' | 'enter' | 'system';
+    readonly target: string;
+} | {
+    readonly kind: 'dwell';
+    readonly target: string;
+    readonly seconds: number;
+};
+```
+
+#### `View` (interface)
+
+What the player sees: the node, its line, and the choices once its last line is up.
+
+```ts
+interface View {
+    readonly node: string;
+    readonly line: string | null;
+    readonly choices: readonly {
+        readonly index: number;
+        readonly line: string;
+    }[];
+    /** No choice and no line after this one: the next advance ends the conversation. */
+    readonly last: boolean;
+}
+```
+
+#### `view` (function)
+
+_No doc comment._
+
+```ts
+function view(graph: DialogueGraph, place: Place | null, r: Reader): View | null;
+```
+
+## `@automata/nav`
+
+### `import { … } from '@automata/nav'`
+
+#### `Blocked` (unresolved)
+
+_No doc comment._
+
+```ts
+from '../shared/sim/route'
+```
+
+#### `blockedBy` (unresolved)
+
+_No doc comment._
+
+```ts
+from '@automata/sectors/sim'
+```
+
+#### `clear` (const)
+
+_No doc comment._
+
+```ts
+const clear: (a: Point, b: Point, blocked: Blocked, margin?: number) => boolean;
+```
+
+#### `createNavExtension` (function)
+
+Nav for a game's own places and movement query. `navExtension` is this with sectors' 3D rooms.
+
+```ts
+function createNavExtension(options?: NavOptions): ExtensionDef<'nav'>;
+```
+
+#### `createNavPlugin` (function)
+
+_No doc comment._
+
+```ts
+function createNavPlugin(options?: NavOptions): PluginDef;
+```
+
+#### `loadNavGraph` (function)
+
+Makes `graph` the scene's graph and drops every walk under way. Call it from a game system; a bad graph throws.
+
+```ts
+function loadNavGraph(ctx: SimContext, graph: NavGraph): void;
+```
+
+#### `NavAgent` (const)
+
+_No doc comment._
+
+```ts
+const NavAgent: ComponentDef<typeof navAgentFields>;
+```
+
+#### `NavArrived` (const)
+
+_No doc comment._
+
+```ts
+const NavArrived: EventDef<z.ZodType<NavArrivedPayload>>;
+```
+
+#### `NavArrivedPayload` (interface)
+
+_No doc comment._
+
+```ts
+interface NavArrivedPayload {
+    readonly entity: number;
+    readonly at: {
+        readonly x: number;
+        readonly z: number;
+    };
+}
+```
+
+#### `NavDoor` (const)
+
+_No doc comment._
+
+```ts
+const NavDoor: CommandDef<typeof doorSchema>;
+```
+
+#### `NavDoorPayload` (interface)
+
+_No doc comment._
+
+```ts
+interface NavDoorPayload {
+    readonly door: string;
+    readonly open: boolean;
+}
+```
+
+#### `NavDoors` (const)
+
+_No doc comment._
+
+```ts
+const NavDoors: ResourceDef<typeof doorsSchema>;
+```
+
+#### `NavDoorState` (interface)
+
+_No doc comment._
+
+```ts
+interface NavDoorState {
+    /** Door id → open. A door never set is shut. */
+    open: Record<string, boolean>;
+    /** How many times a door has changed; a route made at an older version is made again. */
+    version: number;
+}
+```
+
+#### `navExtension` (const)
+
+_No doc comment._
+
+```ts
+const navExtension: ExtensionDef<'nav'>;
+```
+
+#### `NavGraph` (interface)
+
+_No doc comment._
+
+```ts
+interface NavGraph {
+    readonly nodes: Readonly<Record<string, Point>>;
+    readonly edges: readonly (readonly [string, string, string?])[];
+}
+```
+
+#### `navGraphContent` (const)
+
+_No doc comment._
+
+```ts
+const navGraphContent: ContentSchemaDef<'nav-graph', z.ZodType<NavGraph>>;
+```
+
+#### `NavGraphResource` (const)
+
+The scene's walking graph; empty until the game loads one.
+
+```ts
+const NavGraphResource: ResourceDef<typeof navGraphSchema>;
+```
+
+#### `navGraphSchema` (const)
+
+_No doc comment._
+
+```ts
+const navGraphSchema: z.ZodType<NavGraph>;
+```
+
+#### `NavOptions` (interface)
+
+_No doc comment._
+
+```ts
+interface NavOptions {
+    /** Where walkers stand and what blocks them; by default sectors' 3D rooms. A 2D game gives `level-2d`'s. */
+    readonly places?: Places;
+    /** The game's movement query (walls, steps and its own obstacles); by default the places' walls and nav's doors. */
+    readonly blocked?: (ctx: SimContext, doors: Readonly<Record<string, boolean>>) => Blocked;
+    /** While this holds (a cutscene is playing), new `walk-to` commands are ignored; walks under way go on (the `cutscenes` extension's `locked`). */
+    readonly locked?: (ctx: SimContext) => boolean;
+}
+```
+
+#### `navPlugin` (const)
+
+Nav with sectors' walls and nav's doors as the only obstacles.
+
+```ts
+const navPlugin: PluginDef;
+```
+
+#### `NavRoute` (interface)
+
+_No doc comment._
+
+```ts
+interface NavRoute {
+    to: {
+        x: number;
+        z: number;
+    };
+    /** The points still to walk to, in order; the last is `to`. */
+    points: {
+        x: number;
+        z: number;
+    }[];
+    /** The doors' version the route was made at. */
+    version: number;
+}
+```
+
+#### `NavRoutes` (const)
+
+Each walking entity's route, keyed by its StableId.
+
+```ts
+const NavRoutes: ResourceDef<typeof routesSchema>;
+```
+
+#### `NavUnreachable` (const)
+
+_No doc comment._
+
+```ts
+const NavUnreachable: EventDef<z.ZodType<NavUnreachablePayload>>;
+```
+
+#### `NavUnreachablePayload` (interface)
+
+_No doc comment._
+
+```ts
+interface NavUnreachablePayload {
+    readonly entity: number;
+    readonly to: {
+        readonly x: number;
+        readonly z: number;
+    };
+}
+```
+
+#### `nearestNode` (function)
+
+The closest node with a clear line from `p`, or undefined when none has one.
+
+```ts
+function nearestNode(p: Point, graph: NavGraph, blocked: Blocked, margin?: number): string | undefined;
+```
+
+#### `route` (function)
+
+The points to walk from `from` to `to`: straight when the line is clear, else Dijkstra over the graph, then a straight
+leg to the goal. With no route it is `[to]` (as in the original); the caller checks that leg with `clear`.
+
+```ts
+function route(from: Point, to: Point, graph: NavGraph, blocked: Blocked, margin?: number): readonly Point[];
+```
+
+#### `WALK_MARGIN` (const)
+
+The clearance a walker keeps from walls on its way between nodes, in metres (the original's).
+
+```ts
+const WALK_MARGIN: number;
+```
+
+#### `WalkTo` (const)
+
+_No doc comment._
+
+```ts
+const WalkTo: CommandDef<typeof walkToSchema>;
+```
+
+#### `WalkToPayload` (interface)
+
+_No doc comment._
+
+```ts
+interface WalkToPayload {
+    readonly entity: number;
+    readonly to: {
+        readonly x: number;
+        readonly z: number;
+    };
+}
+```
+
+### `import { … } from '@automata/nav/sim'`
+
+#### `Blocked` (unresolved)
+
+_No doc comment._
+
+```ts
+from '../shared/sim/route'
+```
+
+#### `blockedBy` (unresolved)
+
+_No doc comment._
+
+```ts
+from '@automata/sectors/sim'
+```
+
+#### `clear` (const)
+
+_No doc comment._
+
+```ts
+const clear: (a: Point, b: Point, blocked: Blocked, margin?: number) => boolean;
+```
+
+#### `createNavPlugin` (function)
+
+_No doc comment._
+
+```ts
+function createNavPlugin(options?: NavOptions): PluginDef;
+```
+
+#### `loadNavGraph` (function)
+
+Makes `graph` the scene's graph and drops every walk under way. Call it from a game system; a bad graph throws.
+
+```ts
+function loadNavGraph(ctx: SimContext, graph: NavGraph): void;
+```
+
+#### `NavAgent` (const)
+
+_No doc comment._
+
+```ts
+const NavAgent: ComponentDef<typeof navAgentFields>;
+```
+
+#### `NavArrived` (const)
+
+_No doc comment._
+
+```ts
+const NavArrived: EventDef<z.ZodType<NavArrivedPayload>>;
+```
+
+#### `NavArrivedPayload` (interface)
+
+_No doc comment._
+
+```ts
+interface NavArrivedPayload {
+    readonly entity: number;
+    readonly at: {
+        readonly x: number;
+        readonly z: number;
+    };
+}
+```
+
+#### `NavDoor` (const)
+
+_No doc comment._
+
+```ts
+const NavDoor: CommandDef<typeof doorSchema>;
+```
+
+#### `NavDoorPayload` (interface)
+
+_No doc comment._
+
+```ts
+interface NavDoorPayload {
+    readonly door: string;
+    readonly open: boolean;
+}
+```
+
+#### `NavDoors` (const)
+
+_No doc comment._
+
+```ts
+const NavDoors: ResourceDef<typeof doorsSchema>;
+```
+
+#### `NavDoorState` (interface)
+
+_No doc comment._
+
+```ts
+interface NavDoorState {
+    /** Door id → open. A door never set is shut. */
+    open: Record<string, boolean>;
+    /** How many times a door has changed; a route made at an older version is made again. */
+    version: number;
+}
+```
+
+#### `NavGraph` (interface)
+
+_No doc comment._
+
+```ts
+interface NavGraph {
+    readonly nodes: Readonly<Record<string, Point>>;
+    readonly edges: readonly (readonly [string, string, string?])[];
+}
+```
+
+#### `NavGraphResource` (const)
+
+The scene's walking graph; empty until the game loads one.
+
+```ts
+const NavGraphResource: ResourceDef<typeof navGraphSchema>;
+```
+
+#### `navGraphSchema` (const)
+
+_No doc comment._
+
+```ts
+const navGraphSchema: z.ZodType<NavGraph>;
+```
+
+#### `NavOptions` (interface)
+
+_No doc comment._
+
+```ts
+interface NavOptions {
+    /** Where walkers stand and what blocks them; by default sectors' 3D rooms. A 2D game gives `level-2d`'s. */
+    readonly places?: Places;
+    /** The game's movement query (walls, steps and its own obstacles); by default the places' walls and nav's doors. */
+    readonly blocked?: (ctx: SimContext, doors: Readonly<Record<string, boolean>>) => Blocked;
+    /** While this holds (a cutscene is playing), new `walk-to` commands are ignored; walks under way go on (the `cutscenes` extension's `locked`). */
+    readonly locked?: (ctx: SimContext) => boolean;
+}
+```
+
+#### `navPlugin` (const)
+
+Nav with sectors' walls and nav's doors as the only obstacles.
+
+```ts
+const navPlugin: PluginDef;
+```
+
+#### `NavRoute` (interface)
+
+_No doc comment._
+
+```ts
+interface NavRoute {
+    to: {
+        x: number;
+        z: number;
+    };
+    /** The points still to walk to, in order; the last is `to`. */
+    points: {
+        x: number;
+        z: number;
+    }[];
+    /** The doors' version the route was made at. */
+    version: number;
+}
+```
+
+#### `NavRoutes` (const)
+
+Each walking entity's route, keyed by its StableId.
+
+```ts
+const NavRoutes: ResourceDef<typeof routesSchema>;
+```
+
+#### `NavUnreachable` (const)
+
+_No doc comment._
+
+```ts
+const NavUnreachable: EventDef<z.ZodType<NavUnreachablePayload>>;
+```
+
+#### `NavUnreachablePayload` (interface)
+
+_No doc comment._
+
+```ts
+interface NavUnreachablePayload {
+    readonly entity: number;
+    readonly to: {
+        readonly x: number;
+        readonly z: number;
+    };
+}
+```
+
+#### `nearestNode` (function)
+
+The closest node with a clear line from `p`, or undefined when none has one.
+
+```ts
+function nearestNode(p: Point, graph: NavGraph, blocked: Blocked, margin?: number): string | undefined;
+```
+
+#### `route` (function)
+
+The points to walk from `from` to `to`: straight when the line is clear, else Dijkstra over the graph, then a straight
+leg to the goal. With no route it is `[to]` (as in the original); the caller checks that leg with `clear`.
+
+```ts
+function route(from: Point, to: Point, graph: NavGraph, blocked: Blocked, margin?: number): readonly Point[];
+```
+
+#### `WALK_MARGIN` (const)
+
+The clearance a walker keeps from walls on its way between nodes, in metres (the original's).
+
+```ts
+const WALK_MARGIN: number;
+```
+
+#### `WalkTo` (const)
+
+_No doc comment._
+
+```ts
+const WalkTo: CommandDef<typeof walkToSchema>;
+```
+
+#### `WalkToPayload` (interface)
+
+_No doc comment._
+
+```ts
+interface WalkToPayload {
+    readonly entity: number;
+    readonly to: {
+        readonly x: number;
+        readonly z: number;
+    };
+}
+```
+
+## `@automata/systems`
+
+### `import { … } from '@automata/systems'`
+
+#### `AgentDef` (interface)
+
+_No doc comment._
+
+```ts
+interface AgentDef {
+    readonly id: string;
+    /** Metres per second per mode; a mode with no speed is still. */
+    readonly speed: Readonly<Record<string, number>>;
+    readonly modes: readonly string[];
+    readonly initial: string;
+    readonly senses: readonly Sense[];
+    /** The highest priority whose probes all hold wins. */
+    readonly transitions: readonly Transition[];
+    /** A patrol with actions. */
+    readonly routine?: readonly RoutineStop[] | undefined;
+    /** Named sim functions the game gives `createSystems`, for what data cannot say. */
+    readonly hooks?: readonly string[] | undefined;
+}
+```
+
+#### `AgentRecord` (interface)
+
+An agent's live state, apart from its plan position (its entity's `InSector`).
+
+```ts
+interface AgentRecord {
+    /** Its entity. */
+    sid: number;
+    mode: string;
+    facing: number;
+    moving: boolean;
+    /** Seconds spent waiting in this mode: standing at the end of its path, or refusing a step. Effects reset it. */
+    timer: number;
+    /** Seconds to the next re-route while chasing a moving goal (hooks keep it). */
+    replan: number;
+    /** The routine stop it is heading for or dwelling at. */
+    patrol: number;
+    path: Point[];
+    goal: Point | null;
+    pending?: Pending | undefined;
+    /** Fields a scene's hooks and `self.<name>` facts keep on the agent (the original's extra agent fields). */
+    own: Record<string, Value>;
+}
+```
+
+#### `ARRIVE` (const)
+
+Close enough to a path point to take the next one.
+
+```ts
+const ARRIVE = 0.08;
+```
+
+#### `AT_NODE` (const)
+
+How close counts as being at a nav node.
+
+```ts
+const AT_NODE = 0.3;
+```
+
+#### `BUILT_IN_HOOKS` (const)
+
+Hooks every agent has: `stop` drops its path.
+
+```ts
+const BUILT_IN_HOOKS: readonly string[];
+```
+
+#### `CaughtPayload` (interface)
+
+_No doc comment._
+
+```ts
+interface CaughtPayload {
+    readonly cause: string;
+}
+```
+
+#### `checkSystems` (function)
+
+Every definition error in a scene's systems, in the original's order, each at its path.
+
+```ts
+function checkSystems(def: SystemsDef, options: SystemsCheckOptions, report: Report): void;
+```
+
+#### `createSystems` (function)
+
+_No doc comment._
+
+```ts
+function createSystems(options?: SystemsOptions): Systems;
+```
+
+#### `createWatch` (function)
+
+A watcher for `when`, asked as agent `as` (with its senses) or as a world rule. It runs in `cleanup`, after the
+systems' step, with the game's options (its derived facts).
+
+```ts
+function createWatch(options: SystemsOptions, when: readonly Probe[], as?: string): PluginDef;
+```
+
+#### `Crossing` (interface)
+
+A portal the player crossed into another zone: its id (`from>to`), its middle, and the spot just inside `to`.
+
+```ts
+interface Crossing {
+    portal: string;
+    from: string;
+    to: string;
+    zone: string;
+    x: number;
+    z: number;
+    into: Point;
+}
+```
+
+#### `CutscenePayload` (interface)
+
+_No doc comment._
+
+```ts
+interface CutscenePayload {
+    readonly id: string;
+}
+```
+
+#### `effectSchema` (const)
+
+_No doc comment._
+
+```ts
+const effectSchema: z.ZodType<SysEffect>;
+```
+
+#### `Fairness` (interface)
+
+_No doc comment._
+
+```ts
+interface Fairness {
+    readonly cautiousWin: number;
+    readonly firstThreatAfter: number;
+    readonly telegraph: number;
+    readonly maxDeathsPerRun: number;
+    readonly safeWindowMargin: number;
+    readonly ambushGrace?: number | undefined;
+    readonly followClear?: number | undefined;
+    readonly hideRelease?: number | undefined;
+}
+```
+
+#### `FOLLOW_CLEAR` (const)
+
+Door-follow's clearance: never within this of the player.
+
+```ts
+const FOLLOW_CLEAR = 1.5;
+```
+
+#### `hearsIn` (const)
+
+Whether a probe list asks about sound (such transitions and rules run when a noise is made, not in the tick).
+
+```ts
+const hearsIn: (when: readonly Probe[]) => boolean;
+```
+
+#### `Hide` (const)
+
+_No doc comment._
+
+```ts
+const Hide: CommandDef<typeof hideSchema>;
+```
+
+#### `HidePayload` (interface)
+
+_No doc comment._
+
+```ts
+interface HidePayload {
+    readonly spot: string;
+}
+```
+
+#### `isStill` (const)
+
+A mode with no speed: the agent does nothing in it but take the transitions out of it.
+
+```ts
+const isStill: (def: AgentDef, mode: string) => boolean;
+```
+
+#### `LinePayload` (interface)
+
+_No doc comment._
+
+```ts
+interface LinePayload {
+    /** The agent that says it, or `world` for a world rule. */
+    readonly by: string;
+    readonly line: string;
+}
+```
+
+#### `MatrixCell` (interface)
+
+_No doc comment._
+
+```ts
+interface MatrixCell {
+    readonly row: string;
+    readonly col: string;
+    readonly verb: string;
+    readonly rule?: string | undefined;
+    readonly presentation?: string | undefined;
+    readonly cut?: string | undefined;
+}
+```
+
+#### `ModePayload` (interface)
+
+_No doc comment._
+
+```ts
+interface ModePayload {
+    readonly agent: string;
+    readonly from: string;
+    readonly to: string;
+}
+```
+
+#### `Noise` (interface)
+
+_No doc comment._
+
+```ts
+interface Noise {
+    x: number;
+    z: number;
+    loudness: number;
+    kind: string;
+    /** Seconds since it was made; it is gone at `NOISE_LIFE`. */
+    age: number;
+}
+```
+
+#### `NOISE_LIFE` (const)
+
+Seconds a noise stays on the world, for the renderer's rings.
+
+```ts
+const NOISE_LIFE = 1.2;
+```
+
+#### `Outcome` (type)
+
+What an effect did that ends a step: the player caught, or a cutscene started.
+
+```ts
+type Outcome = 'caught' | 'cutscene' | null;
+```
+
+#### `Pending` (interface)
+
+An appearance under way (door-follow or an ambush): while the agent keeps `mode`, after `in` s it comes to `at`.
+
+```ts
+interface Pending {
+    mode: string;
+    at: Point;
+    in: number;
+    hold: number;
+    clear: number;
+    then: string;
+    /** A follow's far zone: an agent already in it on foot needs no appearance. */
+    zone?: string | undefined;
+    shown?: boolean | undefined;
+}
+```
+
+#### `Probe` (type)
+
+_No doc comment._
+
+```ts
+type Probe = {
+    readonly inLight: true;
+    readonly radius?: number | undefined;
+}
+/** `reach` absent: heard at any distance (the original's `Infinity`; content has no Infinity). */
+ | {
+    readonly heard: string;
+    readonly reach?: number | undefined;
+} | {
+    readonly sees: true;
+} | {
+    readonly warmthWithin: number;
+} | {
+    readonly touching: true;
+    readonly radius?: number | undefined;
+} | {
+    readonly fact: string;
+    readonly is: Value;
+} | {
+    readonly mode: string;
+    readonly agent?: string | undefined;
+} | {
+    readonly at: string;
+} | {
+    readonly timer: number;
+} | {
+    readonly not: Probe;
+} | {
+    readonly crossed: true;
+} | {
+    readonly sawHide: {
+        readonly radius: number;
+        readonly los?: boolean | undefined;
+    };
+};
+```
+
+#### `probeSchema` (const)
+
+_No doc comment._
+
+```ts
+const probeSchema: z.ZodType<Probe>;
+```
+
+#### `PursuitValue` (interface)
+
+_No doc comment._
+
+```ts
+interface PursuitValue {
+    /** The sector the player stood in at the last step; '' off the map. */
+    sector: string;
+    /** The player crossed into another zone this step. */
+    crossed: Crossing | null;
+    /** The last portal she crossed into another zone. */
+    last: Crossing | null;
+    /** The hiding place the player is in; '' when she is not hiding. */
+    hidden: string;
+    hiddenFor: number;
+    /** Every agent as she hid, by id. */
+    watchers: Record<string, Watcher>;
+    /** Ambushes that have fired, by id. */
+    ambushes: Record<string, boolean>;
+}
+```
+
+#### `reachable` (function)
+
+Whether a node can be walked to: it has a usable edge, and is not reserved for another agent (`agent` asks).
+
+```ts
+function reachable(ctx: SimContext, id: string, agent?: string): boolean;
+```
+
+#### `reserveNodes` (function)
+
+_No doc comment._
+
+```ts
+function reserveNodes(ctx: SimContext, agent: string, ids: readonly string[]): void;
+```
+
+#### `routineMode` (const)
+
+_No doc comment._
+
+```ts
+const routineMode: (def: AgentDef) => string | undefined;
+```
+
+#### `RoutineStop` (interface)
+
+_No doc comment._
+
+```ts
+interface RoutineStop {
+    readonly node: string;
+    readonly dwell: number;
+    readonly do?: readonly SysEffect[] | undefined;
+}
+```
+
+#### `Rule` (interface)
+
+_No doc comment._
+
+```ts
+interface Rule {
+    readonly id: string;
+    readonly text: string;
+    readonly every?: number | undefined;
+    readonly when: readonly Probe[];
+    readonly then: readonly SysEffect[];
+}
+```
+
+#### `Scenario` (interface)
+
+_No doc comment._
+
+```ts
+interface Scenario {
+    readonly id: string;
+    readonly claims?: string | undefined;
+    readonly setup: {
+        readonly place?: Readonly<Record<string, Point>> | undefined;
+        readonly facts?: Readonly<Record<string, Value>> | undefined;
+        readonly items?: readonly string[] | undefined;
+        readonly actions?: readonly string[] | undefined;
+    };
+    readonly policy: string;
+    readonly expect: {
+        readonly condition: readonly Probe[];
+        readonly within: number;
+        readonly probability: number;
+    };
+    readonly seeds: number;
+}
+```
+
+#### `Sense` (type)
+
+_No doc comment._
+
+```ts
+type Sense = {
+    readonly light: {
+        readonly radius?: number | undefined;
+    };
+} | {
+    readonly sound: {
+        readonly reach?: number | undefined;
+    };
+} | {
+    readonly sight: {
+        readonly range: number;
+        readonly wallsOnly?: boolean | undefined;
+    };
+} | {
+    readonly warmth: {
+        readonly sources: Readonly<Record<string, number>>;
+    };
+} | {
+    readonly touch: {
+        readonly radius: number;
+    };
+};
+```
+
+#### `Subject` (type)
+
+Who is asking: an agent with its senses, or a world rule (about the player) with its own clock. An agent that stood
+still this step is `waiting`: at the end of its path ('idle') or at a step it refused ('blocked').
+
+```ts
+type Subject = {
+    readonly id: string;
+    readonly def: AgentDef;
+    readonly waiting?: 'idle' | 'blocked';
+} | {
+    readonly id: null;
+    readonly clock: number;
+};
+```
+
+#### `SysEffect` (type)
+
+_No doc comment._
+
+```ts
+type SysEffect = {
+    readonly setMode: string;
+    readonly agent?: string | undefined;
+} | {
+    readonly goTo: string | Point;
+} | {
+    readonly flee: string;
+} | {
+    readonly noise: {
+        readonly at: Point | string;
+        readonly loudness: number;
+        readonly kind: string;
+    };
+} | {
+    readonly set: string;
+    readonly to: Value;
+} | {
+    readonly emit: {
+        readonly cutscene: string;
+    } | {
+        readonly caught: string;
+    } | {
+        readonly line: string;
+    };
+} | {
+    readonly call: string;
+} | {
+    readonly followThrough: {
+        readonly portal: string;
+        readonly delay: number;
+        readonly then: string;
+        readonly clear?: number | undefined;
+    };
+} | {
+    readonly ambush: {
+        readonly id: string;
+        readonly agent: string;
+        readonly mode: string;
+        readonly at: string | Point;
+        readonly sting: number;
+        readonly grace: number;
+        readonly then: string;
+    };
+};
+```
+
+#### `Systems` (interface)
+
+_No doc comment._
+
+```ts
+interface Systems {
+    readonly plugin: PluginDef;
+    /** Makes a noise from a sim system; give it to puzzle's `noise` option. */
+    readonly hear: (ctx: SimContext, noise: {
+        readonly at: Point;
+        readonly loudness: number;
+        readonly kind: string;
+    }) => void;
+    /** Loads a scene's systems; call it from a game system after its map and nav graph. */
+    readonly load: (ctx: SimContext, def: SystemsDef, places?: Readonly<Record<string, Point>>) => void;
+}
+```
+
+#### `systems` (const)
+
+Systems with no hooks or derived facts, and nav's and sectors' default queries.
+
+```ts
+const systems: Systems;
+```
+
+#### `SystemsAgent` (const)
+
+_No doc comment._
+
+```ts
+const SystemsAgent: ComponentDef<typeof systemsAgentFields>;
+```
+
+#### `SystemsCaught` (const)
+
+_No doc comment._
+
+```ts
+const SystemsCaught: EventDef<z.ZodType<CaughtPayload>>;
+```
+
+#### `SystemsCheckOptions` (interface)
+
+_No doc comment._
+
+```ts
+interface SystemsCheckOptions {
+    /** The hook names the game gives `createSystems`; `stop` is built in. */
+    readonly hooks: readonly string[];
+    /** The scene's nav node ids, when known (a load checks them against the loaded graph). */
+    readonly nodes?: readonly string[];
+}
+```
+
+#### `systemsContent` (const)
+
+_No doc comment._
+
+```ts
+const systemsContent: (options: SystemsCheckOptions) => ContentSchemaDef<"systems", z.ZodType<SystemsDef>>;
+```
+
+#### `SystemsCutscene` (const)
+
+_No doc comment._
+
+```ts
+const SystemsCutscene: EventDef<z.ZodType<CutscenePayload>>;
+```
+
+#### `SystemsDef` (interface)
+
+_No doc comment._
+
+```ts
+interface SystemsDef {
+    /** The scene; its nav graph and sector map are the ones the game loads with it. */
+    readonly scene: string;
+    readonly objects: readonly {
+        readonly id: string;
+        readonly name: string;
+        readonly signal: string;
+    }[];
+    readonly matrix: readonly MatrixCell[];
+    readonly tunables: Readonly<Record<string, Tunable>>;
+    readonly rules: readonly Rule[];
+    readonly agents: readonly AgentDef[];
+    readonly scenarios: readonly Scenario[];
+    readonly fairness: Fairness;
+}
+```
+
+#### `systemsDefShape` (const)
+
+_No doc comment._
+
+```ts
+const systemsDefShape: z.ZodType<SystemsDef>;
+```
+
+#### `SystemsEnv` (const)
+
+_No doc comment._
+
+```ts
+const SystemsEnv: ResourceDef<typeof envSchema>;
+```
+
+#### `SystemsEnvValue` (interface)
+
+What the game tells the systems each step: who the player is, whether she moves, its lights and warm things.
+
+```ts
+interface SystemsEnvValue {
+    /** The player's entity (it has sectors' `InSector`); 0 for none. */
+    player: number;
+    moving: boolean;
+    /** Gameplay light as discs: a point is lit by the first disc, in order, that covers it. */
+    lights: {
+        x: number;
+        z: number;
+        radius: number;
+    }[];
+    /** Warm things now, by kind (lighter, torch, drum…). */
+    warmth: {
+        x: number;
+        z: number;
+        kind: string;
+    }[];
+}
+```
+
+#### `SystemsExtension` (interface)
+
+_No doc comment._
+
+```ts
+interface SystemsExtension extends Systems {
+    readonly extension: ExtensionDef<'systems'>;
+}
+```
+
+#### `systemsExtension` (function)
+
+_No doc comment._
+
+```ts
+function systemsExtension(options?: SystemsOptions): SystemsExtension;
+```
+
+#### `SystemsLine` (const)
+
+_No doc comment._
+
+```ts
+const SystemsLine: EventDef<z.ZodType<LinePayload>>;
+```
+
+#### `SystemsMode` (const)
+
+_No doc comment._
+
+```ts
+const SystemsMode: EventDef<z.ZodType<ModePayload>>;
+```
+
+#### `SystemsNoise` (const)
+
+_No doc comment._
+
+```ts
+const SystemsNoise: EventDef<z.ZodType<SystemsNoisePayload>>;
+```
+
+#### `SystemsNoisePayload` (interface)
+
+_No doc comment._
+
+```ts
+interface SystemsNoisePayload {
+    readonly at: {
+        readonly x: number;
+        readonly z: number;
+    };
+    readonly loudness: number;
+    readonly kind: string;
+}
+```
+
+#### `SystemsNoises` (const)
+
+_No doc comment._
+
+```ts
+const SystemsNoises: ResourceDef<typeof noisesSchema>;
+```
+
+#### `SystemsOptions` (interface)
+
+What the game gives `createSystems`: sim functions for what data cannot say.
+
+```ts
+interface SystemsOptions {
+    /** Where agents and the player stand, which room that is, and what blocks a walk. Default: sectors' 3D rooms. */
+    readonly places?: Places;
+    /** Named functions for `{ call }`. `stop` is built in (it drops the agent's path). */
+    readonly hooks?: Readonly<Record<string, (w: SystemsWorld, agent: string | null) => void>>;
+    /** Facts derived from the game's state: `self.<name>` for an agent, the bare name for a rule. Read, never set. */
+    readonly derived?: Readonly<Record<string, (w: SystemsWorld, agent: string | null) => Value>>;
+    /** A step the agent will not take (into light, say): it waits instead. */
+    readonly refuses?: (w: SystemsWorld, agent: string, to: Point) => boolean;
+    /** Puzzle's mapped facts: the same object the game gives puzzle. */
+    readonly facts?: PuzzleOptions['facts'];
+    /** The game's movement query (walls, steps and its boxes); default the places' walls and nav's doors. */
+    readonly blocked?: (ctx: SimContext, doors: Readonly<Record<string, boolean>>) => Blocked;
+    /** The game's sight query for a sense with `wallsOnly` (the default); default the places' sight. */
+    readonly sight?: (ctx: SimContext, doors: Readonly<Record<string, boolean>>) => Blocked;
+}
+```
+
+#### `SystemsPursuit` (const)
+
+_No doc comment._
+
+```ts
+const SystemsPursuit: ResourceDef<typeof pursuitSchema>;
+```
+
+#### `SystemsScene` (const)
+
+_No doc comment._
+
+```ts
+const SystemsScene: ResourceDef<typeof sceneSchema>;
+```
+
+#### `systemsSchema` (const)
+
+_No doc comment._
+
+```ts
+const systemsSchema: (options: SystemsCheckOptions) => z.ZodType<SystemsDef>;
+```
+
+#### `SystemsState` (const)
+
+_No doc comment._
+
+```ts
+const SystemsState: ResourceDef<typeof stateSchema>;
+```
+
+#### `SystemsStateValue` (interface)
+
+_No doc comment._
+
+```ts
+interface SystemsStateValue {
+    agents: Record<string, AgentRecord>;
+    /** Seconds since each rule last fired. */
+    clocks: Record<string, number>;
+    /** Node id → the one agent that may walk to it (`reserveNodes`). */
+    reserved: Record<string, string>;
+}
+```
+
+#### `SystemsWarning` (interface)
+
+A thing a file says that is valid but probably not what its author wants, at its path.
+
+```ts
+interface SystemsWarning {
+    readonly path: Path;
+    readonly message: string;
+}
+```
+
+#### `SystemsWarningOptions` (interface)
+
+_No doc comment._
+
+```ts
+interface SystemsWarningOptions {
+    /** The game is a flat 2D level: it has no lamps. */
+    readonly flat?: boolean;
+    /** The facts the game derives (`createSystems({ derived })`). */
+    readonly derived: readonly string[];
+}
+```
+
+#### `systemsWarnings` (function)
+
+Warnings for a scene's systems in this game. A 2D level has no lamps, so an agent with a `light` sense, or a question
+about `inLight`, never notices anything unless the game's own code says how bright a place is. The file is valid, so this
+is a warning and `checkSystems` stays quiet.
+
+```ts
+function systemsWarnings(def: SystemsDef, options: SystemsWarningOptions): SystemsWarning[];
+```
+
+#### `SystemsWatch` (const)
+
+Whether the watched condition held at the end of the last step.
+
+```ts
+const SystemsWatch: ResourceDef<typeof watchSchema>;
+```
+
+#### `SystemsWorld` (interface)
+
+_No doc comment._
+
+```ts
+interface SystemsWorld {
+    readonly ctx: SimContext;
+    readonly def: SystemsDef;
+    readonly options: SystemsOptions;
+    readonly state: SystemsStateValue;
+    readonly noises: Noise[];
+    readonly pursuit: PursuitValue;
+    readonly env: SystemsEnvValue;
+    readonly graph: NavGraph;
+    /** The game's places, and its rooms as of this call. */
+    readonly places: Places;
+    readonly rooms: readonly PlanRoom[];
+    /** Walking: walls, steps, doors and the game's obstacles. */
+    readonly walk: Blocked;
+    /** Line of sight past the walls. */
+    readonly sight: Blocked;
+    /** The player's plan point (the origin with no player). */
+    readonly player: Point;
+    /** Each agent's plan position by id; `commit` writes them to the entities. */
+    readonly at: Record<string, {
+        x: number;
+        z: number;
+    }>;
+    /** The noise being heard, while the systems react to one. */
+    hearing?: Noise | undefined;
+    readonly defs: Readonly<Record<string, AgentDef>>;
+}
+```
+
+#### `THROUGH` (unresolved)
+
+_No doc comment._
+
+```ts
+from '../shared/sim/pursuit'
+```
+
+#### `Transition` (interface)
+
+_No doc comment._
+
+```ts
+interface Transition {
+    readonly from: string;
+    readonly to: string;
+    readonly when: readonly Probe[];
+    readonly priority: number;
+    readonly do?: readonly SysEffect[] | undefined;
+}
+```
+
+#### `Tunable` (interface)
+
+_No doc comment._
+
+```ts
+interface Tunable {
+    readonly value: number;
+    readonly min: number;
+    readonly max: number;
+    readonly unit: string;
+    readonly note: string;
+}
+```
+
+#### `UNHEARD` (const)
+
+Noises the agents never hear: an agent's own footfalls, which are for the player's ears.
+
+```ts
+const UNHEARD: readonly string[];
+```
+
+#### `Unhide` (const)
+
+_No doc comment._
+
+```ts
+const Unhide: CommandDef<typeof unhideSchema>;
+```
+
+#### `usesPortals` (function)
+
+Whether a definition asks where the player crosses into another zone: a `crossed` probe, or a `followThrough`.
+
+```ts
+function usesPortals(def: SystemsDef): boolean;
+```
+
+#### `waitsIn` (const)
+
+Whether a transition asks how the agent is waiting (such transitions run after it moves, when it stood still).
+
+```ts
+const waitsIn: (when: readonly Probe[]) => boolean;
+```
+
+#### `Watcher` (interface)
+
+Where an agent stood as the player hid; `los`: it had a line of sight to her past the walls.
+
+```ts
+interface Watcher {
+    x: number;
+    z: number;
+    mode: string;
+    los: boolean;
+}
+```
+
+### `import { … } from '@automata/systems/sim'`
+
+#### `AgentDef` (interface)
+
+_No doc comment._
+
+```ts
+interface AgentDef {
+    readonly id: string;
+    /** Metres per second per mode; a mode with no speed is still. */
+    readonly speed: Readonly<Record<string, number>>;
+    readonly modes: readonly string[];
+    readonly initial: string;
+    readonly senses: readonly Sense[];
+    /** The highest priority whose probes all hold wins. */
+    readonly transitions: readonly Transition[];
+    /** A patrol with actions. */
+    readonly routine?: readonly RoutineStop[] | undefined;
+    /** Named sim functions the game gives `createSystems`, for what data cannot say. */
+    readonly hooks?: readonly string[] | undefined;
+}
+```
+
+#### `AgentRecord` (interface)
+
+An agent's live state, apart from its plan position (its entity's `InSector`).
+
+```ts
+interface AgentRecord {
+    /** Its entity. */
+    sid: number;
+    mode: string;
+    facing: number;
+    moving: boolean;
+    /** Seconds spent waiting in this mode: standing at the end of its path, or refusing a step. Effects reset it. */
+    timer: number;
+    /** Seconds to the next re-route while chasing a moving goal (hooks keep it). */
+    replan: number;
+    /** The routine stop it is heading for or dwelling at. */
+    patrol: number;
+    path: Point[];
+    goal: Point | null;
+    pending?: Pending | undefined;
+    /** Fields a scene's hooks and `self.<name>` facts keep on the agent (the original's extra agent fields). */
+    own: Record<string, Value>;
+}
+```
+
+#### `ARRIVE` (const)
+
+Close enough to a path point to take the next one.
+
+```ts
+const ARRIVE = 0.08;
+```
+
+#### `AT_NODE` (const)
+
+How close counts as being at a nav node.
+
+```ts
+const AT_NODE = 0.3;
+```
+
+#### `BUILT_IN_HOOKS` (const)
+
+Hooks every agent has: `stop` drops its path.
+
+```ts
+const BUILT_IN_HOOKS: readonly string[];
+```
+
+#### `CaughtPayload` (interface)
+
+_No doc comment._
+
+```ts
+interface CaughtPayload {
+    readonly cause: string;
+}
+```
+
+#### `checkSystems` (function)
+
+Every definition error in a scene's systems, in the original's order, each at its path.
+
+```ts
+function checkSystems(def: SystemsDef, options: SystemsCheckOptions, report: Report): void;
+```
+
+#### `createSystems` (function)
+
+_No doc comment._
+
+```ts
+function createSystems(options?: SystemsOptions): Systems;
+```
+
+#### `createWatch` (function)
+
+A watcher for `when`, asked as agent `as` (with its senses) or as a world rule. It runs in `cleanup`, after the
+systems' step, with the game's options (its derived facts).
+
+```ts
+function createWatch(options: SystemsOptions, when: readonly Probe[], as?: string): PluginDef;
+```
+
+#### `Crossing` (interface)
+
+A portal the player crossed into another zone: its id (`from>to`), its middle, and the spot just inside `to`.
+
+```ts
+interface Crossing {
+    portal: string;
+    from: string;
+    to: string;
+    zone: string;
+    x: number;
+    z: number;
+    into: Point;
+}
+```
+
+#### `CutscenePayload` (interface)
+
+_No doc comment._
+
+```ts
+interface CutscenePayload {
+    readonly id: string;
+}
+```
+
+#### `effectSchema` (const)
+
+_No doc comment._
+
+```ts
+const effectSchema: z.ZodType<SysEffect>;
+```
+
+#### `Fairness` (interface)
+
+_No doc comment._
+
+```ts
+interface Fairness {
+    readonly cautiousWin: number;
+    readonly firstThreatAfter: number;
+    readonly telegraph: number;
+    readonly maxDeathsPerRun: number;
+    readonly safeWindowMargin: number;
+    readonly ambushGrace?: number | undefined;
+    readonly followClear?: number | undefined;
+    readonly hideRelease?: number | undefined;
+}
+```
+
+#### `FOLLOW_CLEAR` (const)
+
+Door-follow's clearance: never within this of the player.
+
+```ts
+const FOLLOW_CLEAR = 1.5;
+```
+
+#### `hearsIn` (const)
+
+Whether a probe list asks about sound (such transitions and rules run when a noise is made, not in the tick).
+
+```ts
+const hearsIn: (when: readonly Probe[]) => boolean;
+```
+
+#### `Hide` (const)
+
+_No doc comment._
+
+```ts
+const Hide: CommandDef<typeof hideSchema>;
+```
+
+#### `HidePayload` (interface)
+
+_No doc comment._
+
+```ts
+interface HidePayload {
+    readonly spot: string;
+}
+```
+
+#### `isStill` (const)
+
+A mode with no speed: the agent does nothing in it but take the transitions out of it.
+
+```ts
+const isStill: (def: AgentDef, mode: string) => boolean;
+```
+
+#### `LinePayload` (interface)
+
+_No doc comment._
+
+```ts
+interface LinePayload {
+    /** The agent that says it, or `world` for a world rule. */
+    readonly by: string;
+    readonly line: string;
+}
+```
+
+#### `MatrixCell` (interface)
+
+_No doc comment._
+
+```ts
+interface MatrixCell {
+    readonly row: string;
+    readonly col: string;
+    readonly verb: string;
+    readonly rule?: string | undefined;
+    readonly presentation?: string | undefined;
+    readonly cut?: string | undefined;
+}
+```
+
+#### `ModePayload` (interface)
+
+_No doc comment._
+
+```ts
+interface ModePayload {
+    readonly agent: string;
+    readonly from: string;
+    readonly to: string;
+}
+```
+
+#### `Noise` (interface)
+
+_No doc comment._
+
+```ts
+interface Noise {
+    x: number;
+    z: number;
+    loudness: number;
+    kind: string;
+    /** Seconds since it was made; it is gone at `NOISE_LIFE`. */
+    age: number;
+}
+```
+
+#### `NOISE_LIFE` (const)
+
+Seconds a noise stays on the world, for the renderer's rings.
+
+```ts
+const NOISE_LIFE = 1.2;
+```
+
+#### `Outcome` (type)
+
+What an effect did that ends a step: the player caught, or a cutscene started.
+
+```ts
+type Outcome = 'caught' | 'cutscene' | null;
+```
+
+#### `Pending` (interface)
+
+An appearance under way (door-follow or an ambush): while the agent keeps `mode`, after `in` s it comes to `at`.
+
+```ts
+interface Pending {
+    mode: string;
+    at: Point;
+    in: number;
+    hold: number;
+    clear: number;
+    then: string;
+    /** A follow's far zone: an agent already in it on foot needs no appearance. */
+    zone?: string | undefined;
+    shown?: boolean | undefined;
+}
+```
+
+#### `Probe` (type)
+
+_No doc comment._
+
+```ts
+type Probe = {
+    readonly inLight: true;
+    readonly radius?: number | undefined;
+}
+/** `reach` absent: heard at any distance (the original's `Infinity`; content has no Infinity). */
+ | {
+    readonly heard: string;
+    readonly reach?: number | undefined;
+} | {
+    readonly sees: true;
+} | {
+    readonly warmthWithin: number;
+} | {
+    readonly touching: true;
+    readonly radius?: number | undefined;
+} | {
+    readonly fact: string;
+    readonly is: Value;
+} | {
+    readonly mode: string;
+    readonly agent?: string | undefined;
+} | {
+    readonly at: string;
+} | {
+    readonly timer: number;
+} | {
+    readonly not: Probe;
+} | {
+    readonly crossed: true;
+} | {
+    readonly sawHide: {
+        readonly radius: number;
+        readonly los?: boolean | undefined;
+    };
+};
+```
+
+#### `probeSchema` (const)
+
+_No doc comment._
+
+```ts
+const probeSchema: z.ZodType<Probe>;
+```
+
+#### `PursuitValue` (interface)
+
+_No doc comment._
+
+```ts
+interface PursuitValue {
+    /** The sector the player stood in at the last step; '' off the map. */
+    sector: string;
+    /** The player crossed into another zone this step. */
+    crossed: Crossing | null;
+    /** The last portal she crossed into another zone. */
+    last: Crossing | null;
+    /** The hiding place the player is in; '' when she is not hiding. */
+    hidden: string;
+    hiddenFor: number;
+    /** Every agent as she hid, by id. */
+    watchers: Record<string, Watcher>;
+    /** Ambushes that have fired, by id. */
+    ambushes: Record<string, boolean>;
+}
+```
+
+#### `reachable` (function)
+
+Whether a node can be walked to: it has a usable edge, and is not reserved for another agent (`agent` asks).
+
+```ts
+function reachable(ctx: SimContext, id: string, agent?: string): boolean;
+```
+
+#### `reserveNodes` (function)
+
+_No doc comment._
+
+```ts
+function reserveNodes(ctx: SimContext, agent: string, ids: readonly string[]): void;
+```
+
+#### `routineMode` (const)
+
+_No doc comment._
+
+```ts
+const routineMode: (def: AgentDef) => string | undefined;
+```
+
+#### `RoutineStop` (interface)
+
+_No doc comment._
+
+```ts
+interface RoutineStop {
+    readonly node: string;
+    readonly dwell: number;
+    readonly do?: readonly SysEffect[] | undefined;
+}
+```
+
+#### `Rule` (interface)
+
+_No doc comment._
+
+```ts
+interface Rule {
+    readonly id: string;
+    readonly text: string;
+    readonly every?: number | undefined;
+    readonly when: readonly Probe[];
+    readonly then: readonly SysEffect[];
+}
+```
+
+#### `Scenario` (interface)
+
+_No doc comment._
+
+```ts
+interface Scenario {
+    readonly id: string;
+    readonly claims?: string | undefined;
+    readonly setup: {
+        readonly place?: Readonly<Record<string, Point>> | undefined;
+        readonly facts?: Readonly<Record<string, Value>> | undefined;
+        readonly items?: readonly string[] | undefined;
+        readonly actions?: readonly string[] | undefined;
+    };
+    readonly policy: string;
+    readonly expect: {
+        readonly condition: readonly Probe[];
+        readonly within: number;
+        readonly probability: number;
+    };
+    readonly seeds: number;
+}
+```
+
+#### `Sense` (type)
+
+_No doc comment._
+
+```ts
+type Sense = {
+    readonly light: {
+        readonly radius?: number | undefined;
+    };
+} | {
+    readonly sound: {
+        readonly reach?: number | undefined;
+    };
+} | {
+    readonly sight: {
+        readonly range: number;
+        readonly wallsOnly?: boolean | undefined;
+    };
+} | {
+    readonly warmth: {
+        readonly sources: Readonly<Record<string, number>>;
+    };
+} | {
+    readonly touch: {
+        readonly radius: number;
+    };
+};
+```
+
+#### `Subject` (type)
+
+Who is asking: an agent with its senses, or a world rule (about the player) with its own clock. An agent that stood
+still this step is `waiting`: at the end of its path ('idle') or at a step it refused ('blocked').
+
+```ts
+type Subject = {
+    readonly id: string;
+    readonly def: AgentDef;
+    readonly waiting?: 'idle' | 'blocked';
+} | {
+    readonly id: null;
+    readonly clock: number;
+};
+```
+
+#### `SysEffect` (type)
+
+_No doc comment._
+
+```ts
+type SysEffect = {
+    readonly setMode: string;
+    readonly agent?: string | undefined;
+} | {
+    readonly goTo: string | Point;
+} | {
+    readonly flee: string;
+} | {
+    readonly noise: {
+        readonly at: Point | string;
+        readonly loudness: number;
+        readonly kind: string;
+    };
+} | {
+    readonly set: string;
+    readonly to: Value;
+} | {
+    readonly emit: {
+        readonly cutscene: string;
+    } | {
+        readonly caught: string;
+    } | {
+        readonly line: string;
+    };
+} | {
+    readonly call: string;
+} | {
+    readonly followThrough: {
+        readonly portal: string;
+        readonly delay: number;
+        readonly then: string;
+        readonly clear?: number | undefined;
+    };
+} | {
+    readonly ambush: {
+        readonly id: string;
+        readonly agent: string;
+        readonly mode: string;
+        readonly at: string | Point;
+        readonly sting: number;
+        readonly grace: number;
+        readonly then: string;
+    };
+};
+```
+
+#### `Systems` (interface)
+
+_No doc comment._
+
+```ts
+interface Systems {
+    readonly plugin: PluginDef;
+    /** Makes a noise from a sim system; give it to puzzle's `noise` option. */
+    readonly hear: (ctx: SimContext, noise: {
+        readonly at: Point;
+        readonly loudness: number;
+        readonly kind: string;
+    }) => void;
+    /** Loads a scene's systems; call it from a game system after its map and nav graph. */
+    readonly load: (ctx: SimContext, def: SystemsDef, places?: Readonly<Record<string, Point>>) => void;
+}
+```
+
+#### `systems` (const)
+
+Systems with no hooks or derived facts, and nav's and sectors' default queries.
+
+```ts
+const systems: Systems;
+```
+
+#### `SystemsAgent` (const)
+
+_No doc comment._
+
+```ts
+const SystemsAgent: ComponentDef<typeof systemsAgentFields>;
+```
+
+#### `SystemsCaught` (const)
+
+_No doc comment._
+
+```ts
+const SystemsCaught: EventDef<z.ZodType<CaughtPayload>>;
+```
+
+#### `SystemsCheckOptions` (interface)
+
+_No doc comment._
+
+```ts
+interface SystemsCheckOptions {
+    /** The hook names the game gives `createSystems`; `stop` is built in. */
+    readonly hooks: readonly string[];
+    /** The scene's nav node ids, when known (a load checks them against the loaded graph). */
+    readonly nodes?: readonly string[];
+}
+```
+
+#### `SystemsCutscene` (const)
+
+_No doc comment._
+
+```ts
+const SystemsCutscene: EventDef<z.ZodType<CutscenePayload>>;
+```
+
+#### `SystemsDef` (interface)
+
+_No doc comment._
+
+```ts
+interface SystemsDef {
+    /** The scene; its nav graph and sector map are the ones the game loads with it. */
+    readonly scene: string;
+    readonly objects: readonly {
+        readonly id: string;
+        readonly name: string;
+        readonly signal: string;
+    }[];
+    readonly matrix: readonly MatrixCell[];
+    readonly tunables: Readonly<Record<string, Tunable>>;
+    readonly rules: readonly Rule[];
+    readonly agents: readonly AgentDef[];
+    readonly scenarios: readonly Scenario[];
+    readonly fairness: Fairness;
+}
+```
+
+#### `systemsDefShape` (const)
+
+_No doc comment._
+
+```ts
+const systemsDefShape: z.ZodType<SystemsDef>;
+```
+
+#### `SystemsEnv` (const)
+
+_No doc comment._
+
+```ts
+const SystemsEnv: ResourceDef<typeof envSchema>;
+```
+
+#### `SystemsEnvValue` (interface)
+
+What the game tells the systems each step: who the player is, whether she moves, its lights and warm things.
+
+```ts
+interface SystemsEnvValue {
+    /** The player's entity (it has sectors' `InSector`); 0 for none. */
+    player: number;
+    moving: boolean;
+    /** Gameplay light as discs: a point is lit by the first disc, in order, that covers it. */
+    lights: {
+        x: number;
+        z: number;
+        radius: number;
+    }[];
+    /** Warm things now, by kind (lighter, torch, drum…). */
+    warmth: {
+        x: number;
+        z: number;
+        kind: string;
+    }[];
+}
+```
+
+#### `SystemsLine` (const)
+
+_No doc comment._
+
+```ts
+const SystemsLine: EventDef<z.ZodType<LinePayload>>;
+```
+
+#### `SystemsMode` (const)
+
+_No doc comment._
+
+```ts
+const SystemsMode: EventDef<z.ZodType<ModePayload>>;
+```
+
+#### `SystemsNoise` (const)
+
+_No doc comment._
+
+```ts
+const SystemsNoise: EventDef<z.ZodType<SystemsNoisePayload>>;
+```
+
+#### `SystemsNoisePayload` (interface)
+
+_No doc comment._
+
+```ts
+interface SystemsNoisePayload {
+    readonly at: {
+        readonly x: number;
+        readonly z: number;
+    };
+    readonly loudness: number;
+    readonly kind: string;
+}
+```
+
+#### `SystemsNoises` (const)
+
+_No doc comment._
+
+```ts
+const SystemsNoises: ResourceDef<typeof noisesSchema>;
+```
+
+#### `SystemsOptions` (interface)
+
+What the game gives `createSystems`: sim functions for what data cannot say.
+
+```ts
+interface SystemsOptions {
+    /** Where agents and the player stand, which room that is, and what blocks a walk. Default: sectors' 3D rooms. */
+    readonly places?: Places;
+    /** Named functions for `{ call }`. `stop` is built in (it drops the agent's path). */
+    readonly hooks?: Readonly<Record<string, (w: SystemsWorld, agent: string | null) => void>>;
+    /** Facts derived from the game's state: `self.<name>` for an agent, the bare name for a rule. Read, never set. */
+    readonly derived?: Readonly<Record<string, (w: SystemsWorld, agent: string | null) => Value>>;
+    /** A step the agent will not take (into light, say): it waits instead. */
+    readonly refuses?: (w: SystemsWorld, agent: string, to: Point) => boolean;
+    /** Puzzle's mapped facts: the same object the game gives puzzle. */
+    readonly facts?: PuzzleOptions['facts'];
+    /** The game's movement query (walls, steps and its boxes); default the places' walls and nav's doors. */
+    readonly blocked?: (ctx: SimContext, doors: Readonly<Record<string, boolean>>) => Blocked;
+    /** The game's sight query for a sense with `wallsOnly` (the default); default the places' sight. */
+    readonly sight?: (ctx: SimContext, doors: Readonly<Record<string, boolean>>) => Blocked;
+}
+```
+
+#### `SystemsPursuit` (const)
+
+_No doc comment._
+
+```ts
+const SystemsPursuit: ResourceDef<typeof pursuitSchema>;
+```
+
+#### `SystemsScene` (const)
+
+_No doc comment._
+
+```ts
+const SystemsScene: ResourceDef<typeof sceneSchema>;
+```
+
+#### `SystemsState` (const)
+
+_No doc comment._
+
+```ts
+const SystemsState: ResourceDef<typeof stateSchema>;
+```
+
+#### `SystemsStateValue` (interface)
+
+_No doc comment._
+
+```ts
+interface SystemsStateValue {
+    agents: Record<string, AgentRecord>;
+    /** Seconds since each rule last fired. */
+    clocks: Record<string, number>;
+    /** Node id → the one agent that may walk to it (`reserveNodes`). */
+    reserved: Record<string, string>;
+}
+```
+
+#### `SystemsWarning` (interface)
+
+A thing a file says that is valid but probably not what its author wants, at its path.
+
+```ts
+interface SystemsWarning {
+    readonly path: Path;
+    readonly message: string;
+}
+```
+
+#### `SystemsWarningOptions` (interface)
+
+_No doc comment._
+
+```ts
+interface SystemsWarningOptions {
+    /** The game is a flat 2D level: it has no lamps. */
+    readonly flat?: boolean;
+    /** The facts the game derives (`createSystems({ derived })`). */
+    readonly derived: readonly string[];
+}
+```
+
+#### `systemsWarnings` (function)
+
+Warnings for a scene's systems in this game. A 2D level has no lamps, so an agent with a `light` sense, or a question
+about `inLight`, never notices anything unless the game's own code says how bright a place is. The file is valid, so this
+is a warning and `checkSystems` stays quiet.
+
+```ts
+function systemsWarnings(def: SystemsDef, options: SystemsWarningOptions): SystemsWarning[];
+```
+
+#### `SystemsWatch` (const)
+
+Whether the watched condition held at the end of the last step.
+
+```ts
+const SystemsWatch: ResourceDef<typeof watchSchema>;
+```
+
+#### `SystemsWorld` (interface)
+
+_No doc comment._
+
+```ts
+interface SystemsWorld {
+    readonly ctx: SimContext;
+    readonly def: SystemsDef;
+    readonly options: SystemsOptions;
+    readonly state: SystemsStateValue;
+    readonly noises: Noise[];
+    readonly pursuit: PursuitValue;
+    readonly env: SystemsEnvValue;
+    readonly graph: NavGraph;
+    /** The game's places, and its rooms as of this call. */
+    readonly places: Places;
+    readonly rooms: readonly PlanRoom[];
+    /** Walking: walls, steps, doors and the game's obstacles. */
+    readonly walk: Blocked;
+    /** Line of sight past the walls. */
+    readonly sight: Blocked;
+    /** The player's plan point (the origin with no player). */
+    readonly player: Point;
+    /** Each agent's plan position by id; `commit` writes them to the entities. */
+    readonly at: Record<string, {
+        x: number;
+        z: number;
+    }>;
+    /** The noise being heard, while the systems react to one. */
+    hearing?: Noise | undefined;
+    readonly defs: Readonly<Record<string, AgentDef>>;
+}
+```
+
+#### `THROUGH` (unresolved)
+
+_No doc comment._
+
+```ts
+from '../shared/sim/pursuit'
+```
+
+#### `Transition` (interface)
+
+_No doc comment._
+
+```ts
+interface Transition {
+    readonly from: string;
+    readonly to: string;
+    readonly when: readonly Probe[];
+    readonly priority: number;
+    readonly do?: readonly SysEffect[] | undefined;
+}
+```
+
+#### `Tunable` (interface)
+
+_No doc comment._
+
+```ts
+interface Tunable {
+    readonly value: number;
+    readonly min: number;
+    readonly max: number;
+    readonly unit: string;
+    readonly note: string;
+}
+```
+
+#### `UNHEARD` (const)
+
+Noises the agents never hear: an agent's own footfalls, which are for the player's ears.
+
+```ts
+const UNHEARD: readonly string[];
+```
+
+#### `Unhide` (const)
+
+_No doc comment._
+
+```ts
+const Unhide: CommandDef<typeof unhideSchema>;
+```
+
+#### `usesPortals` (function)
+
+Whether a definition asks where the player crosses into another zone: a `crossed` probe, or a `followThrough`.
+
+```ts
+function usesPortals(def: SystemsDef): boolean;
+```
+
+#### `waitsIn` (const)
+
+Whether a transition asks how the agent is waiting (such transitions run after it moves, when it stood still).
+
+```ts
+const waitsIn: (when: readonly Probe[]) => boolean;
+```
+
+#### `Watcher` (interface)
+
+Where an agent stood as the player hid; `los`: it had a line of sight to her past the walls.
+
+```ts
+interface Watcher {
+    x: number;
+    z: number;
+    mode: string;
+    los: boolean;
+}
 ```

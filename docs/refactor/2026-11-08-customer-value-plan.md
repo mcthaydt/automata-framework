@@ -708,3 +708,11 @@ want, itch will be first output". Spec §11.
   `.claude-plugin/marketplace.json`, which needs a release with `SKILLS_TOKEN` (the Owner's). Ruling: one branch name is
   given for this thread, but stacked pull requests need a branch each; the site task is on a second branch with the
   coordinator's "stack ready PRs" as the permission.
+- Task 4 done: the API reference ends with a Beta section (`api.md`, `llms-api.txt`): `cutscenes`, `level-2d`, `narrative`,
+  `nav` and `systems`, read from source with their doc comments. No 3D package has a heading (`@automata/sectors` is named
+  only inside signatures). Ruling: `templateImports` returns import specifiers (`@automata/nav/sim`), not package names, so
+  a beta package lists only the entries a template imports, not Node-only ones like `./tools`. Ruling: `api.json` rows carry
+  `beta: true` only when beta, so the published rows are unchanged; the cheatsheet stays published-only and the doc
+  baseline ignores beta rows. Two published exports (`STICK_DIRECTIONS`, `PROMPT_COPY`) had no doc comment and failed
+  `pnpm api-index`; they now have one (changeset). `pnpm api-report` still reports 112 breaks against its base: it was red
+  before this task and is not touched here. 53 api-index, 43 api-report and 131 agent-skills unit tests pass.
