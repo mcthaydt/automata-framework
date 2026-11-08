@@ -30,6 +30,11 @@ export interface LineRecord {
   readonly speaker?: string | undefined
   /** The locale key of the line's text. */
   readonly text: string
+  /**
+   * What the line says, in the game's source language. The sim never reads it; the content kind marks it as
+   * translatable text and `wordsOf` hands it to the dialogue box.
+   */
+  readonly words?: string | undefined
   /** Canon fact ids this line states. */
   readonly facts?: readonly string[] | undefined
   readonly beat?: string | undefined
@@ -37,22 +42,27 @@ export interface LineRecord {
   readonly hints?: readonly string[] | undefined
   readonly motifs?: readonly string[] | undefined
 }
-export const lineSchema: z.ZodType<LineRecord> = z.strictObject({
-  id: z.string().min(1),
-  kind: z.enum(LINE_KINDS as [LineKind, ...LineKind[]]),
-  speaker: z.string().optional(),
-  text: z.string().min(1),
-  facts: z.array(z.string()).optional(),
-  beat: z.string().optional(),
-  hints: z.array(z.string()).optional(),
-  motifs: z.array(z.string()).optional(),
-})
+/** The line's shape; the content kind passes its own schema for `words` (translatable text), the sim plain text. */
+function lineShape(words: z.ZodType<string, string>): z.ZodType<LineRecord> {
+  return z.strictObject({
+    id: z.string().min(1),
+    kind: z.enum(LINE_KINDS as [LineKind, ...LineKind[]]),
+    speaker: z.string().optional(),
+    text: z.string().min(1),
+    words: words.optional(),
+    facts: z.array(z.string()).optional(),
+    beat: z.string().optional(),
+    hints: z.array(z.string()).optional(),
+    motifs: z.array(z.string()).optional(),
+  })
+}
+export const lineSchema: z.ZodType<LineRecord> = lineShape(z.string())
 export interface LinesFile {
   readonly lines: readonly LineRecord[]
 }
-export const linesFileSchema: z.ZodType<LinesFile> = z
-  .strictObject({ lines: z.array(lineSchema) })
-  .superRefine((file, ctx) => {
+/** A lines file whose `words` are checked by `words`; no line id is listed twice. */
+export function linesFileSchemaWith(words: z.ZodType<string, string>): z.ZodType<LinesFile> {
+  return z.strictObject({ lines: z.array(lineShape(words)) }).superRefine((file, ctx) => {
     const seen = new Set<string>()
     file.lines.forEach((l, i) => {
       if (seen.has(l.id))
@@ -60,3 +70,5 @@ export const linesFileSchema: z.ZodType<LinesFile> = z
       seen.add(l.id)
     })
   })
+}
+export const linesFileSchema: z.ZodType<LinesFile> = linesFileSchemaWith(z.string())

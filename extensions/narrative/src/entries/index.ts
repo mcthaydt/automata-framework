@@ -9,4 +9,5 @@ export {
   linesContent,
   storyletsContent,
 } from '../shared/narrative.content'
+export { wordsOf } from '../shared/words'
 export * from './sim'
