@@ -1,9 +1,12 @@
 # Refactor progress
 
-**Overall: 21% (5 of 24 stages done).**
+**Overall: 44% (8 of 18 stages done).**
 
-The Owner's order (2026-11-05): finish one area completely before starting the next, in this order:
-core and 2D, then 3D, then the editors, then the website. Each stage runs in its own session.
+The Owner's order: finish one slice completely before starting the next. On 2026-11-05 it was core and 2D, then 3D, then
+the editors, then the website. On 2026-11-06 the Owner changed the later slices to vertical ones: "we do the editor
+refactors that 2D touch and website refactor as if it's ready to ship with 2D alone, then we do the same for 3D". So the
+slices are core and 2D, then the 2D editors and the website, then 3D (its core, editors and site). Each stage runs in its
+own session.
 
 Every area goes through the same six stages:
 
@@ -34,14 +37,13 @@ The PRs are stacked, in this order: #388 (phase 1, not a draft) ← #389 ← #39
 
 **Everything that can be done from a cloud session is done.** What is left is the Owner's:
 
-1. **Run the cross-engine checks:** `pnpm ci:local` on a Mac or a runner (WebKit and Firefox are not installable in cloud
-   sessions), and `pnpm lint:actions` (needs Docker). Criterion 1 ("journeys pass in Chromium and WebKit") is unproven until then.
-2. **Mark the PRs ready and merge them bottom up** (draft pull requests skip `e2e-2d` and `parity`). Squashing the stack into
-   fewer pull requests is an option; it is the Owner's call.
-3. **2.1:** push the tag `pre-refactor-2d` (refused with HTTP 403 from a cloud session), then deprecate the old package names in the registry.
-4. **8.2:** ask Ruken for a refusal switch in its fake host, then add the boot-failure journey.
-5. **9.2:** say go, and the branch clean-up runs.
-6. Play Emberwick on the iPad from the last build.
+1. **8.2 boot failure:** a request to Ruken for a refusal switch in the fake host (deviation 64).
+2. **9.2** waits for the Owner's go; **2.1**'s tag push is the Owner's (HTTP 403 from here).
+3. WebKit, Firefox and hosted CI runs for the whole stack.
+4. **Consumer smoke after the package merge** (found by the first CI run, 2026-11-06; [comment on #400](https://github.com/mcthaydt/automata-framework/pull/400#issuecomment-6678595019)):
+   setup is fixed; 6 steps still fail at #400: the Node fixture imports the old packages, the published Ruken `.d.ts` import
+   `@ruken/sdk`, `./testing` does not publish `openHostingTest`, the packed tools bin has an `eval`, and the
+   `automata-web` bundle fixture meets uncompiled `.svelte`. Needs its own task before the post-build audit.
 
 Next area: 3D. It starts when the Owner has taken 1 to 3 and the stack is merged.
 
@@ -113,8 +115,14 @@ plain type); the consumer smoke's fixtures still imported the six packages the m
 the `repo-hygiene` cache input and a comment named folders that no longer exist. Two tests that the copy change made stale were
 updated (base-3d's quit question, the `start-final` code in `run-game`).
 
-**Left for the Owner:** `pnpm ci:local` where WebKit and Firefox install; `pnpm lint:actions` (needs Docker); marking the PRs ready and
-merging bottom up. One more thing the audit did not list: about 200 comments in `packages/*/src` name FloorFifty, which AGENTS.md says
+**E1, run on the Owner's Mac (2026-11-05, Chromium, WebKit and Firefox):** `pnpm lint:actions` reports nothing. `pnpm ci:local`
+found two failures in the examples' journeys, both fixed: the examples config's `runner` projects picked up the playground
+journeys once this PR moved them to `tests/e2e` (74 failures, nothing serving the playground), so they now skip `playground-*`,
+which run from the runner's own config (109 passed in the three engines); and the gamepad matrix cell's pause tapped Start for
+one frame, which play reads once per sim step, so WebKit missed it about one run in three (fixed in #388, 24 of 24 after).
+Then: examples 139 passed, Emberwick 47, `create-game` 1.
+
+**Left for the Owner:** hosted CI; marking the PRs ready and merging bottom up. One more thing the audit did not list: about 200 comments in `packages/*/src` name FloorFifty, which AGENTS.md says
 published text never does (`docs/provenance/sources.md` is where it belongs). That is a rewrite of its own.
 
 **Bundle before D2 (Emberwick, `vite build --sourcemap`, measured 2026-11-05 on `claude/project-thread-f01qmj` with
@@ -182,14 +190,33 @@ Done means: Emberwick's journeys pass on every pull request in two browsers, the
 repository has only `main` and branches with active CI (fewer than 5), the code follows the feature-folder layout
 with tests in their own folder, and `.vscode` hides what the Owner does not need to see.
 
-## 3D: 0% (0 of 6)
+## 2D editors and website: 50% (3 of 6)
 
-Not started. Starts when core and 2D are done.
+Scope: `editor-kit`, `editor-2d`, the parts of `editor-suite` that 2D touches, `automata editor`, and the website
+repository (`mcthaydt/automata-website`), judged as if AF ships with 2D alone. Widened on 2026-11-06 (the Owner: "we need
+to audit the other automata things too then; basically everything but 3D and editors") to the rest of the path a new
+author takes: `create-game` and the published command, releases, game CI, the agent package, docs, tooling, and the other
+Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 
-## Editors: 0% (0 of 6)
+| Stage | Status | Record |
+|---|---|---|
+| 1. Audit | Done, 2026-11-06: 7 editor shipping gaps (E1 to E7), 7 sprawl (S1 to S7), 2 contracts (K1, K2), 5 tests (T1 to T5), 5 copy (G1 to G5); 9 website shipping gaps (W1 to W9), 6 sprawl (WS1 to WS6), 2 tests (WT1, WT2), 4 copy (WG1 to WG4); 8 decisions (D1 to D8); the Owner took all eight recommendations the same day. The widened scope's audit, the same day: 7 new-game gaps (N1 to N7), 7 published-tools (U1 to U7), 7 release (R1 to R7), 7 Plus and other repositories (P1 to P7), 7 agent package and docs (A1 to A7), 5 CI and tooling (Q1 to Q5), 4 copy (Y1 to Y4); 9 decisions (D9 to D17); the Owner took all nine recommendations the same day | [2026-11-06-2d-editors-and-site-audit.md](2026-11-06-2d-editors-and-site-audit.md), [2026-11-06-2d-ship-rest-audit.md](2026-11-06-2d-ship-rest-audit.md) |
+| 2. Plan and spec | Done, 2026-11-06 (draft PR [#406](https://github.com/mcthaydt/automata-framework/pull/406)): 21 phases, 63 tasks. Built on D1 to D17 as the Owner took them; adds the editor redesign in the website's look and the code refactor to the core slice's standard (minimal, elegant, documented), both asked for by the Owner the same day. Stage 3 reviews it | [spec](2026-11-06-2d-editors-and-site-spec.md), [plan](2026-11-06-2d-editors-and-site-plan.md) |
+| 3. Plan audit | Done, 2026-11-06 (draft PR, stacked on #406 and #407): 30 findings (12 that would have stopped the build, 18 that would have caused harm or rework), all fixed in the spec and plan; three veto defaults added (14 to 16); the Owner's calls are the npm organisation's name and D8/D17's inputs. Stage 4 starts at task 1.1 | [plan audit](2026-11-06-2d-editors-and-site-plan-audit.md) |
+| 4. Build | Not started | |
+| 5. Build audit | Not started | |
+| 6. Fixes | Not started | |
 
-Not started. Starts when 3D is done.
+Done means: someone new finds the site, makes a 2D game with `create-game`, edits its level with `automata editor`, sees
+the change in the game and publishes it, with nothing from 3D in the way; and journeys prove each step on every pull
+request.
 
-## Website: 0% (0 of 6)
+## 3D (core, editors, website): 0% (0 of 6)
 
-Not started. Starts when the editors are done.
+Not started. Starts when the 2D editors and the website are done. It may split in two (3D core, then the 3D editors
+and site) at its audit.
+
+Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and the suite in the website's look (the Owner,
+2026-11-06: "completely redesign the editors for ux, copy, and ui"; the 2D slice redesigns the kit and the 2D editor),
+the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
+examples' and editors' code refactor to the same standard (2D spec section 17).
