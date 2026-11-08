@@ -164,7 +164,7 @@ export function createEntitiesSession(options: EntitiesSessionOptions): Entities
     addField() {
       const { owner } = current()
       const field: FieldDef = { id: `field_${options.ids.next()}`, type: 'text', default: '' }
-      const done = commitEdit(edits, 'Add field', (project) => addField(project, owner, field))
+      const done = commitEdit(edits, 'Add setting', (project) => addField(project, owner, field))
       if (done.ok) choose({ owner, field: field.id })
       return done
     },

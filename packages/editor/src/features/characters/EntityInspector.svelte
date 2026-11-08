@@ -191,7 +191,7 @@ function tileChoice(current: EntityDef2D, id: string): void {
         <div class="fields">
           <div class="head">
             <h2 id="field-list-heading">{def === undefined ? 'Settings for every level' : `Settings of ${def.label ?? def.id}`}</h2>
-            <Button onclick={() => show(session.addField())}>Add field</Button>
+            <Button onclick={() => show(session.addField())}>Add setting</Button>
           </div>
           <div class="choices" role="radiogroup" aria-labelledby="field-list-heading">
             {#each fieldRows(selection.fields) as row (row.id)}
@@ -206,7 +206,7 @@ function tileChoice(current: EntityDef2D, id: string): void {
                 <span class="sub">{row.summary}</span>
               </button>
             {:else}
-              <p class="empty">No fields yet.</p>
+              <p class="empty">No settings yet.</p>
             {/each}
           </div>
           {#if selection.field !== undefined}

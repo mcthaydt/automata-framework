@@ -3,8 +3,9 @@
   editor an entry opens. An entry that exactly one installed editor covers opens it: `open` runs once per entry for
   the app's life, so the editor's session (documents, history, selection, view state) outlives a switch (EDS-D12),
   and its regions fill the shell's. Any other entry shows its cards. The shell stays mounted through every switch and
-  rotation; only what is inside its regions changes. Home is `SuiteHome`, Ask's wiring is `SuiteAsk`, and what a
-  refused write says is `core/write-messages` (split by responsibility in 12.7).
+  rotation; only what is inside its regions changes. Home is `SuiteHome`, Ask's wiring is `SuiteAsk`, Publish and
+  Export/Import are `SuitePublish`, Undo and Redo are `suite-history`, and what a refused write says is
+  `core/write-messages` (split by responsibility in 12.7 and 12.5).
 -->
 <script lang="ts">
 import type { GeometryState } from '@mcthaydt/automata'
@@ -26,15 +27,15 @@ import { findingMessage, refusalMessage } from '../core/write-messages'
 import type { Suite } from './create-suite'
 import Home from './Home.svelte'
 import type { EditorCard, HomeState } from './home-model'
-import InterchangeDialog from './InterchangeDialog.svelte'
 import ReadOnlyFile from './ReadOnlyFile.svelte'
 import ReviewDesk from './ReviewDesk.svelte'
-import ShipDialog from './ShipDialog.svelte'
 import SuiteAsk from './SuiteAsk.svelte'
 import SuiteHome from './SuiteHome.svelte'
+import SuitePublish from './SuitePublish.svelte'
 import SuiteRail from './SuiteRail.svelte'
 import SuiteTopBar from './SuiteTopBar.svelte'
 import { suiteEntries } from './suite-entries'
+import { suiteHistory } from './suite-history.svelte'
 import { createSuiteSession } from './suite-session'
 import TitlePrompt from './TitlePrompt.svelte'
 
@@ -101,7 +102,6 @@ const editing = $derived(createSuiteSession(ports, { installed: suite.editors.ma
 const toasts = createToasts({ clock })
 let pills = $state<readonly Pill[]>([])
 let titleOpen = $state(false)
-let history = $state({ canUndo: false, canRedo: false, undoLabel: '', redoLabel: '' })
 let tokens = $state<{ readonly used: number; readonly cap: number }>()
 /** An open change set to publish: Publish is the lime primary only then, and a quiet button otherwise. */
 let shippable = $state(false)
@@ -127,24 +127,15 @@ $effect(() => {
   return stop
 })
 
-// The top bar's Undo acts on the open editor's own history, or the suite's (an import) with none open (EDS-D19).
+// Undo and Redo act on the open editor's own history, or the suite's (an import) with none open (EDS-D19).
 const owner = $derived(mounted?.editor.id ?? '')
-$effect(() => {
-  const path = editing.writePath
-  const of = owner
-  const read = () => {
-    history = {
-      canUndo: path.canUndo(of),
-      canRedo: path.canRedo(of),
-      undoLabel: path.undoLabel(of) ?? '',
-      redoLabel: path.redoLabel(of) ?? '',
-    }
-  }
-  read()
-  return path.subscribe(read)
-})
-
 const undoHook = $derived(mounted?.editor.undo?.(mounted.session))
+const history = suiteHistory({
+  session: () => editing,
+  owner: () => owner,
+  hook: () => undoHook,
+  onrefused: refused,
+})
 const askTarget = $derived(mounted?.editor.ask?.(mounted.session))
 const ask = $derived(
   askTarget === undefined
@@ -153,45 +144,15 @@ const ask = $derived(
 )
 let askOpen = $state(false)
 
-// A routed write records the editor's own label for the step it just applied.
-$effect(() => {
-  const hook = undoHook
-  editing.label = () => hook?.undoLabel() ?? 'Edit'
-})
-
 function refused(outcome: WriteOutcome | undefined): void {
   const message = refusalMessage(outcome)
   if (message !== undefined) toasts.push({ kind: 'error', message })
 }
 
-// With no editor open, Undo and Redo step the suite's own history (an import, EDS-D19).
-async function undo(): Promise<void> {
-  if (!history.canUndo) return
-  const outcome = await editing.undo(owner)
-  if (outcome !== undefined && 'written' in outcome) undoHook?.undo()
-  else refused(outcome)
-}
-
-async function redo(): Promise<void> {
-  if (!history.canRedo) return
-  const outcome = await editing.redo(owner)
-  if (outcome !== undefined && 'written' in outcome) undoHook?.redo()
-  else refused(outcome)
-}
-
 // Publish (Ship in the spec, flow 9), the Review desk (flow 10) and Export and Import (flow 11).
-let shipOpen = $state(false)
-let shipReview = $state<ReviewChangeSet>()
-let shipDraft = $state<{ readonly title: string; readonly body: string }>()
+let publishing = $state(false)
 let reviews = $state<readonly ReviewChangeSet[]>()
 let interchange = $state<'export' | 'import'>()
-
-async function openShip(): Promise<void> {
-  const [open] = await editing.review()
-  shipReview = open
-  shipDraft = await editing.draft()
-  shipOpen = true
-}
 
 $effect(() => {
   if (entry?.id !== 'review') return
@@ -211,7 +172,7 @@ function shortcuts(event: KeyboardEvent): void {
   const key = event.key.toLowerCase()
   if (key === 'z' && field === null) {
     event.preventDefault()
-    void (event.shiftKey ? redo() : undo())
+    void (event.shiftKey ? history.redo() : history.undo())
   } else if (key === 'k' && ask !== undefined && !event.shiftKey) {
     event.preventDefault()
     askOpen = true
@@ -258,10 +219,10 @@ function openCard(card: EditorCard): void {
       {compact}
       onlocate={locate}
       history={undoHook !== undefined || history.canUndo || history.canRedo ? history : undefined}
-      onundo={undo}
-      onredo={redo}
+      onundo={history.undo}
+      onredo={history.redo}
       onask={ask === undefined ? undefined : () => (askOpen = true)}
-      onpublish={editing.canShip() ? () => void openShip() : undefined}
+      onpublish={editing.canShip() ? () => (publishing = true) : undefined}
       {shippable}
       tools={mounted?.editor.regions.tools ? editorTools : undefined}
     />
@@ -322,23 +283,12 @@ function openCard(card: EditorCard): void {
     onrefused={refused}
   />
 {/if}
-<ShipDialog
-  open={shipOpen}
-  review={shipReview}
-  draft={shipDraft}
-  onship={(draft) => editing.ship(draft)}
-  onclose={() => (shipOpen = false)}
+<SuitePublish
+  session={editing}
+  locked={(path) => (askTarget?.path === path ? askTarget.locked() : [])}
+  bind:publishing
+  bind:interchange
 />
-{#if interchange !== undefined}
-  <InterchangeDialog
-    open
-    mode={interchange}
-    onexport={(format) => editing.exportGame(format)}
-    onplan={(text) => editing.planImport(text, (path) => (askTarget?.path === path ? askTarget.locked() : []))}
-    onapply={(plan) => editing.applyImport(plan)}
-    onclose={() => (interchange = undefined)}
-  />
-{/if}
 
 {#snippet editorTools()}{#if mounted?.editor.regions.tools}{@render mounted.editor.regions.tools(mounted.session)}{/if}{/snippet}
 {#snippet panel()}{#if mounted}{@render mounted.editor.regions.panel(mounted.session)}{/if}{/snippet}

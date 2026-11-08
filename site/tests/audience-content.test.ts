@@ -1,10 +1,8 @@
 import { fireEvent, render, within } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import { getDocSections } from '../src/data/docs-loader'
-import Home from '../src/routes/+page.svelte'
 import Showcase from '../src/routes/showcase/+page.svelte'
 import Start from '../src/routes/start/+page.svelte'
-import { homeData } from './helpers/page-data'
 
 describe('Audience onboarding', () => {
   it('offers all five engine backgrounds in canonical documentation', () => {
@@ -24,21 +22,10 @@ describe('Audience onboarding', () => {
         slug,
       ).toBeTruthy()
   })
-  it('makes fit, limitations and FAQ available from the homepage', () => {
-    const view = render(Home, { props: { data: homeData } })
-    expect(view.getByRole('heading', { name: 'Who this is for' })).toBeTruthy()
-    expect(view.getByRole('heading', { name: 'Who this is not for' })).toBeTruthy()
-    expect(view.getByRole('heading', { name: 'FAQ' })).toBeTruthy()
-    expect(view.getByRole('link', { name: 'Browse the community showcase' }).getAttribute('href')).toBe(
-      '/showcase',
-    )
-  })
-  it('keeps prompts copyable while offering an optional readiness checklist', async () => {
+  it('keeps every command copyable while offering an optional readiness checklist', async () => {
     const view = render(Start)
-    const region = view.getByRole('region', { name: 'First task to copy' })
-    expect(region.textContent).toContain('Confirm Superpowers')
-    const task = within(region.closest('figure')!)
-    expect(task.getByRole('button', { name: 'Copy code' })).toBeTruthy()
+    const copies = () => view.getAllByRole('button', { name: 'Copy command' })
+    expect(copies()).toHaveLength(4)
     await fireEvent.click(view.getByText('Set up your coding agent'))
     for (const label of [
       'Superpowers is installed for this agent',
@@ -48,9 +35,8 @@ describe('Audience onboarding', () => {
       await fireEvent.click(view.getByLabelText(label))
     expect(view.getByText(/3 of 3 confirmed by you/)).toBeTruthy()
     expect(view.getByRole('group', { name: 'Skill readiness' })).toBeTruthy()
-    expect(task.getByRole('button', { name: 'Copy code' })).toBeTruthy()
     await fireEvent.change(view.getByLabelText('Your coding agent'), { target: { value: 'Claude Code' } })
-    expect(task.getByRole('button', { name: 'Copy code' })).toBeTruthy()
+    expect(copies()).toHaveLength(4)
   })
   it('separates the community showcase from starter and reference projects', () => {
     const view = render(Showcase)

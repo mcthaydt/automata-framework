@@ -91,3 +91,24 @@ before phase 18, because every rebuilt page inherits them. Add H4 (API page leng
 or one page per export group) and H5 (a first example that shows something) to tasks 18.4 and 18.3's neighbours. The
 rest is already in phases 18 to 20. Re-run this audit with the scripts in [`2026-11-06-site-visual-audit/scripts/`](2026-11-06-site-visual-audit/scripts/) (`run.cjs` measures, `shots.cjs` screenshots; both expect `vite preview` on port 4417)
 after phase 18, and on the editor after phase 12.
+
+## 5. Rerun after phase 18, part (session 20, 2026-11-07)
+
+Run with the same scripts against `vite preview` of the rebuilt site (header, footer, Home and Start from the approved
+mockup, the source explorer cut). 348 page and size pairs.
+
+| Check | Before (section 2) | Now |
+|---|---|---|
+| Sideways scroll | several pages | 0 |
+| Page errors | — | only the 404 (expected) and the API package page's screenshot (the page is too tall to capture: H4) |
+| Text under 12 px | — | 6, all the Home command drawn at 10.6 to 11.9 px through the global `code` rule |
+| Tap targets under 44 px | 9,507 | 4,938 (Home 324 → 11, Start 191 → 71) |
+
+Fixed after the run, in the same session and not yet re-measured: Copy buttons (32 px → 44 px), the header's API link
+(39 px wide → 44 px), the Home command (now the box's own 13.5 px, 13 px on phones), one command-box style everywhere,
+and inline code breaks only where it must (M2). The menu is opaque (M4), the ⌘K hint is hidden on touch (L1, the
+search dialog's keyboard line is left), and L3 to L5 and L7 went with the old Home.
+
+Left, by task: the docs sidebar and "On this page" links (M1, 18.4), the API page length (H4, 18.4), the first example
+(H5) and the phone-landscape fold (M3) in 18.2's Step V, the cheatsheet's small targets (the page is cut in 18.1), and
+the editors page (M5, 18.3). Rerun this audit after 18.4.

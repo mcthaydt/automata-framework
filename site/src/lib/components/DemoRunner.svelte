@@ -92,13 +92,16 @@ async function fullscreen() {
 <div bind:this={container} data-testid="demo-runner-container" data-ui class={`demo-runner ${className}`}>
   <div class="demo-toolbar">
     <strong><span class="led" data-state={active && mounted ? (status === 'ready' ? 'live' : status === 'loading' ? 'loading' : 'off') : 'off'} aria-hidden="true"></span>{title}</strong>
-    <div class="control-row">
-      <button type="button" aria-label="Restart demo" onclick={() => { attempt++; active = true }}>Restart</button>
-      <button type="button" aria-label="Toggle fullscreen" aria-busy={fullscreenPending ? 'true' : undefined} onclick={fullscreen}>Fullscreen</button>
-      {#if allowed}<a href={src} target="_blank" rel="noopener noreferrer">Open demo</a>{/if}
-      <!-- While stopped, the viewport overlay owns the single "Play demo" control. -->
-      {#if active}<button type="button" onclick={() => active = false}>Stop demo</button>{/if}
-    </div>
+    <!-- The controls show only while the demo plays; stopped, the poster's Play is the one control. -->
+    {#if active}
+      <div class="control-row">
+        <button type="button" aria-label="Restart demo" onclick={() => { attempt++; active = true }}>Restart</button>
+        <button type="button" aria-label="Toggle fullscreen" aria-busy={fullscreenPending ? 'true' : undefined} onclick={fullscreen}>Fullscreen</button>
+        {#if allowed}<a href={src} target="_blank" rel="noopener noreferrer">Open demo</a>{/if}
+        <!-- While stopped, the viewport overlay owns the single "Play demo" control. -->
+        <button type="button" onclick={() => active = false}>Stop demo</button>
+      </div>
+    {/if}
   </div>
   <div class="demo-viewport">
     {#if active && allowed && mounted}
@@ -109,7 +112,7 @@ async function fullscreen() {
       {#if status === 'failed'}<div class="demo-status"><p role="alert">This demo couldn't start. Try again or open it in a new tab.</p><button type="button" onclick={() => attempt++}>Retry</button></div>{/if}
     {:else}
       {#if poster && allowed}<picture><source type="image/webp" srcset={previewSrcset(poster)} sizes="(max-width: 700px) 100vw, 75vw" /><img class="demo-poster" src={poster} alt={posterAlt} width="1280" height="720" /></picture>{/if}
-      <div class:has-poster={poster && allowed} class="demo-status"><p>{!allowed ? 'This demo is unavailable.' : active && !mounted ? 'Starting the demo…' : poster ? 'Play here. No setup needed.' : 'The demo is stopped. Play to start a fresh session.'}</p>{#if allowed && (!active || mounted)}<button class="button" type="button" onclick={() => active = true}>Play demo</button>{/if}</div>
+      <div class:has-poster={poster && allowed} class="demo-status"><p>{!allowed ? 'This demo is unavailable.' : active && !mounted ? 'Starting the demo…' : poster ? 'Plays here, nothing to install.' : 'The demo is stopped. Play to start a fresh session.'}</p>{#if allowed && (!active || mounted)}<button type="button" onclick={() => active = true}>Play demo</button>{/if}</div>
     {/if}
   </div>
   {#if fullscreenMessage}<p class="small" role="status">{fullscreenMessage}</p>{/if}

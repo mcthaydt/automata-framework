@@ -78,7 +78,7 @@ describe('DocumentScreen', () => {
     await mount()
     expect(screen.getByRole('radio', { name: 'Note' })).toHaveAttribute('aria-checked', 'true')
     expect(screen.getByRole('heading', { name: 'Note is coming in a later update' })).toBeInTheDocument()
-    expect(screen.getByText(/Your project is safe/)).toBeInTheDocument()
+    expect(screen.getByText(/Your game is safe/)).toBeInTheDocument()
   })
 
   it('Back reports to its owner', async () => {

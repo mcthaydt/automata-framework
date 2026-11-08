@@ -17,9 +17,9 @@ export const CREATIVE_STARTS = [
       'Toggle a second jump and feel the difference. The prompt, source, and tests are all there to follow.',
     image: '/previews/double-jump.jpg',
     alt: 'The double-jump remix of Emberwick',
-    href: '/start#first-task',
+    href: '/start',
     action: 'Try a double jump',
-    nextHref: '/start#first-task',
+    nextHref: '/start',
     next: 'Copy the double-jump prompt',
   },
 ]

@@ -148,10 +148,10 @@ describe('the Entities session: fields', () => {
   it('adds an optional text field to the selected owner, and selects it', () => {
     const { history, session } = open()
     session.select({ owner: { entity: 'slime' } })
-    oneStep(history, 'Add field', () => session.addField())
+    oneStep(history, 'Add setting', () => session.addField())
     expect(session.selection.field).toEqual({ id: 'field_000000dw', type: 'text', default: '' })
     session.select({ owner: 'level' })
-    oneStep(history, 'Add field', () => session.addField())
+    oneStep(history, 'Add setting', () => session.addField())
     expect(stateOf(history).defs.levelFields.map((field) => field.id)).toEqual(['music', 'field_000000dx'])
   })
 

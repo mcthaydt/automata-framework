@@ -45,6 +45,31 @@ export function worldRects(
     })
 }
 
+/**
+ * Where the levels' outer edges fall on screen through `camera`, in CSS pixels, as "first,last" along each axis; the
+ * map publishes them so a layout check can see every level in view and centred. `undefined` for an empty world.
+ */
+export function levelsOnScreen(
+  rects: readonly WorldRect[],
+  camera: Camera,
+): { readonly across: string; readonly down: string } | undefined {
+  if (rects.length === 0) return undefined
+  const edges = (start: number, ends: readonly number[], starts: readonly number[]) =>
+    `${start + Math.min(...starts) * camera.scale},${start + Math.max(...ends) * camera.scale}`
+  return {
+    across: edges(
+      camera.x,
+      rects.map((rect) => rect.x + rect.w),
+      rects.map((rect) => rect.x),
+    ),
+    down: edges(
+      camera.y,
+      rects.map((rect) => rect.y + rect.h),
+      rects.map((rect) => rect.y),
+    ),
+  }
+}
+
 /** The camera that shows every level inside `margin`, as large as it fits, centred; an empty world at scale 1. */
 export function fitWorld(rects: readonly WorldRect[], box: Size, margin: number): Camera {
   if (rects.length === 0) return { x: margin, y: margin, scale: 1 }

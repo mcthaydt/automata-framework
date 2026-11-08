@@ -20,7 +20,7 @@ let { open = $bindable(), name, choices, onchoose }: Props = $props()
 
 <Dialog bind:open title={`Choose a target for ${name}`}>
   {#if choices.length === 0}
-    <p class="empty">Nothing in the project can be its target.</p>
+    <p class="empty">Nothing in this game can be its target.</p>
   {:else}
     <ul class="choices" data-scroll-region>
       {#each choices as choice (choice.label)}

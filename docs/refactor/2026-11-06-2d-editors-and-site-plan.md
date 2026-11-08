@@ -1110,14 +1110,14 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
   `docs/guides/editor.md` (rewritten: open, draw, save, play; screenshots from the design board),
   `packages/editor/README.md`
 
-- [ ] **Step 0:** Spec 17.3's file checks over every `.svelte` file in `packages/editor/src` (size, header comment);
+- [x] **Step 0:** Spec 17.3's file checks over every `.svelte` file in `packages/editor/src` (size, header comment);
   what phase 12 did not reach is fixed here or listed for the build audit.
-- [ ] **Step 1:** `grep` the editor's `.svelte` and `*-messages.ts` for strings not in `copy.md`; each is either fine
+- [x] **Step 1:** `grep` the editor's `.svelte` and `*-messages.ts` for strings not in `copy.md`; each is either fine
   (listed as kept) or rewritten. No package name, path jargon or format word on screen (G3, G4): a unit test scans the
   rendered text of each screen fixture for `editor-`, `af2d`, `.json`, `checkout`, `Plus`.
-- [ ] **Step 2:** `pnpm check`; the editor's Chromium browser tests. Commit, mark the PR ready.
+- [x] **Step 2:** `pnpm check`; the editor's Chromium browser tests. Commit, mark the PR ready.
   `docs(editor): the copy table and the editor guide for the redesigned editor`
-- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) sections 5.2 and 7):** every row of the audit's section 5.2 is in `copy.md`; its seven rules join `copy.md` beside the four questions; the rendered-text scan also fails on project, workspace, entity, IntGrid, tunable, change set, gate, pivot.
+- [x] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) sections 5.2 and 7):** every row of the audit's section 5.2 is in `copy.md`; its seven rules join `copy.md` beside the four questions; the rendered-text scan also fails on project, workspace, entity, IntGrid, tunable, change set, gate, pivot.
 
 ---
 
@@ -1299,8 +1299,8 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
 
 **Files:** the `tooling/*/src` packages left after 17.2, their tests and READMEs
 
-- [ ] **Step 1: The read.** Spec 17.3's checks per package; findings in the execution log first.
-- [ ] **Step 2:** Fix, one package per commit. Counts equal or lower only by listed dead code; `pnpm check`. Mark ready.
+- [x] **Step 1: The read.** Spec 17.3's checks per package; findings in the execution log first.
+- [x] **Step 2:** Fix, one package per commit. Counts equal or lower only by listed dead code; `pnpm check`. Mark ready.
   `refactor(tooling): minimal, documented internals`
 
 ---
@@ -2570,3 +2570,59 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   piece to leave), `RuleInspector` 341, `Picker` 333, `WorldInspector` 312. **Left for 12.5:** the splits above;
   Step 1's grep of the editor's `.svelte` and `*-messages.ts` for strings not in `copy.md`; `Add field` and the field types' words (`int`) in the Characters Settings tab; the layer
   row reads "Characters / Characters and items" (its name over its kind), which says one thing twice.
+- **12.5, the rest (session 20).** *The splits, by responsibility:* `Suite.svelte` 352 → 297 (Publish and
+  Export/Import, with what they read before they open, are `SuitePublish.svelte`; Undo, Redo and the label a routed
+  write records are `suite-history.svelte.ts`). `ReorderList.svelte` 432 → 166 (the move's state, keyboard and
+  pointer handlers and announcements are `reorder-session.svelte.ts`; the self-scroll near an edge is
+  `reorder-scroll.ts`; the drop preview's arithmetic is `previewOffsets` in `reorder-model.ts`, unit-tested).
+  `WorldView.svelte` 387 → 222 (the map's box, what covers it and the camera's fit are `world-fit.svelte.ts`; the
+  panel is `WorldPanel.svelte`; where the levels fall on screen is `levelsOnScreen` in `world-model.ts`,
+  unit-tested). *Deviation:* six files stay over 300 lines only because of their scoped styles; each one's script and
+  markup is under 300 (`EditorShell` 292 + 340 of CSS, `EntityInspector` 234 + 140, `Stepper` 262 + 95,
+  `RuleInspector` 222 + 119, `Picker` 230 + 103, `WorldInspector` 253 + 59). Moving a component's scoped CSS to a
+  plain stylesheet would make it global (`.body`, `.handle` would reach into every region's content), which is worse
+  than the length; the build audit decides. *Step 1, the grep:* the editor's `.svelte` text and `*-messages.ts`
+  read for format and jargon words; changed (rows in `copy.md`): the Settings tab's `Add field` → `Add setting` (and
+  its undo step), `No fields yet.` → `No settings yet.`, the type chips' format words (`int`, `enum`, `ref`, …) →
+  `Whole number`, `One of a list`, `Link to a thing`, … (`field-type-words.ts`); a layer row says its kind only when
+  its name does not already (`Characters` no longer sits over `Characters and items`); `Nothing in the project can be
+  its target.` and `Your project is safe.` say "this game" / "your game". Kept for the 3D slice: the kit's
+  `SourcesPanel` (`This workspace`, `game checkout`), which only the 3D editor's Home still uses. Gates: editor unit
+  (suite, kit widgets, map, characters, level, document, fields: 900+), `svelte-check` 0 errors, the lefthook unit run
+  across affected packages (308 s). **12.5 is done.**
+- **17.3, the read (session 20).** Over the 14 `tooling/*` packages (7,855 lines of source): `pnpm knip` finds no
+  unused file, export or dependency, but gave two stale configuration hints (`spikes/**` ignored though `spikes/` is
+  gone; `smol-toml` ignored though `-tools` imports it itself). Long files: `codemods/src/move-modules.ts` 557 and
+  `move-tests.ts` 469 (kept: the 3D and editor packages still move with them in the 3D slice), `consumer-smoke/src/run.ts`
+  342 (its `steps` list, 154 lines, is data: one entry per step a new author takes), `check-style/src/style.ts` 302.
+  Functions over 60 lines: the header and catalog parsers (`examples-runner` 82 and 70), the Vite plugin (78),
+  `defineTests` (77), `checkFrameBudget` (83), `checkSvelte` (71), the codemods' planners (123, 120): each one reads
+  top to bottom as a single pass with its whys beside it; splitting them would scatter one rule across files. No
+  single-implementation abstraction or forwarding layer beyond package entries. Missing explanations: one file,
+  `examples-runner/src/index.ts`. *Fixed:* that header; the two knip hints. Counts unchanged (no dead code found).
+  Gates: `pnpm knip` clean, `pnpm check`. **17.3 is done.**
+- **Phase 18, part (session 20): the look, Home and Start.** Built from the approved `site-home.html` (the Owner,
+  2026-11-06 20:31Z). *18.0's shared layout:* a new `Header.svelte` (the logo's lime square, Docs, Examples, Editor,
+  API, Search and Get started; below 760 px the links fold into an opaque Menu sheet, M4; Search shows `⌘K` only on a
+  fine pointer and is its icon alone on a phone, L1) and `Footer.svelte` (one `Reference` link, M6; no link to the
+  private repository, H2; the contact address unchanged, D8, as `Contact`). Their old global rules left `app.css`.
+  Site-wide: every `--pill`/`--radius*` corner is `--edge-sm/md/lg`, the buttons are the mockup's pair (flat lime with
+  an ink edge, a white secondary, 1 px lift on a fine pointer), glass (`backdrop-filter`), glow, flutes and cobalt are
+  gone, and the field is the mockup's off-white. `app.css` 2,249 → 1,160 lines (the old Home's, Start's and the
+  header's rules dropped by a selector-aware script; nothing still uses them). *18.2 Home*
+  (`site/src/features/home/`): one claim and Emberwick (the `DemoRunner`, which now shows its controls only while it
+  plays and whose Play is the white secondary, so the page has one lime primary per screen, Step G), three reasons,
+  the shapes example's lines beside `ShapesPreview` (a canvas drawing of what those lines do, by the example's own
+  rules, still on reduced motion and paused off screen; a drawing, not the framework, so Home carries no game bundle),
+  the editor in two real screenshots of `automata editor` on Emberwick (wide and phone, `static/previews/editor*`),
+  the four targets with the commands `automata ship` accepts, and one closing ask. `home-content.ts` holds every claim;
+  its test reads the example's file, `cli-args.ts`'s usage and the four targets. Emberwick's characters layer was
+  labelled `Entities` (its room file, not the templates); it is `Characters`. *18.2 Start*
+  (`site/src/features/start/`): four steps, each one command and what you see (create-game, what it prints next, the
+  editor's, the web guide's; the test reads those files), the other targets' guides, and "Using a coding agent" with
+  the existing agent setup folded. Quick Start's doc says the same four commands. *Cut with the old Home:* the source
+  explorer, its `/sources/*.json`, `home-sources`, `projects`, `project-types` and the `virtual:framework/sources`
+  module (the "Sources" row of 18.1). *Left for 18.1:* the AI, Showcase and Cheatsheet routes and their data, which
+  `llms.ts`, `site-docs.ts` and the search menu still read; the redirects; the move to `features/`. *Left for 18.2:*
+  Step V's first example (H5) and phone-landscape fold (M3). Gates: site unit 347, `svelte-check` 0, `pnpm knip`
+  clean, the site builds (57 pages).

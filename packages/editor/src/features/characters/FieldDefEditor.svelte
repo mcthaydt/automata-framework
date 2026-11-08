@@ -21,6 +21,7 @@ import Stepper from '../../shared/kit/widgets/Stepper.svelte'
 import type { FieldCommit } from '../../shared/level-2d/editor/field-commit'
 import type { Project } from '../../shared/level-2d/model/project-types'
 import type { EntitiesSession, GuardedCommit } from './entities-session'
+import { FIELD_TYPE_WORDS } from './field-type-words'
 
 interface Props {
   project: Project
@@ -85,8 +86,8 @@ const toggleTarget = (target: string): readonly string[] => {
           role="radio"
           class="chip"
           aria-checked={field.type === type}
-          aria-label={type}
-          onclick={() => setType(type)}>{type}</button
+          aria-label={FIELD_TYPE_WORDS[type]}
+          onclick={() => setType(type)}>{FIELD_TYPE_WORDS[type]}</button
         >
       {/each}
     </div>

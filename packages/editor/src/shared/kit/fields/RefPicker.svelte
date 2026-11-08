@@ -34,7 +34,7 @@ const count = (each: RefTargetGroup): string =>
 
 <Dialog bind:open title={`Choose a target for ${name}`}>
   {#if targets.length === 0}
-    <p class="empty">Nothing in the project can be its target.</p>
+    <p class="empty">Nothing in this game can be its target.</p>
   {:else if level === undefined}
     <ul class="choices" data-scroll-region aria-label="Levels">
       {#each targets as each (each.id)}

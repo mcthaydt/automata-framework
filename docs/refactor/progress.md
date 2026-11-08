@@ -203,14 +203,23 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 1. Audit | Done, 2026-11-06: 7 editor shipping gaps (E1 to E7), 7 sprawl (S1 to S7), 2 contracts (K1, K2), 5 tests (T1 to T5), 5 copy (G1 to G5); 9 website shipping gaps (W1 to W9), 6 sprawl (WS1 to WS6), 2 tests (WT1, WT2), 4 copy (WG1 to WG4); 8 decisions (D1 to D8); the Owner took all eight recommendations the same day. The widened scope's audit, the same day: 7 new-game gaps (N1 to N7), 7 published-tools (U1 to U7), 7 release (R1 to R7), 7 Plus and other repositories (P1 to P7), 7 agent package and docs (A1 to A7), 5 CI and tooling (Q1 to Q5), 4 copy (Y1 to Y4); 9 decisions (D9 to D17); the Owner took all nine recommendations the same day | [2026-11-06-2d-editors-and-site-audit.md](2026-11-06-2d-editors-and-site-audit.md), [2026-11-06-2d-ship-rest-audit.md](2026-11-06-2d-ship-rest-audit.md) |
 | 2. Plan and spec | Done, 2026-11-06 (draft PR [#406](https://github.com/mcthaydt/automata-framework/pull/406)): 21 phases, 63 tasks. Built on D1 to D17 as the Owner took them; adds the editor redesign in the website's look and the code refactor to the core slice's standard (minimal, elegant, documented), both asked for by the Owner the same day. Stage 3 reviews it | [spec](2026-11-06-2d-editors-and-site-spec.md), [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 3. Plan audit | Done, 2026-11-06 (draft PR, stacked on #406 and #407): 30 findings (12 that would have stopped the build, 18 that would have caused harm or rework), all fixed in the spec and plan; three veto defaults added (14 to 16); the Owner's calls are the npm organisation's name and D8/D17's inputs. Stage 4 starts at task 1.1 | [plan audit](2026-11-06-2d-editors-and-site-plan-audit.md) |
-| 4. Build | In progress: 44 of 68 tasks (12.3b added 2026-11-06) (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
+| 4. Build | In progress: 46 of 68 tasks (12.3b added 2026-11-06) (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 65% (44 of 68 tasks)
+### Build: 68% (46 of 68 tasks)
 
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
+
+**Where to resume (2026-11-07, session 20):** branch `claude/project-thread-zrzfq2`, PR [#433](https://github.com/mcthaydt/automata-framework/pull/433) stacked on #432.
+Session 20: **12.5 and 17.3 are done**, and phase 18 is under way: the header, footer, buttons and corners follow the
+approved mockup, Home and Start are rebuilt in `site/src/features/home` and `start`, and the source explorer is cut.
+The site audit was rerun (`2026-11-06-site-visual-audit.md`, section 5). Next, in order: 18.1 (cut AI, Showcase and
+Cheatsheet; `llms.ts`, `site-docs.ts` and the CommandMenu still read their data; add the redirects; move the rest to
+`features/`), 18.2's Step V (H5, the first example, and M3, the phone-landscape fold), 18.3, 18.4 (the docs sidebar's
+tap targets and the API page's length), 18.5, then rerun the audit. Seen but not fixed, for the build audit: in the
+editor's compact phone Level view a white band sits above the canvas with the stage pill.
 
 **Where to resume (2026-11-06, session 19):** branch `claude/project-thread-maubs8`, PR [#432](https://github.com/mcthaydt/automata-framework/pull/432) stacked on #430
 (`claude/project-thread-yzmefp`), itself on #429, #428, #427, #426, #424, #423 and #421. Session 19: **12.7 is done**:
@@ -389,11 +398,11 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 1. Audit | Done, 2026-11-06: 7 editor shipping gaps (E1 to E7), 7 sprawl (S1 to S7), 2 contracts (K1, K2), 5 tests (T1 to T5), 5 copy (G1 to G5); 9 website shipping gaps (W1 to W9), 6 sprawl (WS1 to WS6), 2 tests (WT1, WT2), 4 copy (WG1 to WG4); 8 decisions (D1 to D8); the Owner took all eight recommendations the same day. The widened scope's audit, the same day: 7 new-game gaps (N1 to N7), 7 published-tools (U1 to U7), 7 release (R1 to R7), 7 Plus and other repositories (P1 to P7), 7 agent package and docs (A1 to A7), 5 CI and tooling (Q1 to Q5), 4 copy (Y1 to Y4); 9 decisions (D9 to D17); the Owner took all nine recommendations the same day | [2026-11-06-2d-editors-and-site-audit.md](2026-11-06-2d-editors-and-site-audit.md), [2026-11-06-2d-ship-rest-audit.md](2026-11-06-2d-ship-rest-audit.md) |
 | 2. Plan and spec | Done, 2026-11-06 (draft PR [#406](https://github.com/mcthaydt/automata-framework/pull/406)): 21 phases, 63 tasks. Built on D1 to D17 as the Owner took them; adds the editor redesign in the website's look and the code refactor to the core slice's standard (minimal, elegant, documented), both asked for by the Owner the same day. Stage 3 reviews it | [spec](2026-11-06-2d-editors-and-site-spec.md), [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 3. Plan audit | Done, 2026-11-06 (draft PR, stacked on #406 and #407): 30 findings (12 that would have stopped the build, 18 that would have caused harm or rework), all fixed in the spec and plan; three veto defaults added (14 to 16); the Owner's calls are the npm organisation's name and D8/D17's inputs. Stage 4 starts at task 1.1 | [plan audit](2026-11-06-2d-editors-and-site-plan-audit.md) |
-| 4. Build | In progress: 44 of 68 tasks (12.3b added 2026-11-06) (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
+| 4. Build | In progress: 46 of 68 tasks (12.3b added 2026-11-06) (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 65% (44 of 68 tasks)
+### Build: 68% (46 of 68 tasks)
 
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
@@ -454,7 +463,7 @@ so far. The design board: `pnpm --filter @mcthaydt/automata-editor design:board`
 | 12.3 The Level view | 12 | Done, 2026-11-06 (session 18): the three layouts by size and the tool dock; editor unit 3,335, Chromium layout with a mouse and with touch 868 of 868, journeys 26; WebKit, Firefox and hosted CI not run. Earlier (sessions 11, 12, 15 to 17): the mockup was approved 2026-11-06; session 15 put its neutral tool palette on every editor page (`tool-chrome.css`); session 16 its density (32 px with a mouse, the touch rule with a finger, both proven in Chromium layout runs), the top bar as a quiet path with view tabs, and lock-before-eye layer rows. Earlier: the tools are icons in one pill floating over the canvas, the brush size a 44 px number button; layer rows with colour, plain kind words, eye and lock; the inspector opens on selection, Details opens it below wide; the level picker with New level in the top bar replaces the strip of cards (the suite too). Left: the charcoal cabinet and the canvas colours, from the design thread's mockup once the Owner approves it | #421, this session's PR |
 | 12.3b Add tiles (added 2026-11-06) | 12 | Done, 2026-11-06 (session 18): one dialog, picture, tile size, grid and count in words; one undo step; the picture under `assets/`; editor unit 3,356, Chromium layout "Add tiles" at eight sizes with a mouse and with touch 16; WebKit, Firefox and hosted CI not run | [#430](https://github.com/mcthaydt/automata-framework/pull/430) |
 | 12.4 Map, Tiles, Characters and the dialogs | 12 | Done, 2026-11-06 (sessions 12 and 13): Step G words; the Level view's floating pill on all three views (the kit's `StagePill`); tabs Selected, Level, Problems and Character, Settings; the conflict and restore dialogs in plain words with one primary each; editor unit 3,307, editor-3d 2,932, Chromium layout and journeys pass; WebKit, Firefox and hosted CI not run | this session's PR |
-| 12.5 The copy table and the guide (runs after 12.6 and 12.7) | 12 | In progress (session 19): a Chromium journey scans every 2D view's words (it found `Entities`, now `Characters`); the guide rewritten as open, draw, save, play. the suite page and the Tuner scanned too. Step 0 run: every `.svelte` file has its header, nine are over 300 lines (listed in the plan's log). Left: those splits (`Suite.svelte` 352 first), the grep against `copy.md` | #432 |
+| 12.5 The copy table and the guide (runs after 12.6 and 12.7) | 12 | Done, 2026-11-07 (session 20): the screen-word scan, the guide, `Suite`, `ReorderList` and `WorldView` split under 300; six files over only by their scoped CSS (deviation in the plan's log); the copy grep's rows in `copy.md` | #432, this session's PR |
 | 12.6 The Tuner, audited and redesigned as a split view beside the live game (added 2026-11-06) | 12 | Done, 2026-11-06 (sessions 13 to 15, 18 and 19): session 19 shows every value in a unit a player can feel (`unit` and `scale` in `tuning.toml`, display only; Emberwick in px/s, px/s² and s; typed values go back as the sim's whole numbers; refusals in the unit). Earlier: the split view with the live game, the restart on the screen the person was on, labels and feels, Keep, the light look; WebKit, Firefox and hosted CI not run | #424, #426, #427, #432 |
 | 12.7 The 2D suite page, audited and redesigned (added 2026-11-06) | 12 | Done, 2026-11-06 (sessions 14, 15 and 19): session 19 gave it the mockup's look (Home a house icon, the saved status with a tick, Undo and Redo icon buttons, Publish the primary only when there is something to publish; the rail's tabs an icon over the name; Home's Export and Import in the question's row) and the dialogs one primary each (Export's Copy; Import's See changes, then Import; files named in words); editor unit 3,367, Chromium layout (suite) 242; screenshots in `refactor/2026-11-06-12-7-suite-screens/`; WebKit, Firefox and hosted CI not run. Earlier: the split of `Suite.svelte`, Ship is Publish, Home's words, the top bar's words | #426, #427, #432 |
 | 13.1 The harness | 13 | Not started | |
@@ -469,10 +478,10 @@ so far. The design board: `pnpm --filter @mcthaydt/automata-editor design:board`
 | 16.4 The skills' public home | 16 | Not started | |
 | 17.1 The workflow invariants replace the YAML-pinning tests | 17 | Done, 2026-11-06 (session 11): five rules over every workflow, each failing on a fixture; they found the Ruken publish job open to pull requests (fixed); 108 pinning tests deleted | this session's PR |
 | 17.2 The packages that lost their reason | 17 | Done, 2026-11-06 (session 11): core-packs, bundle-report and the API seams list deleted, the stack page's Plus and Effect cards gone; evidence's Proof half goes with the page in 18.1 | this session's PR |
-| 17.3 The code refactor of the tooling that stays | 17 | Not started | |
-| 18.0 The shared layout, fixed first (added 2026-11-06) | 18 | Not started; waits for the Owner to pick a site direction from the design thread's mockups (the Owner, 2026-11-06), then runs with the visual audit's fixes in one pass | |
-| 18.1 Features, the page cut and redirects | 18 | Not started | |
-| 18.2 Home and Start on the current code | 18 | Not started | |
+| 17.3 The code refactor of the tooling that stays | 17 | Done, 2026-11-07 (session 20): the read's findings in the plan's log; one header and two stale knip hints fixed, no dead code found | this session's PR |
+| 18.0 The shared layout, fixed first (added 2026-11-06) | 18 | In progress (session 20): header, footer, corners, buttons, the opaque menu and the touch hint done from the approved mockup; the rerun audit's tap-target and code-block rows are left (`2026-11-06-site-visual-audit.md`, section 5) | #433 |
+| 18.1 Features, the page cut and redirects | 18 | In progress (session 20): the source explorer and `/sources` cut with the old Home; AI, Showcase, Cheatsheet, the redirects and the `features/` move left | #433 |
+| 18.2 Home and Start on the current code | 18 | In progress (session 20): Home and Start rebuilt (`site/src/features/home`, `start`), Quick Start matches; Step V's first example (H5) and the phone-landscape fold (M3) left | #433 |
 | 18.3 The editor page and "Try the editor" | 18 | Not started | |
 | 18.4 Docs and API | 18 | Not started | |
 | 18.5 The code refactor of the site | 18 | Not started | |
