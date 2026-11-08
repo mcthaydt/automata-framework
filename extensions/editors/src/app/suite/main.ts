@@ -1,3 +1,6 @@
+// Pixi's WebGL renderer compiles its shaders with eval unless this runs first (Levels 2D, Levels 3D and the Studio draw
+// with it).
+import '@automata/framework/no-eval'
 import '@automata/editor/tokens.css'
 import '@automata/editor/fonts.css'
 import '@automata/editor/suite.css'
@@ -10,13 +13,15 @@ import {
   randomIds,
   startSuite,
 } from '@automata/editor/suite'
+import { editors3d } from '@automata/editor-3d/suite'
 import { browserAudio } from '../../features/audio/audio-output.ts'
 import { browserOutputs } from '../../features/feel/feel-stage.ts'
 import { contentEditors } from './content-editors.ts'
 import { openContentSuite } from './open-content-suite.ts'
 
-// The suite page with the content editors: the core editors (the Tuner, Levels 2D), then Feel, Audio, Writer, Sequence
-// and Schematic. The only file that reaches for the page's globals. It opens the game it is served on (its content, its
+// The page with every editor, which `automata editor` serves a game whose list names a content or 3D editor: the core
+// editors (the Tuner, Levels 2D), Levels 3D and the Studio, then Feel, Audio, Writer, Sequence and Schematic. The rail
+// shows only the ones the game lists. The only file that reaches for the page's globals. It opens the game it is served on (its content, its
 // Play and its Publish); with no editor server it opens a sample game held in memory and says so in the top bar.
 
 const target = document.getElementById('app')
@@ -34,6 +39,7 @@ openContentSuite({ origin: location.origin, search: location.search, sessionStor
           revoke: (url) => URL.revokeObjectURL(url),
         },
       }),
+      ...editors3d(window),
       ...contentEditors({
         audio: browserAudio(() => new AudioContext()),
         outputs: browserOutputs(),

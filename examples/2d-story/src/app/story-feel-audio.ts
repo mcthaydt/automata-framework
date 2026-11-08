@@ -14,7 +14,7 @@ const feelTable = feelSchema.parse(content.feel?.feel ?? {})
 const audioTable = audioSchema.parse(content.audio?.audio ?? {})
 
 /** The music files a person put in `assets/music`, by their names in Audio. */
-const found: Record<string, string> = import.meta.glob('/assets/music/*', {
+const found: Record<string, string> = import.meta.glob('../../assets/music/*', {
   eager: true,
   query: '?url',
   import: 'default',

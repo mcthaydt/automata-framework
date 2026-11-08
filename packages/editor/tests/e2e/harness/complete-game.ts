@@ -1,0 +1,201 @@
+// The steps the complete-game journeys take, by the roles and names a person sees: open an editor from the rail, play
+// or publish from the top bar, and look at what the played game drew and played. Each looks at the game's own output (its
+// canvas, the sounds it starts, the zip it ships); none reads a game file to decide what the game did.
+import type { BrowserContext, Locator, Page } from '@playwright/test'
+import { expect } from './fixtures.ts'
+import { boxOf, type Pixels, readPng } from './read-png.ts'
+import type { RunningEditor } from './run-editor.ts'
+
+/** Opens the editors and one editor from the rail: tabs of a bar on a phone, a column of buttons on a wide screen. */
+export async function openEditor(page: Page, editor: RunningEditor, name: string): Promise<void> {
+  if (!page.url().startsWith(editor.url.split('?')[0] ?? editor.url)) await page.goto(editor.url)
+  await page.getByRole('tab', { name, exact: true }).click()
+}
+
+/** Whether the rail offers an editor by this name: the game's editor list names it and the page has it. */
+export function railHas(page: Page, name: string): Locator {
+  return page.getByRole('tab', { name, exact: true })
+}
+
+/**
+ * Presses a button of the open editor's list. Below the wide layout the list is in a sheet behind the top bar's Panel
+ * button, which is opened first and closed after.
+ */
+export async function pressInList(page: Page, name: string | RegExp): Promise<void> {
+  const button = page.getByRole('button', { name }).first()
+  const panel = page.getByRole('button', { name: 'Panel', exact: true })
+  await expect(button.or(panel).first()).toBeVisible()
+  let opened = false
+  if ((await panel.isVisible()) && !(await button.isVisible())) {
+    if ((await panel.getAttribute('aria-expanded')) !== 'true') await panel.click()
+    await expect(button).toBeVisible()
+    opened = true
+  }
+  await button.click()
+  if (opened) {
+    // The sheet stays up over the page after a choice, so a person closes it with the same button; it then slides
+    // away, and the next call must find the list gone, not on its way out.
+    if ((await panel.getAttribute('aria-expanded')) === 'true') await panel.click()
+    await expect(panel).toHaveAttribute('aria-expanded', 'false')
+    await expect(button).toBeHidden()
+  }
+}
+
+/** Plays or publishes: two buttons where the top bar has room, the two choices of the Game menu on a phone. */
+export async function pressGame(page: Page, action: 'Play' | 'Publish'): Promise<void> {
+  const menu = page.getByRole('button', { name: 'Game' })
+  if (await menu.isVisible()) {
+    await menu.click()
+    await page
+      .getByRole('menuitem', { name: action === 'Play' ? 'Play your game' : 'Make it ready to upload' })
+      .click()
+  } else if (action === 'Play') await page.getByRole('link', { name: 'Play' }).click()
+  else await page.getByRole('button', { name: 'Publish' }).click()
+}
+
+/** Play from the top bar: the running game opens in a new tab, and its own Play button is pressed. */
+export async function playFromEditors(page: Page, context: BrowserContext): Promise<Page> {
+  const [play] = await Promise.all([context.waitForEvent('page'), pressGame(page, 'Play')])
+  await expect(play.locator('#game canvas')).toBeVisible({ timeout: 30_000 })
+  await play.getByRole('button', { name: /play/i }).first().click()
+  return play
+}
+
+/**
+ * Publish from the top bar: the game is built and the zip downloaded. `keep` names where a downloaded file is kept (the
+ * test's output folder); resolves to the zip's name and where it was kept.
+ */
+export async function publishFromEditors(
+  page: Page,
+  keep: (name: string) => string,
+): Promise<{ name: string; path: string }> {
+  await pressGame(page, 'Publish')
+  const dialog = page.getByRole('dialog', { name: 'Make your game ready to upload' })
+  await dialog.getByRole('button', { name: 'Build my game' }).click()
+  await expect(dialog.getByText('Your game is ready to upload.')).toBeVisible({ timeout: 120_000 })
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    dialog.getByRole('button', { name: 'Download the zip' }).click(),
+  ])
+  const path = keep(download.suggestedFilename())
+  await download.saveAs(path)
+  await dialog.getByRole('button', { name: 'Close' }).click()
+  return { name: download.suggestedFilename(), path }
+}
+
+/** The game's canvas, as pixels. */
+export async function gamePixels(play: Page): Promise<Pixels> {
+  return readPng(await play.locator('#game canvas').screenshot())
+}
+
+/** The canvas's mean brightness, 0 to 255: a flash over the whole screen raises it. */
+export function brightness(picture: Pixels): number {
+  let sum = 0
+  let count = 0
+  const step = Math.max(1, Math.floor(Math.min(picture.width, picture.height) / 64))
+  for (let y = 0; y < picture.height; y += step)
+    for (let x = 0; x < picture.width; x += step) {
+      const [r, g, b] = picture.at(x, y)
+      sum += (r + g + b) / 3
+      count += 1
+    }
+  return count === 0 ? 0 : sum / count
+}
+
+/**
+ * Before the game's page loads, records the pitch of every tone it starts (an oscillator's frequency set at a time):
+ * what the player hears, without listening. Read with `pitchesPlayed`.
+ */
+export async function recordPitches(context: BrowserContext): Promise<void> {
+  await context.addInitScript(() => {
+    const heard: number[] = []
+    ;(globalThis as unknown as { __pitches: number[] }).__pitches = heard
+    const set = AudioParam.prototype.setValueAtTime
+    AudioParam.prototype.setValueAtTime = function (this: AudioParam, value: number, time: number) {
+      heard.push(value)
+      return set.call(this, value, time)
+    }
+  })
+}
+
+/**
+ * Before the game's page loads, has every frame's picture measured in the page itself: the game's WebGL canvas keeps
+ * its drawing, and each animation frame its mean brightness (0 to 255) is taken from a small copy. A screenshot takes
+ * longer than a flash lasts; this sees every frame. Read with `brightestSince`.
+ */
+export async function recordBrightness(context: BrowserContext): Promise<void> {
+  await context.addInitScript(() => {
+    const getContext = HTMLCanvasElement.prototype.getContext as (
+      this: HTMLCanvasElement,
+      kind: string,
+      options?: Record<string, unknown>,
+    ) => RenderingContext | null
+    HTMLCanvasElement.prototype.getContext = function (
+      this: HTMLCanvasElement,
+      kind: string,
+      options?: Record<string, unknown>,
+    ) {
+      const keep = kind.startsWith('webgl') ? { ...options, preserveDrawingBuffer: true } : options
+      return getContext.call(this, kind, keep)
+    } as typeof HTMLCanvasElement.prototype.getContext
+    const seen: number[] = []
+    ;(globalThis as unknown as { __brightness: number[] }).__brightness = seen
+    const small = document.createElement('canvas')
+    small.width = 32
+    small.height = 32
+    const measure = () => {
+      const game = document.querySelector<HTMLCanvasElement>('#game canvas')
+      const pen = small.getContext('2d', { willReadFrequently: true })
+      if (game !== null && pen !== null && game.width > 0) {
+        pen.drawImage(game, 0, 0, 32, 32)
+        const data = pen.getImageData(0, 0, 32, 32).data
+        let sum = 0
+        for (let i = 0; i < data.length; i += 4)
+          sum += ((data[i] ?? 0) + (data[i + 1] ?? 0) + (data[i + 2] ?? 0)) / 3
+        seen.push(sum / (32 * 32))
+      }
+      requestAnimationFrame(measure)
+    }
+    requestAnimationFrame(measure)
+  })
+}
+
+/** How many frames have been measured so far: a mark to read the brightest frame since. */
+export function framesMeasured(play: Page): Promise<number> {
+  return play.evaluate(() => (globalThis as unknown as { __brightness?: number[] }).__brightness?.length ?? 0)
+}
+
+/** The brightest frame measured since the mark, and the first frame's brightness after it. */
+export function brightestSince(play: Page, mark: number): Promise<{ first: number; brightest: number }> {
+  return play.evaluate((from) => {
+    const seen = (globalThis as unknown as { __brightness?: number[] }).__brightness?.slice(from) ?? []
+    return { first: seen[0] ?? 0, brightest: Math.max(0, ...seen) }
+  }, mark)
+}
+
+export function pitchesPlayed(play: Page): Promise<number[]> {
+  return play.evaluate(() => [...((globalThis as unknown as { __pitches?: number[] }).__pitches ?? [])])
+}
+
+/** The level's background, which the new game's canvas shows around and between everything drawn. */
+export const LEVEL_BACKGROUND: readonly [number, number, number] = [0x1b, 0x25, 0x40]
+
+/**
+ * The colour the played game drew in the middle of a cell of its level, found from the background's box (the level is
+ * drawn at a scale). `width` is the level's width in pixels; undefined until the level is on the canvas.
+ */
+export async function cellOnScreen(
+  play: Page,
+  cell: { readonly col: number; readonly row: number },
+  tile: number,
+  width = 512,
+): Promise<readonly [number, number, number] | undefined> {
+  const picture = await gamePixels(play)
+  const field = boxOf(picture, LEVEL_BACKGROUND)
+  if (field === undefined) return undefined
+  const scale = field.w / width
+  return picture.at(
+    Math.round(field.x + (cell.col + 0.5) * tile * scale),
+    Math.round(field.y + (cell.row + 0.5) * tile * scale),
+  )
+}

@@ -32,6 +32,7 @@
     "@automata/audio-synth": "workspace:*",
     "@automata/cutscenes": "workspace:*",
     "@automata/editor": "workspace:*",
+    "@automata/editor-3d": "workspace:*",
     "@automata/feel": "workspace:*",
     "@automata/narrative": "workspace:*",
     "@automata/nav": "workspace:*",

@@ -585,6 +585,9 @@ importers:
       '@automata/editor':
         specifier: workspace:*
         version: link:../../packages/editor
+      '@automata/editor-3d':
+        specifier: workspace:*
+        version: link:../../packages/editor-3d
       '@automata/feel':
         specifier: workspace:*
         version: link:../feel

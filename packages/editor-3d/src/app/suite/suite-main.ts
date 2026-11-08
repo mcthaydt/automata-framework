@@ -4,53 +4,32 @@ import '@automata/editor/tokens.css'
 import '@automata/editor/fonts.css'
 import '@automata/editor/suite.css'
 import type { SuiteEditor } from '@automata/editor/kit/ports'
-import { createLevels2d, createSuite, createTuner, randomIds, startSuite } from '@automata/editor/suite'
-import { createLevels3d } from '../../features/levels-3d/levels-3d-suite-editor.ts'
-import { lazyPlanRenderer } from '../../features/levels-3d/plan/lazy-renderer.ts'
-import { createStudio } from '../../features/studio/studio-suite-editor.ts'
+import {
+  browserPublish,
+  createLevels2d,
+  createSuite,
+  createTuner,
+  randomIds,
+  startSuite,
+} from '@automata/editor/suite'
+import { editors3d } from './editors-3d.ts'
 import { openSuite3d } from './open-suite-3d.ts'
 
-// The full suite's page: the editors of `@automata/editor` plus Levels 3D and the Studio. The only file that
-// reaches for the page's globals. When no checkout answers, the page opens a sample game held in memory and says so in
-// the top bar. The Studio's stage loads Pixi's 3D view with its first figure, not with the page.
-
-// The Plan view's Pixi renderer, loaded on first use.
-const loadPlanRenderer = () => import('../../features/levels-3d/plan/plan-renderer.ts')
+// This package's suite page: the editors of `@automata/editor` plus Levels 3D and the Studio, with the game's Play and
+// Publish. The only file that reaches for the page's globals. When no checkout answers, the page opens a sample game
+// held in memory and says so in the top bar. The page `automata editor` serves a 3D game is `@automata/editors`' suite,
+// which adds the content editors to these.
 
 const target = document.getElementById('app')
 if (target === null) throw new Error('suite.html has no #app element')
 
 openSuite3d({ origin: location.origin, search: location.search, sessionStorage })
-  .then(({ ports, sample, gameUrl, game }) => {
+  .then(({ ports, sample, gameUrl, playOff, game, publish }) => {
     // The Tuner shows the game's dev page beside its settings, so it is made once the server has named it.
     const editors = [
       createTuner({ gameUrl }),
       createLevels2d({ ids: randomIds((bytes) => crypto.getRandomValues(bytes)) }),
-      createLevels3d({
-        now: () => Date.now(),
-        renderer: lazyPlanRenderer(loadPlanRenderer),
-        // Walk's eye moves on the page's animation frames.
-        frames: {
-          request: (callback) => requestAnimationFrame((ms) => callback(ms / 1000)),
-          cancel: (handle) => cancelAnimationFrame(handle),
-        },
-        schedule: (ms, run) => {
-          const handle = window.setTimeout(run, ms)
-          return () => window.clearTimeout(handle)
-        },
-      }),
-      createStudio({
-        stage: async (canvas, size, background) =>
-          (await import('../../features/studio/stage/stage-renderer.ts')).createStageRenderer(
-            canvas,
-            size,
-            background,
-          ),
-        frames: {
-          request: (callback) => requestAnimationFrame((ms) => callback(ms / 1000)),
-          cancel: (handle) => cancelAnimationFrame(handle),
-        },
-      }),
+      ...editors3d(window),
     ]
     return startSuite(target, {
       window,
@@ -59,6 +38,9 @@ openSuite3d({ origin: location.origin, search: location.search, sessionStorage }
       suite: createSuite({ editors: editors as SuiteEditor<unknown>[] }),
       sample,
       game,
+      playUrl: gameUrl,
+      playOff,
+      publish: publish === undefined ? undefined : browserPublish(publish, document),
     })
   })
   .catch((error: unknown) => {

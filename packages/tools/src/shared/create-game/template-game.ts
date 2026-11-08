@@ -178,8 +178,8 @@ import { LEVEL } from '../features/level/level.ts'
 const feelTable = feelSchema.parse(content.feel?.feel ?? {})
 const audioTable = audioSchema.parse(content.audio?.audio ?? {})
 
-/** The music files a person put in assets/music, by their names in Audio. */
-const found: Record<string, string> = import.meta.glob('/assets/music/*', {
+/** The music files a person put in assets/music, by their names in Audio (relative, so the build names no root path). */
+const found: Record<string, string> = import.meta.glob('../../assets/music/*', {
   eager: true,
   query: '?url',
   import: 'default',

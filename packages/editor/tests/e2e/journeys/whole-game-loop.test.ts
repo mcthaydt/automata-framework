@@ -1,8 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { Page } from '@playwright/test'
+import { cellOnScreen, LEVEL_BACKGROUND, pressGame } from '../harness/complete-game.ts'
 import { checkLevels, EMBERWICK, expect, openRoom, paintWall, test } from '../harness/fixtures.ts'
-import { cellColours, type LevelFrame } from '../harness/game-screen.ts'
 import { newGame } from '../harness/new-game.ts'
 import { readZip } from '../harness/read-zip.ts'
 import { runEditor } from '../harness/run-editor.ts'
@@ -17,26 +16,6 @@ const STARTER_TILE = 16
 /** Row 2 of the starter level, before and after a wall at column 5. */
 const EMPTY_ROW = '".*32", ".*32", ".*32", ".*32"'
 const WALLED_ROW = '".*32", ".*32", ".*5 1 .*26", ".*32"'
-/** The starter game's colour for a wall (`features/level/level.view.ts`), and the empty level behind it. */
-const WALL_COLOUR = '73737f'
-const EMPTY_COLOUR = '000000'
-/** The starter level: 32 by 18 cells of 16 px. */
-const STARTER: LevelFrame = { width: 512, height: 288, tile: STARTER_TILE, wall: WALL_COLOUR }
-/**
- * Plays or publishes: where the top bar has room these are two buttons, and on a phone they are the two choices of the
- * Game menu. Either way it is what a person presses.
- */
-async function pressGame(page: Page, action: 'Play' | 'Publish'): Promise<void> {
-  const menu = page.getByRole('button', { name: 'Game' })
-  if (await menu.isVisible()) {
-    await menu.click()
-    await page
-      .getByRole('menuitem', { name: action === 'Play' ? 'Play your game' : 'Make it ready to upload' })
-      .click()
-  } else if (action === 'Play') await page.getByRole('link', { name: 'Play' }).click()
-  else await page.getByRole('button', { name: 'Publish' }).click()
-}
-
 /** Where Vite serves the compiled content module the game imports. */
 const CONTENT_MODULE = '@id/__x00__virtual:automata/content'
 
@@ -66,17 +45,11 @@ test('a new game is made, edited, saved, played and published from the editors a
       .poll(async () => (await fetch(`${gameOrigin}/${CONTENT_MODULE}`)).text(), { timeout: 30_000 })
       .toContain('".*5 1 .*26"')
     await play.getByRole('button', { name: 'Play' }).click()
-    // The wall's cell is drawn as a wall, and the cell beside it is still empty.
-    await expect
-      .poll(
-        () =>
-          cellColours(play, STARTER, [
-            { col: 5, row: 2 },
-            { col: 6, row: 2 },
-          ]),
-        { timeout: 15_000 },
-      )
-      .toEqual([WALL_COLOUR, EMPTY_COLOUR])
+    // The wall's cell is drawn, and the cell beside it is still the empty level behind.
+    const cell = (col: number) => cellOnScreen(play, { col, row: 2 }, STARTER_TILE)
+    await expect.poll(() => cell(6), { timeout: 15_000 }).toEqual(LEVEL_BACKGROUND)
+    expect(await cell(5)).toBeDefined()
+    expect(await cell(5)).not.toEqual(LEVEL_BACKGROUND)
     await play.close()
 
     // Publish: the game is built and checked, and the person downloads one zip to upload.
@@ -99,15 +72,8 @@ test('a new game is made, edited, saved, played and published from the editors a
   }
 })
 
-// The level's tiles, drawn. Today the starter game draws only its walls, so a tile painted on the Decor layer is saved
-// but not drawn (2D core draws no tile layers until PR #479). This test says what happens now: the tile is saved, the
-// game runs and draws its floor, and the tile's cell is still empty. It does not use `test.fail`, which would pass for
-// any failure, such as a game that never started. When #479 lands this fails at the last line: change it to expect a
-// drawn tile (`not.toBe(EMPTY_COLOUR)`).
-test('a tile painted in the editor is saved, but the game does not draw tiles yet', async ({
-  page,
-  context,
-}) => {
+// The level's tiles, drawn: a tile painted on the Decor layer is saved and drawn by the running game.
+test('a tile painted in the editor is drawn in the running game', async ({ page, context }) => {
   test.setTimeout(120_000)
   const game = await newGame(EMBERWICK)
   const editor = await runEditor(game.dir)
@@ -120,18 +86,18 @@ test('a tile painted in the editor is saved, but the game does not draw tiles ye
       .poll(
         () =>
           /def = "decor"[\s\S]*?rows = \[(.*)\]/.exec(readFileSync(levelFile, 'utf8'))?.[1]?.split(', ')[4],
-        {
-          timeout: 30_000,
-        },
+        { timeout: 30_000 },
       )
       .not.toBe('".*32"')
     const [play] = await Promise.all([context.waitForEvent('page'), pressGame(page, 'Play')])
     await play.getByRole('button', { name: 'Play' }).click()
-    // Reading a cell needs the floor on the screen (it throws until the game has drawn it), so this also proves the
-    // game started and ran. The tile's own cell is empty today.
+    // The level is on the screen (the cell is undefined until it is), and the tile's cell is drawn over its background.
     await expect
-      .poll(async () => (await cellColours(play, STARTER, [{ col: 5, row: 4 }]))[0], { timeout: 30_000 })
-      .toBe(EMPTY_COLOUR)
+      .poll(() => cellOnScreen(play, { col: 5, row: 4 }, STARTER_TILE), { timeout: 30_000 })
+      .toBeDefined()
+    await expect
+      .poll(() => cellOnScreen(play, { col: 5, row: 4 }, STARTER_TILE), { timeout: 30_000 })
+      .not.toEqual(LEVEL_BACKGROUND)
   } finally {
     await editor.stop()
     game.remove()

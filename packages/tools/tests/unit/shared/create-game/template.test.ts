@@ -218,9 +218,18 @@ describe('the new game shows what the editor made', () => {
 
   it('reads its pictures from assets/, where Add tiles writes them, and leaves the player start to its own view', () => {
     const scene = read('src/features/level/level-scene.ts')
-    expect(scene).toContain("import.meta.glob('/assets/*.{png,webp,jpg,jpeg}'")
+    expect(scene).toContain("import.meta.glob('../../../assets/*.{png,webp,jpg,jpeg}'")
+    // The keys come back as "../../../assets/kit.png"; the editor knows the picture as "assets/kit.png".
+    expect(scene).toContain("path.replace(/^(\\.\\.\\/)+/, '')")
     expect(scene).toContain("live: ['player-start', 'area']")
     expect(scene).toContain("start: 'start'")
+  })
+
+  it('finds its pictures and music by paths relative to the source, so the built game names no root-absolute file', () => {
+    // A glob's keys are written into the build as they are; a key like "/assets/kit.png" is a root-absolute name of the
+    // game's own file, which itch.io and Ruken serve from a sub-folder, and Publish refuses the build for it.
+    for (const file of files.filter((name) => name.startsWith('src/')))
+      expect(read(file), file).not.toMatch(/import\.meta\.glob\(\s*['"]\//)
   })
 
   it('ships an Area definition, so a person can place and stretch areas in Levels', () => {

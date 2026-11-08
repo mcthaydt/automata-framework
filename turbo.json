@@ -36,7 +36,7 @@
       "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
     },
     "@automata/editor#test:e2e": {
-      "dependsOn": ["build", "@automata/tools#build"],
+      "dependsOn": ["build", "@automata/tools#build", "@automata/editors#build"],
       "cache": false,
       "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
     }

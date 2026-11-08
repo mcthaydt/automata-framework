@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url'
 import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
 import { APP_IS_GONE, parseEditorArgs } from './editor-args.ts'
 import { gameVite, type RunningGame, type StartGameOptions, startGame } from './game-runner.ts'
-import { type EditorPage, pageFor } from './page-for.ts'
+import { CONTENT_EDITORS, type EditorPage, fullPageEditors, pageFor, THREE_D_EDITORS } from './page-for.ts'
 import { type PublishOutcome, publishGame, runStep, scanBuildForEval } from './publish-game.ts'
 import { type EditorServerOptions, gameName, type RunningEditor, serveEditor } from './serve-editor.ts'
 
@@ -55,8 +55,8 @@ If your game is already running (pnpm dev), give its address with --game-url and
 const BUILDS: Readonly<Record<EditorPage, { readonly folder: string; readonly pkg: string }>> = {
   // Levels and the Tuner: packed in the published tools too.
   'suite-2d': { folder: 'packages/editor/dist/suite', pkg: '@automata/editor' },
-  // The suite with Levels 3D and Characters: built in the repository only.
-  'suite-full': { folder: 'packages/editor-3d/dist/suite', pkg: '@automata/editor-3d' },
+  // Every editor (Levels 3D and Characters, Feel, Audio, Writer, Sequence and Schematic too): built in the repository only.
+  'suite-full': { folder: 'extensions/editors/dist/suite', pkg: '@automata/editors' },
 }
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -88,21 +88,29 @@ export async function editorCommand(
   }
   const { dir, appDir, port, lan, token, gameUrl } = parsed.options
   const root = resolve(deps.cwd, dir)
-  const page = pageFor(deps.readEditorList(root))
+  const list = deps.readEditorList(root)
+  const wanted = fullPageEditors(list)
+  const outside = appDir === undefined && !deps.inRepository
+  // The full page is built in the repository only; a published copy of the tools packs the 2D page. A game that needs
+  // a 3D editor cannot be edited without it; a 2D game that lists content editors opens on the 2D page, which says so.
+  if (outside && wanted.some((editor) => THREE_D_EDITORS.has(editor))) {
+    io.stderr('Error: The 3D editors are not in this release yet.\n')
+    return 2
+  }
+  const page: EditorPage = outside ? 'suite-2d' : pageFor(list)
   const build = appDir === undefined ? deps.builtApp(page) : resolve(deps.cwd, appDir)
-  // The full page is built in the repository only; a published copy of the tools packs the 2D page, and a copy without
-  // it says so rather than naming a build folder it never had.
-  if (
-    appDir === undefined &&
-    !deps.inRepository &&
-    (page === 'suite-full' || !deps.exists(resolve(build, 'index.html')))
-  ) {
+  if (outside && !deps.exists(resolve(build, 'index.html'))) {
     io.stderr(
-      page === 'suite-full'
-        ? 'Error: The 3D editors are not in this release yet.\n'
-        : 'Error: The editors are missing from this copy of the tools. Install them again: pnpm add -D @automata/tools\n',
+      'Error: The editors are missing from this copy of the tools. Install them again: pnpm add -D @automata/tools\n',
     )
     return 2
+  }
+  if (outside && wanted.length > 0) {
+    const names = wanted.map((editor) => CONTENT_EDITORS.get(editor) ?? editor)
+    const said = names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`
+    io.stdout(
+      `${said} ${names.length === 1 ? 'is' : 'are'} not in this release yet, so the editors show Levels and the Tuner.\n`,
+    )
   }
   if (!deps.exists(resolve(build, 'index.html'))) {
     io.stderr(`Error: no editor build at ${build}. Build it first: pnpm --filter ${BUILDS[page].pkg} build\n`)

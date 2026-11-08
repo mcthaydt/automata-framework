@@ -5,13 +5,13 @@ import { levels, project, START_LEVEL } from './level-content.ts'
 // from the same files the sim reads. Press Save in the editor and the game shows the change.
 
 /** The pictures Add tiles put in `assets/`, by the path the editor knows them by (`assets/terrain.png`). */
-const found: Record<string, string> = import.meta.glob('/assets/*.{png,webp,jpg,jpeg}', {
+const found: Record<string, string> = import.meta.glob('../../../assets/*.{png,webp,jpg,jpeg}', {
   eager: true,
   query: '?url',
   import: 'default',
 })
 export const images: Readonly<Record<string, string>> = Object.fromEntries(
-  Object.entries(found).map(([path, url]) => [path.slice(1), url]),
+  Object.entries(found).map(([path, url]) => [path.replace(/^(\.\.\/)+/, ''), url]),
 )
 
 /**

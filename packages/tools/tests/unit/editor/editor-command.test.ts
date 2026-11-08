@@ -232,6 +232,19 @@ describe('editorCommand', () => {
     expect(served).toEqual([])
   })
 
+  it('opens the 2D page outside the repository for a 2D game that lists content editors, and says which are not in this release', async () => {
+    const { deps, io, out, served } = setup({
+      inRepository: false,
+      readEditorList: () =>
+        `${listOf('levels-2d')}\n[[file]]\nglob = "content/feel/*.toml"\neditor = "feel"\nmodes = ["edit"]\ngates = []\nchecks = []\n`,
+    })
+    expect(await editorCommand(['../game'], io, deps)).toBe(0)
+    expect(served[0]).toMatchObject({ appDir: '/repo/builds/suite-2d' })
+    expect(out.join('')).toContain(
+      'Feel is not in this release yet, so the editors show Levels and the Tuner.',
+    )
+  })
+
   it('says the editors are missing from a copy of the tools without the 2D page, and starts nothing', async () => {
     const { deps, io, err, served } = setup({ inRepository: false, exists: () => false })
     expect(await editorCommand([], io, deps)).toBe(2)
@@ -293,7 +306,9 @@ describe('liveEditorDeps', () => {
     const { builtApp } = liveEditorDeps()
     // From source there is no copy next to the bin, so the 2D page is the repository's build.
     expect(builtApp('suite-2d')).toMatch(/packages\/editor\/dist\/suite$/)
-    expect(builtApp('suite-full')).toMatch(/packages\/editor-3d\/dist\/suite$/)
+    // The page with every editor is the editors extension's: Levels 3D and Characters, Feel, Audio, Writer, Sequence and
+    // Schematic beside the core ones.
+    expect(builtApp('suite-full')).toMatch(/extensions\/editors\/dist\/suite$/)
   })
 
   it('knows it runs inside the repository from source', () => {
