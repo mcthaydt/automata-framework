@@ -229,3 +229,38 @@ export function checkSystems(def: SystemsDef, options: SystemsCheckOptions, repo
         say(['setup', 'place', id], `places unknown agent ${id}`)
   })
 }
+
+/** A thing a file says that is valid but probably not what its author wants, at its path. */
+export interface SystemsWarning {
+  readonly path: Path
+  readonly message: string
+}
+
+export interface SystemsWarningOptions {
+  /** The game is a flat 2D level: it has no lamps. */
+  readonly flat?: boolean
+  /** The facts the game derives (`createSystems({ derived })`). */
+  readonly derived: readonly string[]
+}
+
+/**
+ * Warnings for a scene's systems in this game. A 2D level has no lamps, so an agent with a `light` sense, or a question
+ * about `inLight`, never notices anything unless the game's own code says how bright a place is. The file is valid, so this
+ * is a warning and `checkSystems` stays quiet.
+ */
+export function systemsWarnings(def: SystemsDef, options: SystemsWarningOptions): SystemsWarning[] {
+  if (options.flat !== true || options.derived.length > 0) return []
+  const message = (id: string) =>
+    `agent ${id}: 2D levels have no lamps, so this sense never notices anything unless the game’s code says how bright it is.`
+  const found: SystemsWarning[] = []
+  def.agents.forEach((agent, i) => {
+    const sense = agent.senses.findIndex((each) => 'light' in each)
+    if (sense !== -1) {
+      found.push({ path: ['agents', i, 'senses', sense], message: message(agent.id) })
+      return
+    }
+    const asks = agent.transitions.some((t) => t.when.some((p) => 'inLight' in inner(p)))
+    if (asks) found.push({ path: ['agents', i, 'transitions'], message: message(agent.id) })
+  })
+  return found
+}

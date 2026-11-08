@@ -657,3 +657,12 @@ The Owner's rule (2026-11-08): content made in the editors must be seen in play,
   frame while a cutscene is under way, so the game's own follow must not also set the target then. (5) Cutscenes does not
   import narrative: `CaptionLine` is structural (`{ text }`). Cutscenes now builds Svelte (svelte-check typecheck, jsdom
   tests name the environment). Tests: 5 lint (2D), 7 stage, 4 caption, 1 extension; 88 unit pass.
+- 2026-11-08 Task 15 done: systems in a 2D level. `extensions/level-2d/src/testing/patrol-2d.ts` is a 12 by 6 cell level (a Hall, a
+  Yard, a wall one cell thick with a two-cell gap) with a guard who patrols the Hall, hunts what he sees and follows through the gap;
+  tests (Node) show the patrol covers one cell (16 px) a second at 1 m/s, the guard sees across open cells and not behind a solid
+  one, and follows the player through the gap with the crossing at `hall>yard` (6, 3). The scripted golden (600 steps, whole and
+  restored from a snapshot into a new sim) is `tests/browser/sim/systems-2d.test.ts`: seed 2026, hash `de5df42656c162d7`, events
+  `2de9cdc012815412` (3 events), hunts at step 60, follows at step 131; recorded in Node and confirmed the same in Chromium;
+  WebKit and Firefox are not installed here, so they are left to the parity job, and level-2d now has a browser project (it is in
+  `test:browser:2d`). Ruling: the 2D light lint is `systemsWarnings(def, { flat, derived })`, a warning list beside `checkSystems`,
+  not an error, because the file is valid and `checkSystems` failures stop a load; the Schematic editor can show the warnings.

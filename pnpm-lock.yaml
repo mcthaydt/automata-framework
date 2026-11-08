@@ -562,21 +562,39 @@ importers:
       '@automata/content':
         specifier: workspace:*
         version: link:../../packages/content
+      '@automata/evidence':
+        specifier: workspace:*
+        version: link:../../tooling/evidence
       '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
+      '@automata/nav':
+        specifier: workspace:*
+        version: link:../nav
       '@automata/places':
         specifier: workspace:*
         version: link:../places
+      '@automata/puzzle':
+        specifier: workspace:*
+        version: link:../puzzle
       '@automata/sim':
         specifier: workspace:*
         version: link:../../packages/sim
+      '@automata/systems':
+        specifier: workspace:*
+        version: link:../systems
       '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
       '@types/node':
         specifier: 24.19.1
         version: 24.19.1
+      '@vitest/browser-playwright':
+        specifier: 5.0.3
+        version: 5.0.3(playwright@1.63.0)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(vitest@5.0.3)
+      playwright:
+        specifier: 1.63.0
+        version: 1.63.0
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
