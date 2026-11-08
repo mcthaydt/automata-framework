@@ -16,6 +16,7 @@
   "exports": {
     ".": "./src/entries/index.ts",
     "./assets": "./src/entries/assets.ts",
+    "./controls": "./src/entries/controls.ts",
     "./game-config": "./src/entries/game-config.ts",
     "./level-2d": "./src/entries/level-2d.ts",
     "./locale": "./src/entries/locale.ts",
@@ -45,6 +46,10 @@
       "./assets": {
         "types": "./dist/assets.d.ts",
         "import": "./dist/assets.js"
+      },
+      "./controls": {
+        "types": "./dist/controls.d.ts",
+        "import": "./dist/controls.js"
       },
       "./game-config": {
         "types": "./dist/game-config.d.ts",

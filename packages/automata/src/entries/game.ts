@@ -21,6 +21,7 @@ export type {
   SettingsScreenCopy,
 } from '../app/screens/screens-copy.ts'
 export { startGame } from '../app/start-game.ts'
+export { controlsFrom } from '../features/input/controls-from.ts'
 export { inputs } from '../features/input/inputs.ts'
 export {
   type AnalogOptions,

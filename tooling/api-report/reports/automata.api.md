@@ -335,6 +335,12 @@ interface ComponentDef<S extends FieldSchema = FieldSchema> {
 function contentHashOf(data: unknown): string;
 ```
 
+### `controlsFrom` (function)
+
+```ts
+function controlsFrom<Z extends z.ZodType>(command: CommandDef<Z>, file: ControlsFile): InputMap;
+```
+
 ### `CORE_SETTINGS` (const)
 
 ```ts

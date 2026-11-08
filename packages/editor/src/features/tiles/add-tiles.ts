@@ -4,7 +4,7 @@
 import type { Size, TilesetDef } from '../../shared/level-2d/model/project-types'
 import { slugOf, unused } from '../../shared/pictures/pick-picture'
 
-export { PICTURE_TYPES, pictureAsset } from '../../shared/pictures/pick-picture'
+export { pictureAsset } from '../../shared/pictures/pick-picture'
 
 /** The range a suggested tile size is drawn from. */
 const SMALLEST_SUGGESTION = 8

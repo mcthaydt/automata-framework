@@ -653,6 +653,87 @@ interface Placement {
 function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>): Promise<Uint8Array>;
 ```
 
+## `./controls`
+
+### `ControlAction` (interface)
+
+```ts
+interface ControlAction {
+    readonly id: string;
+    readonly label?: string | undefined;
+    readonly send: Readonly<Record<string, unknown>>;
+    readonly keys?: readonly string[] | undefined;
+    readonly pad?: readonly number[] | undefined;
+    readonly touch?: boolean | undefined;
+    readonly stick?: readonly StickDirection[] | undefined;
+    readonly gesture?: readonly GestureName[] | undefined;
+    readonly required?: boolean | undefined;
+}
+```
+
+### `ControlsFile` (interface)
+
+```ts
+interface ControlsFile {
+    readonly command: string;
+    readonly action: readonly ControlAction[];
+}
+```
+
+### `controlsFileSchema` (const)
+
+```ts
+const controlsFileSchema: z.ZodType<ControlsFile>;
+```
+
+### `controlsKind` (function)
+
+```ts
+function controlsKind(): ContentSchemaDef;
+```
+
+### `GESTURE_NAMES` (const)
+
+```ts
+const GESTURE_NAMES: readonly ["swipe-left", "swipe-right", "swipe-up", "swipe-down", "flick-down", "tap", "camera-drag"];
+```
+
+### `GestureName` (type)
+
+```ts
+type GestureName = (typeof GESTURE_NAMES)[number];
+```
+
+### `RESERVED_KEYS` (const)
+
+```ts
+const RESERVED_KEYS: readonly string[];
+```
+
+### `RESERVED_PAD_BUTTONS` (const)
+
+```ts
+const RESERVED_PAD_BUTTONS: readonly number[];
+```
+
+### `STANDARD_PAD_BUTTON_MAX` (const)
+
+```ts
+const STANDARD_PAD_BUTTON_MAX = 16;
+```
+
+### `STICK_DIRECTIONS` (const)
+
+```ts
+const STICK_DIRECTIONS: readonly ["left-up", "left-down", "left-left", "left-right", "right-up", "right-down", "right-left", "right-right"];
+```
+
+### `StickDirection` (type)
+
+```ts
+type StickDirection = (typeof STICK_DIRECTIONS)[number];
+```
+
 ## `./game-config`
 
 ### `GAME_ID_PATTERN` (const)
