@@ -99,17 +99,16 @@ describe('areaFromSector (GAME-3D.1i)', () => {
     const west = { next: 'a', door: { at: 0.75, width: 1, height: 2.2 } }
     const b = rect('b', [4, 0, 8, 3], [undefined, undefined, undefined, west])
     const counterClockwise = rect('a', [0, 0, 4, 3], [undefined, east(2.25)])
+    // The wall from (4,3) to (4,0) is the third edge: its corner is (4,3).
     const clockwise = {
       ...rect('a', [0, 0, 4, 3]),
-      corners: [[0, 0], [0, 3], [4, 3], [4, 0, east(0.75)].filter(Boolean)].map((corner) => corner),
+      corners: [
+        [0, 0],
+        [0, 3],
+        [4, 3, east(0.75)],
+        [4, 0],
+      ],
     }
-    // The wall from (4,3) to (4,0) is the third edge: its corner is (4,3).
-    clockwise.corners = [
-      [0, 0],
-      [0, 3],
-      [4, 3, east(0.75)],
-      [4, 0],
-    ]
     const key = (box: { min: number[]; max: number[] }) => JSON.stringify(box)
     const sorted = (area: ReturnType<typeof convert>) => area.walls.map(key).sort()
     expect(sorted(convert(file([clockwise, b])))).toEqual(sorted(convert(file([counterClockwise, b]))))

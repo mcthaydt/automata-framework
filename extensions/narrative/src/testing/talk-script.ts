@@ -87,7 +87,8 @@ export interface GoldenRun {
   readonly storylets: number
 }
 
-export async function runNarrativeGolden(restoreAt?: number): Promise<GoldenRun> {
+/** `watch` sees the sim before each step; the state-bytes test hashes a snapshot from it. It never changes the run. */
+export async function runNarrativeGolden(restoreAt?: number, watch?: (sim: Sim) => void): Promise<GoldenRun> {
   let sim: Sim = (await createTalkGame(PUZZLE, SCENE)).sim
   const lines: string[] = []
   let storylets = 0
@@ -98,6 +99,7 @@ export async function runNarrativeGolden(restoreAt?: number): Promise<GoldenRun>
       sim = (await createTalkGame(PUZZLE, SCENE)).sim
       sim.restore(bytes)
     }
+    watch?.(sim)
     for (const e of step(sim, ...ordersAt(sim.tick)).events) {
       lines.push(canonicalJson(e))
       if (e.type === 'narrative.storylet') storylets += 1

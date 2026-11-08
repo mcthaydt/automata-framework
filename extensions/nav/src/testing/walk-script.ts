@@ -42,7 +42,8 @@ export interface GoldenRun {
   readonly eventCount: number
 }
 
-export async function runNavGolden(restoreAt?: number): Promise<GoldenRun> {
+/** `watch` sees the sim before each step; the state-bytes test hashes a snapshot from it. It never changes the run. */
+export async function runNavGolden(restoreAt?: number, watch?: (sim: Sim) => void): Promise<GoldenRun> {
   let sim: Sim = await createWalkGame()
   const walkers = [
     spawnWalker(sim, -3, 3, 2),
@@ -57,6 +58,7 @@ export async function runNavGolden(restoreAt?: number): Promise<GoldenRun> {
       sim = await createWalkGame()
       sim.restore(bytes)
     }
+    watch?.(sim)
     for (const e of stepWith(sim, ordersAt(sim.tick, walkers)).events) lines.push(canonicalJson(e))
   }
   const run = {

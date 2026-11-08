@@ -32,7 +32,8 @@ export interface GoldenRun {
   readonly hunts: number
 }
 
-export async function runSystemsGolden(restoreAt?: number): Promise<GoldenRun> {
+/** `watch` sees the sim before each step; the state-bytes test hashes a snapshot from it. It never changes the run. */
+export async function runSystemsGolden(restoreAt?: number, watch?: (sim: Sim) => void): Promise<GoldenRun> {
   const create = async (): Promise<Sim> => (await createWardGame(sceneOf(watchman()), {}, ['shriek'])).sim
   let sim = await create()
   const lines: string[] = []
@@ -45,6 +46,7 @@ export async function runSystemsGolden(restoreAt?: number): Promise<GoldenRun> {
       sim.restore(bytes)
     }
     const tick = sim.tick
+    watch?.(sim)
     for (const e of stepWith(sim, ordersAt(tick)).events) {
       lines.push(canonicalJson(e))
       const p = e.payload as { from?: string; to?: string }

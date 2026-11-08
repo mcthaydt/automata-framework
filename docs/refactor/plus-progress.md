@@ -1,6 +1,6 @@
 # Automata Plus as framework extensions: progress
 
-**Overall: 67% (4 of 6 stages done; the build, stage 4, is 27 of 27 tasks).**
+**Overall: 67% (4 of 6 stages done, stage 5 audited in PR #471; the build, stage 4, is 27 of 27 tasks).**
 
 The Owner, 2026-11-07: "do automata-plus too" (11:19); then, on where: "Actually no make them extensions because
 they're free anyway, and move the stuff 3D is doing here, and cut the starter" (15:05). Plus's packages are ported into
@@ -21,9 +21,9 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 | 1. Audit | Done, 2026-11-07, in `mcthaydt/automata-plus` PR #40 (head `4cb70b9`), moved here: C1 to C9, E1 to E4, L1 to L6, D1, G1 to G4, X1 to X4, P1 to P4; P-D1 to P-D11. P-D1: the Owner chose B (15:05) after A (15:02). `pnpm check` and the Chromium browser suites pass on Plus's pinned core | [audit](2026-11-07-plus-audit.md) |
 | 2. Plan and spec | Done, 2026-11-07, with the superpowers plugin (`brainstorming`, `writing-plans`), native: P-D2 to P-D11 decided (P-D11 departs from the audit: B, because core never imports an extension); 3 parts, 4 phases, 19 tasks; the 3D plan's tasks 7.1, 7.4 and 12.1 change (spec section 9) | [spec](2026-11-07-plus-port-spec.md), [plan](2026-11-07-plus-port-plan.md) |
 | 3. Plan audit | Done, 2026-11-07, with the superpowers plugin (`writing-plans`' self-review), native: 16 findings (F1 to F16), all fixed in the spec and the plan; P-D11 B confirmed sound with F5's fix; one change to the 3D plan's 7.1 (`zone`, `masses`, `cut`, `hideFrom` in `af-sector/2`, spec section 9). Spec accepted | [plan audit](2026-11-07-plus-port-plan-audit.md) |
-| 4. Build | Done, PR #458 (on #457): phase 1 done and gated (tasks 1.1 to 1.4, 2.1); tasks 2.2 (physics, puzzle), 2.3 (feel without Effect, audio-synth, debug) 2.4 (net without Effect, net-server, net-ui) 2.5 (`ui-screens` as a package) 2.6 (`sectors`, `nav`, `systems`, `narrative`, `cutscenes` by feature) and 2.7 (`pipelines` on the editor's gate shape, `dev-tools` tests in `tests/`) and 2.8 (the catalog, the stack page, the pins, the README) done; part A is complete. Part B: 3.1 (`@automata/3d/timeline`, after 3D 6.3) done; 3.2 and 3.3 (`cutscenes` takes the director) are done, 3.4 and 3.6 (`character-kit`: eight garments, nine hair pieces, five finishes, seats) too; 3.7 (`world-kit`: props, the dresser, signs, generated maps, the dressed base scenes) is done; 3.5 and 3.9 (the seven examples of `cutscenes`, `characterkit` and `worldkit`) are done, as are 5.5 and 4.2. WebKit and Firefox parity pending on the Owner's Mac | [plan execution log](2026-11-07-plus-port-plan.md) |
+| 4. Build | Done, PR #458 (on #457): phase 1 done and gated (tasks 1.1 to 1.4, 2.1); tasks 2.2 (physics, puzzle), 2.3 (feel without Effect, audio-synth, debug) 2.4 (net without Effect, net-server, net-ui) 2.5 (`ui-screens` as a package) 2.6 (`sectors`, `nav`, `systems`, `narrative`, `cutscenes` by feature) and 2.7 (`pipelines` on the editor's gate shape, `dev-tools` tests in `tests/`) and 2.8 (the catalog, the stack page, the pins, the README) done; part A is complete. Part B: 3.1 (`@automata/3d/timeline`, after 3D 6.3) done; 3.2 and 3.3 (`cutscenes` takes the director) are done, 3.4 is superseded (the base 3D game stays core-only, by the trim) and 3.6 (`character-kit`: eight garments, nine hair pieces, five finishes, seats) too; 3.7 (`world-kit`: props, the dresser, signs, generated maps, the dressed base scenes) is done; 3.5 and 3.9 (the seven examples of `cutscenes`, `characterkit` and `worldkit`) are done, as are 5.5 and 4.2. WebKit and Firefox parity pending on the Owner's Mac | [plan execution log](2026-11-07-plus-port-plan.md) |
 | 5. Build audit | Not started | |
-| 6. Fixes | Not started | |
+| 6. Fixes | In progress (Sonnet, high): the audit's 7 Important and 12 Minor findings, on this PR | [build audit](2026-11-07-plus-port-build-audit.md), PR #471 |
 
 ## The refactor's record (task 5.5)
 

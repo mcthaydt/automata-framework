@@ -2,18 +2,11 @@
 // schema (`schemaHash`) and the sector-map resource's schema is now `af-sector/2`'s. This pins that nothing else
 // moved: with the header's schema hash zeroed, the state's bytes hash to the values the TOML-era code produced
 // (measured on the commit before the port), every 100 steps of the walkers script, with and without collider boxes.
-import { hex64, xxhash64 } from '@automata/sim/hash'
 import { describe, expect, it } from 'vitest'
 import { rooms, yard } from '#src/testing/golden-script.ts'
+import { stateHash } from '#src/testing/state-hash.ts'
 import { stepWith } from '#src/testing/step-with.ts'
 import { createWalkers, load, spawn, walk } from '#src/testing/walkers.ts'
-
-/** The snapshot with the header's `schemaHash` (bytes 6 to 14) zeroed. */
-const stateHash = (bytes: Uint8Array): string => {
-  const copy = bytes.slice()
-  copy.fill(0, 6, 14)
-  return hex64(xxhash64(copy))
-}
 
 const BEFORE_THE_PORT = {
   plain: [
@@ -51,7 +44,7 @@ describe('the walkers’ state', () => {
                 walk(3, 10, -2 + (t % 128) / 16),
               ]
       stepWith(sim, orders)
-      if (t % 100 === 0) seen.push(stateHash(sim.snapshot()))
+      if (t % 100 === 0) seen.push(stateHash(sim))
     }
     sim.dispose()
     expect(seen).toEqual(BEFORE_THE_PORT[kind])
