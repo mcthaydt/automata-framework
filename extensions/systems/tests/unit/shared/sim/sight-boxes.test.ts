@@ -5,7 +5,7 @@ import type { Point } from '@automata/sectors/sim'
 import { stepWith } from '@automata/sectors/testing'
 import type { Sim } from '@automata/sim'
 import { afterEach, describe, expect, it } from 'vitest'
-import type { Sense } from '#src/shared/sim/systems.schema.ts'
+import type { AgentDef, Sense } from '#src/shared/sim/systems.schema.ts'
 import { sceneOf } from '#src/testing/toy.ts'
 import { agent, createWardGame, load, move, run } from '#src/testing/ward-game.ts'
 
@@ -20,7 +20,7 @@ const BEHIND_THE_BENCH: Point = { x: -2.85, z: 4.3 }
 
 /** Whether a watcher with this sight sees the player across the bench. */
 async function seesAcrossTheBench(sight: Sense, to: Point = BEHIND_THE_BENCH): Promise<boolean> {
-  const def = {
+  const def: AgentDef = {
     id: 'watcher',
     modes: ['stand', 'seen'],
     initial: 'stand',
