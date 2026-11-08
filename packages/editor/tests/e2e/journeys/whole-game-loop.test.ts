@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { checkLevels, EMBERWICK, expect, openRoom, paintWall, test } from '../harness/fixtures.ts'
-import { cellColour, type LevelFrame } from '../harness/game-screen.ts'
+import { cellColours, type LevelFrame } from '../harness/game-screen.ts'
 import { newGame } from '../harness/new-game.ts'
 import { readZip } from '../harness/read-zip.ts'
 import { runEditor } from '../harness/run-editor.ts'
@@ -16,11 +16,11 @@ const STARTER_TILE = 16
 /** Row 2 of the starter level, before and after a wall at column 5. */
 const EMPTY_ROW = '".*32", ".*32", ".*32", ".*32"'
 const WALLED_ROW = '".*32", ".*32", ".*5 1 .*26", ".*32"'
-/** The starter level: 32 by 18 cells of 16 px. */
-const STARTER: LevelFrame = { width: 512, height: 288, tile: STARTER_TILE }
 /** The starter game's colour for a wall (`features/level/level.view.ts`), and the empty level behind it. */
 const WALL_COLOUR = '73737f'
 const EMPTY_COLOUR = '000000'
+/** The starter level: 32 by 18 cells of 16 px. */
+const STARTER: LevelFrame = { width: 512, height: 288, tile: STARTER_TILE, wall: WALL_COLOUR }
 /** Where Vite serves the compiled content module the game imports. */
 const CONTENT_MODULE = '@id/__x00__virtual:automata/content'
 
@@ -41,7 +41,8 @@ test('a new game is made, edited, saved, played and published from the editors a
     const check = await checkLevels(game.dir)
     expect(check.code, check.output).toBe(0)
 
-    // Play: the game the command started opens in a new tab, and the level it runs has the wall.
+    // Play: the game the command started opens in a new tab, the level it runs has the wall, and past the game's own
+    // title screen the wall is on the screen where it was painted.
     const [play] = await Promise.all([
       context.waitForEvent('page'),
       page.getByRole('link', { name: 'Play' }).click(),
@@ -51,6 +52,18 @@ test('a new game is made, edited, saved, played and published from the editors a
     await expect
       .poll(async () => (await fetch(`${gameOrigin}/${CONTENT_MODULE}`)).text(), { timeout: 30_000 })
       .toContain('".*5 1 .*26"')
+    await play.getByRole('button', { name: 'Play' }).click()
+    // The wall's cell is drawn as a wall, and the cell beside it is still empty.
+    await expect
+      .poll(
+        () =>
+          cellColours(play, STARTER, [
+            { col: 5, row: 2 },
+            { col: 6, row: 2 },
+          ]),
+        { timeout: 15_000 },
+      )
+      .toEqual([WALL_COLOUR, EMPTY_COLOUR])
     await play.close()
 
     // Publish: the game is built and checked, and the person downloads one zip to upload.
@@ -101,7 +114,7 @@ test('a tile painted in the editor is drawn in the running game', async ({ page,
     ])
     await play.getByRole('button', { name: 'Play' }).click()
     await expect
-      .poll(() => cellColour(play, STARTER, { col: 5, row: 4 }), { timeout: 15_000 })
+      .poll(async () => (await cellColours(play, STARTER, [{ col: 5, row: 4 }]))[0], { timeout: 15_000 })
       .not.toBe(EMPTY_COLOUR)
   } finally {
     await editor.stop()
