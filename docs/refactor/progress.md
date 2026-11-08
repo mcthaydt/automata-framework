@@ -585,5 +585,7 @@ a branch off the plan's. The page side of each task waits for the merged base (t
 | 6.1 to 6.4 The Review page | 6 | Not started | |
 | 7.1 to 7.4 Building and proving | 7 | Not started | |
 
+The real-thing check so far (`apps/editor/tests/unit/player/make-edit-play.test.ts`): a game is made on the app's store, its level is changed, the app "restarts" (a new store over the same folder), the game compiles and the compiled content carries the change. It has not been played in a browser: the runtime bundles and the Tauri window are not built yet.
+
 Not run in this session: `pnpm check` as a whole (its last step, `examples-runner`'s typecheck and `knip`, fail on `main`'s
 stale `runner-ports.test.ts` paths, fixed on the stack by #505), WebKit, Firefox, any Mac or device step.
