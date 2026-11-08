@@ -4,6 +4,7 @@ import {
   playStory,
   pressInList,
   savedInto,
+  servedWith,
   test,
   walkToKeeper,
 } from '../harness/fixtures.ts'
@@ -43,6 +44,7 @@ test('a word and a flash given to the cutscene in Feel are what the played game 
   await pressInList(page, 'When cutscene started')
   await savedInto(story, 'content/feel/feel.toml', 'flash_frames = 30')
   await savedInto(story, 'content/feel/feel.toml', WORD)
+  await servedWith(editor, WORD)
 
   // Play the game the editor started: walk to the keeper, ask to see the gate, and the cutscene starts.
   const game = await context.newPage()

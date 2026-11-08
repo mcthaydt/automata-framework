@@ -233,3 +233,13 @@ plays sounds on a throwaway context and is the pattern to copy. Still to find: w
 `AudioBuses` uses (the manager in `features/audio/audio.manager.ts`), and how track files in `assets/music` are served in play.
 Also not built in the editor: the mix, shadowed rows, Check the sounds, the sound's picture, and the `about`/`world`/`no_duck`/`draft`
 toggles. No served journey has run.
+
+**Follow-up log (2026-11-08, PR #487 plus #484).** Built: `@automata/audio-synth/stage` (`audioStage`: the event map's cues on
+their buses, imported tracks by `trackAlias`, music rules read against the game's state, fades; events heard while the audio
+is locked are dropped, not replayed on unlock), `defineGame({ audio })` (core hands the game `Audio` and the presentation
+bus), and Audio's "Use this track" and rules page working on a game with no tracks yet. `examples/2d-story` plays
+`content/audio/audio.toml`; its music rules read `mode` (`chase` while the guard hunts or follows, else `calm`). The served
+journey `audio-plays-in-game` ran on a phone and an iPad in Chromium: two tracks dropped into `assets/music`, used in Audio,
+rules made (chase while `mode` is chase, calm otherwise); the played game's music went calm then chase, and the keeper's
+cue played. Not built: the mix, shadowed rows, "Check the sounds", the sound's picture, the `about`/`world`/`no_duck`/`draft`
+toggles, `seam` and `resume` in the player, `master_gain`. Not run: WebKit, Firefox.

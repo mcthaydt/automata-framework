@@ -61,11 +61,25 @@ export async function openEditor(page: Page, editor: RunningEditor, name: string
 export async function pressInList(page: Page, name: string | RegExp): Promise<void> {
   const button = page.getByRole('button', { name }).first()
   const panel = page.getByRole('button', { name: 'Panel', exact: true })
-  const opened = !(await button.isVisible())
-  if (opened) await panel.click()
+  let opened = false
+  // Either the list or the Panel button that holds it is on screen once the editor has drawn.
+  await expect(button.or(panel).first()).toBeVisible()
+  // Only a layout with a Panel button keeps the list in a sheet; otherwise it is on the page, once it has drawn.
+  if (await panel.isVisible()) {
+    if (!(await button.isVisible())) {
+      if ((await panel.getAttribute('aria-expanded')) !== 'true') await panel.click()
+      await expect(button).toBeVisible()
+      opened = true
+    }
+  }
   await button.click()
   // The sheet stays up over the page after a choice, so a person closes it with the same button.
-  if (opened && (await panel.getAttribute('aria-expanded')) === 'true') await panel.click()
+  if (opened) {
+    if ((await panel.getAttribute('aria-expanded')) === 'true') await panel.click()
+    await expect(panel).toHaveAttribute('aria-expanded', 'false')
+    // The sheet slides away; the next call must find the list gone, not on its way out.
+    await expect(button).toBeHidden()
+  }
 }
 
 /**
@@ -98,4 +112,36 @@ export async function walkToKeeper(page: Page): Promise<void> {
   } finally {
     await page.keyboard.up('ArrowRight')
   }
+}
+
+/**
+ * Waits until the game the editor started serves content with `text` in it. The game's dev server compiles the saved files a
+ * moment after they land, so a page opened the instant the file is written could still get the old content.
+ */
+export async function servedWith(editor: RunningEditor, text: string): Promise<void> {
+  const module = `${editor.gameUrl}@id/__x00__virtual:automata/content`
+  const bare = (value: string): string => value.replace(/\s+/g, '')
+  await expect
+    .poll(
+      () =>
+        fetch(module).then(
+          (answer) => answer.text().then(bare),
+          () => '',
+        ),
+      { message: `the game serves "${text}"` },
+    )
+    .toContain(bare(text))
+}
+
+/**
+ * Plays the story up to the gate's cutscene: walks to the keeper, answers with the second choice (which asks to see the
+ * gate), and goes on past the keeper's last words. `choice` is that answer as the page shows it.
+ */
+export async function playToCutscene(
+  page: Page,
+  choice: string | RegExp = /Show me the gate/,
+): Promise<void> {
+  await walkToKeeper(page)
+  await page.getByRole('button', { name: choice }).click()
+  await page.getByRole('button', { name: 'Next' }).click()
 }

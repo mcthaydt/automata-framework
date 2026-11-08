@@ -536,6 +536,21 @@ Built on `claude/project-thread-2salzc`, stacked on #478 (plans' Logs have the e
   squash, words, the Audio in-play player, the journeys and the layout tests; hand-off notes are in the Feel and Audio plan logs.
   A follow-up thread based on #484 plus #487 wires both players into `examples/2d-story` and runs them.
 
+- Update (2026-11-08 08:20, follow-up thread on PR #487 plus #484): the Feel stage's hit-stop, squash and words, the Audio
+  in-play player (`@automata/audio-synth/stage`: the event map's sounds, imported tracks, music rules, fades) and
+  `defineGame({ audio })` are built, wired into `examples/2d-story`, and **proved by served journeys**
+  (`extensions/editors/tests/e2e/journeys/`, each copies the story, runs `automata editor` with the content suite page,
+  edits in the editor, plays the game the editor started and reads what it did): Feel (a word and a flash made in Feel
+  show in play), Audio (two tracks dropped in, used, rules made; the played game's music goes calm to chase),
+  Writer (the keeper's words and the caption), Sequence (a step pointed at another caption line). Found by working the
+  editors on the real story and fixed: the suite page opened only the in-memory sample, never the served game; Audio's
+  first track, rule, sound or event in a file with none was refused ("Node not found at slot"); two quick edits were
+  refused as a conflict and reverted; the story kept its words in a catalog Writer could not see (now `words` in
+  `content/lines`, #491 H2); the story's editor list left out Writer's and Sequence's files. The layout tests at
+  390 x 844 and 820 x 1180 are in `extensions/editors/tests/browser/layout`. **Not built:** Audio's mix, shadowed rows,
+  Check the sounds, the sound's picture and its `about`/`world`/`no_duck`/`draft` fields; `seam` and `resume` in the
+  player; the Schematic (guard) editor, which is #486. **Not run:** WebKit, Firefox, the GPU runner.
+
 ## Edited content shows in play: 33% (2 of 6: stages 2 and 3)
 
 Normal dev pipeline (no stage 1 audit; the investigation is

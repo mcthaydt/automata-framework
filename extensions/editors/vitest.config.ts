@@ -7,4 +7,7 @@ export default defineTests({
   svelte: true,
   plugins: [svelteTesting()],
   setupFiles: ['./tests/vitest-setup.ts'],
+  css: true,
+  // The layout of each editor in the suite's shell, in real browsers (tests/browser/layout).
+  browserProjects: [{ name: 'layout', folder: 'layout', engines: ['chromium', 'webkit', 'firefox'] }],
 })

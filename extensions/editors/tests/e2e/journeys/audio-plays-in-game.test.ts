@@ -4,6 +4,7 @@ import {
   playStory,
   pressInList,
   savedInto,
+  servedWith,
   test,
   walkToKeeper,
 } from '../harness/fixtures.ts'
@@ -61,6 +62,7 @@ test('music tracks and rules made in Audio are what the played game plays', asyn
     .click()
   await expect(page.getByRole('article').first()).toHaveAccessibleName('When mode is chase: play chase')
   await savedInto(story, 'content/audio/audio.toml', 'chase')
+  await servedWith(editor, '"mode": "chase"')
 
   // Play the game the editor started. The story is calm; walking past the keeper into the yard, the guard sees the player.
   const game = await context.newPage()

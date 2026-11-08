@@ -1,6 +1,7 @@
 import { content } from 'virtual:automata/content'
 import { cutsceneSchema } from '@automata/cutscenes/sim'
-import { dialogueFileSchema, type LineRecord, linesFileSchema } from '@automata/narrative/sim'
+import { wordsOf as wordsOfLines } from '@automata/narrative'
+import { dialogueFileSchema, type LineRecord, type LinesFile, linesFileSchema } from '@automata/narrative/sim'
 import { navGraphSchema } from '@automata/nav/sim'
 import { systemsDefShape } from '@automata/systems/sim'
 import words from '../../../content/words/en.json'
@@ -12,10 +13,13 @@ import words from '../../../content/words/en.json'
 
 const filesOf = (kind: Readonly<Record<string, unknown>> | undefined): unknown[] => Object.values(kind ?? {})
 
-/** Every line record of every file in `content/lines`. */
-export const LINES: readonly LineRecord[] = filesOf(content.lines).flatMap(
-  (file) => linesFileSchema.parse(file).lines,
+/** Every lines file in `content/lines`, by its name. */
+const LINE_FILES: Readonly<Record<string, LinesFile>> = Object.fromEntries(
+  Object.entries(content.lines ?? {}).map(([name, file]) => [name, linesFileSchema.parse(file)]),
 )
+
+/** Every line record of every file in `content/lines`. */
+export const LINES: readonly LineRecord[] = Object.values(LINE_FILES).flatMap((file) => file.lines)
 
 /** Every conversation in `content/dialogue`. */
 export const GRAPHS = filesOf(content.dialogue).flatMap((file) => dialogueFileSchema.parse(file).graphs)
@@ -42,6 +46,10 @@ const lineIndex = new Map(LINES.map((line) => [line.id, line]))
 /** A line record by id, for the dialogue box and the caption. */
 export const lineOf = (id: string): LineRecord | undefined => lineIndex.get(id)
 
+const lineWords = wordsOfLines(LINE_FILES)
 const catalog: Readonly<Record<string, string>> = words
-/** The words of a key, from the game's message catalog (`content/words/en.json`). */
-export const wordsOf = (key: string): string | undefined => catalog[key]
+/**
+ * The words of a key: what a line says (its `words`, which Writer edits), else the game's few fixed words
+ * (`content/words/en.json`: the speakers' names and the Next button).
+ */
+export const wordsOf = (key: string): string | undefined => lineWords.get(key) ?? catalog[key]
