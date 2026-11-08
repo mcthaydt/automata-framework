@@ -702,3 +702,14 @@ this build", and the 3D editors are not held back because the launch waits for P
   wall at column 5 no longer matches the story template's level, which now has a wall column at 16 (stale expectation, not changed here).
   `standalone-exemption.test.ts` failed once in the site's unit run before a build and passed after; it fails the same on #522.
 - Do not publish `@automata/tools` or deploy the site before `@pixi/3d` is public: both now carry it.
+
+### Build audit (2026-11-08)
+
+`docs/refactor/2026-11-08-every-editor-free-build-audit.md`. The change works: all ten editors are on the try-it rail, an
+edit in every editor survives a reload and a closed and reopened browser, the page opens under the site's policy, and a 2D
+and a 3D game made in the editors play with the changes (complete-game journeys, iPad, Chromium: 11 pass, 2 expected
+failures; plus a hands-on new 2D game edited, played, reloaded and reopened). Findings: H1 the guide, `--app`'s message and
+`one-editor-page.md` still say a game gets only its listed editors; H2 fifteen shipped sample files name FigureBuilder in
+comments; H3 and H4 need a real GPU (a 2D level shows "Preview unavailable" after both 3D editors; going back and forth to
+Characters 3D freezes the tab, also on #522); M1-M6 and L1-L4 are copy, sample and cohesion fixes. Not run: WebKit, Firefox,
+GPU runner, the site e2e, phone journeys.
