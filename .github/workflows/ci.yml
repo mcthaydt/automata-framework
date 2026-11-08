@@ -360,7 +360,7 @@ jobs:
     with:
       runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
     secrets:
-      SITE_DEPLOY_TOKEN: ${{ secrets.SITE_DEPLOY_TOKEN }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
   emberwick:
     name: emberwick through game-ci

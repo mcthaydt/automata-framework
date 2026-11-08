@@ -4,9 +4,10 @@ name: site
 # website" step), so there is no second build or required check here: ci.yml calls this after that job passes on a
 # push to main.
 #
-# The host is the Owner's to choose. Until its token is a repository secret, the job prints "No host configured
-# yet." and passes. With the token, it builds the site, refuses a personal contact address (`check:launch`: the site speaks for
-# the project, not a person), and uploads `site/build/` with the host's own step, written once the host is chosen.
+# The host is Cloudflare Pages (the Owner's call; the plan's default). Until `CLOUDFLARE_API_TOKEN` is a repository secret,
+# the job prints "No host configured yet." and passes. With it, the job builds the site, holds it to `check:site` and
+# `check:launch` (a personal address, Pixi 3D not public, a private repository and a domain with no mail all refuse the
+# deploy), uploads `site/build/` with wrangler, and asks the live host for the headers the site means to send.
 
 on:
   workflow_call:
@@ -16,7 +17,7 @@ on:
         type: string
         required: true
     secrets:
-      SITE_DEPLOY_TOKEN:
+      CLOUDFLARE_API_TOKEN:
         required: false
 
 permissions:
@@ -33,9 +34,9 @@ jobs:
       - name: Is the host configured?
         id: host
         env:
-          SITE_DEPLOY_TOKEN: ${{ secrets.SITE_DEPLOY_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
-          if [[ -n "$SITE_DEPLOY_TOKEN" ]]; then
+          if [[ -n "$CLOUDFLARE_API_TOKEN" ]]; then
             echo "present=true" >> "$GITHUB_OUTPUT"
           else
             echo "::notice::No host configured yet."
@@ -55,18 +56,28 @@ jobs:
           node-version-file: .nvmrc
       - if: steps.host.outputs.present == 'true'
         run: pnpm install --frozen-lockfile
-      # The build ends with the closed-beta scan; check:site holds every page to the site's rules; check:launch
-      # refuses a personal mailbox.
+      # The build ends with the closed-beta scan; check:site holds every page and the headers file to the site's rules;
+      # check:launch refuses a personal mailbox, a missing mail record, a private repository and a Pixi 3D that is not public.
       - name: Build and check the site
         if: steps.host.outputs.present == 'true'
         run: |
           pnpm exec turbo run build --filter @automata/site
           pnpm --filter @automata/site check:site
           pnpm --filter @automata/site check:launch
-      - name: Upload site/build to the host
+      # Cloudflare compresses on its own; the build's .br and .gz copies would be published as addresses of their own.
+      - name: Upload site/build to Cloudflare Pages
         if: steps.host.outputs.present == 'true'
+        id: upload
         env:
-          SITE_DEPLOY_TOKEN: ${{ secrets.SITE_DEPLOY_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          echo "::error::The host's upload step is not written yet: it is added with the host (docs/runbook.md, Launch the website)."
-          exit 1
+          find site/build \( -name '*.br' -o -name '*.gz' \) -delete
+          pnpm --filter @automata/site exec wrangler pages deploy build --project-name automataframework --branch main 2>&1 | tee "$RUNNER_TEMP/deploy.log"
+          url=$(grep -oE 'https://[a-z0-9.-]+\.pages\.dev' "$RUNNER_TEMP/deploy.log" | tail -1)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      - name: Check the live headers
+        if: steps.host.outputs.present == 'true'
+        run: |
+          pnpm --filter @automata/site check:deployed "${{ steps.upload.outputs.url }}"
+          pnpm --filter @automata/site check:deployed https://automataframework.com
