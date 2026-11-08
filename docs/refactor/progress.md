@@ -401,7 +401,7 @@ the site's 3D parts.
 | 1. Audit | Done, 2026-11-07 (PR stacked on #441): 10 structure (S1 to S10), 3 contracts (K1 to K3), 6 editor shipping (E1 to E6), 5 layout and look (V1 to V5), 6 tests (T1 to T6), 7 game (G1 to G7), 2 CI (Q1, Q2), 2 site (W1, W2), 10 copy (C1 to C10); and, the same day on the Owner's word, FigureBuilder and EnvironmentBuilder measured against AF (B1 to B10, section 9); 10 decisions for the Owner (D1 to D10); the Owner took D10 the same day: C on the card ("Their pixel-art look too"), then "Take everything basically", then "We use pixi3D, and 2D should also use the duel palette". 3,836 unit and DOM tests pass; the 3D editor's Chromium layout and canvas run 187 pass and 8 fail (the known 8); base-3d's journeys 8 of 8 and the 3D examples' 9 of 9 in Chromium. Headline: the 3D editor cannot open base-3d, and the Studio is unreachable | [2026-11-07-3d-slice-audit.md](2026-11-07-3d-slice-audit.md) |
 | 2. Plan and spec | Done, 2026-11-07, rewritten the same day with the superpowers plugin (`brainstorming`, `writing-plans`) in place of the hand-written first version (#443), with the paused plan audit's 21 findings folded in: D1 to D9 on the audit's recommendations, D10 as the Owner took it; four parts in the Owner's order, 20 phases, 53 tasks, each with files, interfaces and its failing tests; one `@automata/3d` package in `--features` layout (shared timeline, level and time of day), DUEL AF-wide, one timeline, one level format (`af-sector/2`, field by field), the look on Pixi 3D, `automata textures` in `-tools`, the 8 tests fixed in phase 1 | [spec](2026-11-07-3d-slice-spec.md), [plan](2026-11-07-3d-slice-plan.md) |
 | 3. Plan audit | Done, 2026-11-07, with the superpowers plugin (`writing-plans`' self-review), native: 26 findings against #444's head, the checkout and both builders, all fixed in place in the spec and the plan (the move map now follows today's imports, so `--features` holds: `shared/render/`, the occluders the camera's; the test mover's real flags; the goldens renamed and re-recorded once for FigureBuilder's newer fat; the 15 classic kinds; `Ease` keeps the cubic-bezier tuple; `LevelProblem`; `findCutByBar` in place of `findClipped`; the 2D slice's real-command harness reused; editor-3d's full move map; the look's target follows a phone in portrait; drunk grandma fixes to the new words). The paused audit's 21: 17 fixed by the rewrite, 4 finished here. DUEL's author and licence stay the Owner's | [record](2026-11-07-3d-slice-plan-audit.md) |
-| 4. Build | In progress (Sonnet, high): 29 of 54 tasks, see the build table below | [plan](2026-11-07-3d-slice-plan.md) |
+| 4. Build | In progress (Sonnet, high): 29 of 59 tasks (54 until 2026-11-08, when 15.5 and 16.1b to 16.1e were added), see the build table below | [plan](2026-11-07-3d-slice-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
@@ -420,11 +420,11 @@ both builders at FigureBuilder `025ffb4` and EnvironmentBuilder `6d82a52`. The p
 the site paths (19.1), the copy table and the 2D editor counts. Then the build (Sonnet, high) starts at task 1.1 with
 `superpowers:executing-plans`, natively in the session with no subagents, handing off after 90 minutes.
 
-### Build: 54% (29 of 54 tasks)
+### Build: 49% (29 of 59 tasks)
 
 Scope trim (2026-11-07 19:28, the Owner): 3D core as light as 2D; see [2026-11-07-3d-scope-trim.md](2026-11-07-3d-scope-trim.md). 9.1 and 9.2 moved to the Plus port and leave the count; 7.5, 7.6 and 7.7 joined it, so it is now 54 (the Owner at 19:58 kept the base pair and the base interior and exterior in core).
 
-One row per task of the [plan](2026-11-07-3d-slice-plan.md); a task is done when its checks have passed in the session that did it. The percentage is done tasks / 54.
+One row per task of the [plan](2026-11-07-3d-slice-plan.md); a task is done when its checks have passed in the session that did it. The percentage is done tasks / 59.
 
 | Task | Phase | Status |
 |---|---|---|
@@ -477,6 +477,11 @@ One row per task of the [plan](2026-11-07-3d-slice-plan.md); a task is done when
 | 15.3 The cuts | 15 | In progress: slices A (Ask) and B (change-set desk and port, Tuner locks, `ask` mode) done 2026-11-08 (session m6iu2z; editor unit 3257, editor-3d unit 2125, Chromium editor 906 and editor-3d 219, 23 Chromium journeys; WebKit, Firefox and hosted CI not run). Slice C part 1 done: the standalone page's Map and Tiles views are deleted (typecheck, knip, editor unit 3190 pass); Slice C remainder done 2026-11-08 (session 3rd on m6iu2z): the layout tests open the level's own screen (`openLevelScreen`), `App`, `boot`, Home and their tests are deleted (typecheck, knip, boundaries, style, source-names clean; editor unit 3080 in 256; Chromium layout level/characters/problems/document 244). Not run: WebKit, Firefox, hosted CI |
 | 15.4 The suite on a phone | 15 | Done, 2026-11-08 (session m6iu2z; test first at 390 x 844 and 844 x 390: the top bar names the game on a phone, and in phone landscape the editors fold into an Editors menu so the stage keeps 85 % of the height; Chromium layout `suite` 154 and editor-3d `suite` and Studio 40, editor unit 3190, typecheck and knip clean; WebKit, Firefox and hosted CI not run) |
 | 16.1 The frame, phone first | 16 | In progress (session m6iu2z, 2026-11-08): slices 1 and 2 done: the seven drawing tools reach the suite's top bar, their keys run there, a room draws at all eight sizes by mouse and touch, a Things tap places a crate, and a room with its portal is one write and one Undo (Chromium layout 33; editor-3d unit 959 in levels-3d); slice 3 done: Plan, 3D and Walk are in the suite (a View menu on a phone) and the tools say Room, Corner, Doorway, Door, Window, Thing with icons (Chromium layout 238, canvas 14, journeys 16); not done: the label-left inspector and the layers sheet, then 16.2 and 16.3 (the views in the game's look) |
+| 15.5 A game's own editors, by their names | 15 | Not started (planned 2026-11-08, [plan](2026-11-08-levels-3d-sector-2-plan.md)) |
+| 16.1b The level as written, in core | 16 | Not started |
+| 16.1c One `/2` profile | 16 | Not started |
+| 16.1d Furniture, characters and lamps from the game | 16 | Not started |
+| 16.1e Pits, cameras, and Ember Hall played after an edit | 16 | Not started |
 | 16.2 The builders' authoring | 16 | Not started |
 | 16.3 Plan, 3D and Walk in the game's look | 16 | Not started |
 | 17.1 The frame, phone first | 17 | Not started |

@@ -1466,6 +1466,18 @@ menu, label-left inspector, layers sheet, three layouts by `shellModeOf` with th
   **Session break here if needed.** **Step 4:** inspector, layers, layouts. **Step 5:** PASS; before/after at the four
   sizes against the mock-up. **Commit** `feat(levels-3d): the approved look, with every tool on a phone`
 
+### Tasks 15.5 and 16.1b to 16.1e: Levels 3D opens real 3D rooms (new, 2026-11-08)
+
+Found by the 16.1 build: Levels 3D refuses Ember Hall's room ("af-sector/2 is not a version this editor reads"), and
+every room `create-game --template 3d` makes, because the editor's profile is still `/1` (7.1's log moved the switch to
+14.1 and 16.2; neither does it). Five tasks, in
+[2026-11-08-levels-3d-sector-2-plan.md](2026-11-08-levels-3d-sector-2-plan.md) (spec beside it), run after 16.1's
+third slice and before the rest of 16.1: **15.5** the suite shows a game's own editors by their names (one Levels,
+Characters) and a room that won't open says why in readable words; **16.1b** the level as written in core
+(`afSector2FileSchema`); **16.1c** one `/2` profile, every member kept as written, `/1` upgraded on the first change;
+**16.1d** the game's furniture, characters and lamps as things; **16.1e** pits, cameras, and a journey that plays
+Ember Hall after an edit. The task count is 59.
+
 ### Task 16.2: The builders' authoring (spec 10.3; trimmed 2026-11-07, scope trim section 2)
 
 No Fill with furniture, no `furnishAs`, no `checkReads` and no kit checks: furnishing is the world kit's, and the editor
@@ -1479,7 +1491,8 @@ is core, which never imports an extension.
 
 **Interfaces:**
 - Consumes: `buildWorld` (task 7.2), the `needs-extension` problem (task 7.3).
-- Produces: edit commands `placeProp(use, at)`, `placeLamp(kind, at)`, `setTimeOfDay(name)`, `setWallTrim(wall, trim)`,
+- Produces (amended 2026-11-08: furniture is placed from the Things palette in 16.1d, which also owns the "a prop,
+  swatch or character the game lacks" check): edit commands `placeLamp(kind, at)`, `setTimeOfDay(name)`, `setWallTrim(wall, trim)`,
   `setWindows(wall, grid)`, each `EditCommand` with a `label`.
 
 - [ ] **Step 1:** For each change, in order: a failing unit test of its command (`undo restores the level byte for
@@ -1496,7 +1509,8 @@ their camera and framing rules only.
 **Files:**
 - Create: `packages/editor-3d/src/features/levels-3d/views/{plan,diorama,walk}/`, `views/shared/frame-map.ts`
   (trimmed 2026-11-07: readability is the world kit's, port task 3.8), `tooling/frame-budget/stress/3d-editor/` with projects `frame-budget-3d-editor-{phone,ipad}`
-- Modify: `features/levels-3d/{plan,dollhouse,walk}/` draw through these views; Walk's hint
+- Modify: `features/levels-3d/{plan,dollhouse,walk}/` draw through these views, building the world from the game's
+  library that 16.1d reads (`readGameLibrary`); Walk's hint
 - Test: `tests/unit/levels-3d/views/frame-map.test.ts`, canvas and layout tests
 
 **Interfaces:**
@@ -1511,7 +1525,8 @@ their camera and framing rules only.
 ### Task 17.1: The frame, phone first (V5; **session break** after the top bar)
 
 **Files:** Modify `packages/editor-3d/src/features/studio/` (shared top bar; on a phone Undo and Redo in the menu, one
-Panels button, Dock gone, Save for Publish; stage on top, the timeline a bottom sheet; on-screen name Characters).
+Panels button, Dock gone, Save for Publish; stage on top, the timeline a bottom sheet; the on-screen name Characters
+is done in 15.5).
 Delete task 1.5's `.fails`. Test `tests/browser/layout/studio.layout.test.ts`.
 
 - [ ] **Step 1:** Remove `.fails` → FAIL (Publish clipped). **Step 2:** top bar. **Session break here if needed.**
@@ -1567,7 +1582,7 @@ second harness.
 - Consumes: `copyGame`, `runEditor`, the journeys' `test` fixture (`tests/e2e/harness/`); `playwright.journeys.config.ts`
   (`pnpm --filter @automata/editor test:e2e`).
 
-- [ ] **Step 1:** `BASE_3D` in the fixtures, with a test that a base-3d run leaves no process and no folder (as the 2D
+- [ ] **Step 1:** (`BASE_3D` is in the fixtures from 16.1e) a test that a base-3d run leaves no process and no folder (as the 2D
   ones do). **Session break here if needed.**
 - [ ] **Step 2:** spec 10.4's journeys, failing where the product lacks a hook (each fixed as a product bug with a
   test). **Step 3:** PASS in Chromium, WebKit on the runner; the 2D journeys' count is unchanged. `3d.yml`'s
@@ -1745,4 +1760,6 @@ reads only this plan and the spec. DUEL's author and licence stay the Owner's op
 - Task 16.1, second slice (session m6iu2z, 2026-11-08, third session on the branch): **the draw check is wide, the keys are in, and a room is one Undo.** Tests first. (1) `suite-draw.test.ts` runs at all eight sizes by mouse and by touch (16 cases; a finger cannot hover, so the plan-to-page map is read with a mouse and the taps use the finger) and a Things case (16 cases: the palette shows, a crate is picked, a tap in the hall adds it, Undo names "Add crate"). All were green on the first run at phone sizes. (2) The two-tap Undo: its cause was not the sector tool (its unit test already says one step) but `openLevels3d`, which wrote every live frame of an open step to the file; the suite's write path recorded one Undo step per write, so a room plus its portal were two. Red: `levels-3d-session.test.ts` "writes a step that was drawn live once". Fix: the session writes when the history's `revision` moves (a step ends), not on the frames in between; the suite check now expects one Undo. Cost: a drag is written when the finger lifts, and a room waiting on its portal answers is written once they are answered; a page closed in between loses that one step. (3) Keys: `Levels3dTools.svelte` registers `planToolCommands` through the kit's keymap on the window for as long as the bar is shown, except while a field has the focus (a suite test: S then V, and S in a field does nothing). **Found, for 16.1's words:** the Things palette names its things by id ("spawn", "crate"), not words a person knows. Passed: Chromium layout `suite-draw` 33, editor-3d unit 959 in 73 files, typecheck. Not run: WebKit, Firefox, hosted CI.
 - Task 15.3, slice C, remainder: done (session m6iu2z, 2026-11-08). New `testing/level-2d/open-level-screen.ts` (`openLevelScreen(target, workspace, path)`: the level's own `DocumentScreen` over a workspace, no Home). The level, characters and problems layout tests start from it (and `level-view` now expects the tabs Level and Characters, which the earlier cut had left stale); `open-flows.test.ts` became `document-flows.test.ts` (the top bar, the Restore and the conflict dialogs at eight sizes). `recovery-journey.test.ts` (G-l, three edits, the tab killed, Restore) now runs on `DocumentScreen` with real project edits. Deleted: `app/level-2d/{App.svelte,boot.ts}`, `features/home/{Home,LevelList,NewLevelSheet,ProjectCard,ProjectSummary,DeleteDialog}.svelte`, `home-controller`, `lazy-thumbnails`, `stored-last-opened` and their tests, `App.test`, `boot.test`, the Home layout test, the Home thumbnails case of the canvas review images, and the open-flows error-panel case. Kept: `TemplateRow`, `home-model` (the suite's Levels pane uses them), `DocumentScreen`, `main.css`, `profiles.ts`, `views.ts`. **Gaps, said plainly:** (1) the error panel for a file that does not open (700 lines, one very long, scrolling in itself) and the two-profiles-claim choice were only shown by the standalone app; the suite shows its own words for an unreadable file (15.1b d), tested in the suite's journeys, but nothing checks that panel's layout any more, and `ErrorPanel` / `ProfileChoice` still stand in `features/document` because knip finds them used. (2) Home's own layout (cards, search, delete) is gone with Home: the suite's Home has its own layout test. Passed: typecheck, `pnpm knip`, `boundaries`, `style`, `source-names`, editor unit 3080 in 256 (from 3190: the deleted tests), Chromium layout level + characters + problems + document 244. Not run: WebKit, Firefox, the journeys after this deletion, hosted CI.
 - Task 16.1, third slice (session m6iu2z, 2026-11-08): **the views and the words.** Tests first. (1) `suite-views.test.ts` (Chromium layout, eight sizes): the top bar's View control has Plan, 3D and Walk, and each draws its own canvas (`dollhouse-canvas`, `walk-canvas`, `plan-canvas`); red at first for "no Plan view". `Levels3dCanvas.svelte` shows the one the level editor's own view mode names (so the choice is kept with the camera and layer), `Levels3dTools.svelte` draws the control (the kit's `Segmented`; on a compact window, by `shellModeOf` of the window, one `Menu` named View that shows the view it is on, since three segments did not fit a 390 px bar: "3D is covered or clipped") and the tool rail only on the Plan (the keys too). `createLevels3d` takes `dollhouse` (a fake in tests, Pixi lazily in the page) and `frames` (the page's animation frames, passed by `suite-main.ts`), Walk's words go to the status line through the pointer state. These are the existing editor-private flat-shaded views: **16.3 still has to draw them in the game's look.** (2) The tool words: Room, Corner, Doorway, Door, Window, Thing (were Sector, Vertex, Portal, Door, Window, Things), each an icon over its name; seven new kit icons (corner, doorway, door, window, thing, furniture, lamp: Lucide, recorded in `docs/provenance/sources.md`, the icon test says 40 names). Red: `ToolRail.test.ts` (names and an icon in each button). A tool's name is still its word, so a screen reader and a person agree; horizontal tools are as wide as their names (the contract found "Doorway" spilling past a 44 px button). Not renamed yet (18.1's copy pass, and the inspector's own tabs): the inspector's Sector, Walls, Things tabs and the Portal wall kind, and the Things palette names things by id ("spawn", "crate"). Passed: Chromium layout editor-3d 238 (+3 skipped), canvas 14, journeys 16 in Chromium, editor-3d unit 2127, editor icon test, typecheck, biome. `pnpm api-report --update` wrote no change. Not run: WebKit, Firefox, hosted CI. **Left of 16.1:** the label-left inspector and the layers sheet on a phone (the layers button, and one eye and one lock per layer row, C8); 16.2's Furniture and Lamp tools (their icons are in).
-
+- 2026-11-08 (session n9tc3p): the editor's switch to `af-sector/2`, which task 7.1 moved to 14.1 and 16.2 and neither
+  did, is planned as tasks 15.5 and 16.1b to 16.1e ([plan](2026-11-08-levels-3d-sector-2-plan.md),
+  [spec](2026-11-08-levels-3d-sector-2-spec.md)); 16.2, 16.3, 17.1 and 18.2 amended where they overlap. 54 → 59 tasks.
