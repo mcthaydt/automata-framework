@@ -10,8 +10,8 @@ touches, and nothing they placed is cut off.
 **Architecture:** The agent package's public mirror becomes its own plugin marketplace, and every new game names it in
 `.claude/settings.json` beside an `AGENTS.md`. A sixth skill, `automata-content`, writes the content contract down, and
 the API reference grows to every package a template imports. Small, separate fixes go to the editor command (V4), the
-templates (V6, V12, V17), the content compiler's event list (V10), the letterbox (V8) and the site's copy (V1, V7, V9,
-V13). Sharing (V11) follows the Owner's decision D1 = A: Publish puts the game on itch.io.
+templates (V6, V12, V17), a test that Feel and Audio list extension events (V10, already met), the letterbox (V8) and the
+site's copy (V1, V7, V9, V13). Sharing (V11) follows the Owner's decision D1 = A: Publish puts the game on itch.io.
 
 **Tech Stack:** TypeScript, Node 24, Vitest, Playwright, Svelte 5, SvelteKit (site), PixiJS 8, Zod 4, Claude Code
 2.1.319 plugins.
@@ -21,8 +21,18 @@ V13). Sharing (V11) follows the Owner's decision D1 = A: Publish puts the game o
 
 **Base.** Tools, templates, skills and core tasks (1 to 6, 8, 9, 11, 12, 13, 14, 17) branch from the newest stack head
 holding PR #522 (`5cf0825b` when this was written). Site and try-it tasks (7, 10, 15) branch from the newest head holding
-PR #521 (`5fd3933c`). Once the merge thread joins the two stacks (V16), everything branches from there. Task 15 waits for
-the free web editor work (V5); Task 16 waits for the DUEL licence answer.
+PR #521 (`5fd3933c`). Task 5 branches from PR #532 (`829039d5`) or later, where the packed page already wins. Task 7
+reads Task 1's file, so it runs once Task 1 is in a head the site stack shares (after V16, or after Task 1 merges).
+Once the merge thread joins the two stacks (V16), everything branches from there. Task 15 waits for the free web editor
+work (V5); Task 16 waits for the DUEL licence answer.
+
+**First run first** (the Owner, 2026-11-08: the customer value fixes and onboarding are top priority). Build in this
+order: 1, 2, 3, 6, 8, 9, 7, then the rest.
+
+**Precondition for shipping Tasks 2 and 7 (plan audit A1).** Every new game and the site's prompt name
+`mcthaydt/automata-skills`, which holds only a README until a release runs with `SKILLS_TOKEN` (both the Owner's).
+Tasks 2 and 7 may be built and merged, but the site's words and the first packed tools carrying `.claude/settings.json`
+ship only after the mirror holds `.claude-plugin/marketplace.json`. `AGENTS.md` works without it.
 
 ## Global Constraints
 
@@ -38,11 +48,13 @@ the free web editor work (V5); Task 16 waits for the DUEL licence answer.
 - No sim hash in `games/`, `examples/` or core moves. The templates' own tests change with Task 6 (new games); Task 12
   moves landscape visual baselines only, each looked at and explained in the commit.
 - Published packages touched get a `patch` changeset: `@automata/tools` (Tasks 2, 5, 6, 8, 9, 13, 14), `@automata/content`
-  (Tasks 9, 11), `@automata/framework` (Task 12), and `@automata/feel`, `@automata/puzzle`, `@automata/audio-synth` if Task
-  11 touches their manifests. Private packages (`-editor`, `-editors`, the story extensions, the site) get none. After a
+  (Task 9), `@automata/framework` (Task 12), and nothing for Task 11 (a check only, plan audit A3). Private packages (`-editor`, `-editors`, the story extensions, the site) get none. After a
   published package's exports or doc comments change: `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write`,
   `pnpm agent-skills --write`, `pnpm cheatsheet`, and commit what they write. `plugin.json`'s version follows the API's
   (`pnpm api-index` checks it); never bump it by hand.
+- A game made with `--link-workspace` runs its tests with `pnpm exec vitest run --configLoader runner`: Node's own
+  config loader cannot follow the workspace sources' extensionless imports (plan audit A7). The published path is the
+  consumer smoke's.
 - `pnpm format` and `pnpm check` before every commit; Conventional Commits; update `docs/refactor/progress.md` and this
   plan's log in the same session as each task.
 
@@ -68,7 +80,9 @@ the free web editor work (V5); Task 16 waits for the DUEL licence answer.
 **Files:**
 - Create: `agents/automata/.claude-plugin/marketplace.json`
 - Modify: `tooling/agent-skills/src/layout.ts` (read the plugin's own marketplace)
-- Test: `tooling/agent-skills/tests/unit/layout.test.ts`
+- Test: `tooling/agent-skills/tests/unit/layout.test.ts`, `tooling/agent-skills/tests/install/install.test.ts` (adds the
+  mirror as marketplace `automata` with the pinned Claude Code 2.1.301 and installs `automata@automata`; its
+  `SKILL_NAMES` becomes the six skills; plan audit A10)
 
 **Interfaces:**
 - Produces: marketplace `automata`, plugin `automata`, source `./`; `readAgentPackage(...)` reports a problem when the
@@ -143,8 +157,8 @@ it('.gitignore keeps a person’s own Claude settings out', () =>
   verify (`pnpm check`), and getting the skills (spec §2's three lines; the Claude Code line marked "In Claude Code:").
   The 3D variant adds the two 3D rows from spec §4.
 - [ ] **Step 4: Run** the test, then `create-game.integration.test.ts` and `template.test.ts` (their file counts move by
-  three). Expected: PASS. Then make a game with `--link-workspace` and run its `pnpm check`. Expected: green (Biome reads
-  `.claude/settings.json` as JSON and accepts it).
+  three). Expected: PASS. Then make a game with `--link-workspace` and run its `pnpm check` and
+  `pnpm exec vitest run --configLoader runner`. Expected: green (Biome reads `.claude/settings.json` as JSON and accepts it).
 - [ ] **Step 5: Changeset** (`@automata/tools`, patch) **and commit** `feat(tools): give a new game its agent files`.
 
 ### Task 3: The `automata-content` skill, and the editor skill for every editor
@@ -177,7 +191,7 @@ describe('automata-content', () => {
   it('names only content paths a template writes', () => {
     for (const glob of contentGlobs(skill)) expect(templateGlobs()).toContain(glob) // from every editors.toml
   })
-  it('has no 3D text (the mirror is public before 3D is)', () => expect(skill).not.toMatch(/3D|af-sector|figure/))
+  it('has no 3D text (the mirror is public before 3D is)', () => expect(skill).not.toMatch(/\b3D\b|af-sector|\bfigures?\b/))
   it('places the coin in the level file in its example test', () =>
     expect(read('agents/automata/skills/automata-content/example/coin.md')).toContain('content/levels/start.af2d.json'))
 })
@@ -195,7 +209,10 @@ Also update `skills-text.test.ts`'s "open the 2D editor…" case to the new word
   (`template-level.ts`, `template-story.ts`, `template-feel-audio.ts`, `template-story-content/editors-story.toml`). Write
   `example/coin.md`: the `coin` definition, a placed coin in `start.af2d.json`, `coin.component.ts`, `pick-up.system.ts`
   (spawning from `entitiesOf`), `coin.collected` in `coin-collected.event.ts`, `live: ['player-start', 'area', 'coin']`, and
-  a test that compiles the level file, spawns the player at the start and walks it into the coin. Rewrite the editor skill.
+  a test that compiles the level file, spawns the player at the start and walks it into the coin. The example also shows
+  the two steps an agent forgets (seen in the plan audit's journey): adding the plugin to the game's plugin list and the
+  view to `views`. The skill says an extension's events (a conversation, a cutscene, a character that thinks) show up in
+  Feel and Audio by themselves when the game has that content. Rewrite the editor skill.
 - [ ] **Step 4: Run** the tests and `pnpm plugin:validate`. Expected: PASS.
 - [ ] **Step 5: Commit** `feat(agents): write down how code meets the editors (automata-content)`.
 
@@ -235,10 +252,12 @@ it('renders beta packages under their own heading, with the 3D line', () => {
 ```
 
 - [ ] **Step 2: Run** `pnpm --filter @automata/api-index test`. Expected: FAIL.
-- [ ] **Step 3: Implement** as in Interfaces. The private packages' `.d.ts` come from `pnpm build` like the rest; a
-  missing one is the same `MissingTypesError`.
+- [ ] **Step 3: Implement** as in Interfaces. The private packages have no build and no `types` exports (their exports
+  are source paths, `"./sim": "./src/entries/sim.ts"`), so a beta entry's input is that source file, read through the same
+  TypeScript program `rows.ts` uses; an export whose source file is missing is a `MissingTypesError`. Beta packages are
+  `0.0.0`: leave them out of the reference's version line and of `plugin.json`'s version check (plan audit A2).
 - [ ] **Step 4: Run** the tests, then `pnpm build && pnpm api-index --write && pnpm agent-skills --write && pnpm cheatsheet`.
-  Expected: `api.md` gains the Beta section with narrative, cutscenes, systems, nav, places and level-2d; no `@automata/3d`.
+  Expected: `api.md` gains the Beta section with narrative, cutscenes, systems, nav and level-2d; no `@automata/3d`.
   Check `grep -c '3d' agents/automata/skills/automata-api/reference/api.md` finds no 3D package heading.
 - [ ] **Step 5: Commit** `feat(api-index): list every package a new game imports, beta ones marked`.
 
@@ -252,8 +271,8 @@ it('renders beta packages under their own heading, with the 3D line', () => {
 **Interfaces:**
 - Produces: `findRepositoryRoot(start: string, readName: (dir: string) => string | undefined): string | undefined`, the
   nearest folder at or above `start` whose `package.json` `name` is `'automata-framework'`. `isRepository()` is
-  `findRepositoryRoot(here, …) !== undefined`. `builtApp('suite-2d')` returns `packedPage()` whenever it exists, before
-  any repository lookup.
+  `findRepositoryRoot(here, …) !== undefined`. On #532 `builtApp()` already returns `packedPage()` first, so the editor
+  starts; what is left is `outside`, which picks the error message (plan audit A4). Leave `builtApp` as it is.
 
 - [ ] **Step 1: Write the failing tests:**
 
@@ -288,7 +307,8 @@ await step('open it in the editor', async () => {
 - Create (template): `src/features/level/player-box.ts` in `template-level.ts`'s file list
 - Modify: `template-game.ts` (`move.system.ts`, `square.view.ts`, `constants.ts` loses `SQUARE_SIZE`, the spawn in
   `src/app/game.ts`, the template's tests), `template-level.ts` (`PlayContent.player`, `walls.ts`),
-  `template-story-game.ts` (the same three files, and its `game.ts`)
+  `template-story-game.ts` (the same three files), `template-story.ts` (`src/app/story-sim.ts`: `PLAY` and the spawn at
+  `start.y - SQUARE_SIZE / 2`), and the 2D template's own test (`template-game.ts`, `ON_THE_START`)
 - Test: `packages/tools/tests/unit/shared/create-game/template-controls.test.ts` (or a new
   `template-player-box.test.ts` that writes a game and runs its tests), plus the new game's own `tests/unit/square/`
 
@@ -305,7 +325,8 @@ await step('open it in the editor', async () => {
 it('takes the box from the player start, 16 by 24 in the starter', () =>
   expect(playerBoxOf(project)).toEqual({ w: 16, h: 24 }))
 it('touches a wall exactly where the picture does', () => {
-  // a wall cell whose left edge is at x = 32: the feet at x = 24 touch it (24 + 16/2 = 32), at 23 they do not
+  // a wall cell whose left edge is at x = 32; the box's right edge is open, so feet at x = 24 (right edge exactly 32)
+  // do not touch it, and at 24.5 they do
   expect(hitsWall(level, 24.5, 40, { w: 16, h: 24 })).toBe(true)
   expect(hitsWall(level, 23.5, 40, { w: 16, h: 24 })).toBe(false)
 })
@@ -318,8 +339,8 @@ it('the starter level is still walkable from the start', () => { /* hold each di
 - [ ] **Step 3: Implement** in both the 2D and story templates. `src/app/game.ts` passes `{ level, tuning, player:
   playerBoxOf(project) }` as the sim's content (so the content hash covers it). The story's `level2dPlaces` keeps
   `position: { component: Square, x: 'x', y: 'y' }`, now the feet, like the guard's.
-- [ ] **Step 4: Run** `create-game.integration.test.ts` (writes a game, installs from the workspace, runs its tests) for
-  2D and story. Expected: PASS. The new game's own golden values change with the box; say so in the commit.
+- [ ] **Step 4: Run** `create-game.integration.test.ts` for 2D and story, then make each with `--link-workspace` and run
+  `pnpm exec vitest run --configLoader runner` in it (the integration test does not run the game's own tests). Expected: PASS. The new game's own golden values change with the box; say so in the commit.
 - [ ] **Step 5: Changeset and commit** `fix(tools): the starter's player collides with the box it is drawn in`.
 
 ### Task 7: The site sends the agent for Automata's skills first
@@ -331,7 +352,8 @@ it('the starter level is still walkable from the start', () => { /* hold each di
 - Test: `site/tests/unit/` (the existing agent-prompt, agent-setup and llms-txt tests)
 
 **Interfaces:**
-- Consumes: Task 1's marketplace (the test reads `agents/automata/.claude-plugin/marketplace.json` for its name).
+- Consumes: Task 1's marketplace (the test reads `agents/automata/.claude-plugin/marketplace.json` for its name), so this
+  task starts once Task 1 is in a head the site stack shares (Base).
 - Produces: `AUTOMATA_PLUGIN_INSTALL = { claudeCode: ['/plugin marketplace add mcthaydt/automata-skills',
   '/plugin install automata@automata'], other: 'npx skills add https://github.com/mcthaydt/automata-skills' }`.
 
@@ -367,7 +389,7 @@ it('llms.txt names the plugin', () => expect(llmsTxt()).toContain('/plugin insta
 - Test: `packages/tools/tests/unit/app/commands.test.ts`
 
 **Interfaces:**
-- Produces: `CliDeps.git: (cwd: string, args: readonly string[]) => Promise<{ code: number } | 'missing'>`; flag `--no-git`.
+- Produces: a new `CliDeps` passed to `createGameCommand` (today it takes `args`, `io` and `threeD`), with `git: (cwd: string, args: readonly string[]) => Promise<{ code: number } | 'missing'>`; flag `--no-git`.
   Order: `git init`, `git add -A`, `git commit -m "Start <title>"`.
 
 - [ ] **Step 1: Write the failing tests:**
@@ -409,7 +431,8 @@ it('a commit that fails leaves the repository and says how to commit', async () 
   no `skippedFile`, and `notes.md` still does. Template: every kind writes `svelte.config.js`.
 - [ ] **Step 2: Run** both. Expected: FAIL.
 - [ ] **Step 3: Implement.**
-- [ ] **Step 4: Run** them, then `pnpm test` in a new game made with `--link-workspace`. Expected: neither
+- [ ] **Step 4: Run** them, then `pnpm exec vitest run --configLoader runner` in a new game made with `--link-workspace`, and the consumer smoke's
+  `pnpm test` for the published path. Expected: neither
   `skippedFile` nor "no Svelte config found" in the output.
 - [ ] **Step 5: Changesets** (`@automata/content`, `@automata/tools`) **and commit** `fix(content,tools): stop two warnings
   every new game prints`.
@@ -417,7 +440,7 @@ it('a commit that fails leaves the repository and says how to commit', async () 
 ### Task 10: The try-it's first minute
 
 **Files:**
-- Modify: `packages/editor/src/features/suite/shell/SuiteHome.svelte:27` (the note),
+- Modify: `packages/editor/src/features/suite/shell/SuiteHome.svelte` (the sample banner; its words changed on #532),
   `packages/editor/src/shared/level-2d/profiles/level-project/templates/platformer.ts` (platforms),
   the palette's first selection after a template is chosen (`packages/editor/src/shared/level-2d/tiles/palette-model.ts`
   or its caller), the phone layout of the brush-size control and the title
@@ -433,57 +456,46 @@ it('a commit that fails leaves the repository and says how to commit', async () 
   paints ground; the Platformer level has at least three platform runs above the floor; at 390 × 844 the brush-size control's
   right edge is inside the viewport and the title is not cut.
 - [ ] **Step 2: Run** them. Expected: FAIL.
-- [ ] **Step 3: Implement.** If #528 has moved the try-it out of the suite first, make the same changes where it moved
+- [ ] **Step 3: Implement.** The first brush rule applies to the served editor too: in a new game Levels opens with Area
+  chosen, a zone (plan audit journey). If #528 has moved the try-it out of the suite first, make the same changes where it moved
   them.
 - [ ] **Step 4: Run** the unit and layout tests and the site's try-it e2e. Expected: PASS. Look at a phone screenshot.
 - [ ] **Step 5: Commit** `fix(editor): a friendlier first minute in the try-it`.
 
 ## Phase 3: the editors hear the extensions, and the whole level shows (V10, V8)
 
-### Task 11: Feel and Audio list the events a game's extensions say
+### Task 11: Check that Feel and Audio list what extensions say
+
+The editors already do this (plan audit A3): `extensions/editors/src/shared/game-events.ts` adds the events of every
+extension whose content the game has (systems, dialogue, cutscenes, puzzles), read from the extensions' own
+`defineEvent`s, and Feel and Audio both use it. The audit's V10 read only `content/generated/events.json`. No second
+list goes into any `package.json`.
 
 **Files:**
-- Modify: `packages/content/src/features/vite/event-ids.ts` (`writeEventIds`), the `package.json` of each extension
-  with `.event.ts` files a game can hear (narrative, cutscenes, nav, physics, net, systems if it has any)
-- Test: `packages/content/tests/unit/vite/event-ids.test.ts`,
-  `tooling/repo-hygiene/tests/unit/extension-manifests.test.ts`
+- Test: `extensions/editors/tests/unit/feel/` (or the story journey): the story game's Feel and Audio lists
 
-**Interfaces:**
-- Produces: `dependencyEventIds(root: string, readJson: (path: string) => unknown): string[]`: for each name in the game's
-  `dependencies` and `devDependencies` starting `@automata/`, the `automata.events` array of
-  `<root>/node_modules/<name>/package.json`, if any. `writeEventIds` writes the sorted union with the game's own.
-
-- [ ] **Step 1: Write the failing tests:**
-
-```ts
-it("adds the events the game's extensions declare", () => {
-  const files = { '/g/package.json': { dependencies: { '@automata/narrative': '1' } },
-    '/g/node_modules/@automata/narrative/package.json': { automata: { events: ['narrative.line'] } } }
-  expect(dependencyEventIds('/g', (p) => files[p])).toEqual(['narrative.line'])
-})
-// extension-manifests.test.ts
-it.each(extensionsWithEvents())('%s declares exactly the events it defines', (dir) =>
-  expect(declaredEvents(dir)).toEqual(eventIds(sourcesOf(dir))))
-```
-
-- [ ] **Step 2: Run** both. Expected: FAIL.
-- [ ] **Step 3: Implement**, and add `automata.events` to each manifest from its `defineEvent` ids.
-- [ ] **Step 4: Run** them, then open the story game in the editor: Feel's list has the keeper talking
-  (`narrative.line`) and a cutscene starting. Expected: PASS and seen.
-- [ ] **Step 5: Changesets** (`@automata/content`, and each published extension touched) **and commit**
-  `feat(content): Feel and Audio can answer what extensions say`.
+- [ ] **Step 1: Write the test:** open the story template's content in the suite's workspace; Feel's and Audio's lists
+  contain `narrative.line`, `cutscene.started` and `systems.caught` in words ("a conversation shows a line", …) beside
+  the game's own `square.bumped`.
+- [ ] **Step 2: Run** it. Expected: PASS today (it guards the behaviour; if it fails, fix `game-events.ts`, not the
+  compiler).
+- [ ] **Step 3: Commit** `test(editors): Feel and Audio list what the story's extensions say`.
 
 ### Task 12: A phone held sideways shows the whole level
 
 **Files:**
-- Modify: `packages/automata/src/features/render/letterbox/letterbox.ts` (`layout`, `DEFAULT_BAR_FRACTION = 0`)
+- Modify: `packages/automata/src/features/render/letterbox/letterbox.ts` (`layout`, `DEFAULT_BAR_FRACTION = 0`), and
+  the touch controls' layout (find it by what reads `LetterboxGeometry.gameplay` when the task starts)
+- Coordinate: the in-game text thread (#524/#526) reads this geometry for the HUD's safe area; agree the rects first
 - Test: `packages/automata/tests/unit/render/letterbox/letterbox.test.ts`, a real-browser layout test of the 2D template
   or Emberwick at 844 × 390 and 932 × 430 with touch controls on
 
 **Interfaces:**
 - Produces: in a non-portrait view, `scale = Math.min(viewWidth / logicalWidth, viewHeight / logicalHeight)`,
   `x = Math.round((viewWidth - width) / 2)`, `y = Math.round((viewHeight - height) / 2)`; `gameplay` is the field's rect;
-  side bars fill left and right. Portrait is unchanged.
+  side bars fill left and right; `scenery` is the whole view. Portrait is unchanged. This changes every AF game's
+  landscape view, Emberwick included, and any desktop window wider than the field's shape gets side bars: the PR says so
+  plainly (plan audit A9).
 
 - [ ] **Step 1: Write the failing tests:**
 
@@ -502,20 +514,23 @@ Real browser: no touch control's rect overlaps the field's rect at 932 × 430.
 - [ ] **Step 3: Implement**; side bars use the bar colour.
 - [ ] **Step 4: Run** the unit, browser and visual suites. Look at every changed landscape baseline (expected, actual,
   diff) and name each in the commit. Expected: only landscape baselines move.
-- [ ] **Step 5: Changeset** (`@automata/framework`) **and commit** `fix(framework): fit the level in a landscape view instead of cropping it`.
+- [ ] **Step 5: `pnpm build && pnpm api-report --update`** (an exported constant changes), **changeset**
+  (`@automata/framework`) **and commit** `fix(framework): fit the level in a landscape view instead of cropping it`.
 
 ## Phase 4: sharing (V11, decision D1 = A)
 
 ### Task 13: A guide to put the game on itch.io
 
 **Files:**
-- Create: `docs/guides/put-it-on-itch.md` (the site renders guides from `docs/guides/`)
-- Modify: `packages/editor/src/features/suite/shell/PublishGameDialog.svelte:50` (the note links to the guide)
+- Modify: `docs/guides/publish-to-itch.md` (it exists and the site renders it: a short "From the editor" part goes at its
+  top; the command-line part stays below; plan audit A5)
+- Modify: `packages/editor/src/features/suite/shell/PublishGameDialog.svelte` (the note links to the guide; "Building your
+  game…" and "This builds your game" become words without "build", e.g. "Making your game's zip…")
 - Test: the site's guides test, `packages/editor/tests/unit/suite/shell/Suite-play-publish.test.ts`
 
-- [ ] **Step 1: Write the failing tests:** the guide exists, is titled "Put your game on itch.io" and has four numbered
+- [ ] **Step 1: Write the failing tests:** the guide's first part, "From the editor", has four numbered
   steps (make a project, choose HTML, upload the zip, tick "played in the browser"); the dialog's note has a link named
-  "How to put it on itch.io".
+  "How to put it on itch.io"; no text in the dialog contains "build".
 - [ ] **Step 2: Run** them. Expected: FAIL.
 - [ ] **Step 3: Write** the guide (drunk grandma test: one action per step) and the link.
 - [ ] **Step 4: Run** them. Expected: PASS.
@@ -545,8 +560,12 @@ want, itch will be first output". Spec §11.
     href: string } }`
   - `PLACES: readonly Place[] = [itchPlace]` (itch.io first; a new place is a new entry here)
   - `itchPlace`: id `itch`, name `itch.io`, asks `{ id: 'page', label: 'Your itch.io page', example:
-    'your-name.itch.io/my-game' }`; writes the answer to `ship.config.ts`'s `itch.project` before the push; `need` is one of
-    `'butler' | 'sign-in' | 'project' | 'kind'`.
+    'your-name.itch.io/my-game' }`; writes the answer to `ship.config.ts`'s `itch.project` before the push, adding the
+    `itch` block when the game was made without the `itch` target (`--targets web` writes none; plan audit A12); `need`
+    is one of `'butler' | 'sign-in' | 'project'`. butler cannot tell a page's kind, so "Set its kind to HTML" is one
+    sentence the dialog always shows before the first push, not an outcome.
+  - "Sign in to itch.io" runs `butler login` on the computer running `automata editor`, which opens that computer's
+    browser. On a tablet joined with `--lan`, the dialog says "Finish signing in on your computer".
 - The dialog: step 1 "Make the zip" (as today, ending on "Download the zip"); step 2 "Where do you want to put it?",
   one 48 px button per place in `PLACES` order, shown only after the zip is made.
 
@@ -605,7 +624,8 @@ want, itch will be first output". Spec §11.
 
 **Files:**
 - Modify: `tooling/check-style/src/plan-comments.ts` (`PLAN_REFERENCE`), root `package.json` `style` script (add
-  `packages/editor-3d/src` to `--plan-comments`), the 19 comments it then finds
+  `packages/editor-3d/src` to `--plan-comments`), the comments it then finds (16 in source at #532's head by a grep
+  of the new pattern; count again when the task starts)
 - Test: `tooling/check-style/tests/unit/plan-comments.test.ts`
 
 - [ ] **Step 1: Write the failing test:** `PLAN_REFERENCE` matches "(plan D-2)", "(plan 16.2)" and "plan ED3D.5c", and
@@ -620,7 +640,8 @@ want, itch will be first output". Spec §11.
 
 - [ ] **Step 1:** Check each hand-off in spec §12 against its acceptance line, on the newest stack head. Record each as
   met, or as still open with its thread.
-- [ ] **Step 2:** Run spec §13's journey as the launch customer: `pnpm build`, pack, install in a scratch folder outside
+- [ ] **Step 2:** First check the mirror (`mcthaydt/automata-skills`) holds `.claude-plugin/marketplace.json` and the
+  six skills; if not, record the journey as blocked on the Owner's mirror push (Base). Then run spec §13's journey as the launch customer: `pnpm build`, pack, install in a scratch folder outside
   the workspace, `create-game`, open Claude Code in the folder (scratch config) and confirm it offers the plugin from
   `.claude/settings.json`; give a fresh agent the site's copied prompt and "add coins I can place and a score"; place two
   coins in Levels, tune the speed in the Tuner, play (the coin is picked up where the picture touches it), reload, close
@@ -637,3 +658,4 @@ want, itch will be first output". Spec §11.
 - 2026-11-08 22:31: the Owner answered D1 = A ("Put it on itch.io"). Task 14 no longer waits; spec §11 updated.
 - 2026-11-08 22:32: the Owner: the zip is its own step, then Publish asks where to put the game, itch.io first. Task 14
   and spec §11 reshaped: a list of places, so more can be added.
+- 2026-11-08: plan audit (stage 3, `2026-11-08-customer-value-plan-audit.md`): A1 to A13 fixed here, Task 14 included.
