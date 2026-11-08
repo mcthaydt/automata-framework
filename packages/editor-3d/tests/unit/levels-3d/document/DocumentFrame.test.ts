@@ -234,7 +234,7 @@ describe('DocumentFrame', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Hide Walls' }))
     expect(level.editor.view.state.hidden).toEqual(['walls'])
     expect(screen.getByRole('button', { name: 'Show Walls' })).toHaveAttribute('aria-pressed', 'true')
-    await userEvent.click(screen.getByRole('button', { name: 'Lock Sectors' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Lock Rooms' }))
     expect(level.editor.view.state.locked).toEqual(['sectors'])
     await userEvent.click(screen.getByRole('button', { name: 'Walls' }))
     expect(level.editor.view.state.layer).toBe('walls')

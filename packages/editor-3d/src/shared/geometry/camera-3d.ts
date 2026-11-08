@@ -7,7 +7,7 @@
 
 import type { Point } from '@automata/3d/level'
 import { insideSector, triangulate } from '@automata/3d/level'
-import type { Point as ScreenPoint, Size } from '@automata/editor/kit/core'
+import type { Rect, Point as ScreenPoint, Size } from '@automata/editor/kit/core'
 import { WALK_EYE_HEIGHT, WALK_FOV } from '../level-session/level-hints'
 import type { GeometryLayer } from '../level-session/level-profile'
 import type { Box3, Vec3 } from './sector-mesh'
@@ -173,6 +173,8 @@ export interface FitOptions {
   readonly yaw?: number | undefined
   readonly pitch?: number | undefined
   readonly fov?: number | undefined
+  /** The part of the canvas that is left clear (a card floats over the rest): the box is framed in it, centred in it. */
+  readonly usable?: Rect | undefined
 }
 
 /** The corners of a box. */
@@ -199,9 +201,10 @@ export function fitOrbit(box: Box3, size: Size, options: FitOptions = {}): Orbit
   const { ahead, right, up } = basis(view)
   const padding = options.padding ?? FIT_PADDING
   const focal = focalLength(view, size)
+  const area = options.usable ?? { x: 0, y: 0, w: size.w, h: size.h }
   const [reachAcross, reachUp] = [
-    Math.max(size.w / 2 - padding, 1) / focal,
-    Math.max(size.h / 2 - padding, 1) / focal,
+    Math.max(area.w / 2 - padding, 1) / focal,
+    Math.max(area.h / 2 - padding, 1) / focal,
   ]
   const distance = Math.max(
     ...cornersOf(box).map((corner) => {
@@ -214,7 +217,16 @@ export function fitOrbit(box: Box3, size: Size, options: FitOptions = {}): Orbit
       return needed - dot(offset, ahead)
     }),
   )
-  return { target, distance, yaw, pitch }
+  // The middle of the box is to fall at the middle of the usable area, so the camera looks past it by the difference: at
+  // the target's depth (the distance) a pixel is `distance / focal` metres across the screen.
+  const metresPerPixel = distance / focal
+  const [across, down] = [area.x + area.w / 2 - size.w / 2, area.y + area.h / 2 - size.h / 2]
+  const aimed: Vec3 = [
+    target[0] - right[0] * across * metresPerPixel + up[0] * down * metresPerPixel,
+    target[1] - right[1] * across * metresPerPixel + up[1] * down * metresPerPixel,
+    target[2] - right[2] * across * metresPerPixel + up[2] * down * metresPerPixel,
+  ]
+  return { target: aimed, distance, yaw, pitch }
 }
 
 export interface WalkOptions {

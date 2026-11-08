@@ -2,7 +2,7 @@
 // dragged to a place in metres, and a room's card. Plan metres become page pixels through the status line's pointer
 // read-out (it says where the pointer is on the plan), as the editor's own layout tests do, so a journey says
 // "drag the crate to 3, 6.5" and not a pixel.
-import { expect, type Page } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 import type { RunningEditor } from './run-editor.ts'
 
 const PLAN = '[data-testid="plan-canvas"]'
@@ -121,4 +121,31 @@ export async function setTimeOfDay(page: Page, label: string): Promise<void> {
   await page.getByRole('option', { name: label }).click()
   // The sheet covers the plan, which the next step draws on: close what this opened.
   if (sheet) await details.click()
+}
+
+/**
+ * How bright the picture a canvas shows is, 0 (black) to 1 (white): the mean of its pixels' luminance. A journey that
+ * says a time of day reaches the game asks this of the game's own picture, not of a word the page writes about it.
+ */
+export async function meanLuminance(page: Page, canvas: Locator): Promise<number> {
+  const picture = (await canvas.screenshot()).toString('base64')
+  return page.evaluate(async (data) => {
+    const image = new Image()
+    image.src = `data:image/png;base64,${data}`
+    await image.decode()
+    const paper = document.createElement('canvas')
+    paper.width = image.width
+    paper.height = image.height
+    const context = paper.getContext('2d')
+    if (context === null) throw new Error('no 2d canvas to read the picture with')
+    context.drawImage(image, 0, 0)
+    const { data: pixels } = context.getImageData(0, 0, paper.width, paper.height)
+    let sum = 0
+    for (let at = 0; at < pixels.length; at += 4)
+      sum +=
+        0.2126 * (pixels[at] as number) +
+        0.7152 * (pixels[at + 1] as number) +
+        0.0722 * (pixels[at + 2] as number)
+    return sum / (pixels.length / 4) / 255
+  }, picture)
 }

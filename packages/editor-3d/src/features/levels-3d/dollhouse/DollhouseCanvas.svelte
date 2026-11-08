@@ -10,6 +10,7 @@ import { attachGestures } from '@automata/editor/kit'
 import type { Size } from '@automata/editor/kit/core'
 import { onDestroy } from 'svelte'
 import type { LevelEditor } from '../../../shared/edit/level-editor'
+import { cardClearArea } from './card-clear-area'
 import { createDollhouseController, type DollhouseController } from './dollhouse-controller'
 import { dollhouseGestures } from './dollhouse-gestures'
 import { dollhousePaint, type SurfaceColours } from './dollhouse-paint'
@@ -59,6 +60,7 @@ function measured(next: Size): void {
     if (host !== undefined)
       stops.push(attachGestures(host, dollhouseGestures(controller, { onundo, onredo }), { rotate: true }))
   } else controller?.resize(next)
+  clearArea()
   if (view === undefined) void start()
   else {
     view.resize({ ...next, resolution: resolution() })
@@ -67,6 +69,11 @@ function measured(next: Size): void {
 }
 
 const resolution = (): number => host?.ownerDocument.defaultView?.devicePixelRatio ?? 1
+
+/** The room is framed where the details card (or a sheet) does not cover it, and again when the card opens or moves. */
+function clearArea(): void {
+  if (host !== undefined && size !== undefined) controller?.setUsable(cardClearArea(host, size))
+}
 
 let starting = false
 async function start(): Promise<void> {
@@ -109,6 +116,19 @@ $effect(() => {
   return () => observer.disconnect()
 })
 
+$effect(() => {
+  const document = host?.ownerDocument
+  const Observer = document?.defaultView?.MutationObserver
+  if (document === undefined || Observer === undefined) return
+  const observer = new Observer(clearArea)
+  observer.observe(document.body, {
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['data-open', 'data-detent', 'data-presentation'],
+  })
+  return () => observer.disconnect()
+})
+
 onDestroy(() => {
   for (const stop of stops.splice(0)) stop()
   controller?.dispose()
@@ -128,7 +148,7 @@ onDestroy(() => {
   {#key attempt}
     <canvas bind:this={canvas} class:hidden={phase !== 'drawing' || paused}></canvas>
   {/key}
-  <span class="tag" aria-hidden="true">3D · orbit</span>
+  <span class="tag" aria-hidden="true">Drag to turn the room</span>
   <div class="notice" role="status" hidden={phase !== 'unavailable' && !paused}>
     {#if phase === 'unavailable'}
       <p>This browser can’t draw the 3D view: it needs WebGL2. The plan still works and your level is safe.</p>
@@ -168,7 +188,7 @@ onDestroy(() => {
     border-radius: var(--edge-sm);
     background: color-mix(in srgb, var(--color-bg-app) 85%, transparent);
     color: var(--color-text-dim);
-    font: 500 11px / 16px var(--font-mono, monospace);
+    font: var(--text-body-13);
     pointer-events: none;
   }
   .notice {

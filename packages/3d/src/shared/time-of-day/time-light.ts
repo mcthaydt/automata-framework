@@ -77,7 +77,7 @@ function gained(colour: number, gain: number): number {
 }
 
 const meanLinear = (colour: number): number =>
-  ([0, 1, 2] as const).reduce(
+  ([0, 1, 2] as const).reduce<number>(
     (sum, index) => sum + toLinear(((colour >> (16 - index * 8)) & 0xff) / 255),
     0,
   ) / 3

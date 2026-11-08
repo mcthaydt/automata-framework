@@ -6,8 +6,8 @@ import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
 import type { EntityKit } from '#src/shared/things/things.ts'
 import { toyAfSector } from '#src/testing/toy-af-sector.ts'
 
-// The rows of the layers panel (plan ED3D.5d step 4; ED3D spec §5.2): Sectors and Walls, then Things with one row per
-// entity definition, in the level's order, each with its count, colour and state.
+// The rows of the layers panel (plan ED3D.5d step 4; ED3D spec §5.2): Rooms and Walls, then Things with one row per
+// entity definition the level has any of, in the level's order, each with its count, colour and state.
 
 const kit: EntityKit = {
   definitions: [
@@ -25,14 +25,12 @@ describe('layerRows', () => {
   it('lists the geometry layers, then Things and a row for each definition with its count', () => {
     const rows = layerRows({ kit, sectors: 3, walls: 12, view: initialView })
     expect(rows.map((row) => [row.id, row.label, row.count, row.depth])).toEqual([
-      ['sectors', 'Sectors', 3, 0],
+      ['sectors', 'Rooms', 3, 0],
       ['walls', 'Walls', 12, 0],
       ['things', 'Things', 2, 0],
       ['things:lamp', 'Lamps', 2, 1],
-      ['things:crate', 'crate', 0, 1],
     ])
     expect(rows.find((row) => row.id === 'things:lamp')?.color).toBe('#f4e285')
-    expect(rows.find((row) => row.id === 'things:crate')?.color).toBe('#8f9bb3')
     expect(rows.find((row) => row.id === 'sectors')?.active).toBe(true)
   })
 
@@ -52,6 +50,24 @@ describe('layerRows', () => {
     expect(state('things:lamp')).toEqual([false, false, true, true])
     expect(state('things:crate')).toEqual([false, true, false, true])
     expect(state('sectors')).toEqual([false, false, false, false])
+  })
+
+  it('lists a kind with none in the level only while it is chosen, hidden or locked, and words its id', () => {
+    const chosen = layerRows({ kit, sectors: 1, walls: 1, view: { ...initialView, layer: 'things:crate' } })
+    expect(chosen.find((row) => row.id === 'things:crate')).toMatchObject({
+      label: 'Crate',
+      count: 0,
+      active: true,
+    })
+    const hidden = layerRows({
+      kit,
+      sectors: 1,
+      walls: 1,
+      view: { ...initialView, hidden: ['things:crate'] },
+    })
+    expect(hidden.some((row) => row.id === 'things:crate')).toBe(true)
+    const plain = layerRows({ kit, sectors: 1, walls: 1, view: initialView })
+    expect(plain.some((row) => row.id === 'things:crate')).toBe(false)
   })
 
   it('lists no Things row for a level with no definitions', () => {

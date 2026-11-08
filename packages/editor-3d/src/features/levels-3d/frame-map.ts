@@ -35,8 +35,16 @@ export function frameMap(
   canvas: Size,
   usable?: Rect | undefined,
 ): ViewState['camera']
-/** The 3D view's orbit: round the middle of the level from the home angles, as near as shows every corner. */
-export function frameMap(input: { readonly mesh: SectorMesh }, view: 'diorama', canvas: Size): Orbit
+/**
+ * The 3D view's orbit: round the middle of the level from the home angles, as near as shows every corner, in `usable`
+ * (the part of the canvas a floating card leaves) when it names one.
+ */
+export function frameMap(
+  input: { readonly mesh: SectorMesh },
+  view: 'diorama',
+  canvas: Size,
+  usable?: Rect | undefined,
+): Orbit
 /** Walk's start: at the spawn, or in the first room (or at the origin) with a warning that says so. */
 export function frameMap(input: FrameInput, view: 'walk', canvas: Size): WalkStart
 export function frameMap(
@@ -51,7 +59,7 @@ export function frameMap(
       return usable === undefined ? fitPlan(bounds, canvas) : fitInto(bounds, usable, canvas)
     }
     case 'diorama':
-      return fitOrbit((input.mesh ?? EMPTY_MESH).bounds, canvas)
+      return fitOrbit((input.mesh ?? EMPTY_MESH).bounds, canvas, { usable })
     case 'walk':
       return walkStart(input.layers ?? [], input.spawn, input.walk)
   }
