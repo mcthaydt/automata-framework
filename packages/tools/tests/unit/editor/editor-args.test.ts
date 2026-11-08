@@ -15,6 +15,7 @@ describe('parseEditorArgs', () => {
         lan: false,
         token: undefined,
         gameUrl: 'http://localhost:5173/',
+        appOrigins: [],
       },
     })
   })
@@ -32,8 +33,32 @@ describe('parseEditorArgs', () => {
         lan: true,
         token: 'abc',
         gameUrl: 'http://localhost:5173/',
+        appOrigins: [],
       },
     })
+  })
+
+  it('takes the origins of the Automata app, as written, one flag each', () => {
+    expect(
+      parseEditorArgs([
+        '--token',
+        't',
+        '--app-origin',
+        'tauri://localhost',
+        '--app-origin',
+        'http://tauri.localhost',
+      ]),
+    ).toMatchObject({ ok: true, options: { appOrigins: ['tauri://localhost', 'http://tauri.localhost'] } })
+  })
+
+  it('refuses an app origin that is not an origin: a path, a bare name, a wildcard', () => {
+    for (const bad of ['localhost', 'tauri://localhost/index.html', '*', 'http://']) {
+      expect(parseEditorArgs(['--app-origin', bad])).toEqual({
+        ok: false,
+        problem: '--app-origin is an origin like tauri://localhost',
+      })
+    }
+    expect(parseEditorArgs(['--app-origin'])).toEqual({ ok: false, problem: '--app-origin needs a value' })
   })
 
   it('takes an explicit build folder', () => {

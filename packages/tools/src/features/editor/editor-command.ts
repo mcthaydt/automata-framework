@@ -30,7 +30,7 @@ export interface EditorCommandDeps {
 }
 
 const USAGE = `Usage: automata editor [folder] [--app 2d|3d|suite] [--app-dir <build>] [--port <n>] [--lan] [--token <t>]
-       [--game-url <address>]
+       [--game-url <address>] [--app-origin <origin>]
 
 Opens the level editor on the game in <folder> (default: this folder) until you press Ctrl+C.
 Only this computer can open it, unless you add --lan: then a tablet on your network can too, and a token is needed
@@ -39,6 +39,8 @@ The editor saves to the files listed in content/editors.toml, and it will not ov
 you were editing. Without content/editors.toml, it opens only level files (*.af2d.json).
 The Tuner shows your game beside its settings: start it with pnpm dev, and give --game-url if it is not on
 http://localhost:5173.
+The Automata app calls this server from its own page: give that page's address with --app-origin (tauri://localhost),
+and a token, so only the app can write.
 `
 
 /** Where each editor's build is, from the repository root, and the package that builds it. */
@@ -73,7 +75,7 @@ export async function editorCommand(
     io.stderr(`Error: ${parsed.problem}\n\n${USAGE}`)
     return 2
   }
-  const { dir, app, appDir, port, lan, token, gameUrl } = parsed.options
+  const { dir, app, appDir, port, lan, token, gameUrl, appOrigins } = parsed.options
   // The 3D editor and the suite are built in the repository only; a published copy of the tools has just the level
   // editor.
   if (app !== '2d' && appDir === undefined && !deps.inRepository) {
@@ -100,6 +102,7 @@ export async function editorCommand(
       port,
       token: secret,
       gameUrl,
+      appOrigins,
     })
   } catch (error) {
     io.stderr(`Error: ${error instanceof Error ? error.message : String(error)}\n`)

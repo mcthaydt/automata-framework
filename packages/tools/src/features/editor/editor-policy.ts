@@ -17,7 +17,7 @@ export interface EditorPolicy {
 const LEVEL_FILE = '.af2d.json'
 
 /** Folders a person's tools own: nothing in them is an editor's to read or write. */
-const OWNED = new Set(['.git', 'node_modules', 'dist', '.vitest', '.claude', '.github'])
+const OWNED = new Set(['.git', 'node_modules', 'dist', '.vitest', '.claude', '.github', '.automata'])
 
 const inside = (path: string): boolean =>
   path !== '' &&

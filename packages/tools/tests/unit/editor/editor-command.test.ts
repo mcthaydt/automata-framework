@@ -98,6 +98,12 @@ describe('editorCommand', () => {
     expect(served).toEqual([])
   })
 
+  it("hands the app's origins to the server, which then needs the token the app was given", async () => {
+    const { deps, io, served } = setup()
+    await editorCommand(['--token', 'abc', '--app-origin', 'tauri://localhost'], io, deps)
+    expect(served[0]).toMatchObject({ token: 'abc', appOrigins: ['tauri://localhost'] })
+  })
+
   it('reports a server that will not start, exit 2', async () => {
     const { deps, io, err } = setup({
       serve: async () => {

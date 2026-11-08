@@ -12,6 +12,7 @@ import type { AddressInfo } from 'node:net'
 import { basename, extname, join, resolve, sep } from 'node:path'
 import { type Checkout, openCheckout } from './checkout.ts'
 import { type EditorPolicy, editorPolicy } from './editor-policy.ts'
+import { openWatcher, WATCH_DEBOUNCE_MS, type Watcher } from './watch.ts'
 
 export interface EditorServerOptions {
   /** The game checkout the editor reads and writes. */
@@ -28,6 +29,13 @@ export interface EditorServerOptions {
   readonly gameUrl?: string | undefined
   /** What may be touched; the checkout's editor list decides when this is left out. */
   readonly policy?: EditorPolicy | undefined
+  /**
+   * Origins, exactly as a browser sends them (`tauri://localhost`), of pages this server does not serve that may call
+   * it: the Automata app's. They get CORS headers and may write, and still need the token, so naming one needs a token.
+   */
+  readonly appOrigins?: readonly string[] | undefined
+  /** How long a file must be still before `/api/watch` reports it; a test shortens it. */
+  readonly watchDebounceMs?: number | undefined
 }
 
 export interface RunningEditor {
@@ -141,6 +149,7 @@ async function api(
   policy: EditorPolicy,
   checkout: Checkout,
   facts: PingFacts,
+  watcher: Watcher,
 ): Promise<void> {
   if (url.pathname === '/api/ping')
     return reply(res, 200, { automata: 'editor', token: token !== undefined, ...facts })
@@ -152,8 +161,22 @@ async function api(
   if (url.pathname === '/api/list' && req.method === 'GET') {
     return reply(res, 200, await checkout.list(url.searchParams.get('prefix') ?? ''))
   }
+  if (url.pathname === '/api/watch' && req.method === 'GET') return watchRoute(req, res, watcher)
   if (url.pathname !== '/api/file') return reply(res, 404, { message: 'no such route' })
   return fileRoute(req, res, url, policy, checkout)
+}
+
+/** `/api/watch`: server-sent events, one `data:` line of JSON per changed file, until the client leaves. */
+function watchRoute(req: IncomingMessage, res: ServerResponse, watcher: Watcher): void {
+  res.writeHead(200, {
+    'content-type': 'text/event-stream; charset=utf-8',
+    'cache-control': 'no-store',
+    connection: 'keep-alive',
+  })
+  // A comment line, so the client's `fetch` resolves now and not at the first change.
+  res.write(': watching\n\n')
+  const stop = watcher.subscribe((change) => res.write(`data: ${JSON.stringify(change)}\n\n`))
+  req.on('close', stop)
 }
 
 /** The editor's own static files; `/` is its `index.html`, and a path with no extension falls back to it. */
@@ -173,20 +196,41 @@ async function staticFile(res: ServerResponse, appDir: string, pathname: string)
 }
 
 /** Why a request must be refused before any route sees it (a rebinding host, a page from another origin), if so. */
-function refusal(req: IncomingMessage, onLoopback: boolean): string | undefined {
+function refusal(
+  req: IncomingMessage,
+  onLoopback: boolean,
+  appOrigins: readonly string[],
+): string | undefined {
   const hostName = (req.headers.host ?? '').replace(/:\d+$/, '')
   if (onLoopback && !LOOPBACK_NAMES.has(hostName))
     return 'this server answers only to its own loopback address'
   const origin = req.headers.origin
+  if (origin !== undefined && appOrigins.includes(origin)) return undefined
   if (
     req.method !== 'GET' &&
     req.method !== 'HEAD' &&
     origin !== undefined &&
-    new URL(origin).host !== req.headers.host
+    !sameHost(origin, req.headers.host)
   )
     return 'a page from another origin may not change files'
   return undefined
 }
+
+/** Whether `origin` (as sent, possibly `null` from a sandboxed page) is on `host`. */
+function sameHost(origin: string, host: string | undefined): boolean {
+  try {
+    return new URL(origin).host === host
+  } catch {
+    return false
+  }
+}
+
+/** A preflight answer for an app origin: the methods the routes use, and the headers the editor sends. */
+const PREFLIGHT_HEADERS = {
+  'access-control-allow-methods': 'GET, PUT, DELETE, OPTIONS',
+  'access-control-allow-headers': 'authorization, content-type',
+  'access-control-max-age': '600',
+} as const
 
 /** Starts the editor's server. Listening beyond the loopback needs a token, because the editor writes files. */
 export async function serveEditor(options: EditorServerOptions): Promise<RunningEditor> {
@@ -194,12 +238,16 @@ export async function serveEditor(options: EditorServerOptions): Promise<Running
   const { token } = options
   if (!isLoopback(host) && token === undefined)
     throw new Error('listening beyond the loopback needs a token: the editor writes files')
+  const appOrigins = options.appOrigins ?? []
+  if (appOrigins.length > 0 && token === undefined)
+    throw new Error('naming an app origin needs a token: that page can write files')
   const root = await realpath(options.root)
   const appDir = await realpath(options.appDir)
   const policy =
     options.policy ??
     editorPolicy(await readFile(join(root, 'content/editors.toml'), 'utf8').catch(() => undefined))
   const checkout = openCheckout(root, policy)
+  const watcher = openWatcher(root, policy, options.watchDebounceMs ?? WATCH_DEBOUNCE_MS)
   // `gameUrl` is left out of the ping when there is none, so an older editor reads the same answer.
   const facts: PingFacts = {
     game: gameName(root),
@@ -209,10 +257,21 @@ export async function serveEditor(options: EditorServerOptions): Promise<Running
   const server: Server = createServer((req, res) => {
     void (async () => {
       try {
-        const refused = refusal(req, isLoopback(host))
+        const refused = refusal(req, isLoopback(host), appOrigins)
         if (refused !== undefined) return reply(res, 403, { message: refused })
         const url = new URL(req.url ?? '/', 'http://editor')
-        if (url.pathname.startsWith('/api/')) return await api(req, res, url, token, policy, checkout, facts)
+        const origin = req.headers.origin
+        if (origin !== undefined && appOrigins.includes(origin)) {
+          // The answer is for that page only; a cache must not hand it to another origin.
+          res.setHeader('access-control-allow-origin', origin)
+          res.setHeader('vary', 'Origin')
+          if (req.method === 'OPTIONS' && url.pathname.startsWith('/api/')) {
+            res.writeHead(204, PREFLIGHT_HEADERS)
+            return res.end()
+          }
+        }
+        if (url.pathname.startsWith('/api/'))
+          return await api(req, res, url, token, policy, checkout, facts, watcher)
         return await staticFile(res, appDir, url.pathname)
       } catch (error) {
         if (!res.headersSent)
@@ -232,6 +291,7 @@ export async function serveEditor(options: EditorServerOptions): Promise<Running
     port,
     close: () =>
       new Promise<void>((resolveClosed) => {
+        watcher.close()
         server.closeAllConnections()
         server.close(() => resolveClosed())
       }),

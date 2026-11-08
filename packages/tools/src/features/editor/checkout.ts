@@ -7,7 +7,10 @@ import type { EditorPolicy } from './editor-policy.ts'
 // file makes sure a path cannot lead out of the checkout, and that a write knows what it replaces.
 
 /** Folders the editor never lists: version control, installs, builds and the agent's own. */
-const OWNED = new Set(['.git', 'node_modules', 'dist', '.vitest', '.claude', '.github'])
+const OWNED = new Set(['.git', 'node_modules', 'dist', '.vitest', '.claude', '.github', '.automata'])
+
+/** Whether `path` (root-relative, `/`-separated) is inside a folder the editor never reaches. */
+export const inOwnedFolder = (path: string): boolean => path.split('/').some((segment) => OWNED.has(segment))
 
 /** One file the editor may read: its path from the checkout, size and modified time. */
 export interface ListedFile {

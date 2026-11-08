@@ -1,4 +1,5 @@
-// `automata editor [dir] [--app 2d|3d|suite] [--app-dir <dir>] [--port <n>] [--lan] [--token <t>] [--game-url <url>]`:
+// `automata editor [dir] [--app 2d|3d|suite] [--app-dir <dir>] [--port <n>] [--lan] [--token <t>] [--game-url <url>]
+// [--app-origin <origin>]...`:
 // serve an editor against a game checkout; the 2D editor unless told otherwise. One command for every editor.
 
 export type EditorApp = '2d' | '3d' | 'suite'
@@ -16,6 +17,8 @@ export interface EditorOptions {
   readonly token: string | undefined
   /** The game's dev page (`pnpm dev`), which the Tuner shows beside its settings; Vite's own port unless told. */
   readonly gameUrl: string
+  /** Origins of the Automata app's page, which may call the server (`tauri://localhost`); each needs the token. */
+  readonly appOrigins: readonly string[]
 }
 
 /** Where `pnpm dev` serves a game when nothing else holds Vite's port: the page the Tuner shows by default. */
@@ -27,6 +30,9 @@ function webAddress(value: string): string | undefined {
   const url = new URL(value)
   return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : undefined
 }
+
+/** An origin as a browser sends it: a scheme, `://` and a host with an optional port, and nothing after. */
+const ORIGIN = /^[a-z][a-z0-9+.-]*:\/\/[^/\s*?#]+$/
 
 export type EditorArgs =
   | { readonly ok: true; readonly options: EditorOptions }
@@ -43,6 +49,7 @@ export function parseEditorArgs(args: readonly string[]): EditorArgs {
   let lan = false
   let token: string | undefined
   let gameUrl = DEFAULT_GAME_URL
+  const appOrigins: string[] = []
 
   const valueAfter = (index: number): string | undefined => {
     const value = args[index + 1]
@@ -52,7 +59,7 @@ export function parseEditorArgs(args: readonly string[]): EditorArgs {
   for (let i = 0; i < args.length; i++) {
     const flag = args[i] as string
     if (flag === '--lan') lan = true
-    else if (['--app', '--app-dir', '--port', '--token', '--game-url'].includes(flag)) {
+    else if (['--app', '--app-dir', '--port', '--token', '--game-url', '--app-origin'].includes(flag)) {
       const value = valueAfter(i)
       if (value === undefined) return { ok: false, problem: `${flag} needs a value` }
       i++
@@ -61,7 +68,11 @@ export function parseEditorArgs(args: readonly string[]): EditorArgs {
         app = value
       } else if (flag === '--app-dir') appDir = value
       else if (flag === '--token') token = value
-      else if (flag === '--game-url') {
+      else if (flag === '--app-origin') {
+        if (!ORIGIN.test(value))
+          return { ok: false, problem: '--app-origin is an origin like tauri://localhost' }
+        appOrigins.push(value)
+      } else if (flag === '--game-url') {
         const address = webAddress(value)
         if (address === undefined)
           return { ok: false, problem: '--game-url is a web address, like http://localhost:5173' }
@@ -76,5 +87,5 @@ export function parseEditorArgs(args: readonly string[]): EditorArgs {
     else if (dir === undefined) dir = flag
     else return { ok: false, problem: `unexpected argument ${flag}` }
   }
-  return { ok: true, options: { dir: dir ?? '.', app, appDir, port, lan, token, gameUrl } }
+  return { ok: true, options: { dir: dir ?? '.', app, appDir, port, lan, token, gameUrl, appOrigins } }
 }
