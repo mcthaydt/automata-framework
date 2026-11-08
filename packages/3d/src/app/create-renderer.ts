@@ -34,6 +34,7 @@ import type { SceneFog, SceneLighting } from '../shared/render/light/scene-light
 import { fogSkyColor, viewFog } from '../shared/render/light/view-fog.ts'
 import { loadModels, type ModelLibrary, type ModelStore } from '../shared/render/model/load-models.ts'
 import type { EntityView3d, EntityViewResolver3d } from '../shared/render/views/view-3d.ts'
+import { lightByTime } from '../shared/time-of-day/time-light.ts'
 import { type TimeOfDay, timeOfDay } from '../shared/time-of-day/time-of-day.ts'
 
 export interface Pixi3dOptions extends PixiRendererOptions {
@@ -86,7 +87,12 @@ export interface Pixi3dOptions extends PixiRendererOptions {
    * letterbox draws at resolution 1 and upscales whole pixels. Without it the frame is drawn as it is.
    */
   readonly look?: Look | undefined
-  /** The time of day the look's passes read (default `day`). Only with `look`. */
+  /**
+   * The time of day the scene is lit in (default `day`, which leaves the game's colours as they are). The renderer
+   * lights the game's own colours by it (`lightByTime`): the fog's, and the view's `environment` (the sky and ground
+   * colours a game sets in `scene`) after the `scene` hook has run, so a game draws its colours by day and names the
+   * time. The look's passes read it too (only with `look`).
+   */
   readonly time?: TimeOfDay | undefined
   /** Times the lost-context wait. The real clock unless a test hands over a fake one. */
   readonly clock?: Clock | undefined
@@ -109,6 +115,35 @@ export interface RendererKind {
 export function acceptsRenderer(renderer: RendererKind): boolean {
   if (renderer.name === 'webgpu') return true
   return renderer.name === 'webgl' && renderer.context?.webGLVersion === 2
+}
+
+/** The options with the fog's colour lit by the time of day: fogged walls must meet the sky the time gives. */
+function litFog(options: Pixi3dOptions): Pixi3dOptions {
+  const { time } = options
+  if (time === undefined) return options
+  const lit = (fog: SceneFog | undefined): SceneFog | undefined =>
+    fog === undefined ? undefined : { ...fog, color: lightByTime(fog.color, time) }
+  return {
+    ...options,
+    fog: lit(options.fog),
+    lighting:
+      options.lighting === undefined ? undefined : { ...options.lighting, fog: lit(options.lighting.fog) },
+  }
+}
+
+/**
+ * Lights the hemisphere a game set as the view's `environment` by the time of day, once, after its `scene` hook ran.
+ * A game that set none (or set an environment map) is left as it is.
+ */
+function lightEnvironment(view: View3D, time: TimeOfDay | undefined): void {
+  const environment = view.environment as { skyColor?: unknown; groundColor?: unknown } | null
+  if (time === undefined || environment === null || typeof environment !== 'object') return
+  if (typeof environment.skyColor !== 'number' || typeof environment.groundColor !== 'number') return
+  view.environment = {
+    ...environment,
+    skyColor: lightByTime(environment.skyColor, time),
+    groundColor: lightByTime(environment.groundColor, time),
+  }
 }
 
 /** Runs each defined hook in order. */
@@ -252,11 +287,9 @@ async function buildInstance(
       const made = mount(stage, options, models)
       mounted = made
       const own = options.setup?.(stage) ?? undefined
-      return mergeHooks(
-        made.hooks,
-        own,
-        options.scene?.(made.view, stage, made.occluders, made.light, models),
-      )
+      const scene = options.scene?.(made.view, stage, made.occluders, made.light, models)
+      lightEnvironment(made.view, options.time)
+      return mergeHooks(made.hooks, own, scene)
     },
   })(target)
   if (!made.ok) return made
@@ -301,9 +334,8 @@ export type Pixi3dResult =
  * the "picture stopped" panel, whose Try again replaces the app, the View3D and the views, resynced from the sim's
  * current rows. The models and the game's state are kept.
  */
-export function createPixi3dRenderer(
-  options: Pixi3dOptions,
-): (target: RenderTarget) => Promise<Pixi3dResult> {
+export function createPixi3dRenderer(given: Pixi3dOptions): (target: RenderTarget) => Promise<Pixi3dResult> {
+  const options = litFog(given)
   const clock = options.clock ?? systemClock
   return async (target) => {
     // Without the shim, pixi.js/unsafe-eval cannot upload @pixi/3d's uniforms and the first draw throws (S7-Q1).

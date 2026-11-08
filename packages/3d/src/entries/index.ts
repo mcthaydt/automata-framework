@@ -128,4 +128,5 @@ export { type BoxMaterial, type BoxSize, box } from '../shared/render/views/box-
 export { type MeshViewOptions, mesh } from '../shared/render/views/mesh-view.ts'
 export { interpolatePose3d, type Pose3d, placeView3d } from '../shared/render/views/pose-3d.ts'
 export type { EntityView3d, EntityViewResolver3d, View3dFactory } from '../shared/render/views/view-3d.ts'
+export { levelTime, lightByTime } from '../shared/time-of-day/time-light.ts'
 export { TIMES, type TimeOfDay, type TimeOverrides, timeOfDay } from '../shared/time-of-day/time-of-day.ts'
