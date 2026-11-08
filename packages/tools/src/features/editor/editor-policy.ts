@@ -48,3 +48,25 @@ export function editorPolicy(listText: string | undefined): EditorPolicy {
     canWrite: (path) => inside(path) && fileAccess(list, path).writable,
   }
 }
+
+/** What the policy reads the editor list through: its text and modified time, or nothing when the game has none. */
+type ReadList = () => Promise<{ readonly text: string; readonly mtime: number } | undefined>
+
+/**
+ * A policy that follows the list on disk: it is looked up for each request and rebuilt when the list changes, so a row a
+ * person adds (or an editor adds through `listGrowsBy`) takes effect without restarting the server, and a row removed by
+ * hand stops allowing its files. The check is the list's modified time and its text, so a change inside one clock tick is
+ * still seen.
+ */
+export function livePolicy(read: ReadList): () => Promise<EditorPolicy> {
+  let seen: { readonly mtime: number | undefined; readonly text: string | undefined } | undefined
+  let built: EditorPolicy | undefined
+  return async () => {
+    const file = await read()
+    if (built === undefined || seen === undefined || seen.mtime !== file?.mtime || seen.text !== file?.text) {
+      built = editorPolicy(file?.text)
+      seen = { mtime: file?.mtime, text: file?.text }
+    }
+    return built
+  }
+}
