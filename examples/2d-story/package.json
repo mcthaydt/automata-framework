@@ -1,0 +1,36 @@
+{
+  "name": "@af-examples/2d-story",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --configLoader runner",
+    "build:web": "vite build --mode web --configLoader runner",
+    "build:itch": "vite build --mode itch --configLoader runner",
+    "prepare:web": "automata ship prepare --target web",
+    "prepare:itch": "automata ship prepare --target itch",
+    "typecheck": "tsc -p .",
+    "test": "vitest run --configLoader runner",
+    "check": "pnpm typecheck && pnpm test && automata-check-boundaries --game src"
+  },
+  "dependencies": {
+    "@automata/framework": "workspace:*",
+    "@automata/content": "workspace:*",
+    "@automata/sim": "workspace:*",
+    "pixi.js": "8.22.0",
+    "svelte": "5.57.1",
+    "zod": "4.6.6"
+  },
+  "devDependencies": {
+    "@automata/tools": "workspace:*",
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@types/node": "24.19.1",
+    "typescript": "7.0.2",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  },
+  "description": "A small 2D story game: two areas, a wall with a gap, a keeper and a guard. The game the served journeys of the content editors play.",
+  "imports": {
+    "#src/*": "./src/*"
+  }
+}
