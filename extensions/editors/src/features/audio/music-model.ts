@@ -131,6 +131,21 @@ export function conditionEdits(
   ]
 }
 
+/** How many rules play the track at `index`. */
+export const rulesPlaying = (content: AudioContent, index: number): number =>
+  (content.music_rule ?? []).filter((rule) => rule.slot === content.slot?.[index]?.id).length
+
+/** Removing a track sets the rules that played it to play nothing (so the file stays valid), then removes the track. */
+export function removeTrackEdits(content: AudioContent, index: number): ContentEdit[] {
+  const id = content.slot?.[index]?.id
+  const rules = (content.music_rule ?? []).flatMap((rule, at) =>
+    rule.slot === id
+      ? [{ keyPath: ['music_rule', at, 'slot'], expected: id, set: 'silence' } as ContentEdit]
+      : [],
+  )
+  return [...rules, { keyPath: ['slot', index], remove: true }]
+}
+
 /** The tracks a rule can play, in words: the game's own, then keeping what plays or silence. */
 export function playChoices(content: AudioContent): { value: string; label: string }[] {
   return [

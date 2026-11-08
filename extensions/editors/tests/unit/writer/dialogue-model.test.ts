@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
   addChoiceEdit,
+  addConditionEdits,
   addPartEdit,
   choiceFactEdit,
   conditionWords,
   layoutConversation,
+  onlyIfCond,
   partIdOf,
   partWords,
   readingOrder,
@@ -192,5 +194,34 @@ describe('layoutConversation', () => {
     expect(row('lost')).toBe(3)
     expect(arrows.find((arrow) => arrow.from === 'goodbye' && arrow.to === 'hello')?.back).toBe(true)
     expect(arrows.find((arrow) => arrow.from === 'hello' && arrow.to === 'browsing')?.back).toBe(false)
+  })
+})
+
+describe('Only if…', () => {
+  it('builds a condition from words, a fact against a value or an item the player has', () => {
+    expect(onlyIfCond({ kind: 'is', name: 'Asked key', value: 'yes' })).toEqual({
+      fact: 'asked_key',
+      is: true,
+    })
+    expect(onlyIfCond({ kind: 'atLeast', name: 'trust', value: '2' })).toEqual({ fact: 'trust', atLeast: 2 })
+    expect(onlyIfCond({ kind: 'has', name: 'Brass key' })).toEqual({ has: 'brass_key' })
+  })
+
+  it('says why it cannot be built, in words', () => {
+    expect(onlyIfCond({ kind: 'atMost', name: 'trust', value: 'lots' })).toBe(
+      '“is at most” needs a number, like 2.',
+    )
+    expect(onlyIfCond({ kind: 'has', name: ' ' })).toBe('Say which item.')
+    expect(onlyIfCond({ kind: 'is', name: '', value: 'yes' })).toBe('Say which fact.')
+  })
+
+  it('makes the part’s list of conditions first when it has none', () => {
+    expect(addConditionEdits(0, 'hello', { say: [] }, { has: 'key' })).toEqual([
+      { keyPath: ['graphs', 0, 'nodes', 'hello', 'when'], insert: [] },
+      { keyPath: ['graphs', 0, 'nodes', 'hello', 'when'], insert: { has: 'key' } },
+    ])
+    expect(addConditionEdits(0, 'hello', { say: [], when: [{ has: 'a' }] }, { has: 'key' })).toEqual([
+      { keyPath: ['graphs', 0, 'nodes', 'hello', 'when'], insert: { has: 'key' } },
+    ])
   })
 })

@@ -58,6 +58,50 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
+describe('Audio removals keep the file valid', () => {
+  it('removes a track and sets the rules that played it to play nothing, as the ask says', async () => {
+    const { ports } = await open({ [AUDIO_PATH]: FILE })
+    await userEvent.click(screen.getByRole('button', { name: 'calm' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Remove calm' }))
+    expect(
+      screen.getByText('Remove calm? The rules that play it will play nothing instead.'),
+    ).toBeInTheDocument()
+    await userEvent.click(
+      within(screen.getByRole('group', { name: 'Remove calm?' })).getByRole('button', { name: 'Remove' }),
+    )
+    await vi.waitFor(async () => expect(await text(ports)).not.toContain('id = "calm"'))
+    expect(await text(ports)).toContain('slot = "silence"')
+    expect(await text(ports)).not.toContain('slot = "calm"')
+    expect(document.body.textContent).not.toMatch(/problem/)
+  })
+
+  it('removes a sound and the rows that played it, and says so first', async () => {
+    const { ports } = await open({ [AUDIO_PATH]: FILE })
+    await userEvent.click(screen.getByRole('button', { name: 'Remove coin' }))
+    expect(screen.getByText('Remove coin? The 1 row that plays it is removed too.')).toBeInTheDocument()
+    await userEvent.click(
+      within(screen.getByRole('group', { name: 'Remove coin?' })).getByRole('button', { name: 'Remove' }),
+    )
+    await vi.waitFor(async () => expect(await text(ports)).not.toContain('id = "coin"'))
+    expect(await text(ports)).not.toContain('coin.picked')
+    expect(document.body.textContent).not.toMatch(/problem/)
+  })
+})
+
+describe('Audio: when things happen', () => {
+  it('offers the game’s events in words, and the new row plays the sound last looked at', async () => {
+    const { ports } = await open({
+      [AUDIO_PATH]: FILE.replace('[[event]]', '[[cue]]\nid = "thud"\nbus = "sfx"\nvoices = []\n\n[[event]]'),
+      'content/cutscenes/opening.toml': 'id = "opening"\nduration = 5\n',
+    })
+    await userEvent.click(screen.getByRole('button', { name: 'thud' }))
+    await userEvent.click(screen.getByRole('button', { name: 'When things happen' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Add what happens' }))
+    await userEvent.click(screen.getByRole('button', { name: 'cutscene started' }))
+    await vi.waitFor(async () => expect(await text(ports)).toContain('on = "cutscene.started"\ncue = "thud"'))
+  })
+})
+
 describe('Audio', () => {
   it('lists the sounds, the music and what plays when, in words', async () => {
     await open({ [AUDIO_PATH]: FILE })
@@ -161,6 +205,19 @@ describe('Audio', () => {
     await userEvent.click(within(otherwise).getByRole('button', { name: 'Move up' }))
     await vi.waitFor(async () => expect(await text(ports)).toMatch(/slot = "calm"[\s\S]*slot = "chase"/))
     expect(session.toml.history.undoLabel).toBe('Move a music rule up')
+  })
+
+  it('does not save a number it was not given', async () => {
+    const { ports } = await open({ [AUDIO_PATH]: FILE })
+    await userEvent.click(screen.getByRole('button', { name: 'What music plays when' }))
+    const otherwise = screen.getByRole('article', { name: 'Otherwise: play calm' })
+    await userEvent.click(within(otherwise).getByRole('button', { name: 'Wait for something' }))
+    await userEvent.type(within(otherwise).getByLabelText('What does the game keep track of?'), 'danger')
+    await userEvent.selectOptions(within(otherwise).getByLabelText('Is'), 'is at least')
+    await userEvent.type(within(otherwise).getByLabelText('Value'), 'lots')
+    await userEvent.click(within(otherwise).getByRole('button', { name: 'Add' }))
+    expect(within(otherwise).getByRole('alert')).toHaveTextContent('“is at least” needs a number, like 2.')
+    expect(await text(ports)).toBe(FILE)
   })
 
   it('waits for something: adds a condition to a rule', async () => {

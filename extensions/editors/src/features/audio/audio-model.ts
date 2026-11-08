@@ -154,6 +154,17 @@ export const addVoiceEdit = (cue: number, kind: 'tone' | 'hiss'): ContentEdit =>
   insert: kind === 'tone' ? NEW_TONE : NEW_HISS,
 })
 
+/** How many event rows play the sound at `index`. */
+export const rowsPlaying = (content: AudioContent, index: number): number =>
+  (content.event ?? []).filter((row) => row.cue === content.cue?.[index]?.id).length
+
+/** Removing a sound removes the rows that play it, from the last up so the places hold, then the sound itself. */
+export function removeSoundEdits(content: AudioContent, index: number): ContentEdit[] {
+  const id = content.cue?.[index]?.id
+  const rows = (content.event ?? []).flatMap((row, at) => (row.cue === id ? [at] : [])).reverse()
+  return [...rows.map((at) => removeEdit('event', at)), removeEdit('cue', index)]
+}
+
 export const removeEdit = (...keyPath: (string | number)[]): ContentEdit => ({ keyPath, remove: true })
 
 export const addEventEdit = (content: AudioContent, on: string, cue: string): ContentEdit[] =>

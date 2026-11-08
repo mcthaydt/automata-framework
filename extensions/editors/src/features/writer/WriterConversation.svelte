@@ -10,6 +10,8 @@ import WordsField from '../../shared/ui/WordsField.svelte'
 import {
   conditionWords,
   factValueWords,
+  type OnlyIf,
+  onlyIfCond,
   partIdOf,
   partWords,
   readingOrder,
@@ -33,7 +35,20 @@ const range = $derived(
 )
 const speakers = $derived(speakerChoices(session.people, session.files?.lines.content))
 
-let showMap = $state(false)
+// The map sits beside the script when the page has room for both, and behind the Map button when it has not; pressing
+// the button is the person's choice either way.
+let mapChoice = $state<boolean | undefined>()
+let layoutWidth = $state(0)
+let layout: HTMLElement | undefined = $state()
+$effect(() => {
+  if (layout === undefined || typeof ResizeObserver === 'undefined') return
+  const watch = new ResizeObserver(([entry]) => {
+    layoutWidth = entry?.contentRect.width ?? 0
+  })
+  watch.observe(layout)
+  return () => watch.disconnect()
+})
+const showMap = $derived(mapChoice ?? layoutWidth >= 820)
 let playing = $state(false)
 let renaming = $state<string | undefined>()
 let renameTo = $state('')
@@ -44,6 +59,11 @@ let target = $state('')
 let remembering = $state<string | undefined>()
 let rememberName = $state('')
 let rememberValue = $state('true')
+let conditioning = $state<string | undefined>()
+let ifKind = $state<OnlyIf['kind']>('is')
+let ifName = $state('')
+let ifValue = $state('yes')
+let ifRefusal = $state<string | undefined>()
 let addingLine = $state<string | undefined>()
 let lineDraft = $state('')
 let lineSpeaker = $state('')
@@ -87,6 +107,34 @@ async function remember(part: string, choice: number): Promise<void> {
   rememberName = ''
 }
 
+/** Facts and items the conversation already names, to offer as the person types. */
+const knownNames = $derived.by(() => {
+  const names = new Set<string>()
+  for (const node of Object.values(graph?.nodes ?? {})) {
+    for (const choice of node.choices ?? []) for (const name of Object.keys(choice.set ?? {})) names.add(name)
+    for (const cond of node.when ?? []) {
+      if ('fact' in cond) names.add(cond.fact)
+      if ('has' in cond) names.add(cond.has)
+    }
+  }
+  return [...names].sort()
+})
+
+async function addOnlyIf(part: string): Promise<void> {
+  const cond = onlyIfCond(
+    ifKind === 'has' ? { kind: 'has', name: ifName } : { kind: ifKind, name: ifName, value: ifValue },
+  )
+  if (typeof cond === 'string') {
+    ifRefusal = cond
+    return
+  }
+  if (await session.addCondition(index, part, cond)) {
+    conditioning = undefined
+    ifName = ''
+    ifRefusal = undefined
+  }
+}
+
 async function addLineTo(part: string): Promise<void> {
   await session.addSay(index, part, 'dialogue', lineSpeaker === '' ? graph?.speaker : lineSpeaker, lineDraft)
   addingLine = undefined
@@ -108,7 +156,7 @@ const nodeOf = (part: string): DialogueNode => (graph?.nodes[part] ?? { say: [] 
   <header class="top">
     <h2>{session.nameOf(graph.speaker)}</h2>
     <div class="actions">
-      <Button aria-pressed={showMap} onclick={() => (showMap = !showMap)}>Map</Button>
+      <Button aria-pressed={showMap} onclick={() => (mapChoice = !showMap)}>Map</Button>
       <Button variant="primary" onclick={() => (playing = !playing)}>{playing ? 'Stop playing' : 'Play it'}</Button>
     </div>
   </header>
@@ -117,7 +165,7 @@ const nodeOf = (part: string): DialogueNode => (graph?.nodes[part] ?? { say: [] 
     <WriterPlay {session} {graph} />
   {/if}
 
-  <div class="layout" data-map={showMap}>
+  <div class="layout" data-map={showMap} bind:this={layout}>
     <div class="script">
       {#each order as part (part)}
         {@const node = nodeOf(part)}
@@ -135,6 +183,36 @@ const nodeOf = (part: string): DialogueNode => (graph?.nodes[part] ?? { say: [] 
               <Button variant="quiet" onclick={() => void session.removeCondition(index, part, at)}>Remove this condition</Button>
             </div>
           {/each}
+          {#if conditioning === part}
+            <div role="group" aria-label="Only if">
+              <FieldRow
+                label="Only if"
+                kind="choice"
+                value={ifKind}
+                options={[
+                  { value: 'is', label: 'a fact is' },
+                  { value: 'atLeast', label: 'a fact is at least' },
+                  { value: 'atMost', label: 'a fact is at most' },
+                  { value: 'has', label: 'the player has the item' },
+                ]}
+                onchange={(value) => (ifKind = String(value) as OnlyIf['kind'])}
+              />
+              <label for={`if-name-${part}`}>{ifKind === 'has' ? 'Which item?' : 'Which fact?'}</label>
+              <input id={`if-name-${part}`} list={`if-names-${part}`} bind:value={ifName} />
+              <datalist id={`if-names-${part}`}>{#each knownNames as name (name)}<option value={name}></option>{/each}</datalist>
+              {#if ifKind !== 'has'}
+                <label for={`if-value-${part}`}>{ifKind === 'is' ? 'It is' : 'The number'}</label>
+                <input id={`if-value-${part}`} bind:value={ifValue} />
+              {/if}
+              {#if ifRefusal !== undefined}<p class="bad" role="alert">{ifRefusal}</p>{/if}
+              <div class="actions">
+                <Button variant="quiet" onclick={() => (conditioning = undefined)}>Cancel</Button>
+                <Button variant="primary" onclick={() => void addOnlyIf(part)}>Add this condition</Button>
+              </div>
+            </div>
+          {:else}
+            <div class="actions"><Button variant="quiet" onclick={() => ((conditioning = part), (ifRefusal = undefined))}>Only if…</Button></div>
+          {/if}
 
           {#each node.say as id, at (`${id}.${String(at)}`)}
             {#if byId.has(id)}

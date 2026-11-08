@@ -174,6 +174,9 @@ describe('Writer conversations', () => {
     await userEvent.click(within(goodbye).getByRole('button', { name: 'Add this choice' }))
     await vi.waitFor(async () => expect(await text(ports, DIALOGUE)).toContain('one_more_thing'))
     expect(await text(ports, LINES)).toContain('words = "Wait, one more thing."')
+    // The new part goes on to the way out, so it does not end the conversation by itself (and Writer blames no one).
+    expect(await text(ports, DIALOGUE)).toMatch(/one_more_thing[\s\S]*?next\s*=\s*"goodbye"/)
+    expect(document.body.textContent).not.toMatch(/ends the conversation by itself|second way out/)
     const undo = session.trail.hook()
     expect(undo.undoLabel()).toBe('Add a choice')
     undo.undo()
@@ -185,6 +188,16 @@ describe('Writer conversations', () => {
     await vi.waitFor(() =>
       expect(session.files?.lines.toml.history.state.text).not.toContain('Wait, one more thing.'),
     )
+  })
+
+  it('says a part only if a fact holds, and writes it', async () => {
+    const { ports } = await talk()
+    const key = screen.getByRole('article', { name: 'Key' })
+    await userEvent.click(within(key).getByRole('button', { name: 'Only if…' }))
+    await userEvent.type(within(key).getByLabelText('Which fact?'), 'asked_key')
+    await userEvent.click(within(key).getByRole('button', { name: 'Add this condition' }))
+    await vi.waitFor(async () => expect(await text(ports, DIALOGUE)).toContain('fact = "asked_key"'))
+    expect(await within(key).findByText('Only if asked key is yes')).toBeInTheDocument()
   })
 
   it('renames a part that many choices lead to, and every place follows', async () => {

@@ -26,6 +26,21 @@ function canReach(graph: DialogueGraph, target: string): Set<string> {
   return found
 }
 
+/**
+ * The part that ends the conversation, when it has one: of the parts that end it, the one most parts lead to (the
+ * ending everything runs into, not a branch someone just added), the first in reading order when they tie.
+ */
+export function wayOut(graph: DialogueGraph): string | undefined {
+  const live = depths(graph)
+  const exits = readingOrder(graph).filter((id) => live.has(id) && isExit(graph.nodes[id] as DialogueNode))
+  const leading = (target: string): number =>
+    Object.entries(graph.nodes).filter(([id, node]) => id !== target && leadsTo(node).includes(target)).length
+  return exits.reduce<string | undefined>(
+    (best, id) => (best === undefined || leading(id) > leading(best) ? id : best),
+    undefined,
+  )
+}
+
 export function structureProblems(graph: DialogueGraph, lines: LinesFile): StructureProblem[] {
   const problems: StructureProblem[] = []
   const known = new Set(lines.lines.map((line) => line.id))
@@ -43,15 +58,15 @@ export function structureProblems(graph: DialogueGraph, lines: LinesFile): Struc
   }
 
   const exits = order.filter((id) => live.has(id) && isExit(graph.nodes[id] as DialogueNode))
-  const [exit] = exits
+  const exit = wayOut(graph)
   if (exit === undefined) {
     if (live.size > 0)
       problems.push({ part: graph.start, words: 'No part ends this conversation, so it never ends.' })
   } else if (exits.length > 1) {
-    for (const second of exits.slice(1))
+    for (const second of exits.filter((id) => id !== exit))
       problems.push({
         part: second,
-        words: `${partWords(second)} is a second way out. Make it lead to ${partWords(exit)}.`,
+        words: `${partWords(second)} ends the conversation by itself. Make it go on to ${partWords(exit)}.`,
       })
   } else {
     const reaching = canReach(graph, exit)

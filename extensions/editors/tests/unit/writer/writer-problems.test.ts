@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { partView, playChoose, structureProblems } from '#src/features/writer/writer-problems.ts'
+import { partView, playChoose, structureProblems, wayOut } from '#src/features/writer/writer-problems.ts'
 
 const lines = {
   lines: [{ id: 'shop.hi' }, { id: 'shop.look' }, { id: 'shop.bye' }, { id: 'shop.just' }],
@@ -58,7 +58,26 @@ describe('structureProblems', () => {
   it('says a second way out', () => {
     const graph = { ...good, nodes: { ...good.nodes, browsing: { say: ['shop.look'] } } }
     expect(structureProblems(graph, lines)).toEqual([
-      { part: 'browsing', words: 'Browsing is a second way out. Make it lead to Goodbye.' },
+      { part: 'browsing', words: 'Browsing ends the conversation by itself. Make it go on to Goodbye.' },
+    ])
+  })
+
+  it('blames the new branch, not the ending everything runs into', () => {
+    // Two parts lead to Goodbye; Joke is the one new part nothing leads on from. Joke comes first in reading order.
+    const graph = {
+      ...good,
+      nodes: {
+        ...good.nodes,
+        hello: {
+          ...good.nodes.hello,
+          choices: [{ line: 'shop.just', next: 'joke' }, ...good.nodes.hello.choices],
+        },
+        joke: { say: ['shop.look'] },
+      },
+    }
+    expect(wayOut(graph as never)).toBe('goodbye')
+    expect(structureProblems(graph as never, lines)).toEqual([
+      { part: 'joke', words: 'Joke ends the conversation by itself. Make it go on to Goodbye.' },
     ])
   })
 

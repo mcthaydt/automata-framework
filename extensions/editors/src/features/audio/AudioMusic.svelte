@@ -15,7 +15,9 @@ import {
   conditionEdits,
   moveRuleEdits,
   playChoices,
+  removeTrackEdits,
   ruleLines,
+  rulesPlaying,
   trackAlias,
   trackEdit,
   trackFields,
@@ -30,6 +32,7 @@ let asking = $state<{ key: string; op: 'is' | 'atLeast' | 'atMost'; value: strin
   value: '',
 })
 let askingFor = $state<number | undefined>()
+let askRefusal = $state<string | undefined>()
 
 const content = $derived(session.content)
 const chosen = $derived(session.chosen)
@@ -56,7 +59,7 @@ function valueTyped(text: string): string | number | boolean {
 function conditionOf(op: 'is' | 'atLeast' | 'atMost', text: string): Condition {
   const value = valueTyped(text)
   if (op === 'is') return value
-  return { [op]: typeof value === 'number' ? value : 0 } as Condition
+  return { [op]: value } as Condition
 }
 
 async function useTrack(path: string): Promise<void> {
@@ -75,6 +78,12 @@ async function addRule(): Promise<void> {
 async function addCondition(rule: number): Promise<void> {
   const current = content?.music_rule?.[rule]
   if (current === undefined || asking.key.trim() === '') return
+  // "Is at least" needs a number: a word would have been saved as 0 without a word.
+  if (asking.op !== 'is' && typeof valueTyped(asking.value) !== 'number') {
+    askRefusal = `“${OPS.find((op) => op.value === asking.op)?.label ?? ''}” needs a number, like 2.`
+    return
+  }
+  askRefusal = undefined
   const outcome = await session.change(
     'Add what the music waits for',
     conditionEdits(current, rule, asking.key.trim(), conditionOf(asking.op, asking.value)),
@@ -86,7 +95,10 @@ async function addCondition(rule: number): Promise<void> {
 }
 
 async function removeTrack(at: number, id: string): Promise<void> {
-  const outcome = await session.change(`Remove the track ${id}`, [removeEdit('slot', at)])
+  const outcome = await session.change(
+    `Remove the track ${id}`,
+    content === undefined ? [removeEdit('slot', at)] : removeTrackEdits(content, at),
+  )
   if (!outcome.ok) return
   removing = false
   session.chosen = { kind: 'rules' }
@@ -124,7 +136,9 @@ async function removeTrack(at: number, id: string): Promise<void> {
   <div class="actions">
     {#if removing}
       <span class="actions" role="group" aria-label={`Remove ${track.id}?`}>
-        <p>Remove {track.id}? Rules that play it will play nothing.</p>
+        <p>
+          Remove {track.id}? {content !== undefined && rulesPlaying(content, index) > 0 ? 'The rules that play it will play nothing instead.' : ''}
+        </p>
         <Button variant="danger" onclick={() => void removeTrack(index, track.id)}>Remove</Button>
         <Button variant="quiet" onclick={() => (removing = false)}>Keep it</Button>
       </span>
@@ -191,6 +205,7 @@ async function removeTrack(at: number, id: string): Promise<void> {
             {#each OPS as op (op.value)}<option value={op.value}>{op.label}</option>{/each}
           </select>
           <input aria-label="Value" bind:value={asking.value} />
+          {#if askRefusal !== undefined}<p class="bad" role="alert">{askRefusal}</p>{/if}
           <div class="actions">
             <Button variant="quiet" onclick={() => (askingFor = undefined)}>Cancel</Button>
             <Button variant="primary" disabled={asking.key.trim() === ''} onclick={() => void addCondition(rule.index)}>

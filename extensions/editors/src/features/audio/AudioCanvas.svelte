@@ -10,6 +10,7 @@ import { problemAt } from '../../shared/content-session.svelte.ts'
 import type { Field } from '../../shared/fields.ts'
 import { setOrInsert } from '../../shared/fields.ts'
 import EditorPage from '../../shared/ui/EditorPage.svelte'
+import EventPicker from '../../shared/ui/EventPicker.svelte'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
 import AudioMusic from './AudioMusic.svelte'
 import {
@@ -19,6 +20,8 @@ import {
   eventLines,
   eventSoundEdits,
   removeEdit,
+  removeSoundEdits,
+  rowsPlaying,
   soundFields,
   voiceLines,
 } from './audio-model.ts'
@@ -26,7 +29,7 @@ import type { AudioSession } from './audio-session.svelte.ts'
 
 const { session }: { session: AudioSession } = $props()
 let removing = $state(false)
-let adding = $state('')
+let adding = $state(false)
 let playing = $state(false)
 
 const read = $derived(session.read)
@@ -66,22 +69,28 @@ async function play(id: string): Promise<void> {
 }
 
 async function removeChosen(index: number, name: string): Promise<void> {
-  const outcome = await session.change(`Remove ${name}`, [removeEdit('cue', index)])
+  if (content === undefined) return
+  const outcome = await session.change(`Remove ${name}`, removeSoundEdits(content, index))
   if (!outcome.ok) return
   removing = false
   session.chosen = index > 0 ? { kind: 'sound', index: index - 1 } : { kind: 'events' }
 }
 
-async function addEvent(): Promise<void> {
-  const on = adding.trim()
-  const first = cueIds[0]
-  if (on === '' || content === undefined || first === undefined) return
+// A new row starts on the sound the person looked at last, else the first the game has.
+async function addEvent(on: string): Promise<void> {
+  const sound = session.recent !== undefined && cueIds.includes(session.recent) ? session.recent : cueIds[0]
+  if (content === undefined || sound === undefined) return
   const outcome = await session.change(
     'Add what plays when something happens',
-    addEventEdit(content, on, first),
+    addEventEdit(content, on, sound),
   )
-  if (outcome.ok) adding = ''
+  if (outcome.ok) adding = false
 }
+
+// What the person is looking at is what a new row will play.
+$effect(() => {
+  if (cue !== undefined) session.recent = cue.id
+})
 </script>
 
 {#snippet field(path: readonly (string | number)[], row: object, one: Field)}
@@ -138,7 +147,13 @@ async function addEvent(): Promise<void> {
 {#snippet remover(index: number, name: string)}
   {#if removing}
     <span class="actions" role="group" aria-label={`Remove ${name}?`}>
-      <p>Remove {name}? Anything that plays it will play nothing.</p>
+      <p>
+        Remove {name}?
+        {#if content !== undefined && rowsPlaying(content, index) > 0}
+          The {rowsPlaying(content, index)} row{rowsPlaying(content, index) === 1 ? '' : 's'} that
+          {rowsPlaying(content, index) === 1 ? 'plays' : 'play'} it {rowsPlaying(content, index) === 1 ? 'is' : 'are'} removed too.
+        {/if}
+      </p>
       <Button variant="danger" onclick={() => void removeChosen(index, name)}>Remove</Button>
       <Button variant="quiet" onclick={() => (removing = false)}>Keep it</Button>
     </span>
@@ -192,16 +207,16 @@ async function addEvent(): Promise<void> {
       <p>Nothing plays a sound yet.</p>
     {/each}
     {#if cueIds.length > 0}
-      <form
-        class="actions"
-        onsubmit={(event) => {
-          event.preventDefault()
-          void addEvent()
-        }}
-      >
-        <FieldRow label="What happens in the game?" kind="text" value={adding} onchange={(value) => (adding = String(value))} />
-        <Button variant="primary" disabled={adding.trim() === ''} onclick={() => void addEvent()}>Add</Button>
-      </form>
+      {#if adding}
+        <EventPicker
+          events={session.events}
+          answered={new Set((content.event ?? []).map((row) => row.on))}
+          onpick={(on) => void addEvent(on)}
+          oncancel={() => (adding = false)}
+        />
+      {:else}
+        <div class="actions"><Button variant="primary" onclick={() => (adding = true)}>Add what happens</Button></div>
+      {/if}
     {:else}
       <p>Add a sound first, then choose when it plays.</p>
     {/if}

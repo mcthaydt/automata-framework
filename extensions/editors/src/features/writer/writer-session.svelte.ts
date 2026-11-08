@@ -14,13 +14,14 @@ import {
   type LinesFile,
   linesFileSchema,
 } from '@automata/narrative/sim'
-import type { Value } from '@automata/puzzle/sim'
+import type { Cond, Value } from '@automata/puzzle/sim'
 import { ContentSession } from '../../shared/content-session.svelte.ts'
 import { appendEdits } from '../../shared/fields.ts'
 import { type Outcome, openTomlSession } from '../../shared/toml-session.ts'
 import { UndoTrail } from '../../shared/undo-many.ts'
 import {
   addChoiceEdit,
+  addConditionEdits,
   addPartEdit,
   choiceFactEdit,
   leadsTo,
@@ -33,6 +34,7 @@ import {
   setStanceEdit,
 } from './dialogue-model.ts'
 import { addLineEdits, newLineId, removeLineEdit, wordsEdit } from './writer-model.ts'
+import { wayOut } from './writer-problems.ts'
 import { humanize } from './writer-words.ts'
 
 export type WriterView = { readonly kind: 'lines' } | { readonly kind: 'talk'; readonly graph: number }
@@ -373,7 +375,7 @@ export class WriterSession {
     if (!wrote.ok) return false
     this.#lineCountChanged()
     if (!('part' in target)) {
-      const made = await files.dialogue.change('Add a part', [addPartEdit(graph, next)])
+      const made = await files.dialogue.change('Add a part', [addPartEdit(graph, next, wayOut(conversation))])
       if (!made.ok) return false
     }
     const fresh = this.#graph(graph)?.nodes[part] ?? node
@@ -430,6 +432,14 @@ export class WriterSession {
     const set = this.#graph(graph)?.nodes[part]?.choices?.[index]?.set
     const edit = choiceFactEdit(graph, part, index, set, name, value)
     if (edit !== undefined) await this.files?.dialogue.change('Change what is remembered', [edit])
+  }
+
+  /** A part that is said only when `cond` holds. */
+  async addCondition(graph: number, part: string, cond: Cond): Promise<boolean> {
+    const node: DialogueNode | undefined = this.#graph(graph)?.nodes[part]
+    if (node === undefined || this.files === undefined) return false
+    return (await this.files.dialogue.change('Say this only if', addConditionEdits(graph, part, node, cond)))
+      .ok
   }
 
   async removeCondition(graph: number, part: string, index: number): Promise<void> {

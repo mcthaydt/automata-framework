@@ -4,6 +4,7 @@
 import type { ContentEdit } from '@automata/editor/kit/documents'
 import type { Choice, DialogueGraph, DialogueNode } from '@automata/narrative/sim'
 import type { Cond, Value } from '@automata/puzzle/sim'
+import { appendEdits } from '../../shared/fields.ts'
 import { humanize } from './writer-words.ts'
 
 export const partWords: (id: string) => string = humanize
@@ -144,10 +145,10 @@ export function choiceFactEdit(
     : { keyPath: [...base, name], insert: value }
 }
 
-/** A new part that says nothing yet. */
-export const addPartEdit = (graph: number, id: string): ContentEdit => ({
+/** A new part that says nothing yet; it goes on to `next` (the conversation's way out) so it does not end it by itself. */
+export const addPartEdit = (graph: number, id: string, next?: string): ContentEdit => ({
   keyPath: nodePath(graph, id),
-  insert: { say: [] },
+  insert: next === undefined ? { say: [] } : { say: [], next },
 })
 
 /** Why a part cannot take this name, in words; `undefined` when it can. */
@@ -220,3 +221,40 @@ export function layoutConversation(graph: DialogueGraph): { boxes: MapBox[]; arr
       if (graph.nodes[to] !== undefined) arrows.push({ from: id, to, back: rowOf(to) <= rowOf(id) })
   return { boxes, arrows }
 }
+
+/** What a person can ask of a part, before it is said: a fact, or an item the player carries. */
+export type OnlyIf =
+  | { readonly kind: 'is'; readonly name: string; readonly value: string }
+  | { readonly kind: 'atLeast' | 'atMost'; readonly name: string; readonly value: string }
+  | { readonly kind: 'has'; readonly name: string }
+
+/** The condition a person built, or why it cannot be (words). */
+export function onlyIfCond(ask: OnlyIf): Cond | string {
+  if (ask.name.trim() === '') return ask.kind === 'has' ? 'Say which item.' : 'Say which fact.'
+  const id = partIdOf(ask.name)
+  if (ask.kind === 'has') return { has: id }
+  const text = ask.value.trim()
+  if (ask.kind === 'is')
+    return {
+      fact: id,
+      is:
+        text === 'yes' || text === 'true'
+          ? true
+          : text === 'no' || text === 'false'
+            ? false
+            : /^-?\d+(\.\d+)?$/.test(text)
+              ? Number(text)
+              : text,
+    }
+  if (!/^-?\d+(\.\d+)?$/.test(text))
+    return `“${ask.kind === 'atLeast' ? 'is at least' : 'is at most'}” needs a number, like 2.`
+  return { fact: id, [ask.kind]: Number(text) } as Cond
+}
+
+/** A condition added to a part: the part's list of them is made first when it has none. */
+export const addConditionEdits = (
+  graph: number,
+  node: string,
+  has: DialogueNode,
+  cond: Cond,
+): ContentEdit[] => appendEdits([...nodePath(graph, node), 'when'], has.when !== undefined, cond)
