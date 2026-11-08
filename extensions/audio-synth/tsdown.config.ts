@@ -7,6 +7,7 @@ export default publishedBuild(import.meta.url, {
     measure: './src/entries/measure.ts',
     render: './src/entries/render.ts',
     browser: './src/entries/browser.ts',
+    stage: './src/entries/stage.ts',
   },
   platform: 'browser',
 })

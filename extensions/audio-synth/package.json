@@ -23,6 +23,7 @@
     "./measure": "./src/entries/measure.ts",
     "./render": "./src/entries/render.ts",
     "./browser": "./src/entries/browser.ts",
+    "./stage": "./src/entries/stage.ts",
     "./package.json": "./package.json"
   },
   "publishConfig": {
@@ -44,6 +45,10 @@
       "./browser": {
         "types": "./dist/browser.d.ts",
         "import": "./dist/browser.js"
+      },
+      "./stage": {
+        "types": "./dist/stage.d.ts",
+        "import": "./dist/stage.js"
       }
     }
   },

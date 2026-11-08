@@ -2,22 +2,12 @@
 // plays when and how the game switches between them. A track is a `slot` in the file; a rule says "when the game is in
 // this state, play that track". Nothing here makes a note.
 import type { AudioContent, Condition, MusicRule, Slot } from '@automata/audio-synth'
+import { isTrackFile, trackAlias } from '@automata/audio-synth/stage'
 import type { ContentEdit } from '@automata/editor/kit/documents'
 import type { SuiteWorkspace } from '@automata/editor/kit/ports'
 import { type Field, setOrInsert } from '../../shared/fields.ts'
 
-const TRACK_FILE = /\.(ogg|mp3|wav|m4a|flac)$/i
-
-export const isTrackFile = (path: string): boolean => TRACK_FILE.test(path)
-
-/** The name the game knows a track's sound by: the file's own name, lower case, words joined with dashes. */
-export function trackAlias(path: string): string {
-  const name = (path.split('/').at(-1) ?? path).replace(TRACK_FILE, '')
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
+export { isTrackFile, trackAlias }
 
 /** The track files in the game folder. */
 export async function trackFiles(workspace: SuiteWorkspace): Promise<string[]> {
