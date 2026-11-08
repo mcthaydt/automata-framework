@@ -11,7 +11,7 @@ import { APP_IS_GONE, parseEditorArgs } from './editor-args.ts'
 import { gameVite, type RunningGame, type StartGameOptions, startGame } from './game-runner.ts'
 import { CONTENT_EDITORS, type EditorPage, fullPageEditors, pageFor, THREE_D_EDITORS } from './page-for.ts'
 import { type PublishOutcome, publishGame, runStep, scanBuildForEval } from './publish-game.ts'
-import { type EditorServerOptions, gameName, type RunningEditor, serveEditor } from './serve-editor.ts'
+import type { EditorServerOptions, RunningEditor } from './serve-editor.ts'
 
 export interface EditorCommandIo {
   readonly stdout: (message: string) => void
@@ -148,6 +148,7 @@ export async function editorCommand(
     return 2
   }
   const query = secret === undefined ? '' : `/?token=${secret}`
+  const { gameName } = await import('./serve-editor.ts')
   io.stdout(`Opened ${gameName(root)}.\n  This computer: ${running.url}${query}\n`)
   if (lan)
     for (const address of deps.lanAddresses())
@@ -177,7 +178,9 @@ const isRepository = (): boolean => existsSync(resolve(repositoryRoot(), 'pnpm-w
 /** The real dependencies: the editors' builds, this machine's network and Ctrl+C. */
 export function liveEditorDeps(): EditorCommandDeps {
   return {
-    serve: serveEditor,
+    // Loaded on use: the server reads the editor suite, whose sources Node cannot run from the workspace bin, and no
+    // other command needs it.
+    serve: async (options) => (await import('./serve-editor.ts')).serveEditor(options),
     builtApp: (page) =>
       (page === 'suite-2d' ? packedPage() : undefined) ?? resolve(repositoryRoot(), BUILDS[page].folder),
     readEditorList: (root) => {

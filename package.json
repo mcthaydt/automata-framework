@@ -9,7 +9,7 @@
   },
   "scripts": {
     "prepare": "lefthook install",
-    "build": "turbo run build --filter='./packages/*'",
+    "build": "turbo run build --filter='./packages/*' --filter='./extensions/*'",
     "changeset": "changeset",
     "docs:stack": "node tooling/versions/src/write-stack.ts",
     "release:version": "changeset version && node tooling/release/src/sync-versions.ts && pnpm build && pnpm api-index --write",
