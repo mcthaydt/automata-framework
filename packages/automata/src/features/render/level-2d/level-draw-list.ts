@@ -162,29 +162,28 @@ export function levelDrawList(
         if (entity === undefined || live.includes(entity.id)) continue
         const box = entityBox(entity, item)
         const picture = pictureOf(entity)
-        const animation = entity.animation
-        if (animation !== undefined && images.has(animation.image))
-          items.push({ kind: 'animation', animation, ...box, itemId: item.id })
-        else if (animation !== undefined && picture.kind === 'flat') {
+        // Frames play in the game; until the picture has arrived the character shows the look it has without one.
+        const still = picture.kind === 'clip' ? picture.still : picture
+        if (picture.kind === 'clip' && entity.animation !== undefined && images.has(picture.image))
+          items.push({ kind: 'animation', animation: entity.animation, ...box, itemId: item.id })
+        else if (picture.kind === 'clip' && still.kind === 'flat') {
           problems.add(
-            `The level "${level.name}" uses the picture "${animation.image}", which is not in the game.`,
+            `The level "${level.name}" uses the picture "${picture.image}", which is not in the game.`,
           )
           items.push({
             kind: 'flat',
-            color: picture.color,
+            color: still.color,
             ...box,
-            ellipse: picture.shape === 'ellipse',
+            ellipse: still.shape === 'ellipse',
             itemId: item.id,
           })
-        } else if (picture.kind === 'tile')
-          items.push(
-            tileItem(picture.tileset, { tile: picture.index, flipX: false, flipY: false }, box, item.id),
-          )
-        else if (picture.shape === 'point') {
+        } else if (still.kind === 'tile')
+          items.push(tileItem(still.tileset, { tile: still.index, flipX: false, flipY: false }, box, item.id))
+        else if (still.shape === 'point') {
           // The editor marks a point with a small dot at its pivot; a play field shows the same.
           items.push({
             kind: 'flat',
-            color: picture.color,
+            color: still.color,
             x: item.x - 3,
             y: item.y - 3,
             w: 6,
@@ -195,9 +194,9 @@ export function levelDrawList(
         } else
           items.push({
             kind: 'flat',
-            color: picture.color,
+            color: still.color,
             ...box,
-            ellipse: picture.shape === 'ellipse',
+            ellipse: still.shape === 'ellipse',
             itemId: item.id,
           })
       }

@@ -56,7 +56,9 @@ export function pictureView(
 ): EntityViewFactory {
   const character = project.entities.find((candidate) => candidate.id === def)
   if (character === undefined) throw new Error(`There is no character "${def}" in the project.`)
-  const picture = pictureOf(character)
+  // The still look: the clip is played by `animatedLook`, and this is what shows while its picture has not arrived.
+  const looked = pictureOf(character)
+  const picture = looked.kind === 'clip' ? looked.still : looked
   const pictures = picturesOf(images)
   const told = new Set<string>()
   const once = (message: string): void => {
