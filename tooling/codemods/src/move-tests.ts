@@ -114,6 +114,7 @@ const FOLDED_QUALIFIERS: ReadonlySet<string> = new Set([
   'edit',
   'levels',
   'tuner',
+  'studio',
 ])
 
 const TEST_FILE = /^(?<name>.+?)(?<qualifiers>(?:\.[a-z][a-z-]*)*)\.test\.(?<ext>ts|svelte)$/

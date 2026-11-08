@@ -6,11 +6,11 @@
 // A proposal is made for the level the person had when they asked, so it is only ever shown, and only ever accepted,
 // over that level: an edit, an undo or a redo while it is on its way or on show drops it.
 import type { AskProvider } from '@automata/editor/kit/ports'
-import type { CheckResult } from '../checks/check'
-import { ok } from '../model/edit'
-import type { LevelEditor } from '../model/level-editor'
-import { type Geometry, GeometryError } from '../profile/level-profile'
-import { problemCount } from './problem-count'
+import { problemCount } from '../features/levels-3d/checks/problem-count'
+import type { CheckResult } from '../shared/checks/check'
+import { ok } from '../shared/edit/edit'
+import type { LevelEditor } from '../shared/edit/level-editor'
+import { type Geometry, GeometryError } from '../shared/level-session/level-profile'
 
 export interface AskOptions {
   /** The assistant; without one the editor has no Ask, which is not an error. */

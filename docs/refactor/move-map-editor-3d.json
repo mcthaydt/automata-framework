@@ -1,0 +1,526 @@
+{
+  "sources": ["packages/editor-3d"],
+  "moves": [
+    {
+      "from": "packages/editor-3d/src/app",
+      "to": "packages/editor-3d/src/app"
+    },
+    {
+      "from": "packages/editor-3d/src/codec",
+      "to": "packages/editor-3d/src/shared/level-session"
+    },
+    {
+      "from": "packages/editor-3d/src/model",
+      "to": "packages/editor-3d/src/shared/edit"
+    },
+    {
+      "from": "packages/editor-3d/src/checks",
+      "to": "packages/editor-3d/src/shared/checks"
+    },
+    {
+      "from": "packages/editor-3d/src/things",
+      "to": "packages/editor-3d/src/features/levels-3d/things"
+    },
+    {
+      "from": "packages/editor-3d/src/testing",
+      "to": "packages/editor-3d/src/testing"
+    },
+    {
+      "from": "packages/editor-3d/src/profile",
+      "to": "packages/editor-3d/src/shared/level-session"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/home",
+      "to": "packages/editor-3d/src/features/levels-3d/home"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/walk",
+      "to": "packages/editor-3d/src/features/levels-3d/walk"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/plan",
+      "to": "packages/editor-3d/src/features/levels-3d/plan"
+    },
+    {
+      "from": "packages/editor-3d/src/journeys",
+      "to": "packages/editor-3d/tests/browser/journeys"
+    },
+    {
+      "from": "packages/editor-3d/src/geometry",
+      "to": "packages/editor-3d/src/shared/geometry"
+    },
+    {
+      "from": "packages/editor-3d/src/app/home",
+      "to": "packages/editor-3d/src/features/levels-3d/home"
+    },
+    {
+      "from": "packages/editor-3d/src/entities",
+      "to": "packages/editor-3d/src/shared/things"
+    },
+    {
+      "from": "packages/editor-3d/src/view/walk",
+      "to": "packages/editor-3d/src/features/levels-3d/walk"
+    },
+    {
+      "from": "packages/editor-3d/src/view/plan",
+      "to": "packages/editor-3d/src/features/levels-3d/plan"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/document",
+      "to": "packages/editor-3d/src/features/levels-3d/document"
+    },
+    {
+      "from": "packages/editor-3d/src/app/document",
+      "to": "packages/editor-3d/src/features/levels-3d/document"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/inspector",
+      "to": "packages/editor-3d/src/features/levels-3d/inspector"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/dollhouse",
+      "to": "packages/editor-3d/src/features/levels-3d/dollhouse"
+    },
+    {
+      "from": "packages/editor-3d/src/view/materials",
+      "to": "packages/editor-3d/src/features/levels-3d/inspector"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/definitions",
+      "to": "packages/editor-3d/src/features/levels-3d/definitions"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/suite/studio",
+      "to": "packages/editor-3d/src/features/studio"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/suite/studio/testing",
+      "to": "packages/editor-3d/src/testing/studio"
+    },
+    {
+      "from": "packages/editor-3d/src/app/checks-panel-controller.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/checks/checks-panel-controller.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/checks-panel-controller.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/checks/checks-panel-controller.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/definitions-controller.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/definitions/definitions-controller.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/definitions-controller.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/definitions/definitions-controller.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/dollhouse-controller.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/dollhouse/dollhouse-controller.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/dollhouse-controller.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/dollhouse/dollhouse-controller.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/dollhouse-paint.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/dollhouse/dollhouse-paint.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/dollhouse-paint.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/dollhouse/dollhouse-paint.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/editor-app.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/document/editor-app.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/editor-app.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/document/editor-app.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/geometry-cache.test.ts",
+      "to": "packages/editor-3d/src/shared/geometry/geometry-cache.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/geometry-cache.ts",
+      "to": "packages/editor-3d/src/shared/geometry/geometry-cache.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/import-files.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/document/import-files.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/import-files.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/document/import-files.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/inspector-cards.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/inspector/inspector-cards.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/inspector-cards.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/inspector/inspector-cards.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/inspector-edits.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/inspector/inspector-edits.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/inspector-edits.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/inspector/inspector-edits.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/layers-model.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/layers-model.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/layers-model.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/layers-model.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/levels-3d-session.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/levels-3d-session.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/levels-3d-session.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/levels-3d-session.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/loupe-place.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/loupe-place.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/loupe-place.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/loupe-place.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/loupe.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/loupe.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/loupe.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/loupe.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/material-session.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/inspector/material-session.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/merge-tool-controller.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/merge-tool-controller.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/merge-tool-controller.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/merge-tool-controller.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/open-level.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/document/open-level.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/patched-document.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/document/patched-document.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/patched-document.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/document/patched-document.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/plan-controller.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/plan-controller.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/plan-controller.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/plan-controller.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/plan-picture.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/plan-picture.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/plan-picture.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/plan-picture.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/plan-status.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/plan-status.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/plan-status.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/plan-status.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/plan-tool-commands.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/plan-tool-commands.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/plan-tool-commands.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/plan-tool-commands.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/plan-tools.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/plan-tools.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/plan-tools.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/plan-tools.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/problem-count.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/checks/problem-count.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/project-list.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/home/project-list.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/project-list.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/home/project-list.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/read-level.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/document/read-level.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/read-level.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/document/read-level.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/sector-id.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/sector-id.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/sector-id.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/sector-id.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/sector-tool-controller.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/sector-tool-controller.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/sector-tool-controller.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/sector-tool-controller.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/sector-tool-rectangle.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/sector-tool-rectangle.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/split-tool-controller.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/split-tool-controller.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/split-tool-controller.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/split-tool-controller.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/thing-fields.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/things/thing-fields.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/thing-fields.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/things/thing-fields.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/tool-paint.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/tool-paint.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/tool-paint.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/tool-paint.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/vertex-tool-controller.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/vertex-tool-controller.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/vertex-tool-controller.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/vertex-tool-controller.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/walk-cases.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/walk/walk-cases.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/walk-hud.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/walk/walk-hud.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/walk-hud.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/walk/walk-hud.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/walk-session.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/walk/walk-session.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/wall-place.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/wall-place.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/wall-place.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/wall-place.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/wall-tool-controller.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/wall-tool-controller.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/app/wall-tool-controller.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan/wall-tool-controller.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/architecture.test.ts",
+      "to": "packages/editor-3d/src/app/architecture.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/index.test.ts",
+      "to": "packages/editor-3d/src/entries/index.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/index.ts",
+      "to": "packages/editor-3d/src/entries/index.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/main.css",
+      "to": "packages/editor-3d/src/app/main.css"
+    },
+    {
+      "from": "packages/editor-3d/src/main.ts",
+      "to": "packages/editor-3d/src/app/main.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/purity.test.ts",
+      "to": "packages/editor-3d/src/app/purity.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/suite-content-shim.ts",
+      "to": "packages/editor-3d/src/app/suite/suite-content-shim.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/suite-main.ts",
+      "to": "packages/editor-3d/src/app/suite/suite-main.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/App.svelte",
+      "to": "packages/editor-3d/src/app/App.svelte"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/boot.dom.test.ts",
+      "to": "packages/editor-3d/src/app/boot.dom.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/boot.ts",
+      "to": "packages/editor-3d/src/app/boot.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/home.layout.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/home/home.layout.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/suite/Levels3dInspector.svelte",
+      "to": "packages/editor-3d/src/features/levels-3d/Levels3dInspector.svelte"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/suite/Levels3dRegions.svelte",
+      "to": "packages/editor-3d/src/features/levels-3d/Levels3dRegions.svelte"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/suite/Levels3dStatus.svelte",
+      "to": "packages/editor-3d/src/features/levels-3d/Levels3dStatus.svelte"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/suite/index.ts",
+      "to": "packages/editor-3d/src/app/suite/index.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/suite/levels-3d-suite-editor.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/levels-3d-suite-editor.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/suite/plan-tools-of.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan-tools-of.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/suite/plan-tools-of.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/plan-tools-of.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/suite/pointer.svelte.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/pointer.svelte.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/suite/suite-levels.dom.test.ts",
+      "to": "packages/editor-3d/src/app/suite/suite-levels.dom.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/suite/suite-levels.layout.test.ts",
+      "to": "packages/editor-3d/src/app/suite/suite-levels.layout.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/ui/toolchain.dom.test.ts",
+      "to": "packages/editor-3d/src/app/toolchain.dom.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/view/mesh/camera-3d.test.ts",
+      "to": "packages/editor-3d/src/shared/geometry/camera-3d.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/view/mesh/camera-3d.ts",
+      "to": "packages/editor-3d/src/shared/geometry/camera-3d.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/view/mesh/follow-camera.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/walk/follow-camera.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/view/mesh/follow-camera.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/walk/follow-camera.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/view/mesh/heading.test.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/walk/heading.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/view/mesh/heading.ts",
+      "to": "packages/editor-3d/src/features/levels-3d/walk/heading.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/view/mesh/mesh-pick.test.ts",
+      "to": "packages/editor-3d/src/shared/geometry/mesh-pick.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/view/mesh/mesh-pick.ts",
+      "to": "packages/editor-3d/src/shared/geometry/mesh-pick.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/view/mesh/sector-mesh.test.ts",
+      "to": "packages/editor-3d/src/shared/geometry/sector-mesh.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/view/mesh/sector-mesh.ts",
+      "to": "packages/editor-3d/src/shared/geometry/sector-mesh.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/view/mesh/vec3.test.ts",
+      "to": "packages/editor-3d/src/shared/geometry/vec3.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/view/mesh/vec3.ts",
+      "to": "packages/editor-3d/src/shared/geometry/vec3.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/view/selection-of.test.ts",
+      "to": "packages/editor-3d/src/shared/edit/selection-of.test.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/view/selection-of.ts",
+      "to": "packages/editor-3d/src/shared/edit/selection-of.ts"
+    },
+    {
+      "from": "packages/editor-3d/src/vitest-setup.ts",
+      "to": "packages/editor-3d/tests/setup.ts"
+    }
+  ],
+  "entries": {}
+}

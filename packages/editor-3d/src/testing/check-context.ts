@@ -3,8 +3,8 @@
 // `wallLocator`.)
 
 import type { MassDef, SectorDef } from '@automata/3d/level'
-import { type GeometryContext, type Locator, wallSelection } from '../checks/check'
-import { type Edge, resolveMap } from '../geometry/sectors'
+import { type GeometryContext, type Locator, wallSelection } from '../shared/checks/check'
+import { type Edge, resolveMap } from '../shared/geometry/sectors'
 
 export const plainWall = (edge: Edge): Locator => ({
   selection: wallSelection(edge.sector.id, edge.index),
