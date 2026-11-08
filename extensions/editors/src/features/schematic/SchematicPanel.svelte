@@ -4,6 +4,7 @@
 -->
 <script lang="ts">
 import { Button } from '@automata/editor/kit'
+import AddCharacter from './AddCharacter.svelte'
 import { modeWords } from './pieces/piece.ts'
 import type { SchematicSession } from './schematic-session.svelte.ts'
 
@@ -40,6 +41,7 @@ const chosen = $derived(session.chosen)
     </ul>
     {#if session.read.kind !== 'syntax' && session.read.kind !== 'invalid'}
       <Button variant="primary" disabled={!session.facts.listsSystems} onclick={() => void session.addCharacter()}>Add a character</Button>
+      <AddCharacter {session} disabled={!session.facts.listsSystems} />
     {/if}
   {/if}
 </nav>
