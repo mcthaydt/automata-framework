@@ -489,3 +489,19 @@ specs and plans. Chief among them: nothing in a game played `feel.toml` or `audi
 stage player and a served journey each; Writer and Sequence prove themselves in content-in-play's `examples/2d-story`
 journey, whose Sequence step changes (a caption's words are written in Writer). Audio's music pieces and rules wait for
 the Owner's call. Next: the builds (Sonnet, high).
+
+## Content editors: build (2026-11-08)
+
+Built on `claude/project-thread-2salzc`, stacked on #478 (plans' Logs have the evidence):
+
+- **Writer**: built (lines with their words, conversations as a branching script, the map, problems, Play it).
+- **Sequence**: built (timeline, plan preview, step fields in words, drag, Add here, Play, problems).
+- **Feel**: every field, the game's events, the stage and the player's settings built. Not built: the in-play stage
+  (`@automata/feel/stage`), a word's own `words`, the squash spring fields.
+- **Audio**: sounds, the events page, Play and the rail built. Music is **imported and arranged, never made** (the Owner,
+  2026-11-08 05:10): tracks from the game's `assets/music` and rules for which plays when. Not built: the in-play player
+  (`@automata/audio-synth/stage`), the mix, shadowed rows, Check the sounds, the sound's picture.
+- Create-game's `editors.toml` names every content editor's files.
+- **Not run:** any browser (layout) test, WebKit, Firefox. **No journey has run:** `examples/2d-story` has not landed,
+  so no editor is done by the Owner's rule until its served journey runs and shows the change in play. Feel and Audio
+  also lack their in-play stage.

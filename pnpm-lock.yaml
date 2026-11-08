@@ -403,15 +403,9 @@ importers:
 
   extensions/editors:
     dependencies:
-      '@automata/3d':
-        specifier: workspace:*
-        version: link:../../packages/3d
       '@automata/audio-synth':
         specifier: workspace:*
         version: link:../audio-synth
-      '@automata/content':
-        specifier: workspace:*
-        version: link:../../packages/content
       '@automata/cutscenes':
         specifier: workspace:*
         version: link:../cutscenes
@@ -421,18 +415,12 @@ importers:
       '@automata/feel':
         specifier: workspace:*
         version: link:../feel
-      '@automata/framework':
-        specifier: workspace:*
-        version: link:../../packages/automata
       '@automata/narrative':
         specifier: workspace:*
         version: link:../narrative
       '@automata/puzzle':
         specifier: workspace:*
         version: link:../puzzle
-      '@automata/sim':
-        specifier: workspace:*
-        version: link:../../packages/sim
       '@automata/systems':
         specifier: workspace:*
         version: link:../systems
@@ -443,6 +431,18 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
+      '@automata/3d':
+        specifier: workspace:*
+        version: link:../../packages/3d
+      '@automata/content':
+        specifier: workspace:*
+        version: link:../../packages/content
+      '@automata/framework':
+        specifier: workspace:*
+        version: link:../../packages/automata
+      '@automata/sim':
+        specifier: workspace:*
+        version: link:../../packages/sim
       '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset

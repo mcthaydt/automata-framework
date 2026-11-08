@@ -199,3 +199,25 @@ words (audit S1); this is the step the journey runs.
 ## Log
 
 (Each session records what it did here, with evidence.)
+
+**2026-11-08, build session (Sonnet, inline, no subagent).** Branch `claude/project-thread-2salzc`, stacked on #478.
+
+- Tasks 1 to 5 built, test first, in `extensions/editors/src/features/sequence`: `tracks.ts` (rows, marks, lanes, 3D-only
+  rows in a 2D game, Sounds read only), `key-edits.ts` (snap, bounds, retime, move, add at the playhead from the
+  director's state, remove, shorten with a count), `key-fields.ts` (the spec's section 4 words, Arrives with "Moves (its
+  own curve)" kept, a caption's line by its words, a removed line named "This step's words were removed.", rare actor
+  fields under More), `plan-view.ts` (walls from a 2D level's collision layer, dots, camera wedge, fade), the session and
+  the Svelte regions (panel, timeline with pointer drag and a 4 px threshold, preview, inspector as a sheet on a phone,
+  Add a row, Add here, Move to the playhead, Play with an injected clock). 52 unit tests in `tests/unit/sequence/`.
+- Task 6, partly: `scene-problems.ts` says a missing or empty line, overlapping words, a step after the end and a
+  short shot, with unit tests; the create-game template row and the sample file are in. **Not done:** the Chromium layout
+  test at 390x844 and 820x1180, and the screens (no browser project in the package yet; Feel's Task 4 owns adding it).
+- **Task 7 (served journey) not done and not counted:** `examples/2d-story` has not landed. The Sequence step of
+  content-in-play's journey stays unchecked. Nothing was written to a file directly to stand in for it.
+- Rulings: (1) a bar that would start at the new end has no length left, so shortening drops it and counts it; (2) an
+  actor's `facing` is radians in the file (the director moves x by cos and z by -sin), so the dial shows degrees and
+  writes radians; (3) a lens in the file is read as written, "wide" under 35 mm and "close" over 70 mm; (4) a
+  cutscene's clip names come from the cues the game's cutscenes already use, since no source of a figure's clips exists
+  yet; (5) the preview resolves `player` and named places to a placed character's cell (16 px a metre) or the origin.
+- Ran: `pnpm --filter @automata/editors test:unit` (all pass), `typecheck`, `pnpm boundaries`, `pnpm style`, `pnpm knip`.
+  Did not run: WebKit, Firefox, any browser test, any journey.

@@ -196,3 +196,29 @@ PixiStageHooks; played(): readonly string[] }`: `apply(result)` hears `result.ev
 ## Log
 
 (Each session records what it did here, with evidence.)
+
+**2026-11-08, build session (Sonnet, inline, no subagent).** Branch `claude/project-thread-2salzc`, stacked on #478.
+
+- **The Owner's rule, 05:10:** "We didn't create music in audio, we just import tracks and orchestrate." Task 3 was
+  rebuilt on that, not on the plan: Audio makes short sounds and never music. Beds (drones, noise, pulse) are gone from
+  the editor; the file's `bed` tables are left untouched. Music is `slot` (an imported track: loops or plays once, how
+  fast it fades in, its seam, its delay) and `music_rule` (which track plays when; the first that holds plays; Move up
+  and Move down are one undo step; a condition is "is", "at least" or "at most" on a name the game keeps).
+  `music-model.ts`, `AudioMusic.svelte`, 11 model tests and 6 editor tests.
+- Ruling: the suite's workspace port reads and writes text only, so a track is **imported by putting its file in the
+  game's `assets/music` folder**; Audio lists the files it finds ("Tracks in your game folder") with "Use this track",
+  and says "The game has no music file called ... yet." for a track without a file. A picker that writes the file would
+  need a binary write in the port, which is core's.
+- Task 1 done: `audio-output.ts` (`browserAudio`: the context is made on the first Play, resumed, a cue's voices
+  played once), Audio registered on the rail after Feel, `sample/audio.toml`, the sample editor list. Beds and their
+  Play are gone. The button stays "Play"; "Tap to hear" before the first Play was not built.
+- Task 2 partly: the model is as it was; not done: `about`, `world`, `no_duck`, `draft` toggles and the sound's picture.
+- Task 4 not done: the mix, shadowed rows and **Check the sounds**. The events page uses the typed field, not
+  `gameEvents` yet.
+- **Task 5 not done:** `@automata/audio-synth/stage` is not written, and the small music player that makes the
+  switching heard in play is not written, so no game plays `audio.toml` yet. Finding how a game reaches core's buses
+  (Step 1) was not started.
+- **Task 6 not done and not counted:** `examples/2d-story` has not landed.
+- Task 7, partly: template rows (`content/audio/*.toml`, `assets/music/*`). Not done: the Chromium layout test and screens.
+- Ran: `test:unit` (all pass), `typecheck`, `pnpm boundaries`, `pnpm style`, `pnpm knip`. Did not run: WebKit, Firefox,
+  any browser test, any journey.

@@ -197,3 +197,21 @@ The proof is content-in-play Task 16's journey in `examples/2d-story` (its dialo
 ## Log
 
 (Each session records what it did here, with evidence.)
+
+**2026-11-08, build session (Sonnet, inline, no subagent).** Branch `claude/project-thread-2salzc`, stacked on #478.
+
+- Task 1 done (`b54ed219`): a line keeps its `words`, translatable (`localized()`), `wordsOf` hands them to the dialogue
+  box; tests in `extensions/narrative/tests/unit/shared/words.test.ts`. Narrative is private: no changeset.
+- Tasks 2 to 5 done (`75a1a2e0`): the script model, the scene session (one Undo over the lines and the dialogue file
+  through `UndoTrail`), the Lines page, conversations as a branching script with a map, problems in words, Play it. 17 DOM
+  tests, 36 model tests.
+- Task 6, partly: the sample files and the template rows are in. **Not done:** the Chromium layout test at 390x844 and
+  820x1180 and the screens (no browser project in the package yet).
+- **Task 7 (served journey) not done and not counted:** `examples/2d-story` has not landed. Nothing was written to a
+  file directly to stand in for it.
+- Rulings: (1) the kit cannot add a new top-level list with its first row in one edit ("Node not found"), so
+  `appendEdits` makes the empty list first and both edits are one undo step (Feel had the same latent fault and was
+  fixed with it); (2) a choice writes two files, so it is two undo steps in write order, which is what the suite's write
+  path takes back; (3) Writer offers no Ask, because Ask proposes whole files and Writer's words are two files at once.
+- Ran: `test:unit` (all pass), `typecheck`, `pnpm boundaries`, `pnpm style`, `pnpm knip`. Did not run: WebKit, Firefox,
+  any browser test, any journey.
