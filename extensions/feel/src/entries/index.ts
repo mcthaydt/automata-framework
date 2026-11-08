@@ -5,6 +5,7 @@ export { feelExtension } from '../app/feel.extension'
 export {
   createFeel,
   DEFAULT_SETTINGS,
+  DEFAULT_SQUASH,
   type EntityRef,
   type Feel,
   type FeelFrame,

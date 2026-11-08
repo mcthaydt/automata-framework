@@ -107,7 +107,8 @@ export interface Feel {
 const FPS = 60
 const WORD_MS = 800
 const TRAUMA_DECAY = 1.6
-const DEFAULT_SQUASH: SpringTuning = { f: 4, zeta: 0.35, r: 0 }
+/** How squash moves when `feel.toml` sets no spring. */
+export const DEFAULT_SQUASH: SpringTuning = { f: 4, zeta: 0.35, r: 0 }
 const stepped = (p: number, steps: number): number => Math.min(1, Math.ceil(Math.max(0, p) * steps) / steps)
 
 /** `*` matches any run of characters. */

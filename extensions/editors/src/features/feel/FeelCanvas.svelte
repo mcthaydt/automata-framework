@@ -22,6 +22,8 @@ import {
   limitNote,
   removeEffectEdit,
   removeFeelEdit,
+  springEdit,
+  springLines,
 } from './feel-model.ts'
 import type { FeelSession } from './feel-session.svelte.ts'
 
@@ -112,6 +114,22 @@ async function removeFeel(chosen: FeelEntry) {
           step={limit.step}
           onchange={(value) =>
             void session.change(`${limit.label}`, [limitEdit(content, limit.key, Number(value))], `limits.${limit.key}`)}
+        />
+      {/each}
+    </div>
+    <h2>How squash moves</h2>
+    <p class="lead">A squashed character springs back like jelly. Speed is how fast, Wobble how much it jiggles, Wind-up how far it dips first.</p>
+    <div class="fields">
+      {#each springLines(content) as line (line.key)}
+        <FieldRow
+          label={line.label}
+          kind="number"
+          value={line.value}
+          min={line.min}
+          max={line.max}
+          step={line.step}
+          onchange={(value) =>
+            void session.change(line.label, [springEdit(content, line.key, Number(value))], `springs.squash.${line.key}`)}
         />
       {/each}
     </div>

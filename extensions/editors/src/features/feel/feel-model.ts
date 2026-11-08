@@ -3,7 +3,15 @@
 // content edits by key path, so the file keeps its comments and order.
 
 import type { ContentEdit } from '@automata/editor/kit/documents'
-import { DEFAULT_LIMITS, type FeelContent, type FeelEntry, type Limits, resolveLimits } from '@automata/feel'
+import {
+  DEFAULT_LIMITS,
+  DEFAULT_SQUASH,
+  type FeelContent,
+  type FeelEntry,
+  type Limits,
+  resolveLimits,
+  type SpringTuning,
+} from '@automata/feel'
 import { eventWords } from '../../shared/event-words.ts'
 import { appendEdits, type Field, setOrInsert } from '../../shared/fields.ts'
 import type { Problem } from '../../shared/toml-session.ts'
@@ -52,7 +60,7 @@ const NEW_ROW: Readonly<Record<EffectKind, { readonly channel: Channel; readonly
   flash: { channel: 'visual', row: { flash: 'white', frames: 2 } },
   tint: { channel: 'visual', row: { tint: 'red', ms: 150, alpha: 0.4 } },
   squash: { channel: 'visual', row: { squash: 0.3 } },
-  word: { channel: 'word', row: { key: 'hit' } },
+  word: { channel: 'word', row: { key: 'word', words: 'Pow!' } },
   rumble: { channel: 'haptic', row: { strong: 0.5, weak: 0.3, ms: 100 } },
   sound: { channel: 'audio', row: { cue: 'hit' } },
 }
@@ -188,7 +196,7 @@ export function effectLines(entry: FeelEntry, limits: Limits = DEFAULT_LIMITS): 
           index,
           words: 'Show a word',
           fields: [
-            text('key', 'Which word', row.key),
+            text('words', 'What it says', row.words ?? ''),
             choice(
               'at',
               'Where',
@@ -283,8 +291,13 @@ export function addFeelEdit(content: FeelContent, on: string): ContentEdit[] {
 
 export const removeFeelEdit = (entry: number): ContentEdit => ({ keyPath: ['entry', entry], remove: true })
 
+/** A word is filed under its event: `player.hit.word`, then `player.hit.word2`. A person never sees the name. */
+const wordKey = (entry: FeelEntry): string =>
+  `${entry.on}.word${(entry.word?.length ?? 0) === 0 ? '' : String((entry.word?.length ?? 0) + 1)}`
+
 export function addEffectEdit(entry: FeelEntry, index: number, kind: EffectKind): ContentEdit {
-  const { channel, row } = NEW_ROW[kind]
+  const { channel } = NEW_ROW[kind]
+  const row = kind === 'word' ? { key: wordKey(entry), words: 'Pow!' } : NEW_ROW[kind].row
   return entry[channel] === undefined
     ? { keyPath: ['entry', index, channel], insert: [row] }
     : { keyPath: ['entry', index, channel], insert: row }
@@ -337,4 +350,38 @@ export function feelProblemWords(problem: Problem, entries: readonly FeelEntry[]
       return `Another feel already answers ${eventWords(on)}.`
   }
   return problem.message
+}
+
+export interface SpringLine {
+  readonly key: keyof SpringTuning
+  readonly label: string
+  readonly min: number
+  readonly max: number
+  readonly step: number
+  readonly value: number
+}
+
+const SPRING: readonly Omit<SpringLine, 'value'>[] = [
+  { key: 'f', label: 'Speed', min: 0.5, max: 12, step: 0.5 },
+  { key: 'zeta', label: 'Wobble', min: 0, max: 2, step: 0.05 },
+  { key: 'r', label: 'Wind-up', min: -2, max: 2, step: 0.1 },
+]
+
+/** How squash springs back, each value the file's or the game's default. */
+export function springLines(content: FeelContent): SpringLine[] {
+  const spring = content.springs?.squash ?? DEFAULT_SQUASH
+  return SPRING.map((line) => ({ ...line, value: spring[line.key] }))
+}
+
+/**
+ * The edit that sets one value of the squash spring. The file's spring needs all three values, so a file with none gets
+ * the whole table, the defaults and the changed value.
+ */
+export function springEdit(content: FeelContent, key: keyof SpringTuning, value: number): ContentEdit {
+  const squash = content.springs?.squash
+  if (squash !== undefined) return { keyPath: ['springs', 'squash', key], expected: squash[key], set: value }
+  const whole = { ...DEFAULT_SQUASH, [key]: value }
+  return content.springs === undefined
+    ? { keyPath: ['springs'], insert: { squash: whole } }
+    : { keyPath: ['springs', 'squash'], insert: whole }
 }

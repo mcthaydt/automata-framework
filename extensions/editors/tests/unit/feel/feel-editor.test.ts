@@ -82,6 +82,34 @@ describe('Feel', () => {
     expect(written.startsWith('# What the player feels.\n')).toBe(true)
   })
 
+  it('writes what a word says and files it under its event, without showing the filing name', async () => {
+    const { ports } = await open({ [FEEL_PATH]: FILE })
+    await userEvent.click(screen.getByRole('button', { name: 'Add an effect' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Show a word' }))
+    const word = await screen.findByRole('article', { name: 'Show a word' })
+    const says = within(word).getByLabelText('What it says')
+    expect(says).toHaveValue('Pow!')
+    expect(screen.queryByLabelText('Which word')).toBeNull()
+    await userEvent.clear(says)
+    await userEvent.type(says, 'Ouch!{Enter}')
+    await vi.waitFor(async () => expect(await text(ports)).toContain('words = "Ouch!"'))
+    expect(await text(ports)).toContain('key = "player.hit.word"')
+  })
+
+  it('tunes how squash moves, writing the whole spring the first time', async () => {
+    const { ports } = await open({ [FEEL_PATH]: FILE })
+    await userEvent.click(screen.getByRole('button', { name: 'Never more than' }))
+    expect(screen.getByRole('heading', { name: 'How squash moves' })).toBeInTheDocument()
+    const wobble = screen.getByLabelText('Wobble')
+    expect(wobble).toHaveValue(0.35)
+    await userEvent.clear(wobble)
+    await userEvent.type(wobble, '0.5{Enter}')
+    await vi.waitFor(async () => expect(await text(ports)).toContain('zeta = 0.5'))
+    const written = (await text(ports)) ?? ''
+    expect(written).toContain('f = 4')
+    expect(written).toContain('r = 0')
+  })
+
   it('asks before removing a feel', async () => {
     const { ports } = await open({ [FEEL_PATH]: FILE })
     await userEvent.click(screen.getByRole('button', { name: 'Remove this feel' }))

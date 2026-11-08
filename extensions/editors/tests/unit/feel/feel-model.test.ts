@@ -12,6 +12,8 @@ import {
   limitLines,
   limitNote,
   removeEffectEdit,
+  springEdit,
+  springLines,
 } from '#src/features/feel/feel-model.ts'
 
 describe('eventWords', () => {
@@ -248,5 +250,63 @@ describe('every field of the file', () => {
     expect(limitNote({ limits: { hit_stop_ms: 300 } }, freeze, 'hit_stop_ms')).toBeUndefined()
     expect(limitNote({}, flash, 'frames')).toBe('Above the most flash frames. Players see 3.')
     expect(limitNote({}, flash, 'alpha')).toBe('Brighter than allowed. Players see 0.85.')
+  })
+})
+
+describe('what a word says', () => {
+  it('shows the words a word says, not the name it is filed under', () => {
+    const lines = effectLines({
+      on: 'player.hit',
+      word: [{ key: 'player.hit.word', words: 'Ouch!', at: 'subject' }],
+    })
+    const word = lines.find((line) => line.words === 'Show a word')
+    expect(word?.fields.map((field) => field.label)).toEqual(['What it says', 'Where', 'How long'])
+    expect(word?.fields.find((field) => field.key === 'words')).toMatchObject({
+      kind: 'text',
+      value: 'Ouch!',
+    })
+    expect(word?.fields.some((field) => field.key === 'key')).toBe(false)
+  })
+
+  it('files a new word under its event, and a second one under another name', () => {
+    expect(addEffectEdit({ on: 'player.hit' }, 0, 'word')).toEqual({
+      keyPath: ['entry', 0, 'word'],
+      insert: [{ key: 'player.hit.word', words: 'Pow!' }],
+    })
+    expect(
+      addEffectEdit({ on: 'player.hit', word: [{ key: 'player.hit.word', words: 'Ouch' }] }, 0, 'word'),
+    ).toEqual({
+      keyPath: ['entry', 0, 'word'],
+      insert: { key: 'player.hit.word2', words: 'Pow!' },
+    })
+  })
+})
+
+describe('how squash moves', () => {
+  it('shows the spring with the game’s defaults when the file sets none', () => {
+    expect(springLines({}).map((line) => [line.key, line.label, line.value])).toEqual([
+      ['f', 'Speed', 4],
+      ['zeta', 'Wobble', 0.35],
+      ['r', 'Wind-up', 0],
+    ])
+  })
+
+  it('changes one value of a spring the file has', () => {
+    expect(springEdit({ springs: { squash: { f: 4, zeta: 0.35, r: 0 } } }, 'zeta', 0.5)).toEqual({
+      keyPath: ['springs', 'squash', 'zeta'],
+      expected: 0.35,
+      set: 0.5,
+    })
+  })
+
+  it('writes the whole spring, since the file needs all three values, when it has none', () => {
+    expect(springEdit({}, 'zeta', 0.5)).toEqual({
+      keyPath: ['springs'],
+      insert: { squash: { f: 4, zeta: 0.5, r: 0 } },
+    })
+    expect(springEdit({ springs: {} }, 'f', 6)).toEqual({
+      keyPath: ['springs', 'squash'],
+      insert: { f: 6, zeta: 0.35, r: 0 },
+    })
   })
 })
