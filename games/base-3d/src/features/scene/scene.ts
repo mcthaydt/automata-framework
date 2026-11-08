@@ -27,8 +27,8 @@ import type { View3D } from '@pixi/3d'
 import type { AreaSource } from '../../shared/area.ts'
 import { ACTION_CLIP, TICK_HZ } from '../../shared/constants.ts'
 import type { RoomWorld } from '../../shared/room-world.ts'
+import { shadeColour } from '../../shared/shade.ts'
 import type { Tuning } from '../../shared/tuning.ts'
-import { shadeColour } from '../room/room-time.ts'
 
 type Components = Readonly<Record<string, Readonly<FieldRecord>>>
 

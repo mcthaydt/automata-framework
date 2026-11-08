@@ -24,9 +24,3 @@ export function timeShade(time: TimeOfDay): number {
   const ratio = Math.min(1, Math.max(0, time.scene.light.ambient.level / day))
   return DARKEST + (1 - DARKEST) * ratio
 }
-
-/** `colour` with each channel scaled by `shade` (0 to 1). */
-export function shadeColour(colour: number, shade: number): number {
-  const channel = (shift: number): number => Math.round(((colour >> shift) & 0xff) * shade)
-  return (channel(16) << 16) | (channel(8) << 8) | channel(0)
-}

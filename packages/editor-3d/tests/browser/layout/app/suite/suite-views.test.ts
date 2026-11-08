@@ -77,6 +77,25 @@ const menuButton = (): HTMLElement => {
   if (found === null) throw new Error('no View control')
   return found
 }
+/** WCAG contrast of two CSS colours, the second laid over black when it is see-through (the picture under the chip is dark). */
+function contrast(foreground: string, background: string): number {
+  const channels = (css: string): [number, number, number, number] => {
+    const numbers = (css.match(/[\d.]+/g) ?? []).map(Number)
+    return [numbers[0] ?? 0, numbers[1] ?? 0, numbers[2] ?? 0, numbers[3] ?? 1]
+  }
+  const luminance = ([r, g, b]: readonly number[]): number => {
+    const lin = (value: number): number => {
+      const v = value / 255
+      return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
+    }
+    return 0.2126 * lin(r ?? 0) + 0.7152 * lin(g ?? 0) + 0.0722 * lin(b ?? 0)
+  }
+  const [fr, fg, fb] = channels(foreground)
+  const [br, bg, bb, ba] = channels(background)
+  const plate = [br * ba, bg * ba, bb * ba]
+  const [high, low] = [luminance([fr, fg, fb]), luminance(plate)].sort((a, b) => b - a) as [number, number]
+  return (high + 0.05) / (low + 0.05)
+}
 const shown = (testid: string): boolean => document.querySelector(`[data-testid="${testid}"]`) !== null
 
 describe.each(SIZES)('Views of a room in the suite at $name ($width x $height)', (size) => {
@@ -139,6 +158,16 @@ describe.each(SIZES)('Views of a room in the suite at $name ($width x $height)',
             b.box.top < a.box.bottom,
           `${a.name} and ${b.name} do not overlap`,
         ).toBe(false)
+    // The words are over a picture, so they carry their own dark plate and read on it (they were dark on dark).
+    for (const testid of ['walk-chip', 'walk-warning']) {
+      const words = document.querySelector<HTMLElement>(`[data-testid="${testid}"]`)
+      if (words === null) continue
+      const style = getComputedStyle(words)
+      expect(
+        contrast(style.color, style.backgroundColor),
+        `${testid} reads on its plate`,
+      ).toBeGreaterThanOrEqual(4.5)
+    }
     await choose('Plan')
     await expect.poll(() => shown('plan-canvas')).toBe(true)
   })

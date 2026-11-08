@@ -17,7 +17,7 @@ import { base3dSim } from './src/app/base-sim.ts'
 import { emberView } from './src/features/embers/ember-view.ts'
 import { Act, Move } from './src/features/hero/move.command.ts'
 import { ROOM, ROOM_TIME, roomWorld } from './src/features/room/room.ts'
-import { shadeColour, timeShade } from './src/features/room/room-time.ts'
+import { timeShade } from './src/features/room/room-time.ts'
 import { fieldOfWindow } from './src/features/scene/field.ts'
 import {
   buildScene,
@@ -39,6 +39,7 @@ import { compileArea } from './src/shared/area.ts'
 import { TICK_HZ } from './src/shared/constants.ts'
 import { Ember } from './src/shared/ember.component.ts'
 import { Hero } from './src/shared/hero.component.ts'
+import { shadeColour } from './src/shared/shade.ts'
 import { tuningOf } from './src/shared/tuning.ts'
 import { routed, routeOf, showHero, showRoom } from './src/testing/route.ts'
 
