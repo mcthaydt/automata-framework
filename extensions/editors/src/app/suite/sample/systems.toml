@@ -1,0 +1,78 @@
+# How the characters in this scene behave. One guard: it walks between three places, chases what it sees and gives up
+# after a few seconds.
+scene = "hall"
+objects = []
+matrix = []
+rules = []
+scenarios = []
+
+[tunables]
+
+[fairness]
+cautiousWin = 0.9
+firstThreatAfter = 20
+telegraph = 1.5
+maxDeathsPerRun = 1
+safeWindowMargin = 1.3
+
+[[agents]]
+id = "guard"
+modes = ["patrol", "hunt", "search"]
+initial = "patrol"
+
+[agents.speed]
+patrol = 1.4
+hunt = 2.2
+search = 1.4
+
+[[agents.senses]]
+[agents.senses.sight]
+range = 4.5
+
+[[agents.senses]]
+[agents.senses.touch]
+radius = 0.6
+
+[[agents.routine]]
+node = "door"
+dwell = 2
+
+[[agents.routine]]
+node = "desk"
+dwell = 3
+
+[[agents.routine]]
+node = "window"
+dwell = 2
+
+[[agents.transitions]]
+from = "patrol"
+to = "hunt"
+priority = 30
+when = [{ sees = true }]
+
+[[agents.transitions]]
+from = "hunt"
+to = "hunt"
+priority = 20
+when = [{ sees = true }]
+do = [{ goTo = "player" }]
+
+[[agents.transitions]]
+from = "hunt"
+to = "search"
+priority = 10
+when = [{ not = { sees = true } }]
+do = [{ set = "self.timer", to = 0 }]
+
+[[agents.transitions]]
+from = "search"
+to = "hunt"
+priority = 30
+when = [{ sees = true }]
+
+[[agents.transitions]]
+from = "search"
+to = "patrol"
+priority = 10
+when = [{ fact = "self.idle", is = true }, { timer = 5 }]

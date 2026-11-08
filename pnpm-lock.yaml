@@ -421,6 +421,9 @@ importers:
       '@automata/systems':
         specifier: workspace:*
         version: link:../systems
+      smol-toml:
+        specifier: 1.9.0
+        version: 1.9.0
       svelte:
         specifier: 5.57.1
         version: 5.57.1

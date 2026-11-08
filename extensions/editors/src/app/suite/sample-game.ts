@@ -3,9 +3,13 @@
 import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
 import list from './sample/editors.toml?raw'
 import feel from './sample/feel.toml?raw'
+import nav from './sample/nav.toml?raw'
+import systems from './sample/systems.toml?raw'
 
 export const CONTENT_SAMPLE_GAME: Readonly<Record<string, string>> = {
   [EDITOR_LIST_PATH]: list,
   'content/tuning.toml': '[player]\nspeed = 6.5 # m/s\n',
   'content/feel/feel.toml': feel,
+  'content/systems/hall.toml': systems,
+  'content/nav/hall.toml': nav,
 }

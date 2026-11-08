@@ -1,0 +1,154 @@
+// @vitest-environment jsdom
+import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
+import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
+import { render, screen, within } from '@testing-library/svelte'
+import userEvent from '@testing-library/user-event'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { CONTENT_SAMPLE_GAME } from '#src/app/suite/sample-game.ts'
+import SchematicCanvas from '#src/features/schematic/SchematicCanvas.svelte'
+import SchematicPanel from '#src/features/schematic/SchematicPanel.svelte'
+import SchematicStatus from '#src/features/schematic/SchematicStatus.svelte'
+import { createSchematic } from '#src/features/schematic/schematic-suite-editor.ts'
+
+const HALL = CONTENT_SAMPLE_GAME['content/systems/hall.toml'] as string
+const NAV = CONTENT_SAMPLE_GAME['content/nav/hall.toml'] as string
+const LIST = CONTENT_SAMPLE_GAME[EDITOR_LIST_PATH] as string
+
+async function open(files: Record<string, string>) {
+  const { ports } = await createMemoryPorts({
+    files,
+    classify: (path) => ({
+      path,
+      editor: 'schematic',
+      gates: [],
+      checks: [],
+      modes: ['edit'],
+      writable: true,
+    }),
+    changeSet: false,
+  })
+  const listed = await ports.workspace.files('schematic')
+  const session = await createSchematic().open(listed, ports)
+  render(SchematicPanel, { props: { session } })
+  render(SchematicCanvas, { props: { session } })
+  render(SchematicStatus, { props: { session } })
+  return { ports, session }
+}
+
+afterEach(() => {
+  document.body.innerHTML = ''
+})
+
+// The words a page must never show: the file's key names.
+const KEYS = [
+  'sawHide',
+  'warmthWithin',
+  'followThrough',
+  'setMode',
+  'probe',
+  'transition',
+  'agent',
+  'routine',
+  'tunables',
+  'matrix',
+  'priority',
+  'hook',
+  'self.',
+  'pursuit.',
+  'nav',
+  'node',
+]
+function expectNoKeys(): void {
+  const text = document.body.textContent ?? ''
+  for (const key of KEYS) expect(text.toLowerCase(), key).not.toContain(key.toLowerCase())
+}
+
+describe('Schematic', () => {
+  it('lists the scene’s characters by name', async () => {
+    await open({ 'content/systems/hall.toml': HALL, 'content/nav/hall.toml': NAV })
+    const list = screen.getByRole('navigation', { name: 'Characters' })
+    expect(within(list).getByRole('button', { name: 'Guard' })).toHaveAttribute('aria-current', 'true')
+    expect(screen.getByRole('heading', { name: 'Guard' })).toBeInTheDocument()
+    expectNoKeys()
+  })
+
+  it('offers a scene picker only when there is more than one scene', async () => {
+    await open({
+      'content/systems/hall.toml': HALL,
+      'content/systems/yard.toml': HALL.replace('"hall"', '"yard"'),
+    })
+    expect(screen.getByRole('combobox', { name: 'Scene' })).toHaveValue('hall')
+    expect(
+      within(screen.getByRole('combobox', { name: 'Scene' }))
+        .getAllByRole('option')
+        .map((o) => o.textContent),
+    ).toEqual(['Hall', 'Yard'])
+  })
+
+  it('says a scene with no file has no characters, and adds the first one', async () => {
+    const { ports } = await open({ [EDITOR_LIST_PATH]: LIST })
+    expect(screen.getByRole('heading', { name: 'This scene has no characters yet.' })).toBeInTheDocument()
+    await userEvent.click(screen.getAllByRole('button', { name: 'Add a character' })[0] as HTMLElement)
+    await vi.waitFor(async () =>
+      expect((await ports.workspace.read('content/systems/main.toml'))?.text).toContain('id = "character"'),
+    )
+    expect(await screen.findByRole('button', { name: 'Character' })).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('No problems.')
+  })
+
+  it('shows the rows to add when the list of editors does not name the files', async () => {
+    const bare = LIST.split('[[file]]').slice(0, 2).join('[[file]]')
+    await open({ [EDITOR_LIST_PATH]: bare })
+    expect(screen.getByLabelText('What to add to your list of editors').textContent).toContain(
+      'content/systems/*.toml',
+    )
+    expect(screen.getByLabelText('What to add to your list of editors').textContent).toContain(
+      'content/nav/*.toml',
+    )
+    expect(
+      screen
+        .getAllByRole('button', { name: 'Add a character' })
+        .every((b) => (b as HTMLButtonElement).disabled),
+    ).toBe(true)
+  })
+
+  it('says what to add when the game does not use the systems extension', async () => {
+    await open({ 'package.json': JSON.stringify({ dependencies: { '@automata/feel': '1.0.0' } }) })
+    expect(
+      screen.getByRole('heading', { name: 'This game does not use characters that think yet.' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'How to add it' })).toHaveAttribute(
+      'href',
+      expect.stringContaining('extensions/systems/README.md'),
+    )
+    expect(screen.queryByRole('button', { name: 'Add a character' })).toBeNull()
+  })
+
+  it('says a file with a mistake is read only', async () => {
+    await open({ 'content/systems/hall.toml': 'scene = "hall\nagents = [' })
+    expect(screen.getByRole('heading', { name: /has a mistake on line/ })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Add a character' })).toBeNull()
+  })
+
+  it('counts the problems, and says the game is still playing the last version that worked', async () => {
+    const broken = HALL.replace('initial = "patrol"', 'initial = "chase"')
+    await open({ 'content/systems/hall.toml': broken, 'content/nav/hall.toml': NAV })
+    expect(screen.getByRole('status')).toHaveTextContent('1 problem in this scene.')
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Your game is still playing the last version that worked. Fix the problems to see this one.',
+    )
+  })
+
+  it('finds no problem in the sample scene', async () => {
+    const { session } = await open({ 'content/systems/hall.toml': HALL, 'content/nav/hall.toml': NAV })
+    expect(session.problems).toEqual([])
+  })
+
+  it('keeps the places in step with the behaviour: a patrol stop at a place that is not there is a problem', async () => {
+    const { session } = await open({
+      'content/systems/hall.toml': HALL,
+      'content/nav/hall.toml': NAV.replace('[nodes.window]', '[nodes.sill]'),
+    })
+    expect(session.problems.length).toBeGreaterThan(0)
+  })
+})

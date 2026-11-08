@@ -2,7 +2,8 @@
 // shows each only to a game whose editor list names it.
 import type { SuiteEditor } from '@automata/editor/kit/ports'
 import { createFeel } from '../../features/feel/feel-suite-editor.ts'
+import { createSchematic } from '../../features/schematic/schematic-suite-editor.ts'
 
 export function contentEditors(): SuiteEditor<unknown>[] {
-  return [createFeel()] as SuiteEditor<unknown>[]
+  return [createFeel(), createSchematic()] as SuiteEditor<unknown>[]
 }

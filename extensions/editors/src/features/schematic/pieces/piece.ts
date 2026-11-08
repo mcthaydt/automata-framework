@@ -18,16 +18,6 @@ export const NO_NAMES: Names = { modes: [], agents: [], facts: [], places: [], h
 /** How the add menu groups pieces, in the order it lists them. */
 export type PieceGroup = 'notices' | 'where' | 'true' | 'time' | 'move' | 'change' | 'tell'
 
-export const GROUP_WORDS: Readonly<Record<PieceGroup, string>> = {
-  notices: 'What it notices',
-  where: 'Where things are',
-  true: 'What is true',
-  time: 'Time',
-  move: 'Move',
-  change: 'Change',
-  tell: 'Tell the game',
-}
-
 export interface Piece<V> {
   readonly kind: string
   readonly group: PieceGroup
