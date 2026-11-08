@@ -12,7 +12,7 @@ import { diffSkillTrees } from '#src/skill-tree.ts'
 
 const REPO = resolve(import.meta.dirname, '../../../..')
 const PLUGIN = join(REPO, 'agents/automata')
-const SKILL_NAMES = ['automata', 'automata-api', 'automata-feature', 'automata-verify']
+const SKILL_NAMES = ['automata', 'automata-api', 'automata-editor', 'automata-feature', 'automata-verify']
 const CLAUDE_VERSION = '2.1.301'
 const SKILLS_CLI = 'skills@1.7.0'
 
@@ -63,9 +63,25 @@ describe('the Claude Code plugin', () => {
     expect(run('claude', ['plugin', 'list']).output).toMatch(/automata@automata-framework[\s\S]*enabled/)
   })
 
-  it('loads the four skills and both hooks', () => {
+  it("installs from the public mirror's own marketplace, the way a new game's settings ask for it", () => {
+    // The mirror (mcthaydt/automata-skills) is this plugin folder alone, so the folder has to be a marketplace itself.
+    const project = join(temp, 'mirror-project')
+    mkdirSync(project)
+    expect(run('claude', ['plugin', 'validate', PLUGIN, '--strict']).status).toBe(0)
+    expect(
+      run('claude', ['plugin', 'marketplace', 'add', PLUGIN, '--scope', 'project'], { cwd: project }).status,
+    ).toBe(0)
+    expect(
+      run('claude', ['plugin', 'install', 'automata@automata', '--scope', 'project'], { cwd: project })
+        .status,
+    ).toBe(0)
+    const settings = JSON.parse(readFileSync(join(project, '.claude/settings.json'), 'utf8'))
+    expect(settings.enabledPlugins).toEqual({ 'automata@automata': true })
+  })
+
+  it('loads the skills and both hooks', () => {
     const details = run('claude', ['plugin', 'details', 'automata@automata-framework']).output
-    expect(details).toMatch(/Skills \(4\)/)
+    expect(details).toMatch(new RegExp(`Skills \\(${SKILL_NAMES.length}\\)`))
     for (const name of SKILL_NAMES) expect(details).toContain(name)
     expect(details).toMatch(/Hooks \(2\)\s+PostToolUse, Stop/)
   })
@@ -114,7 +130,7 @@ function installPath(): string {
 }
 
 describe('the Agent Skills install (npx skills add)', () => {
-  it('installs the four skills for Claude Code, Codex and Cursor, byte for byte', () => {
+  it('installs the skills for Claude Code, Codex and Cursor, byte for byte', () => {
     const project = join(temp, 'project')
     mkdirSync(project)
     writeFileSync(join(project, 'package.json'), '{ "private": true }\n')

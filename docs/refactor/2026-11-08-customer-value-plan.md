@@ -659,3 +659,11 @@ want, itch will be first output". Spec §11.
 - 2026-11-08 22:32: the Owner: the zip is its own step, then Publish asks where to put the game, itch.io first. Task 14
   and spec §11 reshaped: a list of places, so more can be added.
 - 2026-11-08: plan audit (stage 3, `2026-11-08-customer-value-plan-audit.md`): A1 to A13 fixed here, Task 14 included.
+- 2026-11-08 (build, stage 4): branch `claude/project-thread-rvrslh` is #532's head (`829039d5`, the newest head holding
+  #522 and the free web editor) plus the four docs commits of #530, #533 and #535 (cherry-picked; main has no
+  `extensions/`, so code tasks cannot branch from #535 itself). Ruling: pull requests stack on #532's branch, not #535's.
+  Node is 22.23 here (the plan says 24); Claude Code is 2.1.319, not the install test's pinned 2.1.301.
+- Task 1 done: `agents/automata/.claude-plugin/marketplace.json`; `readAgentPackage` checks it. `pnpm agent-skills`,
+  the package's unit tests (115) and typecheck pass. `claude plugin validate agents/automata --strict` and `validate .
+  --strict`, then `marketplace add <agents/automata> --scope project` and `install automata@automata --scope project`
+  all passed on 2.1.319. The install test gained the same case but was not run: it pins 2.1.301 and needs the network.

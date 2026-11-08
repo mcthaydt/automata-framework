@@ -135,6 +135,16 @@ export function readAgentPackage(root: string): AgentPackage {
       `${rel(join(pluginDir, '.claude-plugin/plugin.json'))}: name differs from the marketplace entry`,
     )
   }
+  // The public mirror holds only this folder, so the plugin must be installable from it on its own.
+  const own = parse(join(pluginDir, '.claude-plugin/marketplace.json'), Marketplace)
+  if (
+    own !== undefined &&
+    !(own.plugins.length === 1 && own.plugins[0]?.name === plugin?.name && own.plugins[0]?.source === './')
+  ) {
+    problems.push(
+      `${rel(join(pluginDir, '.claude-plugin/marketplace.json'))}: the mirror's marketplace must list this plugin as ./`,
+    )
+  }
   const hooks = parse(join(pluginDir, 'hooks/hooks.json'), HooksFile)
   for (const script of hookScripts(hooks)) {
     if (!existsSync(join(pluginDir, script)))

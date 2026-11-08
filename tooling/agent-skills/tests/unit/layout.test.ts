@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -36,6 +36,13 @@ const HOOKS = {
   },
 }
 
+const MIRROR_MARKETPLACE = {
+  name: 'automata',
+  description: 'Skills for coding agents.',
+  owner: { name: 'mcthaydt' },
+  plugins: [{ name: 'automata', source: './' }],
+}
+
 function goodPackage(): Record<string, string> {
   return {
     '.claude-plugin/marketplace.json': JSON.stringify({
@@ -50,6 +57,7 @@ function goodPackage(): Record<string, string> {
       description: 'Automata rules',
       author: { name: 'mcthaydt' },
     }),
+    'agents/automata/.claude-plugin/marketplace.json': JSON.stringify(MIRROR_MARKETPLACE),
     'agents/automata/hooks/hooks.json': JSON.stringify(HOOKS),
     'agents/automata/scripts/check.mjs': '',
     'agents/automata/skills/automata/SKILL.md': skill('automata'),
@@ -150,6 +158,23 @@ describe('readAgentPackage on fixtures', () => {
       /marketplace\.json: .*source/,
     ],
     [
+      'a mirror marketplace that lists another plugin',
+      (f) => {
+        f['agents/automata/.claude-plugin/marketplace.json'] = JSON.stringify({
+          ...MIRROR_MARKETPLACE,
+          plugins: [{ name: 'other', source: './' }],
+        })
+      },
+      /the mirror's marketplace must list this plugin as \.\//,
+    ],
+    [
+      'a plugin without a marketplace of its own',
+      (f) => {
+        delete f['agents/automata/.claude-plugin/marketplace.json']
+      },
+      /agents\/automata\/\.claude-plugin\/marketplace\.json: missing/,
+    ],
+    [
       'a plugin without version, description or author',
       (f) => {
         f['agents/automata/.claude-plugin/plugin.json'] = JSON.stringify({ name: 'automata' })
@@ -181,6 +206,14 @@ describe("AF's own agent package", () => {
       'automata-feature',
       'automata-verify',
     ])
+  })
+
+  it('is a marketplace of its own, for the public mirror', () => {
+    const own = JSON.parse(
+      readFileSync(join(REPO, 'agents/automata/.claude-plugin/marketplace.json'), 'utf8'),
+    )
+    expect(own.name).toBe('automata')
+    expect(own.plugins).toEqual([{ name: 'automata', source: './' }])
   })
 
   it('lists plugin automata from ./agents/automata in marketplace automata-framework', () => {
