@@ -17,6 +17,13 @@ describe('LLMs.txt & Docs Pipeline', () => {
     expect(content).toContain('- [Draw levels in the editor](/docs/editor)')
   })
 
+  it('names the plugin and both install lines, so an agent can get the skills', async () => {
+    const content = await llmsIndex().text()
+    expect(content).toContain('/plugin marketplace add mcthaydt/automata-skills')
+    expect(content).toContain('/plugin install automata@automata')
+    expect(content).toContain('npx skills add https://github.com/mcthaydt/automata-skills')
+  })
+
   it('says what the editor guide is, not the first words of its steps', async () => {
     expect(await llmsIndex().text()).toContain(
       '- [Draw levels in the editor](/docs/editor): How to open the level editor on your game and draw its levels.',

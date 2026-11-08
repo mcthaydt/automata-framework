@@ -14,6 +14,11 @@ export function llmsIndex(docs: readonly DocSection[], version: string): string 
 ## Documentation
 ${docs.map((d) => `- [${d.title}](/docs/${d.slug}): ${d.description}`).join('\n')}
 
+## Skills for agents
+- Claude Code: \`/plugin marketplace add mcthaydt/automata-skills\`, then \`/plugin install automata@automata\`.
+- Any other agent: \`npx skills add https://github.com/mcthaydt/automata-skills\`.
+- A game made with \`npx @automata/tools create-game my-game\` has an AGENTS.md that says the rest.
+
 ## Plain text for agents
 - [Full documentation](/llms-full.txt): Every guide and Reference page in one file, for version ${version}.
 - [API reference](/llms-api.txt): Every export of the ${version} packages with its signature and doc comment, generated from the package declarations.

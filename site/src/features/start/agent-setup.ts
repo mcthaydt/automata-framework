@@ -1,14 +1,17 @@
-import { SKILL_PREFLIGHT } from '../../shared/content/agent-prompt'
+import { AUTOMATA_PLUGIN_INSTALL, SKILL_PREFLIGHT } from '../../shared/content/agent-prompt'
 
-export { SKILL_PREFLIGHT }
+export { AUTOMATA_PLUGIN_INSTALL, SKILL_PREFLIGHT }
 
-// What Start's agent setup says: where each skill comes from, how each agent installs it, and the check to ask the
-// agent for before it writes code. Sources were checked on 15 October 2026; upstream instructions win when they change.
+// What Start's agent setup says: Automata's own skills first (one command per kind of agent), where the other skills
+// come from, how each agent installs them, and the check to ask the agent for before it writes code. Sources were checked on 15 October 2026; upstream instructions win when they change.
 export const SKILL_SOURCES = {
   superpowers: 'https://github.com/obra/superpowers#installation',
   pixijs: 'https://github.com/pixijs/pixijs-skills#installing',
   codex: 'https://developers.openai.com/plugins/quickstart',
 }
+/** The commands that give an agent Automata's skills: Claude Code adds the plugin, every other agent installs the folders. */
+export const automataInstall = (agent: string): readonly string[] =>
+  agent === 'Claude Code' ? AUTOMATA_PLUGIN_INSTALL.claudeCode : [AUTOMATA_PLUGIN_INSTALL.other]
 export const PIXIJS_INSTALL = 'npx skills add https://github.com/pixijs/pixijs-skills'
 export const AGENT_INSTALL_OPTIONS = [
   {
