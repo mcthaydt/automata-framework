@@ -78,4 +78,65 @@ describe('DebugOverlay', () => {
     await open()
     expect(screen.queryByRole('dialog')).toBeNull()
   })
+
+  describe('Watch', () => {
+    const EDITOR = 'http://localhost:5174'
+    const bus = () => {
+      const listeners = new Set<(fact: unknown) => void>()
+      return {
+        port: {
+          subscribe(_name: string, listener: (fact: unknown) => void) {
+            listeners.add(listener)
+            return () => listeners.delete(listener)
+          },
+        },
+        publish: (fact: unknown) => {
+          for (const l of listeners) l(fact)
+        },
+        count: () => listeners.size,
+      }
+    }
+    const original = Object.getOwnPropertyDescriptor(window, 'parent')
+    afterEach(() => {
+      window.history.replaceState(null, '', '/')
+      if (original !== undefined) Object.defineProperty(window, 'parent', original)
+    })
+
+    it('tells the framing editor which mode changed, when the editor asked in the address', () => {
+      const up = { postMessage: vi.fn() }
+      Object.defineProperty(window, 'parent', { value: up, configurable: true })
+      window.history.replaceState(null, '', `/?af-watch=${encodeURIComponent(EDITOR)}&events=systems.mode`)
+      const events = bus()
+      dispose = installDebug({ panels, bus: events.port, tickHz: 60 })
+      render(DebugOverlay)
+      events.publish({
+        tick: 60,
+        events: [{ type: 'systems.mode', payload: { agent: 'guard', from: 'a', to: 'b' } }],
+      })
+      expect(up.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'af-sim-event', name: 'systems.mode', seconds: 1 }),
+        EDITOR,
+      )
+    })
+
+    it('stops telling when the overlay goes', () => {
+      const up = { postMessage: vi.fn() }
+      Object.defineProperty(window, 'parent', { value: up, configurable: true })
+      window.history.replaceState(null, '', `/?af-watch=${encodeURIComponent(EDITOR)}&events=systems.mode`)
+      const events = bus()
+      dispose = installDebug({ panels, bus: events.port })
+      const view = render(DebugOverlay)
+      expect(events.count()).toBe(1)
+      view.unmount()
+      expect(events.count()).toBe(0)
+    })
+
+    it('says nothing in a page nobody framed', () => {
+      window.history.replaceState(null, '', `/?af-watch=${encodeURIComponent(EDITOR)}&events=systems.mode`)
+      const events = bus()
+      dispose = installDebug({ panels, bus: events.port })
+      render(DebugOverlay)
+      expect(events.count()).toBe(0)
+    })
+  })
 })
