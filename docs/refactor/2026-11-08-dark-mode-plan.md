@@ -373,6 +373,39 @@ tests/browser/layout/shared/kit/theme` — FAIL before Tasks 1 to 4, PASS after 
 
 ## Log
 
+- 2026-11-08, build (stage 3), Sonnet, on `claude/project-thread-1ot79o`. **Base:** PR #502's head (spec, plan and audit on #501 on #498:
+  the suite and the content editors), `af-audio-mix` (#500) merged in, then `claude/project-thread-xxsxar` (#497, Schematic)
+  merged in (12 conflicts, all additive: both stacks added editors; resolved as a union, `contentEditors` now lists Feel,
+  Audio, Writer, Sequence, Schematic; `lockfile` re-resolved). **#499 (Levels 3D 16.3) was not merged**: it conflicts with this
+  stack in 30 files, among them `packages/3d`'s `af-sector-2.schema.ts` (300 lines moved on both sides), the standalone 2D
+  and 3D pages it deletes, and the tools' `editor-args`. That is the stack merge's work, not this PR's. Until it lands, the
+  3D suite on this branch reads `af-sector/1` only and cannot open `base-3d`; Plan, 3D and Walk were therefore not shot or
+  played in dark here. What is on this branch for 3D (Walk's HUD and sticks, the Studio's marks, the entries) reads only
+  tokens and the scan covers it. When #499 lands, merge `main` into this branch (or rebase), rerun
+  `editor-colours.test.ts`, shoot Plan/3D/Walk in dark and play a moved wall.
+- Task 1 (`1aaa48e5`): `tool-theme.json` (22 names, then `stage-warn`), `toolThemeToCss`, `contrast`, `tool-theme.css`,
+  `tool-chrome.css` imports it and builds `--primary-ink`, `--primary-hover`, `--color-accent-ink`, `--shadow`,
+  `--shadow-sheet` from tokens. Every dark value in spec §3.2 passed the contrast test as written: no value changed.
+  Ruling: the generated CSS uses double quotes (`[data-theme="dark"]`) so Biome leaves it alone. Gates: unit 48 tests, typecheck.
+- Task 2 (`b2df8b94`): three entries import `tool-chrome.css`; `--color-danger` and the 3D fallbacks gone; Walk's HUD, sticks and
+  warning, the Studio's pose marks and notice, CardTile's fallback and Feel's stage read the fixed `--stage-*`. Rulings:
+  `StudioTimeline` unchanged (its words sit in the dock, which is chrome, not on the cabinet); an outer edge of a cabinet
+  box that meets the chrome keeps `--line` (light must not move); `stage-warn` is a new fixed token. The scan
+  (`editor-colours.test.ts`, 9 tests) reads `<style>`, stylesheets, markup and the `style`, `fill` and `stroke` lines of
+  every `.ts` in the three roots; its allow-list names the game-picture places and the level canvas's drawing code.
+  Gates: editor-3d unit 2161, editors unit 299 (before the merges).
+- Task 3 and 4 (`9362792c`, one commit because each commit runs about 6 minutes of hook): `theme-choice.ts`, `theme-boot.js`
+  in three `public/` folders, the six pages (`light dark`, boot script first), `ThemeChoice.svelte` on the suite Home, the
+  2D Home and the kit's `HomeScreen` (the 3D Home). `editor.api.md` updated (+24 lines). Both builds put
+  `theme-boot.js` beside the page. Gates: kit unit 1419, typecheck of the three packages.
+- Task 5 (`f7cb2654`): the design board has the control and is shot in both looks (20 Playwright tests).
+- Task 6: `tests/e2e/theme.test.ts` (first frame on the built editor: `dark/dark` and the dark field on a light device;
+  the dev page's attribute; the device switching without a reload; a forced choice wins and is remembered; no inline
+  script) and `tests/browser/layout/shared/kit/theme/theme.test.ts` (forced looks, the canvas palette plain, the level's
+  own canvas pixels and the cabinet identical in both looks: the canvas is copied with `drawImage` and compared, as the
+  build audit M3 asked, because the floating bars over it follow the look; the control keeps the pointer's size).
+  Ruling: the 3D Plan canvas comparison is not run here (WebGL in a cloud browser, and #499's Plan is not on this base).
+
 - 2026-11-08: plan audit (stage 2), on #501's branch: 3 high, 6 medium, 4 low found and fixed in the spec and this plan;
   the list is in [`2026-11-08-dark-mode-plan-audit.md`](2026-11-08-dark-mode-plan-audit.md).
 - 2026-11-08: spec and plan written (stage 1). Base: PR #498's branch. Findings while reading the code: the 3D suite and

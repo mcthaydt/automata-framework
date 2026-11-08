@@ -95,7 +95,7 @@ rather than holding one.
 ### 3.2 The tokens
 
 The source is a new `packages/editor/src/shared/kit/tokens/tool-theme.json`, `{ light: {…}, dark: {…} }`, with the same
-keys in both. `generate-tokens.ts` writes it to `tool-theme.css` as `light-dark()` pairs, with the same `--check` that
+keys in both. `generate-tokens.ts` writes it to `tool-theme.css` as plain values per look (§3.1), with the same `--check` that
 guards `tokens.css`. `tool-chrome.css` imports it first and keeps the density rules. Light values are today's, so the light
 look does not move a pixel on the pages that already draw the tool chrome (§2.1 names the pages that change in light
 because they did not).
@@ -119,6 +119,7 @@ because they did not).
 | `--shadow-ink` (new) | `rgb(17 21 28 / 0.12)` | `rgb(0 0 0 / 0.5)` | `--shadow-sheet`'s drop |
 | `--shadow-ring` (new) | `rgb(17 21 28 / 0.1)` | `#3a3b42` | `--shadow-sheet`'s 1 px ring round a sheet or dialog |
 | `--shadow-lift` (new) | `rgb(17 21 28 / 0.06)` | `rgb(0 0 0 / 0.4)` | `--shadow`, the hairline lift (today's 0.06, so light does not move) |
+| `--stage-warn` (new) | `#f0b450` | the same | warning marks drawn on the cabinet (Walk's warning, the Studio's pose marks): fixed, like `--stage-ink`, because the cabinet is fixed |
 | `--on-lime` (new) | `#11151c` | `#11151c` | words on the lime primary: `--primary-ink` |
 | `--on-accent` (new) | `#eef1fb` | `#11151c` | words on the accent: `--color-accent-ink` |
 | `--primary-edge` | `#11151c` | `#cbf25c` | the lime button's 1 px edge (ink on light, its own lime on dark) |

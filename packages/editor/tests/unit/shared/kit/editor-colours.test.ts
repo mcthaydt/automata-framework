@@ -29,6 +29,14 @@ const GAME_PICTURE_ALLOW: readonly { readonly file: string; readonly reason: str
     reason: "the game view's field",
   },
   { file: 'extensions/editors/src/features/sequence/SequencePreview.svelte', reason: "the game's letterbox" },
+  {
+    file: 'packages/editor/src/shared/level-2d/canvas/',
+    reason: "draws the level's own picture on its canvas",
+  },
+  {
+    file: 'packages/editor/src/features/characters/EntityInspector.svelte',
+    reason: "a character's default colour is game data",
+  },
   { file: 'packages/editor/src/testing/', reason: 'fixtures, not chrome' },
   { file: 'packages/editor/src/app/design/DesignBoard.svelte', reason: 'sample swatches' },
 ]
@@ -66,16 +74,39 @@ const styles: Source[] = sources.flatMap(({ file, text }) => {
   return []
 })
 
-/** The inline styles of the content editors, written as template literals or `style:` strings in `.ts`. */
-const inline: Source[] = sources
-  .filter(({ file }) => file.startsWith('extensions/editors/src/') && file.endsWith('.ts'))
-  .map(({ file, text }) => ({
-    file,
-    text: text
-      .split('\n')
-      .filter((l) => /style|fill|stroke/i.test(l))
-      .join('\n'),
-  }))
+/**
+ * Colour written where CSS does not reach: Svelte markup (`style="…"`, `style:color={…}`, an SVG `fill="…"`) and the
+ * lines of `.ts` that set a style, a fill or a stroke (inline style strings, chrome drawn on a canvas).
+ */
+const inline: Source[] = sources.flatMap(({ file, text }) => {
+  if (file.endsWith('.svelte')) {
+    const markup = text
+      .replace(/<script[\s\S]*?<\/script>/g, '')
+      .replace(/<style[\s\S]*?<\/style>/g, '')
+      .replace(/<!--[\s\S]*?-->/g, '')
+    return [
+      {
+        file,
+        text: markup
+          .split('\n')
+          .filter((l) => /style|fill|stroke|color/i.test(l) && !l.includes('href="#'))
+          .join('\n'),
+      },
+    ]
+  }
+  if (file.endsWith('.ts')) {
+    return [
+      {
+        file,
+        text: text
+          .split('\n')
+          .filter((l) => /style|fill|stroke/i.test(l) && !l.trim().startsWith('//'))
+          .join('\n'),
+      },
+    ]
+  }
+  return []
+})
 
 const LITERAL = /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(|(?<![\w-])(?:white|black)(?![\w-])/
 const allowed = (file: string): boolean => GAME_PICTURE_ALLOW.some((a) => file.startsWith(a.file))
