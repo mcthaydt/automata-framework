@@ -10,6 +10,7 @@ export {
 export { SAMPLE_GAME, samplePorts } from '../features/suite/memory/sample-ports'
 export { type SuiteEnv, type SuiteHandle, startSuite } from '../features/suite/shell/boot'
 export { createSuite, type Suite } from '../features/suite/shell/create-suite'
+export { fileTitle } from '../features/suite/shell/home-model'
 export {
   type OpenedSuitePorts,
   openSuitePorts,

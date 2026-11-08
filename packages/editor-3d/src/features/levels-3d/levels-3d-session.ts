@@ -1,4 +1,5 @@
 import type { SuitePorts, SuiteUndo, WorkspaceFile } from '@automata/editor/kit/ports'
+import { fileTitle } from '@automata/editor/suite'
 import { ok } from '../../shared/edit/edit'
 import { createLevelEditor, type LevelEditor } from '../../shared/edit/level-editor'
 import type { ParseIssue } from '../../shared/level-session/file-codec'
@@ -20,7 +21,15 @@ export interface Levels3dOptions {
 
 export type Levels3dState =
   | { readonly kind: 'open'; readonly editor: LevelEditor<unknown> }
-  | { readonly kind: 'error'; readonly message: string; readonly issues: readonly ParseIssue[] }
+  | {
+      readonly kind: 'error'
+      /** The heading: "<File> can't be opened." */
+      readonly message: string
+      /** Why, in words a person can read. */
+      readonly reason: string
+      /** The schema's own issues, shown only behind "Details". */
+      readonly details: readonly ParseIssue[]
+    }
 
 export interface Levels3dSession {
   readonly path: string
@@ -40,6 +49,9 @@ export interface Levels3dSession {
 
 const encoder = new TextEncoder()
 
+const NEWER = 'It was made by a newer version of AF. Update AF, then open it again.'
+const UNREADABLE = "Something in it isn't written the way a room is. Details says where."
+
 /** The row group's first `*.json` level, or its first file. */
 function chosen(files: readonly WorkspaceFile[]): string {
   return (files.find((file) => file.path.toLowerCase().endsWith('.json')) ?? files[0])?.path ?? ''
@@ -49,14 +61,14 @@ function failed(
   options: Levels3dOptions,
   path: string,
   others: readonly string[],
-  message: string,
-  issues: readonly ParseIssue[] = [],
+  reason: string,
+  details: readonly ParseIssue[] = [],
 ): Levels3dSession {
   return {
     path,
     others,
     options,
-    state: { kind: 'error', message, issues },
+    state: { kind: 'error', message: `${fileTitle(path || 'This row')} can't be opened.`, reason, details },
     refusal: undefined,
     text: () => '',
     settled: () => Promise.resolve(),
@@ -72,22 +84,14 @@ export async function openLevels3d(
   const path = chosen(files)
   const others = files.map((file) => file.path).filter((each) => each !== path)
   const read = path === '' ? undefined : await ports.workspace.read(path).catch(() => undefined)
-  if (read === undefined)
-    return failed(options, path, others, `${path || 'This row'} can’t be opened: there is no such file.`)
+  if (read === undefined) return failed(options, path, others, 'There is no such file.')
   const outcome = readLevel(encoder.encode(read.text))
-  const name = path.split('/').pop() ?? path
-  if (outcome.status === 'invalid')
-    return failed(
-      options,
-      path,
-      others,
-      `${name} can’t be opened as a ${outcome.profile.id} level.`,
-      outcome.issues,
-    )
-  if (outcome.status !== 'parsed') {
-    const why = outcome.status === 'unrecognised' ? ` ${outcome.message}` : ''
-    return failed(options, path, others, `${name} can’t be opened as a level.${why}`)
+  if (outcome.status === 'invalid') {
+    // A refused `format` is a file from a newer version; any other issue is the file's own writing.
+    const newer = outcome.issues.some((issue) => issue.path[0] === 'format')
+    return failed(options, path, others, newer ? NEWER : UNREADABLE, outcome.issues)
   }
+  if (outcome.status !== 'parsed') return failed(options, path, others, UNREADABLE)
 
   const profile: LevelProfile<unknown> = outcome.profile
   const editor = createLevelEditor({ profile, level: outcome.value, now: options.now })

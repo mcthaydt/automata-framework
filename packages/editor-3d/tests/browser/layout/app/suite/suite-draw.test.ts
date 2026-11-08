@@ -125,7 +125,7 @@ describe.each(CASES)('Drawing a room in the suite at $label', ({ size, finger })
       ],
       FILES,
       '[data-testid="plan-canvas"]',
-      'Levels 3D',
+      'Levels',
     )
     await expect.poll(() => plan().dataset.phase, { timeout: 10_000 }).not.toBe('starting')
     const pageOf = await calibrate()
@@ -181,7 +181,7 @@ describe.each(SIZES.filter((size) => size.name === 'ipad-pro-11-landscape'))(
         ],
         FILES,
         '[data-testid="plan-canvas"]',
-        'Levels 3D',
+        'Levels',
       )
       await expect.poll(() => plan().dataset.phase, { timeout: 10_000 }).not.toBe('starting')
       expect(pressed('Select')).toBe(true)
@@ -212,7 +212,7 @@ describe.each(CASES)('Placing a thing in the suite at $label', ({ size, finger }
       ],
       FILES,
       '[data-testid="plan-canvas"]',
-      'Levels 3D',
+      'Levels',
     )
     await expect.poll(() => plan().dataset.phase, { timeout: 10_000 }).not.toBe('starting')
     const pageOf = await calibrate()
@@ -247,7 +247,7 @@ describe.each(CASES)('Changing a room in the suite at $label', ({ size, finger }
       ],
       FILES,
       '[data-testid="plan-canvas"]',
-      'Levels 3D',
+      'Levels',
     )
     await expect.poll(() => plan().dataset.phase, { timeout: 10_000 }).not.toBe('starting')
     const pageOf = await calibrate()

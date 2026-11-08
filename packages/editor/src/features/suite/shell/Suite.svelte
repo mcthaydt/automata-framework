@@ -62,7 +62,10 @@ const mode = $derived(shellModeAt(geometry.current))
 const dockIsSheet = $derived(dockPlacementOf(mode, geometry.current.heightTier) !== 'inline')
 const dockShown = $derived(dockOpen ?? defaultDockOpen(mode, geometry.current.heightTier))
 // The rail: the editors this page registered.
-const entries = $derived(suiteEntries(suite.editors))
+// and only the ones the game's editor list names; when the list did not load, every installed one (read only).
+const entries = $derived(
+  suiteEntries(suite.editors, home.kind === 'cards' ? home.cards.map((card) => card.editor) : undefined),
+)
 const entry = $derived(entries.find((candidate) => candidate.id === current))
 // A phone held sideways has no height to spare for a tab bar: the editors fold into a menu in the top bar, so the stage
 // keeps the height (V4).

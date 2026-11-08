@@ -57,7 +57,7 @@ async function open(profile: IpadProfile) {
     suite: createSuite({ editors: [studio as SuiteEditor<unknown>] }),
   })
   await settleLayout()
-  await chooseEditor('Studio')
+  await chooseEditor('Characters')
   await expect
     .poll(() => document.querySelector('[data-testid="studio-stage"][data-status="ready"]'))
     .not.toBeNull()

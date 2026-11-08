@@ -133,7 +133,7 @@ describe('Levels 3D in the suite', () => {
 
   it('EDS-k: select a sector, switch to the Tuner and edit, switch back: the sector is still selected and Undo is the level’s', async () => {
     await start([fixtureEditor as SuiteEditor<unknown>, levels3d()], FILES_3D)
-    await userEvent.click(await screen.findByRole('tab', { name: 'Levels 3D' }))
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
     expect(await screen.findByTestId('layers-panel')).toBeInTheDocument()
     await selectHall()
     expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled()
@@ -142,7 +142,7 @@ describe('Levels 3D in the suite', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Raise speed' }))
     expect(await screen.findByRole('button', { name: 'Undo Raise speed' })).toBeEnabled()
 
-    await userEvent.click(screen.getByRole('tab', { name: 'Levels 3D' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Levels' }))
     expect(await screen.findByTestId('inspector')).toHaveTextContent(/hall/)
     // The Tuner's step is not the level's to undo.
     expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled()
@@ -150,8 +150,24 @@ describe('Levels 3D in the suite', () => {
 
   it('shows a file it cannot open as a state', async () => {
     await start([levels3d()], { ...FILES_3D, 'content/levels/depot.af-sector.json': '{ "format": ' })
-    await userEvent.click(await screen.findByRole('tab', { name: 'Levels 3D' }))
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
     const refused = await screen.findByTestId('levels-3d-refused')
-    expect(within(refused).getByText(/can’t be opened as a level/)).toBeInTheDocument()
+    expect(within(refused).getByText("Depot can't be opened.")).toBeInTheDocument()
+    expect(within(refused).getByText('Your file is unchanged.')).toBeInTheDocument()
+    expect(refused.textContent).not.toMatch(/af-sector|\.json|format/)
+  })
+
+  it('keeps a refusal’s technical issues behind Details', async () => {
+    await start([levels3d()], {
+      ...FILES_3D,
+      'content/levels/depot.af-sector.json': '{"format":"af-sector/3","name":"depot","sectors":[]}',
+    })
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    const refused = await screen.findByTestId('levels-3d-refused')
+    const details = within(refused).getByText('Details').closest('details') as HTMLElement
+    // What is on screen without asking names no format, path or schema text; Details holds them.
+    for (const line of refused.querySelectorAll('h2, :scope > p'))
+      expect(line.textContent).not.toMatch(/af-sector|\.json|format/)
+    expect(details.textContent).toMatch(/af-sector/)
   })
 })

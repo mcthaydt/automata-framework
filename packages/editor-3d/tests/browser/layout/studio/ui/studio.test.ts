@@ -59,7 +59,7 @@ async function open(size: EditorSize) {
     suite: createSuite({ editors: [studio as SuiteEditor<unknown>] }),
   })
   await settleLayout()
-  await chooseEditor('Studio')
+  await chooseEditor('Characters')
   await expect.poll(() => document.querySelector('[data-testid="studio-stage"]')).not.toBeNull()
   await settleLayout()
   return conditions
@@ -68,9 +68,9 @@ async function open(size: EditorSize) {
 const stage = (): HTMLElement =>
   document.querySelector<HTMLElement>('[data-testid="studio-stage"]') as HTMLElement
 const modeButton = (name: string): HTMLElement => {
-  const found = [...document.querySelectorAll<HTMLElement>('[aria-label="Studio mode"] [role="radio"]')].find(
-    (button) => button.textContent?.trim() === name,
-  )
+  const found = [
+    ...document.querySelectorAll<HTMLElement>('[aria-label="Character mode"] [role="radio"]'),
+  ].find((button) => button.textContent?.trim() === name)
   if (found === undefined) throw new Error(`no ${name} mode`)
   return found
 }
@@ -106,7 +106,7 @@ describe.each(SIZES)('Studio at $name ($width x $height)', (size) => {
     expect(box.right).toBeLessThanOrEqual(size.width + 0.5)
     expect(box.bottom).toBeLessThanOrEqual(size.height + 0.5)
     expect(
-      checkLayout(conditions, [editorControl('Studio'), ...['Look', 'Pose', 'Animate'].map(modeButton)]),
+      checkLayout(conditions, [editorControl('Characters'), ...['Look', 'Pose', 'Animate'].map(modeButton)]),
     ).toEqual([])
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/studio-look-${size.name}.png` })

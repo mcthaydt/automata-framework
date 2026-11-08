@@ -3948,6 +3948,12 @@ interface ContactExtras {
 }
 ```
 
+### `contrastRatio` (function)
+
+```ts
+function contrastRatio(foreground: string, background: string): number;
+```
+
 ### `createPointers` (function)
 
 ```ts
@@ -4195,6 +4201,12 @@ function createSuite(options: {
 
 ```ts
 function createTuner(options?: TunerOptions): SuiteEditor<TunerSuiteSession>;
+```
+
+### `fileTitle` (function)
+
+```ts
+function fileTitle(path: string): string;
 ```
 
 ### `Levels2dOptions` (interface)

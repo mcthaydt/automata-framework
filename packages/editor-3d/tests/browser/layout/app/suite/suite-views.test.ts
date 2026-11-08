@@ -94,7 +94,7 @@ describe.each(SIZES)('Views of a room in the suite at $name ($width x $height)',
       ],
       FILES,
       '[data-testid="plan-canvas"]',
-      'Levels 3D',
+      'Levels',
     )
     // A phone's one View button names the view it shows; wider screens show all three.
     const radios = document.querySelectorAll('[role="radio"]').length

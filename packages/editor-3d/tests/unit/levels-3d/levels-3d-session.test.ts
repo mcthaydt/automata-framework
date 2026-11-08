@@ -59,6 +59,36 @@ describe('Levels 3D session', () => {
     expect(session.state.kind).toBe('error')
   })
 
+  describe('a room that does not open says why, in words', () => {
+    it('a room made by a newer version', async () => {
+      const { session } = await setup('{"format":"af-sector/3","name":"r","sectors":[]}')
+      expect(session.state).toMatchObject({
+        kind: 'error',
+        message: "Depot can't be opened.",
+        reason: 'It was made by a newer version of AF. Update AF, then open it again.',
+      })
+    })
+
+    it('a room that is not written the way a room is', async () => {
+      const { session } = await setup('{ "format": ')
+      expect(session.state).toMatchObject({
+        kind: 'error',
+        message: "Depot can't be opened.",
+        reason: "Something in it isn't written the way a room is. Details says where.",
+      })
+    })
+
+    it('a file that is not there', async () => {
+      const memory = await createMemoryPorts({ files: {}, classify: file })
+      const session = await openLevels3d([file(PATH)], memory.ports, { now })
+      expect(session.state).toMatchObject({
+        kind: 'error',
+        message: "Depot can't be opened.",
+        reason: 'There is no such file.',
+      })
+    })
+  })
+
   it('adapts the level’s history to the suite’s Undo and writes each new step as a patch', async () => {
     const { ports, session } = await setup()
     if (session.state.kind !== 'open') throw new Error(session.state.kind)

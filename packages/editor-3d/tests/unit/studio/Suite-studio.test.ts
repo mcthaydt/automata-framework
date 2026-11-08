@@ -79,7 +79,7 @@ describe('the Studio in the suite', () => {
       ports,
       suite: createSuite({ editors: [studio as SuiteEditor<unknown>] }),
     })
-    await userEvent.click(await screen.findByRole('tab', { name: 'Studio' }))
+    await userEvent.click(await screen.findByRole('tab', { name: 'Characters' }))
     const slider = await screen.findByRole('slider', { name: /Height/ })
     slider.focus()
     await userEvent.keyboard('{ArrowRight}')
