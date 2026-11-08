@@ -23,8 +23,9 @@ describe('/editor', () => {
 
   it('opens the try-it editors, says where they keep your work, and how to open it on a game', () => {
     const view = render(EditorPage)
-    expect(view.getByRole('link', { name: 'Try the editor' }).getAttribute('href')).toBe('/editor/app/')
-    expect(view.container.textContent).toContain('keep your work in this browser')
+    expect(view.getByRole('link', { name: 'Open the editors' }).getAttribute('href')).toBe('/editor/app/')
+    expect(view.container.textContent).toContain('saved in this browser')
+    expect(view.container.textContent).not.toContain('gone when you close')
     expect(EDITOR_COMMAND).toBe('pnpm exec automata editor')
     expect(view.getByText(EDITOR_COMMAND)).toBeTruthy()
   })

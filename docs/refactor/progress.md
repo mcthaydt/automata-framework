@@ -416,7 +416,7 @@ the site's 3D parts.
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 28% (5 of 18 tasks)
+### Build: 50% (9 of 18 tasks)
 
 The base is #532's branch (`claude/project-thread-szjdbh`, `829039d5`) with the plan, spec and audits copied in from #536
 and #537. #531 (`claude/project-thread-hvpv4a`, `e66059ce`) and the site stack (#521, `claude/project-thread-k1ftgu`,
@@ -431,8 +431,12 @@ the rest. The page has no editors v2 header, so the header is `SuiteTopBar.svelt
 | 1.2 One Undo step per field visit | 1 | Done, 2026-11-08 (unit) | |
 | 1.3 The saved line, at every size | 1 | Done, 2026-11-08 (unit; the phone-size layout test is with 1.4) | |
 | 1.4 Journeys that reload without leaving the field | 1 | Done, 2026-11-08: five journeys in real Chromium on the phone viewport (`typed-words-kept`: Writer and Feel and the Tuner, a tab closed mid-typing, a reload, a close and reopen, on the served checkout and on the browser-kept sample). WebKit and Firefox not run. Three older play journeys (audio chase, feel shake, sequence tab) fail on the #532 base too, checked by running them there | |
-| 2.1 to 2.4 Your games on this device | 2 | Not started | |
-| 3.1 to 3.2 `/try` and the site's words | 3 | Not started | |
+| 2.1 Games in the browser's storage | 2 | Done, 2026-11-08 (unit: index, OPFS folders, damaged list rebuilt, no storage) | |
+| 2.2 The page opens the person's games | 2 | Done, 2026-11-08 (unit; `?game`, `?games`, `?new`, `?sample`; a served page ignores them) | |
+| 2.3 Your games, a new game, and copies | 2 | Done, 2026-11-08 (unit and DOM; a layout test at phone size is not written). New game starts from the content sample until `templateFiles` (#531) is here | |
+| 2.4 The journey: made, reloaded, reopened | 2 | Done, 2026-11-08: `web-game-kept` passes in Chromium on the phone and iPad projects; WebKit not run | |
+| 3.1 The try page | 3 | Not started: needs `templateFiles` and the site stack (#521, #531), which this branch does not have | |
+| 3.2 The site says what the page does | 3 | Words and tests changed (Editor page, Privacy, e2e); the site e2e and `check:site` were not run (no site build here) | |
 | 4.1 to 4.3 Sign in with GitHub | 4 | Not started | |
 | 5.1 to 5.4 Sync on the web | 5 | Not started | |
 

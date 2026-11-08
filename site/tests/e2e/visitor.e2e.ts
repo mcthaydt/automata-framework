@@ -1,6 +1,7 @@
 import { devices, expect, type FrameLocator, type Locator, type Page, test } from '@playwright/test'
 import { SITE_PORT } from '../../playwright.config'
 import { watchPage } from './gates'
+import { makeGame } from './make-game'
 
 // A visitor's first visit, end to end on the built site: they land on Home and play Emberwick in the page, go to
 // Start and copy the command that makes a game, open the Editor page and try the editor, make a platformer level,
@@ -77,11 +78,9 @@ async function copyTheCommand(page: Page): Promise<void> {
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(CREATE_COMMAND)
 }
 
-/** The Editor page, Try the editor, a platformer level and one painted cell: Download hands over the level. */
+/** The Editor page, Open the editors, a first game, a platformer level and one painted cell: Download hands over the level. */
 async function drawAndShareALevel(page: Page): Promise<void> {
-  await page.goto('/editor')
-  await page.getByRole('link', { name: 'Try the editor' }).click()
-  await expect(page).toHaveURL(/\/editor\/app\/$/)
+  await makeGame(page, 'Visitor Game')
   await page.getByRole('button', { name: 'New level' }).click()
   await page.getByRole('button', { name: /Platformer/ }).click()
 
@@ -107,7 +106,7 @@ async function drawAndShareALevel(page: Page): Promise<void> {
   await page.mouse.click(box.x + cx + 16.5 * 16 * scale, box.y + cy + 4.5 * 16 * scale)
   const painted = await canvasPicture(page, canvas)
   expect(painted.equals(before), 'the brush changed the level').toBe(false)
-  // The sample keeps nothing, so Share is how the painted level leaves.
+  // Share is how a single level leaves; the whole game leaves as a copy.
   await page.getByRole('button', { name: 'Share' }).click()
   const download = page.waitForEvent('download')
   await page.getByRole('menuitem', { name: 'Download' }).click()

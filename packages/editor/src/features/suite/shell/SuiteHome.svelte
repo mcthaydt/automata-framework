@@ -14,11 +14,13 @@ interface Props {
   sample: boolean
   /** The sample is kept in this browser; when it is not, the banner says what is made here is lost with the page. */
   kept: boolean
+  /** The person's own game in this browser: it has no folder on disk either, so a level starts from a template here too. */
+  own?: boolean
   onopen: (card: EditorCard) => void
   onread: (file: WorkspaceFile) => void
 }
 
-const { home, sample, kept, onopen, onread }: Props = $props()
+const { home, sample, kept, own = false, onopen, onread }: Props = $props()
 </script>
 
 <div class="home">
@@ -37,7 +39,7 @@ const { home, sample, kept, onopen, onread }: Props = $props()
     empty="This game has nothing to edit yet."
     {onopen}
     {onread}
-    starts={sample ? { 'levels-2d': 'New level' } : undefined}
+    starts={sample || own ? { 'levels-2d': 'New level' } : undefined}
   />
 </div>
 

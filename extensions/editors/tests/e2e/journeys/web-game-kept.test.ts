@@ -45,6 +45,8 @@ test('a web game is made, kept through a reload and a restart, saved as a copy a
 
     // The game opens, named, and what is typed in it is on this device.
     await expect(page.getByRole('link', { name: "Grandma's Game: all your games" })).toBeVisible()
+    // Its Home starts a level from a template, as the sample's does: there is no folder to find one in.
+    await expect(page.getByRole('button', { name: 'New level' })).toBeVisible()
     await openFromRail(page, 'Writer')
     const line = page.getByRole('textbox', { name: 'What it says' }).first()
     await expect(line).toBeVisible()

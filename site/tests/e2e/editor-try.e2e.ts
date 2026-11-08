@@ -4,21 +4,20 @@ import { join } from 'node:path'
 import { chromium, expect, test } from '@playwright/test'
 import { SITE_PORT } from '../../playwright.config'
 import { watchPage } from './gates'
+import { makeGame } from './make-game'
 
 // Spec 10.2 and 18.3: the Editor page shows what the editors do and opens the try-it editors, the same page
 // `automata editor` serves every game, which starts on a sample game held in the page under the site's headers with
 // nothing wrong in the console. Every editor is on its rail, free, and none is marked as missing. What a visitor makes
 // is kept in this browser's private storage (reloaded, or the browser closed and opened again, it is still there); Share
 // is how a level leaves.
-test('the Editor page shows three pictures and opens every try-it editor on a sample game', async ({
+test('the Editor page shows three pictures and opens every editor on a game of the visitor's own', async ({
   page,
 }) => {
   const watch = watchPage(page, `http://127.0.0.1:${SITE_PORT}`)
   await page.goto('/editor')
   await expect(page.locator('main figure')).toHaveCount(3)
-  await page.getByRole('link', { name: 'Try the editor' }).click()
-  await expect(page).toHaveURL(/\/editor\/app\/$/)
-  await expect(page.getByText('This is a sample game, not yours.', { exact: false })).toBeVisible()
+  await makeGame(page, 'Try Game')
 
   // Every editor is there to open, the 3D ones too, and the page holds none back.
   const rail = page.getByRole('tablist', { name: 'Editors' })
@@ -47,8 +46,8 @@ test('the Editor page shows three pictures and opens every try-it editor on a sa
   expect(watch.problems).toEqual([])
 })
 
-// The try-it editors keep a visitor's edit: the sample game lives in the browser's private storage, not in the page.
-test('an edit made in the try-it editors is still there after a reload and after the browser is closed and opened', async ({
+// The editors keep a visitor's game and every word typed into it: in this browser's private storage, not in the page.
+test('a game made in the editors, and a line changed in it, are there after a reload and after the browser is closed and opened', async ({
   browserName,
 }) => {
   test.skip(browserName !== 'chromium', 'a persistent profile is opened through Chromium here')
@@ -59,25 +58,12 @@ test('an edit made in the try-it editors is still there after a reload and after
   try {
     const first = await chromium.launchPersistentContext(profile)
     const page = await first.newPage()
-    await page.goto(url)
+    await makeGame(page, 'Kept Game')
     await page.getByRole('tab', { name: 'Writer' }).click()
     await expect(firstLine(page)).toHaveValue('Welcome in. Mind the step.')
+    // Typed and never left: the line still says it is saved on this device, and a reload brings the words back.
     await firstLine(page).fill(edited)
-    await firstLine(page).blur()
-
-    // A second tab of the same browser reads the page again until the edit has been written (the first tab is left
-    // alone, so a reload never cuts the save short); then it reads back the same.
-    const reader = await first.newPage()
-    await expect
-      .poll(
-        async () => {
-          await reader.goto(url)
-          await reader.getByRole('tab', { name: 'Writer' }).click()
-          return firstLine(reader).inputValue()
-        },
-        { timeout: 15_000 },
-      )
-      .toBe(edited)
+    await expect(page.getByRole('status').filter({ hasText: 'Saved on this device' })).toBeVisible()
     await page.reload()
     await page.getByRole('tab', { name: 'Writer' }).click()
     await expect(firstLine(page)).toHaveValue(edited)
@@ -86,6 +72,7 @@ test('an edit made in the try-it editors is still there after a reload and after
     const second = await chromium.launchPersistentContext(profile)
     const again = await second.newPage()
     await again.goto(url)
+    await expect(again.getByRole('link', { name: 'Kept Game: all your games' })).toBeVisible()
     await again.getByRole('tab', { name: 'Writer' }).click()
     await expect(firstLine(again)).toHaveValue(edited)
     await second.close()

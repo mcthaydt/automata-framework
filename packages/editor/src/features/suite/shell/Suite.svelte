@@ -352,7 +352,7 @@ function openCard(card: EditorCard): void {
     {:else if mounted}
       {@render mounted.editor.regions.canvas(mounted.session)}
     {:else if entry === undefined}
-      <SuiteHome {home} {sample} {kept} onopen={openCard} onread={(file) => (reading = file)} />
+      <SuiteHome {home} {sample} {kept} own={gameKey !== undefined} onopen={openCard} onread={(file) => (reading = file)} />
     {:else}
       <Home
         title={entry.label}

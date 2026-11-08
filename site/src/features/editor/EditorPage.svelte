@@ -26,10 +26,10 @@ const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
       each change is saved into the game, which picks it up.
     </p>
     <!-- The editor is a page of its own, not one of the site's routes, so the browser loads it whole. -->
-    <p class="cta"><a class="button" href="/editor/app/" data-sveltekit-reload>Try the editor <Icon name="arrowRight" /></a></p>
+    <p class="cta"><a class="button" href="/editor/app/" data-sveltekit-reload>Open the editors <Icon name="arrowRight" /></a></p>
     <p class="note">
-      Nothing to install. The try-it editors keep your work in this browser and nowhere else. Share sends a level out as a
-      file.
+      Nothing to install. Your games are saved in this browser, on this device, and nowhere else. Save a copy of a game any
+      time to keep it safe or to move it, and Share sends a single level out as a file.
     </p>
   </header>
 
