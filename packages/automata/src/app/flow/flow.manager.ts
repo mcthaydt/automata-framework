@@ -46,8 +46,12 @@ export interface FlowOptions {
 
 export interface FlowHandle {
   readonly flow: Flow
-  /** Enters the graph's entry screen and resolves once it has entered (or failed to). */
-  start(): Promise<void>
+  /**
+   * Enters the graph's entry screen, or `at` when the graph has that screen, and resolves once it has entered (or
+   * failed to). `at` is for a restart in development, back onto the screen the person was on; a screen the graph no
+   * longer has (a save renamed it) starts at the entry, as a first boot does.
+   */
+  start(at?: string): Promise<void>
   reportFailure(failure: FlowFailure): void
   /**
    * Stops the flow: nothing queued runs, the current screen is left (its `screen` disposed) and the veil revealed.
@@ -346,9 +350,10 @@ export function createFlow(options: FlowOptions): FlowHandle {
 
   return {
     flow,
-    async start() {
+    async start(at) {
       if (closed) return
-      enqueueTransition(options.graph.entry, 'cut', undefined, true)
+      const first = at !== undefined && options.graph.screens.includes(at) ? at : options.graph.entry
+      enqueueTransition(first, 'cut', undefined, true)
       await idle
     },
     reportFailure(failure) {

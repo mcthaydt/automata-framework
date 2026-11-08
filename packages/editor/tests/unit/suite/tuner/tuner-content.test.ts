@@ -22,6 +22,13 @@ const byName = (text: string, meta?: Parameters<typeof readTuning>[1]) => {
 }
 
 describe('readTuning', () => {
+  it("reads a ranged tunable's unit and scale, the unit overriding a comment's", () => {
+    const all = byName(
+      `# px/tick\nMAX_RUN = { value = 384, min = 128, max = 768, step = 1, unit = "px/s", scale = 0.234375 }\n`,
+    )
+    expect(all['MAX_RUN']).toMatchObject({ unit: 'px/s', scale: 0.234375 })
+  })
+
   it('reads each spelling as its kind', () => {
     const all = byName(FILE)
     expect(all['MAX_RUN']).toMatchObject({

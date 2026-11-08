@@ -7,7 +7,15 @@ describe('parseEditorArgs', () => {
   it('defaults to the 2D editor, the working folder, the loopback and a free port', () => {
     expect(parseEditorArgs([])).toEqual({
       ok: true,
-      options: { dir: '.', app: '2d', appDir: undefined, port: 0, lan: false, token: undefined },
+      options: {
+        dir: '.',
+        app: '2d',
+        appDir: undefined,
+        port: 0,
+        lan: false,
+        token: undefined,
+        gameUrl: 'http://localhost:5173/',
+      },
     })
   })
 
@@ -16,7 +24,15 @@ describe('parseEditorArgs', () => {
       parseEditorArgs(['../game', '--app', 'suite', '--port', '4173', '--lan', '--token', 'abc']),
     ).toEqual({
       ok: true,
-      options: { dir: '../game', app: 'suite', appDir: undefined, port: 4173, lan: true, token: 'abc' },
+      options: {
+        dir: '../game',
+        app: 'suite',
+        appDir: undefined,
+        port: 4173,
+        lan: true,
+        token: 'abc',
+        gameUrl: 'http://localhost:5173/',
+      },
     })
   })
 
@@ -24,7 +40,16 @@ describe('parseEditorArgs', () => {
     expect(parseEditorArgs(['--app-dir', 'dist'])).toMatchObject({ ok: true, options: { appDir: 'dist' } })
   })
 
+  it("takes the game's dev page, which the Tuner shows beside its settings", () => {
+    expect(parseEditorArgs(['--game-url', 'http://localhost:5180'])).toMatchObject({
+      ok: true,
+      options: { gameUrl: 'http://localhost:5180/' },
+    })
+  })
+
   it.each([
+    [['--game-url', 'localhost:5180'], /--game-url is a web address, like http:\/\/localhost:5173/],
+    [['--game-url', 'file:///game/index.html'], /--game-url is a web address/],
     [['--app', 'vr'], /--app is 2d, 3d or suite/],
     [['--port', 'x'], /--port is a number/],
     [['--port', '70000'], /--port is a number/],

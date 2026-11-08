@@ -27,9 +27,11 @@ interface Props {
   session: TilesetsSession
   images: ReadonlySet<string>
   imageUrl: (path: string) => string | undefined
+  /** Opens Add tiles; absent where nothing can be written, and then there is no button. */
+  onaddtiles?: (() => void) | undefined
 }
 
-const { project, selection, session, images, imageUrl }: Props = $props()
+const { project, selection, session, images, imageUrl, onaddtiles }: Props = $props()
 
 const THUMB = 30
 const layer = $derived(autoLayersOf(project).find((def) => def.id === selection.layer))
@@ -53,7 +55,7 @@ function thumb(tile: number | undefined): string {
 
 <div class="panel" data-testid="tilesets-panel">
   <section aria-labelledby="tilesets-heading">
-    <h2 id="tilesets-heading">Tilesets</h2>
+    <h2 id="tilesets-heading">Your tiles</h2>
     <div class="choices" role="radiogroup" aria-labelledby="tilesets-heading">
       {#each tilesetRows(project) as row (row.id)}
         <button
@@ -68,12 +70,14 @@ function thumb(tile: number | undefined): string {
         </button>
       {/each}
     </div>
+    {#if onaddtiles !== undefined}<Button onclick={onaddtiles}>Add tiles</Button>{/if}
   </section>
 
   <section aria-labelledby="auto-heading">
-    <h2 id="auto-heading">Auto layers</h2>
+    <!-- The auto layers in the Level view's words for them (spec 11.5). -->
+    <h2 id="auto-heading">Tiles that place themselves</h2>
     {#if layer === undefined}
-      <p class="empty">No auto layer reads an IntGrid yet.</p>
+      <p class="empty">None in this game yet.</p>
     {:else}
       <div class="choices" role="radiogroup" aria-labelledby="auto-heading">
         {#each autoLayerRows(project) as row (row.id)}
@@ -178,11 +182,14 @@ function thumb(tile: number | undefined): string {
     justify-content: space-between;
     gap: var(--space-2);
   }
+  /* A section label in small capitals, as the approved mockup draws it (the Level view's Layers). */
   h2 {
     margin: 0;
     padding: var(--space-2) var(--space-2) 0;
-    color: var(--color-text-dim);
-    font: var(--text-label-12);
+    color: var(--muted);
+    font: var(--text-eyebrow-11);
+    letter-spacing: var(--text-eyebrow-11-tracking);
+    text-transform: uppercase;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -202,7 +209,7 @@ function thumb(tile: number | undefined): string {
     align-content: center;
     width: 100%;
     min-width: 0;
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: var(--space-1) var(--space-2);
     border: 1px solid transparent;
     border-radius: var(--edge-sm);

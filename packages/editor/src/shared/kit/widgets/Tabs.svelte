@@ -2,7 +2,8 @@
   A row of tabs over one panel. Arrows choose the next enabled tab and wrap, Home and End go to the
   ends, and choosing activates, so the panel always follows focus. Only the chosen tab is in the tab order; the
   panel is the single `tabpanel`, named by its tab. A disabled tab stays focusable by touch and mouse: pressing it
-  calls `onblocked` with its reason, which is also its accessible description.
+  calls `onblocked` with its reason, which is also its accessible description. Drawn as the top bar draws its views
+  (the approved mockup): quiet grey words along a hairline, the chosen tab ink with a 2 px ink underline; no box.
 -->
 <script lang="ts">
 import { type Snippet, tick } from 'svelte'
@@ -114,22 +115,19 @@ function onKey(event: KeyboardEvent, index: number): void {
   }
   .list {
     display: flex;
-    gap: 2px;
-    width: fit-content;
+    gap: var(--space-1);
     max-width: 100%;
-    padding: 3px;
     overflow-x: auto;
-    border: 1px solid var(--line);
-    border-radius: var(--edge-sm);
-    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    scrollbar-width: none;
   }
   .tab {
     flex: 0 0 auto;
     min-width: var(--size-hit);
     min-height: var(--size-hit);
-    padding: 0 var(--space-4);
+    padding: 0 var(--space-3);
     border: 0;
-    border-radius: var(--edge-sm);
+    border-radius: 0;
     background: transparent;
     color: var(--muted);
     font: var(--text-body-13-medium);
@@ -138,12 +136,9 @@ function onKey(event: KeyboardEvent, index: number): void {
   .tab:hover:not([aria-selected='true']) {
     color: var(--ink);
   }
-  /* The chosen tab is paper with ink, and a cobalt underline drawn inside the tab. */
+  /* The chosen tab: ink words over a 2 px ink underline drawn inside the tab, on the list's hairline. */
   .tab[aria-selected='true'] {
-    background: var(--paper);
-    box-shadow:
-      inset 0 -2px 0 var(--cobalt),
-      var(--shadow);
+    box-shadow: inset 0 -2px 0 var(--ink);
     color: var(--ink);
   }
   .tab[aria-disabled='true'] {

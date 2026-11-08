@@ -1,4 +1,5 @@
 import '#src/shared/kit/tokens.css'
+import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
 import '#src/app/suite/main.css'
 import { checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata/testing'
@@ -11,7 +12,11 @@ import { samplePorts } from '#src/features/suite/shell/sample-ports.ts'
 import { createTuner } from '#src/features/suite/tuner/tuner-suite-editor.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { editorTargets } from '#src/testing/kit/targets.ts'
 import { tunerFixtureFiles } from '#src/testing/suite/tuner-fixtures.ts'
+
+/** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
+const targets = editorTargets()
 
 // The Tuner in the suite's one shell with the production CSS in Chromium, WebKit and Firefox at the eight window sizes
 //: every control is a 44 px target in a declared scroll region (reached by scrolling
@@ -28,16 +33,19 @@ afterEach(async () => {
   target = undefined
 })
 
+/** A page that answers in place of the game's dev server: the pane frames it as it would `pnpm dev`. */
+const GAME_PAGE = 'data:text/html,<body style="margin:0;background:%23243">game</body>'
+
 async function open(size: EditorSize) {
   await page.viewport(size.width, size.height)
-  const conditions = publishConditions(document.documentElement, size, REST)
+  const conditions = publishConditions(document.documentElement, size, REST, targets)
   target = document.body.appendChild(document.createElement('div'))
   target.id = 'app'
   started = await startSuite(target, {
     window,
     document,
     ports: await samplePorts({ ...tunerFixtureFiles(), [EDITOR_LIST_PATH]: LIST }),
-    suite: createSuite({ editors: [createTuner() as SuiteEditor<unknown>] }),
+    suite: createSuite({ editors: [createTuner({ gameUrl: GAME_PAGE }) as SuiteEditor<unknown>] }),
   })
   await settleLayout()
   tab('Tuner').click()
@@ -101,6 +109,31 @@ describe.each(SIZES)('Tuner at $name ($width x $height)', (size) => {
     }
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/tuner-rows-${size.name}.png` })
+  })
+
+  test('the game runs beside the settings: side by side in a canvas 480 px wide and up, the game on top below that', async () => {
+    await open(size)
+    await expect.poll(() => document.querySelector('iframe[title="Your game"]')).not.toBeNull()
+    const game = document.querySelector('[data-testid="tuner-game"]') as HTMLElement
+    const rows = document.querySelector('[data-testid="tuner-rows"]') as HTMLElement
+    const gameBox = game.getBoundingClientRect()
+    const rowsBox = rows.getBoundingClientRect()
+    const split = (
+      document.querySelector('[data-testid="tuner-split"]') as HTMLElement
+    ).getBoundingClientRect()
+    // Every iPad, a small window and a phone held sideways have room side by side; a phone upright stacks.
+    expect(split.width >= 480).toBe(size.name !== 'phone-portrait')
+    if (split.width >= 480) {
+      expect(gameBox.right).toBeLessThanOrEqual(rowsBox.left + 0.5)
+      expect(Math.abs(gameBox.top - rowsBox.top)).toBeLessThan(1)
+    } else {
+      expect(gameBox.bottom).toBeLessThanOrEqual(rowsBox.top + 0.5)
+    }
+    // Big enough to play in, and the settings keep room to scroll.
+    expect(gameBox.height).toBeGreaterThanOrEqual(150)
+    expect(rowsBox.height).toBeGreaterThanOrEqual(120)
+    noPageScroll()
+    await page.screenshot({ path: `.vitest/shots/tuner-split-${size.name}.png` })
   })
 
   test('a rotation keeps the search and the chosen tunable (EDS-x)', async () => {

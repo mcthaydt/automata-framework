@@ -146,8 +146,8 @@ describe('startEditor', () => {
     await userEvent.click(platformer)
     expect(await screen.findByTestId('level-view')).toBeInTheDocument()
     expect(
-      within(screen.getByRole('tablist', { name: 'Views' })).getByRole('tab', { name: 'Level' }),
-    ).toHaveAttribute('aria-selected', 'true')
+      within(screen.getByRole('radiogroup', { name: 'Views' })).getByRole('radio', { name: 'Level' }),
+    ).toHaveAttribute('aria-checked', 'true')
 
     await userEvent.click(within(screen.getByRole('listbox', { name: 'Layers' })).getByText('Collision'))
     const surface = screen.getByTestId('level-surface')
@@ -331,7 +331,7 @@ describe('startEditor', () => {
       workspace: { ...workspace, journal },
     })
     await userEvent.click(await screen.findByRole('button', { name: /^(Renamed|Mossgate)/ }))
-    await userEvent.click(await screen.findByRole('button', { name: 'Restore edits' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Keep my changes' }))
     hold = true
     let done = false
     const disposing = handle.dispose().then(() => {

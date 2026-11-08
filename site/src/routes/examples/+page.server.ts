@@ -1,4 +1,4 @@
-import { exampleIndex } from '../../data/examples'
+import { exampleIndex } from '../../shared/framework/example-catalog'
 import type { PageServerLoad } from './$types'
 
 // A server load, so the catalog and its sources never reach the browser: the prerendered page carries only the

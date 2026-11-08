@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createEditorApp } from '#src/app/editor-2d/editor-app.ts'
 import { componentOf } from '#src/app/editor-2d/views.ts'
 import DocumentScreen from '#src/features/document/DocumentScreen.svelte'
@@ -55,7 +55,9 @@ async function mount(seed?: () => Project) {
 }
 
 async function rail(name: string): Promise<void> {
-  await userEvent.click(within(screen.getByRole('tablist', { name: 'Views' })).getByRole('tab', { name }))
+  await userEvent.click(
+    within(screen.getByRole('radiogroup', { name: 'Views' })).getByRole('radio', { name }),
+  )
 }
 
 /** A mouse press or release as the browser sends it; jsdom has no `PointerEvent` constructor. */
@@ -70,15 +72,15 @@ function tap(x: number, y: number): void {
   press('pointerup', x, y)
 }
 
+/** Opens a level from the level picker in the top bar. */
 async function openLevel(name: RegExp): Promise<void> {
-  await userEvent.click(
-    within(screen.getByRole('navigation', { name: 'Levels' })).getByRole('button', { name }),
-  )
+  await userEvent.click(screen.getByRole('button', { name: /^Level: / }))
+  await userEvent.click(screen.getByRole('menuitem', { name }))
 }
 
 async function chooseEntities(): Promise<void> {
   const layers = within(screen.getByRole('listbox', { name: 'Layers' }))
-  await userEvent.click(layers.getByRole('option', { name: /^Entities/ }))
+  await userEvent.click(layers.getByRole('option', { name: /^Characters/ }))
 }
 
 /** Places a thing of `def` with the brush, which leaves it selected in the inspector. */
@@ -104,17 +106,21 @@ async function pointAt(level: RegExp, choice: string): Promise<void> {
 
 /** G-r asks for zero errors; the template's unused definitions stay as info. */
 async function noErrors(): Promise<void> {
-  const view = await screen.findByTestId('checks-view')
-  expect(within(view).queryByText(/^Errors/)).toBeNull()
-  expect(within(view).queryByText(/^Warnings/)).toBeNull()
+  // No problems means no count in the top bar at all.
+  await vi.waitFor(() => expect(screen.queryByTestId('problems')).toBeNull())
+}
+
+/** Opens the Problems sheet from the top bar's count. */
+async function problems(): Promise<void> {
+  await userEvent.click(screen.getByTestId('problems'))
 }
 
 const mapLinks = (): string | null => screen.getByTestId('fake-world-canvas').getAttribute('data-links')
 
 describe('G-g: a link to something deleted', () => {
-  it('drops off the world map and the canvas, and the Checks offer Choose target, which repairs it in one step', async () => {
+  it('drops off the world map and the canvas, and Problems offer Choose target, which repairs it in one step', async () => {
     const { history } = await mount(linkedMaps)
-    await rail('World')
+    await rail('Map')
     expect(mapLinks()).toBe('map-1>inn inn>map-1')
 
     await rail('Level')
@@ -123,14 +129,14 @@ describe('G-g: a link to something deleted', () => {
     await select(32, 200)
     await userEvent.click(within(screen.getByTestId('entity-tab')).getByRole('button', { name: 'Delete' }))
 
-    await rail('World')
+    await rail('Map')
     expect(mapLinks()).toBe('')
     await userEvent.click(
       within(screen.getByRole('list', { name: 'Levels' })).getByRole('button', { name: 'Village' }),
     )
     expect(screen.getByText('No links from this level.')).toBeInTheDocument()
 
-    await rail('Checks')
+    await problems()
     const steps = history.revision
     await userEvent.click(await screen.findByRole('button', { name: 'Choose target' }))
     const dialog = within(screen.getByRole('dialog', { name: /^Choose a target/ }))
@@ -140,7 +146,7 @@ describe('G-g: a link to something deleted', () => {
     expect(history.revision).toBe(steps + 1)
     await noErrors()
     // The door now leads to the player start in its own level: a link the map does not draw.
-    await rail('World')
+    await rail('Map')
     expect(mapLinks()).toBe('')
   })
 })
@@ -148,7 +154,7 @@ describe('G-g: a link to something deleted', () => {
 describe('G-r, the linking half: two RPG maps built in the editor', () => {
   it('adds the inn, links a door each way and a warp, has no errors, and re-opens equal', async () => {
     const { app, document, history } = await mount()
-    await rail('World')
+    await rail('Map')
     await userEvent.click(screen.getByRole('button', { name: 'Add level' }))
     const name = screen.getByRole('textbox', { name: 'Name' })
     await userEvent.clear(name)
@@ -171,9 +177,8 @@ describe('G-r, the linking half: two RPG maps built in the editor', () => {
     await pointAt(/^Inn/, 'Door at 32, 192')
     expect(within(screen.getByTestId('entity-tab')).getByText('Inn · Door')).toBeInTheDocument()
 
-    await rail('Checks')
     await noErrors()
-    await rail('World')
+    await rail('Map')
     expect(mapLinks()).toBe('map-1>level-1 map-1>level-1 level-1>map-1')
 
     const saved = history.state

@@ -40,7 +40,7 @@ describe('Suite Home', () => {
   it("shows a card for each editor the game's list names, with the files each edits", async () => {
     await start(SAMPLE_GAME)
     const tuner = await screen.findByRole('region', { name: 'Tuner' })
-    expect(within(tuner).getByRole('button', { name: /content\/tuning\.toml/ })).toBeInTheDocument()
+    expect(within(tuner).getByRole('button', { name: 'Tuning' })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Levels 2D' })).toBeInTheDocument()
     // No editor is registered here, so the rail has only Review (the sample has change sets).
     expect(screen.getAllByRole('tab').map((tab) => tab.textContent?.trim())).toEqual(['Review'])
@@ -54,7 +54,7 @@ describe('Suite Home', () => {
       within(feel).getByText(/Feel isn't in this build\. Its files open read only\./),
     ).toBeInTheDocument()
     expect(within(feel).queryByText(/Plus|editor-plus|package/)).toBeNull()
-    await userEvent.click(within(feel).getByRole('button', { name: /content\/feel\.toml/ }))
+    await userEvent.click(within(feel).getByRole('button', { name: /^Feel/ }))
     const source = await screen.findByRole('region', { name: 'content/feel.toml' })
     expect(within(source).getByText('Read only')).toBeInTheDocument()
     expect(within(source).getByText(/shake = 0\.4/)).toBeInTheDocument()

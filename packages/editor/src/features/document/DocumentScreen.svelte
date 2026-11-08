@@ -1,19 +1,24 @@
 <!--
-  An open document (it keeps what the older frame did: the top bar, the dialogs and the toasts). The profile's views are the rail; the chosen one fills the shell with its panel,
-  canvas and inspector, and this screen hands it what every view shares: the top bar (Back, the title, Undo, Redo, Save),
-  the rail (no status bar: Save says where the level stands, and problems are toasts), the Restore, conflict and leave dialogs and the toasts. Back with unsaved changes asks first. Switching views remounts the view only;
-  the document, its history and its save state stay. A document replaced by Take theirs remounts the view on the new
-  one. Everything it does goes through the document controller; nothing here names a profile.
+  An open document. The profile's views (Level, Map, Tiles, Characters) are chosen from the switcher in the top bar;
+  the chosen one fills its kit shell with its canvas, panel and inspector, and this screen hands it what every view
+  shares: the top bar (Back, the name, the switcher, Problems, Share where Save does not write the game, Undo, Redo,
+  Save), the Restore, conflict and leave dialogs and the toasts. There is no rail and no status bar: Save says where
+  the level stands and Problems counts what is wrong. Back with unsaved changes asks first. Switching views remounts
+  the view only; the document, its history and its save state stay. A document replaced by Take theirs remounts the
+  view on the new one. Everything it does goes through the document controller; nothing here names a profile.
 -->
 <script lang="ts">
 import type { GeometryState } from '@mcthaydt/automata'
-import type { Component } from 'svelte'
+import type { Component, Snippet } from 'svelte'
 import ConflictDialog from '../../shared/kit/dialogs/ConflictDialog.svelte'
 import RecoveryDialog from '../../shared/kit/dialogs/RecoveryDialog.svelte'
+import { shellModeAt } from '../../shared/kit/shell/shell-mode'
+import type { ProjectStore } from '../../shared/kit/storage/project-store'
 import type { Workspace } from '../../shared/kit/storage/workspace'
 import ToastRegion from '../../shared/kit/widgets/ToastRegion.svelte'
 import type { ToastStore } from '../../shared/kit/widgets/toasts'
 import type { IdSource } from '../../shared/level-2d/model/ids'
+import Problems from '../../shared/level-2d/problems/Problems.svelte'
 import type {
   LevelCanvasProps,
   ObjectUrls,
@@ -21,10 +26,12 @@ import type {
   ViewServices,
   WorldCanvasProps,
 } from '../../shared/level-2d/session/view-props'
+import ShareMenu from '../../shared/level-2d/share/ShareMenu.svelte'
 import DocumentBar from './DocumentBar.svelte'
 import type { DocumentController, DocumentState } from './document-controller'
 import LeaveDialog from './LeaveDialog.svelte'
-import ViewRail from './ViewRail.svelte'
+import RenameDialog from './RenameDialog.svelte'
+import ViewSwitcher from './ViewSwitcher.svelte'
 import { routeOf, viewsOf } from './view-router'
 
 interface Props {
@@ -37,14 +44,16 @@ interface Props {
   clock: { now(): number }
   /** Reads a workspace file's bytes, for the canvas and the palette. */
   read: (path: string) => Promise<Uint8Array | undefined>
+  /** Where a view adds a file of the person's (Add tiles' picture); without it, nothing that writes one is shown. */
+  files?: Pick<ProjectStore, 'list' | 'write'> | undefined
   ids: IdSource
   objectUrls?: ObjectUrls | undefined
   /** The level canvas; the DOM tests pass a stand-in. */
   canvas?: Component<LevelCanvasProps> | undefined
   /** The world map; the DOM tests pass a stand-in. */
   worldCanvas?: Component<WorldCanvasProps> | undefined
-  /** Where the Export view writes; without it the view can only list the files. */
-  workspace?: Pick<Workspace, 'store' | 'exports' | 'persistent'> | undefined
+  /** Where the Share menu sends the level; without it there is no Share menu. */
+  workspace?: Pick<Workspace, 'exports' | 'persistent'> | undefined
   onback: () => void
 }
 
@@ -55,6 +64,7 @@ const {
   toasts,
   clock,
   read,
+  files,
   ids,
   objectUrls,
   canvas,
@@ -107,12 +117,21 @@ let shown = $state.raw<DocumentState>(snapshot(controller))
 $effect(() => controller.state.subscribe((next) => (shown = next)))
 
 let chosen = $state<string | undefined>(undefined)
-/** The heading takes focus when the document opens, not each time a view is chosen (the rail keeps it). */
+/** The heading takes focus when the document opens, not each time a view is chosen (the switcher keeps it). */
 let arrived = $state(false)
-/** A view was chosen from the rail, so the rail of the view it opens takes the focus. */
-let fromRail = $state(false)
-/** The path Locate asked for, handed to the view it opens; choosing from the rail drops it. */
+/** A view was chosen from the switcher, so the switcher of the view it opens takes the focus. */
+let fromSwitcher = $state(false)
+/** The path Problems' Show asked for, handed to the view it opens; choosing from the switcher drops it. */
 let focus = $state<string | undefined>(undefined)
+/** The compact layout (a phone, or a window 760 px across and narrower): the switcher is a menu. */
+const compact = $derived(shellModeAt(geometry.current) === 'compact')
+/**
+ * A phone or an iPad held upright: the top bar takes two rows, so the name and the Level view's level picker keep
+ * their words beside Back and Save (one row at 744 px cut the picker to its first letter).
+ */
+const twoRows = $derived(compact || geometry.current.formFactor === 'tablet-portrait')
+/** Share only where Save does not already write the game. */
+const shares = $derived(workspace !== undefined && shown.document.gameFolder === undefined)
 
 const views = $derived(viewsOf(shown.document.profile))
 const route = $derived(routeOf(views, chosen))
@@ -120,22 +139,56 @@ const View = $derived(viewOf(route?.component ?? ''))
 
 const services = $derived<ViewServices>({
   read: (path) => read(path),
+  files,
   ids,
   objectUrls,
   canvas,
   worldCanvas,
   onundo: undo,
   onredo: redo,
-  locate: (path) => {
-    focus = path
-    chosen = views[0]?.id
-    fromRail = false
-  },
-  workspace,
 })
+
+/** The rename dialog, opened by tapping the name; the rename is one undo step. */
+let renaming = $state(false)
+function rename(name: string): void {
+  const { profile, history } = shown.document
+  const renamed = profile.rename
+  if (renamed !== undefined) history.apply('Rename', (value) => renamed(value, name))
+}
+
+/** Counts Problems' Shows, so a Show while the Level view is already open still reopens it on the finding. */
+let shows = $state(0)
+/** Problems' Show: the first view (Level) opens on what the finding names. */
+function show(path: string): void {
+  focus = path
+  chosen = views[0]?.id
+  fromSwitcher = false
+  shows += 1
+}
 </script>
 
-{#snippet topbar()}
+{#snippet switcher()}
+  <ViewSwitcher
+    {views}
+    current={route?.id}
+    {compact}
+    focusCurrent={fromSwitcher}
+    onselect={(id) => {
+      chosen = id
+      fromSwitcher = true
+      focus = undefined
+    }}
+  />
+{/snippet}
+
+{#snippet tools()}
+  <Problems document={shown.document} onshow={show} />
+  {#if shares && workspace !== undefined}
+    <ShareMenu document={shown.document} exports={workspace.exports} persistent={workspace.persistent} {toasts} />
+  {/if}
+{/snippet}
+
+{#snippet topbar(place?: Snippet)}
   <DocumentBar
     heading={shown.heading}
     save={shown.save}
@@ -144,6 +197,11 @@ const services = $derived<ViewServices>({
     undoLabel={shown.undoLabel}
     redoLabel={shown.redoLabel}
     busy={shown.busy !== undefined}
+    compact={twoRows}
+    onrename={shown.document.profile.rename === undefined ? undefined : () => (renaming = true)}
+    {switcher}
+    {place}
+    {tools}
     autofocus={!arrived}
     onfocused={() => (arrived = true)}
     onback={back}
@@ -153,23 +211,9 @@ const services = $derived<ViewServices>({
   />
 {/snippet}
 
-{#snippet rail({ orientation }: { orientation: 'vertical' | 'horizontal' })}
-  <ViewRail
-    {views}
-    current={route?.id}
-    {orientation}
-    focusCurrent={fromRail}
-    onselect={(id) => {
-      chosen = id
-      fromRail = true
-      focus = undefined
-    }}
-  />
-{/snippet}
-
 {#snippet sheets()}
   <RecoveryDialog
-    path={shown.document.path}
+    name={shown.heading.title}
     recovery={shown.recovery}
     now={clock.now()}
     busy={shown.busy !== undefined}
@@ -178,7 +222,7 @@ const services = $derived<ViewServices>({
   />
   <ConflictDialog
     open={shown.conflict}
-    path={shown.document.path}
+    name={shown.heading.title}
     busy={shown.busy !== undefined}
     onkeep={() => controller.keepMine()}
     ontake={() => controller.takeTheirs()}
@@ -191,6 +235,7 @@ const services = $derived<ViewServices>({
     onsave={() => void saveAndLeave()}
     ondiscard={() => void leaveWithoutSaving()}
   />
+  <RenameDialog bind:open={renaming} name={shown.heading.title} onrename={rename} />
   <ToastRegion {toasts} />
   {#key heard.count}
     <p class="heard" aria-live="polite" data-testid="history-announcement">{heard.text}</p>
@@ -198,12 +243,12 @@ const services = $derived<ViewServices>({
 {/snippet}
 
 {#key shown.document}
-  {#key route?.id}
+  {#key `${route?.id}:${shows}`}
     <View
       {geometry}
       document={shown.document}
       label={route?.label ?? shown.document.profile.label}
-      frame={{ topbar, rail, sheets }}
+      frame={{ topbar, sheets }}
       {services}
       {focus}
     />

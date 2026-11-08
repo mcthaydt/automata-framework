@@ -1,6 +1,10 @@
-import type { FormFactor, HeightTier } from '@mcthaydt/automata'
+import type { Geometry, HeightTier } from '@mcthaydt/automata'
 
-/** How the shell lays out its regions. Decided from the form factor and nothing else. */
+/**
+ * How the shell lays out its regions, chosen by the room the editor has and not by the device (the approved
+ * mockup, AUDIT.md E1): `wide` has three columns, `medium` the list beside the stage with the details floating over
+ * it, `compact` the stage alone with the tools in a dock and sheets for the rest.
+ */
 export type ShellMode = 'wide' | 'medium' | 'compact'
 
 /** Whether the dock sits beneath the canvas or is a bottom sheet. */
@@ -11,17 +15,26 @@ export type Detent = 'peek' | 'half' | 'full'
 /** The regions that open and close; the top bar, rail, canvas and status line are always there. */
 export type ShellRegion = 'panel' | 'inspector' | 'dock'
 
-/** desktop → wide, tablet-portrait → medium, phone-portrait and phone-landscape → compact. */
-export function shellModeOf(formFactor: FormFactor): ShellMode {
-  switch (formFactor) {
-    case 'desktop':
-      return 'wide'
-    case 'tablet-portrait':
-      return 'medium'
-    case 'phone-portrait':
-    case 'phone-landscape':
-      return 'compact'
-  }
+/** Wide from 1180 px across; compact at 760 px across and narrower, or 520 px high and shorter. */
+export const WIDE_MIN_WIDTH = 1180
+export const COMPACT_MAX_WIDTH = 760
+export const COMPACT_MAX_HEIGHT = 520
+
+/** The mode for a window of this size: compact first (a short window is compact however wide), then wide. */
+export function shellModeOf(size: { readonly width: number; readonly height: number }): ShellMode {
+  if (size.width <= COMPACT_MAX_WIDTH || size.height <= COMPACT_MAX_HEIGHT) return 'compact'
+  return size.width >= WIDE_MIN_WIDTH ? 'wide' : 'medium'
+}
+
+/**
+ * The mode for the geometry owner's measure, read from the window's size before a keyboard shrank it
+ * (`keyboardResize`), so opening the keyboard to type a name never moves the editor to another layout.
+ */
+export function shellModeAt(geometry: Pick<Geometry, 'layout' | 'keyboardResize'>): ShellMode {
+  return shellModeOf({
+    width: geometry.layout.width,
+    height: geometry.layout.height + geometry.keyboardResize,
+  })
 }
 
 /** Inline only when wide and the height tier is not short or compact: a short window cannot spare 148 px. */

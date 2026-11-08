@@ -30,12 +30,15 @@ export interface EditorCommandDeps {
 }
 
 const USAGE = `Usage: automata editor [folder] [--app 2d|3d|suite] [--app-dir <build>] [--port <n>] [--lan] [--token <t>]
+       [--game-url <address>]
 
 Opens the level editor on the game in <folder> (default: this folder) until you press Ctrl+C.
 Only this computer can open it, unless you add --lan: then a tablet on your network can too, and a token is needed
 (one is made for you if you give none). Open the address it prints, with the token in it.
 The editor saves to the files listed in content/editors.toml, and it will not overwrite a file that changed while
 you were editing. Without content/editors.toml, it opens only level files (*.af2d.json).
+The Tuner shows your game beside its settings: start it with pnpm dev, and give --game-url if it is not on
+http://localhost:5173.
 `
 
 /** Where each editor's build is, from the repository root, and the package that builds it. */
@@ -70,7 +73,7 @@ export async function editorCommand(
     io.stderr(`Error: ${parsed.problem}\n\n${USAGE}`)
     return 2
   }
-  const { dir, app, appDir, port, lan, token } = parsed.options
+  const { dir, app, appDir, port, lan, token, gameUrl } = parsed.options
   // The 3D editor and the suite are built in the repository only; a published copy of the tools has just the level
   // editor.
   if (app !== '2d' && appDir === undefined && !deps.inRepository) {
@@ -96,6 +99,7 @@ export async function editorCommand(
       host: lan ? '0.0.0.0' : '127.0.0.1',
       port,
       token: secret,
+      gameUrl,
     })
   } catch (error) {
     io.stderr(`Error: ${error instanceof Error ? error.message : String(error)}\n`)

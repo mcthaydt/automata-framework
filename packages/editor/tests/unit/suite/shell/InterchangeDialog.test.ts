@@ -47,8 +47,8 @@ function setup(
 }
 
 async function planned(text = 'pasted') {
-  await userEvent.type(screen.getByLabelText('Document to import'), text)
-  await userEvent.click(screen.getByRole('button', { name: 'Plan' }))
+  await userEvent.type(screen.getByLabelText('Paste the text to import'), text)
+  await userEvent.click(screen.getByRole('button', { name: 'See changes' }))
 }
 
 describe('InterchangeDialog', () => {
@@ -63,12 +63,14 @@ describe('InterchangeDialog', () => {
     expect(opened).toHaveBeenCalledOnce()
     opened.mockRestore()
     await userEvent.upload(chooser, new File(['JUMP = 4\n'], 'scene.toml', { type: 'text/plain' }))
-    await vi.waitFor(() => expect(screen.getByLabelText('Document to import')).toHaveValue('JUMP = 4\n'))
+    await vi.waitFor(() =>
+      expect(screen.getByLabelText('Paste the text to import')).toHaveValue('JUMP = 4\n'),
+    )
   })
 
   it('export: TOML by default, JSON on choice, in a read-only text to copy', async () => {
     const { onexport } = setup('export')
-    const text = screen.getByLabelText('Exported document')
+    const text = screen.getByLabelText('Your game as text')
     await vi.waitFor(() => expect(text).toHaveValue('format = "scene-interchange"\n'))
     expect(text).toHaveAttribute('readonly')
     await userEvent.click(screen.getByRole('radio', { name: 'JSON' }))
@@ -76,24 +78,46 @@ describe('InterchangeDialog', () => {
     expect(onexport).toHaveBeenLastCalledWith('json')
   })
 
-  it('EDS-o: a clean plan shows the change, its diff, "No gates" and its checks; Apply writes and says Undo', async () => {
+  it('export: Copy, the one primary, puts the text on the clipboard and says so', async () => {
+    const writeText = vi.fn(async () => {})
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+    setup('export')
+    await vi.waitFor(() =>
+      expect(screen.getByLabelText('Your game as text')).toHaveValue('format = "scene-interchange"\n'),
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Copy' }))
+    expect(writeText).toHaveBeenCalledWith('format = "scene-interchange"\n')
+    expect(await screen.findByRole('status')).toHaveTextContent('Copied. Paste it anywhere to keep it.')
+  })
+
+  it('import: one primary at a time, See changes before a plan and Import after one', async () => {
+    setup('import')
+    expect(screen.getByRole('button', { name: 'See changes' })).toHaveAttribute('data-kind', 'primary')
+    await planned()
+    expect(screen.getByRole('button', { name: 'Import' })).toHaveAttribute('data-kind', 'primary')
+    expect(screen.getByRole('button', { name: 'See changes' })).not.toHaveAttribute('data-kind', 'primary')
+  })
+
+  it('EDS-o: a clean plan names the file in words with its diff; Import writes and says Undo', async () => {
     const { onplan, onapply } = setup('import')
     await planned()
     expect(onplan).toHaveBeenCalledWith('pasted')
-    expect(screen.getByText(TUNING)).toBeInTheDocument()
+    // The file is named in words, never by its path; the gate and check names are not a person's words.
+    expect(screen.getByText('Tuning')).toBeInTheDocument()
+    expect(screen.queryByText(TUNING)).toBeNull()
     expect(screen.getByText('+ MAX_MOVE_SPEED = 400.0')).toBeInTheDocument()
-    expect(screen.getByText('No gates')).toBeInTheDocument()
-    expect(screen.getByText('Checks: content, content-check')).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'Apply' }))
+    expect(screen.queryByText('No gates')).toBeNull()
+    expect(screen.queryByText(/^Checks:/)).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Import' }))
     expect(onapply).toHaveBeenCalledWith(CLEAN)
-    expect(await screen.findByRole('status')).toHaveTextContent('Imported as one step; Undo takes it back.')
+    expect(await screen.findByRole('status')).toHaveTextContent('Imported. Undo takes it back.')
   })
 
   it('EDS-p: an empty plan says there is nothing to change, and Apply is disabled', async () => {
     setup('import', { changes: [], refused: [], applicable: false })
     await planned()
     expect(screen.getByText('Nothing to change: the document matches the files.')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Apply' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Import' })).toBeDisabled()
   })
 
   it('EDS-p2 and refusals: each refusal names its reason; a blocking one disables Apply', async () => {
@@ -108,7 +132,7 @@ describe('InterchangeDialog', () => {
     await planned()
     expect(screen.getByText('sequence: editor not installed')).toBeInTheDocument()
     expect(screen.getByText('package.json: never written by an editor')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Apply' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Import' })).toBeDisabled()
   })
 
   it('a plan error is shown in place of the plan', async () => {
@@ -117,16 +141,18 @@ describe('InterchangeDialog', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('version 1 is not supported')
   })
 
-  it('a file moved on since the plan: Apply is refused and Plan again plans afresh', async () => {
+  it('a file moved on since the plan: Import is refused and See changes again plans afresh', async () => {
     const { onplan } = setup(
       'import',
       CLEAN,
       vi.fn<Apply>(async () => ({ refused: 'moved', path: TUNING })),
     )
     await planned()
-    await userEvent.click(screen.getByRole('button', { name: 'Apply' }))
-    expect(await screen.findByRole('alert')).toHaveTextContent(`${TUNING} changed since the plan.`)
-    await userEvent.click(screen.getByRole('button', { name: 'Plan again' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Import' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Tuning changed since you looked. See the changes again.',
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'See changes again' }))
     expect(onplan).toHaveBeenCalledTimes(2)
   })
 })

@@ -47,7 +47,7 @@ function submit(event: SubmitEvent): void {
     gap: var(--space-2);
   }
   input {
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: 0 var(--space-3);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--edge-sm);

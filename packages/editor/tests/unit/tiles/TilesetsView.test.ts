@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createEditorApp } from '#src/app/editor-2d/editor-app.ts'
 import { componentOf } from '#src/app/editor-2d/views.ts'
 import DocumentScreen from '#src/features/document/DocumentScreen.svelte'
@@ -25,11 +25,11 @@ const quietPage = (): { document: LifecycleDocument; window: LifecycleWindow } =
   window: { addEventListener: () => {}, removeEventListener: () => {} },
 })
 
-async function mount() {
+async function mount(template = 'platformer', options: { files?: boolean } = {}) {
   const clock = createTestClock()
   const workspace = memoryWorkspace(clock)
   const app = createEditorApp({ workspace, registry: createAppProfiles(), ids: counterIds(), clock })
-  const opened = await app.create('level-project', 'platformer')
+  const opened = await app.create('level-project', template)
   if (opened.status !== 'opened') throw new Error(opened.status)
   const toasts = createToasts({ clock })
   const controller = createDocumentController({ app, opened, toasts, lifecycle: quietPage() })
@@ -40,19 +40,20 @@ async function mount() {
     toasts,
     clock,
     read: (path: string) => workspace.store.read(path),
+    files: options.files === false ? undefined : workspace.store,
     ids: counterIds(100),
     canvas: FakeLevelCanvas,
     onback: () => {},
   })
   await userEvent.click(
-    within(screen.getByRole('tablist', { name: 'Views' })).getByRole('tab', { name: 'Tilesets' }),
+    within(screen.getByRole('radiogroup', { name: 'Views' })).getByRole('radio', { name: 'Tiles' }),
   )
   const ground = (): AutoLayerDef =>
     (opened.document.history.state as Project).defs.layers.find(
       (layer) => layer.id === 'ground',
     ) as AutoLayerDef
   const hazards = (): string[] => ground().groups[1]?.rules.map((rule) => rule.id) ?? []
-  return { opened, ground, hazards }
+  return { opened, ground, hazards, workspace }
 }
 
 const panel = (): HTMLElement => screen.getByTestId('tilesets-panel')
@@ -98,6 +99,16 @@ describe('Tilesets view: the panel', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Add rule' }))
     const added = ground().groups[2]?.rules[0]?.id ?? ''
     expect(within(inspector()).getByRole('heading', { name: added })).toBeInTheDocument()
+  })
+})
+
+describe('Tilesets view: plain words (grandma audit 5.2)', () => {
+  it('names the auto layers as tiles that place themselves, and says so when there are none', async () => {
+    await mount('blank')
+    expect(screen.getByRole('heading', { name: 'Tiles that place themselves' })).toBeInTheDocument()
+    expect(screen.getByText('None in this game yet.')).toBeInTheDocument()
+    expect(screen.queryByText(/IntGrid/)).toBeNull()
+    expect(screen.queryByRole('heading', { name: /^Rule groups/ })).toBeNull()
   })
 })
 
@@ -198,5 +209,38 @@ describe('Tilesets view: the rule inspector and the preview', () => {
     await userEvent.click(within(inspector()).getByRole('button', { name: 'Group on' }))
     expect(ground().groups[1]?.active).toBe(false)
     expect(within(panel()).getByRole('button', { name: /^Danger.*off/ })).toBeInTheDocument()
+  })
+})
+
+describe('Tilesets view: Add tiles', () => {
+  // jsdom decodes no picture, so the dialog is told the size the way a browser would tell it.
+  const decoded = { w: 64, h: 32 }
+  globalThis.createImageBitmap ??= (async () => ({
+    width: decoded.w,
+    height: decoded.h,
+    close() {},
+  })) as never
+
+  it('adds a picture of tiles from the panel as one undo step and shows it', async () => {
+    const { opened, workspace } = await mount()
+    const before = opened.document.history.revision
+    await userEvent.click(within(panel()).getByRole('button', { name: 'Add tiles' }))
+    const dialog = screen.getByRole('dialog', { name: 'Add tiles' })
+    await userEvent.upload(
+      within(dialog).getByLabelText('Choose a picture'),
+      new File([new Uint8Array([7])], 'moss.png', { type: 'image/png' }),
+    )
+    await within(dialog).findByText('This makes 8 tiles.')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add tiles' }))
+    await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(opened.document.history.revision).toBe(before + 1)
+    expect(opened.document.history.undoLabel).toBe('Add tiles')
+    expect(await workspace.store.read('assets/moss.png')).toEqual(new Uint8Array([7]))
+    expect(within(panel()).getByRole('radio', { name: /Moss/ })).toHaveAttribute('aria-checked', 'true')
+  })
+
+  it('offers no Add tiles where nothing can be written', async () => {
+    await mount('platformer', { files: false })
+    expect(within(panel()).queryByRole('button', { name: 'Add tiles' })).toBeNull()
   })
 })

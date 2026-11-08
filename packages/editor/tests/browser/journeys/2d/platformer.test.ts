@@ -17,8 +17,8 @@ import {
 
 // ED2D.8 journey 1: a platformer level on an iPad, end to end with real pointer events:
 // the Pencil's hover shows the brush footprint, a Pencil stroke paints as one undo step, a two-finger tap undoes it,
-// an entity is placed with the Pencil, the Checks view has no errors, and Export downloads the working file and the game
-// files. What real hardware does with them stays the Owner's device pass.
+// an entity is placed with the Pencil, the top bar shows no problems, and Share's Download keeps the level's file. What
+// real hardware does with them stays the Owner's device pass.
 
 let editor: JourneyEditor | undefined
 afterEach(async () => {
@@ -32,7 +32,7 @@ const shot = async (element: HTMLElement): Promise<string> =>
 describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-landscape'))(
   'the platformer journey at $name',
   (profile) => {
-    it('hovers, strokes, undoes with two fingers, places, checks and exports', async () => {
+    it('hovers, strokes, undoes with two fingers, places and downloads', async () => {
       editor = await openJourneyEditor(profile, 'platformer')
       const open = editor
       await chooseLayer('Collision')
@@ -67,7 +67,7 @@ describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-la
       expect(open.document.history.canRedo).toBe(true)
 
       // Place a coin on the Entities layer (the Pencil has been used, so a finger would only navigate).
-      await chooseLayer('Entities')
+      await chooseLayer('Characters')
       await press('radio', 'Brush')
       await press('radio', 'Coin')
       const before = open.project().levels[0]?.layers.find((layer) => layer.kind === 'entities')
@@ -76,17 +76,15 @@ describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-la
       const count = (layer: typeof before): number => (layer?.kind === 'entities' ? layer.items.length : -1)
       expect(count(placed)).toBe(count(before) + 1)
 
-      // No errors in Checks.
-      await press('tab', 'Checks')
-      expect(document.querySelector('[data-testid="checks-view"]')?.textContent).not.toMatch(/^Errors/m)
+      // No problems: the top bar shows no count.
+      expect(document.querySelector('[data-testid="problems"]')).toBeNull()
 
-      // Export downloads the files.
-      await press('tab', 'Export')
-      await pressButton('Download')
+      // Share, Download keeps the level's file.
+      await pressButton('Share')
+      await press('menuitem', 'Download')
       await expect
         .poll(() => open.downloads.map((file) => file.name))
         .toContain('untitled-platformer.af2d.json')
-      expect(open.downloads.length, 'the working file and the game files').toBeGreaterThan(1)
     })
   },
 )

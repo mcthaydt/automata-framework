@@ -5,19 +5,17 @@ import { playgroundExamples } from './examples.ts'
 import { readGuides } from './guides.ts'
 import { publishedPackages } from './packages.ts'
 import { repositoryRoot } from './root.ts'
-import { projectSources } from './sources.ts'
 
 // The framework's files as the pages import them: `import guides from 'virtual:framework/guides'`. Each module is
 // computed by a loader in this folder when Vite first asks for it, from the workspace as it is, so a page and the file
 // it describes change in the same pull request (no sync, no pinned commit). One module per dataset, so a page carries
-// only what it imports: the 260 KB of project sources never reach a page that does not show them.
+// only what it imports.
 
 const MODULES = {
   guides: () => readGuides(),
   examples: () => playgroundExamples(),
   demos: () => demoList(),
   packages: () => publishedPackages(),
-  sources: () => projectSources(),
   api: () => readApiIndex().reference,
   'api-search': () => readApiIndex().search,
   llms: () => {

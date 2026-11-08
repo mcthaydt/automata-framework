@@ -1,27 +1,28 @@
 <!--
   The editor's responsive shell.
 
-  Seven regions, each a snippet: topbar, rail, panel, canvas, inspector, dock, status. The mode comes from
-  the geometry owner's form factor and nothing else (`shellModeOf`):
+  Seven regions, each a snippet: topbar, rail, panel, canvas, inspector, dock, status. The mode comes from the
+  window's size before any keyboard shrank it (`shellModeAt`), the approved mockup's three layouts:
 
-    wide     rail | panel | canvas | inspector, dock beneath the canvas, status at the foot
-    medium   canvas full width; panel and inspector are drawers over its edges; the dock is a bottom sheet;
-             the rail is a tab bar along the foot
-    compact  as medium, but the panel and inspector are bottom sheets too, one open at a time
+    wide     (1180 px and up) rail | panel | canvas | inspector, dock beneath the canvas, status at the foot
+    medium   panel | canvas; the inspector floats over the canvas's lower right when open; the dock is a bottom
+             sheet; the rail is a tab bar along the foot
+    compact  (760 px and down, or 520 px high and less) the canvas alone; panel, inspector and dock are bottom
+             sheets, one open at a time
 
   Every region is a sibling that stays mounted. A mode change moves it with CSS (grid areas, a transform) and
   never renders it somewhere else, so focus, scroll position and half-typed text survive a rotation or a
-  window drag. Drawers and sheets live in the canvas's grid cell, so the safe area, the keyboard and the
+  window drag. The floating inspector and the sheets live in the canvas's grid cell, so the safe area, the keyboard and the
   browser bars are already out of their way; a closed one is `inert` and `visibility: hidden`, never
   `display: none`, which would throw its scroll position away.
 
   `panel` is optional: without one, `wide` gives its column to the canvas (`data-panel="none"`).
   `inspector` is optional as well: without one, `wide` gives its column to the canvas (`data-inspector="none"`).
   `rail` is optional. A screen with no destinations (Home) leaves it out, and the canvas takes the rail's column in
-  wide and the tab bar's row below it (`data-rail="none"`). `dock` is optional too: without one, a drawer in medium
-  runs to the foot of the canvas instead of stopping where a dock sheet would begin.
+  wide and the tab bar's row below it (`data-rail="none"`). `dock` is optional too: without one, the floating
+  inspector in medium keeps to the foot of the canvas instead of rising above where a dock sheet would begin.
 
-  `panelOpen` and `inspectorOpen` only matter below `wide`, where the panel and inspector are always in view.
+  `panelOpen` only matters in `compact` (the panel is in view otherwise) and `inspectorOpen` below `wide`.
   `dockOpen` left `undefined` follows `defaultDockOpen`. The editor puts its own toggles in the top bar or the
   rail and binds these.
 
@@ -44,7 +45,7 @@ import {
   dockPlacementOf,
   nextDetent,
   type ShellRegion,
-  shellModeOf,
+  shellModeAt,
 } from './shell-mode'
 import { type OpenState, reconcileOpen } from './shell-open'
 
@@ -66,7 +67,7 @@ interface Props {
   testId?: string | undefined
 }
 
-type Presentation = 'inline' | 'drawer' | 'sheet'
+type Presentation = 'inline' | 'float' | 'sheet'
 
 let {
   geometry,
@@ -84,21 +85,20 @@ let {
   testId,
 }: Props = $props()
 
-const mode = $derived(shellModeOf(geometry.current.formFactor))
+const mode = $derived(shellModeAt(geometry.current))
 const tier = $derived(geometry.current.heightTier)
 const dockPlacement = $derived(dockPlacementOf(mode, tier))
 const dockIsOpen = $derived(dockOpen ?? defaultDockOpen(mode, tier))
 
-const sideRegion: Presentation = $derived(mode === 'wide' ? 'inline' : mode === 'medium' ? 'drawer' : 'sheet')
 const presentation: Record<ShellRegion, Presentation> = $derived({
-  panel: sideRegion,
-  inspector: sideRegion,
+  panel: mode === 'compact' ? 'sheet' : 'inline',
+  inspector: mode === 'wide' ? 'inline' : mode === 'medium' ? 'float' : 'sheet',
   dock: dockPlacement === 'inline' ? 'inline' : 'sheet',
 })
 
 // A region is in view when it is inline (panel and inspector always are), or its flag says so.
 const visible: Record<ShellRegion, boolean> = $derived({
-  panel: mode === 'wide' || panelOpen,
+  panel: presentation.panel === 'inline' || panelOpen,
   inspector: mode === 'wide' || inspectorOpen,
   dock: dockIsOpen,
 })
@@ -131,7 +131,7 @@ function close(name: ShellRegion): void {
   else dockOpen = false
 }
 
-// In medium the drawers end where an open dock sheet begins, so neither covers the other's controls. A screen with no
+// In medium the floating inspector sits above an open dock sheet, so neither covers the other's controls. A screen with no
 // dock has no sheet to make room for, whatever the dock's default says.
 const dockLift: string | undefined = $derived(
   mode === 'medium' && dock !== undefined && presentation.dock === 'sheet' && visible.dock
@@ -318,14 +318,14 @@ function sheetStyle(name: ShellRegion): string | undefined {
   .sheets {
     display: contents;
   }
-  /* Sizes from the mockups (docs/design/editor-2d). Targets never shrink with the window; only gutters do. */
+  /* Sizes from the mockups (docs/design/editor-2d). Targets never shrink with the window; only gutters do. The top bar
+     is at least --shell-topbar tall and grows when its content wraps (the document's bar takes two rows on a phone). */
   .shell {
     --shell-topbar: 52px;
     --shell-rail: 56px;
     --shell-tabbar: 64px;
     --shell-panel: 264px;
     --shell-inspector: 320px;
-    --shell-drawer: 320px;
     --shell-dock: 148px;
     position: fixed;
     /* The insets and the keyboard come from the geometry owner; without one (a bare fixture) the browser's env(). */
@@ -347,7 +347,7 @@ function sheetStyle(name: ShellRegion): string | undefined {
 
   .shell[data-mode='wide'] {
     grid-template-columns: var(--shell-rail) var(--shell-panel) minmax(0, 1fr) var(--shell-inspector);
-    grid-template-rows: var(--shell-topbar) minmax(0, 1fr) auto auto;
+    grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto auto;
     grid-template-areas:
       'topbar topbar topbar topbar'
       'rail panel canvas inspector'
@@ -364,10 +364,20 @@ function sheetStyle(name: ShellRegion): string | undefined {
       'status status status status';
   }
 
-  .shell[data-mode='medium'],
+  /* Medium: the panel stays beside the canvas (the layers are what a person reaches for most); the rest float. */
+  .shell[data-mode='medium'] {
+    grid-template-columns: var(--shell-panel) minmax(0, 1fr);
+    grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto var(--shell-tabbar);
+    grid-template-areas:
+      'topbar topbar'
+      'panel canvas'
+      'status status'
+      'rail rail';
+  }
+
   .shell[data-mode='compact'] {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: var(--shell-topbar) minmax(0, 1fr) auto var(--shell-tabbar);
+    grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto var(--shell-tabbar);
     grid-template-areas:
       'topbar'
       'canvas'
@@ -403,9 +413,16 @@ function sheetStyle(name: ShellRegion): string | undefined {
       'status status status';
   }
 
-  .shell[data-mode='medium'][data-rail='none'],
+  .shell[data-mode='medium'][data-rail='none'] {
+    grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto;
+    grid-template-areas:
+      'topbar topbar'
+      'panel canvas'
+      'status status';
+  }
+
   .shell[data-mode='compact'][data-rail='none'] {
-    grid-template-rows: var(--shell-topbar) minmax(0, 1fr) auto;
+    grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto;
     grid-template-areas:
       'topbar'
       'canvas'
@@ -519,35 +536,29 @@ function sheetStyle(name: ShellRegion): string | undefined {
     visibility: hidden;
   }
 
-  /* Drawers and sheets sit in the canvas's cell, above it. */
-  [data-presentation='drawer'],
+  /* The floating inspector and the sheets sit in the canvas's cell, above it. */
+  [data-presentation='float'],
   [data-presentation='sheet'] {
     grid-area: canvas;
     z-index: 2;
     transition: none;
   }
 
-  [data-presentation='drawer'] {
-    align-self: start;
-    height: calc(100% - var(--dock-lift, 0px));
-    width: min(var(--shell-drawer), 100%);
-    box-shadow: var(--shadow-sheet);
-  }
-
-  [data-region='panel'][data-presentation='drawer'] {
-    justify-self: start;
-    border-right: 1px solid var(--line);
-    transform: translateX(-100%);
-  }
-
-  [data-region='inspector'][data-presentation='drawer'] {
+  /* Medium's inspector: a card over the canvas's lower right (the mockup), above an open dock sheet, leaving the
+     top of the canvas to the tools: the row a stage pill floats in (its margins, a target, its padding and its
+     edges). It is the wide inspector's width, so its fields lay out the same. It never runs off the canvas: it
+     scrolls inside instead. */
+  [data-presentation='float'] {
+    --pill-row: calc(2 * var(--space-3) + var(--size-hit) + 2 * var(--space-1) + 2px);
+    align-self: end;
     justify-self: end;
-    border-left: 1px solid var(--line);
-    transform: translateX(100%);
-  }
-
-  [data-presentation='drawer'][data-open='true'] {
-    transform: none;
+    width: min(var(--shell-inspector), calc(100% - 2 * var(--space-3)));
+    max-height: calc(100% - var(--dock-lift, 0px) - var(--space-3) - var(--pill-row));
+    margin: 0 var(--space-3) calc(var(--dock-lift, 0px) + var(--space-3)) 0;
+    border: 1px solid var(--line);
+    border-radius: var(--edge-lg);
+    box-shadow: var(--shadow-sheet);
+    overflow: hidden;
   }
 
   [data-presentation='sheet'] {
@@ -565,20 +576,18 @@ function sheetStyle(name: ShellRegion): string | undefined {
   }
 
   /* Closed: out of sight and out of the tab order, but still laid out so scroll positions are kept. */
-  [data-presentation='drawer'][data-open='false'],
+  [data-presentation='float'][data-open='false'],
   [data-presentation='sheet'][data-open='false'] {
     visibility: hidden;
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    [data-presentation='drawer'],
     [data-presentation='sheet'] {
       transition:
         transform 160ms ease-out,
         visibility 0s linear 160ms;
     }
 
-    [data-presentation='drawer'][data-open='true'],
     [data-presentation='sheet'][data-open='true'] {
       transition:
         transform 160ms ease-out,

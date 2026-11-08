@@ -97,7 +97,8 @@ function onClick(event: MouseEvent): void {
       use:modal
     >
       <h2 class="title" id={`${uid}-title`}>{title}</h2>
-      <div class="body">{@render children()}</div>
+      <!-- The body scrolls when the window is short (a phone held sideways): a declared scroll region. -->
+      <div class="body" data-scroll-region>{@render children()}</div>
       {#if actions}
         <div class="actions">{@render actions({ close: () => close('action') })}</div>
       {/if}

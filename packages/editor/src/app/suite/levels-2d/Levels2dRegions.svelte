@@ -1,21 +1,21 @@
 <!--
   The Levels 2D regions in the editor suite's shell: the Level
-  view's panel, canvas, inspector and dock, each drawn from the session the suite keeps, so a switch and return finds
+  view's panel, canvas and inspector, and in the suite's top bar the level picker (`tools`), each drawn from the
+  session the suite keeps, so a switch and return finds
   the level, layer, tool, selection and camera as they were. The suite owns the top bar (Undo and Redo among it) and the
   Panel and Details toggles, so the stage leaves those to it.
 -->
 <script module lang="ts">
-import LevelCards from '../../../features/level/LevelCards.svelte'
 import LevelInspector from '../../../features/level/LevelInspector.svelte'
 import LevelPanel from '../../../features/level/LevelPanel.svelte'
+import LevelPicker from '../../../features/level/LevelPicker.svelte'
 import LevelStage from '../../../features/level/LevelStage.svelte'
-import type { Project } from '../../../shared/level-2d/model/project-types'
 import Levels2dStatus from './Levels2dStatus.svelte'
 import type { Levels2dSession } from './levels-2d-session'
 
 const nothing = (): Promise<undefined> => Promise.resolve(undefined)
 
-export { canvas, dock, inspector, panel, status }
+export { canvas, inspector, panel, status, tools }
 </script>
 
 {#snippet panel(session: Levels2dSession)}
@@ -44,19 +44,17 @@ export { canvas, dock, inspector, panel, status }
 
 {#snippet inspector(session: Levels2dSession)}
   {#if session.state.kind === 'open'}
-    {@const { profile } = session.state}
     <LevelInspector
       session={session.state.level}
       history={session.state.history}
       ids={session.options.ids}
-      check={(project: Project) => profile.check(project, {})}
     />
   {/if}
 {/snippet}
 
-{#snippet dock(session: Levels2dSession)}
+{#snippet tools(session: Levels2dSession)}
   {#if session.state.kind === 'open'}
-    <LevelCards session={session.state.level} history={session.state.history} />
+    <LevelPicker session={session.state.level} history={session.state.history} />
   {/if}
 {/snippet}
 

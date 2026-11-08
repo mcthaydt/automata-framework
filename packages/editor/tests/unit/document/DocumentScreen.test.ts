@@ -7,6 +7,7 @@ import { createEditorApp } from '#src/app/editor-2d/editor-app.ts'
 import { componentOf } from '#src/app/editor-2d/views.ts'
 import DocumentScreen from '#src/features/document/DocumentScreen.svelte'
 import { createDocumentController } from '#src/features/document/document-controller.ts'
+import { createDownloadStore } from '#src/shared/kit/storage/download-store.ts'
 import type { LifecycleDocument, LifecycleWindow } from '#src/shared/kit/storage/page-lifecycle.ts'
 import { createToasts } from '#src/shared/kit/widgets/toasts.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
@@ -62,8 +63,8 @@ async function mount(options: { persistent?: boolean; autosave?: boolean; size?:
   return { opened, controller, toasts, workspace, onback }
 }
 
-/** Save says where the level stands (there is no status bar); `data-save` is its state. */
-const status = (): HTMLElement => screen.getByTestId('save')
+/** The status beside Save says where the level stands (there is no status bar); `data-save` is its state. */
+const status = (): HTMLElement => screen.getByTestId('save-state')
 
 describe('DocumentScreen', () => {
   it('heads the page with the document, which takes focus, and no status bar', async () => {
@@ -75,9 +76,9 @@ describe('DocumentScreen', () => {
 
   it('shows a view that is not built yet in plain words, saying the project is safe', async () => {
     await mount()
-    expect(screen.getByRole('tab', { name: 'Note' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('radio', { name: 'Note' })).toHaveAttribute('aria-checked', 'true')
     expect(screen.getByRole('heading', { name: 'Note is coming in a later update' })).toBeInTheDocument()
-    expect(screen.getByText(/Your project is safe/)).toBeInTheDocument()
+    expect(screen.getByText(/Your game is safe/)).toBeInTheDocument()
   })
 
   it('Back reports to its owner', async () => {
@@ -167,9 +168,9 @@ describe('DocumentScreen', () => {
     await workspace.store.write('notes/a.note', noteText('theirs'))
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
     expect(
-      await screen.findByRole('dialog', { name: 'a.note changed since you opened it' }),
+      await screen.findByRole('dialog', { name: 'a.note was changed somewhere else' }),
     ).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'Keep mine' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Use mine' }))
     await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(textOf(await workspace.store.read('notes/a.note'))).toBe(noteText('mine', 1))
   })
@@ -179,7 +180,7 @@ describe('DocumentScreen', () => {
     opened.document.history.apply('Type', () => ({ text: 'mine' }))
     await workspace.store.write('notes/a.note', noteText('theirs'))
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
-    await userEvent.click(await screen.findByRole('button', { name: 'Take theirs' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Use theirs' }))
     expect(await screen.findByText('Reloaded a.note from the file.')).toBeInTheDocument()
     expect(status()).toHaveAttribute('data-save', 'saved')
     expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled()
@@ -187,8 +188,8 @@ describe('DocumentScreen', () => {
 
   it('asks Restore or Discard first when an autosave is on offer, and Restore applies it', async () => {
     const { controller } = await mount({ autosave: true })
-    expect(screen.getByRole('dialog', { name: 'Restore your unsaved work?' })).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'Restore edits' }))
+    expect(screen.getByRole('dialog', { name: 'Keep your changes from last time?' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Keep my changes' }))
     expect(screen.queryByRole('dialog')).toBeNull()
     let text: unknown
     controller.state.subscribe((state) => {
@@ -196,17 +197,17 @@ describe('DocumentScreen', () => {
     })()
     expect(text).toEqual({ text: 'kept' })
     expect(status()).toHaveAttribute('data-save', 'dirty')
-    expect(screen.getByRole('button', { name: 'Undo Restore autosave' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Undo Keep changes from last time' })).toBeEnabled()
   })
 
   it('the Restore dialog keeps the focus the heading would take, so a keyboard starts on the question', async () => {
     await mount({ autosave: true })
-    expect(screen.getByRole('button', { name: 'Restore edits' })).toHaveFocus()
+    expect(screen.getByRole('button', { name: 'Keep my changes' })).toHaveFocus()
   })
 
-  it('Discard keeps the file as it was', async () => {
+  it('Throw away keeps the file as it was', async () => {
     await mount({ autosave: true })
-    await userEvent.click(screen.getByRole('button', { name: 'Discard' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Throw away' }))
     await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(status()).toHaveAttribute('data-save', 'saved')
   })
@@ -223,9 +224,13 @@ describe('DocumentScreen', () => {
   })
 })
 
-async function mountLevel(size: [number, number] = [1194, 834]) {
+async function mountLevel(size: [number, number] = [1194, 834], options: { share?: boolean } = {}) {
   const clock = createTestClock()
-  const workspace = memoryWorkspace(clock)
+  const written: string[] = []
+  const workspace = {
+    ...memoryWorkspace(clock),
+    exports: createDownloadStore({ now: clock.now, download: (file) => void written.push(file.name) }),
+  }
   const app = createEditorApp({ workspace, registry: createAppProfiles(), ids: counterIds(), clock })
   const opened = await app.create('level-project', 'platformer')
   if (opened.status !== 'opened') throw new Error(opened.status)
@@ -240,49 +245,98 @@ async function mountLevel(size: [number, number] = [1194, 834]) {
     read: (path: string) => workspace.store.read(path),
     ids: counterIds(100),
     canvas: FakeLevelCanvas,
+    workspace: options.share === true ? workspace : undefined,
     onback: () => {},
   })
-  return { opened }
+  return { opened, written }
 }
 
-/** The rail's tabs; the Level view's inspector has tabs of its own (one is also "Level"). */
-const rail = (): HTMLElement => screen.getByRole('tablist', { name: 'Views' })
+/** The view switcher; the Level view's inspector has tabs of its own (one is also "Level"). */
+const switcher = (): HTMLElement => screen.getByRole('radiogroup', { name: 'Views' })
 
-describe('DocumentScreen: the rail', () => {
-  it('lists the profile’s views and opens on the first, the Level view', async () => {
+describe('DocumentScreen: the view switcher', () => {
+  it('lists the four views in plain words and opens on the first, the Level view', async () => {
     await mountLevel()
-    const tabs = within(rail())
-      .getAllByRole('tab')
-      .map((tab) => tab.textContent)
-    expect(tabs).toEqual(['Level', 'World', 'Tilesets', 'Entities', 'Checks', 'Export'])
-    expect(within(rail()).getByRole('tab', { name: 'Level' })).toHaveAttribute('aria-selected', 'true')
+    const options = within(switcher())
+      .getAllByRole('radio')
+      .map((option) => option.textContent?.trim())
+    expect(options).toEqual(['Level', 'Map', 'Tiles', 'Characters'])
+    expect(within(switcher()).getByRole('radio', { name: 'Level' })).toHaveAttribute('aria-checked', 'true')
     expect(screen.getByTestId('level-view')).toBeInTheDocument()
+    expect(screen.queryByRole('tablist', { name: 'Views' })).toBeNull()
   })
 
   it('shows the chosen view and keeps the document and its history across views', async () => {
     const { opened } = await mountLevel()
     opened.document.history.apply('Rename', (project) => ({ ...(project as object), name: 'Moss' }))
     flushSync()
-    await userEvent.click(within(rail()).getByRole('tab', { name: 'World' }))
+    await userEvent.click(within(switcher()).getByRole('radio', { name: 'Map' }))
     expect(screen.getByTestId('world-view')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Undo Rename' })).toBeEnabled()
-    await userEvent.click(within(rail()).getByRole('tab', { name: 'Level' }))
+    await userEvent.click(within(switcher()).getByRole('radio', { name: 'Level' }))
     expect(screen.getByTestId('level-view')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Undo Rename' })).toBeEnabled()
   })
 
-  it('moves between views with the arrow keys and keeps focus on the rail', async () => {
+  it('moves between views with the arrow keys and keeps focus on the switcher', async () => {
     await mountLevel()
-    within(rail()).getByRole('tab', { name: 'Level' }).focus()
-    await userEvent.keyboard('{ArrowDown}')
-    expect(within(rail()).getByRole('tab', { name: 'World' })).toHaveAttribute('aria-selected', 'true')
-    expect(within(rail()).getByRole('tab', { name: 'World' })).toHaveFocus()
+    within(switcher()).getByRole('radio', { name: 'Level' }).focus()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(within(switcher()).getByRole('radio', { name: 'Map' })).toHaveAttribute('aria-checked', 'true')
+    expect(within(switcher()).getByRole('radio', { name: 'Map' })).toHaveFocus()
     await userEvent.keyboard('{End}')
-    expect(within(rail()).getByRole('tab', { name: 'Export' })).toHaveFocus()
+    expect(within(switcher()).getByRole('radio', { name: 'Characters' })).toHaveFocus()
   })
 
-  it('is a tab bar along the foot below wide', async () => {
-    await mountLevel([834, 1194])
-    expect(screen.getByRole('tablist', { name: 'Views' })).toHaveAttribute('aria-orientation', 'horizontal')
+  it('is a menu named after the open view on a phone', async () => {
+    await mountLevel([390, 844])
+    expect(screen.queryByRole('radiogroup', { name: 'Views' })).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Level' }))
+    await userEvent.click(
+      within(screen.getByRole('menu', { name: 'Level' })).getByRole('menuitem', { name: 'Tiles' }),
+    )
+    expect(screen.getByTestId('tilesets-view')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Tiles' })).toBeInTheDocument()
+  })
+})
+
+describe('DocumentScreen: rename', () => {
+  it('renames the level by tapping its name, as one undo step, and keeps an empty name from being kept', async () => {
+    const { opened } = await mountLevel()
+    await userEvent.click(screen.getByRole('button', { name: 'Untitled platformer' }))
+    const dialog = within(screen.getByRole('dialog', { name: 'Rename' }))
+    const field = dialog.getByRole('textbox', { name: 'Name' })
+    await userEvent.clear(field)
+    expect(dialog.getByRole('button', { name: 'Rename' })).toBeDisabled()
+    await userEvent.type(field, 'Rooftops{Enter}')
+    expect(screen.queryByRole('dialog', { name: 'Rename' })).toBeNull()
+    expect(screen.getByRole('heading', { level: 1, name: 'Rooftops' })).toBeInTheDocument()
+    expect(opened.document.history.undoLabel).toBe('Rename')
+  })
+
+  it('has no rename for a profile without one', async () => {
+    await mount()
+    expect(screen.queryByRole('button', { name: 'a.note' })).toBeNull()
+  })
+})
+
+describe('DocumentScreen: Share', () => {
+  it('offers Download, Share and Copy in browser storage, and Download keeps the level', async () => {
+    const { written } = await mountLevel([1194, 834], { share: true })
+    await userEvent.click(screen.getByRole('button', { name: 'Share' }))
+    const menu = within(screen.getByRole('menu', { name: 'Share' }))
+    expect(menu.getAllByRole('menuitem').map((item) => item.textContent?.trim())).toEqual([
+      'Download',
+      expect.stringMatching(/^Share/),
+      'Copy',
+    ])
+    await userEvent.click(menu.getByRole('menuitem', { name: 'Download' }))
+    expect(await screen.findByText('Downloaded your level.')).toBeInTheDocument()
+    expect(written).toEqual([expect.stringMatching(/\.af2d\.json$/)])
+  })
+
+  it('has no Share menu where nothing can leave', async () => {
+    await mountLevel()
+    expect(screen.queryByRole('button', { name: 'Share' })).toBeNull()
   })
 })

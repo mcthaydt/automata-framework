@@ -19,7 +19,13 @@ export interface Tunable {
   /** True when the file itself states the bounds (`{ value, min, max, step }`). */
   readonly authored: boolean
   readonly unit?: string
+  /** Shown as `value × scale` in `unit`, from the file's `scale` (`tuner-display.ts`); display only. */
+  readonly scale?: number
   readonly note?: string
+  /** The Tuner's name for it, from the file's `label` ("Running speed"); without one the Tuner shows `name`. */
+  readonly label?: string
+  /** What a player feels when it changes, from the file's `feel` ("How fast Wick runs."). */
+  readonly feel?: string
   /** False for a table or an array: the Tuner shows it and sends changes to Ask. */
   readonly editable: boolean
 }
@@ -91,6 +97,13 @@ export function readTuning(text: string, meta: TuningMeta = {}): TuningRead {
     const declared = meta[name]
 
     if (isTable(row) && typeof row['value'] === 'number') {
+      const said = {
+        ...(typeof row['label'] === 'string' ? { label: row['label'] } : {}),
+        ...(typeof row['feel'] === 'string' ? { feel: row['feel'] } : {}),
+        // The file's own unit wins over one read from a comment.
+        ...(typeof row['unit'] === 'string' ? { unit: row['unit'] } : {}),
+        ...(typeof row['scale'] === 'number' && row['scale'] !== 0 ? { scale: row['scale'] } : {}),
+      }
       const floats = ['value', 'step'].some((key) => /[.eE]/.test(spelling(name, key) ?? ''))
       return {
         name,
@@ -102,6 +115,7 @@ export function readTuning(text: string, meta: TuningMeta = {}): TuningRead {
         authored: true,
         editable: true,
         ...words,
+        ...said,
       }
     }
     if (typeof row === 'number') {
@@ -131,3 +145,16 @@ export function readTuning(text: string, meta: TuningMeta = {}): TuningRead {
   })
   return { tunables }
 }
+
+/** A setting's name on screen: its label, or its name in code when the file gives none. */
+export const shownName = (tunable: Tunable): string => tunable.label ?? tunable.name
+
+/**
+ * The line under a setting's name: what a player feels. A labelled setting never shows its comment, which keeps the
+ * author's sources and other games' numbers (the grandma audit, section 6.2); an unlabelled one falls back to it.
+ */
+export const shownNote = (tunable: Tunable): string | undefined =>
+  tunable.feel ?? (tunable.label === undefined ? tunable.note : undefined)
+
+/** What Keep does, as its tooltip says. */
+export const KEEP_TIP = 'Keep this value: nothing changes it until you let it go.'

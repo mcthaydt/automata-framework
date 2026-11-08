@@ -7,6 +7,7 @@ import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
 import { createMemoryPorts, type MemoryPorts } from '#src/shared/kit/ports/memory/memory-ports.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
 
 // Ship, the Review desk, Export and Import inside the suite, with the
@@ -84,20 +85,40 @@ async function edit(): Promise<void> {
 const fileText = async (ports: MemoryPorts) => (await ports.ports.workspace.read(TUNING))?.text
 
 describe('Suite: Ship, Review and the interchange', () => {
+  it('its toasts run on the clock it is given: one stays until that clock passes its time', async () => {
+    const ports = await memory()
+    // A change set still open from before the reload: the suite says its locks were cleared.
+    await ports.ports.changeSet?.begin('Faster')
+    const clock = createTestClock()
+    const target = document.body.appendChild(document.createElement('div'))
+    started = await startSuite(target, {
+      window,
+      document,
+      ports: ports.ports,
+      suite: createSuite({ editors: [fixtureEditor as SuiteEditor<unknown>] }),
+      clock,
+    })
+    const toast = await screen.findByText('Locked values were cleared when the page reloaded.')
+    clock.advance(4_999)
+    expect(toast).toBeInTheDocument()
+    clock.advance(1)
+    await waitFor(() => expect(toast).not.toBeInTheDocument())
+  })
+
   it('without a change set port there is no Ship button', async () => {
     await start(await memory({ changeSet: false }))
-    expect(screen.queryByRole('button', { name: 'Ship' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Publish' })).toBeNull()
   })
 
   it('EDS-j: Ship drafts the description from the change, pushes and links the draft PR', async () => {
     await start(await memory({ gh: true }))
     await edit()
-    await userEvent.click(screen.getByRole('button', { name: 'Ship' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Ship this change' })
+    await userEvent.click(screen.getByRole('button', { name: 'Publish' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Publish your changes' })
     await waitFor(() =>
       expect((within(dialog).getByLabelText('Description') as HTMLTextAreaElement).value).toContain(TUNING),
     )
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Ship' }))
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Publish' }))
     expect(
       await within(dialog).findByRole('link', { name: 'Open the draft pull request' }),
     ).toBeInTheDocument()
@@ -112,26 +133,26 @@ describe('Suite: Ship, Review and the interchange', () => {
     expect(within(desk).getByText('Feel: approved before this change; reopened')).toBeInTheDocument()
   })
 
-  it('EDS-o: export from Home, change a value, import: the plan, Apply, and Undo takes it back', async () => {
+  it('EDS-o: export from Home, change a value, import: what it changes, Import, and Undo takes it back', async () => {
     const ports = await memory()
     await ports.ports.changeSet?.begin('Speeds')
     await start(ports)
     await userEvent.click(screen.getByRole('button', { name: 'Export' }))
     const exporting = await screen.findByRole('dialog', { name: 'Export' })
-    const out = within(exporting).getByLabelText('Exported document')
+    const out = within(exporting).getByLabelText('Your game as text')
     await waitFor(() => expect((out as HTMLTextAreaElement).value).toContain('MAX_MOVE_SPEED = 7'))
     const document = (out as HTMLTextAreaElement).value.replace('MAX_MOVE_SPEED = 7', 'MAX_MOVE_SPEED = 9')
     await userEvent.click(within(exporting).getByRole('button', { name: 'Close' }))
 
     await userEvent.click(screen.getByRole('button', { name: 'Import' }))
     const importing = await screen.findByRole('dialog', { name: 'Import' })
-    const field = within(importing).getByLabelText('Document to import')
+    const field = within(importing).getByLabelText('Paste the text to import')
     await userEvent.click(field)
     await userEvent.paste(document)
-    await userEvent.click(within(importing).getByRole('button', { name: 'Plan' }))
+    await userEvent.click(within(importing).getByRole('button', { name: 'See changes' }))
     expect(await within(importing).findByText('+ MAX_MOVE_SPEED = 9')).toBeInTheDocument()
-    expect(within(importing).getByText('Reopens g-feel')).toBeInTheDocument()
-    await userEvent.click(within(importing).getByRole('button', { name: 'Apply' }))
+    expect(within(importing).getByText('Needs review again: g-feel')).toBeInTheDocument()
+    await userEvent.click(within(importing).getByRole('button', { name: 'Import' }))
     expect(await within(importing).findByRole('status')).toHaveTextContent('Undo takes it back')
     expect(await fileText(ports)).toBe('MAX_MOVE_SPEED = 9\n')
     await userEvent.click(within(importing).getByRole('button', { name: 'Close' }))

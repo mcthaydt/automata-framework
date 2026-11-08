@@ -72,7 +72,7 @@ describe('EditorShell structure', () => {
     ])
   })
 
-  it('in medium, makes room for a dock sheet beneath the drawers only when there is a dock', () => {
+  it('in medium, lifts the floating inspector above a dock sheet only when there is a dock', () => {
     const lift = (): string | undefined =>
       document.querySelector<HTMLElement>('[data-editor-shell]')?.style.getPropertyValue('--dock-lift')
     mount(834, 1194)
@@ -125,18 +125,20 @@ describe('EditorShell presentation per mode', () => {
     }
   })
 
-  it('wide but short (900 x 600): the dock is a closed sheet, panel and inspector stay inline', () => {
-    mount(900, 600)
+  it('wide but short (1280 x 560): the dock is a closed sheet, panel and inspector stay inline', () => {
+    mount(1280, 560)
     expect(document.querySelector('[data-editor-shell]')).toHaveAttribute('data-dock', 'sheet')
     expect(region('dock')).toHaveAttribute('data-presentation', 'sheet')
     expect(region('dock')).toHaveAttribute('data-open', 'false')
     expect(region('panel')).toHaveAttribute('data-presentation', 'inline')
   })
 
-  it('medium: panel and inspector are closed drawers, the dock a sheet at peek', () => {
+  it('medium: the panel is beside the canvas, the inspector a closed floating card, the dock a sheet at peek', () => {
     mount(834, 1194)
-    expect(region('panel')).toHaveAttribute('data-presentation', 'drawer')
-    expect(region('inspector')).toHaveAttribute('data-presentation', 'drawer')
+    expect(region('panel')).toHaveAttribute('data-presentation', 'inline')
+    expect(region('panel')).toHaveAttribute('data-open', 'true')
+    expect(region('inspector')).toHaveAttribute('data-presentation', 'float')
+    expect(region('inspector')).toHaveAttribute('data-open', 'false')
     expect(region('dock')).toHaveAttribute('data-presentation', 'sheet')
     expect(region('dock')).toHaveAttribute('data-open', 'true')
     expect(region('dock')).toHaveAttribute('data-detent', 'peek')
@@ -157,19 +159,19 @@ describe('EditorShell presentation per mode', () => {
 })
 
 describe('EditorShell drawers and sheets', () => {
-  it('a closed drawer is inert; opening it from the top bar makes it live', async () => {
+  it('a closed floating inspector is inert; opening it from the top bar makes it live', async () => {
     mount(834, 1194)
-    expect(isInert(region('panel'))).toBe(true)
-    expect(region('panel')).toHaveAttribute('data-open', 'false')
-    await userEvent.click(screen.getByTestId('toggle-panel'))
-    expect(region('panel')).toHaveAttribute('data-open', 'true')
-    expect(isInert(region('panel'))).toBe(false)
-    expect(screen.getByTestId('open-state')).toHaveTextContent('panel:true')
+    expect(isInert(region('inspector'))).toBe(true)
+    expect(region('inspector')).toHaveAttribute('data-open', 'false')
+    await userEvent.click(screen.getByTestId('toggle-inspector'))
+    expect(region('inspector')).toHaveAttribute('data-open', 'true')
+    expect(isInert(region('inspector'))).toBe(false)
+    expect(screen.getByTestId('open-state')).toHaveTextContent('inspector:true')
   })
 
-  it('drawers have no handle: they open beside the canvas, they are not resized', async () => {
-    mount(834, 1194, { panelOpen: true })
-    expect(region('panel').querySelector('[data-sheet-handle]')).toBeNull()
+  it('the floating inspector has no handle: it is a card over the canvas, not resized', async () => {
+    mount(834, 1194, { inspectorOpen: true })
+    expect(region('inspector').querySelector('[data-sheet-handle]')).toBeNull()
   })
 
   it('a sheet has a handle that steps peek, half, full and back, and says whether it is expanded', async () => {
@@ -211,9 +213,8 @@ describe('EditorShell drawers and sheets', () => {
     expect(screen.getByTestId('open-state')).toHaveTextContent('panel:false inspector:true')
   })
 
-  it('in medium both drawers can be open together', async () => {
+  it('in medium the panel and the floating inspector are in view together', async () => {
     mount(834, 1194)
-    await userEvent.click(screen.getByTestId('toggle-panel'))
     await userEvent.click(screen.getByTestId('toggle-inspector'))
     expect(region('panel')).toHaveAttribute('data-open', 'true')
     expect(region('inspector')).toHaveAttribute('data-open', 'true')
@@ -234,7 +235,7 @@ describe('EditorShell drawers and sheets', () => {
   })
 
   it('the dock toggled from the top bar opens and closes where it sits', async () => {
-    mount(900, 600)
+    mount(1280, 560)
     expect(region('dock')).toHaveAttribute('data-open', 'false')
     await userEvent.click(screen.getByTestId('toggle-dock'))
     expect(region('dock')).toHaveAttribute('data-open', 'true')
@@ -272,8 +273,8 @@ describe('EditorShell when the size changes', () => {
     expect(field.value).toBe('Rooftops')
   })
 
-  it('keeps the panel and its field mounted, with what was typed, when it turns from a drawer into an inline panel', async () => {
-    const geometry = mount(834, 1194, { panelOpen: true })
+  it('keeps the panel and its field mounted, with what was typed, when it turns from a sheet into an inline panel', async () => {
+    const geometry = mount(390, 844, { panelOpen: true })
     const field = screen.getByTestId('panel-field') as HTMLInputElement
     await userEvent.click(field)
     await userEvent.keyboard('mid')
@@ -284,7 +285,7 @@ describe('EditorShell when the size changes', () => {
     expect(region('panel')).toHaveAttribute('data-presentation', 'inline')
   })
 
-  it('turning into compact leaves only one of two open drawers open', async () => {
+  it('turning into compact leaves only one of the open panel and inspector open', async () => {
     const geometry = mount(834, 1194, { panelOpen: true, inspectorOpen: true })
     await turn(geometry, 390, 844)
     const open = ['panel', 'inspector', 'dock'].filter((name) => region(name).dataset.open === 'true')

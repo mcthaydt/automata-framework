@@ -1,4 +1,5 @@
 import '#src/shared/kit/tokens.css'
+import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
 import '#src/app/editor-2d/main.css'
 import { byTestId, checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata/testing'
@@ -8,9 +9,14 @@ import { type EditorHandle, startEditor } from '#src/app/editor-2d/boot.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import { uncoveredArea } from '#src/shared/level-2d/model/world/world-model.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { editorTargets } from '#src/testing/kit/targets.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { hollowmere } from '#src/testing/level-2d/samples.ts'
+import { openView, switcherControls } from '#src/testing/level-2d/view-switcher.ts'
+
+/** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
+const targets = editorTargets()
 
 // The World view with the production CSS in a real browser, at the kit's
 // eight window sizes in Chromium, WebKit and Firefox: the map fills the canvas and has drawn (or says why not), the
@@ -32,7 +38,7 @@ afterEach(async () => {
 
 async function start(size: EditorSize) {
   await page.viewport(size.width, size.height)
-  const conditions = publishConditions(document.documentElement, size, REST)
+  const conditions = publishConditions(document.documentElement, size, REST, targets)
   const clock = createTestClock()
   const workspace = memoryWorkspace(clock)
   await workspace.store.write(PROJECT, printProject(hollowmere()))
@@ -56,11 +62,7 @@ async function start(size: EditorSize) {
   if (card === null) throw new Error('no level card')
   card.click()
   await expect.poll(() => document.querySelector('[data-testid="level-view"]')).not.toBeNull()
-  const tab = [
-    ...document.querySelectorAll<HTMLElement>('[role="tablist"][aria-label="Views"] [role="tab"]'),
-  ].find((candidate) => candidate.textContent?.trim() === 'World')
-  if (tab === undefined) throw new Error('no World tab')
-  tab.click()
+  await openView('Map')
   await expect.poll(() => document.querySelector('[data-testid="world-view"]')).not.toBeNull()
   // The first draw in a cold browser can take longer than the default poll on a loaded runner.
   await expect
@@ -79,15 +81,19 @@ const region = (name: string): HTMLElement => {
   return found
 }
 const buttonNamed = (root: ParentNode, name: string): HTMLElement => {
-  const found = [...root.querySelectorAll<HTMLElement>('button')].find(
-    (candidate) => candidate.textContent?.trim() === name,
+  const found = [...root.querySelectorAll<HTMLElement>('button:not([role]):not([aria-haspopup])')].find(
+    (candidate) => candidate.textContent?.trim() === name || candidate.getAttribute('aria-label') === name,
   )
   if (found === undefined) throw new Error(`no ${name} button`)
   return found
 }
 
-/** Below wide, presses the map's drawer button until its region says it is open. */
-async function openDrawer(size: EditorSize, name: 'Levels' | 'Inspector', regionName: string): Promise<void> {
+/** Below wide, presses the button that opens the list or the details until its region says it is open. */
+async function openDrawer(
+  size: EditorSize,
+  name: 'All levels' | 'Details',
+  regionName: string,
+): Promise<void> {
   if (size.mode === 'wide' || region(regionName).dataset.open === 'true') return
   buttonNamed(view(), name).click()
   await arrived()
@@ -96,10 +102,12 @@ async function openDrawer(size: EditorSize, name: 'Levels' | 'Inspector', region
 
 async function closeDrawer(
   size: EditorSize,
-  name: 'Levels' | 'Inspector',
+  name: 'All levels' | 'Details',
   regionName: string,
 ): Promise<void> {
-  if (size.mode === 'wide' || region(regionName).dataset.open !== 'true') return
+  // In medium the list is always beside the map: there is nothing to close.
+  if (size.mode === 'wide' || (size.mode === 'medium' && regionName === 'panel')) return
+  if (region(regionName).dataset.open !== 'true') return
   buttonNamed(view(), name).click()
   await arrived()
 }
@@ -109,8 +117,8 @@ async function expectTarget(control: HTMLElement, size: EditorSize): Promise<voi
   control.scrollIntoView({ block: 'nearest', inline: 'nearest' })
   await settleLayout()
   const box = control.getBoundingClientRect()
-  expect(box.width).toBeGreaterThanOrEqual(44)
-  expect(box.height).toBeGreaterThanOrEqual(44)
+  expect(box.width).toBeGreaterThanOrEqual(targets.hit)
+  expect(box.height).toBeGreaterThanOrEqual(targets.hit)
   expect(box.left).toBeGreaterThanOrEqual(-0.5)
   expect(box.top).toBeGreaterThanOrEqual(-0.5)
   expect(box.right).toBeLessThanOrEqual(size.width + 0.5)
@@ -125,11 +133,9 @@ function noPageScroll(): void {
 describe.each(SIZES)('World view at $name ($width x $height)', (size) => {
   test('the map fills the canvas; the panel and inspector controls are full-size; the page never scrolls', async () => {
     const { conditions } = await start(size)
-    const tabs = [
-      ...document.querySelectorAll<HTMLElement>('[role="tablist"][aria-label="Views"] [role="tab"]'),
-    ]
-    const drawers =
-      size.mode === 'wide' ? [] : ['Levels', 'Inspector'].map((name) => buttonNamed(view(), name))
+    const tabs = switcherControls()
+    const opens = size.mode === 'wide' ? [] : size.mode === 'medium' ? ['Details'] : ['All levels', 'Details']
+    const drawers = opens.map((name) => buttonNamed(view(), name))
     expect(checkLayout(conditions, [...tabs, ...drawers])).toEqual([])
     // The map fills the canvas below any drawer buttons, and the levels sit in the middle of it: the camera is fitted
     // to the box the map really has (review of #310: in wide the map took only its content's height).
@@ -146,12 +152,17 @@ describe.each(SIZES)('World view at $name ($width x $height)', (size) => {
     expect(left).toBeGreaterThanOrEqual(0)
     expect(right).toBeLessThanOrEqual(map.width + 0.5)
     // Fit sits over the map, a full-size target in view.
-    await expectTarget(buttonNamed(view(), 'Fit'), size)
+    await expectTarget(buttonNamed(view(), 'Fit the map in view'), size)
 
-    await openDrawer(size, 'Levels', 'panel')
+    await openDrawer(size, 'All levels', 'panel')
     const panel = region('panel')
     const layouts = [...panel.querySelectorAll<HTMLElement>('[role="radio"]')]
-    expect(layouts.map((radio) => radio.textContent?.trim())).toEqual(['Free', 'Grid', 'Row', 'Column'])
+    expect(layouts.map((radio) => radio.textContent?.trim())).toEqual([
+      'Anywhere',
+      'In a grid',
+      'In a row',
+      'In a column',
+    ])
     for (const radio of layouts) await expectTarget(radio, size)
     const rows = [...panel.querySelectorAll<HTMLElement>('ul[aria-label="Levels"] button')]
     expect(rows.length).toBeGreaterThan(1)
@@ -159,9 +170,9 @@ describe.each(SIZES)('World view at $name ($width x $height)', (size) => {
     await expectTarget(buttonNamed(panel, 'Add level'), size)
     rows[0]?.click()
     await arrived()
-    await closeDrawer(size, 'Levels', 'panel')
+    await closeDrawer(size, 'All levels', 'panel')
 
-    await openDrawer(size, 'Inspector', 'inspector')
+    await openDrawer(size, 'Details', 'inspector')
     if (size.mode !== 'wide') {
       // With the inspector open the levels fit the part of the map it leaves uncovered, and Fit is still a full-size
       // target in view (review of #328; plan ED2D.8b decision 2).
@@ -178,8 +189,8 @@ describe.each(SIZES)('World view at $name ($width x $height)', (size) => {
       expect(levelsRight).toBeLessThanOrEqual(area.x + area.w + 0.5)
       expect(levelsTop).toBeGreaterThanOrEqual(area.y - 0.5)
       expect(levelsBottom).toBeLessThanOrEqual(area.y + area.h + 0.5)
-      await expectTarget(buttonNamed(view(), 'Fit'), size)
-      const fit = buttonNamed(view(), 'Fit').getBoundingClientRect()
+      await expectTarget(buttonNamed(view(), 'Fit the map in view'), size)
+      const fit = buttonNamed(view(), 'Fit the map in view').getBoundingClientRect()
       const cover = region('inspector').getBoundingClientRect()
       const hidden =
         fit.left < cover.right && fit.right > cover.left && fit.top < cover.bottom && fit.bottom > cover.top

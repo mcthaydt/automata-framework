@@ -220,7 +220,7 @@ export function createPatchedDocument<S, M>(options: PatchedDocumentOptions<S, M
       const read = codec.parse(recovery.payload)
       if (!read.ok) return { ok: false, issues: read.issues }
       const model = read.value
-      history.apply('Restore autosave', () => options.withModel(model))
+      history.apply('Keep changes from last time', () => options.withModel(model))
       return { ok: true, baseChanged: recovery.baseChanged }
     },
     discardRecovery: () => discardRecovery(workspace.journal, path),

@@ -48,7 +48,7 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | `typescript` | 7.0.2 | 2026-10-01 | Ruken holds 6.0.3 only for svelte-check, typescript-eslint, SvelteKit and Prisma, none of which AF uses (ship spec §3.1) |
 | `vite` | 8.3.3 | 2026-10-23 | Same as Ruken: builds the placeholder page (and later every AF game) |
 | `vitest` | 5.0.3 | 2026-10-01 | Same as Ruken: unit and parity test runner |
-| `yaml` | 2.9.1 | 2026-10-11 | Same as Ruken: parse workflow YAML in ship's workflow tests |
+| `yaml` | 2.9.1 | 2026-10-11 | Same as Ruken: parse the workflows in repo-hygiene's workflow invariants |
 | `yauzl` | 3.4.0 | 2026-10-11 | Same as Ruken: a runtime dependency of the vendored `@ruken/cli`, which `@mcthaydt/automata-tools` ships in `dist/vendor/ruken-cli/` |
 | `yazl` | 3.3.1 | 2026-10-11 | Same as Ruken: the same, for `@ruken/cli` inside `@mcthaydt/automata-tools` |
 | `zod` | 4.6.6 | 2026-10-01 | Same as Ruken: the one schema language (ADR 0003) |

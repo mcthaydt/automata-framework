@@ -114,7 +114,7 @@ async function finishTyping(commit: boolean, refocus: boolean): Promise<void> {
   if (!typing) return
   typing = false
   if (commit) {
-    const parsed = parseNumberText(draft, { min, max, integer })
+    const parsed = parseNumberText(draft, { min, max, integer, unit })
     const refusal = parsed.ok ? validate?.(parsed.value) : parsed.message
     if (refusal !== undefined) message = refusal
     else if (parsed.ok && parsed.value !== value) {
@@ -270,8 +270,9 @@ $effect(() => {
     color: var(--ink);
     font: var(--text-body-13);
   }
+  /* An inspector that reads label-left sets `--label-flex`, so every name takes one column beside its control. */
   .label {
-    flex: 0 1 auto;
+    flex: var(--label-flex, 0 1 auto);
     margin-right: var(--space-2);
     min-width: 0;
     min-height: var(--size-hit);

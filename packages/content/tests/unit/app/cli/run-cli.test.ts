@@ -75,7 +75,7 @@ async function cli(root: string, ...argv: string[]): Promise<{ code: number; out
 const generated = (root: string, file = 'content.json'): string => join(root, 'content/generated', file)
 
 // 90 s budgets: the shared af-linux runner is slow under load (2026-10-16: this package's render-types file took
-// 70.7 s). The root test:unit default is the same 90 s; packages/ship's workflows test pins both.
+// 70.7 s). The root test:unit default is the same 90 s.
 describe('runCli', () => {
   it('check exits 0 and writes nothing', async () => {
     const root = project()

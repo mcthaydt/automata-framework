@@ -423,7 +423,7 @@ describe('the document controller', () => {
       const state = stateOf(controller)
       expect(state.recovery).toBeUndefined()
       expect(state.document.history.state).toEqual({ text: 'from the autosave' })
-      expect(state).toMatchObject({ save: 'dirty', canUndo: true, undoLabel: 'Restore autosave' })
+      expect(state).toMatchObject({ save: 'dirty', canUndo: true, undoLabel: 'Keep changes from last time' })
     })
 
     it('Restore of an autosave that no longer parses keeps the file as saved, keeps the offer and says why', async () => {

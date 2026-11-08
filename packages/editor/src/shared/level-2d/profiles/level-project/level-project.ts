@@ -56,13 +56,12 @@ function fileStem(name: string): string {
   return stem === '' ? 'project' : stem
 }
 
+// The four views of the switcher, in plain words. Problems and Share are in the top bar, not views.
 const views: ViewDef[] = [
   { id: 'level', label: 'Level', component: 'LevelView' },
-  { id: 'world', label: 'World', component: 'WorldView' },
-  { id: 'tilesets', label: 'Tilesets', component: 'TilesetsView' },
-  { id: 'entities', label: 'Entities', component: 'EntitiesView' },
-  { id: 'checks', label: 'Checks', component: 'ChecksView' },
-  { id: 'export', label: 'Export', component: 'ExportView' },
+  { id: 'world', label: 'Map', component: 'WorldView' },
+  { id: 'tilesets', label: 'Tiles', component: 'TilesetsView' },
+  { id: 'entities', label: 'Characters', component: 'EntitiesView' },
 ]
 
 const exports: ExportTarget<Project>[] = [
@@ -87,6 +86,7 @@ export const levelProject: Profile<Project> = {
   choices: (project, diagnostic) => refChoices(project, diagnostic),
   choose: (project, diagnostic, choice) => chooseTarget(project, diagnostic, choice.value),
   summary: summarizeProject,
+  rename: (project, name) => ({ ...project, name }),
   // The first level is the one a template starts on, so a new project's card shows what its Level view opens on.
   preview: (project) => {
     const [first] = project.levels

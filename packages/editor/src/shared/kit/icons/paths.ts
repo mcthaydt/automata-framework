@@ -1,5 +1,5 @@
 /*
- * The editor's icons: 24 drawings from Lucide (lucide-static 0.460.0), copied as the shapes inside each
+ * The editor's icons: 32 drawings from Lucide (lucide-static 0.460.0), copied as the shapes inside each
  * 24 x 24 svg (tag and attributes), so the kit needs no icon dependency. Icon.svelte draws each with a 2 px round stroke in
  * currentColor. To add one, copy the elements inside the <svg> of icons/<lucide-name>.svg into a new entry
  * here as [tag, attributes] pairs, under the name the editor uses for it, and record it in docs/provenance/sources.md.
@@ -154,10 +154,65 @@ export const ICONS = {
     ['path', { d: 'M12 9v4' }],
     ['path', { d: 'M12 17h.01' }],
   ],
+  'chevron-down': [['path', { d: 'm6 9 6 6 6-6' }]],
+  // maximize
+  fit: [
+    ['path', { d: 'M8 3H5a2 2 0 0 0-2 2v3' }],
+    ['path', { d: 'M21 8V5a2 2 0 0 0-2-2h-3' }],
+    ['path', { d: 'M3 16v3a2 2 0 0 0 2 2h3' }],
+    ['path', { d: 'M16 21h3a2 2 0 0 0 2-2v-3' }],
+  ],
+  // panel-right
+  inspector: [
+    ['rect', { width: '18', height: '18', x: '3', y: '3', rx: '2' }],
+    ['path', { d: 'M15 3v18' }],
+  ],
+  list: [
+    ['path', { d: 'M3 12h.01' }],
+    ['path', { d: 'M3 18h.01' }],
+    ['path', { d: 'M3 6h.01' }],
+    ['path', { d: 'M8 12h13' }],
+    ['path', { d: 'M8 18h13' }],
+    ['path', { d: 'M8 6h13' }],
+  ],
   // x
   close: [
     ['path', { d: 'M18 6 6 18' }],
     ['path', { d: 'm6 6 12 12' }],
+  ],
+  // house: the suite's Home
+  home: [
+    ['path', { d: 'M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8' }],
+    [
+      'path',
+      {
+        d: 'M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+      },
+    ],
+  ],
+  // sliders-horizontal: the Tuner
+  sliders: [
+    ['line', { x1: '21', x2: '14', y1: '4', y2: '4' }],
+    ['line', { x1: '10', x2: '3', y1: '4', y2: '4' }],
+    ['line', { x1: '21', x2: '12', y1: '12', y2: '12' }],
+    ['line', { x1: '8', x2: '3', y1: '12', y2: '12' }],
+    ['line', { x1: '21', x2: '16', y1: '20', y2: '20' }],
+    ['line', { x1: '12', x2: '3', y1: '20', y2: '20' }],
+    ['line', { x1: '14', x2: '14', y1: '2', y2: '6' }],
+    ['line', { x1: '8', x2: '8', y1: '10', y2: '14' }],
+    ['line', { x1: '16', x2: '16', y1: '18', y2: '22' }],
+  ],
+  // grid-2x2: the level editors
+  grid: [
+    ['rect', { width: '18', height: '18', x: '3', y: '3', rx: '2' }],
+    ['path', { d: 'M3 12h18' }],
+    ['path', { d: 'M12 3v18' }],
+  ],
+  // file-check-2: Review
+  review: [
+    ['path', { d: 'M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4' }],
+    ['path', { d: 'M14 2v4a2 2 0 0 0 2 2h4' }],
+    ['path', { d: 'm3 15 2 2 4-4' }],
   ],
 } as const
 

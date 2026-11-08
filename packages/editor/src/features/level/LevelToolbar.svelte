@@ -1,11 +1,19 @@
 <!--
-  The Level view's toolbar: the tool in plain words, the
-  brush size while a brush or the eraser is out, Fit (the whole level in view), below `wide` Layers and Inspector,
-  which open the panel and the inspector, and Levels where the dock is a sheet. One row over
-  the canvas that scrolls sideways on a narrow screen rather than shrinking a control under 44 px.
+  The Level view's tools: one pill floating over the canvas (spec 11.4), centred at its top from an iPad up and at its
+  foot on a phone as a dock under the thumb (`at`), never running off the edge (G5). It holds, in the compact layout,
+  Layers (which opens the layers and the palette as a sheet), then the six tools as icons, each named in plain words (its tooltip and its
+  accessible name: Select, Brush, Rectangle, Fill, Eraser, Copy a tile), and while a brush or the eraser is out the
+  brush size, a 44 px button showing the number that opens a popover with the stepper. Fit and Details are the
+  canvas's own corner controls (`LevelStage`), so the pill stays one row on a 390 px phone. The pill itself (where it
+  floats, how it scrolls when a narrow canvas cannot hold it) is the kit's `StagePill`, shared with Map, Tiles and
+  Characters.
 -->
 <script lang="ts">
+import type { IconName } from '../../shared/kit/icons/paths'
+import StagePill from '../../shared/kit/shell/StagePill.svelte'
 import Button from '../../shared/kit/widgets/Button.svelte'
+import IconButton from '../../shared/kit/widgets/IconButton.svelte'
+import Popup from '../../shared/kit/widgets/Popup.svelte'
 import Segmented from '../../shared/kit/widgets/Segmented.svelte'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'
 import type { LevelTool } from '../../shared/level-2d/editor/level-editor-api'
@@ -13,21 +21,14 @@ import type { LevelTool } from '../../shared/level-2d/editor/level-editor-api'
 interface Props {
   tool: LevelTool
   brushSize: number
-  /** Below `wide` the panel is a drawer or a sheet, opened from here. */
+  /** In the compact layout the panel is a sheet, opened from here. */
   showLayers: boolean
   layersOpen: boolean
   ontool: (tool: LevelTool) => void
   onbrushsize: (size: number) => void
-  onfit: () => void
   onlayers: () => void
-  /** Below `wide` the inspector is a drawer or a sheet, opened from here. */
-  showInspector: boolean
-  inspectorOpen: boolean
-  oninspector: () => void
-  /** Where the dock is a sheet (below `wide`, and the short `wide` height), it opens from here (decision 4). */
-  showLevels: boolean
-  levelsOpen: boolean
-  onlevels: () => void
+  /** Where the pill floats: the canvas's top or foot, or a dock across the foot (the compact layout). */
+  at?: 'top' | 'bottom' | 'dock'
 }
 
 const {
@@ -37,84 +38,70 @@ const {
   layersOpen,
   ontool,
   onbrushsize,
-  onfit,
   onlayers,
-  showInspector,
-  inspectorOpen,
-  oninspector,
-  showLevels,
-  levelsOpen,
-  onlevels,
+  at = 'bottom',
 }: Props = $props()
 
-const TOOLS: readonly { id: LevelTool; label: string }[] = [
-  { id: 'select', label: 'Select' },
-  { id: 'brush', label: 'Brush' },
-  { id: 'rectangle', label: 'Rectangle' },
-  { id: 'fill', label: 'Fill' },
-  { id: 'eraser', label: 'Eraser' },
-  { id: 'picker', label: 'Pick' },
+const TOOLS: readonly { id: LevelTool; label: string; icon: IconName }[] = [
+  { id: 'select', label: 'Select', icon: 'select' },
+  { id: 'brush', label: 'Brush', icon: 'brush' },
+  { id: 'rectangle', label: 'Rectangle', icon: 'rectangle' },
+  { id: 'fill', label: 'Fill', icon: 'fill' },
+  { id: 'eraser', label: 'Eraser', icon: 'eraser' },
+  { id: 'picker', label: 'Copy a tile', icon: 'eyedropper' },
 ]
 const sized = $derived(tool === 'brush' || tool === 'eraser')
 const isTool = (id: string): id is LevelTool => TOOLS.some((each) => each.id === id)
+
+/** The size popover: opened from the size button, placed against it. */
+let sizing = $state(false)
+let sizeButton = $state<HTMLElement>()
 </script>
 
-<div class="toolbar" data-testid="level-toolbar" data-scroll-region="both">
+<StagePill label="Tools" {at} testId="level-toolbar">
   {#if showLayers}
-    <Button aria-expanded={layersOpen} onclick={onlayers}>Layers</Button>
+    <IconButton icon="layers" label="Layers" aria-expanded={layersOpen} onclick={onlayers} />
   {/if}
-  <div class="tools">
-    <Segmented
-      label="Tool"
-      options={TOOLS}
-      value={tool}
-      onedit={(event) => {
-        if (isTool(event.value)) ontool(event.value)
-      }}
-    />
-  </div>
+  <Segmented
+    label="Tool"
+    options={TOOLS}
+    value={tool}
+    onedit={(event) => {
+      if (isTool(event.value)) ontool(event.value)
+    }}
+  />
   {#if sized}
-    <div class="size">
-      <Stepper
-      label="Brush size"
-      value={brushSize}
-      min={1}
-      max={8}
-      integer
-      onedit={(event) => {
-        if (event.phase === 'set' || event.phase === 'commit') onbrushsize(event.value)
-      }}
-      />
-    </div>
+    <span bind:this={sizeButton}>
+      <Button
+        aria-label={`Brush size ${brushSize}`}
+        title="Brush size"
+        aria-expanded={sizing}
+        aria-haspopup="dialog"
+        onclick={() => (sizing = !sizing)}>{brushSize}</Button
+      >
+    </span>
+    <Popup bind:open={sizing} anchor={sizeButton} label="Brush size">
+      <div class="size">
+        <Stepper
+          label="Brush size"
+          value={brushSize}
+          min={1}
+          max={8}
+          integer
+          onedit={(event) => {
+            if (event.phase === 'set' || event.phase === 'commit') onbrushsize(event.value)
+          }}
+        />
+      </div>
+    </Popup>
   {/if}
-  <Button onclick={onfit}>Fit</Button>
-  {#if showLevels}
-    <Button aria-expanded={levelsOpen} onclick={onlevels}>Levels</Button>
-  {/if}
-  {#if showInspector}
-    <Button aria-expanded={inspectorOpen} onclick={oninspector}>Inspector</Button>
-  {/if}
-</div>
+</StagePill>
 
 <style>
-  .toolbar {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    /* The bottom edge keeps 16 px: macOS lays its overlay scroll bar (about 15 px, hit-tested in Safari) along it once
-       the row scrolls sideways, and a tool under it would lose its taps there (#272, as #265 for region bodies). */
-    padding: var(--space-2) var(--space-2) var(--space-4);
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    border-bottom: 1px solid var(--color-border-default);
-    background: var(--color-bg-surface);
+  .size {
+    padding: var(--space-3);
   }
-  /* Each item keeps its natural width, so the row scrolls instead of squeezing a label under its neighbour. */
-  .toolbar > :global(*) {
-    flex: 0 0 auto;
-    width: max-content;
-  }
-  /* The kit's stepper wraps its buttons under its label when squeezed; in a row that scrolls it never needs to. */
+  /* The kit's stepper wraps its buttons under its label when squeezed; in the popover it never needs to. */
   .size :global(.stepper) {
     flex-wrap: nowrap;
   }

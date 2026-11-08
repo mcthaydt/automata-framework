@@ -77,29 +77,41 @@ export interface ServedWorkspaceEnv {
 
 const TOKEN_KEY = 'automata-editor-token'
 
+/** The checkout `automata editor` serves, and what its ping says about the game. */
+export interface ServedStore {
+  readonly store: ProjectStore
+  /** The game's name in words ("Emberwick"), from a server that sends one. */
+  readonly game: string | undefined
+  /** The game's dev page (`automata editor --game-url`), which the Tuner shows beside its settings. */
+  readonly gameUrl: string | undefined
+}
+
 /**
  * The checkout of an editor served by `automata editor`, over HTTP: the page asks its own origin whether it is an editor
  * server, and answers `undefined` when it is not (a static host, a dev server). A token given in the address is kept
- * for the tab's session, so a reload needs none. The ping's `game` (the game's name in words) comes back beside the store. The 2D editor and the suite both open the checkout through this.
+ * for the tab's session, so a reload needs none. The ping's `game` (the game's name in words) and `gameUrl` (its dev page) come back beside the store. The 2D editor and the suite both open the checkout through this.
  */
 export async function openServedStore(
   env: Pick<ServedWorkspaceEnv, 'origin' | 'search' | 'fetch' | 'sessionStorage'>,
-): Promise<{ readonly store: ProjectStore; readonly game: string | undefined } | undefined> {
+): Promise<ServedStore | undefined> {
   const fetchFn = env.fetch ?? ((...args: Parameters<typeof fetch>) => fetch(...args))
   let game: string | undefined
+  let gameUrl: string | undefined
   try {
     const ping = await fetchFn(`${env.origin}/api/ping`)
     const body: unknown = await ping.json()
     if (typeof body !== 'object' || body === null || !('automata' in body) || body.automata !== 'editor')
       return undefined
     if ('game' in body && typeof body.game === 'string' && body.game !== '') game = body.game
+    if ('gameUrl' in body && typeof body.gameUrl === 'string' && URL.canParse(body.gameUrl))
+      gameUrl = body.gameUrl
   } catch {
     return undefined
   }
   const given = new URLSearchParams(env.search).get('token') ?? undefined
   if (given !== undefined) env.sessionStorage?.setItem(TOKEN_KEY, given)
   const token = given ?? env.sessionStorage?.getItem(TOKEN_KEY) ?? undefined
-  return { store: createHttpStore({ base: env.origin, token, fetch: fetchFn }), game }
+  return { store: createHttpStore({ base: env.origin, token, fetch: fetchFn }), game, gameUrl }
 }
 
 /**

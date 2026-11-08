@@ -24,8 +24,8 @@ const levelFields = $derived(levelFieldRows(project))
 <div class="panel" data-testid="entities-panel">
   <section aria-labelledby="definitions-heading">
     <div class="head">
-      <h2 id="definitions-heading">Definitions</h2>
-      <Button aria-label="Add entity" onclick={() => session.addDefinition()}>+</Button>
+      <h2 id="definitions-heading">Characters</h2>
+      <Button aria-label="Add character" onclick={() => session.addDefinition()}>+</Button>
     </div>
     <div class="choices" role="radiogroup" aria-labelledby="definitions-heading">
       {#each definitionRows(project) as row (row.id)}
@@ -38,21 +38,21 @@ const levelFields = $derived(levelFieldRows(project))
         >
           <span class="swatch" style:--swatch={row.color ?? 'var(--color-text-dim)'} aria-hidden="true"></span>
           <span class="text">
-            <span class="name">{row.id}</span>
-            <span class="sub">{row.summary}</span>
+            <span class="name">{row.label ?? row.id}</span>
+            {#if row.summary !== ''}<span class="sub">{row.summary}</span>{/if}
           </span>
         </button>
       {:else}
-        <p class="empty">No entity definitions yet.</p>
+        <p class="empty">No characters yet. Add one to place it in your levels.</p>
       {/each}
     </div>
   </section>
 
   <section aria-labelledby="level-fields-heading">
     <div class="head">
-      <h2 id="level-fields-heading">Level fields <span class="note">every level</span></h2>
+      <h2 id="level-fields-heading">Settings for every level</h2>
       <Button
-        aria-label="Add level field"
+        aria-label="Add a level setting"
         onclick={() => {
           session.select({ owner: 'level' })
           session.addField()
@@ -66,9 +66,10 @@ const levelFields = $derived(levelFieldRows(project))
       onclick={() => session.select({ owner: 'level' })}
     >
       <span class="text">
-        <span class="name">Level fields</span>
+        <!-- The settings by their names, as the inspector shows them; the name in code only where there is none. -->
+        <span class="name">Every level</span>
         <span class="sub">
-          {levelFields.length === 0 ? 'none yet' : levelFields.map((row) => row.id).join(' · ')}
+          {levelFields.length === 0 ? 'None yet' : levelFields.map((row) => row.label ?? row.id).join(', ')}
         </span>
       </span>
     </button>
@@ -93,15 +94,14 @@ const levelFields = $derived(levelFieldRows(project))
     justify-content: space-between;
     gap: var(--space-2);
   }
+  /* A section label in small capitals, as the approved mockup draws it (the Level view's Layers). */
   h2 {
     margin: 0;
     padding: var(--space-2) var(--space-2) 0;
-    color: var(--color-text-dim);
-    font: var(--text-label-12);
-  }
-  .note {
-    color: var(--color-text-faint);
-    font: var(--text-mono-11);
+    color: var(--muted);
+    font: var(--text-eyebrow-11);
+    letter-spacing: var(--text-eyebrow-11-tracking);
+    text-transform: uppercase;
   }
   .empty {
     margin: 0;

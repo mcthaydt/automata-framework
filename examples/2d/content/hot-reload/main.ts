@@ -68,40 +68,43 @@ root.append(problems)
 showContent(contentHash)
 
 /**
- * In dev, follows content/ as it is saved. The plugin recompiles on each save and sends `automata:content`
- * once the new content is ready, or `automata:content-error` with the compiler's messages. The browser has
- * already loaded `virtual:automata/content` once, so reading it again takes a new URL: the hash makes one.
+ * In dev, follows content/ as it is saved. The plugin recompiles on each save and sends an HMR update for
+ * `virtual:automata/content` once the new content is ready, or `automata:content-error` with the compiler's
+ * messages. This module accepts the update, so the page is not reloaded: Vite hands over the new module.
  */
 function followSaves(): void {
-  const hot = import.meta.hot
-  if (hot === undefined) return
-  // Two quick saves start two imports, and the older one can finish last: only the newest save's room plays.
+  // Vite finds what a module accepts by reading `import.meta.hot.accept(...)` as written, so it is never aliased.
+  if (import.meta.hot === undefined) return
+  // Two quick saves bring two modules, and the older one's restart can finish last: only the newest room plays.
   let newest = ''
-  hot.on('automata:content', async ({ hash }: { hash: string }) => {
-    newest = hash
-    const url = `/@id/__x00__virtual:automata/content?v=${hash}`
+  import.meta.hot.accept('virtual:automata/content', async (fresh) => {
+    if (fresh === undefined) return
+    // Vite hands over the module untyped; it is the same module this file imports at the top.
+    const next: Pick<typeof import('virtual:automata/content'), 'content' | 'contentHash'> = {
+      content: fresh.content,
+      contentHash: fresh.contentHash,
+    }
+    newest = next.contentHash
     try {
-      const fresh: typeof import('virtual:automata/content') = await import(/* @vite-ignore */ url)
-      if (hash !== newest) return
       // Check the room before the old game stops, so a room the game cannot play leaves the last good one running.
-      const next = gameIn(fresh)
+      const game = gameIn(next)
       // A new room is a new world: the old game shuts down and the new one starts over in it.
       await handle.shutdown()
-      if (hash !== newest) return
-      handle = startGame(next)
+      if (next.contentHash !== newest) return
+      handle = startGame(game)
       // Shutting down empties the root, the panel with it.
       root.append(problems)
-      showContent(fresh.contentHash)
+      showContent(next.contentHash)
     } catch (error) {
-      // The compiler checked the room, so this is the page failing (a lost dev server, a renderer that could not
-      // start): the last good room plays on, and the panel says what went wrong.
+      // The compiler checked the room, so this is the page failing (a renderer that could not start): the last
+      // good room plays on, and the panel says what went wrong.
       showProblems(
         [error instanceof Error ? error.message : String(error)],
         "The new room couldn't start. Still playing the last good room.",
       )
     }
   })
-  hot.on('automata:content-error', ({ diagnostics }: { diagnostics: readonly string[] }) =>
+  import.meta.hot.on('automata:content-error', ({ diagnostics }: { diagnostics: readonly string[] }) =>
     showProblems(diagnostics),
   )
 }

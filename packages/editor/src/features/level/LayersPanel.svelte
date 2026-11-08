@@ -1,9 +1,12 @@
 <!--
-  The layer list: the level's layers front to
-  back, each with its kind in plain words, a Show or Hide button and a Lock or Unlock button. Choosing a row makes it the
-  layer the tools draw on. The list is a `listbox` with one tab stop; arrows move the choice. Every button is 44 px.
+  The layer list: the level's layers front to back, each a row with its colour, its name over what it holds in plain
+  words ("Characters and items", "Walls and floors"; left out when the name already says it), and two icon toggles, the lock (Lock or Unlock) then the eye
+  (Hide or Show), each named for what a press does; the lock comes first so every row's eye sits in the same place.
+  Choosing a row makes it the layer the tools draw on. The list is a `listbox` with one tab stop; arrows move the
+  choice. Every button is the hit size (32 px with a mouse, 44 with a finger).
 -->
 <script lang="ts">
+import IconButton from '../../shared/kit/widgets/IconButton.svelte'
 import type { LayerDef } from '../../shared/level-2d/model/project-types'
 
 interface Props {
@@ -18,12 +21,26 @@ interface Props {
 
 const { layers, current, hidden, locked, onselect, onhidden, onlocked }: Props = $props()
 
+/** What a layer holds, in a player's words (spec 11.5). */
 const KIND_WORDS: Readonly<Record<LayerDef['kind'], string>> = {
   tiles: 'Tiles',
-  intgrid: 'Grid values',
-  auto: 'Auto tiles',
-  entities: 'Things',
-  objects: 'Objects',
+  intgrid: 'Walls and floors',
+  auto: 'Tiles that place themselves',
+  entities: 'Characters and items',
+  objects: 'Shapes',
+}
+
+/** True when the name already says what the layer holds ("Characters" over "Characters and items"): said once. */
+const saysItsKind = (label: string, kind: LayerDef['kind']): boolean =>
+  KIND_WORDS[kind].toLowerCase().startsWith(label.trim().toLowerCase())
+
+/** Each kind's colour, the same token the canvas draws that layer's outlines in. */
+const KIND_COLOUR: Readonly<Record<LayerDef['kind'], string>> = {
+  tiles: 'var(--color-layer-tiles)',
+  intgrid: 'var(--color-layer-intgrid)',
+  auto: 'var(--color-layer-sky)',
+  entities: 'var(--color-layer-entities)',
+  objects: 'var(--color-layer-city)',
 }
 
 function step(event: KeyboardEvent): void {
@@ -56,25 +73,28 @@ function step(event: KeyboardEvent): void {
         class:hidden={isHidden}
       >
         <button type="button" class="name" tabindex="-1" onclick={() => onselect(layer.id)}>
+          <span class="swatch" style:background={KIND_COLOUR[layer.kind]} aria-hidden="true"></span>
           <span class="label">{layer.label}</span>
-          <span class="kind">{KIND_WORDS[layer.kind]}</span>
+          {#if !saysItsKind(layer.label, layer.kind)}<span class="kind">{KIND_WORDS[layer.kind]}</span>{/if}
         </button>
-        <button
-          type="button"
-          class="toggle"
-          tabindex="-1"
-          aria-pressed={isHidden}
-          aria-label={`${isHidden ? 'Show' : 'Hide'} ${layer.label}`}
-          onclick={() => onhidden(layer.id, !isHidden)}>{isHidden ? 'Show' : 'Hide'}</button
-        >
-        <button
-          type="button"
-          class="toggle"
-          tabindex="-1"
-          aria-pressed={isLocked}
-          aria-label={`${isLocked ? 'Unlock' : 'Lock'} ${layer.label}`}
-          onclick={() => onlocked(layer.id, !isLocked)}>{isLocked ? 'Unlock' : 'Lock'}</button
-        >
+        <span class="toggle" data-on={isLocked}>
+          <IconButton
+            icon={isLocked ? 'lock' : 'unlock'}
+            label={`${isLocked ? 'Unlock' : 'Lock'} ${layer.label}`}
+            pressed={isLocked}
+            tabindex={-1}
+            onclick={() => onlocked(layer.id, !isLocked)}
+          />
+        </span>
+        <span class="toggle" data-on={isHidden}>
+          <IconButton
+            icon={isHidden ? 'eye-off' : 'eye'}
+            label={`${isHidden ? 'Show' : 'Hide'} ${layer.label}`}
+            pressed={isHidden}
+            tabindex={-1}
+            onclick={() => onhidden(layer.id, !isHidden)}
+          />
+        </span>
       </li>
     {/each}
   </ul>
@@ -86,10 +106,14 @@ function step(event: KeyboardEvent): void {
     gap: var(--space-2);
     padding: var(--space-3);
   }
+  /* A section label in small capitals, as the approved mockup draws it. */
   h2 {
     margin: 0;
-    color: var(--color-text-dim);
-    font: var(--text-label-12);
+    padding: 0 var(--space-2);
+    color: var(--muted);
+    font: var(--text-eyebrow-11);
+    letter-spacing: var(--text-eyebrow-11-tracking);
+    text-transform: uppercase;
   }
   ul {
     display: grid;
@@ -117,7 +141,7 @@ function step(event: KeyboardEvent): void {
     color: var(--color-text-faint);
   }
   button {
-    min-height: 44px;
+    min-height: var(--size-hit);
     border: 0;
     border-radius: var(--edge-sm);
     background: transparent;
@@ -127,10 +151,19 @@ function step(event: KeyboardEvent): void {
   }
   .name {
     display: grid;
+    grid-template-columns: 12px minmax(0, 1fr);
+    column-gap: var(--space-2);
+    align-items: center;
     flex: 1 1 auto;
     min-width: 0;
     padding: 0 var(--space-2);
     text-align: start;
+  }
+  .swatch {
+    grid-row: span 2;
+    width: 12px;
+    height: 12px;
+    border-radius: var(--edge-sm);
   }
   .label,
   .kind {
@@ -143,10 +176,18 @@ function step(event: KeyboardEvent): void {
     font: var(--text-label-12);
   }
   .toggle {
-    flex: 0 0 auto;
-    min-width: 56px;
-    padding: 0 var(--space-2);
-    background: var(--color-bg-raised);
-    font: var(--text-label-12);
+    display: contents;
+  }
+  /* With a mouse the lock and the eye show on the row under the pointer, on the chosen row's focus, and whenever
+     they are on (a locked or hidden layer), so a quiet list says only what is unusual. A finger has no hover: they
+     always show there. */
+  @media (hover: hover) and (pointer: fine) {
+    .toggle[data-on='false'] :global(button) {
+      opacity: 0;
+    }
+    li:hover .toggle :global(button),
+    li:focus-within .toggle :global(button) {
+      opacity: 1;
+    }
   }
 </style>

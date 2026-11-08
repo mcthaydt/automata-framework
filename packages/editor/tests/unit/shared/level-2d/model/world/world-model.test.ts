@@ -6,6 +6,7 @@ import {
   dragPosition,
   fitWorld,
   levelAt,
+  levelsOnScreen,
   linksInto,
   newLevelInput,
   toWorld,
@@ -139,5 +140,29 @@ describe('uncoveredArea (plan ED2D.8b decision 2)', () => {
   it('ignores a cover that misses the map, and never goes below nothing', () => {
     expect(uncoveredArea(map, [{ x: 900, y: 0, w: 100, h: 100 }])).toEqual({ x: 0, y: 0, w: 800, h: 1000 })
     expect(uncoveredArea(map, [{ x: -10, y: 0, w: 900, h: 2000 }]).w).toBe(0)
+  })
+})
+
+describe('levelsOnScreen (where the layout checks find the levels)', () => {
+  const rect = (x: number, y: number) => ({
+    id: `${x}`,
+    name: '',
+    x,
+    y,
+    w: 10,
+    h: 20,
+    depth: 0,
+    selected: false,
+  })
+
+  it("gives the levels' outer edges on screen, through the camera", () => {
+    expect(levelsOnScreen([rect(0, 0), rect(30, 40)], { x: 5, y: 7, scale: 2 })).toEqual({
+      across: '5,85',
+      down: '7,127',
+    })
+  })
+
+  it('gives nothing for an empty world', () => {
+    expect(levelsOnScreen([], { x: 0, y: 0, scale: 1 })).toBeUndefined()
   })
 })

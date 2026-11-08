@@ -34,7 +34,7 @@ const count = (each: RefTargetGroup): string =>
 
 <Dialog bind:open title={`Choose a target for ${name}`}>
   {#if targets.length === 0}
-    <p class="empty">Nothing in the project can be its target.</p>
+    <p class="empty">Nothing in this game can be its target.</p>
   {:else if level === undefined}
     <ul class="choices" data-scroll-region aria-label="Levels">
       {#each targets as each (each.id)}
@@ -103,7 +103,7 @@ const count = (each: RefTargetGroup): string =>
     gap: var(--space-2);
     box-sizing: border-box;
     width: 100%;
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--line);
     border-radius: var(--edge-sm);

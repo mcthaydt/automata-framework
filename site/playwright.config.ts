@@ -1,9 +1,12 @@
 import { defineConfig, devices } from '@playwright/test'
+import { portsFor } from '../packages/tools/src/shared/ship/ports/ports-for.ts'
 
 // QB.3 browser gates. They run against the prerendered build (`pnpm build` first) and a folder of planted fixtures,
-// each on its own port. 4650–4659 are this suite's ports; override them when another checkout uses them.
-export const SITE_PORT = Number(process.env.QB_SITE_PORT ?? 4650)
-export const FIXTURE_PORT = Number(process.env.QB_FIXTURE_PORT ?? 4651)
+// each on its own port, 50 to 59 above the checkout's server port (portsFor, so AF_RUNNER_PORT_OFFSET moves them with
+// the runner copy); override them when another checkout uses them.
+const ports = portsFor(new URL('..', import.meta.url).pathname, process.env)
+export const SITE_PORT = Number(process.env.QB_SITE_PORT ?? ports.server + 50)
+export const FIXTURE_PORT = Number(process.env.QB_FIXTURE_PORT ?? ports.server + 51)
 
 export default defineConfig({
   testDir: 'tests/e2e',

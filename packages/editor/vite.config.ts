@@ -8,6 +8,8 @@ import { defineConfig } from 'vite'
 // A page is written out as `index.html`, the name every served editor has. Nothing else is set here: a client build
 // already resolves modules under the `browser` condition, and a Node test project that read it would load the browser
 // build of the code parser. The tests are configured in `vitest.config.ts`.
+// The 2D editor names its files relative to its page (`base: './'`), so the one build runs at any address:
+// at the root when `automata editor` serves it, and at /editor/app/ on the site's "Try the editor".
 export default defineConfig(({ mode }) =>
   mode === 'suite'
     ? {
@@ -25,5 +27,5 @@ export default defineConfig(({ mode }) =>
         ],
         build: { outDir: 'dist/suite', emptyOutDir: true, rollupOptions: { input: 'suite.html' } },
       }
-    : { plugins: [svelte()], build: { outDir: 'dist/2d', emptyOutDir: true } },
+    : { plugins: [svelte()], base: './', build: { outDir: 'dist/2d', emptyOutDir: true } },
 )

@@ -294,7 +294,7 @@ describe('the autosave and Restore', () => {
     const again = await open(afSectorProfile, PATH, first.clock, first.workspace)
     if (recovery === undefined) throw new Error('no recovery')
     expect(again.document.restore(recovery)).toEqual({ ok: true, baseChanged: false })
-    expect(again.editor.history.undoLabel).toBe('Restore autosave')
+    expect(again.editor.history.undoLabel).toBe('Keep changes from last time')
     expect(again.editor.level).toEqual(first.editor.level)
     expect(again.document.session.status).toBe('dirty')
     expect((await again.document.save()).status).toBe('saved')

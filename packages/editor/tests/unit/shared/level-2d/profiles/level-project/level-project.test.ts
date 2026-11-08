@@ -123,8 +123,8 @@ describe('the level-project profile', () => {
         facts: [
           { label: 'Levels', value: '2' },
           { label: 'Layers', value: '4' },
-          { label: 'Entities', value: '6 definitions' },
-          { label: 'Tilesets', value: '1 placeholder' },
+          { label: 'Characters', value: '6' },
+          { label: 'Tiles', value: '1 placeholder' },
         ],
       })
     })
@@ -135,10 +135,10 @@ describe('the level-project profile', () => {
         new Map(summaryOf(p).facts.map((fact) => [fact.label, fact.value]))
       expect(factsOf(blankTemplate.create(counterIds())).get('Levels')).toBe('1')
       const bare = { ...project, defs: { ...project.defs, entities: [], tilesets: [] } }
-      expect(factsOf(bare).get('Entities')).toBe('None')
-      expect(factsOf(bare).get('Tilesets')).toBe('None')
+      expect(factsOf(bare).get('Characters')).toBe('None')
+      expect(factsOf(bare).get('Tiles')).toBe('None')
       const one = { ...project, defs: { ...project.defs, entities: project.defs.entities.slice(0, 1) } }
-      expect(factsOf(one).get('Entities')).toBe('1 definition')
+      expect(factsOf(one).get('Characters')).toBe('1')
     })
 
     it('marks tilesets that have no image yet as placeholders', () => {
@@ -153,7 +153,7 @@ describe('the level-project profile', () => {
         },
       })
       const tilesets = (p: Project): string | undefined =>
-        new Map(summaryOf(p).facts.map((fact) => [fact.label, fact.value])).get('Tilesets')
+        new Map(summaryOf(p).facts.map((fact) => [fact.label, fact.value])).get('Tiles')
       expect(tilesets(withImage(undefined, 1))).toBe('1 placeholder')
       expect(tilesets(withImage(undefined, 3))).toBe('3 placeholders')
       expect(tilesets(withImage('assets/tiles.png', 2))).toBe('2')
@@ -192,16 +192,14 @@ describe('the level-project profile', () => {
     }
   })
 
-  it('has the rail of the spec, each view naming a component', () => {
+  it('has the four views of the switcher in plain words, each naming a component', () => {
     expect(levelProject.views.map((view) => [view.id, view.label])).toEqual([
       ['level', 'Level'],
-      ['world', 'World'],
-      ['tilesets', 'Tilesets'],
-      ['entities', 'Entities'],
-      ['checks', 'Checks'],
-      ['export', 'Export'],
+      ['world', 'Map'],
+      ['tilesets', 'Tiles'],
+      ['entities', 'Characters'],
     ])
-    expect(new Set(levelProject.views.map((view) => view.component)).size).toBe(6)
+    expect(new Set(levelProject.views.map((view) => view.component)).size).toBe(4)
   })
 
   describe('exports', () => {

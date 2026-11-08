@@ -897,9 +897,142 @@ logic that is not markup lives in the view's `*-model.ts`.
   palette under the chosen layer; layer subtitles per spec 11.5; the inspector opens on selection and docks from iPad
   landscape up; the level strip is a level picker in the top bar.
 - [ ] **Step 2:** Implement. **Session break** after the tool pill and layers if needed (log what is left).
-- [ ] **Step 3:** The canvas tests' pixel expectations that read old colours: open expected, actual and diff for each;
+- **12.7, the rest of Step 1 and 2 (session 15).** *The split:* `Suite.svelte` 437 → 339 lines by responsibility:
+  `SuiteTopBar.svelte` (the game's name, where edits are saved, the pills, Undo, Redo, Ask, Publish and the editor's
+  tools; it shows only what has something to say), `SuiteHome.svelte` (the sample's note, Export and Import, the
+  cards), `SuiteAsk.svelte` (Ask's session state on its dialog and the rule that a step in the editor's history drops
+  a proposal) and `core/write-messages.ts` (what a refused write and a check finding say, pure, with a unit test).
+  `Suite.svelte` keeps the editor mounting, the history and the dialogs' state; it is over 300 lines by 39, all
+  wiring that shares the mounted editor's state, so splitting it further would only pass that state around: listed
+  for the build audit. *Publish:* the top bar's Ship is Publish and its dialog says "Publish your changes",
+  "Publishing…", "Publishing still opens a draft for review." and, with nothing open, "Nothing new to publish yet."
+  It stays hidden with no change sets (a game folder writes its files directly), so no button does nothing (E6).
+  *Home:* the title asks "What do you want to change?"; each file is named in words (`fileTitle`: `room-1.af2d.json`
+  is "Room 1", `tuning.toml` is "Tuning"), no path on Home; empty pages say "This game has nothing to edit yet." and
+  "Nothing to edit in Tuner yet." Not done: a level's own name ("Emberwick room") lives inside its file, so Home
+  would read every file to show it; the file's name in words is the essential part, and the level menu (12.3) shows
+  the levels' own names. Gates: editor unit (suite) 286 → 294 (with the new `write-messages` and `fileTitle` tests),
+  Chromium layout (suite) 121, svelte-check clean.
+- **12.3, the look begins (session 15).** The Owner approved the redesign mockups on 2026-11-06 ("Approved", relayed
+  by the coordinator): `editor-level.html` and `AUDIT.md` in the shared folder's `refactor/2026-11-06-redesign-mockups/`
+  are the look of 12.3 and every non-3D editor view. *Done:* the mockup's neutral tool palette as tokens (`--tool-bg`
+  #f7f7f8, `--tool-panel` white, `--tool-hover`, `--tool-selected`, `--tool-line`, `--tool-line-strong`, `--tool-muted`
+  and `--tool-faint`, which read at 4.5:1 on white and on the chosen row) and `src/shared/kit/tool-chrome.css`, which
+  the three editor pages import after `tokens.css` and which puts them under the names the kit already reads (`--bg`,
+  `--paper`, `--surface`, the hairlines, the grey, the selection wash), so every view takes the palette at once and
+  the website, which does not import it, keeps its field. A unit test holds the mapping, the import order and the
+  contrast. The design board shows it (neutral field, white cards, hairlines). The stage keeps `--charcoal`
+  (#16191e; the mockup's #0e1014 is close) so no canvas pixel expectation changes yet. *Next, designed:* (1) the
+  density, 32 px rows and controls on a fine pointer and 44 on touch (`--row`, `--ctl` under `(pointer: coarse)`); the
+  layout tests hold every control to 44 px in Chromium's fine pointer today, so they first learn the pointer (44 on
+  touch, 32 with a mouse), and a primary stays 48 on touch (the framework rule); (2) 12.3's structure from the mockup:
+  the top bar is Back, the level menu (the levels and New level; on compact it also switches the four views), the
+  views as quiet tabs, Undo, Redo, problems, the save state and one lime primary (Save on a game folder, Share in
+  browser storage); tools float top centre, zoom bottom; the inspector is label-left and shows the level with nothing
+  chosen; three layouts by the container (wide 1180 px and up, medium, compact at 760 px and down or under 520 px
+  high, with the tools in a dock and sheets); lock before eye on layer rows; (3) the same on Map, Tiles, Characters,
+  the Tuner, the suite page and the dialogs.
+- **12.3, density and the top bar (session 16).** *Density:* `tool-chrome.css` sets `--size-hit` and
+  `--size-primary` to 32 px under `(hover: hover) and (pointer: fine)` and back to 44 and 48 under `(any-pointer:
+  coarse)`, which comes last so a touch laptop or an iPad with a trackpad keeps finger targets; the views' 31
+  hard-coded `44px` read `--size-hit`. The framework's layout contract first learned the pointer (TDD, a new browser
+  test `targets.test.ts`): `publishConditions` takes `targets` (`Conditions.targets`, default `TOUCH_TARGETS`, 44/48),
+  `checkLayout` holds controls to them, `Targets` and `TOUCH_TARGETS` are exported (changeset, API report). The
+  editors' layout tests import `tool-chrome.css` like the pages and pass `editorTargets()` (the same media queries:
+  the touch rule once any coarse pointer is present, else 32/32); the `layout` project runs again as `layout
+  (chromium, touch)` with Playwright's `hasTouch`, the one engine whose touch emulation turns the pointer queries
+  coarse. The shell fixture's layer list doubled and its dock buttons stopped shrinking, so its tests prove the same
+  things at 32 px rows. *Top bar:* Back is an icon button (still named "Back"); with a place beside it the game's
+  name is the quiet start of a path ("Mossgate / Moss Steps"), the level menu drawn without a frame until hovered;
+  the views are quiet tabs (`Segmented look="tabs"`: grey words, the open view ink with a 2 px ink underline, the
+  same radio group); a flexible gap pushes the tools, Undo, Redo and Save right. *Layers:* the lock comes before the
+  eye, so every eye sits in the same place; with a mouse both show only on the row under the pointer, on focus, or
+  when on; Layers and Paint with are small-capital section labels. **Cut (essential features only):** the mockup's
+  zoom minus, percentage and plus; Fit stays, and pinch and the wheel zoom. Gates: editor unit (level, document,
+  widgets) 474, automata `targets` browser test 2, Chromium layout with a mouse 435 and with touch 435, the
+  Chromium journeys 26, `pnpm check`'s affected unit tests in the commit hook; WebKit, Firefox and hosted
+  CI not run. **Left for 12.3:** the save state as a status with one lime primary (Save on a game folder, Share in
+  browser storage), Problems in the top bar instead of an inspector tab, the label-left inspector showing the level
+  with nothing chosen, the three container layouts with a tool dock on compact, and Step 3.
+- **12.3, the save status, Problems, the inspector and the cabinet (session 17).** *Save:* the top bar shows where the
+  level stands as a quiet status beside Save ("Saved" with a tick, "Not saved" with an amber dot, "Saving…",
+  "Couldn't save" and "Not kept on this device" in the warning colour; `data-testid="save-state"`, `data-save`), and
+  Save is the one lime primary, which always says Save. Only trouble is a live region. **Deviation:** the mockup makes
+  Share the primary in browser storage because it assumes browser storage saves by itself; it does not (the autosave
+  is a recovery journal, not the file), so Save stays the primary there too and Share stays a quiet button beside
+  Problems. Saving browser storage by itself would change the save contract: listed for the build audit. *Problems:*
+  only in the top bar; the inspector's Problems tab, `ChecksTab` and `levelChecks` are deleted (the suite's Levels 2D
+  page loses its inspector Problems tab too; its own checks pill is 12.7's). *Inspector:* no tabs; it shows what is
+  chosen (a heading with the thing's name, its fields) and, with nothing chosen, the level (its name, size and
+  fields; "This level has no settings." per spec 11). Label-left: the inspector sets `--label-flex`,
+  `--label-columns` and `--label-control-column`, which Stepper, ColorField and FieldEditor read, so names line up
+  in a 5.5 rem column; elsewhere they stay stacked. Toggles and choice rows now show their name (they had only
+  Off/On). *Step 3:* `--tool-stage` (#0e1014) under `--charcoal` in `tool-chrome.css` (editor pages only); no canvas
+  pixel expectation read the cabinet, so the Chromium canvas suite passes unchanged (49, 6 skipped) and nothing was
+  rebaselined. Gates: editor unit 3,332, svelte-check clean, Chromium layout with a mouse and with touch (level,
+  document, problems 98 each; the full editor layout run 870 of 870 across both), canvas 49; WebKit, Firefox and hosted CI not run.
+  **Left for 12.3:** the three container layouts (wide 1180 px and up and 521 px high; compact 760 px and down or
+  under 520 px high; medium between) with the layers inline left in medium, the inspector floating over the level
+  when something is chosen, and the tools in a dock at the thumb on compact. Design: `shellModeOf` takes the layout
+  size (`geometry.current.layout`) instead of the form factor; `SIZES` in `src/testing/kit/layout-sizes.ts` changes
+  modes for `ipad-mini-landscape` and `window-900x600` (to medium) and `ipad-mini-portrait` (to compact), so the
+  layout tests' expectations move with it; HomeScreen also calls `shellModeOf`.
+- **12.3, the three layouts and the tool dock (session 18).** `shellModeOf({ width, height })` picks the layout by
+  size (compact at 760 px across and narrower or 520 px high and less, wide from 1180 px, medium between) and
+  `shellModeAt(geometry)` reads the size from before any keyboard shrank it (`layout.height + keyboardResize`), so
+  typing never changes the layout; every view and HomeScreen use it, and the document's view switcher is a menu in
+  compact. *Medium:* the panel is inline beside the canvas (`data-presentation="inline"`) and the inspector is a
+  `float`, a card at the canvas's lower right (the wide inspector's 320 px, so its fields lay out the same), above an
+  open dock sheet (`--dock-lift`) and clear of the stage pill's row; the drawers are gone. The Level view's Fit and
+  Details move to the lower left in medium (`data-corner="start"`) so the card never covers the button that closes it.
+  *Compact:* `StagePill` takes `at="dock"`, a square bar across the stage's foot with its controls spread; a compact
+  sheet rises above the dock (a `:has` rule in `StagePill`), so Layers, Details and the Map's Fit stay in reach. The
+  list buttons (Layers, All levels, All tiles, All characters) show only in compact. **Deviation:** the mockup lets a
+  sheet cover the dock behind a scrim; then the only way to close a sheet at peek is its handle, so the dock stays
+  above sheets instead. `SIZES` moved: iPad mini landscape and 900 × 600 are medium, iPad mini portrait compact; the
+  shell's short-wide case is now 1280 × 560. Gates: editor unit 3,335, svelte-check clean, Chromium layout with a
+  mouse and with touch 868 of 868; WebKit, Firefox and hosted CI not run. PR #430.
+- [x] **Step 1, Step 2:** done across sessions 11 to 18 (the logs above).
+- [x] **Step 3:** (done in session 17: no expectation read the cabinet) The canvas tests' pixel expectations that read old colours: open expected, actual and diff for each;
   update with the reason in the commit. The iPad journeys (WebKit) are the Owner's run; Chromium here.
-- [ ] **Step 4:** Screenshots, copy rows. Commit. `feat(editor): the Level view redesigned, canvas first`
+- [x] **Step 4:** Screenshots (the layout tests' `.vitest/shots`, session 18), copy rows left to 12.5's scan. Commit. `feat(editor): the Level view redesigned, canvas first`
+
+### Task 12.3b: Add tiles, a simple tileset importer (same PR; added 2026-11-06)
+
+The Owner, 2026-11-06, on deviation 112 ("Add tiles" left out as not essential): "How is that not essential?" Adding
+a picture of tiles is how a person paints with their own art, so it is essential and goes in, minimal. Runs after
+the rest of 12.3, before 12.4.
+
+**Files:**
+- Create: `packages/editor/src/features/tiles/AddTilesDialog.svelte`, `packages/editor/src/features/tiles/add-tiles.ts`
+  (pure: the picture's size and the tile size give the grid; the tileset definition and the file to write)
+- Modify: `packages/editor/src/features/tiles/{TilesetsPanel,TilesetsView}.svelte`, `tilesets-session.ts` (only to
+  add the tileset as one undo step)
+- Test: `packages/editor/tests/unit/tiles/add-tiles.test.ts`, the dialog's DOM test, a layout test at phone, iPad and
+  desktop sizes
+
+- **12.3b, built (session 18).** `add-tiles.ts` (pure: `tileGrid` gives the count in words or the problem with up to
+  two sizes that divide both sides, nearest first; `pictureAsset` names the file under `assets/` in kebab-case and
+  never over a file that is there; `tilesetFromPicture` names the tileset after the file in words), the session's
+  `addTileset` (one undo step "Add tiles", then shows the new tiles with nothing picked), `AddTilesDialog.svelte`
+  (Choose a picture as a label over the file input, the stepper with 8/16/32/48 px as a segmented row, the picture with
+  hairlines one tile apart, Add tiles as the one primary). Views get `services.files` (the workspace store: the game
+  folder, or browser storage); without it there is no Add tiles. The kit `Dialog`'s body is now a declared scroll
+  region (it scrolled already; a phone held sideways needs it). **Deviation:** a refused write shows its sentence in
+  the dialog ("Couldn't add the picture: …", a live region) instead of a toast, so the person stays where they can try
+  again; nothing is added. Gates: unit `add-tiles` 10, `AddTilesDialog` 7, session 2, view 2 (editor unit 3,356),
+  Chromium layout "Add tiles" at eight sizes with a mouse and with touch 16, svelte-check clean.
+- [x] **Step 1: Failing tests.** Tiles has one "Add tiles" button (also the empty state's action: "No tiles yet. Add
+  a picture of your tiles to paint with them."). It opens a dialog with three steps on one screen: "Choose a
+  picture" (PNG, WebP or JPEG), "How big is one tile?" (a stepper in px, 16 to start, plus 8, 16, 32 and 48 as
+  quick choices), and a preview of the picture with the tile grid drawn over it and "This makes 64 tiles" in words.
+  A tile size that does not divide the picture says so in plain words ("The picture is 100 px wide; 16 px tiles
+  leave 4 px over. Try 20 or 25.") and keeps the primary disabled. The one primary, "Add tiles", writes the picture
+  into the game folder beside the level (in browser storage, into the workspace), adds the tileset as one undo step,
+  closes the dialog and opens Tiles on it, ready to paint with. No format word, path or "tileset"/"IntGrid" on screen.
+- [x] **Step 2:** Implement with the kit's components only (Dialog, Button, Stepper, Segmented); a refused write
+  toasts as a save failure does and adds no step (deviation above: said in the dialog).
+- [x] **Step 3:** Screenshots (`add-tiles-*.png` from the layout test), copy rows in `copy.md`. Commit. `feat(editor): Add tiles, a picture of tiles becomes a tileset`
 
 ### Task 12.4: Map, Tiles, Characters and the dialogs (same PR)
 
@@ -912,6 +1045,13 @@ logic that is not markup lives in the view's `*-model.ts`.
   each dialog has one primary action and the copy of `copy.md`.
 - [ ] **Step 2:** Implement, one view per commit. **Session break** between views if needed.
 - [ ] **Step 3:** Screenshots, copy rows. Commit per view.
+- **12.4, the mockup's look (session 18).** Tiles and Characters draw pages, not canvases, so their stage takes the
+  light field (`--bg`): their names and notes were dark text on the near-black cabinet since 12.3 Step 3. Their
+  panels' headings are small-capital section labels ("Your tiles", "Characters" for "Tilesets", "Definitions"); the
+  Map panel has "Arrange levels" and "Levels" labels and quiet level rows. **Left:** the words this screen still shows
+  that Step G names ("spacing 0 · padding 0", "IntGrid", "rule 1", "Settings for every level"), and the inspectors'
+  label-left layout. Gates: editor unit (map, tiles, characters, document) 267, Chromium layout with a mouse and with
+  touch 144, svelte-check clean.
 - [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) section 5.2):** the Tiles, Map and Characters rows of the audit's table: no IntGrid, rule, pivot, id, shape or field-count words on the first screen ("No tiles yet. Add a picture of your tiles to paint with them.", "Arrange levels: Anywhere, In a grid, In a row, In a column", "Ember (one per level)", "Box, Circle, Dot, Picture"); the anchor point and the name in code live under More.
 
 ### Task 12.6: The Tuner, audited and redesigned (PR `claude/refactor-ed-redesign-3`; added 2026-11-06)
@@ -935,6 +1075,10 @@ editor". The Tuner (`features/suite/tuner/`) is a non-3D editor the plan had lef
 - [ ] **Step 2:** Implement with the kit's components only. Layout test: no horizontal scroll, 44 / 48 px targets.
 - [ ] **Step 3:** Screenshots before and after (phone, iPad, desktop), copy rows. Commit.
   `feat(editor): the Tuner audited and redesigned`
+- **12.6, the look (session 18).** The settings and the search were dark on the cabinet: their colours named tokens
+  that do not exist and fell back to the old dark theme's hex values. They read the kit's tokens now: white cards on
+  the light field, paper fields, the accent edge on the chosen setting; only the game keeps the cabinet. Gates: editor
+  unit (suite) 294, Chromium layout (suite) with a mouse and with touch 121 each. **Left:** the unit a player can feel.
 - [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) section 6.2):** each tunable has a label and a one-line "what you'll feel" carried by the game's `tuning.toml` (or the Tuner's schema), with a unit a player can feel; no constant names, no other game's numbers on screen (they stay in the TOML comments); Lock becomes Keep with its tooltip; the empty panel says "Tap a setting to see more."; the split view (step 1) is how she tries it, so no separate "Play to try it" button.
 
 ### Task 12.7: The 2D suite page, audited and redesigned (same PR; added 2026-11-06)
@@ -966,14 +1110,14 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
   `docs/guides/editor.md` (rewritten: open, draw, save, play; screenshots from the design board),
   `packages/editor/README.md`
 
-- [ ] **Step 0:** Spec 17.3's file checks over every `.svelte` file in `packages/editor/src` (size, header comment);
+- [x] **Step 0:** Spec 17.3's file checks over every `.svelte` file in `packages/editor/src` (size, header comment);
   what phase 12 did not reach is fixed here or listed for the build audit.
-- [ ] **Step 1:** `grep` the editor's `.svelte` and `*-messages.ts` for strings not in `copy.md`; each is either fine
+- [x] **Step 1:** `grep` the editor's `.svelte` and `*-messages.ts` for strings not in `copy.md`; each is either fine
   (listed as kept) or rewritten. No package name, path jargon or format word on screen (G3, G4): a unit test scans the
   rendered text of each screen fixture for `editor-`, `af2d`, `.json`, `checkout`, `Plus`.
-- [ ] **Step 2:** `pnpm check`; the editor's Chromium browser tests. Commit, mark the PR ready.
+- [x] **Step 2:** `pnpm check`; the editor's Chromium browser tests. Commit, mark the PR ready.
   `docs(editor): the copy table and the editor guide for the redesigned editor`
-- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) sections 5.2 and 7):** every row of the audit's section 5.2 is in `copy.md`; its seven rules join `copy.md` beside the four questions; the rendered-text scan also fails on project, workspace, entity, IntGrid, tunable, change set, gate, pivot.
+- [x] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) sections 5.2 and 7):** every row of the audit's section 5.2 is in `copy.md`; its seven rules join `copy.md` beside the four questions; the rendered-text scan also fails on project, workspace, entity, IntGrid, tunable, change set, gate, pivot.
 
 ---
 
@@ -987,34 +1131,34 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
 - Modify: `packages/editor/package.json` (`test:e2e`), `turbo.json` (`test:e2e` depends on `-tools`' build),
   `.github/workflows/ci.yml` (`e2e-2d` runs the editor's projects)
 
-- [ ] **Step 1:** `temp-game.ts` copies a game (Emberwick, or a `create-game` output) to a fresh temp folder per test
+- [x] **Step 1:** `temp-game.ts` copies a game (Emberwick, or a `create-game` output) to a fresh temp folder per test
   and removes it after; `run-editor.ts` spawns `packages/tools/dist/bin.js editor <dir> --port 0` and resolves with its
   printed address; `run-game.ts` starts the game's dev server on its own port; `canvas-pointer.ts` turns a level cell
   into page coordinates from the canvas's published geometry. Each has a unit test where it has logic (the cell
   mapping).
-- [ ] **Step 2:** A smoke journey (open the editor, see "Emberwick room") passes in Chromium.
-- [ ] **Step 3: Commit.** `test(editor): a Playwright harness that runs the real automata editor on a temp game`
+- [x] **Step 2:** A smoke journey (open the editor, see "Emberwick room") passes in Chromium.
+- [x] **Step 3: Commit.** `test(editor): a Playwright harness that runs the real automata editor on a temp game`
 
 ### Task 13.2: Save, drift and conflict journeys
 
 **Files:**
 - Create: `packages/editor/tests/e2e/{save-reaches-the-game.test.ts,drift-is-caught.test.ts,conflict-stops-the-save.test.ts}`
 
-- [ ] **Step 1:** Write the three journeys of spec section 9, using roles and names from `copy.md`. The game's room is
+- [x] **Step 1:** Write the three journeys of spec section 9, using roles and names from `copy.md`. The game's room is
   read through the hook Emberwick's own journeys use (find it: `grep -rn "window\.__" games/emberwick/tests/e2e`).
-- [ ] **Step 2:** Run in Chromium (iPad and phone projects) → pass. Record first-attempt results. WebKit: the Owner's.
-- [ ] **Step 3: Commit.** `test(editor): journeys prove Save reaches the game and the check catches drift`
+- [x] **Step 2:** Run in Chromium (iPad and phone projects) → pass. Record first-attempt results. WebKit: the Owner's.
+- [x] **Step 3: Commit.** `test(editor): journeys prove Save reaches the game and the check catches drift`
 
 ### Task 13.3: A new game, and the suite
 
 **Files:**
 - Create: `packages/editor/tests/e2e/{new-game-opens.test.ts,suite-opens-the-checkout.test.ts}`
 
-- [ ] **Step 1:** The new-game journey reuses the stranger's journey's steps (`tooling/consumer-smoke/src/stranger.ts`:
+- [x] **Step 1:** The new-game journey reuses the stranger's journey's steps (`tooling/consumer-smoke/src/stranger.ts`:
   pack, `create-game` outside the workspace, install from the packs), then starts `automata editor` with no flags,
   paints a wall into the starter level, saves, and sees it in the game.
-- [ ] **Step 2:** The suite journey (Chromium only) per spec section 9.
-- [ ] **Step 3:** Both pass in Chromium. `pnpm check`. Commit, mark ready. `test(editor): a new game opens in the editor; the suite opens the game`
+- [x] **Step 2:** The suite journey (Chromium only) per spec section 9.
+- [x] **Step 3:** Both pass in Chromium. `pnpm check`. Commit, mark ready. `test(editor): a new game opens in the editor; the suite opens the game`
 
 ---
 
@@ -1155,8 +1299,8 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
 
 **Files:** the `tooling/*/src` packages left after 17.2, their tests and READMEs
 
-- [ ] **Step 1: The read.** Spec 17.3's checks per package; findings in the execution log first.
-- [ ] **Step 2:** Fix, one package per commit. Counts equal or lower only by listed dead code; `pnpm check`. Mark ready.
+- [x] **Step 1: The read.** Spec 17.3's checks per package; findings in the execution log first.
+- [x] **Step 2:** Fix, one package per commit. Counts equal or lower only by listed dead code; `pnpm check`. Mark ready.
   `refactor(tooling): minimal, documented internals`
 
 ---
@@ -1173,13 +1317,13 @@ before it. The footer's contact address stays as it is until the Owner decides (
   button components, the docs "On this page" list, the demo toolbar
 - Test: `site/tests/e2e/site.e2e.ts` (a rule over every page at the six sizes of the audit)
 
-- [ ] **Step 1: Failing tests.** At every size of the audit (390 × 844, 844 × 390, 820 × 1180, 1180 × 820,
+- [x] **Step 1: Failing tests.** At every size of the audit (390 × 844, 844 × 390, 820 × 1180, 1180 × 820,
   1080 × 1920, 1440 × 900; phone and tablet as touch): every link and button is at least 44 px tall (48 px for a
   primary), stand-alone text links and the logo included (M1); no code block breaks inside a word, and every block
   scrolls sideways the same way with its Copy button in one place (M2); the open phone menu is opaque, nothing shows
   through it (M4); on a touch device the Search button shows no `⌘K` and the search dialog no keyboard hint (L1).
-- [ ] **Step 2:** Fix each in the shared CSS or component, never per page.
-- [ ] **Step 3:** Rerun the audit's scripts (`docs/refactor/2026-11-06-site-visual-audit/scripts/`, `vite preview` on
+- [x] **Step 2:** Fix each in the shared CSS or component, never per page.
+- [x] **Step 3:** Rerun the audit's scripts (`docs/refactor/2026-11-06-site-visual-audit/scripts/`, `vite preview` on
   4417); M1, M2, M4 and L1 read 0. Commit. `fix(site): tap targets, code blocks, the phone menu and touch hints`
 
 ### Task 18.1: Features, the page cut and redirects
@@ -1192,10 +1336,10 @@ before it. The footer's contact address stays as it is until the Owner decides (
 - Modify: root `package.json` (`boundaries --features site`), `site/src/routes/**` (thin)
 - Test: `site/tests/unit/redirects.test.ts`
 
-- [ ] **Step 1: Failing test:** the redirect map sends `/ai` and `/inside` to `/docs/how-it-works`, `/cheatsheet` to
+- [x] **Step 1: Failing test:** the redirect map sends `/ai` and `/inside` to `/docs/how-it-works`, `/cheatsheet` to
   `/api`, and `/showcase`, `/community`, `/proof`, `/releases`, `/sources` to `/`; the build writes a page for each that
   redirects (meta refresh plus a link, so it works on any static host).
-- [ ] **Step 2:** Move and delete. `pnpm boundaries` passes with `--features site`. Unit and e2e gates pass in
+- [x] **Step 2:** Move and delete. `pnpm boundaries` passes with `--features site`. Unit and e2e gates pass in
   Chromium. Commit. `refactor(site): seven pages, grouped by feature`
 
 ### Task 18.2: Home and Start on the current code
@@ -1205,14 +1349,14 @@ before it. The footer's contact address stays as it is until the Owner decides (
   (create: reads `create-game`'s template at build time)
 - Test: `site/tests/unit/home/*.test.ts`, `site/tests/unit/start/*.test.ts`
 
-- [ ] **Step 1: Failing tests:** Home's walk-through shows three files that exist in `create-game`'s template (the
+- [x] **Step 1: Failing tests:** Home's walk-through shows three files that exist in `create-game`'s template (the
   test reads the template); Start's first command is `npx @mcthaydt/automata-tools create-game`; no page text mentions
   `@af-examples/base-2d`, `base-2d`, `git clone`, Effect in the browser, or files the refactor deleted (W1, W2, WG3).
-- [ ] **Step 2:** Rewrite both pages, on the shared tokens and the kit's look. Start has the four steps of spec 10.2
+- [x] **Step 2:** Rewrite both pages, on the shared tokens and the kit's look. Start has the four steps of spec 10.2
   and "Using a coding agent" (the AI page's setup). Copy rows. Commit. `feat(site): Home and Start describe the
   framework as it is`
-- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) findings 2, 5, 6, 18):** the Emberwick embed starts upright on an upright phone (the game's orientation check or the embed's aspect ratio); no promise of a remix or a demo that is not there; every Emberwick link lands on Emberwick; the demo's controls show only while it plays.
-- [ ] **Step V (added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md) H5, M3, M6, L2, L3, L4, L7):** the first example shows something (a title, a coloured field, a line of text), not a black box; at 844 × 390 the Emberwick demo and an example's preview start above the fold (the facts table folds); the footer's two API links become one ("Reference"); the double-jump picture is re-shot or removed; Home's desktop gutter label, lone card and uneven cards go; the hero's two actions stay side by side or stack aligned; the comments in Emberwick's code shown on Home read plainly.
+- [x] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) findings 2, 5, 6, 18):** the Emberwick embed starts upright on an upright phone (the game's orientation check or the embed's aspect ratio); no promise of a remix or a demo that is not there; every Emberwick link lands on Emberwick; the demo's controls show only while it plays.
+- [x] **Step V (added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md) H5, M3, M6, L2, L3, L4, L7):** the first example shows something (a title, a coloured field, a line of text), not a black box; at 844 × 390 the Emberwick demo and an example's preview start above the fold (the facts table folds); the footer's two API links become one ("Reference"); the double-jump picture is re-shot or removed; Home's desktop gutter label, lone card and uneven cards go; the hero's two actions stay side by side or stack aligned; the comments in Emberwick's code shown on Home read plainly.
 
 ### Task 18.3: The editor page and "Try the editor"
 
@@ -1221,11 +1365,11 @@ before it. The footer's contact address stays as it is until the Owner decides (
   `/editor/app/`), `site/src/shared/csp.ts` (if the editor needs anything new; it must not need `eval`)
 - Test: `site/tests/unit/editor/*.test.ts`, `site/tests/e2e/editor-try.test.ts`
 
-- [ ] **Step 1: Failing e2e (Chromium):** `/editor` shows three pictures from the design board and "Try the editor";
+- [x] **Step 1: Failing e2e (Chromium):** `/editor` shows three pictures from the design board and "Try the editor";
   it opens `/editor/app/`, which starts on browser storage with no console error under the site's CSP.
-- [ ] **Step 2:** Implement. If Pixi needs `eval` there, the editor's `main.ts` imports `@mcthaydt/automata/no-eval`
+- [x] **Step 2:** Implement. If Pixi needs `eval` there, the editor's `main.ts` imports `@mcthaydt/automata/no-eval`
   first (spec risks). Copy rows. Commit. `feat(site): try the 2D editor on the site`
-- [ ] **Step V (added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md) L8):** Privacy says that the try-it editor keeps levels in this browser's storage and nowhere else.
+- [x] **Step V (added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md) L8):** Privacy says that the try-it editor keeps levels in this browser's storage and nowhere else.
 
 ### Task 18.4: Docs and API
 
@@ -1236,20 +1380,20 @@ before it. The footer's contact address stays as it is until the Owner decides (
   packages; in the framework's docs so the site reads it like any guide)
 - Test: `site/tests/unit/docs/*.test.ts`, `site/tests/unit/api/*.test.ts`
 
-- [ ] **Step 1: Failing tests:** the docs nav is the guides plus How it works, in the order of a `docs/guides/index.md`
+- [x] **Step 1: Failing tests:** the docs nav is the guides plus How it works, in the order of a `docs/guides/index.md`
   list; no doc says "Effect Runtime" or "planned" for the desktop build (W4, W7); the API has one page per published
   package with the current names.
-- [ ] **Step 2:** Implement; write `how-it-works.md` (drunk grandma test applies). Commit.
+- [x] **Step 2:** Implement; write `how-it-works.md` (drunk grandma test applies). Commit.
   `feat(site): docs from the framework's guides, API generated`
-- [ ] **Step V (added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md) H4):** no API page is longer than about ten phone screens: a package's page is an index of its export groups, each group collapsed or on a page of its own, with a jump list at the top.
+- [x] **Step V (added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md) H4):** no API page is longer than about ten phone screens: a package's page is an index of its export groups, each group collapsed or on a page of its own, with a jump list at the top.
 
 ### Task 18.5: The code refactor of the site (same PR)
 
 **Files:** `site/src/**`, `site/scripts/**`, their tests, `site/README.md`
 
-- [ ] **Step 1: The read.** Spec 17.3's checks over the site (the playground's compile, orchestrator and live code,
+- [x] **Step 1: The read.** Spec 17.3's checks over the site (the playground's compile, orchestrator and live code,
   the shared components, the loaders, the build scripts); findings in the execution log first.
-- [ ] **Step 2:** Fix, one concern per commit. The site's unit and Chromium e2e counts equal or lower only by listed
+- [x] **Step 2:** Fix, one concern per commit. The site's unit and Chromium e2e counts equal or lower only by listed
   dead code; `pnpm --filter @mcthaydt/automata-site build` passes. Mark ready. `refactor(site): minimal, documented code`
 
 ---
@@ -2119,3 +2263,445 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   the view switcher with the four views and their new names, "2 problems" opening a sheet in place of the Checks
   view, the Share menu (browser storage only) in place of the Export view, the rail's icons, and the essential-only
   cut over each (rename on tap is listed by the spec; keep it only if it passes the Owner's essential-only rule).
+- **12.2, the rest (session 11): the view switcher, Problems, Share and rename.** The 56 px rail is gone: `ViewRail`
+  became `ViewSwitcher` in the top bar, the kit's `Segmented` ("Views", a radio group) from iPad up and the kit's
+  `Menu` named after the open view on a phone. The level project lists four views with the spec's names: Level, Map,
+  Tiles, Characters (ids `level`, `world`, `tilesets`, `entities` kept). `ViewFrame.rail` and `ViewServices.locate`
+  and `.workspace` are removed; the five views no longer place a rail. `DocumentBar` takes `switcher` and `tools`
+  snippets and is two rows on a phone (Back, the name, Save; then the switcher, Problems, Share, Undo, Redo), so no
+  target shrinks; the kit shell's top bar row is now `minmax(52px, auto)` so it can grow. **Problems** (`Problems.svelte`)
+  replaces `ChecksView`: "2 problems" in the top bar opens a sheet (Needs fixing, Worth a look; Show, the repair, Done);
+  Show closes it and reopens the Level view on the finding (a counter re-keys the view, so a Show while the Level
+  view is open still selects it). **Share** (`ShareMenu.svelte`, `share-model.ts`) replaces `ExportView`: shown only
+  where Save does not write the game (no `gameFolder`), it holds Download, Share (off with a reason where the device
+  cannot share) and Copy of the level's file, each answered with a toast; on a device that keeps nothing a file that
+  left marks the level clean, as Export did. **Rename on tap** kept (a level had no other way to be renamed): a new
+  optional `Profile.rename`, the name is a button opening `RenameDialog`, one undo step named "Rename".
+  **Cut, by the Owner's essential-only rule:** notes (info findings: an empty level, a definition nothing uses) are
+  not counted or listed (a fresh template showed "problems"); Export's target cards, file sizes and per-target choice;
+  "Download game files" (in browser storage there is no game to put them in; a game folder's Save writes them);
+  "Write to folder" (only reachable on a checkout without an `exports` row, where the answer is to add the row so Save
+  writes the game); the rail's icons (the rail is gone; the switcher's words are enough). **Deviation 106:** the
+  switcher is a radio group, not tabs, because it is the kit's `Segmented`; tests read `radio` and `aria-checked`.
+  **Deviation 107:** the restore dialog's new words (grandma Step G) move to 12.4, which owns `RecoveryDialog`.
+  Gates: editor unit 3,284 (ChecksView, ExportView and export-model tests replaced by Problems 10, share-model 3,
+  DocumentScreen 25); editor typecheck clean; Chromium layout (level, problems, map, tiles, characters) 130 of 130;
+  Chromium 2D journeys 8 of 8. WebKit, Firefox and hosted CI not run. Rounded buttons: none added; the kit's look
+  changes with the design thread (the Owner, 2026-11-06: "I HATE rounded buttons").
+- **The Owner, 2026-11-06 (relayed), the site's order: "Let's do that".** The design thread's site mockups come
+  first and the Owner picks a direction; phase 18 (18.0 included) then applies that direction and the
+  [site visual audit](2026-11-06-site-visual-audit.md)'s fixes in one pass, and the visual audit is rerun after.
+  Phase 18 does not start until the Owner has picked. The editors' look follows the same design thread's token and
+  component changes when it sends them.
+- **The design direction (session 11).** A design thread's draft PR #422 (square, flat editor look; spec
+  `docs/refactor/2026-11-06-editor-visual-direction.md`) is merged into this stack; the Problems sheet and the rename
+  field use `var(--edge)`, and the phone top bar's lower row became one flex row of its own (a wide "3 problems"
+  label had squeezed the name to 1 px; the Chromium layout test caught it). The Owner then picked site direction C
+  (flat lime; relayed 2026-11-06 16:01): editors and site share one system, flat lime primary buttons, radii 4 px
+  controls, 6 px panels, 8 px cards and dialogs. #422 is being updated to match and is adopted from there again; phase
+  18 starts once those final tokens land.
+- **17.1 (session 11): five workflow rules replace the YAML-pinning tests.** `tooling/repo-hygiene/src/workflow-invariants.ts`
+  checks every workflow for: top-level `permissions`; no `pull_request_target`; secrets only in a step's `env`; no
+  publishing secret (anything but `GITHUB_TOKEN` and the read-only `AF_READ_TOKEN`) in a job a pull request can start,
+  a reusable workflow counted as one a pull request can start; heavy jobs skip drafts (`checks` is the light gate).
+  Each rule has a fixture that breaks it. **They found a real gap:** `game-release.yml`'s `ruken` job held
+  `RUKEN_TOKEN` with no pull request guard; it now has the itch and desktop jobs' guard. Deleted:
+  `packages/tools/tests/unit/shared/ship/workflows.test.ts` (108 tests, 1,469 lines). `yaml` moved from -tools to
+  repo-hygiene (`docs/versions.md` row updated), `.github/workflows/**` moved from -tools' turbo inputs to
+  repo-hygiene's. **Deviation 108:** the two `turbo-inputs` tests stay (they guard the turbo cache, which once hid red
+  tests); -tools' one loses its two workflow entries. Counts: -tools unit 627 → 519 (108 gone), repo-hygiene 82 → 88.
+- **17.2 (session 11): the tooling that lost its reason.** `tooling/core-packs` (625 lines): deleted; the consumer
+  smoke's own `src/pack.ts` (80 lines, 8 tests) packs the published packages with `pnpm pack`; the extras, unpack,
+  source-commit and `packs.json` parts served Plus only; the root `pnpm packs` script goes. `tooling/api-report/src/seams.ts`
+  (83 lines): deleted with Plus; `seams.test.ts` becomes `committed-reports.test.ts`, keeping the committed-report and
+  planted-break tests. `tooling/bundle-report` (300 lines): deleted; it attributed bytes by package for task 5.1's
+  before and after (recorded) and held no budget, and a per-game budget would be a new check nobody asked for.
+  `tooling/versions`: the Plus cards (Rapier, Colyseus), the Planck note, the Plus sentence and the Effect card go
+  (Effect is Node tooling only now); `docs/stack.md` regenerated. `tooling/examples-runner`: confirmed, only the
+  examples index is left (the playground is the site's). `tooling/evidence`: unchanged here; the Proof page's half goes
+  with the page in 18.1 (the parity job's golden evidence stays).
+- **12.3, part (session 11): the tools as icons.** The kit's `Segmented` takes an optional `icon` per option (the
+  label stays the option's accessible name and tooltip); the Level toolbar's six tools are icons, the eyedropper
+  named "Copy a tile" (was "Pick"); the brush size is behind a "Size 2" button that opens a popover with the stepper,
+  so the size never widens the row. On a 390 px phone all six tools now fit beside Layers. Gates: editor unit (level
+  98), Chromium layout (level and shared) 161, Chromium 2D journeys 8. **Left for 12.3:** the floating pill over the
+  canvas (top from iPad up, bottom on a phone), the charcoal cabinet, Layers as a sheet with colour, name, eye and lock
+  per row and the palette under the chosen layer, the inspector opening on selection, and the level picker in the top
+  bar; then the canvas tests' colour expectations.
+- **12.3, part (session 11): the layer rows.** Each row names its kind in plain words (spec 11.5: "Walls and floors",
+  "Tiles that place themselves", "Characters and items", "Shapes"), shows a square colour swatch from the layer colour
+  tokens, and hides or locks through icon buttons labelled "Hide Entities" or "Lock Entities" (eye and lock icons, the
+  pressed state spoken). Gates: editor unit 3288, Chromium layout (level) 50, Chromium 2D journeys 8. **Left for
+  12.3:** the floating pill, the charcoal cabinet, Layers as a sheet with the palette under the chosen layer, the
+  inspector on selection, the level picker in the top bar, the canvas colour expectations.
+- **12.3, part (session 11): the inspector opens on selection.** The Level view opens the inspector when the editor's
+  selection changes to a new, non-empty one, so below `wide` a thing just placed or tapped shows its fields; closing
+  the sheet with the same thing selected keeps it closed. Gates: editor unit 3289, Chromium layout (level) 50, 2D
+  journeys 8, `pnpm check`. #422's second commit (corners 4 / 6 / 8 px, the flat lime primary) is merged; this
+  stack's three corners moved onto the scale (swatch and rename field `--edge-sm`, Problems rows `--edge-md`).
+- **Site unit tests (session 11).** `examples-pages.test.ts` and `playground/origin.test.ts` read
+  `static/playground/compiled/`, build output a fresh checkout lacks, so hosted CI failed with ENOENT on #420 and
+  #422. They now compile the examples in place with `compileExample`, the way `build-demos.ts` does.
+- **Owner, 2026-11-06:** the editors' look is still not good. The design thread makes a Level screen mockup; the rest
+  of 12.3 keeps to structure and behaviour and takes its styling from that mockup.
+- **12.3, part (session 12): the floating pill, the level picker, no dock.** Structure and behaviour only; the look waits
+  for the design thread's Level mockup. The tools are one pill (`role="toolbar"`, "Tools") floating over the canvas's
+  foot, a sibling of the canvas's box so a press on it never reaches the gestures; below `wide` it starts with Layers
+  (an icon button). The brush size is a 44 px button showing the number ("Brush size 2"), so the pill is one row on a
+  390 px phone; inside the pill the segmented control draws no frame of its own. Fit ("Fit the level in view") and,
+  below `wide`, Details (the inspector, was "Inspector") are icon buttons in the canvas's top right corner; the
+  locked or hidden layer message moved to the top left. The strip of level cards is gone: a level picker beside the
+  document's name in the top bar (a kit `Menu`: the world's levels, the open one marked "Open", then New level, which
+  adds the first free "Level N" as one undo step and opens it; disabled with the reason at 256 levels). The suite's
+  Levels 2D puts the same picker in its bar's `tools` and loses its dock and Dock toggle. Deleted:
+  `LevelCards.svelte`, `LevelDock.svelte` and its test; `dock-model.ts` is `level-list.ts` (`levelList`). Three
+  Lucide icons added (chevron-down, maximize as `fit`, panel-right as `inspector`; 27 now, provenance row updated).
+  The top bar takes two rows on an upright iPad too (`tablet-portrait`): in one row at 744 px the picker was cut to
+  one letter; the name's words truncate inside their own box so the button keeps its edge. **Deviation 109:** the
+  pill sits at the canvas's foot on every size, as the mockup draws it, not at the top from iPad up (spec 11.4); one
+  CSS rule if the Owner wants the top. **Deviation 110:** the palette stays below the layer list, naming the chosen
+  layer ("Paint with Collision"), as the mockup draws it, rather than inside the chosen layer's row. **Deviation 111:**
+  the pill hides its scroll bar instead of keeping 16 px under its tools for macOS's overlay bar (#272); the layout
+  test now holds `scrollbar-width: none`. Gates: editor unit 3,289 → 3,293 (three new: the pill with Fit and Details,
+  the picker twice; three icon checks for the new icons; the two `LevelDock` tests gone), typecheck clean, Chromium layout 427, canvas,
+  journeys, parity and storage 106 pass and 6 skipped, `pnpm check` green; WebKit, Firefox and hosted CI not run.
+  **Left for 12.3:** the charcoal cabinet and the canvas tests' colour expectations (styling, from the mockup), and
+  step 4's screenshots and copy rows.
+- **12.4 Step G (session 12): Map, Tiles and Characters in plain words.** Map: "Layout" (Free, Grid, Row, Column) is
+  "Arrange levels" (Anywhere, In a grid, In a row, In a column), wrapping to two rows in the 264 px panel; the empty
+  inspector says "Tap a level to edit it."; Remove's warning says links "will show in Problems as broken" (Checks is
+  no longer a view). Tiles: "Auto layers" is "Tiles that place themselves", empty "None in this game yet." (was "No
+  auto layer reads an IntGrid yet."); the rule groups and rules show only once there is such a layer, as before; the
+  stage with no tileset says "No tiles yet. Add a picture of your tiles to paint with them." **Deviation 112:** no
+  [Add tiles] button: the editor has no action that adds a tileset (every template comes with one), and adding a
+  picture is a new feature, not essential to editing a game that has its tiles; noted for the Owner. Characters: each
+  row shows the label (not the id) and "One per level" only where it applies (no field count, no shape); "Level
+  fields" is "Settings for every level"; the shapes are Box, Circle, Dot, Picture (the file keeps `rect`, `ellipse`,
+  `point`, `tile`); "Single per level" is "Only one per level"; the id ("Name in code") and the pivot ("Anchor point
+  across", "Anchor point down") moved under a closed More; the preview names the thing by its label, says "Box, 16 × 24
+  px" and "Shown 8 times bigger" (was "Placed with its pivot on the snapped cell · 8× zoom") and drops the pivot pill.
+  Gates: editor unit 3,293 → 3,296 (three new: arrange words, tiles words, the More section), typecheck clean,
+  Chromium layout (map, tiles, characters, level, document) and 2D journeys pass, `pnpm check` green; WebKit, Firefox
+  and hosted CI not run. **Left for 12.4:** steps 1 to 3, the frame of spec 11.4 for the three views (the stage in its
+  cabinet, a list sheet and an item sheet: their "Rules" / "Definitions" / "Inspector" drawer buttons become the
+  Level view's corner and pill controls) and the dialogs' one primary action, then the inspector tab names
+  ("Definition", "Fields 3"), which still read as engine words.
+- **12.4, part (session 12): Details everywhere.** The drawer button that opens the inspector below `wide` says
+  "Details" in Map, Tiles and Characters too (was "Inspector"), as in the Level view. Gates: editor unit (map, tiles,
+  characters) 126, Chromium layout (the three views) 64, 2D journeys 26.
+- **12.3, part (session 12): the pill at the top from an iPad up.** The design thread's revised mockup (after the
+  Owner's "Audit it", 2026-11-06) puts the tools at the top centre, which is also spec 11.4's rule, so **deviation 109
+  is withdrawn**: the pill floats at the canvas's top from `medium` up and at its foot on a phone (`toolsAt`); with it
+  at the top, Fit, Details and the layer message move to the canvas's foot. The suite's Levels 2D keeps the foot until
+  12.7. Gates: Chromium layout (level, suite) 171, canvas and journeys 75 pass and 6 skipped, editor unit (level, app)
+  303.
+- **12.4 done (session 13): the frame and the dialogs.** Map, Tiles and Characters take the Level view's frame (spec
+  11.4): the row of drawer buttons above each stage is gone; one pill floats over the stage (the kit's new
+  `shell/StagePill.svelte`, which the Level view's tools now use too) with `All levels` / `All tiles` / `All
+  characters` and `Details` below `wide`, and on the Map `Fit the map in view` at every size. It sits at the stage's top
+  from an iPad up and at its foot on a phone, and moves clear of an open drawer (centred in what the drawer leaves)
+  or sheet (to the top), so Fit and the button that closes it stay in view; Tiles and Characters keep room for it in
+  their scrolling stage. One Lucide icon added (`list`; 28 now, provenance row updated). The inspector's tabs say
+  `Selected`, `Level`, `Problems` (were Entity, Level, Checks) and `Character`, `Settings 3` (were Definition, Fields
+  3). The save conflict and the restore offer follow `copy.md` with one primary each: `Mossgate was changed somewhere
+  else` with `Cancel`, `Use theirs`, `Use mine`, `Keep both` (primary); `Keep your changes from last time?` with one
+  sentence naming the level and when (the File / Last autosave / File on disk list is gone, `recoveryFacts` is
+  `recoveryWords` and leaves the kit's exports), `Throw away`, `Keep my changes`; the undo step is `Keep changes from
+  last time`. The dialogs take the document's name, not its path; the 3D editor, which shares them, passes its file's
+  name without the extension. **Deviation 113:** one commit for the three views' frame, not one per view, since the
+  frame is one shared component. **Deviation 114:** the list buttons say `All levels` / `All tiles` / `All characters`,
+  not the view's own name, which the phone's view menu already uses (two buttons named "Tiles"). The delete and
+  new-level dialogs were done in 12.1; the refusal dialog already had one (danger) action and plain words. Gates:
+  editor unit 3,296 → 3,307 (eight frame tests, one tab-name test, recovery words three for two), editor-3d unit and
+  dom 2,932, Chromium layout (map, tiles, characters, level, document) 146 and 3D open flows 32, canvas and journeys 75
+  pass and 6 skipped; WebKit, Firefox and hosted CI not run. Screenshots: the design board run is left for 12.5's
+  guide.
+- **12.6, part (session 13): Step 0, Step G, and the split view's design.** *Step 0, the audit:* four components,
+  all under 300 lines (`TunerRows` 272, `TunerPanel` 104, `TunerInspector` 95, `TunerRegions` 25); logic stays in
+  `tuner-controller.ts` and `tuner-session.ts`, the markup only forwards; nothing unused. The panel and the rows still
+  style with the old `--color-*` aliases and literal fallbacks (`#3a3f48`, `#d9a441`), left for the look (the mockup
+  verdict). Words a drunk grandma stumbles on: the constant names (`MAX_RUN`) as every row's title, the comments'
+  other-game numbers ("Celeste: 90 px/s.") as its note, "tunable", "Lock" / "Locked" / "Unlock", "Kind" and "Bounds",
+  "Create tuning.toml", "Run checks to read bounds: … tuning-meta.json". The Tuner's actions (from its DOM tests):
+  search, choose, set a toggle, a text, a number by slider (a drag is one step) or by box, a refused value past a bound,
+  keep and let go, create the file, the parse problem with its line, and Ask's scope and locks; all stay. *Step G:*
+  a ranged tunable may carry `label` and `feel` text (`-content`'s check accepts them as text, refuses anything else,
+  and keeps them out of the values and `tuning-meta.json`; a changeset); Emberwick's ten have them ("Running speed",
+  "How fast Wick runs."). The Tuner shows the label and the feel and, when a label is there, never the name in code or
+  the comment (`shownName`, `shownNote`); search finds labels and feels too; Lock is `Keep` / `Kept` with the tooltip
+  "Keep this value: nothing changes it until you let it go."; "Search settings"; "Tap a setting to see more."; "This
+  game has no settings file yet." with `Make one`; "Run the game's checks once to see how far these settings can go.";
+  the inspector says Type, Range and What it does. Gates: editor unit 3,307 → 3,311, content's tuning tests 15 → 17,
+  Emberwick unit 109, Chromium suite layout 113. **Left for a unit a player can feel:** the values are still the
+  sim's units (subpixels per tick); a `unit` and a display scale per tunable (px/s) is the next step of Step G.
+  *The split view, designed (steps 1 and 2, next session):* every Tuner edit is already written to
+  `content/tuning.toml` as it lands, and the content Vite plugin already rebuilds on a TOML change and sends
+  `automata:content` to the page; nothing listens. (a) The runtime (`@mcthaydt/automata`, the owner of the sim's
+  content contract) takes new content in development: on `import.meta.hot` `automata:content` it re-imports
+  `virtual:automata/content` and starts the game's sim again with it (`createSim` fixes a sim's content for its life,
+  and the sim must not grow a content swap for a dev convenience: law 1 and the sim spec), keeping the page, so the
+  player sees the room start over with the new feel; never in a build (`import.meta.hot` is undefined there); a unit
+  test on the restart and a journey. Found while designing it: the plugin invalidates the module and sends a custom event, but the
+  page keeps the module it imported, so a re-import returns the old one; the plugin should send a real HMR update for
+  `virtual:automata/content` that the game accepts (`import.meta.hot.accept`), and `startGame`'s handle already has
+  `shutdown()` for the restart. Prove it in a real browser against the game's Vite dev server, not with a fake. (b) `automata editor`
+  learns the game's dev page (`--game-url`, default the game's Vite port) and the suite reads it from `/api/ping`. (c)
+  The Tuner's canvas becomes two regions: the settings and a game pane (an `iframe` of that page, `title="Your game"`),
+  side by side from iPad landscape up and stacked, game on top, on a phone; with no dev page answering, the pane says
+  "Start your game with pnpm dev to see your changes here." in plain words. No "Play to try it" button.
+- **12.6, the split view built (session 14).** *(a) The content plugin sends a real HMR update:* after a good save it
+  reloads `virtual:automata/content` through each environment's `reloadModule`, so Vite walks up its importers to the
+  module that accepts it, or reloads the page when none does (`automata:content` and `automata:content-error` are still
+  sent). The hot-reload example accepts the module itself (`import.meta.hot.accept('virtual:automata/content')`), so its
+  `?v=<hash>` import is gone. Found while building it: Vite finds what a module accepts by reading
+  `import.meta.hot.accept(...)` as written, so an alias (`const hot = import.meta.hot`) made every save a full reload.
+  *(b) The game restarts:* Emberwick's `main.ts` and the create-game template's accept `game.ts` and restart the game
+  through `startGame`'s `shutdown()`, one restart after another; Emberwick shows `#game[data-content-hash]`. The
+  template's `tsconfig.json` gains `types: ['node', 'vite/client']` for `import.meta.hot`. A new journey,
+  `emberwick-dev-chromium` (`tests/e2e/dev.test.ts`), runs Emberwick's dev server on a copy of `content/` (`pnpm
+  e2e:dev`, `AF_E2E_CONTENT_ROOT`): a saved tuning value changes the hash on the same page with one canvas; without the
+  accept it fails (the page reloads). Emberwick's plumbing budget is 430 lines (was 420; about fifteen for this).
+  *(c) `automata editor --game-url`* (default `http://localhost:5173/`, Vite's own port; anything but an http or https
+  address is refused in words) is handed to the editor in `/api/ping` as `gameUrl`. The suite reads it
+  (`openServedStore`, `openSuitePorts`) and `createTuner({ gameUrl })` gives it to the session. The Tuner's canvas is
+  `TunerCanvas`: `TunerGame` (an `iframe` titled "Your game") and the rows, side by side in a canvas 480 px wide and up
+  (every iPad, a phone held sideways), stacked with the game on top below that (a phone upright, the 900 x 600 window,
+  whose panels leave the canvas 260 px). **Deviation 115:** the split follows the canvas's own width (a container
+  query), not the shell's `wide` mode: at 900 x 600 the wide shell leaves the canvas 260 px, and a phone held sideways
+  is too short to stack (94 px of rows). Until something answers at the address the pane says "Start your game with pnpm
+  dev to see your changes here." and looks again every two seconds; the sample says "Your game shows here when you open
+  the editors in your game's folder." Gates: content's plugin tests 10 → 11, the hot-reload example's journeys 2,
+  Emberwick unit 109 and the dev journey 1, tools' editor tests 47 → 54 and create-game 44, editor unit 3,311 → 3,315
+  and Chromium layout (suite, tuner) 121 including the split at eight sizes, `pnpm check` green; WebKit, Firefox and
+  hosted CI not run. **Left for 12.6:** a restart lands on the game's first screen (Emberwick's splash, then the menu),
+  so a person tuning presses Play after each change; going back to the screen they were on needs a runtime option to
+  start at a screen, and the room's assets load with the splash (`preload_screens`), so it is not a one-line change:
+  the next session designs it. The unit a player can feel (px/s) is still to do. The pane's colours wait for the look.
+- **12.6, the restart lands where the person was (session 15).** *Design:* the flow already loads a screen's assets
+  as it enters (`flow.manager` asks `assets.isLoaded` before each enter), so starting on another screen needs no change
+  to the preload: `preload_screens` (and `game.preload`, attached to the first of them) still load at boot, and the
+  start screen's own files load as it enters, the same as after any transition. So the runtime gains two small things,
+  no more: `startGame(game, { at })` (`StartOptions`, through `runGame` and `bootProgram`'s `startAt` to
+  `FlowHandle.start(at)`), which starts on `at` when the flow has that screen and at the entry otherwise (a save can
+  rename a screen), and `RuntimeHandle.screen`, the screen showing now (`undefined` before the flow starts and after
+  shutdown). The sim is untouched (law 1): a restart is still a new game on new content. *The games:* the create-game
+  template's `main.ts` restarts `startGame(fresh.game, { at })` with `at = running.screen`, read before the shutdown;
+  Emberwick maps the screens that hold a round (`room`, `paused`, `end`) to `room`, since the round lived in the old
+  sim, so a person tuning lands in a fresh round at once and feels the change without pressing Play. Not done, on
+  purpose: carrying Wick's position across (a new sim on new tuning is the honest test of the feel, and a carried
+  state would need a snapshot across content, which the sim does not allow). Gates: the flow's tests 21 → 22, run-game
+  23 → 24 (start at a screen, `screen` before, during and after), create-game's template test, Emberwick's dev
+  journey changed to play into the room and expect the room after a save (failed first on `splash`/`menu`, passes
+  now); a changeset for `@mcthaydt/automata` and `-tools`, the API report, the agent skill's API and the cheatsheet.
+- **12.7, part (session 14): the top bar in plain words (Step G).** Step 0's size check: `Suite.svelte` is 420 lines,
+  over the 300 the task allows, and is the one file to split (by responsibility: the editing, Ask and Ship wiring
+  leave the markup); every other shell file is under 300. Done: the title is the game's name from the ping (`Your
+  game` when a server sends none, `Sample game` on the sample) in place of `Editors`; `Saved in your game folder` beside
+  it when edits write the game's files (no change sets); the pills with nothing to say (`No change set`, `No checks
+  run`, `No gates`) are hidden until they mean something (`pillsToShow`; with no gate records and nothing reopened the
+  gates pill is now `No gates`, not `Gates not readable`); Undo and Redo say so in words (the arrows on a phone); the
+  sample's chip is a full-width note over Home: "This is a sample game, not yours. Run automata editor inside your
+  game's folder to edit it." Gates: editor unit (suite) 286, Chromium layout (suite) 121. **Left for 12.7:** the split
+  of `Suite.svelte`; Ship becomes Publish with its dialog's words (the dialog is the 3D slice's change-set flow, E6, so
+  the rename covers both together); Home's levels by name; Step 1's dialog checks.
+- **12.7, the look (session 19).** The suite page takes the approved mockup's tool chrome, as the document's bar did
+  in 12.3. *Top bar:* Home is an icon button (a house, named `Home`, `aria-current` on Home), the game's name in the
+  title's weight, `Saved in your game folder` a quiet status with a tick, Undo and Redo icon buttons named with their
+  step, Panel and Details icon buttons below `wide`. Publish is the lime primary only when an open change set has
+  something to publish; otherwise it is a plain button and its dialog says "Nothing new to publish yet." (the
+  grandma audit's "disabled" read as a dead button on touch, where a disabled control cannot say why; a quiet button
+  that explains is the same honesty with a reachable reason). *Rail:* each tab is an icon over its name (the name
+  stays: an icon alone makes a person guess); `suiteEntries` gives each entry an icon (Tuner sliders, the level
+  editors a grid, Review a checked file, any other editor a list). Four Lucide drawings added (`home`, `sliders`,
+  `grid`, `review`; 28 → 32, provenance updated). In the column the chosen tab is ink on the hover wash; along the foot
+  it is ink with a line on its top edge. *Home:* the sample's note is one quiet line with a warning mark; Export and
+  Import sit in the question's row (they floated alone above it), cards are paper on the field with quiet file rows,
+  and the page is at most 960 px wide with `auto-fit` columns so the actions line up with the cards' edge.
+  *Dialogs:* Export's format is the kit's `Segmented` (it was two native radios), its text is "Your game as text", and
+  it gains its one primary, Copy ("Copied. Paste it anywhere to keep it." or "Couldn't copy. Select the text and copy
+  it."). Import says "Paste the text to import", and has one primary at a time: "See changes" (was Plan) until there is
+  a plan, then "Import" (was Apply); a moved file says "Tuning changed since you looked. See the changes again." and
+  offers "See changes again". Each change names its file in words (`fileTitle`), never its path; the "No gates" and
+  "Checks: …" lines are gone (no person's words), and a change that reopens reviews says "Needs review again: …".
+  Publish, Ask and the title prompt already had one primary and plain words (12.4, 12.7 Step G). *Cut, essential
+  only:* nothing new was added beyond Copy, which is the Export dialog's reason to exist. Gates: editor unit 3,367
+  (suite 301: new tests for the icons, the rail's icon tabs, the top bar's icon buttons and status, Home's heading
+  row, Publish quiet with nothing to publish, Copy, one primary at a time in Import), typecheck 0, Chromium layout
+  (suite, mouse and touch) 242 of 242. Screenshots at 1440, 1024 and 390 px in the shared folder
+  `refactor/2026-11-06-12-7-suite-screens/` (Home, the Tuner open, Export, Import), each opened. **Left for 12.7:**
+  nothing in this slice; Review's desk is the 3D slice's change-set flow (E6). Step 3's copy rows are in `copy.md`.
+- **12.4, the inspectors' look (session 19).** The kit's `Tabs` (the Tiles rule inspector's Rule and Group, the
+  Characters inspector's Character and Settings, and the 3D editor's two sheets) is drawn as the top bar's views:
+  quiet grey words along a hairline, the chosen tab ink with a 2 px ink underline, no box and no cobalt (a browser
+  layout test reads the computed border and underline). The Characters inspector reads label-left like the Level
+  view's (the same `--label-*` column; Label, Colour, Width and Height line up), and its tab is `Settings`, or
+  `Settings (2)` with a count, never `Settings 0`; its list heading is `Settings of Coin` (was `Fields of`). Left for
+  12.5's copy scan: `Add field` and the field types' format words (`int`) in the Settings tab. The 2D editor's Home
+  with no levels showed two lime New level buttons (the top bar's and the empty list's); the empty list's is plain
+  now, so the screen has one primary. Gates: editor unit 3,369, Chromium journeys 26, Home layout 82, editor-3d unit and DOM 2,932, Chromium layout (mouse and touch) 892, `pnpm check`.
+- **12.6, the unit a player can feel (session 19).** A ranged tunable may carry `unit` (text) and `scale` (a finite
+  number other than 0) beside `label` and `feel`; `-content`'s check accepts them and keeps them out of the values and
+  `tuning-meta.json` (a changeset). The Tuner shows the value times the scale in the unit and writes back the sim's
+  own number, snapped to the step (`tuner-display.ts`: `shownValue`, `rawValue`, `shownBounds`; the shown value keeps
+  as many decimals as one step changes, and a negative scale, Emberwick's upward jump speed shown as how hard Wick
+  jumps, puts the smaller bound first). The row's slider and box, the box's refusal ("Must be at most 180 px/s": the
+  kit's Stepper now names a bound in its unit), the value check's words (the label and the shown number, never the
+  constant's name or the sim's 768) and the inspector (value, range in the unit, a scaled whole number reads as a
+  number) all speak it. Emberwick's ten tunables carry them: speeds ×60/256 px/s, accelerations ×3600/256 px/s², tick
+  counts ×1/60 s (written 0.0166667; the snap to a whole tick absorbs the rounding); its "Further below zero jumps
+  higher" and "(60 is one second)" notes are gone, since the numbers now read as a player feels them. *Design choice:*
+  display only, never a second unit system in the sim (law 2) or the file: the file keeps whole subpixels so every
+  step stays exact in every engine. Gates: content unit 416, editor unit (suite, kit widgets) 323 including a scaled
+  row end to end (90 px/s shown, 100 typed writes 427, 500 refused in px/s, the inspector in px/s), Emberwick unit 109,
+  `pnpm check`. **12.6 is done.**
+- **12.5, part (session 19): the scan and the guide.** A Chromium journey (`tests/browser/journeys/2d/screen-words.test.ts`)
+  reads the rendered text of the Level, Map, Tiles and Characters views and the Characters Settings tab, for the
+  platformer and the top-down templates on an iPad, and fails on a package name (`editor-`), `af2d`, `.json`,
+  `checkout`, `Plus`, and the audit's words: project, workspace, entity, IntGrid, tunable, change set, gate, pivot. A
+  real browser, not jsdom, because only `innerText` says what is on screen. It found one: the templates' layer was
+  `Entities` (the Level view's layer row and "Paint with · Entities"); it is `Characters` now, the view's own word, and
+  Home's Details say `Characters` (a count, was "6 definitions") and `Tiles` (was Tilesets). The guide
+  (`docs/guides/editor.md`) is rewritten as open, draw, save, play, on a tablet, in plain words, titled "Draw levels in
+  the editor" (the audit's row). The suite page's Home and the Tuner get the same word list as a unit test over the
+  whole page's text (`textContent`, stricter than what is on screen); it passes as it stands. *Step 0, run (session 19):* every `.svelte` file in `packages/editor/src` opens with its
+  header comment; nine are over 300 lines, for 12.5 to split or the build audit to take: `EditorShell` 632,
+  `ReorderList` 432, `WorldView` 387, `EntityInspector` 374, `Stepper` 357, `Suite` 352 (12.7 asked for under 300: it
+  was 339 after session 15's split and the look added 13; its Publish, review and interchange wiring is the next
+  piece to leave), `RuleInspector` 341, `Picker` 333, `WorldInspector` 312. **Left for 12.5:** the splits above;
+  Step 1's grep of the editor's `.svelte` and `*-messages.ts` for strings not in `copy.md`; `Add field` and the field types' words (`int`) in the Characters Settings tab; the layer
+  row reads "Characters / Characters and items" (its name over its kind), which says one thing twice.
+- **12.5, the rest (session 20).** *The splits, by responsibility:* `Suite.svelte` 352 → 297 (Publish and
+  Export/Import, with what they read before they open, are `SuitePublish.svelte`; Undo, Redo and the label a routed
+  write records are `suite-history.svelte.ts`). `ReorderList.svelte` 432 → 166 (the move's state, keyboard and
+  pointer handlers and announcements are `reorder-session.svelte.ts`; the self-scroll near an edge is
+  `reorder-scroll.ts`; the drop preview's arithmetic is `previewOffsets` in `reorder-model.ts`, unit-tested).
+  `WorldView.svelte` 387 → 222 (the map's box, what covers it and the camera's fit are `world-fit.svelte.ts`; the
+  panel is `WorldPanel.svelte`; where the levels fall on screen is `levelsOnScreen` in `world-model.ts`,
+  unit-tested). *Deviation:* six files stay over 300 lines only because of their scoped styles; each one's script and
+  markup is under 300 (`EditorShell` 292 + 340 of CSS, `EntityInspector` 234 + 140, `Stepper` 262 + 95,
+  `RuleInspector` 222 + 119, `Picker` 230 + 103, `WorldInspector` 253 + 59). Moving a component's scoped CSS to a
+  plain stylesheet would make it global (`.body`, `.handle` would reach into every region's content), which is worse
+  than the length; the build audit decides. *Step 1, the grep:* the editor's `.svelte` text and `*-messages.ts`
+  read for format and jargon words; changed (rows in `copy.md`): the Settings tab's `Add field` → `Add setting` (and
+  its undo step), `No fields yet.` → `No settings yet.`, the type chips' format words (`int`, `enum`, `ref`, …) →
+  `Whole number`, `One of a list`, `Link to a thing`, … (`field-type-words.ts`); a layer row says its kind only when
+  its name does not already (`Characters` no longer sits over `Characters and items`); `Nothing in the project can be
+  its target.` and `Your project is safe.` say "this game" / "your game". Kept for the 3D slice: the kit's
+  `SourcesPanel` (`This workspace`, `game checkout`), which only the 3D editor's Home still uses. Gates: editor unit
+  (suite, kit widgets, map, characters, level, document, fields: 900+), `svelte-check` 0 errors, the lefthook unit run
+  across affected packages (308 s). **12.5 is done.**
+- **17.3, the read (session 20).** Over the 14 `tooling/*` packages (7,855 lines of source): `pnpm knip` finds no
+  unused file, export or dependency, but gave two stale configuration hints (`spikes/**` ignored though `spikes/` is
+  gone; `smol-toml` ignored though `-tools` imports it itself). Long files: `codemods/src/move-modules.ts` 557 and
+  `move-tests.ts` 469 (kept: the 3D and editor packages still move with them in the 3D slice), `consumer-smoke/src/run.ts`
+  342 (its `steps` list, 154 lines, is data: one entry per step a new author takes), `check-style/src/style.ts` 302.
+  Functions over 60 lines: the header and catalog parsers (`examples-runner` 82 and 70), the Vite plugin (78),
+  `defineTests` (77), `checkFrameBudget` (83), `checkSvelte` (71), the codemods' planners (123, 120): each one reads
+  top to bottom as a single pass with its whys beside it; splitting them would scatter one rule across files. No
+  single-implementation abstraction or forwarding layer beyond package entries. Missing explanations: one file,
+  `examples-runner/src/index.ts`. *Fixed:* that header; the two knip hints. Counts unchanged (no dead code found).
+  Gates: `pnpm knip` clean, `pnpm check`. **17.3 is done.**
+- **Phase 18, part (session 20): the look, Home and Start.** Built from the approved `site-home.html` (the Owner,
+  2026-11-06 20:31Z). *18.0's shared layout:* a new `Header.svelte` (the logo's lime square, Docs, Examples, Editor,
+  API, Search and Get started; below 760 px the links fold into an opaque Menu sheet, M4; Search shows `⌘K` only on a
+  fine pointer and is its icon alone on a phone, L1) and `Footer.svelte` (one `Reference` link, M6; no link to the
+  private repository, H2; the contact address unchanged, D8, as `Contact`). Their old global rules left `app.css`.
+  Site-wide: every `--pill`/`--radius*` corner is `--edge-sm/md/lg`, the buttons are the mockup's pair (flat lime with
+  an ink edge, a white secondary, 1 px lift on a fine pointer), glass (`backdrop-filter`), glow, flutes and cobalt are
+  gone, and the field is the mockup's off-white. `app.css` 2,249 → 1,160 lines (the old Home's, Start's and the
+  header's rules dropped by a selector-aware script; nothing still uses them). *18.2 Home*
+  (`site/src/features/home/`): one claim and Emberwick (the `DemoRunner`, which now shows its controls only while it
+  plays and whose Play is the white secondary, so the page has one lime primary per screen, Step G), three reasons,
+  the shapes example's lines beside `ShapesPreview` (a canvas drawing of what those lines do, by the example's own
+  rules, still on reduced motion and paused off screen; a drawing, not the framework, so Home carries no game bundle),
+  the editor in two real screenshots of `automata editor` on Emberwick (wide and phone, `static/previews/editor*`),
+  the four targets with the commands `automata ship` accepts, and one closing ask. `home-content.ts` holds every claim;
+  its test reads the example's file, `cli-args.ts`'s usage and the four targets. Emberwick's characters layer was
+  labelled `Entities` (its room file, not the templates); it is `Characters`. *18.2 Start*
+  (`site/src/features/start/`): four steps, each one command and what you see (create-game, what it prints next, the
+  editor's, the web guide's; the test reads those files), the other targets' guides, and "Using a coding agent" with
+  the existing agent setup folded. Quick Start's doc says the same four commands. *Cut with the old Home:* the source
+  explorer, its `/sources/*.json`, `home-sources`, `projects`, `project-types` and the `virtual:framework/sources`
+  module (the "Sources" row of 18.1). *Left for 18.1:* the AI, Showcase and Cheatsheet routes and their data, which
+  `llms.ts`, `site-docs.ts` and the search menu still read; the redirects; the move to `features/`. *Left for 18.2:*
+  Step V's first example (H5) and phone-landscape fold (M3). Gates: site unit 347, `svelte-check` 0, `pnpm knip`
+  clean, the site builds (57 pages).
+- **Phase 18, part (session 21): 18.1, 18.2's Step V and 18.3.** *18.1:* the AI, Showcase and Cheatsheet routes,
+  their data (`ai-guidance`, `cheatsheet`, `showcase`) and tests are cut (Community, Inside, Proof, Releases and
+  Sources had already gone). Search (`features/search/CommandMenu.svelte`) lists the pages, the examples and the
+  guides (the layout passes the guides in, since a feature never imports another) and finds API names only in the
+  generated index; `llms.txt` and `llms-guides.txt` link only pages that exist. `features/redirects/redirects.ts`
+  maps every cut address (and `/editors` → `/editor`) to the page that took its place, and
+  `scripts/write-redirects.ts` writes one static page per address after the build (a meta refresh and a link, no
+  script, `noindex`); `builtPages` skips them, so the sitemap and the page checks never see them. `/ai` and `/inside`
+  point at `/docs/how-it-works`, which 18.4 writes. *The move:* `src/lib/` and `src/data/` are gone: shared
+  components, the HTML hooks (`shared/html/`: CSP, hydration, preloads, security headers, text files), the site
+  config, the utilities, the framework readers (`shared/framework/`: the example catalog and the API reference join
+  the readers already there) and the content two features share (`shared/content/`: the agent setup, the targets);
+  each page's body and data under `features/<page>/` (home, start, examples, playground, editor, docs, api, legal,
+  search, redirects); every route is a thin wrapper. The example page takes the playground as `children` from its
+  route, so `examples` never imports `playground`. Dead code cut on the way: `CreativeStarts`, `LazyPicture` (no page
+  used them; 4 tests), `examples.json` (a stale copy; the tests read `examples/2d` itself). *Boundaries:*
+  `automata-check-boundaries --features site --components` (new flag) reads `.svelte` files too: 0 findings over 99
+  files. The flag is opt-in because the editor's views cross features in 11 places (`view-props` from `document` in
+  six views, `inspector-model` from `level` in `map`, and `DocumentFrame` importing `app/`, `problems` and `share`),
+  a finding for the build audit. *Stale e2e tests fixed:* session 20's new header and Home left 15 site e2e tests on
+  the old names ("Make your first change", the Showcase and AI links, `.lazy-picture`); they now test the new page,
+  and the editor screenshot ships an 800 px WebP beside the 1600 px one (it was drawn at 718 px). *18.2 Step V:*
+  `core-basic-window` paints a field and "Your game runs here." (H5); on a phone on its side the example's preview
+  comes before its facts and Home's words and Emberwick sit side by side (M3). *18.3:* `/editor` (was `/editors`)
+  shows the editor in three real screenshots with captions, "Try the editor" (`/editor/app/`) and the command for a
+  game; the suite list with unreleased editors and Plus is gone. `build-demos.ts` copies `packages/editor/dist/2d`,
+  which now names its files relative to its page (`base: './'`), so the one build runs at `/` under `automata editor`
+  and at `/editor/app/` here. The editor asks its origin `/api/ping` whether it is served; the site answers
+  `{"automata":"site"}` (a prerendered route), so it opens browser storage with no 404 in the console. The security
+  headers give `/editor/app/` the demos' whole policy. Privacy says the try-it editor keeps levels in this browser
+  (Step V, L8). Deviation: the pictures are screenshots of the real editor (Level, New level, phone), not of the
+  design board, which shows components rather than what the editor does.
+- **Phase 18, part (session 22): 18.4, 18.5 and the end of 18.0.** *18.4:* `docs/guides/index.md` lists the guides
+  in order and `readGuides` reads only what it lists (a listed guide that is missing stops the build; one not listed
+  stays off the site). `docs/guides/how-it-works.md` is new: the four packages, ticks, the same game every time,
+  drawing, the runtime around the sim, the four targets and no `eval`, in plain words (no Effect: the runtime has
+  none since the core slice). The site's own docs (`site-docs.ts`, `deep-docs.ts`, `migrations.ts`, `audience.ts`:
+  overview, quick start, five "From <engine>" pages, FAQ, Plus, saves and the rest, which described an Effect runtime
+  and "planned" features) are gone; their 20 addresses redirect (How it works, Start, Terms or Home), pinned in
+  `tests/unit/docs/docs.test.ts`. The docs page has one "Guides" list (no search box of its own, six guides), 44 px
+  rows. `llms-guides.txt` lost its "golden rules" (they named Effect). The API: one page per published package (the
+  four, pinned); Step V: each entry point and each export folds to a row, so the longest page is 1.5 phone screens,
+  and a search link opens the folds around its export. Deviation: no separate jump list; the folded group rows are
+  the jump list (a second list repeated them). *18.5, the read (17.3's checks):* knip clean over the site; files over
+  300 lines: `scripts/site-checks.ts` 589, `Home.svelte` 553 (150 of markup, the rest its scoped CSS), `Playground.svelte`
+  359; functions over 60 lines: `parseMarkdown` 152, `createOrchestrator` 145 (one closure over the run's state, read
+  top to bottom; kept), `checkSite` 91 (one page loop; kept); 13 files without a header comment; dead code:
+  `isEditing` (its caller was the docs' search box) and nine CSS rules for classes no page uses (`.ownership`,
+  `.rules-list`, `.filters`, `.ai-page`, `.api-module`, `.community-games`, `.onboarding-depth`, `.showcase-submit`,
+  `.task-prompt`); a behaviour bug found by the read: the Markdown reader split a wrapped list item into an item and a
+  paragraph, and a code block under a numbered step split the list (on the live editor, itch.io and desktop guides).
+  *Fixed, one concern per commit:* the dead CSS (with 18.4); tests regrouped (26 flat files and the playground's unit
+  tests into `tests/unit/<feature>/`, 61 files and 331 tests before and after); `parseMarkdown` as one reader per
+  block, lists that wrap and hold code, one `headingId`; header comments, `isEditing` and its test out, the agent
+  setup into `features/start`, `site/README.md`; `site-checks.ts` split by subject into `site-checks/` (copy, assets,
+  javascript, pages; 163 lines left). *18.0:* the audit rerun (section 6 of the site visual audit) counts 30 targets
+  under 44 px (was 4,938), all on Start; fixed, and `site.e2e.ts` now holds every page to it at the six sizes, with
+  the touch hint and the opaque menu. M2 has no browser rule (checked by eye). Gates: site unit 334, `svelte-check`
+  0, `check:site` passes, `pnpm knip` clean, the full Chromium site suite 330 of 330 (before the 13 new rules, which
+  pass).
+- **Phase 13 (session 22): the editor's journeys.** *13.1:* `packages/editor/playwright.journeys.config.ts` (projects
+  `editor-ipad-chromium`, `editor-phone-chromium`, `editor-ipad-webkit`), the harness in `tests/e2e/harness/`
+  (`temp-game`, `run-editor`, `run-game`, `canvas-pointer`, `fixtures`, `new-game`), and `LevelCanvas` publishes the
+  camera it drew (`data-camera`) so a journey taps a cell where it is. `turbo.json` runs `test:e2e` after the tools'
+  build; `ci.yml`'s `e2e-2d` runs it. *13.2:* the three journeys of spec section 9. The game is read through
+  Emberwick's `#game[data-content-hash]` (it has no `window.__` hook). First attempts: the Save journey failed (the
+  game never reloaded: the content plugin watched only Vite's root, and the journey's content is a temp copy; fixed in
+  `-content` with a test and a changeset); the conflict journey failed (the level file was written although the
+  project's write was then refused, leaving the two out of step; a guarded save with files ahead of it now checks
+  the document's own version first, with a unit test); drift passed. The conflict dialog's button is "Use mine" (the
+  spec's "Keep mine" is its old name). *13.3:* deviation: the new-game journey runs `create-game` with the
+  repository's built tools and borrows Emberwick's installed packages (a symlink) instead of packing and installing:
+  the pack and install are the stranger's journey's, and repeating them here would add minutes for no new proof. It
+  "sees it in the game" through the game's dev server's compiled content module, which now holds the wall; the game
+  restarting on new content is the Save journey's proof. The suite journey runs at iPad size only: the suite's phone
+  top bar leaves out the game's name, and its layout is the 3D slice's (D3). Seen there for that slice: Levels 2D
+  lists the room twice as "Room 1" (the project and its exported level). Gates: the journeys 11 pass, 1 skip
+  (Chromium, iPad and phone; WebKit not installed, the Owner's); editor unit 3385, editor-3d unit and dom 2932,
+  content unit 415; `pnpm check` passes.

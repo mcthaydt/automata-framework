@@ -42,6 +42,33 @@ export async function horizontalOverflow(page: Page): Promise<string[]> {
   })()`)
 }
 
+/**
+ * Links and buttons a finger cannot hit: under 44 px tall or wide, or under 48 px tall for the lime primary
+ * (`.button`). A link inside a sentence is exempt (it is as tall as its line, and WCAG 2.5.8 exempts it); so is a
+ * checkbox, whose whole label is the target.
+ */
+export async function smallTapTargets(page: Page): Promise<string[]> {
+  return page.evaluate(`(() => {
+    ${DESCRIBE}
+    const visible = element => {
+      const box = element.getBoundingClientRect()
+      const style = getComputedStyle(element)
+      return box.width > 0 && box.height > 0 && style.visibility !== 'hidden'
+    }
+    const inSentence = element =>
+      getComputedStyle(element).display === 'inline' && element.closest('p, li, td, dd, blockquote') && !element.closest('nav, header, footer')
+    return Array.from(document.body.querySelectorAll('a[href], button, summary, select'))
+      .filter(element => visible(element) && !inSentence(element))
+      .filter(element => {
+        const box = element.getBoundingClientRect()
+        const tall = element.matches('.button') ? 48 : 44
+        return Math.round(box.height) < tall || Math.round(box.width) < 44
+      })
+      .slice(0, 10)
+      .map(element => describe(element) + ' ' + Math.round(element.getBoundingClientRect().width) + 'x' + Math.round(element.getBoundingClientRect().height))
+  })()`)
+}
+
 export async function cookieNames(context: BrowserContext): Promise<string[]> {
   return (await context.cookies()).map((cookie) => cookie.name).sort()
 }

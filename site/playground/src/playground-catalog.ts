@@ -1,6 +1,6 @@
 import { type CatalogEntry, isUnpublishedExtension } from '@mcthaydt/examples-runner/catalog'
 import type { HostSettings } from '@mcthaydt/examples-runner/header'
-import { exampleModulePath } from '../../src/lib/playground/protocol.ts'
+import { exampleModulePath } from '../../src/features/playground/protocol.ts'
 
 /** One example as the site shows it (`catalog.json`). */
 export interface PlaygroundExample {

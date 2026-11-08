@@ -1239,15 +1239,6 @@ interface Recovery {
 component from '../shared/kit/dialogs/RecoveryDialog.svelte'
 ```
 
-### `recoveryFacts` (function)
-
-```ts
-function recoveryFacts(path: string, recovery: Recovery, now: number, timeZone?: string): readonly {
-    readonly label: string;
-    readonly value: string;
-}[];
-```
-
 ### `recoveryUnreadable` (function)
 
 ```ts
@@ -1425,10 +1416,19 @@ type SelectionId = string | number;
 type ShellMode = 'wide' | 'medium' | 'compact';
 ```
 
+### `shellModeAt` (function)
+
+```ts
+function shellModeAt(geometry: Pick<Geometry, 'layout' | 'keyboardResize'>): ShellMode;
+```
+
 ### `shellModeOf` (function)
 
 ```ts
-function shellModeOf(formFactor: FormFactor): ShellMode;
+function shellModeOf(size: {
+    readonly width: number;
+    readonly height: number;
+}): ShellMode;
 ```
 
 ### `ShellRegion` (type)
@@ -2383,15 +2383,6 @@ interface Recovery {
     readonly savedAt: number;
     readonly baseChanged: boolean;
 }
-```
-
-### `recoveryFacts` (function)
-
-```ts
-function recoveryFacts(path: string, recovery: Recovery, now: number, timeZone?: string): readonly {
-    readonly label: string;
-    readonly value: string;
-}[];
 ```
 
 ### `recoveryUnreadable` (function)
@@ -4375,7 +4366,7 @@ function createSuite(options: {
 ### `createTuner` (function)
 
 ```ts
-function createTuner(): SuiteEditor<TunerSuiteSession>;
+function createTuner(options?: TunerOptions): SuiteEditor<TunerSuiteSession>;
 ```
 
 ### `Levels2dOptions` (interface)
@@ -4459,6 +4450,8 @@ interface SuiteEnv {
     readonly ports: SuitePorts;
     readonly suite: Suite;
     readonly sample?: boolean;
+    readonly game?: string | undefined;
+    readonly clock?: GestureClock | undefined;
 }
 ```
 
@@ -4475,6 +4468,7 @@ interface SuiteHandle {
 ```ts
 interface TunerSuiteSession {
     readonly controller: TunerController;
+    readonly gameUrl: string | undefined;
 }
 ```
 

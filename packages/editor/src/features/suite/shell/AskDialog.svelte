@@ -168,7 +168,7 @@ function ask(): void {
     background: linear-gradient(to right, var(--color-accent-default) var(--fill), var(--color-bg-field) var(--fill));
   }
   textarea {
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: var(--space-2);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--edge-sm);

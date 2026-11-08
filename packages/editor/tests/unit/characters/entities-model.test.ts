@@ -35,7 +35,7 @@ function withSlimes(count: number): Project {
 }
 
 describe('the Entities panel rows', () => {
-  it('lists each definition with its colour, field count, shape and whether it is single', () => {
+  it('lists each definition with its colour, and says when a level holds only one', () => {
     const rows = definitionRows(platformer())
     expect(rows.map((row) => row.id)).toEqual([
       'player-start',
@@ -49,10 +49,10 @@ describe('the Entities panel rows', () => {
       id: 'player-start',
       label: 'Player start',
       color: '#22c55e',
-      summary: '0 fields · rect · single',
+      summary: 'One per level',
     })
-    expect(rows[1]?.summary).toBe('3 fields · rect')
-    expect(rows[3]?.summary).toBe('1 field · rect')
+    expect(rows[1]?.summary).toBe('')
+    expect(rows[3]?.summary).toBe('')
   })
 
   it('lists the level fields of every template', () => {
@@ -143,8 +143,8 @@ describe('the definition preview', () => {
     expect(preview.scale).toBe(8)
     expect(preview.box).toEqual({ w: 128, h: 192 })
     expect(preview.pivot).toEqual({ x: 64, y: 192 })
-    expect(preview.sizeText).toBe('rect 16×24 px')
-    expect(preview.pivotText).toBe('pivot 0.5, 1')
+    expect(preview.name).toBe('Player start')
+    expect(preview.sizeText).toBe('Box, 16 × 24 px')
   })
 
   it('scales a large shape down to fit, never below 1', () => {
@@ -157,9 +157,9 @@ describe('the definition preview', () => {
   })
 
   it('counts the instances and the levels they are in', () => {
-    expect(definitionPreview(platformer(), 'slime', room).instances).toBe('no instances')
-    expect(definitionPreview(platformer(), 'player-start', room).instances).toBe('1 instance · 1 level')
-    expect(definitionPreview(withSlimes(2), 'slime', room).instances).toBe('2 instances · 1 level')
+    expect(definitionPreview(platformer(), 'slime', room).instances).toBe('Not in any level yet')
+    expect(definitionPreview(platformer(), 'player-start', room).instances).toBe('1 placed in 1 level')
+    expect(definitionPreview(withSlimes(2), 'slime', room).instances).toBe('2 placed in 1 level')
   })
 
   it('carries the tile the definition draws with', () => {

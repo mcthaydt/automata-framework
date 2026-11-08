@@ -80,7 +80,8 @@ describe('Suite editing', () => {
   it('the first edit asks for a title, then writes, and the pills show the change set, checks and gates', async () => {
     const ports = await memory()
     await start(ports)
-    expect(screen.getByRole('button', { name: 'No change set' })).toBeInTheDocument()
+    // No change set yet: the pill has nothing to say, so it is not shown until the first edit opens one.
+    expect(screen.queryByRole('button', { name: 'No change set' })).toBeNull()
     await userEvent.click(screen.getByRole('button', { name: 'Raise speed' }))
     const dialog = await screen.findByRole('dialog', { name: 'Name this change' })
     await userEvent.type(within(dialog).getByRole('textbox', { name: 'Title' }), 'Faster')

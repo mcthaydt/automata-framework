@@ -38,11 +38,22 @@ function readGuide(dir: string, file: string): Guide {
   }
 }
 
-/** Every guide in `docs/guides/`, by file name. */
+/** The files `docs/guides/index.md` links to, in its order: `[How it works](./how-it-works.md)` is `how-it-works.md`. */
+function listedGuides(dir: string): string[] {
+  const index = readFileSync(join(dir, 'index.md'), 'utf8')
+  return [...index.matchAll(/\]\(\.\/([a-z0-9-]+\.md)\)/g)].map((link) => link[1])
+}
+
+/**
+ * Every guide `docs/guides/index.md` lists, in its order: the docs' nav, search and agents' text all read this list.
+ * A guide the index does not list stays out of the site (a draft can sit in the folder); a listed guide that is
+ * missing stops the build, so a rename cannot drop a page without anyone noticing.
+ */
 export function readGuides(root: string = repositoryRoot): Guide[] {
   const dir = join(root, 'docs/guides')
-  return readdirSync(dir)
-    .filter((file) => file.endsWith('.md'))
-    .sort()
-    .map((file) => readGuide(dir, file))
+  const present = new Set(readdirSync(dir))
+  return listedGuides(dir).map((file) => {
+    if (!present.has(file)) throw new Error(`docs/guides/index.md lists ${file}, which does not exist`)
+    return readGuide(dir, file)
+  })
 }

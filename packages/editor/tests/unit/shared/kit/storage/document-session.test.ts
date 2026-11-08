@@ -60,6 +60,7 @@ async function setup(
     exists?: boolean
     deviceOnly?: boolean
     serializeFile?: DocumentSessionOptions<State>['serializeFile']
+    beforeSave?: DocumentSessionOptions<State>['beforeSave']
   } = {},
 ) {
   const clock = createTestClock(START)
@@ -85,6 +86,7 @@ async function setup(
     deviceOnly: options.deviceOnly ?? false,
     clock,
     onproblem: (problem) => problems.push(problem),
+    ...(options.beforeSave === undefined ? {} : { beforeSave: options.beforeSave }),
   })
   const statuses: SaveState[] = []
   session.subscribe(() => statuses.push(session.status))
@@ -163,6 +165,19 @@ describe('document session: saving', () => {
     expect(session.status).toBe('saved')
     edit(2)
     expect(await session.save()).toEqual({ status: 'saved', path: PATH })
+  })
+
+  test('a file changed on disk stops the save before the files written ahead of it are touched', async () => {
+    const before = vi.fn(async () => undefined)
+    const { session, edit, store, clock } = await setup({ beforeSave: before })
+    clock.advance(500)
+    await store.write(PATH, 'hand edit')
+    edit(1)
+    expect(await session.save()).toEqual({ status: 'conflict' })
+    expect(before).not.toHaveBeenCalled()
+    // Keep mine writes them all.
+    expect(await session.overwrite()).toEqual({ status: 'saved', path: PATH })
+    expect(before).toHaveBeenCalledWith('overwrite')
   })
 
   test('a file removed from under it is a conflict too', async () => {
@@ -392,7 +407,7 @@ describe('document session: the journal', () => {
     const found = await findRecovery(store, journal, PATH)
     expect(found).toMatchObject({ payload: '{"n":3}', baseChanged: false })
     const reopened = createHistory<State>({ n: 0 })
-    reopened.apply('Restore autosave', () => JSON.parse(found?.payload ?? '{}') as State)
+    reopened.apply('Keep changes from last time', () => JSON.parse(found?.payload ?? '{}') as State)
     expect(reopened.state).toEqual({ n: 3 })
     expect(reopened.revision).not.toBe(reopened.cleanRevision)
     await discardRecovery(journal, PATH)

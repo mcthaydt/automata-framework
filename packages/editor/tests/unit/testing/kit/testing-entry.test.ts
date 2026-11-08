@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { shellModeOf } from '#src/shared/kit/shell/shell-mode.ts'
+import { shellModeAt } from '#src/shared/kit/shell/shell-mode.ts'
 import { REST, SIZES, stubGeometry } from '#src/testing/kit/index.ts'
 
 // `@mcthaydt/automata-editor-kit/testing` is what the editors' component tests build their geometry from, so there is
@@ -9,11 +9,11 @@ describe('the testing entry', () => {
   it('gives a geometry measured the way the owner measures, which a test can resize', () => {
     const geometry = stubGeometry(1194, 834)
     expect(geometry.current.layout).toEqual({ width: 1194, height: 834 })
-    expect(shellModeOf(geometry.current.formFactor)).toBe('wide')
+    expect(shellModeAt(geometry.current)).toBe('wide')
     geometry.resize(834, 1194)
-    expect(shellModeOf(geometry.current.formFactor)).toBe('medium')
+    expect(shellModeAt(geometry.current)).toBe('medium')
     geometry.resize(390, 844)
-    expect(shellModeOf(geometry.current.formFactor)).toBe('compact')
+    expect(shellModeAt(geometry.current)).toBe('compact')
   })
 })
 
@@ -30,7 +30,7 @@ describe('the layout sizes', () => {
       'phone-landscape 844x390',
     ])
     for (const size of SIZES) {
-      expect(shellModeOf(stubGeometry(size.width, size.height).current.formFactor), size.name).toBe(size.mode)
+      expect(shellModeAt(stubGeometry(size.width, size.height).current), size.name).toBe(size.mode)
     }
     expect(REST.name).toBe('rest')
   })

@@ -1527,7 +1527,7 @@ const RUKEN_SDK_MARKERS: readonly string[];
 ### `runGame` (function)
 
 ```ts
-function runGame<S>(game: GameDefinition<S>): RuntimeHandle;
+function runGame<S>(game: GameDefinition<S>, start?: StartOptions): RuntimeHandle;
 ```
 
 ### `RuntimeFacts` (interface)
@@ -1604,6 +1604,7 @@ interface RuntimeFacts {
 
 ```ts
 interface RuntimeHandle {
+    readonly screen: string | undefined;
     shutdown(): Promise<void>;
 }
 ```
@@ -1986,7 +1987,15 @@ interface SpriteViewOptions {
 ### `startGame` (function)
 
 ```ts
-function startGame<S = never>(game: GameSpec<S> | DefinedGame<S>): RuntimeHandle;
+function startGame<S = never>(game: GameSpec<S> | DefinedGame<S>, start?: StartOptions): RuntimeHandle;
+```
+
+### `StartOptions` (interface)
+
+```ts
+interface StartOptions {
+    readonly at?: string | undefined;
+}
 ```
 
 ### `StepResult` (interface)
@@ -2222,6 +2231,7 @@ function checkLayout(conditions: Conditions, essentials: readonly Element[]): st
 interface Conditions {
     readonly geometry: Geometry;
     readonly reserved: LayoutRect[];
+    readonly targets: Targets;
 }
 ```
 
@@ -2633,7 +2643,7 @@ function pressedPart(control: HTMLElement): HTMLElement;
 ### `publishConditions` (function)
 
 ```ts
-function publishConditions(root: HTMLElement, size: ReferenceSize, variant: Variant): Conditions;
+function publishConditions(root: HTMLElement, size: ReferenceSize, variant: Variant, targets?: Targets): Conditions;
 ```
 
 ### `REFERENCE_SIZES` (const)
@@ -2721,6 +2731,15 @@ interface Submission {
 }
 ```
 
+### `Targets` (interface)
+
+```ts
+interface Targets {
+    readonly hit: number;
+    readonly primary: number;
+}
+```
+
 ### `textSnippet` (function)
 
 ```ts
@@ -2731,6 +2750,12 @@ function textSnippet(text: string, tag?: string, trusted?: boolean): Snippet;
 
 ```ts
 const TIGHT_SIZES: readonly ReferenceSize[];
+```
+
+### `TOUCH_TARGETS` (const)
+
+```ts
+const TOUCH_TARGETS: Targets;
 ```
 
 ### `TrackedEvent` (interface)

@@ -40,7 +40,25 @@ export default defineTests({
   alsoInNode: ['tests/browser/parity/**/*.test.ts'],
   browserProjects: [
     { name: 'parity', folder: 'parity', engines: ['chromium', 'webkit', 'firefox'] },
-    { name: 'layout', folder: 'layout', engines: ['chromium', 'webkit', 'firefox'] },
+    {
+      name: 'layout',
+      folder: 'layout',
+      engines: ['chromium', 'webkit', 'firefox'],
+      // The editors are 32 px dense with a mouse and keep the touch rule (44 px, a primary 48) with a finger
+      // (`tool-chrome.css`). Every engine runs the layout with a mouse; Chromium runs it again with touch, the only
+      // engine whose touch emulation also turns the pointer media queries coarse.
+      instance: (engine) =>
+        engine === 'chromium'
+          ? [
+              { browser: engine },
+              {
+                browser: engine,
+                name: 'layout (chromium, touch)',
+                provider: playwright({ contextOptions: { hasTouch: true } }),
+              },
+            ]
+          : { browser: engine },
+    },
     {
       name: 'storage',
       folder: 'storage',
