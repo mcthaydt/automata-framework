@@ -22,7 +22,8 @@
     "dev": "vite --open /suite.html",
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
-    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@automata/audio-synth": "workspace:*",
@@ -36,7 +37,9 @@
     "zod": "4.6.6"
   },
   "devDependencies": {
+    "@automata/playwright-preset": "workspace:*",
     "@automata/vitest-preset": "workspace:*",
+    "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",

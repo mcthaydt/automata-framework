@@ -705,6 +705,12 @@ interface FolderStore extends ProjectStore {
 }
 ```
 
+### `GameFrame` (svelte)
+
+```ts
+component from '../features/suite/tuner/ui/TunerGame.svelte'
+```
+
 ### `GestureClock` (interface)
 
 ```ts

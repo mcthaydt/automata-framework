@@ -152,3 +152,27 @@ describe('Schematic', () => {
     expect(session.problems.length).toBeGreaterThan(0)
   })
 })
+
+describe('Schematic’s Undo', () => {
+  it('is on after a change to what a character sees, and puts the number back', async () => {
+    const { session } = await open({ 'content/systems/hall.toml': HALL, 'content/nav/hall.toml': NAV })
+    const undo = createSchematic().undo?.(session)
+    expect(undo?.canUndo()).toBe(false)
+    const sight = session.def?.agents[0]?.senses.find((sense) => 'sight' in sense)
+    expect(sight).toBeDefined()
+    await session.setItem(
+      'Sees up to',
+      'senses',
+      0,
+      session.def?.agents[0]?.senses.indexOf(sight as never) ?? 0,
+      {
+        sight: { range: 7 },
+      },
+    )
+    expect(session.def?.agents[0]?.senses[0]).toMatchObject({ sight: { range: 7 } })
+    expect(undo?.canUndo()).toBe(true)
+    await undo?.undo()
+    expect(session.def?.agents[0]?.senses[0]).toMatchObject({ sight: { range: 4.5 } })
+    expect(undo?.canUndo()).toBe(false)
+  })
+})

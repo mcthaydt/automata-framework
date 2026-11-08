@@ -18,8 +18,6 @@ interface FigureKinds {
   readonly 'figure-rig'?: MotionLibrary['rigs']
 }
 
-export type { Kind }
-
 /**
  * How every character the systems move looks: the base woman from 3D core, walking Wick's gait while the sim says it
  * is walking. Her swatches are core's; the gait comes from the game's content, as Wick's does.

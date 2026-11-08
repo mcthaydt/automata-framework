@@ -214,19 +214,19 @@ template's controls. It moves no other 3D hash, golden or replay.
 
 **Files:** `examples/3d-story/**`; `examples/3d-story/tests/e2e/schematic-in-play-3d.test.ts`.
 
-- [ ] **Step 1: Failing unit test** in the example: a scripted run hashes the same twice in Node; the guard patrols.
-- [ ] **Step 2: Failing journey** (Chromium; the GPU runner for the 3D workflow): steps 1 to 5 of Task 14 on this
+- [x] **Step 1: Failing unit test** in the example: a scripted run hashes the same twice in Node; the guard patrols.
+- [x] **Step 2: Failing journey** (Chromium; the GPU runner for the 3D workflow): steps 1 to 5 of Task 14 on this
   game, plus Watch: open Watch, step the player into sight, and the diagram lights Hunt and logs the switch.
-- [ ] **Step 3:** Pass; record the scene's hash in Node; report which engines ran. **Step 4:** Commit
+- [x] **Step 3:** Pass; record the scene's hash in Node; report which engines ran. **Step 4:** Commit
   `test(examples): AI edited in Schematic changes a 3D game`.
 
 ### Task 16: The sample journey, template, docs and the gate
 
 - [x] `create-game`'s template `editors.toml` gains the systems, nav and puzzle rows (test in `packages/tools`).
-- [ ] Journey on the sample page: open Schematic, change the guard's sight, the file changes, Undo.
-- [~] The systems README gains "Editing characters in Schematic" (where a character starts, places, Watch, Fair
+- [x] Journey on the sample page: open Schematic, change the guard's sight, the file changes, Undo.
+- [x] The systems README gains "Editing characters in Schematic" (where a character starts, places, Watch, Fair
   play's scene module); `docs/refactor/progress.md` and this log updated.
-- [ ] `pnpm format`, `pnpm check`; the log below records what ran (Node, Chromium) and what did not (WebKit, Firefox,
+- [ ] (see the log: `pnpm format` and `pnpm check` results) `pnpm format`, `pnpm check`; the log below records what ran (Node, Chromium) and what did not (WebKit, Firefox,
   the GPU journeys on the runner).
 
 ## Log
@@ -287,3 +287,52 @@ template's controls. It moves no other 3D hash, golden or replay.
   without a model for a call, and an answer that threw would help nobody. Cost if wrong: an answer can say yes where a
   call would have closed a way. Not done: renaming an item or a fact, editing hotspots and ways in (read only). Editors unit 384
   pass.
+
+- 2026-11-08, Task 15 (3D served journey) done: `examples/3d-story`, a private hall with a guard (a level, a nav graph,
+  a puzzle, a behaviour file, the editor list with Levels 3D, Studio, the Tuner and Schematic). The guard is the base
+  woman figure, drawn from the sim. Unit (5 pass): the guard patrols to the first stop, stays in Patrol 3 s with no
+  mode change, hunts a player in its path, hunts within 1 s when the file's sight is 7, and the same run hashes the
+  same twice (Node scene hash after 8 s: `1addc88c39a912bf`). Journey (`pnpm test:e2e` there, Chromium, phone and iPad,
+  12 of 12 pass): `automata editor` serves the suite and the game's dev server plays; each step edits through the
+  editors' own controls and reads the file (`range = 7`, `hunt = 3.5`, the switch pointing at Search, a Sentry added),
+  then plays and reads the sim through the debug window: no change in 3 s; Hunt within 60 ticks; 3.5 m in the first
+  second of Hunt; the first change is to Search; the Sentry exists at its place and sounds the alarm; Watch lights Hunt and logs
+  "0.5 s: guard went from Patrol to Hunt". Screenshots looked at (not committed, `test-results/`): `watch-hunt` shows
+  the game beside the diagram with the two figures close and the log's two lines; `5-sentry-alarm` shows the player at
+  the sentry's place; the others show the editors after each edit. Mutation check: with sight left at 4.5 step 2 fails.
+  Not run: WebKit, Firefox, the GPU runner, parity, `.github/workflows/3d.yml` (this change adds a step for this example's
+  `test:e2e` after the base-3d and examples-3d steps; it has not run in CI). Rulings: the puzzle has two facts, `lamp` and `alarm`, because the Sentry preset sets `alarm` and the
+  puzzle would refuse an unknown fact (the plan said one) — cost if wrong: one extra fact. The tests for the game were
+  written after the game (the plan's Step 1 order), with the mutation check in place of a watched RED. The game's
+  `vite.config` relies on the content plugin's own `__AUTOMATA_DEBUG__` (true on the dev server) instead of `debugBuild`.
+  The Watch pane needed no change in debug beyond the game installing the debug extension.
+- 2026-11-08, found while making the game: (1) the content editors page opened only the sample game, never the game it was served
+  on; `openContentSuite` now opens the served checkout and falls back to the sample (tests). (2) The ready-made character
+  picker pushed the rail wider than a phone and an iPad rail; fixed with a RED browser layout test
+  (`schematic-panel-layout.test.ts`: phone rail 240 px, iPad rail 263 px). (3) `contentEditors` now passes the game's address,
+  so Watch works in a served game.
+- 2026-11-08, Task 16: sample-page journey done (`extensions/editors`, `pnpm test:e2e`, phone and iPad, Chromium, 2 pass):
+  Schematic on the in-memory sample game, the guard's "Sees up to" 4.5 to 7, the first change asks for a title as every
+  first change does, "Undo Change what it notices" puts 4.5 back. Its first run failed because the title prompt was
+  not answered; that is the page working, not a defect. A unit test now also holds that Schematic's Undo hook is on after
+  an edit and puts the number back. The systems README says what Schematic does today, including Watch's need for the
+  debug extension and the `fair-play` check convention.
+- 2026-11-08, NOT DONE, and why: Task 14 (2D served journey) and the 2D half of Task 8 (`presets-2d.test.ts`) need the
+  content-in-play work (spec AF PR #479, Tasks 10 to 15 there), which is not built: a 2D level's characters are not in play
+  yet, so a 2D game cannot show a Schematic edit. Fair play in a served game (Task 14 step 6, and the equivalent in
+  Task 15) is also not proven: `automata editor` serves `/api` ping, list, file and publish only and has no checks runner, so
+  "Check now" has nothing to run there; no example game declares a `fair-play` check or a scene module for the bots.
+  Deferred minors: the Home list shows three identically named "Hall" entries (the systems, nav and puzzle files) with no
+  hint which is which (core `packages/editor` home list); the served suite page for the content editors shows "Not in this
+  build" for Levels 3D and Studio; debug's overlay on a late host install is unchanged.
+- 2026-11-08, the gate (Task 16's last step), `pnpm check` run piece by piece because it stops at its first failure:
+  `pnpm lint`, `typecheck`, `boundaries` and `style` pass. `pnpm source-names` FAILS on 5 findings in files this branch
+  does not touch (`examples/3d/characterkit/characterkit-wardrobe.ts:3`, `examples/3d/wardrobe/wardrobe.extension.ts:3`, three
+  lines of `packages/automata/.../SettingsScreen.svelte`); it was failing before this session's work and is for whoever owns
+  those files. After it, run by hand: `pnpm knip` (found `examples/2d-story/ship.config.ts` and the 3D story's, and an
+  unused export in `guard.view.ts`: the config files are now entries in `knip.jsonc`, the export is gone; clean),
+  `pnpm check:changesets` passes, `pnpm test:unit` had one failure, the committed API report for `@automata/editor` (it lacked
+  `GameFrame`, exported in Task 11): `pnpm build` then `pnpm api-report --update` added its 6 lines, and the api-report tests
+  pass (43). `pnpm api-index --write` could not run (an extension's `dist` is not built here) and is not needed: `editor` is
+  private. Not run: WebKit, Firefox, the GPU runner, parity, the 2D journeys (no 2D example is touched), `pnpm agent-skills`.
+  Final review: self-review (no subagent tool).
