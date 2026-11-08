@@ -37,7 +37,6 @@ Every external dependency in AF is pinned to an exact version. AF owns its pins 
 | `fontkit` | 2.0.4 | 2026-10-18 | Reads a font subset back for the glyph-coverage gate in `automata-content assets`. Only the `./assets` subpath imports it, so it stays out of browser graphs |
 | `knip` | 6.39.0 | 2026-10-16 | Unused files, exports and dependencies in `pnpm check` (`knip.jsonc`); a 2-week-old release when added |
 | `koota` | 0.6.6 | 2026-10-01 | ECS inside the sim (ADR 0001) |
-| `lenis` | 1.3.27 | 2026-11-08 | Smooth wheel scrolling on the site, fine pointers only, off on the playground (5.4 KB gzip, MIT). Not in the editors |
 | `lefthook` | 2.1.16 | 2026-10-01 | Pre-commit hooks |
 | `oxc-parser` | 0.152.0 | 2026-10-01 | AST for `check-boundaries`, `check-style` and `ship`'s root-absolute check |
 | `pixi.js` | 8.22.0 | 2026-10-30 | 2D renderer (ADR 0002). 8.22.0 is the peer floor of the vendored `@pixi/3d` 0.1.0-beta.2 (`^8.22.0`) and was npm latest when moved; no change in it that AF depends on ([the move's plan](archive/superpowers/plans/2026-10-30-m3-2-pixi-822.md)) |

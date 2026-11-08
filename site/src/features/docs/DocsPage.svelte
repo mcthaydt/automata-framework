@@ -24,7 +24,7 @@ let next = $derived(docs[index + 1])
     <!-- On a phone the list folds away above the guide; only one of the two copies is ever shown. -->
     <details class="mobile-doc-links"><summary>All guides</summary>{@render guideLinks()}</details>
   </aside>
-  <article class="doc-content"><h1>{active.title}</h1>
+  <article class="doc-content" data-page-content><h1>{active.title}</h1>
     {#each blocks as block}
       {#if block.type === 'h2'}<h2 id={block.headingId}>{block.content}</h2>
       {:else if block.type === 'h3'}<h3 id={block.headingId}>{block.content}</h3>

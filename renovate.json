@@ -26,6 +26,14 @@
       "enabled": false
     },
     {
+      "description": "GSAP stays on 3.x: 4.x is a new major under licence terms nobody on the team has read, and any version released after a licence change comes under the new terms.",
+      "matchPackageNames": ["gsap"],
+      "allowedVersions": "<4",
+      "prBodyNotes": [
+        "Before merging, re-read https://gsap.com/standard-license: its last modified date was 2025-05-30 when 3.15.0 was chosen. The site and the editors use it free; it must stay free for the paid apps."
+      ]
+    },
+    {
       "description": "Every GitHub Actions upgrade in one PR, pinned to its commit.",
       "matchManagers": ["github-actions"],
       "groupName": "GitHub Actions",
