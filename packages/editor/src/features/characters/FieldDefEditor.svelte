@@ -18,6 +18,8 @@ import { fieldRow } from '../../shared/kit/fields/field-row'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import type { EditEvent } from '../../shared/kit/widgets/edit-event'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'
+import { typedSave } from '../../shared/kit/widgets/typed-save'
+import { typingDrafts } from '../../shared/kit/widgets/typing-context'
 import type { FieldCommit } from '../../shared/level-2d/model/field-commit'
 import type { Project } from '../../shared/level-2d/model/project-types'
 import type { EntitiesSession, GuardedCommit } from './entities-session'
@@ -51,7 +53,7 @@ function commitDefault(value: FieldValue): FieldCommit {
   return { ok: true }
 }
 const committed = (event: EditEvent<unknown>): boolean => event.phase === 'set' || event.phase === 'commit'
-const onText = (event: Event): string => (event.currentTarget as HTMLInputElement | HTMLTextAreaElement).value
+const drafts = typingDrafts()
 const toggleTarget = (target: string): readonly string[] => {
   const to = field.to ?? []
   return to.includes(target) ? to.filter((each) => each !== target) : [...to, target]
@@ -63,19 +65,30 @@ const toggleTarget = (target: string): readonly string[] => {
     <span class="label">Id</span>
     <input
       value={field.id}
-      onchange={(event) => guard(title, 'Change anyway', () => session.renameField(onText(event).trim()))}
+      use:typedSave={{
+        drafts,
+        value: field.id,
+        commit: (text) => guard(title, 'Change anyway', () => session.renameField(text.trim())),
+        draftKey: `field ${field.id} id`,
+        leaveOnly: true,
+      }}
     />
   </label>
   <label class="text">
     <span class="label">Label</span>
     <input
       value={field.label ?? ''}
-      onchange={(event) => {
-        const label = onText(event).trim()
-        const { label: _old, ...rest } = field
-        change(label === '' ? rest : { ...field, label })
+      use:typedSave={{
+        drafts,
+        value: field.label ?? '',
+        commit: (text) => {
+          const label = text.trim()
+          const { label: _old, ...rest } = field
+          change(label === '' ? rest : { ...field, label })
+        },
+        draftKey: `field ${field.id} label`,
       }}
-    />
+     />
   </label>
   <div class="group">
     <span class="label" id="field-type-label">Type <span class="note">changing it checks every value first</span></span>
@@ -134,14 +147,20 @@ const toggleTarget = (target: string): readonly string[] => {
       <textarea
         rows="4"
         value={(field.options ?? []).join('\n')}
-        onchange={(event) =>
-          change({
-            ...field,
-            options: onText(event)
-              .split('\n')
-              .map((option) => option.trim())
-              .filter((option) => option !== ''),
-          })}
+        use:typedSave={{
+          drafts,
+          value: (field.options ?? []).join('\n'),
+          commit: (text) =>
+            change({
+              ...field,
+              options: text
+                .split('\n')
+                .map((option) => option.trim())
+                .filter((option) => option !== ''),
+            }),
+          draftKey: `field ${field.id} options`,
+          leaveOnly: true,
+        }}
       ></textarea>
     </label>
   {/if}

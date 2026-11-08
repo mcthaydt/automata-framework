@@ -15,6 +15,8 @@ import Picker from '../../shared/kit/widgets/Picker.svelte'
 import Segmented from '../../shared/kit/widgets/Segmented.svelte'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'
 import Tabs from '../../shared/kit/widgets/Tabs.svelte'
+import { typedSave } from '../../shared/kit/widgets/typed-save'
+import { typingDrafts } from '../../shared/kit/widgets/typing-context'
 import type { ObjectUrls } from '../../shared/level-2d/documents/view-props'
 import type { FieldCommit } from '../../shared/level-2d/model/field-commit'
 import type { EntityDef2D, Project } from '../../shared/level-2d/model/project-types'
@@ -80,7 +82,7 @@ const edit = (patch: Parameters<EntitiesSession['editDefinition']>[0]): FieldCom
   show(result)
   return result
 }
-const onText = (event: Event): string => (event.currentTarget as HTMLInputElement).value.trim()
+const drafts = typingDrafts()
 
 function tileChoice(current: EntityDef2D, id: string): void {
   if (id === NO_TILE) edit({ tile: undefined })
@@ -105,7 +107,15 @@ function tileChoice(current: EntityDef2D, id: string): void {
           <div class="fields">
             <label class="text">
               <span class="label">Label</span>
-              <input value={def.label ?? ''} onchange={(event) => edit({ label: onText(event) || undefined })} />
+              <input
+                value={def.label ?? ''}
+                use:typedSave={{
+                  drafts,
+                  value: def.label ?? '',
+                  commit: (text) => edit({ label: text.trim() || undefined }).ok,
+                  draftKey: `character ${def.id} label`,
+                }}
+              />
             </label>
             <ColorField
               label="Colour"
@@ -174,7 +184,16 @@ function tileChoice(current: EntityDef2D, id: string): void {
               <summary>More</summary>
               <label class="text">
                 <span class="label">Name in code</span>
-                <input value={def.id} onchange={(event) => show(session.renameDefinition(onText(event)))} />
+                <input
+                  value={def.id}
+                  use:typedSave={{
+                    drafts,
+                    value: def.id,
+                    commit: (text) => show(session.renameDefinition(text.trim())),
+                    draftKey: `character ${def.id} name`,
+                    leaveOnly: true,
+                  }}
+                />
               </label>
               <Stepper
                 label="Anchor point across"

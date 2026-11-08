@@ -11,6 +11,8 @@ import Picker from '../../shared/kit/widgets/Picker.svelte'
 import Segmented from '../../shared/kit/widgets/Segmented.svelte'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'
 import Tabs from '../../shared/kit/widgets/Tabs.svelte'
+import { typedSave } from '../../shared/kit/widgets/typed-save'
+import { typingDrafts } from '../../shared/kit/widgets/typing-context'
 import type { FieldCommit } from '../../shared/level-2d/model/field-commit'
 import type { Project } from '../../shared/level-2d/model/project-types'
 import { spriteStyle } from '../../shared/level-2d/tiles/tile-sprite'
@@ -56,9 +58,9 @@ const flags = [
   { key: 'breakOnMatch', label: FLAG_WORDS.breakOnMatch },
 ] as const
 
-function rename(event: Event): void {
-  const box = event.currentTarget as HTMLInputElement
-  const label = box.value.trim()
+const drafts = typingDrafts()
+function rename(text: string, _leaving: boolean, box: HTMLInputElement | HTMLTextAreaElement): void {
+  const label = text.trim()
   if (label === '' || label === group?.label) {
     box.value = group?.label ?? ''
     return
@@ -192,7 +194,13 @@ function rename(event: Event): void {
               <input
                 type="text"
                 value={group.label}
-                onchange={rename}
+                use:typedSave={{
+                  drafts,
+                  value: group.label,
+                  commit: rename,
+                  draftKey: `group ${group.label} name`,
+                  leaveOnly: true,
+                }}
                 onkeydown={(event) => {
                   if (event.key === 'Enter') (event.currentTarget as HTMLInputElement).blur()
                 }}

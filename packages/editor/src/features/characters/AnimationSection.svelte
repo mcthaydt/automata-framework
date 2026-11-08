@@ -12,6 +12,8 @@ import type { ProjectStore } from '../../shared/kit/storage/project-store'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import type { EditEvent } from '../../shared/kit/widgets/edit-event'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'
+import { typedSave } from '../../shared/kit/widgets/typed-save'
+import { typingDrafts } from '../../shared/kit/widgets/typing-context'
 import type { ObjectUrls } from '../../shared/level-2d/documents/view-props'
 import type { FieldCommit } from '../../shared/level-2d/model/field-commit'
 import type { Size } from '../../shared/level-2d/model/project-types'
@@ -104,6 +106,7 @@ const run = (next: () => ContentAnimation | undefined): void => {
     trouble = error.message
   }
 }
+const drafts = typingDrafts()
 const edit = (change: (animation: ContentAnimation) => ContentAnimation | undefined): void => {
   const current = animation
   if (current !== undefined) run(() => change(current))
@@ -209,10 +212,15 @@ function frameStyle(index: number, scale: number): string {
             <input
               value={row.id}
               aria-label={`Name of clip ${row.id}`}
-              onchange={(event) => {
-                const next = (event.currentTarget as HTMLInputElement).value
-                edit((a) => renameClip(a, row.id, next))
-                chosen = next.trim()
+              use:typedSave={{
+                drafts,
+                value: row.id,
+                commit: (next) => {
+                  edit((a) => renameClip(a, row.id, next))
+                  chosen = next.trim()
+                },
+                draftKey: `clip ${row.id} name`,
+                leaveOnly: true,
               }}
             />
           </label>
