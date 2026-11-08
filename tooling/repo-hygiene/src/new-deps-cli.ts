@@ -3,7 +3,7 @@
 // Prints the new-dependency report for this checkout against where HEAD left --base (new-deps-base.ts), and
 // appends it to the job summary when GITHUB_STEP_SUMMARY is set. Exits 1 when a new package or version is missing from its registry.
 import { execFileSync } from 'node:child_process'
-import { appendFileSync, readFileSync } from 'node:fs'
+import { appendFileSync, existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describeDependencies, formatReport, type Manifest, newDependencies } from './new-deps.ts'
@@ -20,10 +20,12 @@ const base = newDepsBase(git, baseRef)
 const isManifest = (path: string): boolean =>
   (path === 'package.json' || path.endsWith('/package.json')) && !path.split('/').includes('fixtures')
 
-/** `@scope:registry=url` lines of the root .npmrc. */
+/** `@scope:registry=url` lines of the root .npmrc; none when the repository has no .npmrc (every scope is on npmjs.org). */
 function scopeRegistries(): Record<string, string> {
   const scopes: Record<string, string> = {}
-  for (const line of readFileSync(join(root, '.npmrc'), 'utf8').split('\n')) {
+  const file = join(root, '.npmrc')
+  if (!existsSync(file)) return scopes
+  for (const line of readFileSync(file, 'utf8').split('\n')) {
     const match = /^(@[^:]+):registry=(\S+)$/.exec(line.trim())
     if (match?.[1] !== undefined && match[2] !== undefined) scopes[match[1]] = match[2].replace(/\/$/, '')
   }
