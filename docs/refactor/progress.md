@@ -583,15 +583,15 @@ Normal dev pipeline (no stage 1 audit; the investigation is
 | 5. Build audit | Not started |
 | 6. Fixes | Not started |
 
-## Dark mode for the editors: 20% (1 of 5: stage 1)
+## Dark mode for the editors: 40% (2 of 5: stage 2)
 
 Normal dev pipeline. The Owner, 2026-11-08: "Also, do a dark mode for the editors, I can't imagine working in that for
 hours."
 
 | Stage | State |
 | --- | --- |
-| 1. Spec and plan | Done: [spec](2026-11-08-dark-mode-spec.md), [plan](2026-11-08-dark-mode-plan.md), 9 tasks. Follows the device by default; one "Colours: Light · Dark · Match device" control on each Home; the game's pictures keep their colours. Written on PR #498's branch. |
-| 2. Plan audit | Not started |
+| 1. Spec and plan | Done: [spec](2026-11-08-dark-mode-spec.md), [plan](2026-11-08-dark-mode-plan.md), 9 tasks. Follows the device by default; one "Editor colours: Light · Dark · Match device" control on each Home; the game's pictures keep their colours. Written on PR #498's branch. |
+| 2. Plan audit | Done: [audit](2026-11-08-dark-mode-plan-audit.md), 3 high, 6 medium, 4 low, all fixed in the spec and plan. The theme is plain values under `prefers-color-scheme` (not `light-dark()`, which the canvas cannot read); the boot script is a file (the site's try-it editor refuses inline scripts); the played-game journey runs in the content editors' suite. |
 | 3. Build | Not started |
 | 4. Build audit | Not started |
 | 5. Fixes | Not started |
