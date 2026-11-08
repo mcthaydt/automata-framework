@@ -1,12 +1,14 @@
 # Refactor progress
 
-**Overall: 67% (12 of 18 stages done).**
+**Overall: 67% (16 of 24 stages done).**
 
 The Owner's order: finish one slice completely before starting the next. On 2026-11-05 it was core and 2D, then 3D, then
 the editors, then the website. On 2026-11-06 the Owner changed the later slices to vertical ones: "we do the editor
 refactors that 2D touch and website refactor as if it's ready to ship with 2D alone, then we do the same for 3D". So the
-slices are core and 2D, then the 2D editors and the website, then 3D (its core, editors and site). Each stage runs in its
-own session.
+slices are core and 2D, then the 2D editors and the website, then 3D (its core, editors and site). On 2026-11-07 the
+Owner set the order for the rest: 3D core, then the other packages that use 3D, then the 3D editors, then the site, which
+is now a slice of its own. Its audit started on 2026-11-08 before the 3D and Plus stacks merged (the Owner: "we can start
+it knowing we'll have to recheck"). Each stage runs in its own session.
 
 Every area goes through the same six stages:
 
@@ -635,3 +637,27 @@ hours."
 Build audit, 2026-11-08: [audit](2026-11-08-schematic-build-audit.md), PR stacked on #486. 3 high, 9 medium, 12 low. A behaviour built by hand in Schematic shows in play in the 3D story; the high ones are the sight setting that says the opposite of the game, Fair play that no game can run, and no 2D proof. Next: Sonnet fixes.
 
 Fixes, 2026-11-08: H1, H3 (Task 14, the 2D half of Task 8), M1 to M8 and L1 to L10 fixed with tests first; Schematic now has 16 of 16 tasks. Played in the served journeys: 2D 10 of 10 and 3D 13 of 13 (Chromium, phone and iPad). `style` and `boundaries` now cover `extensions/editors` and `examples/3d-story`. Waiting on the Owner: H2 (Fair play has no runner) and M9 (the sim's `fleeNode`). Not run: WebKit, Firefox, the GPU runner, parity; `pnpm api-index --write` fails on two exports it does not own. Next: audit the fixes, then the Owner's two choices.
+## Site: 50% (3 of 6)
+
+Scope: the website as it would launch: `site/` (Home, Start, Docs, Examples, the Editor page and its try-it editor, the
+API index, Privacy, Terms, the missing page, the redirect pages, `llms.txt`, `security.txt`), its build and checks, its
+deploy (`site.yml`, the runbook's launch steps), the domain `automataframework.com`, the contact address, and the old
+`mcthaydt/automata-website` repository.
+
+| Stage | Status | Record |
+|---|---|---|
+| 1. Audit | Done, 2026-11-08 (PR stacked on #473): 3 critical (C1 to C3), 12 important (I1 to I12), 9 minor (M1 to M9); 5 decisions for the Owner (D1 to D5); the Owner took D1 the same day: `@automataframework` replaces `@automata` as the npm scope. Tagged "Recheck after 3D/Plus merge": C1, I2, I4, I6, I7, I8, I9, I12. The build, the closed-beta scan, `svelte-check` (0 errors), 340 unit tests, `check:site` (35 pages) and the Chromium suite (345 of 345) pass; the visual sweep of 222 views finds no sideways scroll and no text under 12 px; `check:launch` fails (C1 to C3). Headline: `@automata` on npm belongs to an existing account (`@automataframework` is free), and `automataframework.com` is not registered while `main`'s `SECURITY.md` sends reports to it | [2026-11-08-site-audit.md](2026-11-08-site-audit.md) |
+| 2. Plan and spec | Done, 2026-11-08 (superpowers `writing-plans`, native): four parts. A, the site (one shell, type scale and code box; Home as the mockup; DUEL pictures taken by one script; the missing page, try-it, Reference and extensions, Start, the project's address, tests by `#src`, no plan citations, dead code or redirects) and B, the deploy (Cloudflare Pages, `_headers` from `security-headers.ts`, a live-header check, a mailbox check, the runbook from the domain up) start now on the newest stack head; C, the rename to `@automataframework`, is one codemod pass from `main` after the open PRs merge, with a guard in `pnpm check` and a recipe for stragglers (codemod first, then merge `main`); D, the launch, waits on the Owner's accounts and the first release. 8 tasks; rulings R1 to R6 | [spec](2026-11-08-site-spec.md), [plan](2026-11-08-site-plan.md) |
+| 3. Plan audit | Done, 2026-11-08 (superpowers `writing-plans` as the standard, native; PR on top of #510): 4 critical (A1 the missing page breaks under a nested address and is copied from a path the build never writes; A2 Cloudflare sends every matching `_headers` rule and joins repeats; A3 keeping `.changeset/scope-automata.md` breaks `changeset status`; A15 nothing stopped the launch before Pixi 3D is public, now `check:launch` asks npmjs.org for `@pixi/3d` and wants the repository public), 12 important (the straggler recipe runs the old codemod, rename forms the table misses, the picture script, twelve off-DUEL colours, the style gate, the build command, the build branch, the first press, the demo bar, the try-it end to end, the Owner's app decision, A16 no page for the paid apps: new Task 4.6 builds `/app` with the two prices and "Coming soon"), 14 minor; all fixed in the spec and plan; new rulings R7 (the web's editors only, and the App page) and R8 (no Play in the try-it until the Owner says); D4 amended (launch after Pixi 3D). Run on #506: the site build, the try-it at 390 and 1440 (no Play; on a phone the tool bar is cut and a tap outside the level places an item), `check-style` over the site, the colours against DUEL | [2026-11-08-site-plan-audit.md](2026-11-08-site-plan-audit.md) |
+| 4. Build | Not started | |
+| 5. Build audit | Not started | |
+| 6. Fixes | Not started | |
+
+**Where to resume (2026-11-08, stage 3 done):** the build (Sonnet, high) starts at Task 0 on #506 (or the newer head the merge thread names), merging this plan's PR into its branch first; Task 6 (the rename) waits for the stack, Parts A and B and #440 to merge. Waiting on the Owner: Play in the try-it (R8, decision card) and the apps audit's D1, which editors stay free on the web (R7; Task 4.6 uses its option A until then). Nothing launches before Pixi 3D is public (D4, `check:launch`). The try-it's phone bugs (tool bar cut, name shown as "Sa…", items placed outside the level) are the editors' to fix. 3D plan 19.1 and 20.1 (the site's 3D pages, R4) wait for `@pixi/3d` to be public.
+
+**Where to resume (2026-11-08, stage 2 done):** the plan audit (Opus, medium) reads the [spec](2026-11-08-site-spec.md) and [plan](2026-11-08-site-plan.md) against the newest stack head (today #506) and challenges rulings R1 to R6 and the host default (D3, Cloudflare Pages). The build (Sonnet, high) then starts at Task 0 on that head; Task 6 (the rename) waits for the stack to merge.
+
+**Where to resume (2026-11-08, stage 1 done):** the plan and spec (Opus, medium, with the superpowers plugin) start from
+the audit's sections 3 to 7. The rename (C1) to `@automataframework` (D1, the Owner's) waits for the Plus port to merge,
+and the Owner creates the organisation on npmjs.org; the deploy (C3) waits for D2 and D3; the findings tagged "Recheck
+after 3D/Plus merge" are read again on the merged `main` first.
