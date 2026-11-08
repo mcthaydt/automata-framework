@@ -1,9 +1,10 @@
 <!--
   One editor the game's list names: what it edits, file by file, each named in words (`fileTitle`), never by its path. An installed
-  editor's files open it; an editor this build does not have says so in plain words and opens its files read only.
+  editor's files open it, and with none its Open button does; an editor this build does not have says so in plain words and opens its files read only.
 -->
 <script lang="ts">
 import type { WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
+import Button from '../../../shared/kit/widgets/Button.svelte'
 import { type EditorCard, fileTitle } from './home-model'
 
 interface Props {
@@ -27,6 +28,8 @@ const headingId = $derived(`card-${card.editor}`)
   {/if}
   {#if card.files.length === 0}
     <p class="note">No files yet.</p>
+    <!-- An installed editor opens on no file too (Levels on the sample offers the templates to start one). -->
+    {#if card.installed}<div class="open"><Button onclick={() => onopen(card)}>Open {card.label}</Button></div>{/if}
   {:else}
     <ul>
       {#each card.files as file (file.path)}
@@ -75,6 +78,9 @@ const headingId = $derived(`card-${card.editor}`)
     margin: 0;
     padding: 0 var(--space-1);
     color: var(--muted);
+  }
+  .open {
+    padding: 0 var(--space-1);
   }
   ul {
     display: flex;

@@ -6,10 +6,14 @@ const { session }: { session: Levels2dSession } = $props()
 
 // svelte-ignore state_referenced_locally
 const refused = session.refused
+// svelte-ignore state_referenced_locally
+const current = session.current
+// Read again when the state moves: a level made from a template has its path from then on.
+const path = $derived($current && session.path)
 </script>
 
 <p class="status">
-  <span>{session.path}</span>
+  {#if path !== ''}<span>{path}</span>{/if}
   {#if session.others.length > 0}<span>{session.others.length} more in this group</span>{/if}
   {#if $refused !== undefined}<span role="alert">Not saved: {$refused}</span>{/if}
 </p>

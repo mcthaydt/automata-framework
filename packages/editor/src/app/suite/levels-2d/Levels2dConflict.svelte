@@ -13,11 +13,13 @@ const { session }: { session: Levels2dSession } = $props()
 
 // svelte-ignore state_referenced_locally
 const conflict = session.conflict
+// svelte-ignore state_referenced_locally
+const current = session.current
 let busy = $state(false)
 
 /** The project's own name, or the file's when it has none. */
 const name = $derived.by(() => {
-  const { state } = session
+  const state = $current
   const titled = state.kind === 'open' ? state.profile.summary?.(state.history.state)?.title : undefined
   return titled ?? session.path.split('/').pop() ?? session.path
 })

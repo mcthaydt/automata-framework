@@ -1,35 +1,35 @@
 <!--
   The Share menu in the top bar, shown only where Save does not write the game (browser storage, the site's try-it),
-  where it is the bar's one primary action, the icon with its word: Download, Share and Copy the level's file as it stands now. Each says how it went in a toast. Where the device keeps
-  no copy, a file that left is the only copy, so it counts as saved (the document turns clean).
+  where it is the bar's one primary action, the icon with its word: Download, Share and Copy the level's file as it
+  stands now. Each says how it went in a toast. What leaves is the host's (`share`, over `share-model`); where the
+  device keeps no copy, the host's `onleft` counts a file that left as saved.
 -->
 <script lang="ts">
 import Icon from '../../shared/kit/icons/Icon.svelte'
-import type { DownloadStore } from '../../shared/kit/storage/download-store'
 import Menu from '../../shared/kit/widgets/Menu.svelte'
 import type { ToastStore } from '../../shared/kit/widgets/toasts'
-import type { OpenDocument } from '../../shared/level-2d/documents/editor-app'
-import { levelFile, type ShareAction, shareItems, shareLevel } from './share-model'
+import { type ShareAction, type ShareOutcome, shareItems } from './share-model'
 
 interface Props {
-  document: OpenDocument
-  exports: DownloadStore
-  /** The device keeps a copy; without one a file that left is the save. */
-  persistent: boolean
+  /** The device has a share sheet. */
+  canShare: boolean
+  /** Hands the level over; `undefined` when there is nothing to hand over. */
+  share: (action: ShareAction) => Promise<ShareOutcome | undefined>
   toasts: ToastStore
+  /** After a file left. */
+  onleft?: (() => void) | undefined
 }
 
-const { document: opened, exports, persistent, toasts }: Props = $props()
+const { canShare, share, toasts, onleft }: Props = $props()
 
 async function run(action: string): Promise<void> {
-  const file = levelFile(opened.profile, opened.history.state, opened.base())
-  if (file === undefined) return
-  const outcome = await shareLevel(action as ShareAction, file, exports)
+  const outcome = await share(action as ShareAction)
+  if (outcome === undefined) return
   toasts.push({ kind: outcome.ok ? 'ok' : 'error', message: outcome.message })
-  if (outcome.ok && !persistent) opened.history.markClean()
+  if (outcome.ok) onleft?.()
 }
 </script>
 
-<Menu label="Share" variant="primary" items={shareItems(exports.canShare)} onselect={(action) => void run(action)}>
+<Menu label="Share" variant="primary" items={shareItems(canShare)} onselect={(action) => void run(action)}>
   {#snippet trigger()}<Icon name="share" size={16} />Share{/snippet}
 </Menu>

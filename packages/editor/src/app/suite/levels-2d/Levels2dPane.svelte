@@ -1,7 +1,7 @@
 <!--
   One region of Levels 2D in the suite's shell, drawn from the view the person chose: the level's, or the game's tiles.
   The session holds both views' state, so a switch and return finds the level, layer, tool, selection and camera, and
-  the tile and rule that were chosen, as they were.
+  the tile and rule that were chosen, as they were. A group with no level shows where one starts (`Levels2dStart`).
 -->
 <script lang="ts">
 import LevelInspector from '../../../features/level/LevelInspector.svelte'
@@ -11,6 +11,7 @@ import TilesInspector from '../../../features/tiles/TilesInspector.svelte'
 import TilesPanel from '../../../features/tiles/TilesPanel.svelte'
 import TilesStage from '../../../features/tiles/TilesStage.svelte'
 import Levels2dConflict from './Levels2dConflict.svelte'
+import Levels2dStart from './Levels2dStart.svelte'
 import type { Levels2dSession } from './levels-2d-session'
 
 interface Props {
@@ -24,8 +25,10 @@ const { session, part }: Props = $props()
 const view = session.view
 // svelte-ignore state_referenced_locally
 const adding = session.adding
+// svelte-ignore state_referenced_locally
+const current = session.current
 const read = (path: string) => session.read(path)
-const open = $derived(session.state.kind === 'open' ? session.state : undefined)
+const open = $derived($current.kind === 'open' ? $current : undefined)
 </script>
 
 {#if open !== undefined}
@@ -63,10 +66,12 @@ const open = $derived(session.state.kind === 'open' ? session.state : undefined)
   {:else}
     <LevelInspector session={open.level} history={open.history} ids={session.options.ids} />
   {/if}
-{:else if part === 'canvas' && session.state.kind === 'error'}
+{:else if part === 'canvas' && $current.kind === 'empty'}
+  <Levels2dStart {session} state={$current} />
+{:else if part === 'canvas' && $current.kind === 'error'}
   <div class="refused" role="status" data-testid="levels-2d-refused">
-    <h2>{session.state.message}</h2>
-    {#each session.state.errors as error, index (index)}<p>{error.message}</p>{/each}
+    <h2>{$current.message}</h2>
+    {#each $current.errors as error, index (index)}<p>{error.message}</p>{/each}
     <p>Your file is unchanged.</p>
   </div>
 {/if}

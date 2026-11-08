@@ -4,10 +4,11 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createLevels2d } from '#src/app/suite/levels-2d/levels-2d-suite-editor.ts'
 import { EDITOR_LIST_PATH } from '#src/features/suite/core/index.ts'
-import { samplePorts } from '#src/features/suite/memory/sample-ports.ts'
+import { SAMPLE_GAME, samplePorts } from '#src/features/suite/memory/sample-ports.ts'
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
+import { createDownloadStore, type DownloadFile } from '#src/shared/kit/storage/download-store.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
 import platformer from '#src/testing/suite/fixtures/platformer.af2d.json?raw'
 import StandInLevelCanvas from '#src/testing/suite/StandInLevelCanvas.svelte'
@@ -189,5 +190,53 @@ describe('A level changed somewhere else', () => {
     const { ports, path } = await drawTwice('Use theirs')
     expect(screen.queryByText(/Not saved/)).not.toBeInTheDocument()
     expect((await ports.workspace.read(path))?.text).not.toContain('slime-2')
+  })
+})
+
+describe('The sample game, which has no level yet (the site’s try-it)', () => {
+  const downloads: DownloadFile[] = []
+  const sampleLevels = () =>
+    createLevels2d({
+      ids: {
+        next: () => {
+          next += 1
+          return `slime-${next}`
+        },
+      },
+      canvas: StandInLevelCanvas,
+      templates: true,
+      exports: createDownloadStore({ now: () => 1, download: (file) => downloads.push(file) }),
+    }) as SuiteEditor<unknown>
+
+  it('opens Levels from Home, starts a level from a template, and Share downloads it', async () => {
+    await start([fixtureEditor as SuiteEditor<unknown>, sampleLevels()], SAMPLE_GAME)
+    const card = await screen.findByRole('region', { name: 'Levels' })
+    expect(within(card).getByText('No files yet.')).toBeInTheDocument()
+    await userEvent.click(within(card).getByRole('button', { name: 'Open Levels' }))
+
+    expect(await screen.findByRole('heading', { name: 'Pick a starting point' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Share' })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /Platformer/ }))
+    // Making the level is the sample's first change, so it asks for the change's name first.
+    const dialog = await screen.findByRole('dialog', { name: 'Name this change' })
+    await userEvent.type(within(dialog).getByRole('textbox', { name: 'Title' }), 'My level')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Start' }))
+
+    expect(await screen.findByTestId('level-canvas')).toHaveAttribute('data-level', 'level-1')
+    expect(screen.getByRole('listbox', { name: 'Layers' })).toBeInTheDocument()
+    expect(screen.getByText('content/levels/untitled-platformer.af2d.json')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Share' }))
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Download' }))
+    expect(await screen.findByText('Downloaded your level.')).toBeInTheDocument()
+    expect(downloads.map((file) => file.name)).toEqual(['untitled-platformer.af2d.json'])
+  })
+
+  it('on a game folder with no level, says so and offers no templates', async () => {
+    await start([levels2d()], { ...SAMPLE_GAME })
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    expect(await screen.findByRole('heading', { name: 'Your game has no levels yet.' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Platformer/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Share' })).not.toBeInTheDocument()
   })
 })

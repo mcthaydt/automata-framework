@@ -1,6 +1,7 @@
 # A sample game's editor list, written AF-side (the game is never edited): content/tuning.toml (the Tuner, code-owned
 # bounds), the `[tuning]` tables of content/modes/*.toml (tuning layers), content/stages/*.toml (routed to the 2D level
-# editor, which has no profile for them), the content compiler's output in content/generated/, and `pnpm content:check`
+# editor, which has no profile for them), content/levels/*.af2d.json (the level projects Levels 2D opens; the sample has
+# none until a visitor starts one from a template), the content compiler's output in content/generated/, and `pnpm content:check`
 # (package.json). The game has no gates: every row says so with `gates = []`, and there is no [[gate]].
 format = "af-editors/1"
 generated = ["content/generated/**"]
@@ -30,3 +31,10 @@ checks = ["content", "content-check"]
 [[check]]
 id = "content-check"
 run = ["pnpm", "content:check"]
+
+[[file]]
+glob = "content/levels/*.af2d.json"
+editor = "levels-2d"
+modes = ["edit", "ask"]
+gates = []
+checks = []

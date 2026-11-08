@@ -4388,6 +4388,8 @@ interface Levels2dOptions {
     readonly read?: ((path: string) => Promise<Uint8Array | undefined>) | undefined;
     readonly objectUrls?: ObjectUrls | undefined;
     readonly canvas?: Component<LevelCanvasProps> | undefined;
+    readonly templates?: boolean | undefined;
+    readonly exports?: DownloadStore | undefined;
 }
 ```
 
@@ -4406,10 +4408,14 @@ interface Levels2dSession {
     readonly adding: Writable<boolean>;
     read(path: string): Promise<Uint8Array | undefined>;
     readonly files: Pick<ProjectStore, 'list' | 'write'> | undefined;
+    readonly current: Readable<Levels2dState>;
     readonly state: Levels2dState;
     readonly refusal: string | undefined;
     settled(): Promise<void>;
     quietly(change: () => void): void;
+    create(profileId: string, templateId: string): Promise<void>;
+    readonly canShare: boolean;
+    share(action: ShareAction): Promise<ShareOutcome | undefined>;
 }
 ```
 
@@ -4426,6 +4432,11 @@ type Levels2dState = {
     readonly kind: 'error';
     readonly message: string;
     readonly errors: readonly ParseError[];
+} | {
+    readonly kind: 'empty';
+    readonly templates: readonly TemplateCard[];
+    readonly busy: boolean;
+    readonly problem?: string | undefined;
 };
 ```
 

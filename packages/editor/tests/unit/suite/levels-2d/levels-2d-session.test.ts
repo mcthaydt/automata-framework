@@ -1,9 +1,12 @@
 import { get } from 'svelte/store'
 import { describe, expect, it } from 'vitest'
 import { levels2dUndo, openLevels2d } from '#src/app/suite/levels-2d/levels-2d-session.ts'
+import { EDITOR_LIST_PATH } from '#src/features/suite/core/index.ts'
 import { createMemoryPorts } from '#src/features/suite/memory/memory-ports.ts'
+import { SAMPLE_GAME, samplePorts } from '#src/features/suite/memory/sample-ports.ts'
 import { createSuiteSession } from '#src/features/suite/shell/suite-session.ts'
 import type { WorkspaceFile } from '#src/shared/kit/ports/suite-ports.ts'
+import { createDownloadStore, type DownloadFile } from '#src/shared/kit/storage/download-store.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import { levelProject } from '#src/shared/level-2d/profiles/level-project/level-project.ts'
@@ -218,6 +221,89 @@ describe('Levels 2D session', () => {
         ok: false,
         reason: 'conflict',
       })
+    })
+  })
+
+  describe('a game with no level yet', () => {
+    const NEW = 'content/levels/untitled-platformer.af2d.json'
+    const empty = async (templates: boolean) => {
+      const ports = await samplePorts(SAMPLE_GAME)
+      const session = await openLevels2d(await ports.workspace.files('levels-2d'), ports, {
+        ids: counterIds(500),
+        templates,
+      })
+      return { ports, session }
+    }
+
+    it('offers the templates to start from, where the host has them (the sample game)', async () => {
+      const { session } = await empty(true)
+      if (session.state.kind !== 'empty') throw new Error(session.state.kind)
+      expect(session.state.templates.map((card) => card.label)).toEqual(['Platformer', 'Top-down', 'Blank'])
+      expect(levels2dUndo(session).canUndo()).toBe(false)
+    })
+
+    it('offers none on a game folder, which keeps its own levels', async () => {
+      const { session } = await empty(false)
+      if (session.state.kind !== 'empty') throw new Error(session.state.kind)
+      expect(session.state.templates).toEqual([])
+    })
+
+    it('makes the level a template starts, writes it into the game and opens it in the same session', async () => {
+      const { ports, session } = await empty(true)
+      const seen: string[] = []
+      session.current.subscribe((state) =>
+        seen.push(state.kind === 'empty' && state.busy ? 'making' : state.kind),
+      )
+      await session.create('level-project', 'platformer')
+      expect(seen).toEqual(['empty', 'making', 'open'])
+      expect(session.path).toBe(NEW)
+      if (session.state.kind !== 'open') throw new Error(session.state.kind)
+      expect(session.state.level.editor.view.level).toBe('level-1')
+      expect((await ports.workspace.read(NEW))?.text).toContain('"format"')
+
+      // The new level is saved as it is drawn, and the suite's Undo follows its history.
+      session.state.level.editor.pointerDown({ x: 8, y: 8 })
+      session.state.level.editor.pointerUp()
+      expect(levels2dUndo(session).undoLabel()).toBe('Place entity')
+      await session.settled()
+      expect((await ports.workspace.read(NEW))?.text).toBe(
+        levelProject.print('', session.state.history.state as Project),
+      )
+    })
+
+    it('stays on the templates and says why when the level can’t be written', async () => {
+      // A list with no row for level projects: nowhere to put one.
+      const list =
+        'format = "af-editors/1"\n[[file]]\nglob = "content/tuning.toml"\neditor = "tuner"\nmodes = ["edit"]\ngates = []\nchecks = []\n'
+      const ports = await samplePorts({ ...SAMPLE_GAME, [EDITOR_LIST_PATH]: list })
+      const session = await openLevels2d([], ports, { ids: counterIds(500), templates: true })
+      await session.create('level-project', 'platformer')
+      if (session.state.kind !== 'empty') throw new Error(session.state.kind)
+      expect(session.state.problem).toMatch(/no folder for new levels/)
+    })
+  })
+
+  describe('Share', () => {
+    it('hands over the level as it stands, as a file, a share or a copy', async () => {
+      const downloads: DownloadFile[] = []
+      const memory = await createMemoryPorts({
+        files: { [PATH]: levelProject.print('', platformerTemplate.create(counterIds())) },
+        classify: file,
+        changeSet: false,
+      })
+      const session = await openLevels2d([file(PATH)], memory.ports, {
+        ids: counterIds(500),
+        exports: createDownloadStore({ now: () => 1, download: (each) => downloads.push(each) }),
+      })
+      expect(session.canShare).toBe(true)
+      expect(await session.share('download')).toEqual({ ok: true, message: 'Downloaded your level.' })
+      expect(downloads.map((each) => each.name)).toEqual(['untitled-platformer.af2d.json'])
+      expect(await session.share('copy')).toMatchObject({ ok: false })
+    })
+
+    it('is not offered without a place to send the level (a game folder saves it)', async () => {
+      const { session } = await setup()
+      expect(session.canShare).toBe(false)
     })
   })
 })

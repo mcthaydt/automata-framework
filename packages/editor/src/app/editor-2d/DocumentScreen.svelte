@@ -18,6 +18,7 @@ import ViewSwitcher from '../../features/document/ViewSwitcher.svelte'
 import { routeOf, viewsOf } from '../../features/document/view-router'
 import Problems from '../../features/problems/Problems.svelte'
 import ShareMenu from '../../features/share/ShareMenu.svelte'
+import { levelFile, shareLevel } from '../../features/share/share-model'
 import ConflictDialog from '../../shared/kit/dialogs/ConflictDialog.svelte'
 import RecoveryDialog from '../../shared/kit/dialogs/RecoveryDialog.svelte'
 import type { GestureClock } from '../../shared/kit/gestures/gesture-clock'
@@ -189,7 +190,17 @@ function show(path: string): void {
 
 {#snippet share()}
   {#if workspace !== undefined}
-    <ShareMenu document={shown.document} exports={workspace.exports} persistent={workspace.persistent} {toasts} />
+    {@const { exports, persistent } = workspace}
+    {@const opened = shown.document}
+    <ShareMenu
+      canShare={exports.canShare}
+      share={async (action) => {
+        const file = levelFile(opened.profile, opened.history.state, opened.base())
+        return file === undefined ? undefined : shareLevel(action, file, exports)
+      }}
+      {toasts}
+      onleft={persistent ? undefined : () => opened.history.markClean()}
+    />
   {/if}
 {/snippet}
 
