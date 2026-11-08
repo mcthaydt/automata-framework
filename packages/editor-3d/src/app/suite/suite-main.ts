@@ -29,6 +29,11 @@ openSuite3d({ origin: location.origin, search: location.search, sessionStorage }
       createLevels3d({
         now: () => Date.now(),
         renderer: lazyPlanRenderer(loadPlanRenderer),
+        // Walk's eye moves on the page's animation frames.
+        frames: {
+          request: (callback) => requestAnimationFrame((ms) => callback(ms / 1000)),
+          cancel: (handle) => cancelAnimationFrame(handle),
+        },
         schedule: (ms, run) => {
           const handle = window.setTimeout(run, ms)
           return () => window.clearTimeout(handle)

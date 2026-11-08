@@ -5,17 +5,12 @@
   inspector shows what is selected and how the checks stand.
 -->
 <script module lang="ts">
+import Levels3dCanvas from './Levels3dCanvas.svelte'
 import Levels3dInspector from './Levels3dInspector.svelte'
 import Levels3dStatus from './Levels3dStatus.svelte'
 import Levels3dTools from './Levels3dTools.svelte'
 import type { Levels3dSuiteSession } from './levels-3d-suite-editor'
 import EditorLayers from './plan/EditorLayers.svelte'
-import PlanCanvas from './plan/PlanCanvas.svelte'
-import { planToolsOf } from './plan-tools-of'
-import { pointerOf } from './pointer.svelte'
-
-// The top bar owns Undo and Redo, so the plan's two- and three-finger taps leave them to it.
-const leave = (): void => {}
 
 export { canvas, inspector, panel, status, tools }
 </script>
@@ -28,14 +23,7 @@ export { canvas, inspector, panel, status, tools }
 
 {#snippet canvas(session: Levels3dSuiteSession)}
   {#if session.level.state.kind === 'open'}
-    <PlanCanvas
-      editor={session.level.state.editor}
-      tools={planToolsOf(session.level.state.editor)}
-      renderer={session.renderer}
-      onundo={leave}
-      onredo={leave}
-      onpointer={(at) => (pointerOf(session).at = at)}
-    />
+    <Levels3dCanvas {session} editor={session.level.state.editor} />
   {:else}
     <div class="refused" role="status" data-testid="levels-3d-refused">
       <h2>{session.level.state.message}</h2>

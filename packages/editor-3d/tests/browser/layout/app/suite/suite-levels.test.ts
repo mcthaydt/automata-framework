@@ -75,12 +75,12 @@ describe.each(SIZES)('Suite Levels 3D at $name ($width x $height)', (size) => {
     const buttons = [...toolbar.querySelectorAll<HTMLElement>('button')]
     expect(buttons.map((button) => button.textContent?.trim())).toEqual([
       'Select',
-      'Sector',
-      'Vertex',
-      'Portal',
+      'Room',
+      'Corner',
+      'Doorway',
       'Door',
       'Window',
-      'Things',
+      'Thing',
     ])
     for (const button of buttons) {
       // The top bar scrolls sideways where a phone's width holds too few; each tool is whole once scrolled to.
@@ -91,9 +91,9 @@ describe.each(SIZES)('Suite Levels 3D at $name ($width x $height)', (size) => {
       expect(box.left).toBeGreaterThanOrEqual(-0.5)
       expect(box.right).toBeLessThanOrEqual(size.width + 0.5)
     }
-    const sector = buttons[1] as HTMLElement
-    sector.click()
-    await expect.poll(() => sector.getAttribute('aria-pressed')).toBe('true')
+    const room = buttons[1] as HTMLElement
+    room.click()
+    await expect.poll(() => room.getAttribute('aria-pressed')).toBe('true')
     expect(buttons[0]?.getAttribute('aria-pressed')).toBe('false')
     noPageScroll()
   })

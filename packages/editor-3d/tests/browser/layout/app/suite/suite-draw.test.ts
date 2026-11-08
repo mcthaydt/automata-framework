@@ -11,7 +11,7 @@ import { createLevels3d } from '#src/features/levels-3d/levels-3d-suite-editor.t
 import type { PlanRendererFactory } from '#src/features/levels-3d/plan/plan-renderer.ts'
 import depot from '#src/testing/fixtures/depot.af-sector.json?raw'
 
-// A room drawn with the suite's own tools (spec 10.3, V1): the Sector tool is chosen in the top bar, a rectangle is
+// A room drawn with the suite's own tools (spec 10.3, V1): the Room tool is chosen in the top bar, a rectangle is
 // tapped out on the plan, and the top bar's Undo names the step. Plan points become page points through the status
 // line's pointer read-out, as the standalone draw journeys do. The plan draws to a fake renderer.
 
@@ -114,7 +114,7 @@ const CASES = SIZES.flatMap((size) =>
 )
 
 describe.each(CASES)('Drawing a room in the suite at $label', ({ size, finger }) => {
-  test('the Sector tool in the top bar draws a rectangle, and Undo names the step', async () => {
+  test('the Room tool in the top bar draws a rectangle, and Undo names the step', async () => {
     opened = await openSuite(
       size,
       [
@@ -127,7 +127,7 @@ describe.each(CASES)('Drawing a room in the suite at $label', ({ size, finger })
     )
     await expect.poll(() => plan().dataset.phase, { timeout: 10_000 }).not.toBe('starting')
     const pageOf = await calibrate()
-    button('Sector').click()
+    button('Room').click()
     await arrived()
     button('Rectangle').click()
     await arrived()
@@ -170,7 +170,7 @@ function key(name: string, on: EventTarget = document.body): void {
 describe.each(SIZES.filter((size) => size.name === 'ipad-pro-11-landscape'))(
   'The plan tools’ keys in the suite at $name',
   (size) => {
-    test('S chooses Sector and V goes back to Select, but not while a field has the keys', async () => {
+    test('S chooses Room and V goes back to Select, but not while a field has the keys', async () => {
       opened = await openSuite(
         size,
         [
@@ -185,7 +185,7 @@ describe.each(SIZES.filter((size) => size.name === 'ipad-pro-11-landscape'))(
       expect(pressed('Select')).toBe(true)
       key('s')
       await arrived()
-      expect(pressed('Sector')).toBe(true)
+      expect(pressed('Room')).toBe(true)
       key('v')
       await arrived()
       expect(pressed('Select')).toBe(true)
@@ -214,7 +214,7 @@ describe.each(CASES)('Placing a thing in the suite at $label', ({ size, finger }
     )
     await expect.poll(() => plan().dataset.phase, { timeout: 10_000 }).not.toBe('starting')
     const pageOf = await calibrate()
-    button('Things').click()
+    button('Thing').click()
     await arrived()
     const palette = document.querySelector<HTMLElement>('[data-testid="things-palette"]')
     if (palette === null) throw new Error('no palette')

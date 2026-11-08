@@ -220,3 +220,6 @@ Reference, Privacy, Terms and Contact; the targets are named by the publish sect
 | Ember Hall's name (task 11.2) | `Ember Hall` on the title, `AF Base 3D` on the page and the store, `Base 3d` in the editor and `Emberwick in 3D` in the design | `Ember Hall` in all of them | 4 (a folder name and working titles are not the game's name) |
 | Ember Hall's menu, no Settings (task 11.2) | Settings only after pausing a game | a `Settings` button on the menu; Back from it returns to the menu | 2 (a player looks for Settings first on the menu) |
 | Ember Hall's HUD (task 11.2) | `● 0`, the words only for a screen reader | `Embers 0 of 6` on the screen | 1 (a number with no name) |
+| Levels 3D's tools (task 16.1) | `Sector`, `Vertex`, `Portal`, `Door`, `Window`, `Things` as plain words | `Room`, `Corner`, `Doorway`, `Door`, `Window`, `Thing`, each an icon over its name | 3 (a person draws a room, not a sector; "Thing" stays for what the game uses) |
+| Levels 3D's views (task 16.1) | Plan, 3D, Walk only in a standalone bar | the same three words in the suite's top bar; on a phone one button named for the view it shows, opening a menu of the three | 3 (the button says where you are; the menu says where you can go) |
+

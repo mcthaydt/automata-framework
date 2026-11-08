@@ -6,6 +6,8 @@ import type { Levels3dSuiteSession } from './levels-3d-suite-editor'
 
 export class PlanPointer {
   at: Point | undefined = $state.raw<Point | undefined>()
+  /** What Walk says while it is shown: its warning, else what the crosshair is on. */
+  walkWords: string | undefined = $state<string | undefined>()
 }
 
 const pointers = new WeakMap<Levels3dSuiteSession, PlanPointer>()

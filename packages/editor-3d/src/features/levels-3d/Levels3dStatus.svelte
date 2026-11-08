@@ -16,11 +16,15 @@ let zoom = $state(editor === undefined ? 0 : planZoom(editor.view.state.camera))
 let selection = $state.raw<readonly string[]>(editor?.selection.ids ?? [])
 // A refused step is taken back, so the history's change is when the refusal is new.
 let refusal = $state(level.refusal)
+let mode = $state(editor?.view.state.mode ?? 'plan')
 
 $effect(() => {
   if (editor === undefined) return
   const stops = [
-    editor.view.subscribe((state) => (zoom = planZoom(state.camera))),
+    editor.view.subscribe((state) => {
+      zoom = planZoom(state.camera)
+      mode = state.mode
+    }),
     editor.selection.subscribe((next) => (selection = next.ids)),
     editor.history.subscribe(() => (refusal = level.refusal)),
   ]
@@ -30,7 +34,11 @@ $effect(() => {
 })
 
 const words = $derived(
-  editor === undefined ? '' : planStatus({ pointer: pointer.at, pxPerMetre: zoom, selection }),
+  editor === undefined
+    ? ''
+    : mode === 'walk' && pointer.walkWords !== undefined
+      ? pointer.walkWords
+      : planStatus({ pointer: pointer.at, pxPerMetre: zoom, selection }),
 )
 </script>
 
