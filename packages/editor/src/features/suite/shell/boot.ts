@@ -5,6 +5,7 @@
 import { createGeometryOwner, type ViewportWindow } from '@automata/framework'
 import { mount, unmount } from 'svelte'
 import type { SuitePorts, WorkspaceFile } from '../../../shared/kit/ports/suite-ports.ts'
+import type { GamePublish } from '../../../shared/kit/storage/publish-client.ts'
 import { EDITOR_LIST_PATH, loadEditorList } from '../core'
 import type { Suite } from './create-suite'
 import { homeOf } from './home-model'
@@ -21,6 +22,10 @@ export interface SuiteEnv {
   readonly sample?: boolean
   /** The game's name in words, from the server's ping: the top bar's title. */
   readonly game?: string | undefined
+  /** The running game's page, from the server's ping: Play opens it. */
+  readonly playUrl?: string | undefined
+  /** Builds the game into a zip to upload, when the server can: Publish. */
+  readonly publish?: GamePublish | undefined
 }
 
 export interface SuiteHandle {
@@ -44,6 +49,8 @@ export async function startSuite(target: HTMLElement, env: SuiteEnv): Promise<Su
       ports: env.ports,
       sample: env.sample ?? false,
       game: env.game,
+      playUrl: env.playUrl,
+      publish: env.publish,
     },
   })
   return {

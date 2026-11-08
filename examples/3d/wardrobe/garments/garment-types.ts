@@ -1,7 +1,7 @@
 // The streetwear garments' item shapes: what a figure file's garment of each kind holds. Each is an object named by
 // its first key (`hoodie`, `tee`, `bomber`…), whose value is its cloth's swatch, like the classic garments core types
-// (FigureBuilder src/render/figure/streetwear.ts's garment shapes at a1f7246). Left out: streetwear's `graphics`
-// and the chain's `pendant` (the SNEKPRTY marks and plates stay in FigureBuilder) and the wide-legs' `fade`.
+// itself. Left out: streetwear's `graphics`
+// and the chain's `pendant` (the SNEKPRTY marks and plates stay out) and the wide-legs' `fade`.
 
 /**
  * A cropped puffer: quilted baffles, a high collar, full sleeves; `length` 0 ends it at the waist, 1 at the

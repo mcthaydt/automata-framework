@@ -6,15 +6,16 @@ In your game's folder, run:
 pnpm exec automata editor
 ```
 
-Open the address it prints. Draw, then press Save: your game plays the new level the next time it loads. Stop the
-editor with Ctrl+C.
+Open the address it prints. The command also starts your game, so there is nothing else to run. Draw: each step is
+saved into your game's files as you make it. Press **Play** to play your game, and **Publish** when it is ready to put
+online. Stop everything with Ctrl+C.
 
 ## Open it
 
 ```sh
-automata editor                 # the level editor on the game in this folder
+automata editor                 # the editors (Levels and the Tuner) on the game in this folder
 automata editor ../my-game      # the game in another folder
-automata editor --app suite     # the level editor and the Tuner together
+automata editor --app 2d        # the level editor on its own page
 automata editor --port 4173     # a port you choose (default: a free one)
 ```
 
@@ -41,10 +42,20 @@ editor says the file changed and lets you keep yours, take the file's, or save a
 
 ## Play
 
-Start your game as usual (`pnpm dev`). With `--app suite`, the Tuner shows your game running beside its settings:
-change how fast your character runs or how high it jumps, and the game starts over with the new feel. Each setting is
-shown in a unit you can feel (pixels a second, seconds). If your game is not on `http://localhost:5173`, give its
-address with `--game-url`.
+The command starts your game beside the editors (it prints **Your game is running** and the address). **Play** opens
+it in a new tab, and it picks up each change you save. The Tuner shows the game running beside its settings: change
+how fast your character runs or how high it jumps, and the game starts over with the new feel. Each setting is shown in
+a unit you can feel (pixels a second, seconds). If your game is already running (`pnpm dev`), give its address with
+`--game-url` and the command starts no other. If your game's packages are not installed, it prints **Play is off** and
+says what to run.
+
+## Publish
+
+**Publish**, then **Build my game**, builds your game for the web and checks it is ready to go online: no secrets,
+nothing that needs eval, and within itch.io's limits. Then **Download the zip**. On itch.io, make a new project, choose
+HTML as its kind and upload the zip; any website host takes it too. If something stops the build, the editor says what
+in plain words with the build's last lines, and **Try again** runs it again. The same steps from a terminal are
+`automata build` and `automata ship prepare --target itch` (see [Publish to itch.io](publish-to-itch.md)).
 
 ## On a tablet
 

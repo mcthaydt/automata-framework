@@ -1,6 +1,6 @@
 // The streetwear garments' item schemas, by name: the shape of one item a figure file names, every swatch field a
 // library reference (so a missing swatch is a compile error at its line) and every number bounded a little past what
-// FigureBuilder's library, its builders' defaults and its random wardrobe draw, so any value in range builds a sound
+// the classic library, its builders' defaults and its random wardrobe draw, so any value in range builds a sound
 // garment. Out of range they break the build (cargos of width 0 run out of memory). Defaults come from
 // `WARDROBE_DEFAULTS`, written in as references.
 

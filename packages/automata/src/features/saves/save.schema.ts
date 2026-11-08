@@ -1,8 +1,7 @@
-// What a game saves, and how a stored save is read. From FloorFifty `common/progress.ts` at
-// `ac72660`, with the stricter save policy:
+// What a game saves, and how a stored save is read. The save policy:
 // - a save from a newer build is never migrated or written over ("opening an older build must not erase it");
 // - a field this build does not know rides through, so a write by an older build of the same version keeps it;
-// - an unreadable save is kept as it is and shown as damaged, never read as empty (FloorFifty reads it as empty).
+// - an unreadable save is kept as it is and shown as damaged, never read as empty.
 // Settings differ on purpose (`settings/migrate-settings.ts`): losing a preference is acceptable, losing progress
 // is not.
 import { canonicalJson } from '@automata/sim/hash'

@@ -7,9 +7,7 @@ import { defineConfig } from 'vite'
 //
 // `vite build --mode suite` builds the full suite page (`suite.html`: the editors of `@automata/editor` plus
 // Levels 3D and the Studio) into `dist/suite/`, where `automata editor --app suite` serves it from. The page is written
-// out as `index.html`, the name every served editor has. The Studio draws figures with the figures package, which takes
-// a few things from the content package; that package's entry reaches Node built-ins, so the page loads the schema and
-// palette through a shim (`src/suite-content-shim.ts`).
+// out as `index.html`, the name every served editor has.
 //
 // Both builds carry the private Pixi 3D beta and neither is published: `-tools` copies only the editor package's 2D build,
 // and its build scans only that package's `2d` and `suite` builds (`packages/tools/scripts/copy-editor.ts`), not these.
@@ -28,14 +26,6 @@ export default defineConfig(({ mode }) =>
             },
           },
         ],
-        resolve: {
-          alias: [
-            {
-              find: /^@automata\/content$/,
-              replacement: new URL('./src/suite-content-shim.ts', import.meta.url).pathname,
-            },
-          ],
-        },
         build: { outDir: 'dist/suite', emptyOutDir: true, rollupOptions: { input: 'suite.html' } },
       }
     : { plugins: [svelte()], build: { outDir: 'dist', emptyOutDir: true } },

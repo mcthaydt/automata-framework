@@ -1,5 +1,6 @@
 // Turns a level and its project into a flat list of things to draw, in order. It reads the model and knows nothing
 // about Pixi, so what is drawn can be tested without a canvas.
+import { pictureOf } from '@automata/content/level-2d'
 import { entityBounds, entityDefOf } from '../../model/commands/entity-geometry'
 import type {
   Background,
@@ -48,12 +49,14 @@ function entitiesOf(
     const def = entityDefOf(project, item.def)
     if (def === undefined) return []
     const box = entityBounds(def, item)
+    // The editor and the game ask the same question: is this definition drawn as a tile?
+    const picture = pictureOf(def)
     const tile =
-      def.shape === 'tile' && def.tile !== undefined
+      picture.kind === 'tile'
         ? tileDraw(
-            tilesetOf(project, def.tile.tileset),
+            tilesetOf(project, picture.tileset),
             images,
-            { tile: def.tile.index, flipX: false, flipY: false },
+            { tile: picture.index, flipX: false, flipY: false },
             box,
           )
         : undefined

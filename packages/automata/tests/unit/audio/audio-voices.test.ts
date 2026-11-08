@@ -8,7 +8,7 @@ import {
   fakeBuffer,
 } from '#src/features/audio/testing/fake-audio-context.ts'
 
-// One-shots (M5 spec §4.6, A-d), from FloorFifty `managers/audio/voices.ts` and `model.ts` at `ac72660`: at most
+// One-shots (M5 spec §4.6, A-d): at most
 // MAX_VOICES at once, the oldest cut first (a short fade, then stop, so it never clicks); nothing plays or queues
 // while the graph is silenced, and a sleep drops the sounds still decoding ("asleep is silent, not queued").
 

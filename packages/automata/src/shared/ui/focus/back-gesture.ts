@@ -15,7 +15,7 @@
  * history entries a page added without the player's activation, so one added
  * at load would be stepped over and the swipe would leave anyway.
  *
- * From FloorFifty `apps/client/src/ui/back-gesture.ts` at `ac72660`; the history
+ * The history
  * key is `afBackGuard`. Standalone only: hosted, the host owns system
  * back (Ruken request R-2), so the default screens do not install it there.
  */

@@ -19,8 +19,7 @@ const own = <T extends { dispose(): unknown }>(thing: T): T => {
 }
 
 // The Input service (M4 spec §4.2): per-device held sets whose union is sampled once per fixed step. The
-// bookkeeping comes from FloorFifty `apps/client/src/managers/input.ts` at `ac72660` (lines 42–60) and its
-// `tests/client/managers/input.test.ts`: a keyup on one device never releases what another still holds.
+// bookkeeping: a keyup on one device never releases what another still holds.
 
 const profile: InputProfile = inputProfileSchema.parse({
   id: 'test',

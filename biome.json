@@ -32,7 +32,8 @@
         "extensions/narrative/**",
         "extensions/puzzle/**",
         "extensions/systems/**",
-        "extensions/cutscenes/**"
+        "extensions/cutscenes/**",
+        "extensions/level-2d/src/testing/**"
       ],
       "linter": { "rules": { "suspicious": { "noThenProperty": "off" } } }
     },

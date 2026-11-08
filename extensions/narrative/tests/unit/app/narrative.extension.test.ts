@@ -1,4 +1,6 @@
 // The narrative extension: the plugin and the six content kinds (canon, lines, dialogue, storylets, beats, help).
+
+import { sectorsPlaces } from '@automata/sectors/sim'
 import { expect, it } from 'vitest'
 import { narrativeExtension } from '#src/entries/index.ts'
 
@@ -15,4 +17,17 @@ it('registers the narrative plugin and its six content kinds, after sectors and 
     'beats',
     'help',
   ])
+})
+
+it('follows the game’s places: a 2D game requires its provider, not sectors', () => {
+  const places = { ...sectorsPlaces, provider: 'level-2d' }
+  const { extension, plugin } = narrativeExtension({ places })
+  expect(extension.requires).toEqual(['level-2d', 'puzzle'])
+  expect(plugin.dependsOn).toEqual(['level-2d', 'puzzle'])
+})
+
+it('draws the dialogue box in the hud overlay only when the game gives it the words', () => {
+  expect(narrativeExtension().extension.ui).toBeUndefined()
+  const withWords = narrativeExtension({ words: (key) => key, lines: () => undefined }).extension
+  expect(Object.keys(withWords.ui?.slots ?? {})).toEqual(['hud.overlay'])
 })

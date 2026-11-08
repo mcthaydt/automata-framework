@@ -1,8 +1,8 @@
 import { type EditorSize, REST } from '@automata/editor/kit/testing'
 import { publishConditions, settleLayout } from '@automata/framework/testing'
 import { page } from 'vitest/browser'
-import { type EditorHandle, startEditor } from '../ui/boot'
-import { createPlanRenderer } from '../ui/plan/plan-renderer'
+import { type EditorHandle, startEditor } from '../app/boot'
+import { createPlanRenderer } from '../features/levels-3d/plan/plan-renderer'
 import { createTestClock, type MemoryWorkspace, memoryWorkspace } from './memory-workspace'
 
 // Starting the 3D editor for a layout test (plan ED3D.5c step 9): at a window size, with the real window and so the

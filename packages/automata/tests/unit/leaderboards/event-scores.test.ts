@@ -4,7 +4,7 @@ import type { BoardState } from '#src/shared/runtime/board-state.ts'
 import { createPresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 
 // The game's scores for sim events (M5 spec §4.8): the sim emits an event, and the runtime submits the score the
-// game computes from its payload. The score is never typed by anyone (FloorFifty `scores.ts`, R-80).
+// game computes from its payload. The score is never typed by anyone.
 
 function recordingBoards() {
   const sent: { board: string; score: number }[] = []

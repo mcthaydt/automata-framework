@@ -1,10 +1,9 @@
 // The hoodie: the hood lying on the back, its opening rolled either side of the neck, a kangaroo pocket,
 // drawstrings, a ribbed hem and cuffs, sleeves sewn on at a dropped shoulder.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/streetwear.ts at a1f7246
-// (`hoodieShell`, `hoodRoll`, `hoodie`), with AF's strict types; the formulas and their order are the
-// source's. Cut: graphics (SNEKPRTY marks). Changed: painter materials are swatch variants; the aglet, drawn
-// at two sizes by density, is one decal at its density-2 size (M3.5b decision 4).
+// The parts here (`hoodieShell`, `hoodRoll`, `hoodie`), with AF's strict types; the formulas and their order are
+// unchanged. Cut: graphics (SNEKPRTY marks). Changed: painter materials are swatch variants; the aglet, drawn
+// at two sizes by density, is one decal at its density-2 size (the density is fixed).
 
 import type { Anchor, Garment, Measure } from '@automata/3d/figures-kit'
 import {

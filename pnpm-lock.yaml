@@ -73,6 +73,46 @@ importers:
         specifier: 8.3.3
         version: 8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
 
+  examples/2d-story:
+    dependencies:
+      '@automata/content':
+        specifier: workspace:*
+        version: link:../../packages/content
+      '@automata/framework':
+        specifier: workspace:*
+        version: link:../../packages/automata
+      '@automata/sim':
+        specifier: workspace:*
+        version: link:../../packages/sim
+      pixi.js:
+        specifier: 8.22.0
+        version: 8.22.0
+      svelte:
+        specifier: 5.57.1
+        version: 5.57.1
+      zod:
+        specifier: 4.6.6
+        version: 4.6.6
+    devDependencies:
+      '@automata/tools':
+        specifier: workspace:*
+        version: link:../../packages/tools
+      '@sveltejs/vite-plugin-svelte':
+        specifier: 7.3.1
+        version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@types/node':
+        specifier: 24.19.1
+        version: 24.19.1
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+      vite:
+        specifier: 8.3.3
+        version: 8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+
   examples/2d/content/hot-reload:
     dependencies:
       '@af-games/emberwick':
@@ -331,12 +371,45 @@ importers:
       '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
+      '@testing-library/dom':
+        specifier: 10.4.2
+        version: 10.4.2
+      '@testing-library/jest-dom':
+        specifier: 7.0.1
+        version: 7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.3)
+      '@testing-library/svelte':
+        specifier: 5.4.2
+        version: 5.4.2(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(vitest@5.0.3)
       '@types/node':
         specifier: 24.19.1
         version: 24.19.1
+      '@vitest/browser-playwright':
+        specifier: 5.0.3
+        version: 5.0.3(playwright@1.63.0)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(vitest@5.0.3)
+      jsdom:
+        specifier: 30.1.1
+        version: 30.1.1
+      pixi.js:
+        specifier: 8.22.0
+        version: 8.22.0
+      playwright:
+        specifier: 1.63.0
+        version: 1.63.0
       smol-toml:
         specifier: 1.9.0
         version: 1.9.0
+      svelte:
+        specifier: 5.57.1
+        version: 5.57.1
+      svelte-check:
+        specifier: 4.7.6
+        version: 4.7.6(picomatch@4.0.7)(svelte@5.57.1)(typescript@6.0.3)
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vite:
+        specifier: 8.3.3
+        version: 8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
@@ -514,6 +587,51 @@ importers:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
+  extensions/level-2d:
+    devDependencies:
+      '@automata/content':
+        specifier: workspace:*
+        version: link:../../packages/content
+      '@automata/evidence':
+        specifier: workspace:*
+        version: link:../../tooling/evidence
+      '@automata/framework':
+        specifier: workspace:*
+        version: link:../../packages/automata
+      '@automata/nav':
+        specifier: workspace:*
+        version: link:../nav
+      '@automata/places':
+        specifier: workspace:*
+        version: link:../places
+      '@automata/puzzle':
+        specifier: workspace:*
+        version: link:../puzzle
+      '@automata/sim':
+        specifier: workspace:*
+        version: link:../../packages/sim
+      '@automata/systems':
+        specifier: workspace:*
+        version: link:../systems
+      '@automata/vitest-preset':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-preset
+      '@types/node':
+        specifier: 24.19.1
+        version: 24.19.1
+      '@vitest/browser-playwright':
+        specifier: 5.0.3
+        version: 5.0.3(playwright@1.63.0)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(vitest@5.0.3)
+      playwright:
+        specifier: 1.63.0
+        version: 1.63.0
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      zod:
+        specifier: 4.6.6
+        version: 4.6.6
+
   extensions/narrative:
     dependencies:
       zod:
@@ -529,6 +647,9 @@ importers:
       '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
+      '@automata/places':
+        specifier: workspace:*
+        version: link:../places
       '@automata/puzzle':
         specifier: workspace:*
         version: link:../puzzle
@@ -541,12 +662,42 @@ importers:
       '@automata/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
+      '@testing-library/dom':
+        specifier: 10.4.2
+        version: 10.4.2
+      '@testing-library/jest-dom':
+        specifier: 7.0.1
+        version: 7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.3)
+      '@testing-library/svelte':
+        specifier: 5.4.2
+        version: 5.4.2(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(vitest@5.0.3)
       '@types/node':
         specifier: 24.19.1
         version: 24.19.1
+      '@vitest/browser-playwright':
+        specifier: 5.0.3
+        version: 5.0.3(playwright@1.63.0)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(vitest@5.0.3)
+      jsdom:
+        specifier: 30.1.1
+        version: 30.1.1
+      playwright:
+        specifier: 1.63.0
+        version: 1.63.0
       smol-toml:
         specifier: 1.9.0
         version: 1.9.0
+      svelte:
+        specifier: 5.57.1
+        version: 5.57.1
+      svelte-check:
+        specifier: 4.7.6
+        version: 4.7.6(picomatch@4.0.7)(svelte@5.57.1)(typescript@6.0.3)
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vite:
+        specifier: 8.3.3
+        version: 8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
@@ -566,6 +717,9 @@ importers:
       '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
+      '@automata/places':
+        specifier: workspace:*
+        version: link:../places
       '@automata/sectors':
         specifier: workspace:*
         version: link:../sectors
@@ -808,6 +962,21 @@ importers:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
+  extensions/places:
+    devDependencies:
+      '@automata/sim':
+        specifier: workspace:*
+        version: link:../../packages/sim
+      '@automata/vitest-preset':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-preset
+      '@types/node':
+        specifier: 24.19.1
+        version: 24.19.1
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+
   extensions/puzzle:
     dependencies:
       zod:
@@ -863,6 +1032,9 @@ importers:
       '@automata/physics':
         specifier: workspace:*
         version: link:../physics
+      '@automata/places':
+        specifier: workspace:*
+        version: link:../places
       '@automata/sim':
         specifier: workspace:*
         version: link:../../packages/sim
@@ -894,6 +1066,9 @@ importers:
       '@automata/nav':
         specifier: workspace:*
         version: link:../nav
+      '@automata/places':
+        specifier: workspace:*
+        version: link:../places
       '@automata/puzzle':
         specifier: workspace:*
         version: link:../puzzle
@@ -1472,6 +1647,9 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
+      '@automata/vitest-preset':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-preset
       '@sveltejs/vite-plugin-svelte':
         specifier: 7.3.1
         version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
@@ -1907,6 +2085,9 @@ importers:
 
   tooling/frame-budget:
     dependencies:
+      '@automata/3d':
+        specifier: workspace:*
+        version: link:../../packages/3d
       '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata

@@ -4,17 +4,17 @@ import { parseEditorArgs } from '#src/features/editor/editor-args.ts'
 // `automata editor [dir] [--app 2d|3d|suite] [--app-dir <dir>] [--port <n>] [--lan] [--token <t>]` (ED3D.14, ED2D.9).
 
 describe('parseEditorArgs', () => {
-  it('defaults to the 2D editor, the working folder, the loopback and a free port', () => {
+  it('defaults to the editors page (Levels and the Tuner, with Play and Publish), the working folder, the loopback, a free port and a game it starts itself', () => {
     expect(parseEditorArgs([])).toEqual({
       ok: true,
       options: {
         dir: '.',
-        app: '2d',
+        app: 'suite',
         appDir: undefined,
         port: 0,
         lan: false,
         token: undefined,
-        gameUrl: 'http://localhost:5173/',
+        gameUrl: undefined,
       },
     })
   })
@@ -31,7 +31,7 @@ describe('parseEditorArgs', () => {
         port: 4173,
         lan: true,
         token: 'abc',
-        gameUrl: 'http://localhost:5173/',
+        gameUrl: undefined,
       },
     })
   })

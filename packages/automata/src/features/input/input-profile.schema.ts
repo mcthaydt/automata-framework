@@ -1,47 +1,19 @@
+import {
+  GESTURE_NAMES,
+  type GestureName,
+  RESERVED_KEYS,
+  RESERVED_PAD_BUTTONS,
+  STANDARD_PAD_BUTTON_MAX,
+  STICK_DIRECTIONS,
+  type StickDirection,
+} from '@automata/content/controls'
 import { z } from 'zod'
 
-/**
- * The highest button index of the W3C Gamepad standard mapping (0 = bottom face button … 16 = home). Only the
- * standard mapping is bound; a pad without it is the device layer's to normalize.
- */
-export const STANDARD_PAD_BUTTON_MAX = 16
+export type { GestureName, StickDirection }
+// What may be bound (the reserved keys and buttons, the stick directions and gestures) is content's, so the Tuner and
+// the controls file read the same lists.
+export { RESERVED_KEYS, RESERVED_PAD_BUTTONS, STANDARD_PAD_BUTTON_MAX }
 
-/**
- * Never bindable in a game's profile: Ruken's SDK summons the host on pad 8 (View), 16 is Home, Escape is the
- * one back path and Tab moves focus.
- */
-export const RESERVED_PAD_BUTTONS: readonly number[] = [8, 16]
-/** Keys never bindable in a game's profile: Escape (the one back path) and Tab (focus). */
-export const RESERVED_KEYS: readonly string[] = ['Escape', 'Tab']
-
-const STICK_DIRECTIONS = [
-  'left-up',
-  'left-down',
-  'left-left',
-  'left-right',
-  'right-up',
-  'right-down',
-  'right-left',
-  'right-right',
-] as const
-/**
- * `camera-drag` is analog: a one-finger or secondary-button drag whose horizontal pixels
- * `Input.cameraDrag()` reads. It never holds or pulses an action; binding it is what turns the drag on.
- */
-const GESTURE_NAMES = [
-  'swipe-left',
-  'swipe-right',
-  'swipe-up',
-  'swipe-down',
-  'flick-down',
-  'tap',
-  'camera-drag',
-] as const
-
-/** A stick pushed past its dead zone in one direction (the input service reads them). */
-export type StickDirection = (typeof STICK_DIRECTIONS)[number]
-/** A touch gesture (the swipes, flick, tap and the camera drag). */
-export type GestureName = (typeof GESTURE_NAMES)[number]
 /** Where an action is live: during play, in menus, or both. */
 export type InputContext = 'play' | 'menu' | 'any'
 

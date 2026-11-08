@@ -1,17 +1,13 @@
 // Routes over a scene's authored graph, from the original game's nav. Walls, steps and a game's own
 // obstacles are behind `Blocked`; the graph is a parameter. Determinism: nodes are scanned in sorted id order, so ties
 // go to the lower id, and distances use the sim's `hypot`.
+import type { Blocked } from '@automata/places'
 import type { Point } from '@automata/sectors/sim'
 import { sortedKeys } from '@automata/sim'
 import { hypot } from '@automata/sim/math'
 import type { NavGraph } from './nav-graph.schema'
 
-export interface Blocked {
-  /** Whether the plan segment a→b is blocked within `margin` (walls, tall steps, a game's boxes). */
-  segment(a: Point, b: Point, margin: number): boolean
-  /** Whether a door (an edge's third member) is open. */
-  open(door: string): boolean
-}
+export type { Blocked }
 
 /** The clearance a walker keeps from walls on its way between nodes, in metres (the original's). */
 export const WALK_MARGIN: number = 0.2

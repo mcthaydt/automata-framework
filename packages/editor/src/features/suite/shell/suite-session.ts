@@ -163,6 +163,14 @@ export function createSuiteSession(raw: SuitePorts, options: SuiteSessionOptions
         void follow(outcome)
         return resultOf(outcome, mtime)
       },
+      async writeAll(files) {
+        const outcome = await writePath.writeAll(files, session.label(), owner)
+        const last = files.at(-1)
+        const mtime = last === undefined ? undefined : (await raw.workspace.read(last.path))?.mtime
+        await refresh()
+        void follow(outcome)
+        return resultOf(outcome, mtime)
+      },
     },
   })
 

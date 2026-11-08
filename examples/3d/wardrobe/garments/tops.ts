@@ -3,10 +3,10 @@
 // quilting in chambers; a top's hem and hip as openings; and a top as it is worn in the outfit, for what goes
 // over it.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/streetwear.ts at a1f7246 (`torso`,
+// The parts here (`torso`,
 // `shellPart`, `hemBand`, `sleeves`, `cuffs`, `collar`, `collarShell`, `pillow`, `quilt`, `chambers`,
 // `hemAnchors`, `SLIVER`, `outerHem`, `Worn`, `tops`, `topOf`), with AF's strict types; the formulas and
-// their order are the source's.
+// their order are unchanged.
 
 import type { Anchor, Garment, Measure, Worn } from '@automata/3d/figures-kit'
 import {

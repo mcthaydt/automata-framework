@@ -15,6 +15,7 @@
     "e2e:stress": "vite build && vite preview --strictPort --host localhost --port $AF_FRAME_BUDGET_PORT"
   },
   "dependencies": {
+    "@automata/3d": "workspace:*",
     "@automata/framework": "workspace:*",
     "@automata/sim": "workspace:*",
     "pixi.js": "8.22.0",

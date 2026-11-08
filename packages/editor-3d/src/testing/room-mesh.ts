@@ -1,9 +1,9 @@
 // A one-room mesh for the tests of the 3D views: the room's walls are 0 north, 1 east, 2 south and 3 west, and its floor is
 // at 0 and its ceiling at 4 m. Every wall can say what a view does to it (`occlude`) or hold a door or a portal.
 import type { AfSector, AfSectorEntry, AfWall } from '@automata/3d/level'
-import { afSectorProfile } from '../profile/af-sector-profile'
-import { buildSectorMesh, type SectorMesh } from '../view/mesh/sector-mesh'
-import { selectionOf } from '../view/selection-of'
+import { selectionOf } from '../shared/edit/selection-of'
+import { buildSectorMesh, type SectorMesh } from '../shared/geometry/sector-mesh'
+import { afSectorProfile } from '../shared/level-session/af-sector-profile'
 import { toyAfSector } from './toy-af-sector'
 
 /** A rectangular sector from corner (x0, z0) to (x1, z1), 4 m high, lit; walls are numbered from the north, clockwise. */

@@ -9,7 +9,7 @@ import { holds } from './probe'
 import { hearsIn, usesPortals } from './probe-kinds'
 import { hide, track, unhide } from './pursuit'
 import { Hide, Unhide } from './systems.command'
-import { type Noise, SystemsNoises, SystemsScene } from './systems.resource'
+import { type Noise, SystemsNoises } from './systems.resource'
 import { commit, type SystemsOptions, type SystemsWorld, worldOf } from './world'
 
 /** Seconds a noise stays on the world, for the renderer's rings. */

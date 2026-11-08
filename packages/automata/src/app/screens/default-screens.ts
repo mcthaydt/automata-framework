@@ -18,6 +18,7 @@ import { displaySettingsSchema, type QualityTier } from '../../shared/runtime/di
 import { InputMethodTracker } from '../../shared/ui/browser/input-method.svelte.ts'
 import { sendBack } from '../../shared/ui/focus/back-gesture.ts'
 import { CursorRunner } from '../../shared/ui/focus/cursor-policy.ts'
+import { PlaySession } from '../../shared/ui/slots/play-context.svelte.ts'
 import type { GameSaves } from '../define-game.ts'
 import type { Flow } from '../flow/flow.manager.ts'
 import type { ScreenContext, ScreenDef } from '../flow/screen.ts'
@@ -234,14 +235,16 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           game.saves.def.key,
           copy.current.saves.changedElsewhereToast,
         )
+      // What the hud components read and send: their commands join the input map's, so a recording of the stream has them.
+      const session = new PlaySession(running)
       appLoop.run({
         sim: running,
         commands: (tick) => {
           cursor.tick()
           save?.touch(keep)
-          if (map === undefined) return []
+          if (map === undefined) return session.commands(tick, [])
           input.poll()
-          return map.toCommand(input.held(), tick, analogReading(input, camera()))
+          return session.commands(tick, map.toCommand(input.held(), tick, analogReading(input, camera())))
         },
       })
       screen.add(() => appLoop.stop())
@@ -288,6 +291,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
               }
             : undefined,
         hud: resolveExtensions(game.extensions ?? []).slots('hud.overlay'),
+        play: session,
       })
     },
   }
@@ -329,7 +333,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
                 resume()
               },
             } satisfies SavesStart)
-      // Mute is the Audio group's setting, as FloorFifty's pause has it.
+      // Mute is the Audio group's setting; Paused offers the same switch.
       const { store } = services.settings
       const targets = { audio: services.audio, buses: services.audio }
       const copy = words(context)

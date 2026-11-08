@@ -1,0 +1,35 @@
+# What a new player starts with: each action, what it sends, and the keys, pad buttons and touch button that do it.
+# The Tuner edits this file; players can still change their own controls in Settings.
+command = "move"
+
+[[action]]
+id = "left"
+label = "Left"
+send = { x = -1 }
+keys = ["ArrowLeft", "KeyA"]
+pad = [14]
+touch = true
+
+[[action]]
+id = "right"
+label = "Right"
+send = { x = 1 }
+keys = ["ArrowRight", "KeyD"]
+pad = [15]
+touch = true
+
+[[action]]
+id = "up"
+label = "Up"
+send = { y = -1 }
+keys = ["ArrowUp", "KeyW"]
+pad = [12]
+touch = true
+
+[[action]]
+id = "down"
+label = "Down"
+send = { y = 1 }
+keys = ["ArrowDown", "KeyS"]
+pad = [13]
+touch = true

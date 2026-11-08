@@ -1,5 +1,5 @@
 // The seeded random cast, wearing the wardrobe: any character it draws builds, and every swatch a garment wears is of
-// a kind its role takes (FigureBuilder tests/random.test.ts "the registry in the random cast", ported).
+// a kind its role takes.
 
 import { build, type FigureLibrary, skeleton } from '@automata/3d/figures'
 import { fieldRole, GARMENTS, garmentOf, roleOf, TAKES } from '@automata/3d/figures-kit'

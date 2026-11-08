@@ -1,5 +1,6 @@
 // `automata editor [dir] [--app 2d|3d|suite] [--app-dir <dir>] [--port <n>] [--lan] [--token <t>] [--game-url <url>]`:
-// serve an editor against a game checkout; the 2D editor unless told otherwise. One command for every editor.
+// serve an editor against a game checkout; the editors page (Levels and the Tuner, with Play and Publish) unless told
+// otherwise. One command for every editor.
 
 export type EditorApp = '2d' | '3d' | 'suite'
 
@@ -14,12 +15,9 @@ export interface EditorOptions {
   /** Listen on every address, so a tablet on the same network can reach it (a token is then made if none is given). */
   readonly lan: boolean
   readonly token: string | undefined
-  /** The game's dev page (`pnpm dev`), which the Tuner shows beside its settings; Vite's own port unless told. */
-  readonly gameUrl: string
+  /** A game page already running (`pnpm dev`), for Play and the Tuner; when none is given the command starts the game. */
+  readonly gameUrl: string | undefined
 }
-
-/** Where `pnpm dev` serves a game when nothing else holds Vite's port: the page the Tuner shows by default. */
-const DEFAULT_GAME_URL = 'http://localhost:5173/'
 
 /** A web page's address, written the one way (`http://localhost:5180/`), or nothing for anything else. */
 function webAddress(value: string): string | undefined {
@@ -37,12 +35,12 @@ const isApp = (value: string): value is EditorApp => (APPS as readonly string[])
 
 export function parseEditorArgs(args: readonly string[]): EditorArgs {
   let dir: string | undefined
-  let app: EditorApp = '2d'
+  let app: EditorApp = 'suite'
   let appDir: string | undefined
   let port = 0
   let lan = false
   let token: string | undefined
-  let gameUrl = DEFAULT_GAME_URL
+  let gameUrl: string | undefined
 
   const valueAfter = (index: number): string | undefined => {
     const value = args[index + 1]

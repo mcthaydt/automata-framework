@@ -6,7 +6,11 @@
 <script lang="ts">
 import { onDestroy } from 'svelte'
 import type { History } from '../../shared/kit/history/history'
+import Picker from '../../shared/kit/widgets/Picker.svelte'
 import type { ObjectUrls } from '../../shared/level-2d/documents/view-props'
+import { setLayerTileset } from '../../shared/level-2d/model/commands/layer-def-edits'
+import { projectHistory } from '../../shared/level-2d/model/edit-history'
+import { commitEdit } from '../../shared/level-2d/model/field-commit'
 import { type PaletteItem, paletteOf } from '../../shared/level-2d/tiles/palette-model'
 import LayersPanel from './LayersPanel.svelte'
 import type { LevelSession } from './level-session'
@@ -30,6 +34,25 @@ let urls = $state.raw<ReadonlyMap<string, string>>(new Map())
 const layers = $derived(level.project.defs.layers)
 const layerDef = $derived(layers.find((layer) => layer.id === level.view.layer))
 const palette = $derived(paletteOf(level.project, level.view.layer, new Set(urls.keys())))
+
+// A tile layer draws one tileset; with more than one in the game (Add tiles made another), the person says which this
+// layer paints with, as one step Undo takes back. A sentence from the model, if it refuses, is shown under the picker.
+const tilesets = $derived(level.project.defs.tilesets)
+const tilesFrom = $derived(
+  layerDef !== undefined && (layerDef.kind === 'tiles' || layerDef.kind === 'objects') && tilesets.length > 1
+    ? layerDef
+    : undefined,
+)
+let refusal = $state<string | undefined>(undefined)
+
+function useTileset(id: string): void {
+  const edits = projectHistory(history)
+  if (edits === undefined || tilesFrom === undefined) return
+  const done = commitEdit(edits, `Use ${id} for ${tilesFrom.label}`, (project) =>
+    setLayerTileset(project, tilesFrom.id, id),
+  )
+  refusal = done.ok ? undefined : done.message
+}
 
 function choose(item: PaletteItem): void {
   if (item.kind === 'entity') session.editor.setEntityDef(item.def)
@@ -64,6 +87,17 @@ onDestroy(() => {
     onhidden={(id, hidden) => session.editor.setHidden(id, hidden)}
     onlocked={(id, locked) => session.editor.setLocked(id, locked)}
   />
+  {#if tilesFrom !== undefined}
+    <div class="from">
+      <Picker
+        label="Tiles from"
+        options={tilesets.map((set) => ({ id: set.id, label: set.label }))}
+        value={tilesFrom.tileset}
+        onpick={useTileset}
+      />
+      {#if refusal !== undefined}<p role="alert">{refusal}</p>{/if}
+    </div>
+  {/if}
   <Palette
     layer={layerDef?.label ?? ''}
     items={palette.items}
@@ -78,5 +112,13 @@ onDestroy(() => {
   .panel {
     display: grid;
     align-content: start;
+  }
+  .from {
+    padding: var(--space-2) var(--space-3);
+  }
+  .from p {
+    margin: var(--space-1) 0 0;
+    color: var(--color-danger, #b91c1c);
+    font: var(--text-body-13);
   }
 </style>

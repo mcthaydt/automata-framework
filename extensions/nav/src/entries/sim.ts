@@ -1,5 +1,6 @@
 // @automata/nav/sim: routes over a scene's graph and click-to-walk, a sim entry.
-export { blockedBy } from '../shared/sim/blocked'
+// `blockedBy` moved to sectors with the map it reads; nav keeps exporting it for the games that import it from here.
+export { blockedBy } from '@automata/sectors/sim'
 export { loadNavGraph } from '../shared/sim/load-nav-graph'
 export { NavDoor, type NavDoorPayload, WalkTo, type WalkToPayload } from '../shared/sim/nav.command'
 export { NavAgent } from '../shared/sim/nav.component'

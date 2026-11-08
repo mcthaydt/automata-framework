@@ -3,23 +3,17 @@ import { join } from 'node:path'
 import { checkLevels, expect, openRoom, test } from '../harness/fixtures.ts'
 import { solidPng } from '../harness/tiles-picture.ts'
 
-// Add tiles in a real game folder: the picture of tiles is written into the game, the level project points at it, Save
-// keeps both, and `automata check` agrees. B1 of the build audit: this refused every write with "not one the editor may
-// write" and only the site's browser storage worked.
+// Add tiles in a real game folder: the picture of tiles is written into the game, the level project points at it, the
+// step is saved with it, and `automata check` agrees. B1 of the build audit: this refused every write with "not one
+// the editor may write" and only the site's browser storage worked.
 
-test('a picture of tiles added in the editor is on disk after Save, and the check passes', async ({
+test('a picture of tiles added in the editor is on disk, and the level that uses it is saved, and the check passes', async ({
   page,
   game,
   editor,
 }) => {
   await openRoom(page, editor)
-  // The views are tabs from an iPad up; on a phone they are one menu button named after the open view.
-  const tabs = page.getByRole('radio', { name: 'Tiles' })
-  if (await tabs.count()) await tabs.click()
-  else {
-    await page.getByRole('button', { name: 'Level', exact: true }).click()
-    await page.getByRole('menuitem', { name: 'Tiles' }).click()
-  }
+  await page.getByRole('radio', { name: 'Tiles' }).click()
   await page.getByRole('button', { name: 'Add tiles' }).first().click()
 
   const dialog = page.getByRole('dialog', { name: 'Add tiles' })
@@ -37,13 +31,13 @@ test('a picture of tiles added in the editor is on disk after Save, and the chec
   const picture = join(game.dir, 'assets/my-tiles.png')
   expect(existsSync(picture)).toBe(true)
 
-  await page.getByRole('button', { name: 'Save' }).click()
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible()
-
-  expect(readFileSync(join(game.dir, 'content/rooms/room-1.af2d.json'), 'utf8')).toContain(
-    'assets/my-tiles.png',
-  )
-  expect(readFileSync(join(game.dir, 'content/project.toml'), 'utf8')).toContain('assets/my-tiles.png')
+  // Adding the tiles is a step like any other, saved as it is made: the level project and the game's project both
+  // point at the picture.
+  const project = join(game.dir, 'content/rooms/room-1.af2d.json')
+  await expect.poll(() => readFileSync(project, 'utf8'), { timeout: 30_000 }).toContain('assets/my-tiles.png')
+  await expect
+    .poll(() => readFileSync(join(game.dir, 'content/project.toml'), 'utf8'), { timeout: 30_000 })
+    .toContain('assets/my-tiles.png')
   const check = await checkLevels(game.dir)
   expect(check.code, check.output).toBe(0)
 })

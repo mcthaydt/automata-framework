@@ -17,7 +17,7 @@ A game is built for one of four peer targets, chosen at build time: `web`, `itch
 | `packages/editor-*` | The editor suite: 2D level editor, 3D editor, shared kit |
 | `extensions/` | Opt-in extras a game adds, each `@automata/<name>` with its own README (physics, feel, net, the 3D kits and more) |
 | `games/emberwick` | The 2D reference game |
-| `games/base-3d` | The 3D reference game (in progress) |
+| `games/base-3d` | The 3D reference game, Ember Hall ([`README`](../games/base-3d/README.md)) |
 | `examples/` | One file per feature ([`examples/README.md`](../examples/README.md)) |
 | `tooling/` | Repository checks: boundaries, style, versions, release, consumer smoke |
 
@@ -26,7 +26,7 @@ A game is built for one of four peer targets, chosen at build time: `web`, `itch
 - [`status.md`](status.md): what works today and what is next.
 - [`refactor/progress.md`](refactor/progress.md): the refactor, task by task, with evidence.
 - [`adr/`](adr/): the decisions in force (ECS, Pixi, Effect, hosts, publish targets).
-- [`guides/`](guides/): publish to the web, itch.io, Ruken or the desktop; the editor.
+- [`guides/`](guides/): publish to the web, itch.io, Ruken or the desktop; the editor; [making a 3D game](guides/3d.md) (private beta, so not on the site yet).
 - [`runbook.md`](runbook.md): how to run and release.
 - [`art/`](art/README.md): the look: DUEL, Bubble Bobble with Celeste.
 - [`archive/`](archive/): the 2026-10 specs, plans and task lists. History, not a task list. The 2D editor's and the

@@ -54,3 +54,11 @@ editor = "sequence"
 modes = ["edit"]
 gates = []
 checks = []
+
+# The game's default controls, which the Tuner edits.
+[[file]]
+glob = "content/controls.toml"
+editor = "tuner"
+modes = ["edit"]
+gates = []
+checks = ["content"]

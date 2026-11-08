@@ -1,7 +1,6 @@
 <!--
   @component
-  The Audio group of the Settings tab, laid out as FloorFifty's (`SettingsPanel.svelte` at
-  a28dc44): Mute, Mute in the background, then a slider per bus with its percentage. Every change is reported at
+  The Audio group of the Settings tab, Mute, Mute in the background, then a slider per bus with its percentage. Every change is reported at
   once (`onchange`); the game applies and saves it, so there is no Apply. When sound could not start
   (`available` false, A-e) the group says so and its controls stay shown but disabled. While the host's own volume is
   below full, a note says it also applies, so a quiet game is not taken for a broken slider.

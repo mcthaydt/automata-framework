@@ -1,6 +1,6 @@
 import type { PadLike } from '../read-pad.js'
 
-/** A standard pad at rest that can be pushed and pressed, each call returning a new pad (FloorFifty `fakePad`). */
+/** A standard pad at rest that can be pushed and pressed, each call returning a new pad. */
 export interface FakePad extends PadLike {
   press(button: number, value?: number): FakePad
   stick(x: number, y: number, side?: 'left' | 'right'): FakePad

@@ -1,6 +1,5 @@
 // The board check: every board a game names must be declared in its ship config's
-// `leaderboards`, the table `ruken.toml` is written from, or Ruken has no such board to take the score (FloorFifty
-// `score-boards.ts` keeps one list for the same reason). The game's own sources are read, not the bundle, so a
+// `leaderboards`, the table `ruken.toml` is written from, or Ruken has no such board to take the score. The game's own sources are read, not the bundle, so a
 // failure names the call site the developer wrote:
 // - `scores: { <event>: { board: '<name>', … } }` in `defineGame`;
 // - `submitScore('<name>', …)` and `readBoard('<name>', …)`, as a method or a plain call.

@@ -1,4 +1,4 @@
-# Wick's sword (M3 spec §4.7). New for base-3d: FigureBuilder's items library (a1f7246) has no sword. Held as the
+# Wick's sword (M3 spec §4.7). Made for base-3d. Held as the
 # library's torch is (forward and low at the side, the tip along the item's +z), so the slash carries it.
 
 about = "A short arming sword: a steel blade, a brass cross-guard and pommel, a leather grip."

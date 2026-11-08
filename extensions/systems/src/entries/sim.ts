@@ -58,7 +58,13 @@ export type {
 } from '../shared/sim/systems.schema'
 export { effectSchema, probeSchema, systemsDefShape } from '../shared/sim/systems.schema'
 export { NOISE_LIFE } from '../shared/sim/systems.system'
-export { checkSystems, type SystemsCheckOptions } from '../shared/sim/systems-checks'
+export {
+  checkSystems,
+  type SystemsCheckOptions,
+  type SystemsWarning,
+  type SystemsWarningOptions,
+  systemsWarnings,
+} from '../shared/sim/systems-checks'
 export { createWatch } from '../shared/sim/watch.plugin'
 export { SystemsWatch } from '../shared/sim/watch.resource'
 export type { SystemsOptions, SystemsWorld } from '../shared/sim/world'

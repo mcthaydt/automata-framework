@@ -1,0 +1,5 @@
+# `ceiling`: a colour from the DUEL palette.
+# Colour: DUEL ramp dusk, step 0.
+
+ramp = "dusk"
+step = 0

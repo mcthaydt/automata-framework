@@ -1,5 +1,4 @@
-// A recording stand-in for the Web Audio graph, from FloorFifty `tests/client/managers/audio.test.ts` `fakeContext`
-// at `ac72660`. It has no audio rate: automation lands where it ends, at once, and records what was asked, so a test
+// A recording stand-in for the Web Audio graph. It has no audio rate: automation lands where it ends, at once, and records what was asked, so a test
 // reads levels from `value` and ramps from `automation`. `advance` moves the clock and ends the sources whose stop
 // time it passes.
 import type { AudioContextLike } from '../audio-graph.js'

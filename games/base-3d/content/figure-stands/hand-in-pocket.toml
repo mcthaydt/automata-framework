@@ -1,4 +1,4 @@
-# `handInPocket` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/poses.json at a1f7246 (the stands); fallbacks in kebab-case.
+# `handInPocket`: a base figure's stand. Fallbacks are in kebab-case.
 
 about = "Upright and still, the weight back, the near hand down in a front pocket with the forearm angled to it from an elbow out at the side, the other arm hanging with a soft bend, the chin level."
 weight = "L"

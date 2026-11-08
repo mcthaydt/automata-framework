@@ -7,7 +7,7 @@ import {
   snakeKey,
 } from '#src/shared/locale/messages.ts'
 
-// Ported from FloorFifty tests/content/messages.test.ts (122a220): keys are content_<kind>_<id>_<field> in
+// Keys are content_<kind>_<id>_<field> in
 // snake_case, written in the inlang message format.
 describe('messageKey', () => {
   it('snake-cases the kind, the ID (nested folders included) and the field path', () => {

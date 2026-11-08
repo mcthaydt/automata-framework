@@ -1,5 +1,5 @@
 // Helpers the edit tests share: the level or the sentence out of a result, and the corners of a rectangle.
-import type { EditResult } from '../model/edit'
+import type { EditResult } from '../shared/edit/edit'
 
 /** The level an edit answered with; the test fails, with the reason, when the edit was refused. */
 export function levelOf<D>(result: EditResult<D>): D {

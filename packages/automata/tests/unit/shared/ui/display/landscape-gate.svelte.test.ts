@@ -4,7 +4,7 @@ import type { LandscapeGateState } from '#src/shared/ui/browser/landscape-gate.t
 import type { LandscapeGateCopy } from '#src/shared/ui/display/display-copy.ts'
 import LandscapeGate from '#src/shared/ui/display/LandscapeGate.svelte'
 
-// The landscape gate's cover (M4 spec §4.9, §7), from FloorFifty `ui/components/LandscapeGate.svelte` at `ac72660`:
+// The landscape gate's cover (M4 spec §4.9, §7):
 // empty while the gate is open; one tap, on the button that has focus, to go fullscreen; or, where the browser
 // cannot hide its bar, how to play.
 

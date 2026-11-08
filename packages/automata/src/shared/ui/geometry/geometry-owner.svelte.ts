@@ -76,7 +76,7 @@ export interface GeometryOwner {
  * When to measure again after a viewport event, in ms. A browser's bars and keyboard animate,
  * and the event can fire before the sizes stop moving: on an Android emulator the keyboard closed,
  * the last event fired mid-animation, and the inset was left at the keyboard's height with no
- * further event to correct it (FloorFifty). Each re-measure is only a read and a style write.
+ * further event to correct it. Each re-measure is only a read and a style write.
  */
 export const SETTLE_DELAYS_MS: readonly number[] = [100, 400, 1000]
 

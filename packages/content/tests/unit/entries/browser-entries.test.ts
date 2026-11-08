@@ -43,6 +43,7 @@ function externalsOf(entry: string): string[] {
 }
 
 const BROWSER_ENTRIES = {
+  './controls': { source: './src/entries/controls.ts', build: 'controls' },
   './level-2d': { source: './src/entries/level-2d.ts', build: 'level-2d' },
   './palette': { source: './src/entries/palette.ts', build: 'palette' },
   './schema': { source: './src/entries/schema.ts', build: 'schema' },
@@ -69,6 +70,10 @@ describe('the browser-safe entries', () => {
 
   it("./level-2d imports only zod, so a game's sim may use it", () => {
     expect(externalsOf(BROWSER_ENTRIES['./level-2d'].source)).toEqual(['zod'])
+  })
+
+  it('./controls imports only zod', () => {
+    expect(externalsOf(BROWSER_ENTRIES['./controls'].source)).toEqual(['zod'])
   })
 
   it('./palette serves the default palette, DUEL', async () => {

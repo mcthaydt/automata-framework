@@ -3,8 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import SwipeSurface from '#src/shared/ui/touch/SwipeSurface.svelte'
 import type { PointerTracker, SwipeIndicatorView } from '#src/shared/ui/touch/swipe-surface.ts'
 
-// The swipe surface (M4 spec §4.4, §6 `SwipeSurface` row), from FloorFifty `ui/components/SwipeSurface.svelte` at
-// `ac72660`: it forwards pointer events, with their own timestamps, to a tracker and draws the thumb's line.
+// The swipe surface (M4 spec §4.4, §6 `SwipeSurface` row):
+// it forwards pointer events, with their own timestamps, to a tracker and draws the thumb's line.
 
 let component: ReturnType<typeof mount> | undefined
 afterEach(() => {

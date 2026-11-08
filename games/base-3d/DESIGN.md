@@ -11,7 +11,7 @@
 
 - **Flow:** splash → menu (Continue when a save is there, New game when it is empty, Settings, which comes back to the menu) → play ("Embers 0 of 6" and Pause on screen) → pause (Resume, Settings, Quit) → end (the goal ember).
 - **Screen:** the pixel field takes the shape of the screen the game boots on (`src/features/scene/field.ts`), so on a tablet the room fills its height instead of a band across the middle.
-- **Room:** `content/levels/room.af-sector.json`, an `af-sector/1` file: three platforms and two 2 m channels that
+- **Room:** `content/levels/room.af-sector.json`, an `af-sector/2` file: three platforms and two 2 m channels that
   walking cannot cross and the roll's 3.2 m lunge does, five embers and the goal ember. The converter
   (`src/features/room/sector-area.ts`) reads it as the sim's area; the camera views are in `src/features/room/room.ts`
   (editor gap EG-3).

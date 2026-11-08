@@ -2,6 +2,7 @@
 export {
   CAMERA_CLEARANCE,
   type CutsceneFinding,
+  type LintFloor,
   type LintWorld,
   lintCutscene,
   lintCutscenes,
