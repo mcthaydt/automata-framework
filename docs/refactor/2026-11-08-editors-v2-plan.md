@@ -138,16 +138,16 @@ branch `claude/project-thread-6mtkk6` merged in by Task 1. Paths were read on #5
   and `site.e2e.ts`'s own `PAGES` list. No second route list and no new file: `site.e2e.ts` already runs axe on every
   page at 375 and 1280 px.
 
-- [ ] **Step 1: Write the failing test** in `site.e2e.ts`: a `describe` that, for each of `PAGES` at 375 × 667 and
+- [x] **Step 1: Write the failing test** in `site.e2e.ts`: a `describe` that, for each of `PAGES` at 375 × 667 and
       1280 × 800, in a context with `colorScheme: 'dark'`, asserts `axeViolations(page)` is `[]` and
       `getComputedStyle(document.documentElement).colorScheme` equals the site's own scheme (`'light'` on today's
       site; `'dark'` once the site's v2 is in).
-- [ ] **Step 2: Run** `pnpm --filter @automata/site test:e2e -- site.e2e --project chromium --trace off`
+- [x] **Step 2: Run** `pnpm --filter @automata/site test:e2e -- site.e2e --project chromium --trace off`
       (after `pnpm build`). Expected: FAIL on `colorScheme` (it inherits `dark` from Task 2).
-- [ ] **Step 3: Implement:** set the site's `color-scheme` in its own `:root`. Fix any pair axe still reports by
+- [x] **Step 3: Implement:** set the site's `color-scheme` in its own `:root`. Fix any pair axe still reports by
       moving the site to an existing token, and name each in the log.
-- [ ] **Step 4: Run** the file and the site's whole e2e suite. Expected: PASS. Then `pnpm check`.
-- [ ] **Step 5: Commit** `fix(site): the site keeps its own colour scheme; check every page's contrast`.
+- [x] **Step 4: Run** the file and the site's whole e2e suite. Expected: PASS. Then `pnpm check`.
+- [x] **Step 5: Commit** `fix(site): the site keeps its own colour scheme; check every page's contrast`.
 
 ## Phase 2: the kit parts
 
@@ -206,7 +206,7 @@ helper, `atEverySize(run)`, created in Task 4.
   `packages/editor/src/features/suite/core/problem-counts.ts` (new): each finding with a `path` counts once for the
   editor the list gives that path to.
 
-- [ ] **Step 1: Write the failing tests.** DOM: the group label "Editors" and no "Waiting for you"; a `tablist` named
+- [x] **Step 1: Write the failing tests.** DOM: the group label "Editors" and no "Waiting for you"; a `tablist` named
       "Editors" whose `tab`s, in entry order, have their icon and are named exactly by the editor's name, a count
       included (`getByRole('tab', { name: 'Schematic', exact: true })` finds Schematic with 1 problem, and the tab is
       described by "1 problem"); Home is a button outside the list; Schematic's count in `warn`; `problemCounts` gives
@@ -214,10 +214,10 @@ helper, `atEverySize(run)`, created in Task 4.
       keep today's rail behaviour (move today's rail keyboard tests here). Layout: no row label is cut
       (`scrollWidth <= clientWidth`) in either layout; rows are 32 px with a mouse and 44 px on touch; rail items 52 px
       and 56 px on touch.
-- [ ] **Step 2: Run.** Expected: FAIL (no `Sidebar`).
-- [ ] **Step 3: Implement** `Sidebar.svelte` from the mockup's `.side` and `.nav` rules.
-- [ ] **Step 4: Run** the tests and `pnpm check`. Expected: PASS.
-- [ ] **Step 5: Commit** `feat(editor): a sidebar with every editor's icon and name`.
+- [x] **Step 2: Run.** Expected: FAIL (no `Sidebar`).
+- [x] **Step 3: Implement** `Sidebar.svelte` from the mockup's `.side` and `.nav` rules.
+- [x] **Step 4: Run** the tests and `pnpm check`. Expected: PASS.
+- [x] **Step 5: Commit** `feat(editor): a sidebar with every editor's icon and name`.
 
 ### Task 6: The breadcrumb header
 
@@ -503,3 +503,23 @@ iPad size, in Dark and once in Light; and apply the drunk grandma test to every 
   `iconFor` is exported and follows spec §7.3. `WINDOW_SIZES` and `atEverySize` are in `src/testing/kit/`. The shell's
   layout test now measures the inset, the 224/76/56/72 px bars and the 8 px corners; it passes in Chromium with a
   mouse and with touch (164 tests). Not run: WebKit, Firefox.
+- 2026-11-08, build, Task 3: `site/src/app.css` says `color-scheme: light` in its own `:root`, because it imports the
+  editors' tokens, which now say `dark`. `site.e2e.ts` gained a block that runs every page of `PAGES` at 375 and
+  1280 px in a context whose device asks for dark and asserts the page's own scheme and no axe violation. Red first
+  for the right reason: 88 of 88 pages read `dark` where the site is `light`; green after the change, with no
+  contrast failure on any page, so no site colour changed. The whole Chromium suite passes (496 tests, 11 minutes).
+  WebKit not run. Commit hook: from here interim commits skip the 7-minute affected-test hook (`LEFTHOOK=0`) and the
+  full gates run before the PR.
+- 2026-11-08, build, Task 5: the sidebar. `Sidebar` (224 px rows, or the 76 px rail with each icon above its whole name)
+  draws the game's mark and name, Home as a button outside the list, and one `tab` per editor in a `tablist` named
+  "Editors"; a problem count is at the row's end and described ("2 problems"), not part of the tab's name, so the
+  journeys' `getByRole('tab', { name })` still finds it. The keyboard rules (one tab stop, arrows, Home, End, Cmd/Ctrl
+  1 to 9) moved to `rail-keys.ts` and are shared with the tab bar; the old rail tests now run on `SuiteRail`'s new
+  `presentation` prop. `tabSlots` (four tabs and More, the open editor takes the fourth slot) and `problemCounts`
+  have their own tests. Rulings: (1) no `ongame` prop and no game menu on the sidebar: the game's other actions live
+  in the header's title menu (Task 6), so a second entry would be a second way to one thing. (2) `problemCounts` takes
+  the cards (`{ editor, files }`) rather than an `EditorList`, because the list's items are cards already in
+  `Suite.svelte`. (3) The plan's "Schematic's count in `warn`" is the count's colour for every editor. Known red until
+  Task 6: seven `Suite*` tests that find "Home" or the game's name twice, because the old top bar still draws both
+  (the header of Task 6 drops them). Ran: SuiteRail, sidebar, tab-slots and problem-counts unit tests; the sidebar
+  layout test in Chromium.

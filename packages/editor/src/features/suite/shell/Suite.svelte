@@ -18,10 +18,10 @@ import type { GamePublish } from '../../../shared/kit/storage/publish-client'
 import Button from '../../../shared/kit/widgets/Button.svelte'
 import Dialog from '../../../shared/kit/widgets/Dialog.svelte'
 import IconButton from '../../../shared/kit/widgets/IconButton.svelte'
-import Menu from '../../../shared/kit/widgets/Menu.svelte'
 import ToastRegion from '../../../shared/kit/widgets/ToastRegion.svelte'
 import { createToasts } from '../../../shared/kit/widgets/toasts'
 import { type Pill, pillsToShow } from '../core/pills-model'
+import { problemCounts } from '../core/problem-counts'
 import { findingMessage, refusalMessage } from '../core/write-messages'
 import type { Suite } from './create-suite'
 import Home from './Home.svelte'
@@ -87,16 +87,7 @@ const entries = $derived(
   suiteEntries(suite.editors, home.kind === 'cards' ? home.cards.map((card) => card.editor) : undefined),
 )
 const entry = $derived(entries.find((candidate) => candidate.id === current))
-// A phone held sideways has no height to spare for a tab bar: the editors fold into a menu in the top bar, so the stage
-// keeps the height (V4).
-const folded = $derived(mode === 'compact' && geometry.current.heightTier === 'short')
-const editorMenu = $derived(
-  entries.map((candidate) => ({
-    id: candidate.id,
-    label: candidate.label,
-    ...(candidate.id === current ? { detail: 'Open now' } : {}),
-  })),
-)
+const gameName = $derived(sample ? 'Sample game' : (game ?? 'Your game'))
 
 // The installed editor the chosen entry opens: only when exactly one of its editors is both named and installed.
 const target = $derived.by((): { editor: SuiteEditor<unknown>; card: EditorCard } | undefined => {
@@ -130,6 +121,8 @@ $effect(() => {
 const editing = $derived(createSuiteSession(ports))
 const toasts = createToasts()
 let pills = $state<readonly Pill[]>([])
+let findings = $state<readonly CheckFinding[]>([])
+const counts = $derived(problemCounts(findings, home.kind === 'cards' ? home.cards : []))
 // Icons with counts in the `short` tier and on a phone, where full labels leave no room; never hidden.
 const compact = $derived(geometry.current.heightTier === 'short' || mode === 'compact')
 
@@ -137,6 +130,7 @@ $effect(() => {
   const session = editing
   const read = () => {
     pills = session.pills()
+    findings = session.reports().flatMap((report) => report.findings)
   }
   const stop = session.subscribe(read)
   read()
@@ -203,7 +197,7 @@ function openCard(card: EditorCard): void {
   inspector={mounted?.editor.regions.inspector ? inspector : undefined}
   dock={mounted?.editor.regions.dock ? dock : undefined}
   status={mounted?.editor.regions.status ? status : undefined}
-  rail={folded ? undefined : tabs}
+  rail={tabs}
   testId="suite-shell"
 >
   {#snippet sheets()}<ToastRegion {toasts} />{/snippet}
@@ -231,7 +225,6 @@ function openCard(card: EditorCard): void {
       onpublish={publish !== undefined ? () => (publishingGame = true) : undefined}
       tools={mounted?.editor.regions.tools ? editorTools : undefined}
     />
-    {#if folded}<Menu label="Editors" items={editorMenu} onselect={choose} />{/if}
     {#if mounted?.editor.regions.panel && mode !== 'wide'}
       <IconButton icon="list" label="Panel" aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)} />
     {/if}
@@ -280,7 +273,18 @@ function openCard(card: EditorCard): void {
 </Dialog>
 {#if publish !== undefined}<PublishGameDialog {publish} bind:open={publishingGame} />{/if}
 
-{#snippet tabs({ orientation }: { orientation: 'vertical' | 'horizontal' })}<SuiteRail {entries} {current} {orientation} onselect={choose} />{/snippet}
+{#snippet tabs({ presentation, standing }: { presentation: 'sidebar' | 'rail' | 'tabbar'; standing: boolean })}
+  <SuiteRail
+    {entries}
+    {current}
+    {presentation}
+    {standing}
+    game={{ name: gameName, letter: gameName.trim().charAt(0) || 'G' }}
+    {counts}
+    onselect={choose}
+    onhome={() => choose(undefined)}
+  />
+{/snippet}
 {#snippet editorTools()}{#if mounted?.editor.regions.tools}{@render mounted.editor.regions.tools(mounted.session)}{/if}{/snippet}
 {#snippet panel()}{#if mounted?.editor.regions.panel}{@render mounted.editor.regions.panel(mounted.session)}{/if}{/snippet}
 {#snippet inspector()}{#if mounted?.editor.regions.inspector}{@render mounted.editor.regions.inspector(mounted.session)}{/if}{/snippet}

@@ -59,8 +59,12 @@ interface Props {
   geometry: GeometryState
   topbar: Snippet
   canvas: Snippet
-  /** Told which way to lay out its destinations: a column beside the canvas, or a row along the foot. */
-  rail?: Snippet<[{ orientation: 'vertical' | 'horizontal' }]> | undefined
+  /** Told how to draw its destinations: the sidebar, the medium rail, or the compact tab bar (standing or lying). */
+  rail?:
+    | Snippet<
+        [{ presentation: 'sidebar' | 'rail' | 'tabbar'; standing: boolean; orientation: 'vertical' | 'horizontal' }]
+      >
+    | undefined
   panel?: Snippet | undefined
   inspector?: Snippet | undefined
   dock?: Snippet | undefined
@@ -207,9 +211,13 @@ function sheetStyle(name: ShellRegion): string | undefined {
       aria-label="Editor sections"
       bind:this={railElement}
     >
-      <!-- Inline rather than `guarded`: the rail's snippet takes an argument (its orientation). -->
+      <!-- Inline rather than `guarded`: the rail's snippet takes an argument (how it is drawn). -->
       <svelte:boundary>
-        {@render rail({ orientation: mode === 'compact' && !standing ? 'horizontal' : 'vertical' })}
+        {@render rail({
+          presentation: mode === 'wide' ? 'sidebar' : mode === 'medium' ? 'rail' : 'tabbar',
+          standing,
+          orientation: mode === 'compact' && !standing ? 'horizontal' : 'vertical',
+        })}
         {#snippet failed(error)}
           <RegionError region="rail" {error} layout={mode === 'compact' && !standing ? 'bar' : 'block'} />
         {/snippet}
