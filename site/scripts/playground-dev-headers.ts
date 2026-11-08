@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Plugin } from 'vite'
-import { playgroundHeaders } from '../src/lib/playground/headers.ts'
+import { playgroundHeaders } from '../src/features/playground/headers.ts'
 import { framePageForOrigin, isFramePage } from './playground-origin.ts'
 
 /**

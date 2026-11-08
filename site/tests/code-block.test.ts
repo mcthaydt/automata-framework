@@ -1,12 +1,12 @@
 import { render, waitFor } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import CodeBlock from '../src/lib/components/CodeBlock.svelte'
-import { highlightCode } from '../src/lib/utils/highlight'
+import CodeBlock from '../src/shared/components/CodeBlock.svelte'
+import { highlightCode } from '../src/shared/utils/highlight'
 
 // QB.3h. Highlighting a file costs seconds of main-thread time on a phone (shiki's tokenizer was 2.3 s of a 2.9 s long
 // task on /start under Lighthouse's 4× slowdown), and every block used to pay it on mount, seen or not. A block now
 // highlights when it is near the screen; the plain code shows until then.
-vi.mock('../src/lib/utils/highlight', () => ({
+vi.mock('../src/shared/utils/highlight', () => ({
   highlightCode: vi.fn(async (code: string) => `<pre class="shiki"><code>highlighted:${code}</code></pre>`),
 }))
 

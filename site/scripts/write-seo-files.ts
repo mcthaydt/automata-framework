@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { SITE_ORIGIN } from '../src/lib/site.js'
+import { SITE_ORIGIN } from '../src/shared/site.js'
 import { builtPages } from './site-checks.ts'
 
 /**

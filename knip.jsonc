@@ -43,7 +43,7 @@
     // playground/static as files.
     "site": {
       "entry": [
-        "src/lib/playground/compile.worker.ts",
+        "src/features/playground/compile.worker.ts",
         "scripts/*.ts",
         "playground/*.ts",
         "playwright.config.ts",

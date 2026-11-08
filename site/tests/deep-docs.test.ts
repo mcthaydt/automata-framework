@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { PLUS_DOC, SAVES_DOC, SERVICE_MODEL_DOC } from '../src/data/deep-docs'
-import { getDocBySlug } from '../src/data/docs-loader'
+import { PLUS_DOC, SAVES_DOC, SERVICE_MODEL_DOC } from '../src/features/docs/deep-docs'
+import { getDocBySlug } from '../src/features/docs/docs-loader'
 
 // Ritmo gaps 6 and 7 and the Plus docs section (M10.4): each page says only what its framework source says.
 describe('deep docs', () => {

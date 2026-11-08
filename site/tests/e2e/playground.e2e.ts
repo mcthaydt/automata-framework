@@ -5,8 +5,9 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, type Page, test } from '@playwright/test'
 import { SITE_PORT } from '../../playwright.config'
-import { BOOT_TIMEOUT_MS, FIRST_BOOT_TIMEOUT_MS } from '../../src/lib/playground/orchestrator'
-import { LOOP_GUARD_MS } from '../../src/lib/playground/protocol'
+import { BOOT_TIMEOUT_MS, FIRST_BOOT_TIMEOUT_MS } from '../../src/features/playground/orchestrator'
+import { LOOP_GUARD_MS } from '../../src/features/playground/protocol'
+import { playgroundExamples } from '../../src/shared/framework/examples'
 import { watchPage } from './gates'
 
 const ORIGIN = `http://127.0.0.1:${SITE_PORT}`
@@ -740,10 +741,9 @@ for (const [name, fragment] of [
   })
 }
 
-/** The synced framework file the page shows (src/data/examples.json). */
+/** The framework file the page shows, read from examples/2d. */
 function syncedSource(id: string): string {
-  const data = JSON.parse(readFileSync('src/data/examples.json', 'utf8'))
-  return (data.examples ?? data).find((example: { id: string }) => example.id === id).source
+  return playgroundExamples().find((example) => example.id === id)!.source
 }
 
 /** The editor's whole text, line by line (the example is short enough for every line to be drawn). */

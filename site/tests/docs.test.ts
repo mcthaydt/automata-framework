@@ -1,7 +1,7 @@
 import { render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
-import { getDocSections } from '../src/data/docs-loader'
-import DocsPage from '../src/routes/docs/+page.svelte'
+import DocsPage from '../src/features/docs/DocsPage.svelte'
+import { getDocSections } from '../src/features/docs/docs-loader'
 
 describe('Docs Page & Loader', () => {
   it('loads core documentation sections from monorepo docs/', () => {

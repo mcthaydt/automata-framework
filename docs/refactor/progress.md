@@ -203,14 +203,26 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 1. Audit | Done, 2026-11-06: 7 editor shipping gaps (E1 to E7), 7 sprawl (S1 to S7), 2 contracts (K1, K2), 5 tests (T1 to T5), 5 copy (G1 to G5); 9 website shipping gaps (W1 to W9), 6 sprawl (WS1 to WS6), 2 tests (WT1, WT2), 4 copy (WG1 to WG4); 8 decisions (D1 to D8); the Owner took all eight recommendations the same day. The widened scope's audit, the same day: 7 new-game gaps (N1 to N7), 7 published-tools (U1 to U7), 7 release (R1 to R7), 7 Plus and other repositories (P1 to P7), 7 agent package and docs (A1 to A7), 5 CI and tooling (Q1 to Q5), 4 copy (Y1 to Y4); 9 decisions (D9 to D17); the Owner took all nine recommendations the same day | [2026-11-06-2d-editors-and-site-audit.md](2026-11-06-2d-editors-and-site-audit.md), [2026-11-06-2d-ship-rest-audit.md](2026-11-06-2d-ship-rest-audit.md) |
 | 2. Plan and spec | Done, 2026-11-06 (draft PR [#406](https://github.com/mcthaydt/automata-framework/pull/406)): 21 phases, 63 tasks. Built on D1 to D17 as the Owner took them; adds the editor redesign in the website's look and the code refactor to the core slice's standard (minimal, elegant, documented), both asked for by the Owner the same day. Stage 3 reviews it | [spec](2026-11-06-2d-editors-and-site-spec.md), [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 3. Plan audit | Done, 2026-11-06 (draft PR, stacked on #406 and #407): 30 findings (12 that would have stopped the build, 18 that would have caused harm or rework), all fixed in the spec and plan; three veto defaults added (14 to 16); the Owner's calls are the npm organisation's name and D8/D17's inputs. Stage 4 starts at task 1.1 | [plan audit](2026-11-06-2d-editors-and-site-plan-audit.md) |
-| 4. Build | In progress: 46 of 68 tasks (12.3b added 2026-11-06) (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
+| 4. Build | In progress: 49 of 68 tasks (12.3b added 2026-11-06) (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 68% (46 of 68 tasks)
+### Build: 72% (49 of 68 tasks)
 
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
+
+**Where to resume (2026-11-07, session 21):** branch `claude/project-thread-51wjcc`, PR #434 stacked on #433
+(`claude/project-thread-zrzfq2`). Session 21: **18.1, 18.2 and 18.3 are done** (the plan's log, "Phase 18, part
+(session 21)"). Next, in order: **18.4** (docs from `docs/guides/` plus a new `docs/guides/how-it-works.md` and
+`index.md` for the order; `/ai` and `/inside` already redirect to `/docs/how-it-works`, so it must exist; the old
+authored docs in `site/src/features/docs/site-docs.ts`, `deep-docs.ts`, `migrations.ts`, `audience.ts` go, and their
+slugs need redirects in `features/redirects/redirects.ts`, whose test pins the map; the docs sidebar's tap targets, M1;
+one API page per package, short, H4), then **18.5** (dead CSS such as `.ownership` and `.rules-list` in `app.css`;
+the old flat `site/tests/*.test.ts` regroup into `tests/unit/<feature>/`), then rerun the site audit and re-measure tap
+targets (not re-measured this session). For the build audit: the editor's views cross features in 11 places
+(`--features packages/editor --components` lists them). Build the site with `node scripts/build-demos.ts` first;
+the full Chromium site suite takes about 10 minutes.
 
 **Where to resume (2026-11-07, session 20):** branch `claude/project-thread-zrzfq2`, PR [#433](https://github.com/mcthaydt/automata-framework/pull/433) stacked on #432.
 Session 20: **12.5 and 17.3 are done**, and phase 18 is under way: the header, footer, buttons and corners follow the
@@ -398,11 +410,11 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 1. Audit | Done, 2026-11-06: 7 editor shipping gaps (E1 to E7), 7 sprawl (S1 to S7), 2 contracts (K1, K2), 5 tests (T1 to T5), 5 copy (G1 to G5); 9 website shipping gaps (W1 to W9), 6 sprawl (WS1 to WS6), 2 tests (WT1, WT2), 4 copy (WG1 to WG4); 8 decisions (D1 to D8); the Owner took all eight recommendations the same day. The widened scope's audit, the same day: 7 new-game gaps (N1 to N7), 7 published-tools (U1 to U7), 7 release (R1 to R7), 7 Plus and other repositories (P1 to P7), 7 agent package and docs (A1 to A7), 5 CI and tooling (Q1 to Q5), 4 copy (Y1 to Y4); 9 decisions (D9 to D17); the Owner took all nine recommendations the same day | [2026-11-06-2d-editors-and-site-audit.md](2026-11-06-2d-editors-and-site-audit.md), [2026-11-06-2d-ship-rest-audit.md](2026-11-06-2d-ship-rest-audit.md) |
 | 2. Plan and spec | Done, 2026-11-06 (draft PR [#406](https://github.com/mcthaydt/automata-framework/pull/406)): 21 phases, 63 tasks. Built on D1 to D17 as the Owner took them; adds the editor redesign in the website's look and the code refactor to the core slice's standard (minimal, elegant, documented), both asked for by the Owner the same day. Stage 3 reviews it | [spec](2026-11-06-2d-editors-and-site-spec.md), [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 3. Plan audit | Done, 2026-11-06 (draft PR, stacked on #406 and #407): 30 findings (12 that would have stopped the build, 18 that would have caused harm or rework), all fixed in the spec and plan; three veto defaults added (14 to 16); the Owner's calls are the npm organisation's name and D8/D17's inputs. Stage 4 starts at task 1.1 | [plan audit](2026-11-06-2d-editors-and-site-plan-audit.md) |
-| 4. Build | In progress: 46 of 68 tasks (12.3b added 2026-11-06) (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
+| 4. Build | In progress: 49 of 68 tasks (12.3b added 2026-11-06) (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 68% (46 of 68 tasks)
+### Build: 72% (49 of 68 tasks)
 
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
@@ -480,9 +492,9 @@ so far. The design board: `pnpm --filter @mcthaydt/automata-editor design:board`
 | 17.2 The packages that lost their reason | 17 | Done, 2026-11-06 (session 11): core-packs, bundle-report and the API seams list deleted, the stack page's Plus and Effect cards gone; evidence's Proof half goes with the page in 18.1 | this session's PR |
 | 17.3 The code refactor of the tooling that stays | 17 | Done, 2026-11-07 (session 20): the read's findings in the plan's log; one header and two stale knip hints fixed, no dead code found | this session's PR |
 | 18.0 The shared layout, fixed first (added 2026-11-06) | 18 | In progress (session 20): header, footer, corners, buttons, the opaque menu and the touch hint done from the approved mockup; the rerun audit's tap-target and code-block rows are left (`2026-11-06-site-visual-audit.md`, section 5) | #433 |
-| 18.1 Features, the page cut and redirects | 18 | In progress (session 20): the source explorer and `/sources` cut with the old Home; AI, Showcase, Cheatsheet, the redirects and the `features/` move left | #433 |
-| 18.2 Home and Start on the current code | 18 | In progress (session 20): Home and Start rebuilt (`site/src/features/home`, `start`), Quick Start matches; Step V's first example (H5) and the phone-landscape fold (M3) left | #433 |
-| 18.3 The editor page and "Try the editor" | 18 | Not started | |
+| 18.1 Features, the page cut and redirects | 18 | Done locally, 2026-11-07 (session 21): AI, Showcase, Cheatsheet cut; nine static redirects; `src/lib` and `src/data` moved into `features/` and `shared/`, routes thin; `--features site --components` 0 findings; site unit, check:site and the Chromium site suite pass | #434 |
+| 18.2 Home and Start on the current code | 18 | Done locally, 2026-11-07 (session 21): Step V's first example paints a field and a line (H5), phone landscape puts the demo and the preview above the fold (M3); Home's editor picture waits until the reader is near (NearView) | #433, #434 |
+| 18.3 The editor page and "Try the editor" | 18 | Done locally, 2026-11-07 (session 21): `/editor` with three screenshots and Try the editor at `/editor/app/` (the editor's own build, browser storage, no console error); Privacy says so | #434 |
 | 18.4 Docs and API | 18 | Not started | |
 | 18.5 The code refactor of the site | 18 | Not started | |
 | 19.1 The visitor's journey | 19 | Not started | |

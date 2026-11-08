@@ -1,6 +1,6 @@
 <script lang="ts">
-import PageMeta from '$lib/components/PageMeta.svelte'
 import Start from '../../features/start/Start.svelte'
+import PageMeta from '../../shared/components/PageMeta.svelte'
 </script>
 
 <PageMeta

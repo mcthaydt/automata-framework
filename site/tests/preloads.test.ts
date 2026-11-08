@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { withoutChunkPreloads } from '../src/lib/preloads'
+import { withoutChunkPreloads } from '../src/shared/html/preloads'
 
 // QB.3j. SvelteKit lists every module a page's hydration needs as a modulepreload hint, 26 to 29 files and 250 KB built.
 // On a slow link the stylesheet and the font wait behind them, which costs the mobile first paint 0.5 to 0.9 s. The

@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit'
-import { highlightLines } from '$lib/playground/highlight'
-import { exampleIndex, getExample, getExamples } from '../../../data/examples'
+import { highlightLines } from '../../../features/playground/highlight'
+import { exampleIndex, getExample, getExamples } from '../../../shared/framework/example-catalog'
 import type { EntryGenerator, PageServerLoad } from './$types'
 
 // One prerendered page per catalog example (PLAY-D9). A server load, so each page's data carries its own example and

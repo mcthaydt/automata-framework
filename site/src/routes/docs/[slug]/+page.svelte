@@ -1,5 +1,5 @@
 <script lang="ts">
-import DocsPage from '../+page.svelte'
+import DocsPage from '../../../features/docs/DocsPage.svelte'
 import type { PageData } from './$types'
 
 interface Props {

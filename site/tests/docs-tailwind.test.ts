@@ -1,6 +1,6 @@
 import { fireEvent, render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
-import DocsPage from '../src/routes/docs/+page.svelte'
+import DocsPage from '../src/features/docs/DocsPage.svelte'
 
 describe('Documentation navigation', () => {
   it('renders 3-column structure: categories, content, and on-this-page toc', () => {

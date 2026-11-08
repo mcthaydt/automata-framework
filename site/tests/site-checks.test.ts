@@ -20,7 +20,7 @@ import {
   TARGETS_SENTENCE_PAGES,
 } from '../scripts/site-checks'
 import { writeSeoFiles } from '../scripts/write-seo-files'
-import { withContentSecurityPolicy } from '../src/lib/csp'
+import { withContentSecurityPolicy } from '../src/shared/html/csp'
 
 const ORIGIN = 'https://automataframework.com'
 const roots: string[] = []
@@ -359,12 +359,12 @@ describe('checkSite', () => {
   })
 
   // QB.4a. Every page carries its Content-Security-Policy first in <head>, allowing each of its inline scripts by hash
-  // and never unsafe-inline or unsafe-eval for scripts (src/lib/csp.ts, added last by finishPage).
+  // and never unsafe-inline or unsafe-eval for scripts (src/shared/html/csp.ts, added last by finishPage).
   it('fails when a page has no Content-Security-Policy', () => {
     const site = goodSite()
     site.write('index.html', unprotectedPage('/', { body: '<p><a href="/docs">Docs</a></p>' }))
     expect(checkSite(site.root, { now: NOW })).toEqual([
-      'index.html: has no Content-Security-Policy first in <head> (withContentSecurityPolicy, applied last in src/lib/finish-page.ts)',
+      'index.html: has no Content-Security-Policy first in <head> (withContentSecurityPolicy, applied last in src/shared/html/finish-page.ts)',
     ])
   })
 

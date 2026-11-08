@@ -143,11 +143,15 @@ const dialogNamed = (name: string): HTMLElement | null =>
 describe.each(SIZES)('Ship, Review and Import at $name ($width x $height)', (size) => {
   test('the reload toast sits above the rail and the status line, not over them', async () => {
     await open(size)
-    await expect.poll(() => document.querySelector('[data-widget="toast-region"] .toast')).not.toBeNull()
-    await settleLayout()
-    const toast = document
-      .querySelector<HTMLElement>('[data-widget="toast-region"] .toast')
-      ?.getBoundingClientRect()
+    // The toast dismisses itself on the real clock after a few seconds, and a busy runner can spend that long between
+    // frames, so it is measured in the same tick it is found, against a foot that open() has already settled.
+    let toast: DOMRect | undefined
+    await expect
+      .poll(
+        () =>
+          (toast = document.querySelector('[data-widget="toast-region"] .toast')?.getBoundingClientRect()),
+      )
+      .toBeDefined()
     // The rail as a column (wide) is beside the canvas, not under it; as a tab bar it is the foot.
     const foot = [...document.querySelectorAll<HTMLElement>('[data-region="rail"], [data-region="status"]')]
       .filter((region) => region.dataset.presentation !== 'rail')

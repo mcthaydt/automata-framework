@@ -1,7 +1,7 @@
 import { fireEvent, render, waitFor } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
-import { getApiReference, latestApiVersion } from '../src/lib/api-reference'
-import CommandMenu from '../src/lib/components/CommandMenu.svelte'
+import CommandMenu from '../src/features/search/CommandMenu.svelte'
+import { getApiReference, latestApiVersion } from '../src/shared/framework/api-reference'
 
 // M10.4: search reaches the complete generated reference, not only the selected APIs, and links to the package page.
 describe('CommandMenu searches the complete API', () => {

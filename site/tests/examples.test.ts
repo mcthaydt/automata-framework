@@ -1,6 +1,6 @@
 import { fireEvent, render } from '@testing-library/svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import DemoRunner from '../src/lib/components/DemoRunner.svelte'
+import DemoRunner from '../src/features/home/DemoRunner.svelte'
 
 // The gallery that used DemoRunner on /examples is gone (WEB.PLAY.5; tests/examples-pages.test.ts covers the new
 // pages). DemoRunner still runs Emberwick on / and the first change on /start (PLAY-D10).

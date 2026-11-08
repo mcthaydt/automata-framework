@@ -2,15 +2,17 @@ import { execFileSync } from 'node:child_process'
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { compileExample } from '../src/lib/playground/compile.ts'
-import { SITE_ORIGIN } from '../src/lib/site.js'
+import { compileExample } from '../src/features/playground/compile.ts'
 import { demoList } from '../src/shared/framework/demos.ts'
 import { repositoryRoot } from '../src/shared/framework/root.ts'
+import { SITE_ORIGIN } from '../src/shared/site.js'
 import { writeApiIndex } from './write-api-index.ts'
 
 // `node scripts/build-demos.ts`: the built games the site serves, written into static/ (git ignores both folders),
 // where Vite and the static build pick them up:
 // - static/demos/<slug>/: Emberwick and each feature demo, built by their own packages;
+// - static/editor/app/: the 2D editor, the same build `automata editor` serves, for "Try the editor" (its files are
+//   named relative to its page, so it runs at that address unchanged);
 // - static/playground/: the playground's runtime, frame pages, resources and goldens (playground/build.ts), with
 //   every example precompiled (compiled/<id>.js), so an example's first run needs no compiler.
 // - tooling/api-index/dist/: the API index (`pnpm api-index`), which the API pages and the agents' text files read.
@@ -57,6 +59,16 @@ function copyDemos(): number {
   return demos.length
 }
 
+/** The 2D editor's build, copied as it is: on the site it finds no game folder and keeps levels in browser storage. */
+function copyEditor(): void {
+  const dist = join(repositoryRoot, 'packages/editor/dist/2d')
+  if (!existsSync(join(dist, 'index.html')))
+    throw new Error('packages/editor: its build wrote no dist/2d/index.html')
+  const target = join(staticDir, 'editor', 'app')
+  rmSync(join(staticDir, 'editor'), { recursive: true, force: true })
+  cpSync(dist, target, { recursive: true })
+}
+
 function buildPlayground(): number {
   // playground/build.ts writes only a folder named dist-playground, then the site serves it as /playground/.
   const built = join(siteRoot, 'playground', 'dist-playground')
@@ -93,6 +105,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   buildPackages()
   writeApiIndex()
   const demos = copyDemos()
+  copyEditor()
   const examples = buildPlayground()
-  console.log(`build-demos: ${demos} demos in static/demos, ${examples} examples in static/playground.`)
+  console.log(
+    `build-demos: ${demos} demos in static/demos, the 2D editor in static/editor/app, ${examples} examples in static/playground.`,
+  )
 }

@@ -5,9 +5,10 @@
   (`home-content.ts` holds them, and its test holds them to the framework).
 -->
 <script lang="ts">
-import CopyButton from '$lib/components/CopyButton.svelte'
-import DemoRunner from '$lib/components/DemoRunner.svelte'
+import CopyButton from '../../shared/components/CopyButton.svelte'
 import Icon from '../../shared/components/Icon.svelte'
+import NearView from '../../shared/components/NearView.svelte'
+import DemoRunner from './DemoRunner.svelte'
 import { CREATE_COMMAND, EXAMPLE_EXCERPT, EXAMPLE_FILE, REASONS, TARGETS } from './home-content'
 import ShapesPreview from './ShapesPreview.svelte'
 </script>
@@ -92,20 +93,27 @@ import ShapesPreview from './ShapesPreview.svelte'
       you save.
     </p>
     <div class="wide">
-      <picture>
-        <source media="(max-width: 760px)" type="image/webp" srcset="/previews/editor-phone.webp" />
-        <source media="(max-width: 760px)" srcset="/previews/editor-phone.jpg" />
-        <source type="image/webp" srcset="/previews/editor.webp" />
-        <img
-          src="/previews/editor.jpg"
-          width="1600"
-          height="1000"
-          loading="lazy"
-          alt="The level editor on Emberwick: the layers on the left, the room in the middle, its details on the right"
-        />
-      </picture>
+      <!-- Far below the poster: in the page only once the reader is near it (NearView, QB.3j). -->
+      <NearView>
+        <picture>
+          <source media="(max-width: 760px)" type="image/webp" srcset="/previews/editor-phone.webp" />
+          <source media="(max-width: 760px)" srcset="/previews/editor-phone.jpg" />
+          <source
+            type="image/webp"
+            srcset="/previews/editor-800.webp 800w, /previews/editor.webp 1600w"
+            sizes="(max-width: 1200px) 92vw, 1120px"
+          />
+          <img
+            src="/previews/editor.jpg"
+            width="1600"
+            height="1000"
+            loading="lazy"
+            alt="The level editor on Emberwick: the layers on the left, the room in the middle, its details on the right"
+          />
+        </picture>
+      </NearView>
     </div>
-    <p class="more"><a href="/editors">More about the editor</a></p>
+    <p class="more"><a href="/editor">More about the editor</a></p>
   </div>
 </section>
 
@@ -378,11 +386,14 @@ import ShapesPreview from './ShapesPreview.svelte'
     border-radius: var(--edge-lg);
     box-shadow: 0 24px 64px -32px rgb(17 21 28 / 0.3);
   }
+  .wide,
+  .wide img {
+    aspect-ratio: 16 / 10;
+  }
   .wide img {
     display: block;
     width: 100%;
     height: auto;
-    aspect-ratio: 16 / 10;
     object-fit: cover;
     object-position: 50% 0;
   }
@@ -496,6 +507,7 @@ import ShapesPreview from './ShapesPreview.svelte'
       width: min(300px, 100%);
       margin-inline: auto;
     }
+    .wide,
     .wide img {
       aspect-ratio: 390 / 844;
     }
@@ -507,6 +519,35 @@ import ShapesPreview from './ShapesPreview.svelte'
     }
     .close .cta > :global(*) {
       width: 100%;
+    }
+  }
+  /* A phone on its side (audit M3): one column would push the demo below the fold, so the words and the game sit
+     side by side, as on a desktop, and the heading shrinks to fit the short screen. */
+  @media (orientation: landscape) and (max-height: 500px) and (min-width: 640px) {
+    .intro {
+      padding: 20px 0;
+    }
+    .intro .split-12 {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 24px;
+    }
+    .intro-text {
+      grid-column: span 6;
+    }
+    .intro .shot {
+      grid-column: span 6;
+    }
+    .intro h1 {
+      margin-top: 8px;
+      font-size: 28px;
+    }
+    .intro .lead {
+      margin-top: 12px;
+      font-size: 15px;
+      line-height: 22px;
+    }
+    .intro .cta {
+      margin-top: 16px;
     }
   }
 </style>
