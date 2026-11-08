@@ -540,7 +540,7 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
 
-## The paid apps: desktop and mobile: 33% (2 of 6 stages done, 2026-11-08)
+## The paid apps: desktop and mobile: 33% (2 of 6 stages done, 2026-11-08; the build stage is at 3%)
 
 The Owner, 2026-11-08 14:53: "should we get to using tauri to package to desktop, ios, and android? Also let's use
 nomad sculpt economics $19.99 for mobile, $39.99 for desktop; lets keep essentials on web, everything open source except
@@ -551,6 +551,35 @@ deployment, but the full suite requires the app desktop or mobile; it needs to b
 | 1. Audit | Done, 2026-11-08, on PR #511: 8 high (A1 to A8), 9 medium (A9 to A17), 3 low (A18 to A20), one decision for the Owner (D1, which editors stay on the web), settled 21:25: every editor is free on the web and the apps sell the download. A Tauri desktop build opened the full suite on a new game; a wall, a key and a longer flash were made in it, played in it and seen. Play needed an `on_new_window` handler to open at all | [audit](2026-11-08-apps-audit.md) |
 | 2. Plan and spec | Done, 2026-11-08: [spec](2026-11-08-apps-spec.md) and [plan](2026-11-08-apps-plan.md), 30 build tasks in 8 phases (0 the start, 1 seams in the editors, 2 the desktop app, 3 play with no computer, 4 the phone app, 5 GitHub sync, 6 the Review page, 7 building and proving), then MCP as a later stage (4 tasks: on a computer through the app's sidecar, on a phone over local Wi-Fi only, no relay ever: the Owner, 21:29). A phone needs no computer: the app carries a prebuilt runtime and compiles the game inside itself. Owner, 21:33: every editor free on the web, the app never names FigureBuilder or EnvironmentBuilder, no 2D-only app, launch waits for Pixi 3D. The DUEL palette has no stated licence on Lospec; the Owner asks Arilyn | [spec](2026-11-08-apps-spec.md), [plan](2026-11-08-apps-plan.md) |
 | 3. Plan audit | Not started | |
-| 4. Build | Not started (0 of 30 tasks) | |
+| 4. Build | In progress, started 2026-11-08 (1 of 30 tasks done, 3%; 5 more half done, see below) | [plan](2026-11-08-apps-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
+
+### Build: 3% (1 of 30 tasks)
+
+The editors v2 build (`claude/project-thread-q3zxgn`) and the shared-editors fixes (`claude/project-thread-fxu792`) are both
+still open and conflict in 25 files, so the first session did the work that needs neither: the parts of tasks 1.2, 1.4,
+3.1, 3.2, 4.2 and 5.5 that live in `packages/content`, `packages/tools`, `games/emberwick` and `tooling/check-style`, on
+a branch off the plan's. The page side of each task waits for the merged base (task 0.1, step 1). Rows below say what ran.
+
+| Task | Phase | Status | PR |
+|---|---|---|---|
+| 0.1 The base and the documents | 0 | Not started: needs the merged editors base | |
+| 1.1 `SuiteHost` | 1 | Not started: needs the editors base | |
+| 1.2 `watch` on the served store | 1 | Half: the server's `GET /api/watch` is done and tested over real HTTP; the store's `watch` and the documents that follow it wait for the editors base | |
+| 1.3 `SuiteCommands` | 1 | Not started: needs the editors base | |
+| 1.4 Origins | 1 | Half: the server takes `appOrigins` and `--app-origin` (string compare, preflight, token needed); the window-message handlers in `extensions/editors` wait for the editors base | |
+| 2.1 to 2.4 The desktop app | 2 | Not started | |
+| 3.1 The content compile without Effect | 3 | Done, 2026-11-08: `@mcthaydt/automata-content/compile`; the compile from a file list equals the disk compile (hash, sim hash, outputs); `pnpm boundaries` forbids Node and Effect behind the entry. Chromium only (the compile is pure) | |
+| 3.2 `content.config.ts` in every game | 3 | Half: the 2D template and Emberwick are done; the 3D template is not on this base | |
+| 3.3 The game compile, 3.4 the play scheme | 3 | Not started | |
+| 4.1 The app's own store | 4 | Not started | |
+| 4.2 A new game on a phone | 4 | Half: `templateFiles` (a browser-safe entry of the tools) equals what `create-game` writes, byte for byte, and the starter level is embedded; the phone's "Make a new game" and the 3D kind wait | |
+| 4.3, 4.4 | 4 | Not started | |
+| 5.1 to 5.4 GitHub sync | 5 | Not started | |
+| 5.5 `AGENTS.md` and getting a game | 5 | Half: a new game's `AGENTS.md` and `.automata/` in its `.gitignore` are done; "Get a game from GitHub" is not | |
+| 6.1 to 6.4 The Review page | 6 | Not started | |
+| 7.1 to 7.4 Building and proving | 7 | Not started | |
+
+Not run in this session: `pnpm check` as a whole (its last step, `examples-runner`'s typecheck and `knip`, fail on `main`'s
+stale `runner-ports.test.ts` paths, fixed on the stack by #505), WebKit, Firefox, any Mac or device step.
