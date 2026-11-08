@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import type { GateRecords } from '../../features/suite/memory/memory-gates'
+import type { GateRecords } from '../../shared/kit/ports/memory/memory-gates'
 import type { Gates } from '../../shared/kit/ports/suite-ports'
 
 export type { GateRecords }

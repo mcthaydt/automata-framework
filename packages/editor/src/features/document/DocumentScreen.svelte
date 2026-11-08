@@ -10,7 +10,6 @@
 <script lang="ts">
 import type { GeometryState } from '@automata/framework'
 import type { Component, Snippet } from 'svelte'
-import { componentOf } from '../../app/editor-2d/views'
 import ConflictDialog from '../../shared/kit/dialogs/ConflictDialog.svelte'
 import RecoveryDialog from '../../shared/kit/dialogs/RecoveryDialog.svelte'
 import type { GestureClock } from '../../shared/kit/gestures/gesture-clock'
@@ -20,19 +19,27 @@ import type { Workspace } from '../../shared/kit/storage/workspace'
 import ToastRegion from '../../shared/kit/widgets/ToastRegion.svelte'
 import type { ToastStore } from '../../shared/kit/widgets/toasts'
 import type { IdSource } from '../../shared/level-2d/model/ids'
-import Problems from '../problems/Problems.svelte'
-import ShareMenu from '../share/ShareMenu.svelte'
+import Problems from '../../shared/level-2d/problems/Problems.svelte'
+import type {
+  LevelCanvasProps,
+  ObjectUrls,
+  ViewProps,
+  ViewServices,
+  WorldCanvasProps,
+} from '../../shared/level-2d/session/view-props'
+import ShareMenu from '../../shared/level-2d/share/ShareMenu.svelte'
 import DocumentBar from './DocumentBar.svelte'
 import type { DocumentController, DocumentState } from './document-controller'
 import LeaveDialog from './LeaveDialog.svelte'
 import RenameDialog from './RenameDialog.svelte'
 import ViewSwitcher from './ViewSwitcher.svelte'
-import type { LevelCanvasProps, ObjectUrls, ViewServices, WorldCanvasProps } from './view-props'
 import { routeOf, viewsOf } from './view-router'
 
 interface Props {
   geometry: GeometryState
   controller: DocumentController
+  /** The component for a view's `component` name; the app owns the table, because it knows every feature. */
+  viewOf: (name: string) => Component<ViewProps>
   toasts: ToastStore
   /** The time an autosave's age is told against. */
   clock: { now(): number }
@@ -56,6 +63,7 @@ interface Props {
 const {
   geometry,
   controller,
+  viewOf,
   toasts,
   clock,
   read,
@@ -131,7 +139,7 @@ const shares = $derived(workspace !== undefined && shown.document.gameFolder ===
 
 const views = $derived(viewsOf(shown.document.profile))
 const route = $derived(routeOf(views, chosen))
-const View = $derived(componentOf(route?.component ?? ''))
+const View = $derived(viewOf(route?.component ?? ''))
 
 const services = $derived<ViewServices>({
   read: (path) => read(path),

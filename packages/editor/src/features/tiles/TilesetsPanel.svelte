@@ -7,9 +7,9 @@
 <script lang="ts">
 import Button from '../../shared/kit/widgets/Button.svelte'
 import ReorderList from '../../shared/kit/widgets/ReorderList.svelte'
+import { tileItems } from '../../shared/level-2d/editor/palette-model'
+import { spriteStyle } from '../../shared/level-2d/editor/tile-sprite'
 import type { Project } from '../../shared/level-2d/model/project-types'
-import { tileItems } from '../../shared/level-2d/tiles/palette-model'
-import { spriteStyle } from '../../shared/level-2d/tiles/tile-sprite'
 import PatternThumb from './PatternThumb.svelte'
 import {
   autoLayerRows,
