@@ -55,4 +55,13 @@ export {
   fieldValuesSchema,
 } from '../shared/level-2d/fields.schema.ts'
 export { type Level2dKindsOptions, level2dKinds } from '../shared/level-2d/level-2d-kinds.ts'
+export { type Picture, pictureOf } from '../shared/level-2d/picture-of.ts'
 export { entitiesOf, intGridRows } from '../shared/level-2d/read-level.ts'
+export {
+  autoStacks,
+  objectsOf,
+  parseTileToken,
+  type TileCell,
+  tileRows,
+} from '../shared/level-2d/tile-cells.ts'
+export { PLACEHOLDER_COLORS, placeholderColor, tileFrame } from '../shared/level-2d/tile-frame.ts'

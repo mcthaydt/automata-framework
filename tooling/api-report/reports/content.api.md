@@ -770,6 +770,12 @@ const RENDERERS: readonly ["webgl2", "webgl", "canvas2d", "wasm-webgl2"];
 
 ## `./level-2d`
 
+### `autoStacks` (function)
+
+```ts
+function autoStacks(level: ContentLevel, layer: string): readonly (readonly (readonly (TileCell | undefined)[])[])[];
+```
+
 ### `checkEntityDef` (function)
 
 ```ts
@@ -1225,6 +1231,50 @@ interface Level2dKindsOptions {
 const levelContentSchema: z.ZodType<ContentLevel>;
 ```
 
+### `objectsOf` (function)
+
+```ts
+function objectsOf(level: ContentLevel, layer: string): readonly ContentObjectItem[];
+```
+
+### `parseTileToken` (function)
+
+```ts
+function parseTileToken(base: string): TileCell | undefined;
+```
+
+### `Picture` (type)
+
+```ts
+type Picture = {
+    readonly kind: 'tile';
+    readonly tileset: string;
+    readonly index: number;
+} | {
+    readonly kind: 'flat';
+    readonly shape: 'rect' | 'ellipse' | 'point';
+    readonly color: string;
+};
+```
+
+### `pictureOf` (function)
+
+```ts
+function pictureOf(def: Pick<ContentEntityDef, 'shape' | 'tile' | 'color'>): Picture;
+```
+
+### `PLACEHOLDER_COLORS` (const)
+
+```ts
+const PLACEHOLDER_COLORS: readonly string[];
+```
+
+### `placeholderColor` (const)
+
+```ts
+const placeholderColor: (tile: number) => string;
+```
+
 ### `Point` (interface)
 
 ```ts
@@ -1247,6 +1297,31 @@ interface RefValue {
     readonly target: string;
     readonly container?: string | undefined;
 }
+```
+
+### `TileCell` (interface)
+
+```ts
+interface TileCell {
+    readonly tile: number;
+    readonly flipX: boolean;
+    readonly flipY: boolean;
+}
+```
+
+### `tileFrame` (function)
+
+```ts
+function tileFrame(tileset: Pick<ContentTileset, 'tile' | 'columns' | 'rows' | 'spacing' | 'padding'>, tile: number): (ContentSize & {
+    readonly x: number;
+    readonly y: number;
+}) | undefined;
+```
+
+### `tileRows` (function)
+
+```ts
+function tileRows(level: ContentLevel, layer: string): readonly (readonly (TileCell | undefined)[])[];
 ```
 
 ### `worldContentSchema` (const)
