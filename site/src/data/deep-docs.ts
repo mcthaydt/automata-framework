@@ -16,7 +16,8 @@ export const SERVICE_MODEL_DOC: DeepDoc = {
   slug: 'service-model',
   title: 'Services and failure',
   category: 'Core',
-  description: 'What the simulation owns, what the runtime owns, and what is not undone when something fails.',
+  description:
+    'What the simulation owns, what the runtime owns, and what is not undone when something fails.',
   content: `# Services and failure
 
 ## Two sides
@@ -29,7 +30,7 @@ A runtime manager is an Effect service: a \`Context.Tag\` and a \`Layer\`. A man
 
 ## What failure does
 
-A failure in the runtime is a typed value, not a thrown string. Boot reports a closed union of failures and each one maps to a screen state; [Boot errors](/docs/boot-errors) lists them. Retries and timeouts are part of the program that owns them (the handshake, loading stalls, the exit grace), not a global handler.
+A failure in the runtime is a typed value, not a thrown string. Boot reports each failure as a typed result, and each one maps to a screen state. Retries and timeouts are part of the program that owns them (the handshake, loading stalls, the exit grace), not a global handler.
 
 ## What is not rolled back
 

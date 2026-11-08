@@ -1,23 +1,24 @@
 <script lang="ts">
-  import '@fontsource-variable/geist/wght.css'
-  import '@fontsource-variable/geist-mono/wght.css'
-  // Preload the one face every page renders first: Geist's latin subset, all weights in one variable file.
-  // Vite fingerprints it to the same asset the @font-face rule loads, so the preload is never a second download.
-  import geistLatin from '@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url'
-  import '../app.css'
-  import { SITE_ORIGIN } from '$lib/site.js'
-  import { page } from '$app/stores'
-  import Header from '$lib/components/Header.svelte'
-  import Footer from '$lib/components/Footer.svelte'
-  import CommandMenu from '$lib/components/CommandMenu.svelte'
-  let { children }: { children?: import('svelte').Snippet } = $props()
-  let isSearchOpen = $state(false)
-  function keydown(event: KeyboardEvent) {
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
-      event.preventDefault(); isSearchOpen = !isSearchOpen
-    }
-  }
+import '@fontsource-variable/geist/wght.css'
+import '@fontsource-variable/geist-mono/wght.css'
+// Preload the one face every page renders first: Geist's latin subset, all weights in one variable file.
+// Vite fingerprints it to the same asset the @font-face rule loads, so the preload is never a second download.
+import geistLatin from '@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url'
+import '../app.css'
+import { page } from '$app/stores'
+import CommandMenu from '$lib/components/CommandMenu.svelte'
+import Footer from '$lib/components/Footer.svelte'
+import Header from '$lib/components/Header.svelte'
+import { SITE_ORIGIN } from '$lib/site.js'
 
+let { children }: { children?: import('svelte').Snippet } = $props()
+let isSearchOpen = $state(false)
+function keydown(event: KeyboardEvent) {
+  if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+    event.preventDefault()
+    isSearchOpen = !isSearchOpen
+  }
+}
 </script>
 <svelte:window onkeydown={keydown} />
 <svelte:head>

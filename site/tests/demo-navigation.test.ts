@@ -1,9 +1,11 @@
 import { fireEvent, render } from '@testing-library/svelte'
 import { describe, expect, it, vi } from 'vitest'
+
 vi.mock('$app/environment', () => ({ browser: true }))
+
+import DemoRunner from '../src/lib/components/DemoRunner.svelte'
 import { demoStatus } from '../src/lib/utils/demo-status'
 import { isEditing } from '../src/lib/utils/keyboard'
-import DemoRunner from '../src/lib/components/DemoRunner.svelte'
 
 // The gallery's ?demo= and ?file= selection is retired with the gallery (WEB.PLAY.5): /examples is one prerendered
 // index whatever the query (tests/examples-pages.test.ts).
@@ -22,16 +24,17 @@ describe('Demo readiness', () => {
   it('recognizes a mounted UI gallery, without declaring an empty page ready', () => {
     const doc = document.implementation.createHTMLDocument('UI example')
     expect(demoStatus(doc)).toBe('loading')
-    doc.body.innerHTML = '<main class="gallery"><select name="show"><option>screen</option></select><iframe title="screen at 360 by 640"></iframe></main>'
+    doc.body.innerHTML =
+      '<main class="gallery"><select name="show"><option>screen</option></select><iframe title="screen at 360 by 640"></iframe></main>'
     expect(demoStatus(doc)).toBe('ready')
   })
   it('unloads the iframe when stopped and restarts a fresh session', async () => {
-    const view = render(DemoRunner, { props: { src: '/demos/base-2d/index.html', title: 'Starter' } })
+    const view = render(DemoRunner, { props: { src: '/demos/emberwick/index.html', title: 'Starter' } })
     expect(view.container.querySelector('iframe')).toBeTruthy()
     await fireEvent.click(view.getByRole('button', { name: 'Stop demo' }))
     expect(view.container.querySelector('iframe')).toBeNull()
     await fireEvent.click(view.getAllByRole('button', { name: 'Play demo' })[0])
-    expect(view.container.querySelector('iframe')?.getAttribute('src')).toBe('/demos/base-2d/index.html')
+    expect(view.container.querySelector('iframe')?.getAttribute('src')).toBe('/demos/emberwick/index.html')
   })
   it('identifies editable targets so slash does not steal their input', () => {
     const input = document.createElement('input')

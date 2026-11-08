@@ -1,11 +1,12 @@
 <script lang="ts">
-  import PageMeta from '$lib/components/PageMeta.svelte'
-  import InlineText from '$lib/components/InlineText.svelte'
-  import Playground from '$lib/playground/Playground.svelte'
-  import { difficultyStars, type Example, type ExampleGroup } from '../../../data/examples'
-  import type { HighlightedLine } from '$lib/playground/highlight'
-  let { data }: { data: { example: Example; highlighted: HighlightedLine[]; index: ExampleGroup[] } } = $props()
-  let example = $derived(data.example)
+import InlineText from '$lib/components/InlineText.svelte'
+import PageMeta from '$lib/components/PageMeta.svelte'
+import type { HighlightedLine } from '$lib/playground/highlight'
+import Playground from '$lib/playground/Playground.svelte'
+import { difficultyStars, type Example, type ExampleGroup } from '../../../data/examples'
+
+let { data }: { data: { example: Example; highlighted: HighlightedLine[]; index: ExampleGroup[] } } = $props()
+let example = $derived(data.example)
 </script>
 <PageMeta title={example.id + ': ' + example.title} description={example.shows.replaceAll('`', '')} />
 <div class="page-shell example-page">

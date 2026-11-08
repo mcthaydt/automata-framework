@@ -1,7 +1,8 @@
 <script lang="ts">
-  import PageMeta from '$lib/components/PageMeta.svelte'
-  import { apiVersions, getApiReference } from '$lib/api-reference'
-  const versions = apiVersions()
+import { apiVersions, getApiReference } from '$lib/api-reference'
+import PageMeta from '$lib/components/PageMeta.svelte'
+
+const versions = apiVersions()
 </script>
 <PageMeta title="Complete API reference" description="Every export of every published Automata package, one page per package, for each published version." />
 <div class="page-shell api-page">

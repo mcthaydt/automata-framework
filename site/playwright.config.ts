@@ -20,7 +20,15 @@ export default defineConfig({
   ],
   webServer: [
     // Never reuse a server: a process already on the port may belong to another checkout and serve another build.
-    { command: `node --import tsx scripts/serve-static.ts build ${SITE_PORT}`, url: `http://127.0.0.1:${SITE_PORT}/`, reuseExistingServer: false },
-    { command: `node --import tsx scripts/serve-static.ts tests/e2e/fixtures ${FIXTURE_PORT}`, url: `http://127.0.0.1:${FIXTURE_PORT}/good.html`, reuseExistingServer: false },
+    {
+      command: `node scripts/serve-static.ts build ${SITE_PORT}`,
+      url: `http://127.0.0.1:${SITE_PORT}/`,
+      reuseExistingServer: false,
+    },
+    {
+      command: `node scripts/serve-static.ts tests/e2e/fixtures ${FIXTURE_PORT}`,
+      url: `http://127.0.0.1:${FIXTURE_PORT}/good.html`,
+      reuseExistingServer: false,
+    },
   ],
 })

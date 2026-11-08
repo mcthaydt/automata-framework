@@ -1,56 +1,93 @@
 <script lang="ts">
-  import { onMount, untrack } from 'svelte'
-  import { getDemosCatalog } from '../../data/demos'
-  import { demoStatus } from '../utils/demo-status'
-  import { previewSrcset } from '$lib/previews'
-  let { src, title, autoStart = true, poster, posterAlt = title + ' preview', class: className = '' }: { src: string; title: string; autoStart?: boolean; poster?: string; posterAlt?: string; aspect?: string; class?: string } = $props()
-  let container: HTMLDivElement
-  let iframe: HTMLIFrameElement | undefined = $state()
-  let active = $state(untrack(() => autoStart))
-  let mounted = $state(false)
-  let attempt = $state(0)
-  let status = $state<'loading' | 'ready' | 'failed'>('loading')
-  let fullscreenMessage = $state('')
-  let fullscreenPending = $state(false)
-  let allowed = $derived(src === '/demos/first-change/index.html' || getDemosCatalog().some(d => d.bundleUrl === src))
-  // Prerendered /examples has no query selection. Create resource URLs only after hydration,
-  // otherwise Svelte preserves the server's default iframe src for a different selected demo.
-  onMount(() => { if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) active = false; mounted = true })
-  $effect(() => {
-    // A changed src or retry gets a fresh deadline. Cleanup prevents late results from previous frames.
-    const source = src
-    const retry = attempt
-    if (!active || !iframe || !allowed) return
-    status = 'loading'
-    const poll = setInterval(() => {
-      try {
-        const doc = iframe?.contentDocument ?? null
-        const next = demoStatus(doc)
-        if (next !== 'loading') { status = next; clearInterval(poll); clearTimeout(deadline) }
-      } catch { status = 'failed'; clearInterval(poll); clearTimeout(deadline) }
-    }, 200)
-    const deadline = setTimeout(() => { status = 'failed'; clearInterval(poll) }, 20000)
-    return () => { clearInterval(poll); clearTimeout(deadline) }
-  })
-  // Some browsers neither grant nor refuse a fullscreen request (headless WebKit among them). Without a word from the
-  // page the button would look dead, so after this long the page says fullscreen has not started; a late answer
-  // clears the message.
-  const FULLSCREEN_PATIENCE_MS = 1000
-  // The browser's answer can be slow too, on a loaded machine with a demo running. The click itself therefore marks the
-  // button busy (aria-busy) until the browser has answered or the page has given up waiting.
-  async function fullscreen() {
-    fullscreenPending = true
-    const impatient = setTimeout(() => {
-      fullscreenPending = false
-      fullscreenMessage = 'Fullscreen did not start. Open the demo in a new tab.'
-    }, FULLSCREEN_PATIENCE_MS)
+import { onMount, untrack } from 'svelte'
+import { previewSrcset } from '$lib/previews'
+import { getDemosCatalog } from '../../data/demos'
+import { demoStatus } from '../utils/demo-status'
+
+let {
+  src,
+  title,
+  autoStart = true,
+  poster,
+  posterAlt = title + ' preview',
+  class: className = '',
+}: {
+  src: string
+  title: string
+  autoStart?: boolean
+  poster?: string
+  posterAlt?: string
+  aspect?: string
+  class?: string
+} = $props()
+let container: HTMLDivElement
+let iframe: HTMLIFrameElement | undefined = $state()
+let active = $state(untrack(() => autoStart))
+let mounted = $state(false)
+let attempt = $state(0)
+let status = $state<'loading' | 'ready' | 'failed'>('loading')
+let fullscreenMessage = $state('')
+let fullscreenPending = $state(false)
+let allowed = $derived(getDemosCatalog().some((d) => d.bundleUrl === src))
+// Prerendered /examples has no query selection. Create resource URLs only after hydration,
+// otherwise Svelte preserves the server's default iframe src for a different selected demo.
+onMount(() => {
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) active = false
+  mounted = true
+})
+$effect(() => {
+  // A changed src or retry gets a fresh deadline. Cleanup prevents late results from previous frames.
+  const source = src
+  const retry = attempt
+  if (!active || !iframe || !allowed) return
+  status = 'loading'
+  const poll = setInterval(() => {
     try {
-      if (document.fullscreenElement) await document.exitFullscreen()
-      else await container.requestFullscreen()
-      fullscreenMessage = ''
-    } catch { fullscreenMessage = 'Fullscreen is unavailable. Open the demo in a new tab.' }
-    finally { clearTimeout(impatient); fullscreenPending = false }
+      const doc = iframe?.contentDocument ?? null
+      const next = demoStatus(doc)
+      if (next !== 'loading') {
+        status = next
+        clearInterval(poll)
+        clearTimeout(deadline)
+      }
+    } catch {
+      status = 'failed'
+      clearInterval(poll)
+      clearTimeout(deadline)
+    }
+  }, 200)
+  const deadline = setTimeout(() => {
+    status = 'failed'
+    clearInterval(poll)
+  }, 20000)
+  return () => {
+    clearInterval(poll)
+    clearTimeout(deadline)
   }
+})
+// Some browsers neither grant nor refuse a fullscreen request (headless WebKit among them). Without a word from the
+// page the button would look dead, so after this long the page says fullscreen has not started; a late answer
+// clears the message.
+const FULLSCREEN_PATIENCE_MS = 1000
+// The browser's answer can be slow too, on a loaded machine with a demo running. The click itself therefore marks the
+// button busy (aria-busy) until the browser has answered or the page has given up waiting.
+async function fullscreen() {
+  fullscreenPending = true
+  const impatient = setTimeout(() => {
+    fullscreenPending = false
+    fullscreenMessage = 'Fullscreen did not start. Open the demo in a new tab.'
+  }, FULLSCREEN_PATIENCE_MS)
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen()
+    else await container.requestFullscreen()
+    fullscreenMessage = ''
+  } catch {
+    fullscreenMessage = 'Fullscreen is unavailable. Open the demo in a new tab.'
+  } finally {
+    clearTimeout(impatient)
+    fullscreenPending = false
+  }
+}
 </script>
 <div bind:this={container} data-testid="demo-runner-container" data-ui class={`demo-runner ${className}`}>
   <div class="demo-toolbar">

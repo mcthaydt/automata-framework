@@ -5,7 +5,9 @@ import { compileExample } from './compile'
 // editor is (F2). It answers `{ seq, result }` to each `{ seq, source, example }`; the page drops any answer whose
 // `seq` is not the latest it sent (`live.ts`).
 
-self.onmessage = (event: MessageEvent<{ seq: number; source: string; example: { id: string; moduleUrl: string } }>) => {
+self.onmessage = (
+  event: MessageEvent<{ seq: number; source: string; example: { id: string; moduleUrl: string } }>,
+) => {
   const { seq, source, example } = event.data
   self.postMessage({ seq, result: compileExample(source, example) })
 }

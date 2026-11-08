@@ -12,5 +12,5 @@ function isChunkPreload(tag: string): boolean {
 }
 
 export function withoutChunkPreloads(html: string): string {
-  return html.replace(CHUNK_PRELOAD, tag => (isChunkPreload(tag) ? '' : tag))
+  return html.replace(CHUNK_PRELOAD, (tag) => (isChunkPreload(tag) ? '' : tag))
 }

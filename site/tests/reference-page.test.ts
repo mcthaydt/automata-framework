@@ -10,7 +10,9 @@ describe('API documentation', () => {
     expect(entry.getByText('options.seed')).toBeTruthy()
     expect(entry.getByText('Promise<Sim>')).toBeTruthy()
     expect(view.getByRole('region', { name: 'Simulation example' }).textContent).toContain('await createSim')
-    expect(view.getByRole('link', { name: 'Simulation source' }).getAttribute('href')).toContain('/packages/sim/src/index.ts')
+    expect(view.getByRole('link', { name: 'Simulation source' }).getAttribute('href')).toContain(
+      '/packages/sim/src/index.ts',
+    )
   })
 
   it('searches usage details and combines search with the package filter', async () => {
@@ -18,7 +20,9 @@ describe('API documentation', () => {
     await fireEvent.input(view.getByRole('searchbox'), { target: { value: 'duplicate-seq' } })
     expect(view.getByRole('heading', { name: 'step', level: 3 })).toBeTruthy()
     expect(view.queryByRole('heading', { name: 'createRng', level: 3 })).toBeNull()
-    await fireEvent.change(view.getByLabelText('Package'), { target: { value: '@mcthaydt/automata-runtime' } })
+    await fireEvent.change(view.getByLabelText('Package'), {
+      target: { value: '@mcthaydt/automata-runtime' },
+    })
     expect(view.getByRole('status').textContent).toMatch(/No API entries match/)
     await fireEvent.input(view.getByRole('searchbox'), { target: { value: 'pause menu' } })
     expect(view.getByRole('heading', { name: 'Time', level: 3 })).toBeTruthy()
@@ -28,8 +32,16 @@ describe('API documentation', () => {
     const view = render(Page)
     await fireEvent.input(view.getByRole('searchbox'), { target: { value: 'duplicate-seq' } })
     let targetExistsAtNavigation = false
-    window.addEventListener('click', () => { targetExistsAtNavigation = document.getElementById('ui') !== null }, { once: true })
-    await fireEvent.click(view.getByRole('navigation', { name: 'API modules' }).querySelector('a[href="#ui"]')!)
+    window.addEventListener(
+      'click',
+      () => {
+        targetExistsAtNavigation = document.getElementById('ui') !== null
+      },
+      { once: true },
+    )
+    await fireEvent.click(
+      view.getByRole('navigation', { name: 'API modules' }).querySelector('a[href="#ui"]')!,
+    )
     expect(targetExistsAtNavigation).toBe(true)
   })
 })

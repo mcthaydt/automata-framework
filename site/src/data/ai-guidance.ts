@@ -1,24 +1,72 @@
 import { SKILL_PREFLIGHT } from './agent-setup'
 
 export const AI_CONTEXT_FILES = [
-  { path: 'AGENTS.md', purpose: 'Project rules, architecture, and required checks. Read applicable instructions in the directories you will edit.' },
-  { path: 'package.json', purpose: 'Available scripts, tool versions, dependencies, and package exports. Read both the workspace and target package manifests.' },
-  { path: 'games/emberwick/src/base-sim.ts', purpose: 'Simulation creation, room content, command envelopes, and starting entities.' },
-  { path: 'games/emberwick/src/sim/', purpose: 'Working component, command, event, resource, system, and plugin definitions.' },
-  { path: 'The closest focused example', purpose: 'Use the one-file example for the integration being changed (examples/core, render, shapes, textures, audio), or content/hot-reload or ui/primitives.' },
-  { path: 'The nearest tests and public types', purpose: 'Actual accepted inputs, failure behavior, cleanup requirements, and exported names. Prefer these over a guessed API.' },
+  {
+    path: 'AGENTS.md',
+    purpose:
+      'Project rules, architecture, and required checks. Read applicable instructions in the directories you will edit.',
+  },
+  {
+    path: 'package.json',
+    purpose:
+      'Available scripts, tool versions, dependencies, and package exports. Read both the workspace and target package manifests.',
+  },
+  {
+    path: 'games/emberwick/src/base-sim.ts',
+    purpose: 'Simulation creation, room content, command envelopes, and starting entities.',
+  },
+  {
+    path: 'games/emberwick/src/sim/',
+    purpose: 'Working component, command, event, resource, system, and plugin definitions.',
+  },
+  {
+    path: 'The closest focused example',
+    purpose:
+      'Use the one-file example for the integration being changed (examples/core, render, shapes, textures, audio), or content/hot-reload or ui/primitives.',
+  },
+  {
+    path: 'The nearest tests and public types',
+    purpose:
+      'Actual accepted inputs, failure behavior, cleanup requirements, and exported names. Prefer these over a guessed API.',
+  },
 ]
 
 export const AI_RULES = [
-  { title: 'Simulation owns gameplay state', detail: 'Send commands from input and UI. Systems apply gameplay changes during fixed ticks. Initial scene setup may spawn entities before stepping; presentation observes the results.' },
-  { title: 'Keep ticks repeatable', detail: 'No I/O, wall clocks, Math.random, DOM, or Effect in simulation systems. Use ctx.rng, deterministic math, stable traversal, and the same code, content, seed, and command stream when comparing runs.' },
-  { title: 'Effect owns work outside the sim', detail: 'Use Effect for loading, hosting, saves, timers, and resource lifetimes. Keep simulation steps synchronous and close scopes, simulations, subscriptions, and render resources with their owner.' },
-  { title: 'Use the renderer boundary', detail: 'Import the renderer no-eval entry before initializing PixiJS. Draw from render deltas, interpolate previous and current values, and handle a full resync after restore. Test the actual host content security policy.' },
-  { title: 'Honor host capabilities', detail: 'Use Hosting, whatever the target. Wait for readiness, check granted capabilities, validate saved data, and report save failures. A denied hosted capability must not silently fall back to device storage.' },
-  { title: 'Keep shared contracts canonical', detail: 'Extend the component, schema, service, or package that owns a behavior. Keep content, snapshot, replay, and host contracts in their existing owners. Check the exact package entry point before using an export.' },
+  {
+    title: 'Simulation owns gameplay state',
+    detail:
+      'Send commands from input and UI. Systems apply gameplay changes during fixed ticks. Initial scene setup may spawn entities before stepping; presentation observes the results.',
+  },
+  {
+    title: 'Keep ticks repeatable',
+    detail:
+      'No I/O, wall clocks, Math.random, DOM, or Effect in simulation systems. Use ctx.rng, deterministic math, stable traversal, and the same code, content, seed, and command stream when comparing runs.',
+  },
+  {
+    title: 'Effect owns work outside the sim',
+    detail:
+      'Use Effect for loading, hosting, saves, timers, and resource lifetimes. Keep simulation steps synchronous and close scopes, simulations, subscriptions, and render resources with their owner.',
+  },
+  {
+    title: 'Use the renderer boundary',
+    detail:
+      'Import the renderer no-eval entry before initializing PixiJS. Draw from render deltas, interpolate previous and current values, and handle a full resync after restore. Test the actual host content security policy.',
+  },
+  {
+    title: 'Honor host capabilities',
+    detail:
+      'Use Hosting, whatever the target. Wait for readiness, check granted capabilities, validate saved data, and report save failures. A denied hosted capability must not silently fall back to device storage.',
+  },
+  {
+    title: 'Keep shared contracts canonical',
+    detail:
+      'Extend the component, schema, service, or package that owns a behavior. Keep content, snapshot, replay, and host contracts in their existing owners. Check the exact package entry point before using an export.',
+  },
 ]
 
-export const AI_PROJECT_PROMPT = SKILL_PREFLIGHT + `
+export const AI_PROJECT_PROMPT =
+  SKILL_PREFLIGHT +
+  `
 
 Task: add a double jump to the existing Emberwick game.
 Read AGENTS.md, the workspace and base-2d package manifests, and the current
@@ -44,9 +92,11 @@ and anything that still needs browser, host, or device verification.`
 
 export const AI_TASKS = [
   {
-    id: 'game-rule', title: 'Add a collectible',
+    id: 'game-rule',
+    title: 'Add a collectible',
     description: 'Add a collectible without letting its sprite become the source of truth.',
-    apiHref: '/cheatsheet#defineSystem', apiLabel: 'Simulation systems',
+    apiHref: '/cheatsheet#defineSystem',
+    apiLabel: 'Simulation systems',
     prompt: `Add a collectible to Emberwick that can be collected once when the player overlaps it.
 Read the room, player components, goal system, plugin, and movement tests first.
 Keep collectible state and collection rules in the sim. Emit a registered event
@@ -57,9 +107,11 @@ Register all new definitions, run the focused tests and example checks,
 and explain how to play and inspect the result.`,
   },
   {
-    id: 'input', title: 'Add a dash',
+    id: 'input',
+    title: 'Add a dash',
     description: 'Carry a new action from keyboard and touch through a validated command.',
-    apiHref: '/cheatsheet#defineCommand', apiLabel: 'Command definitions',
+    apiHref: '/cheatsheet#defineCommand',
+    apiLabel: 'Command definitions',
     prompt: `Add a dash action to the existing movement flow, with keyboard and touch input.
 Read the input adapters, command schema, player-input system, movement system,
 and plugin first. Reuse the current command envelope and sequence convention.
@@ -70,9 +122,11 @@ Keep keyboard and touch behavior equivalent and preserve existing movement tests
 Run focused tests and the example checks; list the controls for manual testing.`,
   },
   {
-    id: 'presentation', title: 'Make jumps feel good',
+    id: 'presentation',
+    title: 'Make jumps feel good',
     description: 'Make an event visible without changing the simulation from the renderer.',
-    apiHref: '/cheatsheet#createPixiRenderer', apiLabel: 'Renderer factory',
+    apiHref: '/cheatsheet#createPixiRenderer',
+    apiLabel: 'Renderer factory',
     prompt: `Add a short visual response when the player's existing jump event is emitted.
 Read the event, renderer wiring, and nearest presentation tests before editing.
 Keep the effect outside the sim and preserve the gameplay command stream and state.
@@ -83,9 +137,11 @@ Run relevant checks, compare simulation hashes for the same inputs,
 and report which renderer and device behavior was actually inspected.`,
   },
   {
-    id: 'content', title: 'Author a room',
+    id: 'content',
+    title: 'Author a room',
     description: 'Validate authored data and keep generated outputs reproducible.',
-    apiHref: '/cheatsheet#defineContentSchema', apiLabel: 'Content schemas',
+    apiHref: '/cheatsheet#defineContentSchema',
+    apiLabel: 'Content schemas',
     prompt: `Add a validated content field for a game rule using the closest content example.
 Read the current schema, TOML, compiler configuration, and consuming system first.
 Define the field once in its owning Zod schema and validate the allowed range.
@@ -96,9 +152,11 @@ Rebuild generated outputs and verify them. If live editing is used, check that
 an invalid save preserves the last good playable content. Report the checks.`,
   },
   {
-    id: 'saves', title: 'Save progress',
+    id: 'saves',
+    title: 'Save progress',
     description: 'Persist progress through the host and explain failure states to the player.',
-    apiHref: '/cheatsheet#Hosting', apiLabel: 'Hosting and saves',
+    apiHref: '/cheatsheet#Hosting',
+    apiLabel: 'Hosting and saves',
     prompt: `Add a versioned progress save through the existing Hosting service.
 Read examples/core/core-saves.ts, the runtime settings or save boundary, and tests.
 Reuse the live session, wait for readiness, and check the saves capability.
@@ -110,9 +168,11 @@ Distinguish a local update from remote persistence; inspect save status or flush
 Run relevant tests and report which hosted or standalone paths were verified.`,
   },
   {
-    id: 'release', title: 'Prepare a release',
+    id: 'release',
+    title: 'Prepare a release',
     description: 'Check and package the artifact before choosing a publishing destination.',
-    apiHref: '/cheatsheet#defineShipConfig', apiLabel: 'Shipping configuration',
+    apiHref: '/cheatsheet#defineShipConfig',
+    apiLabel: 'Shipping configuration',
     prompt: `Prepare the current game for release using its existing scripts and ship.config.ts.
 Read package.json, the ship configuration, and the nearest release checks.
 Verify that package version, game ID, runtime capabilities, and asset paths agree.

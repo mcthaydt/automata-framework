@@ -592,13 +592,7 @@ describe('ci.yml (AF)', () => {
   it('runs the journeys through turbo from the root; each game or example set has its own Playwright config and test:e2e', () => {
     const rootPackage = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
     expect(rootPackage.scripts['test:e2e']).toBe('turbo run test:e2e')
-    for (const path of [
-      'games/emberwick',
-      'games/base-3d',
-      'examples/2d',
-      'examples/3d',
-      'tooling/examples-runner',
-    ]) {
+    for (const path of ['games/emberwick', 'games/base-3d', 'examples/2d', 'examples/3d']) {
       expect(packageJson(path).scripts['test:e2e'], path).toBe('playwright test')
       expect(existsSync(join(root, path, 'playwright.config.ts')), path).toBe(true)
     }
@@ -754,7 +748,7 @@ describe('release-checks.yml (core-and-2D refactor spec section 3.4)', () => {
       'pnpm agent-skills',
       'pnpm plugin:validate',
       'node tooling/consumer-smoke/src/run.ts --from packs',
-      'pnpm --filter @mcthaydt/examples-runner test:e2e',
+      'pnpm --filter @mcthaydt/automata-site test:e2e:playground',
     ]
     expect(runs.filter((run) => order.includes(run))).toEqual(order)
   })

@@ -9,7 +9,7 @@
         "http://127.0.0.1:4652/examples/core-basic-window",
         "http://127.0.0.1:4652/examples/shapes-rects"
       ],
-      "startServerCommand": "node --import tsx scripts/serve-static.ts build 4652 --compressed",
+      "startServerCommand": "node scripts/serve-static.ts build 4652 --compressed",
       "startServerReadyPattern": "Serving",
       "numberOfRuns": 3,
       "settings": {

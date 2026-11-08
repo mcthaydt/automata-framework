@@ -5,9 +5,15 @@ import { describe, expect, it } from 'vitest'
 import { compileExample, sucraseDiagnostic } from '../../src/lib/playground/compile'
 
 // The playground's compile step (spec §5.2): the reader's TypeScript in, a module the frame can import out, or the
-// diagnostics at their lines. The example sources come from the framework checkout at framework.ref.
-const RECTS = readFileSync(resolve('../automata-framework/examples/shapes/shapes-rects.ts'), 'utf8')
-const EXAMPLE = { id: 'shapes-rects', moduleUrl: 'https://automata.example/playground/examples/shapes/shapes-rects.ts' }
+// diagnostics at their lines. The example sources come from examples/2d.
+const RECTS = readFileSync(
+  resolve(import.meta.dirname, '../../../examples/2d/shapes/shapes-rects.ts'),
+  'utf8',
+)
+const EXAMPLE = {
+  id: 'shapes-rects',
+  moduleUrl: 'https://automata.example/playground/examples/shapes/shapes-rects.ts',
+}
 
 const compiled = (source: string): string => {
   const result = compileExample(source, EXAMPLE)
@@ -22,7 +28,7 @@ const withLine = (source: string, after: number, text: string) => {
 }
 
 describe('compileExample', () => {
-  it("strips the types and keeps every line where the reader wrote it", () => {
+  it('strips the types and keeps every line where the reader wrote it', () => {
     const out = lines(compiled(RECTS))
     const source = lines(RECTS)
     expect(out.length).toBe(source.length + 1) // the sourceURL line
@@ -76,9 +82,17 @@ describe('compileExample', () => {
       column: 1,
       message: 'The playground does not run namespaces; use a module-level object instead.',
     })
-    expect(first('namespace A.B { export const c = 3 }')?.message).toBe('The playground does not run namespaces; use a module-level object instead.')
-    expect(first('export = 1')).toEqual({ line: 1, column: 1, message: 'The playground runs ES modules; use export default instead of export =.' })
-    expect(compileExample("declare namespace N { const b: number }\ndeclare module 'm' {}", EXAMPLE).ok).toBe(true)
+    expect(first('namespace A.B { export const c = 3 }')?.message).toBe(
+      'The playground does not run namespaces; use a module-level object instead.',
+    )
+    expect(first('export = 1')).toEqual({
+      line: 1,
+      column: 1,
+      message: 'The playground runs ES modules; use export default instead of export =.',
+    })
+    expect(compileExample("declare namespace N { const b: number }\ndeclare module 'm' {}", EXAMPLE).ok).toBe(
+      true,
+    )
   })
 
   it('guards every loop at the top of its body with its line, adding no line', () => {
@@ -98,7 +112,15 @@ describe('compileExample', () => {
   })
 
   it('guards labeled, for await and empty-bodied loops', () => {
-    const out = lines(compiled(['outer: for (;;) { break outer }', 'async function f() { for await (const x of xs) use(x) }', 'while (busy());'].join('\n')))
+    const out = lines(
+      compiled(
+        [
+          'outer: for (;;) { break outer }',
+          'async function f() { for await (const x of xs) use(x) }',
+          'while (busy());',
+        ].join('\n'),
+      ),
+    )
     expect(out[0]).toBe('outer: for (;;) {__afLoop(1); break outer }')
     expect(out[1]).toBe('async function f() { for await (const x of xs) {__afLoop(2);use(x)} }')
     expect(out[2]).toBe('while (busy()){__afLoop(3);;}')
@@ -106,14 +128,20 @@ describe('compileExample', () => {
 
   it('keeps the guard when a loop body starts with import.meta.url', () => {
     const url = JSON.stringify(EXAMPLE.moduleUrl)
-    expect(lines(compiled('while (x) { import.meta.url.length }'))[0]).toBe(`while (x) {__afLoop(1); ${url}.length }`)
+    expect(lines(compiled('while (x) { import.meta.url.length }'))[0]).toBe(
+      `while (x) {__afLoop(1); ${url}.length }`,
+    )
     expect(lines(compiled('while (x) import.meta.url'))[0]).toBe(`while (x) {__afLoop(1);${url}}`)
     expect(lines(compiled('do import.meta.url; while (0)'))[0]).toBe(`do {__afLoop(1);${url};} while (0)`)
   })
 
   it('rewrites import.meta.url to the module URL and nothing else', () => {
-    const out = compiled("const a = new URL('../resources/chime.wav', import.meta.url)\nconst b = import.meta.env\n")
-    expect(lines(out)[0]).toBe(`const a = new URL('../resources/chime.wav', ${JSON.stringify(EXAMPLE.moduleUrl)})`)
+    const out = compiled(
+      "const a = new URL('../resources/chime.wav', import.meta.url)\nconst b = import.meta.env\n",
+    )
+    expect(lines(out)[0]).toBe(
+      `const a = new URL('../resources/chime.wav', ${JSON.stringify(EXAMPLE.moduleUrl)})`,
+    )
     expect(lines(out)[1]).toBe('const b = import.meta.env')
   })
 
@@ -122,8 +150,15 @@ describe('compileExample', () => {
     // directly. The edited text has a 12-character guard before the failure.
     const source = 'while (x) { y }'
     const edits = [{ at: 11, text: '__afLoop(1);' }]
-    const error = Object.assign(new Error('Error transforming examples/shapes/a.ts: Unexpected token (1:25)'), { pos: 24 })
-    expect(sucraseDiagnostic(source, edits, error)).toEqual({ line: 1, column: 13, message: 'Unexpected token' })
+    const error = Object.assign(
+      new Error('Error transforming examples/shapes/a.ts: Unexpected token (1:25)'),
+      { pos: 24 },
+    )
+    expect(sucraseDiagnostic(source, edits, error)).toEqual({
+      line: 1,
+      column: 13,
+      message: 'Unexpected token',
+    })
     expect(sucraseDiagnostic('a\nb', [], new Error('boom'))).toEqual({ line: 1, column: 1, message: 'boom' })
   })
 })

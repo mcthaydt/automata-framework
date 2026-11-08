@@ -2,7 +2,11 @@
 import { describe, expect, it } from 'vitest'
 import { highlightLines } from '../../src/lib/playground/highlight'
 
-const join = (lines: ReturnType<typeof highlightLines>) => lines.flat().map(piece => piece.text).join('')
+const join = (lines: ReturnType<typeof highlightLines>) =>
+  lines
+    .flat()
+    .map((piece) => piece.text)
+    .join('')
 
 describe('highlightLines', () => {
   const source = "import { run } from '@mcthaydt/automata'\n// a comment\nconst size: number = 42\n"
@@ -17,7 +21,7 @@ describe('highlightLines', () => {
 
   it('marks keywords, strings, comments, numbers and types with the editor’s tok- classes', () => {
     const pieces = highlightLines(source).flat()
-    const classOf = (text: string) => pieces.find(piece => piece.text === text)?.className
+    const classOf = (text: string) => pieces.find((piece) => piece.text === text)?.className
     expect(classOf('import')).toContain('tok-keyword')
     expect(classOf("'@mcthaydt/automata'")).toContain('tok-string')
     expect(classOf('// a comment')).toContain('tok-comment')

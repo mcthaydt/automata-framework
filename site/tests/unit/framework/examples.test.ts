@@ -1,22 +1,24 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { exampleList, featureDemos } from '../../../src/shared/framework/examples.ts'
+import { featureDemos, playgroundExamples } from '../../../src/shared/framework/examples.ts'
 
 // The examples and demos come from the 2D examples package itself (WS3), so a demo that leaves (bodies-2d left
 // with physics) leaves the site in the same pull request.
 describe('the examples list', () => {
   it('is the 2D examples catalog, with no 3D example', () => {
-    const ids = exampleList().map((example) => example.id)
+    const ids = playgroundExamples().map((example) => example.id)
     expect(ids).toContain('core-basic-window')
     expect(ids.filter((id) => id.startsWith('render3d-') || id.startsWith('figures-'))).toEqual([])
   })
 
-  it('gives each example its title line and where the runner serves it', () => {
-    expect(exampleList().find((example) => example.id === 'shapes-rects')).toMatchObject({
+  it('gives each example its source and where the playground serves it', () => {
+    const rects = playgroundExamples().find((example) => example.id === 'shapes-rects')
+    expect(rects).toMatchObject({
       module: 'shapes',
-      url: '/shapes/rects/',
       path: 'shapes/shapes-rects.ts',
+      framePage: '/playground/examples/shapes/rects/',
     })
+    expect(rects?.source).toContain('// Shows:')
   })
 
   it('lists the feature demos from their own packages, with no bodies-2d', () => {

@@ -1,22 +1,11 @@
-import { existsSync, readdirSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { readCatalog } from '@mcthaydt/examples-runner/catalog'
+import { type PlaygroundExample, playgroundCatalog } from '../../../playground/src/playground-catalog.ts'
 import { repositoryRoot } from './root.ts'
 
 // The examples and the feature demos come from the 2D examples package (examples/2d), the public one: the 3D
 // examples are their own package and never reach the site while the 3D packages are private.
-
-/** One-file example, as the examples runner's catalog reads it. */
-export interface ExampleItem {
-  readonly id: string
-  readonly module: string
-  /** From the examples folder: `shapes/shapes-rects.ts`. */
-  readonly path: string
-  /** Where the examples runner serves it: `/shapes/rects/`. */
-  readonly url: string
-  /** The header's `Shows:` line. */
-  readonly shows: string
-}
 
 /** A feature demo: a small package of its own inside an examples module (`content/hot-reload`). */
 export interface FeatureDemo {
@@ -28,17 +17,12 @@ export interface FeatureDemo {
 
 const examplesDir = (root: string) => join(root, 'examples/2d')
 
-/** Every valid example in the 2D catalog, in the catalog's order. */
-export function exampleList(root: string = repositoryRoot): ExampleItem[] {
-  return readCatalog(examplesDir(root))
-    .filter((entry) => entry.problems.length === 0)
-    .map((entry) => ({
-      id: entry.id,
-      module: entry.module,
-      path: entry.path,
-      url: entry.url,
-      shows: entry.header?.shows ?? '',
-    }))
+/**
+ * Every example the playground runs, as the examples pages show it: the 2D catalog's valid examples, each with its
+ * source, its frame page and its golden (playground/src/playground-catalog.ts).
+ */
+export function playgroundExamples(root: string = repositoryRoot): PlaygroundExample[] {
+  return playgroundCatalog(readCatalog(examplesDir(root)), (entry) => readFileSync(entry.file, 'utf8'))
 }
 
 /** Every `examples/2d/<module>/<demo>/` that has its own package.json, by path. */

@@ -12,19 +12,22 @@ const root = resolve(import.meta.dirname, '..')
 
 describe('demoPoster', () => {
   it('names the preview a demo has, and nothing for a demo without one', () => {
-    expect(demoPoster('base-2d')).toBe('/previews/emberwick.jpg')
+    expect(demoPoster('emberwick')).toBe('/previews/emberwick.jpg')
     expect(demoPoster('hot-reload')).toBe('/previews/hot-reload.jpg')
-    expect(demoPoster('ui-primitives')).toBeUndefined()
+    expect(demoPoster('primitives')).toBeUndefined()
     expect(demoPoster('no-such-demo')).toBeUndefined()
   })
 
   it('only names previews that ship, with the WebP sizes the picture element asks for', () => {
-    const posters = getDemosCatalog().map(demo => demoPoster(demo.slug)).filter((poster): poster is string => poster !== undefined)
+    const posters = getDemosCatalog()
+      .map((demo) => demoPoster(demo.slug))
+      .filter((poster): poster is string => poster !== undefined)
     expect(posters.length).toBeGreaterThan(0)
     for (const poster of posters) {
       expect(() => previewSrcset(poster), poster).not.toThrow()
       const base = poster.replace(/\.jpg$/, '')
-      for (const file of [poster, base + '.webp', base + '-640.webp']) expect(existsSync(resolve(root, 'static' + file)), file).toBe(true)
+      for (const file of [poster, base + '.webp', base + '-640.webp'])
+        expect(existsSync(resolve(root, 'static' + file)), file).toBe(true)
     }
   })
 })

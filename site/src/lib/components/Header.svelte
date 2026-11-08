@@ -1,8 +1,14 @@
 <script lang="ts">
-  let { onOpenSearch, pathname = '/' }: { onOpenSearch?: () => void; pathname?: string } = $props()
-  const links = [['/start', 'Start'], ['/examples', 'Examples'], ['/showcase', 'Showcase'], ['/docs', 'Docs'], ['/ai', 'AI']]
-  let mobile: HTMLDetailsElement
-  const current = (href: string) => href === '/' ? pathname === '/' : pathname.startsWith(href)
+let { onOpenSearch, pathname = '/' }: { onOpenSearch?: () => void; pathname?: string } = $props()
+const links = [
+  ['/start', 'Start'],
+  ['/examples', 'Examples'],
+  ['/showcase', 'Showcase'],
+  ['/docs', 'Docs'],
+  ['/ai', 'AI'],
+]
+let mobile: HTMLDetailsElement
+const current = (href: string) => (href === '/' ? pathname === '/' : pathname.startsWith(href))
 </script>
 <header class="site-header">
   <a class="brand" href="/" aria-label="Automata home">automata<span class="brand-dot" aria-hidden="true"></span></a>

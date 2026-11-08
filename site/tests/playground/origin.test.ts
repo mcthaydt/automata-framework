@@ -1,9 +1,9 @@
 // @vitest-environment node
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { compileExample } from '../../src/lib/playground/compile'
 import { atOrigin } from '../../src/lib/playground/origin'
 import { SITE_ORIGIN } from '../../src/lib/site.js'
+import { playgroundExamples } from '../../src/shared/framework/examples.ts'
 
 // The precompiled originals (static/playground/compiled/) are compiled for the site's origin, so an example's
 // `import.meta.url` is a literal naming it. A local server runs them at its own origin, or the frame's CSP blocks the
@@ -14,16 +14,30 @@ describe('atOrigin', () => {
 
   it('moves the quoted playground literal to the other origin and leaves everything else', () => {
     const moved = atOrigin(code, 'https://automata.ruken.com', 'http://127.0.0.1:4650')
-    expect(moved).toBe(code.replace('"https://automata.ruken.com/playground/examples', '"http://127.0.0.1:4650/playground/examples'))
+    expect(moved).toBe(
+      code.replace(
+        '"https://automata.ruken.com/playground/examples',
+        '"http://127.0.0.1:4650/playground/examples',
+      ),
+    )
   })
 
   it('is the identity at the same origin, and refuses what is not an origin', () => {
     expect(atOrigin(code, 'https://automata.ruken.com', 'https://automata.ruken.com')).toBe(code)
-    expect(() => atOrigin(code, 'https://automata.ruken.com', 'http://127.0.0.1:4650/path')).toThrow(/not an origin/)
+    expect(() => atOrigin(code, 'https://automata.ruken.com', 'http://127.0.0.1:4650/path')).toThrow(
+      /not an origin/,
+    )
   })
 
   it('moves the literal in a real precompiled original', () => {
-    const original = readFileSync(resolve(import.meta.dirname, '../../static/playground/compiled/audio-sound.js'), 'utf8')
+    const example = playgroundExamples().find((entry) => entry.id === 'audio-sound')
+    if (!example) throw new Error('audio-sound left the catalog')
+    const result = compileExample(example.source, {
+      id: example.id,
+      moduleUrl: new URL(example.moduleUrl, SITE_ORIGIN).href,
+    })
+    if (!result.ok) throw new Error('audio-sound does not compile')
+    const original = result.code
     const moved = atOrigin(original, SITE_ORIGIN, 'http://localhost:5173')
     expect(moved).toContain('"http://localhost:5173/playground/examples/audio/audio-sound.ts"')
     expect(moved).not.toContain(SITE_ORIGIN)

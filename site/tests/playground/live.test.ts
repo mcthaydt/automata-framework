@@ -1,8 +1,13 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { createLiveCompile, EDIT_QUIET_MS, type CompileJob, type LiveResult } from '../../src/lib/playground/live'
-import { diagnosticText } from '../../src/lib/playground/status'
+import {
+  type CompileJob,
+  createLiveCompile,
+  EDIT_QUIET_MS,
+  type LiveResult,
+} from '../../src/lib/playground/live'
 import type { Clock } from '../../src/lib/playground/orchestrator'
+import { diagnosticText } from '../../src/lib/playground/status'
 
 // The live compile (spec F3, §5.2's last paragraph): the quiet period, `seq`, and latest-wins, with a fake clock and a
 // fake worker.
@@ -11,13 +16,21 @@ class FakeClock implements Clock {
   now = 0
   private timers = new Map<number, { at: number; fn: () => void }>()
   private next = 1
-  setTimeout(fn: () => void, ms: number) { const id = this.next++; this.timers.set(id, { at: this.now + ms, fn }); return id }
-  clearTimeout(handle: unknown) { this.timers.delete(handle as number) }
+  setTimeout(fn: () => void, ms: number) {
+    const id = this.next++
+    this.timers.set(id, { at: this.now + ms, fn })
+    return id
+  }
+  clearTimeout(handle: unknown) {
+    this.timers.delete(handle as number)
+  }
   advance(ms: number) {
     this.now += ms
     for (const [id, timer] of [...this.timers]) if (timer.at <= this.now && this.timers.delete(id)) timer.fn()
   }
-  get pending() { return this.timers.size }
+  get pending() {
+    return this.timers.size
+  }
 }
 
 function setup() {
@@ -27,8 +40,13 @@ function setup() {
   let terminated = false
   const live = createLiveCompile({
     clock,
-    worker: { post: job => posted.push(job), terminate: () => { terminated = true } },
-    onResult: result => results.push(result),
+    worker: {
+      post: (job) => posted.push(job),
+      terminate: () => {
+        terminated = true
+      },
+    },
+    onResult: (result) => results.push(result),
   })
   return { clock, posted, results, live, terminated: () => terminated }
 }
@@ -103,13 +121,19 @@ describe('createLiveCompile', () => {
 describe('diagnosticText', () => {
   const diagnostic = { line: 21, column: 18, message: 'Unexpected token' }
   it('names the line and says the last good preview is still running (§8.3)', () => {
-    expect(diagnosticText(diagnostic, true)).toBe('Line 21: Unexpected token. The preview is still running your last working version.')
+    expect(diagnosticText(diagnostic, true)).toBe(
+      'Line 21: Unexpected token. The preview is still running your last working version.',
+    )
   })
   it('says only what is wrong when nothing is running', () => {
     expect(diagnosticText(diagnostic, false)).toBe('Line 21: Unexpected token.')
   })
   it('keeps a message’s own full stop', () => {
-    expect(diagnosticText({ line: 1, column: 1, message: 'The playground can import only @mcthaydt/automata and zod.' }, false))
-      .toBe('Line 1: The playground can import only @mcthaydt/automata and zod.')
+    expect(
+      diagnosticText(
+        { line: 1, column: 1, message: 'The playground can import only @mcthaydt/automata and zod.' },
+        false,
+      ),
+    ).toBe('Line 1: The playground can import only @mcthaydt/automata and zod.')
   })
 })

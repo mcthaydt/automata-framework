@@ -30,7 +30,12 @@ function readGuide(dir: string, file: string): Guide {
   if (heading === null) throw new Error(`docs/guides/${file}: a guide starts with a "# " heading`)
   const content = text.slice(heading[0].length)
   const description = (content.split(/\n\n/)[0] ?? '').replace(/\s+/g, ' ').trim()
-  return { slug: file.slice(0, -'.md'.length), title: heading[1].trim(), description, content: relinkGuides(content) }
+  return {
+    slug: file.slice(0, -'.md'.length),
+    title: heading[1].trim(),
+    description,
+    content: relinkGuides(content),
+  }
 }
 
 /** Every guide in `docs/guides/`, by file name. */

@@ -2,7 +2,13 @@
 // The share link (spec §5.6): `#code=1.<payload>`, the UTF-8 source compressed with deflate-raw, in base64url; decoding
 // stops at MAX_SHARED_SOURCE_BYTES decompressed and refuses a fragment longer than MAX_FRAGMENT_CHARS.
 import { describe, expect, it } from 'vitest'
-import { decodeShare, encodeShare, MAX_FRAGMENT_CHARS, MAX_SHARED_SOURCE_BYTES, ShareError } from '../../src/lib/playground/share'
+import {
+  decodeShare,
+  encodeShare,
+  MAX_FRAGMENT_CHARS,
+  MAX_SHARED_SOURCE_BYTES,
+  ShareError,
+} from '../../src/lib/playground/share'
 
 async function deflate(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
   const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'))
@@ -24,7 +30,9 @@ describe('the share link', () => {
 
   it('refuses a corrupted payload', async () => {
     await expect(decodeShare('#code=1.not*base64')).rejects.toBeInstanceOf(ShareError)
-    await expect(decodeShare('#code=1.' + Buffer.from('plainly not deflate').toString('base64url'))).rejects.toBeInstanceOf(ShareError)
+    await expect(
+      decodeShare('#code=1.' + Buffer.from('plainly not deflate').toString('base64url')),
+    ).rejects.toBeInstanceOf(ShareError)
   })
 
   it('refuses an unknown format', async () => {
@@ -45,6 +53,8 @@ describe('the share link', () => {
   })
 
   it('refuses bytes that are not UTF-8', async () => {
-    await expect(decodeShare('#code=1.' + await deflate(new Uint8Array([0xff, 0xfe, 0x00])))).rejects.toBeInstanceOf(ShareError)
+    await expect(
+      decodeShare('#code=1.' + (await deflate(new Uint8Array([0xff, 0xfe, 0x00])))),
+    ).rejects.toBeInstanceOf(ShareError)
   })
 })

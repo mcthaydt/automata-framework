@@ -16,9 +16,11 @@ const DESCRIBE = `function describe(element) {
  */
 export function watchPage(page: Page, origin: string): { problems: string[] } {
   const problems: string[] = []
-  page.on('console', message => { if (message.type() === 'error') problems.push('console error: ' + message.text()) })
-  page.on('pageerror', error => problems.push('page error: ' + error.message))
-  page.on('request', request => {
+  page.on('console', (message) => {
+    if (message.type() === 'error') problems.push('console error: ' + message.text())
+  })
+  page.on('pageerror', (error) => problems.push('page error: ' + error.message))
+  page.on('request', (request) => {
     const url = request.url()
     if (/^(data|blob|about):/.test(url)) return
     if (new URL(url).origin !== origin) problems.push('third-party request: ' + url)
@@ -41,15 +43,17 @@ export async function horizontalOverflow(page: Page): Promise<string[]> {
 }
 
 export async function cookieNames(context: BrowserContext): Promise<string[]> {
-  return (await context.cookies()).map(cookie => cookie.name).sort()
+  return (await context.cookies()).map((cookie) => cookie.name).sort()
 }
 
 /** Keys the page left in localStorage and sessionStorage. */
 export async function storageKeys(page: Page): Promise<string[]> {
-  return page.evaluate(() => [
-    ...Object.keys(localStorage).map(key => 'localStorage:' + key),
-    ...Object.keys(sessionStorage).map(key => 'sessionStorage:' + key),
-  ].sort())
+  return page.evaluate(() =>
+    [
+      ...Object.keys(localStorage).map((key) => 'localStorage:' + key),
+      ...Object.keys(sessionStorage).map((key) => 'sessionStorage:' + key),
+    ].sort(),
+  )
 }
 
 /**
@@ -62,12 +66,15 @@ export async function settleCodeBlocks(page: Page): Promise<void> {
     const step = Math.max(200, window.innerHeight / 2)
     for (let y = 0; y < document.documentElement.scrollHeight; y += step) {
       window.scrollTo(0, y)
-      await new Promise(resolve => setTimeout(resolve, 60))
+      await new Promise((resolve) => setTimeout(resolve, 60))
     }
     window.scrollTo(0, 0)
   })
-  await page.waitForFunction(() => Array.from(document.querySelectorAll('figure.code-block'))
-    .every(figure => !figure.checkVisibility() || figure.querySelector('.shiki') !== null))
+  await page.waitForFunction(() =>
+    Array.from(document.querySelectorAll('figure.code-block')).every(
+      (figure) => !figure.checkVisibility() || figure.querySelector('.shiki') !== null,
+    ),
+  )
 }
 
 /**
@@ -86,7 +93,10 @@ export async function keyboardProblems(page: Page): Promise<string[]> {
       .filter(element => element.checkVisibility({ visibilityProperty: true }) && !element.closest('[inert], dialog:not([open])') && element.tabIndex >= 0)
       .map(element => { element.setAttribute('data-qb-focus', String(index++)); return describe(element) })
   })()`)
-  await page.evaluate(() => { (document.activeElement as HTMLElement | null)?.blur(); window.scrollTo(0, 0) })
+  await page.evaluate(() => {
+    ;(document.activeElement as HTMLElement | null)?.blur()
+    window.scrollTo(0, 0)
+  })
   const reached = new Set<number>()
   const problems: string[] = []
   let previous = -2
@@ -102,17 +112,23 @@ export async function keyboardProblems(page: Page): Promise<string[]> {
       const index = element?.getAttribute('data-qb-focus')
       if (!element || index === null || index === undefined) return null
       const style = getComputedStyle(editor ?? element)
-      return { index: Number(index), ring: style.outlineStyle !== 'none' && parseFloat(style.outlineWidth) > 0 }
+      return {
+        index: Number(index),
+        ring: style.outlineStyle !== 'none' && parseFloat(style.outlineWidth) > 0,
+      }
     })
     if (!focused) continue
-    if (!focused.ring && !reached.has(focused.index)) problems.push('no focus ring: ' + candidates[focused.index])
+    if (!focused.ring && !reached.has(focused.index))
+      problems.push('no focus ring: ' + candidates[focused.index])
     reached.add(focused.index)
     // Focus that stops moving is a keyboard trap (or an iframe that kept it); stop rather than spin.
     repeats = focused.index === previous ? repeats + 1 : 0
     previous = focused.index
     if (repeats >= 3) break
   }
-  candidates.forEach((description, index) => { if (!reached.has(index)) problems.push('not reachable by keyboard: ' + description) })
+  candidates.forEach((description, index) => {
+    if (!reached.has(index)) problems.push('not reachable by keyboard: ' + description)
+  })
   return problems
 }
 
@@ -132,33 +148,64 @@ export async function deadButtons(page: Page): Promise<string[]> {
     // WebKit 26 still gives a box to the content of a closed <details> that holds an open one, so Playwright counts its
     // buttons visible though a reader cannot see or reach them (the source tree's collapsed folders on /examples). The
     // browser's own checkVisibility() knows better.
-    if (await button.evaluate(element => element.checkVisibility() === false)) continue
-    if (await button.evaluate(element => element.getAttribute('aria-pressed') === 'true' || element.getAttribute('aria-selected') === 'true' || element.hasAttribute('aria-current'))) continue
-    const label = ((await button.getAttribute('aria-label')) ?? (await button.innerText())).trim().replace(/\s+/g, ' ')
+    if (await button.evaluate((element) => element.checkVisibility() === false)) continue
+    if (
+      await button.evaluate(
+        (element) =>
+          element.getAttribute('aria-pressed') === 'true' ||
+          element.getAttribute('aria-selected') === 'true' ||
+          element.hasAttribute('aria-current'),
+      )
+    )
+      continue
+    const label = ((await button.getAttribute('aria-label')) ?? (await button.innerText()))
+      .trim()
+      .replace(/\s+/g, ' ')
     await page.evaluate(() => {
       const state = window as unknown as { __qbChanges: number; __qbObserver?: MutationObserver }
       state.__qbObserver?.disconnect()
       state.__qbChanges = 0
-      state.__qbObserver = new MutationObserver(records => { state.__qbChanges += records.length })
-      state.__qbObserver.observe(document, { subtree: true, childList: true, attributes: true, characterData: true })
-      document.addEventListener('fullscreenchange', () => { state.__qbChanges++ }, { once: true })
+      state.__qbObserver = new MutationObserver((records) => {
+        state.__qbChanges += records.length
+      })
+      state.__qbObserver.observe(document, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        characterData: true,
+      })
+      document.addEventListener(
+        'fullscreenchange',
+        () => {
+          state.__qbChanges++
+        },
+        { once: true },
+      )
     })
-    const popup = page.context().waitForEvent('page', { timeout: 1500 }).catch(() => null)
+    const popup = page
+      .context()
+      .waitForEvent('page', { timeout: 1500 })
+      .catch(() => null)
     await button.click()
-    const changedSince = (url: string) => location.href !== url || (window as unknown as { __qbChanges: number }).__qbChanges > 0
+    const changedSince = (url: string) =>
+      location.href !== url || (window as unknown as { __qbChanges: number }).__qbChanges > 0
     // The observer counts a change the moment it happens, but the poll that reads the count runs on the page's main
     // thread. A click that starts a demo (Restart replaces its frame, whose WebGL boot then holds that thread for
     // seconds on the Mac's GPU, run 41012189000) starves the poll past the window though the page changed at once. So a
     // timed-out poll asks once more, after the page is free: the change must still have happened, not be waited for.
-    const changed = await page.waitForFunction(changedSince, start, { timeout: 1500 })
-      .then(() => true, () => page.evaluate(changedSince, start))
+    const changed = await page.waitForFunction(changedSince, start, { timeout: 1500 }).then(
+      () => true,
+      () => page.evaluate(changedSince, start),
+    )
     const opened = await popup
     if (opened) await opened.close()
     if (!changed && !opened) dead.push(`button "${label}" changed nothing`)
     if (page.url() !== start) await page.goto(start)
     else {
       if (await page.locator('dialog[open]').count()) await page.keyboard.press('Escape')
-      await page.evaluate(() => document.fullscreenElement ? document.exitFullscreen() : undefined).catch(() => undefined)
+      await page
+        .evaluate(() => (document.fullscreenElement ? document.exitFullscreen() : undefined))
+        .catch(() => undefined)
     }
   }
   return dead
@@ -169,6 +216,11 @@ export async function axeViolations(page: Page, exclude: string[] = []): Promise
   let builder = new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
   for (const selector of exclude) builder = builder.exclude(selector)
   const results = await builder.analyze()
-  return results.violations.map(violation =>
-    `${violation.id} (${violation.impact}): ${violation.help} — ${violation.nodes.slice(0, 3).map(node => node.target.join(' ')).join(', ')}`)
+  return results.violations.map(
+    (violation) =>
+      `${violation.id} (${violation.impact}): ${violation.help} — ${violation.nodes
+        .slice(0, 3)
+        .map((node) => node.target.join(' '))
+        .join(', ')}`,
+  )
 }

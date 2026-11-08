@@ -17,7 +17,13 @@ function middleware(staticDir?: string): Middleware {
   let installed: Middleware | undefined
   const plugin = playgroundDevHeaders(staticDir)
   const hook = plugin.configureServer as (server: { middlewares: { use(fn: Middleware): void } }) => void
-  hook({ middlewares: { use: fn => { installed = fn } } })
+  hook({
+    middlewares: {
+      use: (fn) => {
+        installed = fn
+      },
+    },
+  })
   if (!installed) throw new Error('the plugin installed no middleware')
   return installed
 }
@@ -25,7 +31,17 @@ function middleware(staticDir?: string): Middleware {
 function headersFor(url: string): Record<string, string> {
   const headers: Record<string, string> = {}
   let nexted = false
-  middleware()({ url }, { setHeader: (name, value) => { headers[name] = value } }, () => { nexted = true })
+  middleware()(
+    { url },
+    {
+      setHeader: (name, value) => {
+        headers[name] = value
+      },
+    },
+    () => {
+      nexted = true
+    },
+  )
   expect(nexted).toBe(true)
   return headers
 }
@@ -39,19 +55,31 @@ describe('playgroundDevHeaders', () => {
     })
   })
 
-  it('serves a frame page with the dev server\'s own origin in connect-src (R-2)', () => {
+  it("serves a frame page with the dev server's own origin in connect-src (R-2)", () => {
     const dir = mkdtempSync(join(tmpdir(), 'playground-dev-'))
     mkdirSync(join(dir, 'playground/examples/core/basic-window'), { recursive: true })
     const page = `<meta http-equiv="Content-Security-Policy" content="connect-src 'self' https://automata.ruken.com" />`
     writeFileSync(join(dir, 'playground/examples/core/basic-window/index.html'), page)
-    let sent: { status?: number; headers: Record<string, string>; body?: string } = { headers: {} }
+    const sent: { status?: number; headers: Record<string, string>; body?: string } = { headers: {} }
     let nexted = false
     const response = {
-      setHeader: (name: string, value: string) => { sent.headers[name] = value },
-      set statusCode(status: number) { sent.status = status },
-      end: (body: string) => { sent.body = body },
+      setHeader: (name: string, value: string) => {
+        sent.headers[name] = value
+      },
+      set statusCode(status: number) {
+        sent.status = status
+      },
+      end: (body: string) => {
+        sent.body = body
+      },
     }
-    middleware(dir)({ url: '/playground/examples/core/basic-window/', headers: { host: 'localhost:5173' } }, response, () => { nexted = true })
+    middleware(dir)(
+      { url: '/playground/examples/core/basic-window/', headers: { host: 'localhost:5173' } },
+      response,
+      () => {
+        nexted = true
+      },
+    )
     expect(nexted).toBe(false)
     expect(sent.body).toBe(page.replace('https://automata.ruken.com', 'http://localhost:5173'))
     expect(sent.headers['Content-Type']).toBe('text/html; charset=utf-8')

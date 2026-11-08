@@ -25,12 +25,16 @@ describe('DemoRunner fullscreen button', () => {
   const props = { src: '/demos/content/hot-reload/index.html', title: 'Content: hot reload' }
   const setup = (requestFullscreen: (() => Promise<void>) | undefined) => {
     const view = render(DemoRunner, { props })
-    const container = view.getByTestId('demo-runner-container') as unknown as { requestFullscreen?: () => Promise<void> }
+    const container = view.getByTestId('demo-runner-container') as unknown as {
+      requestFullscreen?: () => Promise<void>
+    }
     container.requestFullscreen = requestFullscreen
     return view
   }
 
-  afterEach(() => { vi.useRealTimers() })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
 
   it('says the browser did not start fullscreen when it never answers within a second', async () => {
     vi.useFakeTimers()
@@ -45,7 +49,12 @@ describe('DemoRunner fullscreen button', () => {
   it('takes that message back when fullscreen starts after all', async () => {
     vi.useFakeTimers()
     let answer: () => void = () => undefined
-    const { getByLabelText, queryByText } = setup(() => new Promise<void>(resolve => { answer = resolve }))
+    const { getByLabelText, queryByText } = setup(
+      () =>
+        new Promise<void>((resolve) => {
+          answer = resolve
+        }),
+    )
     await fireEvent.click(getByLabelText(/Toggle fullscreen/i))
     await vi.advanceTimersByTimeAsync(1100)
     expect(queryByText(/Fullscreen did not start/i)).not.toBeNull()
@@ -79,7 +88,12 @@ describe('DemoRunner fullscreen button', () => {
       vi.useFakeTimers()
       const { getByLabelText, getByTestId } = setup(() => new Promise(() => undefined))
       const seen = vi.fn()
-      new MutationObserver(seen).observe(getByTestId('demo-runner-container'), { attributes: true, subtree: true, childList: true, characterData: true })
+      new MutationObserver(seen).observe(getByTestId('demo-runner-container'), {
+        attributes: true,
+        subtree: true,
+        childList: true,
+        characterData: true,
+      })
       const button = getByLabelText(/Toggle fullscreen/i)
       expect(button.hasAttribute('aria-busy')).toBe(false)
       await fireEvent.click(button)
@@ -91,7 +105,12 @@ describe('DemoRunner fullscreen button', () => {
     it('stops being busy when fullscreen starts', async () => {
       vi.useFakeTimers()
       let answer: () => void = () => undefined
-      const { getByLabelText } = setup(() => new Promise<void>(resolve => { answer = resolve }))
+      const { getByLabelText } = setup(
+        () =>
+          new Promise<void>((resolve) => {
+            answer = resolve
+          }),
+      )
       const button = getByLabelText(/Toggle fullscreen/i)
       await fireEvent.click(button)
       expect(button.getAttribute('aria-busy')).toBe('true')

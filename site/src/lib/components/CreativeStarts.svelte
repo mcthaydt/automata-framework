@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { CREATIVE_STARTS } from '../../data/creative-starts'
-  import LazyPicture from './LazyPicture.svelte'
+import { CREATIVE_STARTS } from '../../data/creative-starts'
+import LazyPicture from './LazyPicture.svelte'
 </script>
 
 <div class="creative-starts">

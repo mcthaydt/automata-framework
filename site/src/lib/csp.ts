@@ -27,7 +27,8 @@ const OTHER_DIRECTIVES = [
 ]
 
 /** The hash source for one inline script's text, as the browser computes it (UTF-8, base64). */
-export const scriptHash = (text: string) => `'sha256-${createHash('sha256').update(text, 'utf8').digest('base64')}'`
+export const scriptHash = (text: string) =>
+  `'sha256-${createHash('sha256').update(text, 'utf8').digest('base64')}'`
 
 /** The hash of every inline script in the page, in document order; a script with a `src` runs from a file and has none. */
 function inlineScriptHashes(html: string): string[] {
@@ -40,5 +41,5 @@ function inlineScriptHashes(html: string): string[] {
 export function withContentSecurityPolicy(html: string): string {
   const scripts = ["script-src 'self'", ...inlineScriptHashes(html)].join(' ')
   const policy = ["default-src 'self'", scripts, ...OTHER_DIRECTIVES].join('; ')
-  return html.replace(HEAD, head => `${head}${CSP_META_PREFIX}${policy}">`)
+  return html.replace(HEAD, (head) => `${head}${CSP_META_PREFIX}${policy}">`)
 }

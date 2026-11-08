@@ -1,25 +1,44 @@
 <script lang="ts">
-  import type { OrchestratorView } from './orchestrator'
-  let { title, view, showPlay, onplay, showRetry, onretry, onrestart, stage = $bindable() }: {
-    title: string; view: OrchestratorView; showPlay: boolean; onplay: () => void; showRetry: boolean; onretry: () => void; onrestart: () => void; stage?: HTMLElement
-  } = $props()
+import type { OrchestratorView } from './orchestrator'
 
-  // F11: Fullscreen behaves as in DemoRunner. The panel goes fullscreen; a refusal, or no answer within 1 s, is said.
-  let panel: HTMLElement | undefined = $state()
-  let fullscreenMessage = $state('')
-  async function toggleFullscreen() {
-    const impatient = setTimeout(() => { fullscreenMessage = FULLSCREEN_UNAVAILABLE }, 1_000)
-    try {
-      if (document.fullscreenElement) await document.exitFullscreen()
-      else await panel!.requestFullscreen()
-      fullscreenMessage = ''
-    } catch {
-      fullscreenMessage = FULLSCREEN_UNAVAILABLE
-    } finally {
-      clearTimeout(impatient)
-    }
+let {
+  title,
+  view,
+  showPlay,
+  onplay,
+  showRetry,
+  onretry,
+  onrestart,
+  stage = $bindable(),
+}: {
+  title: string
+  view: OrchestratorView
+  showPlay: boolean
+  onplay: () => void
+  showRetry: boolean
+  onretry: () => void
+  onrestart: () => void
+  stage?: HTMLElement
+} = $props()
+
+// F11: Fullscreen behaves as in DemoRunner. The panel goes fullscreen; a refusal, or no answer within 1 s, is said.
+let panel: HTMLElement | undefined = $state()
+let fullscreenMessage = $state('')
+async function toggleFullscreen() {
+  const impatient = setTimeout(() => {
+    fullscreenMessage = FULLSCREEN_UNAVAILABLE
+  }, 1_000)
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen()
+    else await panel!.requestFullscreen()
+    fullscreenMessage = ''
+  } catch {
+    fullscreenMessage = FULLSCREEN_UNAVAILABLE
+  } finally {
+    clearTimeout(impatient)
   }
-  const FULLSCREEN_UNAVAILABLE = 'Fullscreen is unavailable in this browser.'
+}
+const FULLSCREEN_UNAVAILABLE = 'Fullscreen is unavailable in this browser.'
 </script>
 <section class="preview-panel" aria-label="Preview" bind:this={panel}>
   <div class="preview-toolbar">

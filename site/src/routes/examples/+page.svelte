@@ -1,8 +1,9 @@
 <script lang="ts">
-  import PageMeta from '$lib/components/PageMeta.svelte'
-  import InlineText from '$lib/components/InlineText.svelte'
-  import { difficultyStars, type ExampleGroup } from '../../data/examples'
-  let { data }: { data: { index: ExampleGroup[] } } = $props()
+import InlineText from '$lib/components/InlineText.svelte'
+import PageMeta from '$lib/components/PageMeta.svelte'
+import { difficultyStars, type ExampleGroup } from '../../data/examples'
+
+let { data }: { data: { index: ExampleGroup[] } } = $props()
 </script>
 <PageMeta title="Examples" description="Small Automata examples, one file each. Open one and it runs beside its code." />
 <div class="page-shell examples-index">

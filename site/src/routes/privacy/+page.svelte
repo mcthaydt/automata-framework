@@ -1,8 +1,8 @@
 <script lang="ts">
-  import PageMeta from '$lib/components/PageMeta.svelte'
-  import { CONTACT_EMAIL } from '$lib/site.js'
-  // Each statement here is pinned by a check (quality-bar spec, "terms and privacy that match the code"):
-  // cookies, third-party requests and browser storage by tests/e2e/site.e2e.ts; forms by scripts/site-checks.ts.
+import PageMeta from '$lib/components/PageMeta.svelte'
+import { CONTACT_EMAIL } from '$lib/site.js'
+// Each statement here is pinned by a check (quality-bar spec, "terms and privacy that match the code"):
+// cookies, third-party requests and browser storage by tests/e2e/site.e2e.ts; forms by scripts/site-checks.ts.
 </script>
 <PageMeta title="Privacy" description="What this site collects: nothing. No cookies, no analytics, no forms and no requests to other sites." />
 <div class="page-shell legal-page">

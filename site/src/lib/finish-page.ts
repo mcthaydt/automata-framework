@@ -7,4 +7,5 @@ import { withoutChunkPreloads } from './preloads'
  * shared chunks go (`withoutChunkPreloads`), hydration waits for the first paint (`hydrateAfterFirstPaint`), and the
  * Content-Security-Policy is added last, so its hashes are of the scripts as the page ships them.
  */
-export const finishPage = (html: string): string => withContentSecurityPolicy(hydrateAfterFirstPaint(withoutChunkPreloads(html)))
+export const finishPage = (html: string): string =>
+  withContentSecurityPolicy(hydrateAfterFirstPaint(withoutChunkPreloads(html)))

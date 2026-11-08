@@ -203,22 +203,19 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 1. Audit | Done, 2026-11-06: 7 editor shipping gaps (E1 to E7), 7 sprawl (S1 to S7), 2 contracts (K1, K2), 5 tests (T1 to T5), 5 copy (G1 to G5); 9 website shipping gaps (W1 to W9), 6 sprawl (WS1 to WS6), 2 tests (WT1, WT2), 4 copy (WG1 to WG4); 8 decisions (D1 to D8); the Owner took all eight recommendations the same day. The widened scope's audit, the same day: 7 new-game gaps (N1 to N7), 7 published-tools (U1 to U7), 7 release (R1 to R7), 7 Plus and other repositories (P1 to P7), 7 agent package and docs (A1 to A7), 5 CI and tooling (Q1 to Q5), 4 copy (Y1 to Y4); 9 decisions (D9 to D17); the Owner took all nine recommendations the same day | [2026-11-06-2d-editors-and-site-audit.md](2026-11-06-2d-editors-and-site-audit.md), [2026-11-06-2d-ship-rest-audit.md](2026-11-06-2d-ship-rest-audit.md) |
 | 2. Plan and spec | Done, 2026-11-06 (draft PR [#406](https://github.com/mcthaydt/automata-framework/pull/406)): 21 phases, 63 tasks. Built on D1 to D17 as the Owner took them; adds the editor redesign in the website's look and the code refactor to the core slice's standard (minimal, elegant, documented), both asked for by the Owner the same day. Stage 3 reviews it | [spec](2026-11-06-2d-editors-and-site-spec.md), [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 3. Plan audit | Done, 2026-11-06 (draft PR, stacked on #406 and #407): 30 findings (12 that would have stopped the build, 18 that would have caused harm or rework), all fixed in the spec and plan; three veto defaults added (14 to 16); the Owner's calls are the npm organisation's name and D8/D17's inputs. Stage 4 starts at task 1.1 | [plan audit](2026-11-06-2d-editors-and-site-plan-audit.md) |
-| 4. Build | In progress: 30 of 63 tasks (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
+| 4. Build | In progress: 32 of 63 tasks (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 48% (30 of 63 tasks)
+### Build: 51% (32 of 63 tasks)
 
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
 
-**Where to resume (2026-11-06, session 7):** branch `claude/project-thread-lwdsz9`, draft PR
-[#417](https://github.com/mcthaydt/automata-framework/pull/417) stacked on #416 (tasks 9.1, 10.1 and part of 10.2).
-Next is task 10.2 step 2: delete the site's sync scripts, `framework.ref`, the workshop and the synced copies, write `site/scripts/build-demos.ts`, move
-the playground half of `tooling/examples-runner` into the site, switch the docs, API and examples pages to
-`site/src/shared/framework/`, then bring `site` under knip (remove `ignoreWorkspaces`). Task 14.1 waits for the Owner
-to confirm the `automata` npm organisation. The plan's execution log has the counts, deviations and gates of every
-task so far.
+**Where to resume (2026-11-06, session 8):** branch `claude/project-thread-bjrs94`, draft PR
+[#418](https://github.com/mcthaydt/automata-framework/pull/418) stacked on #417 (tasks 10.2 and 10.3). Next is phase
+11, task 11.1 (one token source for the editor and the site). Task 14.1 waits for the Owner to confirm the `automata`
+npm organisation. The plan's execution log has the counts, deviations (up to 99) and gates of every task so far.
 
 | Task | Phase | Status | PR |
 |---|---|---|---|
@@ -250,10 +247,10 @@ task so far.
 | 7.3 create-game makes a level | 7 | Done, 2026-11-06 (`pnpm check` green; `-tools` unit 851; the stranger's journey passes in Chromium with the floor check and the `levels` step; WebKit, Firefox and hosted CI not run) | [#416](https://github.com/mcthaydt/automata-framework/pull/416) |
 | 8.1 The 2D-only suite page | 8 | Done, 2026-11-06 (copy-editor 6 tests; both shipped builds scan clean, `editor-3d`'s suite holds the beta and is not shipped; WebKit, Firefox and hosted CI not run) | [#416](https://github.com/mcthaydt/automata-framework/pull/416) |
 | 8.2 The suite opens the checkout; the rail lists what is there | 8 | Done, 2026-11-06 (`pnpm check` green; editor unit 3,245; editor Chromium browser projects 527 pass, 6 skipped; served on Emberwick it shows its two editors and no sample; WebKit, Firefox and hosted CI not run) | [#416](https://github.com/mcthaydt/automata-framework/pull/416) |
-| 9.1 Split the examples package | 9 | Done, 2026-11-06 (`pnpm check` green; the 2D build scans clean of the 3D beta, the 3D build holds it; 2D journeys 88 pass and 2 skipped in Chromium, the 3D ones 9 of 9 in Chromium; the goldens replay in Chromium; WebKit, Firefox and hosted CI not run) | PR to open |
-| 10.1 site/ with its history | 10 | Done, 2026-11-06 (`git subtree add` of the website's `main` at `4a514eb3`, 229 commits, unsquashed; `pnpm check` green with `site` left out of Biome and knip until 10.2 and 10.3; site tests: 10 of 78 files fail, all reading the old sibling checkout or the synced copies) | PR to open |
-| 10.2 Imports, not copies | 10 | In progress, 2026-11-06: step 1's three failing tests written and the loaders that pass them (`site/src/shared/framework/`: guides, published packages, examples and feature demos; 7 tests). The deploy scripts that never ran are gone (`site/.github/`, release, rollback, deployed and uptime checks, the Lighthouse baseline recorder and their tests). Left: step 2's other deletions (sync scripts, `framework.ref`, synced copies and builds, the workshop), `build-demos.ts`, the playground's move from `examples-runner`, and the pages switched to the loaders; then steps 3 and 4 | PR to open |
-| 10.3 The site's tooling matches the repository's | 10 | Not started | |
+| 9.1 Split the examples package | 9 | Done, 2026-11-06 (`pnpm check` green; the 2D build scans clean of the 3D beta, the 3D build holds it; 2D journeys 88 pass and 2 skipped in Chromium, the 3D ones 9 of 9 in Chromium; the goldens replay in Chromium; WebKit, Firefox and hosted CI not run) | [#417](https://github.com/mcthaydt/automata-framework/pull/417) |
+| 10.1 site/ with its history | 10 | Done, 2026-11-06 (`git subtree add` of the website's `main` at `4a514eb3`, 229 commits, unsquashed; `pnpm check` green with `site` left out of Biome and knip until 10.2 and 10.3; site tests: 10 of 78 files fail, all reading the old sibling checkout or the synced copies) | [#417](https://github.com/mcthaydt/automata-framework/pull/417) |
+| 10.2 Imports, not copies | 10 | Done, 2026-11-06 (sync scripts, pins, synced copies, the workshop and four pages that read only synced data deleted; one Vite plugin serves the guides, examples, demos, sources and API index from the workspace; the playground moved to `site/playground/`; `build-demos.ts` builds the demos, the API index and the playground; site unit 353 pass, build exits 0, knip covers the site; Chromium e2e 483 and playground journeys 37 pass; `pnpm check` green; WebKit, Firefox and hosted CI not run) | [#418](https://github.com/mcthaydt/automata-framework/pull/418) |
+| 10.3 The site's tooling matches the repository's | 10 | Done, 2026-11-06 (Vite 8.3.3, SvelteKit 2.70.4, plugin 7.3.1, Zod 4.6.6; Biome over `site/`; no `tsx`; the site's 353 unit tests in `pnpm check`, its e2e in `e2e-2d`; `pnpm check` green; Chromium e2e pass; WebKit, Firefox and hosted CI not run) | [#418](https://github.com/mcthaydt/automata-framework/pull/418) |
 | 11.1 One token source | 11 | Not started | |
 | 11.2 Geist and the icons | 11 | Not started | |
 | 11.3 The kit's components and the design board | 11 | Not started | |

@@ -1,5 +1,5 @@
-import { frameMessage, PROTOCOL_VERSION, type FrameMessage, type RunMessage } from './protocol'
 import type { DeterminismView } from './determinism'
+import { type FrameMessage, frameMessage, PROTOCOL_VERSION, type RunMessage } from './protocol'
 import { STATUS } from './status'
 
 // The preview's frames (spec §6 F4, F10, F11; §7.1, §7.2). Each run gets a candidate frame under the current one; the
@@ -10,7 +10,6 @@ import { STATUS } from './status'
 export const FIRST_BOOT_TIMEOUT_MS = 20_000
 /** Later frames, from creation to `running`. */
 export const BOOT_TIMEOUT_MS = 10_000
-
 
 /** One preview frame, as the page made it. `window` is its `contentWindow`, the only source its messages may have. */
 export interface PreviewFrame {
@@ -109,14 +108,24 @@ export function createOrchestrator(options: OrchestratorOptions) {
     lastCode = code
     lastDeterminism = determinism
     const first = !everRan
-    const held: Held = { frame: options.createFrame(), runId: nextRunId++, code, determinism, sent: false, timer: undefined }
-    held.timer = clock.setTimeout(() => {
-      if (candidate !== held) return
-      if (current) {
-        dropCandidate()
-        update({ status: STATUS.bootTimeout })
-      } else candidateFailed(first ? STATUS.offline : STATUS.bootTimeout)
-    }, first ? FIRST_BOOT_TIMEOUT_MS : BOOT_TIMEOUT_MS)
+    const held: Held = {
+      frame: options.createFrame(),
+      runId: nextRunId++,
+      code,
+      determinism,
+      sent: false,
+      timer: undefined,
+    }
+    held.timer = clock.setTimeout(
+      () => {
+        if (candidate !== held) return
+        if (current) {
+          dropCandidate()
+          update({ status: STATUS.bootTimeout })
+        } else candidateFailed(first ? STATUS.offline : STATUS.bootTimeout)
+      },
+      first ? FIRST_BOOT_TIMEOUT_MS : BOOT_TIMEOUT_MS,
+    )
     candidate = held
     if (current) update({})
     else update({ preview: 'starting', status: STATUS.starting })
@@ -127,7 +136,13 @@ export function createOrchestrator(options: OrchestratorOptions) {
       if (held !== candidate || held.sent) return
       held.sent = true
       held.framework = message.framework
-      held.frame.post({ v: PROTOCOL_VERSION, type: 'run', runId: held.runId, code: held.code, ...(held.determinism && { determinism: held.determinism }) })
+      held.frame.post({
+        v: PROTOCOL_VERSION,
+        type: 'run',
+        runId: held.runId,
+        code: held.code,
+        ...(held.determinism && { determinism: held.determinism }),
+      })
       return
     }
     if (message.runId !== held.runId) return
@@ -141,13 +156,21 @@ export function createOrchestrator(options: OrchestratorOptions) {
       candidate = undefined
       everRan = true
       const determinism = held.determinism && { kind: 'checking' as const, ticks: held.determinism.ticks }
-      update({ preview: 'running', runId: held.runId, stopped: null, failure: undefined, determinism, status: replaced ? STATUS.updated : STATUS.running })
+      update({
+        preview: 'running',
+        runId: held.runId,
+        stopped: null,
+        failure: undefined,
+        determinism,
+        status: replaced ? STATUS.updated : STATUS.running,
+      })
       return
     }
     if (message.type === 'failed') {
       const reason = message.hung ? HANG_MESSAGE : message.message
       const text = failureText(reason, message.line)
-      if (message.line !== undefined) view = { ...view, failure: { line: message.line, column: message.column ?? 1, message: reason } }
+      if (message.line !== undefined)
+        view = { ...view, failure: { line: message.line, column: message.column ?? 1, message: reason } }
       if (held === candidate) {
         candidateFailed(text)
         return
@@ -161,8 +184,10 @@ export function createOrchestrator(options: OrchestratorOptions) {
     if (message.type === 'determinism-unavailable') update({ determinism: undefined })
     if (message.type !== 'determinism') return
     const { ticks, hash } = message
-    if (message.golden === 'pass') update({ determinism: { kind: 'pass', ticks, hash, framework: held.framework! } })
-    else if (message.golden === 'diverged') update({ determinism: { kind: 'diverged', tick: message.tick ?? ticks } })
+    if (message.golden === 'pass')
+      update({ determinism: { kind: 'pass', ticks, hash, framework: held.framework! } })
+    else if (message.golden === 'diverged')
+      update({ determinism: { kind: 'diverged', tick: message.tick ?? ticks } })
     else update({ determinism: { kind: 'edited', ticks, hash } })
   }
 
@@ -173,7 +198,9 @@ export function createOrchestrator(options: OrchestratorOptions) {
     },
     receive(event: { source: unknown; origin: string; data: unknown }) {
       if (disposed || event.origin !== 'null' || event.source === null) return
-      const held = [current, candidate].find(each => each !== undefined && each.frame.window === event.source)
+      const held = [current, candidate].find(
+        (each) => each !== undefined && each.frame.window === event.source,
+      )
       if (!held) return
       const parsed = frameMessage.safeParse(event.data)
       if (parsed.success) handle(held, parsed.data)

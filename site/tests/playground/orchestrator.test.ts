@@ -2,9 +2,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   BOOT_TIMEOUT_MS,
+  type Clock,
   createOrchestrator,
   FIRST_BOOT_TIMEOUT_MS,
-  type Clock,
   type OrchestratorView,
   type PreviewFrame,
 } from '../../src/lib/playground/orchestrator'
@@ -19,16 +19,29 @@ class FakeClock implements Clock {
   now = 0
   private timers = new Map<number, { at: number; fn: () => void }>()
   private next = 1
-  setTimeout(fn: () => void, ms: number) { const id = this.next++; this.timers.set(id, { at: this.now + ms, fn }); return id }
-  clearTimeout(handle: unknown) { this.timers.delete(handle as number) }
+  setTimeout(fn: () => void, ms: number) {
+    const id = this.next++
+    this.timers.set(id, { at: this.now + ms, fn })
+    return id
+  }
+  clearTimeout(handle: unknown) {
+    this.timers.delete(handle as number)
+  }
   advance(ms: number) {
     this.now += ms
     for (const [id, timer] of [...this.timers]) if (timer.at <= this.now && this.timers.delete(id)) timer.fn()
   }
-  get pending() { return this.timers.size }
+  get pending() {
+    return this.timers.size
+  }
 }
 
-interface FakeFrame extends PreviewFrame { readonly window: object; posted: RunMessage[]; revealed: boolean; removed: boolean }
+interface FakeFrame extends PreviewFrame {
+  readonly window: object
+  posted: RunMessage[]
+  revealed: boolean
+  removed: boolean
+}
 
 function setup() {
   const clock = new FakeClock()
@@ -39,21 +52,32 @@ function setup() {
     title: 'rectangles',
     createFrame: () => {
       const frame: FakeFrame = {
-        window: {}, posted: [], revealed: false, removed: false,
-        post(message) { this.posted.push(message) },
-        reveal() { this.revealed = true },
-        remove() { this.removed = true },
+        window: {},
+        posted: [],
+        revealed: false,
+        removed: false,
+        post(message) {
+          this.posted.push(message)
+        },
+        reveal() {
+          this.revealed = true
+        },
+        remove() {
+          this.removed = true
+        },
       }
       frames.push(frame)
       return frame
     },
-    onChange: view => views.push(view),
+    onChange: (view) => views.push(view),
   })
-  const live = () => frames.filter(frame => !frame.removed)
+  const live = () => frames.filter((frame) => !frame.removed)
   const view = () => views.at(-1)!
-  const say = (frame: FakeFrame, data: unknown, origin = 'null') => orchestrator.receive({ source: frame.window, origin, data })
+  const say = (frame: FakeFrame, data: unknown, origin = 'null') =>
+    orchestrator.receive({ source: frame.window, origin, data })
   const booted = (frame: FakeFrame) => say(frame, { v: 1, type: 'booted', framework: FRAMEWORK })
-  const running = (frame: FakeFrame, runId = frame.posted[0]!.runId) => say(frame, { v: 1, type: 'running', runId })
+  const running = (frame: FakeFrame, runId = frame.posted[0]!.runId) =>
+    say(frame, { v: 1, type: 'running', runId })
   /** Runs `code` to `running` in a fresh frame. */
   const start = (code = 'export default 1') => {
     orchestrator.run(code)
@@ -101,7 +125,11 @@ describe('the orchestrator', () => {
     const { frames, orchestrator, booted, running, start, view, live } = setup()
     const first = start()
     expect(first.revealed).toBe(true)
-    expect(view()).toMatchObject({ preview: 'running', runId: 1, status: 'Running. Edit the code and the preview updates as you type.' })
+    expect(view()).toMatchObject({
+      preview: 'running',
+      runId: 1,
+      status: 'Running. Edit the code and the preview updates as you type.',
+    })
     orchestrator.run('second')
     const second = frames[1]!
     booted(second)
@@ -121,7 +149,7 @@ describe('the orchestrator', () => {
       orchestrator.run('edit ' + index)
       expect(live().length).toBeLessThanOrEqual(2)
     }
-    expect(frames.filter(frame => frame.removed)).toHaveLength(4)
+    expect(frames.filter((frame) => frame.removed)).toHaveLength(4)
   })
 
   it('says it is starting until the first run reaches running', () => {
@@ -139,16 +167,29 @@ describe('the orchestrator', () => {
     say(candidate, { v: 1, type: 'failed', runId: 2, phase: 'boot', message: 'x', line: 12, column: 3 })
     expect(candidate.removed).toBe(true)
     expect(live()).toEqual([first])
-    expect(view()).toMatchObject({ preview: 'running', runId: 1, status: 'Line 12: x. The preview is still running your last working version.' })
+    expect(view()).toMatchObject({
+      preview: 'running',
+      runId: 1,
+      status: 'Line 12: x. The preview is still running your last working version.',
+    })
   })
 
   it('fails with Play back when the first run fails and nothing else is running', () => {
     const { frames, orchestrator, booted, say, view, live } = setup()
     orchestrator.run('broken')
     booted(frames[0]!)
-    say(frames[0]!, { v: 1, type: 'failed', runId: 1, phase: 'import', message: 'The example’s default export must be defineGame(...)' })
+    say(frames[0]!, {
+      v: 1,
+      type: 'failed',
+      runId: 1,
+      phase: 'import',
+      message: 'The example’s default export must be defineGame(...)',
+    })
     expect(live()).toEqual([])
-    expect(view()).toMatchObject({ preview: 'failed', status: 'The example’s default export must be defineGame(...).' })
+    expect(view()).toMatchObject({
+      preview: 'failed',
+      status: 'The example’s default export must be defineGame(...).',
+    })
   })
 
   it('keeps a frame that stops while running, with the stopped message over it', () => {
@@ -156,7 +197,11 @@ describe('the orchestrator', () => {
     const first = start()
     say(first, { v: 1, type: 'failed', runId: 1, phase: 'run', message: 'x', line: 30 })
     expect(live()).toEqual([first])
-    expect(view()).toMatchObject({ preview: 'failed', stopped: 'Stopped: line 30: x.', status: 'Stopped: line 30: x.' })
+    expect(view()).toMatchObject({
+      preview: 'failed',
+      stopped: 'Stopped: line 30: x.',
+      status: 'Stopped: line 30: x.',
+    })
     orchestrator.restart()
     expect(view().stopped).toBe('Stopped: line 30: x.')
   })
@@ -166,10 +211,22 @@ describe('the orchestrator', () => {
     const first = start()
     orchestrator.run('hangs at boot')
     booted(frames[1]!)
-    say(frames[1]!, { v: 1, type: 'failed', runId: 2, phase: 'boot', message: 'this loop ran for over 1 s without a break, so the preview stopped it', line: 9, hung: true })
-    expect(view().status).toBe('Line 9: this loop ran for over a second without a break, so the preview stopped it. The preview is still running your last working version.')
+    say(frames[1]!, {
+      v: 1,
+      type: 'failed',
+      runId: 2,
+      phase: 'boot',
+      message: 'this loop ran for over 1 s without a break, so the preview stopped it',
+      line: 9,
+      hung: true,
+    })
+    expect(view().status).toBe(
+      'Line 9: this loop ran for over a second without a break, so the preview stopped it. The preview is still running your last working version.',
+    )
     say(first, { v: 1, type: 'failed', runId: 1, phase: 'run', message: 'anything', line: 18, hung: true })
-    expect(view().stopped).toBe('Stopped: line 18: this loop ran for over a second without a break, so the preview stopped it.')
+    expect(view().stopped).toBe(
+      'Stopped: line 18: this loop ran for over a second without a break, so the preview stopped it.',
+    )
   })
 
   it('carries the line of the last failure that had one, for the editor, until the next run reaches running', () => {
@@ -203,14 +260,20 @@ describe('the orchestrator', () => {
     expect(frames[0]!.removed).toBe(false)
     clock.advance(1)
     expect(frames[0]!.removed).toBe(true)
-    expect(view()).toMatchObject({ preview: 'failed', status: 'The preview couldn’t load. Check the connection and press Retry.' })
+    expect(view()).toMatchObject({
+      preview: 'failed',
+      status: 'The preview couldn’t load. Check the connection and press Retry.',
+    })
     const running = start()
     orchestrator.run('slow again')
     booted(frames.at(-1)!)
     clock.advance(BOOT_TIMEOUT_MS)
     expect(frames.at(-1)!.removed).toBe(true)
     expect(live()).toEqual([running])
-    expect(view()).toMatchObject({ preview: 'running', status: 'The preview did not start within 10 seconds.' })
+    expect(view()).toMatchObject({
+      preview: 'running',
+      status: 'The preview did not start within 10 seconds.',
+    })
   })
 
   it('clears the timeout once the frame is running', () => {
@@ -263,7 +326,9 @@ describe('the determinism row', () => {
   }
 
   it('sends the request with the run, and none without one', () => {
-    expect(started(ORIGINAL).frame.posted).toEqual([{ v: 1, type: 'run', runId: 1, code: 'code', determinism: ORIGINAL }])
+    expect(started(ORIGINAL).frame.posted).toEqual([
+      { v: 1, type: 'run', runId: 1, code: 'code', determinism: ORIGINAL },
+    ])
     expect(started().frame.posted).toEqual([{ v: 1, type: 'run', runId: 1, code: 'code' }])
   })
 
@@ -280,13 +345,26 @@ describe('the determinism row', () => {
     edited.say(edited.frame, { v: 1, type: 'determinism', runId: 1, ticks: 120, hash: HASH, golden: 'none' })
     expect(edited.view().determinism).toEqual({ kind: 'edited', ticks: 120, hash: HASH })
     const diverged = started(ORIGINAL)
-    diverged.say(diverged.frame, { v: 1, type: 'determinism', runId: 1, ticks: 120, hash: HASH, golden: 'diverged', tick: 37 })
+    diverged.say(diverged.frame, {
+      v: 1,
+      type: 'determinism',
+      runId: 1,
+      ticks: 120,
+      hash: HASH,
+      golden: 'diverged',
+      tick: 37,
+    })
     expect(diverged.view().determinism).toEqual({ kind: 'diverged', tick: 37 })
   })
 
   it('removes the row when the check could not run', () => {
     const { say, frame, view } = started(ORIGINAL)
-    say(frame, { v: 1, type: 'determinism-unavailable', runId: 1, message: 'the golden could not be read (404)' })
+    say(frame, {
+      v: 1,
+      type: 'determinism-unavailable',
+      runId: 1,
+      message: 'the golden could not be read (404)',
+    })
     expect(view().determinism).toBeUndefined()
     expect(view().preview).toBe('running')
   })

@@ -9,7 +9,10 @@ import type { Clock } from './orchestrator'
 /** The compile waits this long after the last change (PLAY-D6). */
 export const EDIT_QUIET_MS = 300
 
-export interface CompileJob { readonly seq: number; readonly source: string }
+export interface CompileJob {
+  readonly seq: number
+  readonly source: string
+}
 
 /** The compile worker, as the page started it (`compile.worker.ts`). */
 export interface CompileWorker {
@@ -17,7 +20,10 @@ export interface CompileWorker {
   terminate(): void
 }
 
-export interface LiveResult { readonly source: string; readonly result: CompileResult }
+export interface LiveResult {
+  readonly source: string
+  readonly result: CompileResult
+}
 
 export interface LiveCompileOptions {
   clock: Clock

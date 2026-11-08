@@ -14,7 +14,9 @@ export interface Diagnostic {
   readonly message: string
 }
 
-export type CompileResult = { readonly ok: true; readonly code: string } | { readonly ok: false; readonly diagnostics: readonly Diagnostic[] }
+export type CompileResult =
+  | { readonly ok: true; readonly code: string }
+  | { readonly ok: false; readonly diagnostics: readonly Diagnostic[] }
 
 /** The function the frame defines and every loop body calls first (the protocol's LOOP_GUARD_NAME). */
 const LOOP_GUARD = '__afLoop'
@@ -23,9 +25,18 @@ const IMPORT_MESSAGE = 'The playground can import only @mcthaydt/automata and zo
 // sucrase drops a namespace's body and turns `export =` into CommonJS, so either would run as something else.
 const NAMESPACE_MESSAGE = 'The playground does not run namespaces; use a module-level object instead.'
 const EXPORT_ASSIGNMENT_MESSAGE = 'The playground runs ES modules; use export default instead of export =.'
-const LOOPS: ReadonlySet<string> = new Set(['ForStatement', 'ForInStatement', 'ForOfStatement', 'WhileStatement', 'DoWhileStatement'])
+const LOOPS: ReadonlySet<string> = new Set([
+  'ForStatement',
+  'ForInStatement',
+  'ForOfStatement',
+  'WhileStatement',
+  'DoWhileStatement',
+])
 
-interface Position { readonly line: number; readonly column: number }
+interface Position {
+  readonly line: number
+  readonly column: number
+}
 interface Node {
   readonly type: string
   readonly start: number
@@ -33,7 +44,11 @@ interface Node {
   readonly loc: { readonly start: Position }
   readonly [key: string]: unknown
 }
-export interface Edit { readonly at: number; readonly text: string; readonly removeTo?: number }
+export interface Edit {
+  readonly at: number
+  readonly text: string
+  readonly removeTo?: number
+}
 
 const isNode = (value: unknown): value is Node =>
   typeof value === 'object' && value !== null && typeof (value as { type?: unknown }).type === 'string'
@@ -42,14 +57,22 @@ const isNode = (value: unknown): value is Node =>
 function* walk(node: Node): Generator<Node> {
   yield node
   for (const key of Object.keys(node)) {
-    if (key === 'loc' || key === 'leadingComments' || key === 'trailingComments' || key === 'innerComments') continue
+    if (key === 'loc' || key === 'leadingComments' || key === 'trailingComments' || key === 'innerComments')
+      continue
     const value = node[key]
-    if (Array.isArray(value)) for (const child of value) { if (isNode(child)) yield* walk(child) }
+    if (Array.isArray(value))
+      for (const child of value) {
+        if (isNode(child)) yield* walk(child)
+      }
     else if (isNode(value)) yield* walk(value)
   }
 }
 
-const at = (node: Node, message = IMPORT_MESSAGE): Diagnostic => ({ line: node.loc.start.line, column: node.loc.start.column + 1, message })
+const at = (node: Node, message = IMPORT_MESSAGE): Diagnostic => ({
+  line: node.loc.start.line,
+  column: node.loc.start.column + 1,
+  message,
+})
 
 const removes = (edit: Edit): boolean => edit.removeTo !== undefined
 
@@ -97,11 +120,20 @@ function isImportMetaUrl(node: Node): boolean {
   const property = node.property as (Node & { name?: string }) | undefined
   const meta = object?.meta as { name?: string } | undefined
   const metaProperty = object?.property as { name?: string } | undefined
-  return object?.type === 'MetaProperty' && meta?.name === 'import' && metaProperty?.name === 'meta' && property?.type === 'Identifier' && property.name === 'url'
+  return (
+    object?.type === 'MetaProperty' &&
+    meta?.name === 'import' &&
+    metaProperty?.name === 'meta' &&
+    property?.type === 'Identifier' &&
+    property.name === 'url'
+  )
 }
 
 /** Compiles the reader's example: the module text the frame imports, or what is wrong and where. */
-export function compileExample(source: string, example: { readonly id: string; readonly moduleUrl: string }): CompileResult {
+export function compileExample(
+  source: string,
+  example: { readonly id: string; readonly moduleUrl: string },
+): CompileResult {
   let program: Node
   try {
     program = parse(source, { sourceType: 'module', plugins: ['typescript'] }).program as unknown as Node
@@ -114,12 +146,22 @@ export function compileExample(source: string, example: { readonly id: string; r
   const diagnostics: Diagnostic[] = []
   const edits: Edit[] = []
   for (const node of walk(program)) {
-    if (node.type === 'ImportDeclaration' || ((node.type === 'ExportNamedDeclaration' || node.type === 'ExportAllDeclaration') && node.source)) {
+    if (
+      node.type === 'ImportDeclaration' ||
+      ((node.type === 'ExportNamedDeclaration' || node.type === 'ExportAllDeclaration') && node.source)
+    ) {
       const from = (node.source as { value?: unknown } | null)?.value
       if (typeof from !== 'string' || !ALLOWED_IMPORTS.has(from)) diagnostics.push(at(node))
-    } else if (node.type === 'TSImportEqualsDeclaration' && (node.moduleReference as Node).type === 'TSExternalModuleReference') {
+    } else if (
+      node.type === 'TSImportEqualsDeclaration' &&
+      (node.moduleReference as Node).type === 'TSExternalModuleReference'
+    ) {
       diagnostics.push(at(node))
-    } else if (node.type === 'TSModuleDeclaration' && !node.declare && (node.id as Node).type !== 'StringLiteral') {
+    } else if (
+      node.type === 'TSModuleDeclaration' &&
+      !node.declare &&
+      (node.id as Node).type !== 'StringLiteral'
+    ) {
       diagnostics.push(at(node, NAMESPACE_MESSAGE))
     } else if (node.type === 'TSExportAssignment') {
       diagnostics.push(at(node, EXPORT_ASSIGNMENT_MESSAGE))
@@ -136,7 +178,11 @@ export function compileExample(source: string, example: { readonly id: string; r
 
   const file = new URL(example.moduleUrl).pathname.replace(/^\/playground\//, '')
   try {
-    const { code } = transform(applyEdits(source, edits), { transforms: ['typescript'], disableESTransforms: true, filePath: file })
+    const { code } = transform(applyEdits(source, edits), {
+      transforms: ['typescript'],
+      disableESTransforms: true,
+      filePath: file,
+    })
     return { ok: true, code: `${code}\n//# sourceURL=${file}` }
   } catch (error) {
     return { ok: false, diagnostics: [sucraseDiagnostic(source, edits, error)] }

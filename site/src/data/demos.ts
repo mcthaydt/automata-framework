@@ -1,35 +1,9 @@
-import demosJson from './demos.json'
+import demos from 'virtual:framework/demos'
+import type { Demo } from '../shared/framework/demos'
 
-export interface DemoItem {
-  id: string
-  slug: string
-  path: string
-  title: string
-  category: string
-  shows: string
-  controls: string
-  base: string
-  packages: string[]
-  sourceCode: string
-  bundleUrl: string
+export type { Demo } from '../shared/framework/demos'
+
+/** Emberwick and the feature demos, read from the workspace when the site is built (src/shared/framework/demos.ts). */
+export function getDemosCatalog(): readonly Demo[] {
+  return demos
 }
-
-export const DEMOS_CATALOG: DemoItem[] = demosJson as DemoItem[]
-
-export function getDemosCatalog(): DemoItem[] {
-  return DEMOS_CATALOG
-}
-
-export function getDemoBySlug(slug: string): DemoItem | undefined {
-  return DEMOS_CATALOG.find((d) => d.slug === slug || d.id === slug)
-}
-
-export const DEMO_CATEGORIES = [
-  'All Examples',
-  'Sim & Core',
-  '2D Rendering',
-  'Physics',
-  'Mobile UI',
-  'Runtime & Host',
-  'Content',
-]

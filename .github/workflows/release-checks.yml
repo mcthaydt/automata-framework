@@ -74,7 +74,7 @@ jobs:
       # The packed packages installed outside the workspace (M2.4 spec §3.6).
       - run: node tooling/consumer-smoke/src/run.ts --from packs
       # The playground's feasibility and frame journeys (the website's embedded player), in every engine.
-      - run: pnpm --filter @mcthaydt/examples-runner test:e2e
+      - run: pnpm --filter @mcthaydt/automata-site test:e2e:playground
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:

@@ -1,8 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Plugin } from 'vite'
-import { playgroundHeaders } from '../src/lib/playground/headers'
-import { framePageForOrigin, isFramePage } from './playground-origin'
+import { playgroundHeaders } from '../src/lib/playground/headers.ts'
+import { framePageForOrigin, isFramePage } from './playground-origin.ts'
 
 /**
  * The dev server's /playground/ CORS and CORP headers (spec §11.3), the rule the static server and the production host
@@ -16,7 +16,8 @@ export function playgroundDevHeaders(staticDir = 'static'): Plugin {
     configureServer(server) {
       server.middlewares.use((request, response, next) => {
         const pathname = new URL(request.url ?? '/', 'http://localhost').pathname
-        for (const [name, value] of Object.entries(playgroundHeaders(pathname))) response.setHeader(name, value)
+        for (const [name, value] of Object.entries(playgroundHeaders(pathname)))
+          response.setHeader(name, value)
         const file = join(staticDir, pathname.endsWith('/') ? `${pathname}index.html` : pathname)
         if (isFramePage(pathname) && request.headers?.host && existsSync(file)) {
           response.setHeader('Content-Type', 'text/html; charset=utf-8')

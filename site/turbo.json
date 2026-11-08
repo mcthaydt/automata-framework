@@ -1,0 +1,32 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["build/**"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/docs/guides/**",
+        "$TURBO_ROOT$/examples/2d/**",
+        "$TURBO_ROOT$/games/emberwick/**",
+        "$TURBO_ROOT$/packages/*/src/**"
+      ]
+    },
+    "test:unit": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/docs/guides/**",
+        "$TURBO_ROOT$/examples/2d/**",
+        "$TURBO_ROOT$/games/emberwick/**",
+        "$TURBO_ROOT$/packages/*/src/**"
+      ]
+    },
+    "test:e2e": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
+    }
+  }
+}

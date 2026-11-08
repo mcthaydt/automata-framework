@@ -9,20 +9,45 @@ class FakeObserver {
   static instances: FakeObserver[] = []
   observed: Element[] = []
   disconnected = false
-  constructor(readonly callback: IntersectionObserverCallback, readonly options?: IntersectionObserverInit) { FakeObserver.instances.push(this) }
-  observe(element: Element) { this.observed.push(element) }
-  disconnect() { this.disconnected = true }
+  constructor(
+    readonly callback: IntersectionObserverCallback,
+    readonly options?: IntersectionObserverInit,
+  ) {
+    FakeObserver.instances.push(this)
+  }
+  observe(element: Element) {
+    this.observed.push(element)
+  }
+  disconnect() {
+    this.disconnected = true
+  }
   unobserve() {}
-  takeRecords() { return [] }
+  takeRecords() {
+    return []
+  }
   report(isIntersecting: boolean) {
-    this.callback(this.observed.map(target => ({ isIntersecting, target }) as IntersectionObserverEntry), this as unknown as IntersectionObserver)
+    this.callback(
+      this.observed.map((target) => ({ isIntersecting, target }) as IntersectionObserverEntry),
+      this as unknown as IntersectionObserver,
+    )
   }
 }
 
-const props = { src: '/previews/double-jump.jpg', alt: 'Double jump example', width: 1280, height: 720, aspect: '16 / 10', sizes: '(max-width: 700px) 100vw, 40vw' }
+const props = {
+  src: '/previews/double-jump.jpg',
+  alt: 'Double jump example',
+  width: 1280,
+  height: 720,
+  aspect: '16 / 10',
+  sizes: '(max-width: 700px) 100vw, 40vw',
+}
 
-beforeEach(() => { FakeObserver.instances = [] })
-afterEach(() => { vi.unstubAllGlobals() })
+beforeEach(() => {
+  FakeObserver.instances = []
+})
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
 
 describe('LazyPicture', () => {
   it('holds the picture’s place and requests nothing while the reader is far away', async () => {
@@ -50,7 +75,9 @@ describe('LazyPicture', () => {
     expect([img.getAttribute('width'), img.getAttribute('height')]).toEqual(['1280', '720'])
     const source = view.container.querySelector('picture source') as HTMLSourceElement
     expect(source.getAttribute('type')).toBe('image/webp')
-    expect(source.getAttribute('srcset')).toBe('/previews/double-jump-640.webp 640w, /previews/double-jump.webp 1280w')
+    expect(source.getAttribute('srcset')).toBe(
+      '/previews/double-jump-640.webp 640w, /previews/double-jump.webp 1280w',
+    )
     expect(source.getAttribute('sizes')).toBe(props.sizes)
     expect(FakeObserver.instances[0].disconnected).toBe(true)
   })

@@ -17,6 +17,18 @@ it('only build depends on ^build', () => {
   expect(dependOnBuild).toEqual(['build'])
 })
 
+// The one exception: the site's unit tests read the API index, which is generated from the packages' built
+// declarations (site/scripts/write-api-index.ts), so they wait for those builds. A cached build costs little.
+it("the site's unit tests are the only tests that wait for the packages' builds", () => {
+  const site = JSON.parse(
+    readFileSync(fileURLToPath(new URL('../../../../site/turbo.json', import.meta.url)), 'utf8'),
+  ) as typeof turbo
+  const dependOnBuild = Object.entries(site.tasks)
+    .filter(([, task]) => task.dependsOn?.includes('^build'))
+    .map(([name]) => name)
+  expect(dependOnBuild).toEqual(['build', 'test:unit'])
+})
+
 // Every package's build runs code from tooling/release (tsdown-shared, finish-svelte-dist, write-vendored), which
 // is outside the package, so turbo would replay a stale dist after that code changes unless it is an input.
 // The same holds for vendor/ruken: a build bundles the Ruken tarballs and write-vendored copies the commit and

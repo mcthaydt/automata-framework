@@ -14,14 +14,28 @@ class FakeObserver {
   static instances: FakeObserver[] = []
   observed: Element[] = []
   disconnected = false
-  constructor(readonly callback: IntersectionObserverCallback, readonly options?: IntersectionObserverInit) { FakeObserver.instances.push(this) }
-  observe(element: Element) { this.observed.push(element) }
-  disconnect() { this.disconnected = true }
+  constructor(
+    readonly callback: IntersectionObserverCallback,
+    readonly options?: IntersectionObserverInit,
+  ) {
+    FakeObserver.instances.push(this)
+  }
+  observe(element: Element) {
+    this.observed.push(element)
+  }
+  disconnect() {
+    this.disconnected = true
+  }
   unobserve() {}
-  takeRecords() { return [] }
+  takeRecords() {
+    return []
+  }
   /** Reports the observed block as entering (or not entering) the observer's margin. */
   report(isIntersecting: boolean) {
-    this.callback(this.observed.map(target => ({ isIntersecting, target }) as IntersectionObserverEntry), this as unknown as IntersectionObserver)
+    this.callback(
+      this.observed.map((target) => ({ isIntersecting, target }) as IntersectionObserverEntry),
+      this as unknown as IntersectionObserver,
+    )
   }
 }
 
@@ -29,7 +43,9 @@ beforeEach(() => {
   FakeObserver.instances = []
   vi.mocked(highlightCode).mockClear()
 })
-afterEach(() => { vi.unstubAllGlobals() })
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
 
 describe('CodeBlock', () => {
   // The plain code can now stay on the page for a long time (a block in a closed <details> is never highlighted until it
@@ -37,14 +53,18 @@ describe('CodeBlock', () => {
   // shiki's own <pre> carries tabindex="0"; the plain one must too.
   it('lets the keyboard scroll the plain code, as it does the highlighted code', async () => {
     vi.stubGlobal('IntersectionObserver', FakeObserver)
-    const view = render(CodeBlock, { props: { code: 'const far = 1', lang: 'typescript', filename: 'far.ts' } })
+    const view = render(CodeBlock, {
+      props: { code: 'const far = 1', lang: 'typescript', filename: 'far.ts' },
+    })
     await Promise.resolve()
     expect(view.container.querySelector('pre')?.getAttribute('tabindex')).toBe('0')
   })
 
   it('shows the plain code and does not highlight while the block is far from the screen', async () => {
     vi.stubGlobal('IntersectionObserver', FakeObserver)
-    const view = render(CodeBlock, { props: { code: 'const far = 1', lang: 'typescript', filename: 'far.ts' } })
+    const view = render(CodeBlock, {
+      props: { code: 'const far = 1', lang: 'typescript', filename: 'far.ts' },
+    })
     await Promise.resolve()
     expect(FakeObserver.instances).toHaveLength(1)
     expect(FakeObserver.instances[0].observed[0]).toBe(view.container.querySelector('figure'))
@@ -62,9 +82,13 @@ describe('CodeBlock', () => {
 
   it('highlights once, when the block nears the screen, and then stops watching', async () => {
     vi.stubGlobal('IntersectionObserver', FakeObserver)
-    const view = render(CodeBlock, { props: { code: 'const near = 2', lang: 'typescript', filename: 'near.ts' } })
+    const view = render(CodeBlock, {
+      props: { code: 'const near = 2', lang: 'typescript', filename: 'near.ts' },
+    })
     FakeObserver.instances[0].report(true)
-    await waitFor(() => expect(view.getByRole('region', { name: 'near.ts' }).textContent).toBe('highlighted:const near = 2'))
+    await waitFor(() =>
+      expect(view.getByRole('region', { name: 'near.ts' }).textContent).toBe('highlighted:const near = 2'),
+    )
     expect(highlightCode).toHaveBeenCalledTimes(1)
     expect(highlightCode).toHaveBeenCalledWith('const near = 2', 'typescript')
     expect(FakeObserver.instances[0].disconnected).toBe(true)
@@ -80,8 +104,12 @@ describe('CodeBlock', () => {
 
   it('highlights at once where the browser has no IntersectionObserver', async () => {
     vi.stubGlobal('IntersectionObserver', undefined)
-    const view = render(CodeBlock, { props: { code: 'const now = 3', lang: 'typescript', filename: 'now.ts' } })
-    await waitFor(() => expect(view.getByRole('region', { name: 'now.ts' }).textContent).toBe('highlighted:const now = 3'))
+    const view = render(CodeBlock, {
+      props: { code: 'const now = 3', lang: 'typescript', filename: 'now.ts' },
+    })
+    await waitFor(() =>
+      expect(view.getByRole('region', { name: 'now.ts' }).textContent).toBe('highlighted:const now = 3'),
+    )
     expect(highlightCode).toHaveBeenCalledTimes(1)
   })
 
@@ -89,9 +117,13 @@ describe('CodeBlock', () => {
     vi.stubGlobal('IntersectionObserver', FakeObserver)
     const view = render(CodeBlock, { props: { code: 'first', filename: 'f.ts' } })
     FakeObserver.instances[0].report(true)
-    await waitFor(() => expect(view.getByRole('region', { name: 'f.ts' }).textContent).toBe('highlighted:first'))
+    await waitFor(() =>
+      expect(view.getByRole('region', { name: 'f.ts' }).textContent).toBe('highlighted:first'),
+    )
     await view.rerender({ code: 'second', filename: 'f.ts' })
-    await waitFor(() => expect(view.getByRole('region', { name: 'f.ts' }).textContent).toBe('highlighted:second'))
+    await waitFor(() =>
+      expect(view.getByRole('region', { name: 'f.ts' }).textContent).toBe('highlighted:second'),
+    )
     expect(highlightCode).toHaveBeenCalledTimes(2)
   })
 })

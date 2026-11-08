@@ -1,7 +1,7 @@
 // The editor (spec F2, §9.2, §9.3), loaded on the reader's first tap or focus on the code and never preloaded: its
 // chunk is held to MAX_EDITOR_CHUNK_GZIP_BYTES by `check:site`. Its layout matches the static code's box exactly
 // (CodePanel.svelte): Geist Mono at 16 px, line height 1.5, 1rem padding, a three-digit gutter and wrapped lines.
-import { history, defaultKeymap, historyKeymap } from '@codemirror/commands'
+import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { typescriptLanguage } from '@codemirror/lang-javascript'
 import { bracketMatching, indentOnInput, syntaxHighlighting } from '@codemirror/language'
 import { lintGutter, setDiagnostics } from '@codemirror/lint'
@@ -31,11 +31,28 @@ const theme = EditorView.theme({
   '.cm-line': { padding: '0 1rem 0 0' },
   '.cm-gutters': { border: 'none', background: 'transparent', color: 'var(--muted)' },
   '.cm-gutter-lint': { width: '1rem' },
-  '.cm-gutter-lint .cm-gutterElement': { padding: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  '.cm-lineNumbers .cm-gutterElement': { boxSizing: 'content-box', minWidth: '3ch', padding: '0 1rem 0 0', textAlign: 'right' },
+  '.cm-gutter-lint .cm-gutterElement': {
+    padding: '0',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  '.cm-lineNumbers .cm-gutterElement': {
+    boxSizing: 'content-box',
+    minWidth: '3ch',
+    padding: '0 1rem 0 0',
+    textAlign: 'right',
+  },
 })
 
-export function mountEditor({ parent, doc, label, describedBy, anchor, onchange }: EditorOptions): EditorView {
+export function mountEditor({
+  parent,
+  doc,
+  label,
+  describedBy,
+  anchor,
+  onchange,
+}: EditorOptions): EditorView {
   let changedWhileComposing = false
   const state = EditorState.create({
     doc,
@@ -54,9 +71,15 @@ export function mountEditor({ parent, doc, label, describedBy, anchor, onchange 
       EditorView.lineWrapping,
       // No indentWithTab: Tab and Shift+Tab leave the editor, so the keyboard gate finds no trap (§9.2).
       keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap]),
-      EditorView.contentAttributes.of({ 'aria-label': label, 'aria-describedby': describedBy, autocorrect: 'off', autocapitalize: 'off', spellcheck: 'false' }),
+      EditorView.contentAttributes.of({
+        'aria-label': label,
+        'aria-describedby': describedBy,
+        autocorrect: 'off',
+        autocapitalize: 'off',
+        spellcheck: 'false',
+      }),
       theme,
-      EditorView.updateListener.of(update => {
+      EditorView.updateListener.of((update) => {
         if (!update.docChanged) return
         if (update.view.composing) changedWhileComposing = true
         else onchange(update.state.doc.toString())
@@ -94,12 +117,22 @@ function offsetOf(view: EditorView, line: number, column: number): number {
 
 /** Marks each diagnostic in the gutter and underlines it to the end of its line (spec F5); none clears them. */
 export function showDiagnostics(view: EditorView, diagnostics: readonly Diagnostic[]) {
-  view.dispatch(setDiagnostics(view.state, diagnostics.map(({ line, column, message }) => {
-    const from = offsetOf(view, line, column)
-    const to = view.state.doc.lineAt(from).to
-    // A problem at the very end of a line still gets an underline: its last character, or nothing on an empty line.
-    return { from: from < to ? from : Math.max(view.state.doc.lineAt(from).from, to - 1), to, severity: 'error' as const, message }
-  })))
+  view.dispatch(
+    setDiagnostics(
+      view.state,
+      diagnostics.map(({ line, column, message }) => {
+        const from = offsetOf(view, line, column)
+        const to = view.state.doc.lineAt(from).to
+        // A problem at the very end of a line still gets an underline: its last character, or nothing on an empty line.
+        return {
+          from: from < to ? from : Math.max(view.state.doc.lineAt(from).from, to - 1),
+          to,
+          severity: 'error' as const,
+          message,
+        }
+      }),
+    ),
+  )
 }
 
 /** Puts the caret at a 1-based line and column and focuses the editor (the status line's diagnostic, §8.2). */
@@ -110,5 +143,8 @@ export function moveCaret(view: EditorView, line: number, column: number) {
 
 /** Replaces the whole text in one undoable transaction (Reset, spec F7: Mod-Z brings the edit back). */
 export function replaceAll(view: EditorView, text: string) {
-  view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: text }, selection: EditorSelection.cursor(0) })
+  view.dispatch({
+    changes: { from: 0, to: view.state.doc.length, insert: text },
+    selection: EditorSelection.cursor(0),
+  })
 }

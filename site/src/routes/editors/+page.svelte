@@ -1,10 +1,11 @@
 <script lang="ts">
-  import PageMeta from '$lib/components/PageMeta.svelte'
-  import { EDITORS, SUITE_SPEC } from '../../data/editors'
-  const groups = [
-    { id: 'framework', title: 'In the framework' },
-    { id: 'plus', title: 'In Automata Plus' },
-  ] as const
+import PageMeta from '$lib/components/PageMeta.svelte'
+import { EDITORS, SUITE_SPEC } from '../../data/editors'
+
+const groups = [
+  { id: 'framework', title: 'In the framework' },
+  { id: 'plus', title: 'In Automata Plus' },
+] as const
 </script>
 <PageMeta title="Editors" description="The editor suite for Automata games: what each editor changes, where it lives and where it stands." />
 <div class="page-shell editors-page">

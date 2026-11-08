@@ -9,7 +9,10 @@
     "./smoke": "./src/smoke.ts",
     "./host/ports": "./host/ports.ts",
     "./host/preview-headers": "./host/preview-headers.ts",
-    "./host/testing": "./host/testing.ts"
+    "./host/testing": "./host/testing.ts",
+    "./header": "./src/header.ts",
+    "./page-template": "./src/page-template.ts",
+    "./examples-ship-config": "./src/examples-ship-config.ts"
   },
   "imports": {
     "#src/*": "./src/*"
@@ -23,27 +26,20 @@
     "test:browser": "vitest run --project browser",
     "typecheck": "tsc -p .",
     "e2e:host": "vite build -c host/vite.config.ts && vite preview -c host/vite.config.ts --strictPort --host 127.0.0.1 --port $AF_E2E_DEMO_HOST_PORT",
-    "e2e:fixtures": "vite build -c fixtures.vite.config.ts && vite preview -c fixtures.vite.config.ts --strictPort --host localhost --port $AF_E2E_EXAMPLES_PORT",
-    "e2e:playground": "node playground/feasibility-server.ts",
-    "e2e:playground-frame": "vite build -c playground/vite.config.ts && node playground/frame-server.ts",
-    "build:playground": "node playground/build-playground.ts",
-    "test:e2e": "playwright test"
+    "e2e:fixtures": "vite build -c fixtures.vite.config.ts && vite preview -c fixtures.vite.config.ts --strictPort --host localhost --port $AF_E2E_EXAMPLES_PORT"
   },
   "dependencies": {
     "@mcthaydt/automata": "workspace:*",
     "@mcthaydt/automata-sim": "workspace:*",
     "@mcthaydt/automata-tools": "workspace:*",
-    "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
     "effect": "3.22.2",
     "oxc-parser": "0.152.0",
     "zod": "4.6.6"
   },
   "devDependencies": {
-    "@mcthaydt/playwright-preset": "workspace:*",
     "@mcthaydt/vitest-preset": "workspace:*",
     "@playwright/test": "1.63.0",
-    "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",
     "@vitest/browser-playwright": "5.0.3",
     "koota": "0.6.6",

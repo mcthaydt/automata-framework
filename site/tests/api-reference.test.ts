@@ -1,12 +1,12 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { afterEach, describe, expect, it } from 'vitest'
-import { parseApiReference, writeApiReference } from '../scripts/api-reference'
+// @vitest-environment node
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { describe, expect, it } from 'vitest'
 import { searchApi } from '../src/lib/api-reference'
+import { parseApiReference, readApiIndex } from '../src/shared/framework/api.ts'
 
-// M10.4: the complete generated reference as pages, one JSON per published version. Parsed from llms-api.txt, so the pages and the
-// plain-text file cannot disagree (the file's digest is in api-index.json).
+// M10.4: the complete generated reference as pages. Parsed from llms-api.txt, so the pages and the plain-text file
+// cannot disagree.
 const SAMPLE = `# Automata API reference, version 1.2.3
 
 > Every export.
@@ -42,47 +42,50 @@ interface Sim {
 function clamp(x: number): number
 \`\`\`
 `
-const temps: string[] = []
-afterEach(() => { for (const dir of temps.splice(0)) rmSync(dir, { recursive: true, force: true }) })
-
 describe('parseApiReference', () => {
   it('reads the version, each package, its entry points and every export with its kind, doc and signature', () => {
-    const reference = parseApiReference(SAMPLE, 'abc')
+    const reference = parseApiReference(SAMPLE)
     expect(reference.version).toBe('1.2.3')
-    expect(reference.commit).toBe('abc')
     expect(reference.packages).toHaveLength(1)
     const [pkg] = reference.packages
     expect(pkg).toMatchObject({ name: '@mcthaydt/automata-sim', slug: 'automata-sim' })
-    expect(pkg.entryPoints.map((e) => e.path)).toEqual(['@mcthaydt/automata-sim', '@mcthaydt/automata-sim/math'])
-    expect(pkg.entryPoints[0].entries.map((e) => [e.name, e.kind])).toEqual([['createSim', 'function'], ['Sim', 'interface']])
+    expect(pkg.entryPoints.map((e) => e.path)).toEqual([
+      '@mcthaydt/automata-sim',
+      '@mcthaydt/automata-sim/math',
+    ])
+    expect(pkg.entryPoints[0].entries.map((e) => [e.name, e.kind])).toEqual([
+      ['createSim', 'function'],
+      ['Sim', 'interface'],
+    ])
     expect(pkg.entryPoints[0].entries[0].doc).toBe('Creates a simulation.\nSecond line.')
-    expect(pkg.entryPoints[0].entries[0].signature).toBe('function createSim(options: SimOptions): Promise<Sim>')
+    expect(pkg.entryPoints[0].entries[0].signature).toBe(
+      'function createSim(options: SimOptions): Promise<Sim>',
+    )
     expect(pkg.entryPoints[1].entries[0]).toMatchObject({ name: 'clamp', doc: '' })
   })
 
   it('refuses a file with no version line or an export outside an entry point', () => {
-    expect(() => parseApiReference('# Something else\n', 'abc')).toThrow(/version/)
-    expect(() => parseApiReference('# Automata API reference, version 1.0.0\n\n#### `x` (function)\n', 'abc')).toThrow(/entry point/)
+    expect(() => parseApiReference('# Something else\n')).toThrow(/version/)
+    expect(() =>
+      parseApiReference('# Automata API reference, version 1.0.0\n\n#### `x` (function)\n'),
+    ).toThrow(/entry point/)
   })
 
-  it('parses the published reference: as many exports as api-index.json counts', () => {
-    const published = parseApiReference(readFileSync('static/llms-api.txt', 'utf8'), 'x')
-    const count = published.packages.flatMap((p) => p.entryPoints).reduce((n, e) => n + e.entries.length, 0)
-    expect(count).toBe(JSON.parse(readFileSync('src/data/api-index.json', 'utf8')).exports)
-    for (const pkg of published.packages) for (const e of pkg.entryPoints.flatMap((x) => x.entries)) expect(e.signature, e.name).not.toBe('')
+  it('parses the published reference: as many exports as api.json lists, each with a signature', () => {
+    const { reference, search } = readApiIndex()
+    const count = reference.packages.flatMap((p) => p.entryPoints).reduce((n, e) => n + e.entries.length, 0)
+    const api = JSON.parse(
+      readFileSync(resolve(import.meta.dirname, '../../tooling/api-index/dist/api.json'), 'utf8'),
+    ) as { exports: unknown[] }
+    expect(count).toBe(api.exports.length)
+    expect(search).toHaveLength(count)
+    for (const pkg of reference.packages)
+      for (const e of pkg.entryPoints.flatMap((x) => x.entries)) expect(e.signature, e.name).not.toBe('')
   })
-})
 
-describe('writeApiReference', () => {
-  it('writes the reference and a small search list for its version', () => {
-    const site = mkdtempSync(join(tmpdir(), 'api-ref-'))
-    temps.push(site)
-    mkdirSync(join(site, 'src/data'), { recursive: true })
-    const reference = writeApiReference(SAMPLE, 'abc', site)
-    expect(reference.version).toBe('1.2.3')
-    const search = JSON.parse(readFileSync(join(site, 'src/data/api-search/1.2.3.json'), 'utf8'))
-    expect(search[0]).toEqual({ name: 'createSim', kind: 'function', package: 'automata-sim', summary: 'Creates a simulation.' })
-    expect(JSON.parse(readFileSync(join(site, 'src/data/api-reference/1.2.3.json'), 'utf8')).packages[0].slug).toBe('automata-sim')
+  it('gives each search row the first sentence of its doc comment', () => {
+    const sim = parseApiReference(SAMPLE).packages[0]
+    expect(sim.entryPoints[0].entries[0].doc.split('\n')[0]).toBe('Creates a simulation.')
   })
 })
 

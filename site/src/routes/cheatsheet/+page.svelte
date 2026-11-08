@@ -1,18 +1,33 @@
 <script lang="ts">
-  import { flushSync } from 'svelte'
-  import CopyButton from '$lib/components/CopyButton.svelte'
-  import CodeBlock from '$lib/components/CodeBlock.svelte'
-  import PageMeta from '$lib/components/PageMeta.svelte'
-  import { isEditing } from '$lib/utils/keyboard'
-  import { CHEATSHEET_MODULES, searchCheatsheet } from '../../data/cheatsheet'
-  import { AI_TASKS } from '../../data/ai-guidance'
-  let query = $state('')
-  let selected = $state('all')
-  let input: HTMLInputElement
-  let matches = $derived(new Set(searchCheatsheet(query)))
-  let modules = $derived(CHEATSHEET_MODULES.filter(m => selected === 'all' || m.name === selected).map(m => ({ ...m, entries: m.entries.filter(e => !query.trim() || matches.has(e)) })).filter(m => m.entries.length))
-  function keydown(event: KeyboardEvent) { if (event.key === '/' && !isEditing(event)) { event.preventDefault(); input.focus() } }
-  function showAll() { flushSync(() => { query = ''; selected = 'all' }) }
+import { flushSync } from 'svelte'
+import CodeBlock from '$lib/components/CodeBlock.svelte'
+import CopyButton from '$lib/components/CopyButton.svelte'
+import PageMeta from '$lib/components/PageMeta.svelte'
+import { isEditing } from '$lib/utils/keyboard'
+import { AI_TASKS } from '../../data/ai-guidance'
+import { CHEATSHEET_MODULES, searchCheatsheet } from '../../data/cheatsheet'
+
+let query = $state('')
+let selected = $state('all')
+let input: HTMLInputElement
+let matches = $derived(new Set(searchCheatsheet(query)))
+let modules = $derived(
+  CHEATSHEET_MODULES.filter((m) => selected === 'all' || m.name === selected)
+    .map((m) => ({ ...m, entries: m.entries.filter((e) => !query.trim() || matches.has(e)) }))
+    .filter((m) => m.entries.length),
+)
+function keydown(event: KeyboardEvent) {
+  if (event.key === '/' && !isEditing(event)) {
+    event.preventDefault()
+    input.focus()
+  }
+}
+function showAll() {
+  flushSync(() => {
+    query = ''
+    selected = 'all'
+  })
+}
 </script>
 <svelte:window onkeydown={keydown} />
 <PageMeta title="API reference" description="Automata API examples, parameters, return values, and lifecycle guidance for simulation, rendering, runtime, content, hosting, and shipping." />

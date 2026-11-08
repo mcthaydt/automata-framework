@@ -8,9 +8,14 @@ describe('/editors', () => {
   it('lists all nine editors, grouped by where they live', () => {
     const view = render(Page)
     expect(EDITORS).toHaveLength(9)
-    for (const editor of EDITORS) expect(view.getByText(editor.name, { selector: 'strong' }), editor.name).toBeTruthy()
-    expect(view.getByRole('heading', { level: 2, name: 'In the framework' }).parentElement?.querySelectorAll('li')).toHaveLength(5)
-    expect(view.getByRole('heading', { level: 2, name: 'In Automata Plus' }).parentElement?.querySelectorAll('li')).toHaveLength(4)
+    for (const editor of EDITORS)
+      expect(view.getByText(editor.name, { selector: 'strong' }), editor.name).toBeTruthy()
+    expect(
+      view.getByRole('heading', { level: 2, name: 'In the framework' }).parentElement?.querySelectorAll('li'),
+    ).toHaveLength(5)
+    expect(
+      view.getByRole('heading', { level: 2, name: 'In Automata Plus' }).parentElement?.querySelectorAll('li'),
+    ).toHaveLength(4)
   })
 
   it('says none is released, offers no try-it build or download, and states the cost as the framework does', () => {

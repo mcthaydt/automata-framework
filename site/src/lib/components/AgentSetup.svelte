@@ -1,12 +1,17 @@
 <script lang="ts">
-  import CodeBlock from './CodeBlock.svelte'
-  import { AGENT_INSTALL_OPTIONS, PIXIJS_INSTALL, SKILL_PREFLIGHT, SKILL_SOURCES } from '../../data/agent-setup'
-  let { ready = $bindable(false) }: { ready?: boolean } = $props()
-  let agent = $state('Codex')
-  let confirmations = $state({ superpowers: false, pixijs: false, loaded: false })
-  const selected = $derived(AGENT_INSTALL_OPTIONS.find(option => option.name === agent)!)
-  const count = $derived(Number(confirmations.superpowers) + Number(confirmations.pixijs) + Number(confirmations.loaded))
-  $effect(() => { ready = count === 3 })
+import { AGENT_INSTALL_OPTIONS, PIXIJS_INSTALL, SKILL_PREFLIGHT, SKILL_SOURCES } from '../../data/agent-setup'
+import CodeBlock from './CodeBlock.svelte'
+
+let { ready = $bindable(false) }: { ready?: boolean } = $props()
+let agent = $state('Codex')
+let confirmations = $state({ superpowers: false, pixijs: false, loaded: false })
+const selected = $derived(AGENT_INSTALL_OPTIONS.find((option) => option.name === agent)!)
+const count = $derived(
+  Number(confirmations.superpowers) + Number(confirmations.pixijs) + Number(confirmations.loaded),
+)
+$effect(() => {
+  ready = count === 3
+})
 </script>
 <section class="agent-setup" aria-label="Required agent skills" data-ui>
   <h2>Prepare your agent.</h2>
