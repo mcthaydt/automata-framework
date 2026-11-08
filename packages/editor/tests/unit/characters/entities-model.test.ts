@@ -50,9 +50,21 @@ describe('the Entities panel rows', () => {
       label: 'Player start',
       color: '#22c55e',
       summary: 'One per level',
+      character: true,
     })
     expect(rows[1]?.summary).toBe('')
     expect(rows[3]?.summary).toBe('')
+  })
+
+  it('tells the characters from the other things a level holds, by the definition’s tag', () => {
+    const rows = definitionRows(platformer())
+    expect(rows.filter((row) => row.character).map((row) => row.id)).toEqual(['player-start', 'slime'])
+    expect(rows.filter((row) => !row.character).map((row) => row.id)).toEqual([
+      'coin',
+      'door',
+      'checkpoint',
+      'moving-platform',
+    ])
   })
 
   it('lists the level fields of every template', () => {

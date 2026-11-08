@@ -715,9 +715,13 @@ silent "Saved". H2: the build's own changeset is gone. M1: the bump event says w
 Feel's word rows say `at = "subject"`. M2: the spec records the story template as built. M3: a journey typechecks and runs
 the tests of a game as `create-game` made it (2D and 3D; the plain 2D game is not gated). M4: file rows are named by what
 they hold, a card whose one file repeats its name says "Open", each content editor has its own icon, the Levels status line
-shows a file title, and Sequence offers people only. L2 to L4 done. Not done: L1 (the phone top bar; moving Undo and Redo
-out of the scrolling tools pushed the level picker off the bar, so it was reverted and needs a design call), and two M4
-items (the 2D Characters list still shows non-character definitions; the 3D Studio still shows ids). Made by hand and
+shows a file title, and Sequence offers people only. L2 to L4 done. Then, on the owner's word ("figure out how to make
+them fit"): L1, the phone top bar, fits Undo, Redo and the level picker because the game's name gives way first (and
+leaves the bar under 380 px) and the Game menu is an icon still named Game; checked at 390 and a new 360 px layout size.
+The last two M4 items: the 2D Characters list shows the characters (tagged `character`; new definitions get the tag, the
+templates and the create-game games carry it) first, and the coin, door and area under "Things in your levels", so their
+settings stay editable; the 3D Studio's skin, gait, stand and outfit pickers read in words (`Wick shadow`) while the file
+keeps the id. Made by hand and
 played: 3D (the word "Bump!" over Wick, the camera moving in the cutscene). The 2D word over the square is covered by the
 generated test and the journey, not seen by hand. Journeys, iPad and phone, 3D: all pass (the floor and publish journeys
 are expected failures, Pixi 3D being a closed beta); one "Wick is taller" check flaked once under load and passed alone.

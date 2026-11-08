@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { openEditor, pressGame } from '../harness/complete-game.ts'
 import { expect, openRoom, test } from '../harness/fixtures.ts'
 import { boxOf, readPng } from '../harness/read-png.ts'
 import { runEditor } from '../harness/run-editor.ts'
@@ -38,7 +39,7 @@ test('the keeper’s colour, his words, the cutscene and the guard are what the 
     await openRoom(page, editor, 'Start')
 
     // Give the keeper a new colour in Characters; the editor saves it into the game's project file.
-    await page.getByRole('radio', { name: 'Characters' }).click()
+    await openEditor(page, editor, 'Characters')
     // Below the wide layout the characters sit in a sheet behind the top bar's Panel button, their settings behind Details.
     const keeper = page.getByRole('radio', { name: /Keeper/ })
     if (!(await keeper.isVisible())) await page.getByRole('button', { name: 'Panel' }).click()
@@ -55,10 +56,7 @@ test('the keeper’s colour, his words, the cutscene and the guard are what the 
       .poll(() => readFileSync(join(game.dir, 'content/project.toml'), 'utf8'), { timeout: 30_000 })
       .toContain(`color = "${NEW_KEEPER}"`)
 
-    const [play] = await Promise.all([
-      context.waitForEvent('page'),
-      page.getByRole('link', { name: 'Play' }).click(),
-    ])
+    const [play] = await Promise.all([context.waitForEvent('page'), pressGame(page, 'Play')])
     const canvas = play.locator('#game canvas')
     await expect(canvas).toBeVisible({ timeout: 30_000 })
     await play.getByRole('button', { name: /play/i }).first().click()

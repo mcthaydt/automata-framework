@@ -822,5 +822,8 @@ Rulings (the cost, if wrong, is named in each):
 - M3: the `new-game-checks` journey makes a 2D and a 3D game and runs `tsc` (bundler resolution, filtered to the game's own
   files) and `vitest --configLoader runner` in it. It links the workspace packages by source. The plain 2D game is not gated.
 - M4: `rowName` and the card's "Open" row, five new icons (46 drawings), `Levels2dStatus` shows `fileTitle`, Sequence skips
-  places. Not done: the 2D Characters list of non-character definitions, ids in the 3D Studio.
-- L1 not done (see progress.md). The journeys run against built output, so run `pnpm build` before them.
+  places; then the last two items: the 2D Characters panel splits the people (tag `character`, which new definitions and the
+  templates carry) from "Things in your levels", and the Studio's pickers read ids in words (`idWords`).
+- L1: the name's `flex-shrink` is far above the tools', the Game menu trigger is an icon named Game, and the name hides
+  under 380 px. Moving Undo and Redo out of the scroller alone did not fit (it pushed the level picker off), so it was
+  reverted. The journeys run against built output, so run `pnpm build` before them.

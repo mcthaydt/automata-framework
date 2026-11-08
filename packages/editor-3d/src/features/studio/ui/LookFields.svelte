@@ -8,6 +8,7 @@
 import { Chips, Picker, Segmented, Slider } from '@automata/editor/kit'
 import type { StudioController } from '../studio-controller'
 import { BODY_SLIDERS, FACE_GROUPS, type SliderField, sliderValue } from '../studio-fields'
+import { idWords } from '../studio-words'
 
 const { controller }: { controller: StudioController } = $props()
 
@@ -25,20 +26,20 @@ const def = $derived(figure?.value)
 const swatches = $derived(
   Object.keys(content.library.swatches)
     .sort()
-    .map((id) => ({ id, label: id })),
+    .map((id) => ({ id, label: idWords(id) })),
 )
 const gaits = $derived(
   Object.keys(content.motion.gaits)
     .sort()
-    .map((id) => ({ id, label: id })),
+    .map((id) => ({ id, label: idWords(id) })),
 )
 const stands = $derived([
   { id: '', label: 'None (relaxed idle)' },
   ...Object.keys(content.motion.stands)
     .sort()
-    .map((id) => ({ id, label: id })),
+    .map((id) => ({ id, label: idWords(id) })),
 ])
-const outfits = $derived(Object.keys(def?.outfits ?? {}).map((id) => ({ id, label: id })))
+const outfits = $derived(Object.keys(def?.outfits ?? {}).map((id) => ({ id, label: idWords(id) })))
 const shownOutfit = $derived($viewState.outfit ?? def?.default ?? '')
 
 function slide(field: SliderField, value: number, phase: string): void {

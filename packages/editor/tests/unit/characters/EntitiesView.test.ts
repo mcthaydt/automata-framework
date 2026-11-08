@@ -78,6 +78,26 @@ async function setNumber(label: string, value: number): Promise<void> {
   await userEvent.type(input, `${value}{Enter}`)
 }
 
+describe('Entities view: Characters lists characters', () => {
+  it('lists the people under Characters and the coin, the door and the rest under Things in your levels', async () => {
+    await mount()
+    const names = (group: string): string[] =>
+      within(within(panel()).getByRole('radiogroup', { name: group }))
+        .getAllByRole('radio')
+        .map((row) => row.textContent?.replace(/One per level$/, '').trim() ?? '')
+    expect(names('Characters')).toEqual(['Player start', 'Slime'])
+    expect(names('Things in your levels').sort()).toEqual(['Checkpoint', 'Coin', 'Door', 'Moving platform'])
+  })
+
+  it('puts a character added here under Characters', async () => {
+    await mount()
+    await userEvent.click(within(panel()).getByRole('button', { name: 'Add a character' }))
+    expect(
+      within(within(panel()).getByRole('radiogroup', { name: 'Characters' })).getAllByRole('radio'),
+    ).toHaveLength(3)
+  })
+})
+
 describe('Entities view: the definition in plain words (grandma audit 5.2)', () => {
   it('names the shapes in plain words and keeps the anchor point and the name in code under More', async () => {
     await mount()
@@ -114,10 +134,11 @@ describe('Entities view: the panel and the preview', () => {
   it('lists the definitions and the level fields, and shows the first definition', async () => {
     await mount()
     expect(screen.getByTestId('entities-view')).toBeInTheDocument()
-    // The saved file keeps definitions sorted by id, so the first is `checkpoint`.
+    // The saved file keeps definitions sorted by id; the characters come first, so the first row is the first character.
     // Each row shows the name and, for one a level may hold only once, says so; no ids, shapes or field counts.
-    expect(within(panel()).getAllByRole('radio')[0]).toHaveAccessibleName('Checkpoint')
+    expect(within(panel()).getAllByRole('radio')[0]).toHaveAccessibleName('Player start One per level')
     expect(within(panel()).getAllByRole('radio')[0]).toHaveAttribute('aria-checked', 'true')
+    await choose('Checkpoint')
     expect(preview()).toHaveTextContent('Not in any level yet')
     await choose('Player start')
     expect(within(panel()).getByRole('radio', { name: 'Player start One per level' })).toHaveAttribute(
