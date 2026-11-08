@@ -730,3 +730,6 @@ want, itch will be first output". Spec §11.
   "Sa…") did not reproduce at 390 × 844 in Chromium (the title, the note, the command and the brush size are all inside the
   screen); a new layout test pins that and the plan's claim stays unconfirmed. Not run: WebKit and Firefox layout, the
   site's try-it e2e (needs a built site). The Tuner controls layout test (16 cases) fails on this base without the change.
+- Task 11 done: a guard test (`extensions/editors/tests/unit/shared/game-events.test.ts`) keeps Feel's and Audio's event list
+  naming a story game's conversations, cutscenes and characters in words beside the game's own event, and none for a game
+  without that content. It passed on first run, as the plan expected; no mechanism and no `package.json` list was added.

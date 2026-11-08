@@ -53,6 +53,34 @@ describe('gameEvents', () => {
   })
 })
 
+// A story game (the `--story` template) has conversations, cutscenes and characters beside its own events. Feel's
+// "When …" and Audio's "When … happens" both pick from this list, so the person finds a conversation's line without
+// knowing an event id, and no extension's package.json carries a second list of them.
+describe('gameEvents of a story game', () => {
+  it('lists what the conversations, cutscenes and characters say, in words, beside the game’s own event', async () => {
+    const events = await gameEvents(
+      await workspaceOf({
+        'content/generated/events.json': JSON.stringify(['square.bumped']),
+        'content/dialogue/intro.toml': 'id = "intro"\n',
+        'content/cutscenes/opening.toml': 'id = "opening"\nduration = 5\n',
+        'content/systems/guard.toml': 'id = "guard"\n',
+      }),
+    )
+    const words = new Map(events.map((event) => [event.id, event.words]))
+    expect(words.get('square.bumped')).toBe('square bumped')
+    expect(words.get('narrative.line')).toBe('a conversation shows a line')
+    expect(words.get('cutscene.started')).toBe('a cutscene starts')
+    expect(words.get('systems.caught')).toBe('a character catches the player')
+  })
+
+  it('lists none of an extension’s events for a game that has none of its content', async () => {
+    const events = await gameEvents(
+      await workspaceOf({ 'content/generated/events.json': JSON.stringify(['square.bumped']) }),
+    )
+    expect(events.map((event) => event.id)).toEqual(['square.bumped'])
+  })
+})
+
 describe('audioFileWith', () => {
   it('gives the audio file that has the sound, to play it as the game would', async () => {
     const workspace = await workspaceOf({
