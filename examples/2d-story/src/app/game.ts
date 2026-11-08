@@ -1,4 +1,4 @@
-import { placeScript } from '@automata/cutscenes/sim'
+import { levelAnchors, placeScript } from '@automata/cutscenes/sim'
 import { cutsceneStage2d } from '@automata/cutscenes/stage-2d'
 import { defaultContent, defineGame, keys } from '@automata/framework'
 import { LEVEL } from '../features/level/level.ts'
@@ -12,11 +12,11 @@ import { METRE } from '../shared/constants.ts'
 import { cutsceneCamera, storyCamera } from './story-camera.ts'
 import { PLUGINS, setup } from './story-sim.ts'
 
-// The cutscenes' actors are the placed characters named in the editor, and their points are in metres, so they are placed
-// as written: this story's scripts name no anchor.
+// The cutscenes' actors are the placed characters named in the editor. A key that names `actor:keeper` starts where
+// Levels places him, and the rest are points in metres.
 const SCRIPTS_PLACED = Object.fromEntries(
   Object.entries(SCRIPTS).map(([id, script]) => {
-    const placed = placeScript(script, () => undefined)
+    const placed = placeScript(script, levelAnchors(startLevel, METRE))
     if (!placed.ok)
       throw new Error(
         `The cutscene "${id}" names ${placed.missing.join(', ')}, which this story cannot place.`,

@@ -181,6 +181,24 @@ export function lintCutscene(script: CutsceneScript, world: LintWorld): Cutscene
     world.anchor,
   )
   const play: PlacedScript = settled.ok ? settled.script : { ...script, actor: [] }
+  // A 2D level shows its characters where the editor put them. A scene that starts one somewhere else makes it jump when
+  // the scene starts and again when it ends, so the person who moved it in the editor is told.
+  if (flat) {
+    const shown = (n: number): string => String(Math.round(n * 100) / 100)
+    for (const who of new Set((play.actor ?? []).map((a) => a.who))) {
+      const first = (play.actor ?? []).filter((a) => a.who === who).sort((a, b) => a.t - b.t)[0]
+      const home = world.anchor(`actor:${who}`)
+      if (first === undefined || home === undefined) continue
+      if (Math.hypot(first.x - home.x, first.z - home.z) > 0.01)
+        add(
+          'warning',
+          'start',
+          `${who} starts this cutscene at ${shown(first.x)}, ${shown(first.z)} but stands at ${shown(home.x)}, ${shown(home.z)} in the level.`,
+          first.t,
+          who,
+        )
+    }
+  }
   // Starts no clips: the lint only looks at the frames.
   const director = createDirector(play, () => {})
 
@@ -275,8 +293,15 @@ export function lintCutscene(script: CutsceneScript, world: LintWorld): Cutscene
       if (k0.through === true || k1.through === true) continue
       const at = `${who} at (${a.x.toFixed(2)}, ${a.z.toFixed(2)})`
       if (world.map.sectorAt(a) === undefined) add('error', 'floor', `${at} is off the floor`, t, who)
-      else if (world.map.segmentBlocked(a, a, WALL_CLEARANCE))
-        add('error', 'wall', `${at} is in a wall (within ${WALL_CLEARANCE} m)`, t, who)
+      // A 2D character's point is where it stands (its feet), so beside a wall is fine; only inside one is wrong.
+      else if (world.map.segmentBlocked(a, a, flat ? 0 : WALL_CLEARANCE))
+        add(
+          'error',
+          'wall',
+          flat ? `${at} is in a wall` : `${at} is in a wall (within ${WALL_CLEARANCE} m)`,
+          t,
+          who,
+        )
     }
   }
   return [...folded.values()]
