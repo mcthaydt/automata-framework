@@ -25,6 +25,7 @@ import { BASE_SCENES, baseLibrary } from '@automata/3d/base'
 import { noPieceStates } from '@automata/3d/level'
 import { createDirector } from '@automata/cutscenes/director'
 import type { PlacedScript } from '@automata/cutscenes/sim'
+import { showScene3d } from '@automata/cutscenes/stage-3d'
 import { defineGame, definePlugin } from '@automata/framework'
 
 // --- level ---
@@ -83,16 +84,27 @@ export default defineGame({
         view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c, intensity: 0.8 }
         const director = createDirector(script, () => {})
         let shown = noPieceStates()
+        const show = showScene3d({
+          camera: {
+            set: (shot) => {
+              view.camera.position.set(...shot.pos)
+              view.camera.lookAt({ x: shot.look[0], y: shot.look[1], z: shot.look[2] })
+              view.camera.fov = shot.fov
+            },
+          },
+          pieces: (scene) => {
+            updatePieces(drawn, shown, scene)
+            shown = scene
+          },
+          lamps: (levels) => {
+            const lamp = sceneLamps(world.lamps, true, levels).find((l) => l.id === LAMP)
+            light?.setLevels({ [LAMP]: lamp?.level ?? 1 })
+          },
+        })
         return {
           apply: (result) => {
             const scene = director.stateAt(Math.min(result.tick / 60, script.duration))
-            updatePieces(drawn, shown, scene)
-            shown = scene
-            view.camera.position.set(...scene.camera.pos)
-            view.camera.lookAt({ x: scene.camera.look[0], y: scene.camera.look[1], z: scene.camera.look[2] })
-            view.camera.fov = scene.camera.fov
-            const lamp = sceneLamps(world.lamps, true, scene.lamps).find((l) => l.id === LAMP)
-            light?.setLevels({ [LAMP]: lamp?.level ?? 1 })
+            show(scene)
             const { dataset } = stage.app.canvas
             dataset.cutscene = scene.done ? 'done' : 'playing'
             dataset.door = String(scene.doors.doorway ?? 0)
