@@ -588,3 +588,16 @@ The Owner's rule (2026-11-08): content made in the editors must be seen in play,
   speed, repeat, remove). Journey `animation-plays-in-game`: the player start gets a 4-frame picture and a clip of its
   four frames; the saved project holds the clip; in Play the canvas shows the frame colours in turn. Layout test at the
   four sizes in mouse and touch (only a phone's strip overflows; every control meets the pointer's target size).
+- 2026-11-08 Task 8 done (Sonnet high, second build session): `@automata/content/controls` owns the controls kind and the lists of what
+  may be bound (reserved keys and pad buttons, stick directions, gestures); `controlsFrom` and `keys()` both end in
+  `inputMapOf` (`input-map-of.ts`), so ids, payload merging and saved bindings are unchanged. Rulings: a pad button 8 or 16
+  in the file says "That button is kept for the menus." (the plan said "key" for both; a pad has buttons, not keys, and the
+  drunk grandma test wants the right noun). The browser-entry boundary lists gain `controls`.
+- 2026-11-08 Task 9 done: the Tuner's session now holds two files in one history (`TunerState.controls`), so a controls edit and
+  a tuning edit undo in one list. Controls section: name, key chips (remove), pad chips (shown, not edited), Add key (waits,
+  Cancel, Escape ends it, Tab never taken so Cancel stays reachable), touch switch; layout test at the eight sizes in mouse
+  and touch (Chromium). The new game's `content/controls.toml` and the Tuner row in `editors.toml`; `game.ts` calls
+  `controlsFrom(Move, CONTROLS)`. Ruling: its own journey file (`controls-change-the-game`) rather than another step in the
+  long paint journey, so each journey stays one story; it presses Add key and J in the Tuner, Plays, holds J, and the
+  square moves left (iPad and phone, Chromium; the first version flaked on iPad because it held J for a fixed 600 ms, now
+  it looks again until the square has moved).

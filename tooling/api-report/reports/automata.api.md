@@ -1107,6 +1107,12 @@ function installGlobalErrorHandlers(win: Window, onFatal: (errorClass: string) =
 type KeyBindings<Z extends z.ZodType> = Readonly<Record<string, Payload<Z>>>;
 ```
 
+### `keyLabel` (function)
+
+```ts
+function keyLabel(code: string, layout?: ReadonlyMap<string, string>): string;
+```
+
 ### `keys` (function)
 
 ```ts
@@ -1357,6 +1363,12 @@ interface OwnedRenderer extends GameRenderer {
 }
 ```
 
+### `padLabel` (function)
+
+```ts
+function padLabel(button: number, glyphs: PromptGlyphs, copy: PromptCopy): string;
+```
+
 ### `PagedGrid` (svelte)
 
 ```ts
@@ -1517,6 +1529,22 @@ interface PostFilterSpec {
 interface PresentationBus<Facts = RuntimeFacts> {
     publish<K extends keyof Facts & string>(name: K, fact: Facts[K]): void;
     subscribe<K extends keyof Facts & string>(name: K, listener: (fact: Facts[K]) => void): () => void;
+}
+```
+
+### `PROMPT_COPY` (const)
+
+```ts
+const PROMPT_COPY: PromptCopy;
+```
+
+### `PromptCopy` (interface)
+
+```ts
+interface PromptCopy {
+    readonly unbound: string;
+    readonly touch: string;
+    readonly pad: Readonly<Record<PadWord, string>>;
 }
 ```
 

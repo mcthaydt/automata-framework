@@ -49,6 +49,7 @@ describe('the new game’s files', () => {
 
   it('has a level the 2D editor opens, and the game files its Save writes', () => {
     expect(files.filter((file) => file.startsWith('content/'))).toEqual([
+      'content/controls.toml',
       'content/editors.toml',
       'content/levels/start.af2d.json',
       'content/levels/start.toml',
@@ -63,7 +64,7 @@ describe('the new game’s files', () => {
 
   it('compiles the level into the game with the content plugin', () => {
     const config = read('vite.config.ts')
-    expect(config).toContain('automataContent({ schemas: level2dKinds() })')
+    expect(config).toContain('automataContent({ schemas: [...level2dKinds(), controlsKind()] })')
     expect(read('.gitignore').split('\n')).toContain('content/generated/')
   })
 

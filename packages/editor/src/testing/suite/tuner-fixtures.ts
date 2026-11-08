@@ -18,15 +18,39 @@ export const TUNING_META_FIXTURE: string = JSON.stringify({
   GRAVITY: { type: 'int', value: 64, min: 16, max: 192, step: 1 },
 })
 
+/** A game's default controls: two directions, the left one with two keys and a pad button, the right one touch-less. */
+export const CONTROLS_FIXTURE: string = `command = "move"
+
+[[action]]
+id = "left"
+label = "Left"
+send = { x = -1 }
+keys = ["ArrowLeft", "KeyA"]
+pad = [14, 0]
+touch = true
+
+[[action]]
+id = "right"
+send = { x = 1 }
+keys = ["ArrowRight"]
+touch = false
+`
+
 export const tunerFixtureFiles = (): Record<string, string> => ({
   'content/tuning.toml': TUNING_FIXTURE,
   'content/generated/tuning-meta.json': TUNING_META_FIXTURE,
 })
 
+/** The tuning and the controls together: a game that has both files. */
+export const controlsFixtureFiles = (): Record<string, string> => ({
+  ...tunerFixtureFiles(),
+  'content/controls.toml': CONTROLS_FIXTURE,
+})
+
 const classifyAs =
   (writable: boolean) =>
   (path: string): WorkspaceFile =>
-    path === 'content/tuning.toml'
+    path === 'content/tuning.toml' || path === 'content/controls.toml'
       ? writable
         ? { path, editor: 'tuner', gates: [], checks: ['content'], modes: ['edit', 'ask'], writable: true }
         : {

@@ -96,11 +96,13 @@ const controlActionSchema = z.strictObject({
   required: z.boolean().optional(),
 })
 
+const NO_ACTIONS = 'A controls file needs at least one action.'
+
 /** The schema of `content/controls.toml`: at least one action, and no two with one id. */
 export const controlsFileSchema: z.ZodType<ControlsFile> = z
   .strictObject({
     command: z.string().min(1),
-    action: z.array(controlActionSchema).min(1, 'A controls file needs at least one action.'),
+    action: z.array(controlActionSchema, { error: NO_ACTIONS }).min(1, NO_ACTIONS),
   })
   .superRefine((file, ctx) => {
     const seen = new Set<string>()

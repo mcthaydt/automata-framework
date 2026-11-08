@@ -279,7 +279,9 @@ describe('createGame', () => {
       expect(viteConfig).not.toContain('automata-ruken')
       expect(viteConfig).toContain("ADAPTER_CONDITIONS[mode] ?? 'automata-web'")
       expect(viteConfig).toContain('...defaultClientConditions')
-      expect(viteConfig).toContain('plugins: [svelte(), automataContent({ schemas: level2dKinds() })]')
+      expect(viteConfig).toContain(
+        'plugins: [svelte(), automataContent({ schemas: [...level2dKinds(), controlsKind()] })]',
+      )
     })
 
     it("lists the chosen targets' commands in the README", async () => {

@@ -219,9 +219,10 @@ export const PROJECT_FILES: readonly TemplateFile[] = [
   packageFile(() => ({})),
   shipConfigFile('any'),
   viteConfigFile({
-    imports: "import { level2dKinds } from '@automata/content/level-2d'",
-    schemas: 'level2dKinds()',
-    compiles: 'the level the editor writes',
+    imports:
+      "import { controlsKind } from '@automata/content/controls'\nimport { level2dKinds } from '@automata/content/level-2d'",
+    schemas: '[...level2dKinds(), controlsKind()]',
+    compiles: 'the level the editor writes and the default controls',
   }),
   ...SHARED_PROJECT_FILES,
 ]
