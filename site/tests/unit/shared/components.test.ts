@@ -1,14 +1,14 @@
 import { render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
+import CodeBlock from '../../../src/shared/components/CodeBlock.svelte'
 import Footer from '../../../src/shared/components/Footer.svelte'
 import Header from '../../../src/shared/components/Header.svelte'
-import TerminalBox from '../../../src/shared/components/TerminalBox.svelte'
 import { highlightCode } from '../../../src/shared/utils/highlight'
 
 describe('UI Components', () => {
-  it('TerminalBox renders command text and copy button', () => {
-    const { getByText, getByRole } = render(TerminalBox, {
-      props: { command: 'npx automata create-game' },
+  it('the command box renders command text and a copy button', () => {
+    const { getByText, getByRole } = render(CodeBlock, {
+      props: { code: 'npx automata create-game', variant: 'command' },
     })
     expect(getByText('npx automata create-game')).toBeTruthy()
     expect(getByRole('button', { name: /copy/i })).toBeTruthy()

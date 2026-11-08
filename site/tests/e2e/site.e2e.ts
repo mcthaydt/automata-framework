@@ -246,13 +246,11 @@ test.describe('desktop 1280×800', () => {
     })
     await open(page, '/')
     const runner = page.getByTestId('demo-runner-container')
-    await runner.getByRole('button', { name: 'Play demo' }).click()
-    await expect(runner.getByRole('status')).toHaveText('Starting the demo…')
+    await runner.getByRole('button', { name: 'Play it' }).click()
+    await expect(runner.getByRole('status')).toHaveText('Starting Emberwick…')
     fail()
-    await expect(runner.getByRole('alert')).toHaveText(
-      "This demo couldn't start. Try again or open it in a new tab.",
-    )
-    await expect(runner.getByRole('button', { name: 'Retry' })).toBeVisible()
+    await expect(runner.getByRole('alert')).toHaveText("Emberwick didn't start.")
+    await expect(runner.getByRole('button', { name: 'Try again' })).toBeVisible()
   })
 
   test('search shows an empty state when nothing matches', async ({ page }) => {
@@ -358,5 +356,105 @@ test.describe('without script', () => {
         pictures.last().evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0),
       )
       .toBe(true)
+  })
+})
+
+// One shell (spec 4.1): every page starts at the header logo's left edge, titles are one weight, and the header does
+// not move from page to page.
+const SHELL_PAGES = [
+  '/',
+  '/start',
+  '/docs/how-it-works',
+  '/examples',
+  '/examples/shapes-rects',
+  '/api',
+  '/api/0.0.5/framework',
+  '/privacy',
+  '/terms',
+  '/editor',
+]
+
+for (const width of [390, 820, 1440]) {
+  test.describe(`one shell at ${width} px`, () => {
+    test.use({ viewport: { width, height: 900 } })
+
+    test("every page's content starts at the logo's x", async ({ page }) => {
+      for (const path of SHELL_PAGES) {
+        await open(page, path)
+        const edges = await page.evaluate(() => ({
+          logo: document.querySelector('.site-header .logo')?.getBoundingClientRect().left ?? -1,
+          content: document.querySelector('main .page-wrap')?.getBoundingClientRect().left ?? -2,
+        }))
+        expect(
+          Math.abs(edges.content - edges.logo),
+          `${path}: logo ${edges.logo}, content ${edges.content}`,
+        ).toBeLessThanOrEqual(1)
+      }
+    })
+
+    test('h1 has font-weight 600 on every page', async ({ page }) => {
+      for (const path of SHELL_PAGES) {
+        await open(page, path)
+        const weight = await page
+          .locator('main h1')
+          .first()
+          .evaluate((h1) => getComputedStyle(h1).fontWeight)
+        expect(weight, path).toBe('600')
+      }
+    })
+  })
+}
+
+test.describe('the header', () => {
+  test.use({ viewport: { width: 1440, height: 900 } })
+
+  test('the header links do not move between pages', async ({ page }) => {
+    const linkEdges = async (path: string) => {
+      await open(page, path)
+      return page
+        .locator('.site-header nav.links a')
+        .evaluateAll((links) => links.map((link) => Math.round(link.getBoundingClientRect().left * 10) / 10))
+    }
+    const home = await linkEdges('/')
+    expect(await linkEdges('/docs/how-it-works')).toEqual(home)
+    expect(await linkEdges('/examples')).toEqual(home)
+  })
+})
+
+test.describe('the command on a phone', () => {
+  test.use({ viewport: { width: 390, height: 844 } })
+
+  test('the command copies whole at 390 px', async ({ page }) => {
+    // The clipboard is stubbed in the page so WebKit and Firefox run this too (only Chromium can grant clipboard-read).
+    await page.addInitScript(() => {
+      ;(window as unknown as { copied: string[] }).copied = []
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: {
+          writeText: async (text: string) => (window as unknown as { copied: string[] }).copied.push(text),
+        },
+      })
+    })
+    await open(page, '/')
+    const shown = await page
+      .locator('main code.ellipsis')
+      .first()
+      .evaluate((code) => ({
+        text: code.textContent ?? '',
+        cut: code.scrollWidth > code.clientWidth,
+      }))
+    await page.getByRole('button', { name: 'Copy command' }).first().click()
+    const copied = await page.evaluate(() => (window as unknown as { copied: string[] }).copied)
+    expect(copied).toEqual([shown.text])
+    expect(shown.text.length).toBeGreaterThan(20)
+    // On a 390 px phone the command may be cut, but only with an ellipsis, never wrapped.
+    const style = await page
+      .locator('main code.ellipsis')
+      .first()
+      .evaluate((code) => {
+        const css = getComputedStyle(code)
+        return { overflow: css.overflow, ellipsis: css.textOverflow, wrap: css.whiteSpace }
+      })
+    expect(style).toEqual({ overflow: 'hidden', ellipsis: 'ellipsis', wrap: 'nowrap' })
   })
 })

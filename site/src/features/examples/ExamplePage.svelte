@@ -2,6 +2,7 @@
 import type { Snippet } from 'svelte'
 import InlineText from '../../shared/components/InlineText.svelte'
 import PageMeta from '../../shared/components/PageMeta.svelte'
+import PageShell from '../../shared/components/PageShell.svelte'
 import {
   difficultyStars,
   type Example,
@@ -14,7 +15,7 @@ let { data, children }: { data: { example: Example; index: ExampleGroup[] }; chi
 let example = $derived(data.example)
 </script>
 <PageMeta title={example.id + ': ' + example.title} description={example.shows.replaceAll('`', '')} />
-<div class="page-shell example-page">
+<PageShell wide class="example-page">
   <div class="examples-layout">
     <aside><nav class="demo-list" aria-label="Examples">
       {#each data.index as group}<p>{moduleTitle(group.module)}</p>{#each group.examples as item}<a href={'/examples/' + item.id} aria-current={item.id === example.id ? 'page' : undefined}>{item.title}</a>{/each}{/each}
@@ -30,7 +31,7 @@ let example = $derived(data.example)
       {@render children?.()}
     </article>
   </div>
-</div>
+</PageShell>
 <style>
   h1 { font-size: var(--step-title); line-height: 1.1; }
   h1 code { display: block; margin-bottom: .4rem; font-size: var(--step-small); font-weight: 500; color: var(--muted); background: none; padding: 0; }

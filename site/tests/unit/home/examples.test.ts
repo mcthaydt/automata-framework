@@ -1,35 +1,42 @@
 import { fireEvent, render } from '@testing-library/svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import DemoRunner from '../../../src/features/home/DemoRunner.svelte'
+import DemoRunner from '#src/features/home/DemoRunner.svelte'
+import { DEMO_BAR } from '#src/features/home/home-content.ts'
 
-// The gallery that used DemoRunner on /examples is gone (WEB.PLAY.5; tests/examples-pages.test.ts covers the new
-// pages). DemoRunner still runs Emberwick on / and the first change on /start (PLAY-D10).
+const props = {
+  src: '/demos/emberwick/index.html',
+  poster: '/previews/emberwick.jpg',
+  posterAlt: 'Emberwick: a hooded hero below grassy stone ledges at night',
+  bar: DEMO_BAR,
+}
+
+// DemoRunner runs Emberwick on Home: the poster edge to edge, and one bar under it.
 describe('DemoRunner', () => {
-  it('DemoRunner renders container with controls and iframe element', () => {
-    const { getByTestId, getByRole } = render(DemoRunner, {
-      props: {
-        src: '/demos/content/hot-reload/index.html',
-        title: 'Content: hot reload',
-      },
-    })
-    expect(getByTestId('demo-runner-container')).toBeTruthy()
-    expect(getByRole('button', { name: 'Start over' })).toBeTruthy()
-    expect(getByRole('button', { name: 'Full screen' })).toBeTruthy()
+  it('shows the poster and one Play it button, which is not a second lime primary on the page', () => {
+    const view = render(DemoRunner, { props })
+    expect(view.getByTestId('demo-runner-container')).toBeTruthy()
+    expect(view.queryByRole('button', { name: 'Full screen' })).toBeNull()
+    expect(view.queryByRole('button', { name: 'Stop' })).toBeNull()
+    expect(view.getAllByRole('button').map((button) => button.textContent?.trim())).toEqual(['Play it'])
+    expect(view.getByRole('button', { name: 'Play it' }).classList.contains('button')).toBe(false)
   })
 
-  it('shows only Play until the demo plays, and Play is not a second lime primary on the page', () => {
-    const view = render(DemoRunner, {
-      props: {
-        src: '/demos/emberwick/index.html',
-        title: 'Emberwick',
-        autoStart: false,
-        poster: '/previews/emberwick.jpg',
-      },
-    })
-    expect(view.queryByRole('button', { name: 'Start over' })).toBeNull()
-    expect(view.queryByRole('button', { name: 'Full screen' })).toBeNull()
-    const play = view.getByRole('button', { name: 'Play demo' })
-    expect(play.classList.contains('button')).toBe(false)
+  it('swaps Play it for Full screen and Stop once it plays, and has no other control', async () => {
+    const view = render(DemoRunner, { props })
+    await fireEvent.click(view.getByRole('button', { name: 'Play it' }))
+    expect(view.getAllByRole('button').map((button) => button.textContent?.trim())).toEqual([
+      'Full screen',
+      'Stop',
+    ])
+    expect(view.queryByRole('link', { name: /new tab/i })).toBeNull()
+    expect(view.queryByRole('button', { name: /start over|retry/i })).toBeNull()
+  })
+
+  it('starts on mount when a press on Play it was made before the page was hydrated', () => {
+    document.documentElement.dataset.playPressed = ''
+    const view = render(DemoRunner, { props })
+    expect(view.container.querySelector('iframe')).toBeTruthy()
+    expect(document.documentElement.dataset.playPressed, 'the mark is used once').toBeUndefined()
   })
 })
 
@@ -37,9 +44,9 @@ describe('DemoRunner', () => {
 // headless WebKit once nothing else on the page was changing: the request is neither granted nor refused. A button
 // that answers nothing looks dead, so the page says when the browser has not started fullscreen after a second.
 describe('DemoRunner fullscreen button', () => {
-  const props = { src: '/demos/content/hot-reload/index.html', title: 'Content: hot reload' }
-  const setup = (requestFullscreen: (() => Promise<void>) | undefined) => {
+  const setup = async (requestFullscreen: (() => Promise<void>) | undefined) => {
     const view = render(DemoRunner, { props })
+    await fireEvent.click(view.getByRole('button', { name: 'Play it' }))
     const container = view.getByTestId('demo-runner-container') as unknown as {
       requestFullscreen?: () => Promise<void>
     }
@@ -53,7 +60,7 @@ describe('DemoRunner fullscreen button', () => {
 
   it('says the browser did not start fullscreen when it never answers within a second', async () => {
     vi.useFakeTimers()
-    const { getByRole, queryByText } = setup(() => new Promise(() => undefined))
+    const { getByRole, queryByText } = await setup(() => new Promise(() => undefined))
     await fireEvent.click(getByRole('button', { name: 'Full screen' }))
     await vi.advanceTimersByTimeAsync(900)
     expect(queryByText(/Full screen didn't start/i)).toBeNull()
@@ -64,7 +71,7 @@ describe('DemoRunner fullscreen button', () => {
   it('takes that message back when fullscreen starts after all', async () => {
     vi.useFakeTimers()
     let answer: () => void = () => undefined
-    const { getByRole, queryByText } = setup(
+    const { getByRole, queryByText } = await setup(
       () =>
         new Promise<void>((resolve) => {
           answer = resolve
@@ -80,7 +87,7 @@ describe('DemoRunner fullscreen button', () => {
 
   it('keeps saying fullscreen is unavailable when the browser refuses, and says nothing else after', async () => {
     vi.useFakeTimers()
-    const { getByRole, queryByText } = setup(() => Promise.reject(new Error('denied')))
+    const { getByRole, queryByText } = await setup(() => Promise.reject(new Error('denied')))
     await fireEvent.click(getByRole('button', { name: 'Full screen' }))
     await vi.advanceTimersByTimeAsync(0)
     expect(queryByText(/Full screen isn't available/i)).not.toBeNull()
@@ -90,7 +97,7 @@ describe('DemoRunner fullscreen button', () => {
   })
 
   it('says it is unavailable at once where the browser has no fullscreen request', async () => {
-    const { getByRole, findByText } = setup(undefined)
+    const { getByRole, findByText } = await setup(undefined)
     await fireEvent.click(getByRole('button', { name: 'Full screen' }))
     expect(await findByText(/Full screen isn't available/i)).toBeTruthy()
   })
@@ -101,7 +108,7 @@ describe('DemoRunner fullscreen button', () => {
   describe('while the browser has not answered', () => {
     it('marks the button busy in the click itself, before any timer runs', async () => {
       vi.useFakeTimers()
-      const { getByRole, getByTestId } = setup(() => new Promise(() => undefined))
+      const { getByRole, getByTestId } = await setup(() => new Promise(() => undefined))
       const seen = vi.fn()
       new MutationObserver(seen).observe(getByTestId('demo-runner-container'), {
         attributes: true,
@@ -120,7 +127,7 @@ describe('DemoRunner fullscreen button', () => {
     it('stops being busy when fullscreen starts', async () => {
       vi.useFakeTimers()
       let answer: () => void = () => undefined
-      const { getByRole } = setup(
+      const { getByRole } = await setup(
         () =>
           new Promise<void>((resolve) => {
             answer = resolve
@@ -136,14 +143,14 @@ describe('DemoRunner fullscreen button', () => {
 
     it('stops being busy when the browser refuses, and when it never answers', async () => {
       vi.useFakeTimers()
-      const refused = setup(() => Promise.reject(new Error('denied')))
+      const refused = await setup(() => Promise.reject(new Error('denied')))
       const refusedButton = refused.getByRole('button', { name: 'Full screen' })
       await fireEvent.click(refusedButton)
       await vi.advanceTimersByTimeAsync(0)
       expect(refusedButton.hasAttribute('aria-busy')).toBe(false)
       refused.unmount()
 
-      const silent = setup(() => new Promise(() => undefined))
+      const silent = await setup(() => new Promise(() => undefined))
       const silentButton = silent.getByRole('button', { name: 'Full screen' })
       await fireEvent.click(silentButton)
       expect(silentButton.getAttribute('aria-busy')).toBe('true')

@@ -1,0 +1,107 @@
+/* Home's shared section look: a hairline between sections, a kicker, a title and a sub line. */
+.home-section {
+  padding: 112px 0;
+  border-top: 1px solid var(--line);
+}
+.home-section.intro {
+  display: flex;
+  align-items: center;
+  min-height: calc(100svh - 64px);
+  padding: 48px 0;
+  border-top: 0;
+}
+/* Splits sit on a 12-column grid with 24 px gaps, so every right column starts on the same line. */
+.split-12 {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 24px;
+  align-items: center;
+}
+.home-kicker {
+  margin: 0;
+  color: var(--faint);
+  font: 500 13px / 20px var(--font-mono);
+}
+.home-section h2 {
+  max-width: 760px;
+  margin: 12px 0 0;
+  font-size: clamp(30px, 3.4vw, 44px);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+.home-section h3 {
+  margin: 20px 0 6px;
+  font-size: 17px;
+  line-height: 24px;
+}
+.home-sub {
+  max-width: 620px;
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 28px;
+}
+.home-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: var(--edge-md);
+  background: var(--soft);
+}
+.home-more {
+  margin: 20px 0 0;
+}
+.home-more a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ink);
+  font-weight: 500;
+  text-underline-offset: 4px;
+}
+.home-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+.home-secondary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--edge-sm);
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.home-secondary:hover {
+  border-color: var(--ink);
+}
+@media (max-width: 1023px) {
+  .home-section.intro {
+    min-height: 0;
+    padding: 64px 0;
+  }
+  .split-12 {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+@media (max-width: 760px) {
+  .home-section {
+    padding: 72px 0;
+  }
+  .home-section.intro {
+    padding: 40px 0 48px;
+  }
+  .home-cta > * {
+    flex: 1;
+    justify-content: center;
+  }
+}

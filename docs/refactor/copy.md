@@ -227,3 +227,11 @@ Reference, Privacy, Terms and Contact; the targets are named by the publish sect
 | The figure editor (task 15.5) | `Studio` | `Characters` (the rail, the card and the screen reader names `Character fields` and `Character mode`) | 4 (a studio is a word for a room of machines; a person edits characters) |
 | A room that will not open (task 15.5) | `room.af-sector.json can’t be opened as a af-sector level.` and the schema's own sentence, dim ink on dark | `Room can't be opened.`, then `It was made by a newer version of AF. Update AF, then open it again.` (or `There is no such file.`, or `Something in it isn't written the way a room is. Details says where.`), then `Your file is unchanged.`, in the stage's light ink; the issues sit behind `Details` | 1 (it said nothing a person could act on) and 4 (a format id and a file name) |
 | A room made with an older version (task 16.1c) | nothing said; the file was rewritten as soon as it opened, or the editor refused it | the status line says `This room was made with an older version. Your next change saves it in the new version, and nothing in it is lost.` until the first change; opening alone writes nothing | 1 (a person should know before the file changes) and 5 (nothing is lost) |
+
+## Site slice (2026-11-08)
+
+| Where | Was | Now | Why |
+|---|---|---|---|
+| Copy buttons on the site | the word `Copy` | a copy icon named `Copy code` or `Copy command`; after a press the words `Copied` | 3 (a word and a hidden name said one thing twice) |
+| A code box | a header with the language (`typescript`, `text`) or a file name | no header; where a caller says where the code goes, words above the box (`In your terminal`, `Copy this to your agent`) | 4 (a language name is a programmer's word) |
+| Header, the current page | the link turned bold, so the others moved | the link keeps its weight and is underlined | 1 (nothing should shift under the pointer) |

@@ -14,8 +14,12 @@ export const FALLBACK_MS = 3000
 
 /**
  * Written into the page ahead of the script's imports. It starts `start` once: when the first contentful paint is
- * reported (already-reported paints are delivered too), when the tab's visibility changes, or after FALLBACK_MS. A
- * browser that does not report paint timing starts at once, as SvelteKit does.
+ * reported (already-reported paints are delivered too), when the tab's visibility changes, on the visitor's first
+ * press, or after FALLBACK_MS. A browser that does not report paint timing starts at once, as SvelteKit does.
+ *
+ * A press on a `[data-play]` control marks `<html data-play-pressed>`: the page is prerendered, so its Play button is
+ * there before the script that answers it, and the press itself would be lost. The demo reads the mark when it mounts
+ * and starts, so the visitor presses once.
  */
 export const AFTER_FIRST_PAINT = `const afterFirstPaint = start => {
 \t\t\t\t\t\tlet started = false;
@@ -25,6 +29,12 @@ export const AFTER_FIRST_PAINT = `const afterFirstPaint = start => {
 \t\t\t\t\t\t\t\tif (list.getEntriesByName("first-contentful-paint").length) { observer.disconnect(); go(); }
 \t\t\t\t\t\t\t}).observe({ type: "paint", buffered: true });
 \t\t\t\t\t\t\tdocument.addEventListener("visibilitychange", go, { once: true });
+\t\t\t\t\t\t\tconst press = event => {
+\t\t\t\t\t\t\t\tif (event.target?.closest?.("[data-play]")) document.documentElement.dataset.playPressed = "";
+\t\t\t\t\t\t\t\tgo();
+\t\t\t\t\t\t\t};
+\t\t\t\t\t\t\tdocument.addEventListener("pointerdown", press, { once: true, capture: true });
+\t\t\t\t\t\t\tdocument.addEventListener("keydown", press, { once: true, capture: true });
 \t\t\t\t\t\t\tsetTimeout(go, ${FALLBACK_MS});
 \t\t\t\t\t\t} else go();
 \t\t\t\t\t};`

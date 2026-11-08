@@ -1,0 +1,80 @@
+/* Start's agent setup. */
+.agent-setup .code-block {
+  background: var(--bg);
+  border-color: transparent;
+}
+.agent-setup {
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border-radius: var(--edge-lg);
+  background: var(--paper);
+  margin-top: 4rem;
+}
+.agent-setup h2 {
+  font-size: var(--step-head);
+}
+.agent-setup > label {
+  max-width: 30rem;
+}
+.agent-setup select {
+  display: block;
+  margin-top: 0.5rem;
+}
+.agent-install-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-block: 2.5rem;
+}
+.agent-install-layout > div {
+  min-width: 0;
+}
+/* The upstream links stand alone under their steps, so each is a whole tap target. */
+.agent-install-layout > div > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.agent-install-layout .code-block {
+  margin-block: 1rem;
+}
+.agent-setup pre {
+  white-space: pre-wrap;
+}
+.agent-setup pre code {
+  overflow-wrap: anywhere;
+}
+.skill-readiness {
+  border: 0;
+  padding: 0;
+  margin-block: 2rem 1rem;
+}
+.skill-readiness legend {
+  font-size: var(--step-lead);
+  margin-bottom: 0.5rem;
+}
+.skill-readiness label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 48px;
+  margin-block: 0.3rem;
+  font-family: var(--font-sans);
+  font-size: var(--step-body);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+}
+.skill-readiness input {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  min-height: 20px;
+  padding: 0;
+  accent-color: var(--ink);
+}
+@media (max-width: 700px) {
+  .agent-install-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+  }
+}

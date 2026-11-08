@@ -1,12 +1,14 @@
 <script lang="ts">
 // /api: the reference's front page, one link per published package for each version the site keeps.
 import PageMeta from '../../shared/components/PageMeta.svelte'
+import PageShell from '../../shared/components/PageShell.svelte'
+import './api.css'
 import { apiVersions, getApiReference } from '../../shared/framework/api-reference'
 
 const versions = apiVersions()
 </script>
 <PageMeta title="Complete API reference" description="Every export of every published Automata package, one page per package, for each published version." />
-<div class="page-shell api-page">
+<PageShell class="api-page">
   <h1>Complete API reference</h1>
   <p class="lead">Every export of every published package, generated from the published type declarations.</p>
   <p>An export that is not listed for a version does not exist in it. The same text as one file is <a href="/llms-api.txt">llms-api.txt</a>.</p>
@@ -19,4 +21,4 @@ const versions = apiVersions()
       </section>
     {/if}
   {/each}
-</div>
+</PageShell>

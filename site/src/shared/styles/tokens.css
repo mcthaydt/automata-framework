@@ -1,0 +1,31 @@
+@import "@automata/editor/tokens.css";
+
+/*
+ * Visual language (the approved redesign, 2026-11-06, option C): a quiet off-white field, white panels on hairlines,
+ * near-black stages for the games, and one flat lime primary with an ink edge per screen. Corners are slightly
+ * rounded, never pills: 4 px on controls, 6 px on panels, 8 px on cards (`--edge-sm/md/lg`). No glass and no glow.
+ * The tokens live in the editor kit's tokens.json, which the editors share; the site's field and panel are set here.
+ */
+:root {
+  --bg: #fbfbfa;
+  --panel: #ffffff;
+  --soft: #f3f4f1;
+  --line: #e6e7e3;
+  --line-strong: #d2d4ce;
+  --faint: #656c74;
+  --wrap: 1200px;
+  /* The page's side margin: the container is the wrap or the window less this on each side. */
+  --side: 24px;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  color: var(--ink);
+  background: var(--bg);
+  scroll-behavior: smooth;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+}
+@media (max-width: 760px) {
+  :root {
+    --side: 16px;
+  }
+}

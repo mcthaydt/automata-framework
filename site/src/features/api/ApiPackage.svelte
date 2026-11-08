@@ -1,7 +1,9 @@
 <script lang="ts">
 import { onMount } from 'svelte'
 import PageMeta from '../../shared/components/PageMeta.svelte'
+import PageShell from '../../shared/components/PageShell.svelte'
 import type { ApiEntry, ApiPackage } from '../../shared/framework/api'
+import './api.css'
 import { apiVersions } from '../../shared/framework/api-reference'
 
 // One package's reference, short enough to scan on a phone (site visual audit H4): each entry point folded to a row
@@ -46,7 +48,7 @@ onMount(() => {
 })
 </script>
 <PageMeta title={data.pkg.name + ' ' + data.version} description={'Every export of ' + data.pkg.name + ' version ' + data.version + ', with its signature and doc comment.'} />
-<div class="page-shell api-page">
+<PageShell class="api-page">
   <p class="small"><a href="/api">All packages</a></p>
   <h1>{data.pkg.name}</h1>
   <p class="lead">Version {data.version}. Every export, from the published types. Open a group, then an export, to see its signature.</p>
@@ -68,4 +70,4 @@ onMount(() => {
     </details>
   {/each}
   {#if !points.length}<p role="status">No export matches. Try another word.</p>{/if}
-</div>
+</PageShell>

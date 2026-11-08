@@ -1,0 +1,231 @@
+/* Where things sit: the page's shell, link rows, the side lists and the guides' three columns. */
+
+/* Every page's content starts at the header logo's left edge: the wrap, or the window less a side margin. */
+.page-wrap {
+  width: min(var(--wrap), 100% - 2 * var(--side));
+  margin: 0 auto;
+}
+.page-shell {
+  padding-block: clamp(3rem, 6vw, 5.5rem);
+  min-height: 60svh;
+}
+/* A reading page keeps a comfortable line; a wide one (two columns) takes the whole wrap, from the same left edge. */
+.page-shell:not(.wide) {
+  max-width: 56rem;
+}
+.page-shell > .lead {
+  margin-top: 1.5rem;
+}
+.page-shell > section {
+  margin-top: 4rem;
+}
+.legal-page > section {
+  max-width: 68ch;
+}
+.legal-page > section > h2 {
+  margin-bottom: 0.75rem;
+}
+.link-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  margin-block: 2rem;
+}
+nav.link-row {
+  gap: 0.5rem;
+  margin-block: 1.25rem;
+}
+nav.link-row a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--edge-sm);
+  background: var(--panel);
+  font-size: var(--step-small);
+  font-weight: 500;
+  text-decoration: none;
+}
+nav.link-row a:hover {
+  background: #fff;
+  border-color: var(--line-strong);
+}
+.examples-layout {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.3fr) minmax(0, 1fr);
+  gap: 3rem;
+}
+.examples-layout article > h2 {
+  font-size: var(--step-title);
+}
+
+/* Side navigation: quiet lists; the current item is lit. */
+.demo-list,
+.docs-sidebar nav,
+.doc-toc nav {
+  display: flex;
+  flex-direction: column;
+}
+.demo-list a,
+.docs-sidebar nav a,
+.doc-toc nav a {
+  position: relative;
+  /* 44 px tall, so each row is a finger's tap target too. */
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.3rem 0 0.3rem 1rem;
+  font-size: var(--step-small);
+  line-height: 1.35;
+  text-decoration: none;
+  color: var(--muted);
+}
+.demo-list a:hover,
+.docs-sidebar nav a:hover,
+.doc-toc nav a:hover {
+  color: var(--ink);
+}
+.demo-list a[aria-current="page"],
+.docs-sidebar nav a[aria-current="page"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+/* The current item gets a short ink bar: real state, not decoration. */
+.demo-list a[aria-current="page"]::before,
+.docs-sidebar nav a[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--ink);
+}
+.doc-toc nav a {
+  padding-left: 0;
+}
+.doc-toc nav p {
+  margin: 0 0 0.5rem;
+  font-size: var(--step-small);
+  color: var(--ink);
+}
+.doc-toc nav p strong {
+  font-weight: 600;
+}
+
+.spec-list {
+  display: grid;
+  gap: 1rem;
+  margin-block: 2rem 3rem;
+}
+.spec-list div {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: 1rem;
+}
+.spec-list dt {
+  font-size: var(--step-small);
+  font-weight: 600;
+  color: var(--muted);
+}
+.spec-list dd {
+  max-width: 65ch;
+  overflow-wrap: anywhere;
+}
+
+/* Docs */
+.docs-layout {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.7fr) minmax(0, 2fr) minmax(10rem, 0.6fr);
+  gap: 3.5rem;
+  align-items: start;
+}
+.docs-sidebar,
+.doc-toc {
+  position: sticky;
+  top: 6rem;
+  max-height: calc(100svh - 7rem);
+  overflow: auto;
+  padding-bottom: 1rem;
+}
+
+.mobile-doc-links {
+  display: none;
+}
+
+@media (max-width: 1050px) {
+  .docs-layout {
+    grid-template-columns: 13rem minmax(0, 1fr);
+    gap: 2.5rem;
+  }
+  .doc-toc {
+    grid-column: 2;
+    position: static;
+    max-height: none;
+  }
+}
+@media (max-width: 700px) {
+  .examples-layout,
+  .docs-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+  }
+  .docs-sidebar,
+  .doc-toc {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+  .doc-toc {
+    grid-column: auto;
+  }
+  .desktop-doc-links {
+    display: none;
+  }
+  .mobile-doc-links {
+    display: block;
+    margin-top: 1rem;
+  }
+  /* On phones the section list is a real control, not a label floating over the title. */
+  .mobile-doc-links summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 52px;
+    padding: 0.75rem 1.1rem;
+    border-radius: var(--edge-md);
+    background: var(--surface);
+    font-size: var(--step-lead);
+    font-weight: 500;
+    list-style: none;
+  }
+  .mobile-doc-links summary::-webkit-details-marker {
+    display: none;
+  }
+  .mobile-doc-links summary::after {
+    content: "Show";
+    font-size: var(--step-small);
+    color: var(--muted);
+  }
+  .mobile-doc-links[open] summary::after {
+    content: "Hide";
+  }
+  .mobile-doc-links[open] summary {
+    margin-bottom: 1rem;
+  }
+  .docs-sidebar nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .doc-content {
+    grid-row: 2;
+  }
+  .spec-list div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.25rem;
+  }
+}

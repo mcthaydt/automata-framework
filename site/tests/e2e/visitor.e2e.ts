@@ -21,12 +21,10 @@ const game = (demo: FrameLocator): Locator => demo.locator('#game')
 
 /** Plays the demo from its poster until the player stands in the room, then moves them right and sees them move. */
 async function playEmberwick(page: Page, input: 'keyboard' | 'touch'): Promise<void> {
-  // Home is prerendered, so its Play is on the page before the script that answers it: a press before then is lost,
-  // as a visitor's would be, and a visitor presses again.
-  await expect(async () => {
-    await page.getByRole('button', { name: 'Play demo' }).click({ timeout: 1_000 })
-    await expect(page.locator('iframe[title="Emberwick"]')).toBeAttached({ timeout: 1_000 })
-  }).toPass({ timeout: GAME_STEP_MS })
+  // One press, right after the page's first byte: Home is prerendered, so its Play is there before the script that
+  // answers it, and the press must still count (the visitor does not press twice).
+  await page.getByRole('button', { name: 'Play it' }).click({ timeout: GAME_STEP_MS })
+  await expect(page.locator('iframe[title="Emberwick"]')).toBeAttached({ timeout: GAME_STEP_MS })
   const demo = page.frameLocator('iframe[title="Emberwick"]')
   await expect(demo.locator('html')).toHaveAttribute('data-state', 'ready', { timeout: GAME_STEP_MS })
   // The splash moves on by itself or on any key; the menu's Play starts the room.
@@ -141,7 +139,7 @@ test.describe('a visitor on a desktop', () => {
     test.setTimeout(4 * GAME_STEP_MS)
     await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: ORIGIN })
     const watch = watchPage(page, ORIGIN)
-    await page.goto('/')
+    await page.goto('/', { waitUntil: 'commit' })
     await playEmberwick(page, 'keyboard')
     await copyTheCommand(page)
     await drawAndShareALevel(page)
@@ -165,10 +163,64 @@ test.describe('a visitor on an upright phone', () => {
     test.setTimeout(4 * GAME_STEP_MS)
     await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: ORIGIN })
     const watch = watchPage(page, ORIGIN)
-    await page.goto('/')
+    await page.goto('/', { waitUntil: 'commit' })
     await playEmberwick(page, 'touch')
     await copyTheCommand(page)
     await drawAndShareALevel(page)
     expect(watch.problems).toEqual([])
+  })
+})
+
+test.describe("Home's demo", () => {
+  test('one press of Play it before hydration starts Emberwick', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'commit' })
+    await page.getByRole('button', { name: 'Play it' }).click({ timeout: GAME_STEP_MS })
+    await expect(page.locator('iframe[title="Emberwick"]')).toBeAttached({ timeout: GAME_STEP_MS })
+    await expect(page.frameLocator('iframe[title="Emberwick"]').locator('html')).toHaveAttribute(
+      'data-state',
+      'ready',
+      {
+        timeout: GAME_STEP_MS,
+      },
+    )
+  })
+
+  test('playing, the bar has Full screen and Stop; Stop returns to the poster', async ({ page }) => {
+    await page.goto('/')
+    const bar = page.locator('.demo-bar')
+    await expect(bar.getByRole('button')).toHaveText(['Play it'])
+    await bar.getByRole('button', { name: 'Play it' }).click()
+    await expect(bar.getByRole('button')).toHaveText(['Full screen', 'Stop'])
+    await bar.getByRole('button', { name: 'Stop' }).click()
+    await expect(page.locator('iframe[title="Emberwick"]')).toHaveCount(0)
+    await expect(page.locator('img.demo-poster')).toBeVisible()
+    await expect(bar.getByRole('button')).toHaveText(['Play it'])
+  })
+
+  test('Try again after a failure starts the game again', async ({ page }) => {
+    let frameLoads = 0
+    await page.route('**/demos/emberwick/index.html', async (route) => {
+      frameLoads++
+      await route.fulfill({
+        contentType: 'text/html',
+        body: '<!doctype html><html data-state="failed"><body>boot failed</body></html>',
+      })
+    })
+    await page.goto('/')
+    await page.getByRole('button', { name: 'Play it' }).click()
+    await expect(page.getByRole('alert')).toHaveText("Emberwick didn't start.")
+    await page.getByRole('button', { name: 'Try again' }).click()
+    await expect.poll(() => frameLoads).toBe(2)
+  })
+
+  test('at 390 × 844 the picture is the first thing under the hero', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/')
+    const boxes = await page.evaluate(() => {
+      const top = (selector: string) => document.querySelector(selector)?.getBoundingClientRect().top ?? -1
+      return { hero: top('.intro-text'), picture: top('.demo-viewport'), bar: top('.demo-bar') }
+    })
+    expect(boxes.picture).toBeGreaterThan(boxes.hero)
+    expect(boxes.bar, 'no bar above the picture').toBeGreaterThan(boxes.picture)
   })
 })

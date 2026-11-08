@@ -98,8 +98,11 @@ const current = (href: string) => pathname === href || pathname.startsWith(href 
   .links a[aria-current='page'] {
     color: var(--ink);
   }
-  .links a[aria-current='page'] {
-    font-weight: 600;
+  /* The current page is marked by colour and an underline, not by weight, so nothing shifts between pages. */
+  .links a[aria-current='page'],
+  .menu nav a[aria-current='page'] {
+    text-decoration: underline 2px;
+    text-underline-offset: 8px;
   }
   .end {
     display: flex;
@@ -186,9 +189,6 @@ const current = (href: string) => pathname === href || pathname.startsWith(href 
     border-bottom: 1px solid var(--line);
     color: var(--ink);
     font-size: 17px;
-  }
-  .menu nav a[aria-current='page'] {
-    font-weight: 600;
   }
   @media (max-width: 760px) {
     /* Search is its icon alone here: the word and the key hint leave room for Get started and Menu. */

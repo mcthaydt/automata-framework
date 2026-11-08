@@ -2,8 +2,8 @@ import { resolve } from 'node:path'
 import { fireEvent, render, waitFor } from '@testing-library/svelte'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import CommandMenu from '../../../src/features/search/CommandMenu.svelte'
+import CodeBlock from '../../../src/shared/components/CodeBlock.svelte'
 import Header from '../../../src/shared/components/Header.svelte'
-import TerminalBox from '../../../src/shared/components/TerminalBox.svelte'
 import { findHardCodedHashes, siteSourceFiles } from '../../helpers/hard-coded-hashes'
 
 beforeAll(() => {
@@ -22,7 +22,7 @@ describe('Audit regressions', () => {
       configurable: true,
       value: { writeText: vi.fn().mockRejectedValue(new Error('denied')) },
     })
-    const view = render(TerminalBox, { props: { command: 'example command' } })
+    const view = render(CodeBlock, { props: { code: 'example command', variant: 'command' } })
     await fireEvent.click(view.getByRole('button', { name: /copy command/i }))
     await waitFor(() => expect(view.getByRole('status').textContent).toMatch(/couldn.t copy/i))
     expect(view.queryByText(/^Copied$/)).toBeNull()

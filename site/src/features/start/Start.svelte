@@ -4,12 +4,13 @@
   button, white panels on hairlines, 4/6/8 px corners.
 -->
 <script lang="ts">
-import TerminalBox from '../../shared/components/TerminalBox.svelte'
+import CodeBlock from '../../shared/components/CodeBlock.svelte'
+import PageShell from '../../shared/components/PageShell.svelte'
 import AgentSetup from './AgentSetup.svelte'
 import { PUBLISH_GUIDES, STEPS } from './start-content'
 </script>
 
-<div class="wrap">
+<PageShell>
   <header class="top">
     <p class="kicker">Start</p>
     <h1>Your first game in four commands.</h1>
@@ -20,7 +21,7 @@ import { PUBLISH_GUIDES, STEPS } from './start-content'
     {#each STEPS as step (step.title)}
       <li class="step">
         <h2>{step.title}</h2>
-        <TerminalBox command={step.command} />
+        <CodeBlock code={step.command} variant="command" />
         <p>{step.what}</p>
       </li>
     {/each}
@@ -41,14 +42,9 @@ import { PUBLISH_GUIDES, STEPS } from './start-content'
   </section>
 
   <p class="next"><a class="button" href="/docs">Read the docs</a></p>
-</div>
+</PageShell>
 
 <style>
-  .wrap {
-    width: min(880px, 100% - 2 * var(--side));
-    margin: 0 auto;
-    padding: 72px 0 112px;
-  }
   .kicker {
     margin: 0;
     color: var(--faint);
@@ -56,11 +52,6 @@ import { PUBLISH_GUIDES, STEPS } from './start-content'
   }
   h1 {
     margin: 12px 0 0;
-    font-size: clamp(36px, 4vw, 56px);
-    font-weight: 600;
-    line-height: 1.05;
-    letter-spacing: -0.035em;
-    text-wrap: balance;
   }
   .lead {
     max-width: 620px;

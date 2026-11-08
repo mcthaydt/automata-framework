@@ -1,46 +1,47 @@
 <script lang="ts">
-// A game demo in a frame: a poster until the visitor presses Play (or at once, with `autoStart`), then the built game
-// from /demos/, with Stop and Start over beside it. Stopping drops the frame, so a stopped demo costs nothing.
-import { onMount, untrack } from 'svelte'
+// Home's game: the poster edge to edge with one bar under it. "Play it" mounts the built game from /demos/ in the
+// poster's place; playing, the bar offers Full screen and Stop. Stopping drops the frame, so a stopped demo costs
+// nothing. A press on Play it made before the page was hydrated is kept by the page's first-press script
+// (`data-play-pressed`, shared/html/hydration.ts) and starts the game as soon as this mounts.
+import { onMount } from 'svelte'
 import { previewSrcset } from '../../shared/previews'
+import './demo-runner.css'
 import { demoStatus } from './demo-status'
 import { getDemosCatalog } from './demos'
+import type { DemoBar } from './home-content'
 
 let {
   src,
-  title,
-  autoStart = true,
   poster,
-  posterAlt = title + ' preview',
-  class: className = '',
+  posterAlt,
+  bar,
 }: {
   src: string
-  title: string
-  autoStart?: boolean
-  poster?: string
-  posterAlt?: string
-  aspect?: string
-  class?: string
+  poster: string
+  posterAlt: string
+  bar: DemoBar
 } = $props()
 let container: HTMLDivElement
 let iframe: HTMLIFrameElement | undefined = $state()
-let active = $state(untrack(() => autoStart))
+let active = $state(false)
 let mounted = $state(false)
 let attempt = $state(0)
 let status = $state<'loading' | 'ready' | 'failed'>('loading')
 let fullscreenMessage = $state('')
 let fullscreenPending = $state(false)
 let allowed = $derived(getDemosCatalog().some((d) => d.bundleUrl === src))
-// Prerendered /examples has no query selection. Create resource URLs only after hydration,
-// otherwise Svelte preserves the server's default iframe src for a different selected demo.
+// The frame's address is made after hydration, so the prerendered page never carries a stale one.
 onMount(() => {
-  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) active = false
+  if (document.documentElement.dataset.playPressed !== undefined) {
+    delete document.documentElement.dataset.playPressed
+    active = true
+  }
   mounted = true
 })
 $effect(() => {
   // A changed src or retry gets a fresh deadline. Cleanup prevents late results from previous frames.
-  const source = src
-  const retry = attempt
+  void src
+  void attempt
   if (!active || !iframe || !allowed) return
   status = 'loading'
   const poll = setInterval(() => {
@@ -77,46 +78,49 @@ async function fullscreen() {
   fullscreenPending = true
   const impatient = setTimeout(() => {
     fullscreenPending = false
-    fullscreenMessage = "Full screen didn't start. Try Open in a new tab."
+    fullscreenMessage = bar.fullScreenSlow
   }, FULLSCREEN_PATIENCE_MS)
   try {
     if (document.fullscreenElement) await document.exitFullscreen()
     else await container.requestFullscreen()
     fullscreenMessage = ''
   } catch {
-    fullscreenMessage = "Full screen isn't available here. Try Open in a new tab."
+    fullscreenMessage = bar.noFullScreen
   } finally {
     clearTimeout(impatient)
     fullscreenPending = false
   }
 }
+let playing = $derived(active && allowed && mounted)
 </script>
-<div bind:this={container} data-testid="demo-runner-container" data-ui class={`demo-runner ${className}`}>
-  <div class="demo-toolbar">
-    <strong><span class="led" data-state={active && mounted ? (status === 'ready' ? 'live' : status === 'loading' ? 'loading' : 'off') : 'off'} aria-hidden="true"></span>{title}</strong>
-    <!-- The controls show only while the demo plays; stopped, the poster's Play is the one control. -->
-    {#if active}
-      <div class="control-row">
-        <button type="button" onclick={() => { attempt++; active = true }}>Start over</button>
-        <button type="button" aria-busy={fullscreenPending ? 'true' : undefined} onclick={fullscreen}>Full screen</button>
-        {#if allowed}<a href={src} target="_blank" rel="noopener noreferrer">Open in a new tab</a>{/if}
-        <!-- While stopped, the viewport overlay owns the single "Play demo" control. -->
-        <button type="button" onclick={() => active = false}>Stop</button>
-      </div>
-    {/if}
-  </div>
-  <div class="demo-viewport" data-playing={active && allowed && mounted ? '' : undefined}>
-    {#if active && allowed && mounted}
+<div bind:this={container} data-testid="demo-runner-container" data-ui class="demo-runner">
+  <div class="demo-viewport" data-playing={playing ? '' : undefined}>
+    {#if playing}
       {#key src + attempt}
-        <iframe bind:this={iframe} {src} {title} allow="autoplay; fullscreen" sandbox="allow-scripts allow-same-origin"></iframe>
+        <iframe bind:this={iframe} {src} title={bar.title} allow="autoplay; fullscreen"></iframe>
       {/key}
-      {#if status === 'loading'}<div class="demo-status" role="status"><p>Starting the demo…</p></div>{/if}
-      {#if status === 'failed'}<div class="demo-status"><p role="alert">This demo couldn't start. Try again or open it in a new tab.</p><button type="button" onclick={() => attempt++}>Retry</button></div>{/if}
-    {:else}
-      {#if poster && allowed}<picture><source type="image/webp" srcset={previewSrcset(poster)} sizes="(max-width: 700px) 100vw, 75vw" /><img class="demo-poster" src={poster} alt={posterAlt} width="1280" height="720" /></picture>{/if}
-      <div class:has-poster={poster && allowed} class="demo-status"><p>{!allowed ? 'This demo is unavailable.' : active && !mounted ? 'Starting the demo…' : poster ? 'Plays here, nothing to install.' : 'The demo is stopped. Play to start a fresh session.'}</p>{#if allowed && (!active || mounted)}<button type="button" onclick={() => active = true}>Play demo</button>{/if}</div>
+    {:else if allowed}
+      <picture><source type="image/webp" srcset={previewSrcset(poster)} sizes="(max-width: 700px) 100vw, 60vw" /><img class="demo-poster" src={poster} alt={posterAlt} width="1280" height="720" /></picture>
     {/if}
   </div>
-  {#if fullscreenMessage}<p class="small" role="status">{fullscreenMessage}</p>{/if}
-  <noscript><p>Playing here needs JavaScript. <a href={src}>Open the game on its own page</a>.</p></noscript>
+  <div class="demo-bar">
+    <div class="demo-words">
+      <strong>{bar.title}</strong>
+      {#if playing && status === 'failed'}<span role="alert">{bar.failed}</span>
+      {:else if fullscreenMessage}<span role="status">{fullscreenMessage}</span>
+      {:else if playing && status === 'loading'}<span role="status">{bar.starting}</span>
+      {:else}<span class="tagline">{bar.tagline}</span>{/if}
+    </div>
+    <div class="demo-actions">
+      {#if playing && status === 'failed'}
+        <button type="button" onclick={() => attempt++}>{bar.retry}</button>
+      {:else if playing}
+        <button type="button" aria-busy={fullscreenPending ? 'true' : undefined} onclick={fullscreen}>{bar.fullScreen}</button>
+        <button type="button" onclick={() => (active = false)}>{bar.stop}</button>
+      {:else}
+        <button type="button" data-play onclick={() => (active = true)}>{bar.play}</button>
+      {/if}
+    </div>
+  </div>
+  <noscript><p class="small">Playing here needs JavaScript. <a href={src}>Open the game on its own page</a>.</p></noscript>
 </div>

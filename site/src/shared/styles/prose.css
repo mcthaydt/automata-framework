@@ -1,0 +1,89 @@
+/* A guide's own text: headings, callouts, pagination and tables. */
+.doc-content {
+  min-width: 0;
+  max-width: 46rem;
+}
+.doc-content h1 {
+  font-size: clamp(2.25rem, 1.4rem + 2.6vw, 3.75rem);
+  letter-spacing: -0.05em;
+}
+.doc-content h2 {
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  font-size: var(--step-lead);
+  margin-top: 3rem;
+  line-height: 1.2;
+}
+.doc-content h3 {
+  font-size: var(--step-body);
+  margin-top: 2rem;
+}
+.doc-content .code-block {
+  margin-block: 2rem;
+}
+.callout {
+  position: relative;
+  padding: 1.25rem 1.5rem;
+  background: #e7f0dc;
+  border-radius: var(--edge-md);
+  margin-block: 2rem;
+}
+.callout[data-callout="warning"],
+.callout[data-callout="caution"] {
+  background: #f4ecd8;
+}
+.callout p {
+  margin: 0;
+}
+.doc-pagination {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 4rem;
+}
+.doc-pagination a {
+  padding: 1.1rem 1.25rem;
+  border-radius: var(--edge-md);
+  background: var(--paper);
+  text-decoration: none;
+  font-size: var(--step-small);
+}
+.doc-pagination a:hover {
+  background: #fff;
+}
+.doc-pagination a:only-child:last-child:not(:first-child),
+.doc-pagination a + a {
+  text-align: right;
+}
+.table-scroll {
+  overflow: auto;
+}
+table {
+  border-collapse: collapse;
+  font-size: var(--step-small);
+  width: 100%;
+}
+th,
+td {
+  text-align: left;
+  padding: 0.8rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+thead th {
+  font-size: var(--step-small);
+  font-weight: 600;
+  color: var(--ink);
+  border-bottom-color: var(--line-strong);
+}
+@media (max-width: 700px) {
+  .doc-content h1 {
+    font-size: 2.25rem;
+  }
+  .doc-pagination {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .doc-pagination a + a {
+    text-align: left;
+  }
+}

@@ -1,5 +1,6 @@
 <script lang="ts">
 import { tick } from 'svelte'
+import './search.css'
 import type { ApiSearchRow } from '../../shared/framework/api'
 import { latestApiVersion, loadApiSearch, searchApi } from '../../shared/framework/api-reference'
 import { getExamples } from '../../shared/framework/example-catalog'

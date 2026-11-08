@@ -261,7 +261,7 @@ export function checkGameRoot(dir: string): StyleFinding[] {
   return findings
 }
 
-function lengthFindings(file: string, code: string): StyleFinding[] {
+export function lengthFindings(file: string, code: string): StyleFinding[] {
   const lineCount = code.endsWith('\n') ? code.split('\n').length - 1 : code.split('\n').length
   if (lineCount <= MAX_SOURCE_LINES) return []
   return [

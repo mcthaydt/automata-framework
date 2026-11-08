@@ -1,0 +1,89 @@
+/* The API reference: folded groups, then one quiet row per export (site visual audit H4). */
+.api-group {
+  border-top: 1px solid var(--line);
+}
+.api-group:last-of-type {
+  border-bottom: 1px solid var(--line);
+}
+.api-group > summary,
+.api-entry > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  cursor: pointer;
+  list-style: none;
+}
+.api-group > summary::-webkit-details-marker,
+.api-entry > summary::-webkit-details-marker {
+  display: none;
+}
+.api-group > summary {
+  align-items: center;
+  min-height: 56px;
+  padding-block: 0.5rem;
+}
+.api-group > summary h2 {
+  margin: 0;
+  font-size: var(--step-body);
+}
+/* A plus that turns to a minus: the fold's state, drawn without an icon font. */
+.api-group > summary::after {
+  content: "+";
+  margin-left: auto;
+  font: 500 1.25rem / 1 var(--font-mono);
+  color: var(--muted);
+}
+.api-group[open] > summary::after {
+  content: "−";
+}
+.api-entry {
+  /* A search result lands on the export below the sticky header, not under it. */
+  scroll-margin-top: 6rem;
+  border-top: 1px solid var(--line);
+  margin-left: 0.25rem;
+}
+.api-entry > summary {
+  min-height: 44px;
+  padding-block: 0.6rem;
+}
+.api-entry h3 {
+  margin: 0;
+  font-family: var(--font-mono); /* taste-skill-ignore: API names are code */
+  font-size: var(--step-small);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.api-summary {
+  flex-basis: 100%;
+  font-size: var(--step-small);
+  color: var(--muted);
+}
+.api-entry[open] .api-summary {
+  display: none;
+}
+.api-entry pre {
+  margin-block: 0.75rem 1.25rem;
+}
+
+/* A reference signature wraps instead of scrolling, so it needs no focus stop (hundreds sit on one package page). */
+.api-signature-wrapped {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  font-size: var(--step-small, 0.875rem);
+}
+.api-signature-wrapped code {
+  white-space: inherit;
+  overflow-wrap: anywhere;
+}
+/* Package and export names are long unbroken words; let them wrap on a phone. */
+.api-page h1,
+.api-page h2,
+.api-page h3 {
+  overflow-wrap: anywhere;
+}
+.api-entry p {
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}

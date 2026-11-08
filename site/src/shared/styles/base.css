@@ -1,0 +1,264 @@
+/* Reset, controls, links, the type scale and motion. */
+* {
+  box-sizing: border-box;
+}
+/* A <picture> only chooses the source; its <img> keeps the layout it would have on its own. */
+picture {
+  display: contents;
+}
+body {
+  margin: 0;
+  font-size: var(--step-body);
+  line-height: 1.6;
+  background: var(--bg);
+}
+button,
+input,
+select,
+summary {
+  font: inherit;
+}
+button,
+summary {
+  cursor: pointer;
+}
+button,
+a,
+summary {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Controls: one button pair at one height, corners 4 px. `.button` is the flat lime primary with an ink edge; a
+   plain button is the white secondary. Hover lifts 1 px and press sinks, for a fine pointer only. */
+button,
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--edge-sm);
+  background: var(--panel);
+  color: var(--ink);
+  min-height: 44px;
+  padding: 0 18px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.2;
+  transition:
+    transform 0.14s,
+    background 0.14s,
+    border-color 0.14s;
+}
+button:hover {
+  border-color: var(--ink);
+}
+.button {
+  width: fit-content;
+  flex-shrink: 0;
+  text-decoration: none;
+  min-height: 48px;
+  background: var(--lime);
+  border-color: var(--ink);
+  font-weight: 600;
+}
+.button:hover {
+  background: var(--primary-hover);
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  button:hover,
+  .button:hover {
+    transform: translateY(-1px);
+  }
+  button:active,
+  .button:active {
+    transform: translateY(1px) scale(0.985);
+  }
+}
+
+a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.24em;
+  text-decoration-color: var(--line-strong);
+}
+a:hover {
+  text-decoration-color: currentColor;
+}
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}
+:target {
+  scroll-margin-top: 6rem;
+}
+::selection {
+  background: rgb(29 39 138 / 0.2);
+  color: var(--ink);
+}
+h1,
+h2,
+h3 {
+  margin: 0 0 0.6em;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+/* One scale for every page: titles are bold, never light. */
+h1 {
+  font-size: clamp(36px, 4vw, 56px);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+h2 {
+  font-size: var(--step-title);
+  letter-spacing: -0.025em;
+}
+h3 {
+  font-size: var(--step-lead);
+  line-height: 1.2;
+}
+p {
+  max-width: 62ch;
+  margin: 0 0 1.25em;
+  text-wrap: pretty;
+}
+ul,
+ol {
+  padding-left: 1.5rem;
+}
+li {
+  margin-block: 0.5rem;
+}
+strong,
+dt {
+  font-weight: 600;
+}
+dd {
+  margin: 0;
+}
+pre,
+code,
+kbd {
+  font-family: var(--font-mono);
+} /* taste-skill-ignore */
+/* Inline code breaks only where a word cannot fit on its own line at all, never inside a word that could. */
+code {
+  font-size: 0.88em;
+  overflow-wrap: break-word;
+}
+pre {
+  margin: 0;
+  font-size: var(--step-small);
+  line-height: 1.7;
+  overflow-x: auto;
+  tab-size: 2;
+}
+pre code {
+  overflow-wrap: normal;
+  font-size: inherit;
+}
+:not(pre) > code {
+  padding: 0.1em 0.35em;
+  border-radius: var(--edge-sm);
+  background: var(--surface);
+}
+figure {
+  margin: 0;
+}
+input,
+select {
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--edge-md);
+  min-height: 48px;
+  padding: 0.6rem 0.9rem;
+  width: 100%;
+  max-width: 38rem;
+}
+input:focus-visible,
+select:focus-visible {
+  outline-offset: 2px;
+}
+label {
+  display: block;
+  font-size: var(--step-small);
+  font-weight: 500;
+  color: var(--ink);
+  margin-block: 1.25rem 0.5rem;
+}
+input::placeholder {
+  color: var(--muted);
+}
+.small {
+  font-size: var(--step-small);
+}
+.lead {
+  font-size: var(--step-lead);
+  line-height: 1.45;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.skip-link {
+  position: fixed;
+  top: -10rem;
+  left: 1rem;
+  z-index: 30;
+  padding: 0.75rem 1rem;
+  border-radius: var(--edge-sm);
+  background: var(--paper);
+}
+.skip-link:focus {
+  top: 1rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  button,
+  .button,
+  .demo-list a,
+  .docs-sidebar nav a,
+  nav.link-row a {
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      color 180ms ease,
+      box-shadow 240ms ease,
+      transform 160ms ease;
+  }
+  @keyframes lift {
+    from {
+      transform: translateY(16px);
+    }
+    to {
+      transform: none;
+    }
+  }
+  @keyframes settle {
+    from {
+      opacity: 0.7;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

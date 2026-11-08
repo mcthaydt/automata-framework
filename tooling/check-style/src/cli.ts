@@ -12,7 +12,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 import { checksLinks, checksPlanIds, docPlanIdFindings, linkFindings } from './docs.ts'
 import { planCommentFindings } from './plan-comments.ts'
-import { checkFile, checkGameRoot, type StyleFinding } from './style.ts'
+import { checkFile, checkGameRoot, lengthFindings, type StyleFinding } from './style.ts'
 import { checkSvelte } from './svelte.ts'
 import { testImportFindings } from './test-imports.ts'
 import { definedTokens, findUnknownTokens } from './tokens.ts'
@@ -122,11 +122,14 @@ add(packageRoots, {}, false)
 add(gameRoots, {}, true)
 add(commentRoots, { commentsOnly: true }, false)
 
-/** The findings for one file; a stylesheet has no naming or markup rules, so only its comments are read. */
+/**
+ * The findings for one file. A stylesheet or a comments-only root has no naming or markup rules, so only its
+ * length and its comments are read.
+ */
 function findingsFor(path: string, gameRoot: string | undefined, commentsOnly: boolean): StyleFinding[] {
   const code = readFileSync(path, 'utf8')
   const plan = planComments ? planCommentFindings(path, code) : []
-  if (commentsOnly || path.endsWith('.css')) return plan
+  if (commentsOnly || path.endsWith('.css')) return [...lengthFindings(path, code), ...plan]
   if (path.endsWith('.svelte')) return [...checkSvelte(path, code), ...plan]
   return checkFile(path, code, { ...(gameRoot === undefined ? {} : { gameRoot }), planComments })
 }

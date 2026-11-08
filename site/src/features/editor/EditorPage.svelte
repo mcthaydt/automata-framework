@@ -4,9 +4,10 @@
   lime button, white panels on hairlines, 4/6/8 px corners.
 -->
 <script lang="ts">
+import CodeBlock from '../../shared/components/CodeBlock.svelte'
 import Icon from '../../shared/components/Icon.svelte'
 import PageMeta from '../../shared/components/PageMeta.svelte'
-import TerminalBox from '../../shared/components/TerminalBox.svelte'
+import PageShell from '../../shared/components/PageShell.svelte'
 import { EDITOR_COMMAND, PICTURES } from './editor-content'
 
 const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
@@ -16,7 +17,7 @@ const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
   title="The level editor"
   description="Draw your game's levels in the browser: paint rooms and place characters, and every change is saved. Try it here, nothing to install."
 />
-<div class="wrap">
+<PageShell wide>
   <header class="top">
     <p class="kicker">Editor</p>
     <h1>Draw your levels in the browser.</h1>
@@ -53,17 +54,12 @@ const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
   <section class="own">
     <h2>On your own game</h2>
     <p>In your game's folder, this opens the same editor on your levels, and every change goes straight into the game.</p>
-    <TerminalBox command={EDITOR_COMMAND} />
+    <CodeBlock code={EDITOR_COMMAND} variant="command" />
     <p><a href="/docs/editor">Draw levels in the editor</a> says more.</p>
   </section>
-</div>
+</PageShell>
 
 <style>
-  .wrap {
-    width: min(1120px, 100% - 2 * var(--side));
-    margin: 0 auto;
-    padding: 72px 0 112px;
-  }
   .kicker {
     margin: 0;
     color: var(--faint);
@@ -71,11 +67,6 @@ const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
   }
   h1 {
     margin: 12px 0 0;
-    font-size: clamp(36px, 4vw, 56px);
-    font-weight: 600;
-    line-height: 1.05;
-    letter-spacing: -0.035em;
-    text-wrap: balance;
   }
   .lead {
     max-width: 620px;
@@ -151,9 +142,6 @@ const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
     font-weight: 500;
   }
   @media (max-width: 760px) {
-    .wrap {
-      padding: 40px 0 72px;
-    }
     .pictures {
       grid-template-columns: minmax(0, 1fr);
     }

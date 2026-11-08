@@ -2,6 +2,33 @@
 // one `create-game` answers to, the code is the shapes example's own lines, and each target's command is one
 // `automata ship` accepts (the four targets of ADR 0006). The page itself only lays these out.
 
+/** The words on the demo's one bar (spec section 7): every state of it, so the runner holds no copy of its own. */
+export interface DemoBar {
+  readonly title: string
+  readonly tagline: string
+  readonly play: string
+  readonly fullScreen: string
+  readonly stop: string
+  readonly starting: string
+  readonly failed: string
+  readonly retry: string
+  readonly noFullScreen: string
+  readonly fullScreenSlow: string
+}
+
+export const DEMO_BAR: DemoBar = {
+  title: 'Emberwick',
+  tagline: 'A platformer made with Automata',
+  play: 'Play it',
+  fullScreen: 'Full screen',
+  stop: 'Stop',
+  starting: 'Starting Emberwick…',
+  failed: "Emberwick didn't start.",
+  retry: 'Try again',
+  noFullScreen: "Full screen isn't available here.",
+  fullScreenSlow: "Full screen didn't start.",
+}
+
 /** The first command a new author runs. */
 export const CREATE_COMMAND = 'npx @automata/tools create-game my-game'
 
