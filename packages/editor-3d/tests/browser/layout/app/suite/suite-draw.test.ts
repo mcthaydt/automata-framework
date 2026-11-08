@@ -281,12 +281,16 @@ describe.each(CASES)('Placing the game’s furniture in the suite at $label', ({
     if (crate === undefined) throw new Error('the palette has no Crate')
     crate.click()
     await arrived()
+    const height = plan().getBoundingClientRect().height
     for (const type of ['pointermove', 'pointerdown', 'pointerup']) pointerAt(type, pageOf(4, 3), finger)
     await arrived()
     const labels = [...document.querySelectorAll<HTMLElement>('button')].map(
       (candidate) => candidate.getAttribute('aria-label') ?? '',
     )
     expect(labels).toContain('Undo Add crate')
+    // The status line under the plan names what is selected; it must not grow and shrink the plan, which would slide
+    // the room under a finger that is dragging.
+    expect(plan().getBoundingClientRect().height, 'the plan keeps its height').toBe(height)
   })
 })
 

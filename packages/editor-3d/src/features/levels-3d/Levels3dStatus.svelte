@@ -64,4 +64,12 @@ const words = $derived(
     font: var(--text-body-13);
     color: var(--color-text-dim);
   }
+  /* On a phone the words wrap to a second line once something is selected. Three lines and their gaps are kept (the file, then
+     two for the words), so the plan above never shrinks and slides the room under a finger that is dragging. */
+  @media (max-width: 600px) {
+    .status {
+      align-content: flex-start;
+      min-height: calc(3 * 1lh + 2 * var(--space-3));
+    }
+  }
 </style>
