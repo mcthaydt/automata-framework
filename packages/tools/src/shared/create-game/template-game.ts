@@ -41,8 +41,8 @@ export const Move = defineCommand('move', z.object({ x: axis, y: axis }))
   {
     path: 'src/features/square/move.system.ts',
     content: () => `import { defineSystem } from '@automata/sim'
-import { SPEED, SQUARE_SIZE } from '../../shared/constants.ts'
-import { levelIn } from '../level/read-level.ts'
+import { SQUARE_SIZE } from '../../shared/constants.ts'
+import { playIn } from '../level/read-level.ts'
 import { hitsWall } from '../level/walls.ts'
 import { Bumped } from './bumped.event.ts'
 import { Move } from './move.command.ts'
@@ -53,14 +53,14 @@ import { Square } from './square.component.ts'
  * sim changes the game, so a replay ends where play did.
  */
 export const move = defineSystem('move', (ctx) => {
-  const level = levelIn(ctx.content)
+  const { level, tuning } = playIn(ctx.content)
   for (const { payload } of ctx.commands.of(Move))
     for (const square of ctx.query(Square)) {
       const { x, y, blocked } = square.get(Square)
       // One axis at a time, so a square pushed into a wall at an angle slides along it instead of stopping.
-      const nextX = x + payload.x * SPEED
+      const nextX = x + payload.x * tuning.SPEED
       const movedX = hitsWall(level, nextX, y, SQUARE_SIZE) ? x : nextX
-      const nextY = y + payload.y * SPEED
+      const nextY = y + payload.y * tuning.SPEED
       const movedY = hitsWall(level, movedX, nextY, SQUARE_SIZE) ? y : nextY
       // Pressed into a wall: a move was asked for and none of it happened. Said once, not every tick it is held.
       const pressed = (payload.x !== 0 || payload.y !== 0) && movedX === x && movedY === y
@@ -106,13 +106,33 @@ export const GAME_FILES: readonly TemplateFile[] = [
     path: 'src/shared/constants.ts',
     content:
       () => `// The numbers the game is built from. Both the sim and the screen read them, so they live here. The game's size is
-// its level's (content/levels/start.af2d.json, made in the 2D editor).
-
-/** How far the square moves each tick, in the game's pixels. */
-export const SPEED = 2
+// its level's (content/levels/start.af2d.json, made in the 2D editor). How fast the square moves is not here: a designer
+// changes it, in content/tuning.toml.
 
 /** The square's side, in the game's pixels. */
 export const SQUARE_SIZE = 8
+`,
+  },
+  {
+    path: 'src/shared/tuning.ts',
+    content:
+      () => `// The numbers a designer changes, in content/tuning.toml (the Tuner opens it). The compiler checks each against its
+// range; this reads them once, so a missing one stops the game at boot with a sentence that says which.
+
+/** The tunables content/tuning.toml holds. */
+export interface Tuning {
+  /** How far the square moves each tick, in the game's pixels. */
+  readonly SPEED: number
+}
+
+/** The tunables of the game's compiled content (virtual:automata/content). */
+export function tuningOf(content: unknown): Tuning {
+  const table = (content as { readonly tuning?: Readonly<Record<string, unknown>> } | null)?.tuning
+  const speed = table?.SPEED
+  if (typeof speed !== 'number' || !(speed > 0))
+    throw new Error('The content has no speed. Check content/tuning.toml.')
+  return { SPEED: speed }
+}
 `,
   },
   ...LEVEL_FILES,
@@ -124,12 +144,17 @@ import { controlsFrom, defaultContent, defineGame } from '@automata/framework'
 import { content } from 'virtual:automata/content'
 import { LEVEL } from '../features/level/level.ts'
 import { LEVEL_SCENE } from '../features/level/level-scene.ts'
+import type { PlayContent } from '../features/level/read-level.ts'
 import { Move } from '../features/square/move.command.ts'
 import { Square } from '../features/square/square.component.ts'
 import { squarePlugin } from '../features/square/square.plugin.ts'
 import { squareView } from '../features/square/square.view.ts'
 import { SQUARE_SIZE } from '../shared/constants.ts'
+import { tuningOf } from '../shared/tuning.ts'
 import { audio, feelOnStage } from './feel-audio.ts'
+
+/** What the sim reads: the level and the tuning. */
+const PLAY: PlayContent = { level: LEVEL, tuning: tuningOf(content) }
 
 /** The default controls, as content/controls.toml (arrows or WASD, the pad's D-pad, and touch buttons). */
 if (content.controls === undefined) throw new Error('There is no controls file. Add content/controls.toml.')
@@ -148,8 +173,8 @@ export const game = defineGame({
       sim.spawn([[Square, { x: LEVEL.start.x, y: LEVEL.start.y - SQUARE_SIZE / 2 }]])
     },
   },
-  // The default screens' flow, and the level as the sim's content (what its systems read as \`ctx.content\`).
-  content: { ...defaultContent(), sim: LEVEL },
+  // The default screens' flow, and the level and tuning as the sim's content (what its systems read as \`ctx.content\`).
+  content: { ...defaultContent(), sim: PLAY },
   // The keys, pad buttons and touch buttons are content/controls.toml, which the Tuner edits.
   input: controlsFrom(Move, CONTROLS),
   views: squareView,
@@ -301,14 +326,17 @@ import { Bumped } from '../../../src/features/square/bumped.event.ts'
 import { Move } from '../../../src/features/square/move.command.ts'
 import { Square } from '../../../src/features/square/square.component.ts'
 import { squarePlugin } from '../../../src/features/square/square.plugin.ts'
-import { SPEED, SQUARE_SIZE } from '../../../src/shared/constants.ts'
+import type { PlayContent } from '../../../src/features/level/read-level.ts'
+import { SQUARE_SIZE } from '../../../src/shared/constants.ts'
 
 // The sim is plain code, so its test needs no browser: make a sim on the level, send it commands, read what it holds.
+const SPEED = 2
+const PLAY: PlayContent = { level: LEVEL, tuning: { SPEED } }
 const OPEN = { x: 100, y: 50 }
 const ON_THE_START = { x: LEVEL.start.x, y: LEVEL.start.y - SQUARE_SIZE / 2 }
 
 async function squareAfter(moves: readonly { x?: number; y?: number }[], from = OPEN) {
-  const sim = await createSim({ seed: 1, tickHz: 60, plugins: [squarePlugin], content: LEVEL })
+  const sim = await createSim({ seed: 1, tickHz: 60, plugins: [squarePlugin], content: PLAY })
   sim.spawn([[Square, from]])
   for (const payload of moves)
     sim.step([{ tick: sim.tick, source: 0, seq: sim.tick, type: Move.id, payload: { x: 0, y: 0, ...payload } }])
@@ -335,7 +363,7 @@ describe('${options.title}: the square', () => {
   })
 
   it('says it bumped once when it is pressed into the floor, not every tick it is held there', async () => {
-    const sim = await createSim({ seed: 1, tickHz: 60, plugins: [squarePlugin], content: LEVEL })
+    const sim = await createSim({ seed: 1, tickHz: 60, plugins: [squarePlugin], content: PLAY })
     sim.spawn([[Square, ON_THE_START]])
     const press = () =>
       sim.step([{ tick: sim.tick, source: 0, seq: sim.tick, type: Move.id, payload: { x: 0, y: 1 } }])

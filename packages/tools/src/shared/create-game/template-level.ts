@@ -9,6 +9,7 @@ export const LEVEL_FILES: readonly TemplateFile[] = [
   {
     path: 'src/features/level/read-level.ts',
     content: () => `import { type ContentLevel, entitiesOf, intGridRows } from '@automata/content/level-2d'
+import type { Tuning } from '../../shared/tuning.ts'
 
 // Reads a level the 2D editor exported into what this game plays: its size, its walls and where the player starts.
 // Pure, so the sim can hold the result.
@@ -40,8 +41,14 @@ export function levelOf(level: ContentLevel): Level {
   return { width: level.size.w, height: level.size.h, tile: level.size.w / columns, cells, start: { x: start.x, y: start.y } }
 }
 
-/** The level a system finds in \`ctx.content\`: the app gives the sim \`LEVEL\` as its content (src/app/game.ts). */
-export const levelIn = (content: unknown): Level => content as Level
+/** What the sim reads as its content: the level, and the tunables a designer changes (src/shared/tuning.ts). */
+export interface PlayContent {
+  readonly level: Level
+  readonly tuning: Tuning
+}
+
+/** The content a system finds in \`ctx.content\`: the app gives the sim \`{ level, tuning }\` (src/app/game.ts). */
+export const playIn = (content: unknown): PlayContent => content as PlayContent
 `,
   },
   {
@@ -78,6 +85,7 @@ declare module 'virtual:automata/content' {
   export const content: {
     readonly project?: unknown
     readonly controls?: unknown
+    readonly tuning?: Readonly<Record<string, unknown>>
     readonly levels?: Readonly<Record<string, unknown>>
     readonly feel?: Readonly<Record<string, unknown>>
     readonly audio?: Readonly<Record<string, unknown>>

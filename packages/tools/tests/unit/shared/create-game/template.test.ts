@@ -44,6 +44,7 @@ describe('the new game’s files', () => {
       'src/features/square/square.view.ts',
       'src/main.ts',
       'src/shared/constants.ts',
+      'src/shared/tuning.ts',
       'tests/unit/level/read-level.test.ts',
       'tests/unit/square/square-move.test.ts',
     ])
@@ -58,6 +59,7 @@ describe('the new game’s files', () => {
       'content/levels/start.af2d.json',
       'content/levels/start.toml',
       'content/project.toml',
+      'content/tuning.toml',
       'content/world.toml',
     ])
     const list = read('content/editors.toml')
@@ -72,6 +74,13 @@ describe('the new game’s files', () => {
       'automataContent({ schemas: [...level2dKinds(), controlsKind(), feelContent, audioContent] })',
     )
     expect(read('.gitignore').split('\n')).toContain('content/generated/')
+  })
+
+  it("plays the level and the tuning as the sim's content, and reads the speed from content/tuning.toml", () => {
+    expect(read('src/app/game.ts')).toContain('sim: PLAY')
+    expect(read('src/app/game.ts')).toContain('{ level: LEVEL, tuning: tuningOf(content) }')
+    expect(read('src/shared/constants.ts')).not.toContain('SPEED')
+    expect(read('src/features/square/move.system.ts')).toContain('tuning.SPEED')
   })
 
   it('has no src/sim folder and no files laid out by role', () => {
