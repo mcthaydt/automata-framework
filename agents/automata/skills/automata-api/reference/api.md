@@ -1868,7 +1868,7 @@ const STANDARD_PAD_BUTTON_MAX = 16;
 
 #### `STICK_DIRECTIONS` (const)
 
-_No doc comment._
+The eight stick directions a stick action can be bound to: each stick's up, down, left and right.
 
 ```ts
 const STICK_DIRECTIONS: readonly ["left-up", "left-down", "left-left", "left-right", "right-up", "right-down", "right-left", "right-right"];
@@ -2654,7 +2654,7 @@ function parseTileToken(base: string): TileCell | undefined;
 
 #### `Picture` (type)
 
-_No doc comment._
+What a character is drawn as: one tile of a tileset, or a flat coloured shape.
 
 ```ts
 type Picture = {
@@ -6318,7 +6318,7 @@ interface PresentationBus<Facts = RuntimeFacts> {
 
 #### `PROMPT_COPY` (const)
 
-_No doc comment._
+The English words for button and key prompts ("Not set", "Tap", the pad's buttons), for a game to override.
 
 ```ts
 const PROMPT_COPY: PromptCopy;

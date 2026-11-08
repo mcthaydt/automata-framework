@@ -188,7 +188,7 @@
 - `RESERVED_KEYS` (const): Keys never bindable in a game's profile: Escape (the one back path) and Tab (focus).
 - `RESERVED_PAD_BUTTONS` (const): Never bindable in a game's profile: Ruken's SDK summons the host on pad 8 (View), 16 is Home, Escape is the one back path and Tab moves focus.
 - `STANDARD_PAD_BUTTON_MAX` (const): The highest button index of the W3C Gamepad standard mapping (0 = bottom face button … 16 = home).
-- `STICK_DIRECTIONS` (const)
+- `STICK_DIRECTIONS` (const): The eight stick directions a stick action can be bound to: each stick's up, down, left and right.
 - `StickDirection` (type): A stick pushed past its dead zone in one direction (the input service reads them).
 
 ### `import { … } from '@automata/content/game-config'`
@@ -260,7 +260,7 @@
 - `levelContentSchema` (const): The strict schema of `levels/<id>.toml`.
 - `objectsOf(level, layer)`: The items of an objects layer, in file order.
 - `parseTileToken(base)`: A tile token without its repeat (`7`, `7h`, `7hv`) as a tile, or undefined when it is not one.
-- `Picture` (type)
+- `Picture` (type): What a character is drawn as: one tile of a tileset, or a flat coloured shape.
 - `pictureOf(def)`: The picture of a definition: its tile, else its colour as its flat shape.
 - `PLACEHOLDER_COLORS` (const): Twelve flat colours far enough apart to tell neighbouring indices apart; tile `n` takes colour `n % 12`, so a placeholder looks the same wherever it is drawn and whatever happened to the image.
 - `placeholderColor` (const): The placeholder colour of tile `tile`.
@@ -556,7 +556,7 @@
 - `PostFilterDef` (interface): A declared filter, as `postFilter` returns it and `PixiRendererOptions.postFilters` takes it.
 - `PostFilterSpec` (interface): What a screen-space filter is made of: the same effect written twice, for WebGL2 (`glsl`) and WebGPU (`wgsl`), so the two renderers stay at parity.
 - `PresentationBus` (interface): The presentation bus: typed facts the runtime publishes for screens, audio and tests to hear.
-- `PROMPT_COPY` (const)
+- `PROMPT_COPY` (const): The English words for button and key prompts ("Not set", "Tap", the pad's buttons), for a game to override.
 - `PromptCopy` (interface): Every word a prompt shows, in the game's language.
 - `QualityTier` (type): A graphics quality tier: `high`, `medium` or `low`.
 - `rect(options)`: A filled rectangle that follows its component's `x`, `y` and `angle`, interpolated between ticks: `entityViews: { [Body.id]: rect({ w: 8, h: 8, color: 0xf9c22b }) }`.

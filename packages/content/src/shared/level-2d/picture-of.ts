@@ -7,6 +7,7 @@ import type { ContentEntityDef } from './content.schema.ts'
 /** The grey for a colour that is missing or is a kit token the game cannot read (the editor's neutral). */
 export const NEUTRAL_COLOR = '#8e8c85'
 
+/** What a character is drawn as: one tile of a tileset, or a flat coloured shape. */
 export type Picture =
   | { readonly kind: 'tile'; readonly tileset: string; readonly index: number }
   | { readonly kind: 'flat'; readonly shape: 'rect' | 'ellipse' | 'point'; readonly color: string }

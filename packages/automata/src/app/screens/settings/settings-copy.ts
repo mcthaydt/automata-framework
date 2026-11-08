@@ -9,6 +9,7 @@ import type { LanguageCopy } from './language-section.ts'
 import type { TouchCopy } from './touch-section.ts'
 import type { VibrationCopy } from './vibration-section.ts'
 
+/** The English words for button and key prompts ("Not set", "Tap", the pad's buttons), for a game to override. */
 export const PROMPT_COPY: PromptCopy = {
   unbound: 'Not set',
   touch: 'Tap',
