@@ -498,7 +498,7 @@ deploy (`site.yml`, the runbook's launch steps), the domain `automataframework.c
 
 | Stage | Status | Record |
 |---|---|---|
-| 1. Audit | Done, 2026-11-08 (PR stacked on #473): 3 critical (C1 to C3), 12 important (I1 to I12), 9 minor (M1 to M9); 5 decisions for the Owner (D1 to D5). Tagged "Recheck after 3D/Plus merge": C1, I2, I4, I6, I7, I8, I9, I12. The build, the closed-beta scan, `svelte-check` (0 errors), 340 unit tests, `check:site` (35 pages) and the Chromium suite (345 of 345) pass; the visual sweep of 222 views finds no sideways scroll and no text under 12 px; `check:launch` fails (C1 to C3). Headline: `@automata` on npm belongs to an existing account (`@automataframework` is free), and `automataframework.com` is not registered while `main`'s `SECURITY.md` sends reports to it | [2026-11-08-site-audit.md](2026-11-08-site-audit.md) |
+| 1. Audit | Done, 2026-11-08 (PR stacked on #473): 3 critical (C1 to C3), 12 important (I1 to I12), 9 minor (M1 to M9); 5 decisions for the Owner (D1 to D5); the Owner took D1 the same day: `@automataframework` replaces `@automata` as the npm scope. Tagged "Recheck after 3D/Plus merge": C1, I2, I4, I6, I7, I8, I9, I12. The build, the closed-beta scan, `svelte-check` (0 errors), 340 unit tests, `check:site` (35 pages) and the Chromium suite (345 of 345) pass; the visual sweep of 222 views finds no sideways scroll and no text under 12 px; `check:launch` fails (C1 to C3). Headline: `@automata` on npm belongs to an existing account (`@automataframework` is free), and `automataframework.com` is not registered while `main`'s `SECURITY.md` sends reports to it | [2026-11-08-site-audit.md](2026-11-08-site-audit.md) |
 | 2. Plan and spec | Not started | |
 | 3. Plan audit | Not started | |
 | 4. Build | Not started | |
@@ -506,5 +506,6 @@ deploy (`site.yml`, the runbook's launch steps), the domain `automataframework.c
 | 6. Fixes | Not started | |
 
 **Where to resume (2026-11-08, stage 1 done):** the plan and spec (Opus, medium, with the superpowers plugin) start from
-the audit's sections 3 to 7. The rename (C1) waits for the Owner's D1 and for the Plus port to merge; the deploy (C3)
-waits for D2 and D3; the findings tagged "Recheck after 3D/Plus merge" are read again on the merged `main` first.
+the audit's sections 3 to 7. The rename (C1) to `@automataframework` (D1, the Owner's) waits for the Plus port to merge,
+and the Owner creates the organisation on npmjs.org; the deploy (C3) waits for D2 and D3; the findings tagged "Recheck
+after 3D/Plus merge" are read again on the merged `main` first.

@@ -98,7 +98,8 @@ Playwright config (`test:e2e:playground`); Lighthouse.
 - **Why it is critical.** A stranger's first action fails. The first release (task 14.2, the Owner's step "create
   @automata org on npmjs.org") cannot happen under this name.
 - **For the plan.** The rename is a codemod like 14.1's (964 files there); run it after the Plus port merges, so the
-  extensions are renamed in the same pass. Owner's call: D1. **Recheck after 3D/Plus merge** (the file count grows).
+  extensions are renamed in the same pass. The Owner took D1 the same day: `@automataframework`. **Recheck after
+  3D/Plus merge** (the file count grows).
 
 ### C2. `automataframework.com` is not registered, and `main` sends security reports to it
 
@@ -269,7 +270,7 @@ them as the 3D slice's, so one plan owns each page.
 
 | # | Decision | Recommendation |
 |---|---|---|
-| D1 | The npm scope, since `@automata` is taken (C1) | `@automataframework`: free today and the same name as the domain. Claim it now (an organisation on npmjs.org), before someone else does. Asking npm for `@automata` is slow and may fail |
+| D1 | The npm scope, since `@automata` is taken (C1) | `@automataframework`: free today and the same name as the domain. Claim it now (an organisation on npmjs.org), before someone else does. Asking npm for `@automata` is slow and may fail. **Taken by the Owner, 2026-11-08: `@automataframework`** |
 | D2 | Register `automataframework.com` and create the mailbox (C2) | Register it today; one mailbox, hello@, for questions and security reports |
 | D3 | The host (C3) | A static host that reads a headers file: Cloudflare Pages or Netlify. Not GitHub Pages (no response headers) |
 | D4 | When to launch (I11) | After the first release on the chosen scope, so the first command works and the API addresses settle |
