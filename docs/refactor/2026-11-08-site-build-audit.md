@@ -12,8 +12,7 @@
   browser (Playwright, built site served by `serve-static.ts`): 12 addresses at 390 × 844 (touch) and 1440 × 900;
   Home's "Play it" pressed once right after `commit`, then played to the game's menu, Full screen and Stop; the try-it
   editor at both sizes (New level, Platformer, three coins, Share, Download); the downloaded level taken into a new game
-  made with `automata create-game`, opened with `automata editor` and played (C1). The site's Chromium e2e suite was
-  started; its result is at the end of this file.
+  made with `automata create-game`, opened with `automata editor` and played (C1). The site's Chromium e2e suite passed (445, section 6).
 - **Not run:** WebKit, Firefox, a real Cloudflare upload, `pnpm lint:actions` (no Docker), Lighthouse, the full
   `pnpm check` (the PR reports it red on packages below the slice; not rechecked).
 
@@ -195,4 +194,4 @@ fix stage's main job. M1 to M8 can ride along.
 
 ## 6. The site's Chromium e2e suite
 
-(Filled in below when the run ended.)
+`pnpm exec playwright test --project chromium --trace off` in `site/`, on this build: **445 passed in 10.5 min**. That count includes the phone-edge test marked `test.fail` (I2), which passes because it fails as expected. The suite passing while C1 and C2 hold is a finding of its own: the visitor journeys stop at the frame mounting and at the level being drawn in the try-it, so neither the time to play nor a level played in a game is tested.
