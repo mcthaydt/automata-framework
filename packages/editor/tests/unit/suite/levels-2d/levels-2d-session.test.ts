@@ -143,4 +143,42 @@ describe('Levels 2D session', () => {
       expect((await memory.ports.workspace.read('content/project.toml'))?.text).toBe(projectBefore)
     })
   })
+
+  describe('pictures', () => {
+    const PICTURE = new Uint8Array([137, 80, 78, 71])
+
+    it('reads a level’s pictures from the workspace unless the host brings its own reader', async () => {
+      const memory = await createMemoryPorts({
+        files: { [PATH]: levelProject.print('', platformerTemplate.create(counterIds())) },
+        classify: file,
+        changeSet: false,
+      })
+      await memory.ports.workspace.writeBytes?.('assets/tiles.png', PICTURE, 'absent')
+      const session = await openLevels2d([file(PATH)], memory.ports, { ids: counterIds(500) })
+      expect(await session.read('assets/tiles.png')).toEqual(PICTURE)
+      expect(await session.read('assets/none.png')).toBeUndefined()
+      const own = await openLevels2d([file(PATH)], memory.ports, {
+        ids: counterIds(500),
+        read: () => Promise.resolve(new Uint8Array([1])),
+      })
+      expect(await own.read('assets/tiles.png')).toEqual(new Uint8Array([1]))
+    })
+
+    it('adds a picture to the game the way Add tiles writes it, never over a file that is there', async () => {
+      const memory = await createMemoryPorts({
+        files: { [PATH]: levelProject.print('', platformerTemplate.create(counterIds())) },
+        classify: file,
+        changeSet: false,
+      })
+      const session = await openLevels2d([file(PATH)], memory.ports, { ids: counterIds(500) })
+      const files = session.files
+      expect(files).toBeDefined()
+      expect(await files?.write('assets/tiles.png', PICTURE, 'absent')).toMatchObject({ ok: true })
+      expect((await files?.list('assets/'))?.map((entry) => entry.path)).toEqual(['assets/tiles.png'])
+      expect(await files?.write('assets/tiles.png', PICTURE, 'absent')).toMatchObject({
+        ok: false,
+        reason: 'conflict',
+      })
+    })
+  })
 })

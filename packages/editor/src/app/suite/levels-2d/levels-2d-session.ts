@@ -3,9 +3,9 @@ import { createLevelSession, type LevelSession } from '../../../features/level/l
 import { createHistory, type History } from '../../../shared/kit/history/history.ts'
 import type { SuiteUndo } from '../../../shared/kit/ports/suite-editor.ts'
 import type { SuitePorts, WorkspaceFile } from '../../../shared/kit/ports/suite-ports.ts'
-import type { WriteExpectation } from '../../../shared/kit/storage/project-store.ts'
+import type { ProjectStore, WriteExpectation } from '../../../shared/kit/storage/project-store.ts'
 import { readDocument } from '../../../shared/level-2d/documents/read-document'
-import type { LevelCanvasProps } from '../../../shared/level-2d/documents/view-props'
+import type { LevelCanvasProps, ObjectUrls } from '../../../shared/level-2d/documents/view-props'
 import type { IdSource } from '../../../shared/level-2d/model/ids'
 import type { ParseError, Profile } from '../../../shared/level-2d/profiles/profile'
 import { createAppProfiles } from '../../editor-2d/profiles'
@@ -20,10 +20,12 @@ export interface Levels2dOptions {
   /** Where the ids of placed instances come from. */
   readonly ids: IdSource
   /**
-   * Reads a workspace file's bytes for the canvas and the palette (tileset images). The suite's workspace reads text
-   * only, so the default reads nothing and the tiles show numbered until a host passes a byte reader.
+   * Reads a workspace file's bytes for the canvas and the palette (tileset images). By default the workspace's own
+   * `readBytes`; a workspace of text only reads nothing and the tiles show numbered.
    */
   readonly read?: ((path: string) => Promise<Uint8Array | undefined>) | undefined
+  /** Makes URLs for the tile pictures the panels show; absent (jsdom), they show numbered. */
+  readonly objectUrls?: ObjectUrls | undefined
   /** The level canvas; the Pixi `LevelCanvas` when absent (jsdom tests pass a stand-in). */
   readonly canvas?: Component<LevelCanvasProps> | undefined
 }
@@ -42,6 +44,10 @@ export interface Levels2dSession {
   readonly options: Levels2dOptions
   /** The other files of the row group, which this session does not open (one file per open, plan decision 2). */
   readonly others: readonly string[]
+  /** Reads a picture's bytes (options' reader, else the workspace's). */
+  read(path: string): Promise<Uint8Array | undefined>
+  /** Where Add tiles writes its picture; absent when the workspace cannot write one. */
+  readonly files: Pick<ProjectStore, 'list' | 'write'> | undefined
   readonly state: Levels2dState
   /** Why the last write was refused (that step was taken back); `undefined` after a write that went through. */
   readonly refusal: string | undefined
@@ -58,7 +64,29 @@ function chosen(files: readonly WorkspaceFile[]): string {
   return (files.find((file) => file.path.toLowerCase().endsWith('.af2d.json')) ?? files[0])?.path ?? ''
 }
 
+/** The pictures side of a session: its reader and, where the workspace can write one, the store Add tiles uses. */
+function picturesOf(options: Levels2dOptions, ports: SuitePorts) {
+  const readBytes = ports.workspace.readBytes?.bind(ports.workspace)
+  const read = options.read ?? readBytes ?? (() => Promise.resolve(undefined))
+  const { writeBytes } = ports.workspace
+  const files: Pick<ProjectStore, 'list' | 'write'> | undefined =
+    writeBytes === undefined
+      ? undefined
+      : {
+          list: async (prefix = '') =>
+            (await ports.workspace.files())
+              .filter((each) => each.path.startsWith(prefix))
+              .map((each) => ({ path: each.path, size: 0, mtime: 0 })),
+          write: (path, data, expected) =>
+            typeof data === 'string'
+              ? ports.workspace.write(path, data, expected ?? 'absent')
+              : writeBytes.call(ports.workspace, path, data, expected ?? 'absent'),
+        }
+  return { read, files }
+}
+
 function failed(
+  ports: SuitePorts,
   options: Levels2dOptions,
   path: string,
   others: readonly string[],
@@ -69,6 +97,7 @@ function failed(
     path,
     options,
     others,
+    ...picturesOf(options, ports),
     state: { kind: 'error', message, errors },
     refusal: undefined,
     settled: () => Promise.resolve(),
@@ -86,19 +115,25 @@ export async function openLevels2d(
   const others = files.map((file) => file.path).filter((each) => each !== path)
   const read = path === '' ? undefined : await ports.workspace.read(path).catch(() => undefined)
   if (read === undefined)
-    return failed(options, path, others, `${path || 'This row'} can’t be opened: there is no such file.`)
+    return failed(
+      ports,
+      options,
+      path,
+      others,
+      `${path || 'This row'} can’t be opened: there is no such file.`,
+    )
   const name = path.split('/').pop() ?? path
   const outcome = readDocument(createAppProfiles(), name, encoder.encode(read.text))
   if (outcome.status !== 'parsed') {
     const errors = outcome.status === 'invalid' ? outcome.errors : []
-    return failed(options, path, others, `${name} can’t be opened as a level project.`, errors)
+    return failed(ports, options, path, others, `${name} can’t be opened as a level project.`, errors)
   }
 
   const { profile } = outcome
   const history = createHistory<unknown>(outcome.value)
   const level = createLevelSession({ history, ids: options.ids })
   if (level === undefined)
-    return failed(options, path, others, `${name} can’t be opened: it has no level to draw.`)
+    return failed(ports, options, path, others, `${name} can’t be opened: it has no level to draw.`)
 
   const base = read.text
   let mtime = read.mtime
@@ -121,6 +156,7 @@ export async function openLevels2d(
     path,
     options,
     others,
+    ...picturesOf(options, ports),
     state: { kind: 'open', profile, history, level } as const,
     refusal: undefined as string | undefined,
     settled: () => queue,

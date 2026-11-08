@@ -3826,6 +3826,8 @@ interface SuiteWorkspace {
         readonly mtime: number;
     } | undefined>;
     write(path: string, text: string, expected: WriteExpectation): Promise<WriteResult>;
+    readBytes?(path: string): Promise<Uint8Array | undefined>;
+    writeBytes?(path: string, bytes: Uint8Array, expected: WriteExpectation): Promise<WriteResult>;
     writeAll?(files: readonly {
         readonly path: string;
         readonly text: string;
@@ -4383,6 +4385,7 @@ function createTuner(options?: TunerOptions): SuiteEditor<TunerSuiteSession>;
 interface Levels2dOptions {
     readonly ids: IdSource;
     readonly read?: ((path: string) => Promise<Uint8Array | undefined>) | undefined;
+    readonly objectUrls?: ObjectUrls | undefined;
     readonly canvas?: Component<LevelCanvasProps> | undefined;
 }
 ```
@@ -4394,6 +4397,8 @@ interface Levels2dSession {
     readonly path: string;
     readonly options: Levels2dOptions;
     readonly others: readonly string[];
+    read(path: string): Promise<Uint8Array | undefined>;
+    readonly files: Pick<ProjectStore, 'list' | 'write'> | undefined;
     readonly state: Levels2dState;
     readonly refusal: string | undefined;
     settled(): Promise<void>;

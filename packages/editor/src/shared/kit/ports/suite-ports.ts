@@ -72,6 +72,16 @@ export interface SuiteWorkspace {
    */
   write(path: string, text: string, expected: WriteExpectation): Promise<WriteResult>
   /**
+   * The bytes of any file inside the game root, for the pictures a level draws; `undefined` when there is none or the
+   * path is outside the root. The served workspace has it; a workspace of text only does not.
+   */
+  readBytes?(path: string): Promise<Uint8Array | undefined>
+  /**
+   * Writes a picture (or any file) a writable row matches, under the same rules and expectation as `write`. It is not
+   * an undo step: Add tiles' picture is the game's own file, kept whether or not the level that uses it is.
+   */
+  writeBytes?(path: string, bytes: Uint8Array, expected: WriteExpectation): Promise<WriteResult>
+  /**
    * Several files as one undo step: every one is written or none is. Only the suite's own wrapper has it (an adapter's
    * `write` is the port); an editor that writes more than one file per step uses it when it is there. Each file's
    * `expected` is as `write`'s, and a file the editor already wrote in this session needs none.

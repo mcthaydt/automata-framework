@@ -13,14 +13,17 @@ import LevelStage from '../../../features/level/LevelStage.svelte'
 import Levels2dStatus from './Levels2dStatus.svelte'
 import type { Levels2dSession } from './levels-2d-session'
 
-const nothing = (): Promise<undefined> => Promise.resolve(undefined)
-
 export { canvas, inspector, panel, status, tools }
 </script>
 
 {#snippet panel(session: Levels2dSession)}
   {#if session.state.kind === 'open'}
-    <LevelPanel session={session.state.level} history={session.state.history} read={session.options.read ?? nothing} />
+    <LevelPanel
+      session={session.state.level}
+      history={session.state.history}
+      read={(path) => session.read(path)}
+      objectUrls={session.options.objectUrls}
+    />
   {/if}
 {/snippet}
 
@@ -29,7 +32,7 @@ export { canvas, inspector, panel, status, tools }
     <LevelStage
       session={session.state.level}
       history={session.state.history}
-      read={session.options.read ?? nothing}
+      read={(path) => session.read(path)}
       ids={session.options.ids}
       canvas={session.options.canvas}
     />
