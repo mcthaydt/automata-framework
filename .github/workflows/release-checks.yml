@@ -80,4 +80,4 @@ jobs:
         with:
           name: release-checks-report
           path: "**/playwright-report/"
-          retention-days: 7
+          retention-days: 1

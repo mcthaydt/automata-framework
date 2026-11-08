@@ -266,7 +266,7 @@ jobs:
         with:
           name: e2e-report
           path: "**/playwright-report/"
-          retention-days: 7
+          retention-days: 1
 
   e2e-focused:
     name: one focused browser run (on request)
@@ -308,7 +308,7 @@ jobs:
         with:
           name: e2e-report
           path: "**/playwright-report/"
-          retention-days: 7
+          retention-days: 1
 
   frame-budget:
     name: frame budget (nightly, GPU runner)
