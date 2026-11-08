@@ -53,7 +53,8 @@ const folded = $derived(
 )
 
 function measure(): void {
-  if (bar === undefined || ruler === undefined) return
+  // Svelte clears a bound element to null when it goes, and a late resize callback can still arrive.
+  if (!bar || !ruler) return
   room = bar.clientWidth
   const sizes = [...ruler.children].map((child) => Math.ceil(child.getBoundingClientRect().width))
   moreWidth = sizes.pop() ?? 0
@@ -68,7 +69,7 @@ $effect(() => {
 })
 
 $effect(() => {
-  if (bar === undefined || typeof ResizeObserver === 'undefined') return
+  if (!bar || typeof ResizeObserver === 'undefined') return
   const watch = new ResizeObserver(measure)
   watch.observe(bar)
   return () => watch.disconnect()
@@ -78,7 +79,7 @@ $effect(() => {
 // rail, on the tab now chosen.
 $effect(() => {
   const chosen = current
-  if (list === undefined) return
+  if (!list) return
   const rail = list
   const focused = rail.contains(document.activeElement)
   void tick().then(() => {

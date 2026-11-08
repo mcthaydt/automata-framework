@@ -121,4 +121,34 @@ describe('SuiteRail', () => {
     await userEvent.keyboard('{Meta>}3{/Meta}')
     expect(onselect).not.toHaveBeenCalled()
   })
+
+  it('ignores a resize that arrives after the rail is gone', async () => {
+    // A browser delivers a ResizeObserver callback after the element went; the rail must not read a bar that is gone.
+    const callbacks: Array<() => void> = []
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: () => void) {
+          callbacks.push(callback)
+        }
+        observe(): void {}
+        disconnect(): void {}
+      },
+    )
+    try {
+      const view = render(SuiteRail, {
+        entries: SUITE_ENTRIES,
+        current: 'tuner',
+        orientation: 'horizontal',
+        onselect: () => {},
+      })
+      view.unmount()
+      expect(callbacks.length).toBeGreaterThan(0)
+      expect(() => {
+        for (const callback of callbacks) callback()
+      }).not.toThrow()
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
 })
