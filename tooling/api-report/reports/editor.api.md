@@ -4422,6 +4422,7 @@ type Levels2dState = {
     readonly history: History<unknown>;
     readonly level: LevelSession;
     readonly tiles: TilesetsSession;
+    readonly characters: EntitiesSession;
 } | {
     readonly kind: 'error';
     readonly message: string;

@@ -770,6 +770,12 @@ const RENDERERS: readonly ["webgl2", "webgl", "canvas2d", "wasm-webgl2"];
 
 ## `./level-2d`
 
+### `animationSchema` (const)
+
+```ts
+const animationSchema: z.ZodType<ContentAnimation>;
+```
+
 ### `autoStacks` (function)
 
 ```ts
@@ -794,6 +800,27 @@ function checkFieldDef(def: FieldDef): readonly FieldProblem<FieldDefCode>[];
 function checkFieldValue(def: FieldDef, value: unknown): FieldValueProblem | undefined;
 ```
 
+### `ContentAnimation` (interface)
+
+```ts
+interface ContentAnimation {
+    readonly image: string;
+    readonly frame: ContentSize;
+    readonly clips: readonly ContentClip[];
+}
+```
+
+### `ContentClip` (interface)
+
+```ts
+interface ContentClip {
+    readonly id: string;
+    readonly frames: readonly number[];
+    readonly fps: number;
+    readonly loop: boolean;
+}
+```
+
 ### `ContentEntityDef` (type)
 
 ```ts
@@ -809,6 +836,7 @@ type ContentEntityDef = EntityDef & {
         readonly tileset: string;
         readonly index: number;
     } | undefined;
+    readonly animation?: ContentAnimation | undefined;
     readonly tags: readonly string[];
     readonly min?: {
         readonly per: 'level' | 'project';

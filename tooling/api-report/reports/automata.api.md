@@ -1378,7 +1378,7 @@ const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
 ### `pictureView` (function)
 
 ```ts
-function pictureView(project: ContentProject, def: string, images: Readonly<Record<string, string>>, _options?: PictureViewOptions): EntityViewFactory;
+function pictureView(project: ContentProject, def: string, images: Readonly<Record<string, string>>, options?: PictureViewOptions): EntityViewFactory;
 ```
 
 ### `PictureViewOptions` (interface)
@@ -1386,6 +1386,10 @@ function pictureView(project: ContentProject, def: string, images: Readonly<Reco
 ```ts
 interface PictureViewOptions {
     readonly clip?: ((components: Readonly<Record<string, Readonly<FieldRecord>>>) => string) | undefined;
+    readonly offset?: {
+        readonly x: number;
+        readonly y: number;
+    } | undefined;
 }
 ```
 

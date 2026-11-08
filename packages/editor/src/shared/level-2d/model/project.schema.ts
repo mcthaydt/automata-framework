@@ -2,6 +2,7 @@
 // levels and layers).
 
 import {
+  animationSchema,
   entityDefIssues,
   entityDefShape,
   fieldDefSchema,
@@ -106,6 +107,7 @@ export const entityDef2DSchema: z.ZodType<EntityDef2D> = z
     pivot: z.strictObject({ x: z.number().min(0).max(1), y: z.number().min(0).max(1) }),
     resizable: z.enum(['none', 'x', 'y', 'xy']),
     tile: z.strictObject({ tileset: z.string(), index: nonNegativeInt }).optional(),
+    animation: animationSchema.optional(),
     tags: z.array(z.string()),
     min: z.strictObject({ per: z.enum(['level', 'project']), count: positiveInt }).optional(),
   })

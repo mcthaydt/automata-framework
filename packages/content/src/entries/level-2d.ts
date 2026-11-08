@@ -8,6 +8,9 @@ export {
 } from '../shared/level-2d/check-field-def.ts'
 export { checkFieldValue } from '../shared/level-2d/check-field-value.ts'
 export {
+  animationSchema,
+  type ContentAnimation,
+  type ContentClip,
   type ContentEntityDef,
   type ContentEntityItem,
   type ContentLevel,
