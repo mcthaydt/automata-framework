@@ -2,7 +2,7 @@
 // walk start. Axes are the plan's: x east, z south, y up. A heading (`yaw`) is a compass bearing in radians, 0 looking
 // north (-z) and a quarter turn looking east (+x); `pitch` is the angle the camera looks above the horizon.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { insideSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import {
@@ -354,7 +354,7 @@ describe('walkCamera', () => {
 })
 
 describe('walkStart', () => {
-  const layersOf = (level: AfSector): readonly GeometryLayer[] => afSectorProfile.geometry(level).layers
+  const layersOf = (level: AfSector2File): readonly GeometryLayer[] => afSectorProfile.geometry(level).layers
 
   it('starts at the spawn, facing as it faces, at eye height over the floor it stands on', () => {
     const start = walkStart(layersOf(toyAfSector()), { x: 3, z: 2, facing: 0 })
@@ -440,7 +440,7 @@ describe('walkStart', () => {
     ])
     // Each is the middle of the biggest triangle of the floor: the long arm of the bend, the left strip of the ring, the
     // left arm of the U.
-    const expected: [AfSector, number[]][] = [
+    const expected: [AfSector2File, number[]][] = [
       [crook, [20 / 3, 1.6, 2 / 3]],
       [ring, [2 / 3, 1.6, 10 / 3]],
       [u, [1, 1.6, 4]],

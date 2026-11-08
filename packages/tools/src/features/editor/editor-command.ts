@@ -2,12 +2,14 @@
 // network with a token (`--lan`) so a tablet can open it. The server is `serve-editor.ts`; this is the command around it:
 // which build to serve, what to print, and when to refuse. The dependencies are injected so the tests run no server.
 import { randomBytes } from 'node:crypto'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { networkInterfaces } from 'node:os'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { type EditorApp, parseEditorArgs } from './editor-args.ts'
+import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
+import { APP_IS_GONE, parseEditorArgs } from './editor-args.ts'
 import { gameVite, type RunningGame, type StartGameOptions, startGame } from './game-runner.ts'
+import { type EditorPage, pageFor } from './page-for.ts'
 import { type PublishOutcome, publishGame, runStep, scanBuildForEval } from './publish-game.ts'
 import { type EditorServerOptions, gameName, type RunningEditor, serveEditor } from './serve-editor.ts'
 
@@ -18,9 +20,11 @@ export interface EditorCommandIo {
 
 export interface EditorCommandDeps {
   readonly serve: (options: EditorServerOptions) => Promise<RunningEditor>
-  /** The build folder of an editor: the one that came with the tools when there is one (2D and the suite), else the repository's. */
-  readonly builtApp: (app: EditorApp) => string
-  /** Whether this runs from a checkout of the AutomataFramework repository, where the 3D editors are built. */
+  /** The build folder of a page: the 2D page's is the one that came with the tools when there is one, else the repository's. */
+  readonly builtApp: (page: EditorPage) => string
+  /** The game's `content/editors.toml` text, or nothing when it has none: it picks the page. */
+  readonly readEditorList: (root: string) => string | undefined
+  /** Whether this runs from a checkout of the AutomataFramework repository, where the full page is built. */
   readonly inRepository: boolean
   readonly exists: (path: string) => boolean
   /** The machine's IPv4 addresses on the network, for the tablet's address. */
@@ -35,10 +39,9 @@ export interface EditorCommandDeps {
   readonly cwd: string
 }
 
-const USAGE = `Usage: automata editor [folder] [--app 2d|3d|suite] [--app-dir <build>] [--port <n>] [--lan] [--token <t>]
-       [--game-url <address>]
+const USAGE = `Usage: automata editor [folder] [--app-dir <build>] [--port <n>] [--lan] [--token <t>] [--game-url <address>]
 
-Opens the editors on the game in <folder> (default: this folder) until you press Ctrl+C.
+Opens the editors your game needs on the game in <folder> (default: this folder) until you press Ctrl+C.
 Only this computer can open it, unless you add --lan: then a tablet on your network can too, and a token is needed
 (one is made for you if you give none). Open the address it prints, with the token in it.
 The editor saves to the files listed in content/editors.toml, and it will not overwrite a file that changed while
@@ -48,13 +51,12 @@ With --lan the game is open to your network too, and it has no token: use --lan 
 If your game is already running (pnpm dev), give its address with --game-url and it starts no other.
 `
 
-/** Where each editor's build is, from the repository root, and the package that builds it. */
-const BUILDS: Readonly<Record<EditorApp, { readonly folder: string; readonly pkg: string }>> = {
-  '2d': { folder: 'packages/editor/dist/2d', pkg: '@automata/editor' },
-  '3d': { folder: 'packages/editor-3d/dist', pkg: '@automata/editor-3d' },
-  // The suite's 2D page: the level editor and the Tuner, packed in the published tools too. The full suite, with
-  // the 3D editors, is editor-3d's `dist/suite`, served with --app-dir.
-  suite: { folder: 'packages/editor/dist/suite', pkg: '@automata/editor' },
+/** Where each page's build is, from the repository root, and the package that builds it. */
+const BUILDS: Readonly<Record<EditorPage, { readonly folder: string; readonly pkg: string }>> = {
+  // Levels and the Tuner: packed in the published tools too.
+  'suite-2d': { folder: 'packages/editor/dist/suite', pkg: '@automata/editor' },
+  // The suite with Levels 3D and Characters: built in the repository only.
+  'suite-full': { folder: 'packages/editor-3d/dist/suite', pkg: '@automata/editor-3d' },
 }
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -75,31 +77,35 @@ export async function editorCommand(
     io.stdout(USAGE)
     return 0
   }
+  if (args.includes('--app')) {
+    io.stderr(`Error: ${APP_IS_GONE}\n`)
+    return 1
+  }
   const parsed = parseEditorArgs(args)
   if (!parsed.ok) {
     io.stderr(`Error: ${parsed.problem}\n\n${USAGE}`)
     return 2
   }
-  const { dir, app, appDir, port, lan, token, gameUrl } = parsed.options
+  const { dir, appDir, port, lan, token, gameUrl } = parsed.options
   const root = resolve(deps.cwd, dir)
-  const build = appDir === undefined ? deps.builtApp(app) : resolve(deps.cwd, appDir)
-  // The 3D editor is built in the repository only. A published copy of the tools packs the level editor and the suite's
-  // 2D page (the Tuner); a copy without the suite's page says so rather than naming a build folder it never had.
+  const page = pageFor(deps.readEditorList(root))
+  const build = appDir === undefined ? deps.builtApp(page) : resolve(deps.cwd, appDir)
+  // The full page is built in the repository only; a published copy of the tools packs the 2D page, and a copy without
+  // it says so rather than naming a build folder it never had.
   if (
-    app !== '2d' &&
     appDir === undefined &&
     !deps.inRepository &&
-    (app === '3d' || !deps.exists(resolve(build, 'index.html')))
+    (page === 'suite-full' || !deps.exists(resolve(build, 'index.html')))
   ) {
     io.stderr(
-      app === 'suite'
-        ? 'Error: The editors are missing from this copy of the tools. Install them again: pnpm add -D @automata/tools\n'
-        : 'Error: The 3D editor is not in this release yet.\n',
+      page === 'suite-full'
+        ? 'Error: The 3D editors are not in this release yet.\n'
+        : 'Error: The editors are missing from this copy of the tools. Install them again: pnpm add -D @automata/tools\n',
     )
     return 2
   }
   if (!deps.exists(resolve(build, 'index.html'))) {
-    io.stderr(`Error: no editor build at ${build}. Build it first: pnpm --filter ${BUILDS[app].pkg} build\n`)
+    io.stderr(`Error: no editor build at ${build}. Build it first: pnpm --filter ${BUILDS[page].pkg} build\n`)
     return 2
   }
   const secret = lan ? (token ?? deps.makeToken()) : token
@@ -152,9 +158,9 @@ export async function editorCommand(
   return 0
 }
 
-/** An editor packed next to the running bin (`dist/editors/2d` and `dist/editors/suite` in the published tools), if this is a published copy. */
-const packedEditor = (app: 'suite' | '2d'): string | undefined => {
-  const folder = resolve(here, `editors/${app}`)
+/** The 2D page packed next to the running bin (`dist/editors/suite` in the published tools), if this is a published copy. */
+const packedPage = (): string | undefined => {
+  const folder = resolve(here, 'editors/suite')
   return existsSync(resolve(folder, 'index.html')) ? folder : undefined
 }
 
@@ -164,8 +170,15 @@ const isRepository = (): boolean => existsSync(resolve(repositoryRoot(), 'pnpm-w
 export function liveEditorDeps(): EditorCommandDeps {
   return {
     serve: serveEditor,
-    builtApp: (app) =>
-      (app === '3d' ? undefined : packedEditor(app)) ?? resolve(repositoryRoot(), BUILDS[app].folder),
+    builtApp: (page) =>
+      (page === 'suite-2d' ? packedPage() : undefined) ?? resolve(repositoryRoot(), BUILDS[page].folder),
+    readEditorList: (root) => {
+      try {
+        return readFileSync(resolve(root, EDITOR_LIST_PATH), 'utf8')
+      } catch {
+        return undefined
+      }
+    },
     inRepository: isRepository(),
     exists: existsSync,
     lanAddresses: () =>

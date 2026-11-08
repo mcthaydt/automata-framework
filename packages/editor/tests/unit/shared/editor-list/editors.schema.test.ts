@@ -13,14 +13,14 @@ never = ["content/editors.toml", "package.json", ".github/**", ".claude/**", "**
 [[file]]
 glob = "content/tuning.toml"
 editor = "tuner"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = []
 checks = ["content", "game-check"]
 
 [[file]]
 glob = "content/scenes/{scene}/puzzle.toml"
 editor = "schematic"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = ["P-G1"]
 checks = ["content", "puzzle-validate"]
 
@@ -52,6 +52,10 @@ function issuePaths(row: string, rest = ''): (readonly PropertyKey[])[] {
 }
 
 describe('editorListSchema (af-editors/1)', () => {
+  it('knows one mode, edit: a row that still names the assistant’s mode is refused at that row’s modes', () => {
+    expect(issuePaths(ROW.replace('["edit"]', '["edit", "ask"]'))).toContainEqual(['file', 0, 'modes', 1])
+  })
+
   it('reads the spec example, with the defaults filled in', () => {
     const result = parsed(SPEC_EXAMPLE)
     expect(result.success, JSON.stringify(result.error?.issues)).toBe(true)

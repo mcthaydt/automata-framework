@@ -2,7 +2,7 @@
 // depot (the hall from (0, 0) to (8, 6): a window on its north wall from 3.2 to 4.8 m, a portal east into the dock, a door
 // on its west wall), and on small levels that show one rule each.
 
-import type { AfSector, AfSectorEntry } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { cutProblem, splitSector } from '#src/shared/edit/split-edits.ts'
 import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
@@ -19,25 +19,28 @@ const depot = (() => {
 })()
 
 const cut = (sector: string, id: string, from: readonly [number, number], to: readonly [number, number]) =>
-  splitSector<AfSector>({
+  splitSector<AfSector2File>({
     sector,
     id,
     from: { x: from[0], z: from[1] },
     to: { x: to[0], z: to[1] },
   })
-const afSplit = (level: AfSector, ...args: Parameters<typeof cut>) => cut(...args).run(afSectorProfile, level)
-const sector = (level: AfSector, id: string): EditSector =>
-  must(afSectorProfile.sectors.list(level).find((each) => each.id === id))
-const problems = (level: AfSector) =>
+const afSplit = (level: AfSector2File, ...args: Parameters<typeof cut>) =>
+  cut(...args).run(afSectorProfile, level)
+const sector = (level: AfSector2File, id: string): AfSectorEntry2File =>
+  must(level.sectors.find((each) => each.id === id))
+const problems = (level: AfSector2File) =>
   afSectorProfile
     .checks(level)
     .filter((result) => !result.ok)
     .map((result) => result.id)
-const openings = (level: AfSector) =>
+const openings = (level: AfSector2File) =>
   must(afSectorProfile.checks(level).find((result) => result.id === 'openings'))
 
 /** A loop's corners from the one nearest the origin, so that two ways of writing one loop compare equal. */
-const canonical = (corners: readonly EditCorner[]): readonly EditCorner[] => {
+const canonical = <C extends readonly [number, number, ...unknown[]]>(
+  corners: readonly C[],
+): readonly C[] => {
   const first = corners.reduce(
     (best, corner, i) =>
       corner[0] < (corners[best]?.[0] ?? 0) ||
@@ -219,7 +222,7 @@ describe('splitSector from a corner to a place on a wall', () => {
 })
 
 describe('splitSector on a sector written clockwise', () => {
-  const clockwise = (corners: AfSectorEntry['corners']) =>
+  const clockwise = (corners: AfSectorEntry2File['corners']) =>
     toyAfSector({ sectors: [{ id: 'room', floor: 0, ceiling: 4, light: 1, corners }] })
 
   it('cuts it the same', () => {
@@ -353,7 +356,7 @@ describe('splitSector refuses what it cannot do', () => {
   })
 
   it('refuses a level the engine cannot build, in the engine’s own sentence', () => {
-    const unbuildable: LevelProfile<AfSector> = {
+    const unbuildable: LevelProfile<AfSector2File> = {
       ...afSectorProfile,
       geometry: () => {
         throw new GeometryError('the engine cannot build it')
@@ -450,7 +453,10 @@ describe('splitSector on a bent sector', () => {
 
 describe('splitSector on a sector with a hole', () => {
   /** A plaza from (0, 0) to (10, 10) with a hole of one metre or two, whose lower left corner is at `at`. */
-  const plazaWith = (hole: AfSectorEntry['corners'], more: readonly AfSectorEntry[] = []): AfSector =>
+  const plazaWith = (
+    hole: AfSectorEntry2File['corners'],
+    more: readonly AfSectorEntry2File[] = [],
+  ): AfSector2File =>
     toyAfSector({
       sectors: [
         {
@@ -469,13 +475,13 @@ describe('splitSector on a sector with a hole', () => {
         ...more,
       ],
     })
-  const middle: AfSectorEntry['corners'] = [
+  const middle: AfSectorEntry2File['corners'] = [
     [4, 4],
     [6, 4],
     [6, 6],
     [4, 6],
   ]
-  const far: AfSectorEntry['corners'] = [
+  const far: AfSectorEntry2File['corners'] = [
     [8, 8],
     [9, 8],
     [9, 9],
@@ -507,7 +513,7 @@ describe('splitSector on a sector with a hole', () => {
   })
 
   it('points the room that stands in the hole at the new room along with the hole', () => {
-    const island: AfSectorEntry = {
+    const island: AfSectorEntry2File = {
       id: 'island',
       floor: 0,
       ceiling: 4,
@@ -592,14 +598,14 @@ describe('splitSector refuses a sector that is tied to its walls, or leads into 
   })
 
   it('names what is tied to a sector’s walls, and points at the sector', () => {
-    const tied: LevelProfile<AfSector> = {
+    const tied: LevelProfile<AfSector2File> = {
       ...afSectorProfile,
       sectors: {
         ...afSectorProfile.sectors,
         pinned: (_level, id) => (id === 'hall' ? ['door d (hall → dock)'] : []),
       },
     }
-    const result = splitSector<AfSector>({
+    const result = splitSector<AfSector2File>({
       sector: 'hall',
       id: 'hallWest',
       from: { x: 4, z: 0 },

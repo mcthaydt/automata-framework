@@ -12,6 +12,7 @@ import {
   turned,
 } from '@automata/editor/kit/testing'
 import { createSuite, type SuiteHandle, samplePorts, startSuite } from '@automata/editor/suite'
+import { chooseEditor } from '@automata/editor/suite/testing/layout'
 import { publishConditions, settleLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
@@ -40,8 +41,6 @@ async function open(profile: IpadProfile) {
   await page.viewport(profile.width, profile.height)
   publishConditions(document.documentElement, { ...profile, mode: 'wide' } as never, REST)
   const ports = await samplePorts(FILES)
-  // A change set is already open, so the first edit does not stop to ask for its title.
-  await ports.changeSet?.begin('Studio journey')
   target = document.body.appendChild(document.createElement('div'))
   target.id = 'app'
   const studio = createStudio({
@@ -58,7 +57,7 @@ async function open(profile: IpadProfile) {
     suite: createSuite({ editors: [studio as SuiteEditor<unknown>] }),
   })
   await settleLayout()
-  tab('Studio').click()
+  await chooseEditor('Characters')
   await expect
     .poll(() => document.querySelector('[data-testid="studio-stage"][data-status="ready"]'))
     .not.toBeNull()
@@ -66,13 +65,6 @@ async function open(profile: IpadProfile) {
   return { ports }
 }
 
-function tab(name: string): HTMLElement {
-  const found = [...document.querySelectorAll<HTMLElement>('[role="tab"]')].find(
-    (candidate) => (candidate.getAttribute('aria-label') ?? candidate.textContent?.trim()) === name,
-  )
-  if (found === undefined) throw new Error(`no ${name} tab`)
-  return found
-}
 const find = (selector: string): HTMLElement => {
   const found = document.querySelector<HTMLElement>(selector)
   if (found === null) throw new Error(`no ${selector}`)

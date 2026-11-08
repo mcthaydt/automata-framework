@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
@@ -13,7 +13,7 @@ import depotText from '#src/testing/fixtures/depot.af-sector.json?raw'
 // scale and brightness, the scope (this wall, the room, matching walls) and Apply, which is one undo step. The depot's
 // materials table is the list; the headless picker is `material-picker.test.ts`'s.
 
-const depot: AfSector = (() => {
+const depot: AfSector2File = (() => {
   const result = afSectorProfile.parse(depotText)
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
@@ -75,7 +75,7 @@ describe('MaterialSheet', () => {
   it('says a level with no materials table offers nothing', () => {
     const editor = createLevelEditor({
       profile: afSectorProfile,
-      level: { ...depot, materials: undefined } as AfSector,
+      level: { ...depot, materials: undefined } as AfSector2File,
     })
     render(MaterialSheet, {
       props: { editor: editor as never, surface: { wall: { sector: 'hall', corner: 0 } }, onclose: vi.fn() },

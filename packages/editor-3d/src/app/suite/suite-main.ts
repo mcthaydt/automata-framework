@@ -1,3 +1,5 @@
+// Pixi's WebGL renderer compiles its shaders with eval unless this runs first (the same rule as the 2D suite page).
+import '@automata/framework/no-eval'
 import '@automata/editor/tokens.css'
 import '@automata/editor/fonts.css'
 import '@automata/editor/suite.css'
@@ -27,6 +29,11 @@ openSuite3d({ origin: location.origin, search: location.search, sessionStorage }
       createLevels3d({
         now: () => Date.now(),
         renderer: lazyPlanRenderer(loadPlanRenderer),
+        // Walk's eye moves on the page's animation frames.
+        frames: {
+          request: (callback) => requestAnimationFrame((ms) => callback(ms / 1000)),
+          cancel: (handle) => cancelAnimationFrame(handle),
+        },
         schedule: (ms, run) => {
           const handle = window.setTimeout(run, ms)
           return () => window.clearTimeout(handle)

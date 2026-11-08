@@ -8,7 +8,6 @@ async function two() {
   const { ports } = await createMemoryPorts({
     files: { 'a.toml': 'n = 1\n', 'b.toml': 'n = 1\n' },
     classify: (path) => ({ path, editor: 'writer', gates: [], checks: [], modes: ['edit'], writable: true }),
-    changeSet: false,
   })
   const open = (path: string) =>
     openTomlSession({ path, ports, schema: z.strictObject({ n: z.number() }), empty: '' })

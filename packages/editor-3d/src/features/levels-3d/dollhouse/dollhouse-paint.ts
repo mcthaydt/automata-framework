@@ -15,6 +15,12 @@ import { surfaceVisibility } from '../../../shared/geometry/mesh-pick'
 import type { SectorMesh, Surface, SurfaceRole, Vec3 } from '../../../shared/geometry/sector-mesh'
 import { PLAN_COLORS } from '../plan/plan-colors'
 
+/**
+ * The colour of a swatch, by the name a level writes (`gameColours`), or nothing when the game gives none: a surface that
+ * names one is drawn in it, lit by its shade, so the room looks like the game's. Any other keeps the blockout's grey.
+ */
+export type SurfaceColours = (texture: string) => number | undefined
+
 export interface DollhousePolygon {
   /** `x, y` in canvas pixels for each corner. */
   readonly points: readonly number[]
@@ -85,8 +91,9 @@ export function dollhousePaint(
   orbit: Orbit,
   size: Size,
   selected: ReadonlySet<string>,
+  colours?: SurfaceColours,
 ): DollhousePaint {
-  return meshPaint(mesh, orbitCamera(orbit), size, selected)
+  return meshPaint(mesh, orbitCamera(orbit), size, selected, colours)
 }
 
 /**
@@ -99,12 +106,15 @@ export function meshPaint(
   camera: Camera3D,
   size: Size,
   selected: ReadonlySet<string>,
+  colours?: SurfaceColours,
 ): DollhousePaint {
   const polygons: DollhousePolygon[] = []
   for (const surface of mesh.surfaces) {
     const visibility = surfaceVisibility(surface, camera.eye)
     if (visibility === 'cut') continue
     const outline = outlineEdges(surface.indices)
+    const base =
+      (surface.texture === undefined ? undefined : colours?.(surface.texture)) ?? ROLE_COLORS[surface.role]
     for (let i = 0; i + 2 < surface.indices.length; i += 3) {
       const indices = [
         surface.indices[i] ?? 0,
@@ -145,7 +155,7 @@ export function meshPaint(
         polygons.push({
           points: triangle.flatMap((point) => [point.x, point.y]),
           edges,
-          color: lit(ROLE_COLORS[surface.role], surface.shade),
+          color: lit(base, surface.shade),
           alpha: visibility === 'faded' ? FADED : 1,
           role: surface.role,
           selection: surface.selection,

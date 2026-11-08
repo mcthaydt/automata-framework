@@ -54,10 +54,24 @@ export interface LevelProfile<D> extends FileCodec<D> {
   readonly things: ThingAccess<D>
   /** What the material picker offers (ED3D.8a): the file's table. */
   materials(doc: D): MaterialList
+  /** The camera views the level names, for a room to take one (the Camera picker); a format with none leaves it out. */
+  views?(doc: D): readonly string[]
+  /** The level's time of day; a format with none leaves it out. */
+  readonly time?: TimeAccess<D> | undefined
   /** The unit, Walk's eye and lens, and the snap (ED3D.8a). */
   readonly hints: LevelHints
   /** The things the level joins in pairs (ED3D.7c: Last Light's nav edges); a format with none leaves it out. */
   readonly links?: ThingLinks<D> | undefined
+}
+
+/** How the editor reads and writes the level's time of day, the light the whole level is drawn in (plan 16.2). */
+export interface TimeAccess<D> {
+  /** The times the level can have, each with its name in words. */
+  options(): readonly { readonly id: string; readonly label: string }[]
+  /** The time the level names (a time with changes of its own names the one it starts from), if any. */
+  of(doc: D): string | undefined
+  /** The level with `id` as its time, keeping any changes of its own; none takes the time off. */
+  withTime(doc: D, id: string | undefined): D
 }
 
 /** The resolved sectors, or the engine's sentence as a `GeometryError`. */

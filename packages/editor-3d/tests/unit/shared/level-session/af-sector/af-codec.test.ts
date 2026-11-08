@@ -2,7 +2,7 @@
 // model is byte-identical (ED3-q), an edit touches only its own bytes, and a new member or element lands where the
 // format's order puts it.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { afSectorCodec } from '#src/shared/level-session/af-sector/af-codec.ts'
 import { must } from '#src/testing/edit-helpers.ts'
@@ -12,19 +12,19 @@ import { toyAfSector } from '#src/testing/toy-af-sector.ts'
 
 const depotText = loadAuthored('depot.af-sector')
 
-function parsed(text: string): AfSector {
+function parsed(text: string): AfSector2File {
   const result = afSectorCodec.parse(text)
   if (!result.ok) throw new Error(`does not parse: ${JSON.stringify(result.issues)}`)
   return result.value
 }
 
-function patched(text: string, before: AfSector, after: AfSector): string {
+function patched(text: string, before: AfSector2File, after: AfSector2File): string {
   const result = afSectorCodec.patch(text, before, after)
   if (!result.ok) throw new Error(`patch refused at ${JSON.stringify(result.path)}: ${result.detail}`)
   return result.text
 }
 
-const withCeiling = (doc: AfSector, index: number, ceiling: number): AfSector => ({
+const withCeiling = (doc: AfSector2File, index: number, ceiling: number): AfSector2File => ({
   ...doc,
   sectors: doc.sectors.map((sector, i) => (i === index ? { ...sector, ceiling } : sector)),
 })
@@ -72,7 +72,7 @@ describe('the af-sector codec', () => {
         [14, 6],
       ],
     }
-    const withYard = { ...depot, sectors: [...depot.sectors, yard] } as AfSector
+    const withYard = { ...depot, sectors: [...depot.sectors, yard] } as AfSector2File
     const edited = patched(depotText, depot, withYard)
     expect(changedRegion(depotText, edited).removed).toBe('')
     expect(parsed(edited)).toStrictEqual(withYard)
@@ -88,7 +88,7 @@ describe('the af-sector codec', () => {
     const styled = {
       ...depot,
       styles: { brick: { wallTexture: 'brick' } },
-    } as AfSector
+    } as AfSector2File
     const edited = patched(depotText, depot, styled)
     expect(Object.keys(JSON.parse(edited))).toEqual([
       'format',
@@ -107,7 +107,7 @@ describe('the af-sector codec', () => {
       entities: [{ def: 'spawn', id: 'spawn', x: 1, z: 1 }],
       entityDefs: [{ id: 'spawn', shape: 'point', fields: [] }],
       materials: { brick: { category: 'walls' } },
-    } as AfSector
+    } as AfSector2File
     expect(Object.keys(JSON.parse(patched(toyText, toy, everything)))).toEqual([
       'format',
       'name',
@@ -122,12 +122,12 @@ describe('the af-sector codec', () => {
     const depot = parsed(depotText)
     const crate2 = { def: 'crate', id: 'crate2', x: 12, z: 4, contents: 'empty' }
     const entities = [...(depot.entities ?? [])]
-    const withCrate = { ...depot, entities: [...entities, crate2] } as AfSector
+    const withCrate = { ...depot, entities: [...entities, crate2] } as AfSector2File
     const added = patched(depotText, depot, withCrate)
     expect(changedRegion(depotText, added).removed).toBe('')
     expect(parsed(added)).toStrictEqual(withCrate)
 
-    const withoutSpawn = { ...depot, entities: entities.slice(1) } as AfSector
+    const withoutSpawn = { ...depot, entities: entities.slice(1) } as AfSector2File
     const removed = patched(depotText, depot, withoutSpawn)
     expect(changedRegion(depotText, removed).added).toBe('')
     expect(parsed(removed)).toStrictEqual(withoutSpawn)
@@ -136,8 +136,8 @@ describe('the af-sector codec', () => {
 
   it('removes the first element of each id array by deleting its own bytes, not by rewriting the next one', () => {
     const depot = parsed(depotText)
-    const without = (key: 'sectors' | 'entityDefs' | 'entities'): AfSector =>
-      ({ ...depot, [key]: (depot[key] ?? []).slice(1) }) as AfSector
+    const without = (key: 'sectors' | 'entityDefs' | 'entities'): AfSector2File =>
+      ({ ...depot, [key]: (depot[key] ?? []).slice(1) }) as AfSector2File
     for (const key of ['sectors', 'entityDefs', 'entities'] as const) {
       const edited = patched(depotText, depot, without(key))
       expect(changedRegion(depotText, edited).added, `${key}: only a deletion`).toBe('')
@@ -162,7 +162,7 @@ describe('the af-sector codec', () => {
     const sectorsAfter = {
       ...depot,
       sectors: [{ ...must(depot.sectors[1]), ceiling: 3 }],
-    } as AfSector
+    } as AfSector2File
     expect(patched(quirky, depot, sectorsAfter)).toBe(
       (quirky.slice(0, hall) + quirky.slice(dock)).replace(
         '"floor": -0.5,\n      "ceiling": 4',
@@ -174,7 +174,7 @@ describe('the af-sector codec', () => {
     const defsAfter = {
       ...depot,
       entityDefs: [{ ...must(depot.entityDefs?.[1]), size: [2, 1, 1] }],
-    } as AfSector
+    } as AfSector2File
     expect(patched(quirky, depot, defsAfter)).toBe(
       dropLine('{"id": "spawn", "shape"').replace('[1,   1,   1]', '[2,   1,   1]'),
     )
@@ -183,7 +183,7 @@ describe('the af-sector codec', () => {
     const entitiesAfter = {
       ...depot,
       entities: [{ ...must(depot.entities?.[1]), x: 12 }],
-    } as AfSector
+    } as AfSector2File
     expect(patched(quirky, depot, entitiesAfter)).toBe(
       dropLine('{"def": "spawn"').replace('"x":   11', '"x":   12'),
     )
@@ -200,7 +200,7 @@ describe('the af-sector codec', () => {
         patched(depotText, depot, {
           ...depot,
           [key]: (depot[key] ?? []).map((item, i) => (i === index ? { ...item, ...members } : item)),
-        } as AfSector),
+        } as AfSector2File),
       )
       return edited[key]
     }
@@ -237,7 +237,7 @@ describe('the af-sector codec', () => {
   it('puts a sector view after its light and open flag, and a wall occlude on its own corner and nothing else', () => {
     const depot = parsed(depotText)
     const [hall, ...rest] = depot.sectors
-    const withView: AfSector = {
+    const withView: AfSector2File = {
       ...depot,
       sectors: [{ ...must(hall), view: 'hall-view', open: true, style: 'plain' }, ...rest],
     }
@@ -256,7 +256,7 @@ describe('the af-sector codec', () => {
     ])
     expect(patched(viewText, withView, depot)).toBe(depotText)
     const corner = must(must(hall).corners[0])
-    const walled: AfSector = {
+    const walled: AfSector2File = {
       ...depot,
       sectors: [
         {
@@ -291,31 +291,31 @@ describe('the af-sector codec', () => {
   })
 
   describe('versions', () => {
-    const withFormat = (format: string) => depotText.replace('"af-sector/1"', `"${format}"`)
+    const withFormat = (format: string) => depotText.replace('"af-sector/2"', `"${format}"`)
 
-    it('opens af-sector/1 and af-sector/1.0 without a word', () => {
-      expect(afSectorCodec.parse(withFormat('af-sector/1')).ok).toBe(true)
-      expect(afSectorCodec.parse(withFormat('af-sector/1.0'))).toMatchObject({ ok: true })
-      expect(afSectorCodec.parse(withFormat('af-sector/1.0'))).not.toHaveProperty('warnings')
+    it('opens af-sector/2 and af-sector/2.0 without a word', () => {
+      expect(afSectorCodec.parse(withFormat('af-sector/2')).ok).toBe(true)
+      expect(afSectorCodec.parse(withFormat('af-sector/2.0'))).toMatchObject({ ok: true })
+      expect(afSectorCodec.parse(withFormat('af-sector/2.0'))).not.toHaveProperty('warnings')
     })
 
     it('opens a newer minor version with a warning at the format member, and keeps the value', () => {
-      const result = afSectorCodec.parse(withFormat('af-sector/1.2'))
+      const result = afSectorCodec.parse(withFormat('af-sector/2.1'))
       expect(result).toMatchObject({
         ok: true,
-        value: { format: 'af-sector/1.2', name: 'depot' },
+        value: { format: 'af-sector/2.1', name: 'depot' },
         warnings: [{ path: ['format'] }],
       })
       expect(result.ok && result.warnings?.[0]?.message).toBe(
-        'af-sector/1.2 is newer than af-sector/1: what this editor does not know is kept as written',
+        'af-sector/2.1 is newer than af-sector/2: what this editor does not know is kept as written',
       )
     })
 
     it('refuses a newer major version at the format member', () => {
-      expect(afSectorCodec.parse(withFormat('af-sector/2'))).toStrictEqual({
+      expect(afSectorCodec.parse(withFormat('af-sector/3'))).toStrictEqual({
         ok: false,
         issues: [
-          { path: ['format'], message: 'af-sector/2 is not a version this editor reads (af-sector/1)' },
+          { path: ['format'], message: 'af-sector/3 is not a version this editor reads (af-sector/2)' },
         ],
       })
     })

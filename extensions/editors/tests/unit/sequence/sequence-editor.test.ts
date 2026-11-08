@@ -24,7 +24,6 @@ async function open(files: Record<string, string>) {
       modes: ['edit'],
       writable: true,
     }),
-    changeSet: false,
   })
   const listed = await ports.workspace.files('sequence')
   const session = await createSequence().open(listed, ports)

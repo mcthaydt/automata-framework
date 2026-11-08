@@ -87,23 +87,9 @@ describe('set', () => {
     const tuner = await openTuner(await tunerFixturePorts())
     expect(await tuner.set('CURVE', 1)).toEqual({
       ok: false,
-      message: 'CURVE is a table or a list: change it with Ask',
+      message: 'CURVE is a table or a list: change it in the file',
     })
     expect(await tuner.set('NOPE', 1)).toEqual({ ok: false, message: 'NOPE: there is no such tunable' })
-  })
-
-  it('refuses a tunable that is locked, naming it (EDS-d)', async () => {
-    const ports = await tunerFixturePorts()
-    const tuner = await openTuner(ports)
-    tuner.lock('MAX_RUN')
-    expect(tuner.locked()).toEqual(['MAX_RUN'])
-    expect(await tuner.set('MAX_RUN', 400)).toEqual({
-      ok: false,
-      message: 'MAX_RUN is locked: unlock it to change it',
-    })
-    expect(await read(ports)).toBe(TUNING_FIXTURE)
-    tuner.unlock('MAX_RUN')
-    expect(await tuner.set('MAX_RUN', 400)).toEqual({ ok: true })
   })
 
   it('refuses, with the port’s reason, when the file is read only here, and leaves the history alone', async () => {
@@ -150,24 +136,7 @@ describe('a drag', () => {
   })
 })
 
-describe('ask and create', () => {
-  it('takes an accepted proposal as one undo step', async () => {
-    const ports = await tunerFixturePorts()
-    const tuner = await openTuner(ports)
-    const text = TUNING_FIXTURE.replace('GRAVITY = 64', 'GRAVITY = 80')
-    expect(await tuner.accept(text, 'Raise gravity')).toEqual({ ok: true })
-    expect(await read(ports)).toBe(text)
-    expect(tuner.history.undoLabel).toBe('Raise gravity')
-  })
-
-  it('refuses a proposal that does not parse', async () => {
-    const ports = await tunerFixturePorts()
-    const tuner = await openTuner(ports)
-    const result = await tuner.accept('A = \n', 'Break it')
-    expect(result.ok).toBe(false)
-    expect(await read(ports)).toBe(TUNING_FIXTURE)
-  })
-
+describe('create', () => {
   it('creates the file when the game has none, as one undo step', async () => {
     const ports = await tunerFixturePorts({})
     const tuner = await openTuner(ports)

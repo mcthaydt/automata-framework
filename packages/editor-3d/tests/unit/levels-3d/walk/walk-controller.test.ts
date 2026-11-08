@@ -2,7 +2,7 @@
 // with Q and E, the Walk, Fly and Orbit modes, the crosshair pick and the start with no spawn. Time is the `tick` the
 // test gives: nothing here reads a clock.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { createWalkController } from '#src/features/levels-3d/walk/walk-controller.ts'
 import { moveSector } from '#src/shared/edit/corner-edits.ts'
@@ -18,18 +18,18 @@ const CANVAS = { w: 800, h: 600 }
 const DEGREES = Math.PI / 180
 
 /** The toy hall (8 by 6 m, floor 0) and dock (floor -0.5 m) with a portal along x = 8, and a spawn in the hall. */
-const withSpawn = (facing: number, x = 2, z = 3): AfSector =>
+const withSpawn = (facing: number, x = 2, z = 3): AfSector2File =>
   toyAfSector({
     entityDefs: [
       { id: 'spawn', shape: 'point', single: true, fields: [{ id: 'facing', type: 'angle', default: 0 }] },
     ],
     entities: [{ def: 'spawn', id: 'spawn', x, z, facing }],
-  } as Partial<AfSector>)
+  } as Partial<AfSector2File>)
 /** A spawn facing east (+x), toward the portal, and one facing west (-x), toward the hall's solid west wall. */
 const EAST = Math.PI / 2
 const WEST = -Math.PI / 2
 
-const walkOn = (level: AfSector) => {
+const walkOn = (level: AfSector2File) => {
   const editor = createLevelEditor({ profile: afSectorProfile, level })
   return { editor, walk: createWalkController(editor, CANVAS) }
 }
@@ -154,7 +154,7 @@ describe('createWalkController: Walk', () => {
 
   it('stands on the new floor when an edit moves it', () => {
     const { editor, walk } = walkOn(withSpawn(EAST))
-    editor.run(setHeights<AfSector>({ id: 'hall', floor: 0.5, ceiling: 4 }))
+    editor.run(setHeights<AfSector2File>({ id: 'hall', floor: 0.5, ceiling: 4 }))
     expect(eyeOf(walk)[1]).toBeCloseTo(2.1, 12)
   })
 })
@@ -256,7 +256,7 @@ describe('createWalkController: the crosshair', () => {
     walk.subscribe(() => {
       told += 1
     })
-    editor.run(moveSector<AfSector>({ id: 'hall', dx: -1, dz: 0 }))
+    editor.run(moveSector<AfSector2File>({ id: 'hall', dx: -1, dz: 0 }))
     expect(walk.view.aim?.distance).toBeCloseTo(3, 12)
     expect(told).toBeGreaterThan(0)
     walk.resize({ w: 390, h: 844 })
@@ -270,7 +270,7 @@ describe('createWalkController: the crosshair', () => {
       told += 1
     })
     walk.dispose()
-    editor.run(moveSector<AfSector>({ id: 'hall', dx: -1, dz: 0 }))
+    editor.run(moveSector<AfSector2File>({ id: 'hall', dx: -1, dz: 0 }))
     walk.key('KeyW', true)
     walk.tick(0.1)
     expect(told).toBe(0)
@@ -280,7 +280,7 @@ describe('createWalkController: the crosshair', () => {
 describe('createWalkController: what stops Walk, per profile', () => {
   it('af-sector: refuses a step into a sector too low to stand in', () => {
     const level = withSpawn(EAST, 7.5)
-    const low: AfSector = {
+    const low: AfSector2File = {
       ...level,
       sectors: level.sectors.map((s) => (s.id === 'dock' ? { ...s, ceiling: 1 } : s)),
     }
@@ -294,7 +294,7 @@ describe('createWalkController: what stops Walk, per profile', () => {
   it('af-sector: slides along a diagonal wall it is pushed into', () => {
     // A room with its north-east corner cut off by a wall from (8, 4) to (4, 8).
     const level = withSpawn(EAST, 5, 5)
-    const cut: AfSector = {
+    const cut: AfSector2File = {
       ...level,
       sectors: [
         {
@@ -311,7 +311,7 @@ describe('createWalkController: what stops Walk, per profile', () => {
           ],
         },
       ],
-    } as AfSector
+    } as AfSector2File
     // Facing east at z = 5, the wall x + z = 12 is ahead at x = 7.
     const start = walkOn(cut).walk
     start.key('KeyW', true)

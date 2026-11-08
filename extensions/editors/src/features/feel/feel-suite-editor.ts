@@ -5,7 +5,7 @@ import type { AudioContent } from '@automata/audio-synth'
 import { defineSuiteEditor, type SuiteEditor } from '@automata/editor/kit/ports'
 import { type FeelContent, feelSchema } from '@automata/feel'
 import { audioCues, audioFileWith, gameEvents } from '../../shared/game-events.ts'
-import { askOf, undoOf } from '../../shared/session-hooks.ts'
+import { undoOf } from '../../shared/session-hooks.ts'
 import { openTomlSession } from '../../shared/toml-session.ts'
 import type { AudioPlay } from '../audio/audio-session.svelte.ts'
 import { canvas, panel, status } from './FeelRegions.svelte'
@@ -53,7 +53,5 @@ export function createFeel(options: FeelOptions = {}): SuiteEditor<FeelSession> 
     },
     regions: { panel, canvas, status },
     undo: (session) => undoOf(session.toml),
-    ask: (session) =>
-      askOf(session.toml, () => (typeof session.chosen === 'number' ? [`entry.${session.chosen}`] : [])),
   })
 }

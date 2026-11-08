@@ -2,7 +2,7 @@
 // level (the hall from (0, 0) to (8, 6), the dock from (8, 0) to (14, 6)); the canvas is 800 by 400 px with the camera
 // at (7, 3) and zoom 1, and pixel positions come from `toScreen`, as in the tools' own tests.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import type { PlanPointer } from '#src/features/levels-3d/plan/plan-controller.ts'
@@ -12,7 +12,7 @@ import { createLevelEditor } from '#src/shared/edit/level-editor.ts'
 import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 
-const depot: AfSector = (() => {
+const depot: AfSector2File = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
@@ -34,7 +34,7 @@ function setup() {
       tools.tap(at(x, z, kind))
     }
   }
-  const sectorIds = () => afSectorProfile.sectors.list(editor.level as AfSector).map((each) => each.id)
+  const sectorIds = () => afSectorProfile.sectors.list(editor.level as AfSector2File).map((each) => each.id)
   return { editor, tools, at, tapAll, sectorIds }
 }
 
@@ -185,7 +185,7 @@ describe('the plan tools', () => {
       tools.tap(at(11, 4))
       expect(editor.history.undoLabel).toMatch(/^Add crate/)
       const crates = afSectorProfile
-        .entities(editor.level as AfSector)
+        .entities(editor.level as AfSector2File)
         .things.filter((each) => each.def === 'crate')
       expect(crates).toHaveLength(2)
     })

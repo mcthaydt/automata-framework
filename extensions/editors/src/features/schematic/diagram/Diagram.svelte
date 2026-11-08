@@ -161,22 +161,22 @@ const TAGS = { always: '', hears: 'when it hears', stops: 'when it stops' } as c
   .box[aria-pressed='true'] rect:not(.start),
   .label[aria-pressed='true'] rect {
     fill: var(--color-accent-soft);
-    stroke: var(--color-accent);
+    stroke: var(--color-accent-default);
   }
   .box:focus-visible rect:not(.start),
   .label:focus-visible rect {
-    stroke: var(--color-accent);
+    stroke: var(--color-accent-default);
     stroke-width: 2;
   }
   .box[data-still='true'] rect:not(.start) {
     stroke-dasharray: 2 3;
   }
   .box[data-live='true'] rect:not(.start) {
-    stroke: var(--color-accent);
+    stroke: var(--color-accent-default);
     stroke-width: 3;
   }
   .line[data-flash='true'] {
-    stroke: var(--color-accent);
+    stroke: var(--color-accent-default);
     stroke-width: 3;
     animation: flash 1.2s ease-out;
   }
@@ -191,7 +191,7 @@ const TAGS = { always: '', hears: 'when it hears', stops: 'when it stops' } as c
     }
   }
   .start {
-    fill: var(--color-accent);
+    fill: var(--color-accent-default);
   }
   text {
     fill: var(--color-text-primary);
@@ -218,7 +218,7 @@ const TAGS = { always: '', hears: 'when it hears', stops: 'when it stops' } as c
     stroke-dasharray: 5 4;
   }
   .line[data-selected='true'] {
-    stroke: var(--color-accent);
+    stroke: var(--color-accent-default);
     stroke-width: 2.5;
   }
   .head {

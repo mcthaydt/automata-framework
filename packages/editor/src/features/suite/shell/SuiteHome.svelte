@@ -1,12 +1,10 @@
 <!--
-  The suite's Home: on the sample, the note that this is not the person's game; then the question, with Export and
-  Import beside it in the same row, and a card for each editor the game's list names, its files named in words. Split
-  out of `Suite.svelte` (12.7).
+  The suite's Home: on the sample, the note that this is not the person's game; then the question and a card for each
+  editor the game's list names, its files named in words. Split out of `Suite.svelte` (12.7).
 -->
 <script lang="ts">
 import Icon from '../../../shared/kit/icons/Icon.svelte'
 import type { WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
-import Button from '../../../shared/kit/widgets/Button.svelte'
 import Home from './Home.svelte'
 import type { EditorCard, HomeState } from './home-model'
 
@@ -16,10 +14,9 @@ interface Props {
   sample: boolean
   onopen: (card: EditorCard) => void
   onread: (file: WorkspaceFile) => void
-  oninterchange: (mode: 'export' | 'import') => void
 }
 
-const { home, sample, onopen, onread, oninterchange }: Props = $props()
+const { home, sample, onopen, onread }: Props = $props()
 </script>
 
 <div class="home">
@@ -29,12 +26,14 @@ const { home, sample, onopen, onread, oninterchange }: Props = $props()
       <span>This is a sample game, not yours. Run automata editor inside your game's folder to edit it.</span>
     </p>
   {/if}
-  <Home title="What do you want to change?" {home} empty="This game has nothing to edit yet." {onopen} {onread}>
-    {#snippet actions()}
-      <Button title="Copy your game's settings as text, to keep or to share" onclick={() => oninterchange('export')}>Export changes</Button>
-      <Button title="Bring in settings someone sent you as text" onclick={() => oninterchange('import')}>Import changes</Button>
-    {/snippet}
-  </Home>
+  <Home
+    title="What do you want to change?"
+    {home}
+    empty="This game has nothing to edit yet."
+    {onopen}
+    {onread}
+    starts={sample ? { 'levels-2d': 'New level' } : undefined}
+  />
 </div>
 
 <style>

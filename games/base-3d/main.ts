@@ -16,7 +16,8 @@ import { defineGame, type GameSaves, inputs, keys, startGame } from '@automata/f
 import { base3dSim } from './src/app/base-sim.ts'
 import { emberView } from './src/features/embers/ember-view.ts'
 import { Act, Move } from './src/features/hero/move.command.ts'
-import { ROOM, roomWorld } from './src/features/room/room.ts'
+import { ROOM, ROOM_TIME, roomWorld } from './src/features/room/room.ts'
+import { timeShade } from './src/features/room/room-time.ts'
 import { fieldOfWindow } from './src/features/scene/field.ts'
 import {
   buildScene,
@@ -38,8 +39,9 @@ import { compileArea } from './src/shared/area.ts'
 import { TICK_HZ } from './src/shared/constants.ts'
 import { Ember } from './src/shared/ember.component.ts'
 import { Hero } from './src/shared/hero.component.ts'
+import { shadeColour } from './src/shared/shade.ts'
 import { tuningOf } from './src/shared/tuning.ts'
-import { routed, routeOf, showHero } from './src/testing/route.ts'
+import { routed, routeOf, showHero, showRoom } from './src/testing/route.ts'
 
 // Compiling the room is boot's content cost: measured, so G3-u's journey holds it to a budget.
 performance.mark('base-3d:compile-areas:start')
@@ -94,6 +96,8 @@ export const input = endGroup(inputs(MOVE, TURN, ROLL_KEYS), { Space: KEYS.roll 
 const { figures, library, motion } = figureContent(content)
 // The room's world, from the game's own swatches and props (content/world-*), built once at boot.
 const ROOM_WORLD = roomWorld(content)
+// A journeys build also writes where the room's props stand and how high its floors are (testing/route.ts).
+if (typeof document !== 'undefined') showRoom(ROOM_WORLD, JOURNEYS, document.documentElement, ROOM_TIME.name)
 
 /**
  * Sim presentation time in seconds: the last step's tick at 60 Hz. The figure samples its clips on it, because the sim
@@ -102,6 +106,8 @@ const ROOM_WORLD = roomWorld(content)
 let simTick = 0
 const now = (): number => simTick / TICK_HZ
 
+/** How bright the room is in the time of day its level names (1 for the day, which is how it is drawn). */
+const ROOM_SHADE = timeShade(ROOM_TIME)
 const TITLE = BASE3D_COPY.en.title
 /**
  * The pixel-art look's field (ADR 0007): the short side is the look's 180 pixels, drawn at resolution 1 and upscaled in
@@ -153,8 +159,10 @@ export const base3d = defineGame({
         stage = made
         return options.setup?.(made)
       },
-      fog: FOG,
+      fog: { ...FOG, color: shadeColour(FOG.color, ROOM_SHADE) },
       look: DEFAULT_LOOK,
+      // The time of day the level file names, which the editor's picker writes.
+      time: ROOM_TIME,
       views: {
         [Hero.id]: inMetres(
           figure(figures.wick as FigureDef, {
@@ -173,7 +181,7 @@ export const base3d = defineGame({
         position: (c) => placed(c.hero),
       },
       scene: (view, _stage, occluders) => {
-        buildScene(view, occluders, ROOM, ROOM_WORLD, DEFAULT_LOOK)
+        buildScene(view, occluders, ROOM, ROOM_WORLD, DEFAULT_LOOK, ROOM_SHADE)
         return {
           draw: () => {},
           reset: () => {},

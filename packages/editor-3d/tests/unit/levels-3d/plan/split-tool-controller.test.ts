@@ -4,7 +4,7 @@
 // to 4.8 m) and a door on its west wall (corner 3, from z = 3.6 down to 2.4). The canvas is 800 by 400 px with the camera at
 // (7, 3) and zoom 1, which is 32 px to a metre; pixel positions are made with `toScreen`, so no test hides a unit.
 
-import type { AfSector, AfSectorEntry } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
 import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it, vi } from 'vitest'
 import type { PlanPointer } from '#src/features/levels-3d/plan/plan-controller.ts'
@@ -17,7 +17,7 @@ import { SectorAccessError } from '#src/shared/level-session/sector-access.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 import { toyAfSector } from '#src/testing/toy-af-sector.ts'
 
-const depot: AfSector = (() => {
+const depot: AfSector2File = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
@@ -26,7 +26,7 @@ const depot: AfSector = (() => {
 const SIZE = { w: 800, h: 400 }
 const CAMERA = { x: 7, z: 3, zoom: 1 }
 
-function setup(level: AfSector = depot, camera = CAMERA, options: SplitToolOptions = {}) {
+function setup(level: AfSector2File = depot, camera = CAMERA, options: SplitToolOptions = {}) {
   const editor = createLevelEditor({ profile: afSectorProfile, level })
   editor.view.set({ camera })
   const tool = createSplitTool(editor, SIZE, options)
@@ -45,7 +45,7 @@ function setup(level: AfSector = depot, camera = CAMERA, options: SplitToolOptio
 }
 
 /** A tool whose cut has started on the hall's north wall at x = 3. */
-function started(level: AfSector = depot, options: SplitToolOptions = {}) {
+function started(level: AfSector2File = depot, options: SplitToolOptions = {}) {
   const made = setup(level, CAMERA, options)
   made.tool.tap(made.at(3, 0.1))
   return made
@@ -53,9 +53,9 @@ function started(level: AfSector = depot, options: SplitToolOptions = {}) {
 
 const room = (
   id: string,
-  corners: AfSectorEntry['corners'],
-  more: Partial<AfSectorEntry> = {},
-): AfSectorEntry => ({
+  corners: AfSectorEntry2File['corners'],
+  more: Partial<AfSectorEntry2File> = {},
+): AfSectorEntry2File => ({
   id,
   floor: 0,
   ceiling: 4,
@@ -65,7 +65,7 @@ const room = (
 })
 
 /** An elbow: the notch is the quarter from (3, 3) to (8, 8). */
-const ELL: AfSector = toyAfSector({
+const ELL: AfSector2File = toyAfSector({
   sectors: [
     room('ell', [
       [0, 0],
@@ -79,7 +79,7 @@ const ELL: AfSector = toyAfSector({
 })
 
 /** A plaza from (0, 0) to (10, 10) with a hole in the middle. */
-const PLAZA: AfSector = toyAfSector({
+const PLAZA: AfSector2File = toyAfSector({
   sectors: [
     room(
       'plaza',
@@ -176,7 +176,7 @@ describe('the start of a cut under the pointer', () => {
   })
 
   it("is the model's sentence for a sector that cannot be cut by any line", () => {
-    const tied: LevelProfile<AfSector> = {
+    const tied: LevelProfile<AfSector2File> = {
       ...afSectorProfile,
       sectors: {
         ...afSectorProfile.sectors,
@@ -579,7 +579,7 @@ describe('a tap', () => {
   })
 
   it('says what the profile says when it will not write the level, and leaves nothing open', () => {
-    const profile: LevelProfile<AfSector> = {
+    const profile: LevelProfile<AfSector2File> = {
       ...afSectorProfile,
       sectors: {
         ...afSectorProfile.sectors,

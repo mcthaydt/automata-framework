@@ -11,7 +11,13 @@ export interface RunningGame {
   readonly stop: () => Promise<void>
 }
 
-export async function runGame(gameDir: string, contentRoot: string, port: number): Promise<RunningGame> {
+export async function runGame(
+  gameDir: string,
+  contentRoot: string,
+  port: number,
+  /** More variables for the dev server, such as a journeys build's `VITE_AF_JOURNEYS`. */
+  env: Readonly<Record<string, string>> = {},
+): Promise<RunningGame> {
   // The game's own Vite, resolved from the game: the version it installs, not this package's.
   const vite = join(
     dirname(createRequire(join(gameDir, 'package.json')).resolve('vite/package.json')),
@@ -20,7 +26,7 @@ export async function runGame(gameDir: string, contentRoot: string, port: number
   const child = spawn(
     process.execPath,
     [vite, '--configLoader', 'runner', '--strictPort', '--host', 'localhost', '--port', String(port)],
-    { cwd: gameDir, env: { ...process.env, AF_E2E_CONTENT_ROOT: contentRoot }, stdio: 'ignore' },
+    { cwd: gameDir, env: { ...process.env, ...env, AF_E2E_CONTENT_ROOT: contentRoot }, stdio: 'ignore' },
   )
   const url = `http://localhost:${port}/`
   // Ready when the page answers; Vite prints its banner before it can serve, so the banner is not the signal.

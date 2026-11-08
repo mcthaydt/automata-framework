@@ -27,6 +27,7 @@ import type { View3D } from '@pixi/3d'
 import type { AreaSource } from '../../shared/area.ts'
 import { ACTION_CLIP, TICK_HZ } from '../../shared/constants.ts'
 import type { RoomWorld } from '../../shared/room-world.ts'
+import { shadeColour } from '../../shared/shade.ts'
 import type { Tuning } from '../../shared/tuning.ts'
 
 type Components = Readonly<Record<string, Readonly<FieldRecord>>>
@@ -109,9 +110,14 @@ export function buildScene(
   area: AreaSource,
   room: RoomWorld,
   look?: Look,
+  /** How bright the room is against the day (`timeShade`): the level's time of day, 1 for the day. */
+  shade = 1,
 ): void {
   const colourOf = (swatch: string) => swatchColour(room.library, swatch)
-  view.environment = { skyColor: 0xcdd2da, groundColor: colourOf('floor') ?? 0x8690b2 }
+  view.environment = {
+    skyColor: shadeColour(0xcdd2da, shade),
+    groundColor: shadeColour(colourOf('floor') ?? 0x8690b2, shade),
+  }
   drawWorld({ parent: view.root, occluders, colourOf, look }, room.world.pieces)
   for (const box of lipBoxes(area)) occluders.box(box.box, box.colour)
 }

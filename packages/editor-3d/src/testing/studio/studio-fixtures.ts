@@ -29,7 +29,5 @@ export async function studioFixturePorts(
   files: Readonly<Record<string, string>> = studioFixtureFiles(),
 ): Promise<SuitePorts> {
   const { ports } = await createMemoryPorts({ files, classify })
-  // The suite opens a change set before the first write; a file it creates is recorded there, which is what lets Undo remove it.
-  await ports.changeSet?.begin('Studio fixture')
   return ports
 }

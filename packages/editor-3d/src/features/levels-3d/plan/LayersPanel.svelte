@@ -5,6 +5,7 @@
   hit. A sub-layer under a hidden or locked Things says it is off with Things. Every button is at least 44 px.
 -->
 <script lang="ts">
+import { Icon } from '@automata/editor/kit'
 import type { LayerRow } from './layers-model'
 
 interface Props {
@@ -33,7 +34,7 @@ const { rows, ontoggle, onactivate }: Props = $props()
           aria-label={`${row.hidden ? 'Show' : 'Hide'} ${row.label}`}
           onclick={() => ontoggle('hidden', row.id)}
         >
-          <span aria-hidden="true">{row.hidden ? '◌' : '●'}</span>
+          <Icon name={row.hidden ? 'eye-off' : 'eye'} size={18} />
         </button>
         <button
           type="button"
@@ -54,7 +55,7 @@ const { rows, ontoggle, onactivate }: Props = $props()
           aria-label={`${row.locked ? 'Unlock' : 'Lock'} ${row.label}`}
           onclick={() => ontoggle('locked', row.id)}
         >
-          <span aria-hidden="true">{row.locked ? '🔒' : '🔓'}</span>
+          <Icon name={row.locked ? 'lock' : 'unlock'} size={18} />
         </button>
       </li>
     {/each}

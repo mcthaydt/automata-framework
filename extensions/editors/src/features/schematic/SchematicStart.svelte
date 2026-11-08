@@ -65,7 +65,7 @@ const missingRows = $derived(!session.facts.listsSystems || !session.facts.lists
     user-select: all;
   }
   a {
-    color: var(--color-accent);
+    color: var(--color-accent-default);
     font: var(--text-body-13);
   }
 </style>

@@ -24,7 +24,7 @@ const metres = (value: number): string => value.toFixed(2)
 </script>
 
 <h2>{card.id}</h2>
-<p class="meta">{card.definition} · x {metres(card.x)} · z {metres(card.z)}{card.y === undefined ? '' : ` · y ${metres(card.y)}`}</p>
+<p class="meta">{card.definitionLabel} · x {metres(card.x)} · z {metres(card.z)}{card.y === undefined ? '' : ` · y ${metres(card.y)}`}</p>
 {#each card.fields as row (row.id)}
   <FieldEditor
     {row}

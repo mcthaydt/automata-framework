@@ -13,7 +13,6 @@ async function portsWith(files: Record<string, string>) {
   const { ports } = await createMemoryPorts({
     files,
     classify: (path) => ({ path, editor: 'feel', gates: [], checks: [], modes: ['edit'], writable: true }),
-    changeSet: false,
   })
   return ports
 }

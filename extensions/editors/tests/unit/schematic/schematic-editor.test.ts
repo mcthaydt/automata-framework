@@ -25,7 +25,6 @@ async function open(files: Record<string, string>) {
       modes: ['edit'],
       writable: true,
     }),
-    changeSet: false,
   })
   const listed = await ports.workspace.files('schematic')
   const session = await createSchematic().open(listed, ports)

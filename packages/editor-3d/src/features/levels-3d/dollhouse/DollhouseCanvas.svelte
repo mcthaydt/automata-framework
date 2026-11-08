@@ -12,17 +12,19 @@ import { onDestroy } from 'svelte'
 import type { LevelEditor } from '../../../shared/edit/level-editor'
 import { createDollhouseController, type DollhouseController } from './dollhouse-controller'
 import { dollhouseGestures } from './dollhouse-gestures'
-import { dollhousePaint } from './dollhouse-paint'
+import { dollhousePaint, type SurfaceColours } from './dollhouse-paint'
 import type { DollhouseRenderer, DollhouseRendererFactory } from './dollhouse-renderer'
 
 interface Props {
   editor: LevelEditor<unknown>
   renderer: DollhouseRendererFactory
+  /** The game's colour for a material by name; without it every surface keeps the blockout's grey. */
+  colours?: SurfaceColours | undefined
   onundo: () => void
   onredo: () => void
 }
 
-const { editor, renderer: makeRenderer, onundo, onredo }: Props = $props()
+const { editor, renderer: makeRenderer, colours, onundo, onredo }: Props = $props()
 
 type Phase = 'starting' | 'drawing' | 'unavailable'
 
@@ -40,7 +42,7 @@ const stops: (() => void)[] = []
 function draw(): void {
   if (size === undefined || view === undefined || controller === undefined) return
   const { mesh, orbit } = controller.view
-  view.draw(dollhousePaint(mesh, orbit, size, new Set(editor.selection.ids)))
+  view.draw(dollhousePaint(mesh, orbit, size, new Set(editor.selection.ids), colours))
 }
 
 function measured(next: Size): void {

@@ -23,18 +23,14 @@ afterEach(async () => {
   document.body.innerHTML = ''
 })
 
-async function start(
-  options: { playUrl?: string; playOff?: string; publish?: GamePublish; changeSet?: boolean } = {},
-) {
-  const { changeSet = false, ...env } = options
-  // A served game has no change set (`false`); a sample game has one (left out).
+async function start(options: { playUrl?: string; playOff?: string; publish?: GamePublish } = {}) {
+  const env = options
   const files = { ...tunerFixtureFiles(), [EDITOR_LIST_PATH]: LIST }
   const load = loadEditorList(LIST)
   if (!load.ok) throw new Error('the test list does not load')
   const { ports } = await createMemoryPorts({
     files,
     classify: (path) => workspaceFile(load.list, path),
-    ...(changeSet ? {} : { changeSet: false as const }),
   })
   const target = document.body.appendChild(document.createElement('div'))
   started = await startSuite(target, {
@@ -144,13 +140,6 @@ describe('on a phone, where the bar has no room for two more buttons', () => {
     await user.click(item)
     expect(await screen.findByRole('dialog', { name: 'Play is off' })).toHaveTextContent(NOT_INSTALLED)
     expect(screen.queryByRole('menu')).toBeNull()
-  })
-
-  it('keeps the change set’s Publish a Publish button: the Game menu is for the game’s own zip only', async () => {
-    setSize(390, 844)
-    await start({ changeSet: true })
-    expect(await screen.findByRole('button', { name: 'Publish' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Game' })).toBeNull()
   })
 
   it('has no Game menu when there is neither a game to play nor one to publish', async () => {

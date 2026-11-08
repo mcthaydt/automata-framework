@@ -2,7 +2,7 @@
 // that the pointer kind sets. The viewport is 32 px to a metre with the world origin at (20, 20), so a metre is 32 px and
 // the cases below read in pixels from a known point.
 
-import type { AfSector, AfSectorEntry, Point } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File, Point } from '@automata/3d/level'
 import { createViewport, type Point as ScreenPoint } from '@automata/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import {
@@ -29,7 +29,7 @@ const px = (point: Point, dx = 0, dy = 0, zoom = 32): ScreenPoint => {
 const MOUSE = { radius: PICK_RADIUS.mouse }
 const TOUCH = { radius: PICK_RADIUS.touch }
 
-const pickIn = (level: AfSector, at: ScreenPoint, options: PickOptions = TOUCH, zoom = 32) =>
+const pickIn = (level: AfSector2File, at: ScreenPoint, options: PickOptions = TOUCH, zoom = 32) =>
   pickPlan(
     afSectorProfile.geometry(level).layers,
     selectionOf(afSectorProfile, level),
@@ -38,7 +38,7 @@ const pickIn = (level: AfSector, at: ScreenPoint, options: PickOptions = TOUCH, 
     options,
   )
 
-const cornerIn = (level: AfSector, at: ScreenPoint, options: PickOptions = TOUCH) =>
+const cornerIn = (level: AfSector2File, at: ScreenPoint, options: PickOptions = TOUCH) =>
   pickCorner(
     afSectorProfile.geometry(level).layers,
     selectionOf(afSectorProfile, level),
@@ -47,13 +47,16 @@ const cornerIn = (level: AfSector, at: ScreenPoint, options: PickOptions = TOUCH
     options,
   )
 
-const depot = (): AfSector => {
+const depot = (): AfSector2File => {
   const parsed = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!parsed.ok) throw new Error('the depot does not parse')
   return parsed.value
 }
 
-const room = (id: string, [x0, z0, x1, z1]: readonly [number, number, number, number]): AfSectorEntry => ({
+const room = (
+  id: string,
+  [x0, z0, x1, z1]: readonly [number, number, number, number],
+): AfSectorEntry2File => ({
   id,
   floor: 0,
   ceiling: 4,
@@ -204,7 +207,7 @@ describe('pickPlan sectors', () => {
   })
 
   it('answers the sector that fills a hole and nothing for a hole that is empty', () => {
-    const hall: AfSectorEntry = {
+    const hall: AfSectorEntry2File = {
       ...room('hall', [0, 0, 10, 8]),
       holes: [
         [

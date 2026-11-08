@@ -4,7 +4,7 @@
 import { type AudioContent, audioSchema } from '@automata/audio-synth'
 import { defineSuiteEditor, type SuiteEditor } from '@automata/editor/kit/ports'
 import { gameEvents } from '../../shared/game-events.ts'
-import { askOf, undoOf } from '../../shared/session-hooks.ts'
+import { undoOf } from '../../shared/session-hooks.ts'
 import { openTomlSession } from '../../shared/toml-session.ts'
 import { canvas, panel, status } from './AudioRegions.svelte'
 import { type AudioPlay, AudioSession } from './audio-session.svelte.ts'
@@ -32,6 +32,5 @@ export function createAudio(options: { readonly play: AudioPlay }): SuiteEditor<
     },
     regions: { panel, canvas, status },
     undo: (session) => undoOf(session.toml),
-    ask: (session) => askOf(session.toml, () => []),
   })
 }

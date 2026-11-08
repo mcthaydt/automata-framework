@@ -1,7 +1,7 @@
 // How definitions are written into an `af-sector/1` level (ED3D.13a step 1): the access puts a definition where the
 // file keeps it, `entityDefs`, and renames what its instances call it, and the codec turns that into the smallest patch.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { afDefinitionAccess } from '#src/shared/level-session/af-sector/af-definitions.ts'
 import { afEntityKit } from '#src/shared/level-session/af-sector/af-entities.ts'
@@ -12,16 +12,16 @@ import { loadAuthored } from '#src/testing/fixtures.ts'
 import { changedRegion, literalEdits } from '#src/testing/text-diff.ts'
 
 const depotText = loadAuthored('depot.af-sector')
-const depot = ((): AfSector => {
+const depot = ((): AfSector2File => {
   const result = afSectorProfile.parse(depotText)
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
 })()
 
-const defOf = (level: AfSector, id: string): ThingDef =>
+const defOf = (level: AfSector2File, id: string): ThingDef =>
   must(afEntityKit(level).definitions.find((def) => def.id === id))
 
-const patched = (before: AfSector, after: AfSector, text = depotText): string => {
+const patched = (before: AfSector2File, after: AfSector2File, text = depotText): string => {
   const result = afSectorProfile.patch(text, before, after)
   if (!result.ok) throw new Error(`patch refused at ${JSON.stringify(result.path)}: ${result.detail}`)
   return result.text
@@ -31,7 +31,7 @@ const barrel: ThingDef = { id: 'barrel', shape: 'box', size: [1, 1.2, 1], fields
 
 describe('afDefinitionAccess', () => {
   it('lists every definition the file holds, readable or not', () => {
-    const broken: AfSector = {
+    const broken: AfSector2File = {
       ...depot,
       entityDefs: [...(depot.entityDefs ?? []), { id: 'bad', shape: 'cone' }],
     }
@@ -59,7 +59,7 @@ describe('afDefinitionAccess', () => {
   })
 
   it('writes the first entityDefs of a file that has none', () => {
-    const bare: AfSector = { ...depot, entityDefs: undefined }
+    const bare: AfSector2File = { ...depot, entityDefs: undefined }
     expect(afDefinitionAccess.add(bare, barrel).entityDefs).toEqual([barrel])
   })
 

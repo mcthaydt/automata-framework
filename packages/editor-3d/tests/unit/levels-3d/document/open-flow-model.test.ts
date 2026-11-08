@@ -78,12 +78,12 @@ describe('errorPanel', () => {
       status: 'invalid',
       path: 'depot.json',
       profile,
-      issues: [{ path: ['format'], message: 'af-sector/2 is not a version this editor reads (af-sector/1)' }],
+      issues: [{ path: ['format'], message: 'af-sector/3 is not a version this editor reads (af-sector/2)' }],
       installed: INSTALLED,
       text: '{}',
     })
     expect(panel.rows).toEqual([
-      { path: 'format', message: 'af-sector/2 is not a version this editor reads (af-sector/1)' },
+      { path: 'format', message: 'af-sector/3 is not a version this editor reads (af-sector/2)' },
     ])
   })
 

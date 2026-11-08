@@ -175,8 +175,9 @@ $effect(() => {
     color: var(--ink);
     font: var(--text-body-13);
   }
+  /* An inspector that reads label-left sets `--label-flex` (see Stepper); otherwise the name sits over the track. */
   .label {
-    flex: 1 1 100%;
+    flex: var(--label-flex, 1 1 100%);
     color: var(--muted);
   }
   .track {

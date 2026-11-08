@@ -22,7 +22,8 @@ import type { EditSession, LevelEditor } from '../../../shared/edit/level-editor
 import { parseSelection } from '../../../shared/edit/selection-ref'
 import { addThing, moveThing, removeThing, setThingField } from '../../../shared/edit/thing-edits'
 import { thingLayer } from '../../../shared/edit/view-store'
-import type { ThingShape } from '../../../shared/things/thing-def.schema'
+import type { ThingGroup, ThingShape } from '../../../shared/things/thing-def.schema'
+import { thingLabel } from '../../../shared/things/thing-words'
 import type { EntityKit } from '../../../shared/things/things'
 import type { PlanPointer } from '../plan/plan-controller'
 import { PICK_RADIUS, type PickOptions } from '../plan/plan-pick'
@@ -39,6 +40,8 @@ export interface PaletteEntry {
   readonly label: string
   readonly shape: ThingShape
   readonly color: string | undefined
+  /** Where the palette files it: the level's own things, or what the game gives. */
+  readonly group: 'things' | ThingGroup
   /** `things:<def>`. */
   readonly layer: string
   /** It, or the whole Things layer, is hidden: not drawn and not hit. */
@@ -207,16 +210,20 @@ export function createThingsTool<D>(
     return listed('locked', def) ? `the ${def} layer is locked` : undefined
   }
 
+  // A lamp is placed by the Lamp tool, not from this palette.
   const paletteOf = (): PaletteEntry[] =>
-    kit().definitions.map((definition) => ({
-      def: definition.id,
-      label: definition.label ?? definition.id,
-      shape: definition.shape,
-      color: definition.color,
-      layer: thingLayer(definition.id),
-      hidden: listed('hidden', definition.id),
-      locked: listed('locked', definition.id),
-    }))
+    kit()
+      .definitions.filter((definition) => definition.group !== 'lamps')
+      .map((definition) => ({
+        def: definition.id,
+        label: definition.label ?? definition.id,
+        shape: definition.shape,
+        color: definition.color,
+        group: definition.group ?? 'things',
+        layer: thingLayer(definition.id),
+        hidden: listed('hidden', definition.id),
+        locked: listed('locked', definition.id),
+      }))
 
   /** The pointer rounded to the grid. */
   const placeOf = (at: PlanPointer): Point => {
@@ -226,7 +233,8 @@ export function createThingsTool<D>(
 
   const idFor = (def: string): string => {
     const taken = editor.profile.things.takenIds(editor.level, def)
-    return options.id === undefined ? lowestFreeId(taken, def) : options.id(def, taken)
+    const base = kit().definitions.find((definition) => definition.id === def)?.idBase ?? def
+    return options.id === undefined ? lowestFreeId(taken, base) : options.id(def, taken)
   }
 
   const additionAt = (def: string, values: FieldValues, at: PlanPointer) => {
@@ -370,7 +378,7 @@ export function createThingsTool<D>(
     const [only] = things
     const label =
       things.length === 1 && only !== undefined
-        ? `Remove ${only.def} ${only.id}`
+        ? thingLabel('Remove', only.def, only.id)
         : `Remove ${things.length} things`
     const session = editor.begin(label)
     for (const thing of things) {
@@ -453,7 +461,7 @@ export function createThingsTool<D>(
       const hit = pickThing(kit(), currentViewport(), press, pickOptions(press))
       const thing = kit().things.find((each) => each.def === hit?.def && each.id === hit?.id)
       if (hit !== undefined && thing !== undefined) {
-        const session = editor.begin(`Move ${hit.def} ${hit.id}`)
+        const session = editor.begin(thingLabel('Move', hit.def, hit.id))
         // A closed session refuses its runs with the history's sentence, which says why the drag cannot start.
         if (!session.open) {
           const blocked = session.run(moveThing({ def: hit.def, id: hit.id, x: thing.x, z: thing.z }))

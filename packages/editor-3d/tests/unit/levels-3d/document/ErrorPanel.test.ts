@@ -18,7 +18,7 @@ const invalid: PanelOutcome = {
   profile: afSectorProfile as LevelProfile<unknown>,
   issues: [
     { path: ['sectors', 0, 'floor'], message: 'Expected number, received string' },
-    { path: ['format'], message: 'af-sector/2 is not a version this editor reads (af-sector/1)' },
+    { path: ['format'], message: 'af-sector/3 is not a version this editor reads (af-sector/2)' },
   ],
   installed: INSTALLED,
   text: '{}',
@@ -46,7 +46,7 @@ describe('ErrorPanel', () => {
     const rows = within(dialog).getAllByRole('listitem')
     expect(rows.map((row) => row.textContent?.replace(/\s+/g, ' ').trim())).toEqual([
       'sectors.0.floor Expected number, received string',
-      'format af-sector/2 is not a version this editor reads (af-sector/1)',
+      'format af-sector/3 is not a version this editor reads (af-sector/2)',
     ])
     expect(dialog).toHaveTextContent(
       'Read as af-sector. This editor opens af-sector and last-light-blockout.',
@@ -91,7 +91,7 @@ describe('ErrorPanel', () => {
         'levels/depot.json does not open',
         'Profile: af-sector',
         'sectors.0.floor: Expected number, received string',
-        'format: af-sector/2 is not a version this editor reads (af-sector/1)',
+        'format: af-sector/3 is not a version this editor reads (af-sector/2)',
         'Installed profiles: af-sector, last-light-blockout',
       ].join('\n'),
     )

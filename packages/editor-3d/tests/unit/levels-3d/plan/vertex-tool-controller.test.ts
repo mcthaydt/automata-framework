@@ -4,7 +4,7 @@
 // door on its west wall (corner 3). The canvas is 800 by 400 px with the camera at (7, 3) and zoom 1, which is 32 px to a
 // metre; pixel positions are made with `toScreen`, so no test hides a unit.
 
-import type { AfSector, AfSectorEntry } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
 import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it, vi } from 'vitest'
 import type { PlanPointer } from '#src/features/levels-3d/plan/plan-controller.ts'
@@ -17,7 +17,7 @@ import { SectorAccessError } from '#src/shared/level-session/sector-access.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 import { toyAfSector, toyDock, toyHall } from '#src/testing/toy-af-sector.ts'
 
-const depot: AfSector = (() => {
+const depot: AfSector2File = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
@@ -26,7 +26,7 @@ const depot: AfSector = (() => {
 const SIZE = { w: 800, h: 400 }
 const CAMERA = { x: 7, z: 3, zoom: 1 }
 
-function setup(level: AfSector = depot, camera = CAMERA) {
+function setup(level: AfSector2File = depot, camera = CAMERA) {
   const editor = createLevelEditor({ profile: afSectorProfile, level })
   editor.view.set({ camera })
   const tool = createVertexTool(editor, SIZE)
@@ -44,7 +44,7 @@ function setup(level: AfSector = depot, camera = CAMERA) {
   return { editor, tool, at }
 }
 
-const sector = (id: string, corners: AfSectorEntry['corners']): AfSectorEntry => ({
+const sector = (id: string, corners: AfSectorEntry2File['corners']): AfSectorEntry2File => ({
   id,
   floor: 0,
   ceiling: 4,
@@ -53,7 +53,7 @@ const sector = (id: string, corners: AfSectorEntry['corners']): AfSectorEntry =>
 })
 
 /** The depot's hall with a corner at (4, 6) on its south wall: a corner that can go. */
-const ROOMY: AfSector = toyAfSector({
+const ROOMY: AfSector2File = toyAfSector({
   sectors: [
     {
       ...toyHall,
@@ -70,7 +70,7 @@ const ROOMY: AfSector = toyAfSector({
 })
 
 /** West of the hall, over the hall's west wall (which starts at its corner 3); the east wall is the annex's corner 1. */
-const ANNEX: AfSectorEntry['corners'] = [
+const ANNEX: AfSectorEntry2File['corners'] = [
   [-6, 0],
   [0, 0],
   [0, 6],
@@ -276,7 +276,7 @@ describe('the corner under the pointer', () => {
 })
 
 describe('what a tap would do is what the edit would do', () => {
-  const target = (x: number, z: number, level: AfSector = depot, camera = CAMERA) => {
+  const target = (x: number, z: number, level: AfSector2File = depot, camera = CAMERA) => {
     const { tool, at } = setup(level, camera)
     tool.hover(at(x, z))
     return tool.view.target
@@ -572,7 +572,7 @@ describe('a tap', () => {
   })
 
   it('says what the profile says when it will not write the level, and leaves nothing open', () => {
-    const profile: LevelProfile<AfSector> = {
+    const profile: LevelProfile<AfSector2File> = {
       ...afSectorProfile,
       sectors: {
         ...afSectorProfile.sectors,

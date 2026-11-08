@@ -17,7 +17,6 @@ async function open(files: Record<string, string>) {
   const { ports } = await createMemoryPorts({
     files,
     classify: (path) => ({ path, editor: 'writer', gates: [], checks: [], modes: ['edit'], writable: true }),
-    changeSet: false,
   })
   const listed = await ports.workspace.files('writer')
   const session = await createWriter().open(listed, ports)

@@ -5,7 +5,7 @@ import { openSuite3d } from '#src/app/suite/open-suite-3d.ts'
 
 // The full suite page opens the game it is served on, as the 2D page does: when its own origin answers `/api/ping` as an
 // editor server, the files are the checkout's, over HTTP. Only served on its own (the site's try-it page) does it open a
-// sample with a 3D room and Wick, held in memory.
+// sample with a 3D room and Wick, kept in the browser (memory here, in Node).
 
 const BASE_3D = new URL('../../../../../../games/base-3d/', import.meta.url).pathname
 const LIST_PATH = 'content/editors.toml'

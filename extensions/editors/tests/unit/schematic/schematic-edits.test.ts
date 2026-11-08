@@ -185,7 +185,6 @@ describe('renaming a mode', () => {
         modes: ['edit'],
         writable: true,
       }),
-      changeSet: false,
     })
     const session = await openTomlSession<SystemsDef>({
       path: 'content/systems/hall.toml',

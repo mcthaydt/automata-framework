@@ -5,7 +5,7 @@
   Several selected show the first and say so; nothing selected says how to select.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { Button, Picker } from '@automata/editor/kit'
 import type { InspectorCard } from './inspector-cards'
 import type { InspectorChange, InspectorPhase } from './inspector-edits'
 import type { MaterialTarget } from './material-session'
@@ -27,6 +27,12 @@ const { card, onchange, onmaterial, ondefinitions }: Props = $props()
 
 let refusal = $state<string | undefined>()
 
+/** The times by their words, and the way back to the game's own look. */
+const timeOptions = $derived([
+  ...(card.kind === 'none' ? (card.time?.options ?? []) : []),
+  { id: '', label: 'As the game has it' },
+])
+
 /** A field edit shows its refusal under the field itself, so it only clears the card's. */
 function field(next: InspectorChange): string | undefined {
   refusal = undefined
@@ -44,6 +50,20 @@ function change(next: InspectorChange, phase: InspectorPhase): void {
   {/if}
   {#if card.kind === 'none'}
     <p class="empty">Tap a room, a wall or a thing to see it here.</p>
+    {#if card.time !== undefined}
+      <Picker
+        label="Time of day"
+        value={card.time.value ?? ''}
+        options={timeOptions}
+        onpick={(id) =>
+          change(
+            id === ''
+              ? { kind: 'level', time: null }
+              : { kind: 'level', time: id, label: card.time?.options.find((each) => each.id === id)?.label ?? id },
+            'set',
+          )}
+      />
+    {/if}
   {:else if card.kind === 'sector'}
     <SectorCard {card} onchange={change} {onmaterial} />
   {:else if card.kind === 'wall'}

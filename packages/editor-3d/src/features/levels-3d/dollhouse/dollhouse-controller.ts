@@ -5,10 +5,11 @@
 // cache, so the dollhouse, the plan and the checks never disagree.
 import type { PointerKind, Size } from '@automata/editor/kit/core'
 import type { LevelEditor } from '../../../shared/edit/level-editor'
-import { fitOrbit, type Orbit, orbitBy, orbitCamera, rayThrough } from '../../../shared/geometry/camera-3d'
+import { type Orbit, orbitBy, orbitCamera, rayThrough } from '../../../shared/geometry/camera-3d'
 import { createGeometryCache } from '../../../shared/geometry/geometry-cache'
 import { pickMesh } from '../../../shared/geometry/mesh-pick'
 import { buildSectorMesh, type SectorMesh } from '../../../shared/geometry/sector-mesh'
+import { frameMap } from '../frame-map'
 
 export interface DollhouseView {
   readonly orbit: Orbit
@@ -51,7 +52,8 @@ export function createDollhouseController<D>(editor: LevelEditor<D>, canvas: Siz
     if (built?.level !== level) built = { level, mesh: buildSectorMesh(layers, select) }
     return built.mesh
   }
-  let orbit = fitOrbit(meshNow().bounds, size)
+  const framed = (): Orbit => frameMap({ mesh: meshNow() }, 'diorama', size)
+  let orbit = framed()
 
   const notify = (): void => {
     for (const run of [...listeners]) run()
@@ -64,7 +66,7 @@ export function createDollhouseController<D>(editor: LevelEditor<D>, canvas: Siz
   const stopHistory = editor.history.subscribe(() => {
     const before = built?.mesh
     if (meshNow() === before) return
-    if (!moved) orbit = fitOrbit(meshNow().bounds, size)
+    if (!moved) orbit = framed()
     notify()
   })
 
@@ -93,11 +95,11 @@ export function createDollhouseController<D>(editor: LevelEditor<D>, canvas: Siz
     },
     fit() {
       moved = false
-      show(fitOrbit(meshNow().bounds, size), false)
+      show(framed(), false)
     },
     resize(next) {
       size = next
-      if (!moved) orbit = fitOrbit(meshNow().bounds, size)
+      if (!moved) orbit = framed()
       notify()
     },
     dispose() {

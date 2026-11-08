@@ -3,7 +3,7 @@
 // 800 by 400 px with the camera at (7, 3) and zoom 1, which is 32 px to a metre; pixel positions are made with
 // `toScreen`, so no test hides a unit. The grid is the view's default, half a metre.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it, vi } from 'vitest'
 import type { PlanPointer } from '#src/features/levels-3d/plan/plan-controller.ts'
@@ -20,7 +20,7 @@ import { SectorAccessError } from '#src/shared/level-session/sector-access.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 import { toyAfSector, toyDock, toyHall } from '#src/testing/toy-af-sector.ts'
 
-const depot: AfSector = (() => {
+const depot: AfSector2File = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
@@ -30,9 +30,9 @@ const SIZE = { w: 800, h: 400 }
 const CAMERA = { x: 7, z: 3, zoom: 1 }
 
 function setup(
-  level: AfSector = depot,
+  level: AfSector2File = depot,
   options?: SectorToolOptions,
-  profile: LevelProfile<AfSector> = afSectorProfile,
+  profile: LevelProfile<AfSector2File> = afSectorProfile,
 ) {
   const editor = createLevelEditor({ profile, level })
   editor.view.set({ camera: CAMERA })
@@ -422,7 +422,7 @@ describe('closing the outline', () => {
     tool.tap(at(0, 13.5))
   }
   const sectorOf = (editor: ReturnType<typeof setup>['editor'], id: string) =>
-    afSectorProfile.sectors.list(editor.level as AfSector).find((each) => each.id === id)
+    afSectorProfile.sectors.list(editor.level as AfSector2File).find((each) => each.id === id)
 
   it('adds the sector as one undo step, selects it and clears the drawing', () => {
     const { editor, tool, at } = setup()
@@ -594,9 +594,8 @@ describe('the portal offers', () => {
     tool.close()
   }
   const wall = (made: Made, sector: string, corner: number) =>
-    afSectorProfile.sectors.list(made.editor.level as AfSector).find((each) => each.id === sector)?.corners[
-      corner
-    ]?.[2]
+    afSectorProfile.sectors.list(made.editor.level as AfSector2File).find((each) => each.id === sector)
+      ?.corners[corner]?.[2]
   /** Whether a step is open: a session begun now comes back closed. A probe that did open is cancelled, so it leaves nothing. */
   const stepOpen = (made: Made): boolean => {
     const probe = made.editor.begin('probe')
@@ -708,7 +707,7 @@ describe('the portal offers', () => {
   it('keeps an offer that is refused, with the sentence, and lets the rest go on', () => {
     // The profile refuses the second write of sectors, which is the portal of the first offer.
     let writes = 0
-    const profile: LevelProfile<AfSector> = {
+    const profile: LevelProfile<AfSector2File> = {
       ...afSectorProfile,
       sectors: {
         ...afSectorProfile.sectors,
@@ -733,7 +732,7 @@ describe('the portal offers', () => {
 
   it('forgets the sentence of a refused offer when the next offer is answered', () => {
     let writes = 0
-    const profile: LevelProfile<AfSector> = {
+    const profile: LevelProfile<AfSector2File> = {
       ...afSectorProfile,
       sectors: {
         ...afSectorProfile.sectors,
@@ -755,7 +754,7 @@ describe('the portal offers', () => {
 
   it('stops acceptAll at the first refusal', () => {
     let writes = 0
-    const profile: LevelProfile<AfSector> = {
+    const profile: LevelProfile<AfSector2File> = {
       ...afSectorProfile,
       sectors: {
         ...afSectorProfile.sectors,

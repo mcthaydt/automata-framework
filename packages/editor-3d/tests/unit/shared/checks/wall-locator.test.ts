@@ -2,7 +2,7 @@
 // locator names that corner, as the file numbers it. A wall that came from none (a hole's) is the sector's: the locator
 // names the sector, never a wrong corner.
 
-import type { AfSector, AfSectorEntry } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { wallLocator } from '#src/shared/checks/wall-locator.ts'
 import { resolveMap } from '#src/shared/geometry/sectors.ts'
@@ -14,9 +14,9 @@ import { toyAfSector } from '#src/testing/toy-af-sector.ts'
 
 const room = (
   id: string,
-  corners: AfSectorEntry['corners'],
-  more: Partial<AfSectorEntry> = {},
-): AfSectorEntry => ({
+  corners: AfSectorEntry2File['corners'],
+  more: Partial<AfSectorEntry2File> = {},
+): AfSectorEntry2File => ({
   id,
   floor: 0,
   ceiling: 4,
@@ -33,14 +33,14 @@ const square = (x0: number, z0: number, x1: number, z1: number) =>
   ] as const
 const hole = (x0: number, z0: number, x1: number, z1: number) => [...square(x0, z0, x1, z1)]
 
-const resolve = (level: AfSector) => resolveMap(buildSectors(level))
-const locatorsOf = (level: AfSector, sector: string) => {
+const resolve = (level: AfSector2File) => resolveMap(buildSectors(level))
+const locatorsOf = (level: AfSector2File, sector: string) => {
   const locate = wallLocator(level.sectors)
   return resolve(level)
     .edges.filter((edge) => edge.sector.id === sector)
     .map((edge) => locate(edge))
 }
-const levelOf = (...sectors: AfSectorEntry[]) => toyAfSector({ sectors })
+const levelOf = (...sectors: AfSectorEntry2File[]) => toyAfSector({ sectors })
 
 describe('wallLocator', () => {
   it("gives a wall its corner, at the wall's start", () => {

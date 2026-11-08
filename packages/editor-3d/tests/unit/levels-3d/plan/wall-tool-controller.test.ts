@@ -4,7 +4,7 @@
 // the camera at (7, 3) and zoom 1, which is 32 px to a metre; pixel positions are made with `toScreen`, so no test hides a
 // unit.
 
-import type { AfSector, AfSectorEntry } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
 import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it, vi } from 'vitest'
 import type { PlanPointer } from '#src/features/levels-3d/plan/plan-controller.ts'
@@ -18,7 +18,7 @@ import { SectorAccessError } from '#src/shared/level-session/sector-access.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 import { toyAfSector, toyDock, toyHall } from '#src/testing/toy-af-sector.ts'
 
-const depot: AfSector = (() => {
+const depot: AfSector2File = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
@@ -27,7 +27,7 @@ const depot: AfSector = (() => {
 const SIZE = { w: 800, h: 400 }
 const CAMERA = { x: 7, z: 3, zoom: 1 }
 
-function setup(kind: WallToolKind, level: AfSector = depot) {
+function setup(kind: WallToolKind, level: AfSector2File = depot) {
   const editor = createLevelEditor({ profile: afSectorProfile, level })
   editor.view.set({ camera: CAMERA })
   const tool = createWallTool(editor, SIZE, { kind })
@@ -45,7 +45,7 @@ function setup(kind: WallToolKind, level: AfSector = depot) {
   return { editor, tool, at }
 }
 
-const sector = (id: string, corners: AfSectorEntry['corners']): AfSectorEntry => ({
+const sector = (id: string, corners: AfSectorEntry2File['corners']): AfSectorEntry2File => ({
   id,
   floor: 0,
   ceiling: 4,
@@ -54,7 +54,7 @@ const sector = (id: string, corners: AfSectorEntry['corners']): AfSectorEntry =>
 })
 
 /** West of the hall, over the hall's west wall (which starts at its corner 3); the east wall is the annex's corner 1. */
-const ANNEX: AfSectorEntry['corners'] = [
+const ANNEX: AfSectorEntry2File['corners'] = [
   [-6, 0],
   [0, 0],
   [0, 6],
@@ -109,7 +109,7 @@ describe('the wall under the pointer', () => {
   })
 
   it('keeps the place within the wall when rounding would take it past the end', () => {
-    const long: AfSector = toyAfSector({
+    const long: AfSector2File = toyAfSector({
       sectors: [
         sector('room', [
           [0, 0],
@@ -216,7 +216,7 @@ describe('the wall under the pointer', () => {
 })
 
 describe('what a tap would do', () => {
-  const action = (kind: WallToolKind, x: number, z: number, level: AfSector = depot) => {
+  const action = (kind: WallToolKind, x: number, z: number, level: AfSector2File = depot) => {
     const { tool, at } = setup(kind, level)
     tool.hover(at(x, z))
     return tool.view.target
@@ -260,13 +260,13 @@ describe('what a tap would do', () => {
       reason: 'no other sector has a wall over this one',
     })
     // The hall's west wall leads into a twin that lies over the same segment (and leads back): a third wall over it is taken.
-    const twin: AfSectorEntry = sector('twin', [
+    const twin: AfSectorEntry2File = sector('twin', [
       [-3, 0],
       [0, 0, { next: 'hall' }],
       [0, 6],
       [-3, 6],
     ])
-    const leadingToTwin: AfSectorEntry = {
+    const leadingToTwin: AfSectorEntry2File = {
       ...toyHall,
       corners: toyHall.corners.map((corner, i) => (i === 3 ? ([0, 6, { next: 'twin' }] as const) : corner)),
     }
@@ -372,7 +372,7 @@ describe('a tap', () => {
   })
 
   it('makes a portal on both sides in one step, taking the door off the wall behind it', () => {
-    const level: AfSector = { ...depot, sectors: [...depot.sectors, sector('annex', ANNEX)] }
+    const level: AfSector2File = { ...depot, sectors: [...depot.sectors, sector('annex', ANNEX)] }
     const { editor, tool, at } = setup('portal', level)
     tool.tap(at(-0.1, 3))
     expect(wallOf(editor, 'annex', 1)).toEqual({ next: 'hall' })
@@ -447,7 +447,7 @@ describe('a tap', () => {
   })
 
   it('says what the profile says when it will not write the wall, and leaves nothing open', () => {
-    const profile: LevelProfile<AfSector> = {
+    const profile: LevelProfile<AfSector2File> = {
       ...afSectorProfile,
       sectors: {
         ...afSectorProfile.sectors,
@@ -467,7 +467,7 @@ describe('a tap', () => {
 
   it('says what the history says when another step is open, and leaves that step open', () => {
     for (const kind of ['door', 'portal'] as const) {
-      const level: AfSector = { ...depot, sectors: [...depot.sectors, sector('annex', ANNEX)] }
+      const level: AfSector2File = { ...depot, sectors: [...depot.sectors, sector('annex', ANNEX)] }
       const { editor, tool, at } = setup(kind, level)
       const other = editor.begin('a drag')
       tool.tap(kind === 'door' ? at(4, 6.1) : at(-0.1, 3))

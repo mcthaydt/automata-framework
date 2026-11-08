@@ -1,10 +1,11 @@
 <!--
   A sector's card (ED3D.5f; ED3D spec §9, the Split frame's Sector section): its name, walls and portals; floor and
-  ceiling steppers (5 cm a step, a scrub one undo step); the light slider; its style and textures. Change materials opens
+  ceiling steppers (5 cm a step, a scrub one undo step); the light slider; its trim; whether it is a pit; its camera; its style and textures. Change materials opens
   the material sheet (ED3D.8b).
 -->
 <script lang="ts">
-import { Button, Slider, Stepper } from '@automata/editor/kit'
+import { Button, Picker, Slider, Stepper } from '@automata/editor/kit'
+import { fileTitle } from '@automata/editor/suite'
 import type { InspectorCard } from './inspector-cards'
 import type { InspectorChange, InspectorPhase } from './inspector-edits'
 import type { MaterialTarget } from './material-session'
@@ -20,7 +21,19 @@ interface Props {
 
 const { card, onchange, onmaterial }: Props = $props()
 
+/** The trim along the walls, in the order a wall wears it: from the floor up. */
+const TRIM = [
+  { id: 'skirting', label: 'Skirting' },
+  { id: 'wainscot', label: 'Wainscot' },
+  { id: 'rail', label: 'Rail' },
+] as const
+
 const plural = (count: number, one: string): string => `${count} ${one}${count === 1 ? '' : 's'}`
+/** The camera views the file names, by their words, and a way to take the camera off. */
+const cameraOptions = $derived([
+  ...card.views.map((id) => ({ id, label: fileTitle(id) })),
+  { id: '', label: 'None' },
+])
 const materials = $derived(
   (
     [
@@ -58,6 +71,38 @@ const materials = $derived(
   step={0.05}
   onedit={(event) => onchange({ kind: 'sector', id: card.id, light: event.value }, event.phase)}
 />
+<div class="pair">
+  {#each TRIM as piece (piece.id)}
+    <Stepper
+      label={piece.label}
+      value={card.trim[piece.id] ?? 0}
+      min={0}
+      step={0.05}
+      unit="m"
+      onedit={(event) =>
+        onchange(
+          { kind: 'sector', id: card.id, trim: { [piece.id]: event.value === 0 ? null : event.value } },
+          event.phase,
+        )}
+    />
+  {/each}
+</div>
+<label class="check">
+  <input
+    type="checkbox"
+    checked={card.pit}
+    onchange={(event) => onchange({ kind: 'sector', id: card.id, pit: event.currentTarget.checked }, 'set')}
+  />
+  Pit (the player falls in)
+</label>
+{#if card.views.length > 0}
+  <Picker
+    label="Camera"
+    value={card.view ?? ''}
+    options={cameraOptions}
+    onpick={(id) => onchange({ kind: 'sector', id: card.id, view: id === '' ? null : id }, 'set')}
+  />
+{/if}
 <ul class="materials" aria-label="Materials">
   {#each materials as material (material.label)}
     <li><span class="label">{material.label}</span> <span class="value">{material.value}</span></li>
@@ -83,6 +128,12 @@ const materials = $derived(
     padding: 0;
     list-style: none;
     font: var(--text-body-13);
+  }
+  .check {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
   }
   .label {
     display: inline-block;

@@ -38,6 +38,8 @@ interface Props {
    */
   pointList?: boolean | undefined
   renderer: PlanRendererFactory
+  /** The game's colour for a material by name: a room whose floor has one is tinted with it on the plan. */
+  colours?: ((texture: string) => number | undefined) | undefined
   onundo: () => void
   onredo: () => void
   /** Where the pointer is on the plan, in metres; `undefined` once it leaves. */
@@ -49,6 +51,7 @@ const {
   tools,
   pointList = false,
   renderer: makeRenderer,
+  colours,
   onundo,
   onredo,
   onpointer,
@@ -63,6 +66,7 @@ let paused = $state(false)
 /** Bumped by Try again: a new canvas element, since one that refused WebGL2 will not give it later. */
 let attempt = $state(0)
 let rulers = $state.raw<PlanPaint['rulers']>({ x: [], z: [] })
+let marks = $state.raw<PlanPaint['marks']>([])
 // svelte-ignore state_referenced_locally
 let tool = $state.raw<PlanToolState>(tools.state)
 let labels = $state.raw<readonly ToolLabel[]>([])
@@ -76,12 +80,13 @@ let size: Size | undefined
 let view: PlanRenderer | undefined
 const stops: (() => void)[] = []
 // svelte-ignore state_referenced_locally
-const picture = createPlanPicture(editor)
+const picture = createPlanPicture(editor, (texture) => colours?.(texture))
 
 function draw(): void {
   if (size === undefined || view === undefined) return
   const paint = picture(size)
   rulers = paint.rulers
+  marks = paint.marks
   const overlay = toolOverlay(tool, editor.view.state.camera, size, paint.fills)
   labels = overlay.labels
   pad = nudgePadOf(editor, tools, size)
@@ -220,6 +225,9 @@ onDestroy(() => {
     {#each rulers.z as tick (tick.at)}<span style:top={`${tick.at}px`}>{tick.label}</span>{/each}
   </div>
   <div class="labels" aria-hidden="true">
+    {#each marks as mark (mark.text + mark.at.x + mark.at.y)}
+      <span class="mark" style:left={`${mark.at.x}px`} style:top={`${mark.at.y}px`}>{mark.text}</span>
+    {/each}
     {#each labels as label, index (index)}
       {#if label.tone === 'length'}
         <span class="length" style:left={`${label.at.x}px`} style:top={`${label.at.y}px`}>{label.text}</span>
@@ -357,6 +365,14 @@ onDestroy(() => {
     color: var(--color-accent-default);
     font: 500 11px / 16px var(--font-mono, monospace);
     white-space: nowrap;
+  }
+  .mark {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    color: var(--color-text-dim);
+    font: var(--text-label-12);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
   .refusal {
     position: absolute;

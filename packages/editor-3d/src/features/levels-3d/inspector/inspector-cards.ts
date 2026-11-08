@@ -12,7 +12,16 @@ import { thingFieldRows } from '../things/thing-fields'
 export type WallType = 'solid' | 'portal' | 'door' | 'window'
 
 export type InspectorCard = { readonly selected: number } & (
-  | { readonly kind: 'none' }
+  | {
+      readonly kind: 'none'
+      /** The level's own settings, when its format has them: the time of day it names (none: the game's own look). */
+      readonly time?:
+        | {
+            readonly value: string | undefined
+            readonly options: readonly { readonly id: string; readonly label: string }[]
+          }
+        | undefined
+    }
   | {
       readonly kind: 'sector'
       readonly id: string
@@ -24,6 +33,12 @@ export type InspectorCard = { readonly selected: number } & (
       readonly ceilingTexture: string | undefined
       readonly wallTexture: string | undefined
       readonly view: string | undefined
+      /** The room is a drop the player falls into. */
+      readonly pit: boolean
+      /** The trim heights the room writes, in metres; a piece it does not write is left out. */
+      readonly trim: { readonly skirting?: number; readonly wainscot?: number; readonly rail?: number }
+      /** The camera views the file names, for the Camera picker; none when the format has none to name. */
+      readonly views: readonly string[]
       readonly walls: number
       readonly portals: number
     }
@@ -49,6 +64,8 @@ export type InspectorCard = { readonly selected: number } & (
   | {
       readonly kind: 'thing'
       readonly definition: string
+      /** What the definition is called to a person: its label, else its id. */
+      readonly definitionLabel: string
       readonly id: string
       readonly x: number
       readonly z: number
@@ -74,7 +91,12 @@ export function inspectorOf<D>(
   const ids = editor.selection.ids
   const selected = ids.length
   const first = ids[0] === undefined ? undefined : parseSelection(ids[0])
-  const none: InspectorCard = { kind: 'none', selected }
+  const access = editor.profile.time
+  const none: InspectorCard = {
+    kind: 'none',
+    selected,
+    ...(access === undefined ? {} : { time: { value: access.of(editor.level), options: access.options() } }),
+  }
   if (first === undefined) return none
   if (first.kind === 'entity') {
     const kit = editor.profile.entities(editor.level)
@@ -85,6 +107,7 @@ export function inspectorOf<D>(
       kind: 'thing',
       selected,
       definition: thing.def,
+      definitionLabel: definition?.label ?? thing.def,
       id: thing.id,
       x: thing.x,
       z: thing.z,
@@ -115,6 +138,13 @@ export function inspectorOf<D>(
       ceilingTexture: sector.ceilingTexture,
       wallTexture: sector.wallTexture,
       view: sector.view,
+      pit: sector.pit === true,
+      trim: {
+        ...(sector.trim?.skirting === undefined ? {} : { skirting: sector.trim.skirting }),
+        ...(sector.trim?.wainscot === undefined ? {} : { wainscot: sector.trim.wainscot }),
+        ...(sector.trim?.rail === undefined ? {} : { rail: sector.trim.rail }),
+      },
+      views: editor.profile.views?.(editor.level) ?? [],
       walls: sector.corners.length,
       portals: walls.filter((wall) => wall?.next !== undefined).length,
     }

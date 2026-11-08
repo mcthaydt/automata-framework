@@ -7,7 +7,6 @@ async function workspaceOf(files: Record<string, string>) {
     files,
     generated: (path) => path.startsWith('content/generated/'),
     classify: (path) => ({ path, editor: 'feel', gates: [], checks: [], modes: ['edit'], writable: true }),
-    changeSet: false,
   })
   return ports.workspace
 }

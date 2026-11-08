@@ -27,7 +27,18 @@ export interface ThingDef extends EntityDef {
    * zone): a drag on the plan sets them, and a side without a value is open.
    */
   readonly area?: readonly [string, string, string, string] | undefined
+  /**
+   * Made by the editor from the game's own content (furniture, characters, lamps), not written in the level's file: it
+   * cannot be changed here, and `group` says which part of the game it comes from.
+   */
+  readonly readOnly?: boolean | undefined
+  readonly group?: ThingGroup | undefined
+  /** What a new thing's id starts with, before its number (`crate-` gives `crate-4`); by default the definition's id. */
+  readonly idBase?: string | undefined
 }
+
+/** Where a read-only definition comes from; a definition the file writes has none, and is a "thing". */
+export type ThingGroup = 'furniture' | 'characters' | 'lamps'
 
 interface DefIssue {
   readonly message: string
@@ -85,6 +96,9 @@ export const thingDefSchema: z.ZodType<ThingDef> = z
     size: z.tuple([z.number(), z.number(), z.number()]).optional(),
     sit: z.enum(THING_SITS).optional(),
     area: z.tuple([z.string(), z.string(), z.string(), z.string()]).optional(),
+    readOnly: z.boolean().optional(),
+    group: z.enum(['furniture', 'characters', 'lamps']).optional(),
+    idBase: z.string().optional(),
   })
   .superRefine((def, context) => {
     for (const issue of [...entityDefIssues(def), ...thingDefIssues(def)])

@@ -2,14 +2,14 @@
 // `SectorDef` per sector, with a named style layered under the sector's own fields, and
 // nothing of the sector's other members.
 
-import type { AfSector, AfSectorEntry } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { resolveMap } from '#src/shared/geometry/sectors.ts'
 import { AfBuildError, buildSectors } from '#src/shared/level-session/af-sector/build.ts'
 import { must } from '#src/testing/edit-helpers.ts'
 import { toyAfSector, toyHall } from '#src/testing/toy-af-sector.ts'
 
-const only = (entry: Partial<AfSectorEntry>, more: Partial<AfSector> = {}) =>
+const only = (entry: Partial<AfSectorEntry2File>, more: Partial<AfSector2File> = {}) =>
   buildSectors(toyAfSector({ sectors: [{ ...toyHall, ...entry }], ...more }))[0]
 
 describe('buildSectors', () => {
@@ -99,7 +99,7 @@ describe('buildSectors', () => {
   })
 
   it('leaves out what the engine does not read: a sector’s and a style’s unknown members, and the style name', () => {
-    const entry = { ...toyHall, style: 'plain', tags: ['indoors'], mood: 'dim' } as AfSectorEntry
+    const entry = { ...toyHall, style: 'plain', tags: ['indoors'], mood: 'dim' } as AfSectorEntry2File
     const [sector] = buildSectors(
       toyAfSector({ sectors: [entry], styles: { plain: { wallTexture: 'b', mood: 'x' } as never } }),
     )

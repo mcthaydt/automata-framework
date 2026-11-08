@@ -1,10 +1,10 @@
 <!--
   The middle of the suite's top bar, between Home and the sheet toggles: the game's name, where edits are saved, the
-  pills, then Undo, Redo, Ask, Play, Publish and the open editor's own tools. The pills and the tools scroll sideways when
-  the bar is short of room. Only what has something to say is shown: no history hides Undo and Redo, no Ask hides
-  Ask, nothing to publish hides Publish (12.7 Step G). Split out of `Suite.svelte` (12.7). Drawn as the document's
-  bar is: the name in the title's weight, the saved note a quiet status with a tick, Undo and Redo icon buttons named
-  with the step they take, and Publish the one lime button.
+  pills, then Undo, Redo, Play, Publish and the open editor's own tools. The pills and the tools scroll sideways when the
+  bar is short of room. Only what has something to say is shown: no history hides Undo and Redo, a folder that is not a
+  game's hides Play and Publish. Split out of `Suite.svelte` (12.7). Drawn as the document's bar is: the name in the
+  title's weight, the saved note a quiet status with a tick, Undo and Redo icon buttons named with the step they take,
+  and Publish the one lime button. On a phone, Play and Publish share one Game menu.
 -->
 <script lang="ts">
 import type { Snippet } from 'svelte'
@@ -17,7 +17,7 @@ import type { Pill } from '../core/pills-model'
 import SuitePills from './SuitePills.svelte'
 
 interface Props {
-  /** The game's name; `undefined` hides it (a phone, where Home and the tools need the room). */
+  /** The game's name, on a phone too: it is how a person knows which game this is. `undefined` hides it. */
   title: string | undefined
   /** Edits write the game's own files: say so once, as status. */
   saved: boolean
@@ -36,8 +36,6 @@ interface Props {
     | undefined
   onundo: () => void
   onredo: () => void
-  /** Opens Ask; `undefined` hides it. */
-  onask: (() => void) | undefined
   /** The running game's page: Play opens it in a new tab; `undefined` hides Play (unless `playOff` says why). */
   playUrl: string | undefined
   /** Why the game cannot be played (it could not start): Play stays, off, and `onplayoff` says why. */
@@ -45,12 +43,8 @@ interface Props {
   onplayoff: () => void
   /** A phone: Play and Publish share one Game menu that stays in view, instead of two buttons the bar has no room for. */
   gameMenu: boolean
-  /** Publish is the game's own zip (not a change set's Publish): on a phone only that one moves into the Game menu. */
-  publishIsGame: boolean
-  /** Opens Publish; `undefined` hides it. */
+  /** Opens Publish (the game's own zip); `undefined` hides it. */
   onpublish: (() => void) | undefined
-  /** There is something to publish: Publish is the primary; otherwise it is quiet and its dialog says why. */
-  shippable: boolean
   /** The open editor's own tools. */
   tools: Snippet | undefined
 }
@@ -64,14 +58,11 @@ const {
   history,
   onundo,
   onredo,
-  onask,
   playUrl,
   playOff,
   onplayoff,
   gameMenu,
-  publishIsGame,
   onpublish,
-  shippable,
   tools,
 }: Props = $props()
 
@@ -83,7 +74,7 @@ const gameItems = $derived([
         { id: 'play', label: 'Play your game', detail: playUrl === undefined ? 'Off' : undefined },
       ]
     : []),
-  ...(publishIsGame && onpublish !== undefined ? [{ id: 'publish', label: 'Make it ready to upload' }] : []),
+  ...(onpublish !== undefined ? [{ id: 'publish', label: 'Make it ready to upload' }] : []),
 ])
 
 function chooseGame(id: string): void {
@@ -113,13 +104,10 @@ function chooseGame(id: string): void {
       onclick={onredo}
     />
   {/if}
-  {#if onask !== undefined}<Button onclick={onask}>Ask</Button>{/if}
   {#if !gameMenu}
     {#if playUrl !== undefined}<a class="play" href={playUrl} target="_blank" rel="noreferrer">Play</a>
     {:else if playOff !== undefined}<Button aria-disabled="true" class="play-off" onclick={onplayoff}>Play</Button>{/if}
-  {/if}
-  {#if onpublish !== undefined && !(gameMenu && publishIsGame)}
-    <Button variant={shippable ? 'primary' : 'plain'} onclick={onpublish}>Publish</Button>
+    {#if onpublish !== undefined}<Button variant="primary" onclick={onpublish}>Publish</Button>{/if}
   {/if}
   {@render tools?.()}
 </div>

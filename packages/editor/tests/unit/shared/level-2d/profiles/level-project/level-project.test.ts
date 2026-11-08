@@ -192,14 +192,12 @@ describe('the level-project profile', () => {
     }
   })
 
-  it('has the four views of the switcher in plain words, each naming a component', () => {
+  it('has the views of the switcher in plain words, each naming a component', () => {
     expect(levelProject.views.map((view) => [view.id, view.label])).toEqual([
       ['level', 'Level'],
-      ['world', 'Map'],
-      ['tilesets', 'Tiles'],
       ['entities', 'Characters'],
     ])
-    expect(new Set(levelProject.views.map((view) => view.component)).size).toBe(4)
+    expect(new Set(levelProject.views.map((view) => view.component)).size).toBe(2)
   })
 
   describe('exports', () => {

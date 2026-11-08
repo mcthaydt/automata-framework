@@ -21,9 +21,22 @@ export interface ServedFolder {
   readonly stop: () => Promise<void>
 }
 
-export async function serveFolder(root: string): Promise<ServedFolder> {
+export interface ServeOptions {
+  /** The address the folder answers under, like the site's `/editor/app/` (default: the root). */
+  readonly prefix?: string
+  /** Added to every answer (the site's Content-Security-Policy). */
+  readonly headers?: Readonly<Record<string, string>>
+}
+
+export async function serveFolder(root: string, options: ServeOptions = {}): Promise<ServedFolder> {
+  const prefix = options.prefix ?? '/'
   const server: Server = createServer((request, response) => {
-    const path = decodeURIComponent((request.url ?? '/').split('?')[0] ?? '/')
+    const asked = decodeURIComponent((request.url ?? '/').split('?')[0] ?? '/')
+    if (!asked.startsWith(prefix)) {
+      response.writeHead(404).end()
+      return
+    }
+    const path = `/${asked.slice(prefix.length)}`
     // Nothing outside the folder: a path that climbs out of it is a 404, like any other missing file.
     const file = normalize(join(root, path.endsWith('/') ? `${path}index.html` : path))
     if (!file.startsWith(root)) {
@@ -33,7 +46,10 @@ export async function serveFolder(root: string): Promise<ServedFolder> {
     readFile(file).then(
       (bytes) => {
         response
-          .writeHead(200, { 'content-type': TYPES[extname(file)] ?? 'application/octet-stream' })
+          .writeHead(200, {
+            'content-type': TYPES[extname(file)] ?? 'application/octet-stream',
+            ...options.headers,
+          })
           .end(bytes)
       },
       () => {
@@ -44,7 +60,7 @@ export async function serveFolder(root: string): Promise<ServedFolder> {
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
   const { port } = server.address() as AddressInfo
   return {
-    url: `http://127.0.0.1:${port}/`,
+    url: `http://127.0.0.1:${port}${prefix}`,
     stop: () => new Promise((resolve) => server.close(() => resolve())),
   }
 }

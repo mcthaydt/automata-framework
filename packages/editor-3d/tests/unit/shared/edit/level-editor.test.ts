@@ -2,7 +2,7 @@
 // protocol every edit goes through. The edits here are small fakes over the depot, so the protocol is tested apart
 // from the sector rules (steps 5 to 7).
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it, vi } from 'vitest'
 import { type Edit, ok, refuse } from '#src/shared/edit/edit.ts'
 import { createLevelEditor } from '#src/shared/edit/level-editor.ts'
@@ -19,12 +19,15 @@ const depot = (() => {
 })()
 
 /** An edit that sets the hall's light, the way a real edit goes through the profile's sector access. */
-function dim(light: number, more: { coalesce?: string; select?: readonly string[] } = {}): Edit<AfSector> {
+function dim(
+  light: number,
+  more: { coalesce?: string; select?: readonly string[] } = {},
+): Edit<AfSector2File> {
   return {
     id: 'test.dim',
     label: `Dim the hall to ${light}`,
     ...(more.coalesce === undefined ? {} : { coalesce: more.coalesce }),
-    run(profile: LevelProfile<AfSector>, level) {
+    run(profile: LevelProfile<AfSector2File>, level) {
       const sectors = profile.sectors.list(level)
       const next = profile.sectors.withSectors(
         level,
@@ -36,7 +39,7 @@ function dim(light: number, more: { coalesce?: string; select?: readonly string[
 }
 
 /** An edit that removes the dock. */
-const dropDock: Edit<AfSector> = {
+const dropDock: Edit<AfSector2File> = {
   id: 'test.drop',
   label: 'Drop the dock',
   run: (profile, level) =>
@@ -48,7 +51,7 @@ const dropDock: Edit<AfSector> = {
     ),
 }
 
-const hall = (level: AfSector) => must(level.sectors.find((sector) => sector.id === 'hall'))
+const hall = (level: AfSector2File) => must(level.sectors.find((sector) => sector.id === 'hall'))
 
 function editor(now?: () => number) {
   return createLevelEditor({ profile: afSectorProfile, level: depot, ...(now === undefined ? {} : { now }) })
@@ -187,7 +190,7 @@ describe('the selection follows the document', () => {
   })
 
   it('judges a thing of any definition the level defines, and none of a definition it does not', () => {
-    const defined: AfSector = {
+    const defined: AfSector2File = {
       ...depot,
       entityDefs: [...(depot.entityDefs ?? []), { id: 'switch', shape: 'point', fields: [] }],
     }
@@ -198,7 +201,7 @@ describe('the selection follows the document', () => {
   })
 
   it('counts a thing that cannot be read as there, because a problem may have selected it', () => {
-    const unreadable: AfSector = {
+    const unreadable: AfSector2File = {
       ...depot,
       // It has no x, which the file's schema would refuse and the entity reader reports.
       entities: [...(depot.entities ?? []), { def: 'crate', id: 'bad', z: 1 } as never],

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
+import { createAppProfiles } from '#src/app/level-2d/profiles.ts'
 import { levelGestures } from '#src/features/level/level-gestures.ts'
 import { createLevelSession, type LevelSession } from '#src/features/level/level-session.ts'
 import { createLevelDrawList } from '#src/shared/level-2d/canvas/draw/level-draw-list.ts'

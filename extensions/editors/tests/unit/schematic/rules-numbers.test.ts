@@ -41,7 +41,6 @@ async function open(canvas: typeof RulesCanvas | typeof NumbersCanvas, kind: 'ru
       modes: ['edit'],
       writable: true,
     }),
-    changeSet: false,
   })
   const session = await createSchematic().open(await ports.workspace.files('schematic'), ports)
   session.chosen = { kind }

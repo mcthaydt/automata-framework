@@ -3,7 +3,7 @@
 // window on its north wall, a portal east into the dock, a door on its west wall) and on small levels that show one rule
 // each.
 
-import type { AfSector, AfSectorEntry, WallDef } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File, AfWall2 } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import type { Edit } from '#src/shared/edit/edit.ts'
 import { type Changes, cornerInserted, insertCorner, removeCorner } from '#src/shared/edit/vertex-edits.ts'
@@ -19,13 +19,14 @@ const depot = (() => {
   return result.value
 })()
 
-const afOn = (level: AfSector, edit: Edit<AfSector>) => edit.run(afSectorProfile, level)
-const sector = (level: AfSector, id: string): EditSector =>
-  must(afSectorProfile.sectors.list(level).find((each) => each.id === id))
-const openings = (level: AfSector) => must(afSectorProfile.checks(level).find((r) => r.id === 'openings'))
+const afOn = (level: AfSector2File, edit: Edit<AfSector2File>) => edit.run(afSectorProfile, level)
+const sector = (level: AfSector2File, id: string): AfSectorEntry2File =>
+  must(level.sectors.find((each) => each.id === id))
+const openings = (level: AfSector2File) =>
+  must(afSectorProfile.checks(level).find((r) => r.id === 'openings'))
 
 /** One room a, (0, 0) to (8, 6), whose north wall (corner 0, from (0, 0) to (8, 0), 8 m) is `wall`. */
-const room = (wall?: WallDef): AfSector =>
+const room = (wall?: AfWall2): AfSector2File =>
   toyAfSector({
     sectors: [
       {
@@ -39,7 +40,7 @@ const room = (wall?: WallDef): AfSector =>
   })
 
 /** The first and second half of a's north wall after a corner at (x, 0). */
-const halves = (level: AfSector, x: number): readonly [unknown, unknown] => {
+const halves = (level: AfSector2File, x: number): readonly [unknown, unknown] => {
   const { corners } = sector(levelOf(afOn(level, insertCorner({ sector: 'a', corner: 0, x, z: 0 }))), 'a')
   return [corners[0]?.[2], corners[1]?.[2]]
 }
@@ -193,7 +194,7 @@ describe('insertCorner on a solid wall', () => {
   })
 
   it('copies every member of a wall to both halves', () => {
-    const wall = { texture: 'brick', handrail: 0.9, thick: 0.2, occlude: 'never', trim: { rail: 1 } } as const
+    const wall = { surface: 'brick', handrail: 0.9, thick: 0.2, occlude: 'never', trim: { rail: 1 } } as const
     expect(halves(room(wall), 3)).toEqual([wall, wall])
   })
 
@@ -252,7 +253,7 @@ describe('insertCorner and the things set into a wall', () => {
   it('carries a member of a pilaster it does not know to both halves', () => {
     // A newer file may carry members this editor has no name for: the format keeps them, so the edit does.
     const pilaster = { start: [0.3, 0.2], end: [0.4, 0.2], tint: 'dark' } as const
-    expect(halves(room({ pilaster } as WallDef), 4)).toEqual([
+    expect(halves(room({ pilaster } as AfWall2), 4)).toEqual([
       { pilaster: { start: [0.3, 0.2], tint: 'dark' } },
       { pilaster: { end: [0.4, 0.2], tint: 'dark' } },
     ])
@@ -292,17 +293,17 @@ describe('insertCorner and the things set into a wall', () => {
   })
 
   it('keeps the other members of a wall that also has a door that moves', () => {
-    expect(halves(room({ texture: 'brick', ...door(6) }), 4)).toEqual([
-      { texture: 'brick' },
-      { texture: 'brick', ...door(2) },
+    expect(halves(room({ surface: 'brick', ...door(6) }), 4)).toEqual([
+      { surface: 'brick' },
+      { surface: 'brick', ...door(2) },
     ])
   })
 })
 
 describe('insertCorner on a portal', () => {
   /** Hall and dock as the depot has them, with `wall` and `reverse` as the two sides of the portal along x = 8. */
-  const pair = (wall: WallDef, reverse: WallDef, dockLoop: 'same' | 'turned' = 'same'): AfSector => {
-    const hall: AfSectorEntry = {
+  const pair = (wall: AfWall2, reverse: AfWall2, dockLoop: 'same' | 'turned' = 'same'): AfSector2File => {
+    const hall: AfSectorEntry2File = {
       id: 'hall',
       floor: 0,
       ceiling: 4,
@@ -314,7 +315,7 @@ describe('insertCorner on a portal', () => {
         [0, 6],
       ],
     }
-    const dock: AfSectorEntry = {
+    const dock: AfSectorEntry2File = {
       id: 'dock',
       floor: -0.5,
       ceiling: 4,
@@ -336,7 +337,7 @@ describe('insertCorner on a portal', () => {
     }
     return toyAfSector({ sectors: [hall, dock] })
   }
-  const split = (level: AfSector, z: number) =>
+  const split = (level: AfSector2File, z: number) =>
     levelOf(afOn(level, insertCorner({ sector: 'hall', corner: 1, x: 8, z })))
 
   it('splits the reverse wall in the same edit, at the same point', () => {
@@ -441,7 +442,7 @@ describe('insertCorner on a portal', () => {
   })
 
   it('leaves a solid wall of the other sector over the same segment as it is', () => {
-    const level = pair({ next: 'dock' }, { texture: 'brick' })
+    const level = pair({ next: 'dock' }, { surface: 'brick' })
     const next = split(level, 2)
     expect(sector(next, 'dock')).toBe(sector(level, 'dock'))
     expect(sector(next, 'hall').corners.slice(1, 3)).toEqual([
@@ -563,13 +564,14 @@ describe('insertCorner on a portal', () => {
 
 describe('removeCorner', () => {
   /** One room a with these corners and nothing else in the level. */
-  const roomOf = (corners: AfSectorEntry['corners']): AfSector =>
+  const roomOf = (corners: AfSectorEntry2File['corners']): AfSector2File =>
     toyAfSector({ sectors: [{ id: 'a', floor: 0, ceiling: 4, light: 1, corners }] })
-  const without = (level: AfSector, corner: number) => afOn(level, removeCorner({ sector: 'a', corner }))
-  const cornersOf = (level: AfSector, corner: number) => sector(levelOf(without(level, corner)), 'a').corners
+  const without = (level: AfSector2File, corner: number) => afOn(level, removeCorner({ sector: 'a', corner }))
+  const cornersOf = (level: AfSector2File, corner: number) =>
+    sector(levelOf(without(level, corner)), 'a').corners
 
   /** The north wall of a is split at (4, 0): corner 0 starts the first half and corner 1 the second. */
-  const split = (first: WallDef | undefined, second: WallDef | undefined): AfSector =>
+  const split = (first: AfWall2 | undefined, second: AfWall2 | undefined): AfSector2File =>
     roomOf([
       first === undefined ? [0, 0] : [0, 0, first],
       second === undefined ? [4, 0] : [4, 0, second],
@@ -609,12 +611,12 @@ describe('removeCorner', () => {
     })
 
     it('writes what both walls say once, on the wall that starts at the corner before', () => {
-      const brick = { texture: 'brick', handrail: 0.9, trim: { rail: 1 } }
+      const brick = { surface: 'brick', handrail: 0.9, trim: { rail: 1 } }
       expect(sector(levelOf(without(split(brick, brick), 1)), 'a').corners[0]).toEqual([0, 0, brick])
     })
 
     it('counts round the loop: the first corner joins the last wall to the second', () => {
-      const brick = { texture: 'brick' }
+      const brick = { surface: 'brick' }
       const level = roomOf([
         [0, 0, brick],
         [4, 0, brick],
@@ -654,7 +656,7 @@ describe('removeCorner', () => {
   })
 
   describe('undoes insertCorner', () => {
-    const roundTrip = (wall: WallDef | undefined, x: number): [AfSector, AfSector] => {
+    const roundTrip = (wall: AfWall2 | undefined, x: number): [AfSector2File, AfSector2File] => {
       const level = roomOf([wall === undefined ? [0, 0] : [0, 0, wall], [8, 0], [8, 6], [0, 6]])
       const added = levelOf(afOn(level, insertCorner({ sector: 'a', corner: 0, x, z: 0 })))
       return [level, levelOf(afOn(added, removeCorner({ sector: 'a', corner: 1 })))]
@@ -673,7 +675,7 @@ describe('removeCorner', () => {
     })
 
     it('on a wall with a texture, a trim and a handrail', () => {
-      const [level, back] = roundTrip({ texture: 'brick', handrail: 0.9, trim: { rail: 1 }, thick: 0.2 }, 3)
+      const [level, back] = roundTrip({ surface: 'brick', handrail: 0.9, trim: { rail: 1 }, thick: 0.2 }, 3)
       expect(back).toEqual(level)
     })
 
@@ -695,10 +697,10 @@ describe('removeCorner', () => {
 
   describe('wants the walls to agree', () => {
     it('on every member that is not a place along the wall, and names the ones that differ', () => {
-      expect(reasonOf(without(split(undefined, { texture: 'brick' }), 1))).toBe(
+      expect(reasonOf(without(split(undefined, { surface: 'brick' }), 1))).toBe(
         'the walls at corner 1 of a differ in texture: make them the same first',
       )
-      expect(reasonOf(without(split({ texture: 'tile' }, { texture: 'brick' }), 1))).toBe(
+      expect(reasonOf(without(split({ surface: 'tile' }, { surface: 'brick' }), 1))).toBe(
         'the walls at corner 1 of a differ in texture: make them the same first',
       )
       expect(reasonOf(without(split({ trim: { rail: 1 } }, { trim: { rail: 2 } }), 1))).toBe(
@@ -707,25 +709,25 @@ describe('removeCorner', () => {
     })
 
     it('with the members in one order whichever wall comes first, and a list that reads', () => {
-      const [one, two] = [{ texture: 'brick', handrail: 0.9 }, { thick: 0.3 }]
+      const [one, two] = [{ surface: 'brick', handrail: 0.9 }, { thick: 0.3 }]
       const sentence =
         'the walls at corner 1 of a differ in handrail, texture and thick: make them the same first'
       expect(reasonOf(without(split(one, two), 1))).toBe(sentence)
       expect(reasonOf(without(split(two, one), 1))).toBe(sentence)
-      expect(reasonOf(without(split({ texture: 'brick' }, { thick: 0.3 }), 1))).toBe(
+      expect(reasonOf(without(split({ surface: 'brick' }, { thick: 0.3 }), 1))).toBe(
         'the walls at corner 1 of a differ in texture and thick: make them the same first',
       )
     })
 
     it('and takes members that are alike, however deep, for the same', () => {
-      const wall = { texture: 'brick', pan: [1, 2], trim: { rail: 1, cap: true } } as const
+      const wall = { surface: 'brick', pan: [1, 2], trim: { rail: 1, cap: true } } as const
       expect(
         sector(levelOf(without(split(wall, { ...wall, trim: { cap: true, rail: 1 } }), 1)), 'a').corners[0],
       ).toEqual([0, 0, wall])
     })
 
     it('and tells a list, an object with more in it, and a null from what they are not', () => {
-      const wall = (members: object) => members as WallDef
+      const wall = (members: object) => members as AfWall2
       expect(reasonOf(without(split(wall({ hideFrom: ['a'] }), wall({ hideFrom: ['a', 'b'] })), 1))).toBe(
         'the walls at corner 1 of a differ in hideFrom: make them the same first',
       )
@@ -804,7 +806,7 @@ describe('removeCorner', () => {
     })
 
     it('carries a member of a pilaster it does not know, from whichever wall has it', () => {
-      const wall = (members: object) => members as WallDef
+      const wall = (members: object) => members as AfWall2
       const joinedWith = {
         pilaster: { start: [0.3, 0.2], end: [0.4, 0.2], tint: 'dark' },
       }
@@ -831,7 +833,7 @@ describe('removeCorner', () => {
     it('carries a member of a pilaster it does not know, in both', () => {
       const first = { pilaster: { start: [0.3, 0.2], tint: 'dark' } } as const
       const second = { pilaster: { end: [0.4, 0.2], tint: 'dark' } } as const
-      expect(cornersOf(split(first as WallDef, second as WallDef), 1)[0]).toEqual([
+      expect(cornersOf(split(first as AfWall2, second as AfWall2), 1)[0]).toEqual([
         0,
         0,
         { pilaster: { start: [0.3, 0.2], end: [0.4, 0.2], tint: 'dark' } },
@@ -840,7 +842,7 @@ describe('removeCorner', () => {
 
     describe('when the new wall is shorter than the two', () => {
       // A dart: the corner at (10, 0) is a spike, and without it the first wall runs only to (1, 5), 5.1 m.
-      const dart = (first: WallDef, second: WallDef): AfSector =>
+      const dart = (first: AfWall2, second: AfWall2): AfSector2File =>
         roomOf([
           [0, 0, first],
           [10, 0, second],
@@ -988,8 +990,8 @@ describe('removeCorner', () => {
         reasonOf(
           without(
             roomOf([
-              [0, 0, { texture: 'tile' }],
-              [4, 0, { texture: 'brick' }],
+              [0, 0, { surface: 'tile' }],
+              [4, 0, { surface: 'brick' }],
               [0, 4],
             ]),
             1,
@@ -1052,8 +1054,9 @@ describe('cornerInserted', () => {
   it('makes the same sectors the edit does', () => {
     const changes = made(insert(new Map(), { sector: 'hall', corner: 1, x: 8, z: 2 }))
     const level = levelOf(afOn(depot, insertCorner({ sector: 'hall', corner: 1, x: 8, z: 2 })))
-    expect(must(changes.get('hall'))).toEqual(sector(level, 'hall'))
-    expect(must(changes.get('dock'))).toEqual(sector(level, 'dock'))
+    const viewIn = (id: string) => must(afSectorProfile.sectors.list(level).find((each) => each.id === id))
+    expect(must(changes.get('hall'))).toEqual(viewIn('hall'))
+    expect(must(changes.get('dock'))).toEqual(viewIn('dock'))
   })
 
   it('splits the sector it finds in the working set, not the level’s own: a second corner on the same wall', () => {

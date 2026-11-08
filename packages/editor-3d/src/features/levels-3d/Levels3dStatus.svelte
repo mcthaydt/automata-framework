@@ -16,13 +16,22 @@ let zoom = $state(editor === undefined ? 0 : planZoom(editor.view.state.camera))
 let selection = $state.raw<readonly string[]>(editor?.selection.ids ?? [])
 // A refused step is taken back, so the history's change is when the refusal is new.
 let refusal = $state(level.refusal)
+let mode = $state(editor?.view.state.mode ?? 'plan')
+// An older room says so until its first change saves it in the new version.
+let older = $state(level.upgraded)
 
 $effect(() => {
   if (editor === undefined) return
   const stops = [
-    editor.view.subscribe((state) => (zoom = planZoom(state.camera))),
+    editor.view.subscribe((state) => {
+      zoom = planZoom(state.camera)
+      mode = state.mode
+    }),
     editor.selection.subscribe((next) => (selection = next.ids)),
-    editor.history.subscribe(() => (refusal = level.refusal)),
+    editor.history.subscribe(() => {
+      refusal = level.refusal
+      if (editor.history.revision > 0) older = false
+    }),
   ]
   return () => {
     for (const stop of stops) stop()
@@ -30,7 +39,11 @@ $effect(() => {
 })
 
 const words = $derived(
-  editor === undefined ? '' : planStatus({ pointer: pointer.at, pxPerMetre: zoom, selection }),
+  editor === undefined
+    ? ''
+    : mode === 'walk' && pointer.walkWords !== undefined
+      ? pointer.walkWords
+      : planStatus({ pointer: pointer.at, pxPerMetre: zoom, selection }),
 )
 </script>
 
@@ -38,6 +51,7 @@ const words = $derived(
   <span>{level.path}</span>
   {#if words !== ''}<span>{words}</span>{/if}
   {#if level.others.length > 0}<span>{level.others.length} more in this group</span>{/if}
+  {#if older}<span>This room was made with an older version. Your next change saves it in the new version, and nothing in it is lost.</span>{/if}
   {#if refusal !== undefined}<span role="alert">Not saved: {refusal}</span>{/if}
 </p>
 
@@ -49,5 +63,13 @@ const words = $derived(
     margin: 0;
     font: var(--text-body-13);
     color: var(--color-text-dim);
+  }
+  /* On a phone the words wrap to a second line once something is selected. Three lines and their gaps are kept (the file, then
+     two for the words), so the plan above never shrinks and slides the room under a finger that is dragging. */
+  @media (max-width: 600px) {
+    .status {
+      align-content: flex-start;
+      min-height: calc(3 * 1lh + 2 * var(--space-3));
+    }
   }
 </style>

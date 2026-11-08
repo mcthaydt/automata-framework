@@ -79,19 +79,19 @@ describe('startEditor', () => {
 
   it('journey: a file that does not open shows the error panel with its JSON paths; Open another returns to Home', async () => {
     const { workspace, file } = await boot({
-      'newer.json': DEPOT_TEXT.replace('"af-sector/1"', '"af-sector/2"'),
+      'newer.json': DEPOT_TEXT.replace('"af-sector/2"', '"af-sector/3"'),
     })
     const before = (await workspace.store.list())[0]?.mtime
     await userEvent.dblClick(await screen.findByRole('option', { name: /newer\.json/ }))
     const panel = await screen.findByRole('dialog', { name: 'newer.json does not open' })
     expect(within(panel).getByRole('listitem')).toHaveTextContent(
-      'format af-sector/2 is not a version this editor reads (af-sector/1)',
+      'format af-sector/3 is not a version this editor reads (af-sector/2)',
     )
     await userEvent.click(within(panel).getByRole('button', { name: 'Open another' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(screen.getByRole('listbox', { name: 'Projects' })).toBeInTheDocument()
     expect((await workspace.store.list())[0]?.mtime).toBe(before)
-    expect(await file('newer.json')).toBe(DEPOT_TEXT.replace('"af-sector/1"', '"af-sector/2"'))
+    expect(await file('newer.json')).toBe(DEPOT_TEXT.replace('"af-sector/2"', '"af-sector/3"'))
   })
 
   it('journey: open a level, the frame heads it, Back returns to Home with its selection', async () => {

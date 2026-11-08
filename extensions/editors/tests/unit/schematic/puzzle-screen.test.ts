@@ -55,7 +55,6 @@ async function open(options: { withPuzzle?: boolean; answer?: PuzzleAnswer } = {
       modes: ['edit'],
       writable: true,
     }),
-    changeSet: false,
   })
   const session = await createSchematic().open(await ports.workspace.files('schematic'), ports)
   const checker = {

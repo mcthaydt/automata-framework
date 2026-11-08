@@ -2,7 +2,7 @@
 // valid `af-sector/1` file that opens) and ED3-r (add a definition with a field, place a thing of it, retype the field:
 // refused with the instance named while it would stop validating; one undo per change).
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { createDefinitionsController } from '#src/features/levels-3d/definitions/definitions-controller.ts'
 import { createEditorApp } from '#src/features/levels-3d/document/editor-app.ts'
@@ -30,7 +30,7 @@ describe('ED3-q: New level writes a level that opens', () => {
 })
 
 describe('ED3-r: the definitions editor never makes an instance invalid', () => {
-  const depot = ((): AfSector => {
+  const depot = ((): AfSector2File => {
     const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
     if (!result.ok) throw new Error('the depot does not parse')
     return result.value

@@ -34,6 +34,7 @@ const EMPTY: PlanPaint = {
   fills: [],
   walls: [],
   links: [],
+  marks: [],
   things: [],
   rulers: { x: [], z: [] },
 }

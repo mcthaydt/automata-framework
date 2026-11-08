@@ -7,14 +7,14 @@ never = ["package.json", ".github/**", ".claude/**"]
 [[file]]
 glob = "content/tuning.toml"
 editor = "tuner"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = []
 checks = []
 
 [[file]]
 glob = "content/feel/*.toml"
 editor = "feel"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = []
 checks = []
 
@@ -42,14 +42,14 @@ checks = []
 [[file]]
 glob = "content/audio/*.toml"
 editor = "audio"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = []
 checks = []
 
 [[file]]
 glob = "content/systems/*.toml"
 editor = "schematic"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = []
 checks = []
 
@@ -63,6 +63,6 @@ checks = []
 [[file]]
 glob = "content/nav/*.toml"
 editor = "schematic"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = []
 checks = []

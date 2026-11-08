@@ -4,7 +4,7 @@
 // pair stops matching (the `openings` check). The rules for dividing and for joining what is set into a wall live here
 // once, so that no tool re-derives them.
 
-import type { DoorDef, WindowDef } from '@automata/3d/level'
+import type { Decor, DoorDef, WindowDef } from '@automata/3d/level'
 import { wallSelection } from '../checks/check'
 import { outlineProblem } from '../geometry/loops'
 import type { LevelProfile } from '../level-session/level-profile'
@@ -12,7 +12,7 @@ import type { EditCorner, EditSector, EditWall } from '../level-session/sector-a
 import { type Edit, type EditResult, ok, refuse } from './edit'
 import { sameJson } from './json-values'
 import { noSector, placed, replaceSector, replaceSectors, round4, sectorOf } from './sector-edit-support'
-import { cornerAt, loopOf, membersOf, samePoint, wallLength, wallOver } from './wall-geometry'
+import { cornerAt, isBareWall, loopOf, membersOf, samePoint, wallLength, wallOver } from './wall-geometry'
 
 /** A point is on a wall when it is this close to it, in metres: a tap a hair off the line still means the line. */
 export const ON_THE_WALL = 0.001
@@ -27,6 +27,8 @@ export interface InsertCornerArgs {
   readonly x: number
   readonly z: number
 }
+
+const WINDOW_ROW_REFUSAL = 'This wall has a row of windows. Take them off first, then split the wall.'
 
 /** The two walls a wall becomes: what is written in the corner that starts each (`undefined` is a bare corner). */
 interface Halves {
@@ -44,12 +46,18 @@ function sideOf(start: number, end: number, d: number): Side | undefined {
 }
 
 /** The wall, or nothing when it has no members: a corner has a third member only when its wall has something to say. */
-const bare = (wall: EditWall): EditWall | undefined => (Object.keys(wall).length === 0 ? undefined : wall)
+const bare = (wall: EditWall): EditWall | undefined => (isBareWall(wall) ? undefined : wall)
 
 /** From where to where along its wall a door or a window lies: half its width either side of its centre. */
 const reach = (feature: { readonly at: number; readonly width: number }): readonly [number, number] => [
   feature.at - feature.width / 2,
   feature.at + feature.width / 2,
+]
+
+/** Where a decor lies along its wall: half its width either side of its centre. */
+const decorReach = (each: Decor): readonly [number, number] => [
+  each.pos - each.width / 2,
+  each.pos + each.width / 2,
 ]
 
 const shiftedDoor = (door: DoorDef, d: number): DoorDef => ({ ...door, at: round4(door.at - d) })
@@ -64,7 +72,9 @@ const shiftedWindow = (pane: WindowDef, d: number): WindowDef => ({ ...pane, at:
  */
 function splitWall(wall: string | EditWall | undefined, d: number): Halves | string {
   if (wall === undefined || typeof wall === 'string') return { first: wall, second: wall }
-  const { door, window: pane, hatch, pilaster, ...shared } = wall
+  // A row of windows runs over the whole facade; there is no half of it to give each side.
+  if (wall.windows !== undefined) return WINDOW_ROW_REFUSAL
+  const { door, window: pane, hatch, pilaster, decor, ...shared } = wall
   let first: EditWall = shared
   let second: EditWall = shared
 
@@ -88,6 +98,18 @@ function splitWall(wall: string | EditWall | undefined, d: number): Halves | str
     if (side === 'first') first = { ...first, hatch }
     else if (side === 'second') second = { ...second, hatch: [round4(hatch[0] - d), round4(hatch[1] - d)] }
     else return side
+  }
+  if (decor !== undefined) {
+    const onFirst: Decor[] = []
+    const onSecond: Decor[] = []
+    for (const each of decor) {
+      const side = place(each.kind, ...decorReach(each))
+      if (side === 'first') onFirst.push(each)
+      else if (side === 'second') onSecond.push({ ...each, pos: round4(each.pos - d) })
+      else return side
+    }
+    if (onFirst.length > 0) first = { ...first, decor: onFirst }
+    if (onSecond.length > 0) second = { ...second, decor: onSecond }
   }
   if (pilaster !== undefined) {
     const { start, end, ...others } = pilaster
@@ -274,8 +296,22 @@ export function joinWalls(
   second: string | EditWall | undefined,
   at: Meeting,
 ): Joined {
-  const { door: doorA, window: paneA, hatch: hatchA, pilaster: pilasterA, ...sharedA } = membersOf(first)
-  const { door: doorB, window: paneB, hatch: hatchB, pilaster: pilasterB, ...sharedB } = membersOf(second)
+  const {
+    door: doorA,
+    window: paneA,
+    hatch: hatchA,
+    pilaster: pilasterA,
+    decor: decorA,
+    ...sharedA
+  } = membersOf(first)
+  const {
+    door: doorB,
+    window: paneB,
+    hatch: hatchB,
+    pilaster: pilasterB,
+    decor: decorB,
+    ...sharedB
+  } = membersOf(second)
   const valuesA: Record<string, unknown> = sharedA
   const valuesB: Record<string, unknown> = sharedB
   const differing = [...new Set([...Object.keys(valuesA), ...Object.keys(valuesB)])]
@@ -301,11 +337,16 @@ export function joinWalls(
     (hatchB === undefined
       ? undefined
       : ([round4(hatchB[0] + at.firstLength), round4(hatchB[1] + at.firstLength)] as const))
+  const decor = [
+    ...(decorA ?? []),
+    ...(decorB ?? []).map((each) => ({ ...each, pos: round4(each.pos + at.firstLength) })),
+  ]
   // Where each feature ends along the new wall; none starts before it, because a feature only ever moves on.
   const ends = [
     ['door', door === undefined ? undefined : reach(door)[1]],
     ['window', pane === undefined ? undefined : reach(pane)[1]],
     ['hatch', hatch === undefined ? undefined : Math.max(...hatch)],
+    ...decor.map((each) => [each.kind, decorReach(each)[1]] as const),
   ] as const
   for (const [what, end] of ends)
     if (end !== undefined && end > at.joinedLength + FITS)
@@ -315,6 +356,7 @@ export function joinWalls(
   if (door !== undefined) joined = { ...joined, door }
   if (pane !== undefined) joined = { ...joined, window: pane }
   if (hatch !== undefined) joined = { ...joined, hatch }
+  if (decor.length > 0) joined = { ...joined, decor }
   const { start, end: _noEnd, ...othersA } = pilasterA ?? {}
   const { start: _noStart, end, ...othersB } = pilasterB ?? {}
   const pilaster = {
@@ -324,7 +366,7 @@ export function joinWalls(
     ...(end === undefined ? {} : { end }),
   }
   if (Object.keys(pilaster).length > 0) joined = { ...joined, pilaster }
-  if (Object.keys(joined).length === 0) return { wall: undefined }
+  if (isBareWall(joined)) return { wall: undefined }
   // A name that both walls spell the same way stays a name.
   return { wall: typeof first === 'string' && sameJson(joined, { cut: first }) ? first : joined }
 }

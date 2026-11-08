@@ -3,7 +3,7 @@
 // (from the document's start corner, rounded by the keys) and the point there. The depot is the level: the hall runs from
 // (0, 0) to (8, 6) and the dock from (8, 0) to (14, 6), joined by a portal along x = 8.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import type { WallHit } from '#src/features/levels-3d/plan/plan-pick.ts'
@@ -15,13 +15,13 @@ import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 import { toyAfSector, toyDock, toyHall } from '#src/testing/toy-af-sector.ts'
 
-const depot: AfSector = (() => {
+const depot: AfSector2File = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
 })()
 
-const editor = (level: AfSector = depot) => ({ profile: afSectorProfile, level })
+const editor = (level: AfSector2File = depot) => ({ profile: afSectorProfile, level })
 
 const hit = (selection: string, sector: string, x: number, z: number): WallHit => ({
   kind: 'wall',
@@ -108,7 +108,7 @@ describe('wallPlaceOf', () => {
 
 describe('outlinePlaceAt', () => {
   const SIZE = { w: 800, h: 400 }
-  const setup = (level: AfSector = depot) => {
+  const setup = (level: AfSector2File = depot) => {
     const editor = createLevelEditor({ profile: afSectorProfile, level })
     editor.view.set({ camera: { x: 7, z: 3, zoom: 1 } })
     const geometry = createGeometryCache(editor)

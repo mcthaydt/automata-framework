@@ -56,7 +56,6 @@ async function open(check?: (wins: number) => Omit<CheckResult, 'check'>, wins =
       modes: ['edit'],
       writable: true,
     }),
-    changeSet: false,
     checks: [
       {
         id: 'fair-play',
@@ -205,7 +204,6 @@ describe('the Fair play page', () => {
         modes: ['edit'],
         writable: true,
       }),
-      changeSet: false,
     })
     const session = await createSchematic().open(await ports.workspace.files('schematic'), ports)
     session.chosen = { kind: 'fair' }

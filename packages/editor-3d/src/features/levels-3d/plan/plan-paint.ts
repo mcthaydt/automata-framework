@@ -7,8 +7,8 @@ import { entitySelection } from '../../../shared/checks/check'
 import type { ThingLink } from '../../../shared/level-session/thing-links'
 import type { ThingDef } from '../../../shared/things/thing-def.schema'
 import type { EntityKit, Thing } from '../../../shared/things/things'
-import { GROUP_FILLS, PLAN_COLORS, parseHex } from './plan-colors'
-import type { PlanScene, PlanWall, WallKind } from './plan-scene'
+import { FLOOR_TINT, GROUP_FILLS, mixColor, PLAN_COLORS, parseHex } from './plan-colors'
+import type { PlanFill, PlanScene, PlanWall, WallKind } from './plan-scene'
 import { gridLines, toScreen } from './plan-viewport'
 import { halfFootprint, isThingLayerOff } from './thing-pick'
 
@@ -25,6 +25,8 @@ export interface PlanPaintInput {
   readonly hidden: readonly string[]
   /** The selection ids. */
   readonly selected: ReadonlySet<string>
+  /** The game's colour for a material by name: a room whose floor has one is tinted with it. */
+  readonly colours?: ((texture: string) => number | undefined) | undefined
 }
 
 export interface PaintFill {
@@ -34,6 +36,12 @@ export interface PaintFill {
   readonly holes: readonly (readonly number[])[]
   readonly color: number
   readonly selected: boolean
+}
+
+/** A word on the plan at a screen point: "Pit" at the middle of a room that is one. */
+export interface PaintMark {
+  readonly text: string
+  readonly at: ScreenPoint
 }
 
 export interface PaintStroke {
@@ -86,6 +94,8 @@ export interface PlanPaint {
   readonly gridColor: number
   readonly grid: readonly PaintGridLine[]
   readonly fills: readonly PaintFill[]
+  /** Words laid over the fills. */
+  readonly marks: readonly PaintMark[]
   readonly walls: readonly PaintStroke[]
   readonly links: readonly PaintLine[]
   readonly things: readonly PaintThing[]
@@ -98,6 +108,12 @@ export function groupColor(group: string): number {
   let hash = 0
   for (const char of group) hash = (Math.imul(hash, 31) + (char.codePointAt(0) ?? 0)) | 0
   return GROUP_FILLS[Math.abs(hash) % GROUP_FILLS.length] ?? PLAN_COLORS.fill
+}
+
+/** A room's fill: its floor's own colour in the game, softened; else the colour its zone or style picks. */
+function fillColor(fill: PlanFill, colours: PlanPaintInput['colours']): number {
+  const floor = fill.floorTexture === undefined ? undefined : colours?.(fill.floorTexture)
+  return floor === undefined ? groupColor(fill.group) : mixColor(PLAN_COLORS.fill, floor, FLOOR_TINT)
 }
 
 const STROKES: Readonly<Record<WallKind, { color: number; width: number; dashed: boolean }>> = {
@@ -167,9 +183,17 @@ export function planPaint(input: PlanPaintInput): PlanPaint {
         return [at.x, at.y]
       }),
     ),
-    color: groupColor(fill.group),
+    color: fill.pit === true ? PLAN_COLORS.pit : fillColor(fill, input.colours),
     selected: fill.selection !== undefined && input.selected.has(fill.selection),
   }))
+  // The middle of the outline's box: a pit's word sits inside it for any room that is not a crescent.
+  const marks = scene.fills.flatMap((fill): PaintMark[] => {
+    if (fill.pit !== true || fill.outline.length === 0) return []
+    const xs = fill.outline.map((point) => point.x)
+    const zs = fill.outline.map((point) => point.z)
+    const middle = { x: (Math.min(...xs) + Math.max(...xs)) / 2, z: (Math.min(...zs) + Math.max(...zs)) / 2 }
+    return [{ text: 'Pit', at: toScreen(viewport, middle) }]
+  })
   const selectedSectors = new Set(fills.filter((fill) => fill.selected).map((fill) => fill.sector))
   const walls = scene.walls.flatMap((wall) => wallStrokes(wall, viewport))
   // The accent goes over everything else: a selected wall, and the walls of a selected sector.
@@ -235,6 +259,7 @@ export function planPaint(input: PlanPaintInput): PlanPaint {
     gridColor: PLAN_COLORS.grid,
     grid,
     fills,
+    marks,
     walls: [...walls, ...accents],
     links,
     things,

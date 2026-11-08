@@ -33,7 +33,6 @@ async function openWith(hall: string) {
       modes: ['edit'],
       writable: true,
     }),
-    changeSet: false,
   })
   const session = await createSchematic().open(await ports.workspace.files('schematic'), ports)
   render(SchematicInspector, { props: { session } })

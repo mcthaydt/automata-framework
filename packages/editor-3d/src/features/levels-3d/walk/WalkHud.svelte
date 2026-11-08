@@ -105,15 +105,21 @@ const hold =
     padding: var(--space-1) var(--space-3);
     transform: translateX(-50%);
     border-radius: var(--edge-lg);
-    background: color-mix(in srgb, var(--color-bg-canvas) 80%, transparent);
+    /* Over the picture, so it carries its own dark plate and light words, whatever the editor's theme. */
+    background: rgba(12, 13, 16, 0.82);
+    color: #f2f4f8;
     white-space: nowrap;
   }
+  /* Under the mode switch and the minimap, which are the top row, so the words never sit over either. */
   .chip {
-    top: var(--space-3);
+    top: calc(var(--space-3) + 90px + var(--space-2));
+    max-width: calc(100% - 2 * var(--space-3));
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .warning {
-    top: calc(var(--space-3) + 36px);
-    color: var(--color-state-warn, #e0a030);
+    top: calc(var(--space-3) + 90px + var(--space-2) + 36px);
+    color: #f0b44c;
     white-space: normal;
     max-width: 80%;
     text-align: center;

@@ -2,7 +2,7 @@
 // undo step. The depot's format has no links, so these run on the depot with links held in the test: a profile that has
 // them decides what it refuses, and the edit passes its sentence on.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { createLevelEditor } from '#src/shared/edit/level-editor.ts'
 import { addLink, removeLink } from '#src/shared/edit/link-edits.ts'
@@ -21,11 +21,11 @@ const depot = (() => {
 
 /** Links kept beside the level, keyed by the level object, so each edit's result carries its own list. */
 function profileWithLinks(start: readonly ThingLink[] = []): {
-  profile: LevelProfile<AfSector>
-  links: Map<AfSector, readonly ThingLink[]>
+  profile: LevelProfile<AfSector2File>
+  links: Map<AfSector2File, readonly ThingLink[]>
 } {
-  const links = new Map<AfSector, readonly ThingLink[]>([[depot, start]])
-  const thingLinks: ThingLinks<AfSector> = {
+  const links = new Map<AfSector2File, readonly ThingLink[]>([[depot, start]])
+  const thingLinks: ThingLinks<AfSector2File> = {
     def: 'crate',
     list: (doc) => links.get(doc) ?? [],
     add(doc, link) {
@@ -50,7 +50,7 @@ function profileWithLinks(start: readonly ThingLink[] = []): {
 describe('addLink', () => {
   it('adds the link after the others and says which two it joins', () => {
     const { profile, links } = profileWithLinks([{ a: 'x', b: 'y' }])
-    const edit = addLink<AfSector>({ a: 'p', b: 'q' })
+    const edit = addLink<AfSector2File>({ a: 'p', b: 'q' })
     expect(edit.id).toBe('link.add')
     expect(edit.label).toBe('Link p–q')
     const next = levelOf(edit.run(profile, depot))
@@ -62,18 +62,20 @@ describe('addLink', () => {
 
   it('passes on the sentence of a link the level may not have, and changes nothing', () => {
     const { profile } = profileWithLinks()
-    expect(reasonOf(addLink<AfSector>({ a: 'p', b: 'p' }).run(profile, depot))).toBe(
+    expect(reasonOf(addLink<AfSector2File>({ a: 'p', b: 'p' }).run(profile, depot))).toBe(
       'a thing cannot be linked to itself',
     )
   })
 
   it('passes on the sentence of a level whose geometry refuses', () => {
     const { profile } = profileWithLinks()
-    expect(reasonOf(addLink<AfSector>({ a: 'far', b: 'q' }).run(profile, depot))).toBe('far is out of reach')
+    expect(reasonOf(addLink<AfSector2File>({ a: 'far', b: 'q' }).run(profile, depot))).toBe(
+      'far is out of reach',
+    )
   })
 
   it('is refused on a level whose profile has no links', () => {
-    expect(reasonOf(addLink<AfSector>({ a: 'spawn', b: 'crate1' }).run(afSectorProfile, depot))).toBe(
+    expect(reasonOf(addLink<AfSector2File>({ a: 'spawn', b: 'crate1' }).run(afSectorProfile, depot))).toBe(
       'this level has no links',
     )
   })
@@ -94,7 +96,7 @@ describe('removeLink', () => {
       { a: 'p', b: 'q' },
       { a: 'q', b: 's' },
     ])
-    const edit = removeLink<AfSector>({ a: 'p', b: 'q' })
+    const edit = removeLink<AfSector2File>({ a: 'p', b: 'q' })
     expect(edit.id).toBe('link.remove')
     expect(edit.label).toBe('Unlink p–q')
     expect(links.get(levelOf(edit.run(profile, depot)))).toEqual([{ a: 'q', b: 's' }])
@@ -102,10 +104,10 @@ describe('removeLink', () => {
 
   it('says so when the two are not linked, and is refused on a level whose profile has no links', () => {
     const { profile } = profileWithLinks()
-    expect(reasonOf(removeLink<AfSector>({ a: 'p', b: 'q' }).run(profile, depot))).toBe(
+    expect(reasonOf(removeLink<AfSector2File>({ a: 'p', b: 'q' }).run(profile, depot))).toBe(
       'p and q are not linked',
     )
-    expect(reasonOf(removeLink<AfSector>({ a: 'p', b: 'q' }).run(afSectorProfile, depot))).toBe(
+    expect(reasonOf(removeLink<AfSector2File>({ a: 'p', b: 'q' }).run(afSectorProfile, depot))).toBe(
       'this level has no links',
     )
   })

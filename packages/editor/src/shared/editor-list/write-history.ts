@@ -26,8 +26,6 @@ export interface WriteHistories {
   undone(owner: string): void
   /** Moves the owner's mark forward one step after a redo was written. */
   redone(owner: string): void
-  /** Empties every owner's history. */
-  clear(): void
 }
 
 export function createWriteHistories(): WriteHistories {
@@ -62,6 +60,5 @@ export function createWriteHistories(): WriteHistories {
     redone: (owner) => {
       historyOf(owner).done++
     },
-    clear: () => histories.clear(),
   }
 }

@@ -19,18 +19,22 @@ import { copyGame, type TempGame } from './temp-game.ts'
 
 /** The committed game the journeys copy. */
 export const EMBERWICK: string = fileURLToPath(new URL('../../../../../games/emberwick', import.meta.url))
+/** The free 3D game: the journeys that edit a 3D room copy it (`test.use({ source: BASE_3D })`). */
+export const BASE_3D: string = fileURLToPath(new URL('../../../../../games/base-3d', import.meta.url))
 /** Emberwick's room: 8 px cells (320 px across 40 of them). */
 export const ROOM_TILE: number = 8
 
 type JourneyFixtures = { game: TempGame; editor: RunningEditor }
+/** The game a journey copies; Emberwick unless the journey says (`test.use({ source })`). */
+type JourneyOptions = { source: string }
 
 export const test: TestType<
-  PlaywrightTestArgs & PlaywrightTestOptions & JourneyFixtures,
+  PlaywrightTestArgs & PlaywrightTestOptions & JourneyFixtures & JourneyOptions,
   PlaywrightWorkerArgs & PlaywrightWorkerOptions
-> = base.extend<JourneyFixtures>({
-  // biome-ignore lint/correctness/noEmptyPattern: Playwright's fixture signature takes the other fixtures first.
-  game: async ({}, use) => {
-    const game = copyGame(EMBERWICK)
+> = base.extend<JourneyFixtures & JourneyOptions>({
+  source: [EMBERWICK, { option: true }],
+  game: async ({ source }, use) => {
+    const game = copyGame(source)
     await use(game)
     game.remove()
   },

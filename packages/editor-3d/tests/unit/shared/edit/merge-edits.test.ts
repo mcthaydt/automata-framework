@@ -2,7 +2,7 @@
 // strongest test of the two edits is that they undo each other, so most cases below split a sector on the depot and
 // merge the halves again, and smaller levels show the one rule each.
 
-import type { AfSector, AfSectorEntry } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { mergeSectors } from '#src/shared/edit/merge-edits.ts'
 import { splitSector } from '#src/shared/edit/split-edits.ts'
@@ -19,32 +19,36 @@ const depot = (() => {
   return result.value
 })()
 
-const afMerge = (level: AfSector, keep: string, merge: string) =>
-  mergeSectors<AfSector>({ keep, merge }).run(afSectorProfile, level)
+const afMerge = (level: AfSector2File, keep: string, merge: string) =>
+  mergeSectors<AfSector2File>({ keep, merge }).run(afSectorProfile, level)
 const afCut = (
-  level: AfSector,
+  level: AfSector2File,
   sector: string,
   id: string,
   from: readonly [number, number],
   to: readonly [number, number],
 ) =>
   levelOf(
-    splitSector<AfSector>({ sector, id, from: { x: from[0], z: from[1] }, to: { x: to[0], z: to[1] } }).run(
-      afSectorProfile,
-      level,
-    ),
+    splitSector<AfSector2File>({
+      sector,
+      id,
+      from: { x: from[0], z: from[1] },
+      to: { x: to[0], z: to[1] },
+    }).run(afSectorProfile, level),
   )
-const sector = (level: AfSector, id: string): EditSector =>
-  must(afSectorProfile.sectors.list(level).find((each) => each.id === id))
-const ids = (level: AfSector) => afSectorProfile.sectors.list(level).map((each) => each.id)
-const problems = (level: AfSector) =>
+const sector = (level: AfSector2File, id: string): AfSectorEntry2File =>
+  must(level.sectors.find((each) => each.id === id))
+const ids = (level: AfSector2File) => afSectorProfile.sectors.list(level).map((each) => each.id)
+const problems = (level: AfSector2File) =>
   afSectorProfile
     .checks(level)
     .filter((result) => !result.ok)
     .map((result) => result.id)
 
 /** A loop's corners from the one nearest the origin, so that two ways of writing one loop compare equal. */
-const canonical = (corners: readonly EditCorner[]): readonly EditCorner[] => {
+const canonical = <C extends readonly [number, number, ...unknown[]]>(
+  corners: readonly C[],
+): readonly C[] => {
   let first = 0
   for (const [i, corner] of corners.entries()) {
     const best = must(corners[first])
@@ -53,13 +57,16 @@ const canonical = (corners: readonly EditCorner[]): readonly EditCorner[] => {
   return [...corners.slice(first), ...corners.slice(0, first)]
 }
 /** A sector with its outline written from the corner nearest the origin. */
-const steady = (each: EditSector): EditSector => ({ ...each, corners: canonical(each.corners) })
+const steady = (each: AfSectorEntry2File): AfSectorEntry2File => ({
+  ...each,
+  corners: canonical(each.corners),
+})
 
 const room = (
   id: string,
-  corners: AfSectorEntry['corners'],
-  more: Partial<AfSectorEntry> = {},
-): AfSectorEntry => ({
+  corners: AfSectorEntry2File['corners'],
+  more: Partial<AfSectorEntry2File> = {},
+): AfSectorEntry2File => ({
   id,
   floor: 0,
   ceiling: 4,
@@ -67,7 +74,7 @@ const room = (
   corners,
   ...more,
 })
-const levelOfRooms = (...rooms: AfSectorEntry[]): AfSector => toyAfSector({ sectors: rooms })
+const levelOfRooms = (...rooms: AfSectorEntry2File[]): AfSector2File => toyAfSector({ sectors: rooms })
 
 describe('mergeSectors after a split on the depot', () => {
   it('puts the hall back as it was when its halves are merged, up to where the outline starts', () => {
@@ -117,7 +124,7 @@ describe('mergeSectors after a split on the depot', () => {
 
   it('selects the kept sector and is labelled for the two', () => {
     const split = afCut(depot, 'hall', 'annex', [3, 0], [3, 6])
-    const edit = mergeSectors<AfSector>({ keep: 'hall', merge: 'annex' })
+    const edit = mergeSectors<AfSector2File>({ keep: 'hall', merge: 'annex' })
     expect(edit).toMatchObject({ id: 'sector.merge', label: 'Merge annex into hall' })
     const result = edit.run(afSectorProfile, split)
     expect(result.ok && result.select).toEqual(['sector:hall'])
@@ -331,20 +338,20 @@ describe('mergeSectors with a neighbour', () => {
 
   it('keeps a corner whose two walls are in line but say different things', () => {
     const left = room('left', [
-      [0, 0, { texture: 'brick' }],
+      [0, 0, { surface: 'brick' }],
       [4, 0],
       [4, 4],
       [0, 4],
     ])
     const right = room('right', [
-      [4, 0, { texture: 'tile' }],
+      [4, 0, { surface: 'tile' }],
       [8, 0],
       [8, 4],
       [4, 4],
     ])
     expect(sector(levelOf(afMerge(levelOfRooms(left, right), 'left', 'right')), 'left').corners).toEqual([
-      [0, 0, { texture: 'brick' }],
-      [4, 0, { texture: 'tile' }],
+      [0, 0, { surface: 'brick' }],
+      [4, 0, { surface: 'tile' }],
       [8, 0],
       [8, 4],
       [0, 4],
@@ -517,21 +524,21 @@ describe('mergeSectors on harder levels', () => {
   })
 
   it('refuses a level the engine cannot build after the merge, in the engine’s own sentence', () => {
-    const unbuildable: LevelProfile<AfSector> = {
+    const unbuildable: LevelProfile<AfSector2File> = {
       ...afSectorProfile,
       geometry: () => {
         throw new GeometryError('the engine cannot build it')
       },
     }
     const split = afCut(depot, 'hall', 'annex', [3, 0], [3, 6])
-    const result = mergeSectors<AfSector>({ keep: 'hall', merge: 'annex' }).run(unbuildable, split)
+    const result = mergeSectors<AfSector2File>({ keep: 'hall', merge: 'annex' }).run(unbuildable, split)
     expect(reasonOf(result)).toBe('the engine cannot build it')
   })
 })
 
 describe('mergeSectors refuses what it cannot do', () => {
   const split = afCut(depot, 'hall', 'annex', [3, 0], [3, 6])
-  const reason = (level: AfSector, keep: string, merge: string) => reasonOf(afMerge(level, keep, merge))
+  const reason = (level: AfSector2File, keep: string, merge: string) => reasonOf(afMerge(level, keep, merge))
 
   it('names a sector that is not there, whichever of the two it is', () => {
     expect(reason(split, 'nowhere', 'annex')).toBe('no sector nowhere')
@@ -682,7 +689,7 @@ describe('mergeSectors refuses what it cannot do', () => {
   })
 
   it('refuses a sector that something is tied to, whichever side it is on, and points at it', () => {
-    const tied: LevelProfile<AfSector> = {
+    const tied: LevelProfile<AfSector2File> = {
       ...afSectorProfile,
       sectors: {
         ...afSectorProfile.sectors,
@@ -690,7 +697,7 @@ describe('mergeSectors refuses what it cannot do', () => {
       },
     }
     const merge = (keep: string, other: string) =>
-      mergeSectors<AfSector>({ keep, merge: other }).run(tied, depot)
+      mergeSectors<AfSector2File>({ keep, merge: other }).run(tied, depot)
     const sentence = 'dock cannot be merged while something is tied to its walls: door d (hall → dock)'
     expect(merge('dock', 'hall')).toEqual({ ok: false, reason: sentence, at: 'sector:dock' })
     expect(merge('hall', 'dock')).toEqual({ ok: false, reason: sentence, at: 'sector:dock' })

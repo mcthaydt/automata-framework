@@ -41,6 +41,42 @@ const meshOf = (...surfaces: Surface[]): SectorMesh => ({
 // Looking north (yaw 0, along −z) from the south, 30° up, at the middle of the box.
 const ORBIT: Orbit = { target: [1, 1, 1], distance: 8, yaw: 0, pitch: (30 * Math.PI) / 180 }
 
+describe('the game’s look', () => {
+  const brick: Surface = { ...wall(0, 1, 'cut', 1), texture: 'brick' }
+  const red = 0xc03020
+
+  it('paints a surface in its swatch’s colour, lit by its shade', () => {
+    const paint = dollhousePaint(meshOf(brick), ORBIT, SIZE, new Set(), (name) =>
+      name === 'brick' ? red : undefined,
+    )
+    expect(paint.polygons.map((polygon) => polygon.color)).toEqual([red, red])
+    const dim = { ...brick, shade: 0.5 }
+    const [dimmer] = dollhousePaint(meshOf(dim), ORBIT, SIZE, new Set(), (name) =>
+      name === 'brick' ? red : undefined,
+    ).polygons
+    expect(dimmer?.color).not.toBe(red)
+    expect((dimmer?.color ?? 0) >> 16).toBeLessThan(red >> 16)
+    expect((dimmer?.color ?? 0) >> 16).toBeGreaterThan(0)
+  })
+
+  it('keeps the blockout’s grey for a swatch the game does not give a colour, and with no look at all', () => {
+    const grey = dollhousePaint(meshOf(wall(0, 1, 'cut', 1)), ORBIT, SIZE, new Set()).polygons[0]?.color
+    expect(dollhousePaint(meshOf(brick), ORBIT, SIZE, new Set()).polygons[0]?.color).toBe(grey)
+    expect(
+      dollhousePaint(meshOf(brick), ORBIT, SIZE, new Set(), (name) => (name === 'stone' ? red : undefined))
+        .polygons[0]?.color,
+    ).toBe(grey)
+  })
+
+  it('paints Walk’s eye the same way', () => {
+    const eye: Camera3D = { eye: [1, 1.2, 1.5], yaw: 0, pitch: 0, fov: (60 * Math.PI) / 180 }
+    const paint = meshPaint(meshOf(brick), eye, SIZE, new Set(), (name) =>
+      name === 'brick' ? red : undefined,
+    )
+    expect(paint.polygons.every((polygon) => polygon.color === red)).toBe(true)
+  })
+})
+
 describe('dollhousePaint', () => {
   it('draws the floor and cuts away the ceiling seen from above', () => {
     const paint = dollhousePaint(meshOf(flat('floor', 0), flat('ceiling', 2)), ORBIT, SIZE, new Set())

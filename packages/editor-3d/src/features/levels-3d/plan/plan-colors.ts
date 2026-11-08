@@ -6,6 +6,8 @@ export const PLAN_COLORS = {
   background: 0x0c0d10,
   /** A sector of no zone or style. */
   fill: 0x1f232b,
+  /** A room the player falls into: darker than any other fill, and named "Pit" on the plan. */
+  pit: 0x07080a,
   wall: 0xb4bac6,
   portal: 0x5aa9e6,
   door: 0xd98c5f,
@@ -32,4 +34,16 @@ export function parseHex(text: string): number | undefined {
   const digits = match[1] ?? ''
   const full = digits.length === 3 ? [...digits].map((digit) => digit + digit).join('') : digits
   return Number.parseInt(full, 16)
+}
+
+/** How much of a floor's own colour a room's fill takes on the plan: enough to tell the rooms apart, too little to hide a wall. */
+export const FLOOR_TINT = 0.4
+
+/** `a` moved `amount` (0 to 1) of the way to `b`, channel by channel. */
+export function mixColor(a: number, b: number, amount: number): number {
+  const channel = (shift: number): number => {
+    const from = (a >> shift) & 0xff
+    return Math.round(from + (((b >> shift) & 0xff) - from) * amount)
+  }
+  return (channel(16) << 16) | (channel(8) << 8) | channel(0)
 }

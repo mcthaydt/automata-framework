@@ -42,7 +42,6 @@ async function open(files: Record<string, string>) {
   const { ports } = await createMemoryPorts({
     files,
     classify: (path) => ({ path, editor: 'audio', gates: [], checks: [], modes: ['edit'], writable: true }),
-    changeSet: false,
   })
   const play = vi.fn(async () => {})
   const session = await createAudio({ play }).open(await ports.workspace.files('audio'), ports)

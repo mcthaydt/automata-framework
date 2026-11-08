@@ -145,7 +145,7 @@ const notes = $derived(
   }
   .watch-toggle[aria-pressed='true'],
   .tabs button[aria-selected='true'] {
-    border-color: var(--color-accent);
+    border-color: var(--color-accent-default);
     background: var(--color-accent-soft);
   }
   .panel {

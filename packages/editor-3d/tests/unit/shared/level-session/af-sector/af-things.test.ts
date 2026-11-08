@@ -1,7 +1,7 @@
 // How things are written into an `af-sector/1` level (ED3D.7a step 1): the access puts a thing where the file keeps it
 // and the codec turns that into the smallest patch, so a thing that is moved changes its `x` and `z` and nothing else.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { afEntityKit } from '#src/shared/level-session/af-sector/af-entities.ts'
 import { afThingAccess } from '#src/shared/level-session/af-sector/af-things.ts'
@@ -14,16 +14,16 @@ import { changedRegion, literalEdits } from '#src/testing/text-diff.ts'
 import { toyAfSector } from '#src/testing/toy-af-sector.ts'
 
 const depotText = loadAuthored('depot.af-sector')
-const depot = ((): AfSector => {
+const depot = ((): AfSector2File => {
   const result = afSectorProfile.parse(depotText)
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
 })()
 
-const thingOf = (level: AfSector, id: string): Thing =>
+const thingOf = (level: AfSector2File, id: string): Thing =>
   must(afEntityKit(level).things.find((thing) => thing.id === id))
 
-const patched = (before: AfSector, after: AfSector, text = depotText): string => {
+const patched = (before: AfSector2File, after: AfSector2File, text = depotText): string => {
   const result = afSectorProfile.patch(text, before, after)
   if (!result.ok) throw new Error(`patch refused at ${JSON.stringify(result.path)}: ${result.detail}`)
   return result.text
@@ -86,7 +86,7 @@ describe('afThingAccess.replace', () => {
   })
 
   it('keeps the members in the order the file has them, and changes a field in place', () => {
-    const shuffled: AfSector = {
+    const shuffled: AfSector2File = {
       ...depot,
       entities: [
         { contents: 'tools', z: 2, x: 11, id: 'crate1', def: 'crate' },
@@ -143,7 +143,7 @@ describe('afThingAccess.takenIds', () => {
 })
 
 describe('afThingAccess.references', () => {
-  const holder: AfSector = {
+  const holder: AfSector2File = {
     ...depot,
     entityDefs: [
       ...(depot.entityDefs ?? []),
@@ -187,7 +187,7 @@ describe('afThingAccess.references', () => {
   })
 
   it('does not count a thing’s own ref to itself', () => {
-    const selfish: AfSector = {
+    const selfish: AfSector2File = {
       ...holder,
       entities: [
         ...(holder.entities ?? []),

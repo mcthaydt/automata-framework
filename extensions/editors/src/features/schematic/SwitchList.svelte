@@ -85,7 +85,7 @@ const { character, names, selected, onselect }: Props = $props()
     cursor: pointer;
   }
   button[aria-pressed='true'] {
-    border-color: var(--color-accent);
+    border-color: var(--color-accent-default);
     background: var(--color-accent-soft);
   }
   .none,

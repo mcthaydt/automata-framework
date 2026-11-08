@@ -13,7 +13,7 @@ import type { Size } from '@automata/editor/kit/core'
 import { onDestroy } from 'svelte'
 import type { LevelEditor } from '../../../shared/edit/level-editor'
 import { createGeometryCache } from '../../../shared/geometry/geometry-cache'
-import { meshPaint } from '../dollhouse/dollhouse-paint'
+import { meshPaint, type SurfaceColours } from '../dollhouse/dollhouse-paint'
 import type { DollhouseRenderer, DollhouseRendererFactory } from '../dollhouse/dollhouse-renderer'
 import type { Frames } from './frames'
 import WalkHud from './WalkHud.svelte'
@@ -25,13 +25,15 @@ interface Props {
   editor: LevelEditor<unknown>
   renderer: DollhouseRendererFactory
   frames: Frames
+  /** The game's colour for a material by name; without it every surface keeps the blockout's grey. */
+  colours?: SurfaceColours | undefined
   onundo: () => void
   onredo: () => void
   /** What the status line says while Walk is shown: the warning, else what the crosshair is on. */
   onwords: (words: string | undefined) => void
 }
 
-const { editor, renderer: makeRenderer, frames, onundo, onredo, onwords }: Props = $props()
+const { editor, renderer: makeRenderer, frames, colours, onundo, onredo, onwords }: Props = $props()
 
 type Phase = 'starting' | 'drawing' | 'unavailable'
 
@@ -62,7 +64,7 @@ $effect(() => {
 function draw(): void {
   if (size === undefined || view === undefined || walk === undefined) return
   shown = walk.view
-  view.draw(meshPaint(walk.mesh, walk.view.camera, size, new Set(editor.selection.ids)))
+  view.draw(meshPaint(walk.mesh, walk.view.camera, size, new Set(editor.selection.ids), colours))
 }
 
 function measured(next: Size): void {
