@@ -1,6 +1,7 @@
 import { openDocument } from '@automata/editor/kit/documents'
 import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
 import { type AgentDef, checkSystems, type SystemsDef, systemsDefShape } from '@automata/systems/sim'
+import { parse as strictParse } from 'smol-toml'
 import { describe, expect, it } from 'vitest'
 import {
   addModeEdits,
@@ -16,7 +17,7 @@ import {
   withoutCondition,
 } from '#src/features/schematic/schematic-edits.ts'
 import { newAgent, newSystemsFile, systemsFileText } from '#src/features/schematic/starter.ts'
-import { changeSwitchText, type SwitchChange } from '#src/features/schematic/switch-text.ts'
+import { changeListText, changeSwitchText, type SwitchChange } from '#src/features/schematic/switch-text.ts'
 import { openTomlSession } from '#src/shared/toml-session.ts'
 import { fixture, fixtureText } from '../../fixtures/systems-fixtures.ts'
 
@@ -436,5 +437,60 @@ describe('a value edit rewrites only its literal', () => {
       ).toBe(true)
       expect(changed.filter((line) => line === '[[agents.transitions]]').length).toBeLessThanOrEqual(1)
     }
+  })
+})
+
+describe('the first and the last item of a list, as the game reads the file', () => {
+  const blank = () => systemsFileText(newSystemsFile('hall', newAgent('g')))
+
+  it('does not leave `senses = []` beside `[[agents.senses]]` (the game’s reader refuses a key twice)', () => {
+    const added = changeListText('hall.toml', blank(), {
+      kind: 'add',
+      list: 'senses',
+      agent: 0,
+      next: { sight: { range: 5 } },
+    })
+    if ('refused' in added) throw new Error(added.refused)
+    expect(() => strictParse(added.text)).not.toThrow()
+    expect((strictParse(added.text) as { agents: { senses: unknown[] }[] }).agents[0]?.senses).toEqual([
+      { sight: { range: 5 } },
+    ])
+    const removed = changeListText('hall.toml', added.text, {
+      kind: 'remove',
+      list: 'senses',
+      agent: 0,
+      index: 0,
+    })
+    if ('refused' in removed) throw new Error(removed.refused)
+    expect((strictParse(removed.text) as { agents: { senses: unknown[] }[] }).agents[0]?.senses).toEqual([])
+  })
+
+  it('writes a first switch and a first stop the same way, and a patrol may go away altogether', () => {
+    const stop = changeListText('hall.toml', blank(), {
+      kind: 'add',
+      list: 'routine',
+      agent: 0,
+      next: { node: 'door', dwell: 2 },
+    })
+    if ('refused' in stop) throw new Error(stop.refused)
+    const first = changeListText('hall.toml', stop.text, {
+      kind: 'add',
+      list: 'transitions',
+      agent: 0,
+      next: newSwitch('patrol', 'patrol'),
+    })
+    if ('refused' in first) throw new Error(first.refused)
+    expect(() => strictParse(first.text)).not.toThrow()
+    const back = changeListText('hall.toml', first.text, {
+      kind: 'remove',
+      list: 'routine',
+      agent: 0,
+      index: 0,
+    })
+    if ('refused' in back) throw new Error(back.refused)
+    expect((strictParse(back.text) as { agents: Record<string, unknown>[] }).agents[0]).not.toHaveProperty(
+      'routine',
+    )
+    expect(systemsDefShape.safeParse(strictParse(back.text)).success).toBe(true)
   })
 })

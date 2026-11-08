@@ -9,3 +9,25 @@ modes = ["edit"]
 exports = "content"
 gates = []
 checks = ["content"]
+
+# Characters and their places, for Schematic (a game that uses the systems extension). Nothing is listed until the files exist.
+[[file]]
+glob = "content/systems/*.toml"
+editor = "schematic"
+modes = ["edit", "ask"]
+gates = []
+checks = ["content"]
+
+[[file]]
+glob = "content/nav/*.toml"
+editor = "schematic"
+modes = ["edit", "ask"]
+gates = []
+checks = ["content"]
+
+[[file]]
+glob = "content/puzzles/*.toml"
+editor = "schematic"
+modes = ["edit", "ask"]
+gates = []
+checks = ["content"]

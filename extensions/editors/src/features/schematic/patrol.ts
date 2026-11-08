@@ -36,10 +36,6 @@ export function stopFields(stop: RoutineStop, places: readonly string[]): Field[
   ]
 }
 
-export function stopWords(stop: RoutineStop): string {
-  return `${spaced(stop.node)}: waits ${String(stop.dwell)} s`
-}
-
 export function writeStop(stop: RoutineStop, key: string, next: unknown): RoutineStop {
   if (key === 'node') return { ...stop, node: String(next) }
   if (key === 'dwell') return { ...stop, dwell: Number(next) }

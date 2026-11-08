@@ -7,6 +7,7 @@ import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
 import { checkSystems, systemsDefShape } from '@automata/systems/sim'
 import { render, screen } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
+import { parse as strictParse } from 'smol-toml'
 import { afterEach, describe, expect, it } from 'vitest'
 import { CONTENT_SAMPLE_GAME } from '#src/app/suite/sample-game.ts'
 import { PRESETS, presetAgent } from '#src/features/schematic/presets.ts'
@@ -83,5 +84,7 @@ describe('adding one in the panel', () => {
     expect(ids).toEqual(['guard', 'guard-2', 'guard-3'])
     expect(session.def?.agents[2]?.routine?.map((s) => s.node)).toEqual(['door', 'desk', 'window'])
     expect(session.problems).toEqual([])
+    // The game reads the file with the strict parser.
+    expect(() => strictParse(session.files.systems.history.state.text ?? '')).not.toThrow()
   })
 })

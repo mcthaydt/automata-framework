@@ -222,9 +222,9 @@ template's controls. It moves no other 3D hash, golden or replay.
 
 ### Task 16: The sample journey, template, docs and the gate
 
-- [ ] `create-game`'s template `editors.toml` gains the systems, nav and puzzle rows (test in `packages/tools`).
+- [x] `create-game`'s template `editors.toml` gains the systems, nav and puzzle rows (test in `packages/tools`).
 - [ ] Journey on the sample page: open Schematic, change the guard's sight, the file changes, Undo.
-- [ ] The systems README gains "Editing characters in Schematic" (where a character starts, places, Watch, Fair
+- [~] The systems README gains "Editing characters in Schematic" (where a character starts, places, Watch, Fair
   play's scene module); `docs/refactor/progress.md` and this log updated.
 - [ ] `pnpm format`, `pnpm check`; the log below records what ran (Node, Chromium) and what did not (WebKit, Firefox,
   the GPU journeys on the runner).

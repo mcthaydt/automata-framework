@@ -6,7 +6,7 @@
 // refused, never written wrong. A comment inside the replaced tables goes with them; a comment above them stays.
 import { openDocument } from '@automata/editor/kit/documents'
 import type { Transition } from '@automata/systems/sim'
-import { stringify } from 'smol-toml'
+import { parse as strictParse, stringify } from 'smol-toml'
 
 interface Header {
   /** The 0-based line of the `[table]` or `[[table]]` header. */
@@ -95,6 +95,40 @@ export function itemTables(list: CharacterList, item: unknown): string[] {
 function splice(text: string, from: number, to: number, put: readonly string[]): string {
   const lines = text.split('\n')
   lines.splice(from, to - from, ...put)
+  return lines.join('\n')
+}
+
+/** The line of character `agent`'s own `key = []` (an empty list written inline), or `undefined`. */
+function inlineEmptyLine(lines: readonly string[], agent: number, list: CharacterList): number | undefined {
+  const headers = headersOf(lines)
+  const owner = headers.filter((h) => h.name === 'agents' && h.array)[agent]
+  if (owner === undefined) return undefined
+  const next = headers.find((h) => h.line > owner.line)?.line ?? lines.length
+  const pattern = new RegExp(`^\\s*${list}\\s*=\\s*\\[\\s*\\]\\s*(#.*)?$`)
+  for (let i = owner.line + 1; i < next; i += 1) if (pattern.test(lines[i] ?? '')) return i
+  return undefined
+}
+
+/**
+ * A list written inline and empty (`senses = []`) cannot also have `[[agents.senses]]` tables: the game's reader refuses
+ * a key defined twice. The first item takes the inline line away; the last one out puts it back (the file needs the key,
+ * except for a patrol, which may be absent).
+ */
+function withoutInlineEmpty(text: string, agent: number, list: CharacterList): string {
+  const lines = text.split('\n')
+  const at = inlineEmptyLine(lines, agent, list)
+  if (at === undefined) return text
+  lines.splice(at, 1)
+  return lines.join('\n')
+}
+
+function withInlineEmpty(text: string, agent: number, list: CharacterList): string {
+  if (list === 'routine') return text
+  const lines = text.split('\n')
+  const headers = headersOf(lines)
+  const owner = headers.filter((h) => h.name === 'agents' && h.array)[agent]
+  if (owner === undefined) return text
+  lines.splice(owner.line + 1, 0, `${list} = []`)
   return lines.join('\n')
 }
 
@@ -197,16 +231,23 @@ export function changeListText(
     list[change.index] = copy(change.next)
   } else if (change.kind === 'remove') {
     next = removeItemText(text, change.list, change.agent, change.index)
+    if (next !== undefined && list.length === 1) next = withInlineEmpty(next, change.agent, change.list)
     list.splice(change.index, 1)
     // The last stop out takes the patrol with it, as the file never held an empty one.
     if (list.length === 0 && change.list === 'routine') delete owner[change.list]
   } else {
-    next = appendItemText(text, change.list, change.agent, change.next, list.length)
+    const base = list.length === 0 ? withoutInlineEmpty(text, change.agent, change.list) : text
+    next = appendItemText(base, change.list, change.agent, change.next, list.length)
     list.push(copy(change.next))
   }
   if (next === undefined) return { refused: NOT_FOUND }
   try {
-    if (canonical(openDocument(path, next).value()) === canonical(intended)) return { text: next }
+    // Read back the way the game reads it (the strict parser) and the way the kit does: both must be the intended file.
+    if (
+      canonical(strictParse(next)) === canonical(intended) &&
+      canonical(openDocument(path, next).value()) === canonical(intended)
+    )
+      return { text: next }
   } catch {
     // fall through
   }
