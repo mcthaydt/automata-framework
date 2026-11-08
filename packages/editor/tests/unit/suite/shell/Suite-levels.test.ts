@@ -154,6 +154,22 @@ describe('Tiles in the suite’s Levels', () => {
   })
 })
 
+describe('Characters in the suite’s Levels', () => {
+  it('lists the game’s characters and edits one, as one step Undo takes back', async () => {
+    await start([fixtureEditor as SuiteEditor<unknown>, levels2d()])
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    const views = await screen.findByRole('radiogroup', { name: 'Views' })
+    await userEvent.click(within(views).getByRole('radio', { name: 'Characters' }))
+    expect(await screen.findByTestId('entities-panel')).toBeInTheDocument()
+    expect(screen.queryByTestId('level-canvas')).not.toBeInTheDocument()
+    // The preview shows the chosen character, and the details edit it.
+    await userEvent.click(await screen.findByRole('radio', { name: /Slime/ }))
+    expect(await screen.findByTestId('entity-preview')).toBeInTheDocument()
+    await userEvent.click(within(views).getByRole('radio', { name: 'Level' }))
+    expect(await screen.findByRole('listbox', { name: 'Layers' })).toBeInTheDocument()
+  })
+})
+
 describe('A level changed somewhere else', () => {
   async function drawTwice(choose: 'Use mine' | 'Use theirs') {
     const ports = await samplePorts(FILES)
@@ -189,5 +205,40 @@ describe('A level changed somewhere else', () => {
     const { ports, path } = await drawTwice('Use theirs')
     expect(screen.queryByText(/Not saved/)).not.toBeInTheDocument()
     expect((await ports.workspace.read(path))?.text).not.toContain('slime-2')
+  })
+})
+
+describe('A save that fails to answer', () => {
+  it('does not stop the next step from saving', async () => {
+    const ports = await samplePorts(FILES)
+    const real = ports.workspace.write.bind(ports.workspace)
+    let saves = 0
+    Object.assign(ports.workspace, {
+      write: async (...args: Parameters<typeof real>) => {
+        saves += /slime-\d+/.test(args[1]) ? 1 : 0
+        // The second step's save fails to get an answer (the server's listing failed: a build's temp file was in the way).
+        if (saves === 2) throw new Error('the server did not answer')
+        return real(...args)
+      },
+    })
+    await start([levels2d()], FILES, ports)
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    await userEvent.click(await screen.findByRole('radio', { name: 'Slime' }))
+    const surface = screen.getByTestId('level-surface')
+    press(surface, 'pointerdown', 40, 40)
+    press(surface, 'pointerup', 40, 40)
+    const title = await screen.findByRole('dialog', { name: 'Name this change' })
+    await userEvent.type(within(title).getByRole('textbox', { name: 'Title' }), 'Slimes')
+    await userEvent.click(within(title).getByRole('button', { name: 'Start' }))
+    await screen.findByRole('button', { name: 'Undo Place entity' })
+    for (const at of [80, 120]) {
+      press(surface, 'pointerdown', at, at)
+      press(surface, 'pointerup', at, at)
+    }
+    // The third step's save, which holds all three slimes, is on disk: the failed second save did not stop it.
+    await waitFor(async () => {
+      const text = (await ports.workspace.read('content/levels/world.af2d.json'))?.text ?? ''
+      expect(text.match(/slime-\d+/g)?.length).toBe(3)
+    })
   })
 })

@@ -1,9 +1,12 @@
 <!--
-  One region of Levels 2D in the suite's shell, drawn from the view the person chose: the level's, or the game's tiles.
+  One region of Levels 2D in the suite's shell, drawn from the view the person chose: the level's, the game's tiles or its characters.
   The session holds both views' state, so a switch and return finds the level, layer, tool, selection and camera, and
   the tile and rule that were chosen, as they were.
 -->
 <script lang="ts">
+import CharactersInspector from '../../../features/characters/CharactersInspector.svelte'
+import CharactersPanel from '../../../features/characters/CharactersPanel.svelte'
+import CharactersStage from '../../../features/characters/CharactersStage.svelte'
 import LevelInspector from '../../../features/level/LevelInspector.svelte'
 import LevelPanel from '../../../features/level/LevelPanel.svelte'
 import LevelStage from '../../../features/level/LevelStage.svelte'
@@ -29,7 +32,16 @@ const open = $derived(session.state.kind === 'open' ? session.state : undefined)
 </script>
 
 {#if open !== undefined}
-  {#if $view === 'tiles'}
+  {#if $view === 'characters'}
+    {#if part === 'panel'}
+      <CharactersPanel session={open.characters} />
+    {:else if part === 'canvas'}
+      <CharactersStage session={open.characters} {read} objectUrls={session.options.objectUrls} />
+      <Levels2dConflict {session} />
+    {:else}
+      <CharactersInspector session={open.characters} />
+    {/if}
+  {:else if $view === 'tiles'}
     {#if part === 'panel'}
       <TilesPanel
         session={open.tiles}

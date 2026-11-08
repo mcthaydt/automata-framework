@@ -63,4 +63,20 @@ describe('the editor checkout', () => {
       'content/levels/b.af2d.json',
     ])
   })
+
+  it('lists the rest when a file is gone between being named and being read, as a build’s temp file is', async () => {
+    // The content compiler writes a file, then renames it, while the editor lists the folder.
+    mkdirSync(join(root, 'content'), { recursive: true })
+    writeFileSync(join(root, 'content/a.af2d.json'), '{}')
+    writeFileSync(join(root, 'content/b.af2d.json'), '{}')
+    const policy = editorPolicy(undefined)
+    const vanishing = openCheckout(root, {
+      ...policy,
+      canRead(path) {
+        if (path === 'content/a.af2d.json') rmSync(join(root, path))
+        return policy.canRead(path)
+      },
+    })
+    expect((await vanishing.list('content/')).map((file) => file.path)).toEqual(['content/b.af2d.json'])
+  })
 })

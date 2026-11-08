@@ -1,5 +1,6 @@
 import type { Component } from 'svelte'
 import { type Writable, writable } from 'svelte/store'
+import { createEntitiesSession, type EntitiesSession } from '../../../features/characters/entities-session'
 import { createLevelSession, type LevelSession } from '../../../features/level/level-session'
 import { createTilesetsSession, type TilesetsSession } from '../../../features/tiles/tilesets-session'
 import { createHistory, type History } from '../../../shared/kit/history/history.ts'
@@ -32,7 +33,7 @@ export interface Levels2dOptions {
   readonly canvas?: Component<LevelCanvasProps> | undefined
 }
 
-export type Levels2dView = 'level' | 'tiles'
+export type Levels2dView = 'level' | 'tiles' | 'characters'
 
 export type Levels2dState =
   | {
@@ -42,6 +43,8 @@ export type Levels2dState =
       readonly level: LevelSession
       /** The Tiles view's session, made with the document so a switch and return finds its selection. */
       readonly tiles: TilesetsSession
+      /** The Characters view's session, made with the document so a switch and return finds its selection. */
+      readonly characters: EntitiesSession
     }
   | { readonly kind: 'error'; readonly message: string; readonly errors: readonly ParseError[] }
 
@@ -58,7 +61,7 @@ export interface Levels2dSession {
   keepMine(): Promise<void>
   /** Use theirs: takes the other version in, dropping the step that conflicted. */
   takeTheirs(): Promise<void>
-  /** Which view fills the shell: the level, or the game's tiles. */
+  /** Which view fills the shell: the level, the game's tiles or its characters. */
   readonly view: Writable<Levels2dView>
   /** Whether Add tiles' dialog is open; the Tiles panel and its stage both open it. */
   readonly adding: Writable<boolean>
@@ -157,7 +160,8 @@ export async function openLevels2d(
   const history = createHistory<unknown>(outcome.value)
   const level = createLevelSession({ history, ids: options.ids })
   const tiles = createTilesetsSession({ history, ids: options.ids })
-  if (level === undefined || tiles === undefined)
+  const characters = createEntitiesSession({ history, ids: options.ids })
+  if (level === undefined || tiles === undefined || characters === undefined)
     return failed(ports, options, path, others, `${name} can’t be opened: it has no level to draw.`)
 
   let base = read.text
@@ -190,7 +194,7 @@ export async function openLevels2d(
     adding: writable(false),
     conflict,
     refused,
-    state: { kind: 'open', profile, history, level, tiles } as const,
+    state: { kind: 'open', profile, history, level, tiles, characters } as const,
     refusal: undefined as string | undefined,
     settled: () => queue,
     quietly(change: () => void) {
@@ -203,7 +207,7 @@ export async function openLevels2d(
     },
     keepMine() {
       force = true
-      queue = queue.then(() => save(history.state))
+      queue = queue.then(() => saveSafely(history.state))
       return queue
     },
     async takeTheirs() {
@@ -256,11 +260,16 @@ export async function openLevels2d(
     else session.quietly(() => history.undo())
   }
 
-  // Writes run one at a time, each with the text its step left; a refused one takes that step back quietly.
+  // Writes run one at a time, each with the text its step left; a refused one takes that step back quietly. A write that
+  // throws (the server failed to answer) is shown as a refusal and the queue goes on, so the next step still saves.
+  const saveSafely = (value: unknown): Promise<void> =>
+    save(value).catch((error: unknown) => {
+      refuse(`Your last change was not saved: ${error instanceof Error ? error.message : String(error)}`)
+    })
   history.subscribe(() => {
     if (quiet) return
     const value = history.state
-    queue = queue.then(() => save(value))
+    queue = queue.then(() => saveSafely(value))
   })
   return session
 }

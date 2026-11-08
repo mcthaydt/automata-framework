@@ -1,5 +1,5 @@
 <!--
-  Levels 2D's place in the suite's top bar: the views (Level, Tiles) as quiet tabs and, in the Level
+  Levels 2D's place in the suite's top bar: the views (Level, Tiles, Characters) as quiet tabs and, in the Level
   view the level picker. The suite owns Undo, Redo and the Panel and Details toggles.
 -->
 <script lang="ts">
@@ -18,8 +18,9 @@ const view = session.view
 const VIEWS: readonly { id: Levels2dView; label: string }[] = [
   { id: 'level', label: 'Level' },
   { id: 'tiles', label: 'Tiles' },
+  { id: 'characters', label: 'Characters' },
 ]
-const choose = (id: string) => view.set(id === 'tiles' ? 'tiles' : 'level')
+const choose = (id: string) => view.set(id === 'tiles' || id === 'characters' ? id : 'level')
 </script>
 
 {#if session.state.kind === 'open'}
