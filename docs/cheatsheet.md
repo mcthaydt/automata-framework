@@ -91,6 +91,19 @@
 - `SAMPLE_RATE` (const): The sample rate offline renders use: 48000 Hz.
 - `seeded(seed?)`: A seeded random (mulberry32), so a crackle renders the same every time.
 
+### `import { … } from '@automata/audio-synth/stage'`
+
+- `AudioNote` (type): What the player did: a cue sounded, or this music was asked for (`null` is silence).
+- `audioStage(options)`: The `audio` of `defineGame`: `defineGame({ audio: audioStage({ content, tracks, state }) })`.
+- `AudioStageHandle` (interface): What the game may do with the player once it runs.
+- `AudioStageOptions` (interface): What a game gives `audioStage`.
+- `DEFAULT_FADE_SECONDS` (const): Seconds of crossfade when a slot names none.
+- `isTrackFile` (const): Whether a path is a music file the game can play.
+- `MusicPlayer` (interface): Plays the slot the game's state calls for.
+- `MusicPlayerOptions` (interface): What the player needs: the context and bus input of core's audio graph, and where the tracks' files are.
+- `trackAlias(path)`: The name the game knows a track's sound by: the file's own name, lower case, words joined with dashes.
+- `tracksFrom(found)`: The player's `tracks` from the music files a bundler found (Vite's `import.meta.glob('/assets/music/*', { eager: true, query: '?url', import: 'default' })`): each file's name to the address it is served from.
+
 ## `@automata/content`
 
 ### `import { … } from '@automata/content'`
@@ -177,6 +190,20 @@
 - `Placement` (interface): Where a frame's own pixels are: inside its extrusion, on page `page`.
 - `subsetWoff2(source, characters)`: The font cut to `characters`, as woff2.
 
+### `import { … } from '@automata/content/controls'`
+
+- `ControlAction` (interface): One action: what it sends, and every way to do it.
+- `ControlsFile` (interface): What `content/controls.toml` holds.
+- `controlsFileSchema` (const): The schema of `content/controls.toml`: at least one action, and no two with one id.
+- `controlsKind()`: The kind a game registers to read `content/controls.toml`.
+- `GESTURE_NAMES` (const): `camera-drag` is analog: a one-finger or secondary-button drag whose horizontal pixels `Input.cameraDrag()` reads.
+- `GestureName` (type): A touch gesture (the swipes, flick, tap and the camera drag).
+- `RESERVED_KEYS` (const): Keys never bindable in a game's profile: Escape (the one back path) and Tab (focus).
+- `RESERVED_PAD_BUTTONS` (const): Never bindable in a game's profile: Ruken's SDK summons the host on pad 8 (View), 16 is Home, Escape is the one back path and Tab moves focus.
+- `STANDARD_PAD_BUTTON_MAX` (const): The highest button index of the W3C Gamepad standard mapping (0 = bottom face button … 16 = home).
+- `STICK_DIRECTIONS` (const)
+- `StickDirection` (type): A stick pushed past its dead zone in one direction (the input service reads them).
+
 ### `import { … } from '@automata/content/game-config'`
 
 - `GAME_ID_PATTERN` (const): A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
@@ -195,9 +222,13 @@
 
 ### `import { … } from '@automata/content/level-2d'`
 
+- `animationSchema` (const): At least one clip, and no two with one name.
+- `autoStacks(level, layer)`: The grids of an auto layer, one per stack depth, depth 0 first (the order they are drawn in).
 - `checkEntityDef(def)`: Problems with an entity definition: its id and color, then each field's problems tagged with the field's id and index, with a repeated field id reported at its later occurrence.
 - `checkFieldDef(def)`: Problems with one field definition, in a stable order: id, misplaced properties, bounds, step, options, default.
 - `checkFieldValue(def, value)`: Whether `value` fits the field: `undefined` when it does, else the first problem.
+- `ContentAnimation` (interface): A character's animation: a picture cut into `frame`-sized cells, and clips over those cells.
+- `ContentClip` (interface): One named run of frames of a character's picture: `frames` are indexes into the picture cut into equal cells.
 - `ContentEntityDef` (type): An entity definition in `project.toml`: a typed-field definition plus how the editor draws and places it.
 - `ContentEntityItem` (interface): One placed entity in a level: its definition, its position (and size when resizable) and its field values.
 - `ContentLevel` (interface): A level as `levels/<id>.toml` holds it, after parsing the TOML.
@@ -240,9 +271,18 @@
 - `level2dKinds(options?)`: The kinds `levels` (in the sim's content), `project` and `world` (outside it).
 - `Level2dKindsOptions` (interface): Options for `level2dKinds`.
 - `levelContentSchema` (const): The strict schema of `levels/<id>.toml`.
+- `objectsOf(level, layer)`: The items of an objects layer, in file order.
+- `parseTileToken(base)`: A tile token without its repeat (`7`, `7h`, `7hv`) as a tile, or undefined when it is not one.
+- `Picture` (type)
+- `pictureOf(def)`: The picture of a definition: its tile, else its colour as its flat shape.
+- `PLACEHOLDER_COLORS` (const): Twelve flat colours far enough apart to tell neighbouring indices apart; tile `n` takes colour `n % 12`, so a placeholder looks the same wherever it is drawn and whatever happened to the image.
+- `placeholderColor` (const): The placeholder colour of tile `tile`.
 - `Point` (interface): A position with `x` and `y`.
 - `projectContentSchema` (const): The strict schema of `project.toml`.
 - `RefValue` (interface): `target` and `container` are opaque to the kit: whether they resolve is the editor's check.
+- `TileCell` (interface): One drawn tile: its index in the tileset and whether it is mirrored.
+- `tileFrame(tileset, tile)`: The rectangle of tile `tile` in the tileset's picture, or undefined when the index is past the set.
+- `tileRows(level, layer)`: The cells of a tiles layer, one array per row (undefined is empty).
 - `worldContentSchema` (const): The strict schema of `world.toml`.
 
 ### `import { … } from '@automata/content/locale'`
@@ -340,9 +380,10 @@
 - `createFeel(options)`: Starts the feel runtime.
 - `DEFAULT_LIMITS` (const): The limits used when `feel.toml` sets none.
 - `DEFAULT_SETTINGS` (const): The settings a new player starts with: flashing on, rumble on, full strength.
+- `DEFAULT_SQUASH` (const): How squash moves when `feel.toml` sets no spring.
 - `EntityRef` (type): A view the sim names, by its stable id.
 - `Feel` (interface): The feel runtime.
-- `feelContent` (const): The `feel` content kind: `content/feel.toml` is the game's feel table.
+- `feelContent` (const): The `feel` content kind: `content/feel/feel.toml` is the game's feel table; a word's `words` is translatable.
 - `FeelContent` (interface): The whole `feel.toml`: the limits, the squash spring and the entries that answer sim events.
 - `FeelEntry` (interface): How one sim event feels.
 - `feelExtension` (const): The feel extension a game opts into.
@@ -408,6 +449,7 @@
 - `CompiledContentData` (interface): The compiled JSON content read by the runtime.
 - `ComponentDef` (interface): A component: a stable id and a flat record of typed fields.
 - `contentHashOf(data)`: The content hash formula: hex64(xxhash64(utf8(canonicalJson(data)))).
+- `controlsFrom(command, file)`: The input map for a controls file.
 - `CORE_SETTINGS` (const): The `settings` save, version 1: the player's bindings (`input`), graphics quality (`display`), audio (`audio`), vibration (`haptics`) and camera turn (`camera`).
 - `CoreSettings` (interface): The settings every game carries: input bindings, display, audio and vibration.
 - `createCamera2d(stage, options, seed?)`: A camera writing `stage`'s transform (usually `PixiStage.world`).
@@ -453,6 +495,8 @@
 - `FrameInfo` (interface): One display frame: the interpolation alpha between the last two ticks, the frame's length in ms, and whether time is paused.
 - `FullscreenRes` (interface): The answer to a fullscreen request: the new state, and how this device can go fullscreen at all.
 - `FullscreenResSchema` (const): Checks a fullscreen answer.
+- `GameAudioServices` (interface): What a game's own audio player is given: the audio service (also the buses' seam) and the presentation bus.
+- `GameAudioStart` (type): Starts a game's audio player; the function it returns stops it.
 - `GameCopy` (type): A game's words: the runtime's boot and failure copy, and the default screens' words.
 - `GameDefinition` (interface): Everything a game provides to the runtime to boot.
 - `GameRenderer` (interface): What the runtime asks of a renderer: apply each step's result, draw each frame, and reset for a new sim.
@@ -483,6 +527,7 @@
 - `InputSource` (interface): The input map attached to a window for one play session.
 - `installGlobalErrorHandlers(win, onFatal, onRejection?)`: Installs once per window; a second call is a no-op.
 - `KeyBindings` (type): By `KeyboardEvent.code`, so the keys sit in the same place on every keyboard layout.
+- `keyLabel(code, layout?)`: A key's label: the keyboard layout's own (`navigator.keyboard.getLayoutMap()`, a letter in capitals) when there is one, else its `code` without the `Key` and `Digit` prefixes, an arrow as its arrow.
 - `keys(command, bindings, options?)`: An input map sending `command` once per tick with the payload of what is held: keys by `KeyboardEvent.code`, on-screen touch buttons, gamepad buttons, the stick and gestures, merged over the idle payload.
 - `KeysOptions` (interface): Options for `keys`: touch buttons, gamepad buttons, gestures and the stick, the idle payload, required keys and the Controls section's labels.
 - `LeaderboardEntry` (interface): One row of a board.
@@ -497,6 +542,12 @@
 - `LeaderboardSubmitResSchema` (const): Checks a submit answer.
 - `lerp(a, b, t)`: Linear blend; `t = 1` returns `b` exactly, because `a + (b - a)` can round away from it.
 - `lerpAngle(a, b, t)`: Blends two angles (radians) along the shorter arc, so a body turning from just under π to just over -π swings through π instead of spinning the long way round through 0.
+- `LevelDraw` (interface): What a level shows: its backdrop, its things back to front, and the sentences for anything that fell back.
+- `levelDrawList(project, level, images, live)`: Builds one level's list.
+- `LevelScene` (interface): A level the game shows, from `levelScene`; pass it as `defineGame({ level })`.
+- `levelScene(options)`: Validates the options now and returns the scene; the Pixi objects are made on the first frame.
+- `LevelSceneHooks` (interface): What a hook draws in the scene: the sim now, the scene's container and a way to hide one placed item's drawing.
+- `LevelSceneOptions` (interface): What `levelScene` needs: the exported content, the pictures the build gave the game, and where to start.
 - `LifecyclePayload` (interface): Whether the game is in front, and if not, why.
 - `LifecyclePayloadSchema` (const): Checks a lifecycle change.
 - `LifecycleReason` (type): Why the game is in the background.
@@ -504,24 +555,31 @@
 - `Locale` (interface): The locale service: the game's locales, the one text is drawn in now, the player's choice and the text direction.
 - `MAX_TURN_UNITS_PER_STEP` (const): The most one step's `camera-turn` may carry either way: 45°.
 - `measureGeometry(input)`: Turns what the browser and the host report into one `Geometry`.
+- `mergeStageHooks(...all)`: Every hook of each, called in the order given; `undefined` entries are skipped.
 - `Modal` (const): A panel over the screen with a visible Close.
 - `ModelInvalid` (class): A 3D model file could not be read: malformed, of an unknown type, not loaded, or a glTF with a skin, which is not supported yet.
 - `OptionGroup` (const): A choice of one: a segmented row whose chosen option is filled and marked, never only underlined or only coloured.
 - `OwnedRenderer` (interface): A renderer the runtime owns: `dispose` destroys it (the canvas, its listeners, its GPU resources).
+- `padLabel(button, glyphs, copy)`: A standard-mapping pad button's label on a pad of `glyphs`.
 - `PagedGrid` (const): A grid of items in pages that never scrolls.
 - `PagerDots` (const): Where a paged view is: one row of dots, each a whole touch target, or "3 / 11" once the dots would not fit on one row.
 - `PauseBehavior` (type): Whether the game pauses when it goes to the background; fixed for the game's whole life.
 - `PauseBehaviorSchema` (const): Checks a pause behavior.
+- `pictureView(project, def, images, options?)`: An entity drawn as its character looks in the editor: the tile Characters gave it, else its colour as its shape.
+- `PictureViewOptions` (interface): A `pictureView`'s options.
 - `PixiRenderer` (interface): The runtime's `GameRenderer`, built on PixiJS, with its stage.
 - `PixiRendererOptions` (interface): Options for `createPixiRenderer`; every field has a default.
 - `PixiStage` (interface): The Pixi scene the renderer draws, as a game's `setup` sees it: the app, the letterbox's layers, the entity views, the post-filter slot and the quality tier.
 - `PixiStageHooks` (interface): What a `setup` may return to hear every step, frame and reset.
+- `PlayHandle` (interface): What `usePlay()` hands a slot component.
 - `PluginDef` (interface): A bundle of definitions the sim registers together: components, commands, events, resources and systems, the plugins it depends on, and optionally per-sim engine state and `config`.
 - `Pose` (interface): Where an entity view draws: position in world pixels and rotation in radians (Pixi `rotation`).
 - `postFilter(name, spec)`: Declares a screen-space filter over the whole picture: `renderer: { postFilters: [postFilter('vignette', { glsl, wgsl })] }`.
 - `PostFilterDef` (interface): A declared filter, as `postFilter` returns it and `PixiRendererOptions.postFilters` takes it.
 - `PostFilterSpec` (interface): What a screen-space filter is made of: the same effect written twice, for WebGL2 (`glsl`) and WebGPU (`wgsl`), so the two renderers stay at parity.
 - `PresentationBus` (interface): The presentation bus: typed facts the runtime publishes for screens, audio and tests to hear.
+- `PROMPT_COPY` (const)
+- `PromptCopy` (interface): Every word a prompt shows, in the game's language.
 - `QualityTier` (type): A graphics quality tier: `high`, `medium` or `low`.
 - `rect(options)`: A filled rectangle that follows its component's `x`, `y` and `angle`, interpolated between ticks: `entityViews: { [Body.id]: rect({ w: 8, h: 8, color: 0xf9c22b }) }`.
 - `RectViewOptions` (interface): A `rect` view's size, colour and anchor.
@@ -556,6 +614,7 @@
 - `ScreensCopyOverrides` (type): A part of `ScreensCopy` with every group optional, down to the words; a word or a function is replaced whole.
 - `ScreensGame` (interface): What the default screens need from the game.
 - `ScrollList` (const): A list that keeps its rows.
+- `SentCommand` (type): What a slot component asks the game for: a command, without the tick, source and seq the stream fills in.
 - `Settings` (interface): The booted game's settings as a runtime service: its key and store, both undefined for a game without settings.
 - `SettingsDef` (interface): A game's settings: the key it is saved under, its version, schema, defaults and migration steps, and which fields stay on one device.
 - `SettingsScreen` (const): The core Settings screen: a dialog over the dimmed game, the same frame as Paused, so going between them reads as one dialog changing its view.
@@ -588,6 +647,7 @@
 - `Translate` (type): The typed `t` verb: `t('hello', { name })`, checked against the game's compiled messages.
 - `turnUnitsFromPixels(dxPx, degPerPixel, invert)`: `dxPx` dragged at `degPerPixel` as whole turn units: positive for a drag to the right (which way that turns the heading is the game's convention), negated when `invert`, clamped to ±`MAX_TURN_UNITS_PER_STEP`.
 - `typedBus(bus)`: Cast a PresentationBus instance to a typed view with game-specific fact types.
+- `usePlay()`: The running game, for a component the play screen draws (the `hud.overlay` slot): read it, and send it commands.
 - `ViewportWindow` (interface): The parts of `window` the owner reads; a fake from `@automata/framework/testing` stands in for it in tests.
 
 ### `import { … } from '@automata/framework/extension'`
@@ -648,10 +708,13 @@
 - `manualFrames(startMs?)`: A frame source that runs a frame only when a test advances it, starting at `startMs`.
 - `MountedFixture` (interface): A mounted Svelte fixture: the element it was mounted into and a way to unmount it.
 - `mountFixture(component, props, target?)`: Mounts a Svelte component with the given props and no renderer or host, and flushes effects so the first render is finished.
+- `mountInPlay(slot, sim, target?)`: Mounts `slot` (a `hud.overlay` component) over `sim` with the play context, into `target` or a new element of the page.
 - `nullRenderer(log?, options?)`: A renderer that draws nothing and records each call in `log`, for runtime tests without a GPU.
 - `NullRendererEntry` (type): One call `nullRenderer` recorded.
 - `NullRendererOptions` (interface): Options for `nullRenderer`: `fail` makes it fail `RendererUnavailable`.
 - `openRuntimeTest(options?)`: Boots the runtime for screen and integration tests, as `runGame` does but without the loader or failure panel: `openHostingTest` behind the scenes, page layers and geometry, the settings, the save, the services, and the flow started when there are screens.
+- `PlayMount` (interface): A slot component mounted as the play screen draws it: the element it is in, the session it reads and sends through, and how to remove it.
+- `PlaySession` (class): One play screen's link to the running game: the reactive read-only view, the queue of sent commands and the per-frame refresh.
 - `pressedPart(control)`: What a player presses for `control`: a checkbox's or radio's label (the theme draws it as the control, and a press anywhere on it toggles the input), else the control itself.
 - `publishConditions(root, size, variant, targets?)`: Measures and publishes the geometry for `size` under `variant`, as the owner would; `targets` are the control sizes the checks hold.
 - `REFERENCE_SIZES` (const): The viewports a layout is checked at: phones in both orientations, tablets, desktops, both sides of every breakpoint and the tightest sizes, each with the classification it should get.

@@ -8,7 +8,7 @@ import * as automata from '#src/entries/game-and-sim.ts'
 // `@automata/framework`, the one import (PRODUCT spec §7, plan U-2): the game package and the sim's define verbs,
 // each the very same value as its owner's. The list is pinned, so a new verb is added on purpose (`defineSave`, M5.2:
 // `defineGame({ saves })` takes a save, and a game imports the umbrella, not the runtime, to declare one; `inputs`,
-// M3.7b: a game whose sim takes several commands joins its `keys()` maps; `controlsFrom`: the same map from a controls file).
+// M3.7b: a game whose sim takes several commands joins its `keys()` maps; `controlsFrom`: the same map from a controls file; `mergeStageHooks`: an extension's stage hooks joined with the game's).
 const FROM_GAME = [
   'GameSpecError',
   'controlsFrom',
@@ -20,6 +20,7 @@ const FROM_GAME = [
   'inputs',
   'keys',
   'levelScene',
+  'mergeStageHooks',
   'pictureView',
   'postFilter',
   'rect',

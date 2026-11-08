@@ -54,6 +54,11 @@ interface AudioSynth {
   frame(drawnTick: number, listener?: Listener | null): {
     readonly played: readonly string[];
   };
+  /** Plays the cue called `id` now, on its bus; false when the table has no such cue. */
+  play(id: string, at?: {
+    readonly x: number;
+    readonly z: number;
+  }): boolean;
   startBed(id: string): void;
   stopBed(id: string): void;
   /** The beds playing, in the order they started. */
@@ -873,6 +878,129 @@ A seeded random (mulberry32), so a crackle renders the same every time.
 
 ```ts
 function seeded(seed?: number): () => number;
+```
+
+### `import { … } from '@automata/audio-synth/stage'`
+
+#### `AudioNote` (type)
+
+What the player did: a cue sounded, or this music was asked for (`null` is silence).
+
+```ts
+type AudioNote = {
+  readonly cue: string;
+} | {
+  readonly music: string | null;
+};
+```
+
+#### `audioStage` (function)
+
+The `audio` of `defineGame`: `defineGame({ audio: audioStage({ content, tracks, state }) })`.
+
+```ts
+function audioStage(options: AudioStageOptions): GameAudioStart;
+```
+
+#### `AudioStageHandle` (interface)
+
+What the game may do with the player once it runs.
+
+```ts
+interface AudioStageHandle {
+  /** Plays the cue called `id` now. False before the audio is unlocked, or when the table has no such cue. */
+  cue(id: string): boolean;
+}
+```
+
+#### `AudioStageOptions` (interface)
+
+What a game gives `audioStage`.
+
+```ts
+interface AudioStageOptions {
+  /** The audio table (read live, so a saved change shows on the next event or the next music check). */
+  readonly content: () => AudioContent;
+  /** The imported music: a track's name to the address of its file (`tracksFrom`). */
+  readonly tracks?: Readonly<Record<string, string>> | undefined;
+  /** What the game is in, for the music rules to read (`{ mode: 'chase' }`). Asked about ten times a second. */
+  readonly state?: (() => MusicState) | undefined;
+  readonly clock?: Clock | undefined;
+  /** Fetches a music file's bytes. Default: `fetch`. */
+  readonly load?: ((url: string) => Promise<ArrayBuffer>) | undefined;
+  /** Something would not play (a missing music file): say it where the game says such things. */
+  readonly onFault?: ((message: string) => void) | undefined;
+  /** Hands the game the means to play a cue by name once audio is running (Feel's sounds, a button's click). */
+  readonly ready?: ((handle: AudioStageHandle) => void) | undefined;
+  /** Hears what sounds: each cue as it plays, and the music as it is asked for. For a debug panel or a test. */
+  readonly watch?: ((note: AudioNote) => void) | undefined;
+}
+```
+
+#### `DEFAULT_FADE_SECONDS` (const)
+
+Seconds of crossfade when a slot names none.
+
+```ts
+const DEFAULT_FADE_SECONDS = 2;
+```
+
+#### `isTrackFile` (const)
+
+Whether a path is a music file the game can play.
+
+```ts
+const isTrackFile: (path: string) => boolean;
+```
+
+#### `MusicPlayer` (interface)
+
+Plays the slot the game's state calls for.
+
+```ts
+interface MusicPlayer {
+  /** The slot to be hearing now, or `null` for silence. Asked again for the same slot, it does nothing. */
+  play(slot: Slot | null): void;
+  /** The id of the slot being asked for, whether or not it has started yet. */
+  wanted(): string | null;
+  /** Fades out and lets go. */
+  dispose(): void;
+}
+```
+
+#### `MusicPlayerOptions` (interface)
+
+What the player needs: the context and bus input of core's audio graph, and where the tracks' files are.
+
+```ts
+interface MusicPlayerOptions {
+  readonly context: BaseAudioContext;
+  /** `AudioBuses.input('music')`: the node every track connects to. */
+  readonly output: AudioNode;
+  /** The imported tracks: the sound alias (the file's name, as Audio writes it) to the file's address. */
+  readonly tracks: Readonly<Record<string, string>>;
+  /** Fetches a file's bytes. Default: `fetch`. */
+  readonly load?: ((url: string) => Promise<ArrayBuffer>) | undefined;
+  /** Says in words why something would not play. */
+  readonly onFault?: ((message: string) => void) | undefined;
+}
+```
+
+#### `trackAlias` (function)
+
+The name the game knows a track's sound by: the file's own name, lower case, words joined with dashes.
+
+```ts
+function trackAlias(path: string): string;
+```
+
+#### `tracksFrom` (function)
+
+The player's `tracks` from the music files a bundler found (Vite's `import.meta.glob('/assets/music/*', { eager: true,
+query: '?url', import: 'default' })`): each file's name to the address it is served from.
+
+```ts
+function tracksFrom(found: Readonly<Record<string, string>>): Readonly<Record<string, string>>;
 ```
 
 ## `@automata/content`
@@ -1771,6 +1899,117 @@ The font cut to `characters`, as woff2. A character the font lacks is simply not
 function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>): Promise<Uint8Array>;
 ```
 
+### `import { … } from '@automata/content/controls'`
+
+#### `ControlAction` (interface)
+
+One action: what it sends, and every way to do it.
+
+```ts
+interface ControlAction {
+  readonly id: string;
+  /** Its name in the Controls section of Settings and in the Tuner. */
+  readonly label?: string | undefined;
+  /** The command's fields this action sets while held. The game checks them against the command's own schema. */
+  readonly send: Readonly<Record<string, unknown>>;
+  readonly keys?: readonly string[] | undefined;
+  readonly pad?: readonly number[] | undefined;
+  /** Whether the play screen shows a button for it on touch screens. Default yes, when it has a key. */
+  readonly touch?: boolean | undefined;
+  readonly stick?: readonly StickDirection[] | undefined;
+  readonly gesture?: readonly GestureName[] | undefined;
+  /** The game cannot be played without it: rebinding never leaves it unbound. */
+  readonly required?: boolean | undefined;
+}
+```
+
+#### `ControlsFile` (interface)
+
+What `content/controls.toml` holds.
+
+```ts
+interface ControlsFile {
+  /** The id of the command the actions send. */
+  readonly command: string;
+  readonly action: readonly ControlAction[];
+}
+```
+
+#### `controlsFileSchema` (const)
+
+The schema of `content/controls.toml`: at least one action, and no two with one id.
+
+```ts
+const controlsFileSchema: z.ZodType<ControlsFile>;
+```
+
+#### `controlsKind` (function)
+
+The kind a game registers to read `content/controls.toml`.
+
+```ts
+function controlsKind(): ContentSchemaDef;
+```
+
+#### `GESTURE_NAMES` (const)
+
+`camera-drag` is analog: a one-finger or secondary-button drag whose horizontal pixels
+`Input.cameraDrag()` reads. It never holds or pulses an action; binding it is what turns the drag on.
+
+```ts
+const GESTURE_NAMES: readonly ["swipe-left", "swipe-right", "swipe-up", "swipe-down", "flick-down", "tap", "camera-drag"];
+```
+
+#### `GestureName` (type)
+
+A touch gesture (the swipes, flick, tap and the camera drag).
+
+```ts
+type GestureName = (typeof GESTURE_NAMES)[number];
+```
+
+#### `RESERVED_KEYS` (const)
+
+Keys never bindable in a game's profile: Escape (the one back path) and Tab (focus).
+
+```ts
+const RESERVED_KEYS: readonly string[];
+```
+
+#### `RESERVED_PAD_BUTTONS` (const)
+
+Never bindable in a game's profile: Ruken's SDK summons the host on pad 8 (View), 16 is Home, Escape is the
+one back path and Tab moves focus.
+
+```ts
+const RESERVED_PAD_BUTTONS: readonly number[];
+```
+
+#### `STANDARD_PAD_BUTTON_MAX` (const)
+
+The highest button index of the W3C Gamepad standard mapping (0 = bottom face button … 16 = home). Only the
+standard mapping is bound; a pad without it is the device layer's to normalize.
+
+```ts
+const STANDARD_PAD_BUTTON_MAX = 16;
+```
+
+#### `STICK_DIRECTIONS` (const)
+
+_No doc comment._
+
+```ts
+const STICK_DIRECTIONS: readonly ["left-up", "left-down", "left-left", "left-right", "right-up", "right-down", "right-left", "right-right"];
+```
+
+#### `StickDirection` (type)
+
+A stick pushed past its dead zone in one direction (the input service reads them).
+
+```ts
+type StickDirection = (typeof STICK_DIRECTIONS)[number];
+```
+
 ### `import { … } from '@automata/content/game-config'`
 
 #### `GAME_ID_PATTERN` (const)
@@ -1919,6 +2158,22 @@ const RENDERERS: readonly ["webgl2", "webgl", "canvas2d", "wasm-webgl2"];
 
 ### `import { … } from '@automata/content/level-2d'`
 
+#### `animationSchema` (const)
+
+At least one clip, and no two with one name.
+
+```ts
+const animationSchema: z.ZodType<ContentAnimation>;
+```
+
+#### `autoStacks` (function)
+
+The grids of an auto layer, one per stack depth, depth 0 first (the order they are drawn in).
+
+```ts
+function autoStacks(level: ContentLevel, layer: string): readonly (readonly (readonly (TileCell | undefined)[])[])[];
+```
+
 #### `checkEntityDef` (function)
 
 Problems with an entity definition: its id and color, then each field's problems tagged with the field's id and
@@ -1945,6 +2200,32 @@ and the field's own rules; whether a reference resolves is the editor's check.
 function checkFieldValue(def: FieldDef, value: unknown): FieldValueProblem | undefined;
 ```
 
+#### `ContentAnimation` (interface)
+
+A character's animation: a picture cut into `frame`-sized cells, and clips over those cells.
+
+```ts
+interface ContentAnimation {
+  readonly image: string;
+  readonly frame: ContentSize;
+  readonly clips: readonly ContentClip[];
+}
+```
+
+#### `ContentClip` (interface)
+
+One named run of frames of a character's picture: `frames` are indexes into the picture cut into equal cells.
+
+```ts
+interface ContentClip {
+  readonly id: string;
+  readonly frames: readonly number[];
+  /** Frames a second, 1 to 60. */
+  readonly fps: number;
+  readonly loop: boolean;
+}
+```
+
 #### `ContentEntityDef` (type)
 
 An entity definition in `project.toml`: a typed-field definition plus how the editor draws and places it.
@@ -1962,6 +2243,7 @@ type ContentEntityDef = EntityDef & {
     readonly tileset: string;
     readonly index: number;
   } | undefined;
+  readonly animation?: ContentAnimation | undefined;
   readonly tags: readonly string[];
   readonly min?: {
     readonly per: "level" | "project";
@@ -2482,6 +2764,63 @@ The strict schema of `levels/<id>.toml`.
 const levelContentSchema: z.ZodType<ContentLevel>;
 ```
 
+#### `objectsOf` (function)
+
+The items of an objects layer, in file order. Throws for a missing or other layer.
+
+```ts
+function objectsOf(level: ContentLevel, layer: string): readonly ContentObjectItem[];
+```
+
+#### `parseTileToken` (function)
+
+A tile token without its repeat (`7`, `7h`, `7hv`) as a tile, or undefined when it is not one.
+
+```ts
+function parseTileToken(base: string): TileCell | undefined;
+```
+
+#### `Picture` (type)
+
+_No doc comment._
+
+```ts
+type Picture = {
+  readonly kind: "tile";
+  readonly tileset: string;
+  readonly index: number;
+} | {
+  readonly kind: "flat";
+  readonly shape: "rect" | "ellipse" | "point";
+  readonly color: string;
+};
+```
+
+#### `pictureOf` (function)
+
+The picture of a definition: its tile, else its colour as its flat shape.
+
+```ts
+function pictureOf(def: Pick<ContentEntityDef, "shape" | "tile" | "color">): Picture;
+```
+
+#### `PLACEHOLDER_COLORS` (const)
+
+Twelve flat colours far enough apart to tell neighbouring indices apart; tile `n` takes colour `n % 12`, so a
+placeholder looks the same wherever it is drawn and whatever happened to the image.
+
+```ts
+const PLACEHOLDER_COLORS: readonly string[];
+```
+
+#### `placeholderColor` (const)
+
+The placeholder colour of tile `tile`.
+
+```ts
+const placeholderColor: (tile: number) => string;
+```
+
 #### `Point` (interface)
 
 A position with `x` and `y`.
@@ -2511,6 +2850,37 @@ interface RefValue {
   /** The level or sector that holds the target. */
   readonly container?: string | undefined;
 }
+```
+
+#### `TileCell` (interface)
+
+One drawn tile: its index in the tileset and whether it is mirrored.
+
+```ts
+interface TileCell {
+  readonly tile: number;
+  readonly flipX: boolean;
+  readonly flipY: boolean;
+}
+```
+
+#### `tileFrame` (function)
+
+The rectangle of tile `tile` in the tileset's picture, or undefined when the index is past the set.
+
+```ts
+function tileFrame(tileset: Pick<ContentTileset, "tile" | "columns" | "rows" | "spacing" | "padding">, tile: number): (ContentSize & {
+  readonly x: number;
+  readonly y: number;
+}) | undefined;
+```
+
+#### `tileRows` (function)
+
+The cells of a tiles layer, one array per row (undefined is empty). Throws for a missing or other layer.
+
+```ts
+function tileRows(level: ContentLevel, layer: string): readonly (readonly (TileCell | undefined)[])[];
 ```
 
 #### `worldContentSchema` (const)
@@ -3288,6 +3658,14 @@ The settings a new player starts with: flashing on, rumble on, full strength.
 const DEFAULT_SETTINGS: FeelSettings;
 ```
 
+#### `DEFAULT_SQUASH` (const)
+
+How squash moves when `feel.toml` sets no spring.
+
+```ts
+const DEFAULT_SQUASH: SpringTuning;
+```
+
 #### `EntityRef` (type)
 
 A view the sim names, by its stable id.
@@ -3314,7 +3692,7 @@ interface Feel {
 
 #### `feelContent` (const)
 
-The `feel` content kind: `content/feel.toml` is the game's feel table.
+The `feel` content kind: `content/feel/feel.toml` is the game's feel table; a word's `words` is translatable.
 
 ```ts
 const feelContent: ContentSchemaDef<"feel", z.ZodType<FeelContent>>;
@@ -3559,8 +3937,12 @@ holds still for reduced motion.
 
 ```ts
 interface WordPop {
-  /** A locale key. */
+  /** The word's name in the table. */
   readonly key: string;
+  /** What it says, as authored; absent for a word the table only names. */
+  readonly words?: string;
+  /** Where `words` sits in the feel file, for the content text that translates it. */
+  readonly path?: readonly (string | number)[];
   readonly at: EntityRef | null;
   /** Seconds since it popped. */
   readonly age: number;
@@ -3576,8 +3958,10 @@ otherwise.
 
 ```ts
 interface WordRow {
-  /** A locale key. */
+  /** The word's name, unique in the file. */
   readonly key: string;
+  /** What it says, in the game's source language. Translatable text in the `feel` content kind. */
+  readonly words?: string | undefined;
   readonly at?: "subject" | undefined;
   /** How long it stays up; 800 ms when unset. */
   readonly ms?: number | undefined;
@@ -3609,6 +3993,21 @@ interface FeelStageOptions {
   readonly onCue?: ((cue: string) => void) | undefined;
   /** A rumble fires, once. The game's haptics port plays it. */
   readonly onHaptic?: ((pulse: Pulse) => void) | undefined;
+  /**
+   * A word's text in the player's language: given where the words sit in the feel file and what was authored (the
+   * game's content text). Without it the authored words show.
+   */
+  readonly translate?: ((path: readonly (string | number)[], authored: string) => string) | undefined;
+  /**
+   * What was drawn, once per frame, after it was drawn: the shake's offset, the flash and tint, the words and the squashes.
+   * For a debug panel or a journey that checks what the player saw; the stage itself needs nothing from it.
+   */
+  readonly onFrame?: ((frame: FeelFrame) => void) | undefined;
+  /** The playfield's logical size: a word with no subject shows in the middle of it. Default 320 by 180. */
+  readonly size?: {
+    readonly width: number;
+    readonly height: number;
+  } | undefined;
 }
 ```
 
@@ -4115,6 +4514,15 @@ Matches `@automata/content`'s contentHash formula, pinned by tests.
 
 ```ts
 function contentHashOf(data: unknown): string;
+```
+
+#### `controlsFrom` (function)
+
+The input map for a controls file. Throws when the file is for another command, and when an action's `send` is
+not something the command takes, naming the action.
+
+```ts
+function controlsFrom<Z extends z.ZodType>(command: CommandDef<Z>, file: ControlsFile): InputMap;
 ```
 
 #### `CORE_SETTINGS` (const)
@@ -4760,6 +5168,25 @@ Checks a fullscreen answer.
 const FullscreenResSchema: z.ZodType<FullscreenRes>;
 ```
 
+#### `GameAudioServices` (interface)
+
+What a game's own audio player is given: the audio service (also the buses' seam) and the presentation bus.
+
+```ts
+interface GameAudioServices {
+    readonly audio: Audio & AudioBuses;
+    readonly bus: PresentationBus;
+}
+```
+
+#### `GameAudioStart` (type)
+
+Starts a game's audio player; the function it returns stops it.
+
+```ts
+type GameAudioStart = (services: GameAudioServices) => (() => void) | undefined;
+```
+
 #### `GameCopy` (type)
 
 A game's words: the runtime's boot and failure copy, and the default screens' words.
@@ -4813,6 +5240,12 @@ interface GameDefinition<S = never> {
     readonly extensions?: readonly ExtensionDef[] | undefined;
     /** The sound each sim event plays, by the event's type. */
     readonly sounds?: EventSounds | undefined;
+    /**
+     * The game's own audio player, started once the runtime has built its audio service: cues for events, music for the
+     * game's state. It plays through the service's buses, hears the presentation bus and never writes the sim. What it
+     * returns undoes it at shutdown.
+     */
+    readonly audio?: GameAudioStart | undefined;
     /** The board and score each sim event submits, by the event's type. Needs the `leaderboards` grant. */
     readonly scores?: EventScores | undefined;
     readonly copy?: Partial<BootFailureCopy> & {
@@ -4899,6 +5332,12 @@ interface GameSpec<S = never, D = unknown> {
      */
     readonly sounds?: EventSounds;
     /**
+     * The game's own audio player (`@automata/audio-synth/stage`), started once the runtime has built its audio service:
+     * it plays cues for sim events and music for the game's state through the service's buses. Presentation only; what it
+     * returns undoes it at shutdown.
+     */
+    readonly audio?: GameAudioStart;
+    /**
      * The board and score each sim event submits, by the event's id:
      * `{ [RunEnded.id]: { board: 'best', score: (payload) => RunEnded.schema.parse(payload).score } }`. The board is a key
      * of the ship config's `leaderboards`; the game then asks the host for `leaderboards`.
@@ -4932,6 +5371,12 @@ interface GameSpec<S = never, D = unknown> {
      * default screens hold a sim. It reads the sim and never writes it. Needs the default screens.
      */
     readonly draw?: (ctx: DrawContext) => void;
+    /**
+     * The 2D level the game shows: the tiles, auto tiles, objects and placed characters painted in the editor, drawn
+     * under the entity views (`levelScene`). Needs the default screens, which hand it the sim, and a 2D game: a 3D game
+     * draws its rooms itself.
+     */
+    readonly level?: LevelScene;
     /** Merged over the defaults (`pixelArt`, the logical size and the views). */
     readonly renderer?: PixiRendererOptions;
     /**
@@ -5401,6 +5846,15 @@ By `KeyboardEvent.code`, so the keys sit in the same place on every keyboard lay
 type KeyBindings<Z extends z.ZodType> = Readonly<Record<string, Payload<Z>>>;
 ```
 
+#### `keyLabel` (function)
+
+A key's label: the keyboard layout's own (`navigator.keyboard.getLayoutMap()`, a letter in capitals) when there
+is one, else its `code` without the `Key` and `Digit` prefixes, an arrow as its arrow.
+
+```ts
+function keyLabel(code: string, layout?: ReadonlyMap<string, string>): string;
+```
+
 #### `keys` (function)
 
 An input map sending `command` once per tick with the payload of what is held: keys by
@@ -5564,6 +6018,85 @@ view at rest shows the sim's own value rather than an equivalent angle 2π away.
 function lerpAngle(a: number, b: number, t: number): number;
 ```
 
+#### `LevelDraw` (interface)
+
+What a level shows: its backdrop, its things back to front, and the sentences for anything that fell back.
+
+```ts
+interface LevelDraw {
+    readonly background: {
+        readonly color: string;
+        readonly image?: string | undefined;
+        readonly mode: ContentLevel['background']['mode'];
+    };
+    readonly items: readonly DrawItem[];
+    /** Each in the words of the thing a person made, once ("The level "Cave" uses tile 70, but …"). */
+    readonly problems: readonly string[];
+}
+```
+
+#### `levelDrawList` (function)
+
+Builds one level's list. `images` holds the picture paths the game has; `live` the characters the game draws itself.
+
+```ts
+function levelDrawList(project: ContentProject, level: ContentLevel, images: ReadonlySet<string>, live: readonly string[]): LevelDraw;
+```
+
+#### `LevelScene` (interface)
+
+A level the game shows, from `levelScene`; pass it as `defineGame({ level })`.
+
+```ts
+interface LevelScene {
+    /** Adds a hook called each frame after the scene's own redraw check (the 2D cutscene stage is the first). */
+    add(hooks: LevelSceneHooks): void;
+}
+```
+
+#### `levelScene` (function)
+
+Validates the options now and returns the scene; the Pixi objects are made on the first frame.
+
+```ts
+function levelScene(options: LevelSceneOptions): LevelScene;
+```
+
+#### `LevelSceneHooks` (interface)
+
+What a hook draws in the scene: the sim now, the scene's container and a way to hide one placed item's drawing.
+
+```ts
+interface LevelSceneHooks {
+    draw(sim: DrawSim, scene: {
+        readonly container: Container;
+        hide(itemId: string, hidden: boolean): void;
+    }): void;
+}
+```
+
+#### `LevelSceneOptions` (interface)
+
+What `levelScene` needs: the exported content, the pictures the build gave the game, and where to start.
+
+```ts
+interface LevelSceneOptions {
+    readonly project: ContentProject;
+    readonly levels: Readonly<Record<string, ContentLevel>>;
+    /** A workspace path (`assets/terrain.png`) to the url the build gave it. */
+    readonly images: Readonly<Record<string, string>>;
+    /** The level shown first (its id). */
+    readonly start: string;
+    /**
+     * Characters (definition ids) the game spawns and draws itself, with `pictureView`. Core leaves out their placed
+     * items, so one is not drawn twice. Also the way to keep a marker (an area, a spawn point) out of the picture.
+     */
+    readonly live?: readonly string[] | undefined;
+    /** The level to show now, read from the sim each frame. Default: always `start`. */
+    readonly current?: ((sim: DrawSim) => string) | undefined;
+}
+```
+
 #### `LifecyclePayload` (interface)
 
 Whether the game is in front, and if not, why.
@@ -5646,6 +6179,14 @@ usable one less whatever covers the page's foot.
 function measureGeometry(input: GeometryInput): Geometry;
 ```
 
+#### `mergeStageHooks` (function)
+
+Every hook of each, called in the order given; `undefined` entries are skipped.
+
+```ts
+function mergeStageHooks(...all: readonly (PixiStageHooks | undefined)[]): PixiStageHooks;
+```
+
 #### `Modal` (const)
 
 A panel over the screen with a visible Close. Where Dialog asks a question that needs an answer,
@@ -5703,6 +6244,14 @@ interface OwnedRenderer extends GameRenderer {
 }
 ```
 
+#### `padLabel` (function)
+
+A standard-mapping pad button's label on a pad of `glyphs`.
+
+```ts
+function padLabel(button: number, glyphs: PromptGlyphs, copy: PromptCopy): string;
+```
+
 #### `PagedGrid` (const)
 
 A grid of items in pages that never scrolls. Each group starts its own page; the shape is `most`, cut to what the measured box holds at
@@ -5743,6 +6292,39 @@ Checks a pause behavior.
 
 ```ts
 const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
+```
+
+#### `pictureView` (function)
+
+An entity drawn as its character looks in the editor: the tile Characters gave it, else its colour as its shape.
+The view follows the entity's `x`, `y` and `angle` like `rect` and `sprite`, and is anchored at the character's
+pivot. A picture that has not arrived (or a tile past its set) shows the tile's flat colour, never a blank:
+`registerViews({ [Body.id]: pictureView(project, 'player-start', images) })`.
+
+```ts
+function pictureView(project: ContentProject, def: string, images: Readonly<Record<string, string>>, options?: PictureViewOptions): EntityViewFactory;
+```
+
+#### `PictureViewOptions` (interface)
+
+A `pictureView`'s options.
+
+```ts
+interface PictureViewOptions {
+    /**
+     * The name of the clip to play now, read from the entity's components each frame. Code picks the clip by name;
+     * what the clip looks like is the character's, edited in Characters.
+     */
+    readonly clip?: ((components: Readonly<Record<string, Readonly<FieldRecord>>>) => string) | undefined;
+    /**
+     * Moves the picture off the entity's position, for a game whose position is not the character's pivot (a body
+     * whose `x`, `y` is its centre while the character stands on its pivot, its feet). Default none.
+     */
+    readonly offset?: {
+        readonly x: number;
+        readonly y: number;
+    } | undefined;
+}
 ```
 
 #### `PixiRenderer` (interface)
@@ -5851,6 +6433,19 @@ interface PixiStageHooks {
 }
 ```
 
+#### `PlayHandle` (interface)
+
+What `usePlay()` hands a slot component.
+
+```ts
+interface PlayHandle {
+    /** The game as it is now, read-only; undefined until play has a sim. Reading it in a template or `$derived` follows each frame. */
+    readonly sim: DrawSim | undefined;
+    /** Queues `command` for the next tick, after the input map's own, in the order sent. */
+    send(command: SentCommand): void;
+}
+```
+
 #### `PluginDef` (interface)
 
 A bundle of definitions the sim registers together: components, commands, events, resources and systems,
@@ -5945,6 +6540,28 @@ interface PresentationBus<Facts = RuntimeFacts> {
 }
 ```
 
+#### `PROMPT_COPY` (const)
+
+_No doc comment._
+
+```ts
+const PROMPT_COPY: PromptCopy;
+```
+
+#### `PromptCopy` (interface)
+
+Every word a prompt shows, in the game's language.
+
+```ts
+interface PromptCopy {
+    /** An action with nothing on the active device. */
+    readonly unbound: string;
+    /** An action with an on-screen button, on touch. */
+    readonly touch: string;
+    readonly pad: Readonly<Record<PadWord, string>>;
+}
+```
+
 #### `QualityTier` (type)
 
 A graphics quality tier: `high`, `medium` or `low`.
@@ -6002,9 +6619,19 @@ class RenderDeltaConsumer<C extends SceneNode = Container> {
     private readonly resolver?;
     private readonly views;
     private readonly cache;
+    /** Entities whose view keeps its pose for now (a hit-stop): the sim moves on, the picture waits. */
+    private held;
     constructor(world: SceneParent<C>, resolver?: EntityViewResolver<C>);
     private resolveView;
     apply(delta: RenderDelta): void;
+    /** The view drawn for the entity with this stable id, or `undefined` when it has none. */
+    viewOf(sid: number): EntityView<C> | undefined;
+    /**
+     * Holds these entities' views in the pose they have: a step or a frame leaves them alone until they are let go
+     * (pass a set without them), when the next frame draws them where the sim has them. Presentation only; the sim does
+     * not wait.
+     */
+    hold(sids: ReadonlySet<number>): void;
     interpolate(alpha: number): void;
     private removeEntity;
     reset(): void;
@@ -6620,6 +7247,14 @@ const ScrollList: import("svelte").Component<Props, {}, "">;
 type ScrollList = ReturnType<typeof ScrollList>;
 ```
 
+#### `SentCommand` (type)
+
+What a slot component asks the game for: a command, without the tick, source and seq the stream fills in.
+
+```ts
+type SentCommand = Pick<Command, 'type' | 'payload'>;
+```
+
 #### `Settings` (interface)
 
 The booted game's settings as a runtime service: its key and store, both undefined for a game without
@@ -7076,6 +7711,15 @@ Safe because PresentationBus stores facts dynamically by string key.
 
 ```ts
 function typedBus<GameFacts>(bus: PresentationBus<object>): PresentationBus<GameFacts>;
+```
+
+#### `usePlay` (function)
+
+The running game, for a component the play screen draws (the `hud.overlay` slot): read it, and send it commands.
+Call it while the component is being made, as any Svelte context.
+
+```ts
+function usePlay(): PlayHandle;
 ```
 
 #### `ViewportWindow` (interface)
@@ -7808,6 +8452,14 @@ render is finished. Mounts into `target`, or into a new `div` in `document.body`
 function mountFixture<Props extends Record<string, unknown>>(component: Component<Props>, props: Props, target?: HTMLElement): MountedFixture;
 ```
 
+#### `mountInPlay` (function)
+
+Mounts `slot` (a `hud.overlay` component) over `sim` with the play context, into `target` or a new element of the page.
+
+```ts
+function mountInPlay(slot: UiComponent, sim: Sim | undefined, target?: HTMLElement): PlayMount;
+```
+
 #### `nullRenderer` (function)
 
 A renderer that draws nothing and records each call in `log`, for runtime tests without a GPU.
@@ -7853,6 +8505,39 @@ reason. Whatever opened before a throw is closed.
 
 ```ts
 function openRuntimeTest(options?: RuntimeTestOptions): Promise<RuntimeTestSession>;
+```
+
+#### `PlayMount` (interface)
+
+A slot component mounted as the play screen draws it: the element it is in, the session it reads and sends through, and how to remove it.
+
+```ts
+interface PlayMount {
+    readonly host: HTMLElement;
+    /** `refresh()` says a frame passed; `commands(tick, [])` takes what the component sent. */
+    readonly session: PlaySession;
+    unmount(): void;
+}
+```
+
+#### `PlaySession` (class)
+
+One play screen's link to the running game: the reactive read-only view, the queue of sent commands and the
+per-frame refresh. The default screens make one when play starts and give it to `PlayScreen`.
+
+```ts
+class PlaySession {
+    #private;
+    readonly handle: PlayHandle;
+    constructor(sim: Sim | undefined);
+    /** Says a frame passed, so what reads the sim reads it again. */
+    refresh(): void;
+    /**
+     * The commands for `tick`: the input map's (`input`), then the sent ones in send order, each given this tick, source 0 and a
+     * seq of its own (the input map's is the tick, and a seq is used once per source in a step).
+     */
+    commands(tick: number, input: readonly Command[]): readonly Command[];
+}
 ```
 
 #### `pressedPart` (function)

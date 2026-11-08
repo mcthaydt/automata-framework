@@ -727,6 +727,21 @@ interface FullscreenRes {
 const FullscreenResSchema: z.ZodType<FullscreenRes>;
 ```
 
+### `GameAudioServices` (interface)
+
+```ts
+interface GameAudioServices {
+    readonly audio: Audio & AudioBuses;
+    readonly bus: PresentationBus;
+}
+```
+
+### `GameAudioStart` (type)
+
+```ts
+type GameAudioStart = (services: GameAudioServices) => (() => void) | undefined;
+```
+
 ### `GameCopy` (type)
 
 ```ts
@@ -755,6 +770,7 @@ interface GameDefinition<S = never> {
     readonly locale?: LocaleDef | undefined;
     readonly extensions?: readonly ExtensionDef[] | undefined;
     readonly sounds?: EventSounds | undefined;
+    readonly audio?: GameAudioStart | undefined;
     readonly scores?: EventScores | undefined;
     readonly copy?: Partial<BootFailureCopy> & {
         readonly loading?: string;
@@ -806,6 +822,7 @@ interface GameSpec<S = never, D = unknown> {
     readonly input?: InputMap;
     readonly views?: Readonly<Record<string, EntityViewFactory>>;
     readonly sounds?: EventSounds;
+    readonly audio?: GameAudioStart;
     readonly scores?: EventScores;
     readonly saves?: GameSaves<D>;
     readonly content?: {
@@ -1332,6 +1349,12 @@ const MAX_TURN_UNITS_PER_STEP = 8192;
 function measureGeometry(input: GeometryInput): Geometry;
 ```
 
+### `mergeStageHooks` (function)
+
+```ts
+function mergeStageHooks(...all: readonly (PixiStageHooks | undefined)[]): PixiStageHooks;
+```
+
 ### `Modal` (svelte)
 
 ```ts
@@ -1594,9 +1617,12 @@ class RenderDeltaConsumer<C extends SceneNode = Container> {
     private readonly resolver?;
     private readonly views;
     private readonly cache;
+    private held;
     constructor(world: SceneParent<C>, resolver?: EntityViewResolver<C>);
     private resolveView;
     apply(delta: RenderDelta): void;
+    viewOf(sid: number): EntityView<C> | undefined;
+    hold(sids: ReadonlySet<number>): void;
     interpolate(alpha: number): void;
     private removeEntity;
     reset(): void;

@@ -41,6 +41,8 @@
       "entry": ["playwright.config.ts", "tests/e2e/*.test.ts", "*/*.ts"],
       "playwright": false
     },
+    // `automata ship` loads ship.config.ts by name, so nothing imports it.
+    "examples/2d-story": { "entry": ["ship.config.ts"] },
     "examples/2d/content/hot-reload": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
     "examples/2d/ui/primitives": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
     // The site: the compile worker starts from `new URL(...)`, which knip does not follow; the scripts and the playground

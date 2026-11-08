@@ -4145,6 +4145,12 @@ interface EditorSize extends ReferenceSize {
 }
 ```
 
+### `editorTargets` (function)
+
+```ts
+function editorTargets(): Targets;
+```
+
 ### `IPAD_PROFILES` (const)
 
 ```ts
@@ -4359,6 +4365,12 @@ type ProviderFactory<P> = (options: {
 ```
 
 ## `./suite`
+
+### `browserPublish` (function)
+
+```ts
+function browserPublish(client: PublishClient, page: Document): GamePublish;
+```
 
 ### `createLevels2d` (function)
 
