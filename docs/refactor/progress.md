@@ -596,7 +596,7 @@ Normal dev pipeline (no stage 1 audit; the investigation is
 | 5. Build audit | Not started |
 | 6. Fixes | Not started |
 
-## Dark mode for the editors: 40% (2 of 5: stage 2)
+## Dark mode for the editors: 60% (3 of 5: stage 3, build)
 
 Normal dev pipeline. The Owner, 2026-11-08: "Also, do a dark mode for the editors, I can't imagine working in that for
 hours."
@@ -605,9 +605,10 @@ hours."
 | --- | --- |
 | 1. Spec and plan | Done: [spec](2026-11-08-dark-mode-spec.md), [plan](2026-11-08-dark-mode-plan.md), 9 tasks. Follows the device by default; one "Editor colours: Light · Dark · Match device" control on each Home; the game's pictures keep their colours. Written on PR #498's branch. |
 | 2. Plan audit | Done: [audit](2026-11-08-dark-mode-plan-audit.md), 3 high, 6 medium, 4 low, all fixed in the spec and plan. The theme is plain values under `prefers-color-scheme` (not `light-dark()`, which the canvas cannot read); the boot script is a file (the site's try-it editor refuses inline scripts); the played-game journey runs in the content editors' suite. |
-| 3. Build | Not started |
+| 3. Build | Done on the PR stacked on #502, 8 of 9 tasks fully and Task 7 for everything but 3D: the dark tokens (generated, contrast-tested), every editor page and component on tokens (a scan fails on a literal colour), the choice remembered and set before the first paint, the "Editor colours" control on each Home, the design board in both looks, real-browser tests (first frame, device switching, game unchanged, canvas identical in both looks) and the served journey `dark-game-loop` (create a game, paint a wall, change Feel, Play, Publish; passes on iPad and phone in Chromium). 85 shots of every content editor in dark, each looked at. Merged in: #500 (Audio mix) and #497 (Schematic). **Not on this base:** #499 (Levels 3D), so Plan, Walk and the Studio were not shot or played in dark and the light before/after of the 3D Home is not taken. **Not run:** WebKit, Firefox, the GPU runner and parity (the Owner's machines and CI). Evidence: the plan's log. |
 | 4. Build audit | Not started |
 | 5. Fixes | Not started |
+
 ## Schematic (the AI editor)
 
 [plan](2026-11-08-schematic-plan.md), AF PR #486 stacked on #478. 14 of 16 tasks done (about 88%), 2026-11-08: 1 conditions, 2 actions, 3 layout, 4 session and problems, 5 diagram and list, 6 inspector, 7 senses, start and patrol, 9 Places, 10 rules and Numbers, 11 Watch, 12 Fair play, 13 Puzzle, 15 the served 3D journey (`examples/3d-story`, 12 of 12 in Chromium at phone and iPad, Node scene hash `1addc88c39a912bf`), 16 sample journey, template and README. Not done: Task 14 and the 2D half of Task 8 (they need the content-in-play work, spec AF PR #479, which is not built). Not proven: Fair play in a served game (`automata editor` has no checks runner). Evidence: see the plan's log; WebKit, Firefox, the GPU runner and parity have not run.

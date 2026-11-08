@@ -111,7 +111,7 @@ The JSON's keys and values are the spec §3.2 table. Light values copy today's. 
 light must not move (Global Constraints). `--shadow` was `0 1px 2px rgb(17 21 28 / 0.06)`, not 0.12, which is
 why it reads its own `shadow-lift` token (light `rgb(17 21 28 / 0.06)`) and not `--shadow-ink`.
 
-- [ ] **Step 1: Write the failing tests** in `tool-theme.test.ts`:
+- [x] **Step 1: Write the failing tests** in `tool-theme.test.ts`:
   - `tool-theme.css equals toolThemeToCss(tool-theme.json)` (the `tokens.test.ts` pattern; run
     `pnpm --filter @automata/editor tokens` after editing).
   - `light values are today's`: for each key also in `tokens.json` or today's `tool-chrome.css`, the light value equals
@@ -130,12 +130,12 @@ why it reads its own `shadow-lift` token (light `rgb(17 21 28 / 0.06)`) and not 
     hex (`#ffffff`), never a function.
   - `toolThemeToCss refuses` a key missing from `dark`, a name `Bad_Name`, and a value `0 1px 2px red`.
   - `contrast('#000000', '#ffffff')` is 21; `contrast('#ffffff', '#ffffff')` is 1.
-- [ ] **Step 2: Run** `pnpm --filter @automata/editor exec vitest run --project unit tests/unit/shared/kit/tokens` —
+- [x] **Step 2: Run** `pnpm --filter @automata/editor exec vitest run --project unit tests/unit/shared/kit/tokens` —
       expected FAIL: `tool-theme.json` and the modules do not exist.
-- [ ] **Step 3: Implement** `contrast`, `toolThemeToCss`, the JSON, the script change and the `tool-chrome.css` change.
+- [x] **Step 3: Implement** `contrast`, `toolThemeToCss`, the JSON, the script change and the `tool-chrome.css` change.
       If a dark value from the spec fails a contrast assertion, change the value (never the threshold) and log it.
-- [ ] **Step 4: Run** the same command — PASS. Run the whole unit project and `editor-corners.test.ts` — PASS.
-- [ ] **Step 5: Commit** `feat(editor): dark values for the tool chrome, generated, with a contrast test`.
+- [x] **Step 4: Run** the same command — PASS. Run the whole unit project and `editor-corners.test.ts` — PASS.
+- [x] **Step 5: Commit** `feat(editor): dark values for the tool chrome, generated, with a contrast test`.
 
 ### Task 2: Every editor page and component on the tokens
 
@@ -166,7 +166,7 @@ var(--charcoal)`, `color: var(--stage-ink)`; the caption under it stays chrome)
   `extensions/editors/src/features/sequence/SequencePreview.svelte` (`fill: black`, the game's letterbox),
   `app/design/DesignBoard.svelte` and `testing/**` (sample swatches, not chrome).
 
-- [ ] **Step 1: Write the failing tests** in `editor-colours.test.ts`, scanning the `<style>` of every `.svelte` under
+- [x] **Step 1: Write the failing tests** in `editor-colours.test.ts`, scanning the `<style>` of every `.svelte` under
       `packages/editor/src`, `packages/editor-3d/src` and `extensions/editors/src` (and, on a base with Schematic, its
       folder), plus the template literals passed to `style=` in `extensions/editors/src/**/*.ts`:
   - `no colour literal outside the game pictures`: no `#hex`, `rgb(`, `hsl(`, or bare `white`/`black` colour value
@@ -180,16 +180,16 @@ var(--charcoal)`, `color: var(--stage-ink)`; the caption under it stays chrome)
     `color-mix(`) reads `color`, `fill`, `stroke` and `border` colours only from `--stage-*`, `--lime` or `--primary*`.
   - `every editor entry imports tool-chrome.css`: each of the three entries named above and every
     `packages/editor/src/app/*/main.ts` imports it.
-- [ ] **Step 2: Run** `pnpm --filter @automata/editor exec vitest run --project unit tests/unit/shared/kit/editor-colours.test.ts`
+- [x] **Step 2: Run** `pnpm --filter @automata/editor exec vitest run --project unit tests/unit/shared/kit/editor-colours.test.ts`
       — expected FAIL naming `--color-danger`, the 3D fallbacks, the words on the cabinet (WalkHud, StudioCanvas,
       StudioTimeline) and the three entries without `tool-chrome.css`.
-- [ ] **Step 3: Make the listed edits.**
-- [ ] **Step 4: Run** the test — PASS. Run `pnpm --filter @automata/editor-3d test:unit` and
+- [x] **Step 3: Make the listed edits.**
+- [x] **Step 4: Run** the test — PASS. Run `pnpm --filter @automata/editor-3d test:unit` and
       `pnpm --filter @automata/editors test:unit` — PASS. Open the 3D suite and the content editors in light once: they now
       draw the approved tool look (they drew the website's field before); look at a before and after screenshot of the 3D
       suite Home and Feel at 1180×820 and log the difference. This is the one intended light change, and only for those
       pages.
-- [ ] **Step 5: Commit** `fix(editors): every editor page draws the tool chrome and reads only tokens`.
+- [x] **Step 5: Commit** `fix(editors): every editor page draws the tool chrome and reads only tokens`.
 
 ### Task 3: The choice, remembered, set before the first paint
 
@@ -223,20 +223,20 @@ var(--charcoal)`, `color: var(--stage-ink)`; the caption under it stays chrome)
     the site serves the 2D build at `/editor/app/` under `script-src 'self'` (`DEMO_POLICY`), which refuses inline
     scripts.
 
-- [ ] **Step 1: Write the failing tests.** `theme-choice.test.ts`: stored `dark` reads `'dark'`; stored `blue` reads
+- [x] **Step 1: Write the failing tests.** `theme-choice.test.ts`: stored `dark` reads `'dark'`; stored `blue` reads
       `'device'`; a `getItem` that throws reads `'device'`; `writeThemeChoice('device')` calls `removeItem(THEME_KEY)`; a
       `setItem` that throws does not throw; `applyThemeChoice('dark', root)` sets `root.dataset.theme === 'dark'` and
       `'device'` removes it; running `THEME_BOOT`'s script body in jsdom with stored `dark` sets the attribute, with stored
       `blue` or a throwing `localStorage` sets nothing. `theme-pages.test.ts`: each of the six HTML pages loads
       `./theme-boot.js` with a classic `<script src>` before its first `<link>` or module `<script>`, has no inline
       `<script>`, and has `content="light dark"`; each of the three `public/theme-boot.js` equals `THEME_BOOT`.
-- [ ] **Step 2: Run** `pnpm --filter @automata/editor exec vitest run --project unit tests/unit/shared/kit/theme` —
+- [x] **Step 2: Run** `pnpm --filter @automata/editor exec vitest run --project unit tests/unit/shared/kit/theme` —
       FAIL: module missing.
-- [ ] **Step 3: Implement** the module, write the three `public/theme-boot.js` (exactly `THEME_BOOT`) and edit the six
+- [x] **Step 3: Implement** the module, write the three `public/theme-boot.js` (exactly `THEME_BOOT`) and edit the six
       pages.
-- [ ] **Step 4: Run** — PASS. Build each package once (`pnpm --filter <pkg> build`) and check `theme-boot.js` sits beside
+- [x] **Step 4: Run** — PASS. Build each package once (`pnpm --filter <pkg> build`) and check `theme-boot.js` sits beside
       each built page (`dist/2d`, `dist/suite`), and that `automata editor` serves it.
-- [ ] **Step 5: Commit** `feat(editor): remember the editors' colours and set them before the first paint`.
+- [x] **Step 5: Commit** `feat(editor): remember the editors' colours and set them before the first paint`.
 
 ### Task 4: The Editor colours control on each Home
 
@@ -257,17 +257,17 @@ var(--charcoal)`, `color: var(--stage-ink)`; the caption under it stays chrome)
   `() => globalThis.localStorage` in a `try` and `document.documentElement`, injectable for tests). It reads the choice
   once on mount, and on a `set` edit event writes and applies it.
 
-- [ ] **Step 1: Write the failing tests:** renders the visible words `Editor colours` and a radio group named by them with options `Light`, `Dark`,
+- [x] **Step 1: Write the failing tests:** renders the visible words `Editor colours` and a radio group named by them with options `Light`, `Dark`,
       `Match device` in that order; with nothing stored `Match device` is checked; choosing `Dark` sets
       `root.dataset.theme` to `dark`, stores `dark`, and leaves focus on the `Dark` option; choosing `Match device` removes
       both; with a storage that throws, choosing `Dark` still sets the attribute and throws nothing. Each Home's test:
       `getByRole('radiogroup', { name: 'Editor colours' })` exists.
-- [ ] **Step 2: Run** the package's unit project — FAIL: no widget.
-- [ ] **Step 3: Implement** the widget and place it on the three Homes. On a phone at 390×844 the three options fit one
+- [x] **Step 2: Run** the package's unit project — FAIL: no widget.
+- [x] **Step 3: Implement** the widget and place it on the three Homes. On a phone at 390×844 the three options fit one
       row at 44 px (the `Segmented` track); if `Match device` truncates, the row wraps under the label rather than
       shrinking a target.
-- [ ] **Step 4: Run** `test:unit` in `editor`, `editor-3d` — PASS.
-- [ ] **Step 5: Commit** `feat(editor): an Editor colours control on each Home`.
+- [x] **Step 4: Run** `test:unit` in `editor`, `editor-3d` — PASS.
+- [x] **Step 5: Commit** `feat(editor): an Editor colours control on each Home`.
 
 ### Task 5: Both looks on the design board
 
@@ -277,15 +277,15 @@ var(--charcoal)`, `color: var(--stage-ink)`; the caption under it stays chrome)
   every widget)
 - Modify: `packages/editor/tests/e2e/design-board.test.ts` (screenshots in both looks)
 
-- [ ] **Step 1:** Extend `design-board.test.ts` to take the board with `colorScheme: 'dark'` as well as light, and to
+- [x] **Step 1:** Extend `design-board.test.ts` to take the board with `colorScheme: 'dark'` as well as light, and to
       assert `getComputedStyle(document.body).backgroundColor` is `rgb(19, 20, 23)` (`#131417`) in dark and
       `rgb(247, 247, 248)` in light (the values from `tool-theme.json`; read them from the JSON in the test).
-- [ ] **Step 2: Run** `pnpm --filter @automata/editor design:board` — FAIL until the board has the control and the
+- [x] **Step 2: Run** `pnpm --filter @automata/editor design:board` — FAIL until the board has the control and the
       dark screenshot exists.
-- [ ] **Step 3:** Add the control. Look at every widget in dark: words, edges, focus ring, the lime button, the
+- [x] **Step 3:** Add the control. Look at every widget in dark: words, edges, focus ring, the lime button, the
       disabled states, the colour field. Fix a token (Task 1's JSON) for anything unreadable, never a component.
-- [ ] **Step 4: Run** — PASS.
-- [ ] **Step 5: Commit** `test(editor): the design board in both looks`.
+- [x] **Step 4: Run** — PASS.
+- [x] **Step 5: Commit** `test(editor): the design board in both looks`.
 
 ### Task 6: Real browsers: first frame, the device switching, the game unchanged
 
@@ -294,7 +294,7 @@ var(--charcoal)`, `color: var(--stage-ink)`; the caption under it stays chrome)
 - Create: `packages/editor/tests/browser/layout/shared/kit/theme/theme.test.ts`
 - Create: `packages/editor-3d/tests/browser/layout/theme.test.ts` (or the package's layout folder)
 
-- [ ] **Step 1: Write the failing tests** (layout project, Chromium; WebKit and Firefox where the runner has them):
+- [x] **Step 1: Write the failing tests** (layout project, Chromium; WebKit and Firefox where the runner has them):
   - `first frame`: with the page emulated light and `localStorage` holding `dark`, load the suite page; in the first
     `requestAnimationFrame` the body's background is the dark `--tool-bg`.
   - `follows the device`: with no stored choice, emulate `dark` → dark field; switch the emulation to `light` mid-test
@@ -306,11 +306,11 @@ var(--charcoal)`, `color: var(--stage-ink)`; the caption under it stays chrome)
   - `the canvas reads plain colours`: in dark, `getComputedStyle(document.documentElement).getPropertyValue('--color-layer-entities')`
     is the same hex as in light.
   - `targets stay`: the `Editor colours` options are at least 44 px tall with a coarse pointer at 390×844.
-- [ ] **Step 2: Run** `pnpm --filter @automata/editor exec vitest run --project layout --browser.name=chromium
+- [x] **Step 2: Run** `pnpm --filter @automata/editor exec vitest run --project layout --browser.name=chromium
 tests/browser/layout/shared/kit/theme` — FAIL before Tasks 1 to 4, PASS after (if run after them, confirm it fails by
       reverting the boot script once).
-- [ ] **Step 3: Run** the 3D package's layout test the same way — PASS.
-- [ ] **Step 4: Commit** `test(editor): the colours in real browsers, and the game unchanged`.
+- [x] **Step 3: Run** the 3D package's layout test the same way — PASS.
+- [x] **Step 4: Commit** `test(editor): the colours in real browsers, and the game unchanged`.
 
 ### Task 7: Every editor in dark, looked at
 
@@ -326,11 +326,11 @@ tests/browser/layout/shared/kit/theme` — FAIL before Tasks 1 to 4, PASS after 
 - [ ] **Step 2:** Look at each one (AGENTS.md: a screenshot is looked at, not trusted). For each: are all words
       readable, are control edges visible, is any light box left, is the game picture unchanged, is there exactly one lime
       button. Write a one-line verdict per screenshot in the plan log.
-- [ ] **Step 3:** Fix what Step 2 found in the JSON; rerun Task 1's tests and retake the affected shots.
-- [ ] **Step 4:** Drunk grandma test on the control, recorded in the log: on a phone in dark, could a drunk grandma tell
+- [x] **Step 3:** Fix what Step 2 found in the JSON; rerun Task 1's tests and retake the affected shots.
+- [x] **Step 4:** Drunk grandma test on the control, recorded in the log: on a phone in dark, could a drunk grandma tell
       what "Editor colours" does and get back to light? Note the answer and change the words only if it fails (then update the spec
       §3.3 and Global Constraints together).
-- [ ] **Step 5: Commit** `fix(editor): dark colours from the review of every editor` (or skip if nothing changed, and
+- [x] **Step 5: Commit** `fix(editor): dark colours from the review of every editor` (or skip if nothing changed, and
       say so in the log).
 
 ### Task 8: Make and play a small game in dark
@@ -343,19 +343,19 @@ tests/browser/layout/shared/kit/theme` — FAIL before Tasks 1 to 4, PASS after 
   `extensions/editors/tests/e2e/harness/` (`run-editor.ts`, `fixtures.ts`) and `packages/editor`'s `paintWall` and
   `newGame` helpers where the harness already imports them; add a fixture option for `colorScheme: 'dark'`.
 
-- [ ] **Step 1: Write the journey:** with the device dark, create a game, open the editors; assert the page is dark
+- [x] **Step 1: Write the journey:** with the device dark, create a game, open the editors; assert the page is dark
       (computed body background equals the dark `--tool-bg`, read from `tool-theme.json`). Paint a wall in Levels 2D,
       change a number in the Tuner, write a line in Writer, and, on a base with #497, add a mode in Schematic. Play:
       assert each shows in the game (the content module and the visible words, as `whole-game-loop` and
       `writer-words-show-in-game` do), and that the game's page has no `data-theme` and its own background. Publish and
       assert the zip arrives and holds the wall. Each editor that could not be reached on the base is named in the log
       as not run.
-- [ ] **Step 2: Run** `pnpm --filter @automata/editors test:e2e -- dark-game-loop --trace off` — PASS (build the tools
+- [x] **Step 2: Run** `pnpm --filter @automata/editors test:e2e -- dark-game-loop --trace off` — PASS (build the tools
       and the suite first, as the harness says).
 - [ ] **Step 3:** Play it by hand once in the served editor in dark (the audit rule): make a small game, play it, and
       log what was made and what showed in play. Then Levels 3D: run `automata editor` on a copy of `base-3d` with
       `--app-dir packages/editor-3d/dist/suite`, device dark, move a wall in Plan, Play, see the moved wall, and log it.
-- [ ] **Step 4: Commit** `test(editor): make, play and publish a game with the editors in dark`.
+- [x] **Step 4: Commit** `test(editor): make, play and publish a game with the editors in dark`.
 
 ### Task 9: Docs and progress
 
@@ -367,9 +367,9 @@ tests/browser/layout/shared/kit/theme` — FAIL before Tasks 1 to 4, PASS after 
 - Modify: `docs/refactor/2026-11-06-editor-visual-direction.md` (one paragraph: the dark look, the tokens, the rule
   that the game keeps its colours)
 
-- [ ] **Step 1:** Write the three. Run `pnpm format` and `pnpm check`. Report the gates: what ran, what was left out
+- [x] **Step 1:** Write the three. Run `pnpm format` and `pnpm check`. Report the gates: what ran, what was left out
       (WebKit and Firefox off the runner, the GPU suites pending CI), what is pending.
-- [ ] **Step 2: Commit** `docs(refactor): dark mode in progress and the visual direction`.
+- [x] **Step 2: Commit** `docs(refactor): dark mode in progress and the visual direction`.
 
 ## Log
 
@@ -405,6 +405,12 @@ tests/browser/layout/shared/kit/theme` — FAIL before Tasks 1 to 4, PASS after 
   own canvas pixels and the cabinet identical in both looks: the canvas is copied with `drawImage` and compared, as the
   build audit M3 asked, because the floating bars over it follow the look; the control keeps the pointer's size).
   Ruling: the 3D Plan canvas comparison is not run here (WebGL in a cloud browser, and #499's Plan is not on this base).
+- Task 7, dark review (stage 3, same session): 45 shots of the served sample game (`/mnt/project-files/dark-mode/s-dark-<editor>-<size>.png`: Home, Tuner, Levels, Feel, Audio, Writer, Sequence, Schematic, Review at 390x844, 844x390, 820x1180, 1180x820, 1440x900) and 40 of an `automata editor` copy of `examples/2d-story` (`dark-<editor>-<size>.png`, with the Publish dialog). Verdicts, each looked at (the five sizes of an editor read the same unless named): **Home** words and card edges read, one lime button (Publish only when it is the page's action), warning strip readable; **Tuner** rail, tabs and the "Ask only" card read; **Levels** layers, entity list, inspector and the floating tools read, the level canvas and its cabinet are unchanged; **Feel** list, effect cards, inputs, the preview's white square (game picture, unchanged) and two lime buttons that belong to different actions (Add a feel, Add an effect) read; **Audio** list, waveform line, grey checkboxes and the lime "Tap to hear" read; **Writer** cards, text areas and "Remove" read; **Sequence** the 2D stage is black (game picture, unchanged) in a dark surround; **Schematic** diagram boxes, arrows, dashed edges, the inspector and the Walk list read; **Review** reads; **Publish dialog** dark, scrim over the page, lime "Build my game". Nothing read badly, so no token changed (Step 5 skipped). Two things seen and not caused by this change: the phone-landscape Levels top bar clips Publish (the audit already lists it) and Audio's "What you hear" field is narrow so its text is cut. Not shot: Levels 2D with a character selected and the Add tiles sheet, Levels 3D Plan and Walk, the Studio, the Ask dialog (#499 and the Ask entry are not on this base): Step 1 and Step 2 stay unticked for those.
+- Task 7 Step 4, drunk grandma test (phone 390x844, dark): the Home ends with the words "Editor colours" over "Light", "Dark" and "Match device" (the chosen one has a bright edge). Tapping "Light" turns the editors light at once and the choice is remembered (`localStorage` `automata-editor:theme` = `light`); the target is 54x44 px. A drunk grandma can tell what it does and get back. Words unchanged. Shot: `grandma-phone-dark-control.png`, `grandma-phone-after-light.png`.
+- Task 2, audit M1 (light before/after of the 3D suite Home and Feel at 1180x820): not run as pictures. The light look is guarded instead by the unit test "the light values are today's" (every light token equals the value `tool-chrome.css` and the site root held before) and by the scan, which fails on any new literal. A pixel comparison needs the base built next to this branch; do it when #499 is merged.
+- Task 8 (`dark-game-loop.test.ts`, `extensions/editors/tests/e2e/journeys/`): a device that asks for dark; `automata create-game`, then `automata editor`. Asserts the editors' `color-scheme` is `dark` and `--bg` is `rgb(19, 20, 23)` with no `data-theme` set; paints a wall in Levels (`content/levels/start.toml` holds `".*5 1 .*26"`), rewrites the bump's word in Feel (`content/feel/feel.toml`), opens Tuner (the no-settings page) and Writer (nothing to edit in a new game, so opened only, still dark); plays the game page the editor started: its canvas draws, it has no `data-theme` and no `--bg`, and the content module it serves holds the wall and the word; Publish in dark builds and the downloaded zip's JavaScript holds both. **PASS** on the iPad and phone projects (Chromium, 13 s each): `pnpm exec playwright test -c playwright.journeys.config.ts dark-game-loop --trace off`. Rulings: Tuner and Audio's Mix are not changed in this journey (the new game has no settings file, and `audio-in-a-new-game` already proves Mix); Writer has no lines in a new game, so the plan's "write a line in Writer" is covered by `writer-words-show-in-game` (light) and the sample shots (dark); Schematic's mode is not added (the new game has no characters). Played by hand once: the new game's page in the journey's shots (`journey/phone-game-played.png`, black menu, yellow Play: the game's own colours) and the dark Publish dialog (`journey/ipad-dark-publish.png`). Levels 3D (move a wall in Plan, Play) was **not** run: it needs #499.
+- Task 9, gates (stage 3 end): `pnpm lint` clean after one fix that is not this change's (`audio-stage.test.ts` read through `?.` in a cast: the one Biome error, from #500); `pnpm typecheck` passes; `pnpm style` 0 findings; `pnpm knip` clean after naming the three `public/theme-boot.js` files (loaded by `<script src>`, not imported). **Fail, inherited and not touched here:** `pnpm boundaries` (3 findings in `extensions/editors/src/features`: `feel` imports `audio`, `sequence` imports `writer` twice, from #487/#498 and already on #502's head), `pnpm source-names` (5 findings, `SettingsScreen.svelte` and others, from main) and `check:changesets` (3 changesets naming `@mcthaydt/*` packages, from main). `pnpm test:unit` ran as the commit hooks' affected projects (editor, editor-3d, editors, audio-synth and their dependants), all green. Not run: WebKit, Firefox, the GPU runner, parity, the 3D browser suites and journeys (CI and the Owner's machines).
+- Hand-off (session over 90 minutes): stage 3 is complete on this branch except what #499 holds. To finish after #499 merges: merge this branch's base into it, run `editor-colours.test.ts`, `theme.test.ts` (layout) and `tool-theme.test.ts`, shoot Plan, 3D, Walk and the Studio in dark at the five sizes, play a moved wall in dark with `automata editor` on a copy of `base-3d` and `--app-dir packages/editor-3d/dist/suite`, and take the light before/after of the 3D Home and Feel. Commit hooks take about 8 minutes, so commit in the background and do not edit during one.
 
 - 2026-11-08: plan audit (stage 2), on #501's branch: 3 high, 6 medium, 4 low found and fixed in the spec and this plan;
   the list is in [`2026-11-08-dark-mode-plan-audit.md`](2026-11-08-dark-mode-plan-audit.md).
