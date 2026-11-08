@@ -14,7 +14,7 @@ import type { Pill } from '../core/pills-model'
 import SuitePills from './SuitePills.svelte'
 
 interface Props {
-  /** The game's name; `undefined` hides it (a phone, where Home and the tools need the room). */
+  /** The game's name, on a phone too: it is how a person knows which game this is. `undefined` hides it. */
   title: string | undefined
   /** Edits write the game's own files: say so once, as status. */
   saved: boolean

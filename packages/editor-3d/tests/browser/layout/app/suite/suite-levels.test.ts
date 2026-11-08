@@ -7,13 +7,13 @@ import { SIZES } from '@automata/editor/kit/testing'
 import { fixtureEditor } from '@automata/editor/suite/testing'
 import {
   dockToggle,
+  editorControl,
   editorList,
   inShell,
   inView,
   noPageScroll,
   type OpenedSuite,
   openSuite,
-  tab,
 } from '@automata/editor/suite/testing/layout'
 import { checkLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, test } from 'vitest'
@@ -60,7 +60,7 @@ describe.each(SIZES)('Suite Levels 3D at $name ($width x $height)', (size) => {
     opened = await openSuite(size, editors(), FILES, '[data-testid="plan-canvas"]', 'Levels 3D')
     const plan = inShell('[data-testid="plan-canvas"]')
     inView(plan, size)
-    expect(checkLayout(opened.conditions, [plan, tab('Levels 3D')])).toEqual([])
+    expect(checkLayout(opened.conditions, [plan, editorControl('Levels 3D')])).toEqual([])
     // Levels 3D has no dock, so there is nothing for the toggle to open.
     expect(dockToggle()).toHaveLength(0)
     noPageScroll()

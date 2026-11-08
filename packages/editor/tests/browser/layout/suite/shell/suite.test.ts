@@ -15,6 +15,7 @@ import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
 import { editorTargets } from '#src/testing/kit/targets.ts'
+import { chooseEditor } from '#src/testing/suite/suite-layout.ts'
 
 /** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
 const targets = editorTargets()
@@ -59,9 +60,17 @@ const home = (): HTMLElement => {
 }
 
 describe.each(SIZES)('Suite at $name ($width x $height)', (size) => {
+  // A phone held sideways folds the tabs into the top bar's Editors menu (`suite-phone.test.ts` holds that case).
+  const folded = size.formFactor === 'phone-landscape'
+
   test('the shell mode, a tab per editor of at least 44 px, Home reachable, nothing clipped, no page scroll', async () => {
     const conditions = await open(size)
     expect(document.querySelector('[data-editor-shell]')).toHaveAttribute('data-mode', size.mode)
+    if (folded) {
+      expect(tabs()).toEqual([])
+      expect(checkLayout(conditions, [home()])).toEqual([])
+      return
+    }
     const all = tabs()
     expect(all.map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels'])
     for (const tab of all) {
@@ -99,9 +108,13 @@ describe.each(SIZES)('Suite at $name ($width x $height)', (size) => {
     expect(getComputedStyle(home()).getPropertyValue('-webkit-touch-callout') || 'none').toBe('none')
   })
 
-  test('the rail is a column in wide and a 64 px tab bar at the foot below it', async () => {
+  test('the rail is a column in wide and a 64 px tab bar at the foot below it (none in phone landscape)', async () => {
     await open(size)
     const rail = document.querySelector<HTMLElement>('[role="tablist"]')
+    if (folded) {
+      expect(rail).toBeNull()
+      return
+    }
     if (rail === null) throw new Error('no rail')
     const box = rail.getBoundingClientRect()
     if (size.mode === 'wide') {
@@ -131,8 +144,7 @@ describe('Suite rotation', () => {
   test('1194 x 834 to 834 x 1194 keeps Home and the chosen entry and remounts nothing', async () => {
     const [landscape, portrait] = [SIZES[0], SIZES[4]] as [EditorSize, EditorSize]
     await open(landscape)
-    const tuner = tabs().find((tab) => tab.textContent?.trim() === 'Tuner')
-    tuner?.click()
+    await chooseEditor('Tuner')
     await expect.poll(() => document.querySelector('[data-testid="tuner-rows"]')).not.toBeNull()
     await settleLayout()
     const shell = document.querySelector('[data-editor-shell]')

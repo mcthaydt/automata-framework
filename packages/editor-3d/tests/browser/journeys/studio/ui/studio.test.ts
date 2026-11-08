@@ -12,6 +12,7 @@ import {
   turned,
 } from '@automata/editor/kit/testing'
 import { createSuite, type SuiteHandle, samplePorts, startSuite } from '@automata/editor/suite'
+import { chooseEditor } from '@automata/editor/suite/testing/layout'
 import { publishConditions, settleLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
@@ -56,7 +57,7 @@ async function open(profile: IpadProfile) {
     suite: createSuite({ editors: [studio as SuiteEditor<unknown>] }),
   })
   await settleLayout()
-  tab('Studio').click()
+  await chooseEditor('Studio')
   await expect
     .poll(() => document.querySelector('[data-testid="studio-stage"][data-status="ready"]'))
     .not.toBeNull()
@@ -64,13 +65,6 @@ async function open(profile: IpadProfile) {
   return { ports }
 }
 
-function tab(name: string): HTMLElement {
-  const found = [...document.querySelectorAll<HTMLElement>('[role="tab"]')].find(
-    (candidate) => (candidate.getAttribute('aria-label') ?? candidate.textContent?.trim()) === name,
-  )
-  if (found === undefined) throw new Error(`no ${name} tab`)
-  return found
-}
 const find = (selector: string): HTMLElement => {
   const found = document.querySelector<HTMLElement>(selector)
   if (found === null) throw new Error(`no ${selector}`)

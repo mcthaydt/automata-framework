@@ -13,6 +13,7 @@ import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
 import { editorTargets } from '#src/testing/kit/targets.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
+import { chooseEditor } from '#src/testing/suite/suite-layout.ts'
 
 /** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
 const targets = editorTargets()
@@ -84,7 +85,7 @@ async function open(size: EditorSize) {
     suite: createSuite({ editors: [fixtureEditor as SuiteEditor<unknown>] }),
   })
   await settleLayout()
-  document.querySelector<HTMLElement>('[role="tab"]')?.click()
+  await chooseEditor()
   await expect.poll(() => document.querySelector('[data-testid="fixture-text"]')).not.toBeNull()
   // The first edit runs the `after` check, which fails, so the pill appears (a pill with nothing to say is hidden).
   button('Raise speed').click()

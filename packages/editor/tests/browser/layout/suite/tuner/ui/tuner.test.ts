@@ -13,6 +13,7 @@ import { createTuner } from '#src/features/suite/tuner/tuner-suite-editor.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
 import { editorTargets } from '#src/testing/kit/targets.ts'
+import { chooseEditor } from '#src/testing/suite/suite-layout.ts'
 import { tunerFixtureFiles } from '#src/testing/suite/tuner-fixtures.ts'
 
 /** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
@@ -48,18 +49,10 @@ async function open(size: EditorSize) {
     suite: createSuite({ editors: [createTuner({ gameUrl: GAME_PAGE }) as SuiteEditor<unknown>] }),
   })
   await settleLayout()
-  tab('Tuner').click()
+  await chooseEditor('Tuner')
   await expect.poll(() => document.querySelector('[data-testid="tuner-rows"]')).not.toBeNull()
   await settleLayout()
   return conditions
-}
-
-function tab(name: string): HTMLElement {
-  const found = [...document.querySelectorAll<HTMLElement>('[role="tab"]')].find(
-    (candidate) => (candidate.getAttribute('aria-label') ?? candidate.textContent?.trim()) === name,
-  )
-  if (found === undefined) throw new Error(`no ${name} tab`)
-  return found
 }
 
 function noPageScroll(): void {

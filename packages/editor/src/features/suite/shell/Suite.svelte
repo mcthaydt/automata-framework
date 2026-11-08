@@ -16,6 +16,7 @@ import EditorShell from '../../../shared/kit/shell/EditorShell.svelte'
 import { defaultDockOpen, dockPlacementOf, shellModeAt } from '../../../shared/kit/shell/shell-mode'
 import Button from '../../../shared/kit/widgets/Button.svelte'
 import IconButton from '../../../shared/kit/widgets/IconButton.svelte'
+import Menu from '../../../shared/kit/widgets/Menu.svelte'
 import ToastRegion from '../../../shared/kit/widgets/ToastRegion.svelte'
 import { createToasts } from '../../../shared/kit/widgets/toasts'
 import { type Pill, pillsToShow } from '../core/pills-model'
@@ -63,6 +64,16 @@ const dockShown = $derived(dockOpen ?? defaultDockOpen(mode, geometry.current.he
 // The rail: the editors this page registered.
 const entries = $derived(suiteEntries(suite.editors))
 const entry = $derived(entries.find((candidate) => candidate.id === current))
+// A phone held sideways has no height to spare for a tab bar: the editors fold into a menu in the top bar, so the stage
+// keeps the height (V4).
+const folded = $derived(mode === 'compact' && geometry.current.heightTier === 'short')
+const editorMenu = $derived(
+  entries.map((candidate) => ({
+    id: candidate.id,
+    label: candidate.label,
+    ...(candidate.id === current ? { detail: 'Open now' } : {}),
+  })),
+)
 
 // The installed editor the chosen entry opens: only when exactly one of its editors is both named and installed.
 const target = $derived.by((): { editor: SuiteEditor<unknown>; card: EditorCard } | undefined => {
@@ -163,6 +174,7 @@ function openCard(card: EditorCard): void {
   inspector={mounted?.editor.regions.inspector ? inspector : undefined}
   dock={mounted?.editor.regions.dock ? dock : undefined}
   status={mounted?.editor.regions.status ? status : undefined}
+  rail={folded ? undefined : tabs}
   testId="suite-shell"
 >
   {#snippet sheets()}<ToastRegion {toasts} />{/snippet}
@@ -175,7 +187,7 @@ function openCard(card: EditorCard): void {
     />
     <!-- The game's name is the title; the sample says it is one in a banner over Home instead (12.7, Step G). -->
     <SuiteTopBar
-      title={mode === 'compact' ? undefined : sample ? 'Sample game' : (game ?? 'Your game')}
+      title={sample ? 'Sample game' : (game ?? 'Your game')}
       saved={!sample && !compact}
       pills={pillsToShow(pills)}
       {compact}
@@ -185,6 +197,7 @@ function openCard(card: EditorCard): void {
       onredo={history.redo}
       tools={mounted?.editor.regions.tools ? editorTools : undefined}
     />
+    {#if folded}<Menu label="Editors" items={editorMenu} onselect={choose} />{/if}
     {#if mounted?.editor.regions.panel && mode !== 'wide'}
       <IconButton icon="list" label="Panel" aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)} />
     {/if}
@@ -199,10 +212,6 @@ function openCard(card: EditorCard): void {
     {#if mounted?.editor.regions.dock && dockIsSheet}
       <Button aria-expanded={dockShown} onclick={() => (dockOpen = !dockShown)}>Dock</Button>
     {/if}
-  {/snippet}
-
-  {#snippet rail({ orientation }: { orientation: 'vertical' | 'horizontal' })}
-    <SuiteRail {entries} {current} {orientation} onselect={choose} />
   {/snippet}
 
   {#snippet canvas()}
@@ -229,6 +238,7 @@ function openCard(card: EditorCard): void {
 
 <svelte:window onkeydown={shortcuts} />
 
+{#snippet tabs({ orientation }: { orientation: 'vertical' | 'horizontal' })}<SuiteRail {entries} {current} {orientation} onselect={choose} />{/snippet}
 {#snippet editorTools()}{#if mounted?.editor.regions.tools}{@render mounted.editor.regions.tools(mounted.session)}{/if}{/snippet}
 {#snippet panel()}{#if mounted?.editor.regions.panel}{@render mounted.editor.regions.panel(mounted.session)}{/if}{/snippet}
 {#snippet inspector()}{#if mounted?.editor.regions.inspector}{@render mounted.editor.regions.inspector(mounted.session)}{/if}{/snippet}

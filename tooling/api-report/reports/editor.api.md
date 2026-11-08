@@ -4355,16 +4355,34 @@ const fixtureEditor: SuiteEditor<FixtureSession>;
 
 ## `./suite/testing/layout`
 
+### `chooseEditor` (function)
+
+```ts
+function chooseEditor(name?: string): Promise<void>;
+```
+
 ### `dockToggle` (const)
 
 ```ts
 const dockToggle: () => HTMLElement[];
 ```
 
+### `editorControl` (function)
+
+```ts
+function editorControl(name: string): HTMLElement;
+```
+
 ### `editorList` (const)
 
 ```ts
 const editorList: (glob: string, editor: string) => string;
+```
+
+### `editorsMenu` (function)
+
+```ts
+function editorsMenu(): HTMLElement | undefined;
 ```
 
 ### `inShell` (function)
