@@ -540,7 +540,7 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
 
-## Shared editors: every editor in 2D and 3D games (stage 2 of 6 done, 2026-11-08)
+## Shared editors: every editor in 2D and 3D games (stage 3 of 6 done, 2026-11-08)
 
 The Owner, 2026-11-08: "all editors should work between 2D and 3D unless obviously not like 2D editor vs 3D editor".
 
@@ -548,3 +548,4 @@ The Owner, 2026-11-08: "all editors should work between 2D and 3D unless obvious
 |---|---|---|
 | 1. Audit | Done, 2026-11-08, on PR #508: 5 high (S1 to S5), 8 medium (S6 to S13), 3 low (S14 to S16), one decision for the Owner (D1, what Characters means in a 2D game; the Owner chose A the same day: one Characters editor on the rail in both kinds). A 2D and a 3D game were made in the editors, played and seen; the 2D game's Feel and Audio players were wired into a 3D game by hand and worked | [audit](2026-11-08-shared-editors-audit.md) |
 | 2. Plan and spec | Done, 2026-11-08: D1 = A (one Characters rail entry; in 2D it opens Levels 2D's Characters view). 18 tasks in 6 phases: the rail by game kind, Characters, a list that grows itself, players and events, Feel on 3D characters, cutscenes and Sequence in 3D, both templates playing every editor. The web and app split (S4, S10) is left to the apps work | [spec](2026-11-08-shared-editors-spec.md), [plan](2026-11-08-shared-editors-plan.md) |
+| 3. Plan audit | Done, 2026-11-08: 21 findings (12 would have stopped the build, 9 smaller), all fixed in the spec and plan. The biggest: the 2D story is behind a gate so the published tools stay installable, the editor list may grow only by whole rows, the server reads the list again, and the events file is an array the page can read. Task 16 is split, so the plan has 19 tasks. No decision for the Owner | [plan audit](2026-11-08-shared-editors-plan-audit.md) |
