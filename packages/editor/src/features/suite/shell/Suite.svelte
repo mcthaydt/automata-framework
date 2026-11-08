@@ -9,7 +9,6 @@
 -->
 <script lang="ts">
 import type { GeometryState } from '@automata/framework'
-import { SvelteMap } from 'svelte/reactivity'
 import type { WriteOutcome } from '../../../shared/editor-list/write-path'
 import type { SuiteEditor } from '../../../shared/kit/ports/suite-editor'
 import type { CheckFinding, SuitePorts, WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
@@ -62,7 +61,7 @@ let panelOpen = $state(false)
 let inspectorOpen = $state(false)
 /** `undefined` follows the shell's default for the size. */
 let dockOpen = $state<boolean | undefined>()
-const sessions = new SvelteMap<string, unknown>()
+let sessions = $state.raw<Readonly<Record<string, unknown>>>({})
 const opening = new Set<string>()
 
 const mode = $derived(shellModeAt(geometry.current))
@@ -84,18 +83,20 @@ const target = $derived.by((): { editor: SuiteEditor<unknown>; card: EditorCard 
   return card === undefined || editor === undefined ? undefined : { editor, card }
 })
 const mounted = $derived(
-  target !== undefined && reading === undefined && sessions.has(target.editor.id)
-    ? { editor: target.editor, session: sessions.get(target.editor.id) }
+  target !== undefined && reading === undefined && target.editor.id in sessions
+    ? { editor: target.editor, session: sessions[target.editor.id] }
     : undefined,
 )
 
 $effect(() => {
   if (target === undefined) return
   const { editor, card } = target
-  if (sessions.has(editor.id) || opening.has(editor.id)) return
+  if (editor.id in sessions || opening.has(editor.id)) return
   opening.add(editor.id)
   void editor.open(card.files, editing.portsFor(editor.id)).then(
-    (session) => sessions.set(editor.id, session),
+    (session) => {
+      sessions = { ...sessions, [editor.id]: session }
+    },
     () => opening.delete(editor.id),
   )
 })
