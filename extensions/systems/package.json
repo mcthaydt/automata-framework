@@ -38,6 +38,7 @@
     "@automata/content": "workspace:^",
     "@automata/framework": "workspace:^",
     "@automata/nav": "workspace:^",
+    "@automata/places": "workspace:^",
     "@automata/puzzle": "workspace:^",
     "@automata/sectors": "workspace:^",
     "@automata/sim": "workspace:^"
@@ -47,6 +48,7 @@
     "@automata/evidence": "workspace:*",
     "@automata/framework": "workspace:*",
     "@automata/nav": "workspace:*",
+    "@automata/places": "workspace:*",
     "@automata/puzzle": "workspace:*",
     "@automata/sectors": "workspace:*",
     "@automata/sim": "workspace:*",

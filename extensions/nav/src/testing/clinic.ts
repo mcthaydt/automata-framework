@@ -2,6 +2,7 @@
 // the clinic's nav graph, and its boxes behind a game-side `Blocked` like the original's (boxes are the game's, not nav's).
 
 import {
+  blockedBy,
   type Point,
   type ResolvedMap,
   readSectorMap,
@@ -10,7 +11,6 @@ import {
 } from '@automata/sectors/sim'
 import clinicLevel from '@automata/sectors/testing/fixtures/clinic.af-sector.json?raw'
 import { parse } from 'smol-toml'
-import { blockedBy } from '../shared/sim/blocked'
 import type { NavGraph } from '../shared/sim/nav-graph.schema'
 import type { Blocked } from '../shared/sim/route'
 import boxesToml from './fixtures/clinic.boxes.toml?raw'

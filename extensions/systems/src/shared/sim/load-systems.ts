@@ -2,7 +2,8 @@
 // agents, spawns one entity per agent (at `places[id]`, else its first routine stop, else the origin) and zeroes every
 // rule clock. Call it from a game system after the scene's sector map and nav graph are loaded.
 import { NavGraphResource } from '@automata/nav/sim'
-import { InSector, type Point } from '@automata/sectors/sim'
+import type { PlanPoint as Point } from '@automata/places'
+import { sectorsPlaces } from '@automata/sectors/sim'
 import { type SimContext, sortedKeys } from '@automata/sim'
 import { SystemsAgent } from './systems.component'
 import { emptyPursuit, SystemsNoises, SystemsPursuit, SystemsScene, SystemsState } from './systems.resource'
@@ -30,7 +31,7 @@ export function loadSystems(
   checked.agents.forEach((agent, index) => {
     const first = agent.routine?.[0]?.node
     const at = places[agent.id] ?? (first === undefined ? undefined : graph.nodes[first]) ?? { x: 0, z: 0 }
-    const sid = ctx.spawn([InSector, { x: at.x, z: at.z }], [SystemsAgent, { index }])
+    const sid = ctx.spawn(...(options.places ?? sectorsPlaces).spawnAt(at), [SystemsAgent, { index }])
     state.agents[agent.id] = {
       sid,
       mode: agent.initial,

@@ -1,6 +1,7 @@
-// The narrative extension: the plugin and the six content kinds, after sectors (rooms) and puzzle
+// The narrative extension: the plugin and the six content kinds, after whatever provides the places (sectors in 3D) and puzzle
 // (conditions, the `dialogue` and `verb` hooks).
 import { defineExtension, type ExtensionDef } from '@automata/framework/extension'
+import { sectorsPlaces } from '@automata/sectors/sim'
 import {
   beatsContent,
   canonContent,
@@ -22,7 +23,7 @@ export function narrativeExtension(options: NarrativeOptions = {}): NarrativeExt
     ...narrative,
     extension: defineExtension({
       name: 'narrative',
-      requires: ['sectors', 'puzzle'],
+      requires: [(options.places ?? sectorsPlaces).provider, 'puzzle'],
       sim: [narrative.plugin],
       content: [canonContent, linesContent, dialogueContent, storyletsContent, beatsContent, helpContent],
     }),

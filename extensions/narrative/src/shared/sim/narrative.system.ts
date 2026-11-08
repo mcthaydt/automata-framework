@@ -1,7 +1,9 @@
 // Narrative's systems and the sim functions a game and puzzle's hooks call. A conversation moves
 // only on `narrative.start`, `advance` and `choose` (or puzzle's `{ dialogue }` effect); each move says the place's
 // line and, with its last line, the choices on offer. The storylets step each tick from the player's room (sectors'
-// `InSector`, as of the last step's membership) and whether it moved, and play on verbs and system events.
+// room, as of the last step's membership) and whether it moved, and play on verbs and system events.
+
+import type { Places } from '@automata/places'
 import {
   PuzzleSceneResource,
   PuzzleState,
@@ -9,7 +11,7 @@ import {
   type Value,
   type VerbReport,
 } from '@automata/puzzle/sim'
-import { InSector, resolvedMap } from '@automata/sectors/sim'
+import { sectorsPlaces } from '@automata/sectors/sim'
 import { defineSystem, type SimContext, type SystemDef } from '@automata/sim'
 import { advance, applyChoice, choose, type Place, readerOf, settle, start, view } from './dialogue'
 import type { DialogueGraph } from './dialogue.schema'
@@ -24,6 +26,8 @@ import {
 import { type Here, type Outcome, onStep, onSystem, onVerb, type Room } from './storylets'
 
 export interface NarrativeOptions {
+  /** Where the player stands and which room it is in. Default: sectors' 3D rooms. A 2D game passes `level2dPlaces`. */
+  readonly places?: Places
   /** Facts the game keeps in its own fields (as puzzle's `facts.get`): undefined for a fact it does not map. */
   readonly facts?: (ctx: SimContext, name: string) => Value | undefined
   /** While this holds (a cutscene is playing), the conversation commands are ignored (the `cutscenes` extension's `locked`). */
@@ -141,24 +145,24 @@ export function fireSystem(ctx: SimContext, event: string, options: NarrativeOpt
 }
 
 /** The player's room and whether it moved since the last step; the plan position is kept for the next. */
-function here(ctx: SimContext): Here {
+function here(ctx: SimContext, places: Places): Here {
   const env = ctx.resource(NarrativeEnv)
-  const walker = env.player === null ? undefined : ctx.entity(env.player)
-  if (walker === undefined || !walker.has(InSector)) {
+  const at = env.player === null ? undefined : places.at(ctx, env.player)
+  if (env.player === null || at === undefined) {
     env.last = null
     return { room: null, moving: false }
   }
-  const { x, z, sector } = walker.get(InSector)
+  const { x, z } = at
   const moving = env.last !== null && (env.last.x !== x || env.last.z !== z)
   env.last = { x, z }
-  const s = sector === 0 ? undefined : resolvedMap(ctx).sectors[sector - 1]
-  return { room: s === undefined ? null : { sector: s.id, zone: s.zone }, moving }
+  const room = places.rooms(ctx)[places.roomOf(ctx, env.player) - 1]
+  return { room: room === undefined ? null : { sector: room.id, zone: room.zone }, moving }
 }
 
 export const storyletSystem = (options: NarrativeOptions): SystemDef =>
   defineSystem('narrative.storylets', 'gameplay', (ctx) => {
     const { deck } = ctx.resource(NarrativeSceneResource)
-    const now = here(ctx)
+    const now = here(ctx, options.places ?? sectorsPlaces)
     if (deck.length === 0) return
     take(
       ctx,

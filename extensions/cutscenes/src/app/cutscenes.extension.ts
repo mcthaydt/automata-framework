@@ -1,4 +1,4 @@
-// The cutscenes extension: the plugin and the `cutscene` content kind, after sectors (anchors and the map),
+// The cutscenes extension: the plugin and the `cutscene` content kind, after whatever provides the places (sectors in 3D),
 // nav (nodes) and narrative (captions). The game wires `start` into puzzle's `cutscene` hook and `locked` into the input it
 // wants held.
 import { defineExtension, type ExtensionDef } from '@automata/framework/extension'
@@ -15,7 +15,7 @@ export function cutscenesExtension(options: CutscenesOptions = {}): CutscenesExt
     ...cutscenes,
     extension: defineExtension({
       name: 'cutscenes',
-      requires: ['sectors', 'nav', 'narrative'],
+      requires: [options.places?.provider ?? 'sectors', 'nav', 'narrative'],
       sim: [cutscenes.plugin],
       content: [cutsceneContent],
     }),

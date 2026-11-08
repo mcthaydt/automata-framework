@@ -601,3 +601,15 @@ The Owner's rule (2026-11-08): content made in the editors must be seen in play,
   long paint journey, so each journey stays one story; it presses Add key and J in the Tuner, Plays, holds J, and the
   square moves left (iPad and phone, Chromium; the first version flaked on iPad because it held J for a fixed 600 ms, now
   it looks again until the square has moved).
+- 2026-11-08 Task 10 done: `extensions/places` (private) holds the `Places` contract; `sectorsPlaces` (sectors) answers it with
+  exactly what nav, narrative and systems read before (`InSector`, the resolved map, `blockedBy`, systems' crossing maths),
+  so no 3D hash, golden or replay moved (unit suites: sectors 49, nav 25, narrative 137, cutscenes 71, systems 63,
+  pipelines 190, base-3d 105, all green). `blockedBy` moved from nav to sectors (nav re-exports it). Each consumer takes
+  `places?: Places` (default sectors) and its extension/plugin `requires`/`dependsOn` the provider. Rulings: (1) `Places`
+  gained `roomOf(ctx, sid)`, the room as of the last step, because narrative and systems read `InSector.sector` (membership
+  decided in sectors' `cleanup`), which can lag the position by a step; reading `roomAt(position)` instead would move a
+  3D hash. (2) The cutscene lint has no sim context, so it takes a structural `LintFloor` (`sectorAt`, `segmentBlocked`;
+  sectors' `ResolvedMap` fits) instead of `Places`; cutscenes' extension requires `options.places?.provider ?? 'sectors'` by
+  name and no longer lists `@automata/sectors` as a peer. (3) Nothing added to any plugin's `config`. Pre-existing and left:
+  `pnpm typecheck` fails in `extensions/editors` (svelte-check warning exits 1) and knip lists `examples/2d-story/ship.config.ts`,
+  `@automata/feel` and `@testing-library/user-event` in `extensions/editors`.

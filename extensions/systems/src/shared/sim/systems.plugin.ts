@@ -1,6 +1,7 @@
 // The systems plugin. `createSystems` takes the game's hooks, derived facts, refused steps, mapped
 // facts and queries, and gives the plugin with the `hear` and `load` bound to those options.
-import type { Point } from '@automata/sectors/sim'
+import type { PlanPoint as Point } from '@automata/places'
+import { sectorsPlaces } from '@automata/sectors/sim'
 import { definePlugin, type PluginDef, type SimContext, sortedKeys } from '@automata/sim'
 import { loadSystems } from './load-systems'
 import { Hide, Unhide } from './systems.command'
@@ -26,7 +27,7 @@ export function createSystems(options: SystemsOptions = {}): Systems {
   return {
     plugin: definePlugin({
       name: 'systems',
-      dependsOn: ['sectors', 'nav', 'puzzle'],
+      dependsOn: [(options.places ?? sectorsPlaces).provider, 'nav', 'puzzle'],
       config: {
         hooks: sortedKeys(options.hooks ?? {}),
         derived: sortedKeys(options.derived ?? {}),

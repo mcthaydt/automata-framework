@@ -6,7 +6,6 @@
 // walls, sprite scale, back to camera, solid boxes) return with the renderer. A script may break a rule
 // it names in `lintAllow`, with the reason; the lint has one context (the anchors as given), so an allow's `context` is
 // not read.
-import type { ResolvedMap } from '@automata/sectors/sim'
 import { createDirector } from './director/director'
 import { type PlacedScript, placeScript } from './sim/anchors'
 import type { CutsceneScript } from './sim/cutscene.schema'
@@ -22,8 +21,22 @@ export interface CutsceneFinding {
   /** The door or prop a finding is about, when it is about one. */
   readonly name?: string | undefined
 }
+/**
+ * The floor the lint checks a camera and actors against: where there is floor, and whether a walk is blocked. Sectors'
+ * `ResolvedMap` is one; a 2D game builds its own from its level. The lint has no sim context, so it cannot take `Places`.
+ */
+export interface LintFloor {
+  /** Whatever room the point is in, or undefined off the floor. */
+  sectorAt(p: { readonly x: number; readonly z: number }): unknown
+  /** Whether the segment a→b is blocked within `margin` metres. */
+  segmentBlocked(
+    a: { readonly x: number; readonly z: number },
+    b: { readonly x: number; readonly z: number },
+    margin: number,
+  ): boolean
+}
 export interface LintWorld {
-  readonly map: ResolvedMap
+  readonly map: LintFloor
   /** The locale's text by line key: a caption's line must have some, and its length sets how long the caption must stay up. */
   readonly text: Readonly<Record<string, string>>
   /** The sound kinds and lamp ids the game has. */

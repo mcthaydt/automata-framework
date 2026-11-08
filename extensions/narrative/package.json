@@ -38,6 +38,7 @@
   "peerDependencies": {
     "@automata/content": "workspace:^",
     "@automata/framework": "workspace:^",
+    "@automata/places": "workspace:^",
     "@automata/puzzle": "workspace:^",
     "@automata/sectors": "workspace:^",
     "@automata/sim": "workspace:^"
@@ -46,6 +47,7 @@
     "@automata/content": "workspace:*",
     "@automata/evidence": "workspace:*",
     "@automata/framework": "workspace:*",
+    "@automata/places": "workspace:*",
     "@automata/puzzle": "workspace:*",
     "@automata/sectors": "workspace:*",
     "@automata/sim": "workspace:*",
