@@ -699,3 +699,12 @@ want, itch will be first output". Spec §11.
   gets one), and every kind of new game writes `svelte.config.js`. 465 `-content` and 144 `-tools` create-game unit tests
   pass. A story game made with `--link-workspace` (then removed): its test output holds neither `skippedFile` nor the
   Svelte warning (18 tests pass). The published path is the consumer smoke's, not run here.
+- Task 7 done, on its own branch `claude/project-thread-rvrslh-site` (on #521's head, the site stack, with Task 1's
+  marketplace file) and in its own pull request: the prompt Home copies and Start's setup ask for Automata's skills first
+  (`AUTOMATA_PLUGIN_INSTALL`: two Claude Code lines, one `npx skills add` line), then the game's `AGENTS.md`; Superpowers
+  and the PixiJS skills are "Also useful" and never a reason to wait. `llms.txt` names the plugin and both lines. The test
+  reads the Claude Code lines from the mirror's `marketplace.json`. The site's 450 unit tests (with the API index built
+  first) and `svelte-check` pass. Precondition (plan audit A1): these words ship only after the mirror holds
+  `.claude-plugin/marketplace.json`, which needs a release with `SKILLS_TOKEN` (the Owner's). Ruling: one branch name is
+  given for this thread, but stacked pull requests need a branch each; the site task is on a second branch with the
+  coordinator's "stack ready PRs" as the permission.
