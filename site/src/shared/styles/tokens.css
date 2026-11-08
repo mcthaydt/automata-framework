@@ -33,6 +33,12 @@
   --wrap: 1200px;
   /* The page's side margin: the container is the wrap or the window less this on each side. */
   --side: 24px;
+  /* Motion (see shared/motion/motion-tokens.ts, which a test holds equal): quick and small. The ease is the kit's. */
+  --t-press: 140ms;
+  --t-hover: 180ms;
+  --t-ui: 200ms;
+  --nudge: 4px;
+  --scale-from: 0.98;
   font-family: var(--font-sans);
   font-size: 16px;
   color: var(--ink);

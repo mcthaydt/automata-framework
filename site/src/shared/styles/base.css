@@ -45,10 +45,6 @@ button,
   font-size: 15px;
   font-weight: 500;
   line-height: 1.2;
-  transition:
-    transform 0.14s,
-    background 0.14s,
-    border-color 0.14s;
 }
 button:hover {
   border-color: var(--ink);
@@ -237,28 +233,29 @@ input::placeholder {
   .docs-sidebar nav a,
   nav.link-row a {
     transition:
-      background-color 180ms ease,
-      border-color 180ms ease,
-      color 180ms ease,
-      box-shadow 240ms ease,
-      transform 160ms ease;
+      transform var(--t-press) var(--ease-out),
+      background-color var(--t-hover) ease,
+      border-color var(--t-hover) ease,
+      color var(--t-hover) ease,
+      box-shadow 240ms ease;
   }
-  @keyframes lift {
+  /* Entrances for things that appear when asked for (search, the phone menu, a copy tick). Nothing exits. */
+  @keyframes motion-rise {
     from {
-      transform: translateY(16px);
-    }
-    to {
-      transform: none;
-    }
-  }
-  @keyframes settle {
-    from {
-      opacity: 0.7;
-      transform: translateY(16px);
+      opacity: 0;
+      transform: translateY(var(--nudge)) scale(var(--scale-from));
     }
     to {
       opacity: 1;
       transform: none;
+    }
+  }
+  @keyframes motion-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
     }
   }
 }
