@@ -148,6 +148,23 @@ describe('Flow and screens (spec §3.6)', () => {
     expect(log).toEqual(['enter:a', 'exit:a', 'enter:b'])
   })
 
+  it('starts at a screen it is given, or at the entry when the graph has no such screen (a dev restart)', async () => {
+    const entered: string[] = []
+    const screen = (id: string): ScreenDef => ({ id, enter: () => void entered.push(id) })
+    const options = { screens: [screen('title'), screen('room')], entry: 'title', transitions: [] }
+
+    const atRoom = setupHarness(options)
+    await atRoom.start('room')
+    expect(atRoom.flow.current).toBe('room')
+    await atRoom.dispose()
+
+    // A save can rename or drop the screen the person was on: the game starts as usual.
+    const atGone = setupHarness(options)
+    await atGone.start('gone')
+    expect(atGone.flow.current).toBe('title')
+    expect(entered).toEqual(['room', 'title'])
+  })
+
   it('a screen is current before its enter is awaited (dispatch inside enter resolves against itself)', async () => {
     let dispatchedFromA = false
 

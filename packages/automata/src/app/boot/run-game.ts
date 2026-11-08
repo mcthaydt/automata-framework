@@ -2,9 +2,10 @@ import type { Hosting } from '../../shared/host/hosting.ts'
 import type { BootError } from '../../shared/runtime/boot-error.js'
 import type { LoaderControls, PageLayers } from '../../shared/runtime/page-layers.svelte.js'
 import { createPageLayers } from '../../shared/runtime/page-layers.svelte.js'
+import type { Flow } from '../flow/flow.manager.js'
 import { bootProgram } from './boot-program.js'
 import { failureHost } from './failure-host.js'
-import type { GameDefinition, RuntimeHandle } from './game-definition.js'
+import type { GameDefinition, RuntimeHandle, StartOptions } from './game-definition.js'
 import { notifyFailure } from './notify-failure.js'
 import { type Teardown, teardown } from './teardown.ts'
 
@@ -43,10 +44,13 @@ export function describeBootError(error: BootError): string {
  * boot again on the same root without reloading the page. Inside a Ruken session, Try again reloads the game's frame
  * instead: the host answers one hello per frame load, so a second session in this load would never be welcomed.
  *
- * `shutdown()` stops a boot under way and closes the current attempt, last opened first.
+ * `shutdown()` stops a boot under way and closes the current attempt, last opened first. `start.at` names the screen
+ * the flow starts on (a restart in development); `screen` is the screen showing now.
  */
-export function runGame<S>(game: GameDefinition<S>): RuntimeHandle {
+export function runGame<S>(game: GameDefinition<S>, start: StartOptions = {}): RuntimeHandle {
   let current: { readonly owned: Teardown; readonly abort: AbortController } | null = null
+  /** The current attempt's flow, once its boot built one; dropped when the attempt closes. */
+  let flow: Flow | null = null
   let unmountFailure: (() => void) | null = null
   let stopping = false
 
@@ -54,6 +58,7 @@ export function runGame<S>(game: GameDefinition<S>): RuntimeHandle {
   async function closeAttempt(): Promise<void> {
     const attempt = current
     current = null
+    flow = null
     if (attempt === null) return
     attempt.abort.abort()
     await attempt.owned.close()
@@ -80,6 +85,10 @@ export function runGame<S>(game: GameDefinition<S>): RuntimeHandle {
       onLoader: (opened) => {
         loader = opened
       },
+      onFlow: (opened) => {
+        flow = opened
+      },
+      startAt: start.at,
     })
     if (booted.ok || abort.signal.aborted || stopping) return
 
@@ -123,6 +132,9 @@ export function runGame<S>(game: GameDefinition<S>): RuntimeHandle {
   void runAttempt(false)
 
   return {
+    get screen() {
+      return flow?.current
+    },
     async shutdown() {
       if (stopping) return
       stopping = true

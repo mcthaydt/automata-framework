@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { loadEditorList } from '#src/features/suite/core/index.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
-import { homeOf, keyPathText } from '#src/features/suite/shell/home-model.ts'
+import { fileTitle, homeOf, keyPathText } from '#src/features/suite/shell/home-model.ts'
 import type { WorkspaceFile } from '#src/shared/kit/ports/suite-ports.ts'
 
 const fixture = (name: string): string =>
@@ -115,5 +115,17 @@ describe('keyPathText', () => {
     expect(keyPathText(['file', 0, 'gates'])).toBe('file[0].gates')
     expect(keyPathText(['check', 2, 'run', 1])).toBe('check[2].run[1]')
     expect(keyPathText([])).toBe('the whole list')
+  })
+})
+
+// Home names each file in words (12.7 Step G): the folders and the format words a person never typed stay off screen.
+describe('fileTitle', () => {
+  it.each([
+    ['content/rooms/room-1.af2d.json', 'Room 1'],
+    ['content/tuning.toml', 'Tuning'],
+    ['content/levels/world_map.af2d.json', 'World map'],
+    ['README', 'README'],
+  ])('%s reads as %s', (path, title) => {
+    expect(fileTitle(path)).toBe(title)
   })
 })

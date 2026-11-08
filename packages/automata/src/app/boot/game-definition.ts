@@ -69,7 +69,19 @@ export interface RuntimeSeams {
 
 /** Controls the running game: `shutdown` closes everything the runtime opened, last opened first. */
 export interface RuntimeHandle {
+  /** The screen showing now; `undefined` before the flow starts and after shutdown. */
+  readonly screen: string | undefined
   shutdown(): Promise<void>
+}
+
+/** How a game starts. */
+export interface StartOptions {
+  /**
+   * The screen to start on instead of the flow's entry, for a restart in development that brings the person back
+   * where they were (a tuning change restarts the game on new content). A screen the flow does not have starts at
+   * the entry. The start screen's assets load as it enters, as any screen's do after boot.
+   */
+  readonly at?: string | undefined
 }
 
 /** Everything a game provides to the runtime to boot. */

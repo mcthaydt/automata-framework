@@ -2464,10 +2464,11 @@ so Back to {host} can still reach its `Hosting`. Try again and Continue without 
 boot again on the same root without reloading the page. Inside a Ruken session, Try again reloads the game's frame
 instead: the host answers one hello per frame load, so a second session in this load would never be welcomed.
 
-`shutdown()` stops a boot under way and closes the current attempt, last opened first.
+`shutdown()` stops a boot under way and closes the current attempt, last opened first. `start.at` names the screen
+the flow starts on (a restart in development); `screen` is the screen showing now.
 
 ```ts
-function runGame<S>(game: GameDefinition<S>): RuntimeHandle;
+function runGame<S>(game: GameDefinition<S>, start?: StartOptions): RuntimeHandle;
 ```
 
 #### `RuntimeFacts` (interface)
@@ -2574,6 +2575,8 @@ Controls the running game: `shutdown` closes everything the runtime opened, last
 
 ```ts
 interface RuntimeHandle {
+    /** The screen showing now; `undefined` before the flow starts and after shutdown. */
+    readonly screen: string | undefined;
     shutdown(): Promise<void>;
 }
 ```
@@ -3179,10 +3182,26 @@ interface SpriteViewOptions {
 Boots a game: `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting
 and the default screens, then the runtime's boot on the game's root. Takes a spec or a game `defineGame`
 already returned. Throws `BootDefect` before anything mounts when the spec is invalid or there is no
-root (`spec.root`, else `#game`); a failure after that shows on the runtime's boot failure panel.
+root (`spec.root`, else `#game`); a failure after that shows on the runtime's boot failure panel. `start.at` starts on
+another screen than the flow's entry, for a restart in development (`StartOptions`).
 
 ```ts
-function startGame<S = never>(game: GameSpec<S> | DefinedGame<S>): RuntimeHandle;
+function startGame<S = never>(game: GameSpec<S> | DefinedGame<S>, start?: StartOptions): RuntimeHandle;
+```
+
+#### `StartOptions` (interface)
+
+How a game starts.
+
+```ts
+interface StartOptions {
+    /**
+     * The screen to start on instead of the flow's entry, for a restart in development that brings the person back
+     * where they were (a tuning change restarts the game on new content). A screen the flow does not have starts at
+     * the entry. The start screen's assets load as it enters, as any screen's do after boot.
+     */
+    readonly at?: string | undefined;
+}
 ```
 
 #### `StepResult` (interface)

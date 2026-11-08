@@ -86,18 +86,18 @@ const fileText = async (ports: MemoryPorts) => (await ports.ports.workspace.read
 describe('Suite: Ship, Review and the interchange', () => {
   it('without a change set port there is no Ship button', async () => {
     await start(await memory({ changeSet: false }))
-    expect(screen.queryByRole('button', { name: 'Ship' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Publish' })).toBeNull()
   })
 
   it('EDS-j: Ship drafts the description from the change, pushes and links the draft PR', async () => {
     await start(await memory({ gh: true }))
     await edit()
-    await userEvent.click(screen.getByRole('button', { name: 'Ship' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Ship this change' })
+    await userEvent.click(screen.getByRole('button', { name: 'Publish' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Publish your changes' })
     await waitFor(() =>
       expect((within(dialog).getByLabelText('Description') as HTMLTextAreaElement).value).toContain(TUNING),
     )
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Ship' }))
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Publish' }))
     expect(
       await within(dialog).findByRole('link', { name: 'Open the draft pull request' }),
     ).toBeInTheDocument()

@@ -1,4 +1,5 @@
 import '../../shared/kit/tokens.css'
+import '../../shared/kit/tool-chrome.css'
 import '../../shared/kit/fonts.css'
 import { mount } from 'svelte'
 import DesignBoard from './DesignBoard.svelte'

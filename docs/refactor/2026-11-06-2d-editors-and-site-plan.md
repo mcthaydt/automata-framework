@@ -897,6 +897,41 @@ logic that is not markup lives in the view's `*-model.ts`.
   palette under the chosen layer; layer subtitles per spec 11.5; the inspector opens on selection and docks from iPad
   landscape up; the level strip is a level picker in the top bar.
 - [ ] **Step 2:** Implement. **Session break** after the tool pill and layers if needed (log what is left).
+- **12.7, the rest of Step 1 and 2 (session 15).** *The split:* `Suite.svelte` 437 → 339 lines by responsibility:
+  `SuiteTopBar.svelte` (the game's name, where edits are saved, the pills, Undo, Redo, Ask, Publish and the editor's
+  tools; it shows only what has something to say), `SuiteHome.svelte` (the sample's note, Export and Import, the
+  cards), `SuiteAsk.svelte` (Ask's session state on its dialog and the rule that a step in the editor's history drops
+  a proposal) and `core/write-messages.ts` (what a refused write and a check finding say, pure, with a unit test).
+  `Suite.svelte` keeps the editor mounting, the history and the dialogs' state; it is over 300 lines by 39, all
+  wiring that shares the mounted editor's state, so splitting it further would only pass that state around: listed
+  for the build audit. *Publish:* the top bar's Ship is Publish and its dialog says "Publish your changes",
+  "Publishing…", "Publishing still opens a draft for review." and, with nothing open, "Nothing new to publish yet."
+  It stays hidden with no change sets (a game folder writes its files directly), so no button does nothing (E6).
+  *Home:* the title asks "What do you want to change?"; each file is named in words (`fileTitle`: `room-1.af2d.json`
+  is "Room 1", `tuning.toml` is "Tuning"), no path on Home; empty pages say "This game has nothing to edit yet." and
+  "Nothing to edit in Tuner yet." Not done: a level's own name ("Emberwick room") lives inside its file, so Home
+  would read every file to show it; the file's name in words is the essential part, and the level menu (12.3) shows
+  the levels' own names. Gates: editor unit (suite) 286 → 294 (with the new `write-messages` and `fileTitle` tests),
+  Chromium layout (suite) 121, svelte-check clean.
+- **12.3, the look begins (session 15).** The Owner approved the redesign mockups on 2026-11-06 ("Approved", relayed
+  by the coordinator): `editor-level.html` and `AUDIT.md` in the shared folder's `refactor/2026-11-06-redesign-mockups/`
+  are the look of 12.3 and every non-3D editor view. *Done:* the mockup's neutral tool palette as tokens (`--tool-bg`
+  #f7f7f8, `--tool-panel` white, `--tool-hover`, `--tool-selected`, `--tool-line`, `--tool-line-strong`, `--tool-muted`
+  and `--tool-faint`, which read at 4.5:1 on white and on the chosen row) and `src/shared/kit/tool-chrome.css`, which
+  the three editor pages import after `tokens.css` and which puts them under the names the kit already reads (`--bg`,
+  `--paper`, `--surface`, the hairlines, the grey, the selection wash), so every view takes the palette at once and
+  the website, which does not import it, keeps its field. A unit test holds the mapping, the import order and the
+  contrast. The design board shows it (neutral field, white cards, hairlines). The stage keeps `--charcoal`
+  (#16191e; the mockup's #0e1014 is close) so no canvas pixel expectation changes yet. *Next, designed:* (1) the
+  density, 32 px rows and controls on a fine pointer and 44 on touch (`--row`, `--ctl` under `(pointer: coarse)`); the
+  layout tests hold every control to 44 px in Chromium's fine pointer today, so they first learn the pointer (44 on
+  touch, 32 with a mouse), and a primary stays 48 on touch (the framework rule); (2) 12.3's structure from the mockup:
+  the top bar is Back, the level menu (the levels and New level; on compact it also switches the four views), the
+  views as quiet tabs, Undo, Redo, problems, the save state and one lime primary (Save on a game folder, Share in
+  browser storage); tools float top centre, zoom bottom; the inspector is label-left and shows the level with nothing
+  chosen; three layouts by the container (wide 1180 px and up, medium, compact at 760 px and down or under 520 px
+  high, with the tools in a dock and sheets); lock before eye on layer rows; (3) the same on Map, Tiles, Characters,
+  the Tuner, the suite page and the dialogs.
 - [ ] **Step 3:** The canvas tests' pixel expectations that read old colours: open expected, actual and diff for each;
   update with the reason in the commit. The iPad journeys (WebKit) are the Owner's run; Chromium here.
 - [ ] **Step 4:** Screenshots, copy rows. Commit. `feat(editor): the Level view redesigned, canvas first`
@@ -2333,6 +2368,22 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   so a person tuning presses Play after each change; going back to the screen they were on needs a runtime option to
   start at a screen, and the room's assets load with the splash (`preload_screens`), so it is not a one-line change:
   the next session designs it. The unit a player can feel (px/s) is still to do. The pane's colours wait for the look.
+- **12.6, the restart lands where the person was (session 15).** *Design:* the flow already loads a screen's assets
+  as it enters (`flow.manager` asks `assets.isLoaded` before each enter), so starting on another screen needs no change
+  to the preload: `preload_screens` (and `game.preload`, attached to the first of them) still load at boot, and the
+  start screen's own files load as it enters, the same as after any transition. So the runtime gains two small things,
+  no more: `startGame(game, { at })` (`StartOptions`, through `runGame` and `bootProgram`'s `startAt` to
+  `FlowHandle.start(at)`), which starts on `at` when the flow has that screen and at the entry otherwise (a save can
+  rename a screen), and `RuntimeHandle.screen`, the screen showing now (`undefined` before the flow starts and after
+  shutdown). The sim is untouched (law 1): a restart is still a new game on new content. *The games:* the create-game
+  template's `main.ts` restarts `startGame(fresh.game, { at })` with `at = running.screen`, read before the shutdown;
+  Emberwick maps the screens that hold a round (`room`, `paused`, `end`) to `room`, since the round lived in the old
+  sim, so a person tuning lands in a fresh round at once and feels the change without pressing Play. Not done, on
+  purpose: carrying Wick's position across (a new sim on new tuning is the honest test of the feel, and a carried
+  state would need a snapshot across content, which the sim does not allow). Gates: the flow's tests 21 → 22, run-game
+  23 → 24 (start at a screen, `screen` before, during and after), create-game's template test, Emberwick's dev
+  journey changed to play into the room and expect the room after a save (failed first on `splash`/`menu`, passes
+  now); a changeset for `@mcthaydt/automata` and `-tools`, the API report, the agent skill's API and the cheatsheet.
 - **12.7, part (session 14): the top bar in plain words (Step G).** Step 0's size check: `Suite.svelte` is 420 lines,
   over the 300 the task allows, and is the one file to split (by responsibility: the editing, Ask and Ship wiring
   leave the markup); every other shell file is under 300. Done: the title is the game's name from the ping (`Your

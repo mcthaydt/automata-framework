@@ -27,7 +27,7 @@ const PUSHED = {
 function setup(ship: (draft: { title: string; body: string }) => Promise<ShipOutcome>, review = REVIEW) {
   const onship = vi.fn(ship)
   render(ShipDialog, { open: true, review, draft: DRAFT, onship, onclose: vi.fn() })
-  return { onship, dialog: screen.getByRole('dialog', { name: 'Ship this change' }) }
+  return { onship, dialog: screen.getByRole('dialog', { name: 'Publish your changes' }) }
 }
 
 describe('ShipDialog', () => {
@@ -37,21 +37,23 @@ describe('ShipDialog', () => {
     expect(screen.getByText('Feel review: approved')).toBeInTheDocument()
     const body = screen.getByLabelText('Description')
     await userEvent.type(body, 'Feels better.')
-    await userEvent.click(screen.getByRole('button', { name: 'Ship' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Publish' }))
     expect(onship).toHaveBeenCalledWith({ title: 'Faster', body: '## Changes\nFeels better.' })
   })
 
-  it('a failing check warns and still allows Ship', () => {
+  it('a failing check warns and still allows Publish', () => {
     setup(async () => PUSHED, { ...REVIEW, checks: [{ check: 'fair', status: 'fail', findings: [] }] })
-    expect(screen.getByRole('note')).toHaveTextContent('fair is failing. Ship still opens a draft.')
-    expect(screen.getByRole('button', { name: 'Ship' })).toBeEnabled()
+    expect(screen.getByRole('note')).toHaveTextContent(
+      'fair is failing. Publishing still opens a draft for review.',
+    )
+    expect(screen.getByRole('button', { name: 'Publish' })).toBeEnabled()
   })
 
   it('pushing: Ship and the fields are disabled until the push answers', async () => {
     let answer: (outcome: ShipOutcome) => void = () => {}
     setup(() => new Promise((resolve) => (answer = resolve)))
-    await userEvent.click(screen.getByRole('button', { name: 'Ship' }))
-    expect(screen.getByRole('button', { name: 'Pushing…' })).toBeDisabled()
+    await userEvent.click(screen.getByRole('button', { name: 'Publish' }))
+    expect(screen.getByRole('button', { name: 'Publishing…' })).toBeDisabled()
     expect(screen.getByLabelText('Title')).toBeDisabled()
     answer(PUSHED)
     expect(await screen.findByRole('status')).toHaveTextContent('Pushed edit/faster.')
@@ -59,14 +61,14 @@ describe('ShipDialog', () => {
 
   it('EDS-j: pushed with a PR links the draft PR; without gh, the compare link', async () => {
     setup(async () => ({ ...PUSHED, pr: 'https://github.com/o/g/pull/7' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Ship' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Publish' }))
     expect(await screen.findByRole('link', { name: 'Open the draft pull request' })).toHaveAttribute(
       'href',
       'https://github.com/o/g/pull/7',
     )
     document.body.innerHTML = ''
     setup(async () => PUSHED)
-    await userEvent.click(screen.getByRole('button', { name: 'Ship' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Publish' }))
     expect(await screen.findByRole('link', { name: 'Open the pull request on GitHub' })).toHaveAttribute(
       'href',
       PUSHED.compareUrl,
@@ -76,14 +78,14 @@ describe('ShipDialog', () => {
 
   it('a failed push shows the reason and says the commits stay', async () => {
     setup(async () => ({ error: 'remote rejected' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Ship' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Publish' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('The push failed: remote rejected')
     expect(screen.getByText(/Your commits stay/)).toBeInTheDocument()
   })
 
-  it('with no change set open there is nothing to ship', () => {
+  it('with no change set open there is nothing new to publish', () => {
     render(ShipDialog, { open: true, review: undefined, draft: undefined, onship: vi.fn(), onclose: vi.fn() })
-    expect(screen.getByText(/nothing to ship/)).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Ship' })).toBeNull()
+    expect(screen.getByText(/Nothing new to publish yet/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Publish' })).toBeNull()
   })
 })

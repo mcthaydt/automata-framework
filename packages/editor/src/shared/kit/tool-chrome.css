@@ -1,0 +1,15 @@
+/*
+ * The editors' tool chrome, from the redesign mockup the Owner approved on 2026-11-06: one neutral palette for every
+ * editor screen. It puts the `--tool-*` tokens under the names the kit's components already read (the field, paper,
+ * the hover surface, the hairlines, the grey and the selection wash), so every view takes the look without each one
+ * changing. Editor pages import it once, after tokens.css; the website does not, so it keeps its own field.
+ */
+:root {
+  --bg: var(--tool-bg);
+  --paper: var(--tool-panel);
+  --surface: var(--tool-hover);
+  --line: var(--tool-line);
+  --line-strong: var(--tool-line-strong);
+  --muted: var(--tool-muted);
+  --cobalt-soft: var(--tool-selected);
+}

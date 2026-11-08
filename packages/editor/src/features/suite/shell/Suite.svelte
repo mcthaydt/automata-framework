@@ -3,12 +3,14 @@
   editor an entry opens. An entry that exactly one installed editor covers opens it: `open` runs once per entry for
   the app's life, so the editor's session (documents, history, selection, view state) outlives a switch (EDS-D12),
   and its regions fill the shell's. Any other entry shows its cards. The shell stays mounted through every switch and
-  rotation; only what is inside its regions changes.
+  rotation; only what is inside its regions changes. Home is `SuiteHome`, Ask's wiring is `SuiteAsk`, and what a
+  refused write says is `core/write-messages` (split by responsibility in 12.7).
 -->
 <script lang="ts">
 import type { GeometryState } from '@mcthaydt/automata'
 import { SvelteMap } from 'svelte/reactivity'
 import type { WriteOutcome } from '../../../shared/editor-list/write-path'
+import type { GestureClock } from '../../../shared/kit/gestures/gesture-clock'
 import type { SuiteEditor } from '../../../shared/kit/ports/suite-editor'
 import type { CheckFinding, SuitePorts, WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
 import EditorShell from '../../../shared/kit/shell/EditorShell.svelte'
@@ -16,10 +18,10 @@ import { defaultDockOpen, dockPlacementOf, shellModeOf } from '../../../shared/k
 import Button from '../../../shared/kit/widgets/Button.svelte'
 import ToastRegion from '../../../shared/kit/widgets/ToastRegion.svelte'
 import { createToasts } from '../../../shared/kit/widgets/toasts'
-import { type AskState, createAskSession } from '../core/ask-session'
+import { createAskSession } from '../core/ask-session'
 import { type Pill, pillsToShow } from '../core/pills-model'
 import type { ReviewChangeSet } from '../core/review-model'
-import AskDialog from './AskDialog.svelte'
+import { findingMessage, refusalMessage } from '../core/write-messages'
 import type { Suite } from './create-suite'
 import Home from './Home.svelte'
 import type { EditorCard, HomeState } from './home-model'
@@ -27,8 +29,10 @@ import InterchangeDialog from './InterchangeDialog.svelte'
 import ReadOnlyFile from './ReadOnlyFile.svelte'
 import ReviewDesk from './ReviewDesk.svelte'
 import ShipDialog from './ShipDialog.svelte'
-import SuitePills from './SuitePills.svelte'
+import SuiteAsk from './SuiteAsk.svelte'
+import SuiteHome from './SuiteHome.svelte'
 import SuiteRail from './SuiteRail.svelte'
+import SuiteTopBar from './SuiteTopBar.svelte'
 import { suiteEntries } from './suite-entries'
 import { createSuiteSession } from './suite-session'
 import TitlePrompt from './TitlePrompt.svelte'
@@ -41,9 +45,11 @@ interface Props {
   sample: boolean
   /** The game's name in words, from the server; the title. */
   game?: string | undefined
+  /** The toasts' timers; the page's clock when absent. */
+  clock?: GestureClock | undefined
 }
 
-const { geometry, home, suite, ports, sample, game }: Props = $props()
+const { geometry, home, suite, ports, sample, game, clock }: Props = $props()
 
 let current = $state<string | undefined>()
 let reading = $state<WorkspaceFile | undefined>()
@@ -90,7 +96,8 @@ $effect(() => {
 // Editing (flows 3 to 8): every editor is opened with ports whose writes take the suite's write path; the pills,
 // Undo and Ask follow it. The session lives as long as the suite; a reload reads the pills back from the journal.
 const editing = $derived(createSuiteSession(ports, { installed: suite.editors.map((editor) => editor.id) }))
-const toasts = createToasts()
+// svelte-ignore state_referenced_locally (the clock is fixed for the suite's life)
+const toasts = createToasts({ clock })
 let pills = $state<readonly Pill[]>([])
 let titleOpen = $state(false)
 let history = $state({ canUndo: false, canRedo: false, undoLabel: '', redoLabel: '' })
@@ -141,7 +148,6 @@ const ask = $derived(
     : createAskSession({ target: askTarget, ports, writePath: editing.writePath, owner }),
 )
 let askOpen = $state(false)
-let askView = $state<AskState>({ kind: 'idle' })
 
 // A routed write records the editor's own label for the step it just applied.
 $effect(() => {
@@ -149,34 +155,9 @@ $effect(() => {
   editing.label = () => hook?.undoLabel() ?? 'Edit'
 })
 
-// The Ask session's state, and its rule: an edit, undo or redo in the document drops a proposal in flight or on show.
-$effect(() => {
-  const session = ask
-  if (session === undefined) return
-  askView = session.state()
-  // A reply has spent tokens through the change set, so the meter reads the journal again.
-  const stopState = session.subscribe(() => {
-    askView = session.state()
-    if (askView.kind === 'shown' || askView.kind === 'over-budget') void editing.refresh()
-  })
-  const stopHistory = undoHook?.subscribe(() => session.drop())
-  return () => {
-    stopState()
-    stopHistory?.()
-  }
-})
-
 function refused(outcome: WriteOutcome | undefined): void {
-  if (outcome === undefined || 'written' in outcome || 'cancelled' in outcome) return
-  const message =
-    outcome.refused === 'moved'
-      ? `${outcome.path} changed since this step was written, so it was not undone.`
-      : outcome.refused === 'checks'
-        ? outcome.findings.map((finding) => finding.message).join('; ')
-        : outcome.refused === 'policy'
-          ? outcome.why
-          : outcome.message
-  toasts.push({ kind: 'error', message })
+  const message = refusalMessage(outcome)
+  if (message !== undefined) toasts.push({ kind: 'error', message })
 }
 
 // With no editor open, Undo and Redo step the suite's own history (an import, EDS-D19).
@@ -194,7 +175,7 @@ async function redo(): Promise<void> {
   else refused(outcome)
 }
 
-// Ship (flow 9), the Review desk (flow 10) and Export and Import (flow 11).
+// Publish (Ship in the spec, flow 9), the Review desk (flow 10) and Export and Import (flow 11).
 let shipOpen = $state(false)
 let shipReview = $state<ReviewChangeSet>()
 let shipDraft = $state<{ readonly title: string; readonly body: string }>()
@@ -214,21 +195,8 @@ $effect(() => {
   void editing.review().then((read) => (reviews = read))
 })
 
-async function accept(): Promise<void> {
-  const outcome = await ask?.accept()
-  if (outcome === undefined) return
-  if ('written' in outcome) {
-    askOpen = false
-    void editing.follow(outcome)
-  } else refused(outcome)
-}
-
 function locate(finding: CheckFinding): void {
-  const where = [
-    finding.path,
-    finding.keyPath ?? (finding.line === undefined ? undefined : `line ${finding.line}`),
-  ]
-  toasts.push({ kind: 'info', message: `${where.filter(Boolean).join(', ')}: ${finding.message}` })
+  toasts.push({ kind: 'info', message: findingMessage(finding) })
 }
 
 /** Mod+Z, Mod+Shift+Z and Mod+K, except in a text field, which keeps its own undo. */
@@ -276,26 +244,19 @@ function openCard(card: EditorCard): void {
       >Home</Button
     >
     <!-- The game's name is the title; the sample says it is one in a banner over Home instead (12.7, Step G). -->
-    {#if mode !== 'compact'}<span class="brand">{sample ? 'Sample game' : (game ?? 'Your game')}</span>{/if}
-    <!-- Without change sets, an edit writes the game's own file: say where it went, once, as status. -->
-    {#if !sample && ports.changeSet === undefined && !compact}<span class="where">Saved in your game folder</span>{/if}
-    <!-- The pills and the editing tools scroll sideways when the bar is short of room; Home, Panel and Details stay. -->
-    <div class="tools" data-scroll-region="both">
-    <SuitePills pills={pillsToShow(pills)} {compact} onlocate={locate} />
-    <span class="spacer"></span>
-    {#if undoHook !== undefined || history.canUndo || history.canRedo}
-      <!-- Named in words where there is room; the arrows alone on a phone, where the full name is the label. -->
-      <Button disabled={!history.canUndo} aria-label={history.canUndo ? `Undo ${history.undoLabel}` : 'Undo'} onclick={undo}
-        >{compact ? '↶' : 'Undo'}</Button
-      >
-      <Button disabled={!history.canRedo} aria-label={history.canRedo ? `Redo ${history.redoLabel}` : 'Redo'} onclick={redo}
-        >{compact ? '↷' : 'Redo'}</Button
-      >
-    {/if}
-    {#if ask !== undefined}<Button onclick={() => (askOpen = true)}>Ask</Button>{/if}
-    {#if editing.canShip()}<Button variant="primary" onclick={() => void openShip()}>Ship</Button>{/if}
-    {#if mounted?.editor.regions.tools}{@render mounted.editor.regions.tools(mounted.session)}{/if}
-    </div>
+    <SuiteTopBar
+      title={mode === 'compact' ? undefined : sample ? 'Sample game' : (game ?? 'Your game')}
+      saved={!sample && ports.changeSet === undefined && !compact}
+      pills={pillsToShow(pills)}
+      {compact}
+      onlocate={locate}
+      history={undoHook !== undefined || history.canUndo || history.canRedo ? history : undefined}
+      onundo={undo}
+      onredo={redo}
+      onask={ask === undefined ? undefined : () => (askOpen = true)}
+      onpublish={editing.canShip() ? () => void openShip() : undefined}
+      tools={mounted?.editor.regions.tools ? editorTools : undefined}
+    />
     {#if mounted && mode !== 'wide'}
       <Button aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)}>Panel</Button>
       <Button aria-expanded={inspectorOpen} onclick={() => (inspectorOpen = !inspectorOpen)}>Details</Button>
@@ -317,20 +278,7 @@ function openCard(card: EditorCard): void {
     {:else if mounted}
       {@render mounted.editor.regions.canvas(mounted.session)}
     {:else if entry === undefined}
-      <div class="home">
-        <div>
-          {#if sample}
-            <p class="banner" role="note">
-              This is a sample game, not yours. Run automata editor inside your game's folder to edit it.
-            </p>
-          {/if}
-          <div class="share">
-            <Button onclick={() => (interchange = 'export')}>Export</Button>
-            <Button onclick={() => (interchange = 'import')}>Import</Button>
-          </div>
-        </div>
-        <Home title="This game's editors" {home} empty="The editor list names no files." onopen={openCard} onread={(file) => (reading = file)} />
-      </div>
+      <SuiteHome {home} {sample} onopen={openCard} onread={(file) => (reading = file)} oninterchange={(mode) => (interchange = mode)} />
     {:else if entry.id === 'review'}
       <ReviewDesk {reviews} />
     {:else}
@@ -338,7 +286,7 @@ function openCard(card: EditorCard): void {
         title={entry.label}
         {home}
         editors={entry.editors}
-        empty={`This game's editor list names no files for ${entry.label}.`}
+        empty={`Nothing to edit in ${entry.label} yet.`}
         onopen={openCard}
         onread={(file) => (reading = file)}
       />
@@ -350,16 +298,15 @@ function openCard(card: EditorCard): void {
 
 <TitlePrompt open={titleOpen} onsubmit={(title) => editing.answerTitle(title)} oncancel={() => editing.answerTitle(undefined)} />
 {#if ask !== undefined && askTarget !== undefined}
-  <AskDialog
-    open={askOpen}
-    view={askView}
+  <SuiteAsk
+    session={ask}
     scope={askTarget.scope()}
     {tokens}
-    onask={(prompt) => void ask?.ask(prompt)}
-    onaccept={() => void accept()}
-    onreject={() => ask?.reject()}
-    onrewrite={() => void ask?.rewrite()}
-    onclose={() => (askOpen = false)}
+    undo={undoHook}
+    bind:open={askOpen}
+    onspent={() => void editing.refresh()}
+    onwritten={(outcome) => void editing.follow(outcome)}
+    onrefused={refused}
   />
 {/if}
 <ShipDialog
@@ -380,58 +327,17 @@ function openCard(card: EditorCard): void {
   />
 {/if}
 
+{#snippet editorTools()}{#if mounted?.editor.regions.tools}{@render mounted.editor.regions.tools(mounted.session)}{/if}{/snippet}
 {#snippet panel()}{#if mounted}{@render mounted.editor.regions.panel(mounted.session)}{/if}{/snippet}
 {#snippet inspector()}{#if mounted}{@render mounted.editor.regions.inspector(mounted.session)}{/if}{/snippet}
 {#snippet dock()}{#if mounted?.editor.regions.dock}{@render mounted.editor.regions.dock(mounted.session)}{/if}{/snippet}
 {#snippet status()}{#if mounted?.editor.regions.status}{@render mounted.editor.regions.status(mounted.session)}{/if}{/snippet}
 
 <style>
-  .brand {
-    font: var(--text-title-15);
-  }
-  .where {
-    color: var(--color-text-dim);
-    font: var(--text-eyebrow-11);
-    white-space: nowrap;
-  }
-  .banner {
-    margin: 0;
-    padding: var(--space-3) var(--space-5);
-    border-bottom: 1px solid var(--color-border-strong);
-    background: var(--color-bg-app);
-    font: var(--text-body-13);
-  }
-  .spacer {
-    flex: 1;
-  }
-  .tools {
-    display: flex;
-    flex: 1 1 auto;
-    gap: var(--space-2);
-    align-items: center;
-    min-width: 0;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .tools > :global(*) {
-    flex-shrink: 0;
-  }
   .page {
     box-sizing: border-box;
     height: 100%;
     padding: var(--space-5);
-    background: var(--color-bg-app);
-  }
-  .home {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
-    height: 100%;
-  }
-  .share {
-    display: flex;
-    gap: var(--space-2);
-    justify-content: flex-end;
-    padding: var(--space-3) var(--space-5) 0;
     background: var(--color-bg-app);
   }
 </style>
