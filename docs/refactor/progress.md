@@ -681,7 +681,7 @@ browser projects need the other engines, so `pnpm test:browser:2d` stops here); 
 is green except `check-changesets`, which fails on an earlier branch's changeset naming the unpublished `@automata/3d`
 (`stage-characters-3d.md`). Stage 5 (build audit) and 6 (fixes) not started. Details and rulings: the plan's log.
 
-## Crisp in-game text: 33% (2 of 6: stages 1 and 2)
+## Crisp in-game text: 50% (3 of 6: stages 1 to 3)
 
 The Owner picked MSDF `BitmapText` on a crisp layer for the text a game draws on its canvas (`draw(ctx).text` and Feel's
 words), 2026-11-08 21:11. Stage 1 (audit) done: [audit](2026-11-08-in-game-text-audit.md), made on #522's head. 3 high
@@ -695,4 +695,13 @@ branch `claude/project-thread-d34lnk` stacked on #524. Nine tasks: the bake tool
 loader, the `hud` layer (a sibling of the post-filtered scene), the labels with their fallback, `ctx.text` and the six
 examples, Feel's words, Feel's preview face, and the played journeys. Two Geist SemiBold MSDF pages cover the queued
 localization languages (`latin`: en, es, fr, de, it, pt-BR, pl, tr; `cyrillic`: ru, uk); Chinese, Japanese and Korean
-draw whole strings as a crisp device-face `Text`, so no letter vanishes. Next: plan audit (Opus, medium).
+draw whole strings as a crisp device-face `Text`, so no letter vanishes.
+
+Stage 3 (plan audit) done, 2026-11-08: [plan audit](2026-11-08-in-game-text-plan-audit.md), branch
+`claude/project-thread-yeb9km` stacked on #526. 18 findings (1 high: the Owner's close-and-reopen rule was missing from
+the journeys; 8 medium, among them two commands that do not exist, Ukrainian's apostrophe and French's narrow space
+missing from the pages, the atlas's texture options, the fallback's nearest sampling, and Feel's preview; 9 low), all
+fixed in place in the spec and the plan. A 2D and a 3D game were made in the editors, a Feel word changed and played,
+the editor reloaded, closed and reopened, and the game played again, at iPad and phone size: 4 passed, the word
+persisted and showed in play (screens in `/mnt/project-files/text-rendering/plan-audit/`). Not run: WebKit, Firefox,
+the GPU runner, a bake. Next: build (Sonnet, high).
