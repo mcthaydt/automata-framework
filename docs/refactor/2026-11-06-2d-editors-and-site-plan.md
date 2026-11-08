@@ -954,9 +954,58 @@ logic that is not markup lives in the view's `*-model.ts`.
   CI not run. **Left for 12.3:** the save state as a status with one lime primary (Save on a game folder, Share in
   browser storage), Problems in the top bar instead of an inspector tab, the label-left inspector showing the level
   with nothing chosen, the three container layouts with a tool dock on compact, and Step 3.
-- [ ] **Step 3:** The canvas tests' pixel expectations that read old colours: open expected, actual and diff for each;
+- **12.3, the save status, Problems, the inspector and the cabinet (session 17).** *Save:* the top bar shows where the
+  level stands as a quiet status beside Save ("Saved" with a tick, "Not saved" with an amber dot, "Saving…",
+  "Couldn't save" and "Not kept on this device" in the warning colour; `data-testid="save-state"`, `data-save`), and
+  Save is the one lime primary, which always says Save. Only trouble is a live region. **Deviation:** the mockup makes
+  Share the primary in browser storage because it assumes browser storage saves by itself; it does not (the autosave
+  is a recovery journal, not the file), so Save stays the primary there too and Share stays a quiet button beside
+  Problems. Saving browser storage by itself would change the save contract: listed for the build audit. *Problems:*
+  only in the top bar; the inspector's Problems tab, `ChecksTab` and `levelChecks` are deleted (the suite's Levels 2D
+  page loses its inspector Problems tab too; its own checks pill is 12.7's). *Inspector:* no tabs; it shows what is
+  chosen (a heading with the thing's name, its fields) and, with nothing chosen, the level (its name, size and
+  fields; "This level has no settings." per spec 11). Label-left: the inspector sets `--label-flex`,
+  `--label-columns` and `--label-control-column`, which Stepper, ColorField and FieldEditor read, so names line up
+  in a 5.5 rem column; elsewhere they stay stacked. Toggles and choice rows now show their name (they had only
+  Off/On). *Step 3:* `--tool-stage` (#0e1014) under `--charcoal` in `tool-chrome.css` (editor pages only); no canvas
+  pixel expectation read the cabinet, so the Chromium canvas suite passes unchanged (49, 6 skipped) and nothing was
+  rebaselined. Gates: editor unit 3,332, svelte-check clean, Chromium layout with a mouse and with touch (level,
+  document, problems 98 each; the full editor layout run 870 of 870 across both), canvas 49; WebKit, Firefox and hosted CI not run.
+  **Left for 12.3:** the three container layouts (wide 1180 px and up and 521 px high; compact 760 px and down or
+  under 520 px high; medium between) with the layers inline left in medium, the inspector floating over the level
+  when something is chosen, and the tools in a dock at the thumb on compact. Design: `shellModeOf` takes the layout
+  size (`geometry.current.layout`) instead of the form factor; `SIZES` in `src/testing/kit/layout-sizes.ts` changes
+  modes for `ipad-mini-landscape` and `window-900x600` (to medium) and `ipad-mini-portrait` (to compact), so the
+  layout tests' expectations move with it; HomeScreen also calls `shellModeOf`.
+- [x] **Step 3:** (done in session 17: no expectation read the cabinet) The canvas tests' pixel expectations that read old colours: open expected, actual and diff for each;
   update with the reason in the commit. The iPad journeys (WebKit) are the Owner's run; Chromium here.
 - [ ] **Step 4:** Screenshots, copy rows. Commit. `feat(editor): the Level view redesigned, canvas first`
+
+### Task 12.3b: Add tiles, a simple tileset importer (same PR; added 2026-11-06)
+
+The Owner, 2026-11-06, on deviation 112 ("Add tiles" left out as not essential): "How is that not essential?" Adding
+a picture of tiles is how a person paints with their own art, so it is essential and goes in, minimal. Runs after
+the rest of 12.3, before 12.4.
+
+**Files:**
+- Create: `packages/editor/src/features/tiles/AddTilesDialog.svelte`, `packages/editor/src/features/tiles/add-tiles.ts`
+  (pure: the picture's size and the tile size give the grid; the tileset definition and the file to write)
+- Modify: `packages/editor/src/features/tiles/{TilesetsPanel,TilesetsView}.svelte`, `tilesets-session.ts` (only to
+  add the tileset as one undo step)
+- Test: `packages/editor/tests/unit/tiles/add-tiles.test.ts`, the dialog's DOM test, a layout test at phone, iPad and
+  desktop sizes
+
+- [ ] **Step 1: Failing tests.** Tiles has one "Add tiles" button (also the empty state's action: "No tiles yet. Add
+  a picture of your tiles to paint with them."). It opens a dialog with three steps on one screen: "Choose a
+  picture" (PNG, WebP or JPEG), "How big is one tile?" (a stepper in px, 16 to start, plus 8, 16, 32 and 48 as
+  quick choices), and a preview of the picture with the tile grid drawn over it and "This makes 64 tiles" in words.
+  A tile size that does not divide the picture says so in plain words ("The picture is 100 px wide; 16 px tiles
+  leave 4 px over. Try 20 or 25.") and keeps the primary disabled. The one primary, "Add tiles", writes the picture
+  into the game folder beside the level (in browser storage, into the workspace), adds the tileset as one undo step,
+  closes the dialog and opens Tiles on it, ready to paint with. No format word, path or "tileset"/"IntGrid" on screen.
+- [ ] **Step 2:** Implement with the kit's components only (Dialog, Button, Stepper, Segmented); a refused write
+  toasts as a save failure does and adds no step.
+- [ ] **Step 3:** Screenshots, copy rows in `copy.md`. Commit. `feat(editor): Add tiles, a picture of tiles becomes a tileset`
 
 ### Task 12.4: Map, Tiles, Characters and the dialogs (same PR)
 

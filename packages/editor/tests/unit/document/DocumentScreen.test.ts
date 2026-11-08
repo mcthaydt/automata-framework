@@ -63,8 +63,8 @@ async function mount(options: { persistent?: boolean; autosave?: boolean; size?:
   return { opened, controller, toasts, workspace, onback }
 }
 
-/** Save says where the level stands (there is no status bar); `data-save` is its state. */
-const status = (): HTMLElement => screen.getByTestId('save')
+/** The status beside Save says where the level stands (there is no status bar); `data-save` is its state. */
+const status = (): HTMLElement => screen.getByTestId('save-state')
 
 describe('DocumentScreen', () => {
   it('heads the page with the document, which takes focus, and no status bar', async () => {

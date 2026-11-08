@@ -99,6 +99,7 @@
   --tool-line-strong: #d4d4d8;
   --tool-muted: #5f5f6a;
   --tool-faint: #6b6b76;
+  --tool-stage: #0e1014;
   --color-bg-app: var(--bg);
   --color-bg-surface: var(--paper);
   --color-bg-raised: var(--paper);

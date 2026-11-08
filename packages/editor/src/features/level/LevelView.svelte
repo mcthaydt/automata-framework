@@ -4,7 +4,7 @@
   Pixi level canvas with the kit's gesture recogniser on it, feeding the level editor through the
   session (`level-session.ts`) and the gesture map (`level-gestures.ts`). Everything that decides is plain TypeScript;
   this file draws and forwards. One stroke is one undo step; a cancelled pointer leaves nothing; a locked or hidden
-  layer says so over the canvas instead of ignoring the pen without a word. It also holds the inspector (Entity, Level, Checks) and the keyboard shortcuts, each also a visible control. The regions are components that take the session (`LevelPanel`, `LevelStage`, `LevelInspector`), so the editor suite
+  layer says so over the canvas instead of ignoring the pen without a word. It also holds the inspector (what is chosen, or the level) and the keyboard shortcuts, each also a visible control. The regions are components that take the session (`LevelPanel`, `LevelStage`, `LevelInspector`), so the editor suite
   mounts the same regions over a session it keeps; this view makes its own session and places them in its own shell.
 -->
 <script lang="ts">
@@ -12,7 +12,6 @@ import { onDestroy } from 'svelte'
 import EditorShell from '../../shared/kit/shell/EditorShell.svelte'
 import { shellModeOf } from '../../shared/kit/shell/shell-mode'
 import { projectHistory } from '../../shared/level-2d/editor/edit-history'
-import type { Project } from '../../shared/level-2d/model/project-types'
 import type { ViewProps } from '../../shared/level-2d/session/view-props'
 import LevelInspector from './LevelInspector.svelte'
 import LevelPanel from './LevelPanel.svelte'
@@ -106,7 +105,6 @@ onDestroy(() => {
         {session}
         {history}
         ids={services.ids}
-        check={(project: Project) => opened.profile.check(project, {})}
       />
     {/if}
   {/snippet}

@@ -5,10 +5,9 @@ import type { EntityDef2D, EntityInstance, Project, Size } from '../model/projec
 import { refName, refTargets } from '../model/refs/ref-links'
 import { isRefValue } from '../model/refs/ref-resolve'
 import { findLevel } from '../model/world/level-edits'
-import type { Diagnostic, Severity } from '../profiles/profile'
 
 // What the Level view's inspector shows: one row per typed
-// field, naming the kit control that edits it, for the selected instance (Selected tab) and the level (Level tab). The
+// field, naming the kit control that edits it, for the chosen instance and, with nothing chosen, the level. The
 // model holds no Svelte, so the field-to-widget map and the none/one/many rule are tested in Node.
 
 /** The project's side of a `ref` row: what the value is called and what it may point at instead. */
@@ -33,7 +32,7 @@ function rowsOf(
 }
 
 export type EntityInspector =
-  | { readonly kind: 'none'; readonly reason: string }
+  | { readonly kind: 'none' }
   | { readonly kind: 'many'; readonly count: number }
   | {
       readonly kind: 'one'
@@ -47,9 +46,7 @@ export type EntityInspector =
       readonly size: Size | undefined
     }
 
-const NOTHING_SELECTED = 'Select a thing on the canvas to see its fields'
-
-/** The selected instances of `level` (ids it no longer has are skipped) as the Selected tab shows them. */
+/** The chosen instances of `level` (ids it no longer has are skipped); `none` means the inspector shows the level. */
 export function entityInspector(
   project: Project,
   level: string,
@@ -63,7 +60,7 @@ export function entityInspector(
       if (wanted.has(instance.id)) found.push({ layer: layer.def, instance })
   }
   const [first] = found
-  if (first === undefined) return { kind: 'none', reason: NOTHING_SELECTED }
+  if (first === undefined) return { kind: 'none' }
   if (found.length > 1) return { kind: 'many', count: found.length }
   const { instance } = first
   const def = project.defs.entities.find((candidate) => candidate.id === instance.def)
@@ -94,27 +91,4 @@ export function levelInspector(project: Project, level: string): LevelInspector 
     size: found.size,
     fields: rowsOf(project.defs.levelFields, found.fields, project, undefined),
   }
-}
-
-export interface CheckRow {
-  readonly severity: Severity
-  readonly message: string
-  readonly path: string
-  /** The instance the finding is about, which tapping the row selects. */
-  readonly item: string | undefined
-}
-
-const ITEM = /\.items\[([^\]]+)\]/
-
-/** The profile's findings about `level` (its path is `levels[<id>]` or under it), in the profile's order. */
-export function levelChecks(found: readonly Diagnostic[], level: string): readonly CheckRow[] {
-  const prefix = `levels[${level}]`
-  return found
-    .filter((each) => each.path === prefix || each.path.startsWith(`${prefix}.`))
-    .map((each) => ({
-      severity: each.severity,
-      message: each.message,
-      path: each.path,
-      item: ITEM.exec(each.path)?.[1],
-    }))
 }

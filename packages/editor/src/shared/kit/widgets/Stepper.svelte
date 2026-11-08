@@ -270,8 +270,9 @@ $effect(() => {
     color: var(--ink);
     font: var(--text-body-13);
   }
+  /* An inspector that reads label-left sets `--label-flex`, so every name takes one column beside its control. */
   .label {
-    flex: 0 1 auto;
+    flex: var(--label-flex, 0 1 auto);
     margin-right: var(--space-2);
     min-width: 0;
     min-height: var(--size-hit);

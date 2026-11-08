@@ -190,7 +190,7 @@ Done means: Emberwick's journeys pass on every pull request in two browsers, the
 repository has only `main` and branches with active CI (fewer than 5), the code follows the feature-folder layout
 with tests in their own folder, and `.vscode` hides what the Owner does not need to see.
 
-## 2D editors and website: 50% (3 of 6; the build stays open until 67 of 67)
+## 2D editors and website: 50% (3 of 6; the build stays open until 68 of 68)
 
 Scope: `editor-kit`, `editor-2d`, the parts of `editor-suite` that 2D touches, `automata editor`, and the website
 repository (`mcthaydt/automata-website`), judged as if AF ships with 2D alone. Widened on 2026-11-06 (the Owner: "we need
@@ -203,41 +203,33 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 1. Audit | Done, 2026-11-06: 7 editor shipping gaps (E1 to E7), 7 sprawl (S1 to S7), 2 contracts (K1, K2), 5 tests (T1 to T5), 5 copy (G1 to G5); 9 website shipping gaps (W1 to W9), 6 sprawl (WS1 to WS6), 2 tests (WT1, WT2), 4 copy (WG1 to WG4); 8 decisions (D1 to D8); the Owner took all eight recommendations the same day. The widened scope's audit, the same day: 7 new-game gaps (N1 to N7), 7 published-tools (U1 to U7), 7 release (R1 to R7), 7 Plus and other repositories (P1 to P7), 7 agent package and docs (A1 to A7), 5 CI and tooling (Q1 to Q5), 4 copy (Y1 to Y4); 9 decisions (D9 to D17); the Owner took all nine recommendations the same day | [2026-11-06-2d-editors-and-site-audit.md](2026-11-06-2d-editors-and-site-audit.md), [2026-11-06-2d-ship-rest-audit.md](2026-11-06-2d-ship-rest-audit.md) |
 | 2. Plan and spec | Done, 2026-11-06 (draft PR [#406](https://github.com/mcthaydt/automata-framework/pull/406)): 21 phases, 63 tasks. Built on D1 to D17 as the Owner took them; adds the editor redesign in the website's look and the code refactor to the core slice's standard (minimal, elegant, documented), both asked for by the Owner the same day. Stage 3 reviews it | [spec](2026-11-06-2d-editors-and-site-spec.md), [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 3. Plan audit | Done, 2026-11-06 (draft PR, stacked on #406 and #407): 30 findings (12 that would have stopped the build, 18 that would have caused harm or rework), all fixed in the spec and plan; three veto defaults added (14 to 16); the Owner's calls are the npm organisation's name and D8/D17's inputs. Stage 4 starts at task 1.1 | [plan audit](2026-11-06-2d-editors-and-site-plan-audit.md) |
-| 4. Build | In progress: 40 of 67 tasks (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
+| 4. Build | In progress: 40 of 68 tasks (12.3b added 2026-11-06) (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 60% (40 of 67 tasks)
+### Build: 59% (40 of 68 tasks)
 
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
 
-**Where to resume (2026-11-06, session 16):** branch `claude/project-thread-51y2u8`, its PR stacked on #427
-(`claude/project-thread-jfp084`), itself on #426, #424, #423 and #421. Session 16: **the mockup's density** (32 px
-rows and controls with a mouse, a primary too; 44 px and a 48 px primary once any coarse pointer is present, in
-`tool-chrome.css`; every hard-coded 44 px in the views reads `--size-hit`). The layout contract learned the pointer
-first: `publishConditions(root, size, variant, targets?)` (`Conditions.targets`, default `TOUCH_TARGETS`, changeset
-`layout-targets`), the editors' layout tests pass `editorTargets()` (`src/testing/kit/targets.ts`), and the layout
-project runs twice in Chromium, `layout (chromium)` with a mouse and `layout (chromium, touch)` with `hasTouch`, so
-both rules are proven. **12.3's structure from the mockup, begun:** the top bar is Back (an icon), the game's name
-then "/" and the level menu as a quiet path, the views as quiet tabs (the kit's `Segmented look="tabs"`), a gap,
-then the tools, Undo, Redo and Save; the layer rows put the lock before the eye and, with a mouse, show both only on
-hover, focus or when on; Layers and Paint with are small-capital section labels. **Next, in order:** the rest of
-12.3 from `editor-level.html` (the save state as a status with one lime primary, Save on a game folder and Share in
-browser storage; Problems as a top-bar button rather than an inspector tab; the inspector label-left showing the
-level with nothing chosen; zoom stays Fit only, an essential-features cut; three layouts by container, wide 1180+,
-medium, compact <=760 or <520 high, with the tools in a dock; the charcoal canvas colours and the canvas tests'
-pixel expectations, 12.3 Step 3), then the same look on Map, Tiles, Characters, the Tuner, the suite page and the
-dialogs; then 12.6's feelable unit, 12.7's Step 3, 12.5 and 17.3; phase 18 takes `site-home.html`. Adding a tileset
-("Add tiles", deviation 112) is the Owner's question: do not build it unless they say yes. Every editor keeps only
-essential features (name each cut in the plan's log). Task 14.1 waits for the Owner to confirm the `automata` npm
-organisation. This file holds a stale second copy of this section (session 12, below the core tables): the 12.x and
-17.3 rows live only there; untangle it in the build audit. Node 24 is not in a fresh session: it may already be at
-`/opt/node24` (else unpack nodejs.org's latest 24 there), enable corepack, and put it first on `PATH` in every
-command (the hooks otherwise run on Node 22). A commit's lefthook runs the affected unit tests (about 5 minutes for a
-runtime change); `LEFTHOOK=0` only after running them yourself. In a fresh clone, run `node site/scripts/build-demos.ts`
-before `pnpm check`. Browser tests in a cloud session: `--project 'layout (chromium)' --project 'layout (chromium,
-touch)'` (WebKit and Firefox are not installed). The design board: `pnpm --filter @mcthaydt/automata-editor design:board`.
+**Where to resume (2026-11-06, session 17):** branch `claude/project-thread-dbgz98`, its PR stacked on #428
+(`claude/project-thread-51y2u8`), itself on #427, #426, #424, #423 and #421. Session 17: the save state is a quiet
+status beside Save, the one primary (Save stays primary in browser storage too: it does not save by itself; see the
+plan's log); Problems live only in the top bar (the inspector's Problems tab is gone); the inspector has no tabs and
+reads label-left, showing the level with nothing chosen; the level's cabinet is the mockup's near-black
+(`--tool-stage`, 12.3 Step 3, no expectation moved). The Owner made **"Add tiles" essential** on 2026-11-06 ("How is
+that not essential?"): it is task 12.3b in the plan. **Next, in order:** the three container layouts with a dock
+(design in the plan's 12.3 log, session 17), then 12.3b (Add tiles), then the same look on Map, Tiles, Characters,
+the Tuner, the suite page and the dialogs; then 12.6's feelable unit, 12.7's Step 3, 12.5 and 17.3; phase 18 takes
+`site-home.html`. Every editor keeps only essential features (name each cut in the plan's log). Task 14.1 waits for
+the Owner to confirm the `automata` npm organisation. This file holds a stale second copy of this section (session
+12, below the core tables): the 12.x and 17.3 rows live only there; untangle it in the build audit. Node 24 is not
+in a fresh session: it may already be at `/opt/node24` (else unpack nodejs.org's latest 24 there), enable corepack,
+and put it first on `PATH` in every command (the hooks otherwise run on Node 22). A commit's lefthook runs the
+affected unit tests (about 5 minutes for a runtime change); `LEFTHOOK=0` only after running them yourself. In a fresh
+clone, run `node site/scripts/build-demos.ts` before `pnpm check`. Browser tests in a cloud session: `--project
+'layout (chromium)' --project 'layout (chromium, touch)'` and `--project 'canvas (chromium)'` (WebKit and Firefox are
+not installed). The design board: `pnpm --filter @mcthaydt/automata-editor design:board`.
 
 | Task | Phase | Status | PR |
 |---|---|---|---|
@@ -372,7 +364,7 @@ Done means: Emberwick's journeys pass on every pull request in two browsers, the
 repository has only `main` and branches with active CI (fewer than 5), the code follows the feature-folder layout
 with tests in their own folder, and `.vscode` hides what the Owner does not need to see.
 
-## 2D editors and website: 50% (3 of 6; the build stays open until 67 of 67)
+## 2D editors and website: 50% (3 of 6; the build stays open until 68 of 68)
 
 Scope: `editor-kit`, `editor-2d`, the parts of `editor-suite` that 2D touches, `automata editor`, and the website
 repository (`mcthaydt/automata-website`), judged as if AF ships with 2D alone. Widened on 2026-11-06 (the Owner: "we need
@@ -385,11 +377,11 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 1. Audit | Done, 2026-11-06: 7 editor shipping gaps (E1 to E7), 7 sprawl (S1 to S7), 2 contracts (K1, K2), 5 tests (T1 to T5), 5 copy (G1 to G5); 9 website shipping gaps (W1 to W9), 6 sprawl (WS1 to WS6), 2 tests (WT1, WT2), 4 copy (WG1 to WG4); 8 decisions (D1 to D8); the Owner took all eight recommendations the same day. The widened scope's audit, the same day: 7 new-game gaps (N1 to N7), 7 published-tools (U1 to U7), 7 release (R1 to R7), 7 Plus and other repositories (P1 to P7), 7 agent package and docs (A1 to A7), 5 CI and tooling (Q1 to Q5), 4 copy (Y1 to Y4); 9 decisions (D9 to D17); the Owner took all nine recommendations the same day | [2026-11-06-2d-editors-and-site-audit.md](2026-11-06-2d-editors-and-site-audit.md), [2026-11-06-2d-ship-rest-audit.md](2026-11-06-2d-ship-rest-audit.md) |
 | 2. Plan and spec | Done, 2026-11-06 (draft PR [#406](https://github.com/mcthaydt/automata-framework/pull/406)): 21 phases, 63 tasks. Built on D1 to D17 as the Owner took them; adds the editor redesign in the website's look and the code refactor to the core slice's standard (minimal, elegant, documented), both asked for by the Owner the same day. Stage 3 reviews it | [spec](2026-11-06-2d-editors-and-site-spec.md), [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 3. Plan audit | Done, 2026-11-06 (draft PR, stacked on #406 and #407): 30 findings (12 that would have stopped the build, 18 that would have caused harm or rework), all fixed in the spec and plan; three veto defaults added (14 to 16); the Owner's calls are the npm organisation's name and D8/D17's inputs. Stage 4 starts at task 1.1 | [plan audit](2026-11-06-2d-editors-and-site-plan-audit.md) |
-| 4. Build | In progress: 40 of 67 tasks (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
+| 4. Build | In progress: 40 of 68 tasks (12.3b added 2026-11-06) (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 60% (40 of 67 tasks)
+### Build: 59% (40 of 68 tasks)
 
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
