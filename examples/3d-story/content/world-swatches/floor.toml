@@ -1,0 +1,5 @@
+# `floor`: a colour from the DUEL palette.
+# Colour: DUEL ramp dusk, step 4.
+
+ramp = "dusk"
+step = 4

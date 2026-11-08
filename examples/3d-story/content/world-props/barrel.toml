@@ -1,0 +1,6 @@
+# `barrel`: a cylinder, 0.3 m in radius and 0.9 m high, painted with the `barrel` swatch.
+
+kind = "cylinder"
+swatch = "barrel"
+radius = 0.3
+height = 0.9

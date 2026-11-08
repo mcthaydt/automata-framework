@@ -1,0 +1,5 @@
+# `barrel`: a colour from the DUEL palette.
+# Colour: DUEL ramp mud, step 2.
+
+ramp = "mud"
+step = 2
