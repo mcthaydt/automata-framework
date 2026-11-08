@@ -58,6 +58,8 @@
     "site": {
       "entry": [
         "src/features/playground/compile.worker.ts",
+        // Cloudflare Pages runs these as Functions (the sign-in function), by path.
+        "functions/**/*.ts",
         "scripts/*.ts",
         "playground/*.ts",
         "playwright.config.ts",

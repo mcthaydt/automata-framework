@@ -11,7 +11,7 @@ import { makeGame } from './make-game'
 // nothing wrong in the console. Every editor is on its rail, free, and none is marked as missing. What a visitor makes
 // is kept in this browser's private storage (reloaded, or the browser closed and opened again, it is still there); Share
 // is how a level leaves.
-test('the Editor page shows three pictures and opens every editor on a game of the visitor's own', async ({
+test('the Editor page shows three pictures and opens every editor on a game of the visitor’s own', async ({
   page,
 }) => {
   const watch = watchPage(page, `http://127.0.0.1:${SITE_PORT}`)
