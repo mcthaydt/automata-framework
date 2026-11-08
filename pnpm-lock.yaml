@@ -1084,6 +1084,9 @@ importers:
 
   tooling/frame-budget:
     dependencies:
+      '@automata/3d':
+        specifier: workspace:*
+        version: link:../../packages/3d
       '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata

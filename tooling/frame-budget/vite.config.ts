@@ -8,6 +8,11 @@ export default defineConfig({
   base: './',
   plugins: [svelte()],
   resolve: { conditions: ['browser'] },
-  build: { outDir: 'dist', emptyOutDir: true },
+  // Two pages: the core stress scene and the 3D one, which the 3D projects load from `stress/3d/`.
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+    rollupOptions: { input: { main: 'index.html', stress3d: 'stress/3d/index.html' } },
+  },
   preview: { headers: previewHeaders(config) },
 })
