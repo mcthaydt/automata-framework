@@ -29,6 +29,7 @@ export {
 } from '../features/world/sectors.ts'
 export { stream } from '../features/world/stream.ts'
 export { hasSwatch, type WorldLibrary } from '../features/world/swatches.ts'
+export { oklab } from '../shared/math/colour.ts'
 export { type MeshData, merge, placed, ringTube } from '../shared/math/geometry.ts'
 export { limb } from '../shared/math/limb.ts'
 export { at, axisAngle, type V3 } from '../shared/math/math.ts'

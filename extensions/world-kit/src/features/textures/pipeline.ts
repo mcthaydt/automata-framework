@@ -16,7 +16,8 @@
 // A texel's index is a label: `slot * 16 + value`. Slot 0 is the swatch's ladder and 1 its accent's, with value
 // offset + 8 (a tone step, -8 to 7); slot 2 + r is DUEL ramp r, with value its step (0 to 7).
 
-import { duelIndexOf, hash3, oklab, rgbFromLab, STEPS } from './colour.ts'
+import { oklab } from '@automata/3d/props-kit'
+import { duelIndexOf, hash3, rgbFromLab, STEPS } from './colour.ts'
 import type { Image } from './png.ts'
 
 /** OKLab, three floats a pixel. */

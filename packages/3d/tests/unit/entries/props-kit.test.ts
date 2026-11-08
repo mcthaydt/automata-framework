@@ -34,6 +34,7 @@ describe('./props-kit', () => {
         'lightOf',
         'limb',
         'merge',
+        'oklab',
         'part',
         'placed',
         'quad',
