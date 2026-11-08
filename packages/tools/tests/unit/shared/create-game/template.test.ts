@@ -34,6 +34,7 @@ describe('the new game’s files', () => {
       'src/features/level/compiled-content.d.ts',
       'src/features/level/level-scene.ts',
       'src/features/level/level.ts',
+      'src/features/level/player-box.ts',
       'src/features/level/read-level.ts',
       'src/features/level/walls.ts',
       'src/features/square/bumped.event.ts',
@@ -43,8 +44,8 @@ describe('the new game’s files', () => {
       'src/features/square/square.plugin.ts',
       'src/features/square/square.view.ts',
       'src/main.ts',
-      'src/shared/constants.ts',
       'src/shared/tuning.ts',
+      'tests/unit/level/player-box.test.ts',
       'tests/unit/level/read-level.test.ts',
       'tests/unit/square/square-move.test.ts',
     ])
@@ -78,8 +79,10 @@ describe('the new game’s files', () => {
 
   it("plays the level and the tuning as the sim's content, and reads the speed from content/tuning.toml", () => {
     expect(read('src/app/game.ts')).toContain('sim: PLAY')
-    expect(read('src/app/game.ts')).toContain('{ level: LEVEL, tuning: tuningOf(content) }')
-    expect(read('src/shared/constants.ts')).not.toContain('SPEED')
+    expect(read('src/app/game.ts')).toContain(
+      '{ level: LEVEL, player: playerBoxOf(project), tuning: tuningOf(content) }',
+    )
+    expect(files).not.toContain('src/shared/constants.ts')
     expect(read('src/features/square/move.system.ts')).toContain('tuning.SPEED')
   })
 
@@ -124,7 +127,7 @@ describe('the new game’s README', () => {
     expect(readme).toContain('pnpm dev')
     for (const where of [
       'src/features/square/',
-      'src/shared/constants.ts',
+      'src/shared/',
       'src/app/game.ts',
       'content/levels/start.af2d.json',
       'pnpm editor',

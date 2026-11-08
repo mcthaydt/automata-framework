@@ -98,7 +98,7 @@ export const SQUARE_WHERE = `- \`src/features/square/\`: the square and how it m
 - \`src/features/level/\`: how the game reads its level: the walls the square stops at, and where it starts.
 - \`content/levels/start.af2d.json\`: the level. \`pnpm editor\` opens it in the level editor, which saves as you
   draw. **Play** there opens your game with the new level.
-- \`src/shared/constants.ts\`: numbers the game uses in more than one place.
+- \`src/shared/\`: what more than one feature uses, such as \`tuning.ts\`, which reads the numbers the Tuner changes.
 - \`src/app/game.ts\`: where the game is put together (the controls, the screen size).
 - \`tests/\`: tests. \`pnpm test\` runs them, and \`pnpm check\` runs every check a game has to pass before it is published.`
 

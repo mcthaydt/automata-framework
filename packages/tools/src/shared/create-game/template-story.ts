@@ -384,21 +384,22 @@ export function storyCamera(stage: PixiStage): PixiStageHooks {
     content: () => `import { content } from 'virtual:automata/content'
 import { resolveExtensions } from '@automata/framework/extension'
 import { createSim, type Sim } from '@automata/sim'
+import { project } from '../features/level/level-content.ts'
 import { LEVEL } from '../features/level/level.ts'
 import { itemOf } from '../features/level/level-items.ts'
+import { playerBoxOf } from '../features/level/player-box.ts'
 import type { PlayContent } from '../features/level/read-level.ts'
 import { Hero } from '../features/square/hero.component.ts'
 import { Square } from '../features/square/square.component.ts'
 import { squarePlugin } from '../features/square/square.plugin.ts'
 import { EXTENSIONS, storyPlugin } from '../features/story/story.extensions.ts'
-import { SQUARE_SIZE } from '../shared/constants.ts'
 import { tuningOf } from '../shared/tuning.ts'
 
 // The sim of the story, apart from the screen: the game's own plugins, the extensions' (\`resolveExtensions\` orders and checks
 // them as \`defineGame\` does) and the player at the level's start. The game (game.ts) and its tests make theirs from this.
 
-/** What the sim reads as its content: the level and the tuning (what its systems find as \`ctx.content\`). */
-export const PLAY: PlayContent = { level: LEVEL, tuning: tuningOf(content) }
+/** What the sim reads as its content: the level, the player's box and the tuning (what its systems find as \`ctx.content\`). */
+export const PLAY: PlayContent = { level: LEVEL, player: playerBoxOf(project), tuning: tuningOf(content) }
 
 /** The game's own plugins, before the extensions'. */
 export const PLUGINS = [squarePlugin, storyPlugin]
@@ -406,11 +407,11 @@ export const PLUGINS = [squarePlugin, storyPlugin]
 /** The plugins the sim runs: the game's own, then the extensions'. */
 export const simPlugins = () => [...PLUGINS, ...resolveExtensions(EXTENSIONS).simPlugins]
 
-/** The player stands on the level's start: the square's bottom edge there, so its centre half a square higher. */
+/** The player stands on the level's start: the square's position is its feet, as the editor's is. */
 export function setup(sim: Sim): void {
   const start = itemOf('player-start')
   sim.spawn([
-    [Square, { x: start.x, y: start.y - SQUARE_SIZE / 2 }],
+    [Square, { x: start.x, y: start.y }],
     [Hero, { frozen: false }],
   ])
 }

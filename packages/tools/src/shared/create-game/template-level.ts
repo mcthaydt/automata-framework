@@ -10,6 +10,7 @@ export const LEVEL_FILES: readonly TemplateFile[] = [
     path: 'src/features/level/read-level.ts',
     content: () => `import { type ContentLevel, entitiesOf, intGridRows } from '@automata/content/level-2d'
 import type { Tuning } from '../../shared/tuning.ts'
+import type { Box } from './player-box.ts'
 
 // Reads a level the 2D editor exported into what this game plays: its size, its walls and where the player starts.
 // Pure, so the sim can hold the result.
@@ -41,32 +42,59 @@ export function levelOf(level: ContentLevel): Level {
   return { width: level.size.w, height: level.size.h, tile: level.size.w / columns, cells, start: { x: start.x, y: start.y } }
 }
 
-/** What the sim reads as its content: the level, and the tunables a designer changes (src/shared/tuning.ts). */
+/** What the sim reads as its content: the level, the player's box and the tunables a designer changes (src/shared/tuning.ts). */
 export interface PlayContent {
   readonly level: Level
+  /** The player's box, from the player start's size in Characters. */
+  readonly player: Box
   readonly tuning: Tuning
 }
 
-/** The content a system finds in \`ctx.content\`: the app gives the sim \`{ level, tuning }\` (src/app/game.ts). */
+/** The content a system finds in \`ctx.content\`: the app gives the sim \`{ level, player, tuning }\` (src/app/game.ts). */
 export const playIn = (content: unknown): PlayContent => content as PlayContent
 `,
   },
   {
+    path: 'src/features/level/player-box.ts',
+    content: () => `import type { ContentProject } from '@automata/content/level-2d'
+
+// The box the player is drawn in is the box the player collides with: the size of the \`player-start\` character, which
+// Characters changes. Read once from the project, so a new size moves the game on the next save with no code change.
+
+/** A width and a height, in the game's pixels. */
+export interface Box {
+  readonly w: number
+  readonly h: number
+}
+
+/** The player's box: the size of the \`player-start\` character in the level project. */
+export function playerBoxOf(project: ContentProject): Box {
+  const start = project.entities.find((each) => each.id === 'player-start')
+  if (start === undefined)
+    throw new Error('The project has no "player-start" character. Add one in Characters and press Save.')
+  return { w: start.size.w, h: start.size.h }
+}
+`,
+  },
+  {
     path: 'src/features/level/walls.ts',
-    content: () => `import { type Level, SOLID } from './read-level.ts'
+    content: () => `import type { Box } from './player-box.ts'
+import { type Level, SOLID } from './read-level.ts'
 
-// What stops the square: a wall cell, or the edge of the level.
+// What stops the player: a wall cell, or the edge of the level.
 
-/** True when a square of side \`size\` centred on (x, y) would overlap a wall or reach past the level's edge. */
-export function hitsWall(level: Level, x: number, y: number, size: number): boolean {
-  const half = size / 2
-  const left = x - half
-  const top = y - half
-  const right = x + half
-  const bottom = y + half
+/**
+ * True when a box standing on its feet at (x, y) would overlap a wall or reach past the level's edge. (x, y) is the
+ * middle of the box's bottom edge, the pivot every placed character has, so the box touches exactly where its picture does.
+ */
+export function hitsWall(level: Level, x: number, y: number, box: Box): boolean {
+  const left = x - box.w / 2
+  const top = y - box.h
+  const right = x + box.w / 2
+  const bottom = y
   if (left < 0 || top < 0 || right > level.width || bottom > level.height) return true
-  // The cells the square covers. Its right and bottom edges are open, so a square resting on the floor (its bottom
-  // edge on the floor's top edge) is not inside the floor.
+  // The cells the box covers. Its right and bottom edges are open, so a box resting on the floor (its bottom edge on
+  // the floor's top edge) is not inside the floor.
   for (let row = Math.floor(top / level.tile); row < Math.ceil(bottom / level.tile); row++)
     for (let column = Math.floor(left / level.tile); column < Math.ceil(right / level.tile); column++)
       if (level.cells[row]?.[column] === SOLID) return true

@@ -72,10 +72,7 @@ import { systemsContent } from '@automata/systems'`,
     content:
       () => `// The numbers the game is built from. Both the sim and the screen read them, so they live here. The game's size is
 // its level's (content/levels/start.af2d.json, made in the 2D editor). How fast the square moves is not here: a designer
-// changes it, in content/tuning.toml.
-
-/** The square's side, in the game's pixels. */
-export const SQUARE_SIZE = 8
+// changes it, in content/tuning.toml, and its size is the player start's, in Characters.
 
 /** Level pixels in a metre, the unit the story's extensions plan in: one cell of the level's walls. */
 export const METRE = 16
@@ -97,7 +94,6 @@ export const squarePlugin = definePlugin({ name: '${options.id}', defs: [Square,
   {
     path: 'src/features/square/move.system.ts',
     content: () => `import { defineSystem } from '@automata/sim'
-import { SQUARE_SIZE } from '../../shared/constants.ts'
 import { playIn } from '../level/read-level.ts'
 import { hitsWall } from '../level/walls.ts'
 import { Bumped } from './bumped.event.ts'
@@ -111,16 +107,16 @@ import { Square } from './square.component.ts'
  * play did.
  */
 export const move = defineSystem('move', (ctx) => {
-  const { level, tuning } = playIn(ctx.content)
+  const { level, player, tuning } = playIn(ctx.content)
   for (const { payload } of ctx.commands.of(Move))
     for (const square of ctx.query(Square, Hero)) {
       if (square.get(Hero).frozen) continue
       const { x, y, blocked } = square.get(Square)
       // One axis at a time, so a square pushed into a wall at an angle slides along it instead of stopping.
       const nextX = x + payload.x * tuning.SPEED
-      const movedX = hitsWall(level, nextX, y, SQUARE_SIZE) ? x : nextX
+      const movedX = hitsWall(level, nextX, y, player) ? x : nextX
       const nextY = y + payload.y * tuning.SPEED
-      const movedY = hitsWall(level, movedX, nextY, SQUARE_SIZE) ? y : nextY
+      const movedY = hitsWall(level, movedX, nextY, player) ? y : nextY
       // Pressed into a wall: a move was asked for and none of it happened. Said once, not every tick it is held.
       const pressed = (payload.x !== 0 || payload.y !== 0) && movedX === x && movedY === y
       if (pressed && !blocked) ctx.emit(Bumped, {})
@@ -133,17 +129,16 @@ export const move = defineSystem('move', (ctx) => {
     path: 'src/features/square/square.view.ts',
     content: () => `import { pictureView } from '@automata/framework'
 import { SystemsAgent } from '@automata/systems/sim'
-import { SQUARE_SIZE } from '../../shared/constants.ts'
 import { project } from '../level/level-content.ts'
 import { images } from '../level/level-scene.ts'
 import { Square } from './square.component.ts'
 
 /**
  * How a body is drawn: the player's square as the player start looks in the editor, the guard as the guard does (change
- * either in Characters, press Save). The player's position is the square's centre and the character stands on its pivot,
- * its feet, so the picture sits half a square lower; the guard's position is already his feet.
+ * either in Characters, press Save). A body's position is its character's pivot, the middle of its feet, so each
+ * picture stands where its body does, and the player's box is the one it is drawn in (src/features/level/player-box.ts).
  */
-const heroView = pictureView(project, 'player-start', images, { offset: { x: 0, y: SQUARE_SIZE / 2 } })
+const heroView = pictureView(project, 'player-start', images)
 const guardView = pictureView(project, 'guard', images)
 
 export const squareView = {

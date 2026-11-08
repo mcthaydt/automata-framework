@@ -681,3 +681,12 @@ want, itch will be first output". Spec §11.
   example is checked for real in Task 18's journey. Ruling: pre-commit runs every affected package's unit tests (7 minutes for
   a `-tools` change), so later commits that touch `-tools` run the focused tests by hand and skip the hook (`LEFTHOOK=0`);
   the full affected suites run once before each pull request is opened.
+- Task 6 done: `player-box.ts` (`playerBoxOf`, `Box`) in both 2D templates; `hitsWall` takes a box standing on its feet;
+  `PlayContent.player`; the square spawns on the level's start and the story's on the placed `player-start`, with no
+  offset; `SQUARE_SIZE` and the plain game's `constants.ts` are gone (the story keeps `METRE`). The tools' 865 unit tests
+  and the typecheck pass. A plain and a story game made with `--link-workspace` in `games/` (then removed) pass their own
+  tests with `--configLoader runner` (12 and 18, which include the new `tests/unit/level/player-box.test.ts` and the
+  story's walk to the keeper). Ruling: the plan's `hitsWall` test asserted "feet at x = 24 touch" in a comment; the test
+  says what the assertion says (24 does not touch, 24.5 does, because the right edge is open). Ruling: the player-box
+  test reads `content.project` from the content module, since the story keeps its project in `level-content.ts` and the
+  plain game in `level-scene.ts`.
