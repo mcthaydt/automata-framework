@@ -80,8 +80,8 @@ The suite session counts writes in flight. The header shows the line at every si
 | A write failed | Not saved: {the store's message} |
 | The browser keeps nothing | Not saved: this browser can't keep files. Save a copy to keep your work. |
 
-The synced rows are `kit/sync`'s `STATUS_LINES`; its `saved` becomes "Saved on this device and on GitHub" (the app's
-folder is on the device too), one edit the apps thread is told about.
+The synced rows are `kit/sync`'s `STATUS_LINES`; #531 already changed its `saved` to "Saved on this device and on GitHub"
+(e66059ce), so the app and the web say the same.
 
 ### 4.3 Keeping the storage
 
@@ -109,8 +109,11 @@ folder is on the device too), one edit the apps thread is told about.
   and GitHub"; **Start a new game** (to `/try`); **Open a copy**; signed in, the GitHub games not on this device. Each
   game: Open, **Save a copy**, **Remove from this device** (asks first: "Remove {name} from this browser? A copy on GitHub
   stays.").
-- **Play on the web** is not in this spec. Play says "Play isn't on the web yet. Open your game in the Automata app, or
-  run automata editor on your computer." until the in-page player (apps spec section 7) is shared, as R8 does today.
+- **Play on the web** is not in this spec. The in-page player is now shared (`@mcthaydt/automata-editor/kit/player`,
+  #531 e66059ce: `compileGame` over a `ProjectStore` and a `RuntimeManifest`), but the web still needs the runtime bundles
+  served at the manifest's URLs, which the apps build has not made yet. Until then Play says "Play isn't on the web yet.
+  Open your game in the Automata app, or run automata editor on your computer.", as R8 does today. Play on the web is the
+  next area once the runtime build exists.
 - **New level** keeps offering the level templates (`templates: 'content/levels'`), as #532's try-it does.
 
 ## 6. Games in the browser

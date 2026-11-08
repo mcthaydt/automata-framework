@@ -169,8 +169,8 @@ build's, and the overall `stages done / stages`), and commit the change with the
 - Create: `packages/editor/src/shared/kit/storage/save-line.ts`, `packages/editor/src/shared/kit/storage/keep-storage.ts`
 - Modify: `packages/editor/src/features/suite/shell/open-suite-ports.ts` (`OpenedSuitePorts` gains `where` and
   `reason`), `Suite.svelte` (the line from `saveLine`, shown compact too; `saved={!sample && !compact}` goes),
-  the header (`SaveState.svelte` + `SuiteHeader.svelte` on v2, else `SuiteTopBar.svelte:89`),
-  `packages/editor/src/shared/kit/sync/sync-status.ts` (`saved`: "Saved on this device and on GitHub")
+  the header (`SaveState.svelte` + `SuiteHeader.svelte` on v2, else `SuiteTopBar.svelte:89`)
+  (`kit/sync`'s `STATUS_LINES.saved` already reads "Saved on this device and on GitHub", #531 e66059ce)
 - Test: `.../tests/unit/shared/kit/storage/save-line.test.ts`, `.../keep-storage.test.ts`,
   `.../tests/unit/suite/shell/open-suite-ports.test.ts`, `.../tests/browser/layout/` (the line on a phone)
 
@@ -512,3 +512,5 @@ build's, and the overall `stages done / stages`), and commit the change with the
 
 - 2026-11-08 (stage 2): spec and plan written on #528's branch. `kit/sync` (#531) is the base for sign-in and sync;
   the web adds the web flow and a REST engine beside the app's device flow and git engine.
+- 2026-11-08 (stage 2, later): #531 (e66059ce) changed `STATUS_LINES.saved` as asked, kept `GitEngine` and `startSync`'s
+  options, and moved the player to `kit/player`. Play on the web still waits for the runtime bundles (spec section 5).
