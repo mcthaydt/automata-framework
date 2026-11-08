@@ -18,7 +18,8 @@
   ],
   "files": [
     "dist",
-    "VENDORED.md"
+    "VENDORED.md",
+    "licenses"
   ],
   "exports": {
     ".": {

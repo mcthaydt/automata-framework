@@ -1,0 +1,23 @@
+{
+  "name": "@automata/hud-font",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": {
+    "@automata/vitest-preset": "workspace:*",
+    "@types/node": "24.19.1",
+    "geist": "1.9.2",
+    "msdf-bmfont-xml": "2.8.0",
+    "pixi.js": "8.22.0",
+    "typescript": "6.0.3",
+    "vitest": "5.0.3"
+  }
+}

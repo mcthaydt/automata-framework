@@ -1,0 +1,39 @@
+{
+  "source": {
+    "package": "geist@1.9.2",
+    "file": "Geist-SemiBold.ttf",
+    "sha256": "01923aa148e5202ae70a2e11b2ab4dc41b80bcc374aedccc913d47bb2f591c06",
+    "licence": "OFL-1.1"
+  },
+  "baker": "msdf-bmfont-xml@2.8.0",
+  "pages": {
+    "latin": {
+      "glyphs": 228,
+      "atlasBytes": 179988,
+      "atlasSize": "372x364"
+    },
+    "cyrillic": {
+      "glyphs": 206,
+      "atlasBytes": 145020,
+      "atlasSize": "347x358"
+    }
+  },
+  "files": {
+    "latin-chars.ts": {
+      "sha256": "e08b9c3397861e7a9ad6883c6b9c8fcf4506b36f84442b326c0e079f0de057e9",
+      "bytes": 1140
+    },
+    "latin-font.ts": {
+      "sha256": "0a89c7a36a1afb08df2bc18e72a373afc0530df4e01344188f77c95f4f4c7383",
+      "bytes": 340371
+    },
+    "cyrillic-chars.ts": {
+      "sha256": "2159025424cbc9107591f7bf6a8b584db593e680d39e04828396d761c91e4562",
+      "bytes": 1008
+    },
+    "cyrillic-font.ts": {
+      "sha256": "eca979c3a82d96cfeef64117641fdf62e6c73e9c101db49a9e0ae7d32fd89888",
+      "bytes": 301031
+    }
+  }
+}

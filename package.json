@@ -37,6 +37,7 @@
     "lint:actions": "docker run --rm -v \"$PWD:/repo\" --workdir /repo rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 -color",
     "api-report": "node tooling/api-report/src/cli.ts",
     "api-index": "node tooling/api-index/src/cli.ts",
+    "hud-font": "node tooling/hud-font/src/cli.ts",
     "agent-skills": "node tooling/agent-skills/src/cli.ts",
     "source-names": "node tooling/repo-hygiene/src/source-names-cli.ts --code packages/3d packages/automata packages/content packages/tools games/base-3d examples/3d && node tooling/repo-hygiene/src/sources-md-cli.ts --complete",
     "sources-md": "node tooling/repo-hygiene/src/sources-md-cli.ts",
