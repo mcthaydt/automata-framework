@@ -75,4 +75,32 @@ describe('Levels 3D session', () => {
     expect(undo.canUndo()).toBe(false)
     expect((await ports.workspace.read(PATH))?.text).toBe(written)
   })
+
+  it('writes a step that was drawn live once, when it is committed, so one Undo of the suite takes it back', async () => {
+    const memory = await createMemoryPorts({ files: { [PATH]: DEPOT }, classify: file })
+    const writes: string[] = []
+    const write = memory.ports.workspace.write.bind(memory.ports.workspace)
+    const ports = {
+      ...memory.ports,
+      workspace: {
+        ...memory.ports.workspace,
+        write: (path: string, text: string, expected: Parameters<typeof write>[2]) => {
+          writes.push(text)
+          return write(path, text, expected)
+        },
+      },
+    }
+    const session = await openLevels3d([file(PATH)], ports as typeof memory.ports, { now })
+    if (session.state.kind !== 'open') throw new Error(session.state.kind)
+    const { editor } = session.state
+    const step = editor.begin('Draw a room')
+    step.run(dimHall as never)
+    step.run({ ...dimHall, label: 'again' } as never)
+    await session.settled()
+    expect(writes).toHaveLength(0)
+    step.commit()
+    await session.settled()
+    expect(writes).toHaveLength(1)
+    expect(editor.history.undoLabel).toBe('Draw a room')
+  })
 })

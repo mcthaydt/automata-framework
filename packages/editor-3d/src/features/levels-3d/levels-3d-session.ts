@@ -121,7 +121,12 @@ export async function openLevels3d(
     session.quietly(() => editor.history.undo())
   }
 
+  // A drag or a draw shows its work live inside one open step, and the step's revision moves only when it ends. The file
+  // follows the steps, not the frames between them: one step is one write, and so one Undo of the suite.
+  let seen = editor.history.revision
   editor.history.subscribe(() => {
+    if (editor.history.revision === seen) return
+    seen = editor.history.revision
     const model = editor.history.state.level
     if (model === base.model) return
     const patched = profile.patch(base.text, base.model, model)

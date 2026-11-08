@@ -45,13 +45,15 @@ const plan = (): HTMLElement => {
   return found
 }
 
-function pointerAt(type: string, at: { x: number; y: number }): void {
+type Finger = 'mouse' | 'touch'
+
+function pointerAt(type: string, at: { x: number; y: number }, pointerType: Finger = 'mouse'): void {
   plan().dispatchEvent(
     new PointerEvent(type, {
       bubbles: true,
       cancelable: true,
       pointerId: 1,
-      pointerType: 'mouse',
+      pointerType,
       isPrimary: true,
       clientX: at.x,
       clientY: at.y,
@@ -68,7 +70,7 @@ function statusPoint(): { x: number; z: number } {
   return { x: read('x'), z: read('z') }
 }
 
-/** Hovers two points and reads where the status line says they are: the page-to-plan map. */
+/** Hovers two points (with a mouse: a finger cannot hover, and the geometry is the same) and reads where the status line says they are: the page-to-plan map. */
 async function calibrate(): Promise<(x: number, z: number) => { x: number; y: number }> {
   const box = plan().getBoundingClientRect()
   const pages = [
@@ -106,9 +108,12 @@ const button = (name: string): HTMLElement => {
   return found
 }
 
-const WIDE = SIZES.filter((size) => size.name === 'ipad-pro-11-landscape')
+const FINGERS: readonly Finger[] = ['mouse', 'touch']
+const CASES = SIZES.flatMap((size) =>
+  FINGERS.map((finger) => ({ size, finger, label: `${size.name} by ${finger}` })),
+)
 
-describe.each(WIDE)('Drawing a room in the suite at $name ($width x $height)', (size) => {
+describe.each(CASES)('Drawing a room in the suite at $label', ({ size, finger }) => {
   test('the Sector tool in the top bar draws a rectangle, and Undo names the step', async () => {
     opened = await openSuite(
       size,
@@ -134,7 +139,7 @@ describe.each(WIDE)('Drawing a room in the suite at $name ($width x $height)', (
       [14, 7.5],
     ] as const) {
       const at = pageOf(x, z)
-      for (const type of ['pointermove', 'pointerdown', 'pointerup']) pointerAt(type, at)
+      for (const type of ['pointermove', 'pointerdown', 'pointerup']) pointerAt(type, at, finger)
       await arrived()
     }
     button('Make portal').click()
@@ -144,8 +149,7 @@ describe.each(WIDE)('Drawing a room in the suite at $name ($width x $height)', (
         .map((candidate) => candidate.getAttribute('aria-label') ?? '')
         .find((label) => label.startsWith('Undo')) ?? ''
     await expect.poll(undo).toMatch(/^Undo Draw sector sector-1/)
-    // Undo takes the room back out. It takes two taps today (the room, then its portal, both named "Draw sector"),
-    // where the sector tool's own notes say they are one step: a finding for the plan's log, so this holds the limit.
+    // One Undo takes the room and its portal back out: they are one step, as the sector tool's own notes say.
     const steps: string[] = []
     while (undo() !== 'Undo' && steps.length < 4) {
       steps.push(undo())
@@ -153,6 +157,80 @@ describe.each(WIDE)('Drawing a room in the suite at $name ($width x $height)', (
       await arrived()
     }
     expect(undo()).toBe('Undo')
-    expect(steps.length).toBeLessThanOrEqual(2)
+    expect(steps).toHaveLength(1)
+  })
+})
+
+const pressed = (name: string): boolean => button(name).getAttribute('aria-pressed') === 'true'
+
+function key(name: string, on: EventTarget = document.body): void {
+  on.dispatchEvent(new KeyboardEvent('keydown', { key: name, bubbles: true, cancelable: true }))
+}
+
+describe.each(SIZES.filter((size) => size.name === 'ipad-pro-11-landscape'))(
+  'The plan tools’ keys in the suite at $name',
+  (size) => {
+    test('S chooses Sector and V goes back to Select, but not while a field has the keys', async () => {
+      opened = await openSuite(
+        size,
+        [
+          fixtureEditor as SuiteEditor<unknown>,
+          createLevels3d({ now: () => 0, renderer, schedule: () => () => {} }) as SuiteEditor<unknown>,
+        ],
+        FILES,
+        '[data-testid="plan-canvas"]',
+        'Levels 3D',
+      )
+      await expect.poll(() => plan().dataset.phase, { timeout: 10_000 }).not.toBe('starting')
+      expect(pressed('Select')).toBe(true)
+      key('s')
+      await arrived()
+      expect(pressed('Sector')).toBe(true)
+      key('v')
+      await arrived()
+      expect(pressed('Select')).toBe(true)
+      const field = document.createElement('input')
+      document.body.append(field)
+      field.focus()
+      key('s', field)
+      await arrived()
+      expect(pressed('Select')).toBe(true)
+      field.remove()
+    })
+  },
+)
+
+describe.each(CASES)('Placing a thing in the suite at $label', ({ size, finger }) => {
+  test('the Things tool shows the game’s things, and a tap in the hall places the one picked', async () => {
+    opened = await openSuite(
+      size,
+      [
+        fixtureEditor as SuiteEditor<unknown>,
+        createLevels3d({ now: () => 0, renderer, schedule: () => () => {} }) as SuiteEditor<unknown>,
+      ],
+      FILES,
+      '[data-testid="plan-canvas"]',
+      'Levels 3D',
+    )
+    await expect.poll(() => plan().dataset.phase, { timeout: 10_000 }).not.toBe('starting')
+    const pageOf = await calibrate()
+    button('Things').click()
+    await arrived()
+    const palette = document.querySelector<HTMLElement>('[data-testid="things-palette"]')
+    if (palette === null) throw new Error('no palette')
+    // The depot has its one spawn already, which the palette refuses a second of: the crate is placed.
+    const crate = [...palette.querySelectorAll<HTMLElement>('button')].find((each) =>
+      each.textContent?.includes('crate'),
+    )
+    if (crate === undefined) throw new Error('the palette has no crate')
+    crate.click()
+    await arrived()
+    const at = pageOf(3, 3)
+    for (const type of ['pointermove', 'pointerdown', 'pointerup']) pointerAt(type, at, finger)
+    await arrived()
+    const labels = [...document.querySelectorAll<HTMLElement>('button')].map(
+      (candidate) => candidate.getAttribute('aria-label') ?? '',
+    )
+    expect(labels.some((label) => /^Undo Add crate/.test(label))).toBe(true)
   })
 })
