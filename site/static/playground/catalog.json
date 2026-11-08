@@ -1,0 +1,356 @@
+[
+  {
+    "id": "audio-sound",
+    "module": "audio",
+    "name": "sound",
+    "title": "a chime on a sim event",
+    "shows": "`sounds` maps a sim event to a sound. The first tap or key unlocks audio (browsers allow sound only after a gesture); from then on each Chime event the sim emits plays chime.wav.",
+    "controls": "tap or press any key to unlock sound",
+    "packages": [
+      "@mcthaydt/automata",
+      "zod"
+    ],
+    "difficulty": 1,
+    "tier": "core",
+    "golden": {
+      "ticks": 180,
+      "replay": "/playground/goldens/audio-sound.replay"
+    },
+    "path": "audio/audio-sound.ts",
+    "source": "// audio-sound: a chime on a sim event\n//\n// Shows: `sounds` maps a sim event to a sound. The first tap or key unlocks audio (browsers allow\n//   sound only after a gesture); from then on each Chime event the sim emits plays chime.wav.\n// Controls: tap or press any key to unlock sound\n// Packages: @mcthaydt/automata, zod\n// Difficulty: ★☆☆☆\n// Tier: core\n// Golden: 180\nimport {\n  defineComponent,\n  defineEvent,\n  defineGame,\n  definePlugin,\n  defineSystem,\n  rect,\n} from '@mcthaydt/automata'\nimport { z } from 'zod'\n\n// A synthesized chime (resources/sounds/PROVENANCE.md).\nconst chime = new URL('../resources/sounds/chime.wav', import.meta.url).href\n\nconst Bell = defineComponent('bell', { x: 'f32', y: 'f32', angle: 'f32' })\nconst Chime = defineEvent('chime', z.object({}))\n\n// The bell rings once a second (every 60 ticks) and swings back to rest in between.\nconst ring = defineSystem('ring', (ctx) => {\n  const ringing = ctx.tick % 60 === 0\n  if (ringing) ctx.emit(Chime, {})\n  for (const bell of ctx.query(Bell)) {\n    const { angle } = bell.get(Bell)\n    bell.set(Bell, { angle: ringing ? 0.6 : angle * 0.9 })\n  }\n})\n\nconst bells = definePlugin({ name: 'bells', defs: [Bell, Chime, ring] })\n\nexport default defineGame({\n  id: 'audio-sound',\n  size: { width: 320, height: 180 },\n  sim: {\n    plugins: [bells],\n    seed: 1,\n    setup: (sim) => {\n      sim.spawn([[Bell, { x: 160, y: 90, angle: 0 }]])\n    },\n  },\n  views: { [Bell.id]: rect({ w: 32, h: 40, color: 0xffc825, anchor: { x: 0.5, y: 0 } }) },\n  sounds: { [Chime.id]: chime },\n})\n",
+    "codeLines": 34,
+    "framePage": "/playground/examples/audio/sound/",
+    "moduleUrl": "/playground/examples/audio/audio-sound.ts"
+  },
+  {
+    "id": "core-basic-window",
+    "module": "core",
+    "name": "basic-window",
+    "title": "open a game window",
+    "shows": "defineGame() needs only an id, a size and a sim; startGame() fills in the rest: the host, the renderer, and the title, play and paused screens.",
+    "controls": "none",
+    "packages": [
+      "@mcthaydt/automata"
+    ],
+    "difficulty": 1,
+    "tier": "core",
+    "path": "core/core-basic-window.ts",
+    "source": "// core-basic-window: open a game window\n//\n// Shows: defineGame() needs only an id, a size and a sim; startGame() fills in the rest: the host, the\n//   renderer, and the title, play and paused screens.\n// Controls: none\n// Packages: @mcthaydt/automata\n// Difficulty: ★☆☆☆\n// Tier: core\nimport { defineGame } from '@mcthaydt/automata'\n\nexport default defineGame({\n  id: 'core-basic-window',\n  size: { width: 320, height: 180 },\n  sim: { plugins: [] },\n})\n",
+    "codeLines": 6,
+    "framePage": "/playground/examples/core/basic-window/",
+    "moduleUrl": "/playground/examples/core/core-basic-window.ts"
+  },
+  {
+    "id": "core-camera-2d",
+    "module": "core",
+    "name": "camera-2d",
+    "title": "a camera that follows a square around a world bigger than the screen",
+    "shows": "createCamera2d() follows a target with a dead zone, stays inside the world's bounds and shakes on a bump; it moves the world container only, so the sim's positions are untouched.",
+    "controls": "arrows or WASD",
+    "packages": [
+      "@mcthaydt/automata",
+      "zod"
+    ],
+    "difficulty": 2,
+    "tier": "core",
+    "path": "core/core-camera-2d.ts",
+    "source": "// core-camera-2d: a camera that follows a square around a world bigger than the screen\n//\n// Shows: createCamera2d() follows a target with a dead zone, stays inside the world's bounds and shakes on a bump;\n//   it moves the world container only, so the sim's positions are untouched.\n// Controls: arrows or WASD\n// Packages: @mcthaydt/automata, zod\n// Difficulty: ★★☆☆\n// Tier: core\nimport {\n  createCamera2d,\n  defineCommand,\n  defineComponent,\n  defineGame,\n  definePlugin,\n  defineSystem,\n  keys,\n  rect,\n} from '@mcthaydt/automata'\nimport { z } from 'zod'\n\nconst VIEW = { width: 320, height: 180 }\nconst WORLD = { x: 0, y: 0, width: 960, height: 540 }\nconst HALF = 4\n\nconst Body = defineComponent('body', { x: 'f32', y: 'f32' })\nconst Marker = defineComponent('marker', { x: 'f32', y: 'f32' })\nconst step = z.number().int().min(-1).max(1).default(0)\nconst Move = defineCommand('move', z.object({ x: step, y: step }))\n\n// The sim keeps the square inside the world; the camera only decides which part of the world is on screen.\nconst move = defineSystem('move', (ctx) => {\n  for (const { payload } of ctx.commands.of(Move))\n    for (const body of ctx.query(Body)) {\n      const { x, y } = body.get(Body)\n      body.set(Body, {\n        x: Math.min(Math.max(x + payload.x * 3, HALF), WORLD.width - HALF),\n        y: Math.min(Math.max(y + payload.y * 3, HALF), WORLD.height - HALF),\n      })\n    }\n})\n\nconst world = definePlugin({ name: 'world', defs: [Body, Marker, Move, move] })\n\n// The camera follows what is drawn, so it reads the square's interpolated view rather than the sim.\nlet squareView: { readonly position: { readonly x: number; readonly y: number } } | undefined\nconst drawSquare = rect({ w: HALF * 2, h: HALF * 2, color: 0xffc825 })\nconst trackSquare: typeof drawSquare = (row, componentId) => {\n  const view = drawSquare(row, componentId)\n  squareView = view?.container\n  return view\n}\n\nconst atEdge = (x: number, y: number): boolean =>\n  x <= HALF || y <= HALF || x >= WORLD.width - HALF || y >= WORLD.height - HALF\n\nexport default defineGame({\n  id: 'core-camera-2d',\n  size: VIEW,\n  sim: {\n    plugins: [world],\n    seed: 1,\n    setup: (sim) => {\n      // A grid of floor markers, so the camera's movement shows.\n      for (let x = 40; x < WORLD.width; x += 80)\n        for (let y = 45; y < WORLD.height; y += 90) sim.spawn([[Marker, { x, y }]])\n      sim.spawn([[Body, { x: 480, y: 270 }]])\n    },\n  },\n  input: keys(Move, {\n    ArrowLeft: { x: -1 },\n    KeyA: { x: -1 },\n    ArrowRight: { x: 1 },\n    KeyD: { x: 1 },\n    ArrowUp: { y: -1 },\n    KeyW: { y: -1 },\n    ArrowDown: { y: 1 },\n    KeyS: { y: 1 },\n  }),\n  views: { [Marker.id]: rect({ w: 6, h: 6, color: 0x3e3546 }), [Body.id]: trackSquare },\n  renderer: {\n    setup: (stage) => {\n      const camera = createCamera2d(stage.world, {\n        view: VIEW,\n        follow: { rate: 8, deadZone: { width: 64, height: 36 } },\n        bounds: WORLD,\n      })\n      let wasAtEdge = false\n      return {\n        draw: (frame) => {\n          if (squareView === undefined) return\n          const { x, y } = squareView.position\n          // A small bump each time the square reaches the world's edge.\n          if (atEdge(x, y) && !wasAtEdge) camera.shake(0.6)\n          wasAtEdge = atEdge(x, y)\n          camera.target(x, y)\n          camera.update(frame.frameMs / 1000)\n        },\n      }\n    },\n  },\n})\n",
+    "codeLines": 82,
+    "framePage": "/playground/examples/core/camera-2d/",
+    "moduleUrl": "/playground/examples/core/core-camera-2d.ts"
+  },
+  {
+    "id": "core-host-lifecycle",
+    "module": "core",
+    "name": "host-lifecycle",
+    "title": "the sim stands still while the host has the game in the background",
+    "shows": "the game package handles the host's lifecycle for a game, so nothing here mentions the host. The page draws nothing until the host says ready; when the host sends the game to the background (its drawer, an ad, a hidden tab) the runtime stops the sim and opens the pause screen, and Resume plays on from the same tick. The HUD counts the sim's ticks and says whether the frame is paused.",
+    "controls": "none; switch to another tab (or open the host's drawer) and come back",
+    "packages": [
+      "@mcthaydt/automata"
+    ],
+    "difficulty": 1,
+    "tier": "core",
+    "path": "core/core-host-lifecycle.ts",
+    "source": "// core-host-lifecycle: the sim stands still while the host has the game in the background\n//\n// Shows: the game package handles the host's lifecycle for a game, so nothing here mentions the host. The page\n//   draws nothing until the host says ready; when the host sends the game to the background (its drawer, an ad,\n//   a hidden tab) the runtime stops the sim and opens the pause screen, and Resume plays on from the same tick.\n//   The HUD counts the sim's ticks and says whether the frame is paused.\n// Controls: none; switch to another tab (or open the host's drawer) and come back\n// Packages: @mcthaydt/automata\n// Difficulty: ★☆☆☆\n// Tier: core\nimport { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@mcthaydt/automata'\n\nconst Pacer = defineComponent('pacer', { x: 'f32', y: 'f32', vx: 'f32' })\n\n// A square that paces the field, so a stopped sim is a frozen square as well as a frozen count.\nconst pace = defineSystem('pace', (ctx) => {\n  for (const pacer of ctx.query(Pacer)) {\n    const { x, y, vx } = pacer.get(Pacer)\n    const next = x + vx < 8 || x + vx > 312 ? -vx : vx\n    pacer.set(Pacer, { x: x + next, y, vx: next })\n  }\n})\n\nconst pacing = definePlugin({ name: 'pacing', defs: [Pacer, pace] })\n\nexport default defineGame({\n  id: 'core-host-lifecycle',\n  size: { width: 320, height: 180 },\n  sim: {\n    plugins: [pacing],\n    seed: 1,\n    setup: (sim) => void sim.spawn([[Pacer, { x: 8, y: 90, vx: 1.5 }]]),\n  },\n  views: { [Pacer.id]: rect({ w: 12, h: 12, color: 0x5ee6a8 }) },\n  draw: (ctx) => {\n    ctx.rect(4, 40, 150, 14, 0x2e222f)\n    ctx.text(`tick ${ctx.sim.tick}   ${ctx.frame.paused ? 'paused' : 'running'}`, 8, 43, {\n      color: 0xffffff,\n      size: 8,\n    })\n  },\n})\n",
+    "codeLines": 27,
+    "framePage": "/playground/examples/core/host-lifecycle/",
+    "moduleUrl": "/playground/examples/core/core-host-lifecycle.ts"
+  },
+  {
+    "id": "core-input-gamepad",
+    "module": "core",
+    "name": "input-gamepad",
+    "title": "move a square with a controller",
+    "shows": "keys() binds a standard pad's left stick and D-pad to the same sim command as the arrow keys; the stick reads through a radial deadzone, eight ways; unplugging the pad in use pauses with \"Reconnect your controller\".",
+    "controls": "the left stick or the D-pad (any standard-mapping controller), or the arrow keys",
+    "packages": [
+      "@mcthaydt/automata",
+      "zod"
+    ],
+    "difficulty": 1,
+    "tier": "core",
+    "golden": {
+      "ticks": 120,
+      "replay": "/playground/goldens/core-input-gamepad.replay"
+    },
+    "path": "core/core-input-gamepad.ts",
+    "source": "// core-input-gamepad: move a square with a controller\n//\n// Shows: keys() binds a standard pad's left stick and D-pad to the same sim command as the arrow keys; the stick\n//   reads through a radial deadzone, eight ways; unplugging the pad in use pauses with \"Reconnect your controller\".\n// Controls: the left stick or the D-pad (any standard-mapping controller), or the arrow keys\n// Packages: @mcthaydt/automata, zod\n// Difficulty: ★☆☆☆\n// Tier: core\n// Golden: 120\nimport {\n  defineCommand,\n  defineComponent,\n  defineGame,\n  definePlugin,\n  defineSystem,\n  keys,\n  rect,\n} from '@mcthaydt/automata'\nimport { z } from 'zod'\n\nconst Body = defineComponent('body', { x: 'f32', y: 'f32' })\nconst step = z.number().int().min(-1).max(1).default(0)\nconst Move = defineCommand('move', z.object({ x: step, y: step }))\n\n// The sim sees the same command whichever device sent it, so a replay never needs to know.\nconst move = defineSystem('move', (ctx) => {\n  for (const { payload } of ctx.commands.of(Move))\n    for (const body of ctx.query(Body)) {\n      const { x, y } = body.get(Body)\n      body.set(Body, { x: x + payload.x * 2, y: y + payload.y * 2 })\n    }\n})\n\nconst square = definePlugin({ name: 'square', defs: [Body, Move, move] })\n\nexport default defineGame({\n  id: 'core-input-gamepad',\n  size: { width: 320, height: 180 },\n  sim: {\n    plugins: [square],\n    seed: 1,\n    setup: (sim) => {\n      sim.spawn([[Body, { x: 160, y: 90 }]])\n    },\n  },\n  input: keys(\n    Move,\n    { ArrowLeft: { x: -1 }, ArrowRight: { x: 1 }, ArrowUp: { y: -1 }, ArrowDown: { y: 1 } },\n    {\n      pad: { 14: { x: -1 }, 15: { x: 1 }, 12: { y: -1 }, 13: { y: 1 } },\n      stick: { 'left-left': { x: -1 }, 'left-right': { x: 1 }, 'left-up': { y: -1 }, 'left-down': { y: 1 } },\n    },\n  ),\n  views: { [Body.id]: rect({ w: 8, h: 8, color: 0x4fc3f7 }) },\n})\n",
+    "codeLines": 41,
+    "framePage": "/playground/examples/core/input-gamepad/",
+    "moduleUrl": "/playground/examples/core/core-input-gamepad.ts"
+  },
+  {
+    "id": "core-input-keys",
+    "module": "core",
+    "name": "input-keys",
+    "title": "move a square with the keyboard, a pad or touch",
+    "shows": "keys() turns what is held on the keyboard, a standard pad's D-pad or the touch buttons into one sim command per tick, the same command from each device; rect() draws an entity, interpolated.",
+    "controls": "arrows or WASD, the D-pad, or the touch buttons",
+    "packages": [
+      "@mcthaydt/automata",
+      "zod"
+    ],
+    "difficulty": 1,
+    "tier": "core",
+    "golden": {
+      "ticks": 120,
+      "replay": "/playground/goldens/core-input-keys.replay"
+    },
+    "path": "core/core-input-keys.ts",
+    "source": "// core-input-keys: move a square with the keyboard, a pad or touch\n//\n// Shows: keys() turns what is held on the keyboard, a standard pad's D-pad or the touch buttons into one sim\n//   command per tick, the same command from each device; rect() draws an entity, interpolated.\n// Controls: arrows or WASD, the D-pad, or the touch buttons\n// Packages: @mcthaydt/automata, zod\n// Difficulty: ★☆☆☆\n// Tier: core\n// Golden: 120\nimport {\n  defineCommand,\n  defineComponent,\n  defineGame,\n  definePlugin,\n  defineSystem,\n  keys,\n  rect,\n} from '@mcthaydt/automata'\nimport { z } from 'zod'\n\nconst Body = defineComponent('body', { x: 'f32', y: 'f32' })\nconst step = z.number().int().min(-1).max(1).default(0)\nconst Move = defineCommand('move', z.object({ x: step, y: step }))\n\n// The sim only sees commands: the same commands replay to the same positions.\nconst move = defineSystem('move', (ctx) => {\n  for (const { payload } of ctx.commands.of(Move))\n    for (const body of ctx.query(Body)) {\n      const { x, y } = body.get(Body)\n      body.set(Body, { x: x + payload.x * 2, y: y + payload.y * 2 })\n    }\n})\n\nconst square = definePlugin({ name: 'square', defs: [Body, Move, move] })\n\nexport default defineGame({\n  id: 'core-input-keys',\n  size: { width: 320, height: 180 },\n  sim: {\n    plugins: [square],\n    seed: 1,\n    setup: (sim) => {\n      sim.spawn([[Body, { x: 160, y: 90 }]])\n    },\n  },\n  input: keys(\n    Move,\n    {\n      ArrowLeft: { x: -1 },\n      KeyA: { x: -1 },\n      ArrowRight: { x: 1 },\n      KeyD: { x: 1 },\n      ArrowUp: { y: -1 },\n      KeyW: { y: -1 },\n      ArrowDown: { y: 1 },\n      KeyS: { y: 1 },\n    },\n    { pad: { 14: { x: -1 }, 15: { x: 1 }, 12: { y: -1 }, 13: { y: 1 } } },\n  ),\n  views: { [Body.id]: rect({ w: 8, h: 8, color: 0xffc825 }) },\n})\n",
+    "codeLines": 47,
+    "framePage": "/playground/examples/core/input-keys/",
+    "moduleUrl": "/playground/examples/core/core-input-keys.ts"
+  },
+  {
+    "id": "core-input-rebind",
+    "module": "core",
+    "name": "input-rebind",
+    "title": "rebind a control in Settings, and keep it next time",
+    "shows": "keys() names each action with labels, so the default Settings screen (pause, then the gear) lists them; rebinding one saves it through the host and play reads it at once; a key taken from another action leaves that one \"Unbound\"; Escape cancels a capture. A reload keeps the player's keys.",
+    "controls": "the arrows move, Space jumps, F fires; Escape or P to pause, then the gear for Settings",
+    "packages": [
+      "@mcthaydt/automata",
+      "zod"
+    ],
+    "difficulty": 2,
+    "tier": "core",
+    "golden": {
+      "ticks": 120,
+      "replay": "/playground/goldens/core-input-rebind.replay"
+    },
+    "path": "core/core-input-rebind.ts",
+    "source": "// core-input-rebind: rebind a control in Settings, and keep it next time\n//\n// Shows: keys() names each action with labels, so the default Settings screen (pause, then the gear) lists them;\n//   rebinding one saves it through the host and play reads it at once; a key taken from another action leaves\n//   that one \"Unbound\"; Escape cancels a capture. A reload keeps the player's keys.\n// Controls: the arrows move, Space jumps, F fires; Escape or P to pause, then the gear for Settings\n// Packages: @mcthaydt/automata, zod\n// Difficulty: ★★☆☆\n// Tier: core\n// Golden: 120\nimport {\n  defineCommand,\n  defineComponent,\n  defineGame,\n  definePlugin,\n  defineSystem,\n  keys,\n  rect,\n} from '@mcthaydt/automata'\nimport { z } from 'zod'\n\nconst Runner = defineComponent('runner', { x: 'f32', y: 'f32', flash: 'f32' })\nconst step = z.number().int().min(-1).max(1).default(0)\nconst Act = defineCommand(\n  'act',\n  z.object({ x: step, jump: z.boolean().default(false), fire: z.boolean().default(false) }),\n)\n\n// Held, never pressed: the sim sees the same command whichever key the player bound to it.\nconst act = defineSystem('act', (ctx) => {\n  for (const { payload } of ctx.commands.of(Act))\n    for (const runner of ctx.query(Runner)) {\n      const { x, y, flash } = runner.get(Runner)\n      runner.set(Runner, {\n        x: x + payload.x * 2,\n        y: payload.jump ? Math.max(30, y - 3) : Math.min(140, y + 3),\n        flash: payload.fire ? 1 : Math.max(0, flash - 0.125),\n      })\n    }\n})\n\nconst runners = definePlugin({ name: 'runners', defs: [Runner, Act, act] })\n\nexport default defineGame({\n  id: 'core-input-rebind',\n  size: { width: 320, height: 180 },\n  sim: {\n    plugins: [runners],\n    seed: 1,\n    setup: (sim) => {\n      sim.spawn([[Runner, { x: 160, y: 140, flash: 0 }]])\n    },\n  },\n  input: keys(\n    Act,\n    { ArrowLeft: { x: -1 }, ArrowRight: { x: 1 }, Space: { jump: true }, KeyF: { fire: true } },\n    {\n      pad: { 14: { x: -1 }, 15: { x: 1 }, 0: { jump: true }, 2: { fire: true } },\n      labels: { ArrowLeft: 'Move left', ArrowRight: 'Move right', Space: 'Jump', KeyF: 'Fire' },\n    },\n  ),\n  views: { [Runner.id]: rect({ w: 10, h: 10, color: 0x5ac54f, anchor: { x: 0.5, y: 0.5 } }) },\n})\n",
+    "codeLines": 48,
+    "framePage": "/playground/examples/core/input-rebind/",
+    "moduleUrl": "/playground/examples/core/core-input-rebind.ts"
+  },
+  {
+    "id": "core-input-touch",
+    "module": "core",
+    "name": "input-touch",
+    "title": "steer a square by swiping, and flick down to drop it",
+    "shows": "keys() gestures: a swipe holds a direction while the finger steers past a 12 px dead zone, a flick down (40 px within 180 ms) lasts exactly one tick; with no touch buttons, the play screen takes touch as a swipe surface. The arrows drive the same command.",
+    "controls": "on a touch screen, swipe left or right and flick down; or the arrows to steer",
+    "packages": [
+      "@mcthaydt/automata",
+      "zod"
+    ],
+    "difficulty": 2,
+    "tier": "core",
+    "path": "core/core-input-touch.ts",
+    "source": "// core-input-touch: steer a square by swiping, and flick down to drop it\n//\n// Shows: keys() gestures: a swipe holds a direction while the finger steers past a 12 px dead zone, a flick down\n//   (40 px within 180 ms) lasts exactly one tick; with no touch buttons, the play screen takes touch as a swipe\n//   surface. The arrows drive the same command.\n// Controls: on a touch screen, swipe left or right and flick down; or the arrows to steer\n// Packages: @mcthaydt/automata, zod\n// Difficulty: ★★☆☆\n// Tier: core\nimport {\n  defineCommand,\n  defineComponent,\n  defineGame,\n  definePlugin,\n  defineSystem,\n  keys,\n  rect,\n} from '@mcthaydt/automata'\nimport { z } from 'zod'\n\nconst Body = defineComponent('body', { x: 'f32', y: 'f32' })\nconst Steer = defineCommand(\n  'steer',\n  z.object({ x: z.number().int().min(-1).max(1).default(0), drop: z.boolean().default(false) }),\n)\n\n// A flick is one tick long, so `drop` moves the square one step down per flick.\nconst steer = defineSystem('steer', (ctx) => {\n  for (const { payload } of ctx.commands.of(Steer))\n    for (const body of ctx.query(Body)) {\n      const { x, y } = body.get(Body)\n      body.set(Body, { x: x + payload.x * 2, y: payload.drop ? (y + 20) % 180 : y })\n    }\n})\n\nconst square = definePlugin({ name: 'square', defs: [Body, Steer, steer] })\n\nexport default defineGame({\n  id: 'core-input-touch',\n  size: { width: 320, height: 180 },\n  sim: {\n    plugins: [square],\n    seed: 1,\n    setup: (sim) => {\n      sim.spawn([[Body, { x: 160, y: 30 }]])\n    },\n  },\n  input: keys(\n    Steer,\n    { ArrowLeft: { x: -1 }, ArrowRight: { x: 1 } },\n    {\n      touch: false,\n      gestures: { 'swipe-left': { x: -1 }, 'swipe-right': { x: 1 }, 'flick-down': { drop: true } },\n    },\n  ),\n  views: { [Body.id]: rect({ w: 8, h: 8, color: 0x0cf1ff }) },\n})\n",
+    "codeLines": 43,
+    "framePage": "/playground/examples/core/input-touch/",
+    "moduleUrl": "/playground/examples/core/core-input-touch.ts"
+  },
+  {
+    "id": "core-leaderboard",
+    "module": "core",
+    "name": "leaderboard",
+    "title": "a run's score goes to the host's leaderboard, and paused shows the board",
+    "shows": "`scores` maps a sim event to a board and a score: the score comes from the event's payload, so it is computed from sim state and never typed by anyone. The game asks the host for leaderboards; pause to see the board the host holds, with your row marked. Offline or standalone, paused says so and shows no board kept here.",
+    "controls": "Escape or P to pause and see the board",
+    "packages": [
+      "@mcthaydt/automata",
+      "zod"
+    ],
+    "difficulty": 2,
+    "tier": "core",
+    "golden": {
+      "ticks": 240,
+      "replay": "/playground/goldens/core-leaderboard.replay"
+    },
+    "path": "core/core-leaderboard.ts",
+    "source": "// core-leaderboard: a run's score goes to the host's leaderboard, and paused shows the board\n//\n// Shows: `scores` maps a sim event to a board and a score: the score comes from the event's payload, so it is computed\n//   from sim state and never typed by anyone. The game asks the host for leaderboards; pause to see the board the\n//   host holds, with your row marked. Offline or standalone, paused says so and shows no board kept here.\n// Controls: Escape or P to pause and see the board\n// Packages: @mcthaydt/automata, zod\n// Difficulty: ★★☆☆\n// Tier: core\n// Golden: 240\nimport {\n  defineComponent,\n  defineEvent,\n  defineGame,\n  definePlugin,\n  defineSystem,\n  rect,\n} from '@mcthaydt/automata'\nimport { z } from 'zod'\n\nconst Runner = defineComponent('runner', { x: 'f32', y: 'f32', laps: 'f32' })\nconst RunEnded = defineEvent('run-ended', z.object({ score: z.number().int() }))\n\n// A run lasts 120 ticks (two seconds). The runner crosses the field and wraps; each wrap is a lap, and a run's score\n// is the laps it made times 100, plus the distance into the current lap.\nconst run = defineSystem('run', (ctx) => {\n  for (const runner of ctx.query(Runner)) {\n    const { x, y, laps } = runner.get(Runner)\n    const next = x + 7\n    const wrapped = next >= 320\n    const nextLaps = wrapped ? laps + 1 : laps\n    runner.set(Runner, { x: wrapped ? next - 320 : next, y, laps: nextLaps })\n    if (ctx.tick % 120 === 119) {\n      ctx.emit(RunEnded, { score: Math.floor(nextLaps * 100 + next / 4) })\n      runner.set(Runner, { x: 0, y, laps: 0 })\n    }\n  }\n})\n\nconst running = definePlugin({ name: 'running', defs: [Runner, RunEnded, run] })\n\nexport default defineGame({\n  id: 'core-leaderboard',\n  size: { width: 320, height: 180 },\n  sim: {\n    plugins: [running],\n    seed: 1,\n    setup: (sim) => {\n      sim.spawn([[Runner, { x: 0, y: 90, laps: 0 }]])\n    },\n  },\n  views: { [Runner.id]: rect({ w: 16, h: 16, color: 0x5ac54f, anchor: { x: 0.5, y: 0.5 } }) },\n  scores: { [RunEnded.id]: { board: 'best', score: (payload) => RunEnded.schema.parse(payload).score } },\n})\n",
+    "codeLines": 38,
+    "framePage": "/playground/examples/core/leaderboard/",
+    "moduleUrl": "/playground/examples/core/core-leaderboard.ts"
+  },
+  {
+    "id": "core-saves",
+    "module": "core",
+    "name": "saves",
+    "title": "three save slots on the title, and progress kept while you play",
+    "shows": "`saves` gives the game slots: the title lists them, New game writes the starting data to a slot, Continue loads one and `apply`s it, and the game keeps the slot saved as you walk (leaving play, going to the background, and when the host closes the game). Paused says what the host did with your progress, and offers Load newer or Keep playing if another device changed this slot. Standalone, there is nothing to sync and nothing is said.",
+    "controls": "arrows or WASD to walk; Escape or P to pause",
+    "packages": [
+      "@mcthaydt/automata",
+      "zod"
+    ],
+    "difficulty": 3,
+    "tier": "core",
+    "golden": {
+      "ticks": 120,
+      "replay": "/playground/goldens/core-saves.replay"
+    },
+    "path": "core/core-saves.ts",
+    "source": "// core-saves: three save slots on the title, and progress kept while you play\n//\n// Shows: `saves` gives the game slots: the title lists them, New game writes the starting data to a slot, Continue\n//   loads one and `apply`s it, and the game keeps the slot saved as you walk (leaving play, going to the background,\n//   and when the host closes the game). Paused says what the host did with your progress, and offers Load newer or\n//   Keep playing if another device changed this slot. Standalone, there is nothing to sync and nothing is said.\n// Controls: arrows or WASD to walk; Escape or P to pause\n// Packages: @mcthaydt/automata, zod\n// Difficulty: ★★★☆\n// Tier: core\n// Golden: 120\nimport {\n  defineCommand,\n  defineComponent,\n  defineGame,\n  definePlugin,\n  defineSave,\n  defineSystem,\n  type GameSaves,\n  keys,\n  rect,\n  type Sim,\n} from '@mcthaydt/automata'\nimport { z } from 'zod'\n\nconst Walker = defineComponent('walker', { x: 'f32', y: 'f32' })\nconst step = z.number().int().min(-1).max(1).default(0)\nconst Move = defineCommand('move', z.object({ x: step, y: step }))\n\nconst move = defineSystem('move', (ctx) => {\n  for (const { payload } of ctx.commands.of(Move))\n    for (const walker of ctx.query(Walker)) {\n      const { x, y } = walker.get(Walker)\n      walker.set(Walker, { x: x + payload.x * 2, y: y + payload.y * 2 })\n    }\n})\n\nconst walking = definePlugin({ name: 'walking', defs: [Walker, Move, move] })\n\n// What a slot holds is plain data, never the sim: where the walker stands. A change to its shape is a new `version`\n// with a migration that turns the old data into the new.\nconst Progress = z.object({ x: z.number(), y: z.number() })\ntype Progress = z.infer<typeof Progress>\nconst START: Progress = { x: 160, y: 90 }\n\nconst saves: GameSaves<Progress> = {\n  def: defineSave({\n    key: 'walk',\n    version: 1,\n    schema: Progress,\n    empty: () => START,\n    migrations: {},\n    slots: { count: 3 },\n  }),\n  // Read from the live sim whenever a trigger writes; apply puts a loaded slot back before tick 0.\n  capture: (sim: Sim) => {\n    const walker = sim.query(Walker)[0]\n    return walker === undefined ? START : walker.get(Walker)\n  },\n  apply: (sim: Sim, data: Progress) => {\n    sim.query(Walker)[0]?.set(Walker, data)\n  },\n  label: (slot: number) => `Walk ${slot + 1}`,\n}\n\nexport default defineGame({\n  id: 'core-saves',\n  size: { width: 320, height: 180 },\n  sim: {\n    plugins: [walking],\n    seed: 1,\n    setup: (sim) => {\n      sim.spawn([[Walker, START]])\n    },\n  },\n  input: keys(Move, {\n    ArrowLeft: { x: -1 },\n    KeyA: { x: -1 },\n    ArrowRight: { x: 1 },\n    KeyD: { x: 1 },\n    ArrowUp: { y: -1 },\n    KeyW: { y: -1 },\n    ArrowDown: { y: 1 },\n    KeyS: { y: 1 },\n  }),\n  views: { [Walker.id]: rect({ w: 8, h: 8, color: 0xffc825 }) },\n  saves,\n})\n",
+    "codeLines": 68,
+    "framePage": "/playground/examples/core/saves/",
+    "moduleUrl": "/playground/examples/core/core-saves.ts"
+  },
+  {
+    "id": "render-filter",
+    "module": "render",
+    "name": "filter",
+    "title": "two screen-space filters over the picture, and the quality tier that decides which run",
+    "shows": "postFilter(name, { glsl, wgsl }) declares a filter over the whole picture, once for WebGL2 and once for WebGPU, so both renderers look the same. `dusk` warms the picture and darkens its corners at every tier. `scanlines` darkens every second row, runs after `dusk` (order) and only from the medium tier up (minTier), so the HUD, which lists the filters running now, loses it at low and gets it back at medium.",
+    "controls": "1 low, 2 medium, 3 high",
+    "packages": [
+      "@mcthaydt/automata"
+    ],
+    "difficulty": 3,
+    "tier": "core",
+    "path": "render/render-filter.ts",
+    "source": "// render-filter: two screen-space filters over the picture, and the quality tier that decides which run\n//\n// Shows: postFilter(name, { glsl, wgsl }) declares a filter over the whole picture, once for WebGL2 and once for\n//   WebGPU, so both renderers look the same. `dusk` warms the picture and darkens its corners at every tier.\n//   `scanlines` darkens every second row, runs after `dusk` (order) and only from the medium tier up (minTier),\n//   so the HUD, which lists the filters running now, loses it at low and gets it back at medium.\n// Controls: 1 low, 2 medium, 3 high\n// Packages: @mcthaydt/automata\n// Difficulty: ★★★☆\n// Tier: core\nimport { defineComponent, defineGame, definePlugin, defineSystem, postFilter, rect } from '@mcthaydt/automata'\n\nconst Drift = defineComponent('drift', { x: 'f32', y: 'f32', vx: 'f32' })\n\nconst drift = defineSystem('drift', (ctx) => {\n  for (const square of ctx.query(Drift)) {\n    const { x, y, vx } = square.get(Drift)\n    square.set(Drift, { x: x + vx > 324 ? -4 : x + vx, y, vx })\n  }\n})\n\nconst squares = definePlugin({ name: 'squares', defs: [Drift, drift] })\n\n// A fragment shader reads the picture as `uTexture` at `vTextureCoord` (GLSL) or `input.uv` (WGSL), 0 to 1 across it.\nconst dusk = postFilter('dusk', {\n  glsl: `in vec2 vTextureCoord;\nout vec4 finalColor;\nuniform sampler2D uTexture;\nvoid main() {\n  vec2 away = vTextureCoord - 0.5;\n  finalColor = vec4(texture(uTexture, vTextureCoord).rgb * vec3(1.0, 0.85, 0.7) * (1.0 - dot(away, away) * 1.4), 1.0);\n}`,\n  wgsl: `@fragment fn mainFragment(input: VSOutput) -> @location(0) vec4<f32> {\n  let away = input.uv - vec2<f32>(0.5);\n  return vec4<f32>(textureSample(uTexture, uSampler, input.uv).rgb * vec3<f32>(1.0, 0.85, 0.7) * (1.0 - dot(away, away) * 1.4), 1.0);\n}`,\n})\n\n// 180 is the playfield's height, so a row of the filter is a row of the game's pixels.\nconst scanlines = postFilter('scanlines', {\n  glsl: `in vec2 vTextureCoord;\nout vec4 finalColor;\nuniform sampler2D uTexture;\nvoid main() {\n  float odd = mod(floor(vTextureCoord.y * 180.0), 2.0);\n  finalColor = vec4(texture(uTexture, vTextureCoord).rgb * (1.0 - 0.3 * odd), 1.0);\n}`,\n  wgsl: `@fragment fn mainFragment(input: VSOutput) -> @location(0) vec4<f32> {\n  let odd = floor(input.uv.y * 180.0) % 2.0;\n  return vec4<f32>(textureSample(uTexture, uSampler, input.uv).rgb * (1.0 - 0.3 * odd), 1.0);\n}`,\n  order: 1,\n  minTier: 'medium',\n})\n\nconst TIER_KEYS = { Digit1: 'low', Digit2: 'medium', Digit3: 'high' } as const\n\n// What the HUD reads from the stage that setup receives.\nlet stage: { readonly quality: string; readonly postFilters: { readonly ids: readonly string[] } } | undefined\n\nexport default defineGame({\n  id: 'render-filter',\n  size: { width: 320, height: 180 },\n  sim: {\n    plugins: [squares],\n    seed: 1,\n    setup: (sim) => {\n      for (let row = 0; row < 5; row += 1)\n        sim.spawn([[Drift, { x: row * 60, y: 50 + row * 24, vx: 0.5 + row * 0.25 }]])\n    },\n  },\n  views: { [Drift.id]: rect({ w: 12, h: 12, color: 0xf9c22b }) },\n  renderer: {\n    postFilters: [dusk, scanlines],\n    // The tier is presentation: it never reaches the sim, so the keys go straight to the stage.\n    setup: (pixi) => {\n      stage = pixi\n      const pick = (event: KeyboardEvent): void => {\n        // Pixi drops the renderer when the game is torn down; the listener then removes itself.\n        if (!pixi.app.renderer) window.removeEventListener('keydown', pick)\n        else if (event.code in TIER_KEYS) pixi.setQuality(TIER_KEYS[event.code as keyof typeof TIER_KEYS])\n      }\n      window.addEventListener('keydown', pick)\n    },\n  },\n  draw: (ctx) => {\n    if (stage === undefined) return\n    ctx.rect(4, 40, 200, 14, 0x2e222f)\n    ctx.text(`quality ${stage.quality}   filters ${stage.postFilters.ids.join(' ')}`, 8, 43, {\n      color: 0xffffff,\n      size: 8,\n    })\n  },\n})\n",
+    "codeLines": 71,
+    "framePage": "/playground/examples/render/filter/",
+    "moduleUrl": "/playground/examples/render/render-filter.ts"
+  },
+  {
+    "id": "render-interpolation",
+    "module": "render",
+    "name": "interpolation",
+    "title": "a square drawn between sim ticks, beside a line where the sim says it is",
+    "shows": "a view draws the blend of the last two ticks by the frame's alpha (0 is the previous tick, 1 the current one), so motion stays smooth when display frames and sim ticks do not line up. The pink line is the sim's own position, which only moves a whole tick at a time; the HUD prints the frame's alpha.",
+    "controls": "I turns the blend on and off",
+    "packages": [
+      "@mcthaydt/automata"
+    ],
+    "difficulty": 2,
+    "tier": "core",
+    "path": "render/render-interpolation.ts",
+    "source": "// render-interpolation: a square drawn between sim ticks, beside a line where the sim says it is\n//\n// Shows: a view draws the blend of the last two ticks by the frame's alpha (0 is the previous tick, 1 the\n//   current one), so motion stays smooth when display frames and sim ticks do not line up. The pink line is the\n//   sim's own position, which only moves a whole tick at a time; the HUD prints the frame's alpha.\n// Controls: I turns the blend on and off\n// Packages: @mcthaydt/automata\n// Difficulty: ★★☆☆\n// Tier: core\nimport { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@mcthaydt/automata'\n\nconst Runner = defineComponent('runner', { x: 'f32', y: 'f32', vx: 'f32' })\n\n// 5 px a tick is a step the eye can see, so the blend's smoothing shows. The runner turns at either edge.\nconst run = defineSystem('run', (ctx) => {\n  for (const runner of ctx.query(Runner)) {\n    const { x, y, vx } = runner.get(Runner)\n    const next = x + vx < 8 || x + vx > 312 ? -vx : vx\n    runner.set(Runner, { x: x + next, y, vx: next })\n  }\n})\n\nconst track = definePlugin({ name: 'track', defs: [Runner, run] })\n\n// Presentation only: whether the view blends between ticks. It never reaches the sim.\nlet blend = true\nconst square = rect({ w: 12, h: 12, color: 0xf9c22b })\n\n// The view's own `update` gets the frame's alpha; asking for 1 shows the current tick as it is.\nconst blended: typeof square = (row, componentId) => {\n  const view = square(row, componentId)\n  if (view?.update === undefined) return view\n  const place = view.update.bind(view)\n  return { ...view, update: (curr, prev, alpha) => place(curr, prev, blend ? alpha : 1) }\n}\n\nexport default defineGame({\n  id: 'render-interpolation',\n  size: { width: 320, height: 180 },\n  sim: {\n    plugins: [track],\n    seed: 1,\n    setup: (sim) => void sim.spawn([[Runner, { x: 8, y: 90, vx: 5 }]]),\n  },\n  views: { [Runner.id]: blended },\n  renderer: {\n    setup: (stage) => {\n      const toggle = (event: KeyboardEvent): void => {\n        // Pixi drops the renderer when the game is torn down; the listener then removes itself.\n        if (!stage.app.renderer) window.removeEventListener('keydown', toggle)\n        else if (event.code === 'KeyI') blend = !blend\n      }\n      window.addEventListener('keydown', toggle)\n    },\n  },\n  draw: (ctx) => {\n    for (const runner of ctx.sim.query(Runner)) {\n      const { x, y } = runner.get(Runner)\n      ctx.line(x, y - 14, x, y + 14, 0xff5d8f, 1)\n    }\n    ctx.rect(4, 40, 150, 14, 0x2e222f)\n    ctx.text(`blend ${blend ? 'on' : 'off'}   alpha ${ctx.frame.alpha.toFixed(2)}`, 8, 43, {\n      color: 0xffffff,\n      size: 8,\n    })\n  },\n})\n",
+    "codeLines": 48,
+    "framePage": "/playground/examples/render/interpolation/",
+    "moduleUrl": "/playground/examples/render/render-interpolation.ts"
+  },
+  {
+    "id": "render-quality",
+    "module": "render",
+    "name": "quality",
+    "title": "switch the graphics quality tier while squares drift across the field",
+    "shows": "stage.setQuality() changes the tier at run time: it caps the canvas resolution (low 1, medium 1.5, high 2) and leaves out post filters registered with a higher minTier. The world and HUD draw through the fixed-resolution composite, so pixel art stays whole-pixel at every tier.",
+    "controls": "1 low, 2 medium, 3 high",
+    "packages": [
+      "@mcthaydt/automata"
+    ],
+    "difficulty": 2,
+    "tier": "core",
+    "path": "render/render-quality.ts",
+    "source": "// render-quality: switch the graphics quality tier while squares drift across the field\n//\n// Shows: stage.setQuality() changes the tier at run time: it caps the canvas resolution (low 1, medium 1.5,\n//   high 2) and leaves out post filters registered with a higher minTier. The world and HUD draw through the\n//   fixed-resolution composite, so pixel art stays whole-pixel at every tier.\n// Controls: 1 low, 2 medium, 3 high\n// Packages: @mcthaydt/automata\n// Difficulty: ★★☆☆\n// Tier: core\nimport { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@mcthaydt/automata'\n\nconst Drift = defineComponent('drift', { x: 'f32', y: 'f32', vx: 'f32' })\n\n// Each square drifts right and wraps, so the tier's effect on the edges shows while it moves.\nconst drift = defineSystem('drift', (ctx) => {\n  for (const square of ctx.query(Drift)) {\n    const { x, y, vx } = square.get(Drift)\n    square.set(Drift, { x: x + vx > 324 ? -4 : x + vx, y, vx })\n  }\n})\n\nconst squares = definePlugin({ name: 'squares', defs: [Drift, drift] })\n\nconst TIER_KEYS = { Digit1: 'low', Digit2: 'medium', Digit3: 'high' } as const\n\n// What the HUD reads from the stage that setup receives.\nlet stage:\n  | { readonly quality: string; readonly app: { readonly renderer: { readonly resolution: number } } }\n  | undefined\n\nexport default defineGame({\n  id: 'render-quality',\n  size: { width: 320, height: 180 },\n  sim: {\n    plugins: [squares],\n    seed: 1,\n    setup: (sim) => {\n      for (let row = 0; row < 5; row += 1)\n        sim.spawn([[Drift, { x: row * 60, y: 40 + row * 24, vx: 0.5 + row * 0.25 }]])\n    },\n  },\n  views: { [Drift.id]: rect({ w: 12, h: 12, color: 0xf9c22b }) },\n  renderer: {\n    // The tier is presentation: it never reaches the sim, so the keys go straight to the stage.\n    setup: (pixi) => {\n      stage = pixi\n      const pick = (event: KeyboardEvent): void => {\n        // Pixi drops the renderer when the game is torn down; the listener then removes itself.\n        if (!pixi.app.renderer) {\n          window.removeEventListener('keydown', pick)\n          return\n        }\n        const tier = TIER_KEYS[event.code as keyof typeof TIER_KEYS]\n        if (tier !== undefined) pixi.setQuality(tier)\n      }\n      window.addEventListener('keydown', pick)\n    },\n  },\n  draw: (ctx) => {\n    if (stage === undefined) return\n    // y = 40: a wide phone shows only the band between about y = 35 and y = 145 of the 180-high field.\n    ctx.rect(4, 40, 168, 14, 0x2e222f)\n    ctx.text(`quality ${stage.quality}   resolution ${stage.app.renderer.resolution}`, 8, 43, {\n      color: 0xffffff,\n      size: 8,\n    })\n  },\n})\n",
+    "codeLines": 48,
+    "framePage": "/playground/examples/render/quality/",
+    "moduleUrl": "/playground/examples/render/render-quality.ts"
+  },
+  {
+    "id": "shapes-draw-hud",
+    "module": "shapes",
+    "name": "draw-hud",
+    "title": "a HUD and a mini-map drawn each frame over bouncing squares",
+    "shows": "draw(ctx) paints rects, lines, circles and text over the entity views once a frame. It reads the sim through ctx.sim and never writes it, so the golden is the same with or without it.",
+    "controls": "none",
+    "packages": [
+      "@mcthaydt/automata"
+    ],
+    "difficulty": 1,
+    "tier": "core",
+    "golden": {
+      "ticks": 120,
+      "replay": "/playground/goldens/shapes-draw-hud.replay"
+    },
+    "path": "shapes/shapes-draw-hud.ts",
+    "source": "// shapes-draw-hud: a HUD and a mini-map drawn each frame over bouncing squares\n//\n// Shows: draw(ctx) paints rects, lines, circles and text over the entity views once a frame. It reads the\n//   sim through ctx.sim and never writes it, so the golden is the same with or without it.\n// Controls: none\n// Packages: @mcthaydt/automata\n// Difficulty: ★☆☆☆\n// Tier: core\n// Golden: 120\nimport { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@mcthaydt/automata'\n\nconst Ball = defineComponent('ball', { x: 'f32', y: 'f32', vx: 'f32', vy: 'f32' })\n\n// Each square moves by its velocity and turns back at the playfield's edges.\nconst bounce = defineSystem('bounce', (ctx) => {\n  for (const ball of ctx.query(Ball)) {\n    const { x, y, vx, vy } = ball.get(Ball)\n    const nextVx = x + vx < 4 || x + vx > 316 ? -vx : vx\n    const nextVy = y + vy < 20 || y + vy > 176 ? -vy : vy\n    ball.set(Ball, { x: x + nextVx, y: y + nextVy, vx: nextVx, vy: nextVy })\n  }\n})\n\nconst balls = definePlugin({ name: 'balls', defs: [Ball, bounce] })\n\n// The mini-map: the whole playfield scaled into a box at the bottom left of the band a wide phone shows (about\n// y = 35 to y = 145 of the 180-high field), clear of the Pause button.\nconst MAP = { x: 8, y: 104, w: 64, h: 36 }\n\nexport default defineGame({\n  id: 'shapes-draw-hud',\n  size: { width: 320, height: 180 },\n  sim: {\n    plugins: [balls],\n    seed: 1,\n    setup: (sim) => {\n      sim.spawn([[Ball, { x: 40, y: 60, vx: 1.5, vy: 1 }]])\n      sim.spawn([[Ball, { x: 160, y: 120, vx: -2, vy: 0.5 }]])\n      sim.spawn([[Ball, { x: 280, y: 90, vx: 1, vy: -1.5 }]])\n    },\n  },\n  views: { [Ball.id]: rect({ w: 8, h: 8, color: 0x00cdf9 }) },\n  draw: (ctx) => {\n    const all = ctx.sim.query(Ball)\n    ctx.rect(200, 126, 112, 14, 0x2e222f)\n    ctx.text(`tick ${ctx.sim.tick}   squares ${all.length}`, 204, 129, { color: 0xffffff, size: 8 })\n\n    const { x, y, w, h } = MAP\n    ctx.rect(x, y, w, h, 0x3e3546)\n    ctx.line(x, y, x + w, y, 0xffffff)\n    ctx.line(x, y + h, x + w, y + h, 0xffffff)\n    ctx.line(x, y, x, y + h, 0xffffff)\n    ctx.line(x + w, y, x + w, y + h, 0xffffff)\n    for (const ball of all) {\n      const at = ball.get(Ball)\n      ctx.circle(x + (at.x / ctx.width) * w, y + (at.y / ctx.height) * h, 1.5, 0xf9c22b)\n    }\n  },\n})\n",
+    "codeLines": 41,
+    "framePage": "/playground/examples/shapes/draw-hud/",
+    "moduleUrl": "/playground/examples/shapes/shapes-draw-hud.ts"
+  },
+  {
+    "id": "shapes-rects",
+    "module": "shapes",
+    "name": "rects",
+    "title": "rectangles that move, slide and spin",
+    "shows": "rect() draws one view per component id, interpolated between ticks: position, an anchor, and an angle that turns along the shorter arc.",
+    "controls": "none",
+    "packages": [
+      "@mcthaydt/automata"
+    ],
+    "difficulty": 1,
+    "tier": "core",
+    "golden": {
+      "ticks": 120,
+      "replay": "/playground/goldens/shapes-rects.replay"
+    },
+    "path": "shapes/shapes-rects.ts",
+    "source": "// shapes-rects: rectangles that move, slide and spin\n//\n// Shows: rect() draws one view per component id, interpolated between ticks: position, an anchor,\n//   and an angle that turns along the shorter arc.\n// Controls: none\n// Packages: @mcthaydt/automata\n// Difficulty: ★☆☆☆\n// Tier: core\n// Golden: 120\nimport { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@mcthaydt/automata'\n\nconst Block = defineComponent('block', { x: 'f32', y: 'f32' })\nconst Bar = defineComponent('bar', { x: 'f32', y: 'f32' })\nconst Spinner = defineComponent('spinner', { x: 'f32', y: 'f32', angle: 'f32' })\n\n// Blocks fall and wrap; the bar slides right and wraps; the spinner turns a little each tick.\nconst move = defineSystem('move', (ctx) => {\n  for (const block of ctx.query(Block)) {\n    const { y } = block.get(Block)\n    block.set(Block, { y: y > 196 ? -16 : y + 1 })\n  }\n  for (const bar of ctx.query(Bar)) {\n    const { x } = bar.get(Bar)\n    bar.set(Bar, { x: x > 320 ? -64 : x + 2 })\n  }\n  for (const spinner of ctx.query(Spinner)) {\n    const { angle } = spinner.get(Spinner)\n    spinner.set(Spinner, { angle: angle + 0.05 })\n  }\n})\n\nconst shapes = definePlugin({ name: 'shapes', defs: [Block, Bar, Spinner, move] })\n\nexport default defineGame({\n  id: 'shapes-rects',\n  size: { width: 320, height: 180 },\n  sim: {\n    plugins: [shapes],\n    seed: 1,\n    setup: (sim) => {\n      for (let column = 0; column < 4; column++) sim.spawn([[Block, { x: 40 + column * 32, y: column * 40 }]])\n      sim.spawn([[Bar, { x: 0, y: 150 }]])\n      sim.spawn([[Spinner, { x: 240, y: 70, angle: 0 }]])\n    },\n  },\n  views: {\n    [Block.id]: rect({ w: 16, h: 16, color: 0x00cdf9 }),\n    // Anchored at its left edge, so x is where the bar starts.\n    [Bar.id]: rect({ w: 64, h: 6, color: 0x5ac54f, anchor: { x: 0, y: 0.5 } }),\n    [Spinner.id]: rect({ w: 48, h: 12, color: 0xf5555d }),\n  },\n})\n",
+    "codeLines": 37,
+    "framePage": "/playground/examples/shapes/rects/",
+    "moduleUrl": "/playground/examples/shapes/shapes-rects.ts"
+  },
+  {
+    "id": "textures-atlas",
+    "module": "textures",
+    "name": "atlas",
+    "title": "sprites drawn from a packed atlas",
+    "shows": "sprite(url, { frame }) draws one named frame of a texture atlas that `automata-content assets` packed from a folder of PNG frames; each frame keeps its own name, so art can be repacked without touching code.",
+    "controls": "none",
+    "packages": [
+      "@mcthaydt/automata"
+    ],
+    "difficulty": 2,
+    "tier": "core",
+    "golden": {
+      "ticks": 120,
+      "replay": "/playground/goldens/textures-atlas.replay"
+    },
+    "path": "textures/textures-atlas.ts",
+    "source": "// textures-atlas: sprites drawn from a packed atlas\n//\n// Shows: sprite(url, { frame }) draws one named frame of a texture atlas that `automata-content assets` packed\n//   from a folder of PNG frames; each frame keeps its own name, so art can be repacked without touching code.\n// Controls: none\n// Packages: @mcthaydt/automata\n// Difficulty: ★★☆☆\n// Tier: core\n// Golden: 120\nimport { defineComponent, defineGame, definePlugin, defineSystem, sprite } from '@mcthaydt/automata'\n\n// Wick's two run frames, packed by content/atlases.toml into an atlas page served beside this page\n// (public/textures/atlas/; the frames' provenance is resources/atlas-frames/PROVENANCE.md).\nconst atlas = 'wick-0.json'\n\n// One component per frame, so each view shows its own named frame.\nconst StrideA = defineComponent('stride-a', { x: 'f32', y: 'f32' })\nconst StrideB = defineComponent('stride-b', { x: 'f32', y: 'f32' })\n\n// Both Wicks run right one pixel a tick and wrap at the edge.\nconst run = defineSystem('run', (ctx) => {\n  for (const kind of [StrideA, StrideB]) {\n    for (const runner of ctx.query(kind)) {\n      const { x } = runner.get(kind)\n      runner.set(kind, { x: x > 328 ? -8 : x + 1 })\n    }\n  }\n})\n\nconst runners = definePlugin({ name: 'runners', defs: [StrideA, StrideB, run] })\n\nexport default defineGame({\n  id: 'textures-atlas',\n  size: { width: 320, height: 180 },\n  sim: {\n    plugins: [runners],\n    seed: 1,\n    setup: (sim) => {\n      sim.spawn([[StrideA, { x: 120, y: 90 }]])\n      sim.spawn([[StrideB, { x: 200, y: 90 }]])\n    },\n  },\n  views: {\n    [StrideA.id]: sprite(atlas, { frame: 'run-a' }),\n    [StrideB.id]: sprite(atlas, { frame: 'run-b' }),\n  },\n})\n",
+    "codeLines": 29,
+    "framePage": "/playground/examples/textures/atlas/",
+    "moduleUrl": "/playground/examples/textures/textures-atlas.ts"
+  },
+  {
+    "id": "textures-sprite",
+    "module": "textures",
+    "name": "sprite",
+    "title": "an animated sprite from a sprite sheet",
+    "shows": "sprite() draws a texture by url, interpolated like rect(); `frames` slices a sheet into equal frames and the component's `frame` field picks one each tick.",
+    "controls": "none",
+    "packages": [
+      "@mcthaydt/automata"
+    ],
+    "difficulty": 2,
+    "tier": "core",
+    "golden": {
+      "ticks": 120,
+      "replay": "/playground/goldens/textures-sprite.replay"
+    },
+    "path": "textures/textures-sprite.ts",
+    "source": "// textures-sprite: an animated sprite from a sprite sheet\n//\n// Shows: sprite() draws a texture by url, interpolated like rect(); `frames` slices a sheet into\n//   equal frames and the component's `frame` field picks one each tick.\n// Controls: none\n// Packages: @mcthaydt/automata\n// Difficulty: ★★☆☆\n// Tier: core\n// Golden: 120\nimport { defineComponent, defineGame, definePlugin, defineSystem, sprite } from '@mcthaydt/automata'\n\n// Two 16 × 16 frames of Wick running (resources/sprites/PROVENANCE.md).\nconst sheet = new URL('../resources/sprites/wick-run.png', import.meta.url).href\n\nconst Runner = defineComponent('runner', { x: 'f32', y: 'f32', frame: 'i32' })\n\n// Run right one pixel a tick, wrap at the edge, and switch frames every 8 ticks.\nconst run = defineSystem('run', (ctx) => {\n  for (const runner of ctx.query(Runner)) {\n    const { x } = runner.get(Runner)\n    runner.set(Runner, { x: x > 328 ? -8 : x + 1, frame: Math.floor(ctx.tick / 8) })\n  }\n})\n\nconst runners = definePlugin({ name: 'runners', defs: [Runner, run] })\n\nexport default defineGame({\n  id: 'textures-sprite',\n  size: { width: 320, height: 180 },\n  sim: {\n    plugins: [runners],\n    seed: 1,\n    setup: (sim) => {\n      sim.spawn([[Runner, { x: 160, y: 90, frame: 0 }]])\n    },\n  },\n  views: { [Runner.id]: sprite(sheet, { frames: { width: 16, height: 16 } }) },\n})\n",
+    "codeLines": 22,
+    "framePage": "/playground/examples/textures/sprite/",
+    "moduleUrl": "/playground/examples/textures/textures-sprite.ts"
+  }
+]

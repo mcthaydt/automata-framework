@@ -21,7 +21,7 @@
         "$TURBO_ROOT$/tooling/*/package.json",
         "$TURBO_ROOT$/games/*/package.json",
         "$TURBO_ROOT$/examples/*/package.json",
-        "$TURBO_ROOT$/examples/*/*/package.json",
+        "$TURBO_ROOT$/examples/*/*/*/package.json",
         "$TURBO_ROOT$/tooling/release/src/publishable-packages.ts"
       ]
     },
@@ -41,7 +41,7 @@
         "$TURBO_ROOT$/tooling/*/package.json",
         "$TURBO_ROOT$/games/*/package.json",
         "$TURBO_ROOT$/examples/*/package.json",
-        "$TURBO_ROOT$/examples/*/*/package.json",
+        "$TURBO_ROOT$/examples/*/*/*/package.json",
         "$TURBO_ROOT$/tooling/release/src/publishable-packages.ts"
       ]
     }

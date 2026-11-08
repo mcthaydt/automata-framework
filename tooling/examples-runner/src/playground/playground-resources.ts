@@ -8,7 +8,7 @@ function resourcesNamed(source: string): string[] {
 }
 
 /**
- * Which of `examples/resources/` the public website may carry. A
+ * Which of `examples/2d/resources/` the public website may carry. A
  * file is left out when only examples of an unpublished extension (render-pixi3d, on the closed `@pixi/3d` beta)
  * name it, and a folder is left out with everything in it when every file it holds besides its notes (`.md`) is
  * left out, as `models/` is. Returns a filter over paths relative to the resources folder, files and folders alike.

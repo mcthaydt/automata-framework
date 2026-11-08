@@ -8,6 +8,7 @@
     "**/dist": true,
     "**/.turbo": true,
     "**/.svelte-kit": true,
+    "site/build": true,
     "**/.vitest": true,
     // Test and evidence output.
     "**/test-results": true,
@@ -52,8 +53,7 @@
     "packages/figures": true,
     "packages/sector-format": true,
     "games/base-3d": true,
-    "examples/render3d": true,
-    "examples/figures": true,
+    "examples/3d": true,
     "docs/design": true
   },
   "search.exclude": {
@@ -61,6 +61,7 @@
     "**/dist": true,
     "**/.turbo": true,
     "**/.svelte-kit": true,
+    "site/build": true,
     "**/.vitest": true,
     "**/test-results": true,
     "**/playwright-report*": true,
@@ -100,8 +101,7 @@
     "packages/figures": true,
     "packages/sector-format": true,
     "games/base-3d": true,
-    "examples/render3d": true,
-    "examples/figures": true,
+    "examples/3d": true,
     "docs/design": true
   },
 

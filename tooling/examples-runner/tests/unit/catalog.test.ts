@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { type CatalogEntry, readCatalog } from '#src/catalog.ts'
+import { type CatalogEntry, isUnpublishedExtension, readCatalog } from '#src/catalog.ts'
 
 const fixtures = fileURLToPath(new URL('../fixtures/catalog/', import.meta.url))
 // Stub manifests: the catalog's package rules do not depend on which packages the framework holds today (physics, the
@@ -143,12 +143,30 @@ describe('readCatalog', () => {
   })
 })
 
-describe('the real examples', () => {
+// The examples are two packages (task 9.1): examples/2d is public and ships with the 2D framework, so nothing in
+// it may reach the closed 3D beta; examples/3d holds the 3D runtime's and figures' examples.
+const realExamples = (dimension: '2d' | '3d') =>
+  readCatalog(fileURLToPath(new URL(`../../../../examples/${dimension}/`, import.meta.url)))
+
+describe.each(['2d', '3d'] as const)('the real %s examples', (dimension) => {
   it('pass the catalog', () => {
-    const examples = fileURLToPath(new URL('../../../../examples/', import.meta.url))
-    const problems = readCatalog(examples).flatMap((example) =>
+    const catalog = realExamples(dimension)
+    const problems = catalog.flatMap((example) =>
       example.problems.map((problem) => `${example.path}: ${problem}`),
     )
+    expect(catalog.length).toBeGreaterThan(0)
     expect(problems).toEqual([])
+  })
+})
+
+describe('the 2D examples', () => {
+  it('hold no 3D module and import no unpublished extension', () => {
+    const private3d = realExamples('2d').filter(
+      (example) =>
+        example.module === 'render3d' ||
+        example.module === 'figures' ||
+        example.imports.some(isUnpublishedExtension),
+    )
+    expect(private3d.map((example) => example.path)).toEqual([])
   })
 })

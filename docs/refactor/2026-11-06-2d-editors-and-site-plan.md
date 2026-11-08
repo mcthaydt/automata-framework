@@ -706,11 +706,11 @@ export and its 2D build) and the reverse would be a dependency cycle.
   `tooling/examples-runner` (catalog per package), `.github/workflows/{ci.yml,3d.yml}`, root `package.json` scripts
 - Test: `tooling/examples-runner/tests/unit/catalog.test.ts` (the 2D catalog has no private entry)
 
-- [ ] **Step 1: Failing test:** the 2D catalog holds no `render3d` or `figures` entry; `examples/2d/package.json`'s
+- [x] **Step 1: Failing test:** the 2D catalog holds no `render3d` or `figures` entry; `examples/2d/package.json`'s
   dependency tree (`pnpm --filter @af-examples/examples-2d list --depth Infinity`) has no `@pixi/3d`.
-- [ ] **Step 2:** Move (`git mv`); fix imports. `pnpm --filter @af-examples/examples-2d build` and the closed-beta scan
+- [x] **Step 2:** Move (`git mv`); fix imports. `pnpm --filter @af-examples/examples-2d build` and the closed-beta scan
   of its output pass; the 2D examples' journeys pass in Chromium; the 3D ones run in `3d.yml`.
-- [ ] **Step 3:** `pnpm check`. Commit, mark ready. `refactor(examples): 2D and 3D examples are separate packages`
+- [x] **Step 3:** `pnpm check`. Commit, mark ready. `refactor(examples): 2D and 3D examples are separate packages`
 
 ---
 
@@ -726,14 +726,14 @@ export and its 2D build) and the reverse would be a dependency cycle.
   `site/.nvmrc`, `site/.superpowers/`, `site/.taste-skill/` (agent scratch folders) and `site/docs/` (the site's own
   plans: moved to `docs/archive/site/`)
 
-- [ ] **Step 1:** `git fetch https://github.com/mcthaydt/automata-website main` (unshallow it first if the session's
+- [x] **Step 1:** `git fetch https://github.com/mcthaydt/automata-website main` (unshallow it first if the session's
   clone is shallow), `git subtree add --prefix site FETCH_HEAD`. If the proxy refuses the pack, use `--squash` and
   record the website's last commit (`4a514eb3` or later) in the commit message.
 
   **Session break here** if needed.
-- [ ] **Step 2:** `pnpm install`. `pnpm --filter @mcthaydt/automata-site test` → record which files fail (the audit:
+- [x] **Step 2:** `pnpm install`. `pnpm --filter @mcthaydt/automata-site test` → record which files fail (the audit:
   6 of 78, `double-jump`, `first-change`, `workshop-controls`, `api-contract`, `example-sources`, `license-claim`).
-- [ ] **Step 3: Commit.** `chore(site): move the website into the repository with its history`
+- [x] **Step 3: Commit.** `chore(site): move the website into the repository with its history`
 
 ### Task 10.2: Imports, not copies
 
@@ -754,7 +754,7 @@ export and its 2D build) and the reverse would be a dependency cycle.
   exports the protocol, so this is a move, not a re-export
 - Test: `site/tests/unit/framework/*.test.ts`
 
-- [ ] **Step 1: Failing tests.** The guides loader lists `docs/guides/editor.md` and the four publish guides (W7);
+- [x] **Step 1: Failing tests.** The guides loader lists `docs/guides/editor.md` and the four publish guides (W7);
   the API loader lists the four published packages, not twelve (W4); the demos list comes from the examples' own
   manifest and has no `bodies-2d` (WS3).
 - [ ] **Step 2:** Implement the loaders; delete the sync scripts and every copy; `build-demos.ts` builds the examples
@@ -1722,3 +1722,68 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   pass, 6 skipped; `editor-3d` suite DOM and Chromium layout tests pass; `-tools` editor tests 48. WebKit, Firefox and
   hosted CI not run.
 
+### 2026-11-06, session 7: phase 9, task 9.1
+
+- **The split.** `examples/2d` (`@af-examples/examples-2d`: core, shapes, textures, audio, render, content, ui, the
+  goldens, `public/`, `resources/` without the models, and every journey but the 3D ones) and `examples/3d`
+  (`@af-examples/examples-3d`: render3d, figures, `resources/models`, their eight journeys). The 2D package's
+  dependency tree has no `@pixi/3d`, `render-pixi3d` or `figures`. The workspace globs are `examples/2d`, `examples/3d`
+  and `examples/2d/*/*` (the two feature demos); `release`'s package walk follows them.
+- **Catalog per package.** `readCatalog` already reads one root, so the catalog code did not change; its test now
+  runs both real packages and fails if the 2D one holds a `render3d` or `figures` example or imports an unpublished
+  extension (the step-1 test, failing before the move with no `examples/2d`).
+- **3D journeys.** `examples/3d/playwright.config.ts` runs them in Chromium and WebKit (iPhone 14 landscape, as before)
+  on their own port, `examples3dPort` (slot 12), so a 2D and a 3D run never share a server; `base-3d`'s config no
+  longer serves the examples, and `3d.yml`'s `e2e-3d` job runs `pnpm --filter @af-examples/examples-3d test:e2e`.
+  **Deviation 91:** the plan kept the 3D examples' journeys in WebKit only; they gained a Chromium project because it
+  is the only engine a cloud session can run, and they pass there (9 of 9).
+- **Deviation 92:** the 2D config's `runner` projects ran every test under `tooling/examples-runner/tests/e2e`, the
+  playground journeys included, whose servers only the runner's own config starts (37 connection refusals when run
+  alone). They now ignore `playground-*.test.ts`; the playground moves to the site in task 10.2.
+- **Paths.** Root scripts (`examples` and `build:examples` on the 2D package, `examples:3d` new, `build:demos` and
+  `ci:local`), `ci.yml`'s 2D journeys, `3d.yml`'s paths (`examples/3d/**`), every `turbo.json` input glob, `knip.jsonc`
+  (each example file is an entry: the runner serves it), `biome.json`, `.vscode` (hides `examples/3d`), the playground's
+  examples root, the golden replay globs, `workflows.test.ts`'s YAML pins and comments that named the old paths.
+- **Gates.** `pnpm check` exit 0; examples-runner unit 115 and Chromium golden replays 12 pass; the 2D journeys
+  (examples, compact, runner, demos, ui-primitives) 88 pass and 2 skipped; the 3D journeys 9 pass in Chromium;
+  `findPixi3d` finds 0 in `examples/2d/dist` and 2 in `examples/3d/dist`. WebKit, Firefox, the input matrix's
+  WebKit and Firefox cells and hosted CI not run.
+
+### 2026-11-06, session 7 (continued): phase 10, task 10.1
+
+- **The subtree.** The session's clone is shallow, but `git fetch` of the website's `main` brought its whole history
+  (229 commits), so `git subtree add --prefix site FETCH_HEAD` ran without `--squash`; the website's last commit is
+  `4a514eb3`. Deleted after it: `site/pnpm-lock.yaml`, `site/LICENSE`, `site/.nvmrc`, `site/.superpowers/`,
+  `site/.taste-skill/`; `site/docs/` moved to `docs/archive/site/`. `site/package.json` is `@mcthaydt/automata-site`
+  (its `license` field went with its LICENSE file) and the scaffold test says so. The workspace lists `site`.
+- **Deviation 93:** Biome (`"!site"`) and knip (`ignoreWorkspaces`) leave `site` out for now: as it arrived it imports
+  the framework from a sibling checkout (12 unresolved imports) and carries synced copies and generated builds, which
+  task 10.2 deletes; 10.3 brings it under `pnpm lint` and 10.2 under knip. `turbo.json` needs nothing yet: the root
+  `build` filters `./packages/*` and the site has no `typecheck` or `test:unit` script; 10.2 adds `site#build`'s
+  dependencies.
+- **Step 2's record.** `pnpm --filter @mcthaydt/automata-site test`: 10 of 78 files fail (the audit counted 6):
+  `api-contract`, `double-jump`, `first-change`, `workshop-controls`, `playground/compile` (they import
+  `../../automata-framework/...`), `example-sources` and `license-claim` (they read that checkout's examples and
+  packages), `playground-sync` and `stack-page` (they compare synced copies at `framework.ref`), and `scaffold` (the
+  new name, fixed here). 491 tests pass.
+- **Gates.** `pnpm check` exit 0.
+
+### 2026-11-06, session 7 (continued): task 10.2, step 1 and the loaders
+
+- **Step 1.** `site/tests/unit/framework/{guides,packages,examples}.test.ts` (7 tests, Node environment) failed on the
+  missing modules, then pass against `site/src/shared/framework/`: `root.ts` (the repository root, four folders up),
+  `guides.ts` (`readGuides`: every `docs/guides/*.md`, title from its `# ` heading, description from the first
+  paragraph, `./x.md` links to `/docs/x`; a guide with no heading stops the build), `packages.ts`
+  (`publishedPackages`: the `packages/*` that are not private, the four a game author installs) and `examples.ts`
+  (`exampleList` from the examples runner's catalog over `examples/2d`, `featureDemos` from the demos' own
+  `package.json`: `hot-reload` and `primitives`, no `bodies-2d`). The site depends on `@mcthaydt/examples-runner`
+  (workspace) for the catalog.
+- **Deviation 94:** the guides carry no front matter (the website's old loader required `title` and `description`
+  fields from a `docs/guide/` folder that never existed under that name), so the title and description come from the
+  Markdown itself, and a guide's page is `/docs/<file>` rather than `/docs/guide-<file>`.
+- **Step 2, first part: the deploy that never ran.** Deleted `site/.github/` (its CI and deploy workflows, and the
+  deploy key with them), `scripts/{release,rehearse-rollback,check-deployed,check-uptime,record-lighthouse-baseline}.ts`,
+  `lighthouse-baseline.json`, their six test files and the four `package.json` scripts. `serve-static.ts` stays (the
+  browser suite and Lighthouse serve the build with it). Site tests: 75 files, 9 fail (the sibling-checkout and
+  synced-copy ones from 10.1's record), 389 pass.
+- **Gates.** The 7 tests pass; `pnpm check` exit 0. The rest of step 2 onward is the next session's.

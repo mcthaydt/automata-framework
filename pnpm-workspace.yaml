@@ -2,11 +2,13 @@ packages:
   - packages/*
   - tooling/*
   - games/*
-  # The one-file examples (EX spec §5). examples/* and examples/*/* hold the old demos until EX.4
-  # deletes them.
-  - examples
-  - examples/*
-  - examples/*/*
+  # The one-file examples (EX spec §5), one package per dimension, and the feature demos inside the 2D one
+  # (examples/2d/content/hot-reload, examples/2d/ui/primitives).
+  - examples/2d
+  - examples/3d
+  - examples/2d/*/*
+  # The website (automata.dev), moved in with its history on 2026-11-06.
+  - site
 # Same runtime as Ruken (docs/versions.md): pnpm runs scripts on this exact Node, whatever the system has.
 useNodeVersion: 24.21.0
 saveExact: true

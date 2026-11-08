@@ -29,7 +29,7 @@ import { runtimeFromViteManifest } from '../src/playground/vite-runtime.ts'
 // bundled package declares no licence.
 
 const packageRoot = fileURLToPath(new URL('..', import.meta.url))
-const examplesRoot = fileURLToPath(new URL('../../../examples/', import.meta.url))
+const examplesRoot = fileURLToPath(new URL('../../../examples/2d/', import.meta.url))
 
 const { values } = parseArgs({
   options: {
@@ -68,7 +68,7 @@ const entries = readCatalog(examplesRoot)
 const catalog = playgroundCatalog(entries, (entry) => readFileSync(entry.file, 'utf8'))
 const modules = new Set(catalog.map((example) => example.module))
 if (modules.has('resources'))
-  throw new Error('an examples module named resources would mix with examples/resources/')
+  throw new Error('an examples module named resources would mix with examples/2d/resources/')
 for (const example of catalog) {
   const folder = join(building, 'examples', example.module, example.name)
   const publicFiles = join(examplesRoot, 'public', example.module, example.name)

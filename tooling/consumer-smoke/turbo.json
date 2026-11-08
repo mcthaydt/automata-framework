@@ -11,7 +11,7 @@
         "$TURBO_ROOT$/tooling/*/package.json",
         "$TURBO_ROOT$/tooling/**/*.ts",
         "$TURBO_ROOT$/examples/*/package.json",
-        "$TURBO_ROOT$/examples/*/*/package.json"
+        "$TURBO_ROOT$/examples/*/*/*/package.json"
       ]
     },
     "test": {
@@ -23,7 +23,7 @@
         "$TURBO_ROOT$/tooling/*/package.json",
         "$TURBO_ROOT$/tooling/**/*.ts",
         "$TURBO_ROOT$/examples/*/package.json",
-        "$TURBO_ROOT$/examples/*/*/package.json"
+        "$TURBO_ROOT$/examples/*/*/*/package.json"
       ]
     },
     "test:e2e": {

@@ -9,14 +9,14 @@ import { goldenExamples } from '#src/parity.ts'
 // The globs are relative to this file, so they work in Node and in a browser alike (no file system there).
 const examples = goldenExamples(
   {
-    sources: import.meta.glob('../../../../examples/*/*.ts', {
+    sources: import.meta.glob('../../../../examples/2d/*/*.ts', {
       query: '?raw',
       import: 'default',
       eager: true,
     }),
   },
-  { modules: import.meta.glob('../../../../examples/*/*.ts', { import: 'default' }) },
-  '../../../../examples/__goldens__',
+  { modules: import.meta.glob('../../../../examples/2d/*/*.ts', { import: 'default' }) },
+  '../../../../examples/2d/__goldens__',
 )
 const fixtures = goldenExamples(
   {

@@ -16,3 +16,13 @@ condition = "AND"
 regexTarget = "line"
 regexes = ['''keyPath:\s*['"][A-Za-z0-9_.]+['"]''']
 paths = ['''\.test\.ts$''']
+
+[[allowlists]]
+description = """The website's history, brought in with its subtree (site/, task 10.1; the Owner chose to allowlist it,
+2026-11-06): its deploy-key check's fake OpenSSH key in tests/workflows.test.ts, that check's key-prefix pattern in
+.github/workflows/ci.yml, and a sha256 file hash in src/data/api-index.json. None is a secret; the commits cannot change."""
+commits = [
+  "850d8b67468a68f5719247f3ef8dd7da9e809998",
+  "c8231955d9ee13490cfd48e255bec8dbcd825bab",
+  "350bc5c0e6b8e1a1acb859dffacfa4e77a5c89e2",
+]

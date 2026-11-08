@@ -48,7 +48,7 @@ export function hostedQuery(gameUrl: string, gameId: string, options: HostedOpti
   return query
 }
 
-/** The examples package's preview build, in the slot after the six feature demos. */
+/** The 2D examples package's preview build, in the slot after the six feature demos. */
 export const examplesPort: number = demoPort(6)
 /** The runner's own fixture build (the stub example), in the next slot. */
 export const runnerFixturesPort: number = demoPort(7)
@@ -62,3 +62,5 @@ export const playgroundFrameOrigin = `http://127.0.0.1:${playgroundFramePort}`
 export const base3dPort: number = demoPort(10)
 /** base-3d's Vite dev server (games/base-3d/tests/e2e-dev): the page as `pnpm dev` serves it, unbundled, in the next slot. */
 export const base3dDevPort: number = demoPort(11)
+/** The 3D examples package's preview build (examples/3d), apart from the 2D one so both can run side by side. */
+export const examples3dPort: number = demoPort(12)

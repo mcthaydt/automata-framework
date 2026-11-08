@@ -57,9 +57,10 @@ export function workspacePackages(root: string): WorkspacePackage[] {
     for (const dir of subfolders(root, group)) {
       const manifest = readManifest(root, dir)
       if (manifest !== undefined) found.push({ dir, manifest })
-      // examples/<group>/<name> (pnpm-workspace.yaml's `examples/*/*`)
+      // The feature demos inside an examples package, examples/<dimension>/<module>/<name> (pnpm-workspace.yaml's
+      // `examples/2d/*/*`).
       if (group === 'examples') {
-        for (const inner of subfolders(root, dir)) {
+        for (const inner of subfolders(root, dir).flatMap((module) => subfolders(root, module))) {
           const innerManifest = readManifest(root, inner)
           if (innerManifest !== undefined) found.push({ dir: inner, manifest: innerManifest })
         }

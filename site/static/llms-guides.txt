@@ -1,0 +1,1604 @@
+# Automata Framework — Site Guides for Coding Agents
+
+> Automata is a deterministic 2D game framework for the web. A game builds for any static web host, for itch.io or for Ruken (automata-ship publishes to the last two), and a desktop build (Tauri) for Windows, macOS and Linux is planned.
+> Strict Core Laws: Koota ECS determinism, Effect outside sim, Zero Eval CSP, PixiJS 2D sub-tick alpha interpolation.
+
+---
+
+# The 5 Golden Rules for LLMs
+1. Simulation is Pure and Deterministic: NEVER import Effect, browser DOM, or PixiJS inside simulation systems.
+2. Effect Outside the Sim: Side effects (I/O, audio, network, saves) run in Effect outside the sim.
+3. Zero Eval: Never use eval() or new Function(). Strict CSP compliance required.
+4. Sub-tick alpha interpolation: Presentation interpolates positions between ticks: prev.x + (curr.x - prev.x) * alpha.
+5. Single State Ownership: Only the sim mutates game entities; UI and presentation only observe truth.
+
+---
+
+## Document: Overview & Vision (Getting Started)
+URL: /docs/overview
+Description: AI-assisted game development with code and content you can own.
+
+# Overview & Vision
+
+Automata is a TypeScript game framework for the web. A game builds for any static web host, for itch.io or for Ruken (automata-ship publishes to the last two), and a desktop build (Tauri) for Windows, macOS and Linux is planned.
+
+Automata is designed for developers using coding agents: agents write code and tests; people direct the game and author its content. Start with a working example, make a bounded change, and review the result.
+
+## License
+
+> [!NOTE]
+> Framework code is MIT licensed. Third-party dependencies and example artwork retain their own stated terms. See the repository license and asset provenance before redistributing assets.
+
+## Ownership
+
+Only simulation systems change gameplay state during a run. Input sends commands. PixiJS reads render deltas. Effect manages resources and side effects outside the simulation.
+
+## Current starting point
+
+Explore the 2D starter and focused examples before adding your own systems.
+
+## Packages
+
+| Package | Responsibility |
+|---|---|
+| @mcthaydt/automata-sim | Simulation, definitions, snapshots and RNG |
+| @mcthaydt/automata-runtime | Boot, flow and scoped runtime |
+| @mcthaydt/automata-render-pixi | PixiJS presentation |
+| @mcthaydt/automata-ui | Responsive geometry and UI |
+| @mcthaydt/automata-host | Hosting sessions |
+| @mcthaydt/automata-content | Content validation and compilation |
+
+---
+
+## Document: Quick Start (Getting Started)
+URL: /docs/quick-start
+Description: Play a double-jump remix, copy a task, and run the starter on your machine.
+
+# Quick Start
+
+## Play before setup
+
+[Try the double-jump remix](/start#worked-change) in your browser. Jump, release, and press again before landing. Toggle the extra jump off to compare the original. The same page includes the prompt, source, and tests.
+
+## Run the starter locally
+
+Use Node 24.21.0 or newer and pnpm 10.34.6.
+
+```sh
+git clone https://github.com/mcthaydt/automata-framework.git
+cd automata-framework
+pnpm install --frozen-lockfile
+pnpm --filter @af-examples/base-2d dev
+```
+
+Open the URL printed by Vite and play Emberwick. The starter is a working TypeScript browser game that you can edit directly or with a coding agent.
+
+## Give your agent one idea
+
+[Copy the double-jump task](/start#first-task). It adds one extra jump through a plugin, reuses the existing player input and movement definitions, and tests held input, landing, and snapshots. [Install agent skills](/docs/agent-setup) for the guided workflow when you set up your agent.
+
+A configurable player start is also included as a smaller content exercise. Its helper uses parseRoom to validate the new room while keeping the source content unchanged.
+
+## Check and play the result
+
+```sh
+pnpm --filter @af-examples/base-2d check
+pnpm --filter @af-examples/base-2d build
+```
+
+Try the new behavior and the original controls yourself. Ask the agent to report the files changed, the checks it ran, and any browser or device behavior it has not verified.
+
+## Choose your next change
+
+[Choose a task prompt](/ai#task-prompts) for a collectible, dash, jump feedback, room content, saves, or release preparation. The [API reference](/cheatsheet) provides examples and current package entry points.
+
+## License and scope
+
+Framework code is MIT licensed; assets and third-party dependencies retain their own terms. Browser and mobile foundations are available. Networking and server packages remain planned. See [capabilities and licensing](/docs/capabilities).
+
+
+---
+
+## Document: From Unity (Coming from another engine)
+URL: /docs/from-unity
+Description: Map GameObjects, MonoBehaviours, scenes and ScriptableObjects to Automata ownership.
+
+# From Unity
+
+Keep the habit of composing a game from small pieces. In Automata, separate the data that determines gameplay from the objects that draw it.
+
+## Map familiar concepts
+
+| Your starting point | Automata responsibility |
+|---|---|
+| GameObject and gameplay components | A simulation entity with data components; its PixiJS view is separate. |
+| FixedUpdate gameplay rules | Synchronous systems running in fixed simulation ticks. |
+| Update and visual feedback | Presentation and input outside the simulation; drawing can happen between ticks. |
+| Scenes, prefabs and ScriptableObjects | Authored content plus explicit spawning and setup code. There is no scene or prefab importer. |
+| Editor inspector tweaks | Edit typed content or tuning values and verify the result with tests and the playable example. |
+
+## The habit to change
+
+Avoid making each view object responsible for its own gameplay state. Send input as commands and let simulation systems own the resulting state.
+
+## Your first small port
+
+Start by moving P in Emberwick’s room content. Read room.test.ts, then follow player-move.system.ts and play-room.ts to see how content, rules and drawing connect.
+
+[Open Emberwick’s source](/examples?demo=base-2d) and [try the worked change](/start#worked-change).
+
+## Compatibility and scope
+
+Unity APIs, packages, serialized scenes and editor tooling are not drop-in dependencies. Port one mechanic first rather than translating a whole project.
+
+[Current capabilities](/docs/capabilities).
+
+---
+
+## Document: From Godot (Coming from another engine)
+URL: /docs/from-godot
+Description: Map nodes, scenes, signals, resources and physics callbacks to simulation and presentation.
+
+# From Godot
+
+A Godot scene tree combines several responsibilities. In Automata, identify which parts describe gameplay state, which parts draw it, and which parts manage input or resources.
+
+## Map familiar concepts
+
+| Your starting point | Automata responsibility |
+|---|---|
+| Nodes and scenes | Entities and data for gameplay, with separate PixiJS containers or HTML/Svelte UI for presentation. |
+| _physics_process gameplay logic | Fixed-tick simulation systems. |
+| _process visual updates | Presentation outside the simulation, including drawing between ticks. |
+| Signals | Explicit commands and events at ownership boundaries; do not assume a global signal replacement. |
+| Resources and exported properties | Typed content and tuning data, validated by the project’s parsers and schemas. |
+
+## The habit to change
+
+Keep the scene graph as a presentation structure. Do not turn it into a second owner of gameplay state.
+
+## Your first small port
+
+Read the room content and its validation tests, then trace input through play-room.ts into the movement system. Rebuild one small scene interaction as a command and system.
+
+[Open Emberwick’s source](/examples?demo=base-2d) and [try the worked change](/start#worked-change).
+
+## Compatibility and scope
+
+There is no .tscn, GDScript or resource converter. Preserve the behavior you need, then implement it using Automata’s current APIs.
+
+[Current capabilities](/docs/capabilities).
+
+---
+
+## Document: From Unreal (Coming from another engine)
+URL: /docs/from-unreal
+Description: Map Actors, components, Blueprints and replication expectations to the current 2D framework.
+
+# From Unreal
+
+Bring the habit of defining ownership and boundaries, but evaluate the current 2D browser toolchain before planning a port from a full Unreal project.
+
+## Map familiar concepts
+
+| Your starting point | Automata responsibility |
+|---|---|
+| Actors and gameplay components | Simulation entities with data components and systems; rendering is a separate view. |
+| Blueprint gameplay graphs | Reviewable TypeScript systems, commands and tests. Automata has no Blueprint editor. |
+| Tick | Fixed simulation ticks for rules and a separate frame loop for drawing. |
+| Levels and data assets | Authored content and explicit project setup. |
+| Replication and server authority | A roadmap concern: networking and server packages are planned, not a replacement for Unreal replication today. |
+
+## The habit to change
+
+Make the server/networking requirement an explicit capability check. A deterministic simulation alone does not supply transport, matchmaking or replication.
+
+## Your first small port
+
+Try the browser starter and the fixed-step loop tests. Port one self-contained 2D mechanic with a clear command, state change and test before considering a larger project.
+
+[Open Emberwick’s source](/examples?demo=base-2d) and [try the worked change](/start#worked-change).
+
+## Compatibility and scope
+
+Do not choose the current framework as a drop-in replacement for Unreal’s 3D renderer, editor, asset pipeline or networking stack.
+
+[Current capabilities](/docs/capabilities).
+
+---
+
+## Document: From GameMaker (Coming from another engine)
+URL: /docs/from-gamemaker
+Description: Map objects, instances, events, rooms and alarms to data, systems and content.
+
+# From GameMaker
+
+The room and event model is a useful starting vocabulary. The main change is to make gameplay state explicit and keep drawing separate from rules.
+
+## Map familiar concepts
+
+| Your starting point | Automata responsibility |
+|---|---|
+| Objects and instances | Entities carrying data components, created through explicit setup. |
+| Create events | Entity initialization and plugin/project setup. |
+| Step events | Systems that advance gameplay in fixed ticks. |
+| Draw and Draw GUI events | PixiJS presentation and game UI outside the simulation. |
+| Rooms and alarms | Authored room content and tick-based state for timed gameplay. Keep wall-clock timers outside the sim. |
+
+## The habit to change
+
+Avoid coupling a drawing instance to the only copy of gameplay state. Keep rules in systems and let views observe the result.
+
+## Your first small port
+
+Open room.ts and map #, ., P and G to the playable room. Make one content edit, run the room tests, then inspect the movement system as the equivalent of a focused Step rule.
+
+[Open Emberwick’s source](/examples?demo=base-2d) and [try the worked change](/start#worked-change).
+
+## Compatibility and scope
+
+Automata does not import .yy projects or execute GML. Rebuild a small room or mechanic first and retain your original project as the behavior reference.
+
+[Current capabilities](/docs/capabilities).
+
+---
+
+## Document: From web development (Coming from another engine)
+URL: /docs/from-web
+Description: Map application state, components, requestAnimationFrame and async work to game ownership.
+
+# From web development
+
+TypeScript, Vite and browser tools will be familiar. The new discipline is to give simulation time and gameplay state explicit owners rather than updating them from every UI callback.
+
+## Map familiar concepts
+
+| Your starting point | Automata responsibility |
+|---|---|
+| Application state | Gameplay state belongs to the simulation; menus and UI can still own their own UI state. |
+| UI components and DOM | Svelte/HTML UI or PixiJS presentation. Simulation components are data, not UI components. |
+| requestAnimationFrame | Drive drawing per frame; advance game rules through the fixed-step loop. |
+| Click/key callbacks | Translate input into commands instead of mutating gameplay entities from the view. |
+| fetch, timers and cleanup effects | Resource work outside the simulation, with Effect-managed lifetimes where the runtime owns it. |
+
+## The habit to change
+
+Keep Date, Math.random, network requests and DOM access out of simulation steps. Use the framework’s deterministic inputs, time and RNG where gameplay depends on them.
+
+## Your first small port
+
+Read loop.ts and loop.test.ts, then trace play-room.ts from input to sim.step and renderer.draw. Make the configurable-start change before adding a new mechanic.
+
+[Open Emberwick’s source](/examples?demo=base-2d) and [try the worked change](/start#worked-change).
+
+## Compatibility and scope
+
+A game loop is not a component rerender loop. Browser and device performance still require measurement, even when the source looks like a familiar web application.
+
+[Current capabilities](/docs/capabilities).
+
+---
+
+## Document: ECS Simulation & Determinism (Core)
+URL: /docs/sim-ecs
+Description: Components, systems, async creation and synchronous stepping.
+
+# ECS Simulation & Determinism
+
+## Definitions
+
+Use defineComponent for fields, defineSystem for a synchronous run function, and definePlugin to register components and systems. Systems query entities through SimContext and write through entity.set.
+
+## Creation and ticks
+
+Await createSim with a seed and plugins. Creation can initialize plugin engines asynchronously. Once created, sim.step(commands) advances one fixed tick synchronously. The default tick rate is 60 Hz.
+
+## Repeatable runs
+
+Keep I/O, wall-clock time, Math.random, DOM and Effect outside simulation steps. Use context RNG streams and the framework's deterministic math where required. Replay equivalence depends on matching code, content, initial state and commands; use the cross-engine checks for evidence.
+
+## Snapshots and lifetime
+
+Use sim.snapshot() to serialize state and sim.restore(bytes) to restore a compatible snapshot. Call sim.dispose() when the simulation is no longer needed.
+
+---
+
+## Document: PixiJS 2D Presentation (Core)
+URL: /docs/render-pixi
+Description: Renderer setup, render deltas and interpolation.
+
+# PixiJS 2D Presentation
+
+## Renderer setup
+
+Import @mcthaydt/automata-render-pixi/no-eval before initializing PixiJS. createPixiRenderer returns a factory that accepts the runtime render target and produces a scoped Effect.
+
+WebGL2 is the default. WebGPU is opt-in. Test the renderer you plan to ship on the devices you support.
+
+## Between ticks
+
+Presentation reads render deltas instead of changing gameplay state. Interpolate between previous and current values when drawing between simulation ticks.
+
+```ts
+sprite.x = previous.x + (current.x - previous.x) * alpha
+```
+
+## Working examples
+
+The renderer example demonstrates presentation in isolation. Emberwick adds a playable room. Use those sources for the complete boot and disposal flow.
+
+---
+
+## Document: Effect Runtime & Concurrency (Core)
+URL: /docs/effect-runtime
+Description: Loading, errors and resource lifetimes outside the sim.
+
+# Effect Runtime & Concurrency
+
+## Boot
+
+runGame accepts a GameDefinition and returns a RuntimeHandle. It owns boot attempts, resources and shutdown. Use the runtime package types for the full definition.
+
+## Resource ownership
+
+Effect scopes manage resource lifetimes outside the simulation. Keep file and network access, loading, timers and persistent saves out of simulation systems.
+
+## Failure and recovery
+
+Boot failures are typed. Inspect the runtime example for its loading, retry and failure behavior. A typed boundary makes failure explicit; it does not guarantee a game cannot crash.
+
+---
+
+## Document: Zero-Eval CSP & Host Security (Core)
+URL: /docs/security-csp
+Description: Avoiding dynamic evaluation under the host policy.
+
+# Zero-Eval CSP & Host Security
+
+## Dynamic evaluation
+
+Do not use eval or new Function in game code. Every web build follows the no-eval rule, whatever its target. Import the renderer's no-eval entry before initializing PixiJS.
+
+## Policy scope
+
+Avoiding dynamic evaluation is one part of CSP compatibility. Asset origins, connections, workers and other directives must also match the host policy. Test the built game under the headers its target serves. On Ruken, a game's headers come from compileHeaders in @ruken/manifest, and the framework CLI's CSP probe loads the build in Chromium under them. See [the content security policy](/ai#csp).
+
+## Trust boundaries
+
+Keep credentials outside game bundles. Validate host messages at the integration boundary. Use the supported hosting API instead of inventing another handshake.
+
+---
+
+## Document: Mobile UI Primitives (Core)
+URL: /docs/mobile-ui
+Description: Geometry, controls and accessible layout.
+
+# Mobile UI Primitives
+
+## Geometry
+
+createGeometryOwner tracks the space available to game UI, including host geometry and viewport changes. Use its state instead of independent measurements in every component.
+
+## Layout and controls
+
+ScreenFrame, ActionBar, CornerControls and Dialog provide building blocks. Check their current Props definitions rather than guessing component inputs.
+
+## Device checks
+
+Verify touch targets, focus order, orientation changes, safe areas and keyboard occlusion on supported devices. A responsive layout test does not establish GPU performance or real-device acceptance.
+
+## Tested input journeys
+
+At 780×270, the framework’s input matrix plays a touch journey and a gamepad journey in Chromium under a fake host. Keyboard journeys run at the tablet and desktop sizes, in Chromium, WebKit and Firefox at desktop size. These are browser tests with simulated input and DOM geometry. Acceptance on real phones and controllers is separate and still open. [Read the matrix](https://github.com/mcthaydt/automata-framework/blob/f8023a907725cccd84277372c0d4f1b73d2da90c/packages/testing/src/e2e/input-matrix.ts) at the framework commit this site was built from.
+
+
+---
+
+## Document: AI Coding Agent Rules (Guidance)
+URL: /docs/ai-rules
+Description: Project context for agents, followed by verification.
+
+# AI Coding Agent Rules
+
+## Start from source
+
+Install Superpowers and the official PixiJS v8 skills, then have the agent report which guidance it loaded. See [Install agent skills](/docs/agent-setup). Give the agent AGENTS.md, current package types and the nearest working example. Read instructions through the agent's supported project-context mechanism.
+
+## Boundaries
+
+- Only simulation systems mutate gameplay state during a run.
+- Effect runs outside the sim.
+- Avoid dynamic evaluation; verify the actual host CSP.
+- Presentation interpolates between ticks and observes render deltas.
+- Report the checks performed and the gates still open.
+
+## Verify the result
+
+Instructions cannot eliminate hallucinations or guarantee correct code. Check exported names, typecheck changes, run relevant tests and inspect runtime behavior.
+
+## Plain-text context
+
+The website publishes llms.txt as an index; llms-full.txt, the framework's defined documentation corpus followed by its complete API reference, and llms-api.txt, that reference alone, both generated from the package declarations by the framework's API index; and llms-guides.txt, this site's guides and task prompts. None of them is the framework source.
+
+---
+
+## Document: Capabilities and licensing (Getting Started)
+URL: /docs/capabilities
+Description: What you can use today, what is planned, and how the license applies.
+
+# Capabilities and licensing
+
+## Available foundations
+
+- Browser games with a playable 2D starter and standalone delivery.
+- Phone-first interface primitives, keyboard and touch input examples.
+- Simulation systems, seeded randomness, snapshots and replays.
+- Explicit source files and tests that people and coding agents can inspect and change.
+
+## Where a game goes
+
+A game builds for any static web host, for itch.io or for Ruken (automata-ship publishes to the last two), and a desktop build (Tauri) for Windows, macOS and Linux is planned. A game chooses its target when it is built.
+
+## Planned
+
+Multiplayer networking and server packages are planned. Deterministic simulation and replays are foundations for that work, not a complete multiplayer service. Full 3D support and further gameplay extensions follow the framework roadmap.
+
+## MIT framework code
+
+The framework code uses the MIT license. You may use it in commercial games and modify it without publishing your game's source, subject to retaining the required license notice. Read the repository's LICENSE for the full terms.
+
+## Assets and extensions
+
+The framework license does not replace third-party dependency licenses or asset-specific terms. Example art has provenance files in its project; fonts have their own licenses. Any extension sold under separate terms must state those terms explicitly.
+
+
+---
+
+## Document: Boot errors (Core)
+URL: /docs/boot-errors
+Description: The typed failures boot reports, generated from the framework API index.
+
+# Boot errors
+
+Every way boot can fail; each draws on the runtime's boot failure panel (shared contracts §4).
+
+```ts
+type BootError = HostError | ContentHashMismatch | AssetLoadFailed | LoadStalled | RendererUnavailable | BootDefect;
+```
+
+These are the failures boot reports as typed values. A defect in game code after boot is not one of them, and this list is not a claim that every failure is caught. [Read the source](https://github.com/mcthaydt/automata-framework/blob/f8023a907725cccd84277372c0d4f1b73d2da90c/packages/runtime/src/boot/boot-error.ts) at the framework commit this site was built from.
+
+## The failures
+
+### HostError
+
+From `@mcthaydt/automata-host`. Any failure after the handshake. A request that fails never falls back to another path.
+
+### ContentHashMismatch
+
+From `@mcthaydt/automata-runtime`. Content hash does not match expected hash.
+
+### AssetLoadFailed
+
+From `@mcthaydt/automata-runtime`. An asset download failed with a non-OK HTTP status or network error (status 0).
+
+### LoadStalled
+
+From `@mcthaydt/automata-runtime`. A resource download had no progress reported for STALL_MS (30 s).
+Triggers the "Taking a while" screen with a Try again button.
+
+### RendererUnavailable
+
+From `@mcthaydt/automata-runtime`. Neither WebGL2 nor WebGPU could be initialized.
+In Ruken this presents the "unsupported" screen with an exit button.
+
+### BootDefect
+
+From `@mcthaydt/automata-runtime`. An unexpected defect during boot.
+
+
+---
+
+## Document: Services and failure (Core)
+URL: /docs/service-model
+Description: What the simulation owns, what the runtime owns, and what is not undone when something fails.
+
+# Services and failure
+
+## Two sides
+
+The simulation owns gameplay state and nothing else. It is plain synchronous TypeScript with no I/O, no clock and no `Math.random`, and it never imports Effect. Everything around it, the host adapter, boot, screens, saves, audio, input and the frame loop, is the runtime, and the runtime is built from Effect services.
+
+## Services are explicit dependencies
+
+A runtime manager is an Effect service: a `Context.Tag` and a `Layer`. A manager that needs the clock asks for Effect's `Clock` instead of reading `Date`, so a test replaces it with `TestClock`. A manager that holds something open (a listener, a timer, an audio node) registers its release with a `Scope`, and leaving a screen or restarting the game closes the scope. Game code meets Effect only where it registers an extension or a custom service; systems, components and commands stay Effect-free.
+
+## What failure does
+
+A failure in the runtime is a typed value, not a thrown string. Boot reports a closed union of failures and each one maps to a screen state; [Boot errors](/docs/boot-errors) lists them. Retries and timeouts are part of the program that owns them (the handshake, loading stalls, the exit grace), not a global handler.
+
+## What is not rolled back
+
+A failed runtime step does not rewrite the simulation. The sim has already advanced by whole ticks, and a tick either completes or is not run. A write the host refused is not retried against another store: when the hosted save capability is denied or missing, the game reports that and does not fall back to device storage. A defect in game code after boot is not a typed failure, and this page is not a claim that every failure is caught.
+
+## Where this is decided
+
+[ADR 0003, Effect for everything outside the sim](https://github.com/mcthaydt/automata-framework/blob/main/docs/adr/0003-effect-outside-the-sim.md) records the decision and what it rules out. Zod stays the one schema language on both sides.
+
+
+---
+
+## Document: Saves and migrations (Core)
+URL: /docs/saves
+Description: How a save is versioned, migrated step by step, and kept when this build cannot read it.
+
+# Saves and migrations
+
+## What a save is
+
+A game describes its save with `SaveDef`: a key prefix, the `version` of the data (an integer from 1), a Zod `schema`, an `empty` value for a new slot, and `migrations`. It may name a number of slots and an autosave policy. The data is stored through the host as a self-describing record that carries its version, the content hash it was written with and the time.
+
+## Migrations run one step at a time
+
+`migrations[n]` turns version `n` data into version `n + 1` data. A save written at version 1 and opened by a version 3 build runs step 1, then step 2, and then the schema parses the result. Write each step as a pure function of the record it receives.
+
+## When a save cannot be used
+
+- **A step is missing, a step throws, or the parse fails:** the slot is `unreadable`. It is shown as damaged and kept exactly as it is; autosave never touches it, and it is overwritten only if the player chooses to.
+- **The save is from a newer build:** the slot is read-only in this build. No write, autosave or migration changes its bytes, so opening an older build does not erase newer progress.
+- **A field this build does not know:** it rides through, so a write by an older build of the same version keeps it.
+
+## Settings are different on purpose
+
+Settings are versioned and migrated too, but losing a preference is acceptable and losing progress is not, so settings do not use the save rules above.
+
+## Where the host stores it
+
+Saves go through the host's save capability. If the host denies it, the game says so. It does not write to the device instead.
+
+The rules are in the M5 spec (§4.2, §5 and §6) and the types are in `SaveDef`, in the runtime package's API reference.
+
+
+---
+
+## Document: Automata Plus (Plus)
+URL: /docs/plus
+Description: The optional extensions and kits that live outside the core framework.
+
+# Automata Plus
+
+## What it is
+
+Core is what every game needs: the simulation, the runtime, the Pixi renderer, the interface primitives, the host contract and the content compiler. Plus is everything optional, kept in a repository and registry of its own so that no extension edits a core file and core never imports an extension.
+
+## Cost
+
+Plus is free. The framework's business model changed on 2026-10-30: core and every extension are free, and the only paid product is the editor suite as iOS and Android apps. The editors stay free on the web and desktop.
+
+## How a game uses it
+
+An extension registers itself with `defineExtension`. A kit is source a game copies in with `automata add`, then owns and edits. Extensions that touch the simulation do so through the simulation's public entries, so a game that does not install them is unchanged.
+
+## What is available today
+
+Plus is not yet open to install from. This section lists each extension here, with its install command, when it is published.
+
+
+---
+
+## Document: Install agent skills (Getting Started)
+URL: /docs/agent-setup
+Description: Install Superpowers and the official PixiJS collection, then verify the agent can load them.
+
+# Install agent skills
+
+## Required for the guided AI workflow
+
+Install Superpowers and the official PixiJS v8 skill collection for the agent you will use. They guide planning, testing and rendering work; they are not runtime dependencies of the game.
+
+## Install Superpowers
+
+In the Codex app, open Plugins and install Superpowers. In Codex CLI, use /plugins, search for Superpowers and select Install Plugin.
+
+In Claude Code, use its official plugin marketplace:
+
+```text
+/plugin install superpowers@claude-plugins-official
+```
+
+In Cursor Agent chat:
+
+```text
+/add-plugin superpowers
+```
+
+Other agents have their own installation routes. Use the [upstream Superpowers instructions](https://github.com/obra/superpowers#installation).
+
+## Install PixiJS skills
+
+Run this in the checkout and follow the prompts for your coding agent and the full PixiJS collection:
+
+```sh
+npx skills add https://github.com/pixijs/pixijs-skills
+```
+
+See the [official PixiJS instructions](https://github.com/pixijs/pixijs-skills#installing).
+
+## Verify before coding
+
+Ask the agent to confirm installed and loaded skills, rather than inferring readiness from a website checkbox.
+
+```text
+Before coding, check the skills available in this agent session.
+Confirm Superpowers is installed, including using-superpowers and its planning/testing workflows.
+Confirm the official PixiJS v8 skill collection is installed, including the pixijs router and relevant rendering skills.
+Read the applicable SKILL.md files and report their loaded paths or plugin names.
+If either collection is missing or cannot be loaded, stop and follow its upstream installation instructions before implementing.
+Then read this checkout's AGENTS.md and current package types. Project rules take precedence.
+Do not report a skill as installed or loaded without evidence.
+```
+
+[Use the interactive setup checklist](/start). Installation sources were checked on 15 October 2026; follow upstream instructions when a tool changes.
+
+---
+
+## Document: Who Automata is for (Getting Started)
+URL: /docs/audience
+Description: Choose Automata based on your workflow and current requirements.
+
+# Who Automata is for
+
+## Who this is for
+
+- You build with coding agents and want source files and tests you can inspect.
+- You are making a 2D browser game and want phone-first interface foundations.
+- You want people to own the art, rooms, rules and creative direction.
+- You are willing to work in TypeScript, review changes and keep tests with the game.
+
+## Who this is not for
+
+- You need a visual scene editor or drag-and-drop game-making workflow.
+- You need a complete 3D engine, editor tooling or Unreal-style rendering pipeline today.
+- You need production-ready multiplayer networking and server packages out of the box.
+- You expect a finished game from one prompt without reviewing code or testing the result.
+
+## Start from your background
+
+- [From Unity](/docs/from-unity)
+- [From Godot](/docs/from-godot)
+- [From Unreal](/docs/from-unreal)
+- [From GameMaker](/docs/from-gamemaker)
+- [From web development](/docs/from-web)
+
+[Current capabilities and licensing](/docs/capabilities).
+
+---
+
+## Document: FAQ (Getting Started)
+URL: /docs/faq
+Description: Answers about agents, content, licensing, platforms, migration and community games.
+
+# FAQ
+
+## Do I need to know how to code?
+
+You should be willing to read and change TypeScript, or learn it alongside your agent. Automata makes ownership explicit, but it does not turn game development into a no-code workflow.
+
+## Do I have to use AI?
+
+No. The framework is ordinary source code that you can edit and test yourself. The guided workflow is designed for coding agents, with human review and creative control.
+
+## Which skills should my agent have?
+
+Install Superpowers and the official PixiJS v8 skill collection for the agent you are actually using. Then ask it to report the available skills and load the relevant guidance. These are requirements for the recommended AI workflow, not runtime dependencies of your game.
+
+## Which coding agents can I use?
+
+Use an agent that can read the checkout, edit files and run tests. Installation differs between Codex, Claude Code, Cursor and other tools; the agent setup guide links the current upstream instructions.
+
+## Can I sell a game built with Automata?
+
+The framework code is MIT licensed, which permits commercial use under the license terms without requiring publication of your game source. Keep required notices and check separate asset, dependency, extension and tool terms.
+
+## Can I make the content myself?
+
+Yes. Edit room data, art, rules and narrative directly. The worked example lets you choose a starting position while reusing the existing simulation and renderer. You can also edit any of the code yourself.
+
+## Does it run in browsers and on phones?
+
+Browser delivery and phone-first UI foundations are available, with keyboard and touch examples. Test your own game on the devices, orientations and browsers you intend to support.
+
+## Is multiplayer ready?
+
+Networking and server packages are planned. Deterministic state, snapshots and replays provide foundations for that work; they are not a complete multiplayer service.
+
+## Does it support full 3D today?
+
+The current public starting point is 2D. Further rendering and full 3D work are on the roadmap. Choose based on current capability status rather than planned features.
+
+## Can I import an existing engine project?
+
+There is no automatic Unity, Godot, Unreal or GameMaker project converter. The migration guides map familiar concepts and recommend rebuilding one small mechanic first.
+
+## How does it help a game grow beyond a prototype?
+
+Explicit state ownership, separate systems and packages, and repeatable tests help keep changes bounded as the project grows. They do not promise a particular player count or performance level; measure your own game.
+
+## Where can a game be published?
+
+A game builds for any static web host, for itch.io or for Ruken (automata-ship publishes to the last two), and a desktop build (Tauri) for Windows, macOS and Linux is planned. The starter also runs standalone in a browser; see hosting guidance when adding platform services.
+
+## How do I get my game into the showcase?
+
+Use the community showcase submission link. Include a public playable URL, your creator name, a short description, the Automata version and screenshots you have permission to share. Submissions are reviewed before publication.
+
+[Install agent skills](/docs/agent-setup), [make a first change](/start), or [visit the community showcase](/showcase).
+
+---
+
+# AI workflow
+URL: /ai
+
+## Project context
+- AGENTS.md: Project rules, architecture, and required checks. Read applicable instructions in the directories you will edit.
+- package.json: Available scripts, tool versions, dependencies, and package exports. Read both the workspace and target package manifests.
+- games/emberwick/src/base-sim.ts: Simulation creation, room content, command envelopes, and starting entities.
+- games/emberwick/src/sim/: Working component, command, event, resource, system, and plugin definitions.
+- The closest focused example: Use the one-file example for the integration being changed (examples/core, render, shapes, textures, audio), or content/hot-reload or ui/primitives.
+- The nearest tests and public types: Actual accepted inputs, failure behavior, cleanup requirements, and exported names. Prefer these over a guessed API.
+
+## Architectural boundaries
+### Simulation owns gameplay state
+
+Send commands from input and UI. Systems apply gameplay changes during fixed ticks. Initial scene setup may spawn entities before stepping; presentation observes the results.
+
+### Keep ticks repeatable
+
+No I/O, wall clocks, Math.random, DOM, or Effect in simulation systems. Use ctx.rng, deterministic math, stable traversal, and the same code, content, seed, and command stream when comparing runs.
+
+### Effect owns work outside the sim
+
+Use Effect for loading, hosting, saves, timers, and resource lifetimes. Keep simulation steps synchronous and close scopes, simulations, subscriptions, and render resources with their owner.
+
+### Use the renderer boundary
+
+Import the renderer no-eval entry before initializing PixiJS. Draw from render deltas, interpolate previous and current values, and handle a full resync after restore. Test the actual host content security policy.
+
+### Honor host capabilities
+
+Use Hosting, whatever the target. Wait for readiness, check granted capabilities, validate saved data, and report save failures. A denied hosted capability must not silently fall back to device storage.
+
+### Keep shared contracts canonical
+
+Extend the component, schema, service, or package that owns a behavior. Keep content, snapshot, replay, and host contracts in their existing owners. Check the exact package entry point before using an export.
+
+## First task prompt
+```text
+Before coding, check the skills available in this agent session.
+Confirm Superpowers is installed, including using-superpowers and its planning/testing workflows.
+Confirm the official PixiJS v8 skill collection is installed, including the pixijs router and relevant rendering skills.
+Read the applicable SKILL.md files and report their loaded paths or plugin names.
+If either collection is missing or cannot be loaded, stop and follow its upstream installation instructions before implementing.
+Then read this checkout's AGENTS.md and current package types. Project rules take precedence.
+Do not report a skill as installed or loaded without evidence.
+
+Task: add a double jump to the existing Emberwick game.
+Read AGENTS.md, the workspace and base-2d package manifests, and the current
+setup, input, movement, plugin, and test files before editing.
+
+Acceptance criteria:
+- A fresh jump press in the air gives the player one extra jump.
+- Holding jump does not repeat it, and a third jump is refused until landing.
+- Landing restores the extra jump. Keyboard and touch use the same command.
+- Snapshots preserve jump availability and replayed inputs produce the same state.
+- The original mode still behaves as before, so I can play both versions.
+
+Add the behavior through a small plugin using the starter's existing definitions.
+Do not change player-move.system.ts or the renderer. Keep jump availability
+in simulation state and reuse the existing jump event for visual feedback.
+
+Make the smallest coherent change in the responsible layer. Keep input as commands,
+gameplay updates in systems, and I/O and Effect outside the simulation.
+Verify exported names against the current TypeScript definitions.
+Run focused tests, then the example's check and build scripts from the workspace root.
+Report changed files, the exact checks and outcomes, how to play the result,
+and anything that still needs browser, host, or device verification.
+```
+
+## Add a collectible
+
+Add a collectible without letting its sprite become the source of truth.
+API: /cheatsheet#defineSystem
+
+```text
+Add a collectible to Emberwick that can be collected once when the player overlaps it.
+Read the room, player components, goal system, plugin, and movement tests first.
+Keep collectible state and collection rules in the sim. Emit a registered event
+for presentation to consume; a sprite callback must not award the collectible.
+Test overlap, non-overlap, and repeated ticks at the same location.
+Use a fixed room and seed. Verify that only one collection event is emitted.
+Register all new definitions, run the focused tests and example checks,
+and explain how to play and inspect the result.
+```
+
+## Add a dash
+
+Carry a new action from keyboard and touch through a validated command.
+API: /cheatsheet#defineCommand
+
+```text
+Add a dash action to the existing movement flow, with keyboard and touch input.
+Read the input adapters, command schema, player-input system, movement system,
+and plugin first. Reuse the current command envelope and sequence convention.
+Input requests the action; the sim owns dash availability, duration, and movement.
+Test accepted and invalid payloads, press versus hold, release or cancellation,
+and attempts to dash while unavailable. Inspect StepResult.rejected for failures.
+Keep keyboard and touch behavior equivalent and preserve existing movement tests.
+Run focused tests and the example checks; list the controls for manual testing.
+```
+
+## Make jumps feel good
+
+Make an event visible without changing the simulation from the renderer.
+API: /cheatsheet#createPixiRenderer
+
+```text
+Add a short visual response when the player's existing jump event is emitted.
+Read the event, renderer wiring, and nearest presentation tests before editing.
+Keep the effect outside the sim and preserve the gameplay command stream and state.
+Use the current PixiJS v8 APIs and the no-eval entry. Handle the first frame,
+entity removal, restore resync, restart, and disposal without leaking views.
+Respect reduced motion where the effect introduces nonessential movement.
+Run relevant checks, compare simulation hashes for the same inputs,
+and report which renderer and device behavior was actually inspected.
+```
+
+## Author a room
+
+Validate authored data and keep generated outputs reproducible.
+API: /cheatsheet#defineContentSchema
+
+```text
+Add a validated content field for a game rule using the closest content example.
+Read the current schema, TOML, compiler configuration, and consuming system first.
+Define the field once in its owning Zod schema and validate the allowed range.
+Keep gameplay data in the simulation content partition. Update the consumer
+without hardcoding a second copy or hand-editing generated content or hashes.
+Test a valid value, an invalid value, and the diagnostic location.
+Rebuild generated outputs and verify them. If live editing is used, check that
+an invalid save preserves the last good playable content. Report the checks.
+```
+
+## Save progress
+
+Persist progress through the host and explain failure states to the player.
+API: /cheatsheet#Hosting
+
+```text
+Add a versioned progress save through the existing Hosting service.
+Read examples/core/core-saves.ts, the runtime settings or save boundary, and tests.
+Reuse the live session, wait for readiness, and check the saves capability.
+Validate decoded payloads with Zod before applying any gameplay state.
+Test missing, valid, malformed, incompatible, denied, and failed save/load cases.
+Preserve stored data when loading fails. Keep I/O outside simulation systems.
+Do not silently switch a denied hosted save to localStorage or device storage.
+Distinguish a local update from remote persistence; inspect save status or flush.
+Run relevant tests and report which hosted or standalone paths were verified.
+```
+
+## Prepare a release
+
+Check and package the artifact before choosing a publishing destination.
+API: /cheatsheet#defineShipConfig
+
+```text
+Prepare the current game for release using its existing scripts and ship.config.ts.
+Read package.json, the ship configuration, and the nearest release checks.
+Verify that package version, game ID, runtime capabilities, and asset paths agree.
+Run the relevant tests, type checks and build, then the prepare step for the game's
+target: automata-ship prepare for Ruken (inspect the generated ruken.toml), with
+--target itch for itch.io; a web build is the dist folder. Test the built game
+under its intended base path and content security policy where available.
+Check asset provenance and required notices. Keep credentials outside the bundle.
+Report artifact location, commands and results, and remaining browser/device/host
+checks. Identify any required publishing destination and environment separately;
+a local prepare is not a completed deployment.
+```
+
+## Review and verify
+- Play the acceptance case yourself. Check the changed behavior and a nearby action that should still work.
+- Review the diff: gameplay state has one owner, exports exist at the imported entry point, and generated data comes from its source.
+- Read test assertions, including invalid input, failure, restart, and cleanup paths relevant to the change.
+- Ask for the exact commands and results. Separate focused unit checks, a production build, browser behavior, host integration, and physical-device checks.
+- For deterministic changes, compare the same seed, content, initial state, and commands. Investigate the first divergence before changing a golden hash.
+- For mobile UI, check keyboard and touch, rotation, compact height, focus, and actions above the on-screen keyboard.
+
+```sh
+# From the framework workspace root, for the Emberwick starter:
+pnpm --filter @af-examples/base-2d check
+pnpm --filter @af-examples/base-2d build
+# Then the prepare step for the target: automata-ship prepare (Ruken), with --target itch (itch.io);
+# a web build is the dist folder as it is.
+```
+
+---
+
+# Selected API reference
+URL: /cheatsheet
+These examples and abbreviated contracts describe selected APIs, not every export.
+The current checkout's instructions and TypeScript definitions take precedence.
+
+## Simulation
+Import: @mcthaydt/automata-sim
+URL: /cheatsheet#simulation
+Source: https://github.com/mcthaydt/automata-framework/blob/main/packages/sim/src/index.ts
+
+Define gameplay state and advance it with synchronous fixed ticks. Use instance methods on the Sim returned by createSim.
+
+```ts
+import { createSim, defineComponent, definePlugin, defineSystem } from '@mcthaydt/automata-sim'
+
+const Counter = defineComponent('counter', { value: 'u32' })
+const count = defineSystem({
+  name: 'counter.advance',
+  phase: 'gameplay',
+  run(ctx) {
+    for (const entity of ctx.query(Counter)) {
+      entity.set(Counter, { value: entity.get(Counter).value + 1 })
+    }
+  },
+})
+const plugin = definePlugin({
+  name: 'counter', components: [Counter], systems: [count],
+})
+const sim = await createSim({ seed: 1, plugins: [plugin] })
+try {
+  sim.spawn([Counter]) // Initial setup, before stepping.
+  for (let tick = 0; tick < 60; tick++) sim.step([])
+  const [entity] = sim.query(Counter)
+  if (entity.get(Counter).value !== 60) throw new Error('Expected 60 ticks')
+} finally {
+  sim.dispose()
+}
+```
+
+### createSim
+
+Creates an isolated simulation and awaits plugin engine initialization. Once created, stepping is synchronous.
+
+```ts
+createSim(options: SimOptions): Promise<Sim>
+```
+Returns: Promise<Sim>
+- options.seed (number): Seed for repeatable random streams. Use the same seed when reproducing a run.
+- options.plugins (readonly PluginDef[]): Definitions to register, including required dependencies.
+- options.tickHz (number): Optional integer from 1 to 1000. Defaults to 60 fixed ticks per second.
+- options.content (unknown): Optional canonical JSON content, copied, frozen, and hashed at creation.
+- Always await creation and dispose the sim when its owner closes. Duplicate definitions or invalid ordering reject creation.
+- Replay equivalence requires matching code, content, initial state, tick rate, and commands as well as the seed.
+
+### defineComponent
+
+Declares per-entity fields. Read with entity.get and write with entity.set so changes appear in render deltas.
+
+```ts
+defineComponent<S extends FieldSchema>(id: string, fields: S, opts?: { render?: boolean }): ComponentDef<S>
+```
+Returns: ComponentDef<S>
+- id (string): Stable lowercase ID with dot or dash separators, used in snapshots and render rows.
+- fields (FieldSchema): Field names mapped to f32, f64, i32, u32, bool, entity, or string.
+- opts.render (boolean): Optional; defaults to true. Set false for simulation-only data such as input buffers.
+- Numbers default to 0, booleans to false, and strings to empty. Writes validate field types and ranges.
+- Do not mutate the object returned by entity.get. Use entity.set with the fields you want to change.
+
+### defineCommand
+
+Defines a validated input payload. Register it in a plugin and read accepted commands through ctx.commands.of(definition).
+
+```ts
+defineCommand<Z extends z.ZodType>(id: string, schema: Z): CommandDef<Z>
+```
+Returns: CommandDef<Z>
+- id (string): Command type in the input envelope.
+- schema (z.ZodType): Zod schema that validates payloads before systems receive them.
+- Keyboard, touch, and UI callbacks enqueue commands. Gameplay changes happen when a system consumes them.
+
+### defineEvent
+
+Defines an event emitted with ctx.emit and returned in StepResult.events. Register it in the owning plugin.
+
+```ts
+defineEvent<Z extends z.ZodType>(id: string, schema: Z): EventDef<Z>
+```
+Returns: EventDef<Z>
+- id (string): Stable event ID, such as player.jumped.
+- schema (z.ZodType): Zod schema for the emitted payload.
+- React with audio and interface effects outside the sim.
+
+### defineSystem
+
+Declares synchronous gameplay behavior. Query matching entities through the context and write their components explicitly.
+
+```ts
+defineSystem(spec: { name: string; phase: Phase; run: (ctx: SimContext) => void; before?: readonly string[]; after?: readonly string[] }): SystemDef
+```
+Returns: SystemDef
+- spec.name (string): Unique stable system name; also identifies its RNG stream.
+- spec.phase (Phase): input, prePhysics, physics, postPhysics, gameplay, or cleanup, in that order.
+- spec.run ((ctx: SimContext) => void): One synchronous tick. ctx.dt is the fixed step in seconds; ctx.rng is this system's stream.
+- spec.before / spec.after (readonly string[]): Optional ordering constraints by system name. Invalid schedules fail at creation.
+- Keep I/O, browser APIs, wall clocks, Math.random, and Effect outside run.
+- A thrown system faults the sim. Restore a valid snapshot or recreate it before continuing.
+
+### definePlugin
+
+Registers a coherent set of definitions and optional engine state. Each sim owns its own plugin state.
+
+```ts
+definePlugin(spec: { name: string; components?: readonly ComponentDef[]; systems?: readonly SystemDef[]; dependsOn?: readonly string[]; commands?: readonly CommandDef[]; events?: readonly EventDef[]; resources?: readonly ResourceDef[]; state?: (setup: PluginStateSetup) => Promise<PluginState>; config?: unknown }): PluginDef
+```
+Returns: PluginDef
+- spec.name (string): Unique plugin ID.
+- spec.components / systems / commands / events / resources (readonly definition[]): Definitions this plugin owns. Omitted lists are empty.
+- spec.dependsOn (readonly string[]): Names of required plugins.
+- spec.config (unknown): Optional canonical JSON settings included in the schema hash, such as gravity.
+- Optional state setup creates an engine with snapshot, prepareRestore, and dispose. Ordinary gameplay plugins usually need only definitions and systems.
+
+### defineResource
+
+Defines shared per-sim state such as round score. Systems access it with ctx.resource(definition).
+
+```ts
+defineResource<Z extends z.ZodType>(id: string, schema: Z, init: () => z.input<Z>): ResourceDef<Z>
+```
+Returns: ResourceDef<Z>
+- id (string): Stable resource ID.
+- schema (z.ZodType): Validates initial and restored values.
+- init (() => z.input<Z>): Creates an independent initial value for each sim.
+- Register the resource in its plugin. Keep gameplay updates in systems.
+
+### step
+
+Advances one fixed tick and returns the resulting tick, events, render delta, and rejected commands.
+Instance method on Sim.
+
+```ts
+sim.step(commands: readonly Command[]): StepResult
+```
+Returns: StepResult
+- commands (readonly Command[]): Envelopes contain tick, source, seq, type, and payload. tick is sim.tick before the call; source is a u8 player slot and seq is a u32 counter.
+- Rejections report bad-header, unknown-command, wrong-tick, duplicate-seq, or invalid-payload. Inspect result.rejected when input seems ignored.
+- Accepted commands are ordered by source and sequence. Keep sequence numbers distinct for a source within a tick.
+- Presentation consumes the result and draws with a sub-tick alpha. Do not step gameplay from a second render loop.
+
+### spawn
+
+Creates an entity during initial scene setup and returns its stable ID.
+Instance method on Sim.
+
+```ts
+sim.spawn(parts: readonly SpawnPart[]): number
+```
+Returns: number
+- parts (readonly SpawnPart[]): A component definition or [definition, initial fields] tuple for each registered component.
+- During gameplay, request spawns through commands and call ctx.spawn from a system. ctx.spawn takes parts as separate arguments.
+
+### snapshot
+
+Serializes canonical state, including resources, RNG, and plugin state.
+Instance method on Sim.
+
+```ts
+sim.snapshot(): Uint8Array
+```
+Returns: Uint8Array
+
+- A snapshot is state, not a persistent save service. Store bytes outside the sim with matching code and content.
+
+### restore
+
+Replaces live state with a compatible snapshot. Invalid data throws and leaves current state unchanged.
+Instance method on Sim.
+
+```ts
+sim.restore(bytes: Uint8Array): void
+```
+Returns: void
+- bytes (Uint8Array): Snapshot bytes for compatible definitions and content.
+- Catch SnapshotFormatError and SnapshotMismatchError at the application boundary. Preserve saved bytes when loading fails.
+- The next step emits a full render resync; let presentation rebuild its views.
+
+### hash
+
+Returns the current snapshot's XXH64 hash as 16 hexadecimal digits for equivalent-run comparisons.
+Instance method on Sim.
+
+```ts
+sim.hash(): string
+```
+Returns: string
+
+- Use describeSnapshot and the first differing tick to investigate divergence; a hash alone does not explain it.
+
+### describeSnapshot
+
+Decodes a readable snapshot without changing live state. Omit bytes to inspect current state.
+Instance method on Sim.
+
+```ts
+sim.describeSnapshot(bytes?: Uint8Array): SnapshotView
+```
+Returns: SnapshotView
+- bytes (Uint8Array): Optional snapshot. Header checks run; this does not replace full restore validation.
+
+
+### dispose
+
+Releases the world and plugin engines. Use in test teardown, runtime cleanup, and failed startup paths.
+Instance method on Sim.
+
+```ts
+sim.dispose(): void
+```
+Returns: void
+
+- Idempotent. Later state operations throw SimDisposedError.
+
+### createRng
+
+Creates a seeded stream with next(), nextU32(), int(n), and state(). Systems normally use ctx.rng.
+
+```ts
+createRng(seed: number): Rng
+```
+Returns: Rng
+- seed (number): Seed for a standalone stream.
+- rng.int(n) returns an integer from 0 inclusive to n exclusive. n must be a positive integer no greater than 2^32.
+
+---
+
+## Snapshots and replays
+Import: @mcthaydt/automata-sim/replay
+URL: /cheatsheet#replays
+Source: https://github.com/mcthaydt/automata-framework/blob/main/packages/sim/src/replay/index.ts
+
+Record accepted commands with checkpoints, encode a run, and verify it against matching plugins and content. Import replays through this simulation subpath.
+
+```ts
+import { createSim } from '@mcthaydt/automata-sim'
+import { createRecorder, createReplayStepper, encodeReplay, decodeReplay } from '@mcthaydt/automata-sim/replay'
+
+const sim = await createSim({ seed: 7, plugins: [] })
+try {
+  const recorder = createRecorder(sim, { checkEvery: 10 })
+  for (let tick = 0; tick < 60; tick++) recorder.step([])
+  const replay = decodeReplay(encodeReplay(recorder.finish()))
+  const playback = await createReplayStepper(replay, { plugins: [] })
+  try {
+    const result = playback.run()
+    if (!result.ok) throw new Error('Replay diverged at tick ' + result.failed?.tick)
+  } finally {
+    playback.dispose()
+  }
+} finally {
+  sim.dispose()
+}
+```
+
+### createRecorder
+
+Captures the starting snapshot and records accepted commands while advancing through recorder.step.
+
+```ts
+createRecorder(sim: Sim, options?: RecorderOptions): Recorder
+```
+Returns: Recorder
+- sim (Sim): Live simulation to record. Only the recorder may step it during recording.
+- options.checkEvery (number): Optional positive checkpoint interval. Defaults to 60 ticks.
+- options.reference ({ snapshotEvery: number }): Optional golden-run mode: per-tick hashes and periodic snapshots.
+- finish() records the final hash and closes the recorder. Stepping the sim separately invalidates the recording.
+
+### createReplayStepper
+
+Creates a fresh sim from the starting snapshot and feeds recorded commands. run() stops at the first failed check.
+
+```ts
+createReplayStepper(replay: Replay, setup: ReplayStepSetup): Promise<ReplayStepper>
+```
+Returns: Promise<ReplayStepper>
+- replay (Replay): Decoded or freshly recorded run.
+- setup.plugins (readonly PluginDef[]): Matching plugin definitions.
+- setup.content (unknown): Matching simulation content if originally supplied.
+- Inspect result.ok, checks, and failed. Dispose the stepper when finished.
+- Snapshot or header mismatches can reject creation before playback begins.
+
+### encodeReplay
+
+Encodes a recorded run to canonical, uncompressed bytes.
+
+```ts
+encodeReplay(replay: Replay): Uint8Array
+```
+Returns: Uint8Array
+- replay (Replay): Run from recorder.finish().
+- For compressed .replay files, use packReplay with a compression adapter.
+
+### decodeReplay
+
+Validates and decodes uncompressed bytes. Malformed data throws ReplayFormatError.
+
+```ts
+decodeReplay(bytes: Uint8Array): Replay
+```
+Returns: Replay
+- bytes (Uint8Array): Output from encodeReplay. Compressed files need unpackReplay.
+
+
+---
+
+## Runtime
+Import: @mcthaydt/automata-runtime
+URL: /cheatsheet#runtime
+Source: https://github.com/mcthaydt/automata-framework/blob/main/packages/runtime/src/index.ts
+
+Effect-scoped boot, screens, loading, settings, and shutdown. Runtime service tags are available inside runtime-provided contexts.
+
+```ts
+import { runGame, type GameDefinition } from '@mcthaydt/automata-runtime'
+
+// Supply your game's root, hosting, compiled content, screens, and renderer.
+export function mountGame(game: GameDefinition) {
+  const handle = runGame(game)
+  // Await this cleanup when the owning page or component unmounts.
+  return async () => { await handle.shutdown() }
+}
+```
+
+### runGame
+
+Starts boot immediately and returns a shutdown handle. The runtime provides loading and failure recovery UI.
+
+```ts
+runGame<S>(game: GameDefinition<S>): RuntimeHandle
+```
+Returns: RuntimeHandle
+- game.root (HTMLElement): Mount point owned by this running game.
+- game.hosting (Omit<HostingOptions, 'disclosedEvents'>): Game ID, requested capabilities, and pause policy.
+- game.content ({ data: CompiledContentData; hash: string }): Runtime content and its full content hash.
+- game.screens (readonly ScreenDef[]): Implementations matching the flow graph's screen IDs.
+- game.renderer (RendererFactory): Scoped renderer factory, such as createPixiRenderer(...).
+- runGame is not a Promise and does not accept a bare canvas or sim. Await handle.shutdown() to close its scope.
+- GameDefinition also supports settings, extensions, copy, and test seams. Use its current type for the full contract.
+
+### Time
+
+Effect service for pause state. yield* Time exposes paused, reasons, pause(reason), and resume(reason).
+
+```ts
+Time: Context.Tag<Time, Time>
+```
+Returns: Effect service tag
+
+- Pause reasons are menu and lifecycle. Resuming one does not remove the other. Gameplay time stays fixed inside the sim.
+
+### Flow
+
+Effect service exposing current screen, dispatch(event), openMenu(), and the settled Effect.
+
+```ts
+Flow: Context.Tag<Flow, Flow>
+```
+Returns: Effect service tag
+
+- dispatch returns whether an event was accepted; it does not await the transition. Yield flow.settled to wait.
+- Screen IDs and transition events come from the compiled flow graph.
+
+### Settings
+
+Effect service holding the booted settings key and store. Use settingsStore(definition) for typed access.
+
+```ts
+Settings: Context.Tag<Settings, Settings>
+```
+Returns: Effect service tag
+
+- Persistence uses Hosting.saves. Refused saves do not silently switch to localStorage.
+
+### settingsStore
+
+Gets the typed booted store with get, subscribe, and update.
+
+```ts
+settingsStore<S>(def: SettingsDef<S>): Effect.Effect<SettingsStore<S>, never, Settings>
+```
+Returns: Effect.Effect<SettingsStore<S>, never, Settings>
+- def (SettingsDef<S>): The definition used at boot, with a matching key.
+- A mismatched key is a programming defect. Updates change memory first and persist asynchronously; they are not durability acknowledgements.
+
+---
+
+## PixiJS presentation
+Import: @mcthaydt/automata-render-pixi
+URL: /cheatsheet#presentation
+Source: https://github.com/mcthaydt/automata-framework/blob/main/packages/render-pixi/src/index.ts
+
+Draw render deltas without changing gameplay state. WebGL2 is the default; WebGPU is opt-in. Import no-eval before initializing PixiJS.
+
+```ts
+import '@mcthaydt/automata-render-pixi/no-eval'
+import { createPixiRenderer, type EntityView } from '@mcthaydt/automata-render-pixi'
+import { Graphics } from 'pixi.js'
+
+// Expects a registered, renderable component named position with x/y fields.
+export const renderer = createPixiRenderer({
+  logicalWidth: 320, logicalHeight: 192,
+  entityViews: {
+    position: () => {
+      const dot = new Graphics().circle(0, 0, 4).fill(0xffc857)
+      const view: EntityView = {
+        container: dot,
+        update(current, previous, alpha = 1) {
+          const now = current.position as { x: number; y: number }
+          const before = (previous?.position ?? now) as { x: number; y: number }
+          dot.position.set(
+            before.x + (now.x - before.x) * alpha,
+            before.y + (now.y - before.y) * alpha,
+          )
+        },
+      }
+      return view
+    },
+  },
+})
+```
+
+### createPixiRenderer
+
+Returns a GameDefinition renderer factory. The runtime supplies the host element, geometry owner, and assets.
+
+```ts
+createPixiRenderer(options?: PixiRendererOptions): (target: RenderTarget) => Effect.Effect<PixiRenderer, RendererUnavailable, Scope.Scope>
+```
+Returns: Scoped renderer factory
+- options.logicalWidth / logicalHeight (number): Logical game dimensions for letterboxing.
+- options.preference ('webgl' | 'webgpu'): Defaults to webgl (WebGL2). Opt-in WebGPU falls back to WebGL2 if initialization fails.
+- options.entityViews (EntityViewResolver): Factory, or component-ID map of factories, creating one view per entity.
+- options.setup ((stage: PixiStage) => void): Optional stage setup, such as filters.
+- View updates receive current fields, previous fields when available, and interpolation alpha. Handle the first frame with no previous values.
+- Keep simulation and rendering units consistent. Emberwick player positions use subpixels.
+
+### RenderDeltaConsumer
+
+Maps stable entity IDs to views. apply(delta) handles additions, changes, removals, and full resync.
+
+```ts
+new RenderDeltaConsumer(world: Container, resolver?: EntityViewResolver)
+```
+Returns: RenderDeltaConsumer
+- world (Container): Parent for generated view containers.
+- resolver (EntityViewResolver): Optional factory or component-ID map selecting entity views.
+- The framework renderer already owns a consumer. Create one only for a custom presentation integration.
+
+---
+
+## Responsive UI
+Import: @mcthaydt/automata-ui
+URL: /cheatsheet#ui
+Source: https://github.com/mcthaydt/automata-framework/blob/main/packages/ui/src/index.ts
+
+One geometry owner coordinates usable space, safe areas, browser bars, keyboard occlusion, and host display metrics. Svelte primitives consume that geometry.
+
+```ts
+import { createGeometryOwner } from '@mcthaydt/automata-ui'
+
+// For custom browser wiring. The runtime already creates its own geometry owner.
+export function trackGeometry() {
+  const owner = createGeometryOwner({ window, root: document.documentElement })
+  return { owner, cleanup() { owner.dispose() } }
+}
+```
+
+### createGeometryOwner
+
+Measures available space and publishes reactive geometry and CSS properties as viewport overlays settle.
+
+```ts
+createGeometryOwner(options: GeometryOwnerOptions): GeometryOwner
+```
+Returns: GeometryOwner
+- options.window (ViewportWindow): Browser window or injected test viewport.
+- options.root (HTMLElement): CSS publication root, normally document.documentElement.
+- options.host (HostDisplay): Optional initial host display metrics.
+- Read owner.geometry.current in Svelte or subscribe with owner.onChange. Forward host updates using setHostDisplay.
+- Reuse the runtime owner when present. Dispose custom owners and unsubscribe listeners on cleanup.
+
+### ScreenFrame
+
+Svelte screen layout keeping body and actions inside usable geometry. Content regions are snippets.
+
+```ts
+ScreenFrame({ arrangement, body, hero?, actions?, back?, backLabel?, header?, end?, testId? })
+```
+Returns: Svelte component
+- arrangement ('stack' | 'split'): Lay out hero and body vertically or side by side.
+- body (Snippet): Required main content.
+- hero / actions / header / end (Snippet): Optional regions and corner controls.
+- back / backLabel (() => void / string): Optional back action and accessible label.
+- Choose layout from usable geometry, independently of input mode. Verify rotation, keyboard occlusion, and reachable controls on devices.
+
+### Dialog
+
+Svelte modal with trapped focus, inert background, Escape handling, and focus restoration when removed.
+
+```ts
+Dialog({ title, onclose, children?, actions? })
+```
+Returns: Svelte component
+- title (string): Visible title and accessible dialog name.
+- onclose (() => void): Called on Escape; the owner closes the dialog.
+- children / actions (Snippet): Optional body and buttons. Mark the safe action with data-initial-focus.
+- Mount only while open, using a Svelte if block. Keep the safe action reachable in compact height.
+
+---
+
+## Hosting
+Import: @mcthaydt/automata-host
+URL: /cheatsheet#hosting
+Source: https://github.com/mcthaydt/automata-framework/blob/main/packages/host/src/index.ts
+
+Use Hosting for readiness, capabilities, saves, lifecycle, and platform actions: one interface, whatever the game's target.
+
+```ts
+import { makeHosting } from '@mcthaydt/automata-host'
+import { Effect } from 'effect'
+
+export const saveProgress = Effect.scoped(Effect.gen(function* () {
+  const hosting = yield* makeHosting({
+    gameId: 'my-game', wants: ['saves'], pauseBehavior: 'pause',
+  })
+  yield* hosting.ready
+  if (!hosting.granted.has('saves')) {
+    return yield* Effect.fail(new Error('Saves unavailable in this session'))
+  }
+  yield* hosting.saves.set('progress-v1', JSON.stringify({ version: 1, room: 'room-1' }))
+  return yield* hosting.saves.flush
+}))
+// Run at the application boundary; handle the returned status or error.
+// In a runtime screen, reuse yield* Hosting instead of creating a session.
+```
+
+### makeHosting
+
+Creates a scoped session. Wait for hosting.ready before presenting gameplay.
+
+```ts
+makeHosting(options: HostingOptions, seams?: HostingSeams): Effect.Effect<Hosting, HostError, Scope.Scope>
+```
+Returns: Effect.Effect<Hosting, HostError, Scope.Scope>
+- options.gameId (string): Must match ship.config.ts (and ruken.toml on the Ruken target).
+- options.wants (readonly Capability[]): Requested capabilities. Check hosting.granted before offering dependent features.
+- options.pauseBehavior ('pause' | 'continue'): Lifetime pause policy matching the manifest.
+- seams (HostingSeams): Optional injected SDK environment for testing.
+- Keep the scope alive while the session is in use. Runtime screens already receive Hosting.
+- Inspect hosting.kind and handshake.fellBack for iframe issues. A denied hosted capability must not silently switch to device storage.
+
+### Hosting
+
+Effect service exposing ready, granted, player, locale, observable host state, and platform operations.
+
+```ts
+Hosting: Context.Tag<Hosting, Hosting>
+```
+Returns: Effect service tag
+
+- saves.get(key) yields string or null. saves.set and remove can fail with HostError. Validate and version saved payloads.
+- saves.flush is an Effect value, not a function. Inspect its result: a local update does not establish remote durability.
+- Use onExiting for bounded cleanup and round.start / round.end for round lifecycle. Keep credentials outside game bundles.
+
+---
+
+## Content
+Import: @mcthaydt/automata-content
+URL: /cheatsheet#content
+Source: https://github.com/mcthaydt/automata-framework/blob/main/packages/content/src/index.ts
+
+Register Zod schemas for authored TOML, compile content, and pass the appropriate partition to the runtime or simulation.
+
+```ts
+import { compileContent, defineContentSchema } from '@mcthaydt/automata-content'
+import { z } from 'zod'
+
+export const enemySchema = defineContentSchema(
+  'enemy',
+  z.strictObject({ health: z.int().min(1), speed: z.number().positive() }),
+  { folder: 'enemies' },
+)
+// Reads content/enemies/*.toml plus built-in documents under this root.
+export const compileGameContent = (root: string) =>
+  compileContent({ root, schemas: [enemySchema] })
+```
+
+### defineContentSchema
+
+Registers one content kind and the file or folder that owns it.
+
+```ts
+defineContentSchema<K extends string, S extends z.ZodType>(kind: K, schema: S, place: ContentSchemaPlace, options?: ContentSchemaOptions): ContentSchemaDef<K, S>
+```
+Returns: ContentSchemaDef<K, S>
+- kind (string): Unique lowercase kind. tuning, flow, palette, game, and assets are reserved.
+- schema (z.ZodType): Zod schema for each document or collection item.
+- place ({ file: string } | { folder: string }): Location relative to content/. A file is one document; a folder is a collection.
+- options.sim (boolean): Defaults to true. Set false only for presentation-only content that cannot affect gameplay.
+- Never classify gameplay data as presentation-only to bypass snapshot or replay compatibility.
+
+### compileContent
+
+Reads and validates in memory, returning data, generated file texts, hashes, and warnings. Writes nothing.
+
+```ts
+compileContent(options: ContentOptions): Effect.Effect<CompiledContent, ContentCompileFailed | InvalidContentConfig>
+```
+Returns: Effect.Effect<CompiledContent, ContentCompileFailed | InvalidContentConfig>
+- options.root (string): Project root containing content/.
+- options.schemas (readonly ContentSchemaDef[]): Game-specific registrations.
+- options.flow / tunables / generators (ContentOptions): Optional code-owned flow capabilities, tunables, and generators.
+- compiled.data and compiled.hash identify full runtime content. compiled.sim.data and compiled.sim.hash identify its gameplay partition.
+- The full content hash, simulation content hash, and sim.hash() identify different artifacts. They are not interchangeable.
+
+### buildContent
+
+Compiles successfully, then writes generated outputs. A failed compile leaves previous outputs intact.
+
+```ts
+buildContent(options: ContentOptions): Effect.Effect<CompiledContent, ContentCompileFailed | InvalidContentConfig | ContentWriteFailed>
+```
+Returns: Effect.Effect<CompiledContent, ContentCompileFailed | InvalidContentConfig | ContentWriteFailed>
+- options (ContentOptions): Compiler options; outDir defaults to content/generated relative to root.
+- Each file is replaced atomically. For live editing, see the content hot-reload example and @mcthaydt/automata-content/vite.
+
+### verifyContent
+
+Recompiles in memory and compares generated outputs byte for byte. Missing or edited outputs report staleArtifact.
+
+```ts
+verifyContent(options: ContentOptions): Effect.Effect<void, ContentCompileFailed | InvalidContentConfig>
+```
+Returns: Effect.Effect<void, ContentCompileFailed | InvalidContentConfig>
+- options (ContentOptions): Use the same options as the build.
+- Regenerate from source; do not hand-edit generated JSON or hashes.
+
+---
+
+## Shipping
+Import: @mcthaydt/automata-ship
+URL: /cheatsheet#shipping
+Source: https://github.com/mcthaydt/automata-framework/blob/main/packages/ship/src/index.ts
+
+Configure identity and prepare a built folder. Preparation checks the local artifact; publishing needs a destination and credentials.
+
+```ts
+import { defineShipConfig } from '@mcthaydt/automata-ship'
+
+// ship.config.ts. Keep version aligned with the game package.json.
+export default defineShipConfig({
+  game: { id: 'my-game', title: 'My Game', version: '0.1.0', entry: 'index.html', sdk: '^0.0.0' },
+  runtime: { renderer: 'webgl2', orientation: 'any', inputs: ['touch', 'keyboard'], pause_behavior: 'pause' },
+  network: { connect: [] },
+  content: { languages: ['en'], rating: 'everyone', descriptors: [] },
+})
+```
+
+### defineShipConfig
+
+Provides type checking and editor completion for ship.config.ts. Its fields follow Ruken's manifest, which the Ruken target writes as ruken.toml.
+
+```ts
+defineShipConfig(config: ShipConfig): ShipConfig
+```
+Returns: ShipConfig
+- config.game (Manifest['game']): Game ID, title, version, entry, and SDK range. Match the hosting game ID.
+- config.runtime (Omit<Manifest['runtime'], 'allow_eval'>): Renderer, orientation, inputs, and pause policy. Ship sets allow_eval to false.
+- config.network / content (ShipConfig): Declared connections, languages, rating, and descriptors.
+- For the starter, run pnpm --filter @af-examples/base-2d build, then the prepare step for its target (prepare-ruken for Ruken). Preparation does not upload or activate a game.
+- automata-ship publish uses RUKEN_API and RUKEN_TOKEN for Ruken, or, with --target itch, BUTLER_API_KEY and butler for itch.io. Supply credentials in the environment, never browser code.

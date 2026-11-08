@@ -9,7 +9,7 @@
         "$TURBO_ROOT$/package.json",
         "$TURBO_ROOT$/pnpm-workspace.yaml",
         "$TURBO_ROOT$/games/*/playwright.config.ts",
-        "$TURBO_ROOT$/examples/playwright.config.ts",
+        "$TURBO_ROOT$/examples/*/playwright.config.ts",
         "$TURBO_ROOT$/packages/*/package.json",
         "$TURBO_ROOT$/packages/*/vitest.config.ts",
         "$TURBO_ROOT$/tooling/*/package.json",
@@ -18,8 +18,8 @@
         "$TURBO_ROOT$/games/*/vitest.config.ts",
         "$TURBO_ROOT$/examples/*/package.json",
         "$TURBO_ROOT$/examples/*/vitest.config.ts",
-        "$TURBO_ROOT$/examples/*/*/package.json",
-        "$TURBO_ROOT$/examples/*/*/vitest.config.ts"
+        "$TURBO_ROOT$/examples/*/*/*/package.json",
+        "$TURBO_ROOT$/examples/*/*/*/vitest.config.ts"
       ]
     },
     "test": {
@@ -29,7 +29,7 @@
         "$TURBO_ROOT$/package.json",
         "$TURBO_ROOT$/pnpm-workspace.yaml",
         "$TURBO_ROOT$/games/*/playwright.config.ts",
-        "$TURBO_ROOT$/examples/playwright.config.ts",
+        "$TURBO_ROOT$/examples/*/playwright.config.ts",
         "$TURBO_ROOT$/packages/*/package.json",
         "$TURBO_ROOT$/packages/*/vitest.config.ts",
         "$TURBO_ROOT$/tooling/*/package.json",
@@ -38,8 +38,8 @@
         "$TURBO_ROOT$/games/*/vitest.config.ts",
         "$TURBO_ROOT$/examples/*/package.json",
         "$TURBO_ROOT$/examples/*/vitest.config.ts",
-        "$TURBO_ROOT$/examples/*/*/package.json",
-        "$TURBO_ROOT$/examples/*/*/vitest.config.ts"
+        "$TURBO_ROOT$/examples/*/*/*/package.json",
+        "$TURBO_ROOT$/examples/*/*/*/vitest.config.ts"
       ]
     }
   }

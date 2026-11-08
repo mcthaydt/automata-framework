@@ -1,0 +1,11 @@
+node_modules
+.svelte-kit
+build
+.env
+.env.*
+!.env.example
+.DS_Store
+test-results
+playwright-report
+.lighthouseci
+release-manifest.json

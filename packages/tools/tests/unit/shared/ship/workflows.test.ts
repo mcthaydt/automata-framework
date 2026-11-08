@@ -215,10 +215,10 @@ const hasPackageJson = (path: string): boolean => {
     return false
   }
 }
-// The workspace globs: packages/*, tooling/*, games/*, examples/* and examples/*/* (pnpm-workspace.yaml).
+// The workspace globs: packages/*, tooling/*, games/*, examples/2d, examples/3d and examples/2d/*/* (pnpm-workspace.yaml).
 const workspacePackages = [
   ...['packages', 'tooling', 'games', 'examples'].flatMap(foldersIn),
-  ...foldersIn('examples').flatMap(foldersIn),
+  ...foldersIn('examples/2d').flatMap(foldersIn),
 ].filter(hasPackageJson)
 
 describe('parity across packages', () => {
@@ -443,7 +443,7 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
       'pnpm check',
       'pnpm test:browser:2d',
       'pnpm exec turbo run build --filter @mcthaydt/automata-tools',
-      'pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples --filter @mcthaydt/consumer-smoke',
+      'pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples-2d --filter @mcthaydt/consumer-smoke',
     ])
   })
 
@@ -544,7 +544,7 @@ describe('ci.yml (AF)', () => {
     expect(job?.['timeout-minutes']).toBe(30)
     const runs = (job?.steps ?? []).map((step) => step.run ?? '')
     expect(runs).toContain('pnpm exec turbo run build --filter @mcthaydt/automata-tools')
-    expect(runs).toContain('pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples')
+    expect(runs).toContain('pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples-2d')
     expect(JSON.stringify(job?.steps)).toContain('e2e-report')
   })
 
@@ -592,7 +592,13 @@ describe('ci.yml (AF)', () => {
   it('runs the journeys through turbo from the root; each game or example set has its own Playwright config and test:e2e', () => {
     const rootPackage = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
     expect(rootPackage.scripts['test:e2e']).toBe('turbo run test:e2e')
-    for (const path of ['games/emberwick', 'games/base-3d', 'examples', 'tooling/examples-runner']) {
+    for (const path of [
+      'games/emberwick',
+      'games/base-3d',
+      'examples/2d',
+      'examples/3d',
+      'tooling/examples-runner',
+    ]) {
       expect(packageJson(path).scripts['test:e2e'], path).toBe('playwright test')
       expect(existsSync(join(root, path, 'playwright.config.ts')), path).toBe(true)
     }
@@ -771,14 +777,7 @@ describe('3d.yml (core-and-2D refactor spec section 3.4)', () => {
   it('runs on pull requests that touch their files or any package, on pushes to main and nightly', () => {
     expect(Object.keys(threeD.on).sort()).toEqual(['pull_request', 'push', 'schedule', 'workflow_dispatch'])
     const paths = (threeD.on.pull_request as { paths?: string[] }).paths ?? []
-    expect(paths).toEqual(
-      expect.arrayContaining([
-        'packages/**',
-        'games/base-3d/**',
-        'examples/render3d/**',
-        'examples/figures/**',
-      ]),
-    )
+    expect(paths).toEqual(expect.arrayContaining(['packages/**', 'games/base-3d/**', 'examples/3d/**']))
   })
 
   it('runs the 3D unit, parity and journey suites and base-3d, and skips drafts', () => {
@@ -788,6 +787,7 @@ describe('3d.yml (core-and-2D refactor spec section 3.4)', () => {
     expect(runs).toContain('pnpm test:journeys:3d')
     const e2e = (threeD.jobs['e2e-3d']?.steps ?? []).map((step) => step.run ?? '')
     expect(e2e).toContain('pnpm --filter @af-games/base-3d test:e2e')
+    expect(e2e).toContain('pnpm --filter @af-examples/examples-3d test:e2e')
     for (const job of Object.values(threeD.jobs))
       expect(job.if).toContain('github.event.pull_request.draft != true')
   })
@@ -1337,7 +1337,7 @@ describe('what a pull request runs (docs-only and draft scope)', () => {
         classify(
           [
             'tooling/x/src/run.ts',
-            'examples/core/core-basic-window.ts',
+            'examples/2d/core/core-basic-window.ts',
             'games/emberwick/src/app/game.ts',
             'docs/a.md',
           ],

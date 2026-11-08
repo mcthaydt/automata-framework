@@ -6,7 +6,7 @@ import { cameraView } from '../sim/camera-view.schema.js'
 import { framingMisses } from './framing.js'
 import { ONE_ROOM } from './testing/rooms.js'
 
-// `examples/render3d/render3d-angled-camera.ts`: a 4 m room, its view 30° down and 8 m back.
+// `examples/3d/render3d/render3d-angled-camera.ts`: a 4 m room, its view 30° down and 8 m back.
 const EXAMPLE_OUTLINE = [
   { x: 0, z: 0 },
   { x: 4, z: 0 },

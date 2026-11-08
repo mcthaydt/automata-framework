@@ -14,6 +14,7 @@ describe('the examples ports', () => {
     const derived = [
       ports.demoHostPort,
       ports.examplesPort,
+      ports.examples3dPort,
       ports.runnerFixturesPort,
       ports.playgroundPort,
       ports.playgroundFramePort,

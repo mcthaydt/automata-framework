@@ -45,8 +45,8 @@ describe.each(TASKS)("turbo's cache key for the examples runner's %s", (task) =>
     expect(hashed.get(task)).toEqual(
       expect.arrayContaining([
         'docs/archive/02-master-delivery-plan.md',
-        'examples/core/core-basic-window.ts',
-        'examples/__goldens__/core-input-keys.replay',
+        'examples/2d/core/core-basic-window.ts',
+        'examples/2d/__goldens__/core-input-keys.replay',
       ]),
     )
   })
