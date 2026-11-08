@@ -8,7 +8,7 @@ export interface FinishChecker {
   stop(): void
 }
 
-const newWorker = (): Worker => new Worker(new URL('./solver.worker.ts', import.meta.url), { type: 'module' })
+const newWorker = (): Worker => new Worker(new URL('./solver-worker.ts', import.meta.url), { type: 'module' })
 
 export function createFinishChecker(make: () => Worker = newWorker): FinishChecker {
   let worker: Worker | undefined

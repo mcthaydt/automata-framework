@@ -5,7 +5,7 @@ import type { Field } from '../../shared/fields.ts'
 import { choices } from './pieces/conditions.ts'
 import { spaced } from './pieces/piece.ts'
 
-/** Where the character starts, in words (spec 9, H3). */
+/** Where the character starts, in words. */
 export function startWords(character: AgentDef): string {
   const first = character.routine?.[0]
   return first === undefined

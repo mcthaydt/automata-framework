@@ -1,4 +1,4 @@
-// The ready-made behaviours a person starts a character from (spec 9). Each is plain data written with today's
+// The ready-made behaviours a person starts a character from. Each is plain data written with today's
 // conditions and actions only: nothing here is a mode of its own in the sim. The sim tests run these same
 // definitions (`extensions/systems/tests/unit/presets-sim.test.ts` reads the fixture that `presets.test.ts` keeps equal).
 import type { AgentDef, RoutineStop, Transition } from '@automata/systems/sim'

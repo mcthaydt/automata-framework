@@ -3,8 +3,8 @@ import { loadPuzzle } from '@automata/puzzle/sim'
 import { loadSectorMap } from '@automata/sectors/sim'
 import { definePlugin, defineSystem, type PluginDef } from '@automata/sim'
 import { type Systems, SystemsScene } from '@automata/systems/sim'
-import { Actor } from '../guard/actor.component.ts'
-import { syncActors } from '../guard/actor.system.ts'
+import { Actor } from '../features/guard/actor.component.ts'
+import { syncActors } from '../features/guard/actor.system.ts'
 import { storyIn } from './story.ts'
 
 /**

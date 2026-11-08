@@ -8,11 +8,12 @@ import { createSim, type Sim, type SimEvent } from '@automata/sim'
 import { systemsExtension } from '@automata/systems'
 import { SystemsMode, SystemsState } from '@automata/systems/sim'
 import { describe, expect, it } from 'vitest'
-import { Actor } from '../../../src/features/guard/actor.component.ts'
-import { scenePlugin } from '../../../src/features/scene/scene.plugin.ts'
-import { type StoryContent, storyOf } from '../../../src/features/scene/story.ts'
-import { spawnWick, wickPlugin } from '../../../src/features/wick/wick.plugin.ts'
-import { TICK_HZ } from '../../../src/shared/constants.ts'
+import { scenePlugin } from '#src/app/scene.plugin.ts'
+import type { StoryContent } from '#src/app/story.ts'
+import { storyOf } from '#src/app/story-content.ts'
+import { Actor } from '#src/features/guard/actor.component.ts'
+import { spawnWick, wickPlugin } from '#src/features/wick/wick.plugin.ts'
+import { TICK_HZ } from '#src/shared/constants.ts'
 
 // The hall played in Node, with no browser: the sim a scripted run drives, and what it holds. A run is the game's own
 // files (the level, the guard's behaviour, the places and the puzzle) and a list of seconds to wait, so the same list

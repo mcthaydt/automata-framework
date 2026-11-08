@@ -1,5 +1,5 @@
 import { type AfCorner2, type AfSector2, insideSector, type SectorPlan } from '@automata/3d/level'
-import type { Tuning } from '../../shared/tuning.ts'
+import type { Tuning } from './tuning.ts'
 
 // Reads a room the 3D level editor wrote into what this game plays: the floors Wick can stand on, the props he cannot
 // walk through, and where he starts. Pure, so the sim can hold the result. Everything is in metres.

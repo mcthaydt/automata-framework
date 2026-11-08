@@ -1,7 +1,7 @@
 import { readLevel } from '@automata/3d/level'
 import { readSectorMap, type SectorMap } from '@automata/sectors/sim'
 import file from '../../../content/levels/hall.af-sector.json' with { type: 'json' }
-import { type PropShape, type Room, roomOf } from './read-room.ts'
+import { type PropShape, type Room, roomOf } from '../../shared/read-room.ts'
 
 // The hall this game plays: content/levels/hall.af-sector.json, which the 3D level editor writes. Change it in the
 // editor (pnpm exec automata editor), then press Save.

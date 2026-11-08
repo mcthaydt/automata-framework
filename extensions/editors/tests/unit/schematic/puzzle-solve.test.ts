@@ -140,7 +140,7 @@ describe('the worker the page asks', () => {
         write: false,
         minify: false,
         lib: {
-          entry: new URL('../../../src/features/schematic/puzzle/solver.worker.ts', import.meta.url).pathname,
+          entry: new URL('../../../src/features/schematic/puzzle/solver-worker.ts', import.meta.url).pathname,
           formats: ['es'],
         },
         rollupOptions: { external: [] },

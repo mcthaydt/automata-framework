@@ -4,7 +4,7 @@ import { defineSystem } from '@automata/sim'
 import { atan2 } from '@automata/sim/math'
 import { SystemsEnv } from '@automata/systems/sim'
 import { TICK_HZ, WICK_HALF } from '../../shared/constants.ts'
-import { playIn, standsAt } from '../room/read-room.ts'
+import { playIn, standsAt } from '../../shared/read-room.ts'
 import { Move } from './move.command.ts'
 import { Wick } from './wick.component.ts'
 
