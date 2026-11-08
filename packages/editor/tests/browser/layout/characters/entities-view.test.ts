@@ -152,6 +152,14 @@ describe.each(SIZES)('Entities view at $name ($width x $height)', (size) => {
       expectInside(button, size)
       expectTarget(button)
     }
+    // Label-left, as the Level view's inspector reads: the name's field sits beside its word, on the same line.
+    const name = inspector.querySelector<HTMLInputElement>('label.text input')
+    const word = inspector.querySelector<HTMLElement>('label.text .label')
+    if (name === null || word === null) throw new Error('no name field')
+    await reach(name)
+    const [field, label] = [name.getBoundingClientRect(), word.getBoundingClientRect()]
+    expect(label.right).toBeLessThanOrEqual(field.left)
+    expect(Math.abs(label.top + label.height / 2 - (field.top + field.height / 2))).toBeLessThan(2)
     expect(checkLayout(conditions, [])).toEqual([])
     await page.screenshot({ path: `.vitest/shots/entities-definition-${size.name}.png` })
   })

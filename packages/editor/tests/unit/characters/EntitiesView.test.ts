@@ -156,6 +156,16 @@ describe('Entities view: the panel and the preview', () => {
 })
 
 describe('Entities view: the field editor', () => {
+  it('names the Settings tab in words, with its count in brackets only when there is one', async () => {
+    await mount()
+    await choose('Coin')
+    expect(within(inspector()).getByRole('tab', { name: 'Settings' })).toBeInTheDocument()
+    await userEvent.click(within(inspector()).getByRole('tab', { name: 'Settings' }))
+    await userEvent.click(within(inspector()).getByRole('button', { name: 'Add field' }))
+    expect(within(inspector()).getByRole('tab', { name: 'Settings (1)' })).toBeInTheDocument()
+    expect(within(inspector()).getByRole('heading', { name: 'Settings of Coin' })).toBeInTheDocument()
+  })
+
   it('adds a field, and an int field shows its bounds and step', async () => {
     const { def } = await mount()
     await choose('Coin')

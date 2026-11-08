@@ -1,26 +1,27 @@
 # How Wick moves: Celeste's published constants (Maddy Thorson, `Player.cs`, 2018) in the sim's units, whole numbers of
 # subpixels per tick at 60 ticks a second, so every step is exact in every engine. Each tunable carries its own range,
-# which the content compiler checks and the Tuner shows as a slider, and a label and a feel, the Tuner's words for
-# it. SUB, TICK_HZ and the hitbox stay in code
+# which the content compiler checks and the Tuner shows as a slider, a label and a feel, the Tuner's words for it,
+# and a unit and a scale, so the Tuner shows pixels a second and seconds (a speed times 60/256, an acceleration times
+# 3600/256, a count of ticks times 1/60) while the file and the sim keep their whole numbers. SUB, TICK_HZ and the hitbox stay in code
 # (`src/shared/tuning.ts`): they change what a tick or a pixel means, not how the character feels.
 
 # Celeste: 90 px/s.
-MAX_RUN = { value = 384, min = 128, max = 768, step = 1, label = "Running speed", feel = "How fast Wick runs." }
+MAX_RUN = { value = 384, min = 128, max = 768, step = 1, label = "Running speed", feel = "How fast Wick runs.", unit = "px/s", scale = 0.234375 }
 # Celeste: 1000 px/s², on the ground.
-RUN_ACCEL = { value = 71, min = 8, max = 256, step = 1, label = "Speed-up on the ground", feel = "How quickly Wick gets up to full speed." }
+RUN_ACCEL = { value = 71, min = 8, max = 256, step = 1, label = "Speed-up on the ground", feel = "How quickly Wick gets up to full speed.", unit = "px/s²", scale = 14.0625 }
 # Celeste: RUN_ACCEL × 0.65 in the air (AirMult).
-AIR_ACCEL = { value = 46, min = 8, max = 256, step = 1, label = "Steering in the air", feel = "How much Wick can change direction in a jump." }
+AIR_ACCEL = { value = 46, min = 8, max = 256, step = 1, label = "Steering in the air", feel = "How much Wick can change direction in a jump.", unit = "px/s²", scale = 14.0625 }
 # Celeste: 900 px/s², only while airborne.
-GRAVITY = { value = 64, min = 16, max = 192, step = 1, label = "Gravity", feel = "How fast Wick falls back down." }
+GRAVITY = { value = 64, min = 16, max = 192, step = 1, label = "Gravity", feel = "How fast Wick falls back down.", unit = "px/s²", scale = 14.0625 }
 # Gravity halves near the top of a jump while jump is held: below 40 px/s of vertical speed.
-HALF_GRAVITY_BELOW = { value = 171, min = 0, max = 512, step = 1, label = "Float at the top", feel = "Holding jump makes the top of a jump float longer." }
+HALF_GRAVITY_BELOW = { value = 171, min = 0, max = 512, step = 1, label = "Float at the top", feel = "Holding jump makes the top of a jump float longer.", unit = "px/s", scale = 0.234375 }
 # Celeste: 160 px/s.
-MAX_FALL = { value = 683, min = 256, max = 1536, step = 1, label = "Top falling speed", feel = "The fastest Wick can fall." }
+MAX_FALL = { value = 683, min = 256, max = 1536, step = 1, label = "Top falling speed", feel = "The fastest Wick can fall.", unit = "px/s", scale = 0.234375 }
 # Celeste: -105 px/s (up is negative).
-JUMP_SPEED = { value = -448, min = -1024, max = -128, step = 1, label = "Jump strength", feel = "How hard Wick jumps. Further below zero jumps higher." }
+JUMP_SPEED = { value = -448, min = -1024, max = -128, step = 1, label = "Jump strength", feel = "How hard Wick jumps.", unit = "px/s", scale = -0.234375 }
 # Celeste: 0.2 s: how long holding jump keeps the full jump speed (VarJumpTime).
-VAR_JUMP_TICKS = { value = 12, min = 0, max = 30, step = 1, label = "Hold to jump higher", feel = "How long holding jump keeps Wick rising (60 is one second)." }
+VAR_JUMP_TICKS = { value = 12, min = 0, max = 30, step = 1, label = "Hold to jump higher", feel = "How long holding jump keeps Wick rising.", unit = "s", scale = 0.0166667 }
 # Celeste: 0.1 s: a jump still works this long after walking off a ledge (JumpGraceTime).
-COYOTE_TICKS = { value = 6, min = 0, max = 15, step = 1, label = "Late jump", feel = "How long after running off a ledge Wick can still jump (60 is one second)." }
+COYOTE_TICKS = { value = 6, min = 0, max = 15, step = 1, label = "Late jump", feel = "How long after running off a ledge Wick can still jump.", unit = "s", scale = 0.0166667 }
 # Celeste: about 0.08 s: a jump pressed this long before landing still happens.
-BUFFER_TICKS = { value = 5, min = 0, max = 15, step = 1, label = "Early jump", feel = "How long before landing a jump press still counts (60 is one second)." }
+BUFFER_TICKS = { value = 5, min = 0, max = 15, step = 1, label = "Early jump", feel = "How long before landing a jump press still counts.", unit = "s", scale = 0.0166667 }

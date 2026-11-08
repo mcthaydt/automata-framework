@@ -16,6 +16,7 @@ import type { CheckFinding, SuitePorts, WorkspaceFile } from '../../../shared/ki
 import EditorShell from '../../../shared/kit/shell/EditorShell.svelte'
 import { defaultDockOpen, dockPlacementOf, shellModeAt } from '../../../shared/kit/shell/shell-mode'
 import Button from '../../../shared/kit/widgets/Button.svelte'
+import IconButton from '../../../shared/kit/widgets/IconButton.svelte'
 import ToastRegion from '../../../shared/kit/widgets/ToastRegion.svelte'
 import { createToasts } from '../../../shared/kit/widgets/toasts'
 import { createAskSession } from '../core/ask-session'
@@ -102,6 +103,8 @@ let pills = $state<readonly Pill[]>([])
 let titleOpen = $state(false)
 let history = $state({ canUndo: false, canRedo: false, undoLabel: '', redoLabel: '' })
 let tokens = $state<{ readonly used: number; readonly cap: number }>()
+/** An open change set to publish: Publish is the lime primary only then, and a quiet button otherwise. */
+let shippable = $state(false)
 // Icons with counts in the `short` tier and on a phone, where full labels leave no room; never hidden.
 const compact = $derived(geometry.current.heightTier === 'short' || mode === 'compact')
 
@@ -111,6 +114,7 @@ $effect(() => {
     pills = session.pills()
     titleOpen = session.asking()
     tokens = session.tokens()
+    if (session.canShip()) void session.review().then(([open]) => (shippable = open !== undefined))
   }
   const stop = session.subscribe(read)
   read()
@@ -240,9 +244,12 @@ function openCard(card: EditorCard): void {
 >
   {#snippet sheets()}<ToastRegion {toasts} />{/snippet}
   {#snippet topbar()}
-    <Button aria-current={current === undefined && reading === undefined ? 'page' : undefined} onclick={() => choose(undefined)}
-      >Home</Button
-    >
+    <IconButton
+      icon="home"
+      label="Home"
+      aria-current={current === undefined && reading === undefined ? 'page' : undefined}
+      onclick={() => choose(undefined)}
+    />
     <!-- The game's name is the title; the sample says it is one in a banner over Home instead (12.7, Step G). -->
     <SuiteTopBar
       title={mode === 'compact' ? undefined : sample ? 'Sample game' : (game ?? 'Your game')}
@@ -255,11 +262,17 @@ function openCard(card: EditorCard): void {
       onredo={redo}
       onask={ask === undefined ? undefined : () => (askOpen = true)}
       onpublish={editing.canShip() ? () => void openShip() : undefined}
+      {shippable}
       tools={mounted?.editor.regions.tools ? editorTools : undefined}
     />
     {#if mounted && mode !== 'wide'}
-      <Button aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)}>Panel</Button>
-      <Button aria-expanded={inspectorOpen} onclick={() => (inspectorOpen = !inspectorOpen)}>Details</Button>
+      <IconButton icon="list" label="Panel" aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)} />
+      <IconButton
+        icon="inspector"
+        label="Details"
+        aria-expanded={inspectorOpen}
+        onclick={() => (inspectorOpen = !inspectorOpen)}
+      />
     {/if}
     {#if mounted?.editor.regions.dock && dockIsSheet}
       <Button aria-expanded={dockShown} onclick={() => (dockOpen = !dockShown)}>Dock</Button>

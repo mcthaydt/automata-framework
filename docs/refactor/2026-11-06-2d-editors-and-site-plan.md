@@ -2504,3 +2504,69 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   game's folder to edit it." Gates: editor unit (suite) 286, Chromium layout (suite) 121. **Left for 12.7:** the split
   of `Suite.svelte`; Ship becomes Publish with its dialog's words (the dialog is the 3D slice's change-set flow, E6, so
   the rename covers both together); Home's levels by name; Step 1's dialog checks.
+- **12.7, the look (session 19).** The suite page takes the approved mockup's tool chrome, as the document's bar did
+  in 12.3. *Top bar:* Home is an icon button (a house, named `Home`, `aria-current` on Home), the game's name in the
+  title's weight, `Saved in your game folder` a quiet status with a tick, Undo and Redo icon buttons named with their
+  step, Panel and Details icon buttons below `wide`. Publish is the lime primary only when an open change set has
+  something to publish; otherwise it is a plain button and its dialog says "Nothing new to publish yet." (the
+  grandma audit's "disabled" read as a dead button on touch, where a disabled control cannot say why; a quiet button
+  that explains is the same honesty with a reachable reason). *Rail:* each tab is an icon over its name (the name
+  stays: an icon alone makes a person guess); `suiteEntries` gives each entry an icon (Tuner sliders, the level
+  editors a grid, Review a checked file, any other editor a list). Four Lucide drawings added (`home`, `sliders`,
+  `grid`, `review`; 28 → 32, provenance updated). In the column the chosen tab is ink on the hover wash; along the foot
+  it is ink with a line on its top edge. *Home:* the sample's note is one quiet line with a warning mark; Export and
+  Import sit in the question's row (they floated alone above it), cards are paper on the field with quiet file rows,
+  and the page is at most 960 px wide with `auto-fit` columns so the actions line up with the cards' edge.
+  *Dialogs:* Export's format is the kit's `Segmented` (it was two native radios), its text is "Your game as text", and
+  it gains its one primary, Copy ("Copied. Paste it anywhere to keep it." or "Couldn't copy. Select the text and copy
+  it."). Import says "Paste the text to import", and has one primary at a time: "See changes" (was Plan) until there is
+  a plan, then "Import" (was Apply); a moved file says "Tuning changed since you looked. See the changes again." and
+  offers "See changes again". Each change names its file in words (`fileTitle`), never its path; the "No gates" and
+  "Checks: …" lines are gone (no person's words), and a change that reopens reviews says "Needs review again: …".
+  Publish, Ask and the title prompt already had one primary and plain words (12.4, 12.7 Step G). *Cut, essential
+  only:* nothing new was added beyond Copy, which is the Export dialog's reason to exist. Gates: editor unit 3,367
+  (suite 301: new tests for the icons, the rail's icon tabs, the top bar's icon buttons and status, Home's heading
+  row, Publish quiet with nothing to publish, Copy, one primary at a time in Import), typecheck 0, Chromium layout
+  (suite, mouse and touch) 242 of 242. Screenshots at 1440, 1024 and 390 px in the shared folder
+  `refactor/2026-11-06-12-7-suite-screens/` (Home, the Tuner open, Export, Import), each opened. **Left for 12.7:**
+  nothing in this slice; Review's desk is the 3D slice's change-set flow (E6). Step 3's copy rows are in `copy.md`.
+- **12.4, the inspectors' look (session 19).** The kit's `Tabs` (the Tiles rule inspector's Rule and Group, the
+  Characters inspector's Character and Settings, and the 3D editor's two sheets) is drawn as the top bar's views:
+  quiet grey words along a hairline, the chosen tab ink with a 2 px ink underline, no box and no cobalt (a browser
+  layout test reads the computed border and underline). The Characters inspector reads label-left like the Level
+  view's (the same `--label-*` column; Label, Colour, Width and Height line up), and its tab is `Settings`, or
+  `Settings (2)` with a count, never `Settings 0`; its list heading is `Settings of Coin` (was `Fields of`). Left for
+  12.5's copy scan: `Add field` and the field types' format words (`int`) in the Settings tab. The 2D editor's Home
+  with no levels showed two lime New level buttons (the top bar's and the empty list's); the empty list's is plain
+  now, so the screen has one primary. Gates: editor unit 3,369, Chromium journeys 26, Home layout 82, editor-3d unit and DOM 2,932, Chromium layout (mouse and touch) 892, `pnpm check`.
+- **12.6, the unit a player can feel (session 19).** A ranged tunable may carry `unit` (text) and `scale` (a finite
+  number other than 0) beside `label` and `feel`; `-content`'s check accepts them and keeps them out of the values and
+  `tuning-meta.json` (a changeset). The Tuner shows the value times the scale in the unit and writes back the sim's
+  own number, snapped to the step (`tuner-display.ts`: `shownValue`, `rawValue`, `shownBounds`; the shown value keeps
+  as many decimals as one step changes, and a negative scale, Emberwick's upward jump speed shown as how hard Wick
+  jumps, puts the smaller bound first). The row's slider and box, the box's refusal ("Must be at most 180 px/s": the
+  kit's Stepper now names a bound in its unit), the value check's words (the label and the shown number, never the
+  constant's name or the sim's 768) and the inspector (value, range in the unit, a scaled whole number reads as a
+  number) all speak it. Emberwick's ten tunables carry them: speeds ×60/256 px/s, accelerations ×3600/256 px/s², tick
+  counts ×1/60 s (written 0.0166667; the snap to a whole tick absorbs the rounding); its "Further below zero jumps
+  higher" and "(60 is one second)" notes are gone, since the numbers now read as a player feels them. *Design choice:*
+  display only, never a second unit system in the sim (law 2) or the file: the file keeps whole subpixels so every
+  step stays exact in every engine. Gates: content unit 416, editor unit (suite, kit widgets) 323 including a scaled
+  row end to end (90 px/s shown, 100 typed writes 427, 500 refused in px/s, the inspector in px/s), Emberwick unit 109,
+  `pnpm check`. **12.6 is done.**
+- **12.5, part (session 19): the scan and the guide.** A Chromium journey (`tests/browser/journeys/2d/screen-words.test.ts`)
+  reads the rendered text of the Level, Map, Tiles and Characters views and the Characters Settings tab, for the
+  platformer and the top-down templates on an iPad, and fails on a package name (`editor-`), `af2d`, `.json`,
+  `checkout`, `Plus`, and the audit's words: project, workspace, entity, IntGrid, tunable, change set, gate, pivot. A
+  real browser, not jsdom, because only `innerText` says what is on screen. It found one: the templates' layer was
+  `Entities` (the Level view's layer row and "Paint with · Entities"); it is `Characters` now, the view's own word, and
+  Home's Details say `Characters` (a count, was "6 definitions") and `Tiles` (was Tilesets). The guide
+  (`docs/guides/editor.md`) is rewritten as open, draw, save, play, on a tablet, in plain words, titled "Draw levels in
+  the editor" (the audit's row). The suite page's Home and the Tuner get the same word list as a unit test over the
+  whole page's text (`textContent`, stricter than what is on screen); it passes as it stands. *Step 0, run (session 19):* every `.svelte` file in `packages/editor/src` opens with its
+  header comment; nine are over 300 lines, for 12.5 to split or the build audit to take: `EditorShell` 632,
+  `ReorderList` 432, `WorldView` 387, `EntityInspector` 374, `Stepper` 357, `Suite` 352 (12.7 asked for under 300: it
+  was 339 after session 15's split and the look added 13; its Publish, review and interchange wiring is the next
+  piece to leave), `RuleInspector` 341, `Picker` 333, `WorldInspector` 312. **Left for 12.5:** the splits above;
+  Step 1's grep of the editor's `.svelte` and `*-messages.ts` for strings not in `copy.md`; `Add field` and the field types' words (`int`) in the Characters Settings tab; the layer
+  row reads "Characters / Characters and items" (its name over its kind), which says one thing twice.

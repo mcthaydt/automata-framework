@@ -88,7 +88,8 @@ async function onkeydown(event: KeyboardEvent): Promise<void> {
     <p class="headline">No levels yet</p>
     {#if onnew}
       <p>Make your first one to start drawing.</p>
-      <Button variant="primary" disabled={busy} onclick={onnew}>New level</Button>
+      <!-- Plain, not lime: the top bar's New level is this screen's one primary. -->
+      <Button disabled={busy} onclick={onnew}>New level</Button>
     {:else}
       <p>Your game has no levels to edit yet.</p>
     {/if}

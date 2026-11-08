@@ -19,6 +19,8 @@ export interface Tunable {
   /** True when the file itself states the bounds (`{ value, min, max, step }`). */
   readonly authored: boolean
   readonly unit?: string
+  /** Shown as `value × scale` in `unit`, from the file's `scale` (`tuner-display.ts`); display only. */
+  readonly scale?: number
   readonly note?: string
   /** The Tuner's name for it, from the file's `label` ("Running speed"); without one the Tuner shows `name`. */
   readonly label?: string
@@ -98,6 +100,9 @@ export function readTuning(text: string, meta: TuningMeta = {}): TuningRead {
       const said = {
         ...(typeof row['label'] === 'string' ? { label: row['label'] } : {}),
         ...(typeof row['feel'] === 'string' ? { feel: row['feel'] } : {}),
+        // The file's own unit wins over one read from a comment.
+        ...(typeof row['unit'] === 'string' ? { unit: row['unit'] } : {}),
+        ...(typeof row['scale'] === 'number' && row['scale'] !== 0 ? { scale: row['scale'] } : {}),
       }
       const floats = ['value', 'step'].some((key) => /[.eE]/.test(spelling(name, key) ?? ''))
       return {

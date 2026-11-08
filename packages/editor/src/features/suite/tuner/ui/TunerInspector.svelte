@@ -1,12 +1,13 @@
 <!--
   The Tuner's inspector: the chosen setting's label (or name), type, value, range, unit and what it does, whether it
-  is kept, and
+  is kept, and (a setting with a scale is shown in its unit, as its row shows it, `tuner-display.ts`)
   why a table or a list is "Ask only". With nothing chosen it says how to choose.
 -->
 <script lang="ts">
 import Button from '../../../../shared/kit/widgets/Button.svelte'
 import { KEEP_TIP, shownName, shownNote } from '../tuner-content'
 import type { TunerController } from '../tuner-controller'
+import { shownBounds, shownValue } from '../tuner-display'
 
 const { controller }: { controller: TunerController } = $props()
 
@@ -24,6 +25,14 @@ const locked = $derived.by(() => {
   void $revision
   return $selected === undefined ? false : controller.isLocked($selected)
 })
+/** A number as the row shows it, with its unit. */
+const inUnit = (value: number): string => {
+  if (tunable === undefined) return String(value)
+  return `${tunable.scale === undefined ? value : shownValue(tunable, value)}${tunable.unit ? ` ${tunable.unit}` : ''}`
+}
+const range = $derived(tunable === undefined ? undefined : shownBounds(tunable))
+/** A scaled whole number is shown with decimals, so it is a number to the person reading it. */
+const kindOf = (kind: string): string => (tunable?.scale !== undefined && kind === 'int' ? 'float' : kind)
 const kindWord = (kind: string): string =>
   ({ int: 'whole number', float: 'number', boolean: 'on or off', string: 'text', other: 'table or list' })[
     kind
@@ -37,14 +46,14 @@ const kindWord = (kind: string): string =>
     <h2>{shownName(tunable)}</h2>
     <dl>
       <dt>Type</dt>
-      <dd>{kindWord(tunable.kind)}</dd>
+      <dd>{kindWord(kindOf(tunable.kind))}</dd>
       {#if tunable.editable}
         <dt>Value</dt>
-        <dd>{String(tunable.value)}{tunable.unit ? ` ${tunable.unit}` : ''}</dd>
+        <dd>{typeof tunable.value === 'number' ? inUnit(tunable.value) : String(tunable.value)}</dd>
       {/if}
-      {#if tunable.min !== undefined && tunable.max !== undefined}
+      {#if range?.min !== undefined && range.max !== undefined}
         <dt>Range</dt>
-        <dd>{tunable.min} to {tunable.max}{tunable.step !== undefined ? `, step ${tunable.step}` : ''}</dd>
+        <dd>{range.min} to {range.max}{tunable.unit ? ` ${tunable.unit}` : ''}</dd>
       {:else if tunable.editable && tunable.kind !== 'boolean' && tunable.kind !== 'string'}
         <dt>Range</dt>
         <dd>None</dd>

@@ -145,6 +145,23 @@ describe('checkTuning with authored ranges', () => {
     ])
   })
 
+  it('lets a ranged tunable carry a unit and a scale for the Tuner, which change no value or range', () => {
+    const result = checkTuning(
+      { MAX_RUN: { value: 384, min: 128, max: 768, step: 1, unit: 'px/s', scale: 0.234375 } },
+      {},
+    )
+    expect(result.problems).toEqual([])
+    expect(result.values).toEqual({ MAX_RUN: 384 })
+    expect(result.meta).toEqual({ MAX_RUN: { type: 'int', value: 384, min: 128, max: 768, step: 1 } })
+  })
+
+  it('refuses a unit that is not text and a scale that is not a finite number other than zero', () => {
+    expect(checkTuning({ A: { value: 1, min: 0, max: 5, unit: 2, scale: 0 } }, {}).problems).toEqual([
+      { path: ['A', 'scale'], code: 'invalidType', message: 'scale must be a finite number other than 0' },
+      { path: ['A', 'unit'], code: 'invalidType', message: 'unit must be text' },
+    ])
+  })
+
   it('refuses a value outside its range at the value', () => {
     expect(checkTuning({ GRAVITY: { value: -2000, min: -1200, max: -100 } }, {}).problems).toEqual([
       { path: ['GRAVITY', 'value'], code: 'outOfRange', message: 'expected -1200..-100, received -2000' },

@@ -42,18 +42,20 @@ const headingId = $derived(`card-${card.editor}`)
 </section>
 
 <style>
+  /* A paper card on the field; its files are quiet rows that wash on hover, each the whole width so it is easy to hit. */
   .card {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
+    gap: var(--space-2);
     min-width: 0;
-    padding: var(--space-4);
-    border: 1px solid var(--color-border-default);
+    padding: var(--space-4) var(--space-3) var(--space-3);
+    border: 1px solid var(--line);
     border-radius: var(--edge-lg);
-    background: var(--color-bg-surface);
+    background: var(--paper);
   }
   header {
     display: flex;
+    padding: 0 var(--space-1);
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2);
@@ -64,14 +66,15 @@ const headingId = $derived(`card-${card.editor}`)
   }
   .badge {
     padding: 2px var(--space-2);
-    border: 1px solid var(--color-border-strong);
+    border: 1px solid var(--line-strong);
     border-radius: var(--edge-sm);
-    color: var(--color-text-dim);
+    color: var(--muted);
     font: var(--text-eyebrow-11);
   }
   .note {
     margin: 0;
-    color: var(--color-text-dim);
+    padding: 0 var(--space-1);
+    color: var(--muted);
   }
   ul {
     display: flex;
@@ -88,16 +91,20 @@ const headingId = $derived(`card-${card.editor}`)
     justify-content: center;
     width: 100%;
     min-height: var(--size-hit);
-    padding: var(--space-1) var(--space-3);
+    padding: var(--space-1);
     border: 0;
     border-radius: var(--edge-sm);
-    background: var(--color-bg-field);
-    color: var(--color-text-primary);
+    background: none;
+    color: var(--ink);
     text-align: left;
     cursor: pointer;
+    transition: background 120ms var(--ease-out);
+  }
+  button:hover {
+    background: var(--surface);
   }
   button:focus-visible {
-    outline: 2px solid var(--color-accent-default);
+    outline: 2px solid var(--focus);
     outline-offset: -2px;
   }
   .name {
@@ -108,7 +115,7 @@ const headingId = $derived(`card-${card.editor}`)
     white-space: nowrap;
   }
   .why {
-    color: var(--color-text-dim);
+    color: var(--muted);
     font: var(--text-label-12);
   }
 </style>

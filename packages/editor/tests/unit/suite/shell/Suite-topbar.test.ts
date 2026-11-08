@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { screen } from '@testing-library/svelte'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '#src/features/suite/core/index.ts'
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
@@ -57,6 +57,58 @@ describe("the suite's top bar", () => {
       'Gates not readable',
     ])
       expect(screen.queryByRole('button', { name: quiet })).toBeNull()
+  })
+
+  it('draws Home, Undo and Redo as named icon buttons, and the saved status with a tick', async () => {
+    await start({ game: 'Emberwick' })
+    const home = await screen.findByRole('button', { name: 'Home' })
+    expect(home).toHaveAttribute('aria-current', 'page')
+    expect(home.querySelector('svg')).not.toBeNull()
+    expect(home.textContent?.trim()).toBe('')
+    const saved = screen.getByText('Saved in your game folder')
+    expect(saved.closest('.where')?.querySelector('svg')).not.toBeNull()
+  })
+
+  it("puts Export and Import in Home's heading row, beside the question, not floating above it", async () => {
+    await start({ game: 'Emberwick' })
+    const heading = await screen.findByRole('heading', { name: 'What do you want to change?' })
+    const row = heading.closest('header')
+    expect(row).not.toBeNull()
+    expect(row?.contains(screen.getByRole('button', { name: 'Export' }))).toBe(true)
+    expect(row?.contains(screen.getByRole('button', { name: 'Import' }))).toBe(true)
+  })
+
+  it('Publish is quiet, not the lime primary, while there is nothing new to publish', async () => {
+    await start({ sample: true })
+    const publish = await screen.findByRole('button', { name: 'Publish' })
+    await vi.waitFor(() => expect(publish).toHaveAttribute('data-kind', 'plain'))
+  })
+
+  it("says nothing but a person's words on Home and with the Tuner open (the copy rule, task 12.5)", async () => {
+    const stray = [
+      /editor-/i,
+      /af2d/i,
+      /\.json\b/i,
+      /\bcheckout\b/i,
+      /\bPlus\b/,
+      /\bprojects?\b/i,
+      /\bworkspaces?\b/i,
+      /\bentit(y|ies)\b/i,
+      /\bIntGrid\b/i,
+      /\btunables?\b/i,
+      /\bchange sets?\b/i,
+      /\bgates?\b/i,
+      /\bpivot\b/i,
+    ]
+    const found = (where: string): string[] =>
+      stray.filter((word) => word.test(document.body.textContent ?? '')).map((word) => `${where}: ${word}`)
+    await start({ sample: true })
+    await screen.findByRole('heading', { name: 'What do you want to change?' })
+    const words = found('Home')
+    screen.getByRole('tab', { name: 'Tuner' }).click()
+    await screen.findByTestId('tuner-rows')
+    words.push(...found('Tuner'))
+    expect(words).toEqual([])
   })
 
   it('on the sample, a banner says it is not your game and how to open yours', async () => {

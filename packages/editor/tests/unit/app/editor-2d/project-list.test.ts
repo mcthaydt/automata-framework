@@ -63,8 +63,8 @@ describe('listProjects', () => {
     expect(moss?.status === 'ok' ? moss.summary?.facts.map((fact) => fact.label) : []).toEqual([
       'Levels',
       'Layers',
-      'Entities',
-      'Tilesets',
+      'Characters',
+      'Tiles',
     ])
     expect(note).toMatchObject({ status: 'ok', summary: undefined })
   })

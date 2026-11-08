@@ -9,8 +9,8 @@ const levels = { id: 'levels-2d', label: 'Levels 2D' }
 describe('the rail entries', () => {
   it('are the registered editors, in the order the page registers them, each opening itself', () => {
     expect(suiteEntries([tuner, levels], false)).toEqual([
-      { id: 'tuner', label: 'Tuner', editors: ['tuner'] },
-      { id: 'levels-2d', label: 'Levels 2D', editors: ['levels-2d'] },
+      { id: 'tuner', label: 'Tuner', icon: 'sliders', editors: ['tuner'] },
+      { id: 'levels-2d', label: 'Levels 2D', icon: 'grid', editors: ['levels-2d'] },
     ])
   })
 
@@ -20,6 +20,14 @@ describe('the rail entries', () => {
       ['levels-2d', ['levels-2d']],
       ['review', []],
     ])
+  })
+
+  it('draw each entry with an icon: its own where the rail knows the editor, the list for one it does not', () => {
+    const entries = suiteEntries(
+      [tuner, levels, { id: 'levels-3d', label: 'Levels 3D' }, { id: 'writer', label: 'Writer' }],
+      true,
+    )
+    expect(entries.map((entry) => entry.icon)).toEqual(['sliders', 'grid', 'grid', 'list', 'review'])
   })
 
   it('are empty for a build with no editors and no change sets', () => {

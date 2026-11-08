@@ -114,7 +114,7 @@ async function finishTyping(commit: boolean, refocus: boolean): Promise<void> {
   if (!typing) return
   typing = false
   if (commit) {
-    const parsed = parseNumberText(draft, { min, max, integer })
+    const parsed = parseNumberText(draft, { min, max, integer, unit })
     const refusal = parsed.ok ? validate?.(parsed.value) : parsed.message
     if (refusal !== undefined) message = refusal
     else if (parsed.ok && parsed.value !== value) {
