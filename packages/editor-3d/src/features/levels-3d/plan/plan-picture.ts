@@ -10,12 +10,15 @@ import type { ViewState } from '../../../shared/edit/view-store'
 import { createGeometryCache } from '../../../shared/geometry/geometry-cache'
 import type { ThingLink } from '../../../shared/level-session/thing-links'
 import type { EntityKit } from '../../../shared/things/things'
-import { type PlanPaint, planPaint } from './plan-paint'
+import { type PlanPaint, type PlanPaintInput, planPaint } from './plan-paint'
 import { planScene } from './plan-scene'
 import { planViewport, toWorld } from './plan-viewport'
 
 /** The plan for a canvas of `size`, through the view's camera or, for the loupe, a `camera` of its own. */
-export function createPlanPicture<D>(editor: LevelEditor<D>): (size: Size, camera?: Camera) => PlanPaint {
+export function createPlanPicture<D>(
+  editor: LevelEditor<D>,
+  colours?: PlanPaintInput['colours'],
+): (size: Size, camera?: Camera) => PlanPaint {
   const geometry = createGeometryCache(editor)
   let things:
     | {
@@ -55,6 +58,7 @@ export function createPlanPicture<D>(editor: LevelEditor<D>): (size: Size, camer
       grid: grid.step,
       hidden,
       selected: new Set(editor.selection.ids),
+      colours,
     })
   }
 }

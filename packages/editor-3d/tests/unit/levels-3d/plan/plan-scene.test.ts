@@ -58,6 +58,7 @@ describe('planScene fills', () => {
       outline: layers[0]?.map.sectors[0]?.points[0],
       holes: [],
       group: 'tile',
+      floorTexture: 'tile',
       floor: 0,
       ceiling: 4,
       light: 1,

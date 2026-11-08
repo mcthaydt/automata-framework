@@ -859,3 +859,31 @@ describe('buildSectorMesh on the depot', () => {
     expect(only(mesh, 'door')).toHaveLength(doors.length)
   })
 })
+
+describe('buildSectorMesh: what covers each surface', () => {
+  const textured = room(
+    { 0: { surface: 'brick' } },
+    { floorTexture: 'oak', ceilingTexture: 'plaster', wallTexture: 'wallpaper' },
+  )
+  const mesh = meshOf(textured)
+
+  it('names the floor, the ceiling and the walls by the swatch that covers them', () => {
+    expect(only(mesh, 'floor')[0]?.texture).toBe('oak')
+    expect(only(mesh, 'ceiling')[0]?.texture).toBe('plaster')
+  })
+
+  it("gives a wall its own surface, and the room's wall texture when it has none", () => {
+    const [north, east] = [
+      mesh.surfaces.find((surface) => surface.role === 'wall' && surface.selection === 'wall:room/0'),
+      mesh.surfaces.find((surface) => surface.role === 'wall' && surface.selection === 'wall:room/1'),
+    ]
+    expect(north?.texture).toBe('brick')
+    expect(east?.texture).toBe('wallpaper')
+  })
+
+  it('names nothing for a room that says nothing, and for a door panel', () => {
+    const bare = meshOf(room({ 0: { door: { at: 4, width: 1.2, height: 2.4 } } }))
+    expect(only(bare, 'floor')[0]?.texture).toBeUndefined()
+    expect(only(bare, 'door')[0]?.texture).toBeUndefined()
+  })
+})

@@ -7,8 +7,8 @@ import { entitySelection } from '../../../shared/checks/check'
 import type { ThingLink } from '../../../shared/level-session/thing-links'
 import type { ThingDef } from '../../../shared/things/thing-def.schema'
 import type { EntityKit, Thing } from '../../../shared/things/things'
-import { GROUP_FILLS, PLAN_COLORS, parseHex } from './plan-colors'
-import type { PlanScene, PlanWall, WallKind } from './plan-scene'
+import { FLOOR_TINT, GROUP_FILLS, mixColor, PLAN_COLORS, parseHex } from './plan-colors'
+import type { PlanFill, PlanScene, PlanWall, WallKind } from './plan-scene'
 import { gridLines, toScreen } from './plan-viewport'
 import { halfFootprint, isThingLayerOff } from './thing-pick'
 
@@ -25,6 +25,8 @@ export interface PlanPaintInput {
   readonly hidden: readonly string[]
   /** The selection ids. */
   readonly selected: ReadonlySet<string>
+  /** The game's colour for a material by name: a room whose floor has one is tinted with it. */
+  readonly colours?: ((texture: string) => number | undefined) | undefined
 }
 
 export interface PaintFill {
@@ -108,6 +110,12 @@ export function groupColor(group: string): number {
   return GROUP_FILLS[Math.abs(hash) % GROUP_FILLS.length] ?? PLAN_COLORS.fill
 }
 
+/** A room's fill: its floor's own colour in the game, softened; else the colour its zone or style picks. */
+function fillColor(fill: PlanFill, colours: PlanPaintInput['colours']): number {
+  const floor = fill.floorTexture === undefined ? undefined : colours?.(fill.floorTexture)
+  return floor === undefined ? groupColor(fill.group) : mixColor(PLAN_COLORS.fill, floor, FLOOR_TINT)
+}
+
 const STROKES: Readonly<Record<WallKind, { color: number; width: number; dashed: boolean }>> = {
   solid: { color: PLAN_COLORS.wall, width: 2.5, dashed: false },
   portal: { color: PLAN_COLORS.portal, width: 1.75, dashed: true },
@@ -175,7 +183,7 @@ export function planPaint(input: PlanPaintInput): PlanPaint {
         return [at.x, at.y]
       }),
     ),
-    color: fill.pit === true ? PLAN_COLORS.pit : groupColor(fill.group),
+    color: fill.pit === true ? PLAN_COLORS.pit : fillColor(fill, input.colours),
     selected: fill.selection !== undefined && input.selected.has(fill.selection),
   }))
   // The middle of the outline's box: a pit's word sits inside it for any room that is not a crescent.

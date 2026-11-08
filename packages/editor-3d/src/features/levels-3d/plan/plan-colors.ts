@@ -35,3 +35,15 @@ export function parseHex(text: string): number | undefined {
   const full = digits.length === 3 ? [...digits].map((digit) => digit + digit).join('') : digits
   return Number.parseInt(full, 16)
 }
+
+/** How much of a floor's own colour a room's fill takes on the plan: enough to tell the rooms apart, too little to hide a wall. */
+export const FLOOR_TINT = 0.4
+
+/** `a` moved `amount` (0 to 1) of the way to `b`, channel by channel. */
+export function mixColor(a: number, b: number, amount: number): number {
+  const channel = (shift: number): number => {
+    const from = (a >> shift) & 0xff
+    return Math.round(from + (((b >> shift) & 0xff) - from) * amount)
+  }
+  return (channel(16) << 16) | (channel(8) << 8) | channel(0)
+}

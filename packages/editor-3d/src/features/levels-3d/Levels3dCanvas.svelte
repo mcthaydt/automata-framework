@@ -7,6 +7,7 @@
 <script lang="ts">
 import { shellModeOf } from '@automata/editor/kit'
 import type { LevelEditor } from '../../shared/edit/level-editor'
+import { gameColours } from '../../shared/level-session/materials'
 import DollhouseCanvas from './dollhouse/DollhouseCanvas.svelte'
 import Levels3dToolRail from './Levels3dToolRail.svelte'
 import Levels3dViewControl from './Levels3dViewControl.svelte'
@@ -30,6 +31,7 @@ let mode = $state(editor.view.state.mode)
 $effect(() => editor.view.subscribe((state) => (mode = state.mode)))
 
 const leave = (): void => {}
+const colours = $derived(gameColours(session.level.library))
 
 let width = $state(0)
 let height = $state(0)
@@ -45,17 +47,19 @@ const floating = $derived(width > 0 && shellModeOf({ width, height }) === 'compa
       {editor}
       renderer={session.dollhouse}
       frames={session.frames}
+      {colours}
       onundo={leave}
       onredo={leave}
       onwords={(words) => (pointer.walkWords = words)}
     />
   {:else if mode === 'dollhouse' || mode === 'split'}
-    <DollhouseCanvas {editor} renderer={session.dollhouse} onundo={leave} onredo={leave} />
+    <DollhouseCanvas {editor} renderer={session.dollhouse} {colours} onundo={leave} onredo={leave} />
   {:else}
     <PlanCanvas
       {editor}
       tools={planToolsOf(editor)}
       renderer={session.renderer}
+      {colours}
       onundo={leave}
       onredo={leave}
       onpointer={(at) => (pointer.at = at)}

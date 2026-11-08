@@ -52,3 +52,16 @@ export function afMaterials(level: AfSector2File, library: GameLibrary = EMPTY_L
     return { ok: false, reason: 'the level has no materials table' }
   return { ok: true, materials: [...table, ...game] }
 }
+
+/**
+ * The colour the game gives a swatch, as `0xrrggbb`, by the name a level writes (a seeded name has its base's). The game's
+ * own library is asked, so the views draw a room in the colours the game will. Nothing for a name the game lacks.
+ */
+export function gameColours(library: GameLibrary): (name: string) => number | undefined {
+  const world = worldLibrary(library)
+  const known = new Map<string, number | undefined>()
+  return (name) => {
+    if (!known.has(name)) known.set(name, swatchColour(world, name))
+    return known.get(name)
+  }
+}

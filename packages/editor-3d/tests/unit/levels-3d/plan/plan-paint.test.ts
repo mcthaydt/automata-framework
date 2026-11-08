@@ -1,6 +1,6 @@
 import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import { PLAN_COLORS, parseHex } from '#src/features/levels-3d/plan/plan-colors.ts'
+import { FLOOR_TINT, mixColor, PLAN_COLORS, parseHex } from '#src/features/levels-3d/plan/plan-colors.ts'
 import { groupColor, type PlanPaintInput, planPaint } from '#src/features/levels-3d/plan/plan-paint.ts'
 import { planScene } from '#src/features/levels-3d/plan/plan-scene.ts'
 import { planViewport } from '#src/features/levels-3d/plan/plan-viewport.ts'
@@ -214,5 +214,28 @@ describe('planPaint grid and rulers', () => {
     expect(paint.rulers.x.find((tick) => tick.at === 160)?.label).toBe('2')
     expect(paint.rulers.z.find((tick) => tick.at === 144)?.label).toBe('0')
     expect(paint.rulers.z.find((tick) => tick.at === 80)?.label).toBe('−2')
+  })
+})
+
+describe('the game’s look on the plan', () => {
+  const hall = toyAfSector().sectors[0]!
+  const level = toyAfSector({ sectors: [{ ...hall, floorTexture: 'oak' }, toyAfSector().sectors[1]!] })
+  const fillOf = (paint: ReturnType<typeof planPaint>, sector: string) =>
+    paint.fills.find((fill) => fill.sector === sector)?.color
+
+  it('tints a room with the colour of its floor, softened so the walls still read', () => {
+    const oak = 0xd8a060
+    const paint = planPaint(inputOf(level, { colours: (name) => (name === 'oak' ? oak : undefined) }))
+    const tinted = fillOf(paint, 'hall') ?? 0
+    expect(tinted).toBe(mixColor(PLAN_COLORS.fill, oak, FLOOR_TINT))
+    expect(tinted).not.toBe(oak)
+    expect(tinted).not.toBe(groupColor('oak'))
+    // A room with no floor swatch keeps the plan's own fill.
+    expect(fillOf(paint, 'dock')).toBe(PLAN_COLORS.fill)
+  })
+
+  it('keeps the plan’s own fills when the game gives no colour, and a pit stays dark', () => {
+    expect(fillOf(planPaint(inputOf(level)), 'hall')).toBe(groupColor('oak'))
+    expect(fillOf(planPaint(inputOf(level, { colours: () => undefined })), 'hall')).toBe(groupColor('oak'))
   })
 })

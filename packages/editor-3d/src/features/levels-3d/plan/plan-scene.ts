@@ -20,6 +20,8 @@ export interface PlanFill {
   readonly holes: readonly (readonly Point[])[]
   /** What the fill is coloured by: the sector's zone, else its floor texture, else nothing. */
   readonly group: string
+  /** The swatch on the floor, by the name the level writes: the game's colour for it tints the fill. */
+  readonly floorTexture?: string
   readonly floor: number
   readonly ceiling: number
   readonly light: number
@@ -57,6 +59,7 @@ function fillOf(sector: Sector, select: SelectionOf, pit: boolean): PlanFill {
     outline: sector.points[0] ?? [],
     holes: sector.points.slice(1),
     group: sector.zone !== '' ? sector.zone : (sector.floorTexture ?? ''),
+    ...(sector.floorTexture === undefined ? {} : { floorTexture: sector.floorTexture }),
     floor: sector.floor,
     ceiling: sector.ceiling,
     light: sector.light,

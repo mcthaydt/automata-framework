@@ -38,6 +38,8 @@ interface Props {
    */
   pointList?: boolean | undefined
   renderer: PlanRendererFactory
+  /** The game's colour for a material by name: a room whose floor has one is tinted with it on the plan. */
+  colours?: ((texture: string) => number | undefined) | undefined
   onundo: () => void
   onredo: () => void
   /** Where the pointer is on the plan, in metres; `undefined` once it leaves. */
@@ -49,6 +51,7 @@ const {
   tools,
   pointList = false,
   renderer: makeRenderer,
+  colours,
   onundo,
   onredo,
   onpointer,
@@ -77,7 +80,7 @@ let size: Size | undefined
 let view: PlanRenderer | undefined
 const stops: (() => void)[] = []
 // svelte-ignore state_referenced_locally
-const picture = createPlanPicture(editor)
+const picture = createPlanPicture(editor, (texture) => colours?.(texture))
 
 function draw(): void {
   if (size === undefined || view === undefined) return
