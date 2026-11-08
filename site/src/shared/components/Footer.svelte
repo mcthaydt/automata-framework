@@ -29,6 +29,7 @@ const columns = [
     links: [
       ['/privacy', 'Privacy'],
       ['/terms', 'Terms'],
+      ['/credits', 'Credits'],
       ['mailto:' + CONTACT_EMAIL, 'Contact'],
     ],
   },
