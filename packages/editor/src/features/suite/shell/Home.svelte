@@ -28,7 +28,7 @@ const cards = $derived(
 )
 </script>
 
-<div class="scroll" data-testid="suite-home">
+<div class="scroll" data-testid="suite-home" data-scroll-region>
   <!-- An entry's own page has one card, which names the editor: the title would say it twice. -->
   {#if entry === undefined || cards.length === 0}
     <header>

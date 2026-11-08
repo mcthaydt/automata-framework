@@ -11,3 +11,9 @@ body {
   color: var(--color-text-primary);
   font: var(--text-body-13);
 }
+
+/* The suite's rail column is as wide as its longest editor name at the rail's type ("Characters" is 56 px, measured in
+   Chromium) and room to breathe, so no name is cut. The document editors keep the shell's own 56 px. */
+[data-editor-shell][data-testid="suite-shell"] {
+  --shell-rail: 68px;
+}

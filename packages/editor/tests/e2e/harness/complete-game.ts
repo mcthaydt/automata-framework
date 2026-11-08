@@ -6,15 +6,43 @@ import { expect } from './fixtures.ts'
 import { boxOf, type Pixels, readPng } from './read-png.ts'
 import type { RunningEditor } from './run-editor.ts'
 
-/** Opens the editors and one editor from the rail: tabs of a bar on a phone, a column of buttons on a wide screen. */
-export async function openEditor(page: Page, editor: RunningEditor, name: string): Promise<void> {
-  if (!page.url().startsWith(editor.url.split('?')[0] ?? editor.url)) await page.goto(editor.url)
-  await page.getByRole('tab', { name, exact: true }).click()
+/**
+ * Where an editor is on the rail now: its tab, or (when the bar has no room for it) the item under More, or (a phone held
+ * sideways) the item of the top bar's Editors menu. The open editor is always a tab.
+ */
+async function railPlace(page: Page, name: string): Promise<{ menu: Locator | undefined }> {
+  const tab = page.getByRole('tab', { name, exact: true })
+  const more = page.getByRole('button', { name: 'More', exact: true })
+  const editors = page.getByRole('button', { name: 'Editors', exact: true })
+  await expect(tab.or(more).or(editors).first()).toBeVisible()
+  if (await tab.isVisible()) return { menu: undefined }
+  return { menu: (await more.isVisible()) ? more : editors }
 }
 
-/** Whether the rail offers an editor by this name: the game's editor list names it and the page has it. */
-export function railHas(page: Page, name: string): Locator {
-  return page.getByRole('tab', { name, exact: true })
+/** Opens the editors and one editor from the rail: a tab, or its item under More, whichever shows it. */
+export async function openFromRail(page: Page, name: string): Promise<void> {
+  const { menu } = await railPlace(page, name)
+  if (menu === undefined) {
+    await page.getByRole('tab', { name, exact: true }).click()
+    return
+  }
+  await menu.click()
+  await page.getByRole('menuitem', { name, exact: true }).click()
+}
+
+/** Asserts the rail offers an editor by this name, as a tab or under More, without opening it. */
+export async function expectOnRail(page: Page, name: string): Promise<void> {
+  const { menu } = await railPlace(page, name)
+  if (menu === undefined) return
+  await menu.click()
+  await expect(page.getByRole('menuitem', { name, exact: true })).toBeVisible()
+  await page.keyboard.press('Escape')
+}
+
+/** Opens the editors if they are not open yet, then one editor from the rail. */
+export async function openEditor(page: Page, editor: RunningEditor, name: string): Promise<void> {
+  if (!page.url().startsWith(editor.url.split('?')[0] ?? editor.url)) await page.goto(editor.url)
+  await openFromRail(page, name)
 }
 
 /**

@@ -3,14 +3,15 @@ import { join } from 'node:path'
 import { cellOnCanvas } from '../harness/canvas-pointer.ts'
 import {
   brightestSince,
+  expectOnRail,
   framesMeasured,
   gamePixels,
   openEditor,
+  openFromRail,
   pitchesPlayed,
   playFromEditors,
   pressInList,
   publishFromEditors,
-  railHas,
   recordBrightness,
   recordPitches,
 } from '../harness/complete-game.ts'
@@ -67,7 +68,7 @@ test('a new 2D game is made with every editor it has, played and published', asy
     // The rail offers the editors the new game lists: Levels, Characters, the Tuner, Feel, Audio and Schematic.
     await page.goto(editor.url)
     for (const name of ['Levels', 'Characters', 'Tuner', 'Feel', 'Audio', 'Schematic'])
-      await expect(railHas(page, name)).toBeVisible()
+      await expectOnRail(page, name)
 
     // Levels 2D: add a picture of tiles, paint a cell of Decor with one, and give the player start another (Characters).
     await openRoom(page, editor, 'Start')
@@ -96,8 +97,21 @@ test('a new 2D game is made with every editor it has, played and published', asy
     await expect(canvas).toHaveAttribute('data-state', 'drawn')
     const point = await cellOnCanvas(canvas, PAINTED, STARTER_TILE)
     await page.mouse.click(point.x, point.y)
-    await railHas(page, 'Characters').click()
-    await page.getByRole('radio', { name: /Player start/ }).click()
+    await openFromRail(page, 'Characters')
+    const playerStart = page.getByRole('radio', { name: /Player start/ })
+    const panel = page.getByRole('button', { name: 'Panel', exact: true })
+    // Where the list is a sheet, choosing another editor closes the sheet (it slides away); then it is opened again.
+    const sheet = (await page.locator('[data-editor-shell]').getAttribute('data-mode')) === 'compact'
+    if (sheet) {
+      await expect(playerStart).toBeHidden()
+      await panel.click()
+    }
+    await playerStart.click()
+    // The sheet stays up over the page after a choice; a person closes it with the same button.
+    if (sheet) {
+      await panel.click()
+      await expect(playerStart).toBeHidden()
+    }
     const details = page.getByRole('button', { name: 'Details' })
     if ((await details.getAttribute('aria-expanded')) === 'false') await details.click()
     await page.getByRole('radio', { name: 'Picture' }).click()

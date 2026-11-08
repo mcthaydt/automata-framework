@@ -2,11 +2,12 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Page } from '@playwright/test'
 import {
+  expectOnRail,
   framesMeasured,
   openEditor,
+  openFromRail,
   playFromEditors,
   publishFromEditors,
-  railHas,
   recordBrightness,
   secondsMoving,
 } from '../harness/complete-game.ts'
@@ -143,7 +144,7 @@ test('a new 3D game is made with every editor it has and played', async ({ page,
   try {
     // The rail offers the editors the new game lists: Levels, Characters and the Tuner.
     await page.goto(editor.url)
-    for (const name of ['Levels', 'Characters', 'Tuner']) await expect(railHas(page, name)).toBeVisible()
+    for (const name of ['Levels', 'Characters', 'Tuner']) await expectOnRail(page, name)
 
     // The new game, played as it comes: dark blue walls, Wick in his blue cloak, a walk to the far wall.
     const before = await look(page)

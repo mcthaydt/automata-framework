@@ -122,7 +122,7 @@ describe.each(SIZES)('Suite at $name ($width x $height)', (size) => {
       expect(box.left).toBe(0)
     } else {
       expect(rail).toHaveAttribute('aria-orientation', 'horizontal')
-      const bar = rail.parentElement?.getBoundingClientRect()
+      const bar = rail.closest('[data-region="rail"]')?.getBoundingClientRect()
       expect(Math.round(bar?.height ?? 0)).toBe(64)
       expect(Math.round(bar?.bottom ?? 0)).toBeLessThanOrEqual(size.height)
     }
