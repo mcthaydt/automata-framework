@@ -1,6 +1,6 @@
 # Automata Plus as framework extensions: progress
 
-**Overall: 67% (4 of 6 stages done, stage 5 audited in PR #471; the build, stage 4, is 27 of 27 tasks).**
+**Overall: 92% (5 of 6 stages done; stage 6, the fixes, is built and waits for its gates and review; the build, stage 4, is 27 of 27 tasks).**
 
 The Owner, 2026-11-07: "do automata-plus too" (11:19); then, on where: "Actually no make them extensions because
 they're free anyway, and move the stuff 3D is doing here, and cut the starter" (15:05). Plus's packages are ported into
@@ -22,8 +22,8 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 | 2. Plan and spec | Done, 2026-11-07, with the superpowers plugin (`brainstorming`, `writing-plans`), native: P-D2 to P-D11 decided (P-D11 departs from the audit: B, because core never imports an extension); 3 parts, 4 phases, 19 tasks; the 3D plan's tasks 7.1, 7.4 and 12.1 change (spec section 9) | [spec](2026-11-07-plus-port-spec.md), [plan](2026-11-07-plus-port-plan.md) |
 | 3. Plan audit | Done, 2026-11-07, with the superpowers plugin (`writing-plans`' self-review), native: 16 findings (F1 to F16), all fixed in the spec and the plan; P-D11 B confirmed sound with F5's fix; one change to the 3D plan's 7.1 (`zone`, `masses`, `cut`, `hideFrom` in `af-sector/2`, spec section 9). Spec accepted | [plan audit](2026-11-07-plus-port-plan-audit.md) |
 | 4. Build | Done, PR #458 (on #457): phase 1 done and gated (tasks 1.1 to 1.4, 2.1); tasks 2.2 (physics, puzzle), 2.3 (feel without Effect, audio-synth, debug) 2.4 (net without Effect, net-server, net-ui) 2.5 (`ui-screens` as a package) 2.6 (`sectors`, `nav`, `systems`, `narrative`, `cutscenes` by feature) and 2.7 (`pipelines` on the editor's gate shape, `dev-tools` tests in `tests/`) and 2.8 (the catalog, the stack page, the pins, the README) done; part A is complete. Part B: 3.1 (`@automata/3d/timeline`, after 3D 6.3) done; 3.2 and 3.3 (`cutscenes` takes the director) are done, 3.4 is superseded (the base 3D game stays core-only, by the trim) and 3.6 (`character-kit`: eight garments, nine hair pieces, five finishes, seats) too; 3.7 (`world-kit`: props, the dresser, signs, generated maps, the dressed base scenes) is done; 3.5 and 3.9 (the seven examples of `cutscenes`, `characterkit` and `worldkit`) are done, as are 5.5 and 4.2. WebKit and Firefox parity pending on the Owner's Mac | [plan execution log](2026-11-07-plus-port-plan.md) |
-| 5. Build audit | Not started | |
-| 6. Fixes | In progress (Sonnet, high): the audit's 7 Important and 12 Minor findings, on this PR | [build audit](2026-11-07-plus-port-build-audit.md), PR #471 |
+| 5. Build audit | Done, 2026-11-08 (Opus): no Critical, 7 Important (I1 to I7) and 12 Minor (M1 to M12) | [build audit](2026-11-07-plus-port-build-audit.md), PR #471 |
+| 6. Fixes | Done on this PR, 2026-11-08 (Sonnet, high, with the superpowers plugin, native): all 7 Important fixed or ruled, the Minor ones fixed or recorded as requests to core (M2, M3 and the loader half of M4); each with its evidence in the plan's execution log (rows `6 (I1)` to `6 (minors)`) | [plan execution log](2026-11-07-plus-port-plan.md) |
 
 ## The refactor's record (task 5.5)
 
@@ -58,10 +58,10 @@ Findings left open, each with its reason:
 - Kit goldens (`character-kit/goldens/dress.json`) are the recording taken before the move; a fresh recording on another machine differs by about 1e-13, so they compare at 1e-9, as core's do.
 - The world-kit's apartment and block make different levels than the old generators for the same seed (AF's seeded stream replaces the old one); each is deterministic. No test pins the old output.
 
-## Where to resume (2026-11-07, stage 4 done)
+## Where to resume (2026-11-08, stage 6 built)
 
 Branch `claude/project-thread-d62n7h` (PR #458, on #457). The build is done: every task of the plan (1.1 to 1.4, 2.1 to 2.8, 3.1 to 3.9, 4.1, 4.2, 5.1 to 5.5) has its counts in the plan's execution log and its rulings in the ledger (`.superpowers/sdd/2026-11-07-plus-port-plan/progress.md`, git-ignored).
-Next: stage 5, the Opus build audit (complete, consistent, matches the spec and the codebase), then stage 6, the Sonnet fixes. The whole-branch review at the end of the build was a self-review by the author (no subagent tool), so the audit is the first fresh read.
+The Opus build audit (stage 5, PR #471) found 7 Important and 12 Minor; stage 6 closed them on this branch. Next: the merge, after the gates in the PR body and the Owner's Mac runs. Three requests wait on core (M2 sector geometry in `@automata/3d/level`, M3 a time input on `LookPass`, M4 a shipped TS loader); each is in the plan's log row `6 (minors)`.
 The Owner's steps, none of them for a session: archive `mcthaydt/automata-plus` and its parked server-deploy branch once this merges; run WebKit and Firefox parity for every browser suite on the Mac; approve the release run that publishes the nine free extensions.
 The examples (`examples/3d/{cutscenes,characterkit,worldkit}`) follow the catalog's rules (`tooling/examples-runner/src/catalog.ts`): at most 100 code lines, a header whose `Tier:` matches the module, no relative imports, a journey in `examples/3d/tests/e2e`, a README row. An unpublished extension is importable only when `UNPUBLISHED_EXTENSIONS` lists it; the three here are listed, and leave the list when 4.1-style publishing makes them public.
 The moves use `docs/refactor/move-map-plus.json` (rows per package, `entries` empty; give the mover a temporary map whose

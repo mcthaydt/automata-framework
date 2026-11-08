@@ -99,7 +99,8 @@ const EXTENSION_PACKAGES: ReadonlySet<string> = new Set([
 ])
 /**
  * Extensions that stay private for now, whose entries examples may still import: `@automata/3d` is built on the
- * closed `@pixi/3d` beta and is published when Pixi 3D is (M3R-D7). The website's playground leaves
+ * closed `@pixi/3d` beta and is published when Pixi 3D is, and `@automata/cutscenes`, `@automata/character-kit` and
+ * `@automata/world-kit` build on `@automata/3d`, so they wait for it. The website's playground leaves
  * its examples out (`playgroundCatalog`), because it is public.
  */
 const UNPUBLISHED_EXTENSIONS: ReadonlySet<string> = new Set([

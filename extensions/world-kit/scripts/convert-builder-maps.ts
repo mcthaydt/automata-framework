@@ -3,7 +3,8 @@
 //
 //   node --import ../../packages/3d/scripts/extensionless-ts.ts scripts/convert-builder-maps.ts <maps.json> --out <dir>
 //
-// Each map is named by its key in the file (`bedroom` is `bedroom.af-sector.json`).
+// A map's file is its key in the file, in kebab-case (`bedroom` is `bedroom.af-sector.json`, `neonBar` is
+// `neon-bar.af-sector.json`); the level inside keeps the key as its `name`.
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
@@ -20,7 +21,7 @@ const dir = resolve(args[out + 1] as string)
 mkdirSync(dir, { recursive: true })
 const maps = JSON.parse(readFileSync(resolve(source), 'utf8')) as Record<string, object>
 for (const [id, plan] of Object.entries(maps)) {
-  const file = join(dir, `${id}.af-sector.json`)
+  const file = join(dir, `${id.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}.af-sector.json`)
   writeFileSync(file, `${JSON.stringify(convertBuilderMap({ id, ...plan }), null, 2)}\n`)
   console.log(file)
 }

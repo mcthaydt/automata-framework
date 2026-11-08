@@ -13,7 +13,7 @@ import { commands } from 'vitest/browser'
 import '#src/features/garments/register-wardrobe.ts'
 import '#src/features/hair/register-hair.ts'
 import { KIT_OUTFITS } from '#src/testing/kit-outfits.ts'
-import goldens from '../../../goldens/dress.json' with { type: 'json' }
+import goldens from '../../fixtures/goldens/dress.json' with { type: 'json' }
 
 const recorded = goldens as unknown as OutfitGoldens
 let library: FigureLibrary

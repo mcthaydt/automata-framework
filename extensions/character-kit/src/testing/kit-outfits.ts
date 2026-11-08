@@ -1,4 +1,4 @@
-// The outfits the kit's geometry goldens (goldens/dress.json) are taken on: between them every garment the kit adds
+// The outfits the kit's geometry goldens (tests/fixtures/goldens/dress.json) are taken on: between them every garment the kit adds
 // (waistcoat, legs, skirt, apron, coat, belt, gloves, mark), every hair piece and finish, and the headwear they sit under,
 // on four bodies. scripts/record-goldens.ts dresses each one; tests/unit/outfits.test.ts dresses them again and compares
 // part by part. The styles are the kit's fixtures (tests/fixtures/content/figure-hair), core's `bob`, `cropped` and

@@ -14,12 +14,21 @@ import fixture from '../../fixtures/builder-maps.json' with { type: 'json' }
 const DIR = join(import.meta.dirname, '../../../library/maps')
 const FILES = readdirSync(DIR).filter((f) => f.endsWith('.af-sector.json'))
 
+// A file is the fixture's key in kebab-case (`neonBar` is `neon-bar.af-sector.json`), as the converter's script writes it.
+const kebab = (id: string): string => id.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)
+const idOf = (file: string): string =>
+  Object.keys(fixture).find((id) => `${kebab(id)}.af-sector.json` === file) ?? file
+
 describe('library/maps', () => {
-  it('has one file for each map of the fixture', () => {
-    expect(FILES.map((f) => f.replace('.af-sector.json', '')).sort()).toEqual(Object.keys(fixture).sort())
+  it('has one file for each map of the fixture, named in kebab-case', () => {
+    expect(FILES.sort()).toEqual(
+      Object.keys(fixture)
+        .map((id) => `${kebab(id)}.af-sector.json`)
+        .sort(),
+    )
   })
   for (const file of FILES) {
-    const id = file.replace('.af-sector.json', '')
+    const id = idOf(file)
     const level = JSON.parse(readFileSync(join(DIR, file), 'utf8'))
     it(`${id} is what the converter makes of the fixture`, () => {
       expect(afSector2Schema.parse(level)).toEqual(level)

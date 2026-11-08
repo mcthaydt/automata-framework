@@ -1,4 +1,4 @@
-// The kit's geometry goldens (goldens/dress.json): every garment, hair piece and finish the kit adds on four bodies, built
+// The kit's geometry goldens (tests/fixtures/goldens/dress.json): every garment, hair piece and finish the kit adds on four bodies, built
 // here and compared part for part with the recording, and shown not to move when a last bit does. The recording is byte for
 // byte the one these outfits had in core before the kit existed (the `fall` that listed locks is written `strands`).
 
@@ -14,7 +14,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import '#src/app/character-kit.extension.ts'
 import { kitFixture } from '#src/testing/kit-fixture.ts'
 import { KIT_OUTFITS } from '#src/testing/kit-outfits.ts'
-import goldens from '../../goldens/dress.json' with { type: 'json' }
+import goldens from '../fixtures/goldens/dress.json' with { type: 'json' }
 
 const recorded = goldens as unknown as OutfitGoldens
 let library: FigureLibrary
