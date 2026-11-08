@@ -93,12 +93,32 @@ line. Errors say what is wrong and where, in a sentence.
 
 ## 7. The suite's own changes
 
-- The rail lists a registered editor only when the game's editor list names it, so a game with no sounds never sees
-  Audio. With no readable list, it lists every registered editor (the person still needs a way in).
+- **Every registered editor stays on the rail**, whether or not the game has its files yet. (A first build hid an
+  editor the game's list did not name; the Owner, 2026-11-08: that leaves a game with no sounds no way to add its
+  first one. Reverted.) An editor whose files the game does not have yet opens on a page that says what it is for and
+  offers to start one; each editor's own spec designs that page.
+- Starting a first file needs the game's editor list to name that file, or the write is refused by the list's
+  policy. So `create-game`'s template list (`packages/tools/src/shared/create-game/template-content/editors.toml`)
+  names every content editor's files, and the "start" page of an editor says how to add the list row when an older
+  game's list lacks it. Each editor's plan carries its row.
 - The leftover "Plus build (EDS.P)" comment in `create-suite.ts` goes. The suite's test that no card says "Plus" stays.
 - The editor list's `LABELS` keep the five names, so a list that names one on a page without it still reads well.
-- The sample game (`platformer.editors.toml` and its files) gains a small file for each of the five, so the page opened
-  without a checkout shows them working.
+- The sample game (`extensions/editors/src/app/suite/sample/`) gains a small file for each of the five, so the page
+  opened without a checkout shows them working.
+
+## 7b. One spec and plan per editor
+
+The Owner, 2026-11-08: "Each editor needs its own plan and spec." This document holds only what the five share (the
+package, the session, the look, the words, the suite's changes). Each editor has its own spec and plan, written,
+audited and built through the project's pipeline before its code merges:
+
+| Editor | Spec | State |
+| --- | --- | --- |
+| Schematic (the game's AI: how enemies and other characters behave) | `2026-11-08-schematic-spec.md` | First |
+| Feel | `2026-11-08-feel-spec.md` | Built ahead of its spec; brought in line with it |
+| Audio | `2026-11-08-audio-spec.md` | Half built ahead of its spec; finished against it |
+| Writer | `2026-11-08-writer-spec.md` | Not started |
+| Sequence | `2026-11-08-sequence-spec.md` | Not started |
 
 ## 8. Not in this work (for the Owner to decide)
 
@@ -109,17 +129,18 @@ The suite has no editor for these. Each would be its own spec. None is built unl
 3. **Item and enemy tables.** The Tuner edits single numbers; there is no table of items or enemies with their stats.
 4. **Default controls.** Players can rebind in the game; nothing edits the game's default bindings.
 
-Two runtime gaps limit what these editors' content does in a game. This work does not take them on; they are open
-choices for the Owner (see `2026-11-08-complete-game-gaps.md` in the project files):
+Three runtime gaps limit what these editors' content does in a game. This work does not take them on. The Owner
+approved closing them (2026-11-08), and the "Plan a whole game with no code" work owns them (see
+`2026-11-08-complete-game-gaps.md` in the project files):
 
 5. **2D games.** The narrative, cutscenes and systems extensions require `sectors` (3D) today, so what Writer, Sequence
    and Schematic's characters make plays only in a 3D game. Feel, Audio and puzzles work in 2D. The editors themselves
    edit the files either way.
 6. **A dialogue box and captions.** Nothing in the framework or the extensions draws a dialogue line, a choice or a
    cutscene caption yet; the cutscene director hands a caption to a renderer no package has. Writer and Sequence write
-   the content; a game draws it with its own UI until a kit does.
+   the content; the runtime work adds the box that draws it.
 7. **Combat.** Schematic's characters sneak, chase and search; no extension has health or damage, so there is nothing
-   for an editor to set there.
+   for an editor to set there until the runtime work adds health and damage.
 
 ## 9. Checks
 
