@@ -1,5 +1,5 @@
 import type { Camera } from '../../shared/level-2d/canvas/level-view'
-import type { EditHistory } from '../../shared/level-2d/model/edit-history'
+import type { EditHistory } from '../../shared/level-2d/editor/level-editor'
 import { moveLevelInWorld } from '../../shared/level-2d/model/world/level-placement'
 import { dragPosition, levelAt, toWorld, worldRects } from '../../shared/level-2d/model/world/world-model'
 import type { Point } from '../../shared/level-2d/tiles/footprint'

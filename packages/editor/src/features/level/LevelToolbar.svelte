@@ -8,7 +8,7 @@
 import Button from '../../shared/kit/widgets/Button.svelte'
 import Segmented from '../../shared/kit/widgets/Segmented.svelte'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'
-import type { LevelTool } from '../../shared/level-2d/model/editor-view'
+import type { LevelTool } from '../../shared/level-2d/editor/level-editor'
 
 interface Props {
   tool: LevelTool

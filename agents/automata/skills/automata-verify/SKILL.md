@@ -55,15 +55,16 @@ delete or skip a test, loosen a rule or re-record a golden to get past it.
 | `locale` | `localeCompare`, `toLocaleString` and similar, which depend on the engine's locale data | Compare and format explicitly |
 | `koota-soa` | koota's `trait` or a `relation` store given an object schema (or one the checker cannot see), which koota compiles with `new Function`; Ruken's CSP refuses it | Use `defineComponent` from `@mcthaydt/automata-sim`, or pass koota a factory: `trait(() => ({ x: 0 }))`, `relation({ store: () => ({ amount: 0 }) })` |
 | `platform-import` | A distribution target's platform package (`@ruken/*`, `@tauri-apps/*`) imported outside a folder named for that target (`ruken/`, `tauri/`); run with `--platform-imports` | Use AF's own API instead (the message names it: `@mcthaydt/automata` for host types, `@mcthaydt/automata/testing` for a fake host, `@mcthaydt/automata-content/game-config` for the game config), or move the file under the target's folder |
-| `forbidden-import` | A package imports a module it must never use (the 2D editor and `@pixi/3d`, for example); run with `--forbid <root>:<package>,...` | Take the dependency out; if the code needs 3D, it belongs in the 3D package |
-| `feature-import` | In a package laid out by feature (`src/features/<x>/`), a feature imports another feature; run with `--features` | Pass what it needs in from `app/`, or move the shared part to `shared/` (`--shared-island <folder>` also keeps one `shared/` folder from importing the rest of `shared/`) |
+| `feature-import` | In a package laid out by feature (`src/features/<x>/`), a feature imports another feature; run with `--features` | Pass what it needs in from `app/`, or move the shared part to `shared/` |
 | `shared-import` | A file in `shared/` imports a feature, `app/` or `entries/`; run with `--features` | Move what it needs into `shared/`, or move the file into the feature that owns it |
 | `app-import` | A feature imports `app/`; run with `--features` | Only `entries/` and `testing/` import `app/`: pass the value in from `app/` instead |
 | `entries-import` | A feature, `shared/` or `app/` file imports `entries/`, the published surface; run with `--features` | Import the module the entry re-exports |
 | `entries-logic` | A file in `entries/` holds code instead of only re-exporting; run with `--features` | Move the code into `app/`, `features/` or `shared/` and re-export it |
 | `testing-import` | Product code imports `testing/`, the published test helpers; run with `--features` | Only `entries/` re-exports `testing/`; keep test helpers out of product code |
+| `shared-island` | A folder of `shared/` named with `--shared-island` (the editor's `kit`) imports a sibling folder of `shared/`; run with `--features` | Pass what it needs in as an argument, or move the file it imports into the island |
 | `alias-in-src` | A `#src/…` import in `src/`, where only tests use the alias; run with `--features` | Import by relative path |
 | `browser-import` | A file a browser entry reaches imports `effect`, a Node built-in or a Node-only library; run with `--browser` | Effect and Node's modules belong to the Node tooling package (ADR 0003); keep them out of browser code |
+| `forbidden-import` | A source, test or Svelte file under a package imports a package it may not use (`--forbid <package-root>:<package>,…`; the editor package refuses 3D) | Take the import out, or pass the value in from a package that may use it |
 | `parse-error` | The file could not be parsed | Fix the syntax error at the location |
 
 ### `typecheck`

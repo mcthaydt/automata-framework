@@ -6,12 +6,12 @@
 -->
 <script lang="ts">
 import Tabs from '../../shared/kit/widgets/Tabs.svelte'
-import type { EditHistory } from '../../shared/level-2d/model/edit-history'
+import { entityInspector, levelChecks, levelInspector } from '../../shared/level-2d/editor/inspector-model'
+import type { EditHistory } from '../../shared/level-2d/editor/level-editor'
 import type { Project } from '../../shared/level-2d/model/project-types'
 import type { Diagnostic } from '../../shared/level-2d/profiles/profile'
 import ChecksTab from './ChecksTab.svelte'
 import EntityTab from './EntityTab.svelte'
-import { entityInspector, levelChecks, levelInspector } from './inspector-model'
 import LevelTab from './LevelTab.svelte'
 
 interface Props {

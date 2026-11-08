@@ -8,7 +8,6 @@
 <script lang="ts">
 import type { GeometryState } from '@mcthaydt/automata'
 import type { Component } from 'svelte'
-import { componentOf } from '../../app/editor-2d/views'
 import ConflictDialog from '../../shared/kit/dialogs/ConflictDialog.svelte'
 import RecoveryDialog from '../../shared/kit/dialogs/RecoveryDialog.svelte'
 import { shellModeOf } from '../../shared/kit/shell/shell-mode'
@@ -17,15 +16,23 @@ import StatusLine from '../../shared/kit/widgets/StatusLine.svelte'
 import ToastRegion from '../../shared/kit/widgets/ToastRegion.svelte'
 import type { ToastStore } from '../../shared/kit/widgets/toasts'
 import type { IdSource } from '../../shared/level-2d/model/ids'
+import type {
+  LevelCanvasProps,
+  ObjectUrls,
+  ViewProps,
+  ViewServices,
+  WorldCanvasProps,
+} from '../../shared/level-2d/session/view-props'
 import DocumentBar from './DocumentBar.svelte'
 import type { DocumentController, DocumentState } from './document-controller'
 import ViewRail from './ViewRail.svelte'
-import type { LevelCanvasProps, ObjectUrls, ViewServices, WorldCanvasProps } from './view-props'
 import { routeOf, viewsOf } from './view-router'
 
 interface Props {
   geometry: GeometryState
   controller: DocumentController
+  /** The component for a view's `component` name; the app owns the table, because it knows every feature. */
+  viewOf: (name: string) => Component<ViewProps>
   toasts: ToastStore
   /** The time an autosave's age is told against. */
   clock: { now(): number }
@@ -45,6 +52,7 @@ interface Props {
 const {
   geometry,
   controller,
+  viewOf,
   toasts,
   clock,
   read,
@@ -95,7 +103,7 @@ let focus = $state<string | undefined>(undefined)
 
 const views = $derived(viewsOf(shown.document.profile))
 const route = $derived(routeOf(views, chosen))
-const View = $derived(componentOf(route?.component ?? ''))
+const View = $derived(viewOf(route?.component ?? ''))
 
 const services = $derived<ViewServices>({
   read: (path) => read(path),

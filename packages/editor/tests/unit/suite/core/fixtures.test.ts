@@ -6,11 +6,13 @@ import { loadEditorList } from '#src/shared/editor-list/editor-list.ts'
 import type { EditorList } from '#src/shared/editor-list/editors.schema.ts'
 import { fileAccess } from '#src/shared/editor-list/workspace-policy.ts'
 
-/** The sample game's list sits beside the in-memory ports the suite page uses; the others are test fixtures. */
 const fixture = (name: string): string =>
   readFileSync(
     new URL(
-      `../../../../src/${name === 'platformer' ? 'features/suite/memory' : 'testing/suite/fixtures'}/${name}.editors.toml`,
+      // The sample game's list ships with the suite page; the other game's list is a test fixture.
+      name === 'platformer'
+        ? '../../../../src/features/suite/shell/platformer.editors.toml'
+        : `../../../../src/testing/suite/fixtures/${name}.editors.toml`,
       import.meta.url,
     ),
     'utf8',

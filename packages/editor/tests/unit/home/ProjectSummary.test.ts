@@ -3,7 +3,7 @@ import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import ProjectSummary from '#src/features/home/ProjectSummary.svelte'
-import type { ProjectEntry } from '#src/shared/level-2d/documents/project-list.ts'
+import type { ProjectEntry } from '#src/shared/level-2d/session/editor-app-types.ts'
 
 // The inspector of Home: the selected project, what its profile says about it, and the three things a
 // person does with it. Entries are written by hand; the component knows no profile.

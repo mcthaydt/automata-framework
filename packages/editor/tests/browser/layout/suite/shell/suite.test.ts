@@ -5,12 +5,12 @@ import { checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { EDITOR_LIST_PATH } from '#src/features/suite/core/index.ts'
-import { SAMPLE_GAME, samplePorts } from '#src/features/suite/memory/sample-ports.ts'
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
+import { SAMPLE_GAME, samplePorts } from '#src/features/suite/shell/sample-ports.ts'
 import { type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
 
-// The suite with the production CSS in a real browser at the editors' window sizes:
+// The suite with the production CSS in a real browser at the editors' window sizes (editor suite spec §10, §12):
 // region boxes, the nine entries, the 64 px tab bar, 44 px targets, no page scroll and no remount on rotation. jsdom
 // has no layout, so only this file checks room. Started the way `main.ts` starts it, with the real window.
 

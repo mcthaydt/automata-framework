@@ -7,15 +7,15 @@ import {
   interchangeSchema,
   planImport,
 } from '#src/features/suite/core/interchange.ts'
-import { createMemoryPorts } from '#src/features/suite/memory/memory-ports.ts'
-import sampleList from '#src/features/suite/memory/platformer.editors.toml?raw'
+import sampleList from '#src/features/suite/shell/platformer.editors.toml?raw'
 import { loadEditorList } from '#src/shared/editor-list/editor-list.ts'
 import { EDITOR_LIST_PATH } from '#src/shared/editor-list/editors.schema.ts'
 import { workspaceFile } from '#src/shared/editor-list/workspace-policy.ts'
 import { createWritePath } from '#src/shared/editor-list/write-path.ts'
+import { createMemoryPorts } from '#src/shared/kit/ports/memory/memory-ports.ts'
 import bayList from '#src/testing/suite/fixtures/bay.editors.toml?raw'
 
-// An excerpt of the arcade source's content/tuning.toml (the kit's documents fixture).
+// An excerpt of FloorFifty's content/tuning.toml (SNEKPRTY/FloorFifty 677d456, the kit's documents fixture).
 const TUNING = 'content/tuning.toml'
 const TUNING_TEXT = `# Base gameplay tuning.
 

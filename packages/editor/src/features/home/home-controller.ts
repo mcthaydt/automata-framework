@@ -6,14 +6,18 @@ import {
   type ProjectListSource,
 } from '../../shared/kit/home/project-browser.ts'
 import type { ToastKind, ToastStore } from '../../shared/kit/widgets/toasts.ts'
-import type { EditorApp, ImportOutcome, OpenOutcome } from '../../shared/level-2d/documents/editor-app'
+import type {
+  EditorApp,
+  ImportOutcome,
+  OpenOutcome,
+  ProjectEntry,
+} from '../../shared/level-2d/session/editor-app-types'
 import {
   type ChoiceOutcome,
   needsPanel,
-  openProblem,
   type PanelOutcome,
-} from '../../shared/level-2d/documents/open-flow-model'
-import type { ProjectEntry } from '../../shared/level-2d/documents/project-list'
+} from '../../shared/level-2d/session/open-flow-model'
+import { openProblem } from '../../shared/level-2d/session/open-problem'
 import { duplicateMessage, importNotices, removeMessage, searchWords } from './home-model'
 
 // The 2D editor's Home: the kit's project browser (the list, the search, the selection and

@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
 import {
   cardTitle,
   duplicateMessage,
@@ -14,9 +13,15 @@ import {
 } from '#src/features/home/home-model.ts'
 import { filterEntries } from '#src/shared/kit/home/project-browse.ts'
 import type { LevelThumbnails } from '#src/shared/level-2d/canvas/level-thumbnails.ts'
-import type { CopyOutcome, ImportOutcome, OpenOutcome } from '#src/shared/level-2d/documents/editor-app.ts'
-import type { ProjectEntry } from '#src/shared/level-2d/documents/project-list.ts'
+import { createAppProfiles } from '#src/shared/level-2d/profiles/app-profiles.ts'
 import { createProfileRegistry } from '#src/shared/level-2d/profiles/profile.ts'
+import type {
+  CopyOutcome,
+  ImportOutcome,
+  OpenOutcome,
+  ProjectEntry,
+} from '#src/shared/level-2d/session/editor-app-types.ts'
+import { openProblem } from '#src/shared/level-2d/session/open-problem.ts'
 import { plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
 
@@ -147,6 +152,75 @@ describe('templateCards', () => {
       'Planted note',
     ])
     expect(cards.at(-1)).toMatchObject({ profileId: 'planted', id: 'two', hint: undefined })
+  })
+})
+
+describe('openProblem', () => {
+  const problem = (outcome: Exclude<OpenOutcome, { status: 'opened' }>): string => openProblem(outcome)
+
+  it('names the file by its last path segment and says what went wrong', () => {
+    expect(problem({ status: 'unrecognised', path: 'dir/readme.txt', text: 'hi' })).toBe(
+      'readme.txt is not a project this editor opens.',
+    )
+    expect(problem({ status: 'notText', path: 'dir/pic.png' })).toBe('pic.png is not a text file.')
+    expect(problem({ status: 'missing', path: 'gone.af2d.json' })).toBe(
+      'gone.af2d.json is no longer in this workspace.',
+    )
+    expect(problem({ status: 'tooLarge', path: 'huge.af2d.json', bytes: 20 * 1024 * 1024 })).toBe(
+      'huge.af2d.json is 20 MB; the limit is 16 MB.',
+    )
+  })
+
+  it('gives the first reason a file does not open, with its position when it has one', () => {
+    const profile = createAppProfiles().list()[0]
+    if (profile === undefined) throw new Error('no profile')
+    expect(
+      problem({
+        status: 'invalid',
+        path: 'a.af2d.json',
+        profile,
+        text: '{',
+        errors: [
+          { code: 'notJson', message: 'Unexpected end', line: 3, column: 7 },
+          { code: 'x', message: 'y' },
+        ],
+      }),
+    ).toBe('a.af2d.json does not open: Unexpected end (line 3, column 7).')
+    expect(
+      problem({
+        status: 'invalid',
+        path: 'a.af2d.json',
+        profile,
+        text: '{',
+        errors: [{ code: 'newerVersion', message: 'Made by a newer editor.' }],
+      }),
+    ).toBe('a.af2d.json does not open: Made by a newer editor.')
+    expect(problem({ status: 'invalid', path: 'a.af2d.json', profile, text: '', errors: [] })).toBe(
+      'a.af2d.json does not open.',
+    )
+  })
+
+  it('lists the kinds that claim a file that more than one profile claims', () => {
+    const registry = createAppProfiles()
+    registry.register(plantedProfile())
+    expect(problem({ status: 'choose', path: 'x.dat', text: '', candidates: registry.list() })).toBe(
+      'x.dat could be a Level project or a Planted note.',
+    )
+  })
+
+  it('lists three candidates with commas and a last or', () => {
+    const registry = createAppProfiles()
+    registry.register(plantedProfile())
+    registry.register(plantedProfile({ id: 'third', label: 'Third' }))
+    expect(problem({ status: 'choose', path: 'x.dat', text: '', candidates: registry.list() })).toBe(
+      'x.dat could be a Level project, a Planted note or a Third.',
+    )
+  })
+
+  it('passes on what the store said', () => {
+    expect(
+      problem({ status: 'storageFailed', path: 'a.note', reason: 'denied', message: 'Not allowed' }),
+    ).toBe('a.note: Not allowed')
   })
 })
 
