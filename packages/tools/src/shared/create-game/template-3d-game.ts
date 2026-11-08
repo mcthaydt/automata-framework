@@ -66,24 +66,39 @@ export const SIZE = targetSize({ width: 844, height: 390 }, DEFAULT_LOOK.pixel.s
     content: (options) => `import { content } from 'virtual:automata/content'
 import { createPixi3dRenderer, DEFAULT_LOOK, render3dExtension } from '@automata/3d'
 import { CameraTurn, STICK_MAX } from '@automata/3d/sim'
+import { placeScript } from '@automata/cutscenes/sim'
+import { cutsceneStage3d, showScene3d } from '@automata/cutscenes/stage-3d'
 import { defaultContent, defineGame, inputs, keys } from '@automata/framework'
+import { sectorAnchors } from '@automata/sectors/sim'
 import { cameraTurnUnits, labelled, moveFromStick } from './controls.ts'
+import { Actor } from '../features/guard/actor.component.ts'
+import { guardView } from '../features/guard/guard.view.ts'
+import { Keeper } from '../features/keeper/keeper.component.ts'
+import { keeperView } from '../features/keeper/keeper.view.ts'
 import { drawRoom, worldLibraryOf } from '../features/room/room.view.ts'
-import { roomIn } from '../features/room/room.ts'
-import type { PlayContent } from '../features/room/read-room.ts'
+import { ROOM_LEVEL } from '../features/room/room.ts'
+import { EXTENSIONS } from '../features/story/story.extensions.ts'
+import { SCRIPTS } from '../features/story/story-content.ts'
 import { Move } from '../features/wick/move.command.ts'
-import { spawnWick, wickPlugin } from '../features/wick/wick.plugin.ts'
 import { Wick } from '../features/wick/wick.component.ts'
 import { wickView } from '../features/wick/wick.view.ts'
 import { FOLLOW, TICK_HZ } from '../shared/constants.ts'
 import { SIZE } from '../shared/screen.ts'
-import { tuningOf } from '../shared/tuning.ts'
 import { audio, feelOnStage } from './feel-audio.ts'
+import { PLAY, PLUGINS, setup } from './story-sim.ts'
 
-const TUNING = tuningOf(content)
-const ROOM = roomIn(content)
-/** What the sim reads: the room and the tuning. */
-const PLAY: PlayContent = { room: ROOM, tuning: TUNING }
+const TUNING = PLAY.tuning
+
+// The cutscenes' people are the ones the room places by name: a scene that starts someone at \`actor:keeper\` starts them
+// where the room has the keeper.
+const SCRIPTS_PLACED = Object.fromEntries(
+  Object.entries(SCRIPTS).map(([id, script]) => {
+    const placed = placeScript(script, sectorAnchors(ROOM_LEVEL))
+    if (!placed.ok)
+      throw new Error(\`The cutscene "\${id}" names \${placed.missing.join(', ')}, which this room cannot place.\`)
+    return [id, placed.script] as const
+  }),
+)
 
 /** The keyboard turns the camera 120 degrees a second: 65,536 units a turn, about 364 units a tick. */
 const KEY_TURN = Math.round((65_536 * 120) / 360 / TICK_HZ)
@@ -114,15 +129,16 @@ const TURN = labelled(
   { KeyQ: 'Turn left', KeyE: 'Turn right' },
 )
 
-/** ${options.title}: Wick walking around a room, on the default title, play and pause screens. */
+/** ${options.title}: Wick walking around a room with a keeper to talk to, a cutscene and a guard, on the default screens. */
 export const game = defineGame({
   id: '${options.id}',
   title: '${options.title}',
   size: SIZE,
   orientation: 'landscape',
-  sim: { plugins: [wickPlugin], seed: 1, setup: (sim) => spawnWick(sim, ROOM) },
-  // The camera's heading is a sim plugin of the 3D extension; defineGame adds it.
-  extensions: [render3dExtension],
+  sim: { plugins: PLUGINS, seed: 1, setup },
+  // The camera's heading is a sim plugin of the 3D extension; defineGame adds it. The story's extensions are in
+  // features/story.
+  extensions: [render3dExtension, ...EXTENSIONS],
   input: inputs(MOVE, TURN),
   // The default screens' flow, and the room and tuning as the sim's content (what its systems read as ctx.content).
   content: { ...defaultContent(), sim: PLAY },
@@ -132,12 +148,29 @@ export const game = defineGame({
       // What the player feels (shake, flash, words), from the file the Feel editor writes.
       setup: feelOnStage,
       look: DEFAULT_LOOK,
-      views: { [Wick.id]: wickView(content, TUNING) },
+      views: {
+        [Wick.id]: wickView(content, TUNING),
+        [Keeper.id]: keeperView(content, TUNING),
+        [Actor.id]: guardView(content, TUNING),
+      },
       camera: { views: [FOLLOW], initial: FOLLOW.id, follow: Wick.id },
       scene: (view, _stage, occluders) => {
         view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c }
         drawRoom(view.root, occluders, worldLibraryOf(content), DEFAULT_LOOK)
-        return undefined
+        // A cutscene moves the camera while it plays; the follow camera takes it back when it ends.
+        return cutsceneStage3d({
+          scripts: SCRIPTS_PLACED,
+          tickHz: TICK_HZ,
+          show: showScene3d({
+            camera: {
+              set: (shot) => {
+                view.camera.position.set(...shot.pos)
+                view.camera.lookAt({ x: shot.look[0], y: shot.look[1], z: shot.look[2] })
+                view.camera.fov = shot.fov
+              },
+            },
+          }),
+        })
       },
     }),
   // What the player hears, from the file the Audio editor writes.
@@ -386,14 +419,31 @@ describe("the game's content", () => {
       expect(swatches, id).toContain(prop.swatch)
   })
 
-  it("has the gait and the colours Wick's figure names", () => {
-    const wick = kinds.figure?.wick as { skin: string; gait: string; outfits: Record<string, Record<string, unknown>[]> }
-    expect(names('figure-gait')).toContain(wick.gait)
-    expect(names('figure-swatch')).toContain(wick.skin)
-    for (const garment of Object.values(wick.outfits).flat())
-      for (const value of Object.values(garment))
-        if (typeof value === 'string' && /^(wick-|sole$|lid$|brow$|mouth$)/.test(value))
-          expect(names('figure-swatch'), value).toContain(value)
+  it("has the gait and the colours each figure names", () => {
+    const figures = Object.entries(kinds.figure ?? {}) as [
+      string,
+      { skin: string; gait: string; outfits: Record<string, Record<string, unknown>[]> },
+    ][]
+    expect(figures.map(([name]) => name).sort()).toEqual(['guard', 'keeper', 'wick'])
+    for (const [name, figure] of figures) {
+      expect(names('figure-gait'), name).toContain(figure.gait)
+      expect(names('figure-swatch'), name).toContain(figure.skin)
+      for (const garment of Object.values(figure.outfits).flat())
+        for (const value of Object.values(garment))
+          if (typeof value === 'string' && /^(wick-|keeper-|guard-|sole$|lid$|brow$|mouth$)/.test(value))
+            expect(names('figure-swatch'), value).toContain(value)
+    }
+  })
+
+  it('has the lines the keeper’s conversation says and the cutscene shows', () => {
+    const lines = Object.values(kinds.lines ?? {}).flatMap(
+      (file) => (file as { lines: { id: string }[] }).lines.map((line) => line.id),
+    )
+    const graphs = Object.values(kinds.dialogue ?? {}).flatMap((file) => (file as { graphs: unknown[] }).graphs)
+    expect(JSON.stringify(graphs)).toContain('keeper.hello')
+    for (const id of ['keeper.hello', 'keeper.passing', 'keeper.around', 'keeper.farewell', 'keeper.follow', 'keeper.tour'])
+      expect(lines, id).toContain(id)
+    expect(names('cutscene')).toEqual(['look'])
   })
 })
 `,

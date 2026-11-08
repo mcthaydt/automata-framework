@@ -1,0 +1,41 @@
+# The keeper, who stands in the room and talks. A figure like Wick: open it in Characters to change his build or his colours.
+
+skin = "wick-shadow"
+gait = "bounce"
+hand = "R"
+default = "wanderer"
+
+[sliders]
+height = 120
+head = 1
+chunk = 1
+frame = 0.4
+legs = 0.2
+posture = 0.6
+hands = 0.6
+feet = 0.6
+
+# Each outfit is a list of garments, one table each.
+[[outfits.wanderer]]
+top = "keeper-cloak"
+sleeves = "long"
+cuffs = "wick-trim"
+
+[[outfits.wanderer]]
+trousers = "keeper-cloak-shade"
+
+[[outfits.wanderer]]
+shoes = "wick-boot"
+boots = true
+sole = "sole"
+
+[[outfits.wanderer]]
+cape = "keeper-cloak"
+length = 0.9
+trim = "wick-trim"
+
+[[outfits.wanderer]]
+eyes = "wick-eye"
+lids = "lid"
+brows = "brow"
+mouth = "mouth"

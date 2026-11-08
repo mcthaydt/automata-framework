@@ -47,3 +47,48 @@ editor = "audio"
 modes = ["edit"]
 gates = []
 checks = []
+
+# The words people say and the conversations they are in, which Writer edits.
+[[file]]
+glob = "content/lines/*.toml"
+editor = "writer"
+modes = ["edit"]
+gates = []
+checks = []
+
+[[file]]
+glob = "content/dialogue/*.toml"
+editor = "writer"
+modes = ["edit"]
+gates = []
+checks = []
+
+# The scenes that play on their own, which Sequence edits.
+[[file]]
+glob = "content/cutscenes/*.toml"
+editor = "sequence"
+modes = ["edit"]
+gates = []
+checks = []
+
+# The guard, the places he walks between, and the puzzle's facts, for Schematic.
+[[file]]
+glob = "content/systems/*.toml"
+editor = "schematic"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+
+[[file]]
+glob = "content/nav/*.toml"
+editor = "schematic"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+
+[[file]]
+glob = "content/puzzles/*.toml"
+editor = "schematic"
+modes = ["edit"]
+gates = []
+checks = ["content"]

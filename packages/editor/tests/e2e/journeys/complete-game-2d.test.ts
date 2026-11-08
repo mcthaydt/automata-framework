@@ -288,7 +288,7 @@ test('Sequence: the cutscene shows the caption it was pointed at', async ({ page
     await expect
       .poll(() => readFileSync(join(game.dir, 'content/cutscenes/gate.toml'), 'utf8'), { timeout: 30_000 })
       .toContain('keeper.farewell')
-    await servedWith(editor, 'keeper.farewell')
+    await servedWith(editor, '"line":"keeper.farewell"')
     const play = await playFromEditors(page, context)
     await walkToTheKeeper(play, KEEPER_SAYS)
     await play.getByRole('button', { name: /Show me the gate/ }).click()

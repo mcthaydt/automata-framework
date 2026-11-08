@@ -1,0 +1,26 @@
+# The camera looks around the room while a caption is up. Points are in metres: x across the room, y up, z along it.
+# The camera leaves where the player stands and settles on the keeper (at the middle of the room).
+id = "look"
+duration = 6
+lens = 24
+
+[[camera]]
+t = 0
+pos = [ 0, 2.2, -3.6 ]
+look = [ 0, 1, 1 ]
+cut = true
+
+[[camera]]
+t = 3
+pos = [ 3.2, 1.9, -1.2 ]
+look = [ 0, 1, 1.5 ]
+
+[[camera]]
+t = 6
+pos = [ -3.2, 1.9, -1.2 ]
+look = [ 0, 1, 1.5 ]
+
+[[caption]]
+t = 0.5
+until = 5.5
+line = "keeper.tour"
