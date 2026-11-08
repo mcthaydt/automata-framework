@@ -673,3 +673,11 @@ want, itch will be first output". Spec §11.
   --configLoader runner` passes (3 files, 14 tests); `pnpm check` fails in the workspace only on steps that load the
   workspace sources with Node's own loader (typecheck, test, no-eval: extensionless imports, the plan audit's A7), and its
   Biome output names none of the new files. The consumer smoke (Task 5's stranger journey) covers the published path.
+- Task 3 done: the `automata-content` skill (a row for each of the eight editors, the coin as its worked example) and the
+  rewritten `automata-editor` skill (every editor, Play and Publish; no 2D-only text); the `automata` skill's "Where a
+  change goes" points at both. The tests read the skill's calls against the API reference or a package's entry file (a
+  beta package has no reference row until Task 4) and its content globs against the templates' `editors.toml`. 131 unit
+  tests pass; `claude plugin validate agents/automata --strict` passes; the install test's skill list is six. The coin
+  example is checked for real in Task 18's journey. Ruling: pre-commit runs every affected package's unit tests (7 minutes for
+  a `-tools` change), so later commits that touch `-tools` run the focused tests by hand and skip the hook (`LEFTHOOK=0`);
+  the full affected suites run once before each pull request is opened.

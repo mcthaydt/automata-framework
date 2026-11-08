@@ -12,7 +12,14 @@ import { diffSkillTrees } from '#src/skill-tree.ts'
 
 const REPO = resolve(import.meta.dirname, '../../../..')
 const PLUGIN = join(REPO, 'agents/automata')
-const SKILL_NAMES = ['automata', 'automata-api', 'automata-editor', 'automata-feature', 'automata-verify']
+const SKILL_NAMES = [
+  'automata',
+  'automata-api',
+  'automata-content',
+  'automata-editor',
+  'automata-feature',
+  'automata-verify',
+]
 const CLAUDE_VERSION = '2.1.301'
 const SKILLS_CLI = 'skills@1.7.0'
 

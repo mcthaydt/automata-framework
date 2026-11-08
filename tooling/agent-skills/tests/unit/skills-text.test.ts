@@ -19,7 +19,7 @@ describe('the skills', () => {
     for (const words of RETIRED) expect(text, words).not.toContain(words)
   })
 
-  it('open the 2D editor with one command and no build step', () => {
+  it('open the editors with one command and no build step', () => {
     const editor = skills.find((skill) => skill.name === 'automata-editor')?.text ?? ''
     expect(editor).toContain('automata editor')
     expect(editor).not.toMatch(/pnpm --filter .* build/)

@@ -64,8 +64,9 @@ never `Object.keys` or `for…in`. Prefer integers (subpixels, ticks) for anythi
   are DUEL steps (`DUEL_RAMPS`, `step` and `nearestDuel` from `@automata/content/palette`), not hex literals.
 - **A screen or menu**: the framework's UI primitives (44 px touch targets, 48 px primary actions, layout from the
   container size).
-- **A level or tuning number**: content, not code. Levels are edited in the level editor (`automata editor`; see the
-  `automata-editor` skill).
+- **Anything a person should be able to change** (a placed thing, a level, a number, a sound or shake, words, a scene,
+  how a character thinks): content, not code. Follow the `automata-content` skill: it says which file each editor
+  writes and what your code must do to read it. Open the editors with `automata editor` (the `automata-editor` skill).
 - **Saving, publishing, the host**: `Hosting` and `ship.config.ts`; never browser storage directly.
 
 Before calling any framework function, look it up in the `automata-api` skill: it lists every export of this version,
