@@ -10,6 +10,7 @@ interface Sent {
   readonly url: string
   readonly auth: string | null
   readonly body: unknown
+  readonly keepalive: boolean | undefined
 }
 
 function scripted(reply: (sent: Sent) => Response | Promise<Response>) {
@@ -20,6 +21,7 @@ function scripted(reply: (sent: Sent) => Response | Promise<Response>) {
       url: String(input),
       auth: new Headers(init?.headers).get('authorization'),
       body: init?.body,
+      keepalive: init?.keepalive,
     }
     sent.push(request)
     return reply(request)
@@ -62,6 +64,16 @@ describe('createHttpStore', () => {
       ['PUT', 'http://host/api/file?path=b.json&expected=absent'],
       ['PUT', 'http://host/api/file?path=c.json'],
     ])
+  })
+
+  // The page may be going away (a closed tab, a phone put to sleep): a keepalive request finishes after it.
+  it('sends a small write as a keepalive request, so a page that is going away still lands it', async () => {
+    const { sent, fetchFn } = scripted(() => json(200, { mtime: 9 }))
+    const store = createHttpStore({ base: 'http://host', token: 't', fetch: fetchFn })
+    await store.write('a.toml', new TextEncoder().encode('flash = 1'))
+    expect(sent[0]?.keepalive).toBe(true)
+    await store.write('big.json', new Uint8Array(70_000))
+    expect(sent[1]?.keepalive).toBeFalsy()
   })
 
   it('answers a conflict, a refusal by policy and a failure as the kit’s own reasons', async () => {

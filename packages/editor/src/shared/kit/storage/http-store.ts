@@ -42,6 +42,9 @@ async function messageOf(response: Response): Promise<string> {
   return `the server answered ${response.status}`
 }
 
+/** The most a keepalive request may carry in any browser is 64 KB; stay under it. */
+const KEEPALIVE_LIMIT = 60_000
+
 export function createHttpStore(options: HttpStoreOptions): ProjectStore {
   const base = options.base.replace(/\/+$/, '')
   const fetchFn = options.fetch ?? ((...args: Parameters<typeof fetch>) => fetch(...args))
@@ -85,9 +88,13 @@ export function createHttpStore(options: HttpStoreOptions): ProjectStore {
         expected === undefined ? '' : `&expected=${expected === 'absent' ? 'absent' : expected.mtime}`
       let response: Response
       try {
+        const body = toBytes(data)
         response = await send(`/api/file?path=${encodeURIComponent(path)}${guard}`, {
           method: 'PUT',
-          body: toBytes(data) as BodyInit,
+          body: body as BodyInit,
+          // A request that is allowed to outlive the page lands the words typed just before a tab is closed. The
+          // browser refuses one over 64 KB, so only a small file asks for it.
+          keepalive: body.byteLength < KEEPALIVE_LIMIT,
         })
       } catch (error) {
         const failed = error as StorageError

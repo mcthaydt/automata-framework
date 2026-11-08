@@ -7,10 +7,13 @@
 -->
 <script lang="ts">
 import Button from '../../../../shared/kit/widgets/Button.svelte'
+import { typedSave } from '../../../../shared/kit/widgets/typed-save'
+import { typingDrafts } from '../../../../shared/kit/widgets/typing-context'
 import { type ControlRow, readControls } from '../controls-section'
 import type { TunerController } from '../tuner-controller'
 
 const { controller }: { controller: TunerController } = $props()
+const drafts = typingDrafts()
 
 // svelte-ignore state_referenced_locally
 const revision = controller.revision
@@ -41,8 +44,8 @@ $effect(() => {
   return () => window.removeEventListener('keydown', onKey, true)
 })
 
-const rename = (row: ControlRow, event: Event & { currentTarget: HTMLInputElement }): void => {
-  const next = event.currentTarget.value.trim()
+const rename = (row: ControlRow, raw: string): void => {
+  const next = raw.trim()
   if (next === row.label) return
   void controller.setControlLabel(row.id, next)
 }
@@ -65,8 +68,13 @@ const rename = (row: ControlRow, event: Event & { currentTarget: HTMLInputElemen
             <input
               type="text"
               aria-label="Name"
-              value={row.label}
-              onchange={(event) => rename(row, event)}
+              use:typedSave={{
+                drafts,
+                value: row.label,
+                commit: (raw) => rename(row, raw),
+                draftKey: `control ${row.id}`,
+                valid: (raw) => raw.trim() !== '',
+              }}
               onkeydown={(event) => {
                 if (event.key === 'Enter') event.currentTarget.blur()
               }}

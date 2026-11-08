@@ -227,3 +227,12 @@ Reference, Privacy, Terms and Contact; the targets are named by the publish sect
 | The figure editor (task 15.5) | `Studio` | `Characters` (the rail, the card and the screen reader names `Character fields` and `Character mode`) | 4 (a studio is a word for a room of machines; a person edits characters) |
 | A room that will not open (task 15.5) | `room.af-sector.json can’t be opened as a af-sector level.` and the schema's own sentence, dim ink on dark | `Room can't be opened.`, then `It was made by a newer version of AF. Update AF, then open it again.` (or `There is no such file.`, or `Something in it isn't written the way a room is. Details says where.`), then `Your file is unchanged.`, in the stage's light ink; the issues sit behind `Details` | 1 (it said nothing a person could act on) and 4 (a format id and a file name) |
 | A room made with an older version (task 16.1c) | nothing said; the file was rewritten as soon as it opened, or the editor refused it | the status line says `This room was made with an older version. Your next change saves it in the new version, and nothing in it is lost.` until the first change; opening alone writes nothing | 1 (a person should know before the file changes) and 5 (nothing is lost) |
+
+## Saving and sign-in (2026-11-08)
+
+| Where | Before | Now | Test |
+| --- | --- | --- | --- |
+| The top bar, in a folder | `Saved in your game folder` only on a wide screen, even while words were typed and unsaved | the same words at every size, and `Saving…` while words wait or a write runs | 1 (a person should know the work is safe, on a phone too) |
+| The top bar, in a browser that keeps the game | nothing | `Saved on this device` | 1 and 5 |
+| The top bar, a write that failed | `Saved…` | `Not saved: ` and the store's own words | 1 and 5 |
+| The top bar, a browser that keeps nothing | a banner on Home only | `Not saved: this browser can’t keep files. Save a copy to keep your work.` at the top of every editor | 1 (the banner was one screen; the work is on all of them) |

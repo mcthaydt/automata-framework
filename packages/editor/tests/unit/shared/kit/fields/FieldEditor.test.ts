@@ -71,6 +71,55 @@ describe('FieldEditor', () => {
     expect(oncommit).toHaveBeenLastCalledWith('caves')
   })
 
+  // P14: the Levels inspectors wrote text only when the field was left.
+  it('commits text half a second after the last key, with the focus still in the field', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: false })
+    try {
+      const oncommit = vi.fn((_value: FieldValue) => ({ ok: true }) as FieldCommit)
+      render(FieldEditor, {
+        row: fieldRow({ id: 'music', type: 'text', label: 'Music' }, ''),
+        palette: [],
+        oncommit,
+      })
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+      const box = screen.getByRole('textbox', { name: 'Music' })
+      await user.type(box, 'cave')
+      expect(oncommit).not.toHaveBeenCalled()
+      vi.advanceTimersByTime(500)
+      expect(oncommit).toHaveBeenCalledExactlyOnceWith('cave')
+      expect(document.activeElement).toBe(box)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('does not rebuild a field under the typist for a refused pause, and says why on leaving', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: false })
+    try {
+      const refused = { ok: false, message: 'music must be text' } as const
+      const oncommit = vi.fn((_value: FieldValue) => refused as FieldCommit)
+      render(FieldEditor, {
+        row: fieldRow({ id: 'music', type: 'text', label: 'Music' }, 'cave'),
+        palette: [],
+        oncommit,
+      })
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+      const box = screen.getByRole('textbox', { name: 'Music' })
+      await user.type(box, 's')
+      vi.advanceTimersByTime(500)
+      expect(oncommit).toHaveBeenCalledOnce()
+      expect(screen.queryByRole('alert')).toBeNull()
+      expect(screen.getByRole('textbox', { name: 'Music' })).toBe(box)
+      expect(box).toHaveValue('caves')
+      await user.tab()
+      expect(oncommit).toHaveBeenCalledTimes(2)
+      expect(screen.getByRole('alert')).toHaveTextContent('music must be text')
+      expect(screen.getByRole('textbox', { name: 'Music' })).toHaveValue('cave')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('puts refused text back to the stored value', async () => {
     const refused = { ok: false, message: 'music must be text' } as const
     const { user } = mount({ id: 'music', type: 'text', label: 'Music' }, 'cave', refused)

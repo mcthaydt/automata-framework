@@ -1,8 +1,10 @@
 <!--
-  Words a person writes: a text field that grows with what is typed, saved when the person leaves it (or presses
-  Ctrl+Enter), never on every keystroke. Enter makes a new line, so a long speech can be written as it is said.
+  Words a person writes: a text field that grows with what is typed, saved half a second after the last key, and when
+  the person leaves it (or presses Ctrl+Enter). Enter makes a new line, so a long speech can be written as it is said.
 -->
 <script lang="ts">
+import { typedSave, typingDrafts } from '@automata/editor/kit/typing'
+
 interface Props {
   label: string
   value: string
@@ -15,9 +17,9 @@ interface Props {
 
 const { label, value, placeholder, problem, oninput, onchange }: Props = $props()
 const id = `words-${Math.random().toString(36).slice(2)}`
+const drafts = typingDrafts()
 
-function commit(event: Event & { currentTarget: HTMLTextAreaElement }): void {
-  const raw = event.currentTarget.value
+function commit(raw: string): void {
   if (raw !== value) onchange?.(raw)
 }
 </script>
@@ -28,13 +30,9 @@ function commit(event: Event & { currentTarget: HTMLTextAreaElement }): void {
     {id}
     rows="2"
     {placeholder}
-    {value}
     aria-invalid={problem !== undefined}
-    onchange={commit}
+    use:typedSave={{ drafts, value, commit, draftKey: label }}
     oninput={(event) => oninput?.(event.currentTarget.value)}
-    onkeydown={(event) => {
-      if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) event.currentTarget.blur()
-    }}
   ></textarea>
   {#if problem !== undefined}<p class="problem" role="alert">{problem}</p>{/if}
 </div>

@@ -10,6 +10,7 @@
 import type { Snippet } from 'svelte'
 import Icon from '../../../shared/kit/icons/Icon.svelte'
 import type { CheckFinding } from '../../../shared/kit/ports/suite-ports'
+import type { SaveLine } from '../../../shared/kit/storage/save-line'
 import Button from '../../../shared/kit/widgets/Button.svelte'
 import IconButton from '../../../shared/kit/widgets/IconButton.svelte'
 import Menu from '../../../shared/kit/widgets/Menu.svelte'
@@ -19,8 +20,8 @@ import SuitePills from './SuitePills.svelte'
 interface Props {
   /** The game's name, on a phone too: it is how a person knows which game this is. `undefined` hides it. */
   title: string | undefined
-  /** Edits write the game's own files: say so once, as status. */
-  saved: boolean
+  /** Where the work stands, in words, at every size: Saving…, Saved on this device, Not saved: … (`saveLine`). */
+  line: SaveLine | undefined
   pills: readonly Pill[]
   /** The pills as icons with counts, on a phone or a short screen. */
   compact: boolean
@@ -51,7 +52,7 @@ interface Props {
 
 const {
   title,
-  saved,
+  line,
   pills,
   compact,
   onlocate,
@@ -86,7 +87,11 @@ function chooseGame(id: string): void {
 </script>
 
 {#if title !== undefined}<span class="brand">{title}</span>{/if}
-{#if saved}<span class="where"><Icon name="check" size={16} />Saved in your game folder</span>{/if}
+{#if line !== undefined}
+  <span class="where" data-state={line.state} role="status">
+    <Icon name={line.state === 'failed' ? 'alert' : 'check'} size={16} />{line.words}
+  </span>
+{/if}
 <div class="tools" data-scroll-region="both">
   <SuitePills {pills} {compact} {onlocate} />
   <span class="spacer"></span>
@@ -132,6 +137,11 @@ function chooseGame(id: string): void {
     color: var(--muted);
     font: var(--text-body-13);
     white-space: nowrap;
+    /* The words are short and they are the one thing that says the work is safe: they never give way to the title. */
+    flex: none;
+  }
+  .where[data-state='failed'] {
+    color: var(--color-state-bad);
   }
   /* Play is a link (it opens the game in a new tab), drawn as a plain button: a 44 px target with a hairline. */
   .play {

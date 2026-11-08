@@ -25,7 +25,7 @@ let fresh = $state('')
         </button>
         {#if open === place && at !== undefined && nav !== undefined}
           <div class="edit">
-            <FieldRow label="Name" kind="text" value={place} onchange={(next) => void session.renamePlace(place, String(next))} />
+            <FieldRow label="Name" kind="text" commit="leave" value={place} onchange={(next) => void session.renamePlace(place, String(next))} />
             <FieldRow label="Across" kind="number" unit="m" min={-500} max={500} step={0.5} value={at.x} onchange={(next) => void session.movePlace(place, 'x', Number(next))} />
             <FieldRow label="Down" kind="number" unit="m" min={-500} max={500} step={0.5} value={at.z} onchange={(next) => void session.movePlace(place, 'z', Number(next))} />
             {#each neighboursOf(nav, place) as other (other)}

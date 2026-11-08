@@ -163,7 +163,12 @@ export async function openTomlSession<T>(options: TomlSessionOptions<T>): Promis
 
   async function commit(label: string, next: TomlState, coalesce?: string): Promise<Outcome> {
     const from = history.state
-    history.apply(label, () => next, coalesce === undefined ? undefined : { coalesce })
+    // Edits of one visit to a field are one step (the suite names the visit), and the pause between them is not a seam.
+    const join = ports.visit?.()
+    history.apply(label, () => next, {
+      ...(coalesce === undefined ? {} : { coalesce }),
+      ...(join === undefined ? {} : { join }),
+    })
     const retract = options.onStep?.(label)
     const written = await sync(from, next)
     if (!written.ok) {

@@ -416,6 +416,26 @@ the site's 3D parts.
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
+### Build: 22% (4 of 18 tasks)
+
+The base is #532's branch (`claude/project-thread-szjdbh`, `829039d5`) with the plan, spec and audits copied in from #536
+and #537. #531 (`claude/project-thread-hvpv4a`, `e66059ce`) and the site stack (#521, `claude/project-thread-k1ftgu`,
+`5fd3933c`) could not be merged into it: they sit on other bases (135 and 35 conflicts, the 2D editor's folders were
+renamed in one and not the other). Their new files are copied in when a task needs them, and the merge thread settles
+the rest. The page has no editors v2 header, so the header is `SuiteTopBar.svelte`.
+
+| Task | Phase | Status | PR |
+|---|---|---|---|
+| 0.1 The base | 0 | Done, 2026-11-08: `pnpm install`, unit tests of the touched packages green; `pnpm check` not run whole | |
+| 1.1 Typed words are written as they are typed | 1 | Done, 2026-11-08 (jsdom unit tests; Chromium and WebKit journeys are task 1.4) | |
+| 1.2 One Undo step per field visit | 1 | Done, 2026-11-08 (unit) | |
+| 1.3 The saved line, at every size | 1 | Done, 2026-11-08 (unit; the phone-size layout test is with 1.4) | |
+| 1.4 Journeys that reload without leaving the field | 1 | Not started | |
+| 2.1 to 2.4 Your games on this device | 2 | Not started | |
+| 3.1 to 3.2 `/try` and the site's words | 3 | Not started | |
+| 4.1 to 4.3 Sign in with GitHub | 4 | Not started | |
+| 5.1 to 5.4 Sync on the web | 5 | Not started | |
+
 **The whole game loop (2026-11-08, session 6rfl3t, PR stacked on #473; the Owner asked whether a whole game can be made
 from the editors).** The 2D editors audit's E1 to E5 are fixed on the open stack, each with a served journey (E1
 `save-reaches-the-game`, E2 and E3 `new-game-opens`, E4 the 2D default, E5 `suite-opens-the-checkout`); none is on
@@ -713,6 +733,6 @@ progress by account", and "Why wasn't it caught that progress doesn't actually s
 | 1. Audit | Done, 2026-11-08: 6 high (P1 to P5, P14), 5 medium (P6 to P10), 3 low (P11 to P13), two decisions for the Owner (D1, how people sign in: decided 22:30, sign in with GitHub; D2, whether the web gets sync free: decided 22:30, free on the web). Reproduced: the every-editor page with no server keeps nothing (a Writer edit is gone after a reload; being fixed in "Show every editor in the free web editor"), while today's 2D try-it keeps a level in Chromium even though the site says it is gone. A new game made with `automata editor`: three coins and a changed keeper line kept through a reload and seen in play, but typed words are lost when the page reloads before the field loses focus (P14). Recommended: save on the device first, `/try` apart from "Your games", sign in with GitHub with each game in the person's own repository and one small sign-in step on the site's host that stores nothing | [audit](2026-11-08-sign-in-sync-audit.md) |
 | 2. Plan and spec | Done, 2026-11-08: the spec (saving on the device first, typed words written 0.5 s after the last key with one Undo step per field visit, the saved line at every size; `/try` with starting points that play and "Make this game"; Your games in OPFS `games/<id>/`, the old `sample-game/` kept as "Your first game"; sign in with GitHub through one Cloudflare Pages Function that stores nothing; sync over GitHub's REST API as a second `GitEngine` for #531's `kit/sync` loop) and an 18-task plan in six phases | [spec](2026-11-08-sign-in-sync-spec.md), [plan](2026-11-08-sign-in-sync-plan.md) |
 | 3. Plan audit | Done, 2026-11-08: 4 high (A1 the base misses the site stack; A2 one Undo step per visit built on the write path while Writer, Feel, Audio, Sequence and Schematic undo through their own history; A3 a 500 ms commit resets FieldRow's input on a half-typed value and renames ids mid-word; A4 a flush on hide cannot finish its write and iPhone and iPad never ask "Leave site?", so drafts go to `localStorage` as typed), 7 medium (A5 to A11: the 2D fields, the web Tuner, the sync loop's error words, the empty repository's first pull, sign-out's token, the way back from GitHub's install page, the Function's own headers), 6 low. All fixed in the spec and plan; nothing for the Owner. Reproduced first in Chromium on #532's web page and the served `automata editor`: typed words lost on a closed tab or a reload in Writer, Feel and the Tuner while the served header said "Saved in your game folder"; words left with Tab kept through a browser restart and shown in play | [plan audit](2026-11-08-sign-in-sync-plan-audit.md) |
-| 4. Build | Not started | |
+| 4. Build | In progress, 2026-11-08: see the table below | [plan](2026-11-08-sign-in-sync-plan.md) execution log |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |

@@ -1,9 +1,13 @@
 <!--
-  One labelled field of a sentence: a number with its unit, or a short text. A number commits when the person leaves
-  it or presses Enter, never on every keystroke, so a half-typed "0." is not written to the game. A value outside its
-  range is refused in words beside the field and not written.
+  One labelled field of a sentence: a number with its unit, or a short text. What is typed is written half a second
+  after the last key and when the person leaves the field or presses Enter, but only when it is a value: a half-typed
+  "0." or a name cleared to be retyped waits, untouched, and nothing is said until the person leaves. A value outside
+  its range is refused in words beside the field and not written. A field that names something other files point at
+  (`commit="leave"`) is written only when it is left.
 -->
 <script lang="ts">
+import { typedSave, typingDrafts } from '@automata/editor/kit/typing'
+
 interface Props {
   label: string
   kind: 'number' | 'text' | 'choice'
@@ -16,6 +20,8 @@ interface Props {
   step?: number | undefined
   disabled?: boolean | undefined
   problem?: string | undefined
+  /** `leave`: write only when the field is left, as a name other files point at must be. */
+  commit?: 'typing' | 'leave' | undefined
   onchange: (value: number | string) => void
 }
 
@@ -30,34 +36,38 @@ const {
   step,
   disabled = false,
   problem,
+  commit: when = 'typing',
   onchange,
 }: Props = $props()
 let refusal = $state<string | undefined>()
 const id = `field-${Math.random().toString(36).slice(2)}`
 
-function commit(event: Event & { currentTarget: HTMLInputElement }): void {
-  const raw = event.currentTarget.value
-  if (kind === 'text') {
-    if (raw.trim() === '') {
-      refusal = 'This cannot be empty.'
-      event.currentTarget.value = String(value)
-      return
-    }
-    refusal = undefined
-    if (raw !== value) onchange(raw)
-    return
-  }
+const drafts = typingDrafts()
+
+/** What `raw` is as this field's value, or why it is not one. */
+function check(raw: string): { ok: true; value: number | string } | { ok: false; refusal: string } {
+  if (kind === 'text')
+    return raw.trim() === '' ? { ok: false, refusal: 'This cannot be empty.' } : { ok: true, value: raw }
   const number = Number(raw)
-  if (raw.trim() === '' || !Number.isFinite(number)) refusal = 'Type a number.'
-  else if (min !== undefined && number < min) refusal = `The least is ${String(min)}.`
-  else if (max !== undefined && number > max) refusal = `The most is ${String(max)}.`
-  else {
-    refusal = undefined
-    if (number !== value) onchange(number)
+  if (raw.trim() === '' || !Number.isFinite(number)) return { ok: false, refusal: 'Type a number.' }
+  if (min !== undefined && number < min) return { ok: false, refusal: `The least is ${String(min)}.` }
+  if (max !== undefined && number > max) return { ok: false, refusal: `The most is ${String(max)}.` }
+  return { ok: true, value: number }
+}
+
+/** Writes what was typed. While the person is typing only a value gets here; on leaving, a refusal is said. */
+function commit(raw: string, node: HTMLInputElement | undefined): void {
+  const checked = check(raw)
+  if (!checked.ok) {
+    refusal = checked.refusal
+    if (node !== undefined) node.value = String(value)
     return
   }
-  event.currentTarget.value = String(value)
+  refusal = undefined
+  if (checked.value !== value) onchange(checked.value)
 }
+
+let input = $state<HTMLInputElement>()
 </script>
 
 <div class="row">
@@ -79,13 +89,20 @@ function commit(event: Event & { currentTarget: HTMLInputElement }): void {
       {id}
       type={kind === 'number' ? 'number' : 'text'}
       inputmode={kind === 'number' ? 'decimal' : undefined}
-      value={String(value)}
+      bind:this={input}
       {min}
       {max}
       {step}
       {disabled}
       aria-invalid={problem !== undefined || refusal !== undefined}
-      onchange={commit}
+      use:typedSave={{
+        drafts,
+        value: String(value),
+        commit: (raw) => commit(raw, input),
+        draftKey: label,
+        valid: (raw) => check(raw).ok,
+        leaveOnly: when === 'leave',
+      }}
       onkeydown={(event) => {
         if (event.key === 'Enter') event.currentTarget.blur()
       }}

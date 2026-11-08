@@ -50,7 +50,7 @@ function moveStop(i: number, by: number): void {
 
 <section class="inspector" aria-label="Character">
   <h3>{modeWords(character.id)}</h3>
-  <FieldRow label="Name" kind="text" value={character.id} onchange={(next) => void session.renameCharacter(character.id, String(next))} />
+  <FieldRow label="Name" kind="text" commit="leave" value={character.id} onchange={(next) => void session.renameCharacter(character.id, String(next))} />
   <p class="line"><strong>Starts at:</strong> {startWords(character)}</p>
 
   <h4>What it notices</h4>

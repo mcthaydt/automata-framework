@@ -35,6 +35,7 @@ const notes = $derived(modeNotes(character, mode))
     <FieldRow
       label="Name"
       kind="text"
+      commit="leave"
       value={mode}
       onchange={(next) => void session.renameMode(agent, mode, String(next))}
     />

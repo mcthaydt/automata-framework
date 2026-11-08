@@ -6,6 +6,7 @@
 import type { SuitePorts } from '../../../shared/kit/ports/suite-ports.ts'
 import { createMemoryStore } from '../../../shared/kit/storage/memory-store.ts'
 import type { PublishClient } from '../../../shared/kit/storage/publish-client.ts'
+import type { Where } from '../../../shared/kit/storage/save-line.ts'
 import {
   openPrivateStores,
   openServedStore,
@@ -22,6 +23,10 @@ export interface OpenedSuitePorts {
   readonly sample: boolean
   /** False when the browser would not keep the sample (no private storage), so its changes are lost with the page; a checkout is always kept. */
   readonly kept: boolean
+  /** Where the game's files live, for the saved line: the served folder, this browser's storage, or nowhere. */
+  readonly where: Where
+  /** Why the browser keeps nothing, when it said; none otherwise. */
+  readonly reason: string | undefined
   /** The game's dev page, from the server's ping; none for the sample game. */
   readonly gameUrl: string | undefined
   /** Why Play is off, from the server's ping, when the game could not start; none otherwise. */
@@ -58,6 +63,8 @@ export async function openSuitePorts(env: SuitePortsEnv): Promise<OpenedSuitePor
       ports,
       sample: true,
       kept: opened.persistent,
+      where: opened.persistent ? 'device' : 'nowhere',
+      reason: opened.persistent ? undefined : opened.reason,
       gameUrl: undefined,
       playOff: undefined,
       game: undefined,
@@ -74,5 +81,15 @@ export async function openSuitePorts(env: SuitePortsEnv): Promise<OpenedSuitePor
     generated: (path) => path.startsWith(GENERATED_FOLDER),
     listChanged: list.replace,
   })
-  return { ports, sample: false, kept: true, gameUrl, playOff, game, publish }
+  return {
+    ports,
+    sample: false,
+    kept: true,
+    where: 'folder',
+    reason: undefined,
+    gameUrl,
+    playOff,
+    game,
+    publish,
+  }
 }

@@ -5,6 +5,7 @@
 import { ensureListed } from '../../../shared/editor-list/editor-rows'
 import { createWritePath, type WriteOutcome, type WritePath } from '../../../shared/editor-list/write-path'
 import type { CheckReport, SuitePorts } from '../../../shared/kit/ports/suite-ports.ts'
+import type { TypingDrafts } from '../../../shared/kit/storage/typing-drafts'
 import { checksPill, type Pill } from '../core/pills-model'
 
 export interface SuiteSession {
@@ -13,6 +14,10 @@ export interface SuiteSession {
   /** The ports an editor is opened with: its writes join its own history on the write path (EDS-D19). */
   portsFor(editor: string): SuitePorts
   readonly writePath: WritePath
+  /** Writes started and not finished: the page must not be left (or called saved) while this is above 0. */
+  readonly inFlight: number
+  /** The store's own words when the last write could not be kept (a full disk, a lost connection); none otherwise. */
+  readonly failed: string | undefined
   pills(): readonly Pill[]
   /** Shows a write's `after` checks running on the pill until their results are in. */
   follow(outcome: WriteOutcome): Promise<void>
@@ -42,12 +47,38 @@ function resultOf(outcome: WriteOutcome, mtime: number | undefined) {
   return { ok: false as const, reason: outcome.reason, message: outcome.message }
 }
 
-export function createSuiteSession(raw: SuitePorts): SuiteSession {
+export interface SuiteSessionOptions {
+  /** The typing registry: its open visit joins the writes of one visit to a field into one Undo step. */
+  readonly drafts?: TypingDrafts | undefined
+}
+
+export function createSuiteSession(raw: SuitePorts, options: SuiteSessionOptions = {}): SuiteSession {
+  const { drafts } = options
   const listeners = new Set<() => void>()
   const changed = () => {
     for (const listener of listeners) listener()
   }
   let running = 0
+  let inFlight = 0
+  let failed: string | undefined
+  /** Counts a write while it runs, so the saved line and the leave question know; keeps what a store refused. */
+  async function counted(
+    job: () => Promise<ReturnType<typeof resultOf>>,
+  ): Promise<ReturnType<typeof resultOf>> {
+    inFlight++
+    changed()
+    try {
+      const result = await job()
+      // A check's refusal and a file that moved are the person's to settle; anything else means the work is not kept.
+      if (result.ok) failed = undefined
+      else if (result.reason !== 'policy' && result.reason !== 'conflict') failed = result.message
+      return result
+    } finally {
+      inFlight--
+      drafts?.wrote()
+      changed()
+    }
+  }
   /** The latest result of each check. */
   const latest = new Map<string, CheckReport>()
   let pills: readonly Pill[] = [checksPill({ running: false, checks: [] })]
@@ -74,23 +105,26 @@ export function createSuiteSession(raw: SuitePorts): SuiteSession {
   const portsFor = (owner: string): SuitePorts => ({
     ...raw,
     list: { ensure: (editor) => ensureListed(raw.workspace, editor) },
+    visit: () => drafts?.visit(),
     workspace: {
       ...raw.workspace,
-      async write(path, text) {
-        const outcome = await writePath.write(path, text, session.label(), owner)
-        const mtime = (await raw.workspace.read(path))?.mtime
-        await refresh()
-        void follow(outcome)
-        return resultOf(outcome, mtime)
-      },
-      async writeAll(files) {
-        const outcome = await writePath.writeAll(files, session.label(), owner)
-        const last = files.at(-1)
-        const mtime = last === undefined ? undefined : (await raw.workspace.read(last.path))?.mtime
-        await refresh()
-        void follow(outcome)
-        return resultOf(outcome, mtime)
-      },
+      write: (path, text) =>
+        counted(async () => {
+          const outcome = await writePath.write(path, text, session.label(), owner, { join: drafts?.visit() })
+          const mtime = (await raw.workspace.read(path))?.mtime
+          await refresh()
+          void follow(outcome)
+          return resultOf(outcome, mtime)
+        }),
+      writeAll: (files) =>
+        counted(async () => {
+          const outcome = await writePath.writeAll(files, session.label(), owner, { join: drafts?.visit() })
+          const last = files.at(-1)
+          const mtime = last === undefined ? undefined : (await raw.workspace.read(last.path))?.mtime
+          await refresh()
+          void follow(outcome)
+          return resultOf(outcome, mtime)
+        }),
     },
   })
 
@@ -98,6 +132,12 @@ export function createSuiteSession(raw: SuitePorts): SuiteSession {
     ports: portsFor(''),
     portsFor,
     writePath,
+    get inFlight() {
+      return inFlight
+    },
+    get failed() {
+      return failed
+    },
     pills: () => pills,
     follow,
     async undo(owner) {

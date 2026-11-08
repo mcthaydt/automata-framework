@@ -12,6 +12,11 @@ export interface SuitePorts {
   readonly gates?: Gates | undefined
   /** Added by the suite, not by an adapter: the editor list's one way to grow (see {@link EditorListPort}). */
   readonly list?: EditorListPort | undefined
+  /**
+   * Added by the suite: the key of the person's open visit to a field, or none. Edits made during one visit are one
+   * Undo step, however long the pauses between them (P14).
+   */
+  readonly visit?: (() => string | undefined) | undefined
 }
 
 /**

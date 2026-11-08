@@ -13,6 +13,8 @@ import Button from '../../../../shared/kit/widgets/Button.svelte'
 import Segmented from '../../../../shared/kit/widgets/Segmented.svelte'
 import Slider from '../../../../shared/kit/widgets/Slider.svelte'
 import Stepper from '../../../../shared/kit/widgets/Stepper.svelte'
+import { typedSave } from '../../../../shared/kit/widgets/typed-save'
+import { typingDrafts } from '../../../../shared/kit/widgets/typing-context'
 import { shownName, shownNote, type Tunable } from '../tuner-content'
 import type { TunerController } from '../tuner-controller'
 import { rawValue, shownBounds, shownValue } from '../tuner-display'
@@ -20,6 +22,7 @@ import { checkValue } from '../tuner-edits'
 import ControlsSection from './ControlsSection.svelte'
 
 const { controller }: { controller: TunerController } = $props()
+const drafts = typingDrafts()
 
 // svelte-ignore state_referenced_locally
 const revision = controller.revision
@@ -101,8 +104,12 @@ const shownOf = (tunable: Tunable) => {
               class="text"
               type="text"
               aria-label={shown}
-              value={String(tunable.value)}
-              onchange={(event) => void controller.set(tunable.name, event.currentTarget.value)}
+              use:typedSave={{
+                drafts,
+                value: String(tunable.value),
+                commit: (raw) => void controller.set(tunable.name, raw),
+                draftKey: `tuner ${tunable.name}`,
+              }}
               onkeydown={(event) => {
                 if (event.key === 'Enter') event.currentTarget.blur()
               }}

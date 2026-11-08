@@ -1,3 +1,4 @@
+import type { SuitePorts } from '@automata/editor/kit/ports'
 import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
@@ -60,6 +61,25 @@ describe('openTomlSession', () => {
     expect(await Promise.all([first, second])).toEqual([{ ok: true }, { ok: true }])
     expect((await ports.workspace.read(PATH))?.text).toBe(TEXT.replace('0.2', '0.6'))
     expect(session.read()).toMatchObject({ kind: 'ok', value: { entry: [{ shake: 0.6 }] } })
+  })
+
+  // P14: a person who types, stops to think and types again made one Undo step per pause.
+  it('makes the edits of one visit to a field one Undo step, however long the pauses', async () => {
+    const base = await portsWith({ [PATH]: TEXT })
+    let visit: string | undefined = 'visit-1'
+    const ports: SuitePorts = { ...base, visit: () => visit }
+    const session = await openTomlSession({ path: PATH, ports, schema, empty: '' })
+    await session.edit('Shake', [{ keyPath: ['entry', 0, 'shake'], expected: 0.2, set: 0.4 }])
+    await new Promise((resolve) => setTimeout(resolve, 700))
+    await session.edit('Shake', [{ keyPath: ['entry', 0, 'shake'], expected: 0.4, set: 0.6 }])
+    visit = 'visit-2'
+    await session.edit('Shake', [{ keyPath: ['entry', 0, 'shake'], expected: 0.6, set: 0.8 }])
+    expect((await ports.workspace.read(PATH))?.text).toBe(TEXT.replace('0.2', '0.8'))
+    expect(await session.undo()).toEqual({ ok: true })
+    expect((await ports.workspace.read(PATH))?.text).toBe(TEXT.replace('0.2', '0.6'))
+    expect(await session.undo()).toEqual({ ok: true })
+    expect((await ports.workspace.read(PATH))?.text).toBe(TEXT)
+    expect(session.history.canUndo).toBe(false)
   })
 
   it('reads a file that does not parse as a syntax problem with its line, without throwing', async () => {
