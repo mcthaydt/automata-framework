@@ -7,6 +7,8 @@ import dialogue from './sample/dialogue.toml?raw'
 import list from './sample/editors.toml?raw'
 import feel from './sample/feel.toml?raw'
 import lines from './sample/lines.toml?raw'
+import nav from './sample/nav.toml?raw'
+import systems from './sample/systems.toml?raw'
 
 export const CONTENT_SAMPLE_GAME: Readonly<Record<string, string>> = {
   [EDITOR_LIST_PATH]: list,
@@ -16,4 +18,6 @@ export const CONTENT_SAMPLE_GAME: Readonly<Record<string, string>> = {
   'content/lines/shop.toml': lines,
   'content/dialogue/shop.toml': dialogue,
   'content/cutscenes/opening.toml': cutscene,
+  'content/systems/hall.toml': systems,
+  'content/nav/hall.toml': nav,
 }

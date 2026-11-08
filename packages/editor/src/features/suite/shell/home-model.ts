@@ -14,7 +14,10 @@ export interface EditorCard {
   /** The rail entry that opens it: its own id when the build has it, otherwise `undefined`. */
   readonly entry: string | undefined
   readonly installed: boolean
+  /** Every file of the editor; opening a card opens the editor with all of them. */
   readonly files: readonly WorkspaceFile[]
+  /** The rows Home lists: the files, or fewer when the editor groups them (`SuiteEditor.homeFiles`). */
+  readonly rows: readonly WorkspaceFile[]
 }
 
 export type HomeState =
@@ -53,13 +56,15 @@ export function homeOf(
     .sort((a, b) => rank(a.editor) - rank(b.editor) || a.order - b.order)
   const cards = named.map(({ editor }): EditorCard => {
     const installed = suite.editor(editor)
+    // Only the files a person opens (a level), not the game files and pictures a level's Save writes beside it.
+    const opened = (files.get(editor) ?? []).filter((file) => !writtenBySave(load.list, file.path))
     return {
       editor,
       label: installed?.label ?? LABELS[editor] ?? editor,
       entry: installed?.id,
       installed: installed !== undefined,
-      // Only the files a person opens (a level), not the game files and pictures a level's Save writes beside it.
-      files: (files.get(editor) ?? []).filter((file) => !writtenBySave(load.list, file.path)),
+      files: opened,
+      rows: (installed?.homeFiles ?? ((all) => all))(opened),
     }
   })
   return { kind: 'cards', cards }

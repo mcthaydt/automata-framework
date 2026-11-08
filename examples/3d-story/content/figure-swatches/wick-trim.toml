@@ -1,0 +1,6 @@
+# `wick-trim`: a colour from the DUEL palette.
+# Colour: DUEL ramp flame, step 5.
+
+ramp = "flame"
+step = 5
+gloss = 0.9

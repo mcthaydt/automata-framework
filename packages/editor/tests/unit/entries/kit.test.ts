@@ -38,6 +38,7 @@ describe('editor-kit entry', () => {
       kit.Pill,
       kit.RecoveryDialog,
       kit.ConflictDialog,
+      kit.GameFrame,
     ]) {
       expect(widget).toBeTypeOf('function')
     }

@@ -248,7 +248,7 @@ jobs:
       # The packed `automata` bin is the one a developer installs: built here for the journeys that run it.
       - run: pnpm exec turbo run build --filter @automata/tools
       - name: 2D journeys
-        run: pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples-2d
+        run: pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples-2d --filter @af-examples/2d-story
       # The real `automata editor` on a temp copy of a game: iPad and phone in Chromium, the iPad in WebKit.
       - name: The editor's journeys
         run: pnpm test:e2e --filter @automata/editor

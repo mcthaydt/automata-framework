@@ -7,6 +7,7 @@
 // declared scroll region, and opening it pauses nothing. One panel throwing shows its error in its tab and the rest keep working.
 import { onMount, setContext } from 'svelte'
 import { currentHost, HOST_CONTEXT } from '../../shared/host'
+import { forwardEvents } from '../watch/forward-events'
 import { createOverlay, type OverlayState } from './overlay'
 import PanelFrame from './PanelFrame.svelte'
 
@@ -27,8 +28,14 @@ onMount(() => {
   }
   window.addEventListener('keydown', onKey)
   window.addEventListener('touchstart', onTouch)
+  // An editor that framed the game may ask to hear its sim events (Schematic's Watch); this answers only that.
+  const stopWatch =
+    host?.bus === undefined
+      ? undefined
+      : forwardEvents(host.bus, window.location, window.parent, { tickHz: host.tickHz ?? 60 })
   return () => {
     off()
+    stopWatch?.()
     window.removeEventListener('keydown', onKey)
     window.removeEventListener('touchstart', onTouch)
   }

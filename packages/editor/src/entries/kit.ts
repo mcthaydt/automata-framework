@@ -1,4 +1,6 @@
 // The editor kit's public surface: re-exports only, so what the games and the other editors may use is one list.
+
+export { default as GameFrame } from '../features/suite/tuner/ui/TunerGame.svelte'
 export {
   type Command,
   type CommandRegistry,

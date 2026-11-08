@@ -1,0 +1,18 @@
+# The hall's places and the ways between them. Open it in Schematic to move a place or join two.
+edges = [ [ "west", "door" ], [ "door", "east" ], [ "east", "nook" ] ]
+
+[nodes.west]
+x = -7
+z = 0
+
+[nodes.door]
+x = 0
+z = 0
+
+[nodes.east]
+x = 7
+z = 0
+
+[nodes.nook]
+x = 7
+z = 3

@@ -705,6 +705,12 @@ interface FolderStore extends ProjectStore {
 }
 ```
 
+### `GameFrame` (svelte)
+
+```ts
+component from '../features/suite/tuner/ui/TunerGame.svelte'
+```
+
 ### `GestureClock` (interface)
 
 ```ts
@@ -3794,6 +3800,7 @@ interface SuiteEditor<S> {
     readonly icon: string;
     readonly hue: string;
     open(files: readonly WorkspaceFile[], ports: SuitePorts): Promise<S>;
+    readonly homeFiles?: ((files: readonly WorkspaceFile[]) => readonly WorkspaceFile[]) | undefined;
     readonly regions: SuiteRegions<S>;
     readonly contributions?: readonly ContributionPoint[] | undefined;
     readonly undo?: ((session: S) => SuiteUndo) | undefined;

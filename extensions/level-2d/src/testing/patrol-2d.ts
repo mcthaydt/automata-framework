@@ -148,40 +148,71 @@ const SCENE: SystemsDef = {
 
 const point = z.strictObject({ x: z.number(), z: z.number() })
 const Load = defineCommand('patrol2d.load', z.strictObject({ guard: point }))
+const MakeNoise = defineCommand(
+  'patrol2d.noise',
+  z.strictObject({ at: point, loudness: z.number(), kind: z.string() }),
+)
 /** Puts the player at a point, in pixels: the game's own position, as an input system would write it. */
 const Put = defineCommand('patrol2d.put', z.strictObject({ x: z.number(), y: z.number() }))
 
 export interface Patrol2d {
   readonly sim: Sim
-  /** Runs `seconds` of steps, the player standing where `putPlayer` or `walkPlayerTo` last left them. */
-  run(seconds: number): void
+  /** Runs `seconds` of steps, the player standing where `putPlayer` or `walkPlayerTo` last left them; every event. */
+  run(seconds: number): readonly SimEvent[]
   /** The player at a point in metres. */
   putPlayer(x: number, z: number): void
   /** The player walks to a point in metres at three metres a second, one step at a time. */
   walkPlayerTo(x: number, z: number): void
-  /** The guard's mode, and his position in pixels. */
-  mode(): string
-  guardPx(): { x: number; y: number }
+  /** A noise made at a point in metres, heard by whoever's ears reach it. */
+  makeNoise(x: number, z: number, loudness: number, kind?: string): void
+  /** The mode and the position in pixels of the guard, or of another character by name. */
+  mode(id?: string): string
+  guardPx(id?: string): { x: number; y: number }
   /** The area ('hall', 'yard') a body is in. */
   areaOf(who: 'player' | 'guard'): string | undefined
   /** One step with the player where they stand; the events it made. */
   tick(): readonly SimEvent[]
 }
 
+/** Who else is in the level, and who the guard is, for the tests of the ready-made characters. */
+export interface Patrol2dCast {
+  /** Stands in for the guard (the one the helpers answer for). */
+  readonly agent?: AgentDef
+  /** Lets `makeNoise` work (it adds a command to the sim, so the golden run leaves it out). */
+  readonly noises?: boolean
+  /** More characters, each at a point in metres. */
+  readonly others?: readonly { readonly def: AgentDef; readonly at: { x: number; z: number } }[]
+}
+
 /** A sim of the level with the guard at `guardAt` (metres), default his first stop. */
-export async function createPatrol2d(guardAt?: { x: number; z: number }): Promise<Patrol2d> {
+export async function createPatrol2d(
+  guardAt?: { x: number; z: number },
+  cast: Patrol2dCast = {},
+): Promise<Patrol2d> {
+  const lead = cast.agent ?? GUARD
+  const others = cast.others ?? []
+  const scene: SystemsDef = { ...SCENE, agents: [lead, ...others.map((o) => o.def)] }
   const places = level2dPlaces({ level: LEVEL, project: PROJECT })
+  // Where everyone stands; the load command carries only the lead's, as it always did (its shape is in the hash).
+  const stands: Record<string, { x: number; z: number }> = {
+    [lead.id]: guardAt ?? { x: 2, z: 3 },
+    ...Object.fromEntries(others.map((o) => [o.def.id, o.at])),
+  }
   const systems = createSystems({ places })
   const driver = definePlugin({
     name: 'patrol2d',
     dependsOn: ['level-2d', 'nav', 'puzzle', 'systems'],
-    commands: [Load, Put],
+    // The noise command is registered only when a test asks for it: a registered command is part of the sim's hash,
+    // and the golden run's hash is committed.
+    commands: cast.noises === true ? [Load, Put, MakeNoise] : [Load, Put],
     systems: [
       defineSystem('patrol2d.drive', 'input', (ctx) => {
         for (const { payload } of ctx.commands.of(Load)) {
           loadNavGraph(ctx, GRAPH)
-          systems.load(ctx, SCENE, { guard: payload.guard })
+          systems.load(ctx, scene, { [lead.id]: payload.guard, ...stands })
         }
+        if (cast.noises === true)
+          for (const { payload } of ctx.commands.of(MakeNoise)) systems.hear(ctx, payload)
         const player = ctx.resource(SystemsEnv).player
         for (const { payload } of ctx.commands.of(Put)) ctx.entity(player)?.set(Level2dAt, payload)
       }),
@@ -197,8 +228,8 @@ export async function createPatrol2d(guardAt?: { x: number; z: number }): Promis
     sim.step(orders.map((order, seq) => ({ tick: sim.tick, source: 0, seq, ...order }))).events
   const put = (x: number, z: number) => ({ type: Put.id, payload: { x: x * CELL, y: z * CELL } })
   let at = { x: 9.5, z: 5.5 }
-  step({ type: Load.id, payload: { guard: guardAt ?? { x: 2, z: 3 } } }, put(at.x, at.z))
-  const guard = () => sim.resource(SystemsState).agents.guard as { sid: number; mode: string }
+  step({ type: Load.id, payload: { guard: stands[lead.id] as { x: number; z: number } } }, put(at.x, at.z))
+  const guard = (id = lead.id) => sim.resource(SystemsState).agents[id] as { sid: number; mode: string }
   const tick = (): readonly SimEvent[] => step(put(at.x, at.z))
   const steps = (seconds: number): number => Math.round(seconds * sim.tickHz)
   const areaAt = (x: number): string | undefined =>
@@ -218,14 +249,19 @@ export async function createPatrol2d(guardAt?: { x: number; z: number }): Promis
   return {
     sim,
     run: (seconds) => {
-      for (let i = 0; i < steps(seconds); i++) tick()
+      const events: SimEvent[] = []
+      for (let i = 0; i < steps(seconds); i++) events.push(...tick())
+      return events
+    },
+    makeNoise: (x, z, loudness, kind = 'bottle') => {
+      step({ type: MakeNoise.id, payload: { at: { x, z }, loudness, kind } }, put(at.x, at.z))
     },
     putPlayer: (x, z) => {
       at = { x, z }
     },
     walkPlayerTo: walkTo,
-    mode: () => guard().mode,
-    guardPx: () => px(guard().sid),
+    mode: (id) => guard(id).mode,
+    guardPx: (id) => px(guard(id).sid),
     // A point's area is read through the places, as the sim does, not copied from the picture.
     areaOf: (who) => {
       const here = px(who === 'player' ? player : guard().sid)

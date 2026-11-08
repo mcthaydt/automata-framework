@@ -109,7 +109,7 @@ Phone first; the same pieces rearrange by width (suite shell modes).
 - An arrow's label is its first condition in words, then "and 1 more". Two switches between the same two modes are one
   arrow with both labels stacked. A switch that runs when it hears or when it stops is drawn dashed, with an ear or a
   pause mark, so its timing shows (section 4.3).
-- Select by tap; pan with one finger or the scroll wheel; zoom with a pinch or Ctrl-scroll; "Fit" button. A box's and
+- Select by tap; pan with one finger or the scroll wheel; zoom with Bigger and Smaller (no pinch or Ctrl-scroll: a pinch inside a scroll region zooms the whole page); "Fit" button, which fits the pane and opens on the box where the character starts. A box's and
   a label's target is never under 44 px: the smallest zoom stops there, and past it the diagram scrolls.
 - Drawn in SVG in the page (a few dozen boxes at most), not Pixi: it is a diagram of text, it needs the page's text
   and focus, and every box and arrow is a button a screen reader can reach.

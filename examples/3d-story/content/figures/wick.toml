@@ -1,0 +1,42 @@
+# Wick, the hero: a small hooded wanderer in a blue cloak with gold trim and dark boots, as figure data. Open it in
+# Characters to change his build, his colours or his walk.
+
+skin = "wick-shadow"
+gait = "bounce"
+hand = "R"
+default = "wanderer"
+
+[sliders]
+height = 120
+head = 1
+chunk = 1
+frame = 0.4
+legs = 0.2
+posture = 0.6
+hands = 0.6
+feet = 0.6
+
+# Each outfit is a list of garments, one table each.
+[[outfits.wanderer]]
+top = "wick-cloak"
+sleeves = "long"
+cuffs = "wick-trim"
+
+[[outfits.wanderer]]
+trousers = "wick-cloak-shade"
+
+[[outfits.wanderer]]
+shoes = "wick-boot"
+boots = true
+sole = "sole"
+
+[[outfits.wanderer]]
+cape = "wick-cloak"
+length = 0.9
+trim = "wick-trim"
+
+[[outfits.wanderer]]
+eyes = "wick-eye"
+lids = "lid"
+brows = "brow"
+mouth = "mouth"

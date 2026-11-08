@@ -1,0 +1,43 @@
+{
+  "format": "af-sector/2",
+  "name": "hall",
+  "title": "The hall",
+  "sectors": [
+    {
+      "id": "west",
+      "floor": 0,
+      "ceiling": 3,
+      "light": 1,
+      "corners": [[-8, -4], [-1, -4], [-1, -1, { "next": "doorway" }], [-1, 1], [-1, 4], [-8, 4]],
+      "floorTexture": "floor",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "wall"
+    },
+    {
+      "id": "doorway",
+      "floor": 0,
+      "ceiling": 3,
+      "light": 1,
+      "corners": [[-1, 1, { "next": "west" }], [-1, -1], [1, -1, { "next": "east" }], [1, 1]],
+      "floorTexture": "floor",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "wall"
+    },
+    {
+      "id": "east",
+      "floor": 0,
+      "ceiling": 3,
+      "light": 1,
+      "corners": [[1, -4], [8, -4], [8, 4], [1, 4], [1, 1, { "next": "doorway" }], [1, -1]],
+      "floorTexture": "floor",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "wall"
+    }
+  ],
+  "props": [
+    { "id": "crate-1", "use": "crate", "at": [-6.5, 3] },
+    { "id": "barrel-1", "use": "barrel", "at": [6.8, -3] }
+  ],
+  "entityDefs": [{ "id": "spawn" }],
+  "entities": [{ "def": "spawn", "id": "spawn", "x": 2, "z": 0 }]
+}
