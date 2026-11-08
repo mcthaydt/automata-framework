@@ -9,14 +9,17 @@ Read as:
 
 - One editor app, built with Tauri, for macOS, Windows, Linux, iOS and Android.
 - A one-time price: $19.99 on a phone or tablet, $39.99 on a computer.
-- The web (the site's try-it page, and the free `automata editor` command) keeps the essential editors. Every editor
-  is in the apps.
+- The web (the site's try-it page, and the free `automata editor` command) keeps every editor, free. The price is for
+  downloading the app (the Owner changed this at 21:25, section 4).
 - All code is MIT and public, except deployment: signing, store listings, provisioning and the release pipelines.
 - A game in the app is a GitHub repository that syncs both ways by itself, so Claude Code can edit it and the app shows
   the change.
+- Later, the downloaded apps (computers and phones, never the browser) give a coding agent MCP access to the editors
+  (the Owner, 21:26, section 7).
 
-This replaces the earlier rule that every editor is free and only the iOS and Android packaging is paid (the Owner,
-2026-11-01 and 2026-11-08 04:00). Finding A8 lists where that rule is written down.
+This keeps the earlier rule that every editor is free (the Owner, 2026-11-01 and 2026-11-08 04:00). It changes one
+part of it: the desktop app is paid too, not only the iOS and Android packaging. Finding A8 lists where that rule is
+written down.
 
 This is stage 1 (audit) of the pipeline for a new area. It was made on PR #508 (branch `claude/complete-game-journeys`,
 head `89db7336`), the top of the editors stack, and is filed against `main` as #509 was, because a docs-only branch
@@ -43,8 +46,8 @@ change to the editors. A game was made in that window, played, and every change 
 **Recommendation.** Build the desktop app first, as a Tauri shell around today's `automata editor` (a "sidecar"),
 because that is proven here and needs little new code. Build the phone app on a second path that runs entirely inside
 the app. Sell nothing until Pixi 3D is public, per the Owner's rule of 2026-10-23 ("we launch when pixi 3D goes
-public"). Build, sign and test privately before then. One decision for the Owner: which editors stay on the web (D1,
-section 4).
+public"). Build, sign and test privately before then. The Owner settled the one open decision at 21:25: every editor
+stays free on the web, and the apps sell the download (D1, section 4).
 
 ## 2. What was done by hand
 
@@ -101,31 +104,37 @@ Screens: `/mnt/project-files/refactor/2026-11-08-apps-audit-screens/`.
 | Pricing or download pages | None. The site cannot deploy (no host) | `site/`, site audit (#477) |
 | Licence | Every package is MIT (27 manifests), `LICENSE-SCOPE.md` | |
 
-## 4. Which editors are the essentials (decision D1)
+## 4. Which editors are free on the web (decision D1, settled)
 
-**D1. Which editors stay free on the web?**
+The audit first offered three answers: the 2D basics on the web (recommended), Levels only, or every editor. **The
+Owner, 2026-11-08 21:25: "And I change my mind, all editors are free on Web, you only have to pay to download".**
 
-- **A (recommended): the 2D basics.** On the try-it page and in the free `automata editor`: Levels 2D (with its
-  Characters view and Add tiles), the Tuner, and Play and Publish where a game folder is open. The apps add Levels 3D
-  with Walk, 3D Characters, Feel, Audio, Writer, Sequence, Schematic, GitHub sync and the phone. This is exactly the
-  2D page that ships today, so the split costs no new code, and a person can make, play and ship a whole 2D game for
-  free.
-- **B: Levels only.** Only Levels 2D on the web. The Tuner moves into the apps too.
-- **C: every editor on the web.** The apps sell the phone, the one-click install on a computer, and sync. This keeps the
-  2026-11-08 04:00 rule that all editors are free.
+So the web gets every editor, in 2D and 3D games (the Owner's 14:26 rule). The site's try-it page and the free
+`automata editor` command serve the full page. What a buyer pays for is the download:
+- the app installed in one step on a computer, with Node carried inside it (A1), and kept up to date;
+- the app on a phone or tablet (A4);
+- GitHub sync and the Review page (section 7);
+- later, MCP access to the editors, on computers and phones (section 7). The Owner, 21:26: "you get mcp access to the
+  editors when they're downloaded, but not for the browser".
 
-Either way, the Owner's 14:26 rule holds inside the apps: every editor works in 2D and 3D games.
+Sync is in the apps for a technical reason, not as a gate. A web page cannot reach GitHub's git endpoints or its
+device sign-in, because neither sends CORS headers (checked). A web version would need a server in between that holds
+people's GitHub tokens. That would be a hosted service to run and pay for, not a download.
 
-Under A, the web page's words change. Today a new 2D game lists Feel and Audio, and the command prints "Feel and Audio
-are not in this release yet, so the editors show Levels and the Tuner." (`editor-command.ts:108`). That should say where
-they are: "Feel and Audio are in the Automata app. Get it at automataframework.com/app."
+What changes on the web:
+- The published tools and the try-it page serve the full page (`editor-command.ts:57`, `:59`;
+  `site/scripts/build-demos.ts:67`). The shared-editors audit already plans this (#509, S4 and S10).
+- The command stops printing "Feel and Audio are not in this release yet, so the editors show Levels and the Tuner."
+  (`editor-command.ts:108`).
+- The 3D editors carry Pixi 3D's beta (A3), so a public page gets them only when Pixi 3D is public, the same day as
+  the apps. Until then the public page has every editor except the 3D ones, as S4 already plans.
 
-## 5. How to gate the full suite while staying open source
+## 5. How to sell the download while staying open source
 
-- **The gate is what each build carries, not a check at run time.** The 2D page is the web build. The full page is the
-  app build. Both are built from the same public repository. Anyone may build the full page from source; MIT allows it,
-  and that is the deal open-source paid apps make (Ardour and Krita sell builds of code anyone can compile).
-  What a buyer pays for is the signed app, installed in one step, kept up to date, synced, and on a phone.
+- **No editor is gated.** The web and the apps run the same full page, built from the same public repository. What a
+  buyer pays for is the signed app: installed in one step, kept up to date, synced, and on a phone. Anyone may build
+  the app from source; MIT allows it, and that is the deal open-source paid apps make (Ardour and Krita sell builds of
+  code anyone can compile).
 - **No licence keys or copy protection in the open code.** A fork deletes them in minutes. The Mac App Store forbids
   them (guideline 2.4.5 vi). And AF's own rule is that a missing capability fails and says so; it never hides behind
   the player's back.
@@ -163,7 +172,8 @@ window on a computer, a full-screen view on a phone), chosen by the host and not
 (`View3DGCRegistry-*.js`, `fullscreenTriangleGeometry-*.js`, `init-*.js`, `stage-renderer-*.js` in
 `extensions/editors/dist/suite/assets/`); the 2D page's build has none. `vendor/pixi-3d/README.md`: "its terms allow no
 public deployment". A paid app is a public deployment, and so is the Google Play closed test with 12 outside testers
-(A12). The same beta keeps the framework repository private (the go-public audit, 2026-11-07: the tarball is in the
+(A12). With every editor free on the web (D1), so is a public page with the 3D editors. The same beta keeps the
+framework repository private (the go-public audit, 2026-11-07: the tarball is in the
 history), so "everything open source" waits for it too. *Direction:* per the Owner's 2026-10-23 rule, sell nothing until
 Pixi 3D is public. Until then, build, sign and test privately (TestFlight internal testers, Play's internal track), or
 ask PixiJS in writing. A 2D-only app (no Levels 3D, no 3D Characters) could go on sale sooner if the Owner wants that.
@@ -202,20 +212,15 @@ is a game maker that plays only the person's own project. Budget for one rejecti
 Network Abuse policy allows "code that runs in a virtual machine or an interpreter … (such as JavaScript in a webview or
 browser)". Neither store has been asked.
 
-**A8. The new model contradicts rules and plans already written.** Each needs the Owner's new words before it is built
-on:
+**A8. Two documents say only the phone apps are paid.** Every editor stays free (D1), so the rule "never gate editors
+as paid" holds. One part changes: the desktop app is paid too, and only deployment is private. Two documents need the
+Owner's new words:
 - `docs/refactor/2026-11-08-content-editors-spec.md` lines 10 to 12: "So every editor is free. Only the iOS and Android
   packaging of the editor apps is paid, and that code lives in" a private repository.
 - automata-plus `AGENTS.md` line 22: "The only paid product is the editor apps on iOS and Android. Their native wrapper
-  code, signing setup and store listings live in a separate private repository." Now desktop is paid too, and only
-  deployment is private.
-- The shared-editors audit (#509), S4: "the tools pack one page with every editor except the 3D ones", and S10: "Try-it
-  serves the shared page". Under D1 A, the free page keeps the 2D basics and the full page goes only into the apps.
-  The shared-editors plan should not publish the full page until D1 is taken.
-- Project memory (`af-content-editors`): "never gate editors as paid".
+  code, signing setup and store listings live in a separate private repository."
 
-Nothing beyond the 2D page has been shipped to anyone (the framework is private and the site is not deployed), so no
-person loses an editor they had.
+The shared-editors audit (#509, S4 and S10) and project memory (`af-content-editors`) agree with D1 and need no change.
 
 ### Medium
 
@@ -267,9 +272,9 @@ assets. These are open Owner questions in project memory.
 **A18. The phone top bar cuts the game's name to "L…"** and the Levels toolbar's last button runs off the right edge at
 390 px (`tauri-12-phone-levels.png`, WebKitGTK). A person cannot see which game is open.
 
-**A19. Words for the new model.** The site's Editor page ("Nothing to install"), the game README ("`pnpm editor` opens
-the editors on your game") and the command's "not in this release yet" are right for the web but say nothing about the
-app. Each gains one plain line (D1).
+**A19. Words for the new model.** The site's Editor page ("Nothing to install") and the game README ("`pnpm editor`
+opens the editors on your game") are right for the web but say nothing about the app. Each gains one plain line on
+what the download adds: an app on your computer with nothing else to install, the phone, and GitHub sync.
 
 **A20. Tests for WebKit must type the way a person does.** Under WebKitWebDriver, clearing a number field did not empty
 it, so "30" became "330" and was refused; select-all and type worked. Not a bug a person meets, but the app's WebKit
@@ -331,7 +336,7 @@ sides can.
    **Play it** needs something that does not exist yet: the game runner must play a second checkout of the branch
    (`.automata/review/<branch>`), not the open game's folder. On a phone it needs the in-app player (A4).
 
-   The page needs GitHub, so it is in the apps (D1).
+   The page needs GitHub, so it is in the apps (section 4).
 3. **Told to push to `main`.** The app pulls it like any change. The game's `AGENTS.md` (A6) tells a coding agent to
    use a branch and a pull request, so this happens only when the person asks for it.
 
@@ -388,6 +393,62 @@ game's folder is visible in the Files app on iOS (`UIFileSharingEnabled`, `LSSup
 is served from `tauri://localhost` on iOS, macOS and Linux and `http://tauri.localhost` on Windows and Android, so every
 window-message handler's origin check must allow the app's origin.
 
+### MCP access to the editors (a later stage)
+
+The Owner, 2026-11-08 21:26: "Let's create an MCP server also when we finish to sweeten the deal, you get mcp access to
+the editors when they're downloaded, but not for the browser", and a minute later: "Can you do mcp for mobile apps as
+well?". So this is a stage after the apps are built, on every platform the apps run on. The app plan leaves room for it
+now.
+
+**What it is.** An MCP server inside the app. A coding agent such as Claude Code connects to it and works on the open
+game through the editors, as a person does:
+- list the game's content;
+- read a content file, and change it through the editors' own write path, with the same checks and Undo;
+- open an editor on a file, so the person sees it;
+- run the checks and read the problems;
+- Play and Publish.
+
+The tools are shaped like the editors, not like raw file access, because an agent can already read files.
+
+**Where it lives.** In the app's own code (`apps/editor/`), never in the web page or in the free `automata editor`
+command. "Not for the browser" is read here as: the try-it page and the free command, which opens the editors in a
+browser, have none. Anyone may still build the app from source, which is the deal in section 5.
+
+**Room the app plan must leave now:**
+1. One command layer. Every action an agent needs is a plain function behind the page: open a file, write content, run
+   the checks, Play, Publish. The page's buttons and the MCP tools call the same code, and no tool reaches into the
+   page's state.
+2. The app owns the server. The page never listens on a port.
+3. The person sees what the agent does. A change shows in the open editor, the status line says "Claude changed Feel",
+   and Undo takes it back, as with sync.
+
+**On a computer** it is close to free. The sidecar already serves a token-guarded HTTP API on 127.0.0.1
+(`serve-editor.ts`: `/api/ping`, `/api/list`, `/api/file`). The app adds a Streamable HTTP MCP endpoint beside it, and
+a small stdio command for clients that start a server themselves. That command forwards to the running app; it is not
+a second server.
+
+**On a phone** (the Owner's second message) there are two limits. Neither was checked against the stores' current rules
+in this audit; the plan must check them:
+- iOS suspends an app soon after it leaves the screen, and does not let it keep a server listening in the background.
+- Android can keep one running only as a foreground service with a notification the person can see, a kind of service
+  Google Play reviews.
+
+There are three ways to reach a phone:
+
+| Way | How | For | Against |
+| --- | --- | --- | --- |
+| A. Same Wi-Fi, app open | The app runs the Streamable HTTP server on the local network while it is on screen. The person pairs a computer once with a code shown on the phone, and the code is the token | Private, no server to pay for, the agent sees the phone's editors live | Only on the same network, and only while the app is open. iOS asks for local network access. A server inside a Tauri phone app is Rust code AF must write: Tauri's localhost plugin has no mobile support (A1) |
+| B. A relay | The app connects out to a relay the Owner runs, and the agent connects to the relay with a token | Works from anywhere | A hosted service to run and pay for, which is more than "pay to download". The person's game goes through the Owner's server, which needs a privacy policy line and Apple's privacy label. It still stops when iOS suspends the app |
+| C. Through GitHub | With the app closed, the agent works on the game's repository, and its changes wait on the Review page | Always works, and needs nothing new | Not live: the agent cannot open, play or see the phone's editors |
+
+**Recommendation.** MCP on computers first, through the sidecar. On phones, A while the app is open and C when it is
+not, with no relay at first. A relay costs money every month and carries people's games through the Owner's server, so
+it is worth building only if people ask for it. The phone app says it in words: "Claude can work in your game while this
+app is open on the same Wi-Fi. When it is closed, Claude's changes wait in Review."
+
+Apple reviews a local server under guideline 2.5.2, like the rest of the app (A7). The tools change the person's
+content, not the app's code.
+
 ### Tauri's mobile maturity
 
 Tauri 2.0 (2024-10) added iOS and Android. The latest `tauri` crate is 2.12.5 (crates.io, 2026-11-06); AF pins 2.12.4,
@@ -418,7 +479,8 @@ the Owner's Mac.
 
 Nomad Sculpt, checked 2026-11-08: $19.99 on the US App Store; desktop "~$35 USD" for "1 key → 2 computers", sold
 through polar.sh, free to download and try. "A store purchase does not unlock the desktop version, and a desktop key
-does not unlock the mobile app." The proposal follows it: two prices, two purchases, and the web as the free try.
+does not unlock the mobile app." The proposal follows it: two prices, two purchases, and the web, with every editor, as
+the free way in.
 
 ## 9. The Owner's checklist
 
