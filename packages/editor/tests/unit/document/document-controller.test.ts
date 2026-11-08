@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { createEditorApp } from '#src/app/editor-2d/editor-app.ts'
 import {
   createDocumentController,
   type DocumentController,
@@ -10,9 +11,9 @@ import type { LifecycleDocument, LifecycleWindow } from '#src/shared/kit/storage
 import { findRecovery } from '#src/shared/kit/storage/recovery.ts'
 import type { Workspace } from '#src/shared/kit/storage/workspace.ts'
 import { createToasts } from '#src/shared/kit/widgets/toasts.ts'
-import { createEditorApp, type OpenOutcome } from '#src/shared/level-2d/documents/editor-app.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { createProfileRegistry } from '#src/shared/level-2d/profiles/profile.ts'
+import type { OpenOutcome } from '#src/shared/level-2d/session/editor-app-types.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace, textOf } from '#src/testing/level-2d/memory-workspace.ts'
 import { type Note, noteText, plantedProfile } from '#src/testing/level-2d/planted-profile.ts'

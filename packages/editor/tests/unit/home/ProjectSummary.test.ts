@@ -2,7 +2,7 @@
 import { render, screen, within } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import ProjectSummary from '#src/features/home/ProjectSummary.svelte'
-import type { ProjectEntry } from '#src/shared/level-2d/documents/project-list.ts'
+import type { ProjectEntry } from '#src/shared/level-2d/session/editor-app-types.ts'
 
 // A level's Details (from its card's More menu): what its profile says about it, why it does not open or what could
 // open it, and the file's facts. Entries are written by hand; the component knows no profile. Its actions are the

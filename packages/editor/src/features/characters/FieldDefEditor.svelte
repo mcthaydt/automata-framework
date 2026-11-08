@@ -18,7 +18,7 @@ import { fieldRow } from '../../shared/kit/fields/field-row'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import type { EditEvent } from '../../shared/kit/widgets/edit-event'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'
-import type { FieldCommit } from '../../shared/level-2d/model/field-commit'
+import type { FieldCommit } from '../../shared/level-2d/editor/field-commit'
 import type { Project } from '../../shared/level-2d/model/project-types'
 import type { EntitiesSession, GuardedCommit } from './entities-session'
 

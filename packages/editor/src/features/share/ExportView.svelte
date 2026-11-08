@@ -12,7 +12,7 @@ import EditorShell from '../../shared/kit/shell/EditorShell.svelte'
 import { type Seen, seenFiles, writeToFolder } from '../../shared/kit/storage/write-folder'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import Dialog from '../../shared/kit/widgets/Dialog.svelte'
-import type { ViewProps } from '../document/view-props'
+import type { ViewProps } from '../../shared/level-2d/session/view-props'
 import { exportState, exportTargets, sizeLabel } from './export-model'
 
 const { geometry, document: opened, frame, services }: ViewProps = $props()
