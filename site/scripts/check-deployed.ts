@@ -13,14 +13,14 @@ export interface Probe {
   readonly body: string
 }
 
-/** One address of each kind the headers differ by: a page, a demo, the try-it editor, an example and a playground file. */
+/** One address of each kind the headers differ by: a page, a demo, the try-it editor, an example and the security file. */
 const PATHS = [
   '/',
   '/docs/how-it-works',
   '/demos/emberwick/',
   '/editor/app/',
   '/examples/shapes-rects',
-  '/llms.txt',
+  '/.well-known/security.txt',
 ]
 const MISSING = '/no-such-page'
 

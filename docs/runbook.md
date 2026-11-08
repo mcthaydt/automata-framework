@@ -20,7 +20,8 @@ environment. Nothing publishes from a laptop. The long-lived credentials are:
 | The `af-linux` runner registration | The runner PC (`owner-pc-wsl-af`, the Owner's Windows PC under WSL2 Ubuntu-24.04; service `actions.runner.mcthaydt-automata-framework.owner-pc-wsl-af`) | Run the checks, the games' CI and the consumer smoke for this repository (since 2026-10-30, when `AF_LINUX_RUNNER` went back from `af-mac` to `af-linux`) |
 | The `af-mac` runner registrations | The Owner's Mac | Run CI jobs and, since 2026-10-30, the release jobs (`release-packages.yml`: version, and publish behind the `release` approval) |
 | `NPM_TOKEN` (an npm automation token for the `@automata` organisation) | The `release` environment's secrets (not created yet) | Publish the public packages from `release-packages.yml`; games install them with no token |
-| `SITE_DEPLOY_TOKEN` | This repository's secrets (not created yet) | Upload the website to its host from `main` (`site.yml`); without it the deploy says "No host configured yet." |
+| `CLOUDFLARE_API_TOKEN` | This repository's secrets (not created yet) | Upload the website to Cloudflare Pages from `main` (`site.yml`); without it the deploy says "No host configured yet." Create it with only the Pages edit permission for one account |
+| `CLOUDFLARE_ACCOUNT_ID` | This repository's variables (not created yet) | Names the Cloudflare account `site.yml` uploads to; not a secret |
 | `SKILLS_TOKEN` | This repository's secrets (not created yet) | Push the agent package to `mcthaydt/automata-skills` after each release; without it the release says "No skills token yet." and the mirror waits |
 
 **Do this, in order, from a device you still trust:**
@@ -77,19 +78,32 @@ Published versions live on npmjs.org, public, under the `@automata` organisation
 ## Launch the website
 
 The website (`site/`) builds and is tested on every pull request inside `ci.yml`'s 2D journeys. From `main`, the
-`site` job (`.github/workflows/site.yml`) deploys it once these are done. The Owner does steps 1 to 3; the agent does
-step 4 in one pull request.
+`site` job (`.github/workflows/site.yml`) deploys it to Cloudflare Pages. Every push to `main` after step 7 runs
+`pnpm --filter @automata/site check:launch` first and stops if any of these is not true yet: the contact address is not a
+personal mailbox and its domain has a mail record, `npx <the first command's package> create-game` finds a package on
+npmjs.org, Pixi 3D (`@pixi/3d`) is public, and the repository is public (`REPOSITORY_PUBLIC` in `site/src/shared/site.js`).
+So do the steps in this order. Steps marked (Owner) need an account or a decision only the Owner has; the agent does the rest.
 
-1. **Choose the host** (any static host that serves a folder over HTTPS and lets you set response headers), create its
-   deploy token, and add it as the repository secret `SITE_DEPLOY_TOKEN`. Until then every deploy says "No host
-   configured yet." and passes. With the token but before step 4, the deploy fails on purpose: its upload step is not
-   written yet.
-2. **Point the domain at it.** `automataframework.com`: an apex record (or the host's `ALIAS`, `ANAME` or flattened
-   `CNAME`), `www` redirecting to the apex, and HTTPS on at the host.
-3. **Name the project's addresses**, one for questions and one for security reports, on the project's own domain.
-   `pnpm --filter @automata/site check:launch` refuses a personal mailbox, so the deploy waits for them.
-4. **The agent's pull request:** the addresses in `site/src/shared/site.js` and `site/static/.well-known/security.txt`
-   (a unit test keeps the two the same), the host's upload step in `site.yml` with the headers of
-   `site/src/shared/html/security-headers.ts`, and these steps marked done. Merging it deploys.
-5. **Look at it** on a phone and on the iPad: the home page, play Emberwick, Start, Try the editor.
+1. **(Owner) Register the domain** `automataframework.com` and create the mailbox `hello@automataframework.com`.
+2. **(Owner) Create the npm organisation** `automataframework` and the `NPM_TOKEN` secret of the `release` environment.
+3. **(Owner) Create the Cloudflare Pages project** `automataframework` (Direct Upload, no Git connection) and attach
+   `automataframework.com` to it as its custom domain, with `www` redirecting to the apex and HTTPS on.
+4. **The agent: merge the package rename** to `@automataframework/*` (the plan's Task 6), after the open stack has merged.
+5. **(Owner) Approve the first release**, 0.1.0, as `first-public-release.md` describes, so the site's first command finds
+   its package.
+6. **Pixi 3D goes public.** The AF launch task swaps `vendor/pixi-3d/` for the npm release; the Owner opens the
+   repository (the go-public checklist); the agent's pull request then sets `REPOSITORY_PUBLIC` to `true` in `site.js`.
+7. **(Owner) Add the deploy credentials, last:** the secret `CLOUDFLARE_API_TOKEN` and the variable
+   `CLOUDFLARE_ACCOUNT_ID`. Adding them before steps 5 and 6 would make every push to `main` fail `check:launch`. The next
+   push to `main` builds, checks, uploads and asks the live host for the site's headers (`check:deployed`), first on the
+   deployment address and then on the domain.
+8. **(Owner) Look at it** on a phone and on the iPad: the home page, play Emberwick, Start, Try the editor, and the app page.
+9. **(Owner) Archive** the `automata-website` repository.
+
+HSTS stays at one day (`security-headers.ts`) until `check:deployed` has passed for seven days. Then a one-line pull
+request raises `max-age` to a year, so a broken certificate in the first week cannot lock a reader out for long.
+
+To try the headers before any account exists: `cd site && pnpm host:local` serves `build/` on Cloudflare's own engine
+(wrangler), and `pnpm check:deployed http://127.0.0.1:<the port it prints>` asks it the same questions the live check does.
+
 
