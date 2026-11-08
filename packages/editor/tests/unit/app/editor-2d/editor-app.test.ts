@@ -1,14 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
-import {
-  createEditorApp,
-  type OpenDocument,
-  type OpenOutcome,
-} from '#src/shared/level-2d/documents/editor-app.ts'
+import { createEditorApp } from '#src/app/editor-2d/editor-app.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
+import { createAppProfiles } from '#src/shared/level-2d/profiles/app-profiles.ts'
 import { createProfileRegistry } from '#src/shared/level-2d/profiles/profile.ts'
+import type { OpenDocument, OpenOutcome } from '#src/shared/level-2d/session/editor-app-types.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace, textOf } from '#src/testing/level-2d/memory-workspace.ts'
 import { noteText, plantedProfile, savedCount } from '#src/testing/level-2d/planted-profile.ts'

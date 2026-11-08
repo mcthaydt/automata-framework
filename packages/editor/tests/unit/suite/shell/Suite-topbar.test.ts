@@ -2,11 +2,11 @@
 import { screen } from '@testing-library/svelte'
 import { afterEach, describe, expect, it } from 'vitest'
 import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '#src/features/suite/core/index.ts'
-import { createMemoryPorts } from '#src/features/suite/memory/memory-ports.ts'
-import { samplePorts } from '#src/features/suite/memory/sample-ports.ts'
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
+import { samplePorts } from '#src/features/suite/shell/sample-ports.ts'
 import { createTuner } from '#src/features/suite/tuner/tuner-suite-editor.ts'
+import { createMemoryPorts } from '#src/shared/kit/ports/memory/memory-ports.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { tunerFixtureFiles } from '#src/testing/suite/tuner-fixtures.ts'
 
