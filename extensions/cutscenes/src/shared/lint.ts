@@ -37,6 +37,8 @@ export interface LintFloor {
 }
 export interface LintWorld {
   readonly map: LintFloor
+  /** 2 for a 2D game: its stage has no lamps, doors or props, and its camera looks at a point. Default 3. */
+  readonly dimensions?: 2 | 3 | undefined
   /** The locale's text by line key: a caption's line must have some, and its length sets how long the caption must stay up. */
   readonly text: Readonly<Record<string, string>>
   /** The sound kinds and lamp ids the game has. */
@@ -150,6 +152,26 @@ export function lintCutscene(script: CutsceneScript, world: LintWorld): Cutscene
     if (!world.props.has(p.prop))
       add('error', 'prop', `no prop '${p.prop}' in the scene`, p.t, p.prop, p.prop)
 
+  // A 2D stage draws the camera's look-at point, the actors, the cues, the fade and the captions; the rest does nothing there.
+  const flat = world.dimensions === 2
+  if (flat)
+    for (const [name, used] of [
+      ['light', script.light],
+      ['doors', script.doors],
+      ['props', script.props],
+      ['time', script.time],
+      ['grade', script.grade],
+      ['flicker', script.flicker],
+    ] as const)
+      if (used !== undefined && used.length > 0)
+        add(
+          'warning',
+          '3d-only',
+          `This step only works in 3D games. It does nothing here. (${name})`,
+          undefined,
+          name,
+        )
+
   // Anchors: every one must resolve. An actor that cannot be placed is left out of the frame checks.
   const placed = placeScript(script, world.anchor)
   const missing = placed.ok ? [] : placed.missing
@@ -241,9 +263,10 @@ export function lintCutscene(script: CutsceneScript, world: LintWorld): Cutscene
     if (f.fade >= 0.98) continue
     const [x, y, z] = f.camera.pos
     const fmt = `(${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)})`
-    if (world.map.sectorAt({ x, z }) === undefined)
+    // A 2D stage has no camera body to keep clear of walls: it looks at a point.
+    if (!flat && world.map.sectorAt({ x, z }) === undefined)
       add('error', 'camera', `camera ${fmt} is outside the map`, t, 'outside')
-    else if (world.map.segmentBlocked({ x, z }, { x, z }, CAMERA_CLEARANCE))
+    else if (!flat && world.map.segmentBlocked({ x, z }, { x, z }, CAMERA_CLEARANCE))
       add('error', 'camera', `camera ${fmt} is within ${CAMERA_CLEARANCE} m of a wall`, t, 'wall')
     for (const who of Object.keys(f.actors)) {
       const a = f.actors[who]

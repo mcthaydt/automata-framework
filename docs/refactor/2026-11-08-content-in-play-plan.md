@@ -642,3 +642,18 @@ The Owner's rule (2026-11-08): content made in the editors must be seen in play,
   in `@automata/framework/testing` mounts a slot component in the real `PlayScreen`; `.af-game-play__field` is
   `position: relative`. Tests: 15 DOM/model (jsdom), 3 layout (Chromium: 390x844, 844x390, 1024x768; WebKit and Firefox are
   not installed here); core screens layout suite 401 passes in Chromium.
+- 2026-11-08 Task 14 done: cutscenes in a 2D level. Lint: `LintWorld.map` is a `LintFloor` (`sectorAt`, `segmentBlocked`), and
+  `dimensions: 2` adds the `3d-only` warning for lamps, doors, props, time, grade and flicker and skips the camera-position
+  checks. `@automata/cutscenes/stage-2d`: `cutsceneStage2d` is a `LevelSceneHooks` that reads `CutsceneState`, plays the script
+  with the director at `(tick - start) / tickHz`, points the camera at `look * metre`, draws each actor as the placed
+  character with the same `name` (hiding that item until the cutscene ends) and a black fade rectangle over the view.
+  `Caption.svelte` is cutscenes' own `hud.overlay` (above `--af-dialogue-box-height`, no focus, `pointer-events: none`),
+  reporting a caption with no words once. Rulings: (1) the options take `level` (the level the cutscenes play in, to find the
+  placed characters and their item ids), `view` (the fade's size), `tickHz` and an optional `viewOf` (default `pictureView`),
+  none of which the plan listed: `hide` needs an item id and the draw layer has no tick rate. (2) A cue changes the clip the
+  actor's `pictureView` is asked for; before the first cue it is the character's first clip, so no clip is reported missing.
+  (3) `cutscenesExtension` takes `words`, `lines` and `scripts` (the caption must read the script's captions, and the sim
+  holds only ids); the slot is drawn only when `words` and `scripts` are both given. (4) The stage points the camera each
+  frame while a cutscene is under way, so the game's own follow must not also set the target then. (5) Cutscenes does not
+  import narrative: `CaptionLine` is structural (`{ text }`). Cutscenes now builds Svelte (svelte-check typecheck, jsdom
+  tests name the environment). Tests: 5 lint (2D), 7 stage, 4 caption, 1 extension; 88 unit pass.

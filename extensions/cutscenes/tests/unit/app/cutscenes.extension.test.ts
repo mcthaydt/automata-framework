@@ -17,3 +17,12 @@ it('follows the game’s places: a 2D game requires its provider, not sectors', 
     'narrative',
   ])
 })
+
+it('draws captions on the play screen only when it has the words and the scripts', () => {
+  const words = () => undefined
+  expect(cutscenesExtension().extension.ui).toBeUndefined()
+  expect(cutscenesExtension({ words }).extension.ui).toBeUndefined()
+  expect(cutscenesExtension({ words, scripts: {} }).extension.ui?.slots?.['hud.overlay']).toBeTypeOf(
+    'function',
+  )
+})
