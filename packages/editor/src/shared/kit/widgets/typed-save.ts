@@ -5,6 +5,8 @@
 import type { ActionReturn } from 'svelte/action'
 import type { TypingDrafts, TypingField } from '../storage/typing-drafts.ts'
 
+type Node = HTMLInputElement | HTMLTextAreaElement
+
 export interface TypedSaveParams {
   readonly drafts: TypingDrafts
   /** What the field shows when it is not being typed in. */
@@ -13,7 +15,7 @@ export interface TypedSaveParams {
    * Writes the text. Called after a pause, on leaving and on Ctrl/Cmd+Enter; never twice for the same text. `leaving`
    * says the person has left the field. Returning false says the text was refused, so leaving tries it again.
    */
-  commit(value: string, leaving: boolean): void | boolean
+  commit(value: string, leaving: boolean, input: Node): void | boolean
   /** Names the field inside its editor, for the draft a closed page leaves behind. */
   readonly draftKey?: string | undefined
   /** False for a text that is not a value yet; it waits instead of being committed while typing. */
@@ -22,11 +24,9 @@ export interface TypedSaveParams {
   readonly leaveOnly?: boolean | undefined
 }
 
-type Node = HTMLInputElement | HTMLTextAreaElement
-
 export function typedSave(node: Node, initial: TypedSaveParams): ActionReturn<TypedSaveParams> {
   let params = initial
-  const field: TypingField = params.drafts.field((value, leaving) => params.commit(value, leaving), {
+  const field: TypingField = params.drafts.field((value, leaving) => params.commit(value, leaving, node), {
     key: params.draftKey,
     current: () => params.value,
     valid: (value) => params.valid?.(value) ?? true,

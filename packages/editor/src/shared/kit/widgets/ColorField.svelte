@@ -5,10 +5,11 @@
   `set` edit event; picking the colour it already has emits nothing. Escape closes and returns focus to the trigger.
 -->
 <script lang="ts">
-import { tick } from 'svelte'
+import { onDestroy, tick, untrack } from 'svelte'
 import { parseHexColor, sameColor } from './color'
 import type { BlockedProps, EditEvent } from './edit-event'
 import Swatch from './Swatch.svelte'
+import { typingDrafts } from './typing-context'
 import { nextEnabled } from './widget-math'
 
 interface Props extends BlockedProps {
@@ -62,13 +63,37 @@ function onTrigger(): void {
   else void openPanel()
 }
 
+function setColor(color: string): void {
+  if (sameColor(color, value)) return
+  value = color
+  onedit?.({ value: color, phase: 'set' })
+}
+
 function pick(color: string): void {
-  if (!sameColor(color, value)) {
-    value = color
-    onedit?.({ value: color, phase: 'set' })
-  }
+  setColor(color)
   void closePanel(true)
 }
+
+// A hex typed in the Custom field is written once it is a whole colour (after a pause, on leaving, and when the page
+// hides), without closing the panel under the typing, and a half-typed one is kept as a draft for a page that closes.
+const field = typingDrafts().field(
+  (text, leaving) => {
+    const parsed = parseHexColor(text)
+    if (!parsed.ok) {
+      if (leaving) message = parsed.message
+      return false
+    }
+    message = undefined
+    setColor(parsed.value)
+    return true
+  },
+  {
+    key: untrack(() => `${label} hex`),
+    current: () => value.toLowerCase(),
+    valid: (text) => parseHexColor(text).ok,
+  },
+)
+onDestroy(() => field.dispose())
 
 function onSwatchKey(event: KeyboardEvent, index: number): void {
   const step =
@@ -95,11 +120,8 @@ async function showCustom(): Promise<void> {
 
 function commitDraft(): void {
   const parsed = parseHexColor(draft)
-  if (!parsed.ok) {
-    message = parsed.message
-    return
-  }
-  pick(parsed.value)
+  field.left(draft)
+  if (parsed.ok) void closePanel(true)
 }
 
 function onPanelKey(event: KeyboardEvent): void {
@@ -156,6 +178,9 @@ function onPanelKey(event: KeyboardEvent): void {
             aria-invalid={message ? 'true' : undefined}
             aria-describedby={message ? messageId : undefined}
             bind:value={draft}
+            oninput={() => field.typed(draft)}
+            onfocus={() => field.entered()}
+            onblur={() => field.left(draft)}
             onkeydown={(event) => {
               if (event.key === 'Enter') {
                 event.preventDefault()
