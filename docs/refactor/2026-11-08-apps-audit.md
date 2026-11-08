@@ -190,7 +190,7 @@ open is caught only when the editor next saves it (the mtime guard). `create-gam
 `AGENTS.md`, so Claude Code has no guide to which files it may edit. One trap is already measured: a level's TOML is
 generated from its `.af2d.json` project, and a hand edit of the TOML fails `automata check` (journey
 `drift-is-caught`). Claude Code would naturally edit the TOML. *Direction:* section 7's design, and the templates write
-an `AGENTS.md` that names the source files.
+an `AGENTS.md` that names the source files and tells the agent to work on a branch and open a pull request.
 
 **A7. Apple's rules on running code the app did not ship with.** The app runs the person's own game, which is JavaScript
 from their repository. Guideline 2.5.2 bans downloading code that changes the app, except for "Educational apps designed
@@ -288,11 +288,32 @@ sides can.
 1. **On the same computer, in the game's folder.** No GitHub needed. The app's store implements `watch` (a change
    stream from `automata editor`, file events on a phone), and an open document reloads when it has no unsaved change,
    or shows the existing conflict dialog when it does.
-2. **On the web or another computer.** Claude Code pushes a `claude/…` branch and opens a pull request. The app lists it
-   as "Changes from Claude" with one button, "Bring them in", which merges the pull request and pulls. A setting can
-   bring them in by itself once the checks pass (GitHub's own auto-merge is not available on private repositories on
-   the Free plan).
-3. **Told to push to `main`.** The app pulls it like any change.
+2. **Anywhere else: on a branch, waiting for the person's yes.** This is the way this project's own agents work. The
+   Owner, 2026-11-08 19:11: "I'd like our coding agents to use the same workflow we have here". Claude Code works on a
+   `claude/…` branch, pushes it and opens a pull request, and nothing reaches the game's `main` until the person says
+   yes. The editors' **Review** page shows each waiting change. It sits in the sidebar under "Waiting for you", as in
+   the editors v2 mockup, with the count at the row's end. Each change gets one card:
+   - **What it changes.** The pull request's title, the editors it touches ("Feel, Levels (Start)") and who made it.
+   - **Play it.** Plays that version in a play window, as Play does. The person's own copy is not changed.
+   - **Use this change.** Merges the pull request on GitHub and pulls, so the open editors show it. If `main` has moved
+     since the branch was made, the merge uses the conflict rules below. An overlap the person must settle opens the
+     same dialog.
+   - **Not this one.** Closes the pull request. The branch stays on GitHub, so the change can be brought back.
+
+   A change whose checks failed says so ("This change broke a check: Feel") and still offers all three buttons. The
+   diff is behind "Show the files", not on the card.
+
+   Today's Review desk is the start (`ReviewDesk.svelte`, `review-model.ts`). It reads the local change-set journal and
+   shows branch names, code diffs and token counts. It has no button: "there is no button here, only links to where a
+   decision is made". The app reads the game's open pull requests instead and adds the three buttons.
+
+   **Play it** needs something that does not exist yet: the game runner must play a second checkout of the branch
+   (`.automata/review/<branch>`), not the open game's folder. On a phone it needs the in-app player (A4).
+
+   With nothing waiting, the page keeps the empty state the v2 spec already gives Review: "Nothing waiting for you".
+   The page needs GitHub, so it is in the apps (D1).
+3. **Told to push to `main`.** The app pulls it like any change. The game's `AGENTS.md` (A6) tells a coding agent to
+   use a branch and a pull request, so this happens only when the person asks for it.
 
 **When.** Pull when the game opens, when the app comes to the front, and every 60 s while open (a conditional request on
 the branch: a 304 "does not count against your primary rate limit", GitHub's REST best practices). Push after saves,
@@ -327,8 +348,11 @@ write, for Claude's changes). Making a new repository from the app needs Adminis
 the first version can open github.com/new instead. GitHub is only for sync, not the app's account, and the app works
 without it, so Apple's 4.8 (Sign in with Apple) does not apply.
 
-**Words.** "Saved and on GitHub". "Getting changes from GitHub…". "Changes from Claude: Bring them in". "A file changed
-here and on GitHub. Choose which to keep."
+**Words.**
+- "Saved and on GitHub".
+- "Getting changes from GitHub…".
+- "Waiting for you": "Play it", "Use this change", "Not this one".
+- "A file changed here and on GitHub. Choose which to keep."
 
 ### The desktop app
 
