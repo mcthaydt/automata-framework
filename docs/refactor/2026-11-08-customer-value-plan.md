@@ -733,3 +733,17 @@ want, itch will be first output". Spec §11.
 - Task 11 done: a guard test (`extensions/editors/tests/unit/shared/game-events.test.ts`) keeps Feel's and Audio's event list
   naming a story game's conversations, cutscenes and characters in words beside the game's own event, and none for a game
   without that content. It passed on first run, as the plan expected; no mechanism and no `package.json` list was added.
+- Task 12 done in part: in a landscape view the letterbox fits the whole field (`scale` is the smaller of the width and height
+  ratios, the field is centred, `leftBar` and `rightBar` fill the sides in the bar colour, `scenery` is still the whole
+  view), and `DEFAULT_BAR_FRACTION` is `0`. Portrait is unchanged. This changes every AF game's landscape view, Emberwick
+  included: a window wider than the field's shape gets side bars, and a 16:9 window no longer loses 5% at the top and foot.
+  The renderer's `barFraction` comment says so; `tooling/api-report/reports` did not change. 148 render unit tests, 2063 of
+  the package's Chromium browser tests (screens, ui, render) and Emberwick's Chromium golden pass.
+  NOT DONE, and why: the touch controls are not moved into side bars. I built it (a 104 px band each side of a landscape
+  phone's field, the controls in grid columns there) and a test for it, and it passed at 844 × 390 and 932 × 430, but it
+  failed the play screen's layout contract at TV text scale, where three buttons in one column are taller than the screen.
+  I removed it rather than ship a layout that breaks at a larger text size. The controls still stand along the foot, over
+  the lower corners of the field, as before; the plan's gate "no touch control overlaps the field at 932 × 430" is
+  unmet and left unchecked. It needs a call on how wide the bands are and what a game with many buttons does. Nothing else
+  reads `LetterboxGeometry.gameplay` today (plan audit A9), so the in-game text thread's HUD safe area is not affected yet.
+  Landscape visual baselines were not run (GPU runner; the package keeps none in this checkout).

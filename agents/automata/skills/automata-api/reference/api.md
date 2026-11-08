@@ -6417,7 +6417,10 @@ interface PixiRendererOptions {
     readonly backgroundColor?: number | undefined;
     /** If true, textures default to nearest-neighbour sampling for crisp pixel art. Default is true. */
     readonly pixelArt?: boolean | undefined;
-    /** Letterbox cropping fraction for top and bottom bars. Default is 0.05 (5%). */
+    /**
+     * How much of the field's height each of the top and bottom bars crops in a landscape view. Default is 0: the whole
+     * field shows, and a view wider than the field gets bars at the sides instead.
+     */
     readonly barFraction?: number | undefined;
     /** Bar color in hex. Default is 0x2e222f (plum black). */
     readonly barColor?: number | undefined;

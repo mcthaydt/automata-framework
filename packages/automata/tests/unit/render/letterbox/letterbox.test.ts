@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  DEFAULT_BAR_FRACTION,
   LetterboxFrame,
   PORTRAIT_FIELD_TOP,
   portraitFieldHeight,
@@ -37,17 +38,50 @@ describe('LetterboxFrame', () => {
     expect(frame.bars.visible).toBe(true)
   })
 
-  it('overflows vertically on wide viewports without pillarboxing', () => {
-    const frame = new LetterboxFrame({
-      logicalWidth: LOGICAL.width,
-      logicalHeight: LOGICAL.height,
-    })
+  it('fits the whole field in a wider window and centres it, with bars at the sides', () => {
+    const frame = new LetterboxFrame({ logicalWidth: LOGICAL.width, logicalHeight: LOGICAL.height })
     const geo = frame.layout(LANDSCAPE_WIDE.width, LANDSCAPE_WIDE.height)
 
-    expect(geo.x).toBe(0)
-    expect(geo.width).toBeCloseTo(LANDSCAPE_WIDE.width)
-    expect(geo.height).toBeGreaterThan(LANDSCAPE_WIDE.height)
-    expect(geo.y).toBeLessThan(0)
+    expect(geo.scale).toBeCloseTo(LANDSCAPE_WIDE.height / LOGICAL.height)
+    expect(geo.height).toBeCloseTo(LANDSCAPE_WIDE.height)
+    expect(geo.y).toBe(0)
+    expect(geo.x).toBeGreaterThan(0)
+    expect(geo.x * 2 + geo.width).toBeCloseTo(LANDSCAPE_WIDE.width, 0)
+    expect(geo.gameplay).toMatchObject({ x: geo.x, width: geo.width, y: 0, height: LANDSCAPE_WIDE.height })
+    // The scenery is the whole view, bars and all.
+    expect(geo.scenery.width * geo.scale).toBeCloseTo(LANDSCAPE_WIDE.width)
+  })
+
+  it('fits the whole field in a landscape phone instead of cropping it', () => {
+    const frame = new LetterboxFrame({ logicalWidth: 512, logicalHeight: 288 })
+    for (const [width, height] of [
+      [844, 390],
+      [932, 430],
+    ] as const) {
+      const geo = frame.layout(width, height)
+      expect(geo.height, `${width} x ${height}`).toBeLessThanOrEqual(height)
+      expect(geo.gameplay.height).toBeCloseTo(288 * geo.scale)
+      expect(geo.x).toBeGreaterThan(0)
+      expect(geo.x + geo.width).toBeLessThanOrEqual(width)
+    }
+  })
+
+  it('draws the sides in the bar colour and shows the bars in landscape only', () => {
+    const frame = new LetterboxFrame({ logicalWidth: LOGICAL.width, logicalHeight: LOGICAL.height })
+    const geo = frame.layout(LANDSCAPE_WIDE.width, LANDSCAPE_WIDE.height)
+    expect(frame.bars.visible).toBe(true)
+    expect(frame.leftBar.getLocalBounds().width).toBeCloseTo(geo.x)
+    expect(frame.rightBar.getLocalBounds().width).toBeCloseTo(LANDSCAPE_WIDE.width - geo.x - geo.width)
+    frame.layout(PORTRAIT.width, PORTRAIT.height)
+    expect(frame.bars.visible).toBe(false)
+  })
+
+  it('crops no top or bottom by default, and the fraction a game asks for still crops', () => {
+    expect(DEFAULT_BAR_FRACTION).toBe(0)
+    const asked = new LetterboxFrame({ logicalWidth: 960, logicalHeight: 540, barFraction: 0.05 })
+    const geo = asked.layout(1280, 720)
+    expect(geo.gameplay.height).toBeCloseTo(720 * 0.9)
+    expect(geo.height).toBeCloseTo(720)
   })
 
   it('lifts the field and hides crop bars on portrait canvas', () => {
@@ -85,6 +119,8 @@ describe('LetterboxFrame', () => {
     frame.setBarBlack(1.0)
     expect(frame.topBar.tint).toBe(0x000000)
     expect(frame.bottomBar.tint).toBe(0x000000)
+    expect(frame.leftBar.tint).toBe(0x000000)
+    expect(frame.rightBar.tint).toBe(0x000000)
 
     frame.setBarBlack(0.0)
     expect(frame.topBar.tint).toBe(0xffffff)

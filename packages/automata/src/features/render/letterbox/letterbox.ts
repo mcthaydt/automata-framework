@@ -6,8 +6,11 @@ import { classifyFormFactor } from '../../../shared/ui/geometry/form-factor.ts'
  * the field sits this far down, or centred when centring leaves less room above it.
  */
 export const PORTRAIT_FIELD_TOP = 60
-/** How much of the playfield's height each letterbox bar crops in a landscape view, by default (5%). */
-export const DEFAULT_BAR_FRACTION = 0.05
+/**
+ * How much of the playfield's height each letterbox bar crops in a landscape view, by default: none, so nothing a
+ * person placed in the level is cut off. A game may ask for a fraction.
+ */
+export const DEFAULT_BAR_FRACTION = 0
 /** The letterbox bars' default colour. */
 export const DEFAULT_BAR_COLOR = 0x2e222f
 /** The default colour behind the playfield, under the world. */
@@ -69,6 +72,9 @@ export class LetterboxFrame {
   readonly bars: Container = new Container()
   readonly topBar: Graphics = new Graphics()
   readonly bottomBar: Graphics = new Graphics()
+  /** The sides of a landscape view wider than the field, in the bar colour. */
+  readonly leftBar: Graphics = new Graphics()
+  readonly rightBar: Graphics = new Graphics()
 
   private readonly logicalWidth: number
   private readonly logicalHeight: number
@@ -97,17 +103,20 @@ export class LetterboxFrame {
     this.scene.addChild(this.backdrop, this.root, this.mask)
 
     this.bars.label = 'bars'
-    this.bars.addChild(this.topBar, this.bottomBar)
+    this.bars.addChild(this.topBar, this.bottomBar, this.leftBar, this.rightBar)
 
     this.root.mask = this.mask
+  }
+
+  private get barGraphics(): readonly Graphics[] {
+    return [this.topBar, this.bottomBar, this.leftBar, this.rightBar]
   }
 
   layout(viewWidth: number, viewHeight: number): LetterboxGeometry {
     if (viewWidth <= 0 || viewHeight <= 0) {
       this.mask.clear()
       this.field.clear()
-      this.topBar.clear()
-      this.bottomBar.clear()
+      for (const bar of this.barGraphics) bar.clear()
       return {
         scale: 1,
         x: 0,
@@ -121,10 +130,14 @@ export class LetterboxFrame {
       }
     }
 
-    const scale = viewWidth / this.logicalWidth
-    const width = viewWidth
     const formFactor = classifyFormFactor(viewWidth, viewHeight)
     const portrait = viewHeight > viewWidth
+    // Portrait fills the width and lengthens the field to the height. Landscape fits the whole field in the view, the
+    // smaller of the two ratios, so a wider view gets bars at the sides and nothing is cut off at the top or foot.
+    const scale = portrait
+      ? viewWidth / this.logicalWidth
+      : Math.min(viewWidth / this.logicalWidth, viewHeight / this.logicalHeight)
+    const width = portrait ? viewWidth : this.logicalWidth * scale
 
     const band = formFactor === 'phone-portrait' ? 140 : formFactor === 'tablet-portrait' ? 180 : 0
     const fieldHeight =
@@ -133,7 +146,7 @@ export class LetterboxFrame {
         : this.logicalHeight
 
     const height = fieldHeight * scale
-    const x = 0
+    const x = portrait ? 0 : Math.round((viewWidth - width) / 2)
     const centred = Math.round((viewHeight - height) / 2)
     const y = portrait ? Math.min(PORTRAIT_FIELD_TOP, centred) : centred
 
@@ -146,7 +159,7 @@ export class LetterboxFrame {
     const clipBottom = Math.min(viewHeight, y + height)
     this.mask
       .clear()
-      .rect(0, clipTop, viewWidth, Math.max(0, clipBottom - clipTop))
+      .rect(x, clipTop, width, Math.max(0, clipBottom - clipTop))
       .fill(0xffffff)
 
     this.field
@@ -156,8 +169,7 @@ export class LetterboxFrame {
 
     const barsVisible = !portrait
     this.bars.visible = barsVisible
-    this.topBar.visible = barsVisible
-    this.bottomBar.visible = barsVisible
+    for (const bar of this.barGraphics) bar.visible = barsVisible
 
     const cropped = height * this.barFraction
     const bottomEdge = Math.min(viewHeight, y + height - cropped)
@@ -171,12 +183,19 @@ export class LetterboxFrame {
       .rect(0, bottomEdge, viewWidth, Math.max(0, viewHeight - bottomEdge))
       .fill(this.barColor)
 
+    // The sides: everything left and right of the field.
+    this.leftBar.clear().rect(0, 0, Math.max(0, x), viewHeight).fill(this.barColor)
+    this.rightBar
+      .clear()
+      .rect(x + width, 0, Math.max(0, viewWidth - x - width), viewHeight)
+      .fill(this.barColor)
+
     const gameplayTop = barsVisible ? Math.max(clipTop, y + cropped) : clipTop
     const gameplayBottom = barsVisible ? Math.min(clipBottom, y + height - cropped) : clipBottom
     const gameplay = {
-      x: 0,
+      x,
       y: gameplayTop,
-      width: viewWidth,
+      width,
       height: Math.max(0, gameplayBottom - gameplayTop),
     }
 
@@ -193,8 +212,7 @@ export class LetterboxFrame {
   setBarBlack(amount: number): void {
     const keep = Math.round(255 * (1 - Math.min(1, Math.max(0, amount))))
     const tint = (keep << 16) | (keep << 8) | keep
-    this.topBar.tint = tint
-    this.bottomBar.tint = tint
+    for (const bar of this.barGraphics) bar.tint = tint
   }
 
   destroy(): void {
