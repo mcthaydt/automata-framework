@@ -8,13 +8,51 @@ describe('./props-kit', () => {
   it('hands over the primitives a prop is built from', () => {
     const whole = kit.merge(kit.box([0, 0, 0], [1, 1, 1]), kit.cylinder([2, 0, 0], 0.2, 1))
     expect(whole.positions.length).toBeGreaterThan(0)
-    for (const fn of [kit.rbox, kit.rod, kit.cone, kit.blob, kit.quad, kit.tube, kit.limb, kit.placed])
+    for (const fn of [kit.rbox, kit.rod, kit.cone, kit.blob, kit.quad, kit.ringTube, kit.limb, kit.placed])
       expect(fn).toBeTypeOf('function')
+  })
+  it('has one function for each name: `tube` is the figures’ skirt, so the rings-to-mesh one is `ringTube`', () => {
+    expect('tube' in kit).toBe(false)
+  })
+  it('exports only what a prop maker uses', () => {
+    // A name here is one more thing core must keep stable. Add one only when an extension imports it.
+    expect(Object.keys(kit).sort()).toEqual(
+      [
+        'at',
+        'axisAngle',
+        'blob',
+        'box',
+        'buildWorld',
+        'cone',
+        'cornersOf',
+        'cylinder',
+        'hasSwatch',
+        'heightAt',
+        'inside',
+        'inward',
+        'isFault',
+        'lightOf',
+        'limb',
+        'merge',
+        'part',
+        'placed',
+        'quad',
+        'rbox',
+        'registerPropGenerator',
+        'resolveProp',
+        'ringTube',
+        'ringsOf',
+        'rod',
+        'segments',
+        'signedArea',
+        'stream',
+      ].sort(),
+    )
   })
   it('registers a generator under a new kind, in the one registry core reads', () => {
     kit.registerPropGenerator('props-kit-probe', () => ({ pieces: [] }))
     expect(propGenerator('props-kit-probe')).toBeTypeOf('function')
-    expect(() => kit.registerPropGenerator('box', () => ({ pieces: [] }))).toThrow(kit.RegistryClash)
+    expect(() => kit.registerPropGenerator('box', () => ({ pieces: [] }))).toThrow(/box/)
   })
   it('gives a seeded stream that repeats', () => {
     const a = kit.stream(7)

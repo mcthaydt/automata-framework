@@ -4,7 +4,7 @@
 // built shut). A sign is lettered by the props' generators; with none registered a sign draws nothing.
 import { createRng } from '@automata/sim'
 import type { AfSectorEntry2, Decor, SectorDoor } from '../../shared/level/af-sector-2.schema.ts'
-import { type MeshData, merge, tube } from '../../shared/math/geometry.ts'
+import { type MeshData, merge, ringTube } from '../../shared/math/geometry.ts'
 import type { V3 } from '../../shared/math/math.ts'
 import { box, quad } from './mesh.ts'
 import { at, rotateY } from './plane-mesh.ts'
@@ -65,7 +65,7 @@ export function decorPieces(decor: Decor, night: boolean, wallTrim: string, inte
   if (interior === 'curtains')
     for (const side of [-1, 1])
       out.push({
-        mesh: tube([sill + h, w * 0.14, 0.02, 0.012], [sill + 0.02, w * 0.17, 0.025, 0.012], {
+        mesh: ringTube([sill + h, w * 0.14, 0.02, 0.012], [sill + 0.02, w * 0.17, 0.025, 0.012], {
           x: side * (w / 2 - w * 0.15),
           arc: [0, Math.PI],
           folds: [7, 0.25],

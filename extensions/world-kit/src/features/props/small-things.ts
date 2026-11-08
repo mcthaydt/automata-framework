@@ -16,9 +16,9 @@ import {
   part,
   quad,
   rbox,
+  ringTube,
   rod,
   stream,
-  tube,
 } from '@automata/3d/props-kit'
 import { turnY } from '../../shared/turn.ts'
 
@@ -235,7 +235,7 @@ const curtains: Generator = (p) => {
   for (const side of [-1, 1])
     pieces.push(
       part(
-        tube([h, panel / 2, 0.05, 0.05], [0.03, panel / 2 + 0.06, 0.07, 0.07], {
+        ringTube([h, panel / 2, 0.05, 0.05], [0.03, panel / 2 + 0.06, 0.07, 0.07], {
           x: side * (w / 2 - panel / 2 + 0.05),
           arc: [0, Math.PI],
           folds: [9, 0.22],

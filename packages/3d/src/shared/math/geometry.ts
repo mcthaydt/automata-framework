@@ -55,7 +55,7 @@ export function windToNormals(mesh: MeshData): MeshData {
 
 type Ring = readonly [y: number, radiusX: number, radiusZ: number, centreZ: number]
 
-export interface TubeOptions {
+export interface RingTubeOptions {
   readonly seg?: number
   readonly rings?: number
   /** How much it bulges at its middle. */
@@ -69,7 +69,7 @@ export interface TubeOptions {
 }
 
 /** An open tube from the `top` ring to the `bottom` one, each `[y, radius x, radius z, centre z]`. */
-export function tube(top: Ring, bottom: Ring, options: TubeOptions = {}): MeshData {
+export function ringTube(top: Ring, bottom: Ring, options: RingTubeOptions = {}): MeshData {
   const rings = options.rings ?? 5
   const belly = options.belly ?? 0
   const centreX = options.x ?? 0
