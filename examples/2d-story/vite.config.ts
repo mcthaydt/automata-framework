@@ -1,6 +1,8 @@
+import { audioContent } from '@automata/audio-synth'
 import { level2dKinds } from '@automata/content/level-2d'
 import { automataContent } from '@automata/content/vite'
 import { cutsceneContent } from '@automata/cutscenes/content'
+import { feelContent } from '@automata/feel'
 import { dialogueContent, linesContent } from '@automata/narrative/content'
 import { navGraphContent } from '@automata/nav'
 import { systemsContent } from '@automata/systems'
@@ -30,6 +32,8 @@ export default defineConfig(({ mode }) => ({
         cutsceneContent,
         navGraphContent,
         systemsContent({ hooks: [] }),
+        feelContent,
+        audioContent,
       ],
     }),
   ],

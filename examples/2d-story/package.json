@@ -14,8 +14,10 @@
     "check": "pnpm typecheck && pnpm test && automata-check-boundaries --game src"
   },
   "dependencies": {
+    "@automata/audio-synth": "workspace:*",
     "@automata/content": "workspace:*",
     "@automata/cutscenes": "workspace:*",
+    "@automata/feel": "workspace:*",
     "@automata/framework": "workspace:*",
     "@automata/level-2d": "workspace:*",
     "@automata/narrative": "workspace:*",

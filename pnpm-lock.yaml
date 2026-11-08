@@ -75,12 +75,18 @@ importers:
 
   examples/2d-story:
     dependencies:
+      '@automata/audio-synth':
+        specifier: workspace:*
+        version: link:../../extensions/audio-synth
       '@automata/content':
         specifier: workspace:*
         version: link:../../packages/content
       '@automata/cutscenes':
         specifier: workspace:*
         version: link:../../extensions/cutscenes
+      '@automata/feel':
+        specifier: workspace:*
+        version: link:../../extensions/feel
       '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata

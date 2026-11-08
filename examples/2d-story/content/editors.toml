@@ -9,3 +9,26 @@ modes = ["edit"]
 exports = "content"
 gates = []
 checks = ["content"]
+
+# What the player feels, the sounds and the music's order, in the content editors' suite.
+[[file]]
+glob = "content/feel/*.toml"
+editor = "feel"
+modes = ["edit", "ask"]
+gates = []
+checks = []
+
+[[file]]
+glob = "content/audio/*.toml"
+editor = "audio"
+modes = ["edit", "ask"]
+gates = []
+checks = []
+
+# Music is imported: the tracks a person puts here show up in Audio to set up.
+[[file]]
+glob = "assets/music/*"
+editor = "audio"
+modes = ["edit"]
+gates = []
+checks = []

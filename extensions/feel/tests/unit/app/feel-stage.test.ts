@@ -27,13 +27,27 @@ describe('feelStage', () => {
     stage.world.position.set(10, 20)
     hooks.apply?.(step(1, [slam(7)]))
     hooks.draw?.({ alpha: 0, frameMs: 16, paused: false })
-    const moved = stage.world.position.x !== 10 || stage.world.position.y !== 20
+    const moved = stage.world.pivot.x !== 0 || stage.world.pivot.y !== 0
     expect(moved).toBe(true)
+    // Whoever places the world (the letterbox, a camera) keeps doing so: the shake never touches its position.
+    expect([stage.world.position.x, stage.world.position.y]).toEqual([10, 20])
     for (let i = 0; i < 120; i += 1) {
       clock.advance(50)
       hooks.draw?.({ alpha: 0, frameMs: 50, paused: false })
     }
-    expect([stage.world.position.x, stage.world.position.y]).toEqual([10, 20])
+    expect([stage.world.pivot.x, stage.world.pivot.y]).toEqual([0, 0])
+  })
+
+  it('shakes the same on screen whatever scale the world is drawn at, and when a camera rewrites its position every frame', () => {
+    const { stage, hooks } = setup()
+    stage.world.scale.set(2)
+    stage.world.position.set(100, 100)
+    hooks.apply?.(step(1, [slam(7)]))
+    hooks.draw?.({ alpha: 0, frameMs: 16, paused: false })
+    const at = stage.world.toGlobal({ x: 0, y: 0 })
+    // The screen moved by the shake (a few pixels), not by twice that.
+    expect(Math.abs(at.x - 100)).toBeLessThanOrEqual(3 + 1e-6)
+    expect(Math.abs(at.y - 100)).toBeLessThanOrEqual(3 + 1e-6)
   })
 
   it('draws the flash over the playfield for as long as it lasts', () => {
@@ -62,7 +76,7 @@ describe('feelStage', () => {
     stage.world.position.set(3, 4)
     hooks.apply?.(step(1, [{ type: 'nothing.happens', payload: {} } as unknown as SimEvent]))
     hooks.draw?.({ alpha: 0, frameMs: 16, paused: false })
-    expect([stage.world.position.x, stage.world.position.y]).toEqual([3, 4])
+    expect([stage.world.pivot.x, stage.world.pivot.y]).toEqual([0, 0])
   })
 
   it('reads the table at each event, so a saved change shows on the next one', () => {
@@ -71,11 +85,11 @@ describe('feelStage', () => {
     const hooks = feelStage({ content: () => table, clock: fakeClock() })(stage)
     hooks.apply?.(step(1, [slam(7)]))
     hooks.draw?.({ alpha: 0, frameMs: 16, paused: false })
-    expect(stage.world.position.x).toBe(0)
+    expect(stage.world.pivot.x).toBe(0)
     table = content
     hooks.apply?.(step(2, [slam(7)]))
     hooks.draw?.({ alpha: 0, frameMs: 16, paused: false })
-    expect(stage.world.position.x !== 0 || stage.world.position.y !== 0).toBe(true)
+    expect(stage.world.pivot.x !== 0 || stage.world.pivot.y !== 0).toBe(true)
   })
 })
 

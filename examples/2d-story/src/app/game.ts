@@ -1,6 +1,6 @@
 import { placeScript } from '@automata/cutscenes/sim'
 import { cutsceneStage2d } from '@automata/cutscenes/stage-2d'
-import { defaultContent, defineGame, keys } from '@automata/framework'
+import { defaultContent, defineGame, keys, mergeStageHooks } from '@automata/framework'
 import { LEVEL } from '../features/level/level.ts'
 import { project, startLevel } from '../features/level/level-content.ts'
 import { images, LEVEL_SCENE } from '../features/level/level-scene.ts'
@@ -10,6 +10,7 @@ import { EXTENSIONS } from '../features/story/story.extensions.ts'
 import { SCRIPTS } from '../features/story/story-content.ts'
 import { METRE } from '../shared/constants.ts'
 import { cutsceneCamera, storyCamera } from './story-camera.ts'
+import { audio, feelOnStage } from './story-feel-audio.ts'
 import { PLUGINS, setup } from './story-sim.ts'
 
 // The cutscenes' actors are the placed characters named in the editor, and their points are in metres, so they are placed
@@ -64,5 +65,8 @@ export const game = defineGame({
   views: squareView,
   // The level's tiles and placed characters, drawn by core from what the editor saved.
   level: LEVEL_SCENE,
-  renderer: { setup: storyCamera },
+  // The camera places the world each frame; Feel's shake, flash, freeze, squash and words play on top of it.
+  renderer: { setup: (stage) => mergeStageHooks(storyCamera(stage), feelOnStage(stage)) },
+  // The sounds the event map names and the music the rules pick, played on the game's own audio buses.
+  audio,
 })

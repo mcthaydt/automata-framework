@@ -30,6 +30,8 @@ export interface AudioSynth {
   hear(tick: number, events: readonly SimEvent[]): void
   /** Plays what the drawn tick has reached. `listener` pans world cues. */
   frame(drawnTick: number, listener?: Listener | null): { readonly played: readonly string[] }
+  /** Plays the cue called `id` now, on its bus; false when the table has no such cue. */
+  play(id: string, at?: { readonly x: number; readonly z: number }): boolean
   startBed(id: string): void
   stopBed(id: string): void
   /** The beds playing, in the order they started. */
@@ -58,6 +60,13 @@ export function createAudioSynth(options: AudioSynthOptions): AudioSynth {
   let n = 0
   const random = (): number => hash(seed, n++)
   return {
+    play(id, at) {
+      const content = options.content()
+      const cue = (content.cue ?? []).find((c) => c.id === id)
+      if (cue === undefined) return false
+      createMixer({ port: options.port, ducks: content.duck ?? [] }).play(cue, { at, random })
+      return true
+    },
     hear: (tick, events) => beats.noteAt(tick, events),
     frame(drawnTick, listener = null) {
       const content = options.content()

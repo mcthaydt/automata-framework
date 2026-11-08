@@ -13,5 +13,7 @@ declare module 'virtual:automata/content' {
     readonly cutscene?: Files
     readonly 'nav-graph'?: Files
     readonly systems?: Files
+    readonly feel?: Readonly<Record<string, unknown>>
+    readonly audio?: Readonly<Record<string, unknown>>
   }
 }

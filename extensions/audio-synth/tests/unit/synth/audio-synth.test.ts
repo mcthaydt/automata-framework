@@ -70,6 +70,17 @@ function setup(content: AudioContent = CONTENT) {
 }
 const ev = (type: string, payload: unknown = {}) => ({ type, payload })
 
+describe('a cue asked for by name', () => {
+  it('plays at once on its bus, and answers a name the table lacks with false', () => {
+    const { synth, oscillators, nodes } = setup()
+    expect(synth.play('tick')).toBe(true)
+    expect(oscillators()).toBe(1)
+    expect(nodes.has('ui')).toBe(true)
+    expect(synth.play('nothing-called-this')).toBe(false)
+    expect(oscillators()).toBe(1)
+  })
+})
+
 describe('events at the drawn tick', () => {
   it('plays the cue an event maps to when the drawn tick reaches it, and not before', () => {
     const { synth, oscillators } = setup()

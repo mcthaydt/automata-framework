@@ -61,7 +61,6 @@ export function feelStage(options: FeelStageOptions): (stage: PixiStage) => Pixi
       })
     let feel = make()
     let tick = 0
-    let shaken: readonly [number, number] = [0, 0]
 
     // One rectangle for the tint under one for the flash, so a flash is always seen over a tint.
     const tint = new Graphics()
@@ -132,10 +131,11 @@ export function feelStage(options: FeelStageOptions): (stage: PixiStage) => Pixi
       }
     }
 
-    const putBack = (): void => {
-      stage.world.position.x -= shaken[0]
-      stage.world.position.y -= shaken[1]
-      shaken = [0, 0]
+    // The shake moves the world through its pivot, which nothing else uses, so whoever places the world (the letterbox, a
+    // camera that rewrites its position every frame) is left alone. The pivot is in the world's own units.
+    const shake = (offset: readonly [number, number]): void => {
+      const { x: sx, y: sy } = stage.world.scale
+      stage.world.pivot.set(0 - offset[0] / (sx || 1), 0 - offset[1] / (sy || 1))
     }
 
     return {
@@ -145,10 +145,7 @@ export function feelStage(options: FeelStageOptions): (stage: PixiStage) => Pixi
       },
       draw(info: FrameInfo): void {
         const frame = feel.frameNow(tick, info.alpha)
-        // The world is moved by the change in the shake, so whatever else places it (the letterbox) is left alone.
-        stage.world.position.x += frame.offset[0] - shaken[0]
-        stage.world.position.y += frame.offset[1] - shaken[1]
-        shaken = frame.offset
+        shake(frame.offset)
         paint(tint, frame.tint)
         paint(flash, frame.flash)
         // A hit-stop holds the subject's pose; the picture catches up when it ends.
@@ -162,7 +159,7 @@ export function feelStage(options: FeelStageOptions): (stage: PixiStage) => Pixi
         stage.consumer?.hold(new Set())
         squashed.clear()
         for (const text of wordTexts) text.visible = false
-        putBack()
+        shake([0, 0])
         feel = make()
         tick = 0
         tint.visible = false

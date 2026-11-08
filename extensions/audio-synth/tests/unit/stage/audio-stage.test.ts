@@ -125,6 +125,31 @@ describe('audioStage: cues', () => {
   })
 })
 
+describe('audioStage: the game’s own hooks', () => {
+  it('lets the game play a cue by name, as Feel does for a sound it names, once unlocked', () => {
+    let handle: { cue(id: string): boolean } | undefined
+    const { oscillators, unlock } = setup({ ready: (made) => (handle = made) })
+    expect(handle?.cue('coin')).toBe(false)
+    unlock()
+    expect(handle?.cue('coin')).toBe(true)
+    expect(handle?.cue('nothing-called-this')).toBe(false)
+    expect(oscillators()).toHaveLength(1)
+  })
+
+  it('tells a watcher which cue sounded and which music was asked for', async () => {
+    const seen: unknown[] = []
+    const { step, unlock, clock, flush, setMode } = setup({ watch: (note) => void seen.push(note) })
+    unlock()
+    step(1, 'coin.picked')
+    clock.advance(200)
+    await flush()
+    setMode('chase')
+    clock.advance(200)
+    await flush()
+    expect(seen).toEqual([{ cue: 'coin' }, { music: 'calm' }, { music: 'chase' }])
+  })
+})
+
 describe('audioStage: music', () => {
   it('starts the track the rules pick once the audio is unlocked, and switches when the state changes', async () => {
     const { clock, unlock, sources, setMode, flush } = setup()

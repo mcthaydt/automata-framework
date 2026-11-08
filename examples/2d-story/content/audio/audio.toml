@@ -1,0 +1,11 @@
+# The sounds of the story, and which event plays which. Music is imported: put a track in assets/music and set it up here.
+
+[[cue]]
+id = "talk"
+about = "The keeper starts to speak."
+bus = "ui"
+voices = [{ tone = "sine", from = 660, to = 880, length = 0.12, volume = 0.3 }]
+
+[[event]]
+on = "narrative.line"
+cue = "talk"

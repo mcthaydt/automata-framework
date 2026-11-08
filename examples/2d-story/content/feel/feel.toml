@@ -1,0 +1,5 @@
+# What the player feels when something happens in the story.
+
+[[entry]]
+on = "cutscene.started"
+camera = [{ shake = 0.3 }]
