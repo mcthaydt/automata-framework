@@ -710,3 +710,7 @@ The Owner's rule (2026-11-08): content made in the editors must be seen in play,
   `@automata/release` `turbo.test.ts` (reads `site/turbo.json`, which has `//` comments, with `JSON.parse`); `api-index` exits 1 for
   three exports with no doc comment (`STICK_DIRECTIONS`, `Picture` in `content/level-2d`, `PROMPT_COPY`).
   **Not run, pending:** WebKit and Firefox; the GPU runner's journeys; the Writer, Sequence and Schematic journey steps (#478).
+- **2026-11-08, build audit (Opus medium).** [`2026-11-08-content-in-play-build-audit.md`](2026-11-08-content-in-play-build-audit.md):
+  2 High, 5 Medium, 9 Low. A game made in the editors and played shows its tiles, wall, animated coin and new key; the 2D
+  story plays its dialogue, cutscene and guard. High: the editor's level does not draw an animation that the game does
+  (`pictureOf` lacks it); nobody can yet edit the story's words, caption or guard (#478). Next: Sonnet high fixes.
