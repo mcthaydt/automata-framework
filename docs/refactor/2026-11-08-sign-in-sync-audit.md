@@ -63,8 +63,8 @@ What it builds on:
    and no store of people's games. Don't build Automata accounts now (option B), unless the Owner wants people with no
    GitHub account to sync. In that case it is a service to run, with legal duties (section 5).
 
-**Decisions only the Owner can make:** how people sign in (D1), and whether the web gets sync free or it stays a reason
-to buy the app (D2). See section 7.
+**Decisions only the Owner can make:** how people sign in (D1, decided 22:30: sign in with GitHub), and whether the web
+gets sync free or it stays a reason to buy the app (D2). See section 7.
 
 ## 2. What was done by hand
 
@@ -453,7 +453,7 @@ GitHub's REST API, not git.
 
 ## 7. Decisions only the Owner can make
 
-**D1. How do people sign in?**
+**D1. How do people sign in?** **Decided 2026-11-08 22:30: A, sign in with GitHub** (the Owner, on the decision card).
 - **A. With GitHub; each game in their own repository (recommended).** No account database. It is the same GitHub App
   as the downloads, and Claude Code can edit the game. People without GitHub must make a free account.
 - **B. Automata accounts (email, Apple or Google), with games on our servers.** Easiest for anyone. But the Owner runs a
