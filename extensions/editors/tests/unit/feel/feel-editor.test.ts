@@ -17,15 +17,15 @@ camera = [{ shake = 0.2 }] # a light knock
 on = "door.*"
 `
 
-async function open(files: Record<string, string>) {
+async function open(files: Record<string, string>, options: Parameters<typeof createFeel>[0] = {}) {
   const { ports } = await createMemoryPorts({
     files,
     generated: (path) => path.startsWith('content/generated/'),
     classify: (path) => ({ path, editor: 'feel', gates: [], checks: [], modes: ['edit'], writable: true }),
     changeSet: false,
   })
-  const listed = await ports.workspace.files('feel')
-  const session = await createFeel().open(listed, ports)
+  const listed = (await ports.workspace.files('feel')).filter((file) => file.path.startsWith('content/feel/'))
+  const session = await createFeel(options).open(listed, ports)
   render(FeelPanel, { props: { session } })
   render(FeelCanvas, { props: { session } })
   return { ports, session }
@@ -156,15 +156,73 @@ describe('Feel', () => {
     expect(screen.getByRole('heading', { name: 'When any door event happens' })).toBeInTheDocument()
   })
 
-  it('writes “Only what was hit” as a key and removes it again for “Everything”', async () => {
+  it('writes “Over what was hit” as a key and removes it again for “Middle of the screen”', async () => {
     const { ports } = await open({
-      [FEEL_PATH]: '[[entry]]\non = "player.hit"\npose = [{ hit_stop_ms = 60 }]\n',
+      [FEEL_PATH]: '[[entry]]\non = "player.hit"\nword = [{ key = "ouch", words = "Ouch" }]\n',
     })
-    const choose = screen.getByLabelText('What freezes')
-    await userEvent.selectOptions(choose, 'Only what was hit')
-    await vi.waitFor(async () => expect(await text(ports)).toContain('target = "subject"'))
-    await userEvent.selectOptions(screen.getByLabelText('What freezes'), 'Everything')
-    await vi.waitFor(async () => expect(await text(ports)).not.toContain('target'))
+    await userEvent.selectOptions(screen.getByLabelText('Where'), 'Over what was hit')
+    await vi.waitFor(async () => expect(await text(ports)).toContain('at = "subject"'))
+    await userEvent.selectOptions(screen.getByLabelText('Where'), 'Middle of the screen')
+    await vi.waitFor(async () => expect(await text(ports)).not.toContain('at ='))
+  })
+
+  it('keeps "Add an effect" off until a new feel is written, so the effect lands on the new feel', async () => {
+    const { ports } = await createMemoryPorts({
+      files: { [FEEL_PATH]: FILE },
+      generated: (path) => path.startsWith('content/generated/'),
+      classify: (path) => ({ path, editor: 'feel', gates: [], checks: [], modes: ['edit'], writable: true }),
+      changeSet: false,
+    })
+    let release: () => void = () => undefined
+    const gate = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    const write = ports.workspace.write.bind(ports.workspace)
+    ports.workspace.write = async (...args) => {
+      await gate
+      return write(...args)
+    }
+    const session = await createFeel().open(await ports.workspace.files('feel'), ports)
+    render(FeelPanel, { props: { session } })
+    render(FeelCanvas, { props: { session } })
+    await userEvent.click(screen.getByRole('button', { name: 'Add a feel' }))
+    await userEvent.type(screen.getByLabelText('Something else'), 'enemy.died')
+    await userEvent.click(screen.getByRole('button', { name: 'Add' }))
+    expect(screen.getByRole('button', { name: 'Add an effect' })).toBeDisabled()
+    release()
+    await vi.waitFor(() => expect(screen.getByRole('button', { name: 'Add an effect' })).toBeEnabled())
+    expect(screen.getByRole('heading', { name: 'When enemy died happens' })).toBeInTheDocument()
+  })
+
+  it('changes what a feel answers, keeping its effects, and refuses an event another feel answers', async () => {
+    const { ports } = await open({ [FEEL_PATH]: FILE })
+    await userEvent.click(screen.getByRole('button', { name: 'Change' }))
+    await userEvent.type(screen.getByLabelText('Something else'), 'enemy.died')
+    await userEvent.click(screen.getByRole('button', { name: 'Use this' }))
+    await vi.waitFor(async () =>
+      expect(await text(ports)).toContain('on = "enemy.died"\ncamera = [{ shake = 0.2 }]'),
+    )
+    expect(screen.getByRole('heading', { name: 'When enemy died happens' })).toBeInTheDocument()
+  })
+
+  it('starts the preview with Reduce motion as the device is set', async () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({ matches: query.includes('reduce') }))
+    try {
+      const { session } = await open({ [FEEL_PATH]: FILE })
+      expect(session.preview.reduced).toBe(true)
+      expect(screen.getByLabelText('Reduce motion')).toBeChecked()
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('says a freeze on an event about nobody holds nothing, and that a freeze holds what was hit', async () => {
+    await open({
+      [FEEL_PATH]: '[[entry]]\non = "cutscene.started"\npose = [{ hit_stop_ms = 60 }]\n',
+      'content/cutscenes/opening.toml': 'id = "opening"\nduration = 5\n',
+    })
+    expect(screen.getByText('Freezes what was hit')).toBeInTheDocument()
+    expect(screen.getByText('Nothing is hit by this, so nothing freezes.')).toBeInTheDocument()
   })
 
   it('says beside a freeze above the limit what the player gets', async () => {
@@ -225,6 +283,38 @@ describe('Feel', () => {
     await vi.waitFor(() => {
       const said = screen.getByLabelText('The feel playing').nextElementSibling?.textContent ?? ''
       expect(said).toContain('Rumble: strong 0.5, light 0.3 for 100 ms')
+      expect(said).toContain('Plays the sound hit')
+    })
+  })
+
+  it('plays a sound the game has through the audio the game would use, and says nothing about it', async () => {
+    const audio = vi.fn(() => Promise.resolve())
+    await open(
+      {
+        [FEEL_PATH]: '[[entry]]\non = "player.hit"\naudio = [{ cue = "hit" }]\n',
+        'content/audio/audio.toml': '[[cue]]\nid = "hit"\nbus = "sfx"\nvoices = []\n',
+      },
+      { audio },
+    )
+    await vi.waitFor(() =>
+      expect(audio).toHaveBeenCalledWith(
+        expect.objectContaining({ cue: [expect.objectContaining({ id: 'hit' })] }),
+        {
+          kind: 'sound',
+          id: 'hit',
+        },
+      ),
+    )
+    expect(screen.getByLabelText('The feel playing').nextElementSibling?.textContent).toBe('')
+  })
+
+  it('says it would play the sound when this page has no way to make sound', async () => {
+    await open({
+      [FEEL_PATH]: '[[entry]]\non = "player.hit"\naudio = [{ cue = "hit" }]\n',
+      'content/audio/audio.toml': '[[cue]]\nid = "hit"\nbus = "sfx"\nvoices = []\n',
+    })
+    await vi.waitFor(() => {
+      const said = screen.getByLabelText('The feel playing').nextElementSibling?.textContent ?? ''
       expect(said).toContain('Plays the sound hit')
     })
   })

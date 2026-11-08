@@ -1,6 +1,6 @@
 import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
 import { describe, expect, it } from 'vitest'
-import { gameEvents } from '#src/shared/game-events.ts'
+import { audioFileWith, gameEvents } from '#src/shared/game-events.ts'
 
 async function workspaceOf(files: Record<string, string>) {
   const { ports } = await createMemoryPorts({
@@ -25,6 +25,7 @@ describe('gameEvents', () => {
       id: 'player.hit',
       words: 'player hit',
       from: 'The game’s events',
+      noSubject: false,
     })
   })
 
@@ -44,5 +45,22 @@ describe('gameEvents', () => {
     const events = await gameEvents(workspace)
     expect(events.map((event) => event.id)).toEqual(['cutscene.ended', 'cutscene.started'])
     expect(events[0]?.from).toBe('Cutscenes')
+    // A cutscene starting happens to no one in particular, so a freeze on it has nothing to hold.
+    expect(events.every((event) => event.noSubject)).toBe(true)
+    const own = await gameEvents(
+      await workspaceOf({ 'content/generated/events.json': JSON.stringify(['player.hit']) }),
+    )
+    expect(own[0]?.noSubject).toBe(false)
+  })
+})
+
+describe('audioFileWith', () => {
+  it('gives the audio file that has the sound, to play it as the game would', async () => {
+    const workspace = await workspaceOf({
+      'content/audio/audio.toml': '[[cue]]\nid = "hit"\n',
+      'content/audio/more.toml': '[[cue]]\nid = "coin"\n',
+    })
+    expect(await audioFileWith(workspace, 'coin')).toMatchObject({ cue: [{ id: 'coin' }] })
+    expect(await audioFileWith(workspace, 'nope')).toBeUndefined()
   })
 })

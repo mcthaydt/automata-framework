@@ -1,4 +1,4 @@
-import type { FeelContent, FeelSettings } from '@automata/feel'
+import type { FeelContent, FeelFrame, FeelSettings } from '@automata/feel'
 import { describe, expect, it } from 'vitest'
 import {
   alsoPlays,
@@ -6,6 +6,7 @@ import {
   type StageOutputs,
   stageEvent,
   stageFrames,
+  wordTexts,
 } from '#src/features/feel/feel-stage.ts'
 
 const FULL: FeelSettings = { reduceFlashing: false, haptics: true, intensity: 1 }
@@ -77,5 +78,17 @@ describe('missedOutputs', () => {
   it('says nothing when both play', () => {
     const all: StageOutputs = { rumble: () => true, cue: () => true }
     expect(missedOutputs(frames, all)).toEqual([])
+  })
+})
+
+describe('wordTexts', () => {
+  it('writes what a word says, never its hidden name', () => {
+    const content: FeelContent = {
+      entry: [
+        { on: 'player.hit', word: [{ key: 'player.hit.word', words: 'Pow!' }, { key: 'player.hit.word2' }] },
+      ],
+    }
+    const [frame] = stageFrames(content, 'player.hit', FULL, false, DT, 1)
+    expect(wordTexts(frame as FeelFrame)).toEqual(['Pow!'])
   })
 })

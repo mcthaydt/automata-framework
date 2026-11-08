@@ -30,7 +30,9 @@ test('the caption a cutscene step is pointed at in Sequence is what the played g
   const game = await context.newPage()
   await playStory(game, editor)
   await playToCutscene(game)
-  await expect(game.getByText('Safe travels.').last()).toBeVisible()
+  // The cutscene starts a moment after the last words, longer on a busy machine, and the caption shows from 2 s to 5.5 s of it:
+  // wait for the caption itself (never a sleep), with room for the start. Then the old caption is shown to be gone.
+  await expect(game.getByText('Safe travels.').last()).toBeVisible({ timeout: 20_000 })
   await expect(game.getByText('A moment later, at the gate.')).toHaveCount(0)
   await game.screenshot({ path: test.info().outputPath('caption-from-sequence.png') })
 })

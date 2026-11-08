@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest'
 import {
   addEffectEdit,
   addFeelEdit,
+  answerEdit,
+  type EffectLine,
   effectLines,
   eventWords,
   feelProblemWords,
@@ -15,6 +17,7 @@ import {
   shakeReach,
   springEdit,
   springLines,
+  subjectNote,
 } from '#src/features/feel/feel-model.ts'
 
 describe('eventWords', () => {
@@ -102,19 +105,10 @@ describe('effectLines', () => {
         max: 1000,
         step: 10,
         value: 80,
-      },
-      {
-        key: 'target',
-        label: 'What freezes',
-        kind: 'choice',
-        value: 'everything',
-        options: [
-          { value: 'everything', label: 'Everything' },
-          { value: 'subject', label: 'Only what was hit' },
-        ],
-        fallback: 'everything',
+        hint: 'Freezes what was hit',
       },
     ])
+    expect(effectLines(entry).find((line) => line.words === 'Freeze the action')?.fields).toHaveLength(1)
     const rumble = effectLines(entry).find((line) => line.words === 'Rumble')
     expect(rumble?.fields.map((field) => field.label)).toEqual([
       'Strong motor',
@@ -138,6 +132,70 @@ describe('effectLines', () => {
       ['haptic', 0],
       ['audio', 0],
     ])
+  })
+})
+
+describe('Which sound', () => {
+  const entry: FeelEntry = { on: 'a', audio: [{ cue: 'thud' }] }
+  it('is a choice of the game’s sounds, and keeps a name the game lacks, saying so', () => {
+    const field = (cues: string[]) =>
+      effectLines(entry, DEFAULT_LIMITS, cues).find((line) => line.channel === 'audio')?.fields[0]
+    expect(field(['coin', 'thud'])).toMatchObject({
+      kind: 'choice',
+      value: 'thud',
+      options: [
+        { value: 'coin', label: 'coin' },
+        { value: 'thud', label: 'thud' },
+      ],
+    })
+    expect(field(['coin'])).toMatchObject({
+      options: [
+        { value: 'coin', label: 'coin' },
+        { value: 'thud', label: 'thud (the game has no sound by this name)' },
+      ],
+    })
+    expect(field([])).toMatchObject({ kind: 'text', value: 'thud' })
+  })
+
+  it('starts a new sound row on a sound the game has', () => {
+    expect(addEffectEdit({ on: 'a' }, 0, 'sound', ['coin', 'thud'])).toEqual({
+      keyPath: ['entry', 0, 'audio'],
+      insert: [{ cue: 'coin' }],
+    })
+  })
+})
+
+describe('what a freeze, a squash and a word over the subject need', () => {
+  it('says nothing happens to the subject when the event is about nobody', () => {
+    const freeze = effectLines({ on: 'a', pose: [{ hit_stop_ms: 60 }] })[0] as EffectLine
+    const squash = effectLines({ on: 'a', visual: [{ squash: 0.3 }] })[0] as EffectLine
+    const shake = effectLines({ on: 'a', camera: [{ shake: 0.8 }] })[0] as EffectLine
+    expect(subjectNote(freeze, true)).toBe('Nothing is hit by this, so nothing freezes.')
+    expect(subjectNote(squash, true)).toBe('Nothing is hit by this, so nothing squashes.')
+    expect(subjectNote(shake, true)).toBeUndefined()
+    expect(subjectNote(freeze, false)).toBeUndefined()
+  })
+})
+
+describe('a word’s hidden name', () => {
+  const word = (key: string) => ({ key, words: 'Pow!' })
+  it('is never repeated after a word is removed, and never has a star in it', () => {
+    const key = (entry: FeelEntry): string =>
+      JSON.stringify((addEffectEdit(entry, 0, 'word') as { insert: unknown }).insert)
+    expect(key({ on: 'a.b' })).toContain('"a.b.word"')
+    expect(key({ on: 'a.b', word: [word('a.b.word'), word('a.b.word2')] })).toContain('"a.b.word3"')
+    expect(key({ on: 'a.b', word: [word('a.b.word2')] })).toContain('"a.b.word"')
+    expect(key({ on: 'player.*' })).toContain('"player.any.word"')
+  })
+})
+
+describe('answerEdit', () => {
+  it('changes only what a feel answers', () => {
+    expect(answerEdit(1, 'player.hit', 'enemy.died')).toEqual({
+      keyPath: ['entry', 1, 'on'],
+      expected: 'player.hit',
+      set: 'enemy.died',
+    })
   })
 })
 
@@ -235,7 +293,7 @@ describe('every field of the file', () => {
     lines.filter((line) => line.words === words)[at]?.fields.find((candidate) => candidate.key === key)
 
   it('has the choices and controls of the spec’s table', () => {
-    expect(field('Freeze the action', 'target')).toMatchObject({ value: 'subject', fallback: 'everything' })
+    expect(field('Freeze the action', 'target')).toBeUndefined()
     expect(field('Flash the screen', 'alpha')).toMatchObject({ kind: 'number', value: 0.9, min: 0, max: 1 })
     expect(field('Show a word', 'at')).toMatchObject({ value: 'subject', fallback: 'middle' })
     expect(field('Show a word', 'ms')).toMatchObject({ max: 5000, value: 800 })
@@ -249,20 +307,20 @@ describe('every field of the file', () => {
   })
 
   it('removes a key when a choice goes back to its default, and adds one when it leaves it', () => {
-    const target = field('Freeze the action', 'target')
+    const target = field('Show a word', 'at')
     if (target === undefined) throw new Error('no field')
-    const place = { channel: 'pose', index: 0 } as const
-    expect(fieldChange(0, place, target, 'subject', 'everything')).toEqual({
-      keyPath: ['entry', 0, 'pose', 0, 'target'],
+    const place = { channel: 'word', index: 0 } as const
+    expect(fieldChange(0, place, target, 'subject', 'middle')).toEqual({
+      keyPath: ['entry', 0, 'word', 0, 'at'],
       remove: true,
     })
-    expect(fieldChange(0, place, target, undefined, 'everything')).toBeUndefined()
+    expect(fieldChange(0, place, target, undefined, 'middle')).toBeUndefined()
     expect(fieldChange(0, place, target, undefined, 'subject')).toEqual({
-      keyPath: ['entry', 0, 'pose', 0, 'target'],
+      keyPath: ['entry', 0, 'word', 0, 'at'],
       insert: 'subject',
     })
     expect(fieldChange(0, place, target, 'subject', 'subject')).toEqual({
-      keyPath: ['entry', 0, 'pose', 0, 'target'],
+      keyPath: ['entry', 0, 'word', 0, 'at'],
       expected: 'subject',
       set: 'subject',
     })

@@ -5,7 +5,7 @@
 -->
 <script lang="ts">
 import type { FeelContent, FeelFrame, FeelSettings } from '@automata/feel'
-import { missedOutputs, STAGE_SUBJECT, type StageOutputs, stageFrames } from './feel-stage.ts'
+import { missedOutputs, STAGE_SUBJECT, type StageOutputs, stageFrames, wordText } from './feel-stage.ts'
 
 interface Props {
   content: FeelContent | undefined
@@ -48,8 +48,10 @@ function draw(frame: FeelFrame | undefined): void {
   ctx.fillStyle = getComputedStyle(canvas as HTMLCanvasElement).color
   ctx.font = '14px sans-serif'
   ctx.textAlign = 'center'
-  for (const word of frame?.words ?? [])
-    ctx.fillText(word.key, SIZE.w / 2, SIZE.h / 2 - 48 - (word.still ? 0 : word.age * 20))
+  for (const word of frame?.words ?? []) {
+    const said = wordText(word)
+    if (said !== undefined) ctx.fillText(said, SIZE.w / 2, SIZE.h / 2 - 48 - (word.still ? 0 : word.age * 20))
+  }
 }
 
 $effect(() => {

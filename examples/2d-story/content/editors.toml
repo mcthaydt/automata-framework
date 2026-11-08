@@ -54,3 +54,12 @@ editor = "sequence"
 modes = ["edit"]
 gates = []
 checks = []
+
+# The guard's behaviour is the Schematic's. It is listed so the content editors can offer the events it makes
+# (the guard changes mode, the guard catches the player) to Feel and Audio.
+[[file]]
+glob = "content/systems/*.toml"
+editor = "schematic"
+modes = ["edit"]
+gates = []
+checks = []

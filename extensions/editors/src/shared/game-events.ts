@@ -29,6 +29,8 @@ export interface GameEvent {
   readonly words: string
   /** Where it was found, in words ("The game's events", "Already answered"). */
   readonly from: string
+  /** The event is about nobody in particular (no `entity`), so a freeze or a squash on it has nothing to hold. */
+  readonly noSubject: boolean
 }
 
 const FROM = {
@@ -96,9 +98,12 @@ function idsOfList(text: string | undefined): string[] {
 }
 
 export async function gameEvents(workspace: SuiteWorkspace): Promise<GameEvent[]> {
-  const found = new Map<string, string>()
-  const add = (id: string, from: string): void => {
-    if (!found.has(id)) found.set(id, from)
+  const found = new Map<string, { from: string; noSubject: boolean }>()
+  const add = (id: string, from: string, noSubject = false): void => {
+    const seen = found.get(id)
+    if (seen === undefined) found.set(id, { from, noSubject })
+    // An extension's event is about nobody however it was first found (a feel file may already answer it).
+    else if (noSubject) found.set(id, { ...seen, noSubject })
   }
   for (const id of idsOfList(await workspace.generated(EVENTS_LIST))) add(id, FROM.list)
 
@@ -115,10 +120,10 @@ export async function gameEvents(workspace: SuiteWorkspace): Promise<GameEvent[]
   }
   for (const extension of EXTENSIONS)
     if (files.some((file) => file.path.startsWith(extension.folder)))
-      for (const id of extension.ids) add(id, extension.from)
+      for (const id of extension.ids) add(id, extension.from, true)
 
   return [...found.entries()]
-    .map(([id, from]) => ({ id, words: eventWords(id), from }))
+    .map(([id, { from, noSubject }]) => ({ id, words: eventWords(id), from, noSubject }))
     .sort((a, b) => a.id.localeCompare(b.id))
 }
 
@@ -131,4 +136,14 @@ export async function audioCues(workspace: SuiteWorkspace): Promise<string[]> {
     for (const cue of value?.cue ?? []) if (isId(cue.id)) ids.add(cue.id)
   }
   return [...ids].sort()
+}
+
+/** The audio file that has the sound `id`, as the file's value, so a page can play the sound as the game would; none if no file has it. */
+export async function audioFileWith(workspace: SuiteWorkspace, id: string): Promise<unknown> {
+  for (const file of await workspace.files()) {
+    if (!file.path.startsWith('content/audio/')) continue
+    const value = (await readValue(workspace, file.path)) as { cue?: { id?: unknown }[] } | undefined
+    if (value?.cue?.some((cue) => cue.id === id)) return value
+  }
+  return undefined
 }

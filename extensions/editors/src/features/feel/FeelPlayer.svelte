@@ -21,7 +21,8 @@ const STRENGTHS = [
 ] as const
 </script>
 
-<section class="player" aria-label="Feel it">
+<!-- Two children of the canvas's grid, so a narrow canvas can put the stage first and keep it in view while a field changes. -->
+<section class="stage-part" aria-label="Feel it">
   <FeelStage
     content={session.content}
     on={chosen?.on}
@@ -40,6 +41,8 @@ const STRENGTHS = [
       {/each}
     </p>
   {/if}
+</section>
+<section class="settings-part" aria-label="What the player sets">
   <fieldset>
     <legend>What the player sets</legend>
     <label class="check">
@@ -81,11 +84,34 @@ const STRENGTHS = [
 </section>
 
 <style>
-  .player {
+  .stage-part,
+  .settings-part {
     display: grid;
     align-content: start;
     gap: var(--space-3);
     min-width: 0;
+  }
+  .stage-part {
+    grid-area: stage;
+  }
+  .settings-part {
+    grid-area: settings;
+  }
+  /* Stacked, the stage stays at the top of the canvas while a field changes, when the screen is tall enough for both. */
+  @media (min-height: 640px) {
+    .stage-part {
+      position: sticky;
+      z-index: 1;
+      top: calc(-1 * var(--space-5));
+      padding-block: var(--space-2);
+      background: var(--color-bg-app);
+    }
+  }
+  @container (min-width: 560px) {
+    .stage-part {
+      position: static;
+      padding-block: 0;
+    }
   }
   .actions {
     display: flex;
@@ -101,7 +127,7 @@ const STRENGTHS = [
     padding: 0 var(--space-1);
     border: 0;
     background: transparent;
-    color: var(--color-accent);
+    color: var(--color-accent-default);
     font: var(--text-body-13);
     cursor: pointer;
   }

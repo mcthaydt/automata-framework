@@ -85,3 +85,46 @@ describe.each(sizes)('Content editors at $name ($width x $height)', (size) => {
     },
   )
 })
+
+describe.each(sizes)('Sequence’s step sheet at $name ($width x $height)', (size) => {
+  test('a chosen step’s fields can all be read, from the top of the page and from the bottom', async () => {
+    opened = await openSuite(
+      size,
+      [fixtureEditor as SuiteEditor<unknown>, ...contentEditors()],
+      CONTENT_SAMPLE_GAME,
+      READY.Sequence as string,
+      'Sequence',
+    )
+    const mark = document.querySelector<HTMLElement>('.mark:not(:disabled)')
+    if (mark === null) throw new Error('the sample cutscene has no step to choose')
+    mark.click()
+    await settleLayout()
+    const sheet = document.querySelector<HTMLElement>('section[aria-label="This step"]')
+    if (sheet === null) throw new Error('choosing a step shows no fields')
+    const hidden: string[] = []
+    // The sheet is looked at where the person might be: the page scrolled to its top, and to its bottom.
+    for (const place of ['top', 'bottom'] as const) {
+      for (const scroller of document.querySelectorAll<HTMLElement>('*')) {
+        if (
+          scroller.scrollHeight > scroller.clientHeight + 1 &&
+          getComputedStyle(scroller).overflowY !== 'visible'
+        )
+          scroller.scrollTop = place === 'top' ? 0 : scroller.scrollHeight
+      }
+      await settleLayout()
+      for (const label of sheet.querySelectorAll<HTMLElement>('label')) {
+        const rect = label.getBoundingClientRect()
+        // A field scrolled out of the editor's own region is not covered, it is simply further down.
+        const region = inShell('main').getBoundingClientRect()
+        if (rect.bottom < region.top || rect.top > region.bottom) continue
+        const top = document.elementFromPoint(rect.left + 4, rect.top + rect.height / 2)
+        if (top === null) continue
+        if (!(label.contains(top) || top.contains(label) || sheet.contains(top)))
+          hidden.push(
+            `${label.textContent?.trim().slice(0, 20)} (${place}) is covered by ${top?.tagName ?? 'nothing'}`,
+          )
+      }
+    }
+    expect(hidden).toEqual([])
+  })
+})

@@ -210,7 +210,7 @@ function seekAt(event: PointerEvent & { currentTarget: HTMLElement }): void {
     min-height: var(--size-hit);
     border: 0;
     background: transparent;
-    color: var(--color-accent);
+    color: var(--color-accent-default);
     font: var(--text-body-13);
     text-align: left;
     cursor: pointer;
@@ -238,14 +238,14 @@ function seekAt(event: PointerEvent & { currentTarget: HTMLElement }): void {
     top: 0;
     bottom: 0;
     width: 2px;
-    background: var(--color-accent);
+    background: var(--color-accent-default);
     pointer-events: none;
   }
   .mark {
     position: absolute;
     box-sizing: border-box;
     min-height: 44px;
-    border: 1px solid var(--color-accent);
+    border: 1px solid var(--color-accent-default);
     border-radius: var(--edge-sm);
     background: var(--color-accent-soft);
     color: var(--color-text-primary);
@@ -253,7 +253,8 @@ function seekAt(event: PointerEvent & { currentTarget: HTMLElement }): void {
     cursor: grab;
   }
   .mark[aria-pressed='true'] {
-    background: var(--color-accent);
+    background: var(--color-accent-default);
+    color: var(--color-accent-ink);
   }
   .mark.bad {
     border-color: var(--color-state-bad);

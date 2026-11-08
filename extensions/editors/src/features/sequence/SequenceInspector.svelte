@@ -26,6 +26,12 @@ const here = $derived(
     : session.problems.filter((found) => found.track === selection.track && found.index === selection.index),
 )
 const refusal = $derived(session.current?.message)
+let element: HTMLElement | undefined = $state()
+
+// A step chosen in the timeline above puts its fields on screen, so a person on a phone sees what tapping did.
+$effect(() => {
+  if (selection !== undefined) element?.scrollIntoView?.({ block: 'nearest' })
+})
 
 function change(entry: KeyField, value: string | number): void {
   if (entry.field.key === 'duration') void session.setLength(Number(value))
@@ -48,7 +54,7 @@ function change(entry: KeyField, value: string | number): void {
   />
 {/snippet}
 
-<section class="inspector" class:sheet={selection !== undefined} aria-label="This step">
+<section class="inspector" class:sheet={selection !== undefined} aria-label="This step" bind:this={element}>
   {#if refusal !== undefined}<p class="bad" role="alert">{refusal}</p>{/if}
   {#if selection === undefined}
     <h3>The scene</h3>
@@ -129,15 +135,12 @@ function change(entry: KeyField, value: string | number): void {
     border: 1px solid var(--color-border-default);
     border-radius: var(--edge-sm);
   }
+  /* Stacked, the step's fields sit under the timeline as ordinary page, never over it (a sticky sheet hid the labels
+     under the timeline's pinned row names); choosing a step scrolls them into view. */
   @media (max-width: 819px) {
     .sheet {
-      position: sticky;
-      bottom: 0;
-      max-height: 50dvh;
-      padding: var(--space-3);
-      overflow-y: auto;
+      padding-top: var(--space-3);
       border-top: 1px solid var(--color-border-default);
-      background: var(--color-bg-app);
     }
   }
 </style>

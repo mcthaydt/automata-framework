@@ -9,6 +9,7 @@ import {
   matches,
   type Pulse,
   createFeel as startFeel,
+  type WordPop,
 } from '@automata/feel'
 import { systemClock } from '@automata/framework'
 
@@ -40,6 +41,12 @@ export function stageFrames(
   return Array.from({ length: count }, () => feel.frame(0, 0, frameSeconds))
 }
 
+/** What the words on this frame say. A word whose entry names no words draws nothing; its hidden name is never shown. */
+export const wordText = (word: WordPop): string | undefined =>
+  word.words === undefined || word.words === '' ? undefined : word.words
+
+export const wordTexts = (frame: FeelFrame): string[] => frame.words.flatMap((word) => wordText(word) ?? [])
+
 /** The other entries that answer the chosen entry's event too, by their place in the file. */
 export function alsoPlays(entries: readonly FeelEntry[], index: number): number[] {
   const chosen = entries[index]
@@ -58,10 +65,13 @@ interface Actuator {
   playEffect(type: 'dual-rumble', parameters: object): Promise<unknown>
 }
 
-/** A connected pad's motors, else the phone's buzz; the cue is played by whoever knows the game's sounds. */
-export function browserOutputs(play: (cue: string) => boolean = () => true): StageOutputs {
+/**
+ * A connected pad's motors, else the phone's buzz. The sounds are the session's: it plays the game's own audio file
+ * (`FeelExtras.play`), so a page with no way to make sound never claims to have played one.
+ */
+export function browserOutputs(): StageOutputs {
   return {
-    cue: play,
+    cue: () => false,
     rumble(pulse) {
       const pads = typeof navigator.getGamepads === 'function' ? navigator.getGamepads() : []
       const actuator = pads.flatMap((pad) =>

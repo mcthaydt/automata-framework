@@ -17,7 +17,10 @@ export interface ContentEditorOptions {
 
 export function contentEditors(options: ContentEditorOptions = {}): SuiteEditor<unknown>[] {
   return [
-    createFeel(options.outputs === undefined ? {} : { outputs: options.outputs }),
+    createFeel({
+      ...(options.outputs === undefined ? {} : { outputs: options.outputs }),
+      ...(options.audio === undefined ? {} : { audio: options.audio.play }),
+    }),
     createAudio({ play: (options.audio ?? silentAudio).play }),
     createWriter(),
     createSequence(),

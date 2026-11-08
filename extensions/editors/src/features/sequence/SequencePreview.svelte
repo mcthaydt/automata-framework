@@ -90,11 +90,11 @@ function wedge(camera: NonNullable<typeof plan>['camera']): string {
   }
   .view {
     fill: var(--color-accent-soft);
-    stroke: var(--color-accent);
+    stroke: var(--color-accent-default);
     stroke-width: 1;
   }
   .eye {
-    fill: var(--color-accent);
+    fill: var(--color-accent-default);
   }
   .dot {
     fill: var(--color-text-primary);

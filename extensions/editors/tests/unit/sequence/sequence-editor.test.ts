@@ -76,6 +76,40 @@ describe('Sequence cutscenes', () => {
   })
 })
 
+describe('Sequence problems', () => {
+  it('says what is wrong and takes you to the step', async () => {
+    const { session } = await open({
+      [PATH]: cutscene.replace('shop.welcome_in', 'shop.gone'),
+      'content/lines/shop.toml': lines,
+    })
+    expect(screen.getByRole('status', { name: '' }).textContent).toContain(
+      '1 problem in the cutscene: This step’s words were removed.',
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Show me' }))
+    expect(session.selection).toMatchObject({ track: 'caption' })
+    expect(screen.getByRole('button', { name: 'Words on screen, 4.5 s to 7.5 s' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+  })
+
+  it('says why an "Add here" did nothing', async () => {
+    const { session } = await open(GAME)
+    session.seek(1)
+    const here = screen.getAllByRole('button', { name: 'Add here' })
+    // The caption row asks which line before it adds.
+    const row = screen.getByText('Words on screen').closest('.name') as HTMLElement
+    await userEvent.click(within(row).getByRole('button', { name: 'Add here' }))
+    await userEvent.click(
+      within(screen.getByRole('form', { name: 'Add words on screen' })).getByRole('button', {
+        name: 'Add here',
+      }),
+    )
+    expect(screen.getByRole('alert')).toHaveTextContent('Say which one first.')
+    expect(here.length).toBeGreaterThan(0)
+  })
+})
+
 describe('Sequence steps', () => {
   it('shows the fields of a chosen step in words and writes a change, with Undo', async () => {
     const { ports, session } = await open(GAME)

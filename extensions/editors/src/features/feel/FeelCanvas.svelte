@@ -5,10 +5,12 @@
 <script lang="ts">
 import { Button } from '@automata/editor/kit'
 import { type FeelEntry, resolveLimits } from '@automata/feel'
+import EventPicker from '../../shared/ui/EventPicker.svelte'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
 import FeelPlayer from './FeelPlayer.svelte'
 import {
   addEffectEdit,
+  answerEdit,
   EFFECT_KINDS,
   type EffectField,
   type EffectKind,
@@ -24,12 +26,14 @@ import {
   removeFeelEdit,
   springEdit,
   springLines,
+  subjectNote,
 } from './feel-model.ts'
 import type { FeelSession } from './feel-session.svelte.ts'
 
 const { session }: { session: FeelSession } = $props()
 let choosing = $state(false)
 let removing = $state(false)
+let changing = $state(false)
 
 const read = $derived(session.read)
 const content = $derived(session.content)
@@ -66,8 +70,19 @@ async function setField(chosen: FeelEntry, line: EffectLine, field: EffectField,
 
 async function addEffect(chosen: FeelEntry, kind: EffectKind, words: string) {
   if (index === undefined) return
-  const outcome = await session.change(`Add ${words.toLowerCase()}`, [addEffectEdit(chosen, index, kind)])
+  const outcome = await session.change(`Add ${words.toLowerCase()}`, [
+    addEffectEdit(chosen, index, kind, session.cues),
+  ])
   if (outcome.ok) choosing = false
+}
+
+async function answer(chosen: FeelEntry, on: string) {
+  if (index === undefined || on === chosen.on) {
+    changing = false
+    return
+  }
+  const outcome = await session.change(`Answer ${eventWords(on)} instead`, [answerEdit(index, chosen.on, on)])
+  if (outcome.ok) changing = false
 }
 
 async function removeFeel(chosen: FeelEntry) {
@@ -140,8 +155,22 @@ async function removeFeel(chosen: FeelEntry) {
     </div>
   {:else}
     <h2>When {eventWords(entry.on)} happens</h2>
+    {#if changing}
+      <EventPicker
+        events={session.events}
+        answered={new Set(entries.map((other) => other.on))}
+        addLabel="Use this"
+        onpick={(on) => void answer(entry, on)}
+        oncancel={() => (changing = false)}
+      />
+    {:else}
+      <p class="note">
+        Answers: {eventWords(entry.on)}
+        <Button variant="quiet" onclick={() => (changing = true)}>Change</Button>
+      </p>
+    {/if}
     {#if problemAt('on') !== undefined}<p class="refused" role="alert">{problemAt('on')}</p>{/if}
-    {#each effectLines(entry, resolveLimits(content ?? {})) as line (`${line.channel}.${String(line.index)}`)}
+    {#each effectLines(entry, resolveLimits(content ?? {}), session.cues) as line (`${line.channel}.${String(line.index)}`)}
       <article class="effect" aria-label={line.words}>
         <header>
           <h3>{line.words}</h3>
@@ -173,6 +202,10 @@ async function removeFeel(chosen: FeelEntry) {
               <p class="note">The game has no sound “{field.value}” yet.</p>
             {/if}
             {#if field.hint !== undefined}<p class="note">{field.hint}</p>{/if}
+            {#if line.channel === 'pose' || line.channel === 'visual'}
+              {@const said = subjectNote(line, session.events.some((event) => event.id === entry.on && event.noSubject))}
+              {#if said !== undefined && field.key === line.fields[0]?.key}<p class="note" role="status">{said}</p>{/if}
+            {/if}
           {/each}
         </div>
       </article>
@@ -183,13 +216,15 @@ async function removeFeel(chosen: FeelEntry) {
     {#if choosing}
       <div class="choices" role="group" aria-label="Add an effect">
         {#each EFFECT_KINDS as choice (choice.kind)}
-          <Button onclick={() => void addEffect(entry, choice.kind, choice.words)}>{choice.words}</Button>
+          <Button disabled={session.adding} onclick={() => void addEffect(entry, choice.kind, choice.words)}
+            >{choice.words}</Button
+          >
         {/each}
         <Button variant="quiet" onclick={() => (choosing = false)}>Cancel</Button>
       </div>
     {:else}
       <div class="actions">
-        <Button variant="primary" onclick={() => (choosing = true)}>Add an effect</Button>
+        <Button variant="primary" disabled={session.adding} onclick={() => (choosing = true)}>Add an effect</Button>
         {#if removing}
           <span class="confirm" role="group" aria-label="Remove this feel?">
             Remove this feel?
@@ -204,7 +239,7 @@ async function removeFeel(chosen: FeelEntry) {
   {/if}
   </div>
   {#if read.kind === 'syntax'}
-    <p class="lead">Fix the file to play it.</p>
+    <p class="lead" style="grid-area: stage">Fix the file to play it.</p>
   {:else if read.kind !== 'missing' && index !== undefined && entry !== undefined}
     <FeelPlayer {session} />
   {/if}
@@ -230,13 +265,17 @@ async function removeFeel(chosen: FeelEntry) {
     overflow-y: auto;
     background: var(--color-bg-app);
   }
+  /* Stacked: the stage first, then the sentences, then what the player sets. */
   .split {
     display: grid;
     align-content: start;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'stage' 'sentences' 'settings';
     gap: var(--space-4);
     min-width: 0;
   }
   .sentences {
+    grid-area: sentences;
     display: grid;
     align-content: start;
     gap: var(--space-4);
@@ -247,6 +286,8 @@ async function removeFeel(chosen: FeelEntry) {
   @container (min-width: 560px) {
     .split {
       grid-template-columns: minmax(0, 1fr) minmax(0, 18rem);
+      grid-template-areas: 'sentences stage' 'sentences settings';
+      grid-template-rows: auto 1fr;
       align-items: start;
     }
   }

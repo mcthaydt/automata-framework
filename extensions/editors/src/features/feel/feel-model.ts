@@ -108,6 +108,23 @@ const choice = (
 ): EffectField => ({ key, label, kind: 'choice', value, options, fallback })
 const text = (key: string, label: string, value: string): EffectField => ({ key, label, kind: 'text', value })
 
+/** The game's sounds as a choice; a name the game lacks stays, and says so. With no sounds to offer it is typed. */
+function soundField(cue: string, cues: readonly string[]): EffectField {
+  if (cues.length === 0) return text('cue', 'Which sound', cue)
+  const options = cues.map((id) => ({ value: id, label: id }))
+  if (!cues.includes(cue)) options.push({ value: cue, label: `${cue} (the game has no sound by this name)` })
+  return { key: 'cue', label: 'Which sound', kind: 'choice', value: cue, options }
+}
+
+/** What to say under a freeze or a squash on an event that is about nobody: the game holds only what was hit. */
+export function subjectNote(line: EffectLine, noSubject: boolean): string | undefined {
+  if (!noSubject) return undefined
+  if (line.channel === 'pose') return 'Nothing is hit by this, so nothing freezes.'
+  if (line.channel === 'visual' && line.words === 'Squash')
+    return 'Nothing is hit by this, so nothing squashes.'
+  return undefined
+}
+
 function visualLine(
   row: NonNullable<FeelEntry['visual']>[number],
   index: number,
@@ -168,7 +185,11 @@ function visualLine(
 }
 
 /** Every effect of one entry, as sentences, channel by channel. */
-export function effectLines(entry: FeelEntry, limits: Limits = DEFAULT_LIMITS): EffectLine[] {
+export function effectLines(
+  entry: FeelEntry,
+  limits: Limits = DEFAULT_LIMITS,
+  cues: readonly string[] = [],
+): EffectLine[] {
   const lines: EffectLine[] = []
   for (const channel of CHANNELS) {
     const rows = entry[channel] ?? []
@@ -187,19 +208,8 @@ export function effectLines(entry: FeelEntry, limits: Limits = DEFAULT_LIMITS): 
           channel,
           index,
           words: 'Freeze the action',
-          fields: [
-            ms('hit_stop_ms', 'How long', row.hit_stop_ms),
-            choice(
-              'target',
-              'What freezes',
-              row.target ?? 'everything',
-              [
-                { value: 'everything', label: 'Everything' },
-                { value: 'subject', label: 'Only what was hit' },
-              ],
-              'everything',
-            ),
-          ],
+          // The game holds only what the event is about, so there is no "everything" to offer.
+          fields: [{ ...ms('hit_stop_ms', 'How long', row.hit_stop_ms), hint: 'Freezes what was hit' }],
         })
       else if (channel === 'visual')
         lines.push(visualLine(row as NonNullable<FeelEntry['visual']>[number], index, limits))
@@ -246,7 +256,7 @@ export function effectLines(entry: FeelEntry, limits: Limits = DEFAULT_LIMITS): 
           ],
         })
       else if (channel === 'audio' && 'cue' in row)
-        lines.push({ channel, index, words: 'Play a sound', fields: [text('cue', 'Which sound', row.cue)] })
+        lines.push({ channel, index, words: 'Play a sound', fields: [soundField(row.cue, cues)] })
     })
   }
   return lines
@@ -302,15 +312,41 @@ export function addFeelEdit(content: FeelContent, on: string): ContentEdit[] {
   return appendEdits(['entry'], content.entry !== undefined, { on })
 }
 
+/** The edit that makes a feel answer another event, keeping its effects. */
+export const answerEdit = (entry: number, from: string, to: string): ContentEdit => ({
+  keyPath: ['entry', entry, 'on'],
+  expected: from,
+  set: to,
+})
+
 export const removeFeelEdit = (entry: number): ContentEdit => ({ keyPath: ['entry', entry], remove: true })
 
-/** A word is filed under its event: `player.hit.word`, then `player.hit.word2`. A person never sees the name. */
-const wordKey = (entry: FeelEntry): string =>
-  `${entry.on}.word${(entry.word?.length ?? 0) === 0 ? '' : String((entry.word?.length ?? 0) + 1)}`
+/**
+ * A word is filed under its event: `player.hit.word`, then `player.hit.word2`. A person never sees the name. The first
+ * name no word of the entry already has, so removing a word and adding one never repeats a name.
+ */
+function wordKey(entry: FeelEntry): string {
+  const base = `${entry.on.split('*').join('any')}.word`
+  const taken = new Set((entry.word ?? []).map((word) => word.key))
+  for (let n = 1; ; n += 1) {
+    const key = n === 1 ? base : `${base}${String(n)}`
+    if (!taken.has(key)) return key
+  }
+}
 
-export function addEffectEdit(entry: FeelEntry, index: number, kind: EffectKind): ContentEdit {
+export function addEffectEdit(
+  entry: FeelEntry,
+  index: number,
+  kind: EffectKind,
+  cues: readonly string[] = [],
+): ContentEdit {
   const { channel } = NEW_ROW[kind]
-  const row = kind === 'word' ? { key: wordKey(entry), words: 'Pow!' } : NEW_ROW[kind].row
+  const row =
+    kind === 'word'
+      ? { key: wordKey(entry), words: 'Pow!' }
+      : kind === 'sound' && cues[0] !== undefined
+        ? { cue: cues[0] }
+        : NEW_ROW[kind].row
   return entry[channel] === undefined
     ? { keyPath: ['entry', index, channel], insert: [row] }
     : { keyPath: ['entry', index, channel], insert: row }
