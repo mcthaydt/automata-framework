@@ -664,3 +664,18 @@ Normal dev pipeline (no stage 1 audit; the investigation is
 Build audit, 2026-11-08: [audit](2026-11-08-schematic-build-audit.md), PR stacked on #486. 3 high, 9 medium, 12 low. A behaviour built by hand in Schematic shows in play in the 3D story; the high ones are the sight setting that says the opposite of the game, Fair play that no game can run, and no 2D proof. Next: Sonnet fixes.
 
 Fixes, 2026-11-08: H1, H3 (Task 14, the 2D half of Task 8), M1 to M8 and L1 to L10 fixed with tests first; Schematic now has 16 of 16 tasks. Played in the served journeys: 2D 10 of 10 and 3D 13 of 13 (Chromium, phone and iPad). `style` and `boundaries` now cover `extensions/editors` and `examples/3d-story`. Waiting on the Owner: H2 (Fair play has no runner) and M9 (the sim's `fleeNode`). Not run: WebKit, Firefox, the GPU runner, parity; `pnpm api-index --write` fails on two exports it does not own. Next: audit the fixes, then the Owner's two choices.
+
+## Editors v2: the editors' new look (stage 3 of 6 done, 2026-11-08)
+
+The Owner, 2026-11-08: the editors' whole look redesigned after site v2, "not even just the dark mode, the entire
+aesthetic". Approved at 18:45 UTC with "Approve, open in Dark": the editors open Dark; Light and Match device stay on
+Home.
+
+| Stage | Status | Record |
+|---|---|---|
+| 1. Design | Done, 2026-11-08: a mockup of all 11 non-3D screens at seven sizes, 48 pictures and 5 boards in the project's shared folder (`refactor/2026-11-06-redesign-mockups/editors-v2/`); approved by the Owner | [patterns](../design/editors-v2/PATTERNS.md) |
+| 2. Plan and spec | Done, 2026-11-08: 14 tasks in 4 phases: merge dark mode into the shared-editors build, the v2 colours with Dark as the default, the site's own colour scheme and a contrast check on every page, ten kit parts (inset shell, sidebar, editor icons, breadcrumb header, rows and fields, blocks, floating toolbar, sheets, tab bar, empty state), then every screen, then proof in play | [spec](2026-11-08-editors-v2-spec.md), [plan](2026-11-08-editors-v2-plan.md) |
+| 3. Plan audit | Done, 2026-11-08: 17 findings (7 high), all fixed in the spec and plan. Review is out (it was deleted in `a15c7b36`); the editors stay a `tablist` so the journeys find them; the problem count keeps every checks state; the 3D editors' lime buttons turn secondary; the Door's words say where it goes | [audit](2026-11-08-editors-v2-plan-audit.md) |
+| 4. Build | Not started | |
+| 5. Build audit | Not started; it must make a small 2D and a small 3D game in the rebuilt editors, play each, and see what was made | |
+| 6. Fixes | Not started | |
