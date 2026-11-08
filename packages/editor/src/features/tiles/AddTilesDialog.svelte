@@ -15,7 +15,7 @@ import Button from '../../shared/kit/widgets/Button.svelte'
 import Dialog from '../../shared/kit/widgets/Dialog.svelte'
 import Segmented from '../../shared/kit/widgets/Segmented.svelte'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'
-import type { FieldCommit } from '../../shared/level-2d/model/field-commit'
+import type { FieldCommit } from '../../shared/level-2d/editor/field-commit'
 import type { Size, TilesetDef } from '../../shared/level-2d/model/project-types'
 import { PICTURE_TYPES, pictureAsset, QUICK_TILE_SIZES, tileGrid, tilesetFromPicture } from './add-tiles'
 
