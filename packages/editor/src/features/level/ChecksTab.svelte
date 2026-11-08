@@ -3,7 +3,7 @@
   this level, read only, in the profile's order. A finding about an instance is a 44 px button that selects it; fixes are not offered here yet.
 -->
 <script lang="ts">
-import type { CheckRow } from './inspector-model'
+import type { CheckRow } from '../../shared/level-2d/editor/inspector-model'
 
 interface Props {
   /** The level's name, for the list's accessible name. */

@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest'
 import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '#src/features/suite/core/index.ts'
-import { createMemoryPorts } from '#src/features/suite/memory/memory-ports.ts'
-import sampleList from '#src/features/suite/memory/platformer.editors.toml?raw'
+import sampleList from '#src/features/suite/shell/platformer.editors.toml?raw'
 import { createSuiteSession } from '#src/features/suite/shell/suite-session.ts'
+import { createMemoryPorts } from '#src/shared/kit/ports/memory/memory-ports.ts'
 
 const TUNING = 'content/tuning.toml'
 const FILES = {
