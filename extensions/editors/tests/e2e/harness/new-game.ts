@@ -7,9 +7,9 @@ import { mkdirSync, mkdtempSync, readdirSync, rmSync, symlinkSync } from 'node:f
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
-import { STORY } from './story-game.ts'
 import { BIN } from './run-editor.ts'
 import type { StoryCopy } from './story-game.ts'
+import { STORY } from './story-game.ts'
 
 export async function newGame(name = 'my-game'): Promise<StoryCopy> {
   const folder = mkdtempSync(join(tmpdir(), 'af-journey-new-'))

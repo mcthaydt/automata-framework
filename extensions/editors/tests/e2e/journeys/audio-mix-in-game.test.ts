@@ -1,3 +1,4 @@
+import { heardParams, recordAudioParams } from '../harness/audio-graph-probe.ts'
 import {
   expect,
   openEditor,
@@ -8,7 +9,6 @@ import {
   test,
   walkToKeeper,
 } from '../harness/fixtures.ts'
-import { heardParams, recordAudioParams } from '../harness/audio-graph-probe.ts'
 
 // What a person sets in Audio's Mix is what the played game plays. The overall volume is turned down and a duck is made
 // (a menu sound quiets the music by 12 dB); the game the editor started is then played to the keeper, whose line plays the

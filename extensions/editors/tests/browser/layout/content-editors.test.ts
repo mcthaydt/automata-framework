@@ -9,8 +9,8 @@ import { settleLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import { page } from 'vitest/browser'
 import { contentEditors } from '#src/app/suite/content-editors.ts'
-import { browserAudio } from '#src/features/audio/audio-output.ts'
 import { CONTENT_SAMPLE_GAME } from '#src/app/suite/sample-game.ts'
+import { browserAudio } from '#src/features/audio/audio-output.ts'
 
 // The four content editors in the suite's one shell with the production CSS in a real browser, at the two sizes the Owner
 // holds them to: a phone (390 x 844) and an iPad (820 x 1180). Each opens on the sample game's file, nothing covers it,
@@ -180,50 +180,65 @@ async function pressInAudioList(name: string): Promise<void> {
 }
 
 describe.each(sizes)('Audio’s mix, events and checks at $name ($width x $height)', (size) => {
-  test.each(['coin', 'Mix', 'When things happen'])('%s fits: touch size, nothing covered, no page scroll', async (choice) => {
-    opened = await openSuite(
-      size,
-      [fixtureEditor as SuiteEditor<unknown>, ...contentEditors({ audio: browserAudio(() => new AudioContext()) })],
-      { ...CONTENT_SAMPLE_GAME, 'content/audio/audio.toml': AUDIO_PAGES },
-      READY.Audio as string,
-      'Audio',
-    )
-    await pressInAudioList(choice)
-    if (choice === 'coin') {
-      const check = [...document.querySelectorAll<HTMLElement>('button')].find(
-        (button) => button.textContent?.trim() === 'Check the sounds',
+  test.each(['coin', 'Mix', 'When things happen'])(
+    '%s fits: touch size, nothing covered, no page scroll',
+    async (choice) => {
+      opened = await openSuite(
+        size,
+        [
+          fixtureEditor as SuiteEditor<unknown>,
+          ...contentEditors({ audio: browserAudio(() => new AudioContext()) }),
+        ],
+        { ...CONTENT_SAMPLE_GAME, 'content/audio/audio.toml': AUDIO_PAGES },
+        READY.Audio as string,
+        'Audio',
       )
-      check?.click()
-      await vi.waitFor(() => expect(document.body.textContent).toMatch(/Checked: nothing to fix|Too loud|Clicks at|Too quiet/), {
-        timeout: 20_000,
-      })
-    }
-    const targets = editorTargets()
-    const problems: string[] = []
-    for (const control of controls()) {
-      control.scrollIntoView({ block: 'center', inline: 'center' })
+      await pressInAudioList(choice)
+      if (choice === 'coin') {
+        const check = [...document.querySelectorAll<HTMLElement>('button')].find(
+          (button) => button.textContent?.trim() === 'Check the sounds',
+        )
+        check?.click()
+        await vi.waitFor(
+          () =>
+            expect(document.body.textContent).toMatch(/Checked: nothing to fix|Too loud|Clicks at|Too quiet/),
+          {
+            timeout: 20_000,
+          },
+        )
+      }
+      const targets = editorTargets()
+      const problems: string[] = []
+      for (const control of controls()) {
+        control.scrollIntoView({ block: 'center', inline: 'center' })
+        await settleLayout()
+        const label =
+          control.getAttribute('aria-label') ?? control.textContent?.trim().slice(0, 30) ?? control.tagName
+        const rect = control.getBoundingClientRect()
+        if (rect.left < -0.5 || rect.right > size.width + 0.5) problems.push(`${label} runs off the side`)
+        const boxed = control instanceof HTMLInputElement && ['checkbox', 'radio'].includes(control.type)
+        if (!boxed && (rect.height < targets.hit - 0.5 || rect.width < targets.hit - 0.5))
+          problems.push(
+            `${label} is ${Math.round(rect.width)} x ${Math.round(rect.height)}, under ${targets.hit}`,
+          )
+        const top = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)
+        if (top === null || !(control.contains(top) || top.contains(control)))
+          problems.push(`${label} is covered by ${top?.tagName ?? 'nothing'}`)
+      }
+      // The picture of a sound never passes 120 px, and the sound's page has it.
+      if (choice === 'coin') {
+        const picture = document.querySelector<SVGElement>('svg[role="img"]')
+        expect(picture).not.toBeNull()
+        expect(picture?.getBoundingClientRect().height ?? 0).toBeLessThanOrEqual(120)
+      }
+      noPageScroll()
+      expect(problems).toEqual([])
+      // The picture taken is the page from its top, where a person lands.
+      for (const scroller of document.querySelectorAll<HTMLElement>('*')) scroller.scrollTop = 0
       await settleLayout()
-      const label = control.getAttribute('aria-label') ?? control.textContent?.trim().slice(0, 30) ?? control.tagName
-      const rect = control.getBoundingClientRect()
-      if (rect.left < -0.5 || rect.right > size.width + 0.5) problems.push(`${label} runs off the side`)
-      const boxed = control instanceof HTMLInputElement && ['checkbox', 'radio'].includes(control.type)
-      if (!boxed && (rect.height < targets.hit - 0.5 || rect.width < targets.hit - 0.5))
-        problems.push(`${label} is ${Math.round(rect.width)} x ${Math.round(rect.height)}, under ${targets.hit}`)
-      const top = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)
-      if (top === null || !(control.contains(top) || top.contains(control)))
-        problems.push(`${label} is covered by ${top?.tagName ?? 'nothing'}`)
-    }
-    // The picture of a sound never passes 120 px, and the sound's page has it.
-    if (choice === 'coin') {
-      const picture = document.querySelector<SVGElement>('svg[role="img"]')
-      expect(picture).not.toBeNull()
-      expect(picture?.getBoundingClientRect().height ?? 0).toBeLessThanOrEqual(120)
-    }
-    noPageScroll()
-    expect(problems).toEqual([])
-    // The picture taken is the page from its top, where a person lands.
-    for (const scroller of document.querySelectorAll<HTMLElement>('*')) scroller.scrollTop = 0
-    await settleLayout()
-    await page.screenshot({ path: `.vitest/shots/audio-${choice.toLowerCase().replaceAll(' ', '-')}-${size.name}.png` })
-  })
+      await page.screenshot({
+        path: `.vitest/shots/audio-${choice.toLowerCase().replaceAll(' ', '-')}-${size.name}.png`,
+      })
+    },
+  )
 })

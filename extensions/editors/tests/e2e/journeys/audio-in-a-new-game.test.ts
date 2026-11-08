@@ -1,6 +1,6 @@
 import { join } from 'node:path'
-import { expect, openEditor, pressInList, savedInto, servedWith, test as base } from '../harness/fixtures.ts'
 import { heardParams, recordAudioParams } from '../harness/audio-graph-probe.ts'
+import { test as base, expect, openEditor, pressInList, savedInto, servedWith } from '../harness/fixtures.ts'
 import { newGame } from '../harness/new-game.ts'
 import { runEditor } from '../harness/run-editor.ts'
 
@@ -21,7 +21,11 @@ test('a new game plays the bump sound at the overall volume set in Mix', async (
     const volume = page.getByLabel('Overall volume')
     await volume.fill('0.4')
     await volume.press('Enter')
-    await savedInto({ dir: game.dir, remove: game.remove }, join('content/audio/audio.toml'), 'master_gain = 0.4')
+    await savedInto(
+      { dir: game.dir, remove: game.remove },
+      join('content/audio/audio.toml'),
+      'master_gain = 0.4',
+    )
     await servedWith(editor, '"master_gain": 0.4')
 
     const play = await context.newPage()
