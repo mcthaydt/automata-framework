@@ -680,3 +680,12 @@ Audio answering his bump. Made by hand in both kinds and played, at iPad and pho
 browser projects need the other engines, so `pnpm test:browser:2d` stops here); `stranger-3d.test.ts` pending. `pnpm check`
 is green except `check-changesets`, which fails on an earlier branch's changeset naming the unpublished `@automata/3d`
 (`stage-characters-3d.md`). Stage 5 (build audit) and 6 (fixes) not started. Details and rulings: the plan's log.
+
+## Crisp in-game text (2026-11-08)
+
+The Owner picked MSDF `BitmapText` on a crisp layer for the text a game draws on its canvas (`draw(ctx).text` and Feel's
+words), 2026-11-08 21:11. Stage 1 (audit) done: [audit](2026-11-08-in-game-text-audit.md), made on #522's head. 3 high
+(T1 the text is drawn inside the pixel picture, T2 5.5 px letters on a phone, T3 a loaded font drops letters it lacks), 7
+medium, 5 low. A new 2D and a new 3D game were made in the editors, a Feel word changed and played at iPad and phone size:
+blurry today, sharp with a throwaway prototype in both (screens in `/mnt/project-files/text-rendering/audit/`). Not run:
+WebKit, Firefox, the GPU runner, real devices. Next: spec and plan.
