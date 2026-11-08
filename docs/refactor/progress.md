@@ -540,7 +540,7 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
 
-## The paid apps: desktop and mobile: 33% (2 of 6 stages done, 2026-11-08; the build stage is at 3%)
+## The paid apps: desktop and mobile: 33% (2 of 6 stages done, 2026-11-08; the build stage is at 6%)
 
 The Owner, 2026-11-08 14:53: "should we get to using tauri to package to desktop, ios, and android? Also let's use
 nomad sculpt economics $19.99 for mobile, $39.99 for desktop; lets keep essentials on web, everything open source except
@@ -555,7 +555,7 @@ deployment, but the full suite requires the app desktop or mobile; it needs to b
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 3% (1 of 30 tasks)
+### Build: 6% (2 of 30 tasks)
 
 The editors v2 build (`claude/project-thread-q3zxgn`) and the shared-editors fixes (`claude/project-thread-fxu792`) are both
 still open and conflict in 25 files, so the first session did the work that needs neither: the parts of tasks 1.2, 1.4,
@@ -573,7 +573,7 @@ a branch off the plan's. The page side of each task waits for the merged base (t
 | 3.1 The content compile without Effect | 3 | Done, 2026-11-08: `@mcthaydt/automata-content/compile`; the compile from a file list equals the disk compile (hash, sim hash, outputs); `pnpm boundaries` forbids Node and Effect behind the entry. Chromium only (the compile is pure) | |
 | 3.2 `content.config.ts` in every game | 3 | Half: the 2D template and Emberwick are done; the 3D template is not on this base | |
 | 3.3 The game compile, 3.4 the play scheme | 3 | Not started | |
-| 4.1 The app's own store | 4 | Not started | |
+| 4.1 The app's own store | 4 | Done, 2026-11-08 (`apps/editor`, a new private package): the kit's `ProjectStore` contract suite passes on it, a stale-mtime write is a `conflict`, `notifyChanged` and its own writes fire `watch`, a write is in the app's folder before it resolves (a new store over the same folder, a restart, reads it), a full disk says so; `.git/` and `.automata/` never list. The page's `flushOnHide` wiring waits for the editors base. Chromium not needed (pure TypeScript) | |
 | 4.2 A new game on a phone | 4 | Half: `templateFiles` (a browser-safe entry of the tools) equals what `create-game` writes, byte for byte, and the starter level is embedded; the phone's "Make a new game" and the 3D kind wait | |
 | 4.3, 4.4 | 4 | Not started | |
 | 5.1 to 5.4 GitHub sync | 5 | Not started | |

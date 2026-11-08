@@ -2,6 +2,8 @@ packages:
   - packages/*
   - tooling/*
   - games/*
+  # The Automata app (Tauri): the full editor suite on desktop and phone. Private, never published.
+  - apps/*
   # The one-file examples (EX spec §5), one package per dimension, and the feature demos inside the 2D one
   # (examples/2d/content/hot-reload, examples/2d/ui/primitives).
   - examples/2d
