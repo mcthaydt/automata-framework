@@ -5,7 +5,9 @@ import { dirname, join } from 'node:path'
 import { Data, Effect } from 'effect'
 import type { TaggedErrorClass } from '../node/errors.ts'
 import { parseTargets } from './create-game-targets.ts'
-import { TEMPLATE_FILES, type TemplateOptions } from './template.ts'
+import { ID_REGEX, type TemplateOptions } from './template-file.ts'
+import { templateFiles } from './template-files.ts'
+import { toolsVersion } from './tools-version.ts'
 
 export interface CreateGameOptions extends TemplateOptions {
   readonly targetDir: string
@@ -29,9 +31,6 @@ const CreateGameErrorBase: TaggedErrorClass<
 > = Data.TaggedError('CreateGameError')
 
 export class CreateGameError extends CreateGameErrorBase {}
-
-/** A game id: lowercase letters, digits and single hyphens, so never a path. */
-export const ID_REGEX: RegExp = /^[a-z0-9]+(-[a-z0-9]+)*$/
 
 /** The first reason `options` cannot make a game (a bad id, bad targets, a folder with files in it), if there is one. */
 function whyNot(options: CreateGameOptions): CreateGameError | undefined {
@@ -62,11 +61,12 @@ function writeTemplate(options: CreateGameOptions): string[] {
   const createdFiles: string[] = []
   const madeTargetDir = !existsSync(options.targetDir)
   try {
-    for (const tpl of TEMPLATE_FILES) {
-      const fullPath = join(options.targetDir, tpl.path)
+    const files = templateFiles({ ...options, frameworkVersion: options.frameworkVersion ?? toolsVersion() })
+    for (const file of files) {
+      const fullPath = join(options.targetDir, file.path)
       mkdirSync(dirname(fullPath), { recursive: true })
-      writeFileSync(fullPath, tpl.content(options), 'utf8')
-      createdFiles.push(tpl.path)
+      writeFileSync(fullPath, file.text, 'utf8')
+      createdFiles.push(file.path)
     }
   } catch (cause) {
     if (madeTargetDir) {

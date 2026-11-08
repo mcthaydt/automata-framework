@@ -16,7 +16,8 @@
   "exports": {
     ".": "./src/entries/index.ts",
     "./internal": "./src/entries/internal.ts",
-    "./e2e": "./src/entries/e2e.ts"
+    "./e2e": "./src/entries/e2e.ts",
+    "./template-files": "./src/entries/template-files.ts"
   },
   "imports": {
     "#src/*": "./src/*"

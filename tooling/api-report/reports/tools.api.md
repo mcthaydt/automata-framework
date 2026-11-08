@@ -264,3 +264,38 @@ function swipe(scope: Page | Frame, from: Point, to: Point, ms: number): Promise
 ```ts
 function tap(target: Locator): Promise<void>;
 ```
+
+## `./template-files`
+
+### `GameFile` (interface)
+
+```ts
+interface GameFile {
+    readonly path: string;
+    readonly text: string;
+}
+```
+
+### `ID_REGEX` (const)
+
+```ts
+const ID_REGEX: RegExp;
+```
+
+### `templateFiles` (function)
+
+```ts
+function templateFiles(options: TemplateOptions): readonly GameFile[];
+```
+
+### `TemplateOptions` (interface)
+
+```ts
+interface TemplateOptions {
+    readonly id: string;
+    readonly title: string;
+    readonly targets?: readonly DistTarget[] | undefined;
+    readonly linkWorkspace?: boolean | undefined;
+    readonly frameworkVersion?: string | undefined;
+}
+```
