@@ -63,11 +63,11 @@ were added by it: a sound picked here must be heard in play. Task 3 (music piece
   context). `AudioSession` gains `stop()` and `unlocked`. `contentEditors({ audio }?)` returns `[createFeel(),
 createAudio({ play: audio.play })]`.
 
-- [ ] **Step 1: Write the failing tests** with a fake `AudioContext`: no context before the first Play; Play makes one
+- [x] **Step 1: Write the failing tests** with a fake `AudioContext`: no context before the first Play; Play makes one
   and schedules the cue's voices; a second bed stops the first; Stop stops it; the button reads **Tap to hear** until
   the first Play, then **Play**. `contentEditors()` lists Feel then Audio.
-- [ ] **Step 2–4: Run, implement, run.**
-- [ ] **Step 5: Commit** `feat(editors): Audio on the suite page, and Play sounds`.
+- [x] **Step 2–4: Run, implement, run.**
+- [x] **Step 5: Commit** `feat(editors): Audio on the suite page, and Play sounds`.
 
 ### Task 2: Every sound and bed field, and the sound's picture
 
@@ -109,9 +109,9 @@ slots): { words: string; index: number }[]` ("When danger is at least 2: play Ch
   "Otherwise: …"); `addRuleEdit`, `moveRuleEdits(from, to)`, `conditionEdit(rule, key, condition)`; `soundFiles(workspace):
 Promise<string[]>`.
 
-- [ ] **Step 1: Write the failing tests** including Review Focus 1 and 2.
-- [ ] **Step 2–4: Run, implement, run.**
-- [ ] **Step 5: Commit** `feat(editors): Audio sets up the music and its rules`.
+- [x] **Step 1: Write the failing tests** including Review Focus 1 and 2.
+- [x] **Step 2–4: Run, implement, run.**
+- [x] **Step 5: Commit** `feat(editors): Audio sets up the music and its rules`.
 
 ### Task 4: When things happen, the mix, and the checks
 
@@ -160,15 +160,15 @@ a game plays `audio.toml`: `audioSynthExtension` registers only the content kind
 PixiStageHooks; played(): readonly string[] }`: `apply(result)` hears `result.events` at `result.tick`; `draw` calls
   `frame(lastTick)` and keeps the ids it played for the game's test hook.
 
-- [ ] **Step 1: Find the game's way to core's audio buses.** `MixerPort` is `AudioBuses.input(bus)` and
+- [x] **Step 1: Find the game's way to core's audio buses.** `MixerPort` is `AudioBuses.input(bus)` and
   `Audio.duck(bus, amount, seconds)`; core exports `AudioBuses` only as a type today
   (`packages/automata/src/entries/runtime.ts`). Find how a game's code reaches its running buses; if it cannot, add the
   smallest public way to core (a `mixerPort()` from the running game), test it, and give it a `patch` changeset. Record
   which in the log.
-- [ ] **Step 2: Write the failing tests** with a fake port: an event a row answers plays its cue once when the drawn
+- [x] **Step 2: Write the failing tests** with a fake port: an event a row answers plays its cue once when the drawn
   tick reaches it; a shadowed row never plays; a `world` cue pans; a duck rule calls `duck`.
-- [ ] **Step 3–4: Run, implement, run.** `pnpm build`, `pnpm api-report --update`, `pnpm agent-skills --write`.
-- [ ] **Step 5: Commit** `feat(audio-synth): a game plays its sounds when things happen`.
+- [x] **Step 3–4: Run, implement, run.** `pnpm build`, `pnpm api-report --update`, `pnpm agent-skills --write`.
+- [x] **Step 5: Commit** `feat(audio-synth): a game plays its sounds when things happen`.
 
 ### Task 6: A sound picked in Audio plays in the game (served journey)
 
@@ -178,20 +178,20 @@ PixiStageHooks; played(): readonly string[] }`: `apply(result)` hears `result.ev
   and exposes `played()` on the game's test hook; `content/editors.toml` gains the audio row.
 - Create: `examples/2d-story/tests/e2e/audio-in-play.test.ts`
 
-- [ ] **Step 1: Served journey** (Chromium, phone and iPad projects): `automata editor` in the example. In the suite,
+- [x] **Step 1: Served journey** (Chromium, phone and iPad projects): `automata editor` in the example. In the suite,
   open Audio, make a sound "Alarm" (one tone), and under **When things happen** pick it for "systems mode" (the guard
   changes mode); Save. Press **Play**, tap once so the page may play sound, walk into the guard's sight; assert through
   the test hook that `alarm` was played. Explain the run in the log.
-- [ ] **Step 2:** If `examples/2d-story` has not landed, leave this step unchecked, say so in the log and the PR, and
+- [x] **Step 2:** If `examples/2d-story` has not landed, leave this step unchecked, say so in the log and the PR, and
   do not count Audio as done. Never write the TOML directly and count it as edited.
-- [ ] **Step 3: Commit** `test(examples): a sound picked in Audio plays in the game`.
+- [x] **Step 3: Commit** `test(examples): a sound picked in Audio plays in the game`.
 
 ### Task 7: Layout, template, proof and records
 
-- [ ] Chromium layout test at 390×844 and 820×1180; screens to the project files, looked at before they are kept.
-- [ ] Add Audio's row to the create-game template `editors.toml` (`content/audio/*.toml`).
-- [ ] `pnpm format`, the package's `test:unit` and `typecheck`, `pnpm boundaries`.
-- [ ] Log entry below; a line in `docs/refactor/progress.md`; say what did not run.
+- [x] Chromium layout test at 390×844 and 820×1180; screens to the project files, looked at before they are kept.
+- [x] Add Audio's row to the create-game template `editors.toml` (`content/audio/*.toml`).
+- [x] `pnpm format`, the package's `test:unit` and `typecheck`, `pnpm boundaries`.
+- [x] Log entry below; a line in `docs/refactor/progress.md`; say what did not run.
 
 ## Log
 
@@ -243,3 +243,12 @@ journey `audio-plays-in-game` ran on a phone and an iPad in Chromium: two tracks
 rules made (chase while `mode` is chase, calm otherwise); the played game's music went calm then chase, and the keeper's
 cue played. Not built: the mix, shadowed rows, "Check the sounds", the sound's picture, the `about`/`world`/`no_duck`/`draft`
 toggles, `seam` and `resume` in the player, `master_gain`. Not run: WebKit, Firefox.
+
+**Audit-fix log (2026-11-08, PR stacked on #495).** **M4** removing a sound removes the event rows that play it, and
+removing a track sets the rules that played it to play nothing; the question says so first, and the file stays valid.
+**M3** "When things happen" offers the game's events in words (the same picker as Feel), and a new row plays the sound last
+looked at. **L6** "is at least / at most" with a word instead of a number is refused in words. **L1** event words as in
+Feel's log. **H5** Feel's preview plays the sounds from this file. **H7** `create-game` ships `content/audio/audio.toml`
+with a `bump` sound for the square bumping a wall, and plays it. **M11** the story's log records the player's faults; the
+Audio journey asserts there are none. Still not built (unchanged): the mix, shadowed rows, "Check the sounds", the sound's
+picture, and the `about`/`world`/`no_duck`/`draft` toggles; their plan steps stay unticked. Ran as in Feel's log.

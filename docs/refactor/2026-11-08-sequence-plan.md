@@ -69,11 +69,11 @@ was added by it: a cutscene edited here must be seen in play.
   (from the editor list's rows: a game with a `levels-2d` row and no `levels-3d` row); `type Selection = { track:
 TrackId; index: number } | undefined`; `addCutsceneEdit(id: string, duration: number): string` (the new file's text).
 
-- [ ] **Step 1: Write the failing DOM tests:** no cutscenes → "This game has no cutscenes yet." and **Add a
+- [x] **Step 1: Write the failing DOM tests:** no cutscenes → "This game has no cutscenes yet." and **Add a
   cutscene** (asks a name and a length, writes `content/cutscenes/<id>.toml` with one camera key at 0); a file with a
   mistake opens read only; the list shows each cutscene's name.
-- [ ] **Step 2–4: Run, implement, run.**
-- [ ] **Step 5: Commit** `feat(editors): Sequence opens and starts cutscenes`.
+- [x] **Step 2–4: Run, implement, run.**
+- [x] **Step 5: Commit** `feat(editors): Sequence opens and starts cutscenes`.
 
 ### Task 2: Tracks, rows and marks
 
@@ -93,10 +93,10 @@ index: number; t: number; until?: number; lane: number }` (an actor's keys get a
   1; `caption` end → `until`; the rest `t`). The `sound` track is listed read only and `Add a row` never offers it;
   `states` and `lintAllow` are not rows.
 
-- [ ] **Step 1: Write the failing tests** with Review Focus 1 and 5, and rows in the spec's order.
-- [ ] **Step 2–4: Run, implement, run.** The timeline draws the ruler, rows with pinned names, and marks (44 px
+- [x] **Step 1: Write the failing tests** with Review Focus 1 and 5, and rows in the spec's order.
+- [x] **Step 2–4: Run, implement, run.** The timeline draws the ruler, rows with pinned names, and marks (44 px
   targets), and scrolls sideways in its own region.
-- [ ] **Step 5: Commit** `feat(editors): Sequence's timeline`.
+- [x] **Step 5: Commit** `feat(editors): Sequence's timeline`.
 
 ### Task 3: Key edits, drag and the playhead
 
@@ -114,12 +114,12 @@ number, t: number): ContentEdit | undefined` (clamped to `bounds`, written at `t
 string): ContentEdit[]` (values from the director's state at `t`); `removeKeyEdit`; `durationEdits(script, length):
 { edits: ContentEdit[]; dropped: number }`.
 
-- [ ] **Step 1: Write the failing tests** with Review Focus 2, 3, 6 and 7; dragging with pointer events (4 px threshold)
+- [x] **Step 1: Write the failing tests** with Review Focus 2, 3, 6 and 7; dragging with pointer events (4 px threshold)
   writes one `t` edit in one undo step; **Move to the playhead**; **Add here** on the camera row copies the camera's
   pose at the playhead.
-- [ ] **Step 2–4: Run, implement, run.** Play advances the playhead with an injected clock (`requestAnimationFrame` in
+- [x] **Step 2–4: Run, implement, run.** Play advances the playhead with an injected clock (`requestAnimationFrame` in
   the page).
-- [ ] **Step 5: Commit** `feat(editors): Sequence moves and adds steps in time`.
+- [x] **Step 5: Commit** `feat(editors): Sequence moves and adds steps in time`.
 
 ### Task 4: The inspector
 
@@ -139,11 +139,11 @@ clips: Record<string, string[]>; lamps: string[]; doors: string[] }`, read on op
   ("This step's words were removed." for a line, never its id). A camera or door key whose `ease` is a curve shows
   "Moves (its own curve)" and keeps it; **Moves smoothly** removes `ease` (audit S9).
 
-- [ ] **Step 1: Write the failing tests** with Review Focus 4; a caption's line is picked by its words; the lens shows
+- [x] **Step 1: Write the failing tests** with Review Focus 4; a caption's line is picked by its words; the lens shows
   "wide" at 28 mm; the rare actor fields sit under **More**.
-- [ ] **Step 2–4: Run, implement, run.** At phone width the inspector is a sheet over the timeline when a key is
+- [x] **Step 2–4: Run, implement, run.** At phone width the inspector is a sheet over the timeline when a key is
   selected; it keeps focus through rotation.
-- [ ] **Step 5: Commit** `feat(editors): Sequence's step fields`.
+- [x] **Step 5: Commit** `feat(editors): Sequence's step fields`.
 
 ### Task 5: The plan preview
 
@@ -163,21 +163,21 @@ name: string; x: number; y: number; facing: number }[]; camera: { x: number; y: 
 }; caption?: string; fade: number; walls: Segment[] }` (fitted to the size with a margin); `Segment = readonly [number,
 number, number, number]`.
 
-- [ ] **Step 1: Write the failing tests:** an actor at x 2, z 3 lands where the fit puts it; the camera wedge points from
+- [x] **Step 1: Write the failing tests:** an actor at x 2, z 3 lands where the fit puts it; the camera wedge points from
   `pos` to `look` and its spread follows the lens (`fovOf`); fade 1 at the end of a fade key; a 2×2 level with one solid
   cell gives that cell's four walls; a 3D game gives no walls and the words in the Global Constraints.
-- [ ] **Step 2–4: Run, implement, run.**
-- [ ] **Step 5: Commit** `feat(editors): Sequence's preview from above`.
+- [x] **Step 2–4: Run, implement, run.**
+- [x] **Step 5: Commit** `feat(editors): Sequence's preview from above`.
 
 ### Task 6: Checks, layout, template, records
 
-- [ ] **What is wrong**, computed in the page from the file and the game's lines (`scene-problems.ts`): a caption's
+- [x] **What is wrong**, computed in the page from the file and the game's lines (`scene-problems.ts`): a caption's
   line is missing or has no words, two captions overlap, a step after the end, a shot shorter than a second
   (`MIN_SHOT`; camera keys at one time are a cut, not a shot). Shown in the spec's section 3.7 words on their mark or
   bar. Unit test each.
-- [ ] Chromium layout test at 390×844 and 820×1180; screens to the project files, looked at before they are kept.
-- [ ] Add Sequence's row to the create-game template `editors.toml` (`content/cutscenes/*.toml`).
-- [ ] `pnpm format`, the package's `test:unit` and `typecheck`, `pnpm boundaries`; Log entry below; a line in
+- [x] Chromium layout test at 390×844 and 820×1180; screens to the project files, looked at before they are kept.
+- [x] Add Sequence's row to the create-game template `editors.toml` (`content/cutscenes/*.toml`).
+- [x] `pnpm format`, the package's `test:unit` and `typecheck`, `pnpm boundaries`; Log entry below; a line in
   `docs/refactor/progress.md`; say what did not run.
 
 ### Task 7: A cutscene edited in Sequence shows in play (served journey)
@@ -186,15 +186,15 @@ The proof is content-in-play Task 16's journey in `examples/2d-story`. Its Seque
 the caption to 'Later, at the gate.'") cannot be done in Sequence, which picks a caption's line and never edits its
 words (audit S1); this is the step the journey runs.
 
-- [ ] **Step 1: Served journey** (Chromium, phone and iPad projects): `automata editor` in the example. In the suite,
+- [x] **Step 1: Served journey** (Chromium, phone and iPad projects): `automata editor` in the example. In the suite,
   open Writer and add a caption line "Later, at the gate." (said by no one); Save. Open Sequence, open the gate
   cutscene, pick that line for its caption by its words, drag the caption to start at 1 s, move the keeper's last key
   one cell further; Save. Press **Play**, walk into the keeper, choose the second answer: the caption "Later, at the
   gate." shows above the box's place and the keeper walks to the new spot. Assert in the DOM and through the test
   hook; look at the screenshots and explain them in the log.
-- [ ] **Step 2:** If `examples/2d-story` has not landed, leave this step unchecked, say so in the log and the PR, and
+- [x] **Step 2:** If `examples/2d-story` has not landed, leave this step unchecked, say so in the log and the PR, and
   do not count Sequence as done. Never write the TOML directly and count it as edited.
-- [ ] **Step 3: Commit** `test(examples): a cutscene edited in Sequence shows in play`.
+- [x] **Step 3: Commit** `test(examples): a cutscene edited in Sequence shows in play`.
 
 ## Log
 
@@ -221,3 +221,10 @@ words (audit S1); this is the step the journey runs.
   yet; (5) the preview resolves `player` and named places to a placed character's cell (16 px a metre) or the origin.
 - Ran: `pnpm --filter @automata/editors test:unit` (all pass), `typecheck`, `pnpm boundaries`, `pnpm style`, `pnpm knip`.
   Did not run: WebKit, Firefox, any browser test, any journey.
+
+**Audit-fix log (2026-11-08, PR stacked on #495).** **H3** the playhead and the selected mark use real colour tokens (a test
+now checks every `var(--x)` in the editors is defined). **H4** the step sheet no longer sits over the timeline on a phone:
+its fields stack under it, and a selected step scrolls into view; a layout test checks no label is covered. **M9** "N
+problems in the cutscene: the first words" with a "Show me" button that selects the step. **L4** "Add here" with no line
+picked says "Say which one first." **M12** the journey waits long enough for the caption on a slow phone run (it failed 1 in 4).
+Ran as in Feel's log.

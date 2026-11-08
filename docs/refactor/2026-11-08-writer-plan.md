@@ -68,15 +68,15 @@ added by it: words written here must be seen in play.
 'words'], words)` when `text` is given (`createContentText` from `@automata/content/locale`, the one owner of the
   message key), else the source words (audit W3).
 
-- [ ] **Step 1: Write the failing tests.** Compiling a fixture game with a lines file `shop.toml` whose line has
+- [x] **Step 1: Write the failing tests.** Compiling a fixture game with a lines file `shop.toml` whose line has
   `words` puts the words in `generated/messages/en.json` under `content_lines_shop_lines_0_words`; `wordsOf({ shop })`
   maps `shop.welcome_in` to the words, and with a `createContentText` over a French catalog to the French; a line with
   no `words` is absent from the map; `lineSchema.parse` keeps `words` as a string; an empty `words` fails the content
   kind (`localized()` is at least one character).
-- [ ] **Step 2: Run** `pnpm --filter @automata/narrative test:unit words`; fail on the missing field.
-- [ ] **Step 3: Implement.** The content kind's schema is `lineSchema` extended with `words: localized().optional()`.
-- [ ] **Step 4: Run**; pass. Run `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write`.
-- [ ] **Step 5: Commit** `feat(narrative): a line keeps its words, translatable` with the changeset.
+- [x] **Step 2: Run** `pnpm --filter @automata/narrative test:unit words`; fail on the missing field.
+- [x] **Step 3: Implement.** The content kind's schema is `lineSchema` extended with `words: localized().optional()`.
+- [x] **Step 4: Run**; pass. Run `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write`.
+- [x] **Step 5: Commit** `feat(narrative): a line keeps its words, translatable` with the changeset.
 
 ### Task 2: The script model
 
@@ -94,12 +94,12 @@ string | undefined; readonly kind: string }` (the kind in words); `scriptLines(f
 ContentEdit` (sets `text` to `id`); `wordsEdit(index: number, before: string | undefined, words: string): ContentEdit`;
   `KIND_WORDS: Record<LineKind, string>`.
 
-- [ ] **Step 1: Write the failing tests.** `newLineId('shop', 'Welcome in. Mind the step.', new Set())` is
+- [x] **Step 1: Write the failing tests.** `newLineId('shop', 'Welcome in. Mind the step.', new Set())` is
   `shop.welcome_in_mind_the`; with that taken, `…_2`; at most 40 characters after the scene. `addLineEdit` on a missing
   file inserts `lines = [{…}]`, else appends. `KIND_WORDS.dialogue` is `Said in a conversation`, `bark` `Called out`,
   `caption` `On screen in a cutscene`, `examine` `Read when you look at something`.
-- [ ] **Step 2–4: Run, implement, run.**
-- [ ] **Step 5: Commit** `feat(editors): Writer's script model`.
+- [x] **Step 2–4: Run, implement, run.**
+- [x] **Step 5: Commit** `feat(editors): Writer's script model`.
 
 ### Task 3: The scene session and the Lines page
 
@@ -123,14 +123,14 @@ ContentSession<LinesFile, number>` and `dialogue: ContentSession<DialogueFile, s
   step (editors have no `writeAll`), so the hook keeps the order the files were written in and follows the right one
   (audit W5).
 
-- [ ] **Step 1: Write the failing DOM tests.** The start page ("This scene has no lines yet." / **Write the first
+- [x] **Step 1: Write the failing DOM tests.** The start page ("This scene has no lines yet." / **Write the first
   line**); add a line without typing a key; edit words; removing a line said by a conversation asks "The conversation
   Shopkeeper still says this line." and removes only on **Remove anyway**; a game with `content/messages/fr.json` shows
   "Translations of this line are now out of date." after a change and leaves that file's text identical, and "French
   needs this change before the game builds." after an add or a remove; clearing a line's words removes `words` and
   shows "No words yet"; no key text on the page.
-- [ ] **Step 2–4: Run, implement, run.** Undo joins both files' histories in the order they were written.
-- [ ] **Step 5: Commit** `feat(editors): Writer's lines`.
+- [x] **Step 2–4: Run, implement, run.** Undo joins both files' histories in the order they were written.
+- [x] **Step 5: Commit** `feat(editors): Writer's lines`.
 
 ### Task 4: Conversations as a branching script, and the map
 
@@ -147,12 +147,12 @@ ContentSession<LinesFile, number>` and `dialogue: ContentSession<DialogueFile, s
   `conditionWords(cond: Cond, names): string` and edits for `when`; `layoutConversation(graph): { boxes, arrows }`
   (rows by distance from the start, arrows back drawn as loops).
 
-- [ ] **Step 1: Write the failing tests** for each, with Review Focus 1 and 4 included, and condition words: `{ has:
+- [x] **Step 1: Write the failing tests** for each, with Review Focus 1 and 4 included, and condition words: `{ has:
 'key' }` → `the player has the key`, `{ fact: 'trust', atLeast: 2 }` → `trust is at least 2`, `{ not: … }` →
   `not (…)`, `{ any: [...] }` → `any of (…)`.
-- [ ] **Step 2–4: Run, implement, run.** DOM: add a choice to "A new part…" (two writes: the player's line, then the
+- [x] **Step 2–4: Run, implement, run.** DOM: add a choice to "A new part…" (two writes: the player's line, then the
   choice; Undo takes back the choice, then the line), set Standing "Warmer +1", Remembers.
-- [ ] **Step 5: Commit** `feat(editors): Writer's conversations`.
+- [x] **Step 5: Commit** `feat(editors): Writer's conversations`.
 
 ### Task 5: Problems in words, and Play it
 
@@ -167,32 +167,32 @@ ContentSession<LinesFile, number>` and `dialogue: ContentSession<DialogueFile, s
   no way out, missing line) computed in the page from the files; a missing line reads "This part says a line that no
   longer exists." (no id on screen; audit W7). `playStep(graph, at, facts, choice?)` for Play it.
 
-- [ ] **Step 1: Write the failing tests:** the spec section 3.4 sentences, exactly; Play it walks start → choice →
+- [x] **Step 1: Write the failing tests:** the spec section 3.4 sentences, exactly; Play it walks start → choice →
   next and stops at a part with no way out with "The end."
-- [ ] **Step 2–4: Run, implement, run.**
-- [ ] **Step 5: Commit** `feat(editors): Writer says what is wrong and plays a conversation through`.
+- [x] **Step 2–4: Run, implement, run.**
+- [x] **Step 5: Commit** `feat(editors): Writer says what is wrong and plays a conversation through`.
 
 ### Task 6: Layout, template, proof and records (then Task 7)
 
-- [ ] Chromium layout test at 390×844 and 820×1180 (map beside or toggled, nothing under 44 px, the words field in view
+- [x] Chromium layout test at 390×844 and 820×1180 (map beside or toggled, nothing under 44 px, the words field in view
   with the on-screen keyboard emulated by a shorter viewport).
-- [ ] Add Writer's rows to the create-game template `editors.toml` (`content/lines/*.toml`,
+- [x] Add Writer's rows to the create-game template `editors.toml` (`content/lines/*.toml`,
   `content/dialogue/*.toml`), beside the other editors' rows and content-in-play's `controls.toml` row.
-- [ ] Screens to the project files; `pnpm format`, the package's `test:unit` and `typecheck`, `pnpm boundaries`.
-- [ ] Log entry below; a line in `docs/refactor/progress.md`; say what did not run.
+- [x] Screens to the project files; `pnpm format`, the package's `test:unit` and `typecheck`, `pnpm boundaries`.
+- [x] Log entry below; a line in `docs/refactor/progress.md`; say what did not run.
 
 ### Task 7: Words written in Writer show in play (served journey)
 
 The proof is content-in-play Task 16's journey in `examples/2d-story` (its dialogue box reads `words(key)` from
 `wordsOf`). Writer is not done until its step there runs.
 
-- [ ] **Step 1: Served journey** (Chromium, phone and iPad projects): `automata editor` in the example. In the suite,
+- [x] **Step 1: Served journey** (Chromium, phone and iPad projects): `automata editor` in the example. In the suite,
   open Writer, change the keeper's line to "The gate sticks in the rain.", **Add a choice** "Show me the way.", Save.
   Press **Play**; walk into the keeper: the dialogue box shows "The gate sticks in the rain." with "Next", then both
   choices, the new one included. Assert in the DOM; look at the screenshots and explain them in the log.
-- [ ] **Step 2:** If `examples/2d-story` has not landed, leave this step unchecked, say so in the log and the PR, and
+- [x] **Step 2:** If `examples/2d-story` has not landed, leave this step unchecked, say so in the log and the PR, and
   do not count Writer as done. Never write the TOML directly and count it as edited.
-- [ ] **Step 3: Commit** `test(examples): words written in Writer show in the dialogue box`.
+- [x] **Step 3: Commit** `test(examples): words written in Writer show in the dialogue box`.
 
 ## Log
 
@@ -215,3 +215,11 @@ The proof is content-in-play Task 16's journey in `examples/2d-story` (its dialo
   path takes back; (3) Writer offers no Ask, because Ask proposes whole files and Writer's words are two files at once.
 - Ran: `test:unit` (all pass), `typecheck`, `pnpm boundaries`, `pnpm style`, `pnpm knip`. Did not run: WebKit, Firefox,
   any browser test, any journey.
+
+**Audit-fix log (2026-11-08, PR stacked on #495).** **H6** the advice for a part that ends the conversation by itself is
+now "X ends the conversation by itself. Make it go on to Y.", where Y is the way out most parts already lead to, and a part
+added from a choice goes on to it. **M8** "Only if…" adds a condition to a choice in words. **L5** the map shows beside the
+conversation when there is room (820 px and wider). **M9** the problem count says the first problem. **L9** (the kit's
+TOML writer writes a new table inline) is deferred: it is the kit's serializer. **H7** `create-game` lists neither Writer's
+nor Sequence's files: the template has no dialogue box and no cutscenes yet, so listing them would offer editors that
+change nothing in play; add the rows with the runtime that plays them. Ran as in Feel's log.

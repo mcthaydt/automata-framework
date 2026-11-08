@@ -62,8 +62,9 @@ test('a word and a flash given to the cutscene in Feel are what the played game 
   await game.screenshot({ path: test.info().outputPath('cutscene-with-feel.png') })
 })
 
-// What a person gets with no tuning: a shake added with the editor's own numbers, under the limits it came with, moves the
-// screen. (The first journey raises a limit; this one must not need to.)
+// What a person gets with no tuning: a feel added for a new event, with a shake given the editor's own numbers under the
+// limits it came with, moves the screen. (The first journey raises a limit; this one must not need to.) The guard's changes of
+// mode are offered among the events, in words, because the story lists its systems for the Schematic.
 test('a shake added in Feel with its default numbers moves the played screen', async ({
   page,
   context,
@@ -71,24 +72,22 @@ test('a shake added in Feel with its default numbers moves the played screen', a
   story,
 }) => {
   await openEditor(page, editor, 'Feel')
-  await pressInList(page, 'When a cutscene starts')
+  // The list is a sheet behind the Panel button on a phone; the picker for the event sits in it.
+  const panel = page.getByRole('button', { name: 'Panel', exact: true })
+  await expect(panel.or(page.getByRole('button', { name: 'Add a feel' })).first()).toBeVisible()
+  if ((await panel.isVisible()) && (await panel.getAttribute('aria-expanded')) !== 'true') await panel.click()
+  await page.getByRole('button', { name: 'Add a feel' }).click()
+  await expect(page.getByRole('button', { name: 'a character changes mode' })).toBeVisible()
+  await page.getByRole('button', { name: 'a conversation offers choices' }).click()
+  if ((await panel.isVisible()) && (await panel.getAttribute('aria-expanded')) === 'true') await panel.click()
   await page.getByRole('button', { name: 'Add an effect' }).click()
-  await page.getByRole('button', { name: 'Shake the screen' }).click()
-  await savedInto(story, 'content/feel/feel.toml', 'shake')
-  await servedWith(editor, 'shake')
+  await page.getByRole('button', { name: 'Shake the screen', exact: true }).click()
+  await savedInto(story, 'content/feel/feel.toml', 'narrative.choices')
+  await servedWith(editor, 'narrative.choices')
 
   const game = await context.newPage()
   await playStory(game, editor)
   expect((await felt(game)).shake).toBe(0)
   await walkToKeeper(game)
-  await game.getByRole('button', { name: /Show me the gate/ }).click()
-  await game.getByRole('button', { name: 'Next' }).click()
   await expect.poll(async () => (await felt(game)).shake).toBeGreaterThan(0)
-})
-
-// The guard's changes of mode are offered in Feel (the story lists its systems for the Schematic), in words.
-test('Feel offers the guard’s changes of mode', async ({ page, editor }) => {
-  await openEditor(page, editor, 'Feel')
-  await page.getByRole('button', { name: 'Add a feel' }).click()
-  await expect(page.getByRole('button', { name: 'a character changes mode' })).toBeVisible()
 })

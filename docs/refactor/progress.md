@@ -559,6 +559,15 @@ Built on `claude/project-thread-2salzc`, stacked on #478 (plans' Logs have the e
   Writer's advice after a choice to a new part is backwards; a `create-game` game lists the four editors but plays none
   of their content (Owner decision). Next: Sonnet fixes.
 
+- Audit fixes (2026-11-08, PR stacked on #495): all 8 high, 11 of 12 medium and 8 of 10 low fixed, test first; the plan logs
+  have the list. A new Feel shake moves the screen and says by how much; Feel shows a word's words and plays the game's
+  sounds; Sequence's playhead and selected step show and its step fields stack under the timeline on a phone; Writer's
+  new part goes on to the way out; Audio removals keep the file valid. **`create-game` games now play Feel and Audio**: they
+  come with a starter feel and sound for the square bumping a wall (checked by making a game with `create-game`, editing it
+  in the real editor and playing it). Writer's and Sequence's files are not listed by the template until it has a dialogue
+  box and cutscenes. Journeys: the 5 served journeys pass on a phone and an iPad in Chromium. Deferred: L9 (the kit writes inserted
+  tables inline), Audio's mix and sound checks (unbuilt, unchanged). Not run: WebKit, Firefox, the GPU runner.
+
 ## Edited content shows in play: 67% (4 of 6: stages 2, 3 and 4; the build is done except three journey steps)
 
 Normal dev pipeline (no stage 1 audit; the investigation is
