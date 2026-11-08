@@ -1,0 +1,19 @@
+# The sample game's editor list: its tuning (the Tuner) and a file of each kind the content editors edit. The page opens
+# this game when no checkout answers, so every editor has something to show.
+format = "af-editors/1"
+generated = ["content/generated/**"]
+never = ["package.json", ".github/**", ".claude/**"]
+
+[[file]]
+glob = "content/tuning.toml"
+editor = "tuner"
+modes = ["edit", "ask"]
+gates = []
+checks = []
+
+[[file]]
+glob = "content/feel/*.toml"
+editor = "feel"
+modes = ["edit", "ask"]
+gates = []
+checks = []

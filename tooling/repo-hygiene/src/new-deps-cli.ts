@@ -3,17 +3,12 @@
 // Prints the new-dependency report for this checkout against where HEAD left --base (new-deps-base.ts), and
 // appends it to the job summary when GITHUB_STEP_SUMMARY is set. Exits 1 when a new package or version is missing from its registry.
 import { execFileSync } from 'node:child_process'
-import { appendFileSync, existsSync, readFileSync } from 'node:fs'
+import { appendFileSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import {
-  describeDependencies,
-  formatReport,
-  type Manifest,
-  newDependencies,
-  scopeRegistries,
-} from './new-deps.ts'
+import { describeDependencies, formatReport, type Manifest, newDependencies } from './new-deps.ts'
 import { newDepsBase } from './new-deps-base.ts'
+import { scopeRegistries } from './new-deps-registries.ts'
 
 const root = fileURLToPath(new URL('../../..', import.meta.url))
 const argv = process.argv.slice(2)
@@ -26,9 +21,6 @@ const base = newDepsBase(git, baseRef)
 const isManifest = (path: string): boolean =>
   (path === 'package.json' || path.endsWith('/package.json')) && !path.split('/').includes('fixtures')
 
-/** The root .npmrc, absent when the repo publishes to npmjs.org only. */
-const npmrc = existsSync(join(root, '.npmrc')) ? readFileSync(join(root, '.npmrc'), 'utf8') : undefined
-
 const headManifests: Record<string, Manifest> = {}
 for (const path of git('ls-files').split('\n').filter(isManifest)) {
   headManifests[path] = JSON.parse(readFileSync(join(root, path), 'utf8')) as Manifest
@@ -39,7 +31,7 @@ for (const path of git('ls-tree', '-r', '--name-only', base).split('\n').filter(
 }
 
 const reports = await describeDependencies(
-  newDependencies(baseManifests, headManifests, scopeRegistries(npmrc)),
+  newDependencies(baseManifests, headManifests, scopeRegistries(root)),
   (url) => fetch(url),
 )
 const report = formatReport(

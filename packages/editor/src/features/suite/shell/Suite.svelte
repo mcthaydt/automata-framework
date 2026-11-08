@@ -69,10 +69,8 @@ const mode = $derived(shellModeAt(geometry.current))
 // Where the dock is a sheet (below `wide`, or short), the top bar opens and closes it, as Panel and Details do theirs.
 const dockIsSheet = $derived(dockPlacementOf(mode, geometry.current.heightTier) !== 'inline')
 const dockShown = $derived(dockOpen ?? defaultDockOpen(mode, geometry.current.heightTier))
-// The rail: the editors this page registered that the game's list names, then Review when there are change sets to
-// review. With no readable list, every registered editor.
-const listed = $derived(home.kind === 'cards' ? new Set(home.cards.map((card) => card.editor)) : undefined)
-const entries = $derived(suiteEntries(suite.editors, ports.changeSet !== undefined, listed))
+// The rail: the editors this page registered, then Review when there are change sets to review.
+const entries = $derived(suiteEntries(suite.editors, ports.changeSet !== undefined))
 const entry = $derived(entries.find((candidate) => candidate.id === current))
 
 // The installed editor the chosen entry opens: only when exactly one of its editors is both named and installed.

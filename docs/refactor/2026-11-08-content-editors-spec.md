@@ -23,16 +23,18 @@ extensions' own (`*.content.ts`); the editors never redefine them.
 | `audio` | Audio | `@automata/audio-synth` | `content/audio/*.toml` | Makes and plays sounds and music beds; says which sound plays when something happens |
 | `writer` | Writer | `@automata/narrative` | `content/dialogue/*.toml`, `content/lines/*.toml` | Writes who says what, and the choices the player picks from |
 | `sequence` | Sequence | `@automata/cutscenes` | `content/cutscenes/*.toml` | Lays out a cutscene's steps in time: camera, actors, captions, sounds |
-| `schematic` | Schematic | `@automata/systems`, `@automata/puzzle` | `content/systems/*.toml`, `content/puzzles/*.toml` | Says how enemies and other characters behave, and the world's rules and puzzles |
+| `schematic` | Schematic | `@automata/systems`, `@automata/nav`, `@automata/puzzle` | `content/systems/*.toml`, `content/nav/*.toml`, `content/puzzles/*.toml` | Says how enemies and other characters behave, and the world's rules and puzzles |
 
 **Schematic covers enemy and NPC behaviour.** A `systems` file's agents are the game's enemies and other characters:
 what each one senses (sight, sound, light, warmth, touch), its modes (patrol, chase, search), how fast it moves in
 each, and when it switches mode ("From Patrol to Chase when it sees the player"). Its rules are the world's ("When the
 generator is off, the lights go out"). A `puzzle` file is the scene's items, facts and actions. Schematic shows all of
-these as sentences a person reads top to bottom, not as a node graph.
+these as sentences a person reads top to bottom; a character's modes and switches are also drawn as a diagram, and the
+scene's places (its nav graph) are a list (Schematic spec, sections 4.1 and 8).
 
 Left out on purpose (the Owner's rule, "editors have only essential features"): the narrative extension's canon,
-storylets, beats and puzzle help (`content/canon`, `storylets`, `beats`, `help`), and the nav graph. They are written
+storylets, beats and puzzle help (`content/canon`, `storylets`, `beats`, `help`). (The nav graph is Schematic's
+Places: without it a character has nowhere to patrol; the Schematic plan audit, H2.) They are written
 by the game's tools and pipelines today, and a person making a game does not start there. Their files open read only on
 Home with "No editor for this file yet." They can join Writer and Schematic later.
 
@@ -93,33 +95,56 @@ line. Errors say what is wrong and where, in a sentence.
 
 ## 7. The suite's own changes
 
-- The rail lists a registered editor only when the game's editor list names it, so a game with no sounds never sees
-  Audio. With no readable list, it lists every registered editor (the person still needs a way in).
+- **Every registered editor stays on the rail**, whether or not the game has its files yet. (A first build hid an
+  editor the game's list did not name; the Owner, 2026-11-08: that leaves a game with no sounds no way to add its
+  first one. Reverted.) An editor whose files the game does not have yet opens on a page that says what it is for and
+  offers to start one; each editor's own spec designs that page.
+- Starting a first file needs the game's editor list to name that file, or the write is refused by the list's
+  policy. So `create-game`'s template list (`packages/tools/src/shared/create-game/template-content/editors.toml`)
+  names every content editor's files, and the "start" page of an editor says how to add the list row when an older
+  game's list lacks it. Each editor's plan carries its row.
 - The leftover "Plus build (EDS.P)" comment in `create-suite.ts` goes. The suite's test that no card says "Plus" stays.
 - The editor list's `LABELS` keep the five names, so a list that names one on a page without it still reads well.
-- The sample game (`platformer.editors.toml` and its files) gains a small file for each of the five, so the page opened
-  without a checkout shows them working.
+- The sample game (`extensions/editors/src/app/suite/sample/`) gains a small file for each of the five, so the page
+  opened without a checkout shows them working.
 
-## 8. Not in this work (for the Owner to decide)
+## 7b. One spec and plan per editor
 
-The suite has no editor for these. Each would be its own spec. None is built unless the Owner asks.
+The Owner, 2026-11-08: "Each editor needs its own plan and spec." This document holds only what the five share (the
+package, the session, the look, the words, the suite's changes). Each editor has its own spec and plan, written,
+audited and built through the project's pipeline before its code merges:
 
-1. **2D sprites and animation.** Art comes in by import (Add tiles), but nothing draws or animates a 2D sprite.
-2. **Menus and HUD.** The `ui-screens` kit is code; there is no screen or HUD layout editor.
-3. **Item and enemy tables.** The Tuner edits single numbers; there is no table of items or enemies with their stats.
-4. **Default controls.** Players can rebind in the game; nothing edits the game's default bindings.
+| Editor | Spec and plan | State |
+| --- | --- | --- |
+| Schematic (the game's AI: how enemies and other characters behave) | `2026-11-08-schematic-{spec,plan}.md` | Plan audited (`2026-11-08-schematic-plan-audit.md`); build next |
+| Feel | `2026-11-08-feel-{spec,plan}.md` | Built ahead of its spec; plan audited (`2026-11-08-feel-plan-audit.md`): the plan brings it in line and makes the game play it; build next |
+| Audio | `2026-11-08-audio-{spec,plan}.md` | Half built ahead of its spec; plan audited (`2026-11-08-audio-plan-audit.md`): the plan finishes it and makes the game play it; music waits for the Owner; build next |
+| Writer | `2026-11-08-writer-{spec,plan}.md` | Plan audited (`2026-11-08-writer-plan-audit.md`); saves a line's words in the line (Writer spec, section 4); build next |
+| Sequence | `2026-11-08-sequence-{spec,plan}.md` | Plan audited (`2026-11-08-sequence-plan-audit.md`); build next |
 
-Two runtime gaps limit what these editors' content does in a game. This work does not take them on; they are open
-choices for the Owner (see `2026-11-08-complete-game-gaps.md` in the project files):
+`shared/game-events.ts` (the game's events, for Feel and Audio) is made by whichever of Feel's Task 2 and Audio's
+Task 4 runs first.
 
-5. **2D games.** The narrative, cutscenes and systems extensions require `sectors` (3D) today, so what Writer, Sequence
-   and Schematic's characters make plays only in a 3D game. Feel, Audio and puzzles work in 2D. The editors themselves
-   edit the files either way.
-6. **A dialogue box and captions.** Nothing in the framework or the extensions draws a dialogue line, a choice or a
-   cutscene caption yet; the cutscene director hands a caption to a renderer no package has. Writer and Sequence write
-   the content; a game draws it with its own UI until a kit does.
-7. **Combat.** Schematic's characters sneak, chase and search; no extension has health or damage, so there is nothing
-   for an editor to set there.
+## 8. Not in this work
+
+Owned by the content-in-play plan (project files, `2026-11-08-content-in-play-spec.md` and its plan, PR #479):
+
+1. **2D sprites and animation** (its section 4, animation clips).
+2. **Default controls** (`controls.toml`, edited in the Tuner; its Task 9 adds that row to the template's
+   `editors.toml` beside these editors' rows).
+3. **2D games.** Narrative, cutscenes, nav and systems read the world through `@automata/places`, so what Writer,
+   Sequence and Schematic's characters make plays in 2D and 3D. The editors add nothing that reads the world another
+   way (Schematic spec, section 2).
+4. **The dialogue box and captions.** The box shows `words(key)` from the game's message catalog; the Writer spec
+   says where Writer saves the words (Writer spec, section 4), and the content-in-play journey edits a line in Writer
+   and sees the box show it.
+
+Still for the Owner to decide, each its own spec if wanted:
+
+5. **Menus and HUD.** Cut by the content-in-play audit: a HUD's numbers are the game's code, and its words already go
+   through the game's messages.
+6. **Item and enemy tables.** The Tuner edits single numbers; there is no table of items or enemies with their stats.
+7. **Combat.** Schematic's characters sneak, chase and search; no extension has health or damage yet.
 
 ## 9. Checks
 
@@ -127,3 +152,6 @@ choices for the Owner (see `2026-11-08-complete-game-gaps.md` in the project fil
   and one Chromium layout test at phone and iPad sizes.
 - The package joins `pnpm check` (lint, typecheck, boundaries, style, knip, unit tests).
 - A journey on the sample game per editor: open it from Home, change one thing, see the file change, Undo.
+- And each editor's change seen in play, in a served journey (the Owner, 2026-11-08): Feel and Audio play on the game's
+  stage (their plans add the player each lacked); Writer and Sequence run their steps of the content-in-play journey in
+  `examples/2d-story`. An editor is not done until its journey runs.

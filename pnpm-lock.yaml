@@ -497,6 +497,9 @@ importers:
 
   extensions/editors:
     dependencies:
+      '@automata/audio-synth':
+        specifier: workspace:*
+        version: link:../audio-synth
       '@automata/editor':
         specifier: workspace:*
         version: link:../../packages/editor
