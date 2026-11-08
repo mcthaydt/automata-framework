@@ -80,6 +80,9 @@ export interface Addition {
 const isTableList = (value: unknown): value is Table[] =>
   Array.isArray(value) && value.length > 0 && value.every(isTable)
 
+/** A table with something in it: an empty one is shorter and as clear written `{}`, so it is never a section of its own. */
+const isFilled = (value: unknown): value is Table => isTable(value) && keysOf(value).length > 0
+
 /** What the file's sections say: which paths are sections or lie above one, and which lists are lists of sections. */
 function layoutOf(sections: readonly Section[]): { above: Set<string>; lists: Set<string> } {
   const above = new Set<string>()
@@ -111,7 +114,7 @@ export function splitAdditions(
       for (const key of keysOf(there)) {
         const value = there[key]
         const kept = here[key]
-        if (kept === undefined && canHold(path) && (isTable(value) || isTableList(value)))
+        if (kept === undefined && canHold(path) && (isFilled(value) || isTableList(value)))
           additions.push({ path: [...path, key], value })
         else rest[key] = kept === undefined ? value : walk(kept, value, [...path, key])
       }
@@ -135,21 +138,27 @@ export function splitAdditions(
 const BARE = /^[A-Za-z0-9_-]+$/
 const keyText = (key: string): string => (BARE.test(key) ? key : JSON.stringify(key))
 
+/** One `key = value` line. toml-patch's `stringify` would make an empty table a section of its own, so `{}` is written here. */
+function keyLine(key: string, value: unknown): string[] {
+  if (isTable(value) && keysOf(value).length === 0) return [`${keyText(key)} = {}`]
+  // The files here write `["a"]`, not `[ "a" ]`.
+  return stringify({ [key]: value }, { bracketSpacing: false })
+    .replace(/\r?\n$/, '')
+    .split(/\r?\n/)
+}
+
 /** The lines of one table as a section, and under it a section for each table or list of tables it holds. */
 function sectionLines(names: readonly string[], value: Table, array: boolean): string[] {
-  const here: Table = {}
   const nested: [string, Table, boolean][] = []
+  const here: string[] = []
   for (const key of keysOf(value)) {
     const item = value[key]
-    if (isTable(item)) nested.push([key, item, false])
+    if (isFilled(item)) nested.push([key, item, false])
     else if (isTableList(item)) for (const each of item) nested.push([key, each, true])
-    else here[key] = item
+    else here.push(...keyLine(key, item))
   }
   const header = names.map(keyText).join('.')
-  const lines = [array ? `[[${header}]]` : `[${header}]`]
-  // The files here write `["a"]`, not `[ "a" ]`.
-  const body = stringify(here, { bracketSpacing: false }).replace(/\r?\n$/, '')
-  if (body !== '') lines.push(...body.split(/\r?\n/))
+  const lines = [array ? `[[${header}]]` : `[${header}]`, ...here]
   for (const [key, item, list] of nested) lines.push('', ...sectionLines([...names, key], item, list))
   return lines
 }

@@ -182,6 +182,20 @@ release = 0.5
     expect(out).not.toContain('[graphs.nodes.joke]')
   })
 
+  it('an empty table is written {} where it is, not as a section of its own', () => {
+    const out = patched('[[rule]]\nslot = "a"\n', (value) => {
+      value.rule.push({ when: {}, slot: 'b' })
+    })
+    expect(out).toBe('[[rule]]\nslot = "a"\n\n[[rule]]\nwhen = {}\nslot = "b"\n')
+  })
+
+  it('the first row of a list that has an empty table keeps it as {} too', () => {
+    const out = patched('[[slot]]\nid = "a"\n', (value) => {
+      value.rule = [{ when: {}, slot: 'a' }]
+    })
+    expect(out).toBe('[[slot]]\nid = "a"\n\n[[rule]]\nwhen = {}\nslot = "a"\n')
+  })
+
   it('a scalar key added in the same patch is still written where toml-patch writes it', () => {
     const out = patched('[[event]]\non = "a"\ncue = "x"\n', (value) => {
       value.master_gain = 0.5
