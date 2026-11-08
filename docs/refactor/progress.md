@@ -681,7 +681,7 @@ browser projects need the other engines, so `pnpm test:browser:2d` stops here); 
 is green except `check-changesets`, which fails on an earlier branch's changeset naming the unpublished `@automata/3d`
 (`stage-characters-3d.md`). Stage 5 (build audit) and 6 (fixes) not started. Details and rulings: the plan's log.
 
-## Crisp in-game text: 50% (3 of 6: stages 1 to 3)
+## Crisp in-game text: 67% (4 of 6: stages 1 to 4)
 
 The Owner picked MSDF `BitmapText` on a crisp layer for the text a game draws on its canvas (`draw(ctx).text` and Feel's
 words), 2026-11-08 21:11. Stage 1 (audit) done: [audit](2026-11-08-in-game-text-audit.md), made on #522's head. 3 high
@@ -705,3 +705,26 @@ fixed in place in the spec and the plan. A 2D and a 3D game were made in the edi
 the editor reloaded, closed and reopened, and the game played again, at iPad and phone size: 4 passed, the word
 persisted and showed in play (screens in `/mnt/project-files/text-rendering/plan-audit/`). Not run: WebKit, Firefox,
 the GPU runner, a bake. Next: build (Sonnet, high).
+
+Stage 4 (build) done, 2026-11-08: branch `claude/project-thread-bhb01n` stacked on #529, nine tasks as commits, each test
+first. New: `tooling/hud-font` (the bake: Geist SemiBold MSDF `latin` 228 glyphs 372x364, `cyrillic` 206 glyphs 347x358,
+checked in with a record its tests pin), `features/hud-text` (page choice, size floors of
+12 CSS px for `ctx.text` and 14 for Feel's words, the lazy page loader, pooled labels with a device-face fallback), a
+`hud` layer on the renderer outside every post filter, `ctx.text` returning its box with `anchor` and `shadow`, six
+examples updated, Feel's words and its editor preview in the same face, a `hudLabels` parameter on the frame-budget stress
+page. Played and measured (journeys `complete-game-2d` and `complete-game-3d`, "Feel: a word is sharp and readable in
+play"): a new game in the editors, the word set to "Ouch, a wall!", played, the editor page reloaded, the editor stopped
+and started again on the same folder, the word still in Feel and served, played and measured again. Letter height / edge
+run in device px, before then after: 2D phone 5.5 / 3 then 12 / 2, 2D iPad 6 / 3 then 15 / 1, 3D phone 11.5 / 6 then 15 / 2,
+3D iPad 21 / 12 then 27.5 / 2. The new journeys failed on the old code (a worktree at the commit before task 1) on edge and
+height, and pass here; the 2D publish step also finds `af-hud-latin` in the zip's scripts.
+Ran: `pnpm check` (all but `check-changesets`, which fails on `stage-characters-3d.md` from the base stack naming the
+unpublished `@automata/3d`), `pnpm test:unit:2d` (all pass), `pnpm test:browser:2d`, `pnpm test:browser:3d` and
+`pnpm test:journeys:3d` in Chromium only (`--browser.name=chromium`: WebKit and Firefox are not installed here, so the
+unmodified commands stop on a missing browser). Chromium results: 3D browser all pass (11 packages), 3D journeys 3 files
+pass, 2D browser all pass except `@automata/editor`'s Tuner controls layout tests (32 failures, `tuner-` panel never
+appears), which fail identically on the commit before this branch's first task, so they are not from this work. Not run:
+WebKit, Firefox, the GPU runner (`pnpm test:frame-budget` and so no hardware numbers for ten changing labels; a software
+Chromium smoke drew them without errors), real devices. Pending: Geist's credit (OFL 1.1, Vercel with basement.studio) on
+the site's Credits page, which is #521 and not under this branch. Next: build audit (Opus, medium).
+

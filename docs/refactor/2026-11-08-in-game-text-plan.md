@@ -77,20 +77,20 @@ journeys, `msdf-bmfont-xml` 2.8.0, `geist` 1.9.2.
   `const FONT: BitmapFontData` and `const ATLAS_PNG_BASE64: string`, with a header comment naming the bake command and the
   OFL licence.
 
-- [ ] **Step 1: Write the failing tests.** `toPixiFont` on a fixture JSON (two glyphs, a zero and a non-zero kerning
+- [x] **Step 1: Write the failing tests.** `toPixiFont` on a fixture JSON (two glyphs, a zero and a non-zero kerning
   pair, `distanceField { fieldType: 'msdf', distanceRange: 4 }`) keeps both chars, keeps only the non-zero kerning, sets
   `distanceField.type === 'msdf'` and `range === 4`; a fixture with no `distanceField` throws
   `"not an MSDF bake"`; a fixture with `common.pages: 2` throws `"more than one atlas"`. `PAGES.latin` holds no U+00AD
   and `PAGES.cyrillic` holds ’ and ʼ. `verifyRecord` on a temp copy returns `[]`, and after one byte of `latin.font.ts` changes returns
   `["latin.font.ts: sha256 does not match fonts.record.json"]`; each page's atlas size in the record is ≤ 220,000; every
   character of `PAGES` has a glyph in its page's committed `FONT.chars`.
-- [ ] **Step 2: Run** `pnpm --filter @automata/hud-font exec vitest run`; fail on the missing modules.
-- [ ] **Step 3: Implement.** `bake.ts` runs `msdf-bmfont-xml` per page (`-f json -s 32 -r 4 -t msdf -m 1024,1024`, charset
+- [x] **Step 2: Run** `pnpm --filter @automata/hud-font exec vitest run`; fail on the missing modules.
+- [x] **Step 3: Implement.** `bake.ts` runs `msdf-bmfont-xml` per page (`-f json -s 32 -r 4 -t msdf -m 1024,1024`, charset
   from `PAGES` through a temporary `-i` file, `NO_UPDATE_NOTIFIER=1` in its environment) on `geist/dist/fonts/geist-sans/Geist-SemiBold.ttf`, then writes the modules and the record (source sha256,
   `licence: 'OFL-1.1'`, per output sha256 and bytes). `cli.ts`: `bake` writes, `verify` prints problems and exits 1.
-- [ ] **Step 4: Bake and run.** `pnpm hud-font bake`; tests pass; note each atlas's bytes and size in the plan's log
+- [x] **Step 4: Bake and run.** `pnpm hud-font bake`; tests pass; note each atlas's bytes and size in the plan's log
   (measured, not typed). `pnpm hud-font verify` exits 0.
-- [ ] **Step 5: Commit** `feat(hud-font): bake Geist SemiBold MSDF pages for canvas text`.
+- [x] **Step 5: Commit** `feat(hud-font): bake Geist SemiBold MSDF pages for canvas text`.
 
 ### Task 2: Pick a page and size a label (pure)
 
@@ -108,7 +108,7 @@ journeys, `msdf-bmfont-xml` 2.8.0, `geist` 1.9.2.
   `HUD_TEXT_FLOOR = 12`, `WORD_TEXT_FLOOR = 14`; `hudFontSize(size: number, floorCss: number, scale: HudScale): number`;
   `shadowOffset(scale: HudScale): number` (`1.5 / cssPerLogical`).
 
-- [ ] **Step 1: Write the failing tests.** With the real `CHARS`: `choosePage('Bump!')` and `('Ça va ?')`,
+- [x] **Step 1: Write the failing tests.** With the real `CHARS`: `choosePage('Bump!')` and `('Ça va ?')`,
   `('Zażółć gęślą jaźń')`, `('İyi şanslar')` → `'latin'`; `('Привет, Ana!')`, `('Ґанок №1')` → `'cyrillic'`;
   `('Aïe, un mur ! 好')`, `('Hi 👋')`, `('Ελα')` → `undefined` (Geist has Greek, but no page bakes it); `('')` and
   `('a\nb')` → `'latin'` (control characters ignored); `('м’яч')`, `('пʼять')` → `'cyrillic'`; `("C’est l’heure")` →
@@ -116,12 +116,12 @@ journeys, `msdf-bmfont-xml` 2.8.0, `geist` 1.9.2.
   `normalise('Fuß­ball')` → `'Fußball'`. `missingFrom('Aïe 好', pages)` → `['好']`. `hudFontSize(10, 14, { cssPerLogical: 0.77,
   devicePerCss: 3, hostScale: 1 })` ≈ 18.18; at `cssPerLogical: 3.06` → 10; at `hostScale: 1.333, cssPerLogical: 1.69`
   → ≈ 11.04. `shadowOffset({ cssPerLogical: 1.5, … })` → 1.
-- [ ] **Step 2: Run** `pnpm --filter @automata/framework exec vitest run --project unit hud-text`; fail.
-- [ ] **Step 3: Implement** the functions; `normalise(text: string): string` (spec D3: U+202F and U+2009 to U+00A0,
+- [x] **Step 2: Run** `pnpm --filter @automata/framework exec vitest run --project unit hud-text`; fail.
+- [x] **Step 3: Implement** the functions; `normalise(text: string): string` (spec D3: U+202F and U+2009 to U+00A0,
   `\p{Cc}` and `\p{Cf}` removed), which the label draws; `choosePage` and `missingFrom` take its output and iterate code
   points (`for…of`), skipping nothing else.
-- [ ] **Step 4: Run**; pass.
-- [ ] **Step 5: Commit** `feat(framework): choose a font page and size canvas text`.
+- [x] **Step 4: Run**; pass.
+- [x] **Step 5: Commit** `feat(framework): choose a font page and size canvas text`.
 
 ### Task 3: Load a page into Pixi
 
@@ -136,18 +136,18 @@ journeys, `msdf-bmfont-xml` 2.8.0, `geist` 1.9.2.
 - Produces: `loadPage(id: PageId): Promise<string>` resolving to the font family (`'af-hud-latin'`) registered in Pixi's
   `Cache` under `<family>-bitmap`; memoised per id; `pageFamilyIfLoaded(id: PageId): string | undefined`.
 
-- [ ] **Step 1: Write the failing test.** After `TextureSource.defaultOptions.scaleMode = 'nearest'`, `await
+- [x] **Step 1: Write the failing test.** After `TextureSource.defaultOptions.scaleMode = 'nearest'`, `await
   loadPage('latin')` registers `af-hud-latin-bitmap`; its page texture's `source.scaleMode === 'linear'`; two calls share
   one promise; a `BitmapText` with that family measures "Bump!" wider than 0; `pageFamilyIfLoaded('cyrillic')` is
   `undefined` until `loadPage('cyrillic')` resolves; the page source's `alphaMode` is `'premultiply-alpha-on-upload'`
   and `autoGenerateMipmaps` is false.
-- [ ] **Step 2: Run** `pnpm --filter @automata/framework exec vitest run --project browser hud-text/load-page`; fail.
-- [ ] **Step 3: Implement.** `import('./fonts/<page>.font.ts')`, decode the base64 into a `Blob`, `createImageBitmap`,
+- [x] **Step 2: Run** `pnpm --filter @automata/framework exec vitest run --project browser hud-text/load-page`; fail.
+- [x] **Step 3: Implement.** `import('./fonts/<page>.font.ts')`, decode the base64 into a `Blob`, `createImageBitmap`,
   `new TextureSource({ resource, scaleMode: 'linear', alphaMode: 'premultiply-alpha-on-upload', autoGenerateMipmaps:
   false, resolution: 1 })` (the options `loadBitmapFont.mjs:45-50` gives a distance-field font), `new BitmapFont({ data: FONT, textures: [new Texture({ source })] })`,
   `Cache.set(`${family}-bitmap`, font)` (as Pixi's own `loadBitmapFont` does in 8.22; check its file before writing).
-- [ ] **Step 4: Run**; pass.
-- [ ] **Step 5: Commit** `feat(framework): load a baked font page with a linear atlas`.
+- [x] **Step 4: Run**; pass.
+- [x] **Step 5: Commit** `feat(framework): load a baked font page with a linear atlas`.
 
 ### Task 4: The `hud` layer
 
@@ -167,17 +167,17 @@ journeys, `msdf-bmfont-xml` 2.8.0, `geist` 1.9.2.
   (`cssPerLogical` = `frame.root.scale.x`, or 1 without a frame; `devicePerCss` = `app.renderer.resolution`;
   `hostScale` = the target geometry's current `scale`).
 
-- [ ] **Step 1: Write the failing tests.** Unit: after `layout(834, 1194)` on a 512 by 256 frame, `hud.scale.x ===
+- [x] **Step 1: Write the failing tests.** Unit: after `layout(834, 1194)` on a 512 by 256 frame, `hud.scale.x ===
   root.scale.x`, `hud.position` equals `root.position`, `hud.mask === hudMask`, and `app.stage.children` order is
   `scene, hudMask, hud, bars`; without logical size the order is `scene, hud` and `stage.filters` sets the `scene`'s filters.
   Browser: a white `Graphics` square on `stage.hud` under a `scanlines` post filter has every pixel identical to the
   same render without the filter, while a square on `stage.ui` differs; a square on `hud` drawn past the field's bottom
   is clipped at the field.
-- [ ] **Step 2: Run** the unit and browser files; fail.
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Run**, then `pnpm --filter @automata/framework test:unit` (existing renderer, draw-layer and
+- [x] **Step 2: Run** the unit and browser files; fail.
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Run**, then `pnpm --filter @automata/framework test:unit` (existing renderer, draw-layer and
   letterbox tests still pass).
-- [ ] **Step 5: Commit** `feat(framework): a hud layer above the pixel picture, outside the post filters`.
+- [x] **Step 5: Commit** `feat(framework): a hud layer above the pixel picture, outside the post filters`.
 
 ### Task 5: `HudText`, the labels
 
@@ -204,7 +204,7 @@ journeys, `msdf-bmfont-xml` 2.8.0, `geist` 1.9.2.
     `textureStyle: { scaleMode: 'linear' }`; the dev note per spec D5 behind `import.meta.env?.DEV`, once per code point;
     after `destroy`, or once `surface.hud.destroyed`, a late page load does nothing and `set` adds no child).
 
-- [ ] **Step 1: Write the failing tests.** Unit (fake surface, `ready` awaited): `set('Bump!', …)` gives `kind ===
+- [x] **Step 1: Write the failing tests.** Unit (fake surface, `ready` awaited): `set('Bump!', …)` gives `kind ===
   'bitmap'`, one visible fill and one shadow at `+shadowOffset`; `shadow: false` hides the shadow; anchor `{x:1,y:0}` puts
   the box's right edge at x; the box's height grows to the floor at `cssPerLogical: 0.77`; slot reuse
   `'Bump!' → '好' → 'Bump!'` gives `bitmap, fallback, bitmap` with one visible fill each time and no new children after the
@@ -218,10 +218,10 @@ journeys, `msdf-bmfont-xml` 2.8.0, `geist` 1.9.2.
   sees today's blur). After a resize from 1280 by 720 to 522 by 300, the next frame's box height equals the floor and the
   edge stays at most 2. "Привет" and "好" each draw non-zero pixels for every letter (columns of ink counted per glyph
   box).
-- [ ] **Step 2: Run** the unit and browser files; fail.
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Run**; pass.
-- [ ] **Step 5: Commit** `feat(framework): crisp canvas text labels with a fallback face`.
+- [x] **Step 2: Run** the unit and browser files; fail.
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Run**; pass.
+- [x] **Step 5: Commit** `feat(framework): crisp canvas text labels with a fallback face`.
 
 ### Task 6: `ctx.text` on the hud, and the examples
 
@@ -241,20 +241,20 @@ journeys, `msdf-bmfont-xml` 2.8.0, `geist` 1.9.2.
 - Produces: `DrawTextOptions` gains `anchor?: { readonly x: number; readonly y: number }` and `shadow?: boolean`;
   `type DrawTextBox = HudBox`; `DrawContext.text(...): DrawTextBox`.
 
-- [ ] **Step 1: Write the failing tests.** Unit: the layer's labels are on `stage.hud`, not `ui`; `text` returns a box
+- [x] **Step 1: Write the failing tests.** Unit: the layer's labels are on `stage.hud`, not `ui`; `text` returns a box
   with `height ≥ 8`; unused labels hide; `watch(undefined)` hides all; a layer whose `draw` only calls `rect` adds
   nothing to `hud` and starts no page load. Browser: the existing green-pixel test reads
   from `app.stage` with `setup` given the renderer's stage. Examples: in the examples' e2e at a 393 by 659 view, each
   example's text box lies inside the field and inside its panel (the example reports both through its existing test
   hook, or the test reads the hud's bounds).
-- [ ] **Step 2: Run**; fail.
-- [ ] **Step 3: Implement.** Each example draws its text first, then its panel from the box (`x - 4`, `y - 3`,
+- [x] **Step 2: Run**; fail.
+- [x] **Step 3: Implement.** Each example draws its text first, then its panel from the box (`x - 4`, `y - 3`,
   `box.width + 8`, `box.height + 6`); `shapes-draw-hud` anchors its text at `(ctx.width - 8, 129)` with
   `anchor: { x: 1, y: 0 }` and checks its minimap never overlaps the text's box.
-- [ ] **Step 4: Run** the unit, browser and `examples/2d` e2e at phone and desktop; replay hashes in
+- [x] **Step 4: Run** the unit, browser and `examples/2d` e2e at phone and desktop; replay hashes in
   `examples/2d/__goldens__` unchanged. Look at each example at 393 by 659 and 1280 by 720 and record the screens in
   `/mnt/project-files/text-rendering/build/`.
-- [ ] **Step 5:** `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write`, `pnpm agent-skills` (a check).
+- [x] **Step 5:** `pnpm build`, `pnpm api-report --update`, `pnpm api-index --write`, `pnpm agent-skills` (a check).
   **Commit** `feat(framework): ctx.text draws crisp on the hud and returns its box`.
 
 ### Task 7: Feel's words
@@ -273,15 +273,15 @@ journeys, `msdf-bmfont-xml` 2.8.0, `geist` 1.9.2.
 - Produces: none new; words draw as `HudLabel`s with `{ size: 10, floor: WORD_TEXT_FLOOR, color: 0xffffff, shadow:
   true, anchor: { x: 0.5, y: 1 } }`.
 
-- [ ] **Step 1: Write the failing tests.** Feel: a word's label is a child of `stage.hud` and not of `ui` (the test at
+- [x] **Step 1: Write the failing tests.** Feel: a word's label is a child of `stage.hud` and not of `ui` (the test at
   `feel-stage.test.ts:234` moves to `hud`); the "Aïe !" case draws from `latin` with every letter; a "好" word draws as
   `fallback`; `reset` hides every word. 3D: after `rebuild`, a Feel word draws non-zero pixels on the new app.
-- [ ] **Step 2: Run**; fail.
-- [ ] **Step 3: Implement.** Replace the pooled `Text` with `HudLabel`s from one `createHudText(stage)`. The labels are
+- [x] **Step 2: Run**; fail.
+- [x] **Step 3: Implement.** Replace the pooled `Text` with `HudLabel`s from one `createHudText(stage)`. The labels are
   children of `hud`, so the app's teardown destroys them; add no dispose hook to `PixiStageHooks` (spec D10).
-- [ ] **Step 4: Run** feel unit and `pnpm test:browser:3d`; pass. `pnpm build`, `pnpm api-report --update`,
+- [x] **Step 4: Run** feel unit and `pnpm test:browser:3d`; pass. `pnpm build`, `pnpm api-report --update`,
   `pnpm api-index --write`, `pnpm agent-skills`.
-- [ ] **Step 5: Commit** `feat(feel): words draw crisp on the hud with a shadow and a size floor`.
+- [x] **Step 5: Commit** `feat(feel): words draw crisp on the hud with a shadow and a size floor`.
 
 ### Task 8: Feel's preview in the same face
 
@@ -294,13 +294,13 @@ journeys, `msdf-bmfont-xml` 2.8.0, `geist` 1.9.2.
 
 - Consumes: the editor's `--font-sans` (`"Geist Variable"`, `packages/editor/src/shared/kit/tokens.css:29`).
 
-- [ ] **Step 1: Write the failing test.** With a canvas 2D context spy: the word is drawn with `ctx.font` containing
+- [x] **Step 1: Write the failing test.** With a canvas 2D context spy: the word is drawn with `ctx.font` containing
   `600` and `"Geist Variable"`, once in `#000000` at `(+1.5, +1.5)` CSS px and once in white; `document.fonts.load` was
   awaited before the first draw; with `devicePixelRatio = 2` and a 320 by 200 CSS box, the canvas's backing store is 640
   by 400 and the context is scaled by 2; the stage's field is the dark game field in both the Dark and the Light theme
   (spec D10). Look at the preview in both themes at phone and desktop size and record the screens.
-- [ ] **Step 2: Run**; fail. **Step 3: Implement.** **Step 4: Run**; pass.
-- [ ] **Step 5: Commit** `feat(editors): Feel previews a word in the face play draws`.
+- [x] **Step 2: Run**; fail. **Step 3: Implement.** **Step 4: Run**; pass.
+- [x] **Step 5: Commit** `feat(editors): Feel previews a word in the face play draws`.
 
 ### Task 9: Played and measured
 
@@ -316,24 +316,24 @@ journeys, `msdf-bmfont-xml` 2.8.0, `geist` 1.9.2.
 - Produces: `measureWord(png: Buffer, devicePerCss: number): { letterHeightCss: number; edgeRunDevice: number }` (the
   white letters' box and the median anti-aliased run, the same measure as Task 5).
 
-- [ ] **Step 1: Write the failing journey steps.** In both journeys, after Feel's word is set to "Ouch, a wall!" and the
+- [x] **Step 1: Write the failing journey steps.** In both journeys, after Feel's word is set to "Ouch, a wall!" and the
   bump is played: the frame with the most white pixels (kept with `preserveDrawingBuffer`, as the audit's journey did)
   gives `letterHeightCss ≥ 11` on the phone project and `edgeRunDevice ≤ 2` on both. Then reload the editor, reopen Feel
   and see "Ouch, a wall!" still there; then stop the editor, start it again on the same game folder, reopen Feel, see
   the word, wait for the game to serve it (`servedWith`), play again and measure again (the plan audit's throwaway
   journey, `/mnt/project-files/text-rendering/plan-audit/zz-plan-audit.test.ts`, does these steps today). In the 2D
   journey's publish step, the zip holds a script with `af-hud-latin` in it.
-- [ ] **Step 2: Run** the new steps against #526's head in a `git worktree` (the earlier tasks are commits, not a
+- [x] **Step 2: Run** the new steps against #526's head in a `git worktree` (the earlier tasks are commits, not a
   stash), to see them fail for the right reason (edge and height, not the persistence steps); then on the branch:
   `playwright test -c playwright.journeys.config.ts complete-game --project editor-ipad-chromium --project
   editor-phone-chromium`; pass.
-- [ ] **Step 3: Cost.** Add a `hudLabels` parameter to the frame-budget stress page (`tooling/frame-budget/stress/params.ts`,
+- [ ] **Step 3: Cost** (the param is built and unit-tested; the GPU numbers are not run, no runner reachable). Add a `hudLabels` parameter to the frame-budget stress page (`tooling/frame-budget/stress/params.ts`,
   drawn from `stress-screen.ts`) for ten labels changing each frame, run `pnpm test:frame-budget` on the GPU runner and
   record the numbers in the log. Add no `budget.json` row (`budget:frame` fails closed on a budgeted project with no
   hardware result). If the runner is not reachable, leave this step unchecked and say so.
-- [ ] **Step 4: Gates.** `pnpm check`, `pnpm test:unit:2d`, `pnpm test:browser:2d`, `pnpm test:browser:3d`,
+- [x] **Step 4: Gates** (Chromium only; see the log). `pnpm check`, `pnpm test:unit:2d`, `pnpm test:browser:2d`, `pnpm test:browser:3d`,
   `pnpm test:journeys:3d`; record what ran and what did not (WebKit, Firefox, GPU runner).
-- [ ] **Step 5:** Update `progress.md` (build done, what ran), credit Geist (OFL 1.1, Vercel with basement.studio) on the
+- [x] **Step 5** (the Geist credit on the Credits page is pending: #521 is not under this branch): Update `progress.md` (build done, what ran), credit Geist (OFL 1.1, Vercel with basement.studio) on the
   site's Credits page once the site line (#521) is under this branch, else log it as pending. **Commit**
   `test(editor): the Feel word is crisp and readable in a played game`.
 
@@ -349,3 +349,15 @@ journeys, `msdf-bmfont-xml` 2.8.0, `geist` 1.9.2.
   in place in the spec and this plan. A 2D and a 3D game were made in the editors, a Feel word changed, played, the
   editor reloaded, closed and reopened, and the game played again, at iPad and phone size: the word persisted and showed
   in play in all four.
+- 2026-11-08: build (stage 4) on `claude/project-thread-bhb01n`, stacked on #529. Rulings: bake files are named
+  `<page>-chars.ts` and `<page>-font.ts` (the style check rejects role suffixes); `pages.ts` holds `HUD_PAGES`; the
+  page source is injectable for tests; the plan's blur control was replaced by a Pixi `Text` drawn inside the picture;
+  Feel's Node unit tests cover structure and the fallback path, and the bitmap path is covered by the framework's browser
+  tests and the journeys; the Feel-word journeys are their own tests in `complete-game-2d` and `-3d` (the long 2D
+  journey's 30-frame white flash would fill the frame the measure reads); only the light theme exists on this branch, so
+  the preview screens are light (the stage field is `--color-bg-canvas`, dark in any theme). Measured (letter height CSS
+  px / edge run device px), old then new: 2D phone 5.5 / 3 then 12 / 2, 2D iPad 6 / 3 then 15 / 1, 3D phone 11.5 / 6 then
+  15 / 2, 3D iPad 21 / 12 then 27.5 / 2. Not run: WebKit, Firefox, the GPU runner (`pnpm test:frame-budget`), real
+  devices. `AGENTS.md` names `pnpm agent-skills --write` and `pnpm cheatsheet`, which do not exist, and `pnpm api-index
+  --write` fails on `PROMPT_COPY` and `STICK_DIRECTIONS` (undocumented exports from before this work). Final review: a
+  self-review by the author (no subagent tool); a fresh reviewer should read it in the build audit.
