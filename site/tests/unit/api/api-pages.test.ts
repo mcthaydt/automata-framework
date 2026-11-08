@@ -109,4 +109,17 @@ describe('/api', () => {
     expect(open.every((group) => group.open)).toBe(true)
     expect(view.container.querySelector('[id="startGame"]')).toBeTruthy()
   })
+
+  it('shows a doc comment’s backticks as code, not as raw marks', () => {
+    const version = latestApiVersion()
+    const pkg = getApiReference(version)!.packages.find((candidate) =>
+      candidate.entryPoints.some((point) => point.entries.some((entry) => entry.doc.includes('`'))),
+    )!
+    const view = render(Package, { data: { version, pkg } } as never)
+    const withCode = [...view.container.querySelectorAll('details.api-entry > p')].filter((p) =>
+      p.querySelector('code'),
+    )
+    expect(withCode.length).toBeGreaterThan(0)
+    for (const p of withCode) expect(p.textContent).not.toContain('`')
+  })
 })

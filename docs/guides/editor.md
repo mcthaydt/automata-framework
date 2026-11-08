@@ -1,5 +1,7 @@
 # Draw levels in the editor
 
+How to open the level editor on your game and draw its levels.
+
 In your game's folder, run:
 
 ```sh

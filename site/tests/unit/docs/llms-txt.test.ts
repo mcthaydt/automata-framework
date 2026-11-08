@@ -17,6 +17,18 @@ describe('LLMs.txt & Docs Pipeline', () => {
     expect(content).toContain('- [Draw levels in the editor](/docs/editor)')
   })
 
+  it('says what the editor guide is, not the first words of its steps', async () => {
+    expect(await llmsIndex().text()).toContain(
+      '- [Draw levels in the editor](/docs/editor): How to open the level editor on your game and draw its levels.',
+    )
+  })
+
+  it('describes the full file by what a reader gets: every guide and Reference page in one file', async () => {
+    expect(await llmsIndex().text()).toContain(
+      '[Full documentation](/llms-full.txt): Every guide and Reference page in one file',
+    )
+  })
+
   it('generates llms-guides.txt with every guide in full, How it works first', async () => {
     const content = await llmsGuides().text()
     expect(content.indexOf('## Document: How it works')).toBeLessThan(

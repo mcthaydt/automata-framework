@@ -35,5 +35,5 @@ Confirm Superpowers is installed, including using-superpowers and its planning/t
 Confirm the official PixiJS v8 skill collection is installed, including the pixijs router and relevant rendering skills.
 Read the applicable SKILL.md files and report their loaded paths or plugin names.
 If either collection is missing or cannot be loaded, stop and follow its upstream installation instructions before implementing.
-Then read this checkout's AGENTS.md and current package types. Project rules take precedence.
+Then read this game's README.md and the package types.
 Do not report a skill as installed or loaded without evidence.`

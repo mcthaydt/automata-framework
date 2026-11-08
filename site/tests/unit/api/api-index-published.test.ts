@@ -20,7 +20,7 @@ describe('the framework API index, as published', () => {
   it('lists the three plain-text files in llms.txt with what each one holds', async () => {
     const index = await llmsIndex().text()
     expect(index).toContain(
-      `- [Full documentation](/llms-full.txt): The framework's defined documentation corpus and its complete API reference for version ${version}, generated from the package declarations.`,
+      `- [Full documentation](/llms-full.txt): Every guide and Reference page in one file, for version ${version}.`,
     )
     expect(index).toContain(
       `- [API reference](/llms-api.txt): Every export of the ${version} packages with its signature and doc comment, generated from the package declarations.`,

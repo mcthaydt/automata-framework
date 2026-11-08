@@ -240,3 +240,9 @@ Reference, Privacy, Terms and Contact; the targets are named by the publish sect
 | Reference index | one flat list of packages under each version | `Core` and `Extensions` | 4 (a visitor can tell what every game uses from what is optional) |
 | Docs | no page about extensions | `Extensions: add what your game needs`: what one is, `pnpm add`, a table of nine in a line each | 3 |
 | How it works | `The four packages` and a count in the opening | `The core packages`, no count | 3 (a count goes stale when a package is added) |
+| Start, agent setup | three checkboxes and `1 of 3 ticked. The boxes are only for you.` | a numbered list of three steps | 1 (boxes that do nothing look broken) |
+| Start, the check | `read this checkout's AGENTS.md and current package types` | `read this game's README.md and the package types` | 1 (create-game writes a README.md, not an AGENTS.md) |
+| Contact | a personal mailbox | `hello@automataframework.com` (the mailbox is the Owner's to open before launch) | 2 |
+| `llms.txt`, full file | `The framework's defined documentation corpus and its complete API reference…` | `Every guide and Reference page in one file, for version …` | 4 |
+| `llms.txt`, editor guide | `In your game's folder, run:` | `How to open the level editor on your game and draw its levels.` | 4 |
+| Reference, doc comments | backticks shown as marks | shown as code | 4 |

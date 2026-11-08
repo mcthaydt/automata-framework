@@ -1,5 +1,6 @@
 <script lang="ts">
 import { onMount } from 'svelte'
+import InlineText from '../../shared/components/InlineText.svelte'
 import PageMeta from '../../shared/components/PageMeta.svelte'
 import PageShell from '../../shared/components/PageShell.svelte'
 import type { ApiEntry, ApiPackage } from '../../shared/framework/api'
@@ -61,8 +62,8 @@ onMount(() => {
       {#each point.entries as entry (entry.name)}
         <!-- The framework's doc comment and signature, unchanged: site-checks leaves their words to the framework (data-framework-copy). -->
         <details class="api-entry" id={entry.name} data-framework-copy>
-          <summary><h3>{entry.name}</h3> <span class="small">{entry.kind}</span>{#if entry.doc}<span class="api-summary">{summary(entry)}</span>{/if}</summary>
-          {#if entry.doc}<p>{entry.doc}</p>{/if}
+          <summary><h3>{entry.name}</h3> <span class="small">{entry.kind}</span>{#if entry.doc}<span class="api-summary"><InlineText text={summary(entry)} /></span>{/if}</summary>
+          {#if entry.doc}<p><InlineText text={entry.doc} /></p>{/if}
           <!-- Plain wrapped text: a signature needs no scroll region of its own. -->
           <pre class="api-signature-wrapped"><code>{entry.signature}</code></pre>
         </details>

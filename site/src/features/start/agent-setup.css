@@ -19,22 +19,25 @@
   display: block;
   margin-top: 0.5rem;
 }
-.agent-install-layout {
+.agent-steps {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  margin-block: 2.5rem;
+  gap: 2.5rem;
+  margin-block: 2.5rem 1rem;
+  padding-left: 1.5rem;
 }
-.agent-install-layout > div {
+.agent-steps > li {
   min-width: 0;
 }
+.agent-steps h3 {
+  margin-top: 0;
+}
 /* The upstream links stand alone under their steps, so each is a whole tap target. */
-.agent-install-layout > div > a {
+.agent-steps > li > a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
 }
-.agent-install-layout .code-block {
+.agent-steps .code-block {
   margin-block: 1rem;
 }
 .agent-setup pre {
@@ -42,39 +45,4 @@
 }
 .agent-setup pre code {
   overflow-wrap: anywhere;
-}
-.skill-readiness {
-  border: 0;
-  padding: 0;
-  margin-block: 2rem 1rem;
-}
-.skill-readiness legend {
-  font-size: var(--step-lead);
-  margin-bottom: 0.5rem;
-}
-.skill-readiness label {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-height: 48px;
-  margin-block: 0.3rem;
-  font-family: var(--font-sans);
-  font-size: var(--step-body);
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--ink);
-}
-.skill-readiness input {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  min-height: 20px;
-  padding: 0;
-  accent-color: var(--ink);
-}
-@media (max-width: 700px) {
-  .agent-install-layout {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 2rem;
-  }
 }

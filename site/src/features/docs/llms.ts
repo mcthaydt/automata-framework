@@ -15,7 +15,7 @@ export function llmsIndex(docs: readonly DocSection[], version: string): string 
 ${docs.map((d) => `- [${d.title}](/docs/${d.slug}): ${d.description}`).join('\n')}
 
 ## Plain text for agents
-- [Full documentation](/llms-full.txt): The framework's defined documentation corpus and its complete API reference for version ${version}, generated from the package declarations.
+- [Full documentation](/llms-full.txt): Every guide and Reference page in one file, for version ${version}.
 - [API reference](/llms-api.txt): Every export of the ${version} packages with its signature and doc comment, generated from the package declarations.
 - [Site guides](/llms-guides.txt): Every guide on this site, in full.
 
