@@ -478,7 +478,7 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
 
-## Edited content shows in play: 17% (1 of 6: stage 2)
+## Edited content shows in play: 33% (2 of 6: stages 2 and 3)
 
 Normal dev pipeline (no stage 1 audit; the investigation is
 [`2026-11-08-complete-game-gaps.md`](2026-11-08-complete-game-gaps.md)). The Owner approved steps 1 to 6 on 2026-11-08
@@ -488,7 +488,7 @@ Normal dev pipeline (no stage 1 audit; the investigation is
 | Stage | State |
 | --- | --- |
 | 2. Spec and plan | Done: [spec](2026-11-08-content-in-play-spec.md), [plan](2026-11-08-content-in-play-plan.md), 16 tasks |
-| 3. Plan audit | Not started |
-| 4. Build | Not started (0 of 16) |
+| 3. Plan audit | Done: [audit](2026-11-08-content-in-play-plan-audit.md), 21 findings fixed in the spec and plan; 17 tasks |
+| 4. Build | Not started (0 of 17) |
 | 5. Build audit | Not started |
 | 6. Fixes | Not started |
