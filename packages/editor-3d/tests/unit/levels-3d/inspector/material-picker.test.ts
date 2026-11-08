@@ -1,14 +1,14 @@
 // The material picker's model (ED3D.8a step 3, spec §5.3 flow 5 and §9: categories, search, empty search, selected, scale,
 // brightness and the apply scope). The sheet reads `view` and calls the methods; nothing here draws.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { createMaterialPicker } from '#src/features/levels-3d/inspector/material-picker.ts'
 import { createLevelEditor } from '#src/shared/edit/level-editor.ts'
 import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
 import { toyAfSector, toyDock, toyHall } from '#src/testing/toy-af-sector.ts'
 
-const level: AfSector = toyAfSector({
+const level: AfSector2File = toyAfSector({
   materials: {
     brick: { category: 'walls', label: 'Red brick' },
     plaster: { category: 'walls', label: 'Warm plaster' },

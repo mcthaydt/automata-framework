@@ -1,6 +1,6 @@
-// The `af-sector/1` format as a level profile: the codec, the geometry of the sectors it builds (it has no nav graph),
-// its checks, and the entities the file defines and holds.
-import type { AfSector } from '@automata/3d/level'
+// The `af-sector/2` format as a level profile (the one the editor has; an `/1` file is upgraded when it is read): the codec,
+// the geometry of the sectors it builds (it has no nav graph), its checks, and the entities the file defines and holds.
+import type { AfSector2File } from '@automata/3d/level'
 import { afSectorChecks } from './af-sector/af-checks'
 import { afSectorCodec } from './af-sector/af-codec'
 import { afDefinitionAccess } from './af-sector/af-definitions'
@@ -12,7 +12,7 @@ import { SECTOR_HINTS } from './level-hints'
 import { GeometryError, type LevelProfile, resolveOrThrow } from './level-profile'
 import { afMaterials } from './materials'
 
-export const afSectorProfile: LevelProfile<AfSector> = {
+export const afSectorProfile: LevelProfile<AfSector2File> = {
   ...afSectorCodec,
   geometry(level) {
     let sectors: ReturnType<typeof buildSectors>
@@ -22,7 +22,7 @@ export const afSectorProfile: LevelProfile<AfSector> = {
       if (error instanceof AfBuildError) throw new GeometryError(error.message)
       throw error
     }
-    return { layers: [{ kind: 'sectors', map: resolveOrThrow(sectors) }] }
+    return { layers: [{ kind: 'sectors', map: resolveOrThrow(sectors, level.masses ?? []) }] }
   },
   checks: (level) => afSectorChecks(level),
   entities: afEntityKit,

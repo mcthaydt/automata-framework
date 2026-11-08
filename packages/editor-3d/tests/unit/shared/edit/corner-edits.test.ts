@@ -1,7 +1,7 @@
 // The corner and sector moves (ED3D.3 step 6): `sector.moveCorner` with the rule that a portal's reverse follows, and
 // `sector.move`, which leaves the neighbours where they are. On the depot and on small levels that show one rule each.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { moveCorner, moveSector } from '#src/shared/edit/corner-edits.ts'
 import type { Edit } from '#src/shared/edit/edit.ts'
@@ -18,14 +18,15 @@ const depot = (() => {
   return result.value
 })()
 
-const afOn = (level: AfSector, edit: Edit<AfSector>) => edit.run(afSectorProfile, level)
-const afRun = (edit: Edit<AfSector>) => afOn(depot, edit)
-const sector = (level: AfSector, id: string): EditSector =>
-  must(afSectorProfile.sectors.list(level).find((each) => each.id === id))
-const openings = (level: AfSector) => must(afSectorProfile.checks(level).find((r) => r.id === 'openings'))
+const afOn = (level: AfSector2File, edit: Edit<AfSector2File>) => edit.run(afSectorProfile, level)
+const afRun = (edit: Edit<AfSector2File>) => afOn(depot, edit)
+const sector = (level: AfSector2File, id: string): AfSectorEntry2File =>
+  must(level.sectors.find((each) => each.id === id))
+const openings = (level: AfSector2File) =>
+  must(afSectorProfile.checks(level).find((r) => r.id === 'openings'))
 
 /** Three sectors that meet at the origin; `joinAB` says whether a and b are portals into each other as well. */
-const fan = (joinAB: boolean): AfSector =>
+const fan = (joinAB: boolean): AfSector2File =>
   toyAfSector({
     sectors: [
       {
@@ -59,7 +60,7 @@ const fan = (joinAB: boolean): AfSector =>
   })
 
 /** A room with a hole, and a sector in the hole whose walls are the hole's reverse. */
-const ring = (): AfSector =>
+const ring = (): AfSector2File =>
   toyAfSector({
     sectors: [
       {
@@ -144,13 +145,13 @@ describe('sector.moveCorner', () => {
     const [hall, dock] = [must(depot.sectors[0]), must(depot.sectors[1])]
     const walled = toyAfSector({
       sectors: [hall, { ...dock, corners: [dock.corners[0], dock.corners[1], dock.corners[2], [8, 6]] }],
-    } as Partial<AfSector>)
+    } as Partial<AfSector2File>)
     const next = levelOf(afOn(walled, moveCorner({ sector: 'hall', corner: 1, x: 9, z: 0 })))
     expect(sector(next, 'hall').corners[1]).toEqual([9, 0, { next: 'dock' }])
     expect(sector(next, 'dock').corners[0]).toEqual([8, 0])
     const apart = toyAfSector({
       sectors: [hall, { ...dock, corners: [[8, 0.01], ...dock.corners.slice(1)] }],
-    } as Partial<AfSector>)
+    } as Partial<AfSector2File>)
     const other = levelOf(afOn(apart, moveCorner({ sector: 'hall', corner: 1, x: 9, z: 0 })))
     expect(sector(other, 'dock').corners[0]).toEqual([8, 0.01])
   })
@@ -174,7 +175,7 @@ describe('sector.moveCorner', () => {
           ],
         },
       ],
-    } as Partial<AfSector>)
+    } as Partial<AfSector2File>)
     const next = levelOf(afOn(level, moveCorner({ sector: 'hall', corner: 1, x: 9, z: 0 })))
     expect(sector(next, 'long').corners[1]).toEqual([8, 0])
   })

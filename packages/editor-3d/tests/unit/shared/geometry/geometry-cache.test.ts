@@ -1,7 +1,7 @@
 // The geometry cache (ED3D.6b): the layers and the selection ids of the editor's live level, built once for each level
 // the editor holds and not once for each pointer move. A level that cannot be resolved has no layers.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { moveSector } from '#src/shared/edit/corner-edits.ts'
 import { createLevelEditor } from '#src/shared/edit/level-editor.ts'
@@ -10,7 +10,7 @@ import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
 import { GeometryError, type LevelProfile } from '#src/shared/level-session/level-profile.ts'
 import { toyAfSector } from '#src/testing/toy-af-sector.ts'
 
-const level: AfSector = toyAfSector()
+const level: AfSector2File = toyAfSector()
 
 describe('createGeometryCache', () => {
   it('builds the layers and the selection ids of the live level', () => {
@@ -37,7 +37,7 @@ describe('createGeometryCache', () => {
   })
 
   it('has no layers for a level the engine cannot build, and goes on working', () => {
-    const profile: LevelProfile<AfSector> = {
+    const profile: LevelProfile<AfSector2File> = {
       ...afSectorProfile,
       geometry() {
         throw new GeometryError('the engine cannot build it')
@@ -50,7 +50,7 @@ describe('createGeometryCache', () => {
   })
 
   it('does not hide an error that is not the engine refusing the level', () => {
-    const profile: LevelProfile<AfSector> = {
+    const profile: LevelProfile<AfSector2File> = {
       ...afSectorProfile,
       geometry() {
         throw new Error('a bug')

@@ -1,7 +1,7 @@
 // The checks panel (ED3D.10a steps 2 and 3, spec §5.3 flow 7): when the checks run, what the pill counts, and what
 // Locate does with a problem. The timer is a fake that the test fires, so nothing here waits.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it, vi } from 'vitest'
 import { createChecksPanel, type Scheduler } from '#src/features/levels-3d/checks/checks-panel-controller.ts'
 import type { CheckResult } from '#src/shared/checks/check.ts'
@@ -20,7 +20,7 @@ const depot = (() => {
 })()
 
 /** Changes the hall; with a ceiling below its floor the `heights` check fails twice (the room, and the portal beside it). */
-const setHall = (change: Partial<EditSector>): Edit<AfSector> => ({
+const setHall = (change: Partial<EditSector>): Edit<AfSector2File> => ({
   id: 'test.hall',
   label: 'Change the hall',
   run: (profile, level) =>
@@ -37,7 +37,7 @@ const setHall = (change: Partial<EditSector>): Edit<AfSector> => ({
 const breakHall = setHall({ ceiling: -1 })
 const mendHall = setHall({ ceiling: 4 })
 /** An edit that leaves the level as it was: the history records nothing. */
-const nothing: Edit<AfSector> = { id: 'test.nothing', label: 'Nothing', run: (_, level) => ok(level) }
+const nothing: Edit<AfSector2File> = { id: 'test.nothing', label: 'Nothing', run: (_, level) => ok(level) }
 
 /** A timer that keeps its calls and runs the live ones on `flush`. */
 function fakeScheduler() {
@@ -65,12 +65,14 @@ function fakeScheduler() {
 }
 
 /** The depot's profile with its checks watched. */
-function watched(profile: LevelProfile<AfSector> = afSectorProfile) {
+function watched(profile: LevelProfile<AfSector2File> = afSectorProfile) {
   const checks = vi.fn(profile.checks)
-  return { profile: { ...profile, checks } as LevelProfile<AfSector>, checks }
+  return { profile: { ...profile, checks } as LevelProfile<AfSector2File>, checks }
 }
 
-function setup(options: { delayMs?: number; profile?: LevelProfile<AfSector>; level?: AfSector } = {}) {
+function setup(
+  options: { delayMs?: number; profile?: LevelProfile<AfSector2File>; level?: AfSector2File } = {},
+) {
   const editor = createLevelEditor({
     profile: options.profile ?? afSectorProfile,
     level: options.level ?? depot,
@@ -217,7 +219,7 @@ describe('run', () => {
 })
 
 describe('the counts', () => {
-  const scripted: LevelProfile<AfSector> = {
+  const scripted: LevelProfile<AfSector2File> = {
     ...afSectorProfile,
     checks: () => [
       result('ids', 'error', []),

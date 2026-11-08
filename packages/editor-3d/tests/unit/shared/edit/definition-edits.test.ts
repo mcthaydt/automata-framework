@@ -2,7 +2,7 @@
 // (`af-sector/1`), and the refusal on a format whose definitions are fixed. A definitions edit
 // never makes a valid instance invalid (the kit's `checkRetype`), and an accepted edit never makes the checks worse.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import type { FieldDef } from '@automata/editor/kit/fields'
 import { describe, expect, it } from 'vitest'
 import {
@@ -20,20 +20,20 @@ import { levelOf, reasonOf } from '#src/testing/edit-helpers.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 
 const depotText = loadAuthored('depot.af-sector')
-const depot = ((): AfSector => {
+const depot = ((): AfSector2File => {
   const result = afSectorProfile.parse(depotText)
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
 })()
 
-const runAf = (edit: Edit<AfSector>, level: AfSector = depot): EditResult<AfSector> =>
+const runAf = (edit: Edit<AfSector2File>, level: AfSector2File = depot): EditResult<AfSector2File> =>
   edit.run(afSectorProfile, level)
 /** A format that fixes its definitions leaves `definitions` out of its profile. */
-const runFixed = (edit: Edit<AfSector>): EditResult<AfSector> =>
+const runFixed = (edit: Edit<AfSector2File>): EditResult<AfSector2File> =>
   edit.run({ ...afSectorProfile, definitions: undefined }, depot)
 
 /** The depot with a second crate and a switch whose ref field may point only at a crate. */
-const wired: AfSector = {
+const wired: AfSector2File = {
   ...depot,
   entityDefs: [
     ...(depot.entityDefs ?? []),
@@ -47,14 +47,14 @@ const wired: AfSector = {
 }
 
 /** Every problem the `ids` and `entities` checks report, as sentences. */
-const entitySentences = (level: AfSector): string[] =>
+const entitySentences = (level: AfSector2File): string[] =>
   afSectorProfile
     .checks(level)
     .filter((result) => result.id === 'ids' || result.id === 'entities')
     .flatMap((result) => result.problems.map((problem) => problem.message))
 
 /** The level an edit made, after showing that it made no `ids` or `entities` problem the level did not have. */
-function accepted(edit: Edit<AfSector>, level: AfSector = depot): AfSector {
+function accepted(edit: Edit<AfSector2File>, level: AfSector2File = depot): AfSector2File {
   const next = levelOf(runAf(edit, level))
   const before = new Set(entitySentences(level))
   expect(entitySentences(next).filter((sentence) => !before.has(sentence))).toEqual([])
@@ -62,10 +62,11 @@ function accepted(edit: Edit<AfSector>, level: AfSector = depot): AfSector {
 }
 
 /** The reason an edit was refused, after showing it is a refusal. */
-const refused = (edit: Edit<AfSector>, level: AfSector = depot): string => reasonOf(runAf(edit, level))
+const refused = (edit: Edit<AfSector2File>, level: AfSector2File = depot): string =>
+  reasonOf(runAf(edit, level))
 
-const defIds = (level: AfSector): string[] => (level.entityDefs ?? []).map((def) => def.id)
-const fieldsOf = (level: AfSector, id: string): unknown =>
+const defIds = (level: AfSector2File): string[] => (level.entityDefs ?? []).map((def) => def.id)
+const fieldsOf = (level: AfSector2File, id: string): unknown =>
   (level.entityDefs ?? []).find((def) => def.id === id)?.fields
 
 const barrel: ThingDef = {
@@ -141,7 +142,7 @@ describe('renameDefinition (def.rename)', () => {
   })
 
   it('renames a ref field’s own definition in its own to', () => {
-    const chain: AfSector = {
+    const chain: AfSector2File = {
       ...depot,
       entityDefs: [
         ...(depot.entityDefs ?? []),
@@ -165,7 +166,7 @@ describe('renameDefinition (def.rename)', () => {
   })
 
   it('rewrites the to of a definition the reader could not read', () => {
-    const broken: AfSector = {
+    const broken: AfSector2File = {
       ...depot,
       entityDefs: [
         ...(depot.entityDefs ?? []),
@@ -181,12 +182,12 @@ describe('renameDefinition (def.rename)', () => {
   })
 
   it('refuses a definition the reader could not read, with its sentence', () => {
-    const broken: AfSector = {
+    const broken: AfSector2File = {
       ...depot,
       entityDefs: [...(depot.entityDefs ?? []), { id: 'bad', shape: 'cone' }],
     }
     expect(refused(renameDefinition({ def: 'bad', to: 'good' }), broken)).toMatch(
-      /^entity definition bad: fields: /,
+      /^entity definition bad: shape: /,
     )
   })
 })
@@ -251,7 +252,7 @@ describe('setDefinitionField (def.setField)', () => {
   })
 
   it('does not blame a retype for an instance that was already invalid', () => {
-    const faulty: AfSector = {
+    const faulty: AfSector2File = {
       ...wired,
       entities: wired.entities?.map((entity) =>
         entity.id === 'crate2' ? { ...entity, contents: 7 } : entity,
@@ -292,7 +293,7 @@ describe('setDefinitionField (def.setField)', () => {
   })
 
   it('refuses a rename to a field id the definition has, or one the kit refuses', () => {
-    const twoFields: AfSector = {
+    const twoFields: AfSector2File = {
       ...depot,
       entityDefs: depot.entityDefs?.map((def) =>
         def.id === 'crate' ? { ...def, fields: [contents(), { id: 'weight', type: 'float' }] } : def,
@@ -310,7 +311,7 @@ describe('setDefinitionField (def.setField)', () => {
   })
 
   it('refuses a narrowed to that leaves a ref pointing at something it no longer allows', () => {
-    const withLamp: AfSector = {
+    const withLamp: AfSector2File = {
       ...wired,
       entityDefs: [...(wired.entityDefs ?? []), { id: 'lamp', shape: 'point', fields: [] }],
     }
@@ -335,7 +336,7 @@ describe('setDefinitionField (def.setField)', () => {
   })
 
   it('does not blame a rename of a ref field for a ref that already pointed at nothing', () => {
-    const dangling: AfSector = {
+    const dangling: AfSector2File = {
       ...wired,
       entities: wired.entities?.map((entity) =>
         entity.id === 'sw1' ? { ...entity, opens: { target: 'ghost' } } : entity,
@@ -361,7 +362,7 @@ describe('setDefinitionField (def.setField)', () => {
   })
 
   it('refuses to remove a field the definition cannot do without, in the reader’s sentence', () => {
-    const sizeless: AfSector = {
+    const sizeless: AfSector2File = {
       ...depot,
       entityDefs: [
         ...(depot.entityDefs ?? []),
@@ -381,7 +382,10 @@ describe('setDefinitionField (def.setField)', () => {
     expect(refused(setDefinitionField({ def: 'crate', field: 'contents', value: null }), wired)).toBe(
       'crate: contents would stop validating: entity crate1 holds a value for it; entity crate2 holds a value for it',
     )
-    const empty: AfSector = { ...depot, entities: depot.entities?.filter((entity) => entity.def !== 'crate') }
+    const empty: AfSector2File = {
+      ...depot,
+      entities: depot.entities?.filter((entity) => entity.def !== 'crate'),
+    }
     expect(
       fieldsOf(
         accepted(setDefinitionField({ def: 'crate', field: 'contents', value: null }), empty),
@@ -411,7 +415,10 @@ describe('setDefinitionField (def.setField)', () => {
 
 describe('removeDefinition (def.remove)', () => {
   it('removes a definition nobody uses', () => {
-    const bare: AfSector = { ...depot, entities: depot.entities?.filter((entity) => entity.def !== 'crate') }
+    const bare: AfSector2File = {
+      ...depot,
+      entities: depot.entities?.filter((entity) => entity.def !== 'crate'),
+    }
     expect(defIds(accepted(removeDefinition({ def: 'crate' }), bare))).toEqual(['spawn'])
   })
 
@@ -419,14 +426,14 @@ describe('removeDefinition (def.remove)', () => {
     expect(refused(removeDefinition({ def: 'crate' }), wired)).toBe(
       'crate is still used: entity crate1; entity crate2; entity definition switch: opens may point at crate',
     )
-    const bare: AfSector = { ...wired, entities: [] }
+    const bare: AfSector2File = { ...wired, entities: [] }
     expect(refused(removeDefinition({ def: 'crate' }), bare)).toBe(
       'crate is still used: entity definition switch: opens may point at crate',
     )
   })
 
   it('does not count a definition’s own ref field as a use of it', () => {
-    const chain: AfSector = {
+    const chain: AfSector2File = {
       ...depot,
       entityDefs: [
         ...(depot.entityDefs ?? []),
@@ -437,7 +444,7 @@ describe('removeDefinition (def.remove)', () => {
   })
 
   it('refuses while a definition the reader could not read may point at it', () => {
-    const bare: AfSector = {
+    const bare: AfSector2File = {
       ...depot,
       entities: depot.entities?.filter((entity) => entity.def !== 'crate'),
       entityDefs: [
@@ -451,7 +458,7 @@ describe('removeDefinition (def.remove)', () => {
   })
 
   it('removes a definition the reader could not read, and refuses one that is not there', () => {
-    const broken: AfSector = {
+    const broken: AfSector2File = {
       ...depot,
       entityDefs: [...(depot.entityDefs ?? []), { id: 'bad', shape: 'cone' }],
     }
@@ -478,7 +485,7 @@ describe('through the level editor', () => {
 
 describe('ED3-r, headless', () => {
   it('defines a crate with a ref field, places two, sets the field, writes and re-reads them, and keeps single', () => {
-    const level: AfSector = {
+    const level: AfSector2File = {
       ...depot,
       entities: depot.entities?.filter((entity) => entity.def !== 'crate'),
       entityDefs: depot.entityDefs?.filter((def) => def.id !== 'crate'),
@@ -493,10 +500,15 @@ describe('ED3-r, headless', () => {
       fields: [{ id: 'loot', type: 'ref' }],
     }
     for (const edit of [
-      addDefinition<AfSector>({ definition: crate }),
-      addThing<AfSector>({ def: 'crate', id: 'crate1', x: 3, z: 2 }),
-      addThing<AfSector>({ def: 'crate', id: 'crate2', x: 11, z: 2 }),
-      setThingField<AfSector>({ def: 'crate', id: 'crate1', field: 'loot', value: { target: 'crate2' } }),
+      addDefinition<AfSector2File>({ definition: crate }),
+      addThing<AfSector2File>({ def: 'crate', id: 'crate1', x: 3, z: 2 }),
+      addThing<AfSector2File>({ def: 'crate', id: 'crate2', x: 11, z: 2 }),
+      setThingField<AfSector2File>({
+        def: 'crate',
+        id: 'crate1',
+        field: 'loot',
+        value: { target: 'crate2' },
+      }),
     ])
       expect(e.run(edit)).toMatchObject({ ok: true })
     const saved = afSectorProfile.patch(text.text, level, e.level)
@@ -511,7 +523,10 @@ describe('ED3-r, headless', () => {
     expect(entitySentences(reopened.value)).toEqual([])
     expect(
       reasonOf(
-        addThing<AfSector>({ def: 'spawn', id: 'spawn2', x: 2, z: 2 }).run(afSectorProfile, reopened.value),
+        addThing<AfSector2File>({ def: 'spawn', id: 'spawn2', x: 2, z: 2 }).run(
+          afSectorProfile,
+          reopened.value,
+        ),
       ),
     ).toBe('spawn allows one: entity spawn is there already')
   })

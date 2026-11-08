@@ -2,7 +2,7 @@
 // selection id the app selects it by, a unit normal and a shade. The rooms are 8 m by 6 m and 4 m high unless a test says
 // otherwise; `z` is the plan's `z`, so a wall's coordinates read the same here as on the plan.
 
-import type { AfSector, AfSectorEntry, AfWall } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File, AfWall2 } from '@automata/3d/level'
 import { polygonArea } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { planScene } from '#src/features/levels-3d/plan/plan-scene.ts'
@@ -20,11 +20,14 @@ import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 import { toyAfSector, toyDock, toyHall } from '#src/testing/toy-af-sector.ts'
 
-const meshOf = (level: AfSector): SectorMesh =>
+const meshOf = (level: AfSector2File): SectorMesh =>
   buildSectorMesh(afSectorProfile.geometry(level).layers, selectionOf(afSectorProfile, level))
 
 /** One room, `id` 'room', with the walls given by the index of the corner they start at (0 is the north wall). */
-const room = (walls: Readonly<Record<number, AfWall>> = {}, more: Partial<AfSectorEntry> = {}): AfSector =>
+const room = (
+  walls: Readonly<Record<number, AfWall2>> = {},
+  more: Partial<AfSectorEntry2File> = {},
+): AfSector2File =>
   toyAfSector({
     sectors: [
       {
@@ -283,7 +286,7 @@ describe('buildSectorMesh floors, ceilings and walls', () => {
 })
 
 describe('buildSectorMesh floors with holes', () => {
-  const pillar = (): AfSector =>
+  const pillar = (): AfSector2File =>
     room(
       {},
       {
@@ -796,7 +799,7 @@ describe('buildSectorMesh occlusion (ED3D.4b)', () => {
   })
 
   it('reads a value the format does not know as cut', () => {
-    const odd = { occlude: 'sideways' } as unknown as AfWall
+    const odd = { occlude: 'sideways' } as unknown as AfWall2
     const mesh = meshOf(room({ 0: odd }))
     expect(occludeOfWall(mesh, 'wall:room/0')).toEqual(['cut'])
   })
@@ -808,7 +811,7 @@ describe('buildSectorMesh occlusion (ED3D.4b)', () => {
 })
 
 /** The depot sample, with a hole cut in its hall so the floor and ceiling have something to take out. */
-const depot = (): AfSector => {
+const depot = (): AfSector2File => {
   const parsed = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!parsed.ok) throw new Error('the depot does not parse')
   const [hall, ...rest] = parsed.value.sectors
@@ -818,7 +821,7 @@ const depot = (): AfSector => {
     [4, 4],
     [2, 4],
   ] as const
-  return { ...parsed.value, sectors: [{ ...(hall as AfSectorEntry), holes: [hole] }, ...rest] }
+  return { ...parsed.value, sectors: [{ ...(hall as AfSectorEntry2File), holes: [hole] }, ...rest] }
 }
 
 describe('buildSectorMesh on the depot', () => {

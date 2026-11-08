@@ -1,12 +1,12 @@
 // What the profile lists for the material picker, and the hints its views take (ED3D.8a step 1, spec §4.1, D8, D10).
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 import { toyAfSector } from '#src/testing/toy-af-sector.ts'
 
-const depot = (): AfSector => {
+const depot = (): AfSector2File => {
   const parsed = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!parsed.ok) throw new Error('the depot does not parse')
   return parsed.value

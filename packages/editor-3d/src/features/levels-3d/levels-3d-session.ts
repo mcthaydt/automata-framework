@@ -1,3 +1,4 @@
+import { afFormatVersion } from '@automata/3d/level'
 import type { SuitePorts, SuiteUndo, WorkspaceFile } from '@automata/editor/kit/ports'
 import { fileTitle } from '@automata/editor/suite'
 import { ok } from '../../shared/edit/edit'
@@ -39,6 +40,8 @@ export interface Levels3dSession {
   readonly state: Levels3dState
   /** Why the last step was taken back; `undefined` after one that was written. */
   readonly refusal: string | undefined
+  /** The file is from an older version: its first change writes it in the current one, and nothing in it is lost. */
+  readonly upgraded: boolean
   /** The level's text as the session last wrote or took it. */
   text(): string
   /** Resolves once every write started so far has finished. */
@@ -48,6 +51,15 @@ export interface Levels3dSession {
 }
 
 const encoder = new TextEncoder()
+
+const formatOf = (text: string): string => {
+  try {
+    const format = (JSON.parse(text) as { format?: unknown } | null)?.format
+    return typeof format === 'string' ? format : ''
+  } catch {
+    return ''
+  }
+}
 
 const NEWER = 'It was made by a newer version of AF. Update AF, then open it again.'
 const UNREADABLE = "Something in it isn't written the way a room is. Details says where."
@@ -70,6 +82,7 @@ function failed(
     options,
     state: { kind: 'error', message: `${fileTitle(path || 'This row')} can't be opened.`, reason, details },
     refusal: undefined,
+    upgraded: false,
     text: () => '',
     settled: () => Promise.resolve(),
     quietly: (change) => change(),
@@ -87,8 +100,9 @@ export async function openLevels3d(
   if (read === undefined) return failed(options, path, others, 'There is no such file.')
   const outcome = readLevel(encoder.encode(read.text))
   if (outcome.status === 'invalid') {
-    // A refused `format` is a file from a newer version; any other issue is the file's own writing.
-    const newer = outcome.issues.some((issue) => issue.path[0] === 'format')
+    // A format with a major version above this editor's is a file from a newer version; anything else is the file's own
+    // writing.
+    const newer = (afFormatVersion(formatOf(outcome.text))?.major ?? 0) > 2
     return failed(options, path, others, newer ? NEWER : UNREADABLE, outcome.issues)
   }
   if (outcome.status !== 'parsed') return failed(options, path, others, UNREADABLE)
@@ -96,7 +110,9 @@ export async function openLevels3d(
   const profile: LevelProfile<unknown> = outcome.profile
   const editor = createLevelEditor({ profile, level: outcome.value, now: options.now })
   /** The text the file holds (as far as this session knows) and the level it parses to: what the next patch is from. */
-  let base = { text: read.text, model: outcome.value }
+  // A file from an older version starts from its upgrade: nothing is written until a step, and the first step writes the
+  // upgrade with it, as one write and one Undo (the suite's Undo puts back the bytes it replaced, the older text).
+  let base = { text: outcome.text, model: outcome.value }
   let mtime = read.mtime
   let quiet = false
   let queue: Promise<void> = Promise.resolve()
@@ -107,6 +123,7 @@ export async function openLevels3d(
     options,
     state: { kind: 'open', editor } as const,
     refusal: undefined as string | undefined,
+    upgraded: outcome.upgraded,
     text: () => base.text,
     settled: () => queue,
     quietly(change: () => void) {

@@ -20,7 +20,7 @@ import {
   round4,
   sectorOf,
 } from './sector-edit-support'
-import { PORTAL_MEMBERS } from './wall-geometry'
+import { isBareWall, PORTAL_MEMBERS } from './wall-geometry'
 
 /** What a sector has when the level has none to take it from. */
 const DEFAULT_FLOOR = 0
@@ -120,7 +120,7 @@ function copiedWall(wall: string | EditWall | undefined): string | EditWall | un
     const { id: _id, ...doorWithoutId } = door
     kept.door = doorWithoutId
   }
-  return Object.keys(kept).length === 0 ? undefined : (kept as EditWall)
+  return isBareWall(kept as EditWall) ? undefined : (kept as EditWall)
 }
 
 /** A corner moved by the offset, with its wall copied; a corner with no wall left is `[x, z]`. */

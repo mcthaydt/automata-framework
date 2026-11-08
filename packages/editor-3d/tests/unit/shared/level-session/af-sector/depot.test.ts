@@ -29,7 +29,7 @@ describe('the depot sample', () => {
 
   it('names the format and its two sectors, one step apart', () => {
     const { value } = depot()
-    expect(value.format).toBe('af-sector/1')
+    expect(value.format).toBe('af-sector/2')
     expect(value.name).toBe('depot')
     expect(value.sectors.map((sector) => [sector.id, sector.floor])).toEqual([
       ['hall', 0],

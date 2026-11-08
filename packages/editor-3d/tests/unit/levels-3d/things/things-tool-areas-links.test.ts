@@ -4,7 +4,7 @@
 // (links kept beside the level, as a format that has them would keep them in the file). The canvas is 800 by 400 px with
 // the camera at (7, 3), zoom 1 (32 px to a metre); the grid is half a metre.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import type { PlanPointer } from '#src/features/levels-3d/plan/plan-controller.ts'
@@ -22,7 +22,7 @@ const CAMERA = { x: 7, z: 3, zoom: 1 }
 const float = (id: string) => ({ id, type: 'float' as const, default: 0 })
 
 /** The toy level with a `zone` that bounds a rectangle, a `hotspot` point, and three `node`s p, t and s. */
-const toy: AfSector = toyAfSector({
+const toy: AfSector2File = toyAfSector({
   entityDefs: [
     {
       id: 'zone',
@@ -42,16 +42,16 @@ const toy: AfSector = toyAfSector({
 })
 
 /** Links kept beside each level they belong to, so an edit that returns a new level carries its links with it. */
-const kept = new WeakMap<AfSector, readonly ThingLink[]>()
-const linksOf = (level: AfSector): readonly ThingLink[] => kept.get(level) ?? []
-const withLinks = (level: AfSector, links: readonly ThingLink[]): AfSector => {
+const kept = new WeakMap<AfSector2File, readonly ThingLink[]>()
+const linksOf = (level: AfSector2File): readonly ThingLink[] => kept.get(level) ?? []
+const withLinks = (level: AfSector2File, links: readonly ThingLink[]): AfSector2File => {
   const next = { ...level }
   kept.set(next, links)
   return next
 }
 
 const NOT_CLEAR = 'edge p–s is not clear'
-const links: ThingLinks<AfSector> = {
+const links: ThingLinks<AfSector2File> = {
   def: 'node',
   list: linksOf,
   add: (level, link) => {
@@ -67,8 +67,8 @@ const links: ThingLinks<AfSector> = {
 }
 const profile = { ...afSectorProfile, links }
 
-function setup(level: AfSector = toy) {
-  const editor: LevelEditor<AfSector> = createLevelEditor({ profile, level })
+function setup(level: AfSector2File = toy) {
+  const editor: LevelEditor<AfSector2File> = createLevelEditor({ profile, level })
   editor.view.set({ camera: CAMERA })
   const tool = createThingsTool(editor, SIZE)
   const at = (x: number, z: number, kind: PointerKind = 'mouse'): PlanPointer => ({
@@ -78,9 +78,9 @@ function setup(level: AfSector = toy) {
   return { editor, tool, at }
 }
 
-const thingOf = (editor: LevelEditor<AfSector>, id: string) =>
+const thingOf = (editor: LevelEditor<AfSector2File>, id: string) =>
   editor.profile.entities(editor.level).things.find((thing) => thing.id === id)
-const idsOf = (editor: LevelEditor<AfSector>) =>
+const idsOf = (editor: LevelEditor<AfSector2File>) =>
   editor.profile.entities(editor.level).things.map((thing) => thing.id)
 
 describe('placing a thing that bounds an area', () => {
@@ -175,7 +175,7 @@ describe('linking', () => {
     expect(made.editor.selection.ids).toEqual(['entity:node/p'])
     return made
   }
-  const edgesOf = (editor: LevelEditor<AfSector>) => linksOf(editor.level).map((l) => [l.a, l.b, l.via])
+  const edgesOf = (editor: LevelEditor<AfSector2File>) => linksOf(editor.level).map((l) => [l.a, l.b, l.via])
 
   it('answers that one node must be selected first', () => {
     const { editor, tool, at } = setup()

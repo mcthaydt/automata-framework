@@ -3,13 +3,13 @@
 // can be offered (ED3D.6b step 1). The toy level is a hall (0 to 8 m by 0 to 6 m) and a dock beside it (8 to 14 m), which
 // already lead into each other.
 
-import type { AfSector, AfSectorEntry } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { portalOffers, wallPortal } from '#src/shared/edit/portal-offers.ts'
 import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
 import { toyAfSector, toyDock, toyHall } from '#src/testing/toy-af-sector.ts'
 
-const sector = (id: string, corners: AfSectorEntry['corners']): AfSectorEntry => ({
+const sector = (id: string, corners: AfSectorEntry2File['corners']): AfSectorEntry2File => ({
   id,
   floor: 0,
   ceiling: 4,
@@ -17,11 +17,12 @@ const sector = (id: string, corners: AfSectorEntry['corners']): AfSectorEntry =>
   corners,
 })
 
-const level = (...more: AfSectorEntry[]): AfSector => toyAfSector({ sectors: [toyHall, toyDock, ...more] })
-const offers = (data: AfSector, id: string) => portalOffers(afSectorProfile, data, id)
+const level = (...more: AfSectorEntry2File[]): AfSector2File =>
+  toyAfSector({ sectors: [toyHall, toyDock, ...more] })
+const offers = (data: AfSector2File, id: string) => portalOffers(afSectorProfile, data, id)
 
 /** West of the hall, over the hall's west wall (which starts at its corner 3). */
-const ANNEX: AfSectorEntry['corners'] = [
+const ANNEX: AfSectorEntry2File['corners'] = [
   [-6, 0],
   [0, 0],
   [0, 6],
@@ -87,7 +88,7 @@ describe('portalOffers', () => {
   })
 
   it('leaves out a neighbour wall that already leads into another sector, and keeps one that leads into this one', () => {
-    const westOf = (next: string): AfSector =>
+    const westOf = (next: string): AfSector2File =>
       toyAfSector({
         sectors: [
           {
@@ -105,7 +106,7 @@ describe('portalOffers', () => {
   })
 
   it('offers the wall whose own side already leads there, which completes the pair', () => {
-    const half: AfSectorEntry['corners'] = ANNEX.map((corner, i) =>
+    const half: AfSectorEntry2File['corners'] = ANNEX.map((corner, i) =>
       i === 1 ? ([0, 0, { next: 'hall' }] as const) : corner,
     )
     expect(offers(level(sector('annex', half)), 'annex')).toEqual([
@@ -133,10 +134,11 @@ describe('portalOffers', () => {
 })
 
 describe('wallPortal', () => {
-  const portal = (data: AfSector, id: string, corner: number) => wallPortal(afSectorProfile, data, id, corner)
+  const portal = (data: AfSector2File, id: string, corner: number) =>
+    wallPortal(afSectorProfile, data, id, corner)
 
   /** The hall with its west wall (corner 3) leading into `next`. */
-  const hallLeadingWest = (next: string): AfSectorEntry => ({
+  const hallLeadingWest = (next: string): AfSectorEntry2File => ({
     ...toyHall,
     corners: toyHall.corners.map((corner, i) => (i === 3 ? ([0, 6, { next }] as const) : corner)),
   })
@@ -185,7 +187,7 @@ describe('wallPortal', () => {
   })
 
   it('gives the reason of the first neighbour over the wall when none of them can take it', () => {
-    const twinEast = (next: string): AfSectorEntry => ({
+    const twinEast = (next: string): AfSectorEntry2File => ({
       ...sector('twin', [
         [-3, 0],
         [0, 0],
@@ -204,7 +206,7 @@ describe('wallPortal', () => {
     })
     expect(portal(bothTaken, 'annex', 1)).toEqual({ kind: 'taken', to: 'elsewhere' })
     // The annex's wall leads into the twin already and the twin's leads back (done), after the hall's that is taken.
-    const annexToTwin: AfSectorEntry['corners'] = ANNEX.map((corner, i) =>
+    const annexToTwin: AfSectorEntry2File['corners'] = ANNEX.map((corner, i) =>
       i === 1 ? ([0, 0, { next: 'twin' }] as const) : corner,
     )
     const takenThenDone = toyAfSector({
@@ -214,7 +216,7 @@ describe('wallPortal', () => {
   })
 
   it('offers a wall whose own side already leads there, which completes the pair', () => {
-    const half: AfSectorEntry['corners'] = ANNEX.map((corner, i) =>
+    const half: AfSectorEntry2File['corners'] = ANNEX.map((corner, i) =>
       i === 1 ? ([0, 0, { next: 'hall' }] as const) : corner,
     )
     expect(portal(level(sector('annex', half)), 'annex', 1)).toEqual({

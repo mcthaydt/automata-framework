@@ -47,7 +47,7 @@ const formatSchema = z.string().superRefine((format, context) => {
   else if (version.major !== 2)
     context.addIssue({
       code: 'custom',
-      message: `${format} is not a version this reader reads (${AF_SECTOR_2_FORMAT})`,
+      message: `${format} is not a version this editor reads (${AF_SECTOR_2_FORMAT})`,
     })
 })
 
@@ -303,7 +303,14 @@ function levelSchemas<P>(plane: z.ZodType<P>): {
 }
 
 const reader = levelSchemas<Plane>(planeSchema)
-const written = levelSchemas<WrittenPlane>(z.union([z.number(), planeObjectSchema]))
+// A height as written is a number, or a plane with a slope. Say what was found when it is neither of those shapes.
+const writtenPlaneSchema = z.union([z.number(), planeObjectSchema], {
+  error: (issue) =>
+    typeof issue.input === 'object' && issue.input !== null
+      ? undefined
+      : `Invalid input: expected number, received ${issue.input === null ? 'null' : typeof issue.input}`,
+})
+const written = levelSchemas<WrittenPlane>(writtenPlaneSchema)
 
 export const afSectorEntry2Schema: z.ZodType<AfSectorEntry2> = reader.entry
 export const afSector2Schema: z.ZodType<AfSector2> = reader.level

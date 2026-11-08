@@ -1,4 +1,4 @@
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import type { WorkspaceFile } from '@automata/editor/kit/ports'
 import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
 import { describe, expect, it } from 'vitest'
@@ -35,10 +35,10 @@ const dimHall = {
   id: 'test.dim',
   label: 'Dim the hall',
   run: (profile: LevelProfile<unknown>, level: unknown) => {
-    const sectors = profile.sectors.list(level as AfSector)
+    const sectors = profile.sectors.list(level as AfSector2File)
     return ok(
       profile.sectors.withSectors(
-        level as AfSector,
+        level as AfSector2File,
         sectors.map((s) => (s.id === 'hall' ? { ...s, light: 0.2 } : s)),
       ),
     )
@@ -132,5 +132,41 @@ describe('Levels 3D session', () => {
     await session.settled()
     expect(writes).toHaveLength(1)
     expect(editor.history.undoLabel).toBe('Draw a room')
+  })
+
+  describe('an older room', () => {
+    const OLDER = DEPOT.replace('"af-sector/2"', '"af-sector/1"').replace(
+      '[8, 6],',
+      '[8, 6, {"texture": "brick"}],',
+    )
+
+    it('is written only with the first change, as the new version, in one write', async () => {
+      const memory = await createMemoryPorts({ files: { [PATH]: OLDER }, classify: file })
+      const writes: string[] = []
+      const write = memory.ports.workspace.write.bind(memory.ports.workspace)
+      const ports = {
+        ...memory.ports,
+        workspace: {
+          ...memory.ports.workspace,
+          write: (path: string, text: string, expected: Parameters<typeof write>[2]) => {
+            writes.push(text)
+            return write(path, text, expected)
+          },
+        },
+      }
+      const session = await openLevels3d([file(PATH)], ports as typeof memory.ports, { now })
+      if (session.state.kind !== 'open') throw new Error(session.state.kind)
+      expect(session.upgraded).toBe(true)
+      await session.settled()
+      expect(writes).toEqual([])
+      expect((await ports.workspace.read(PATH))?.text).toBe(OLDER)
+      session.state.editor.run(dimHall as never)
+      await session.settled()
+      expect(writes).toHaveLength(1)
+      const saved = JSON.parse(writes[0] ?? '')
+      expect(saved.format).toBe('af-sector/2')
+      expect(saved.sectors[0].light).toBe(0.2)
+      expect(saved.sectors[0].corners[2]).toEqual([8, 6, { surface: 'brick' }])
+    })
   })
 })

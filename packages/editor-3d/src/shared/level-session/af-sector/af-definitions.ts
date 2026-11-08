@@ -1,14 +1,15 @@
-// Where the definitions of an `af-sector/1` level live: one list, `entityDefs`, whose ids the codec matches elements by,
+// Where the definitions of an `af-sector/2` level live: one list, `entityDefs`, whose ids the codec matches elements by,
 // and the `def` member of each of `entities` (ED3D spec §4.6, §4.7).
 
-import type { AfEntity, AfEntityDef, AfSector } from '@automata/3d/level'
+import type { AfEntity, AfEntityDef, AfSector2File } from '@automata/3d/level'
 import { sameJson, withoutUndefined } from '../../edit/json-values'
 import type { ThingDef } from '../../things/thing-def.schema'
 import type { DefinitionAccess, InstanceRename } from '../definition-access'
+import { BARE_DEFINITION } from './af-entities'
 
-const defsOf = (level: AfSector): readonly AfEntityDef[] => level.entityDefs ?? []
+const defsOf = (level: AfSector2File): readonly AfEntityDef[] => level.entityDefs ?? []
 
-function indexOf(level: AfSector, id: string): number {
+function indexOf(level: AfSector2File, id: string): number {
   const at = defsOf(level).findIndex((def) => def.id === id)
   if (at < 0) throw new RangeError(`no entity definition ${id}`)
   return at
@@ -30,6 +31,9 @@ function merged(old: AfEntityDef, next: ThingDef): AfEntityDef {
   }
   for (const [key, value] of now)
     if (!Object.hasOwn(old, key)) {
+      // What the game defaults (a point, no fields) was never written, so it is not written now.
+      if (key in BARE_DEFINITION && sameJson(value, BARE_DEFINITION[key as keyof typeof BARE_DEFINITION]))
+        continue
       out[key] = value
       changed = true
     }
@@ -80,7 +84,7 @@ function renamed(entity: AfEntity, rename: InstanceRename): AfEntity {
   return out as AfEntity
 }
 
-export const afDefinitionAccess: DefinitionAccess<AfSector> = {
+export const afDefinitionAccess: DefinitionAccess<AfSector2File> = {
   ids: (level) => defsOf(level).map((def) => def.id),
 
   add: (level, def) => ({ ...level, entityDefs: [...defsOf(level), { ...withoutUndefined(def) }] }),

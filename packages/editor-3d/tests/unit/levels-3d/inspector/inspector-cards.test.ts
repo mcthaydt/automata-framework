@@ -2,14 +2,14 @@
 // depot: the hall (0, 0)–(8, 6), floor 0, ceiling 4, light 1, tile and brick; its wall 0 has a window, wall 1 is a portal
 // into the dock, wall 2 is solid and wall 3 has a door. The dock: floor −0.5, light 0.7. Things: the spawn and a crate.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { inspectorOf, thingRowsOf, wallRowsOf } from '#src/features/levels-3d/inspector/inspector-cards.ts'
 import { createLevelEditor } from '#src/shared/edit/level-editor.ts'
 import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 
-const depot: AfSector = (() => {
+const depot: AfSector2File = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value

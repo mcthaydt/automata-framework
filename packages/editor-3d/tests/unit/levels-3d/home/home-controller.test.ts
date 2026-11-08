@@ -71,7 +71,7 @@ describe('the 3D Home controller', () => {
 
   it('hands a file to look at to the owner, untoasted, and reads the list again', async () => {
     const { controller, problems, said } = await setup({
-      'broken.json': loadAuthored('depot.af-sector').replace('"af-sector/1"', '"af-sector/2"'),
+      'broken.json': loadAuthored('depot.af-sector').replace('"af-sector/2"', '"af-sector/3"'),
     })
     await controller.refresh()
     await controller.open('broken.json')

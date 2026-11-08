@@ -1,4 +1,4 @@
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { PLAN_COLORS, parseHex } from '#src/features/levels-3d/plan/plan-colors.ts'
 import { groupColor, type PlanPaintInput, planPaint } from '#src/features/levels-3d/plan/plan-paint.ts'
@@ -36,7 +36,7 @@ const thing = (def: string, id: string, x: number, z: number, values: Thing['val
   values,
 })
 
-function inputOf(level: AfSector, more: Partial<PlanPaintInput> = {}): PlanPaintInput {
+function inputOf(level: AfSector2File, more: Partial<PlanPaintInput> = {}): PlanPaintInput {
   const hidden = more.hidden ?? []
   return {
     scene: planScene(afSectorProfile.geometry(level).layers, selectionOf(afSectorProfile, level), { hidden }),

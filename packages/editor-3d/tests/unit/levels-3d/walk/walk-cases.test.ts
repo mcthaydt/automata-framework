@@ -3,7 +3,7 @@
 // a warning) and ED3-s (draw a rectangle against the depot's hall wall, accept the portal, walk through it; the
 // generic checks pass and Last Light's rules are not listed). The depot is the shipped sample `af-sector/1` level.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { createChecksPanel } from '#src/features/levels-3d/checks/checks-panel-controller.ts'
 import { createInspectorEdits } from '#src/features/levels-3d/inspector/inspector-edits.ts'
@@ -17,7 +17,7 @@ import { createGeometryCache } from '#src/shared/geometry/geometry-cache.ts'
 import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 
-const depot: AfSector = (() => {
+const depot: AfSector2File = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
@@ -64,7 +64,7 @@ describe('ED3-f: a wall set to a window in Walk shows on the plan, and one undo 
 
 describe('ED3-n: a level with no spawn', () => {
   it('starts Walk in the middle of the first sector with a warning', () => {
-    const level: AfSector = {
+    const level: AfSector2File = {
       ...depot,
       entities: depot.entities?.filter((thing) => thing['def'] !== 'spawn'),
     }

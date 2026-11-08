@@ -1,8 +1,8 @@
-// The sectors of an `af-sector/1` level as the editor's edits see them (ED3D spec §4.1). The level's sectors already are
-// `EditSector`s, so `list` hands them over as they are, and `withSectors` is a spread of the level with other sectors in
-// that place. The one thing an `af-sector` level cannot hold is a wall written as a name (Last Light's spelling of a
+// The rooms of an `af-sector/2` level as the editor's edits see them (Levels 3D spec §5): one view per room, with the
+// floor and ceiling as heights and a wall's texture as a name (`room-views.ts`), and the edits' result written back into
+// the file's own members. The one thing a level cannot hold is a wall written as a name (Last Light's spelling of a
 // cutaway group), which no edit makes for it and which is refused if one arrives.
-import type { AfCorner, AfSector, AfSectorEntry } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
 import { insideOutline } from '../../geometry/loops'
 import {
   type EditCorner,
@@ -13,36 +13,31 @@ import {
   type SectorAccess,
   SectorAccessError,
 } from '../sector-access'
-
-function afCorner(corner: EditCorner): AfCorner {
-  const [x, z, wall] = corner
-  if (typeof wall === 'string')
-    throw new SectorAccessError(
-      `a wall written as a name (${JSON.stringify(wall)}) cannot be held by an af-sector level`,
-    )
-  return wall === undefined ? [x, z] : [x, z, wall]
-}
-
-function afEntry(sector: EditSector): AfSectorEntry {
-  const { corners, holes, ...rest } = sector
-  return {
-    ...rest,
-    corners: corners.map(afCorner),
-    ...(holes === undefined ? {} : { holes: holes.map((hole) => hole.map(afCorner)) }),
-  }
-}
+import { roomView, writeRoom } from './room-views'
 
 /** Where a wall leads; a name (Last Light's spelling of a cutaway group) leads nowhere. */
 const nextOf = (wall: string | EditWall | undefined): string | undefined =>
   typeof wall === 'object' ? wall.next : undefined
 
-export const afSectorAccess: SectorAccess<AfSector> = {
-  list: (level) => level.sectors,
+const viewsOf = (level: AfSector2File): readonly EditSector[] => level.sectors.map(roomView)
+
+export const afSectorAccess: SectorAccess<AfSector2File> = {
+  list: viewsOf,
   withSectors(level, sectors) {
-    if (sectors.length === level.sectors.length && sectors.every((sector, i) => sector === level.sectors[i]))
+    const own = level.sectors
+    if (
+      sectors.length === own.length &&
+      sectors.every((sector, i) => sector === roomView(own[i] as AfSectorEntry2File))
+    )
       return level
-    const own = new Map<EditSector, AfSectorEntry>(level.sectors.map((entry) => [entry, entry]))
-    return { ...level, sectors: sectors.map((sector) => own.get(sector) ?? afEntry(sector)) }
+    let entries: AfSectorEntry2File[]
+    try {
+      entries = sectors.map(writeRoom)
+    } catch (error) {
+      if (error instanceof RangeError) throw new SectorAccessError(error.message)
+      throw error
+    }
+    return { ...level, sectors: entries }
   },
   takenIds: (level) => level.sectors.map((sector) => sector.id),
   create: (_level, draft) => ({
@@ -57,7 +52,7 @@ export const afSectorAccess: SectorAccess<AfSector> = {
   // A wall of an `af-sector` level is named by no one: its entities stand in a sector by position, not by wall number.
   pinned: () => [],
   references(level, id) {
-    const found = portalReferences(level.sectors, id, 'sector', nextOf)
+    const found = portalReferences(viewsOf(level), id, 'sector', nextOf)
     const sector = level.sectors.find((each) => each.id === id)
     if (sector === undefined) return found
     for (const entity of level.entities ?? [])

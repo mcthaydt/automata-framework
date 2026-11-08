@@ -1,7 +1,7 @@
 // The selection ids a plan, a pick and a mesh share (ED3D.4 step 2): `sector:<id>` for a sector the document lists and
 // `wall:<sector>/<corner>` for the wall that starts at one of its corners, and nothing for what only the geometry has.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { selectionOf } from '#src/shared/edit/selection-of.ts'
 import type { Edge } from '#src/shared/geometry/sectors.ts'
@@ -9,13 +9,13 @@ import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 import { toyAfSector, toyDock, toyHall } from '#src/testing/toy-af-sector.ts'
 
-const depot = (): AfSector => {
+const depot = (): AfSector2File => {
   const parsed = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!parsed.ok) throw new Error('the depot does not parse')
   return parsed.value
 }
 
-const edgesOf = (level: AfSector, sector: string): readonly Edge[] => {
+const edgesOf = (level: AfSector2File, sector: string): readonly Edge[] => {
   const found = afSectorProfile.geometry(level).layers[0]?.map.sectors.find((s) => s.id === sector)
   return found?.loops.flat() ?? []
 }

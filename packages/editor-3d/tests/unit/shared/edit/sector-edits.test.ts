@@ -1,6 +1,6 @@
 // The sector edits (ED3D.3 step 5): add, remove, duplicate and the property edits, on the depot (`af-sector/1`).
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import type { Edit, EditResult } from '#src/shared/edit/edit.ts'
 import {
@@ -33,10 +33,11 @@ const depot = (() => {
 function run<D>(profile: LevelProfile<D>, level: D, edit: Edit<D>): EditResult<D> {
   return edit.run(profile, level)
 }
-const afRun = (edit: Edit<AfSector>) => run(afSectorProfile, depot, edit)
-const sectorsOf = (level: AfSector): readonly EditSector[] => afSectorProfile.sectors.list(level)
-const sector = (level: AfSector, id: string): EditSector =>
-  must(sectorsOf(level).find((each) => each.id === id))
+const afRun = (edit: Edit<AfSector2File>) => run(afSectorProfile, depot, edit)
+const sectorsOf = (level: AfSector2File): readonly EditSector[] => afSectorProfile.sectors.list(level)
+/** The room as the file wrote it, which is what these edits are judged by. */
+const sector = (level: AfSector2File, id: string): AfSectorEntry2File =>
+  must(level.sectors.find((each) => each.id === id))
 
 describe('sector.add on an af-sector level', () => {
   it('appends a sector with the heights of the last one, and selects it', () => {
@@ -297,7 +298,7 @@ describe('sector.remove', () => {
     const odd = toyAfSector({
       sectors: [{ id: 'a:b', floor: 0, ceiling: 3, light: 1, corners: [...rect(0, 0, 4, 4)] }],
       entities: [{ def: 'spawn', id: 'spawn', x: 1, z: 1, facing: 0 }],
-    } as Partial<AfSector>)
+    } as Partial<AfSector2File>)
     expect(run(afSectorProfile, odd, removeSector({ id: 'a:b' }))).toEqual({
       ok: false,
       reason: 'sector a:b is still referenced: entity spawn stands in it',
@@ -362,17 +363,17 @@ describe('sector.remove', () => {
 })
 
 describe('sector.remove of several sectors', () => {
-  const yard: AfSector['sectors'][number] = {
+  const yard: AfSector2File['sectors'][number] = {
     id: 'yard',
     floor: 0,
     ceiling: 4,
     light: 1,
     corners: rect(14, 0, 18, 6),
   }
-  const idsOf = (level: AfSector): string[] => sectorsOf(level).map((each) => each.id)
+  const idsOf = (level: AfSector2File): string[] => sectorsOf(level).map((each) => each.id)
   // The toy's hall and dock lead into each other; the yard stands alone beside them.
   const toy = toyAfSector({ sectors: [...toyAfSector().sectors, yard] })
-  const toyRun = (edit: Edit<AfSector>) => run(afSectorProfile, toy, edit)
+  const toyRun = (edit: Edit<AfSector2File>) => run(afSectorProfile, toy, edit)
 
   it('removes sectors that lead into each other together, which one by one it would refuse', () => {
     expect(reasonOf(toyRun(removeSector({ id: 'hall' })))).toBe(
@@ -410,7 +411,7 @@ describe('sector.remove of several sectors', () => {
   })
 
   it('counts a sector once however often it is named, and does nothing for none', () => {
-    const edit = removeSectors<AfSector>({ ids: ['yard', 'yard'] })
+    const edit = removeSectors<AfSector2File>({ ids: ['yard', 'yard'] })
     expect(edit.label).toBe('Remove sector yard')
     expect(idsOf(levelOf(toyRun(edit)))).toEqual(['hall', 'dock'])
     expect(levelOf(toyRun(removeSectors({ ids: [] })))).toBe(toy)
@@ -432,7 +433,7 @@ describe('sector.remove of several sectors', () => {
         },
       },
     })
-    const both = removeSectors<AfSector>({ ids: ['hall', 'dock'] })
+    const both = removeSectors<AfSector2File>({ ids: ['hall', 'dock'] })
     expect(run(failing(new SectorAccessError('no room for that')), toy, both)).toEqual({
       ok: false,
       reason: 'no room for that',
@@ -496,7 +497,7 @@ describe('sector.duplicate', () => {
       light: 1,
       corners: [
         [0, 0],
-        [9, 0, { texture: 'brick', door: { at: 4, width: 1, height: 2, id: 'ringDoor' } }],
+        [9, 0, { surface: 'brick', door: { at: 4, width: 1, height: 2, id: 'ringDoor' } }],
         [9, 9],
         [0, 9, { next: 'elsewhere' }],
       ],
@@ -507,7 +508,7 @@ describe('sector.duplicate', () => {
         {
           ...ring,
           corners: ring.corners.map((c, i) => (i === 3 ? ([c[0], c[1]] as const) : c)),
-        } as AfSector['sectors'][number],
+        } as AfSector2File['sectors'][number],
       ],
     })
     const copy = sector(
@@ -516,7 +517,7 @@ describe('sector.duplicate', () => {
     )
     expect(copy.corners).toEqual([
       [20, 1],
-      [29, 1, { texture: 'brick', door: { at: 4, width: 1, height: 2 } }],
+      [29, 1, { surface: 'brick', door: { at: 4, width: 1, height: 2 } }],
       [29, 10],
       [20, 10],
     ])
@@ -542,19 +543,19 @@ describe('sector.duplicate', () => {
                     block: true,
                     maskTop: 2,
                     hatch: [1, 2],
-                    texture: 'plank',
+                    surface: 'plank',
                   },
                 ] as const)
               : corner,
           ),
         },
       ],
-    } as Partial<AfSector>)
+    } as Partial<AfSector2File>)
     const copy = sector(
       levelOf(run(afSectorProfile, framed, duplicateSector({ id: 'dock', offset: { x: 6, z: 0 } }))),
       'dock2',
     )
-    expect(copy.corners[3]).toEqual([14, 6, { texture: 'plank' }])
+    expect(copy.corners[3]).toEqual([14, 6, { surface: 'plank' }])
     const solid = toyAfSector({
       sectors: [
         {
@@ -564,7 +565,7 @@ describe('sector.duplicate', () => {
           ),
         },
       ],
-    } as Partial<AfSector>)
+    } as Partial<AfSector2File>)
     const kept = sector(
       levelOf(run(afSectorProfile, solid, duplicateSector({ id: 'hall', offset: { x: 20, z: 0 } }))),
       'hall2',
@@ -735,8 +736,8 @@ describe('sector.setMaterials', () => {
         corners: must(depot.sectors[0]).corners.map((corner, i) => (i === 1 ? ([8, 0] as const) : corner)),
       },
     ],
-  } as Partial<AfSector>)
-  const hallOf = (level: AfSector) => sector(level, 'hall')
+  } as Partial<AfSector2File>)
+  const hallOf = (level: AfSector2File) => sector(level, 'hall')
 
   it('sets a texture and a style, and clears one with null', () => {
     const set = levelOf(

@@ -2,14 +2,14 @@
 // materials table as rows, and every change as one undo step through the model's `def.*` and `material.*` edits. A
 // refusal is the model's own sentence and changes nothing. A profile with fixed definitions has no rows.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { createDefinitionsController } from '#src/features/levels-3d/definitions/definitions-controller.ts'
 import { createLevelEditor } from '#src/shared/edit/level-editor.ts'
 import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 
-const depot = ((): AfSector => {
+const depot = ((): AfSector2File => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value

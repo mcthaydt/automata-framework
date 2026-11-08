@@ -2,7 +2,7 @@
 // transaction): a set is one undo step; a scrub (start, updates, commit) is one step too; a cancel leaves the level as it
 // was; a refusal changes nothing and answers the model's sentence. The depot, as in `inspector-cards.test.ts`.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { inspectorOf } from '#src/features/levels-3d/inspector/inspector-cards.ts'
 import { createInspectorEdits } from '#src/features/levels-3d/inspector/inspector-edits.ts'
@@ -10,7 +10,7 @@ import { createLevelEditor } from '#src/shared/edit/level-editor.ts'
 import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 
-const depot: AfSector = (() => {
+const depot: AfSector2File = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
@@ -85,7 +85,7 @@ describe('inspector edits', () => {
     expect(
       edits.change({ kind: 'thing', definition: 'crate', id: 'crate1', remove: true }, 'set'),
     ).toBeUndefined()
-    expect(afSectorProfile.entities(editor.level as AfSector).things.map((thing) => thing.id)).toEqual([
+    expect(afSectorProfile.entities(editor.level as AfSector2File).things.map((thing) => thing.id)).toEqual([
       'spawn',
     ])
     editor.history.undo()

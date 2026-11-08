@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { act, render, screen } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { writable } from 'svelte/store'
@@ -80,15 +80,15 @@ function fakeFrames(): Frames & { step(seconds: number): void } {
   }
 }
 
-const withSpawn = (): AfSector =>
+const withSpawn = (): AfSector2File =>
   toyAfSector({
     entityDefs: [
       { id: 'spawn', shape: 'point', single: true, fields: [{ id: 'facing', type: 'angle', default: 0 }] },
     ],
     entities: [{ def: 'spawn', id: 'spawn', x: 2, z: 3, facing: Math.PI / 2 }],
-  } as Partial<AfSector>)
+  } as Partial<AfSector2File>)
 
-function mount(factory: DollhouseRendererFactory, level: AfSector = withSpawn()) {
+function mount(factory: DollhouseRendererFactory, level: AfSector2File = withSpawn()) {
   const editor = createLevelEditor({ profile: afSectorProfile, level })
   const frames = fakeFrames()
   const words: (string | undefined)[] = []

@@ -19,6 +19,13 @@ export const samePoint = (p: Planar, q: Planar): boolean => p[0] === q[0] && p[1
 export const membersOf = (wall: string | EditWall | undefined): EditWall =>
   wall === undefined ? {} : typeof wall === 'string' ? { cut: wall } : wall
 
+/**
+ * Whether a wall says nothing: no member, and nothing carried for writing it back (a wall's surface and the trim it
+ * has as a surface ride under a symbol, which `Object.keys` does not see).
+ */
+export const isBareWall = (wall: EditWall): boolean =>
+  Object.keys(wall).length === 0 && Object.getOwnPropertySymbols(wall).length === 0
+
 /** The outline of a sector and then its holes. */
 export const loopsOf = (sector: EditSector): readonly (readonly EditCorner[])[] => [
   sector.corners,
@@ -67,7 +74,7 @@ export function wallOver(
 
 /**
  * A wall written from its other end: everything it says is the same, and what has a place along it is measured from the
- * new start: a door's and a window's centre, a hatch's two ends, and a pilaster's start and end change places. A name
+ * new start: a door's, a window's and a decor's centre, a hatch's two ends, and a pilaster's start and end change places. A name
  * (Last Light's cutaway group) and a wall with nothing placed on it are returned as they are. A texture's pan is left as it
  * is written, so the pattern of a wall that is turned round may run the other way.
  */
@@ -76,10 +83,20 @@ export function reversedWall(
   length: number,
 ): string | EditWall | undefined {
   if (wall === undefined || typeof wall === 'string') return wall
-  const { door, window: pane, hatch, pilaster } = wall
-  if (door === undefined && pane === undefined && hatch === undefined && pilaster === undefined) return wall
+  const { door, window: pane, hatch, pilaster, decor } = wall
+  if (
+    door === undefined &&
+    pane === undefined &&
+    hatch === undefined &&
+    pilaster === undefined &&
+    decor === undefined
+  )
+    return wall
   return {
     ...wall,
+    ...(decor === undefined
+      ? {}
+      : { decor: decor.map((each) => ({ ...each, pos: round4(length - each.pos) })) }),
     ...(door === undefined ? {} : { door: { ...door, at: round4(length - door.at) } }),
     ...(pane === undefined ? {} : { window: { ...pane, at: round4(length - pane.at) } }),
     ...(hatch === undefined

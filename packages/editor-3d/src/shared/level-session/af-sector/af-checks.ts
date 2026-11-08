@@ -1,10 +1,10 @@
-// The checks of an `af-sector/1` level, as Last Light's are run over a blockout: names are unique and refs resolve, and
+// The checks of an `af-sector/2` level, as Last Light's are run over a blockout: names are unique and refs resolve, and
 // then the generic checks over the sectors the level builds. The order and the early-outs are Last Light's: a level that cannot be
 // built answers `build` alone (Last Light's `expand`), one whose portals name a sector that is not there answers `ids`
 // and `rooms`, and anything else runs every check, the `entities` and `materials` checks last (ED3D.1b2's kit,
 // ED3D.2b).
 
-import type { AfSector, SectorDef } from '@automata/3d/level'
+import type { AfSector2File, SectorDef } from '@automata/3d/level'
 import {
   type CheckResult,
   checkResult,
@@ -29,7 +29,7 @@ import { AfBuildError, buildSectors } from './build'
  * Each kind of thing has a name once (entity ids are unique across the file, whatever their definition), and then every
  * ref field points at a thing or a sector the file has.
  */
-export function afIdProblems(level: AfSector): Problem[] {
+export function afIdProblems(level: AfSector2File): Problem[] {
   const problems: Problem[] = []
   // The sentence is said at the second use, and located there with the first beside it.
   const unique = (kind: string, items: readonly { id: string; locator: Locator | undefined }[]): void => {
@@ -71,7 +71,7 @@ export function afIdProblems(level: AfSector): Problem[] {
   return problems.filter((found) => !said.has(found.message) && !!said.add(found.message))
 }
 
-export function afSectorChecks(level: AfSector): CheckResult[] {
+export function afSectorChecks(level: AfSector2File): CheckResult[] {
   let sectors: SectorDef[]
   try {
     sectors = buildSectors(level)

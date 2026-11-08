@@ -1,10 +1,16 @@
 // How the editor's edits reach the sectors of a level, whatever format it is in (ED3D spec §4.1): the members both
 // formats share, read out and written back, so that an edit is written once. A format keeps what is its own (Last
 // Light's zone, its openings, its things) inside its own access object; nothing here names a Last Light concept.
-import type { PartialTrim, WallDef } from '@automata/3d/level'
+import type { Decor, PartialTrim, WallDef, WindowGrid } from '@automata/3d/level'
 
 /** A wall as written: the members of `WallDef`, and Last Light's `preset` (a wall that starts from a named one). */
-export type EditWall = WallDef & { readonly preset?: string | undefined }
+export type EditWall = WallDef & {
+  readonly preset?: string | undefined
+  /** What is set into the wall, each at a place along it (an `af-sector/2` member). */
+  readonly decor?: readonly Decor[] | undefined
+  /** A row of windows over the whole wall (an `af-sector/2` member). */
+  readonly windows?: WindowGrid | undefined
+}
 
 /**
  * A corner starts the wall that runs to the next one. A string in its third member is Last Light's spelling of
@@ -25,8 +31,10 @@ export interface EditSector {
   readonly ceilingTexture?: string | undefined
   readonly wallTexture?: string | undefined
   readonly trim?: PartialTrim | undefined
-  /** `af-sector/1` only: the camera view the game takes in this sector. */
+  /** The camera view the game takes in this sector. */
   readonly view?: string | undefined
+  /** The floor is a drop the player falls into. */
+  readonly pit?: boolean | undefined
   readonly corners: readonly EditCorner[]
   readonly holes?: readonly (readonly EditCorner[])[] | undefined
 }

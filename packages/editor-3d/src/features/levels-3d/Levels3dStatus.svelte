@@ -17,6 +17,8 @@ let selection = $state.raw<readonly string[]>(editor?.selection.ids ?? [])
 // A refused step is taken back, so the history's change is when the refusal is new.
 let refusal = $state(level.refusal)
 let mode = $state(editor?.view.state.mode ?? 'plan')
+// An older room says so until its first change saves it in the new version.
+let older = $state(level.upgraded)
 
 $effect(() => {
   if (editor === undefined) return
@@ -26,7 +28,10 @@ $effect(() => {
       mode = state.mode
     }),
     editor.selection.subscribe((next) => (selection = next.ids)),
-    editor.history.subscribe(() => (refusal = level.refusal)),
+    editor.history.subscribe(() => {
+      refusal = level.refusal
+      if (editor.history.revision > 0) older = false
+    }),
   ]
   return () => {
     for (const stop of stops) stop()
@@ -46,6 +51,7 @@ const words = $derived(
   <span>{level.path}</span>
   {#if words !== ''}<span>{words}</span>{/if}
   {#if level.others.length > 0}<span>{level.others.length} more in this group</span>{/if}
+  {#if older}<span>This room was made with an older version. Your next change saves it in the new version, and nothing in it is lost.</span>{/if}
   {#if refusal !== undefined}<span role="alert">Not saved: {refusal}</span>{/if}
 </p>
 

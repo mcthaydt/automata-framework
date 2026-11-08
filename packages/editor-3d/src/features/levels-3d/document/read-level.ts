@@ -14,7 +14,12 @@ export type ReadOutcome =
       readonly status: 'parsed'
       readonly profile: LevelProfile<unknown>
       readonly value: unknown
+      /** What the model was parsed from: the file's text, or its upgrade when the file is from an older version. */
       readonly text: string
+      /** The file's own text; the same as `text` unless the file was upgraded. */
+      readonly original: string
+      /** The file is from an older version and `text` is it made current: nothing is written until a change. */
+      readonly upgraded: boolean
       /** What the file opens with: a newer minor version. Empty for most files. */
       readonly warnings: readonly ParseIssue[]
     }
@@ -68,7 +73,18 @@ export function readLevel(bytes: Uint8Array): ReadOutcome {
     return { status: 'unrecognised', reason: detected.reason, installed, message, text }
   }
   const { profile } = detected
-  const parsed = profile.parse(text)
+  // An older version is read as the current one: the upgrade is the text a first change would write.
+  const upgraded = profile.upgrade?.(text)
+  const source = upgraded ?? text
+  const parsed = profile.parse(source)
   if (!parsed.ok) return { status: 'invalid', profile, issues: parsed.issues, installed, text }
-  return { status: 'parsed', profile, value: parsed.value, text, warnings: parsed.warnings ?? [] }
+  return {
+    status: 'parsed',
+    profile,
+    value: parsed.value,
+    text: source,
+    original: text,
+    upgraded: upgraded !== undefined,
+    warnings: parsed.warnings ?? [],
+  }
 }

@@ -2,7 +2,7 @@
 // flows 3 and 4): the kit's DocumentSession writes what the codec's patch gives, a refused patch holds Save, and the
 // autosave keeps the model so Restore patches it into the file as it is now.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { findRecovery, statPath } from '@automata/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import {
@@ -77,13 +77,13 @@ async function open<D>(
 const settle = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0))
 
 /** Sets a member of the depot's hall (the first sector) as one undo step. */
-function setHall(editor: LevelEditor<AfSector>, member: 'light' | 'floor', value: number): void {
+function setHall(editor: LevelEditor<AfSector2File>, member: 'light' | 'floor', value: number): void {
   editor.history.apply(`Set ${member}`, (state) => {
     const level = structuredClone(state.level) as unknown as { sectors: Record<string, unknown>[] }
     const hall = level.sectors[0]
     if (hall === undefined) throw new Error('the depot has no hall')
     hall[member] = value
-    return { level: level as unknown as AfSector }
+    return { level: level as unknown as AfSector2File }
   })
 }
 
@@ -322,7 +322,7 @@ describe('the autosave and Restore', () => {
     const opened = editor.level
     const payload = JSON.stringify({ ...opened, name: 'restored' })
     document.restore({ payload, savedAt: 0, baseChanged: false })
-    expect((editor.level as AfSector).name).toBe('restored')
+    expect((editor.level as AfSector2File).name).toBe('restored')
     editor.history.undo()
     expect(editor.level).toBe(opened)
   })

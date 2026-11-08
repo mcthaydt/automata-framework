@@ -5,7 +5,7 @@
 // 800 by 400 px with the camera at (7, 3) and zoom 1, which is 32 px to a metre; pixel positions are made with
 // `toScreen`, so no test hides a unit.
 
-import type { AfSector, AfSectorEntry } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
 import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it, vi } from 'vitest'
 import { createMergeTool } from '#src/features/levels-3d/plan/merge-tool-controller.ts'
@@ -18,7 +18,7 @@ import { SectorAccessError } from '#src/shared/level-session/sector-access.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 import { toyAfSector, toyDock, toyHall } from '#src/testing/toy-af-sector.ts'
 
-const depot: AfSector = (() => {
+const depot: AfSector2File = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
@@ -27,7 +27,7 @@ const depot: AfSector = (() => {
 const SIZE = { w: 800, h: 400 }
 const CAMERA = { x: 7, z: 3, zoom: 1 }
 
-const room = (id: string, corners: AfSectorEntry['corners']): AfSectorEntry => ({
+const room = (id: string, corners: AfSectorEntry2File['corners']): AfSectorEntry2File => ({
   id,
   floor: 0,
   ceiling: 4,
@@ -36,10 +36,10 @@ const room = (id: string, corners: AfSectorEntry['corners']): AfSectorEntry => (
 })
 
 /** The hall and the dock at the same heights. */
-const PAIR: AfSector = toyAfSector({ sectors: [toyHall, { ...toyDock, floor: 0 }] })
+const PAIR: AfSector2File = toyAfSector({ sectors: [toyHall, { ...toyDock, floor: 0 }] })
 
 /** The pair with a yard east of the dock, which leads into it (and the dock into the yard). */
-const WITH_YARD: AfSector = toyAfSector({
+const WITH_YARD: AfSector2File = toyAfSector({
   sectors: [
     toyHall,
     {
@@ -61,7 +61,7 @@ const WITH_YARD: AfSector = toyAfSector({
   ],
 })
 
-function setup(level: AfSector = PAIR, camera = CAMERA) {
+function setup(level: AfSector2File = PAIR, camera = CAMERA) {
   const editor = createLevelEditor({ profile: afSectorProfile, level })
   editor.view.set({ camera })
   const tool = createMergeTool(editor, SIZE)
@@ -74,7 +74,7 @@ function setup(level: AfSector = PAIR, camera = CAMERA) {
 }
 
 /** A tool whose first tap has picked the hall as the room that stays. */
-function started(level: AfSector = PAIR) {
+function started(level: AfSector2File = PAIR) {
   const made = setup(level)
   made.tool.tap(made.at(4, 3))
   return made
@@ -132,7 +132,7 @@ describe('the sector to keep under the pointer', () => {
   })
 
   it("is the model's sentence for a sector that something is tied to", () => {
-    const tied: LevelProfile<AfSector> = {
+    const tied: LevelProfile<AfSector2File> = {
       ...afSectorProfile,
       sectors: {
         ...afSectorProfile.sectors,
@@ -419,7 +419,7 @@ describe('a tap', () => {
   })
 
   it('says what the profile says when it will not write the level, and leaves nothing open', () => {
-    const profile: LevelProfile<AfSector> = {
+    const profile: LevelProfile<AfSector2File> = {
       ...afSectorProfile,
       sectors: {
         ...afSectorProfile.sectors,

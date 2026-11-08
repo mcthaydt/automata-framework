@@ -1,11 +1,11 @@
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { afSectorCodec } from '#src/shared/level-session/af-sector/af-codec.ts'
 import { afEntityKit } from '#src/shared/level-session/af-sector/af-entities.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 import { toyAfSector } from '#src/testing/toy-af-sector.ts'
 
-function depot(): AfSector {
+function depot(): AfSector2File {
   const result = afSectorCodec.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error(`the depot does not parse: ${JSON.stringify(result.issues)}`)
   return result.value

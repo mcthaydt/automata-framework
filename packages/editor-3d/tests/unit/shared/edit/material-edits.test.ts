@@ -1,7 +1,7 @@
 // Applying a material (ED3D.8a step 2, spec §5.3 flow 5): to one wall, to a room, or to every wall made of what the target
 // is made of, as one edit. On a small `af-sector/1` level with a style and a hole.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { createLevelEditor } from '#src/shared/edit/level-editor.ts'
 import {
@@ -24,7 +24,7 @@ const glass: Material = { id: 'glass', category: 'windows', wallOnly: true }
  * The hall's walls are brick, but for its first wall and the first wall of the pillar in it, which are plaster; the dock
  * takes plaster walls and a tile floor from its style.
  */
-const level: AfSector = toyAfSector({
+const level: AfSector2File = toyAfSector({
   materials: {
     brick: { category: 'walls' },
     plaster: { category: 'walls' },
@@ -40,14 +40,14 @@ const level: AfSector = toyAfSector({
       wallTexture: 'brick',
       floorTexture: 'tile',
       corners: [
-        [0, 0, { texture: 'plaster' }],
+        [0, 0, { surface: 'plaster' }],
         [8, 0, { next: 'dock' }],
         [8, 6],
         [0, 6],
       ],
       holes: [
         [
-          [3, 2, { texture: 'plaster' }],
+          [3, 2, { surface: 'plaster' }],
           [3, 3],
           [4, 3],
           [4, 2],
@@ -59,11 +59,11 @@ const level: AfSector = toyAfSector({
 })
 
 const apply = (target: MaterialTarget, scope: MaterialScope, material: Material = stone, on = level) =>
-  applyMaterial<AfSector>({ target, scope, material }).run(afSectorProfile, on)
-const sectorIn = (of: AfSector, id: string): EditSector =>
-  must(afSectorProfile.sectors.list(of).find((each) => each.id === id))
+  applyMaterial<AfSector2File>({ target, scope, material }).run(afSectorProfile, on)
+const sectorIn = (of: AfSector2File, id: string): AfSectorEntry2File =>
+  must(of.sectors.find((each) => each.id === id))
 const wallOf = (sector: string, corner: number): MaterialTarget => ({ wall: { sector, corner } })
-const walls = (of: AfSector, id: string): (string | undefined)[] =>
+const walls = (of: AfSector2File, id: string): (string | undefined)[] =>
   sectorIn(of, id).corners.map((_, corner) => materialOf(afSectorProfile, of, wallOf(id, corner)))
 
 describe('materialOf', () => {
@@ -80,7 +80,7 @@ describe('materialOf', () => {
 describe('applyMaterial: this wall', () => {
   it('sets the one wall’s texture and nothing else', () => {
     const after = levelOf(apply(wallOf('hall', 2), 'wall'))
-    expect(sectorIn(after, 'hall').corners[2]).toEqual([8, 6, { texture: 'stone' }])
+    expect(sectorIn(after, 'hall').corners[2]).toEqual([8, 6, { surface: 'stone' }])
     expect(walls(after, 'hall')).toEqual(['plaster', 'brick', 'stone', 'brick'])
     expect(sectorIn(after, 'dock')).toBe(sectorIn(level, 'dock'))
   })
@@ -123,8 +123,8 @@ describe('applyMaterial: matching', () => {
   it('gives every wall made of the target’s material the new one, in walls, holes and styled sectors', () => {
     const after = levelOf(apply(wallOf('hall', 0), 'matching'))
     const hall = sectorIn(after, 'hall')
-    expect(hall.corners[0]).toEqual([0, 0, { texture: 'stone' }])
-    expect(must(hall.holes?.[0])[0]).toEqual([3, 2, { texture: 'stone' }])
+    expect(hall.corners[0]).toEqual([0, 0, { surface: 'stone' }])
+    expect(must(hall.holes?.[0])[0]).toEqual([3, 2, { surface: 'stone' }])
     expect(hall.wallTexture).toBe('brick')
     expect(walls(after, 'hall')).toEqual(['stone', 'brick', 'brick', 'brick'])
     expect(sectorIn(after, 'dock')).toMatchObject({ style: 'warm', wallTexture: 'stone' })
@@ -173,7 +173,11 @@ describe('applyMaterial: refusals and the history', () => {
 
   it('is one undo step however many walls it changes, with a label that says what it did', () => {
     const editor = createLevelEditor({ profile: afSectorProfile, level })
-    const edit = applyMaterial<AfSector>({ target: wallOf('hall', 0), scope: 'matching', material: stone })
+    const edit = applyMaterial<AfSector2File>({
+      target: wallOf('hall', 0),
+      scope: 'matching',
+      material: stone,
+    })
     expect(edit.label).toBe('Apply stone to the walls that match wall 0 of hall')
     expect(editor.run(edit).ok).toBe(true)
     expect(editor.history.undoLabel).toBe(edit.label)

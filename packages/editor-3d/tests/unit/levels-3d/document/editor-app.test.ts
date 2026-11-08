@@ -46,7 +46,7 @@ describe('open', () => {
   it('passes the read outcomes on, with the path', async () => {
     const { app } = await appWith({
       'other.json': '{"format": "other/1"}',
-      'newer.json': loadAuthored('depot.af-sector').replace('"af-sector/1"', '"af-sector/2"'),
+      'newer.json': loadAuthored('depot.af-sector').replace('"af-sector/2"', '"af-sector/3"'),
       'bytes.json': new Uint8Array([0xff, 0xfe]),
     })
     expect(await app.open('other.json')).toMatchObject({

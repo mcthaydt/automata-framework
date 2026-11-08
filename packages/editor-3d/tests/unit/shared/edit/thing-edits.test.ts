@@ -2,7 +2,7 @@
 // check's (`entity crate2 is outside every sector`, `contents has no option "gold"`) where the check has one, and an
 // edit that is accepted never makes a level the checks call worse than it was.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import type { Edit, EditResult } from '#src/shared/edit/edit.ts'
 import { createLevelEditor } from '#src/shared/edit/level-editor.ts'
@@ -21,11 +21,11 @@ const depot = (() => {
   return result.value
 })()
 
-const runAf = (edit: Edit<AfSector>, level: AfSector = depot): EditResult<AfSector> =>
+const runAf = (edit: Edit<AfSector2File>, level: AfSector2File = depot): EditResult<AfSector2File> =>
   edit.run(afSectorProfile, level)
 
 /** The depot with a lamp that floats (it needs a colour, and has a range by default) and a switch that opens a thing. */
-const lit: AfSector = {
+const lit: AfSector2File = {
   ...depot,
   entityDefs: [
     ...(depot.entityDefs ?? []),
@@ -48,7 +48,7 @@ const lit: AfSector = {
 }
 
 /** The depot with a hole in the hall (3 m to 4 m by 3 m to 4 m is outside every sector) and a thing no definition covers. */
-const holed: AfSector = {
+const holed: AfSector2File = {
   ...depot,
   sectors: depot.sectors.map((sector) =>
     sector.id === 'hall'
@@ -66,7 +66,7 @@ const holed: AfSector = {
       : sector,
   ),
 }
-const broken: AfSector = {
+const broken: AfSector2File = {
   ...depot,
   entities: [...(depot.entities ?? []), { def: 'barrel', id: 'b1', x: 1, z: 1 }],
 }
@@ -78,7 +78,7 @@ const problemsOf = <D>(profile: LevelProfile<D>, level: D): string[] =>
     .flatMap((result) => result.problems.map((problem) => `${result.id}: ${problem.message}`))
 
 const crate = (id: string, more: Partial<Parameters<typeof addThing>[0]> = {}) =>
-  addThing<AfSector>({ def: 'crate', id, x: 5, z: 3, values: { contents: 'tools' }, ...more })
+  addThing<AfSector2File>({ def: 'crate', id, x: 5, z: 3, values: { contents: 'tools' }, ...more })
 
 describe('thing.add on an af-sector level', () => {
   it('appends the thing in the file’s order, fills the defaults it was not given, and selects it', () => {
@@ -106,7 +106,7 @@ describe('thing.add on an af-sector level', () => {
   })
 
   it('names the thing of a definition that allows one that the level has, wherever it stands in the file', () => {
-    const spawnLast: AfSector = { ...depot, entities: [...(depot.entities ?? [])].reverse() }
+    const spawnLast: AfSector2File = { ...depot, entities: [...(depot.entities ?? [])].reverse() }
     expect(reasonOf(runAf(addThing({ def: 'spawn', id: 'spawn2', x: 2, z: 2 }), spawnLast))).toBe(
       'spawn allows one: entity spawn is there already',
     )
@@ -210,7 +210,7 @@ describe('thing.add on an af-sector level', () => {
   })
 
   it('answers with the engine’s sentence for a level that does not build', () => {
-    const unbuildable: AfSector = { ...depot, sectors: [{ ...must(depot.sectors[0]), style: 'nope' }] }
+    const unbuildable: AfSector2File = { ...depot, sectors: [{ ...must(depot.sectors[0]), style: 'nope' }] }
     expect(reasonOf(runAf(crate('crate2'), unbuildable))).toContain('nope')
   })
 
@@ -306,7 +306,7 @@ describe('thing.setField', () => {
     name: string,
     value: Parameters<typeof setThingField>[0]['value'],
     def = 'crate',
-  ) => setThingField<AfSector>({ def, id, field: name, value })
+  ) => setThingField<AfSector2File>({ def, id, field: name, value })
 
   it('sets a field in the place it has, and the patch changes that member and no other byte', () => {
     const next = levelOf(runAf(field('crate1', 'contents', 'empty')))
@@ -354,7 +354,7 @@ describe('thing.setField', () => {
   })
 
   it('does not blame an edit that changes nothing for a fault the level already had', () => {
-    const faulty = { ...depot, name: 5 } as unknown as AfSector
+    const faulty = { ...depot, name: 5 } as unknown as AfSector2File
     expect(levelOf(runAf(field('crate1', 'contents', 'tools'), faulty))).toBe(faulty)
     expect(reasonOf(runAf(field('crate1', 'contents', 'empty'), faulty))).toContain('the file cannot hold it')
   })
@@ -401,7 +401,7 @@ describe('thing.remove', () => {
   })
 
   it('refuses a thing the level lacks, even when something points at it', () => {
-    const dangling: AfSector = {
+    const dangling: AfSector2File = {
       ...lit,
       entities: [
         ...(lit.entities ?? []),
@@ -429,7 +429,7 @@ describe('thing.remove', () => {
 })
 
 describe('an access that refuses', () => {
-  const refusing: LevelProfile<AfSector> = {
+  const refusing: LevelProfile<AfSector2File> = {
     ...afSectorProfile,
     things: {
       ...afSectorProfile.things,
@@ -447,18 +447,20 @@ describe('an access that refuses', () => {
 
   it('hands its sentence on, and points at the thing it was about', () => {
     expect(crate('crate2').run(refusing, depot)).toEqual({ ok: false, reason: 'no room in the file' })
-    expect(moveThing<AfSector>({ def: 'crate', id: 'crate1', x: 12, z: 2 }).run(refusing, depot)).toEqual({
+    expect(
+      moveThing<AfSector2File>({ def: 'crate', id: 'crate1', x: 12, z: 2 }).run(refusing, depot),
+    ).toEqual({
       ok: false,
       reason: 'the file is full',
       at: 'entity:crate/crate1',
     })
     expect(
-      setThingField<AfSector>({ def: 'crate', id: 'crate1', field: 'contents', value: 'empty' }).run(
+      setThingField<AfSector2File>({ def: 'crate', id: 'crate1', field: 'contents', value: 'empty' }).run(
         refusing,
         depot,
       ),
     ).toEqual({ ok: false, reason: 'the file is full', at: 'entity:crate/crate1' })
-    expect(removeThing<AfSector>({ def: 'crate', id: 'crate1' }).run(refusing, depot)).toEqual({
+    expect(removeThing<AfSector2File>({ def: 'crate', id: 'crate1' }).run(refusing, depot)).toEqual({
       ok: false,
       reason: 'the file needs it',
       at: 'entity:crate/crate1',

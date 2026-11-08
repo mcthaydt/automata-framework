@@ -19,7 +19,15 @@ import {
   round4,
   sectorOf,
 } from './sector-edit-support'
-import { cornerAt, loopOf, membersOf, PORTAL_MEMBERS, wallLength, wallOver } from './wall-geometry'
+import {
+  cornerAt,
+  isBareWall,
+  loopOf,
+  membersOf,
+  PORTAL_MEMBERS,
+  wallLength,
+  wallOver,
+} from './wall-geometry'
 
 export interface WallRef {
   readonly sector: string
@@ -88,7 +96,7 @@ function onWall<D>(ref: WallRef, change: (here: Here<D>) => EditResult<D>): Edit
 
 /** The sector with the wall that starts at a corner of one of its loops written as `members`. */
 export function withWall(sector: EditSector, loop: number, corner: number, members: EditWall): EditSector {
-  const wall = Object.keys(members).length === 0 ? undefined : members
+  const wall = isBareWall(members) ? undefined : members
   const write = (corners: readonly EditCorner[]): EditCorner[] =>
     corners.map((each, i) => (i === corner ? placed(each[0], each[1], wall) : each))
   if (loop === 0) return { ...sector, corners: write(sector.corners) }
