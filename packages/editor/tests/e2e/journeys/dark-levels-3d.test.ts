@@ -117,10 +117,8 @@ test('a wall moved in the dark Levels 3D is what the game plays', async ({ page,
   expect((await look(page)).field).toBe('rgb(19, 20, 23)')
   await page.screenshot({ path: test.info().outputPath('dark-studio.png') })
   const inDark = readPng(await darkStage.screenshot())
-  const lightContext = await browser.newContext({
-    colorScheme: 'light',
-    viewport: page.viewportSize() ?? undefined,
-  })
+  const viewport = page.viewportSize()
+  const lightContext = await browser.newContext({ colorScheme: 'light', ...(viewport ? { viewport } : {}) })
   try {
     const lightPage = await lightContext.newPage()
     const lightStage = await stageOf(lightPage)
