@@ -50,6 +50,19 @@ describe('openTomlSession', () => {
     expect((await ports.workspace.read(PATH))?.text).toBe(TEXT.replace('0.2', '0.4'))
   })
 
+  it('writes edits made one right after another in order, none refused as a conflict with the one before', async () => {
+    const ports = await portsWith({ [PATH]: TEXT })
+    const session = await openTomlSession({ path: PATH, ports, schema, empty: '' })
+    // Two clicks in quick succession: the second is made before the first write has come back.
+    const first = session.edit('Shake harder', [{ keyPath: ['entry', 0, 'shake'], expected: 0.2, set: 0.4 }])
+    const second = session.edit('Shake harder still', [
+      { keyPath: ['entry', 0, 'shake'], expected: 0.4, set: 0.6 },
+    ])
+    expect(await Promise.all([first, second])).toEqual([{ ok: true }, { ok: true }])
+    expect((await ports.workspace.read(PATH))?.text).toBe(TEXT.replace('0.2', '0.6'))
+    expect(session.read()).toMatchObject({ kind: 'ok', value: { entry: [{ shake: 0.6 }] } })
+  })
+
   it('reads a file that does not parse as a syntax problem with its line, without throwing', async () => {
     const session = await openTomlSession({
       path: PATH,

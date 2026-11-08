@@ -56,12 +56,16 @@ export async function openEditor(page: Page, editor: RunningEditor, name: string
 
 /**
  * Presses a button of the editor's list. Below the wide layout the list sits in a sheet behind the top bar's Panel
- * button, so the sheet is opened first when the button is not on screen.
+ * button, so the sheet is opened first when the button is not on screen, and closed again after the choice.
  */
 export async function pressInList(page: Page, name: string | RegExp): Promise<void> {
   const button = page.getByRole('button', { name }).first()
-  if (!(await button.isVisible())) await page.getByRole('button', { name: 'Panel' }).click()
+  const panel = page.getByRole('button', { name: 'Panel', exact: true })
+  const opened = !(await button.isVisible())
+  if (opened) await panel.click()
   await button.click()
+  // The sheet stays up over the page after a choice, so a person closes it with the same button.
+  if (opened && (await panel.getAttribute('aria-expanded')) === 'true') await panel.click()
 }
 
 /**

@@ -103,8 +103,22 @@ export async function openTomlSession<T>(options: TomlSessionOptions<T>): Promis
     return cached.read
   }
 
+  // Writes go out one after another. The file's mtime is what each write expects, and it is only known once the write
+  // before it has come back: two edits made in quick succession (a drag, a fast pair of clicks) would both send the same
+  // old mtime, and the second would be refused as a conflict with the first.
+  let writes: Promise<unknown> = Promise.resolve()
+  const inOrder = <R>(job: () => Promise<R>): Promise<R> => {
+    const run = writes.then(job)
+    writes = run.catch(() => undefined)
+    return run
+  }
+
   /** Writes `to` when it differs from `from`; a file that goes back to not existing is removed. */
-  async function sync(from: TomlState, to: TomlState): Promise<Outcome> {
+  function sync(from: TomlState, to: TomlState): Promise<Outcome> {
+    return inOrder(() => write(from, to))
+  }
+
+  async function write(from: TomlState, to: TomlState): Promise<Outcome> {
     if (from.text === to.text) return OK
     if (to.text === undefined) {
       if (mtime === undefined) return OK

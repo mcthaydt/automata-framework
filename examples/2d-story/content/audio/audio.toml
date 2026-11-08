@@ -1,4 +1,5 @@
 # The sounds of the story, and which event plays which. Music is imported: put a track in assets/music and set it up here.
+# The music rules can ask for `mode`: it is `chase` while the guard hunts or follows, and `calm` otherwise.
 
 [[cue]]
 id = "talk"
