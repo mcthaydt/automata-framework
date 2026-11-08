@@ -16,11 +16,11 @@ import { emberwick, SIM_CONTENT_HASH } from './src/app/game.ts'
 
 /**
  * Starts a game and shows which content it plays (`#game[data-content-hash]`, read by the dev journey). `at` is the
- * screen to start on instead of the splash.
+ * screen to start on instead of the splash; so is `?start=` (the site's Home opens the room after Play).
  */
 const start = (game: typeof emberwick, hash: string, at?: string) => {
   document.getElementById('game')?.setAttribute('data-content-hash', hash)
-  return startGame(game, { at })
+  return startGame(game, { at: at ?? new URLSearchParams(location.search).get('start') ?? undefined })
 }
 let running = start(emberwick, SIM_CONTENT_HASH)
 

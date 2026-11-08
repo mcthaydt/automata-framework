@@ -37,7 +37,11 @@ export function launchProblems(addresses: { contact: string; security: string })
 /** Whether npmjs.org has the package at all (any version); the packages are public, so no token is needed. */
 export type OnRegistry = (name: string) => Promise<boolean>
 
-/** One sentence per package the site sends a visitor to that is not on the registry, or that could not be asked about. */
+/**
+ * One sentence per package the site sends a visitor to that is not on the registry, or that could not be asked about.
+ * The `@automata` scope on npmjs.org belongs to another account until the rename to `@automataframework` lands, so until
+ * then a package of theirs with this name would pass; the runbook makes the rename the first step of the launch.
+ */
 export async function unpublishedProblems(
   names: readonly string[],
   onRegistry: OnRegistry,
@@ -95,12 +99,19 @@ export async function mailboxProblems(
   try {
     if ((await lookup(domain)).length > 0) return []
   } catch (error) {
+    // ENODATA (the name resolves and has no MX) and ENOTFOUND (the name does not resolve) both mean there is nowhere to
+    // deliver mail, which is the finding itself and not a failure to look.
+    const code = (error as { code?: unknown } | null)?.code
+    if (code === 'ENODATA' || code === 'ENOTFOUND') return [noMailRecord(domain)]
     return [
       `Could not look up the mail record for ${domain} (${error instanceof Error ? error.message : String(error)}).`,
     ]
   }
-  return [`${domain} has no mail record, so mail to hello@${domain} would bounce.`]
+  return [noMailRecord(domain)]
 }
+
+const noMailRecord = (domain: string): string =>
+  `${domain} has no mail record, so mail to hello@${domain} would bounce.`
 
 const askNpm: OnRegistry = async (name) => {
   const response = await fetch(`https://registry.npmjs.org/${name.replace('/', '%2f')}`, { method: 'HEAD' })

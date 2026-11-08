@@ -1,16 +1,16 @@
 /* The search dialog. */
 .search-dialog {
-  border: 1px solid rgb(255 255 255 / 0.7);
+  border: 1px solid var(--line-strong);
   border-radius: var(--edge-lg);
   padding: 1.75rem;
-  background: rgb(249 251 248 / 0.9);
+  background: var(--panel);
   color: var(--ink);
   width: min(42rem, calc(100% - 2rem));
   max-height: 85svh;
-  box-shadow: 0 40px 90px -20px rgb(15 21 86 / 0.45);
+  box-shadow: 0 40px 90px -20px rgb(0 0 0 / 0.7);
 } /* taste-skill-ignore: overlay */
 .search-dialog::backdrop {
-  background: rgb(15 21 86 / 0.4);
+  background: rgb(0 0 0 / 0.6);
 }
 .dialog-heading {
   display: flex;

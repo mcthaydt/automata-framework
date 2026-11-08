@@ -14,7 +14,7 @@ import PageShell from '../shared/components/PageShell.svelte'
     <p>Try reloading the page, or return to the overview.</p>
     <div class="link-row">
       <a class="button" href="/">Go to the home page</a>
-      <a href="/docs">Read the docs</a>
+      <a class="button secondary" href="/docs">Read the docs</a>
     </div>
   </PageShell>
 {/if}

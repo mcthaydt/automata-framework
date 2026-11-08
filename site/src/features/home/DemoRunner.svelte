@@ -12,11 +12,14 @@ import type { DemoBar } from './home-content'
 
 let {
   src,
+  start,
   poster,
   posterAlt,
   bar,
 }: {
   src: string
+  /** The screen the game opens on, when the visitor has already pressed Play it (the game reads `?start=`). */
+  start?: string
   poster: string
   posterAlt: string
   bar: DemoBar
@@ -29,14 +32,23 @@ let attempt = $state(0)
 let status = $state<'loading' | 'ready' | 'failed'>('loading')
 let fullscreenMessage = $state('')
 let fullscreenPending = $state(false)
+let isFullscreen = $state(false)
+let fullscreenWord = $derived(isFullscreen ? bar.exitFullScreen : bar.fullScreen)
 let allowed = $derived(getDemosCatalog().some((d) => d.bundleUrl === src))
+let frameSrc = $derived(start === undefined ? src : `${src}?start=${encodeURIComponent(start)}`)
 // The frame's address is made after hydration, so the prerendered page never carries a stale one.
 onMount(() => {
   if (document.documentElement.dataset.playPressed !== undefined) {
     delete document.documentElement.dataset.playPressed
     active = true
   }
+  // From here the button answers its own press, so the page's first-press script stops marking.
+  document.documentElement.dataset.playMounted = ''
   mounted = true
+  // The button says what pressing it does: leave full screen while the demo is in it.
+  const follow = () => (isFullscreen = document.fullscreenElement === container)
+  document.addEventListener('fullscreenchange', follow)
+  return () => document.removeEventListener('fullscreenchange', follow)
 })
 $effect(() => {
   // A changed src or retry gets a fresh deadline. Cleanup prevents late results from previous frames.
@@ -50,6 +62,8 @@ $effect(() => {
       const next = demoStatus(doc)
       if (next !== 'loading') {
         status = next
+        // The visitor pressed a button in this page, so the keys would go to it: hand them to the game. Focusing the frame also scrolls it into view, which the game needs: a frame out of view pauses.
+        if (next === 'ready') iframe?.contentWindow?.focus()
         clearInterval(poll)
         clearTimeout(deadline)
       }
@@ -94,15 +108,6 @@ async function fullscreen() {
 let playing = $derived(active && allowed && mounted)
 </script>
 <div bind:this={container} data-testid="demo-runner-container" data-ui class="demo-runner">
-  <div class="demo-viewport" data-playing={playing ? '' : undefined}>
-    {#if playing}
-      {#key src + attempt}
-        <iframe bind:this={iframe} {src} title={bar.title} allow="autoplay; fullscreen"></iframe>
-      {/key}
-    {:else if allowed}
-      <picture><source type="image/webp" srcset={previewSrcset(poster)} sizes="(max-width: 700px) 100vw, 60vw" /><img class="demo-poster" src={poster} alt={posterAlt} width="1280" height="720" /></picture>
-    {/if}
-  </div>
   <div class="demo-bar">
     <div class="demo-words">
       <strong>{bar.title}</strong>
@@ -111,16 +116,28 @@ let playing = $derived(active && allowed && mounted)
       {:else if playing && status === 'loading'}<span role="status">{bar.starting}</span>
       {:else}<span class="tagline">{bar.tagline}</span>{/if}
     </div>
+    <span class="demo-keys" role="group" aria-label={`${bar.keys.join(', ')} ${bar.keysWords}`}>
+      {#each bar.keys as key (key)}<kbd aria-hidden="true">{key}</kbd>{/each}<span aria-hidden="true">{bar.keysWords}</span>
+    </span>
     <div class="demo-actions">
       {#if playing && status === 'failed'}
         <button type="button" onclick={() => attempt++}>{bar.retry}</button>
       {:else if playing}
-        <button type="button" aria-busy={fullscreenPending ? 'true' : undefined} onclick={fullscreen}>{bar.fullScreen}</button>
+        <button type="button" aria-busy={fullscreenPending ? 'true' : undefined} onclick={fullscreen}>{fullscreenWord}</button>
         <button type="button" onclick={() => (active = false)}>{bar.stop}</button>
       {:else}
         <button type="button" data-play onclick={() => (active = true)}>{bar.play}</button>
       {/if}
     </div>
+  </div>
+  <div class="demo-viewport" data-playing={playing ? '' : undefined}>
+    {#if playing}
+      {#key src + attempt}
+        <iframe bind:this={iframe} src={frameSrc} title={bar.title} allow="autoplay; fullscreen"></iframe>
+      {/key}
+    {:else if allowed}
+      <picture><source type="image/webp" srcset={previewSrcset(poster)} sizes="(max-width: 700px) 100vw, 1080px" /><img class="demo-poster" src={poster} alt={posterAlt} width="1280" height="720" /></picture>
+    {/if}
   </div>
   <noscript><p class="small">Playing here needs JavaScript. <a href={src}>Open the game on its own page</a>.</p></noscript>
 </div>

@@ -1,9 +1,13 @@
 <!--
-  The site's header, from the approved Home mockup: the logo, four links (Docs, Examples, Editor, Reference), Search and
-  Get started. Below 760 px the links fold into Menu, an opaque sheet under the bar, and Get started stays in view.
+  The site's header, from the approved Home mockup (v2): the logo, five links (Docs, Examples, Editor, Reference,
+  Changelog), Search, GitHub once the repository is public, and Make a game. Below 760 px the links fold into Menu, an
+  opaque sheet under the bar, and Make a game stays in view.
   Search shows its ⌘K hint only where there is a keyboard (a fine pointer), never on a touch screen.
 -->
 <script lang="ts">
+import { REPOSITORY_PUBLIC, REPOSITORY_URL } from '../site.js'
+import Icon from './Icon.svelte'
+
 let { onOpenSearch, pathname = '/' }: { onOpenSearch?: () => void; pathname?: string } = $props()
 
 const links = [
@@ -11,6 +15,7 @@ const links = [
   ['/examples', 'Examples'],
   ['/editor', 'Editor'],
   ['/api', 'Reference'],
+  ['/changelog', 'Changelog'],
 ] as const
 
 let menu: HTMLDetailsElement | undefined = $state()
@@ -28,7 +33,10 @@ const current = (href: string) => pathname === href || pathname.startsWith(href 
         <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
         <span class="word">Search</span><kbd aria-hidden="true">⌘K</kbd>
       </button>
-      <a class="start" href="/start" aria-current={current('/start') ? 'page' : undefined}>Get started</a>
+      {#if REPOSITORY_PUBLIC}
+        <a class="github" href={REPOSITORY_URL}><Icon name="github" size={16} />GitHub</a>
+      {/if}
+      <a class="start" href="/start" aria-current={current('/start') ? 'page' : undefined}>Make a game</a>
       <details class="menu" bind:this={menu}>
         <summary aria-label="Menu">
           <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
@@ -153,6 +161,19 @@ const current = (href: string) => pathname === href || pathname.startsWith(href 
   .start:hover {
     border-color: var(--ink);
   }
+  .github {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 10px;
+    color: var(--muted);
+    font-size: 14px;
+    text-decoration: none;
+  }
+  .github:hover {
+    color: var(--ink);
+  }
   .menu {
     display: none;
   }
@@ -180,7 +201,7 @@ const current = (href: string) => pathname === href || pathname.startsWith(href 
     padding: 8px var(--side) 16px;
     border-bottom: 1px solid var(--line);
     background: var(--bg);
-    box-shadow: 0 24px 48px -24px rgb(17 21 28 / 0.25);
+    box-shadow: 0 24px 48px -24px rgb(0 0 0 / 0.6);
   }
   .menu nav a {
     justify-content: flex-start;
@@ -190,9 +211,26 @@ const current = (href: string) => pathname === href || pathname.startsWith(href 
     color: var(--ink);
     font-size: 17px;
   }
+  /* Five links, Search and the button need the width a tablet does not have: Search is its icon alone and the GitHub link
+     (in the footer too) waits for a wide screen. */
+  @media (max-width: 1023px) {
+    .bar {
+      gap: 16px;
+    }
+    .github,
+    .search .word,
+    .search kbd {
+      display: none;
+    }
+    .search {
+      width: 44px;
+      padding: 0;
+    }
+  }
   @media (max-width: 760px) {
     /* Search is its icon alone here: the word and the key hint leave room for Get started and Menu. */
     .links,
+    .github,
     .search .word,
     .search kbd {
       display: none;

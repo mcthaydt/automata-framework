@@ -1,18 +1,35 @@
 @import "@automata/editor/tokens.css";
 
 /*
- * Visual language (the approved redesign, 2026-11-06, option C): a quiet off-white field, white panels on hairlines,
- * near-black stages for the games, and one flat lime primary with an ink edge per screen. Corners are slightly
- * rounded, never pills: 4 px on controls, 6 px on panels, 8 px on cards (`--edge-sm/md/lg`). No glass and no glow.
- * The tokens live in the editor kit's tokens.json, which the editors share; the site's field and panel are set here.
+ * Visual language (Home v2, approved by the Owner 2026-11-08): the site is dark, with no toggle. A near-black field,
+ * panels one step lighter on hairlines, and one flat lime that is the only colour. Corners are slightly rounded, never
+ * pills: 4 px on controls, 6 px on panels, 8 px on cards (`--edge-sm/md/lg`). No glass. The editor kit's tokens come
+ * first (its type scale, corners and sizes); the colours the kit names for a light page are set again here, so a
+ * component that reads `--paper` or `--surface` gets the dark one.
  */
 :root {
-  --bg: #fbfbfa;
-  --panel: #ffffff;
-  --soft: #f3f4f1;
-  --line: #e6e7e3;
-  --line-strong: #d2d4ce;
-  --faint: #656c74;
+  color-scheme: dark;
+  --bg: #0b0c0e;
+  --panel: #121418;
+  --raise: #181b20;
+  --line: #23262c;
+  --line-strong: #33373e;
+  --ink: #f2f3f5;
+  --muted: #a6abb3;
+  --faint: #80868f;
+  --lime-ink: #11151c;
+  /* The kit's light-page names, in the dark field's colours. */
+  --soft: var(--raise);
+  --paper: var(--panel);
+  --surface: var(--raise);
+  --focus: var(--lime);
+  --accent: var(--lime);
+  --charcoal: #07080a;
+  --stage: #07080a;
+  /* The playground's code colours, which the kit names for a light page. */
+  --cobalt: #79c0ff;
+  --cobalt-deep: #d2a8ff;
+  --teal: #a5d6ff;
   --wrap: 1200px;
   /* The page's side margin: the container is the wrap or the window less this on each side. */
   --side: 24px;

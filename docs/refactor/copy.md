@@ -250,3 +250,9 @@ Reference, Privacy, Terms and Contact; the targets are named by the publish sect
 | Editor page, the app | `Nothing to install` alone | `Every editor, on your phone, tablet or computer: the Automata app.` and `Get the app` (white, secondary) | 2 |
 | App page | (none) | `Get the Automata app`; `$19.99, paid once` / `$39.99, paid once`; `Coming soon` (words, not a button); `These are two separate purchases…`; `Free in your browser`; `In the app`; the open-source sentence; `Questions about the app? Write to hello@automataframework.com.` | 2 |
 | Footer | (none) | `The app` | 2 |
+| Editor page, lead | `The level editor opens on your game's folder…` (said above a try-it that keeps nothing) | `Try it here: paint a level and place its characters, then press Share to keep it as a file. Nothing to install.`; the game's-folder sentence moved under `On your own game` | 1 (it described what the visitor was not about to try) |
+| Editor page, the app | `Every editor, on your phone, tablet or computer: the Automata app.` | `More editors, made for your phone, tablet or computer: the Automata app.` | 1 |
+| App page | `Every editor on your phone` | `Editors made for your phone and tablet`; `Writer and Sequence` left out | 1 |
+| Missing page | `Read the docs` as a bare 27 px link | the same words as the white secondary button | 2 (a touch target under 44 px) |
+| Demo bar, in full screen | `Full screen` while in it | `Exit full screen` | 2 |
+| Home | the old claim and three reasons | `Make browser games with your coding agent.`; `Your agent writes the game. The framework keeps it honest.`; `The same game in every browser, to the last bit.`; `Draw levels. The game reads the same files.`; `Start from something that runs.`; `Landing in the first release.`; `Make your first game this afternoon.` | 1, 4 |

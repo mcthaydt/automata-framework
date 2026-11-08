@@ -71,6 +71,8 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          # Wrangler asks its maker to count uses; a deploy from CI sends nothing.
+          WRANGLER_SEND_METRICS: 'false'
         run: |
           find site/build \( -name '*.br' -o -name '*.gz' \) -delete
           pnpm --filter @automata/site exec wrangler pages deploy build --project-name automataframework --branch main 2>&1 | tee "$RUNNER_TEMP/deploy.log"
@@ -78,6 +80,9 @@ jobs:
           echo "url=$url" >> "$GITHUB_OUTPUT"
       - name: Check the live headers
         if: steps.host.outputs.present == 'true'
+        env:
+          # Passed as a variable, not pasted into the script: the address comes out of a log.
+          DEPLOYED_URL: ${{ steps.upload.outputs.url }}
         run: |
-          pnpm --filter @automata/site check:deployed "${{ steps.upload.outputs.url }}"
+          pnpm --filter @automata/site check:deployed "$DEPLOYED_URL"
           pnpm --filter @automata/site check:deployed https://automataframework.com

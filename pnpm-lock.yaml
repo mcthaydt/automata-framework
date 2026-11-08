@@ -1951,6 +1951,9 @@ importers:
       '@automata/playwright-preset':
         specifier: workspace:*
         version: link:../tooling/playwright-preset
+      '@automata/vitest-preset':
+        specifier: workspace:*
+        version: link:../tooling/vitest-preset
       '@axe-core/playwright':
         specifier: 4.13.0
         version: 4.13.0(playwright-core@1.63.0)

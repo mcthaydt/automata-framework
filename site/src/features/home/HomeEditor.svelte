@@ -1,29 +1,37 @@
 <script lang="ts">
-// "The editor": one picture of the level editor, loaded only when the reader nears it.
+// "The editor": one picture of the level editor, loaded only when the reader nears it. The editor's own look is
+// the editors' (a separate redesign), so the picture is shown as it is, in its panel. The phone picture waits until the
+// try-it editor fits a phone (the audit's I2), so a phone sees this one too.
+import Icon from '../../shared/components/Icon.svelte'
+import InlineText from '../../shared/components/InlineText.svelte'
 import NearView from '../../shared/components/NearView.svelte'
 import { pictureOf } from '../../shared/pictures'
+import { EDITOR_SECTION } from './home-content'
 
 const editor = pictureOf('editor')
 </script>
 
 <section class="home-section">
-  <div class="page-wrap">
-    <p class="home-kicker">The editor</p>
-    <h2>Draw levels. The game reads the same files.</h2>
-    <p class="home-sub">
-      The level editor runs in the browser. It writes the content files in your game, and the game picks them up when
-      you save.
-    </p>
-    <div class="wide">
+  <div class="page-wrap home-chess">
+    <div class="text">
+      <span class="home-kicker"><Icon name="brush" size={14} />{EDITOR_SECTION.kicker}</span>
+      <h2>{EDITOR_SECTION.title}</h2>
+      <p class="home-sub">{EDITOR_SECTION.sub}</p>
+      <ul class="home-points">
+        {#each EDITOR_SECTION.points as [lead, rest] (lead)}
+          <li><Icon name="check" /><span><strong>{lead}</strong> <InlineText text={rest} /></span></li>
+        {/each}
+      </ul>
+      <p class="more"><a class="home-secondary" href="/editor">More about the editor <Icon name="arrowRight" /></a></p>
+    </div>
+    <div class="show home-panel shot">
       <!-- Far below the poster: in the page only once the reader is near it (NearView). -->
       <NearView>
         <picture>
-          <source media="(max-width: 760px)" type="image/webp" srcset="/previews/editor-phone.webp" />
-          <source media="(max-width: 760px)" srcset="/previews/editor-phone.jpg" />
           <source
             type="image/webp"
             srcset="/previews/editor-640.webp 640w, /previews/editor.webp 1600w"
-            sizes="(max-width: 1200px) 92vw, 1120px"
+            sizes="(max-width: 1023px) 92vw, 680px"
           />
           <img
             src="/previews/editor.jpg"
@@ -35,37 +43,22 @@ const editor = pictureOf('editor')
         </picture>
       </NearView>
     </div>
-    <p class="home-more"><a href="/editor">More about the editor</a></p>
   </div>
 </section>
 
 <style>
-  .wide {
-    margin-top: 48px;
-    overflow: hidden;
-    border: 1px solid var(--line-strong);
-    border-radius: var(--edge-lg);
-    box-shadow: 0 24px 64px -32px rgb(17 21 28 / 0.3);
+  .more {
+    margin: 32px 0 0;
   }
-  .wide,
-  .wide img {
+  .shot,
+  .shot img {
     aspect-ratio: 16 / 10;
   }
-  .wide img {
+  .shot img {
     display: block;
     width: 100%;
     height: auto;
     object-fit: cover;
     object-position: 50% 0;
-  }
-  @media (max-width: 760px) {
-    .wide {
-      width: min(300px, 100%);
-      margin-inline: auto;
-    }
-    .wide,
-    .wide img {
-      aspect-ratio: 390 / 844;
-    }
   }
 </style>

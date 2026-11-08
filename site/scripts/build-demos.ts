@@ -43,12 +43,45 @@ function buildPackages(): void {
   })
 }
 
+/**
+ * The demos that play in a page with no Ruken host to answer them. Their `dist/` is the Ruken build, whose SDK sends
+ * `hello` to its parent and waits ten seconds for a `welcome` before it runs standalone, so Home would sit on "Loading…"
+ * that long. The site frames the web build of the same game instead, written to the folder named here.
+ */
+const WEB_BUILDS: ReadonlyMap<string, string> = new Map([['emberwick', 'dist-web']])
+
+/** Builds each of `WEB_BUILDS` for the web target (`vite build --mode web`). */
+function buildWebDemos(): void {
+  const demos = demoList()
+  for (const [slug, outDir] of WEB_BUILDS) {
+    const demo = demos.find((candidate) => candidate.slug === slug)
+    if (demo === undefined) throw new Error(`There is no demo "${slug}" to build for the web.`)
+    execFileSync(
+      'pnpm',
+      [
+        'exec',
+        'vite',
+        'build',
+        '--configLoader',
+        'runner',
+        '--mode',
+        'web',
+        '--outDir',
+        outDir,
+        '--logLevel',
+        'warn',
+      ],
+      { cwd: join(repositoryRoot, demo.path), stdio: 'inherit' },
+    )
+  }
+}
+
 function copyDemos(): number {
   const demos = demoList()
   const target = join(staticDir, 'demos')
   rmSync(target, { recursive: true, force: true })
   for (const demo of demos) {
-    const dist = join(repositoryRoot, demo.path, 'dist')
+    const dist = join(repositoryRoot, demo.path, WEB_BUILDS.get(demo.slug) ?? 'dist')
     if (!existsSync(join(dist, 'index.html')))
       throw new Error(`${demo.path}: its build wrote no dist/index.html`)
     const folder = join(target, demo.slug)
@@ -106,6 +139,7 @@ function buildPlayground(): number {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   buildPackages()
+  buildWebDemos()
   writeApiIndex()
   const demos = copyDemos()
   copyEditor()

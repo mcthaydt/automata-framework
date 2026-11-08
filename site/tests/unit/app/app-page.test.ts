@@ -47,6 +47,10 @@ describe('/app', () => {
     for (const item of [...APP_OFFER.web, ...APP_OFFER.app]) expect(view.getByText(item)).toBeTruthy()
   })
 
+  it('does not promise Writer or Sequence, which the free editor does not show at all', () => {
+    expect(APP_OFFER.app.join(' ')).not.toMatch(/\b(Writer|Sequence)\b/)
+  })
+
   it('has a help section with the project’s address', () => {
     const view = render(AppPage)
     const help = view.container.querySelector('#help')

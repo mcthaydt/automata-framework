@@ -101,14 +101,11 @@ $effect(() => {
   .code-scroll :global(pre) {
     background: transparent !important;
   }
-  /* github-light's orange and red tokens miss 4.5:1 on the code pane; darken them in place. */
-  .code-scroll :global(span[style*='#E36209' i]) {
-    color: #a8460a !important;
+  /* github-dark's comment grey is 3.9:1 on the panel; the muted text colour of the site is 5:1. */
+  .code-scroll :global(span[style*='6A737D' i]) {
+    color: var(--faint) !important;
   }
-  .code-scroll :global(span[style*='#D73A49' i]) {
-    color: #b31d28 !important;
-  }
-  /* A command and its copy button, as Home draws it: a white box on a hairline, the command in mono on one line. */
+  /* A command and its copy button, as Home draws it: a quiet box on a hairline, the command in mono on one line. */
   .command {
     display: flex;
     align-items: center;

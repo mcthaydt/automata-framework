@@ -1,107 +1,161 @@
-/* Home's shared section look: a hairline between sections, a kicker, a title and a sub line. */
+/* Home's shared section look (v2): dark, a hairline between sections, a lime kicker in mono, a title, a sub line, and a
+   product beside the words. One lime primary per screen; everything else is the secondary or a plain link. */
 .home-section {
-  padding: 112px 0;
+  padding: 128px 0;
   border-top: 1px solid var(--line);
 }
-.home-section.intro {
-  display: flex;
+.home-kicker {
+  display: inline-flex;
   align-items: center;
-  min-height: calc(100svh - 64px);
-  padding: 48px 0;
-  border-top: 0;
+  gap: 8px;
+  margin: 0;
+  color: var(--lime);
+  font: 500 13px / 16px var(--font-mono);
 }
-/* Splits sit on a 12-column grid with 24 px gaps, so every right column starts on the same line. */
-.split-12 {
+.home-section h2 {
+  max-width: 640px;
+  margin: 16px 0 0;
+  font-size: clamp(32px, 3.6vw, 48px);
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+}
+.home-sub {
+  max-width: 520px;
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 28px;
+}
+/* Words on one side, the product on the other, on a 12-column grid so every column starts on the same line. */
+.home-chess {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 24px;
   align-items: center;
 }
-.home-kicker {
-  margin: 0;
+.home-chess > * {
+  min-width: 0;
+}
+.home-chess .text {
+  grid-column: span 5;
+}
+.home-chess .show {
+  grid-column: span 7;
+}
+.home-chess.flip .text {
+  grid-column: 8 / -1;
+  order: 2;
+}
+.home-chess.flip .show {
+  grid-column: 1 / span 7;
+  order: 1;
+}
+/* A panel: the product in a bordered box with a quiet head line. */
+.home-panel {
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--edge-lg);
+  background: var(--panel);
+}
+.home-panel .head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-height: 40px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
   color: var(--faint);
-  font: 500 13px / 20px var(--font-mono);
+  font: 400 12.5px / 1 var(--font-mono);
 }
-.home-section h2 {
-  max-width: 760px;
-  margin: 12px 0 0;
-  font-size: clamp(30px, 3.4vw, 44px);
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+.home-panel .head .tab {
+  color: var(--ink);
 }
-.home-section h3 {
-  margin: 20px 0 6px;
-  font-size: 17px;
+.home-panel .head .sp {
+  margin-left: auto;
+}
+/* The checked points under a section's words. */
+.home-points {
+  display: grid;
+  gap: 14px;
+  max-width: 480px;
+  margin: 32px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.home-points li {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 12px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
   line-height: 24px;
 }
-.home-sub {
-  max-width: 620px;
-  margin: 16px 0 0;
-  color: var(--muted);
-  font-size: 18px;
-  line-height: 28px;
+.home-points li svg {
+  margin-top: 3px;
+  color: var(--lime);
 }
-.home-icon {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--line);
-  border-radius: var(--edge-md);
-  background: var(--soft);
-}
-.home-more {
-  margin: 20px 0 0;
-}
-.home-more a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
+.home-points li strong {
   color: var(--ink);
-  font-weight: 500;
-  text-underline-offset: 4px;
+  font-weight: 600;
 }
-.home-cta {
+/* A title with its one action to the right, which drops under the title on a phone. */
+.home-more {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 32px;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
 }
+/* The secondary button as a link: the raised box on a strong hairline, 48 px tall. */
 .home-secondary {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  gap: 8px;
   min-height: 48px;
   padding: 0 18px;
   border: 1px solid var(--line-strong);
   border-radius: var(--edge-sm);
-  background: var(--panel);
+  background: var(--raise);
   color: var(--ink);
   font-size: 15px;
   font-weight: 500;
   text-decoration: none;
+  white-space: nowrap;
 }
 .home-secondary:hover {
-  border-color: var(--ink);
+  border-color: #5a5f68;
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .home-secondary {
+    transition:
+      transform 0.14s,
+      border-color 0.14s;
+  }
+  .home-secondary:hover {
+    transform: translateY(-1px);
+  }
+  .home-secondary:active {
+    transform: translateY(1px) scale(0.985);
+  }
 }
 @media (max-width: 1023px) {
-  .home-section.intro {
-    min-height: 0;
-    padding: 64px 0;
-  }
-  .split-12 {
-    grid-template-columns: 1fr;
+  .home-chess {
+    grid-template-columns: minmax(0, 1fr);
     gap: 40px;
+  }
+  .home-chess .text,
+  .home-chess .show,
+  .home-chess.flip .text,
+  .home-chess.flip .show {
+    grid-column: auto;
+    order: 0;
   }
 }
 @media (max-width: 760px) {
   .home-section {
-    padding: 72px 0;
-  }
-  .home-section.intro {
-    padding: 40px 0 48px;
-  }
-  .home-cta > * {
-    flex: 1;
-    justify-content: center;
+    padding: 80px 0;
   }
 }

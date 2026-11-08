@@ -17,14 +17,14 @@ const purchases: readonly { readonly name: string; readonly purchase: Purchase }
 
 <PageMeta
   title="Get the Automata app"
-  description="Every editor on your phone, tablet or computer. $19.99 once for phone and tablet, $39.99 once for computer."
+  description="The Automata editors, made for your phone, tablet or computer. $19.99 once for phone and tablet, $39.99 once for computer."
 />
 <PageShell>
   <header>
     <p class="kicker">The app</p>
     <h1>Get the Automata app</h1>
     <p class="lead">
-      Make your game on the web for free. The app has every editor and works on your phone, tablet or computer.
+      Make your game on the web for free. The app adds more editors and works on your phone, tablet or computer.
     </p>
   </header>
 

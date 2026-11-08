@@ -41,9 +41,19 @@ describe('check:launch', () => {
     ])
     expect(
       await mailboxProblems('automataframework.com', async () => {
-        throw new Error('ENOTFOUND')
+        throw new Error('the network is down')
       }),
-    ).toEqual(['Could not look up the mail record for automataframework.com (ENOTFOUND).'])
+    ).toEqual(['Could not look up the mail record for automataframework.com (the network is down).'])
+    // A name with no MX (ENODATA) or no address at all (ENOTFOUND) is the finding, not a failure to look.
+    for (const code of ['ENODATA', 'ENOTFOUND']) {
+      expect(
+        await mailboxProblems('automataframework.com', async () => {
+          throw Object.assign(new Error(`queryMx ${code} automataframework.com`), { code })
+        }),
+      ).toEqual([
+        'automataframework.com has no mail record, so mail to hello@automataframework.com would bounce.',
+      ])
+    }
   })
 
   it('passes with a mail record', async () => {

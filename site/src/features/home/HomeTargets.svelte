@@ -1,24 +1,24 @@
 <script lang="ts">
-// "Publish": the four places a game goes, each with the command that puts it there.
+// "Publish": the four places a game goes, in one row, each with the command that puts it there.
 import Icon from '../../shared/components/Icon.svelte'
 import { TARGETS } from './home-content'
 </script>
 
 <section class="home-section">
   <div class="page-wrap">
-    <p class="home-kicker">Publish</p>
+    <span class="home-kicker"><Icon name="share" size={14} />Publish</span>
     <h2>One build. Four places to put it.</h2>
-    <div class="targets">
+    <ul class="targets">
       {#each TARGETS as target (target.title)}
-        <div class="target">
-          <span class="home-icon"><Icon name={target.icon} size={18} /></span>
+        <li class="target">
+          <Icon name={target.icon} size={20} />
           <h3>{target.title}</h3>
           <p>{target.body}</p>
           <!-- The command over two lines, the target on the second, as a terminal would wrap it. -->
           <code data-scroll-region="horizontal">{target.command.replace(' --target', '\n  --target')}</code>
-        </div>
+        </li>
       {/each}
-    </div>
+    </ul>
   </div>
 </section>
 
@@ -26,42 +26,63 @@ import { TARGETS } from './home-content'
   .targets {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-top: 48px;
+    margin: 56px 0 0;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--edge-lg);
+    background: var(--panel);
+    list-style: none;
   }
   .target {
     display: flex;
     flex-direction: column;
     min-width: 0;
+    margin: 0;
     padding: 24px;
-    border: 1px solid var(--line);
-    border-radius: var(--edge-lg);
-    background: var(--panel);
   }
-  .target p {
-    margin: 0 0 20px;
+  .target + .target {
+    border-left: 1px solid var(--line);
+  }
+  h3 {
+    margin: 18px 0 4px;
+    font-size: 16px;
+    line-height: 22px;
+    letter-spacing: 0;
+  }
+  p {
+    margin: 0 0 16px;
     color: var(--muted);
-    font-size: 15px;
-    line-height: 24px;
+    font-size: 14px;
+    line-height: 22px;
   }
-  .target code {
+  code {
     margin-top: auto;
-    padding: 10px 12px;
+    padding: 0;
     overflow-x: auto;
-    border-radius: var(--edge-sm);
-    background: var(--soft);
-    color: var(--ink);
-    font: 400 12.5px/18px var(--font-mono);
+    background: none;
+    color: var(--faint);
+    font: 400 12px/18px var(--font-mono);
     white-space: pre;
   }
-  @media (max-width: 1199px) {
+  @media (max-width: 1023px) {
     .targets {
       grid-template-columns: 1fr 1fr;
+    }
+    .target:nth-child(3) {
+      border-left: 0;
+    }
+    .target:nth-child(n + 3) {
+      border-top: 1px solid var(--line);
     }
   }
   @media (max-width: 760px) {
     .targets {
       grid-template-columns: 1fr;
+      margin-top: 40px;
+    }
+    .target + .target {
+      border-top: 1px solid var(--line);
+      border-left: 0;
     }
   }
 </style>

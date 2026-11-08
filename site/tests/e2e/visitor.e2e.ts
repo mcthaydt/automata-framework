@@ -19,6 +19,12 @@ const GAME_STEP_MS = 40_000
 /** The game's root element, inside the demo's frame. */
 const game = (demo: FrameLocator): Locator => demo.locator('#game')
 
+/**
+ * How long one press of Play it may take to put the player in the room. The Ruken build waited ten seconds for a host
+ * that never answers; the web build the page frames waits for nothing, so this is the page's own load and the game's.
+ */
+const START_BUDGET_MS = 8_000
+
 /** Plays the demo from its poster until the player stands in the room, then moves them right and sees them move. */
 async function playEmberwick(page: Page, input: 'keyboard' | 'touch'): Promise<void> {
   // One press, right after the page's first byte: Home is prerendered, so its Play is there before the script that
@@ -26,12 +32,9 @@ async function playEmberwick(page: Page, input: 'keyboard' | 'touch'): Promise<v
   await page.getByRole('button', { name: 'Play it' }).click({ timeout: GAME_STEP_MS })
   await expect(page.locator('iframe[title="Emberwick"]')).toBeAttached({ timeout: GAME_STEP_MS })
   const demo = page.frameLocator('iframe[title="Emberwick"]')
-  await expect(demo.locator('html')).toHaveAttribute('data-state', 'ready', { timeout: GAME_STEP_MS })
-  // The splash moves on by itself or on any key; the menu's Play starts the room.
-  await expect(game(demo)).toHaveAttribute('data-screen', /splash|menu/, { timeout: GAME_STEP_MS })
-  if ((await game(demo).getAttribute('data-screen')) === 'splash') await page.keyboard.press('KeyX')
-  await demo.getByRole('button', { name: 'Play' }).click({ timeout: GAME_STEP_MS })
-  await expect(game(demo)).toHaveAttribute('data-player-x', /\d+/, { timeout: GAME_STEP_MS })
+  // No splash and no menu: the visitor pressed Play it, so the game opens in the room.
+  await expect(game(demo)).toHaveAttribute('data-player-x', /\d+/, { timeout: START_BUDGET_MS })
+  await expect(game(demo)).toHaveAttribute('data-screen', 'room')
   if (input === 'touch') {
     // Upright: the frame is taller than wide, so the game plays in it rather than asking to be turned or fullscreened.
     const frame = await page.locator('iframe[title="Emberwick"]').boundingBox()
@@ -176,13 +179,10 @@ test.describe("Home's demo", () => {
     await page.goto('/', { waitUntil: 'commit' })
     await page.getByRole('button', { name: 'Play it' }).click({ timeout: GAME_STEP_MS })
     await expect(page.locator('iframe[title="Emberwick"]')).toBeAttached({ timeout: GAME_STEP_MS })
-    await expect(page.frameLocator('iframe[title="Emberwick"]').locator('html')).toHaveAttribute(
-      'data-state',
-      'ready',
-      {
-        timeout: GAME_STEP_MS,
-      },
-    )
+    // One press is all it takes: the room is drawn with the player in it, not the splash or the menu.
+    const demo = page.frameLocator('iframe[title="Emberwick"]')
+    await expect(demo.locator('#game')).toHaveAttribute('data-player-x', /\d+/, { timeout: START_BUDGET_MS })
+    await expect(demo.locator('#game')).toHaveAttribute('data-screen', 'room')
   })
 
   test('playing, the bar has Full screen and Stop; Stop returns to the poster', async ({ page }) => {
@@ -191,6 +191,12 @@ test.describe("Home's demo", () => {
     await expect(bar.getByRole('button')).toHaveText(['Play it'])
     await bar.getByRole('button', { name: 'Play it' }).click()
     await expect(bar.getByRole('button')).toHaveText(['Full screen', 'Stop'])
+    // Once the game is up the page has scrolled it into view (focusing the frame does that); a press before that would
+    // land where the button was.
+    await expect(page.frameLocator('iframe[title="Emberwick"]').locator('#game')).toHaveAttribute(
+      'data-screen',
+      'room',
+    )
     await bar.getByRole('button', { name: 'Stop' }).click()
     await expect(page.locator('iframe[title="Emberwick"]')).toHaveCount(0)
     await expect(page.locator('img.demo-poster')).toBeVisible()
@@ -199,7 +205,7 @@ test.describe("Home's demo", () => {
 
   test('Try again after a failure starts the game again', async ({ page }) => {
     let frameLoads = 0
-    await page.route('**/demos/emberwick/index.html', async (route) => {
+    await page.route('**/demos/emberwick/index.html**', async (route) => {
       frameLoads++
       await route.fulfill({
         contentType: 'text/html',
@@ -213,14 +219,17 @@ test.describe("Home's demo", () => {
     await expect.poll(() => frameLoads).toBe(2)
   })
 
-  test('at 390 × 844 the picture is the first thing under the hero', async ({ page }) => {
+  test('at 390 × 844 the bar and the picture are the first things under the hero, the bar above', async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/')
     const boxes = await page.evaluate(() => {
       const top = (selector: string) => document.querySelector(selector)?.getBoundingClientRect().top ?? -1
       return { hero: top('.intro-text'), picture: top('.demo-viewport'), bar: top('.demo-bar') }
     })
-    expect(boxes.picture).toBeGreaterThan(boxes.hero)
-    expect(boxes.bar, 'no bar above the picture').toBeGreaterThan(boxes.picture)
+    expect(boxes.bar).toBeGreaterThan(boxes.hero)
+    // The approved mockup (v2) puts the bar above the picture.
+    expect(boxes.picture, 'the bar is above the picture').toBeGreaterThan(boxes.bar)
   })
 })

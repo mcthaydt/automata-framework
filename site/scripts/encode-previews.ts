@@ -21,7 +21,7 @@ for (const file of readdirSync(directory)
       image.src = source
       await image.decode()
       const out: Record<string, string> = {}
-      for (const width of [...widths, image.naturalWidth]) {
+      for (const width of [...widths.filter((each) => each < image.naturalWidth), image.naturalWidth]) {
         const canvas = document.createElement('canvas')
         canvas.width = width
         canvas.height = Math.round((image.naturalHeight * width) / image.naturalWidth)

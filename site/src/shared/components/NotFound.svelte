@@ -13,6 +13,6 @@ import PageShell from './PageShell.svelte'
   <p>There is no page at this address. It may have moved.</p>
   <div class="link-row">
     <a class="button" href="/">Go to the home page</a>
-    <a href="/docs">Read the docs</a>
+    <a class="button secondary" href="/docs">Read the docs</a>
   </div>
 </PageShell>

@@ -1,3 +1,7 @@
+import { SKILL_PREFLIGHT } from '../../shared/content/agent-prompt'
+
+export { SKILL_PREFLIGHT }
+
 // What Start's agent setup says: where each skill comes from, how each agent installs it, and the check to ask the
 // agent for before it writes code. Sources were checked on 15 October 2026; upstream instructions win when they change.
 export const SKILL_SOURCES = {
@@ -30,10 +34,3 @@ export const AGENT_INSTALL_OPTIONS = [
     command: '',
   },
 ]
-export const SKILL_PREFLIGHT = `Before coding, check the skills available in this agent session.
-Confirm Superpowers is installed, including using-superpowers and its planning/testing workflows.
-Confirm the official PixiJS v8 skill collection is installed, including the pixijs router and relevant rendering skills.
-Read the applicable SKILL.md files and report their loaded paths or plugin names.
-If either collection is missing or cannot be loaded, stop and follow its upstream installation instructions before implementing.
-Then read this game's README.md and the package types.
-Do not report a skill as installed or loaded without evidence.`

@@ -21,13 +21,13 @@ function jpegSize(path: string): { width: number; height: number } {
   throw new Error(`${path} has no frame`)
 }
 
-// Spec 10.2 (Editor): what the editor does in three pictures, and "Try the editor", which opens the page
+// Spec 10.2 (Editor): what the editor does in two pictures, and "Try the editor", which opens the page
 // `automata editor` serves a 2D game, on a sample game kept in this browser's storage.
 describe('/editor', () => {
-  it('shows what the editor does in three pictures, each one a real file with words for it', () => {
+  it('shows what the editor does in two pictures, each one a real file with words for it', () => {
     const view = render(EditorPage)
-    expect(view.container.querySelectorAll('figure')).toHaveLength(3)
-    expect(PICTURES).toHaveLength(3)
+    expect(view.container.querySelectorAll('figure')).toHaveLength(2)
+    expect(PICTURES).toHaveLength(2)
     for (const picture of PICTURES) {
       expect(existsSync(staticFile(picture.src)), picture.src).toBe(true)
       expect(view.getByAltText(picture.alt)).toBeTruthy()
@@ -47,6 +47,15 @@ describe('/editor', () => {
     expect(TAKEN.map((picture) => picture.name)).not.toContain('double-jump')
   })
 
+  it('leads with what the try-it does, and keeps the phone picture and its caption off until the phone check passes', () => {
+    const view = render(EditorPage)
+    const lead = view.container.querySelector('.lead')?.textContent ?? ''
+    expect(lead).toMatch(/^\s*Try it here: paint a level/)
+    expect(lead).not.toMatch(/game's folder/)
+    expect(view.container.textContent).not.toContain('It works on a phone and a tablet too.')
+    expect(TAKEN.map((picture) => picture.name)).not.toContain('editor-phone')
+  })
+
   it('says, once, that a level is played in the editor on your own game', () => {
     const text = render(EditorPage).container.textContent ?? ''
     expect(text).toContain(EDITOR_PLAY_NOTE)
@@ -56,7 +65,7 @@ describe('/editor', () => {
   it('opens the try-it editor, says its levels are not kept, and how to open it on a game', () => {
     const view = render(EditorPage)
     expect(view.getByRole('link', { name: 'Try the editor' }).getAttribute('href')).toBe('/editor/app/')
-    expect(view.container.textContent).toContain('Your levels stay in this page')
+    expect(view.container.textContent).toContain('Your level stays in this page')
     expect(EDITOR_COMMAND).toBe('pnpm exec automata editor')
     expect(view.getByText(EDITOR_COMMAND)).toBeTruthy()
   })
@@ -81,7 +90,7 @@ describe('/editor', () => {
     expect(app.className).toContain('secondary')
     expect(view.container.querySelectorAll('a.button:not(.secondary)')).toHaveLength(1)
     expect(view.container.textContent).toContain(
-      'Every editor, on your phone, tablet or computer: the Automata app.',
+      'More editors, made for your phone, tablet or computer: the Automata app.',
     )
   })
 })

@@ -24,3 +24,11 @@ declare module 'virtual:framework/examples' {
   const examples: import('../../../playground/src/playground-catalog.ts').PlaygroundExample[]
   export default examples
 }
+declare module 'virtual:framework/facts' {
+  const facts: import('./facts.ts').SiteFacts
+  export default facts
+}
+declare module 'virtual:framework/changelog' {
+  const entries: import('./changelog.ts').ChangelogEntry[]
+  export default entries
+}

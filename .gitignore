@@ -1,5 +1,6 @@
 node_modules/
 dist/
+dist-web/
 dist-playground/
 dist-playground.building/
 dist-e2e-host/
@@ -31,3 +32,6 @@ docs/evidence/
 # The create-game journey scaffolds its game here (packages/tools/tests/e2e/serve-new-game.ts).
 packages/tools/tests/e2e/.scratch/
 spikes/3d-look/node_modules
+
+# wrangler's local state (the miniflare databases of `host:local`)
+.wrangler/

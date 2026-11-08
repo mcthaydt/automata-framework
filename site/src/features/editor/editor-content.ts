@@ -33,11 +33,6 @@ export const PICTURES: readonly EditorPicture[] = [
   picture(
     'editor-new',
     'Start from a platformer, a top-down map or nothing.',
-    'The New level box: Platformer, Top-down and Blank',
-  ),
-  picture(
-    'editor-phone',
-    'It works on a phone and a tablet too.',
-    'The level editor on a phone: the room fills the screen and the tools sit along the bottom',
+    'The three ways to start a level: Platformer, Top-down and Blank',
   ),
 ]

@@ -59,7 +59,8 @@ button:hover {
   text-decoration: none;
   min-height: 48px;
   background: var(--lime);
-  border-color: var(--ink);
+  border-color: var(--lime);
+  color: var(--lime-ink);
   font-weight: 600;
 }
 .button:hover {
@@ -103,7 +104,7 @@ a:hover {
   scroll-margin-top: 6rem;
 }
 ::selection {
-  background: rgb(29 39 138 / 0.2);
+  background: rgb(203 242 92 / 0.28);
   color: var(--ink);
 }
 h1,

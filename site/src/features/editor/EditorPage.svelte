@@ -1,7 +1,7 @@
 <!--
-  The Editor page: what the 2D level editor does in three pictures, "Try the editor" (the page `automata editor`
+  The Editor page: what the 2D level editor does in two pictures, "Try the editor" (the page `automata editor`
   serves a 2D game, here on a sample game that lives in the page) and the command that opens it on a game. Home's look: one
-  lime button, white panels on hairlines, 4/6/8 px corners.
+  lime button, panels on hairlines, 4/6/8 px corners. The phone picture waits until the try-it passes the 390 px edge check.
 -->
 <script lang="ts">
 import CodeBlock from '../../shared/components/CodeBlock.svelte'
@@ -22,24 +22,20 @@ const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
     <p class="kicker">Editor</p>
     <h1>Draw your levels in the browser.</h1>
     <p class="lead">
-      The level editor opens on your game's folder. Paint the rooms and place the characters: each change is saved into
-      the game, and the running game picks it up.
+      Try it here: paint a level and place its characters, then press Share to keep it as a file. Nothing to install.
     </p>
     <!-- The editor is a page of its own, not one of the site's routes, so the browser loads it whole. -->
     <p class="cta">
       <a class="button" href="/editor/app/" data-sveltekit-reload>Try the editor <Icon name="arrowRight" /></a>
       <a class="button secondary" href="/app">Get the app</a>
     </p>
-    <p class="note">
-      Nothing to install. Your levels stay in this page and are gone when you close it, so press Share to save one as a
-      file. {EDITOR_PLAY_NOTE}
-    </p>
-    <p class="note">Every editor, on your phone, tablet or computer: the Automata app.</p>
+    <p class="note">Your level stays in this page and is gone when you close it. {EDITOR_PLAY_NOTE}</p>
+    <p class="note">More editors, made for your phone, tablet or computer: the Automata app.</p>
   </header>
 
   <div class="pictures">
     {#each PICTURES as picture, index (picture.src)}
-      <figure class:tall={picture.height > picture.width}>
+      <figure>
         <picture>
           <source type="image/webp" srcset={webp(picture.src)} />
           <img
@@ -57,7 +53,10 @@ const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
 
   <section class="own">
     <h2>On your own game</h2>
-    <p>In your game's folder, this opens the same editor on your levels, and every change goes straight into the game.</p>
+    <p>
+      In your game's folder, this opens the same editor on your levels. Paint the rooms and place the characters: each
+      change is saved into the game, and the running game picks it up.
+    </p>
     <CodeBlock code={EDITOR_COMMAND} variant="command" />
     <p><a href="/docs/editor">Draw levels in the editor</a> says more.</p>
   </section>
@@ -66,7 +65,7 @@ const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
 <style>
   .kicker {
     margin: 0;
-    color: var(--faint);
+    color: var(--lime);
     font: 500 13px/20px var(--font-mono);
   }
   h1 {
@@ -87,7 +86,7 @@ const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
     color: var(--muted);
     font-size: 14px;
   }
-  /* The wide picture spans the row; the two smaller ones share the row under it. */
+  /* The wide picture spans the row; the small one sits under it, at its own size. */
   .pictures {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -113,14 +112,6 @@ const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
     display: block;
     width: 100%;
     height: auto;
-  }
-  /* The phone picture stands upright: as tall as its neighbour, not as wide. */
-  .tall picture {
-    aspect-ratio: 992 / 964;
-  }
-  .tall img {
-    width: auto;
-    height: 100%;
   }
   figcaption {
     margin: 12px 0 0;

@@ -36,7 +36,10 @@ export const APP_OFFER: AppOffer = {
     devices: 'Mac, Windows and Linux',
     buy: [{ label: 'Buy for your computer', url: null }],
   },
-  // Which editors stay free on the web is the Owner's call; this is the split the apps audit recommends.
+  // Which editors stay free on the web is the Owner's call; this is the split the apps audit recommends (its option A).
+  // Checked against the free `automata editor` on 2026-11-08: its Home marks Feel, Audio and Schematic "Not in this
+  // build", and lists no Writer or Sequence at all, so those two are not promised here until the apps pipeline gates
+  // them. The page says only what is true on the day it is read.
   web: [
     'Levels for 2D games, with Characters and Add tiles',
     'The Tuner',
@@ -44,9 +47,9 @@ export const APP_OFFER: AppOffer = {
   ],
   app: [
     'Levels for 3D games, with Walk and 3D Characters',
-    'Feel, Audio, Writer and Sequence',
+    'Feel and Audio',
     'Schematic',
     'Sync with GitHub',
-    'Every editor on your phone',
+    'Editors made for your phone and tablet',
   ],
 }

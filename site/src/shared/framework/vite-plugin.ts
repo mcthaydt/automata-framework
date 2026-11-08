@@ -1,7 +1,9 @@
 import type { Plugin } from 'vite'
 import { readApiIndex } from './api.ts'
+import { readChangelog } from './changelog.ts'
 import { demoList } from './demos.ts'
 import { playgroundExamples } from './examples.ts'
+import { siteFacts } from './facts.ts'
 import { readGuides } from './guides.ts'
 import { repositoryRoot } from './root.ts'
 
@@ -14,6 +16,8 @@ const MODULES = {
   guides: () => readGuides(),
   examples: () => playgroundExamples(),
   demos: () => demoList(),
+  facts: () => siteFacts(),
+  changelog: () => readChangelog(),
   api: () => readApiIndex().reference,
   'api-search': () => readApiIndex().search,
   llms: () => {
@@ -39,7 +43,11 @@ export function frameworkData(): Plugin {
     },
     // In dev, a change to a guide, a demo's header or the API index reloads the page that shows it.
     configureServer(server) {
-      server.watcher.add([`${repositoryRoot}docs/guides`, `${repositoryRoot}tooling/api-index/dist`])
+      server.watcher.add([
+        `${repositoryRoot}docs/guides`,
+        `${repositoryRoot}tooling/api-index/dist`,
+        `${repositoryRoot}.changeset`,
+      ])
     },
   }
 }

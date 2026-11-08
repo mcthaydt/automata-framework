@@ -1,18 +1,18 @@
-/* Home's demo: the game's picture edge to edge, one dark bar under it with the game's name and its one or two buttons. */
+/* Home's demo: one bar above the game, then the game's picture edge to edge. The bar names the game, says which keys
+   play it, and has the game's one or two buttons. */
 .demo-runner {
   position: relative;
   width: 100%;
   min-width: 0;
   overflow: hidden;
-  border-radius: var(--edge-lg);
-  background: var(--charcoal);
-  color: var(--stage-ink);
+  background: var(--stage);
+  color: var(--ink);
 }
 .demo-viewport {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
-  background: #12201f;
+  background: #07080a;
 }
 /* On an upright phone a playing demo stands upright too: a wide frame on a narrow phone is, to the game inside, a phone
    held sideways, and the game asks for fullscreen before it plays. Upright, it plays in the frame with its controls
@@ -39,12 +39,12 @@
 .demo-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   min-height: 56px;
   padding: 6px 8px 6px 16px;
-  background: #16191e;
-  font-size: 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  font-size: 13px;
 }
 .demo-words {
   display: flex;
@@ -52,16 +52,43 @@
   align-items: baseline;
   gap: 0 12px;
   min-width: 0;
-  color: #c9ced6;
+  color: var(--muted);
 }
 .demo-words strong {
-  color: #fff;
+  color: var(--ink);
   font-weight: 600;
+}
+/* The keys that play the game, on a screen that has a keyboard; a touch screen has the game's own buttons. */
+.demo-keys {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  color: var(--faint);
+}
+.demo-keys kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--edge-sm);
+  color: var(--muted);
+  font: 500 11px / 1 var(--font-mono);
+}
+@media not ((hover: hover) and (pointer: fine)) {
+  .demo-keys {
+    display: none;
+  }
 }
 .demo-actions {
   display: flex;
   gap: 8px;
   flex-shrink: 0;
+}
+.demo-keys + .demo-actions {
+  margin-left: 12px;
 }
 .demo-actions button[aria-busy="true"] {
   cursor: progress;
@@ -84,9 +111,21 @@
   flex: 1;
   aspect-ratio: auto;
 }
-/* On a phone the bar keeps the name and the buttons; the tagline is the first thing to go. */
+/* On a phone the bar keeps the name and the buttons; the tagline and the keys are the first things to go. */
 @media (max-width: 760px) {
-  .demo-bar .tagline {
+  .demo-bar .tagline,
+  .demo-keys {
     display: none;
+  }
+  .demo-actions {
+    margin-left: auto;
+  }
+}
+@media (max-width: 1023px) {
+  .demo-keys {
+    display: none;
+  }
+  .demo-actions {
+    margin-left: auto;
   }
 }

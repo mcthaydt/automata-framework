@@ -49,7 +49,7 @@ nav.link-row a {
   text-decoration: none;
 }
 nav.link-row a:hover {
-  background: #fff;
+  background: var(--raise);
   border-color: var(--line-strong);
 }
 .examples-layout {

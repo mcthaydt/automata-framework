@@ -7,7 +7,7 @@ function getHighlighter() {
   highlighter ??= Promise.all([
     import('shiki/core'),
     import('shiki/engine/javascript'),
-    import('shiki/themes/github-light.mjs'),
+    import('shiki/themes/github-dark.mjs'),
     import('shiki/langs/typescript.mjs'),
     import('shiki/langs/javascript.mjs'),
     import('shiki/langs/json.mjs'),
@@ -34,7 +34,7 @@ export async function highlightCode(code: string, lang = 'typescript'): Promise<
   const escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   try {
     const instance = await getHighlighter()
-    return instance.codeToHtml(code, { lang: lang === 'sh' ? 'shellscript' : lang, theme: 'github-light' })
+    return instance.codeToHtml(code, { lang: lang === 'sh' ? 'shellscript' : lang, theme: 'github-dark' })
   } catch {
     return `<pre><code>${escaped}</code></pre>`
   }

@@ -180,8 +180,7 @@ describe('afterFirstPaint (the helper inside the page)', () => {
       const { afterFirstPaint, listeners, listenerOptions } = browser()
       const start = vi.fn()
       afterFirstPaint(start)
-      expect(listenerOptions[type], `${type} listens once, before the page's own handlers`).toEqual({
-        once: true,
+      expect(listenerOptions[type], `${type} listens before the page's own handlers`).toEqual({
         capture: true,
       })
       expect(start).not.toHaveBeenCalled()
@@ -203,6 +202,27 @@ describe('afterFirstPaint (the helper inside the page)', () => {
       elsewhere.listeners[type]!({ target: { closest: () => null } })
       expect(elsewhere.document.documentElement.dataset.playPressed).toBeUndefined()
     }
+  })
+
+  it('keeps listening after a first press elsewhere, so a later press on [data-play] is still kept', () => {
+    const playButton = { closest: (selector: string) => (selector === '[data-play]' ? {} : null) }
+    const view = browser()
+    const start = vi.fn()
+    view.afterFirstPaint(start)
+    view.listeners.pointerdown!({ target: { closest: () => null } })
+    expect(view.document.documentElement.dataset.playPressed).toBeUndefined()
+    view.listeners.pointerdown!({ target: playButton })
+    expect(view.document.documentElement.dataset.playPressed).toBe('')
+    expect(start).toHaveBeenCalledTimes(1)
+  })
+
+  it('stops marking presses once the demo has mounted', () => {
+    const playButton = { closest: (selector: string) => (selector === '[data-play]' ? {} : null) }
+    const view = browser()
+    view.afterFirstPaint(vi.fn())
+    view.document.documentElement.dataset.playMounted = ''
+    view.listeners.pointerdown!({ target: playButton })
+    expect(view.document.documentElement.dataset.playPressed).toBeUndefined()
   })
 
   it('starts after the fallback delay if no paint is ever reported', () => {

@@ -20,13 +20,15 @@ const PAGES = Array.from(
   readFileSync(resolve('build/sitemap.xml'), 'utf8').matchAll(/<loc>https?:\/\/[^/]+([^<]*)<\/loc>/g),
   (match) => match[1] || '/',
 )
+// Addresses nothing answers, at the top level and nested (the 404 page's links are root-relative so both work).
+const MISSING = ['/no-such-page', '/docs/no/such/page']
 const VIEWPORTS = [
   { name: 'phone', width: 375, height: 667 },
   { name: 'tablet', width: 768, height: 1024 },
   { name: 'desktop', width: 1280, height: 800 },
   { name: 'landscape phone', width: 780, height: 270 },
 ]
-const PRIMARY_LINKS = ['Docs', 'Examples', 'Editor', 'Reference']
+const PRIMARY_LINKS = ['Docs', 'Examples', 'Editor', 'Reference', 'Changelog']
 
 /** Loads a page and waits for semantic readiness: no network in flight and the web fonts applied. */
 async function open(page: Page, path: string): Promise<void> {
@@ -74,17 +76,20 @@ for (const viewport of VIEWPORTS) {
       }
     })
 
-    test('a Get started link is in the header', async ({ page }) => {
+    test('a Make a game link is in the header', async ({ page }) => {
       await open(page, '/docs')
       await expect(
         page
           .locator('header.site-header')
-          .getByRole('link', { name: 'Get started', exact: true })
+          .getByRole('link', { name: 'Make a game', exact: true })
           .locator('visible=true'),
       ).toHaveCount(1)
     })
 
     test('images are at most twice their rendered width', async ({ page }) => {
+      test.setTimeout(120_000)
+      // The logo strip moves, and a moving picture is never "stable" to scroll to; sizes are what is measured here.
+      await page.emulateMedia({ reducedMotion: 'reduce' })
       for (const path of ['/', '/start', '/examples']) {
         await open(page, path)
         for (const image of await page.locator('img:visible').all()) {
@@ -130,7 +135,7 @@ for (const size of AUDIT_SIZES) {
     test('every link and button on every page is big enough to tap', async ({ page }) => {
       test.setTimeout(180_000)
       const small: string[] = []
-      for (const path of PAGES) {
+      for (const path of [...PAGES, ...MISSING]) {
         await open(page, path)
         for (const target of await smallTapTargets(page)) small.push(`${path}: ${target}`)
       }
@@ -275,7 +280,7 @@ test.describe('desktop 1280×800', () => {
       fail = release
     })
     // Hold the bundle until the loading state is asserted, then answer as a bundle whose boot failed.
-    await page.route('**/demos/emberwick/index.html', async (route) => {
+    await page.route('**/demos/emberwick/index.html**', async (route) => {
       await failed
       await route.fulfill({
         contentType: 'text/html',
@@ -384,10 +389,16 @@ test.describe('without script', () => {
     await page.goto('/')
     const pictures = page.locator('main picture img')
     expect(await pictures.count()).toBeGreaterThanOrEqual(1)
-    for (const alt of await pictures.evaluateAll((images) =>
-      images.map((image) => image.getAttribute('alt')),
-    ))
-      expect(alt, 'every picture has alt text').toBeTruthy()
+    // A picture has alt text, or it is decorative: hidden from readers (a repeat in the logo strip) or a picture inside a
+    // link that already says in words where it goes (an example's card).
+    const unnamed = await pictures.evaluateAll((images) =>
+      images
+        .filter((image) => !image.getAttribute('alt'))
+        .filter((image) => !image.closest('[aria-hidden="true"]'))
+        .filter((image) => !image.closest('a')?.textContent?.trim())
+        .map((image) => image.getAttribute('src')),
+    )
+    expect(unnamed, 'every picture has alt text or is decorative').toEqual([])
     await pictures.last().scrollIntoViewIfNeeded()
     await expect
       .poll(() =>

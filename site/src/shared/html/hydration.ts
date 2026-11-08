@@ -19,7 +19,9 @@ export const FALLBACK_MS = 3000
  *
  * A press on a `[data-play]` control marks `<html data-play-pressed>`: the page is prerendered, so its Play button is
  * there before the script that answers it, and the press itself would be lost. The demo reads the mark when it mounts
- * and starts, so the visitor presses once.
+ * and starts, so the visitor presses once. The listeners stay until the demo mounts (and says so with
+ * `data-play-mounted`), so a visitor who scrolls or taps elsewhere first, which starts the app but does not mount the
+ * demo, still has the press on Play it kept.
  */
 export const AFTER_FIRST_PAINT = `const afterFirstPaint = start => {
 \t\t\t\t\t\tlet started = false;
@@ -30,11 +32,12 @@ export const AFTER_FIRST_PAINT = `const afterFirstPaint = start => {
 \t\t\t\t\t\t\t}).observe({ type: "paint", buffered: true });
 \t\t\t\t\t\t\tdocument.addEventListener("visibilitychange", go, { once: true });
 \t\t\t\t\t\t\tconst press = event => {
-\t\t\t\t\t\t\t\tif (event.target?.closest?.("[data-play]")) document.documentElement.dataset.playPressed = "";
+\t\t\t\t\t\t\t\tconst root = document.documentElement;
+\t\t\t\t\t\t\t\tif (!("playMounted" in root.dataset) && event.target?.closest?.("[data-play]")) root.dataset.playPressed = "";
 \t\t\t\t\t\t\t\tgo();
 \t\t\t\t\t\t\t};
-\t\t\t\t\t\t\tdocument.addEventListener("pointerdown", press, { once: true, capture: true });
-\t\t\t\t\t\t\tdocument.addEventListener("keydown", press, { once: true, capture: true });
+\t\t\t\t\t\t\tdocument.addEventListener("pointerdown", press, { capture: true });
+\t\t\t\t\t\t\tdocument.addEventListener("keydown", press, { capture: true });
 \t\t\t\t\t\t\tsetTimeout(go, ${FALLBACK_MS});
 \t\t\t\t\t\t} else go();
 \t\t\t\t\t};`
