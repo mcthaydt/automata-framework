@@ -13,7 +13,7 @@
 import type { GeometryState } from '@mcthaydt/automata'
 import { onMount, type Snippet } from 'svelte'
 import EditorShell from '../shell/EditorShell.svelte'
-import { shellModeOf } from '../shell/shell-mode'
+import { shellModeAt } from '../shell/shell-mode'
 import type { Workspace } from '../storage/workspace'
 import Button from '../widgets/Button.svelte'
 import StatusLine from '../widgets/StatusLine.svelte'
@@ -88,7 +88,7 @@ let panelOpen = $state(false)
 let inspectorOpen = $state(false)
 let scroller = $state<HTMLElement>()
 
-const mode = $derived(shellModeOf(geometry.current.formFactor))
+const mode = $derived(shellModeAt(geometry.current))
 const selectedEntry = $derived(view.visible.find((entry) => entry.path === view.selected))
 const cards = $derived(view.visible.map(card))
 const busy = $derived(view.busy !== undefined)

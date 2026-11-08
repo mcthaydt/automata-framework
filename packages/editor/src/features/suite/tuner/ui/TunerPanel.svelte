@@ -66,9 +66,9 @@ const rows = $derived.by(() => {
   .search {
     min-height: var(--size-hit);
     padding: 0 var(--space-2);
-    border: 1px solid var(--color-border-default, #3a3f48);
+    border: 1px solid var(--line-strong);
     border-radius: var(--edge-sm);
-    background: var(--color-surface-base, #14161a);
+    background: var(--paper);
     color: inherit;
     font: inherit;
   }
@@ -95,7 +95,7 @@ const rows = $derived.by(() => {
     cursor: pointer;
   }
   button.chosen {
-    border-color: var(--color-accent, #d9a441);
+    border-color: var(--color-accent-default);
   }
   .mark {
     color: var(--color-text-dim);

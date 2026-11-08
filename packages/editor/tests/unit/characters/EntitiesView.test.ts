@@ -115,20 +115,20 @@ describe('Entities view: the panel and the preview', () => {
     // Each row shows the name and, for one a level may hold only once, says so; no ids, shapes or field counts.
     expect(within(panel()).getAllByRole('radio')[0]).toHaveAccessibleName('Checkpoint')
     expect(within(panel()).getAllByRole('radio')[0]).toHaveAttribute('aria-checked', 'true')
-    expect(preview()).toHaveTextContent('no instances')
+    expect(preview()).toHaveTextContent('Not in any level yet')
     await choose('Player start')
     expect(within(panel()).getByRole('radio', { name: 'Player start One per level' })).toHaveAttribute(
       'aria-checked',
       'true',
     )
     expect(within(panel()).getByRole('radio', { name: 'Slime' })).toBeInTheDocument()
-    expect(within(panel()).getByRole('button', { name: /^Settings for every level/ })).toBeInTheDocument()
+    expect(within(panel()).getByRole('button', { name: /^Every level/ })).toBeInTheDocument()
     expect(preview()).toHaveTextContent('Player start')
     expect(preview()).toHaveTextContent('Box, 16 × 24 px')
     expect(preview()).toHaveTextContent('Shown 8 times bigger')
     // The anchor point is under More in the inspector, not on the first screen.
     expect(preview()).not.toHaveTextContent(/pivot/i)
-    expect(preview()).toHaveTextContent('1 instance · 1 level')
+    expect(preview()).toHaveTextContent('1 placed in 1 level')
   })
 
   it('redraws the preview when the width changes, as one undo step', async () => {
@@ -144,7 +144,7 @@ describe('Entities view: the panel and the preview', () => {
 
   it('adds a definition and selects it', async () => {
     const { project } = await mount()
-    await userEvent.click(within(panel()).getByRole('button', { name: 'Add entity' }))
+    await userEvent.click(within(panel()).getByRole('button', { name: 'Add character' }))
     expect(project().defs.entities).toHaveLength(7)
     const def = project().defs.entities[6]
     const added = def?.label ?? def?.id ?? ''
@@ -182,7 +182,7 @@ describe('Entities view: the field editor', () => {
 
   it('lists the levels a type change would break, and "Change anyway" is one undo step (G-f)', async () => {
     const { history, project } = await mount()
-    await userEvent.click(within(panel()).getByRole('button', { name: /^Settings for every level/ }))
+    await userEvent.click(within(panel()).getByRole('button', { name: /^Every level/ }))
     const before = history.revision
     await userEvent.click(within(inspector()).getByRole('radio', { name: 'int' }))
     const dialog = screen.getByRole('dialog', { name: 'Change music?' })

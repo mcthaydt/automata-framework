@@ -1,7 +1,7 @@
 <!--
   The Map view (the world): the panel holds the world's
   layout switch and its levels as a list; the canvas is the map, with the Level view's frame (spec 11.4): one pill
-  floats over it with All levels and Details below `wide` (they open the list and the inspector as drawers or sheets) and
+  floats over it with Details below `wide` and All levels in the compact layout (they open the inspector and the list) and
   Fit, at the map's top from an iPad up and at its foot on a phone. The map is where a level is pressed to select it and dragged to
   move it (one undo step; a sequence reorders and the level picker follows); the inspector edits the selected
   level. The map is fitted to its box (plan decision 1); the camera holds still while a drag is under way, so the level
@@ -12,7 +12,7 @@ import { untrack } from 'svelte'
 import { attachGestures } from '../../shared/kit/gestures/attach-gestures'
 import EditorShell from '../../shared/kit/shell/EditorShell.svelte'
 import StagePill from '../../shared/kit/shell/StagePill.svelte'
-import { shellModeOf } from '../../shared/kit/shell/shell-mode'
+import { shellModeAt } from '../../shared/kit/shell/shell-mode'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import IconButton from '../../shared/kit/widgets/IconButton.svelte'
 import Segmented from '../../shared/kit/widgets/Segmented.svelte'
@@ -70,7 +70,7 @@ let map = $state<HTMLElement>()
 let panelOpen = $state(false)
 let inspectorOpen = $state(false)
 
-const mode = $derived(shellModeOf(geometry.current.formFactor))
+const mode = $derived(shellModeAt(geometry.current))
 const wide = $derived(mode === 'wide')
 
 const world = $derived(project?.worlds.find((candidate) => candidate.id === worldId))
@@ -127,7 +127,7 @@ $effect(() => {
 const pageBox = (rect: DOMRect) => ({ x: rect.left, y: rect.top, w: rect.width, h: rect.height })
 
 /**
- * The part of the map no open drawer or sheet covers; the whole map in wide, where nothing
+ * The part of the map no floating inspector or open sheet covers; the whole map in wide, where nothing
  * covers it, and before the map is in the page.
  */
 function openArea(): ReturnType<typeof uncoveredArea> | undefined {
@@ -145,14 +145,14 @@ function openArea(): ReturnType<typeof uncoveredArea> | undefined {
   )
 }
 
-// The camera follows the map's box and the drawers: until the person pans or zooms it fits the levels into the part of
+// The camera follows the map's box and what floats over it: until the person pans or zooms it fits the levels into the part of
 // the map nothing covers.
 $effect(() => {
   const size = box
   untrack(() => worldCamera.measure(size, rects, openArea()))
 })
 
-// A drawer or sheet opening or closing: measure once it is laid out, and again when its slide ends.
+// The inspector or a sheet opening or closing: measure once it is laid out, and again when its slide ends.
 $effect(() => {
   void [panelOpen, inspectorOpen, wide]
   const element = map
@@ -223,6 +223,7 @@ function layout(next: string): void {
       {/if}
       {#if world !== undefined}
         <div class="arrange">
+          <h2>Arrange levels</h2>
           <Segmented
             label="Arrange levels"
             options={LAYOUTS}
@@ -231,6 +232,7 @@ function layout(next: string): void {
           />
         </div>
       {/if}
+      <h2>Levels</h2>
       <ul class="levels" aria-label="Levels">
         {#each levels as level (level.id)}
           <li>
@@ -261,15 +263,17 @@ function layout(next: string): void {
         >
           {#if project !== undefined}<MapCanvas {project} read={services.read} {rects} {camera} {links} />{/if}
         </div>
-        <StagePill label="Map controls" at={mode === 'compact' ? 'bottom' : 'top'}>
+        <StagePill label="Map controls" at={mode === 'compact' ? 'dock' : 'top'}>
           {#if !wide}
-            <IconButton
-              icon="list"
-              label="All levels"
-              showLabel
-              aria-expanded={panelOpen}
-              onclick={() => (panelOpen = !panelOpen)}
-            />
+            {#if mode === 'compact'}
+              <IconButton
+                icon="list"
+                label="All levels"
+                showLabel
+                aria-expanded={panelOpen}
+                onclick={() => (panelOpen = !panelOpen)}
+              />
+            {/if}
             <IconButton
               icon="inspector"
               label="Details"
@@ -323,21 +327,44 @@ function layout(next: string): void {
     padding: 0;
     list-style: none;
   }
+  /* A section label in small capitals, as the approved mockup draws it (the Level view's Layers). The list and the
+     switch keep their own accessible names as well. */
+  h2 {
+    margin: 0;
+    padding: 0 var(--space-2);
+    color: var(--muted);
+    font: var(--text-eyebrow-11);
+    letter-spacing: var(--text-eyebrow-11-tracking);
+    text-transform: uppercase;
+  }
+  .arrange {
+    display: grid;
+    gap: var(--space-2);
+  }
+  /* Quiet rows, as the Level view's layers: no box, a wash under the pointer and on the chosen level. */
   .levels button {
     box-sizing: border-box;
     width: 100%;
     min-height: var(--size-hit);
-    padding: 0 var(--space-3);
-    border: 1px solid var(--color-border-default);
+    padding: 0 var(--space-2);
+    border: 0;
     border-radius: var(--edge-sm);
-    background: var(--color-bg-field);
+    background: transparent;
     color: var(--color-text-primary);
     font: var(--text-body-13);
     text-align: left;
     cursor: pointer;
   }
+  .levels button:hover {
+    background: var(--tool-hover, var(--color-bg-raised));
+  }
   .levels button[aria-pressed='true'] {
-    border-color: var(--color-accent-default);
+    background: var(--color-accent-soft);
+    font-weight: 500;
+  }
+  .levels button:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: -2px;
   }
   /* The map fills the stage; the controls float over it in the kit's pill, as the Level view's tools do. */
   .stage {

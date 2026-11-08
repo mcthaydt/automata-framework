@@ -9,10 +9,12 @@
 import { onDestroy } from 'svelte'
 import EditorShell from '../../shared/kit/shell/EditorShell.svelte'
 import StagePill from '../../shared/kit/shell/StagePill.svelte'
-import { shellModeOf } from '../../shared/kit/shell/shell-mode'
+import { shellModeAt } from '../../shared/kit/shell/shell-mode'
+import Button from '../../shared/kit/widgets/Button.svelte'
 import IconButton from '../../shared/kit/widgets/IconButton.svelte'
 import type { Project } from '../../shared/level-2d/model/project-types'
 import type { ViewProps } from '../../shared/level-2d/session/view-props'
+import AddTilesDialog from './AddTilesDialog.svelte'
 import RuleInspector from './RuleInspector.svelte'
 import RulePreview from './RulePreview.svelte'
 import { rulePreview } from './rule-preview'
@@ -30,6 +32,9 @@ let project = $state.raw<Project | undefined>(session?.project)
 let selection = $state.raw(session?.selection)
 let panelOpen = $state(false)
 let inspectorOpen = $state(false)
+/** Add tiles is open. It needs somewhere to write the picture (`services.files`). */
+let adding = $state(false)
+const openAdd = $derived(services.files === undefined ? undefined : () => (adding = true))
 /** Object URLs of the tileset images, by workspace path. */
 let urls = $state.raw<ReadonlyMap<string, string>>(new Map())
 
@@ -38,10 +43,10 @@ const stop = session?.subscribe(() => {
   selection = session.selection
 })
 
-const mode = $derived(shellModeOf(geometry.current.formFactor))
+const mode = $derived(shellModeAt(geometry.current))
 const wide = $derived(mode === 'wide')
 /** Where the pill with the list and Details floats below `wide`: at the stage's foot on a phone, its top on an iPad. */
-const pillAt = $derived(mode === 'compact' ? 'bottom' : 'top')
+const pillAt = $derived(mode === 'compact' ? 'dock' : 'top')
 const images = $derived(new Set(urls.keys()))
 const tileset = $derived(project?.defs.tilesets.find((set) => set.id === selection?.tileset))
 const preview = $derived(
@@ -75,14 +80,13 @@ onDestroy(() => {
 <EditorShell
   {geometry}
   topbar={frame.topbar}
-  sheets={frame.sheets}
   bind:panelOpen
   bind:inspectorOpen
   testId="tilesets-view"
 >
   {#snippet panel()}
     {#if session !== undefined && project !== undefined && selection !== undefined}
-      <TilesetsPanel {project} {selection} {session} {images} {imageUrl} />
+      <TilesetsPanel {project} {selection} {session} {images} {imageUrl} onaddtiles={openAdd} />
     {/if}
   {/snippet}
 
@@ -96,7 +100,10 @@ onDestroy(() => {
       <div class="frame">
       <div class="stage" data-scroll-region data-pill={wide ? undefined : pillAt}>
         {#if tileset === undefined}
-          <p class="none" role="status">No tiles yet. Add a picture of your tiles to paint with them.</p>
+          <div class="none">
+            <p role="status">No tiles yet. Add a picture of your tiles to paint with them.</p>
+            {#if openAdd !== undefined}<Button variant="primary" onclick={openAdd}>Add tiles</Button>{/if}
+          </div>
         {:else}
           <TilesetSheet {tileset} {selection} {session} {images} {imageUrl} />
         {/if}
@@ -106,13 +113,15 @@ onDestroy(() => {
       </div>
       {#if !wide}
         <StagePill label="Tiles controls" at={pillAt}>
-          <IconButton
-            icon="list"
-            label="All tiles"
-            showLabel
-            aria-expanded={panelOpen}
-            onclick={() => (panelOpen = !panelOpen)}
-          />
+          {#if mode === 'compact'}
+            <IconButton
+              icon="list"
+              label="All tiles"
+              showLabel
+              aria-expanded={panelOpen}
+              onclick={() => (panelOpen = !panelOpen)}
+            />
+          {/if}
           <IconButton
             icon="inspector"
             label="Details"
@@ -129,6 +138,18 @@ onDestroy(() => {
   {#snippet inspector()}
     {#if session !== undefined && project !== undefined && selection !== undefined}
       <RuleInspector {project} {selection} {session} {images} {imageUrl} />
+    {/if}
+  {/snippet}
+
+  {#snippet sheets()}
+    {@render frame.sheets()}
+    {#if session !== undefined && project !== undefined && services.files !== undefined}
+      <AddTilesDialog
+        bind:open={adding}
+        taken={project.defs.tilesets.map((set) => set.id)}
+        files={services.files}
+        onadd={(def) => session.addTileset(def)}
+      />
     {/if}
   {/snippet}
 </EditorShell>
@@ -148,14 +169,27 @@ onDestroy(() => {
     padding: var(--space-3) var(--space-4) var(--space-5);
     overflow: auto;
     overscroll-behavior: contain;
+    /* This stage is a page of words and pictures, not a canvas: it takes the tool chrome's light field, so its text
+       reads in the chrome's ink (it was dark on the near-black cabinet). The pictures keep their own dark frames. */
+    background: var(--bg);
   }
   /* Room for the pill (a 44 px control, its padding, its edge and its margin), so it never covers the first or last
      thing on the stage. */
   .stage[data-pill='top'] {
     padding-top: calc(var(--size-hit) + 2 * var(--space-1) + 2px + 2 * var(--space-3));
   }
-  .stage[data-pill='bottom'] {
+  .stage[data-pill='bottom'],
+  .stage[data-pill='dock'] {
     padding-bottom: calc(var(--size-hit) + 2 * var(--space-1) + 2px + 2 * var(--space-3));
+  }
+  /* No tiles yet: the sentence, and Add tiles under it as the screen's one primary action. */
+  .none {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-3);
+  }
+  .none p {
+    margin: 0;
   }
   .none,
   .refused {

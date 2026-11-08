@@ -20,7 +20,7 @@ const targets = editorTargets()
 // The Entities view with the production CSS in a real browser, at the kit's
 // eight window sizes in Chromium, WebKit and Firefox: every control at least 44 px and never clipped, the page never
 // scrolling, the definition form's Duplicate and Delete reachable, the field editor's type chips full-size targets,
-// and the refusal dialog's list and actions inside the window (below wide, from the Definitions and Inspector
+// and the refusal dialog's list and actions inside the window (below wide, from the Characters and Inspector
 // drawers). The editor starts as `main.ts` starts it, over a memory workspace with the Mossgate sample (three slimes),
 // and the rail opens Entities.
 
@@ -116,7 +116,7 @@ async function chooseSlime(size: EditorSize): Promise<void> {
   if (row === undefined) throw new Error('no slime row')
   row.click()
   await arrived()
-  if (size.mode !== 'wide' && region('panel').dataset.open === 'true') {
+  if (size.mode === 'compact' && region('panel').dataset.open === 'true') {
     buttonNamed(byTestId('entities-view'), 'All characters').click()
     await arrived()
   }
@@ -134,7 +134,7 @@ describe.each(SIZES)('Entities view at $name ($width x $height)', (size) => {
     await chooseSlime(size)
     const tabs = switcherControls()
     const essentials = [...['undo', 'redo', 'save'].map(byTestId), ...tabs]
-    if (size.mode !== 'wide') essentials.push(buttonNamed(byTestId('entities-view'), 'All characters'))
+    if (size.mode === 'compact') essentials.push(buttonNamed(byTestId('entities-view'), 'All characters'))
     expect(checkLayout(conditions, essentials)).toEqual([])
     expect(document.documentElement.scrollLeft).toBe(0)
     expect(document.documentElement.scrollTop).toBe(0)

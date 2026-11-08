@@ -17,8 +17,9 @@ import FakeWorldCanvas from '#src/testing/level-2d/FakeWorldCanvas.svelte'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 
 // Spec 11.4: Map, Tiles and Characters share the Level view's frame. The stage fills its region; the list and the
-// selected item are sheets (drawers on an iPad); the buttons that open them float over the stage in one pill, at its
-// top from an iPad up and at its foot on a phone, as the Level view's tools do. Layout and hit sizes are checked in
+// selected item are sheets on a phone; in the medium layout the list sits beside the stage and the details float over
+// it. The buttons that open them float over the stage in one pill at its top, or sit in a dock across its foot in the
+// compact layout, as the Level view's tools do. Layout and hit sizes are checked in
 // real browsers (`tests/browser/layout/{map,tiles,characters}`).
 
 const quietPage = (): { document: LifecycleDocument; window: LifecycleWindow } => ({
@@ -67,16 +68,13 @@ const VIEWS = [
 describe.each(VIEWS)('$view view: the Level view’s frame', ({ view, list, testId }) => {
   const controls = (): HTMLElement => screen.getByRole('toolbar', { name: `${view} controls` })
 
-  it('floats the list and Details in one pill at the stage’s top on an iPad', async () => {
+  it('floats Details in one pill at the stage’s top on an iPad, where the list is always beside the stage', async () => {
     await mount(view, [834, 1194])
     expect(screen.getByTestId(testId)).toBeInTheDocument()
     expect(controls()).toHaveAttribute('data-floating', 'true')
     expect(controls()).toHaveAttribute('data-at', 'top')
-    const opener = within(controls()).getByRole('button', { name: list })
+    expect(within(controls()).queryByRole('button', { name: list })).toBeNull()
     const details = within(controls()).getByRole('button', { name: 'Details' })
-    expect(opener).toHaveAttribute('aria-expanded', 'false')
-    await userEvent.click(opener)
-    expect(opener).toHaveAttribute('aria-expanded', 'true')
     await userEvent.click(details)
     expect(details).toHaveAttribute('aria-expanded', 'true')
     // The old drawer words are gone.
@@ -84,9 +82,13 @@ describe.each(VIEWS)('$view view: the Level view’s frame', ({ view, list, test
     expect(screen.queryByRole('button', { name: 'Definitions' })).toBeNull()
   })
 
-  it('puts the pill at the stage’s foot on a phone, under the thumb', async () => {
+  it('docks the controls across the stage’s foot on a phone, under the thumb, with the list', async () => {
     await mount(view, [390, 844])
-    expect(controls()).toHaveAttribute('data-at', 'bottom')
+    expect(controls()).toHaveAttribute('data-at', 'dock')
+    const opener = within(controls()).getByRole('button', { name: list })
+    expect(opener).toHaveAttribute('aria-expanded', 'false')
+    await userEvent.click(opener)
+    expect(opener).toHaveAttribute('aria-expanded', 'true')
   })
 })
 

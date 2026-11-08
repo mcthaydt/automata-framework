@@ -157,9 +157,9 @@ describe('the definition preview', () => {
   })
 
   it('counts the instances and the levels they are in', () => {
-    expect(definitionPreview(platformer(), 'slime', room).instances).toBe('no instances')
-    expect(definitionPreview(platformer(), 'player-start', room).instances).toBe('1 instance · 1 level')
-    expect(definitionPreview(withSlimes(2), 'slime', room).instances).toBe('2 instances · 1 level')
+    expect(definitionPreview(platformer(), 'slime', room).instances).toBe('Not in any level yet')
+    expect(definitionPreview(platformer(), 'player-start', room).instances).toBe('1 placed in 1 level')
+    expect(definitionPreview(withSlimes(2), 'slime', room).instances).toBe('2 placed in 1 level')
   })
 
   it('carries the tile the definition draws with', () => {

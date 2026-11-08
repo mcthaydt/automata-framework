@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, within } from '@testing-library/svelte'
+import { cleanup, render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createEditorApp } from '#src/app/editor-2d/editor-app.ts'
@@ -183,16 +183,19 @@ describe('Level view: toolbar and canvas', () => {
     expect(canvas()).toHaveAttribute('data-camera', '24,24,1')
   })
 
-  it('opens the layers from the toolbar below wide', async () => {
-    await mount([834, 1194])
+  it('opens the layers from the tool dock in the compact layout', async () => {
+    await mount([390, 844])
     const button = screen.getByRole('button', { name: 'Layers' })
     expect(button).toHaveAttribute('aria-expanded', 'false')
     await userEvent.click(button)
     expect(button).toHaveAttribute('aria-expanded', 'true')
   })
 
-  it('has no Layers button in wide, where the panel is always in view', async () => {
+  it('has no Layers button in wide or medium, where the panel is always in view', async () => {
     await mount()
+    expect(screen.queryByRole('button', { name: 'Layers' })).toBeNull()
+    cleanup()
+    await mount([834, 1194])
     expect(screen.queryByRole('button', { name: 'Layers' })).toBeNull()
   })
 

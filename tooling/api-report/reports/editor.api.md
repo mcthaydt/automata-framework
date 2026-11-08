@@ -1416,10 +1416,19 @@ type SelectionId = string | number;
 type ShellMode = 'wide' | 'medium' | 'compact';
 ```
 
+### `shellModeAt` (function)
+
+```ts
+function shellModeAt(geometry: Pick<Geometry, 'layout' | 'keyboardResize'>): ShellMode;
+```
+
 ### `shellModeOf` (function)
 
 ```ts
-function shellModeOf(formFactor: FormFactor): ShellMode;
+function shellModeOf(size: {
+    readonly width: number;
+    readonly height: number;
+}): ShellMode;
 ```
 
 ### `ShellRegion` (type)

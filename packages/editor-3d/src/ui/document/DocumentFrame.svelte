@@ -14,7 +14,7 @@ import {
   EditorShell,
   RecoveryDialog,
   StatusLine,
-  shellModeOf,
+  shellModeAt,
   ToastRegion,
 } from '@mcthaydt/automata-editor/kit'
 import { createCommandRegistry, createKeymap, type ToastStore } from '@mcthaydt/automata-editor/kit/core'
@@ -84,7 +84,7 @@ function snapshot(source: DocumentController): DocumentState {
   return current
 }
 
-const shellMode = $derived(shellModeOf(geometry.current.formFactor))
+const shellMode = $derived(shellModeAt(geometry.current))
 /**
  * The inspector column at wide needs room beside the rail, the layers and the plan: on a window narrower than this the
  * plan would be left a few hundred pixels for its toolbar, lens, pad and actions, so the column is left out and the

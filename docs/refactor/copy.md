@@ -71,6 +71,12 @@ Every player-facing string of core and Emberwick, checked against the four quest
 | Suite Home, the sample | a small `Sample game` chip | `This is a sample game, not yours. Run automata editor inside your game's folder to edit it.` | 3 (why can't I find my game?) |
 | Tuner, the game pane | (none) | `Your game` (the frame's name) · `Start your game with pnpm dev to see your changes here.` · `Your game shows here when you open the editors in your game's folder.` | new |
 | `automata editor --help` | (none) | `The Tuner shows your game beside its settings: start it with pnpm dev, and give --game-url if it is not on http://localhost:5173.` · `--game-url is a web address, like http://localhost:5173` | new |
+| Tiles, Add tiles (12.3b) | (none) | `Add tiles` (the panel's button, the empty screen's primary and the dialog's title and primary) · `Choose a picture` / `Choose another picture` · `How big is one tile?` · `Tile size` · `8 px` `16 px` `32 px` `48 px` · `This makes 64 tiles.` · `The picture is 100 px wide; 16 px tiles leave 4 px over. Try 10 or 20.` · `The picture is 32 px wide, smaller than one 48 px tile.` · `That file isn’t a picture we can read. Try a PNG, WebP or JPEG.` · `Couldn't add the picture: {why}` | new (no format word, path or "tileset" on screen; the picture's own name shows without its type) |
+| Tiles, the picture's line and badge (12.4 Step G, session 18) | `16 × 16 px tiles · spacing 0 · padding 0 · 8 × 8 tiles` · `placeholder · generated` | `64 tiles, each 16 × 16 px` (`, 2 px apart`, `, 1 px from the edge` only when there are any) · `Stand-in tiles` | 4 (spacing, padding, generated) |
+| Tiles, the live preview and the rule's place | `IntGrid · Collision · Solid` · `Result · Ground` · `Ground · seed 1` · `rule 1` | `Where you paint Solid on Collision` · `The tiles Ground places` · `Ground` · `No. 1 in this group` | 4 (IntGrid, seed) |
+| Characters, how many are placed | `no instances` · `3 instances · 1 level` | `Not in any level yet` · `3 placed in 1 level` | 4 (instance) |
+| Tiles and Characters, the panels' headings | `Tilesets` · `Definitions` | `Your tiles` · `Characters` | 4 |
+| Characters panel (session 18) | `Add entity` (and its undo step) · `No entity definitions yet.` · `Add level field` · `Settings for every level` / `music · …` (the row) | `Add character` · `No characters yet. Add one to place it in your levels.` · `Add a level setting` · `Every level` / the settings' names, with commas | 4 (entity, definition, field) and 1 (the row repeated its heading) |
 
 ## Kept, with the reason
 

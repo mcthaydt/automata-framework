@@ -8,7 +8,7 @@
 import { onDestroy } from 'svelte'
 import EditorShell from '../../shared/kit/shell/EditorShell.svelte'
 import StagePill from '../../shared/kit/shell/StagePill.svelte'
-import { shellModeOf } from '../../shared/kit/shell/shell-mode'
+import { shellModeAt } from '../../shared/kit/shell/shell-mode'
 import IconButton from '../../shared/kit/widgets/IconButton.svelte'
 import type { Project } from '../../shared/level-2d/model/project-types'
 import type { ViewProps } from '../../shared/level-2d/session/view-props'
@@ -35,10 +35,10 @@ const stop = session?.subscribe(() => {
   selection = session.selection
 })
 
-const mode = $derived(shellModeOf(geometry.current.formFactor))
+const mode = $derived(shellModeAt(geometry.current))
 const wide = $derived(mode === 'wide')
 /** Where the pill with the list and Details floats below `wide`: at the stage's foot on a phone, its top on an iPad. */
-const pillAt = $derived(mode === 'compact' ? 'bottom' : 'top')
+const pillAt = $derived(mode === 'compact' ? 'dock' : 'top')
 const images = $derived(new Set(urls.keys()))
 // The preview's room by shell mode, so the scale is the same on every device of a mode: `wide`'s canvas is 554 px.
 const room = $derived(wide ? { w: 420, h: 300 } : { w: 240, h: 240 })
@@ -109,13 +109,15 @@ onDestroy(() => {
       </div>
       {#if !wide}
         <StagePill label="Characters controls" at={pillAt}>
-          <IconButton
-            icon="list"
-            label="All characters"
-            showLabel
-            aria-expanded={panelOpen}
-            onclick={() => (panelOpen = !panelOpen)}
-          />
+          {#if mode === 'compact'}
+            <IconButton
+              icon="list"
+              label="All characters"
+              showLabel
+              aria-expanded={panelOpen}
+              onclick={() => (panelOpen = !panelOpen)}
+            />
+          {/if}
           <IconButton
             icon="inspector"
             label="Details"
@@ -151,13 +153,17 @@ onDestroy(() => {
     padding: var(--space-3) var(--space-4) var(--space-5);
     overflow: auto;
     overscroll-behavior: contain;
+    /* This stage is a page of words and pictures, not a canvas: it takes the tool chrome's light field, so its text
+       reads in the chrome's ink (it was dark on the near-black cabinet). The pictures keep their own dark frames. */
+    background: var(--bg);
   }
   /* Room for the pill (a 44 px control, its padding, its edge and its margin), so it never covers the first or last
      thing on the stage. */
   .stage[data-pill='top'] {
     padding-top: calc(var(--size-hit) + 2 * var(--space-1) + 2px + 2 * var(--space-3));
   }
-  .stage[data-pill='bottom'] {
+  .stage[data-pill='bottom'],
+  .stage[data-pill='dock'] {
     padding-bottom: calc(var(--size-hit) + 2 * var(--space-1) + 2px + 2 * var(--space-3));
   }
   .none,
