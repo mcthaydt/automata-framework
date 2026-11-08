@@ -113,16 +113,32 @@ function chooseGame(id: string): void {
 </div>
 <!-- Outside the scrolling tools, so it is never cut off however narrow the bar is. -->
 {#if gameMenu && gameItems.length > 0}
-  <span class="game"><Menu label="Game" items={gameItems} presentation="sheet" onselect={chooseGame} /></span>
+  <span class="game">
+    <!-- An icon, still named "Game": the word would cost the room Undo, Redo and the level picker need on a phone. -->
+    <Menu label="Game" items={gameItems} presentation="sheet" onselect={chooseGame}>
+      {#snippet trigger()}<Icon name="play" />{/snippet}
+    </Menu>
+  </span>
 {/if}
 
 <style>
+  /* The first to give way when the bar is short: it shrinks far faster than the tools beside it, so Undo, Redo and the
+     level picker keep their room and the name is cut to its first letters. */
   .brand {
+    flex: 0 100 auto;
+    min-width: 0;
     font: var(--text-title-15);
     margin-left: var(--space-1);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  /* On the narrowest phones even the first letters do not fit between the controls: a lone letter says nothing, so the
+     name leaves the bar (Home shows it). */
+  @media (max-width: 380px) {
+    .brand {
+      display: none;
+    }
   }
   .where {
     display: flex;

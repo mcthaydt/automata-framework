@@ -9,7 +9,7 @@ import { createLevels2d } from '#src/app/suite/levels-2d/levels-2d-suite-editor.
 import { EDITOR_LIST_PATH } from '#src/features/suite/core/index.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import type { GamePublish } from '#src/shared/kit/storage/publish-client.ts'
-import { SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { type EditorSize, SIZES } from '#src/testing/kit/layout-sizes.ts'
 import { editorTargets } from '#src/testing/kit/targets.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
 import platformer from '#src/testing/suite/fixtures/platformer.af2d.json?raw'
@@ -75,7 +75,18 @@ const byName = (selector: string, name: string): HTMLElement => {
   return found
 }
 
-describe.each(SIZES)('Play and Publish at $name ($width x $height)', (size) => {
+/** A small phone: the narrowest screen the bar is promised to fit. */
+const NARROW_PHONE: EditorSize = {
+  name: 'phone-narrow',
+  width: 360,
+  height: 740,
+  mode: 'compact',
+  formFactor: 'phone-portrait',
+  heightTier: undefined,
+  group: 'tablet',
+}
+
+describe.each([...SIZES, NARROW_PHONE])('Play and Publish at $name ($width x $height)', (size) => {
   test('are whole in the top bar: two buttons where there is room, one Game menu on a phone', async () => {
     opened = await openSuite(size, editors(), FILES, '[data-testid="level-canvas"]', 'Levels', {
       playUrl: 'http://localhost:5199/',
@@ -84,6 +95,9 @@ describe.each(SIZES)('Play and Publish at $name ($width x $height)', (size) => {
     await settleLayout()
     if (size.mode === 'compact') {
       wholeInView(byName('button', 'Game'), 'Game')
+      // The game's name gives way before a control does: Undo and Redo are never scrolled out of sight.
+      wholeInView(byName('button', 'Undo'), 'Undo')
+      wholeInView(byName('button', 'Redo'), 'Redo')
       byName('button', 'Game').click()
       await expect.poll(() => document.querySelector('[role="menu"]')).not.toBeNull()
       await settleLayout()

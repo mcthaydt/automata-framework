@@ -41,7 +41,7 @@ const entities: EntityDef2D[] = [
     size: { w: 16, h: 24 },
     pivot: { x: 0.5, y: 1 },
     resizable: 'none',
-    tags: ['spawn'],
+    tags: ['spawn', 'character'],
     min: { per: 'project', count: 1 },
   },
   {
@@ -57,7 +57,7 @@ const entities: EntityDef2D[] = [
     size: { w: 16, h: 12 },
     pivot: { x: 0.5, y: 1 },
     resizable: 'none',
-    tags: ['enemy'],
+    tags: ['enemy', 'character'],
   },
   {
     id: 'coin',

@@ -32,8 +32,9 @@ async function ownTypeErrors(dir: string): Promise<string[]> {
 for (const [name, template, installedFrom] of [
   ['the 2D game', '2d', EMBERWICK],
   ['the 3D game', '3d', BASE_3D],
-] as const)
-  test(`${name} typechecks and passes its own tests as made`, async (_fixtures, testInfo) => {
+] as const) {
+  // biome-ignore lint/correctness/noEmptyPattern: Playwright reads the fixtures from a destructured first argument, and this test uses none.
+  test(`${name} typechecks and passes its own tests as made`, async ({}, testInfo) => {
     test.skip(testInfo.project.name !== 'editor-ipad-chromium', 'the answer does not depend on a screen')
     test.setTimeout(240_000)
     const game = await newGame(installedFrom, template, 'my-game', true)
@@ -54,3 +55,4 @@ for (const [name, template, installedFrom] of [
       game.remove()
     }
   })
+}

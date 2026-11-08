@@ -16,6 +16,7 @@ import { commitEdit, type FieldCommit } from '../../shared/level-2d/model/field-
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import type { EntityDef2D, Project } from '../../shared/level-2d/model/project-types'
 import {
+  CHARACTER_TAG,
   type EntitiesSelection,
   type ResolvedEntitiesSelection,
   resolveSelection,
@@ -73,7 +74,7 @@ const newDefinition = (id: string): EntityDef2D => ({
   size: { w: 16, h: 16 },
   pivot: { x: 0.5, y: 1 },
   resizable: 'none',
-  tags: [],
+  tags: [CHARACTER_TAG],
 })
 
 /** Undefined for a document that is not a level project. */
