@@ -5,9 +5,9 @@
   edit because it is derived from the project.
 -->
 <script lang="ts">
+import { tileItems } from '../../shared/level-2d/editor/palette-model'
+import { spriteStyle } from '../../shared/level-2d/editor/tile-sprite'
 import type { Project } from '../../shared/level-2d/model/project-types'
-import { tileItems } from '../../shared/level-2d/tiles/palette-model'
-import { spriteStyle } from '../../shared/level-2d/tiles/tile-sprite'
 import type { RulePreview } from './rule-preview'
 import { autoLayersOf, type ResolvedSelection, sourceOf } from './tilesets-model'
 

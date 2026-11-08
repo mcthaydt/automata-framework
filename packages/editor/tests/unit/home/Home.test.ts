@@ -3,18 +3,15 @@ import { cleanup, render, screen, waitFor, within } from '@testing-library/svelt
 import userEvent from '@testing-library/user-event'
 import { flushSync } from 'svelte'
 import { describe, expect, it } from 'vitest'
-import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
+import { createEditorApp } from '#src/app/editor-2d/editor-app.ts'
 import Home from '#src/features/home/Home.svelte'
 import { createHomeController } from '#src/features/home/home-controller.ts'
 import { templateCards } from '#src/features/home/home-model.ts'
 import { createToasts } from '#src/shared/kit/widgets/toasts.ts'
-import {
-  createEditorApp,
-  type EditorApp,
-  type OpenOutcome,
-} from '#src/shared/level-2d/documents/editor-app.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
+import { createAppProfiles } from '#src/shared/level-2d/profiles/app-profiles.ts'
+import type { EditorApp, OpenOutcome } from '#src/shared/level-2d/session/editor-app-types.ts'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'

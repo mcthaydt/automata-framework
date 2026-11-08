@@ -1,13 +1,13 @@
 import type { Component } from 'svelte'
-import type { LevelCanvasProps } from '../../../features/document/view-props'
 import { createLevelSession, type LevelSession } from '../../../features/level/level-session'
 import { createHistory, type History } from '../../../shared/kit/history/history.ts'
 import type { SuiteUndo } from '../../../shared/kit/ports/suite-editor.ts'
 import type { SuitePorts, WorkspaceFile } from '../../../shared/kit/ports/suite-ports.ts'
-import { readDocument } from '../../../shared/level-2d/documents/read-document'
 import type { IdSource } from '../../../shared/level-2d/model/ids'
+import { createAppProfiles } from '../../../shared/level-2d/profiles/app-profiles'
 import type { ParseError, Profile } from '../../../shared/level-2d/profiles/profile'
-import { createAppProfiles } from '../../editor-2d/profiles'
+import { readDocument } from '../../../shared/level-2d/profiles/read-document'
+import type { LevelCanvasProps } from '../../../shared/level-2d/session/view-props'
 
 // The Levels 2D session: what the suite keeps for the 2D level
 // editor while the person is elsewhere. It holds the document's kit history and the Level view's session (the level,
