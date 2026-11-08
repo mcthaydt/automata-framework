@@ -17,3 +17,17 @@ editor = "feel"
 modes = ["edit", "ask"]
 gates = []
 checks = []
+
+[[file]]
+glob = "content/lines/*.toml"
+editor = "writer"
+modes = ["edit"]
+gates = []
+checks = []
+
+[[file]]
+glob = "content/dialogue/*.toml"
+editor = "writer"
+modes = ["edit"]
+gates = []
+checks = []

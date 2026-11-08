@@ -96,11 +96,13 @@ describe('the edits', () => {
   })
 
   it('add a feel at the end, or the first one when there are none', () => {
-    expect(addFeelEdit({ entry: [{ on: 'a' }] }, 'player.hit')).toEqual({
-      keyPath: ['entry'],
-      insert: { on: 'player.hit' },
-    })
-    expect(addFeelEdit({}, 'player.hit')).toEqual({ keyPath: ['entry'], insert: [{ on: 'player.hit' }] })
+    expect(addFeelEdit({ entry: [{ on: 'a' }] }, 'player.hit')).toEqual([
+      { keyPath: ['entry'], insert: { on: 'player.hit' } },
+    ])
+    expect(addFeelEdit({}, 'player.hit')).toEqual([
+      { keyPath: ['entry'], insert: [] },
+      { keyPath: ['entry'], insert: { on: 'player.hit' } },
+    ])
   })
 
   it('add an effect to its channel, or the channel when the feel has none of it', () => {

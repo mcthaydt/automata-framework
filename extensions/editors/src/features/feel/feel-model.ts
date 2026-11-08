@@ -5,6 +5,7 @@
 import type { ContentEdit } from '@automata/editor/kit/documents'
 import { DEFAULT_LIMITS, type FeelContent, type FeelEntry, type Limits } from '@automata/feel'
 import { eventWords } from '../../shared/event-words.ts'
+import { appendEdits } from '../../shared/fields.ts'
 import type { Problem } from '../../shared/toml-session.ts'
 
 export { eventWords }
@@ -189,10 +190,8 @@ export function fieldEdit(
   return { keyPath: ['entry', entry, place.channel, place.index, key], expected, set }
 }
 
-export function addFeelEdit(content: FeelContent, on: string): ContentEdit {
-  return content.entry === undefined
-    ? { keyPath: ['entry'], insert: [{ on }] }
-    : { keyPath: ['entry'], insert: { on } }
+export function addFeelEdit(content: FeelContent, on: string): ContentEdit[] {
+  return appendEdits(['entry'], content.entry !== undefined, { on })
 }
 
 export const removeFeelEdit = (entry: number): ContentEdit => ({ keyPath: ['entry', entry], remove: true })

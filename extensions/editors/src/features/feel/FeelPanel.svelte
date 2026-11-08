@@ -16,7 +16,7 @@ async function add(): Promise<void> {
   const on = event.trim()
   const content = session.content
   if (on === '' || content === undefined) return
-  const outcome = await session.change(`Add a feel for ${eventWords(on)}`, [addFeelEdit(content, on)])
+  const outcome = await session.change(`Add a feel for ${eventWords(on)}`, addFeelEdit(content, on))
   if (!outcome.ok) return
   session.chosen = entries.length - 1
   adding = false

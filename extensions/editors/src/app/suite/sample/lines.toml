@@ -1,0 +1,43 @@
+# What the shop says: one entry for each line.
+
+[[lines]]
+id = "shop.welcome_in"
+kind = "dialogue"
+speaker = "shopkeeper"
+text = "shop.welcome_in"
+words = "Welcome in. Mind the step."
+
+[[lines]]
+id = "shop.just_looking"
+kind = "dialogue"
+speaker = "player"
+text = "shop.just_looking"
+words = "I'm just looking."
+
+[[lines]]
+id = "shop.ask_key"
+kind = "dialogue"
+speaker = "player"
+text = "shop.ask_key"
+words = "Do you have a key?"
+
+[[lines]]
+id = "shop.browse"
+kind = "dialogue"
+speaker = "shopkeeper"
+text = "shop.browse"
+words = "Take your time."
+
+[[lines]]
+id = "shop.key_reply"
+kind = "dialogue"
+speaker = "shopkeeper"
+text = "shop.key_reply"
+words = "Ask me again when you're ready to buy."
+
+[[lines]]
+id = "shop.goodbye"
+kind = "dialogue"
+speaker = "shopkeeper"
+text = "shop.goodbye"
+words = "Mind the step on the way out."

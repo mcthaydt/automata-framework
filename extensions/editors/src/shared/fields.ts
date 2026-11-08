@@ -32,3 +32,20 @@ export function setOrInsert(
     ? { keyPath: [...keyPath], insert: value }
     : { keyPath: [...keyPath], expected: before, set: value }
 }
+
+/**
+ * A row added to a list that may not be there yet. The kit cannot add a new top-level list with its first row in one
+ * edit, so a missing list is made empty first; both edits go in one change and are one undo step.
+ */
+export function appendEdits(
+  keyPath: readonly (string | number)[],
+  exists: boolean,
+  row: unknown,
+): ContentEdit[] {
+  return exists
+    ? [{ keyPath: [...keyPath], insert: row }]
+    : [
+        { keyPath: [...keyPath], insert: [] },
+        { keyPath: [...keyPath], insert: row },
+      ]
+}
