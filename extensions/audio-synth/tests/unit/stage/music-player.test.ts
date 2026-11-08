@@ -50,6 +50,20 @@ describe('createMusicPlayer', () => {
     expect(fetched).toHaveLength(1)
   })
 
+  it('plays every track at the overall volume, and follows a change to it while it plays', async () => {
+    const { player, context, sources, gainOf, settle } = setup()
+    player.setMaster(0.5)
+    player.play(slot('calm', { fade: 2 }))
+    await settle()
+    const gain = gainOf(sources()[0] as FakeNode).params.gain
+    expect(gain?.calls).toEqual(['set 0 @0', 'lin 0.25 @2'])
+    context.currentTime = 10
+    player.setMaster(0.5)
+    expect(gain?.calls).toHaveLength(2)
+    player.setMaster(1)
+    expect(gain?.calls.slice(-3)).toEqual(['cancel @10', 'set 1 @10', 'lin 0.5 @10.05'])
+  })
+
   it('switches by fading the old track out while the new one fades in', async () => {
     const { player, context, sources, gainOf, settle } = setup()
     player.play(slot('calm'))
