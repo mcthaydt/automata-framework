@@ -7,5 +7,4 @@ export default defineTests({
   optimizeDeps: ['@automata/sim', 'zod'],
   browsers: [],
   svelte: true,
-  testTimeout: 90_000,
 })

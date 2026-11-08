@@ -11,7 +11,9 @@
     },
     "typecheck": {},
     "test": {},
-    "test:unit": {},
+    "test:unit": {
+      "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
+    },
     "test:browser": {
       "cache": false,
       "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]

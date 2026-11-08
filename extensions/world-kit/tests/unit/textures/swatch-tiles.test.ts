@@ -40,8 +40,10 @@ describe('the committed tiles', () => {
     expect(Object.keys(tiles).sort()).toEqual(textured.map(([name]) => name).sort())
   })
 
-  it('make the tile the pipeline makes now, byte for byte', () => {
-    for (const [name, swatch] of textured) expect(tiles[name], name).toEqual(tileFileOf(name, swatch, photos))
+  // One test for each swatch, not one for all of them: the pipeline runs over a photo each time, and a single test
+  // that ran it 38 times would sit near the default timeout.
+  it.each(textured)('make the tile the pipeline makes now for %s, byte for byte', (name, swatch) => {
+    expect(tiles[name]).toEqual(tileFileOf(name, swatch, photos))
   })
 
   it('every texel of every tile is a DUEL colour on its swatch’s ladder', () => {

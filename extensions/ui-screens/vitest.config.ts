@@ -9,5 +9,6 @@ export default defineTests({
   plugins: [svelteTesting()],
   setupFiles: ['./tests/vitest-setup.ts'],
   css: true,
+  // A screen's first import compiles its Svelte; on a busy machine that alone passes the 5 s default.
   testTimeout: 90_000,
 })

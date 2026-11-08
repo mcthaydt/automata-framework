@@ -30,16 +30,16 @@ describe('build() matches the kit’s goldens part for part', () => {
 })
 
 describe('build() is platform-stable: a last-bit change moves no part past the goldens’ tolerance', () => {
-  for (const outfit of KIT_OUTFITS) it(outfit.name, () => expectPlatformStable(outfit, library), 90_000)
+  for (const outfit of KIT_OUTFITS) it(outfit.name, () => expectPlatformStable(outfit, library))
 })
 
 describe('the kit’s outfits dress', () => {
-  it('every outfit is sound: parts bound to real joints, finite, indexed inside their mesh', () => {
-    for (const outfit of KIT_OUTFITS) {
+  // One test for each outfit, so a slow machine fails the one that is slow and not the sum of all eleven.
+  for (const outfit of KIT_OUTFITS)
+    it(`${outfit.name} is sound: parts bound to real joints, finite, indexed inside their mesh`, () => {
       const def = figureOf(outfit.sliders, outfit.skin, outfit.garments)
       expectSound(build(def, skeleton(def), 'golden', null, library))
-    }
-  })
+    })
   it('the pony’s cuffs are built on every other braid (the source’s density gate is a sprite’s)', () => {
     const outfit = KIT_OUTFITS.find((o) => o.name === 'model-braids')
     if (!outfit) throw new Error('no model-braids')

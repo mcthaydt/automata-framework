@@ -12,5 +12,4 @@ export default defineTests({
   alsoInNode: ['tests/browser/**/*.test.ts'],
   // The scene tests step Rapier for 300 ticks (about 1.7 s alone). On the shared runner, where turbo runs every
   // package's tests at once, three of them passed 5 s and the parity tests passed 30 s; 90 s still catches a hang.
-  testTimeout: 90_000,
 })

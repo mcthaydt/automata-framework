@@ -38,12 +38,18 @@ it('finds the stub example’s golden, so this suite never runs empty, and lists
 })
 
 // A pending example is reported as skipped, with the tasks it waits for, and never imported (EX spec §7).
+// The others are imported here, while the file is collected, and not inside their test: an example that pulls in a big
+// module (audio-sound's synth) spent most of its five seconds on the import, and a busy machine ran out.
+const runnable = [...examples, ...fixtures].filter((example) => example.pending === undefined)
+const loaded = new Map(
+  await Promise.all(runnable.map(async (example) => [example.id, await example.load()] as const)),
+)
 for (const example of [...examples, ...fixtures]) {
   const title = `${example.id}: ${example.ticks} ticks replay to the recorded hashes`
   it.skipIf(example.pending !== undefined)(
     example.pending === undefined ? title : `${title} (pending: ${example.pending})`,
     async () => {
-      const game = await example.load()
+      const game = loaded.get(example.id) ?? (await example.load())
       const report = await replayGolden({
         file: example.replay,
         plugins: game.sim.plugins,

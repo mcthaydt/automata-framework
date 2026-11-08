@@ -10,5 +10,4 @@ export default defineTests({
   plugins: [svelteTesting()],
   setupFiles: ['./tests/vitest-setup.ts'],
   browsers: ['chromium'],
-  testTimeout: 90_000,
 })
