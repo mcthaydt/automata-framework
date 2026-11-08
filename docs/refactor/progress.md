@@ -551,6 +551,14 @@ Built on `claude/project-thread-2salzc`, stacked on #478 (plans' Logs have the e
   Check the sounds, the sound's picture and its `about`/`world`/`no_duck`/`draft` fields; `seam` and `resume` in the
   player; the Schematic (guard) editor, which is #486. **Not run:** WebKit, Firefox, the GPU runner.
 
+- Build audit (2026-11-08, PR stacked on #487):
+  [`2026-11-08-feel-audio-writer-sequence-build-audit.md`](2026-11-08-feel-audio-writer-sequence-build-audit.md). 8 high,
+  12 medium, 10 low. Made and played content in all four editors, in the story and in a new `create-game` game. Chief
+  findings: Feel's default shake moves 0 px; Feel's stage shows a word's key and plays no sound; Sequence's playhead and
+  selected step are invisible (`--color-accent` is not a token) and its step fields cover the timeline on a phone;
+  Writer's advice after a choice to a new part is backwards; a `create-game` game lists the four editors but plays none
+  of their content (Owner decision). Next: Sonnet fixes.
+
 ## Edited content shows in play: 67% (4 of 6: stages 2, 3 and 4; the build is done except three journey steps)
 
 Normal dev pipeline (no stage 1 audit; the investigation is
