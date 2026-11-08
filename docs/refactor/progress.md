@@ -681,7 +681,7 @@ browser projects need the other engines, so `pnpm test:browser:2d` stops here); 
 is green except `check-changesets`, which fails on an earlier branch's changeset naming the unpublished `@automata/3d`
 (`stage-characters-3d.md`). Stage 5 (build audit) and 6 (fixes) not started. Details and rulings: the plan's log.
 
-## Crisp in-game text: 67% (4 of 6: stages 1 to 4)
+## Crisp in-game text: 83% (5 of 6: stages 1 to 5)
 
 The Owner picked MSDF `BitmapText` on a crisp layer for the text a game draws on its canvas (`draw(ctx).text` and Feel's
 words), 2026-11-08 21:11. Stage 1 (audit) done: [audit](2026-11-08-in-game-text-audit.md), made on #522's head. 3 high
@@ -728,3 +728,13 @@ WebKit, Firefox, the GPU runner (`pnpm test:frame-budget` and so no hardware num
 Chromium smoke drew them without errors), real devices. Pending: Geist's credit (OFL 1.1, Vercel with basement.studio) on
 the site's Credits page, which is #521 and not under this branch. Next: build audit (Opus, medium).
 
+
+Stage 5 (build audit) done, 2026-11-08: [build audit](2026-11-08-in-game-text-build-audit.md), read fresh on #540's head
+`ce3c6d11`. The build is complete against the spec and works: the four "Feel: a word" journeys (2D/3D x iPad/phone) pass,
+through a reload and an editor restart, and a throwaway journey drew Cyrillic, CJK and emoji words in all four with every
+edge at 1 or 2 device px. Findings B1 to B9, 3 medium: `ctx.text` draws nothing after a 3D Try again (B1, a probe test
+fails), an emoji's shadow is a second colour emoji (B2), and a published game carries the Geist glyphs with no licence
+notice because the minifier drops the `//` header (B3). Ran (Chromium only): `pnpm check` (green except the known
+`check-changesets` on `stage-characters-3d.md`), `api-report` (no framework or feel break), the framework's hud-text,
+render and draw browser tests, the 3D Try-again test, feel's unit tests. Not run: WebKit, Firefox, the GPU runner, real
+devices, the full 2D and 3D browser suites. Next: fixes (Sonnet, high).

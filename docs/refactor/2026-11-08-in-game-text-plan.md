@@ -361,3 +361,7 @@ journeys, `msdf-bmfont-xml` 2.8.0, `geist` 1.9.2.
   devices. `AGENTS.md` names `pnpm agent-skills --write` and `pnpm cheatsheet`, which do not exist, and `pnpm api-index
   --write` fails on `PROMPT_COPY` and `STICK_DIRECTIONS` (undocumented exports from before this work). Final review: a
   self-review by the author (no subagent tool); a fresh reviewer should read it in the build audit.
+- 2026-11-08: build audit (stage 5) on `claude/project-thread-93guse`, stacked on #540:
+  [`2026-11-08-in-game-text-build-audit.md`](2026-11-08-in-game-text-build-audit.md). Findings B1 to B9 (3 medium: B1
+  `ctx.text` after a 3D Try again, B2 the emoji shadow, B3 the licence notice in a published game). Task 9 step 3 (the GPU
+  cost) is still unchecked: the GPU runner was not reachable here either.
