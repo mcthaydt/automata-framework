@@ -4,6 +4,8 @@
   (no subagents) on 2026-11-08. Its plan is [2026-11-08-levels-3d-sector-2-plan.md](2026-11-08-levels-3d-sector-2-plan.md);
   its tasks join the [3D slice plan](2026-11-07-3d-slice-plan.md) as 15.5 and 16.1b to 16.1e.
 - **Checked against:** PR #476's head `399d0558` (branch `claude/project-thread-m6iu2z`), where this branch starts.
+- **Audited:** [plan audit](2026-11-08-levels-3d-sector-2-plan-audit.md), 2026-11-08: 17 findings (A1 to A17), fixed
+  in place here and in the plan.
 - **Path:** architectural (a format change under the editor's whole edit model, and a contract change in
   `@automata/3d/level`). The brainstorming gates (questions, sections, the written-spec review) are met by the Owner's
   standing words, "everything is auto approved and accepted, do not wait on me to do any approvals" (2026-10-31), and by
@@ -36,7 +38,7 @@ per room, not edited (their numbers stay as written).
 ## 2. What done looks like
 
 1. Ember Hall opens in Levels 3D in the suite, in Plan, 3D and Walk, with its five rooms, both pits, its five props and
-   its three things.
+   its seven things (the start, five embers and the goal), with no problem in the checks.
 2. A person can draw a room, move a crate, raise a floor, mark a room as a pit and pick its camera, and each is one
    Undo.
 3. The file on disk changes only where the person changed it: every other byte stays, numbers keep their written form
@@ -93,14 +95,20 @@ The `af-sector-2.schema.ts` file is 577 lines today; the walls, decor, bands and
 
 - **Codec:** `afSector2FileSchema`; member orders from `AfSector2`'s field order (file: `format, name, title,
   materials, styles, views, sectors, masses, props, cast, lamps, time, look, paths, sky, seed, grime, dress, reads,
-  decals, lettering, entityDefs, entities`; room: `/1`'s plus `zone, pit, grime, door, dress`); id arrays `sectors,
-  props, cast, lamps, entityDefs, entities`. A newer minor opens with the existing warning; another major is refused.
+  decals, lettering, entityDefs, entities`; room: `/1`'s plus `zone, pit, grime, door, dress`; a prop `id, use, kind,
+  at, angle, with, layer`; a character `id, who, pose, at, angle, to`; a lamp `id, kind, at`, then its light's members
+  in `LampPlace`'s order (A17)); id arrays `sectors, props, cast, lamps, entityDefs, entities`. A newer minor opens with the existing warning; another major is refused.
 - **Upgrade:** the codec gets an optional `upgrade(text)`: for a `/1` file it returns the `/2` text made by patching the
   `/1` text to `migrateAfSector1File`'s model (so only `format` and the walls' `texture` keys change), or nothing for a
-  file that needs none. `readLevel` (the editor's) upgrades first, then parses; the outcome says `upgraded: true`.
+  file that needs none. `readLevel` (the editor's) upgrades first, then parses; the outcome says `upgraded: true`, its
+  `text` is the upgraded text and `original` the file's own. Every reader of the outcome (the suite's Levels 3D session
+  and the standalone document path) starts its patch base from the upgraded text and writes nothing until a step, so
+  the first step writes the upgrade with it; the suite's Undo puts back the bytes it replaced, the `/1` text (A3).
 - **Rooms (`SectorAccess`):** `list` gives one view per room, the same object each time for the same room (a `WeakMap`),
-  with `floor` and `ceiling` as heights and each wall's `texture` as its surface's swatch name. The written planes, the
-  written surfaces and the room's first corner ride on the view under a symbol, so an edit that spreads a room keeps
+  with `floor` and `ceiling` as heights, `pit` (a member of `EditSector` now), and each wall's `texture` as its
+  surface's swatch name. A wall's `trim` is on the view only when it is heights; a trim written as a surface rides with
+  the written values (A11). The written planes, the written surfaces and the room's first corner ride on the view under
+  a symbol, so an edit that spreads a room keeps
   them. `withSectors` writes a view back: a height into its plane as written (`withPlaneZ`), a texture into its surface
   (a name stays a name; a placed surface keeps its placement and changes its `tile`), and every other member as the edit
   left it. A view the edit did not touch is the room itself, so an unchanged level is the same object.
@@ -115,14 +123,24 @@ The `af-sector-2.schema.ts` file is 577 lines today; the walls, decor, bands and
   "Pit" in its label).
 - **Things:** the editor's things are the file's `entities` (as now) and also its `props`, `cast` and `lamps`, each
   under a definition the profile makes from the game (section 7), so selecting, dragging, turning, removing and Undo
-  work through the existing thing edits. A prop is written back as `{ id, use, at, angle? }`, a character as
-  `{ id, who, at, angle? }`, a lamp as `{ id, kind, at }` with its other members untouched (`mergeMembers`). These
-  definitions are read only: a definition edit on one says "Crate comes from the game's furniture, so it can't be changed
+  work through the existing thing edits.
+  - An entity definition written as only its `id` (Ember Hall's three, and the `create-game` room's `spawn`) is read
+    as a point with no fields; nothing is written for that, and a definition edit writes only the member it changes
+    (A1).
+  - A placed thing is read and written by its own access object, not as an entity: its place is `at` (`x`, `z`, and
+    `y` from a third value; a two-value `at` stays two values unless a height is set), its turn is `angle`, and every
+    other member (`with`, `kind`, `layer`, `pose`, `to`, a lamp's colour, range and the rest) rides as written and is
+    never shown as a field (A4). Definitions: `prop:<use>`, `kind:<kind>` for a place made by a generator with no
+    preset, `cast:<who>`, `lamp:<kind>`. A new id is unused across `entities`, `props`, `cast` and `lamps`.
+  - These definitions are read only: a definition edit on one says "Crate comes from the game's furniture, so it can't be changed
   here." The Things palette offers the game's furniture and characters; lamps are placed by 16.2's Lamp tool.
 - **Materials and checks:** the material table edits rename and refuse over `/2`'s names (a wall's `surface` and its
-  placed `tile`, `upper`, `lower`, the bands, a plane's `surface`, the sector textures). The checks gain one: a prop,
-  swatch or character the game lacks ("The room uses a swatch called "rust", but the game has none. Pick another in the
-  room's Floor.").
+  placed `tile`, `upper`, `lower`, the bands, a plane's `surface`, the sector textures). The picker offers the game's
+  swatches as one category, "Materials", each named in words with its DUEL colour (a level with neither a table nor a
+  library refuses, as today). The checks gain one: a prop, material or character the game lacks, decided by core's own
+  rules (`resolveProp`, `hasSwatch`, which accepts a seeded name such as `rust#2`) and, for a character, the game's
+  figures (A5): "The room uses a material called "rust", but the game has none. Choose another with Change
+  materials." (A8)
 - **New level:** the New level template writes `/2`.
 
 The fields `/2` adds are covered like this:
@@ -158,18 +176,25 @@ The fields `/2` adds are covered like this:
 
 Levels 3D reads the game's furniture (`world-props`), swatches (`world-swatches`) and characters (`figures`) from the
 content folder that holds the level's `levels/` folder, through the suite workspace (`read`, and a listing of a folder).
-It never writes them. They feed the Things palette (by name: "Crate", "Barrel"), the material picker (each swatch with
+The records are TOML, checked with core's own content schemas (`worldPropContent`, `worldSwatchContent`); one that does
+not parse is left out and named in the checks. It never writes them. They feed the Things palette (by name: "Crate", "Barrel"), the material picker (each swatch with
 its DUEL colour), the "missing name" check, and the 3D view's world build (16.3). A game with none of these folders
 gets the file's own `materials` table and the names it already uses, as today.
 
-If the workspace port has no way to list a folder, it gets one optional method, `list(folder)`, backed by the dev
-server's existing listing; a port without it gives the fallback above.
+The workspace port's `files()` lists only what a row of the editor list matches, and a game's list has no row for
+these folders, so the port gets one optional method, `list(folder)`, backed by the store's `list(prefix)` (the editor
+server's `/api/list`, the browser stores' own); a port without it gives the fallback above (A7).
+
+The site's 3D sample (the Try-it game) gets base-3d's two props and six swatches, and its hall names them, so the first
+3D room most people see has furniture to place and materials to pick (A12).
 
 ## 8. The suite on a 3D game
 
 - **One Levels.** The rail shows an editor only when the game's editor list names it (both pages). When the list does not
   load, every installed editor shows, read only, as today. A game that lists only one level editor sees it called
-  "Levels"; a game that lists both sees "Levels 2D" and "Levels 3D".
+  "Levels"; a game that lists both sees "Levels 2D" and "Levels 3D". One function names an editor for the rail, Home's
+  cards and the folded Editors menu, so they never disagree (A6). The filter holds for every editor, so an editor built
+  on another branch (Feel, Writer, Schematic, Sequence, Audio) shows only in a game that lists it.
 - **Characters.** The figure editor's label, card and on-screen name are "Characters" (its id stays `studio`, which the
   editor lists use).
 - **The refusal card** as in section 6.
@@ -178,14 +203,15 @@ server's existing listing; a port without it gives the fallback above.
 
 - Core: the two schemas agree on every fixture; `migrateAfSector1File` changes only `format` and wall `texture` keys;
   `planeZ`/`withPlaneZ` keep the written form.
-- Editor, unit: for every fixture (the toy level upgraded, the depot, Ember Hall, both base scenes, the five builder
-  maps), `withSectors(level, list(level)) === level`; for every edit in the existing suites, run on the `/2` fixtures,
+- Editor, unit: for every fixture (the toy level, the depot and the sample hall upgraded, Ember Hall, both base scenes,
+  the `create-game --template 3d` room, and the small `SLOPED`, `PLACED` and `GRID`; A10), `withSectors(level, list(level)) === level`; for every edit in the existing suites, run on the `/2` fixtures,
   every member outside the one edited is unchanged (`firstDifference` limited to the edit's path); Ember Hall opened,
   edited and patched leaves every other byte; a sloped room's surface stays when its first corner moves.
 - Editor, DOM and layout: the pit checkbox, the camera picker, the things palette with furniture, at the eight sizes.
 - Suite: the rail on a 3D game has Levels and Characters (and Tuner), not Levels 3D; the refusal card's contrast.
 - Journey (served, Chromium, phone and iPad): copy base-3d, open the room, move a crate, raise a floor, check the file,
-  Play, read the crate's place and the floor's height from the running game.
+  Play the copy (base-3d's dev server reads its content, the room included, from `AF_E2E_CONTENT_ROOT`, as Emberwick's
+  does; A2), read the crate's place and the floor's height from the running game.
 - The existing editor-3d counts stay, but for tests that test the `/1` profile itself, each named in the log.
 
 ## 10. Out of scope

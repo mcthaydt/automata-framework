@@ -1763,3 +1763,9 @@ reads only this plan and the spec. DUEL's author and licence stay the Owner's op
 - 2026-11-08 (session n9tc3p): the editor's switch to `af-sector/2`, which task 7.1 moved to 14.1 and 16.2 and neither
   did, is planned as tasks 15.5 and 16.1b to 16.1e ([plan](2026-11-08-levels-3d-sector-2-plan.md),
   [spec](2026-11-08-levels-3d-sector-2-spec.md)); 16.2, 16.3, 17.1 and 18.2 amended where they overlap. 54 → 59 tasks.
+- 2026-11-08 (session ELAJhL, plan audit of 15.5 and 16.1b to 16.1e): 17 findings, fixed in place in that spec and
+  plan ([record](2026-11-08-levels-3d-sector-2-plan-audit.md)). Measured end to end on a copy of base-3d in the served
+  suite: the rail shows Levels and Levels 3D and Studio, and the refusal is ink on charcoal (about 1.1:1). The ones that
+  would have kept a person from editing and playing the room: Ember Hall's definitions are only ids, which the editor's
+  thing reader refuses (A1); base-3d's dev server reads the checkout's room, not the copy (A2); placed props, characters
+  and lamps cannot go through the entity reader or `mergeMembers` (A4). Still 59 tasks.
