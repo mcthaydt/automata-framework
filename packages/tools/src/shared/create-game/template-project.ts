@@ -40,8 +40,11 @@ export const packageFile = (extra: (options: TemplateOptions) => Record<string, 
         version: '0.1.0',
         private: true,
         type: 'module',
+        // The name the editors show (the game's folder name in words otherwise): the name the player sees.
+        automata: { title: options.title },
         scripts: {
           dev: 'vite',
+          editor: 'automata editor',
           ...targetScripts(targetsOf(options)),
           typecheck: 'tsc -p .',
           test: 'vitest run',

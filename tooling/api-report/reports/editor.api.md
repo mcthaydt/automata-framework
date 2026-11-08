@@ -4436,6 +4436,7 @@ interface OpenedSuitePorts {
     readonly ports: SuitePorts;
     readonly sample: boolean;
     readonly gameUrl: string | undefined;
+    readonly playOff: string | undefined;
     readonly game: string | undefined;
     readonly publish: PublishClient | undefined;
 }
@@ -4491,6 +4492,7 @@ interface SuiteEnv {
     readonly sample?: boolean;
     readonly game?: string | undefined;
     readonly playUrl?: string | undefined;
+    readonly playOff?: string | undefined;
     readonly publish?: GamePublish | undefined;
 }
 ```
@@ -4564,7 +4566,7 @@ interface OpenedSuite {
 ### `openSuite` (function)
 
 ```ts
-function openSuite(size: EditorSize, editors: SuiteEditor<unknown>[], files: Record<string, string>, ready: string, entry: string): Promise<OpenedSuite>;
+function openSuite(size: EditorSize, editors: SuiteEditor<unknown>[], files: Record<string, string>, ready: string, entry: string, game?: Pick<SuiteEnv, 'playUrl' | 'playOff' | 'publish'>): Promise<OpenedSuite>;
 ```
 
 ### `tab` (function)

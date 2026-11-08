@@ -27,11 +27,12 @@ export function runEditor(gameDir: string, args: readonly string[] = []): Promis
   return new Promise((resolve, reject) => {
     let output = ''
     const fail = (reason: string) => reject(new Error(`automata editor ${reason}:\n${output}`))
-    // A command that has printed nothing in 30 s is stuck (the editor build is missing, or the port is taken).
+    // The command starts the game first and waits for it for up to a minute (`startGame`), so this waits longer: a
+    // command that has printed no address in 90 s is stuck (the editor build is missing, or the port is taken).
     const timer = setTimeout(() => {
       child.kill()
-      fail('printed no address in 30 s')
-    }, 30_000)
+      fail('printed no address in 90 s')
+    }, 90_000)
     const read = (chunk: Buffer) => {
       output += chunk.toString()
       const url = printedAddress(output)

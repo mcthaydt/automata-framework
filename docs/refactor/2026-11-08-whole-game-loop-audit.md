@@ -158,3 +158,10 @@ Fix W2 to W12 on a branch stacked on #480 (W1 waits for #479). Write each test f
 test at phone width, W6 in `publish-game.test.ts`, W8 and W9 in the create-game tests, W7 in the journey. Then run
 `whole-game-loop` at iPad and phone size and do the loop by hand again: create-game, editor, paint, Play, Publish,
 open the zip.
+
+## Fixes (2026-11-08, session 8ps35v)
+
+W2 to W12 are fixed on a branch stacked on this PR; W1 waits for #479. See `docs/refactor/progress.md`, "Whole game
+loop fixes", for what each fix is and what was run. Two things the audit did not list, found while fixing: a failed `levels`
+check said "press Save" although the editor has no Save button, and the Start page test on the site pinned the old
+create-game line.

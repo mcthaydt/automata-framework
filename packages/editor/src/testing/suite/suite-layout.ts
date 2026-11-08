@@ -5,7 +5,7 @@ import { publishConditions, settleLayout } from '@automata/framework/testing'
 import { expect } from 'vitest'
 import { page } from 'vitest/browser'
 import { samplePorts } from '../../features/suite/memory/sample-ports'
-import { type SuiteHandle, startSuite } from '../../features/suite/shell/boot'
+import { type SuiteEnv, type SuiteHandle, startSuite } from '../../features/suite/shell/boot'
 import { createSuite } from '../../features/suite/shell/create-suite'
 import type { SuiteEditor } from '../../shared/kit/ports/suite-editor.ts'
 import { type EditorSize, REST } from '../kit/layout-sizes.ts'
@@ -32,6 +32,8 @@ export async function openSuite(
   files: Record<string, string>,
   ready: string,
   entry: string,
+  /** What a served game adds to the top bar: the page Play opens, why it is off, and Publish. */
+  game: Pick<SuiteEnv, 'playUrl' | 'playOff' | 'publish'> = {},
 ): Promise<OpenedSuite> {
   await page.viewport(size.width, size.height)
   const conditions = publishConditions(document.documentElement, size, REST, editorTargets())
@@ -42,6 +44,7 @@ export async function openSuite(
     document,
     ports: await samplePorts(files),
     suite: createSuite({ editors }),
+    ...game,
   })
   await settleLayout()
   tab(entry).click()

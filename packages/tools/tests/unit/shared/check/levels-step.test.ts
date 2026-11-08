@@ -45,7 +45,7 @@ describe('levelsStep', () => {
         col: 0,
         rule: 'levels',
         message:
-          'content/levels/room-1.toml does not match content/rooms/room-1.af2d.json.\nOpen the level in the editor and press Save.',
+          'content/levels/room-1.toml does not match content/rooms/room-1.af2d.json.\nOpen the level in the editor, change anything, then undo it. The editor saves the game’s files again.',
       },
     ])
   })
@@ -64,7 +64,9 @@ describe('levelsStep', () => {
     expect(rest).toEqual([])
     expect(finding?.file).toBe('content/rooms/room-1.af2d.json')
     expect(finding?.message).toMatch(/^content\/rooms\/room-1\.af2d\.json: This file is not valid JSON/)
-    expect(finding?.message).toMatch(/\nOpen the level in the editor and press Save\.$/)
+    expect(finding?.message).toMatch(
+      /\nOpen the level in the editor, change anything, then undo it\. The editor saves the game’s files again\.$/,
+    )
   })
 
   it('does nothing without an editor list, or when no row names exports', async () => {

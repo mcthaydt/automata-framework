@@ -59,6 +59,16 @@ describe('openServedWorkspace', () => {
     expect((await openServedStore(odd.env))?.gameUrl).toBeUndefined()
   })
 
+  it('carries why the game cannot be played from the ping, when the server says it could not start it', async () => {
+    const off = page('', () =>
+      json({ automata: 'editor', token: false, playOff: 'Your game’s packages are not installed.' }),
+    )
+    const served = await openServedStore(off.env)
+    expect(served?.playOff).toBe('Your game’s packages are not installed.')
+    expect(served?.gameUrl).toBeUndefined()
+    expect((await openServedStore(page().env))?.playOff).toBeUndefined()
+  })
+
   it("on a tablet, points the game's page at the computer the editor came from, not at the tablet's own localhost", async () => {
     // `page()` is served from http://tablet.local:4173, an address on the network.
     const served = page('', () =>

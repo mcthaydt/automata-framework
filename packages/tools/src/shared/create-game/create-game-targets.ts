@@ -95,8 +95,8 @@ const TARGET_GUIDE: Record<DistTarget, { readonly name: string; readonly command
 /** The lines of a 2D game's README that say where its code and content are. */
 export const SQUARE_WHERE = `- \`src/features/square/\`: the square and how it moves. One folder for each thing in your game.
 - \`src/features/level/\`: how the game reads its level: the walls the square stops at, and where it starts.
-- \`content/levels/start.af2d.json\`: the level. \`pnpm exec automata editor\` opens it in the level editor; press Save
-  and the game plays the new level.
+- \`content/levels/start.af2d.json\`: the level. \`pnpm editor\` opens it in the level editor, which saves as you
+  draw. **Play** there opens your game with the new level.
 - \`src/shared/constants.ts\`: numbers the game uses in more than one place.
 - \`src/app/game.ts\`: where the game is put together (the controls, the screen size).
 - \`tests/\`: tests. \`pnpm test\` runs them, and \`pnpm check\` runs every check a game has to pass before it is published.`
@@ -110,7 +110,8 @@ export function targetReadme(
   const rows = targets.map((target) => `- ${TARGET_GUIDE[target].name}: \`${TARGET_GUIDE[target].commands}\``)
   return `# ${title}
 
-\`pnpm dev\` runs the game in your browser.
+\`pnpm editor\` opens the editors on your game and runs it beside them. **Play** opens the game, and **Publish** makes
+one zip to upload to itch.io or any website host. \`pnpm dev\` runs just the game in your browser.
 
 ## Where things are
 

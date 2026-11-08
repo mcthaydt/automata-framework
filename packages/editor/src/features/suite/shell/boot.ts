@@ -24,6 +24,8 @@ export interface SuiteEnv {
   readonly game?: string | undefined
   /** The running game's page, from the server's ping: Play opens it. */
   readonly playUrl?: string | undefined
+  /** Why Play is off (the game could not start), from the server's ping: Play says it when pressed. */
+  readonly playOff?: string | undefined
   /** Builds the game into a zip to upload, when the server can: Publish. */
   readonly publish?: GamePublish | undefined
 }
@@ -50,6 +52,7 @@ export async function startSuite(target: HTMLElement, env: SuiteEnv): Promise<Su
       sample: env.sample ?? false,
       game: env.game,
       playUrl: env.playUrl,
+      playOff: env.playOff,
       publish: env.publish,
     },
   })

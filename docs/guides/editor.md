@@ -47,15 +47,22 @@ it in a new tab, and it picks up each change you save. The Tuner shows the game 
 how fast your character runs or how high it jumps, and the game starts over with the new feel. Each setting is shown in
 a unit you can feel (pixels a second, seconds). If your game is already running (`pnpm dev`), give its address with
 `--game-url` and the command starts no other. If your game's packages are not installed, it prints **Play is off** and
-says what to run.
+says what to run, and **Play** on the bar stays, dimmed: press it and it says why (on a phone it is in the **Game**
+menu). Each time you save, an open game reloads to its title screen, so a game you are in the middle of starts again.
 
 ## Publish
 
-**Publish**, then **Build my game**, builds your game for the web and checks it is ready to go online: no secrets,
-nothing that needs eval, and within itch.io's limits. Then **Download the zip**. On itch.io, make a new project, choose
-HTML as its kind and upload the zip; any website host takes it too. If something stops the build, the editor says what
-in plain words with the build's last lines, and **Try again** runs it again. The same steps from a terminal are
-`automata build` and `automata ship prepare --target itch` (see [Publish to itch.io](publish-to-itch.md)).
+**Publish**, then **Build my game**, makes your game ready to upload. Nothing goes online yet: you get one zip
+file, and you upload it yourself. On a phone, Publish is **Make it ready to upload** in the **Game** menu.
+
+Before it builds, it checks your level files and controls against `ship.config.ts` (the `levels`, `inputs` and
+`orientation` steps of `automata check`). After the build it checks that nothing needs `eval` (code that runs text as
+code, which itch.io and most web hosts refuse), that no key or password ended up in the build, and that the zip is
+within itch.io's limits. It does not run your tests, the type check or the other `automata check` steps; run
+`pnpm check` for those. Then **Download the zip**. On itch.io, make a new project, choose HTML as its kind and upload the
+zip; any website host takes it too. If something stops it, the editor says what in plain words with the last lines the
+step printed, and **Try again** runs it again. The same steps from a terminal are `pnpm build:itch && pnpm prepare:itch`
+(see [Publish to itch.io](publish-to-itch.md)).
 
 ## On a tablet
 
@@ -67,8 +74,9 @@ automata editor --lan
 
 It prints an address with a token in it (`http://192.168.1.20:4173/?token=...`). Open that on the tablet; a reload
 needs no token. Give your own with `--token <text>`. Your game runs on the network too, so **Play** on the tablet
-opens it. The editors write files, so they never listen beyond this
-computer without a token.
+opens it. The editors write files, so the editors themselves never listen beyond this computer without a token.
+Your game's own page has no token: with `--lan`, anyone on your network can open your game and see its files, and the
+command says so when it starts. Use `--lan` only on a network you trust.
 
 ## What it can change
 

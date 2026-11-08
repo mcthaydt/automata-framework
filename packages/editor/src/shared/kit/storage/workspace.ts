@@ -85,6 +85,8 @@ export interface ServedStore {
   readonly game: string | undefined
   /** The game's page, which `automata editor` runs beside the editor: Play opens it and the Tuner shows it. */
   readonly gameUrl: string | undefined
+  /** Why there is no game page to open (the game could not start), a sentence; undefined when there is a page or no reason was given. */
+  readonly playOff: string | undefined
   /** Builds the game into a zip to upload, from a server that can; none from one that cannot. */
   readonly publish: PublishClient | undefined
 }
@@ -115,6 +117,7 @@ export async function openServedStore(
   const fetchFn = env.fetch ?? ((...args: Parameters<typeof fetch>) => fetch(...args))
   let game: string | undefined
   let gameUrl: string | undefined
+  let playOff: string | undefined
   let publishes = false
   try {
     const ping = await fetchFn(`${env.origin}/api/ping`)
@@ -124,6 +127,8 @@ export async function openServedStore(
     if ('game' in body && typeof body.game === 'string' && body.game !== '') game = body.game
     if ('gameUrl' in body && typeof body.gameUrl === 'string' && URL.canParse(body.gameUrl))
       gameUrl = reachableFrom(body.gameUrl, env.origin)
+    if ('playOff' in body && typeof body.playOff === 'string' && body.playOff.trim() !== '')
+      playOff = body.playOff
     publishes = 'publish' in body && body.publish === true
   } catch {
     return undefined
@@ -135,6 +140,7 @@ export async function openServedStore(
     store: createHttpStore({ base: env.origin, token, fetch: fetchFn }),
     game,
     gameUrl,
+    playOff,
     publish: publishes ? createPublishClient({ base: env.origin, token, fetch: fetchFn }) : undefined,
   }
 }
