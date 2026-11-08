@@ -4,12 +4,15 @@
 import { type Probe, probeSchema } from '@automata/systems/sim'
 import type { Field } from '../../../shared/fields.ts'
 import {
+  factFrom,
   hasShape,
   modeWords,
   type Names,
+  NEW_FACT,
   num,
   type Piece,
   spaced,
+  UNNAMED_FACT,
   valueField,
   valueFrom,
   valueWords,
@@ -37,6 +40,30 @@ export function choices(
 ): { value: string; label: string }[] {
   const all = list.includes(current) || current === '' ? list : [...list, current]
   return all.map((value) => ({ value, label: words(value) }))
+}
+
+/**
+ * The fields that name a fact: the choice (the puzzle's facts, the file's, then "a new fact…"), and, while a made-up
+ * fact has no name yet, a text field to name it.
+ */
+export function factFields(key: string, current: string, names: Names): Field[] {
+  const choice: Field = {
+    key,
+    label: 'Fact',
+    kind: 'choice',
+    value: current,
+    options: [...choices(names.facts, current, spaced), { value: NEW_FACT, label: 'a new fact…' }],
+  }
+  return current === UNNAMED_FACT
+    ? [choice, { key: `${key}.name`, label: 'Name it', kind: 'text', value: '' }]
+    : [choice]
+}
+
+/** The fact a change to `key` leaves: a chosen one, or the name typed for a made-up one (empty keeps what it was). */
+export function writeFact(current: string, key: string, field: string, next: unknown): string {
+  if (key === field) return factFrom(next)
+  if (key === `${field}.name`) return String(next).trim() || current
+  return current
 }
 
 /** The piece for a probe's kind, or `undefined` for a kind the table lacks. */
@@ -276,21 +303,12 @@ const fact: Piece<FactProbe> = {
   matches: (value): value is FactProbe =>
     isFact(value) && !value.fact.startsWith('self.') && !hidden.matches(value),
   words: (value) => `“${spaced(value.fact)}” is ${valueWords(value.is)}`,
-  fields: (value, names) => [
-    {
-      key: 'fact',
-      label: 'Fact',
-      kind: 'choice',
-      value: value.fact,
-      options: choices(names.facts, value.fact, spaced),
-    },
-    valueField('is', 'Is', value.is),
-  ],
+  fields: (value, names) => [...factFields('fact', value.fact, names), valueField('is', 'Is', value.is)],
   write: (value, key, next) =>
-    key === 'fact'
-      ? { ...value, fact: String(next) }
-      : key === 'is'
-        ? { ...value, is: valueFrom(value.is, next) }
+    key === 'is'
+      ? { ...value, is: valueFrom(value.is, next) }
+      : key === 'fact' || key === 'fact.name'
+        ? { ...value, fact: writeFact(value.fact, key, 'fact', next) }
         : value,
   fresh: (names) => ({ fact: names.facts[0] ?? 'alarm', is: true }),
 }

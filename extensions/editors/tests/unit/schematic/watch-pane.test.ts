@@ -128,10 +128,12 @@ describe('Watch', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Watch it run' }))
     await vi.advanceTimersByTimeAsync(0)
     expect(screen.queryByText(/Ask whoever writes your game’s code/)).toBeNull()
+    // A game on its title screen has not started its debug extension yet, so the first thing said is to press Play.
+    expect(screen.getByText(/Press Play in the game/)).toBeInTheDocument()
     await vi.advanceTimersByTimeAsync(10_000)
     expect(
       screen.getByText(
-        'You can see the game, but not which mode each character is in. Ask whoever writes your game’s code to add the debug extension.',
+        'Pressed Play and still nothing? Then the game cannot say which mode each character is in. Ask whoever writes your game’s code to add the debug extension.',
       ),
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'How to add it' })).toHaveAttribute('href')
@@ -145,6 +147,7 @@ describe('Watch', () => {
     fromGame({ type: 'af-watch-ready' })
     await vi.advanceTimersByTimeAsync(10_000)
     expect(screen.queryByText(/Ask whoever writes your game’s code/)).toBeNull()
+    expect(screen.queryByText(/Press Play in the game/)).toBeNull()
   })
 
   it('says the game is still playing the last version that worked while the file has problems', async () => {

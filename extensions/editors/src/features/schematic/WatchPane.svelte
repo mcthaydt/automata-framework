@@ -1,7 +1,8 @@
 <!--
   Watch: the game running beside the diagram. The game is the Tuner's frame, and each saved change restarts it. When the
   game has the debug extension, it tells this page each mode change (`watch-bridge.ts`), and the page lights the mode,
-  flashes the arrow and keeps a log in words. A game that never says it is listening gets a sentence saying what to add.
+  flashes the arrow and keeps a log in words. Until the game says it is listening the pane says to press Play (a game on its title screen has not started its debug
+  extension yet); only after a wait does it say what to add.
 -->
 <script lang="ts">
 import { GameFrame } from '@automata/editor/kit'
@@ -14,7 +15,7 @@ interface Props {
   session: SchematicSession
   /** Told every time something is heard, so the diagram can light up. */
   onchange: (state: WatchState) => void
-  /** How long a game that is up may stay silent before the pane asks for the debug extension. */
+  /** How long a game that is up may stay silent before the pane also asks for the debug extension. */
   waitMs?: number
 }
 
@@ -61,11 +62,15 @@ const problems = $derived(session.problems.length > 0)
   {#if problems}
     <p class="dim">Your game is still playing the last version that worked. Fix the problems to see this one.</p>
   {/if}
-  {#if silent && !heard.listening}
-    <p class="dim">
-      You can see the game, but not which mode each character is in. Ask whoever writes your game’s code to add the
-      debug extension. <a href={README}>How to add it</a>
-    </p>
+  {#if !heard.listening}
+    {#if silent}
+      <p class="dim">
+        Pressed Play and still nothing? Then the game cannot say which mode each character is in. Ask whoever writes your
+        game’s code to add the debug extension. <a href={README}>How to add it</a>
+      </p>
+    {:else}
+      <p class="dim">Press Play in the game. Which mode each character is in shows here once the game is running.</p>
+    {/if}
   {/if}
   {#if heard.lines.length > 0}
     <ol class="log" role="log" aria-label="What happened">

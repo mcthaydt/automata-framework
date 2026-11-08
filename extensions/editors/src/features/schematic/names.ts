@@ -29,14 +29,39 @@ export function factsOf(def: SystemsDef): string[] {
   return [...facts]
 }
 
-export function namesOf(def: SystemsDef, agent: number, places: readonly string[] = []): Names {
+/** A fact the scene's puzzle sets or asks about comes first: it is what the characters and the puzzle agree on. */
+export function namesOf(
+  def: SystemsDef,
+  agent: number,
+  places: readonly string[] = [],
+  puzzleFacts: readonly string[] = [],
+): Names {
   const character = def.agents[agent]
   return {
     modes: character?.modes ?? [],
     agents: def.agents.map((a) => a.id),
-    facts: factsOf(def),
+    facts: [...new Set([...puzzleFacts, ...factsOf(def)])],
     places,
     hooks: character?.hooks ?? [],
     doorways: [],
   }
+}
+
+/** The names for character `agent` of the open scene: its places, and the puzzle's facts beside the file's. */
+export function sceneNames(
+  session: {
+    readonly def: SystemsDef | undefined
+    readonly places: { readonly nodes: Record<string, unknown> } | undefined
+    readonly puzzleDef: { readonly facts: Record<string, unknown> } | undefined
+  },
+  agent: number,
+): Names | undefined {
+  return session.def === undefined
+    ? undefined
+    : namesOf(
+        session.def,
+        agent,
+        Object.keys(session.places?.nodes ?? {}),
+        Object.keys(session.puzzleDef?.facts ?? {}),
+      )
 }

@@ -93,3 +93,11 @@ export function valueFrom(current: boolean | number | string, next: unknown): bo
   if (typeof current === 'number') return Number(next)
   return String(next)
 }
+
+/** The choice that makes up a fact of the character's own, when the puzzle and the file have none that fits. */
+export const NEW_FACT = '(new fact)'
+/** What a made-up fact is called until the person names it. */
+export const UNNAMED_FACT = 'new-fact'
+
+/** A fact name chosen in a field: the made-up one waits for a name. */
+export const factFrom = (next: unknown): string => (next === NEW_FACT ? UNNAMED_FACT : String(next))

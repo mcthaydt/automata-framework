@@ -7,15 +7,13 @@
 import { Button } from '@automata/editor/kit'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
 import { fairVerdict, scenarioWords } from './fair-words.ts'
-import { namesOf } from './names.ts'
+import { sceneNames } from './names.ts'
 import { num } from './pieces/piece.ts'
 import type { SchematicSession } from './schematic-session.svelte.ts'
 
 const { session }: { session: SchematicSession } = $props()
 const def = $derived(session.def)
-const names = $derived(
-  def === undefined ? undefined : namesOf(def, 0, Object.keys(session.places?.nodes ?? {})),
-)
+const names = $derived(sceneNames(session, 0))
 const README = 'https://github.com/mcthaydt/automata-framework/blob/main/extensions/systems/README.md'
 const percent = (fraction: number): number => Math.round(fraction * 1000) / 10
 

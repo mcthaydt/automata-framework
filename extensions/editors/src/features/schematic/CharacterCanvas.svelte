@@ -8,7 +8,7 @@ import { tick } from 'svelte'
 import { DECIDE_LINES, modeNotes } from './decide-words.ts'
 import Diagram from './diagram/Diagram.svelte'
 import { reveal } from './diagram/reveal.ts'
-import { namesOf } from './names.ts'
+import { sceneNames } from './names.ts'
 import { modeWords } from './pieces/piece.ts'
 import SwitchList from './SwitchList.svelte'
 import type { SchematicSession } from './schematic-session.svelte.ts'
@@ -18,11 +18,7 @@ import { EMPTY_WATCH, type WatchState } from './watch-log.ts'
 const { session }: { session: SchematicSession } = $props()
 const character = $derived(session.character)
 const index = $derived(session.chosen.kind === 'character' ? session.chosen.index : 0)
-const names = $derived(
-  session.def === undefined
-    ? undefined
-    : namesOf(session.def, index, Object.keys(session.places?.nodes ?? {})),
-)
+const names = $derived(sceneNames(session, index))
 let tab = $state<'diagram' | 'list'>('diagram')
 // The smallest the diagram draws: the 52 px labels are then still 44 px, a finger's floor.
 const MIN_ZOOM = 0.85

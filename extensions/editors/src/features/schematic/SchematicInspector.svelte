@@ -2,18 +2,14 @@
 <script lang="ts">
 import CharacterInspector from './CharacterInspector.svelte'
 import ModeInspector from './ModeInspector.svelte'
-import { namesOf } from './names.ts'
+import { sceneNames } from './names.ts'
 import SwitchInspector from './SwitchInspector.svelte'
 import type { SchematicSession } from './schematic-session.svelte.ts'
 
 const { session }: { session: SchematicSession } = $props()
 const character = $derived(session.character)
 const agent = $derived(session.chosen.kind === 'character' ? session.chosen.index : 0)
-const names = $derived(
-  session.def === undefined
-    ? undefined
-    : namesOf(session.def, agent, Object.keys(session.places?.nodes ?? {})),
-)
+const names = $derived(sceneNames(session, agent))
 const selected = $derived(session.selected)
 </script>
 

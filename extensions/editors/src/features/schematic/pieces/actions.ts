@@ -2,7 +2,7 @@
 // conditions: the sentence a person reads, its fields, how a change is written back, and a new one that means something.
 import { effectSchema, type SysEffect } from '@automata/systems/sim'
 import type { Field } from '../../../shared/fields.ts'
-import { choices } from './conditions.ts'
+import { choices, factFields, writeFact } from './conditions.ts'
 import {
   hasShape,
   modeWords,
@@ -159,21 +159,12 @@ const setFact: Piece<SetFact> = {
   menu: 'set a fact',
   matches: (value): value is SetFact => isSetFact(value) && !resetWait.matches(value),
   words: (value) => `set “${spaced(value.set)}” to ${valueWords(value.to)}`,
-  fields: (value, names) => [
-    {
-      key: 'set',
-      label: 'Fact',
-      kind: 'choice',
-      value: value.set,
-      options: choices(names.facts, value.set, spaced),
-    },
-    valueField('to', 'To', value.to),
-  ],
+  fields: (value, names) => [...factFields('set', value.set, names), valueField('to', 'To', value.to)],
   write: (value, key, next) =>
-    key === 'set'
-      ? { ...value, set: String(next) }
-      : key === 'to'
-        ? { ...value, to: valueFrom(value.to, next) }
+    key === 'to'
+      ? { ...value, to: valueFrom(value.to, next) }
+      : key === 'set' || key === 'set.name'
+        ? { ...value, set: writeFact(value.set, key, 'set', next) }
         : value,
   fresh: (names) => ({ set: names.facts[0] ?? 'alarm', to: true }),
 }

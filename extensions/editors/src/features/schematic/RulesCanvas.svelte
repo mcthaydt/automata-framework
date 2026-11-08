@@ -4,7 +4,7 @@ import { Button } from '@automata/editor/kit'
 import type { Probe, SysEffect } from '@automata/systems/sim'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
 import AddPiece from './AddPiece.svelte'
-import { namesOf } from './names.ts'
+import { sceneNames } from './names.ts'
 import PieceRow from './PieceRow.svelte'
 import { actionPiece, actionWords } from './pieces/actions.ts'
 import { conditionPiece, conditionWords } from './pieces/conditions.ts'
@@ -14,14 +14,12 @@ import type { SchematicSession } from './schematic-session.svelte.ts'
 const { session }: { session: SchematicSession } = $props()
 const def = $derived(session.def)
 // A rule has no character of its own, so a mode it names is any of the scene's.
-const names = $derived(
-  def === undefined
+const names = $derived.by(() => {
+  const scene = sceneNames(session, -1)
+  return def === undefined || scene === undefined
     ? undefined
-    : {
-        ...namesOf(def, -1, Object.keys(session.places?.nodes ?? {})),
-        modes: [...new Set(def.agents.flatMap((a) => a.modes))],
-      },
-)
+    : { ...scene, modes: [...new Set(def.agents.flatMap((a) => a.modes))] }
+})
 const conditions = $derived(def === undefined || names === undefined ? [] : ruleConditions(def, names))
 const actions = $derived(def === undefined || names === undefined ? [] : ruleActions(def, names))
 const set = (rule: number, label: string, next: NonNullable<typeof def>['rules'][number]): void =>
