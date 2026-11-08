@@ -539,3 +539,12 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 2026-11-06: "completely redesign the editors for ux, copy, and ui"; the 2D slice redesigns the kit and the 2D editor),
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
+
+## Shared editors: every editor in 2D and 3D games (stage 1 of 6 done, 2026-11-08)
+
+The Owner, 2026-11-08: "all editors should work between 2D and 3D unless obviously not like 2D editor vs 3D editor".
+
+| Stage | Status | Record |
+|---|---|---|
+| 1. Audit | Done, 2026-11-08, on PR #508: 5 high (S1 to S5), 8 medium (S6 to S13), 3 low (S14 to S16), one decision for the Owner (D1, what Characters means in a 2D game). A 2D and a 3D game were made in the editors, played and seen; the 2D game's Feel and Audio players were wired into a 3D game by hand and worked | [audit](2026-11-08-shared-editors-audit.md) |
+| 2. Plan and spec | Not started; based on #508, it turns #508's expected failures into passing journeys | |
