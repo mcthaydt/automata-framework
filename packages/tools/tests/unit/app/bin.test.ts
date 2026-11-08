@@ -43,6 +43,11 @@ describe('bin cli', () => {
       expect(parsed.title).toBe('Custom Title')
     })
 
+    it('parses --link-workspace, off unless given', () => {
+      expect(parseArgs(['my-dir']).linkWorkspace).toBe(false)
+      expect(parseArgs(['my-dir', '--link-workspace']).linkWorkspace).toBe(true)
+    })
+
     it('detects help flags', () => {
       expect(parseArgs(['--help']).help).toBe(true)
       expect(parseArgs(['-h']).help).toBe(true)
@@ -127,7 +132,7 @@ describe('bin cli', () => {
       let stdout = ''
       await runCli(['--help'], { stdout: (msg) => (stdout += msg), stderr: () => {} })
       expect(stdout).toContain('--targets <list>')
-      expect(stdout).toContain('default: web,itch,ruken,tauri')
+      expect(stdout).toContain('default: web,itch; also tauri, ruken')
     })
   })
 

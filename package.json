@@ -46,7 +46,7 @@
     "test:journeys": "VITEST_MAX_WORKERS=${VITEST_MAX_WORKERS:-${CI:+2}} turbo run test:journeys",
     "test:journeys:3d": "VITEST_MAX_WORKERS=${VITEST_MAX_WORKERS:-${CI:+2}} turbo run test:journeys --filter='./packages/editor-3d' --filter='./packages/editor-suite'",
     "test:browser:affected": "VITEST_MAX_WORKERS=${VITEST_MAX_WORKERS:-${CI:+2}} turbo run test:browser --affected --filter='!./packages/editor-3d' --filter='!./packages/editor-suite' --filter='!@af-games/base-3d' --filter='!./packages/render-pixi3d' --filter='!./packages/figures' --filter='!./packages/sector-format' --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000",
-    "ci:local": "pnpm install --frozen-lockfile && pnpm check && pnpm test:browser:2d && pnpm exec turbo run build --filter @mcthaydt/automata-tools && pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples --filter @mcthaydt/automata-tools",
+    "ci:local": "pnpm install --frozen-lockfile && pnpm check && pnpm test:browser:2d && pnpm exec turbo run build --filter @mcthaydt/automata-tools && pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples --filter @mcthaydt/consumer-smoke",
     "evidence": "VITEST_MAX_WORKERS=${VITEST_MAX_WORKERS:-${CI:+2}} turbo run test:evidence --concurrency=3 -- --browser.connectTimeout=120000 && node tooling/evidence/src/cli.ts",
     "audit:deps": "node tooling/repo-hygiene/src/audit-cli.ts",
     "secrets": "node tooling/repo-hygiene/src/secrets.ts",

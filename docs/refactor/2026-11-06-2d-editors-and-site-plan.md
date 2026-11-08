@@ -1289,3 +1289,18 @@ from this plan with their reason, and a two-line handoff.)
 - Deviations: the editors' `test:browser` also gained `canvas` (editor-2d) so the canvas tests run in a workflow, as the
   task text asks. `actionlint` needs Docker: not run; the three workflow files parse as YAML.
 - Handoff: phase 1 committed on `claude/project-thread-s8zs6m` (draft PR). Next: phase 2, task 2.1 (the stranger's journey).
+
+### 2026-11-06, session 1 continued: phase 2 (Sonnet, high)
+
+- Tasks 2.1 to 2.4 on `claude/refactor-new-game`, stacked on phase 1. `pnpm check` green (`-tools` 690 unit tests). The
+  stranger's journey (make, install, check, test, play, itch.io zip) passes in Chromium in about 26 s. It first failed at
+  "make a game" with `workspace:*` instead of `^0.0.5` (finding N1), as the plan said it would.
+- Deviations: (1) the journey writes the overrides to `pnpm-workspace.yaml`, because current pnpm ignores
+  `pnpm.overrides` in `package.json`; (2) it installs `-tools` from the packs into `<folder>/tools` and runs its bin,
+  because `npx --package <tgz>` cannot resolve dependencies that are not published yet; (3) no fixture-package drift guard,
+  because the journey is the drift guard; (4) the old `-tools` create-game journey is deleted and its assertions (title,
+  play, Escape pauses, Resume focused, no console errors) moved into the stranger's "play" step, so the `-tools`
+  `test:e2e` script and its CI filter entries are gone (supersedes the mention in task 7.3); (5) the new game's README
+  names the Docs on the site without a URL, because the domain is task 21.2.
+- Not run: WebKit, Firefox, hosted CI.
+- Handoff: next is phase 3, task 3.1 (what leaves from `-tools`).

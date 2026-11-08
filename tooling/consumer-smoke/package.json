@@ -9,11 +9,14 @@
   "scripts": {
     "smoke": "node src/run.ts",
     "test": "vitest run",
+    "test:e2e": "playwright test",
     "test:unit": "vitest run",
     "typecheck": "tsc -p ."
   },
   "devDependencies": {
+    "@mcthaydt/playwright-preset": "workspace:*",
     "@mcthaydt/vitest-preset": "workspace:*",
+    "@playwright/test": "1.63.0",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@types/node": "24.19.1",
     "playwright": "1.63.0",

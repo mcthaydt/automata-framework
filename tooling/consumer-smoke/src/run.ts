@@ -9,10 +9,9 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { findRukenSdkMarkers } from '../../../packages/automata/src/features/targets/sdk-markers.ts'
-import { resolveSourceCommit } from '../../core-packs/src/args.ts'
-import { packWorkspace } from '../../core-packs/src/pack.ts'
 import { publishablePackages } from '../../release/src/publishable-packages.ts'
 import { bootGame } from './boot-game.ts'
+import { packAll, sh } from './commands.ts'
 import {
   type ConsumerPackage,
   consumerManifest,
@@ -84,23 +83,6 @@ function toolVersions(): ToolVersions {
   }
 }
 
-/** Runs a command in `cwd`; on failure the error carries everything it printed. */
-function sh(cwd: string, command: string, args: readonly string[], env: NodeJS.ProcessEnv = {}): string {
-  try {
-    return execFileSync(command, args, {
-      cwd,
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, ...env },
-    })
-  } catch (error) {
-    const failed = error as { status?: number; stdout?: string; stderr?: string }
-    throw new Error(
-      `${command} ${args.join(' ')} exited ${failed.status ?? '?'}\n${failed.stdout ?? ''}${failed.stderr ?? ''}`,
-    )
-  }
-}
-
 /** Everything a command printed, whatever its exit code. */
 function output(cwd: string, command: string, args: readonly string[]): string {
   try {
@@ -125,18 +107,6 @@ function filesBelow(dir: string): string[] {
   return readdirSync(dir, { recursive: true, withFileTypes: true })
     .filter((entry) => entry.isFile())
     .map((entry) => join(entry.parentPath, entry.name))
-}
-
-/** Packs the published packages (tooling/core-packs: publishConfig and workspace:* applied, as at publish). */
-function packAll(project: string): ConsumerPackage[] {
-  const git = (args: readonly string[]) => sh(root, 'git', args)
-  const { packs } = packWorkspace({
-    root,
-    out: join(project, 'packs'),
-    extras: [],
-    sourceCommit: resolveSourceCommit({ out: '', extras: [], allowDirty: true, unpack: false }, git),
-  })
-  return packs.map(({ name, file }) => ({ name, tarball: `packs/${file}` }))
 }
 
 type Step = readonly [name: string, run: () => string | Promise<string>]
@@ -303,7 +273,7 @@ async function main(): Promise<void> {
     cpSync(fixtures, project, { recursive: true })
     const packages =
       args.from === 'packs'
-        ? packAll(project)
+        ? packAll(root, project)
         : publishablePackages(root).map(({ manifest }) => ({ name: manifest.name }))
     const manifest = consumerManifest({
       from: args.from,

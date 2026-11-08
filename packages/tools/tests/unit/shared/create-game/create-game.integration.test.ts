@@ -35,6 +35,8 @@ describe('createGame integration', () => {
         targetDir: gameDir,
         id: 'my-adventure',
         title: 'My Adventure',
+        // Ruken is not a default target, so a game that publishes there asks for it.
+        targets: ['web', 'itch', 'ruken'],
       }),
     )
 
@@ -75,9 +77,16 @@ describe('createGame integration', () => {
     expect(manifest.runtime.renderer).toBe('webgl2')
   })
 
-  it('scaffolds all four targets by default, and the itch.io packaging accepts the build as written (DIST-h)', async () => {
+  it('scaffolds all four targets when asked, and the itch.io packaging accepts the build as written (DIST-h)', async () => {
     const gameDir = join(tempDir, 'four-peers')
-    await Effect.runPromise(createGame({ targetDir: gameDir, id: 'four-peers', title: 'Four Peers' }))
+    await Effect.runPromise(
+      createGame({
+        targetDir: gameDir,
+        id: 'four-peers',
+        title: 'Four Peers',
+        targets: ['web', 'itch', 'ruken', 'tauri'],
+      }),
+    )
     const distDir = join(gameDir, 'dist')
     mkdirSync(distDir, { recursive: true })
     copyFileSync(join(gameDir, 'index.html'), join(distDir, 'index.html'))

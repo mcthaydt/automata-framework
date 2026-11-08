@@ -845,6 +845,9 @@ importers:
 
   packages/tools:
     dependencies:
+      '@mcthaydt/automata-check-boundaries':
+        specifier: workspace:*
+        version: link:../../tooling/check-boundaries
       '@mcthaydt/automata-content':
         specifier: workspace:*
         version: link:../content
@@ -873,9 +876,6 @@ importers:
       '@mcthaydt/automata-editor-suite':
         specifier: workspace:*
         version: link:../editor-suite
-      '@mcthaydt/playwright-preset':
-        specifier: workspace:*
-        version: link:../../tooling/playwright-preset
       '@mcthaydt/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
@@ -1021,9 +1021,15 @@ importers:
 
   tooling/consumer-smoke:
     devDependencies:
+      '@mcthaydt/playwright-preset':
+        specifier: workspace:*
+        version: link:../playwright-preset
       '@mcthaydt/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
+      '@playwright/test':
+        specifier: 1.63.0
+        version: 1.63.0
       '@ruken/manifest':
         specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
         version: file:vendor/ruken/ruken-manifest-0.0.0.tgz

@@ -104,9 +104,8 @@ describe('createGame', () => {
       const style = readFileSync(join(testDir, 'style.css'), 'utf8')
       expect(style).toContain('touch-action: manipulation')
       expect(style).toContain('-webkit-user-select: none')
-      // Laid out by role, the sim's files first: `automata check` reads constants.ts to state.ts as the sim.
-      for (const role of ['constants', 'components', 'commands', 'systems', 'state', 'views', 'main'])
-        expect(existsSync(join(testDir, `src/${role}.ts`))).toBe(true)
+      // Laid out by feature (template.test.ts pins the whole list).
+      expect(existsSync(join(testDir, 'src/features/square/square.plugin.ts'))).toBe(true)
 
       // Verify template substitutions
       const pkgJson = JSON.parse(readFileSync(join(testDir, 'package.json'), 'utf8'))
@@ -122,9 +121,11 @@ describe('createGame', () => {
       // The game boots on the default screens, with the no-eval guard first, and its sim is named after it.
       const main = readFileSync(join(testDir, 'src/main.ts'), 'utf8')
       expect(main.indexOf("import '@mcthaydt/automata/no-eval'")).toBeLessThan(main.indexOf('startGame'))
-      expect(main).toContain("title: 'Stellar Odyssey'")
       expect(main).toContain('startGame(game)')
-      expect(readFileSync(join(testDir, 'src/state.ts'), 'utf8')).toContain("name: 'stellar-odyssey'")
+      expect(readFileSync(join(testDir, 'src/app/game.ts'), 'utf8')).toContain("title: 'Stellar Odyssey'")
+      expect(readFileSync(join(testDir, 'src/features/square/square.plugin.ts'), 'utf8')).toContain(
+        "name: 'stellar-odyssey'",
+      )
 
       // Every asset ships as a file: an inlined `data:` URL is refused by Ruken's CSP when fetched (DX.5a).
       const viteConfig = readFileSync(join(testDir, 'vite.config.ts'), 'utf8')
@@ -153,13 +154,14 @@ describe('createGame', () => {
   })
   // The targets (DIST spec §5.3, DIST-D9): a script, config section, dependency and ignore line per target chosen.
   describe('targets', () => {
-    const generate = async (targets?: readonly DistTarget[]) => {
+    const generate = async (targets?: readonly DistTarget[], extra: { linkWorkspace?: boolean } = {}) => {
       await Effect.runPromise(
         createGame({
           targetDir: testDir,
           id: 'peer-game',
           title: 'Peer Game',
           ...(targets ? { targets } : {}),
+          ...extra,
         }),
       )
       const read = (file: string) => readFileSync(join(testDir, file), 'utf8')
@@ -171,26 +173,59 @@ describe('createGame', () => {
       return { read, pkg }
     }
 
-    it('writes all four by default: a Vite build per target, ship for the three that package, no plain build', async () => {
+    it('writes web and itch.io by default: a Vite build for each, ship for itch.io, no plain build', async () => {
       const { pkg } = await generate()
       expect(pkg.scripts).toMatchObject({
         'build:web': 'vite build --mode web',
         'build:itch': 'vite build --mode itch',
+        'prepare:itch': 'automata ship prepare --target itch',
+      })
+      expect(Object.keys(pkg.scripts).filter((name) => /^(build|prepare):/.test(name))).toEqual([
+        'build:web',
+        'build:itch',
+        'prepare:itch',
+      ])
+      expect(pkg.scripts.build).toBeUndefined()
+      expect(
+        Object.keys({ ...pkg.dependencies, ...pkg.devDependencies }).filter((name) =>
+          /tauri|ruken/.test(name),
+        ),
+      ).toEqual([])
+    })
+
+    it('writes all four for --targets web,itch,tauri,ruken, and still no Ruken SDK dependency', async () => {
+      const { pkg } = await generate(['web', 'itch', 'tauri', 'ruken'])
+      expect(pkg.scripts).toMatchObject({
         'build:ruken': 'vite build --mode ruken',
         'build:tauri': 'vite build --mode tauri',
-        'prepare:itch': 'automata ship prepare --target itch',
         'prepare:ruken': 'automata ship prepare --target ruken',
         'prepare:tauri': 'automata ship prepare --target tauri',
       })
-      expect(pkg.scripts.build).toBeUndefined()
-      expect(pkg.scripts['prepare-ruken']).toBeUndefined()
-      expect(pkg.dependencies['@mcthaydt/automata']).toBe('workspace:*')
       expect(pkg.dependencies).toMatchObject({
         '@tauri-apps/api': '2.12.4',
         '@tauri-apps/plugin-store': '2.5.0',
         '@tauri-apps/plugin-process': '2.4.0',
       })
       expect(pkg.devDependencies['@tauri-apps/cli']).toBe('2.12.3')
+      // The Ruken adapter is bundled in @mcthaydt/automata's ruken entry, so no target asks for the SDK (N2).
+      expect(pkg.dependencies['@ruken/sdk']).toBeUndefined()
+    })
+
+    it("asks for the running tools' version of each framework package, not a workspace link (N1)", async () => {
+      const { pkg } = await generate()
+      const version = (
+        JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8')) as { version: string }
+      ).version
+      expect(pkg.dependencies['@mcthaydt/automata']).toBe(`^${version}`)
+      expect(pkg.dependencies['@mcthaydt/automata-sim']).toBe(`^${version}`)
+      expect(pkg.devDependencies['@mcthaydt/automata-tools']).toBe(`^${version}`)
+    })
+
+    it("links the workspace only when asked, for the repository's own tests", async () => {
+      const { pkg } = await generate(undefined, { linkWorkspace: true })
+      expect(pkg.dependencies['@mcthaydt/automata']).toBe('workspace:*')
+      expect(pkg.dependencies['@mcthaydt/automata-sim']).toBe('workspace:*')
+      expect(pkg.devDependencies['@mcthaydt/automata-tools']).toBe('workspace:*')
     })
 
     it('writes only what the web target needs for --targets web', async () => {
@@ -213,12 +248,11 @@ describe('createGame', () => {
       expect(read('.gitignore')).toContain('.automata/\ndist-tauri/\n')
     })
 
-    it('gives itch.io a placeholder project and ignores its zip, and Ruken its SDK range', async () => {
-      const { read, pkg } = await generate(['itch', 'ruken'])
+    it('gives itch.io a placeholder project and ignores its zip, and a Ruken game its manifest SDK range', async () => {
+      const { read } = await generate(['itch', 'ruken'])
       const shipConfig = read('ship.config.ts')
       expect(shipConfig).toContain("itch: { project: 'your-itch-user/peer-game', channel: 'html5' }")
       expect(shipConfig).toContain("sdk: '^0.0.0'")
-      expect(pkg.dependencies['@ruken/sdk']).toBe('^0.0.0')
       expect(read('.gitignore')).toContain('*-itch.zip\n')
     })
 

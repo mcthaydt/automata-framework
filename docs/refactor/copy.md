@@ -50,6 +50,9 @@ Every player-facing string of core and Emberwick, checked against the four quest
 | Saves, failure | `Couldn't save your game. Try again.`, `This save can't be opened`, `Could not save yet; trying again` | Say what happened and, where it matters, that it retries. |
 | Boot failure | `Couldn't start the game.`, `Couldn't start the game. Close it and open it again.`, `Couldn't connect to Ruken.`, `Couldn't load your progress.`, `This device can't run the game.`, `Still waiting for the game to download.` and `Try again`, `Continue without loading`, `Back to {host}` | One sentence plus a button that fixes the usual cause. `connect` only shows when the host is Ruken. |
 | Scores | `Loading scores…`, `No scores yet`, `You're offline` | Plain words. |
+| `automata create-game --help`, targets | `--targets <list>   web,itch,ruken,tauri` | `--targets <list>   default: web,itch; also tauri, ruken` | 2 (which are on by default?) |
+| `automata create-game`, the new game's README | Pointed at repository paths and GitHub links for the publish guides | Starts with `pnpm dev`, says where things are, and names the Docs on the Automata Framework site for each target's steps | 2 (a stranger has no repository to open) and 4 ("scaffold") |
+| `@mcthaydt/automata-tools` README | Began with repository setup | Begins with `pnpm dlx @mcthaydt/automata-tools create-game my-game` | 2 |
 
 ## Checked and kept
 

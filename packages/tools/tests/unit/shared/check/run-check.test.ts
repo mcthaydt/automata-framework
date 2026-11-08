@@ -1,6 +1,7 @@
 import { Effect, Layer } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { exitCodeFor, type StepResult } from '#src/shared/check/check-report.ts'
+import { boundariesCli } from '#src/shared/check/check-steps.ts'
 import { CheckToolError, CspProbe, type CspProbeResult } from '#src/shared/check/csp-probe.ts'
 import { runCheck } from '#src/shared/check/run-check.ts'
 import { FileError } from '#src/shared/node/errors.ts'
@@ -8,6 +9,8 @@ import { Files } from '#src/shared/node/files.ts'
 import { ProcessRunner, type RunResult } from '#src/shared/node/process-runner.ts'
 
 const GAME = '/work/game'
+// The checker runs from the tools package (a dependency of it, so a stranger's game has it too), as `node <its cli>`.
+const BOUNDARIES_CLI = boundariesCli()
 const BIN = `${GAME}/node_modules/.bin`
 const VITEST_REPORT = `${GAME}/node_modules/.cache/automata-check/vitest.json`
 
@@ -15,6 +18,8 @@ const ok: RunResult = { exitCode: 0, stdout: '', stderr: '' }
 const passingVitest = JSON.stringify({ numFailedTests: 0, testResults: [] })
 
 interface FakeGame {
+  /** The game folder; `GAME` unless a test checks a game with another name. */
+  dir?: string
   /** Files that exist, with their text. Folders exist when a file is below them. */
   readonly files: Map<string, string>
   /** The answer for each tool, by bin name; a tool not listed is "not installed" (no bin file). */
@@ -25,7 +30,7 @@ interface FakeGame {
 
 function fakeGame(overrides: Partial<Omit<FakeGame, 'ran'>> = {}): FakeGame {
   const files = new Map<string, string>([
-    [`${GAME}/src/sim/game.plugin.ts`, ''],
+    [`${GAME}/src/features/square/square.plugin.ts`, ''],
     [`${GAME}/dist/index.html`, '<script src="./assets/index.js"></script>'],
     [`${GAME}/dist/assets/index.js`, 'export const x = 1'],
   ])
@@ -52,11 +57,16 @@ function layers(game: FakeGame) {
   const runner = Layer.succeed(ProcessRunner, {
     run: (command, args) =>
       Effect.sync(() => {
-        const name = command.slice(BIN.length + 1)
-        game.ran.push([name, ...args].join(' '))
+        // The boundaries checker runs from the tools package itself (`node <its cli> …`), not from the game's bins.
+        const own = command === process.execPath && args[0] === BOUNDARIES_CLI
+        const name = own
+          ? 'automata-check-boundaries'
+          : command.slice(`${game.dir ?? GAME}/node_modules/.bin/`.length)
+        const toolArgs = own ? args.slice(1) : args
+        game.ran.push([name, ...toolArgs].join(' '))
         const tool = game.tools[name]
         if (tool === undefined) throw new Error(`fake: ${command} was run but is not installed`)
-        return tool(args)
+        return tool(toolArgs)
       }),
   })
   const below = (dir: string) => [...game.files.keys()].filter((path) => path.startsWith(`${dir}/`))
@@ -72,7 +82,8 @@ function layers(game: FakeGame) {
       Effect.succeed(
         game.files.has(path) ||
           below(path).length > 0 ||
-          (path.startsWith(`${BIN}/`) && game.tools[path.slice(BIN.length + 1)] !== undefined),
+          (path.startsWith(`${game.dir ?? GAME}/node_modules/.bin/`) &&
+            game.tools[path.slice(`${game.dir ?? GAME}/node_modules/.bin/`.length)] !== undefined),
       ),
     listFiles: (dir) => Effect.succeed(below(dir).map((path) => path.slice(dir.length + 1))),
     remove: (path) => Effect.sync(() => void game.files.delete(path)),
@@ -109,7 +120,7 @@ describe('runCheck', () => {
     expect(report.ok).toBe(true)
     expect(code).toBe(0)
     expect(game.ran).toEqual([
-      'automata-check-boundaries src/sim',
+      'automata-check-boundaries --game src',
       'tsc -p . --noEmit --pretty false',
       `vitest run --reporter=json --outputFile=${VITEST_REPORT} --includeTaskLocation`,
       'vite build',
@@ -182,47 +193,56 @@ describe('runCheck', () => {
     expect(code).toBe(2)
   })
 
-  it('a game with neither src/sim nor sim role files is a tool error naming both layouts (GL spec B6)', async () => {
+  // One layout (the guide's): game code in src/features/<name>/, shared code in src/shared/, the wiring in src/app/.
+  const NOT_FEATURES = 'Put game code in src/features/<name>/ (see the guide).'
+
+  it('refuses a game with no src/features, naming where the code goes, as a tool error', async () => {
     const game = fakeGame()
-    game.files.delete(`${GAME}/src/sim/game.plugin.ts`)
+    game.files.delete(`${GAME}/src/features/square/square.plugin.ts`)
     game.files.set(`${GAME}/src/views.ts`, '')
     const { report, code } = await check(game)
     expect(report.steps[0]).toMatchObject({ name: 'boundaries', ok: false, toolError: true })
-    expect(report.steps[0]?.findings[0]?.message).toContain('src/sim')
-    expect(report.steps[0]?.findings[0]?.message).toContain('src/systems.ts')
+    expect(report.steps[0]?.findings[0]?.message).toContain(NOT_FEATURES)
+    expect(game.ran).not.toContain('automata-check-boundaries --game src')
     expect(code).toBe(2)
   })
 
-  // The seven sim roles of the GL spec §4.5, as check-boundaries' GAME_SIM_ROLES lists them.
-  it.each(['constants', 'components', 'commands', 'events', 'resources', 'systems', 'state'])(
-    'a game laid out by role (src/%s) runs boundaries with --game src (GL spec B6)',
-    async (role) => {
-      for (const path of [`${role}.ts`, `${role}/a.ts`]) {
-        const game = fakeGame()
-        game.files.delete(`${GAME}/src/sim/game.plugin.ts`)
-        game.files.set(`${GAME}/src/${path}`, '')
-        const { report } = await check(game, { simOnly: true })
-        expect(report.steps[0]).toMatchObject({ name: 'boundaries', ok: true })
-        expect(game.ran[0]).toBe('automata-check-boundaries --game src')
-      }
-    },
-  )
+  it('refuses the old src/sim layout, even beside src/features', async () => {
+    const game = fakeGame({ files: new Map([[`${GAME}/src/sim/game.plugin.ts`, '']]) })
+    const { report } = await check(game, { simOnly: true })
+    expect(report.steps[0]).toMatchObject({ name: 'boundaries', ok: false, toolError: true })
+    expect(report.steps[0]?.findings[0]?.message).toContain(NOT_FEATURES)
+  })
 
   // A game laid out by feature (src/app, src/features/<x>) has its sim by role suffix and by import; `--game src` finds it.
-  it('a game laid out by feature runs boundaries with --game src', async () => {
+  it('runs boundaries with --game src for a game laid out by feature', async () => {
     const game = fakeGame()
-    game.files.delete(`${GAME}/src/sim/game.plugin.ts`)
-    game.files.set(`${GAME}/src/features/player/player-move.system.ts`, '')
     const { report } = await check(game, { simOnly: true })
     expect(report.steps[0]).toMatchObject({ name: 'boundaries', ok: true })
     expect(game.ran[0]).toBe('automata-check-boundaries --game src')
   })
 
-  it('a game with both layouts checks both in one run (GL spec B6)', async () => {
-    const game = fakeGame({ files: new Map([[`${GAME}/src/sim.ts`, '']]) })
-    await check(game, { simOnly: true })
-    expect(game.ran[0]).toBe('automata-check-boundaries src/sim --game src')
-  })
+  // The base 3D game keeps its role files until its own slice; it is allowed by name, no other game is.
+  it.each(['constants', 'components', 'commands', 'events', 'resources', 'systems', 'state'])(
+    'accepts role files (src/%s) only in the game named base-3d',
+    async (role) => {
+      const named = (dir: string) => {
+        const game = fakeGame()
+        game.dir = dir
+        game.files.delete(`${GAME}/src/features/square/square.plugin.ts`)
+        game.files.set(`${dir}/src/${role}.ts`, '')
+        game.files.set(`${dir}/dist/index.html`, '')
+        return game
+      }
+      const other = await check(named(GAME), { simOnly: true })
+      expect(other.report.steps[0]).toMatchObject({ name: 'boundaries', ok: false, toolError: true })
+
+      const base = named('/work/base-3d')
+      const { report } = await check(base, { simOnly: true, gameDir: '/work/base-3d' })
+      expect(report.steps[0]).toMatchObject({ name: 'boundaries', ok: true })
+      expect(base.ran[0]).toBe('automata-check-boundaries --game src')
+    },
+  )
 
   it('reports type errors and failed tests as findings', async () => {
     const tools = {

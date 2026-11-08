@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DIST_TARGETS, parseTargets } from '#src/shared/create-game/create-game-targets.ts'
+import { DEFAULT_TARGETS, DIST_TARGETS, parseTargets } from '#src/shared/create-game/create-game-targets.ts'
 
 // The targets `create-game` writes a game for (DIST spec §5.3, DIST-D9): the four peers, all by default.
 
@@ -9,9 +9,10 @@ describe('parseTargets', () => {
     expect(parseTargets(' itch , ruken ')).toEqual({ ok: true, targets: ['itch', 'ruken'] })
   })
 
-  it('defaults to all four peers', () => {
+  it('knows the four peers and defaults to the two every game can use: web and itch.io', () => {
     expect(DIST_TARGETS).toEqual(['web', 'itch', 'ruken', 'tauri'])
-    expect(parseTargets(undefined)).toEqual({ ok: true, targets: DIST_TARGETS })
+    expect(DEFAULT_TARGETS).toEqual(['web', 'itch'])
+    expect(parseTargets(undefined)).toEqual({ ok: true, targets: DEFAULT_TARGETS })
   })
 
   it.each([
