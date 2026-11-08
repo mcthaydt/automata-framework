@@ -17,6 +17,7 @@
   --surface: var(--tool-hover);
   --line: var(--tool-line);
   --line-strong: var(--tool-line-strong);
+  --line-hover: var(--tool-line-hover);
   --muted: var(--tool-muted);
   --cobalt-soft: var(--tool-selected);
   /* The cabinet around the level (the stage and the home cards' wash): the mockup's near-black, a step darker than

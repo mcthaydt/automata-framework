@@ -140,7 +140,7 @@ onMount(() => {
     </span>
   </span>
   <span class="actions">
-    <Button variant={primary ? 'plain' : 'primary'} disabled={busy} data-testid="save" onclick={onsave}>Save</Button>
+    <Button variant={primary ? 'secondary' : 'primary'} disabled={busy} data-testid="save" onclick={onsave}>Save</Button>
     {@render primary?.()}
   </span>
 </div>

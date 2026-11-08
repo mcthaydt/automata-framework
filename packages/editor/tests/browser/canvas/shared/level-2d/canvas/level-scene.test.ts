@@ -20,7 +20,7 @@ let textures: TextureManager
 let scene: LevelScene | undefined
 const tokens: Record<string, string> = {
   '--color-layer-tiles': '#00ff00',
-  '--color-accent-default': '#e0a54a',
+  '--color-stage-accent': '#e0a54a',
   '--color-border-strong': '#ffffff',
 }
 const colors = createColorResolver((name) => tokens[name] ?? '')

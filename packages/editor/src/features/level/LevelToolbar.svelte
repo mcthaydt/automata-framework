@@ -6,12 +6,12 @@
   brush size: − 1 + beside the tools from an iPad up, and on a phone's dock, which has no room, a 44 px button showing
   the number that opens a popover with the stepper. Fit and Details are the
   canvas's own corner controls (`LevelStage`), so the pill stays one row on a 390 px phone. The pill itself (where it
-  floats, how it scrolls when a narrow canvas cannot hold it) is the kit's `StagePill`, shared with Map, Tiles and
+  floats, how it scrolls when a narrow canvas cannot hold it) is the kit's `FloatingToolbar`, shared with Map, Tiles and
   Characters.
 -->
 <script lang="ts">
 import type { IconName } from '../../shared/kit/icons/paths'
-import StagePill from '../../shared/kit/shell/StagePill.svelte'
+import FloatingToolbar from '../../shared/kit/toolbar/FloatingToolbar.svelte'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import IconButton from '../../shared/kit/widgets/IconButton.svelte'
 import Popup from '../../shared/kit/widgets/Popup.svelte'
@@ -61,7 +61,7 @@ let sizing = $state(false)
 let sizeButton = $state<HTMLElement>()
 </script>
 
-<StagePill label="Tools" {at} testId="level-toolbar">
+<FloatingToolbar label="Tools" {at} testId="level-toolbar">
   {#if showLayers}
     <IconButton icon="layers" label="Layers" aria-expanded={layersOpen} onclick={onlayers} />
   {/if}
@@ -115,7 +115,7 @@ let sizeButton = $state<HTMLElement>()
       </div>
     </Popup>
   {/if}
-</StagePill>
+</FloatingToolbar>
 
 <style>
   /* A hairline sets the size apart from the tools, as the mockup does. */

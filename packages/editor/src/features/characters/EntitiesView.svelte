@@ -7,8 +7,8 @@
 <script lang="ts">
 import { onDestroy } from 'svelte'
 import EditorShell from '../../shared/kit/shell/EditorShell.svelte'
-import StagePill from '../../shared/kit/shell/StagePill.svelte'
 import { shellModeAt } from '../../shared/kit/shell/shell-mode'
+import FloatingToolbar from '../../shared/kit/toolbar/FloatingToolbar.svelte'
 import IconButton from '../../shared/kit/widgets/IconButton.svelte'
 import type { ViewProps } from '../../shared/level-2d/documents/view-props'
 import type { Project } from '../../shared/level-2d/model/project-types'
@@ -108,7 +108,7 @@ onDestroy(() => {
         {/if}
       </div>
       {#if !wide}
-        <StagePill label="Characters controls" at={pillAt}>
+        <FloatingToolbar label="Characters controls" at={pillAt}>
           {#if mode === 'compact'}
             <IconButton
               icon="list"
@@ -125,7 +125,7 @@ onDestroy(() => {
             aria-expanded={inspectorOpen}
             onclick={() => (inspectorOpen = !inspectorOpen)}
           />
-        </StagePill>
+        </FloatingToolbar>
       {/if}
       </div>
     {/if}

@@ -196,10 +196,10 @@ function onPanelKey(event: KeyboardEvent): void {
   .hex-field,
   .native {
     box-sizing: border-box;
-    min-height: var(--size-hit);
+    min-height: var(--size-field);
     border: 1px solid var(--line-strong);
     border-radius: var(--edge-sm);
-    background: var(--paper);
+    background: var(--bg);
     color: inherit;
     font: var(--text-mono-12);
   }
@@ -252,7 +252,7 @@ function onPanelKey(event: KeyboardEvent): void {
     padding: 0 var(--space-2);
   }
   .native {
-    width: var(--size-hit);
+    width: var(--size-field);
     padding: 2px;
     cursor: pointer;
   }

@@ -11,7 +11,7 @@
 */
 
 [data-editor-shell] {
-  /* `--shell-topbar` is set by tool-chrome.css (48 px with a mouse, 56 on touch). */
+  /* `--shell-topbar` is set by tool-chrome.css (48 px with a mouse, 56 on touch); the fallback keeps a page that has not loaded it from collapsing the stage. */
   --shell-sidebar: 224px;
   --shell-rail: 76px;
   --shell-tabbar: 56px;
@@ -44,7 +44,7 @@
   grid-template-columns: var(--shell-sidebar) var(--shell-panel) minmax(0, 1fr) var(--shell-inspector) var(
       --shell-inset
     );
-  grid-template-rows: var(--shell-inset) minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto auto var(
+  grid-template-rows: var(--shell-inset) minmax(var(--shell-topbar, 48px), auto) minmax(0, 1fr) auto auto var(
       --shell-inset
     );
   grid-template-areas:
@@ -70,7 +70,7 @@
 /* Medium: the list stays beside the canvas (the layers are what a person reaches for most); the rest float. */
 [data-editor-shell][data-mode="medium"] {
   grid-template-columns: var(--shell-rail) var(--shell-panel) minmax(0, 1fr) var(--shell-inset);
-  grid-template-rows: var(--shell-inset) minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto var(
+  grid-template-rows: var(--shell-inset) minmax(var(--shell-topbar, 48px), auto) minmax(0, 1fr) auto var(
       --shell-inset
     );
   grid-template-areas:
@@ -84,7 +84,7 @@
 /* Compact: the canvas alone, the tab bar along the foot, no inset. */
 [data-editor-shell][data-mode="compact"] {
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto var(--shell-tabbar);
+  grid-template-rows: minmax(var(--shell-topbar, 48px), auto) minmax(0, 1fr) auto var(--shell-tabbar);
   grid-template-areas:
     "topbar"
     "canvas"
@@ -95,7 +95,7 @@
 /* A phone held sideways: the tab bar stands at the left, so the work keeps its height. */
 [data-editor-shell][data-mode="compact"][data-standing] {
   grid-template-columns: var(--shell-standing) minmax(0, 1fr);
-  grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto;
+  grid-template-rows: minmax(var(--shell-topbar, 48px), auto) minmax(0, 1fr) auto;
   grid-template-areas:
     "rail topbar"
     "rail canvas"

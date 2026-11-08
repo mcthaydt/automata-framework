@@ -60,6 +60,8 @@
   /* The canvas takes every gesture itself: it never scrolls or pulls the page. */
   touch-action: none;
   overscroll-behavior: none;
+  /* The floating toolbar wraps by the stage's own width, not the window's. */
+  container-type: inline-size;
 }
 
 [data-editor-shell] > [data-region="status"] {

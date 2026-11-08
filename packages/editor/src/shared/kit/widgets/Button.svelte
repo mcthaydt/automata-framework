@@ -1,21 +1,22 @@
 <!--
-  The button of the editors' screens: slightly rounded, flat and quiet, so the work is what stands out. `plain` is
-  paper with a hairline and a 44 px target; `primary` is the 48 px flat chartreuse panel with an ink edge, the one
-  action a screen or dialog is for (Save, New level); `quiet` has no border, for a second action beside a primary; `danger` is red text on a pale red wash, for
-  what destroys, so it never reads as a red outline next to a primary. The kind is `data-kind`, which the layout checks read to hold a
-  primary action to 48 px. Whatever else a button needs (an accessible name, a title) passes through. It never submits
-  a form, and a disabled one stays in the page and in the layout rather than vanishing.
+  The button of the editors' screens: slightly rounded, flat and quiet, so the work is what stands out. `secondary` is the
+  raised face with a strong edge that steps up under the pointer, and a 44 px target with touch; `primary` is the
+  flat lime panel, 48 px with touch, for the one action a screen is for (Publish) or a dialog's one confirm, never
+  anything else; `quiet` has no border, for a second action beside a primary; `danger` is red text on a pale red wash, for
+  what destroys, so it never reads as a red outline next to a primary. The kind is `data-kind`, which the layout checks
+  read to hold a primary action to 48 px. Whatever else a button needs (an accessible name, a title) passes through. It
+  never submits a form, and a disabled one stays in the page and in the layout rather than vanishing.
 -->
 <script lang="ts">
 import type { Snippet } from 'svelte'
 import type { HTMLButtonAttributes } from 'svelte/elements'
 
 interface Props extends Omit<HTMLButtonAttributes, 'type' | 'children'> {
-  variant?: 'plain' | 'primary' | 'quiet' | 'danger'
+  variant?: 'secondary' | 'primary' | 'quiet' | 'danger'
   children: Snippet
 }
 
-const { variant = 'plain', children, ...rest }: Props = $props()
+const { variant = 'secondary', children, ...rest }: Props = $props()
 </script>
 
 <button type="button" data-kind={variant} {...rest}>{@render children()}</button>
@@ -31,7 +32,7 @@ const { variant = 'plain', children, ...rest }: Props = $props()
     padding: 0 var(--space-4);
     border: 1px solid var(--line-strong);
     border-radius: var(--edge-sm);
-    background: var(--paper);
+    background: var(--raise);
     color: var(--ink);
     font: var(--text-body-13-medium);
     white-space: nowrap;
@@ -53,8 +54,7 @@ const { variant = 'plain', children, ...rest }: Props = $props()
     }
   }
   button:hover:not(:disabled) {
-    background: var(--surface);
-    border-color: var(--ink);
+    border-color: var(--line-hover);
   }
   button[data-kind='primary'] {
     min-height: var(--size-primary);

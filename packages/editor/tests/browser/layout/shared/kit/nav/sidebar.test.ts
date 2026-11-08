@@ -63,7 +63,7 @@ describe('tab bar layout', () => {
       (width, height) => page.viewport(width, height),
       async (size) => {
         mounted = mountFixture(NavFixture, {
-          layout: 'tabbar',
+          layout: 'tabbar' as const,
           width: 72,
           entries,
           current: 'audio',

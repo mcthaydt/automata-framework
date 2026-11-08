@@ -346,7 +346,7 @@ describe('DocumentScreen: Share', () => {
     await mountLevel([1194, 834], { share: true })
     expect(screen.getByRole('button', { name: 'Share' })).toHaveAttribute('data-kind', 'primary')
     expect(screen.getByRole('button', { name: 'Share' })).toHaveTextContent('Share')
-    expect(screen.getByTestId('save')).toHaveAttribute('data-kind', 'plain')
+    expect(screen.getByTestId('save')).toHaveAttribute('data-kind', 'secondary')
   })
 
   it('keeps Save the primary action on a game folder', async () => {

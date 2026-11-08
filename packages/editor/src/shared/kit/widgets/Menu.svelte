@@ -29,7 +29,7 @@ interface Props extends BlockedProps {
   items: readonly (MenuItem | 'separator')[]
   presentation?: 'popover' | 'sheet'
   /** `primary` makes the button the screen's one primary action (the Button's flat chartreuse panel). */
-  variant?: 'plain' | 'primary'
+  variant?: 'secondary' | 'primary'
   trigger?: Snippet | undefined
   onselect?: ((id: string) => void) | undefined
 }
@@ -38,7 +38,7 @@ const {
   label,
   items,
   presentation = 'popover',
-  variant = 'plain',
+  variant = 'secondary',
   trigger: triggerContent,
   onselect,
   disabled = false,

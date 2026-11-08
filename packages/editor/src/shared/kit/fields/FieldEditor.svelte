@@ -8,6 +8,7 @@
 -->
 <script lang="ts">
 import type { FieldValue, Point, RefValue } from '@automata/content/level-2d'
+import Field from '../rows/Field.svelte'
 import Button from '../widgets/Button.svelte'
 import ColorField from '../widgets/ColorField.svelte'
 import type { EditEvent } from '../widgets/edit-event'
@@ -26,7 +27,9 @@ interface Props {
 
 const { row, palette, oncommit }: Props = $props()
 
-const uid = $props.id()
+/** Controls that draw their own name: a stepper's is its scrub handle, a picker's and a colour's are in their buttons. */
+const SELF_LABELLED: ReadonlySet<FieldRow['widget']> = new Set(['stepper', 'picker', 'color'])
+
 let message = $state<string | undefined>()
 let picking = $state(false)
 /** Bumped on a refusal so the control remounts on the stored value. */
@@ -78,7 +81,13 @@ function onTextBlur(event: FocusEvent): void {
 }
 </script>
 
-<div class="field" data-widget={row.widget} data-field={row.id}>
+<Field
+  label={row.label}
+  labelled={SELF_LABELLED.has(row.widget)}
+  warning={row.widget === 'stepper' ? undefined : message}
+  data-widget={row.widget}
+  data-field={row.id}
+>
   {#key revision}
     {#if row.widget === 'stepper'}
       <Stepper
@@ -93,7 +102,6 @@ function onTextBlur(event: FocusEvent): void {
         onedit={onNumber}
       />
     {:else if row.widget === 'toggle'}
-      <span class="label" aria-hidden="true">{row.label}</span>
       <Segmented
         label={row.label}
         options={[
@@ -104,7 +112,6 @@ function onTextBlur(event: FocusEvent): void {
         onedit={(event) => commit(event.value === 'true')}
       />
     {:else if row.widget === 'segmented'}
-      <span class="label" aria-hidden="true">{row.label}</span>
       <Segmented
         label={row.label}
         options={(row.options ?? []).map((option) => ({ id: option, label: option }))}
@@ -121,36 +128,31 @@ function onTextBlur(event: FocusEvent): void {
     {:else if row.widget === 'color'}
       <ColorField label={row.label} value={text} {palette} onedit={(event) => commit(event.value)} />
     {:else if row.widget === 'text' || row.widget === 'multiline'}
-      <label class="label" for={`${uid}-text`}>{row.label}</label>
       {#if row.widget === 'text'}
         <input
-          id={`${uid}-text`}
+          aria-label={row.label}
           class="text"
           type="text"
           value={text}
-          aria-describedby={message ? `${uid}-message` : undefined}
           onkeydown={onTextKey}
           onblur={onTextBlur}
         />
       {:else}
         <textarea
-          id={`${uid}-text`}
+          aria-label={row.label}
           class="text"
           rows="3"
           value={text}
-          aria-describedby={message ? `${uid}-message` : undefined}
           onkeydown={onTextKey}
           onblur={onTextBlur}
         ></textarea>
       {/if}
     {:else if row.widget === 'point'}
-      <span class="label">{row.label}</span>
       <div class="pair">
         <Stepper label={`${row.label} x`} value={point.x} onedit={(event) => committed(event.phase) && commit({ ...point, x: event.value })} />
         <Stepper label={`${row.label} y`} value={point.y} onedit={(event) => committed(event.phase) && commit({ ...point, y: event.value })} />
       </div>
     {:else if row.widget === 'points'}
-      <span class="label">{row.label}</span>
       {#each points as each, index (index)}
         <div class="pair">
           <Stepper
@@ -173,7 +175,6 @@ function onTextBlur(event: FocusEvent): void {
         onclick={() => commit([...points, points.at(-1) ?? { x: 0, y: 0 }])}>Add point</Button
       >
     {:else if row.widget === 'ref'}
-      <span class="label">{row.label}</span>
       <div class="pair">
         <span class="value">{ref === undefined ? 'Not set' : (row.ref?.name ?? `${ref.target} (missing)`)}</span>
         {#if row.ref !== undefined}
@@ -184,50 +185,25 @@ function onTextBlur(event: FocusEvent): void {
         <RefPicker bind:open={picking} name={row.label} targets={row.ref.targets} onchoose={commit} />
       {/if}
     {:else}
-      <span class="label">{row.label}</span>
       <span class="value">{Array.isArray(row.value) ? `${row.value.length} items` : ''}</span>
     {/if}
   {/key}
-  {#if message && row.widget !== 'stepper'}
-    <p class="message" id={`${uid}-message`} role="alert">{message}</p>
-  {/if}
-</div>
+</Field>
 
 <style>
-  /* Stacked by default, the name over its control; an inspector that reads label-left sets `--label-columns`, so the
-     name and the control share a row. A widget that draws its own name (a stepper, a colour, a picker) spans both
-     columns and lines its name up through `--label-flex` instead, and so does a message under a control; the control
-     right after a name takes `--label-control-column` (2 when label-left). */
-  .field {
-    display: grid;
-    grid-template-columns: var(--label-columns, minmax(0, 1fr));
-    align-items: center;
-    gap: var(--space-1) var(--space-2);
-    min-width: 0;
-  }
-  .field > * {
-    grid-column: 1 / -1;
-  }
-  .field > .label {
-    grid-column: 1;
-  }
-  .field > .label + * {
-    grid-column: var(--label-control-column, 1 / -1);
-  }
-  .label {
-    color: var(--muted);
-    font: var(--text-label-12);
-  }
   .text {
     box-sizing: border-box;
     width: 100%;
-    min-height: var(--size-hit);
-    padding: var(--space-2);
+    min-height: var(--size-field);
+    padding: 0 var(--space-2);
     border: 1px solid var(--line-strong);
     border-radius: var(--edge-sm);
-    background: var(--paper);
+    background: var(--bg);
     color: var(--ink);
     font: var(--text-body-13);
+  }
+  textarea.text {
+    padding: var(--space-2);
   }
   .pair {
     display: flex;
@@ -237,11 +213,6 @@ function onTextBlur(event: FocusEvent): void {
   }
   .value {
     color: var(--ink);
-    font: var(--text-body-13);
-  }
-  .message {
-    margin: 0;
-    color: var(--bad);
     font: var(--text-body-13);
   }
 </style>

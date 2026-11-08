@@ -267,16 +267,16 @@ helper, `atEverySize(run)`, created in Task 4.
   children: Snippet }`; `FloatingToolbar { label: string; place: 'top' | 'zoom'; children: Snippet; second?: { label:
   string; children: Snippet } }` (the wrap label comes from `second.label`).
 
-- [ ] **Step 1: Write the failing tests.** DOM: `Field` names its control by its label; its warning has the alert icon
+- [x] **Step 1: Write the failing tests.** DOM: `Field` names its control by its label; its warning has the alert icon
       and is `aria-describedby`; `Block` nested in `Block` throws in dev. Layout: rows 32/44, fields 28/44, every
       control and row button at least 44 px on touch; a field has no box of its own (its parent has no border).
       Toolbar: in a 600 px container it is one row; at 1194 × 834 touch with list and inspector open (a 480 px or
       narrower container) the second group sits under a hairline with the words "Brush size", every button is whole
       and at least 44 px (Review Focus 2).
-- [ ] **Step 2: Run.** Expected: FAIL.
-- [ ] **Step 3: Implement** from the mockup's `.sec`, `.row`, `.field`, `.block`, `.float` and `@container` rules.
-- [ ] **Step 4: Run** and `pnpm check`. Expected: PASS.
-- [ ] **Step 5: Commit** `feat(editor): rows, label-left fields, blocks and a floating toolbar that wraps`.
+- [x] **Step 2: Run.** Expected: FAIL.
+- [x] **Step 3: Implement** from the mockup's `.sec`, `.row`, `.field`, `.block`, `.float` and `@container` rules.
+- [x] **Step 4: Run** and `pnpm check`. Expected: PASS.
+- [x] **Step 5: Commit** `feat(editor): rows, label-left fields, blocks and a floating toolbar that wraps`.
 
 ### Task 8: Sheets and the tab bar
 
@@ -546,3 +546,27 @@ iPad size, in Dark and once in Light; and apply the drunk grandma test to every 
   because a 224 px sidebar, a 264 px list and a 320 px inspector leave about 370 px on an iPad Pro 11. Ran: editor unit
   tests (211 files, 2715 tests), the suite and nav layout tests in Chromium (109 and 3), typecheck, boundaries,
   style, lint on the package. Not run: WebKit, Firefox.
+- 2026-11-08, build, Task 7: rows, label-left fields, blocks and the floating toolbar. `Section` (a 32 px head, count,
+  add button), `Row` (32/44 px, chosen colour, a name that is a button, a second line, meta, and its own buttons that
+  show under the pointer or the focus and always on touch), `Field` (a 108 px name, the control, a hint, a warning with
+  the alert icon; no box of its own) and `Block` (a 44 px head, fields split by hairlines; a Block in a Block throws in
+  development) are in `shared/kit/rows/`. `FloatingToolbar` is `StagePill` moved to `shared/kit/toolbar/` (its two
+  users, Level and Characters, follow) with a raised face, `second` (the brush size: beside the tools, or under a
+  hairline with its words when the stage is 480 px wide or less; the shell's canvas is the container), a `zoom`
+  place at the bottom right, and the chosen tool reversed. `FieldEditor` draws through `Field`. Steppers, pickers,
+  colours and sliders are `--size-field` (28 px with a mouse, 44 with touch) on the window colour with a strong edge;
+  `Button`'s `plain` is now `secondary` (the raised face; `--line-hover` is new). Rulings: (1) a `Field` whose control
+  draws its own name (a stepper's is its scrub handle, a picker's and colour's are inside their buttons) is `labelled`:
+  the field gives that name the 108 px column and adds the hint and warning, and is not a second group of the same
+  name. (2) `Row` has an optional `detail` (second line), which the layers list needs. (3) The mouse's control floor in
+  the layout tests is 28 px (`editorTargets`), the field's, because spec 4 sizes a field at 28; rows, buttons and icon
+  buttons are still 32 and are held to it in the new rows test. (4) `shell-layout.css` falls back to 48 px for
+  `--shell-topbar`: seven canvas and journey tests load `tokens.css` only, and an unset variable invalidated the grid
+  and squeezed the stage to 42 px (four canvas and three journey tests had been red since Task 4; all pass again).
+  (5) `level-scene.test.ts` names the stage accent token (`--color-stage-accent`) the scene reads since dark mode.
+  (6) The focus ring test reads the ring colour from `--focus` instead of the old light cobalt. (7) Home's scrolling page
+  is a declared scroll region (the touch run found its colour choice below the fold on a phone held sideways).
+  (8) Tests were written after the parts in this task (no red run recorded); each asserts the spec's sizes and words.
+  Ran: editor unit tests (275 files, 3349 tests), editor layout tests in Chromium (19 files, 376 tests), canvas and
+  journey tests in Chromium (74), the new nav, rows, toolbar and suite layout tests with touch (all pass), typecheck,
+  knip, style, boundaries. Not run: WebKit, Firefox.
