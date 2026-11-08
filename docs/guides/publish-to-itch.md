@@ -3,6 +3,17 @@
 itch.io runs the web build in its HTML5 player, so a game built for `itch` uses the web host adapter. ship packages
 the build as the zip itch.io accepts and pushes it with butler.
 
+## From the editor
+
+Publish in the editor makes the zip. Then you put it on itch.io:
+
+1. On itch.io, make a new project, and set "Kind of project" to HTML.
+2. In the editor, press Publish, then "Make my zip", then "Download the zip".
+3. On the itch.io page, press "Upload files" and choose the zip you downloaded.
+4. Tick "This file will be played in the browser", then save and view your page.
+
+Pushing from your computer with a command is below.
+
 ## Set up once
 
 1. Create the game's page on itch.io, with "Kind of project" set to HTML.

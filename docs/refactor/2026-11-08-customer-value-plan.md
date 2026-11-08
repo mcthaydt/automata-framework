@@ -747,3 +747,9 @@ want, itch will be first output". Spec §11.
   unmet and left unchecked. It needs a call on how wide the bands are and what a game with many buttons does. Nothing else
   reads `LetterboxGeometry.gameplay` today (plan audit A9), so the in-game text thread's HUD safe area is not affected yet.
   Landscape visual baselines were not run (GPU runner; the package keeps none in this checkout).
+- Task 13 done: `docs/guides/publish-to-itch.md` opens with "From the editor", four numbered steps (make an HTML project,
+  Publish and download the zip, upload it, tick "played in the browser"); the command-line parts stay below. The Publish
+  dialog's note links "How to put it on itch.io" to `https://automataframework.com/docs/publish-to-itch`, and no text in the
+  dialog says "build": "Make my zip", "Making your game’s zip…", and the server's "Your game could not be put together."
+  Ruling: the guide's one-sentence intro (the web build, butler) stays above the new part; it is a sentence, and moving it
+  would change the heading levels the site renders. The site's guides test, 13 dialog tests and 107 editor-command tests pass.

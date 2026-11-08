@@ -97,7 +97,7 @@ export async function publishGame(root: string, deps: PublishDeps): Promise<Publ
   if (build.code !== 0)
     return {
       ok: false,
-      problem: 'Your game did not build. Fix what the lines below say, then try again.',
+      problem: 'Your game could not be put together. Fix what the lines below say, then try again.',
       detail: plainOutput(build.output),
     }
   const evals = await deps.evalFindings(root)

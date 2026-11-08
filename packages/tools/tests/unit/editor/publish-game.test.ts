@@ -79,7 +79,7 @@ describe('publishGame', () => {
     const { ran, run } = steps([...clean, { code: 1, output: 'src/main.ts:3: Unexpected token' }])
     expect(await publishGame('/games/my-game', deps(run))).toEqual({
       ok: false,
-      problem: 'Your game did not build. Fix what the lines below say, then try again.',
+      problem: 'Your game could not be put together. Fix what the lines below say, then try again.',
       detail: 'src/main.ts:3: Unexpected token',
     })
     expect(ran).toHaveLength(4)

@@ -27,6 +27,20 @@ describe('readGuides', () => {
     expect(editor?.description.length).toBeGreaterThan(0)
   })
 
+  it('opens the itch.io guide with four numbered steps from the editor, then the command line', () => {
+    const itch = guides.find((guide) => guide.slug === 'publish-to-itch')?.content ?? ''
+    const parts = itch.split(/^## /m).slice(1)
+    expect(parts[0]?.startsWith('From the editor')).toBe(true)
+    const steps = (parts[0] ?? '').split('\n').filter((line) => /^\d+\. /.test(line))
+    expect(steps).toHaveLength(4)
+    // One action a step, in the words itch.io shows.
+    expect(steps.join('\n')).toMatch(/HTML/)
+    expect(steps.join('\n')).toMatch(/zip/)
+    expect(steps.join('\n')).toMatch(/played in the browser/)
+    // What was there before stays below.
+    expect(parts.map((part) => part.split('\n')[0])).toContain('Set up once')
+  })
+
   it('points a link to another guide at its page', () => {
     for (const guide of guides) expect(guide.content).not.toMatch(/\]\(\.\/[a-z0-9-]+\.md/)
   })

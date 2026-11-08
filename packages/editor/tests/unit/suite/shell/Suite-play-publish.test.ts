@@ -151,34 +151,68 @@ describe('on a phone, where the bar has no room for two more buttons', () => {
 })
 
 describe('Publish on a game', () => {
-  it('builds the game and hands over the zip, saying where to upload it', async () => {
+  it('makes the zip and hands it over, saying where to upload it', async () => {
     const user = userEvent.setup()
     const { publish, downloads } = fakePublish([{ ok: true, name: 'my-game-0.1.0-itch.zip' }])
     await start({ publish })
     await user.click(await screen.findByRole('button', { name: 'Publish' }))
     const dialog = await screen.findByRole('dialog', { name: 'Make your game ready to upload' })
     expect(dialog).toHaveTextContent('one zip file to upload to itch.io or any website host')
-    await user.click(screen.getByRole('button', { name: 'Build my game' }))
+    await user.click(screen.getByRole('button', { name: 'Make my zip' }))
     expect(await screen.findByText('Your game is ready to upload.')).toBeInTheDocument()
     expect(dialog).toHaveTextContent('choose HTML as its kind')
+    // The way to do it, step by step, is one link away.
+    expect(screen.getByRole('link', { name: 'How to put it on itch.io' })).toHaveAttribute(
+      'href',
+      'https://automataframework.com/docs/publish-to-itch',
+    )
     await user.click(screen.getByRole('button', { name: 'Download the zip' }))
     expect(downloads).toEqual(['my-game-0.1.0-itch.zip'])
   })
 
-  it('says what stopped the build, and lets the person try again', async () => {
+  it('never says "build" to someone who is not a programmer, whatever step it is on', async () => {
+    const user = userEvent.setup()
+    const { publish } = fakePublish([{ ok: true, name: 'my-game-0.1.0-itch.zip' }])
+    await start({ publish })
+    await user.click(await screen.findByRole('button', { name: 'Publish' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Make your game ready to upload' })
+    expect(dialog.textContent).not.toMatch(/build/i)
+    await user.click(screen.getByRole('button', { name: 'Make my zip' }))
+    await screen.findByText('Your game is ready to upload.')
+    expect(dialog.textContent).not.toMatch(/build/i)
+  })
+
+  it('says it is making the zip while it works, in plain words', async () => {
+    const user = userEvent.setup()
+    let finish: (result: PublishResult) => void = () => {}
+    const publish: GamePublish = {
+      publish: () => new Promise((done) => (finish = done)),
+      download: async () => {},
+    }
+    await start({ publish })
+    await user.click(await screen.findByRole('button', { name: 'Publish' }))
+    await user.click(await screen.findByRole('button', { name: 'Make my zip' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Make your game ready to upload' })
+    expect(dialog).toHaveTextContent('Making your game’s zip…')
+    expect(dialog.textContent).not.toMatch(/build/i)
+    finish({ ok: true, name: 'a.zip' })
+    await screen.findByText('Your game is ready to upload.')
+  })
+
+  it('says what stopped it, and lets the person try again', async () => {
     const user = userEvent.setup()
     const { publish } = fakePublish([
       {
         ok: false,
-        problem: 'Your game did not build. Fix what the lines below say, then try again.',
+        problem: 'Your game could not be put together. Fix what the lines below say, then try again.',
         detail: 'src/main.ts:3: Unexpected token',
       },
       { ok: true, name: 'my-game-0.1.0-itch.zip' },
     ])
     await start({ publish })
     await user.click(await screen.findByRole('button', { name: 'Publish' }))
-    await user.click(await screen.findByRole('button', { name: 'Build my game' }))
-    expect(await screen.findByRole('alert')).toHaveTextContent('Your game did not build.')
+    await user.click(await screen.findByRole('button', { name: 'Make my zip' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Your game could not be put together.')
     expect(screen.getByText('src/main.ts:3: Unexpected token')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Try again' }))
     await waitFor(() => expect(screen.getByText('Your game is ready to upload.')).toBeInTheDocument())
