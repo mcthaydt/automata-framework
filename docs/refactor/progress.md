@@ -539,3 +539,14 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 2026-11-06: "completely redesign the editors for ux, copy, and ui"; the 2D slice redesigns the kit and the 2D editor),
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
+
+## The paid apps: desktop and mobile (stage 1 of 6 done, 2026-11-08)
+
+The Owner, 2026-11-08 14:53: "should we get to using tauri to package to desktop, ios, and android? Also let's use
+nomad sculpt economics $19.99 for mobile, $39.99 for desktop; lets keep essentials on web, everything open source except
+deployment, but the full suite requires the app desktop or mobile; it needs to be synced to github".
+
+| Stage | Status | Record |
+|---|---|---|
+| 1. Audit | Done, 2026-11-08, on PR #508: 8 high (A1 to A8), 9 medium (A9 to A17), 3 low (A18 to A20), one decision for the Owner (D1, which editors stay on the web). A Tauri desktop build opened the full suite on a new game; a wall, a key and a longer flash were made in it, played in it and seen. Play needed an `on_new_window` handler to open at all | [audit](2026-11-08-apps-audit.md) |
+| 2. Plan and spec | Not started; waits for D1. The apps go on sale when Pixi 3D is public (the Owner, 2026-10-23) | |
