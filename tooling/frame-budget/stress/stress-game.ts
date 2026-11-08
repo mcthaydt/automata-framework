@@ -1,5 +1,6 @@
 import type { CompiledContentData, GameDefinition, RendererFactory, RuntimeSeams } from '@automata/framework'
 import { createPixiRenderer } from '@automata/framework'
+import { hudLabelHooks } from './hud-labels.ts'
 import type { StressParams } from './params.ts'
 import { WORLD } from './sim/stress.component.ts'
 import { stressScreen } from './stress-screen.ts'
@@ -41,6 +42,7 @@ export function stressGame(params: StressParams, options: StressGameOptions): Ga
         logicalHeight: WORLD.height,
         backgroundColor: 0x111122,
         entityViews: { 'stress-body': bodyView },
+        ...(params.hudLabels > 0 && { setup: hudLabelHooks(params.hudLabels) }),
       }),
     ...(options.seams === undefined ? {} : { seams: options.seams }),
   }

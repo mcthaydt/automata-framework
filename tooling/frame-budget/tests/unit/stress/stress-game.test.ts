@@ -20,13 +20,37 @@ afterEach(() => {
 
 describe('stressParams (?entities=&systems=)', () => {
   it('defaults to 2000 entities and 8 systems', () => {
-    expect(stressParams('')).toEqual({ entities: 2000, systems: 8, seed: 1 })
+    expect(stressParams('')).toEqual({ entities: 2000, systems: 8, seed: 1, hudLabels: 0 })
   })
 
   it('reads the query and refuses values out of range, keeping the default', () => {
-    expect(stressParams('?entities=500&systems=3')).toEqual({ entities: 500, systems: 3, seed: 1 })
-    expect(stressParams('?entities=0&systems=999')).toEqual({ entities: 2000, systems: 8, seed: 1 })
-    expect(stressParams('?entities=abc&systems=2.5')).toEqual({ entities: 2000, systems: 8, seed: 1 })
+    expect(stressParams('?entities=500&systems=3')).toEqual({
+      entities: 500,
+      systems: 3,
+      seed: 1,
+      hudLabels: 0,
+    })
+    expect(stressParams('?entities=0&systems=999')).toEqual({
+      entities: 2000,
+      systems: 8,
+      seed: 1,
+      hudLabels: 0,
+    })
+    expect(stressParams('?entities=abc&systems=2.5')).toEqual({
+      entities: 2000,
+      systems: 8,
+      seed: 1,
+      hudLabels: 0,
+    })
+  })
+})
+
+describe('stressParams ?hudLabels=', () => {
+  it('draws no labels unless asked, and takes a count from 1 to 100', () => {
+    expect(stressParams('').hudLabels).toBe(0)
+    expect(stressParams('?hudLabels=10').hudLabels).toBe(10)
+    expect(stressParams('?hudLabels=101').hudLabels).toBe(0)
+    expect(stressParams('?hudLabels=x').hudLabels).toBe(0)
   })
 })
 
@@ -41,7 +65,7 @@ describe('stressGame (runGame, AppLoop, sim, entity views and UI)', () => {
     const frames = manualFrames()
     const handle = runGame(
       stressGame(
-        { entities: 50, systems: 3, seed: 1 },
+        { entities: 50, systems: 3, seed: 1, hudLabels: 0 },
         { root, renderer: nullRenderer(), seams: { frames } },
       ),
     )
