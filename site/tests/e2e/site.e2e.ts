@@ -222,13 +222,37 @@ test.describe('desktop 1280×800', () => {
     })
   }
 
-  test('an unknown path returns the branded 404 page with ways back', async ({ page }) => {
+  test('a missing address shows "Page not found" in the first paint, before any script runs', async ({
+    request,
+  }) => {
+    const response = await request.get('/no-such-page')
+    expect(response.status()).toBe(404)
+    expect(await response.text()).toContain('Page not found')
+  })
+
+  test('a missing address is branded, with ways back', async ({ page }) => {
     const response = await page.goto('/no-such-page')
     expect(response?.status()).toBe(404)
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Lost your place?')
     for (const name of ['Back to overview', 'Read the docs', 'Explore examples']) {
       await expect(page.getByRole('main').getByRole('link', { name })).toBeVisible()
     }
+  })
+
+  test('a nested missing address is styled and its links work', async ({ page }) => {
+    const failed: string[] = []
+    page.on('response', (response) => {
+      if (response.url().includes('/_app/') && response.status() !== 200) failed.push(response.url())
+    })
+    await page.goto('/docs/nope/deeper', { waitUntil: 'networkidle' })
+    expect(failed).toEqual([])
+    // Styled: the lime button has its fill, which a page without its stylesheet does not.
+    const fill = await page
+      .getByRole('link', { name: 'Back to overview' })
+      .evaluate((a) => getComputedStyle(a).backgroundColor)
+    expect(fill).not.toBe('rgba(0, 0, 0, 0)')
+    await page.getByRole('link', { name: 'Back to overview' }).click()
+    await expect(page).toHaveURL(`${ORIGIN}/`)
   })
 
   test('the demo runner shows its loading state, then its failure state', async ({ page }) => {

@@ -9,7 +9,7 @@
   "scripts": {
     "prepare": "svelte-kit sync",
     "dev": "vite dev",
-    "build": "node scripts/build-demos.ts && vite build && node scripts/write-seo-files.ts build && node scripts/write-redirects.ts build && node scripts/scan-closed-beta.ts build",
+    "build": "node scripts/build-demos.ts && vite build && node scripts/make-404.ts build && node scripts/write-seo-files.ts build && node scripts/write-redirects.ts build && node scripts/scan-closed-beta.ts build",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
