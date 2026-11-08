@@ -10,6 +10,7 @@ import type { ScreenDef } from '#src/app/flow/screen.ts'
 import { rect } from '#src/entries/game.ts'
 import { defineExtension } from '#src/features/extension/define-extension.ts'
 import { LOCALE_SAVE_KEY } from '#src/features/locale/locale.manager.ts'
+import { levelScene } from '#src/features/render/level-2d/level-scene.ts'
 import { defineSave } from '#src/features/saves/save.schema.ts'
 import { BootDefect } from '#src/shared/runtime/boot-error.ts'
 import type { RendererFactory } from '#src/shared/runtime/render/renderer.ts'
@@ -291,6 +292,65 @@ describe('defineGame with draw (PRODUCT spec §7)', () => {
 
   it('accepts draw with the default screens', () => {
     expect(() => defineGame({ ...spec, draw: () => {} })).not.toThrow()
+  })
+})
+
+describe('defineGame with level', () => {
+  const room = {
+    project: {
+      format: 'af2d-content',
+      version: 1,
+      name: 'P',
+      template: 'blank',
+      layers: [],
+      tilesets: [],
+      entities: [],
+      levelFields: [],
+    },
+    levels: {
+      start: {
+        format: 'af2d-content',
+        version: 1,
+        id: 'start',
+        name: 'Start',
+        size: { w: 16, h: 16 },
+        background: { color: '#000000', mode: 'fit' },
+        fields: {},
+        layers: [],
+      },
+    },
+    images: {},
+    start: 'start',
+  } as unknown as Parameters<typeof levelScene>[0]
+
+  it('is a problem in a 3D game, which draws its rooms itself', () => {
+    const createRenderer = (() => () => {}) as never
+    expect(problemsOf({ ...spec, level: levelScene(room), createRenderer })).toContain(
+      'level: `level` draws 2D levels; a 3D game draws its rooms itself.',
+    )
+  })
+
+  it('needs the default screens, which hand it the sim', () => {
+    const own: ScreenDef[] = [{ id: 'title', enter: () => {} }]
+    expect(problemsOf({ ...spec, level: levelScene(room), screens: own })).toContain(
+      'level: needs the default screens',
+    )
+  })
+
+  it('is accepted with the default screens', () => {
+    expect(() => defineGame({ ...spec, level: levelScene(room) })).not.toThrow()
+  })
+
+  it('names a level the project lacks, in words a person can act on', () => {
+    expect(() => levelScene({ ...room, start: 'cave' })).toThrow(
+      'There is no level "cave". Open it in the editor and press Save.',
+    )
+  })
+
+  it('names a live character the project lacks', () => {
+    expect(() => levelScene({ ...room, live: ['hero'] })).toThrow(
+      'There is no character "hero" in the project.',
+    )
   })
 })
 

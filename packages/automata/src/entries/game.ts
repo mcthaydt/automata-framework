@@ -11,7 +11,6 @@ export {
   GameSpecError,
 } from '../app/define-game.ts'
 export type { DrawContext, DrawTextOptions } from '../app/draw/draw-layer.ts'
-export type { DrawEntity, DrawSim } from '../app/draw/read-sim.ts'
 export { defaultScreens, type ScreensGame } from '../app/screens/default-screens.ts'
 export type { ChangedElsewhereCopy } from '../app/screens/saves/saves-copy.ts'
 // The default screens' words: a game passes its own in `copy.screens`, over the English defaults.
@@ -33,11 +32,16 @@ export {
   keys,
   type TouchButton,
 } from '../features/input/keys.ts'
+export type { DrawEntity, DrawSim } from '../shared/draw/read-sim.ts'
 export {
   type Camera2d,
   type Camera2dOptions,
   type CameraRect,
   createCamera2d,
+  type LevelScene,
+  type LevelSceneHooks,
+  type LevelSceneOptions,
+  levelScene,
   type PostFilterDef,
   type PostFilterSpec,
   postFilter,

@@ -813,6 +813,7 @@ interface GameSpec<S = never, D = unknown> {
     readonly settings?: SettingsDef<S>;
     readonly extensions?: readonly ExtensionDef[];
     readonly draw?: (ctx: DrawContext) => void;
+    readonly level?: LevelScene;
     readonly renderer?: PixiRendererOptions;
     readonly createRenderer?: (options: PixiRendererOptions) => RendererFactory;
     readonly preload?: readonly string[];
@@ -1206,6 +1207,64 @@ function lerp(a: number, b: number, t: number): number;
 
 ```ts
 function lerpAngle(a: number, b: number, t: number): number;
+```
+
+### `LevelDraw` (interface)
+
+```ts
+interface LevelDraw {
+    readonly background: {
+        readonly color: string;
+        readonly image?: string | undefined;
+        readonly mode: ContentLevel['background']['mode'];
+    };
+    readonly items: readonly DrawItem[];
+    readonly problems: readonly string[];
+}
+```
+
+### `levelDrawList` (function)
+
+```ts
+function levelDrawList(project: ContentProject, level: ContentLevel, images: ReadonlySet<string>, live: readonly string[]): LevelDraw;
+```
+
+### `LevelScene` (interface)
+
+```ts
+interface LevelScene {
+    add(hooks: LevelSceneHooks): void;
+}
+```
+
+### `levelScene` (function)
+
+```ts
+function levelScene(options: LevelSceneOptions): LevelScene;
+```
+
+### `LevelSceneHooks` (interface)
+
+```ts
+interface LevelSceneHooks {
+    draw(sim: DrawSim, scene: {
+        readonly container: Container;
+        hide(itemId: string, hidden: boolean): void;
+    }): void;
+}
+```
+
+### `LevelSceneOptions` (interface)
+
+```ts
+interface LevelSceneOptions {
+    readonly project: ContentProject;
+    readonly levels: Readonly<Record<string, ContentLevel>>;
+    readonly images: Readonly<Record<string, string>>;
+    readonly start: string;
+    readonly live?: readonly string[] | undefined;
+    readonly current?: ((sim: DrawSim) => string) | undefined;
+}
 ```
 
 ### `LifecyclePayload` (interface)

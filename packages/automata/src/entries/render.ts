@@ -18,6 +18,16 @@ export {
 } from '../features/render/filter/post-filter.js'
 export { createPostFilterSlot } from '../features/render/filter/post-filter-slot.js'
 export {
+  type LevelDraw,
+  levelDrawList,
+} from '../features/render/level-2d/level-draw-list.js'
+export {
+  type LevelScene,
+  type LevelSceneHooks,
+  type LevelSceneOptions,
+  levelScene,
+} from '../features/render/level-2d/level-scene.js'
+export {
   createPixiRenderer,
   type PixiRenderer,
   type PixiRendererOptions,

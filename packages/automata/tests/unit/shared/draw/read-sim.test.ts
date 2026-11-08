@@ -8,7 +8,7 @@ import {
 } from '@automata/sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { readSim } from '#src/app/draw/read-sim.ts'
+import { readSim } from '#src/shared/draw/read-sim.ts'
 
 const Body = defineComponent('body', { x: 'f32', y: 'f32' })
 const Tag = defineComponent('tag', { n: 'i32' })
