@@ -1472,6 +1472,8 @@ interface PixiStage {
     readonly ui: Container;
     readonly backdrop: Container;
     readonly consumer: RenderDeltaConsumer;
+    readonly characters: StageCharacters;
+    useCharacters(characters: StageCharacters): void;
     readonly composite?: CompositeTarget | undefined;
     filters: Filter[] | null;
     readonly postFilters: PostFilterSlot;
@@ -2167,6 +2169,20 @@ interface SpriteViewOptions {
     readonly anchor?: ViewAnchor | undefined;
     readonly frames?: SpriteFrames | undefined;
     readonly frame?: string | undefined;
+}
+```
+
+### `StageCharacters` (interface)
+
+```ts
+interface StageCharacters {
+    point(ref: number): {
+        readonly x: number;
+        readonly y: number;
+    } | undefined;
+    squash(ref: number, x: number, y: number): void;
+    rest(ref: number): void;
+    hold(refs: ReadonlySet<number>): void;
 }
 ```
 
