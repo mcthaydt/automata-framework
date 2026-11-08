@@ -1,4 +1,6 @@
 // @automata/narrative: the narrative extension: its content kinds and its sim, re-exported.
+
+export { type NarrativeExtension, narrativeExtension } from '../app/narrative.extension'
 export {
   beatsContent,
   canonContent,
@@ -6,6 +8,5 @@ export {
   helpContent,
   linesContent,
   storyletsContent,
-} from '../features/dialogue/narrative.content'
-export { type NarrativeExtension, narrativeExtension } from '../features/dialogue/narrative.extension'
+} from '../shared/narrative.content'
 export * from './sim'

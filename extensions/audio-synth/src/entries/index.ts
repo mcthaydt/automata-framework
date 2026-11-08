@@ -1,5 +1,7 @@
 // @automata/audio-synth: synthesized cues, beds and music slots as data, played on core's audio buses.
 // Presentation only.
+
+export { audioSynthExtension } from '../app/audio-synth.extension'
 export { audioContent } from '../features/synth/audio.content'
 export {
   type AudioSynth,
@@ -9,7 +11,6 @@ export {
   createAudioSynth,
   rowFor,
 } from '../features/synth/audio-synth'
-export { audioSynthExtension } from '../features/synth/audio-synth.extension'
 export {
   type Candidate,
   createMusicDirector,

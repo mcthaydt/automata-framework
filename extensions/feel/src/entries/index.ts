@@ -1,6 +1,7 @@
 // @automata/feel: game feel as data: hits that shake, hold, flash, squash and pop a word, from `feel.toml`,
 // switchable by the player. Presentation only.
 
+export { feelExtension } from '../app/feel.extension'
 export {
   createFeel,
   DEFAULT_SETTINGS,
@@ -14,7 +15,6 @@ export {
   type WordPop,
 } from '../features/frame/feel'
 export { feelContent } from '../features/frame/feel.content'
-export { feelExtension } from '../features/frame/feel.extension'
 export { type Beat, Beats, type BeatsOptions } from '../shared/dynamics/beats'
 export { hash } from '../shared/dynamics/noise'
 export {

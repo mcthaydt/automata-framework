@@ -1,5 +1,5 @@
+export { debugExtension } from '../app/debug.extension'
 export { default as DebugOverlay } from '../features/overlay/DebugOverlay.svelte'
-export { debugExtension } from '../features/overlay/debug.extension'
 export {
   createOverlay,
   type Overlay,
