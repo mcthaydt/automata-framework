@@ -416,7 +416,7 @@ the site's 3D parts.
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 22% (4 of 18 tasks)
+### Build: 28% (5 of 18 tasks)
 
 The base is #532's branch (`claude/project-thread-szjdbh`, `829039d5`) with the plan, spec and audits copied in from #536
 and #537. #531 (`claude/project-thread-hvpv4a`, `e66059ce`) and the site stack (#521, `claude/project-thread-k1ftgu`,
@@ -430,7 +430,7 @@ the rest. The page has no editors v2 header, so the header is `SuiteTopBar.svelt
 | 1.1 Typed words are written as they are typed | 1 | Done, 2026-11-08 (jsdom unit tests; Chromium and WebKit journeys are task 1.4) | |
 | 1.2 One Undo step per field visit | 1 | Done, 2026-11-08 (unit) | |
 | 1.3 The saved line, at every size | 1 | Done, 2026-11-08 (unit; the phone-size layout test is with 1.4) | |
-| 1.4 Journeys that reload without leaving the field | 1 | Not started | |
+| 1.4 Journeys that reload without leaving the field | 1 | Done, 2026-11-08: five journeys in real Chromium on the phone viewport (`typed-words-kept`: Writer and Feel and the Tuner, a tab closed mid-typing, a reload, a close and reopen, on the served checkout and on the browser-kept sample). WebKit and Firefox not run. Three older play journeys (audio chase, feel shake, sequence tab) fail on the #532 base too, checked by running them there | |
 | 2.1 to 2.4 Your games on this device | 2 | Not started | |
 | 3.1 to 3.2 `/try` and the site's words | 3 | Not started | |
 | 4.1 to 4.3 Sign in with GitHub | 4 | Not started | |
