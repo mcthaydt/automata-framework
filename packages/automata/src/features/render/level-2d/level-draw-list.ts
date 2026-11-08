@@ -29,6 +29,8 @@ export type DrawItem =
   | AnimatedItem
   | {
       readonly kind: 'tile'
+      /** Which tile of its set this is, for the colour it shows while its picture arrives. */
+      readonly tile: number
       readonly image: string
       readonly frame: PictureFrame
       readonly x: number
@@ -54,6 +56,8 @@ export type DrawItem =
 export interface AnimatedItem {
   readonly kind: 'animation'
   readonly animation: ContentAnimation
+  /** The colour to show for the moment the picture is still arriving: the character's own, as the editor shows it. */
+  readonly waiting: string
   readonly x: number
   readonly y: number
   readonly w: number
@@ -120,7 +124,16 @@ export function levelDrawList(
       problems.add(`The level "${level.name}" uses the picture "${tileset.image}", which is not in the game.`)
       return placeholder
     }
-    return { kind: 'tile', image: tileset.image, frame, ...box, flipX: cell.flipX, flipY: cell.flipY, itemId }
+    return {
+      kind: 'tile',
+      tile: cell.tile,
+      image: tileset.image,
+      frame,
+      ...box,
+      flipX: cell.flipX,
+      flipY: cell.flipY,
+      itemId,
+    }
   }
 
   function cellsInto(
@@ -165,7 +178,13 @@ export function levelDrawList(
         // Frames play in the game; until the picture has arrived the character shows the look it has without one.
         const still = picture.kind === 'clip' ? picture.still : picture
         if (picture.kind === 'clip' && entity.animation !== undefined && images.has(picture.image))
-          items.push({ kind: 'animation', animation: entity.animation, ...box, itemId: item.id })
+          items.push({
+            kind: 'animation',
+            animation: entity.animation,
+            waiting: still.kind === 'flat' ? still.color : placeholderColor(still.index),
+            ...box,
+            itemId: item.id,
+          })
         else if (picture.kind === 'clip' && still.kind === 'flat') {
           problems.add(
             `The level "${level.name}" uses the picture "${picture.image}", which is not in the game.`,

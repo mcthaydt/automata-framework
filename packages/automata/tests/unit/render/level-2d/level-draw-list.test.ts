@@ -103,6 +103,7 @@ describe('levelDrawList', () => {
     expect(drawn.items).toEqual([
       {
         kind: 'tile',
+        tile: 9,
         image: 'assets/terrain.png',
         frame: { x: 16, y: 16, w: 16, h: 16 },
         x: 0,
@@ -208,7 +209,9 @@ describe('levelDrawList', () => {
 
     it('is drawn as its animation, in the box its pivot gives, when the picture is there', () => {
       const drawn = levelDrawList(spinning, placed, new Set(['assets/coin.png']), [])
-      expect(drawn.items).toEqual([{ kind: 'animation', animation, x: 20, y: 12, w: 8, h: 8, itemId: 'c' }])
+      expect(drawn.items).toEqual([
+        { kind: 'animation', animation, waiting: '#facc15', x: 20, y: 12, w: 8, h: 8, itemId: 'c' },
+      ])
       expect(drawn.problems).toEqual([])
     })
 

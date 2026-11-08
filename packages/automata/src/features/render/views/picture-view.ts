@@ -102,10 +102,16 @@ export function pictureView(
 
   const animation = character.animation
   const firstClip = animation?.clips[0]
+  const clipProblem =
+    (clip: { readonly id: string }) =>
+    (frame: number, count: number): void =>
+      once(
+        `The clip "${clip.id}" of "${character.label ?? def}" uses frame ${frame}, but the picture has ${count}.`,
+      )
   /** The animated sprite on its first clip, or the colour while the picture loads. */
   const animatedLook = (): Container => {
     if (animation === undefined || firstClip === undefined) return flatLook()
-    const textures = clipTextures(pictures, animation, firstClip)
+    const textures = clipTextures(pictures, animation, firstClip, clipProblem(firstClip))
     if (textures === undefined) {
       if (images[animation.image] === undefined)
         once(
@@ -126,16 +132,25 @@ export function pictureView(
 
   const look = (): Container => (animation === undefined ? flatLook() : animatedLook())
 
+  /** The picture this character is drawn from, when it has one. */
+  const mine =
+    animation !== undefined
+      ? animation.image
+      : picture.kind === 'tile'
+        ? project.tilesets.find((candidate) => candidate.id === picture.tileset)?.image
+        : undefined
+
   return (_row, componentId) => {
     const container = new Container()
     let shown = look()
     container.addChild(shown)
     let playing = firstClip?.id
-    // A picture may arrive after the view was made: swap the colour for the sprite.
+    // A picture may arrive after the view was made: swap the colour for the sprite. Only this character's own picture
+    // does it; another one arriving must not send a running clip back to its first frame.
     const stop =
-      picture.kind === 'tile' || animation !== undefined
-        ? pictures.onLoad(() => {
-            if (container.destroyed) return
+      mine !== undefined
+        ? pictures.onLoad((path) => {
+            if (path !== mine || container.destroyed) return
             shown.destroy()
             shown = look()
             playing = firstClip?.id
@@ -154,7 +169,7 @@ export function pictureView(
         return
       }
       const sprite = shown as AnimatedSprite
-      const textures = clipTextures(pictures, animation, clip)
+      const textures = clipTextures(pictures, animation, clip, clipProblem(clip))
       if (textures === undefined || sprite.textures === undefined) return
       playClip(sprite, textures, clip)
       playing = name

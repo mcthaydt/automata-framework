@@ -27,6 +27,16 @@ const hero: ContentEntityDef = {
     ],
   },
 }
+const other: ContentEntityDef = {
+  ...hero,
+  id: 'other',
+  label: 'Other',
+  animation: {
+    image: 'assets/other.png',
+    frame: { w: 16, h: 24 },
+    clips: [{ id: 'idle', frames: [0], fps: 6, loop: true }],
+  },
+}
 const project: ContentProject = {
   format: 'af2d-content',
   version: 1,
@@ -34,10 +44,10 @@ const project: ContentProject = {
   template: 'blank',
   layers: [],
   tilesets: [],
-  entities: [hero],
+  entities: [hero, other],
   levelFields: [],
 }
-const images = { 'assets/hero.png': 'hero.png' }
+const images = { 'assets/hero.png': 'hero.png', 'assets/other.png': 'other.png' }
 const row: RenderRow = { sid: 1, components: { body: { x: 0, y: 0 } } }
 /** A 96 x 24 picture: six frames of 16 x 24. */
 const sheet = (): Texture => new Texture({ source: new TextureSource({ width: 96, height: 24 }) })
@@ -112,5 +122,53 @@ describe('pictureView with clips', () => {
     const { view } = await loaded()
     view?.update?.({ body: { x: 10, y: 4, angle: 0 } }, { body: { x: 0, y: 0, angle: 0 } }, 0.5)
     expect([view?.container.x, view?.container.y]).toEqual([5, 2])
+  })
+
+  it('skips a frame the picture does not have, and says so once in words', async () => {
+    const reportError = vi.fn()
+    vi.stubGlobal('reportError', reportError)
+    vi.spyOn(Assets, 'load').mockResolvedValue(sheet() as never)
+    const short: ContentProject = {
+      ...project,
+      entities: [
+        {
+          ...hero,
+          animation: {
+            image: 'assets/hero.png',
+            frame: { w: 16, h: 24 },
+            clips: [{ id: 'idle', frames: [0, 9], fps: 6, loop: true }],
+          },
+        },
+      ],
+    }
+    const view = pictureView(short, 'hero', { ...images })(row, 'body')
+    await vi.waitFor(() => expect(view?.container.children[0]).toBeInstanceOf(AnimatedSprite))
+    const sprite = view?.container.children[0] as AnimatedSprite
+    expect(sprite.textures).toHaveLength(1)
+    expect(reportError).toHaveBeenCalledTimes(1)
+    const [error] = reportError.mock.calls[0] ?? []
+    expect((error as Error).message).toBe('The clip "idle" of "Hero" uses frame 9, but the picture has 6.')
+  })
+
+  it('keeps a running clip going when a picture it does not use arrives', async () => {
+    // Two characters of one game share its pictures; the second one's arrives after the first one's clip is running.
+    const shared = { ...images }
+    let release: (() => void) | undefined
+    vi.spyOn(Assets, 'load').mockImplementation(((asset: { src: string }) =>
+      asset.src === 'other.png'
+        ? new Promise((resolve) => {
+            release = () => resolve(sheet())
+          })
+        : Promise.resolve(sheet())) as never)
+    const first = pictureView(project, 'hero', shared)(row, 'body')
+    await vi.waitFor(() => expect(first?.container.children[0]).toBeInstanceOf(AnimatedSprite))
+    const sprite = first?.container.children[0] as AnimatedSprite
+    sprite.gotoAndPlay(1)
+    const second = pictureView(project, 'other', shared)(row, 'body')
+    await vi.waitFor(() => expect(release).toBeDefined())
+    release?.()
+    await vi.waitFor(() => expect(second?.container.children[0]).toBeInstanceOf(AnimatedSprite))
+    expect(first?.container.children[0]).toBe(sprite)
+    expect(sprite.currentFrame).toBe(1)
   })
 })

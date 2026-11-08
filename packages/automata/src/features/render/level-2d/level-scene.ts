@@ -1,4 +1,5 @@
 import type { ContentLevel, ContentProject } from '@automata/content/level-2d'
+import { placeholderColor } from '@automata/content/level-2d'
 import { Container, Graphics, Sprite, TilingSprite } from 'pixi.js'
 import type { DrawSim } from '../../../shared/draw/read-sim.ts'
 import { clipSprite, clipTextures } from './clips.ts'
@@ -114,7 +115,12 @@ export function levelScene(options: LevelSceneOptions): LevelScene {
   function itemView(item: DrawItem): Container {
     if (item.kind === 'animation') {
       const clip = item.animation.clips[0]
-      const textures = clip === undefined ? undefined : clipTextures(pictures, item.animation, clip)
+      const textures =
+        clip === undefined
+          ? undefined
+          : clipTextures(pictures, item.animation, clip, (frame, count) =>
+              once(`The clip "${clip.id}" uses frame ${frame}, but the picture has ${count}.`),
+            )
       if (clip !== undefined && textures !== undefined) {
         const sprite = clipSprite(textures, clip)
         sprite.anchor.set(0.5)
@@ -123,8 +129,8 @@ export function levelScene(options: LevelSceneOptions): LevelScene {
         sprite.height = item.h
         return sprite
       }
-      // The picture has not arrived yet: a grey box, as a tile waiting for its picture is.
-      return new Graphics().rect(item.x, item.y, item.w, item.h).fill(0x808080)
+      // The picture has not arrived yet: the character's own colour, as the editor shows it.
+      return new Graphics().rect(item.x, item.y, item.w, item.h).fill(hexNumber(item.waiting))
     }
     if (item.kind === 'tile') {
       const f = item.frame
@@ -138,8 +144,7 @@ export function levelScene(options: LevelSceneOptions): LevelScene {
         return sprite
       }
       // The picture has not arrived yet: the tile's own colour, as the editor shows a tile with no picture.
-      const waiting = new Graphics().rect(item.x, item.y, item.w, item.h).fill(0x808080)
-      return waiting
+      return new Graphics().rect(item.x, item.y, item.w, item.h).fill(hexNumber(placeholderColor(item.tile)))
     }
     const shape = new Graphics()
     if (item.ellipse) shape.ellipse(item.x + item.w / 2, item.y + item.h / 2, item.w / 2, item.h / 2)

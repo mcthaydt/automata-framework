@@ -1,5 +1,5 @@
 import type { ContentLevel, ContentProject } from '@automata/content/level-2d'
-import { Application, Container, Graphics, Sprite } from 'pixi.js'
+import { Application, Assets, Container, Graphics, Sprite } from 'pixi.js'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { drawLevelScene, levelScene, mountLevelScene } from '#src/features/render/level-2d/level-scene.ts'
 import type { DrawSim } from '#src/shared/draw/read-sim.ts'
@@ -60,6 +60,7 @@ const level: ContentLevel = {
 
 let app: Application | undefined
 afterEach(() => {
+  vi.restoreAllMocks()
   app?.destroy(true)
   app = undefined
 })
@@ -136,5 +137,35 @@ describe('levelScene in a real engine', () => {
     const at = (x: number, y: number): number[] =>
       Array.from(pixels.slice((y * width + x) * 4, (y * width + x) * 4 + 3))
     expect(at(8, 8)).toEqual([0, 0, 0])
+  })
+
+  it('shows a tile in its own colour while its picture is still arriving, not grey', async () => {
+    vi.spyOn(Assets, 'load').mockReturnValue(new Promise(() => {}) as never)
+    const scene = levelScene({
+      project,
+      levels: { start: level },
+      images: { 'assets/terrain.png': 'never-arrives.png' },
+      start: 'start',
+    })
+    app = new Application()
+    await app.init({
+      width: 32,
+      height: 16,
+      preference: 'webgl',
+      autoStart: false,
+      antialias: false,
+      resolution: 1,
+    })
+    const world = new Container()
+    app.stage.addChild(world)
+    mountLevelScene(scene, world, new Container())
+    drawLevelScene(scene, sim)
+    app.renderer.render({ container: app.stage })
+    const { pixels, width } = app.renderer.extract.pixels({ target: app.stage })
+    const at = (x: number, y: number): number[] =>
+      Array.from(pixels.slice((y * width + x) * 4, (y * width + x) * 4 + 3))
+    // Tile 0 and tile 1 each wait in the colour the editor gives them (not grey).
+    expect(at(8, 8)).toEqual([0x8a, 0x6d, 0x5a])
+    expect(at(24, 8)).toEqual([0x5a, 0x7d, 0x8a])
   })
 })
