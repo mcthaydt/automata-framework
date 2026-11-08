@@ -180,3 +180,10 @@ behaviour, which the plan forbids changing without asking, so it is the Owner's 
 Fix H1, M1 to M8 and the lows in the build's own code. H2 and M9 need the Owner (open choice 2; a sim change). H3 is
 the plan's Task 14 and the 2D half of Task 8, after merging #484 up. Each fix keeps the standing rule: make the edit
 in the editors, play it, and say what the game did.
+
+## Fixes (2026-11-08)
+
+H1, H3, M1 to M8 and L1 to L10 are fixed on PR #486's branch, each with a test that failed first and, for H3 and M1,
+a served journey (2D 10 of 10, 3D 13 of 13, Chromium at phone and iPad). H2 (Fair play has no runner) and M9 (`fleeNode`
+can route through the player) wait on the Owner. L2 is not Schematic's. L11 done by copying the plan over. L12 has to run
+in CI. The log in [the plan](2026-11-08-schematic-plan.md) has the rulings.

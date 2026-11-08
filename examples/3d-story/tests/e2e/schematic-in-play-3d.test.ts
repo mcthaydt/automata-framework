@@ -101,6 +101,29 @@ test('Watch: stepping the player into sight lights Hunt on the diagram and logs 
   await editors.screenshot({ path: test.info().outputPath('watch-hunt.png') })
 })
 
+test('renaming a place changes the places and the guard’s file together, and one Undo takes both back', async ({
+  context,
+}) => {
+  const editors = await context.newPage()
+  await openGuard(editors)
+  // On a phone the panel is a sheet behind the Panel button; on an iPad it is the column on the left.
+  const places = editors.getByRole('button', { name: 'Places', exact: true })
+  if (!(await places.isVisible())) await editors.getByRole('button', { name: 'Panel' }).click()
+  await places.click()
+  await editors.getByRole('button', { name: /^west: / }).click()
+  const name = editors.getByLabel('Name', { exact: true }).first()
+  await name.fill('gate')
+  await name.press('Tab')
+  await fileHas(FILES[1] as string, 'nodes.gate')
+  await fileHas(FILES[0] as string, 'node = "gate"')
+  await editors.getByRole('button', { name: /^Undo Rename west to gate/ }).click()
+  await fileHas(FILES[1] as string, '[nodes.west]')
+  await fileHas(FILES[0] as string, 'node = "west"')
+  expect(readFileSync(root + FILES[1], 'utf8')).not.toContain('gate')
+  expect(readFileSync(root + FILES[0], 'utf8')).not.toContain('gate')
+  await editors.screenshot({ path: test.info().outputPath('rename-undo.png') })
+})
+
 test('raising the guard’s sight to 7 m in Schematic makes it hunt within 1 s', async ({ page, context }) => {
   const editors = await context.newPage()
   await openGuard(editors)

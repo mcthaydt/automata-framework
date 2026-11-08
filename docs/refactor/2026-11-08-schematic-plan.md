@@ -187,7 +187,7 @@ disk on each run, and the `[[check]]` row that runs them.
 
 **Files:** `examples/2d-story/tests/e2e/schematic-in-play.test.ts`; the pipe files above.
 
-- [ ] **Step 1: Failing journey** (Chromium, phone and iPad projects), `automata editor` serving the suite and the game:
+- [x] **Step 1: Failing journey** (Chromium, phone and iPad projects), `automata editor` serving the suite and the game:
   1. Play with the player placed 5 m from the guard in its line of sight: through the test hook, the guard stays in
      Patrol for 3 s (sight is 4 m).
   2. In Schematic: the guard's sight to 7 m; Save; Play: the guard is in Hunt within 1 s.
@@ -200,7 +200,7 @@ disk on each run, and the `[[check]]` row that runs them.
   6. Fair play: Check now; raise the guard's sight to 12 m; Check now: the careful player's wins go down, and the
      verdict's words change.
   7. Look at the screenshots and explain each in the log.
-- [ ] **Step 2:** Pass. **Step 3:** Commit `test(examples): AI edited in Schematic changes a 2D game`.
+- [x] **Step 2:** Pass. **Step 3:** Commit `test(examples): AI edited in Schematic changes a 2D game`. (Done in the fixes: 10 of 10 in Chromium. The 2D story's fair-play step is not run: no runner, H2.)
 
 ### Task 15: Served journey: AI edited in Schematic changes play, 3D
 
@@ -341,3 +341,32 @@ template's controls. It moves no other 3D hash, golden or replay.
   switch) flees in play; the 3D journey reproduced 12 of 12 (Chromium). High: the sight setting's words are the
   reverse of the game's and cannot make boxes block view; Fair play runs in no game; Task 14 and the 2D presets test
   are still to do (#484 now has the 2D story's guard).
+- 2026-11-08, fixes for the build audit (Sonnet, inline), on #486 with #484 merged up (`e1ef8350`). Every fix was written
+  as a failing test first. Done: H1 (a sight's `wallsOnly` reads as the sim reads it; `sight-boxes.test.ts` in `systems`
+  pins the sim); H3 (#484 merged, Task 14 with its served journey `examples/2d-story`, 10 of 10 in Chromium at phone and
+  iPad, and the 2D presets test, `presets-2d.test.ts`, 11 tests; the 2D golden hash is unchanged because the noise
+  command is registered only when a cast asks for it); M1 (a place rename is one joint step, and Undo follows every
+  file a step changed, proved in the 3D journey at phone and iPad); M2 (Fit shows the box where the character starts
+  and fits the pane, Smaller goes to 0.85 where labels are still 44 px, Watch scrolls the lit box into view); M3 (Watch
+  says "Press Play in the game" first and asks for the debug extension only after 8 s of silence); M4 (the puzzle's facts
+  come first, then the file's, then "a new fact…"); M5 (Places opens before any character, and the start page offers
+  "Add the first place"); M6 (the inspector lists a character's game code, read only, and the rules page says the design
+  notes are kept in the file); M7 (two lines added to "How it decides", each pinned against the interpreter in
+  `decide-rules.test.ts`); M8 (`style` and `boundaries` now cover `extensions/editors` and `examples/3d-story`, both
+  pass: the 3D story's sim no longer reaches the level file, its features no longer import each other, view and worker
+  files are plain kebab-case, its test imports `#src/`). L1 (Home shows one row per scene: `SuiteEditor.homeFiles`), L3
+  (the list rows to copy have the puzzles row and `checks = ["content"]`), L4 (copy and a "Fair play: last checked N
+  changes ago" status line), L5 (a refusal leaves with its page; the inspector says where a page is edited), L6 (a
+  button to Places), L7 (no "not …" in the add menu; the follow's doorways are those the file already uses), L8 (a
+  switch with no condition says it switches every time), L9 (wording), L10 (debug README).
+  Rulings: pinch and Ctrl-scroll are struck from spec 4.1 (the buttons do the job, a pinch inside a scroll region zooms
+  the page, and essential only); a made-up fact exists in the file only, the puzzle's facts are added on the Puzzle page;
+  the word "routine" is no longer on the test's list of file words because it is also a mode's name.
+  Not done, with reasons: H2 and M9 wait on the Owner. L2 (Levels 3D and Studio read "Not in this build" on the served
+  page): not Schematic's. L11: the project-files copy was replaced with this version. L12: `.github/workflows/3d.yml`
+  has not run in CI. The `ci.yml` 2D journeys step gained `--filter @af-examples/2d-story` (a workflow change; the
+  repository's AGENTS.md calls for the Owner's words only in Plus, but it is flagged in the PR). `create-game`'s 3D template
+  has the same sim-reads-the-level pattern M8 fixed in the 3D story; left alone, flagged. `2d-story` is not yet in
+  `style` or `boundaries` (it has `.view.ts`, `.extensions.ts` and a `.system.ts` with no system). `pnpm api-index
+  --write` fails here on two undocumented exports it does not own (`Picture`, `PROMPT_COPY`), so the cheatsheet is not
+  updated. Not run: WebKit, Firefox, the GPU runner, parity.
