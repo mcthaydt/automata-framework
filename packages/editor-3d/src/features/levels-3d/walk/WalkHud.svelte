@@ -108,11 +108,15 @@ const hold =
     background: color-mix(in srgb, var(--color-bg-canvas) 80%, transparent);
     white-space: nowrap;
   }
+  /* Under the mode switch and the minimap, which are the top row, so the words never sit over either. */
   .chip {
-    top: var(--space-3);
+    top: calc(var(--space-3) + 90px + var(--space-2));
+    max-width: calc(100% - 2 * var(--space-3));
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .warning {
-    top: calc(var(--space-3) + 36px);
+    top: calc(var(--space-3) + 90px + var(--space-2) + 36px);
     color: var(--color-state-warn, #e0a030);
     white-space: normal;
     max-width: 80%;

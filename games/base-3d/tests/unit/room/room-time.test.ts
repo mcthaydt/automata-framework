@@ -3,7 +3,7 @@
 // an edit that does not show in play is not an edit.
 import { timeOfDay } from '@automata/3d'
 import { describe, expect, it } from 'vitest'
-import { levelTime } from '#src/features/room/room-time.ts'
+import { levelTime, shadeColour, timeShade } from '#src/features/room/room-time.ts'
 
 describe('levelTime', () => {
   it('is the day when the level names no time', () => {
@@ -29,5 +29,36 @@ describe('levelTime', () => {
 
   it('says which times there are for a name the library lacks', () => {
     expect(() => levelTime('midnight')).toThrow(/no time of day called "midnight"/)
+  })
+})
+
+// The look has no light of its own from a time of day (core's `time` only reaches the passes extensions add), so base-3d
+// reads the time's ambient light as how bright the room's own colours are: the day is the room as drawn, night is dim.
+describe('timeShade', () => {
+  it('is 1 for the day, so a level that says nothing, or "day", looks as it always has', () => {
+    expect(timeShade(timeOfDay('day'))).toBe(1)
+  })
+
+  it('is darker at night than at dusk, and dusk is no brighter than the day', () => {
+    expect(timeShade(timeOfDay('night'))).toBeLessThan(timeShade(timeOfDay('dusk')))
+    expect(timeShade(timeOfDay('dusk'))).toBeLessThanOrEqual(1)
+    expect(timeShade(timeOfDay('night'))).toBeGreaterThanOrEqual(0.4)
+  })
+
+  it('follows a time’s own changes to its ambient level', () => {
+    const dim = levelTime({
+      preset: 'day',
+      scene: { light: { ...timeOfDay('day').scene.light, ambient: { level: 0.1, tint: '#ffffff' } } },
+    })
+    expect(timeShade(dim)).toBeLessThan(0.6)
+    expect(timeShade(dim)).toBeGreaterThanOrEqual(0.4)
+  })
+})
+
+describe('shadeColour', () => {
+  it('leaves a colour alone at 1 and scales each channel otherwise', () => {
+    expect(shadeColour(0xcdd2da, 1)).toBe(0xcdd2da)
+    expect(shadeColour(0x804020, 0.5)).toBe(0x402010)
+    expect(shadeColour(0xffffff, 0)).toBe(0)
   })
 })

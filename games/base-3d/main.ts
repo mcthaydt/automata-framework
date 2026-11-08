@@ -17,6 +17,7 @@ import { base3dSim } from './src/app/base-sim.ts'
 import { emberView } from './src/features/embers/ember-view.ts'
 import { Act, Move } from './src/features/hero/move.command.ts'
 import { ROOM, ROOM_TIME, roomWorld } from './src/features/room/room.ts'
+import { shadeColour, timeShade } from './src/features/room/room-time.ts'
 import { fieldOfWindow } from './src/features/scene/field.ts'
 import {
   buildScene,
@@ -104,6 +105,8 @@ if (typeof document !== 'undefined') showRoom(ROOM_WORLD, JOURNEYS, document.doc
 let simTick = 0
 const now = (): number => simTick / TICK_HZ
 
+/** How bright the room is in the time of day its level names (1 for the day, which is how it is drawn). */
+const ROOM_SHADE = timeShade(ROOM_TIME)
 const TITLE = BASE3D_COPY.en.title
 /**
  * The pixel-art look's field (ADR 0007): the short side is the look's 180 pixels, drawn at resolution 1 and upscaled in
@@ -155,7 +158,7 @@ export const base3d = defineGame({
         stage = made
         return options.setup?.(made)
       },
-      fog: FOG,
+      fog: { ...FOG, color: shadeColour(FOG.color, ROOM_SHADE) },
       look: DEFAULT_LOOK,
       // The time of day the level file names, which the editor's picker writes.
       time: ROOM_TIME,
@@ -177,7 +180,7 @@ export const base3d = defineGame({
         position: (c) => placed(c.hero),
       },
       scene: (view, _stage, occluders) => {
-        buildScene(view, occluders, ROOM, ROOM_WORLD, DEFAULT_LOOK)
+        buildScene(view, occluders, ROOM, ROOM_WORLD, DEFAULT_LOOK, ROOM_SHADE)
         return {
           draw: () => {},
           reset: () => {},

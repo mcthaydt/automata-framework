@@ -110,6 +110,35 @@ describe.each(SIZES)('Views of a room in the suite at $name ($width x $height)',
     await choose('Walk')
     await expect.poll(() => shown('walk-canvas')).toBe(true)
     expect(shown('dollhouse-canvas')).toBe(false)
+    // Walk's overlay: the mode switch, what the crosshair is on, the warning and the minimap each have a place of
+    // their own, and none runs off the canvas (the chip once sat over the switch and past a phone's edge).
+    const canvas = document.querySelector<HTMLElement>('[data-testid="walk-canvas"]')?.getBoundingClientRect()
+    const parts = [
+      '.modes',
+      '[data-testid="walk-chip"]',
+      '[data-testid="walk-warning"]',
+      '[data-testid="walk-minimap"]',
+    ]
+      .map((selector) => document.querySelector<HTMLElement>(selector))
+      .filter((each): each is HTMLElement => each !== null)
+      .map((each) => ({
+        name: each.getAttribute('data-testid') ?? each.className,
+        box: each.getBoundingClientRect(),
+      }))
+    expect(parts.length).toBeGreaterThanOrEqual(2)
+    for (const { name, box } of parts) {
+      expect(box.left, `${name} is inside the view`).toBeGreaterThanOrEqual((canvas?.left ?? 0) - 1)
+      expect(box.right, `${name} is inside the view`).toBeLessThanOrEqual((canvas?.right ?? 0) + 1)
+    }
+    for (const [i, a] of parts.entries())
+      for (const b of parts.slice(i + 1))
+        expect(
+          a.box.left < b.box.right &&
+            b.box.left < a.box.right &&
+            a.box.top < b.box.bottom &&
+            b.box.top < a.box.bottom,
+          `${a.name} and ${b.name} do not overlap`,
+        ).toBe(false)
     await choose('Plan')
     await expect.poll(() => shown('plan-canvas')).toBe(true)
   })
