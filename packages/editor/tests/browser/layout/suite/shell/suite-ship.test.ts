@@ -6,12 +6,13 @@ import { publishConditions, settleLayout } from '@mcthaydt/automata/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '#src/features/suite/core/index.ts'
-import { createMemoryPorts } from '#src/features/suite/memory/memory-ports.ts'
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
+import { createMemoryPorts } from '#src/shared/kit/ports/memory/memory-ports.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
 import { editorTargets } from '#src/testing/kit/targets.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
 
 /** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
@@ -103,6 +104,8 @@ async function open(size: EditorSize) {
     document,
     ports: memory.ports,
     suite: createSuite({ editors: [fixtureEditor as SuiteEditor<unknown>] }),
+    // A clock nothing advances: the reload toast stays however slow the runner is (it measures the toast's place).
+    clock: createTestClock(),
   })
   await expect.poll(() => document.querySelector('[data-testid="suite-home"]')).not.toBeNull()
   await settleLayout()
@@ -139,11 +142,15 @@ const dialogNamed = (name: string): HTMLElement | null =>
 describe.each(SIZES)('Ship, Review and Import at $name ($width x $height)', (size) => {
   test('the reload toast sits above the rail and the status line, not over them', async () => {
     await open(size)
-    await expect.poll(() => document.querySelector('[data-widget="toast-region"] .toast')).not.toBeNull()
-    await settleLayout()
-    const toast = document
-      .querySelector<HTMLElement>('[data-widget="toast-region"] .toast')
-      ?.getBoundingClientRect()
+    // The toast dismisses itself on the real clock after a few seconds, and a busy runner can spend that long between
+    // frames, so it is measured in the same tick it is found, against a foot that open() has already settled.
+    let toast: DOMRect | undefined
+    await expect
+      .poll(
+        () =>
+          (toast = document.querySelector('[data-widget="toast-region"] .toast')?.getBoundingClientRect()),
+      )
+      .toBeDefined()
     // The rail as a column (wide) is beside the canvas, not under it; as a tab bar it is the foot.
     const foot = [...document.querySelectorAll<HTMLElement>('[data-region="rail"], [data-region="status"]')]
       .filter((region) => region.dataset.presentation !== 'rail')

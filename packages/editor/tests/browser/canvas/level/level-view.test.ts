@@ -4,14 +4,16 @@ import '#src/app/editor-2d/main.css'
 import { cleanup, render } from '@testing-library/svelte'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
-import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
+import { createEditorApp } from '#src/app/editor-2d/editor-app.ts'
+import { componentOf } from '#src/app/editor-2d/views.ts'
 import DocumentScreen from '#src/features/document/DocumentScreen.svelte'
 import { createDocumentController } from '#src/features/document/document-controller.ts'
 import type { LifecycleDocument, LifecycleWindow } from '#src/shared/kit/storage/page-lifecycle.ts'
 import { createToasts } from '#src/shared/kit/widgets/toasts.ts'
-import { createEditorApp, type OpenDocument } from '#src/shared/level-2d/documents/editor-app.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
+import { createAppProfiles } from '#src/shared/level-2d/profiles/app-profiles.ts'
+import type { OpenDocument } from '#src/shared/level-2d/session/editor-app-types.ts'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
@@ -46,6 +48,7 @@ async function mount() {
     props: {
       geometry: stubGeometry(1194, 834),
       controller,
+      viewOf: componentOf,
       toasts,
       clock,
       read: (path: string) => workspace.store.read(path),
@@ -58,7 +61,7 @@ async function mount() {
   if (surface === null || host === null) throw new Error('no level canvas')
   await expect.poll(() => host.dataset['state'], { timeout: 10_000 }).toBe('drawn')
   chooseLayer('Collision')
-  return { document: opened.document, surface }
+  return { document: opened.document, surface, host }
 }
 
 function chooseLayer(name: string): void {
@@ -91,20 +94,53 @@ function pointer(
   kind: 'pen' | 'touch',
   id = 1,
 ): void {
-  target.dispatchEvent(
-    new PointerEvent(type, {
-      bubbles: true,
-      cancelable: true,
-      pointerId: id,
-      pointerType: kind,
-      isPrimary: id === 1,
-      clientX: at.x,
-      clientY: at.y,
-      button: type === 'pointermove' ? -1 : 0,
-      buttons: type === 'pointerup' || type === 'pointercancel' ? 0 : 1,
-      pressure: type === 'pointerup' || type === 'pointercancel' ? 0 : 0.5,
-    }),
+  const event = new PointerEvent(type, {
+    bubbles: true,
+    cancelable: true,
+    pointerId: id,
+    pointerType: kind,
+    isPrimary: id === 1,
+    clientX: at.x,
+    clientY: at.y,
+    button: type === 'pointermove' ? -1 : 0,
+    buttons: type === 'pointerup' || type === 'pointercancel' ? 0 : 1,
+    pressure: type === 'pointerup' || type === 'pointercancel' ? 0 : 0.5,
+  })
+  const handled = !target.dispatchEvent(event)
+  sent.push(
+    `${type} ${event.pointerType || '(no type)'}#${event.pointerId} at ${Math.round(at.x)},${Math.round(at.y)}${handled ? ' (default prevented)' : ''}`,
   )
+}
+
+/** Every pointer event a test sent, as the engine built it: the diagnosis shows what a stroke's handler was given. */
+const sent: string[] = []
+afterEach(() => {
+  sent.length = 0
+})
+
+/**
+ * Why a stroke painted what it did, for the failure message (the two-finger test fails in WebKit only, where no
+ * session can run it): the canvas's drawn camera against the fit `cellPoint` assumes, the events as sent, the cells
+ * of the Collision layer that changed, and what the history recorded.
+ */
+function diagnosis(document: OpenDocument, start: Project, surface: HTMLElement, host: HTMLElement): string {
+  const cells = (project: Project) => {
+    const layer = project.levels[0]?.layers.find((each) => each.def === 'collision')
+    return layer?.kind === 'intgrid' ? layer.cells : undefined
+  }
+  const [before, after] = [cells(start), cells(project(document))]
+  const changed: string[] = []
+  for (let cy = 0; cy < 18; cy++)
+    for (let cx = 0; cx < 32; cx++)
+      if (before?.get(cx, cy) !== after?.get(cx, cy)) changed.push(`${cx},${cy}`)
+  const box = surface.getBoundingClientRect()
+  return [
+    `surface ${Math.round(box.left)},${Math.round(box.top)} ${Math.round(box.width)}x${Math.round(box.height)}`,
+    `drawn camera ${host.dataset['camera'] ?? '(none)'}; cellPoint(0,0) assumes ${JSON.stringify(cellPoint(surface, 0, 0))}`,
+    `events: ${sent.join('; ') || '(none)'}`,
+    `changed cells: ${changed.join(' ') || '(none)'}`,
+    `history: revision ${document.history.revision}, undo ${document.history.undoLabel ?? '(nothing)'}`,
+  ].join('\n')
 }
 
 const collision = (document: OpenDocument, cx: number, cy: number): number => {
@@ -135,13 +171,13 @@ describe('Level view with the real canvas', () => {
   })
 
   it('a two-finger tap undoes the last stroke', async () => {
-    const { document: opened, surface } = await mount()
+    const { document: opened, surface, host } = await mount()
     const start = project(opened)
     // A finger draws while no pen has been used (with a pen, a finger only navigates, and lands as a palm near it).
     pointer(surface, 'pointerdown', cellPoint(surface, 2, 3), 'touch')
     pointer(surface, 'pointermove', cellPoint(surface, 4, 3), 'touch')
     pointer(surface, 'pointerup', cellPoint(surface, 4, 3), 'touch')
-    expect(collision(opened, 3, 3)).toBe(1)
+    expect(collision(opened, 3, 3), diagnosis(opened, start, surface, host)).toBe(1)
     const [a, b] = [cellPoint(surface, 10, 10), cellPoint(surface, 14, 10)]
     pointer(surface, 'pointerdown', a, 'touch', 2)
     pointer(surface, 'pointerdown', b, 'touch', 3)
