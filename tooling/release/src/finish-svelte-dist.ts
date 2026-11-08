@@ -8,7 +8,7 @@
 // 2. rewrites each vendored specifier to a relative path to what tsdown wrote for it under `dist/vendor/`: in a
 //    `.d.ts` for a package whose Ruken imports are types only (`vendoredTypes`), in `.js` and `.d.ts` for one
 //    whose Ruken code is bundled there (`vendoredCode`, game's `SLUG_RE`);
-// 3. gives every relative import in `.js` and `.d.ts` a file extension. `src/` imports without one (`'./layout'`)
+// 3. gives every relative import in `.js`, `.d.ts` and `.svelte` a file extension. `src/` imports without one (`'./layout'`)
 //    because Vite resolves it, but Node's ESM loader and TypeScript's nodenext resolution need the exact file. A
 //    `./x.ts` specifier (game's sources import with `.ts`; svelte-package rewrites it only in JavaScript) becomes
 //    the `./x.js` it was emitted as;
@@ -110,7 +110,9 @@ export function finishSvelteDist(dist: string, options: FinishSvelteDistOptions)
     const vendored = file.endsWith('.d.ts') ? { ...options.vendoredTypes, ...vendoredCode } : vendoredCode
     writeFileSync(file, pointAtVendored(dist, file, readFileSync(file, 'utf8'), vendored))
   }
-  for (const file of filesBelow(dist).filter((path) => path.endsWith('.js') || path.endsWith('.d.ts'))) {
+  // A component keeps its `<script lang="ts">` as written, so its `./x.svelte.ts` import (a module that uses runes)
+  // must also name the `.svelte.js` file `svelte-package` emitted, or a game's bundler cannot find it.
+  for (const file of filesBelow(dist).filter((path) => /\.(?:js|d\.ts|svelte)$/.test(path))) {
     writeFileSync(file, addExtensions(file, readFileSync(file, 'utf8')))
   }
   for (const file of filesBelow(dist).filter((path) => path.endsWith('.d.ts'))) {
