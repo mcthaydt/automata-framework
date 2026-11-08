@@ -89,7 +89,7 @@ function onClick(event: MouseEvent): void {
     max-height: 72%;
     border: 1px solid var(--line-strong);
     border-bottom: 0;
-    border-radius: 12px 12px 0 0;
+    border-radius: var(--edge-xl) var(--edge-xl) 0 0;
     background: var(--raise);
     box-shadow: var(--shadow-sheet);
     color: var(--ink);

@@ -20,7 +20,7 @@ import Dialog from '../../../shared/kit/widgets/Dialog.svelte'
 import IconButton from '../../../shared/kit/widgets/IconButton.svelte'
 import ToastRegion from '../../../shared/kit/widgets/ToastRegion.svelte'
 import { createToasts } from '../../../shared/kit/widgets/toasts'
-import { type Pill, pillsToShow } from '../core/pills-model'
+import { checksPill, type Pill } from '../core/pills-model'
 import { problemCounts } from '../core/problem-counts'
 import { findingMessage, refusalMessage } from '../core/write-messages'
 import type { Suite } from './create-suite'
@@ -28,9 +28,9 @@ import Home from './Home.svelte'
 import type { EditorCard, HomeState } from './home-model'
 import PublishGameDialog from './PublishGameDialog.svelte'
 import ReadOnlyFile from './ReadOnlyFile.svelte'
+import SuiteHeader from './SuiteHeader.svelte'
 import SuiteHome from './SuiteHome.svelte'
 import SuiteRail from './SuiteRail.svelte'
-import SuiteTopBar from './SuiteTopBar.svelte'
 import { suiteEntries } from './suite-entries'
 import { suiteHistory } from './suite-history.svelte'
 import { createSuiteSession } from './suite-session'
@@ -121,10 +121,11 @@ $effect(() => {
 const editing = $derived(createSuiteSession(ports))
 const toasts = createToasts()
 let pills = $state<readonly Pill[]>([])
+const checks = $derived(pills[0] ?? checksPill({ running: false, checks: [] }))
 let findings = $state<readonly CheckFinding[]>([])
 const counts = $derived(problemCounts(findings, home.kind === 'cards' ? home.cards : []))
-// Icons with counts in the `short` tier and on a phone, where full labels leave no room; never hidden.
-const compact = $derived(geometry.current.heightTier === 'short' || mode === 'compact')
+// The problem count keeps its number and drops its word under 900 px; the header never hides it.
+const short = $derived(geometry.current.layout.width < 900)
 
 $effect(() => {
   const session = editing
@@ -202,27 +203,24 @@ function openCard(card: EditorCard): void {
 >
   {#snippet sheets()}<ToastRegion {toasts} />{/snippet}
   {#snippet topbar()}
-    <IconButton
-      icon="home"
-      label="Home"
-      aria-current={current === undefined && reading === undefined ? 'page' : undefined}
-      onclick={() => choose(undefined)}
-    />
-    <!-- The game's name is the title; the sample says it is one in a banner over Home instead (12.7, Step G). -->
-    <SuiteTopBar
-      title={sample ? 'Sample game' : (game ?? 'Your game')}
-      saved={!sample && !compact}
-      pills={pillsToShow(pills)}
-      {compact}
+    <SuiteHeader
+      {mode}
+      {short}
+      game={gameName}
+      editor={entry === undefined ? undefined : { label: entry.label, icon: entry.icon }}
+      header={mounted?.editor.header?.(mounted.session)}
+      {checks}
       onlocate={locate}
+      save={sample ? undefined : 'saved'}
       history={undoHook !== undefined || history.canUndo || history.canRedo ? history : undefined}
       onundo={history.undo}
       onredo={history.redo}
       {playUrl}
       {playOff}
       onplayoff={() => (playOffOpen = true)}
-      gameMenu={mode === 'compact'}
       onpublish={publish !== undefined ? () => (publishingGame = true) : undefined}
+      onhome={() => choose(undefined)}
+      atHome={current === undefined && reading === undefined}
       tools={mounted?.editor.regions.tools ? editorTools : undefined}
     />
     {#if mounted?.editor.regions.panel && mode !== 'wide'}

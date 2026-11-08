@@ -28,6 +28,9 @@ function svelteFiles(dir: string): string[] {
   })
 }
 
+// The two places the spec draws the lime outside Publish: the game's mark (3 px foot) and the open tab's 2 px bar.
+const LIME = ['shared/kit/nav/Sidebar.svelte', 'shared/kit/nav/TabBar.svelte']
+
 function styles(): Array<{ file: string; code: string }> {
   return svelteFiles(SRC).map((path) => {
     const style = readFileSync(path, 'utf8').match(/<style>([\s\S]*?)<\/style>/)?.[1] ?? ''
@@ -90,7 +93,8 @@ describe('the editors` corners and fills', () => {
         .map((match) => (match[1] as string).trim())
         .filter(
           (value) =>
-            !/^((var\(--edge-(sm|md|lg)\)|0)\s*)+$/.test(value) && !(value === '50%' && DOTS.includes(file)),
+            !/^((var\(--edge-(sm|md|lg|xl)\)|0)\s*)+$/.test(value) &&
+            !(value === '50%' && DOTS.includes(file)),
         )
         .map((value) => `${file}: ${value}`),
     )
@@ -99,9 +103,9 @@ describe('the editors` corners and fills', () => {
 
   test('no frosted glass, chartreuse or glow: those are the website`s', () => {
     const found = styles().flatMap(({ file, code }) =>
-      [...code.matchAll(/var\(--(glass|glow|lime|lime-deep|flutes[a-z-]*|curtain)\)/g)].map(
-        (match) => `${file}: ${match[0]}`,
-      ),
+      [...code.matchAll(/var\(--(glass|glow|lime|lime-deep|flutes[a-z-]*|curtain)\)/g)]
+        .filter((match) => !(match[1] === 'lime' && LIME.includes(file)))
+        .map((match) => `${file}: ${match[0]}`),
     )
     expect(found).toEqual([])
   })

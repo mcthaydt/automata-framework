@@ -60,39 +60,20 @@ const home = (): HTMLElement => {
 }
 
 describe.each(SIZES)('Suite at $name ($width x $height)', (size) => {
-  // A phone held sideways folds the tabs into the top bar's Editors menu (`suite-phone.test.ts` holds that case).
-  const folded = size.formFactor === 'phone-landscape'
-
-  test('the shell mode, a tab per editor of at least 44 px, Home reachable, nothing clipped, no page scroll', async () => {
+  test('the shell mode, a whole tab per editor of at least the hit size, Home reachable, nothing clipped, no page scroll', async () => {
     const conditions = await open(size)
     expect(document.querySelector('[data-editor-shell]')).toHaveAttribute('data-mode', size.mode)
-    if (folded) {
-      expect(tabs()).toEqual([])
-      expect(checkLayout(conditions, [home()])).toEqual([])
-      return
-    }
     const all = tabs()
     expect(all.map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels'])
     for (const tab of all) {
       const box = tab.getBoundingClientRect()
       expect(box.width).toBeGreaterThanOrEqual(targets.hit)
       expect(box.height).toBeGreaterThanOrEqual(targets.hit)
+      // Half a pixel for WebKit's and Firefox's sub-pixel boxes.
+      expect(box.right, `${tab.textContent} is whole`).toBeLessThanOrEqual(size.width + 0.5)
+      expect(box.bottom, `${tab.textContent} is whole`).toBeLessThanOrEqual(size.height + 0.5)
     }
-    // Every tab is whole in wide; below it the tabs past the window's edge are reached by scrolling the bar sideways,
-    // which is a declared scroll region (a phone's width holds only a few 44 px tabs with their words).
-    const rail = all[0]?.parentElement
-    // Half a pixel for WebKit's and Firefox's sub-pixel boxes.
-    const whole = all.filter((tab) => tab.getBoundingClientRect().right <= size.width + 0.5)
-    if (size.mode === 'wide') expect(whole).toEqual(all)
-    if (whole.length < all.length) {
-      expect(rail).toHaveAttribute('data-scroll-region', 'both')
-      all.at(-1)?.scrollIntoView({ inline: 'end', block: 'nearest' })
-      await settleLayout()
-      expect(all.at(-1)?.getBoundingClientRect().right).toBeLessThanOrEqual(size.width + 0.5)
-      rail?.scrollTo({ left: 0 })
-      await settleLayout()
-    }
-    expect(checkLayout(conditions, [home(), ...whole])).toEqual([])
+    expect(checkLayout(conditions, [home(), ...all])).toEqual([])
     expect(document.documentElement.scrollLeft).toBe(0)
     expect(document.documentElement.scrollTop).toBe(0)
     await page.screenshot({ path: `.vitest/shots/suite-home-${size.name}.png` })
@@ -108,23 +89,21 @@ describe.each(SIZES)('Suite at $name ($width x $height)', (size) => {
     expect(getComputedStyle(home()).getPropertyValue('-webkit-touch-callout') || 'none').toBe('none')
   })
 
-  test('the rail is a column in wide and a 64 px tab bar at the foot below it (none in phone landscape)', async () => {
+  test('the editors are a 224 px sidebar in wide, a 76 px rail in medium, a 56 px bar at the foot in compact and a 72 px column at the left on a phone held sideways', async () => {
     await open(size)
-    const rail = document.querySelector<HTMLElement>('[role="tablist"]')
-    if (folded) {
-      expect(rail).toBeNull()
-      return
-    }
-    if (rail === null) throw new Error('no rail')
-    const box = rail.getBoundingClientRect()
-    if (size.mode === 'wide') {
-      expect(rail).toHaveAttribute('aria-orientation', 'vertical')
-      expect(box.left).toBe(0)
+    const list = document.querySelector<HTMLElement>('[role="tablist"]')
+    if (list === null) throw new Error('no editors list')
+    const bar = document.querySelector<HTMLElement>('[data-region="rail"]')?.getBoundingClientRect()
+    if (bar === undefined) throw new Error('no rail region')
+    const sideways = size.formFactor === 'phone-landscape'
+    if (size.mode === 'compact' && !sideways) {
+      expect(list).toHaveAttribute('aria-orientation', 'horizontal')
+      expect(Math.round(bar.height)).toBe(56)
+      expect(Math.round(bar.bottom)).toBeLessThanOrEqual(size.height)
     } else {
-      expect(rail).toHaveAttribute('aria-orientation', 'horizontal')
-      const bar = rail.parentElement?.getBoundingClientRect()
-      expect(Math.round(bar?.height ?? 0)).toBe(64)
-      expect(Math.round(bar?.bottom ?? 0)).toBeLessThanOrEqual(size.height)
+      expect(list).toHaveAttribute('aria-orientation', 'vertical')
+      expect(bar.left).toBeLessThanOrEqual(0.5)
+      expect(Math.round(bar.width)).toBe(size.mode === 'wide' ? 224 : size.mode === 'medium' ? 76 : 72)
     }
   })
 

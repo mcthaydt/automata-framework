@@ -8,7 +8,11 @@ export interface TabSlots<T extends Keyed> {
   readonly more: readonly T[]
 }
 
-export function tabSlots<T extends Keyed>(entries: readonly T[], current: string | undefined, slots = 4): TabSlots<T> {
+export function tabSlots<T extends Keyed>(
+  entries: readonly T[],
+  current: string | undefined,
+  slots = 4,
+): TabSlots<T> {
   if (entries.length <= slots + 1) return { shown: entries, more: [] }
   const first = entries.slice(0, slots)
   const open = entries.find((entry) => entry.id === current)

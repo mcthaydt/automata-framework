@@ -75,22 +75,22 @@ const text = () => screen.getByTestId('fixture-text').textContent
 const fileText = async (ports: MemoryPorts) => (await ports.ports.workspace.read(TUNING))?.text
 
 describe('Suite editing', () => {
-  it('an edit writes the file, and the checks pill shows the check that ran', async () => {
+  it('an edit writes the file, and the header says the checks passed', async () => {
     const ports = await memory()
     await start(ports)
-    // Nothing has run yet: the pill has nothing to say, so it is not shown.
-    expect(screen.queryByRole('button', { name: 'No checks run' })).toBeNull()
+    // Nothing has run yet, and the header says so in words.
+    expect(screen.getByRole('button', { name: 'Not checked yet' })).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Raise speed' }))
     await waitFor(() => expect(text()).toBe('MAX_MOVE_SPEED = 8\n'))
     expect(await fileText(ports)).toBe('MAX_MOVE_SPEED = 8\n')
-    expect(await screen.findByRole('button', { name: 'Checks pass' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'No problems' })).toBeInTheDocument()
   })
 
-  it('a check that fails is named on the pill', async () => {
+  it('a check that fails is counted in the header', async () => {
     const ports = await memory('fail')
     await start(ports)
     await userEvent.click(screen.getByRole('button', { name: 'Raise speed' }))
-    expect(await screen.findByRole('button', { name: 'lint failed' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: '1 problem' })).toBeInTheDocument()
   })
 
   it('Undo and Redo in the top bar, and Mod+Z and Mod+Shift+Z, step the file and the document together', async () => {

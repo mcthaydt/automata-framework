@@ -14,15 +14,31 @@ const game = { name: 'Rooftops', letter: 'R' }
 
 describe('Sidebar', () => {
   it('names the game, offers Home as a button outside the editors, and names each tab by the editor alone', () => {
-    render(Sidebar, { game, entries: ENTRIES, current: 'audio', layout: 'sidebar', onselect: () => {}, onhome: () => {} })
+    render(Sidebar, {
+      game,
+      entries: ENTRIES,
+      current: 'audio',
+      layout: 'sidebar',
+      onselect: () => {},
+      onhome: () => {},
+    })
     expect(screen.getByText('Rooftops')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Home' })).toBeInTheDocument()
-    expect(screen.getAllByRole('tab').map((tab) => tab.textContent?.trim())).toEqual(ENTRIES.map((entry) => entry.label))
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent?.trim())).toEqual(
+      ENTRIES.map((entry) => entry.label),
+    )
   })
 
   it('Home is the current page only when no editor is open, and calls onhome', async () => {
     const onhome = vi.fn()
-    render(Sidebar, { game, entries: ENTRIES, current: undefined, layout: 'rail', onselect: () => {}, onhome })
+    render(Sidebar, {
+      game,
+      entries: ENTRIES,
+      current: undefined,
+      layout: 'rail',
+      onselect: () => {},
+      onhome,
+    })
     expect(screen.getByRole('button', { name: 'Home' })).toHaveAttribute('aria-current', 'page')
     await userEvent.click(screen.getByRole('button', { name: 'Home' }))
     expect(onhome).toHaveBeenCalledOnce()
@@ -55,11 +71,19 @@ describe('TabBar', () => {
   })
 
   it('stands vertical when the phone is held sideways and lies horizontal otherwise', () => {
-    const { rerender } = render(TabBar, { entries: ENTRIES, current: 'tuner', standing: true, onselect: () => {} })
+    const { rerender } = render(TabBar, {
+      entries: ENTRIES,
+      current: 'tuner',
+      standing: true,
+      onselect: () => {},
+    })
     expect(screen.getByRole('tablist', { name: 'Editors' })).toHaveAttribute('aria-orientation', 'vertical')
     rerender({ standing: false })
     return vi.waitFor(() =>
-      expect(screen.getByRole('tablist', { name: 'Editors' })).toHaveAttribute('aria-orientation', 'horizontal'),
+      expect(screen.getByRole('tablist', { name: 'Editors' })).toHaveAttribute(
+        'aria-orientation',
+        'horizontal',
+      ),
     )
   })
 })

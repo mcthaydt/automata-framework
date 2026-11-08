@@ -21,6 +21,11 @@
   border-bottom: 1px solid var(--line);
 }
 
+/* A phone's header may need a second row (the editor's own tools); it grows rather than clip them. */
+[data-editor-shell][data-mode="compact"] > [data-region="topbar"] {
+  flex-wrap: wrap;
+}
+
 /* The sidebar and the rail stand on the window's colour; the tab bar is part of the compact panel. */
 [data-editor-shell] > [data-region="rail"] {
   grid-area: rail;
@@ -34,14 +39,14 @@
 
 [data-editor-shell] > [data-region="rail"][data-presentation="tabbar"] {
   flex-direction: row;
-  border-top: 1px solid var(--line);
+  /* A shadow, not a border: a border would take a pixel from the 56 px the tabs are drawn to. */
+  box-shadow: inset 0 1px 0 var(--line);
 }
 
 /* Standing: the tab bar is a column at the left edge of a phone held sideways. */
 [data-editor-shell][data-standing] > [data-region="rail"][data-presentation="tabbar"] {
   flex-direction: column;
-  border-top: 0;
-  border-right: 1px solid var(--line);
+  box-shadow: inset -1px 0 0 var(--line);
 }
 
 [data-editor-shell] > [data-region="canvas"] {
@@ -156,7 +161,7 @@
   justify-self: stretch;
   height: var(--sheet-height);
   border-top: 1px solid var(--line-strong);
-  border-radius: 12px 12px 0 0;
+  border-radius: var(--edge-xl) var(--edge-xl) 0 0;
   box-shadow: var(--shadow-sheet);
   transform: translateY(100%);
 }

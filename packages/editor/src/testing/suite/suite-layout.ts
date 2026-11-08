@@ -67,34 +67,40 @@ export function tab(name: string): HTMLElement {
   return found
 }
 
-/** The top bar's Editors menu, where the tabs fold into it (a phone held sideways); `undefined` where the tabs show. */
-export function editorsMenu(): HTMLElement | undefined {
-  return [...document.querySelectorAll<HTMLElement>('button[aria-haspopup]')].find(
-    (button) => button.textContent?.trim() === 'Editors',
+/** The More button of the compact tab bar, where the editors beyond its four tabs wait; `undefined` when every editor has a tab. */
+export function moreButton(): HTMLElement | undefined {
+  return [...document.querySelectorAll<HTMLElement>('button')].find(
+    (button) => button.textContent?.trim() === 'More' && button.getAttribute('aria-haspopup') === 'dialog',
   )
 }
 
-/** The control that reaches editor `name`: its tab, or the Editors menu where the tabs have folded into it. */
+/** The control that reaches editor `name`: its tab, or More where the tab bar has no room for its tab. */
 export function editorControl(name: string): HTMLElement {
-  return editorsMenu() ?? tab(name)
+  const tabbed = [...document.querySelectorAll<HTMLElement>('[role="tab"]')].find(
+    (candidate) => candidate.textContent?.trim() === name,
+  )
+  const more = moreButton()
+  if (tabbed === undefined && more !== undefined) return more
+  return tab(name)
 }
 
-/** Choose editor `name` the way a person does: tap its tab, or pick it from the Editors menu; the first when unnamed. */
+/** Choose editor `name` the way a person does: tap its tab, or open More and pick it; the first when unnamed. */
 export async function chooseEditor(name?: string): Promise<void> {
-  const menu = editorsMenu()
-  if (menu === undefined) {
-    const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')]
-    const chosen = name === undefined ? tabs[0] : tab(name)
-    if (chosen === undefined) throw new Error('no editor tab')
-    chosen.click()
+  const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')]
+  const tabbed =
+    name === undefined ? tabs[0] : tabs.find((candidate) => candidate.textContent?.trim() === name)
+  if (tabbed !== undefined) {
+    tabbed.click()
     return
   }
-  menu.click()
+  const more = moreButton()
+  if (more === undefined) throw new Error(`no ${name ?? 'editor'} tab`)
+  more.click()
   await arrived()
-  const items = [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')]
-  const item =
-    name === undefined ? items[0] : items.find((candidate) => candidate.textContent?.trim().startsWith(name))
-  if (item === undefined) throw new Error(`no ${name ?? 'editor'} in the Editors menu`)
+  const item = [...document.querySelectorAll<HTMLElement>('[data-more-entry]')].find(
+    (candidate) => candidate.textContent?.trim() === name,
+  )
+  if (item === undefined) throw new Error(`no ${name} under More`)
   item.click()
 }
 
@@ -109,7 +115,8 @@ export function inShell(selector: string): HTMLElement {
 /** The canvas has real room (the Level view's own bar: a medium dock starts open as a strip over its foot). */
 export function inView(element: HTMLElement, size: EditorSize): void {
   const box = element.getBoundingClientRect()
-  expect(box.width).toBeGreaterThan(size.mode === 'wide' && size.width < 1000 ? 240 : size.width / 3)
+  // Wide is a 224 px sidebar, a 264 px list and a 320 px inspector: 1194 px leaves about 370 for the stage.
+  expect(box.width).toBeGreaterThan(size.mode === 'wide' ? 320 : size.width / 3)
   expect(box.height).toBeGreaterThan(size.mode === 'compact' && size.height < 500 ? 80 : 200)
   expect(box.left).toBeGreaterThanOrEqual(-0.5)
   expect(box.right).toBeLessThanOrEqual(size.width + 0.5)

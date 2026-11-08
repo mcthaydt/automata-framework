@@ -41,18 +41,12 @@ export async function pressInList(page: Page, name: string | RegExp): Promise<vo
   }
 }
 
-/** Plays or publishes: two buttons where the top bar has room, the two choices of the Game menu on a phone. */
+/** Plays or publishes: Play is a link and Publish a button in the header, at every size (a phone keeps both whole). */
 export async function pressGame(page: Page, action: 'Play' | 'Publish'): Promise<void> {
-  const menu = page.getByRole('button', { name: 'Game' })
-  // The top bar has one or the other once the page is up: the Game menu on a phone, Publish where there is room.
-  await expect(menu.or(page.getByRole('button', { name: 'Publish' })).first()).toBeVisible()
-  if (await menu.isVisible()) {
-    await menu.click()
-    await page
-      .getByRole('menuitem', { name: action === 'Play' ? 'Play your game' : 'Make it ready to upload' })
-      .click()
-  } else if (action === 'Play') await page.getByRole('link', { name: 'Play' }).click()
-  else await page.getByRole('button', { name: 'Publish' }).click()
+  const publish = page.getByRole('button', { name: 'Publish' })
+  await expect(publish).toBeVisible()
+  if (action === 'Play') await page.getByRole('link', { name: 'Play' }).click()
+  else await publish.click()
 }
 
 /**

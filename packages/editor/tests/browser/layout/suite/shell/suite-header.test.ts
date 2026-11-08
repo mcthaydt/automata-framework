@@ -16,10 +16,10 @@ import platformer from '#src/testing/suite/fixtures/platformer.af2d.json?raw'
 import StandInLevelCanvas from '#src/testing/suite/StandInLevelCanvas.svelte'
 import { editorList, noPageScroll, type OpenedSuite, openSuite } from '#src/testing/suite/suite-layout.ts'
 
-// Play and Publish on a game's own folder, with the production CSS in real browsers at every size: they are never cut
-// off. A person with a phone must be able to press both, and the bar scrolls sideways when it is short of room, so
-// "present in the page" proves nothing: each must lie whole inside what the top bar shows, and so must everything in
-// the Game menu a phone opens.
+// The header with the production CSS in real browsers at every size: Play and Publish are never cut off (Publish 48 px
+// with touch), Undo and Redo are whole targets, the problem count keeps its number, and only the title gives way. The
+// header scrolls sideways when the editor's own tools leave it short of room, so "present in the page" proves nothing:
+// each control must lie whole inside what the header shows.
 
 /** The control sizes under this run's pointer: 32 px with a mouse, 44 with touch. */
 const targets = editorTargets()
@@ -75,49 +75,37 @@ const byName = (selector: string, name: string): HTMLElement => {
   return found
 }
 
-describe.each(SIZES)('Play and Publish at $name ($width x $height)', (size) => {
-  test('are whole in the top bar: two buttons where there is room, one Game menu on a phone', async () => {
+describe.each(SIZES)('The header at $name ($width x $height)', (size) => {
+  test('has Play, Publish, Undo, Redo and the problems whole, and Publish the only lime button', async () => {
     opened = await openSuite(size, editors(), FILES, '[data-testid="level-canvas"]', 'Levels', {
       playUrl: 'http://localhost:5199/',
       publish,
     })
     await settleLayout()
-    if (size.mode === 'compact') {
-      wholeInView(byName('button', 'Game'), 'Game')
-      byName('button', 'Game').click()
-      await expect.poll(() => document.querySelector('[role="menu"]')).not.toBeNull()
-      await settleLayout()
-      for (const label of ['Play your game', 'Make it ready to upload']) {
-        const item = byName('[role="menuitem"]', label)
-        const box = item.getBoundingClientRect()
-        expect(box.left, label).toBeGreaterThanOrEqual(-0.5)
-        expect(box.right, label).toBeLessThanOrEqual(window.innerWidth + 0.5)
-        expect(box.bottom, label).toBeLessThanOrEqual(window.innerHeight + 0.5)
-        expect(box.height, label).toBeGreaterThanOrEqual(targets.hit)
-      }
-    } else {
-      wholeInView(byName('a', 'Play'), 'Play')
-      wholeInView(byName('button', 'Publish'), 'Publish')
-    }
+    wholeInView(byName('a', 'Play'), 'Play')
+    const publishButton = byName('button', 'Publish')
+    wholeInView(publishButton, 'Publish')
+    expect(publishButton.getBoundingClientRect().height, 'Publish is a primary').toBeGreaterThanOrEqual(
+      targets.primary,
+    )
+    for (const name of ['Undo', 'Redo']) wholeInView(byName('button', name), name)
+    if (size.mode !== 'compact') wholeInView(byName('button', 'Not checked yet'), 'The problem count')
+    expect(document.querySelectorAll('[data-region="topbar"] [data-kind="primary"]')).toHaveLength(1)
     noPageScroll()
-    await page.screenshot({ path: `.vitest/shots/suite-game-bar-${size.name}.png` })
+    await page.screenshot({ path: `.vitest/shots/suite-header-${size.name}.png` })
   })
 
-  test('keep Play on the bar, off, when the game could not start', async () => {
+  test('keeps Play on the bar, off, when the game could not start', async () => {
     opened = await openSuite(size, editors(), FILES, '[data-testid="level-canvas"]', 'Levels', {
       playOff:
         'Your game’s packages are not installed. Run pnpm install in its folder, then start the editor again.',
       publish,
     })
     await settleLayout()
-    if (size.mode === 'compact') {
-      wholeInView(byName('button', 'Game'), 'Game')
-    } else {
-      const play = byName('button', 'Play')
-      expect(play.getAttribute('aria-disabled')).toBe('true')
-      wholeInView(play, 'Play')
-      wholeInView(byName('button', 'Publish'), 'Publish')
-    }
+    const play = byName('button', 'Play')
+    expect(play.getAttribute('aria-disabled')).toBe('true')
+    wholeInView(play, 'Play')
+    wholeInView(byName('button', 'Publish'), 'Publish')
     noPageScroll()
   })
 })

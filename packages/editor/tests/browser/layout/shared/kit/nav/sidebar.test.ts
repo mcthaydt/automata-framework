@@ -4,6 +4,7 @@ import '#src/shared/kit/fonts.css'
 import { type MountedFixture, mountFixture, settleLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
+import { atEverySize } from '#src/testing/kit/at-every-size.ts'
 import NavFixture from '#src/testing/kit/NavFixture.svelte'
 import { editorTargets } from '#src/testing/kit/targets.ts'
 
@@ -35,7 +36,9 @@ describe('sidebar layout', () => {
     for (const tab of tabs()) {
       const label = tab.querySelector<HTMLElement>('.label')
       expect(label, tab.textContent ?? '').not.toBeNull()
-      expect(label?.scrollWidth, `${tab.textContent} is cut`).toBeLessThanOrEqual((label?.clientWidth ?? 0) + 1)
+      expect(label?.scrollWidth, `${tab.textContent} is cut`).toBeLessThanOrEqual(
+        (label?.clientWidth ?? 0) + 1,
+      )
       expect(tab.getBoundingClientRect().height, `${tab.textContent} row`).toBeGreaterThanOrEqual(HIT)
     }
   })
@@ -44,8 +47,43 @@ describe('sidebar layout', () => {
     await open('rail', 76)
     for (const tab of tabs()) {
       const label = tab.querySelector<HTMLElement>('.label')
-      expect(label?.scrollWidth, `${tab.textContent} is cut`).toBeLessThanOrEqual((label?.clientWidth ?? 0) + 1)
-      expect(tab.getBoundingClientRect().height, `${tab.textContent} item`).toBeGreaterThanOrEqual(touch ? 56 : 52)
+      expect(label?.scrollWidth, `${tab.textContent} is cut`).toBeLessThanOrEqual(
+        (label?.clientWidth ?? 0) + 1,
+      )
+      expect(tab.getBoundingClientRect().height, `${tab.textContent} item`).toBeGreaterThanOrEqual(
+        touch ? 56 : 52,
+      )
     }
+  })
+})
+
+describe('tab bar layout', () => {
+  test('at every window size each tab is whole, its name uncut, and at least 44 px wide and 56 px tall', async () => {
+    await atEverySize(
+      (width, height) => page.viewport(width, height),
+      async (size) => {
+        mounted = mountFixture(NavFixture, {
+          layout: 'tabbar',
+          width: 72,
+          entries,
+          current: 'audio',
+          counts: { schematic: 12 },
+        })
+        await settleLayout()
+        expect(tabs().length, size.name).toBeGreaterThan(0)
+        for (const tab of tabs()) {
+          const box = tab.getBoundingClientRect()
+          const label = tab.querySelector<HTMLElement>('.label')
+          expect(box.width, `${size.name}: ${tab.textContent}`).toBeGreaterThanOrEqual(44)
+          expect(box.height, `${size.name}: ${tab.textContent}`).toBeGreaterThanOrEqual(56)
+          expect(box.right, `${size.name}: ${tab.textContent} is whole`).toBeLessThanOrEqual(size.width + 0.5)
+          expect(label?.scrollWidth, `${size.name}: ${tab.textContent} is cut`).toBeLessThanOrEqual(
+            (label?.clientWidth ?? 0) + 1,
+          )
+        }
+        await mounted.unmount()
+        mounted = undefined
+      },
+    )
   })
 })

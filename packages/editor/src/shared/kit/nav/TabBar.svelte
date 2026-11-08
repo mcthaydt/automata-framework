@@ -9,8 +9,8 @@
 import { tick } from 'svelte'
 import Icon from '../icons/Icon.svelte'
 import Sheet from '../sheets/Sheet.svelte'
-import type { NavEntry } from './Sidebar.svelte'
 import { shortcutTarget, stepTarget, tabStop } from './rail-keys'
+import type { NavEntry } from './Sidebar.svelte'
 import { tabSlots } from './tab-slots'
 
 interface Props {

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { checksPill, pillsToShow } from '#src/features/suite/core/pills-model.ts'
+import { checksPill, problemWords } from '#src/features/suite/core/pills-model.ts'
 import type { CheckReport } from '#src/shared/kit/ports/suite-ports.ts'
 
 const run = (
@@ -59,13 +59,29 @@ describe('the checks pill', () => {
   })
 })
 
-describe('the pills the top bar shows', () => {
-  // The grandma audit (6.1): a pill that has nothing to say ("No checks run") is clutter a person cannot act on, so it
-  // stays hidden until it means something.
-  test('only the pills with something to say', () => {
-    expect(pillsToShow([checksPill({ running: false, checks: [] })])).toEqual([])
-    expect(pillsToShow([checksPill({ running: true, checks: [] })]).map((pill) => pill.label)).toEqual([
-      'Checks running',
-    ])
+describe('what the header says of the checks', () => {
+  // Spec 7.4: one short phrase for each state the checks can be in, the findings counted one by one.
+  const finding: CheckReport['findings'][number] = { severity: 'error', message: 'wrong', path: 'a.toml' }
+  const words = (running: boolean, checks: CheckReport[]) => problemWords(checksPill({ running, checks }))
+
+  test('checking, not checked yet, no problems and could not check', () => {
+    expect(words(true, [])).toBe('Checking…')
+    expect(words(false, [])).toBe('Not checked yet')
+    expect(words(false, [run('a', 'pass')])).toBe('No problems')
+    expect(words(false, [run('a', 'error')])).toBe("Couldn't check")
+  })
+
+  test('warnings and failures say how many findings, one by one', () => {
+    expect(words(false, [run('a', 'warn', { findings: [finding] })])).toBe('1 problem')
+    expect(
+      words(false, [
+        run('a', 'fail', { findings: [finding, finding] }),
+        run('b', 'warn', { findings: [finding] }),
+      ]),
+    ).toBe('3 problems')
+  })
+
+  test('a check that failed without a finding is still one problem', () => {
+    expect(words(false, [run('a', 'fail')])).toBe('1 problem')
   })
 })

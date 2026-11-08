@@ -11,7 +11,10 @@ const cards = [
 describe('problemCounts', () => {
   it('counts each finding once for the editor whose card holds the file', () => {
     expect(
-      problemCounts([finding('levels/one.toml'), finding('levels/two.toml'), finding('tuning/a.toml')], cards),
+      problemCounts(
+        [finding('levels/one.toml'), finding('levels/two.toml'), finding('tuning/a.toml')],
+        cards,
+      ),
     ).toEqual({ levels: 2, tuner: 1 })
   })
 

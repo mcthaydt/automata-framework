@@ -24,6 +24,11 @@ describe('tabSlots', () => {
   })
 
   it('on Home shows the first four', () => {
-    expect(ids(tabSlots(entries('a', 'b', 'c', 'd', 'e', 'f'), undefined).shown)).toEqual(['a', 'b', 'c', 'd'])
+    expect(ids(tabSlots(entries('a', 'b', 'c', 'd', 'e', 'f'), undefined).shown)).toEqual([
+      'a',
+      'b',
+      'c',
+      'd',
+    ])
   })
 })

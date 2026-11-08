@@ -87,6 +87,7 @@
   --edge-sm: 4px;
   --edge-md: 6px;
   --edge-lg: 8px;
+  --edge-xl: 12px;
   --primary: var(--lime);
   --primary-ink: var(--ink);
   --primary-edge: var(--ink);

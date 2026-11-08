@@ -62,7 +62,13 @@ interface Props {
   /** Told how to draw its destinations: the sidebar, the medium rail, or the compact tab bar (standing or lying). */
   rail?:
     | Snippet<
-        [{ presentation: 'sidebar' | 'rail' | 'tabbar'; standing: boolean; orientation: 'vertical' | 'horizontal' }]
+        [
+          {
+            presentation: 'sidebar' | 'rail' | 'tabbar'
+            standing: boolean
+            orientation: 'vertical' | 'horizontal'
+          },
+        ]
       >
     | undefined
   panel?: Snippet | undefined

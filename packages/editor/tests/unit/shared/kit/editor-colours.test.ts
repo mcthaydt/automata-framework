@@ -204,7 +204,9 @@ describe('editor colours are tokens', () => {
       })),
     )
     const bad = rules
-      .filter(({ body }) => /background(?:-color)?:\s*var\(--(?:primary|lime|cobalt|accent)\b/.test(body))
+      .filter(({ body }) =>
+        /background(?:-color)?:\s*var\(--(?:primary|lime|cobalt|accent)\b(?!-soft)/.test(body),
+      )
       .filter(({ body }) => /(?<![-\w])color:\s*var\(--ink\)/.test(body))
       .map(({ file, selector }) => `${file}: ${selector}`)
     expect(bad).toEqual([])

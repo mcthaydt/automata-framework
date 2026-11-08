@@ -22,6 +22,32 @@ export interface SuiteRegions<S> {
   readonly tools?: Snippet<[S]> | undefined
 }
 
+/**
+ * What an editor puts in the header's breadcrumb beside its own name (Levels / Start): the open document and the actions on
+ * it, and the views of one thing (Level, Tiles). Either may be left out.
+ */
+export interface EditorHeader {
+  readonly doc?:
+    | {
+        readonly name: string
+        readonly items: readonly {
+          readonly id: string
+          readonly label: string
+          readonly detail?: string | undefined
+        }[]
+        readonly onselect: (id: string) => void
+      }
+    | undefined
+  readonly views?:
+    | {
+        readonly label: string
+        readonly options: readonly { readonly id: string; readonly label: string }[]
+        readonly value: string
+        readonly onchange: (id: string) => void
+      }
+    | undefined
+}
+
 /** The active editor's history, as the suite's top bar sees it: Undo, Redo, `Mod+Z` and `Mod+Shift+Z` (EDS-D19). */
 export interface SuiteUndo {
   canUndo(): boolean
@@ -55,6 +81,8 @@ export interface SuiteEditor<S> {
   readonly homeFiles?: ((files: readonly WorkspaceFile[]) => readonly WorkspaceFile[]) | undefined
   readonly regions: SuiteRegions<S>
   readonly contributions?: readonly ContributionPoint[] | undefined
+  /** The header's breadcrumb for this session; without it the header shows the editor's name alone. */
+  readonly header?: ((session: S) => EditorHeader | undefined) | undefined
   /** The session's history; an editor without it has no Undo in the top bar. */
   readonly undo?: ((session: S) => SuiteUndo) | undefined
 }

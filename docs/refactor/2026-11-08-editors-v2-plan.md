@@ -235,7 +235,7 @@ helper, `atEverySize(run)`, created in Task 4.
   onchange: (id: string) => void }; checks: Pill (today's `checksPill` result, `pills-model.ts`); onlocate; save: 'saved' | 'saving' | { failed: string };
   history; onundo; onredo; playUrl; onpublish; mode: ShellMode }`.
 
-- [ ] **Step 1: Write the failing tests.** DOM: "Levels / Start" with the chevron opens the document menu; Level ·
+- [x] **Step 1: Write the failing tests.** DOM: "Levels / Start" with the chevron opens the document menu; Level ·
       Tiles is a radio group; the problem count's words for each `Pill` tone (spec §7.4): "Checking…", "Not checked
       yet", "No problems", "1 problem", "3 problems", "Couldn't check"; its menu lists the findings and Locate selects
       one; "Saved", "Saving…" and the failure words; Undo and Redo
@@ -243,11 +243,11 @@ helper, `atEverySize(run)`, created in Task 4.
       the problem count and Saved, so every one is still reachable. Layout at 360 × 640 with the name "The Very Long
       Level Of Many Rooms": the title ellipsises, Undo, Redo, Play and Publish are whole and at least 44 px, Publish 48
       (Review Focus 4); no header overflows at any size; under 900 px the problem count keeps its number.
-- [ ] **Step 2: Run.** Expected: FAIL.
-- [ ] **Step 3: Implement**, moving the phone's "Game menu" (Play and Publish in one menu) back to two buttons, as the
+- [x] **Step 2: Run.** Expected: FAIL.
+- [x] **Step 3: Implement**, moving the phone's "Game menu" (Play and Publish in one menu) back to two buttons, as the
       mockup has room for them.
-- [ ] **Step 4: Run** the tests, `pnpm test:browser:2d -- suite`, and `pnpm check`. Expected: PASS.
-- [ ] **Step 5: Commit** `feat(suite): a breadcrumb header with the problems, Saved, Play and Publish`.
+- [x] **Step 4: Run** the tests, `pnpm test:browser:2d -- suite`, and `pnpm check`. Expected: PASS.
+- [x] **Step 5: Commit** `feat(suite): a breadcrumb header with the problems, Saved, Play and Publish`.
 
 ### Task 7: Rows, fields, blocks and the floating toolbar
 
@@ -523,3 +523,26 @@ iPad size, in Dark and once in Light; and apply the drunk grandma test to every 
   Task 6: seven `Suite*` tests that find "Home" or the game's name twice, because the old top bar still draws both
   (the header of Task 6 drops them). Ran: SuiteRail, sidebar, tab-slots and problem-counts unit tests; the sidebar
   layout test in Chromium.
+- 2026-11-08, build, Task 6: the breadcrumb header. `SuiteHeader` replaces `SuiteTopBar` and `SuitePills`: the editor's
+  icon and name, a slash, the document's name with a chevron that opens its menu, the editor's views as a radio group
+  (Level, Tiles), then Undo, Redo, the problem count, Saved, Play and Publish. `ProblemCount` says the checks in
+  words (`problemWords`: "Checking…", "Not checked yet", "No problems", "1 problem" / "3 problems" with the findings
+  counted one by one, "Couldn't check") and lists the findings with Locate; under 900 px it keeps its number and drops
+  its word. `SaveState` says "Saved", "Saving…" or the failure. Medium drops the editor's name and first slash; compact
+  has Home, a title that opens a `Sheet` holding the views, document actions, problems and Saved, Undo, Redo, Play as
+  an icon and Publish, so the phone's Game menu is gone and so is its harness path (`pressGame`). Rulings: (1) the
+  header takes `header: EditorHeader | undefined` (`{ doc, views }`, a new optional `SuiteEditor.header(session)`)
+  instead of the plan's separate `doc` and `views` props, so an editor gives the header one thing; no editor supplies
+  it yet, Task 11 moves Levels' picker and views into it. (2) Until then a phone's editor `tools` take a row of their
+  own under the buttons (the topbar wraps in compact), because beside Home, Undo, Redo, Play and Publish they had no
+  room and the picker was 16 px wide. (3) `edge-xl` (12 px) is a new token for the top corners of a bottom sheet; the
+  corner test allows it, and the shell's own sheets use it. (4) The editors' lime test now allows `--lime` in
+  `Sidebar` and `TabBar` only (the game's mark and the open tab's bar, which spec 7 draws). (5) The colour test's "no
+  ink on an accent" rule no longer reads `--cobalt-soft`, the chosen row's tint. (6) The compact tab bar's top edge is
+  an inset shadow, not a border, which took a pixel from its 56 px and pushed the tabs 1 px off a phone. (7) The page
+  says "Saved", not "Saved in your game folder"; Home still says where the game is saved. (8) `chooseEditor` and
+  `editorControl` in `suite-layout.ts` find a tab or open More, in place of the Editors menu a phone held sideways
+  used to have; `editorsMenu` is `moreButton`. (9) The stage's minimum width in the layout tests is 320 px in wide,
+  because a 224 px sidebar, a 264 px list and a 320 px inspector leave about 370 px on an iPad Pro 11. Ran: editor unit
+  tests (211 files, 2715 tests), the suite and nav layout tests in Chromium (109 and 3), typecheck, boundaries,
+  style, lint on the package. Not run: WebKit, Firefox.

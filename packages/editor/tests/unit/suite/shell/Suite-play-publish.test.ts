@@ -67,7 +67,7 @@ describe('Play', () => {
 
   it('is not shown when the game is not running', async () => {
     await start()
-    await screen.findByText('My game')
+    await screen.findByRole('button', { name: 'Home' })
     expect(screen.queryByRole('link', { name: 'Play' })).toBeNull()
   })
 })
@@ -104,49 +104,39 @@ describe('Play, when the game could not start', () => {
   })
 })
 
-describe('on a phone, where the bar has no room for two more buttons', () => {
+describe('on a phone', () => {
   const size = { width: window.innerWidth, height: window.innerHeight }
   const setSize = (width: number, height: number) => {
     Object.assign(window, { innerWidth: width, innerHeight: height })
   }
   afterEach(() => setSize(size.width, size.height))
 
-  it('puts Play and Publish in one Game menu, whole and named', async () => {
+  it('keeps Play and Publish as two whole buttons in the header, as it does where there is room', async () => {
     const user = userEvent.setup()
     setSize(390, 844)
-    const open = vi.spyOn(window, 'open').mockReturnValue(null)
     const { publish } = fakePublish([])
     await start({ playUrl: 'http://localhost:5199/', publish })
-    const game = await screen.findByRole('button', { name: 'Game' })
-    expect(screen.queryByRole('link', { name: 'Play' })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Publish' })).toBeNull()
-    await user.click(game)
-    await user.click(await screen.findByRole('menuitem', { name: 'Play your game' }))
-    expect(open).toHaveBeenCalledWith('http://localhost:5199/', '_blank', 'noopener')
-    await user.click(await screen.findByRole('button', { name: 'Game' }))
-    await user.click(await screen.findByRole('menuitem', { name: 'Make it ready to upload' }))
+    const play = await screen.findByRole('link', { name: 'Play' })
+    expect(play).toHaveAttribute('href', 'http://localhost:5199/')
+    await user.click(screen.getByRole('button', { name: 'Publish' }))
     expect(await screen.findByRole('dialog', { name: 'Make your game ready to upload' })).toBeInTheDocument()
-    open.mockRestore()
   })
 
-  it('keeps Play in the menu marked Off, and pressing it says why once the menu has closed', async () => {
+  it('keeps Play, marked off, and pressing it says why', async () => {
     const user = userEvent.setup()
     setSize(390, 844)
-    const { publish } = fakePublish([])
-    await start({ playOff: NOT_INSTALLED, publish })
-    await user.click(await screen.findByRole('button', { name: 'Game' }))
-    const item = await screen.findByRole('menuitem', { name: /Play your game/ })
-    expect(item).toHaveTextContent('Off')
-    await user.click(item)
+    await start({ playOff: NOT_INSTALLED })
+    await user.click(await screen.findByRole('button', { name: 'Play' }))
     expect(await screen.findByRole('dialog', { name: 'Play is off' })).toHaveTextContent(NOT_INSTALLED)
-    expect(screen.queryByRole('menu')).toBeNull()
   })
 
-  it('has no Game menu when there is neither a game to play nor one to publish', async () => {
+  it('has neither when there is no game to play and none to publish', async () => {
     setSize(390, 844)
     await start()
-    await screen.findByRole('button', { name: 'Home' })
-    expect(screen.queryByRole('button', { name: 'Game' })).toBeNull()
+    // The window settles into the phone layout, whose one Home is in the header.
+    await waitFor(() => expect(screen.getAllByRole('button', { name: 'Home' })).toHaveLength(1))
+    expect(screen.queryByRole('link', { name: 'Play' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Publish' })).toBeNull()
   })
 })
 
@@ -186,7 +176,7 @@ describe('Publish on a game', () => {
 
   it('has no Publish when the editor cannot publish the game', async () => {
     await start()
-    await screen.findByText('My game')
+    await screen.findByRole('button', { name: 'Home' })
     expect(screen.queryByRole('button', { name: 'Publish' })).toBeNull()
   })
 })

@@ -37,6 +37,9 @@ export function shortcutTarget<T extends Keyed>(entries: readonly T[], event: Ke
 }
 
 /** The tab that holds the page's one tab stop: the chosen one, or the first on Home. */
-export function tabStop<T extends Keyed>(entries: readonly T[], current: string | undefined): string | undefined {
+export function tabStop<T extends Keyed>(
+  entries: readonly T[],
+  current: string | undefined,
+): string | undefined {
   return entries.some((entry) => entry.id === current) ? current : entries[0]?.id
 }

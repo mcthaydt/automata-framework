@@ -10,8 +10,8 @@ import { createTuner } from '#src/features/suite/tuner/tuner-suite-editor.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { tunerFixtureFiles } from '#src/testing/suite/tuner-fixtures.ts'
 
-// The suite's top bar in plain words (task 12.7, the grandma audit 6.1): the game's name as the title, where the
-// changes are saved, no pill until it has something to say, and a full-width banner on the sample in place of a chip.
+// The suite's header in plain words (task 12.7, the grandma audit 6.1, editors v2): the game's name in the sidebar, Saved,
+// the problems said in words, and a full-width banner on the sample in place of a chip.
 
 const LIST = `format = "af-editors/1"\n[[file]]\nglob = "content/tuning.toml"\neditor = "tuner"\nmodes = ["edit"]\ngates = []\nchecks = []\n`
 
@@ -43,18 +43,18 @@ async function start(options: { sample?: boolean; game?: string } = {}) {
   })
 }
 
-describe("the suite's top bar", () => {
+describe("the suite's header", () => {
   it('the Home has the Editor colours control, under the cards', async () => {
     await start({ game: 'Emberwick' })
     await screen.findByRole('heading', { name: 'What do you want to change?' })
     expect(screen.getByRole('radiogroup', { name: 'Editor colours' })).toBeInTheDocument()
   })
 
-  it('names the game and says the changes are saved in its folder; a pill with nothing to say is not shown', async () => {
+  it('names the game in the sidebar, says Saved in the header, and says the checks have not run in words', async () => {
     await start({ game: 'Emberwick' })
     expect(await screen.findByText('Emberwick')).toBeInTheDocument()
-    expect(screen.queryByText('Editors', { selector: '.brand' })).toBeNull()
-    expect(screen.getByText('Saved in your game folder')).toBeInTheDocument()
+    expect(screen.getByText('Saved')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Not checked yet' })).toBeInTheDocument()
     for (const quiet of [
       'No change set',
       'Saving to the workspace',
@@ -65,14 +65,12 @@ describe("the suite's top bar", () => {
       expect(screen.queryByRole('button', { name: quiet })).toBeNull()
   })
 
-  it('draws Home, Undo and Redo as named icon buttons, and the saved status with a tick', async () => {
+  it('draws Home in the sidebar as an icon and its name, and Saved with a tick', async () => {
     await start({ game: 'Emberwick' })
     const home = await screen.findByRole('button', { name: 'Home' })
     expect(home).toHaveAttribute('aria-current', 'page')
     expect(home.querySelector('svg')).not.toBeNull()
-    expect(home.textContent?.trim()).toBe('')
-    const saved = screen.getByText('Saved in your game folder')
-    expect(saved.closest('.where')?.querySelector('svg')).not.toBeNull()
+    expect(screen.getByText('Saved').querySelector('svg')).not.toBeNull()
   })
 
   it('offers no Export, Import or Publish: the editor writes the game itself', async () => {
@@ -116,7 +114,7 @@ describe("the suite's top bar", () => {
         "This is a sample game, not yours. Run automata editor inside your game's folder to edit it.",
       ),
     ).toBeInTheDocument()
-    expect(screen.queryByText('Saved in your game folder')).toBeNull()
+    expect(screen.queryByText('Saved')).toBeNull()
     // The title says it too, in place of the small chip beside it.
     expect(screen.getAllByText('Sample game')).toHaveLength(1)
   })
