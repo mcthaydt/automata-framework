@@ -2,7 +2,8 @@ import { createGeometryOwner } from '@mcthaydt/automata'
 import { settleLayout } from '@mcthaydt/automata/testing'
 import { mount, unmount } from 'svelte'
 import { page } from 'vitest/browser'
-import { createAppProfiles } from '../../app/editor-2d/profiles'
+import { createEditorApp } from '../../app/editor-2d/editor-app'
+import { componentOf } from '../../app/editor-2d/views'
 import DocumentScreen from '../../features/document/DocumentScreen.svelte'
 import { createDocumentController } from '../../features/document/document-controller'
 import { createDownloadStore, type DownloadFile } from '../../shared/kit/storage/download-store.ts'
@@ -10,13 +11,10 @@ import { createMemoryStore } from '../../shared/kit/storage/memory-store.ts'
 import type { LifecycleDocument, LifecycleWindow } from '../../shared/kit/storage/page-lifecycle.ts'
 import type { Workspace } from '../../shared/kit/storage/workspace.ts'
 import { createToasts } from '../../shared/kit/widgets/toasts.ts'
-import {
-  createEditorApp,
-  type EditorApp,
-  type OpenDocument,
-} from '../../shared/level-2d/documents/editor-app'
 import { counterIds } from '../../shared/level-2d/model/ids'
 import type { Project } from '../../shared/level-2d/model/project-types'
+import { createAppProfiles } from '../../shared/level-2d/profiles/app-profiles'
+import type { EditorApp, OpenDocument } from '../../shared/level-2d/session/editor-app-types'
 import type { IpadProfile } from '../kit/ipad-profiles.ts'
 import { arrived } from '../kit/layout-sizes.ts'
 import { createTestClock, type TestClock } from '../kit/test-clock'
@@ -74,6 +72,7 @@ export async function openJourneyEditor(
     props: {
       geometry: owner.geometry,
       controller,
+      viewOf: componentOf,
       toasts,
       clock,
       // The gestures run on the same test clock: a tap lasts no time at all, however slow the machine.
