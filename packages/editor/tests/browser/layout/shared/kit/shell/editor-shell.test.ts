@@ -1,4 +1,5 @@
 import '#src/shared/kit/tokens.css'
+import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
 import {
   byTestId,
@@ -16,6 +17,10 @@ import { page } from 'vitest/browser'
 import type { ShellMode } from '#src/shared/kit/shell/shell-mode.ts'
 import ShellFixture from '#src/testing/kit/ShellFixture.svelte'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
+import { editorTargets } from '#src/testing/kit/targets.ts'
+
+/** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
+const targets = editorTargets()
 
 // The shell with production CSS in a real browser, at the window sizes the 2D editor is designed for
 //. `inert` and `visibility` are only real here; jsdom keeps neither.
@@ -35,10 +40,10 @@ const at = (
 const SIZES: readonly EditorSize[] = [
   at('ipad-pro-11-landscape', 1194, 834, 'wide', 'desktop'),
   at('ipad-pro-13-landscape', 1366, 1024, 'wide', 'desktop'),
-  at('ipad-mini-landscape', 1133, 744, 'wide', 'desktop'),
-  at('window-900x600', 900, 600, 'wide', 'desktop', 'short'),
+  at('ipad-mini-landscape', 1133, 744, 'medium', 'desktop'),
+  at('window-900x600', 900, 600, 'medium', 'desktop', 'short'),
   at('ipad-pro-11-portrait', 834, 1194, 'medium', 'tablet-portrait'),
-  at('ipad-mini-portrait', 744, 1133, 'medium', 'tablet-portrait'),
+  at('ipad-mini-portrait', 744, 1133, 'compact', 'tablet-portrait'),
   at('phone-portrait', 390, 844, 'compact', 'phone-portrait'),
   at('phone-landscape', 844, 390, 'compact', 'phone-landscape', 'short'),
 ]
@@ -86,12 +91,12 @@ describe.each(SIZES)('shell layout at $name ($width x $height)', (size) => {
     ['every region opened', REST, { panelOpen: true, inspectorOpen: true, dockOpen: true }],
   ] as const)('%s: no clipped, overlapping, small or unreachable controls', async (_name, variant, props) => {
     await page.viewport(size.width, size.height)
-    const conditions = publishConditions(document.documentElement, size, variant)
+    const conditions = publishConditions(document.documentElement, size, variant, targets)
     mounted = mountFixture(ShellFixture, { geometry: { current: conditions.geometry }, ...props })
     await settleLayout()
     expect(document.querySelector('[data-editor-shell]')).toHaveAttribute('data-mode', size.mode)
     // With the keyboard up the shell ends above it and `checkLayout` checks nothing sits under it; reaching
-    // a control may then take a scroll, so none is required to be in view. Open drawers cover the canvas.
+    // a control may then take a scroll, so none is required to be in view. An open inspector or sheet covers the canvas.
     const nothingOpen = Object.keys(props).length === 0
     const essentials = variant.keyboard === undefined ? [...CHROME, ...(nothingOpen ? CANVAS : [])] : []
     expect(checkLayout(conditions, essentials.map(byTestId))).toEqual([])
@@ -107,7 +112,7 @@ const near = (actual: number, expected: number, slack = 1): void => {
 /** Publishes `size` the way the geometry owner would and mounts the fixture; the afterEach unmounts it. */
 async function open(size: EditorSize, props: Record<string, unknown> = {}, variant = REST) {
   await page.viewport(size.width, size.height)
-  const conditions = publishConditions(document.documentElement, size, variant)
+  const conditions = publishConditions(document.documentElement, size, variant, targets)
   mounted = mountFixture(ShellFixture, { geometry: { current: conditions.geometry }, ...props })
   await settleLayout()
   return conditions
@@ -149,23 +154,17 @@ describe('wide: rail, panel, canvas, inspector, dock beneath, status at the foot
     near(dock.bottom, status.top)
   })
 
-  test('a 900 x 600 window keeps the dock closed behind its handle and gives the canvas the room', async () => {
-    await open(size('window-900x600'))
+  test('a 1280 x 560 window keeps the dock closed behind its handle and gives the canvas the room', async () => {
+    await open(at('window-1280x560', 1280, 560, 'wide', 'desktop', 'short'))
     expect(region('dock')).toHaveAttribute('data-presentation', 'sheet')
     expect(getComputedStyle(region('dock')).visibility).toBe('hidden')
     near(rect('canvas').bottom, rect('status').top)
-  })
-
-  test('an iPad mini in landscape (1133 x 744) keeps the dock inline', async () => {
-    await open(size('ipad-mini-landscape'))
-    expect(region('dock')).toHaveAttribute('data-presentation', 'inline')
-    near(rect('dock').height, 148)
   })
 })
 
 describe('a screen with no panel gives its column to the canvas', () => {
   test('wide: the canvas starts where the rail ends', async () => {
-    await open(size('window-900x600'), { panel: false })
+    await open(size('ipad-pro-11-landscape'), { panel: false })
     near(rect('canvas').left, rect('rail').right)
     expect(document.querySelector('[data-region="panel"]')).toBeNull()
   })
@@ -173,9 +172,9 @@ describe('a screen with no panel gives its column to the canvas', () => {
 
 describe('a screen with no inspector gives its column to the canvas', () => {
   test('wide: the canvas runs to the right edge', async () => {
-    await open(size('window-900x600'), { inspector: false })
+    await open(size('ipad-pro-11-landscape'), { inspector: false })
     near(rect('canvas').left, rect('panel').right)
-    near(rect('canvas').right, 900)
+    near(rect('canvas').right, 1194)
     expect(document.querySelector('[data-region="inspector"]')).toBeNull()
   })
 })
@@ -194,7 +193,7 @@ describe('a screen with no rail gives its column and its tab bar to the canvas',
   })
 
   test.each([
-    ['ipad-pro-11-portrait', 834, 1194],
+    ['ipad-pro-11-portrait', 834 - 264, 1194],
     ['phone-portrait', 390, 844],
     ['phone-landscape', 844, 390],
   ])('%s: the status line is the foot of the window', async (name, width, height) => {
@@ -239,21 +238,55 @@ describe('a toast in the sheets clears the foot (the tab bar and the status line
 })
 
 describe('a screen with no dock does not leave room for one', () => {
-  test('medium: open drawers run to the foot of the canvas, not to where a dock sheet would begin', async () => {
-    await open(size('ipad-pro-11-portrait'), {
-      rail: false,
-      dock: false,
-      panelOpen: true,
-      inspectorOpen: true,
-    })
-    near(rect('panel').bottom, rect('canvas').bottom)
-    near(rect('inspector').bottom, rect('canvas').bottom)
+  test('medium: the open inspector keeps to the foot of the canvas, not above where a dock sheet would begin', async () => {
+    await open(size('ipad-pro-11-portrait'), { rail: false, dock: false, inspectorOpen: true })
+    near(rect('inspector').bottom, rect('canvas').bottom - 12)
   })
 })
 
-describe('medium and compact: the canvas takes the width, the rail is a tab bar', () => {
+describe('medium: the panel beside the canvas, the inspector floating over it, the rail a tab bar', () => {
+  test('ipad-pro-11-portrait', async () => {
+    await open(size('ipad-pro-11-portrait'))
+    near(rect('panel').left, 0)
+    near(rect('panel').width, 264)
+    near(rect('canvas').left, rect('panel').right)
+    near(rect('canvas').right, 834)
+    near(rect('panel').top, rect('topbar').bottom)
+    near(rect('panel').bottom, rect('canvas').bottom)
+    near(rect('rail').height, 64)
+    near(rect('rail').bottom, 1194)
+    near(rect('rail').width, 834)
+    near(rect('canvas').bottom, rect('status').top)
+    near(rect('status').bottom, rect('rail').top)
+  })
+
+  test('the closed inspector is out of sight, inert and still laid out', async () => {
+    await open(size('ipad-pro-11-portrait'))
+    expect(region('inspector')).toHaveAttribute('inert')
+    expect(getComputedStyle(region('inspector')).visibility).toBe('hidden')
+    expect(rect('inspector').height).toBeGreaterThan(0)
+  })
+
+  test('the open inspector is a live card over the canvas’s lower right, as wide as the wide inspector', async () => {
+    await open(size('ipad-pro-11-portrait'), { rail: false, dock: false, inspectorOpen: true })
+    expect(region('inspector')).not.toHaveAttribute('inert')
+    expect(getComputedStyle(region('inspector')).visibility).toBe('visible')
+    near(rect('inspector').width, 320)
+    near(rect('inspector').right, rect('canvas').right - 12)
+    // Clear of the row a stage pill floats in: 12 px margins either side of a target, its padding and its edges.
+    expect(rect('inspector').top).toBeGreaterThanOrEqual(rect('canvas').top + 24 + targets.hit + 8 + 2 - 1)
+  })
+
+  test('the inspector sits above an open dock sheet instead of under it', async () => {
+    await open(size('ipad-pro-11-portrait'), { inspectorOpen: true, dockOpen: true })
+    const dock = rect('dock')
+    expect(rect('inspector').bottom).toBeLessThanOrEqual(dock.top + 1)
+    near(dock.bottom, rect('canvas').bottom)
+  })
+})
+
+describe('compact: the canvas takes the width, the rail is a tab bar', () => {
   test.each([
-    ['ipad-pro-11-portrait', 834, 1194],
     ['phone-portrait', 390, 844],
     ['phone-landscape', 844, 390],
   ])('%s', async (name, width, height) => {
@@ -268,33 +301,6 @@ describe('medium and compact: the canvas takes the width, the rail is a tab bar'
     near(rect('canvas').bottom, rect('status').top)
     near(rect('status').bottom, rect('rail').top)
   })
-
-  test('the drawers of medium are out of sight, inert and still laid out while closed', async () => {
-    await open(size('ipad-pro-11-portrait'))
-    for (const name of ['panel', 'inspector']) {
-      expect(region(name)).toHaveAttribute('inert')
-      expect(getComputedStyle(region(name)).visibility).toBe('hidden')
-      expect(rect(name).height).toBeGreaterThan(0)
-    }
-  })
-
-  test('an open drawer is live, as wide as the mockup, and sits against its edge', async () => {
-    await open(size('ipad-pro-11-portrait'), { panelOpen: true, inspectorOpen: true })
-    expect(region('panel')).not.toHaveAttribute('inert')
-    expect(getComputedStyle(region('panel')).visibility).toBe('visible')
-    near(rect('panel').width, 320)
-    near(rect('panel').left, 0)
-    near(rect('inspector').width, 320)
-    near(rect('inspector').right, 834)
-  })
-
-  test('drawers end above an open dock sheet instead of running under it', async () => {
-    await open(size('ipad-pro-11-portrait'), { panelOpen: true, inspectorOpen: true, dockOpen: true })
-    const dock = rect('dock')
-    expect(rect('panel').bottom).toBeLessThanOrEqual(dock.top + 1)
-    expect(rect('inspector').bottom).toBeLessThanOrEqual(dock.top + 1)
-    near(dock.bottom, rect('canvas').bottom)
-  })
 })
 
 describe('sheets and their detents', () => {
@@ -304,8 +310,8 @@ describe('sheets and their detents', () => {
     await open(size('phone-portrait'), { panelOpen: true })
     near(rect('panel').bottom, rect('canvas').bottom)
     const handle = region('panel').querySelector<HTMLElement>('[data-sheet-handle]') as HTMLElement
-    expect(handle.getBoundingClientRect().height).toBeGreaterThanOrEqual(44)
-    expect(handle.getBoundingClientRect().width).toBeGreaterThanOrEqual(44)
+    expect(handle.getBoundingClientRect().height).toBeGreaterThanOrEqual(targets.hit)
+    expect(handle.getBoundingClientRect().width).toBeGreaterThanOrEqual(targets.hit)
   })
 
   test('peek is the strip, half 50% and full 92% of the room above the status line', async () => {
@@ -359,7 +365,7 @@ describe('when the window turns or the keyboard comes up', () => {
     const landscape = size('ipad-pro-11-landscape')
     const portrait = size('ipad-pro-11-portrait')
     await page.viewport(landscape.width, landscape.height)
-    publishConditions(document.documentElement, landscape, REST)
+    publishConditions(document.documentElement, landscape, REST, targets)
     const geometry = stubGeometry(landscape.width, landscape.height)
     mounted = mountFixture(ShellFixture, { geometry })
     await settleLayout()
@@ -370,7 +376,7 @@ describe('when the window turns or the keyboard comes up', () => {
     expect(document.activeElement).toBe(field)
 
     await page.viewport(portrait.width, portrait.height)
-    publishConditions(document.documentElement, portrait, REST)
+    publishConditions(document.documentElement, portrait, REST, targets)
     geometry.resize(portrait.width, portrait.height)
     await settleLayout()
 
@@ -379,14 +385,14 @@ describe('when the window turns or the keyboard comes up', () => {
     expect(byTestId('canvas-field')).toBe(field)
     expect(document.activeElement).toBe(field)
     expect(field.value).toBe('Rooftops')
-    near(rect('canvas').width, portrait.width)
+    near(rect('canvas').width, portrait.width - 264)
   })
 
-  test('the panel keeps its scroll position when it turns into a closed drawer and back', async () => {
+  test('the panel keeps its scroll position when it turns into a closed sheet and back', async () => {
     const landscape = size('ipad-pro-11-landscape')
-    const portrait = size('ipad-pro-11-portrait')
+    const portrait = size('phone-portrait')
     await page.viewport(landscape.width, landscape.height)
-    publishConditions(document.documentElement, landscape, REST)
+    publishConditions(document.documentElement, landscape, REST, targets)
     const geometry = stubGeometry(landscape.width, landscape.height)
     mounted = mountFixture(ShellFixture, { geometry })
     await settleLayout()
@@ -399,14 +405,14 @@ describe('when the window turns or the keyboard comes up', () => {
     expect(body.scrollTop).toBe(100)
 
     await page.viewport(portrait.width, portrait.height)
-    publishConditions(document.documentElement, portrait, REST)
+    publishConditions(document.documentElement, portrait, REST, targets)
     geometry.resize(portrait.width, portrait.height)
     await settleLayout()
     expect(region('panel').querySelector('[data-scroll-region]')).toBe(body)
     expect(body.scrollTop).toBe(100)
 
     await page.viewport(landscape.width, landscape.height)
-    publishConditions(document.documentElement, landscape, REST)
+    publishConditions(document.documentElement, landscape, REST, targets)
     geometry.resize(landscape.width, landscape.height)
     await settleLayout()
     expect(body.scrollTop).toBe(100)
@@ -415,7 +421,7 @@ describe('when the window turns or the keyboard comes up', () => {
   test('the keyboard shrinks the shell above it without moving focus off the canvas field', async () => {
     const tablet = size('ipad-pro-11-portrait')
     await page.viewport(tablet.width, tablet.height)
-    publishConditions(document.documentElement, tablet, REST)
+    publishConditions(document.documentElement, tablet, REST, targets)
     const geometry = stubGeometry(tablet.width, tablet.height)
     mounted = mountFixture(ShellFixture, { geometry })
     await settleLayout()
@@ -423,7 +429,7 @@ describe('when the window turns or the keyboard comes up', () => {
     const field = byTestId('canvas-field') as HTMLInputElement
     field.focus()
 
-    const conditions = publishConditions(document.documentElement, tablet, KEYBOARD)
+    const conditions = publishConditions(document.documentElement, tablet, KEYBOARD, targets)
     await settleLayout()
 
     const keyboardTop = tablet.height - (KEYBOARD.keyboard?.(tablet) ?? 0)
@@ -468,8 +474,8 @@ describe('a broken region shows its error panel inside its own box (kit spec §6
       const conditions = await open(size(name), { broken, ...props })
       const button = copyButton(broken).getBoundingClientRect()
       const box = rect(broken)
-      expect(button.width).toBeGreaterThanOrEqual(44)
-      expect(button.height).toBeGreaterThanOrEqual(44)
+      expect(button.width).toBeGreaterThanOrEqual(targets.hit)
+      expect(button.height).toBeGreaterThanOrEqual(targets.hit)
       expect(button.left).toBeGreaterThanOrEqual(box.left - 0.5)
       expect(button.right).toBeLessThanOrEqual(box.right + 0.5)
       expect(button.top).toBeGreaterThanOrEqual(box.top - 0.5)

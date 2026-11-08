@@ -10,7 +10,6 @@ import LevelInspector from '../../../features/level/LevelInspector.svelte'
 import LevelPanel from '../../../features/level/LevelPanel.svelte'
 import LevelPicker from '../../../features/level/LevelPicker.svelte'
 import LevelStage from '../../../features/level/LevelStage.svelte'
-import type { Project } from '../../../shared/level-2d/model/project-types'
 import Levels2dStatus from './Levels2dStatus.svelte'
 import type { Levels2dSession } from './levels-2d-session'
 
@@ -45,12 +44,10 @@ export { canvas, inspector, panel, status, tools }
 
 {#snippet inspector(session: Levels2dSession)}
   {#if session.state.kind === 'open'}
-    {@const { profile } = session.state}
     <LevelInspector
       session={session.state.level}
       history={session.state.history}
       ids={session.options.ids}
-      check={(project: Project) => profile.check(project, {})}
     />
   {/if}
 {/snippet}

@@ -13,7 +13,7 @@ import {
   PROTOCOL_VERSION,
   RUNNING_FRAME_WAIT_MS,
   type RunMessage,
-} from '../../src/lib/playground/protocol.ts'
+} from '../../src/features/playground/protocol.ts'
 import { createLoopGuard, LoopGuardError } from './loop-guard.ts'
 import { checkGolden, exampleSim, hashRun, runExample } from './ruken/harness.ts'
 import { createRunGate } from './run-gate.ts'

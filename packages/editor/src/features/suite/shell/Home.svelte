@@ -1,8 +1,10 @@
 <!--
   Suite Home and an entry's page: the cards of the editors the game's
-  list names (all of them on Home, the entry's on its page), or the list's problems. One vertical scroll region.
+  list names (all of them on Home, the entry's on its page), or the list's problems. One vertical scroll region. The
+  page's own actions (Home's Export and Import) sit at the end of the heading's row.
 -->
 <script lang="ts">
+import type { Snippet } from 'svelte'
 import type { WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
 import EditorCardView from './EditorCardView.svelte'
 import type { EditorCard, HomeState } from './home-model'
@@ -17,9 +19,11 @@ interface Props {
   empty: string
   onopen: (card: EditorCard) => void
   onread: (file: WorkspaceFile) => void
+  /** Buttons at the end of the heading's row. */
+  actions?: Snippet | undefined
 }
 
-const { title, home, editors, empty, onopen, onread }: Props = $props()
+const { title, home, editors, empty, onopen, onread, actions }: Props = $props()
 
 const cards = $derived(
   home.kind === 'cards'
@@ -29,7 +33,10 @@ const cards = $derived(
 </script>
 
 <div class="scroll" data-testid="suite-home">
-  <h1>{title}</h1>
+  <header>
+    <h1>{title}</h1>
+    {#if actions}<span class="actions">{@render actions()}</span>{/if}
+  </header>
   {#if home.kind === 'problems'}
     <ListProblems problems={home.problems} />
   {:else if cards.length === 0}
@@ -51,12 +58,26 @@ const cards = $derived(
     flex-direction: column;
     gap: var(--space-5);
     height: 100%;
-    padding: var(--space-5);
+    padding: var(--space-6) var(--space-5);
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
     touch-action: pan-y;
-    background: var(--color-bg-app);
+    background: var(--bg);
+  }
+  /* The question and the page's actions on one row, as wide as the cards below it; they wrap under it on a phone. */
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    width: 100%;
+    max-width: 960px;
+  }
+  .actions {
+    display: flex;
+    gap: var(--space-2);
   }
   h1 {
     margin: 0;
@@ -64,11 +85,12 @@ const cards = $derived(
   }
   .note {
     margin: 0;
-    color: var(--color-text-dim);
+    color: var(--muted);
   }
   .cards {
+    max-width: 960px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
     gap: var(--space-4);
   }
 </style>

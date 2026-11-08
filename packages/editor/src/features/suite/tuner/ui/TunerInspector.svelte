@@ -1,10 +1,13 @@
 <!--
-  The Tuner's inspector: the chosen tunable's name, kind, value, bounds, unit and note, whether it is locked, and
+  The Tuner's inspector: the chosen setting's label (or name), type, value, range, unit and what it does, whether it
+  is kept, and (a setting with a scale is shown in its unit, as its row shows it, `tuner-display.ts`)
   why a table or a list is "Ask only". With nothing chosen it says how to choose.
 -->
 <script lang="ts">
 import Button from '../../../../shared/kit/widgets/Button.svelte'
+import { KEEP_TIP, shownName, shownNote } from '../tuner-content'
 import type { TunerController } from '../tuner-controller'
+import { shownBounds, shownValue } from '../tuner-display'
 
 const { controller }: { controller: TunerController } = $props()
 
@@ -22,41 +25,49 @@ const locked = $derived.by(() => {
   void $revision
   return $selected === undefined ? false : controller.isLocked($selected)
 })
+/** A number as the row shows it, with its unit. */
+const inUnit = (value: number): string => {
+  if (tunable === undefined) return String(value)
+  return `${tunable.scale === undefined ? value : shownValue(tunable, value)}${tunable.unit ? ` ${tunable.unit}` : ''}`
+}
+const range = $derived(tunable === undefined ? undefined : shownBounds(tunable))
+/** A scaled whole number is shown with decimals, so it is a number to the person reading it. */
+const kindOf = (kind: string): string => (tunable?.scale !== undefined && kind === 'int' ? 'float' : kind)
 const kindWord = (kind: string): string =>
   ({ int: 'whole number', float: 'number', boolean: 'on or off', string: 'text', other: 'table or list' })[
     kind
   ] ?? kind
 </script>
 
-<section class="inspector" aria-label="Tunable" data-testid="tuner-inspector">
+<section class="inspector" aria-label="Setting" data-testid="tuner-inspector">
   {#if tunable === undefined}
-    <p class="none">Choose a tunable to see its bounds and note.</p>
+    <p class="none">Tap a setting to see more.</p>
   {:else}
-    <h2>{tunable.name}</h2>
+    <h2>{shownName(tunable)}</h2>
     <dl>
-      <dt>Kind</dt>
-      <dd>{kindWord(tunable.kind)}</dd>
+      <dt>Type</dt>
+      <dd>{kindWord(kindOf(tunable.kind))}</dd>
       {#if tunable.editable}
         <dt>Value</dt>
-        <dd>{String(tunable.value)}{tunable.unit ? ` ${tunable.unit}` : ''}</dd>
+        <dd>{typeof tunable.value === 'number' ? inUnit(tunable.value) : String(tunable.value)}</dd>
       {/if}
-      {#if tunable.min !== undefined && tunable.max !== undefined}
-        <dt>Bounds</dt>
-        <dd>{tunable.min} to {tunable.max}{tunable.step !== undefined ? `, step ${tunable.step}` : ''}</dd>
+      {#if range?.min !== undefined && range.max !== undefined}
+        <dt>Range</dt>
+        <dd>{range.min} to {range.max}{tunable.unit ? ` ${tunable.unit}` : ''}</dd>
       {:else if tunable.editable && tunable.kind !== 'boolean' && tunable.kind !== 'string'}
-        <dt>Bounds</dt>
+        <dt>Range</dt>
         <dd>None</dd>
       {/if}
-      {#if tunable.note}
-        <dt>Note</dt>
-        <dd>{tunable.note}</dd>
+      {#if shownNote(tunable)}
+        <dt>What it does</dt>
+        <dd>{shownNote(tunable)}</dd>
       {/if}
     </dl>
     {#if !tunable.editable}
       <p class="none">A table or a list is changed with Ask, not here.</p>
     {:else}
-      <Button aria-pressed={locked} onclick={() => controller.toggleLock(tunable.name)}>
-        {locked ? 'Unlock' : 'Lock'}
+      <Button aria-pressed={locked} title={KEEP_TIP} onclick={() => controller.toggleLock(tunable.name)}>
+        {locked ? 'Kept' : 'Keep'}
       </Button>
     {/if}
   {/if}

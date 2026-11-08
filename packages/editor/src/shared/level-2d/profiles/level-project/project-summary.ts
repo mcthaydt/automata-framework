@@ -21,11 +21,9 @@ export function summarizeProject(project: Project): ProfileSummary {
     facts: [
       { label: 'Levels', value: `${project.levels.length}` },
       { label: 'Layers', value: `${layers.length}` },
-      {
-        label: 'Entities',
-        value: entities.length === 0 ? 'None' : plural(entities.length, 'definition', 'definitions'),
-      },
-      { label: 'Tilesets', value: tilesetsFact(tilesets) },
+      // In the views' own words: the Characters view's kinds of character, the Tiles view's sets of tiles.
+      { label: 'Characters', value: entities.length === 0 ? 'None' : `${entities.length}` },
+      { label: 'Tiles', value: tilesetsFact(tilesets) },
     ],
   }
 }

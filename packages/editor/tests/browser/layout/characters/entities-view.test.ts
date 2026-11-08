@@ -1,4 +1,5 @@
 import '#src/shared/kit/tokens.css'
+import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
 import '#src/app/editor-2d/main.css'
 import { byTestId, checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata/testing'
@@ -7,15 +8,19 @@ import { page } from 'vitest/browser'
 import { type EditorHandle, startEditor } from '#src/app/editor-2d/boot.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { editorTargets } from '#src/testing/kit/targets.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
 import { openView, switcherControls } from '#src/testing/level-2d/view-switcher.ts'
 
+/** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
+const targets = editorTargets()
+
 // The Entities view with the production CSS in a real browser, at the kit's
 // eight window sizes in Chromium, WebKit and Firefox: every control at least 44 px and never clipped, the page never
 // scrolling, the definition form's Duplicate and Delete reachable, the field editor's type chips full-size targets,
-// and the refusal dialog's list and actions inside the window (below wide, from the Definitions and Inspector
+// and the refusal dialog's list and actions inside the window (below wide, from the Characters and Inspector
 // drawers). The editor starts as `main.ts` starts it, over a memory workspace with the Mossgate sample (three slimes),
 // and the rail opens Entities.
 
@@ -32,7 +37,7 @@ afterEach(async () => {
 
 async function start(size: EditorSize) {
   await page.viewport(size.width, size.height)
-  const conditions = publishConditions(document.documentElement, size, REST)
+  const conditions = publishConditions(document.documentElement, size, REST, targets)
   const clock = createTestClock()
   const workspace = memoryWorkspace(clock)
   await workspace.store.write(PROJECT, printProject(mossgate()))
@@ -63,8 +68,8 @@ async function start(size: EditorSize) {
 }
 
 const buttonNamed = (root: ParentNode, name: string): HTMLElement => {
-  const found = [...root.querySelectorAll<HTMLElement>('button')].find(
-    (candidate) => candidate.textContent?.trim() === name,
+  const found = [...root.querySelectorAll<HTMLElement>('button:not([role]):not([aria-haspopup])')].find(
+    (candidate) => candidate.textContent?.trim() === name || candidate.getAttribute('aria-label') === name,
   )
   if (found === undefined) throw new Error(`no ${name} button`)
   return found
@@ -87,7 +92,7 @@ const region = (name: string): HTMLElement => {
 /** Below wide, presses the canvas's drawer button until its region says it is open. */
 async function openDrawer(
   size: EditorSize,
-  name: 'Definitions' | 'Details',
+  name: 'All characters' | 'Details',
   regionName: string,
 ): Promise<void> {
   if (size.mode === 'wide' || region(regionName).dataset.open === 'true') return
@@ -104,23 +109,23 @@ async function reach(element: HTMLElement): Promise<void> {
 
 /** Chooses the slime in the panel (from the drawer below wide), then closes the drawer again. */
 async function chooseSlime(size: EditorSize): Promise<void> {
-  await openDrawer(size, 'Definitions', 'panel')
+  await openDrawer(size, 'All characters', 'panel')
   const row = [...byTestId('entities-panel').querySelectorAll<HTMLElement>('[role="radio"]')].find(
     (candidate) => candidate.textContent?.trim().startsWith('Slime'),
   )
   if (row === undefined) throw new Error('no slime row')
   row.click()
   await arrived()
-  if (size.mode !== 'wide' && region('panel').dataset.open === 'true') {
-    buttonNamed(byTestId('entities-view'), 'Definitions').click()
+  if (size.mode === 'compact' && region('panel').dataset.open === 'true') {
+    buttonNamed(byTestId('entities-view'), 'All characters').click()
     await arrived()
   }
 }
 
 function expectTarget(control: Element): void {
   const box = control.getBoundingClientRect()
-  expect(box.width).toBeGreaterThanOrEqual(44)
-  expect(box.height).toBeGreaterThanOrEqual(44)
+  expect(box.width).toBeGreaterThanOrEqual(targets.hit)
+  expect(box.height).toBeGreaterThanOrEqual(targets.hit)
 }
 
 describe.each(SIZES)('Entities view at $name ($width x $height)', (size) => {
@@ -129,7 +134,7 @@ describe.each(SIZES)('Entities view at $name ($width x $height)', (size) => {
     await chooseSlime(size)
     const tabs = switcherControls()
     const essentials = [...['undo', 'redo', 'save'].map(byTestId), ...tabs]
-    if (size.mode !== 'wide') essentials.push(buttonNamed(byTestId('entities-view'), 'Definitions'))
+    if (size.mode === 'compact') essentials.push(buttonNamed(byTestId('entities-view'), 'All characters'))
     expect(checkLayout(conditions, essentials)).toEqual([])
     expect(document.documentElement.scrollLeft).toBe(0)
     expect(document.documentElement.scrollTop).toBe(0)
@@ -147,6 +152,14 @@ describe.each(SIZES)('Entities view at $name ($width x $height)', (size) => {
       expectInside(button, size)
       expectTarget(button)
     }
+    // Label-left, as the Level view's inspector reads: the name's field sits beside its word, on the same line.
+    const name = inspector.querySelector<HTMLInputElement>('label.text input')
+    const word = inspector.querySelector<HTMLElement>('label.text .label')
+    if (name === null || word === null) throw new Error('no name field')
+    await reach(name)
+    const [field, label] = [name.getBoundingClientRect(), word.getBoundingClientRect()]
+    expect(label.right).toBeLessThanOrEqual(field.left)
+    expect(Math.abs(label.top + label.height / 2 - (field.top + field.height / 2))).toBeLessThan(2)
     expect(checkLayout(conditions, [])).toEqual([])
     await page.screenshot({ path: `.vitest/shots/entities-definition-${size.name}.png` })
   })
@@ -157,9 +170,9 @@ describe.each(SIZES)('Entities view at $name ($width x $height)', (size) => {
     await openDrawer(size, 'Details', 'inspector')
     const inspector = byTestId('entities-inspector')
     const fieldsTab = [...inspector.querySelectorAll<HTMLElement>('[role="tab"]')].find((tab) =>
-      tab.textContent?.trim().startsWith('Fields'),
+      tab.textContent?.trim().startsWith('Settings'),
     )
-    if (fieldsTab === undefined) throw new Error('no Fields tab')
+    if (fieldsTab === undefined) throw new Error('no Settings tab')
     fieldsTab.click()
     await arrived()
     const editor = byTestId('field-def-editor')

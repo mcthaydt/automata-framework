@@ -1,21 +1,5 @@
 <script lang="ts">
-import { apiVersions, getApiReference } from '$lib/api-reference'
-import PageMeta from '$lib/components/PageMeta.svelte'
-
-const versions = apiVersions()
+import ApiIndex from '../../features/api/ApiIndex.svelte'
 </script>
-<PageMeta title="Complete API reference" description="Every export of every published Automata package, one page per package, for each published version." />
-<div class="page-shell api-page">
-  <h1>Complete API reference</h1>
-  <p class="lead">Every export of every published package, generated from the published type declarations.</p>
-  <p>An export that is not listed for a version does not exist in it. <a href="/cheatsheet">Selected APIs with examples</a> are on the API reference page; the same text as one file is <a href="/llms-api.txt">llms-api.txt</a>.</p>
-  {#each versions as version}
-    {@const reference = getApiReference(version)}
-    {#if reference}
-      <section aria-labelledby={'v-' + version}>
-        <h2 id={'v-' + version}>Version {version}</h2>
-        <ul>{#each reference.packages as pkg}<li><a href={'/api/' + version + '/' + pkg.slug}>{pkg.name}</a> <span class="small">({pkg.entryPoints.reduce((n, e) => n + e.entries.length, 0)} exports)</span></li>{/each}</ul>
-      </section>
-    {/if}
-  {/each}
-</div>
+
+<ApiIndex />

@@ -1,5 +1,5 @@
-// `automata editor [dir] [--app 2d|3d|suite] [--app-dir <dir>] [--port <n>] [--lan] [--token <t>]`: serve
-// an editor against a game checkout; the 2D editor unless told otherwise. One command for every editor.
+// `automata editor [dir] [--app 2d|3d|suite] [--app-dir <dir>] [--port <n>] [--lan] [--token <t>] [--game-url <url>]`:
+// serve an editor against a game checkout; the 2D editor unless told otherwise. One command for every editor.
 
 export type EditorApp = '2d' | '3d' | 'suite'
 
@@ -14,6 +14,18 @@ export interface EditorOptions {
   /** Listen on every address, so a tablet on the same network can reach it (a token is then made if none is given). */
   readonly lan: boolean
   readonly token: string | undefined
+  /** The game's dev page (`pnpm dev`), which the Tuner shows beside its settings; Vite's own port unless told. */
+  readonly gameUrl: string
+}
+
+/** Where `pnpm dev` serves a game when nothing else holds Vite's port: the page the Tuner shows by default. */
+const DEFAULT_GAME_URL = 'http://localhost:5173/'
+
+/** A web page's address, written the one way (`http://localhost:5180/`), or nothing for anything else. */
+function webAddress(value: string): string | undefined {
+  if (!URL.canParse(value)) return undefined
+  const url = new URL(value)
+  return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : undefined
 }
 
 export type EditorArgs =
@@ -30,6 +42,7 @@ export function parseEditorArgs(args: readonly string[]): EditorArgs {
   let port = 0
   let lan = false
   let token: string | undefined
+  let gameUrl = DEFAULT_GAME_URL
 
   const valueAfter = (index: number): string | undefined => {
     const value = args[index + 1]
@@ -39,7 +52,7 @@ export function parseEditorArgs(args: readonly string[]): EditorArgs {
   for (let i = 0; i < args.length; i++) {
     const flag = args[i] as string
     if (flag === '--lan') lan = true
-    else if (flag === '--app' || flag === '--app-dir' || flag === '--port' || flag === '--token') {
+    else if (['--app', '--app-dir', '--port', '--token', '--game-url'].includes(flag)) {
       const value = valueAfter(i)
       if (value === undefined) return { ok: false, problem: `${flag} needs a value` }
       i++
@@ -48,7 +61,12 @@ export function parseEditorArgs(args: readonly string[]): EditorArgs {
         app = value
       } else if (flag === '--app-dir') appDir = value
       else if (flag === '--token') token = value
-      else {
+      else if (flag === '--game-url') {
+        const address = webAddress(value)
+        if (address === undefined)
+          return { ok: false, problem: '--game-url is a web address, like http://localhost:5173' }
+        gameUrl = address
+      } else {
         const number = Number(value)
         if (!Number.isInteger(number) || number < 0 || number > 65535)
           return { ok: false, problem: '--port is a number from 0 to 65535' }
@@ -58,5 +76,5 @@ export function parseEditorArgs(args: readonly string[]): EditorArgs {
     else if (dir === undefined) dir = flag
     else return { ok: false, problem: `unexpected argument ${flag}` }
   }
-  return { ok: true, options: { dir: dir ?? '.', app, appDir, port, lan, token } }
+  return { ok: true, options: { dir: dir ?? '.', app, appDir, port, lan, token, gameUrl } }
 }

@@ -152,7 +152,8 @@ function instanceText(project: Project, id: string): string {
     count += inLevel
     if (inLevel > 0) levels++
   }
-  return count === 0 ? 'no instances' : `${plural(count, 'instance')} · ${plural(levels, 'level')}`
+  // In words a person reads: how many are placed, in how many levels ("instance" is a programmer's word).
+  return count === 0 ? 'Not in any level yet' : `${count} placed in ${plural(levels, 'level')}`
 }
 
 /** The preview of definition `id` drawn in a `room` of preview pixels (decision 7). */

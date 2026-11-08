@@ -40,6 +40,7 @@
     "test": "vitest run",
     "test:browser": "vitest run --project parity --project layout --project storage --project canvas --project journeys",
     "test:canvas": "vitest run --project canvas",
+    "test:e2e": "playwright test -c playwright.journeys.config.ts",
     "test:journeys": "vitest run --project journeys",
     "test:layout": "vitest run --project layout --project storage",
     "test:unit": "vitest run --project unit",

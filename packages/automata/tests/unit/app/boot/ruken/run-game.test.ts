@@ -1127,6 +1127,40 @@ describe('seams.hosting (DIST.4)', () => {
     await handle.shutdown()
   })
 
+  it('starts at the screen it is asked for and says which screen shows (a dev restart lands where the person was)', async () => {
+    const frames = manualFrames()
+    const data: CompiledContentData = {
+      ...fixtureContentData,
+      flow: { entry: 'title', screens: ['title', 'play'], terminal: [], transitions: [] },
+    }
+    const handle = runGame(
+      {
+        root,
+        hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
+        content: { data, hash: contentHashOf(data) },
+        screens: [
+          { id: 'title', enter: () => {} },
+          { id: 'play', enter: () => {} },
+        ],
+        renderer: nullRenderer(),
+        seams: {
+          frames,
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+          hosting: fakeHosting({ target: 'itch' }).make,
+        },
+      },
+      { at: 'play' },
+    )
+    // Nothing shows before the flow starts.
+    expect(handle.screen).toBeUndefined()
+    await driveFirstFrame(frames)
+    await waitForState('ready')
+    await settle(2)
+    expect(handle.screen).toBe('play')
+    await handle.shutdown()
+    expect(handle.screen).toBeUndefined()
+  })
+
   it('boots on settings defaults when the target does not grant saves (DIST spec §8 flow 5)', async () => {
     const frames = manualFrames()
     // A web page whose storage is blocked: everything a page observes, and no saves.

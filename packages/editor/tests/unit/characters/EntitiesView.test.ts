@@ -95,6 +95,16 @@ describe('Entities view: the definition in plain words (grandma audit 5.2)', () 
     expect(within(more).getByRole('spinbutton', { name: 'Anchor point across' })).toBeInTheDocument()
     expect(within(more).getByRole('spinbutton', { name: 'Anchor point down' })).toBeInTheDocument()
   })
+
+  it('names the inspector’s tabs Character and Settings, not Definition and Fields', async () => {
+    await mount()
+    await choose('Player start')
+    const tabs = within(inspector())
+      .getAllByRole('tab')
+      .map((tab) => tab.textContent?.trim())
+    expect(tabs[0]).toBe('Character')
+    expect(tabs[1]).toMatch(/^Settings/)
+  })
 })
 
 describe('Entities view: the panel and the preview', () => {
@@ -105,20 +115,20 @@ describe('Entities view: the panel and the preview', () => {
     // Each row shows the name and, for one a level may hold only once, says so; no ids, shapes or field counts.
     expect(within(panel()).getAllByRole('radio')[0]).toHaveAccessibleName('Checkpoint')
     expect(within(panel()).getAllByRole('radio')[0]).toHaveAttribute('aria-checked', 'true')
-    expect(preview()).toHaveTextContent('no instances')
+    expect(preview()).toHaveTextContent('Not in any level yet')
     await choose('Player start')
     expect(within(panel()).getByRole('radio', { name: 'Player start One per level' })).toHaveAttribute(
       'aria-checked',
       'true',
     )
     expect(within(panel()).getByRole('radio', { name: 'Slime' })).toBeInTheDocument()
-    expect(within(panel()).getByRole('button', { name: /^Settings for every level/ })).toBeInTheDocument()
+    expect(within(panel()).getByRole('button', { name: /^Every level/ })).toBeInTheDocument()
     expect(preview()).toHaveTextContent('Player start')
     expect(preview()).toHaveTextContent('Box, 16 × 24 px')
     expect(preview()).toHaveTextContent('Shown 8 times bigger')
     // The anchor point is under More in the inspector, not on the first screen.
     expect(preview()).not.toHaveTextContent(/pivot/i)
-    expect(preview()).toHaveTextContent('1 instance · 1 level')
+    expect(preview()).toHaveTextContent('1 placed in 1 level')
   })
 
   it('redraws the preview when the width changes, as one undo step', async () => {
@@ -134,7 +144,7 @@ describe('Entities view: the panel and the preview', () => {
 
   it('adds a definition and selects it', async () => {
     const { project } = await mount()
-    await userEvent.click(within(panel()).getByRole('button', { name: 'Add entity' }))
+    await userEvent.click(within(panel()).getByRole('button', { name: 'Add character' }))
     expect(project().defs.entities).toHaveLength(7)
     const def = project().defs.entities[6]
     const added = def?.label ?? def?.id ?? ''
@@ -146,13 +156,23 @@ describe('Entities view: the panel and the preview', () => {
 })
 
 describe('Entities view: the field editor', () => {
-  it('adds a field, and an int field shows its bounds and step', async () => {
+  it('names the Settings tab in words, with its count in brackets only when there is one', async () => {
+    await mount()
+    await choose('Coin')
+    expect(within(inspector()).getByRole('tab', { name: 'Settings' })).toBeInTheDocument()
+    await userEvent.click(within(inspector()).getByRole('tab', { name: 'Settings' }))
+    await userEvent.click(within(inspector()).getByRole('button', { name: 'Add setting' }))
+    expect(within(inspector()).getByRole('tab', { name: 'Settings (1)' })).toBeInTheDocument()
+    expect(within(inspector()).getByRole('heading', { name: 'Settings of Coin' })).toBeInTheDocument()
+  })
+
+  it('adds a field, and a whole-number setting shows its bounds and step', async () => {
     const { def } = await mount()
     await choose('Coin')
-    await userEvent.click(within(inspector()).getByRole('tab', { name: /Fields/ }))
-    await userEvent.click(within(inspector()).getByRole('button', { name: 'Add field' }))
+    await userEvent.click(within(inspector()).getByRole('tab', { name: /Settings/ }))
+    await userEvent.click(within(inspector()).getByRole('button', { name: 'Add setting' }))
     expect(def('coin')?.fields).toHaveLength(1)
-    await userEvent.click(within(inspector()).getByRole('radio', { name: 'int' }))
+    await userEvent.click(within(inspector()).getByRole('radio', { name: 'Whole number' }))
     expect(def('coin')?.fields[0]?.type).toBe('int')
     expect(within(inspector()).getByRole('spinbutton', { name: 'Min' })).toBeInTheDocument()
     expect(within(inspector()).getByRole('spinbutton', { name: 'Max' })).toBeInTheDocument()
@@ -162,7 +182,7 @@ describe('Entities view: the field editor', () => {
   it('shows the message of a refused setting and keeps the field as it was', async () => {
     const { history, def } = await mount()
     await choose('Slime')
-    await userEvent.click(within(inspector()).getByRole('tab', { name: /Fields/ }))
+    await userEvent.click(within(inspector()).getByRole('tab', { name: /Settings/ }))
     const before = history.revision
     await setNumber('Min', 20)
     expect(within(inspector()).getByRole('alert')).toHaveTextContent(/.+/)
@@ -172,9 +192,9 @@ describe('Entities view: the field editor', () => {
 
   it('lists the levels a type change would break, and "Change anyway" is one undo step (G-f)', async () => {
     const { history, project } = await mount()
-    await userEvent.click(within(panel()).getByRole('button', { name: /^Settings for every level/ }))
+    await userEvent.click(within(panel()).getByRole('button', { name: /^Every level/ }))
     const before = history.revision
-    await userEvent.click(within(inspector()).getByRole('radio', { name: 'int' }))
+    await userEvent.click(within(inspector()).getByRole('radio', { name: 'Whole number' }))
     const dialog = screen.getByRole('dialog', { name: 'Change music?' })
     expect(within(dialog).getByText('level-1')).toBeInTheDocument()
     expect(history.revision).toBe(before)

@@ -1,4 +1,5 @@
 import '#src/shared/kit/tokens.css'
+import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
 import '#src/app/editor-2d/main.css'
 import { byTestId, checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata/testing'
@@ -7,10 +8,14 @@ import { page } from 'vitest/browser'
 import { type EditorHandle, startEditor } from '#src/app/editor-2d/boot.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { editorTargets } from '#src/testing/kit/targets.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
 import { switcherControls } from '#src/testing/level-2d/view-switcher.ts'
+
+/** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
+const targets = editorTargets()
 
 // The Level view with the production CSS in a real browser, at the eight
 // window sizes of Home's layout test, in Chromium, WebKit and Firefox: every control at least 44 px and never clipped,
@@ -33,7 +38,7 @@ afterEach(async () => {
 
 async function start(size: EditorSize) {
   await page.viewport(size.width, size.height)
-  const conditions = publishConditions(document.documentElement, size, REST)
+  const conditions = publishConditions(document.documentElement, size, REST, targets)
   const clock = createTestClock()
   const workspace = memoryWorkspace(clock)
   await workspace.store.write(PROJECT, printProject(mossgate()))
@@ -78,9 +83,9 @@ function expectInside(element: Element, size: EditorSize): void {
   expect(box.bottom).toBeLessThanOrEqual(size.height + 0.5)
 }
 
-/** Opens the layer panel below wide, where it is a drawer or a sheet. */
+/** Opens the layer panel in the compact layout, where it is a sheet (it is always in view otherwise). */
 async function showLayers(size: EditorSize): Promise<void> {
-  if (size.mode === 'wide') return
+  if (size.mode !== 'compact') return
   buttonNamed(byTestId('level-toolbar'), 'Layers').click()
   await arrived()
 }
@@ -95,7 +100,7 @@ describe.each(SIZES)('Level view at $name ($width x $height)', (size) => {
       size.mode === 'compact' ? ['Level'] : ['Level', 'Map', 'Tiles', 'Characters'],
     )
     const essentials = [buttonNamed(bar, 'Back'), ...['undo', 'redo', 'save'].map(byTestId), ...tabs]
-    if (size.mode !== 'wide') essentials.push(buttonNamed(byTestId('level-toolbar'), 'Layers'))
+    if (size.mode === 'compact') essentials.push(buttonNamed(byTestId('level-toolbar'), 'Layers'))
     expect(checkLayout(conditions, essentials)).toEqual([])
     for (const tab of tabs) expectInside(tab, size)
     await page.screenshot({ path: `.vitest/shots/level-view-${size.name}.png` })
@@ -122,7 +127,7 @@ describe.each(SIZES)('Level view at $name ($width x $height)', (size) => {
     const first = rows[0] as HTMLElement
     expectInside(first, size)
     for (const control of first.querySelectorAll('button'))
-      expect(control.getBoundingClientRect().height).toBeGreaterThanOrEqual(44)
+      expect(control.getBoundingClientRect().height).toBeGreaterThanOrEqual(targets.hit)
     expect(checkLayout(conditions, [])).toEqual([])
     await page.screenshot({ path: `.vitest/shots/level-layers-${size.name}.png` })
   })
@@ -150,12 +155,18 @@ describe.each(SIZES)('Level view inspector, tools and levels at $name ($width x 
       await arrived()
       expect(region('inspector').dataset.open).toBe('true')
     }
-    const tablist = region('inspector').querySelector<HTMLElement>('[role="tablist"][aria-label="Inspector"]')
-    if (tablist === null) throw new Error('no inspector tabs')
-    const tabs = [...tablist.querySelectorAll<HTMLElement>('[role="tab"]')]
-    expect(tabs.map((tab) => tab.textContent?.trim())).toEqual(['Entity', 'Level', 'Checks'])
-    for (const tab of tabs) expectInside(tab, size)
-    expect(checkLayout(conditions, tabs)).toEqual([])
+    // No tabs: with nothing chosen the inspector shows the level, label-left; every control can be scrolled into the
+    // screen inside the inspector's own scroll region (a phone held sideways is short).
+    const inspector = region('inspector').querySelector<HTMLElement>('[data-testid="level-inspector"]')
+    if (inspector === null) throw new Error('no inspector')
+    expect(inspector.querySelector('[role="tablist"]')).toBeNull()
+    expect(inspector.querySelector('h2')?.textContent?.trim()).toBeTruthy()
+    const controls = [...inspector.querySelectorAll<HTMLElement>('button, input, textarea')]
+    for (const control of controls) {
+      control.scrollIntoView({ block: 'nearest' })
+      expectInside(control, size)
+    }
+    expect(checkLayout(conditions, controls)).toEqual([])
     await page.screenshot({ path: `.vitest/shots/level-inspector-${size.name}.png` })
   })
 
@@ -197,7 +208,7 @@ describe.each(SIZES)('Level view inspector, tools and levels at $name ($width x 
     const tools = [...toolbar.querySelectorAll<HTMLElement>('[role="radiogroup"] [role="radio"]')]
     expect(tools.length).toBe(6)
     const essentials = [tools[0] as HTMLElement, byTestId('undo'), byTestId('save'), ...switcherControls()]
-    if (size.mode !== 'wide') essentials.push(buttonNamed(toolbar, 'Layers'))
+    if (size.mode === 'compact') essentials.push(buttonNamed(toolbar, 'Layers'))
     for (const control of essentials) expectInside(control, size)
     // The pill is a declared sideways scroll region (it scrolls rather than squeeze a label), so a canvas too narrow
     // for it reaches the later tools by scrolling it: each one comes fully into view without the page moving.
@@ -247,7 +258,7 @@ describe('Level view rotation', () => {
     const surface = byTestId('level-surface')
 
     await page.viewport(portrait.width, portrait.height)
-    publishConditions(document.documentElement, portrait, REST)
+    publishConditions(document.documentElement, portrait, REST, targets)
     await settleLayout()
     await arrived()
     expect(byTestId('level-surface'), 'the canvas was not remounted').toBe(surface)

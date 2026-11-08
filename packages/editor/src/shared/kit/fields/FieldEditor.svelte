@@ -93,6 +93,7 @@ function onTextBlur(event: FocusEvent): void {
         onedit={onNumber}
       />
     {:else if row.widget === 'toggle'}
+      <span class="label" aria-hidden="true">{row.label}</span>
       <Segmented
         label={row.label}
         options={[
@@ -103,6 +104,7 @@ function onTextBlur(event: FocusEvent): void {
         onedit={(event) => commit(event.value === 'true')}
       />
     {:else if row.widget === 'segmented'}
+      <span class="label" aria-hidden="true">{row.label}</span>
       <Segmented
         label={row.label}
         options={(row.options ?? []).map((option) => ({ id: option, label: option }))}
@@ -192,10 +194,25 @@ function onTextBlur(event: FocusEvent): void {
 </div>
 
 <style>
+  /* Stacked by default, the name over its control; an inspector that reads label-left sets `--label-columns`, so the
+     name and the control share a row. A widget that draws its own name (a stepper, a colour, a picker) spans both
+     columns and lines its name up through `--label-flex` instead, and so does a message under a control; the control
+     right after a name takes `--label-control-column` (2 when label-left). */
   .field {
     display: grid;
-    gap: var(--space-1);
+    grid-template-columns: var(--label-columns, minmax(0, 1fr));
+    align-items: center;
+    gap: var(--space-1) var(--space-2);
     min-width: 0;
+  }
+  .field > * {
+    grid-column: 1 / -1;
+  }
+  .field > .label {
+    grid-column: 1;
+  }
+  .field > .label + * {
+    grid-column: var(--label-control-column, 1 / -1);
   }
   .label {
     color: var(--muted);
@@ -204,7 +221,7 @@ function onTextBlur(event: FocusEvent): void {
   .text {
     box-sizing: border-box;
     width: 100%;
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: var(--space-2);
     border: 1px solid var(--line-strong);
     border-radius: var(--edge-sm);

@@ -14,7 +14,11 @@ const tokens = JSON.parse(readFileSync(join(SRC, 'shared/kit/tokens/tokens.json'
 }
 
 /** The only round shapes: status and colour dots, small enough that a square reads as a glitch. */
-const DOTS = ['shared/kit/home/SourcesPanel.svelte', 'features/characters/DefinitionPreview.svelte']
+const DOTS = [
+  'shared/kit/home/SourcesPanel.svelte',
+  'features/characters/DefinitionPreview.svelte',
+  'features/document/DocumentBar.svelte',
+]
 
 function svelteFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {

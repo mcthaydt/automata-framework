@@ -1,6 +1,6 @@
 <!--
   The view switcher in the top bar: Level, Map, Tiles, Characters. From an iPad up it is the kit's segmented control
-  (one tab stop, arrow keys choose, the open view checked); on a phone, where four labels do not fit beside the name
+  drawn as quiet tabs (one tab stop, arrow keys choose, the open view checked and underlined); on a phone, where four labels do not fit beside the name
   and Save, it is the kit's menu button, named after the open view ("Level"), listing all four. Choosing a view only
   changes the view: the document, its history and its save state stay. A view chosen here remounts the top bar around
   it, so the new switcher takes the focus back (`focusCurrent`).
@@ -36,7 +36,7 @@ onMount(() => {
   {#if compact}
     <Menu label={currentLabel} items={options} {onselect} />
   {:else}
-    <Segmented label="Views" {options} value={current ?? ''} onedit={(event) => onselect(event.value)} />
+    <Segmented label="Views" look="tabs" {options} value={current ?? ''} onedit={(event) => onselect(event.value)} />
   {/if}
 </div>
 

@@ -3,10 +3,13 @@
   column beside the canvas in `wide` and the 64 px tab bar along the foot below it. One tab stop: arrow keys, Home and
   End move along it, and the focus follows the choice. Cmd or Ctrl with 1 to 9 chooses an entry in rail order from
   anywhere on the page; the chosen tab scrolls into view.
-  On Home no entry is chosen and the first tab is the tab stop. Every tab is at least 44 px.
+  On Home no entry is chosen and the first tab is the tab stop. Every tab is at least 44 px. Each tab is its icon
+  above its name, as an app's tab bar draws it: the name stays (an icon alone would make a person guess), the icon lets
+  the eye find the editor without reading.
 -->
 <script lang="ts">
 import { tick } from 'svelte'
+import Icon from '../../../shared/kit/icons/Icon.svelte'
 import type { SuiteEntry } from './suite-entries'
 
 interface Props {
@@ -85,7 +88,8 @@ function shortcut(event: KeyboardEvent): void {
       data-entry={entry.id}
       aria-selected={entry.id === current}
       tabindex={entry.id === stop ? 0 : -1}
-      onclick={() => onselect(entry.id)}>{entry.label}</button
+      onclick={() => onselect(entry.id)}
+      ><Icon name={entry.icon} size={18} /><span class="label">{entry.label}</span></button
     >
   {/each}
 </div>
@@ -111,34 +115,55 @@ function shortcut(event: KeyboardEvent): void {
     overflow-y: hidden;
     scrollbar-width: none;
   }
+  /* Quiet until chosen: grey icon and name, the chosen tab in ink on the hover wash, as the top bar's tabs. */
   button {
+    display: flex;
     flex: 0 0 auto;
-    min-width: 44px;
-    min-height: 44px;
-    padding: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: var(--size-hit);
+    min-height: 52px;
+    padding: var(--space-1) 0;
     border: 0;
     border-radius: var(--edge-sm);
     background: transparent;
-    color: var(--color-text-dim);
-    /* The eyebrow size, a step lighter and a hair tighter, fits "Schematic" whole in the 56 px rail. */
-    font: var(--text-eyebrow-11);
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    color: var(--muted);
     cursor: pointer;
+    transition: color 120ms var(--ease-out), background 120ms var(--ease-out);
   }
   .rail[data-orientation='horizontal'] button {
     flex: 1 0 auto;
-    padding: 0 var(--space-2);
+    min-height: 56px;
+    padding: var(--space-1) var(--space-2);
+  }
+  /* The eyebrow size, a step lighter and a hair tighter, fits "Schematic" whole in the 56 px rail. */
+  .label {
+    max-width: 100%;
+    overflow: hidden;
+    font: var(--text-eyebrow-11);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  @media (hover: hover) {
+    button:hover {
+      color: var(--ink);
+    }
   }
   button[aria-selected='true'] {
-    background: var(--color-bg-raised);
-    color: var(--color-text-primary);
+    background: var(--surface);
+    color: var(--ink);
+  }
+  /* Along the foot the chosen tab is marked by ink and a line along its top edge, not a wash over a third of it. */
+  .rail[data-orientation='horizontal'] button[aria-selected='true'] {
+    background: none;
+    box-shadow: inset 0 2px 0 var(--ink);
   }
   button:focus-visible {
-    outline: 2px solid var(--color-accent-default);
+    outline: 2px solid var(--focus);
     outline-offset: -2px;
   }
 </style>

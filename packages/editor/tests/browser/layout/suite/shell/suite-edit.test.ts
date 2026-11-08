@@ -1,4 +1,5 @@
 import '#src/shared/kit/tokens.css'
+import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
 import '#src/app/suite/main.css'
 import { checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata/testing'
@@ -10,7 +11,11 @@ import { createSuite } from '#src/features/suite/shell/create-suite.ts'
 import { createMemoryPorts } from '#src/shared/kit/ports/memory/memory-ports.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { editorTargets } from '#src/testing/kit/targets.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
+
+/** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
+const targets = editorTargets()
 
 // The pills and the Ask diff dialog with the production CSS in real browsers at the sizes of spec §10: the pills stay
 // in the top bar at every size (icons with counts in the `short` tier and on a phone, never hidden), every target is
@@ -52,7 +57,7 @@ afterEach(async () => {
 
 async function open(size: EditorSize) {
   await page.viewport(size.width, size.height)
-  const conditions = publishConditions(document.documentElement, size, REST)
+  const conditions = publishConditions(document.documentElement, size, REST, targets)
   const load = loadEditorList(LIST)
   if (!load.ok) throw new Error(JSON.stringify(load.problems))
   const memory = await createMemoryPorts({
@@ -133,8 +138,8 @@ describe.each(SIZES)('Suite editing at $name ($width x $height)', (size) => {
     const barBox = bar?.getBoundingClientRect()
     for (const pill of pills) {
       const box = pill.getBoundingClientRect()
-      expect(box.height).toBeGreaterThanOrEqual(44)
-      expect(box.width).toBeGreaterThanOrEqual(44)
+      expect(box.height).toBeGreaterThanOrEqual(targets.hit)
+      expect(box.width).toBeGreaterThanOrEqual(targets.hit)
       expect(box.left).toBeGreaterThanOrEqual(-0.5)
       expect(box.right).toBeLessThanOrEqual(size.width + 0.5)
       if (barBox !== undefined) expect(box.top).toBeGreaterThanOrEqual(barBox.top - 0.5)
@@ -153,7 +158,7 @@ describe.each(SIZES)('Suite editing at $name ($width x $height)', (size) => {
     const listBox = list?.getBoundingClientRect()
     expect(listBox?.right).toBeLessThanOrEqual(size.width + 0.5)
     expect(listBox?.bottom).toBeLessThanOrEqual(size.height + 0.5)
-    expect(button('Locate lint').getBoundingClientRect().height).toBeGreaterThanOrEqual(44)
+    expect(button('Locate lint').getBoundingClientRect().height).toBeGreaterThanOrEqual(targets.hit)
     await page.screenshot({ path: `.vitest/shots/suite-pills-${size.name}.png` })
     pills[1]?.click()
     noPageScroll()
@@ -175,7 +180,7 @@ describe.each(SIZES)('Suite editing at $name ($width x $height)', (size) => {
     await settleLayout()
     for (const name of ['Accept', 'Reject']) {
       const box = button(name, dialog).getBoundingClientRect()
-      expect(box.height, name).toBeGreaterThanOrEqual(48)
+      expect(box.height, name).toBeGreaterThanOrEqual(targets.primary)
       expect(box.bottom, name).toBeLessThanOrEqual(size.height + 0.5)
       expect(box.right, name).toBeLessThanOrEqual(size.width + 0.5)
       expect(box.left, name).toBeGreaterThanOrEqual(-0.5)

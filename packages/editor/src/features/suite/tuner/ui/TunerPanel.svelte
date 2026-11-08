@@ -1,8 +1,9 @@
 <!--
-  The Tuner's panel: a search box and the tunables as a list, a lock mark on each locked one. Choosing one is the
-  controller's selection, which the inspector shows; the search keeps the rows whose name or note contains the text.
+  The Tuner's panel: a search box and the settings as a list by their labels, a Kept mark on each kept one. Choosing one is the
+  controller's selection, which the inspector shows; the search keeps the rows whose name, label, feel or note contains the text.
 -->
 <script lang="ts">
+import { shownName } from '../tuner-content'
 import type { TunerController } from '../tuner-controller'
 
 const { controller }: { controller: TunerController } = $props()
@@ -31,8 +32,8 @@ const rows = $derived.by(() => {
   <input
     class="search"
     type="search"
-    aria-label="Search tunables"
-    placeholder="Search tunables"
+    aria-label="Search settings"
+    placeholder="Search settings"
     value={$filter}
     oninput={(event) => controller.setFilter(event.currentTarget.value)}
   />
@@ -46,8 +47,8 @@ const rows = $derived.by(() => {
           aria-pressed={$selected === tunable.name}
           onclick={() => controller.select(tunable.name)}
         >
-          <span>{tunable.name}</span>
-          {#if locked}<span class="mark">Locked</span>{/if}
+          <span>{shownName(tunable)}</span>
+          {#if locked}<span class="mark">Kept</span>{/if}
         </button>
       </li>
     {/each}
@@ -63,11 +64,11 @@ const rows = $derived.by(() => {
     font: var(--text-body-13);
   }
   .search {
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: 0 var(--space-2);
-    border: 1px solid var(--color-border-default, #3a3f48);
+    border: 1px solid var(--line-strong);
     border-radius: var(--edge-sm);
-    background: var(--color-surface-base, #14161a);
+    background: var(--paper);
     color: inherit;
     font: inherit;
   }
@@ -83,7 +84,7 @@ const rows = $derived.by(() => {
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: 0 var(--space-2);
     border: 1px solid transparent;
     border-radius: var(--edge-sm);
@@ -94,7 +95,7 @@ const rows = $derived.by(() => {
     cursor: pointer;
   }
   button.chosen {
-    border-color: var(--color-accent, #d9a441);
+    border-color: var(--color-accent-default);
   }
   .mark {
     color: var(--color-text-dim);

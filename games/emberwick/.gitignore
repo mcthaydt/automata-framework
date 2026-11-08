@@ -1,1 +1,3 @@
 .vitest/
+# The dev journey's copy of content/ (package.json `e2e:dev`).
+.e2e/

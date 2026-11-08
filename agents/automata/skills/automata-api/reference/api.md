@@ -2464,10 +2464,11 @@ so Back to {host} can still reach its `Hosting`. Try again and Continue without 
 boot again on the same root without reloading the page. Inside a Ruken session, Try again reloads the game's frame
 instead: the host answers one hello per frame load, so a second session in this load would never be welcomed.
 
-`shutdown()` stops a boot under way and closes the current attempt, last opened first.
+`shutdown()` stops a boot under way and closes the current attempt, last opened first. `start.at` names the screen
+the flow starts on (a restart in development); `screen` is the screen showing now.
 
 ```ts
-function runGame<S>(game: GameDefinition<S>): RuntimeHandle;
+function runGame<S>(game: GameDefinition<S>, start?: StartOptions): RuntimeHandle;
 ```
 
 #### `RuntimeFacts` (interface)
@@ -2574,6 +2575,8 @@ Controls the running game: `shutdown` closes everything the runtime opened, last
 
 ```ts
 interface RuntimeHandle {
+    /** The screen showing now; `undefined` before the flow starts and after shutdown. */
+    readonly screen: string | undefined;
     shutdown(): Promise<void>;
 }
 ```
@@ -3179,10 +3182,26 @@ interface SpriteViewOptions {
 Boots a game: `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting
 and the default screens, then the runtime's boot on the game's root. Takes a spec or a game `defineGame`
 already returned. Throws `BootDefect` before anything mounts when the spec is invalid or there is no
-root (`spec.root`, else `#game`); a failure after that shows on the runtime's boot failure panel.
+root (`spec.root`, else `#game`); a failure after that shows on the runtime's boot failure panel. `start.at` starts on
+another screen than the flow's entry, for a restart in development (`StartOptions`).
 
 ```ts
-function startGame<S = never>(game: GameSpec<S> | DefinedGame<S>): RuntimeHandle;
+function startGame<S = never>(game: GameSpec<S> | DefinedGame<S>, start?: StartOptions): RuntimeHandle;
+```
+
+#### `StartOptions` (interface)
+
+How a game starts.
+
+```ts
+interface StartOptions {
+    /**
+     * The screen to start on instead of the flow's entry, for a restart in development that brings the person back
+     * where they were (a tuning change restarts the game on new content). A screen the flow does not have starts at
+     * the entry. The start screen's assets load as it enters, as any screen's do after boot.
+     */
+    readonly at?: string | undefined;
+}
 ```
 
 #### `StepResult` (interface)
@@ -3506,7 +3525,7 @@ function byTestId(id: string): HTMLElement;
 
 #### `checkLayout` (function)
 
-The checks every screen shares: the document never scrolls; every control is at least the target
+The checks every screen shares: the document never scrolls; every control is at least the conditions' target
 (primaries the primary target) at this scale, on screen unless in a declared scroll region,
 never under a reserved area or a touch button and never over the corner row; the corner row's controls and any
 `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no
@@ -3528,6 +3547,8 @@ interface Conditions {
     readonly geometry: Geometry;
     /** What covers the page in this variant: the keyboard, Ruken's strip. Nothing may sit under it. */
     readonly reserved: LayoutRect[];
+    /** The sizes every control is held to (`TOUCH_TARGETS` unless the screen is held with a mouse). */
+    readonly targets: Targets;
 }
 ```
 
@@ -4093,10 +4114,10 @@ function pressedPart(control: HTMLElement): HTMLElement;
 
 #### `publishConditions` (function)
 
-Measures and publishes the geometry for `size` under `variant`, as the owner would.
+Measures and publishes the geometry for `size` under `variant`, as the owner would; `targets` are the control sizes the checks hold.
 
 ```ts
-function publishConditions(root: HTMLElement, size: ReferenceSize, variant: Variant): Conditions;
+function publishConditions(root: HTMLElement, size: ReferenceSize, variant: Variant, targets?: Targets): Conditions;
 ```
 
 #### `REFERENCE_SIZES` (const)
@@ -4215,6 +4236,17 @@ interface Submission {
 }
 ```
 
+#### `Targets` (interface)
+
+The smallest a control may be drawn, in CSS px before the display's scale: `hit` for any control, `primary` for one marked `data-primary`.
+
+```ts
+interface Targets {
+    readonly hit: number;
+    readonly primary: number;
+}
+```
+
 #### `textSnippet` (function)
 
 A Svelte 5 snippet rendering `<tag>text</tag>`, so a test can pass `children`, `body` or an icon
@@ -4233,6 +4265,15 @@ keep their actions above a keyboard (ErrorPanel, the boot failure) are checked h
 
 ```ts
 const TIGHT_SIZES: readonly ReferenceSize[];
+```
+
+#### `TOUCH_TARGETS` (const)
+
+The touch rule, every game screen's default: a control is at least 44 px, a primary 48. Only a screen held with a
+mouse (an editor on a desktop) may pass smaller targets, and then it proves the touch rule again with touch.
+
+```ts
+const TOUCH_TARGETS: Targets;
 ```
 
 #### `TrackedEvent` (interface)

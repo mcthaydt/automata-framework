@@ -1,0 +1,38 @@
+/*
+ * The editors' tool chrome, from the redesign mockup the Owner approved on 2026-11-06: one neutral palette for every
+ * editor screen. It puts the `--tool-*` tokens under the names the kit's components already read (the field, paper,
+ * the hover surface, the hairlines, the grey, the selection wash and the level's cabinet), so every view takes the look without each one
+ * changing. Editor pages import it once, after tokens.css; the website does not, so it keeps its own field.
+ */
+:root {
+  --bg: var(--tool-bg);
+  --paper: var(--tool-panel);
+  --surface: var(--tool-hover);
+  --line: var(--tool-line);
+  --line-strong: var(--tool-line-strong);
+  --muted: var(--tool-muted);
+  --cobalt-soft: var(--tool-selected);
+  /* The cabinet around the level (the stage and the home cards' wash): the mockup's near-black, a step darker than
+     the website's charcoal, so the level reads as the brightest thing on screen. */
+  --charcoal: var(--tool-stage);
+}
+
+/*
+ * The mockup's density: with a mouse (a fine pointer that hovers), rows and controls are 32 px, a primary too. Once any
+ * coarse pointer is present (a phone, an iPad, even one with a trackpad, a touch laptop), the touch rule comes back:
+ * 44 px, a primary 48. The touch block comes last, so it wins when both match. Every kit and view control sizes
+ * itself from these two, so the editors change density in one place.
+ */
+@media (hover: hover) and (pointer: fine) {
+  :root {
+    --size-hit: 32px;
+    --size-primary: 32px;
+  }
+}
+
+@media (any-pointer: coarse) {
+  :root {
+    --size-hit: 44px;
+    --size-primary: 48px;
+  }
+}

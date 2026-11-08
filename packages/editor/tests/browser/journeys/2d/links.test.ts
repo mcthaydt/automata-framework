@@ -85,14 +85,14 @@ describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-la
       expect(open.project().levels.map((level) => level.name)).toEqual(['Map 1', 'Inn'])
 
       await rail('Level')
-      await chooseLayer('Entities')
+      await chooseLayer('Characters')
       await press('radio', 'Brush')
       await press('radio', 'Door')
       await pen().tap(cellAt(open, 6, 4, 'map-1'), { kind: 'pen' })
 
       await openLevel(/Inn/)
       await pressButton('Fit the level in view')
-      await chooseLayer('Entities')
+      await chooseLayer('Characters')
       await press('radio', 'Brush')
       await press('radio', 'Door')
       await pen().tap(cellAt(open, 2, 12, 'level-1'), { kind: 'pen' })
@@ -100,7 +100,7 @@ describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-la
 
       await openLevel(/Map 1/)
       await pressButton('Fit the level in view')
-      await chooseLayer('Entities')
+      await chooseLayer('Characters')
       await press('radio', 'Select')
       await pen().tap(cellAt(open, 6, 4, 'map-1'), { kind: 'pen' })
       await pointAt(/^Inn/, 'Door at')

@@ -57,7 +57,7 @@ describe('the Entities session: definitions', () => {
 
   it('adds a 16 × 16 rect with its pivot at the bottom centre, and selects it', () => {
     const { history, session } = open()
-    oneStep(history, 'Add entity', () => session.addDefinition())
+    oneStep(history, 'Add character', () => session.addDefinition())
     const added = defOf(history, 'entity-000000dw')
     expect(added).toMatchObject({
       shape: 'rect',
@@ -148,10 +148,10 @@ describe('the Entities session: fields', () => {
   it('adds an optional text field to the selected owner, and selects it', () => {
     const { history, session } = open()
     session.select({ owner: { entity: 'slime' } })
-    oneStep(history, 'Add field', () => session.addField())
+    oneStep(history, 'Add setting', () => session.addField())
     expect(session.selection.field).toEqual({ id: 'field_000000dw', type: 'text', default: '' })
     session.select({ owner: 'level' })
-    oneStep(history, 'Add field', () => session.addField())
+    oneStep(history, 'Add setting', () => session.addField())
     expect(stateOf(history).defs.levelFields.map((field) => field.id)).toEqual(['music', 'field_000000dx'])
   })
 

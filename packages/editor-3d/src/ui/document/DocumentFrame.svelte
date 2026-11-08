@@ -14,7 +14,7 @@ import {
   EditorShell,
   RecoveryDialog,
   StatusLine,
-  shellModeOf,
+  shellModeAt,
   ToastRegion,
 } from '@mcthaydt/automata-editor/kit'
 import { createCommandRegistry, createKeymap, type ToastStore } from '@mcthaydt/automata-editor/kit/core'
@@ -84,7 +84,7 @@ function snapshot(source: DocumentController): DocumentState {
   return current
 }
 
-const shellMode = $derived(shellModeOf(geometry.current.formFactor))
+const shellMode = $derived(shellModeAt(geometry.current))
 /**
  * The inspector column at wide needs room beside the rail, the layers and the plan: on a window narrower than this the
  * plan would be left a few hundred pixels for its toolbar, lens, pad and actions, so the column is left out and the
@@ -195,6 +195,9 @@ const planWords = $derived(planStatus({ pointer, pxPerMetre: zoom, selection, br
 // On a phone the bar has no room for the checks pill, so its words lead the status line.
 const viewWords = $derived(mode === 'walk' && walkWords !== undefined ? walkWords : planWords)
 const statusWords = $derived(compact ? `${pill.text} · ${viewWords}` : viewWords)
+
+/** The level's name for the shared dialogs: its file name without the folder or the extensions ("depot"). */
+const levelName = $derived((view.level.path.split('/').pop() ?? view.level.path).replace(/\..*$/, ''))
 </script>
 
 <svelte:window {onkeydown} />
@@ -315,7 +318,7 @@ const statusWords = $derived(compact ? `${pill.text} · ${viewWords}` : viewWord
 
   {#snippet sheets()}
     <RecoveryDialog
-      path={view.level.path}
+      name={levelName}
       recovery={view.recovery}
       now={clock.now()}
       busy={view.busy !== undefined}
@@ -324,7 +327,7 @@ const statusWords = $derived(compact ? `${pill.text} · ${viewWords}` : viewWord
     />
     <ConflictDialog
       open={view.conflict}
-      path={view.level.path}
+      name={levelName}
       busy={view.busy !== undefined}
       onkeep={() => controller.keepMine()}
       ontake={() => controller.takeTheirs()}

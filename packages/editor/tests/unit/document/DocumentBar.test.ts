@@ -5,8 +5,8 @@ import { describe, expect, it, vi } from 'vitest'
 import DocumentBar from '#src/features/document/DocumentBar.svelte'
 import type { SaveState } from '#src/shared/kit/storage/save-state.ts'
 
-// The document's top bar, essentials only: Back, the level's name, Undo and Redo as icon buttons, and Save, the one
-// primary action, which says where the level stands ("Save", "Saving…", "Saved").
+// The document's top bar, essentials only: Back, the level's name, Undo and Redo as icon buttons, where the level
+// stands on saving as a quiet status ("Saved", "Not saved", "Saving…"), and Save, the one primary action.
 
 interface Props {
   canUndo?: boolean
@@ -42,22 +42,38 @@ describe('DocumentBar', () => {
     expect(screen.getByTestId('document-bar')).toHaveAttribute('data-path', 'levels/mossgate.af2d.json')
   })
 
-  it('Save is the one primary button and says where the level stands', () => {
-    mount({ save: 'dirty' })
-    const save = screen.getByTestId('save')
-    expect(save).toHaveAttribute('data-kind', 'primary')
-    expect(save).toHaveTextContent('Save')
-    cleanup()
-    mount({ save: 'saving' })
-    expect(screen.getByTestId('save')).toHaveTextContent('Saving…')
-    cleanup()
-    mount({ save: 'saved' })
-    expect(screen.getByTestId('save')).toHaveTextContent('Saved')
-    expect(document.querySelectorAll('[data-kind="primary"]')).toHaveLength(1)
+  it('Save is the one primary button and keeps its word; the status beside it says where the level stands', () => {
+    const words: ReadonlyArray<readonly [SaveState, string]> = [
+      ['saved', 'Saved'],
+      ['dirty', 'Not saved'],
+      ['saving', 'Saving…'],
+      ['error', 'Couldn’t save'],
+      ['device', 'Not kept on this device'],
+    ]
+    for (const [save, said] of words) {
+      mount({ save })
+      const button = screen.getByTestId('save')
+      expect(button).toHaveAttribute('data-kind', 'primary')
+      expect(button).toHaveTextContent(/^Save$/)
+      const status = screen.getByTestId('save-state')
+      expect(status).toHaveAttribute('data-save', save)
+      expect(status).toHaveTextContent(said)
+      expect(document.querySelectorAll('[data-kind="primary"]')).toHaveLength(1)
+      cleanup()
+    }
   })
 
-  it('Undo and Redo are icon buttons', () => {
+  it('tells a screen reader only when saving went wrong or cannot happen here', () => {
+    mount({ save: 'dirty' })
+    expect(screen.getByTestId('save-state')).toHaveAttribute('aria-live', 'off')
+    cleanup()
+    mount({ save: 'error' })
+    expect(screen.getByTestId('save-state')).toHaveAttribute('aria-live', 'polite')
+  })
+
+  it('Back, Undo and Redo are icon buttons, as the approved mockup draws them', () => {
     mount()
+    expect(screen.getByRole('button', { name: 'Back' }).querySelector('svg')).not.toBeNull()
     expect(screen.getByRole('button', { name: 'Undo' }).querySelector('svg')).not.toBeNull()
     expect(screen.getByRole('button', { name: 'Redo' }).querySelector('svg')).not.toBeNull()
   })

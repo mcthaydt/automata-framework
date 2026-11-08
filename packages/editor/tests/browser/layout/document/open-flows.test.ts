@@ -1,4 +1,5 @@
 import '#src/shared/kit/tokens.css'
+import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
 import '#src/app/editor-2d/main.css'
 import { byTestId, checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata/testing'
@@ -11,9 +12,13 @@ import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import { createAppProfiles } from '#src/shared/level-2d/profiles/app-profiles.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { editorTargets } from '#src/testing/kit/targets.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
+
+/** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
+const targets = editorTargets()
 
 // The open flows with the production CSS in a real browser: the
 // error panel with a long file, the Restore and conflict dialogs, and the document's top bar, at the eight window sizes
@@ -44,7 +49,7 @@ afterEach(async () => {
 /** Starts the editor at `size` over a workspace with the sample project, a broken file and, if asked, an autosave. */
 async function start(size: EditorSize, options: { autosave?: boolean } = {}) {
   await page.viewport(size.width, size.height)
-  const conditions = publishConditions(document.documentElement, size, REST)
+  const conditions = publishConditions(document.documentElement, size, REST, targets)
   const clock = createTestClock()
   const workspace = memoryWorkspace(clock)
   await workspace.store.write(PROJECT, printProject(mossgate()))
@@ -101,9 +106,10 @@ const dialog = (): HTMLElement => {
   return found
 }
 
+/** A button by its accessible name: its `aria-label` (an icon button, such as Back) or else its words. */
 const button = (root: HTMLElement, name: string): HTMLElement => {
   const found = [...root.querySelectorAll<HTMLElement>('button')].find(
-    (candidate) => candidate.textContent?.trim() === name,
+    (candidate) => (candidate.getAttribute('aria-label') ?? candidate.textContent?.trim()) === name,
   )
   if (found === undefined) throw new Error(`no ${name} button`)
   return found
@@ -128,11 +134,12 @@ describe.each(SIZES)('open flows at $name ($width x $height)', (size) => {
     const another = button(panel, 'Open another')
     expect(checkLayout(conditions, [copy, another])).toEqual([])
     expect(another.getBoundingClientRect().height, 'Open another is a primary action').toBeGreaterThanOrEqual(
-      48,
+      targets.primary,
     )
     if (size.width >= 700) expect(panel.getBoundingClientRect().width, 'the wide dialog').toBeGreaterThan(600)
 
-    const lines = panel.querySelector<HTMLElement>('[data-scroll-region]') as HTMLElement
+    // The innermost scroll region: the dialog's own body is one too, around it.
+    const lines = [...panel.querySelectorAll<HTMLElement>('[data-scroll-region]')].at(-1) as HTMLElement
     expect(getComputedStyle(lines).overflowX).toBe('auto')
     expect(getComputedStyle(lines).touchAction).toBe('pan-x pan-y')
     expect(lines.scrollHeight).toBeGreaterThan(lines.clientHeight)
@@ -166,9 +173,9 @@ describe.each(SIZES)('open flows at $name ($width x $height)', (size) => {
     await openFromHome(PROJECT)
     const recover = dialog()
     expectInside(recover, size)
-    const restore = button(recover, 'Restore edits')
-    expect(checkLayout(conditions, [button(recover, 'Discard'), restore])).toEqual([])
-    expect(restore.getBoundingClientRect().height).toBeGreaterThanOrEqual(48)
+    const restore = button(recover, 'Keep my changes')
+    expect(checkLayout(conditions, [button(recover, 'Throw away'), restore])).toEqual([])
+    expect(restore.getBoundingClientRect().height).toBeGreaterThanOrEqual(targets.primary)
     expect(document.activeElement, 'the question has the focus, not the heading behind it').toBe(restore)
     await page.screenshot({ path: `.vitest/shots/recover-${size.name}.png` })
 
@@ -182,14 +189,12 @@ describe.each(SIZES)('open flows at $name ($width x $height)', (size) => {
     await arrived()
     const conflict = dialog()
     expectInside(conflict, size)
-    const choices = ['Cancel', 'Take theirs', 'Keep mine', 'Save as copy'].map((name) =>
-      button(conflict, name),
-    )
+    const choices = ['Cancel', 'Use theirs', 'Use mine', 'Keep both'].map((name) => button(conflict, name))
     expect(checkLayout(conditions, choices)).toEqual([])
     expect(
-      button(conflict, 'Save as copy').getBoundingClientRect().height,
+      button(conflict, 'Keep both').getBoundingClientRect().height,
       'the primary action',
-    ).toBeGreaterThanOrEqual(48)
+    ).toBeGreaterThanOrEqual(targets.primary)
     await page.screenshot({ path: `.vitest/shots/conflict-${size.name}.png` })
   })
 })

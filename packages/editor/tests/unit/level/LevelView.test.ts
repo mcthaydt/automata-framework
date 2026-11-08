@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, within } from '@testing-library/svelte'
+import { cleanup, render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createEditorApp } from '#src/app/editor-2d/editor-app.ts'
@@ -74,24 +74,27 @@ describe('Level view: layers', () => {
     await mount()
     const rows = within(layers()).getAllByRole('option')
     expect(rows.map((row) => row.querySelector('.label')?.textContent)).toEqual([
-      'Entities',
+      'Characters',
       'Decor',
       'Ground',
       'Collision',
     ])
+    // A name that already says what the layer holds ("Characters") is not said twice.
     expect(rows.map((row) => row.querySelector('.kind')?.textContent)).toEqual([
-      'Characters and items',
+      undefined,
       'Tiles',
       'Tiles that place themselves',
       'Walls and floors',
     ])
     // Each row has its colour and two icon toggles named for what a press does.
     expect(rows.every((row) => row.querySelector('.swatch') !== null)).toBe(true)
-    expect(within(rows[0] as HTMLElement).getByRole('button', { name: 'Hide Entities' })).toHaveAttribute(
+    expect(within(rows[0] as HTMLElement).getByRole('button', { name: 'Hide Characters' })).toHaveAttribute(
       'aria-pressed',
       'false',
     )
-    expect(within(rows[0] as HTMLElement).getByRole('button', { name: 'Lock Entities' })).toBeInTheDocument()
+    expect(
+      within(rows[0] as HTMLElement).getByRole('button', { name: 'Lock Characters' }),
+    ).toBeInTheDocument()
     expect(rows[0]).toHaveAttribute('aria-selected', 'true')
     expect(canvas()).toHaveAttribute('data-layer', 'entities')
   })
@@ -183,16 +186,19 @@ describe('Level view: toolbar and canvas', () => {
     expect(canvas()).toHaveAttribute('data-camera', '24,24,1')
   })
 
-  it('opens the layers from the toolbar below wide', async () => {
-    await mount([834, 1194])
+  it('opens the layers from the tool dock in the compact layout', async () => {
+    await mount([390, 844])
     const button = screen.getByRole('button', { name: 'Layers' })
     expect(button).toHaveAttribute('aria-expanded', 'false')
     await userEvent.click(button)
     expect(button).toHaveAttribute('aria-expanded', 'true')
   })
 
-  it('has no Layers button in wide, where the panel is always in view', async () => {
+  it('has no Layers button in wide or medium, where the panel is always in view', async () => {
     await mount()
+    expect(screen.queryByRole('button', { name: 'Layers' })).toBeNull()
+    cleanup()
+    await mount([834, 1194])
     expect(screen.queryByRole('button', { name: 'Layers' })).toBeNull()
   })
 
@@ -265,8 +271,9 @@ async function placeSlime(x = 40, y = 40): Promise<HTMLElement> {
   return surface
 }
 
-const inspectorTab = (name: string): HTMLElement =>
-  within(screen.getByRole('tablist', { name: 'Inspector' })).getByRole('tab', { name })
+/** The inspector's heading: the chosen thing's name, or the level's with nothing chosen (there are no tabs). */
+const inspectorHeading = (): HTMLElement =>
+  within(screen.getByTestId('level-inspector')).getByRole('heading', { level: 2 })
 
 const stepper = (name: string): string | null =>
   screen.getByRole('spinbutton', { name }).getAttribute('aria-valuenow')
@@ -282,7 +289,7 @@ describe('Level view: the inspector opens on selection', () => {
     expect(inspectorRegion()).toHaveAttribute('data-open', 'false')
     await placeSlime()
     expect(inspectorRegion()).toHaveAttribute('data-open', 'true')
-    expect(inspectorTab('Entity')).toHaveAttribute('aria-selected', 'true')
+    expect(inspectorHeading()).toHaveTextContent('Slime')
   })
 })
 
@@ -290,7 +297,7 @@ describe('Level view: inspector journey (flow 3, G-e)', () => {
   it('places a thing, edits its fields, refuses a bad value and undoes', async () => {
     await mount()
     await placeSlime()
-    expect(inspectorTab('Entity')).toHaveAttribute('aria-selected', 'true')
+    expect(inspectorHeading()).toHaveTextContent('Slime')
     expect(stepper('Hit points')).toBe('3')
 
     await userEvent.click(screen.getByRole('button', { name: 'Increase Hit points' }))
@@ -355,15 +362,15 @@ describe('Level view: shortcuts (§12)', () => {
     expect(screen.getByRole('button', { name: 'Undo Duplicate' })).toBeEnabled()
     await userEvent.keyboard('{Delete}')
     expect(screen.getByRole('button', { name: 'Undo Delete' })).toBeEnabled()
-    // Nothing is selected any more, so the inspector falls back to the Level tab.
-    expect(inspectorTab('Level')).toHaveAttribute('aria-selected', 'true')
+    // Nothing is selected any more, so the inspector shows the level.
+    expect(inspectorHeading()).toHaveTextContent('Level 1')
     await userEvent.keyboard('{Control>}z{/Control}')
     expect(screen.getByRole('button', { name: 'Undo Duplicate' })).toBeEnabled()
   })
 
   it('ignores tool letters while typing in a text field', async () => {
     await mount()
-    expect(inspectorTab('Level')).toHaveAttribute('aria-selected', 'true')
+    expect(inspectorHeading()).toHaveTextContent('Level 1')
     await userEvent.click(screen.getByRole('textbox', { name: 'Music' }))
     await userEvent.keyboard('r')
     expect(canvas()).toHaveAttribute('data-tool', 'brush')
@@ -394,11 +401,7 @@ describe('Level view: accessibility', () => {
 
   it('reaches the bar (with its view switcher), the canvas and the inspector in that order with the keyboard', async () => {
     await mount()
-    const regions = [
-      screen.getByTestId('document-bar'),
-      canvas(),
-      inspectorTab('Entity').closest('[role="tablist"]') as HTMLElement,
-    ]
+    const regions = [screen.getByTestId('document-bar'), canvas(), screen.getByTestId('level-inspector')]
     expect(within(screen.getByTestId('document-bar')).getByRole('radiogroup', { name: 'Views' })).toBeTruthy()
     for (const [before, after] of regions.slice(1).map((region, at) => [regions[at], region] as const))
       expect(

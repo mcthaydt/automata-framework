@@ -40,11 +40,11 @@ function tileStyle(tile: number, flipX: boolean, flipY: boolean): string {
 <section class="preview" aria-labelledby="preview-heading" data-testid="rule-preview">
   <div class="head">
     <h2 id="preview-heading">Live preview</h2>
-    <span class="meta">{layer?.label} · seed {preview.seed}</span>
+    <span class="meta">{layer?.label}</span>
   </div>
   <div class="pair">
     <figure>
-      <figcaption>IntGrid · {source?.label ?? ''} · {value?.label ?? value?.id ?? ''}</figcaption>
+      <figcaption>Where you paint {value?.label ?? value?.id ?? ''} on {source?.label ?? ''}</figcaption>
       <div class="grid" style:--cols={preview.source.cols} data-testid="preview-source">
         {#each cells as index (index)}
           {@const filled = preview.source.get(index % preview.source.cols, Math.floor(index / preview.source.cols)) !== 0}
@@ -53,7 +53,7 @@ function tileStyle(tile: number, flipX: boolean, flipY: boolean): string {
       </div>
     </figure>
     <figure>
-      <figcaption>Result · {layer?.label ?? ''}</figcaption>
+      <figcaption>The tiles {layer?.label ?? ''} places</figcaption>
       <div class="grid" style:--cols={preview.source.cols} data-testid="preview-result">
         {#each cells as index (index)}
           <span class="cell" class:matched={matched.has(index)} data-cell={index}>

@@ -222,3 +222,32 @@ describe('the Tilesets session: groups and tags', () => {
     expect(session.newTag('  ')).toEqual({ ok: false, message: 'Give the tag a name.' })
   })
 })
+
+describe('the Tilesets session: Add tiles', () => {
+  const forest = {
+    id: 'forest',
+    label: 'Forest',
+    image: 'assets/forest.png',
+    imageSize: { w: 64, h: 32 },
+    tile: { w: 16, h: 16 },
+    spacing: 0,
+    padding: 0,
+    tags: [],
+  }
+
+  it('adds the tileset as one undo step and shows it, ready to paint with', () => {
+    const { history, session } = open()
+    oneStep(history, 'Add tiles', () => session.addTileset(forest))
+    expect((history.state as Project).defs.tilesets.at(-1)).toEqual(forest)
+    expect(session.selection.tileset).toBe('forest')
+    expect(session.selection.tiles).toEqual([])
+  })
+
+  it('refuses a tileset the model refuses, with nothing added', () => {
+    const { history, session } = open()
+    const before = history.revision
+    const done = session.addTileset({ ...forest, id: 'terrain' })
+    expect(done.ok).toBe(false)
+    expect(history.revision).toBe(before)
+  })
+})

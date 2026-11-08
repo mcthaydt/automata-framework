@@ -1,9 +1,9 @@
 <!--
-  The Entities view's inspector: tabs Definition and Fields. Definition edits the
+  The Characters view's inspector: tabs Character and Settings (were Definition and Fields). Character edits the
   selected entity definition (label, colour, shape, size, one per level, tile, and under More its name in code and
   anchor point) and offers Duplicate and Delete;
-  Fields lists the owner's fields, adds one, and edits the selected one (`FieldDefEditor.svelte`). For the level fields
-  only the Fields tab has content. A refused value shows its message; a delete or a field change in use opens the
+  Settings lists the owner's fields, adds one, and edits the selected one (`FieldDefEditor.svelte`). For the level fields
+  only the Settings tab has content. A refused value shows its message; a delete or a field change in use opens the
   refusal dialog, whose "anyway" is one undo step (G-f).
 -->
 <script lang="ts">
@@ -84,8 +84,9 @@ function tileChoice(current: EntityDef2D, id: string): void {
   <Tabs
     label="Inspector"
     tabs={[
-      ...(def === undefined ? [] : [{ id: 'definition', label: 'Definition' }]),
-      { id: 'fields', label: `Fields ${selection.fields.length}` },
+      ...(def === undefined ? [] : [{ id: 'definition', label: 'Character' }]),
+      // A count only when there is something to count: "Settings 0" read as a setting named 0.
+      { id: 'fields', label: selection.fields.length === 0 ? 'Settings' : `Settings (${selection.fields.length})` },
     ]}
     value={tab}
     onselect={(id) => (chosenTab = id)}
@@ -189,8 +190,8 @@ function tileChoice(current: EntityDef2D, id: string): void {
       {:else}
         <div class="fields">
           <div class="head">
-            <h2 id="field-list-heading">{def === undefined ? 'Settings for every level' : `Fields of ${def.label ?? def.id}`}</h2>
-            <Button onclick={() => show(session.addField())}>Add field</Button>
+            <h2 id="field-list-heading">{def === undefined ? 'Settings for every level' : `Settings of ${def.label ?? def.id}`}</h2>
+            <Button onclick={() => show(session.addField())}>Add setting</Button>
           </div>
           <div class="choices" role="radiogroup" aria-labelledby="field-list-heading">
             {#each fieldRows(selection.fields) as row (row.id)}
@@ -205,7 +206,7 @@ function tileChoice(current: EntityDef2D, id: string): void {
                 <span class="sub">{row.summary}</span>
               </button>
             {:else}
-              <p class="empty">No fields yet.</p>
+              <p class="empty">No settings yet.</p>
             {/each}
           </div>
           {#if selection.field !== undefined}
@@ -232,7 +233,12 @@ function tileChoice(current: EntityDef2D, id: string): void {
 {/if}
 
 <style>
+  /* Label-left, the Level view's inspector's column: the kit's Stepper, ColorField and FieldEditor read these. */
   .inspector {
+    --label-width: 5.5rem;
+    --label-flex: 0 0 var(--label-width);
+    --label-columns: var(--label-width) minmax(0, 1fr);
+    --label-control-column: 2;
     display: grid;
     align-content: start;
     min-width: 0;
@@ -270,6 +276,8 @@ function tileChoice(current: EntityDef2D, id: string): void {
   }
   .text {
     display: grid;
+    grid-template-columns: var(--label-columns);
+    align-items: center;
     gap: var(--space-1);
   }
   .label {
@@ -277,7 +285,7 @@ function tileChoice(current: EntityDef2D, id: string): void {
     font: var(--text-label-12);
   }
   input {
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: 0 var(--space-2);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--edge-sm);
@@ -286,7 +294,7 @@ function tileChoice(current: EntityDef2D, id: string): void {
     font: var(--text-body-13);
   }
   .toggle {
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: 0 var(--space-3);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--edge-sm);
@@ -309,7 +317,7 @@ function tileChoice(current: EntityDef2D, id: string): void {
     align-content: center;
     width: 100%;
     min-width: 0;
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: var(--space-1) var(--space-2);
     border: 1px solid transparent;
     border-radius: var(--edge-sm);

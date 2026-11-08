@@ -15,7 +15,6 @@ export {
   saveFailure,
 } from '../shared/kit/dialogs/document-messages'
 export { default as RecoveryDialog } from '../shared/kit/dialogs/RecoveryDialog.svelte'
-export { recoveryFacts } from '../shared/kit/dialogs/recovery-facts'
 export { retryAction } from '../shared/kit/dialogs/retry-action'
 export { default as FieldEditor } from '../shared/kit/fields/FieldEditor.svelte'
 export * from '../shared/kit/fields/index'
@@ -101,6 +100,7 @@ export {
   nextDetent,
   type ShellMode,
   type ShellRegion,
+  shellModeAt,
   shellModeOf,
 } from '../shared/kit/shell/shell-mode'
 export { type OpenState, reconcileOpen } from '../shared/kit/shell/shell-open'

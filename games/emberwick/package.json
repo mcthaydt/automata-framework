@@ -28,6 +28,7 @@
     "typecheck": "tsc -p . && tsc -p tsconfig.node.json",
     "test:e2e": "playwright test",
     "e2e:game": "vite build --configLoader runner && vite preview --configLoader runner --base $AF_E2E_GAME_PATH --strictPort --host localhost --port $AF_E2E_PREVIEW_PORT",
+    "e2e:dev": "rm -rf .e2e && mkdir .e2e && cp -R content .e2e/content && AF_E2E_CONTENT_ROOT=$PWD/.e2e vite --configLoader runner --strictPort --host localhost --port $AF_E2E_DEV_PORT",
     "e2e:host": "VITE_GAME_ORIGIN=http://localhost:$AF_E2E_PREVIEW_PORT VITE_GAME_PATH=$AF_E2E_GAME_PATH vite build --config tests/e2e/ruken/vite.config.ts && vite preview --config tests/e2e/ruken/vite.config.ts --strictPort --host 127.0.0.1 --port $AF_E2E_SERVER_PORT"
   },
   "dependencies": {

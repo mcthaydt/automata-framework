@@ -1,4 +1,4 @@
-import { simContent } from 'virtual:automata/content'
+import { simContent, simContentHash } from 'virtual:automata/content'
 import { levelContentSchema } from '@mcthaydt/automata-content/level-2d'
 import { parseRoom, type RoomSource } from '../../shared/room.ts'
 import { tuningOf } from '../../shared/tuning.ts'
@@ -17,3 +17,6 @@ export const ROOM: RoomSource = roomSourceOfLevel(level)
 
 /** The sim's `content`: the room, checked, and the tunables. */
 export const SIM_CONTENT = { room: parseRoom(ROOM), tuning: tuningOf(simContent) }
+
+/** The hash of that content: the page shows it (`#game[data-content-hash]`) so a journey can see a new one arrive. */
+export const SIM_CONTENT_HASH: string = simContentHash

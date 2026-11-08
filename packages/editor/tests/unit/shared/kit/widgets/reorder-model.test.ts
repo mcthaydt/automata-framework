@@ -3,6 +3,7 @@ import {
   autoScrollSpeed,
   moveRow,
   nearestUnlocked,
+  previewOffsets,
   rowOffsets,
   stepTarget,
   targetIndex,
@@ -156,5 +157,22 @@ describe('rowOffsets', () => {
 
   test('no change, no offsets', () => {
     expect(rowOffsets([10, 20, 30], [0, 1, 2])).toEqual([0, 0, 0])
+  })
+})
+
+describe('previewOffsets', () => {
+  test('shifts the rows between the lifted one and its target to make room', () => {
+    const shapes = [10, 20, 30].map((height) => ({ height, locked: false }))
+    // Row 0 moves to place 2: rows 1 and 2 rise by its height, and it falls by theirs.
+    expect(previewOffsets(shapes, 0, 2)).toEqual([50, -10, -10])
+  })
+
+  test('leaves a locked row where it is', () => {
+    const shapes = [
+      { height: 10, locked: false },
+      { height: 10, locked: true },
+      { height: 10, locked: false },
+    ]
+    expect(previewOffsets(shapes, 0, 2)).toEqual([20, 0, -20])
   })
 })

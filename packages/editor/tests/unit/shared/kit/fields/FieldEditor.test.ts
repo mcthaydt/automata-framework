@@ -142,7 +142,7 @@ describe('FieldEditor', () => {
     })
     expect(screen.getByText('gone (missing)')).toBeInTheDocument()
     await userEvent.setup().click(screen.getByRole('button', { name: 'Choose target' }))
-    expect(await screen.findByText('Nothing in the project can be its target.')).toBeInTheDocument()
+    expect(await screen.findByText('Nothing in this game can be its target.')).toBeInTheDocument()
   })
 
   it('shows a ref with no project behind it (a default) without a picker', () => {

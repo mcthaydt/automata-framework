@@ -10,6 +10,7 @@ import {
   deadButtons,
   horizontalOverflow,
   keyboardProblems,
+  smallTapTargets,
   storageKeys,
   watchPage,
 } from './gates'
@@ -25,7 +26,7 @@ const VIEWPORTS = [
   { name: 'desktop', width: 1280, height: 800 },
   { name: 'landscape phone', width: 780, height: 270 },
 ]
-const PRIMARY_LINKS = ['Start', 'Examples', 'Showcase', 'Docs', 'AI']
+const PRIMARY_LINKS = ['Docs', 'Examples', 'Editor', 'API']
 
 /** Loads a page and waits for semantic readiness: no network in flight and the web fonts applied. */
 async function open(page: Page, path: string): Promise<void> {
@@ -65,7 +66,7 @@ for (const viewport of VIEWPORTS) {
       const nav = (await desktop.isVisible())
         ? desktop
         : page.getByRole('navigation', { name: 'Mobile navigation' })
-      if (nav !== desktop) await page.locator('.mobile-nav summary').click()
+      if (nav !== desktop) await page.getByLabel('Menu').click()
       for (const label of PRIMARY_LINKS) {
         const link = nav.getByRole('link', { name: label, exact: true })
         await link.scrollIntoViewIfNeeded()
@@ -73,18 +74,18 @@ for (const viewport of VIEWPORTS) {
       }
     })
 
-    test('a Start link is in the header', async ({ page }) => {
+    test('a Get started link is in the header', async ({ page }) => {
       await open(page, '/docs')
       await expect(
         page
           .locator('header.site-header')
-          .getByRole('link', { name: 'Start', exact: true })
+          .getByRole('link', { name: 'Get started', exact: true })
           .locator('visible=true'),
       ).toHaveCount(1)
     })
 
     test('images are at most twice their rendered width', async ({ page }) => {
-      for (const path of ['/', '/start', '/showcase']) {
+      for (const path of ['/', '/start', '/examples']) {
         await open(page, path)
         for (const image of await page.locator('img:visible').all()) {
           await image.scrollIntoViewIfNeeded()
@@ -108,12 +109,63 @@ for (const viewport of VIEWPORTS) {
   })
 }
 
+// The six sizes of the site visual audit (M1, L1): phones and tablets as touch screens.
+const AUDIT_SIZES = [
+  { name: 'phone portrait', width: 390, height: 844, touch: true },
+  { name: 'phone landscape', width: 844, height: 390, touch: true },
+  { name: 'tablet portrait', width: 820, height: 1180, touch: true },
+  { name: 'tablet landscape', width: 1180, height: 820, touch: true },
+  { name: 'desktop portrait', width: 1080, height: 1920, touch: false },
+  { name: 'desktop landscape', width: 1440, height: 900, touch: false },
+]
+
+for (const size of AUDIT_SIZES) {
+  test.describe(`${size.name} ${size.width}×${size.height}`, () => {
+    test.use({
+      viewport: { width: size.width, height: size.height },
+      hasTouch: size.touch,
+      isMobile: size.touch && size.width < 900,
+    })
+
+    test('every link and button on every page is big enough to tap', async ({ page }) => {
+      test.setTimeout(180_000)
+      const small: string[] = []
+      for (const path of PAGES) {
+        await open(page, path)
+        for (const target of await smallTapTargets(page)) small.push(`${path}: ${target}`)
+      }
+      expect(small).toEqual([])
+    })
+
+    if (size.width < 760)
+      test('the open menu is opaque: nothing on the page shows through it', async ({ page }) => {
+        await open(page, '/')
+        await page.getByLabel('Menu').click()
+        const menu = page.getByRole('navigation', { name: 'Mobile navigation' })
+        await expect(menu).toBeVisible()
+        const background = await menu.evaluate((element) => getComputedStyle(element).backgroundColor)
+        // rgb(…) has no alpha; rgba(…, a) and transparent let the page show through.
+        expect(background).toMatch(/^rgb\(/)
+      })
+
+    test(
+      size.touch
+        ? 'search shows no keyboard shortcut on a touch screen'
+        : 'search shows its keyboard shortcut',
+      async ({ page }) => {
+        await open(page, '/')
+        await expect(page.locator('header kbd').locator('visible=true')).toHaveCount(size.touch ? 0 : 1)
+      },
+    )
+  })
+}
+
 test.describe('phone 375×667', () => {
   test.use({ viewport: { width: 375, height: 667 } })
 
   test('the primary action is visible without scrolling', async ({ page }) => {
     await open(page, '/')
-    await expect(page.getByRole('link', { name: 'Make your first change' }).first()).toBeInViewport()
+    await expect(page.getByRole('link', { name: 'Make a game' }).first()).toBeInViewport()
   })
 
   for (const path of PAGES) {
@@ -205,7 +257,7 @@ test.describe('desktop 1280×800', () => {
 
   test('search shows an empty state when nothing matches', async ({ page }) => {
     await open(page, '/')
-    await page.getByRole('button', { name: 'Search documentation and API' }).click()
+    await page.getByRole('button', { name: 'Search the docs and the API' }).click()
     await page.getByLabel('Search pages, docs, API and demos').fill('qqzzxxnothing')
     await expect(page.getByRole('dialog').getByRole('status')).toHaveText(
       'No matches. Try a function name or topic.',
@@ -230,15 +282,15 @@ test('on a slow 3G connection the home page heading and primary action appear', 
   await page.setViewportSize({ width: 375, height: 667 })
   await page.goto('/', { waitUntil: 'commit', timeout: 60_000 })
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 30_000 })
-  await expect(page.getByRole('link', { name: 'Make your first change' }).first()).toBeInViewport({
+  await expect(page.getByRole('link', { name: 'Make a game' }).first()).toBeInViewport({
     timeout: 30_000,
   })
 })
 
-// QB.3j. Chromium 153 fetches `loading="lazy"` pictures 1,500 to 2,000 px below the fold right after the poster, and
-// Lighthouse charges them to the poster's LCP (3.4 s against 2.1 s without them). The home page therefore asks for a
-// picture only when the reader is near it.
-test('the home page requests only the poster picture until the reader scrolls toward the others', async ({
+// QB.3j. Lighthouse charges to the poster's LCP every picture fetched before it paints. The home page's one other
+// picture, the editor, is far below the poster; `loading="lazy"` alone let Chromium fetch it at once, so NearView keeps
+// it out of the page until the reader is near it, and the first load asks for the poster alone.
+test('the home page requests only the poster picture until the reader scrolls toward the editor', async ({
   page,
 }) => {
   const requested: string[] = []
@@ -249,37 +301,15 @@ test('the home page requests only the poster picture until the reader scrolls to
   await page.setViewportSize({ width: 412, height: 823 })
   await open(page, '/')
   const notThePoster = () => requested.filter((name) => !name.startsWith('emberwick'))
-  const boxes = page.locator('.lazy-picture')
-  const pictures = page.locator('.lazy-picture img')
-  const total = await boxes.count()
   expect(requested.length, 'the poster is requested').toBeGreaterThan(0)
-  expect(total, 'the page has pictures below the poster').toBeGreaterThanOrEqual(3)
   expect(notThePoster()).toEqual([])
-
-  // The page scrolls smoothly (`scroll-behavior`), and a smooth scroll to the bottom passes every picture on the way,
-  // which asks for all of them; whether the browser draws enough frames on the way is not something to depend on (the
-  // hosted WebKit run did not). These scrolls jump, then wait two frames, which is when an IntersectionObserver reports.
-  const twoFrames = () =>
-    page.evaluate(
-      () =>
-        new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))),
-    )
-
-  // The bottom of the page is thousands of pixels from every picture, so a reader who lands there is near none of them.
-  await page.evaluate(() =>
-    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }),
-  )
-  await twoFrames()
-  expect(notThePoster(), 'no picture is asked for from the bottom of the page').toEqual([])
-  expect(await pictures.count()).toBe(0)
-
-  // Landing on the first picture asks for it and the ones just below it, and not the rest.
-  await boxes.first().evaluate((box) => box.scrollIntoView({ block: 'center', behavior: 'instant' }))
-  await expect
-    .poll(notThePoster, { message: 'pictures near the reader are requested', timeout: 15_000 })
-    .not.toEqual([])
-  await expect(pictures.first()).toHaveJSProperty('complete', true, { timeout: 15_000 })
-  expect(await pictures.count(), 'pictures far from the reader are still not in the page').toBeLessThan(total)
+  // The box holds the picture's place; the picture joins the page once the reader is near it (NearView).
+  await page
+    .locator('main .near-view')
+    .evaluate((box) => box.scrollIntoView({ block: 'center', behavior: 'instant' }))
+  const editor = page.locator('main .near-view picture img')
+  await expect(editor).toHaveJSProperty('complete', true, { timeout: 15_000 })
+  expect(notThePoster().some((name) => name.startsWith('editor'))).toBe(true)
 })
 
 // QB.3j. Lighthouse charges to the first paint every request that finished before it. On a fast host the thirty or so
@@ -312,14 +342,14 @@ test('hydration requests its modules only after the first contentful paint', asy
   ).toEqual([])
 })
 
-// The prerendered page has no picture of its own below the poster, so a reader without script gets the noscript copies.
+// Without script the home page's pictures are still there: they are plain pictures, not drawn by script.
 test.describe('without script', () => {
   test.use({ javaScriptEnabled: false })
 
-  test('the home page still shows its example pictures', async ({ page }) => {
+  test('the home page still shows its pictures', async ({ page }) => {
     await page.goto('/')
-    const pictures = page.locator('.lazy-picture img')
-    expect(await pictures.count()).toBeGreaterThanOrEqual(3)
+    const pictures = page.locator('main picture img')
+    expect(await pictures.count()).toBeGreaterThanOrEqual(1)
     for (const alt of await pictures.evaluateAll((images) =>
       images.map((image) => image.getAttribute('alt')),
     ))

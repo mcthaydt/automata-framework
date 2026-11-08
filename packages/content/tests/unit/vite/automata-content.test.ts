@@ -232,6 +232,28 @@ describe('vite dev', () => {
     expect(await loadHash(server)).toBe(events[2]?.data.hash)
   }, 90_000)
 
+  it("watches content that lives outside Vite's root, as a journey's temp copy of a game does", async () => {
+    // Vite watches its own root; a game served from its checkout with its content pointed at another folder
+    // (AF_E2E_CONTENT_ROOT) must still see a save there.
+    const content = copyFixture('valid')
+    const server = await createServer({
+      root: copyFixture('valid'),
+      configFile: false,
+      logLevel: 'silent',
+      plugins: [automataContent(fixtureOptions(content))],
+      server: { middlewareMode: true, hmr: false },
+    })
+    servers.push(server)
+    const events: CustomEvent[] = []
+    server.ws.send = ((payload: HotPayload) => {
+      if (payload.type === 'custom') events.push(payload as unknown as CustomEvent)
+    }) as typeof server.ws.send
+    await loadHash(server)
+    editFile(content, 'characters/cyan.toml', (text) => text.replace('"Cyan"', '"Cyan Two"'))
+    await waitFor(() => events.length === 1, 'the rebuild for a save outside the root')
+    expect(events[0]?.event).toBe('automata:content')
+  }, 90_000)
+
   it('serves the module under a query too, so a page can import the new content after a save', async () => {
     // The browser keeps every module it imported, so a page that hears `automata:content` imports the module
     // again under a new URL (examples/2d/content/hot-reload). The query must not change what is served.
@@ -247,6 +269,41 @@ describe('vite dev', () => {
     // The browser asks for `/@id/__x00__virtual:automata/content?v=<hash>`; Vite's middleware unwraps it to this.
     const served = await server.transformRequest(`\0virtual:automata/content?v=${hash}`)
     expect(served?.code).toContain(hash)
+  }, 90_000)
+
+  it('sends a real HMR update for the content module, so a page that accepts it gets the new content in place', async () => {
+    // The Tuner writes tuning.toml as you drag and the game beside it must change without reloading the page. A
+    // custom event alone leaves the page holding the module it first imported; an HMR update goes up the importers
+    // to the module that accepts it (the game's main.ts), which restarts the game on the new content.
+    const root = copyFixture('valid')
+    writeFileSync(
+      join(root, 'main.js'),
+      "import { contentHash } from 'virtual:automata/content'\nimport.meta.hot.accept('virtual:automata/content', () => {})\nconsole.log(contentHash)\n",
+    )
+    const server = await createServer({
+      root,
+      configFile: false,
+      logLevel: 'silent',
+      plugins: [automataContent(options(root))],
+      server: { middlewareMode: true, ws: false },
+    })
+    servers.push(server)
+    const sent: HotPayload[] = []
+    const client = server.environments.client
+    client.hot.send = ((payload: HotPayload) => {
+      sent.push(payload)
+    }) as typeof client.hot.send
+    // The page's first load: main.js and, through its import, the content module enter the client's module graph.
+    await client.transformRequest('/main.js')
+
+    setGravity(root, '-300.0')
+    await waitFor(() => sent.some((payload) => payload.type === 'update'), 'the HMR update')
+    const update = sent.find((payload) => payload.type === 'update')
+    // main.js is the boundary that accepts the content module: Vite re-imports the module there, no page reload.
+    expect(
+      update?.type === 'update' && update.updates.map(({ path, acceptedPath }) => [path, acceptedPath]),
+    ).toEqual([['/main.js', '\0virtual:automata/content']])
+    expect(sent.some((payload) => payload.type === 'full-reload')).toBe(false)
   }, 90_000)
 
   it("recovers after the game's code throws during a rebuild (audit of PR #8)", async () => {

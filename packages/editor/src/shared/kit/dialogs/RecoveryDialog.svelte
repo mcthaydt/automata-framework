@@ -1,17 +1,19 @@
 <!--
-  Restore or Discard. Asked when a document opens
-  with an autosave newer than its file, before it is worked on. It is not dismissible: Escape and the scrim do nothing,
-  since both answers change what is open. Restore edits, which has focus, applies the autosave as one undoable step;
-  Discard throws it away. When the file also changed since the autosave began, it says that restoring replaces that.
+  Keep my changes or Throw away. Asked when a document opens with an autosave newer than its file, before it is
+  worked on, in plain words (`recovery-facts.ts`): the document's name and when it was changed. It is not dismissible:
+  Escape and the scrim do nothing, since both answers change what is open. Keep my changes, the one primary action and
+  the focus, applies the autosave as one undoable step; Throw away drops it. When the file also changed since the
+  autosave began, it says that keeping the changes replaces that.
 -->
 <script lang="ts">
 import type { Recovery } from '../storage/recovery'
 import Button from '../widgets/Button.svelte'
 import Dialog from '../widgets/Dialog.svelte'
-import { recoveryFacts } from './recovery-facts'
+import { recoveryWords } from './recovery-facts'
 
 interface Props {
-  path: string
+  /** The document's name, as its top bar shows it ("Mossgate"). */
+  name: string
   recovery: Recovery | undefined
   /** The time the autosave's age is told against. */
   now: number
@@ -20,27 +22,22 @@ interface Props {
   ondiscard: () => void
 }
 
-const { path, recovery, now, busy, onrestore, ondiscard }: Props = $props()
+const { name, recovery, now, busy, onrestore, ondiscard }: Props = $props()
 
-const facts = $derived(recovery === undefined ? [] : recoveryFacts(path, recovery, now))
+const words = $derived(recovery === undefined ? undefined : recoveryWords(name, recovery, now))
 </script>
 
-{#if recovery}
-  <Dialog open={true} title="Restore your unsaved work?" dismissible={false}>
+{#if recovery && words}
+  <Dialog open={true} title="Keep your changes from last time?" dismissible={false}>
     <div class="body">
-      <p>This file has edits that were never saved. The autosave kept them as they were made.</p>
-      <dl>
-        {#each facts as fact (fact.label)}
-          <div class="fact"><dt>{fact.label}</dt><dd>{fact.value}</dd></div>
-        {/each}
-      </dl>
-      {#if recovery.baseChanged}
-        <p class="warn" role="alert">The file also changed since the autosave began; restoring replaces that change.</p>
+      <p>{words.kept}</p>
+      {#if words.warning !== undefined}
+        <p class="warn" role="alert">{words.warning}</p>
       {/if}
     </div>
     {#snippet actions()}
-      <Button disabled={busy} onclick={ondiscard}>Discard</Button>
-      <Button variant="primary" data-autofocus disabled={busy} onclick={onrestore}>Restore edits</Button>
+      <Button disabled={busy} onclick={ondiscard}>Throw away</Button>
+      <Button variant="primary" data-autofocus disabled={busy} onclick={onrestore}>Keep my changes</Button>
     {/snippet}
   </Dialog>
 {/if}
@@ -57,27 +54,5 @@ const facts = $derived(recovery === undefined ? [] : recoveryFacts(path, recover
   }
   .warn {
     color: var(--warn);
-  }
-  dl {
-    margin: 0;
-    padding: var(--space-2) var(--space-3);
-    border: 1px solid var(--line);
-    border-radius: var(--edge-sm);
-    background: var(--paper);
-  }
-  .fact {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: var(--space-1) var(--space-3);
-    padding: var(--space-1) 0;
-  }
-  dt {
-    color: var(--muted);
-  }
-  dd {
-    margin: 0;
-    overflow-wrap: anywhere;
-    color: var(--ink);
   }
 </style>

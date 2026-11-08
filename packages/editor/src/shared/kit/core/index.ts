@@ -12,7 +12,6 @@ export {
   savedCopyMessage,
   saveFailure,
 } from '../dialogs/document-messages'
-export { recoveryFacts } from '../dialogs/recovery-facts'
 export { retryAction } from '../dialogs/retry-action'
 export type { PointerKind } from '../gestures/pointer-sample'
 export {

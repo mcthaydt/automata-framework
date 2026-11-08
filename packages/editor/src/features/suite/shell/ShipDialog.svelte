@@ -1,8 +1,8 @@
 <!--
-  The Ship dialog: the change set's title and a description
+  The Publish dialog (Ship in the spec): the change set's title and a description
   drafted from its changes, checks and gates, which the person edits first; the files, the checks and the gates;
-  then Ship, which checkpoints, pushes the branch and opens a draft PR, or gives the compare link when `gh` is not
-  there. A failing check warns and still allows Ship: the PR is a draft. A gate still needs the owner; nothing here
+  then Publish, which checkpoints, pushes the branch and opens a draft PR, or gives the compare link when `gh` is not
+  there. A failing check warns and still allows Publish: the PR is a draft. A gate still needs the owner; nothing here
   records one. A push that fails shows the reason, and the commits stay where they are.
 -->
 <script lang="ts">
@@ -48,9 +48,9 @@ async function ship(): Promise<void> {
 }
 </script>
 
-<Dialog {open} title="Ship this change" width="wide" onclose={() => onclose()}>
+<Dialog {open} title="Publish your changes" width="wide" onclose={() => onclose()}>
   {#if review === undefined || draft === undefined}
-    <p class="note">No change set is open, so there is nothing to ship.</p>
+    <p class="note">Nothing new to publish yet.</p>
   {:else if phase === 'done' && outcome !== undefined && 'error' in outcome}
     <p class="result" role="alert">The push failed: {outcome.error}</p>
     <p class="note">Your commits stay on this computer; nothing was lost.</p>
@@ -72,7 +72,7 @@ async function ship(): Promise<void> {
       {#if failing.length > 0}
         <p class="warn" role="note">
           {failing.map((check) => check.check).join(', ')}
-          {failing.length === 1 ? 'is' : 'are'} failing. Ship still opens a draft.
+          {failing.length === 1 ? 'is' : 'are'} failing. Publishing still opens a draft for review.
         </p>
       {/if}
       <h3>Files</h3>
@@ -97,7 +97,7 @@ async function ship(): Promise<void> {
     {:else}
       <Button onclick={() => onclose()} disabled={phase === 'pushing'}>Cancel</Button>
       <Button variant="primary" disabled={phase === 'pushing' || !/[a-z0-9]/i.test(title)} onclick={() => void ship()}
-        >{phase === 'pushing' ? 'Pushing…' : 'Ship'}</Button
+        >{phase === 'pushing' ? 'Publishing…' : 'Publish'}</Button
       >
     {/if}
   {/snippet}
@@ -112,7 +112,7 @@ async function ship(): Promise<void> {
   textarea {
     box-sizing: border-box;
     width: 100%;
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--edge-sm);
@@ -149,7 +149,7 @@ async function ship(): Promise<void> {
   a {
     display: inline-flex;
     align-items: center;
-    min-height: 44px;
+    min-height: var(--size-hit);
     color: var(--color-accent-default);
   }
 </style>

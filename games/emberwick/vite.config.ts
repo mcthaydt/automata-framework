@@ -19,11 +19,12 @@ function previewHeaders(): Record<string, string> {
 
 /**
  * The content plugin over the game's `content/` (`virtual:automata/content`): the room the 2D editor exports and the
- * tuning. The page and the tests (vitest.config.ts) both compile it.
+ * tuning. The page and the tests (vitest.config.ts) both compile it. The dev journey points it at a copy of
+ * `content/` (AF_E2E_CONTENT_ROOT, package.json `e2e:dev`) that it edits, so the committed files are never touched.
  */
 export function contentPlugin(): ReturnType<typeof automataContent> {
   return automataContent({
-    root: fileURLToPath(new URL('.', import.meta.url)),
+    root: process.env.AF_E2E_CONTENT_ROOT ?? fileURLToPath(new URL('.', import.meta.url)),
     schemas: level2dKinds(),
   })
 }

@@ -53,6 +53,17 @@ export function homeOf(
   return { kind: 'cards', cards }
 }
 
+/**
+ * A file named in words, as Home shows it: the last part of its path, without its format endings, with dashes and
+ * underscores read as spaces and the first letter raised (`content/rooms/room-1.af2d.json` is "Room 1"). The folders
+ * and the format words are how the game stores it, not what a person calls it (12.7 Step G).
+ */
+export function fileTitle(path: string): string {
+  const base = path.slice(path.lastIndexOf('/') + 1)
+  const words = base.split('.')[0]?.replace(/[-_]+/g, ' ').trim() ?? ''
+  return words === '' ? base : words.charAt(0).toUpperCase() + words.slice(1)
+}
+
 /** A problem's key path as the list reads it: `file[0].gates`. */
 export function keyPathText(path: readonly (string | number)[]): string {
   if (path.length === 0) return 'the whole list'

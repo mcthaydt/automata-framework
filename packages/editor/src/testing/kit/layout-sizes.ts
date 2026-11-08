@@ -19,10 +19,10 @@ const at = (
 export const SIZES: readonly EditorSize[] = [
   at('ipad-pro-11-landscape', 1194, 834, 'wide', 'desktop'),
   at('ipad-pro-13-landscape', 1366, 1024, 'wide', 'desktop'),
-  at('ipad-mini-landscape', 1133, 744, 'wide', 'desktop'),
-  at('window-900x600', 900, 600, 'wide', 'desktop', 'short'),
+  at('ipad-mini-landscape', 1133, 744, 'medium', 'desktop'),
+  at('window-900x600', 900, 600, 'medium', 'desktop', 'short'),
   at('ipad-pro-11-portrait', 834, 1194, 'medium', 'tablet-portrait'),
-  at('ipad-mini-portrait', 744, 1133, 'medium', 'tablet-portrait'),
+  at('ipad-mini-portrait', 744, 1133, 'compact', 'tablet-portrait'),
   at('phone-portrait', 390, 844, 'compact', 'phone-portrait'),
   at('phone-landscape', 844, 390, 'compact', 'phone-landscape', 'short'),
 ]

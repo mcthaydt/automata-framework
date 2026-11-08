@@ -131,6 +131,7 @@ onDestroy(() => {
     {toasts}
     {clock}
     read={(path) => workspace.store.read(path)}
+    files={workspace.store}
     {ids}
     {objectUrls}
     {canvas}

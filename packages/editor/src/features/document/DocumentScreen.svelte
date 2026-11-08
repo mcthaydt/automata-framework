@@ -12,6 +12,8 @@ import type { GeometryState } from '@mcthaydt/automata'
 import type { Component, Snippet } from 'svelte'
 import ConflictDialog from '../../shared/kit/dialogs/ConflictDialog.svelte'
 import RecoveryDialog from '../../shared/kit/dialogs/RecoveryDialog.svelte'
+import { shellModeAt } from '../../shared/kit/shell/shell-mode'
+import type { ProjectStore } from '../../shared/kit/storage/project-store'
 import type { Workspace } from '../../shared/kit/storage/workspace'
 import ToastRegion from '../../shared/kit/widgets/ToastRegion.svelte'
 import type { ToastStore } from '../../shared/kit/widgets/toasts'
@@ -42,6 +44,8 @@ interface Props {
   clock: { now(): number }
   /** Reads a workspace file's bytes, for the canvas and the palette. */
   read: (path: string) => Promise<Uint8Array | undefined>
+  /** Where a view adds a file of the person's (Add tiles' picture); without it, nothing that writes one is shown. */
+  files?: Pick<ProjectStore, 'list' | 'write'> | undefined
   ids: IdSource
   objectUrls?: ObjectUrls | undefined
   /** The level canvas; the DOM tests pass a stand-in. */
@@ -60,6 +64,7 @@ const {
   toasts,
   clock,
   read,
+  files,
   ids,
   objectUrls,
   canvas,
@@ -118,8 +123,8 @@ let arrived = $state(false)
 let fromSwitcher = $state(false)
 /** The path Problems' Show asked for, handed to the view it opens; choosing from the switcher drops it. */
 let focus = $state<string | undefined>(undefined)
-/** A phone: the switcher is a menu. */
-const compact = $derived(geometry.current.formFactor.startsWith('phone'))
+/** The compact layout (a phone, or a window 760 px across and narrower): the switcher is a menu. */
+const compact = $derived(shellModeAt(geometry.current) === 'compact')
 /**
  * A phone or an iPad held upright: the top bar takes two rows, so the name and the Level view's level picker keep
  * their words beside Back and Save (one row at 744 px cut the picker to its first letter).
@@ -134,6 +139,7 @@ const View = $derived(viewOf(route?.component ?? ''))
 
 const services = $derived<ViewServices>({
   read: (path) => read(path),
+  files,
   ids,
   objectUrls,
   canvas,
@@ -207,7 +213,7 @@ function show(path: string): void {
 
 {#snippet sheets()}
   <RecoveryDialog
-    path={shown.document.path}
+    name={shown.heading.title}
     recovery={shown.recovery}
     now={clock.now()}
     busy={shown.busy !== undefined}
@@ -216,7 +222,7 @@ function show(path: string): void {
   />
   <ConflictDialog
     open={shown.conflict}
-    path={shown.document.path}
+    name={shown.heading.title}
     busy={shown.busy !== undefined}
     onkeep={() => controller.keepMine()}
     ontake={() => controller.takeTheirs()}

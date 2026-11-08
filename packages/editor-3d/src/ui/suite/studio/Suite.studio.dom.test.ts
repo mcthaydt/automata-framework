@@ -36,6 +36,10 @@ const standin = async (): Promise<StageRenderer> => ({
 
 let started: SuiteHandle | undefined
 beforeEach(() => {
+  // A window wide enough for the kit shell's wide layout (1180 px and up), where the Studio's inspector is in view;
+  // jsdom's own 1024 px window is the medium layout, where it is a closed floating card.
+  vi.stubGlobal('innerWidth', 1280)
+  vi.stubGlobal('innerHeight', 800)
   vi.stubGlobal(
     'ResizeObserver',
     class {

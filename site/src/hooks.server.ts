@@ -1,5 +1,5 @@
 import type { Handle } from '@sveltejs/kit'
-import { finishPage } from '$lib/finish-page'
+import { finishPage } from './shared/html/finish-page'
 
 /** Every prerendered page leaves through `finishPage`: fewer preloads, hydration after the first paint, and its CSP. */
 export const handle: Handle = ({ event, resolve }) =>

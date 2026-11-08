@@ -133,6 +133,8 @@ export default defineConfig(({ mode }) => ({
             allowImportingTsExtensions: true,
             resolveJsonModule: true,
             noEmit: true,
+            // Node's globals, and \`import.meta.hot\` for src/main.ts (the restart in place while \`pnpm dev\` runs).
+            types: ['node', 'vite/client'],
           },
           include: ['src/**/*.ts', 'tests/**/*.ts', 'ship.config.ts', 'vite.config.ts'],
         },

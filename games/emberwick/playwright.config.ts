@@ -1,5 +1,13 @@
 import { defineJourneys, sizes } from '@mcthaydt/playwright-preset'
-import { gameBuildPath, gamePort, gameUrl, hostOrigin, hostPort } from './tests/e2e/origins.ts'
+import {
+  devPort,
+  devUrl,
+  gameBuildPath,
+  gamePort,
+  gameUrl,
+  hostOrigin,
+  hostPort,
+} from './tests/e2e/origins.ts'
 
 // Emberwick's browser journeys: `pnpm test:e2e` in this folder. The config starts only Emberwick's two servers
 // (the game's production build and the fake Ruken host around it), so a run never waits on another area's build.
@@ -13,8 +21,11 @@ const ports = {
   AF_E2E_PREVIEW_PORT: String(gamePort),
   AF_E2E_SERVER_PORT: String(hostPort),
   AF_E2E_GAME_PATH: gameBuildPath,
+  AF_E2E_DEV_PORT: String(devPort),
 }
-const quick = { grepInvert: /@slow/ }
+// The dev journey (dev.test.ts) edits the dev server's one copy of the tuning, so it runs in one project only.
+const DEV_JOURNEY = /dev\.test\.ts/
+const quick = { grepInvert: /@slow/, testIgnore: DEV_JOURNEY }
 
 export default defineJourneys({
   testDir: 'tests/e2e',
@@ -23,8 +34,18 @@ export default defineJourneys({
     { name: 'emberwick-phone-chromium', use: { ...sizes.phone, browserName: 'chromium' }, ...quick },
     { name: 'emberwick-phone-webkit', use: { ...sizes.phone, browserName: 'webkit' }, ...quick },
     { name: 'emberwick-compact-chromium', use: { ...sizes.compact, browserName: 'chromium' }, ...quick },
-    { name: 'emberwick-ipad-chromium', use: { ...sizes.ipad, browserName: 'chromium' } },
-    { name: 'emberwick-ipad-webkit', use: { ...sizes.ipad, browserName: 'webkit' } },
+    {
+      name: 'emberwick-ipad-chromium',
+      use: { ...sizes.ipad, browserName: 'chromium' },
+      testIgnore: DEV_JOURNEY,
+    },
+    { name: 'emberwick-ipad-webkit', use: { ...sizes.ipad, browserName: 'webkit' }, testIgnore: DEV_JOURNEY },
+    // The game on its dev server, as the Tuner's game pane shows it: a saved setting restarts it in place.
+    {
+      name: 'emberwick-dev-chromium',
+      use: { ...sizes.ipad, browserName: 'chromium' },
+      testMatch: DEV_JOURNEY,
+    },
   ],
   webServer: [
     {
@@ -32,6 +53,13 @@ export default defineJourneys({
       url: gameUrl,
       env: ports,
       reuseExistingServer: process.env.CI === undefined,
+    },
+    {
+      // Never reused: it must compile this run's copy of content/.
+      command: 'pnpm e2e:dev',
+      url: devUrl,
+      env: ports,
+      reuseExistingServer: false,
     },
     {
       command: 'pnpm e2e:host',
