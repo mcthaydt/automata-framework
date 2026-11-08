@@ -403,9 +403,18 @@ importers:
 
   extensions/editors:
     dependencies:
+      '@automata/3d':
+        specifier: workspace:*
+        version: link:../../packages/3d
       '@automata/audio-synth':
         specifier: workspace:*
         version: link:../audio-synth
+      '@automata/content':
+        specifier: workspace:*
+        version: link:../../packages/content
+      '@automata/cutscenes':
+        specifier: workspace:*
+        version: link:../cutscenes
       '@automata/editor':
         specifier: workspace:*
         version: link:../../packages/editor

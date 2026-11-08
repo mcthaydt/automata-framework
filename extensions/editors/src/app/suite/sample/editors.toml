@@ -31,3 +31,10 @@ editor = "writer"
 modes = ["edit"]
 gates = []
 checks = []
+
+[[file]]
+glob = "content/cutscenes/*.toml"
+editor = "sequence"
+modes = ["edit"]
+gates = []
+checks = []

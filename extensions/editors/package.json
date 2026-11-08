@@ -25,7 +25,10 @@
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "dependencies": {
+    "@automata/3d": "workspace:*",
     "@automata/audio-synth": "workspace:*",
+    "@automata/content": "workspace:*",
+    "@automata/cutscenes": "workspace:*",
     "@automata/editor": "workspace:*",
     "@automata/feel": "workspace:*",
     "@automata/narrative": "workspace:*",
