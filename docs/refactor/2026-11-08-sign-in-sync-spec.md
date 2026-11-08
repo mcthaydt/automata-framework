@@ -29,7 +29,7 @@ changes the flash, and both changes are on GitHub and in both browsers. A browse
 ## 3. What it builds on
 
 - **#532** (every editor free on the web): the every-editor page keeps its sample in OPFS `sample-game/`, with a `kept`
-  flag. This spec replaces the sample with the person's own games and keeps the folder's contents (section 6.4).
+  flag. This spec replaces the sample with the person's own games (section 6.4 says why the old folder is left alone).
 - **#531** (apps build): `@mcthaydt/automata-editor/kit/sync` holds the merge-by-file-kind rules (`mergeFile`), the
   generated-file rules, the sync loop (`startSync` over a `GitEngine`), the status words (`STATUS_LINES`) and device-flow
   sign-in (`signIn`, `githubToken`). Nothing in it is gated on the app. The web uses it as it is, adding a second
@@ -39,8 +39,12 @@ changes the flash, and both changes are on GitHub and in both browsers. A browse
 - **Editors v2** (`claude/project-thread-q3zxgn`): the header's `SaveState.svelte` already has `'saved' | 'saving' |
   { failed }`, fed a constant today. This spec feeds it.
 
-Package names follow `main` (`@mcthaydt/automata-*`); the editors stack under #532 still says `@automata/*`, and the plan's
-first task starts from the merge of the two.
+- **The site stack** (#517 to #521, top `claude/project-thread-k1ftgu`): the site's headers file
+  (`write-headers.ts`), the `/app` offer (`app-offer.ts`) and the site words this spec changes. Neither #532 nor #531
+  contains it (plan audit A1).
+
+Package names follow `main` (`@mcthaydt/automata-*`); the editors and site stacks still say `@automata/*`, and the plan's
+first task starts from the merge of the three.
 
 ## 4. Saving on the device (the bug fix; it comes first)
 
@@ -52,15 +56,26 @@ Text and number fields write a moment after typing stops, not when the field is 
   field calls its editor's commit 500 ms after the last input, again at once when it is left or Ctrl/Cmd+Enter is
   pressed, and never twice for the same text.
 - **Where.** Writer's `WordsField.svelte`, the content editors' `FieldRow.svelte` (text and number), the Tuner's string
-  value (`TunerRows.svelte:105`) and control name (`ControlsSection.svelte:69`). Any later field uses the same action.
+  value (`TunerRows.svelte:105`) and control name (`ControlsSection.svelte:69`), the kit's `FieldEditor.svelte`,
+  `Stepper.svelte` and `ColorField.svelte` (the 2D and 3D inspectors), and the Characters and Tiles editors' text fields
+  (plan audit A5). Any later field uses the same action.
+- **A draft is not a leave.** While the field has the focus, a draft is committed only when it is valid; it never puts
+  the old value back into the input and never shows a refusal (that waits for the leave, as today), so "0." on its way to
+  "0.5" and a name cleared to be retyped are left alone. A field that names something other files point at (a
+  character's, place's or mode's id) commits on leave only, and its waiting text is still flushed on hide (A3).
 - **One Undo step per visit.** Each focus of a field opens a visit. Writes the visit makes to the same file join the
-  owner's top Undo step (its `before` stays, its `after` moves) instead of pushing a step per pause. The write path
-  gains `join` on `write`/`writeAll`; a step with a join key accepts a later write only while it is the top step, is
-  for the same files and carries the same key. A visit closes once the field is left and its last commit has reached the
+  owner's top Undo step (its `before` stays, its `after` moves) instead of pushing a step per pause. Two histories carry
+  it: the editors with their own Undo (Writer, Feel, Audio, Sequence, Schematic: the kit `History` in their
+  `TomlSession`) take the visit key as `join` on `History.apply` (the same key joins with no time window while it is the
+  top step), and the write path, for editors without their own (the Tuner, the 2D editors), gains `join` on
+  `write`/`writeAll` with the same rule, for the same files (A2). A visit closes once the field is left and its last commit has reached the
   write path, or 1 s after it was left, whichever comes first.
 - **Flush on hide.** The suite flushes every waiting field on `pagehide` and on `visibilitychange` to hidden (the
-  kit's `flushOnHide`). While anything is waiting or being written, `beforeunload` asks the browser's own "Leave site?"
-  question, so a reload in the first half second does not lose words in silence.
+  kit's `flushOnHide`). A flush only starts a write, which the browser does not wait for, and Safari on iPhone and iPad
+  never asks "Leave site?". So the typing registry also copies each waiting field's text into `localStorage`
+  synchronously on every input (one draft per game, file and field, removed once its commit has landed). On open, a draft
+  newer than its file is committed as the person's edit. Served writes made while hiding use `fetch` with
+  `keepalive`. Where the browser has it, `beforeunload` still asks while anything waits (A4).
 
 ### 4.2 The saved line
 
@@ -71,9 +86,11 @@ The suite session counts writes in flight. The header shows the line at every si
 | Situation | Words |
 | --- | --- |
 | A field waiting or a write in flight | Saving… |
+| Signed in, checking GitHub, nothing waiting here | Checking GitHub… |
 | `automata editor`'s folder | Saved in your game folder |
 | This browser, signed out or not synced | Saved on this device |
-| Synced and nothing waiting | Saved on this device and on GitHub |
+| Synced and nothing waiting | Saved on this device and on GitHub (and a pull's notes about generated files after it) |
+| Sync stopped (too big, GitHub asked to wait, can't reach the game) | Saved on this device. {the reason in words} |
 | Synced, offline | Saved on this device. Not on GitHub yet: no internet. |
 | Synced, signed out since | Saved on this device. Not on GitHub yet: sign in to GitHub. |
 | Sync conflict | A file changed here and on GitHub. Choose which to keep. |
@@ -109,6 +126,8 @@ The synced rows are `kit/sync`'s `STATUS_LINES`; #531 already changed its `saved
   and GitHub"; **Start a new game** (to `/try`); **Open a copy**; signed in, the GitHub games not on this device. Each
   game: Open, **Save a copy**, **Remove from this device** (asks first: "Remove {name} from this browser? A copy on GitHub
   stays.").
+- **The Tuner on the web** has nothing to type into until the game is compiled in the page: its rows come from the
+  compiler's `tuning-meta.json` (plan audit A6). It comes with Play on the web.
 - **Play on the web** is not in this spec. The in-page player is now shared (`@mcthaydt/automata-editor/kit/player`,
   #531 e66059ce: `compileGame` over a `ProjectStore` and a `RuntimeManifest`), but the web still needs the runtime bundles
   served at the manifest's URLs, which the apps build has not made yet. Until then Play says "Play isn't on the web yet.
@@ -139,14 +158,13 @@ there. `?game=<id>` opens a game; `?games` opens Your games; `?new=<starting poi
 
 **Save a copy** downloads `<id>.zip` of the game's files as they are (no `.automata/`), with `fflate` (already pinned at
 0.8.3 for `editor-3d`). **Open a copy** reads a zip with one top folder or none, refuses entries over 16 MB and unsafe
-paths with the reason (as `editor-3d`'s import does), needs `content/editors.toml`, and adds the game (`name 2` when the
+paths with the reason (as `editor-3d`'s import does), needs `content/editors.toml` (else "This isn't an Automata game. Pick a .zip you saved from Automata."), and adds the game (`name 2` when the
 id is taken).
 
 ### 6.4 The old sample folder
 
-A visitor's `sample-game/` is theirs (#532 kept edits there). On first open, if it holds any file that differs from the
-samples' own text or is not one of them, it becomes a game named "Your first game", and `sample-game/` is removed after
-the copy reads back. Otherwise it is removed. Nothing is dropped without a copy.
+The site has never been deployed, so no visitor has #532's `sample-game/`. The web editors never read it and leave it as
+it is (plan audit A15). If #532 is ever deployed before this build, adopting it as "Your first game" comes back.
 
 ## 7. Signing in with GitHub on the web
 
@@ -166,10 +184,11 @@ Configuration is Cloudflare's: `GITHUB_CLIENT_ID`, `GITHUB_APP_SLUG`, secrets `G
 | `GET /api/github/start?back=<path>` | Makes `state` and a PKCE verifier, seals them with `back` into cookie `af_gh_start` (`HttpOnly; Secure; SameSite=Lax; Path=/api/github/; Max-Age=600`; Lax because GitHub's redirect back is a cross-site navigation), redirects to `https://github.com/login/oauth/authorize` with `client_id`, `redirect_uri`, `state`, `code_challenge`, `code_challenge_method=S256`. `back` must be a path under `/editor/app/`. |
 | `GET /api/github/callback` | Checks `state` against the cookie, exchanges the code (with the verifier and the secret), seals the refresh token into `af_gh` (`HttpOnly; Secure; SameSite=Strict; Path=/api/github/`, `Max-Age` = the refresh token's life), clears `af_gh_start`, redirects to `back`. The access token is not sent to the page here. GitHub's `error=access_denied` redirects to `back?github=denied`. |
 | `POST /api/github/token` | Needs `Origin` = the site and header `X-Automata: 1`. Refreshes with the sealed refresh token, re-seals the new one (GitHub rotates it), returns `{ token, expiresAt }`. No cookie or a refused refresh: 401 and the cookie cleared. |
-| `POST /api/github/sign-out` | Same checks. Revokes the token (`DELETE /applications/{client_id}/token`), clears `af_gh`, 204. |
+| `POST /api/github/sign-out` | Same checks. The page sends its access token in the body; the function revokes that one token (`DELETE /applications/{client_id}/token`, never the whole grant, which would sign the person out of the Automata app too), clears `af_gh`, 204. |
 
 Sealing is AES-GCM with Web Crypto, a fresh 12-byte IV per seal, and the payload carries its own expiry. Nothing is
-logged. No game data passes through the function: the page talks to `api.github.com` itself.
+logged. Cloudflare's `_headers` file does not reach a Function's responses, so every response sets
+`Cache-Control: no-store` and the site's `securityHeaders` itself (A11). No game data passes through the function: the page talks to `api.github.com` itself.
 
 ### 7.2 The page
 
@@ -186,9 +205,11 @@ logged. No game data passes through the function: the page talks to `api.github.
 
 ### 7.3 Which repositories
 
-After the first sign-in, the page opens `https://github.com/apps/<slug>/installations/new`: "Choose which games
-Automata may sync". A game whose repository the app can't reach says "Automata can't reach this game on GitHub yet."
-with **Let Automata see this game** (the same page).
+After the first sign-in, the page opens `https://github.com/apps/<slug>/installations/new` in a new tab: "Choose which
+games Automata may keep on GitHub". A game whose repository the app can't reach says "Automata can't reach this game on
+GitHub yet." with **Let Automata see this game** (the same page, in a new tab). Either way the page says "Choose your
+games on GitHub, then come back here.", and checks again when it comes to the front and on **Check again**. The App
+needs no Setup URL, which would also catch the apps' users (A10).
 
 ## 8. Sync on the web
 
@@ -200,12 +221,15 @@ commit 10 s after the last save), its commit messages and its offline handling a
 
 | `GitEngine` | REST |
 | --- | --- |
-| `fetchMain()` | `GET /repos/{repo}/git/ref/heads/{branch}` with `If-None-Match`; 304 or the same commit as `sync.json` is `unchanged`. |
+| `fetchMain()` | `GET /repos/{repo}/git/ref/heads/{branch}` with `If-None-Match`; 304, the same commit as `sync.json`, or a 409 for an empty repository is `unchanged` (A8). The branch is the repository's `default_branch`, read once into `sync.json`. |
 | `mergeMain()` | The commit's tree (`?recursive=1`); paths whose blob id differs from `sync.json` changed there; local files whose git blob id (SHA-1 of `blob <n>\0` + bytes) differs changed here. One side changed: take it. Both: `mergeFile` with the base blob; an ask is left for the person. Generated files follow `isGeneratedPath`. `sync.json` moves to the merged commit. |
 | `commitAll(message)` | Records `{ message, at }` as `pending` in `sync.json` when anything changed here; else `undefined`. |
 | `hasUnpushed()` | `pending` is set. |
 | `push()` | Blobs (base64), a tree on `sync.json`'s base tree (deleted paths as `sha: null`), a commit whose parent is the base, then `PATCH` the ref with `force: false`. 422 (not a fast-forward) is `rejected`; a network failure is `offline`. Success clears `pending` and moves the base. |
 
+- `startSync` turns every error that is not an `OfflineError` into "no internet". `kit/sync` gains a `stopped` state:
+  an engine throws `SyncStopped(words)`, the loop shows "Saved on this device. {words}" and stops pulling until the
+  person acts (A7). It is asked of the apps build; task 5.1 makes it if that has not.
 - A tree GitHub returns `truncated` stops sync with "This game is too big to sync on the web. Use the Automata app."
 - **An empty repository** (just made on `github.com/new`) refuses the Git Data API. The first push writes
   `content/editors.toml` with the Contents API, then everything else as one commit on top.
@@ -245,7 +269,7 @@ packages/editor/src/
   shared/kit/sync/web-sign-in.ts        the web token session (7.2)
   shared/kit/sync/rest-engine.ts        the REST GitEngine (8.1)
   shared/kit/sync/github-games.ts       GitHub games and Get it (8.2)
-  features/web-games/                   games.json, the games' stores, the old sample, copies, Your games (6)
+  features/web-games/                   games.json, the games' stores, copies, Your games (6)
 extensions/editors/src/app/suite/       open-content-suite.ts wires web games, sign-in and sync into the page
 site/functions/api/github/[[route]].ts  the Cloudflare entry (7.1)
 site/src/features/sign-in/server/       the routes, sealing, PKCE (plain TypeScript, tested in Node)
@@ -258,7 +282,8 @@ Tests sit in each package's `tests/` (`unit/<feature>/`, `browser/`, `e2e/`), im
 
 - Unit: each module above against fakes (a fake GitHub serving REST from a fixture, as #531's `fake-github.ts`).
 - Journeys, without a server (the site's built `/editor/app/`) and with `automata editor`, in Chromium and WebKit:
-  type in Writer, Feel and the Tuner and reload **without leaving the field**; the same with the page hidden; make a game
+  type in Writer, Feel and a 2D inspector field (and the Tuner, served only) and reload or close the tab **without leaving
+  the field**; the same with the page hidden; make a game
   from `/try`, place three coins, change a line, reload, then close the browser context and open a new persistent one.
 - Sync: two pages on one game against the fake GitHub, one changes the flash and one the shake, both push, both see
   both.
@@ -269,7 +294,8 @@ Tests sit in each package's `tests/` (`unit/<feature>/`, `browser/`, `e2e/`), im
 ## 12. The Owner's steps
 
 - [ ] In the "Automata" GitHub App: add the callback `https://automataframework.com/api/github/callback`, keep "Expire
-      user authorization tokens" on, and note the app's slug.
+      user authorization tokens" on, leave "Request user authorization (OAuth) during installation" off and the Setup URL
+      empty, and note the app's slug.
 - [ ] Generate the client secret and a cookie key; put both in Cloudflare Pages as secrets, with `GITHUB_CLIENT_ID` and
       `GITHUB_APP_SLUG` as variables.
 - [ ] Approve the Privacy and Terms words (section 9).
@@ -283,8 +309,9 @@ syncing players' saves.
 
 - **Safari's seven-day rule** may clear OPFS for a site not visited in a week. Signed in, GitHub is the lasting copy;
   signed out, Your games says "Saved in this browser only. Save a copy, or sign in with GitHub, to keep it safe."
-- **A reload inside the half second** relies on the browser's own leave question. A tab killed by the system in that
-  window loses up to half a second of typing.
+- **A reload inside the half second** is covered by the `localStorage` draft, written as each key is typed; the
+  browser's leave question is a second guard where it exists (not on iPhone or iPad). A browser that refuses
+  `localStorage` (some private modes) loses up to half a second of typing to a reload.
 - **The rotating refresh token** breaks if two tabs refresh at once without the Web Lock; a browser without Web Locks
   (none current) refreshes in one tab only (`BroadcastChannel` hands the token to the others).
 - **The site host** (Cloudflare Pages) is not set up yet; the function cannot run until it is.

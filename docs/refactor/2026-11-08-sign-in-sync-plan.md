@@ -19,8 +19,9 @@ Biome, SvelteKit `adapter-static`. `fflate` 0.8.3 (already pinned). Web Crypto, 
 [audit](2026-11-08-sign-in-sync-audit.md). Executors read both.
 
 **Where it starts:** Task 0.1 starts the build branch from a merge of #532 (`claude/project-thread-szjdbh`, every editor
-on the web) and #531 (the apps build, `kit/sync` and `templateFiles`), or from `main` once both have merged, and records
-the head. Paths below are at that merge. If editors v2 (`claude/project-thread-q3zxgn`) has merged by then, the header is
+on the web), #531 (the apps build, `kit/sync` and `templateFiles`) and #521 (`claude/project-thread-k1ftgu`, the top of
+the site stack: `write-headers.ts`, `app-offer.ts` and the site words phases 3 and 4 change), or from `main` once all
+three have merged, and records the heads. Paths below are at that merge. If editors v2 (`claude/project-thread-q3zxgn`) has merged by then, the header is
 v2's `SuiteHeader.svelte` with `SaveState.svelte`; otherwise `SuiteTopBar.svelte`. Task 1.3 names both.
 
 **Sessions:** refreshed after 90 minutes. A session ends by ticking its steps, updating `progress.md`, pushing, and two
@@ -51,16 +52,18 @@ the browser, and checks the edits are there; the played half runs under `automat
 
 ## Review Focus
 
-1. **A reload inside the half second after the last key.** Expect the browser's "Leave site?" question, never a silent
-   loss. Test in task 1.1 (`beforeunload` is prevented while a field waits).
+1. **A reload or a closed tab inside the half second after the last key.** Expect the words back from the `localStorage`
+   draft on the next open, on every engine (Safari on iPhone and iPad has no "Leave site?" question). Test in tasks 1.1
+   and 1.4.
 2. **Two tabs of the editors open, both signed in, when the access token runs out.** Expect one refresh (the Web Lock),
-   both tabs with a working token, never a 401 that signs the person out. Test in task 5.2.
+   both tabs with a working token, never a 401 that signs the person out. Test in task 4.2.
 3. **GitHub's redirect back after sign-in.** A `SameSite=Strict` start cookie is not sent on that cross-site navigation;
-   expect `af_gh_start` to be `Lax` and the callback to succeed. Test in task 5.1.
+   expect `af_gh_start` to be `Lax` and the callback to succeed. Test in task 4.1.
 4. **The first push to the empty repository the person just made.** The Git Data API refuses an empty repository;
-   expect the Contents API first file, then one commit. Test in task 6.1.
-5. **A visitor who used the try-it before this change.** Their `sample-game/` edits must become "Your first game", never
-   dropped. Test in task 2.2.
+   expect the Contents API first file, then one commit, and the pull before it to say nothing went wrong (a 409 is
+   `unchanged`). Test in task 5.1.
+5. **A number field on its way to a valid value** ("0." for "0.5", a cleared name being retyped). Expect the field left as
+   typed, no refusal until it is left, and nothing written until the value is valid. Test in task 1.1.
 
 ---
 
@@ -89,7 +92,7 @@ build's, and the overall `stages done / stages`), and commit the change with the
 **Files:**
 - Modify: `docs/refactor/2026-11-08-sign-in-sync-plan.md` (execution log), `docs/refactor/progress.md`
 
-- [ ] **Step 1:** Branch from the merge of #532 and #531 (or `main`), resolve conflicts in their favour, run
+- [ ] **Step 1:** Branch from the merge of #532, #531 and #521 (or `main`), resolve conflicts in their favour, run
   `pnpm install` and `pnpm check`. Expected: green, or the failures recorded as inherited with their owners.
 - [ ] **Step 2:** Record the head, which header the page has (v2 or not), and the build table in `progress.md`. Commit
   `docs(refactor): start the saving and sign-in build`.
@@ -103,9 +106,14 @@ build's, and the overall `stages done / stages`), and commit the change with the
 **Files:**
 - Create: `packages/editor/src/shared/kit/storage/typing-drafts.ts`, `packages/editor/src/shared/kit/fields/typed-save.ts`
 - Modify: `packages/editor/src/entries/kit-storage.ts`, `packages/editor/src/entries/kit-fields.ts`,
-  `extensions/editors/src/shared/ui/WordsField.svelte`, `extensions/editors/src/shared/ui/FieldRow.svelte`,
-  `packages/editor/src/features/suite/tuner/ui/TunerRows.svelte`,
+  `extensions/editors/src/shared/ui/WordsField.svelte`, `extensions/editors/src/shared/ui/FieldRow.svelte` (a draft
+  never resets the input or shows a refusal; `commit="leave"` for the id fields in `CharacterInspector`,
+  `PlacesCanvas` and `ModeInspector`), `packages/editor/src/features/suite/tuner/ui/TunerRows.svelte`,
   `packages/editor/src/features/suite/tuner/ui/ControlsSection.svelte`,
+  `packages/editor/src/shared/kit/fields/FieldEditor.svelte`, `packages/editor/src/shared/kit/widgets/Stepper.svelte`,
+  `packages/editor/src/shared/kit/widgets/ColorField.svelte`, `packages/editor/src/features/characters/EntityInspector.svelte`,
+  `.../characters/FieldDefEditor.svelte`, `.../characters/AnimationSection.svelte`,
+  `packages/editor/src/features/tiles/RuleInspector.svelte`,
   `packages/editor/src/features/suite/shell/Suite.svelte` (creates the registry, sets it in context, `flushOnHide`,
   the `beforeunload` guard)
 - Test: `packages/editor/tests/unit/shared/kit/storage/typing-drafts.test.ts`,
@@ -123,7 +131,13 @@ build's, and the overall `stages done / stages`), and commit the change with the
     subscribe(listener: () => void): () => void
   }
   interface TypingField { typed(value: string): void; left(value: string): void; dispose(): void }
-  createTypingDrafts(timers: { after(ms: number, run: () => void): () => void }): TypingDrafts
+  createTypingDrafts(deps: {
+    timers: { after(ms: number, run: () => void): () => void }
+    drafts?: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>   // localStorage; absent or throwing: no drafts
+    scope: string                                                    // the game, so two games' drafts never meet
+  }): TypingDrafts
+  // A field's draft key is scope + file + field; `field(commit, { key, valid?(value): boolean, leaveOnly?: boolean })`.
+  pendingDrafts(drafts, scope): readonly { key: string; value: string; at: number }[]  // on open, newer than the file: commit
   setTypingDrafts(drafts: TypingDrafts): void        // Svelte context
   typingDrafts(): TypingDrafts                         // the context's, or a standalone one
   typedSave(node: HTMLInputElement | HTMLTextAreaElement, params: { drafts: TypingDrafts; commit(value: string): void }): ActionReturn
@@ -132,10 +146,15 @@ build's, and the overall `stages done / stages`), and commit the change with the
 
 - [ ] **Step 1: Failing tests** (fake timers): `typed('a'); typed('ab')` commits `'ab'` once after 500 ms; `left('ab')`
   commits at once and cancels the timer; the same text is never committed twice; `flush()` commits every waiting field;
+  every `typed` writes its draft to the fake `localStorage` synchronously and a landed commit removes it; a draft left
+  by a closed page is returned by `pendingDrafts` and committed on open; a throwing `localStorage` changes nothing else;
+  a value `valid` refuses is not committed while typing and the input is not reset (Review Focus 5); a `leaveOnly`
+  field commits only on leave and on flush;
   `waiting` counts fields with uncommitted text and notifies subscribers; the action wires `input`, `blur`, `focus` and
   Ctrl/Cmd+Enter. WordsField: typing "Hello grandma" and waiting 500 ms calls `onchange('Hello grandma')` with focus
   still in the field. Suite: a `pagehide` event and `visibilitychange` to hidden call `flush()`; `beforeunload` calls
-  `preventDefault()` while `waiting > 0` or a write is in flight, and not otherwise (Review Focus 1).
+  `preventDefault()` while `waiting > 0` or a write is in flight, and not otherwise; a served write made while hiding
+  passes `keepalive: true` (Review Focus 1).
 - [ ] **Step 2:** Run `pnpm --filter @mcthaydt/automata-editor test:unit -- typing` and the editors' unit tests. Expected:
   FAIL, missing modules.
 - [ ] **Step 3:** Implement. WordsField's comment changes to "saved half a second after the last key, and when left".
@@ -146,20 +165,26 @@ build's, and the overall `stages done / stages`), and commit the change with the
 
 **Files:**
 - Modify: `packages/editor/src/shared/editor-list/write-path.ts`, `.../editor-list/write-history.ts`,
-  `packages/editor/src/features/suite/shell/suite-session.ts`
+  `packages/editor/src/features/suite/shell/suite-session.ts`, `packages/editor/src/shared/kit/history/history.ts`
+  (`apply`'s options gain `join`), `extensions/editors/src/shared/toml-session.ts` and `content-session.svelte.ts`
+  (the visit key reaches `History.apply`), the Writer, Feel, Audio, Sequence and Schematic sessions' `change`
 - Test: `packages/editor/tests/unit/shared/editor-list/write-path.test.ts`,
-  `packages/editor/tests/unit/suite/shell/suite-session.test.ts`
+  `packages/editor/tests/unit/suite/shell/suite-session.test.ts`, the kit history's test,
+  `extensions/editors/tests/unit/shared/toml-session.test.ts`
 
 **Interfaces:**
 - Consumes: `TypingDrafts.visit()`, `.wrote()` (task 1.1).
 - Produces: `WritePath.write(path, text, label, owner?, options?: { join?: string })`, `writeAll(files, label, owner?,
-  options?)`; `createSuiteSession(raw, { drafts?: TypingDrafts })`; `SuiteSession.inFlight: number`.
+  options?)`; `History.apply(label, update, { coalesce?, join? })` (a `join` key joins the top step with the same key,
+  with no time window); `createSuiteSession(raw, { drafts?: TypingDrafts })`; `SuiteSession.inFlight: number`.
 
 - [ ] **Step 1: Failing tests:** three writes of `content/lines/shop.toml` with `join: 'v1'` make one step whose undo
   restores the text before the first; a write with `join: 'v2'`, or to another file, or after another step of the same
   owner, makes a new step; a redo stack is cleared by a joined write as by any write. Session: a write while
   `drafts.visit()` is `'v1'` passes `join: 'v1'` and calls `drafts.wrote()`; `inFlight` is 1 during a write and 0 after,
-  and subscribers hear both. Drafts: a visit closes after `left` once `wrote()` is called, or 1 s after `left`.
+  and subscribers hear both. Drafts: a visit closes after `left` once `wrote()` is called, or 1 s after `left`. Writer:
+  "Hello", a pause of 2 s, " grandma", leave: Undo once gives the line before "Hello" (the editor's own history, not
+  only the write path's).
 - [ ] **Step 2–4:** Fail (unknown option), implement, pass.
 - [ ] **Step 5:** Commit `feat(suite): a field's typing is one Undo step`.
 
@@ -169,7 +194,8 @@ build's, and the overall `stages done / stages`), and commit the change with the
 - Create: `packages/editor/src/shared/kit/storage/save-line.ts`, `packages/editor/src/shared/kit/storage/keep-storage.ts`
 - Modify: `packages/editor/src/features/suite/shell/open-suite-ports.ts` (`OpenedSuitePorts` gains `where` and
   `reason`), `Suite.svelte` (the line from `saveLine`, shown compact too; `saved={!sample && !compact}` goes),
-  the header (`SaveState.svelte` + `SuiteHeader.svelte` on v2, else `SuiteTopBar.svelte:89`)
+  the header (`SaveState.svelte` + `SuiteHeader.svelte` on v2, where `SaveState` gains a `words` prop in place of its
+  fixed "Saved"; else `SuiteTopBar.svelte:89`)
   (`kit/sync`'s `STATUS_LINES.saved` already reads "Saved on this device and on GitHub", #531 e66059ce)
 - Test: `.../tests/unit/shared/kit/storage/save-line.test.ts`, `.../keep-storage.test.ts`,
   `.../tests/unit/suite/shell/open-suite-ports.test.ts`, `.../tests/browser/layout/` (the line on a phone)
@@ -184,7 +210,8 @@ build's, and the overall `stages done / stages`), and commit the change with the
   keepStorage(storage?: { persisted?(): Promise<boolean>; persist?(): Promise<boolean> }): () => Promise<void>  // once
   ```
 
-- [ ] **Step 1: Failing tests:** every row of spec 4.2's table, word for word, from `saveLine`; `pending > 0` wins over
+- [ ] **Step 1: Failing tests:** every row of spec 4.2's table, word for word, from `saveLine` (including "Checking
+  GitHub…", a saved status with a pull's notes, and a stopped one); `pending > 0` wins over
   everything except `nowhere`; `keepStorage` calls `persist()` once when `persisted()` is false, never when true, never
   twice, and swallows a rejection; `openSuitePorts` with a refused probe returns `where: 'nowhere'` and the reason (P6);
   the header shows the line at 390×844 with the tick icon, text not clipped.
@@ -202,8 +229,11 @@ build's, and the overall `stages done / stages`), and commit the change with the
 - [ ] **Step 1: Failing journey,** for `automata editor` on a new game and for the page with no server, in Chromium and
   `editor-ipad-webkit`: in Writer type "Typed and never left the field.", wait for the line to read "Saved…" (served:
   "Saved in your game folder", web: "Saved on this device"; never a sleep), reload, read the line back; the same in
-  Feel (a word's text) and the Tuner (a control's name); the same with the page hidden
-  (`page.evaluate` to dispatch `visibilitychange`) and then a new page; served: the file on disk has the words.
+  Feel (the shake's "How hard"), a Levels 2D inspector field, and, served only, the Tuner (a control's name: the web
+  Tuner has no field, spec 5); the same with the page hidden (`page.evaluate` to dispatch `visibilitychange`) and then a
+  new page; type and close the tab at once (`page.close()` within 100 ms of the last key, no wait for the line): the
+  words are back on the next open (Review Focus 1); served: the file on disk has the words, and the played game shows
+  the Writer line.
 - [ ] **Step 2:** Run on the base of task 1.1 (`git stash` the fix). Expected: FAIL, the old line back. Then PASS on the
   branch.
 - [ ] **Step 3:** Commit `test(editors): typed words survive a reload without leaving the field`. Open the phase's PR.
@@ -247,30 +277,25 @@ build's, and the overall `stages done / stages`), and commit the change with the
 - [ ] **Step 2–4:** Fail, implement, pass.
 - [ ] **Step 5:** Commit `feat(editor): the person's games, kept in this browser`.
 
-### Task 2.2: The page opens the person's games, and the old sample becomes theirs
+### Task 2.2: The page opens the person's games
 
 **Files:**
-- Create: `packages/editor/src/features/web-games/first-game.ts`
 - Modify: `extensions/editors/src/app/suite/open-content-suite.ts`, `extensions/editors/src/app/suite/main.ts`,
   `packages/editor/src/features/suite/shell/open-suite-ports.ts` (a `local` game in place of the sample),
   `Suite.svelte` and `SuiteHome.svelte` (no "Sample game" title or banner: P13; the title is the game's name; the open
   editor is reported through `onEditor`)
-- Test: `packages/editor/tests/unit/web-games/first-game.test.ts`,
-  `extensions/editors/tests/unit/app/open-content-suite.test.ts`
+- Test: `extensions/editors/tests/unit/app/open-content-suite.test.ts`
 
 **Interfaces:**
 - Consumes: `WebGames` (2.1), `templateFiles` (#531).
-- Produces: `adoptSampleFolder(root: DirectoryLike, samples: readonly Readonly<Record<string, string>>[], games: WebGames):
-  Promise<GameEntry | undefined>`; `openSuitePorts(env & { local?: { store: ProjectStore; title: string; where: Where;
+- Produces: `openSuitePorts(env & { local?: { store: ProjectStore; title: string; where: Where;
   reason?: string } })`; `openContentSuite` resolves to `{ kind: 'game', … } | { kind: 'games' } | { kind: 'new',
   startingPoint: string }` from `?game`, `?games`, `?new` and `last()`.
 
-- [ ] **Step 1: Failing tests:** a `sample-game/` holding the content sample with one Writer line changed becomes "Your
-  first game" with that line, and `sample-game/` is gone only after the copy reads back (Review Focus 5); one with only
-  the samples' own text is removed and no game made; `/editor/app/` with no query opens `last()`; with no games it
-  resolves `games`; `?new=2d` resolves `new`; `?game=nope` resolves `games`; a served page ignores all of these.
+- [ ] **Step 1: Failing tests:** a `sample-game/` folder is neither read nor removed (spec 6.4); `/editor/app/` with no
+  query opens `last()`; with no games it resolves `games`; `?new=2d` resolves `new`; `?game=nope` resolves `games`; a served page ignores all of these.
 - [ ] **Step 2–4:** Fail, implement, pass.
-- [ ] **Step 5:** Commit `feat(editors): the web editors open your games, and keep the old sample as yours (P5, P12, P13)`.
+- [ ] **Step 5:** Commit `feat(editors): the web editors open your games (P5, P12, P13)`.
 
 ### Task 2.3: Your games, a new game, and copies
 
@@ -288,7 +313,7 @@ build's, and the overall `stages done / stages`), and commit the change with the
 
 - [ ] **Step 1: Failing tests:** `saveCopy` then `openCopy` gives the same files; a zip with one top folder is read
   below it; an entry over 16 MB, a `..` path or no `content/editors.toml` is refused with the reason in words ("This
-  isn't an Automata game: it has no content/editors.toml."); New game asks "What's your game called?", shows the id it
+  isn't an Automata game. Pick a .zip you saved from Automata."); New game asks "What's your game called?", shows the id it
   will use, and a taken name gets `-2`; Your games lists name, "Changed 5 minutes ago" (injected clock), "On this device";
   Remove asks "Remove {name} from this browser? A copy on GitHub stays." first; on a phone every button is at least
   44 px and the primary 48 px; signed out, a note says "Saved in this browser only. Save a copy, or sign in with GitHub,
@@ -356,6 +381,7 @@ build's, and the overall `stages done / stages`), and commit the change with the
 **Files:**
 - Create: `site/src/features/sign-in/server/github-routes.ts`, `.../server/seal.ts`, `.../server/pkce.ts`,
   `site/functions/api/github/[[route]].ts`
+- Modify: `knip.jsonc` (`site/functions/**` is an entry), the style and boundaries lists if they skip it
 - Test: `site/tests/unit/sign-in/github-routes.test.ts`, `.../seal.test.ts`, `.../pkce.test.ts`
 
 **Interfaces:**
@@ -370,7 +396,9 @@ build's, and the overall `stages done / stages`), and commit the change with the
   `state` is 400 and sets nothing; a good callback posts the verifier and secret, sets `af_gh` (`SameSite=Strict`) and
   redirects to `back` with no token in the URL; `access_denied` redirects to `back?github=denied`; `token` without
   `Origin` = the site or without `X-Automata: 1` is 403; `token` re-seals the rotated refresh token; GitHub refusing the
-  refresh gives 401 and clears the cookie; `sign-out` revokes and clears; a sealed value tampered by one byte or past its
+  refresh gives 401 and clears the cookie; `sign-out` revokes the access token the page sends
+  (`DELETE /applications/{client_id}/token`, never `/grant`) and clears; every response has `Cache-Control: no-store`
+  and the site's security headers (Cloudflare's `_headers` does not reach a Function); a sealed value tampered by one byte or past its
   expiry does not unseal; no response body or header ever holds the client secret.
 - [ ] **Step 2–4:** Fail, implement, pass.
 - [ ] **Step 5:** Commit `feat(site): sign in with GitHub through one function that stores nothing`.
@@ -415,7 +443,7 @@ build's, and the overall `stages done / stages`), and commit the change with the
 - Modify: `site/src/features/legal/Privacy.svelte` (`#github`: the sign-in, the cookie `af_gh` and why, tokens stay in
   the person's browser, "Automata keeps nothing"), `site/src/features/legal/Terms.svelte`,
   `site/scripts/site-checks/pages.ts` (refuse a build with `site/functions/api/github/` and no `#github`)
-- Test: `site/tests/unit/site-checks/pages.test.ts`
+- Test: `site/tests/unit/scripts/site-checks.test.ts`
 
 - [ ] **Step 1–4:** Failing check test, implement, pass.
 - [ ] **Step 5:** Commit `docs(site): what signing in with GitHub keeps (for the Owner's approval)`. The PR's body quotes
@@ -434,20 +462,25 @@ build's, and the overall `stages done / stages`), and commit the change with the
 - Test: `packages/editor/tests/unit/shared/kit/sync/rest-engine.test.ts`, `.../blob-id.test.ts`
 
 **Interfaces:**
-- Consumes: `GitEngine`, `mergeFile`, `isGeneratedPath`, `generatedFolders`, `OfflineError` (#531).
+- Consumes: `GitEngine`, `mergeFile`, `isGeneratedPath`, `generatedFolders`, `OfflineError`, `startSync` (#531).
+- Modify too: `packages/editor/src/shared/kit/sync/sync-loop.ts` and `sync-status.ts` (a `stopped` state and
+  `SyncStopped(words)`, shown as "Saved on this device. {words}", pulls paused until the person acts), unless the apps
+  build has already added it.
 - Produces: `createRestEngine(options: { fetch: typeof fetch; token(): Promise<string | undefined>; store: ProjectStore;
   repo: string; branch?: string }): GitEngine`; `blobId(bytes: Uint8Array): Promise<string>` (git's SHA-1);
-  `interface SyncFile { repo: string; branch: string; base?: { commit: string; tree: string }; files: Record<string,
+  `interface SyncFile { repo: string; branch: string /* the repository's default_branch */; base?: { commit: string; tree: string }; files: Record<string,
   string>; etag?: string; pending?: { message: string; at: number } }` at `.automata/sync.json`.
 
 - [ ] **Step 1: Failing tests** against the fake: `blobId` of "hello\n" is `ce013625030ba8dba906f756967f9e9ca394464a`;
   `fetchMain` sends `If-None-Match` and a 304 is `unchanged`; a file changed only on GitHub is written here; the flash
   here and the shake there in `content/feel/feel.toml` both land; the same key both sides is an ask and the file here is
   untouched; a deleted file is `sha: null` in the pushed tree; a fast-forward refusal is `rejected`; a network error is
-  `offline`, `pending` stays, and the next push makes no second commit; an empty repository gets `content/editors.toml`
-  through the Contents API, then one commit (Review Focus 4); `.automata/` is never in a tree; a `truncated` tree stops
-  with "This game is too big to sync on the web. Use the Automata app."; a 403 with `retry-after` waits and says "GitHub
-  asked us to wait. Your game is saved on this device."
+  `offline`, `pending` stays, and the next push makes no second commit; on an empty repository `fetchMain` (a 409) is
+  `unchanged` and the line never says "no internet", and the first push gets `content/editors.toml` through the
+  Contents API, then one commit (Review Focus 4); the branch is the repository's `default_branch`; `.automata/` is never in a tree; a `truncated` tree stops
+  with "This game is too big to sync on the web. Use the Automata app." through `SyncStopped`, and `startSync`'s line
+  shows those words, not "no internet"; a 403 with `retry-after` waits and says "GitHub asked us to wait. Your game is
+  saved on this device."
 - [ ] **Step 2–4:** Fail, implement, pass.
 - [ ] **Step 5:** Commit `feat(editor): sync a game over GitHub's REST API`.
 
@@ -467,7 +500,9 @@ build's, and the overall `stages done / stages`), and commit the change with the
   pagination followed; Get it writes the tree's files and a `sync.json` at that commit, and the game lists "On this
   device and GitHub"; Keep this game on GitHub opens `github.com/new?name=<id>&visibility=private`, shows "Make an empty
   place for your game on GitHub, then come back." and "I made it"; an unreachable repository shows "Automata can't reach
-  this game on GitHub yet." with "Let Automata see this game".
+  this game on GitHub yet." with "Let Automata see this game", which opens the install page in a new tab and says
+  "Choose your games on GitHub, then come back here."; coming back to the page (visibility) or **Check again** checks
+  the repository again.
 - [ ] **Step 2–4:** Fail, implement, pass.
 - [ ] **Step 5:** Copy rows. Commit `feat(editors): your GitHub games on the web`.
 
@@ -514,3 +549,9 @@ build's, and the overall `stages done / stages`), and commit the change with the
   the web adds the web flow and a REST engine beside the app's device flow and git engine.
 - 2026-11-08 (stage 2, later): #531 (e66059ce) changed `STATUS_LINES.saved` as asked, kept `GitEngine` and `startSync`'s
   options, and moved the player to `kit/player`. Play on the web still waits for the runtime bundles (spec section 5).
+- 2026-11-08 (stage 3, plan audit, [record](2026-11-08-sign-in-sync-plan-audit.md)): A1 to A17 folded in. The base adds
+  the site stack (#521); one Undo step per visit is carried by the editors' own history too; a draft never resets a field
+  and id fields commit on leave; typed words are kept through a closed tab by a `localStorage` draft; the 2D fields join;
+  the web Tuner leg is served only; `kit/sync` gains a `stopped` state; the empty repository's first pull, sign-out's
+  token, the install page's way back and the Function's own headers are specified; the old `sample-game/` adoption is
+  cut. Reproduced first: typed words are lost on a closed tab or a reload in Writer, Feel and the Tuner, web and served.
