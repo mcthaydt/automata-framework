@@ -1375,6 +1375,20 @@ type PauseBehavior = 'pause' | 'continue';
 const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
 ```
 
+### `pictureView` (function)
+
+```ts
+function pictureView(project: ContentProject, def: string, images: Readonly<Record<string, string>>, _options?: PictureViewOptions): EntityViewFactory;
+```
+
+### `PictureViewOptions` (interface)
+
+```ts
+interface PictureViewOptions {
+    readonly clip?: ((components: Readonly<Record<string, Readonly<FieldRecord>>>) => string) | undefined;
+}
+```
+
 ### `PixiRenderer` (interface)
 
 ```ts

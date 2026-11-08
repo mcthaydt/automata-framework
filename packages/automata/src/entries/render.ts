@@ -34,6 +34,7 @@ export {
   type PixiStage,
   type PixiStageHooks,
 } from '../features/render/renderer.js'
+export { type PictureViewOptions, pictureView } from '../features/render/views/picture-view.js'
 export { type RectViewOptions, rect } from '../features/render/views/rect-view.js'
 export { type SpriteFrames, type SpriteViewOptions, sprite } from '../features/render/views/sprite-view.js'
 export {

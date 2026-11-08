@@ -1,7 +1,8 @@
 import type { ContentLevel, ContentProject } from '@automata/content/level-2d'
-import { Assets, Container, Graphics, Rectangle, Sprite, Texture, TilingSprite } from 'pixi.js'
+import { Container, Graphics, Sprite, TilingSprite } from 'pixi.js'
 import type { DrawSim } from '../../../shared/draw/read-sim.ts'
 import { type DrawItem, levelDrawList } from './level-draw-list.ts'
+import { picturesOf } from './pictures.ts'
 
 // A 2D level in the game: the tiles, auto tiles, objects and placed characters a person painted in the editor,
 // drawn under the entity views. It is presentation only (law 2): it reads the sim through the draw layer's `DrawSim`
@@ -78,14 +79,15 @@ export function levelScene(options: LevelSceneOptions): LevelScene {
   const container = new Container({ label: 'level' })
   const hooks: LevelSceneHooks[] = []
   const imageSet = new Set(Object.keys(images))
-  const textures = new Map<string, Texture>()
-  const frames = new Map<string, Texture>()
-  const requested = new Set<string>()
+  const pictures = picturesOf(images)
   const reported = new Set<string>()
   const hidden = new Set<string>()
   const itemViews = new Map<string, Container[]>()
   let shown: string | undefined
   let dirty = true
+  pictures.onLoad(() => {
+    dirty = true
+  })
 
   const once = (message: string): void => {
     if (reported.has(message)) return
@@ -93,45 +95,12 @@ export function levelScene(options: LevelSceneOptions): LevelScene {
     report(message)
   }
 
-  /** The picture at `path`, loading it first if nobody has; a failed load is reported and the tile stays flat. */
-  function textureOf(path: string): Texture | undefined {
-    const known = textures.get(path)
-    if (known !== undefined) return known
-    const url = images[path]
-    if (url === undefined || requested.has(path)) return undefined
-    requested.add(path)
-    const cached = Assets.cache.get(url) as Texture | undefined
-    if (cached !== undefined) {
-      textures.set(path, cached)
-      return cached
-    }
-    // The parser is named, not guessed from the url: a small picture is a `data:` url once the build inlines it.
-    Assets.load<Texture>({ src: url, parser: 'loadTextures' }).then(
-      (texture) => {
-        textures.set(path, texture)
-        dirty = true
-      },
-      () => once(`The picture "${path}" could not be loaded.`),
-    )
-    return undefined
-  }
-
-  function frameTexture(path: string, texture: Texture, frame: Rectangle): Texture {
-    const key = `${path}|${frame.x}|${frame.y}|${frame.width}|${frame.height}`
-    let cut = frames.get(key)
-    if (cut === undefined) {
-      cut = new Texture({ source: texture.source, frame })
-      frames.set(key, cut)
-    }
-    return cut
-  }
-
   function itemView(item: DrawItem): Container {
     if (item.kind === 'tile') {
-      const texture = textureOf(item.image)
-      if (texture !== undefined) {
-        const f = item.frame
-        const sprite = new Sprite(frameTexture(item.image, texture, new Rectangle(f.x, f.y, f.w, f.h)))
+      const f = item.frame
+      const cut = pictures.cut(item.image, f)
+      if (cut !== undefined) {
+        const sprite = new Sprite(cut)
         sprite.anchor.set(0.5)
         sprite.position.set(item.x + item.w / 2, item.y + item.h / 2)
         // A flip is a negative scale about the tile's centre.
@@ -156,7 +125,7 @@ export function levelScene(options: LevelSceneOptions): LevelScene {
   ): void {
     container.addChild(new Graphics().rect(0, 0, level.size.w, level.size.h).fill(hexNumber(color)))
     if (image === undefined) return
-    const texture = textureOf(image)
+    const texture = pictures.texture(image)
     if (texture === undefined) return
     if (mode === 'repeat' || mode === 'repeat-x') {
       container.addChild(
