@@ -67,7 +67,7 @@ test('a new 2D game is made with every editor it has, played and published', asy
     // The rail offers the editors the new game lists: Levels, the Tuner, Feel, Audio and Schematic.
     await page.goto(editor.url)
     for (const name of ['Levels', 'Tuner', 'Feel', 'Audio', 'Schematic'])
-      await expect(railHas(page, name)).toBeVisible()
+      await expect(await railHas(page, name)).toBeVisible()
 
     // Levels 2D: add a picture of tiles, paint a cell of Decor with one, and give the player start another (Characters).
     await openRoom(page, editor, 'Start')
@@ -231,8 +231,8 @@ for (const [name, reason] of [
     const editor = await runEditor(game.dir)
     try {
       await page.goto(editor.url)
-      await expect(railHas(page, 'Levels')).toBeVisible()
-      await expect(railHas(page, name)).toBeVisible({ timeout: 5_000 })
+      await expect(await railHas(page, 'Levels')).toBeVisible()
+      await expect(await railHas(page, name)).toBeVisible({ timeout: 5_000 })
     } finally {
       await editor.stop()
       game.remove()

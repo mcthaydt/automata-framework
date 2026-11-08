@@ -6,15 +6,29 @@ import { expect } from './fixtures.ts'
 import { boxOf, type Pixels, readPng } from './read-png.ts'
 import type { RunningEditor } from './run-editor.ts'
 
+/**
+ * Whether the rail offers an editor by this name (the game's editor list names it and the page has it): its tab, or on a
+ * phone, where four tabs and More share the width, its row in the sheet More opens. A sheet left open by an earlier look
+ * is closed first, so a tab is never behind its scrim.
+ */
+export async function railHas(page: Page, name: string): Promise<Locator> {
+  const sheet = page.getByRole('dialog', { name: 'More editors' })
+  if (await sheet.isVisible()) {
+    await page.keyboard.press('Escape')
+    await expect(sheet).toBeHidden()
+  }
+  const tab = page.getByRole('tab', { name, exact: true })
+  if (await tab.isVisible()) return tab
+  const more = page.getByRole('button', { name: 'More', exact: true })
+  if (!(await more.isVisible())) return tab
+  await more.click()
+  return sheet.getByRole('button', { name, exact: true })
+}
+
 /** Opens the editors and one editor from the rail: tabs of a bar on a phone, a column of buttons on a wide screen. */
 export async function openEditor(page: Page, editor: RunningEditor, name: string): Promise<void> {
   if (!page.url().startsWith(editor.url.split('?')[0] ?? editor.url)) await page.goto(editor.url)
-  await page.getByRole('tab', { name, exact: true }).click()
-}
-
-/** Whether the rail offers an editor by this name: the game's editor list names it and the page has it. */
-export function railHas(page: Page, name: string): Locator {
-  return page.getByRole('tab', { name, exact: true })
+  await (await railHas(page, name)).click()
 }
 
 /**
@@ -74,7 +88,7 @@ export async function publishFromEditors(
   keep: (name: string) => string,
 ): Promise<{ name: string; path: string }> {
   await pressGame(page, 'Publish')
-  const dialog = page.getByRole('dialog', { name: 'Make your game ready to upload' })
+  const dialog = page.getByRole('dialog', { name: 'Put your game online' })
   await dialog.getByRole('button', { name: 'Build my game' }).click()
   const ready = dialog.getByText('Your game is ready to upload.')
   const refused = dialog.getByRole('alert')

@@ -119,7 +119,7 @@ describe('on a phone', () => {
     const play = await screen.findByRole('link', { name: 'Play' })
     expect(play).toHaveAttribute('href', 'http://localhost:5199/')
     await user.click(screen.getByRole('button', { name: 'Publish' }))
-    expect(await screen.findByRole('dialog', { name: 'Make your game ready to upload' })).toBeInTheDocument()
+    expect(await screen.findByRole('dialog', { name: 'Put your game online' })).toBeInTheDocument()
   })
 
   it('keeps Play, marked off, and pressing it says why', async () => {
@@ -146,8 +146,8 @@ describe('Publish on a game', () => {
     const { publish, downloads } = fakePublish([{ ok: true, name: 'my-game-0.1.0-itch.zip' }])
     await start({ publish })
     await user.click(await screen.findByRole('button', { name: 'Publish' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Make your game ready to upload' })
-    expect(dialog).toHaveTextContent('one zip file to upload to itch.io or any website host')
+    const dialog = await screen.findByRole('dialog', { name: 'Put your game online' })
+    expect(dialog).toHaveTextContent('You get one zip file to upload to itch.io or any website host')
     await user.click(screen.getByRole('button', { name: 'Build my game' }))
     expect(await screen.findByText('Your game is ready to upload.')).toBeInTheDocument()
     expect(dialog).toHaveTextContent('choose HTML as its kind')

@@ -39,6 +39,35 @@ const LABELS: Readonly<Record<string, string>> = {
   'levels-3d': 'Levels 3D',
 }
 
+// What each editor is for, in a plain line on its card. Keyed by the id the editor list names; Levels 3D reads as Levels.
+const LINES: Readonly<Record<string, string>> = {
+  tuner: 'Speeds, jumps and the keys that play it, tried while you play.',
+  'levels-2d': 'Draw the places your game happens in.',
+  'levels-3d': 'Draw the places your game happens in.',
+  studio: 'What each person and thing looks like.',
+  feel: 'Shakes, freezes and flashes when something happens.',
+  audio: 'Sounds and music, and when each one plays.',
+  writer: 'What people say to each other.',
+  sequence: 'Cutscenes: who moves, what shows and when.',
+  schematic: 'How characters behave: where they walk, what they notice.',
+}
+
+/** The plain line under a card's name, or nothing for an editor this build has no words for. */
+export function cardLine(editor: string): string | undefined {
+  return LINES[editor]
+}
+
+/** How many names a card lists before it says how many more there are. */
+const NAMED = 4
+
+/** What is in a card, in words: its files by name ("Start · Shop"), or that nothing is made yet. */
+export function cardContents(card: EditorCard): string {
+  if (card.rows.length === 0) return 'Nothing made yet. Open it to start.'
+  const names = card.rows.slice(0, NAMED).map((file) => fileTitle(file.path))
+  const more = card.rows.length - names.length
+  return more > 0 ? `${names.join(' · ')} · and ${more} more` : names.join(' · ')
+}
+
 export function homeOf(
   load: EditorListLoad,
   files: ReadonlyMap<string, readonly WorkspaceFile[]>,

@@ -143,7 +143,8 @@ test('a new 3D game is made with every editor it has and played', async ({ page,
   try {
     // The rail offers the editors the new game lists: Levels, Characters and the Tuner.
     await page.goto(editor.url)
-    for (const name of ['Levels', 'Characters', 'Tuner']) await expect(railHas(page, name)).toBeVisible()
+    for (const name of ['Levels', 'Characters', 'Tuner'])
+      await expect(await railHas(page, name)).toBeVisible()
 
     // The new game, played as it comes: dark blue walls, Wick in his blue cloak, a walk to the far wall.
     const before = await look(page)
@@ -213,8 +214,8 @@ for (const [name, reason] of [
     const editor = await runEditor(game.dir)
     try {
       await page.goto(editor.url)
-      await expect(railHas(page, 'Levels')).toBeVisible()
-      await expect(railHas(page, name)).toBeVisible({ timeout: 5_000 })
+      await expect(await railHas(page, 'Levels')).toBeVisible()
+      await expect(await railHas(page, name)).toBeVisible({ timeout: 5_000 })
     } finally {
       await editor.stop()
       game.remove()

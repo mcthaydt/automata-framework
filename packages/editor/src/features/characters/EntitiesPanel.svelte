@@ -4,6 +4,7 @@
   inspector edits; the add buttons make a new definition or a new level field, each one undo step.
 -->
 <script lang="ts">
+import EmptyState from '../../shared/kit/states/EmptyState.svelte'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import type { Project } from '../../shared/level-2d/model/project-types'
 import { definitionRows, levelFieldRows, type ResolvedEntitiesSelection } from './entities-model'
@@ -19,33 +20,43 @@ const { project, selection, session }: Props = $props()
 
 const selectedDef = $derived(selection.owner === 'level' ? undefined : selection.owner.entity)
 const levelFields = $derived(levelFieldRows(project))
+const definitions = $derived(definitionRows(project))
 </script>
 
 <div class="panel" data-testid="entities-panel">
   <section aria-labelledby="definitions-heading">
     <div class="head">
       <h2 id="definitions-heading">Characters</h2>
-      <Button aria-label="Add a character" onclick={() => session.addDefinition()}>+</Button>
+      {#if definitions.length > 0}
+        <Button aria-label="Add a character" onclick={() => session.addDefinition()}>+</Button>
+      {/if}
     </div>
-    <div class="choices" role="radiogroup" aria-labelledby="definitions-heading">
-      {#each definitionRows(project) as row (row.id)}
-        <button
-          type="button"
-          role="radio"
-          class="row"
-          aria-checked={row.id === selectedDef}
-          onclick={() => session.select({ owner: { entity: row.id } })}
-        >
-          <span class="swatch" style:--swatch={row.color ?? 'var(--color-text-dim)'} aria-hidden="true"></span>
-          <span class="text">
-            <span class="name">{row.label ?? row.id}</span>
-            {#if row.summary !== ''}<span class="sub">{row.summary}</span>{/if}
-          </span>
-        </button>
-      {:else}
-        <p class="empty">No characters yet. Add one to place it in your levels.</p>
-      {/each}
-    </div>
+    {#if definitions.length === 0}
+      <EmptyState
+        icon="person"
+        title="No characters yet"
+        why="Add one to place it in your levels."
+        action={{ label: 'Add a character', onclick: () => session.addDefinition() }}
+      />
+    {:else}
+      <div class="choices" role="radiogroup" aria-labelledby="definitions-heading">
+        {#each definitions as row (row.id)}
+          <button
+            type="button"
+            role="radio"
+            class="row"
+            aria-checked={row.id === selectedDef}
+            onclick={() => session.select({ owner: { entity: row.id } })}
+          >
+            <span class="swatch" style:--swatch={row.color ?? 'var(--color-text-dim)'} aria-hidden="true"></span>
+            <span class="text">
+              <span class="name">{row.label ?? row.id}</span>
+              {#if row.summary !== ''}<span class="sub">{row.summary}</span>{/if}
+            </span>
+          </button>
+        {/each}
+      </div>
+    {/if}
   </section>
 
   <section aria-labelledby="level-fields-heading">
@@ -102,12 +113,6 @@ const levelFields = $derived(levelFieldRows(project))
     font: var(--text-eyebrow-11);
     letter-spacing: var(--text-eyebrow-11-tracking);
     text-transform: uppercase;
-  }
-  .empty {
-    margin: 0;
-    padding: 0 var(--space-2);
-    color: var(--color-text-dim);
-    font: var(--text-body-13);
   }
   .choices {
     display: grid;

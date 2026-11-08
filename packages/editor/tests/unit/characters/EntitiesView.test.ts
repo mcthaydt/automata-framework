@@ -25,7 +25,7 @@ const quietPage = (): { document: LifecycleDocument; window: LifecycleWindow } =
   window: { addEventListener: () => {}, removeEventListener: () => {} },
 })
 
-async function mount() {
+async function mount(options: { noCharacters?: boolean } = {}) {
   const clock = createTestClock()
   const workspace = memoryWorkspace(clock)
   const app = createEditorApp({ workspace, registry: createAppProfiles(), ids: counterIds(), clock })
@@ -35,6 +35,11 @@ async function mount() {
   opened.document.history.apply('Set Music', (project) =>
     setLevelField(project as Project, 'level-1', 'music', 'theme'),
   )
+  if (options.noCharacters === true)
+    opened.document.history.apply('Remove characters', (project) => ({
+      ...(project as Project),
+      defs: { ...(project as Project).defs, entities: [] },
+    }))
   const toasts = createToasts({ clock })
   const controller = createDocumentController({ app, opened, toasts, lifecycle: quietPage() })
   render(DocumentScreen, {
@@ -150,6 +155,18 @@ describe('Entities view: the panel and the preview', () => {
       'aria-checked',
       'true',
     )
+  })
+})
+
+describe('Entities view: with no character', () => {
+  it('says so, why, and offers the one way forward, which adds a character', async () => {
+    const { project } = await mount({ noCharacters: true })
+    expect(within(panel()).getByRole('heading', { name: 'No characters yet' })).toBeInTheDocument()
+    expect(within(panel()).getByText('Add one to place it in your levels.')).toBeInTheDocument()
+    expect(within(panel()).getAllByRole('button', { name: 'Add a character' })).toHaveLength(1)
+    await userEvent.click(within(panel()).getByRole('button', { name: 'Add a character' }))
+    expect(project().defs.entities).toHaveLength(1)
+    expect(within(panel()).queryByRole('heading', { name: 'No characters yet' })).toBeNull()
   })
 })
 

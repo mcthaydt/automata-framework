@@ -69,6 +69,13 @@ describe('SuiteHeader in the wide layout', () => {
     expect(onselect).toHaveBeenCalledWith('rename')
   })
 
+  it('the document menu is a popover under the chevron, not a sheet', async () => {
+    render(SuiteHeader, props({ header: doc() }))
+    await userEvent.click(screen.getByRole('button', { name: 'Start' }))
+    await screen.findByRole('menu', { name: 'Start' })
+    expect(screen.queryByRole('group', { name: 'Start' })).toBeNull()
+  })
+
   it('on Home it says Home', () => {
     render(SuiteHeader, props({ editor: undefined }))
     expect(screen.getByRole('navigation', { name: 'Where you are' })).toHaveTextContent('Home')
@@ -152,6 +159,15 @@ describe('SuiteHeader in the medium layout', () => {
     expect(crumbs).not.toHaveTextContent('Levels')
     expect(crumbs).not.toHaveTextContent('/')
     expect(within(crumbs).getByRole('button', { name: 'Start' })).toBeInTheDocument()
+  })
+})
+
+describe('SuiteHeader in the medium layout', () => {
+  it('the document menu rises from the foot as a sheet', async () => {
+    render(SuiteHeader, props({ mode: 'medium', header: doc() }))
+    await userEvent.click(screen.getByRole('button', { name: 'Start' }))
+    const sheet = await screen.findByRole('group', { name: 'Start' })
+    expect(within(sheet).getByRole('menuitem', { name: 'Rename' })).toBeInTheDocument()
   })
 })
 

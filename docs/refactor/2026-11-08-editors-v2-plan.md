@@ -293,19 +293,19 @@ helper, `atEverySize(run)`, created in Task 4.
   SuiteEntry[]; more: readonly SuiteEntry[] }`; `TabBar { entries; current; standing: boolean; onselect }`;
   `Sheet { open: boolean; label: string; detent?: Detent; onclose: () => void; children: Snippet }`.
 
-- [ ] **Step 1: Write the failing tests.** `tabSlots`: nine entries, current Tuner → first four shown, five in More;
+- [x] **Step 1: Write the failing tests.** `tabSlots`: nine entries, current Tuner → first four shown, five in More;
       current Schematic → Tuner, Levels, Characters, Schematic shown, Feel in More; fewer than five entries → all
       shown, no More. `Sheet`: focus moves in and is trapped, Escape and the scrim close it and focus returns.
       Layout: tabs 56 px, the open tab's lime bar, More opens a sheet; at 844 × 390 the bar stands at the left, 72 px.
       Journey (Review Focus 3): at 390 × 844 open the inspector sheet, focus a name field, type "Shop", rotate to
       844 × 390: the sheet is open, the field focused, its value "Shop", and the tab bar at the left.
-- [ ] **Step 2: Run.** Expected: FAIL.
-- [ ] **Step 3: Implement**; `railFit` from the shared-editors build is replaced by `tabSlots` (spec §7.8), and its
+- [x] **Step 2: Run.** Expected: FAIL.
+- [x] **Step 3: Implement**; `railFit` from the shared-editors build is replaced by `tabSlots` (spec §7.8), and its
       tests move. The tab bar keeps `role="tablist"` "Editors" and its `tab` names, and the journeys' `railHas` and
       `openFromRail` (`packages/editor/tests/e2e/harness/complete-game.ts`) keep finding a tab or More's item; run
       `complete-game-2d` with `--project editor-phone-chromium` to prove it.
-- [ ] **Step 4: Run** and `pnpm check`. Expected: PASS.
-- [ ] **Step 5: Commit** `feat(editor): bottom sheets and a tab bar of four editors and More`.
+- [x] **Step 4: Run** and `pnpm check`. Expected: PASS.
+- [x] **Step 5: Commit** `feat(editor): bottom sheets and a tab bar of four editors and More`.
 
 ### Task 9: The empty state and the status line
 
@@ -318,13 +318,13 @@ helper, `atEverySize(run)`, created in Task 4.
 **Interfaces:**
 - Produces: `EmptyState { icon: IconName; title: string; why: string; action: { label: string; onclick: () => void } }`.
 
-- [ ] **Step 1: Write the failing tests.** `EmptyState` has one heading, one line and one button. Characters with no
+- [x] **Step 1: Write the failing tests.** `EmptyState` has one heading, one line and one button. Characters with no
       character shows "No characters yet", "Add one to place it in your levels." and its one add button.
       `StatusLine` is hidden in compact and uses `text-mono-12`.
-- [ ] **Step 2: Run.** Expected: FAIL.
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Run** and `pnpm check`. Expected: PASS.
-- [ ] **Step 5: Commit** `feat(editor): an empty state with one way forward, and the status line as the panel's foot`.
+- [x] **Step 2: Run.** Expected: FAIL.
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Run** and `pnpm check`. Expected: PASS.
+- [x] **Step 5: Commit** `feat(editor): an empty state with one way forward, and the status line as the panel's foot`.
 
 ## Phase 3: the screens
 
@@ -344,16 +344,16 @@ and log what differs and why.
 - Test: `tests/unit/suite/shell/home.test.ts`, `tests/unit/suite/shell/publish-game-dialog.test.ts`,
   `tests/browser/layout/suite/shell/home-v2.test.ts`.
 
-- [ ] **Step 1: Write the failing tests.** Home's heading and lede (spec §10); each card's name, line (spec §10's
+- [x] **Step 1: Write the failing tests.** Home's heading and lede (spec §10); each card's name, line (spec §10's
       table) and contents, "Nothing made yet. Open it to start." for an editor with no file; the colours control at the foot. Publish: the
       title "Put your game online", the mockup's line ("Publish builds your game and checks it is ready for the web. You
       get one zip file to upload to itch.io or any website host."), three steps, and "Build my game" as the dialog's
       one lime; "Download the zip" and "Try again" are the dialog's one lime only in their own phase. Layout: three cards a
       row in wide, two in medium, one a row in compact; `screenChecks` passes.
-- [ ] **Step 2: Run.** Expected: FAIL.
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Run** and `pnpm check`. Expected: PASS.
-- [ ] **Step 5: Commit** `feat(suite): Home asks what you want to change; Publish in three plain steps`.
+- [x] **Step 2: Run.** Expected: FAIL.
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Run** and `pnpm check`. Expected: PASS.
+- [x] **Step 5: Commit** `feat(suite): Home asks what you want to change; Publish in three plain steps`.
 
 ### Task 11: Levels 2D: Level, Tiles and Characters
 
@@ -570,3 +570,42 @@ iPad size, in Dark and once in Light; and apply the drunk grandma test to every 
   Ran: editor unit tests (275 files, 3349 tests), editor layout tests in Chromium (19 files, 376 tests), canvas and
   journey tests in Chromium (74), the new nav, rows, toolbar and suite layout tests with touch (all pass), typecheck,
   knip, style, boundaries. Not run: WebKit, Firefox.
+- 2026-11-08, build, Task 8: sheets and the tab bar. `Sheet`, `TabBar` and `tabSlots` already stood from Tasks 5 and 6;
+  this task adds their proof. `sheet.test.ts` (focus moves in and is trapped, Escape and the scrim close it, a press that
+  starts inside and ends on the scrim does not, and focus returns), `tab-bar.test.ts` (four tabs and More at 1/5 of the
+  width, 56 px tall; the open tab's 2 px lime bar along its top, down its left when the bar stands; More's sheet rises
+  from the foot and its rows are hit-sized) and the Review Focus 3 journey (at 390 × 844 the inspector sheet is open,
+  "Shop" is typed in a name field; turning to 844 × 390 keeps the same sheet, the same field, its focus and its text, and
+  the bar at the left). All three passed on their first run, since the parts existed (no red run recorded). The
+  document menu in the header is a `Menu` and opens as a sheet when the layout is not wide (a popover under the chevron
+  in wide). The journey harness: `railHas` is now async and finds an editor's tab, or its row under More on a phone,
+  closing a sheet an earlier look left open; `openEditor` uses it. `complete-game-2d` passes at the phone size
+  (`--project editor-phone-chromium`, 4 of 4); the 3D one's Publish is refused by design (closed beta, `test.fail`).
+  Rulings: (1) the shell's region sheets stay CSS-driven (they keep focus and scroll through a rotation, which a mounted
+  `Sheet` would not); `Sheet` is for menus, More and the title menu. (2) The standing 72 px bar is proved in the shell
+  test that already measured it, not twice. Not run: the iPad journeys end to end (the run passed the time limit), WebKit,
+  Firefox.
+- 2026-11-08, build, Task 9: the empty state and the status line. `EmptyState` (an icon in a 40 px tile, one heading, one
+  line, one button) is in `shared/kit/states/`; Characters with none shows "No characters yet" / "Add one to place it in
+  your levels." and the panel's own + is hidden meanwhile so the panel offers one way, not two. `StatusLine` is Geist Mono
+  12 px in `--tool-faint`; the shell hides a status region that holds the line in compact (a region holding something
+  else, such as a broken region's error panel, stays). Rulings: (1) the other empty pages (Levels with no level, the
+  content editors' starts) move onto `EmptyState` with their screens in Tasks 11 and 12. (2) The faint colour is
+  `--tool-faint` directly, with no new token. Tests written first for `EmptyState` and the Characters panel (red for
+  the right reason: no component, then no heading); the status line's two layout tests failed first on "11px" and "flex".
+- 2026-11-08, build, Task 10: Home and Publish. Home asks "What do you want to change?" with "Pick a part of your game.
+  Everything you change is saved in your game's folder." (on the try-it sample: "Pick a part of the sample to try.", since
+  nothing is saved there). Each card is its name, a plain line (`cardLine`) and what is in it in words (`cardContents`:
+  "Start · Shop", up to four names then "and N more", or "Nothing made yet. Open it to start."); the whole card is its
+  editor's button and an editor this build lacks lists its files by name, read only. Three cards a row in wide, two in
+  medium, one in compact (the shell's own modes). Publish is "Put your game online": the mockup's sentence, three steps
+  (Build your game, Download the zip, Upload it to itch.io or any website host) with the current one marked, and the
+  dialog's one lime button is the one for the step. `screenChecks(document, size, { contrast, lime })` is in
+  `src/testing/screen-checks.ts` and runs axe's `color-contrast` (`axe-core` 4.13.0, the site's version, is a dev
+  dependency of the editor). The Home layout test runs it at all eight sizes in Dark and Light, with axe at 1194 × 834
+  and 390 × 844 (the plan said 1440 × 900; the layout project's sizes are the eight in `layout-sizes.ts`, and 1194 × 834
+  is the wide one). Rulings: (1) cards' counts such as "3 feels" need each editor to count its files; Home names the
+  files instead, which every editor can do. (2) The card's name button is `--size-hit` tall, because the check measured the
+  text-high button and its stretched press area is not what a pointer is held to. (3) Home's tests are written before the
+  code and failed for the right reasons (no lede, no card lines). Ran: editor unit tests (279 files, 3380 tests), the
+  layout project in Chromium (21 files, 397 tests), typecheck, knip, style, boundaries. Not run: WebKit, Firefox.

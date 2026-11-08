@@ -25,13 +25,11 @@ export interface OpenedSuite {
   close(): Promise<void>
 }
 
-/** Open the suite with `editors` over `files` at `size`, choose the rail's `entry` tab and wait for `ready` to appear. */
-export async function openSuite(
+/** Open the suite on its Home with `editors` over `files` at `size`, and wait for the layout to settle. */
+export async function openSuiteHome(
   size: EditorSize,
   editors: SuiteEditor<unknown>[],
   files: Record<string, string>,
-  ready: string,
-  entry: string,
   /** What a served game adds to the top bar: the page Play opens, why it is off, and Publish. */
   game: Pick<SuiteEnv, 'playUrl' | 'playOff' | 'publish'> = {},
 ): Promise<OpenedSuite> {
@@ -47,9 +45,6 @@ export async function openSuite(
     ...game,
   })
   await settleLayout()
-  await chooseEditor(entry)
-  await expect.poll(() => document.querySelector(ready)).not.toBeNull()
-  await settleLayout()
   return {
     conditions,
     close: async () => {
@@ -57,6 +52,22 @@ export async function openSuite(
       target.remove()
     },
   }
+}
+
+/** Open the suite with `editors` over `files` at `size`, choose the rail's `entry` tab and wait for `ready` to appear. */
+export async function openSuite(
+  size: EditorSize,
+  editors: SuiteEditor<unknown>[],
+  files: Record<string, string>,
+  ready: string,
+  entry: string,
+  game: Pick<SuiteEnv, 'playUrl' | 'playOff' | 'publish'> = {},
+): Promise<OpenedSuite> {
+  const opened = await openSuiteHome(size, editors, files, game)
+  await chooseEditor(entry)
+  await expect.poll(() => document.querySelector(ready)).not.toBeNull()
+  await settleLayout()
+  return opened
 }
 
 export function tab(name: string): HTMLElement {

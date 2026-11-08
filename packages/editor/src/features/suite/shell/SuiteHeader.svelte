@@ -126,6 +126,7 @@ function chooseDocument(id: string): void {
         <Menu
           label={doc.name}
           items={doc.items}
+          presentation={mode === 'wide' ? 'popover' : 'sheet'}
           onselect={(id) => doc?.onselect(id)}
         >
           {#snippet trigger()}<span class="doc">{doc?.name}</span><Icon name="chevron-down" size={16} />{/snippet}

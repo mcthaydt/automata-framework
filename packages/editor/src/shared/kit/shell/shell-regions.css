@@ -26,6 +26,12 @@
   flex-wrap: wrap;
 }
 
+/* On a phone the foot belongs to the tab bar: nothing in the status line is needed to act (the header carries Saved).
+   Only a region holding the line goes; a broken region's error panel there stays where a person can read it. */
+[data-editor-shell][data-mode="compact"] > [data-region="status"]:has([data-widget="status-line"]) {
+  display: none;
+}
+
 /* The sidebar and the rail stand on the window's colour; the tab bar is part of the compact panel. */
 [data-editor-shell] > [data-region="rail"] {
   grid-area: rail;
@@ -71,8 +77,8 @@
   gap: var(--space-3);
   padding: 0 var(--space-3);
   min-height: 28px;
-  font: var(--text-mono-11);
-  color: var(--muted);
+  font: var(--text-mono-12);
+  color: var(--tool-faint);
   border-top: 1px solid var(--line);
 }
 

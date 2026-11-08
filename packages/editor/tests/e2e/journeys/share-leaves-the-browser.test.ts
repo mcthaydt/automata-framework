@@ -59,6 +59,8 @@ test('the level a visitor made is still there after a reload, kept in this brows
   await newPlatformer(page)
   await page.reload()
   const levels = page.getByRole('region', { name: 'Levels' })
-  await levels.getByRole('button', { name: 'Untitled platformer' }).click()
+  // The card names the level it holds and opens the editor on it.
+  await expect(levels).toContainText('Untitled platformer')
+  await levels.getByRole('button', { name: 'Levels' }).click()
   await expect(page.locator('[data-level-canvas]')).toHaveAttribute('data-state', 'drawn')
 })

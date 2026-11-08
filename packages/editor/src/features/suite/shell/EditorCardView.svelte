@@ -1,11 +1,12 @@
 <!--
-  One editor the game's list names: what it edits, file by file, each named in words (`fileTitle`), never by its path. An installed
-  editor's files open it; an editor this build does not have says so in plain words and opens its files read only.
+  One editor the game's list names: its name, a plain line on what it is for, and what is in it in words (`cardContents`),
+  never a path. The whole card opens an installed editor; an editor this build does not have says so in plain words and
+  opens its files read only, file by file.
 -->
 <script lang="ts">
 import type { WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
 import Button from '../../../shared/kit/widgets/Button.svelte'
-import { type EditorCard, fileTitle } from './home-model'
+import { cardContents, cardLine, type EditorCard, fileTitle } from './home-model'
 
 interface Props {
   card: EditorCard
@@ -18,50 +19,65 @@ interface Props {
 const { card, onopen, onread, start }: Props = $props()
 
 const headingId = $derived(`card-${card.editor}`)
+const line = $derived(cardLine(card.editor))
 </script>
 
-<section class="card" aria-labelledby={headingId} data-editor={card.editor}>
+<section class="card" aria-labelledby={headingId} data-editor={card.editor} data-installed={card.installed}>
   <header>
-    <h2 id={headingId}>{card.label}</h2>
+    <h2 id={headingId}>
+      {#if card.installed}
+        <button type="button" class="open" onclick={() => onopen(card)}>{card.label}</button>
+      {:else}
+        {card.label}
+      {/if}
+    </h2>
     {#if !card.installed}<span class="badge">Not in this build</span>{/if}
   </header>
+  {#if line}<p class="line">{line}</p>{/if}
   {#if !card.installed}
     <p class="note">{card.label} isn't in this build. Its files open read only.</p>
-  {/if}
-  {#if card.rows.length === 0}
-    <p class="note">No files yet.</p>
-    {#if start !== undefined && card.installed}
-      <Button onclick={() => onopen(card)}>{start}</Button>
-    {/if}
-  {:else}
     <ul>
       {#each card.rows as file (file.path)}
         <li>
-          <button type="button" onclick={() => (card.installed ? onopen(card) : onread(file))}>
+          <button type="button" class="file" onclick={() => onread(file)}>
             <span class="name">{fileTitle(file.path)}</span>
             {#if !file.writable}<span class="why">Read only{file.why ? `: ${file.why}` : ''}</span>{/if}
           </button>
         </li>
       {/each}
     </ul>
+  {:else}
+    <p class="contents">{cardContents(card)}</p>
+    {#if card.rows.length === 0 && start !== undefined}
+      <span class="start"><Button onclick={() => onopen(card)}>{start}</Button></span>
+    {/if}
   {/if}
 </section>
 
 <style>
-  /* A paper card on the field; its files are quiet rows that wash on hover, each the whole width so it is easy to hit. */
+  /* A raised card on the window colour. An installed editor's whole card is its button (the name's press covers it), so
+     the target is the card, not a small line of text. */
   .card {
+    position: relative;
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
+    gap: var(--space-1);
     min-width: 0;
-    padding: var(--space-4) var(--space-3) var(--space-3);
+    padding: var(--space-4);
     border: 1px solid var(--line);
     border-radius: var(--edge-lg);
-    background: var(--paper);
+    background: var(--raise);
+    transition: border-color 120ms var(--ease-out);
+  }
+  .card[data-installed='true']:hover {
+    border-color: var(--line-hover);
+  }
+  .card:has(.open:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
   }
   header {
     display: flex;
-    padding: 0 var(--space-1);
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2);
@@ -70,6 +86,25 @@ const headingId = $derived(`card-${card.editor}`)
     margin: 0;
     font: var(--text-title-15);
   }
+  .open {
+    min-height: var(--size-hit);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .open:focus-visible {
+    outline: none;
+  }
+  .open::after {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--edge-lg);
+    content: '';
+  }
   .badge {
     padding: 2px var(--space-2);
     border: 1px solid var(--line-strong);
@@ -77,10 +112,21 @@ const headingId = $derived(`card-${card.editor}`)
     color: var(--muted);
     font: var(--text-eyebrow-11);
   }
+  .line,
   .note {
     margin: 0;
-    padding: 0 var(--space-1);
     color: var(--muted);
+    font: var(--text-body-13);
+  }
+  .contents {
+    margin: var(--space-2) 0 0;
+    color: var(--tool-faint);
+    font: var(--text-mono-12);
+  }
+  .start {
+    position: relative;
+    align-self: flex-start;
+    margin-top: var(--space-2);
   }
   ul {
     display: flex;
@@ -90,7 +136,7 @@ const headingId = $derived(`card-${card.editor}`)
     padding: 0;
     list-style: none;
   }
-  button {
+  .file {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -106,10 +152,10 @@ const headingId = $derived(`card-${card.editor}`)
     cursor: pointer;
     transition: background 120ms var(--ease-out);
   }
-  button:hover {
+  .file:hover {
     background: var(--surface);
   }
-  button:focus-visible {
+  .file:focus-visible {
     outline: 2px solid var(--focus);
     outline-offset: -2px;
   }

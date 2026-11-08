@@ -289,13 +289,14 @@ describe('A level to try, on the sample game with none', () => {
     // Home lists the level that was made, and it opens the same level again.
     await userEvent.click(screen.getByRole('button', { name: 'Home' }))
     const levels = await screen.findByRole('region', { name: 'Levels' })
-    await userEvent.click(await within(levels).findByRole('button', { name: 'Untitled platformer' }))
+    expect(levels).toHaveTextContent('Untitled platformer')
+    await userEvent.click(within(levels).getByRole('button', { name: 'Levels' }))
     expect(await screen.findByTestId('level-canvas')).toHaveAttribute('data-level', 'level-1')
   })
 
   it('shows no New level on a game folder, where a missing level is a file that is not there', async () => {
     await start([levels2d()], TRY_FILES)
-    await screen.findByText('No files yet.')
+    await screen.findByText('Nothing made yet. Open it to start.')
     expect(screen.queryByRole('button', { name: 'New level' })).toBeNull()
     await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
     expect(await screen.findByTestId('levels-2d-refused')).toBeInTheDocument()

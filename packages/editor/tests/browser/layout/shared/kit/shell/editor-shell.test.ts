@@ -229,7 +229,7 @@ describe('a screen with no rail gives its column and its tab bar to the canvas',
 })
 
 describe('the status line fills the status region', () => {
-  test.each([['ipad-pro-11-landscape'], ['ipad-pro-11-portrait'], ['phone-portrait']])(
+  test.each([['ipad-pro-11-landscape'], ['ipad-pro-11-portrait']])(
     '%s: edge to edge, with the region’s border and not a second one',
     async (name) => {
       const { width: whole, mode } = size(name)
@@ -243,6 +243,24 @@ describe('the status line fills the status region', () => {
       expect(getComputedStyle(region('status')).borderTopWidth).toBe('1px')
     },
   )
+})
+
+describe('the status line is the panel’s foot', () => {
+  test('it is set in Geist Mono at 12 px, in the faint colour', async () => {
+    await open(size('ipad-pro-11-landscape'), { rail: false, statusLine: true })
+    const style = getComputedStyle(document.querySelector('[data-widget="status-line"]') as HTMLElement)
+    expect(style.fontSize).toBe('12px')
+    expect(style.fontFamily).toContain('Geist Mono')
+    const probe = document.body.appendChild(document.createElement('i'))
+    probe.style.color = 'var(--tool-faint)'
+    expect(style.color).toBe(getComputedStyle(probe).color)
+    probe.remove()
+  })
+
+  test('on a phone it is hidden: nothing there is needed to act, and the tab bar keeps the foot', async () => {
+    await open(size('phone-portrait'), { rail: false, statusLine: true })
+    expect(getComputedStyle(region('status')).display).toBe('none')
+  })
 })
 
 describe('a toast in the sheets clears the foot (the tab bar and the status line)', () => {
