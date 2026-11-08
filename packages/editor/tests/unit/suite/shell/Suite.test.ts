@@ -63,6 +63,23 @@ describe('Suite Home', () => {
     expect(await screen.findByRole('region', { name: 'Feel' })).toBeInTheDocument()
   })
 
+  it("leaves an editor off the rail when the game's list does not name it", async () => {
+    const editor = (id: string, label: string): SuiteEditor<unknown> => ({
+      id,
+      label,
+      icon: 'list',
+      hue: `color/ed/${id}`,
+      open: async () => ({}),
+      regions: { canvas: createRawSnippet(() => ({ render: () => '<p>canvas</p>' })) },
+    })
+    await start({ [EDITOR_LIST_PATH]: feelList, 'content/feel.toml': '' }, [
+      editor('feel', 'Feel'),
+      editor('audio', 'Audio'),
+    ])
+    await screen.findByRole('region', { name: 'Feel' })
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent?.trim())).toEqual(['Feel', 'Review'])
+  })
+
   it('EDS-m: a row without gates shows the problem with its key path, every editor read only, and no cards', async () => {
     await start({
       [EDITOR_LIST_PATH]:

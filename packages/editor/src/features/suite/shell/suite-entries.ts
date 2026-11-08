@@ -1,6 +1,7 @@
-// The suite rail's entries: one per editor the page registers, in the order it registers them, then Review when the
-// suite has change sets to review. Cmd 1 to 9 choose them in this order, so the rail never offers an editor the build
-// does not have. Each entry opens its one editor; Review edits nothing.
+// The suite rail's entries: one per editor the page registers and the game's editor list names, in the order the page
+// registers them, then Review when the suite has change sets to review. Cmd 1 to 9 choose them in this order, so the
+// rail never offers an editor the build does not have, nor one for files the game does not have (a game with no sounds
+// never sees Audio). Each entry opens its one editor; Review edits nothing.
 import type { IconName } from '../../../shared/kit/icons/paths.ts'
 import type { SuiteEditor } from '../../../shared/kit/ports/suite-editor.ts'
 
@@ -23,12 +24,17 @@ function iconFor(id: string): IconName {
   return 'list'
 }
 
-/** The rail, from the registered editors; `review` adds Review at the end. */
+/**
+ * The rail, from the registered editors; `review` adds Review at the end. `listed` is the editors the game's list
+ * names; without it (the list did not load) every registered editor is listed, so the person still has a way in.
+ */
 export function suiteEntries(
   editors: readonly Pick<SuiteEditor<unknown>, 'id' | 'label'>[],
   review: boolean,
+  listed?: ReadonlySet<string>,
 ): SuiteEntry[] {
-  const entries = editors.map((editor) => ({
+  const shown = listed === undefined ? editors : editors.filter((editor) => listed.has(editor.id))
+  const entries = shown.map((editor) => ({
     id: editor.id,
     label: editor.label,
     icon: iconFor(editor.id),

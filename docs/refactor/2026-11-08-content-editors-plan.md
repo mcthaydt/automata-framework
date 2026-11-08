@@ -6,7 +6,7 @@
 **Goal:** Build the suite's five missing editors (Feel, Audio, Writer, Sequence, Schematic) as free editors, in a new
 private package beside the extensions they edit.
 
-**Architecture:** `extensions/editors` (`@automata/extension-editors`) depends on `@automata/editor` (suite, kit) and
+**Architecture:** `extensions/editors` (`@automata/editors`) depends on `@automata/editor` (suite, kit) and
 on the extensions; core never imports it. One shared TOML session (kit content documents + kit `History` + the
 extension's Zod schema) backs every editor; each editor is a model (file to sentences and back) and Svelte regions.
 The package's own suite page registers the core editors and the five.
@@ -66,10 +66,10 @@ Vite 8.3.3.
 
 - [ ] **Step 1: Failing tests.** `toml-session.test.ts` over `createMemoryPorts` (from `@automata/editor/kit/ports/testing`):
   opens an existing file and reads `ok` with the parsed value; `edit('Shake harder', [{ keyPath: ['entry', 0, 'camera', 0, 'shake'], expected: 0.2, set: 0.4 }])` writes the file, keeps the comment beside it, and `history.undoLabel === 'Shake harder'`; `undo()` writes the old text back; a file `"[[entry]\n"` reads `syntax` with `line: 1` and no throw; a schema failure reads `invalid` with the problem's key path; a write refused after an outside change returns `{ ok: false }` with a message and `history.revision` unchanged; `exists()` false for a missing file and `create('Start a feel file')` writes `empty`. `problem-words.test.ts`: a `too_big` number issue reads "Must be 1 or less."; an `invalid_type` reads "Must be a number." (and text, a list); a custom issue keeps its own message.
-- [ ] **Step 2: Run** `pnpm --filter @automata/extension-editors test:unit` and see them fail (module not found).
+- [ ] **Step 2: Run** `pnpm --filter @automata/editors test:unit` and see them fail (module not found).
 - [ ] **Step 3: Implement** `toml-session.ts` on `openDocument` (kit documents) and `createHistory`, writing with the
   read mtime (`{ mtime }`) and refreshing it after each write; `problem-words.ts` over Zod's issue codes.
-- [ ] **Step 4: Run** the tests; they pass. `pnpm --filter @automata/extension-editors typecheck` is clean.
+- [ ] **Step 4: Run** the tests; they pass. `pnpm --filter @automata/editors typecheck` is clean.
 - [ ] **Step 5: Commit** `feat(extension-editors): the package and the shared TOML session`
 
 ### Task 2: The suite's rail lists only the editors the game uses

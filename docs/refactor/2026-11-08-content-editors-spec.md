@@ -41,7 +41,7 @@ Home with "No editor for this file yet." They can join Writer and Schematic late
 The editor package (`@automata/editor`) is core, and core never imports an extension (Plus port, P-D1 B). So the five
 editors live in one new private package beside the extensions they edit:
 
-- `extensions/editors`, `@automata/extension-editors`, `private: true`, MIT.
+- `extensions/editors`, `@automata/editors`, `private: true`, MIT.
 - It depends on `@automata/editor` (the suite, the kit, `defineSuiteEditor`) and on the five extensions above. The
   extensions do not depend on it: a game that uses `feel` gets no Svelte from this package.
 - Its `src/` has the usual shape: `features/feel`, `features/audio`, `features/writer`, `features/sequence`,
@@ -108,6 +108,18 @@ The suite has no editor for these. Each would be its own spec. None is built unl
 2. **Menus and HUD.** The `ui-screens` kit is code; there is no screen or HUD layout editor.
 3. **Item and enemy tables.** The Tuner edits single numbers; there is no table of items or enemies with their stats.
 4. **Default controls.** Players can rebind in the game; nothing edits the game's default bindings.
+
+Two runtime gaps limit what these editors' content does in a game. This work does not take them on; they are open
+choices for the Owner (see `2026-11-08-complete-game-gaps.md` in the project files):
+
+5. **2D games.** The narrative, cutscenes and systems extensions require `sectors` (3D) today, so what Writer, Sequence
+   and Schematic's characters make plays only in a 3D game. Feel, Audio and puzzles work in 2D. The editors themselves
+   edit the files either way.
+6. **A dialogue box and captions.** Nothing in the framework or the extensions draws a dialogue line, a choice or a
+   cutscene caption yet; the cutscene director hands a caption to a renderer no package has. Writer and Sequence write
+   the content; a game draws it with its own UI until a kit does.
+7. **Combat.** Schematic's characters sneak, chase and search; no extension has health or damage, so there is nothing
+   for an editor to set there.
 
 ## 9. Checks
 
