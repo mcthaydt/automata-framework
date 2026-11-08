@@ -172,7 +172,9 @@ describe('audioStage: the overall volume', () => {
     unlock()
     clock.advance(200)
     await flush()
-    const gain = (sources()[0]?.connections[0] as FakeNode).params.gain as { calls: string[] }
+    const source = sources()[0]
+    if (!source) throw new Error('the music did not start')
+    const gain = (source.connections[0] as FakeNode).params.gain as { calls: string[] }
     expect(gain.calls.at(-1)).toBe('lin 0.25 @1')
     content = { ...CONTENT, master_gain: 1 } as AudioContent
     clock.advance(200)
