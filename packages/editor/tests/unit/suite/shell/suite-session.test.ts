@@ -1,94 +1,100 @@
 import { describe, expect, test } from 'vitest'
 import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '#src/features/suite/core/index.ts'
+import type { MemoryCheck } from '#src/features/suite/memory/memory-checks.ts'
 import { createMemoryPorts } from '#src/features/suite/memory/memory-ports.ts'
-import sampleList from '#src/features/suite/memory/platformer.editors.toml?raw'
 import { createSuiteSession } from '#src/features/suite/shell/suite-session.ts'
 
 const TUNING = 'content/tuning.toml'
+const LIST = `format = "af-editors/1"
+[[file]]
+glob = "${TUNING}"
+editor = "tuner"
+modes = ["edit"]
+gates = []
+checks = ["no-nines", "after-check"]
+
+[[check]]
+id = "no-nines"
+when = "before"
+run = ["no-nines"]
+
+[[check]]
+id = "after-check"
+when = "after"
+run = ["after-check"]
+`
 const FILES = {
-  [EDITOR_LIST_PATH]: sampleList,
+  [EDITOR_LIST_PATH]: LIST,
   [TUNING]: 'MAX_MOVE_SPEED = 356.0\n',
 }
 
-async function setup(options: { changeSet?: false; gh?: boolean } = {}) {
-  const load = loadEditorList(sampleList)
+/** A check that fails any file with a 9 in it, so a write can be refused before it is made. */
+const NO_NINES: MemoryCheck = {
+  id: 'no-nines',
+  when: 'before',
+  run: ['no-nines'],
+  joins: [],
+  measure: false,
+  respond: ({ candidates }) =>
+    candidates.some((candidate) => candidate.text.includes('9'))
+      ? { status: 'fail', findings: [{ path: TUNING, severity: 'error', message: 'no nines' }], output: '' }
+      : { status: 'pass', findings: [], output: '' },
+}
+
+async function setup(checks: readonly MemoryCheck[] = []) {
+  const load = loadEditorList(LIST)
   if (!load.ok) throw new Error('fixture list does not load')
   const memory = await createMemoryPorts({
     files: FILES,
     classify: (path) => workspaceFile(load.list, path),
-    changeSet: options.changeSet === false ? false : { gh: options.gh ?? false },
+    checks,
   })
-  const session = createSuiteSession(memory.ports, { installed: ['tuner', 'levels-2d'] })
-  return { ...memory, session }
+  return { ...memory, session: createSuiteSession(memory.ports) }
 }
 
-/** Writes once through the session, answering the title prompt. */
-async function edit(session: ReturnType<typeof createSuiteSession>, text: string) {
-  const writing = session.ports.workspace.write(TUNING, text, { mtime: 0 })
-  await Promise.resolve()
-  await new Promise((resolve) => setTimeout(resolve, 0))
-  session.answerTitle('Faster')
-  return writing
-}
-
-describe('the session behind Ship, the Review desk and the interchange (EDS.2c)', () => {
-  test('without a change set port there is no Ship and the Review desk lists nothing', async () => {
-    const { session } = await setup({ changeSet: false })
-    expect(session.canShip()).toBe(false)
-    expect(await session.review()).toEqual([])
-  })
-
-  test('the Review desk reads each open change set from the journal, with its diff', async () => {
-    const { session } = await setup()
-    await edit(session, 'MAX_MOVE_SPEED = 400.0\n')
-    const [review] = await session.review()
-    expect(review).toMatchObject({
-      title: 'Faster',
-      files: [{ path: TUNING, after: 'MAX_MOVE_SPEED = 400.0\n' }],
+describe('the session behind the suite’s editors', () => {
+  test('an editor’s write goes through the write path: written once, and Undo takes it back', async () => {
+    const { session, ports } = await setup()
+    const mine = session.portsFor('tuner')
+    expect(await mine.workspace.write(TUNING, 'MAX_MOVE_SPEED = 400.0\n', { mtime: 0 })).toMatchObject({
+      ok: true,
     })
-    expect(review?.gates).toEqual({ reopened: [], unreadable: 'Gates not readable' })
-  })
-
-  test('EDS-j: Ship drafts the description, then gives a draft PR with gh and only the compare link without', async () => {
-    for (const gh of [true, false]) {
-      const { session } = await setup({ gh })
-      await edit(session, 'MAX_MOVE_SPEED = 400.0\n')
-      const draft = await session.draft()
-      expect(draft?.title).toBe('Faster')
-      expect(draft?.body).toContain(`- \`${TUNING}\``)
-      const result = await session.ship({ title: 'Faster', body: draft?.body ?? '' })
-      expect(result).toMatchObject({ pushed: true, compareUrl: expect.stringContaining('/compare/') })
-      expect('pr' in result && result.pr !== undefined).toBe(gh)
-    }
-  })
-
-  test('a failing push is the reason, not a throw', async () => {
-    const { session, ports } = await setup()
-    await edit(session, 'MAX_MOVE_SPEED = 400.0\n')
-    if (ports.changeSet !== undefined) ports.changeSet.ship = () => Promise.reject(new Error('no remote'))
-    expect(await session.ship({ title: 'Faster', body: '' })).toEqual({ error: 'no remote' })
-  })
-
-  test('export, change, plan and apply: one Import step that Undo takes back (EDS-o)', async () => {
-    const { session, ports } = await setup()
-    const text = await session.exportGame('toml')
-    expect(text).toContain('MAX_MOVE_SPEED = 356')
-    const plan = await session.planImport(text.replace('MAX_MOVE_SPEED = 356', 'MAX_MOVE_SPEED = 400'))
-    expect(plan).toMatchObject({ applicable: true, changes: [{ path: TUNING }] })
-    const applying = session.applyImport(plan)
-    await new Promise((resolve) => setTimeout(resolve, 0))
-    session.answerTitle('Import speed')
-    expect(await applying).toMatchObject({ written: true })
     expect((await ports.workspace.read(TUNING))?.text).toBe('MAX_MOVE_SPEED = 400.0\n')
-    expect(session.writePath.undoLabel()).toBe('Import')
+    expect(session.writePath.undoLabel('tuner')).toBe('Edit')
+    expect(await session.undo('tuner')).toMatchObject({ written: true })
+    expect((await ports.workspace.read(TUNING))?.text).toBe('MAX_MOVE_SPEED = 356.0\n')
   })
 
-  test('an import plan without an editor list is an error', async () => {
-    const memory = await createMemoryPorts({
-      files: { [TUNING]: 'a = 1\n' },
-      classify: (path) => ({ path, writable: false, why: 'no list' }),
-    })
-    const session = createSuiteSession(memory.ports, { installed: [] })
-    expect(await session.planImport('{}')).toMatchObject({ error: expect.stringContaining(EDITOR_LIST_PATH) })
+  test('a before check that fails refuses the write, in the check’s words', async () => {
+    const { session, ports } = await setup([NO_NINES])
+    const result = await session
+      .portsFor('tuner')
+      .workspace.write(TUNING, 'MAX_MOVE_SPEED = 999.0\n', { mtime: 0 })
+    expect(result).toMatchObject({ ok: false, reason: 'policy', message: 'no nines' })
+    expect((await ports.workspace.read(TUNING))?.text).toBe('MAX_MOVE_SPEED = 356.0\n')
+  })
+
+  test('the checks pill starts quiet and shows the latest run of each check', async () => {
+    const { session } = await setup([
+      {
+        ...NO_NINES,
+        id: 'after-check',
+        when: 'after',
+        respond: () => ({ status: 'pass', findings: [], output: '' }),
+      },
+    ])
+    expect(session.pills().map((pill) => [pill.icon, pill.tone])).toEqual([['checks', 'neutral']])
+    const outcome = await session.writePath.write(TUNING, 'MAX_MOVE_SPEED = 400.0\n', 'Edit', 'tuner')
+    await session.follow(outcome)
+    const [pill] = session.pills()
+    expect(pill).toMatchObject({ icon: 'checks', tone: 'pass', label: 'Checks pass' })
+  })
+
+  test('listeners hear each change to the pill', async () => {
+    const { session } = await setup()
+    let heard = 0
+    session.subscribe(() => heard++)
+    await session.portsFor('tuner').workspace.write(TUNING, 'MAX_MOVE_SPEED = 400.0\n', { mtime: 0 })
+    expect(heard).toBeGreaterThan(0)
   })
 })

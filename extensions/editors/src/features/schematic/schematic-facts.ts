@@ -9,21 +9,21 @@ import type { SchematicFacts } from './schematic-session.svelte.ts'
 export const LIST_ROWS = `[[file]]
 glob = "content/systems/*.toml"
 editor = "schematic"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = []
 checks = ["content"]
 
 [[file]]
 glob = "content/nav/*.toml"
 editor = "schematic"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = []
 checks = ["content"]
 
 [[file]]
 glob = "content/puzzles/*.toml"
 editor = "schematic"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = []
 checks = ["content"]
 `

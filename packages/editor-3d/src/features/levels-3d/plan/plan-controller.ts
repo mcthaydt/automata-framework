@@ -12,6 +12,7 @@ import type { EditSession, LevelEditor } from '../../../shared/edit/level-editor
 import type { SelectionOf } from '../../../shared/edit/selection-of'
 import { parseSelection } from '../../../shared/edit/selection-ref'
 import { createGeometryCache, type Geometry } from '../../../shared/geometry/geometry-cache'
+import { frameMap } from '../frame-map'
 import {
   type CornerHit,
   isLayerOff,
@@ -22,7 +23,7 @@ import {
   pickPlan,
 } from './plan-pick'
 import { gridRounded, type SnapResult, snapPlan } from './plan-snap'
-import { cameraOf, fitInto, fitPlan, levelBounds, planViewport, toScreen, toWorld } from './plan-viewport'
+import { cameraOf, planViewport, toScreen, toWorld } from './plan-viewport'
 
 /** A pointer on the canvas, in pixels from its top left. */
 export interface PlanPointer {
@@ -347,10 +348,7 @@ export function createPlanController<D>(editor: LevelEditor<D>, canvas: Size): P
       showCamera(currentViewport().zoomAt(at, factor))
     },
     fit() {
-      const bounds = levelBounds(geometry().layers)
-      editor.view.set({
-        camera: usable === undefined ? fitPlan(bounds, size) : fitInto(bounds, usable, size),
-      })
+      editor.view.set({ camera: frameMap({ layers: geometry().layers }, 'plan', size, usable) })
     },
     setUsable(area) {
       usable = area

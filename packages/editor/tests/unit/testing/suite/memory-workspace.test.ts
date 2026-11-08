@@ -8,7 +8,6 @@ import {
   loadEditorList,
   workspaceFile,
 } from '#src/features/suite/core/index.ts'
-import { createMemoryChangeSet } from '#src/features/suite/memory/memory-change-set.ts'
 import { createMemoryWorkspace } from '#src/features/suite/memory/memory-workspace.ts'
 import { describeSuiteWorkspace } from '#src/testing/ports/workspace-contract.ts'
 
@@ -16,7 +15,6 @@ describeSuiteWorkspace('memory, with the af-editors/1 policy', async (scenario) 
   const load = loadEditorList(scenario.files[EDITOR_LIST_PATH])
   if (!load.ok) throw new Error(`the scenario's list does not load: ${JSON.stringify(load.problems)}`)
   const { list } = load
-  const changeSet = createMemoryChangeSet()
   const workspace = await createMemoryWorkspace({
     files: scenario.files,
     classify: (path) => workspaceFile(list, path),
@@ -24,7 +22,6 @@ describeSuiteWorkspace('memory, with the af-editors/1 policy', async (scenario) 
       const access = fileAccess(list, path)
       return !access.writable && access.reason === 'generated'
     },
-    changeSet,
   })
-  return { workspace, changeSet }
+  return { workspace }
 })

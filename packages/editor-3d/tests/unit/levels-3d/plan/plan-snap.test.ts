@@ -2,7 +2,7 @@
 // line, on the horizontal or vertical through the last point, on the grid, or on the data step, in that order, and the
 // answer says which. The viewport is 32 px to a metre with the world origin at (20, 20), as in the picking tests.
 
-import type { AfSector, AfSectorEntry, Point } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File, Point } from '@automata/3d/level'
 import { createViewport, type Point as ScreenPoint } from '@automata/editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import { gridRounded, type SnapOptions, snapPlan } from '#src/features/levels-3d/plan/plan-snap.ts'
@@ -26,7 +26,7 @@ const OPTIONS: SnapOptions = { radius: 12, grid: GRID }
 const snap = (
   at: ScreenPoint,
   options: Partial<SnapOptions> = {},
-  level: AfSector = toyAfSector(),
+  level: AfSector2File = toyAfSector(),
   zoom = 32,
 ) =>
   snapPlan(afSectorProfile.geometry(level).layers, selectionOf(afSectorProfile, level), viewport(zoom), at, {
@@ -34,7 +34,10 @@ const snap = (
     ...options,
   })
 
-const room = (id: string, [x0, z0, x1, z1]: readonly [number, number, number, number]): AfSectorEntry => ({
+const room = (
+  id: string,
+  [x0, z0, x1, z1]: readonly [number, number, number, number],
+): AfSectorEntry2File => ({
   id,
   floor: 0,
   ceiling: 4,

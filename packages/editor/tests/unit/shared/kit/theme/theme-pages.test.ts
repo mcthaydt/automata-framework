@@ -9,10 +9,8 @@ const REPO = new URL('../../../../../../../', import.meta.url)
 const read = (relative: string): string => readFileSync(new URL(relative, REPO), 'utf8')
 
 const PAGES = [
-  'packages/editor/index.html',
   'packages/editor/suite.html',
   'packages/editor/design.html',
-  'packages/editor-3d/index.html',
   'packages/editor-3d/suite.html',
   'extensions/editors/suite.html',
 ]

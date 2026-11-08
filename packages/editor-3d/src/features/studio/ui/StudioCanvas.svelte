@@ -285,7 +285,7 @@ function capture(event: PointerEvent): void {
   <canvas bind:this={canvas} aria-hidden="true"></canvas>
   <div class="modes">
     <Segmented
-      label="Studio mode"
+      label="Character mode"
       value={$viewState.mode}
       options={modes}
       onedit={(event) => controller.view.setMode(event.value as StudioMode)}

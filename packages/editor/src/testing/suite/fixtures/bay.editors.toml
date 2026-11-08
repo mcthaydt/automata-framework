@@ -1,6 +1,6 @@
 # A 3D game's editor list for its Bay scene, converted AF-side (the game is never edited): its gate records
 # (docs/**/gates.json, each gate's `stage`) and the free pipe command each manifest check maps to. Converted:
-# TypeScript scene files become the AF content files, `literal`/`claude` modes become `edit`/`ask`, and each check
+# TypeScript scene files become the AF content files, the mode becomes `edit`, and each check
 # becomes a declared argv. The blockout stays the game's own format, which the 3D level editor edits. Q-FEEL and Q-AUD
 # are named by the manifest but have no record, so their `records` are where the pipelines would write them and the gate
 # pill reads their state as unknown.
@@ -21,35 +21,35 @@ never = ["package.json", "pipeline.config.json", "src/game/contracts/**", "scrip
 [[file]]
 glob = "content/scenes/{scene}/story.toml"
 editor = "writer"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = ["N-G1"]
 checks = ["content", "narrative-check"]
 
 [[file]]
 glob = "content/scenes/{scene}/dialogues.toml"
 editor = "writer"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = ["N-G1"]
 checks = ["content", "narrative-check"]
 
 [[file]]
 glob = "content/scenes/{scene}/puzzle.toml"
 editor = "schematic"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = ["P-G1"]
 checks = ["content", "puzzle-check"]
 
 [[file]]
 glob = "content/scenes/{scene}/agents.toml"
 editor = "schematic"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = ["S-G2"]
 checks = ["content", "systems-check", "fairness"]
 
 [[file]]
 glob = "content/cutscenes/*.toml"
 editor = "sequence"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = ["C-G1"]
 checks = ["content", "cutscene-lint", "cutscene-audit"]
 
@@ -70,21 +70,21 @@ checks = ["content", "audio-check"]
 [[file]]
 glob = "content/figures/*.toml"
 editor = "studio"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = ["G1", "G6"]
 checks = ["content"]
 
 [[file]]
 glob = "content/figure-library/*.toml"
 editor = "studio"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = ["G1", "G6"]
 checks = ["content"]
 
 [[file]]
 glob = "docs/art/blockout-{scene}/blockout.json"
 editor = "levels-3d"
-modes = ["edit", "ask"]
+modes = ["edit"]
 gates = ["E1", "E2", "E3", "E4", "LOOK-G1", "baseline"]
 checks = ["content", "blockout-generate", "scene-check", "puzzle-check"]
 

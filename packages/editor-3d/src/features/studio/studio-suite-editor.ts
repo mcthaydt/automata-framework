@@ -25,7 +25,7 @@ export interface StudioSuiteSession {
 export function createStudio(options: StudioSuiteOptions): SuiteEditor<StudioSuiteSession> {
   return defineSuiteEditor<StudioSuiteSession>({
     id: 'studio',
-    label: 'Studio',
+    label: 'Characters',
     icon: 'person',
     hue: 'color/ed/studio',
     async open(_files, ports) {

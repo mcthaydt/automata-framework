@@ -1,14 +1,14 @@
 // The checks of an `af-sector/1` level (ED3D.1b step 4): the id rules, then the generic checks over the sectors it
 // builds, in Last Light's order and with its early-outs for a level that cannot be built or resolved.
 
-import type { AfSector, AfSectorEntry } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { afIdProblems, afSectorChecks } from '#src/shared/level-session/af-sector/af-checks.ts'
 import { afSectorCodec } from '#src/shared/level-session/af-sector/af-codec.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 import { toyAfSector, toyDock, toyHall } from '#src/testing/toy-af-sector.ts'
 
-const depot = (): AfSector => {
+const depot = (): AfSector2File => {
   const result = afSectorCodec.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
@@ -171,13 +171,14 @@ describe('afSectorChecks', () => {
   })
 
   describe('materials', () => {
-    const named = (more: Partial<AfSector>): AfSector =>
+    const named = (more: Partial<AfSector2File>): AfSector2File =>
       toyAfSector({
         materials: { tile: { category: 'floors' }, brick: { category: 'walls' } },
         sectors: [{ ...toyHall, floorTexture: 'tile', wallTexture: 'brick' }, toyDock],
         ...more,
       })
-    const materials = (level: AfSector) => afSectorChecks(level).find((result) => result.id === 'materials')
+    const materials = (level: AfSector2File) =>
+      afSectorChecks(level).find((result) => result.id === 'materials')
 
     it('counts the table’s materials when every texture is one of them', () => {
       expect(materials(named({}))).toMatchObject({ ok: true, detail: 'within the table of 2 materials' })
@@ -199,7 +200,7 @@ describe('afSectorChecks', () => {
           { ...toyHall, style: 'posh' },
           {
             ...toyDock,
-            corners: toyDock.corners.map((c, i) => (i === 1 ? [...c, { texture: 'slate' }] : c)) as never,
+            corners: toyDock.corners.map((c, i) => (i === 1 ? [...c, { surface: 'slate' }] : c)) as never,
           },
         ],
       })
@@ -284,7 +285,7 @@ describe('afSectorChecks', () => {
       ...dock,
       corners: dock?.corners.map((corner) => (corner[2]?.next ? [corner[0], corner[1]] : corner)),
     }
-    const results = afSectorChecks({ ...level, sectors: [hall, brokenDock] } as AfSector)
+    const results = afSectorChecks({ ...level, sectors: [hall, brokenDock] } as AfSector2File)
     const openings = results.find((result) => result.id === 'openings')
     expect(openings).toMatchObject({
       ok: false,
@@ -303,7 +304,7 @@ describe('afSectorChecks', () => {
         [3, 3],
         [1, 3],
       ],
-    } as AfSectorEntry
+    } as AfSectorEntry2File
     const overlap = afSectorChecks(toyAfSector({ sectors: [toyHall, toyDock, annex] })).find(
       (result) => result.id === 'overlap',
     )
@@ -313,7 +314,7 @@ describe('afSectorChecks', () => {
   })
 
   it('does not hide a bug as a result: a level that is no level at all throws', () => {
-    expect(() => afSectorChecks({} as AfSector)).toThrow()
+    expect(() => afSectorChecks({} as AfSector2File)).toThrow()
   })
 
   it('fails heights for a ceiling that is not above its floor, located at the sector', () => {

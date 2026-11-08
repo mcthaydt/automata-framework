@@ -2,16 +2,14 @@
   The Tuner's settings, beside the game: one card per setting, in the file's order, named by its label and what a player
   feels when the file gives them (`shownName`, `shownNote`), else by its name in code and its comment. Each card has
   one control and one read-out: a slider for a number with bounds (its read-out is the value in its unit), a number box
-  for a number without, On or Off for a toggle, a text field for a string; a table or a list says "Ask only". A value outside the
-  bounds is refused before the write, with the bound named. The lock (the lock icon, as a layer's) makes a card refuse
-  until it is unlocked. The states without cards: no file (an offer to create it), a file that does not parse (the
+  for a number without, On or Off for a toggle, a text field for a string; a table or a list says to change it in the file. A value outside the
+  bounds is refused before the write, with the bound named. The states without cards: no file (an offer to create it), a file that does not parse (the
   parser's line), and a code-owned game whose bounds the compiler has not written. A setting with a scale is shown and
   edited in its unit and in a step a person can feel (`tuner-display.ts`); what is set goes back to the file as the
   sim's own number.
 -->
 <script lang="ts">
 import Button from '../../../../shared/kit/widgets/Button.svelte'
-import IconButton from '../../../../shared/kit/widgets/IconButton.svelte'
 import Segmented from '../../../../shared/kit/widgets/Segmented.svelte'
 import Slider from '../../../../shared/kit/widgets/Slider.svelte'
 import Stepper from '../../../../shared/kit/widgets/Stepper.svelte'
@@ -27,18 +25,11 @@ const { controller }: { controller: TunerController } = $props()
 const revision = controller.revision
 // svelte-ignore state_referenced_locally
 const refusal = controller.refusal
-// svelte-ignore state_referenced_locally
-const selected = controller.selected
 
 const read = $derived.by(() => {
   void $revision
   return controller.all()
 })
-/** Whether a tunable is locked; reads the revision so a lock redraws the rows. */
-const isLocked = (name: string): boolean => {
-  void $revision
-  return controller.isLocked(name)
-}
 
 const rows = $derived.by(() => {
   void $revision
@@ -86,41 +77,26 @@ const shownOf = (tunable: Tunable) => {
       <p class="hint">Run the game's checks once to see how far these settings can go.</p>
     {/if}
     {#each rows as tunable (tunable.name)}
-      {@const locked = isLocked(tunable.name)}
       {@const shown = shownName(tunable)}
       {@const note = shownNote(tunable)}
       <div
         class="row"
-        class:chosen={$selected === tunable.name}
-        class:locked
         data-testid={`tuner-row-${tunable.name}`}
         role="group"
         aria-label={shown}
       >
-        <div class="head">
-          <div class="name">
-            <button type="button" class="pick" onclick={() => controller.select(tunable.name)}>{shown}</button>
-            {#if note && note !== tunable.unit}<span class="note">{note}</span>{/if}
-          </div>
-          {#if tunable.editable}
-            <IconButton
-              icon={locked ? 'lock' : 'unlock'}
-              label={`${locked ? 'Unlock' : 'Lock'} ${shown}`}
-              pressed={locked}
-              onclick={() => controller.toggleLock(tunable.name)}
-            />
-          {/if}
+        <div class="name">
+          <span class="title">{shown}</span>
+          {#if note && note !== tunable.unit}<span class="note">{note}</span>{/if}
         </div>
         <div class="control">
           {#if !tunable.editable}
-            <span class="ask-only">Ask only: a table or a list is changed with Ask.</span>
+            <span class="in-file">A table or a list: change it in the file.</span>
           {:else if tunable.kind === 'boolean'}
             <Segmented
               label={shown}
               value={tunable.value === true ? 'on' : 'off'}
               options={[{ id: 'off', label: 'Off' }, { id: 'on', label: 'On' }]}
-              disabled={locked}
-              reason={`${shown} is locked: unlock it to change it`}
               onedit={(event) => void controller.set(tunable.name, event.value === 'on')}
             />
           {:else if tunable.kind === 'string'}
@@ -129,7 +105,6 @@ const shownOf = (tunable: Tunable) => {
               type="text"
               aria-label={shown}
               value={String(tunable.value)}
-              disabled={locked}
               onchange={(event) => void controller.set(tunable.name, event.currentTarget.value)}
               onkeydown={(event) => {
                 if (event.key === 'Enter') event.currentTarget.blur()
@@ -146,8 +121,6 @@ const shownOf = (tunable: Tunable) => {
                 max={number.max ?? 0}
                 step={number.step}
                 unit={tunable.unit}
-                disabled={locked}
-                reason={`${shown} is locked: unlock it to change it`}
                 onedit={(event) => {
                   if (event.phase === 'set') void controller.set(tunable.name, number.raw(event.value))
                   else if (event.phase === 'start') controller.dragStart(tunable.name)
@@ -169,8 +142,6 @@ const shownOf = (tunable: Tunable) => {
                 const check = checkValue(tunable, number.raw(value))
                 return 'message' in check ? check.message : undefined
               }}
-              disabled={locked}
-              reason={`${shown} is locked: unlock it to change it`}
               onedit={(event) => void controller.set(tunable.name, number.raw(event.value))}
             />
             {/if}
@@ -210,31 +181,12 @@ const shownOf = (tunable: Tunable) => {
     /* A white card on the light field, as the mockup's panels. */
     background: var(--paper);
   }
-  .head {
-    display: flex;
-    gap: var(--space-3);
-    align-items: center;
-    justify-content: space-between;
-  }
-  .row.chosen {
-    border-color: var(--color-accent-default);
-  }
-  .row.locked {
-    opacity: 0.8;
-  }
   .name {
     display: grid;
     gap: 2px;
   }
-  .pick {
-    min-height: var(--size-hit);
-    padding: 0;
-    border: 0;
-    background: none;
-    color: inherit;
+  .title {
     font: var(--text-title-15);
-    text-align: left;
-    cursor: pointer;
   }
   .note {
     color: var(--color-text-dim);
@@ -274,7 +226,7 @@ const shownOf = (tunable: Tunable) => {
     color: inherit;
     font: inherit;
   }
-  .ask-only,
+  .in-file,
   .hint,
   .state p {
     margin: 0;

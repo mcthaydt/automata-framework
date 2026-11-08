@@ -3,7 +3,7 @@
 // portal along x = 8. The canvas is 800 by 400 px with the camera at (7, 3) and zoom 1, which is 32 px to a metre; pixel
 // positions are made with `toScreen`, so no test hides a unit. The grid is the view's default, half a metre.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it, vi } from 'vitest'
 import type { PlanPointer } from '#src/features/levels-3d/plan/plan-controller.ts'
@@ -16,7 +16,7 @@ import { createLevelEditor } from '#src/shared/edit/level-editor.ts'
 import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 
-const depot: AfSector = (() => {
+const depot: AfSector2File = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
@@ -322,7 +322,7 @@ describe('two corners', () => {
 describe('closing the rectangle', () => {
   type Made = ReturnType<typeof setup>
   const sectorOf = (editor: Made['editor'], id: string) =>
-    afSectorProfile.sectors.list(editor.level as AfSector).find((each) => each.id === id)
+    afSectorProfile.sectors.list(editor.level as AfSector2File).find((each) => each.id === id)
   const wall = (made: Made, sector: string, corner: number) =>
     sectorOf(made.editor, sector)?.corners[corner]?.[2]
   /** Draws the room from one of its corners to the opposite one, then closes it with a tap on that corner. */

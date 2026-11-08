@@ -71,6 +71,7 @@ describe('the new 3D game’s files', () => {
     expect(list.file.map((row) => [row.glob, row.editor])).toEqual([
       ['content/levels/*.af-sector.json', 'levels-3d'],
       ['content/figures/*.toml', 'studio'],
+      ['content/figure-*/*.toml', 'studio'],
       ['content/tuning.toml', 'tuner'],
     ])
   })
@@ -90,6 +91,14 @@ describe('the new 3D game’s files', () => {
     expect([...kinds].sort()).toEqual(['box', 'cylinder'])
     expect(new Set(room.props.map((prop) => prop.use))).toEqual(new Set(['crate', 'barrel']))
     expect(room.entities.filter((entity) => entity.def === 'spawn')).toHaveLength(1)
+  })
+
+  it('plays the room in the time of day its file names, so the editor’s Time of day picker shows in play', () => {
+    const game = read('src/app/game.ts')
+    expect(game).toContain('levelTime')
+    expect(game).toMatch(/time: levelTime\(ROOM_LEVEL\.time\)/)
+    // Core's renderer lights the game's day colours by it; the game does no dimming of its own.
+    expect(game).not.toMatch(/shade/i)
   })
 
   it('names no source project and no plan id in anything it writes', () => {

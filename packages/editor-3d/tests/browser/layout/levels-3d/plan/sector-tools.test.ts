@@ -126,7 +126,7 @@ describe.each(SIZES)('the Plan tools at $name ($width x $height)', (size) => {
       return
     }
     expect(checkLayout(conditions, [...rail().querySelectorAll<HTMLElement>('button')])).toEqual([])
-    railButton('Sector').click()
+    railButton('Room').click()
     await arrived()
     const radios = [
       ...document.querySelectorAll<HTMLElement>('[data-testid="sector-options"] [role="radio"]'),
@@ -166,7 +166,7 @@ describe.each(SIZES)('the Plan tools at $name ($width x $height)', (size) => {
     'journey: a Pencil draws a room and closes it on its first corner',
     async () => {
       await openDepot(size)
-      railButton('Sector').click()
+      railButton('Room').click()
       await zoomOut()
       const corners = margin()
       for (const [x, y] of corners) penTap(x, y)

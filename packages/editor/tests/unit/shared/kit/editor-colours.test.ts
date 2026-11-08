@@ -9,36 +9,67 @@ import type { EditorTokens } from '#src/shared/kit/tokens/editor-tokens.ts'
 const REPO = fileURLToPath(new URL('../../../../../../', import.meta.url))
 const ROOTS = ['packages/editor/src', 'packages/editor-3d/src', 'extensions/editors/src']
 
-/** The only places a literal colour may stay: they draw on or inside a game picture (spec §2.1, last row). */
-const GAME_PICTURE_ALLOW: readonly { readonly file: string; readonly reason: string }[] = [
-  { file: 'packages/editor/src/features/level/Palette.svelte', reason: 'text shadow on a tile of the game' },
+/**
+ * The only lines a literal colour may stay on: each draws on or inside a game picture, or is a fixture (spec §2.1, last
+ * row). An entry names the file and the text of the one line, so a new literal in the same file is still caught, and the
+ * test below fails when an entry no longer matches anything (a stale exemption).
+ */
+const ALLOWED_LINES: readonly { readonly file: string; readonly line: string; readonly reason: string }[] = [
+  {
+    file: 'packages/editor/src/features/level/Palette.svelte',
+    line: 'text-shadow: 0 1px 1px rgb(0 0 0 / 0.6)',
+    reason: 'text shadow on a tile of the game',
+  },
   {
     file: 'packages/editor/src/features/tiles/TilesetSheet.svelte',
+    line: 'text-shadow: 0 1px 1px rgb(0 0 0 / 0.6)',
     reason: 'text shadow on a tile of the game',
   },
   {
     file: 'packages/editor-3d/src/features/levels-3d/plan/PlanCanvas.svelte',
-    reason: "the game view's field",
+    line: 'background: #0c0d10;',
+    reason: "the Plan's field, which is the colour the plan draws its clear in (`plan-colors.ts`)",
   },
   {
     file: 'packages/editor-3d/src/features/levels-3d/walk/WalkCanvas.svelte',
-    reason: "the game view's field",
+    line: 'background: #0c0d10;',
+    reason: "Walk's field, the same dark behind the picture in both looks",
   },
   {
     file: 'packages/editor-3d/src/features/levels-3d/dollhouse/DollhouseCanvas.svelte',
-    reason: "the game view's field",
+    line: 'background: #0c0d10;',
+    reason: "the 3D view's field, the same dark behind the picture in both looks",
   },
-  { file: 'extensions/editors/src/features/sequence/SequencePreview.svelte', reason: "the game's letterbox" },
   {
-    file: 'packages/editor/src/shared/level-2d/canvas/',
-    reason: "draws the level's own picture on its canvas",
+    file: 'extensions/editors/src/features/sequence/SequencePreview.svelte',
+    line: 'fill: black;',
+    reason: "the game's letterbox",
+  },
+  {
+    file: 'packages/editor/src/shared/level-2d/canvas/textures.manager.ts',
+    line: "strokeStyle = 'rgba(0, 0, 0, 0.35)'",
+    reason: "a tile's edge, drawn on the level's own picture",
   },
   {
     file: 'packages/editor/src/features/characters/EntityInspector.svelte',
+    line: "def.color ?? '#94a3b8'",
     reason: "a character's default colour is game data",
   },
-  { file: 'packages/editor/src/testing/', reason: 'fixtures, not chrome' },
-  { file: 'packages/editor/src/app/design/DesignBoard.svelte', reason: 'sample swatches' },
+  {
+    file: 'packages/editor/src/testing/kit/JourneyFixture.svelte',
+    line: 'background: #222;',
+    reason: 'a fixture, not chrome',
+  },
+  {
+    file: 'packages/editor/src/testing/level-2d/png.ts',
+    line: "?? '#000000'",
+    reason: 'a fixture picture, not chrome',
+  },
+  {
+    file: 'packages/editor/src/app/design/DesignBoard.svelte',
+    line: "palette={['#1d278a'",
+    reason: 'sample swatches',
+  },
 ]
 
 function walk(dir: string): string[] {
@@ -109,20 +140,27 @@ const inline: Source[] = sources.flatMap(({ file, text }) => {
 })
 
 const LITERAL = /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(|(?<![\w-])(?:white|black)(?![\w-])/
-const allowed = (file: string): boolean => GAME_PICTURE_ALLOW.some((a) => file.startsWith(a.file))
+const allowed = (file: string, line: string): boolean =>
+  ALLOWED_LINES.some((a) => a.file === file && line.includes(a.line))
 const literalsIn = (list: Source[]): string[] =>
-  list
-    .filter(({ file }) => !allowed(file))
-    .flatMap(({ file, text }) =>
-      text
-        .split('\n')
-        .filter((line) => !line.includes('white-space') && LITERAL.test(line))
-        .map((line) => `${file}: ${line.trim()}`),
-    )
+  list.flatMap(({ file, text }) =>
+    text
+      .split('\n')
+      .filter((line) => !line.includes('white-space') && LITERAL.test(line) && !allowed(file, line))
+      .map((line) => `${file}: ${line.trim()}`),
+  )
 
 describe('editor colours are tokens', () => {
   test('no colour literal outside the game pictures', () => {
     expect(literalsIn([...styles, ...inline])).toEqual([])
+  })
+
+  test('every allowed line is still there, so an exemption never outlives its line', () => {
+    const everything = [...styles, ...inline]
+    const stale = ALLOWED_LINES.filter(
+      ({ file, line }) => !everything.some((source) => source.file === file && source.text.includes(line)),
+    ).map(({ file, line }) => `${file}: ${line}`)
+    expect(stale).toEqual([])
   })
 
   test('no fallback colour: var(--x, <colour>)', () => {
@@ -235,7 +273,7 @@ describe('editor colours are tokens', () => {
       ) as EditorTokens
     ).tokens
     for (const [name, value] of Object.entries(tokens)) {
-      if (/^color-(layer|phase)-/.test(name)) expect(value, name).toMatch(/^#[0-9a-f]{6}$/)
+      if (/^color-(layer|phase|stage)-/.test(name)) expect(value, name).toMatch(/^#[0-9a-f]{6}$/)
     }
   })
 
@@ -243,11 +281,15 @@ describe('editor colours are tokens', () => {
     const entries = sources.filter(
       ({ file }) =>
         /^packages\/editor\/src\/app\/[\w-]+\/main\.ts$/.test(file) ||
-        file === 'packages/editor-3d/src/app/main.ts' ||
         file === 'packages/editor-3d/src/app/suite/suite-main.ts' ||
         file === 'extensions/editors/src/app/suite/main.ts',
     )
-    expect(entries.length).toBeGreaterThanOrEqual(5)
+    expect(entries.map(({ file }) => file).sort()).toEqual([
+      'extensions/editors/src/app/suite/main.ts',
+      'packages/editor-3d/src/app/suite/suite-main.ts',
+      'packages/editor/src/app/design/main.ts',
+      'packages/editor/src/app/suite/main.ts',
+    ])
     for (const { file, text } of entries) {
       expect(text.indexOf('tool-chrome.css'), file).toBeGreaterThan(text.indexOf('tokens.css'))
     }

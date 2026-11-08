@@ -135,7 +135,7 @@ describe.each(SIZES.filter((size) => size.mode !== 'compact'))(
   (size) => {
     test('the nudge pad is on screen at full size after a Pencil tap, clear of the status line', async () => {
       const { conditions } = await openDepot(size)
-      chooseTool('Sector')
+      chooseTool('Room')
       await arrived()
       await tapPlan('pen', 4, -1)
       // A page that cannot draw the plan (here, Firefox without WebGL2) says so and shows none of the plan's overlays.
@@ -161,7 +161,7 @@ describe.each(SIZES.filter((size) => size.mode !== 'compact'))(
 
     test('ED3-c: a rectangle against the dock’s south wall is offered a portal; Portal adds it and the checks stay clear', async () => {
       await openDepot(size)
-      chooseTool('Sector')
+      chooseTool('Room')
       await arrived()
       buttonNamed('Rectangle').click()
       await arrived()
@@ -182,7 +182,7 @@ describe.each(SIZES.filter((size) => size.mode !== 'compact'))(
 
     test('ED3-d: a polygon over the hall is refused, naming the hall, and nothing is added', async () => {
       await openDepot(size)
-      chooseTool('Sector')
+      chooseTool('Room')
       await arrived()
       for (const [x, z] of [
         [2, -1],

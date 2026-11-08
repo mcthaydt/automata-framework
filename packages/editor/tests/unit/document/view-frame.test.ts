@@ -2,8 +2,8 @@
 import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import DocumentScreen from '#src/app/editor-2d/DocumentScreen.svelte'
-import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
+import DocumentScreen from '#src/app/level-2d/DocumentScreen.svelte'
+import { createAppProfiles } from '#src/app/level-2d/profiles.ts'
 import { createDocumentController } from '#src/features/document/document-controller.ts'
 import type { LifecycleDocument, LifecycleWindow } from '#src/shared/kit/storage/page-lifecycle.ts'
 import { createToasts } from '#src/shared/kit/widgets/toasts.ts'
@@ -12,7 +12,6 @@ import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
-import FakeWorldCanvas from '#src/testing/level-2d/FakeWorldCanvas.svelte'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 
 // Spec 11.4: Map, Tiles and Characters share the Level view's frame. The stage fills its region; the list and the
@@ -42,7 +41,6 @@ async function mount(view: string, [width, height]: [number, number]): Promise<v
     read: (path: string) => workspace.store.read(path),
     ids: counterIds(100),
     canvas: FakeLevelCanvas,
-    worldCanvas: FakeWorldCanvas,
     onback: () => {},
   })
   // On a phone the view switcher is a menu; from an iPad up it is a row of radios.
@@ -57,11 +55,7 @@ async function mount(view: string, [width, height]: [number, number]): Promise<v
   }
 }
 
-const VIEWS = [
-  { view: 'Map', list: 'All levels', testId: 'world-view' },
-  { view: 'Tiles', list: 'All tiles', testId: 'tilesets-view' },
-  { view: 'Characters', list: 'All characters', testId: 'entities-view' },
-] as const
+const VIEWS = [{ view: 'Characters', list: 'All characters', testId: 'entities-view' }] as const
 
 describe.each(VIEWS)('$view view: the Level view’s frame', ({ view, list, testId }) => {
   const controls = (): HTMLElement => screen.getByRole('toolbar', { name: `${view} controls` })
@@ -87,19 +81,5 @@ describe.each(VIEWS)('$view view: the Level view’s frame', ({ view, list, test
     expect(opener).toHaveAttribute('aria-expanded', 'false')
     await userEvent.click(opener)
     expect(opener).toHaveAttribute('aria-expanded', 'true')
-  })
-})
-
-describe('the frame on a wide screen', () => {
-  it('leaves Tiles and Characters without a pill: their list and details are always in view', async () => {
-    await mount('Tiles', [1440, 900])
-    expect(screen.queryByRole('toolbar', { name: 'Tiles controls' })).toBeNull()
-  })
-
-  it('keeps Fit in the Map’s pill', async () => {
-    await mount('Map', [1440, 900])
-    const controls = screen.getByRole('toolbar', { name: 'Map controls' })
-    expect(within(controls).getByRole('button', { name: 'Fit the map in view' })).toBeInTheDocument()
-    expect(within(controls).queryByRole('button', { name: 'Details' })).toBeNull()
   })
 })

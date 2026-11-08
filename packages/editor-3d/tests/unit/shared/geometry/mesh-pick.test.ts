@@ -2,7 +2,7 @@
 // eye hits first among them. A surface that faces away from the eye is cut away, so the dollhouse sees into a room through
 // its near walls and Walk, inside the room, sees them all. Rooms are 8 m by 6 m and 4 m high.
 
-import type { AfSector, AfSectorEntry, AfWall } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File, AfWall2 } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { type SelectionOf, selectionOf } from '#src/shared/edit/selection-of.ts'
 import {
@@ -31,9 +31,9 @@ const CENTRE = { x: 400, y: 300 }
 const entry = (
   id: string,
   [x0, z0, x1, z1]: readonly [number, number, number, number],
-  walls: Readonly<Record<number, AfWall>> = {},
-  more: Partial<AfSectorEntry> = {},
-): AfSectorEntry => ({
+  walls: Readonly<Record<number, AfWall2>> = {},
+  more: Partial<AfSectorEntry2File> = {},
+): AfSectorEntry2File => ({
   id,
   floor: 0,
   ceiling: 4,
@@ -47,13 +47,13 @@ const entry = (
   ...more,
 })
 
-const level = (...sectors: AfSectorEntry[]): AfSector => toyAfSector({ sectors })
+const level = (...sectors: AfSectorEntry2File[]): AfSector2File => toyAfSector({ sectors })
 
-const meshOf = (data: AfSector, select?: SelectionOf): SectorMesh =>
+const meshOf = (data: AfSector2File, select?: SelectionOf): SectorMesh =>
   buildSectorMesh(afSectorProfile.geometry(data).layers, select ?? selectionOf(afSectorProfile, data))
 
 /** One room, 'room', from the origin to (8, 6). */
-const room = (walls: Readonly<Record<number, AfWall>> = {}): AfSector =>
+const room = (walls: Readonly<Record<number, AfWall2>> = {}): AfSector2File =>
   level(entry('room', [0, 0, 8, 6], walls))
 
 /** A camera standing in the room at (4, 3), eye height 1.6, looking along the heading with the pitch. */
@@ -214,7 +214,7 @@ describe('surfaceVisibility and the wall occlusion (ED3D.4b)', () => {
   })
 
   it('lets a ray through a cut wall, stops at a never wall from outside, and picks a faded one', () => {
-    const looking = (walls: Readonly<Record<number, AfWall>>) =>
+    const looking = (walls: Readonly<Record<number, AfWall2>>) =>
       pickMesh(meshOf(room(walls)), { origin: [4, 1.6, 12], direction: [0, 0, -1] })
     expect(looking({})).toMatchObject({ selection: 'wall:room/0', distance: 12 })
     expect(looking({ 2: { occlude: 'never' } })).toMatchObject({ selection: 'wall:room/2', distance: 6 })

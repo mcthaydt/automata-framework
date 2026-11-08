@@ -1,7 +1,7 @@
 import '#src/shared/kit/tokens.css'
 import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
-import '#src/app/editor-2d/main.css'
+import '#src/app/level-2d/main.css'
 import { afterEach, describe, expect, it } from 'vitest'
 import { IPAD_PROFILES } from '#src/testing/kit/ipad-profiles.ts'
 import { arrived } from '#src/testing/kit/layout-sizes.ts'
@@ -54,7 +54,7 @@ describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-la
       async (template) => {
         editor = await openJourneyEditor(profile, template)
         const found: string[] = []
-        for (const view of ['Level', 'Map', 'Tiles', 'Characters']) {
+        for (const view of ['Level', 'Characters']) {
           await press('radio', view)
           await arrived()
           found.push(...strayWords(view, document.body.innerText))

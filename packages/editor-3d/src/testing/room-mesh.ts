@@ -1,6 +1,6 @@
 // A one-room mesh for the tests of the 3D views: the room's walls are 0 north, 1 east, 2 south and 3 west, and its floor is
 // at 0 and its ceiling at 4 m. Every wall can say what a view does to it (`occlude`) or hold a door or a portal.
-import type { AfSector, AfSectorEntry, AfWall } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File, AfWall2 } from '@automata/3d/level'
 import { selectionOf } from '../shared/edit/selection-of'
 import { buildSectorMesh, type SectorMesh } from '../shared/geometry/sector-mesh'
 import { afSectorProfile } from '../shared/level-session/af-sector-profile'
@@ -10,8 +10,8 @@ import { toyAfSector } from './toy-af-sector'
 export const entry = (
   id: string,
   [x0, z0, x1, z1]: readonly [number, number, number, number],
-  walls: Readonly<Record<number, AfWall>> = {},
-): AfSectorEntry => ({
+  walls: Readonly<Record<number, AfWall2>> = {},
+): AfSectorEntry2File => ({
   id,
   floor: 0,
   ceiling: 4,
@@ -24,9 +24,9 @@ export const entry = (
   ],
 })
 
-export const meshOf = (data: AfSector): SectorMesh =>
+export const meshOf = (data: AfSector2File): SectorMesh =>
   buildSectorMesh(afSectorProfile.geometry(data).layers, selectionOf(afSectorProfile, data))
 
 /** One room, 'room', from the origin to (8, 6). */
-export const room = (walls: Readonly<Record<number, AfWall>> = {}): SectorMesh =>
+export const room = (walls: Readonly<Record<number, AfWall2>> = {}): SectorMesh =>
   meshOf(toyAfSector({ sectors: [entry('room', [0, 0, 8, 6], walls)] }))

@@ -7,7 +7,7 @@
 // a sim may import it; the 3D level editor and @automata/3d's `./camera-view` re-export it unchanged.
 
 export * from '../shared/level/af-sector.schema.ts'
-export { migrateAfSector1 } from '../shared/level/af-sector-1-to-2.migration.ts'
+export { migrateAfSector1, migrateAfSector1File } from '../shared/level/af-sector-1-to-2.migration.ts'
 export * from '../shared/level/af-sector-2.schema.ts'
 export {
   crossing,
@@ -33,6 +33,7 @@ export {
   propState,
   sameProp,
 } from '../shared/level/piece-states.ts'
+export { planeZ, type WrittenPlane, withPlaneZ } from '../shared/level/plane.ts'
 export { type LevelPath, type LevelProblem, pathText } from '../shared/level/problem.ts'
 export { type LevelRead, readLevel } from '../shared/level/read-level.ts'
 export * from '../shared/level/sector.schema.ts'

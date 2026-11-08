@@ -50,6 +50,10 @@
   --color-layer-tiles: #6fbf9a;
   --color-layer-entities: #e07a6a;
   --color-layer-intgrid: #e6c35c;
+  --color-stage-grid: #d4d4d8;
+  --color-stage-accent: #1d278a;
+  --color-stage-bad: #b42318;
+  --color-stage-chip: #ffffff;
   --color-phase-teach: #5aa9a0;
   --color-phase-combine: #7e8de0;
   --color-phase-recover: #6fbf73;

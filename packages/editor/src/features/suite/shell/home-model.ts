@@ -6,6 +6,7 @@ import { writtenBySave } from '../../../shared/editor-list/workspace-policy'
 import type { WorkspaceFile } from '../../../shared/kit/ports/suite-ports.ts'
 import type { EditorListLoad, EditorListProblem } from '../core'
 import type { Suite } from './create-suite'
+import { editorLabel } from './suite-entries'
 
 export interface EditorCard {
   /** The id the list names. */
@@ -28,7 +29,7 @@ export type HomeState =
 // brings its own label).
 const LABELS: Readonly<Record<string, string>> = {
   tuner: 'Tuner',
-  studio: 'Studio',
+  studio: 'Characters',
   audio: 'Audio',
   feel: 'Feel',
   writer: 'Writer',
@@ -60,7 +61,7 @@ export function homeOf(
     const opened = (files.get(editor) ?? []).filter((file) => !writtenBySave(load.list, file.path))
     return {
       editor,
-      label: installed?.label ?? LABELS[editor] ?? editor,
+      label: editorLabel(installed ?? { id: editor, label: LABELS[editor] ?? editor }, listed),
       entry: installed?.id,
       installed: installed !== undefined,
       files: opened,

@@ -85,7 +85,6 @@ describe('walls of a level', () => {
         modes: ['edit'],
         writable: true,
       }),
-      changeSet: false,
     })
     expect(await levelWalls(ports, 'content/levels/none.toml')).toEqual([])
     expect(await levelWalls(ports, 'content/levels/broken.toml')).toEqual([])

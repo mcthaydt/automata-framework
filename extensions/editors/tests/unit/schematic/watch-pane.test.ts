@@ -27,7 +27,6 @@ async function open(options: { gameUrl?: string; systems?: string } = {}) {
       modes: ['edit'],
       writable: true,
     }),
-    changeSet: false,
   })
   const session = await createSchematic({ gameUrl: options.gameUrl }).open(
     await ports.workspace.files('schematic'),

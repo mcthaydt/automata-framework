@@ -3,17 +3,17 @@ import '@automata/editor/fonts.css'
 import '@automata/editor/suite.css'
 import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
 import type { SuiteEditor } from '@automata/editor/kit/ports'
-import { SIZES } from '@automata/editor/kit/testing'
+import { contrast, SIZES } from '@automata/editor/kit/testing'
 import { fixtureEditor } from '@automata/editor/suite/testing'
 import {
   dockToggle,
+  editorControl,
   editorList,
   inShell,
   inView,
   noPageScroll,
   type OpenedSuite,
   openSuite,
-  tab,
 } from '@automata/editor/suite/testing/layout'
 import { checkLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, test } from 'vitest'
@@ -55,15 +55,85 @@ afterEach(async () => {
   opened = undefined
 })
 
+/** The first colour behind an element: the nearest ancestor that paints one. */
+function backdropOf(element: HTMLElement): string {
+  for (let each: HTMLElement | null = element; each !== null; each = each.parentElement) {
+    const color = getComputedStyle(each).backgroundColor
+    if (!/^rgba\(.*, 0\)$|^transparent$/.test(color)) return color
+  }
+  return 'rgb(255, 255, 255)'
+}
+
 describe.each(SIZES)('Suite Levels 3D at $name ($width x $height)', (size) => {
   test('fills the one shell: the plan in view, every target 44 px, no page scroll', async () => {
-    opened = await openSuite(size, editors(), FILES, '[data-testid="plan-canvas"]', 'Levels 3D')
+    opened = await openSuite(size, editors(), FILES, '[data-testid="plan-canvas"]', 'Levels')
     const plan = inShell('[data-testid="plan-canvas"]')
     inView(plan, size)
-    expect(checkLayout(opened.conditions, [plan, tab('Levels 3D')])).toEqual([])
+    expect(checkLayout(opened.conditions, [plan, editorControl('Levels')])).toEqual([])
     // Levels 3D has no dock, so there is nothing for the toggle to open.
     expect(dockToggle()).toHaveLength(0)
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/suite-levels-3d-${size.name}.png` })
+  })
+
+  test('a room that will not open says so in readable ink on the dark stage', async () => {
+    const files = {
+      ...FILES,
+      'content/levels/depot.af-sector.json': '{"format":"af-sector/3","name":"depot","sectors":[]}',
+    }
+    opened = await openSuite(size, editors(), files, '[data-testid="levels-3d-refused"]', 'Levels')
+    const card = inShell('[data-testid="levels-3d-refused"]')
+    const heading = card.querySelector('h2') as HTMLElement
+    const background = backdropOf(card)
+    expect(heading.textContent).toBe("Depot can't be opened.")
+    expect(contrast(getComputedStyle(heading).color, background)).toBeGreaterThanOrEqual(4.5)
+    for (const text of card.querySelectorAll('p, summary'))
+      expect(
+        contrast(getComputedStyle(text).color, background),
+        text.textContent ?? '',
+      ).toBeGreaterThanOrEqual(4.5)
+    for (const line of card.querySelectorAll('h2, :scope > p'))
+      expect(line.textContent).not.toMatch(/af-sector|\.json|format/)
+  })
+
+  test('the drawing tools are in view (the top bar, or floating at a phone foot), each by role and name, whole and 44 px, and a tap chooses one', async () => {
+    opened = await openSuite(size, editors(), FILES, '[data-testid="plan-canvas"]', 'Levels')
+    const bar = inShell('[data-region="topbar"]')
+    const toolbar = document.querySelector<HTMLElement>('[role="toolbar"][aria-label="Tools"]')
+    if (toolbar === null) throw new Error('there are no Tools')
+    // A phone's top bar has no room for seven tools beside Undo, Redo and the View menu (they scrolled out of sight): there
+    // they float at the plan's foot, whole in view at the start, and everywhere else they lie along the top bar.
+    const compact = size.width <= 760 || size.height <= 520
+    expect(bar.contains(toolbar), 'in the top bar when there is room').toBe(!compact)
+    if (compact) {
+      expect(document.querySelector('[data-testid="tool-strip"]')?.contains(toolbar)).toBe(true)
+      const first = toolbar.querySelector('button')?.getBoundingClientRect()
+      expect(first?.left).toBeGreaterThanOrEqual(0)
+      expect(first?.bottom).toBeLessThanOrEqual(size.height)
+    }
+    const buttons = [...toolbar.querySelectorAll<HTMLElement>('button')]
+    expect(buttons.map((button) => button.textContent?.trim())).toEqual([
+      'Select',
+      'Room',
+      'Corner',
+      'Doorway',
+      'Door',
+      'Window',
+      'Thing',
+    ])
+    for (const button of buttons) {
+      // The top bar scrolls sideways where a phone's width holds too few; each tool is whole once scrolled to.
+      button.scrollIntoView({ inline: 'nearest', block: 'nearest' })
+      const box = button.getBoundingClientRect()
+      expect(box.width).toBeGreaterThanOrEqual(44)
+      expect(box.height).toBeGreaterThanOrEqual(44)
+      expect(box.left).toBeGreaterThanOrEqual(-0.5)
+      expect(box.right).toBeLessThanOrEqual(size.width + 0.5)
+    }
+    const room = buttons[1] as HTMLElement
+    room.click()
+    await expect.poll(() => room.getAttribute('aria-pressed')).toBe('true')
+    expect(buttons[0]?.getAttribute('aria-pressed')).toBe('false')
+    noPageScroll()
   })
 })

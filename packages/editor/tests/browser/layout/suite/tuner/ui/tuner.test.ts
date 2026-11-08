@@ -13,6 +13,7 @@ import { createTuner } from '#src/features/suite/tuner/tuner-suite-editor.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
 import { editorTargets } from '#src/testing/kit/targets.ts'
+import { chooseEditor } from '#src/testing/suite/suite-layout.ts'
 import { tunerFixtureFiles } from '#src/testing/suite/tuner-fixtures.ts'
 
 /** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
@@ -20,9 +21,9 @@ const targets = editorTargets()
 
 // The Tuner in the suite's one shell with the production CSS in Chromium, WebKit and Firefox at the eight window sizes
 //: every control is a 44 px target in a declared scroll region (reached by scrolling
-// it, never by shrinking it), the page never scrolls, and a rotation keeps the chosen tunable (EDS-x).
+// it, never by shrinking it), the page never scrolls.
 
-const LIST = `format = "af-editors/1"\n[[file]]\nglob = "content/tuning.toml"\neditor = "tuner"\nmodes = ["edit", "ask"]\ngates = []\nchecks = []\n`
+const LIST = `format = "af-editors/1"\n[[file]]\nglob = "content/tuning.toml"\neditor = "tuner"\nmodes = ["edit"]\ngates = []\nchecks = []\n`
 
 let started: SuiteHandle | undefined
 let target: HTMLElement | undefined
@@ -48,18 +49,10 @@ async function open(size: EditorSize) {
     suite: createSuite({ editors: [createTuner({ gameUrl: GAME_PAGE }) as SuiteEditor<unknown>] }),
   })
   await settleLayout()
-  tab('Tuner').click()
+  await chooseEditor('Tuner')
   await expect.poll(() => document.querySelector('[data-testid="tuner-rows"]')).not.toBeNull()
   await settleLayout()
   return conditions
-}
-
-function tab(name: string): HTMLElement {
-  const found = [...document.querySelectorAll<HTMLElement>('[role="tab"]')].find(
-    (candidate) => (candidate.getAttribute('aria-label') ?? candidate.textContent?.trim()) === name,
-  )
-  if (found === undefined) throw new Error(`no ${name} tab`)
-  return found
 }
 
 function noPageScroll(): void {
@@ -87,8 +80,8 @@ describe.each(SIZES)('Tuner at $name ($width x $height)', (size) => {
       ...rows.querySelectorAll<HTMLElement>(
         '[role="slider"], [role="spinbutton"], [role="radio"], button, input[type="text"]',
       ),
-    ].filter((control) => !control.classList.contains('pick'))
-    expect(controls.length).toBeGreaterThan(10)
+    ]
+    expect(controls.length).toBeGreaterThan(5)
     for (const control of controls) {
       reveal(control)
       await arrived()
@@ -136,17 +129,5 @@ describe.each(SIZES)('Tuner at $name ($width x $height)', (size) => {
     expect(rowsBox.height).toBeGreaterThanOrEqual(120)
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/tuner-split-${size.name}.png` })
-  })
-
-  test('a rotation keeps the chosen tunable (EDS-x)', async () => {
-    await open(size)
-    document.querySelector<HTMLElement>('[data-testid="tuner-row-GRAVITY"] .pick')?.click()
-    await settleLayout()
-    await page.viewport(size.height, size.width)
-    await settleLayout()
-    expect(document.querySelector('[data-testid="tuner-row-GRAVITY"]')?.classList.contains('chosen')).toBe(
-      true,
-    )
-    noPageScroll()
   })
 })

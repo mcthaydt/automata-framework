@@ -2,7 +2,7 @@
 // sectors, and the view modes, registered in the kit's registry and reached through its keymap. They run on the toy
 // level (a hall and a dock that lead into each other, 8 and 6 m wide) so every case can be read off its numbers.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import {
   type CommandRegistry,
   createCommandRegistry,
@@ -20,14 +20,14 @@ import { rect } from '#src/testing/edit-helpers.ts'
 import { toyAfSector } from '#src/testing/toy-af-sector.ts'
 
 interface Rig {
-  editor: LevelEditor<AfSector>
+  editor: LevelEditor<AfSector2File>
   registry: CommandRegistry
   keymap: Keymap
   refusals: string[]
   unregister: () => void
 }
 
-function rig(level: AfSector = toyAfSector()): Rig {
+function rig(level: AfSector2File = toyAfSector()): Rig {
   const editor = createLevelEditor({ profile: afSectorProfile, level })
   const registry = createCommandRegistry()
   const refusals: string[] = []
@@ -45,10 +45,10 @@ const press = (key: string, held: Partial<KeyInput> = {}): KeyInput => ({
   ...held,
 })
 
-const sectorsOf = (editor: LevelEditor<AfSector>): readonly EditSector[] =>
+const sectorsOf = (editor: LevelEditor<AfSector2File>): readonly EditSector[] =>
   afSectorProfile.sectors.list(editor.level)
-const idsOf = (editor: LevelEditor<AfSector>): string[] => sectorsOf(editor).map((sector) => sector.id)
-const sector = (editor: LevelEditor<AfSector>, id: string): EditSector => {
+const idsOf = (editor: LevelEditor<AfSector2File>): string[] => sectorsOf(editor).map((sector) => sector.id)
+const sector = (editor: LevelEditor<AfSector2File>, id: string): EditSector => {
   const found = sectorsOf(editor).find((each) => each.id === id)
   if (found === undefined) throw new Error(`no sector ${id}`)
   return found
@@ -60,7 +60,7 @@ const extra = (id: string, x0: number, z0: number, x1: number, z1: number) => ({
   light: 1,
   corners: rect(x0, z0, x1, z1),
 })
-const lightOf = (editor: LevelEditor<AfSector>, id: string): number => sector(editor, id).light
+const lightOf = (editor: LevelEditor<AfSector2File>, id: string): number => sector(editor, id).light
 
 describe('registerEditCommands', () => {
   let r: Rig

@@ -85,8 +85,7 @@
       "ignore": ["public/theme-boot.js"],
       "ignoreDependencies": ["@fontsource-variable/geist", "@fontsource-variable/geist-mono"]
     },
-    // `suite.html` starts the full suite page (`vite build --mode suite`), which knip does not read from the HTML.
-    "packages/editor-3d": { "entry": ["src/app/suite/suite-main.ts"], "ignore": ["public/theme-boot.js"] },
+    "packages/editor-3d": { "ignore": ["public/theme-boot.js"] },
     "extensions/editors": { "ignore": ["public/theme-boot.js"] },
     // pixi3d-bundle.test.ts builds the fixture page scripts in `src/testing/bundle/` with Vite by path, and nothing
     // imports them. (The goldens' recorder is the package's `goldens` script, which knip reads.)

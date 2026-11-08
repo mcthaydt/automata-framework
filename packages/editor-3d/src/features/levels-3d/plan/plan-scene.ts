@@ -20,9 +20,13 @@ export interface PlanFill {
   readonly holes: readonly (readonly Point[])[]
   /** What the fill is coloured by: the sector's zone, else its floor texture, else nothing. */
   readonly group: string
+  /** The swatch on the floor, by the name the level writes: the game's colour for it tints the fill. */
+  readonly floorTexture?: string
   readonly floor: number
   readonly ceiling: number
   readonly light: number
+  /** The room is a pit: only set when it is one. */
+  readonly pit?: true
 }
 
 export interface PlanWall {
@@ -44,19 +48,23 @@ export interface PlanScene {
 export interface PlanSceneOptions {
   /** The layers that are not drawn: `sectors` leaves out the fills and `walls` the walls. */
   readonly hidden?: readonly string[] | undefined
+  /** The ids of the rooms that are pits (the profile knows; the geometry does not). */
+  readonly pits?: ReadonlySet<string> | undefined
 }
 
-function fillOf(sector: Sector, select: SelectionOf): PlanFill {
-  return {
+function fillOf(sector: Sector, select: SelectionOf, pit: boolean): PlanFill {
+  const fill: PlanFill = {
     sector: sector.id,
     selection: select.sector(sector.id),
     outline: sector.points[0] ?? [],
     holes: sector.points.slice(1),
     group: sector.zone !== '' ? sector.zone : (sector.floorTexture ?? ''),
+    ...(sector.floorTexture === undefined ? {} : { floorTexture: sector.floorTexture }),
     floor: sector.floor,
     ceiling: sector.ceiling,
     light: sector.light,
   }
+  return pit ? { ...fill, pit: true } : fill
 }
 
 /** A portal's frame is part of the portal; only a wall that leads nowhere is a door or a window. */
@@ -120,7 +128,9 @@ export function planScene(
   return {
     fills: hidden.includes('sectors')
       ? []
-      : layers.flatMap((layer) => layer.map.sectors.map((sector) => fillOf(sector, select))),
+      : layers.flatMap((layer) =>
+          layer.map.sectors.map((sector) => fillOf(sector, select, options.pits?.has(sector.id) === true)),
+        ),
     walls: hidden.includes('walls') ? [] : wallsOf(layers, select),
     bounds: levelBounds(layers),
   }

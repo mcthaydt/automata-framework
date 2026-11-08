@@ -2,13 +2,12 @@
 // policy comes in as functions (editor-suite's `workspaceFile` bound to a loaded list, in the suite and in the
 // contract run), so the list's globs, `never` and `generated` have one owner and are never copied here: a
 // path no row matches is refused, a read-only file is refused with its reason, a path outside the root reads as
-// nothing, and `remove` takes only a file the open change set created.
+// nothing, and `remove` takes only a file this workspace created.
 
 import type { SuiteWorkspace, UnlistedFile, WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
 import { createMemoryStore } from '../../../shared/kit/storage/memory-store'
 import { type ProjectStore, statPath, type WriteResult } from '../../../shared/kit/storage/project-store'
 import { assertStorePath } from '../../../shared/kit/storage/store-path'
-import type { MemoryChangeSet } from './memory-change-set'
 
 export interface MemoryWorkspaceOptions {
   /** The files present at the start, by path. */
@@ -17,8 +16,6 @@ export interface MemoryWorkspaceOptions {
   readonly classify: (path: string) => WorkspaceFile | UnlistedFile
   /** Whether a path is a compiler output, which `generated` reads (it is a file in the store too). */
   readonly generated?: ((path: string) => boolean) | undefined
-  /** The change set whose journal records what this workspace creates; without one, nothing can be removed. */
-  readonly changeSet?: Pick<MemoryChangeSet, 'noteCreated' | 'noteRemoved' | 'created'> | undefined
   /** The store underneath (default: a fresh memory store). */
   readonly store?: ProjectStore | undefined
 }
@@ -29,7 +26,9 @@ const refused = (message: string): WriteResult => ({ ok: false, reason: 'policy'
 
 export async function createMemoryWorkspace(options: MemoryWorkspaceOptions): Promise<SuiteWorkspace> {
   const store = options.store ?? createMemoryStore()
-  const { classify, changeSet } = options
+  const { classify } = options
+  /** The paths this workspace made (a write expecting `'absent'`): the only ones `remove` takes. */
+  const created = new Set<string>()
   const isGenerated = options.generated ?? (() => false)
   for (const [path, text] of Object.entries(options.files ?? {})) await store.write(path, text)
 
@@ -68,6 +67,13 @@ export async function createMemoryWorkspace(options: MemoryWorkspaceOptions): Pr
       })
     },
 
+    async list(folder) {
+      if (!insideRoot(folder)) return []
+      // A folder is its name and a slash, so `world-props.bak` is not in `world-props`.
+      const entries = await store.list(`${folder}/`)
+      return entries.map((entry) => entry.path)
+    },
+
     async read(path) {
       if (!insideRoot(path)) return undefined
       const entry = await statPath(store, path)
@@ -83,7 +89,7 @@ export async function createMemoryWorkspace(options: MemoryWorkspaceOptions): Pr
       const refusal = writeRefusal(path)
       if (refusal !== undefined) return refused(refusal)
       const written = await store.write(path, text, expected)
-      if (written.ok && expected === 'absent') changeSet?.noteCreated(path)
+      if (written.ok && expected === 'absent') created.add(path)
       return written
     },
 
@@ -91,14 +97,13 @@ export async function createMemoryWorkspace(options: MemoryWorkspaceOptions): Pr
       const refusal = writeRefusal(path)
       if (refusal !== undefined) return refused(refusal)
       const written = await store.write(path, bytes, expected)
-      if (written.ok && expected === 'absent') changeSet?.noteCreated(path)
+      if (written.ok && expected === 'absent') created.add(path)
       return written
     },
 
     async remove(path, expected) {
       if (!insideRoot(path)) return refused(`${path} is not a path inside the game root`)
-      if (changeSet?.created(path) !== true)
-        return refused(`${path} was not created by this change set, so the suite does not remove it`)
+      if (!created.has(path)) return refused(`${path} was not created here, so the suite does not remove it`)
       const entry = await statPath(store, path)
       if (entry?.mtime !== expected.mtime) {
         const message =
@@ -106,7 +111,7 @@ export async function createMemoryWorkspace(options: MemoryWorkspaceOptions): Pr
         return { ok: false, reason: 'conflict', message }
       }
       await store.remove(path)
-      changeSet.noteRemoved(path)
+      created.delete(path)
       return { ok: true, mtime: entry.mtime }
     },
 

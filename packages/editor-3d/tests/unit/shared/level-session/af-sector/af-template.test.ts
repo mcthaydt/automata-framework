@@ -1,7 +1,7 @@
 // The file a New level starts from (ED3D.13a step 4): a hand-formatted `af-sector/1` file with an empty materials
 // table, no sectors, the spawn definition and no things, which the codec then patches like any other level.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { addDefinition } from '#src/shared/edit/definition-edits.ts'
 import type { Edit } from '#src/shared/edit/edit.ts'
@@ -14,7 +14,7 @@ import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
 import { rect } from '#src/testing/edit-helpers.ts'
 
 const EXPECTED = `{
-  "format": "af-sector/1",
+  "format": "af-sector/2",
   "name": "cellar",
   "materials": {},
   "sectors": [],
@@ -56,17 +56,19 @@ describe('newAfSectorLevel', () => {
   it('is patched from its empty containers: a material, a sector, a definition and a spawn written back re-read the same', () => {
     const { text, level } = made('cellar')
     const e = createLevelEditor({ profile: afSectorProfile, level, now: () => 0 })
-    const edits: Edit<AfSector>[] = [
+    const edits: Edit<AfSector2File>[] = [
       addMaterial({ id: 'stone', material: { category: 'walls' } }),
-      addSector<AfSector>({ id: 'room', corners: rect(0, 0, 6, 4), floor: 0, ceiling: 3 }),
-      addDefinition<AfSector>({ definition: { id: 'crate', shape: 'box', size: [1, 1, 1], fields: [] } }),
-      addThing<AfSector>({ def: 'spawn', id: 'spawn', x: 1, z: 1 }),
+      addSector<AfSector2File>({ id: 'room', corners: rect(0, 0, 6, 4), floor: 0, ceiling: 3 }),
+      addDefinition<AfSector2File>({
+        definition: { id: 'crate', shape: 'box', size: [1, 1, 1], fields: [] },
+      }),
+      addThing<AfSector2File>({ def: 'spawn', id: 'spawn', x: 1, z: 1 }),
     ]
     for (const edit of edits) expect(e.run(edit)).toMatchObject({ ok: true })
     const saved = afSectorProfile.patch(text, level, e.level)
     if (!saved.ok)
       throw new Error(`the new level does not save: ${JSON.stringify(saved.path)} ${saved.detail}`)
     expect(afSectorProfile.parse(saved.text)).toEqual({ ok: true, value: e.level })
-    expect(saved.text.startsWith('{\n  "format": "af-sector/1",\n  "name": "cellar",\n')).toBe(true)
+    expect(saved.text.startsWith('{\n  "format": "af-sector/2",\n  "name": "cellar",\n')).toBe(true)
   })
 })

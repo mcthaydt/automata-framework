@@ -15,7 +15,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build && vite build --mode suite",
+    "build": "vite build",
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
     "test:layout": "vitest run --project layout",

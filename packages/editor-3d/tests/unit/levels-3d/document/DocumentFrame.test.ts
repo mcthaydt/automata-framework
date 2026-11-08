@@ -120,7 +120,7 @@ describe('DocumentFrame', () => {
     const tools = screen.getByRole('toolbar', { name: 'Tools' })
     expect(within(tools).getByRole('button', { name: 'Select' })).toHaveAttribute('aria-pressed', 'true')
     await userEvent.keyboard('s')
-    expect(within(tools).getByRole('button', { name: 'Sector' })).toHaveAttribute('aria-pressed', 'true')
+    expect(within(tools).getByRole('button', { name: 'Room' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('radio', { name: 'Polygon' })).toBeChecked()
     await userEvent.keyboard('d')
     expect(within(tools).getByRole('button', { name: 'Door' })).toHaveAttribute('aria-pressed', 'true')
@@ -205,7 +205,7 @@ describe('DocumentFrame', () => {
     await userEvent.keyboard('s')
     await act(() => geometry.resize(834, 1194))
     expect(editor.selection.ids).toEqual(['sector:hall'])
-    expect(within(screen.getByTestId('tool-strip')).getByRole('button', { name: 'Sector' })).toHaveAttribute(
+    expect(within(screen.getByTestId('tool-strip')).getByRole('button', { name: 'Room' })).toHaveAttribute(
       'aria-pressed',
       'true',
     )
@@ -234,7 +234,7 @@ describe('DocumentFrame', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Hide Walls' }))
     expect(level.editor.view.state.hidden).toEqual(['walls'])
     expect(screen.getByRole('button', { name: 'Show Walls' })).toHaveAttribute('aria-pressed', 'true')
-    await userEvent.click(screen.getByRole('button', { name: 'Lock Sectors' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Lock Rooms' }))
     expect(level.editor.view.state.locked).toEqual(['sectors'])
     await userEvent.click(screen.getByRole('button', { name: 'Walls' }))
     expect(level.editor.view.state.layer).toBe('walls')

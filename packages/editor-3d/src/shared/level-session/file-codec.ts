@@ -30,6 +30,11 @@ export interface FileCodec<D> {
   parse(text: string): ParseResult<D>
   /** `before` is what `text` parses to. See `patchJson` for the refusals. */
   patch(text: string, before: D, after: D): PatchResult
+  /**
+   * The text of an older version of this format made into the current one, changing only what the version changed, or
+   * nothing for a file that needs no upgrade (or cannot be upgraded: `parse` then says why).
+   */
+  upgrade?(text: string): string | undefined
 }
 
 export function createFileCodec<D>(spec: {
@@ -38,7 +43,9 @@ export function createFileCodec<D>(spec: {
   readonly rules: PatchRules
   /** What to say about a file that opens: the issues a schema cannot, as a file of a newer minor version. */
   readonly warn?: (value: D) => readonly ParseIssue[]
+  readonly upgrade?: (text: string, codec: Pick<FileCodec<D>, 'patch'>) => string | undefined
 }): FileCodec<D> {
+  const patch: FileCodec<D>['patch'] = (text, before, after) => patchJson(text, before, after, spec.rules)
   return {
     id: spec.id,
     schema: spec.schema,
@@ -65,6 +72,7 @@ export function createFileCodec<D>(spec: {
         })),
       }
     },
-    patch: (text, before, after) => patchJson(text, before, after, spec.rules),
+    patch,
+    ...(spec.upgrade === undefined ? {} : { upgrade: (text: string) => spec.upgrade?.(text, { patch }) }),
   }
 }

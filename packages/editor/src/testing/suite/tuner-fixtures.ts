@@ -52,7 +52,7 @@ const classifyAs =
   (path: string): WorkspaceFile =>
     path === 'content/tuning.toml' || path === 'content/controls.toml'
       ? writable
-        ? { path, editor: 'tuner', gates: [], checks: ['content'], modes: ['edit', 'ask'], writable: true }
+        ? { path, editor: 'tuner', gates: [], checks: ['content'], modes: ['edit'], writable: true }
         : {
             path,
             editor: 'tuner',
@@ -81,6 +81,5 @@ export async function tunerFixturePorts(
     classify: classifyAs(options.writable ?? true),
     generated: (path) => path.endsWith('tuning-meta.json'),
   })
-  await ports.changeSet?.begin('Tuner fixture')
   return ports
 }

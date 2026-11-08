@@ -28,6 +28,8 @@ describe('the editor list', () => {
     expect(load.list.file.map((row) => [row.glob, row.editor])).toEqual([
       ['content/levels/*.af-sector.json', 'levels-3d'],
       ['content/figures/*.toml', 'studio'],
+      // Wick is drawn from the swatches, gait and poses beside him, so Characters reads those folders too.
+      ['content/figure-*/*.toml', 'studio'],
       ['content/tuning.toml', 'tuner'],
     ])
     expect(load.list.file.every((row) => row.gates.length === 0)).toBe(true)

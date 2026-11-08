@@ -1,6 +1,7 @@
 // The dollhouse as a paint list (ED3D.5e step 2; ED3D spec §6, ED3D-D6): each surface the orbit camera sees, as triangles
 // in canvas pixels, flat-shaded, far to near, the near walls cut away and a faded wall at a quarter, the selection in the
 // accent. Surfaces here are made by hand so each number is plain.
+import { timeOfDay } from '@automata/3d'
 import { describe, expect, it } from 'vitest'
 import { dollhousePaint, meshPaint } from '#src/features/levels-3d/dollhouse/dollhouse-paint.ts'
 import { PLAN_COLORS } from '#src/features/levels-3d/plan/plan-colors.ts'
@@ -40,6 +41,42 @@ const meshOf = (...surfaces: Surface[]): SectorMesh => ({
 
 // Looking north (yaw 0, along −z) from the south, 30° up, at the middle of the box.
 const ORBIT: Orbit = { target: [1, 1, 1], distance: 8, yaw: 0, pitch: (30 * Math.PI) / 180 }
+
+describe('the game’s look', () => {
+  const brick: Surface = { ...wall(0, 1, 'cut', 1), texture: 'brick' }
+  const red = 0xc03020
+
+  it('paints a surface in its swatch’s colour, lit by its shade', () => {
+    const paint = dollhousePaint(meshOf(brick), ORBIT, SIZE, new Set(), (name) =>
+      name === 'brick' ? red : undefined,
+    )
+    expect(paint.polygons.map((polygon) => polygon.color)).toEqual([red, red])
+    const dim = { ...brick, shade: 0.5 }
+    const [dimmer] = dollhousePaint(meshOf(dim), ORBIT, SIZE, new Set(), (name) =>
+      name === 'brick' ? red : undefined,
+    ).polygons
+    expect(dimmer?.color).not.toBe(red)
+    expect((dimmer?.color ?? 0) >> 16).toBeLessThan(red >> 16)
+    expect((dimmer?.color ?? 0) >> 16).toBeGreaterThan(0)
+  })
+
+  it('keeps the blockout’s grey for a swatch the game does not give a colour, and with no look at all', () => {
+    const grey = dollhousePaint(meshOf(wall(0, 1, 'cut', 1)), ORBIT, SIZE, new Set()).polygons[0]?.color
+    expect(dollhousePaint(meshOf(brick), ORBIT, SIZE, new Set()).polygons[0]?.color).toBe(grey)
+    expect(
+      dollhousePaint(meshOf(brick), ORBIT, SIZE, new Set(), (name) => (name === 'stone' ? red : undefined))
+        .polygons[0]?.color,
+    ).toBe(grey)
+  })
+
+  it('paints Walk’s eye the same way', () => {
+    const eye: Camera3D = { eye: [1, 1.2, 1.5], yaw: 0, pitch: 0, fov: (60 * Math.PI) / 180 }
+    const paint = meshPaint(meshOf(brick), eye, SIZE, new Set(), (name) =>
+      name === 'brick' ? red : undefined,
+    )
+    expect(paint.polygons.every((polygon) => polygon.color === red)).toBe(true)
+  })
+})
 
 describe('dollhousePaint', () => {
   it('draws the floor and cuts away the ceiling seen from above', () => {
@@ -125,5 +162,32 @@ describe('meshPaint from a first-person camera', () => {
   it('marks the wall the crosshair is on as selected when the editor has it selected', () => {
     const paint = meshPaint(meshOf(wall(0, 1)), EYE, SIZE, new Set(['wall:room/0']))
     expect(paint.polygons.every((polygon) => polygon.selected)).toBe(true)
+  })
+})
+
+describe('the game’s scene', () => {
+  const scene = {
+    pieces: [],
+    colourOf: () => undefined,
+    time: timeOfDay('night'),
+    ground: 0x8690b2,
+  }
+
+  it('is carried with the camera the paint was made through, for the renderer to draw the room in the game’s look', () => {
+    const paint = dollhousePaint(meshOf(wall(0, 1)), ORBIT, SIZE, new Set(), undefined, scene)
+    expect(paint.game?.scene).toBe(scene)
+    expect(paint.game?.camera).toEqual(orbitCamera(ORBIT))
+  })
+
+  it('leaves the ceilings off from outside, and on from inside a room', () => {
+    expect(dollhousePaint(meshOf(wall(0, 1)), ORBIT, SIZE, new Set(), undefined, scene).game?.indoors).toBe(
+      false,
+    )
+    const eye: Camera3D = { eye: [1, 1, 1], yaw: 0, pitch: 0, fov: 1 }
+    expect(meshPaint(meshOf(wall(0, 1)), eye, SIZE, new Set(), undefined, scene).game?.indoors).toBe(true)
+  })
+
+  it('is absent when the game gave none, so a level with no scene keeps the blockout', () => {
+    expect(dollhousePaint(meshOf(wall(0, 1)), ORBIT, SIZE, new Set()).game).toBeUndefined()
   })
 })

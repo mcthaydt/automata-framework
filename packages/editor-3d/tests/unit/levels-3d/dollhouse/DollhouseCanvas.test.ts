@@ -11,7 +11,7 @@ import type {
 } from '#src/features/levels-3d/dollhouse/dollhouse-renderer.ts'
 import { createLevelEditor } from '#src/shared/edit/level-editor.ts'
 import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
-import { toyAfSector } from '#src/testing/toy-af-sector.ts'
+import { toyAfSector, toyDock, toyHall } from '#src/testing/toy-af-sector.ts'
 
 // The Dollhouse canvas (plan ED3D.5e step 5) with a fake renderer: it draws the framed level once it knows its size, a
 // tap selects through the kit's gestures, the plan's selection shows, and a page that cannot draw says so and offers Try
@@ -60,10 +60,14 @@ function fakeRenderer() {
   return { made, draws, paused }
 }
 
-function mount(factory: DollhouseRendererFactory) {
-  const editor = createLevelEditor({ profile: afSectorProfile, level: toyAfSector() })
+function mount(
+  factory: DollhouseRendererFactory,
+  level = toyAfSector(),
+  colours?: (name: string) => number | undefined,
+) {
+  const editor = createLevelEditor({ profile: afSectorProfile, level })
   const handlers = { onundo: vi.fn(), onredo: vi.fn() }
-  render(DollhouseCanvas, { editor: editor as never, renderer: factory, ...handlers })
+  render(DollhouseCanvas, { editor: editor as never, renderer: factory, ...handlers, colours })
   return { editor, ...handlers }
 }
 
@@ -91,6 +95,24 @@ describe('DollhouseCanvas', () => {
     expect(factory).toHaveBeenCalledWith(expect.any(HTMLCanvasElement), { w: 600, h: 400, resolution: 1 })
     expect(fake.draws.at(-1)?.polygons.length).toBeGreaterThan(0)
     expect(host()).toHaveAttribute('data-phase', 'drawing')
+  })
+
+  it('draws the rooms in the game’s colours for the materials they name', async () => {
+    const fake = fakeRenderer()
+    const level = toyAfSector({ sectors: [{ ...toyHall, floorTexture: 'oak' }, toyDock] })
+    mount(
+      async () => fake.made,
+      level,
+      (name) => (name === 'oak' ? 0xf0c080 : undefined),
+    )
+    await act(() => resize?.(600, 400))
+    const floorOf = (sector: string) =>
+      fake.draws
+        .at(-1)
+        ?.polygons.find((polygon) => polygon.role === 'floor' && polygon.selection === `sector:${sector}`)
+    // The hall's floor is oak, light and warm; the dock names nothing and keeps the blockout's grey.
+    expect((floorOf('hall')?.color ?? 0) >> 16).toBeGreaterThan(0xa0)
+    expect((floorOf('dock')?.color ?? 0xffffff) >> 16).toBeLessThan(0x60)
   })
 
   it('selects what a tap hits, and draws the plan’s selection', async () => {

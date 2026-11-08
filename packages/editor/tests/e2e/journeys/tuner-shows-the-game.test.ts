@@ -30,7 +30,7 @@ test('the game appears beside the settings once it is running, and a change reac
     response.writeHead(200, { 'content-type': 'text/html' }).end(GAME_PAGE)
   })
 
-  const suite = await runEditor(game.dir, ['--app', 'suite', '--game-url', `http://127.0.0.1:${port}`])
+  const suite = await runEditor(game.dir, ['--game-url', `http://127.0.0.1:${port}`])
   try {
     await page.goto(suite.url)
     await page.getByRole('tab', { name: 'Tuner' }).click()

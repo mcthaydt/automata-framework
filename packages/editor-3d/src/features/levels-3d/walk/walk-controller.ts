@@ -21,7 +21,6 @@ import {
   orbitCamera,
   rayThrough,
   type SpawnPoint,
-  walkStart,
 } from '../../../shared/geometry/camera-3d'
 import { createGeometryCache, type Geometry } from '../../../shared/geometry/geometry-cache'
 import { pickMesh } from '../../../shared/geometry/mesh-pick'
@@ -32,6 +31,7 @@ import {
   type Vec3,
 } from '../../../shared/geometry/sector-mesh'
 import { type Edge, type ResolvedMap, sectorAt } from '../../../shared/geometry/sectors'
+import { frameMap } from '../frame-map'
 import { isLayerOff } from '../plan/plan-pick'
 
 export type WalkMode = 'walk' | 'fly' | 'orbit'
@@ -252,7 +252,11 @@ export function createWalkController<D>(editor: LevelEditor<D>, canvas: Size): W
   }
 
   const start = (): void => {
-    const begun = walkStart(geometry().layers, spawnOf(editor), { eyeHeight, fov })
+    const begun = frameMap(
+      { layers: geometry().layers, spawn: spawnOf(editor), walk: { eyeHeight, fov } },
+      'walk',
+      size,
+    )
     mode = 'walk'
     eye = begun.camera.eye
     yaw = begun.camera.yaw

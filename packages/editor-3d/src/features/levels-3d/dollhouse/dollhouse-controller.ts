@@ -3,12 +3,13 @@
 // not) and is framed once per canvas until it is moved by hand. A tap selects through the editor's one selection, so the
 // plan shows what the dollhouse picked, and the other way round. The mesh is built once per level from the geometry
 // cache, so the dollhouse, the plan and the checks never disagree.
-import type { PointerKind, Size } from '@automata/editor/kit/core'
+import type { PointerKind, Rect, Size } from '@automata/editor/kit/core'
 import type { LevelEditor } from '../../../shared/edit/level-editor'
-import { fitOrbit, type Orbit, orbitBy, orbitCamera, rayThrough } from '../../../shared/geometry/camera-3d'
+import { type Orbit, orbitBy, orbitCamera, rayThrough } from '../../../shared/geometry/camera-3d'
 import { createGeometryCache } from '../../../shared/geometry/geometry-cache'
 import { pickMesh } from '../../../shared/geometry/mesh-pick'
 import { buildSectorMesh, type SectorMesh } from '../../../shared/geometry/sector-mesh'
+import { frameMap } from '../frame-map'
 
 export interface DollhouseView {
   readonly orbit: Orbit
@@ -29,6 +30,8 @@ export interface DollhouseController {
   tap(at: { readonly x: number; readonly y: number; readonly kind: PointerKind }): void
   /** Frames the whole level again from the home angles. */
   fit(): void
+  /** Names the part of the canvas a card leaves clear (or none): the level is framed in it, and again when it changes. */
+  setUsable(area: Rect | undefined): void
   resize(size: Size): void
   dispose(): void
 }
@@ -37,6 +40,9 @@ export interface DollhouseController {
 const RADIANS_PER_PIXEL = 0.016
 const NEAREST = 1
 const FARTHEST = 1000
+
+const sameRect = (a: Rect | undefined, b: Rect | undefined): boolean =>
+  a === b || (a !== undefined && b !== undefined && a.x === b.x && a.y === b.y && a.w === b.w && a.h === b.h)
 
 export function createDollhouseController<D>(editor: LevelEditor<D>, canvas: Size): DollhouseController {
   const listeners = new Set<() => void>()
@@ -51,7 +57,9 @@ export function createDollhouseController<D>(editor: LevelEditor<D>, canvas: Siz
     if (built?.level !== level) built = { level, mesh: buildSectorMesh(layers, select) }
     return built.mesh
   }
-  let orbit = fitOrbit(meshNow().bounds, size)
+  let usable: Rect | undefined
+  const framed = (): Orbit => frameMap({ mesh: meshNow() }, 'diorama', size, usable)
+  let orbit = framed()
 
   const notify = (): void => {
     for (const run of [...listeners]) run()
@@ -64,7 +72,7 @@ export function createDollhouseController<D>(editor: LevelEditor<D>, canvas: Siz
   const stopHistory = editor.history.subscribe(() => {
     const before = built?.mesh
     if (meshNow() === before) return
-    if (!moved) orbit = fitOrbit(meshNow().bounds, size)
+    if (!moved) orbit = framed()
     notify()
   })
 
@@ -93,11 +101,18 @@ export function createDollhouseController<D>(editor: LevelEditor<D>, canvas: Siz
     },
     fit() {
       moved = false
-      show(fitOrbit(meshNow().bounds, size), false)
+      show(framed(), false)
+    },
+    setUsable(area) {
+      if (sameRect(usable, area)) return
+      usable = area
+      if (moved) return
+      orbit = framed()
+      notify()
     },
     resize(next) {
       size = next
-      if (!moved) orbit = fitOrbit(meshNow().bounds, size)
+      if (!moved) orbit = framed()
       notify()
     },
     dispose() {

@@ -8,7 +8,7 @@ import { samplePorts } from '../../features/suite/memory/sample-ports'
 import { type SuiteHandle, startSuite } from '../../features/suite/shell/boot'
 import { createSuite } from '../../features/suite/shell/create-suite'
 import type { SuiteEditor } from '../../shared/kit/ports/suite-editor.ts'
-import { type EditorSize, REST } from '../kit/layout-sizes.ts'
+import { arrived, type EditorSize, REST } from '../kit/layout-sizes.ts'
 import { editorTargets } from '../kit/targets'
 
 /** One `[[file]]` row of an editor list. */
@@ -44,7 +44,7 @@ export async function openSuite(
     suite: createSuite({ editors }),
   })
   await settleLayout()
-  tab(entry).click()
+  await chooseEditor(entry)
   await expect.poll(() => document.querySelector(ready)).not.toBeNull()
   await settleLayout()
   return {
@@ -62,6 +62,37 @@ export function tab(name: string): HTMLElement {
   )
   if (found === undefined) throw new Error(`no ${name} tab`)
   return found
+}
+
+/** The top bar's Editors menu, where the tabs fold into it (a phone held sideways); `undefined` where the tabs show. */
+export function editorsMenu(): HTMLElement | undefined {
+  return [...document.querySelectorAll<HTMLElement>('button[aria-haspopup]')].find(
+    (button) => button.textContent?.trim() === 'Editors',
+  )
+}
+
+/** The control that reaches editor `name`: its tab, or the Editors menu where the tabs have folded into it. */
+export function editorControl(name: string): HTMLElement {
+  return editorsMenu() ?? tab(name)
+}
+
+/** Choose editor `name` the way a person does: tap its tab, or pick it from the Editors menu; the first when unnamed. */
+export async function chooseEditor(name?: string): Promise<void> {
+  const menu = editorsMenu()
+  if (menu === undefined) {
+    const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')]
+    const chosen = name === undefined ? tabs[0] : tab(name)
+    if (chosen === undefined) throw new Error('no editor tab')
+    chosen.click()
+    return
+  }
+  menu.click()
+  await arrived()
+  const items = [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')]
+  const item =
+    name === undefined ? items[0] : items.find((candidate) => candidate.textContent?.trim().startsWith(name))
+  if (item === undefined) throw new Error(`no ${name ?? 'editor'} in the Editors menu`)
+  item.click()
 }
 
 export function inShell(selector: string): HTMLElement {

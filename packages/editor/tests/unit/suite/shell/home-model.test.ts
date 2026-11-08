@@ -39,6 +39,55 @@ describe('Home (editor suite spec §5 flow 2, §9 suite-home, §11)', () => {
     expect(state.cards[1]?.files).toEqual([])
   })
 
+  it('calls the one level editor of a 3D game Levels, and the figure editor Characters', () => {
+    const list = `format = "af-editors/1"
+[[file]]
+glob = "content/tuning.toml"
+editor = "tuner"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+[[file]]
+glob = "content/levels/*.af-sector.json"
+editor = "levels-3d"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+[[file]]
+glob = "content/figures/*.toml"
+editor = "studio"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+`
+    const installed = (id: string, label: string) => ({ id, label, regions: {} }) as never
+    const suite = createSuite({
+      editors: [
+        installed('tuner', 'Tuner'),
+        installed('levels-2d', 'Levels'),
+        installed('levels-3d', 'Levels 3D'),
+        installed('studio', 'Characters'),
+      ],
+    })
+    const state = homeOf(loadEditorList(list), new Map(), suite)
+    if (state.kind !== 'cards') throw new Error(state.kind)
+    expect(state.cards.map((card) => card.label)).toEqual(['Tuner', 'Levels', 'Characters'])
+  })
+
+  it('names a studio card Characters when the build lacks the editor', () => {
+    const list = `format = "af-editors/1"
+[[file]]
+glob = "content/figures/*.toml"
+editor = "studio"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+`
+    const state = homeOf(loadEditorList(list), new Map(), empty)
+    if (state.kind !== 'cards') throw new Error(state.kind)
+    expect(state.cards[0]?.label).toBe('Characters')
+  })
+
   // Build audit G6: Home orders the cards as the rail does, and lists a level once, not the game files Save writes.
   it('puts the cards in the rail order, whatever order the list names them in', () => {
     const list = `format = "af-editors/1"

@@ -30,7 +30,6 @@ async function start(options: { playUrl?: string; publish?: GamePublish } = {}) 
   const { ports } = await createMemoryPorts({
     files,
     classify: (path) => workspaceFile(load.list, path),
-    changeSet: false,
   })
   const target = document.body.appendChild(document.createElement('div'))
   started = await startSuite(target, {

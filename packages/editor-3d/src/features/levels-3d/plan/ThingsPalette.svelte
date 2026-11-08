@@ -1,7 +1,8 @@
 <!--
   The Things tool's palette (ED3D.7d, plan decision 1; ED3D spec §4.7): the level's entity definitions, each with its
   colour, the picked one pressed; a tap with the tool places the picked one. A definition whose layer is hidden or
-  locked stays in view but cannot be picked, and says why.
+  locked stays in view but cannot be picked, and says why. What the game gives (its furniture and characters) is filed
+  under its own name beside the level's own Things, but only when there is more than one kind to tell apart.
 -->
 <script lang="ts">
 import type { PaletteEntry } from '../things/things-tool-controller'
@@ -15,26 +16,44 @@ interface Props {
 const { palette, active, onpick }: Props = $props()
 const uid = $props.id()
 
+const GROUPS = [
+  { id: 'things', label: 'Things' },
+  { id: 'furniture', label: 'Furniture' },
+  { id: 'characters', label: 'Characters' },
+  { id: 'lamps', label: 'Lamps' },
+] as const
+
+const groups = $derived(
+  GROUPS.map((group) => ({ ...group, entries: palette.filter((entry) => entry.group === group.id) })).filter(
+    (group) => group.entries.length > 0,
+  ),
+)
+
 const reasonOf = (entry: PaletteEntry): string | undefined =>
   entry.hidden ? 'Its layer is hidden' : entry.locked ? 'Its layer is locked' : undefined
 </script>
 
 <div class="palette" role="group" aria-label="Things to place" data-testid="things-palette">
-  {#each palette as entry (entry.def)}
-    {@const reason = reasonOf(entry)}
-    <button
-      type="button"
-      aria-pressed={entry.def === active}
-      aria-disabled={reason !== undefined || undefined}
-      aria-describedby={reason === undefined ? undefined : `${uid}-${entry.def}`}
-      onclick={() => {
-        if (reason === undefined) onpick(entry.def)
-      }}
-    >
-      <span class="swatch" aria-hidden="true" style:background={entry.color ?? 'var(--color-text-dim)'}></span>
-      {entry.label}
-    </button>
-    {#if reason !== undefined}<span class="reason" id={`${uid}-${entry.def}`}>{reason}</span>{/if}
+  {#each groups as group (group.id)}
+    <div class="group" role="group" aria-label={group.label}>
+      {#if groups.length > 1}<span class="heading" aria-hidden="true">{group.label}</span>{/if}
+      {#each group.entries as entry (entry.def)}
+        {@const reason = reasonOf(entry)}
+        <button
+          type="button"
+          aria-pressed={entry.def === active}
+          aria-disabled={reason !== undefined || undefined}
+          aria-describedby={reason === undefined ? undefined : `${uid}-${entry.def}`}
+          onclick={() => {
+            if (reason === undefined) onpick(entry.def)
+          }}
+        >
+          <span class="swatch" aria-hidden="true" style:background={entry.color ?? 'var(--color-text-dim)'}></span>
+          {entry.label}
+        </button>
+        {#if reason !== undefined}<span class="reason" id={`${uid}-${entry.def}`}>{reason}</span>{/if}
+      {/each}
+    </div>
   {/each}
 </div>
 
@@ -53,6 +72,20 @@ const reasonOf = (entry: PaletteEntry): string | undefined =>
     border: 1px solid var(--color-border-default);
     border-radius: var(--edge-lg);
     background: var(--color-bg-surface);
+  }
+  .group {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: var(--space-1);
+  }
+  .group + .group {
+    padding-left: var(--space-2);
+    border-left: 1px solid var(--color-border-default);
+  }
+  .heading {
+    color: var(--color-text-dim);
+    font: var(--text-label-12);
   }
   button {
     display: inline-flex;

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { paintWall } from '../../../../../packages/editor/tests/e2e/harness/fixtures.ts'
+import { boxOf, readPng } from '../../../../../packages/editor/tests/e2e/harness/read-png.ts'
 import { readZip } from '../../../../../packages/editor/tests/e2e/harness/read-zip.ts'
 import { expect, openEditor, savedInto, servedWith, test } from '../harness/fixtures.ts'
 import { newGame } from '../harness/new-game.ts'
@@ -8,12 +9,15 @@ import { runEditor } from '../harness/run-editor.ts'
 
 // A game made and played with the editors in the dark look, on a device that asks for it: the editors are dark from the
 // first paint to Publish, what is changed in them is saved into the game, and the game itself, which is never themed, plays
-// it and ships it. Levels, Tuner, Feel and Audio are each used; Writer has no lines in a new game, so it is only opened.
+// it and ships it. Levels (a wall painted) and Feel (a word rewritten) change the game; Tuner and Audio are only opened,
+// because a new game has no settings file yet and no sounds to edit. Play is pressed, and the painted wall is looked for in the pixels of the played game.
 
 test.use({ colorScheme: 'dark' })
 
 /** The starter level's cells: 512 px across 32 of them, row 2 before and after a wall at column 5. */
 const STARTER_TILE = 16
+/** The level's background, which the played canvas shows around everything else. */
+const BACKGROUND: readonly [number, number, number] = [0x1b, 0x25, 0x40]
 const WALLED_ROW = '".*32", ".*32", ".*5 1 .*26", ".*32"'
 const WORD = 'Bump in the dark!'
 /** Where Vite serves the compiled content module the game imports. */
@@ -58,27 +62,52 @@ test('a new game is made, edited, played and published in the dark editors', asy
     await savedInto(game, 'content/feel/feel.toml', WORD)
     await page.screenshot({ path: test.info().outputPath('dark-feel.png') })
 
-    // Writer has nothing to edit in a new game; it still opens, dark.
-    await openEditor(page, editor, 'Writer')
-    await expect(page.getByText('Nothing to edit in Writer yet.')).toBeVisible()
+    // The editor list a new game starts with names no Writer; Audio is on it, and opens dark.
+    await openEditor(page, editor, 'Audio')
     expect((await look(page)).field).toBe('rgb(19, 20, 23)')
 
     await servedWith(editor, WORD)
     await servedWith(editor, '.*5 1 .*26')
 
-    // Play: the game the editor started has the wall and the word, and carries none of the editors' colours.
-    const play = await context.newPage()
-    await play.goto(editor.gameUrl)
-    await expect(play.locator('#game canvas')).toBeVisible({ timeout: 30_000 })
+    // Play: the editor's own Play link opens the running game. It carries none of the editors' colours, and the wall
+    // painted in the dark editor is on its screen: the cell is not the background, and the cell beside it is.
+    const [play] = await Promise.all([
+      context.waitForEvent('page'),
+      page.getByRole('link', { name: 'Play' }).click(),
+    ])
+    const canvasInGame = play.locator('#game canvas')
+    await expect(canvasInGame).toBeVisible({ timeout: 30_000 })
     const gameLook = await play.evaluate(() => ({
       chosen: document.documentElement.dataset.theme,
       field: getComputedStyle(document.documentElement).getPropertyValue('--bg'),
     }))
     expect(gameLook).toEqual({ chosen: undefined, field: '' })
-    const served = await (await fetch(`${editor.gameUrl}${CONTENT_MODULE}`)).text()
-    expect(served).toContain(WORD)
-    expect(served).toContain('".*5 1 .*26"')
+    await play.getByRole('button', { name: /play/i }).first().click()
+    await expect
+      .poll(
+        async () => {
+          const picture = readPng(await canvasInGame.screenshot())
+          const field = boxOf(picture, BACKGROUND)
+          if (field === undefined) return 'no level on the canvas yet'
+          const scale = field.w / 512
+          const at = (col: number, row: number) =>
+            picture.at(
+              Math.round(field.x + (col + 0.5) * STARTER_TILE * scale),
+              Math.round(field.y + (row + 0.5) * STARTER_TILE * scale),
+            )
+          const wall = at(5, 2)
+          const beside = at(9, 2)
+          return {
+            wallIsNotBackground: wall.join() !== BACKGROUND.join(),
+            besideIsBackground: beside.join() === BACKGROUND.join(),
+          }
+        },
+        { timeout: 30_000 },
+      )
+      .toEqual({ wallIsNotBackground: true, besideIsBackground: true })
     await play.screenshot({ path: test.info().outputPath('game-played.png') })
+    // The word is Feel's, shown when the player bumps; the played screen has no bump yet, so the module the game runs holds it.
+    expect(await (await fetch(`${editor.gameUrl}${CONTENT_MODULE}`)).text()).toContain(WORD)
     await play.close()
 
     // Publish in the dark: the dialog is dark, and the zip holds the wall and the word.

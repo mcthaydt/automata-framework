@@ -2,7 +2,7 @@
 // `materials` table the picker shows. A rename rewrites every member that names the material, so the `materials` check
 // still passes; a removal is refused while anything names it.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import {
   addMaterial,
@@ -16,26 +16,26 @@ import { loadAuthored } from '#src/testing/fixtures.ts'
 import { literalEdits } from '#src/testing/text-diff.ts'
 
 const depotText = loadAuthored('depot.af-sector')
-const depot = ((): AfSector => {
+const depot = ((): AfSector2File => {
   const result = afSectorProfile.parse(depotText)
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
 })()
 
 type MaterialEdit = ReturnType<typeof addMaterial>
-const run = (edit: MaterialEdit, level: AfSector = depot) => edit.run(afSectorProfile, level)
+const run = (edit: MaterialEdit, level: AfSector2File = depot) => edit.run(afSectorProfile, level)
 
-const patched = (after: AfSector, before: AfSector = depot, text = depotText): string => {
+const patched = (after: AfSector2File, before: AfSector2File = depot, text = depotText): string => {
   const result = afSectorProfile.patch(text, before, after)
   if (!result.ok) throw new Error(`patch refused at ${JSON.stringify(result.path)}: ${result.detail}`)
   return result.text
 }
 
-const materialsCheck = (level: AfSector) =>
+const materialsCheck = (level: AfSector2File) =>
   afSectorProfile.checks(level).find((result) => result.id === 'materials')
 
 /** The depot with a style that names brick, a hall wall with a brick texture and a trim piece, and a hole wall in it. */
-const textured: AfSector = {
+const textured: AfSector2File = {
   ...depot,
   styles: { warm: { wallTexture: 'brick', floorTexture: 'plank' } },
   sectors: depot.sectors.map((sector) =>
@@ -46,12 +46,12 @@ const textured: AfSector = {
           style: 'warm',
           corners: sector.corners.map((corner, index) =>
             index === 2
-              ? [corner[0], corner[1], { texture: 'brick', trimTexture: { skirting: 'brick' } }]
+              ? [corner[0], corner[1], { surface: 'brick', trimTexture: { skirting: 'brick' } }]
               : corner,
           ),
           holes: [
             [
-              [3, 3, { texture: 'brick' }],
+              [3, 3, { surface: 'brick' }],
               [4, 3],
               [4, 4],
               [3, 4],
@@ -70,7 +70,7 @@ describe('addMaterial (material.add)', () => {
   })
 
   it('writes the first table of a file that has none, and leaves out a member that is undefined', () => {
-    const bare: AfSector = { ...depot, materials: undefined }
+    const bare: AfSector2File = { ...depot, materials: undefined }
     const next = levelOf(
       run(addMaterial({ id: 'steel', material: { category: 'walls', label: undefined } }), bare),
     )
@@ -124,8 +124,8 @@ describe('renameMaterial (material.rename)', () => {
     expect(next.styles?.warm).toEqual({ wallTexture: 'redbrick', floorTexture: 'plank' })
     const hall = next.sectors.find((sector) => sector.id === 'hall')
     expect(hall?.wallTexture).toBe('redbrick')
-    expect(hall?.corners[2]?.[2]).toEqual({ texture: 'redbrick', trimTexture: { skirting: 'redbrick' } })
-    expect(hall?.holes?.[0]?.[0]?.[2]).toEqual({ texture: 'redbrick' })
+    expect(hall?.corners[2]?.[2]).toEqual({ surface: 'redbrick', trimTexture: { skirting: 'redbrick' } })
+    expect(hall?.holes?.[0]?.[0]?.[2]).toEqual({ surface: 'redbrick' })
     expect(next.sectors.find((sector) => sector.id === 'dock')?.wallTexture).toBe('redbrick')
     expect(materialsCheck(next)?.ok).toBe(true)
     expect(materialsCheck(textured)?.ok).toBe(true)
@@ -164,14 +164,17 @@ describe('renameMaterial (material.rename)', () => {
 
 describe('removeMaterial (material.remove)', () => {
   it('removes an entry nothing names', () => {
-    const unused: AfSector = { ...depot, materials: { ...depot.materials, steel: { category: 'walls' } } }
+    const unused: AfSector2File = {
+      ...depot,
+      materials: { ...depot.materials, steel: { category: 'walls' } },
+    }
     const next = levelOf(run(removeMaterial({ id: 'steel' }), unused))
     expect(next.materials).toEqual(depot.materials)
   })
 
   it('refuses while anything names it, listing each use in file order', () => {
     expect(reasonOf(run(removeMaterial({ id: 'brick' }), textured))).toBe(
-      'brick is still used: style warm: wallTexture; hall: wallTexture; hall: wall 2 texture; hall: wall 2 trimTexture skirting; hall: hole 0 wall 0 texture; dock: wallTexture',
+      'brick is still used: style warm: wallTexture; hall: wallTexture; hall: wall 2 surface; hall: wall 2 trimTexture skirting; hall: hole 0 wall 0 surface; dock: wallTexture',
     )
     expect(reasonOf(run(removeMaterial({ id: 'steel' })))).toBe('no material steel')
   })

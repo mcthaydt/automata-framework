@@ -1,5 +1,5 @@
 {
-  "format": "af-sector/1",
+  "format": "af-sector/2",
   "name": "hall",
   "sectors": [
     {
@@ -7,6 +7,9 @@
       "floor": 0,
       "ceiling": 4,
       "light": 1,
+      "floorTexture": "floor",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "wall",
       "corners": [[0, 0], [8, 0, { "next": "dock" }], [8, 6], [0, 6]]
     },
     {
@@ -14,7 +17,15 @@
       "floor": -0.5,
       "ceiling": 4,
       "light": 0.7,
+      "floorTexture": "floor",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "wall",
       "corners": [[8, 0], [14, 0], [14, 6], [8, 6, { "next": "hall" }]]
     }
+  ],
+  "props": [
+    { "id": "crate-1", "use": "crate", "at": [1.5, 1.5] },
+    { "id": "barrel-1", "use": "barrel", "at": [1.5, 4.5] },
+    { "id": "crate-2", "use": "crate", "at": [11, 3] }
   ]
 }

@@ -20,6 +20,9 @@ const hall: InspectorCard = {
   ceilingTexture: undefined,
   wallTexture: 'brick',
   view: undefined,
+  pit: false,
+  trim: {},
+  views: [],
   walls: 4,
   portals: 1,
 }
@@ -46,6 +49,7 @@ const crate: InspectorCard = {
   kind: 'thing',
   selected: 1,
   definition: 'crate',
+  definitionLabel: 'crate',
   id: 'crate1',
   x: 11,
   z: 2,
@@ -74,6 +78,33 @@ describe('Inspector', () => {
     expect(screen.getByText('Tap a room, a wall or a thing to see it here.')).toBeInTheDocument()
   })
 
+  it('Time of day lists the times by name and “As the game has it”, and picking one changes the level', async () => {
+    const onchange = mount({
+      kind: 'none',
+      selected: 0,
+      time: {
+        value: 'dusk',
+        options: [
+          { id: 'day', label: 'Day' },
+          { id: 'dusk', label: 'Dusk' },
+        ],
+      },
+    })
+    const time = screen.getByRole('button', { name: /Time of day/ })
+    expect(time).toHaveTextContent('Dusk')
+    await userEvent.click(time)
+    expect(screen.getAllByRole('option').map((each) => each.textContent?.trim())).toEqual([
+      'Day',
+      'Dusk',
+      'As the game has it',
+    ])
+    await userEvent.click(screen.getByRole('option', { name: 'Day' }))
+    expect(onchange).toHaveBeenCalledWith({ kind: 'level', time: 'day', label: 'Day' }, 'set')
+    await userEvent.click(screen.getByRole('button', { name: /Time of day/ }))
+    await userEvent.click(screen.getByRole('option', { name: 'As the game has it' }))
+    expect(onchange).toHaveBeenLastCalledWith({ kind: 'level', time: null }, 'set')
+  })
+
   it('shows a sector’s heights, light and materials, and a stepper press changes the floor', async () => {
     const onchange = mount(hall)
     expect(screen.getByRole('heading', { name: 'hall' })).toBeInTheDocument()
@@ -83,6 +114,60 @@ describe('Inspector', () => {
     expect(screen.getByText('tile')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Increase Floor' }))
     expect(onchange).toHaveBeenCalledWith({ kind: 'sector', id: 'hall', floor: 0.05 }, 'set')
+  })
+
+  it('Skirting, Wainscot and Rail are steppers in metres, and none reads 0', async () => {
+    const onchange = mount({ ...hall, trim: { wainscot: 1 } })
+    expect(screen.getByRole('spinbutton', { name: 'Skirting' })).toHaveValue(0)
+    expect(screen.getByRole('spinbutton', { name: 'Wainscot' })).toHaveValue(1)
+    await userEvent.click(screen.getByRole('button', { name: 'Increase Rail' }))
+    expect(onchange).toHaveBeenCalledWith({ kind: 'sector', id: 'hall', trim: { rail: 0.05 } }, 'set')
+  })
+
+  it('stepping a piece of trim down to 0 takes it off', async () => {
+    const onchange = mount({ ...hall, trim: { skirting: 0.05 } })
+    await userEvent.click(screen.getByRole('button', { name: 'Decrease Skirting' }))
+    expect(onchange).toHaveBeenCalledWith({ kind: 'sector', id: 'hall', trim: { skirting: null } }, 'set')
+  })
+
+  it('Pit is a checkbox that says "Pit (the player falls in)"', async () => {
+    const onchange = mount(hall)
+    const box = screen.getByRole('checkbox', { name: 'Pit (the player falls in)' })
+    expect(box).not.toBeChecked()
+    await userEvent.click(box)
+    expect(onchange).toHaveBeenCalledWith({ kind: 'sector', id: 'hall', pit: true }, 'set')
+  })
+
+  it('a pit shows ticked', () => {
+    mount({ ...hall, pit: true })
+    expect(screen.getByRole('checkbox', { name: 'Pit (the player falls in)' })).toBeChecked()
+  })
+
+  it('Camera lists the room’s views by name and None, and picking one changes it', async () => {
+    const onchange = mount({ ...hall, view: 'middle', views: ['start', 'middle', 'goal'] })
+    const camera = screen.getByRole('button', { name: /Camera/ })
+    expect(camera).toHaveTextContent('Middle')
+    await userEvent.click(camera)
+    expect(screen.getAllByRole('option').map((each) => each.textContent?.trim())).toEqual([
+      'Start',
+      'Middle',
+      'Goal',
+      'None',
+    ])
+    await userEvent.click(screen.getByRole('option', { name: 'Goal' }))
+    expect(onchange).toHaveBeenCalledWith({ kind: 'sector', id: 'hall', view: 'goal' }, 'set')
+  })
+
+  it('Camera None takes the camera off, and a room whose file has no views has no Camera', async () => {
+    const onchange = mount({ ...hall, view: 'middle', views: ['start', 'middle'] })
+    await userEvent.click(screen.getByRole('button', { name: /Camera/ }))
+    await userEvent.click(screen.getByRole('option', { name: 'None' }))
+    expect(onchange).toHaveBeenCalledWith({ kind: 'sector', id: 'hall', view: null }, 'set')
+  })
+
+  it('has no Camera when the file names no views', () => {
+    mount(hall)
+    expect(screen.queryByRole('button', { name: /Camera/ })).toBeNull()
   })
 
   it('shows the model’s sentence when a change is refused', async () => {

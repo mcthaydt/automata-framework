@@ -1,7 +1,7 @@
 // What the plan paints (ED3D.4 step 2): fills and walls as plain data, read from the geometry layers alone, each with
 // the selection id the app selects it by.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { planScene } from '#src/features/levels-3d/plan/plan-scene.ts'
 import { levelBounds } from '#src/features/levels-3d/plan/plan-viewport.ts'
@@ -11,18 +11,18 @@ import type { GeometryLayer } from '#src/shared/level-session/level-profile.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 import { toyAfSector, toyDock, toyHall } from '#src/testing/toy-af-sector.ts'
 
-const depot = (): AfSector => {
+const depot = (): AfSector2File => {
   const parsed = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!parsed.ok) throw new Error('the depot does not parse')
   return parsed.value
 }
 
 /** The scene of an af-sector level, with the selection ids its profile gives. */
-const sceneOf = (level: AfSector, hidden: readonly string[] = []) =>
+const sceneOf = (level: AfSector2File, hidden: readonly string[] = []) =>
   planScene(afSectorProfile.geometry(level).layers, selectionOf(afSectorProfile, level), { hidden })
 
 /** A hall that is `corners` and a dock joined to it by a portal on x = 8, as in the toy level. */
-const hallWith = (corners: AfSector['sectors'][number]['corners'], more: object = {}): AfSector =>
+const hallWith = (corners: AfSector2File['sectors'][number]['corners'], more: object = {}): AfSector2File =>
   toyAfSector({ sectors: [{ ...toyHall, corners, ...more }, toyDock] })
 
 const SQUARE = [
@@ -31,6 +31,19 @@ const SQUARE = [
   [8, 6],
   [0, 6],
 ] as const
+
+describe('planScene pits', () => {
+  it('marks the fill of a room that is a pit, and no other', () => {
+    const level = toyAfSector({ sectors: [toyHall, { ...toyDock, pit: true }] })
+    const { fills } = planScene(afSectorProfile.geometry(level).layers, selectionOf(afSectorProfile, level), {
+      pits: new Set(['dock']),
+    })
+    expect(fills.map((fill) => [fill.sector, fill.pit === true])).toEqual([
+      ['hall', false],
+      ['dock', true],
+    ])
+  })
+})
 
 describe('planScene fills', () => {
   it('has one fill for each sector, with its outline, no holes, its heights and light', () => {
@@ -45,6 +58,7 @@ describe('planScene fills', () => {
       outline: layers[0]?.map.sectors[0]?.points[0],
       holes: [],
       group: 'tile',
+      floorTexture: 'tile',
       floor: 0,
       ceiling: 4,
       light: 1,

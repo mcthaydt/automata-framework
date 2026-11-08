@@ -36,7 +36,7 @@
     "./suite.css": "./src/app/suite/main.css"
   },
   "scripts": {
-    "build": "vite build && vite build --mode suite",
+    "build": "vite build",
     "design:board": "playwright test",
     "dev": "vite",
     "test": "vitest run",

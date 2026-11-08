@@ -3,7 +3,7 @@
 // canvas is 800 by 400 px with the camera at (7, 3) and zoom 1, which is 32 px to a metre; pixel positions are made with
 // `toScreen`, so no test hides a unit.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it, vi } from 'vitest'
 import { createPlanController, type PlanPointer } from '#src/features/levels-3d/plan/plan-controller.ts'
@@ -15,7 +15,7 @@ import type { LevelProfile } from '#src/shared/level-session/level-profile.ts'
 import { SectorAccessError } from '#src/shared/level-session/sector-access.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 
-const depot: AfSector = (() => {
+const depot: AfSector2File = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
@@ -24,7 +24,7 @@ const depot: AfSector = (() => {
 const SIZE = { w: 800, h: 400 }
 const CAMERA = { x: 7, z: 3, zoom: 1 }
 
-function setup(level: AfSector = depot, profile: LevelProfile<AfSector> = afSectorProfile) {
+function setup(level: AfSector2File = depot, profile: LevelProfile<AfSector2File> = afSectorProfile) {
   const editor = createLevelEditor({ profile, level })
   editor.view.set({ camera: CAMERA })
   const controller = createPlanController(editor, SIZE)
@@ -189,7 +189,7 @@ describe('the geometry the picks read', () => {
   })
 
   it('is empty for a level that cannot be resolved, which is no crash and no hit', () => {
-    const broken: AfSector = {
+    const broken: AfSector2File = {
       ...depot,
       sectors: depot.sectors.map((sector) =>
         sector.id === 'hall'
@@ -201,7 +201,7 @@ describe('the geometry the picks read', () => {
             }
           : sector,
       ),
-    } as AfSector
+    } as AfSector2File
     expect(() => afSectorProfile.geometry(broken)).toThrow()
     const { controller, at } = setup(broken)
     controller.hover(at(4, 3))
@@ -586,7 +586,7 @@ describe('a corner drag', () => {
 })
 
 /** The depot's profile, except that the hall may not reach east of x = 9: the format refusing what an edit wrote. */
-const bounded: LevelProfile<AfSector> = {
+const bounded: LevelProfile<AfSector2File> = {
   ...afSectorProfile,
   sectors: {
     ...afSectorProfile.sectors,

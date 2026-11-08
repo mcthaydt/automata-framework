@@ -111,7 +111,11 @@ export function buildScene(
   look?: Look,
 ): void {
   const colourOf = (swatch: string) => swatchColour(room.library, swatch)
-  view.environment = { skyColor: 0xcdd2da, groundColor: colourOf('floor') ?? 0x8690b2 }
+  view.environment = {
+    // The day's colours: the renderer lights them by the level's time of day (`Pixi3dOptions.time`).
+    skyColor: 0xcdd2da,
+    groundColor: colourOf('floor') ?? 0x8690b2,
+  }
   drawWorld({ parent: view.root, occluders, colourOf, look }, room.world.pieces)
   for (const box of lipBoxes(area)) occluders.box(box.box, box.colour)
 }

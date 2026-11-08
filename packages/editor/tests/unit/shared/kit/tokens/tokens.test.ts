@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, test } from 'vitest'
+import { contrast } from '#src/shared/kit/tokens/contrast.ts'
 import type { EditorTokens } from '#src/shared/kit/tokens/editor-tokens.ts'
 import { tokensToCss } from '#src/shared/kit/tokens/tokens-to-css.ts'
 
@@ -79,22 +80,6 @@ describe('tokens.css', () => {
     expect(vars.get('--size-primary')).toBe('48px')
   })
 })
-
-function channel(value: number): number {
-  const s = value / 255
-  return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
-}
-
-/** WCAG relative luminance of a `#rrggbb` color. */
-function luminance(hex: string): number {
-  const n = Number.parseInt(hex.slice(1), 16)
-  return 0.2126 * channel((n >> 16) & 255) + 0.7152 * channel((n >> 8) & 255) + 0.0722 * channel(n & 255)
-}
-
-function contrast(foreground: string, background: string): number {
-  const [light, dark] = [luminance(foreground), luminance(background)].sort((a, b) => b - a)
-  return ((light as number) + 0.05) / ((dark as number) + 0.05)
-}
 
 describe('token contrast', () => {
   const color = (name: string): string => {

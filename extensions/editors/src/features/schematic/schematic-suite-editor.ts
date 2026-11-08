@@ -2,7 +2,6 @@
 // places and puzzle files that share a name) and starts the first; a game with no files has one scene to start.
 import {
   defineSuiteEditor,
-  type SuiteAskTarget,
   type SuiteEditor,
   type SuiteUndo,
   type WorkspaceFile,
@@ -26,18 +25,6 @@ function undoOf(session: SchematicSession): SuiteUndo {
     undo: () => void session.followStep(true),
     redo: () => void session.followStep(false),
     subscribe: (listener) => session.subscribe(listener),
-  }
-}
-
-function askOf(session: SchematicSession): SuiteAskTarget {
-  return {
-    get path() {
-      return session.files.systems.path
-    },
-    text: () => session.files.systems.history.state.text ?? '',
-    scope: () => (session.chosen.kind === 'character' ? [`agents.${session.chosen.index}`] : []),
-    locked: () => [],
-    accept: (text, summary) => void session.files.systems.accept(text, summary),
   }
 }
 
@@ -78,6 +65,5 @@ export function createSchematic(options: SchematicOptions = {}): SuiteEditor<Sch
     homeFiles: homeFilesOf,
     regions: { panel, canvas, inspector, status },
     undo: undoOf,
-    ask: askOf,
   })
 }

@@ -45,7 +45,7 @@ const isPureOrShared = (file: string): boolean =>
  */
 const PURE_PACKAGES: ReadonlySet<string> = new Set(['zod', '@automata/content/level-2d'])
 /** Where nothing may name a profile or a template: each of these works for every profile (G-s). */
-const GENERIC_PREFIXES: readonly string[] = ['app/editor-2d/', `${CORE_ROOT}tiles/`, `${CORE_ROOT}canvas/`]
+const GENERIC_PREFIXES: readonly string[] = ['app/level-2d/', `${CORE_ROOT}tiles/`, `${CORE_ROOT}canvas/`]
 const PROFILE_AND_TEMPLATE_IDS: ReadonlySet<string> = new Set([
   'level-project',
   'platformer',
@@ -53,7 +53,7 @@ const PROFILE_AND_TEMPLATE_IDS: ReadonlySet<string> = new Set([
   'blank',
 ])
 /** The one file of the app that may import a profile: the registration list. */
-const REGISTRATION_FILE = 'app/editor-2d/profiles.ts'
+const REGISTRATION_FILE = 'app/level-2d/profiles.ts'
 /**
  * Also allowed to import a profile: the package's entries, which only re-export (`./level-export` hands a game's build
  * the content exporter), and test helpers, which build a project from a profile's own templates.

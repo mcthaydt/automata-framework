@@ -73,7 +73,6 @@ describe('adding one in the panel', () => {
         modes: ['edit'],
         writable: true,
       }),
-      changeSet: false,
     })
     const session = await createSchematic().open(await ports.workspace.files('schematic'), ports)
     render(SchematicPanel, { props: { session } })

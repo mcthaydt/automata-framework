@@ -4,6 +4,7 @@
 // under the flag, and the position is never written. Test code: the sim never reads it (law 1).
 import type { StepResult } from '@automata/sim'
 import type { AreaSource } from '../shared/area.ts'
+import type { RoomWorld } from '../shared/room-world.ts'
 
 /** Where `?route=` puts Wick, in metres: the room's own spots (content/levels/room.af-sector.json). */
 const SPAWNS = {
@@ -41,4 +42,29 @@ export function showHero(result: StepResult, enabled: boolean, root: HTMLElement
     | undefined
   if (hero !== undefined)
     root.dataset.hero = `${(hero.x / 65_536).toFixed(2)},${(hero.z / 65_536).toFixed(2)}`
+}
+
+/**
+ * Writes where the room's props stand, how high its floors are (in metres) and the time of day it is played in, on the
+ * page's root element (`data-props="crate-1:-4.00,6.50;…"`, `data-floors="start:0.00;…"`, `data-time="night"`) once, for
+ * a journey that edits the room in an editor and then checks it is the room that is drawn. Nothing is written without
+ * the flag.
+ */
+export function showRoom(room: RoomWorld, enabled: boolean, root: HTMLElement, time: string): void {
+  if (!enabled) return
+  const props = new Map<string, string>()
+  const floors = new Map<string, string>()
+  for (const piece of room.world.pieces) {
+    if (piece.prop !== undefined && !props.has(piece.prop.id)) {
+      const [x, , z] = piece.prop.at
+      props.set(piece.prop.id, `${piece.prop.id}:${x.toFixed(2)},${z.toFixed(2)}`)
+    }
+    if (piece.part === 'floor' && !floors.has(piece.sector)) {
+      const height = Math.max(...piece.mesh.positions.filter((_, index) => index % 3 === 1))
+      floors.set(piece.sector, `${piece.sector}:${height.toFixed(2)}`)
+    }
+  }
+  root.dataset.props = [...props.values()].join(';')
+  root.dataset.floors = [...floors.values()].join(';')
+  root.dataset.time = time
 }

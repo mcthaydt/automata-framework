@@ -14,13 +14,13 @@ import platformer from '#src/testing/suite/fixtures/platformer.af2d.json?raw'
 import StandInLevelCanvas from '#src/testing/suite/StandInLevelCanvas.svelte'
 import {
   dockToggle,
+  editorControl,
   editorList,
   inShell,
   inView,
   noPageScroll,
   type OpenedSuite,
   openSuite,
-  tab,
 } from '#src/testing/suite/suite-layout.ts'
 
 // The 2D level editor in the suite's one shell with the production CSS in real browsers at the sizes of spec §10: its
@@ -72,7 +72,7 @@ describe.each(SIZES)('Suite Levels 2D at $name ($width x $height)', (size) => {
     // suite's bar): scrolled to, it is wholly in view and a full-size target.
     picker.scrollIntoView({ block: 'nearest', inline: 'nearest' })
     await settleLayout()
-    expect(checkLayout(conditions, [tab('Levels'), picker])).toEqual([])
+    expect(checkLayout(conditions, [editorControl('Levels'), picker])).toEqual([])
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/suite-levels-2d-${size.name}.png` })
   })

@@ -13,8 +13,9 @@ import type { Size } from '@automata/editor/kit/core'
 import { onDestroy } from 'svelte'
 import type { LevelEditor } from '../../../shared/edit/level-editor'
 import { createGeometryCache } from '../../../shared/geometry/geometry-cache'
-import { meshPaint } from '../dollhouse/dollhouse-paint'
+import { meshPaint, type SurfaceColours } from '../dollhouse/dollhouse-paint'
 import type { DollhouseRenderer, DollhouseRendererFactory } from '../dollhouse/dollhouse-renderer'
+import type { GameScene } from '../dollhouse/game-scene'
 import type { Frames } from './frames'
 import WalkHud from './WalkHud.svelte'
 import { walkGestures } from './walk-gestures'
@@ -25,13 +26,17 @@ interface Props {
   editor: LevelEditor<unknown>
   renderer: DollhouseRendererFactory
   frames: Frames
+  /** The game's colour for a material by name; without it every surface keeps the blockout's grey. */
+  colours?: SurfaceColours | undefined
+  /** The level as the game draws it (`createSceneCache`); without it, or for a level it cannot build, the flat blockout. */
+  scene?: (() => GameScene | undefined) | undefined
   onundo: () => void
   onredo: () => void
   /** What the status line says while Walk is shown: the warning, else what the crosshair is on. */
   onwords: (words: string | undefined) => void
 }
 
-const { editor, renderer: makeRenderer, frames, onundo, onredo, onwords }: Props = $props()
+const { editor, renderer: makeRenderer, frames, colours, scene, onundo, onredo, onwords }: Props = $props()
 
 type Phase = 'starting' | 'drawing' | 'unavailable'
 
@@ -62,7 +67,9 @@ $effect(() => {
 function draw(): void {
   if (size === undefined || view === undefined || walk === undefined) return
   shown = walk.view
-  view.draw(meshPaint(walk.mesh, walk.view.camera, size, new Set(editor.selection.ids)))
+  view.draw(
+    meshPaint(walk.mesh, walk.view.camera, size, new Set(editor.selection.ids), colours, scene?.(), true),
+  )
 }
 
 function measured(next: Size): void {
@@ -72,7 +79,7 @@ function measured(next: Size): void {
   if (first) {
     walk = createWalkController(editor, next)
     shown = walk.view
-    stops.push(walk.subscribe(draw), editor.selection.subscribe(draw))
+    stops.push(walk.subscribe(draw), editor.selection.subscribe(draw), editor.history.subscribe(draw))
     if (host !== undefined) stops.push(attachGestures(host, walkGestures(walk, { onundo, onredo })))
   } else walk?.resize(next)
   if (view === undefined) void start()
@@ -214,6 +221,8 @@ const setMode = (mode: WalkMode): void => walk?.setMode(mode)
     display: block;
     width: 100%;
     height: 100%;
+    /* The game's picture is a small field of pixels scaled up whole. */
+    image-rendering: pixelated;
   }
   canvas.hidden {
     visibility: hidden;

@@ -9,26 +9,16 @@ describe('@automata/editor-suite/core', () => {
 })
 
 describe('the entry', () => {
-  it('exports the loader, the schema, the matcher, the policy, the journal schema, the interchange, the review model and the ship draft', () => {
+  it('exports the loader, the schema, the matcher and the policy', () => {
     expect(Object.keys(core).sort()).toEqual([
       'ALWAYS_NEVER',
-      'CHANGE_SET_JOURNAL_FORMAT',
       'CONTENT_CHECK',
       'EDITOR_LIST_FORMAT',
       'EDITOR_LIST_PATH',
-      'INTERCHANGE_FORMAT',
-      'INTERCHANGE_VERSION',
-      'applyImport',
-      'changeSetJournalSchema',
-      'draftShip',
       'editorListSchema',
-      'exportInterchange',
       'fileAccess',
       'globMatch',
-      'interchangeSchema',
       'loadEditorList',
-      'planImport',
-      'reviewModel',
       'workspaceFile',
     ])
   })

@@ -4,7 +4,7 @@ import { watchPage } from './gates'
 
 // A visitor's first visit, end to end on the built site: they land on Home and play Emberwick in the page, go to
 // Start and copy the command that makes a game, open the Editor page and try the editor, make a platformer level,
-// paint on it, and find it still there after a reload. Once on a desktop and once on an upright phone (the demo plays
+// paint on it, and share it. Once on a desktop and once on an upright phone (the demo plays
 // upright there). Every step is found the way a visitor finds it: by its role and its words.
 
 const ORIGIN = `http://127.0.0.1:${SITE_PORT}`
@@ -77,41 +77,43 @@ async function copyTheCommand(page: Page): Promise<void> {
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(CREATE_COMMAND)
 }
 
-/** The Editor page, Try the editor, a platformer level, one painted cell, Save, a reload: the level and cell are kept. */
-async function drawAndKeepALevel(page: Page): Promise<void> {
+/** The Editor page, Try the editor, a platformer level and one painted cell: Download hands over the level. */
+async function drawAndShareALevel(page: Page): Promise<void> {
   await page.goto('/editor')
   await page.getByRole('link', { name: 'Try the editor' }).click()
   await expect(page).toHaveURL(/\/editor\/app\/$/)
-  await expect(page.getByRole('heading', { name: 'Your levels' })).toBeVisible()
-  await page.getByRole('button', { name: 'New level' }).first().click()
-  await page.getByText('Platformer').click()
+  await page.getByRole('button', { name: 'New level' }).click()
+  await page.getByRole('button', { name: /Platformer/ }).click()
 
   const canvas = page.locator('[data-level-canvas]')
   await expect(canvas).toHaveAttribute('data-state', 'drawn')
-  // On a phone the layers are a sheet over the canvas: open it to choose, and close it again to paint.
+  // On a phone the layers are a sheet over the canvas: the top bar's Panel opens it to choose, and Escape closes it to paint.
   const layer = page.getByRole('button', { name: 'Collision Walls and floors' })
   const sheet = !(await layer.isVisible())
-  if (sheet) await page.getByRole('button', { name: 'Layers' }).click()
+  if (sheet) await page.getByRole('button', { name: 'Panel' }).click()
   await layer.click()
-  if (sheet) await page.getByRole('button', { name: 'Layers' }).click()
+  // The sheet stays up for choosing what to paint with; Escape puts it away.
+  if (sheet) await page.keyboard.press('Escape')
   await page.getByRole('radio', { name: 'Brush' }).click()
   await expect(canvas).toHaveAttribute('data-state', 'drawn')
   const before = await canvasPicture(page, canvas)
   const box = await canvas.boundingBox()
   if (box === null) throw new Error('the level canvas is not on the page')
-  // A third of the way down the middle: open air in the platformer template, so a painted wall changes it.
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 3)
+  // The canvas publishes its camera as `data-camera="x,y,scale"`: level pixel p is drawn at x + p * scale. Cell (16, 4)
+  // of the platformer's 16-pixel grid is open air, so a painted wall changes it.
+  const [cx = 0, cy = 0, scale = 1] = ((await canvas.getAttribute('data-camera')) ?? '')
+    .split(',')
+    .map(Number)
+  await page.mouse.click(box.x + cx + 16.5 * 16 * scale, box.y + cy + 4.5 * 16 * scale)
   const painted = await canvasPicture(page, canvas)
   expect(painted.equals(before), 'the brush changed the level').toBe(false)
-  await page.getByRole('button', { name: 'Save', exact: true }).click()
-  await expect(page.getByTestId('save-state')).toHaveText(/^\s*Saved\s*$/)
-
-  await page.reload()
-  await page.getByText('Untitled platformer').first().click()
-  await expect(canvas).toHaveAttribute('data-state', 'drawn')
-  expect((await canvasPicture(page, canvas)).equals(painted), 'the painted level came back as it was').toBe(
-    true,
-  )
+  // The sample keeps nothing, so Share is how the painted level leaves.
+  await page.getByRole('button', { name: 'Share' }).click()
+  const download = page.waitForEvent('download')
+  await page.getByRole('menuitem', { name: 'Download' }).click()
+  const file = await download
+  expect(file.suggestedFilename()).toBe('untitled-platformer.af2d.json')
+  await expect(page.getByText('Downloaded your level.')).toBeVisible()
 }
 
 /**
@@ -127,7 +129,7 @@ async function canvasPicture(page: Page, canvas: Locator): Promise<Buffer> {
 }
 
 test.describe('a visitor on a desktop', () => {
-  test('plays Emberwick, copies the command, and draws a level that is still there after a reload', async ({
+  test('plays Emberwick, copies the command, and draws a level and shares it', async ({
     page,
     context,
     browserName,
@@ -142,7 +144,7 @@ test.describe('a visitor on a desktop', () => {
     await page.goto('/')
     await playEmberwick(page, 'keyboard')
     await copyTheCommand(page)
-    await drawAndKeepALevel(page)
+    await drawAndShareALevel(page)
     expect(watch.problems).toEqual([])
   })
 })
@@ -151,7 +153,7 @@ test.describe('a visitor on an upright phone', () => {
   const { defaultBrowserType: _browser, ...phone } = devices['iPhone 13']
   test.use(phone)
 
-  test('plays Emberwick upright, copies the command, and draws a level that is still there after a reload', async ({
+  test('plays Emberwick upright, copies the command, and draws a level and shares it', async ({
     page,
     context,
     browserName,
@@ -166,7 +168,7 @@ test.describe('a visitor on an upright phone', () => {
     await page.goto('/')
     await playEmberwick(page, 'touch')
     await copyTheCommand(page)
-    await drawAndKeepALevel(page)
+    await drawAndShareALevel(page)
     expect(watch.problems).toEqual([])
   })
 })

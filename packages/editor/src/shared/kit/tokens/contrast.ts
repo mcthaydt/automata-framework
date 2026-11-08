@@ -1,14 +1,17 @@
-/** WCAG 2.x contrast of two colours, each a `#rrggbb` or an `rgb(r g b / a)`; the second is the background. */
+/**
+ * WCAG 2.x contrast of two colours, each a `#rrggbb` or an `rgb(r g b / a)` (also `rgb(r, g, b)` and `rgba(…)`, which
+ * is what `getComputedStyle` answers in); the second is the background.
+ */
 
 type Rgb = readonly [number, number, number]
 
 function parse(color: string): { rgb: Rgb; alpha: number } {
-  const hex = /^#([0-9a-f]{6})$/.exec(color)
+  const hex = /^#([0-9a-f]{6})$/i.exec(color.trim())
   if (hex !== null) {
     const n = Number.parseInt(hex[1] as string, 16)
     return { rgb: [(n >> 16) & 255, (n >> 8) & 255, n & 255], alpha: 1 }
   }
-  const fn = /^rgb\((\d+) (\d+) (\d+)(?: \/ ([\d.]+))?\)$/.exec(color)
+  const fn = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)(?:\s*[,/]\s*([\d.]+))?\s*\)$/.exec(color.trim())
   if (fn !== null) {
     return {
       rgb: [Number(fn[1]), Number(fn[2]), Number(fn[3])],

@@ -33,7 +33,6 @@ async function open(systems = HALL) {
       modes: ['edit'],
       writable: true,
     }),
-    changeSet: false,
   })
   const session = await createSchematic().open(await ports.workspace.files('schematic'), ports)
   render(CharacterCanvas, { props: { session } })

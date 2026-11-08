@@ -47,7 +47,7 @@ describe('readTuning', () => {
     expect(all['GREETING']).toMatchObject({ kind: 'string', value: 'hello', editable: true })
   })
 
-  it('shows a table or an array as Ask only, and leaves nested tables out of the list', () => {
+  it('shows a table or an array as read only, and leaves nested tables out of the list', () => {
     const all = byName(FILE)
     expect(all['CURVE']).toMatchObject({ kind: 'other', editable: false })
     expect(all['nested']).toMatchObject({ kind: 'other', editable: false })

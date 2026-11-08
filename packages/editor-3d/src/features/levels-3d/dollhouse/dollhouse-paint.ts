@@ -14,6 +14,13 @@ import {
 import { surfaceVisibility } from '../../../shared/geometry/mesh-pick'
 import type { SectorMesh, Surface, SurfaceRole, Vec3 } from '../../../shared/geometry/sector-mesh'
 import { PLAN_COLORS } from '../plan/plan-colors'
+import type { GameScene } from './game-scene'
+
+/**
+ * The colour of a swatch, by the name a level writes (`gameColours`), or nothing when the game gives none: a surface that
+ * names one is drawn in it, lit by its shade, so the room looks like the game's. Any other keeps the blockout's grey.
+ */
+export type SurfaceColours = (texture: string) => number | undefined
 
 export interface DollhousePolygon {
   /** `x, y` in canvas pixels for each corner. */
@@ -32,10 +39,23 @@ export interface DollhousePolygon {
   readonly depth: number
 }
 
+/** The room as the game draws it, for the renderer to put under the selection: the scene, the eye and whether it is inside. */
+export interface GameFrame {
+  readonly scene: GameScene
+  readonly camera: Camera3D
+  /** The eye is inside the rooms (Walk): their ceilings are drawn. From outside (the 3D view) they are left off. */
+  readonly indoors: boolean
+}
+
 export interface DollhousePaint {
   readonly background: number
   readonly accent: number
+  /**
+   * Every surface the camera sees, flat. With a `game` frame the renderer draws the game's picture instead and uses only
+   * the selected ones, to show what is picked on top of it.
+   */
   readonly polygons: readonly DollhousePolygon[]
+  readonly game?: GameFrame | undefined
 }
 
 /** The blockout's colours by role, at full light (the mockups' `view/3d` greys; a door is the plan's door). */
@@ -85,8 +105,10 @@ export function dollhousePaint(
   orbit: Orbit,
   size: Size,
   selected: ReadonlySet<string>,
+  colours?: SurfaceColours,
+  scene?: GameScene,
 ): DollhousePaint {
-  return meshPaint(mesh, orbitCamera(orbit), size, selected)
+  return meshPaint(mesh, orbitCamera(orbit), size, selected, colours, scene, false)
 }
 
 /**
@@ -99,12 +121,17 @@ export function meshPaint(
   camera: Camera3D,
   size: Size,
   selected: ReadonlySet<string>,
+  colours?: SurfaceColours,
+  scene?: GameScene,
+  indoors = true,
 ): DollhousePaint {
   const polygons: DollhousePolygon[] = []
   for (const surface of mesh.surfaces) {
     const visibility = surfaceVisibility(surface, camera.eye)
     if (visibility === 'cut') continue
     const outline = outlineEdges(surface.indices)
+    const base =
+      (surface.texture === undefined ? undefined : colours?.(surface.texture)) ?? ROLE_COLORS[surface.role]
     for (let i = 0; i + 2 < surface.indices.length; i += 3) {
       const indices = [
         surface.indices[i] ?? 0,
@@ -145,7 +172,7 @@ export function meshPaint(
         polygons.push({
           points: triangle.flatMap((point) => [point.x, point.y]),
           edges,
-          color: lit(ROLE_COLORS[surface.role], surface.shade),
+          color: lit(base, surface.shade),
           alpha: visibility === 'faded' ? FADED : 1,
           role: surface.role,
           selection: surface.selection,
@@ -162,5 +189,6 @@ export function meshPaint(
     background: PLAN_COLORS.background,
     accent: PLAN_COLORS.accent,
     polygons: ordered.map((each) => each.polygon),
+    ...(scene === undefined ? {} : { game: { scene, camera, indoors } }),
   }
 }

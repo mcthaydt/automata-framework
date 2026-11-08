@@ -18,7 +18,7 @@ describe('readLevel', () => {
   })
 
   it('opens a newer minor version with the codec’s warning', () => {
-    const text = loadAuthored('depot.af-sector').replace('"af-sector/1"', '"af-sector/1.4"')
+    const text = loadAuthored('depot.af-sector').replace('"af-sector/2"', '"af-sector/2.4"')
     const read = readLevel(bytes(text))
     expect(read.status).toBe('parsed')
     if (read.status !== 'parsed') return
@@ -26,13 +26,13 @@ describe('readLevel', () => {
   })
 
   it('refuses a newer major version, naming the format found and the installed profiles', () => {
-    const text = loadAuthored('depot.af-sector').replace('"af-sector/1"', '"af-sector/2"')
+    const text = loadAuthored('depot.af-sector').replace('"af-sector/2"', '"af-sector/3"')
     const read = readLevel(bytes(text))
     expect(read.status).toBe('invalid')
     if (read.status !== 'invalid') return
     expect(read.profile.id).toBe('af-sector')
     expect(read.issues).toEqual([
-      { path: ['format'], message: 'af-sector/2 is not a version this editor reads (af-sector/1)' },
+      { path: ['format'], message: 'af-sector/3 is not a version this editor reads (af-sector/2)' },
     ])
     expect(read.installed).toEqual(INSTALLED)
     expect(read.text).toBe(text)

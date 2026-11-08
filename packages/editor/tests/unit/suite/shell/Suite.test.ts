@@ -42,8 +42,8 @@ describe('Suite Home', () => {
     const tuner = await screen.findByRole('region', { name: 'Tuner' })
     expect(within(tuner).getByRole('button', { name: 'Tuning' })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Levels' })).toBeInTheDocument()
-    // No editor is registered here, so the rail has only Review (the sample has change sets).
-    expect(screen.getAllByRole('tab').map((tab) => tab.textContent?.trim())).toEqual(['Review'])
+    // No editor is registered here, so the rail has no tabs.
+    expect(screen.queryAllByRole('tab')).toEqual([])
   })
 
   it('EDS-l: marks Feel not in this build, naming no package, and its file opens read only', async () => {
@@ -87,24 +87,12 @@ describe('Suite Home', () => {
 })
 
 describe('Suite entries', () => {
-  it('Review opens the desk; Home brings the cards back', async () => {
-    await start(SAMPLE_GAME)
-    await userEvent.click(await screen.findByRole('tab', { name: 'Review' }))
-    expect(await screen.findByTestId('review-desk')).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'Home' }))
-    expect(screen.getByRole('region', { name: 'Tuner' })).toBeInTheDocument()
-  })
-
-  it('lists only the registered editors, then Review', async () => {
+  it('lists only the registered editors', async () => {
     const editor = (id: string, label: string) =>
       ({ id, label, open: async () => ({}), regions: {} }) as unknown as SuiteEditor<unknown>
     await start(SAMPLE_GAME, [editor('tuner', 'Tuner'), editor('levels-2d', 'Levels')])
     await screen.findByRole('region', { name: 'Tuner' })
-    expect(screen.getAllByRole('tab').map((tab) => tab.textContent?.trim())).toEqual([
-      'Tuner',
-      'Levels',
-      'Review',
-    ])
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels'])
   })
 
   it('opens an installed editor once with its files, fills the regions, and keeps its session across a switch', async () => {
@@ -129,7 +117,7 @@ describe('Suite entries', () => {
     expect((open.mock.calls[0] as unknown[])[0]).toEqual([
       expect.objectContaining({ path: 'content/tuning.toml' }),
     ])
-    await userEvent.click(screen.getByRole('tab', { name: 'Review' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Home' }))
     expect(screen.queryByText('sliders: tuning session')).toBeNull()
     await userEvent.click(screen.getByRole('tab', { name: 'Tuner' }))
     expect(await screen.findByText('sliders: tuning session')).toBeInTheDocument()

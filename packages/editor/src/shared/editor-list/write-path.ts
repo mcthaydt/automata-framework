@@ -1,23 +1,18 @@
 // The write path every suite editor's edits take. One write:
-// the policy (a `never`, generated or unlisted path is refused with why); the title prompt when there is a change set
-// port and nothing is open (cancelled: nothing written); the `before` checks on the candidate text (a failure refuses
-// the write with its findings, EDS-g); the mtime-guarded `SuiteWorkspace.write`; the change set's record of the path and
-// both texts; then the `after` checks, whose results the journal keeps (`ChangeSet.note`) with each measure check's
-// value before the change set's first write and after its latest.
+// the policy (a `never`, generated or unlisted path is refused with why); the `before` checks on the candidate text (a
+// failure refuses the write with its findings, EDS-g); the mtime-guarded `SuiteWorkspace.write`; then the `after`
+// checks, whose results the caller follows.
 //
 // `writeAll` is the same path over several files as one step (an import): every policy, expected mtime and `before`
 // check is settled before anything is written, and a write failing part-way puts back the ones already written.
 //
 // Undo and redo are steps of whole-file text. Each is written back through the same path, so it is checked and
-// journalled like an edit; a step any of whose files no longer reads what this path wrote is refused with that path and kept
+// checked like an edit; a step any of whose files no longer reads what this path wrote is refused with that path and kept
 //. Each editor has its own history, named by its id (EDS-D19: the top bar's Undo acts on the active editor's
 // document, so a switch to the Tuner and back still undoes the level's own step, EDS-k); the suite's own steps (an
-// import) are the unnamed owner `''` (`write-history.ts` keeps the stacks). Beginning a change set, and `clear()` (closing one), empty every history. Plain
-// TypeScript: no DOM, no clock.
+// import) are the unnamed owner `''` (`write-history.ts` keeps the stacks). Plain TypeScript: no DOM, no clock.
 import type {
-  ChangeSetCheck,
   CheckFinding,
-  CheckMeasure,
   CheckResult,
   CheckRun,
   SuitePorts,
@@ -25,7 +20,6 @@ import type {
   WorkspaceFile,
 } from '../kit/ports/suite-ports.ts'
 import { createWriteHistories, type Step } from './write-history.ts'
-import { createWriteJournal } from './write-journal.ts'
 
 type WriteFailure = Extract<Awaited<ReturnType<SuiteWorkspace['write']>>, { ok: false }>['reason']
 
@@ -39,12 +33,9 @@ export type WriteOutcome =
   | { readonly refused: 'moved'; readonly path: string }
   | { readonly refused: 'policy'; readonly why: string }
   | { readonly refused: 'storage'; readonly reason: WriteFailure; readonly message: string }
-  | { readonly cancelled: true }
 
 export interface WritePathOptions {
   readonly ports: SuitePorts
-  /** The title prompt for the first write with no change set open; `undefined` when the person cancels. */
-  readonly title: () => Promise<string | undefined>
 }
 
 /** One file of a `writeAll`: its new text and, when the caller read it earlier (an import plan), what it expected. */
@@ -72,9 +63,7 @@ export interface WritePath {
   canRedo(owner?: string): boolean
   undoLabel(owner?: string): string | undefined
   redoLabel(owner?: string): string | undefined
-  /** Empties every history (a change set begun or closed). */
-  clear(): void
-  /** Resolves once every `after` run started so far is in the journal. */
+  /** Resolves once every `after` run started so far has its results. */
   settled(): Promise<void>
   subscribe(listener: () => void): () => void
 }
@@ -89,8 +78,8 @@ interface Prepared {
 
 const unique = (ids: readonly string[]): string[] => [...new Set(ids)]
 
-export function createWritePath({ ports, title }: WritePathOptions): WritePath {
-  const { workspace, changeSet, checks } = ports
+export function createWritePath({ ports }: WritePathOptions): WritePath {
+  const { workspace, checks } = ports
   const histories = createWriteHistories()
   /** The mtime each path had when this path last wrote it. */
   const wrote = new Map<string, number>()
@@ -100,12 +89,9 @@ export function createWritePath({ ports, title }: WritePathOptions): WritePath {
     for (const listener of listeners) listener()
   }
 
-  const clear = () => {
-    histories.clear()
-    changed()
-  }
-
-  const { declaredFor, ensureChangeSet, journal } = createWriteJournal({ ports, title, onBegin: clear })
+  /** The declared checks among `ids` that run `when`. */
+  const declaredFor = (ids: readonly string[], when: 'before' | 'after') =>
+    checks.declared().filter((check) => check.when === when && ids.includes(check.id))
 
   /** The policy and mtime of one file, before anything is written. */
   async function prepare(
@@ -171,8 +157,6 @@ export function createWritePath({ ports, title }: WritePathOptions): WritePath {
       prepared.push(outcome)
     }
     const checkIds = unique(prepared.flatMap((file) => file.checks))
-    if (!(await ensureChangeSet(checkIds))) return { cancelled: true }
-
     const beforeResults = await runBefore(prepared)
     const failed = beforeResults.filter((result) => result.status === 'fail')
     if (failed.length > 0)
@@ -195,18 +179,10 @@ export function createWritePath({ ports, title }: WritePathOptions): WritePath {
       written.push({ file, mtime: result.mtime })
     }
 
-    if (changeSet !== undefined) {
-      await changeSet.record(
-        prepared.map((file) => file.path),
-        prepared.map((file) => ({ path: file.path, before: file.current?.text, after: file.text })),
-      )
-      if (beforeResults.length > 0) await changeSet.note(journal(beforeResults))
-    }
     const after = declaredFor(checkIds, 'after')
     if (after.length === 0) return { written: true }
     const run = await checks.run({ checks: after.map((c) => c.id) })
-    const noting = run.result().then((results) => changeSet?.note(journal(results)))
-    pending = Promise.all([pending, noting])
+    pending = Promise.all([pending, run.result()])
     return { written: true, after: run }
   }
 
@@ -278,7 +254,6 @@ export function createWritePath({ ports, title }: WritePathOptions): WritePath {
     canRedo: (owner = '') => histories.nextRedo(owner) !== undefined,
     undoLabel: (owner = '') => histories.nextUndo(owner)?.label,
     redoLabel: (owner = '') => histories.nextRedo(owner)?.label,
-    clear,
     async settled() {
       await pending
     },

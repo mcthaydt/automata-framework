@@ -1,7 +1,7 @@
 // The entity check (ED3D.2b-1): what is wrong with the things of a level, seeded into the toy AF level, and the shipped
 // depot that must pass.
 
-import type { AfEntity, AfEntityDef, AfSector } from '@automata/3d/level'
+import type { AfEntity, AfEntityDef, AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { entityProblems } from '#src/shared/checks/entities.ts'
 import { resolveMap } from '#src/shared/geometry/sectors.ts'
@@ -34,7 +34,7 @@ const crateAt = (id: string, x: number, z: number, more: Record<string, unknown>
 })
 
 /** The problems of an AF level whose hall is 0..8 by 0..6 and whose dock lies east of it. */
-function check(entityDefs: AfEntityDef[], entities: AfEntity[], more: Partial<AfSector> = {}) {
+function check(entityDefs: AfEntityDef[], entities: AfEntity[], more: Partial<AfSector2File> = {}) {
   const level = toyAfSector({ entityDefs, entities, ...more })
   return entityProblems(afEntityKit(level), resolveMap(buildSectors(level)))
 }

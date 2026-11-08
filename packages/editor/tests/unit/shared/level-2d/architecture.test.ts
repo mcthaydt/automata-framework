@@ -10,7 +10,7 @@ import { checkArchitecture, RULE_PREFIXES, type Violation } from '#src/testing/l
 const rules = (violations: readonly Violation[]): string[] => violations.map((violation) => violation.rule)
 
 /** Where the planted files sit in the real tree: `app/…` is the 2D editor's app, the other areas are its shared code. */
-const APP = 'app/editor-2d/'
+const APP = 'app/level-2d/'
 const CORE = 'shared/level-2d/'
 const REAL_ROOTS = /^(shared|features|entries|testing)\//
 
@@ -130,7 +130,7 @@ describe('checkArchitecture: the pure core (model and tiles)', () => {
     expect(rules(checkArchitecture(value))).toEqual(['pure-imports'])
     const fromApp = tree({
       'app/level-editor.ts': 'export const make = () => 1',
-      'model/a.ts': "import { make } from '../../../app/editor-2d/level-editor'\nexport const a = make",
+      'model/a.ts': "import { make } from '../../../app/level-2d/level-editor'\nexport const a = make",
     })
     expect(rules(checkArchitecture(fromApp))).toEqual(['pure-imports'])
     const typeOnly = tree({
@@ -297,7 +297,7 @@ describe('checkArchitecture: Svelte components', () => {
 
   it('keeps components out of the headless core, whether it imports one or holds one', () => {
     const imports = tree({
-      'tiles/a.ts': "import Palette from '../../../app/editor-2d/Palette.svelte'\nexport default Palette",
+      'tiles/a.ts': "import Palette from '../../../app/level-2d/Palette.svelte'\nexport default Palette",
       'app/Palette.svelte': '<p>palette</p>',
     })
     expect(rules(checkArchitecture(imports))).toEqual(['pure-imports'])

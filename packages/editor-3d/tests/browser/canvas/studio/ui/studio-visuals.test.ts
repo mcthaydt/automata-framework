@@ -5,6 +5,7 @@ import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
 import type { SuiteEditor } from '@automata/editor/kit/ports'
 import { arrived, REST, SIZES } from '@automata/editor/kit/testing'
 import { createSuite, type SuiteHandle, samplePorts, startSuite } from '@automata/editor/suite'
+import { chooseEditor } from '@automata/editor/suite/testing/layout'
 import { publishConditions, settleLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, inject, it } from 'vitest'
 import { page } from 'vitest/browser'
@@ -54,9 +55,7 @@ async function open(): Promise<void> {
     suite: createSuite({ editors: [studio as SuiteEditor<unknown>] }),
   })
   await settleLayout()
-  ;[...document.querySelectorAll<HTMLElement>('[role="tab"]')]
-    .find((tab) => tab.textContent?.trim() === 'Studio')
-    ?.click()
+  await chooseEditor('Characters')
   await expect
     .poll(() => document.querySelector('[data-testid="studio-stage"][data-status="ready"]'))
     .not.toBeNull()

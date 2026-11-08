@@ -1,6 +1,6 @@
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
-import { PLAN_COLORS, parseHex } from '#src/features/levels-3d/plan/plan-colors.ts'
+import { FLOOR_TINT, mixColor, PLAN_COLORS, parseHex } from '#src/features/levels-3d/plan/plan-colors.ts'
 import { groupColor, type PlanPaintInput, planPaint } from '#src/features/levels-3d/plan/plan-paint.ts'
 import { planScene } from '#src/features/levels-3d/plan/plan-scene.ts'
 import { planViewport } from '#src/features/levels-3d/plan/plan-viewport.ts'
@@ -36,7 +36,7 @@ const thing = (def: string, id: string, x: number, z: number, values: Thing['val
   values,
 })
 
-function inputOf(level: AfSector, more: Partial<PlanPaintInput> = {}): PlanPaintInput {
+function inputOf(level: AfSector2File, more: Partial<PlanPaintInput> = {}): PlanPaintInput {
   const hidden = more.hidden ?? []
   return {
     scene: planScene(afSectorProfile.geometry(level).layers, selectionOf(afSectorProfile, level), { hidden }),
@@ -49,6 +49,34 @@ function inputOf(level: AfSector, more: Partial<PlanPaintInput> = {}): PlanPaint
     ...more,
   }
 }
+
+describe('a pit', () => {
+  const level = toyAfSector({
+    sectors: [toyAfSector().sectors[0]!, { ...toyAfSector().sectors[1]!, pit: true }],
+  })
+  const paint = (pits: ReadonlySet<string>) =>
+    planPaint(
+      inputOf(level, {
+        scene: planScene(afSectorProfile.geometry(level).layers, selectionOf(afSectorProfile, level), {
+          pits,
+        }),
+      }),
+    )
+
+  it('is filled in its own dark colour and named "Pit" at the middle of the room', () => {
+    const drawn = paint(new Set(['dock']))
+    expect(drawn.fills.map((fill) => [fill.sector, fill.color === PLAN_COLORS.pit])).toEqual([
+      ['hall', false],
+      ['dock', true],
+    ])
+    // The dock runs from (8, 0) to (14, 6): its middle is (11, 3).
+    expect(drawn.marks).toEqual([{ text: 'Pit', at: px(11, 3) }])
+  })
+
+  it('leaves a room that is not a pit alone', () => {
+    expect(paint(new Set()).marks).toEqual([])
+  })
+})
 
 describe('colours', () => {
   it('reads the mockups’ hex colours as numbers', () => {
@@ -186,5 +214,28 @@ describe('planPaint grid and rulers', () => {
     expect(paint.rulers.x.find((tick) => tick.at === 160)?.label).toBe('2')
     expect(paint.rulers.z.find((tick) => tick.at === 144)?.label).toBe('0')
     expect(paint.rulers.z.find((tick) => tick.at === 80)?.label).toBe('−2')
+  })
+})
+
+describe('the game’s look on the plan', () => {
+  const hall = toyAfSector().sectors[0]!
+  const level = toyAfSector({ sectors: [{ ...hall, floorTexture: 'oak' }, toyAfSector().sectors[1]!] })
+  const fillOf = (paint: ReturnType<typeof planPaint>, sector: string) =>
+    paint.fills.find((fill) => fill.sector === sector)?.color
+
+  it('tints a room with the colour of its floor, softened so the walls still read', () => {
+    const oak = 0xd8a060
+    const paint = planPaint(inputOf(level, { colours: (name) => (name === 'oak' ? oak : undefined) }))
+    const tinted = fillOf(paint, 'hall') ?? 0
+    expect(tinted).toBe(mixColor(PLAN_COLORS.fill, oak, FLOOR_TINT))
+    expect(tinted).not.toBe(oak)
+    expect(tinted).not.toBe(groupColor('oak'))
+    // A room with no floor swatch keeps the plan's own fill.
+    expect(fillOf(paint, 'dock')).toBe(PLAN_COLORS.fill)
+  })
+
+  it('keeps the plan’s own fills when the game gives no colour, and a pit stays dark', () => {
+    expect(fillOf(planPaint(inputOf(level)), 'hall')).toBe(groupColor('oak'))
+    expect(fillOf(planPaint(inputOf(level, { colours: () => undefined })), 'hall')).toBe(groupColor('oak'))
   })
 })

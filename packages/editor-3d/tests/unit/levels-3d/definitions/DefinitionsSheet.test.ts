@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { render, screen, waitFor, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
@@ -11,7 +11,7 @@ import depotText from '#src/testing/fixtures/depot.af-sector.json?raw'
 // The definitions sheet (ED3D.13b; ED3-r): add a definition and a field, see a refusal in the model's words, edit the
 // materials table, and a fixed format says there is nothing to edit.
 
-const depot: AfSector = (() => {
+const depot: AfSector2File = (() => {
   const result = afSectorProfile.parse(depotText)
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value

@@ -2,7 +2,7 @@
 // (a cut makes a new sector of half a room, a merge takes a room into its neighbour), the wall of the sector on the far
 // side that runs back over it must lead into the sector the wall now belongs to, or the portal pair stops matching.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { type PortalMove, redirectPortals, retargetPortals } from '#src/shared/edit/portal-retarget.ts'
 import type { Changes } from '#src/shared/edit/vertex-edits.ts'
@@ -18,7 +18,10 @@ const depot = (() => {
   return result.value
 })()
 
-const afMove = (changes: Changes, move: PortalMove, level: AfSector = depot) =>
+/** The room at an index as the edits see it. */
+const viewOf = (level: AfSector2File, index: number): EditSector =>
+  must(afSectorProfile.sectors.list(level)[index])
+const afMove = (changes: Changes, move: PortalMove, level: AfSector2File = depot) =>
   retargetPortals(afSectorProfile, level, changes, move)
 const wallOf = (changes: Changes, id: string, corner: number) => must(changes.get(id)).corners[corner]?.[2]
 
@@ -42,7 +45,7 @@ describe('retargetPortals', () => {
   })
 
   it('changes nothing about the wall but where it leads, and nothing about any other wall or sector', () => {
-    const level: AfSector = toyAfSector({
+    const level: AfSector2File = toyAfSector({
       sectors: [
         {
           id: 'hall',
@@ -50,8 +53,8 @@ describe('retargetPortals', () => {
           ceiling: 4,
           light: 1,
           corners: [
-            [0, 0, { texture: 'brick' }],
-            [8, 0, { next: 'dock', texture: 'brick', frame: true, thick: 0.3 }],
+            [0, 0, { surface: 'brick' }],
+            [8, 0, { next: 'dock', surface: 'brick', frame: true, thick: 0.3 }],
             [8, 6],
             [0, 6],
           ],
@@ -78,9 +81,13 @@ describe('retargetPortals', () => {
     // The hall's east wall is written [8, 0] to [8, 6].
     const result = afMove(new Map(), move, level)
     const hall = must(result.get('hall'))
-    expect(hall.corners[1]).toEqual([8, 0, { next: 'annex', texture: 'brick', frame: true, thick: 0.3 }])
-    expect(hall.corners[0]).toBe(must(level.sectors[0]).corners[0])
-    expect(hall.corners[2]).toBe(must(level.sectors[0]).corners[2])
+    expect(hall.corners[1]).toMatchObject([
+      8,
+      0,
+      { next: 'annex', texture: 'brick', frame: true, thick: 0.3 },
+    ])
+    expect(hall.corners[0]).toBe(viewOf(level, 0).corners[0])
+    expect(hall.corners[2]).toBe(viewOf(level, 0).corners[2])
     expect(result.has('dock')).toBe(false)
   })
 
@@ -114,7 +121,7 @@ describe('retargetPortals', () => {
 
   it('does not touch the sectors it is told about as the old and the new owner', () => {
     // The dock’s west wall leads into the dock itself, over the span: the old owner’s walls are not rewritten.
-    const selfPortal: AfSector = toyAfSector({
+    const selfPortal: AfSector2File = toyAfSector({
       sectors: [
         {
           ...toyHall,
@@ -152,7 +159,7 @@ describe('retargetPortals', () => {
   })
 
   it('builds on the working set: a far sector that an earlier change already holds is the one changed', () => {
-    const earlier = must(depot.sectors[0])
+    const earlier = must(afSectorProfile.sectors.list(depot)[0])
     const dimmer: EditSector = { ...earlier, light: 0.5 }
     const result = afMove(new Map([['hall', dimmer]]), dockWall)
     expect(must(result.get('hall')).light).toBe(0.5)
@@ -160,7 +167,7 @@ describe('retargetPortals', () => {
   })
 
   it('retargets two spans in one far sector, the second on top of the first', () => {
-    const level: AfSector = toyAfSector({
+    const level: AfSector2File = toyAfSector({
       sectors: [
         {
           ...toyHall,
@@ -201,11 +208,13 @@ describe('retargetPortals', () => {
     const changes: Changes = new Map()
     afMove(changes, dockWall)
     expect(changes.size).toBe(0)
-    expect(wallOf(new Map([['hall', must(depot.sectors[0])]]), 'hall', 1)).toEqual({ next: 'dock' })
+    expect(wallOf(new Map([['hall', must(afSectorProfile.sectors.list(depot)[0])]]), 'hall', 1)).toEqual({
+      next: 'dock',
+    })
   })
 
   it('retargets several spans, one in each far sector', () => {
-    const level: AfSector = toyAfSector({
+    const level: AfSector2File = toyAfSector({
       sectors: [
         {
           id: 'a',
@@ -262,7 +271,7 @@ describe('retargetPortals', () => {
 
 describe('redirectPortals', () => {
   /** Three rooms in a row, a | mid | b, along x, each 4 m by 4 m. */
-  const row: AfSector = toyAfSector({
+  const row: AfSector2File = toyAfSector({
     sectors: [
       {
         id: 'a',
@@ -302,7 +311,7 @@ describe('redirectPortals', () => {
       },
     ],
   })
-  const redirect = (changes: Changes, from: string, to: string, level: AfSector = row) =>
+  const redirect = (changes: Changes, from: string, to: string, level: AfSector2File = row) =>
     redirectPortals(afSectorProfile, level, changes, { from, to })
 
   it('points every wall of every other sector that leads into the sector at the new one', () => {
@@ -319,7 +328,7 @@ describe('redirectPortals', () => {
   })
 
   it('does not rewrite the walls of the sector that goes, which lead into itself', () => {
-    const level: AfSector = toyAfSector({
+    const level: AfSector2File = toyAfSector({
       sectors: [
         {
           ...toyHall,
@@ -339,13 +348,13 @@ describe('redirectPortals', () => {
 
   it('changes nothing else about a sector: the walls it does not touch are the same objects', () => {
     const result = redirect(new Map(), 'mid', 'big')
-    const before = must(row.sectors[2])
+    const before = viewOf(row, 2)
     expect(must(result.get('b')).corners[0]).toBe(before.corners[0])
     expect(must(result.get('b')).corners[3]).not.toBe(before.corners[3])
   })
 
   it('reaches a wall of a hole', () => {
-    const level: AfSector = toyAfSector({
+    const level: AfSector2File = toyAfSector({
       sectors: [
         {
           id: 'plaza',
@@ -372,7 +381,7 @@ describe('redirectPortals', () => {
     const result = redirect(new Map(), 'island', 'rest', level)
     const plaza = must(result.get('plaza'))
     expect(plaza.holes?.[0]?.[0]).toEqual([4, 4, { next: 'rest' }])
-    expect(plaza.corners).toBe(must(level.sectors[0]).corners)
+    expect(plaza.corners).toBe(viewOf(level, 0).corners)
   })
 
   it('answers the working set itself when nothing leads into the sector', () => {
@@ -381,7 +390,7 @@ describe('redirectPortals', () => {
   })
 
   it('builds on the working set: a sector that an earlier change already holds is the one changed', () => {
-    const dimmer: EditSector = { ...must(row.sectors[0]), light: 0.5 }
+    const dimmer: EditSector = { ...must(afSectorProfile.sectors.list(row)[0]), light: 0.5 }
     const result = redirect(new Map([['a', dimmer]]), 'mid', 'big')
     expect(must(result.get('a')).light).toBe(0.5)
     expect(wallOf(result, 'a', 1)).toEqual({ next: 'big' })

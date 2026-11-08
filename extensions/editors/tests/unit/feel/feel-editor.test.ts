@@ -22,7 +22,6 @@ async function open(files: Record<string, string>, options: Parameters<typeof cr
     files,
     generated: (path) => path.startsWith('content/generated/'),
     classify: (path) => ({ path, editor: 'feel', gates: [], checks: [], modes: ['edit'], writable: true }),
-    changeSet: false,
   })
   const listed = (await ports.workspace.files('feel')).filter((file) => file.path.startsWith('content/feel/'))
   const session = await createFeel(options).open(listed, ports)
@@ -171,7 +170,6 @@ describe('Feel', () => {
       files: { [FEEL_PATH]: FILE },
       generated: (path) => path.startsWith('content/generated/'),
       classify: (path) => ({ path, editor: 'feel', gates: [], checks: [], modes: ['edit'], writable: true }),
-      changeSet: false,
     })
     let release: () => void = () => undefined
     const gate = new Promise<void>((resolve) => {

@@ -4,7 +4,7 @@
 // camera at (7, 3) and zoom 1, which is 32 px to a metre; pixel positions are made with `toScreen`, so no test hides a
 // unit. The grid is the view's default, half a metre.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import type { PointerKind } from '@automata/editor/kit/core'
 import { describe, expect, it, vi } from 'vitest'
 import type { PlanPointer } from '#src/features/levels-3d/plan/plan-controller.ts'
@@ -15,12 +15,12 @@ import {
 } from '#src/features/levels-3d/things/things-tool-controller.ts'
 import { type Edit, ok } from '#src/shared/edit/edit.ts'
 import { createLevelEditor, type LevelEditor } from '#src/shared/edit/level-editor.ts'
-import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
+import { afSectorProfile, afSectorProfileFor } from '#src/shared/level-session/af-sector-profile.ts'
 import type { LevelProfile } from '#src/shared/level-session/level-profile.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
 import { toyAfSector } from '#src/testing/toy-af-sector.ts'
 
-const depot: AfSector = (() => {
+const depot: AfSector2File = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
@@ -29,7 +29,7 @@ const depot: AfSector = (() => {
 const SIZE = { w: 800, h: 400 }
 const CAMERA = { x: 7, z: 3, zoom: 1 }
 
-function setup<D = AfSector>(
+function setup<D = AfSector2File>(
   level: D = depot as D,
   profile: LevelProfile<D> = afSectorProfile as unknown as LevelProfile<D>,
   options?: ThingsToolOptions,
@@ -66,6 +66,7 @@ describe('the palette', () => {
         label: 'spawn',
         shape: 'point',
         color: undefined,
+        group: 'things',
         layer: 'things:spawn',
         hidden: false,
         locked: false,
@@ -75,6 +76,7 @@ describe('the palette', () => {
         label: 'crate',
         shape: 'box',
         color: undefined,
+        group: 'things',
         layer: 'things:crate',
         hidden: false,
         locked: false,
@@ -82,8 +84,44 @@ describe('the palette', () => {
     ])
   })
 
+  describe('what the game gives', () => {
+    const library = {
+      found: true,
+      swatches: new Map(),
+      props: new Map([['crate', { kind: 'box', size: [0.7, 0.6, 0.7] }]]),
+      figures: ['wick'],
+      problems: [],
+    }
+    const game = (): ReturnType<typeof setup<AfSector2File>> =>
+      setup(
+        toyAfSector({ lamps: [{ id: 'lamp-1', kind: 'pendant', at: [1, 1, 2] }] }),
+        afSectorProfileFor(library),
+      )
+
+    it('files furniture and characters under their own names, and leaves the lamps to their own tool', () => {
+      const { tool } = game()
+      expect(tool.view.palette.map((entry) => [entry.label, entry.group])).toEqual([
+        ['Crate', 'furniture'],
+        ['Wick', 'characters'],
+      ])
+    })
+
+    it('names the new furniture the way the file does: crate-1, crate-2', () => {
+      const { tool, editor, at } = game()
+      tool.pick('prop.crate')
+      tool.tap(at(2, 2))
+      tool.tap(at(4, 2))
+      expect(editor.profile.entities(editor.level).things.map((thing) => thing.id)).toEqual([
+        'crate-1',
+        'crate-2',
+        'lamp-1',
+      ])
+      expect(editor.history.undoLabel).toBe('Add crate')
+    })
+  })
+
   it("takes a definition's label and colour when it has them", () => {
-    const labelled: AfSector = {
+    const labelled: AfSector2File = {
       ...depot,
       entityDefs: [{ id: 'lamp', label: 'Lamp', color: '#ffcc00', shape: 'point', fields: [] }],
       entities: [],
@@ -160,7 +198,7 @@ describe('picking a definition', () => {
   it('drops the definition picked when the level loses it', () => {
     const { editor, tool } = setup()
     tool.pick('crate')
-    const dropCrates: Edit<AfSector> = {
+    const dropCrates: Edit<AfSector2File> = {
       id: 'test.dropCrates',
       label: 'Drop crates',
       run: (_, level) =>
@@ -375,7 +413,7 @@ describe('placing', () => {
   it('lets a floating thing take the floor of its sector as its height', () => {
     // The dock is half a metre below the hall: a floating lamp tapped in it hangs from the dock's floor, not 0.
     const level = toyAfSector({ entityDefs: [{ id: 'lamp', shape: 'point', sit: 'free', fields: [] }] })
-    const { editor, tool, at } = setup<AfSector>(level)
+    const { editor, tool, at } = setup<AfSector2File>(level)
     tool.pick('lamp')
     tool.tap(at(11, 3))
     const lamp = editor.profile.entities(editor.level).things.find((thing) => thing.def === 'lamp')
@@ -440,7 +478,7 @@ describe('moving by drag', () => {
   })
 
   it('keeps the offset of a thing off the grid', () => {
-    const offGrid: AfSector = {
+    const offGrid: AfSector2File = {
       ...depot,
       entities: [{ def: 'crate', id: 'crate1', x: 11.2, z: 2.1, contents: 'tools' }],
     }
@@ -550,7 +588,7 @@ describe('moving by drag', () => {
   })
 
   it('keeps the height of a thing that floats', () => {
-    const lit: AfSector = {
+    const lit: AfSector2File = {
       ...depot,
       entityDefs: [{ id: 'lamp', shape: 'point', sit: 'free', fields: [] }],
       entities: [{ def: 'lamp', id: 'lamp1', x: 2, y: 2.5, z: 2 }],
@@ -563,7 +601,7 @@ describe('moving by drag', () => {
 })
 
 /** The depot with a second crate and a switch whose ref opens crate1, so crate1 cannot go while the switch is there. */
-const wired: AfSector = {
+const wired: AfSector2File = {
   ...depot,
   entityDefs: [
     ...(depot.entityDefs ?? []),

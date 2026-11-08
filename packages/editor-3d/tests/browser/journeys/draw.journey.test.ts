@@ -27,7 +27,7 @@ afterEach(stopEditor)
 describe('ED3-c with the Pencil on an iPad 11" in landscape', () => {
   it('a rectangle drawn with the Pencil against the dock’s south wall is offered a portal, and Portal adds it', async () => {
     const editor = await openDepotJourney(PRO_11)
-    chooseTool('Sector')
+    chooseTool('Room')
     await arrived()
     buttonNamed('Rectangle').click()
     await arrived()
@@ -48,7 +48,7 @@ describe('ED3-c with the Pencil on an iPad 11" in landscape', () => {
 describe('ED3-g: a palm rests on the glass while the Pencil draws', () => {
   it('is ignored: the Pencil’s three taps still draw the rectangle, and the palm moves nothing', async () => {
     const editor = await openDepotJourney(PRO_11)
-    chooseTool('Sector')
+    chooseTool('Room')
     await arrived()
     buttonNamed('Rectangle').click()
     await arrived()
@@ -70,7 +70,7 @@ describe('ED3-g: a palm rests on the glass while the Pencil draws', () => {
 describe('ED3-h: the iPad turns while a rectangle is half drawn', () => {
   it('keeps the first corner through the turn: Undo point is still on offer and takes it back', async () => {
     const editor = await openDepotJourney(PRO_11)
-    chooseTool('Sector')
+    chooseTool('Room')
     await arrived()
     buttonNamed('Rectangle').click()
     await arrived()
@@ -93,7 +93,7 @@ describe('ED3-h: the iPad turns while a rectangle is half drawn', () => {
 describe('two fingers undo and three fingers redo', () => {
   it('a two-finger tap undoes the last step; a three-finger tap redoes it', async () => {
     const editor = await openDepotJourney(PRO_11)
-    chooseTool('Sector')
+    chooseTool('Room')
     await arrived()
     buttonNamed('Rectangle').click()
     await arrived()

@@ -41,25 +41,55 @@ const PROBE = 'probe.txt'
  */
 export async function openWorkspace(env: WorkspaceEnv = {}): Promise<Workspace> {
   const exports = createDownloadStore(env.download)
-  const storage = env.storage ?? (typeof navigator === 'undefined' ? undefined : navigator.storage)
-  const getDirectory = storage?.getDirectory?.bind(storage)
-  if (getDirectory === undefined) return fallback(exports, 'This browser has no private file storage (OPFS).')
-  try {
-    const store = await createOpfsStore({ directory: 'workspace', getRoot: getDirectory })
-    const journal = await createOpfsStore({ directory: 'journal', getRoot: getDirectory })
-    const written = await journal.write(PROBE, 'probe')
-    if (!written.ok) throw new Error(written.message)
-    if ((await journal.read(PROBE)) === undefined)
-      throw new Error('A file written to private storage could not be read.')
-    await journal.remove(PROBE)
-    return { store, journal, exports, persistent: true, reason: undefined }
-  } catch (error) {
-    return fallback(exports, `Private file storage is unavailable: ${classifyStorageError(error).message}`)
-  }
+  const opened = await openPrivateStores(['workspace', 'journal'], env.storage)
+  if (!opened.persistent)
+    return {
+      store: createMemoryStore(),
+      journal: createMemoryStore(),
+      exports,
+      persistent: false,
+      reason: opened.reason,
+    }
+  const [store = createMemoryStore(), journal = createMemoryStore()] = opened.stores
+  return { store, journal, exports, persistent: true, reason: undefined }
 }
 
-function fallback(exports: DownloadStore, reason: string): Workspace {
-  return { store: createMemoryStore(), journal: createMemoryStore(), exports, persistent: false, reason }
+/** Stores in this browser's private storage, or why there are none (the caller then keeps things in memory). */
+export type PrivateStores =
+  | { readonly persistent: true; readonly stores: readonly ProjectStore[] }
+  | { readonly persistent: false; readonly stores: readonly []; readonly reason: string }
+
+/**
+ * Opens one OPFS store per directory, with `openWorkspace`'s probe (a file written, read back and removed in the last
+ * one), so a browser that has OPFS but refuses every write counts as having none. Never rejects.
+ */
+export async function openPrivateStores(
+  directories: readonly string[],
+  given?: WorkspaceEnv['storage'],
+): Promise<PrivateStores> {
+  const storage = given ?? (typeof navigator === 'undefined' ? undefined : navigator.storage)
+  const getDirectory = storage?.getDirectory?.bind(storage)
+  if (getDirectory === undefined)
+    return { persistent: false, stores: [], reason: 'This browser has no private file storage (OPFS).' }
+  try {
+    const stores: ProjectStore[] = []
+    for (const directory of directories)
+      stores.push(await createOpfsStore({ directory, getRoot: getDirectory }))
+    const last = stores.at(-1)
+    if (last === undefined) return { persistent: true, stores }
+    const written = await last.write(PROBE, 'probe')
+    if (!written.ok) throw new Error(written.message)
+    if ((await last.read(PROBE)) === undefined)
+      throw new Error('A file written to private storage could not be read.')
+    await last.remove(PROBE)
+    return { persistent: true, stores }
+  } catch (error) {
+    return {
+      persistent: false,
+      stores: [],
+      reason: `Private file storage is unavailable: ${classifyStorageError(error).message}`,
+    }
+  }
 }
 
 export interface ServedWorkspaceEnv {

@@ -2,14 +2,15 @@
 // depot: the hall (0, 0)–(8, 6), floor 0, ceiling 4, light 1, tile and brick; its wall 0 has a window, wall 1 is a portal
 // into the dock, wall 2 is solid and wall 3 has a door. The dock: floor −0.5, light 0.7. Things: the spawn and a crate.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { inspectorOf, thingRowsOf, wallRowsOf } from '#src/features/levels-3d/inspector/inspector-cards.ts'
 import { createLevelEditor } from '#src/shared/edit/level-editor.ts'
-import { afSectorProfile } from '#src/shared/level-session/af-sector-profile.ts'
+import { afSectorProfile, afSectorProfileFor } from '#src/shared/level-session/af-sector-profile.ts'
 import { loadAuthored } from '#src/testing/fixtures.ts'
+import { toyAfSector } from '#src/testing/toy-af-sector.ts'
 
-const depot: AfSector = (() => {
+const depot: AfSector2File = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
@@ -22,8 +23,24 @@ const editorWith = (...ids: string[]) => {
 }
 
 describe('inspectorOf', () => {
+  it('reads the time of day the level names', () => {
+    const editor = createLevelEditor({ profile: afSectorProfile, level: { ...depot, time: 'dusk' } })
+    expect(inspectorOf(editor)).toMatchObject({ kind: 'none', time: { value: 'dusk' } })
+  })
+
   it('says how to select when nothing is', () => {
-    expect(inspectorOf(editorWith())).toEqual({ kind: 'none', selected: 0 })
+    const card = inspectorOf(editorWith())
+    expect(card).toMatchObject({ kind: 'none', selected: 0 })
+    // With nothing selected the card is the level's: its time of day, none chosen, and the times by their words.
+    expect(card.kind === 'none' && card.time?.value).toBeUndefined()
+    expect(card.kind === 'none' && card.time?.options.map((each) => each.label)).toEqual([
+      'Day',
+      'Golden hour',
+      'Dusk',
+      'Night',
+      'Lamplight',
+      'Bar light',
+    ])
   })
 
   it('reads a sector’s card: heights, light, materials, its walls and portals', () => {
@@ -39,6 +56,9 @@ describe('inspectorOf', () => {
       ceilingTexture: undefined,
       wallTexture: 'brick',
       view: undefined,
+      pit: false,
+      trim: {},
+      views: [],
       walls: 4,
       portals: 1,
     })
@@ -67,6 +87,7 @@ describe('inspectorOf', () => {
       kind: 'thing',
       selected: 1,
       definition: 'crate',
+      definitionLabel: 'crate',
       id: 'crate1',
       x: 11,
       z: 2,
@@ -81,6 +102,25 @@ describe('inspectorOf', () => {
           options: ['supplies', 'tools', 'empty'],
         },
       ],
+    })
+  })
+
+  it('names what the game gives by its label, never by the id of its definition', () => {
+    const library = {
+      found: true,
+      swatches: new Map(),
+      props: new Map([['crate', { kind: 'box' }]]),
+      figures: [],
+      problems: [],
+    }
+    const level = toyAfSector({ props: [{ id: 'crate-1', use: 'crate', at: [2, 2], angle: 90 }] })
+    const editor = createLevelEditor({ profile: afSectorProfileFor(library), level })
+    editor.selection.set(['entity:prop.crate/crate-1'])
+    expect(inspectorOf(editor)).toMatchObject({
+      kind: 'thing',
+      definition: 'prop.crate',
+      definitionLabel: 'Crate',
+      fields: [{ id: 'angle', label: 'Turn', value: 90 }],
     })
   })
 
@@ -101,7 +141,7 @@ describe('inspectorOf', () => {
   })
 
   it('shows none for a selection that names nothing the level has', () => {
-    expect(inspectorOf(editorWith('sector:gone'))).toEqual({ kind: 'none', selected: 1 })
+    expect(inspectorOf(editorWith('sector:gone'))).toMatchObject({ kind: 'none', selected: 1 })
   })
 })
 

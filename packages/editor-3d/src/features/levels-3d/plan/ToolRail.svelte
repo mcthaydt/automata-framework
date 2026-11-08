@@ -1,10 +1,13 @@
 <!--
   The Plan view's tool rail (ED3D.6g-a; ED3D spec §9 the Split and Draw frames' tool rail, §10 the keys): one 44 px
-  button per tool, the active one pressed and each naming its key. Polygon, Rectangle, Split and Merge are the Sector
-  tool's shapes, so they all press Sector, and Sector chooses the polygon. Vertical beside the plan at `wide`, a tab bar
-  along the foot below that. A phone has no rail: the plan there is view and select only (spec §10).
+  button per tool, an icon over its name in words (Room, Corner, Doorway, Door, Window, Thing), the active one pressed and
+  each naming its key. Polygon, Rectangle, Split and Merge are the Room
+  tool's shapes, so they all press Room, and Room chooses the polygon. Vertical beside the plan at `wide`, a tab bar
+  along the foot below that. In the suite (`Levels3dTools`) the same tools lie along the top bar on every size, a phone's
+  too, and the bar scrolls sideways where its width holds too few.
 -->
 <script lang="ts">
+import { Icon, type IconName } from '@automata/editor/kit'
 import type { PlanToolId } from './plan-tools'
 
 interface Props {
@@ -20,16 +23,17 @@ type RailTool = 'select' | 'sector' | 'vertex' | 'portal' | 'door' | 'window' | 
 const TOOLS: readonly {
   readonly id: RailTool
   readonly label: string
+  readonly icon: IconName
   readonly key: string
   readonly choose: PlanToolId
 }[] = [
-  { id: 'select', label: 'Select', key: 'V', choose: 'select' },
-  { id: 'sector', label: 'Sector', key: 'S', choose: 'polygon' },
-  { id: 'vertex', label: 'Vertex', key: 'X', choose: 'vertex' },
-  { id: 'portal', label: 'Portal', key: 'P', choose: 'portal' },
-  { id: 'door', label: 'Door', key: 'D', choose: 'door' },
-  { id: 'window', label: 'Window', key: 'N', choose: 'window' },
-  { id: 'things', label: 'Things', key: 'T', choose: 'things' },
+  { id: 'select', label: 'Select', icon: 'select', key: 'V', choose: 'select' },
+  { id: 'sector', label: 'Room', icon: 'rectangle', key: 'S', choose: 'polygon' },
+  { id: 'vertex', label: 'Corner', icon: 'corner', key: 'X', choose: 'vertex' },
+  { id: 'portal', label: 'Doorway', icon: 'doorway', key: 'P', choose: 'portal' },
+  { id: 'door', label: 'Door', icon: 'door', key: 'D', choose: 'door' },
+  { id: 'window', label: 'Window', icon: 'window', key: 'N', choose: 'window' },
+  { id: 'things', label: 'Thing', icon: 'thing', key: 'T', choose: 'things' },
 ]
 
 const SECTOR_SHAPES: readonly PlanToolId[] = ['polygon', 'rectangle', 'split', 'merge']
@@ -45,7 +49,8 @@ const pressed = $derived<RailTool>(SECTOR_SHAPES.includes(active) ? 'sector' : (
       title={`${tool.label} (${tool.key})`}
       onclick={() => onchoose(tool.choose)}
     >
-      {tool.label}
+      <Icon name={tool.icon} size={18} />
+      <span>{tool.label}</span>
     </button>
   {/each}
 </div>
@@ -64,7 +69,12 @@ const pressed = $derived<RailTool>(SECTOR_SHAPES.includes(active) ? 'sector' : (
     flex-direction: row;
   }
   button {
+    display: flex;
     flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
     min-width: 44px;
     min-height: 44px;
     padding: 0 2px;
@@ -79,8 +89,10 @@ const pressed = $derived<RailTool>(SECTOR_SHAPES.includes(active) ? 'sector' : (
     white-space: nowrap;
     cursor: pointer;
   }
+  /* Along a bar each tool is as wide as its name, so "Doorway" is never clipped, and never narrower than a touch target. */
   .rail[data-orientation='horizontal'] button {
-    flex: 1 1 0;
+    flex: 0 0 auto;
+    padding: 0 var(--space-2);
   }
   button[aria-pressed='true'] {
     background: var(--color-bg-raised);

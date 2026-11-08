@@ -5,6 +5,7 @@ import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
 import type { SuiteEditor } from '@automata/editor/kit/ports'
 import { arrived, type EditorSize, REST, SIZES } from '@automata/editor/kit/testing'
 import { createSuite, type SuiteHandle, samplePorts, startSuite } from '@automata/editor/suite'
+import { chooseEditor, editorControl } from '@automata/editor/suite/testing/layout'
 import { checkLayout, publishConditions, settleLayout } from '@automata/framework/testing'
 import { writable } from 'svelte/store'
 import { afterEach, describe, expect, test } from 'vitest'
@@ -58,26 +59,18 @@ async function open(size: EditorSize) {
     suite: createSuite({ editors: [studio as SuiteEditor<unknown>] }),
   })
   await settleLayout()
-  tab('Studio').click()
+  await chooseEditor('Characters')
   await expect.poll(() => document.querySelector('[data-testid="studio-stage"]')).not.toBeNull()
   await settleLayout()
   return conditions
 }
 
-function tab(name: string): HTMLElement {
-  const found = [...document.querySelectorAll<HTMLElement>('[role="tab"]')].find(
-    (candidate) => (candidate.getAttribute('aria-label') ?? candidate.textContent?.trim()) === name,
-  )
-  if (found === undefined) throw new Error(`no ${name} tab`)
-  return found
-}
-
 const stage = (): HTMLElement =>
   document.querySelector<HTMLElement>('[data-testid="studio-stage"]') as HTMLElement
 const modeButton = (name: string): HTMLElement => {
-  const found = [...document.querySelectorAll<HTMLElement>('[aria-label="Studio mode"] [role="radio"]')].find(
-    (button) => button.textContent?.trim() === name,
-  )
+  const found = [
+    ...document.querySelectorAll<HTMLElement>('[aria-label="Character mode"] [role="radio"]'),
+  ].find((button) => button.textContent?.trim() === name)
   if (found === undefined) throw new Error(`no ${name} mode`)
   return found
 }
@@ -112,9 +105,9 @@ describe.each(SIZES)('Studio at $name ($width x $height)', (size) => {
     expect(box.height).toBeGreaterThan(size.mode === 'compact' && size.height < 500 ? 80 : 200)
     expect(box.right).toBeLessThanOrEqual(size.width + 0.5)
     expect(box.bottom).toBeLessThanOrEqual(size.height + 0.5)
-    expect(checkLayout(conditions, [tab('Studio'), ...['Look', 'Pose', 'Animate'].map(modeButton)])).toEqual(
-      [],
-    )
+    expect(
+      checkLayout(conditions, [editorControl('Characters'), ...['Look', 'Pose', 'Animate'].map(modeButton)]),
+    ).toEqual([])
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/studio-look-${size.name}.png` })
   })

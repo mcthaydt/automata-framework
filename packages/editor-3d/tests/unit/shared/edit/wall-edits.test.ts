@@ -1,7 +1,7 @@
 // The wall edits (ED3D.3 step 7): what a wall is (solid, portal, door, window), the members of a door and a window, its
 // texture and its flags. On the depot (`af-sector/1`) and on small levels that show one rule each.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File, AfWall2 } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import type { Edit } from '#src/shared/edit/edit.ts'
 import { createLevelEditor } from '#src/shared/edit/level-editor.ts'
@@ -25,20 +25,22 @@ const depot = (() => {
   return result.value
 })()
 
-const afOn = (level: AfSector, edit: Edit<AfSector>) => edit.run(afSectorProfile, level)
-const afRun = (edit: Edit<AfSector>) => afOn(depot, edit)
-const sector = (level: AfSector, id: string): EditSector =>
-  must(afSectorProfile.sectors.list(level).find((each) => each.id === id))
+const afOn = (level: AfSector2File, edit: Edit<AfSector2File>) => edit.run(afSectorProfile, level)
+const afRun = (edit: Edit<AfSector2File>) => afOn(depot, edit)
+const sector = (level: AfSector2File, id: string): AfSectorEntry2File =>
+  must(level.sectors.find((each) => each.id === id))
 /** The wall that starts at a corner, as written. */
-const wallAt = (level: AfSector, id: string, corner: number) => must(sector(level, id).corners[corner])[2]
-const openings = (level: AfSector) => must(afSectorProfile.checks(level).find((r) => r.id === 'openings'))
+const wallAt = (level: AfSector2File, id: string, corner: number) =>
+  must(sector(level, id).corners[corner])[2]
+const openings = (level: AfSector2File) =>
+  must(afSectorProfile.checks(level).find((r) => r.id === 'openings'))
 
 const DOOR = { at: 4, width: 1.2, height: 2.2 }
 const WINDOW = { at: 4, width: 1.6, y0: 1, y1: 2.6 }
 
 /** A hall and a dock beside it with a solid wall each along x = 8, so that a portal can be made between them. */
 const [hall, dock] = [must(depot.sectors[0]), must(depot.sectors[1])]
-const walled = (reverse: EditWall = {}): AfSector =>
+const walled = (reverse: AfWall2 = {}): AfSector2File =>
   toyAfSector({
     sectors: [
       { ...hall, corners: hall.corners.map((corner, i) => (i === 1 ? ([8, 0] as const) : corner)) },
@@ -47,7 +49,7 @@ const walled = (reverse: EditWall = {}): AfSector =>
         corners: dock.corners.map((corner, i) => (i === 3 ? ([8, 6, reverse] as const) : corner)),
       },
     ],
-  } as Partial<AfSector>)
+  } as Partial<AfSector2File>)
 
 /** One room, 3 m by 1 m and 2 m high, so that the defaults for a short wall in a low room show. */
 const closet = toyAfSector({
@@ -134,7 +136,7 @@ describe('wall.setKind: door and window', () => {
           ],
         },
       ],
-    } as Partial<AfSector>)
+    } as Partial<AfSector2File>)
     expect(levelOf(afOn(level, setWallKind({ sector: 'hall', corner: 0, kind: 'door' })))).toBe(level)
     expect(levelOf(afOn(level, setWallKind({ sector: 'hall', corner: 1, kind: 'window' })))).toBe(level)
   })
@@ -170,13 +172,13 @@ describe('wall.setKind: door and window', () => {
         {
           ...hall,
           corners: hall.corners.map((c, i) =>
-            i === 2 ? ([8, 6, { texture: 'brick', handrail: 1, window: WINDOW }] as const) : c,
+            i === 2 ? ([8, 6, { surface: 'brick', handrail: 1, window: WINDOW }] as const) : c,
           ),
         },
       ],
-    } as Partial<AfSector>)
+    } as Partial<AfSector2File>)
     const turned = levelOf(afOn(textured, setWallKind({ sector: 'hall', corner: 2, kind: 'door' })))
-    expect(wallAt(turned, 'hall', 2)).toEqual({ texture: 'brick', handrail: 1, door: DOOR })
+    expect(wallAt(turned, 'hall', 2)).toEqual({ surface: 'brick', handrail: 1, door: DOOR })
   })
 
   it('takes a portal off the wall that becomes a door, on this side only, so `openings` names the other (ED3-e)', () => {
@@ -219,7 +221,7 @@ describe('wall.setKind: solid', () => {
                   0,
                   {
                     next: 'dock',
-                    texture: 'brick',
+                    surface: 'brick',
                     frame: true,
                     mask: 'glass',
                     block: true,
@@ -232,9 +234,9 @@ describe('wall.setKind: solid', () => {
           ),
         },
       ],
-    } as Partial<AfSector>)
+    } as Partial<AfSector2File>)
     const solid = levelOf(afOn(busy, setWallKind({ sector: 'hall', corner: 1, kind: 'solid' })))
-    expect(wallAt(solid, 'hall', 1)).toEqual({ texture: 'brick', handrail: 1 })
+    expect(wallAt(solid, 'hall', 1)).toEqual({ surface: 'brick', handrail: 1 })
   })
 
   it('changes nothing for a wall that is solid already', () => {
@@ -244,10 +246,10 @@ describe('wall.setKind: solid', () => {
 
 describe('wall.setKind: portal', () => {
   it('sets the portal on both sides in one step, taking a door or a window off the reverse', () => {
-    const level = walled({ texture: 'plank', window: WINDOW })
+    const level = walled({ surface: 'plank', window: WINDOW })
     const next = levelOf(afOn(level, setWallKind({ sector: 'hall', corner: 1, kind: 'portal', to: 'dock' })))
     expect(sector(next, 'hall').corners[1]).toEqual([8, 0, { next: 'dock' }])
-    expect(sector(next, 'dock').corners[3]).toEqual([8, 6, { texture: 'plank', next: 'hall' }])
+    expect(sector(next, 'dock').corners[3]).toEqual([8, 6, { surface: 'plank', next: 'hall' }])
     expect(openings(next).ok).toBe(true)
     const editor = createLevelEditor({ profile: afSectorProfile, level })
     editor.run(setWallKind({ sector: 'hall', corner: 1, kind: 'portal', to: 'dock' }))
@@ -314,14 +316,14 @@ describe('wall.setKind: portal', () => {
         {
           ...hall,
           corners: hall.corners.map((c, i) =>
-            i === 1 ? ([8, 0, { texture: 'brick', door: DOOR }] as const) : c,
+            i === 1 ? ([8, 0, { surface: 'brick', door: DOOR }] as const) : c,
           ),
         },
         { ...dock, corners: dock.corners.map((c, i) => (i === 3 ? ([8, 6] as const) : c)) },
       ],
-    } as Partial<AfSector>)
+    } as Partial<AfSector2File>)
     const next = levelOf(afOn(level, setWallKind({ sector: 'hall', corner: 1, kind: 'portal', to: 'dock' })))
-    expect(wallAt(next, 'hall', 1)).toEqual({ texture: 'brick', next: 'dock' })
+    expect(wallAt(next, 'hall', 1)).toEqual({ surface: 'brick', next: 'dock' })
     expect(wallAt(next, 'dock', 3)).toEqual({ next: 'hall' })
   })
 
@@ -358,7 +360,7 @@ describe('wall.setKind: portal', () => {
           ],
         },
       ],
-    } as Partial<AfSector>)
+    } as Partial<AfSector2File>)
     const next = levelOf(afOn(level, setWallKind({ sector: 'hall', corner: 1, kind: 'portal', to: 'dock' })))
     expect(wallAt(next, 'dock', 0)).toEqual({ next: 'hall' })
   })
@@ -427,7 +429,7 @@ describe('wall edits: what they all refuse and how they are named', () => {
 describe('wall.setDoor', () => {
   const door = (more: Partial<Parameters<typeof setDoor>[0]>) =>
     afRun(setDoor({ sector: 'hall', corner: 3, ...more }))
-  const doorOf = (level: AfSector) => must(wallAt(level, 'hall', 3) as EditWall).door
+  const doorOf = (level: AfSector2File) => must(wallAt(level, 'hall', 3) as EditWall).door
 
   it('merges the members it is given into the door, to four decimals', () => {
     expect(doorOf(levelOf(door({ at: 2 })))).toEqual({ at: 2, width: 1.2, height: 2.2 })
@@ -460,15 +462,15 @@ describe('wall.setDoor', () => {
           ...hall,
           corners: hall.corners.map((c, i) =>
             i === 3
-              ? ([0, 6, { texture: 'brick', door: { at: 3, width: 1.2, height: 2.2, swing: 'in' } }] as const)
+              ? ([0, 6, { surface: 'brick', door: { at: 3, width: 1.2, height: 2.2, swing: 'in' } }] as const)
               : c,
           ),
         },
       ],
-    } as Partial<AfSector>)
+    } as Partial<AfSector2File>)
     const next = levelOf(afOn(level, setDoor({ sector: 'hall', corner: 3, at: 2 })))
     expect(wallAt(next, 'hall', 3)).toEqual({
-      texture: 'brick',
+      surface: 'brick',
       door: { at: 2, width: 1.2, height: 2.2, swing: 'in' },
     })
   })
@@ -527,7 +529,7 @@ describe('wall.setDoor', () => {
 describe('wall.setWindow', () => {
   const window = (more: Partial<Parameters<typeof setWindow>[0]>) =>
     afRun(setWindow({ sector: 'hall', corner: 0, ...more }))
-  const windowOf = (level: AfSector) => must(wallAt(level, 'hall', 0) as EditWall).window
+  const windowOf = (level: AfSector2File) => must(wallAt(level, 'hall', 0) as EditWall).window
 
   it('merges the members it is given into the window, to four decimals', () => {
     expect(windowOf(levelOf(window({ at: 3 })))).toEqual({ ...WINDOW, at: 3 })
@@ -584,9 +586,9 @@ describe('wall.setWindow', () => {
 describe('wall.setMaterial', () => {
   it('sets the texture of a wall and clears it, dropping the wall when nothing else is left', () => {
     const set = levelOf(afRun(setWallMaterial({ sector: 'hall', corner: 2, texture: 'brick' })))
-    expect(sector(set, 'hall').corners[2]).toEqual([8, 6, { texture: 'brick' }])
+    expect(sector(set, 'hall').corners[2]).toEqual([8, 6, { surface: 'brick' }])
     const swapped = levelOf(afOn(set, setWallMaterial({ sector: 'hall', corner: 2, texture: 'tile' })))
-    expect(wallAt(swapped, 'hall', 2)).toEqual({ texture: 'tile' })
+    expect(wallAt(swapped, 'hall', 2)).toEqual({ surface: 'tile' })
     const cleared = levelOf(afOn(set, setWallMaterial({ sector: 'hall', corner: 2, texture: null })))
     expect(cleared).toEqual(depot)
     expect(must(sector(cleared, 'hall').corners[2])).toHaveLength(2)
@@ -594,7 +596,7 @@ describe('wall.setMaterial', () => {
 
   it('keeps what else is on the wall, on a portal too', () => {
     const next = levelOf(afRun(setWallMaterial({ sector: 'hall', corner: 1, texture: 'brick' })))
-    expect(wallAt(next, 'hall', 1)).toEqual({ next: 'dock', texture: 'brick' })
+    expect(wallAt(next, 'hall', 1)).toEqual({ next: 'dock', surface: 'brick' })
     const back = levelOf(afOn(next, setWallMaterial({ sector: 'hall', corner: 1, texture: null })))
     expect(back).toEqual(depot)
   })

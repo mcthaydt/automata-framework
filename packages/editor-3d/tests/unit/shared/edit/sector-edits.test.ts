@@ -1,6 +1,6 @@
 // The sector edits (ED3D.3 step 5): add, remove, duplicate and the property edits, on the depot (`af-sector/1`).
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import type { Edit, EditResult } from '#src/shared/edit/edit.ts'
 import {
@@ -11,6 +11,8 @@ import {
   setHeights,
   setLight,
   setMaterials,
+  setPit,
+  setTrim,
   setView,
 } from '#src/shared/edit/sector-edits.ts'
 import { afSectorCodec } from '#src/shared/level-session/af-sector/af-codec.ts'
@@ -33,10 +35,11 @@ const depot = (() => {
 function run<D>(profile: LevelProfile<D>, level: D, edit: Edit<D>): EditResult<D> {
   return edit.run(profile, level)
 }
-const afRun = (edit: Edit<AfSector>) => run(afSectorProfile, depot, edit)
-const sectorsOf = (level: AfSector): readonly EditSector[] => afSectorProfile.sectors.list(level)
-const sector = (level: AfSector, id: string): EditSector =>
-  must(sectorsOf(level).find((each) => each.id === id))
+const afRun = (edit: Edit<AfSector2File>) => run(afSectorProfile, depot, edit)
+const sectorsOf = (level: AfSector2File): readonly EditSector[] => afSectorProfile.sectors.list(level)
+/** The room as the file wrote it, which is what these edits are judged by. */
+const sector = (level: AfSector2File, id: string): AfSectorEntry2File =>
+  must(level.sectors.find((each) => each.id === id))
 
 describe('sector.add on an af-sector level', () => {
   it('appends a sector with the heights of the last one, and selects it', () => {
@@ -297,7 +300,7 @@ describe('sector.remove', () => {
     const odd = toyAfSector({
       sectors: [{ id: 'a:b', floor: 0, ceiling: 3, light: 1, corners: [...rect(0, 0, 4, 4)] }],
       entities: [{ def: 'spawn', id: 'spawn', x: 1, z: 1, facing: 0 }],
-    } as Partial<AfSector>)
+    } as Partial<AfSector2File>)
     expect(run(afSectorProfile, odd, removeSector({ id: 'a:b' }))).toEqual({
       ok: false,
       reason: 'sector a:b is still referenced: entity spawn stands in it',
@@ -362,17 +365,17 @@ describe('sector.remove', () => {
 })
 
 describe('sector.remove of several sectors', () => {
-  const yard: AfSector['sectors'][number] = {
+  const yard: AfSector2File['sectors'][number] = {
     id: 'yard',
     floor: 0,
     ceiling: 4,
     light: 1,
     corners: rect(14, 0, 18, 6),
   }
-  const idsOf = (level: AfSector): string[] => sectorsOf(level).map((each) => each.id)
+  const idsOf = (level: AfSector2File): string[] => sectorsOf(level).map((each) => each.id)
   // The toy's hall and dock lead into each other; the yard stands alone beside them.
   const toy = toyAfSector({ sectors: [...toyAfSector().sectors, yard] })
-  const toyRun = (edit: Edit<AfSector>) => run(afSectorProfile, toy, edit)
+  const toyRun = (edit: Edit<AfSector2File>) => run(afSectorProfile, toy, edit)
 
   it('removes sectors that lead into each other together, which one by one it would refuse', () => {
     expect(reasonOf(toyRun(removeSector({ id: 'hall' })))).toBe(
@@ -410,7 +413,7 @@ describe('sector.remove of several sectors', () => {
   })
 
   it('counts a sector once however often it is named, and does nothing for none', () => {
-    const edit = removeSectors<AfSector>({ ids: ['yard', 'yard'] })
+    const edit = removeSectors<AfSector2File>({ ids: ['yard', 'yard'] })
     expect(edit.label).toBe('Remove sector yard')
     expect(idsOf(levelOf(toyRun(edit)))).toEqual(['hall', 'dock'])
     expect(levelOf(toyRun(removeSectors({ ids: [] })))).toBe(toy)
@@ -432,7 +435,7 @@ describe('sector.remove of several sectors', () => {
         },
       },
     })
-    const both = removeSectors<AfSector>({ ids: ['hall', 'dock'] })
+    const both = removeSectors<AfSector2File>({ ids: ['hall', 'dock'] })
     expect(run(failing(new SectorAccessError('no room for that')), toy, both)).toEqual({
       ok: false,
       reason: 'no room for that',
@@ -496,7 +499,7 @@ describe('sector.duplicate', () => {
       light: 1,
       corners: [
         [0, 0],
-        [9, 0, { texture: 'brick', door: { at: 4, width: 1, height: 2, id: 'ringDoor' } }],
+        [9, 0, { surface: 'brick', door: { at: 4, width: 1, height: 2, id: 'ringDoor' } }],
         [9, 9],
         [0, 9, { next: 'elsewhere' }],
       ],
@@ -507,7 +510,7 @@ describe('sector.duplicate', () => {
         {
           ...ring,
           corners: ring.corners.map((c, i) => (i === 3 ? ([c[0], c[1]] as const) : c)),
-        } as AfSector['sectors'][number],
+        } as AfSector2File['sectors'][number],
       ],
     })
     const copy = sector(
@@ -516,7 +519,7 @@ describe('sector.duplicate', () => {
     )
     expect(copy.corners).toEqual([
       [20, 1],
-      [29, 1, { texture: 'brick', door: { at: 4, width: 1, height: 2 } }],
+      [29, 1, { surface: 'brick', door: { at: 4, width: 1, height: 2 } }],
       [29, 10],
       [20, 10],
     ])
@@ -542,19 +545,19 @@ describe('sector.duplicate', () => {
                     block: true,
                     maskTop: 2,
                     hatch: [1, 2],
-                    texture: 'plank',
+                    surface: 'plank',
                   },
                 ] as const)
               : corner,
           ),
         },
       ],
-    } as Partial<AfSector>)
+    } as Partial<AfSector2File>)
     const copy = sector(
       levelOf(run(afSectorProfile, framed, duplicateSector({ id: 'dock', offset: { x: 6, z: 0 } }))),
       'dock2',
     )
-    expect(copy.corners[3]).toEqual([14, 6, { texture: 'plank' }])
+    expect(copy.corners[3]).toEqual([14, 6, { surface: 'plank' }])
     const solid = toyAfSector({
       sectors: [
         {
@@ -564,7 +567,7 @@ describe('sector.duplicate', () => {
           ),
         },
       ],
-    } as Partial<AfSector>)
+    } as Partial<AfSector2File>)
     const kept = sector(
       levelOf(run(afSectorProfile, solid, duplicateSector({ id: 'hall', offset: { x: 20, z: 0 } }))),
       'hall2',
@@ -720,9 +723,86 @@ describe('sector.setView (ED3D.4b)', () => {
     const edit = setView({ id: 'hall', view: 'hall-view' })
     expect([edit.id, edit.label, edit.coalesce]).toEqual([
       'sector.setView',
-      'Set the view of hall',
+      'Set the camera of hall',
       'view:hall',
     ])
+  })
+})
+
+describe('sector.setPit', () => {
+  const pit = (id: string, on: boolean, level = depot) => run(afSectorProfile, level, setPit({ id, pit: on }))
+
+  it('makes a room a pit, and taking it back leaves the file as it was', () => {
+    const made = levelOf(pit('hall', true))
+    expect(sector(made, 'hall').pit).toBe(true)
+    const undone = levelOf(pit('hall', false, made))
+    expect(undone).toEqual(depot)
+    expect('pit' in sector(undone, 'hall')).toBe(false)
+  })
+
+  it('changes nothing for a room that already is, or is not, a pit', () => {
+    const made = levelOf(pit('hall', true))
+    expect(levelOf(pit('hall', true, made))).toBe(made)
+    expect(levelOf(pit('hall', false))).toBe(depot)
+  })
+
+  it('writes only the room’s `pit` member, and Undo puts the text back byte for byte', () => {
+    const made = levelOf(pit('hall', true))
+    const text = afSectorCodec.patch(depotText, depot, made)
+    if (!text.ok) throw new Error(text.detail)
+    const back = afSectorCodec.patch(text.text, made, depot)
+    expect(back.ok && back.text).toBe(depotText)
+  })
+
+  it('is called sector.setPit, says what it does in words, and refuses a room that is not there', () => {
+    const edit = setPit({ id: 'hall', pit: true })
+    expect([edit.id, edit.label]).toEqual(['sector.setPit', 'Make hall a pit'])
+    expect(setPit({ id: 'hall', pit: false }).label).toBe('Make hall not a pit')
+    expect(reasonOf(pit('nowhere', true))).toBe('no sector nowhere')
+  })
+})
+
+describe('sector.setTrim', () => {
+  const trim = (args: Parameters<typeof setTrim>[0], level = depot) =>
+    run(afSectorProfile, level, setTrim(args))
+
+  it('writes the pieces one by one, and clearing them all takes the member off', () => {
+    const skirted = levelOf(trim({ id: 'hall', skirting: 0.1 }))
+    expect(sector(skirted, 'hall').trim).toEqual({ skirting: 0.1 })
+    const both = levelOf(trim({ id: 'hall', rail: 0.9 }, skirted))
+    expect(sector(both, 'hall').trim).toEqual({ skirting: 0.1, rail: 0.9 })
+    const cleared = levelOf(trim({ id: 'hall', skirting: null, rail: null }, both))
+    expect('trim' in sector(cleared, 'hall')).toBe(false)
+    expect(cleared).toEqual(depot)
+  })
+
+  it('keeps a piece it was not asked about, as written', () => {
+    const level = toyAfSector({
+      sectors: [{ ...must(depot.sectors[0]), trim: { skirting: 0.2, wainscot: 1, capital: 0.3 } }],
+    })
+    const made = levelOf(trim({ id: must(level.sectors[0]).id, wainscot: 1.2 }, level))
+    expect(must(made.sectors[0]).trim).toEqual({ skirting: 0.2, wainscot: 1.2, capital: 0.3 })
+  })
+
+  it('changes nothing for what is already so', () => {
+    const skirted = levelOf(trim({ id: 'hall', skirting: 0.1 }))
+    expect(levelOf(trim({ id: 'hall', skirting: 0.1 }, skirted))).toBe(skirted)
+    expect(levelOf(trim({ id: 'hall', rail: null }))).toBe(depot)
+  })
+
+  it('writes only the room’s `trim` member, and Undo puts the text back byte for byte', () => {
+    const made = levelOf(trim({ id: 'hall', wainscot: 1 }))
+    const text = afSectorCodec.patch(depotText, depot, made)
+    if (!text.ok) throw new Error(text.detail)
+    const back = afSectorCodec.patch(text.text, made, depot)
+    expect(back.ok && back.text).toBe(depotText)
+  })
+
+  it('says what it does in words, and refuses a height below nothing, or above the room, or a room that is not there', () => {
+    expect(setTrim({ id: 'hall', skirting: 0.1 }).label).toBe('Change the trim of hall')
+    expect(reasonOf(trim({ id: 'hall', skirting: -1 }))).toBe('the skirting is below the floor')
+    expect(reasonOf(trim({ id: 'hall', rail: 9 }))).toBe('the rail is higher than the room (4 m)')
+    expect(reasonOf(trim({ id: 'nowhere', rail: 1 }))).toBe('no sector nowhere')
   })
 })
 
@@ -735,8 +815,8 @@ describe('sector.setMaterials', () => {
         corners: must(depot.sectors[0]).corners.map((corner, i) => (i === 1 ? ([8, 0] as const) : corner)),
       },
     ],
-  } as Partial<AfSector>)
-  const hallOf = (level: AfSector) => sector(level, 'hall')
+  } as Partial<AfSector2File>)
+  const hallOf = (level: AfSector2File) => sector(level, 'hall')
 
   it('sets a texture and a style, and clears one with null', () => {
     const set = levelOf(

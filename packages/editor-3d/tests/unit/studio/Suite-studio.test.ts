@@ -2,7 +2,7 @@
 import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
 import type { SuiteEditor } from '@automata/editor/kit/ports'
 import { createSuite, type SuiteHandle, samplePorts, startSuite } from '@automata/editor/suite'
-import { screen, within } from '@testing-library/svelte'
+import { screen } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { writable } from 'svelte/store'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -79,13 +79,10 @@ describe('the Studio in the suite', () => {
       ports,
       suite: createSuite({ editors: [studio as SuiteEditor<unknown>] }),
     })
-    await userEvent.click(await screen.findByRole('tab', { name: 'Studio' }))
+    await userEvent.click(await screen.findByRole('tab', { name: 'Characters' }))
     const slider = await screen.findByRole('slider', { name: /Height/ })
     slider.focus()
     await userEvent.keyboard('{ArrowRight}')
-    const dialog = await screen.findByRole('dialog', { name: 'Name this change' })
-    await userEvent.type(within(dialog).getByRole('textbox', { name: 'Title' }), 'Taller')
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Start' }))
 
     const undo = await screen.findByRole('button', { name: /^Undo Set height of wick$/ })
     const edited = (await ports.workspace.read(WICK))?.text

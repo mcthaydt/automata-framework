@@ -1,6 +1,6 @@
 // The sectors of an `af-sector/1` level as the editor's edits see them (ED3D.3 step 3).
 
-import type { AfSector, AfSectorEntry } from '@automata/3d/level'
+import type { AfSector2File, AfSectorEntry2File } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import { afSectorCodec } from '#src/shared/level-session/af-sector/af-codec.ts'
 import { afSectorAccess } from '#src/shared/level-session/af-sector/af-sectors.ts'
@@ -16,15 +16,18 @@ const depot = (() => {
   if (!result.ok) throw new Error('the depot does not parse')
   return result.value
 })()
-const hall = must(depot.sectors[0])
-const dock = must(depot.sectors[1])
+// The file's own rooms, and the views the edits see of them.
+const rawHall = must(depot.sectors[0])
+const rawDock = must(depot.sectors[1])
+const [hall, dock] = [must(afSectorAccess.list(depot)[0]), must(afSectorAccess.list(depot)[1])]
 
 describe('the af-sector access: list and withSectors', () => {
-  it("lists the sectors in file order, as the level's own objects", () => {
+  it('lists the rooms in file order, the same view each time, with the heights as numbers', () => {
     const listed = afSectorAccess.list(depot)
     expect(listed).toHaveLength(2)
     expect(listed[0]).toBe(hall)
     expect(listed[1]).toBe(dock)
+    expect(hall).toMatchObject({ id: 'hall', floor: 0, ceiling: 4 })
   })
 
   it('hands the level itself back when the sectors are its own, unchanged', () => {
@@ -32,11 +35,11 @@ describe('the af-sector access: list and withSectors', () => {
   })
 
   it('keeps every other member of the level, and the sectors that did not change as the same objects', () => {
-    const level: AfSector = { ...depot, editorState: { zoom: 2 } } as AfSector
+    const level: AfSector2File = { ...depot, editorState: { zoom: 2 } } as AfSector2File
     const dimmer: EditSector = { ...hall, light: 0.8 }
     const after = afSectorAccess.withSectors(level, [dimmer, dock])
-    expect(after).toEqual({ ...level, sectors: [{ ...hall, light: 0.8 }, dock] })
-    expect(after.sectors[1]).toBe(dock)
+    expect(after).toEqual({ ...level, sectors: [{ ...rawHall, light: 0.8 }, rawDock] })
+    expect(after.sectors[1]).toBe(rawDock)
     expect(after.entities).toBe(level.entities)
     expect(after).toHaveProperty('editorState', { zoom: 2 })
   })
@@ -53,8 +56,8 @@ describe('the af-sector access: list and withSectors', () => {
         [24, 4],
       ],
     }
-    expect(afSectorAccess.withSectors(depot, [dock]).sectors).toEqual([dock])
-    expect(afSectorAccess.withSectors(depot, [hall]).sectors).toEqual([hall])
+    expect(afSectorAccess.withSectors(depot, [dock]).sectors).toEqual([rawDock])
+    expect(afSectorAccess.withSectors(depot, [hall]).sectors).toEqual([rawHall])
     expect(afSectorAccess.withSectors(depot, [dock, hall, yard]).sectors.map((s) => s.id)).toEqual([
       'dock',
       'hall',
@@ -79,7 +82,7 @@ describe('the af-sector access: list and withSectors', () => {
     const corners = must(after.sectors[0]).corners
     expect(corners[2]).toEqual([8.5, 6])
     expect(corners[2]).toHaveLength(2)
-    expect(corners[0]?.[2]).toBe(must(hall.corners[0])[2])
+    expect(corners[0]?.[2]).toBe(must(rawHall.corners[0])[2])
   })
 
   it('keeps the holes of a sector, and refuses a wall written as a name, in the outline or in a hole', () => {
@@ -219,7 +222,7 @@ describe('the af-sector access: references', () => {
   })
 
   it('has nothing for a sector nobody names and nothing stands in, and for one that is not there', () => {
-    const yard: AfSectorEntry = {
+    const yard: AfSectorEntry2File = {
       id: 'yard',
       floor: 0,
       ceiling: 3,
@@ -236,7 +239,7 @@ describe('the af-sector access: references', () => {
   })
 
   it("does not count a sector's own portals, and finds one in a hole", () => {
-    const a: AfSectorEntry = {
+    const a: AfSectorEntry2File = {
       id: 'a',
       floor: 0,
       ceiling: 3,
@@ -256,7 +259,7 @@ describe('the af-sector access: references', () => {
         ],
       ],
     }
-    const b: AfSectorEntry = {
+    const b: AfSectorEntry2File = {
       id: 'b',
       floor: 0,
       ceiling: 3,
@@ -273,7 +276,7 @@ describe('the af-sector access: references', () => {
   })
 
   it('leaves out an entity inside a hole of the sector', () => {
-    const ring: AfSectorEntry = {
+    const ring: AfSectorEntry2File = {
       id: 'ring',
       floor: 0,
       ceiling: 3,

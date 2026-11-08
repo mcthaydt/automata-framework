@@ -23,7 +23,6 @@ async function open(nav = true) {
       modes: ['edit'],
       writable: true,
     }),
-    changeSet: false,
   })
   const session = await createSchematic().open(await ports.workspace.files('schematic'), ports)
   session.chosen = { kind: 'places' }

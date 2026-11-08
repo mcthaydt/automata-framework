@@ -53,12 +53,12 @@ export function tuningOf(content: unknown): Tuning {
   {
     path: 'src/app/game.ts',
     content: (options) => `import { content } from 'virtual:automata/content'
-import { createPixi3dRenderer, DEFAULT_LOOK, render3dExtension, targetSize } from '@automata/3d'
+import { createPixi3dRenderer, DEFAULT_LOOK, levelTime, render3dExtension, targetSize } from '@automata/3d'
 import { CameraTurn, STICK_MAX } from '@automata/3d/sim'
 import { defaultContent, defineGame, inputs, keys } from '@automata/framework'
 import { cameraTurnUnits, labelled, moveFromStick } from './controls.ts'
 import { drawRoom, worldLibraryOf } from '../features/room/room.view.ts'
-import { roomIn } from '../features/room/room.ts'
+import { ROOM_LEVEL, roomIn } from '../features/room/room.ts'
 import type { PlayContent } from '../features/room/read-room.ts'
 import { Move } from '../features/wick/move.command.ts'
 import { spawnWick, wickPlugin } from '../features/wick/wick.plugin.ts'
@@ -118,6 +118,9 @@ export const game = defineGame({
     createPixi3dRenderer({
       ...options,
       look: DEFAULT_LOOK,
+      // The time of day the room's file names (the editor's Time of day picker writes it). The colours below are the
+      // day's; the renderer lights them, and the fog, by this time.
+      time: levelTime(ROOM_LEVEL.time),
       views: { [Wick.id]: wickView(content, TUNING) },
       camera: { views: [FOLLOW], initial: FOLLOW.id, follow: Wick.id },
       scene: (view, _stage, occluders) => {

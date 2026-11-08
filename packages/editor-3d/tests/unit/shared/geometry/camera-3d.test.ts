@@ -2,7 +2,7 @@
 // walk start. Axes are the plan's: x east, z south, y up. A heading (`yaw`) is a compass bearing in radians, 0 looking
 // north (-z) and a quarter turn looking east (+x); `pitch` is the angle the camera looks above the horizon.
 
-import type { AfSector } from '@automata/3d/level'
+import type { AfSector2File } from '@automata/3d/level'
 import { insideSector } from '@automata/3d/level'
 import { describe, expect, it } from 'vitest'
 import {
@@ -295,6 +295,28 @@ describe('fitOrbit', () => {
       expect(reach(box, SIZE, 24)).toBeCloseTo(1, 9)
   })
 
+  it('frames the box inside the part of the canvas that is left, centred in it', () => {
+    const size = { w: 570, h: 1049 }
+    // A card over the bottom right of the canvas leaves the strip above it.
+    const usable = { x: 0, y: 0, w: 570, h: 600 }
+    const orbit = fitOrbit(hall, size, { usable })
+    const view = orbitCamera(orbit)
+    const middle = projectPoint(view, size, [7, 1.75, 3])
+    expect(middle?.x).toBeCloseTo(usable.x + usable.w / 2, 0)
+    expect(middle?.y).toBeCloseTo(usable.y + usable.h / 2, 0)
+    for (const corner of corners(hall)) {
+      const hit = projectPoint(view, size, corner)
+      expect(hit?.y as number).toBeLessThan(usable.y + usable.h)
+      expect(hit?.x as number).toBeGreaterThan(usable.x)
+      expect(hit?.x as number).toBeLessThan(usable.x + usable.w)
+    }
+  })
+
+  it('frames the whole canvas when no part is named, as it did', () => {
+    const size = { w: 570, h: 1049 }
+    expect(fitOrbit(hall, size, { usable: { x: 0, y: 0, w: 570, h: 1049 } })).toEqual(fitOrbit(hall, size))
+  })
+
   it('stands further off for a bigger box, and for a bigger padding', () => {
     const small: Box3 = { min: [0, 0, 0], max: [4, 3, 4] }
     const big: Box3 = { min: [0, 0, 0], max: [40, 30, 40] }
@@ -354,7 +376,7 @@ describe('walkCamera', () => {
 })
 
 describe('walkStart', () => {
-  const layersOf = (level: AfSector): readonly GeometryLayer[] => afSectorProfile.geometry(level).layers
+  const layersOf = (level: AfSector2File): readonly GeometryLayer[] => afSectorProfile.geometry(level).layers
 
   it('starts at the spawn, facing as it faces, at eye height over the floor it stands on', () => {
     const start = walkStart(layersOf(toyAfSector()), { x: 3, z: 2, facing: 0 })
@@ -440,7 +462,7 @@ describe('walkStart', () => {
     ])
     // Each is the middle of the biggest triangle of the floor: the long arm of the bend, the left strip of the ring, the
     // left arm of the U.
-    const expected: [AfSector, number[]][] = [
+    const expected: [AfSector2File, number[]][] = [
       [crook, [20 / 3, 1.6, 2 / 3]],
       [ring, [2 / 3, 1.6, 10 / 3]],
       [u, [1, 1.6, 4]],

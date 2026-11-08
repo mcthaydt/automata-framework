@@ -16,7 +16,7 @@ const viewState = controller.view.state
 const refusal = controller.refusal
 </script>
 
-<section class="inspector" aria-label="Studio fields" data-testid="studio-inspector">
+<section class="inspector" aria-label="Character fields" data-testid="studio-inspector">
   {#if $viewState.mode === 'look'}
     <LookFields {controller} />
   {:else if $viewState.mode === 'pose'}

@@ -30,6 +30,12 @@ export interface Surface {
    * floor never goes, a ceiling is cut away like the near walls.
    */
   readonly occlude: Occlude
+  /**
+   * The swatch that covers it, by the name the level writes (a wall's own, or its room's; the floor's and the ceiling's).
+   * The views look the name up in the game's library to draw it in the game's colour; nothing for a door panel, or a
+   * surface the level says nothing about.
+   */
+  readonly texture?: string | undefined
   /** 0 to 1: how bright the surface is drawn, from its light and the way it faces. */
   readonly shade: number
   /** `x, y, z` for each point. */
@@ -73,6 +79,10 @@ export function faceShade(normal: Vec3, light: number): number {
   const face = UNLIT_FACE + (1 - UNLIT_FACE) * clamp(toward, 0, 1)
   return face * (DARKEST_SECTOR + (1 - DARKEST_SECTOR) * clamp(light, 0, 1))
 }
+
+/** `{ texture }`, or nothing for a surface with none: an absent member is no member. */
+const textured = (texture: string | undefined): { readonly texture?: string } =>
+  texture === undefined ? {} : { texture }
 
 /** A rectangle of a wall: metres along it from its start, and heights. */
 type Rect = readonly [s0: number, s1: number, y0: number, y1: number]
@@ -171,6 +181,7 @@ function wallSurface(role: SurfaceRole, edge: Edge, rects: readonly Rect[], sele
     selection: select.edge(edge),
     normal,
     occlude: occludeOf(edge),
+    ...textured(role === 'door' ? undefined : (edge.wall.texture ?? edge.sector.wallTexture)),
     shade: faceShade(normal, edge.sector.light),
     positions,
     indices,
@@ -212,6 +223,7 @@ function flatSurfaces(sector: Sector, select: SelectionOf): Surface[] {
     selection,
     normal,
     occlude: role === 'floor' ? 'never' : 'cut',
+    ...textured(role === 'floor' ? sector.floorTexture : sector.ceilingTexture),
     shade: faceShade(normal, sector.light),
     positions: points.flatMap((p) => [p.x, y, p.z]),
     indices,

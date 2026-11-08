@@ -1,10 +1,9 @@
 <!--
   The middle of the suite's top bar, between Home and the sheet toggles: the game's name, where edits are saved, the
-  pills, then Undo, Redo, Ask, Play, Publish and the open editor's own tools. The pills and the tools scroll sideways when
-  the bar is short of room. Only what has something to say is shown: no history hides Undo and Redo, no Ask hides
-  Ask, nothing to publish hides Publish (12.7 Step G). Split out of `Suite.svelte` (12.7). Drawn as the document's
-  bar is: the name in the title's weight, the saved note a quiet status with a tick, Undo and Redo icon buttons named
-  with the step they take, and Publish the one lime button.
+  pills, then Undo, Redo and the open editor's own tools. The pills and the tools scroll sideways when the bar is short
+  of room. Only what has something to say is shown: no history hides Undo and Redo (12.7 Step G). Split out of
+  `Suite.svelte` (12.7). Drawn as the document's bar is: the name in the title's weight, the saved note a quiet status
+  with a tick, and Undo and Redo icon buttons named with the step they take.
 -->
 <script lang="ts">
 import type { Snippet } from 'svelte'
@@ -16,7 +15,7 @@ import type { Pill } from '../core/pills-model'
 import SuitePills from './SuitePills.svelte'
 
 interface Props {
-  /** The game's name; `undefined` hides it (a phone, where Home and the tools need the room). */
+  /** The game's name, on a phone too: it is how a person knows which game this is. `undefined` hides it. */
   title: string | undefined
   /** Edits write the game's own files: say so once, as status. */
   saved: boolean
@@ -35,8 +34,6 @@ interface Props {
     | undefined
   onundo: () => void
   onredo: () => void
-  /** Opens Ask; `undefined` hides it. */
-  onask: (() => void) | undefined
   /** The running game's page: Play opens it in a new tab; `undefined` hides Play. */
   playUrl: string | undefined
   /** Opens Publish; `undefined` hides it. */
@@ -56,7 +53,6 @@ const {
   history,
   onundo,
   onredo,
-  onask,
   playUrl,
   onpublish,
   shippable,
@@ -83,7 +79,6 @@ const {
       onclick={onredo}
     />
   {/if}
-  {#if onask !== undefined}<Button onclick={onask}>Ask</Button>{/if}
   {#if playUrl !== undefined}<a class="play" href={playUrl} target="_blank" rel="noreferrer">Play</a>{/if}
   {#if onpublish !== undefined}<Button variant={shippable ? 'primary' : 'plain'} onclick={onpublish}>Publish</Button>{/if}
   {@render tools?.()}
