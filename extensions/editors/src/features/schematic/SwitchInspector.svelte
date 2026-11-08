@@ -9,7 +9,7 @@ import AddPiece from './AddPiece.svelte'
 import { ANY_MODE, timingOf } from './diagram/layout.ts'
 import PieceRow from './PieceRow.svelte'
 import { ACTIONS, actionPiece, actionWords } from './pieces/actions.ts'
-import { CONDITIONS, conditionPiece, conditionWords } from './pieces/conditions.ts'
+import { CONDITION_MENU, conditionPiece, conditionWords } from './pieces/conditions.ts'
 import { modeWords, type Names } from './pieces/piece.ts'
 import {
   withAction,
@@ -75,7 +75,7 @@ const set = (label: string, next: Transition): void => void session.setSwitch(la
         />
       {/each}
     </ul>
-    <AddPiece label="Add a condition" pieces={CONDITIONS} {names} onadd={(probe: Probe) => set('Add a condition', withCondition(t, probe))} />
+    <AddPiece label="Add a condition" pieces={CONDITION_MENU} {names} onadd={(probe: Probe) => set('Add a condition', withCondition(t, probe))} />
 
     <h4>Then</h4>
     {#if (t.do ?? []).length === 0}<p class="dim">It only changes mode. Add an action to make something happen.</p>{/if}

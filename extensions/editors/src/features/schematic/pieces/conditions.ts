@@ -408,3 +408,6 @@ export const CONDITIONS: readonly Piece<Probe>[] = [
   timer,
   not,
 ] as unknown as readonly Piece<Probe>[]
+
+/** The kinds the add menu offers: Not is the button on each condition, not a kind of its own to add. */
+export const CONDITION_MENU: readonly Piece<Probe>[] = CONDITIONS.filter((piece) => piece.kind !== 'not')

@@ -29,6 +29,20 @@ export function factsOf(def: SystemsDef): string[] {
   return [...facts]
 }
 
+/** The doorways the file already has characters follow the player through (the one just used is always on offer). */
+function doorwaysOf(def: SystemsDef): string[] {
+  const found = new Set<string>()
+  const effect = (e: SysEffect): void => {
+    if ('followThrough' in e && e.followThrough.portal !== 'crossed') found.add(e.followThrough.portal)
+  }
+  for (const agent of def.agents) {
+    for (const t of agent.transitions) t.do?.forEach(effect)
+    for (const stop of agent.routine ?? []) stop.do?.forEach(effect)
+  }
+  for (const rule of def.rules) rule.then.forEach(effect)
+  return [...found]
+}
+
 /** A fact the scene's puzzle sets or asks about comes first: it is what the characters and the puzzle agree on. */
 export function namesOf(
   def: SystemsDef,
@@ -43,7 +57,7 @@ export function namesOf(
     facts: [...new Set([...puzzleFacts, ...factsOf(def)])],
     places,
     hooks: character?.hooks ?? [],
-    doorways: [],
+    doorways: doorwaysOf(def),
   }
 }
 

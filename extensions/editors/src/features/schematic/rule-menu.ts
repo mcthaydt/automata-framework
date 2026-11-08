@@ -4,7 +4,7 @@
 // here that could drift from them.
 import { checkSystems, type Probe, type SysEffect, type SystemsDef } from '@automata/systems/sim'
 import { ACTIONS } from './pieces/actions.ts'
-import { CONDITIONS } from './pieces/conditions.ts'
+import { CONDITION_MENU } from './pieces/conditions.ts'
 import type { Names, Piece } from './pieces/piece.ts'
 
 /** A piece whose new value names a character where the kind takes one, because a rule has no character of its own. */
@@ -36,7 +36,7 @@ function faulty(def: SystemsDef, part: { when?: Probe[]; then?: SysEffect[] }): 
 }
 
 export function ruleConditions(def: SystemsDef, names: Names): Piece<Probe>[] {
-  return CONDITIONS.map((piece) => forRules(piece, def)).filter(
+  return CONDITION_MENU.map((piece) => forRules(piece, def)).filter(
     (piece) => !faulty(def, { when: [piece.fresh(names)] }),
   )
 }

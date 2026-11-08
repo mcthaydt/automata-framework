@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
 import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
-import { render, screen, within } from '@testing-library/svelte'
+import { render, screen, waitFor, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import { CONTENT_SAMPLE_GAME } from '#src/app/suite/sample-game.ts'
+import SchematicCanvas from '#src/features/schematic/SchematicCanvas.svelte'
 import SchematicInspector from '#src/features/schematic/SchematicInspector.svelte'
 import { createSchematic } from '#src/features/schematic/schematic-suite-editor.ts'
 
@@ -48,7 +49,7 @@ afterEach(() => {
 
 describe('a character', () => {
   it('lists what its game code does, read only, and says when it does nothing', async () => {
-    const { session } = await open()
+    await open()
     expect(await screen.findByRole('heading', { name: 'Things its game code does' })).toBeInTheDocument()
     expect(screen.getByText('Nothing. It is all in this file.')).toBeInTheDocument()
     const hooked = HALL.replace('id = "guard"', 'id = "guard"\nhooks = ["open-door"]')
@@ -59,6 +60,25 @@ describe('a character', () => {
     const list = await screen.findByRole('list', { name: 'Things its game code does' })
     expect(list).toHaveTextContent('open door')
     expect(within(list).queryByRole('button')).toBeNull()
+  })
+})
+
+describe('a page that is not a character', () => {
+  it('says in the inspector where it is edited, rather than leaving an empty box', async () => {
+    const { session } = await open()
+    session.chosen = { kind: 'places' }
+    expect(await screen.findByText(/Open a place on the page/)).toBeInTheDocument()
+  })
+})
+
+describe('a refusal', () => {
+  it('goes away when the person moves to another page', async () => {
+    const { session } = await open()
+    render(SchematicCanvas, { props: { session } })
+    await session.renamePlace('nowhere', 'somewhere')
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
+    session.chosen = { kind: 'rules' }
+    await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
   })
 })
 

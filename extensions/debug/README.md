@@ -21,3 +21,7 @@ export default defineGame({ extensions: __AUTOMATA_DEBUG__ ? [debugExtension] : 
   the game.
 - **Panels for the sim, audio, feel and net** (`shippedPanels`), and `createOverlay` to make your own.
 - **`@automata/debug/vite`**: the build plugin that switches `__AUTOMATA_DEBUG__` on for dev and `--debug` builds.
+- **Events for an editor that frames the game.** When the game is opened inside Schematic's Watch pane (the address
+  carries `af-watch=<the editor's origin>` and `events=<names>`), the extension posts those sim events to that one
+  origin, and only while the game is framed. It never posts to `*`, and it is in development builds only, so a release
+  has none of it.

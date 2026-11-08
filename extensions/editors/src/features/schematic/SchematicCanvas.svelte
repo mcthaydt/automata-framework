@@ -12,6 +12,13 @@ import type { SchematicSession } from './schematic-session.svelte.ts'
 
 const { session }: { session: SchematicSession } = $props()
 const character = $derived(session.character)
+
+// A refusal belongs to the page it was said on: moving to another page (or another character) takes it away.
+$effect(() => {
+  void session.chosen.kind
+  void (session.chosen.kind === 'character' ? session.chosen.index : 0)
+  session.message = undefined
+})
 const ready = $derived(session.facts.usesSystems && session.def !== undefined)
 </script>
 

@@ -16,7 +16,12 @@ export function whenWords(t: Transition, names: Names): string {
 }
 
 export function switchWords(t: Transition, names: Names): string {
-  return `${fromWords(t.from)} to ${modeWords(t.to)}: ${whenWords(t, names)}`
+  // "From any mode it moves in to Catch", not "Any mode it moves in to Catch", which reads as two sentences run together.
+  const from =
+    t.from === ANY_MODE
+      ? `From ${ANY_MODE_WORDS.charAt(0).toLowerCase()}${ANY_MODE_WORDS.slice(1)}`
+      : fromWords(t.from)
+  return `${from} to ${modeWords(t.to)}: ${whenWords(t, names)}`
 }
 
 /** The three times the interpreter asks switches, with the words for each group. */

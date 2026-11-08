@@ -38,7 +38,10 @@ export function modeNotes(agent: AgentDef, mode: string): string[] {
 /** What to tell a person about a switch: it can never happen when the mode it leaves stands still and it waits. */
 export function switchNote(agent: AgentDef, index: number): string | undefined {
   const t = agent.transitions[index]
-  if (t === undefined || t.from === '*') return undefined
+  if (t === undefined) return undefined
+  if (t.when.length === 0)
+    return 'With no condition this switches every time it is checked. Add one to make it wait.'
+  if (t.from === '*') return undefined
   return isStill(agent, t.from) && waits(t)
     ? `This never happens: it stands still in ${modeWords(t.from)}.`
     : undefined

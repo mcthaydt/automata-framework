@@ -9,8 +9,9 @@ import { CONTENT_SAMPLE_GAME } from '#src/app/suite/sample-game.ts'
 import CharacterCanvas from '#src/features/schematic/CharacterCanvas.svelte'
 import { DECIDE_LINES, modeNotes, switchNote } from '#src/features/schematic/decide-words.ts'
 import { namesOf } from '#src/features/schematic/names.ts'
+import { NO_NAMES } from '#src/features/schematic/pieces/piece.ts'
 import { createSchematic } from '#src/features/schematic/schematic-suite-editor.ts'
-import { arrowLabel, groupOf, wrapLabel } from '#src/features/schematic/switch-words.ts'
+import { arrowLabel, groupOf, switchWords, wrapLabel } from '#src/features/schematic/switch-words.ts'
 
 const HALL = CONTENT_SAMPLE_GAME['content/systems/hall.toml'] as string
 const NAV = CONTENT_SAMPLE_GAME['content/nav/hall.toml'] as string
@@ -175,6 +176,20 @@ describe('what the editor says about a mode and a switch', () => {
     const def = agent({ transitions: [{ from: 'alarm', to: 'patrol', when: [{ timer: 8 }], priority: 1 }] })
     expect(switchNote(def, 0)).toBe('This never happens: it stands still in Alarm.')
     expect(modeNotes(def, 'alarm')).toEqual(['stands still'])
+  })
+
+  it('says a switch with no condition happens every time it is checked', () => {
+    const def = agent({ transitions: [{ from: 'patrol', to: 'alarm', when: [], priority: 1 }] })
+    expect(switchNote(def, 0)).toBe(
+      'With no condition this switches every time it is checked. Add one to make it wait.',
+    )
+  })
+
+  it('reads a switch from any mode as "From any mode it moves in to …"', () => {
+    const def = agent({ transitions: [{ from: '*', to: 'alarm', when: [], priority: 1 }] })
+    expect(switchWords(def.transitions[0] as never, NO_NAMES)).toBe(
+      'From any mode it moves in to Alarm: always',
+    )
   })
 
   it('warns of a mode that may switch at once: it waits, and nothing resets the wait on the way in', () => {
