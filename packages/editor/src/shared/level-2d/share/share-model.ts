@@ -1,5 +1,5 @@
-import type { DownloadStore } from '../../shared/kit/storage/download-store'
-import type { Profile } from '../../shared/level-2d/profiles/profile'
+import type { DownloadStore } from '../../kit/storage/download-store'
+import type { Profile } from '../profiles/profile'
 
 // What the Share menu does, without the menu: which file leaves (the level's own file, the profile's first export) and
 // what Download, Share and Copy say when they are done. The menu shows only where Save does not already write the game

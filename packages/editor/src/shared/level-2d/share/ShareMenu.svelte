@@ -4,11 +4,11 @@
   no copy, a file that left is the only copy, so it counts as saved (the document turns clean).
 -->
 <script lang="ts">
-import Icon from '../../shared/kit/icons/Icon.svelte'
-import type { DownloadStore } from '../../shared/kit/storage/download-store'
-import Menu from '../../shared/kit/widgets/Menu.svelte'
-import type { ToastStore } from '../../shared/kit/widgets/toasts'
-import type { OpenDocument } from '../../shared/level-2d/session/editor-app-types'
+import Icon from '../../kit/icons/Icon.svelte'
+import type { DownloadStore } from '../../kit/storage/download-store'
+import Menu from '../../kit/widgets/Menu.svelte'
+import type { ToastStore } from '../../kit/widgets/toasts'
+import type { OpenDocument } from '../session/editor-app-types'
 import { levelFile, type ShareAction, shareItems, shareLevel } from './share-model'
 
 interface Props {

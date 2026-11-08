@@ -7,12 +7,12 @@
   It replaces the old Checks view.
 -->
 <script lang="ts">
-import Button from '../../shared/kit/widgets/Button.svelte'
-import Dialog from '../../shared/kit/widgets/Dialog.svelte'
-import IconButton from '../../shared/kit/widgets/IconButton.svelte'
-import { commitEdit } from '../../shared/level-2d/editor/field-commit'
-import type { Diagnostic, TargetChoice } from '../../shared/level-2d/profiles/profile'
-import type { OpenDocument } from '../../shared/level-2d/session/editor-app-types'
+import Button from '../../kit/widgets/Button.svelte'
+import Dialog from '../../kit/widgets/Dialog.svelte'
+import IconButton from '../../kit/widgets/IconButton.svelte'
+import { commitEdit } from '../editor/field-commit'
+import type { Diagnostic, TargetChoice } from '../profiles/profile'
+import type { OpenDocument } from '../session/editor-app-types'
 import { checkGroups, fixLabel, objectLabel } from './checks-model'
 import TargetDialog from './TargetDialog.svelte'
 

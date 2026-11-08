@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { levelFile, shareItems, shareLevel } from '#src/features/share/share-model.ts'
 import { createDownloadStore } from '#src/shared/kit/storage/download-store.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { levelProject } from '#src/shared/level-2d/profiles/level-project/level-project.ts'
 import { platformerTemplate } from '#src/shared/level-2d/profiles/level-project/templates/platformer.ts'
 import type { Profile } from '#src/shared/level-2d/profiles/profile.ts'
+import { levelFile, shareItems, shareLevel } from '#src/shared/level-2d/share/share-model.ts'
 
 const profile = levelProject as Profile<unknown>
 const project = { ...platformerTemplate.create(counterIds()), name: 'Rooftops' }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { checkGroups, fixLabel, objectLabel } from '#src/features/problems/checks-model.ts'
+import { checkGroups, fixLabel, objectLabel } from '#src/shared/level-2d/problems/checks-model.ts'
 import type { Diagnostic } from '#src/shared/level-2d/profiles/profile.ts'
 
 const finding = (

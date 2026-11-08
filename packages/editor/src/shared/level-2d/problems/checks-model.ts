@@ -1,4 +1,4 @@
-import type { Diagnostic, Severity } from '../../shared/level-2d/profiles/profile'
+import type { Diagnostic, Severity } from '../profiles/profile'
 
 // What the Problems sheet shows: the profile's findings grouped by severity in plain words, how many there are, the
 // label of the repair each names, and the object each points at.
