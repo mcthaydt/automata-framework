@@ -1,12 +1,14 @@
 # Refactor progress
 
-**Overall: 67% (12 of 18 stages done).**
+**Overall: 58% (14 of 24 stages done).**
 
 The Owner's order: finish one slice completely before starting the next. On 2026-11-05 it was core and 2D, then 3D, then
 the editors, then the website. On 2026-11-06 the Owner changed the later slices to vertical ones: "we do the editor
 refactors that 2D touch and website refactor as if it's ready to ship with 2D alone, then we do the same for 3D". So the
-slices are core and 2D, then the 2D editors and the website, then 3D (its core, editors and site). Each stage runs in its
-own session.
+slices are core and 2D, then the 2D editors and the website, then 3D (its core, editors and site). On 2026-11-07 the
+Owner set the order for the rest: 3D core, then the other packages that use 3D, then the 3D editors, then the site, which
+is now a slice of its own. Its audit started on 2026-11-08 before the 3D and Plus stacks merged (the Owner: "we can start
+it knowing we'll have to recheck"). Each stage runs in its own session.
 
 Every area goes through the same six stages:
 
@@ -486,3 +488,23 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 2026-11-06: "completely redesign the editors for ux, copy, and ui"; the 2D slice redesigns the kit and the 2D editor),
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
+
+## Site: 17% (1 of 6)
+
+Scope: the website as it would launch: `site/` (Home, Start, Docs, Examples, the Editor page and its try-it editor, the
+API index, Privacy, Terms, the missing page, the redirect pages, `llms.txt`, `security.txt`), its build and checks, its
+deploy (`site.yml`, the runbook's launch steps), the domain `automataframework.com`, the contact address, and the old
+`mcthaydt/automata-website` repository.
+
+| Stage | Status | Record |
+|---|---|---|
+| 1. Audit | Done, 2026-11-08 (PR stacked on #473): 3 critical (C1 to C3), 12 important (I1 to I12), 9 minor (M1 to M9); 5 decisions for the Owner (D1 to D5). Tagged "Recheck after 3D/Plus merge": C1, I2, I4, I6, I7, I8, I9, I12. The build, the closed-beta scan, `svelte-check` (0 errors), 340 unit tests, `check:site` (35 pages) and the Chromium suite (345 of 345) pass; the visual sweep of 222 views finds no sideways scroll and no text under 12 px; `check:launch` fails (C1 to C3). Headline: `@automata` on npm belongs to an existing account (`@automataframework` is free), and `automataframework.com` is not registered while `main`'s `SECURITY.md` sends reports to it | [2026-11-08-site-audit.md](2026-11-08-site-audit.md) |
+| 2. Plan and spec | Not started | |
+| 3. Plan audit | Not started | |
+| 4. Build | Not started | |
+| 5. Build audit | Not started | |
+| 6. Fixes | Not started | |
+
+**Where to resume (2026-11-08, stage 1 done):** the plan and spec (Opus, medium, with the superpowers plugin) start from
+the audit's sections 3 to 7. The rename (C1) waits for the Owner's D1 and for the Plus port to merge; the deploy (C3)
+waits for D2 and D3; the findings tagged "Recheck after 3D/Plus merge" are read again on the merged `main` first.
