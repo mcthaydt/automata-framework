@@ -477,3 +477,18 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 2026-11-06: "completely redesign the editors for ux, copy, and ui"; the 2D slice redesigns the kit and the 2D editor),
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
+
+## Edited content shows in play: 17% (1 of 6: stage 2)
+
+Normal dev pipeline (no stage 1 audit; the investigation is
+[`2026-11-08-complete-game-gaps.md`](2026-11-08-complete-game-gaps.md)). The Owner approved steps 1 to 6 on 2026-11-08
+04:13 and corrected the goal at 04:14: "I want humans to be able to modify content", not games without code. Steps 2
+(ready-made behaviours) and 5 (HUD pieces) are cut for that reason (spec section 1).
+
+| Stage | State |
+| --- | --- |
+| 2. Spec and plan | Done: [spec](2026-11-08-content-in-play-spec.md), [plan](2026-11-08-content-in-play-plan.md), 16 tasks |
+| 3. Plan audit | Not started |
+| 4. Build | Not started (0 of 16) |
+| 5. Build audit | Not started |
+| 6. Fixes | Not started |
