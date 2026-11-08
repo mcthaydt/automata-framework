@@ -13,7 +13,8 @@ import type { OpenDocument } from './editor-app-types'
 // in its own kit shell beside its panel, canvas and inspector.
 
 export interface ViewFrame {
-  readonly topbar: Snippet
+  /** The top bar; a view that has a place inside the document to show (the Level view's level picker) passes it. */
+  readonly topbar: Snippet<[place?: Snippet]>
   readonly sheets: Snippet
 }
 

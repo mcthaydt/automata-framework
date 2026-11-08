@@ -48,12 +48,21 @@ export interface DefinitionPreview {
   readonly shape: EntityDef2D['shape']
   readonly color: string | undefined
   readonly tile: EntityDef2D['tile']
+  /** The name the panel shows: the label, or the id where there is none. */
+  readonly name: string
   readonly sizeText: string
-  readonly pivotText: string
   readonly instances: string
 }
 
 const MAX_SCALE = 8
+
+/** Each shape in plain words (the grandma audit, 5.2); the saved file keeps the ids. */
+export const SHAPE_WORDS: Record<EntityDef2D['shape'], string> = {
+  rect: 'Box',
+  ellipse: 'Circle',
+  point: 'Dot',
+  tile: 'Picture',
+}
 
 const plural = (count: number, word: string): string => `${count} ${word}${count === 1 ? '' : 's'}`
 
@@ -62,9 +71,8 @@ export function definitionRows(project: Project): readonly DefinitionRow[] {
     id: def.id,
     label: def.label,
     color: def.color,
-    summary: [plural(def.fields.length, 'field'), def.shape, ...(def.single === true ? ['single'] : [])].join(
-      ' · ',
-    ),
+    // Only what a person placing it needs to know (the grandma audit, 5.2): no field count, shape or id.
+    summary: def.single === true ? 'One per level' : '',
   }))
 }
 
@@ -166,8 +174,8 @@ export function definitionPreview(
     shape: def.shape,
     color: def.color,
     tile: def.tile,
-    sizeText: `${def.shape} ${size.w}×${size.h} px`,
-    pivotText: `pivot ${pivot.x}, ${pivot.y}`,
+    name: def.label ?? def.id,
+    sizeText: `${SHAPE_WORDS[def.shape]}, ${size.w} × ${size.h} px`,
     instances: instanceText(project, id),
   }
 }

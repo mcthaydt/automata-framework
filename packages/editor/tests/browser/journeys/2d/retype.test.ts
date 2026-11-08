@@ -41,8 +41,8 @@ describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-la
       await press('radio', 'Characters')
       const levelFields = [
         ...document.querySelectorAll<HTMLElement>('[data-testid="entities-panel"] button'),
-      ].find((button) => button.textContent?.trim().startsWith('Level fields'))
-      if (levelFields === undefined) throw new Error('no Level fields')
+      ].find((button) => button.textContent?.trim().startsWith('Settings for every level'))
+      if (levelFields === undefined) throw new Error('no Settings for every level')
       levelFields.click()
       await arrived()
       const before = open.document.history.revision

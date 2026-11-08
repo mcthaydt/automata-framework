@@ -31,13 +31,19 @@ afterEach(async () => {
 const rail = (name: string): Promise<void> => press('radio', name)
 
 /** Opens a level from the Levels dock. */
+/** Opens a level from the level picker in the top bar. */
 async function openLevel(name: RegExp): Promise<void> {
-  const dock = document.querySelector<HTMLElement>('nav[aria-label="Levels"]')
-  const card = [...(dock?.querySelectorAll<HTMLElement>('button') ?? [])].find((button) =>
+  const picker = [...document.querySelectorAll<HTMLElement>('[data-testid="document-bar"] button')].find(
+    (button) => button.getAttribute('aria-label')?.startsWith('Level: '),
+  )
+  if (picker === undefined) throw new Error('no level picker')
+  picker.click()
+  await arrived()
+  const item = [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')].find((button) =>
     name.test(button.textContent ?? ''),
   )
-  if (card === undefined) throw new Error(`no level ${name}`)
-  card.click()
+  if (item === undefined) throw new Error(`no level ${name}`)
+  item.click()
   await arrived()
 }
 
@@ -85,7 +91,7 @@ describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-la
       await pen().tap(cellAt(open, 6, 4, 'map-1'), { kind: 'pen' })
 
       await openLevel(/Inn/)
-      await pressButton('Fit')
+      await pressButton('Fit the level in view')
       await chooseLayer('Entities')
       await press('radio', 'Brush')
       await press('radio', 'Door')
@@ -93,7 +99,7 @@ describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-la
       await pointAt(/^Map 1/, 'Door at')
 
       await openLevel(/Map 1/)
-      await pressButton('Fit')
+      await pressButton('Fit the level in view')
       await chooseLayer('Entities')
       await press('radio', 'Select')
       await pen().tap(cellAt(open, 6, 4, 'map-1'), { kind: 'pen' })

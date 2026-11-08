@@ -87,7 +87,7 @@ const region = (name: string): HTMLElement => {
 /** Below wide, presses the canvas's drawer button until its region says it is open. */
 async function openDrawer(
   size: EditorSize,
-  name: 'Definitions' | 'Inspector',
+  name: 'Definitions' | 'Details',
   regionName: string,
 ): Promise<void> {
   if (size.mode === 'wide' || region(regionName).dataset.open === 'true') return
@@ -106,7 +106,7 @@ async function reach(element: HTMLElement): Promise<void> {
 async function chooseSlime(size: EditorSize): Promise<void> {
   await openDrawer(size, 'Definitions', 'panel')
   const row = [...byTestId('entities-panel').querySelectorAll<HTMLElement>('[role="radio"]')].find(
-    (candidate) => candidate.textContent?.trim().startsWith('slime'),
+    (candidate) => candidate.textContent?.trim().startsWith('Slime'),
   )
   if (row === undefined) throw new Error('no slime row')
   row.click()
@@ -139,7 +139,7 @@ describe.each(SIZES)('Entities view at $name ($width x $height)', (size) => {
   test('the definition form is full-size and Duplicate and Delete are reachable', async () => {
     const { conditions } = await start(size)
     await chooseSlime(size)
-    await openDrawer(size, 'Inspector', 'inspector')
+    await openDrawer(size, 'Details', 'inspector')
     const inspector = byTestId('entities-inspector')
     for (const name of ['Duplicate', 'Delete']) {
       const button = buttonNamed(inspector, name)
@@ -154,7 +154,7 @@ describe.each(SIZES)('Entities view at $name ($width x $height)', (size) => {
   test('the field editor’s type chips are full-size and Delete field is reachable', async () => {
     const { conditions } = await start(size)
     await chooseSlime(size)
-    await openDrawer(size, 'Inspector', 'inspector')
+    await openDrawer(size, 'Details', 'inspector')
     const inspector = byTestId('entities-inspector')
     const fieldsTab = [...inspector.querySelectorAll<HTMLElement>('[role="tab"]')].find((tab) =>
       tab.textContent?.trim().startsWith('Fields'),
@@ -176,7 +176,7 @@ describe.each(SIZES)('Entities view at $name ($width x $height)', (size) => {
   test('the refusal dialog lists the slimes and its actions are inside the window', async () => {
     const { conditions } = await start(size)
     await chooseSlime(size)
-    await openDrawer(size, 'Inspector', 'inspector')
+    await openDrawer(size, 'Details', 'inspector')
     const remove = buttonNamed(byTestId('entities-inspector'), 'Delete')
     await reach(remove)
     remove.click()

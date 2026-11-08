@@ -1,13 +1,17 @@
 <!--
-  The Level view's canvas region: the toolbar over the Pixi level
-  canvas, with the kit's gesture recogniser on it feeding the session through the gesture map, and the keyboard shortcuts.
-  A locked or hidden layer says so over the canvas instead of ignoring the pen without a word. The toggles for the
-  panel, inspector and dock are the host shell's, so they come in as props.
+  The Level view's canvas region, canvas first (spec 11.4): the Pixi level canvas fills the region edge to edge, with
+  the kit's gesture recogniser on it feeding the session through the gesture map, and the keyboard shortcuts. Over it
+  float the tool pill (`LevelToolbar`) and, in a corner, Fit (the whole level in view) and, below `wide`, Details (the
+  inspector): the pill at the foot with the corner at the top right on a phone, the pill at the top with the corner at
+  the bottom right from an iPad up (the design thread's revised mockup). Both float as siblings of the canvas's box, not inside it, so a press on them
+  never reaches the gestures. A locked or hidden layer says so in the left corner across from Fit instead of ignoring the pen
+  without a word. The toggles for the panel and the inspector are the host shell's, so they come in as props.
 -->
 <script lang="ts">
 import type { Component } from 'svelte'
 import { attachGestures } from '../../shared/kit/gestures/attach-gestures'
 import type { History } from '../../shared/kit/history/history'
+import IconButton from '../../shared/kit/widgets/IconButton.svelte'
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import type { LevelCanvasProps } from '../../shared/level-2d/session/view-props'
 import LevelCanvas from './LevelCanvas.svelte'
@@ -34,9 +38,8 @@ interface Props {
   showInspector?: boolean
   inspectorOpen?: boolean
   oninspector?: () => void
-  showLevels?: boolean
-  levelsOpen?: boolean
-  onlevels?: () => void
+  /** Where the tool pill floats; with it at the top, Fit, Details and the layer message move to the foot. */
+  toolsAt?: 'top' | 'bottom'
 }
 
 const {
@@ -53,9 +56,7 @@ const {
   showInspector = false,
   inspectorOpen = false,
   oninspector = () => {},
-  showLevels = false,
-  levelsOpen = false,
-  onlevels = () => {},
+  toolsAt = 'bottom',
 }: Props = $props()
 
 // svelte-ignore state_referenced_locally
@@ -122,23 +123,7 @@ $effect(() => {
 })
 </script>
 
-<div class="stage">
-  <LevelToolbar
-    tool={level.view.tool}
-    brushSize={level.view.brushSize}
-    {showLayers}
-    {layersOpen}
-    ontool={(tool) => session.editor.setTool(tool)}
-    onbrushsize={(size) => session.editor.setBrushSize(size)}
-    onfit={() => session.fit()}
-    {onlayers}
-    {showInspector}
-    {inspectorOpen}
-    {oninspector}
-    {showLevels}
-    {levelsOpen}
-    {onlevels}
-  />
+<div class="stage" data-tools={toolsAt}>
   <!-- svelte-ignore a11y_no_noninteractive_tabindex: the canvas takes focus so arrows nudge the selection -->
   <div
     class="surface"
@@ -149,34 +134,71 @@ $effect(() => {
     tabindex="0"
   >
     <Canvas project={level.project} view={level.view} {read} camera={level.camera} />
-    {#if blocked !== undefined}
-      <p class="blocked" role="status">{blocked}</p>
+  </div>
+  {#if blocked !== undefined}
+    <p class="blocked" role="status">{blocked}</p>
+  {/if}
+  <div class="corner">
+    <IconButton icon="fit" label="Fit the level in view" onclick={() => session.fit()} />
+    {#if showInspector}
+      <IconButton icon="inspector" label="Details" aria-expanded={inspectorOpen} onclick={oninspector} />
     {/if}
   </div>
+  <LevelToolbar
+    tool={level.view.tool}
+    brushSize={level.view.brushSize}
+    {showLayers}
+    {layersOpen}
+    ontool={(tool) => session.editor.setTool(tool)}
+    onbrushsize={(size) => session.editor.setBrushSize(size)}
+    {onlayers}
+    at={toolsAt}
+  />
 </div>
 
 <svelte:document onkeydown={onKey} />
 
 <style>
   .stage {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
+    position: relative;
     width: 100%;
     height: 100%;
     min-width: 0;
     min-height: 0;
+    overflow: hidden;
   }
   .surface {
-    position: relative;
-    min-width: 0;
-    min-height: 0;
+    position: absolute;
+    inset: 0;
     overflow: hidden;
     overscroll-behavior: contain;
   }
+  .corner {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    display: flex;
+    gap: var(--space-1);
+    padding: var(--space-1);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--edge-md);
+    background: var(--color-bg-surface);
+  }
+  /* With the pill at the top, the corner controls and the message take the foot instead. */
+  .stage[data-tools='top'] .corner {
+    top: auto;
+    bottom: var(--space-3);
+  }
+  .stage[data-tools='top'] .blocked {
+    top: auto;
+    bottom: var(--space-3);
+  }
+  /* Top left, leaving the corner controls their room (two 44 px buttons and the margins). */
   .blocked {
     position: absolute;
-    inset: var(--space-3) auto auto 50%;
-    transform: translateX(-50%);
+    top: var(--space-3);
+    left: var(--space-3);
+    max-width: calc(100% - 2 * var(--space-3) - 2 * var(--size-hit) - 3 * var(--space-2));
     margin: 0;
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--color-border-strong);

@@ -72,10 +72,10 @@ function tap(x: number, y: number): void {
   press('pointerup', x, y)
 }
 
+/** Opens a level from the level picker in the top bar. */
 async function openLevel(name: RegExp): Promise<void> {
-  await userEvent.click(
-    within(screen.getByRole('navigation', { name: 'Levels' })).getByRole('button', { name }),
-  )
+  await userEvent.click(screen.getByRole('button', { name: /^Level: / }))
+  await userEvent.click(screen.getByRole('menuitem', { name }))
 }
 
 async function chooseEntities(): Promise<void> {

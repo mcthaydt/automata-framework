@@ -168,11 +168,12 @@ describe('Level view: toolbar and canvas', () => {
     expect(options.map((option) => option.getAttribute('title'))).toContain('Copy a tile')
     await userEvent.click(within(tool).getByRole('radio', { name: 'Fill' }))
     expect(canvas()).toHaveAttribute('data-tool', 'fill')
-    expect(screen.queryByRole('button', { name: /^Size/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Brush size/ })).toBeNull()
     await userEvent.click(within(tool).getByRole('radio', { name: 'Eraser' }))
-    // The size is behind its own button, so it never widens the row.
+    // The size is behind its own 44 px button showing the number, so it never widens the pill.
     expect(screen.queryByRole('spinbutton', { name: 'Brush size' })).toBeNull()
-    await userEvent.click(screen.getByRole('button', { name: 'Size 1' }))
+    expect(screen.getByRole('button', { name: 'Brush size 1' })).toHaveTextContent(/^1$/)
+    await userEvent.click(screen.getByRole('button', { name: 'Brush size 1' }))
     expect(screen.getByRole('spinbutton', { name: 'Brush size' })).toBeInTheDocument()
   })
 
@@ -193,6 +194,58 @@ describe('Level view: toolbar and canvas', () => {
   it('has no Layers button in wide, where the panel is always in view', async () => {
     await mount()
     expect(screen.queryByRole('button', { name: 'Layers' })).toBeNull()
+  })
+
+  it('floats the tools over the canvas, beside it rather than in it, and Fit and Details in its corner', async () => {
+    measuredAt(560, 336)
+    await mount([834, 1194])
+    const tools = screen.getByRole('toolbar', { name: 'Tools' })
+    const surface = screen.getByTestId('level-surface')
+    // The pill floats over the level in the canvas's region, not in a row of its own above it; it is the canvas's
+    // sibling, so a press on a tool never reaches the canvas's gestures.
+    expect(surface.parentElement?.contains(tools)).toBe(true)
+    expect(surface.contains(tools)).toBe(false)
+    expect(tools).toHaveAttribute('data-floating', 'true')
+    const fit = screen.getByRole('button', { name: 'Fit the level in view' })
+    expect(surface.contains(fit)).toBe(false)
+    await userEvent.click(fit)
+    expect(canvas()).toHaveAttribute('data-camera', '24,24,1')
+    const details = screen.getByRole('button', { name: 'Details' })
+    expect(details).toHaveAttribute('aria-expanded', 'false')
+    await userEvent.click(details)
+    expect(details).toHaveAttribute('aria-expanded', 'true')
+  })
+})
+
+describe('Level view: the level picker in the top bar', () => {
+  const picker = (): HTMLElement =>
+    within(screen.getByTestId('document-bar')).getByRole('button', { name: /^Level: / })
+
+  it('names the open level and has no strip of level cards', async () => {
+    await mount()
+    expect(picker()).toHaveAccessibleName('Level: Level 1')
+    expect(picker()).toHaveTextContent('Level 1')
+    expect(screen.queryByTestId('level-dock')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Levels' })).toBeNull()
+  })
+
+  it('adds a level as one undo step and opens it', async () => {
+    await mount()
+    const before = canvas().dataset.level
+    await userEvent.click(picker())
+    await userEvent.click(screen.getByRole('menuitem', { name: 'New level' }))
+    expect(picker()).toHaveAccessibleName('Level: Level 2')
+    expect(canvas().dataset.level).not.toBe(before)
+    // Back to the first from the picker: the menu lists every level of the world.
+    await userEvent.click(picker())
+    const items = screen.getAllByRole('menuitem').map((item) => item.querySelector('.label')?.textContent)
+    expect(items).toEqual(['Level 1', 'Level 2', 'New level'])
+    await userEvent.click(screen.getByRole('menuitem', { name: /^Level 1/ }))
+    expect(canvas()).toHaveAttribute('data-level', before as string)
+    await userEvent.click(screen.getByTestId('undo'))
+    expect(picker()).toHaveAccessibleName('Level: Level 1')
+    await userEvent.click(picker())
+    expect(screen.getAllByRole('menuitem')).toHaveLength(2)
   })
 })
 
@@ -279,8 +332,7 @@ describe('Level view: shortcuts (§12)', () => {
       expect(canvas()).toHaveAttribute('data-tool', tool)
     }
     // The size button says the size; the stepper behind it is the same number.
-    const size = (): number =>
-      Number(/Size (\d+)/.exec(screen.getByRole('button', { name: /^Size/ }).textContent ?? '')?.[1])
+    const size = (): number => Number(screen.getByRole('button', { name: /^Brush size/ }).textContent?.trim())
     const before = size()
     await userEvent.keyboard(']')
     expect(size()).toBe(before + 1)

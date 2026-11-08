@@ -2200,3 +2200,54 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   #422. They now compile the examples in place with `compileExample`, the way `build-demos.ts` does.
 - **Owner, 2026-11-06:** the editors' look is still not good. The design thread makes a Level screen mockup; the rest
   of 12.3 keeps to structure and behaviour and takes its styling from that mockup.
+- **12.3, part (session 12): the floating pill, the level picker, no dock.** Structure and behaviour only; the look waits
+  for the design thread's Level mockup. The tools are one pill (`role="toolbar"`, "Tools") floating over the canvas's
+  foot, a sibling of the canvas's box so a press on it never reaches the gestures; below `wide` it starts with Layers
+  (an icon button). The brush size is a 44 px button showing the number ("Brush size 2"), so the pill is one row on a
+  390 px phone; inside the pill the segmented control draws no frame of its own. Fit ("Fit the level in view") and,
+  below `wide`, Details (the inspector, was "Inspector") are icon buttons in the canvas's top right corner; the
+  locked or hidden layer message moved to the top left. The strip of level cards is gone: a level picker beside the
+  document's name in the top bar (a kit `Menu`: the world's levels, the open one marked "Open", then New level, which
+  adds the first free "Level N" as one undo step and opens it; disabled with the reason at 256 levels). The suite's
+  Levels 2D puts the same picker in its bar's `tools` and loses its dock and Dock toggle. Deleted:
+  `LevelCards.svelte`, `LevelDock.svelte` and its test; `dock-model.ts` is `level-list.ts` (`levelList`). Three
+  Lucide icons added (chevron-down, maximize as `fit`, panel-right as `inspector`; 27 now, provenance row updated).
+  The top bar takes two rows on an upright iPad too (`tablet-portrait`): in one row at 744 px the picker was cut to
+  one letter; the name's words truncate inside their own box so the button keeps its edge. **Deviation 109:** the
+  pill sits at the canvas's foot on every size, as the mockup draws it, not at the top from iPad up (spec 11.4); one
+  CSS rule if the Owner wants the top. **Deviation 110:** the palette stays below the layer list, naming the chosen
+  layer ("Paint with Collision"), as the mockup draws it, rather than inside the chosen layer's row. **Deviation 111:**
+  the pill hides its scroll bar instead of keeping 16 px under its tools for macOS's overlay bar (#272); the layout
+  test now holds `scrollbar-width: none`. Gates: editor unit 3,289 → 3,293 (three new: the pill with Fit and Details,
+  the picker twice; three icon checks for the new icons; the two `LevelDock` tests gone), typecheck clean, Chromium layout 427, canvas,
+  journeys, parity and storage 106 pass and 6 skipped, `pnpm check` green; WebKit, Firefox and hosted CI not run.
+  **Left for 12.3:** the charcoal cabinet and the canvas tests' colour expectations (styling, from the mockup), and
+  step 4's screenshots and copy rows.
+- **12.4 Step G (session 12): Map, Tiles and Characters in plain words.** Map: "Layout" (Free, Grid, Row, Column) is
+  "Arrange levels" (Anywhere, In a grid, In a row, In a column), wrapping to two rows in the 264 px panel; the empty
+  inspector says "Tap a level to edit it."; Remove's warning says links "will show in Problems as broken" (Checks is
+  no longer a view). Tiles: "Auto layers" is "Tiles that place themselves", empty "None in this game yet." (was "No
+  auto layer reads an IntGrid yet."); the rule groups and rules show only once there is such a layer, as before; the
+  stage with no tileset says "No tiles yet. Add a picture of your tiles to paint with them." **Deviation 112:** no
+  [Add tiles] button: the editor has no action that adds a tileset (every template comes with one), and adding a
+  picture is a new feature, not essential to editing a game that has its tiles; noted for the Owner. Characters: each
+  row shows the label (not the id) and "One per level" only where it applies (no field count, no shape); "Level
+  fields" is "Settings for every level"; the shapes are Box, Circle, Dot, Picture (the file keeps `rect`, `ellipse`,
+  `point`, `tile`); "Single per level" is "Only one per level"; the id ("Name in code") and the pivot ("Anchor point
+  across", "Anchor point down") moved under a closed More; the preview names the thing by its label, says "Box, 16 × 24
+  px" and "Shown 8 times bigger" (was "Placed with its pivot on the snapped cell · 8× zoom") and drops the pivot pill.
+  Gates: editor unit 3,293 → 3,296 (three new: arrange words, tiles words, the More section), typecheck clean,
+  Chromium layout (map, tiles, characters, level, document) and 2D journeys pass, `pnpm check` green; WebKit, Firefox
+  and hosted CI not run. **Left for 12.4:** steps 1 to 3, the frame of spec 11.4 for the three views (the stage in its
+  cabinet, a list sheet and an item sheet: their "Rules" / "Definitions" / "Inspector" drawer buttons become the
+  Level view's corner and pill controls) and the dialogs' one primary action, then the inspector tab names
+  ("Definition", "Fields 3"), which still read as engine words.
+- **12.4, part (session 12): Details everywhere.** The drawer button that opens the inspector below `wide` says
+  "Details" in Map, Tiles and Characters too (was "Inspector"), as in the Level view. Gates: editor unit (map, tiles,
+  characters) 126, Chromium layout (the three views) 64, 2D journeys 26.
+- **12.3, part (session 12): the pill at the top from an iPad up.** The design thread's revised mockup (after the
+  Owner's "Audit it", 2026-11-06) puts the tools at the top centre, which is also spec 11.4's rule, so **deviation 109
+  is withdrawn**: the pill floats at the canvas's top from `medium` up and at its foot on a phone (`toolsAt`); with it
+  at the top, Fit, Details and the layer message move to the canvas's foot. The suite's Levels 2D keeps the foot until
+  12.7. Gates: Chromium layout (level, suite) 171, canvas and journeys 75 pass and 6 skipped, editor unit (level, app)
+  303.

@@ -1,11 +1,12 @@
 <!--
-  The document's top bar, essentials only: Back, the level's name, the view switcher, Problems and Share when they
+  The document's top bar, essentials only: Back, the document's name and beside it where the view is (`place`: the
+  Level view's level picker), the view switcher, Problems and Share when they
   apply (`tools`), Undo and Redo as icon buttons, and Save, the one
   primary button, which also says where the level stands: "Save" with changes to keep, "Saving…" while it writes,
   "Saved" when nothing is left to keep. The file's path and format are not here (the level's Details on Home has
   them); the bar carries the path as `data-path` for whoever needs it without reading it. Undo and Redo are named with
   the step they act on and are disabled when there is none; Save and Back wait while a save or a conflict choice runs.
-  The name truncates on a narrow screen and the buttons keep their size. On a phone the bar is two rows, so nothing
+  The name truncates on a narrow screen and the buttons keep their size. On a phone and an upright iPad the bar is two rows, so nothing
   shrinks below 44 px: Back, the name and Save on top; the switcher, the tools, Undo and Redo below. The heading takes
   focus when the bar appears: the page changed.
 -->
@@ -25,10 +26,12 @@ interface Props {
   redoLabel: string | undefined
   /** Renames the level; without it the name is plain text. Tapping the name opens the rename dialog. */
   onrename?: (() => void) | undefined
-  /** A phone: the bar takes two rows. */
+  /** A phone or an upright iPad: the bar takes two rows. */
   compact?: boolean
   /** The view switcher. */
   switcher?: Snippet | undefined
+  /** Where in the document the open view is, beside the name: the Level view's level picker. */
+  place?: Snippet | undefined
   /** Problems and Share, where they apply. */
   tools?: Snippet | undefined
   /** A save or a conflict choice is running: Save, and Back (which would close the document under it), wait. */
@@ -54,6 +57,7 @@ const {
   compact = false,
   onrename,
   switcher,
+  place,
   tools,
   autofocus = true,
   onfocused,
@@ -76,13 +80,16 @@ onMount(() => {
 
 <div class="bar" data-testid="document-bar" data-path={heading.file} data-compact={compact}>
   <span class="back"><Button disabled={busy} onclick={onback}>Back</Button></span>
-  <h1 tabindex="-1" bind:this={title}>
-    {#if onrename}
-      <button type="button" class="name" title="Rename" onclick={onrename}>{heading.title}</button>
-    {:else}
-      {heading.title}
-    {/if}
-  </h1>
+  <span class="title">
+    <h1 tabindex="-1" bind:this={title}>
+      {#if onrename}
+        <button type="button" class="name" title="Rename" onclick={onrename}><span>{heading.title}</span></button>
+      {:else}
+        {heading.title}
+      {/if}
+    </h1>
+    {#if place}<span class="place">{@render place()}</span>{/if}
+  </span>
   <span class="lower">
     <span class="switch">{@render switcher?.()}</span>
     <span class="tools">
@@ -161,9 +168,26 @@ onMount(() => {
   .save {
     grid-area: save;
   }
-  h1 {
+  /* Both truncate when the bar is tight, the name first (down to a few letters, so it can still be tapped to rename),
+     then the place beside it, so neither is ever covered by the switcher. */
+  .title {
     grid-area: title;
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
     min-width: 0;
+  }
+  .place {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+  .place :global(.trigger) {
+    max-width: 100%;
+    overflow: hidden;
+  }
+  h1 {
+    flex: 0 10 auto;
+    min-width: 3rem;
     margin: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -175,6 +199,7 @@ onMount(() => {
   }
   /* The name looks like the heading it is; it is a button only so a tap can rename it. */
   .name {
+    display: block;
     max-width: 100%;
     min-height: var(--size-hit);
     padding: 0;
@@ -186,6 +211,12 @@ onMount(() => {
     text-overflow: ellipsis;
     white-space: nowrap;
     cursor: text;
+  }
+  /* The words truncate inside their own box, so the button keeps its edge and its words never run past it. */
+  .name span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .name:focus-visible {
     outline: 2px solid var(--focus);

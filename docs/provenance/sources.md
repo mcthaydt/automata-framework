@@ -57,7 +57,7 @@ STANDALONE.2 extends this file to every earlier extraction; until then it holds 
 
 | Asset | Source | Licence |
 | --- | --- | --- |
-| `packages/editor/src/shared/kit/icons/paths.ts`: 24 icon drawings (the editor's tools, history, layers and document actions) | [Lucide](https://lucide.dev), npm `lucide-static` 0.460.0, `icons/*.svg`, copied as the markup inside each svg on 2026-11-06 | ISC (Lucide Contributors; the portions from Feather are MIT, Cole Bemis). The licence asks that its copyright and permission notice appear in copies; the header of `paths.ts` carries the notice |
+| `packages/editor/src/shared/kit/icons/paths.ts`: 27 icon drawings (the editor's tools, history, layers, document actions, the level picker's chevron, Fit and the inspector) | [Lucide](https://lucide.dev), npm `lucide-static` 0.460.0, `icons/*.svg`, copied as the markup inside each svg on 2026-11-06 | ISC (Lucide Contributors; the portions from Feather are MIT, Cole Bemis). The licence asks that its copyright and permission notice appear in copies; the header of `paths.ts` carries the notice |
 
 ## Original assets made in this repository
 

@@ -91,13 +91,13 @@ onDestroy(() => {
           <div class="drawers">
             <button type="button" aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)}>Definitions</button>
             <button type="button" aria-expanded={inspectorOpen} onclick={() => (inspectorOpen = !inspectorOpen)}
-              >Inspector</button
+              >Details</button
             >
           </div>
         {/if}
         {#if selection.def === undefined}
           <div class="none" role="status">
-            <h2>Level fields</h2>
+            <h2>Settings for every level</h2>
             <p>
               Every level carries these fields ({project.levels.length === 1
                 ? '1 level'

@@ -16,9 +16,9 @@ import { switcherControls } from '#src/testing/level-2d/view-switcher.ts'
 // window sizes of Home's layout test, in Chromium, WebKit and Firefox: every control at least 44 px and never clipped,
 // the top bar, the rail and (below wide) the Layers button reachable without scrolling, the canvas given real room and
 // the page never scrolling, the layers reachable, and a rotation that keeps the chosen layer and tool. The editor
-// starts as `main.ts` starts it, over a memory workspace with the Mossgate sample. ED2D.4c4b (step 8) adds the
-// inspector and the dock: 320 px and 148 px in `wide`, drawers and sheets below it, Levels in the toolbar wherever the
-// dock is a sheet, and the short height keeping the tools, Undo, Layers and Export in view.
+// starts as `main.ts` starts it, over a memory workspace with the Mossgate sample. The inspector is a 320 px column in
+// `wide` and a drawer or sheet behind Details below it; the tools float in one pill over the canvas's foot, wholly
+// inside the canvas and the window at every size (G5); the levels are a picker in the top bar (2D slice task 12.3).
 
 const PROJECT = 'mossgate.af2d.json'
 
@@ -61,9 +61,10 @@ async function start(size: EditorSize) {
   return { conditions }
 }
 
+/** A button by its accessible name: its `aria-label` (an icon button) or else its text. */
 const buttonNamed = (root: ParentNode, name: string): HTMLElement => {
   const found = [...root.querySelectorAll<HTMLElement>('button')].find(
-    (candidate) => candidate.textContent?.trim() === name,
+    (candidate) => (candidate.getAttribute('aria-label') ?? candidate.textContent?.trim()) === name,
   )
   if (found === undefined) throw new Error(`no ${name} button`)
   return found
@@ -133,27 +134,21 @@ const region = (name: string): HTMLElement => {
   return found
 }
 
-/** Presses a toolbar button until its region says it is open (a medium dock starts open as a strip). */
-async function openFromToolbar(name: string, regionName: string): Promise<void> {
-  if (region(regionName).dataset.open === 'true') return
-  buttonNamed(byTestId('level-toolbar'), name).click()
-  await arrived()
-  expect(region(regionName).dataset.open).toBe('true')
-}
-
-describe.each(SIZES)('Level view inspector and dock at $name ($width x $height)', (size) => {
-  const sheetDock = size.mode !== 'wide' || size.height < 700
-
-  test('the inspector is a 320 px column in wide and opens from the toolbar below it', async () => {
+describe.each(SIZES)('Level view inspector, tools and levels at $name ($width x $height)', (size) => {
+  test('the inspector is a 320 px column in wide and opens from Details below it', async () => {
     const { conditions } = await start(size)
-    const toolbar = byTestId('level-toolbar')
+    const stage = byTestId('level-view')
+    const details = [...stage.querySelectorAll('button')].filter(
+      (b) => b.getAttribute('aria-label') === 'Details',
+    )
     if (size.mode === 'wide') {
       expect(region('inspector').getBoundingClientRect().width).toBeCloseTo(320, 0)
-      expect([...toolbar.querySelectorAll('button')].some((b) => b.textContent?.trim() === 'Inspector')).toBe(
-        false,
-      )
+      expect(details).toHaveLength(0)
     } else {
-      await openFromToolbar('Inspector', 'inspector')
+      expect(details).toHaveLength(1)
+      ;(details[0] as HTMLElement).click()
+      await arrived()
+      expect(region('inspector').dataset.open).toBe('true')
     }
     const tablist = region('inspector').querySelector<HTMLElement>('[role="tablist"][aria-label="Inspector"]')
     if (tablist === null) throw new Error('no inspector tabs')
@@ -164,26 +159,36 @@ describe.each(SIZES)('Level view inspector and dock at $name ($width x $height)'
     await page.screenshot({ path: `.vitest/shots/level-inspector-${size.name}.png` })
   })
 
-  test('the dock is a 148 px strip under the canvas in wide, and a sheet behind Levels otherwise', async () => {
+  test('the levels are a picker in the top bar, with no strip of cards', async () => {
     const { conditions } = await start(size)
-    const toolbar = byTestId('level-toolbar')
-    const hasLevels = [...toolbar.querySelectorAll('button')].some((b) => b.textContent?.trim() === 'Levels')
-    expect(hasLevels).toBe(sheetDock)
-    if (sheetDock) {
-      await openFromToolbar('Levels', 'dock')
-    } else {
-      const dock = region('dock')
-      expect(dock.dataset.presentation).toBe('inline')
-      expect(dock.getBoundingClientRect().height).toBeCloseTo(148, 0)
-      expect(dock.getBoundingClientRect().top).toBeGreaterThanOrEqual(
-        byTestId('level-surface').getBoundingClientRect().bottom - 0.5,
-      )
-    }
-    const cards = [...byTestId('level-dock').querySelectorAll<HTMLElement>('button')]
-    expect(cards.length).toBeGreaterThan(0)
-    expectInside(cards[0] as HTMLElement, size)
-    expect(checkLayout(conditions, cards.slice(0, 1))).toEqual([])
-    await page.screenshot({ path: `.vitest/shots/level-dock-${size.name}.png` })
+    expect(document.querySelector('[data-testid="level-dock"]')).toBeNull()
+    const picker = [...byTestId('document-bar').querySelectorAll<HTMLElement>('button')].find((b) =>
+      b.getAttribute('aria-label')?.startsWith('Level: '),
+    )
+    if (picker === undefined) throw new Error('no level picker')
+    expectInside(picker, size)
+    expect(checkLayout(conditions, [picker])).toEqual([])
+    picker.click()
+    await arrived()
+    const items = [...document.querySelectorAll<HTMLElement>('[role="menu"] [role="menuitem"]')]
+    expect(items.map((item) => item.querySelector('.label')?.textContent).at(-1)).toBe('New level')
+    for (const item of items) expectInside(item, size)
+    await page.screenshot({ path: `.vitest/shots/level-picker-${size.name}.png` })
+  })
+
+  test('the tool pill floats wholly inside the canvas and the window, top or foot by size (G5)', async () => {
+    await start(size)
+    const pill = byTestId('level-toolbar')
+    expectInside(pill, size)
+    const surface = byTestId('level-surface').getBoundingClientRect()
+    const box = pill.getBoundingClientRect()
+    expect(box.left).toBeGreaterThanOrEqual(surface.left - 0.5)
+    expect(box.right).toBeLessThanOrEqual(surface.right + 0.5)
+    expect(box.bottom).toBeLessThanOrEqual(surface.bottom + 0.5)
+    // Centred, at the canvas's foot on a phone and at its top from an iPad up (the revised mockup).
+    if (size.mode === 'compact') expect(surface.bottom - box.bottom).toBeLessThan(24)
+    else expect(box.top - surface.top).toBeLessThan(24)
+    expect(Math.abs((box.left + box.right) / 2 - (surface.left + surface.right) / 2)).toBeLessThan(1)
   })
 
   test('the tools, Undo, Layers, the view switcher and Save stay in view', async () => {
@@ -194,8 +199,8 @@ describe.each(SIZES)('Level view inspector and dock at $name ($width x $height)'
     const essentials = [tools[0] as HTMLElement, byTestId('undo'), byTestId('save'), ...switcherControls()]
     if (size.mode !== 'wide') essentials.push(buttonNamed(toolbar, 'Layers'))
     for (const control of essentials) expectInside(control, size)
-    // The toolbar is a declared sideways scroll region (it scrolls rather than squeeze a label), so a narrow canvas
-    // reaches the later tools by scrolling the row: each one comes fully into view without the page moving.
+    // The pill is a declared sideways scroll region (it scrolls rather than squeeze a label), so a canvas too narrow
+    // for it reaches the later tools by scrolling it: each one comes fully into view without the page moving.
     expect(toolbar.dataset.scrollRegion).toBe('both')
     for (const tool of tools) {
       tool.scrollIntoView({ block: 'nearest', inline: 'nearest' })
@@ -215,14 +220,14 @@ describe.each(SIZES)('Level view inspector and dock at $name ($width x $height)'
 })
 
 // macOS draws an overlay scroll bar over a sideways-scrolling row's bottom edge once it scrolls, and WebKit there
-// hit-tests it (about 15 px), so a tool laid out to the row's padding edge loses its lower taps (#272: Mac WebKit,
-// 900 x 600 and 390 x 844; the same class as #265). Linux browsers lay overlay bars out of the hit test, so the rule is
-// held here as a measure.
-describe('Level view tool row', () => {
-  test("keeps its tools clear of an overlay scroll bar's 15 px along its bottom edge", async () => {
+// hit-tests it (about 15 px), so a tool under it loses its lower taps (#272: Mac WebKit, 900 x 600 and 390 x 844; the
+// same class as #265). Linux browsers lay overlay bars out of the hit test, so the rule is held here as a measure: the
+// pill draws no scroll bar at all.
+describe('Level view tool pill', () => {
+  test('draws no scroll bar for an overlay bar to lie over its tools', async () => {
     await start(SIZES.find((size) => size.name === 'phone-portrait') as EditorSize)
     const toolbar = document.querySelector<HTMLElement>('[data-testid="level-toolbar"]') as HTMLElement
-    expect(Number.parseFloat(getComputedStyle(toolbar).paddingBottom)).toBeGreaterThanOrEqual(16)
+    expect(getComputedStyle(toolbar).scrollbarWidth).toBe('none')
   })
 })
 

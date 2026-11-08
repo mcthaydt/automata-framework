@@ -84,18 +84,14 @@ const buttonNamed = (root: ParentNode, name: string): HTMLElement => {
 }
 
 /** Below wide, presses the map's drawer button until its region says it is open. */
-async function openDrawer(size: EditorSize, name: 'Levels' | 'Inspector', regionName: string): Promise<void> {
+async function openDrawer(size: EditorSize, name: 'Levels' | 'Details', regionName: string): Promise<void> {
   if (size.mode === 'wide' || region(regionName).dataset.open === 'true') return
   buttonNamed(view(), name).click()
   await arrived()
   expect(region(regionName).dataset.open).toBe('true')
 }
 
-async function closeDrawer(
-  size: EditorSize,
-  name: 'Levels' | 'Inspector',
-  regionName: string,
-): Promise<void> {
+async function closeDrawer(size: EditorSize, name: 'Levels' | 'Details', regionName: string): Promise<void> {
   if (size.mode === 'wide' || region(regionName).dataset.open !== 'true') return
   buttonNamed(view(), name).click()
   await arrived()
@@ -123,8 +119,7 @@ describe.each(SIZES)('World view at $name ($width x $height)', (size) => {
   test('the map fills the canvas; the panel and inspector controls are full-size; the page never scrolls', async () => {
     const { conditions } = await start(size)
     const tabs = switcherControls()
-    const drawers =
-      size.mode === 'wide' ? [] : ['Levels', 'Inspector'].map((name) => buttonNamed(view(), name))
+    const drawers = size.mode === 'wide' ? [] : ['Levels', 'Details'].map((name) => buttonNamed(view(), name))
     expect(checkLayout(conditions, [...tabs, ...drawers])).toEqual([])
     // The map fills the canvas below any drawer buttons, and the levels sit in the middle of it: the camera is fitted
     // to the box the map really has (review of #310: in wide the map took only its content's height).
@@ -146,7 +141,12 @@ describe.each(SIZES)('World view at $name ($width x $height)', (size) => {
     await openDrawer(size, 'Levels', 'panel')
     const panel = region('panel')
     const layouts = [...panel.querySelectorAll<HTMLElement>('[role="radio"]')]
-    expect(layouts.map((radio) => radio.textContent?.trim())).toEqual(['Free', 'Grid', 'Row', 'Column'])
+    expect(layouts.map((radio) => radio.textContent?.trim())).toEqual([
+      'Anywhere',
+      'In a grid',
+      'In a row',
+      'In a column',
+    ])
     for (const radio of layouts) await expectTarget(radio, size)
     const rows = [...panel.querySelectorAll<HTMLElement>('ul[aria-label="Levels"] button')]
     expect(rows.length).toBeGreaterThan(1)
@@ -156,7 +156,7 @@ describe.each(SIZES)('World view at $name ($width x $height)', (size) => {
     await arrived()
     await closeDrawer(size, 'Levels', 'panel')
 
-    await openDrawer(size, 'Inspector', 'inspector')
+    await openDrawer(size, 'Details', 'inspector')
     if (size.mode !== 'wide') {
       // With the inspector open the levels fit the part of the map it leaves uncovered, and Fit is still a full-size
       // target in view (review of #328; plan ED2D.8b decision 2).
