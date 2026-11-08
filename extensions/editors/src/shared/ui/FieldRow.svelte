@@ -6,8 +6,10 @@
 <script lang="ts">
 interface Props {
   label: string
-  kind: 'number' | 'text'
+  kind: 'number' | 'text' | 'choice'
   value: number | string
+  /** The choices of a `choice` field, each with the words shown for it. */
+  options?: readonly { readonly value: string; readonly label: string }[] | undefined
   unit?: string | undefined
   min?: number | undefined
   max?: number | undefined
@@ -17,7 +19,19 @@ interface Props {
   onchange: (value: number | string) => void
 }
 
-const { label, kind, value, unit, min, max, step, disabled = false, problem, onchange }: Props = $props()
+const {
+  label,
+  kind,
+  value,
+  options = [],
+  unit,
+  min,
+  max,
+  step,
+  disabled = false,
+  problem,
+  onchange,
+}: Props = $props()
 let refusal = $state<string | undefined>()
 const id = `field-${Math.random().toString(36).slice(2)}`
 
@@ -49,6 +63,18 @@ function commit(event: Event & { currentTarget: HTMLInputElement }): void {
 <div class="row">
   <label for={id}>{label}</label>
   <span class="input">
+    {#if kind === 'choice'}
+      <select
+        {id}
+        {disabled}
+        value={String(value)}
+        onchange={(event) => {
+          if (event.currentTarget.value !== value) onchange(event.currentTarget.value)
+        }}
+      >
+        {#each options as option (option.value)}<option value={option.value}>{option.label}</option>{/each}
+      </select>
+    {:else}
     <input
       {id}
       type={kind === 'number' ? 'number' : 'text'}
@@ -64,6 +90,7 @@ function commit(event: Event & { currentTarget: HTMLInputElement }): void {
         if (event.key === 'Enter') event.currentTarget.blur()
       }}
     />
+    {/if}
     {#if unit !== undefined}<span class="unit">{unit}</span>{/if}
   </span>
   {#if refusal !== undefined || problem !== undefined}
@@ -87,7 +114,8 @@ function commit(event: Event & { currentTarget: HTMLInputElement }): void {
     align-items: center;
     gap: var(--space-2);
   }
-  input {
+  input,
+  select {
     width: 8rem;
     min-height: var(--size-hit);
     padding: 0 var(--space-3);
@@ -96,6 +124,10 @@ function commit(event: Event & { currentTarget: HTMLInputElement }): void {
     background: var(--color-bg-field);
     color: var(--color-text-primary);
     font: var(--text-body-13);
+  }
+  select {
+    width: auto;
+    min-width: 8rem;
   }
   input[aria-invalid='true'] {
     border-color: var(--color-state-bad);

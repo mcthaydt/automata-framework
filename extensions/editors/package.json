@@ -25,6 +25,7 @@
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "dependencies": {
+    "@automata/audio-synth": "workspace:*",
     "@automata/editor": "workspace:*",
     "@automata/feel": "workspace:*",
     "svelte": "5.57.1",

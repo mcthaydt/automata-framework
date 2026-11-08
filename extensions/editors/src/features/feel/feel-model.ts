@@ -4,7 +4,10 @@
 
 import type { ContentEdit } from '@automata/editor/kit/documents'
 import { DEFAULT_LIMITS, type FeelContent, type FeelEntry, type Limits } from '@automata/feel'
+import { eventWords } from '../../shared/event-words.ts'
 import type { Problem } from '../../shared/toml-session.ts'
+
+export { eventWords }
 
 export type Channel = 'camera' | 'pose' | 'visual' | 'word' | 'haptic' | 'audio'
 
@@ -80,14 +83,6 @@ const ms = (key: string, label: string, value: number): EffectField => ({
   value,
 })
 const text = (key: string, label: string, value: string): EffectField => ({ key, label, kind: 'text', value })
-
-/** An event id in words: `player.hit` is "player hit", `door.*` is "any door event", `*` is "anything". */
-export function eventWords(on: string): string {
-  const words = (part: string): string => part.replace(/[._-]+/g, ' ').trim()
-  if (on.trim() === '*') return 'anything'
-  if (on.endsWith('*')) return `any ${words(on.slice(0, -1))} event`
-  return words(on)
-}
 
 function visualLine(row: NonNullable<FeelEntry['visual']>[number], index: number): EffectLine {
   if (row.flash !== undefined)
