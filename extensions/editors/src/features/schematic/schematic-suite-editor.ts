@@ -6,7 +6,7 @@ import {
   type SuiteEditor,
   type SuiteUndo,
 } from '@automata/editor/kit/ports'
-import { canvas, panel, status } from './SchematicRegions.svelte'
+import { canvas, inspector, panel, status } from './SchematicRegions.svelte'
 import { findFacts } from './schematic-facts.ts'
 import { SchematicSession, scenesOf } from './schematic-session.svelte.ts'
 
@@ -56,7 +56,7 @@ export function createSchematic(options: SchematicOptions = {}): SuiteEditor<Sch
       await session.select(session.scenes[0] ?? 'main')
       return session
     },
-    regions: { panel, canvas, status },
+    regions: { panel, canvas, inspector, status },
     undo: undoOf,
     ask: askOf,
   })

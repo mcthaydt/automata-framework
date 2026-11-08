@@ -1,0 +1,192 @@
+// A switch's tables rewritten in the behaviour file's text, and nothing else. The kit's patch writer is exact for a value
+// (one literal, one span) but cannot yet add or remove an item of an array of tables that sits inside another one, which
+// is how every switch's conditions and actions are written. So a structural change to a switch (a condition or an action
+// added or taken out, a "not", a new or removed switch) replaces that switch's own tables as text, and every byte outside
+// them stays. The caller reads the result back and compares it with the value it meant, so a text this cannot place is
+// refused, never written wrong. A comment inside the replaced tables goes with them; a comment above them stays.
+import { openDocument } from '@automata/editor/kit/documents'
+import type { Transition } from '@automata/systems/sim'
+import { stringify } from 'smol-toml'
+
+interface Header {
+  /** The 0-based line of the `[table]` or `[[table]]` header. */
+  readonly line: number
+  /** The dotted name inside the brackets. */
+  readonly name: string
+  readonly array: boolean
+}
+
+const HEADER = /^\s*(\[\[?)\s*([^\][]+?)\s*\]\]?\s*(#.*)?$/
+
+/** Every table header outside a multi-line string, in file order. */
+function headersOf(lines: readonly string[]): Header[] {
+  const found: Header[] = []
+  let open: string | undefined
+  lines.forEach((line, i) => {
+    if (open === undefined) {
+      const match = HEADER.exec(line)
+      if (match?.[1] !== undefined && match[2] !== undefined)
+        found.push({ line: i, name: match[2], array: match[1] === '[[' })
+    }
+    for (const fence of ['"""', "'''"]) {
+      const count = line.split(fence).length - 1
+      if (open === undefined && count % 2 === 1) open = fence
+      else if (open === fence && count % 2 === 1) open = undefined
+    }
+  })
+  return found
+}
+
+const SWITCH = 'agents.transitions'
+
+interface Place {
+  /** The first line of the switch's own table. */
+  readonly start: number
+  /** One past its last line (its sub-tables included, the blank lines and comments after it not). */
+  readonly end: number
+}
+
+/** The lines that hold character `agent`'s switch `index`, or where a new one goes (`index` past the last). */
+function locate(
+  lines: readonly string[],
+  agent: number,
+  index: number,
+): Place | { readonly at: number } | undefined {
+  const headers = headersOf(lines)
+  const owners = headers.filter((h) => h.name === 'agents' && h.array)
+  const owner = owners[agent]
+  if (owner === undefined) return undefined
+  const ownerEnd = owners[agent + 1]?.line ?? lines.length
+  const mine = headers.filter((h) => h.line > owner.line && h.line < ownerEnd)
+  // Past the owner's last table that belongs to the file's other parts, so a new table never lands in someone else's.
+  const inside = mine.filter((h) => h.name === 'agents' || h.name.startsWith('agents.'))
+  const switches = inside.filter((h) => h.name === SWITCH && h.array)
+  const trimmed = (end: number): number => {
+    let at = end
+    while (at > 0 && /^\s*(#.*)?$/.test(lines[at - 1] ?? '')) at -= 1
+    return at
+  }
+  const endAfter = (header: Header): number => {
+    const next = headers.find((h) => h.line > header.line && !h.name.startsWith(`${SWITCH}.`))
+    return trimmed(Math.min(next?.line ?? lines.length, ownerEnd))
+  }
+  const target = switches[index]
+  if (target !== undefined) return { start: target.line, end: endAfter(target) }
+  if (index !== switches.length) return undefined
+  const last = switches[switches.length - 1]
+  if (last !== undefined) return { at: endAfter(last) }
+  const lastInside = inside[inside.length - 1] ?? owner
+  const next = headers.find((h) => h.line > lastInside.line && !h.name.startsWith(`${lastInside.name}.`))
+  return { at: trimmed(Math.min(next?.line ?? lines.length, ownerEnd)) }
+}
+
+/** One switch as the text of its tables, without the empty `[[agents]]` the writer puts first. */
+export function switchTables(switchDef: Transition): string[] {
+  const clean = JSON.parse(JSON.stringify(switchDef)) as Record<string, unknown>
+  const text = stringify({ agents: [{ transitions: [clean] }] })
+  const lines = text.split('\n').slice(1)
+  while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop()
+  return lines
+}
+
+function splice(text: string, from: number, to: number, put: readonly string[]): string {
+  const lines = text.split('\n')
+  lines.splice(from, to - from, ...put)
+  return lines.join('\n')
+}
+
+/** The text with character `agent`'s switch `index` written as `next`, or `undefined` when the text has no such switch. */
+export function replaceSwitchText(
+  text: string,
+  agent: number,
+  index: number,
+  next: Transition,
+): string | undefined {
+  const place = locate(text.split('\n'), agent, index)
+  if (place === undefined || !('start' in place)) return undefined
+  return splice(text, place.start, place.end, switchTables(next))
+}
+
+/** The text without that switch (and the blank line that set it apart), or `undefined` when there is no such switch. */
+export function removeSwitchText(text: string, agent: number, index: number): string | undefined {
+  const lines = text.split('\n')
+  const place = locate(lines, agent, index)
+  if (place === undefined || !('start' in place)) return undefined
+  const after = place.end < lines.length && (lines[place.end] ?? '').trim() === '' ? place.end + 1 : place.end
+  return splice(text, place.start, after, [])
+}
+
+/** The text with a new switch after character `agent`'s last, or `undefined` when there is no such character. */
+export function appendSwitchText(
+  text: string,
+  agent: number,
+  switchDef: Transition,
+  count: number,
+): string | undefined {
+  const lines = text.split('\n')
+  const place = locate(lines, agent, count)
+  if (place === undefined || !('at' in place)) return undefined
+  return splice(text, place.at, place.at, ['', ...switchTables(switchDef)])
+}
+
+// ── The change, checked ───────────────────────────────────────────────────────────────────────────────────────
+
+export type SwitchChange =
+  | { readonly kind: 'replace'; readonly agent: number; readonly index: number; readonly next: Transition }
+  | { readonly kind: 'remove'; readonly agent: number; readonly index: number }
+  | { readonly kind: 'add'; readonly agent: number; readonly next: Transition }
+
+/** A value as text with its keys in order, so two values that read the same compare the same. */
+function canonical(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`
+  if (typeof value === 'object' && value !== null)
+    return `{${Object.keys(value)
+      .sort()
+      .filter((key) => (value as Record<string, unknown>)[key] !== undefined)
+      .map((key) => `${JSON.stringify(key)}:${canonical((value as Record<string, unknown>)[key])}`)
+      .join(',')}}`
+  return JSON.stringify(value) ?? 'null'
+}
+
+const NOT_FOUND = 'That part of the file could not be found, so nothing was changed.'
+
+/**
+ * The file's text with one switch replaced, removed or added, or why not. The result is read back and must hold exactly
+ * the file as it was with that one change, so a text this cannot place is refused and never written.
+ */
+export function changeSwitchText(
+  path: string,
+  text: string,
+  change: SwitchChange,
+): { readonly text: string } | { readonly refused: string } {
+  let intended: Record<string, unknown>
+  try {
+    intended = openDocument(path, text).value() as Record<string, unknown>
+  } catch {
+    return { refused: 'This file has a mistake, so it is read only until the mistake is fixed.' }
+  }
+  const owners = intended.agents
+  const owner = Array.isArray(owners)
+    ? (owners[change.agent] as Record<string, unknown> | undefined)
+    : undefined
+  const list = owner?.transitions
+  if (owner === undefined || !Array.isArray(list)) return { refused: NOT_FOUND }
+  let next: string | undefined
+  if (change.kind === 'replace') {
+    next = replaceSwitchText(text, change.agent, change.index, change.next)
+    list[change.index] = JSON.parse(JSON.stringify(change.next))
+  } else if (change.kind === 'remove') {
+    next = removeSwitchText(text, change.agent, change.index)
+    list.splice(change.index, 1)
+  } else {
+    next = appendSwitchText(text, change.agent, change.next, list.length)
+    list.push(JSON.parse(JSON.stringify(change.next)))
+  }
+  if (next === undefined) return { refused: NOT_FOUND }
+  try {
+    if (canonical(openDocument(path, next).value()) === canonical(intended)) return { text: next }
+  } catch {
+    // fall through
+  }
+  return { refused: NOT_FOUND }
+}

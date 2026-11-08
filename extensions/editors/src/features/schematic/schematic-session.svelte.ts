@@ -6,7 +6,7 @@ import type { ContentEdit } from '@automata/editor/kit/documents'
 import type { SuitePorts } from '@automata/editor/kit/ports'
 import { type NavGraph, navGraphSchema } from '@automata/nav/sim'
 import { type PuzzleDef, puzzleDefShape } from '@automata/puzzle/sim'
-import { type AgentDef, type SystemsDef, systemsDefShape } from '@automata/systems/sim'
+import { type AgentDef, type SystemsDef, systemsDefShape, type Transition } from '@automata/systems/sim'
 import { contentOf } from '../../shared/content-session.svelte.ts'
 import {
   type Outcome,
@@ -15,8 +15,18 @@ import {
   type TomlRead,
   type TomlSession,
 } from '../../shared/toml-session.ts'
+import {
+  addModeEdits,
+  diffEdits,
+  newSwitch,
+  renameAgentEdits,
+  renameModeEdits,
+  reorderEdits,
+  sameShape,
+} from './schematic-edits.ts'
 import { schematicProblems } from './schematic-problems.ts'
 import { newAgent, newSystemsFile, systemsFileText } from './starter.ts'
+import { changeSwitchText, type SwitchChange } from './switch-text.ts'
 
 /** What is selected on a character: a mode, or a switch by its place in the file. */
 export type Selection =
@@ -166,6 +176,94 @@ export class SchematicSession {
     )
     this.message = outcome.ok ? undefined : outcome.message
     return outcome
+  }
+
+  /** One character's switch replaced, removed or added as one undo step: the text of its own tables only (`switch-text.ts`). */
+  async changeSwitch(label: string, change: SwitchChange): Promise<Outcome> {
+    const { systems } = this.files
+    const text = systems.history.state.text
+    const outcome: Outcome = await (async () => {
+      if (text === undefined) return { ok: false as const, message: 'There is no file to change yet.' }
+      const result = changeSwitchText(systems.path, text, change)
+      return 'refused' in result
+        ? { ok: false as const, message: result.refused }
+        : systems.accept(result.text, label)
+    })()
+    this.message = outcome.ok ? undefined : outcome.message
+    return outcome
+  }
+
+  /**
+   * Character `agent`'s switch `index` made `next`. When only numbers and words differ, each is written into its own
+   * literal; when a condition or an action came or went, the switch's tables are rewritten (`switch-text.ts`).
+   */
+  async setSwitch(label: string, agent: number, index: number, next: Transition): Promise<Outcome> {
+    const before = this.def?.agents[agent]?.transitions[index]
+    if (before === undefined) return this.#refuse('That switch is not in this character any more.')
+    if (sameShape(before, next))
+      return this.change(label, diffEdits(['agents', agent, 'transitions', index], before, next))
+    return this.changeSwitch(label, { kind: 'replace', agent, index, next })
+  }
+
+  async removeSwitch(agent: number, index: number): Promise<Outcome> {
+    const outcome = await this.changeSwitch('Remove a switch', { kind: 'remove', agent, index })
+    if (outcome.ok) this.selected = undefined
+    return outcome
+  }
+
+  /** A new switch out of `from`, checked first and always, until it is given a condition; it is selected. */
+  async addSwitch(agent: number, from: string, to: string): Promise<Outcome> {
+    const outcome = await this.changeSwitch('Add a switch', { kind: 'add', agent, next: newSwitch(from, to) })
+    if (outcome.ok) {
+      const count = this.def?.agents[agent]?.transitions.length ?? 0
+      this.selected = { kind: 'switch', index: count - 1 }
+    }
+    return outcome
+  }
+
+  /** Moves a switch to place `to` inside its own group. */
+  async moveSwitch(agent: number, index: number, to: number): Promise<Outcome> {
+    const character = this.def?.agents[agent]
+    if (character === undefined) return this.#refuse('That character is not in this scene any more.')
+    return this.change('Change the order', reorderEdits(character, agent, index, to))
+  }
+
+  async renameMode(agent: number, from: string, to: string): Promise<Outcome> {
+    const def = this.def
+    if (def === undefined)
+      return this.#refuse('This file has a mistake, so it is read only until the mistake is fixed.')
+    const edits = renameModeEdits(def, agent, from, to)
+    if ('refused' in edits) return this.#refuse(edits.refused)
+    const outcome = await this.change(`Rename ${from} to ${to}`, edits)
+    if (outcome.ok && this.selected?.kind === 'mode' && this.selected.mode === from)
+      this.selected = { kind: 'mode', mode: to }
+    return outcome
+  }
+
+  async renameCharacter(from: string, to: string): Promise<Outcome> {
+    const def = this.def
+    if (def === undefined)
+      return this.#refuse('This file has a mistake, so it is read only until the mistake is fixed.')
+    const edits = renameAgentEdits(def, from, to)
+    if ('refused' in edits) return this.#refuse(edits.refused)
+    return this.change(`Rename ${from} to ${to}`, edits)
+  }
+
+  /** A new mode, named "mode 2" and so on, that stands still until it is given a speed. */
+  async addMode(agent: number): Promise<Outcome> {
+    const character = this.def?.agents[agent]
+    if (character === undefined) return this.#refuse('That character is not in this scene any more.')
+    let n = character.modes.length + 1
+    while (character.modes.includes(`mode-${n}`)) n += 1
+    const name = `mode-${n}`
+    const outcome = await this.change('Add a mode', addModeEdits(agent, name))
+    if (outcome.ok) this.selected = { kind: 'mode', mode: name }
+    return outcome
+  }
+
+  #refuse(message: string): Outcome {
+    this.message = message
+    return { ok: false, message }
   }
 
   /** Adds a character; the first one makes the scene's file. */
