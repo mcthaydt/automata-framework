@@ -5,7 +5,7 @@
   and the page never moves. Nothing in it can be edited.
 -->
 <script lang="ts">
-import { textWindow } from '../../shared/level-2d/documents/open-flow-model'
+import { textWindow } from '../../shared/level-2d/session/open-flow-model'
 
 interface Props {
   text: string

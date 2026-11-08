@@ -13,7 +13,7 @@ import { shellModeOf } from '../../shared/kit/shell/shell-mode'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import Segmented from '../../shared/kit/widgets/Segmented.svelte'
 import type { Camera } from '../../shared/level-2d/canvas/level-view'
-import { projectHistory } from '../../shared/level-2d/model/edit-history'
+import { projectHistory } from '../../shared/level-2d/editor/edit-history'
 import type { Project, Size, WorldLayout } from '../../shared/level-2d/model/project-types'
 import { addLevel } from '../../shared/level-2d/model/world/level-edits'
 import { setWorldLayout } from '../../shared/level-2d/model/world/world-layout'
@@ -25,7 +25,7 @@ import {
   uncoveredArea,
   worldRects,
 } from '../../shared/level-2d/model/world/world-model'
-import type { ViewProps } from '../document/view-props'
+import type { ViewProps } from '../../shared/level-2d/session/view-props'
 import WorldCanvas from './WorldCanvas.svelte'
 import WorldInspector from './WorldInspector.svelte'
 import { createWorldCamera } from './world-camera'
