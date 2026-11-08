@@ -73,23 +73,23 @@ function rootPackageManager(): string {
 /** The same pins the workspace uses (docs/versions.md), so the smoke project never drifts from them. */
 function toolVersions(): ToolVersions {
   const rootManifest = manifestOf('.')
-  const ui = manifestOf('packages/automata')
+  const browser = manifestOf('packages/automata')
   const pin = (found: string | undefined, name: string): string => {
     if (found === undefined) throw new Error(`no workspace pin for ${name}`)
     return found
   }
   return {
     typescript: pin(rootManifest.devDependencies?.typescript, 'typescript'),
-    typescript6: pin(ui.devDependencies?.typescript, 'typescript 6'),
-    vite: pin(ui.devDependencies?.vite, 'vite'),
-    svelte: pin(ui.devDependencies?.svelte, 'svelte'),
+    typescript6: pin(browser.devDependencies?.typescript, 'typescript 6'),
+    vite: pin(browser.devDependencies?.vite, 'vite'),
+    svelte: pin(browser.devDependencies?.svelte, 'svelte'),
     vitePluginSvelte: pin(
-      ui.devDependencies?.['@sveltejs/vite-plugin-svelte'],
+      browser.devDependencies?.['@sveltejs/vite-plugin-svelte'],
       '@sveltejs/vite-plugin-svelte',
     ),
     zod: pin(manifestOf('packages/sim').dependencies?.zod, 'zod'),
     typesNode: pin(manifestOf('packages/tools').devDependencies?.['@types/node'], '@types/node'),
-    pixi: pin(manifestOf('packages/automata').devDependencies?.['pixi.js'], 'pixi.js'),
+    pixi: pin(browser.devDependencies?.['pixi.js'], 'pixi.js'),
   }
 }
 
