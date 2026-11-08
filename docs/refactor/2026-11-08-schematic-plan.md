@@ -167,8 +167,8 @@ patrol scene and its Task 16 `examples/2d-story`. Tasks 1 to 7 and 9 to 13 need 
 
 **Files:** `FairCanvas.svelte`, `fair-words.ts`; tests (with the memory checks port).
 
-- [ ] **Step 1: Failing tests:** scenarios as sentences; thresholds as "at least [70] %"; Check now runs the declared check by id and shows "Fair: 3 of 3 checks pass" or the failing scenario in words; the check is found as a `[[check]]` row no file row names, and a test proves a value edit runs no fair-play check (H9); a result is stale after an edit; no declared check, or no pipelines extension, shows "Fair play needs two things from your game's code: …" with the link.
-- [ ] **Steps 2 to 4:** see them fail; implement; pass. **Step 5:** Commit.
+- [x] **Step 1: Failing tests:** scenarios as sentences; thresholds as "at least [70] %"; Check now runs the declared check by id and shows "Fair: 3 of 3 checks pass" or the failing scenario in words; the check is found as a `[[check]]` row no file row names, and a test proves a value edit runs no fair-play check (H9); a result is stale after an edit; no declared check, or no pipelines extension, shows "Fair play needs two things from your game's code: …" with the link.
+- [x] **Steps 2 to 4:** see them fail; implement; pass. **Step 5:** Commit `feat(editors): Schematic's fair play`.
 
 ### Task 13: The puzzle
 
@@ -272,3 +272,9 @@ template's controls. It moves no other 3D hash, golden or replay.
   Ruling: seconds are the sim tick over `tickHz` (new optional field on `installDebug`, default 60), computed in debug.
   Evidence: editors unit 315 pass, debug unit 74 pass, editor-package tuner-game and kit tests pass, Chromium layout 8 pass
   (6 diagram, 2 Watch at 390x844 and 820x1180), typechecks and biome clean.
+- 2026-11-08, Task 12 (Fair play) done in the editor: `FairCanvas`, `fair-words.ts`, the session's `checkFair` and
+  `setFairNumber`. The check is the `[[check]]` row with id `fair-play`, which no file row names (a threshold edit runs
+  none: tested). The check prints the suite's own shape (`{ findings, measure }`, `argv-checks.ts`), not the pipeline's
+  `{ id, ok, detail }` list, so a game's `fair-play` check is a small command of the game's own (Task 14 writes
+  `examples/2d-story`'s). The run passes the current file as a candidate, so it plays what is on screen, saved or not.
+  Editors unit 327 pass.

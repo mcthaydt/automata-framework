@@ -3,7 +3,7 @@
 // `content/puzzles/<scene>.toml`). The session outlives the view, so leaving Schematic and coming back finds the same
 // thing chosen. `revision` only tells Svelte that a history moved.
 import type { ContentEdit } from '@automata/editor/kit/documents'
-import type { SuitePorts } from '@automata/editor/kit/ports'
+import type { CheckResult, SuitePorts } from '@automata/editor/kit/ports'
 import { type NavGraph, navGraphSchema } from '@automata/nav/sim'
 import { type PuzzleDef, puzzleDefShape } from '@automata/puzzle/sim'
 import { type AgentDef, type SystemsDef, systemsDefShape, type Transition } from '@automata/systems/sim'
@@ -16,6 +16,7 @@ import {
   type TomlRead,
   type TomlSession,
 } from '../../shared/toml-session.ts'
+import { FAIR_CHECK } from './fair-words.ts'
 import {
   addPlaceEdits,
   connectEdits,
@@ -103,6 +104,10 @@ export class SchematicSession {
   selected: Selection | undefined = $state()
   /** Why the last change was not made, until the next one is. */
   message: string | undefined = $state()
+  /** The last fair-play run: what it found, and the behaviour file's text it ran on. */
+  fair: { readonly result: CheckResult; readonly text: string } | undefined = $state()
+  /** Whether a fair-play run is going. */
+  fairRunning: boolean = $state(false)
   #files: SceneFiles | undefined = $state.raw()
   readonly #listeners = new Set<() => void>()
   readonly #unsubscribe: (() => void)[] = []
@@ -423,6 +428,46 @@ export class SchematicSession {
       'refused' in result ? { ok: false, message: result.refused } : await systems.accept(result.text, label)
     this.message = outcome.ok ? undefined : outcome.message
     return outcome
+  }
+
+  /** Whether the game declares the check Fair play runs. */
+  get fairAvailable(): boolean {
+    return this.ports.checks.declared().some((check) => check.id === FAIR_CHECK)
+  }
+
+  /** Whether the file has changed since the last fair-play run. */
+  get fairStale(): boolean {
+    void this.#revision
+    return this.fair !== undefined && this.fair.text !== this.files.systems.history.state.text
+  }
+
+  /**
+   * Runs the game's fair-play check by its id, on the file as it is now. It runs only here, never after a write, because
+   * it plays the whole scene many times.
+   */
+  async checkFair(): Promise<void> {
+    const { systems } = this.files
+    const text = systems.history.state.text
+    if (text === undefined || this.fairRunning) return
+    this.fairRunning = true
+    try {
+      const run = await this.ports.checks.run({
+        checks: [FAIR_CHECK],
+        candidates: [{ path: systems.path, text }],
+      })
+      const result = (await run.result())[0]
+      if (result !== undefined) this.fair = { result, text }
+    } finally {
+      this.fairRunning = false
+    }
+  }
+
+  /** One of the fairness thresholds, or a scenario's `within`, `probability` or `seeds`: a value in its own literal. */
+  async setFairNumber(label: string, keyPath: readonly (string | number)[], value: number): Promise<Outcome> {
+    let at: unknown = this.def
+    for (const key of keyPath) at = (at as Record<string | number, unknown> | undefined)?.[key]
+    if (typeof at !== 'number') return this.#refuse('That is not in this scene any more.')
+    return this.change(label, [{ keyPath, expected: at, set: value }])
   }
 
   /** A number in the Numbers page. */
