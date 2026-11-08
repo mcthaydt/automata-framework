@@ -1,4 +1,4 @@
-// Usage: node tooling/check-style/src/cli.ts [--plan-comments] <package-src>... [--role-layout <game-src>...] [--comments-only <root>...] [--test-imports <root>...]
+// Usage: node tooling/check-style/src/cli.ts [--plan-comments] <package-src>... [--role-layout <game-src>...] [--comments-only <root>...] [--test-imports <root>...] [--tokens <kit-folder> <root>...]
 // --plan-comments also flags comments that cite a milestone, task id or spec section (opt-in, for the roots passed).
 // Checks every production .ts and .svelte file (and, with --plan-comments, .css comments). Tests are exempt by folder: anything under a tests/ folder (where
 // every moved package keeps them). A testing/ folder (published test helpers) ships, so its comments are read under
@@ -15,6 +15,7 @@ import { planCommentFindings } from './plan-comments.ts'
 import { checkFile, checkGameRoot, type StyleFinding } from './style.ts'
 import { checkSvelte } from './svelte.ts'
 import { testImportFindings } from './test-imports.ts'
+import { definedTokens, findUnknownTokens } from './tokens.ts'
 
 /** Tests are exempt; the rest are build output and dependencies, which no one wrote by hand. */
 const SKIPPED_FOLDERS: ReadonlySet<string> = new Set([
@@ -75,17 +76,22 @@ const packageRoots: string[] = []
 const gameRoots: string[] = []
 const commentRoots: string[] = []
 const testRoots: string[] = []
+const tokenArgs: string[] = []
 let group = packageRoots
 for (const arg of process.argv.slice(2)) {
   if (arg === '--plan-comments') continue
   if (arg === '--role-layout') group = gameRoots
   else if (arg === '--comments-only') group = commentRoots
   else if (arg === '--test-imports') group = testRoots
+  else if (arg === '--tokens') group = tokenArgs
   else group.push(arg)
 }
-if (packageRoots.length + gameRoots.length + commentRoots.length + testRoots.length === 0) {
+if (
+  packageRoots.length + gameRoots.length + commentRoots.length + testRoots.length + tokenArgs.length ===
+  0
+) {
   console.error(
-    'usage: check-style [--plan-comments] <package-src>... [--role-layout <game-src>...] [--comments-only <root>...] [--test-imports <root>...]',
+    'usage: check-style [--plan-comments] <package-src>... [--role-layout <game-src>...] [--comments-only <root>...] [--test-imports <root>...] [--tokens <kit-folder> <root>...]',
   )
   process.exit(2)
 }
@@ -137,9 +143,37 @@ function collectTests(dir: string, inTests: boolean, out: string[]): void {
 const testFiles: string[] = []
 for (const root of testRoots) collectTests(root, false, testFiles)
 
+/** Stylesheets and components under a root: where a custom property is defined or used. */
+function collectStyled(dir: string, out: string[]): void {
+  for (const name of readdirSync(dir).sort()) {
+    const path = join(dir, name)
+    if (statSync(path).isDirectory()) {
+      if (!SKIPPED_FOLDERS.has(name)) collectStyled(path, out)
+    } else if (/\.(css|svelte)$/.test(name) && !name.endsWith('.test.svelte')) out.push(path)
+  }
+}
+// `--tokens <kit-folder> <root>...`: the kit folder says which names are tokens (every name its stylesheets and
+// components define, the shell's `style:--dock-lift` too); each root's files may use those and any a root defines.
+const [tokenKit, ...tokenRoots] = tokenArgs
+const tokenFindings: StyleFinding[] = []
+let tokenFileCount = 0
+if (tokenKit !== undefined) {
+  const kitFiles: string[] = []
+  collectStyled(tokenKit, kitFiles)
+  const used: string[] = []
+  for (const root of tokenRoots) collectStyled(root, used)
+  // A property one component sets for the ones inside it (`--plan-foot`) is the package's own, not a missing token.
+  const known = new Set(
+    [...kitFiles, ...used].flatMap((path) => [...definedTokens(readFileSync(path, 'utf8'))]),
+  )
+  tokenFileCount = used.length
+  for (const path of used) tokenFindings.push(...findUnknownTokens(path, readFileSync(path, 'utf8'), known))
+}
+
 const findings: StyleFinding[] = [
+  ...tokenFindings,
   ...gameRoots.flatMap((root) => checkGameRoot(root)),
   ...files.flatMap(({ path, gameRoot, commentsOnly }) => findingsFor(path, gameRoot, commentsOnly === true)),
   ...testFiles.flatMap((path) => testImportFindings(path, readFileSync(path, 'utf8'))),
 ]
-report(findings, files.length + testFiles.length)
+report(findings, files.length + testFiles.length + tokenFileCount)

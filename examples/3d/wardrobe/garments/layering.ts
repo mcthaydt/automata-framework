@@ -3,10 +3,10 @@
 // outfit and every top put on under it by a texel's ease a layer, so a long top hangs over the widest
 // trousers with its hem clear of them.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/streetwear.ts at a1f7246 (`legAt`,
+// The parts here (`legAt`,
 // `GAP`, `Legs`, `legSection`, `legOuter`, `fitLegs`, `seatOf`, `bandOf`, `Outline`, `ringOf`, `sliceOf`,
-// `trouserOutline`, `underneath`, `over`), with AF's strict types; the formulas and their order are the
-// source's.
+// `trouserOutline`, `underneath`, `over`), with AF's strict types; the formulas and their order are
+// unchanged.
 
 import type { Garment, Legs, Measure, Superquadric } from '@automata/3d/figures-kit'
 import {

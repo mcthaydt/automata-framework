@@ -5,8 +5,7 @@
  * is not using the mouse -- or has left it still for two seconds. Never on a
  * menu: a hidden cursor there is a lost player.
  *
- * From FloorFifty `apps/client/src/ui/cursor-policy.ts` at `ac72660`; the
- * screen test reads a `ScreenDef`'s `kind` instead of FloorFifty's screen id.
+ * The screen test reads a `ScreenDef`'s `kind`, not a screen id.
  */
 
 /** How long the pointer must be still before it hides on a gameplay screen. */

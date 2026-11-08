@@ -20,5 +20,7 @@ test.afterEach(async () => {
 
 test('automata editor opens on the game and lists its level', async ({ page }) => {
   await page.goto(editor.url)
-  await expect(page.getByText('Emberwick room').first()).toBeVisible()
+  await expect(
+    page.getByRole('region', { name: 'Levels' }).getByRole('button', { name: 'Room 1' }),
+  ).toBeVisible()
 })

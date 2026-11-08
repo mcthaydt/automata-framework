@@ -19,7 +19,7 @@ export interface LayoutRect {
 const CONTROLS =
   "button, input, select, textarea, summary, a[href], [role='button'], [role='link'], [role='tab'], [tabindex]:not([tabindex='-1'])"
 
-/** Half a pixel of rounding slack, as FloorFifty's checks allow. */
+/** Half a pixel of rounding slack. */
 const SLACK = 0.5
 
 /** A name a problem can be read by: the test id, else the start of the text, else the tag. */

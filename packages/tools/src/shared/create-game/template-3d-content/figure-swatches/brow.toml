@@ -1,0 +1,6 @@
+# `brow`: a colour from the DUEL palette.
+# Colour: DUEL ramp brick, step 0.
+
+ramp = "brick"
+step = 0
+flat = true

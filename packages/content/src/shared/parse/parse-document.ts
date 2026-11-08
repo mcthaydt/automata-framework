@@ -1,6 +1,5 @@
 // Parsing one authored file: TOML first, then the file's Zod schema.
-// Extracted from FloorFifty packages/content/src/parse.ts (`parseFile`, `toDiagnostics`, 122a220) and made
-// generic over any schema. This is the only module that imports the TOML parser, which keeps the format an
+// It is generic over any schema. This is the only module that imports the TOML parser, which keeps the format an
 // authoring detail rather than a runtime dependency.
 
 import { parse as parseToml, TomlDate, TomlError } from 'smol-toml'
@@ -140,7 +139,7 @@ function valueAt(root: unknown, path: readonly PathSegment[]): unknown {
 /**
  * Turns one file's schema failure into diagnostics an author can act on. An unrecognized-keys issue becomes
  * one diagnostic per key, because reporting "two unknown fields" and naming neither is how a typo survives
- * a fix (FloorFifty).
+ * a fix.
  */
 export function schemaDiagnostics(toml: ParsedToml, issues: readonly z.core.$ZodIssue[]): Diagnostic[] {
   return issues.flatMap((issue) => {

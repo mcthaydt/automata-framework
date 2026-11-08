@@ -1,10 +1,10 @@
 // The words players read, as a message catalog for translators.
-// Extracted from FloorFifty packages/content/src/messages.ts (122a220). The TOML stays the source-language
+// The TOML stays the source-language
 // text; every build writes `messages/<source>.json` from it in the inlang message format, keyed
 // `content_<kind>_<id>_<field>` in snake_case. The catalog is derived beside the artifact, never inside it,
 // so it does not move the content hash (editing the text in TOML still does, as any authored change does).
 //
-// Changed from FloorFifty: the fields are the ones a schema marks with `localized()`, not a hand-written
+// The fields are the ones a schema marks with `localized()`, not a hand-written
 // list, and each translation in `content/messages/<lang>.json` is checked to have exactly the source keys.
 
 import type { DataPath, Problem } from '../diagnostics/diagnostic'

@@ -12,7 +12,7 @@ import {
 } from '#src/features/saves/save.schema.ts'
 
 // The save envelope, slot keys, classification and migrations (M5 spec §4.2, §6). The newer-build and passthrough
-// rules are FloorFifty's `common/progress.ts` at `ac72660`; an unreadable slot is kept, never read as empty.
+// rules are the save policy's; an unreadable slot is kept, never read as empty.
 
 const BUILD = 'c0ffee'
 
@@ -175,7 +175,7 @@ describe('migrations', () => {
     expect(readSave(progress, stored({ version: 4 }))).toEqual({ ok: false, reason: 'newer', version: 4 })
   })
 
-  it('keeps a field this build does not know, so a write by this build does not drop it (FloorFifty)', () => {
+  it('keeps a field this build does not know, so a write by this build does not drop it', () => {
     const read = readSave(progress, stored({ data: { name: 'Kite', bestTime: 12, coins: 4, hat: 'red' } }))
     expect(read).toMatchObject({ ok: true, data: { hat: 'red' } })
   })

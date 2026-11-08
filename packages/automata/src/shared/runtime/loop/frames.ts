@@ -14,7 +14,7 @@ export interface FrameInfo {
   paused: boolean
 }
 
-/** The Last Light clock.ts 0.1 s clamp: at most 6 steps at 60 Hz, the rest is dropped */
+/** The 0.1 s clamp: at most 6 steps at 60 Hz, the rest is dropped */
 export const MAX_FRAME_MS = 100
 
 export function liveFrames(): FrameSource {

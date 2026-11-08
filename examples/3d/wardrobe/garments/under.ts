@@ -2,10 +2,10 @@
 // (a shell over the torso's three bones, a sleeve over the arm's two, a leg from the hip through the knee),
 // its seams, and its marks (a zip, a stitch, a welt) laid on a shell as points.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/streetwear.ts at a1f7246 (`Fit`,
+// The parts here (`Fit`,
 // `SEAM`, `under`, `torsoSkin`, `thighShare`, `armSkin`, `legSkin`, `drapeSkin`, `torsoBone`, `local`,
-// `piece`, `skinned`, `stroke`, `onShell`), with AF's strict types; the formulas and their order are the
-// source's. Changed: a garment's painter materials (`own`, `lighter`, `mark`, `flatTone`, from the DUEL
+// `piece`, `skinned`, `stroke`, `onShell`), with AF's strict types; the formulas and their order are
+// unchanged. Changed: a garment's painter materials (`own`, `lighter`, `mark`, `flatTone`, from the DUEL
 // ramps) are swatch variants (build/materials.ts: `own` and `tone` here).
 
 import type { Decal, Fit, Measure, Mesh, Paint, Part, Shell, Wearing, Weight } from '@automata/3d/figures-kit'

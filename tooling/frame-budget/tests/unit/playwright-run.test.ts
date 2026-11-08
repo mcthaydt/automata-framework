@@ -12,6 +12,8 @@ describe('frameBudgetRun: the frame-budget probe alone', () => {
     expect(run.projects?.map((project) => project.name)).toEqual([
       'frame-budget-phone',
       'frame-budget-desktop',
+      'frame-budget-3d-phone',
+      'frame-budget-3d-ipad',
     ])
     for (const project of run.projects ?? []) {
       expect(project.testDir).toBe('tests/e2e')
@@ -28,6 +30,15 @@ describe('frameBudgetRun: the frame-budget probe alone', () => {
         reuseExistingServer: false,
       },
     ])
+  })
+
+  it('measures the 3D look on a Pixel 7 and on an iPad-sized window', () => {
+    const projects = frameBudgetRun(shared).projects ?? []
+    const phone = projects.find((project) => project.name === 'frame-budget-3d-phone')
+    const ipad = projects.find((project) => project.name === 'frame-budget-3d-ipad')
+    expect(phone?.use?.viewport).toEqual({ width: 412, height: 839 })
+    expect(ipad?.use?.viewport).toEqual({ width: 1194, height: 834 })
+    expect(ipad?.use?.channel).toBe('chromium')
   })
 
   it('stays at one worker even when the shared settings ask for more', () => {

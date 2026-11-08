@@ -1,7 +1,6 @@
 <!--
   @component
-  The floating move stick on the touch overlay, from The Last Light `src/input.ts` and
-  `src/ui.ts` at `92e6704`: the stick's origin is where the thumb lands in its zone, and the thumb's offset from it
+  The floating move stick on the touch overlay: the stick's origin is where the thumb lands in its zone, and the thumb's offset from it
   over `TOUCH_STICK_RADIUS_PX` is the vector, clamped to length 1. One finger drives it; others on the zone are
   ignored. The zone captures that finger, so the release always arrives however far the thumb wanders.
 

@@ -9,7 +9,7 @@ import { runGame } from '../harness/run-game.ts'
 // Each journey's game server gets its own port, away from Emberwick's own journeys (6100 to 6300).
 const GAME_PORT = 6410 + Number(process.env.TEST_PARALLEL_INDEX ?? 0)
 
-test('a painted wall, saved, is in the level file, passes the check and reaches the running game', async ({
+test('a painted wall is saved into the level file, passes the check and reaches the running game', async ({
   page,
   game,
   editor,
@@ -28,9 +28,11 @@ test('a painted wall, saved, is in the level file, passes the check and reaches 
 
     await openRoom(page, editor)
     await paintWall(page, { col: 5, row: 2 })
-    await page.getByRole('button', { name: 'Save' }).click()
-    // A save writes four files in order; on a loaded runner that takes longer than the 5 s an expect waits by default.
-    await expect(page.getByText('Saved', { exact: true })).toBeVisible({ timeout: 30_000 })
+    // Each step is saved as it is drawn: four files in order, which on a loaded runner takes longer than the 5 s an
+    // expect waits by default.
+    await expect
+      .poll(() => readFileSync(levelFile, 'utf8'), { timeout: 30_000 })
+      .toContain('"1 .*38 1", "1 .*4 1 .*33 1", "1 .*38 1"')
 
     // On disk: row 2 has a wall at column 5 now (the edge wall, four open cells, the new wall, 33 open, the edge).
     expect(readFileSync(levelFile, 'utf8')).toContain('"1 .*38 1", "1 .*4 1 .*33 1", "1 .*38 1"')

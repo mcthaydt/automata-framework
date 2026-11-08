@@ -1,6 +1,5 @@
-// One pad's state, from FloorFifty `apps/client/src/managers/gamepad-source.ts` at `ac72660`
-// (`readPad`, lines 31–96): a radial deadzone, triggers pressed from half travel, and menu directions from the
-// D-pad or the left stick along its stronger axis. FloorFifty's race intents (fast-fall, reset, hops) stay there.
+// One pad's state: a radial deadzone, triggers pressed from half travel, and menu directions from the
+// D-pad or the left stick along its stronger axis. A game's own intents (jump, reset) stay in the game.
 import type { StickDirection } from '../input-profile.schema.js'
 
 /** The parts of a `Gamepad` read here, so tests and replays can pass plain objects. */
@@ -24,7 +23,7 @@ export interface PadReading {
   readonly nav: ReadonlySet<PadDirection>
 }
 
-/** Radial, so a stick resting slightly off-centre on both axes stays still (FloorFifty line 31). */
+/** Radial, so a stick resting slightly off-centre on both axes stays still. */
 export const DEADZONE = 0.25
 export const TRIGGER_PRESSED = 0.5
 /**

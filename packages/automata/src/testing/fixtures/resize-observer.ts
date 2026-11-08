@@ -1,7 +1,6 @@
 /**
  * jsdom has no ResizeObserver and no layout. Primitives that measure their container (ActionBar,
  * ScrollList) are tested under jsdom by installing this and reporting widths by hand.
- * From FloorFifty `tests/client/support/resize-observer.ts` at 122a220.
  */
 type Callback = (entries: ResizeObserverEntry[], observer: ResizeObserver) => void
 

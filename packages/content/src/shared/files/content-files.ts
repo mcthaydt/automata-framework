@@ -44,7 +44,7 @@ export const readBytesIfPresent = (path: string): Effect.Effect<Uint8Array | und
 /**
  * Every file below `folder`, as `/`-separated paths relative to it, sorted by code unit so the order never
  * depends on the disk or the locale. An absent folder lists nothing: a game that has no songs yet has an
- * empty `content/songs/`, not a broken one (FloorFifty).
+ * empty `content/songs/`, not a broken one.
  */
 export const listFiles = (folder: string): Effect.Effect<string[], FileError> =>
   attempt(folder, async () => {
@@ -61,8 +61,7 @@ export const listFiles = (folder: string): Effect.Effect<string[], FileError> =>
   })
 
 /**
- * Replaces a file so that a reader sees either the old text or the new, never half of it (FloorFifty
- * build.ts `writeAtomically`). The temp file sits beside the target because a rename is only atomic within
+ * Replaces a file so that a reader sees either the old text or the new, never half of it. The temp file sits beside the target because a rename is only atomic within
  * one filesystem, and it is removed whether or not the rename happened.
  */
 export const writeFileAtomically = (

@@ -1,11 +1,11 @@
 // Paraglide's compile of the content catalogs.
 //
-// FloorFifty commits a `project.inlang` naming its locales and the plugin's path in node_modules. Here the
+// A game commits no `project.inlang`: the
 // inlang project is generated for each compile in a temporary folder, from the catalogs the content compiler
 // just checked (the source language first, so it is Paraglide's base locale), so a game commits no project
 // file and no plugin path, and its locales are always the content's languages. A game's own catalogs (its UI
 // text) join through `catalogs`, `{locale}` path patterns relative to the project root, read after the
-// content's so a game key wins as FloorFifty's UI catalog does.
+// content's so a game key wins over the UI catalog.
 //
 // Paraglide's own locale strategies (cookie, localStorage, URL) never run: `baseLocale` only, because the
 // runtime's `Locale` service answers `getLocale` (`bindParaglide`). Paraglide empties the folder it writes to, so it

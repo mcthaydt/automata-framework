@@ -6,8 +6,8 @@ import { type SettingsDef, writeSettings } from '#src/shared/runtime/settings/mi
 import { createSettings, type Settings } from '#src/shared/runtime/settings/settings.manager.ts'
 import { withHostingTest } from '#src/testing/host/page/ruken/hosting-test.ts'
 
-// Settings fields a game keeps on the device instead of in the player's saves (M5 spec §4.5, M5-D4). The cases come
-// from FloorFifty `tests/client/ruken/settings-hosted.test.ts`, "sound stays on the device inside Ruken"
+// Settings fields a game keeps on the device instead of in the player's saves (M5 spec §4.5, M5-D4). The cases:
+// "sound stays on the device inside Ruken"
 // (Owner, 2026-10-10: "muting a Mac must not mute the same player's iPad").
 
 interface Mixed {

@@ -3826,6 +3826,14 @@ interface SuiteWorkspace {
         readonly mtime: number;
     } | undefined>;
     write(path: string, text: string, expected: WriteExpectation): Promise<WriteResult>;
+    readBytes?(path: string): Promise<Uint8Array | undefined>;
+    writeBytes?(path: string, bytes: Uint8Array, expected: WriteExpectation): Promise<WriteResult>;
+    writeAll?(files: readonly {
+        readonly path: string;
+        readonly text: string;
+        readonly expected?: WriteExpectation;
+        readonly force?: boolean;
+    }[]): Promise<WriteResult>;
     remove(path: string, expected: {
         readonly mtime: number;
     }): Promise<WriteResult>;
@@ -3854,6 +3862,7 @@ interface WorkspaceFile {
     readonly gates: readonly string[];
     readonly checks: readonly string[];
     readonly modes: readonly EditMode[];
+    readonly exports?: string | undefined;
     readonly writable: boolean;
     readonly why?: string | undefined;
 }
@@ -4377,6 +4386,7 @@ function createTuner(options?: TunerOptions): SuiteEditor<TunerSuiteSession>;
 interface Levels2dOptions {
     readonly ids: IdSource;
     readonly read?: ((path: string) => Promise<Uint8Array | undefined>) | undefined;
+    readonly objectUrls?: ObjectUrls | undefined;
     readonly canvas?: Component<LevelCanvasProps> | undefined;
 }
 ```
@@ -4388,6 +4398,14 @@ interface Levels2dSession {
     readonly path: string;
     readonly options: Levels2dOptions;
     readonly others: readonly string[];
+    readonly refused: Writable<string | undefined>;
+    readonly conflict: Writable<boolean>;
+    keepMine(): Promise<void>;
+    takeTheirs(): Promise<void>;
+    readonly view: Writable<Levels2dView>;
+    readonly adding: Writable<boolean>;
+    read(path: string): Promise<Uint8Array | undefined>;
+    readonly files: Pick<ProjectStore, 'list' | 'write'> | undefined;
     readonly state: Levels2dState;
     readonly refusal: string | undefined;
     settled(): Promise<void>;
@@ -4403,11 +4421,30 @@ type Levels2dState = {
     readonly profile: Profile<unknown>;
     readonly history: History<unknown>;
     readonly level: LevelSession;
+    readonly tiles: TilesetsSession;
 } | {
     readonly kind: 'error';
     readonly message: string;
     readonly errors: readonly ParseError[];
 };
+```
+
+### `OpenedSuitePorts` (interface)
+
+```ts
+interface OpenedSuitePorts {
+    readonly ports: SuitePorts;
+    readonly sample: boolean;
+    readonly gameUrl: string | undefined;
+    readonly game: string | undefined;
+    readonly publish: PublishClient | undefined;
+}
+```
+
+### `openSuitePorts` (function)
+
+```ts
+function openSuitePorts(env: Pick<ServedWorkspaceEnv, 'origin' | 'search' | 'fetch' | 'sessionStorage'>): Promise<OpenedSuitePorts>;
 ```
 
 ### `randomIds` (function)
@@ -4453,6 +4490,8 @@ interface SuiteEnv {
     readonly suite: Suite;
     readonly sample?: boolean;
     readonly game?: string | undefined;
+    readonly playUrl?: string | undefined;
+    readonly publish?: GamePublish | undefined;
 }
 ```
 

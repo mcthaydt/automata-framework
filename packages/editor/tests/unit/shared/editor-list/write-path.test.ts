@@ -198,6 +198,19 @@ describe('the write path (flows 3 and 4)', () => {
     expect(await text(ports)).toBe('MAX_MOVE_SPEED = 5\n')
   })
 
+  test('a forced write goes over a file that moved on, because the person chose Use mine', async () => {
+    const { ports, path } = await setup()
+    await path.write(TUNING, 'MAX_MOVE_SPEED = 8\n', 'Raise speed')
+    const current = await ports.workspace.read(TUNING)
+    await ports.workspace.write(TUNING, 'MAX_MOVE_SPEED = 5\n', { mtime: current?.mtime ?? 0 })
+    expect(
+      await path.writeAll([{ path: TUNING, text: 'MAX_MOVE_SPEED = 6\n', force: true }], 'Raise speed'),
+    ).toMatchObject({ written: true })
+    expect(await text(ports)).toBe('MAX_MOVE_SPEED = 6\n')
+    // From here the path watches the file again.
+    expect(await path.write(TUNING, 'MAX_MOVE_SPEED = 7\n', 'Raise speed')).toMatchObject({ written: true })
+  })
+
   test('beginning a change set and clear() empty the history, and listeners hear each change', async () => {
     const { path } = await setup()
     let heard = 0

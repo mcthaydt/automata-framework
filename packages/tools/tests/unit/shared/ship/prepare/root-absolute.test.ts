@@ -1,4 +1,3 @@
-// Ported from FloorFifty `tests/deploy/root-absolute.test.ts` (SNEKPRTY/FloorFifty 122a220).
 // Inside Ruken the game is served from `https://<game-origin>/b/<buildId>/`, so `/fonts/x.woff2` is the game
 // origin's root: a 404, and a font that silently falls back.
 

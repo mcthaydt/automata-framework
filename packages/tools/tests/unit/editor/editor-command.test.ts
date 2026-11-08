@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import { type EditorCommandDeps, editorCommand, liveEditorDeps } from '#src/features/editor/editor-command.ts'
 import type { EditorServerOptions } from '#src/features/editor/serve-editor.ts'
@@ -10,6 +13,8 @@ function setup(overrides: Partial<EditorCommandDeps> = {}) {
   const err: string[] = []
   const served: EditorServerOptions[] = []
   const closed = vi.fn()
+  const started: string[] = []
+  const stopped = vi.fn()
   const deps: EditorCommandDeps = {
     serve: async (options) => {
       served.push(options)
@@ -25,20 +30,25 @@ function setup(overrides: Partial<EditorCommandDeps> = {}) {
     lanAddresses: () => ['192.168.1.20'],
     makeToken: () => 'tok123',
     untilStopped: async () => {},
+    startGame: async (root) => {
+      started.push(root)
+      return { url: 'http://localhost:5199/', stop: async () => stopped() }
+    },
+    publishGame: async () => ({ ok: true, file: '/work/my-game-0.1.0-itch.zip' }),
     cwd: '/work',
     ...overrides,
   }
   const io = { stdout: (text: string) => out.push(text), stderr: (text: string) => err.push(text) }
-  return { deps, io, out, err, served, closed }
+  return { deps, io, out, err, served, closed, started, stopped }
 }
 
 describe('editorCommand', () => {
-  it('serves the 2D editor against the working folder on the loopback and says where', async () => {
+  it('serves the editors page against the working folder on the loopback and says where', async () => {
     const { deps, io, out, served, closed } = setup()
     expect(await editorCommand([], io, deps)).toBe(0)
     expect(served[0]).toMatchObject({
       root: '/work',
-      appDir: '/repo/builds/2d',
+      appDir: '/repo/builds/suite',
       host: '127.0.0.1',
       token: undefined,
     })
@@ -46,13 +56,28 @@ describe('editorCommand', () => {
     expect(closed).toHaveBeenCalled()
   })
 
-  it('says, in words, which game it opened in which editor', async () => {
+  it('names the game by its title on the first line, whichever editor opens', async () => {
     const { deps, io, out } = setup({ cwd: '/home/ada/my-game' })
     await editorCommand([], io, deps)
-    expect(out[0]).toMatch(/^Opened My game in the level editor\.\n {2}This computer: http/)
+    expect(out[0]).toMatch(/^Opened My game\.\n {2}This computer: http/)
     const suite = setup()
     await editorCommand(['../emberwick', '--app', 'suite'], suite.io, suite.deps)
-    expect(suite.out[0]).toMatch(/^Opened Emberwick in the editors\./)
+    expect(suite.out[0]).toMatch(/^Opened Emberwick\.\n/)
+  })
+
+  it('names a game by the title in its package.json, as the editor shows it', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'af-editor-title-'))
+    try {
+      writeFileSync(
+        join(dir, 'package.json'),
+        JSON.stringify({ name: 'base-3d', automata: { title: 'Ember Hall' } }),
+      )
+      const { deps, io, out } = setup()
+      await editorCommand([dir], io, deps)
+      expect(out[0]).toMatch(/^Opened Ember Hall\.\n/)
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 
   it('serves the app and the folder it was told', async () => {
@@ -61,11 +86,44 @@ describe('editorCommand', () => {
     expect(served[0]).toMatchObject({ root: '/game', appDir: '/repo/builds/suite' })
   })
 
-  it("passes the game's dev page on to the server: Vite's own port unless told", async () => {
-    const { deps, io, served } = setup()
-    await editorCommand(['--app', 'suite'], io, deps)
+  it('starts the game itself, hands its page to the server for Play and the Tuner, says where it is, and stops it at the end', async () => {
+    const { deps, io, out, served, started, stopped } = setup()
+    expect(await editorCommand(['../my-game', '--app', 'suite'], io, deps)).toBe(0)
+    expect(started).toEqual(['/my-game'])
+    expect(served[0]?.gameUrl).toBe('http://localhost:5199/')
+    expect(out.join('')).toContain('Your game is running: http://localhost:5199/')
+    expect(stopped).toHaveBeenCalled()
+  })
+
+  it('uses the game page it was given and starts no game of its own', async () => {
+    const { deps, io, served, started } = setup()
     await editorCommand(['--app', 'suite', '--game-url', 'http://localhost:5180'], io, deps)
-    expect(served.map((each) => each.gameUrl)).toEqual(['http://localhost:5173/', 'http://localhost:5180/'])
+    expect(started).toEqual([])
+    expect(served[0]?.gameUrl).toBe('http://localhost:5180/')
+  })
+
+  it('says in plain words when the game cannot start, and still opens the editor without Play', async () => {
+    const { deps, io, out, served } = setup({
+      startGame: async () => {
+        throw new Error('Your game’s packages are not installed. Run pnpm install in its folder.')
+      },
+    })
+    expect(await editorCommand([], io, deps)).toBe(0)
+    expect(served[0]?.gameUrl).toBeUndefined()
+    expect(out.join('')).toContain('Play is off: Your game’s packages are not installed.')
+  })
+
+  it('hands the server the way to publish the game it opened', async () => {
+    const published: string[] = []
+    const { deps, io, served } = setup({
+      publishGame: async (root) => {
+        published.push(root)
+        return { ok: true, file: `${root}/my-game-0.1.0-itch.zip` }
+      },
+    })
+    await editorCommand(['../my-game'], io, deps)
+    expect(await served[0]?.publish?.()).toEqual({ ok: true, file: '/my-game/my-game-0.1.0-itch.zip' })
+    expect(published).toEqual(['/my-game'])
   })
 
   it('--lan listens on every address, makes a token, and prints the address a tablet opens with the token in it', async () => {
@@ -85,7 +143,10 @@ describe('editorCommand', () => {
   it('says the 3D editor and the suite are not in this release when run outside the repository, and starts nothing', async () => {
     for (const [app, says] of [
       ['3d', 'The 3D editor is not in this release yet.'],
-      ['suite', 'The editor suite is not in this release yet. Run automata editor to open the level editor.'],
+      [
+        'suite',
+        'The editors are missing from this copy of the tools. Install them again: pnpm add -D @automata/tools',
+      ],
     ] as const) {
       // A release without the suite's page: nothing is at the build folder.
       const { deps, io, err, served } = setup({ inRepository: false, exists: () => false })

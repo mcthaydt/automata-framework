@@ -121,6 +121,9 @@ describe('checkFiles', () => {
 
 // The budget the Owner can veto (Orchestrator answer automata/inbox/2026-10-23-0248-hub-answers-website-filter.md,
 // item 4): set from the lowest-noise run on the Mac, 25% over its p95, and labelled as measured under CI load.
+// The 3D rows are the spec's targets, not measurements, so no evidence backs them until the Owner's GPU run.
+const TARGET_ONLY = ['frame-budget-3d-ipad', 'frame-budget-3d-phone']
+
 describe("the repository's recorded budget", () => {
   /** The recorded budget and the results it was set from; a budget that is not set fails the test that asks. */
   function recorded() {
@@ -141,7 +144,11 @@ describe("the repository's recorded budget", () => {
   it('comes from a hardware GPU, and every result in its evidence was measured on it at its commit', () => {
     const { budget, evidence } = recorded()
     expect(isSoftwareGpu(budget.gpu)).toBe(false)
-    expect(evidence.map((result) => result.project)).toEqual(Object.keys(budget.projects).sort())
+    expect(evidence.map((result) => result.project)).toEqual(
+      Object.keys(budget.projects)
+        .filter((project) => !TARGET_ONLY.includes(project))
+        .sort(),
+    )
     for (const result of evidence) {
       expect(result.environment.gpu).toBe(budget.gpu)
       expect(result.environment.commit).toBe(budget.evidence.commit)
@@ -161,10 +168,14 @@ describe("the repository's recorded budget", () => {
     }
   })
 
-  it('passes its own evidence, so the nightly starts green on the Mac that measured it', () => {
+  it('passes its own evidence for the measured rows and stays red for the 3D rows until a GPU run measures them', () => {
     const { budget, evidence } = recorded()
     const outcome = checkFrameBudget(budget, evidence)
-    expect(outcome.lines).toHaveLength(evidence.length)
-    expect(outcome.verdict).toBe('pass')
+    expect(outcome.lines.filter((line) => line.startsWith('ok '))).toHaveLength(evidence.length)
+    expect(outcome.lines.filter((line) => line.startsWith('INVALID'))).toEqual([
+      'INVALID frame-budget-3d-ipad: no result for this budgeted project',
+      'INVALID frame-budget-3d-phone: no result for this budgeted project',
+    ])
+    expect(outcome.verdict).toBe('invalid')
   })
 })

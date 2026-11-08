@@ -2,12 +2,11 @@
 // chain round the neck lying on the outermost top, hoops from the lobes, and wraparound shades (on the face,
 // or pushed up onto the hair or a cap).
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/streetwear.ts at a1f7246
-// (`sneakers`, `chain`, `hoops`, `faceSection`, `shades`, `shadesUp`), with AF's strict types; the formulas
-// and their order are the source's. Cut: the chain's nameplate (its print, its plate, its `pendant` anchor
+// The parts here (`sneakers`, `chain`, `hoops`, `faceSection`, `shades`, `shadesUp`), with AF's strict types; the formulas
+// and their order are unchanged. Cut: the chain's nameplate (its print, its plate, its `pendant` anchor
 // and the drop that grows to keep it on one cloth: SNEKPRTY), the shadow marks the painter lays under the
 // chain, and the sheets' camera pitch. Changed: painter materials are swatch variants; marks drawn per
-// density are drawn once, at density 2 (the fixed ppm's; M3.5b decision 4), so the chain's rope is two texels
+// density are drawn once, at density 2 (the fixed pixels per metre), so the chain's rope is two texels
 // wide.
 
 import type { Measure } from '@automata/3d/figures-kit'

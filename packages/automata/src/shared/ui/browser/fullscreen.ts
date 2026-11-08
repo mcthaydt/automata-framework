@@ -1,11 +1,10 @@
-// Standalone fullscreen. From FloorFifty `apps/client/src/ui/fullscreen.ts` at `ac72660`,
-// without its hosted branch: under Ruken the landscape gate is off and fullscreen is the host's
+// Standalone fullscreen, without a hosted branch: under Ruken the landscape gate is off and fullscreen is the host's
 // (`Hosting.setFullscreen`), so this is only ever the standalone page asking its own browser, never a way around a
 // host's answer. Ruken's SDK answers a standalone page's fullscreen request with `support: 'none'`.
 //
 // iPhone Safari has no element fullscreen; the nearest thing is running from the Home Screen, so there the gate
 // teaches that instead. iPad Safari is sent to the Home Screen too: in element fullscreen WebKit lays "It looks like
-// you are typing while in full screen" over fast, repeated taps, which a game is full of (FloorFifty).
+// you are typing while in full screen" over fast, repeated taps, which a game is full of.
 
 import type { FullscreenSupport } from './landscape-gate'
 

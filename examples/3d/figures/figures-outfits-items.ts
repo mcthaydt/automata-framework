@@ -1,7 +1,7 @@
 // figures-outfits-items: one figure changing outfits and the item in its hand
 //
 // Shows: the sim names the figure's outfit and held item (strings on a component) and the figure view rebuilds
-//   the figure's meshes once on each change, without moving a joint; an item (FigureBuilder's hold: where the
+//   the figure's meshes once on each change, without moving a joint; an item (its hold: where the
 //   hand goes and how it turns) is data in the figure library, beside the swatches it is made of.
 // Controls: none
 // Packages: @automata/framework, @automata/3d
@@ -14,7 +14,7 @@ import { defineComponent, defineGame, definePlugin, defineSystem } from '@automa
 
 // --- figure ---
 // Content a game compiles from content/figure-swatches/*.toml and content/figure-items/*.toml, written as compiled.
-// Swatch colours are DUEL ramps and steps. The item is FigureBuilder's hand lamp (src/features/outfit/library at 025ffb4).
+// Swatch colours are DUEL ramps and steps. The item is a hand lamp.
 const duel = (ramp: Swatch['ramp'], step: number, more = {}): Swatch => ({ ramp, step, ...more })
 const cloak = { 'wick-cloak': duel('ocean', 3), 'wick-cloak-shade': duel('ocean', 1) }
 const trim = { 'wick-trim': duel('flame', 5, { gloss: 0.9 }), 'wick-boot': duel('brick', 0) }
@@ -43,7 +43,7 @@ const handLamp: ItemDef = {
 const swatches = { ...cloak, ...trim, ...shade, ...face, ...brows, ...lamp }
 const library: FigureLibrary = { swatches, hair: {}, headwear: {}, items: { 'hand-lamp': handLamp } }
 
-// FigureBuilder's `bounce` gait (src/features/motion/library/gaits.json at 025ffb4), grouped by what each part moves.
+// The `bounce` gait, grouped by what each part moves.
 const stride = { cycle: 0.46, speed: 3, stride: 0.6, duty: 0.54, lift: 0.065, bob: 0.05, crouch: 0.01 }
 const hips = { sway: 0.03, hipYaw: 0.09, hipRoll: 0.08, chestCounter: 0.5, lean: 0.03 }
 // The feet's heel and push walking; standOut and standElbow (how the arms hang standing) ride along.

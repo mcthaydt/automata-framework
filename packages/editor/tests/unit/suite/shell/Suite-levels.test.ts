@@ -46,12 +46,16 @@ afterEach(async () => {
   document.body.innerHTML = ''
 })
 
-async function start(editors: SuiteEditor<unknown>[], files: Record<string, string> = FILES) {
+async function start(
+  editors: SuiteEditor<unknown>[],
+  files: Record<string, string> = FILES,
+  ports?: Awaited<ReturnType<typeof samplePorts>>,
+) {
   const target = document.body.appendChild(document.createElement('div'))
   started = await startSuite(target, {
     window,
     document,
-    ports: await samplePorts(files),
+    ports: ports ?? (await samplePorts(files)),
     suite: createSuite({ editors }),
   })
 }
@@ -123,5 +127,67 @@ describe('Levels 2D in the suite', () => {
     const refused = await screen.findByTestId('levels-2d-refused')
     expect(within(refused).getByText(/can’t be opened as a level project/)).toBeInTheDocument()
     expect(within(refused).getByText('Your file is unchanged.')).toBeInTheDocument()
+  })
+})
+
+describe('Tiles in the suite’s Levels', () => {
+  it('switches the panel, the canvas and the details to the game’s tiles and back, keeping the level', async () => {
+    await start([fixtureEditor as SuiteEditor<unknown>, levels2d()])
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    const views = await screen.findByRole('radiogroup', { name: 'Views' })
+    await userEvent.click(within(views).getByRole('radio', { name: 'Tiles' }))
+    expect(await screen.findByRole('heading', { name: 'Your tiles' })).toBeInTheDocument()
+    expect(screen.queryByTestId('level-canvas')).not.toBeInTheDocument()
+    await userEvent.click(within(views).getByRole('radio', { name: 'Level' }))
+    expect(await screen.findByRole('listbox', { name: 'Layers' })).toBeInTheDocument()
+    expect(screen.getByTestId('level-canvas')).toHaveAttribute('data-level', 'level-1')
+  })
+
+  it('opens Add tiles from the panel, because this game folder can take a picture', async () => {
+    await start([fixtureEditor as SuiteEditor<unknown>, levels2d()])
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    await userEvent.click(
+      within(await screen.findByRole('radiogroup', { name: 'Views' })).getByRole('radio', { name: 'Tiles' }),
+    )
+    await userEvent.click((await screen.findAllByRole('button', { name: 'Add tiles' }))[0] as HTMLElement)
+    expect(await screen.findByRole('dialog', { name: 'Add tiles' })).toBeInTheDocument()
+  })
+})
+
+describe('A level changed somewhere else', () => {
+  async function drawTwice(choose: 'Use mine' | 'Use theirs') {
+    const ports = await samplePorts(FILES)
+    await start([levels2d()], FILES, ports)
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    await userEvent.click(await screen.findByRole('radio', { name: 'Slime' }))
+    const surface = screen.getByTestId('level-surface')
+    press(surface, 'pointerdown', 40, 40)
+    press(surface, 'pointerup', 40, 40)
+    const title = await screen.findByRole('dialog', { name: 'Name this change' })
+    await userEvent.type(within(title).getByRole('textbox', { name: 'Title' }), 'Slimes')
+    await userEvent.click(within(title).getByRole('button', { name: 'Start' }))
+    await screen.findByRole('button', { name: 'Undo Place entity' })
+
+    const path = 'content/levels/world.af2d.json'
+    const current = await ports.workspace.read(path)
+    await ports.workspace.write(path, `${current?.text ?? ''}\n`, { mtime: current?.mtime ?? 0 })
+    press(surface, 'pointerdown', 80, 80)
+    press(surface, 'pointerup', 80, 80)
+    const dialog = await screen.findByRole('dialog', { name: /was changed somewhere else/ })
+    await userEvent.click(within(dialog).getByRole('button', { name: choose }))
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: /changed somewhere else/ })).toBeNull())
+    return { ports, path }
+  }
+
+  it('asks which version to keep, and Use mine saves the level over the other', async () => {
+    const { ports, path } = await drawTwice('Use mine')
+    expect(screen.queryByText(/Not saved/)).not.toBeInTheDocument()
+    expect((await ports.workspace.read(path))?.text).toContain('slime-')
+  })
+
+  it('and Use theirs takes the other version, so the step that conflicted is gone', async () => {
+    const { ports, path } = await drawTwice('Use theirs')
+    expect(screen.queryByText(/Not saved/)).not.toBeInTheDocument()
+    expect((await ports.workspace.read(path))?.text).not.toContain('slime-2')
   })
 })

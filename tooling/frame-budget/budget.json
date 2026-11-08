@@ -1,6 +1,6 @@
 {
   "status": "set",
-  "note": "Set from the lowest-noise of three runs on the Owner's Mac (try 3 of the quiet probe request), measured under CI load: the self-hosted CI runner took a job within a second of each one ending, so no run had the GPU to itself. The numbers were steady across the three runs (desktop work p95 10.1 to 10.2 ms, interval p95 16.7 ms, which is vsync), so the budget is p95 plus the Owner's agreed 25% headroom. The Owner can veto it; a run with the CI queue drained replaces it (re-measure, copy the results into a new evidence folder, update the numbers).",
+  "note": "Set from the lowest-noise of three runs on the Owner's Mac (try 3 of the quiet probe request), measured under CI load: the self-hosted CI runner took a job within a second of each one ending, so no run had the GPU to itself. The numbers were steady across the three runs (desktop work p95 10.1 to 10.2 ms, interval p95 16.7 ms, which is vsync), so the budget is p95 plus the Owner's agreed 25% headroom. The Owner can veto it; a run with the CI queue drained replaces it (re-measure, copy the results into a new evidence folder, update the numbers). The 3D rows (frame-budget-3d-phone, frame-budget-3d-ipad) and firstPoseMs are the spec's targets, not measurements: a phone at 30 frames a second, an iPad at 60, and the first figure posed in 5 ms. The Owner's GPU run replaces them with measured numbers.",
   "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
   "evidence": {
     "result": "tooling/frame-budget/evidence/2026-10-23-mac-m1",
@@ -10,7 +10,22 @@
     "headroom": 1.25
   },
   "projects": {
-    "frame-budget-desktop": { "workMsP95": 12.63, "intervalMsP95": 20.88 },
-    "frame-budget-phone": { "workMsP95": 12.75, "intervalMsP95": 20.88 }
-  }
+    "frame-budget-desktop": {
+      "workMsP95": 12.63,
+      "intervalMsP95": 20.88
+    },
+    "frame-budget-phone": {
+      "workMsP95": 12.75,
+      "intervalMsP95": 20.88
+    },
+    "frame-budget-3d-phone": {
+      "workMsP95": 33.3,
+      "intervalMsP95": 33.3
+    },
+    "frame-budget-3d-ipad": {
+      "workMsP95": 16.7,
+      "intervalMsP95": 16.7
+    }
+  },
+  "firstPoseMs": 5
 }

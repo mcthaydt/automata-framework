@@ -5,7 +5,7 @@
 // most likely needs. The font build adds every content language's name. Some of those code points are
 // unassigned, so a subset holds only the ones its font has.
 //
-// Changed from FloorFifty: it reads a catalog value, not a file; content catalogs are plain text
+// It reads a catalog value, not a file; content catalogs are plain text
 // (`checkTranslation` refuses anything else), so every character of every message counts.
 
 import type { MessageCatalog } from './messages'

@@ -1,0 +1,6 @@
+# `sole`: a colour from the DUEL palette.
+# Colour: DUEL ramp grey, step 0.
+
+ramp = "grey"
+step = 0
+flat = true

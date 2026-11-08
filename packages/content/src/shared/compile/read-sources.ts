@@ -1,10 +1,10 @@
-// Reading the authored tree. Extracted from FloorFifty packages/content/src/read-sources.ts (122a220).
+// Reading the authored tree.
 //
 // The only compile step that touches the disk. It decides which files are sources and what an author sees
 // them called; it decides nothing about what is in them. Every file is labelled `content/...`, the path an
 // author has open, so a fixture tree in a temp folder reports exactly what the real tree would.
 //
-// Changed from FloorFifty: the folders and files come from the game's registered schemas instead of a fixed
+// The folders and files come from the game's registered schemas instead of a fixed
 // list, nested folders give `a/b` IDs, and a file that cannot be read is a diagnostic rather than a throw,
 // so check and the dev server keep their recovery path.
 

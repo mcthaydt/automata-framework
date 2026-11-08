@@ -1,7 +1,6 @@
 // Registering a game's content kinds (`ContentSchemaDef`).
 //
-// FloorFifty declared its twelve kinds and the joins between them by hand (packages/content/src/parse.ts,
-// validate/references.ts at 122a220). Here a game registers each kind once with a Zod schema, and marks
+// A game registers each kind once with a Zod schema, and marks
 // fields that point at other content (`contentRef`) and fields players read (`localized`) inside the schema.
 
 import { z } from 'zod'
@@ -47,7 +46,7 @@ export function defineContentSchema<const K extends string, S extends z.ZodType>
 /** Kinds the compiler owns: each is a built-in file in `content/`. */
 export const RESERVED_KINDS: readonly string[] = ['tuning', 'flow', 'palette', 'game', 'assets']
 
-/** One ID segment is FloorFifty's ID rule; nested folders join segments with `/`. */
+/** One ID segment is the ID rule; nested folders join segments with `/`. */
 export const ID_PATTERN: RegExp = /^[a-z0-9-]+(\/[a-z0-9-]+)*$/
 const KIND_PATTERN = /^[a-z][a-z0-9-]*$/
 

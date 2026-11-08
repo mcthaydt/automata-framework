@@ -1,0 +1,5 @@
+# `wick-cloak-shade`: a colour from the DUEL palette.
+# Colour: DUEL ramp ocean, step 1.
+
+ramp = "ocean"
+step = 1
