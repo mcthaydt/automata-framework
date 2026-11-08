@@ -2,10 +2,10 @@ import { readFileSync, utimesSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { checkLevels, expect, openRoom, paintWall, test } from '../harness/fixtures.ts'
 
-// Spec section 9, "A conflict stops the save": the project changed on disk after the editor opened it, so Save writes
-// nothing and asks; Use mine then writes the project and its level file, and the two agree.
+// Spec section 9, "A conflict stops the save": the project changed on disk after the editor opened it, so the next step
+// writes nothing and asks; Use mine then writes the project and its level file, and the two agree.
 
-test('a project changed on disk stops the save, and Use mine writes the project and its level file', async ({
+test('a project changed on disk stops the step from saving, and Use mine writes the project and its level file', async ({
   page,
   game,
   editor,
@@ -22,7 +22,6 @@ test('a project changed on disk stops the save, and Use mine writes the project 
   const theirs = readFileSync(projectFile, 'utf8')
 
   await paintWall(page, { col: 5, row: 2 })
-  await page.getByRole('button', { name: 'Save' }).click()
 
   const dialog = page.getByRole('dialog', { name: 'Emberwick room was changed somewhere else' })
   await expect(dialog).toBeVisible()
@@ -31,10 +30,12 @@ test('a project changed on disk stops the save, and Use mine writes the project 
   expect(readFileSync(levelFile, 'utf8')).not.toContain('"1 .*4 1 .*33 1"')
 
   await dialog.getByRole('button', { name: 'Use mine' }).click()
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible()
+  await expect(dialog).toBeHidden()
 
+  await expect
+    .poll(() => readFileSync(levelFile, 'utf8'), { timeout: 30_000 })
+    .toContain('"1 .*38 1", "1 .*4 1 .*33 1", "1 .*38 1"')
   expect(readFileSync(projectFile, 'utf8')).not.toBe(theirs)
-  expect(readFileSync(levelFile, 'utf8')).toContain('"1 .*38 1", "1 .*4 1 .*33 1", "1 .*38 1"')
   const check = await checkLevels(game.dir)
   expect(check.code, check.output).toBe(0)
 })

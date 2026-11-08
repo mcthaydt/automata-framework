@@ -19,7 +19,9 @@ export function printedAddress(output: string): string | undefined {
 }
 
 export function runEditor(gameDir: string, args: readonly string[] = []): Promise<RunningEditor> {
-  const child = spawn(process.execPath, [BIN, 'editor', gameDir, '--port', '0', ...args], {
+  // Until the standalone page goes (task 15.2), the suite is asked for by name; then `automata editor` picks it.
+  const app = args.includes('--app') ? [] : ['--app', 'suite']
+  const child = spawn(process.execPath, [BIN, 'editor', gameDir, '--port', '0', ...app, ...args], {
     stdio: ['ignore', 'pipe', 'pipe'],
   })
   return new Promise((resolve, reject) => {
