@@ -22,9 +22,42 @@ function shipTargetSections(options: TemplateOptions): string {
   return itch + tauri
 }
 
+/**
+ * What a coding agent reads first. The game is edited by a person in the Automata app and by an agent working on a
+ * branch of the same repository, so this says where each may change things and how a change is handed back.
+ */
+function agentsGuide(title: string): string {
+  return `# ${title}
+
+A small game made with [Automata](https://automataframework.com). A person edits its content in the Automata app. You
+may edit it too.
+
+## What you may change
+
+- \`content/\`: the game's content. Tuning, feel, audio, writing, sequences and levels live here as TOML. Read a file
+  before you change it; each says what its fields mean.
+- \`src/\`: the game's behaviour, as TypeScript.
+
+Level files need care: \`content/levels/*.toml\` is made from the \`content/levels/*.af2d.json\` beside it each time
+the person saves in the app, so a change to a level TOML alone is overwritten. Change the \`.af2d.json\` instead.
+Never edit \`content/generated/\` or \`.automata/\`.
+
+## How to hand a change back
+
+Work on a branch named claude/<what-you-did> and open a pull request. Do not push to \`main\`.
+The person says yes in the Automata app.
+When the checks pass, the person sees "Play it", "Use this change" and "Not this one".
+
+## Checks
+
+Run \`pnpm check\` and \`pnpm test\` before you open the pull request.
+`
+}
+
 /** The project's files, written beside the game's code. */
 export const PROJECT_FILES: readonly TemplateFile[] = [
   { path: '.gitignore', content: (options) => targetGitignore(targetsOf(options)) },
+  { path: 'AGENTS.md', content: (options) => agentsGuide(options.title) },
   { path: 'README.md', content: (options) => targetReadme(options.title, targetsOf(options)) },
   {
     path: 'package.json',
