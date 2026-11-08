@@ -1,6 +1,7 @@
 import type { ContentLevel, ContentProject } from '@automata/content/level-2d'
 import { Container, Graphics, Sprite, TilingSprite } from 'pixi.js'
 import type { DrawSim } from '../../../shared/draw/read-sim.ts'
+import { clipSprite, clipTextures } from './clips.ts'
 import { type DrawItem, levelDrawList } from './level-draw-list.ts'
 import { picturesOf } from './pictures.ts'
 
@@ -96,6 +97,20 @@ export function levelScene(options: LevelSceneOptions): LevelScene {
   }
 
   function itemView(item: DrawItem): Container {
+    if (item.kind === 'animation') {
+      const clip = item.animation.clips[0]
+      const textures = clip === undefined ? undefined : clipTextures(pictures, item.animation, clip)
+      if (clip !== undefined && textures !== undefined) {
+        const sprite = clipSprite(textures, clip)
+        sprite.anchor.set(0.5)
+        sprite.position.set(item.x + item.w / 2, item.y + item.h / 2)
+        sprite.width = item.w
+        sprite.height = item.h
+        return sprite
+      }
+      // The picture has not arrived yet: a grey box, as a tile waiting for its picture is.
+      return new Graphics().rect(item.x, item.y, item.w, item.h).fill(0x808080)
+    }
     if (item.kind === 'tile') {
       const f = item.frame
       const cut = pictures.cut(item.image, f)

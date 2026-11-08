@@ -190,4 +190,36 @@ describe('levelDrawList', () => {
       'The level "Cave" uses the picture "assets/sky.png", which is not in the game.',
     ])
   })
+
+  describe('a placed character with an animation', () => {
+    const animation = {
+      image: 'assets/coin.png',
+      frame: { w: 8, h: 8 },
+      clips: [{ id: 'spin', frames: [0, 1, 2, 3], fps: 8, loop: true }],
+    }
+    const spinning = project({
+      entities: [
+        def({ id: 'coin', color: '#facc15', size: { w: 8, h: 8 }, pivot: { x: 0.5, y: 0.5 }, animation }),
+      ],
+    })
+    const placed = level([
+      { def: 'entities', kind: 'entities', items: [{ id: 'c', def: 'coin', x: 24, y: 16, fields: {} }] },
+    ])
+
+    it('is drawn as its animation, in the box its pivot gives, when the picture is there', () => {
+      const drawn = levelDrawList(spinning, placed, new Set(['assets/coin.png']), [])
+      expect(drawn.items).toEqual([{ kind: 'animation', animation, x: 20, y: 12, w: 8, h: 8, itemId: 'c' }])
+      expect(drawn.problems).toEqual([])
+    })
+
+    it('is its colour, with a sentence, when the picture is not in the game', () => {
+      const drawn = levelDrawList(spinning, placed, new Set(), [])
+      expect(drawn.items).toEqual([
+        { kind: 'flat', color: '#facc15', x: 20, y: 12, w: 8, h: 8, ellipse: false, itemId: 'c' },
+      ])
+      expect(drawn.problems).toEqual([
+        'The level "Cave" uses the picture "assets/coin.png", which is not in the game.',
+      ])
+    })
+  })
 })

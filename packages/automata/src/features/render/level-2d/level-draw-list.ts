@@ -1,5 +1,6 @@
 import {
   autoStacks,
+  type ContentAnimation,
   type ContentEntityDef,
   type ContentLevel,
   type ContentProject,
@@ -23,8 +24,9 @@ export interface PictureFrame {
   readonly h: number
 }
 
-/** One thing to draw: a tile cut from a loaded picture, or a flat shape (a placeholder tile or a plain character). */
+/** One thing to draw: a tile cut from a loaded picture, a flat shape (a placeholder tile or a plain character), or an animated character. */
 export type DrawItem =
+  | AnimatedItem
   | {
       readonly kind: 'tile'
       readonly image: string
@@ -47,6 +49,17 @@ export type DrawItem =
       readonly ellipse: boolean
       readonly itemId?: string | undefined
     }
+
+/** A placed character with clips: drawn playing its first clip once its picture is loaded. */
+export interface AnimatedItem {
+  readonly kind: 'animation'
+  readonly animation: ContentAnimation
+  readonly x: number
+  readonly y: number
+  readonly w: number
+  readonly h: number
+  readonly itemId?: string | undefined
+}
 
 /** What a level shows: its backdrop, its things back to front, and the sentences for anything that fell back. */
 export interface LevelDraw {
@@ -149,7 +162,21 @@ export function levelDrawList(
         if (entity === undefined || live.includes(entity.id)) continue
         const box = entityBox(entity, item)
         const picture = pictureOf(entity)
-        if (picture.kind === 'tile')
+        const animation = entity.animation
+        if (animation !== undefined && images.has(animation.image))
+          items.push({ kind: 'animation', animation, ...box, itemId: item.id })
+        else if (animation !== undefined && picture.kind === 'flat') {
+          problems.add(
+            `The level "${level.name}" uses the picture "${animation.image}", which is not in the game.`,
+          )
+          items.push({
+            kind: 'flat',
+            color: picture.color,
+            ...box,
+            ellipse: picture.shape === 'ellipse',
+            itemId: item.id,
+          })
+        } else if (picture.kind === 'tile')
           items.push(
             tileItem(picture.tileset, { tile: picture.index, flipX: false, flipY: false }, box, item.id),
           )

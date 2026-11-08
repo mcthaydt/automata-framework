@@ -6,8 +6,9 @@ import {
   tileFrame,
 } from '@automata/content/level-2d'
 import type { FieldRecord } from '@automata/sim'
-import { Container, Graphics, Sprite } from 'pixi.js'
+import { type AnimatedSprite, Container, Graphics, Sprite } from 'pixi.js'
 import type { EntityViewFactory } from '../delta/render-delta-consumer.js'
+import { clipSprite, clipTextures, playClip } from '../level-2d/clips.js'
 import { picturesOf } from '../level-2d/pictures.js'
 import { placeView } from './view-pose.js'
 
@@ -97,31 +98,73 @@ export function pictureView(
     return sprite
   }
 
-  const look = (): Container =>
+  const animation = character.animation
+  const firstClip = animation?.clips[0]
+  /** The animated sprite on its first clip, or the colour while the picture loads. */
+  const animatedLook = (): Container => {
+    if (animation === undefined || firstClip === undefined) return flatLook()
+    const textures = clipTextures(pictures, animation, firstClip)
+    if (textures === undefined) {
+      if (images[animation.image] === undefined)
+        once(
+          `The character "${character.label ?? def}" uses the picture "${animation.image}", which is not in the game.`,
+        )
+      return flatLook()
+    }
+    const sprite = clipSprite(textures, firstClip)
+    sprite.anchor.set(character.pivot.x, character.pivot.y)
+    sprite.width = character.size.w
+    sprite.height = character.size.h
+    return sprite
+  }
+  const flatLook = (): Container =>
     picture.kind === 'tile'
       ? tileLook(picture.tileset, picture.index)
       : flatShape(character, picture.shape, picture.color)
+
+  const look = (): Container => (animation === undefined ? flatLook() : animatedLook())
 
   return (_row, componentId) => {
     const container = new Container()
     let shown = look()
     container.addChild(shown)
-    // A tile's picture may arrive after the view was made: swap the flat colour for the sprite.
+    let playing = firstClip?.id
+    // A picture may arrive after the view was made: swap the colour for the sprite.
     const stop =
-      picture.kind === 'tile'
+      picture.kind === 'tile' || animation !== undefined
         ? pictures.onLoad(() => {
             if (container.destroyed) return
             shown.destroy()
             shown = look()
+            playing = firstClip?.id
             container.addChild(shown)
           })
         : undefined
+
+    /** Plays the clip the game names now, from its first frame, once; a name the character lacks keeps the one playing. */
+    const pick = (components: Readonly<Record<string, Readonly<FieldRecord>>>): void => {
+      if (options.clip === undefined || animation === undefined) return
+      const name = options.clip(components)
+      if (name === playing) return
+      const clip = animation.clips.find((candidate) => candidate.id === name)
+      if (clip === undefined) {
+        once(`The character "${character.label ?? def}" has no clip "${name}".`)
+        return
+      }
+      const sprite = shown as AnimatedSprite
+      const textures = clipTextures(pictures, animation, clip)
+      if (textures === undefined || sprite.textures === undefined) return
+      playClip(sprite, textures, clip)
+      playing = name
+    }
+
     return {
       container,
       update(curr, prev, alpha = 1) {
         placeView(container, curr, prev, alpha, componentId)
         if (options.offset !== undefined)
           container.position.set(container.x + options.offset.x, container.y + options.offset.y)
+        pick(curr)
       },
       destroy() {
         stop?.()
