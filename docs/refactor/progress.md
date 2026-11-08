@@ -664,3 +664,19 @@ Normal dev pipeline (no stage 1 audit; the investigation is
 Build audit, 2026-11-08: [audit](2026-11-08-schematic-build-audit.md), PR stacked on #486. 3 high, 9 medium, 12 low. A behaviour built by hand in Schematic shows in play in the 3D story; the high ones are the sight setting that says the opposite of the game, Fair play that no game can run, and no 2D proof. Next: Sonnet fixes.
 
 Fixes, 2026-11-08: H1, H3 (Task 14, the 2D half of Task 8), M1 to M8 and L1 to L10 fixed with tests first; Schematic now has 16 of 16 tasks. Played in the served journeys: 2D 10 of 10 and 3D 13 of 13 (Chromium, phone and iPad). `style` and `boundaries` now cover `extensions/editors` and `examples/3d-story`. Waiting on the Owner: H2 (Fair play has no runner) and M9 (the sim's `fleeNode`). Not run: WebKit, Firefox, the GPU runner, parity; `pnpm api-index --write` fails on two exports it does not own. Next: audit the fixes, then the Owner's two choices.
+
+## Shared editors: every editor in 2D and 3D games (2026-11-08)
+
+[spec](2026-11-08-shared-editors-spec.md), [plan](2026-11-08-shared-editors-plan.md), [audit](2026-11-08-shared-editors-audit.md),
+[plan audit](2026-11-08-shared-editors-plan-audit.md). Stage 4 (build) done: 19 of 19 tasks, branch
+`claude/project-thread-fxu792` stacked on #512 (base #508's head).
+
+Every editor except the two level editors is on the rail of a new 2D and a new 3D game (nine entries fit a phone: the rest fold under
+More), each says when the game cannot play what it makes, and starting a file adds its editor to the game's list. A new
+2D game has a keeper, a cutscene and a guard; a new 3D game has Wick, a keeper, a cutscene and a guard, with Feel and
+Audio answering his bump. Made by hand in both kinds and played, at iPad and phone size (screens in
+`/mnt/project-files/refactor/2026-11-08-shared-editors-build-screens/`), and by the `complete-game-2d` and
+`complete-game-3d` journeys: 22 pass at both sizes. Not run: WebKit, Firefox, the GPU runner, hosted CI (the editor
+browser projects need the other engines, so `pnpm test:browser:2d` stops here); `stranger-3d.test.ts` pending. `pnpm check`
+is green except `check-changesets`, which fails on an earlier branch's changeset naming the unpublished `@automata/3d`
+(`stage-characters-3d.md`). Stage 5 (build audit) and 6 (fixes) not started. Details and rulings: the plan's log.
