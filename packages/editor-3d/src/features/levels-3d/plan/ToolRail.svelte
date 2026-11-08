@@ -2,7 +2,8 @@
   The Plan view's tool rail (ED3D.6g-a; ED3D spec §9 the Split and Draw frames' tool rail, §10 the keys): one 44 px
   button per tool, the active one pressed and each naming its key. Polygon, Rectangle, Split and Merge are the Sector
   tool's shapes, so they all press Sector, and Sector chooses the polygon. Vertical beside the plan at `wide`, a tab bar
-  along the foot below that. A phone has no rail: the plan there is view and select only (spec §10).
+  along the foot below that. In the suite (`Levels3dTools`) the same tools lie along the top bar on every size, a phone's
+  too, and the bar scrolls sideways where its width holds too few.
 -->
 <script lang="ts">
 import type { PlanToolId } from './plan-tools'

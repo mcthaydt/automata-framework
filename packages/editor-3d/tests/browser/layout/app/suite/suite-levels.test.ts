@@ -66,4 +66,35 @@ describe.each(SIZES)('Suite Levels 3D at $name ($width x $height)', (size) => {
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/suite-levels-3d-${size.name}.png` })
   })
+
+  test('the drawing tools are in the top bar, each by role and name, whole and 44 px, and a tap chooses one', async () => {
+    opened = await openSuite(size, editors(), FILES, '[data-testid="plan-canvas"]', 'Levels 3D')
+    const bar = inShell('[data-region="topbar"]')
+    const toolbar = bar.querySelector<HTMLElement>('[role="toolbar"][aria-label="Tools"]')
+    if (toolbar === null) throw new Error('the top bar has no Tools')
+    const buttons = [...toolbar.querySelectorAll<HTMLElement>('button')]
+    expect(buttons.map((button) => button.textContent?.trim())).toEqual([
+      'Select',
+      'Sector',
+      'Vertex',
+      'Portal',
+      'Door',
+      'Window',
+      'Things',
+    ])
+    for (const button of buttons) {
+      // The top bar scrolls sideways where a phone's width holds too few; each tool is whole once scrolled to.
+      button.scrollIntoView({ inline: 'nearest', block: 'nearest' })
+      const box = button.getBoundingClientRect()
+      expect(box.width).toBeGreaterThanOrEqual(44)
+      expect(box.height).toBeGreaterThanOrEqual(44)
+      expect(box.left).toBeGreaterThanOrEqual(-0.5)
+      expect(box.right).toBeLessThanOrEqual(size.width + 0.5)
+    }
+    const sector = buttons[1] as HTMLElement
+    sector.click()
+    await expect.poll(() => sector.getAttribute('aria-pressed')).toBe('true')
+    expect(buttons[0]?.getAttribute('aria-pressed')).toBe('false')
+    noPageScroll()
+  })
 })

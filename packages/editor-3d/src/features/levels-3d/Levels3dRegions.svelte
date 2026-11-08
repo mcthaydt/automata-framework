@@ -1,12 +1,13 @@
 <!--
   The Levels 3D regions in the editor suite's shell (plan EDS.2d; editor suite spec §4.1, §4.7, EDS-D12): the layers
-  list, the Plan view and a status line, each drawn from the level editor the suite keeps, so a switch and return finds
+  list, the drawing tools in the top bar, the Plan view and a status line, each drawn from the level editor the suite keeps, so a switch and return finds
   the mode, layer, camera and selection as they were. The suite owns the top bar (Undo and Redo among it); the
   inspector shows what is selected and how the checks stand.
 -->
 <script module lang="ts">
 import Levels3dInspector from './Levels3dInspector.svelte'
 import Levels3dStatus from './Levels3dStatus.svelte'
+import Levels3dTools from './Levels3dTools.svelte'
 import type { Levels3dSuiteSession } from './levels-3d-suite-editor'
 import EditorLayers from './plan/EditorLayers.svelte'
 import PlanCanvas from './plan/PlanCanvas.svelte'
@@ -16,7 +17,7 @@ import { pointerOf } from './pointer.svelte'
 // The top bar owns Undo and Redo, so the plan's two- and three-finger taps leave them to it.
 const leave = (): void => {}
 
-export { canvas, inspector, panel, status }
+export { canvas, inspector, panel, status, tools }
 </script>
 
 {#snippet panel(session: Levels3dSuiteSession)}
@@ -48,6 +49,10 @@ export { canvas, inspector, panel, status }
   {#if session.level.state.kind === 'open' && session.checks !== undefined}
     <Levels3dInspector editor={session.level.state.editor} checks={session.checks} />
   {/if}
+{/snippet}
+
+{#snippet tools(session: Levels3dSuiteSession)}
+  <Levels3dTools {session} />
 {/snippet}
 
 {#snippet status(session: Levels3dSuiteSession)}

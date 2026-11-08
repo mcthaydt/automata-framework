@@ -1,6 +1,6 @@
 import { defineSuiteEditor, type SuiteEditor } from '@automata/editor/kit/ports'
 import { type ChecksPanel, createChecksPanel, type Scheduler } from './checks/checks-panel-controller'
-import { canvas, inspector, panel, status } from './Levels3dRegions.svelte'
+import { canvas, inspector, panel, status, tools } from './Levels3dRegions.svelte'
 import { type Levels3dOptions, type Levels3dSession, levels3dUndo, openLevels3d } from './levels-3d-session'
 import type { PlanRendererFactory } from './plan/plan-renderer'
 
@@ -34,7 +34,7 @@ export function createLevels3d(options: Levels3dSuiteOptions): SuiteEditor<Level
           : undefined
       return { level, renderer: options.renderer, checks }
     },
-    regions: { panel, canvas, inspector, status },
+    regions: { panel, canvas, inspector, status, tools },
     undo: (session) => levels3dUndo(session.level),
   })
 }
