@@ -83,7 +83,8 @@ Probed in Chromium (Playwright, a long dark page with a sticky 64 px header, a n
 scratch files, not committed):
 
 - **Feel.** With `lerp: 0.14`, one 300 px wheel notch: 151 px after 62 ms, 258 px (86%) after 212 ms, 292 px (97%)
-  after 411 ms, settled by about 600 ms. Timed separately: 90% of the notch at 264 ms and 99% at 514 ms with `0.14`,
+  after 411 ms, within half a pixel by about 760 ms (Lenis 1.3.27 damps with `1 - e^(-60 · lerp · t)`,
+  so frame-rate independent; at `0.14` that gives 90% at 274 ms and 99% at 548 ms, which the timings below match). Timed separately: 90% of the notch at 264 ms and 99% at 514 ms with `0.14`,
   against 363 ms and 730 ms with Lenis's default `0.1`.
 - **Nested boxes.** With `allowNestedScroll: true`, a wheel over a scrollable box scrolls the box (200 px) and leaves
   the page at 0.
@@ -104,8 +105,10 @@ non-commercial "web sites, games, components, and other software". It forbids us
 visual animations without code" that compete with Webflow's animation builder, and defines "Competitive Products" as
 "any software, tool, or service that enables users to create, edit, or manage animations through a visual interface".
 The same page's plain-English summary still says the free licence holds "as long as end users are not charged a fee of
-any kind to use your product". GSAP is "All rights reserved", Webflow may change the terms, and it may end the licence
-at its discretion.
+any kind to use your product". GSAP is "All rights reserved". Webflow may change the terms at any time; a version released
+before a change stays under the terms it came with, and using a later version accepts the new ones. Webflow may end the
+licence "in its discretion if you fail to comply" with the terms. So the exact pin matters, and every GSAP upgrade
+re-reads the licence page first (plan audit, A7).
 
 For the website (free to read, no animation builder) this is a permitted use. The credits page says "Built on open
 source"; GSAP's entry names its own licence and says it is free but not open source.
@@ -125,7 +128,8 @@ source"; GSAP's entry names its own licence and says it is free but not open sou
    plugins. Hover, press and things that appear with `[open]` stay CSS.
 5. **Nothing is hidden by CSS or by the HTML.** Only the motion module hides anything, only after GSAP has loaded, and
    only parts that are wholly below the window at that moment. Without script, before GSAP arrives, after a fast scroll,
-   on a deep link or for Find in page, the content is simply there.
+   on a deep link or for Find in page, the content is simply there. Once GSAP has hidden a part, anything that brings
+   it on screen (a scroll, Find in page, Tab) makes it arrive at once, finished within 780 ms (plan audit, A3).
 6. **Reduced motion means still, as today.** A visitor who asks for less motion, or whose browser asks for less data
    (`navigator.connection.saveData`), downloads neither library and sees the site exactly as it is now. If the setting
    changes during a visit, running moves jump to their end, Lenis is removed and nothing new starts.
@@ -174,7 +178,8 @@ at opacity 0 for at most 220 ms.
 
 ### 5.2 Home's sections arriving (GSAP)
 
-Each `.home-section` wholly below the window when motion starts arrives once, when its top passes 85% of the window's
+Each `main .home-section` wholly below the window when motion starts, or when a page change lands on a page that has
+some (Docs to Home by the header, Back to Home), arrives once on that visit to the page, when its top passes 85% of the window's
 height (an `IntersectionObserver` with `rootMargin: '0px 0px -15% 0px'`), in reading order, as one sequence:
 
 1. the words: `.home-kicker`, `h2`, `.home-sub`, each `.home-points li`, the section's link (`.home-more > a`,
@@ -182,13 +187,17 @@ height (an `IntersectionObserver` with `rootMargin: '0px 0px -15% 0px'`), in rea
 2. the product: `.show`, `.home-panel`, the picture, rising 8 px from scale 0.985 to 1;
 3. a list: each `li` of the section's cards, targets or changelog rows, rising 8 px, 60 ms apart.
 
-Parts after the sixth in the sequence start with the sixth, so a long list does not trickle in.
+Parts after the sixth in the sequence start with the sixth, so a long list does not trickle in. If focus moves into a
+hidden section (Tab, a screen reader's jump), that section arrives at once, so a focus ring is never drawn round
+something invisible.
 
 The steps come from one pure function (`revealSteps`) that reads those classes, so a new section built from Home's
-section classes (the copy rewrite on `claude/project-thread-fvbpvx` adds "Built in" and "Pricing" from them) arrives the
-same way with no new code. The hero, the numbers row, the logo strip and the closing lime band are never hidden: the
-first screen is what the visitor came for and is the LCP. Reading pages (Docs, Reference, Changelog, Start, Privacy,
-Terms, the examples) never use reveals: their content is the point.
+section classes arrives the same way with no new code, on any page. The copy rewrite (thread "Rewrite the site copy from
+GTM research", not pushed when this was audited) may add, remove or reorder Home's sections and add pages such as
+Pricing; the reveals key off `.home-section` alone, so they follow whatever it ships. Nothing outside a `.home-section`
+is ever hidden (today: the hero, the numbers row, the logo strip and the closing lime band): the first screen is what
+the visitor came for and is the LCP. Reading pages (Docs, Reference, Changelog, Start, Privacy, Terms, the examples and
+the playground) never use reveals because they never use Home's section classes, and a test holds that.
 
 Taste-skill's motion rules apply: reveals on the sections that carry a product picture or list, never the same
 fade on every block, never replayed, never content that stays hidden if a script fails. Taste-skill's own budget (eight
@@ -203,7 +212,8 @@ and no signature hero move.
 - **Copy.** The tick that replaces the copy icon fades in over 200 ms, and so does "Copied".
 - **Buttons.** One transition rule per control, reading `--t-press`, `--t-hover` and `--ease-out` (fixes M1); the
   unused `lift` and `settle` keyframes go, replaced by the one `motion-rise` keyframe these use (fixes M2).
-- **Print.** `@media print` shows every part at full opacity with no transform, whatever a reveal was doing.
+- **Print.** `@media print` shows `main` and every part GSAP touched (each carries `data-motion`) at full opacity with
+  no transform, whatever a reveal was doing. Other transforms on the page (icons, the marquee) print as they are.
 
 ### 5.4 Scrolling (Lenis)
 

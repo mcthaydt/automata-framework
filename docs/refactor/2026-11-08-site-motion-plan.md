@@ -19,9 +19,19 @@ Playwright 1.63 (Chromium and WebKit), Lighthouse CI.
 **Spec:** [`2026-11-08-site-motion-spec.md`](2026-11-08-site-motion-spec.md).
 
 **Base:** this plan was written on AF #520's branch (`claude/project-thread-vw9kmv`, tip `09d5a347`). The build starts on
-this PR's branch. If AF #521 (the credits page) and the copy rewrite (`claude/project-thread-fvbpvx`, new Home sections)
-are still open, merge both into the build branch first, in one merge-up pass, and name the base in the log. Every path
-below exists at `09d5a347` except the credits file (from #521).
+this PR's branch. If AF #521 (the credits page) and the copy rewrite's PR (thread "Rewrite the site copy from GTM
+research"; it had not pushed when the plan was audited, so find its branch from its PR, never from a guessed name) are
+still open, merge both into the build branch first, in one merge-up pass, and name the base in the log. Every path below
+exists at `09d5a347` except the credits file (from #521).
+
+**Step 0, before Task 1 (the copy rewrite may restructure the site):** on the merged base, list every route
+(`find site/src/routes -name '+page.svelte'`), every file that uses `home-section`, and Home's section order, and write
+them in the log. Nothing in this plan names a Home section or counts them: reveals key off `main .home-section` on any
+route, and the tests read whatever sections the markup has. If the rewrite renamed `.home-section`, `.home-kicker`,
+`.home-sub`, `.home-points`, `.home-more` or `.home-panel`, change `revealSteps`' selectors and this plan's Task 3 to
+the new names in the first commit and say so in the log; if it moved the playground off `/examples/<id>`, change
+`smoothScrollAllowed` to match. A new page (Pricing, a new Editor page) needs nothing: Lenis and the page settle are
+site-wide.
 
 ## Global Constraints
 
@@ -32,14 +42,22 @@ below exists at `09d5a347` except the credits file (from #521).
   section, rise 8 px, settle 6 px, nudge 4 px, scale from 0.98 (a section's product 0.985), ease `power4.out` =
   `--ease-out` `cubic-bezier(0.22, 1, 0.36, 1)`. No duration over 480 ms, no travel over 8 px, no scale under 0.98.
 - Only `transform` and `opacity` animate. No ease-in, bounce or elastic. No exit animation on a page change.
-- Nothing is hidden by CSS or HTML before GSAP has loaded; reveals hide only parts wholly below the window; the hero,
-  numbers row, logo strip and closing band never hide; reading pages never reveal.
+- Nothing is hidden by CSS or HTML before GSAP has loaded; reveals hide only parts of a `main .home-section` that is
+  wholly below the window; nothing outside a `.home-section` is ever hidden; reading pages never use `.home-section`.
+  Focus moving into a hidden section reveals it at once.
+- The ease comes from the editor kit's `--ease-out` (`packages/editor/src/shared/kit/tokens.css`, reached through
+  `@automata/editor/tokens.css` in `site/src/app.css`); the editors v2 build is changing those tokens, so a test holds
+  the name and value.
 - Reduced motion or `navigator.connection.saveData`: neither chunk is requested, the site is exactly as before.
 - Lenis loads only for `(hover: hover) and (pointer: fine)` and never on `/examples/<id>`.
 - Load: the two chunks and their imports within 36,000 bytes gzip; no page modulepreloads them; Lighthouse assertions in
   `site/lighthouserc.json` unchanged and passing; each page's modulepreload under the existing 48,000-byte budget.
-- Dependencies pinned exactly: `lenis` 1.3.27; `gsap` the newest version at least 14 days old on the build day (3.15.0
-  on 2026-11-08; 3.15.1 from 2026-11-18). A row each in `docs/versions.md`. A credits entry each if
+- Dependencies pinned exactly: `lenis` 1.3.27; `gsap` the newest **3.x** version at least 14 days old on the build day
+  (3.15.0 on 2026-11-08; 3.15.1 from 2026-11-18). `gsap` 4 is in beta (4.0.0-beta.3, 2026-11-05) and Lenis 2 in dev;
+  neither is taken here. Read <https://gsap.com/standard-license> on the build day; if its "Last modified" date is
+  later than 2025-05-30, stop and tell the Owner before adding GSAP.
+- `renovate.json` gets one rule for `gsap`: `allowedVersions: "<4"` and a `prBodyNotes` line saying to re-read the
+  licence page before merging, because a GSAP version released after a licence change comes under the new terms. A row each in `docs/versions.md`. A credits entry each if
   `site/src/features/credits/credits-data.ts` exists: Lenis "MIT"; GSAP "GSAP Standard License: free to use, not open
   source".
 - Code goes in `site/src/shared/motion/` (a feature imports only itself and `shared/`); tests in
@@ -53,15 +71,18 @@ below exists at `09d5a347` except the credits file (from #521).
 ## Review Focus
 
 1. **Content stuck hidden.** A page change whose `afterNavigate` never comes, GSAP failing to download, a `#hash` deep
-   link into Home, or Find in page must leave nothing at opacity 0. Tests: Task 4 (the mark's 1,000 ms fallback; a
-   rejected import hides nothing) and Task 7 (deep link).
+   link into Home, Find in page, or Tab into a hidden section must leave nothing at opacity 0 (or a focus ring round an
+   invisible link). Tests: Task 4 (the mark's 1,000 ms fallback; a rejected import hides nothing; `focusin` reveals)
+   and Task 7 (deep link; Tab).
 2. **Reduced motion turned on mid-visit.** Running moves jump to their end with no inline styles left, Lenis is
    destroyed, and nothing new starts. Tests: Task 4 (unit) and Task 7 (`emulateMedia` mid-test).
 3. **Back or Forward during a glide.** The page lands where SvelteKit restores it and does not drift. Test: Task 7.
 4. **Nested scroll boxes.** The docs sidebar, the search results and code blocks keep the wheel; the page does not move.
    Test: Task 7.
-5. **Leaving mid-reveal.** A page change while a section is arriving leaves no inline `opacity` or `transform` on the
-   new page. Tests: Task 3 (`finish` clears) and Task 7.
+5. **Leaving or arriving mid-visit.** A page change while a section is arriving leaves no inline `opacity` or
+   `transform` on the new page, and arriving at Home by a click (Docs to Home, Back to Home) reveals its sections below
+   the window as a first visit does. Tests: Task 3 (`finish` clears, and the animator still works after it), Task 4
+   (`beforePageChange` finishes and disconnects; `afterPageChange` scans the new page) and Task 7.
 
 ---
 
@@ -86,8 +107,11 @@ below exists at `09d5a347` except the credits file (from #521).
   `scaleFrom` and `productScaleFrom` at least 0.98; `MOTION.reveal + (MOTION.staggerCap - 1) * MOTION.stagger` is at most
   0.78; `ease` is `'power4.out'`; `tokens.css` (read with `readFileSync`) declares `--t-press: 140ms`,
   `--t-hover: 180ms`, `--t-ui: 200ms`, `--nudge: 4px`, `--scale-from: 0.98`, each equal to the `MOTION` value
-  converted; `base.css` has no `@keyframes lift` or `@keyframes settle`, exactly one `transition` declaration for
-  `button, .button`, and no `ease-in` anywhere in `site/src` CSS or Svelte styles.
+  converted; the kit's `packages/editor/src/shared/kit/tokens.css` declares `--ease-out: cubic-bezier(0.22, 1, 0.36, 1)`
+  (so a rename in the editors v2 build fails here, not as a silent `ease`); `base.css` has no `@keyframes lift` or
+  `@keyframes settle`, exactly one rule whose selector list includes `button` and that declares `transition`, that rule
+  still lists `.button`, `.demo-list a`, `.docs-sidebar nav a` and `nav.link-row a`, and no `ease-in` anywhere in
+  `site/src` CSS or Svelte styles.
   `motion-preference.test.ts`, with a stubbed `matchMedia` and `navigator.connection`: `wantsMotion` is false under
   `REDUCE`, false when `saveData` is true, true otherwise (and true when `navigator.connection` is missing);
   `smoothScrollAllowed('/examples/core-basic-window')` and `('/examples/core-basic-window/')` are false,
@@ -97,8 +121,10 @@ below exists at `09d5a347` except the credits file (from #521).
   `cd site && pnpm exec vitest run tests/unit/shared/motion`.
 - [ ] **Step 3: Write `motion-tokens.ts` and `motion-preference.ts`** with the interfaces above. Add the five CSS tokens to
   `tokens.css`'s `:root`. In `base.css`, keep one transition rule for controls inside the
-  `prefers-reduced-motion: no-preference` block (`transform var(--t-press) var(--ease-out), background-color
-  var(--t-hover) ease, border-color var(--t-hover) ease, color var(--t-hover) ease`), remove the unscoped one, and
+  `prefers-reduced-motion: no-preference` block, on the same selectors it has today (`button, .button, .demo-list a,
+  .docs-sidebar nav a, nav.link-row a`): `transform var(--t-press) var(--ease-out), background-color var(--t-hover)
+  ease, border-color var(--t-hover) ease, color var(--t-hover) ease, box-shadow 240ms ease` (box-shadow stays as
+  today; it is not a motion token). Remove the unscoped one, and
   replace `lift` and `settle` with one `@keyframes motion-rise` (from `opacity: 0; transform: translateY(var(--nudge))
   scale(var(--scale-from))`, to `none`) and `@keyframes motion-fade` (from `opacity: 0`).
 - [ ] **Step 4: Run the tests and see them pass;** run `pnpm check`. Open Home at 1280 px and confirm hover and press
@@ -153,16 +179,23 @@ below exists at `09d5a347` except the credits file (from #521).
   `reveal-steps.test.ts` renders `Home.svelte` (as `tests/unit/home/home.test.ts` does) and, for each `.home-section`,
   checks `revealSteps`: words first in document order (`.home-kicker`, `h2`, `.home-sub`, `.home-points > li`,
   `.home-more > a`, `p.more`), then products (`.show`, `.home-panel`, each element once, `product: true`), then list
-  items (`li` of any `ul` other than `.home-points`); no part contains another part; no part is inside `.hero`,
-  `.facts`, `.made` or `.close`. `isBelowWindow` with a stubbed `getBoundingClientRect` (top 900, window 800: true;
+  items (`li` of any `ul` other than `.home-points`); no part contains another part; every part is inside a
+  `.home-section`, so nothing in `.hero`, `.facts`, `.made`, `.close` or any other non-section block is ever a part. The
+  test loops over whatever `.home-section`s Home renders, never a fixed count. A second case reads the source of the
+  reading features (`src/features/{docs,api,changelog,start,legal,examples,playground}`) and finds no `home-section`. `isBelowWindow` with a stubbed `getBoundingClientRect` (top 900, window 800: true;
   top 799: false).
   `animate.test.ts` (jsdom; GSAP runs there): after `hide(parts)` each part has inline `opacity: 0` and a
   `translate(…8px)` transform, product parts also `scale(0.985)`; after `reveal(parts)` and `finish()` no part has an
-  inline `opacity` or `transform`; `pageIn(el)` then `finish()` leaves `el` with no inline style; the stagger offset
-  of the eighth part equals the sixth's (read with `gsap.getTweensOf` or the timeline's child start times).
+  inline `opacity` or `transform`; `pageIn(el)` then `finish()` leaves `el` with no inline style; after `finish()`, a
+  second `pageIn(el)` still sets an inline opacity and a second `finish()` clears it (the context is reused after
+  `revert()`); every element `hide` or `pageIn` touched carries `data-motion` until `finish()` or its move ends removes
+  it; the stagger offset of the eighth part equals the sixth's (read with `gsap.getTweensOf` or the timeline's child
+  start times). Vitest's jsdom provides `requestAnimationFrame` and `cancelAnimationFrame`, which GSAP's ticker needs
+  (checked in the plan audit: `gsap.set`, `progress(1)` with `clearProps` and `revert()` all behave in jsdom).
 - [ ] **Step 2: Run them and see them fail.**
-- [ ] **Step 3: Add `gsap`** (exact version per the Global Constraints), its `docs/versions.md` row ("The page settle and
-  Home's reveals on the site; GSAP Standard License, free, not open source") and the credits entry if present.
+- [ ] **Step 3: Add `gsap`** (exact version per the Global Constraints, after reading the licence page), its
+  `docs/versions.md` row ("The page settle and Home's reveals on the site; GSAP Standard License, free, not open
+  source"), the credits entry if present, and the `renovate.json` rule from the Global Constraints.
 - [ ] **Step 4: Write `reveal-steps.ts` and `animate.ts`.** `animate.ts` imports `{ gsap }` from `'gsap'` only (no
   plugins). All tweens are created inside one `gsap.context()`, so `finish()` is `ctx.getTweens().forEach(t =>
   t.progress(1))` then `ctx.revert()`. `pageIn` is a `fromTo` from `{ opacity: 0, y: MOTION.settle }` over
@@ -188,7 +221,8 @@ below exists at `09d5a347` except the credits file (from #521).
   `createMotionLayer(win: Window, loaders?: MotionLoaders): MotionLayer`.
 - The page-change mark: `<html data-page-change="same|other">`. `motion.css`, under `no-preference` only:
   `:root[data-page-change='other'] main, :root[data-page-change='same'] [data-page-content] { opacity: 0 }`, plus
-  `@media print { main * { opacity: 1 !important; transform: none !important } }`.
+  `@media print { main, [data-motion] { opacity: 1 !important; transform: none !important } }` (only what motion
+  touched, so the page's other transforms print as they are).
 
 - [ ] **Step 1: Write the failing tests** (jsdom, stubbed `matchMedia`, `requestIdleCallback`, fake loaders that count
   calls and return fakes):
@@ -205,6 +239,10 @@ below exists at `09d5a347` except the credits file (from #521).
     and no element gets an inline style;
   - with sections below the window, `start('/')` hides their parts and observes them with `rootMargin:
     MOTION.revealMargin`; an intersection reveals them once; a section already in or above the window is never hidden;
+  - a `focusin` on an element inside a hidden section reveals that section at once and unobserves it;
+  - `beforePageChange` calls `finish()` and disconnects the observer; `afterPageChange('/', false)` with new sections
+    below the window hides and observes them (arriving at Home by a click reveals as a first visit does), and on a page
+    with no `.home-section` it observes nothing;
   - a `REDUCE` change mid-visit calls `finish()` and `destroy()`, disconnects the observer, and later
     `beforePageChange` sets no mark; a change back to motion starts again;
   - `isPageChange`: `/docs` to `/docs#a` false, `/` to `/docs` true, `undefined` to `/` false.
@@ -213,7 +251,7 @@ below exists at `09d5a347` except the credits file (from #521).
   `window` and call `start($page.url.pathname)`; `onNavigate((n) => isPageChange(n.from?.url, n.to?.url) &&
   layer?.beforePageChange(n.from?.route.id === n.to?.route.id))`; `afterNavigate((n) => n.type !== 'enter' &&
   isPageChange(n.from?.url, n.to?.url) && layer?.afterPageChange(n.to.url.pathname, n.from?.route.id ===
-  n.to?.route.id))`; `layer.destroy()` on unmount. The idle wait is `requestIdleCallback` with a 1 ms `setTimeout`
+  n.to?.route.id))`; `layer.destroy()` on unmount. The layer listens for `focusin` on `main` once while any section is hidden. The idle wait is `requestIdleCallback` with a 1 ms `setTimeout`
   where it is missing.
 - [ ] **Step 4: Run the tests and `pnpm check`, then build and look:** `pnpm build && pnpm api-index` at the root,
   `cd site && pnpm build`, serve `build` with `node scripts/serve-static.ts build 4660`, open Home at 1280 px with a
@@ -247,11 +285,16 @@ below exists at `09d5a347` except the credits file (from #521).
 - Produces: `MOTION_SOURCES = ['src/shared/motion/animate.ts', 'src/shared/motion/smooth-scroll.ts']`,
   `MAX_MOTION_GZIP_BYTES = 36_000`, `checkMotionChunks(root: string, manifest: Record<string, ManifestChunk>): {
   failures: string[]; gzipBytes: number }`. Extract the editor check's walk into `chunkFiles(manifest, sources)` and
-  use it in both.
+  use it in both. The motion files are `chunkFiles(manifest, MOTION_SOURCES)` **less** `chunkFiles` of every manifest
+  entry with `isEntry: true` (the app's entries and the layout's node): `motion-tokens.ts` is imported by the layer in
+  the layout and by both chunks, so the walk from `animate.ts` reaches a chunk every page already names, and counting
+  or forbidding that chunk would fail a correct build. Each motion source must still be its own file in that set (a
+  source that ended up inside an entry was imported statically by mistake, and that fails).
 
 - [ ] **Step 1: Write the failing tests** on a fixture manifest: over budget fails with the byte count in the message; a
   page that names a motion file fails; a manifest without a motion source fails; within budget passes and reports the
-  bytes.
+  bytes; a motion chunk that imports a chunk an entry also imports neither counts it nor fails when a page names it; a
+  motion source whose file is an entry's file fails.
 - [ ] **Step 2: Run them and see them fail. Step 3: Write `checkMotionChunks` and print its bytes in
   `check-site.ts`'s summary line beside the editor's.**
 - [ ] **Step 4: Measure.** `cd site && pnpm build && pnpm check:site` passes and prints the motion bytes; the
@@ -281,6 +324,11 @@ below exists at `09d5a347` except the credits file (from #521).
     reduced motion first) and does not change over the next 500 ms;
   - scrolling Home to the bottom step by step: every `.home-section` part reaches opacity 1 with no inline style;
     loading `/` with a hash or scrolling via `scrollIntoView` to a section shows it at opacity 1;
+  - from `/docs`, clicking the logo to Home, then scrolling: the sections below the window arrive as on a first visit;
+  - on Home, pressing Tab until focus is in a section below the window: that section's parts reach opacity 1 within
+    800 ms of the focus, and the focused element is at opacity 1 when the poll ends;
+  - every route in Step 0's list loads with no console error and reaches full opacity (one loop, so pages the copy
+    rewrite added are covered without naming them);
   - a phone (`devices['iPhone 13']`, `hasTouch`): no `lenis` class on `<html>`, and no motion chunk is requested;
   - reduced motion: no request for either motion chunk (from the manifest), no inline `opacity` on any element in
     `main` after a full scroll, and no `data-page-change` after a click;
@@ -304,4 +352,5 @@ below exists at `09d5a347` except the credits file (from #521).
 
 ## Log
 
-Empty until the build starts.
+- 2026-11-08, plan audit (stage 3): [2026-11-08-site-motion-plan-audit.md](2026-11-08-site-motion-plan-audit.md). Fixes
+  applied to this plan and the spec: A1 to A12. Build log starts below.
