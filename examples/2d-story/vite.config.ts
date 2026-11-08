@@ -1,3 +1,4 @@
+import { controlsKind } from '@automata/content/controls'
 import { level2dKinds } from '@automata/content/level-2d'
 import { automataContent } from '@automata/content/vite'
 import { cutsceneContent } from '@automata/cutscenes/content'
@@ -25,6 +26,7 @@ export default defineConfig(({ mode }) => ({
     automataContent({
       schemas: [
         ...level2dKinds(),
+        controlsKind(),
         linesContent,
         dialogueContent,
         cutsceneContent,
