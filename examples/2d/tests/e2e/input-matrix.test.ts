@@ -178,7 +178,16 @@ function gamepadDriver(frame: Frame, pad: FakePad): Driver {
       await walk(frame, selector, () => pad.step('down', 'dpad'))
       await pad.tap('south')
     },
-    pause: () => pad.tap('start'),
+    // In play the pad is read once per sim step, not once per frame, so a one-frame tap can fall in a frame with no
+    // step and never be seen (WebKit, about 1 in 3). A player holds Start for several steps; so does this.
+    pause: async () => {
+      await pad.press('start', 1)
+      try {
+        await expect(frame.getByTestId('paused-screen')).toBeVisible()
+      } finally {
+        await pad.release('start')
+      }
+    },
     back: () => pad.tap('east'),
     holdAction: async (action, until) => {
       await pad.press(buttonFor[action])
