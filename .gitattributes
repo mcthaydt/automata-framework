@@ -1,0 +1,4 @@
+# Text files are LF in every checkout. Windows would otherwise turn them into CRLF, which fails biome and the byte-for-byte golden tests.
+* text=auto eol=lf
+# These fixtures are CRLF on purpose (the content compiler must read them like the LF ones).
+packages/content/src/testing/fixtures/equivalent-b/** -text
