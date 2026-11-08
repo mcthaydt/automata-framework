@@ -64,7 +64,7 @@ What it builds on:
    GitHub account to sync. In that case it is a service to run, with legal duties (section 5).
 
 **Decisions only the Owner can make:** how people sign in (D1, decided 22:30: sign in with GitHub), and whether the web
-gets sync free or it stays a reason to buy the app (D2). See section 7.
+gets sync free or it stays a reason to buy the app (D2, decided 22:30: free on the web). See section 7.
 
 ## 2. What was done by hand
 
@@ -258,8 +258,9 @@ the editors only, and one cookie that sign-in needs. The words are the Owner's t
 - A web page can sync once it has a token. Getting the token takes the web sign-in flow, whose code exchange needs the
   app's client secret, so it has to run on a server.
 
-So the web can sync with one small server step that stores nothing. Whether it should is D2, because sync is in the
-apps' list of what the download adds (`site/src/features/app/app-offer.ts:52`, "Sync with GitHub").
+So the web can sync with one small server step that stores nothing. Whether it should was D2, because sync is in the
+apps' list of what the download adds (`site/src/features/app/app-offer.ts:52`, "Sync with GitHub"). The Owner chose
+free on the web, so that line comes off the list.
 
 ### Low
 
@@ -412,7 +413,7 @@ GitHub's REST API, not git.
 - **When.** Pull when a game opens, when the tab comes back to the front, and every 60 s while it is open.
 - **Offline.** Commits wait, and the line says "Saved on this device. Not on GitHub yet: no internet."
 - **Review on the web.** The Review page (Claude's changes waiting for a yes) needs "Play it" on a branch, so it needs
-  the in-page player. It follows D2: if the web gets sync, Review comes to the web once the player exists.
+  the in-page player. D2 gave the web sync, so Review comes to the web once the player exists.
 
 ### 6.5 Tests that would have caught this
 
@@ -463,7 +464,8 @@ GitHub's REST API, not git.
 
 Whichever is chosen, section 6.2 is built first, because it is the bug fix.
 
-**D2. Does the web get GitHub sync free, or does sync stay a reason to buy the app?**
+**D2. Does the web get GitHub sync free, or does sync stay a reason to buy the app?** **Decided 2026-11-08 22:30: free
+on the web** (the Owner, on the decision card).
 - **Free on the web (recommended).** The Owner asked for sign-in that syncs, and every editor is already free on the
   web. The download still sells:
   - one install on a computer with nothing else needed;
