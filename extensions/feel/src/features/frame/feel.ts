@@ -35,8 +35,12 @@ export const DEFAULT_SETTINGS: FeelSettings = { reduceFlashing: false, haptics: 
  * holds still for reduced motion.
  */
 export interface WordPop {
-  /** A locale key. */
+  /** The word's name in the table. */
   readonly key: string
+  /** What it says, as authored; absent for a word the table only names. */
+  readonly words?: string
+  /** Where `words` sits in the feel file, for the content text that translates it. */
+  readonly path?: readonly (string | number)[]
   readonly at: EntityRef | null
   /** Seconds since it popped. */
   readonly age: number
@@ -135,7 +139,14 @@ export function createFeel(options: FeelOptions): Feel {
   let t = 0
   let flash: { colour: string; alpha: number; until: number } | null = null
   let tint: { colour: string; alpha: number; born: number; ms: number } | null = null
-  let words: { key: string; at: EntityRef | null; born: number; ms: number }[] = []
+  let words: {
+    key: string
+    at: EntityRef | null
+    born: number
+    ms: number
+    words?: string
+    path?: readonly (string | number)[]
+  }[] = []
   let lastNow: number | null = null
 
   const frozenViews = (): EntityRef[] =>
@@ -146,6 +157,7 @@ export function createFeel(options: FeelOptions): Feel {
 
   function fire(
     entry: FeelEntry,
+    entryIndex: number,
     subject: EntityRef | null,
     still: boolean,
     out: { haptics: Pulse[]; cues: string[] },
@@ -177,8 +189,17 @@ export function createFeel(options: FeelOptions): Feel {
       else if (row.squash !== undefined && !still && k > 0 && subject !== null)
         squash.knock(subject, row.squash * k)
     }
-    for (const row of entry.word ?? [])
-      words.push({ key: row.key, at: row.at === 'subject' ? subject : null, born: t, ms: row.ms ?? WORD_MS })
+    ;(entry.word ?? []).forEach((row, index) => {
+      words.push({
+        key: row.key,
+        at: row.at === 'subject' ? subject : null,
+        born: t,
+        ms: row.ms ?? WORD_MS,
+        ...(row.words === undefined
+          ? {}
+          : { words: row.words, path: ['entry', entryIndex, 'word', index, 'words'] }),
+      })
+    })
     if (settings.haptics)
       for (const row of entry.haptic ?? [])
         out.haptics.push({ strong: row.strong, weak: row.weak, ms: row.ms, phoneMs: row.phone_ms })
@@ -199,8 +220,9 @@ export function createFeel(options: FeelOptions): Feel {
     }
     const out = { haptics: [] as Pulse[], cues: [] as string[] }
     for (const { event } of beats.reach(drawnTick))
-      for (const entry of options.content().entry ?? [])
-        if (matches(entry.on, event.type)) fire(entry, subjectOf(event), still, out)
+      (options.content().entry ?? []).forEach((entry, index) => {
+        if (matches(entry.on, event.type)) fire(entry, index, subjectOf(event), still, out)
+      })
 
     const settings = options.settings()
     const limits = resolveLimits(options.content())
@@ -220,7 +242,13 @@ export function createFeel(options: FeelOptions): Feel {
           ? null
           : { colour: tint.colour, alpha: tint.alpha * (1 - stepped(((t - tint.born) * 1000) / tint.ms, 6)) },
       squash: new Map(squash.scales().map(([id, s]) => [id as EntityRef, [s.x, s.y] as const])),
-      words: words.map((w) => ({ key: w.key, at: w.at, age: t - w.born, still })),
+      words: words.map((w) => ({
+        key: w.key,
+        at: w.at,
+        age: t - w.born,
+        still,
+        ...(w.words === undefined ? {} : { words: w.words, path: w.path }),
+      })),
       haptics: out.haptics,
       cues: out.cues,
     }

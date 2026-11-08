@@ -3,6 +3,8 @@
 export { contentHashOf } from '../app/boot/boot-program.js'
 export type {
   CompiledContentData,
+  GameAudioServices,
+  GameAudioStart,
   GameDefinition,
   RuntimeHandle,
   RuntimeSeams,

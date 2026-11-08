@@ -308,4 +308,63 @@ describe('RenderDeltaConsumer over another scene graph', () => {
     expect(node.parent).toBeNull()
     expect(root.children).toEqual([])
   })
+
+  describe('presentation hold and lookup', () => {
+    const add = (consumer: RenderDeltaConsumer, sid: number, x: number): void =>
+      consumer.apply({
+        resync: false,
+        added: [{ sid, components: { position: { x, y: 0 } } }],
+        changed: [],
+        removed: [],
+      })
+    const move = (consumer: RenderDeltaConsumer, sid: number, x: number): void =>
+      consumer.apply({
+        resync: false,
+        added: [],
+        changed: [{ sid, components: { position: { x, y: 0 } } }],
+        removed: [],
+      })
+
+    it('finds the view of an entity by its stable id, and none once it is gone', () => {
+      const container = new Container()
+      const consumer = new RenderDeltaConsumer(new Container(), () => ({ container }))
+      add(consumer, 7, 1)
+      expect(consumer.viewOf(7)?.container).toBe(container)
+      expect(consumer.viewOf(8)).toBeUndefined()
+      consumer.apply({ resync: false, added: [], changed: [], removed: [7] })
+      expect(consumer.viewOf(7)).toBeUndefined()
+    })
+
+    it('holds a view still while it is held, and catches up when it is let go', () => {
+      const seen: number[] = []
+      const consumer = new RenderDeltaConsumer(new Container(), () => ({
+        container: new Container(),
+        update: (curr) => void seen.push((curr.position as { x: number }).x),
+      }))
+      add(consumer, 1, 0)
+      seen.length = 0
+      consumer.hold(new Set([1]))
+      move(consumer, 1, 10)
+      consumer.interpolate(0.5)
+      expect(seen).toEqual([])
+      consumer.hold(new Set())
+      consumer.interpolate(0.5)
+      expect(seen).toEqual([10])
+    })
+
+    it('keeps drawing the views that are not held', () => {
+      const seen: number[] = []
+      const consumer = new RenderDeltaConsumer(new Container(), (row) => ({
+        container: new Container(),
+        update: (curr) => void seen.push(row.sid * 100 + (curr.position as { x: number }).x),
+      }))
+      add(consumer, 1, 0)
+      add(consumer, 2, 0)
+      seen.length = 0
+      consumer.hold(new Set([1]))
+      move(consumer, 2, 5)
+      consumer.interpolate(1)
+      expect(seen).toEqual([205, 205])
+    })
+  })
 })

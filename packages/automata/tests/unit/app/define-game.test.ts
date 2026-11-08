@@ -171,6 +171,12 @@ describe('defineGame validation (DX spec §5 step 1, §6)', () => {
     expect(defineGame({ ...spec, sounds }).sounds).toEqual(sounds)
   })
 
+  it('hands the game’s own audio player to the runtime', () => {
+    const audio = () => undefined
+    expect(defineGame({ ...spec, audio }).audio).toBe(audio)
+    expect(defineGame(spec).audio).toBeUndefined()
+  })
+
   it('refuses a score for an event no plugin defines (M5.7)', () => {
     expect(problemsOf({ ...spec, scores: { ghost: { board: 'best', score: () => 1 } } })).toContain(
       'scores.ghost:',

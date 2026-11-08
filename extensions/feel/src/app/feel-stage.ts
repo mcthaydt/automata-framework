@@ -11,7 +11,7 @@ import {
   systemClock,
 } from '@automata/framework'
 import type { StepResult } from '@automata/sim'
-import { Graphics } from 'pixi.js'
+import { Graphics, Text } from 'pixi.js'
 import {
   createFeel,
   DEFAULT_SETTINGS,
@@ -33,7 +33,18 @@ export interface FeelStageOptions {
   readonly onCue?: ((cue: string) => void) | undefined
   /** A rumble fires, once. The game's haptics port plays it. */
   readonly onHaptic?: ((pulse: Pulse) => void) | undefined
+  /**
+   * A word's text in the player's language: given where the words sit in the feel file and what was authored (the
+   * game's content text). Without it the authored words show.
+   */
+  readonly translate?: ((path: readonly (string | number)[], authored: string) => string) | undefined
+  /** The playfield's logical size: a word with no subject shows in the middle of it. Default 320 by 180. */
+  readonly size?: { readonly width: number; readonly height: number } | undefined
 }
+
+/** A word rises as it ages (unless motion is reduced) and sits above its subject's view. */
+const WORD_RISE_PX_PER_SECOND = 16
+const WORD_ABOVE_PX = 12
 
 /** Far larger than any playfield; the stage's UI layer is masked to the playfield, so this covers all of it. */
 const HUGE = 8192
@@ -69,6 +80,58 @@ export function feelStage(options: FeelStageOptions): (stage: PixiStage) => Pixi
       layer.alpha = overlay.alpha
     }
 
+    // A pool of words, one Text each, reused from frame to frame.
+    const wordTexts: Text[] = []
+    const showWords = (words: FeelFrame['words']): void => {
+      const size = options.size ?? { width: 320, height: 180 }
+      let used = 0
+      for (const word of words) {
+        if (word.words === undefined) continue
+        let text = wordTexts[used]
+        if (text === undefined) {
+          text = new Text({
+            text: '',
+            style: { fontSize: 10, fill: 0xffffff, stroke: { color: 0x000000, width: 2 }, align: 'center' },
+          })
+          text.anchor.set(0.5, 1)
+          text.eventMode = 'none'
+          wordTexts.push(text)
+          stage.ui.addChild(text)
+        }
+        used += 1
+        text.text = options.translate?.(word.path ?? [], word.words) ?? word.words
+        const view = word.at === null ? undefined : stage.consumer?.viewOf(word.at)
+        const at =
+          view === undefined
+            ? { x: size.width / 2, y: size.height / 2 }
+            : stage.ui.toLocal(view.container.getGlobalPosition())
+        const rise = word.still ? 0 : word.age * WORD_RISE_PX_PER_SECOND
+        text.position.set(at.x, at.y - (view === undefined ? 0 : WORD_ABOVE_PX) - rise)
+        text.visible = true
+      }
+      for (let i = used; i < wordTexts.length; i += 1) (wordTexts[i] as Text).visible = false
+    }
+
+    // The scales squashed views had before the spring touched them, so rest puts them back exactly.
+    const squashed = new Map<number, { readonly x: number; readonly y: number }>()
+    const showSquash = (frame: FeelFrame): void => {
+      for (const [ref, [sx, sy]] of frame.squash) {
+        const container = stage.consumer?.viewOf(ref)?.container
+        if (container === undefined) continue
+        let base = squashed.get(ref)
+        if (base === undefined) {
+          base = { x: container.scale.x, y: container.scale.y }
+          squashed.set(ref, base)
+        }
+        container.scale.set(base.x * sx, base.y * sy)
+      }
+      for (const [ref, base] of squashed) {
+        if (frame.squash.has(ref)) continue
+        stage.consumer?.viewOf(ref)?.container.scale.set(base.x, base.y)
+        squashed.delete(ref)
+      }
+    }
+
     const putBack = (): void => {
       stage.world.position.x -= shaken[0]
       stage.world.position.y -= shaken[1]
@@ -88,10 +151,17 @@ export function feelStage(options: FeelStageOptions): (stage: PixiStage) => Pixi
         shaken = frame.offset
         paint(tint, frame.tint)
         paint(flash, frame.flash)
+        // A hit-stop holds the subject's pose; the picture catches up when it ends.
+        stage.consumer?.hold(new Set(frame.frozen))
+        showSquash(frame)
+        showWords(frame.words)
         for (const cue of frame.cues) options.onCue?.(cue)
         for (const pulse of frame.haptics) options.onHaptic?.(pulse)
       },
       reset(): void {
+        stage.consumer?.hold(new Set())
+        squashed.clear()
+        for (const text of wordTexts) text.visible = false
         putBack()
         feel = make()
         tick = 0

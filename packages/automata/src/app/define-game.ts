@@ -18,7 +18,12 @@ import type { HostingOptions } from '../shared/host/hosting.ts'
 import { BootDefect } from '../shared/runtime/boot-error.ts'
 import type { RendererFactory } from '../shared/runtime/render/renderer.ts'
 import type { SettingsDef } from '../shared/runtime/settings/migrate-settings.ts'
-import type { CompiledContentData, GameDefinition, RuntimeSeams } from './boot/game-definition.ts'
+import type {
+  CompiledContentData,
+  GameAudioStart,
+  GameDefinition,
+  RuntimeSeams,
+} from './boot/game-definition.ts'
 import { CORE_SETTINGS } from './core-settings.ts'
 import { defaultContent } from './default-content.ts'
 import { createDrawLayer, type DrawContext, type DrawLayer, mergeStageHooks } from './draw/draw-layer.ts'
@@ -85,6 +90,12 @@ export interface GameSpec<S = never, D = unknown> {
    * Silent until the player's first gesture (browsers allow no sound before it).
    */
   readonly sounds?: EventSounds
+  /**
+   * The game's own audio player (`@automata/audio-synth/stage`), started once the runtime has built its audio service:
+   * it plays cues for sim events and music for the game's state through the service's buses. Presentation only; what it
+   * returns undoes it at shutdown.
+   */
+  readonly audio?: GameAudioStart
   /**
    * The board and score each sim event submits, by the event's id:
    * `{ [RunEnded.id]: { board: 'best', score: (payload) => RunEnded.schema.parse(payload).score } }`. The board is a key
@@ -337,6 +348,7 @@ export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): Define
     ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
     ...(spec.preload === undefined ? {} : { preload: spec.preload }),
     ...(spec.sounds === undefined ? {} : { sounds: spec.sounds }),
+    ...(spec.audio === undefined ? {} : { audio: spec.audio }),
     ...(spec.scores === undefined ? {} : { scores: spec.scores }),
     ...(spec.saves === undefined ? {} : { saves: spec.saves.def }),
     ...(runtimeCopy === undefined ? {} : { copy: runtimeCopy }),

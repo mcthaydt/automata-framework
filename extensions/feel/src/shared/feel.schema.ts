@@ -54,8 +54,10 @@ export interface VisualRow {
  * otherwise.
  */
 export interface WordRow {
-  /** A locale key. */
+  /** The word's name, unique in the file. */
   readonly key: string
+  /** What it says, in the game's source language. Translatable text in the `feel` content kind. */
+  readonly words?: string | undefined
   readonly at?: 'subject' | undefined
   /** How long it stays up; 800 ms when unset. */
   readonly ms?: number | undefined
@@ -119,57 +121,65 @@ const visual: z.ZodType<VisualRow> = z
     if (row.tint !== undefined && (row.ms === undefined || row.alpha === undefined))
       ctx.addIssue({ code: 'custom', path: ['ms'], message: 'a tint needs its ms and alpha' })
   })
-const entry: z.ZodType<FeelEntry> = z.strictObject({
-  on: z.string().min(1),
-  camera: z.array(z.strictObject({ shake: unit })).optional(),
-  pose: z
-    .array(z.strictObject({ hit_stop_ms: z.number().positive(), target: z.literal('subject').optional() }))
-    .optional(),
-  visual: z.array(visual).optional(),
-  word: z
-    .array(
-      z.strictObject({
-        key: z.string().min(1),
-        at: z.literal('subject').optional(),
-        ms: z.number().positive().optional(),
-      }),
-    )
-    .optional(),
-  haptic: z
-    .array(
-      z.strictObject({
-        strong: unit,
-        weak: unit,
-        ms: z.number().positive(),
-        phone_ms: z.number().positive().optional(),
-      }),
-    )
-    .optional(),
-  audio: z.array(z.strictObject({ cue: z.string().min(1) })).optional(),
-})
-
-/** The Zod schema of `feel.toml`. */
-export const feelSchema: z.ZodType<FeelContent> = z
-  .strictObject({
-    limits: z
-      .strictObject({
-        shake_px: z.number().min(0).optional(),
-        hit_stop_ms: z.number().min(0).optional(),
-        flash_frames: z.number().int().min(0).optional(),
-        flash_alpha: unit.optional(),
-      })
+/** An entry's shape; the content kind passes its own schema for a word's `words` (translatable text), the default plain text. */
+const entryWith = (words: z.ZodType<string, string>): z.ZodType<FeelEntry> =>
+  z.strictObject({
+    on: z.string().min(1),
+    camera: z.array(z.strictObject({ shake: unit })).optional(),
+    pose: z
+      .array(z.strictObject({ hit_stop_ms: z.number().positive(), target: z.literal('subject').optional() }))
       .optional(),
-    springs: z.strictObject({ squash: spring.optional() }).optional(),
-    entry: z.array(entry).optional(),
+    visual: z.array(visual).optional(),
+    word: z
+      .array(
+        z.strictObject({
+          key: z.string().min(1),
+          words: words.optional(),
+          at: z.literal('subject').optional(),
+          ms: z.number().positive().optional(),
+        }),
+      )
+      .optional(),
+    haptic: z
+      .array(
+        z.strictObject({
+          strong: unit,
+          weak: unit,
+          ms: z.number().positive(),
+          phone_ms: z.number().positive().optional(),
+        }),
+      )
+      .optional(),
+    audio: z.array(z.strictObject({ cue: z.string().min(1) })).optional(),
   })
-  .superRefine((feel, ctx) => {
-    const seen = new Set<string>()
-    ;(feel.entry ?? []).forEach((e, i) => {
-      if (seen.has(e.on))
-        ctx.addIssue({ code: 'custom', path: ['entry', i, 'on'], message: `two entries answer ${e.on}` })
-      seen.add(e.on)
+
+/** The Zod schema of `feel.toml`, with `words` checked by `words`: plain text here, translatable text in the content kind. */
+export const feelSchemaWith = (words: z.ZodType<string, string>): z.ZodType<FeelContent> => {
+  const entry = entryWith(words)
+  return z
+    .strictObject({
+      limits: z
+        .strictObject({
+          shake_px: z.number().min(0).optional(),
+          hit_stop_ms: z.number().min(0).optional(),
+          flash_frames: z.number().int().min(0).optional(),
+          flash_alpha: unit.optional(),
+        })
+        .optional(),
+      springs: z.strictObject({ squash: spring.optional() }).optional(),
+      entry: z.array(entry).optional(),
     })
-  })
+    .superRefine((feel, ctx) => {
+      const seen = new Set<string>()
+      ;(feel.entry ?? []).forEach((e, i) => {
+        if (seen.has(e.on))
+          ctx.addIssue({ code: 'custom', path: ['entry', i, 'on'], message: `two entries answer ${e.on}` })
+        seen.add(e.on)
+      })
+    })
+}
+/** The Zod schema of `feel.toml`. */
+export const feelSchema: z.ZodType<FeelContent> = feelSchemaWith(z.string())
 
 /** The limits a file sets over the defaults. */
 export const resolveLimits = (feel: Pick<FeelContent, 'limits'>): Limits => ({

@@ -325,6 +325,8 @@ async function boot<S>(
   })
   owned.add(() => audio.dispose())
   if (game.sounds !== undefined) owned.add(playEventSounds(bus, audio, game.sounds))
+  const stopOwnAudio = game.audio?.({ audio, bus })
+  if (stopOwnAudio !== undefined) owned.add(stopOwnAudio)
   const leaderboards = createLeaderboards(hosting, bus)
   if (game.scores !== undefined) owned.add(submitEventScores(bus, leaderboards, game.scores))
 

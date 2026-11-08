@@ -1026,6 +1026,53 @@ describe('bootProgram', () => {
       await scope.close()
       expect(contexts[0]?.closed).toBe(true)
     })())
+  it('hands the game its Audio and presentation bus once, and undoes what it started at shutdown', () =>
+    (async () => {
+      const scope = teardown()
+      const root = document.createElement('div')
+      document.body.appendChild(root)
+      scope.add(() => root.remove())
+      const frames = manualFrames()
+      const { screens } = makeTestScreens()
+      const given: { audio?: Audio & AudioBuses; bus?: PresentationBus; calls: number; undone: number } = {
+        calls: 0,
+        undone: 0,
+      }
+      const game: GameDefinition = {
+        root,
+        hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
+        content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+        screens,
+        renderer: nullRenderer(),
+        audio: ({ audio, bus }) => {
+          given.calls += 1
+          given.audio = audio
+          given.bus = bus
+          return () => {
+            given.undone += 1
+          }
+        },
+        seams: {
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+          frames,
+          fonts: { load: () => Promise.resolve([]) },
+          createAudioContext: () => fakeAudioContext(),
+          sdkEnv: () =>
+            createFakeHost({ gameOrigin: TEST_GAME_ORIGIN, gameId: 'test-game', clock: realClock }).gameEnv!,
+        },
+      }
+
+      const fiber = bootProgram(game, scope)
+      await advanceFirstFrame(frames)
+      await booted(fiber)
+      expect(given.calls).toBe(1)
+      expect(given.audio?.unlocked.get()).toBe(false)
+      expect(typeof given.bus?.publish).toBe('function')
+      expect(given.undone).toBe(0)
+
+      await scope.close()
+      expect(given.undone).toBe(1)
+    })())
   it('provides Haptics to screens: the game’s seam here, the browser’s otherwise (redo step 10)', () =>
     (async () => {
       const scope = teardown()
