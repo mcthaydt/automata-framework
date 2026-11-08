@@ -1,3 +1,6 @@
+// Pixi's WebGL renderer compiles its shaders with eval unless this runs first, and a page with a strict CSP (the
+// site's try-it editor) allows none: without it the level canvas says "Preview unavailable".
+import '@automata/framework/no-eval'
 import '../../shared/kit/tokens.css'
 import '../../shared/kit/tool-chrome.css'
 import '../../shared/kit/fonts.css'

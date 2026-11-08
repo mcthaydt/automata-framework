@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
+import { createAppProfiles } from '#src/app/level-2d/profiles.ts'
 import type { ProjectStore } from '#src/shared/kit/storage/project-store.ts'
 import type { Workspace } from '#src/shared/kit/storage/workspace.ts'
 import { createEditorApp, type OpenDocument } from '#src/shared/level-2d/documents/editor-app.ts'

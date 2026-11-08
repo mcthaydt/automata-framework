@@ -3,7 +3,7 @@ import { cleanup, render, screen, waitFor, within } from '@testing-library/svelt
 import userEvent from '@testing-library/user-event'
 import { flushSync } from 'svelte'
 import { describe, expect, it } from 'vitest'
-import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
+import { createAppProfiles } from '#src/app/level-2d/profiles.ts'
 import Home from '#src/features/home/Home.svelte'
 import { createHomeController } from '#src/features/home/home-controller.ts'
 import { templateCards } from '#src/features/home/home-model.ts'

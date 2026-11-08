@@ -6,42 +6,43 @@ In your game's folder, run:
 pnpm exec automata editor
 ```
 
-Open the address it prints. Draw, then press Save: your game plays the new level the next time it loads. Stop the
-editor with Ctrl+C.
+Open the address it prints. Draw: every step is saved into your game, which plays the new level the next time it
+loads. Stop the editor with Ctrl+C.
 
 ## Open it
 
 ```sh
-automata editor                 # the level editor on the game in this folder
+automata editor                 # the editors your game needs, on the game in this folder
 automata editor ../my-game      # the game in another folder
-automata editor --app suite     # the level editor and the Tuner together
 automata editor --port 4173     # a port you choose (default: a free one)
 ```
+
+Your game's `content/editors.toml` decides which editors open: Levels and the Tuner for a 2D game, and the 3D editors
+too for a game whose list names them. There is no flag to choose.
 
 The editor runs in your browser, and the command is a small server on your computer that reads and writes your game's
 files for it.
 
 ## Draw
 
-Home lists your game's levels by name. Tap one to open it. Along the top are the four views:
+Home lists your game's editors, and under each the files it opens, by name. Tap a level to open it. Along the top are
+two views:
 
 - **Level**: paint walls and floors, tiles and characters. The tools are at the top of the level (at the bottom on a
   phone): select, brush, rectangle, fill, eraser and pick. Layers are on the left; what you chose is on the right.
-- **Map**: where each level sits beside the others. Tap a level to edit it.
 - **Tiles**: your sets of tiles and the tiles that place themselves. **Add tiles** turns a picture of tiles into a set.
-- **Characters**: the kinds of character and item a level can hold, and their settings.
 
-Undo and Redo are beside Save. A two-finger tap undoes too.
+Undo and Redo are in the top bar. A two-finger tap undoes too.
 
 ## Save
 
-Save writes your game's files. Beside it the editor says where the level stands: **Saved**, **Not saved**,
-**Saving…** or **Couldn't save**. If you edit a file by hand while it is open, Save does not write over your change: the
-editor says the file changed and lets you keep yours, take the file's, or save a copy. Use one editor tab per game.
+There is no Save button: the editor writes your game's files after every step, and the top bar says "Saved in your
+game folder". If you edit a file by hand while it is open, the editor does not write over your change: it says the
+level "was changed somewhere else" and asks you to choose **Use mine** or **Use theirs**. Use one editor tab per game.
 
 ## Play
 
-Start your game as usual (`pnpm dev`). With `--app suite`, the Tuner shows your game running beside its settings:
+Start your game as usual (`pnpm dev`). The Tuner shows your game running beside its settings:
 change how fast your character runs or how high it jumps, and the game starts over with the new feel. Each setting is
 shown in a unit you can feel (pixels a second, seconds). If your game is not on `http://localhost:5173`, give its
 address with `--game-url`.
@@ -68,5 +69,5 @@ computer without a token.
 
 ## Without the command
 
-The built editor also runs from any web host (the website's Try it page is one). It then keeps your levels in this
-browser, and Share downloads or copies them.
+The built editor also runs from any web host (the website's Try it page is one). It then opens a sample game held in
+the page: nothing you draw is kept, and Share downloads or copies your level.

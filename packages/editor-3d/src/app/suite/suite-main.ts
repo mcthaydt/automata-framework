@@ -1,3 +1,5 @@
+// Pixi's WebGL renderer compiles its shaders with eval unless this runs first (the same rule as the 2D suite page).
+import '@automata/framework/no-eval'
 import '@automata/editor/tokens.css'
 import '@automata/editor/fonts.css'
 import '@automata/editor/suite.css'

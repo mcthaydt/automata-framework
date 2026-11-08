@@ -7,8 +7,8 @@ import { EDITOR_COMMAND, PICTURES } from '../../../src/features/editor/editor-co
 
 const staticFile = (url: string) => resolve(process.cwd(), 'static', url.slice(1))
 
-// Spec 10.2 (Editor): what the editor does in three pictures, and "Try the editor", which opens the same build
-// `automata editor` serves, on this browser's storage.
+// Spec 10.2 (Editor): what the editor does in three pictures, and "Try the editor", which opens the same page
+// `automata editor` serves on a sample game held in the page: nothing is kept, Share is how a level leaves.
 describe('/editor', () => {
   it('shows what the editor does in three pictures, each one a real file with words for it', () => {
     const view = render(EditorPage)
@@ -21,10 +21,12 @@ describe('/editor', () => {
     }
   })
 
-  it('opens the try-it editor, says where it keeps levels, and how to open it on a game', () => {
+  it('opens the try-it editor, says nothing is kept there, and how to open it on a game', () => {
     const view = render(EditorPage)
     expect(view.getByRole('link', { name: 'Try the editor' }).getAttribute('href')).toBe('/editor/app/')
-    expect(view.container.textContent).toContain('keeps your levels in this browser')
+    expect(view.container.textContent).toContain(
+      'Nothing you draw there is kept. Share your level to keep a copy.',
+    )
     expect(EDITOR_COMMAND).toBe('pnpm exec automata editor')
     expect(view.getByText(EDITOR_COMMAND)).toBeTruthy()
   })

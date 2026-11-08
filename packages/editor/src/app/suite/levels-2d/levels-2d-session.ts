@@ -13,7 +13,7 @@ import { readDocument } from '../../../shared/level-2d/documents/read-document'
 import type { LevelCanvasProps, ObjectUrls } from '../../../shared/level-2d/documents/view-props'
 import type { IdSource } from '../../../shared/level-2d/model/ids'
 import type { ParseError, Profile } from '../../../shared/level-2d/profiles/profile'
-import { createAppProfiles } from '../../editor-2d/profiles'
+import { createAppProfiles } from '../../level-2d/profiles'
 
 // The Levels 2D session: what the suite keeps for the 2D level
 // editor while the person is elsewhere. It holds the document's kit history and the Level view's session (the level,

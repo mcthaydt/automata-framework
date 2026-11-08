@@ -1,6 +1,6 @@
 import '#src/shared/kit/tokens.css'
 import '#src/shared/kit/fonts.css'
-import '#src/app/editor-2d/main.css'
+import '#src/app/level-2d/main.css'
 import { afterEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'

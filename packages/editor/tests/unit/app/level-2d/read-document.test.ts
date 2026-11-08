@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
+import { createAppProfiles } from '#src/app/level-2d/profiles.ts'
 import { readDocument } from '#src/shared/level-2d/documents/read-document.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'

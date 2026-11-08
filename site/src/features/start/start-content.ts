@@ -22,7 +22,7 @@ export const STEPS: readonly Step[] = [
   {
     title: '3. Draw its level',
     command: 'pnpm exec automata editor',
-    what: 'The level editor opens on your game. Draw, press Save, and the running game picks up the change.',
+    what: 'The level editor opens on your game. Draw, and every step is saved: the running game picks up the change.',
   },
   {
     title: '4. Put it online',

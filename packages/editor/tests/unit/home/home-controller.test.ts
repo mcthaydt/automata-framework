@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
+import { createAppProfiles } from '#src/app/level-2d/profiles.ts'
 import { createHomeController, type HomeState, type LastOpened } from '#src/features/home/home-controller.ts'
 import { createToasts, type ToastStore } from '#src/shared/kit/widgets/toasts.ts'
 import {

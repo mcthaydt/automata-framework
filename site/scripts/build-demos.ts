@@ -59,11 +59,11 @@ function copyDemos(): number {
   return demos.length
 }
 
-/** The 2D editor's build, copied as it is: on the site it finds no game folder and keeps levels in browser storage. */
+/** The editor suite's 2D page, copied as it is: on the site it finds no game folder and opens its sample game. */
 function copyEditor(): void {
-  const dist = join(repositoryRoot, 'packages/editor/dist/2d')
+  const dist = join(repositoryRoot, 'packages/editor/dist/suite')
   if (!existsSync(join(dist, 'index.html')))
-    throw new Error('packages/editor: its build wrote no dist/2d/index.html')
+    throw new Error('packages/editor: its build wrote no dist/suite/index.html')
   const target = join(staticDir, 'editor', 'app')
   rmSync(join(staticDir, 'editor'), { recursive: true, force: true })
   cpSync(dist, target, { recursive: true })

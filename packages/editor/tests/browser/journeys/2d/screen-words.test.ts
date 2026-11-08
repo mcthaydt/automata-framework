@@ -1,7 +1,7 @@
 import '#src/shared/kit/tokens.css'
 import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
-import '#src/app/editor-2d/main.css'
+import '#src/app/level-2d/main.css'
 import { afterEach, describe, expect, it } from 'vitest'
 import { IPAD_PROFILES } from '#src/testing/kit/ipad-profiles.ts'
 import { arrived } from '#src/testing/kit/layout-sizes.ts'
