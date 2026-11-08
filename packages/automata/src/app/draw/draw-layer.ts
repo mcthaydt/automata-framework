@@ -5,7 +5,7 @@
 // Immediate mode on a retained scene graph (plan D-6): one Graphics is cleared and redrawn each frame, and text
 // labels are pooled by call order (the nth `text` call reuses the nth label, unused ones are hidden), so a steady
 // HUD allocates no display objects after its first frame. Shapes draw in the pixel picture; text draws on the
-// stage's `hud` layer above it, sharp at any screen size (spec D9).
+// stage's `hud` layer above it, sharp at any screen size.
 
 import type { Sim, StepResult } from '@automata/sim'
 import { Container, Graphics } from 'pixi.js'

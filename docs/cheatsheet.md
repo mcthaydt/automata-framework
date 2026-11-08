@@ -458,7 +458,7 @@
 - `CoreSettings` (interface): The settings every game carries: input bindings, display, audio and vibration.
 - `createCamera2d(stage, options, seed?)`: A camera writing `stage`'s transform (usually `PixiStage.world`).
 - `createGeometryOwner(options)`: Creates the geometry owner of a document, the only writer of its geometry: make one per document.
-- `createHudText(surface, pages?)`: Canvas text that stays sharp (spec D2): each string is drawn from the first baked MSDF page that holds every one of its letters, else as one `Text` in the device's face at the screen's own resolution.
+- `createHudText(surface, pages?)`: Canvas text that stays sharp: each string is drawn from the first baked MSDF page that holds every one of its letters, else as one `Text` in the device's face at the screen's own resolution.
 - `createPixiRenderer(options?)`: The core 2D renderer (ADR 0002) as a runtime `RendererFactory`: a letterboxed Pixi app on the render target, entity views from each step's render delta, interpolated each frame.
 - `createPostFilterSlot(target)`: A post-filter slot writing its composed filters to `target`'s `filters`.
 - `createT(messages)`: `t` over a messages module (`import * as m from './paraglide/messages.js'`).

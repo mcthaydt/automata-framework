@@ -21,7 +21,7 @@ const { content, on, settings, reduced, outputs, replay }: Props = $props()
 
 const FPS = 60
 const SECONDS = 1.5
-// The word as play draws it (spec D10): Geist semibold at the floor size, white over a black copy 1.5 CSS px down
+// The word as play draws it: Geist semibold at the floor size, white over a black copy 1.5 CSS px down
 // and right, so it reads on any colour the flash or tint puts behind it.
 const WORD_FONT = '600 14px "Geist Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 const SHADOW_PX = 1.5

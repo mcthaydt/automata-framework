@@ -4627,7 +4627,7 @@ function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwner;
 
 #### `createHudText` (function)
 
-Canvas text that stays sharp (spec D2): each string is drawn from the first baked MSDF page that holds every one of
+Canvas text that stays sharp: each string is drawn from the first baked MSDF page that holds every one of
 its letters, else as one `Text` in the device's face at the screen's own resolution. It draws on `surface.hud`, above
 the pixel picture and outside every post filter.
 

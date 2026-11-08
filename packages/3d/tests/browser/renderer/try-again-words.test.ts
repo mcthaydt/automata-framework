@@ -1,11 +1,11 @@
 // Words on the hud survive Try again (spec D2, plan task 7): a rebuild makes a new Pixi app, so the hud and its pooled
 // labels are new too. A word set on the new hud must draw, not stay on the app that was thrown away.
 import '#src/entries/no-eval.ts'
-import { CONTEXT_RESTORE_MS } from '#src/features/renderer/context-loss.ts'
 import { createHudText, type HudText } from '@automata/framework'
 import { fakeClock } from '@automata/framework/testing'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createPixi3dRenderer } from '#src/app/create-renderer.ts'
+import { CONTEXT_RESTORE_MS } from '#src/features/renderer/context-loss.ts'
 import { builtRenderer } from '#src/testing/built-renderer.ts'
 import { snapshot } from '#src/testing/snapshot.ts'
 import { testTarget } from '#src/testing/test-target.ts'

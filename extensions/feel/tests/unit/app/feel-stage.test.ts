@@ -29,7 +29,10 @@ const fakeStage = (): PixiStage =>
 // baked page loads here either, so every word draws in the fallback face: the framework's browser tests cover the
 // bitmap path, and the complete-game journeys play the real thing.
 beforeEach(() => {
-  vi.spyOn(CanvasTextMetrics, 'measureText').mockImplementation(((value: string, style: { fontSize: number }) => ({
+  vi.spyOn(CanvasTextMetrics, 'measureText').mockImplementation(((
+    value: string,
+    style: { fontSize: number },
+  ) => ({
     width: [...value].length * 5,
     height: style.fontSize * 1.2,
   })) as never)
@@ -250,7 +253,10 @@ describe('feelStage: words', () => {
       .filter((label) => label.visible)
       .map((label) => label.children.filter((c): c is Text => c instanceof Text && c.visible).at(-1) as Text)
   // A word is anchored by the middle of its bottom edge: that is the point the table places.
-  const anchorOf = (t: Text | undefined) => ({ x: (t?.x ?? 0) + (t?.width ?? 0) / 2, y: (t?.y ?? 0) + (t?.height ?? 0) })
+  const anchorOf = (t: Text | undefined) => ({
+    x: (t?.x ?? 0) + (t?.width ?? 0) / 2,
+    y: (t?.y ?? 0) + (t?.height ?? 0),
+  })
 
   it('shows a word over its subject’s view and takes it away when its time is up', () => {
     const view = new Container()
