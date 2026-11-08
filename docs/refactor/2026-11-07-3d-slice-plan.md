@@ -1573,7 +1573,23 @@ second harness.
   test). **Step 3:** PASS in Chromium, WebKit on the runner; the 2D journeys' count is unchanged. `3d.yml`'s
   `3D - journeys` job runs `pnpm --filter @automata/editor test:e2e --grep 3d` (named in task 1.2's test once added). Part C's done check: spec criteria 8 to 13. **Commit**
   `test(editors): journeys from the editor to the game`
-- [ ] **Step 4:** Merge part C's PRs in stack order once green. Part D starts after.
+- [ ] **Step 4:** Merge part C's PRs in stack order once green (after task 18.3). Part D starts after.
+
+### Task 18.3: A whole 3D game from the editors (the Owner, 2026-11-08 04:18: "We need to do the same for 3D once that's up and running")
+
+The 2D proof ("Make a full game from the editors", on top of PR #473) for a 3D game: one served journey that makes a
+game and checks that what the editors made is what plays. Reuse that thread's journey helpers and the 18.2 harness
+(`copyGame`/`new-game.ts`, `runEditor`, `runGame`, the editor's Play and Ship buttons); no second harness.
+
+**Files:** create `packages/editor/tests/e2e/journeys/whole-3d-game.test.ts`; product fixes each with their own test.
+
+- [ ] **Step 1: Write the failing journey**: `create-game --template 3d` into a temp folder; `automata editor` on it;
+  in Levels 3D build a room (walls, a floor, a door) and place a character made in Characters; the change reaches the
+  game's files and `automata check` passes; Play opens the game and the room and the character are there (read from
+  the game's own state or a readiness attribute, not a screenshot); Ship builds it and the shipped build shows the same.
+  **Step 2:** FAIL where the product lacks a step, each fixed as a product bug with its test. **Step 3:** PASS in
+  Chromium at iPad and phone size, WebKit on the runner. The 3D build audit walks the same loop by hand.
+  **Commit** `test(editors): a whole 3D game from the editors`
 
 ---
 
