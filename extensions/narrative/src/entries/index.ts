@@ -1,6 +1,10 @@
 // @automata/narrative: the narrative extension: its content kinds and its sim, re-exported.
 
-export { type NarrativeExtension, narrativeExtension } from '../app/narrative.extension'
+export {
+  type NarrativeExtension,
+  type NarrativeExtensionOptions,
+  narrativeExtension,
+} from '../app/narrative.extension'
 export {
   beatsContent,
   canonContent,

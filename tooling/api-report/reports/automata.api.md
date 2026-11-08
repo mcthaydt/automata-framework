@@ -2820,6 +2820,12 @@ interface MountedFixture {
 function mountFixture<Props extends Record<string, unknown>>(component: Component<Props>, props: Props, target?: HTMLElement): MountedFixture;
 ```
 
+### `mountInPlay` (function)
+
+```ts
+function mountInPlay(slot: UiComponent, sim: Sim | undefined, target?: HTMLElement): PlayMount;
+```
+
 ### `nullRenderer` (function)
 
 ```ts
@@ -2854,6 +2860,28 @@ interface NullRendererOptions {
 
 ```ts
 function openRuntimeTest(options?: RuntimeTestOptions): Promise<RuntimeTestSession>;
+```
+
+### `PlayMount` (interface)
+
+```ts
+interface PlayMount {
+    readonly host: HTMLElement;
+    readonly session: PlaySession;
+    unmount(): void;
+}
+```
+
+### `PlaySession` (class)
+
+```ts
+class PlaySession {
+    #private;
+    readonly handle: PlayHandle;
+    constructor(sim: Sim | undefined);
+    refresh(): void;
+    commands(tick: number, input: readonly Command[]): readonly Command[];
+}
 ```
 
 ### `pressedPart` (function)

@@ -2,6 +2,7 @@
 // suite, a null renderer and manual frames for the runtime, viewport and layout fixtures, the layout contract for a
 // game's screens, and the unit-test fake gamepads. Product code never imports this file or `../testing/`.
 
+export type { PlaySession } from '../shared/ui/slots/play-context.svelte.ts'
 export { type FakeClock, fakeClock } from '../testing/fake-clock.ts'
 export * from '../testing/host/contract-suite.ts'
 export * from '../testing/host/index.ts'

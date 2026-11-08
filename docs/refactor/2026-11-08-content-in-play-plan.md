@@ -622,9 +622,23 @@ The Owner's rule (2026-11-08): content made in the editors must be seen in play,
   position now (no lag in 2D). (5) `Math.hypot` is refused by `pnpm boundaries` in sim code, so the maths uses `hypot` from
   `@automata/sim/math`.
 - 2026-11-08 Task 12 done: `PlaySession` / `usePlay()` in `packages/automata/src/shared/ui/slots/play-context.svelte.ts`, exported from
-  `@automata/framework/ui` (not `/extension`, which Node reads and must not pull in a `.svelte.ts`). `PlayScreen` provides the
+  `@automata/framework` (the `ui` entry; not `/extension`, which Node reads and must not pull in a `.svelte.ts`). `PlayScreen` provides the
   context and refreshes the session each animation frame, only when a hud component exists. Rulings: (1) `send` takes
   `{ type, payload }` (a full `Command` fits); the stream fills in tick, source 0 and a seq of its own (`tick + 1 + n`; the input
   map's seq is the tick, and a seq may be used once per source in a step). (2) The recording is "the stream
   `appLoop.run({ commands })` is given"; there is no recorder in the runtime. Tests: 6 in jsdom (read follows the frame, rAF
   refresh, read-only view, the outside-a-screen sentence, order and seqs, a recorded stream replays to the same hash).
+- 2026-11-08 Task 13 done: the dialogue box (`extensions/narrative/src/features/box/`: `dialogue-box.ts` model, `DialogueBox.svelte`,
+  `box-slot.ts`). `narrativeExtension({ words, lines })` puts it in `hud.overlay` (only when `words` is given, so a 3D game
+  that draws its own lines is unchanged). Narrative now builds Svelte (svelte-check typecheck, jsdom tests name the environment
+  on their first line, `alsoInNode` narrowed to `tests/browser/shared` so the layout test runs only in browsers). Rulings:
+  (1) `lines` is a second option: line records are content and the sim does not hold them, so the box cannot find a line's
+  speaker and key without it (the spec named only `words`). (2) The box reads the conversation with `view()` over a reader
+  built from the draw layer's read-only view (`puzzleReader`, factored out of narrative.system so the sim and the box use
+  one function); a condition on a fact the game maps through `options.facts` is not visible to the box, so such a choice
+  could show that the sim then refuses (it does nothing). (3) The speaker is `words('speaker.<id>')`, else the id read aloud
+  (`nurse-jo` as `Nurse jo`); "Next" is `words('dialogue.next')`, else "Next". (4) The pad's A is read by the box itself
+  (the default play screen only steers its menus with a pad): it presses the focused button. (5) Core: `PlayHost`/`mountInPlay`
+  in `@automata/framework/testing` mounts a slot component in the real `PlayScreen`; `.af-game-play__field` is
+  `position: relative`. Tests: 15 DOM/model (jsdom), 3 layout (Chromium: 390x844, 844x390, 1024x768; WebKit and Firefox are
+  not installed here); core screens layout suite 401 passes in Chromium.

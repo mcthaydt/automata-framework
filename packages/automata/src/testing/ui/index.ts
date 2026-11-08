@@ -12,4 +12,5 @@ export {
   type Targets,
   TOUCH_TARGETS,
 } from './layout-contract'
+export { mountInPlay, type PlayMount } from './play-host'
 export { settleLayout } from './settle'

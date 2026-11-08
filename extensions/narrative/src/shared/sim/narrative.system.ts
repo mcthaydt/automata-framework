@@ -4,13 +4,7 @@
 // room, as of the last step's membership) and whether it moved, and play on verbs and system events.
 
 import type { Places } from '@automata/places'
-import {
-  PuzzleSceneResource,
-  PuzzleState,
-  type Reader,
-  type Value,
-  type VerbReport,
-} from '@automata/puzzle/sim'
+import type { Reader, Value, VerbReport } from '@automata/puzzle/sim'
 import { sectorsPlaces } from '@automata/sectors/sim'
 import { defineSystem, type SimContext, type SystemDef } from '@automata/sim'
 import { advance, applyChoice, choose, type Place, readerOf, settle, start, view } from './dialogue'
@@ -23,6 +17,7 @@ import {
   NarrativeSceneResource,
   NarrativeStorylets,
 } from './narrative.resource'
+import { puzzleReader } from './puzzle-reader'
 import { type Here, type Outcome, onStep, onSystem, onVerb, type Room } from './storylets'
 
 export interface NarrativeOptions {
@@ -34,27 +29,12 @@ export interface NarrativeOptions {
   readonly locked?: (ctx: SimContext) => boolean
 }
 
-/** Puzzle's facts and items, under the game's own facts, with `read.<hotspot>` for a hotspot an action was taken at. */
-function baseReader(ctx: SimContext, options: NarrativeOptions): Reader {
-  const puzzle = ctx.resource(PuzzleState)
-  return {
-    fact: (name) => {
-      const own = options.facts?.(ctx, name)
-      if (own !== undefined) return own
-      if (name.startsWith('read.')) {
-        const def = ctx.resource(PuzzleSceneResource).def
-        const at = name.slice(5)
-        return def?.actions.some((a) => a.at === at && puzzle.seen.includes(a.id)) ?? false
-      }
-      return puzzle.facts[name]
-    },
-    has: (item) => puzzle.items.includes(item),
-  }
-}
-
 /** The reader conditions use: stance, the dialogue's facts, then the base. */
 const readerFor = (ctx: SimContext, options: NarrativeOptions): Reader =>
-  readerOf(ctx.resource(NarrativeDialogue), baseReader(ctx, options))
+  readerOf(
+    ctx.resource(NarrativeDialogue),
+    puzzleReader(ctx, (name) => options.facts?.(ctx, name)),
+  )
 
 const graphOf = (ctx: SimContext, id: string): DialogueGraph | undefined =>
   ctx.resource(NarrativeSceneResource).graphs.find((g) => g.id === id)

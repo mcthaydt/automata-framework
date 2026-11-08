@@ -25,3 +25,9 @@ it('follows the game’s places: a 2D game requires its provider, not sectors', 
   expect(extension.requires).toEqual(['level-2d', 'puzzle'])
   expect(plugin.dependsOn).toEqual(['level-2d', 'puzzle'])
 })
+
+it('draws the dialogue box in the hud overlay only when the game gives it the words', () => {
+  expect(narrativeExtension().extension.ui).toBeUndefined()
+  const withWords = narrativeExtension({ words: (key) => key, lines: () => undefined }).extension
+  expect(Object.keys(withWords.ui?.slots ?? {})).toEqual(['hud.overlay'])
+})
