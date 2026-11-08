@@ -82,7 +82,7 @@ export function valueWords(value: unknown): string {
   return `“${String(value)}”`
 }
 
-export const YES_NO = [
+export const YES_NO: readonly { readonly value: string; readonly label: string }[] = [
   { value: 'yes', label: 'yes' },
   { value: 'no', label: 'no' },
 ]
