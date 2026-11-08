@@ -1,8 +1,9 @@
 <!--
-  The Tuner's panel: a search box and the tunables as a list, a lock mark on each locked one. Choosing one is the
-  controller's selection, which the inspector shows; the search keeps the rows whose name or note contains the text.
+  The Tuner's panel: a search box and the settings as a list by their labels, a Kept mark on each kept one. Choosing one is the
+  controller's selection, which the inspector shows; the search keeps the rows whose name, label, feel or note contains the text.
 -->
 <script lang="ts">
+import { shownName } from '../tuner-content'
 import type { TunerController } from '../tuner-controller'
 
 const { controller }: { controller: TunerController } = $props()
@@ -31,8 +32,8 @@ const rows = $derived.by(() => {
   <input
     class="search"
     type="search"
-    aria-label="Search tunables"
-    placeholder="Search tunables"
+    aria-label="Search settings"
+    placeholder="Search settings"
     value={$filter}
     oninput={(event) => controller.setFilter(event.currentTarget.value)}
   />
@@ -46,8 +47,8 @@ const rows = $derived.by(() => {
           aria-pressed={$selected === tunable.name}
           onclick={() => controller.select(tunable.name)}
         >
-          <span>{tunable.name}</span>
-          {#if locked}<span class="mark">Locked</span>{/if}
+          <span>{shownName(tunable)}</span>
+          {#if locked}<span class="mark">Kept</span>{/if}
         </button>
       </li>
     {/each}

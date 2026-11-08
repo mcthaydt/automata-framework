@@ -153,7 +153,7 @@ describe.each(SIZES)('Level view inspector, tools and levels at $name ($width x 
     const tablist = region('inspector').querySelector<HTMLElement>('[role="tablist"][aria-label="Inspector"]')
     if (tablist === null) throw new Error('no inspector tabs')
     const tabs = [...tablist.querySelectorAll<HTMLElement>('[role="tab"]')]
-    expect(tabs.map((tab) => tab.textContent?.trim())).toEqual(['Entity', 'Level', 'Checks'])
+    expect(tabs.map((tab) => tab.textContent?.trim())).toEqual(['Selected', 'Level', 'Problems'])
     for (const tab of tabs) expectInside(tab, size)
     expect(checkLayout(conditions, tabs)).toEqual([])
     await page.screenshot({ path: `.vitest/shots/level-inspector-${size.name}.png` })

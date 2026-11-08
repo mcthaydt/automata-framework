@@ -282,7 +282,7 @@ describe('Level view: the inspector opens on selection', () => {
     expect(inspectorRegion()).toHaveAttribute('data-open', 'false')
     await placeSlime()
     expect(inspectorRegion()).toHaveAttribute('data-open', 'true')
-    expect(inspectorTab('Entity')).toHaveAttribute('aria-selected', 'true')
+    expect(inspectorTab('Selected')).toHaveAttribute('aria-selected', 'true')
   })
 })
 
@@ -290,7 +290,7 @@ describe('Level view: inspector journey (flow 3, G-e)', () => {
   it('places a thing, edits its fields, refuses a bad value and undoes', async () => {
     await mount()
     await placeSlime()
-    expect(inspectorTab('Entity')).toHaveAttribute('aria-selected', 'true')
+    expect(inspectorTab('Selected')).toHaveAttribute('aria-selected', 'true')
     expect(stepper('Hit points')).toBe('3')
 
     await userEvent.click(screen.getByRole('button', { name: 'Increase Hit points' }))
@@ -397,7 +397,7 @@ describe('Level view: accessibility', () => {
     const regions = [
       screen.getByTestId('document-bar'),
       canvas(),
-      inspectorTab('Entity').closest('[role="tablist"]') as HTMLElement,
+      inspectorTab('Selected').closest('[role="tablist"]') as HTMLElement,
     ]
     expect(within(screen.getByTestId('document-bar')).getByRole('radiogroup', { name: 'Views' })).toBeTruthy()
     for (const [before, after] of regions.slice(1).map((region, at) => [regions[at], region] as const))

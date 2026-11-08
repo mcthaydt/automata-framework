@@ -1,5 +1,5 @@
 <!--
-  The inspector's Checks tab: the profile's findings about
+  The inspector's Problems tab (`checks`): the profile's findings about
   this level, read only, in the profile's order. A finding about an instance is a 44 px button that selects it; fixes are not offered here yet.
 -->
 <script lang="ts">

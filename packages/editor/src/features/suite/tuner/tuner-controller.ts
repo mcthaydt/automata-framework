@@ -72,6 +72,8 @@ export async function createTunerController(ports: SuitePorts): Promise<TunerCon
         : read.tunables.filter(
             (tunable) =>
               tunable.name.toLowerCase().includes(search) ||
+              (tunable.label ?? '').toLowerCase().includes(search) ||
+              (tunable.feel ?? '').toLowerCase().includes(search) ||
               (tunable.note ?? '').toLowerCase().includes(search),
           )
     },

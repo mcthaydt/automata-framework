@@ -1,8 +1,9 @@
 <!--
-  The Tuner's canvas: one row per tunable, in the file's order. A number with bounds is a
+  The Tuner's canvas: one row per tunable, in the file's order, shown by its label and what a player feels when the
+  file gives them (`shownName`, `shownNote`), else by its name in code and its comment. A number with bounds is a
   slider and a number box, a number without is the box alone, a toggle is On or Off, a string a text field, and a table
-  or a list says "Ask only". A value outside the bounds is refused before the write, with the bound named; a lock makes a
-  row refuse until it is unlocked. The states without rows: no file (an offer to create it), a file that does not parse
+  or a list says "Ask only". A value outside the bounds is refused before the write, with the bound named; Keep (the session's lock) makes a
+  row refuse until it is let go. The states without rows: no file (an offer to create it), a file that does not parse
   (the parser's line), and a code-owned game whose bounds the compiler has not written.
 -->
 <script lang="ts">
@@ -10,7 +11,7 @@ import Button from '../../../../shared/kit/widgets/Button.svelte'
 import Segmented from '../../../../shared/kit/widgets/Segmented.svelte'
 import Slider from '../../../../shared/kit/widgets/Slider.svelte'
 import Stepper from '../../../../shared/kit/widgets/Stepper.svelte'
-import type { Tunable } from '../tuner-content'
+import { KEEP_TIP, shownName, shownNote, type Tunable } from '../tuner-content'
 import type { TunerController } from '../tuner-controller'
 import { checkValue } from '../tuner-edits'
 
@@ -61,37 +62,40 @@ const numberOf = (tunable: Tunable): number => (typeof tunable.value === 'number
 <section class="rows" aria-label="Tunables" data-testid="tuner-rows" data-scroll-region="vertical">
   {#if !hasFile}
     <div class="state">
-      <p>This game has no content/tuning.toml yet.</p>
-      <Button variant="primary" onclick={() => void controller.create()}>Create tuning.toml</Button>
+      <p>This game has no settings file yet.</p>
+      <Button variant="primary" onclick={() => void controller.create()}>Make one</Button>
     </div>
   {:else if 'problem' in read}
     <p class="problem" role="alert">{read.problem}</p>
   {:else}
     {#if noBounds}
-      <p class="hint">Run checks to read bounds: these numbers have none until the compiler has written tuning-meta.json.</p>
+      <p class="hint">Run the game's checks once to see how far these settings can go.</p>
     {/if}
     {#each rows as tunable (tunable.name)}
       {@const locked = isLocked(tunable.name)}
+      {@const shown = shownName(tunable)}
+      {@const note = shownNote(tunable)}
       <div
         class="row"
         class:chosen={$selected === tunable.name}
         class:locked
         data-testid={`tuner-row-${tunable.name}`}
         role="group"
-        aria-label={tunable.name}
+        aria-label={shown}
       >
         <div class="head">
           <div class="name">
-            <button type="button" class="pick" onclick={() => controller.select(tunable.name)}>{tunable.name}</button>
-            {#if tunable.note && tunable.note !== tunable.unit}<span class="note">{tunable.note}</span>{/if}
+            <button type="button" class="pick" onclick={() => controller.select(tunable.name)}>{shown}</button>
+            {#if note && note !== tunable.unit}<span class="note">{note}</span>{/if}
           </div>
           {#if tunable.editable}
             <Button
-              aria-label={`${locked ? 'Unlock' : 'Lock'} ${tunable.name}`}
+              aria-label={`Keep ${shown}`}
+              title={KEEP_TIP}
               aria-pressed={locked}
               onclick={() => controller.toggleLock(tunable.name)}
             >
-              {locked ? 'Locked' : 'Lock'}
+              {locked ? 'Kept' : 'Keep'}
             </Button>
           {/if}
         </div>
@@ -100,18 +104,18 @@ const numberOf = (tunable: Tunable): number => (typeof tunable.value === 'number
             <span class="ask-only">Ask only: a table or a list is changed with Ask.</span>
           {:else if tunable.kind === 'boolean'}
             <Segmented
-              label={tunable.name}
+              label={shown}
               value={tunable.value === true ? 'on' : 'off'}
               options={[{ id: 'off', label: 'Off' }, { id: 'on', label: 'On' }]}
               disabled={locked}
-              reason={`${tunable.name} is locked: unlock it to change it`}
+              reason={`${shown} is kept: tap Kept to change it`}
               onedit={(event) => void controller.set(tunable.name, event.value === 'on')}
             />
           {:else if tunable.kind === 'string'}
             <input
               class="text"
               type="text"
-              aria-label={tunable.name}
+              aria-label={shown}
               value={String(tunable.value)}
               disabled={locked}
               onchange={(event) => void controller.set(tunable.name, event.currentTarget.value)}
@@ -122,14 +126,14 @@ const numberOf = (tunable: Tunable): number => (typeof tunable.value === 'number
           {:else}
             {#if bounded(tunable)}
               <Slider
-                label={tunable.name}
+                label={shown}
                 value={numberOf(tunable)}
                 min={tunable.min ?? 0}
                 max={tunable.max ?? 0}
                 step={stepOf(tunable)}
                 unit={tunable.unit}
                 disabled={locked}
-                reason={`${tunable.name} is locked: unlock it to change it`}
+                reason={`${shown} is kept: tap Kept to change it`}
                 onedit={(event) => {
                   if (event.phase === 'set') void controller.set(tunable.name, event.value)
                   else if (event.phase === 'start') controller.dragStart(tunable.name)
@@ -140,7 +144,7 @@ const numberOf = (tunable: Tunable): number => (typeof tunable.value === 'number
               />
             {/if}
             <Stepper
-              label={tunable.name}
+              label={shown}
               value={numberOf(tunable)}
               min={tunable.min}
               max={tunable.max}
@@ -152,7 +156,7 @@ const numberOf = (tunable: Tunable): number => (typeof tunable.value === 'number
                 return 'message' in check ? check.message : undefined
               }}
               disabled={locked}
-              reason={`${tunable.name} is locked: unlock it to change it`}
+              reason={`${shown} is kept: tap Kept to change it`}
               onedit={(event) => void controller.set(tunable.name, event.value)}
             />
           {/if}

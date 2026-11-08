@@ -1239,15 +1239,6 @@ interface Recovery {
 component from '../shared/kit/dialogs/RecoveryDialog.svelte'
 ```
 
-### `recoveryFacts` (function)
-
-```ts
-function recoveryFacts(path: string, recovery: Recovery, now: number, timeZone?: string): readonly {
-    readonly label: string;
-    readonly value: string;
-}[];
-```
-
 ### `recoveryUnreadable` (function)
 
 ```ts
@@ -2383,15 +2374,6 @@ interface Recovery {
     readonly savedAt: number;
     readonly baseChanged: boolean;
 }
-```
-
-### `recoveryFacts` (function)
-
-```ts
-function recoveryFacts(path: string, recovery: Recovery, now: number, timeZone?: string): readonly {
-    readonly label: string;
-    readonly value: string;
-}[];
 ```
 
 ### `recoveryUnreadable` (function)

@@ -1,7 +1,9 @@
 <!--
-  The World view: the panel holds the world's
-  layout switch and its levels as a list; the canvas is the map, where a level is pressed to select it and dragged to
-  move it (one undo step; a sequence reorders and the Level view's dock follows); the inspector edits the selected
+  The Map view (the world): the panel holds the world's
+  layout switch and its levels as a list; the canvas is the map, with the Level view's frame (spec 11.4): one pill
+  floats over it with All levels and Details below `wide` (they open the list and the inspector as drawers or sheets) and
+  Fit, at the map's top from an iPad up and at its foot on a phone. The map is where a level is pressed to select it and dragged to
+  move it (one undo step; a sequence reorders and the level picker follows); the inspector edits the selected
   level. The map is fitted to its box (plan decision 1); the camera holds still while a drag is under way, so the level
   stays under the finger even when the world's extent changes.
 -->
@@ -9,8 +11,10 @@
 import { untrack } from 'svelte'
 import { attachGestures } from '../../shared/kit/gestures/attach-gestures'
 import EditorShell from '../../shared/kit/shell/EditorShell.svelte'
+import StagePill from '../../shared/kit/shell/StagePill.svelte'
 import { shellModeOf } from '../../shared/kit/shell/shell-mode'
 import Button from '../../shared/kit/widgets/Button.svelte'
+import IconButton from '../../shared/kit/widgets/IconButton.svelte'
 import Segmented from '../../shared/kit/widgets/Segmented.svelte'
 import type { Camera } from '../../shared/level-2d/canvas/level-view'
 import { projectHistory } from '../../shared/level-2d/editor/edit-history'
@@ -66,7 +70,8 @@ let map = $state<HTMLElement>()
 let panelOpen = $state(false)
 let inspectorOpen = $state(false)
 
-const wide = $derived(shellModeOf(geometry.current.formFactor) === 'wide')
+const mode = $derived(shellModeOf(geometry.current.formFactor))
+const wide = $derived(mode === 'wide')
 
 const world = $derived(project?.worlds.find((candidate) => candidate.id === worldId))
 const rects = $derived(
@@ -245,29 +250,36 @@ function layout(next: string): void {
       <p class="empty">This document has no world to show.</p>
     {:else}
       <div class="stage">
-      {#if !wide}
-        <div class="drawers">
-          <button type="button" aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)}>Levels</button>
-          <button type="button" aria-expanded={inspectorOpen} onclick={() => (inspectorOpen = !inspectorOpen)}
-            >Details</button
-          >
-          <Button onclick={() => worldCamera.fit(rects, openArea())}>Fit</Button>
+        <div
+          class="map"
+          role="application"
+          aria-label="World map"
+          data-testid="world-map"
+          data-levels-box={levelsBox}
+          data-levels-span={levelsSpan}
+          bind:this={map}
+        >
+          {#if project !== undefined}<MapCanvas {project} read={services.read} {rects} {camera} {links} />{/if}
         </div>
-      {/if}
-      <div
-        class="map"
-        role="application"
-        aria-label="World map"
-        data-testid="world-map"
-        data-levels-box={levelsBox}
-        data-levels-span={levelsSpan}
-        bind:this={map}
-      >
-        {#if project !== undefined}<MapCanvas {project} read={services.read} {rects} {camera} {links} />{/if}
-      </div>
-      {#if wide}
-        <div class="fit"><Button onclick={() => worldCamera.fit(rects)}>Fit</Button></div>
-      {/if}
+        <StagePill label="Map controls" at={mode === 'compact' ? 'bottom' : 'top'}>
+          {#if !wide}
+            <IconButton
+              icon="list"
+              label="All levels"
+              showLabel
+              aria-expanded={panelOpen}
+              onclick={() => (panelOpen = !panelOpen)}
+            />
+            <IconButton
+              icon="inspector"
+              label="Details"
+              showLabel
+              aria-expanded={inspectorOpen}
+              onclick={() => (inspectorOpen = !inspectorOpen)}
+            />
+          {/if}
+          <IconButton icon="fit" label="Fit the map in view" onclick={() => worldCamera.fit(rects, openArea())} />
+        </StagePill>
       </div>
     {/if}
   {/snippet}
@@ -327,32 +339,12 @@ function layout(next: string): void {
   .levels button[aria-pressed='true'] {
     border-color: var(--color-accent-default);
   }
-  /* Below wide the drawer buttons sit over the map; the map takes the rest of the canvas. */
-  /* A column, so the map takes all the height the drawer buttons leave, with or without them (wide has none). */
+  /* The map fills the stage; the controls float over it in the kit's pill, as the Level view's tools do. */
   .stage {
     position: relative;
     display: flex;
     flex-direction: column;
     height: 100%;
-  }
-  .fit {
-    position: absolute;
-    inset: auto var(--space-3) var(--space-3) auto;
-  }
-  .drawers {
-    display: flex;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-3);
-  }
-  .drawers button {
-    min-width: var(--size-hit);
-    min-height: var(--size-hit);
-    padding: 0 var(--space-3);
-    border: 1px solid var(--color-border-strong);
-    border-radius: var(--edge-sm);
-    background: var(--color-bg-field);
-    color: var(--color-text-primary);
-    font: var(--text-body-13-medium);
   }
   .map {
     flex: 1 1 0;

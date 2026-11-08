@@ -1,9 +1,9 @@
 <!--
-  The Entities view's inspector: tabs Definition and Fields. Definition edits the
+  The Characters view's inspector: tabs Character and Settings (were Definition and Fields). Character edits the
   selected entity definition (label, colour, shape, size, one per level, tile, and under More its name in code and
   anchor point) and offers Duplicate and Delete;
-  Fields lists the owner's fields, adds one, and edits the selected one (`FieldDefEditor.svelte`). For the level fields
-  only the Fields tab has content. A refused value shows its message; a delete or a field change in use opens the
+  Settings lists the owner's fields, adds one, and edits the selected one (`FieldDefEditor.svelte`). For the level fields
+  only the Settings tab has content. A refused value shows its message; a delete or a field change in use opens the
   refusal dialog, whose "anyway" is one undo step (G-f).
 -->
 <script lang="ts">
@@ -84,8 +84,8 @@ function tileChoice(current: EntityDef2D, id: string): void {
   <Tabs
     label="Inspector"
     tabs={[
-      ...(def === undefined ? [] : [{ id: 'definition', label: 'Definition' }]),
-      { id: 'fields', label: `Fields ${selection.fields.length}` },
+      ...(def === undefined ? [] : [{ id: 'definition', label: 'Character' }]),
+      { id: 'fields', label: `Settings ${selection.fields.length}` },
     ]}
     value={tab}
     onselect={(id) => (chosenTab = id)}

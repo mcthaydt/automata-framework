@@ -5,7 +5,8 @@
 //     declarations (type, inclusive range, default) and the TOML holds bare numbers. Content selects; it
 //     never widens a range. Every check and message here is FloorFifty's.
 //   - Authored: the game declares nothing in code and each tunable may carry its own range
-//     inline, `NAME = { value, min, max, step }`, which also feeds the debug sliders.
+//     inline, `NAME = { value, min, max, step }`, which also feeds the debug sliders, and may name itself for the
+//     Tuner with `label` and `feel` (text only: they never reach the values or the meta).
 
 import type { DataPath, Problem } from '../diagnostics/diagnostic'
 
@@ -58,6 +59,8 @@ export interface TuningResult {
 
 const NAME_PATTERN = /^[A-Z][A-Z0-9_]*$/
 const RANGE_KEYS = ['value', 'min', 'max', 'step']
+/** Words a ranged tunable may carry for the Tuner (its name on screen and what a player feels); never in the values. */
+const WORD_KEYS = ['feel', 'label']
 
 const isTable = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -149,7 +152,10 @@ function checkRanged(
 ): TuningEntryMeta | undefined {
   const before = problems.length
   for (const key of Object.keys(table).sort()) {
-    if (!RANGE_KEYS.includes(key))
+    if (WORD_KEYS.includes(key)) {
+      if (typeof table[key] !== 'string')
+        problems.push(problem([name, key], 'invalidType', `${key} must be text`))
+    } else if (!RANGE_KEYS.includes(key))
       problems.push(problem([name, key], 'unknownField', `unknown field: ${key}`))
   }
   const { value, min, max, step } = table

@@ -168,9 +168,9 @@ describe('DocumentScreen', () => {
     await workspace.store.write('notes/a.note', noteText('theirs'))
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
     expect(
-      await screen.findByRole('dialog', { name: 'a.note changed since you opened it' }),
+      await screen.findByRole('dialog', { name: 'a.note was changed somewhere else' }),
     ).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'Keep mine' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Use mine' }))
     await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(textOf(await workspace.store.read('notes/a.note'))).toBe(noteText('mine', 1))
   })
@@ -180,7 +180,7 @@ describe('DocumentScreen', () => {
     opened.document.history.apply('Type', () => ({ text: 'mine' }))
     await workspace.store.write('notes/a.note', noteText('theirs'))
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
-    await userEvent.click(await screen.findByRole('button', { name: 'Take theirs' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Use theirs' }))
     expect(await screen.findByText('Reloaded a.note from the file.')).toBeInTheDocument()
     expect(status()).toHaveAttribute('data-save', 'saved')
     expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled()
@@ -188,8 +188,8 @@ describe('DocumentScreen', () => {
 
   it('asks Restore or Discard first when an autosave is on offer, and Restore applies it', async () => {
     const { controller } = await mount({ autosave: true })
-    expect(screen.getByRole('dialog', { name: 'Restore your unsaved work?' })).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'Restore edits' }))
+    expect(screen.getByRole('dialog', { name: 'Keep your changes from last time?' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Keep my changes' }))
     expect(screen.queryByRole('dialog')).toBeNull()
     let text: unknown
     controller.state.subscribe((state) => {
@@ -197,17 +197,17 @@ describe('DocumentScreen', () => {
     })()
     expect(text).toEqual({ text: 'kept' })
     expect(status()).toHaveAttribute('data-save', 'dirty')
-    expect(screen.getByRole('button', { name: 'Undo Restore autosave' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Undo Keep changes from last time' })).toBeEnabled()
   })
 
   it('the Restore dialog keeps the focus the heading would take, so a keyboard starts on the question', async () => {
     await mount({ autosave: true })
-    expect(screen.getByRole('button', { name: 'Restore edits' })).toHaveFocus()
+    expect(screen.getByRole('button', { name: 'Keep my changes' })).toHaveFocus()
   })
 
-  it('Discard keeps the file as it was', async () => {
+  it('Throw away keeps the file as it was', async () => {
     await mount({ autosave: true })
-    await userEvent.click(screen.getByRole('button', { name: 'Discard' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Throw away' }))
     await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(status()).toHaveAttribute('data-save', 'saved')
   })

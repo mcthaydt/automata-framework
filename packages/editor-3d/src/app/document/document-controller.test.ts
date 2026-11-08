@@ -278,7 +278,11 @@ describe('the 3D document controller', () => {
       const { controller, current } = await withRecovery()
       expect(current().recovery).toBeDefined()
       controller.restore()
-      expect(current()).toMatchObject({ recovery: undefined, canUndo: true, undoLabel: 'Restore autosave' })
+      expect(current()).toMatchObject({
+        recovery: undefined,
+        canUndo: true,
+        undoLabel: 'Keep changes from last time',
+      })
       expect(JSON.stringify(current().level.editor.level)).toContain('"light":0.5')
     })
 

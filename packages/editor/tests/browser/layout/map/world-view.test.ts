@@ -76,22 +76,30 @@ const region = (name: string): HTMLElement => {
   return found
 }
 const buttonNamed = (root: ParentNode, name: string): HTMLElement => {
-  const found = [...root.querySelectorAll<HTMLElement>('button')].find(
-    (candidate) => candidate.textContent?.trim() === name,
+  const found = [...root.querySelectorAll<HTMLElement>('button:not([role]):not([aria-haspopup])')].find(
+    (candidate) => candidate.textContent?.trim() === name || candidate.getAttribute('aria-label') === name,
   )
   if (found === undefined) throw new Error(`no ${name} button`)
   return found
 }
 
 /** Below wide, presses the map's drawer button until its region says it is open. */
-async function openDrawer(size: EditorSize, name: 'Levels' | 'Details', regionName: string): Promise<void> {
+async function openDrawer(
+  size: EditorSize,
+  name: 'All levels' | 'Details',
+  regionName: string,
+): Promise<void> {
   if (size.mode === 'wide' || region(regionName).dataset.open === 'true') return
   buttonNamed(view(), name).click()
   await arrived()
   expect(region(regionName).dataset.open).toBe('true')
 }
 
-async function closeDrawer(size: EditorSize, name: 'Levels' | 'Details', regionName: string): Promise<void> {
+async function closeDrawer(
+  size: EditorSize,
+  name: 'All levels' | 'Details',
+  regionName: string,
+): Promise<void> {
   if (size.mode === 'wide' || region(regionName).dataset.open !== 'true') return
   buttonNamed(view(), name).click()
   await arrived()
@@ -119,7 +127,8 @@ describe.each(SIZES)('World view at $name ($width x $height)', (size) => {
   test('the map fills the canvas; the panel and inspector controls are full-size; the page never scrolls', async () => {
     const { conditions } = await start(size)
     const tabs = switcherControls()
-    const drawers = size.mode === 'wide' ? [] : ['Levels', 'Details'].map((name) => buttonNamed(view(), name))
+    const drawers =
+      size.mode === 'wide' ? [] : ['All levels', 'Details'].map((name) => buttonNamed(view(), name))
     expect(checkLayout(conditions, [...tabs, ...drawers])).toEqual([])
     // The map fills the canvas below any drawer buttons, and the levels sit in the middle of it: the camera is fitted
     // to the box the map really has (review of #310: in wide the map took only its content's height).
@@ -136,9 +145,9 @@ describe.each(SIZES)('World view at $name ($width x $height)', (size) => {
     expect(left).toBeGreaterThanOrEqual(0)
     expect(right).toBeLessThanOrEqual(map.width + 0.5)
     // Fit sits over the map, a full-size target in view.
-    await expectTarget(buttonNamed(view(), 'Fit'), size)
+    await expectTarget(buttonNamed(view(), 'Fit the map in view'), size)
 
-    await openDrawer(size, 'Levels', 'panel')
+    await openDrawer(size, 'All levels', 'panel')
     const panel = region('panel')
     const layouts = [...panel.querySelectorAll<HTMLElement>('[role="radio"]')]
     expect(layouts.map((radio) => radio.textContent?.trim())).toEqual([
@@ -154,7 +163,7 @@ describe.each(SIZES)('World view at $name ($width x $height)', (size) => {
     await expectTarget(buttonNamed(panel, 'Add level'), size)
     rows[0]?.click()
     await arrived()
-    await closeDrawer(size, 'Levels', 'panel')
+    await closeDrawer(size, 'All levels', 'panel')
 
     await openDrawer(size, 'Details', 'inspector')
     if (size.mode !== 'wide') {
@@ -173,8 +182,8 @@ describe.each(SIZES)('World view at $name ($width x $height)', (size) => {
       expect(levelsRight).toBeLessThanOrEqual(area.x + area.w + 0.5)
       expect(levelsTop).toBeGreaterThanOrEqual(area.y - 0.5)
       expect(levelsBottom).toBeLessThanOrEqual(area.y + area.h + 0.5)
-      await expectTarget(buttonNamed(view(), 'Fit'), size)
-      const fit = buttonNamed(view(), 'Fit').getBoundingClientRect()
+      await expectTarget(buttonNamed(view(), 'Fit the map in view'), size)
+      const fit = buttonNamed(view(), 'Fit the map in view').getBoundingClientRect()
       const cover = region('inspector').getBoundingClientRect()
       const hidden =
         fit.left < cover.right && fit.right > cover.left && fit.top < cover.bottom && fit.bottom > cover.top

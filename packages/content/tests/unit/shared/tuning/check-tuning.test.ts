@@ -119,6 +119,32 @@ describe('checkTuning with authored ranges', () => {
     })
   })
 
+  it('lets a ranged tunable carry a label and a feel for the Tuner, which change no value or range', () => {
+    const result = checkTuning(
+      {
+        MAX_RUN: {
+          value: 384,
+          min: 128,
+          max: 768,
+          step: 1,
+          label: 'Running speed',
+          feel: 'How fast Wick runs.',
+        },
+      },
+      {},
+    )
+    expect(result.problems).toEqual([])
+    expect(result.values).toEqual({ MAX_RUN: 384 })
+    expect(result.meta).toEqual({ MAX_RUN: { type: 'int', value: 384, min: 128, max: 768, step: 1 } })
+  })
+
+  it('refuses a label or a feel that is not text', () => {
+    expect(checkTuning({ A: { value: 1, min: 0, max: 5, label: 2, feel: true } }, {}).problems).toEqual([
+      { path: ['A', 'feel'], code: 'invalidType', message: 'feel must be text' },
+      { path: ['A', 'label'], code: 'invalidType', message: 'label must be text' },
+    ])
+  })
+
   it('refuses a value outside its range at the value', () => {
     expect(checkTuning({ GRAVITY: { value: -2000, min: -1200, max: -100 } }, {}).problems).toEqual([
       { path: ['GRAVITY', 'value'], code: 'outOfRange', message: 'expected -1200..-100, received -2000' },

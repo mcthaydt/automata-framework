@@ -65,7 +65,7 @@ describe('recovery', () => {
     const { document, recovery } = await reopened(s)
     expect(document.restore(recovery)).toEqual({ ok: true, value: true })
     expect(document.history.state).toEqual({ text: 'edited' })
-    expect(document.history.undoLabel).toBe('Restore autosave')
+    expect(document.history.undoLabel).toBe('Keep changes from last time')
     expect(document.session.status).toBe('dirty')
     document.history.undo()
     expect(document.history.state).toEqual({ text: 'hello' })

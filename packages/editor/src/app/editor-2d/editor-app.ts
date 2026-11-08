@@ -163,7 +163,7 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
       restore(recovery) {
         const parsed = profile.parse(recovery.payload)
         if (!parsed.ok) return parsed
-        history.apply('Restore autosave', () => parsed.value)
+        history.apply('Keep changes from last time', () => parsed.value)
         base = recovery.payload
         return { ok: true, value: true }
       },

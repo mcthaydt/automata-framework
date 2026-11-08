@@ -63,8 +63,8 @@ async function start(size: EditorSize) {
 }
 
 const buttonNamed = (root: ParentNode, name: string): HTMLElement => {
-  const found = [...root.querySelectorAll<HTMLElement>('button')].find(
-    (candidate) => candidate.textContent?.trim() === name,
+  const found = [...root.querySelectorAll<HTMLElement>('button:not([role]):not([aria-haspopup])')].find(
+    (candidate) => candidate.textContent?.trim() === name || candidate.getAttribute('aria-label') === name,
   )
   if (found === undefined) throw new Error(`no ${name} button`)
   return found
@@ -87,7 +87,7 @@ const region = (name: string): HTMLElement => {
 /** Below wide, presses the canvas's drawer button until its region says it is open. */
 async function openDrawer(
   size: EditorSize,
-  name: 'Definitions' | 'Details',
+  name: 'All characters' | 'Details',
   regionName: string,
 ): Promise<void> {
   if (size.mode === 'wide' || region(regionName).dataset.open === 'true') return
@@ -104,7 +104,7 @@ async function reach(element: HTMLElement): Promise<void> {
 
 /** Chooses the slime in the panel (from the drawer below wide), then closes the drawer again. */
 async function chooseSlime(size: EditorSize): Promise<void> {
-  await openDrawer(size, 'Definitions', 'panel')
+  await openDrawer(size, 'All characters', 'panel')
   const row = [...byTestId('entities-panel').querySelectorAll<HTMLElement>('[role="radio"]')].find(
     (candidate) => candidate.textContent?.trim().startsWith('Slime'),
   )
@@ -112,7 +112,7 @@ async function chooseSlime(size: EditorSize): Promise<void> {
   row.click()
   await arrived()
   if (size.mode !== 'wide' && region('panel').dataset.open === 'true') {
-    buttonNamed(byTestId('entities-view'), 'Definitions').click()
+    buttonNamed(byTestId('entities-view'), 'All characters').click()
     await arrived()
   }
 }
@@ -129,7 +129,7 @@ describe.each(SIZES)('Entities view at $name ($width x $height)', (size) => {
     await chooseSlime(size)
     const tabs = switcherControls()
     const essentials = [...['undo', 'redo', 'save'].map(byTestId), ...tabs]
-    if (size.mode !== 'wide') essentials.push(buttonNamed(byTestId('entities-view'), 'Definitions'))
+    if (size.mode !== 'wide') essentials.push(buttonNamed(byTestId('entities-view'), 'All characters'))
     expect(checkLayout(conditions, essentials)).toEqual([])
     expect(document.documentElement.scrollLeft).toBe(0)
     expect(document.documentElement.scrollTop).toBe(0)
@@ -157,9 +157,9 @@ describe.each(SIZES)('Entities view at $name ($width x $height)', (size) => {
     await openDrawer(size, 'Details', 'inspector')
     const inspector = byTestId('entities-inspector')
     const fieldsTab = [...inspector.querySelectorAll<HTMLElement>('[role="tab"]')].find((tab) =>
-      tab.textContent?.trim().startsWith('Fields'),
+      tab.textContent?.trim().startsWith('Settings'),
     )
-    if (fieldsTab === undefined) throw new Error('no Fields tab')
+    if (fieldsTab === undefined) throw new Error('no Settings tab')
     fieldsTab.click()
     await arrived()
     const editor = byTestId('field-def-editor')

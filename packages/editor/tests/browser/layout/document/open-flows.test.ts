@@ -166,8 +166,8 @@ describe.each(SIZES)('open flows at $name ($width x $height)', (size) => {
     await openFromHome(PROJECT)
     const recover = dialog()
     expectInside(recover, size)
-    const restore = button(recover, 'Restore edits')
-    expect(checkLayout(conditions, [button(recover, 'Discard'), restore])).toEqual([])
+    const restore = button(recover, 'Keep my changes')
+    expect(checkLayout(conditions, [button(recover, 'Throw away'), restore])).toEqual([])
     expect(restore.getBoundingClientRect().height).toBeGreaterThanOrEqual(48)
     expect(document.activeElement, 'the question has the focus, not the heading behind it').toBe(restore)
     await page.screenshot({ path: `.vitest/shots/recover-${size.name}.png` })
@@ -182,12 +182,10 @@ describe.each(SIZES)('open flows at $name ($width x $height)', (size) => {
     await arrived()
     const conflict = dialog()
     expectInside(conflict, size)
-    const choices = ['Cancel', 'Take theirs', 'Keep mine', 'Save as copy'].map((name) =>
-      button(conflict, name),
-    )
+    const choices = ['Cancel', 'Use theirs', 'Use mine', 'Keep both'].map((name) => button(conflict, name))
     expect(checkLayout(conditions, choices)).toEqual([])
     expect(
-      button(conflict, 'Save as copy').getBoundingClientRect().height,
+      button(conflict, 'Keep both').getBoundingClientRect().height,
       'the primary action',
     ).toBeGreaterThanOrEqual(48)
     await page.screenshot({ path: `.vitest/shots/conflict-${size.name}.png` })

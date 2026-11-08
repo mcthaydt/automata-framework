@@ -331,7 +331,7 @@ describe('startEditor', () => {
       workspace: { ...workspace, journal },
     })
     await userEvent.click(await screen.findByRole('button', { name: /^(Renamed|Mossgate)/ }))
-    await userEvent.click(await screen.findByRole('button', { name: 'Restore edits' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Keep my changes' }))
     hold = true
     let done = false
     const disposing = handle.dispose().then(() => {

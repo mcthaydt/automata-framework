@@ -56,7 +56,6 @@ describe('editor-kit core entry', () => {
       'projectCount',
       'readStored',
       'reconcileSelection',
-      'recoveryFacts',
       'recoveryUnreadable',
       'reloadedMessage',
       'restoreFolder',

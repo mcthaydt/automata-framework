@@ -95,6 +95,16 @@ describe('Entities view: the definition in plain words (grandma audit 5.2)', () 
     expect(within(more).getByRole('spinbutton', { name: 'Anchor point across' })).toBeInTheDocument()
     expect(within(more).getByRole('spinbutton', { name: 'Anchor point down' })).toBeInTheDocument()
   })
+
+  it('names the inspector’s tabs Character and Settings, not Definition and Fields', async () => {
+    await mount()
+    await choose('Player start')
+    const tabs = within(inspector())
+      .getAllByRole('tab')
+      .map((tab) => tab.textContent?.trim())
+    expect(tabs[0]).toBe('Character')
+    expect(tabs[1]).toMatch(/^Settings/)
+  })
 })
 
 describe('Entities view: the panel and the preview', () => {
@@ -149,7 +159,7 @@ describe('Entities view: the field editor', () => {
   it('adds a field, and an int field shows its bounds and step', async () => {
     const { def } = await mount()
     await choose('Coin')
-    await userEvent.click(within(inspector()).getByRole('tab', { name: /Fields/ }))
+    await userEvent.click(within(inspector()).getByRole('tab', { name: /Settings/ }))
     await userEvent.click(within(inspector()).getByRole('button', { name: 'Add field' }))
     expect(def('coin')?.fields).toHaveLength(1)
     await userEvent.click(within(inspector()).getByRole('radio', { name: 'int' }))
@@ -162,7 +172,7 @@ describe('Entities view: the field editor', () => {
   it('shows the message of a refused setting and keeps the field as it was', async () => {
     const { history, def } = await mount()
     await choose('Slime')
-    await userEvent.click(within(inspector()).getByRole('tab', { name: /Fields/ }))
+    await userEvent.click(within(inspector()).getByRole('tab', { name: /Settings/ }))
     const before = history.revision
     await setNumber('Min', 20)
     expect(within(inspector()).getByRole('alert')).toHaveTextContent(/.+/)

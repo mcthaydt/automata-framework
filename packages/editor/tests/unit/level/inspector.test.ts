@@ -11,7 +11,7 @@ import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import { checkProject } from '#src/shared/level-2d/profiles/level-project/project-checks.ts'
 import { platformerTemplate } from '#src/shared/level-2d/profiles/level-project/templates/platformer.ts'
 
-// The inspector's tabs: the default tab follows the selection, the Entity tab
+// The inspector's tabs: the default tab follows the selection, the Selected tab
 // edits the one selected instance, several selected show their count with Delete and Duplicate, and the Checks tab
 // lists this level's findings, a tap selecting the object a finding is about.
 
@@ -44,9 +44,9 @@ describe('Inspector', () => {
     expect(screen.getByText('Level 1')).toBeInTheDocument()
   })
 
-  it('opens on the Entity tab for one selected instance and edits its fields as one step each', async () => {
+  it('opens on the Selected tab for one selected instance and edits its fields as one step each', async () => {
     const { history, edits, user } = setup(['slime-a'])
-    expect(screen.getByRole('tab', { name: 'Entity' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: 'Selected' })).toHaveAttribute('aria-selected', 'true')
     await user.click(screen.getByRole('button', { name: 'Increase Hit points' }))
     expect(history.undoLabel).toBe('Set Hit points')
     await user.click(screen.getByRole('button', { name: 'Increase X' }))
@@ -54,9 +54,9 @@ describe('Inspector', () => {
     expect(JSON.stringify(edits.state)).toContain('"id":"slime-a","def":"slime","x":33')
   })
 
-  it('says to select something on the Entity tab when nothing is selected', async () => {
+  it('says to select something on the Selected tab when nothing is selected', async () => {
     const { user } = setup([])
-    await user.click(screen.getByRole('tab', { name: 'Entity' }))
+    await user.click(screen.getByRole('tab', { name: 'Selected' }))
     expect(screen.getByText('Select a thing on the canvas to see its fields')).toBeInTheDocument()
   })
 
@@ -72,7 +72,7 @@ describe('Inspector', () => {
 
   it("lists this level's findings, and a tap selects the object it is about", async () => {
     const { onselect, user } = setup([])
-    await user.click(screen.getByRole('tab', { name: 'Checks' }))
+    await user.click(screen.getByRole('tab', { name: 'Problems' }))
     const list = screen.getByRole('list', { name: 'Findings in Level 1' })
     const finding = within(list).getByRole('button', { name: /target/ })
     await user.click(finding)
@@ -81,8 +81,8 @@ describe('Inspector', () => {
 
   it('keeps a tab the person chose until the selection changes', async () => {
     const { props, view, user } = setup(['slime-a'])
-    await user.click(screen.getByRole('tab', { name: 'Checks' }))
-    expect(screen.getByRole('tab', { name: 'Checks' })).toHaveAttribute('aria-selected', 'true')
+    await user.click(screen.getByRole('tab', { name: 'Problems' }))
+    expect(screen.getByRole('tab', { name: 'Problems' })).toHaveAttribute('aria-selected', 'true')
     await view.rerender({ ...props, selected: [] })
     expect(screen.getByRole('tab', { name: 'Level' })).toHaveAttribute('aria-selected', 'true')
   })
