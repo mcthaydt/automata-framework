@@ -128,7 +128,7 @@ describe('Levels 3D in the suite', () => {
     const [x0 = 0, y0 = 0, x1 = 0, , , y2 = 0] = hall?.points ?? []
     // jsdom puts every element at (0, 0), so client and element coordinates agree.
     tap((x0 + x1) / 2, (y0 + y2) / 2)
-    await waitFor(() => expect(screen.getByTestId('levels-3d-selection')).toHaveTextContent(/hall/))
+    await waitFor(() => expect(screen.getByTestId('inspector')).toHaveTextContent(/hall/))
   }
 
   it('EDS-k: select a sector, switch to the Tuner and edit, switch back: the sector is still selected and Undo is the level’s', async () => {
@@ -143,7 +143,7 @@ describe('Levels 3D in the suite', () => {
     expect(await screen.findByRole('button', { name: 'Undo Raise speed' })).toBeEnabled()
 
     await userEvent.click(screen.getByRole('tab', { name: 'Levels 3D' }))
-    expect(await screen.findByTestId('levels-3d-selection')).toHaveTextContent(/hall/)
+    expect(await screen.findByTestId('inspector')).toHaveTextContent(/hall/)
     // The Tuner's step is not the level's to undo.
     expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled()
   })

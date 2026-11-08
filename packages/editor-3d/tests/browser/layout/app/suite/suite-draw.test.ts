@@ -6,7 +6,9 @@ import type { SuiteEditor } from '@automata/editor/kit/ports'
 import { arrived, SIZES } from '@automata/editor/kit/testing'
 import { fixtureEditor } from '@automata/editor/suite/testing'
 import { editorList, type OpenedSuite, openSuite } from '@automata/editor/suite/testing/layout'
+import { checkLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, test } from 'vitest'
+import { page } from 'vitest/browser'
 import { createLevels3d } from '#src/features/levels-3d/levels-3d-suite-editor.ts'
 import type { PlanRendererFactory } from '#src/features/levels-3d/plan/plan-renderer.ts'
 import depot from '#src/testing/fixtures/depot.af-sector.json?raw'
@@ -232,5 +234,52 @@ describe.each(CASES)('Placing a thing in the suite at $label', ({ size, finger }
       (candidate) => candidate.getAttribute('aria-label') ?? '',
     )
     expect(labels.some((label) => /^Undo Add crate/.test(label))).toBe(true)
+  })
+})
+
+describe.each(CASES)('Changing a room in the suite at $label', ({ size, finger }) => {
+  test('a tap on the hall shows its heights in the details, and a step names the Undo', async () => {
+    opened = await openSuite(
+      size,
+      [
+        fixtureEditor as SuiteEditor<unknown>,
+        createLevels3d({ now: () => 0, renderer, schedule: () => () => {} }) as SuiteEditor<unknown>,
+      ],
+      FILES,
+      '[data-testid="plan-canvas"]',
+      'Levels 3D',
+    )
+    await expect.poll(() => plan().dataset.phase, { timeout: 10_000 }).not.toBe('starting')
+    const pageOf = await calibrate()
+    const at = pageOf(3, 3)
+    for (const type of ['pointermove', 'pointerdown', 'pointerup']) pointerAt(type, at, finger)
+    await arrived()
+    // Where the details are a sheet, the top bar's Details button opens it.
+    const details = document.querySelector<HTMLElement>('button[aria-label="Details"]')
+    if (details !== null && details.getAttribute('aria-expanded') !== 'true') {
+      details.click()
+      await arrived()
+    }
+    await expect.poll(() => document.querySelector('[aria-label="Increase Floor"]') !== null).toBe(true)
+    const card = document.querySelector<HTMLElement>('[data-testid="inspector"]')
+    if (card === null) throw new Error('no details')
+    await page.screenshot({ path: `.vitest/shots/suite-levels-3d-details-${size.name}-${finger}.png` })
+    // Names read left of their controls, as a settings list does: "Light" shares a row with its slider.
+    const light = [...card.querySelectorAll<HTMLElement>('span')].find(
+      (each) => each.textContent?.trim() === 'Light',
+    )
+    const slider = card.querySelector<HTMLElement>('[role="slider"]')
+    if (light === undefined || slider === null) throw new Error('no Light slider')
+    expect(light.getBoundingClientRect().right, 'Light is left of its slider').toBeLessThanOrEqual(
+      slider.getBoundingClientRect().left + 1,
+    )
+    const more = document.querySelector<HTMLElement>('[aria-label="Increase Ceiling"]')
+    if (more === null) throw new Error('no ceiling step')
+    more.click()
+    await arrived()
+    const labels = [...document.querySelectorAll<HTMLElement>('button')].map(
+      (candidate) => candidate.getAttribute('aria-label') ?? '',
+    )
+    expect(labels.some((label) => /^Undo Set the heights of/.test(label))).toBe(true)
   })
 })
