@@ -15,14 +15,15 @@ const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
 
 <PageMeta
   title="The level editor"
-  description="Draw your game's levels in the browser: paint rooms and place characters, and every change is saved. Try it here, nothing to install."
+  description="Draw your game's levels in the browser: paint rooms and place characters, and every change is saved. Try it here: nothing to install, nothing to pay."
 />
 <PageShell wide>
   <header class="top">
     <p class="kicker">Editor</p>
     <h1>Draw your levels in the browser.</h1>
     <p class="lead">
-      Try it here: paint a level and place its characters. Nothing to install.
+      Try it here: paint a level and place its characters. Nothing to install, nothing to pay. Your agent writes the
+      code; you draw the levels.
     </p>
     <!-- The editor is a page of its own, not one of the site's routes, so the browser loads it whole. -->
     <p class="cta">
@@ -30,7 +31,7 @@ const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
       <a class="button secondary" href="/app">Get the app</a>
     </p>
     <p class="note">Your work is saved in this browser, so it is still here when you come back. If your browser cannot save it, the editor says so. Press Share to keep a copy as a file. {EDITOR_PLAY_NOTE}</p>
-    <p class="note">Every editor is free on the web. Pay only if you want to download the app for your phone, tablet or computer.</p>
+    <p class="note">Every editor is free on the web. Pay only if you want the app for your phone, tablet or computer, and then only once.</p>
   </header>
 
   <div class="pictures">

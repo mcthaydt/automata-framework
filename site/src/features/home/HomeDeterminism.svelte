@@ -1,5 +1,5 @@
 <script lang="ts">
-// "Deterministic": the same recorded run in every engine the parity tests use. The rows are the workspace's own list
+// "Checks" (the docs call it determinism; Home does not, per the GTM research): the same recorded run in every engine the parity tests use. The rows are the workspace's own list
 // of engines (`virtual:framework/facts`), not typed here.
 import facts from 'virtual:framework/facts'
 import Icon from '../../shared/components/Icon.svelte'

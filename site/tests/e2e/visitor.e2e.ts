@@ -30,10 +30,14 @@ async function playEmberwick(page: Page, input: 'keyboard' | 'touch'): Promise<v
   // One press, right after the page's first byte: Home is prerendered, so its Play is there before the script that
   // answers it, and the press must still count (the visitor does not press twice).
   await page.getByRole('button', { name: 'Play it' }).click({ timeout: GAME_STEP_MS })
-  await expect(page.locator('iframe[title="Emberwick"]')).toBeAttached({ timeout: GAME_STEP_MS })
+  await expect(page.locator('iframe[title="Emberwick"]')).toBeAttached({
+    timeout: GAME_STEP_MS,
+  })
   const demo = page.frameLocator('iframe[title="Emberwick"]')
   // No splash and no menu: the visitor pressed Play it, so the game opens in the room.
-  await expect(game(demo)).toHaveAttribute('data-player-x', /\d+/, { timeout: START_BUDGET_MS })
+  await expect(game(demo)).toHaveAttribute('data-player-x', /\d+/, {
+    timeout: START_BUDGET_MS,
+  })
   await expect(game(demo)).toHaveAttribute('data-screen', 'room')
   if (input === 'touch') {
     // Upright: the frame is taller than wide, so the game plays in it rather than asking to be turned or fullscreened.
@@ -58,7 +62,9 @@ async function playEmberwick(page: Page, input: 'keyboard' | 'touch'): Promise<v
     await page.mouse.down()
   }
   await expect
-    .poll(async () => Number(await game(demo).getAttribute('data-player-x')), { timeout: GAME_STEP_MS })
+    .poll(async () => Number(await game(demo).getAttribute('data-player-x')), {
+      timeout: GAME_STEP_MS,
+    })
     .toBeGreaterThan(startX)
   if (input === 'keyboard') await page.keyboard.up('ArrowRight')
   else await page.mouse.up()
@@ -67,7 +73,10 @@ async function playEmberwick(page: Page, input: 'keyboard' | 'touch'): Promise<v
 /** Home's headline, Start's four steps, and the first command: copied with its button, it is what the clipboard holds. */
 async function copyTheCommand(page: Page): Promise<void> {
   await expect(
-    page.getByRole('heading', { level: 1, name: 'Make browser games with your coding agent.' }),
+    page.getByRole('heading', {
+      level: 1,
+      name: 'Finish the game your agent started.',
+    }),
   ).toBeVisible()
   await page.getByRole('link', { name: 'Make a game' }).first().click()
   await expect(page).toHaveURL(/\/start\/?$/)
@@ -89,7 +98,9 @@ async function drawAndShareALevel(page: Page): Promise<void> {
   const canvas = page.locator('[data-level-canvas]')
   await expect(canvas).toHaveAttribute('data-state', 'drawn')
   // On a phone the layers are a sheet over the canvas: the top bar's Panel opens it to choose, and Escape closes it to paint.
-  const layer = page.getByRole('button', { name: 'Collision Walls and floors' })
+  const layer = page.getByRole('button', {
+    name: 'Collision Walls and floors',
+  })
   const sheet = !(await layer.isVisible())
   if (sheet) await page.getByRole('button', { name: 'Panel' }).click()
   await layer.click()
@@ -126,7 +137,10 @@ async function canvasPicture(page: Page, canvas: Locator): Promise<Buffer> {
   await expect(canvas).toHaveAttribute('data-state', 'drawn')
   // The buttons over the canvas are the page's, not the level's, and a
   // focus ring or a hover edge on one would read as a change: they are masked out.
-  return canvas.screenshot({ animations: 'disabled', mask: [page.getByRole('button')] })
+  return canvas.screenshot({
+    animations: 'disabled',
+    mask: [page.getByRole('button')],
+  })
 }
 
 test.describe('a visitor on a desktop', () => {
@@ -140,7 +154,9 @@ test.describe('a visitor on a desktop', () => {
       'reading the clipboard back needs Chromium’s clipboard-read permission',
     )
     test.setTimeout(4 * GAME_STEP_MS)
-    await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: ORIGIN })
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'], {
+      origin: ORIGIN,
+    })
     const watch = watchPage(page, ORIGIN)
     await page.goto('/', { waitUntil: 'commit' })
     await playEmberwick(page, 'keyboard')
@@ -164,7 +180,9 @@ test.describe('a visitor on an upright phone', () => {
       'reading the clipboard back needs Chromium’s clipboard-read permission',
     )
     test.setTimeout(4 * GAME_STEP_MS)
-    await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: ORIGIN })
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'], {
+      origin: ORIGIN,
+    })
     const watch = watchPage(page, ORIGIN)
     await page.goto('/', { waitUntil: 'commit' })
     await playEmberwick(page, 'touch')
@@ -178,7 +196,9 @@ test.describe("Home's demo", () => {
   test('one press of Play it before hydration starts Emberwick', async ({ page }) => {
     await page.goto('/', { waitUntil: 'commit' })
     await page.getByRole('button', { name: 'Play it' }).click({ timeout: GAME_STEP_MS })
-    await expect(page.locator('iframe[title="Emberwick"]')).toBeAttached({ timeout: GAME_STEP_MS })
+    await expect(page.locator('iframe[title="Emberwick"]')).toBeAttached({
+      timeout: GAME_STEP_MS,
+    })
     // One press is all it takes: the room is drawn with the player in it, not the splash or the menu.
     const demo = page.frameLocator('iframe[title="Emberwick"]')
     await expect(demo.locator('#game')).toHaveAttribute('data-player-x', /\d+/, { timeout: START_BUDGET_MS })
@@ -226,7 +246,11 @@ test.describe("Home's demo", () => {
     await page.goto('/')
     const boxes = await page.evaluate(() => {
       const top = (selector: string) => document.querySelector(selector)?.getBoundingClientRect().top ?? -1
-      return { hero: top('.intro-text'), picture: top('.demo-viewport'), bar: top('.demo-bar') }
+      return {
+        hero: top('.intro-text'),
+        picture: top('.demo-viewport'),
+        bar: top('.demo-bar'),
+      }
     })
     expect(boxes.bar).toBeGreaterThan(boxes.hero)
     // The approved mockup (v2) puts the bar above the picture.

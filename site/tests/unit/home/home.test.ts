@@ -9,9 +9,11 @@ import {
   DEMO_BAR,
   EXAMPLE_EXCERPT,
   EXAMPLE_PATH,
+  HERO,
   HOME_EXAMPLES,
   TARGETS,
 } from '#src/features/home/home-content.ts'
+import { APP_PRICES, NO_CREDITS } from '#src/shared/content/pricing.ts'
 import { PICTURES } from '#src/shared/pictures.ts'
 import { USAGE } from '../../../../packages/tools/src/shared/ship/cli-args'
 
@@ -21,9 +23,8 @@ const repo = resolve(process.cwd(), '..')
 describe('Home', () => {
   it('makes one claim, with one lime primary per screen and the real first command', () => {
     const view = render(Home)
-    expect(view.getByRole('heading', { level: 1 }).textContent).toBe(
-      'Make browser games with your coding agent.',
-    )
+    expect(view.getByRole('heading', { level: 1 }).textContent).toBe(HERO.title)
+    expect(HERO.title).toBe('Finish the game your agent started.')
     // One lime button on the page: the closing band is lime itself, so its button is dark, and the demo's Play is the
     // white secondary.
     const primaries = [...view.container.querySelectorAll('a.button, button.button')]
@@ -53,7 +54,18 @@ describe('Home', () => {
 
   it('says nothing the framework no longer has or does not do', () => {
     const text = render(Home).container.textContent ?? ''
-    for (const gone of [/base-2d/, /git clone/, /Effect/, /remix/i, /planned/i, /Open source/i])
+    // "Deterministic", "ECS" and "no-code" are words for the docs, not for a maker deciding (GTM research, section 11).
+    for (const gone of [
+      /base-2d/,
+      /git clone/,
+      /Effect/,
+      /remix/i,
+      /planned/i,
+      /Open source/i,
+      /determinis/i,
+      /\bECS\b/,
+      /no-code/i,
+    ])
       expect(text).not.toMatch(gone)
   })
 
@@ -106,32 +118,51 @@ describe('Home', () => {
       'HomeDemo',
       'HomeFacts',
       'HomeMadeWith',
+      'HomeBuiltIn',
       'HomeCode',
       'HomeDeterminism',
       'HomeEditor',
       'HomeExamples',
       'HomeTargets',
+      'HomePricing',
       'HomeChangelog',
       'HomeStart',
     ])
       expect(files, name).toContain(`${name}.svelte`)
   })
 
-  it('puts the sections in the order of the approved mockup', () => {
+  it('puts the sections in the order the GTM research asks for: the pain, the proof, then the price', () => {
     const source = readFileSync(resolve(process.cwd(), 'src/features/home/Home.svelte'), 'utf8')
     const order = [...source.matchAll(/^<(Home\w+) \/>$/gm)].map((found) => found[1])
     expect(order).toEqual([
       'HomeHero',
       'HomeFacts',
       'HomeMadeWith',
+      'HomeBuiltIn',
       'HomeCode',
       'HomeDeterminism',
       'HomeEditor',
-      'HomeExamples',
       'HomeTargets',
+      'HomePricing',
+      'HomeExamples',
       'HomeChangelog',
       'HomeStart',
     ])
+  })
+
+  it('lists what every game has built in, so the demo is already a game', () => {
+    const view = render(Home)
+    const list = view.getByRole('list', { name: 'Built into every game' })
+    const names = [...list.querySelectorAll('h3')].map((heading) => heading.textContent)
+    expect(names).toEqual(['Saves', 'Menus and settings', 'Controls', 'Sound', 'Every screen', 'Languages'])
+  })
+
+  it('says the price on Home from the same place /app reads it, with no credits', () => {
+    const text = render(Home).container.textContent ?? ''
+    expect(text).toContain(APP_PRICES.phone)
+    expect(text).toContain(APP_PRICES.computer)
+    expect(text).toContain(NO_CREDITS)
+    expect(text).toMatch(/Every editor is free/)
   })
 
   it('shows the Made with Automata strip as a carousel that stops for a reader who asks for no motion', () => {

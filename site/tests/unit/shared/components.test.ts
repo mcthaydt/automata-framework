@@ -28,9 +28,10 @@ describe('UI Components', () => {
       'Docs',
       'Examples',
       'Editor',
-      'Reference',
+      'Pricing',
       'Changelog',
     ])
+    expect(main.querySelector('a[href="/app"]')?.textContent).toBe('Pricing')
     expect(view.getByRole('link', { name: 'Make a game' }).getAttribute('href')).toBe('/start')
   })
 
@@ -46,7 +47,8 @@ describe('UI Components', () => {
     expect(view.getAllByRole('link', { name: 'Reference' }).map((link) => link.getAttribute('href'))).toEqual(
       ['/api'],
     )
-    expect(view.getByRole('link', { name: 'The app' }).getAttribute('href')).toBe('/app')
+    expect(view.getByRole('link', { name: 'Pricing' }).getAttribute('href')).toBe('/app')
+    expect(view.container.textContent).toContain('No credits, ever.')
     expect(view.getByRole('link', { name: 'Changelog' }).getAttribute('href')).toBe('/changelog')
     expect(view.getByRole('link', { name: 'Level editor' }).getAttribute('href')).toBe('/editor')
     expect(view.queryByRole('link', { name: 'GitHub' })).toBeNull()

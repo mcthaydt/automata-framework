@@ -9,7 +9,7 @@ export function llmsIndex(docs: readonly DocSection[], version: string): string 
   return (
     `# Automata Framework
 
-> Automata is a deterministic 2D game framework for the web. ${DISTRIBUTION_TARGETS}
+> Automata is a deterministic 2D game framework for the web, made to be built with a coding agent: saves, menus, settings, input, audio, editors and publishing are built in. ${DISTRIBUTION_TARGETS}
 
 ## Documentation
 ${docs.map((d) => `- [${d.title}](/docs/${d.slug}): ${d.description}`).join('\n')}
@@ -28,7 +28,7 @@ export function llmsGuides(docs: readonly DocSection[]): string {
   return (
     `# Automata Framework — Site Guides for Coding Agents
 
-> Automata is a deterministic 2D game framework for the web. ${DISTRIBUTION_TARGETS}
+> Automata is a deterministic 2D game framework for the web, made to be built with a coding agent: saves, menus, settings, input, audio, editors and publishing are built in. ${DISTRIBUTION_TARGETS}
 > Start with How it works: it holds the rules every game keeps.
 
 ---

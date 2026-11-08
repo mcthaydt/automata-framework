@@ -14,7 +14,10 @@ import { PUBLISH_GUIDES, STEPS } from './start-content'
   <header class="top">
     <p class="kicker">Start</p>
     <h1>Your first game in four commands.</h1>
-    <p class="lead">You need Node 24 and pnpm. Each step is one command in your terminal; under it is what you will see.</p>
+    <p class="lead">
+      You need Node 24 and pnpm. Each step is one command in your terminal. Under it is what you will see. Using an agent?
+      Set it up at the bottom of this page, then hand it the game.
+    </p>
   </header>
 
   <ol class="steps">
@@ -34,7 +37,10 @@ import { PUBLISH_GUIDES, STEPS } from './start-content'
 
   <section class="agent">
     <h2>Using a coding agent</h2>
-    <p>Your agent works on the game like you do: it edits the files, runs the tests and plays the result. Set it up once.</p>
+    <p>
+      Your agent works on the game like you do: it edits the files, runs the checks and plays the result. It brings its own
+      brains, so Automata never asks you for credits. Set it up once.
+    </p>
     <details>
       <summary>Set up your coding agent</summary>
       <AgentSetup />

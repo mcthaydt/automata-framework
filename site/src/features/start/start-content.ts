@@ -13,7 +13,7 @@ export const STEPS: readonly Step[] = [
   {
     title: '1. Make a game',
     command: CREATE_COMMAND,
-    what: 'A folder called my-game with a small working game in it: a square you move around a level, and its tests.',
+    what: 'A folder called my-game with a small working game in it: a square you move around a level, its menus, saves and controls, and its tests.',
   },
   {
     title: '2. Play it',
@@ -23,7 +23,7 @@ export const STEPS: readonly Step[] = [
   {
     title: '3. Draw its level',
     command: 'pnpm exec automata editor',
-    what: 'The level editor opens on your game. Draw, and every step is saved: the running game picks up the change.',
+    what: 'The editors open on your game. Draw a level, and every step is saved: the running game picks up the change.',
   },
   {
     title: '4. Put it online',

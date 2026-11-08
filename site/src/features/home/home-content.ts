@@ -1,4 +1,6 @@
-// What the Home page says, in one place so a test can hold each claim to the framework as it is: the command is the
+// What the Home page says, in one place so a test can hold each claim to the framework as it is. The words follow the
+// GTM research (2026-11-08): the buyer already makes browser games with Claude Code, Cursor or Codex and has not finished
+// one, so the page names that wall, shows what is built in, then the price. The command is the
 // one `create-game` answers to, the code is the shapes example's own lines, and each target's command is one
 // `automata ship` accepts (the four targets of ADR 0006). The numbers are not here: they are read from the workspace
 // (`virtual:framework/facts`). The page itself only lays these out.
@@ -42,26 +44,45 @@ export const DEMO_BAR: DemoBar = {
 
 /** The announcement above the title: one pill, to the page it names. */
 export const ANNOUNCEMENT = {
-  tag: 'New',
-  words: 'The level editor, in your browser',
-  href: '/editor',
+  tag: 'Free',
+  words: 'Every editor is free in your browser',
+  href: '/app',
 } as const
 
-/** The title and its line under it. */
+/** The title and its line under it. The Owner picks the title from three on a decision card (2026-11-08). */
 export const HERO = {
-  title: 'Make browser games with your coding agent.',
-  lead: 'Automata is a TypeScript framework for 2D web games. Your agent writes the code and the tests. You draw the levels and play it in a tab.',
+  title: 'Finish the game your agent started.',
+  lead: 'Your coding agent can make a playable demo in a weekend. Saves, menus, settings, touch controls and publishing are what take the next six weeks. Automata has them built in.',
 } as const
 
 /** The words of the actions under the title. */
-export const ACTIONS = { make: 'Make a game', copyPrompt: 'Copy the prompt for your agent' } as const
+export const ACTIONS = {
+  make: 'Make a game',
+  copyPrompt: 'Copy the prompt for your agent',
+} as const
 
 /** What the numbers row says after each number. The numbers are read from the workspace, not written here. */
 export const FACT_WORDS = {
-  engines: 'Node, Chrome, Safari and Firefox give the same hash',
-  examples: 'each one runnable in the browser',
-  targets: 'web, itch.io, desktop and Ruken',
-  licence: 'licensed, TypeScript throughout',
+  engines: 'Node, Chrome, Safari and Firefox play your game exactly the same way',
+  examples: 'small games to start from, each one playable here',
+  targets: 'to publish to: the web, itch.io, desktop and Ruken',
+  licence: 'licensed and free to use. No credits, ever.',
+} as const
+
+/** "Built in": what every game has from its first run, so a demo is already a game. Each one is a part of the framework
+ * (saves, the title, pause and settings screens, input with rebinding, audio, display and locale). */
+export const BUILT_IN = {
+  kicker: 'Built in',
+  title: 'The part after the demo is already done.',
+  sub: 'Players notice the moment these are missing. Every Automata game starts with them working, so your agent can spend its time on your idea.',
+  items: [
+    ['Saves', 'Players pick up where they left off.'],
+    ['Menus and settings', 'A title screen, a pause screen and a settings screen, ready for your look.'],
+    ['Controls', 'Keyboard, touch and gamepad. Players can change the keys.'],
+    ['Sound', 'Music and sound effects, with volume players can set.'],
+    ['Every screen', 'Phones, tablets and computers, upright or sideways.'],
+    ['Languages', "Put your game's words in more than one language."],
+  ],
 } as const
 
 /** The studios that ship on Automata, as the carousel shows them: a name, the logo's files and where it goes. */
@@ -81,32 +102,33 @@ export const MADE_WITH = [
 /** What the first section says: the code beside what it draws, with three plain points. */
 export const AGENT_SECTION = {
   kicker: 'Built for agents',
-  title: 'Your agent writes the game. The framework keeps it honest.',
-  sub: 'Gameplay is plain components and systems in small files, so an agent can find what to change and prove it still works.',
+  title: 'Made for Claude Code, Cursor and Codex.',
+  sub: 'A game is small files with plain names. Your agent finds the right one to change, changes it, and checks that it still works.',
   points: [
     ['Agent skills', 'tell your agent where gameplay lives and the rules it must keep.'],
     ['One command,', '`automata check`, runs the rules, the types and the tests.'],
-    ['Drawing is separate', 'from the game, so a test runs the real logic with no screen.'],
+    ['Your agent, your plan.', 'Automata runs no AI of its own, so there are no credits to run out.'],
   ],
 } as const
 
 /** The determinism section: the claim and what its table says. The table's rows come from the facts. */
 export const DETERMINISM = {
-  kicker: 'Deterministic',
-  title: 'The same game in every browser, to the last bit.',
-  sub: 'The game runs on a fixed tick with a seeded random. A recorded run gives the same result everywhere, so a passing test means the game really works.',
+  kicker: 'Checks',
+  title: "Your agent can't quietly break your game.",
+  sub: 'Record a play once. It plays back exactly the same way every time, in every browser. So when a change breaks something that worked, the test fails, and your agent sees it before a player does.',
   file: 'shapes-rects.replay',
-  note: 'checked on every pull request',
-  result: 'Same hash',
+  note: 'checked on every change',
+  result: 'Same result',
 } as const
 
 /** The editor section. */
 export const EDITOR_SECTION = {
-  kicker: 'The editor',
-  title: 'Draw levels. The game reads the same files.',
-  sub: 'The level editor runs in your browser. It saves the content files in your game, and the game picks them up on the next run.',
+  kicker: 'The editors',
+  title: 'Change it yourself, without another prompt.',
+  sub: "Your agent writes the code. You, or a friend who doesn't code, change the levels, the feel and the words in free editors in your browser. The game reads what you save.",
   points: [
-    ['Paint', 'tiles, characters and items with six tools.'],
+    ['Draw levels', 'with tiles, characters and items.'],
+    ['Tune the feel', 'of a jump, and see it change while you play.'],
     ['Problems', 'are listed as you draw, before the game ever runs.'],
   ],
 } as const
@@ -146,19 +168,19 @@ export const TARGETS = [
   {
     icon: 'globe',
     title: 'The web',
-    body: 'Checked for what a public site refuses, then ready for any static host.',
+    body: 'A checked build, ready for any website host.',
     command: 'automata ship prepare --target web',
   },
   {
     icon: 'gamepad',
     title: 'itch.io',
-    body: 'Checked and uploaded to your itch.io page, ready to play in the browser.',
+    body: 'Uploaded to your itch.io page, where people play it right in the browser.',
     command: 'automata ship publish --target itch',
   },
   {
     icon: 'monitor',
     title: 'A desktop app',
-    body: 'Built with Tauri for Windows, macOS and Linux, and published as a download on itch.io.',
+    body: 'A download for Windows, macOS and Linux, built with Tauri and put on itch.io for you.',
     command: 'automata ship publish --target itch --from tauri',
   },
   {
@@ -168,6 +190,36 @@ export const TARGETS = [
     command: 'automata ship publish --target ruken',
   },
 ] as const
+
+/** "Publish": the section's words. Publish makes a zip, then offers itch.io first (the Owner, 2026-11-08). */
+export const PUBLISH_SECTION = {
+  kicker: 'Publish',
+  title: 'Get it in front of players.',
+  sub: 'Publish packs your game into a zip, then offers to put it on itch.io, where people can play it in their browser. Or take it anywhere else.',
+} as const
+
+/** "Pricing": free on the web, the app paid once. The prices come from `shared/content/pricing.ts`. */
+export const PRICING_SECTION = {
+  kicker: 'Pricing',
+  title: 'Free to make. Pay once for the app.',
+  sub: 'Every editor is free in your browser. You bring your own coding agent, so there is nothing for Automata to meter.',
+  free: {
+    title: 'Free in your browser',
+    items: [
+      'Every editor, for 2D and 3D games',
+      'Sign in with GitHub to keep your games in sync',
+      'The framework, MIT licensed',
+    ],
+  },
+  app: {
+    title: 'The app, paid once',
+    items: [
+      'Installs in one step, with nothing else to set up',
+      'The editors on your phone, tablet or computer',
+    ],
+  },
+  more: 'See what the app does',
+} as const
 
 /** The changelog section: the list is read from the changesets, so only its words are here. */
 export const CHANGELOG_SECTION = {
@@ -179,6 +231,6 @@ export const CHANGELOG_SECTION = {
 
 /** The closing band. */
 export const CLOSING = {
-  title: 'Make your first game this afternoon.',
-  body: 'One command makes a working game. Play it, change it with your agent, and publish it.',
+  title: 'Finish your next game.',
+  body: 'One command makes a working game with saves, menus and controls in place. Hand it to your agent, change it in the editors, and put it on itch.io.',
 } as const

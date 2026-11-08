@@ -22,7 +22,7 @@ const editor = pictureOf('editor')
           <li><Icon name="check" /><span><strong>{lead}</strong> <InlineText text={rest} /></span></li>
         {/each}
       </ul>
-      <p class="more"><a class="home-secondary" href="/editor">More about the editor <Icon name="arrowRight" /></a></p>
+      <p class="more"><a class="home-secondary" href="/editor">Try the level editor <Icon name="arrowRight" /></a></p>
     </div>
     <div class="show home-panel shot">
       <!-- Far below the poster: in the page only once the reader is near it (NearView). -->

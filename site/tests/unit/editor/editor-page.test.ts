@@ -15,7 +15,10 @@ function jpegSize(path: string): { width: number; height: number } {
   while (at < bytes.length) {
     const marker = bytes[at + 1]
     if (marker >= 0xc0 && marker <= 0xc3)
-      return { height: bytes.readUInt16BE(at + 5), width: bytes.readUInt16BE(at + 7) }
+      return {
+        height: bytes.readUInt16BE(at + 5),
+        width: bytes.readUInt16BE(at + 7),
+      }
     at += 2 + bytes.readUInt16BE(at + 2)
   }
   throw new Error(`${path} has no frame`)
@@ -90,7 +93,7 @@ describe('/editor', () => {
     expect(app.className).toContain('secondary')
     expect(view.container.querySelectorAll('a.button:not(.secondary)')).toHaveLength(1)
     expect(view.container.textContent).toContain(
-      'Every editor is free on the web. Pay only if you want to download the app for your phone, tablet or computer.',
+      'Every editor is free on the web. Pay only if you want the app for your phone, tablet or computer, and then only once.',
     )
   })
 })

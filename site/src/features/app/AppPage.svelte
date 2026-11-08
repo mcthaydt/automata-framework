@@ -5,6 +5,7 @@
 <script lang="ts">
 import PageMeta from '../../shared/components/PageMeta.svelte'
 import PageShell from '../../shared/components/PageShell.svelte'
+import { NO_CREDITS } from '../../shared/content/pricing'
 import { CONTACT_EMAIL } from '../../shared/site.js'
 import { APP_OFFER, type AppOffer, type Purchase } from './app-offer'
 
@@ -16,15 +17,16 @@ const purchases: readonly { readonly name: string; readonly purchase: Purchase }
 </script>
 
 <PageMeta
-  title="Get the Automata app"
-  description="Every editor is free on the web. Download the app for your phone, tablet or computer: $19.99 once for phone and tablet, $39.99 once for computer."
+  title="Pricing"
+  description={`Every editor is free on the web, and so is syncing your games with GitHub. The app is paid once: ${offer.phone.price} for phone and tablet, ${offer.computer.price} for computer. No credits, ever.`}
 />
 <PageShell>
   <header>
-    <p class="kicker">The app</p>
-    <h1>Get the Automata app</h1>
+    <p class="kicker">Pricing</p>
+    <h1>Free to make games. Pay once for the app.</h1>
     <p class="lead">
-      Every editor is free on the web. You pay only to download the app, made for your phone, tablet or computer.
+      Every editor is free on the web. You pay only to download the app, made for your phone, tablet or computer. You
+      pay once, and it is yours. {NO_CREDITS}
     </p>
   </header>
 
@@ -63,10 +65,18 @@ const purchases: readonly { readonly name: string; readonly purchase: Purchase }
     </section>
   </div>
 
-  <p>
-    All of Automata's code is open source (MIT). You pay for the download: the ready-made app, which installs in one step and
-    keeps itself up to date.
-  </p>
+  <section id="credits">
+    <h2>Why there are no credits</h2>
+    <p>
+      Many AI game makers sell credits: you pay each time their AI works, and the meter runs out mid-project. Automata runs
+      no AI of its own. Your coding agent (Claude Code, Cursor, Codex or another) does the work on the plan you already
+      have, so there is nothing for us to meter.
+    </p>
+    <p>
+      Automata's code is MIT licensed. What you pay for is the ready-made app, which installs in one step and keeps itself
+      up to date.
+    </p>
+  </section>
 
   <section id="help">
     <h2>Help</h2>

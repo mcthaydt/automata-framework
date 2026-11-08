@@ -4,7 +4,7 @@ import PageMeta from '../shared/components/PageMeta.svelte'
 </script>
 
 <PageMeta
-  title="Make browser games with your coding agent"
-  description="Automata is a TypeScript framework for 2D web games. Your agent writes the code and the tests; you draw the levels and play the result in a browser tab."
+  title="Finish the game your agent started"
+  description="Automata is a free framework for browser games made with Claude Code, Cursor or Codex. Saves, menus, controls, editors and itch.io publishing are built in. No credits, ever."
 />
 <Home />

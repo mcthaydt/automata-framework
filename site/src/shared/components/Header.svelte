@@ -1,6 +1,6 @@
 <!--
-  The site's header, from the approved Home mockup (v2): the logo, five links (Docs, Examples, Editor, Reference,
-  Changelog), Search, GitHub once the repository is public, and Make a game. Below 760 px the links fold into Menu, an
+  The site's header, from the approved Home mockup (v2): the logo, five links (Docs, Examples, Editor, Pricing,
+  Changelog; Reference is in the footer and the search, since the GTM research says price is what a maker asks first), Search, GitHub once the repository is public, and Make a game. Below 760 px the links fold into Menu, an
   opaque sheet under the bar, and Make a game stays in view.
   Search shows its ⌘K hint only where there is a keyboard (a fine pointer), never on a touch screen.
 -->
@@ -14,7 +14,7 @@ const links = [
   ['/docs', 'Docs'],
   ['/examples', 'Examples'],
   ['/editor', 'Editor'],
-  ['/api', 'Reference'],
+  ['/app', 'Pricing'],
   ['/changelog', 'Changelog'],
 ] as const
 

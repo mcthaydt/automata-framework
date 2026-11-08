@@ -1,13 +1,14 @@
 <script lang="ts">
-// "Publish": the four places a game goes, in one row, each with the command that puts it there.
+// "Publish": the research's third pain is getting a game in front of players. The four places a game goes, in one row, each with the command that puts it there.
 import Icon from '../../shared/components/Icon.svelte'
-import { TARGETS } from './home-content'
+import { PUBLISH_SECTION, TARGETS } from './home-content'
 </script>
 
 <section class="home-section">
   <div class="page-wrap">
-    <span class="home-kicker"><Icon name="share" size={14} />Publish</span>
-    <h2>One build. Four places to put it.</h2>
+    <span class="home-kicker"><Icon name="share" size={14} />{PUBLISH_SECTION.kicker}</span>
+    <h2>{PUBLISH_SECTION.title}</h2>
+    <p class="home-sub">{PUBLISH_SECTION.sub}</p>
     <ul class="targets">
       {#each TARGETS as target (target.title)}
         <li class="target">
@@ -49,7 +50,7 @@ import { TARGETS } from './home-content'
     line-height: 22px;
     letter-spacing: 0;
   }
-  p {
+  .target p {
     margin: 0 0 16px;
     color: var(--muted);
     font-size: 14px;

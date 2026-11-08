@@ -663,3 +663,16 @@ deploy (`site.yml`, the runbook's launch steps), the domain `automataframework.c
 the audit's sections 3 to 7. The rename (C1) to `@automataframework` (D1, the Owner's) waits for the Plus port to merge,
 and the Owner creates the organisation on npmjs.org; the deploy (C3) waits for D2 and D3; the findings tagged "Recheck
 after 3D/Plus merge" are read again on the merged `main` first.
+
+## Site copy from the GTM research (2026-11-08)
+
+The Owner: "Rewrite the copy of the entire site from the findings from our GTM ... and make sure it passes the grandma test",
+then "website can be completely changed content wise to support our gtm". Plan: [site copy plan](2026-11-08-site-copy-gtm-plan.md)
+(superpowers `writing-plans`, native). PR stacked on #520.
+
+| Step | State |
+| --- | --- |
+| Copy and Home order | Done, 2026-11-08: headline "Finish the game your agent started." (option A of three on the Owner's card; one constant, `HERO.title`); new Home sections Built in and Pricing; the header's Reference becomes Pricing (`/app`, now titled Pricing, with "Why there are no credits"); prices in one file (`shared/content/pricing.ts`); "deterministic", "ECS" and "no-code" kept off Home; FigureBuilder and EnvironmentBuilder added to `check:site`'s names it never shows. Ran: site unit 434, `svelte-check` 0, `check:site` 47 pages, the Chromium visitor journeys (6), Home and Pricing at 390 and 1440 px with no sideways scroll. Not run: WebKit, Firefox, the full `pnpm check`. |
+| Marketing plan and posts | Done, 2026-11-08, as Claude Docs for the Owner (not in the repository): "Automata marketing strategy" and "Automata announcement posts". |
+
+**Where to resume:** the Owner picks the headline; change `HERO.title` (and the Home page's `PageMeta` title) if it is not option A. The motion thread (#541) keys its reveals off `.home-section` classes, which both new sections use.

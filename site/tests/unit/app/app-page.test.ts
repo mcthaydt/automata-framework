@@ -2,11 +2,15 @@ import { render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import AppPage from '#src/features/app/AppPage.svelte'
 import { APP_OFFER, type AppOffer } from '#src/features/app/app-offer.ts'
+import { APP_PRICES, NO_CREDITS } from '#src/shared/content/pricing.ts'
 import { CONTACT_EMAIL } from '#src/shared/site.js'
 
 const withLinks: AppOffer = {
   ...APP_OFFER,
-  phone: { ...APP_OFFER.phone, buy: [{ label: 'App Store', url: 'https://apps.example.com/automata' }] },
+  phone: {
+    ...APP_OFFER.phone,
+    buy: [{ label: 'App Store', url: 'https://apps.example.com/automata' }],
+  },
 }
 
 describe('/app', () => {
@@ -58,6 +62,19 @@ describe('/app', () => {
     expect(text).not.toMatch(/more editors|full suite/i)
     // GitHub sign-in and sync are free on the web (Owner, recorded in #528), so the download does not sell them.
     expect(APP_OFFER.app.join(' ')).not.toMatch(/GitHub|sync/i)
+  })
+
+  it('says there are no credits and why, from the one place prices live', () => {
+    const view = render(AppPage)
+    expect(view.getByRole('heading', { level: 1 }).textContent).toBe(
+      'Free to make games. Pay once for the app.',
+    )
+    expect(view.getByRole('heading', { name: 'Why there are no credits' })).toBeTruthy()
+    expect(view.container.textContent).toContain(NO_CREDITS)
+    expect(APP_OFFER.phone.price).toBe(APP_PRICES.phone)
+    expect(APP_OFFER.computer.price).toBe(APP_PRICES.computer)
+    // The repository is private until launch, so the page says MIT licensed, never open source.
+    expect(view.container.textContent).not.toMatch(/open source/i)
   })
 
   it('has a help section with the project’s address', () => {

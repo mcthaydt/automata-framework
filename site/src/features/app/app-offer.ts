@@ -1,5 +1,7 @@
 // What the Automata app costs, where to buy it and what downloading it gives you. Every editor is free on the web. Every price, place to
-// buy and list on /app is read from here, so when the app goes on sale this file is the one thing that changes.
+// buy and list on /app is read from here, so when the app goes on sale this file is the one thing that changes. The prices
+// themselves are in `shared/content/pricing.ts`, which Home reads too.
+import { APP_PRICES } from '../../shared/content/pricing.ts'
 
 export interface PlaceToBuy {
   readonly label: string
@@ -24,7 +26,7 @@ export interface AppOffer {
 
 export const APP_OFFER: AppOffer = {
   phone: {
-    price: '$19.99',
+    price: APP_PRICES.phone,
     devices: 'iPhone, iPad and Android',
     buy: [
       { label: 'App Store', url: null },
@@ -32,7 +34,7 @@ export const APP_OFFER: AppOffer = {
     ],
   },
   computer: {
-    price: '$39.99',
+    price: APP_PRICES.computer,
     devices: 'Mac, Windows and Linux',
     buy: [{ label: 'Buy for your computer', url: null }],
   },
@@ -41,6 +43,7 @@ export const APP_OFFER: AppOffer = {
   // is the download itself.
   web: [
     'All the editors, for 2D and 3D games: Levels, Characters, Add tiles, the Tuner, Feel, Audio, Schematic and more',
+    'Your games on every device: sign in with GitHub and they stay in sync',
     'Play and Publish, once you open the free editor on your own game',
   ],
   app: [

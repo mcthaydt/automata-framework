@@ -19,7 +19,7 @@ const columns = [
     title: 'Tools',
     links: [
       ['/editor', 'Level editor'],
-      ['/app', 'The app'],
+      ['/app', 'Pricing'],
       ['/changelog', 'Changelog'],
       ...(REPOSITORY_PUBLIC ? [[REPOSITORY_URL, 'GitHub']] : []),
     ],
@@ -39,7 +39,7 @@ const columns = [
   <div class="bar">
     <div class="brand">
       <a class="logo" href="/" aria-label="Automata home"><i aria-hidden="true"></i>automata</a>
-      <p>MIT licence. Made for browser games.</p>
+      <p>Free and MIT licensed. No credits, ever.</p>
     </div>
     <nav aria-label="Footer navigation">
       {#each columns as column (column.title)}
