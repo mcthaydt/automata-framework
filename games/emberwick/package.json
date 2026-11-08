@@ -20,7 +20,7 @@
     "dev": "vite --configLoader runner",
     "build": "vite build --configLoader runner",
     "check": "pnpm typecheck && pnpm test:unit && automata-check-boundaries --game src",
-    "prepare-ruken": "automata ship prepare",
+    "prepare-ruken": "automata ship prepare --target ruken",
     "test": "vitest run --configLoader runner",
     "test:unit": "vitest run --configLoader runner --project unit",
     "test:browser": "vitest run --configLoader runner --project browser",
@@ -39,7 +39,6 @@
     "zod": "4.6.6"
   },
   "devDependencies": {
-    "@mcthaydt/automata-check-boundaries": "workspace:*",
     "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-tools": "workspace:*",
     "@mcthaydt/evidence": "workspace:*",

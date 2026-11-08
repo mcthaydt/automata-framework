@@ -1,6 +1,6 @@
-import { readFileSync } from 'node:fs'
-import { createRequire } from 'node:module'
+import { existsSync } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { Effect } from 'effect'
 import { Files } from '../node/files.ts'
 import { ProcessRunner, type RunResult } from '../node/process-runner.ts'
@@ -87,16 +87,15 @@ const findingsOrToolError = (tool: Tool, result: RunResult, findings: readonly C
       )
 
 /**
- * The boundaries checker, as the path of the CLI that `node` runs. It is a dependency of this package, so a new game
- * does not install it, and it is the same version as the tools that run it. (In the workspace the CLI is a `.ts` file;
- * in a published install it is the built `.js`. Node 24 runs both.)
+ * The boundaries checker, as the path of the CLI that `node` runs. It is part of this package, so a new game does not
+ * install it and it is always the version of the tools that run it. From source it is `features/boundaries/cli.ts`;
+ * in a published install it is the built `boundaries-cli.js` beside the bundle that holds this code. Node 24 runs both.
  */
 export function boundariesCli(): string {
-  const manifestPath = createRequire(import.meta.url).resolve(
-    '@mcthaydt/automata-check-boundaries/package.json',
-  )
-  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { bin: Record<string, string> }
-  return join(dirname(manifestPath), manifest.bin[TOOLS.boundaries.bin] ?? '')
+  const built = fileURLToPath(new URL('./boundaries-cli.js', import.meta.url))
+  return existsSync(built)
+    ? built
+    : fileURLToPath(new URL('../../features/boundaries/cli.ts', import.meta.url))
 }
 
 const WHERE_CODE_GOES = 'Put game code in src/features/<name>/ (see the guide).'

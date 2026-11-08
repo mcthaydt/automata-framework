@@ -1304,3 +1304,46 @@ from this plan with their reason, and a two-line handoff.)
   names the Docs on the site without a URL, because the domain is task 21.2.
 - Not run: WebKit, Firefox, hosted CI.
 - Handoff: next is phase 3, task 3.1 (what leaves from `-tools`).
+
+### 2026-11-06, session 1 continued: phase 3, task 3.5 step 1 (the read of `packages/tools/src`)
+
+Counts before: `-tools` unit tests 794 (the 148 boundaries tests came in with 3.3). `pnpm knip` clean. No subagents; the
+checks below were run with `wc`, a function-length scan over the syntax tree (oxc) and `git grep`.
+
+| Check | Finding |
+|---|---|
+| Unused code | `SHIP_PACKAGE` (`shared/package-name.ts`) is exported and imported nowhere: delete. `shared/ship/testing/fake-process-runner.ts` is a test helper in a feature path; only tests import it: move to `src/testing/`. |
+| Single-implementation abstractions | None to remove. `Files`, `ProcessRunner` and `CspProbe` are the seams tests swap; `errors-ruken.ts` and `errors-tauri.ts` are per-target error files that `errors.ts` re-exports, and they keep `errors.ts` under 300 lines. |
+| Forwarding layers | None found. `entries/node-services.ts` is an entry re-export, which entries are for. |
+| Duplicates | (1) The secrets, then closed-beta (`@pixi/3d`) scan is written out four times: `prepare-build.ts` (`checkBuild`), `prepare-itch.ts`, `prepare-web.ts`, `prepare-tauri.ts`; (2) the release-tag check (`checkVersion` then `VersionMismatch`) four times; (3) `attempt(path, run)` (a `try` that becomes a `FileError`) five times: `files.ts`, `prepare-web.ts`, `prepare-itch.ts`, `prepare-tauri.ts`, `publish-downloads-to-itch.ts`. |
+| Long files (over 300 lines) | `shared/check/check-steps.ts` 399, `features/boundaries/check.ts` 380, `shared/create-game/template.ts` 367. |
+| Long functions (over 60 lines) | `serveEditor` 168 (`features/editor/serve-editor.ts`), `checkSource` 209 with its `visit` 107 (`features/boundaries/check.ts`), `prepareTauri` 98, `program` 93 (`app/ship-cli.ts`), `createGame` 71, `tauriProjectFiles` 67 (a table of generated files: left), `checkBuild` 62. |
+| Missing explanations | No file-level comment: `app/cli.ts`, `shared/create-game/create-game.ts`, `shared/ship/errors.ts`, `shared/ship/testing/fake-process-runner.ts`. |
+| Tests that test the implementation | Not found in the ship, check and create-game tests read so far (they run the real function over a temp folder or a fake `ProcessRunner`). The boundaries tests run the real CLI as a process. |
+
+Fixes, one concern per commit: unused code; the three duplicates; long functions (`prepareTauri`, `program`,
+`createGame`, `checkBuild`); long files (`check-steps.ts`, `template.ts`, `check.ts`); headers. `serveEditor` and
+`checkSource` are one closure over shared state each: split only if it can be done without a behaviour change, else
+listed as left with the reason.
+
+### 2026-11-06, session 1 end (90 minutes): phases 2 and 3
+
+- Phase 3 on `claude/refactor-tools-surface`, stacked on phase 2. Tasks 3.1 to 3.4 done; 3.5 in progress. `-tools` unit
+  tests: 690 before phase 3, 594 after 3.1 (the deleted `add`, `deploy-dev`, `test-remote` and deploy-folder tests, listed
+  by file in the commit), 607 after 3.2 and 3.3 before the boundaries tests, 755 with them (the 148 boundaries tests
+  moved in from `tooling/check-boundaries`), 803 now (new: web prepare, help, entries, build-scans, boundaries CLI).
+  `pnpm check`, the consumer smoke from packs and the stranger's journey pass in Chromium.
+- The last commit that holds the deleted code (`add`, `deploy-dev`, `test-remote`, `packages/tools/deploy/`, the dev-host
+  job): `e523f860`. Cloud sessions cannot push tags: the Owner tags it if wanted.
+- Deviations: (1) `ship prepare --target web` checks the build the game made; it does not run Vite (the other targets do
+  not either), and writes nothing; (2) `create-game` also writes `prepare:web`, so the web path has the same two steps as
+  the others; (3) `ship --help`, `check --help`, `build --help`, `editor --help` and `create-game --help` are each
+  their own text (`app/help.ts`), and `automata --help` is seven lines; (4) a bare `automata <folder>` no longer makes a
+  game: only `create-game` does, and any other word is "Unknown command" (otherwise `automata add` would have made a
+  game called "add"); (5) `pnpm ci:remote` was not created (the Owner's call, per the task); (6) the internal entry holds
+  only what the repository imports today plus `findPixi3d` (the site build's caller, task 7.3); (7) `pnpm-lock.yaml`
+  dropped `semver`, `@types/semver` (used only by `add`) and the `check-boundaries` workspace link.
+- Left in 3.5: the long functions and files and the four headers (list above). Then mark the phase 3 PR ready.
+- Handoff: resume at task 3.5 step 2 ("long functions"), then phase 4. Task 14.1 (the scope rename) waits for the Owner to
+  confirm the `automata` npm organisation exists.
+

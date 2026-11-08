@@ -3,8 +3,8 @@
 // commented-out fetch were all reported).
 //
 // Finds the places a built client names one of its own files by a root-absolute path (`/fonts/x.woff2`,
-// `url("/assets/y.png")`). Inside Ruken the game is served from `https://<game-origin>/b/<buildId>/`, and on
-// the dev host from `/builds/<buildId>/`, not from the root of its origin, so a root-absolute path is a 404.
+// `url("/assets/y.png")`). Inside Ruken the game is served from `https://<game-origin>/b/<buildId>/`, not
+// from the root of its origin, so a root-absolute path is a 404.
 // Ruken's own build checks do not look for this, so it is the one check ship adds.
 //
 // It looks for what is certainly a mistake and nothing else:

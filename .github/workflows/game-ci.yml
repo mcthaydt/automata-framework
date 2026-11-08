@@ -11,9 +11,9 @@ name: game-ci
 #
 # It installs and checks the game, runs AF's determinism checker on the game's sim-plugin sources (M1 shared
 # contracts §2), builds, and prepares the build for Ruken with `automata ship prepare` (ruken.toml checked by
-# Ruken's parser). The AF tools are the game's own dev dependencies (@mcthaydt/automata-tools and
-# @mcthaydt/automata-check-boundaries from GitHub Packages, M2.4 spec §3.7), so the game's package.json picks
-# the AF version; this workflow never checks AF out.
+# Ruken's parser). The AF tools are the game's own dev dependency (@mcthaydt/automata-tools from GitHub
+# Packages, M2.4 spec §3.7; its `automata-check-boundaries` bin is the determinism checker), so the game's
+# package.json picks the AF version; this workflow never checks AF out.
 #
 # A game in another repository needs, since AF is private: AF's Settings → Actions → General → Access set to
 # "Accessible from repositories owned by mcthaydt", and the secret AF_READ_TOKEN, a classic personal access
@@ -117,7 +117,7 @@ jobs:
         run: $BUILD_COMMAND
       - name: Prepare for Ruken
         working-directory: ${{ inputs.working-directory }}
-        run: pnpm exec automata ship prepare
+        run: pnpm exec automata ship prepare --target ruken
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ inputs.artifact-name }}

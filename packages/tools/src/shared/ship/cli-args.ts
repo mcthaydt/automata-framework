@@ -2,15 +2,15 @@ import { parseArgs } from 'node:util'
 
 // The `automata ship` command line, parsed into one value per command so ship-cli.ts can switch on it.
 
-/** Where a build goes. Undefined means Ruken, the default, so existing scripts do not change. */
-export type ShipTarget = 'ruken' | 'itch' | 'tauri'
+/** Where a build goes. It is always named: there is no default target (U5). */
+export type ShipTarget = 'web' | 'ruken' | 'itch' | 'tauri'
 
 export type CliCommand =
   | {
       readonly command: 'prepare'
       readonly dist: string
       readonly tag: string | undefined
-      readonly target: ShipTarget | undefined
+      readonly target: ShipTarget
     }
   | {
       readonly command: 'publish'
@@ -18,60 +18,60 @@ export type CliCommand =
       readonly tag: string | undefined
       readonly activate: boolean
       readonly game: string | undefined
-      readonly target: ShipTarget | undefined
+      readonly target: ShipTarget
       /** Upload to Ruken's local stack only, so the build may contain `@pixi/3d`. Ruken only. */
       readonly private?: true
       /** Push the desktop bundles in `dist-tauri/` to itch.io's Downloadable channels. itch only. */
       readonly from?: 'tauri'
     }
-  | {
-      readonly command: 'deploy-dev'
-      readonly dist: string
-      readonly tag: string | undefined
-      readonly activate: boolean
-    }
-  | { readonly command: 'test-remote'; readonly args: readonly string[] }
   | { readonly command: 'help' }
   | { readonly command: 'usage'; readonly problem: string }
 
-export const USAGE = `Usage: automata ship prepare    [--dist <dir>] [--tag vX.Y.Z] [--target ruken|itch|tauri]
-       automata ship publish    [--dist <dir>] [--tag vX.Y.Z] [--activate] [--game <publicId>] [--private]
-       automata ship publish    --target itch [--from tauri] [--dist <dir>] [--tag vX.Y.Z]
-       automata ship deploy-dev [--dist <dir>] [--tag vX.Y.Z] [--activate]
-       automata ship test-remote [<playwright args> | --nightly]
+export const USAGE = `Usage: automata ship prepare --target web|itch|tauri|ruken [--dist <dir>] [--tag vX.Y.Z]
+       automata ship publish --target itch|ruken [--dist <dir>] [--tag vX.Y.Z]
+       automata ship publish --target ruken [--activate] [--game <publicId>] [--private]
+       automata ship publish --target itch --from tauri [--dist <dir>] [--tag vX.Y.Z]
 
-prepare      writes ruken.toml into the build (from ship.config.ts) and checks it with Ruken's parser
-             --target itch: checks the build against itch.io's rules and writes <id>-<version>-itch.zip beside it
-             --target tauri: checks the build, writes the Tauri project to .automata/tauri/, runs tauri build for
-             this OS and copies the bundles to dist-tauri/. Needs cargo, @tauri-apps/cli and tauri in ship.config.ts
-publish      prepare, then ruken publish (packs, validates, uploads). Needs RUKEN_API and RUKEN_TOKEN.
-             --private: Ruken's local stack only (RUKEN_API on localhost); allows @pixi/3d, which a public
-             build refuses (D-1)
-             --target itch: prepare --target itch, then butler push. Needs BUTLER_API_KEY, butler on PATH and
-             itch.project in ship.config.ts.
-             --target itch --from tauri: push the desktop bundles in dist-tauri/ (prepare --target tauri) to
-             itch.io's Downloadable channels, one per OS (itch.downloads; default linux, mac, windows).
-deploy-dev   prepare, then install the build on the dev host. Needs SHIP_DEV_TARGET and SHIP_DEV_URL;
-             SHIP_DEV_SSH_KEY_FILE and SHIP_DEV_KNOWN_HOSTS_FILE pick the key and known hosts.
-test-remote  push this branch and run CI for it remotely, waiting for the result`
+Every command names its target. --dist is the folder you built (default: dist). --tag is the release, like v1.2.0.
+
+prepare checks the build for one place to publish it, and changes nothing unless it says so.
+  --target web     Checks for what no public site accepts: secrets, pictures or sounds folded into the code, code that
+                   needs eval, the private Pixi 3D beta and paths that start with "/". Then upload the folder to any
+                   static host.
+  --target itch    Checks itch.io's rules and writes <id>-<version>-itch.zip beside the build.
+  --target tauri   Builds the desktop app for this computer into dist-tauri/. Needs cargo, Tauri's command line tool
+                   and a tauri section in ship.config.ts.
+  --target ruken   Writes ruken.toml into the build, from ship.config.ts, and checks it.
+
+publish prepares the build, then uploads it.
+  --target itch    Pushes with butler. Needs BUTLER_API_KEY, butler, and itch.project in ship.config.ts.
+                   --from tauri pushes the desktop apps in dist-tauri/ instead (run prepare --target tauri first).
+  --target ruken   Needs RUKEN_API and RUKEN_TOKEN. --activate makes it live, --game picks the game, and --private
+                   uploads a build that is not public (Ruken's local test server only).`
 
 const common = { dist: { type: 'string', default: 'dist' }, tag: { type: 'string' } } as const
 const targeted = { ...common, target: { type: 'string' } } as const
 
-function shipTarget(value: string | undefined): ShipTarget | undefined {
-  if (value === undefined || value === 'ruken' || value === 'itch' || value === 'tauri') return value
-  throw new Error(`unknown target: ${value} (ruken, itch or tauri)`)
+/** The target as typed. Throws the sentence the player of the command reads when it is missing or not one of ours. */
+function shipTarget(value: string | undefined, choices: string): ShipTarget {
+  if (value === undefined) throw new Error(`Choose a target: --target ${choices}.`)
+  if (value === 'web' || value === 'ruken' || value === 'itch' || value === 'tauri') return value
+  throw new Error(`unknown target: ${value} (web, itch, tauri or ruken)`)
 }
 
 export function parseCliArgs(argv: readonly string[]): CliCommand {
   const [command, ...rest] = argv
   if (command === undefined) return { command: 'usage', problem: 'no command' }
   if (command === 'help' || command === '--help' || command === '-h') return { command: 'help' }
-  if (command === 'test-remote') return { command, args: rest }
   try {
     if (command === 'prepare') {
       const { values } = parseArgs({ args: rest, options: targeted, strict: true })
-      return { command, dist: values.dist, tag: values.tag, target: shipTarget(values.target) }
+      return {
+        command,
+        dist: values.dist,
+        tag: values.tag,
+        target: shipTarget(values.target, 'web, itch, tauri or ruken'),
+      }
     }
     if (command === 'publish') {
       const options = {
@@ -82,7 +82,7 @@ export function parseCliArgs(argv: readonly string[]): CliCommand {
         from: { type: 'string' },
       } as const
       const { values } = parseArgs({ args: rest, options, strict: true })
-      const target = shipTarget(values.target)
+      const target = shipTarget(values.target, 'itch or ruken')
       if (values.from !== undefined && values.from !== 'tauri')
         throw new Error(`unknown --from: ${values.from} (tauri)`)
       if (values.from === 'tauri' && target !== 'itch') {
@@ -90,6 +90,11 @@ export function parseCliArgs(argv: readonly string[]): CliCommand {
       }
       if (target === 'tauri') {
         throw new Error('publish has no tauri target: prepare --target tauri builds the desktop bundles')
+      }
+      if (target === 'web') {
+        throw new Error(
+          'There is nothing to publish for web. After prepare --target web, upload the dist folder to any static host.',
+        )
       }
       if (target === 'itch' && (values.activate || values.game !== undefined)) {
         throw new Error('--activate and --game are for publishing to Ruken, not itch.io')
@@ -106,11 +111,6 @@ export function parseCliArgs(argv: readonly string[]): CliCommand {
         ...(values.private ? { private: true as const } : {}),
         ...(values.from === 'tauri' ? { from: 'tauri' as const } : {}),
       }
-    }
-    if (command === 'deploy-dev') {
-      const options = { ...common, activate: { type: 'boolean', default: false } } as const
-      const { values } = parseArgs({ args: rest, options, strict: true })
-      return { command, dist: values.dist, tag: values.tag, activate: values.activate }
     }
   } catch (error) {
     return { command: 'usage', problem: error instanceof Error ? error.message : String(error) }

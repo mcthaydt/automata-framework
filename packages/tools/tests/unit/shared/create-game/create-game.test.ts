@@ -177,12 +177,14 @@ describe('createGame', () => {
       const { pkg } = await generate()
       expect(pkg.scripts).toMatchObject({
         'build:web': 'vite build --mode web',
+        'prepare:web': 'automata ship prepare --target web',
         'build:itch': 'vite build --mode itch',
         'prepare:itch': 'automata ship prepare --target itch',
       })
       expect(Object.keys(pkg.scripts).filter((name) => /^(build|prepare):/.test(name))).toEqual([
         'build:web',
         'build:itch',
+        'prepare:web',
         'prepare:itch',
       ])
       expect(pkg.scripts.build).toBeUndefined()
@@ -230,7 +232,10 @@ describe('createGame', () => {
 
     it('writes only what the web target needs for --targets web', async () => {
       const { pkg, read } = await generate(['web'])
-      expect(Object.keys(pkg.scripts).filter((name) => /^(build|prepare)/.test(name))).toEqual(['build:web'])
+      expect(Object.keys(pkg.scripts).filter((name) => /^(build|prepare)/.test(name))).toEqual([
+        'build:web',
+        'prepare:web',
+      ])
       expect(Object.keys(pkg.dependencies).filter((name) => /tauri|ruken/.test(name))).toEqual([])
       expect(pkg.devDependencies['@tauri-apps/cli']).toBeUndefined()
       const shipConfig = read('ship.config.ts')
@@ -271,7 +276,7 @@ describe('createGame', () => {
     it("lists the chosen targets' commands in the README", async () => {
       const { read } = await generate(['web', 'tauri'])
       const readme = read('README.md')
-      expect(readme).toContain('pnpm build:web')
+      expect(readme).toContain('pnpm build:web && pnpm prepare:web')
       expect(readme).toContain('pnpm build:tauri && pnpm prepare:tauri')
       expect(readme).not.toContain('build:ruken')
     })

@@ -7,9 +7,6 @@
   // Fixtures are test inputs read as files, never imported.
   // Spikes (spikes/*) are standalone packages outside the pnpm workspace, installed with --ignore-workspace.
   "ignore": ["**/fixtures/**", "spikes/**", "games/base-3d/src/paraglide/**"],
-  // automata is packages/tools' own bin, which game repositories call through the reusable workflows;
-  // flock is a system tool that packages/tools' deploy test uses.
-  "ignoreBinaries": ["automata", "flock"],
   // BootErrorIsDrawable is a compile-time assertion (shared contracts §4); exporting it keeps it checked.
   "ignoreIssues": { "packages/automata/src/app/boot/boot-error.ts": ["types"] },
   "workspaces": {
@@ -59,9 +56,8 @@
     },
     // Runtime dependencies of the Ruken code that tsdown bundles (@ruken/cli, @ruken/manifest, @ruken/sdk-host).
     // automata check (DX.6) bundles @ruken/manifest, which imports smol-toml at runtime; yauzl and yazl are Ruken's.
-    // `automata check` finds the boundaries checker by name (createRequire().resolve), which knip does not follow.
     "packages/tools": {
-      "ignoreDependencies": ["smol-toml", "yauzl", "yazl", "@mcthaydt/automata-check-boundaries"]
+      "ignoreDependencies": ["smol-toml", "yauzl", "yazl"]
     },
     // PRODUCT.L2: compile-messages.ts loads Paraglide with a dynamic import of a constant and resolves the inlang
     // plugin by name (createRequire().resolve), neither of which knip follows.

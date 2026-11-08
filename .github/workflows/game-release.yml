@@ -11,15 +11,13 @@ name: game-release
 #       with:
 #         game: ${{ vars.RUKEN_GAME }}
 #         ruken-api: ${{ vars.RUKEN_API }}
-#         dev-target: ${{ vars.SHIP_DEV_TARGET }}
-#         dev-url: ${{ vars.SHIP_DEV_URL }}
 #         itch: true                            # optional: also push to itch.io (PUB spec §5)
 #       secrets: inherit
 #
-# One build, prepared with the release tag (its version must match), then two separate jobs so one failing
-# never hides the other: `ruken publish` (Ruken packs, validates and uploads; Ruken's local stack is the only
-# M1 target, so hosted runners skip it unless ruken-api is a reachable Ruken) and the dev host deploy. A job
-# whose secret is missing says so and stops without failing. As in game-ci.yml, the AF tools are the game's own
+# One build, prepared with the release tag (its version must match), then separate jobs so one failing never hides
+# another: `ruken publish` (Ruken packs, validates and uploads; Ruken's local stack is the only M1 target, so hosted
+# runners skip it unless ruken-api is a reachable Ruken), and the optional itch.io and desktop jobs. A job whose
+# secret is missing says so and stops without failing. As in game-ci.yml, the AF tools are the game's own
 # dev dependencies from GitHub Packages, so a game in another repository passes AF_READ_TOKEN, a classic
 # personal access token with read:packages (GitHub Packages' npm registry accepts no other kind); AF is never
 # checked out.
@@ -34,7 +32,7 @@ on:
   workflow_call:
     inputs:
       runner:
-        description: The runner label for every job. GitHub's own by default, because the jobs hold the Ruken token and the dev host key, which stay off shared self-hosted runners (as Ruken keeps its publish workflows).
+        description: The runner label for every job. GitHub's own by default, because the jobs hold the Ruken token, which stays off shared self-hosted runners (as Ruken keeps its publish workflows).
         type: string
         default: ubuntu-latest
       working-directory:
@@ -49,13 +47,6 @@ on:
         default: ""
       ruken-api:
         description: The Ruken site to publish to. Empty skips the Ruken job.
-        type: string
-        default: ""
-      dev-target:
-        description: The dev host's ssh destination, e.g. deploy@af-dev.floorfifty.duckdns.org. Empty skips the dev host job.
-        type: string
-        default: ""
-      dev-url:
         type: string
         default: ""
       itch:
@@ -88,10 +79,6 @@ on:
         default: false
     secrets:
       RUKEN_TOKEN:
-        required: false
-      SHIP_DEV_SSH_KEY:
-        required: false
-      SHIP_DEV_KNOWN_HOSTS:
         required: false
       BUTLER_API_KEY:
         description: itch.io's butler key (`butler login`, then butler_creds). Optional at the call, but the itch job fails without it.
@@ -166,7 +153,7 @@ jobs:
         run: $BUILD_COMMAND
       - name: Prepare for Ruken (the version must match the tag)
         working-directory: ${{ inputs.working-directory }}
-        run: pnpm exec automata ship prepare --tag "$TAG"
+        run: pnpm exec automata ship prepare --target ruken --tag "$TAG"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-dist
@@ -224,74 +211,13 @@ jobs:
           if [[ -z "$RUKEN_TOKEN" ]]; then echo "::notice::RUKEN_TOKEN is not set; skipping ruken publish"; exit 0; fi
           # ruken publish registers a new game when it knows none: from a fresh CI checkout, every release would.
           if [[ -n "$GAME" ]]; then
-            pnpm exec automata ship publish --tag "$TAG" --game "$GAME"
+            pnpm exec automata ship publish --target ruken --tag "$TAG" --game "$GAME"
           elif [[ -f .ruken/project.json ]]; then
-            pnpm exec automata ship publish --tag "$TAG"
+            pnpm exec automata ship publish --target ruken --tag "$TAG"
           else
             echo "::error::set the game input (the Ruken public id) or commit .ruken/project.json; refusing to register a new Ruken game"
             exit 1
           fi
-
-  dev-host:
-    name: dev host deploy
-    needs: build
-    if: inputs.dev-target != ''
-    runs-on: ${{ inputs.runner }}
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      # A game installs AF's packages from GitHub Packages, so without the token nothing else can work.
-      - name: AF_READ_TOKEN is set
-        if: github.repository != 'mcthaydt/automata-framework'
-        env:
-          AF_READ_TOKEN: ${{ secrets.AF_READ_TOKEN }}
-        run: |
-          if [[ -z "$AF_READ_TOKEN" ]]; then echo "::error::AF_READ_TOKEN (a classic personal access token with read:packages) is missing"; exit 1; fi
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
-          dest: ${{ runner.temp }}/setup-pnpm
-      # registry-url and scope write an .npmrc that sends NODE_AUTH_TOKEN to GitHub Packages for @mcthaydt.
-      # Inside AF every @mcthaydt package is a workspace link and the token is not needed.
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version-file: .nvmrc
-          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
-          registry-url: https://npm.pkg.github.com
-          scope: "@mcthaydt"
-      - name: Install
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.AF_READ_TOKEN }}
-        run: |
-          if ! pnpm install --frozen-lockfile; then
-            echo "::error::pnpm install failed. If GitHub Packages answered 401 or 403: AF_READ_TOKEN must be a classic personal access token with read:packages (GitHub Packages' npm registry accepts no other kind)."
-            exit 1
-          fi
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: release-dist
-          path: ${{ inputs.working-directory }}/dist
-      - name: Deploy to the dev host and make it live
-        working-directory: ${{ inputs.working-directory }}
-        env:
-          SHIP_DEV_TARGET: ${{ inputs.dev-target }}
-          SHIP_DEV_URL: ${{ inputs.dev-url }}
-          SHIP_DEV_SSH_KEY: ${{ secrets.SHIP_DEV_SSH_KEY }}
-          SHIP_DEV_KNOWN_HOSTS: ${{ secrets.SHIP_DEV_KNOWN_HOSTS }}
-        run: |
-          if [[ -z "$SHIP_DEV_SSH_KEY" ]]; then echo "::notice::SHIP_DEV_SSH_KEY is not set; skipping the dev host"; exit 0; fi
-          # The key goes in this job's own temp folder, not the home folder's .ssh, which outlives the job on a self-hosted runner.
-          keys="$RUNNER_TEMP/ship-ssh"
-          install -d -m 700 "$keys"
-          printf '%s\n' "$SHIP_DEV_SSH_KEY" > "$keys/id" && chmod 600 "$keys/id"
-          printf '%s\n' "$SHIP_DEV_KNOWN_HOSTS" > "$keys/known_hosts"
-          SHIP_DEV_SSH_KEY_FILE="$keys/id" SHIP_DEV_KNOWN_HOSTS_FILE="$keys/known_hosts" \
-            pnpm exec automata ship deploy-dev --tag "$TAG" --activate
-      - name: Remove the deploy key
-        if: always()
-        run: rm -rf "$RUNNER_TEMP/ship-ssh"
 
   itch:
     name: itch.io push

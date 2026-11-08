@@ -1,3 +1,7 @@
+// Every way a ship step can fail, as tagged errors (ADR 0003). The CLI prints `message`, one line per problem.
+// Each extends a constant typed with `TaggedErrorClass` so the package builds with isolatedDeclarations. The errors
+// of the Ruken and desktop targets are in `targets/*/errors-*.ts` and re-exported here, so a caller imports every
+// ship error from this one file.
 import { Data } from 'effect'
 import type { TaggedErrorClass } from '../node/errors.ts'
 import type { UndeclaredBoardFound } from './prepare/board-names.ts'
@@ -5,12 +9,8 @@ import type { OrientationMismatchFound } from './prepare/orientation.ts'
 import type { Pixi3dFound } from './prepare/pixi3d-markers.ts'
 import type { SecretFound } from './prepare/secret-scan.ts'
 
-export { FileError, ProcessError } from '../node/errors.ts'
 export { ManifestInvalid } from './targets/ruken/errors-ruken.ts'
 export { TauriBuildFailed, TauriBuildInvalid, TauriToolchainMissing } from './targets/tauri/errors-tauri.ts'
-
-// Every way a ship step can fail, as tagged errors (ADR 0003). The CLI prints `message`, one line per problem.
-// Each extends a constant typed with `TaggedErrorClass` so the package builds with isolatedDeclarations.
 
 const VersionMismatchBase: TaggedErrorClass<
   'VersionMismatch',
@@ -66,7 +66,7 @@ const Pixi3dInPublicBuildBase: TaggedErrorClass<
 export class Pixi3dInPublicBuild extends Pixi3dInPublicBuildBase {
   override get message(): string {
     const listed = this.found.map((found) => `${found.file}: "${found.marker}"`).join('\n')
-    return `the build contains @pixi/3d, a closed beta that may not be shipped publicly yet. Deploy it only to the private dev host (deploy-dev) or Ruken's local stack (publish --private, with RUKEN_API on localhost):\n${listed}`
+    return `the build contains @pixi/3d, a closed beta that may not be shipped publicly yet. Ship it only to Ruken's local stack (publish --private, with RUKEN_API on localhost):\n${listed}`
   }
 }
 
@@ -206,43 +206,22 @@ export class PublishFailed extends PublishFailedBase {
   }
 }
 
-const DeployFailedBase: TaggedErrorClass<
-  'DeployFailed',
+/** The scans of the bundle that `prepare --target web` makes. */
+export type WebCheck = 'no-eval' | 'data-urls'
+
+const WebBuildInvalidBase: TaggedErrorClass<
+  'WebBuildInvalid',
   {
-    readonly step: 'tar' | 'ssh'
-    readonly exitCode: number
-    readonly output: string
+    readonly check: WebCheck
+    readonly problems: readonly string[]
   }
-> = Data.TaggedError('DeployFailed')
-/** The dev host's deploy step (tar or ssh) failed; `output` is what it printed. */
-export class DeployFailed extends DeployFailedBase {
+> = Data.TaggedError('WebBuildInvalid')
+/** The bundle breaks a rule every public host shares; each problem is `file:line:column` and what is wrong. */
+export class WebBuildInvalid extends WebBuildInvalidBase {
   override get message(): string {
-    return `deploy-dev: ${this.step} failed (exit ${this.exitCode})${this.output === '' ? '' : `:\n${this.output.trim()}`}`
+    return `the build is not ready for the web (${this.check}):\n${this.problems.join('\n')}`
   }
 }
-
-/** Why `test-remote` stopped without a green run. */
-export type TestRemoteReason =
-  | 'usage'
-  | 'detached'
-  | 'uncommitted'
-  | 'push'
-  | 'dispatch'
-  | 'no-run'
-  | 'no-runner'
-  | 'timeout'
-  | 'gh-unavailable'
-  | 'red'
-
-const TestRemoteFailedBase: TaggedErrorClass<
-  'TestRemoteFailed',
-  {
-    readonly reason: TestRemoteReason
-    readonly message: string
-  }
-> = Data.TaggedError('TestRemoteFailed')
-/** `test-remote` stopped without a green run; `reason` says why and `message` says what to do. */
-export class TestRemoteFailed extends TestRemoteFailedBase {}
 
 /** The `prepare --target itch` check that failed, in the order they run. */
 export type ItchCheck = 'entry' | 'file-count' | 'path-length' | 'file-size' | 'case' | 'ruken-toml'

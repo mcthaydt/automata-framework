@@ -22,7 +22,7 @@ pnpm build:ruken && pnpm prepare:ruken
 ## Publish
 
 ```sh
-RUKEN_API=… RUKEN_TOKEN=… pnpm exec automata-ship publish
+RUKEN_API=… RUKEN_TOKEN=… pnpm exec automata ship publish --target ruken
 ```
 
 This prepares the build, then runs `ruken publish`, which packs, validates and uploads it. `--activate` makes the new

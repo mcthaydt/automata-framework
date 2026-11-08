@@ -5,7 +5,7 @@ import type { CheckFinding } from './check-report.ts'
 // Turns each tool's own output into findings. The tools run with the game folder as their working folder, so
 // the paths they print are already relative to it (vitest's JSON holds absolute paths, made relative here).
 
-/** `src/sim/a.ts:3:7  rule  message` (tooling/check-boundaries/src/cli.ts). The summary line is skipped. */
+/** `src/sim/a.ts:3:7  rule  message` (packages/tools/src/features/boundaries/cli.ts). The summary line is skipped. */
 export function parseBoundaries(stdout: string): CheckFinding[] {
   const findings: CheckFinding[] = []
   for (const line of stdout.split('\n')) {

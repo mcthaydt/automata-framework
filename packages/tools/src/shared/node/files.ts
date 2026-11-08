@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative, sep } from 'node:path'
 import { Context, Effect, Layer } from 'effect'
-import { FileError } from './errors.ts'
+import { type FileError, tryFile } from './errors.ts'
 
 // The file operations AF's build-time code needs (ship, content, the CLI), as an Effect service so callers
 // get typed errors and tests can swap the implementation. It wraps `node:fs` in `Effect.try` instead of using
@@ -39,9 +39,6 @@ export const Files: Context.Tag<Files, FilesService> = Context.GenericTag<Files,
   '@mcthaydt/automata-tools/Files',
 )
 
-const attempt = <A>(path: string, run: () => A): Effect.Effect<A, FileError> =>
-  Effect.try({ try: run, catch: (cause) => new FileError({ path, cause }) })
-
 function listBelow(root: string): string[] {
   return readdirSync(root, { recursive: true, withFileTypes: true })
     .filter((entry) => entry.isFile())
@@ -54,16 +51,16 @@ function listBelow(root: string): string[] {
  * `FileError`.
  */
 export const FilesLive: Layer.Layer<Files> = Layer.succeed(Files, {
-  readText: (path) => attempt(path, () => readFileSync(path, 'utf8')),
+  readText: (path) => tryFile(path, () => readFileSync(path, 'utf8')),
   // Copied out of the Buffer: a small one is a view into Node's shared pool, so its `.buffer` holds other
   // data that a hasher reading the whole ArrayBuffer would take in.
-  readBytes: (path) => attempt(path, () => new Uint8Array(readFileSync(path))),
+  readBytes: (path) => tryFile(path, () => new Uint8Array(readFileSync(path))),
   writeText: (path, text) =>
-    attempt(path, () => {
+    tryFile(path, () => {
       mkdirSync(dirname(path), { recursive: true })
       writeFileSync(path, text)
     }),
   exists: (path) => Effect.sync(() => existsSync(path)),
-  listFiles: (dir) => attempt(dir, () => listBelow(dir)),
-  remove: (path) => attempt(path, () => rmSync(path, { recursive: true, force: true })),
+  listFiles: (dir) => tryFile(dir, () => listBelow(dir)),
+  remove: (path) => tryFile(path, () => rmSync(path, { recursive: true, force: true })),
 })

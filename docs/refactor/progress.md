@@ -207,7 +207,7 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 6% (6 of 63 tasks)
+### Build: 11% (10 of 63 tasks)
 
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
@@ -220,11 +220,11 @@ organisation the same day ("automata", so the scope is `@automata`); it is for t
 | 2.2 A new game installs | 2 | Done, 2026-11-06 (Chromium only; `pnpm check` green; the stranger's journey passes in about 26 s; WebKit and Firefox not run; hosted CI not run) | |
 | 2.3 A new game passes its own check, in the feature layout | 2 | Done, 2026-11-06 (Chromium only; `pnpm check` green; the stranger's journey passes in about 26 s; WebKit and Firefox not run; hosted CI not run) | |
 | 2.4 The rest of the path | 2 | Done, 2026-11-06 (Chromium only; `pnpm check` green; the stranger's journey passes in about 26 s; WebKit and Firefox not run; hosted CI not run) | |
-| 3.1 What leaves | 3 | Not started | |
-| 3.2 The target is always named | 3 | Not started | |
-| 3.3 A small root entry, and check-boundaries folded in | 3 | Not started | |
-| 3.4 Help text | 3 | Not started | |
-| 3.5 The code refactor of -tools | 3 | Not started | |
+| 3.1 What leaves | 3 | Done, 2026-11-06 (Chromium only; `pnpm check` green; consumer smoke from packs and the stranger's journey pass; WebKit, Firefox and hosted CI not run) | |
+| 3.2 The target is always named | 3 | Done, 2026-11-06 (Chromium only; `pnpm check` green; consumer smoke from packs and the stranger's journey pass; WebKit, Firefox and hosted CI not run) | |
+| 3.3 A small root entry, and check-boundaries folded in | 3 | Done, 2026-11-06 (Chromium only; `pnpm check` green; consumer smoke from packs and the stranger's journey pass; WebKit, Firefox and hosted CI not run); API reports, cheatsheet and agent reference regenerated | |
+| 3.4 Help text | 3 | Done, 2026-11-06 (Chromium only; `pnpm check` green; consumer smoke from packs and the stranger's journey pass; WebKit, Firefox and hosted CI not run) | |
+| 3.5 The code refactor of -tools | 3 | In progress: step 1 (the read) is in the plan's log; unused code and the three duplicates are fixed; left: the long functions (`prepareTauri`, `program`, `createGame`, `checkBuild`), the long files (`check-steps.ts`, `template.ts`, `check.ts`), four missing file headers | |
 | 4.1 The move map and the package skeleton | 4 | Not started | |
 | 4.2 Merge the three packages | 4 | Not started | |
 | 4.3 Tests into tests/ | 4 | Not started | |

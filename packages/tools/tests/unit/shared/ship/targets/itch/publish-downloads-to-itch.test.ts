@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import type { RunResult } from '#src/shared/node/process-runner.ts'
 import { defineShipConfig, type ShipConfig } from '#src/shared/ship/config/ship-config.ts'
 import { publishDownloadsToItch } from '#src/shared/ship/targets/itch/publish-downloads-to-itch.ts'
-import { fakeProcessRunner, type RecordedRun } from '#src/shared/ship/testing/fake-process-runner.ts'
+import { fakeProcessRunner, type RecordedRun } from '#src/testing/fake-process-runner.ts'
 
 // DIST spec §6.4: the desktop bundles go to itch.io as Downloadable files, one butler channel per OS.
 

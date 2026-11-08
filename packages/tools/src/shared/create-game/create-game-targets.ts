@@ -38,9 +38,8 @@ export function parseTargets(value: string | undefined): ParsedTargets {
 export function targetScripts(targets: readonly DistTarget[]): Record<string, string> {
   const scripts: Record<string, string> = {}
   for (const target of targets) scripts[`build:${target}`] = `vite build --mode ${target}`
-  // The web build is the artifact itself (`dist/`); the other three are packaged by ship.
-  for (const target of targets)
-    if (target !== 'web') scripts[`prepare:${target}`] = `automata ship prepare --target ${target}`
+  // Ship checks every build for its target (the web's is the checks alone: `dist/` is the thing to upload).
+  for (const target of targets) scripts[`prepare:${target}`] = `automata ship prepare --target ${target}`
   return scripts
 }
 
@@ -86,7 +85,7 @@ export function adapterConditions(targets: readonly DistTarget[]): string {
 }
 
 const TARGET_GUIDE: Record<DistTarget, { readonly name: string; readonly commands: string }> = {
-  web: { name: 'The web', commands: 'pnpm build:web' },
+  web: { name: 'The web', commands: 'pnpm build:web && pnpm prepare:web' },
   itch: { name: 'itch.io', commands: 'pnpm build:itch && pnpm prepare:itch' },
   ruken: { name: 'Ruken', commands: 'pnpm build:ruken && pnpm prepare:ruken' },
   tauri: { name: 'Desktop (Tauri)', commands: 'pnpm build:tauri && pnpm prepare:tauri' },

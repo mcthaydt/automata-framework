@@ -2,7 +2,6 @@ import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
 import {
   ButlerFailed,
-  DeployFailed,
   EntryMissing,
   ItchBuildInvalid,
   ItchSettingMissing,
@@ -13,7 +12,6 @@ import {
   PublishTimeout,
   PublishUsage,
   RootAbsoluteReference,
-  TestRemoteFailed,
   VersionMismatch,
 } from '#src/shared/ship/errors.ts'
 
@@ -50,12 +48,6 @@ const cases = [
   [new PublishTimeout(failure), 'PublishTimeout', 'ruken publish gave up waiting for Ruken (exit 1):\nno'],
   [new PublishFailed(failure), 'PublishFailed', 'ruken publish failed (exit 1):\nno'],
   [
-    new DeployFailed({ step: 'ssh', exitCode: 255, output: '' }),
-    'DeployFailed',
-    'deploy-dev: ssh failed (exit 255)',
-  ],
-  [new TestRemoteFailed({ reason: 'red', message: 'the run failed' }), 'TestRemoteFailed', 'the run failed'],
-  [
     new ItchBuildInvalid({
       check: 'path-length',
       problems: ['a/b.png: 241 characters', 'c.png: 300 characters'],
@@ -81,8 +73,6 @@ describe('ship errors', () => {
 
   it('keeps the fields callers read', () => {
     expect(new PublishAuth(failure).exitCode).toBe(1)
-    expect(new DeployFailed({ step: 'tar', exitCode: 2, output: 'x' }).step).toBe('tar')
-    expect(new TestRemoteFailed({ reason: 'timeout', message: 'm' }).reason).toBe('timeout')
     expect(new EntryMissing({ entry: 'a.html', distDir: 'd' })).toBeInstanceOf(EntryMissing)
     expect(new ItchBuildInvalid({ check: 'case', problems: [] }).check).toBe('case')
     expect(new ItchSettingMissing({ setting: 'butler', message: 'm' }).setting).toBe('butler')

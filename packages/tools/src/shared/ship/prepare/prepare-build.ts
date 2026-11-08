@@ -1,6 +1,6 @@
 import { join } from 'node:path'
 import { Effect } from 'effect'
-import { FileError } from '../../node/errors.ts'
+import { type FileError, tryFile } from '../../node/errors.ts'
 import { Files } from '../../node/files.ts'
 import type { ShipConfig } from '../config/ship-config.ts'
 import {
@@ -8,23 +8,21 @@ import {
   ManifestInputsMismatch,
   type ManifestInvalid,
   OrientationMismatch,
-  Pixi3dExtrasInBuild,
-  Pixi3dInPublicBuild,
+  type Pixi3dExtrasInBuild,
+  type Pixi3dInPublicBuild,
   RootAbsoluteReference,
-  SecretInBuild,
+  type SecretInBuild,
   UndeclaredBoard,
-  VersionMismatch,
+  type VersionMismatch,
 } from '../errors.ts'
 import { inputsProblems, type ShipInputBindings } from '../targets/ruken/check-inputs.ts'
 import { checkManifest } from '../targets/ruken/check-manifest.ts'
 import { rukenToml } from '../targets/ruken/ruken-toml.ts'
 import { findUndeclaredBoards } from './board-names.ts'
-import { checkVersion } from './check-version.ts'
+import { checkTag, scanBuild } from './build-scans.ts'
 import { findInputsProblems } from './input-bindings.ts'
 import { findOrientationMismatches } from './orientation.ts'
-import { findPixi3d } from './pixi3d-markers.ts'
 import { findRootAbsoluteReferences } from './root-absolute.ts'
-import { findSecretsInBuild, readEnvValues } from './secret-scan.ts'
 
 /**
  * What `prepareBuild` checks and writes into: the built folder, the ship config, and the optional release
@@ -49,8 +47,7 @@ export interface PrepareInput {
   readonly inputBindings?: ShipInputBindings | undefined
   /**
    * Who the build is for. `public` (the default: Ruken's store, through `publish`) refuses a build that contains
-   * `@pixi/3d`, a closed beta (X-b); `private` (the dev host behind its access control, `deploy-dev`, and Ruken's
-   * local stack, `publish --private`) allows it. Either refuses `@pixi/3d/extras` (S7-g).
+   * `@pixi/3d`, a closed beta (X-b); `private` (Ruken's local stack, `publish --private`) allows it. Either refuses `@pixi/3d/extras` (S7-g).
    */
   readonly audience?: 'public' | 'private' | undefined
 }
@@ -69,7 +66,7 @@ export type PrepareError =
   | FileError
 
 /**
- * Makes a built folder ready for `ruken publish` and the dev host: checks the tag, the
+ * Makes a built folder ready for `ruken publish`: checks the tag, the
  * entry page, root-absolute paths, secrets, `@pixi/3d`, the leaderboards the game names and the orientation it plays in and the devices its `keys()` calls bind, then writes `ruken.toml` once Ruken's parser accepts it. Every check
  * runs before the write, so a failed prepare leaves the folder as it was. Zipping and Ruken's build checks
  * (archive, size, file types) happen inside `ruken publish`, not here.
@@ -95,10 +92,7 @@ export function checkBuild(input: PrepareInput): Effect.Effect<{ toml: string },
   return Effect.gen(function* () {
     const { distDir, config, tag } = input
     const files = yield* Files
-    const mismatch = checkVersion(config.game.version, tag)
-    if (mismatch !== undefined && tag !== undefined) {
-      return yield* new VersionMismatch({ version: config.game.version, tag, message: mismatch })
-    }
+    yield* checkTag(config.game.version, tag)
 
     // The caller's bindings are the real input map; without them the game's keys() calls are read from its sources.
     const gameDir = input.gameDir
@@ -107,42 +101,22 @@ export function checkBuild(input: PrepareInput): Effect.Effect<{ toml: string },
         ? inputsProblems(config.runtime.inputs, input.inputBindings)
         : gameDir === undefined
           ? []
-          : yield* Effect.try({
-              try: () => findInputsProblems(gameDir, config.runtime.inputs),
-              catch: (cause) => new FileError({ path: gameDir, cause }),
-            })
+          : yield* tryFile(gameDir, () => findInputsProblems(gameDir, config.runtime.inputs))
     if (inputProblems.length > 0) return yield* new ManifestInputsMismatch({ problems: inputProblems })
 
-    const references = yield* Effect.try({
-      try: () => findRootAbsoluteReferences(distDir),
-      catch: (cause) => new FileError({ path: distDir, cause }),
-    })
+    const references = yield* tryFile(distDir, () => findRootAbsoluteReferences(distDir))
     if (references.length > 0) return yield* new RootAbsoluteReference({ references })
 
-    const secrets = yield* Effect.try({
-      try: () => findSecretsInBuild(distDir, input.gameDir === undefined ? [] : readEnvValues(input.gameDir)),
-      catch: (cause) => new FileError({ path: distDir, cause }),
-    })
-    if (secrets.length > 0) return yield* new SecretInBuild({ found: secrets })
-
-    const pixi3d = yield* Effect.try({
-      try: () => findPixi3d(distDir),
-      catch: (cause) => new FileError({ path: distDir, cause }),
-    })
-    if (pixi3d.extras.length > 0) return yield* new Pixi3dExtrasInBuild({ found: pixi3d.extras })
-    if ((input.audience ?? 'public') === 'public' && pixi3d.core.length > 0)
-      return yield* new Pixi3dInPublicBuild({ found: pixi3d.core })
+    yield* scanBuild({ distDir, gameDir: input.gameDir, audience: input.audience })
 
     if (gameDir !== undefined) {
-      const boards = yield* Effect.try({
-        try: () => findUndeclaredBoards(gameDir, Object.keys(config.leaderboards ?? {})),
-        catch: (cause) => new FileError({ path: gameDir, cause }),
-      })
+      const boards = yield* tryFile(gameDir, () =>
+        findUndeclaredBoards(gameDir, Object.keys(config.leaderboards ?? {})),
+      )
       if (boards.length > 0) return yield* new UndeclaredBoard({ found: boards })
-      const orientations = yield* Effect.try({
-        try: () => findOrientationMismatches(gameDir, config.runtime.orientation),
-        catch: (cause) => new FileError({ path: gameDir, cause }),
-      })
+      const orientations = yield* tryFile(gameDir, () =>
+        findOrientationMismatches(gameDir, config.runtime.orientation),
+      )
       if (orientations.length > 0) return yield* new OrientationMismatch({ found: orientations })
     }
 

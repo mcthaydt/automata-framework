@@ -10,7 +10,7 @@ export type RukenHeaderTarget = Parameters<typeof compileHeaders>[1]
 
 /**
  * The headers Ruken serves a game's build with (Ruken's CSP, which allows no eval), from the game's config, for a
- * game's `vite preview` or a dev host (the game imports no `@ruken/*` itself). Fails `ManifestInvalid`
+ * game's `vite preview` (the game imports no `@ruken/*` itself). Fails `ManifestInvalid`
  * when Ruken refuses the config.
  */
 export function rukenHeaders(

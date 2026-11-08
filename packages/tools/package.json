@@ -15,6 +15,7 @@
   ],
   "exports": {
     ".": "./src/entries/index.ts",
+    "./internal": "./src/entries/internal.ts",
     "./e2e": "./src/entries/e2e.ts"
   },
   "imports": {
@@ -22,7 +23,7 @@
   },
   "bin": {
     "automata": "./src/app/bin.ts",
-    "automata-ship": "./src/app/ship-alias-bin.ts"
+    "automata-check-boundaries": "./src/features/boundaries/cli.ts"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
@@ -30,15 +31,11 @@
       ".": {
         "types": "./dist/index.d.ts",
         "import": "./dist/index.js"
-      },
-      "./e2e": {
-        "types": "./dist/e2e.d.ts",
-        "import": "./dist/e2e.js"
       }
     },
     "bin": {
       "automata": "./dist/bin.js",
-      "automata-ship": "./dist/ship-alias-bin.js"
+      "automata-check-boundaries": "./dist/boundaries-cli.js"
     }
   },
   "scripts": {
@@ -50,11 +47,9 @@
     "check:example": "node src/app/bin.ts check ../../games/emberwick --csp"
   },
   "dependencies": {
-    "@mcthaydt/automata-check-boundaries": "workspace:*",
     "@mcthaydt/automata-content": "workspace:*",
     "effect": "3.22.2",
     "oxc-parser": "0.152.0",
-    "semver": "7.8.5",
     "smol-toml": "1.9.0",
     "yauzl": "3.4.0",
     "yazl": "3.3.1",
@@ -75,7 +70,6 @@
     "@ruken/cli": "file:../../vendor/ruken/ruken-cli-0.0.0.tgz",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@types/node": "24.19.1",
-    "@types/semver": "7.8.0",
     "vite": "8.3.3",
     "vitest": "5.0.3",
     "yaml": "2.9.1"

@@ -10,7 +10,7 @@ describe('the workspace automata bin, run from source by plain Node', () => {
   it('prints the usage for --help and exits 0', () => {
     const run = spawnSync(process.execPath, [BIN, '--help'], { encoding: 'utf8' })
     expect(run.stderr).toBe('')
-    expect(run.stdout).toContain('Usage: automata create-game')
+    expect(run.stdout).toContain('Usage: automata <command>')
     expect(run.status).toBe(0)
   })
 

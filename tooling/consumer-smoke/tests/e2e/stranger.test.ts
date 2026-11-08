@@ -111,6 +111,8 @@ test('a stranger makes a game, checks it, plays it and makes the itch.io zip', a
 
     await step('play it in a browser', async () => {
       sh(gameDir, 'pnpm', ['build:web'])
+      // The checks every public host shares: what a stranger runs before putting `dist/` on a static host.
+      sh(gameDir, 'pnpm', ['prepare:web'])
       const server = await serveStatic(join(gameDir, 'dist'), {})
       try {
         const errors: string[] = []

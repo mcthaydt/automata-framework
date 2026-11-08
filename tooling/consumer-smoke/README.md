@@ -10,7 +10,7 @@ What it runs, in order:
    the same check).
 2. Every package entry imports, in Node or through Vite for the ones that load Svelte or PixiJS, and a sim plugin
    runs.
-3. The content compiler, `automata-ship` and `automata-check-boundaries` run; TypeScript 7.0.2 and 6.0.3 read every
+3. The content compiler, `automata ship` and `automata-check-boundaries` run; TypeScript 7.0.2 and 6.0.3 read every
    type declaration (7.0.2 also under nodenext); no published file uses `eval`.
 4. A small game on `@mcthaydt/automata` is built for Ruken (one copy of Ruken's SDK in the bundle) and for the web.
    The web build is served with the headers Ruken would send and opened in Chromium: it must reach

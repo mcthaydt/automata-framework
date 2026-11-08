@@ -174,7 +174,7 @@ describe('prepareBuild', () => {
       expect(existsSync(join(dir, 'ruken.toml'))).toBe(false)
     })
 
-    it('prepares a private build (the dev host, Ruken’s local stack) that contains @pixi/3d', () => {
+    it('prepares a private build (Ruken’s local stack) that contains @pixi/3d', () => {
       const dir = with3d()
       expect(Effect.runSync(prepare({ distDir: dir, config, audience: 'private' })).manifestPath).toBe(
         join(dir, 'ruken.toml'),
