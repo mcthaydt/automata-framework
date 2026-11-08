@@ -4,9 +4,9 @@
 -->
 <script lang="ts">
 import FieldEditor from '../../shared/kit/fields/FieldEditor.svelte'
-import type { LevelInspector } from '../../shared/level-2d/documents/inspector-model'
-import type { EditHistory } from '../../shared/level-2d/model/edit-history'
-import { commitField } from '../../shared/level-2d/model/field-commit'
+import { commitField } from '../../shared/level-2d/editor/field-commit'
+import type { LevelInspector } from '../../shared/level-2d/editor/inspector-model'
+import type { EditHistory } from '../../shared/level-2d/editor/level-editor-api'
 
 interface Props {
   inspector: LevelInspector

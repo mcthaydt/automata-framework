@@ -69,48 +69,32 @@ function penTap(x: number, y: number): void {
     )
 }
 
-/** A Pencil hovering a point of the plan: the world point the status line then names, and the zoom. */
-async function probe(x: number, y: number): Promise<{ wx: number; wz: number; perMetre: number }> {
-  const box = plan().getBoundingClientRect()
-  plan().dispatchEvent(
-    new PointerEvent('pointermove', {
-      bubbles: true,
-      pointerId: 2,
-      pointerType: 'pen',
-      isPrimary: true,
-      clientX: box.left + x,
-      clientY: box.top + y,
-    }),
-  )
-  await arrived()
-  const text = document.querySelector('[data-widget="status-line"]')?.textContent ?? ''
-  const match = /x (-?[\d.]+) m · z (-?[\d.]+) m · (\d+) px per metre/.exec(text.replace('−', '-'))
-  if (match === null) throw new Error(`no position in the status line: ${text}`)
-  return { wx: Number(match[1]), wz: Number(match[2]), perMetre: Number(match[3]) }
+/** The plan's metres in pixels, read off its rulers: each tick is a labelled metre line, in pixels from the plan's edge. */
+function rulerScale(axis: 'top' | 'left'): { readonly origin: number; readonly perMetre: number } {
+  const ticks = [...plan().querySelectorAll<HTMLElement>(`.ruler.${axis} span`)].map((tick) => ({
+    metre: Number(tick.textContent?.replace('\u2212', '-')),
+    at: Number.parseFloat(axis === 'top' ? tick.style.left : tick.style.top),
+  }))
+  const [a, b] = ticks
+  if (a === undefined || b === undefined) throw new Error(`no ${axis} ruler`)
+  const perMetre = (b.at - a.at) / (b.metre - a.metre)
+  return { origin: a.at - a.metre * perMetre, perMetre }
 }
 
 /**
- * Three corners above the framed level (the fit leaves a band there), clear of the toolbar and the actions. The first
- * sits exactly on a whole metre: a tap snaps to the grid, and the closing tap must land within a Pencil's reach of the
- * corner that snapping made, which a point a half cell away does not at the highest zoom a size gets. The others are
- * far enough apart to stay three corners at the lowest zoom (about 59 px per metre on an iPad mini held wide), and the third
- * goes up, away from the level, so the room never overlaps it.
+ * Three corners above the framed level (the fit leaves a band there), clear of the toolbar and the actions. They sit on
+ * grid points, so the snap leaves each where it was tapped and a tap on the first one reaches it at any zoom.
  */
-async function margin(): Promise<readonly (readonly [number, number])[]> {
+function margin(): readonly (readonly [number, number])[] {
   const { width, height } = plan().getBoundingClientRect()
-  const x = Math.round(width * 0.3)
-  const y = Math.max(84, Math.round(height * 0.12))
-  const here = await probe(x, y)
-  const there = await probe(x + 20, y + 20)
-  const sx = Math.sign(there.wx - here.wx) || 1
-  const sz = Math.sign(there.wz - here.wz) || 1
-  const fx = Math.round(x + (Math.round(here.wx) - here.wx) * here.perMetre * sx)
-  const fy = Math.round(y + (Math.round(here.wz) - here.wz) * here.perMetre * sz)
-  return [
-    [fx, fy],
-    [fx + 72, fy],
-    [fx + 72, fy - 40],
-  ]
+  const x = rulerScale('top')
+  const z = rulerScale('left')
+  // The half-metre grid point nearest 30% across, and the first one at or below the toolbar's clearance.
+  const left = Math.round(((width * 0.3 - x.origin) / x.perMetre) * 2) / 2
+  const top = Math.ceil(((Math.max(84, height * 0.12) - z.origin) / z.perMetre) * 2) / 2
+  const at = (mx: number, mz: number) =>
+    [Math.round(x.origin + mx * x.perMetre), Math.round(z.origin + mz * z.perMetre)] as const
+  return [at(left, top), at(left + 1, top), at(left + 1, top + 0.5)]
 }
 
 const statusTop = (): number =>
@@ -137,7 +121,7 @@ describe.each(SIZES)('the Plan tools at $name ($width x $height)', (size) => {
       'Merge',
     ])
     expect(checkLayout(conditions, radios)).toEqual([])
-    const [first, second] = await margin()
+    const [first, second] = margin()
     penTap(...(first as [number, number]))
     penTap(...(second as [number, number]))
     await arrived()
@@ -153,7 +137,7 @@ describe.each(SIZES)('the Plan tools at $name ($width x $height)', (size) => {
       await openDepot(size)
       railButton('Sector').click()
       await arrived()
-      const corners = await margin()
+      const corners = margin()
       for (const [x, y] of corners) penTap(x, y)
       const [x0, y0] = corners[0] as [number, number]
       penTap(x0, y0)
