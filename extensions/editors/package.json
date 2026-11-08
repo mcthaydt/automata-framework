@@ -28,6 +28,9 @@
     "@automata/audio-synth": "workspace:*",
     "@automata/editor": "workspace:*",
     "@automata/feel": "workspace:*",
+    "@automata/nav": "workspace:*",
+    "@automata/puzzle": "workspace:*",
+    "@automata/systems": "workspace:*",
     "svelte": "5.57.1",
     "zod": "4.6.6"
   },

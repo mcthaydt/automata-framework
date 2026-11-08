@@ -412,6 +412,15 @@ importers:
       '@automata/feel':
         specifier: workspace:*
         version: link:../feel
+      '@automata/nav':
+        specifier: workspace:*
+        version: link:../nav
+      '@automata/puzzle':
+        specifier: workspace:*
+        version: link:../puzzle
+      '@automata/systems':
+        specifier: workspace:*
+        version: link:../systems
       svelte:
         specifier: 5.57.1
         version: 5.57.1
