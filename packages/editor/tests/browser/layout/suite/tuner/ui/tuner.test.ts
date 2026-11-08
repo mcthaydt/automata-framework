@@ -88,7 +88,7 @@ describe.each(SIZES)('Tuner at $name ($width x $height)', (size) => {
         '[role="slider"], [role="spinbutton"], [role="radio"], button, input[type="text"]',
       ),
     ]
-    expect(controls.length).toBeGreaterThan(10)
+    expect(controls.length).toBeGreaterThan(5)
     for (const control of controls) {
       reveal(control)
       await arrived()

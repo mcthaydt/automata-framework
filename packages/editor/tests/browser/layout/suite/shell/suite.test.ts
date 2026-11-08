@@ -20,7 +20,7 @@ import { editorTargets } from '#src/testing/kit/targets.ts'
 const targets = editorTargets()
 
 // The suite with the production CSS in a real browser at the editors' window sizes:
-// region boxes, the rail (the page's two editors and Review), the 64 px tab bar, 44 px targets, no page scroll and no remount on rotation. jsdom
+// region boxes, the rail (the page's two editors), the 64 px tab bar, 44 px targets, no page scroll and no remount on rotation. jsdom
 // has no layout, so only this file checks room. Started the way `main.ts` starts it, with the real window.
 
 let started: SuiteHandle | undefined
@@ -59,11 +59,11 @@ const home = (): HTMLElement => {
 }
 
 describe.each(SIZES)('Suite at $name ($width x $height)', (size) => {
-  test('the shell mode, a tab per editor and Review of at least 44 px, Home reachable, nothing clipped, no page scroll', async () => {
+  test('the shell mode, a tab per editor of at least 44 px, Home reachable, nothing clipped, no page scroll', async () => {
     const conditions = await open(size)
     expect(document.querySelector('[data-editor-shell]')).toHaveAttribute('data-mode', size.mode)
     const all = tabs()
-    expect(all.map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels', 'Review'])
+    expect(all.map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels'])
     for (const tab of all) {
       const box = tab.getBoundingClientRect()
       expect(box.width).toBeGreaterThanOrEqual(targets.hit)
@@ -131,16 +131,16 @@ describe('Suite rotation', () => {
   test('1194 x 834 to 834 x 1194 keeps Home and the chosen entry and remounts nothing', async () => {
     const [landscape, portrait] = [SIZES[0], SIZES[4]] as [EditorSize, EditorSize]
     await open(landscape)
-    const review = tabs().find((tab) => tab.textContent?.trim() === 'Review')
-    review?.click()
+    const tuner = tabs().find((tab) => tab.textContent?.trim() === 'Tuner')
+    tuner?.click()
+    await expect.poll(() => document.querySelector('[data-testid="tuner-rows"]')).not.toBeNull()
     await settleLayout()
     const shell = document.querySelector('[data-editor-shell]')
-    const page1 = document.querySelector('[data-testid="review-desk"]')
-    expect(page1).not.toBeNull()
+    const page1 = document.querySelector('[data-testid="tuner-rows"]')
     await page.viewport(portrait.width, portrait.height)
     await settleLayout()
     expect(document.querySelector('[data-editor-shell]')).toBe(shell)
-    expect(document.querySelector('[data-testid="review-desk"]')).toBe(page1)
-    expect(document.querySelector('[aria-selected="true"]')?.textContent?.trim()).toBe('Review')
+    expect(document.querySelector('[data-testid="tuner-rows"]')).toBe(page1)
+    expect(document.querySelector('[aria-selected="true"]')?.textContent?.trim()).toBe('Tuner')
   })
 })
