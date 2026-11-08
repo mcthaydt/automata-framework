@@ -1,7 +1,7 @@
 // Draws a level's world (features/world/build.ts) with `@pixi/3d`: one mesh per piece under a node, a swatch's colour on
 // each, and the camera's occluder rule on the walls and the ceilings. It lives in `app/` because it reads the world's
 // pieces and the renderer's occluders; the builder itself knows no renderer. Presentation only: the sim never reads it.
-import { Box, Container3D, Geometry3D, Mesh3D, PhongMaterial, Vector3 } from '@pixi/3d'
+import { Box, Container3D, FlatMaterial, Geometry3D, Mesh3D, PhongMaterial, Vector3 } from '@pixi/3d'
 import type { Occluders } from '../features/camera/occluders/occluders.ts'
 import type { Look } from '../features/look/look.schema.ts'
 import { RampMaterial } from '../features/look/ramp-light-material.ts'
@@ -9,6 +9,7 @@ import type { WorldPiece } from '../features/world/build.ts'
 import type { WorldLamp } from '../features/world/place-props.ts'
 import { tileName } from '../features/world/surface.ts'
 import type { LampState } from '../shared/level/piece-states.ts'
+import type { SceneLight } from '../shared/render/light/scene-light.ts'
 import type { Lamp } from '../shared/render/light/scene-lighting.schema.ts'
 
 export interface WorldScene {
@@ -22,6 +23,13 @@ export interface WorldScene {
   readonly fallback?: number | undefined
   /** With a look, every piece takes the stepped-light material (the look's `steps`) in place of plain Phong. */
   readonly look?: Look | undefined
+  /**
+   * The room's light (`createPixi3dRenderer`'s `scene` hook gives it when `lighting` is set). A piece that never moves
+   * (not a door, a prop or a swaying leaf) is drawn flat and has the light baked into its vertex colours, so a lamp's
+   * level rebakes only what it reaches; the rest keeps its own material. It takes the place of `look`'s material on
+   * the baked pieces.
+   */
+  readonly light?: SceneLight | undefined
 }
 
 export interface WorldView {
@@ -60,19 +68,25 @@ function meshOf(piece: WorldPiece, colour: number, look: Look | undefined): Mesh
   return new Mesh3D({ geometry, material })
 }
 
+/** A piece a state can move (a door, a prop, a leaf in the wind) cannot hold baked light. */
+const stays = (piece: WorldPiece): boolean =>
+  piece.door === undefined && piece.prop === undefined && piece.sway === undefined
+
 /** Draws `pieces` into `scene.parent`. */
 export function drawWorld(scene: WorldScene, pieces: readonly WorldPiece[]): WorldView {
   const node = new Container3D()
   scene.parent.addChild(node)
   const meshes = new Map<string, Mesh3D>()
   for (const piece of pieces) {
-    const mesh = meshOf(
-      piece,
-      scene.colourOf(tileName(piece.surface)) ?? scene.fallback ?? MISSING,
-      scene.look,
-    )
+    const colour = scene.colourOf(tileName(piece.surface)) ?? scene.fallback ?? MISSING
+    const mesh = meshOf(piece, colour, scene.look)
     node.addChild(mesh)
     meshes.set(piece.id, mesh)
+    if (scene.light !== undefined && stays(piece)) {
+      // Baked after it is placed under the node, so the light sees where it stands.
+      mesh.material = new FlatMaterial({ baseColor: colour })
+      scene.light.bake(mesh)
+    }
     if (scene.occluders === undefined) continue
     if (piece.part === 'ceiling') scene.occluders.ceiling(mesh)
     else if (piece.part === 'wall' && piece.line !== undefined) {

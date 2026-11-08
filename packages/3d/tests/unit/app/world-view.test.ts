@@ -1,10 +1,12 @@
 // The world on `@pixi/3d`: a mesh for each piece, the swatch's colour on it, and the occluder rule on walls and ceilings.
-import { Container3D, type Mesh3D, type PhongMaterial } from '@pixi/3d'
+import { Container3D, type Mesh3D, PhongMaterial } from '@pixi/3d'
 import { describe, expect, it } from 'vitest'
 import { drawWorld, sceneLamps } from '#src/app/world-view.ts'
 import { createOccluders } from '#src/features/camera/occluders/occluders.ts'
 import { buildWorld } from '#src/features/world/build.ts'
 import type { AfSector2 } from '#src/shared/level/af-sector-2.schema.ts'
+import { createSceneLight } from '#src/shared/render/light/scene-light.ts'
+import { sceneLightingSchema } from '#src/shared/render/light/scene-lighting.schema.ts'
 
 const LIB = { swatches: { oakFloor: {}, plasterWarm: {}, trimWhite: {} } }
 const level: AfSector2 = {
@@ -43,6 +45,27 @@ describe('drawWorld', () => {
       pieces,
     )
     expect(((view.mesh('a:floor') as Mesh3D).material as PhongMaterial).baseColor).toBe(0x123456)
+  })
+  it('bakes a light into the pieces that stay put, and leaves a door a lit mesh that can swing', () => {
+    const withDoor = buildWorld(
+      { ...level, sectors: level.sectors.map((s) => ({ ...s, door: {} })) },
+      LIB,
+    ).pieces
+    const light = createSceneLight(
+      sceneLightingSchema.parse({
+        ambient: 0.2,
+        lamps: [{ id: 'l', x: 2, y: 2, z: 2, color: 0xffffff, range: 6 }],
+      }),
+    )
+    const view = drawWorld({ parent: new Container3D(), colourOf: () => 0x808080, light }, withDoor)
+    const floor = view.mesh('a:floor') as Mesh3D
+    expect(floor.material.vertexColors).toBe(true)
+    expect(floor.material).not.toBeInstanceOf(PhongMaterial)
+    const door = withDoor.find((p) => p.door !== undefined)
+    expect(door).toBeDefined()
+    const hung = view.mesh(door?.id as string) as Mesh3D
+    expect(hung.material.vertexColors).toBe(false)
+    expect(hung.material).toBeInstanceOf(PhongMaterial)
   })
   it('gives each mesh the geometry of its piece', () => {
     const view = drawWorld({ parent: new Container3D(), colourOf: () => 0 }, pieces)

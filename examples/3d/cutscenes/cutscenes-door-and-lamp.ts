@@ -2,8 +2,8 @@
 //
 // Shows: a cutscene as data (`@automata/cutscenes`): one script of keyed tracks (the camera, a lamp's level, a door's
 //   opening) and a director that answers "what does the scene look like at t seconds?". The sim only counts ticks;
-//   the view asks the director each step and moves the camera, turns the door's meshes (`updatePieces`) and scales
-//   the room's light by the lamp's level (a baked room would hand the level to the scene light instead).
+//   the view asks the director each step and moves the camera, turns the door's meshes (`updatePieces`) and hands the
+//   lamp's level to the scene light (`light.setLevels`), which rebakes only the walls and the floor the lamp reaches.
 // Controls: none
 // Packages: @automata/framework, @automata/3d, @automata/cutscenes
 // Difficulty: ★★★☆
@@ -16,6 +16,7 @@ import {
   drawWorld,
   render3dExtension,
   sceneLamps,
+  sceneLightingSchema,
   swatchColour,
   targetSize,
   updatePieces,
@@ -32,6 +33,12 @@ const base = BASE_SCENES['base-interior']
 const level = { ...base, sectors: base.sectors.map((s) => (s.id === 'doorway' ? { ...s, door: {} } : s)) }
 const world = buildWorld(level, baseLibrary)
 const LAMP = 'prop0.light0'
+
+// The room's light is the world's own lamps; the pendant starts dim because the script's first key says so.
+const lighting = sceneLightingSchema.parse({
+  ambient: 0.4,
+  lamps: sceneLamps(world.lamps).map((lamp) => ({ ...lamp, strength: 3 })),
+})
 
 // --- script ---
 // Seconds. A scene is rows on tracks; a key with no `ease` moves smoothly. The lens (24 mm) is the script's.
@@ -64,10 +71,16 @@ export default defineGame({
     createPixi3dRenderer({
       ...options,
       look: DEFAULT_LOOK,
+      lighting,
       views: {},
-      scene: (view, stage, occluders) => {
+      scene: (view, stage, occluders, light) => {
         const colourOf = (name: string) => swatchColour(baseLibrary, name)
-        const drawn = drawWorld({ parent: view.root, occluders, colourOf, look: DEFAULT_LOOK }, world.pieces)
+        const drawn = drawWorld(
+          { parent: view.root, occluders, colourOf, look: DEFAULT_LOOK, light },
+          world.pieces,
+        )
+        // The door swings, so it keeps a plain lit mesh under the room's ambient light.
+        view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c, intensity: 0.8 }
         const director = createDirector(script, () => {})
         let shown = noPieceStates()
         return {
@@ -79,11 +92,11 @@ export default defineGame({
             view.camera.lookAt({ x: scene.camera.look[0], y: scene.camera.look[1], z: scene.camera.look[2] })
             view.camera.fov = scene.camera.fov
             const lamp = sceneLamps(world.lamps, true, scene.lamps).find((l) => l.id === LAMP)
-            view.environment = { skyColor: 0xcdd2da, groundColor: 0x3b303c, intensity: lamp?.level ?? 1 }
+            light?.setLevels({ [LAMP]: lamp?.level ?? 1 })
             const { dataset } = stage.app.canvas
             dataset.cutscene = scene.done ? 'done' : 'playing'
             dataset.door = String(scene.doors.doorway ?? 0)
-            dataset.lamp = String(lamp?.level ?? 1)
+            dataset.lamp = String(light?.level(LAMP) ?? 1)
           },
         }
       },
