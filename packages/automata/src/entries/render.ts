@@ -1,5 +1,14 @@
 // The core 2D renderer: cameras, views, draw shapes and filters.
 
+export type { HudBox, HudLabel, HudTextStyle } from '../features/hud-text/hud-label.js'
+export { HUD_TEXT_FLOOR, WORD_TEXT_FLOOR } from '../features/hud-text/hud-size.js'
+export {
+  createHudText,
+  type HudSurface,
+  type HudText,
+  type PageSource,
+} from '../features/hud-text/hud-text.js'
+export type { PageId } from '../features/hud-text/pages.js'
 export {
   type Camera2d,
   type Camera2dOptions,
@@ -43,3 +52,4 @@ export {
   lerpAngle,
   type Pose,
 } from '../features/render/views/view-pose.js'
+export type { HudScale } from '../shared/draw/hud-scale.js'

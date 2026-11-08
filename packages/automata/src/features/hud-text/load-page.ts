@@ -1,4 +1,4 @@
-import { BitmapFont, Cache, Texture, TextureSource } from 'pixi.js'
+import { BitmapFont, Cache, ImageSource, Texture } from 'pixi.js'
 import type { PageId } from './pages.ts'
 
 const loading = new Map<PageId, Promise<string>>()
@@ -21,7 +21,7 @@ async function load(id: PageId): Promise<string> {
   const bitmap = await createImageBitmap(new Blob([bytesOf(ATLAS_PNG_BASE64)], { type: 'image/png' }))
   // The options Pixi's own loader gives a distance-field font. Pixel art makes every new texture nearest, which tears
   // an MSDF edge, so none of them is left to the default.
-  const source = new TextureSource({
+  const source = new ImageSource({
     resource: bitmap,
     scaleMode: 'linear',
     alphaMode: 'premultiply-alpha-on-upload',

@@ -17,6 +17,9 @@ describe('loadPage', () => {
     expect(source.scaleMode).toBe('linear')
     expect(source.alphaMode).toBe('premultiply-alpha-on-upload')
     expect(source.autoGenerateMipmaps).toBe(false)
+    // A source with no image behind it has no size and uploads nothing: the letters would not draw at all.
+    expect(source.pixelWidth).toBeGreaterThan(100)
+    expect(source.pixelHeight).toBeGreaterThan(100)
   })
 
   it('shares one promise per page', async () => {

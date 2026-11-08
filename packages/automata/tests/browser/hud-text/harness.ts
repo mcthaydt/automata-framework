@@ -48,6 +48,7 @@ export async function startRenderer(options: {
     preference: 'webgl',
     logicalWidth: options.logical.width,
     logicalHeight: options.logical.height,
+    barColor: 0x000000,
     postFilters: options.postFilters,
   })(target)
   if (!built.ok) throw new Error('the renderer did not start')
@@ -74,4 +75,54 @@ export function frame(renderer: PixiRenderer): { pixels: Uint8ClampedArray; widt
 export function rgbAt(shot: ReturnType<typeof frame>, dpr: number, x: number, y: number): number[] {
   const at = (Math.round(y * dpr) * shot.width + Math.round(x * dpr)) * 4
   return [shot.pixels[at] ?? -1, shot.pixels[at + 1] ?? -1, shot.pixels[at + 2] ?? -1]
+}
+
+type Shot = ReturnType<typeof frame>
+
+/** The box of pixels with any ink (white on the black field), in device px, or `undefined` for a blank frame. */
+export function inkBox(
+  shot: Shot,
+): { minX: number; maxX: number; minY: number; maxY: number; pixels: number } | undefined {
+  let minX = Number.POSITIVE_INFINITY
+  let minY = Number.POSITIVE_INFINITY
+  let maxX = -1
+  let maxY = -1
+  let pixels = 0
+  for (let y = 0; y < shot.height; y++)
+    for (let x = 0; x < shot.width; x++) {
+      if ((shot.pixels[(y * shot.width + x) * 4] ?? 0) < 26) continue
+      pixels++
+      minX = Math.min(minX, x)
+      maxX = Math.max(maxX, x)
+      minY = Math.min(minY, y)
+      maxY = Math.max(maxY, y)
+    }
+  return pixels === 0 ? undefined : { minX, maxX, minY, maxY, pixels }
+}
+
+/**
+ * How wide the anti-aliased edge of the first stem is, in device px: on the middle row of the ink, the run of pixels
+ * between 10% and 90% white before the stem and after it. A sharp edge is 1 or 2; a texture blown up from a smaller
+ * one is as wide as the blow-up.
+ */
+export function edgeRun(shot: Shot): number {
+  const box = inkBox(shot)
+  // A frame that is all ink is not text (a bar, a mask drawn white): refuse to call its edge sharp.
+  if (!box || box.maxX - box.minX > shot.width / 2) return Number.POSITIVE_INFINITY
+  const y = Math.floor((box.minY + box.maxY) / 2)
+  const coverage = (x: number): number => (shot.pixels[(y * shot.width + x) * 4] ?? 0) / 255
+  let x = box.minX
+  while (x <= box.maxX && coverage(x) < 0.1) x++
+  let rise = 0
+  while (x <= box.maxX && coverage(x) < 0.9) {
+    rise++
+    x++
+  }
+  while (x <= box.maxX && coverage(x) >= 0.9) x++
+  let fall = 0
+  while (x <= box.maxX && coverage(x) >= 0.1) {
+    fall++
+    x++
+  }
+  return Math.max(rise, fall)
 }
