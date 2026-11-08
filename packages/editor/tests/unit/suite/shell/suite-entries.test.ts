@@ -18,9 +18,16 @@ describe('the rail entries', () => {
       tuner,
       levels,
       { id: 'levels-3d', label: 'Levels' },
-      { id: 'writer', label: 'Writer' },
+      { id: 'mystery', label: 'Mystery' },
     ])
     expect(entries.map((entry) => entry.icon)).toEqual(['sliders', 'grid', 'grid', 'list'])
+  })
+
+  it('give each content editor a drawing of its own, so the eye can find one on the rail', () => {
+    const ids = ['feel', 'audio', 'writer', 'sequence', 'schematic']
+    const icons = suiteEntries(ids.map((id) => ({ id, label: id }))).map((entry) => entry.icon)
+    expect(icons).toEqual(['bolt', 'sound', 'speech', 'clapper', 'flow'])
+    expect(new Set([...icons, 'sliders', 'grid', 'person']).size).toBe(icons.length + 3)
   })
 
   describe('on a game that lists its editors', () => {

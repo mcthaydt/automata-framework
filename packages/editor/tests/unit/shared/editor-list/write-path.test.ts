@@ -3,6 +3,8 @@ import type { MemoryCheck } from '#src/features/suite/memory/memory-checks.ts'
 import { createMemoryPorts } from '#src/features/suite/memory/memory-ports.ts'
 import { createWritePath } from '#src/shared/editor-list/write-path.ts'
 import type { UnlistedFile, WorkspaceFile } from '#src/shared/kit/ports/suite-ports.ts'
+import { createMemoryStore } from '#src/shared/kit/storage/memory-store.ts'
+import { type ProjectStore, StorageError } from '#src/shared/kit/storage/project-store.ts'
 
 const TUNING = 'content/tuning.toml'
 const NEVER = 'content/secrets.toml'
@@ -322,5 +324,32 @@ describe('one history per editor (EDS-D19, EDS-k)', () => {
 
     await path.redo('levels-2d')
     expect((await ports.workspace.read(MODE))?.text).toBe('MAX_MOVE_SPEED = 4\n')
+  })
+})
+
+describe('a file the server stops serving while it is open', () => {
+  // `automata editor` re-reads the list: a hand edit that takes a row out makes it answer 403 to the file's reads, and the
+  // page, which still has the old list, finds out only when it asks. That is a refusal to say, not an error to throw.
+  test('a refused read is a refused write with the server’s words, and nothing is written', async () => {
+    const store = createMemoryStore()
+    await store.write(TUNING, 'MAX_MOVE_SPEED = 7\n')
+    let unlisted = false
+    const served: ProjectStore = {
+      ...store,
+      read: async (path) => {
+        if (unlisted && path === TUNING)
+          throw new StorageError('policy', `${TUNING} is not one the editor may read`)
+        return store.read(path)
+      },
+    }
+    const { ports } = await createMemoryPorts({ classify, checks: CHECKS, store: served })
+    const path = createWritePath({ ports })
+    unlisted = true
+    expect(await path.write(TUNING, 'MAX_MOVE_SPEED = 8\n', 'Raise speed')).toEqual({
+      refused: 'policy',
+      why: `${TUNING} is not one the editor may read`,
+    })
+    unlisted = false
+    expect((await ports.workspace.read(TUNING))?.text).toBe('MAX_MOVE_SPEED = 7\n')
   })
 })

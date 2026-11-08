@@ -381,6 +381,23 @@ describe('${options.title}: Wick', () => {
     sim.dispose()
   })
 
+  it('says who bumped, so Feel can squash Wick and show a word over him', async () => {
+    const sim = await createSim({
+      seed: 1,
+      tickHz: TICK_HZ,
+      plugins: [cameraHeadingPlugin, wickPlugin],
+      content: CONTENT,
+    })
+    const wick = spawnWick(sim, ROOM)
+    const bumped: unknown[] = []
+    for (let tick = 0; tick < TICK_HZ * 2; tick++)
+      for (const event of sim.step([{ tick: sim.tick, source: 0, seq: sim.tick, type: Move.id, payload: FORWARD }])
+        .events)
+        if (event.type === Bumped.id) bumped.push(event.payload)
+    expect(bumped).toEqual([{ entity: wick }])
+    sim.dispose()
+  })
+
   it('ends in the same state every time the same moves are played', async () => {
     const moves = [...holding(FORWARD, 20), ...holding(RIGHT, 20), ...holding({ x: -90, y: 60 }, 20)]
     expect((await wickAfter(moves)).hash).toBe((await wickAfter(moves)).hash)

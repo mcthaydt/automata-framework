@@ -8,8 +8,10 @@ import { CutsceneEnded, CutsceneStarted, type StartedPayload } from '../../share
 // those two events, asks the director for the scene at that time each step, and hands the moment to whatever draws the
 // room (`show`). Nothing here changes the game (law 2), so a replay shows the same scene.
 //
-// A game returns this from its renderer's `scene` hook. The hook runs after the follow camera's, so the scene's camera
-// wins while it plays, and the follow camera takes the camera back once the scene ends.
+// A game returns this from its renderer's `scene` hook. The follow camera writes the camera in `draw`, once a frame, so
+// the scene is shown in `draw` too: the hook runs after the follow camera's, so the scene's camera is the one drawn
+// while it plays, and the follow camera takes the camera back once the scene ends. (Shown in `apply`, the camera would
+// be written over before every picture.)
 
 export interface CutsceneStage3dOptions {
   /** The placed scripts by cutscene id. */
@@ -23,9 +25,12 @@ export interface CutsceneStage3dOptions {
 /** The cutscene stage for a 3D room, as the hooks the renderer's `scene` returns. */
 export function cutsceneStage3d(options: CutsceneStage3dOptions): PixiStageHooks {
   const tickHz = options.tickHz ?? 60
+  // The scene that plays, and the tick of the last step: `draw` places the frame between that step and the one before.
   let playing: { readonly start: number; readonly director: Director } | undefined
+  let tick = 0
   return {
     apply(result) {
+      tick = result.tick
       for (const event of result.events) {
         if (event.type === CutsceneStarted.id) {
           const { id, start } = event.payload as StartedPayload
@@ -34,8 +39,11 @@ export function cutsceneStage3d(options: CutsceneStage3dOptions): PixiStageHooks
           playing = script === undefined ? undefined : { start, director: createDirector(script, () => {}) }
         } else if (event.type === CutsceneEnded.id) playing = undefined
       }
+    },
+    draw(frame) {
+      // The picture is `alpha` of the way from the step before to the last one.
       if (playing !== undefined)
-        options.show(playing.director.stateAt(Math.max(0, (result.tick - playing.start) / tickHz)))
+        options.show(playing.director.stateAt(Math.max(0, tick - 1 + frame.alpha - playing.start) / tickHz))
     },
     reset() {
       playing = undefined

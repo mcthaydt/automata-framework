@@ -809,3 +809,18 @@ Rulings (the cost, if wrong, is named in each):
   name. Sequence's `servedWith` waits for `"line":"keeper.farewell"`. Schematic's 3D journey times the guard's crossing.
 - T18: the page that says the editor list cannot be read still names `content/editors.toml` and the key path (it has to
   say which file to fix); `content-editors.ts` and `suite-entries.ts` already said what the code does, so they are unchanged.
+
+### Fixes record, 2026-11-08 (stage 6, stacked on #522)
+
+- C1: `cutscene-stage-3d.ts` shows the scene's camera in `draw` (per frame, after the follow camera) from the step's tick
+  and the frame's alpha; `apply` only keeps the tick. The journey compares the canvas before the scene with a later one
+  (a twentieth of the picture) and waits up to a minute, because a canvas picture takes seconds on a busy machine.
+- H1: `write-path.ts` turns a read the server refuses (`policy`) into a note instead of a thrown error, so a row removed
+  while open no longer reads Saved. `listed-words.ts` says why an editor "can't start here".
+- M1: `Bumped` carries `{ entity }` in the plain 2D game, the story game (whose test is derived by text swaps, so the new
+  bump test spawns a Hero too) and the 3D game; the Feel rows use `at = "subject"`.
+- M3: the `new-game-checks` journey makes a 2D and a 3D game and runs `tsc` (bundler resolution, filtered to the game's own
+  files) and `vitest --configLoader runner` in it. It links the workspace packages by source. The plain 2D game is not gated.
+- M4: `rowName` and the card's "Open" row, five new icons (46 drawings), `Levels2dStatus` shows `fileTitle`, Sequence skips
+  places. Not done: the 2D Characters list of non-character definitions, ids in the 3D Studio.
+- L1 not done (see progress.md). The journeys run against built output, so run `pnpm build` before them.

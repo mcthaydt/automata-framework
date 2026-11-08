@@ -121,7 +121,7 @@ export const move = defineSystem('move', (ctx) => {
       const movedY = hitsWall(level, movedX, nextY, SQUARE_SIZE) ? y : nextY
       // Pressed into a wall: a move was asked for and none of it happened. Said once, not every tick it is held.
       const pressed = (payload.x !== 0 || payload.y !== 0) && movedX === x && movedY === y
-      if (pressed && !blocked) ctx.emit(Bumped, {})
+      if (pressed && !blocked) ctx.emit(Bumped, { entity: square.sid })
       square.set(Square, { x: movedX, y: movedY, blocked: pressed })
     }
 })
@@ -258,10 +258,16 @@ export const game = defineGame({
         'sim.spawn([[Square, from]])',
         'sim.spawn([[Square, from], [Hero, { frozen: false }]])',
       )
+      text = swap(
+        text,
+        'sim.spawn([[Square, ON_THE_START]])\n    const press',
+        'sim.spawn([[Square, ON_THE_START], [Hero, { frozen: false }]])\n    const press',
+      )
+      // The bump test names the square it spawned; only a hero's bump is the player's to see.
       return swap(
         text,
-        'sim.spawn([[Square, ON_THE_START]])',
-        'sim.spawn([[Square, ON_THE_START], [Hero, { frozen: false }]])',
+        'const sid = sim.spawn([[Square, ON_THE_START]])',
+        'const sid = sim.spawn([[Square, ON_THE_START], [Hero, { frozen: false }]])',
       )
     },
   },

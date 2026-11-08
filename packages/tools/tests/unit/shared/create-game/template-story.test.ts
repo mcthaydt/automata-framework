@@ -83,6 +83,13 @@ describe('a new 2D game with the story', () => {
     game = await make(true)
   })
 
+  it('says who bumped, as the plain game does, so Feel can squash the hero and show a word over it', () => {
+    expect(game.read('src/features/square/bumped.event.ts')).toContain('entity: z.number().int()')
+    expect(game.read('src/features/square/move.system.ts')).toContain(
+      'ctx.emit(Bumped, { entity: square.sid })',
+    )
+  })
+
   it('keeps the story in its own feature, beside the square and the level', () => {
     expect(game.files.filter((file) => file.startsWith('src/features/story/'))).toEqual([
       'src/features/story/story-content.ts',

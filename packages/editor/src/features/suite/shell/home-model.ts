@@ -20,6 +20,11 @@ export interface EditorCard {
   readonly files: readonly WorkspaceFile[]
   /** The rows Home lists: the files, or fewer when the editor groups them (`SuiteEditor.homeFiles`). */
   readonly rows: readonly WorkspaceFile[]
+  /**
+   * The card is a further view of an editor that has a card already (Characters is a view of the level's file in a 2D
+   * game): its files are that card's, so it lists none and just opens.
+   */
+  readonly viewOnly: boolean
 }
 
 export type HomeState =
@@ -72,7 +77,9 @@ export function homeOf(
         entry: entry.id,
         installed: true,
         files: own,
-        rows: (installed.homeFiles ?? ((all) => all))(own),
+        // The first entry of an editor is the editor itself, and it lists the files; the others are views of them.
+        rows: entry.id === editor ? (installed.homeFiles ?? ((all) => all))(own) : [],
+        viewOnly: entry.id !== editor,
       },
     ]
   })
@@ -86,6 +93,7 @@ export function homeOf(
         installed: false,
         files: opened(editor),
         rows: opened(editor),
+        viewOnly: false,
       }),
     ),
   )
@@ -101,6 +109,22 @@ export function fileTitle(path: string): string {
   const base = path.slice(path.lastIndexOf('/') + 1)
   const words = base.split('.')[0]?.replace(/[-_]+/g, ' ').trim() ?? ''
   return words === '' ? base : words.charAt(0).toUpperCase() + words.slice(1)
+}
+
+/**
+ * What a card calls one of its rows. The file in words; the one file of an editor in this build that only repeats the card's
+ * name is "Open", so "Feel" never sits under "Feel"; two files named alike (the lines and the conversation of one character) say which
+ * folder each is from.
+ */
+export function rowName(card: Pick<EditorCard, 'label' | 'rows' | 'installed'>, file: WorkspaceFile): string {
+  const title = fileTitle(file.path)
+  if (card.installed && card.rows.length === 1 && title.toLowerCase() === card.label.toLowerCase())
+    return 'Open'
+  const alike = card.rows.filter((other) => fileTitle(other.path) === title)
+  if (alike.length < 2) return title
+  const parts = file.path.split('/')
+  const folder = parts[parts.length - 2]
+  return folder === undefined ? title : `${title} (${folder.replace(/[-_]+/g, ' ')})`
 }
 
 /** A problem's key path as the list reads it: `file[0].gates`. */

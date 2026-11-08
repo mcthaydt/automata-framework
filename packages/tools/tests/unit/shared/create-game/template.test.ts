@@ -200,7 +200,12 @@ describe('the new game plays what Feel and Audio make', () => {
   it('has something to feel and hear at once: the square bumping into a wall', () => {
     expect(read('src/features/square/bumped.event.ts')).toContain("defineEvent('square.bumped'")
     expect(read('src/features/square/move.system.ts')).toContain('ctx.emit(Bumped')
+    // Feel finds the character to squash and the word's place from who the event says it is about.
+    expect(read('src/features/square/bumped.event.ts')).toContain('entity: z.number().int()')
+    expect(read('src/features/square/move.system.ts')).toContain('ctx.emit(Bumped, { entity: square.sid })')
     expect(read('content/feel/feel.toml')).toContain('on = "square.bumped"')
+    // The word shows over the one that bumped, which is what the event's `entity` is for.
+    expect(read('content/feel/feel.toml')).toContain('at = "subject"')
     expect(read('content/audio/audio.toml')).toContain('on = "square.bumped"')
   })
 

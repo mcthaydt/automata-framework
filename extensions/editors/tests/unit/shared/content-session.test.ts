@@ -70,13 +70,14 @@ describe('starting a file', () => {
     expect((await ports.workspace.read(EDITOR_LIST_PATH))?.mtime).toBe(before?.mtime)
   })
 
-  it('says the list leaves the editor out, and how to fix it, when the ports cannot add it', async () => {
+  it('says the list leaves the editor out, and who can add it, when the ports cannot', async () => {
+    // Start is what was just pressed, so the words never send the person back to it.
     const session = await feel(await game({ withList: false }))
-    expect(await session.start()).toEqual({
-      ok: false,
-      message: "This game's list of editors doesn't include Feel yet. Press Start to add it.",
-    })
-    expect(session.message).toContain('Press Start to add it.')
+    const words =
+      "Feel can't start here. This game's list of editors doesn't include Feel, and this page can't add it. Ask whoever made the game to add it."
+    expect(await session.start()).toEqual({ ok: false, message: words })
+    expect(session.message).toBe(words)
+    expect(session.message).not.toContain('Press Start')
   })
 
   it("says the editor can't save when a listed file loses its row", async () => {

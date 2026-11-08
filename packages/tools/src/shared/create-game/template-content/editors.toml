@@ -10,9 +10,8 @@ exports = "content"
 gates = []
 checks = ["content"]
 
-# The content editors the game plays: what the player feels (Feel) and the sounds and the music's order (Audio). A file
-# that is not there yet is started from its editor's page. Writer and Sequence are added to this list where the game has
-# the story (a keeper who talks, a cutscene), because that is what they make.
+# Feel: what the player feels when something happens (a flash, a shake, a word over the character). A file that is not
+# there yet is started from its editor's page.
 [[file]]
 glob = "content/feel/*.toml"
 editor = "feel"
@@ -20,6 +19,7 @@ modes = ["edit"]
 gates = []
 checks = []
 
+# Audio: the sounds the game plays and the order of its music.
 [[file]]
 glob = "content/audio/*.toml"
 editor = "audio"
@@ -35,8 +35,8 @@ modes = ["edit"]
 gates = []
 checks = []
 
-# Characters that think and the places they walk between, for Schematic. A game that plays them has the files; the rows
-# wait for them here.
+# Schematic: how characters think (systems), the places they walk between (nav) and the puzzles they stand in (puzzles).
+# This game has none yet; the rows are here so Schematic can save its first one.
 [[file]]
 glob = "content/systems/*.toml"
 editor = "schematic"
@@ -58,7 +58,7 @@ modes = ["edit"]
 gates = []
 checks = ["content"]
 
-# The square's speed and the game's default controls, which the Tuner edits.
+# Tuner: how fast the square moves, and the game's default controls.
 [[file]]
 glob = "content/tuning.toml"
 editor = "tuner"

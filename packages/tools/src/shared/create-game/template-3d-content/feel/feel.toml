@@ -4,4 +4,4 @@
 [[entry]]
 on = "wick.bumped"
 camera = [{ shake = 0.8 }]
-word = [{ key = "wick.bumped.word", words = "Bump!" }]
+word = [{ key = "wick.bumped.word", words = "Bump!", at = "subject" }]

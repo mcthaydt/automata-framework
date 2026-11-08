@@ -98,6 +98,8 @@ export async function readGameNames(
         if (layer.kind !== 'entities') continue
         for (const item of layer.items) {
           const name = item.fields.name
+          // A named region (a Hall, a Yard) is a place; only a point is someone to ask to speak or walk.
+          if (item.w !== undefined || item.h !== undefined) continue
           if (typeof name === 'string' && name !== '') people.push({ name, x: item.x / 16, z: item.y / 16 })
         }
       }

@@ -31,9 +31,10 @@ import { z } from 'zod'
 
 /**
  * Wick met a wall or a prop he was pushed into. Feel and Audio answer events like this one: open \`content/feel/feel.toml\`
- * or \`content/audio/audio.toml\` in the editors and change what the player feels and hears.
+ * or \`content/audio/audio.toml\` in the editors and change what the player feels and hears. \`entity\` is who bumped:
+ * Feel squashes that character and shows a word over it.
  */
-export const Bumped = defineEvent('wick.bumped', z.object({}))
+export const Bumped = defineEvent('wick.bumped', z.object({ entity: z.number().int() }))
 `,
   },
   {
@@ -99,7 +100,7 @@ export const walk = defineSystem('walk', (ctx) => {
     const walking = x !== here.x || z !== here.z
     // Pressed into something: a move was asked for and none of it happened. Said once, not every tick it is held.
     const blocked = pushing && !walking
-    if (blocked && !here.blocked) ctx.emit(Bumped, {})
+    if (blocked && !here.blocked) ctx.emit(Bumped, { entity: wick.sid })
     wick.set(Wick, { x, z, yaw: pushing ? atan2(dx, dz) : here.yaw, walking, blocked })
   }
 })
@@ -125,9 +126,9 @@ export const wickPlugin: PluginDef = definePlugin({
   defs: [Wick, Move, Bumped, walk],
 })
 
-/** Puts Wick on the room's start point, facing away from the camera, with the camera on him. */
-export function spawnWick(sim: Sim, room: Room): void {
-  sim.spawn([
+/** Puts Wick on the room's start point, facing away from the camera, with the camera on him. Gives his sid. */
+export function spawnWick(sim: Sim, room: Room): number {
+  return sim.spawn([
     [Wick, { x: room.start.x, y: 0, z: room.start.z, yaw: 0, walking: false, blocked: false }],
     [CameraHeading, enterView(START, FOLLOW, { x: 0, y: 0 })],
   ])

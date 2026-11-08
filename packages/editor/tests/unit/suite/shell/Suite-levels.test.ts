@@ -91,7 +91,7 @@ describe('Levels 2D in the suite', () => {
     expect(await screen.findByRole('listbox', { name: 'Layers' })).toBeInTheDocument()
     expect(screen.getByTestId('level-canvas')).toHaveAttribute('data-level', 'level-1')
     expect(screen.getAllByTestId('suite-shell')).toHaveLength(1)
-    expect(screen.getByText('content/levels/world.af2d.json')).toBeInTheDocument()
+    expect(screen.getByText('World')).toBeInTheDocument()
   })
 
   it('EDS-k: a switch to the Tuner and back keeps the selection, and Undo undoes the level’s own step', async () => {

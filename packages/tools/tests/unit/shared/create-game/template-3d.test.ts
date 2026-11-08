@@ -125,7 +125,12 @@ describe('the new 3D game’s files', () => {
   it('has something to feel and hear at once: Wick bumping into a wall', () => {
     expect(read('src/features/wick/bumped.event.ts')).toContain("defineEvent('wick.bumped'")
     expect(read('src/features/wick/walk.system.ts')).toContain('ctx.emit(Bumped')
+    // Feel finds the character to squash and the word's place from who the event says it is about.
+    expect(read('src/features/wick/bumped.event.ts')).toContain('entity: z.number().int()')
+    expect(read('src/features/wick/walk.system.ts')).toContain('ctx.emit(Bumped, { entity: wick.sid })')
     expect(read('content/feel/feel.toml')).toContain('on = "wick.bumped"')
+    // The word shows over the one that bumped, which is what the event's `entity` is for.
+    expect(read('content/feel/feel.toml')).toContain('at = "subject"')
     expect(read('content/audio/audio.toml')).toContain('on = "wick.bumped"')
     for (const row of ['feel', 'audio'])
       expect(editorRows(row)?.match(/glob = "([^"]+)"/g)?.length, row).toBeGreaterThan(0)

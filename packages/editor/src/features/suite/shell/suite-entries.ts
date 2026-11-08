@@ -22,6 +22,11 @@ function iconFor(id: string): IconName {
   if (id === 'tuner') return 'sliders'
   if (id === 'studio') return 'person'
   if (id.startsWith('levels')) return 'grid'
+  if (id === 'feel') return 'bolt'
+  if (id === 'audio') return 'sound'
+  if (id === 'writer') return 'speech'
+  if (id === 'sequence') return 'clapper'
+  if (id === 'schematic') return 'flow'
   return 'list'
 }
 

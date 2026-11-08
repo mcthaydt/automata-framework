@@ -4,6 +4,7 @@ import type { Page } from '@playwright/test'
 import {
   brightestSince,
   expectOnRail,
+  fractionChanged,
   framesMeasured,
   gamePixels,
   openEditor,
@@ -329,9 +330,23 @@ test('Sequence: the cutscene shows the caption it was pointed at', async ({ page
     const play = await playFromEditors(page, context, sideways)
     await walkToTheKeeper(play, KEEPER_SAYS)
     await play.getByRole('button', { name: /Show me around/ }).click()
+    // The picture before the scene's camera moves: taken first, so a slow machine that reaches the last caption late
+    // still compares against Wick's own view.
+    const early = await gamePixels(play)
     await play.getByRole('button', { name: 'Next' }).click()
     await expect(play.getByText('Safe travels.').last()).toBeVisible({ timeout: 30_000 })
     await expect(play.getByText('The keeper shows you around the room.')).toHaveCount(0)
+    // The scene's camera moves from behind Wick to the sides of the room. The guard walking changes about 0.5% of the
+    // picture and a moved camera about 15% of it, so a twentieth differing means the camera moved (it stayed behind Wick
+    // for a whole scene once).
+    await expect
+      .poll(async () => fractionChanged(early, await gamePixels(play)), {
+        message: 'the cutscene moves the camera',
+        // A picture of the canvas takes seconds on a busy machine (the journeys run two at once); one slow picture must not be the timeout.
+        timeout: 60_000,
+        intervals: [250],
+      })
+      .toBeGreaterThan(0.05)
     await play.close()
   } finally {
     await editor.stop()
@@ -381,7 +396,7 @@ test('Schematic: the guard walks at the speed set there', async ({ page, context
             }
             return false
           },
-          { message: 'the guard walks across the room', timeout: 60_000, intervals: [50] },
+          { message: 'the guard walks across the room', timeout: 120_000, intervals: [50] },
         )
         .toBe(true)
       return crossed

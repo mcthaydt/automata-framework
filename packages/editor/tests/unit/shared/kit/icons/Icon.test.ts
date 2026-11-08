@@ -47,10 +47,15 @@ const NAMES = [
   'furniture',
   'lamp',
   'person',
+  'bolt',
+  'sound',
+  'speech',
+  'clapper',
+  'flow',
 ] as const satisfies readonly IconName[]
 
 describe('Icon', () => {
-  it('has exactly the 41 names of the set', () => {
+  it('has exactly the 46 names of the set', () => {
     expect([...ICON_NAMES].sort()).toEqual([...NAMES].sort())
   })
 

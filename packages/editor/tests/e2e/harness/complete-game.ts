@@ -129,6 +129,18 @@ export async function gamePixels(play: Page): Promise<Pixels> {
   return readPng(await play.locator('#game canvas').screenshot())
 }
 
+/** How much of the picture differs between two pictures of the same size, 0 to 1: a pixel counts when any colour moves by more than 8. */
+export function fractionChanged(before: Pixels, after: Pixels): number {
+  let changed = 0
+  for (let y = 0; y < before.height; y += 2)
+    for (let x = 0; x < before.width; x += 2) {
+      const [r, g, b] = before.at(x, y)
+      const [r2, g2, b2] = after.at(x, y)
+      if (Math.abs(r - r2) > 8 || Math.abs(g - g2) > 8 || Math.abs(b - b2) > 8) changed += 1
+    }
+  return changed / (Math.ceil(before.height / 2) * Math.ceil(before.width / 2))
+}
+
 /**
  * Before the game's page loads, records the pitch of every tone it starts (an oscillator's frequency set at a time):
  * what the player hears, without listening. Read with `pitchesPlayed`.

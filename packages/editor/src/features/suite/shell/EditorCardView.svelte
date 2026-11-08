@@ -5,7 +5,7 @@
 <script lang="ts">
 import type { WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
 import Button from '../../../shared/kit/widgets/Button.svelte'
-import { type EditorCard, fileTitle } from './home-model'
+import { type EditorCard, rowName } from './home-model'
 
 interface Props {
   card: EditorCard
@@ -28,7 +28,13 @@ const headingId = $derived(`card-${card.entry ?? card.editor}`)
   {#if !card.installed}
     <p class="note">{card.label} isn't in this build. Its files open read only.</p>
   {/if}
-  {#if card.rows.length === 0}
+  {#if card.viewOnly}
+    <ul>
+      <li>
+        <button type="button" onclick={() => onopen(card)}><span class="name">Open</span></button>
+      </li>
+    </ul>
+  {:else if card.rows.length === 0}
     <p class="note">{card.installed ? 'Nothing made yet. Open it to start.' : 'No files yet.'}</p>
     {#if card.installed}
       <Button onclick={() => onopen(card)}>{start ?? 'Open'}</Button>
@@ -38,7 +44,7 @@ const headingId = $derived(`card-${card.entry ?? card.editor}`)
       {#each card.rows as file (file.path)}
         <li>
           <button type="button" onclick={() => (card.installed ? onopen(card) : onread(file))}>
-            <span class="name">{fileTitle(file.path)}</span>
+            <span class="name">{rowName(card, file)}</span>
             {#if !file.writable}<span class="why">Read only{file.why ? `: ${file.why}` : ''}</span>{/if}
           </button>
         </li>

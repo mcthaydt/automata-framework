@@ -211,6 +211,14 @@ them to a 2D game only where those packages are: `storyAvailable()`, in the shap
 file, and its list names what that game plays. A 3D game is made only where the 3D package is, which holds the story
 packages too, so the 3D story needs no second gate. Publishing those packages is the apps work's call.
 
+**What the 2D story is as built (ruling T13, recorded after the build audit's M2).** Where the story is available, the
+2D template's level, `project.toml` and `world.toml` are `examples/2d-story/content`'s (a 512 x 288 level with a keeper
+and a guard named in it), and its cutscene is `gate` with the last choice "Show me the gate.", not `look` as below: a test
+keeps the template's content equal to the example's, so the story has one source. The story's code files are the plain
+game's with the story's wiring swapped in (`template-story-game.ts`, which throws if the plain text it swaps changes), and
+the game's README names `gate`. The plain game (the gate closed) keeps its square in a room and has no story. The 3D
+story is as written here (`look`).
+
 **Both kinds:**
 
 - A **keeper**, a named character standing in the level, who says one line when the player walks up to him (the
@@ -271,7 +279,7 @@ Every sentence a person reads in this work passes the drunk grandma test. Replac
 | ------------------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | Schematic start page                  | "Add the systems extension to your game to use Schematic" + "How to add it"        | Section 6's sentences ("Your game can't move characters that think yet. …")            |
 | Schematic start page                  | "Your game's list of editors does not name these files yet. Add this to it" + TOML | Gone: Start adds the rows (section 5)                                                  |
-| A refused write of an unlisted file   | "content/feel/feel.toml is not one the editor may write"                           | On a start page: "This game's list of editors doesn't include Feel yet. Press Start to add it." On an open file (the list was changed by hand): "Feel can't save: this game's list of editors leaves Feel out." |
+| A refused write of an unlisted file   | "content/feel/feel.toml is not one the editor may write"                           | After Start could not add the editor (the ports cannot): "Feel can't start here. This game's list of editors doesn't include Feel, and this page can't add it. Ask whoever made the game to add it." On an open file (the list was changed by hand, the server's refusal of the write or the read): "Feel can't save: this game's list of editors leaves Feel out." |
 | Tuner, 2D, no settings file           | "Make one" refused in file words                                                   | Make one adds the Tuner's rows and writes the file                                     |
 | Home cards                            | "Feel / Feel", "No files yet."                                                     | The editor's name once; a card with no file says "Nothing made yet. Open it to start." |
 | iPad rail                             | "Characte…"                                                                        | "Characters" in full (the tab's width follows its label up to the longest editor name) |

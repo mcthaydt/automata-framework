@@ -679,4 +679,23 @@ Audio answering his bump. Made by hand in both kinds and played, at iPad and pho
 `complete-game-3d` journeys: 22 pass at both sizes. Not run: WebKit, Firefox, the GPU runner, hosted CI (the editor
 browser projects need the other engines, so `pnpm test:browser:2d` stops here); `stranger-3d.test.ts` pending. `pnpm check`
 is green except `check-changesets`, which fails on an earlier branch's changeset naming the unpublished `@automata/3d`
-(`stage-characters-3d.md`). Stage 5 (build audit) and 6 (fixes) not started. Details and rulings: the plan's log.
+(`stage-characters-3d.md`). Details and rulings: the plan's log.
+
+Stage 5 (build audit) done: [build audit](2026-11-08-shared-editors-build-audit.md). A 3D cutscene never moves the camera
+(C1: the stage writes it per step, the follow camera per frame); an edit is lost without a word when the list stops
+naming its file (H1); the failing changeset is this build's own (`9a7127af`, H2); plus M1-M4 and L1-L4. `pnpm check`
+red only on that changeset; journeys 21 of 22 (the one timeout passed alone).
+
+Stage 6 (fixes) done on a branch stacked on #522. C1: the 3D cutscene stage now writes its camera per frame (`draw`), with a
+unit test that failed first and a journey that watches the camera move. H1: a read the server refuses is a note, never a
+silent "Saved". H2: the build's own changeset is gone. M1: the bump event says who bumped (2D, 3D and the story game), and
+Feel's word rows say `at = "subject"`. M2: the spec records the story template as built. M3: a journey typechecks and runs
+the tests of a game as `create-game` made it (2D and 3D; the plain 2D game is not gated). M4: file rows are named by what
+they hold, a card whose one file repeats its name says "Open", each content editor has its own icon, the Levels status line
+shows a file title, and Sequence offers people only. L2 to L4 done. Not done: L1 (the phone top bar; moving Undo and Redo
+out of the scrolling tools pushed the level picker off the bar, so it was reverted and needs a design call), and two M4
+items (the 2D Characters list still shows non-character definitions; the 3D Studio still shows ids). Made by hand and
+played: 3D (the word "Bump!" over Wick, the camera moving in the cutscene). The 2D word over the square is covered by the
+generated test and the journey, not seen by hand. Journeys, iPad and phone, 3D: all pass (the floor and publish journeys
+are expected failures, Pixi 3D being a closed beta); one "Wick is taller" check flaked once under load and passed alone.
+Not run: WebKit, Firefox, the GPU runner, hosted CI; `stranger-3d.test.ts` pending.
