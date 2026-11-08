@@ -110,3 +110,15 @@ export async function setCardField(page: Page, name: string, value: string): Pro
   await typed.fill(value)
   await typed.press('Enter')
 }
+
+/** Picks a time of day by its label on the level's card (nothing selected); below the widest layout it sits behind Details. */
+export async function setTimeOfDay(page: Page, label: string): Promise<void> {
+  const picker = page.getByRole('button', { name: /Time of day/ })
+  const details = page.getByRole('button', { name: 'Details' })
+  const sheet = !(await picker.isVisible())
+  if (sheet) await details.click()
+  await picker.click()
+  await page.getByRole('option', { name: label }).click()
+  // The sheet covers the plan, which the next step draws on: close what this opened.
+  if (sheet) await details.click()
+}

@@ -45,11 +45,12 @@ export function showHero(result: StepResult, enabled: boolean, root: HTMLElement
 }
 
 /**
- * Writes where the room's props stand and how high its floors are, in metres, on the page's root element
- * (`data-props="crate-1:-4.00,6.50;…"`, `data-floors="start:0.00;…"`) once, for a journey that edits the room in an
- * editor and then checks it is the room that is drawn. Nothing is written without the flag.
+ * Writes where the room's props stand, how high its floors are (in metres) and the time of day it is played in, on the
+ * page's root element (`data-props="crate-1:-4.00,6.50;…"`, `data-floors="start:0.00;…"`, `data-time="night"`) once, for
+ * a journey that edits the room in an editor and then checks it is the room that is drawn. Nothing is written without
+ * the flag.
  */
-export function showRoom(room: RoomWorld, enabled: boolean, root: HTMLElement): void {
+export function showRoom(room: RoomWorld, enabled: boolean, root: HTMLElement, time: string): void {
   if (!enabled) return
   const props = new Map<string, string>()
   const floors = new Map<string, string>()
@@ -65,4 +66,5 @@ export function showRoom(room: RoomWorld, enabled: boolean, root: HTMLElement): 
   }
   root.dataset.props = [...props.values()].join(';')
   root.dataset.floors = [...floors.values()].join(';')
+  root.dataset.time = time
 }

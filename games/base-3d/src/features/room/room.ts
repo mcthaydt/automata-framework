@@ -3,10 +3,14 @@
 // builder (`roomWorld`) for the eye. A third-person room under the
 // angled free-turn camera; the rooms turn freely.
 import { buildWorld, type WorldLibrary } from '@automata/3d'
-import { readLevel } from '@automata/3d/level'
+import { type AfSector2File, readLevel } from '@automata/3d/level'
 import file from '../../../content/levels/room.af-sector.json'
 import type { RoomWorld } from '../../shared/room-world.ts'
+import { levelTime } from './room-time.ts'
 import { areaFromSector } from './sector-area.ts'
+
+/** The light the room is played in (`room-time.ts`): the file's time of day. */
+export const ROOM_TIME = levelTime((file as { readonly time?: AfSector2File['time'] }).time)
 
 /** The room: three platforms and the two channels between them that only the roll crosses. */
 export const ROOM = areaFromSector(file, { file: 'room.af-sector.json' })
