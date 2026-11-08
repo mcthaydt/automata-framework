@@ -19,6 +19,7 @@ export default publishedBuild(import.meta.url, {
   copy: [
     { from: 'node_modules/@ruken/cli/dist/*', to: 'dist/vendor/ruken-cli' },
     { from: 'src/shared/create-game/template-content', to: 'dist' },
+    { from: 'src/shared/create-game/template-story-content', to: 'dist' },
     { from: 'src/shared/create-game/template-3d-content', to: 'dist' },
     { from: 'src/shared/create-game/template-ci', to: 'dist' },
   ],

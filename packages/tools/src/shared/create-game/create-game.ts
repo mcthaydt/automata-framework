@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path'
 import { Data, Effect } from 'effect'
 import type { TaggedErrorClass } from '../node/errors.ts'
 import { parseTargets } from './create-game-targets.ts'
+import { storyAvailable } from './story-gate.ts'
 import { type TemplateOptions, templateFilesOf } from './template.ts'
 import { THREE_D_NOT_PUBLIC, threeDAvailable } from './three-d-gate.ts'
 
@@ -14,6 +15,7 @@ export interface CreateGameOptions extends TemplateOptions {
   readonly author?: string | undefined
   /** Whether a 3D game can be made here; default: `threeDAvailable()` (tests say it outright). */
   readonly threeD?: boolean | undefined
+  // `story` (from TemplateOptions) defaults to `storyAvailable()` for a 2D game: tests say it outright.
 }
 
 export interface CreateGameResult {
@@ -97,8 +99,13 @@ export function createGame(options: CreateGameOptions): Effect.Effect<CreateGame
     const problem = whyNot(options)
     if (problem !== undefined) return yield* Effect.fail(problem)
 
+    // The story is a 2D game's, and only where its packages are.
+    const resolved: CreateGameOptions = {
+      ...options,
+      story: options.template !== '3d' && (options.story ?? storyAvailable()),
+    }
     const createdFiles = yield* Effect.try({
-      try: () => writeTemplate(options),
+      try: () => writeTemplate(resolved),
       catch: (cause) =>
         new CreateGameError({
           reason: 'write-failed',

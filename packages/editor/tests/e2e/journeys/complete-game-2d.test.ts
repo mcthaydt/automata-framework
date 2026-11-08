@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import type { Page } from '@playwright/test'
 import { cellOnCanvas } from '../harness/canvas-pointer.ts'
 import {
   brightestSince,
@@ -14,6 +15,7 @@ import {
   publishFromEditors,
   recordBrightness,
   recordPitches,
+  servedWith,
 } from '../harness/complete-game.ts'
 import { EMBERWICK, expect, openRoom, test } from '../harness/fixtures.ts'
 import { newGame } from '../harness/new-game.ts'
@@ -28,9 +30,8 @@ import { tilesPng } from '../harness/tiles-picture.ts'
 // and Audio (the bump's pitch). Then Play, where each change is looked for in what the game draws and plays, and Publish,
 // whose zip carries them. Nothing here writes a game file.
 //
-// The editors a new 2D game cannot use yet each have a journey below that does what a person would try and is marked as
-// failing, with the reason: Writer and Sequence (not on a new game's rail) and Schematic (the game has no thinking
-// characters). Each one's mark comes off when it passes.
+// A new game also has a story for the three editors it makes: Writer's keeper, Sequence's cutscene and Schematic's guard
+// (the journeys below the complete game's).
 
 const STARTER_TILE = 16
 /** The level's background, which the canvas shows around everything else. */
@@ -65,9 +66,9 @@ test('a new 2D game is made with every editor it has, played and published', asy
   const game = await newGame(EMBERWICK)
   const editor = await runEditor(game.dir)
   try {
-    // The rail offers the editors the new game lists: Levels, Characters, the Tuner, Feel, Audio and Schematic.
+    // The rail offers the editors the new game lists: Levels, Characters, the Tuner, Feel, Audio, Writer, Sequence and Schematic.
     await page.goto(editor.url)
-    for (const name of ['Levels', 'Characters', 'Tuner', 'Feel', 'Audio', 'Schematic'])
+    for (const name of ['Levels', 'Characters', 'Tuner', 'Feel', 'Audio', 'Writer', 'Sequence', 'Schematic'])
       await expectOnRail(page, name)
 
     // Levels 2D: add a picture of tiles, paint a cell of Decor with one, and give the player start another (Characters).
@@ -232,35 +233,125 @@ test('a new 2D game is made with every editor it has, played and published', asy
   }
 })
 
-// The editors a new 2D game cannot use yet. Each does the first thing a person would try and is marked as failing until
-// it passes; the reason is the mark's description.
+// Writer, Sequence and Schematic work on the story a new 2D game plays (a keeper to talk to, a cutscene his answer starts, a
+// guard who walks). Each journey changes one thing in the editor, as a person would, plays the game from the editors and
+// looks for the change in what the game says, shows and does. Nothing here writes a game file.
 
-// "On the rail" alone proves nothing: each opens the editor and looks for what the new game would play.
-for (const [name, reason, made] of [
-  ['Writer', 'a new 2D game has no conversation to change yet', /keeper/i],
-  ['Sequence', 'a new 2D game has no cutscene to change yet', /look/i],
-] as const)
-  test(`${name} shows what a new 2D game plays`, async ({ page }) => {
-    test.fail(true, reason)
-    const game = await newGame(EMBERWICK)
-    const editor = await runEditor(game.dir)
-    try {
-      await page.goto(editor.url)
-      await openEditor(page, editor, name)
-      await expect(page.getByText(made).first()).toBeVisible({ timeout: 5_000 })
-    } finally {
-      await editor.stop()
-      game.remove()
-    }
-  })
+/** The keeper's first line, as the new game says it until Writer changes it. */
+const KEEPER_SAYS = 'Hello there. Mind the gate on your way out.'
+/** The guard's colour in Characters, which the played canvas shows him in. */
+const GUARD: readonly [number, number, number] = [0xef, 0x44, 0x44]
 
-test('a character can be added in Schematic on a new 2D game', async ({ page }) => {
-  test.fail(true, 'a new 2D game does not use the systems extension: Schematic says to add it first')
+/** Holds the right arrow, as a person would, until the keeper's box shows `words`; then lets go. */
+async function walkToTheKeeper(play: Page, words: string): Promise<void> {
+  await play.keyboard.down('ArrowRight')
+  try {
+    await expect(play.getByText(words)).toBeVisible({ timeout: 15_000 })
+  } finally {
+    await play.keyboard.up('ArrowRight')
+  }
+}
+
+test('Writer: the keeper says the words written there', async ({ page, context }) => {
+  test.setTimeout(120_000)
   const game = await newGame(EMBERWICK)
   const editor = await runEditor(game.dir)
   try {
+    await openEditor(page, editor, 'Writer')
+    const words = page.getByRole('textbox', { name: 'What it says' })
+    await expect(words.first()).toHaveValue(KEEPER_SAYS)
+    await words.first().fill('Hello from Writer.')
+    await words.first().blur()
+    await expect
+      .poll(() => readFileSync(join(game.dir, 'content/lines/keeper.toml'), 'utf8'), { timeout: 30_000 })
+      .toContain('Hello from Writer.')
+    await servedWith(editor, 'Hello from Writer.')
+    const play = await playFromEditors(page, context)
+    await walkToTheKeeper(play, 'Hello from Writer.')
+    await expect(play.getByText(KEEPER_SAYS)).toHaveCount(0)
+    await play.close()
+  } finally {
+    await editor.stop()
+    game.remove()
+  }
+})
+
+test('Sequence: the cutscene shows the caption it was pointed at', async ({ page, context }) => {
+  test.setTimeout(120_000)
+  const game = await newGame(EMBERWICK)
+  const editor = await runEditor(game.dir)
+  try {
+    await openEditor(page, editor, 'Sequence')
+    // The words step of the gate's cutscene is pointed at another of the keeper's lines.
+    await page.getByRole('button', { name: /^Words on screen, 0.5 s to 5.5 s/ }).click()
+    await page.getByRole('combobox', { name: /line/i }).selectOption({ label: 'Safe travels.' })
+    await expect
+      .poll(() => readFileSync(join(game.dir, 'content/cutscenes/gate.toml'), 'utf8'), { timeout: 30_000 })
+      .toContain('keeper.farewell')
+    await servedWith(editor, 'keeper.farewell')
+    const play = await playFromEditors(page, context)
+    await walkToTheKeeper(play, KEEPER_SAYS)
+    await play.getByRole('button', { name: /Show me the gate/ }).click()
+    await play.getByRole('button', { name: 'Next' }).click()
+    await expect(play.getByText('Safe travels.').last()).toBeVisible({ timeout: 20_000 })
+    await expect(play.getByText('A moment later, at the gate.')).toHaveCount(0)
+    await play.close()
+  } finally {
+    await editor.stop()
+    game.remove()
+  }
+})
+
+test('Schematic: the guard walks at the speed set there', async ({ page, context }) => {
+  test.setTimeout(240_000)
+  const game = await newGame(EMBERWICK)
+  const editor = await runEditor(game.dir)
+  /**
+   * How long a game started from the editors takes to show the guard in the west half of his rounds (he starts at the east
+   * end, 400 px, and the west end is 288 px), from the Play button being pressed, in ms. It is the same game time on any
+   * size of screen, so two of these compare whatever the frame rate.
+   */
+  async function msToTheWest(): Promise<number> {
+    const play = await playFromEditors(page, context)
+    const pressed = Date.now()
+    try {
+      await expect
+        .poll(
+          async () => {
+            const picture = await gamePixels(play)
+            const field = boxOf(picture, BACKGROUND)
+            const guard = boxOf(picture, GUARD)
+            if (field === undefined || guard === undefined) return Number.POSITIVE_INFINITY
+            // The guard's feet are at the middle of his box, so the box's middle is where he stands.
+            return (guard.x + guard.w / 2 - field.x) / (field.w / 512)
+          },
+          { message: 'the guard walks to the west half of his rounds', timeout: 60_000 },
+        )
+        .toBeLessThan(340)
+      return Date.now() - pressed
+    } finally {
+      await play.close()
+    }
+  }
+  try {
+    await page.goto(editor.url)
+    const atStart = await msToTheWest()
+
     await openEditor(page, editor, 'Schematic')
-    await expect(page.getByRole('button', { name: 'Add a character' })).toBeEnabled({ timeout: 5_000 })
+    await page.getByText('Guard', { exact: true }).first().click()
+    await page.getByRole('button', { name: /^Patrol, 1 m\/s/ }).click()
+    const speed = page.getByLabel('Moves at', { exact: true }).first()
+    if (!(await speed.isVisible())) await page.getByRole('button', { name: 'Details' }).click()
+    const most = Number(await speed.getAttribute('max'))
+    await speed.fill(String(most))
+    await speed.press('Tab')
+    await expect
+      .poll(() => readFileSync(join(game.dir, 'content/systems/guard.toml'), 'utf8'), { timeout: 30_000 })
+      .toContain(`patrol = ${most}`)
+    await servedWith(editor, `"patrol":${most}`)
+
+    const faster = await msToTheWest()
+    expect(faster, 'the guard gets to the west half sooner').toBeLessThan(atStart / 2)
   } finally {
     await editor.stop()
     game.remove()

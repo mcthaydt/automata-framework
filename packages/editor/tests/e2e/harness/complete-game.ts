@@ -253,3 +253,25 @@ export async function cellOnScreen(
     Math.round(field.y + (cell.row + 0.5) * tile * scale),
   )
 }
+
+/**
+ * Waits until the game the command started serves content with `text` in it. The game's dev server compiles a saved file a
+ * moment after it lands, so a game opened the instant the editor has saved could still play the old content. Looks at
+ * what the server answers, never at a game file.
+ */
+export async function servedWith(editor: RunningEditor, text: string): Promise<void> {
+  const bare = (value: string): string => value.replace(/\s+/g, '')
+  await expect
+    .poll(
+      async () => {
+        const base = editor.gameUrl
+        if (base === undefined) return ''
+        return fetch(`${base}@id/__x00__virtual:automata/content`).then(
+          (answer) => answer.text().then(bare),
+          () => '',
+        )
+      },
+      { message: `the game serves "${text}"`, timeout: 30_000 },
+    )
+    .toContain(bare(text))
+}

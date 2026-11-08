@@ -169,6 +169,7 @@ describe('createGame', () => {
           targetDir: testDir,
           id: 'peer-game',
           title: 'Peer Game',
+          story: false,
           ...(targets ? { targets } : {}),
           ...extra,
         }),

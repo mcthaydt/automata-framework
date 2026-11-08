@@ -13,6 +13,8 @@ export interface TemplateOptions {
   readonly title: string
   /** Which game to make; default `2d`. */
   readonly template?: TemplateKind | undefined
+  /** Whether the 2D game has the story (a keeper, a cutscene and a guard); it needs packages that are not public yet (story-gate.ts). */
+  readonly story?: boolean | undefined
   /** The distribution targets to build for; default web and itch.io. */
   readonly targets?: readonly DistTarget[] | undefined
   /**

@@ -1,0 +1,63 @@
+# The guard: walks between two stops in the Yard, hunts what he sees, follows through the gap, and gives up after a while.
+scene = "story"
+objects = []
+matrix = []
+rules = []
+scenarios = []
+
+[tunables]
+
+[fairness]
+cautiousWin = 0.9
+firstThreatAfter = 20
+telegraph = 1.5
+maxDeathsPerRun = 1
+safeWindowMargin = 1.3
+
+[[agents]]
+id = "guard"
+modes = [ "patrol", "hunt", "follow" ]
+initial = "patrol"
+
+[agents.speed]
+patrol = 1
+hunt = 2
+follow = 2
+
+[[agents.senses]]
+[agents.senses.sight]
+range = 9
+wallsOnly = true
+
+[[agents.senses]]
+[agents.senses.touch]
+radius = 0.5
+
+[[agents.transitions]]
+from = "hunt"
+to = "follow"
+priority = 90
+when = [ { crossed = true } ]
+do = [ { followThrough = { portal = "crossed", delay = 0.5, then = "hunt" } } ]
+
+[[agents.transitions]]
+from = "*"
+to = "hunt"
+priority = 70
+when = [ { sees = true } ]
+do = [ { goTo = "player" } ]
+
+[[agents.transitions]]
+from = "hunt"
+to = "patrol"
+priority = 30
+when = [ { fact = "self.idle", is = true }, { not = { sees = true } }, { timer = 3 } ]
+do = [ { set = "self.timer", to = 0 } ]
+
+[[agents.routine]]
+node = "yardW"
+dwell = 0.5
+
+[[agents.routine]]
+node = "yardE"
+dwell = 0.5

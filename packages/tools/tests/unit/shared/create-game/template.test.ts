@@ -15,7 +15,7 @@ const read = (path: string): string => readFileSync(join(dir, path), 'utf8')
 beforeAll(async () => {
   dir = mkdtempSync(join(tmpdir(), 'af-template-'))
   await Effect.runPromise(
-    createGame({ targetDir: join(dir, 'game'), id: 'square-game', title: 'Square Game' }),
+    createGame({ targetDir: join(dir, 'game'), id: 'square-game', title: 'Square Game', story: false }),
   )
   dir = join(dir, 'game')
   files = readdirSync(dir, { recursive: true, withFileTypes: true })

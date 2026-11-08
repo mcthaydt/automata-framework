@@ -10,9 +10,9 @@ import { problemAt } from '../../shared/content-session.svelte.ts'
 import type { Field } from '../../shared/fields.ts'
 import { setOrInsert } from '../../shared/fields.ts'
 import EditorPage from '../../shared/ui/EditorPage.svelte'
-import NoPlayer from '../../shared/ui/NoPlayer.svelte'
 import EventPicker from '../../shared/ui/EventPicker.svelte'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
+import NoPlayer from '../../shared/ui/NoPlayer.svelte'
 import AudioMusic from './AudioMusic.svelte'
 import {
   addEventEdit,
