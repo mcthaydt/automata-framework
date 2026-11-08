@@ -25,7 +25,7 @@ stack). Package names are today's `@automata/*`; the `@automataframework` rename
 | V8 HUD under the bar | No, hand-off | In-game text (PR #524/#526) owns the HUD safe area; acceptance in section 12 |
 | V8 landscape phone crops the level | Yes | Section 9 |
 | V9 try-it first minute | Yes (copy and first tap) | Section 8; saving and the try-it split stay #528's |
-| V10 Feel and Audio cannot hear extension events | Yes | Section 7 |
+| V10 Feel and Audio cannot hear extension events | Already met | Section 7 (the editors list them; a test guards it) |
 | V11 sharing stops at a zip | Yes, D1 = A | Section 11 |
 | V12 no git repository | Yes | Section 8 |
 | V13 two "next steps" that disagree | Yes | Section 10 |
@@ -93,7 +93,7 @@ that thinks. Its body is one table, a row per editor:
 | Feel, Audio | `content/feel/*.toml`, `content/audio/*.toml` | the game's events | Emit a `defineEvent` from a `.event.ts` file; the editors find it by itself |
 | Writer | `content/lines/*.toml`, `content/dialogue/*.toml` | `wordsOf` from `@automata/narrative` | Show words by line key, never a string in code |
 | Sequence | `content/cutscenes/*.toml` | `cutscenesExtension({ anchor })`, `levelAnchors` | Name characters by their placed id (`actor:keeper`) |
-| Schematic | `content/systems/*.toml`, `content/nav/*.toml` | `systemsExtension`, `createNavExtension` | Give the thinking character a `SystemsAgent` |
+| Schematic | `content/systems/*.toml`, `content/nav/*.toml`, `content/puzzles/*.toml` | `systemsExtension`, `createNavExtension` | Give the thinking character a `SystemsAgent` |
 
 The skill is copied to the public mirror, so it has no 3D row until Pixi 3D is public (skills decision D2). A 3D game
 is made only inside the repository today, and its own `AGENTS.md` carries the two 3D rows (Levels 3D:
@@ -117,7 +117,7 @@ stays, now true for every import a template makes.
 ## 5. The published editor starts anywhere (V4)
 
 - **The packed page wins.** When the tools carry a packed editor page next to the bin, that page is used, wherever the
-  game is.
+  game is. Done on #532 (`builtApp()` returns the packed page first); what is left is the message `outside` picks.
 - **The repository is recognised by its name**, not by any `pnpm-workspace.yaml`: the nearest folder above the tools
   whose `package.json` is named `automata-framework`. A customer's monorepo, or a game whose pnpm wrote a settings file,
   is never mistaken for it.
@@ -134,10 +134,11 @@ both change; `SQUARE_SIZE` goes away.
 
 ## 7. Feel and Audio hear the extensions (V10)
 
-An extension that emits events says so in its `package.json`: `"automata": { "events": ["narrative.line", ...] }`.
-`writeEventIds` adds the ids of every `@automata/*` dependency of the game that declares them, read from
-`node_modules/<name>/package.json`, to the ids it finds in the game's own `.event.ts` files. A repository test holds each
-extension's list equal to the `defineEvent` ids in its sources, so the list cannot drift.
+Already met (plan audit A3). `extensions/editors/src/shared/game-events.ts` gives Feel and Audio the events of every
+extension whose content the game has (systems, dialogue, cutscenes, puzzles), from the extensions' own `defineEvent`s,
+beside the game's own list. In the story game Feel offers "a conversation shows a line", "a cutscene starts" and "a
+character catches the player". The audit read only `content/generated/events.json`. A test keeps it so (plan Task 11);
+no extension's `package.json` gets a second list.
 
 ## 8. The first minute (V9, V12, V17)
 
@@ -153,7 +154,8 @@ extension's list equal to the `defineEvent` ids in its sources, so the list cann
 
 ## 9. The whole level on a phone held sideways (V8, cropping)
 
-In a landscape view the playfield is fitted, not cropped: its scale is the smaller of the width and height ratios, and
+In a landscape view the playfield is fitted, not cropped (this is every AF game's landscape view, Emberwick
+included; a desktop window wider than the field gets side bars): its scale is the smaller of the width and height ratios, and
 it is centred, with bars at the sides when the view is wider. Nothing a person placed is cut off. The bars' crop
 fraction (`DEFAULT_BAR_FRACTION`) stays for games that ask for it; the default becomes `0`. The touch controls then sit
 in the side bars on a wide phone, not over the level. Portrait layout does not change. This moves landscape visual
@@ -181,8 +183,8 @@ baselines; each is looked at and explained before it is accepted.
 **D1 is answered: A** (the Owner, 2026-11-08 22:31, on the audit's decision card: "Put it on itch.io"). Both parts
 below are built:
 
-- **The guide:** a guide page, "Put your game on itch.io", that walks the upload in four short steps, and the
-  Publish dialog's note links to it.
+- **The guide:** the existing `docs/guides/publish-to-itch.md` gains a first part, "From the editor", that walks the
+  upload by hand in four short steps (the fallback when butler is not wanted), and the Publish dialog's note links to it.
 - **Publish in two steps.** The Owner, 22:32: "the zip should be separate from itch, do the zip then ask where they want,
   itch will be first output". So:
   1. **Make the zip.** Publish always makes the zip first, as its own step, with "Download the zip". The person can
