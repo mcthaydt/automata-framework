@@ -13,10 +13,16 @@ export interface StepFile {
 export interface Step {
   readonly label: string
   readonly files: readonly StepFile[]
+  /** The person's visit to a field this step is one edit of: a later step of the same visit and files joins it. */
+  readonly join?: string | undefined
 }
 
 export interface WriteHistories {
-  /** Adds a step after the owner's last done one; any steps that were undone are forgotten. */
+  /**
+   * Adds a step after the owner's last done one; any steps that were undone are forgotten. A step with a `join` key
+   * that the last done step also has, over the same files, is that step moved on: its `before` stays, its `after`
+   * moves, and its label stays too.
+   */
   push(owner: string, step: Step): void
   /** The step an undo would reverse, or `undefined`. */
   nextUndo(owner: string): Step | undefined
@@ -27,6 +33,10 @@ export interface WriteHistories {
   /** Moves the owner's mark forward one step after a redo was written. */
   redone(owner: string): void
 }
+
+const sameFiles = (a: Step, b: Step): boolean =>
+  a.files.length === b.files.length &&
+  a.files.every((file) => b.files.some((next) => next.path === file.path))
 
 export function createWriteHistories(): WriteHistories {
   const histories = new Map<string, { steps: Step[]; done: number }>()
@@ -43,6 +53,17 @@ export function createWriteHistories(): WriteHistories {
     push(owner, step) {
       const history = historyOf(owner)
       history.steps.length = history.done
+      const top = history.steps[history.done - 1]
+      if (step.join !== undefined && top?.join === step.join && sameFiles(top, step)) {
+        history.steps[history.done - 1] = {
+          ...top,
+          files: top.files.map((file) => ({
+            ...file,
+            after: step.files.find((next) => next.path === file.path)?.after ?? file.after,
+          })),
+        }
+        return
+      }
       history.steps.push(step)
       history.done = history.steps.length
     },

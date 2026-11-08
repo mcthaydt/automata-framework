@@ -258,3 +258,12 @@ Reference, Privacy, Terms and Contact; the targets are named by the publish sect
 | Missing page | `Read the docs` as a bare 27 px link | the same words as the white secondary button | 2 (a touch target under 44 px) |
 | Demo bar, in full screen | `Full screen` while in it | `Exit full screen` | 2 |
 | Home | the old claim and three reasons | `Make browser games with your coding agent.`; `Your agent writes the game. The framework keeps it honest.`; `The same game in every browser, to the last bit.`; `Draw levels. The game reads the same files.`; `Start from something that runs.`; `Landing in the first release.`; `Make your first game this afternoon.` | 1, 4 |
+
+## Saving and sign-in (2026-11-08)
+
+| Where | Before | Now | Test |
+| --- | --- | --- | --- |
+| The top bar, in a folder | `Saved in your game folder` only on a wide screen, even while words were typed and unsaved | the same words at every size, and `Saving…` while words wait or a write runs | 1 (a person should know the work is safe, on a phone too) |
+| The top bar, in a browser that keeps the game | nothing | `Saved on this device` | 1 and 5 |
+| The top bar, a write that failed | `Saved…` | `Not saved: ` and the store's own words | 1 and 5 |
+| The top bar, a browser that keeps nothing | a banner on Home only | `Not saved: this browser can’t keep files. Save a copy to keep your work.` at the top of every editor | 1 (the banner was one screen; the work is on all of them) |

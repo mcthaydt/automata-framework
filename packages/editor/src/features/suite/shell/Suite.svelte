@@ -15,12 +15,21 @@ import type { SuiteEditor } from '../../../shared/kit/ports/suite-editor'
 import type { CheckFinding, SuitePorts, WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
 import EditorShell from '../../../shared/kit/shell/EditorShell.svelte'
 import { defaultDockOpen, dockPlacementOf, shellModeAt } from '../../../shared/kit/shell/shell-mode'
+import { guardLeaving } from '../../../shared/kit/storage/leave-guard'
+import { flushOnHide } from '../../../shared/kit/storage/page-lifecycle'
 import type { GamePublish } from '../../../shared/kit/storage/publish-client'
+import { saveLine } from '../../../shared/kit/storage/save-line'
+import {
+  browserDraftStorage,
+  createTypingDrafts,
+  pageTimers,
+} from '../../../shared/kit/storage/typing-drafts'
 import Button from '../../../shared/kit/widgets/Button.svelte'
 import IconButton from '../../../shared/kit/widgets/IconButton.svelte'
 import Menu from '../../../shared/kit/widgets/Menu.svelte'
 import ToastRegion from '../../../shared/kit/widgets/ToastRegion.svelte'
 import { createToasts } from '../../../shared/kit/widgets/toasts'
+import { setTypingDrafts } from '../../../shared/kit/widgets/typing-context'
 import { type Pill, pillsToShow } from '../core/pills-model'
 import { findingMessage, refusalMessage } from '../core/write-messages'
 import type { Suite } from './create-suite'
@@ -41,6 +50,8 @@ interface Props {
   suite: Suite
   ports: SuitePorts
   sample: boolean
+  /** Whether the sample is kept in this browser; false says its changes are lost with the page. */
+  kept?: boolean
   /** The game's name in words, from the server; the title. */
   game?: string | undefined
   /** Reads Home again (on each return to it); without it, Home stays as it was given. */
@@ -53,7 +64,19 @@ interface Props {
   clock?: GestureClock | undefined
 }
 
-const { geometry, home: given, suite, ports, sample, game, reread, playUrl, publish, clock }: Props = $props()
+const {
+  geometry,
+  home: given,
+  suite,
+  ports,
+  sample,
+  kept = true,
+  game,
+  reread,
+  playUrl,
+  publish,
+  clock,
+}: Props = $props()
 let latest = $state<HomeState>()
 const home = $derived(latest ?? given)
 
@@ -116,7 +139,36 @@ $effect(() => {
 
 // Editing (flows 3 to 8): every editor is opened with ports whose writes take the suite's write path; the pills and
 // Undo follow it. The session lives as long as the suite.
-const editing = $derived(createSuiteSession(ports))
+// Typed words are written as they are typed (P14): every field of every editor registers here, and the registry keeps
+// the words in the browser's own storage until the write has landed, so a page that goes away inside the half second
+// gets them back.
+// svelte-ignore state_referenced_locally
+const drafts = createTypingDrafts({
+  timers: pageTimers,
+  drafts: browserDraftStorage(),
+  scope: game ?? 'sample',
+})
+setTypingDrafts(drafts)
+const editing = $derived(createSuiteSession(ports, { drafts }))
+
+// The saved line: fields holding typed text plus writes in flight, what a store last refused, and where the files live.
+let pending = $state(0)
+let failed = $state<string | undefined>()
+$effect(() => {
+  const session = editing
+  const read = () => {
+    pending = drafts.waiting + session.inFlight
+    failed = session.failed
+  }
+  const stopSession = session.subscribe(read)
+  const stopDrafts = drafts.subscribe(read)
+  read()
+  return () => {
+    stopSession()
+    stopDrafts()
+  }
+})
+const line = $derived(saveLine({ pending, failed, where: sample ? (kept ? 'device' : 'nowhere') : 'folder' }))
 // The toasts are made once, with the clock the suite started with.
 // svelte-ignore state_referenced_locally
 const toasts = createToasts({ clock })
@@ -133,6 +185,22 @@ $effect(() => {
   read()
   void session.refresh()
   return stop
+})
+
+// The fields being made now belong to the open editor: a draft is offered back to the same field of the same editor.
+$effect.pre(() => {
+  drafts.place = mounted?.editor.id ?? ''
+})
+
+// The page going away (a closed tab, a phone put to sleep) writes the words that wait; where a browser asks "Leave
+// site?" it asks while words wait or a write runs.
+$effect(() => {
+  const stopHide = flushOnHide({ flush: async () => drafts.flush() }, { document, window })
+  const stopGuard = guardLeaving(window, () => drafts.waiting > 0 || editing.inFlight > 0)
+  return () => {
+    stopHide()
+    stopGuard()
+  }
 })
 
 // Undo and Redo act on the open editor's own history, or the suite's (an import) with none open.
@@ -204,7 +272,7 @@ function openCard(card: EditorCard): void {
     <!-- The game's name is the title; the sample says it is one in a banner over Home instead (12.7, Step G). -->
     <SuiteTopBar
       title={sample ? 'Sample game' : (game ?? 'Your game')}
-      saved={!sample && !compact}
+      {line}
       pills={pillsToShow(pills)}
       {compact}
       onlocate={locate}

@@ -8,6 +8,7 @@ import { createMemoryPorts } from '../../../shared/kit/ports/memory/memory-ports
 import type { SuitePorts } from '../../../shared/kit/ports/suite-ports.ts'
 import { createMemoryStore } from '../../../shared/kit/storage/memory-store.ts'
 import type { PublishClient } from '../../../shared/kit/storage/publish-client.ts'
+import type { Where } from '../../../shared/kit/storage/save-line.ts'
 import {
   openPrivateStores,
   openServedStore,
@@ -20,6 +21,12 @@ export interface OpenedSuitePorts {
   readonly ports: SuitePorts
   /** True when the page opened the sample game because no editor server answered. */
   readonly sample: boolean
+  /** False when the browser would not keep the sample (no private storage), so its changes are lost with the page; a checkout is always kept. */
+  readonly kept: boolean
+  /** Where the game's files live, for the saved line: the served folder, this browser's storage, or nowhere. */
+  readonly where: Where
+  /** Why the browser keeps nothing, when it said; none otherwise. */
+  readonly reason: string | undefined
   /** The game's dev page, from the server's ping; none for the sample game. */
   readonly gameUrl: string | undefined
   /** The game's name in words, from the server's ping; none for the sample game. */
@@ -44,9 +51,19 @@ export async function openSuitePorts(env: SuitePortsEnv): Promise<OpenedSuitePor
   if (served === undefined) {
     // The sample is kept in this browser's private storage where it has one (memory where it has not), so the try-it
     // page keeps a visitor's level through a reload, as the site says.
-    const [store = createMemoryStore()] = (await openPrivateStores([SAMPLE_FOLDER], env.storage)).stores
+    const opened = await openPrivateStores([SAMPLE_FOLDER], env.storage)
+    const [store = createMemoryStore()] = opened.stores
     const ports = await samplePorts(env.sample ?? SAMPLE_GAME, { store })
-    return { ports, sample: true, gameUrl: undefined, game: undefined, publish: undefined }
+    return {
+      ports,
+      sample: true,
+      kept: opened.persistent,
+      where: opened.persistent ? 'device' : 'nowhere',
+      reason: opened.persistent ? undefined : opened.reason,
+      gameUrl: undefined,
+      game: undefined,
+      publish: undefined,
+    }
   }
   const { store, gameUrl, game, publish } = served
   const bytes = await store.read(EDITOR_LIST_PATH)
@@ -58,5 +75,14 @@ export async function openSuitePorts(env: SuitePortsEnv): Promise<OpenedSuitePor
         ? workspaceFile(load.list, path)
         : { path, writable: false, why: 'The editor list has a problem.' },
   })
-  return { ports, sample: false, gameUrl, game, publish }
+  return {
+    ports,
+    sample: false,
+    kept: true,
+    where: 'folder',
+    reason: undefined,
+    gameUrl,
+    game,
+    publish,
+  }
 }

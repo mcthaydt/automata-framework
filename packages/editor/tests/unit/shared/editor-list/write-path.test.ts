@@ -128,6 +128,45 @@ describe('the write path (flows 3 and 4)', () => {
     expect(await text(ports)).toBe('MAX_MOVE_SPEED = 8\n')
   })
 
+  // P14: one visit to a field writes again at every pause in the typing; it is still one thing to undo.
+  test('writes of one visit to a file join one step whose undo restores the text before the first', async () => {
+    const { ports, path } = await setup()
+    await path.write(TUNING, 'MAX_MOVE_SPEED = 8\n', 'Raise speed', '', { join: 'v1' })
+    await path.write(TUNING, 'MAX_MOVE_SPEED = 8.5\n', 'Raise speed', '', { join: 'v1' })
+    await path.write(TUNING, 'MAX_MOVE_SPEED = 8.7\n', 'Raise speed', '', { join: 'v1' })
+    expect(await path.undo()).toMatchObject({ written: true })
+    expect(await text(ports)).toBe('MAX_MOVE_SPEED = 7\n')
+    expect(path.canUndo()).toBe(false)
+    expect(await path.redo()).toMatchObject({ written: true })
+    expect(await text(ports)).toBe('MAX_MOVE_SPEED = 8.7\n')
+  })
+
+  test('another visit, another file, or another owner makes a new step', async () => {
+    const { ports, path } = await setup()
+    await path.write(TUNING, 'MAX_MOVE_SPEED = 8\n', 'Edit', 'tuner', { join: 'v1' })
+    await path.write(TUNING, 'MAX_MOVE_SPEED = 9\n', 'Edit', 'tuner', { join: 'v2' })
+    await path.write(MODE, 'MAX_MOVE_SPEED = 4\n', 'Edit', 'tuner', { join: 'v2' })
+    await path.write(CREATED, 'pose = 1\n', 'Edit', 'other', { join: 'v2' })
+    await path.undo('tuner')
+    expect((await ports.workspace.read(MODE))?.text).toBe('MAX_MOVE_SPEED = 3\n')
+    await path.undo('tuner')
+    expect(await text(ports)).toBe('MAX_MOVE_SPEED = 8\n')
+    await path.undo('tuner')
+    expect(await text(ports)).toBe('MAX_MOVE_SPEED = 7\n')
+    expect(path.canUndo('tuner')).toBe(false)
+    expect(path.canUndo('other')).toBe(true)
+  })
+
+  test('a joined write clears the redo stack as any write does', async () => {
+    const { path } = await setup()
+    await path.write(TUNING, 'MAX_MOVE_SPEED = 8\n', 'Edit', '', { join: 'v1' })
+    await path.write(MODE, 'MAX_MOVE_SPEED = 4\n', 'Other')
+    await path.undo()
+    expect(path.canRedo()).toBe(true)
+    await path.write(TUNING, 'MAX_MOVE_SPEED = 8.1\n', 'Edit', '', { join: 'v1' })
+    expect(path.canRedo()).toBe(false)
+  })
+
   test('undo of a write that created a file removes it, and redo creates it again', async () => {
     const { ports, path } = await setup()
     expect(await path.write(CREATED, 'pose = 1\n', 'New pose')).toMatchObject({ written: true })

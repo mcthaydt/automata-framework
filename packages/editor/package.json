@@ -20,6 +20,7 @@
     "./kit/core": "./src/entries/kit-core.ts",
     "./kit/documents": "./src/entries/kit-documents.ts",
     "./kit/fields": "./src/entries/kit-fields.ts",
+    "./kit/typing": "./src/entries/kit-typing.ts",
     "./kit/ports": "./src/entries/kit-ports.ts",
     "./kit/ports/testing": "./src/entries/kit-ports-testing.ts",
     "./kit/testing": "./src/entries/kit-testing.ts",

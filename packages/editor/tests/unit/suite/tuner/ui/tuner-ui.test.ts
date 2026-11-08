@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createTunerController, type TunerController } from '#src/features/suite/tuner/tuner-controller.ts'
 import { createTuner } from '#src/features/suite/tuner/tuner-suite-editor.ts'
 import TunerRows from '#src/features/suite/tuner/ui/TunerRows.svelte'
@@ -63,6 +63,28 @@ describe('TunerRows', () => {
     await user.clear(field)
     await user.type(field, 'hi{Enter}')
     expect(text(controller)).toContain('GREETING = "hi"')
+  })
+
+  // P14: a text setting was written only when the field was left, so a reload lost it while the bar said "Saved".
+  it('writes a text value half a second after the last key, with the focus still in the field', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: false })
+    try {
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+      const controller = await open()
+      render(TunerRows, { controller })
+      const field = within(screen.getByTestId('tuner-row-GREETING')).getByRole('textbox', {
+        name: /GREETING/,
+      })
+      await user.click(field)
+      await user.clear(field)
+      await user.type(field, 'typed and never left')
+      expect(text(controller)).not.toContain('typed and never left')
+      vi.advanceTimersByTime(500)
+      await vi.waitFor(() => expect(text(controller)).toContain('GREETING = "typed and never left"'))
+      expect(document.activeElement).toBe(field)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('a slider stays inside its bounds: End writes the largest, Home the smallest (EDS-c)', async () => {

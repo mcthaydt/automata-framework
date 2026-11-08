@@ -198,6 +198,35 @@ describe('History coalescing', () => {
     expect(history.state).toEqual({ n: 1 })
   })
 
+  // A person typing in a field stops to think; the pause must not split what they typed into several Undo steps.
+  test('applies with one join key are one step however long the pauses between them are', () => {
+    let now = 0
+    const history = createHistory(doc(0), { now: () => now })
+    history.apply('Edit', add(1), { join: 'visit-1' })
+    now = 5000
+    history.apply('Edit', add(1), { join: 'visit-1' })
+    now = 90000
+    history.apply('Edit', add(1), { join: 'visit-1' })
+    expect(history.state).toEqual({ n: 3 })
+    history.undo()
+    expect(history.state).toEqual({ n: 0 })
+    expect(history.canUndo).toBe(false)
+  })
+
+  test('another join key, another step after it, or an undo ends the join', () => {
+    const history = createHistory(doc(0))
+    history.apply('a', add(1), { join: 'visit-1' })
+    history.apply('b', add(1), { join: 'visit-2' })
+    history.apply('c', add(1))
+    history.apply('d', add(1), { join: 'visit-2' })
+    history.undo()
+    history.undo()
+    expect(history.state).toEqual({ n: 2 })
+    history.apply('e', add(1), { join: 'visit-2' })
+    history.undo()
+    expect(history.state).toEqual({ n: 2 })
+  })
+
   test('a different key, or no key, is a new step', () => {
     const { history } = clocked()
     history.apply('sink', add(1), { coalesce: 'sink' })
