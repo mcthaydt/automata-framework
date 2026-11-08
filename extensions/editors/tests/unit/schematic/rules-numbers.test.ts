@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { EDITOR_LIST_PATH } from '@automata/editor/editor-list'
 import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
-import { render, screen } from '@testing-library/svelte'
+import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import { CONTENT_SAMPLE_GAME } from '#src/app/suite/sample-game.ts'
@@ -13,6 +13,7 @@ import { newAgent, newSystemsFile, systemsFileText } from '#src/features/schemat
 const def = {
   ...newSystemsFile('hall', { ...newAgent('guard'), modes: ['patrol'], speed: { patrol: 1 } }),
   tunables: { 'alarm-every': { value: 2, min: 1, max: 5, unit: 's', note: 'Between rings.' } },
+  matrix: [{ row: 'light', col: 'figure', verb: 'repels', rule: 'R1' }],
   rules: [
     { id: 'R1', text: 'Light repels.', when: [], then: [] },
     {
@@ -80,6 +81,47 @@ describe('rules', () => {
     await userEvent.clear(forWhat)
     await userEvent.type(forWhat, 'Light pushes it away.{Enter}')
     expect(session.def?.rules[0]?.text).toBe('Light pushes it away.')
+  })
+})
+
+describe('rules, added and taken apart', () => {
+  it('adds a rule with nothing in it, as one undo step', async () => {
+    const session = await open(RulesCanvas, 'rules')
+    await userEvent.click(await screen.findByRole('button', { name: 'Add a rule' }))
+    expect(session.def?.rules).toHaveLength(3)
+    expect(session.def?.rules[2]).toEqual({ id: 'rule-3', text: 'A new rule.', when: [], then: [] })
+    await session.files.systems.undo()
+    expect(session.def?.rules).toHaveLength(2)
+  })
+
+  it('gives a rule a condition and an action from menus that leave out what needs a character', async () => {
+    const session = await open(RulesCanvas, 'rules')
+    const when = (await screen.findAllByLabelText('Add a condition'))[1] as HTMLSelectElement
+    expect(within(when).queryByRole('option', { name: 'sees the player' })).toBeNull()
+    expect(within(when).getByRole('option', { name: 'is touching the player' })).toBeInTheDocument()
+    await userEvent.selectOptions(when, 'touching')
+    expect(session.def?.rules[1]?.when).toHaveLength(2)
+    const then = (await screen.findAllByLabelText('Add an action'))[1] as HTMLSelectElement
+    expect(within(then).queryByRole('option', { name: 'go to a place' })).toBeNull()
+    await userEvent.selectOptions(then, 'cutscene')
+    expect(session.problems.filter((p) => p.keyPath[0] === 'rules')).toEqual([])
+  })
+
+  it('takes a condition out of a rule, and a rule out of the scene', async () => {
+    const session = await open(RulesCanvas, 'rules')
+    await userEvent.click(await screen.findByRole('button', { name: /^Remove: “power” is no/ }))
+    expect(session.def?.rules[1]?.when).toEqual([])
+    await userEvent.click(screen.getAllByRole('button', { name: 'Remove this rule' })[1] as HTMLElement)
+    expect(session.def?.rules.map((r) => r.id)).toEqual(['R1'])
+  })
+
+  it('will not take out a rule the design table points to, and says which', async () => {
+    const session = await open(RulesCanvas, 'rules')
+    await userEvent.click(screen.getAllByRole('button', { name: 'Remove this rule' })[0] as HTMLElement)
+    expect(session.def?.rules).toHaveLength(2)
+    expect(session.message).toBe(
+      '“Light repels.” is in the design notes (light repels figure), so it stays. Change what it says instead.',
+    )
   })
 })
 

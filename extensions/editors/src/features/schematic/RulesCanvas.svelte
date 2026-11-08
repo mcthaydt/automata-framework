@@ -1,18 +1,31 @@
 <!-- The world's rules: what the game does whatever any character is doing. Each reads "When … then …". -->
 <script lang="ts">
+import { Button } from '@automata/editor/kit'
 import type { Probe, SysEffect } from '@automata/systems/sim'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
+import AddPiece from './AddPiece.svelte'
 import { namesOf } from './names.ts'
 import PieceRow from './PieceRow.svelte'
 import { actionPiece, actionWords } from './pieces/actions.ts'
 import { conditionPiece, conditionWords } from './pieces/conditions.ts'
+import { ruleActions, ruleConditions } from './rule-menu.ts'
 import type { SchematicSession } from './schematic-session.svelte.ts'
 
 const { session }: { session: SchematicSession } = $props()
 const def = $derived(session.def)
+// A rule has no character of its own, so a mode it names is any of the scene's.
 const names = $derived(
-  def === undefined ? undefined : namesOf(def, -1, Object.keys(session.places?.nodes ?? {})),
+  def === undefined
+    ? undefined
+    : {
+        ...namesOf(def, -1, Object.keys(session.places?.nodes ?? {})),
+        modes: [...new Set(def.agents.flatMap((a) => a.modes))],
+      },
 )
+const conditions = $derived(def === undefined || names === undefined ? [] : ruleConditions(def, names))
+const actions = $derived(def === undefined || names === undefined ? [] : ruleActions(def, names))
+const set = (rule: number, label: string, next: NonNullable<typeof def>['rules'][number]): void =>
+  void session.setRule(label, rule, next)
 </script>
 
 <section class="rules" aria-label="Rules">
@@ -31,9 +44,9 @@ const names = $derived(
               {rule.then.map((e) => actionWords(e, names)).join(', ')}{rule.every === undefined ? '' : `, every ${String(rule.every)} s`}
             {/if}
           </p>
-          <FieldRow label="What it is for" kind="text" value={rule.text} onchange={(next) => void session.setRule('Change a rule', r, { ...rule, text: String(next) })} />
+          <FieldRow label="What it is for" kind="text" value={rule.text} onchange={(next) => set(r, 'Change a rule', { ...rule, text: String(next) })} />
           {#if rule.every !== undefined}
-            <FieldRow label="Every" kind="number" unit="s" min={0.1} max={3600} step={0.5} value={rule.every} onchange={(next) => void session.setRule('Change a rule', r, { ...rule, every: Number(next) })} />
+            <FieldRow label="Every" kind="number" unit="s" min={0.1} max={3600} step={0.5} value={rule.every} onchange={(next) => set(r, 'Change a rule', { ...rule, every: Number(next) })} />
           {/if}
           <h3>It happens when</h3>
           <ul>
@@ -43,10 +56,12 @@ const names = $derived(
                 value={probe}
                 {names}
                 fallback={conditionWords(probe, names)}
-                onwrite={(next: Probe) => void session.setRule('Change a rule', r, { ...rule, when: rule.when.map((p, j) => (j === i ? next : p)) })}
+                onwrite={(next: Probe) => set(r, 'Change a condition', { ...rule, when: rule.when.map((p, j) => (j === i ? next : p)) })}
+                onremove={() => set(r, 'Remove a condition', { ...rule, when: rule.when.filter((_, j) => j !== i) })}
               />
             {/each}
           </ul>
+          <AddPiece label="Add a condition" pieces={conditions} {names} onadd={(probe: Probe) => set(r, 'Add a condition', { ...rule, when: [...rule.when, probe] })} />
           <h3>Then</h3>
           <ul>
             {#each rule.then as effect, i (i)}
@@ -55,13 +70,17 @@ const names = $derived(
                 value={effect}
                 {names}
                 fallback={actionWords(effect, names)}
-                onwrite={(next: SysEffect) => void session.setRule('Change a rule', r, { ...rule, then: rule.then.map((e, j) => (j === i ? next : e)) })}
+                onwrite={(next: SysEffect) => set(r, 'Change an action', { ...rule, then: rule.then.map((e, j) => (j === i ? next : e)) })}
+                onremove={() => set(r, 'Remove an action', { ...rule, then: rule.then.filter((_, j) => j !== i) })}
               />
             {/each}
           </ul>
+          <AddPiece label="Add an action" pieces={actions} {names} onadd={(effect: SysEffect) => set(r, 'Add an action', { ...rule, then: [...rule.then, effect] })} />
+          <Button onclick={() => void session.removeRule(r)}>Remove this rule</Button>
         </li>
       {/each}
     </ul>
+    <Button onclick={() => void session.addRule()}>Add a rule</Button>
   {/if}
 </section>
 

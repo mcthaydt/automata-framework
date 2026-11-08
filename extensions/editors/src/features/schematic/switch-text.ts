@@ -8,7 +8,7 @@ import { openDocument } from '@automata/editor/kit/documents'
 import type { Transition } from '@automata/systems/sim'
 import { parse as strictParse, stringify } from 'smol-toml'
 
-interface Header {
+export interface Header {
   /** The 0-based line of the `[table]` or `[[table]]` header. */
   readonly line: number
   /** The dotted name inside the brackets. */
@@ -19,7 +19,7 @@ interface Header {
 const HEADER = /^\s*(\[\[?)\s*([^\][]+?)\s*\]\]?\s*(#.*)?$/
 
 /** Every table header outside a multi-line string, in file order. */
-function headersOf(lines: readonly string[]): Header[] {
+export function headersOf(lines: readonly string[]): Header[] {
   const found: Header[] = []
   let open: string | undefined
   lines.forEach((line, i) => {
@@ -92,7 +92,7 @@ export function itemTables(list: CharacterList, item: unknown): string[] {
   return lines
 }
 
-function splice(text: string, from: number, to: number, put: readonly string[]): string {
+export function splice(text: string, from: number, to: number, put: readonly string[]): string {
   const lines = text.split('\n')
   lines.splice(from, to - from, ...put)
   return lines.join('\n')
@@ -187,7 +187,7 @@ export type ListChange =
   | { readonly kind: 'add'; readonly list: CharacterList; readonly agent: number; readonly next: unknown }
 
 /** A value as text with its keys in order, so two values that read the same compare the same. */
-function canonical(value: unknown): string {
+export function canonical(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`
   if (typeof value === 'object' && value !== null)
     return `{${Object.keys(value)
@@ -198,7 +198,7 @@ function canonical(value: unknown): string {
   return JSON.stringify(value) ?? 'null'
 }
 
-const NOT_FOUND = 'That part of the file could not be found, so nothing was changed.'
+export const NOT_FOUND = 'That part of the file could not be found, so nothing was changed.'
 
 /**
  * The file's text with one switch replaced, removed or added, or why not. The result is read back and must hold exactly

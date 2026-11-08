@@ -151,8 +151,8 @@ patrol scene and its Task 16 `examples/2d-story`. Tasks 1 to 7 and 9 to 13 need 
 
 **Files:** `RulesCanvas.svelte`, `NumbersCanvas.svelte`; tests.
 
-- [~] **Step 1: Failing tests:** a rule reads "When … then …, every [n] s", with its design text as "What it is for"; a rule with no conditions reads as its text only and says which switches carry it out when its text names them; a rule's condition menu leaves out what needs a character (the check's `ruleProbeError` and `ruleEffectError` list); Numbers rows are label (the number's name in words), value, range and unit, with the note as help.
-- [~] **Steps 2 to 4:** see them fail; implement; pass. **Step 5:** Commit.
+- [x] **Step 1: Failing tests:** a rule reads "When … then …, every [n] s", with its design text as "What it is for"; a rule with no conditions reads as its text only and says which switches carry it out when its text names them; a rule's condition menu leaves out what needs a character (the check's `ruleProbeError` and `ruleEffectError` list); Numbers rows are label (the number's name in words), value, range and unit, with the note as help.
+- [x] **Steps 2 to 4:** see them fail; implement; pass. **Step 5:** Commit `feat(editors): Schematic's rules can be added and taken apart`.
 
 ### Task 11: Watch
 
@@ -260,3 +260,7 @@ template's controls. It moves no other 3D hash, golden or replay.
   inspector has no phone-size layout test. The audit must make a small game in the editors, play it, and confirm the
   edit shows up in play (Tasks 14 and 15 would have done this and have not been built).
 
+- 2026-11-08, Task 10 finished: a rule can be added, removed, and given or relieved of conditions and actions
+  (`rule-text.ts`, the same text rewrite as a switch, read back with both readers; the last rule out puts `rules = []`
+  back). The rule menus offer exactly what the game's own checks accept (`rule-menu.ts` asks `checkSystems`, so the list
+  cannot drift). A rule the design notes point to cannot be removed, in words. Editors unit 297 pass.

@@ -23,6 +23,7 @@ import {
   removePlaceEdits,
   renamePlaceEdits,
 } from './places-edits.ts'
+import { changeRuleText, type RuleChange } from './rule-text.ts'
 import {
   addModeEdits,
   diffEdits,
@@ -374,15 +375,54 @@ export class SchematicSession {
     return this.change(`Rename ${from} to ${to}`, edits.systems)
   }
 
-  /** World rule `rule` made `next` when only values differ; adding or removing parts of a rule is not in the editor yet. */
+  /**
+   * World rule `rule` made `next`. When only values differ each is written in its own literal; when a condition or an
+   * action came or went, the rule's tables are written again (`rule-text.ts`).
+   */
   async setRule(label: string, rule: number, next: SystemsDef['rules'][number]): Promise<Outcome> {
     const before = this.def?.rules[rule]
     if (before === undefined) return this.#refuse('That rule is not in this scene any more.')
-    if (!sameShape(before, next))
+    if (sameShape(before, next)) return this.change(label, diffEdits(['rules', rule], before, next))
+    return this.#rules(label, { kind: 'replace', index: rule, next })
+  }
+
+  /** A new rule with nothing in it yet, named "rule-3" and so on. */
+  async addRule(): Promise<Outcome> {
+    const def = this.def
+    if (def === undefined)
+      return this.#refuse('This file has a mistake, so it is read only until the mistake is fixed.')
+    const taken = new Set(def.rules.map((r) => r.id))
+    let n = def.rules.length + 1
+    while (taken.has(`rule-${n}`)) n += 1
+    return this.#rules('Add a rule', {
+      kind: 'add',
+      next: { id: `rule-${n}`, text: 'A new rule.', when: [], then: [] },
+    })
+  }
+
+  /** Takes a rule out, unless the design notes still point to it. */
+  async removeRule(rule: number): Promise<Outcome> {
+    const found = this.def?.rules[rule]
+    if (found === undefined) return this.#refuse('That rule is not in this scene any more.')
+    const cell = this.def?.matrix.find((c) => c.rule === found.id)
+    if (cell !== undefined)
       return this.#refuse(
-        'Adding or taking out the parts of a rule is not in the editor yet. Change what is there.',
+        `“${found.text}” is in the design notes (${cell.row} ${cell.verb} ${cell.col}), so it stays. Change what it says instead.`,
       )
-    return this.change(label, diffEdits(['rules', rule], before, next))
+    return this.#rules('Remove a rule', { kind: 'remove', index: rule })
+  }
+
+  async #rules(label: string, change: RuleChange): Promise<Outcome> {
+    const { systems } = this.files
+    const text = systems.history.state.text
+    const result =
+      text === undefined
+        ? { refused: 'There is no file to change yet.' }
+        : changeRuleText(systems.path, text, change)
+    const outcome: Outcome =
+      'refused' in result ? { ok: false, message: result.refused } : await systems.accept(result.text, label)
+    this.message = outcome.ok ? undefined : outcome.message
+    return outcome
   }
 
   /** A number in the Numbers page. */
