@@ -34,13 +34,16 @@ What it builds on:
 | The every-editor page with no game behind it (what the try-it is becoming) | Changes a Writer line, reloads | **Lost.** The old line is back | Section 2, step 3 |
 | The same page | Presses New level | Fails: "This row can't be opened: there is no such file", in dark text on a dark panel | Section 2, step 4 |
 | Today's 2D try-it (`/editor/app/` on the site) | Makes a level, places three coins, reloads, closes the browser and comes back | **Kept**, in Chromium. But the site says the opposite: "Your level stays in this page and is gone when you close it" | Section 2, step 2 |
-| `automata editor` on a real game | Places three coins, changes the keeper's line, reloads, plays | Kept on disk, and both show in play | Section 2, step 5 |
+| `automata editor` on a real game | Places three coins, changes the keeper's line and leaves the field, reloads, plays | Kept on disk, and both show in play | Section 2, step 5 |
+| The same, typing only | Types a new keeper line in Writer, waits 10 s while the bar says "Saved in your game folder", reloads without leaving the field | **Lost.** The file never had the words. The same in Feel and in the Tuner | Section 2, step 6 |
 
 **Why no one caught it.**
 - The requirement said the try-it keeps nothing ("Nothing is kept there: Share is how a level leaves", the site's
   try-it test). So the audits checked the try-it against "not kept".
 - Every make-and-play check ran on a real game folder, where saving works.
 - The one reload test checks that a new level is still listed. It never checks an edit, and it only covers the 2D page.
+- Typed words are written only when the field loses focus. Every check, this audit's first pass included, left the
+  field (or pressed Play, which leaves it) before looking, so the words were always written in time.
 - The site's fix of 16:21 today measured localStorage, IndexedDB and the cache, but not the browser's private file
   storage (OPFS), where the try-it keeps the level. It concluded "the level is gone" and changed the Editor page and
   Privacy to say so (commit `de5712e9`).
@@ -98,8 +101,16 @@ served by a small static server that answers `/api/ping` the way the site does (
    - Play, then the game's Play button: the three coins were drawn where they were placed (`served-2-coins-in-play.png`).
    - The right arrow walked the player to the keeper, whose box said "Hello grandma, this was saved."
      (`served-3-edited-line-in-play.png`).
-   - **Made in the editors, kept through a reload, and seen in play.**
-6. **GitHub's CORS was not checked again here.** This container's proxy refuses `api.github.com`. The facts used are
+   - **Made in the editors, kept through a reload, and seen in play.** But step 5 left the Writer field before the
+     reload, which is what saves it (step 6).
+6. **Typing, then a reload, on the same kind of game.** The thread "Audit value for AI game makers" reported this, and
+   it was checked here on a fresh game.
+   - In Writer, the first line was selected and "Typed and never left the field." typed, with the cursor left in it.
+   - After 10 s the bar said "Saved in your game folder" (`served-4-typed-words-not-saved.png`).
+   - `content/lines/keeper.toml` did not have the words.
+   - Reload, Writer: the line read "Hello there. Mind the gate on your way out." again.
+   - That thread saw the same in Feel (a word's text) and in the Tuner (a control's name). Pressing Tab first saves it.
+7. **GitHub's CORS was not checked again here.** This container's proxy refuses `api.github.com`. The facts used are
    GitHub's documentation (the REST API answers cross-origin requests from any origin) and the apps audit's check (the
    sign-in endpoints and the git endpoints send no CORS headers).
 
@@ -179,6 +190,22 @@ the editors" means building the editors' web home, not just moving a link.
 
 *Direction:* section 6.1. The web editors open on "Your games". Play on the web uses the player the apps spec already
 plans for phones (section 7 of #525). Build it once, where both the app and the web page can import it.
+
+**P14. Typed words are lost on a reload, a closed tab or a sleeping tablet, while the bar says they are saved.** This
+happens on a real game too (section 2, step 6).
+- The content editors' text fields write only on `change`, which fires when the field loses focus. Writer's
+  `WordsField.svelte` says so: "saved when the person leaves it (or presses Ctrl+Enter), never on every keystroke".
+  Feel's fields write on `onchange` too (`FeelCanvas.svelte:200`), and so do the Tuner's control names and values
+  (`ControlsSection.svelte:69`, `TunerRows.svelte:105`).
+- A reload or a closed tab doesn't make the field lose focus, so the words never reach the file.
+- The kit has `flushOnHide` (`page-lifecycle.ts`), which writes on `pagehide` and on hidden. Only the 2D document
+  controller uses it, and the suite's text fields have nothing to flush.
+- All the while, the top bar says "Saved in your game folder", which is a place, not a state (`SuiteTopBar.svelte:89`).
+
+*Direction:* write typed words as they are typed, a moment after the last key (about half a second), and as one step of
+Undo per field visit. Flush anything still waiting on `pagehide` and on hidden. The saved line says "Saving…" until the
+write lands, then "Saved". This is part of the saving fix whatever D1 says, and it matters most on a tablet, which
+puts a tab to sleep without warning.
 
 ### Medium
 
@@ -394,6 +421,8 @@ GitHub's REST API, not git.
    - Make an edit (a coin, and a Writer line), reload, and check the edit.
    - Then close the browser context, open a new persistent one, and check it again.
    - Run it in Chromium and in WebKit (the `editor-ipad-webkit` project exists).
+   - Type words in Writer, Feel and the Tuner and reload **without leaving the field**, on a served game and on the web
+     (P14). Then do the same with the page hidden instead of reloaded.
 2. **Unit tests:**
    - `openContentSuite` writes its sample into the store it is given.
    - `openSuitePorts` reports `persistent: false` with the reason.
@@ -414,6 +443,7 @@ GitHub's REST API, not git.
 - **Signing in.** "Keep your games on all your devices", then "Sign in with GitHub (free)". Under it: "Your games are
   kept in your own GitHub account. Automata keeps nothing."
 - **The saved line.**
+  - "Saving…" while a write is on its way, then one of the lines below (P14)
   - "Saved on this device"
   - "Saved on this device and on GitHub"
   - "Saved on this device. Not on GitHub yet: no internet."
