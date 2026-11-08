@@ -4520,6 +4520,26 @@ interface TunerSuiteSession {
 }
 ```
 
+## `./suite/node`
+
+### `ArgvChecksOptions` (interface)
+
+```ts
+interface ArgvChecksOptions {
+    readonly root: string;
+    readonly checks: readonly CheckDef[];
+    readonly sceneOf?: ((path: string) => string | undefined) | undefined;
+    readonly timeoutMs?: number | undefined;
+    readonly env?: NodeJS.ProcessEnv | undefined;
+}
+```
+
+### `createArgvChecks` (function)
+
+```ts
+function createArgvChecks(options: ArgvChecksOptions): ChecksRunner;
+```
+
 ## `./suite/testing`
 
 ### `fixtureEditor` (const)

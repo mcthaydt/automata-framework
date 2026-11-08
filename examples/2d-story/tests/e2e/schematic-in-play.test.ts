@@ -102,6 +102,50 @@ test('Watch: walking into the guard’s sight lights Hunt on the diagram and log
   await editors.screenshot({ path: test.info().outputPath('watch-hunt.png') })
 })
 
+/** Goes to a page from the panel: beside the diagram on an iPad, a sheet behind the Panel button on a phone. */
+async function fromPanel(editors: Page, name: string): Promise<void> {
+  const item = editors.getByRole('button', { name, exact: true }).first()
+  const toggle = editors.getByRole('button', { name: 'Panel', exact: true })
+  await expect(item.or(toggle).first()).toBeVisible()
+  const sheet = !(await item.isVisible())
+  if (sheet) await toggle.click()
+  await item.click()
+  if (!sheet) return
+  // The sheet stays up over the page it chose; a person drags it all the way down, and so does this, so the page shows.
+  const scrim = editors.getByRole('button', { name: 'Close panel' })
+  for (let tries = 0; tries < 3 && !(await scrim.isVisible()); tries++)
+    await editors.getByRole('button', { name: 'Resize panel' }).click()
+  await scrim.click({ position: { x: 4, y: 4 } })
+}
+
+test('Fair play: Check now plays the guard’s scenarios through the story, and the verdict changes when his sight does', async ({
+  context,
+}) => {
+  const editors = await context.newPage()
+  await openGuard(editors)
+  await fromPanel(editors, 'Fair play')
+  const verdict = editors.getByText(/^(Fair|Not fair yet):/)
+  await editors.getByRole('button', { name: 'Check now' }).click()
+  // He sees 9 m, so he hunts a player 4 m off and one 8 m off, every try.
+  await expect(verdict).toHaveText('Fair: 2 of 2 checks pass.', { timeout: 60_000 })
+  await expect(editors.getByRole('list', { name: 'What the check measured' })).toContainText(
+    'hunts a player at the far end of the Yard',
+  )
+  await editors.screenshot({ path: test.info().outputPath('6-fair.png') })
+
+  // Shorten his sight to 6 m: the player 8 m off is out of it, and the same button now says so.
+  await fromPanel(editors, 'Guard')
+  await setNumber(editors, 'Sees up to', 6)
+  await fileHas(GUARD_FILE, 'range = 6')
+  await fromPanel(editors, 'Fair play')
+  await expect(editors.getByText('This is from before your last change. Check again.')).toBeVisible()
+  await editors.getByRole('button', { name: 'Check now' }).click()
+  await expect(verdict).toContainText('Not fair yet', { timeout: 60_000 })
+  await expect(verdict).toContainText('hunts a player at the far end of the Yard')
+  await expect(verdict).toContainText('1 of 2 checks pass.')
+  await editors.screenshot({ path: test.info().outputPath('6-not-fair.png') })
+})
+
 test('raising the guard’s sight to 24 m in Schematic makes it hunt within 1 s', async ({ page, context }) => {
   const editors = await context.newPage()
   await openGuard(editors)

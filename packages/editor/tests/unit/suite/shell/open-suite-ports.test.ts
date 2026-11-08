@@ -10,6 +10,22 @@ import { openSuitePorts } from '#src/features/suite/shell/open-suite-ports.ts'
 const json = (body: unknown, status = 200): Response =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })
 
+const WITH_CHECK = `format = "af-editors/1"
+[[file]]
+glob = "content/systems/*.toml"
+editor = "schematic"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+
+[[check]]
+id = "fair-play"
+run = ["node", "fair.mjs"]
+when = "after"
+joins = []
+measure = true
+`
+
 const LIST = `format = "af-editors/1"
 [[file]]
 glob = "content/rooms/*.af2d.json"
@@ -21,14 +37,28 @@ checks = ["content"]
 `
 
 /** A page whose origin is an editor server over a checkout holding `files`, or no server at all. */
-function page(files: Record<string, string> | undefined) {
+function page(files: Record<string, string> | undefined, extra: Record<string, unknown> = {}) {
   const asked: string[] = []
-  const fetchFn = (async (input: RequestInfo | URL) => {
+  const fetchFn = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(String(input))
     asked.push(url.pathname)
     if (files === undefined) throw new TypeError('Failed to fetch')
     if (url.pathname === '/api/ping')
-      return json({ automata: 'editor', token: false, gameUrl: 'http://localhost:5173/' })
+      return json({ automata: 'editor', token: false, gameUrl: 'http://localhost:5173/', ...extra })
+    if (url.pathname === '/api/checks/run') {
+      asked.push(`run ${String(init?.body)}`)
+      return json({
+        results: [
+          {
+            check: 'fair-play',
+            status: 'pass',
+            findings: [],
+            measure: [{ id: 'm', label: 'a measure', value: 100, ok: true }],
+            output: '',
+          },
+        ],
+      })
+    }
     if (url.pathname === '/api/list')
       return json(Object.keys(files).map((path) => ({ path, mtime: 1, size: files[path]?.length ?? 0 })))
     const text = files[url.searchParams.get('path') ?? '']
@@ -57,5 +87,23 @@ describe('openSuitePorts', () => {
     expect(opened.sample).toBe(true)
     expect(opened.gameUrl).toBeUndefined()
     expect((await opened.ports.workspace.read(EDITOR_LIST_PATH))?.text).toBe(SAMPLE_GAME[EDITOR_LIST_PATH])
+  })
+
+  it('declares the editor list’s checks and runs them on the server, only when the server says it has them', async () => {
+    const files = { [EDITOR_LIST_PATH]: WITH_CHECK, 'content/systems/guard.toml': 'a = 1' }
+    const served = page(files, { checks: true })
+    const opened = await openSuitePorts(served.env)
+    expect(opened.ports.checks.declared().map((check) => check.id)).toEqual(['fair-play'])
+    const run = await opened.ports.checks.run({
+      checks: ['fair-play'],
+      candidates: [{ path: 'content/systems/guard.toml', text: 'a = 2' }],
+    })
+    const [result] = await run.result()
+    expect(result).toMatchObject({ check: 'fair-play', status: 'pass', measure: [{ value: 100 }] })
+    expect(served.asked.some((entry) => entry.startsWith('run ') && entry.includes('"a = 2"'))).toBe(true)
+
+    // A server that does not run checks leaves them undeclared: Fair play says it is not available instead of failing.
+    const quiet = await openSuitePorts(page(files).env)
+    expect(quiet.ports.checks.declared()).toEqual([])
   })
 })

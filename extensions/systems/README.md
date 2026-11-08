@@ -52,7 +52,10 @@ needs a row for each (the create-game template has them).
 - **Fair play**: "Check now" runs the game's own check with the id `fair-play`, a `[[check]]` row in the editor list that no
   file row names, so a number edit never runs it. The check is a small command of the game's (a scene module that reads
   `content/systems/<scene>.toml` from disk on each run and the bots' scenarios) and prints `{ findings, measure }`.
-  `automata editor` has no checks runner yet, so "Check now" cannot run the check from a served game; no example game declares a `fair-play` check yet, so the page is tested only against stand-in checks.
+  `automata editor` runs it where the game is (`POST /api/checks/run`, only the ids the editor list declares) and the page shows
+  each measure. `examples/2d-story/fair-play/` is a whole one: `scene.ts` is the bots' `SystemsScene` over the story's own sim,
+  `check.mjs` runs it in Vite's module runner (the sim's sources are TypeScript the content plugin feeds) and prints the share of
+  tries that held for each scenario in `content/systems/guard.toml`, so the verdict moves when the guard's file does.
 - **The puzzle**: items, facts, actions and the goal, and "Can it be finished?", answered by the solver in a worker.
 
 Schematic writes a value into its own spot in the file. Adding or taking out a condition, an action, a patrol stop or

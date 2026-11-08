@@ -24,3 +24,12 @@ editor = "schematic"
 modes = ["edit", "ask"]
 gates = []
 checks = ["content"]
+
+# Schematic's Fair play page: "Check now" plays the guard's scenarios through the story's own sim and reports, for each, how
+# often it held. `fair-play/check.mjs` reads the guard's file as it stands on disk, which is where Schematic writes each change.
+[[check]]
+id = "fair-play"
+run = ["node", "fair-play/check.mjs"]
+when = "after"
+joins = []
+measure = true

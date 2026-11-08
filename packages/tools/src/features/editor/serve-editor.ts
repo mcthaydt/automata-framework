@@ -10,6 +10,8 @@ import { readFile, realpath, rm, stat } from 'node:fs/promises'
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { basename, extname, join, resolve, sep } from 'node:path'
+import { EDITOR_LIST_PATH, fileAccess, loadEditorList } from '@automata/editor/editor-list'
+import { type ArgvChecksOptions, createArgvChecks } from '@automata/editor/suite/node'
 import { type Checkout, openCheckout } from './checkout.ts'
 import { type EditorPolicy, editorPolicy } from './editor-policy.ts'
 import type { PublishOutcome } from './publish-game.ts'
@@ -149,6 +151,63 @@ interface PingFacts {
   readonly game: string
   readonly gameUrl?: string | undefined
   readonly publish?: true
+  readonly checks?: true
+}
+
+/** The game's own checks, run for the page: the `[[check]]` rows of the checkout's editor list, and nothing else. */
+type ChecksRunner = ReturnType<typeof createArgvChecks>
+
+/**
+ * `/api/checks/run`: a POST of `{ checks, candidates }` runs the declared checks as argv in the checkout (no shell) and
+ * answers `{ results }`. The commands are the game owner's, written in `content/editors.toml`, which no browser can write
+ * (`ALWAYS_NEVER`); the page names a check by id and supplies only the text of the files to try, which are written to a
+ * folder of their own. An id the list does not declare comes back as an error result, never as a command.
+ */
+function checksRoute(runner: ChecksRunner): (req: IncomingMessage, res: ServerResponse) => Promise<void> {
+  return async (req, res) => {
+    if (req.method !== 'POST') return reply(res, 405, { message: 'method not allowed' })
+    const body = await readBody(req)
+    if (body === undefined) return reply(res, 413, { message: 'the request is over 16 MB' })
+    const asked = asRequest(body.toString('utf8'))
+    if (asked === undefined) return reply(res, 400, { message: 'that is not a request to run checks' })
+    const run = await runner.run(asked)
+    return reply(res, 200, { results: await run.result() })
+  }
+}
+
+/** A body of `{ checks: string[], candidates?: { path, text }[] }`, or nothing. */
+function asRequest(text: string): Parameters<ChecksRunner['run']>[0] | undefined {
+  let json: unknown
+  try {
+    json = JSON.parse(text)
+  } catch {
+    return undefined
+  }
+  if (typeof json !== 'object' || json === null) return undefined
+  const { checks, candidates = [] } = json as { checks?: unknown; candidates?: unknown }
+  const strings = Array.isArray(checks) && checks.every((id) => typeof id === 'string')
+  const files =
+    Array.isArray(candidates) &&
+    candidates.every(
+      (each) =>
+        typeof each === 'object' &&
+        each !== null &&
+        typeof (each as { path?: unknown }).path === 'string' &&
+        typeof (each as { text?: unknown }).text === 'string',
+    )
+  return strings && files ? { checks, candidates: candidates as { path: string; text: string }[] } : undefined
+}
+
+/** The runner for a checkout's editor list, or none when the list declares no check. */
+function checksOf(root: string, listText: string | undefined): ChecksRunner | undefined {
+  const loaded = listText === undefined ? undefined : loadEditorList(listText)
+  if (loaded === undefined || !loaded.ok || loaded.list.check.length === 0) return undefined
+  const { list } = loaded
+  const sceneOf: NonNullable<ArgvChecksOptions['sceneOf']> = (path) => {
+    const access = fileAccess(list, path)
+    return access.writable ? access.scene : undefined
+  }
+  return createArgvChecks({ root, checks: list.check, sceneOf })
 }
 
 /**
@@ -188,7 +247,7 @@ function publishRoute(
   }
 }
 
-/** The `/api` routes: ping (with the game's name), list, file and publish; a token is checked first when the server has one. */
+/** The `/api` routes: ping (with the game's name), list, file, publish and checks; a token is checked first when the server has one. */
 async function api(
   req: IncomingMessage,
   res: ServerResponse,
@@ -198,6 +257,7 @@ async function api(
   checkout: Checkout,
   facts: PingFacts,
   publish: ((req: IncomingMessage, res: ServerResponse, url: URL) => Promise<void>) | undefined,
+  checks: ((req: IncomingMessage, res: ServerResponse) => Promise<void>) | undefined,
 ): Promise<void> {
   if (url.pathname === '/api/ping')
     return reply(res, 200, { automata: 'editor', token: token !== undefined, ...facts })
@@ -210,6 +270,7 @@ async function api(
     return reply(res, 200, await checkout.list(url.searchParams.get('prefix') ?? ''))
   }
   if (url.pathname.startsWith('/api/publish') && publish !== undefined) return publish(req, res, url)
+  if (url.pathname === '/api/checks/run' && checks !== undefined) return checks(req, res)
   if (url.pathname !== '/api/file') return reply(res, 404, { message: 'no such route' })
   return fileRoute(req, res, url, policy, checkout)
 }
@@ -254,17 +315,19 @@ export async function serveEditor(options: EditorServerOptions): Promise<Running
     throw new Error('listening beyond the loopback needs a token: the editor writes files')
   const root = await realpath(options.root)
   const appDir = await realpath(options.appDir)
-  const policy =
-    options.policy ??
-    editorPolicy(await readFile(join(root, 'content/editors.toml'), 'utf8').catch(() => undefined))
+  const listText = await readFile(join(root, EDITOR_LIST_PATH), 'utf8').catch(() => undefined)
+  const policy = options.policy ?? editorPolicy(listText)
+  const runner = checksOf(root, listText)
   const checkout = openCheckout(root, policy)
   // `gameUrl` is left out of the ping when there is none, so an older editor reads the same answer.
   const facts: PingFacts = {
     game: gameName(root),
     ...(options.gameUrl === undefined ? {} : { gameUrl: options.gameUrl }),
     ...(options.publish === undefined ? {} : { publish: true }),
+    ...(runner === undefined ? {} : { checks: true }),
   }
   const publish = options.publish === undefined ? undefined : publishRoute(options.publish)
+  const checks = runner === undefined ? undefined : checksRoute(runner)
 
   const server: Server = createServer((req, res) => {
     void (async () => {
@@ -273,7 +336,7 @@ export async function serveEditor(options: EditorServerOptions): Promise<Running
         if (refused !== undefined) return reply(res, 403, { message: refused })
         const url = new URL(req.url ?? '/', 'http://editor')
         if (url.pathname.startsWith('/api/'))
-          return await api(req, res, url, token, policy, checkout, facts, publish)
+          return await api(req, res, url, token, policy, checkout, facts, publish, checks)
         return await staticFile(res, appDir, url.pathname)
       } catch (error) {
         if (!res.headersSent)

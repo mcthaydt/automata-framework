@@ -1,5 +1,7 @@
 // Where an editor keeps things: the document store, the journal for autosaves and the export sink, opened from OPFS
 // when the browser has it and from memory when it does not.
+
+import { type ChecksClient, createChecksClient } from './checks-client.ts'
 import { createDownloadStore, type DownloadEnv, type DownloadStore } from './download-store'
 import { createOpfsStore, type DirectoryLike } from './handle-store'
 import { createHttpStore } from './http-store'
@@ -87,6 +89,8 @@ export interface ServedStore {
   readonly gameUrl: string | undefined
   /** Builds the game into a zip to upload, from a server that can; none from one that cannot. */
   readonly publish: PublishClient | undefined
+  /** Runs the game's own checks on the server, from one that has them; none from one that does not. */
+  readonly checks: ChecksClient | undefined
 }
 
 /**
@@ -101,6 +105,7 @@ export async function openServedStore(
   let game: string | undefined
   let gameUrl: string | undefined
   let publishes = false
+  let checks = false
   try {
     const ping = await fetchFn(`${env.origin}/api/ping`)
     const body: unknown = await ping.json()
@@ -110,6 +115,7 @@ export async function openServedStore(
     if ('gameUrl' in body && typeof body.gameUrl === 'string' && URL.canParse(body.gameUrl))
       gameUrl = body.gameUrl
     publishes = 'publish' in body && body.publish === true
+    checks = 'checks' in body && body.checks === true
   } catch {
     return undefined
   }
@@ -121,6 +127,7 @@ export async function openServedStore(
     game,
     gameUrl,
     publish: publishes ? createPublishClient({ base: env.origin, token, fetch: fetchFn }) : undefined,
+    checks: checks ? createChecksClient({ base: env.origin, token, fetch: fetchFn }) : undefined,
   }
 }
 

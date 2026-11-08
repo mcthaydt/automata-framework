@@ -212,10 +212,10 @@ describe('the Fair play page', () => {
     render(FairCanvas, { props: { session } })
     expect(
       await screen.findByText(
-        'Fair play needs two things from your game’s code: the pipelines extension, and a fair-play file for this scene.',
+        'Your game cannot check fair play yet. Ask whoever writes your game’s code to add a fair-play check.',
       ),
     ).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Check now' })).toBeNull()
-    expect(screen.getByRole('link', { name: 'How to add them' })).toHaveAttribute('href')
+    expect(screen.getByRole('link', { name: 'How to add it' })).toHaveAttribute('href')
   })
 })

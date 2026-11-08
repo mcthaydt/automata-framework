@@ -103,8 +103,8 @@ const THRESHOLDS = [
     <h3>Is it fair?</h3>
     {#if !session.fairAvailable}
       <p class="dim">
-        Fair play needs two things from your game’s code: the pipelines extension, and a fair-play file for this scene.
-        <a href={README}>How to add them</a>
+        Your game cannot check fair play yet. Ask whoever writes your game’s code to add a fair-play check.
+        <a href={README}>How to add it</a>
       </p>
     {:else}
       <Button variant="primary" disabled={session.fairRunning} onclick={() => void session.checkFair()}>

@@ -27,6 +27,7 @@
     "./tokens.css": "./src/shared/kit/tokens.css",
     "./fonts.css": "./src/shared/kit/fonts.css",
     "./suite": "./src/entries/suite.ts",
+    "./suite/node": "./src/entries/suite-node.ts",
     "./suite/testing": "./src/entries/suite-testing.ts",
     "./suite/testing/layout": "./src/entries/suite-layout-testing.ts",
     "./editor-list": "./src/entries/editor-list.ts",

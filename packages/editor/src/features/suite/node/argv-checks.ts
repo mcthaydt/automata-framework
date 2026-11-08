@@ -15,8 +15,8 @@ import type {
   CheckRun,
   ChecksRunner,
 } from '../../../shared/kit/ports/suite-ports.ts'
-import { automataCheckOutputSchema, type CheckOutput, suiteCheckOutputSchema } from './check-output.schema'
-import { type ArgvResult, runArgv } from './run-argv'
+import { automataCheckOutputSchema, type CheckOutput, suiteCheckOutputSchema } from './check-output.schema.ts'
+import { type ArgvResult, runArgv } from './run-argv.ts'
 
 export interface ArgvChecksOptions {
   /** The game's checkout, where every check runs. */

@@ -300,3 +300,100 @@ describe('serveEditor: Publish', () => {
     expect((await api(url, '/api/publish', { method: 'POST' })).status).toBe(401)
   })
 })
+
+describe('serveEditor: the game’s checks', () => {
+  /** An editor list that declares one check, `fair.mjs` in the checkout (an argument may not hold braces). */
+  const LIST = (): string => `format = "af-editors/1"
+
+[[file]]
+glob = "content/*.toml"
+editor = "schematic"
+modes = ["edit"]
+gates = []
+checks = ["content"]
+
+[[check]]
+id = "fair-play"
+run = ["node", "fair.mjs"]
+when = "after"
+joins = []
+measure = true
+`
+  const PRINTS_A_MEASURE = `console.log(JSON.stringify({ measure: [{ id: 'm', label: 'a measure', value: 50, threshold: 80, ok: false }] }))`
+  /** The checkout declares `fair-play` and keeps the command it runs. */
+  const declare = async (): Promise<void> => {
+    await mkdir(join(root, 'content'), { recursive: true })
+    await writeFile(join(root, 'content/editors.toml'), LIST())
+    await writeFile(join(root, 'fair.mjs'), PRINTS_A_MEASURE)
+  }
+
+  const post = (base: string, body: unknown, headers: Record<string, string> = {}): Promise<Response> =>
+    api(base, '/api/checks/run', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...headers },
+      body: JSON.stringify(body),
+    })
+
+  it('says in the ping that it has checks only when the editor list declares one', async () => {
+    const plain = await start()
+    expect(await (await api(plain.url, '/api/ping')).json()).not.toHaveProperty('checks')
+    await plain.close()
+    await declare()
+    const { url } = await start()
+    expect(await (await api(url, '/api/ping')).json()).toMatchObject({ checks: true })
+  })
+
+  it('runs a declared check in the checkout and answers what it printed', async () => {
+    await declare()
+    const { url } = await start()
+    const answer = await post(url, { checks: ['fair-play'], candidates: [] })
+    expect(answer.status).toBe(200)
+    const { results } = (await answer.json()) as {
+      results: { check: string; status: string; measure: unknown }[]
+    }
+    expect(results).toHaveLength(1)
+    expect(results[0]).toMatchObject({
+      check: 'fair-play',
+      status: 'pass',
+      measure: [{ id: 'm', label: 'a measure', value: 50, threshold: 80, ok: false }],
+    })
+  })
+
+  it('runs only what the editor list declares: an id it does not name is an error, not a command', async () => {
+    await declare()
+    const { url } = await start()
+    const answer = await post(url, { checks: ['rm-everything'], candidates: [] })
+    const { results } = (await answer.json()) as {
+      results: { check: string; status: string; output: string }[]
+    }
+    expect(results[0]).toMatchObject({ check: 'rm-everything', status: 'error' })
+    expect(results[0]?.output).toContain('is not a check the editor list declares')
+  })
+
+  it('refuses a candidate outside the checkout, and a body that is not a request', async () => {
+    await declare()
+    const { url } = await start()
+    const outside = await post(url, { checks: ['fair-play'], candidates: [{ path: '../x', text: 'y' }] })
+    const { results } = (await outside.json()) as { results: { status: string }[] }
+    expect(results[0]?.status).toBe('error')
+    expect((await post(url, { checks: 'fair-play' })).status).toBe(400)
+    expect((await api(url, '/api/checks/run')).status).toBe(405)
+  })
+
+  it('has no checks route when the list declares none, and wants the token when it has one', async () => {
+    const plain = await start()
+    expect((await post(plain.url, { checks: ['fair-play'] })).status).toBe(404)
+    await plain.close()
+    await declare()
+    const { url } = await start({ token: 'tok' })
+    expect((await post(url, { checks: ['fair-play'] })).status).toBe(401)
+    expect((await post(url, { checks: ['fair-play'] }, { authorization: 'Bearer tok' })).status).toBe(200)
+  })
+
+  it('refuses a request from a page on another origin', async () => {
+    await declare()
+    const { url } = await start()
+    const answer = await post(url, { checks: ['fair-play'] }, { origin: 'http://evil.example' })
+    expect(answer.status).toBe(403)
+  })
+})

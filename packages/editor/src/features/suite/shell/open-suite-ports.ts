@@ -4,9 +4,11 @@
 // memory, and the top bar says so. The served suite has no change sets, so its edits write the checkout directly, and
 // its Publish builds the game into a zip on the computer that serves it.
 import type { SuitePorts } from '../../../shared/kit/ports/suite-ports.ts'
+import type { ChecksClient } from '../../../shared/kit/storage/checks-client.ts'
 import type { PublishClient } from '../../../shared/kit/storage/publish-client.ts'
 import { openServedStore, type ServedWorkspaceEnv } from '../../../shared/kit/storage/workspace.ts'
-import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '../core'
+import { EDITOR_LIST_PATH, type EditorList, loadEditorList, workspaceFile } from '../core'
+import type { MemoryCheck } from '../memory/memory-checks.ts'
 import { createMemoryPorts } from '../memory/memory-ports.ts'
 import { SAMPLE_GAME, samplePorts } from '../memory/sample-ports.ts'
 
@@ -24,6 +26,18 @@ export interface OpenedSuitePorts {
 
 const decoder = new TextDecoder()
 
+/** The list's `[[check]]` rows as checks that run on the server, which holds the commands. */
+const serverChecks = (list: EditorList, client: ChecksClient): MemoryCheck[] =>
+  list.check.map((def) => ({
+    ...def,
+    async respond({ candidates, signal }) {
+      const [result] = await client.run([def.id], candidates, signal)
+      if (result === undefined) throw new Error('The editor’s command gave no answer.')
+      const { check: _, ...outcome } = result
+      return outcome
+    },
+  }))
+
 export async function openSuitePorts(
   env: Pick<ServedWorkspaceEnv, 'origin' | 'search' | 'fetch' | 'sessionStorage'>,
 ): Promise<OpenedSuitePorts> {
@@ -36,7 +50,7 @@ export async function openSuitePorts(
       game: undefined,
       publish: undefined,
     }
-  const { store, gameUrl, game, publish } = served
+  const { store, gameUrl, game, publish, checks } = served
   const bytes = await store.read(EDITOR_LIST_PATH)
   const load = loadEditorList(bytes === undefined ? undefined : decoder.decode(bytes))
   const { ports } = await createMemoryPorts({
@@ -46,6 +60,7 @@ export async function openSuitePorts(
         ? workspaceFile(load.list, path)
         : { path, writable: false, why: 'The editor list has a problem.' },
     changeSet: false,
+    checks: load.ok && checks !== undefined ? serverChecks(load.list, checks) : [],
   })
   return { ports, sample: false, gameUrl, game, publish }
 }

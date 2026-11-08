@@ -6,5 +6,12 @@
     "isolatedDeclarations": false,
     "declaration": false
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "ship.config.ts", "vite.config.ts", "content/generated/*.d.ts"]
+  "include": [
+    "src/**/*.ts",
+    "fair-play/*.ts",
+    "tests/**/*.ts",
+    "ship.config.ts",
+    "vite.config.ts",
+    "content/generated/*.d.ts"
+  ]
 }

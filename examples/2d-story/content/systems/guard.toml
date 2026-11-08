@@ -3,7 +3,6 @@ scene = "story"
 objects = []
 matrix = []
 rules = []
-scenarios = []
 
 [tunables]
 
@@ -61,3 +60,33 @@ dwell = 0.5
 [[agents.routine]]
 node = "yardE"
 dwell = 0.5
+
+[[scenarios]]
+id = "closeBy"
+claims = "The guard hunts a player standing near him"
+policy = "scripted"
+seeds = 4
+
+[scenarios.setup.place.player]
+x = 21
+z = 15.5
+
+[scenarios.expect]
+within = 2
+probability = 1
+condition = [ { mode = "hunt" } ]
+
+[[scenarios]]
+id = "farOff"
+claims = "The guard hunts a player at the far end of the Yard"
+policy = "scripted"
+seeds = 4
+
+[scenarios.setup.place.player]
+x = 17
+z = 15.5
+
+[scenarios.expect]
+within = 2
+probability = 1
+condition = [ { mode = "hunt" } ]
