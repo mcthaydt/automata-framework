@@ -176,3 +176,63 @@ describe('Schematic’s Undo', () => {
     expect(undo?.canUndo()).toBe(false)
   })
 })
+
+describe('Undo after a change to the places', () => {
+  it('moves the places file back, not the behaviour file', async () => {
+    const { session } = await open({ 'content/systems/hall.toml': HALL, 'content/nav/hall.toml': NAV })
+    const undo = createSchematic().undo?.(session)
+    const [place] = Object.keys(session.places?.nodes ?? {})
+    const at = session.places?.nodes[place as string]
+    await session.setNumber('walk', 1).catch(() => undefined)
+    expect((await session.movePlace(place as string, 'x', (at?.x ?? 0) + 3)).ok).toBe(true)
+    expect(undo?.undoLabel()).toBe('Move a place')
+    await undo?.undo()
+    expect(session.places?.nodes[place as string]?.x).toBe(at?.x)
+    expect(undo?.canUndo()).toBe(false)
+  })
+})
+
+describe('renaming a place', () => {
+  it('writes the places and the behaviour together, and one Undo puts both back', async () => {
+    const { ports, session } = await open({ 'content/systems/hall.toml': HALL, 'content/nav/hall.toml': NAV })
+    const writes: string[][] = []
+    // The suite's own wrapper writes several files as one step; the stand-in records what is asked of it.
+    const plain = ports.workspace
+    ;(plain as { writeAll?: unknown }).writeAll = async (files: { path: string; text: string }[]) => {
+      writes.push(files.map((file) => file.path))
+      let last: { ok: true; mtime: number } | undefined
+      for (const file of files) {
+        const had = await plain.read(file.path)
+        const result = await plain.write(
+          file.path,
+          file.text,
+          had === undefined ? 'absent' : { mtime: had.mtime },
+        )
+        if (!result.ok) return result
+        last = result
+      }
+      return last as { ok: true; mtime: number }
+    }
+    const undo = createSchematic().undo?.(session)
+    const places = Object.keys(session.places?.nodes ?? {})
+    const [from] = places
+    expect(from).toBeDefined()
+    expect((await session.renamePlace(from as string, 'corner')).ok).toBe(true)
+    expect(writes).toEqual([['content/nav/hall.toml', 'content/systems/hall.toml']])
+    expect(Object.keys(session.places?.nodes ?? {})).toContain('corner')
+    expect(session.problems).toEqual([])
+    expect(undo?.undoLabel()).toBe(`Rename ${from} to corner`)
+    // The suite's Undo writes both files back, then asks the editor to move its histories: one call, both files.
+    await plain.write('content/nav/hall.toml', NAV, {
+      mtime: (await plain.read('content/nav/hall.toml'))?.mtime ?? 0,
+    })
+    await plain.write('content/systems/hall.toml', HALL, {
+      mtime: (await plain.read('content/systems/hall.toml'))?.mtime ?? 0,
+    })
+    await undo?.undo()
+    expect(Object.keys(session.places?.nodes ?? {})).toEqual(places)
+    expect(session.problems).toEqual([])
+    expect(session.files.nav.history.canUndo).toBe(false)
+    expect(undo?.canRedo()).toBe(true)
+  })
+})

@@ -7,7 +7,6 @@ import type { CheckResult, SuitePorts } from '@automata/editor/kit/ports'
 import { type NavGraph, navGraphSchema } from '@automata/nav/sim'
 import { type PuzzleDef, puzzleDefShape } from '@automata/puzzle/sim'
 import { type AgentDef, type SystemsDef, systemsDefShape, type Transition } from '@automata/systems/sim'
-import { stringify } from 'smol-toml'
 import { contentOf } from '../../shared/content-session.svelte.ts'
 import {
   type Outcome,
@@ -17,13 +16,7 @@ import {
   type TomlSession,
 } from '../../shared/toml-session.ts'
 import { FAIR_CHECK } from './fair-words.ts'
-import {
-  addPlaceEdits,
-  connectEdits,
-  disconnectEdits,
-  removePlaceEdits,
-  renamePlaceEdits,
-} from './places-edits.ts'
+import * as places from './places-actions.ts'
 import { addFactEdits, addItemEdits, removeFactEdits, removeItemEdits } from './puzzle/puzzle-edits.ts'
 import {
   addModeEdits,
@@ -116,6 +109,12 @@ export class SchematicSession {
   /** Whether a fair-play run is going. */
   fairRunning: boolean = $state(false)
   #files: SceneFiles | undefined = $state.raw()
+  /**
+   * Every write the editor made, as the files it changed, newest last: the same steps the suite's write path keeps, so Undo
+   * and Redo move the files that step changed (a rename of a place changes two). Redo has what Undo took back.
+   */
+  #steps: { readonly label: string; readonly sessions: readonly TomlSession<unknown>[] }[] = []
+  #redone: { readonly label: string; readonly sessions: readonly TomlSession<unknown>[] }[] = []
   readonly #listeners = new Set<() => void>()
   readonly #unsubscribe: (() => void)[] = []
 
@@ -132,8 +131,18 @@ export class SchematicSession {
       dir: string,
       schema: Parameters<typeof openTomlSession<T>>[0]['schema'],
       empty: string,
-    ): Promise<TomlSession<T>> =>
-      openTomlSession<T>({ path: `${dir}${scene}.toml`, ports: this.ports, schema, empty })
+    ): Promise<TomlSession<T>> => {
+      const mine: { session?: TomlSession<T> } = {}
+      mine.session = await openTomlSession<T>({
+        path: `${dir}${scene}.toml`,
+        ports: this.ports,
+        schema,
+        empty,
+        // A write of one file is one step of the log.
+        onStep: (label) => this.jointStep(label, mine.session === undefined ? [] : [mine.session]),
+      })
+      return mine.session
+    }
     const systems = await open<SystemsDef>(SYSTEMS_DIR, systemsDefShape, EMPTY_SYSTEMS)
     const nav = await open<NavGraph>(NAV_DIR, navGraphSchema, EMPTY_NAV)
     const puzzle = (await this.ports.workspace.read(`${PUZZLE_DIR}${scene}.toml`))
@@ -146,6 +155,40 @@ export class SchematicSession {
     this.chosen = { kind: 'character', index: 0 }
     this.selected = undefined
     this.message = undefined
+    this.#changed()
+  }
+
+  /** Records a write of these files as one step, before it is made; gives back what takes it away if it is refused. */
+  jointStep(label: string, sessions: readonly TomlSession<unknown>[]): () => void {
+    const step = { label, sessions }
+    this.#steps.push(step)
+    this.#redone = []
+    this.#changed()
+    return () => {
+      const at = this.#steps.lastIndexOf(step)
+      if (at >= 0) this.#steps.splice(at, 1)
+      this.#changed()
+    }
+  }
+
+  /** What Undo would take back and what Redo would put back, by the step's own words. */
+  get undoLabel(): string | undefined {
+    void this.#revision
+    return this.#steps.at(-1)?.label
+  }
+
+  get redoLabel(): string | undefined {
+    void this.#revision
+    return this.#redone.at(-1)?.label
+  }
+
+  /** The files of the last step moved back (the suite has already written them), or forward again. */
+  async followStep(back: boolean): Promise<void> {
+    const from = back ? this.#steps : this.#redone
+    const step = from.pop()
+    if (step === undefined) return
+    ;(back ? this.#redone : this.#steps).push(step)
+    await Promise.all(step.sessions.map((session) => session.follow(back)))
     this.#changed()
   }
 
@@ -247,7 +290,7 @@ export class SchematicSession {
   ): Promise<Outcome> {
     const before = (this.def?.agents[agent] as Record<string, unknown> | undefined)?.[list]
     const item = Array.isArray(before) ? before[index] : undefined
-    if (item === undefined) return this.#refuse('That is not in this character any more.')
+    if (item === undefined) return this.refuse('That is not in this character any more.')
     if (sameShape(item, next))
       return this.change(label, diffEdits(['agents', agent, list, index], item, next))
     return this.changeList(label, { kind: 'replace', list, agent, index, next })
@@ -259,7 +302,7 @@ export class SchematicSession {
    */
   async setSwitch(label: string, agent: number, index: number, next: Transition): Promise<Outcome> {
     const before = this.def?.agents[agent]?.transitions[index]
-    if (before === undefined) return this.#refuse('That switch is not in this character any more.')
+    if (before === undefined) return this.refuse('That switch is not in this character any more.')
     if (sameShape(before, next))
       return this.change(label, diffEdits(['agents', agent, 'transitions', index], before, next))
     return this.changeSwitch(label, { kind: 'replace', agent, index, next })
@@ -284,16 +327,16 @@ export class SchematicSession {
   /** Moves a switch to place `to` inside its own group. */
   async moveSwitch(agent: number, index: number, to: number): Promise<Outcome> {
     const character = this.def?.agents[agent]
-    if (character === undefined) return this.#refuse('That character is not in this scene any more.')
+    if (character === undefined) return this.refuse('That character is not in this scene any more.')
     return this.change('Change the order', reorderEdits(character, agent, index, to))
   }
 
   async renameMode(agent: number, from: string, to: string): Promise<Outcome> {
     const def = this.def
     if (def === undefined)
-      return this.#refuse('This file has a mistake, so it is read only until the mistake is fixed.')
+      return this.refuse('This file has a mistake, so it is read only until the mistake is fixed.')
     const edits = renameModeEdits(def, agent, from, to)
-    if ('refused' in edits) return this.#refuse(edits.refused)
+    if ('refused' in edits) return this.refuse(edits.refused)
     const outcome = await this.change(`Rename ${from} to ${to}`, edits)
     if (outcome.ok && this.selected?.kind === 'mode' && this.selected.mode === from)
       this.selected = { kind: 'mode', mode: to }
@@ -303,16 +346,16 @@ export class SchematicSession {
   async renameCharacter(from: string, to: string): Promise<Outcome> {
     const def = this.def
     if (def === undefined)
-      return this.#refuse('This file has a mistake, so it is read only until the mistake is fixed.')
+      return this.refuse('This file has a mistake, so it is read only until the mistake is fixed.')
     const edits = renameAgentEdits(def, from, to)
-    if ('refused' in edits) return this.#refuse(edits.refused)
+    if ('refused' in edits) return this.refuse(edits.refused)
     return this.change(`Rename ${from} to ${to}`, edits)
   }
 
   /** A new mode, named "mode 2" and so on, that stands still until it is given a speed. */
   async addMode(agent: number): Promise<Outcome> {
     const character = this.def?.agents[agent]
-    if (character === undefined) return this.#refuse('That character is not in this scene any more.')
+    if (character === undefined) return this.refuse('That character is not in this scene any more.')
     let n = character.modes.length + 1
     while (character.modes.includes(`mode-${n}`)) n += 1
     const name = `mode-${n}`
@@ -321,71 +364,14 @@ export class SchematicSession {
     return outcome
   }
 
-  /** Runs a places edit: `edits` for the places file, or why not. */
-  async #places(
-    label: string,
-    edits: readonly ContentEdit[] | { readonly refused: string },
-  ): Promise<Outcome> {
-    if ('refused' in edits) return this.#refuse(edits.refused)
-    const outcome = await this.files.nav.edit(label, edits)
-    this.message = outcome.ok ? undefined : outcome.message
-    return outcome
-  }
-
-  /** The first place makes the scene's places file (when the editor list lets Schematic write it). */
-  async addPlace(name: string, x: number, z: number): Promise<Outcome> {
-    if (!this.facts.listsNav)
-      return this.#refuse(
-        'The editor list does not name the places files yet. Add the rows shown on the start page.',
-      )
-    const nav = this.places
-    if (nav !== undefined) return this.#places('Add a place', addPlaceEdits(nav, name, x, z))
-    if (this.files.nav.exists())
-      return this.#refuse('The places file has a mistake, so it is read only until it is fixed.')
-    const id = name.trim()
-    if (id === '') return this.#refuse('A place needs a name.')
-    const text = `# The places in this scene that characters walk between.\n${stringify({ nodes: { [id]: { x, z } }, edges: [] })}`
-    const outcome = await this.files.nav.accept(text, 'Add the first place')
-    this.message = outcome.ok ? undefined : outcome.message
-    return outcome
-  }
-
-  async movePlace(place: string, axis: 'x' | 'z', value: number): Promise<Outcome> {
-    const at = this.places?.nodes[place]
-    if (at === undefined) return this.#refuse('That place is not in this scene any more.')
-    return this.#places('Move a place', [{ keyPath: ['nodes', place, axis], expected: at[axis], set: value }])
-  }
-
-  async connectPlaces(a: string, b: string): Promise<Outcome> {
-    const nav = this.places
-    return nav === undefined
-      ? this.#refuse('There are no places yet.')
-      : this.#places('Join two places', connectEdits(nav, a, b))
-  }
-
-  async disconnectPlaces(a: string, b: string): Promise<Outcome> {
-    const nav = this.places
-    return nav === undefined
-      ? this.#refuse('There are no places yet.')
-      : this.#places('Part two places', disconnectEdits(nav, a, b))
-  }
-
-  async removePlace(place: string): Promise<Outcome> {
-    const nav = this.places
-    if (nav === undefined) return this.#refuse('There are no places yet.')
-    return this.#places('Remove a place', removePlaceEdits(nav, this.def, place))
-  }
-
-  /** The places file first, then the references in the behaviour file; the two files keep their own histories. */
-  async renamePlace(from: string, to: string): Promise<Outcome> {
-    const nav = this.places
-    if (nav === undefined) return this.#refuse('There are no places yet.')
-    const edits = renamePlaceEdits(nav, this.def, from, to)
-    if ('refused' in edits) return this.#refuse(edits.refused)
-    const first = await this.#places(`Rename ${from} to ${to}`, edits.nav)
-    if (!first.ok || edits.systems.length === 0) return first
-    return this.change(`Rename ${from} to ${to}`, edits.systems)
-  }
+  /** The places actions (`places-actions.ts`): each is one undo step, a rename one step across both files. */
+  addPlace = (name: string, x: number, z: number): Promise<Outcome> => places.addPlace(this, name, x, z)
+  movePlace = (place: string, axis: 'x' | 'z', value: number): Promise<Outcome> =>
+    places.movePlace(this, place, axis, value)
+  connectPlaces = (a: string, b: string): Promise<Outcome> => places.connectPlaces(this, a, b)
+  disconnectPlaces = (a: string, b: string): Promise<Outcome> => places.disconnectPlaces(this, a, b)
+  removePlace = (place: string): Promise<Outcome> => places.removePlace(this, place)
+  renamePlace = (from: string, to: string): Promise<Outcome> => places.renamePlace(this, from, to)
 
   /**
    * World rule `rule` made `next`. When only values differ each is written in its own literal; when a condition or an
@@ -393,7 +379,7 @@ export class SchematicSession {
    */
   async setRule(label: string, rule: number, next: SystemsDef['rules'][number]): Promise<Outcome> {
     const before = this.def?.rules[rule]
-    if (before === undefined) return this.#refuse('That rule is not in this scene any more.')
+    if (before === undefined) return this.refuse('That rule is not in this scene any more.')
     if (sameShape(before, next)) return this.change(label, diffEdits(['rules', rule], before, next))
     return this.#rules(label, { kind: 'replace', index: rule, next })
   }
@@ -402,7 +388,7 @@ export class SchematicSession {
   async addRule(): Promise<Outcome> {
     const def = this.def
     if (def === undefined)
-      return this.#refuse('This file has a mistake, so it is read only until the mistake is fixed.')
+      return this.refuse('This file has a mistake, so it is read only until the mistake is fixed.')
     const taken = new Set(def.rules.map((r) => r.id))
     let n = def.rules.length + 1
     while (taken.has(`rule-${n}`)) n += 1
@@ -415,10 +401,10 @@ export class SchematicSession {
   /** Takes a rule out, unless the design notes still point to it. */
   async removeRule(rule: number): Promise<Outcome> {
     const found = this.def?.rules[rule]
-    if (found === undefined) return this.#refuse('That rule is not in this scene any more.')
+    if (found === undefined) return this.refuse('That rule is not in this scene any more.')
     const cell = this.def?.matrix.find((c) => c.rule === found.id)
     if (cell !== undefined)
-      return this.#refuse(
+      return this.refuse(
         `“${found.text}” is in the design notes (${cell.row} ${cell.verb} ${cell.col}), so it stays. Change what it says instead.`,
       )
     return this.#rules('Remove a rule', { kind: 'remove', index: rule })
@@ -450,8 +436,8 @@ export class SchematicSession {
     edits: readonly ContentEdit[] | { readonly refused: string },
   ): Promise<Outcome> {
     const puzzle = this.files.puzzle
-    if (puzzle === undefined) return this.#refuse('This scene has no puzzle.')
-    if ('refused' in edits) return this.#refuse(edits.refused)
+    if (puzzle === undefined) return this.refuse('This scene has no puzzle.')
+    if ('refused' in edits) return this.refuse(edits.refused)
     const outcome = await puzzle.edit(label, edits)
     this.message = outcome.ok ? undefined : outcome.message
     return outcome
@@ -460,13 +446,13 @@ export class SchematicSession {
   /** One item of the puzzle's actions or goal replaced, removed or added, as its own tables (`table-list-text.ts`). */
   async puzzleList(label: string, key: TableList, change: ItemChange): Promise<Outcome> {
     const puzzle = this.files.puzzle
-    if (puzzle === undefined) return this.#refuse('This scene has no puzzle.')
+    if (puzzle === undefined) return this.refuse('This scene has no puzzle.')
     const text = puzzle.history.state.text
     const result =
       text === undefined
         ? { refused: 'There is no file to change yet.' }
         : changeTableListText(puzzle.path, text, key, change)
-    if ('refused' in result) return this.#refuse(result.refused)
+    if ('refused' in result) return this.refuse(result.refused)
     const outcome = await puzzle.accept(result.text, label)
     this.message = outcome.ok ? undefined : outcome.message
     return outcome
@@ -487,28 +473,28 @@ export class SchematicSession {
   async addPuzzleItem(name: string): Promise<Outcome> {
     const def = this.puzzleDef
     return def === undefined
-      ? this.#refuse('This scene has no puzzle.')
+      ? this.refuse('This scene has no puzzle.')
       : this.puzzleEdit('Add an item', addItemEdits(def, name))
   }
 
   async removePuzzleItem(name: string): Promise<Outcome> {
     const def = this.puzzleDef
     return def === undefined
-      ? this.#refuse('This scene has no puzzle.')
+      ? this.refuse('This scene has no puzzle.')
       : this.puzzleEdit('Remove an item', removeItemEdits(def, name))
   }
 
   async addPuzzleFact(name: string): Promise<Outcome> {
     const def = this.puzzleDef
     return def === undefined
-      ? this.#refuse('This scene has no puzzle.')
+      ? this.refuse('This scene has no puzzle.')
       : this.puzzleEdit('Add a fact', addFactEdits(def, name))
   }
 
   async removePuzzleFact(name: string): Promise<Outcome> {
     const def = this.puzzleDef
     return def === undefined
-      ? this.#refuse('This scene has no puzzle.')
+      ? this.refuse('This scene has no puzzle.')
       : this.puzzleEdit('Remove a fact', removeFactEdits(def, name))
   }
 
@@ -548,22 +534,29 @@ export class SchematicSession {
   async setFairNumber(label: string, keyPath: readonly (string | number)[], value: number): Promise<Outcome> {
     let at: unknown = this.def
     for (const key of keyPath) at = (at as Record<string | number, unknown> | undefined)?.[key]
-    if (typeof at !== 'number') return this.#refuse('That is not in this scene any more.')
+    if (typeof at !== 'number') return this.refuse('That is not in this scene any more.')
     return this.change(label, [{ keyPath, expected: at, set: value }])
   }
 
   /** A number in the Numbers page. */
   async setNumber(name: string, value: number): Promise<Outcome> {
     const before = this.def?.tunables[name]
-    if (before === undefined) return this.#refuse('That number is not in this scene any more.')
+    if (before === undefined) return this.refuse('That number is not in this scene any more.')
     return this.change(`Change ${name}`, [
       { keyPath: ['tunables', name, 'value'], expected: before.value, set: value },
     ])
   }
 
-  #refuse(message: string): Outcome {
+  /** Says why a change was not made, and gives that back as the outcome. */
+  refuse(message: string): Outcome {
     this.message = message
     return { ok: false, message }
+  }
+
+  /** Shows a change's outcome: a refusal is said, a success clears the last one. */
+  settle(outcome: Outcome): Outcome {
+    this.message = outcome.ok ? undefined : outcome.message
+    return outcome
   }
 
   /** Adds a character; the first one makes the scene's file. */

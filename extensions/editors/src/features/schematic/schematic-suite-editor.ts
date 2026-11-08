@@ -15,16 +15,15 @@ export interface SchematicOptions {
   readonly gameUrl?: string | undefined
 }
 
-/** The open scene's behaviour file is what Undo, Redo and Ask work on. */
+/** Undo, Redo and the labels follow the steps the editor wrote, whichever of the scene's files each changed. */
 function undoOf(session: SchematicSession): SuiteUndo {
-  const history = () => session.files.systems.history
   return {
-    canUndo: () => history().canUndo,
-    canRedo: () => history().canRedo,
-    undoLabel: () => history().undoLabel,
-    redoLabel: () => history().redoLabel,
-    undo: () => void session.files.systems.follow(true),
-    redo: () => void session.files.systems.follow(false),
+    canUndo: () => session.undoLabel !== undefined,
+    canRedo: () => session.redoLabel !== undefined,
+    undoLabel: () => session.undoLabel,
+    redoLabel: () => session.redoLabel,
+    undo: () => void session.followStep(true),
+    redo: () => void session.followStep(false),
     subscribe: (listener) => session.subscribe(listener),
   }
 }

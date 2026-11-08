@@ -49,6 +49,17 @@ export interface TomlSession<T> {
   ): Promise<Outcome>
   /** A whole new text (an accepted Ask proposal) as one undo step. */
   accept(text: string, summary: string): Promise<Outcome>
+  /** The text the edits would make, without making them: for a step that writes more than one file. */
+  preview(
+    edits: readonly ContentEdit[],
+  ): { readonly ok: true; readonly text: string } | { readonly ok: false; readonly message: string }
+  /** The file's mtime as this session last saw it, for a write of several files to expect. */
+  mtime(): number | undefined
+  /**
+   * A text the suite already wrote together with other files, taken as one history step (no write of its own), and the
+   * new mtime read so the next edit is not refused as a conflict.
+   */
+  adopt(label: string, text: string): Promise<void>
   undo(): Promise<Outcome>
   redo(): Promise<Outcome>
   /**
@@ -64,6 +75,11 @@ export interface TomlSessionOptions<T> {
   readonly schema: z.ZodType<T>
   /** The text `create` writes: a comment that says what the file is for. */
   readonly empty: string
+  /**
+   * Called with the step's label as each edit, accept or create is about to be written (not for Undo or Redo), so the
+   * suite's record of the write can carry it. What it gives back is called if the write is refused.
+   */
+  readonly onStep?: ((label: string) => (() => void) | undefined) | undefined
 }
 
 const OK: Outcome = { ok: true }
@@ -126,9 +142,29 @@ export async function openTomlSession<T>(options: TomlSessionOptions<T>): Promis
   async function commit(label: string, next: TomlState, coalesce?: string): Promise<Outcome> {
     const from = history.state
     history.apply(label, () => next, coalesce === undefined ? undefined : { coalesce })
+    const retract = options.onStep?.(label)
     const written = await sync(from, next)
-    if (!written.ok) history.undo()
+    if (!written.ok) {
+      history.undo()
+      retract?.()
+    }
     return written
+  }
+
+  /** The edits applied to the text, or why not. */
+  function attempt(
+    edits: readonly ContentEdit[],
+  ): { readonly ok: true; readonly text: string } | { readonly ok: false; readonly message: string } {
+    const text = history.state.text
+    if (text === undefined) return { ok: false, message: 'There is no file to change yet.' }
+    let result: ReturnType<ReturnType<typeof openDocument>['edit']>
+    try {
+      result = openDocument(path, text).edit(edits)
+    } catch (error) {
+      return { ok: false, message: error instanceof Error ? error.message : String(error) }
+    }
+    if (!result.ok) return { ok: false, message: `That change could not be made: ${result.message}` }
+    return { ok: true, text: result.document.text }
   }
 
   async function travel(back: boolean): Promise<Outcome> {
@@ -152,18 +188,16 @@ export async function openTomlSession<T>(options: TomlSessionOptions<T>): Promis
       return commit(label, { text: options.empty })
     },
     async edit(label, edits, editOptions) {
-      const text = history.state.text
-      if (text === undefined) return refused('There is no file to change yet.')
-      let result: ReturnType<ReturnType<typeof openDocument>['edit']>
-      try {
-        result = openDocument(path, text).edit(edits)
-      } catch (error) {
-        return refused(error instanceof Error ? error.message : String(error))
-      }
-      if (!result.ok) return refused(`That change could not be made: ${result.message}`)
-      return commit(label, { text: result.document.text }, editOptions?.coalesce)
+      const next = attempt(edits)
+      return next.ok ? commit(label, { text: next.text }, editOptions?.coalesce) : refused(next.message)
     },
     accept: (text, summary) => commit(summary, { text }),
+    preview: attempt,
+    mtime: () => mtime,
+    async adopt(label, text) {
+      history.apply(label, () => ({ text }))
+      mtime = (await workspace.read(path))?.mtime
+    },
     undo: () => travel(true),
     redo: () => travel(false),
     async follow(back) {
