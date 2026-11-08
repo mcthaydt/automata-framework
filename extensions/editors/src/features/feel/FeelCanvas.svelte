@@ -184,13 +184,17 @@ async function removeFeel(chosen: FeelEntry) {
 </section>
 
 <style>
+  /* A page of sentences, not a stage: it fills the canvas region with the app's paper so the text tokens read. */
   .canvas {
     display: grid;
     align-content: start;
+    grid-template-columns: minmax(0, 40rem);
     gap: var(--space-4);
-    max-width: 40rem;
+    box-sizing: border-box;
+    height: 100%;
     padding: var(--space-5);
     overflow-y: auto;
+    background: var(--color-bg-app);
   }
   h2 {
     margin: 0;

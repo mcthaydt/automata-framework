@@ -86,7 +86,8 @@ async function add(): Promise<void> {
     cursor: pointer;
   }
   li button[aria-current='true'] {
-    background: var(--color-bg-raised);
+    background: var(--color-accent-soft);
+    font: var(--text-body-13-medium);
   }
   form {
     display: grid;

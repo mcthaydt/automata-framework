@@ -18,6 +18,8 @@
     }
   },
   "scripts": {
+    "build": "vite build",
+    "dev": "vite --open /suite.html",
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
