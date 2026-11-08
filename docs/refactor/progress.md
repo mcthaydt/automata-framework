@@ -515,6 +515,6 @@ Normal dev pipeline (no stage 1 audit; the investigation is
 | --- | --- |
 | 2. Spec and plan | Done: [spec](2026-11-08-content-in-play-spec.md), [plan](2026-11-08-content-in-play-plan.md), 16 tasks |
 | 3. Plan audit | Done: [audit](2026-11-08-content-in-play-plan-audit.md), 21 findings fixed in the spec and plan; 17 tasks |
-| 4. Build | Not started (0 of 17) |
+| 4. Build | In progress (4 of 17: tile readers, `levelScene`, `pictureView`, the new game draws the editor's level; the journey found and fixed a lost-save bug) |
 | 5. Build audit | Not started |
 | 6. Fixes | Not started |

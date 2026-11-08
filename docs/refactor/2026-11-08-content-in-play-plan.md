@@ -563,3 +563,17 @@ The Owner's rule (2026-11-08): content made in the editors must be seen in play,
 - 2026-11-08: plan audit (Opus, medium): 21 findings, all fixed in the spec and this plan
   ([`2026-11-08-content-in-play-plan-audit.md`](2026-11-08-content-in-play-plan-audit.md)). New Task 16 (the 2D story
   example and its served journey); docs and the gate are now Task 17. 17 tasks.
+- 2026-11-08 (build, Sonnet high): merged #478, #473, the full-game-loop PR (#480) up; #476 conflicted heavily with #480 and
+  was left out. Tasks 1 to 3 done (tile readers in content; `levelScene`; `pictureView`).
+- 2026-11-08 Task 4 done. The template draws its level with core's `levelScene` and its square with `pictureView` of the
+  player start (the square stands on the start: bottom edge there). The journey `paint-shows-in-game` makes a game, adds a
+  picture in Add tiles, paints Decor tile 5, gives the player start a tile of the picture in Characters, then presses
+  Play and reads the canvas pixels (painted cell = tile 5's colour; player = the picture's tile 2 colour). Ran on iPad and
+  phone Chromium. Findings: (1) Characters was not in the suite's Levels 2D (only on the standalone page the plan deletes
+  in 15.2), so it was ported into the suite (Characters view beside Level and Tiles). (2) No UI points a tile layer at an
+  Add-tiles tileset, so the painted cell shows the starter tileset's placeholder colour; only characters can wear the
+  added picture. Gap, reported to the coordinator. (3) A real bug the journey found: `/api/list` answered 500 when the
+  content build's temp file vanished between readdir and stat, and the Levels 2D save queue then stayed rejected, so
+  later edits were never saved. Fixed both (list skips a vanished file; a save that throws shows as a refusal and the
+  queue goes on), each with a failing test first.
+
