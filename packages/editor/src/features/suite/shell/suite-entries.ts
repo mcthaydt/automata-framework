@@ -12,11 +12,20 @@ export interface SuiteEntry {
   readonly editors: readonly string[]
 }
 
-/** The rail's drawing for each editor it knows, by the editor's id prefix (`levels-2d` and `levels-3d` are both
- * levels); an editor it does not know is drawn as a list, never left blank. */
-function iconFor(id: string): IconName {
+/**
+ * The drawing for each editor the page knows, by the editor's id. Both level editors draw `levels` (a game shows one
+ * under its name, or says 2D and 3D); the two character editors draw `person`. An editor it does not know is drawn as a
+ * list, never left blank.
+ */
+export function iconFor(id: string): IconName {
   if (id === 'tuner') return 'sliders'
-  if (id.startsWith('levels')) return 'grid'
+  if (id.startsWith('levels')) return 'levels'
+  if (id === 'studio' || id.startsWith('characters')) return 'person'
+  if (id === 'feel') return 'zap'
+  if (id === 'audio') return 'volume'
+  if (id === 'writer') return 'message'
+  if (id === 'sequence') return 'clapper'
+  if (id === 'schematic') return 'workflow'
   return 'list'
 }
 

@@ -124,8 +124,10 @@ const size = (name: string): EditorSize => {
   return found
 }
 
-describe('wide: rail, panel, canvas, inspector, dock beneath, status at the foot', () => {
-  test("the regions have the mockups' sizes and tile the window", async () => {
+const INSET = 8
+
+describe('wide: sidebar, then an inset work panel of list, canvas, inspector, dock beneath, status at the foot', () => {
+  test("the regions have the mockup's sizes and tile the work panel", async () => {
     await open(size('ipad-pro-11-landscape'))
     const [topbar, railBox, panel, canvas, inspector, dock, status] = [
       'topbar',
@@ -136,22 +138,43 @@ describe('wide: rail, panel, canvas, inspector, dock beneath, status at the foot
       'dock',
       'status',
     ].map(rect) as [DOMRect, DOMRect, DOMRect, DOMRect, DOMRect, DOMRect, DOMRect]
-    near(topbar.height, 52)
-    near(topbar.width, 1194)
-    near(railBox.width, 56)
+    expect(topbar.height).toBeGreaterThanOrEqual(48)
+    near(topbar.width, 1194 - 224 - INSET)
+    near(topbar.top, INSET)
+    near(railBox.width, 224)
+    near(railBox.height, 834)
     near(panel.width, 264)
     near(inspector.width, 320)
     near(dock.height, 148)
     near(panel.left, railBox.right)
     near(canvas.left, panel.right)
     near(canvas.right, inspector.left)
-    near(inspector.right, 1194)
+    near(inspector.right, 1194 - INSET)
     near(canvas.top, topbar.bottom)
     near(dock.top, canvas.bottom)
     near(dock.left, canvas.left)
     near(dock.width, canvas.width)
-    near(status.bottom, 834)
+    near(status.bottom, 834 - INSET)
     near(dock.bottom, status.top)
+  })
+
+  test('the panel has a face: 8 px corners, a 1 px edge, inset 8 px from the top, right and bottom', async () => {
+    await open(size('ipad-pro-11-landscape'))
+    const frame = document.querySelector<HTMLElement>('[data-frame]') as HTMLElement
+    const box = frame.getBoundingClientRect()
+    const style = getComputedStyle(frame)
+    near(box.left, 224)
+    near(box.top, INSET)
+    near(box.right, 1194 - INSET)
+    near(box.bottom, 834 - INSET)
+    expect(style.borderTopWidth).toBe('1px')
+    expect(style.borderTopLeftRadius).toBe('8px')
+    expect(getComputedStyle(region('rail')).backgroundColor).toBe('rgba(0, 0, 0, 0)')
+  })
+
+  test('nothing is wider than the window', async () => {
+    await open(size('ipad-pro-13-landscape'))
+    expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(window.innerWidth)
   })
 
   test('a 1280 x 560 window keeps the dock closed behind its handle and gives the canvas the room', async () => {
@@ -163,7 +186,7 @@ describe('wide: rail, panel, canvas, inspector, dock beneath, status at the foot
 })
 
 describe('a screen with no panel gives its column to the canvas', () => {
-  test('wide: the canvas starts where the rail ends', async () => {
+  test('wide: the canvas starts where the sidebar ends', async () => {
     await open(size('ipad-pro-11-landscape'), { panel: false })
     near(rect('canvas').left, rect('rail').right)
     expect(document.querySelector('[data-region="panel"]')).toBeNull()
@@ -174,7 +197,7 @@ describe('a screen with no inspector gives its column to the canvas', () => {
   test('wide: the canvas runs to the right edge', async () => {
     await open(size('ipad-pro-11-landscape'), { inspector: false })
     near(rect('canvas').left, rect('panel').right)
-    near(rect('canvas').right, 1194)
+    near(rect('canvas').right, 1194 - INSET)
     expect(document.querySelector('[data-region="inspector"]')).toBeNull()
   })
 })
@@ -187,16 +210,16 @@ describe('a screen with no rail gives its column and its tab bar to the canvas',
     near(rect('canvas').left, rect('panel').right)
     near(rect('canvas').right, rect('inspector').left)
     near(rect('inspector').width, 320)
-    near(rect('inspector').right, 1194)
-    near(rect('status').bottom, 834)
+    near(rect('inspector').right, 1194 - INSET)
+    near(rect('status').bottom, 834 - INSET)
     near(rect('dock').bottom, rect('status').top)
   })
 
   test.each([
-    ['ipad-pro-11-portrait', 834 - 264, 1194],
+    ['ipad-pro-11-portrait', 834 - 264 - INSET, 1194 - INSET],
     ['phone-portrait', 390, 844],
     ['phone-landscape', 844, 390],
-  ])('%s: the status line is the foot of the window', async (name, width, height) => {
+  ])('%s: the status line is the foot of the panel', async (name, width, height) => {
     await open(size(name), { rail: false })
     near(rect('canvas').width, width)
     near(rect('status').bottom, height)
@@ -209,7 +232,8 @@ describe('the status line fills the status region', () => {
   test.each([['ipad-pro-11-landscape'], ['ipad-pro-11-portrait'], ['phone-portrait']])(
     '%s: edge to edge, with the region’s border and not a second one',
     async (name) => {
-      const { width } = size(name)
+      const { width: whole, mode } = size(name)
+      const width = mode === 'compact' ? whole : whole - INSET
       await open(size(name), { rail: false, statusLine: true })
       const line = document.querySelector<HTMLElement>('[data-widget="status-line"]') as HTMLElement
       near(line.getBoundingClientRect().left, 0)
@@ -229,10 +253,9 @@ describe('a toast in the sheets clears the foot (the tab bar and the status line
     const toast = document
       .querySelector<HTMLElement>('[data-widget="toast-region"] .toast')
       ?.getBoundingClientRect()
-    const foot = Math.min(
-      rect('status').top,
-      each.mode === 'wide' ? Number.POSITIVE_INFINITY : rect('rail').top,
-    )
+    // Only the compact tab bar lies along the foot; the sidebar, the rail and the standing bar are columns.
+    const lying = each.mode === 'compact' && each.name !== 'phone-landscape'
+    const foot = Math.min(rect('status').top, lying ? rect('rail').top : Number.POSITIVE_INFINITY)
     expect(toast?.bottom).toBeLessThanOrEqual(foot + 0.5)
   })
 })
@@ -244,20 +267,21 @@ describe('a screen with no dock does not leave room for one', () => {
   })
 })
 
-describe('medium: the panel beside the canvas, the inspector floating over it, the rail a tab bar', () => {
+describe('medium: a 76 px rail, then the list beside the canvas on the inset panel, the inspector floating over it', () => {
   test('ipad-pro-11-portrait', async () => {
     await open(size('ipad-pro-11-portrait'))
-    near(rect('panel').left, 0)
+    near(rect('rail').left, 0)
+    near(rect('rail').width, 76)
+    near(rect('rail').height, 1194)
+    near(rect('panel').left, rect('rail').right)
     near(rect('panel').width, 264)
     near(rect('canvas').left, rect('panel').right)
-    near(rect('canvas').right, 834)
+    near(rect('canvas').right, 834 - INSET)
     near(rect('panel').top, rect('topbar').bottom)
     near(rect('panel').bottom, rect('canvas').bottom)
-    near(rect('rail').height, 64)
-    near(rect('rail').bottom, 1194)
-    near(rect('rail').width, 834)
     near(rect('canvas').bottom, rect('status').top)
-    near(rect('status').bottom, rect('rail').top)
+    near(rect('status').bottom, 1194 - INSET)
+    expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(window.innerWidth)
   })
 
   test('the closed inspector is out of sight, inert and still laid out', async () => {
@@ -285,21 +309,33 @@ describe('medium: the panel beside the canvas, the inspector floating over it, t
   })
 })
 
-describe('compact: the canvas takes the width, the rail is a tab bar', () => {
-  test.each([
-    ['phone-portrait', 390, 844],
-    ['phone-landscape', 844, 390],
-  ])('%s', async (name, width, height) => {
-    await open(size(name))
-    near(rect('canvas').width, width)
+describe('compact: the panel fills the window, the tab bar lies along the foot or stands at the left', () => {
+  test('phone-portrait', async () => {
+    await open(size('phone-portrait'))
+    near(rect('canvas').width, 390)
     near(rect('canvas').left, 0)
-    near(rect('rail').height, 64)
-    near(rect('rail').bottom, height)
-    near(rect('rail').width, width)
-    near(rect('topbar').height, 52)
+    near(rect('rail').height, 56)
+    near(rect('rail').bottom, 844)
+    near(rect('rail').width, 390)
+    expect(rect('topbar').height).toBeGreaterThanOrEqual(48)
     near(rect('canvas').top, rect('topbar').bottom)
     near(rect('canvas').bottom, rect('status').top)
     near(rect('status').bottom, rect('rail').top)
+    const frame = document.querySelector<HTMLElement>('[data-frame]') as HTMLElement
+    near(frame.getBoundingClientRect().width, 390)
+    expect(getComputedStyle(frame).borderTopLeftRadius).toBe('0px')
+  })
+
+  test('phone-landscape: the bar stands at the left, 72 px wide, and the work keeps its height', async () => {
+    await open(size('phone-landscape'))
+    expect(document.querySelector('[data-editor-shell]')).toHaveAttribute('data-standing')
+    near(rect('rail').left, 0)
+    near(rect('rail').width, 72)
+    near(rect('rail').height, 390)
+    near(rect('canvas').left, 72)
+    near(rect('canvas').right, 844)
+    near(rect('status').bottom, 390)
+    near(rect('topbar').left, 72)
   })
 })
 
@@ -385,7 +421,7 @@ describe('when the window turns or the keyboard comes up', () => {
     expect(byTestId('canvas-field')).toBe(field)
     expect(document.activeElement).toBe(field)
     expect(field.value).toBe('Rooftops')
-    near(rect('canvas').width, portrait.width - 264)
+    near(rect('canvas').width, portrait.width - 76 - 264 - INSET)
   })
 
   test('the panel keeps its scroll position when it turns into a closed sheet and back', async () => {

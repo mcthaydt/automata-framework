@@ -13,6 +13,7 @@
 :root {
   --bg: var(--tool-bg);
   --paper: var(--tool-panel);
+  --raise: var(--tool-raise);
   --surface: var(--tool-hover);
   --line: var(--tool-line);
   --line-strong: var(--tool-line-strong);

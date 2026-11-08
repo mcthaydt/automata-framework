@@ -34,6 +34,28 @@ async function open(page: Page, path: string): Promise<void> {
   await page.evaluate(() => document.fonts.ready.then(() => undefined))
 }
 
+// The editors open Dark and the site imports their tokens, so the site says its own colour scheme: a device set to dark
+// must not turn its native controls and scroll bars dark under light text. Every page is checked, at the narrowest and
+// widest layouts, in a context whose device asks for dark.
+const SITE_SCHEME = 'light'
+test.describe('the site on a device set to dark', () => {
+  test.use({ colorScheme: 'dark' })
+  for (const viewport of [VIEWPORTS[0], VIEWPORTS[2]]) {
+    for (const path of PAGES) {
+      test(`${path} at ${viewport?.width}: its own colour scheme and no contrast failure`, async ({
+        page,
+      }) => {
+        await page.setViewportSize({ width: viewport?.width ?? 375, height: viewport?.height ?? 667 })
+        await open(page, path)
+        expect(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).toBe(
+          SITE_SCHEME,
+        )
+        expect(await axeViolations(page)).toEqual([])
+      })
+    }
+  }
+})
+
 test('the sitemap lists the pages under test', () => {
   expect(PAGES).toContain('/')
   expect(PAGES).toContain('/privacy')

@@ -11,25 +11,25 @@
   min-height: 0;
 }
 
+/* The regions on the work panel have no face of their own: the shell's `.frame` is the panel (shell-layout.css). */
 [data-editor-shell] > [data-region="topbar"] {
   grid-area: topbar;
   display: flex;
   align-items: center;
   gap: var(--space-2);
   padding: 0 var(--space-2);
-  background: var(--paper);
   border-bottom: 1px solid var(--line);
 }
 
+/* The sidebar and the rail stand on the window's colour; the tab bar is part of the compact panel. */
 [data-editor-shell] > [data-region="rail"] {
   grid-area: rail;
   display: flex;
-  background: var(--paper);
 }
 
+[data-editor-shell] > [data-region="rail"][data-presentation="sidebar"],
 [data-editor-shell] > [data-region="rail"][data-presentation="rail"] {
   flex-direction: column;
-  border-right: 1px solid var(--line);
 }
 
 [data-editor-shell] > [data-region="rail"][data-presentation="tabbar"] {
@@ -37,11 +37,21 @@
   border-top: 1px solid var(--line);
 }
 
+/* Standing: the tab bar is a column at the left edge of a phone held sideways. */
+[data-editor-shell][data-standing] > [data-region="rail"][data-presentation="tabbar"] {
+  flex-direction: column;
+  border-top: 0;
+  border-right: 1px solid var(--line);
+}
+
 [data-editor-shell] > [data-region="canvas"] {
   grid-area: canvas;
   position: relative;
   overflow: hidden;
-  background: var(--charcoal);
+  /* The stage: the game's pictures sit on a dark dotted floor, the same in both looks, so the game's colours never shift. */
+  background-color: var(--charcoal);
+  background-image: radial-gradient(circle, var(--tool-dot, transparent) 1px, transparent 1.5px);
+  background-size: 20px 20px;
   /* The canvas takes every gesture itself: it never scrolls or pulls the page. */
   touch-action: none;
   overscroll-behavior: none;
@@ -56,7 +66,6 @@
   min-height: 28px;
   font: var(--text-mono-11);
   color: var(--muted);
-  background: var(--paper);
   border-top: 1px solid var(--line);
 }
 
@@ -74,7 +83,6 @@
 [data-editor-shell] > [data-region="dock"] {
   display: flex;
   flex-direction: column;
-  background: var(--paper);
 }
 
 [data-editor-shell] > [data-region] > .body {
@@ -112,6 +120,12 @@
   visibility: hidden;
 }
 
+/* Sheets and the floating inspector are raised surfaces: their own face, not the panel's. */
+[data-editor-shell] > [data-presentation="float"],
+[data-editor-shell] > [data-presentation="sheet"] {
+  background: var(--raise, var(--paper));
+}
+
 /* The floating inspector and the sheets sit in the canvas's cell, above it. */
 [data-editor-shell] > [data-presentation="float"],
 [data-editor-shell] > [data-presentation="sheet"] {
@@ -142,7 +156,7 @@
   justify-self: stretch;
   height: var(--sheet-height);
   border-top: 1px solid var(--line-strong);
-  border-radius: var(--edge-lg) var(--edge-lg) 0 0;
+  border-radius: 12px 12px 0 0;
   box-shadow: var(--shadow-sheet);
   transform: translateY(100%);
 }

@@ -7,6 +7,8 @@
  * The tokens live in the editor kit's tokens.json, which the editors share; the site's field and panel are set here.
  */
 :root {
+  /* The editors' tokens open Dark, and this file imports them; the site is its own look, so it says so. */
+  color-scheme: light;
   --bg: #fbfbfa;
   --panel: #ffffff;
   --soft: #f3f4f1;

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/svelte'
+import { cleanup, render, screen, waitFor } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import ShellFixture from '#src/testing/kit/ShellFixture.svelte'
@@ -105,13 +105,15 @@ describe('EditorShell structure', () => {
     expect(body('inspector')).toHaveAttribute('data-scroll-region', '')
   })
 
-  it('tells the rail which way to draw: vertical in wide, horizontal below it', async () => {
+  it('tells the rail which way to draw: a column in wide and medium, a row along the foot of a phone, a column when it stands', async () => {
     const geometry = mount(1194, 834)
     expect(screen.getByTestId('rail')).toHaveAttribute('data-orientation', 'vertical')
     geometry.resize(834, 1194)
-    expect(await screen.findByTestId('rail')).toHaveAttribute('data-orientation', 'horizontal')
+    expect(await screen.findByTestId('rail')).toHaveAttribute('data-orientation', 'vertical')
     geometry.resize(390, 844)
     expect(await screen.findByTestId('rail')).toHaveAttribute('data-orientation', 'horizontal')
+    geometry.resize(844, 390)
+    expect(await screen.findByTestId('rail')).toHaveAttribute('data-orientation', 'vertical')
   })
 })
 
@@ -152,9 +154,18 @@ describe('EditorShell presentation per mode', () => {
     }
   })
 
-  it('a rail below wide is a tab bar', () => {
-    mount(834, 1194)
-    expect(region('rail')).toHaveAttribute('data-presentation', 'tabbar')
+  it('the rail is a sidebar in wide, a rail in medium and a tab bar in compact, standing on a phone held sideways', async () => {
+    const geometry = mount(1194, 834)
+    expect(region('rail')).toHaveAttribute('data-presentation', 'sidebar')
+    geometry.resize(834, 1194)
+    await waitFor(() => expect(region('rail')).toHaveAttribute('data-presentation', 'rail'))
+    geometry.resize(390, 844)
+    await waitFor(() => expect(region('rail')).toHaveAttribute('data-presentation', 'tabbar'))
+    expect(document.querySelector('[data-editor-shell]')).not.toHaveAttribute('data-standing')
+    geometry.resize(844, 390)
+    await waitFor(() =>
+      expect(document.querySelector('[data-editor-shell]')).toHaveAttribute('data-standing', 'true'),
+    )
   })
 })
 

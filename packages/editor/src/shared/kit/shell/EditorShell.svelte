@@ -4,11 +4,13 @@
   Seven regions, each a snippet: topbar, rail, panel, canvas, inspector, dock, status. The mode comes from the
   window's size before any keyboard shrank it (`shellModeAt`), the approved mockup's three layouts:
 
-    wide     (1180 px and up) rail | panel | canvas | inspector, dock beneath the canvas, status at the foot
-    medium   panel | canvas; the inspector floats over the canvas's lower right when open; the dock is a bottom
-             sheet; the rail is a tab bar along the foot
-    compact  (760 px and down, or 520 px high and less) the canvas alone; panel, inspector and dock are bottom
-             sheets, one open at a time
+    wide     (1180 px and up) sidebar | panel | canvas | inspector, dock beneath the canvas, status at the foot; the
+             panel, canvas and inspector sit on one inset work panel (the frame)
+    medium   rail | panel | canvas; the inspector floats over the canvas's lower right when open; the dock is a
+             bottom sheet; the rail is a 76 px column of icons over names
+    compact  (760 px and down, or 520 px high and less) the canvas alone, with no inset; panel, inspector and
+             dock are bottom sheets, one open at a time; the rail is a tab bar along the foot, or standing at
+             the left on a phone held sideways
 
   Every region is a sibling that stays mounted. A mode change moves it with CSS (grid areas, a transform) and
   never renders it somewhere else, so focus, scroll position and half-typed text survive a rotation or a
@@ -45,6 +47,7 @@ import {
   detentLength,
   dockPlacementOf,
   nextDetent,
+  railStandsAt,
   type ShellRegion,
   shellModeAt,
 } from './shell-mode'
@@ -89,6 +92,7 @@ let {
 }: Props = $props()
 
 const mode = $derived(shellModeAt(geometry.current))
+const standing = $derived(railStandsAt(geometry.current))
 const tier = $derived(geometry.current.heightTier)
 const dockPlacement = $derived(dockPlacementOf(mode, tier))
 const dockIsOpen = $derived(dockOpen ?? defaultDockOpen(mode, tier))
@@ -148,7 +152,7 @@ let railElement = $state<HTMLElement>()
 let statusElement = $state<HTMLElement>()
 const foot = shellFoot({
   elements: () => [railElement, statusElement],
-  railShown: () => rail !== undefined && mode !== 'wide',
+  railShown: () => rail !== undefined && mode === 'compact' && !standing,
   statusShown: () => status !== undefined,
 })
 
@@ -183,6 +187,7 @@ function sheetStyle(name: ShellRegion): string | undefined {
   class="shell"
   data-editor-shell
   data-mode={mode}
+  data-standing={standing ? 'true' : undefined}
   data-dock={dockPlacement}
   data-rail={rail ? 'present' : 'none'}
   data-panel={panel ? 'present' : 'none'}
@@ -190,21 +195,23 @@ function sheetStyle(name: ShellRegion): string | undefined {
   data-testid={testId}
   style:--dock-lift={dockLift}
 >
+  <!-- The work panel's face: the inset box the header, list, canvas, inspector and status line sit on (shell-layout.css). -->
+  <div class="frame" data-frame aria-hidden="true"></div>
   <header class="region" data-region="topbar">{@render guarded('topbar', 'bar', topbar)}</header>
 
   {#if rail}
     <nav
       class="region"
       data-region="rail"
-      data-presentation={mode === 'wide' ? 'rail' : 'tabbar'}
+      data-presentation={mode === 'wide' ? 'sidebar' : mode === 'medium' ? 'rail' : 'tabbar'}
       aria-label="Editor sections"
       bind:this={railElement}
     >
       <!-- Inline rather than `guarded`: the rail's snippet takes an argument (its orientation). -->
       <svelte:boundary>
-        {@render rail({ orientation: mode === 'wide' ? 'vertical' : 'horizontal' })}
+        {@render rail({ orientation: mode === 'compact' && !standing ? 'horizontal' : 'vertical' })}
         {#snippet failed(error)}
-          <RegionError region="rail" {error} layout={mode === 'wide' ? 'block' : 'bar'} />
+          <RegionError region="rail" {error} layout={mode === 'compact' && !standing ? 'bar' : 'block'} />
         {/snippet}
       </svelte:boundary>
     </nav>

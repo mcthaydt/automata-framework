@@ -74,7 +74,9 @@ describe('EditorShell region boundaries', () => {
     ['topbar', 1194, 834, 'bar'],
     ['status', 1194, 834, 'bar'],
     ['rail', 1194, 834, 'block'],
-    ['rail', 834, 1194, 'bar'],
+    ['rail', 834, 1194, 'block'],
+    ['rail', 390, 844, 'bar'],
+    ['rail', 844, 390, 'block'],
     ['panel', 834, 1194, 'block'],
     ['canvas', 390, 844, 'block'],
   ] as const)('the %s at %d x %d shows the panel as a %s', (broken, width, height, layout) => {

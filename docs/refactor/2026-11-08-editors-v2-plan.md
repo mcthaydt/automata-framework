@@ -176,7 +176,7 @@ helper, `atEverySize(run)`, created in Task 4.
   `tabbar` in compact; `data-mode` unchanged. Shell variables `--shell-sidebar` 224 px, `--shell-rail` 76 px,
   `--shell-tabbar` 56 px, `--shell-inset` 8 px.
 
-- [ ] **Step 1: Write the failing tests.** `suite-entries.test.ts`: `iconFor` gives spec §7.3's icon for every id, and
+- [x] **Step 1: Write the failing tests.** `suite-entries.test.ts`: `iconFor` gives spec §7.3's icon for every id, and
       the icons of the entries a suite with every editor shows are all different (`levels-2d` and `levels-3d` share
       `levels` only because no game shows both under one name; with both kinds they are "Levels 2D" and "Levels 3D",
       and that is allowed). `editor-shell.test.ts`, at each
@@ -184,10 +184,10 @@ helper, `atEverySize(run)`, created in Task 4.
       a 76 px rail on the left and no tab bar at the foot, with the inspector floating over the work (296 px) only
       when something is chosen and a header button to open it otherwise; compact shows no sidebar, the panel at the window's edges and
       the tab bar; Home shows the sidebar too; `document.documentElement.scrollWidth <= innerWidth` at every size.
-- [ ] **Step 2: Run** them. Expected: FAIL (`list` icons; today's 56 px rail; today's medium foot bar).
-- [ ] **Step 3: Implement** the grid in `shell-layout.css` (spec §6) and the icons.
-- [ ] **Step 4: Run** the tests, `pnpm test:browser:2d -- shell`, and `pnpm check`. Expected: PASS.
-- [ ] **Step 5: Commit** `feat(editor): an inset work panel, three layouts and an icon for each editor`.
+- [x] **Step 2: Run** them. Expected: FAIL (`list` icons; today's 56 px rail; today's medium foot bar).
+- [x] **Step 3: Implement** the grid in `shell-layout.css` (spec §6) and the icons.
+- [x] **Step 4: Run** the tests, `pnpm test:browser:2d -- shell`, and `pnpm check`. Expected: PASS.
+- [x] **Step 5: Commit** `feat(editor): an inset work panel, three layouts and an icon for each editor`.
 
 ### Task 5: The sidebar
 
@@ -487,3 +487,19 @@ iPad size, in Dark and once in Light; and apply the drunk grandma test to every 
   a person does (a stored choice, with the emulated device asking for the other). `theme.test.ts` now reads the
   built suite (`dist/suite`; `dist/2d` no longer exists). Ran: editor unit tests (271 files), the layout theme test in
   Chromium, `tests/e2e/theme.test.ts` and `design-board.test.ts` (desktop project).
+- 2026-11-08, build, Task 4: the inset shell and the editors' icons. `EditorShell` draws an empty `.frame` (the work
+  panel's face: `tool-panel`, a 1 px edge, 8 px corners) and the header, list, canvas, inspector, dock and status sit on
+  it with no faces of their own; the inset is the grid's first and last row and last column, so there is no negative
+  margin. Wide is a 224 px sidebar, medium a 76 px rail, compact a 56 px tab bar along the foot with no inset, or a
+  72 px column at the left on a phone held sideways (`data-standing`, `railStandsAt`). A screen with no rail
+  (`data-rail="none"`) sets the sidebar, rail, tab bar and standing widths to 0 instead of repeating the areas. The
+  canvas is the stage: `tool-stage` with `tool-dot` dots every 20 px. Rulings: (1) the region keeps the name `rail`
+  (not `sidebar`) because the fixtures, journeys and `data-region` tests name it; only its `data-presentation` is now
+  `sidebar`, `rail` or `tabbar`. (2) The region sheets are not moved into `shell-sheets.svelte` and not rendered
+  through `Sheet`: the shell keeps its regions mounted and moves them with CSS so focus and scroll survive a
+  rotation, which a re-rendered sheet would lose; they take the raised look (`--raise`, 12 px top corners) in CSS.
+  `Sheet` (Task 8) serves the menus and the title menu. (3) `EditorShell.svelte` is 340 lines, so no split. Nine icons
+  were added (`levels`, `person`, `zap`, `volume`, `message`, `clapper`, `workflow`, `maximize`, `upload`) and
+  `iconFor` is exported and follows spec §7.3. `WINDOW_SIZES` and `atEverySize` are in `src/testing/kit/`. The shell's
+  layout test now measures the inset, the 224/76/56/72 px bars and the 8 px corners; it passes in Chromium with a
+  mouse and with touch (164 tests). Not run: WebKit, Firefox.

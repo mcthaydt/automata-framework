@@ -1,59 +1,33 @@
 /*
   The editor shell's grid: which regions sit where in each layout mode (wide, medium, compact), with the rail, the panel
   or the inspector left out. One file for the layout so EditorShell.svelte keeps to the shell's behaviour; the
-  attributes it reads (`data-mode`, `data-dock`, `data-rail`, `data-panel`, `data-inspector`) are the shell's own.
+  attributes it reads (`data-mode`, `data-standing`, `data-dock`, `data-rail`, `data-panel`, `data-inspector`) are the
+  shell's own.
+
+  Wide and medium put the work on an inset panel: an empty `.frame` draws the panel's face (colour, edge and corners),
+  and the header, list, canvas, inspector and status line sit on it with no faces of their own. The window colour shows
+  around it and behind the sidebar, which runs the full height. The inset is two grid tracks (the first and last row, and
+  the last column), so nothing needs a negative margin. Compact has no inset: the frame fills the window.
 */
 
-/* Sizes from the mockups (docs/design/editor-2d). Targets never shrink with the window; only gutters do. The top bar
-   is at least --shell-topbar tall and grows when its content wraps (the document's bar takes two rows on a phone).
-   A screen with nothing to put in a column sets its width to 0 below. */
 [data-editor-shell] {
-  --shell-topbar: 52px;
-  --shell-rail: 56px;
-  --shell-tabbar: 64px;
+  /* `--shell-topbar` is set by tool-chrome.css (48 px with a mouse, 56 on touch). */
+  --shell-sidebar: 224px;
+  --shell-rail: 76px;
+  --shell-tabbar: 56px;
+  --shell-standing: 72px;
+  --shell-inset: 8px;
   --shell-panel: 264px;
   --shell-inspector: 320px;
   --shell-dock: 148px;
 }
 
-[data-editor-shell][data-mode="wide"] {
-  grid-template-columns: var(--shell-rail) var(--shell-panel) minmax(0, 1fr) var(--shell-inspector);
-  grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto auto;
-  grid-template-areas:
-    "topbar topbar topbar topbar"
-    "rail panel canvas inspector"
-    "rail panel dock inspector"
-    "status status status status";
-}
-
-/* A short window keeps the dock out of the grid: it is a sheet over the canvas, summoned by the editor. */
-[data-editor-shell][data-mode="wide"][data-dock="sheet"] {
-  grid-template-areas:
-    "topbar topbar topbar topbar"
-    "rail panel canvas inspector"
-    "rail panel canvas inspector"
-    "status status status status";
-}
-
-/* Medium: the panel stays beside the canvas (the layers are what a person reaches for most); the rest float. */
-[data-editor-shell][data-mode="medium"] {
-  grid-template-columns: var(--shell-panel) minmax(0, 1fr);
-  grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto var(--shell-tabbar);
-  grid-template-areas:
-    "topbar topbar"
-    "panel canvas"
-    "status status"
-    "rail rail";
-}
-
-[data-editor-shell][data-mode="compact"] {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto var(--shell-tabbar);
-  grid-template-areas:
-    "topbar"
-    "canvas"
-    "status"
-    "rail";
+/* A screen with no destinations gives the sidebar's column, and the tab bar's row, to the work. */
+[data-editor-shell][data-rail="none"] {
+  --shell-sidebar: 0px;
+  --shell-rail: 0px;
+  --shell-tabbar: 0px;
+  --shell-standing: 0px;
 }
 
 /* A screen with nothing to list beside its canvas (the suite's Home) gives the panel's column to the canvas. */
@@ -66,36 +40,104 @@
   --shell-inspector: 0px;
 }
 
-/* A screen with no destinations (Home) gives the rail's column, and the tab bar's row, to the canvas. */
-[data-editor-shell][data-mode="wide"][data-rail="none"] {
-  grid-template-columns: var(--shell-panel) minmax(0, 1fr) var(--shell-inspector);
+[data-editor-shell][data-mode="wide"] {
+  grid-template-columns: var(--shell-sidebar) var(--shell-panel) minmax(0, 1fr) var(--shell-inspector) var(
+      --shell-inset
+    );
+  grid-template-rows: var(--shell-inset) minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto auto var(
+      --shell-inset
+    );
   grid-template-areas:
-    "topbar topbar topbar"
-    "panel canvas inspector"
-    "panel dock inspector"
-    "status status status";
+    "rail . . . ."
+    "rail topbar topbar topbar ."
+    "rail panel canvas inspector ."
+    "rail panel dock inspector ."
+    "rail status status status ."
+    "rail . . . .";
 }
 
-[data-editor-shell][data-mode="wide"][data-rail="none"][data-dock="sheet"] {
+/* A short window keeps the dock out of the grid: it is a sheet over the canvas, summoned by the editor. */
+[data-editor-shell][data-mode="wide"][data-dock="sheet"] {
   grid-template-areas:
-    "topbar topbar topbar"
-    "panel canvas inspector"
-    "panel canvas inspector"
-    "status status status";
+    "rail . . . ."
+    "rail topbar topbar topbar ."
+    "rail panel canvas inspector ."
+    "rail panel canvas inspector ."
+    "rail status status status ."
+    "rail . . . .";
 }
 
-[data-editor-shell][data-mode="medium"][data-rail="none"] {
-  grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto;
+/* Medium: the list stays beside the canvas (the layers are what a person reaches for most); the rest float. */
+[data-editor-shell][data-mode="medium"] {
+  grid-template-columns: var(--shell-rail) var(--shell-panel) minmax(0, 1fr) var(--shell-inset);
+  grid-template-rows: var(--shell-inset) minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto var(
+      --shell-inset
+    );
   grid-template-areas:
-    "topbar topbar"
-    "panel canvas"
-    "status status";
+    "rail . . ."
+    "rail topbar topbar ."
+    "rail panel canvas ."
+    "rail status status ."
+    "rail . . .";
 }
 
-[data-editor-shell][data-mode="compact"][data-rail="none"] {
-  grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto;
+/* Compact: the canvas alone, the tab bar along the foot, no inset. */
+[data-editor-shell][data-mode="compact"] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto var(--shell-tabbar);
   grid-template-areas:
     "topbar"
     "canvas"
-    "status";
+    "status"
+    "rail";
+}
+
+/* A phone held sideways: the tab bar stands at the left, so the work keeps its height. */
+[data-editor-shell][data-mode="compact"][data-standing] {
+  grid-template-columns: var(--shell-standing) minmax(0, 1fr);
+  grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto;
+  grid-template-areas:
+    "rail topbar"
+    "rail canvas"
+    "rail status";
+}
+
+/* The face of the work panel. Behind every region (the shell is its own stacking context), out of the tab order. */
+[data-editor-shell] > .frame {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--edge-lg);
+  pointer-events: none;
+}
+
+[data-editor-shell][data-mode="wide"] > .frame {
+  grid-area: 2 / 2 / 6 / 5;
+}
+
+[data-editor-shell][data-mode="medium"] > .frame {
+  grid-area: 2 / 2 / 5 / 4;
+}
+
+/* With no sidebar the panel has nothing to stand off from, so it keeps the window's left edge. */
+[data-editor-shell][data-rail="none"][data-mode="wide"] > .frame {
+  grid-area: 2 / 1 / 6 / 5;
+  border-left-width: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+[data-editor-shell][data-rail="none"][data-mode="medium"] > .frame {
+  grid-area: 2 / 1 / 5 / 4;
+  border-left-width: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+[data-editor-shell][data-mode="compact"] > .frame {
+  grid-area: 1 / 1 / -1 / -1;
+  border: 0;
+  border-radius: 0;
 }

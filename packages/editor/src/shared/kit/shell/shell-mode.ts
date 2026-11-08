@@ -37,6 +37,20 @@ export function shellModeAt(geometry: Pick<Geometry, 'layout' | 'keyboardResize'
   })
 }
 
+/** A phone held sideways: compact, at least this wide. The tab bar then stands as a column at the left. */
+export const STANDING_MIN_WIDTH = 561
+
+/** Whether the compact tab bar stands at the left edge (a phone held sideways) rather than lying along the foot. */
+export function railStandsAt(geometry: Pick<Geometry, 'layout' | 'keyboardResize'>): boolean {
+  const width = geometry.layout.width
+  const height = geometry.layout.height + geometry.keyboardResize
+  return (
+    shellModeOf({ width, height }) === 'compact' &&
+    height <= COMPACT_MAX_HEIGHT &&
+    width >= STANDING_MIN_WIDTH
+  )
+}
+
 /** Inline only when wide and the height tier is not short or compact: a short window cannot spare 148 px. */
 export function dockPlacementOf(mode: ShellMode, tier: HeightTier): DockPlacement {
   return mode === 'wide' && tier === undefined ? 'inline' : 'sheet'
