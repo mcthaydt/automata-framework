@@ -18,7 +18,9 @@
   3D and editors (non-2D, we're addressing that already)". The [rest-of-AF audit](2026-11-06-2d-ship-rest-audit.md)
   (PR #407) is folded in as section 16. The Owner took its nine recommendations (D9 to D17) on 2026-11-06 ("Go with all
   recommendations"); D17's actions are the Owner's.
-- **Status:** drafted; stage 3 (the plan audit) is next. Nothing here is built.
+- **Status:** reviewed by the [plan audit](2026-11-06-2d-editors-and-site-plan-audit.md) (stage 3, 2026-11-06), whose
+  fixes are in this text; accepted under the Owner's standing rule ("Auto accept all spec and plans", 2026-10-30;
+  "everything is auto approved and accepted", 2026-10-31). Stage 4 (the build) is next. Nothing here is built.
 
 ## 1. What done looks like
 
@@ -89,8 +91,9 @@ still run, in the 3D workflow. Its refactor is the 3D slice.
 `games/base-3d`, `vendor/pixi-3d`, 3D pages); shipping the suite (D3: it waits for 3D, when there are two level
 editors to hold); wiring the suite's Ship, Ask, checks and gates (E6: they move with the suite and stay unwired);
 making the repository public (D2); porting Automata Plus (D12); new editor features beyond Save writing the game and what the redesign needs;
-redesigning `editor-3d`'s screens (it picks up the new tokens, section 11.6, and is redesigned in the 3D slice); Plus;
-the paid editor apps.
+redesigning `editor-3d`'s screens, the Studio and the suite (they pick up the new tokens, section 11.6; the Owner asked
+for "the editors" to be redesigned, so the 3D slice owes their redesign in this look, and `progress.md` records it);
+Plus; the paid editor apps.
 
 ## 3. The editor package (D6)
 
@@ -118,8 +121,8 @@ Each entry is a file in `src/entries/`. The names map one to one from today's, s
 | `./kit` | `@mcthaydt/automata-editor-kit` | `editor-3d` |
 | `./kit/core`, `./kit/documents`, `./kit/fields`, `./kit/ports`, `./kit/ports/testing`, `./kit/testing`, `./kit/journey-project` | the kit's subpaths | `editor-3d` |
 | `./tokens.css`, `./fonts.css` | the kit's | `editor-3d` |
-| `./suite` | `editor-2d/suite`, the suite shell (`createSuite`, `startSuite`) and the Tuner | `editor-3d`'s full suite page (section 3.4) |
-| `./editor-list` | `editor-suite/core` (the editor list: `loadEditorList`, `fileAccess`) | `-tools` (bundled), `automata check` |
+| `./suite` | `editor-2d/suite`, the suite shell (`createSuite`, the boot in `shell/boot.ts`), the Tuner, and the suite-core names the Studio imports (the codemod's surface report lists them) | `editor-3d`'s full suite page and the Studio (section 3.4) |
+| `./editor-list` | the editor-list half of `editor-suite/core` (`editors.schema`, `editor-list`, `glob`, `write-path`, `workspace-policy`: `loadEditorList`, `fileAccess`); the rest of `core` (Ask, Review, the change set, pills) is the suite's own and moves to `features/suite/core/` | `-tools` (bundled), `automata check` |
 | `./level-export` | `editor-2d/src/profiles/level-project` (open a project, export its game files), headless | `-tools` (bundled), `automata check` |
 
 `editor-2d`'s root entry (172 lines of names nobody imports, S3) and the suite's `./node` entry are not carried over:
@@ -160,7 +163,9 @@ packages/editor/
                         features' tests share
   tests/
     unit/<feature>/     Node, or jsdom when the file starts with `// @vitest-environment jsdom`
-    browser/<feature>/  real browsers: layout (Chromium, WebKit, Firefox), canvas (Chromium, WebKit),
+    browser/<project>/<feature>/
+                        real browsers, one folder per project: parity (the auto-tile goldens; Chromium, WebKit,
+                        Firefox, and Node through `alsoInNode`), layout (all three), canvas (Chromium, WebKit),
                         journeys (WebKit with the iPad context, Chromium)
     e2e/                Playwright against `automata editor` (section 9)
     fixtures/           data and Svelte test hosts
@@ -176,7 +181,12 @@ The rules are core's, enforced by `pnpm boundaries --features packages/editor`:
 4. `entries/` re-exports only.
 
 Where two features meet today (the Level view opens the Entities view's field editor; the document bar runs the
-export on Save, section 6), `app/editor-2d/` passes the function in. The Entities view's field editor, used by the Level
+export on Save, section 6), `app/editor-2d/` passes the function in, or the shared part moves to `shared/` (the guarded
+folder write, `write-folder.ts`, becomes `shared/kit/storage/`, because Save and Share both use it).
+
+`editor-2d`'s own architecture test (the pure core imports only Zod and the kit's field rules, profiles stay isolated,
+generic areas name no profile, no import cycles) stays: `--features` does not check those rules. Its path prefixes are
+remapped to the new folders, and it asserts that each prefix matches files, so a move cannot empty it. The Entities view's field editor, used by the Level
 view's inspector too, is `shared/kit/fields` already, so most meetings need nothing new.
 
 ### 3.4 The suite without 3D (D3, E5, E7, S2)
@@ -184,8 +194,9 @@ view's inspector too, is `shared/kit/fields` already, so most meetings need noth
 The suite does not ship in this slice, but its default build must stop carrying 3D, because a 2D build with a closed
 beta inside is one `cp` from being hosted:
 
-- `packages/editor/src/app/suite/main.ts` registers the editors this package has: Levels 2D and the Tuner. Its build
-  (`suite.html`) holds no `@pixi/3d`, and the closed-beta scan (section 7.3) runs on it.
+- `packages/editor/src/app/suite/main.ts` registers the editors this package has: Levels 2D and the Tuner. It is
+  written that way in the package merge (phase 4), since `editor` may not import `editor-3d`. Its build (`suite.html`)
+  holds no `@pixi/3d`, and the closed-beta scan (section 7.3) runs on it in `-tools`' build.
 - The Studio (`editor-suite/src/editors/studio`) and Levels 3D (`editor-3d/src/ui/suite`, already in `editor-3d`) are
   registered by `editor-3d`'s own suite page, `packages/editor-3d/suite.html`, which imports `createSuite` from
   `@mcthaydt/automata-editor/suite` and adds its editors to the list. `automata editor --app suite` serves that build
@@ -201,8 +212,8 @@ beta inside is one `cp` from being hosted:
 `package.json`'s scripts grow:
 
 - `boundaries`: `--features packages/editor`; and a new `--forbid packages/editor:@pixi/3d,@mcthaydt/automata-editor-3d,@mcthaydt/automata-render-pixi3d,@mcthaydt/automata-figures`
-  (a package may not import the named modules, type imports included). One small rule in `tooling/check-boundaries`,
-  tested like its others.
+  (a package may not import the named modules, type imports included). One small rule in the boundaries checker
+  (`packages/tools/src/features/boundaries/` once phase 3 folds it into `-tools`), tested like its others.
 - `style`: `packages/editor` joins `--plan-comments`, `--comments-only` and `--test-imports`. Every `.svelte` component
   is kebab-case-exempt as today (PascalCase is Svelte's convention, and the rule already allows it).
 - `knip`: `packages/editor` as a workspace with its entries (`src/entries/*.ts`, `src/app/*/main.ts`).
@@ -216,9 +227,11 @@ uses them, `src/testing/`. Tests import through `#src/...`. The core slice's `to
 move; the editor needs its suffix table added (task 2.3).
 
 **The preset:** `defineTests` gets what the editor needs and nothing more: `browserProjects`, a list of named browser
-projects each with its own folder glob and engines (`layout` in all three, `canvas` and `journeys` in Chromium and
-WebKit), because the editor's canvas tests need WebGL2 and its journeys need the iPad context
-(`kit/journey-project`). Packages that pass nothing keep today's single `browser` project.
+projects each with its own folder glob and engines (`parity` and `layout` in all three, `canvas` and `journeys` in
+Chromium and WebKit), because the editor's canvas tests need WebGL2 and its journeys need the iPad context
+(`kit/journey-project`). Packages that pass nothing keep today's single `browser` project. Today the editors' journeys
+run only in the 3D workflow (`pnpm test:journeys`) and `editor-2d`'s canvas tests in no workflow; both join the
+packages' `test:browser`, and the 3D workflow runs a filtered `test:journeys:3d`.
 
 | Gate | Runs | When |
 |---|---|---|
@@ -245,7 +258,8 @@ export function intGridRows(level: ContentLevel, layer: string): readonly (reado
 export function entitiesOf(level: ContentLevel, layer: string): readonly ContentEntityItem[]
 ```
 
-- **`content.schema.ts` moves whole**, with the parts of the kit's field schema it needs (`fieldDefSchema`,
+- **`content.schema.ts` moves whole** (with the `LevelNeighbours` type it imports from the editor's
+  `model/world/world-neighbours.ts`, which then imports it back from `-content`), with the parts of the kit's field schema it needs (`fieldDefSchema`,
   `fieldValuesSchema` and the types and checks they call: `field-types.ts`, `field.schema.ts`, `check-field-def.ts`,
   `check-field-value.ts`, 439 lines). The kit's `fields` re-exports them from `-content`, so there is one copy. The
   Svelte field editors stay in the kit.
@@ -256,8 +270,12 @@ export function entitiesOf(level: ContentLevel, layer: string): readonly Content
   `decodeRow`). They live in a sim-safe file, so a game's sim may import them: `-content` declares `./level-2d` in
   `"automata": { "simEntries" }` and the file passes the sim rule (no `Math.random`, no `Object.keys`, etc.).
 - **Emberwick** deletes `shared/kinds.ts` and its `LevelLike` type, and reads its room through `level2dKinds()`,
-  `intGridRows` and `entitiesOf`. Its golden hash must not change (the sim receives the same values); if it does, the
-  change is investigated, never re-recorded.
+  `intGridRows` and `entitiesOf`. Its golden hash must not change: the content hash is part of the state hash, and
+  today's kinds are loose objects while the moved schemas are strict, so a strict schema that drops, defaults or
+  reorders a field hands the sim different content. The check that finds this first is byte-for-byte equality of
+  `content/generated/sim-content.json` before and after; if it differs, the sim's `levels` kind keeps today's shape (the
+  strict schema then checks the file without changing what the sim gets). A changed hash is investigated, never
+  re-recorded to make the move pass.
 - **The editor** imports the schemas from `-content/level-2d` in its export and its tests. The editor's own format
   (`.af2d.json`, its schema and migrations) stays in the editor (seam 2).
 
@@ -318,8 +336,9 @@ content/levels/room-1.toml does not match content/rooms/room-1.af2d.json.
 Open the level in the editor and press Save.
 ```
 
-It runs in `automata check` by default and in `pnpm check` for Emberwick (its `check:example` script). A project that
-fails to open is reported with its first problem and the same last line.
+It runs in `automata check` by default. For Emberwick it runs in `pnpm check` through a `-tools` unit test over
+`games/emberwick` (the `check:example` script of `-tools` runs in no gate today). A project that fails to open is
+reported with its first problem and the same last line.
 
 ### 6.4 A new game has a level (E3)
 
@@ -347,8 +366,8 @@ Without `content/editors.toml`, the policy fallback narrows from "every `.json` 
   build says "The 3D editor is not in this release yet." outside a checkout.
 - It runs from source in the repository (`node packages/tools/src/app/bin.ts editor`), because the editor list and the
   level export are imported from `-editor`'s `.ts` entries with extensions (the suite's extensionless imports are
-  rewritten in the package merge; B4 of the build audit already makes the command load lazily). A test spawns the
-  source bin.
+  rewritten in the package merge; the core slice's build audit, finding B4, already made the command load lazily). A
+  test spawns the source bin.
 - The usage text and messages pass section 11 ("Serves an editor against the game checkout" becomes "Opens the level
   editor on your game, until you press Ctrl+C.").
 
@@ -360,25 +379,19 @@ Pixi's chunks); the consumer smoke records the packed size, and a budget fails t
 
 ### 7.3 The closed-beta scan (seam 5)
 
-One function, `findClosedBeta(dir)`, in `-tools` `shared/ship` (where `ship prepare` already refuses `@pixi/3d` in a
-public game bundle), is reused by three callers: `ship prepare` (unchanged behaviour), `-tools`' build after the copy,
-and the site's build (section 10.3). Each fails with "This build contains the private Pixi 3D beta (<file>). It cannot
-be published." A unit test feeds it a fixture with the beta's marker; the suite's 2D build and the editor build are
-scanned in CI.
+One function already does this: `findPixi3d(dir)` in `-tools` `shared/ship/prepare/pixi3d-markers.ts`, which `ship
+prepare` and the itch.io and desktop targets call today. It gains callers, not a copy: the web target (section 16.2),
+`-tools`' build (`scripts/copy-editor.ts`, over the editor's 2D build and its 2D-only suite build, before the copy), and
+the site's build (a script that imports it from `-tools`' private `./internal` entry). The editor's own build does not
+scan: `-tools` depends on the editor, so the editor cannot depend on `-tools`. Each new caller fails with "This build
+contains the private Pixi 3D beta (<file>). It cannot be published." Its existing unit tests stay; the new callers each
+get one test with a planted marker.
 
 ## 8. Publishing on npmjs.org (D2)
 
-Section 16.3 supersedes this list where they differ (the scope, the first version, the workflows).
-
-- Every published package's `publishConfig.registry` becomes `https://registry.npmjs.org`, with `access: public`
-  (`.changeset/config.json` `"access": "public"`). `release-packages.yml` sends `NPM_TOKEN` to npmjs.org and drops the
-  GitHub Packages `.npmrc` step. The consumer smoke's `--from registry` mode reads the registry from an environment
-  variable, so it can run against a local Verdaccio in CI before the first real publish.
-- The packages' `repository`, `homepage` and `bugs` fields point at the site, not the private repository, until it is
-  public. READMEs link to the site's docs.
-- The old GitHub Packages names are deprecated after the first npmjs.org publish (the Owner's: it needs the token).
-- The first publish and its release approval are the Owner's (D8). Everything up to `changeset publish --dry-run`
-  against Verdaccio is done in this slice.
+Section 16.3 holds the whole release (the scope, the registry, the first version, the workflows), so there is one
+description of it. The consumer smoke's `--from registry` mode reads the registry from `AF_REGISTRY`, so it runs against
+a local Verdaccio before the first real publish.
 
 ## 9. Real journeys (T2)
 
@@ -405,8 +418,10 @@ The suite journey runs in Chromium only and is not in the iPad set. The editor's
   `site/` joins `pnpm-workspace.yaml` as `@mcthaydt/automata-site` (private). The old repository is archived by the
   Owner after the move merges (a repository setting).
 - **Imports, not copies.** The site depends on the workspace packages it shows (`@mcthaydt/automata`, `-content`,
-  `-tools` for the editor build, `tooling/examples-runner` for the playground protocol, `tooling/api-index` for the
-  API data). Docs are read from `docs/guides/` at build time. Demos (the examples and Emberwick) are built by turbo
+  `-editor` for the tokens and the 2D build "Try the editor" serves, `-tools` for the closed-beta scan,
+  `tooling/api-index` for the API data). The playground's half of `tooling/examples-runner` (its protocol, headers,
+  frame runtime, build scripts and tests) moves into the site, whose only user it is; the examples index stays in
+  `examples-runner`. Docs are read from `docs/guides/` at build time. Demos (the examples and Emberwick) are built by turbo
   before the site and copied into its build output, never into git.
 - **Deleted:** the ten sync scripts and their helpers (1,081 lines), `framework.ref`, the read-only deploy key and the
   CI step that clones the framework, `static/demos/` (7.3 MB) and the generated playground runtime (2.0 MB), committed
@@ -414,8 +429,10 @@ The suite journey runs in Chromium only and is not in the iPad set. The editor's
   sample that the site's tests compile against the current API), `restorations.ts`, the evidence schema and Proof
   page, the release manifests, the rollback rehearsal, the uptime and deployed-site checks, the Lighthouse baseline
   test (Lighthouse stays as a report), and every test that pins history ("expected red until DX.11") (WS1 to WS3).
-- **Tooling:** the root's Biome, the root's exact pins (Vite 8, SvelteKit's latest 2.x that runs on Vite 8, the Svelte
-  plugin 7, Zod 4.6.6), `tsx` replaced by Node's own TypeScript (`node file.ts`, as the framework's scripts run) (WS6).
+- **Tooling:** the root's Biome, the root's exact pins (Vite 8.3.3, SvelteKit 2.70.4, the last 2.x, whose peers allow
+  Vite 8 and the Svelte plugin 7; the plugin 7; Zod 4.6.6), `tsx` replaced by Node's own TypeScript (`node file.ts`, as
+  the framework's scripts run) (WS6). TypeScript stays 6.0.3 in the site: SvelteKit 2 and 3 both peer on TypeScript 6
+  (veto default 14). The site's own lockfile, licence, `.nvmrc`, agent scratch folders and `docs/` go.
 
 ### 10.2 The pages (D7)
 
@@ -508,10 +525,12 @@ a status bar that says only "Saved", and words from the file format ("Level proj
 - **One source.** `packages/editor/src/shared/kit/tokens/tokens.json` holds the tokens (it moves there from
   `docs/design/editor-kit/` before that folder is archived, S6). The generator writes `tokens.css`, published as
   `@mcthaydt/automata-editor/tokens.css`, and the site imports it in place of the custom properties at the top of its
-  `app.css` (D1 makes that one import). Token names are both kits' names merged: the site's `--bg`, `--paper`, `--ink`,
-  `--cobalt`, `--lime`, `--radius*`, `--step-*` become the source, and the editor's names
-  (`--color-bg-app`, `--color-accent-default`, ...) are aliases to them for one release, then the components use the
-  new names.
+  `app.css` (D1 makes that one import). The site's names (every custom property its `:root` defines today, about 36,
+  from `--bg` and `--paper` to the flutes, the glow and `--ease-out`) become the source, with the site's values. The
+  kit's components move to those names in phase 11. The editor's old names (`--color-bg-app`,
+  `--color-accent-default`, ...) stay as aliases only because `editor-3d` still uses them; the 3D slice moves it and
+  deletes them. The editor uses the fixed type steps (`--step-micro`, `--step-small`, `--step-body`), not the fluid
+  display steps, which scale with the viewport: an editor's layout follows its container (AGENTS.md).
 - **Kept on purpose:** the layer colour tokens (`--color-layer-entities`, `--color-layer-intgrid`, ...) keep their names,
   because projects store them (`layer/entities`, read by `canvas/colors.ts`); their values are retuned for the charcoal
   canvas. `--size-hit` (44 px) and `--size-primary` (48 px) stay.
@@ -678,7 +697,7 @@ D1 to D17 were all taken as recommended on 2026-11-06. This table says what a la
 
 | Risk | Handling |
 |---|---|
-| The package merge changes behaviour | Phase 2 is moves only; the 3,348 unit and DOM tests and the 252 Chromium browser tests pass with the same counts before and after; `editor-3d`'s suites pass in the 3D workflow on the same PR |
+| The package merge changes behaviour | Phase 4's first two PRs are moves only; the 3,348 unit and DOM tests and the 252 Chromium browser tests pass with the same counts before and after (less the Studio's, which move to `editor-3d`); `editor-3d`'s suites pass in the 3D workflow on the same PR |
 | Moving the field schema breaks the kit's field editors | The kit re-exports from `-content`; its field tests run unchanged |
 | Save writes three files without a transaction | The project goes last and the check catches a half-written save (section 6.2); the journey of section 9 covers the conflict path |
 | Emberwick's golden hash moves with the level contract | It must not: the sim gets the same values. A change is investigated in phase 5 before anything else lands |
@@ -711,6 +730,11 @@ D1 to D17 were all taken as recommended on 2026-11-06. This table says what a la
 12. `@mcthaydt/automata-check-boundaries` stops publishing; `-tools` keeps its bin for this repository.
 13. The redesign's view names are Level, Map, Tiles and Characters; Checks becomes a problem count and Export a Share
     menu (section 11.4).
+14. The site stays on SvelteKit 2 (2.70.4) and TypeScript 6.0.3 rather than moving to SvelteKit 3 in the same change
+    (added by the plan audit).
+15. The GitHub Packages names are not deprecated (rest-of-AF audit U7); the Owner may delete them (added by the plan
+    audit).
+16. The closed-beta scan is the existing `findPixi3d`, with new callers; no new bin (added by the plan audit).
 
 ## 16. The rest of AF for a 2D ship
 
@@ -770,7 +794,9 @@ smoke's hand-written manifest stays only for what the stranger's path does not r
 | `ship test-remote`, `ship deploy-dev`, `add`, the `automata-ship` alias | removed from the package (U2 to U4, U7), with `packages/tools/deploy/` and `game-release.yml`'s `dev-host` job. `test-remote` moves to `tooling/repo-scripts` as `pnpm ci:remote` if the Owner still wants it |
 
 - `-tools`' root entry exports `defineShipConfig` and its types only (U1). What the repository's own tooling imports
-  moves to a private `./internal` entry that is not in `publishConfig.exports`.
+  (`rukenHeaders`, `checkManifest`, `inputsProblems`, `rukenToml`, `findPixi3d`, ...) moves to a private `./internal`
+  entry that is not in `publishConfig.exports`. The published `./e2e` entry (the input matrix and fake pad, used only by
+  `examples/`) leaves `publishConfig.exports` too.
 - `@mcthaydt/automata-check-boundaries` folds into `-tools` (U6): its source moves to
   `packages/tools/src/features/boundaries/`, `-tools` keeps an `automata-check-boundaries` bin for this repository's own
   `pnpm boundaries`, and the separate package stops publishing. Four published packages: `-sim`, `-content`, `automata`,
@@ -799,9 +825,8 @@ This replaces section 8's list:
 - `vendor/ruken/README.md` names the two packages that bundle Ruken's code today (R7).
 - The `repository`, `homepage` and `bugs` fields point at the site; READMEs link to the site's docs.
 - The first publish, its release approval and the organisation are the Owner's (D17). Everything up to `changeset
-  publish` against a local Verdaccio, with the stranger's journey run against it, is done in this slice. No deprecation
-  of the old GitHub Packages names is needed beyond one `npm deprecate` line in the runbook (U7: nobody outside used
-  them).
+  publish` against a local Verdaccio, with the stranger's journey run against it, is done in this slice. The old
+  GitHub Packages names are not deprecated (U7: nobody outside this repository, Plus and the website used them).
 
 ### 16.4 CI for a game made with AF (D15 A, R5)
 
@@ -831,7 +856,8 @@ FloorFifty `dev-target` example go. The publish guides show the template's workf
 - **Links** (A6): a `pnpm style --links` rule resolves every relative Markdown link outside `docs/archive/`; the nine
   broken ones are fixed.
 - **Source names** (A7): `source-names.ts` runs in `pnpm check` over the published READMEs, changelogs, the generated
-  references and `docs/` outside `archive/` and `provenance/`; what it finds is rewritten (PR #404 handles code comments).
+  references and `docs/` outside `archive/`, `provenance/` and `refactor/` (the audits there name the source projects
+  as evidence); what it finds is rewritten (PR #404 handles code comments).
 
 ### 16.6 Tooling and examples (Q1, Q2, Q4)
 
@@ -841,7 +867,7 @@ FloorFifty `dev-target` example go. The publish guides show the template's workf
 | `tooling/api-report/src/seams.ts` | goes with Plus (D12) |
 | `tooling/codemods` | kept until the 3D slice's moves, then deleted |
 | `tooling/bundle-report` | a step in `release-checks.yml` with a budget per game, or deleted if the budget adds nothing over the smoke's size check |
-| `tooling/examples-runner` | its playground half moves into `site/src/features/playground/` (section 10.3); the examples index stays |
+| `tooling/examples-runner` | its playground half moves into the site in phase 10 (`site/src/lib/playground/`, then `features/playground/` in phase 18); the examples index stays |
 | `tooling/evidence` | the Proof page's half goes with the page (D7); golden evidence stays |
 | `tooling/versions` | the stack page's Plus and Effect rows go (16.5) |
 | `tooling/frame-budget` | unchanged (it already skips on a software renderer) |
@@ -924,7 +950,7 @@ Then it fixes what it found, one concern per commit, and the build audit reads t
 
 | Area | Task | After |
 |---|---|---|
-| The editor package (kit, 2D, suite shell): the model, storage, documents, history, commands, canvas, export, the editor list and the suite's logic | 4.6 | the merge and the feature folders (4.1 to 4.5). The view components are rewritten by the redesign (phases 11 and 12) and meet the standard there, so 4.6 does not polish what phase 12 replaces |
+| The editor package (kit, 2D, suite shell): the model, storage, documents, history, commands, canvas, export, the editor list and the suite's logic | 4.6 | the merge and the feature folders (4.1 to 4.5). The view components are rewritten by the redesign (phases 11 and 12) and meet the standard there: each phase 12 task starts with 17.3's read over its components, and task 12.5 checks every `.svelte` file, so 4.6 does not polish what phase 12 replaces |
 | `-tools` (create-game, check, ship, editor command) | 3.5 | the command's trim (3.1 to 3.4) |
 | The tooling packages that stay | 17.3 | the diet (17.1, 17.2) |
 | The site | 18.5 | the page cut and feature folders (18.1 to 18.4) |

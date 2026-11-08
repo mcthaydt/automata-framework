@@ -21,8 +21,8 @@ package and docs, the tooling diet (15 to 17); the site's rebuild (18 to 20) and
 **Tech stack:** as the core slice: pnpm 10 + turbo 2.11, Node 24.21, TypeScript (root 7.0.2), Vitest 5 with browser
 mode, Playwright 1.63, Svelte 5.57, PixiJS 8.22, Zod 4.6.6, Biome. The site: SvelteKit 2 with the static adapter.
 
-**Sessions:** a session is refreshed after 90 minutes (the Owner's rule). Tasks 4.2, 4.3, 10.1, 12.3 and 12.4 do not
-fit one session and name their breaks. A session ends by ticking its steps, updating `progress.md`, pushing, and writing a
+**Sessions:** a session is refreshed after 90 minutes (the Owner's rule). Tasks 3.5, 4.2, 4.3, 4.5, 4.6, 10.1, 12.3,
+12.4, 16.3, 17.3 and 18.5 do not fit one session and name their breaks (a task may span sessions and still counts once). A session ends by ticking its steps, updating `progress.md`, pushing, and writing a
 two-line handoff in this file's execution log.
 
 **Browsers in a cloud session:** only Chromium installs. A step that needs WebKit or Firefox says so; it is ticked
@@ -44,7 +44,16 @@ tasks 3.5, 4.6, 17.3 and 18.5 are the measured refactor passes for the code the 
 
 **Decisions:** D1 to D8 (the editors and website audit) and D9 to D17 (the [rest-of-AF audit](2026-11-06-2d-ship-rest-audit.md))
 were all taken as recommended by the Owner on 2026-11-06 ("Go with all recommendations", twice). D8's and D17's actions
-are the Owner's and sit in phase 21; task 14.1 waits only on the npm organisation's name.
+are the Owner's and sit in phase 21; task 14.1 waits only on the npm organisation's name and is not in the stack's
+line: it is done as its own PR whenever the name arrives, and no later phase waits for it.
+
+**Reviewed:** the [plan audit](2026-11-06-2d-editors-and-site-plan-audit.md) (stage 3, 2026-11-06) checked this plan and
+the spec against the audits and the code; its fixes are in both. Accepted under the Owner's standing rule ("Auto accept
+all spec and plans", 2026-10-30; "everything is auto approved and accepted", 2026-10-31).
+
+**Command lines used below** (checked against the code): the module mover is
+`node tooling/codemods/src/move-modules-cli.ts --map <map> [--dry-run] [--surface]`; the test mover is
+`node tooling/codemods/src/cli.ts <package> --environment node|jsdom [--keep-qualifier <q>] [--dry-run]`.
 
 **Copy:** every user-facing string a task changes goes in `docs/refactor/copy.md` (sections "Editor" and "Site") in
 the same commit, old and new, and passes the four questions of the core spec's section 8.
@@ -77,9 +86,14 @@ the task.
 
 **Files:**
 - Modify: `package.json` (`test:unit:core` → `test:unit:2d`, `test:browser:core` → `test:browser:2d`,
-  `test:browser:affected`, the `:3d` scripts, `check`, `ci:local`), `.github/workflows/ci.yml` (script names),
-  `packages/editor-kit/package.json`, `packages/editor-2d/package.json` (`test:browser` runs `layout`, `canvas` and
-  `journeys`), `docs/status.md`, `AGENTS.md` (the gate lines)
+  `test:browser:affected`, the `:3d` scripts, a new `test:journeys:3d`, `check`, `ci:local`), `.github/workflows/ci.yml`
+  (script names), `packages/editor-kit/package.json` (`test:browser` runs `layout` and `journeys`),
+  `packages/editor-2d/package.json` (`test:browser` runs `browsers`, `layout`, `canvas` and `journeys`), `docs/status.md`,
+  `AGENTS.md` (the gate lines)
+
+  Today the editors' journeys run only through the root `test:journeys` in `3d-and-editors.yml` (ci.yml never runs
+  it), and `editor-2d`'s canvas project (`test:canvas`) runs in no workflow at all. Folding both into the packages'
+  `test:browser` puts them under ci.yml's parity job, which already installs all three engines.
 - Test: `tooling/repo-hygiene/tests/unit/gate-scripts.test.ts` (create)
 
 - [ ] **Step 1: Write the failing test.** It reads the root `package.json` and asserts: `test:unit:2d` has no filter
@@ -103,7 +117,8 @@ the task.
   `base-3d`, the 3D examples), `ci.yml` (its header comment), `docs/status.md`
 
 - [ ] **Step 1:** Rename the workflow and drop `editor-kit` and `editor-2d` from its jobs; keep `packages/**` in its
-  paths (a core change can break 3D) but name the 2D editor folders in nothing.
+  paths (a core change can break 3D) but name the 2D editor folders in nothing. Its `pnpm test:journeys` becomes
+  `pnpm test:journeys:3d` (filtered like the other `:3d` scripts), or the 2D editors' journeys would run twice.
 - [ ] **Step 2:** `pnpm lint:actions` needs Docker: if it is not available, run `node -e` YAML parse on both files and
   note "actionlint: the Owner's" in the execution log.
 - [ ] **Step 3: Commit.** `ci: the 3D workflow holds only 3D; the 2D editors are in the 2D gate`
@@ -187,9 +202,11 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
 ### Task 3.1: What leaves
 
 **Files:**
-- Delete: `packages/tools/src/shared/ship/remote/` (`test-remote`), `packages/tools/src/shared/ship/deploy-dev*`,
-  `packages/tools/deploy/`, `packages/tools/src/features/add/`, `packages/tools/src/app/ship-alias-bin.ts`, their tests,
-  `game-release.yml`'s `dev-host` job
+- Delete: `packages/tools/src/shared/ship/remote/` (`test-remote`), `packages/tools/src/shared/ship/targets/ruken/deploy-dev.ts`
+  (and `shared/ship/deploy/build-id.ts` if nothing else imports it), `packages/tools/deploy/`,
+  `packages/tools/src/features/add/`, `packages/tools/src/app/{ship-alias-bin.ts,ship-alias.ts}`, their tests,
+  `game-release.yml`'s `dev-host` job; the `deployDev`/`testRemote` branches in `shared/ship/{cli-args.ts,errors.ts}`,
+  `prepare/prepare-mode.ts`, `config/ship-config.ts` and `app/ship-cli.ts`
 - Create (only if the Owner wants it, else skip): `tooling/repo-scripts/src/ci-remote.ts` (`pnpm ci:remote`)
 - Modify: `packages/tools/src/app/cli.ts`, `packages/tools/package.json` (`bin`), `packages/tools/tsdown.config.ts`,
   `packages/tools/README.md`
@@ -202,13 +219,13 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
 ### Task 3.2: The target is always named
 
 **Files:**
-- Modify: `packages/tools/src/shared/ship/{ship-args.ts,prepare.ts,publish/publish-build.ts}`, create
-  `packages/tools/src/shared/ship/targets/web/prepare-web.ts`
+- Modify: `packages/tools/src/shared/ship/{cli-args.ts,prepare/prepare-build.ts,publish/publish-build.ts}`, create
+  `packages/tools/src/shared/ship/targets/web/prepare-web.ts` (beside `targets/itch` and `targets/tauri`)
 - Test: `packages/tools/tests/unit/shared/ship/{ship-args.test.ts,targets/prepare-web.test.ts}`
 
 - [ ] **Step 1: Failing tests.** `ship prepare` with no `--target` exits 2 with "Choose a target: --target web, itch,
-  tauri or ruken."; `--target web` builds and runs the public scans (secrets, data URLs, `findClosedBeta`, no-eval) and
-  writes `dist/`; `--private`'s help text is spec 16.2's.
+  tauri or ruken."; `--target web` builds and runs the public scans (secrets, data URLs, `findPixi3d` from
+  `prepare/pixi3d-markers.ts`, no-eval) and writes `dist/`; `--private`'s help text is spec 16.2's.
 - [ ] **Step 2:** Implement. Commit. `feat(ship): name the target every time; web has a prepare step`
 
 ### Task 3.3: A small root entry, and `check-boundaries` folded in
@@ -216,7 +233,12 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
 **Files:**
 - Modify: `packages/tools/src/entries/index.ts` (only `defineShipConfig` and its types), create
   `packages/tools/src/entries/internal.ts` (what the repository's tooling imports; in `exports`, not in
-  `publishConfig.exports`); every importer of a removed name (`grep -rn "@mcthaydt/automata-tools'" tooling games examples`)
+  `publishConfig.exports`); every importer of a removed name (`grep -rn "@mcthaydt/automata-tools'" tooling games examples`:
+  today `rukenHeaders` in both games' `vite.config.ts`, `checkManifest`, `inputsProblems` and `rukenToml` in both games'
+  ship-config tests, `examples-runner`'s playground and preview headers). `./e2e` (17 names: the input matrix and fake
+  pad, used only by `examples/`) leaves `publishConfig.exports` too and stays a workspace entry. The consumer smoke's
+  fixtures (`fixtures/types.ts`, `node-check.mjs`) import the packed package, which has no `./internal`: they check the
+  published surface only
 - Move: `tooling/check-boundaries/src` → `packages/tools/src/features/boundaries/`, its tests to `packages/tools/tests/unit/boundaries/`
 - Modify: `packages/tools/package.json` (`bin.automata-check-boundaries`), root `package.json` (`boundaries` calls it),
   `.changeset/config.json`, `tooling/release/src/*` (four published packages), `tooling/consumer-smoke`, API reports
@@ -269,22 +291,30 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
   | From | To |
   |---|---|
   | `editor-kit/src/<area>/` (commands, core, documents, fields, gestures, history, keymap, ports, selection, shell, storage, tokens, widgets, dialogs, home) | `editor/src/shared/kit/<area>/` |
+  | `editor-kit/src/{tokens.css,fonts.css}` | `editor/src/shared/kit/` |
+  | `editor-kit/src/journeys/`, `editor-2d/src/journeys/` | tests (task 4.3) |
+  | `editor-kit/src/index.ts`, `editor-2d/src/index.ts`, the `vitest-setup.ts` files | `entries/kit.ts` and `tests/fixtures/setup.ts`; `editor-2d/src/index.ts` is not carried over (S3) |
+  | `editor-kit/scripts/{generate-tokens.ts,remove-profiles.ts}` | `editor/scripts/` |
   | `editor-2d/src/{model,canvas,tiles,profiles}/` | `editor/src/shared/level-2d/{model,canvas,tiles,profiles}/` |
-  | `editor-2d/src/app/{boot.ts,App.svelte,editor-app*.ts,profiles.ts,read-document.ts,project-list.ts,tile-sprite.ts}`, `main.ts` | `editor/src/app/editor-2d/` |
+  | `editor-2d/src/app/export/write-folder.ts` | `editor/src/shared/kit/storage/write-folder.ts` (Save and Share both use it, spec 6.2) |
+  | `editor-2d/src/app/{boot.ts,App.svelte,editor-app*.ts,level-editor.ts,profiles.ts,read-document.ts,project-list.ts,tile-sprite.ts}`, `main.ts`, `main.css` | `editor/src/app/editor-2d/` |
   | `editor-2d/src/app/home/` | `editor/src/features/home/` |
   | `editor-2d/src/app/{document,views}/` | `editor/src/features/document/` |
   | `editor-2d/src/app/{level,canvas}/` | `editor/src/features/level/` |
   | `editor-2d/src/app/world/` → `features/map/`; `tilesets/` → `features/tiles/`; `entities/` → `features/characters/`; `checks/` → `features/problems/`; `export/` → `features/share/` | |
-  | `editor-2d/src/suite/`, `editor-suite/src/{shell,node,editors/tuner}/` | `editor/src/features/suite/{levels-2d,shell,node,tuner}/` |
-  | `editor-suite/src/core/` | `editor/src/shared/editor-list/` |
-  | `editor-suite/src/main.ts` | `editor/src/app/suite/main.ts` |
+  | `editor-2d/src/suite/`, `editor-suite/src/{shell,node,shims,editors/tuner}/` | `editor/src/features/suite/{levels-2d,shell,node,shims,tuner}/` |
+  | `editor-suite/src/core/{editors.schema,editor-list,glob,write-path,workspace-policy}.ts` | `editor/src/shared/editor-list/` (what `-tools` and `automata check` read) |
+  | the rest of `editor-suite/src/core/` (ask-session, change-set-journal, interchange, pills-model, review-model, reopened-gates, ship-draft, text-diff) | `editor/src/features/suite/core/` (the suite's own logic, E6) |
+  | `editor-suite/src/main.ts`, `main.css` | `editor/src/app/suite/` (rewritten to Levels 2D and the Tuner only in task 4.2 step 4: it may not import `editor-3d`) |
   | `editor-suite/src/editors/studio/` | `editor-3d/src/ui/suite/studio/` |
-  | `*/src/testing/` | `editor/src/testing/` (names deduplicated: `memory-workspace.ts` exists in two) |
+  | `*/src/testing/`, `editor-kit/src/ports/testing/` | `editor/src/testing/` (names deduplicated: `memory-workspace.ts` is in `editor-2d/src/testing/` and the kit's `ports/testing/`) |
   | `editor-kit/scripts/generate-tokens.ts`, `docs/design/editor-kit/tokens.json` | `editor/scripts/generate-tokens.ts`, `editor/src/shared/kit/tokens/tokens.json` |
 
   Tests are mapped in task 4.3, not here.
-- [ ] **Step 2: Dry run.** `node tooling/codemods/src/cli.ts move --map docs/refactor/move-map-editor.json --dry-run`
-  → expected: every source file mapped, none unmapped, no two files to one path. Fix the map until it is clean.
+- [ ] **Step 2: Dry run.** `node tooling/codemods/src/move-modules-cli.ts --map docs/refactor/move-map-editor.json
+  --dry-run --surface` → expected: every source file mapped, none unmapped, no two files to one path, and the surface
+  report lists what `editor-3d` (and the moved Studio: `../../../core`, `shell/boot`, `shell/create-suite`) imports, so
+  the entries of 4.2 step 3 export exactly that. Fix the map until it is clean.
 - [ ] **Step 3: The skeleton.** `package.json` (`@mcthaydt/automata-editor`, private, `imports: {"#src/*": "./src/*"}`,
   the entries of spec section 3.2, the union of the three packages' dependencies less `@pixi/3d`, `figures`,
   `render-pixi3d`, `editor-3d`), one `vitest.config.ts` calling `defineTests` (filled in 4.3), `tsconfig.json` including
@@ -303,7 +333,7 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
 
 - [ ] **Step 1: Count before.** Run `pnpm test:unit` in the three packages and `editor-3d`; record the four counts in
   the execution log (audit: 1,373, 1,552, 423).
-- [ ] **Step 2: Apply the map.** `node tooling/codemods/src/cli.ts move --map docs/refactor/move-map-editor.json`, then
+- [ ] **Step 2: Apply the map.** `node tooling/codemods/src/move-modules-cli.ts --map docs/refactor/move-map-editor.json`, then
   the specifier codemod with an entry table: `@mcthaydt/automata-editor-kit` → `@mcthaydt/automata-editor/kit`, each kit
   subpath → `/kit/<subpath>`, `@mcthaydt/automata-editor-2d/suite` and `@mcthaydt/automata-editor-suite/core` →
   `@mcthaydt/automata-editor/suite` and `/editor-list`. Inside `packages/editor`, cross-area imports that were
@@ -311,9 +341,13 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
 - [ ] **Step 3: Fill the entries.** Each `src/entries/*.ts` re-exports what the old entry exported. `./level-export`
   re-exports `openProject` and `exportContent` (the names `content-export.ts` and `open-project.ts` have). Do not
   carry `editor-2d/src/index.ts` or the suite's `node/index.ts` over (S3).
-- [ ] **Step 4: The Studio moves to `editor-3d`.** `src/ui/suite/studio/` gets the Studio; `packages/editor-3d/suite.html`
-  and `src/ui/suite/suite-main.ts` hold today's `editor-suite/src/main.ts` (Tuner, Levels 2D, Levels 3D, Studio, sample
-  ports) importing `createSuite`, `startSuite`, `createLevels2d`, `createTuner` from `@mcthaydt/automata-editor/suite`.
+- [ ] **Step 4: The Studio moves to `editor-3d`; the editor's suite page is 2D only.** `src/ui/suite/studio/` gets the
+  Studio (and `Suite.studio.dom.test.ts`, `testing/studio-fixtures.ts`); `packages/editor-3d/suite.html` and
+  `src/ui/suite/suite-main.ts` hold today's `editor-suite/src/main.ts` (Tuner, Levels 2D, Levels 3D, Studio, sample
+  ports) importing `createSuite`, the boot (`shell/boot.ts`), `createLevels2d`, `createTuner` and the core names the
+  surface report found from `@mcthaydt/automata-editor/suite`. `packages/editor/src/app/suite/main.ts` registers Levels
+  2D and the Tuner only: today's file imports `@mcthaydt/automata-editor-3d/suite` and the Studio, and `editor` may not
+  import `editor-3d` (it would be a dependency cycle, and 4.4's `--forbid` refuses it).
   `editor-3d`'s Vite config builds `suite.html` into `dist/suite/`. `automata editor --app suite` serves
   `packages/editor-3d/dist/suite` (`liveEditorDeps.builtApp`, test updated).
 - [ ] **Step 5: Make it build.** `pnpm install`, `pnpm --filter @mcthaydt/automata-editor typecheck`, `... build`
@@ -323,10 +357,16 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
 
   **Session break here** if 90 minutes have passed: push, log the handoff ("4.2 step 5 done: builds; tests not yet
   moved").
-- [ ] **Step 6: Count after.** Run the old tests where they now sit (still beside the code; 2.3 moves them): the
+- [ ] **Step 6: The 2D architecture test.** `editor-2d`'s own boundary test (`architecture.test.ts` with
+  `testing/architecture.ts`: the pure core, profile isolation, no profile ids in generic areas, import cycles) reads paths
+  relative to `src/` (`model/`, `tiles/`, `canvas/draw/`, `app`). After the move those prefixes match nothing and the
+  test would pass on an empty tree. Remap them to `shared/level-2d/...` and `app/editor-2d/`, and add one assertion that
+  every rule's prefix matches at least one file. (It runs under the preset's Svelte plugin and `browser` condition:
+  checked in the plan audit, 23 of 23 pass.)
+- [ ] **Step 7: Count after.** Run the old tests where they now sit (still beside the code; 4.3 moves them): the
   editor's unit and DOM total equals the three packages' sum minus the Studio's tests, which now count in `editor-3d`
   (its count rises by the same number). Any other difference is a bug: find it before going on.
-- [ ] **Step 7: Commit.** `refactor(editor): merge editor-kit, editor-2d and editor-suite into one editor package`
+- [ ] **Step 8: Commit.** `refactor(editor): merge editor-kit, editor-2d and editor-suite into one editor package`
 
 ### Task 4.3: Tests into `tests/` (same PR)
 
@@ -336,25 +376,27 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
   `packages/editor/vitest.config.ts`, `packages/editor/package.json` (scripts)
 - Move: every `*.test.ts` and test host under `packages/editor/src`
 
-- [ ] **Step 1: The preset, test first.** A failing preset test: `defineTests({ browserProjects: [{ name: 'layout',
-  folder: 'layout', engines: ['chromium','webkit','firefox'] }, { name: 'canvas', folder: 'canvas', engines:
-  ['chromium','webkit'] }, { name: 'journeys', folder: 'journeys', engines: ['webkit','chromium'], instance:
-  journeyInstance }] })` returns `unit` plus three browser projects whose `include` is `tests/browser/<folder>/**/*.test.ts`.
+- [ ] **Step 1: The preset, test first.** A failing preset test: `defineTests({ browserProjects: [{ name: 'parity',
+  folder: 'parity', engines: ['chromium','webkit','firefox'] }, { name: 'layout', folder: 'layout', engines:
+  ['chromium','webkit','firefox'] }, { name: 'canvas', folder: 'canvas', engines: ['chromium','webkit'] }, { name:
+  'journeys', folder: 'journeys', engines: ['webkit','chromium'], instance: journeyInstance }] })` returns `unit` plus
+  four browser projects whose `include` is `tests/browser/<folder>/**/*.test.ts`. `parity` is today's `browsers` project
+  (the auto-tile goldens, `*.parity.test.ts`), which also runs in Node through `alsoInNode: ['tests/browser/parity/**/*.test.ts']`.
   Without the option, the single `browser` project is unchanged (existing tests stay green). Then the change.
 - [ ] **Step 2: The suffix table, test first.** In `move-tests`, the editor's suffixes map to folders: `.dom` →
   `tests/unit/<feature>/` with `// @vitest-environment jsdom` added as the first line; `.layout` →
   `tests/browser/layout/`; `.canvas` → `tests/browser/canvas/`; `.journey` → `tests/browser/journeys/`; `.parity` →
-  `tests/unit/` and also run in the browser through `alsoInNode`; the one-offs (`.codec-bug`, `.ship.dom`, `.refusal`,
+  `tests/browser/parity/` (the Node run comes from `alsoInNode`, step 1); the one-offs (`.codec-bug`, `.ship.dom`, `.refusal`,
   ...) → `tests/unit/<feature>/` with the suffix folded into the name (`codec-bug.test.ts`). `*.test.svelte` and the
   fake canvases → `tests/fixtures/`. A fixture test per rule.
-- [ ] **Step 3: Run it.** `node tooling/codemods/src/cli.ts move-tests packages/editor --dry-run`, check, apply. Imports
-  of the code under test become `#src/...`.
+- [ ] **Step 3: Run it.** `node tooling/codemods/src/cli.ts packages/editor --environment node --dry-run`, check,
+  apply (without `--dry-run`). Imports of the code under test become `#src/...`.
 
   **Session break here** if needed (log: "4.3 step 3 applied; configs not yet switched").
 - [ ] **Step 4: Switch the config.** `vitest.config.ts` is one `defineTests` call (`environment: 'node'`, `svelte: true`,
-  `setupFiles`, `css: true`, the three browser projects). Scripts: `test:unit` (`--project unit`), `test:browser`
-  (the three browser projects).
-- [ ] **Step 5: Counts equal.** `pnpm --filter @mcthaydt/automata-editor test:unit` → the same count as 4.2 step 6.
+  `plugins: [svelteTesting()]`, `setupFiles`, `css: true`, the four browser projects). Scripts: `test:unit`
+  (`--project unit`), `test:browser` (the four browser projects).
+- [ ] **Step 5: Counts equal.** `pnpm --filter @mcthaydt/automata-editor test:unit` → the same count as 4.2 step 7.
   Chromium browser projects → 252 pass, 6 skipped (plus the kit's layout tests, which the audit could not run: record
   the number). `pnpm style --test-imports packages/editor` → 0 findings.
 - [ ] **Step 6: Gate lines.** Root `package.json`: `test:unit:2d` and `test:browser:2d` filter `./packages/editor`
@@ -364,9 +406,9 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
 ### Task 4.4: Feature folders and the boundaries rules (PR `claude/refactor-ed-features`)
 
 **Files:**
-- Modify: `tooling/check-boundaries/src/{cli.ts,features.ts}`, create `tooling/check-boundaries/src/forbid.ts`,
-  `tooling/check-boundaries/tests/unit/forbid.test.ts`; root `package.json` (`boundaries`, `style`), files under
-  `packages/editor/src/features` and `src/app` that the rule flags
+- Modify: `packages/tools/src/features/boundaries/{cli.ts,features.ts}` (where task 3.3 moved `check-boundaries`),
+  create `packages/tools/src/features/boundaries/forbid.ts`, `packages/tools/tests/unit/boundaries/forbid.test.ts`; root
+  `package.json` (`boundaries`, `style`), files under `packages/editor/src/features` and `src/app` that the rule flags
 
 - [ ] **Step 1: `--forbid`, test first.** A fixture package importing `@pixi/3d` (value and type import) fails with
   `packages/x/src/a.ts:1:1 imports "@pixi/3d", which packages/x may not use.`; a clean one passes. Then the rule.
@@ -386,12 +428,13 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
 - Modify: comments across `packages/editor/src` and `tests/`; fixtures (`floorfifty.editors.toml`,
   `last-light-bay.editors.toml`, `FLOORFIFTY_SAMPLE`, ...); root `package.json` (`style` roots); `knip.json`
 - Move: `docs/design/editor-kit`, `editor-2d`, `editor-suite` → `docs/archive/design/` (`tokens.json` already moved in
-  2.1); `docs/design/editor-3d` stays for the 3D slice
+  4.2); `docs/design/editor-3d` stays for the 3D slice
 - Modify: `docs/guides/editor.md` (first step builds nothing; `automata editor` opens the 2D editor; full rewrite in 12.5)
 
 - [ ] **Step 1:** Add `packages/editor` to `style`'s `--plan-comments`, `--comments-only` and `--test-imports`. Run
   → expected about 943 plan-ID findings (audit S5). Rewrite each comment to say why in plain words, or remove it
-  when the code says it. Re-run until 0.
+  when the code says it. Re-run until 0. **Session breaks** by area (kit, level-2d, features, suite), logging the
+  findings left.
 - [ ] **Step 2:** Rename the fixtures away from the source projects: `floorfifty.editors.toml` → `platformer.editors.toml`,
   `last-light-bay.editors.toml` → `bay.editors.toml`, `FLOORFIFTY_SAMPLE` → `SAMPLE_GAME`, and the strings inside.
   `grep -rniE "floorfifty|last light|last-light" packages/editor` → 0.
@@ -489,12 +532,13 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
 ### Task 6.2: Save writes the game files, then the project
 
 **Files:**
-- Create: `packages/editor/src/features/document/save-to-game.ts`
+- Create: `packages/editor/src/shared/level-2d/profiles/level-project/save-to-game.ts` (shared: it composes the
+  export, `shared/level-2d`, with `shared/kit/storage/write-folder.ts`; a feature may not import `share`)
 - Modify: `packages/editor/src/app/editor-2d/editor-app.ts` (reads the editor list through the store; passes
   `saveToGame` into the document feature), `packages/editor/src/features/document/document-controller.ts`,
   `packages/editor/src/features/share/export-model.ts` (no "Write to folder" where Save writes the game),
   `packages/editor/src/shared/kit/home/project-browse.ts` (the storage line)
-- Test: `packages/editor/tests/unit/document/save-to-game.test.ts`, `.../document/document-controller.test.ts`,
+- Test: `packages/editor/tests/unit/level-2d/save-to-game.test.ts`, `.../document/document-controller.test.ts`,
   `.../share/export-model.test.ts`, `.../home/project-browse.test.ts`
 
 - [ ] **Step 1: Failing tests** on a memory store (`src/testing/memory-workspace.ts`) with Emberwick's list:
@@ -518,13 +562,15 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
 **Files:**
 - Create: `packages/tools/src/shared/check/levels-step.ts`
 - Modify: `packages/tools/src/shared/check/{check-steps.ts,run-check.ts,check-args.ts}` (`--only levels`),
-  `packages/tools/package.json` (`@mcthaydt/automata-editor` as a devDependency, bundled), `packages/tools/tsdown.config.ts`,
-  `games/emberwick/package.json` (`check:example` runs the step)
+  `packages/tools/package.json` (`@mcthaydt/automata-editor` as a devDependency in place of `-editor-suite`, bundled),
+  `packages/tools/tsdown.config.ts`
 - Test: `packages/tools/tests/unit/shared/check/levels-step.test.ts` (fixtures: a temp copy of Emberwick's `content/`)
 
 - [ ] **Step 1: Failing tests.** In sync → pass; a hand edit to `levels/room-1.toml` → fails with spec 6.3's two lines;
   a project that does not open → fails with its first problem and the same last line; no `editors.toml` or no
-  `exports` row → the step is skipped with "No level files to check."
+  `exports` row → the step is skipped with "No level files to check."; and the real `games/emberwick` is in sync (this
+  is what keeps Emberwick's room and its game files together in `pnpm check`: `-tools`' `check:example` script runs in
+  no gate).
 - [ ] **Step 2:** Implement with `@mcthaydt/automata-editor/level-export` (Effect, as the other steps are: `-tools`
   is Node tooling). Bundled by tsdown like the editor list.
 - [ ] **Step 3:** `node packages/tools/src/app/bin.ts check games/emberwick --only levels` → passes (from source:
@@ -566,17 +612,19 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
 ### Task 7.2: The build inside `-tools`, and the closed-beta scan
 
 **Files:**
-- Create: `packages/tools/src/shared/ship/closed-beta.ts` (`findClosedBeta`), `packages/tools/scripts/copy-editor.ts`
-- Modify: `packages/tools/src/shared/ship/**` (callers use `findClosedBeta`), `packages/tools/package.json` (`build`:
+- Create: `packages/tools/scripts/copy-editor.ts`
+- Modify: `packages/tools/src/entries/internal.ts` (exports `findPixi3d` for the site's build, task 19.2),
+  `packages/tools/package.json` (`build`:
   `tsdown && node scripts/copy-editor.ts`), `turbo.json` (`@mcthaydt/automata-tools#build` depends on
   `@mcthaydt/automata-editor#build`), `tooling/consumer-smoke/src/*` (records `-tools`' packed size; 3 MB budget),
   `.changeset/editor-in-tools.md`
-- Test: `packages/tools/tests/unit/shared/ship/closed-beta.test.ts`, `packages/tools/tests/unit/scripts/copy-editor.test.ts`
+- Test: `packages/tools/tests/unit/scripts/copy-editor.test.ts` (`findPixi3d` keeps its own tests in
+  `tests/unit/shared/ship/prepare/pixi3d-markers.test.ts`)
 
-- [ ] **Step 1: Failing tests.** `findClosedBeta(dir)` returns the first file holding the beta's marker (the same
-  marker `ship prepare` matches today, moved, not duplicated) and `undefined` for a clean folder. `copy-editor` copies
-  `packages/editor/dist/2d` to `dist/editors/2d` and fails with spec 7.3's message when the scan finds the beta.
-- [ ] **Step 2:** Implement; `ship prepare`'s existing tests stay green (it now calls `findClosedBeta`).
+- [ ] **Step 1: Failing tests.** `copy-editor` scans `packages/editor/dist/2d` and `packages/editor/dist/suite` with the
+  existing `findPixi3d` (one scan, the one `ship prepare` already runs: nothing is moved or copied), fails with spec
+  7.3's message naming the file when either holds the beta, and otherwise copies `dist/2d` to `dist/editors/2d`.
+- [ ] **Step 2:** Implement; `ship prepare`'s existing tests stay green (unchanged).
 - [ ] **Step 3: Verify the package.** `pnpm --filter @mcthaydt/automata-tools build && cd packages/tools && pnpm pack`
   → the tarball lists `dist/editors/2d/index.html`; size recorded. Run the consumer smoke (14 steps plus "the packed
   `automata editor` serves the editor": a new step that starts it on the fixture game and fetches `/`).
@@ -616,17 +664,19 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
 ### Task 8.1: The 2D-only suite page
 
 **Files:**
-- Modify: `packages/editor/src/app/suite/main.ts` (Levels 2D and the Tuner only), `packages/editor/vite.config.ts`
-  (`suite.html`), `packages/editor/scripts/` (scan the suite build with `findClosedBeta` after `build`; the editor
-  imports it from `-tools`' source? no: from a tiny copy is forbidden, so `packages/editor/package.json` `build` runs
-  `automata-scan-closed-beta dist` — add that bin to `-tools`, one line around `findClosedBeta`)
-- Test: `packages/tools/tests/unit/app/scan-closed-beta-bin.test.ts`
+- Modify: `packages/editor/vite.config.ts` (`suite.html` as the second input), `packages/editor/src/app/suite/main.ts`
+  (its comment: why only these two)
+- Test: `packages/tools/tests/unit/scripts/copy-editor.test.ts` (the suite build's case)
 
-- [ ] **Step 1: Failing test** for the bin (exit 1 and the message on a fixture with the marker; 0 on a clean one).
-- [ ] **Step 2:** The suite page registers two editors. `pnpm --filter @mcthaydt/automata-editor build` → both builds
+The 2D-only page itself was written in task 4.2 step 4. The scan runs in `-tools`' build (task 7.2), not in the
+editor's: the editor cannot run a `-tools` bin, because `-tools` depends on the editor (its editor list, its level
+export and its 2D build) and the reverse would be a dependency cycle.
+
+- [ ] **Step 1: Failing test:** `copy-editor` fails on a planted `dist/suite` chunk carrying a `PIXI3D_MARKERS` string.
+- [ ] **Step 2:** `pnpm --filter @mcthaydt/automata-tools build` (which builds the editor first) → both editor builds
   scanned clean. `pnpm --filter @mcthaydt/automata-editor-3d build` → its `suite/` holds the beta and is not scanned
-  (it is not shipped; the comment says so).
-- [ ] **Step 3: Commit.** `refactor(suite): the editor package's suite page holds no 3D`
+  (it is not shipped; its Vite config's comment says so).
+- [ ] **Step 3: Commit.** `test(suite): the editor package's suite build is scanned for the closed beta`
 
 ### Task 8.2: The suite opens the checkout; the rail lists what is there
 
@@ -672,6 +722,9 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
 - Create (by subtree): `site/**`
 - Modify: `pnpm-workspace.yaml` (`site`), `site/package.json` (name `@mcthaydt/automata-site`), `turbo.json`,
   `knip.json`, `biome.json` (stop ignoring nothing new), `.vscode/settings.json`
+- Delete (after the subtree): `site/pnpm-lock.yaml` (the workspace has one lockfile), `site/LICENSE` (the root's),
+  `site/.nvmrc`, `site/.superpowers/`, `site/.taste-skill/` (agent scratch folders) and `site/docs/` (the site's own
+  plans: moved to `docs/archive/site/`)
 
 - [ ] **Step 1:** `git fetch https://github.com/mcthaydt/automata-website main` (unshallow it first if the session's
   clone is shallow), `git subtree add --prefix site FETCH_HEAD`. If the proxy refuses the pack, use `--squash` and
@@ -693,8 +746,12 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
   and the examples list from the workspace at build time)
 - Modify: `site/package.json` (workspace dependencies; `build` = `node scripts/build-demos.ts && vite build && node
   scripts/write-seo-files.ts build`), `turbo.json` (`site#build` depends on the examples', Emberwick's, the editor's and
-  `api-index`'s builds), `site/src/lib/playground/{protocol,headers}.ts` (re-export from `tooling/examples-runner`'s
-  package entries instead of copies), `.gitignore` (`site/static/demos/`, `site/.generated/`)
+  `api-index`'s builds), `.gitignore` (`site/static/demos/`, `site/.generated/`)
+- Move: the playground half of `tooling/examples-runner` (`src/playground/`, the `playground/` build and server scripts,
+  `tests/e2e/playground-*`, the `build:playground` and `e2e:playground*` scripts) into `site/src/lib/playground/` and
+  `site/tests/`, replacing the site's synced copies (`protocol.ts`, `headers.ts` and the generated runtime). The site is
+  its only user; `examples-runner` keeps the examples index (spec 16.6). `tooling/examples-runner` has no entry that
+  exports the protocol, so this is a move, not a re-export
 - Test: `site/tests/unit/framework/*.test.ts`
 
 - [ ] **Step 1: Failing tests.** The guides loader lists `docs/guides/editor.md` and the four publish guides (W7);
@@ -709,8 +766,9 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
 ### Task 10.3: The site's tooling matches the repository's
 
 **Files:**
-- Modify: `site/package.json` (Vite 8, SvelteKit's latest 2.x on Vite 8, `@sveltejs/vite-plugin-svelte` 7, Zod 4.6.6,
-  exact pins, no `tsx`), `site/svelte.config.js`, `site/vite.config.ts`, `site/tsconfig.json`; root `package.json`
+- Modify: `site/package.json` (Vite 8.3.3, SvelteKit 2.70.4 (the last 2.x; its peers allow Vite 8 and the plugin 7),
+  `@sveltejs/vite-plugin-svelte` 7, Zod 4.6.6, exact pins, no `tsx`; TypeScript stays 6.0.3, because SvelteKit 2 and 3
+  both ask for TypeScript 6 as a peer), `site/svelte.config.js`, `site/vite.config.ts`, `site/tsconfig.json`; root `package.json`
   (`lint` covers `site`), every site file Biome reformats
 
 - [ ] **Step 1:** Upgrade; `pnpm --filter @mcthaydt/automata-site check test build` pass.
@@ -731,11 +789,12 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
   `@import '@mcthaydt/automata-editor/tokens.css'`), `site/package.json` (`@mcthaydt/automata-editor` workspace dependency)
 - Test: `packages/editor/tests/unit/kit/tokens.test.ts`
 
-- [ ] **Step 1: Failing test.** The generated CSS defines the site's names (`--bg`, `--paper`, `--ink`, `--muted`,
-  `--line`, `--line-strong`, `--cobalt`, `--lime`, `--charcoal`, `--glass`, `--radius`, `--radius-sm`, `--radius-lg`,
-  `--pill`, `--step-*`, `--font-sans`, `--font-mono`) with the site's values; every old editor name
-  (`--color-bg-app`, `--color-accent-default`, ...) is an alias (`var(--...)`); every `--color-layer-*` name still exists;
-  `color-scheme: light`. `generate-tokens.ts --check` fails when `tokens.css` is stale.
+- [ ] **Step 1: Failing test.** The generated CSS defines every custom property the site's `:root` block defines today,
+  with the same value (the test reads the names and values from a fixture copied from `site/src/app.css` before the
+  change: about 36, from `--bg` to `--ease-out`, the flutes, the curtain, the glow and the stage colours included, not
+  a hand-picked list); every old editor name (`--color-bg-app`, `--color-accent-default`, ...) is an alias (`var(--...)`);
+  every `--color-layer-*` name still exists; `color-scheme: light`. `generate-tokens.ts --check` fails when `tokens.css`
+  is stale.
 - [ ] **Step 2:** Implement; the site imports the file; its own page CSS keeps working (its e2e gates pass in
   Chromium; screenshots of Home before and after are identical by eye, since the values are the same).
 - [ ] **Step 3: Commit.** `feat(design): one token source for the editor and the site`
@@ -766,9 +825,10 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
 
 - [ ] **Step 1: Failing layout tests** for the new rules: Button 44 px, primary 48 px; IconButton 44 × 44 with an
   accessible name; a Dialog at 390 × 844 is a bottom sheet with its primary action visible; focus rings are 2 px cobalt.
-- [ ] **Step 2:** Restyle each component to spec 11.3 using only tokens (no literal colours: a Biome or style rule
-  `--no-literal-colors packages/editor/src/shared/kit` if cheap; otherwise a test that greps the kit's `.svelte` styles
-  for `#` colours outside `tokens/`).
+- [ ] **Step 2:** Restyle each component to spec 11.3 using only the new token names (no literal colours: a unit test,
+  `tests/unit/kit/no-literal-colors.test.ts`, reads the kit's `.svelte` styles and fails on a `#hex`, `rgb(` or `hsl(`
+  outside `tokens/`). The kit's components stop using the old aliases; the aliases stay only for `editor-3d`, and the
+  3D slice deletes them (spec 11.2).
 - [ ] **Step 3: The board.** Build `design.html` (not in the shipped build: Vite input only in `dev` and the design
   script). Run the screenshot test in Chromium; open every image; fix what looks wrong; attach the iPad and phone images
   to the PR.
@@ -783,7 +843,10 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
 Every task here: before-and-after screenshots at phone, iPad (both orientations) and desktop attached to the PR; every
 changed string in `copy.md`; DOM tests updated only for names and places; nothing a view could do before becomes
 unreachable (spec 11.4, "what stays"): before each task, list the view's actions from its current DOM tests in the
-execution log, and tick each off when the redesigned view's tests reach it.
+execution log, and tick each off when the redesigned view's tests reach it. The views are where spec 17's standard is
+met for the `.svelte` code (spec 17.4), so each task also starts with spec 17.3's read over the components it touches
+(findings in the execution log) and its rewrite closes them: no component over 300 lines, a header comment on each,
+logic that is not markup lives in the view's `*-model.ts`.
 
 ### Task 12.1: Home (PR `claude/refactor-ed-redesign-1`)
 
@@ -854,6 +917,8 @@ execution log, and tick each off when the redesigned view's tests reach it.
   `docs/guides/editor.md` (rewritten: open, draw, save, play; screenshots from the design board),
   `packages/editor/README.md`
 
+- [ ] **Step 0:** Spec 17.3's file checks over every `.svelte` file in `packages/editor/src` (size, header comment);
+  what phase 12 did not reach is fixed here or listed for the build audit.
 - [ ] **Step 1:** `grep` the editor's `.svelte` and `*-messages.ts` for strings not in `copy.md`; each is either fine
   (listed as kept) or rewritten. No package name, path jargon or format word on screen (G3, G4): a unit test scans the
   rendered text of each screen fixture for `editor-`, `af2d`, `.json`, `checkout`, `Plus`.
@@ -905,7 +970,7 @@ execution log, and tick each off when the redesigned view's tests reach it.
 
 ## Phase 14: Release to npmjs.org (two PRs)
 
-### Task 14.1: The scope (PR `claude/refactor-scope`; waits only on the Owner's organisation name, D9)
+### Task 14.1: The scope (PR `claude/refactor-scope`; waits only on the Owner's organisation name, D9; based on whatever is the stack's head when the name arrives, and nothing later waits for it)
 
 **Files:**
 - Modify: every `package.json`, import, doc, guide, README, skill, template and test naming `@mcthaydt/automata`
@@ -996,7 +1061,9 @@ execution log, and tick each off when the redesigned view's tests reach it.
 
 - [ ] **Step 1: Failing tests** for the YAML/Markdown plan-ID rule, the links rule and source names in `pnpm check`.
 - [ ] **Step 2:** Implement; run; rewrite every finding (about 100 plan-ID lines, 9 links, the source names outside
-  comments). ADRs, stack, versions and Renovate per spec 16.5. `pnpm check` passes. Commit.
+  comments). The source-names rule skips `docs/refactor/` as well as `docs/archive/` and `docs/provenance/` (the audits
+  there name the source projects as evidence). ADRs, stack, versions and Renovate per spec 16.5. **Session break**
+  between the three rules if needed. `pnpm check` passes. Commit.
   `docs: the docs, ADRs and pins follow the current direction`
 
 ### Task 16.4: The skills' public home
@@ -1027,7 +1094,8 @@ execution log, and tick each off when the redesigned view's tests reach it.
 **Files:**
 - Delete or modify per spec 16.6's table: `tooling/core-packs` (Plus half; the package if nothing else needs it),
   `tooling/api-report/src/seams.ts`, `tooling/bundle-report` (into `release-checks.yml` with a per-game budget, or
-  deleted), `tooling/evidence` (the Proof half), `tooling/versions` (stack rows)
+  deleted), `tooling/evidence` (the Proof half), `tooling/versions` (stack rows), `tooling/examples-runner` (confirm
+  task 10.2 left only the examples index; knip finds nothing of the playground)
 
 - [ ] **Step 1:** For each, `grep` its importers and scripts; decide per the table; write the decision and the line
   counts in the execution log.
@@ -1129,7 +1197,9 @@ execution log, and tick each off when the redesigned view's tests reach it.
 
 **Files:**
 - Create: `site/tests/e2e/links.test.ts`, `site/src/shared/config.ts` (`repositoryPublic: false`, `origin`)
-- Modify: `site/package.json` (`build` ends with `automata-scan-closed-beta build`)
+- Create: `site/scripts/scan-closed-beta.ts` (calls `findPixi3d` from `@mcthaydt/automata-tools/internal` on `build/`;
+  the site depends on `-tools`, never the other way, so there is no cycle)
+- Modify: `site/package.json` (`build` ends with `node scripts/scan-closed-beta.ts build`)
 - Delete: remaining claim-to-data tests that pin history (WT1); list them in the execution log
 
 - [ ] **Step 1: Failing tests:** every internal link and anchor in the built site resolves; no link to
@@ -1187,7 +1257,9 @@ execution log, and tick each off when the redesigned view's tests reach it.
   session.
 - [ ] The Owner says whether outside authors can publish to Ruken (D11); the Ruken guide says the answer.
 - [ ] The agent closes #379 and #383 with a pointer to #403 (ported there); deleting their branches is the Owner's.
-- [ ] The Owner deprecates the GitHub Packages names with the runbook's one line.
+- [ ] No deprecation of the GitHub Packages names is needed (rest-of-AF audit U7: nobody outside this repository,
+  Plus and the website installed them). If the Owner wants them gone, deleting the package versions on GitHub is
+  theirs; the runbook says where.
 - [ ] The Owner opens the site and the editor on the iPad (a real-device test is the Owner's).
 
 ---
