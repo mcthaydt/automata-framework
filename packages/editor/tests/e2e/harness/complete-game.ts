@@ -3,8 +3,11 @@
 // canvas, the sounds it starts, the zip it ships); none reads a game file to decide what the game did.
 import type { BrowserContext, Locator, Page } from '@playwright/test'
 import { expect } from './fixtures.ts'
+import { pressInList } from './press-in-list.ts'
 import { boxOf, type Pixels, readPng } from './read-png.ts'
 import type { RunningEditor } from './run-editor.ts'
+
+export { pressInList }
 
 /**
  * Whether the rail offers an editor by this name (the game's editor list names it and the page has it): its tab, or on a
@@ -29,30 +32,6 @@ export async function railHas(page: Page, name: string): Promise<Locator> {
 export async function openEditor(page: Page, editor: RunningEditor, name: string): Promise<void> {
   if (!page.url().startsWith(editor.url.split('?')[0] ?? editor.url)) await page.goto(editor.url)
   await (await railHas(page, name)).click()
-}
-
-/**
- * Presses a button of the open editor's list. Below the wide layout the list is in a sheet behind the top bar's Panel
- * button, which is opened first and closed after.
- */
-export async function pressInList(page: Page, name: string | RegExp): Promise<void> {
-  const button = page.getByRole('button', { name }).first()
-  const panel = page.getByRole('button', { name: 'Panel', exact: true })
-  await expect(button.or(panel).first()).toBeVisible()
-  let opened = false
-  if ((await panel.isVisible()) && !(await button.isVisible())) {
-    if ((await panel.getAttribute('aria-expanded')) !== 'true') await panel.click()
-    await expect(button).toBeVisible()
-    opened = true
-  }
-  await button.click()
-  if (opened) {
-    // The sheet stays up over the page after a choice, so a person closes it with the same button; it then slides
-    // away, and the next call must find the list gone, not on its way out.
-    if ((await panel.getAttribute('aria-expanded')) === 'true') await panel.click()
-    await expect(panel).toHaveAttribute('aria-expanded', 'false')
-    await expect(button).toBeHidden()
-  }
 }
 
 /** Plays or publishes: Play is a link and Publish a button in the header, at every size (a phone keeps both whole). */

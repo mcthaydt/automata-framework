@@ -15,6 +15,7 @@ import {
 } from '@playwright/test'
 import { cellOnCanvas } from './canvas-pointer.ts'
 import { BIN, type RunningEditor, runEditor } from './run-editor.ts'
+import { pressInList } from './press-in-list.ts'
 import { copyGame, type TempGame } from './temp-game.ts'
 
 /** The committed game the journeys copy. */
@@ -47,12 +48,14 @@ export const test: TestType<
 export { expect }
 
 /**
- * Opens the editor, then a level (Emberwick's room unless named, by its name in words as Home shows it) in the Level
+ * Opens the editor, then a level (Emberwick's room unless named, by its name in the Levels list) in the Level
  * view, and waits for the canvas to draw.
  */
 export async function openRoom(page: Page, editor: RunningEditor, level = 'Room 1'): Promise<void> {
   await page.goto(editor.url)
-  await page.getByRole('region', { name: 'Levels' }).getByRole('button', { name: level }).click()
+  // Home's card for Levels opens the editor, whose list has the level.
+  await page.getByRole('region', { name: 'Levels' }).getByRole('button', { name: 'Levels' }).click()
+  await pressInList(page, level)
   await expect(page.locator('[data-level-canvas]')).toHaveAttribute('data-state', 'drawn')
 }
 

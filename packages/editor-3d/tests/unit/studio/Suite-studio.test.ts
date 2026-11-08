@@ -111,10 +111,9 @@ describe('the Studio in the suite', () => {
     })
     const card = await screen.findByRole('region', { name: 'Characters' })
     const figures = Object.keys(files).filter((path) => path.startsWith('content/figures/'))
-    expect(
-      within(card)
-        .getAllByRole('button')
-        .map((button) => button.textContent?.trim()),
-    ).toEqual(figures.map((path) => fileTitle(path)))
+    // Home names what is in each editor in words, up to four names: the figure folders' swatches are not among them.
+    const said = card.textContent ?? ''
+    for (const path of figures) expect(said).toContain(fileTitle(path))
+    expect(said).not.toMatch(/swatch/i)
   })
 })

@@ -15,7 +15,7 @@ function missingWords(field: FieldDef, owner: string): string {
   const label = field.label ?? field.id
   return field.type === 'ref' && label === 'Leads to'
     ? `The ${owner} doesn't lead anywhere yet. Choose where it goes.`
-    : `The ${owner} needs a ${label}. Fill it in.`
+    : `The ${owner} needs its ${label}. Fill it in.`
 }
 
 /**

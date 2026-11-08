@@ -111,7 +111,7 @@ describe('a thing that needs a value', () => {
     }
     const placed = placeEntity(project, target, { id: 'slime-a', def: 'slime', x: 32, y: 48 })
     expect(checkProject(placed, {}).find((each) => each.code === 'fieldMissing')?.message).toBe(
-      'The Slime needs a Patrol path. Fill it in.',
+      'The Slime needs its Patrol path. Fill it in.',
     )
   })
 

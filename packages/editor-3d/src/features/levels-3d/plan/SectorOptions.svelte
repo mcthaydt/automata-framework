@@ -54,7 +54,7 @@ const options = $derived(
     {#each offers as offer, index (`${offer.sector}/${offer.corner}`)}
       <div class="offer">
         <p>Shares a {offer.length.toFixed(2)} m wall with {offer.to}. Make it a portal?</p>
-        <Button variant="primary" onclick={() => onaccept(index)}>Make portal</Button>
+        <Button variant="secondary" onclick={() => onaccept(index)}>Make portal</Button>
         <Button onclick={() => ondecline(index)}>Keep solid</Button>
       </div>
     {/each}
@@ -65,7 +65,7 @@ const options = $derived(
 {:else if corners > 0 && (tool === 'polygon' || tool === 'rectangle')}
   <div class="actions" role="group" aria-label="Drawing">
     <Button onclick={onundopoint}>Undo point</Button>
-    <Button variant="primary" onclick={onclose}>Close sector</Button>
+    <Button variant="secondary" onclick={onclose}>Close sector</Button>
   </div>
 {/if}
 

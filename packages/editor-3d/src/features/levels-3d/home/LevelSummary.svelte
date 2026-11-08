@@ -42,7 +42,7 @@ const summary = $derived(entry === undefined ? undefined : summaryOf(entry))
 
     <div class="actions">
       <Button
-        variant="primary"
+        variant="secondary"
         disabled={busy}
         aria-describedby={summary.reason === undefined ? undefined : `${uid}-reason`}
         onclick={onopen}

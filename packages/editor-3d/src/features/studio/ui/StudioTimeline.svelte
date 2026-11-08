@@ -65,7 +65,7 @@ function capture(event: PointerEvent): void {
 <section class="timeline" aria-label="Timeline" data-testid="studio-timeline">
   <div class="bar">
     <Button
-      variant="primary"
+      variant="secondary"
       aria-label={$viewState.playing ? 'Pause' : 'Play'}
       onclick={() => controller.view.setPlaying(!$viewState.playing)}
     >

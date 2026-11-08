@@ -201,7 +201,7 @@ describe('thing.add on an af-sector level', () => {
 
   it('refuses a missing required field, saying every one that is missing', () => {
     expect(reasonOf(runAf(addThing({ def: 'lamp', id: 'l', x: 2, z: 2 }), lit))).toBe(
-      'entity l: tint is required',
+      'entity l: The thing needs its tint. Fill it in.',
     )
   })
 

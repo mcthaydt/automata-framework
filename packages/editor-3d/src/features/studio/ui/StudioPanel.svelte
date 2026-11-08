@@ -63,7 +63,7 @@ async function add(): Promise<void> {
               <span>{group.kind === 'pose' ? 'Pose id' : 'Clip id'}</span>
               <input bind:value={name} autocomplete="off" autocapitalize="none" spellcheck="false" />
             </label>
-            <Button variant="primary" onclick={() => void add()}>Add</Button>
+            <Button variant="secondary" onclick={() => void add()}>Add</Button>
             <Button onclick={() => (adding = undefined)}>Cancel</Button>
           </form>
         {:else}
