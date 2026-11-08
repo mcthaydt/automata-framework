@@ -26,7 +26,7 @@ stack). Package names are today's `@automata/*`; the `@automataframework` rename
 | V8 landscape phone crops the level | Yes | Section 9 |
 | V9 try-it first minute | Yes (copy and first tap) | Section 8; saving and the try-it split stay #528's |
 | V10 Feel and Audio cannot hear extension events | Yes | Section 7 |
-| V11 sharing stops at a zip | Yes, both answers of D1 | Section 11 |
+| V11 sharing stops at a zip | Yes, D1 = A | Section 11 |
 | V12 no git repository | Yes | Section 8 |
 | V13 two "next steps" that disagree | Yes | Section 10 |
 | V14 starter is coloured boxes | Yes, gated | Section 10 (waits on the DUEL licence answer) |
@@ -176,20 +176,26 @@ baselines; each is looked at and explained before it is accepted.
   the first Characters edit swaps a picture for a picture. It waits on the DUEL licence answer; the art's source is
   decided then.
 
-## 11. Sharing: decision D1, planned both ways (V11)
+## 11. Sharing: decision D1 = A (V11)
 
-**D1 is the Owner's and is still open.** Both answers share one part:
+**D1 is answered: A** (the Owner, 2026-11-08 22:31, on the audit's decision card: "Put it on itch.io"). Both parts
+below are built:
 
-- **Shared (both answers):** a guide page, "Put your game on itch.io", that walks the upload in four short steps, and the
+- **The guide:** a guide page, "Put your game on itch.io", that walks the upload in four short steps, and the
   Publish dialog's note links to it.
-- **If A (recommended):** after the zip, Publish offers "Put it on itch.io". It uses butler, which `automata ship`
-  already drives, signed in with the person's own itch.io account (`butler login`, itch.io's own sign-in; AF stores no
-  key). It asks once for the itch.io page's address and writes it to `ship.config.ts`'s `itch.project`. It gives back
-  the game's link. What butler cannot do is said, not hidden: the itch.io project must exist first, and the first time
-  its kind must be set to HTML so it plays in the browser. Each is one sentence with a link, in the dialog.
-- **If B:** nothing more; the guide is the answer.
-
-The plan's last D1 task runs only after the answer.
+- **Publish in two steps.** The Owner, 22:32: "the zip should be separate from itch, do the zip then ask where they want,
+  itch will be first output". So:
+  1. **Make the zip.** Publish always makes the zip first, as its own step, with "Download the zip". The person can
+     keep it whatever they do next.
+  2. **"Where do you want to put it?"** A list of places, one button each. itch.io is the first and, for now, the only
+     one. A place is a small record in a list (its name, what it needs, and how it uploads), so adding the next place
+     (Ruken, a web host) is one new entry and no change to the dialog.
+- **itch.io, the first place.** It uses butler, which `automata ship` already drives, signed in with the person's own
+  itch.io account (`butler login`, itch.io's own sign-in) or their `BUTLER_API_KEY` if they set one. AF never writes
+  either. It asks once for the itch.io page's address and writes it to `ship.config.ts`'s `itch.project`. It gives back
+  the game's link with "Copy link". What butler cannot do is said, not hidden: the itch.io project must exist first,
+  and the first time its kind must be set to HTML so it plays in the browser. Each is one sentence with a link, in the
+  dialog.
 
 ## 12. Hand-offs and tidy-ups
 

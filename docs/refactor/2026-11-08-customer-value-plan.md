@@ -11,7 +11,7 @@ touches, and nothing they placed is cut off.
 `.claude/settings.json` beside an `AGENTS.md`. A sixth skill, `automata-content`, writes the content contract down, and
 the API reference grows to every package a template imports. Small, separate fixes go to the editor command (V4), the
 templates (V6, V12, V17), the content compiler's event list (V10), the letterbox (V8) and the site's copy (V1, V7, V9,
-V13). Sharing (V11) is planned for both answers of the Owner's decision D1.
+V13). Sharing (V11) follows the Owner's decision D1 = A: Publish puts the game on itch.io.
 
 **Tech Stack:** TypeScript, Node 24, Vitest, Playwright, Svelte 5, SvelteKit (site), PixiJS 8, Zod 4, Claude Code
 2.1.319 plugins.
@@ -22,7 +22,7 @@ V13). Sharing (V11) is planned for both answers of the Owner's decision D1.
 **Base.** Tools, templates, skills and core tasks (1 to 6, 8, 9, 11, 12, 13, 14, 17) branch from the newest stack head
 holding PR #522 (`5cf0825b` when this was written). Site and try-it tasks (7, 10, 15) branch from the newest head holding
 PR #521 (`5fd3933c`). Once the merge thread joins the two stacks (V16), everything branches from there. Task 15 waits for
-the free web editor work (V5); Task 14 waits for the Owner's D1; Task 16 waits for the DUEL licence answer.
+the free web editor work (V5); Task 16 waits for the DUEL licence answer.
 
 ## Global Constraints
 
@@ -504,9 +504,9 @@ Real browser: no touch control's rect overlaps the field's rect at 932 × 430.
   diff) and name each in the commit. Expected: only landscape baselines move.
 - [ ] **Step 5: Changeset** (`@automata/framework`) **and commit** `fix(framework): fit the level in a landscape view instead of cropping it`.
 
-## Phase 4: sharing (V11, decision D1)
+## Phase 4: sharing (V11, decision D1 = A)
 
-### Task 13: A guide to put the game on itch.io (both answers)
+### Task 13: A guide to put the game on itch.io
 
 **Files:**
 - Create: `docs/guides/put-it-on-itch.md` (the site renders guides from `docs/guides/`)
@@ -521,31 +521,50 @@ Real browser: no touch control's rect overlaps the field's rect at 932 × 430.
 - [ ] **Step 4: Run** them. Expected: PASS.
 - [ ] **Step 5: Commit** `docs(guides): walk putting a game on itch.io`.
 
-### Task 14 (only if D1 = A): "Put it on itch.io" in Publish
+### Task 14: Publish asks where to put the game; itch.io is the first place (D1 = A)
+
+The Owner, 2026-11-08 22:31 (D1 = A) and 22:32: "the zip should be separate from itch, do the zip then ask where they
+want, itch will be first output". Spec §11.
 
 **Files:**
-- Modify: `packages/tools/src/features/editor/publish-game.ts` (a second outcome), `serve-editor.ts` (one route),
+- Create: `packages/tools/src/features/editor/places/place.ts` (what a place is, and the list),
+  `packages/tools/src/features/editor/places/itch-place.ts`
+- Modify: `packages/tools/src/features/editor/publish-game.ts` (unchanged zip step; the zip's path is kept for the
+  places), `serve-editor.ts` (`GET /places`, `POST /places/<id>`),
   `packages/tools/src/shared/ship/targets/itch/publish-to-itch.ts` (accept butler's own login when no
-  `BUTLER_API_KEY`), `PublishGameDialog.svelte`
-- Test: `packages/tools/tests/unit/editor/publish-game.test.ts`, `serve-editor.test.ts`,
+  `BUTLER_API_KEY`), `packages/editor/src/features/suite/shell/PublishGameDialog.svelte` (two steps)
+- Test: `packages/tools/tests/unit/editor/places/place.test.ts`, `itch-place.test.ts`, `serve-editor.test.ts`,
   `packages/editor/tests/unit/suite/shell/Suite-play-publish.test.ts`, a journey with a fake butler
 
 **Interfaces:**
-- Produces: `pushToItch(root: string, page: string, deps: PushDeps): Promise<PushOutcome>`;
-  `PushOutcome = { ok: true; link: string } | { ok: false; need: 'butler' | 'sign-in' | 'project' | 'kind'; problem: string }`.
-  `page` is "user/game" or the page's address; it is written to `ship.config.ts`'s `itch.project` (replacing the
-  placeholder) before the push.
+- Produces:
+  - `interface Place { readonly id: string; readonly name: string; readonly asks: readonly PlaceQuestion[]; put(root:
+    string, zip: string, answers: Readonly<Record<string, string>>): Promise<PlaceOutcome> }`
+  - `interface PlaceQuestion { readonly id: string; readonly label: string; readonly example: string }`
+  - `type PlaceOutcome = { ok: true; link: string } | { ok: false; need: string; problem: string; help?: { label: string;
+    href: string } }`
+  - `PLACES: readonly Place[] = [itchPlace]` (itch.io first; a new place is a new entry here)
+  - `itchPlace`: id `itch`, name `itch.io`, asks `{ id: 'page', label: 'Your itch.io page', example:
+    'your-name.itch.io/my-game' }`; writes the answer to `ship.config.ts`'s `itch.project` before the push; `need` is one of
+    `'butler' | 'sign-in' | 'project' | 'kind'`.
+- The dialog: step 1 "Make the zip" (as today, ending on "Download the zip"); step 2 "Where do you want to put it?",
+  one 48 px button per place in `PLACES` order, shown only after the zip is made.
 
-- [ ] **Step 1: Write the failing tests:** butler missing gives `need: 'butler'` and the dialog shows "Get itch.io's
-  uploader" with its link; not signed in gives `need: 'sign-in'` and a "Sign in to itch.io" button that runs
-  `butler login`; a project that does not exist gives `need: 'project'` with a link to make one; success returns
-  `https://user.itch.io/game` and the dialog shows it as a link with "Copy link"; no key is ever written to disk
-  (assert the game folder and the tools' folder are unchanged except `ship.config.ts`).
+- [ ] **Step 1: Write the failing tests:**
+  - `place.test.ts`: `PLACES[0].id === 'itch'`; a fake second place added to a test list shows as a second button with no
+    dialog change (the dialog renders from `GET /places`).
+  - `itch-place.test.ts`: butler missing gives `need: 'butler'` and help "Get itch.io's uploader"; not signed in gives
+    `need: 'sign-in'`, and the dialog's "Sign in to itch.io" runs `butler login`; a project that does not exist gives
+    `need: 'project'` with a link to make one; success returns `https://your-name.itch.io/my-game`; no key is written
+    anywhere (the game folder and the tools' folder are unchanged except `ship.config.ts`).
+  - Dialog: the places are not shown before the zip exists; after it, "Download the zip" and "Where do you want to put
+    it?" are both on screen; choosing itch.io keeps the zip's download; success shows the link with "Copy link".
 - [ ] **Step 2: Run** them. Expected: FAIL.
-- [ ] **Step 3: Implement** with `butlerPath` from `find-executable.ts` and the existing push.
-- [ ] **Step 4: Run** the tests and the journey. Expected: PASS. A real push is the Owner's (credentials); leave that
-  gate unchecked and say so.
-- [ ] **Step 5: Changeset and commit** `feat(tools): put a published game on itch.io from the editor`.
+- [ ] **Step 3: Implement.** `itchPlace.put` uses `butlerPath` from `find-executable.ts` and the existing push; the zip
+  step is not touched.
+- [ ] **Step 4: Run** the tests and the journey. Expected: PASS. A real push needs the Owner's itch.io account; leave
+  that gate unchecked and say so.
+- [ ] **Step 5: Changeset and commit** `feat(tools): after the zip, Publish asks where to put the game, itch.io first`.
 
 ## Phase 5: what the site says (V7, V13, V14)
 
@@ -605,8 +624,8 @@ Real browser: no touch control's rect overlaps the field's rect at 932 × 430.
   the workspace, `create-game`, open Claude Code in the folder (scratch config) and confirm it offers the plugin from
   `.claude/settings.json`; give a fresh agent the site's copied prompt and "add coins I can place and a score"; place two
   coins in Levels, tune the speed in the Tuner, play (the coin is picked up where the picture touches it), reload, close
-  and reopen the editor (the work is there), Publish (the zip plays); with D1 = A, push to a test itch.io page if the
-  Owner provides one. Keep each step's screen in `refactor/2026-11-08-customer-value-screens/` in the shared folder.
+  and reopen the editor (the work is there), Publish (the zip plays), then choose itch.io under "Where do you want to put it?" for a test page if the Owner
+  provides one. Keep each step's screen in `refactor/2026-11-08-customer-value-screens/` in the shared folder.
 - [ ] **Step 3:** Record what ran and what did not (WebKit, Firefox, a real iPad) in this plan's log and in
   `docs/refactor/progress.md`.
 
@@ -614,4 +633,7 @@ Real browser: no touch control's rect overlaps the field's rect at 932 × 430.
 
 ## Log
 
-- 2026-11-08: spec and plan written (stage 2). D1 open with the Owner; Tasks 14, 15 and 16 wait as stated in Base.
+- 2026-11-08: spec and plan written (stage 2). Tasks 15 and 16 wait as stated in Base.
+- 2026-11-08 22:31: the Owner answered D1 = A ("Put it on itch.io"). Task 14 no longer waits; spec §11 updated.
+- 2026-11-08 22:32: the Owner: the zip is its own step, then Publish asks where to put the game, itch.io first. Task 14
+  and spec §11 reshaped: a list of places, so more can be added.
