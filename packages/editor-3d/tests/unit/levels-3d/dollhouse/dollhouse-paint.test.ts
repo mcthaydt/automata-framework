@@ -1,6 +1,7 @@
 // The dollhouse as a paint list (ED3D.5e step 2; ED3D spec §6, ED3D-D6): each surface the orbit camera sees, as triangles
 // in canvas pixels, flat-shaded, far to near, the near walls cut away and a faded wall at a quarter, the selection in the
 // accent. Surfaces here are made by hand so each number is plain.
+import { timeOfDay } from '@automata/3d'
 import { describe, expect, it } from 'vitest'
 import { dollhousePaint, meshPaint } from '#src/features/levels-3d/dollhouse/dollhouse-paint.ts'
 import { PLAN_COLORS } from '#src/features/levels-3d/plan/plan-colors.ts'
@@ -161,5 +162,32 @@ describe('meshPaint from a first-person camera', () => {
   it('marks the wall the crosshair is on as selected when the editor has it selected', () => {
     const paint = meshPaint(meshOf(wall(0, 1)), EYE, SIZE, new Set(['wall:room/0']))
     expect(paint.polygons.every((polygon) => polygon.selected)).toBe(true)
+  })
+})
+
+describe('the game’s scene', () => {
+  const scene = {
+    pieces: [],
+    colourOf: () => undefined,
+    time: timeOfDay('night'),
+    ground: 0x8690b2,
+  }
+
+  it('is carried with the camera the paint was made through, for the renderer to draw the room in the game’s look', () => {
+    const paint = dollhousePaint(meshOf(wall(0, 1)), ORBIT, SIZE, new Set(), undefined, scene)
+    expect(paint.game?.scene).toBe(scene)
+    expect(paint.game?.camera).toEqual(orbitCamera(ORBIT))
+  })
+
+  it('leaves the ceilings off from outside, and on from inside a room', () => {
+    expect(dollhousePaint(meshOf(wall(0, 1)), ORBIT, SIZE, new Set(), undefined, scene).game?.indoors).toBe(
+      false,
+    )
+    const eye: Camera3D = { eye: [1, 1, 1], yaw: 0, pitch: 0, fov: 1 }
+    expect(meshPaint(meshOf(wall(0, 1)), eye, SIZE, new Set(), undefined, scene).game?.indoors).toBe(true)
+  })
+
+  it('is absent when the game gave none, so a level with no scene keeps the blockout', () => {
+    expect(dollhousePaint(meshOf(wall(0, 1)), ORBIT, SIZE, new Set()).game).toBeUndefined()
   })
 })

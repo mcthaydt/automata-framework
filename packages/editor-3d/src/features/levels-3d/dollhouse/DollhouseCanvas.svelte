@@ -14,17 +14,20 @@ import { createDollhouseController, type DollhouseController } from './dollhouse
 import { dollhouseGestures } from './dollhouse-gestures'
 import { dollhousePaint, type SurfaceColours } from './dollhouse-paint'
 import type { DollhouseRenderer, DollhouseRendererFactory } from './dollhouse-renderer'
+import type { GameScene } from './game-scene'
 
 interface Props {
   editor: LevelEditor<unknown>
   renderer: DollhouseRendererFactory
   /** The game's colour for a material by name; without it every surface keeps the blockout's grey. */
   colours?: SurfaceColours | undefined
+  /** The level as the game draws it (`createSceneCache`); without it, or for a level it cannot build, the flat blockout. */
+  scene?: (() => GameScene | undefined) | undefined
   onundo: () => void
   onredo: () => void
 }
 
-const { editor, renderer: makeRenderer, colours, onundo, onredo }: Props = $props()
+const { editor, renderer: makeRenderer, colours, scene, onundo, onredo }: Props = $props()
 
 type Phase = 'starting' | 'drawing' | 'unavailable'
 
@@ -42,7 +45,7 @@ const stops: (() => void)[] = []
 function draw(): void {
   if (size === undefined || view === undefined || controller === undefined) return
   const { mesh, orbit } = controller.view
-  view.draw(dollhousePaint(mesh, orbit, size, new Set(editor.selection.ids), colours))
+  view.draw(dollhousePaint(mesh, orbit, size, new Set(editor.selection.ids), colours, scene?.()))
 }
 
 function measured(next: Size): void {
@@ -51,7 +54,8 @@ function measured(next: Size): void {
   size = next
   if (first) {
     controller = createDollhouseController(editor, next)
-    stops.push(controller.subscribe(draw), editor.selection.subscribe(draw))
+    // A change that moves a prop, a thing or the time of day leaves the rooms' mesh alone, so the history is heard too.
+    stops.push(controller.subscribe(draw), editor.selection.subscribe(draw), editor.history.subscribe(draw))
     if (host !== undefined)
       stops.push(attachGestures(host, dollhouseGestures(controller, { onundo, onredo }), { rotate: true }))
   } else controller?.resize(next)
@@ -150,6 +154,8 @@ onDestroy(() => {
     display: block;
     width: 100%;
     height: 100%;
+    /* The game's picture is a small field of pixels scaled up whole. */
+    image-rendering: pixelated;
   }
   canvas.hidden {
     visibility: hidden;

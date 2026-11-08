@@ -34,7 +34,7 @@ import type { SceneFog, SceneLighting } from '../shared/render/light/scene-light
 import { fogSkyColor, viewFog } from '../shared/render/light/view-fog.ts'
 import { loadModels, type ModelLibrary, type ModelStore } from '../shared/render/model/load-models.ts'
 import type { EntityView3d, EntityViewResolver3d } from '../shared/render/views/view-3d.ts'
-import { lightByTime } from '../shared/time-of-day/time-light.ts'
+import { lightByTime, lightHemisphere } from '../shared/time-of-day/time-light.ts'
 import { type TimeOfDay, timeOfDay } from '../shared/time-of-day/time-of-day.ts'
 
 export interface Pixi3dOptions extends PixiRendererOptions {
@@ -141,8 +141,7 @@ function lightEnvironment(view: View3D, time: TimeOfDay | undefined): void {
   if (typeof environment.skyColor !== 'number' || typeof environment.groundColor !== 'number') return
   view.environment = {
     ...environment,
-    skyColor: lightByTime(environment.skyColor, time),
-    groundColor: lightByTime(environment.groundColor, time),
+    ...lightHemisphere(environment.skyColor, environment.groundColor, time),
   }
 }
 

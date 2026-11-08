@@ -1,7 +1,7 @@
 // The light a time of day casts on a game's own colours, and the time a level file names. Core owns both so every game
 // (and the editor's views) plays a level in the light its file says: an edit that does not show in play is not an edit.
 import { describe, expect, it } from 'vitest'
-import { levelTime, lightByTime } from '#src/shared/time-of-day/time-light.ts'
+import { levelTime, lightByTime, lightHemisphere } from '#src/shared/time-of-day/time-light.ts'
 import { timeOfDay } from '#src/shared/time-of-day/time-of-day.ts'
 
 const channels = (colour: number): [number, number, number] => [
@@ -57,11 +57,12 @@ describe('lightByTime', () => {
       lightByTime(0xcdd2da, timeOfDay(name)),
     )
     expect(new Set(walls).size).toBe(6)
-    // Not just a brightness: any two times are at least 12 apart in some channel (out of 255).
+    // Not just a brightness: any two times are at least 8 apart in some channel (out of 255). Night and Bar light are the closest pair,
+    // both dim, told apart by Night's cool green-blue against Bar's plum.
     for (let a = 0; a < walls.length; a++)
       for (let b = a + 1; b < walls.length; b++) {
         const [x, y] = [channels(walls[a] as number), channels(walls[b] as number)]
-        expect(Math.max(...x.map((c, i) => Math.abs(c - (y[i] as number))))).toBeGreaterThanOrEqual(12)
+        expect(Math.max(...x.map((c, i) => Math.abs(c - (y[i] as number))))).toBeGreaterThanOrEqual(8)
       }
   })
 
@@ -78,7 +79,7 @@ describe('lightByTime', () => {
   it('never goes black: the player can still see the floor they have to cross', () => {
     for (const name of ['night', 'bar']) {
       const [r, g, b] = channels(lightByTime(0xffffff, timeOfDay(name)))
-      expect(Math.min(r, g, b)).toBeGreaterThanOrEqual(0x30)
+      expect(Math.min(r, g, b)).toBeGreaterThanOrEqual(0x50)
     }
   })
 
@@ -90,5 +91,30 @@ describe('lightByTime', () => {
     expect(brightness(lightByTime(0xcdd2da, dim))).toBeLessThan(
       brightness(lightByTime(0xcdd2da, timeOfDay('dusk'))),
     )
+  })
+})
+
+describe('lightHemisphere', () => {
+  const [SKY, GROUND] = [0xcdd2da, 0x8690b2]
+  // The stepped material reads the hemisphere in linear light and cuts it into steps: below its first step a surface is black.
+  const linear = (colour: number): number =>
+    channels(colour).reduce((sum, c) => sum + (c / 255) ** 2.2, 0) / 3
+  const level = (hemisphere: { skyColor: number; groundColor: number }): number =>
+    (linear(hemisphere.skyColor) + linear(hemisphere.groundColor)) / 2
+
+  it('leaves the day’s hemisphere as it is', () => {
+    expect(lightHemisphere(SKY, GROUND, timeOfDay('day'))).toEqual({ skyColor: SKY, groundColor: GROUND })
+  })
+
+  it('never lights a time so low that the stepped material draws it black', () => {
+    for (const name of ['golden', 'dusk', 'night', 'lampLit', 'bar'])
+      expect(level(lightHemisphere(SKY, GROUND, timeOfDay(name))), name).toBeGreaterThanOrEqual(0.13)
+  })
+
+  it('still makes the night dimmer than the day and bluer than grey', () => {
+    const night = lightHemisphere(SKY, GROUND, timeOfDay('night'))
+    expect(level(night)).toBeLessThan(level({ skyColor: SKY, groundColor: GROUND }))
+    const [r, , b] = channels(night.skyColor)
+    expect(b).toBeGreaterThan(r)
   })
 })

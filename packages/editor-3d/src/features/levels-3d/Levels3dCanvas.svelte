@@ -9,6 +9,7 @@ import { shellModeOf } from '@automata/editor/kit'
 import type { LevelEditor } from '../../shared/edit/level-editor'
 import { gameColours } from '../../shared/level-session/materials'
 import DollhouseCanvas from './dollhouse/DollhouseCanvas.svelte'
+import { createSceneCache } from './dollhouse/scene-cache'
 import Levels3dToolRail from './Levels3dToolRail.svelte'
 import Levels3dViewControl from './Levels3dViewControl.svelte'
 import type { Levels3dSuiteSession } from './levels-3d-suite-editor'
@@ -32,6 +33,8 @@ $effect(() => editor.view.subscribe((state) => (mode = state.mode)))
 
 const leave = (): void => {}
 const colours = $derived(gameColours(session.level.library))
+// The 3D view and Walk draw the level as the game does: its world, its things and its time of day.
+const scene = $derived(createSceneCache(editor, session.level.library))
 
 let width = $state(0)
 let height = $state(0)
@@ -48,12 +51,13 @@ const floating = $derived(width > 0 && shellModeOf({ width, height }) === 'compa
       renderer={session.dollhouse}
       frames={session.frames}
       {colours}
+      {scene}
       onundo={leave}
       onredo={leave}
       onwords={(words) => (pointer.walkWords = words)}
     />
   {:else if mode === 'dollhouse' || mode === 'split'}
-    <DollhouseCanvas {editor} renderer={session.dollhouse} {colours} onundo={leave} onredo={leave} />
+    <DollhouseCanvas {editor} renderer={session.dollhouse} {colours} {scene} onundo={leave} onredo={leave} />
   {:else}
     <PlanCanvas
       {editor}
