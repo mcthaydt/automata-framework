@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { kindOf, readStudioContent, type StudioFile } from '#src/features/studio/studio-content.ts'
 
-const ROOT = new URL('../../../src/testing/studio/fixtures/', import.meta.url).pathname
+const ROOT = new URL('../../../src/app/suite/sample-3d/', import.meta.url).pathname
 
 /** The recorded fixture game: Wick, a few poses, the roll, and what they use. */
 function fixtureFiles(): StudioFile[] {

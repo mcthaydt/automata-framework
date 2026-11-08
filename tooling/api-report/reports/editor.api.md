@@ -4410,6 +4410,23 @@ type Levels2dState = {
 };
 ```
 
+### `OpenedSuitePorts` (interface)
+
+```ts
+interface OpenedSuitePorts {
+    readonly ports: SuitePorts;
+    readonly sample: boolean;
+    readonly gameUrl: string | undefined;
+    readonly game: string | undefined;
+}
+```
+
+### `openSuitePorts` (function)
+
+```ts
+function openSuitePorts(env: Pick<ServedWorkspaceEnv, 'origin' | 'search' | 'fetch' | 'sessionStorage'>): Promise<OpenedSuitePorts>;
+```
+
 ### `randomIds` (function)
 
 ```ts

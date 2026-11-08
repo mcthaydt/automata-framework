@@ -17,13 +17,13 @@ afterEach(() => {
 const BACKGROUND = 0x202228
 const SIZE = { w: 200, h: 240, resolution: 1 }
 // The recorded fixture game, as Vite hands its files to a browser test.
-const raw = import.meta.glob('/src/testing/studio/fixtures/content/**/*.toml', {
+const raw = import.meta.glob('/src/app/suite/sample-3d/content/**/*.toml', {
   query: '?raw',
   import: 'default',
   eager: true,
 }) as Record<string, string>
 const content = readStudioContent(
-  Object.entries(raw).map(([path, text]) => ({ path: path.replace(/^.*\/fixtures\//, ''), text })),
+  Object.entries(raw).map(([path, text]) => ({ path: path.replace(/^.*\/sample-3d\//, ''), text })),
 )
 const wick = content.figures[0]?.value
 

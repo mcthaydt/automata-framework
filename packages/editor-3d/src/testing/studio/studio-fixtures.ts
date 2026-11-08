@@ -1,10 +1,10 @@
-// The recorded fixture game of the Studio's tests (EDS.9a): Wick, four poses, three clips and what they use, copied from
-// base-3d's content, over memory ports whose editor list gives every file to the `studio` editor, writable.
+// The sample game's figure content as the Studio's tests use it (EDS.9a): Wick, four poses, three clips and what they use,
+// over memory ports whose editor list gives every file to the `studio` editor, writable.
 import type { SuitePorts, UnlistedFile, WorkspaceFile } from '@automata/editor/kit/ports'
 import { createMemoryPorts } from '@automata/editor/kit/ports/testing'
 
 // The fixture files as Vite hands them over (the same in Node, jsdom and a browser), keyed by their path under `content/`.
-const raw = import.meta.glob('./fixtures/content/**/*.toml', {
+const raw = import.meta.glob('../../app/suite/sample-3d/content/**/*.toml', {
   query: '?raw',
   import: 'default',
   eager: true,
@@ -12,7 +12,7 @@ const raw = import.meta.glob('./fixtures/content/**/*.toml', {
 
 export function studioFixtureFiles(): Record<string, string> {
   return Object.fromEntries(
-    Object.entries(raw).map(([path, text]) => [path.replace('./fixtures/', ''), text]),
+    Object.entries(raw).map(([path, text]) => [path.replace('../../app/suite/sample-3d/', ''), text]),
   )
 }
 
