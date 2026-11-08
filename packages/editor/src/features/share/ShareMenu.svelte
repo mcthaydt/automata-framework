@@ -8,7 +8,7 @@ import Icon from '../../shared/kit/icons/Icon.svelte'
 import type { DownloadStore } from '../../shared/kit/storage/download-store'
 import Menu from '../../shared/kit/widgets/Menu.svelte'
 import type { ToastStore } from '../../shared/kit/widgets/toasts'
-import type { OpenDocument } from '../../shared/level-2d/documents/editor-app'
+import type { OpenDocument } from '../../shared/level-2d/session/editor-app-types'
 import { levelFile, type ShareAction, shareItems, shareLevel } from './share-model'
 
 interface Props {

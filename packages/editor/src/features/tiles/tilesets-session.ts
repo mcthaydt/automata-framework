@@ -1,6 +1,8 @@
 // The Tilesets view's editing: tilesets, tags, auto-tile groups and rules. Each edit is one undoable step; a refused
 // edit answers with a sentence for the person.
 import type { History } from '../../shared/kit/history/history.ts'
+import { projectHistory } from '../../shared/level-2d/editor/edit-history'
+import { commitEdit, type FieldCommit } from '../../shared/level-2d/editor/field-commit'
 import {
   addRule,
   addRuleGroup,
@@ -17,8 +19,6 @@ import {
   setPatternCell,
 } from '../../shared/level-2d/model/commands/rule-edits'
 import { tagTiles, untagTiles } from '../../shared/level-2d/model/commands/tileset-edits'
-import { projectHistory } from '../../shared/level-2d/model/edit-history'
-import { commitEdit, type FieldCommit } from '../../shared/level-2d/model/field-commit'
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import type { AutoLayerDef, Project } from '../../shared/level-2d/model/project-types'
 import type { Rule, RuleGroup } from '../../shared/level-2d/tiles/autotile/rule.schema'

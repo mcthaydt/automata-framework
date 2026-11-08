@@ -10,9 +10,9 @@
 import Button from '../../shared/kit/widgets/Button.svelte'
 import Dialog from '../../shared/kit/widgets/Dialog.svelte'
 import IconButton from '../../shared/kit/widgets/IconButton.svelte'
-import type { OpenDocument } from '../../shared/level-2d/documents/editor-app'
-import { commitEdit } from '../../shared/level-2d/model/field-commit'
+import { commitEdit } from '../../shared/level-2d/editor/field-commit'
 import type { Diagnostic, TargetChoice } from '../../shared/level-2d/profiles/profile'
+import type { OpenDocument } from '../../shared/level-2d/session/editor-app-types'
 import { checkGroups, fixLabel, objectLabel } from './checks-model'
 import TargetDialog from './TargetDialog.svelte'
 

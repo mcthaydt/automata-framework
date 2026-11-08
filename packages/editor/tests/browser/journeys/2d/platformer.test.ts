@@ -57,12 +57,12 @@ describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-la
       expect(open.document.history.revision).toBe(revision + 1)
       expect(open.document.history.undoLabel).toBe('Paint')
 
-      // A two-finger tap undoes it.
+      // A two-finger tap undoes it. The fingers land together and lift together, as a person taps: one after the other
+      // with a frame between each would take four frames, and a loaded runner's frames can push that past the tap's
+      // 300 ms, which is then rightly not a tap.
       const [a, b] = [cellAt(open, 10, 12), cellAt(open, 14, 12)]
-      const first = await pointers.down('touch', a)
-      const second = await pointers.down('touch', b)
-      await first.release()
-      await second.release()
+      const fingers = await Promise.all([pointers.down('touch', a), pointers.down('touch', b)])
+      await Promise.all(fingers.map((finger) => finger.release()))
       expect(open.document.history.revision, 'undone').toBe(revision + 2)
       expect(open.document.history.canRedo).toBe(true)
 
