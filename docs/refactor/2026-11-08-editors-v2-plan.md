@@ -408,13 +408,13 @@ and log what differs and why.
 - Test: `extensions/editors/tests/browser/layout/schematic-layout.test.ts`, `schematic-panel-layout.test.ts`,
   `extensions/editors/tests/unit/schematic/layout.test.ts`.
 
-- [ ] **Step 1: Write the failing tests:** when the board's area is narrower than it is high (390 × 844 and
+- [x] **Step 1: Write the failing tests:** when the board's area is narrower than it is high (390 × 844 and
       820 × 1180) the board lays out tall: the modes stack top to bottom, each mode box's words are not cut, and the
       links still join the same modes; at 1440 × 900 it stays wide; `screenChecks` passes.
-- [ ] **Step 2: Run.** Expected: FAIL.
-- [ ] **Step 3: Implement** the tall layout in the board's layout function, keyed on the area's aspect, not the device.
-- [ ] **Step 4: Run** these, the Schematic journeys, and `pnpm check`. Expected: PASS.
-- [ ] **Step 5: Commit** `feat(editors): Schematic in the v2 look, with a tall board in narrow areas`.
+- [x] **Step 2: Run.** Expected: FAIL.
+- [x] **Step 3: Implement** the tall layout in the board's layout function, keyed on the area's aspect, not the device.
+- [x] **Step 4: Run** these, the Schematic journeys, and `pnpm check`. Expected: PASS.
+- [x] **Step 5: Commit** `feat(editors): Schematic in the v2 look, with a tall board in narrow areas`.
 
 ## Phase 4: proof and record
 
@@ -638,3 +638,17 @@ iPad size, in Dark and once in Light; and apply the drunk grandma test to every 
   the smallest change that keeps native behaviour. Ran: extension unit tests (53 files, 645 tests), the extension layout
   project in Chromium with and without touch, the Tuner layout test, typecheck, style, boundaries. Not run: the content
   editors' journeys (Task 14 runs them with the whole set), WebKit, Firefox.
+- 2026-11-08, build, Task 13: Schematic. `layoutAgent` takes `tall`: the board is worked out as a wide one with its boxes
+  and labels turned on their side and turned back, so the modes, their order and every arrow are the same and only the
+  place differs; boxes keep their own size, so no word is cut. The board lays out tall when its area (its pane's width
+  against the 70 % of the window it may take) is narrower than it is high, so it follows the area and not the device:
+  tall at 390 × 844 and 820 × 1180, wide at 1440 × 900. The board sits on the stage (dotted floor, both looks) with its
+  Bigger, Smaller and Fit as a floating toolbar, the switches list is `Row`s, and the inspectors' fields are the kit's
+  `Field` through `FieldRow`. Rulings: (1) the area's height is the 70 % cap the board already had (now set inline from one
+  constant), since the board's own height depends on how it lays out and measuring it would flip it back and forth.
+  (2) The extension's unit setup gets an inert `ResizeObserver`, as jsdom has no layout; components that size from their area
+  keep the wide answer there. (3) The populated board's `screenChecks` run in the suite's shell (the content editors' layout
+  test now lists Schematic, on the sample game's characters), not in a bare mount, which has none of the theme's tokens.
+  Tests first: the layout's new cases and the browser test of the tall board went red for the right reasons (with the tall
+  switch forced off: "expected 3 to be greater than 5"). Ran: extension unit tests (655), the extension layout project
+  in Chromium with and without touch (6 files), svelte-check. Not run: the Schematic journeys (Task 14), WebKit, Firefox.

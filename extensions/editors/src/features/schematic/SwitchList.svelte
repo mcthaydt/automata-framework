@@ -3,6 +3,7 @@
   after it stops or gets stuck. Inside a group they are in the order they are checked.
 -->
 <script lang="ts">
+import { Row } from '@automata/editor/kit'
 import type { AgentDef } from '@automata/systems/sim'
 import { switchNote } from './decide-words.ts'
 import type { Names } from './pieces/piece.ts'
@@ -32,16 +33,13 @@ const { character, names, selected, onselect }: Props = $props()
             {@const t = character.transitions[index]}
             {#if t !== undefined}
               <li>
-                <button
-                  type="button"
-                  aria-pressed={selected?.kind === 'switch' && selected.index === index}
+                <Row
+                  selected={selected?.kind === 'switch' && selected.index === index}
+                  detail={switchNote(character, index)}
                   onclick={() => onselect({ kind: 'switch', index })}
                 >
                   {switchWords(t, names)}
-                </button>
-                {#if switchNote(character, index) !== undefined}
-                  <p class="note">{switchNote(character, index)}</p>
-                {/if}
+                </Row>
               </li>
             {/if}
           {/each}
@@ -72,29 +70,9 @@ const { character, names, selected, onselect }: Props = $props()
     padding: 0;
     list-style: none;
   }
-  button {
-    width: 100%;
-    min-height: var(--size-hit);
-    padding: var(--space-2) var(--space-3);
-    border: 1px solid var(--color-border-default);
-    border-radius: var(--edge-sm);
-    background: var(--color-bg-surface);
-    color: var(--color-text-primary);
-    font: var(--text-body-13);
-    text-align: left;
-    cursor: pointer;
-  }
-  button[aria-pressed='true'] {
-    border-color: var(--color-accent-default);
-    background: var(--color-accent-soft);
-  }
-  .none,
-  .note {
+  .none {
     margin: 0;
     color: var(--color-text-dim);
     font: var(--text-body-13);
-  }
-  .note {
-    padding: var(--space-1) var(--space-3);
   }
 </style>

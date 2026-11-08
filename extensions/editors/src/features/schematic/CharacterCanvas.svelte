@@ -3,7 +3,7 @@
   phone the diagram and the list are two tabs; wider, they share the canvas.
 -->
 <script lang="ts">
-import { Button } from '@automata/editor/kit'
+import { FloatingToolbar, IconButton } from '@automata/editor/kit'
 import { tick } from 'svelte'
 import { DECIDE_LINES, modeNotes } from './decide-words.ts'
 import Diagram from './diagram/Diagram.svelte'
@@ -24,6 +24,13 @@ let tab = $state<'diagram' | 'list'>('diagram')
 const MIN_ZOOM = 0.85
 let zoom = $state(1)
 let scroller = $state<HTMLElement>()
+// The board's area is as wide as its pane and as high as the share of the window it may take. Where that is narrower than
+// it is high (a phone, an upright iPad) the board lays out tall, so its words stay the size a finger can use instead of
+// shrinking to fit the width; it follows the area, not the device.
+const BOARD_SHARE = 0.7
+let room = $state(0)
+let windowHeight = $state(0)
+const tall = $derived(room > 0 && room < windowHeight * BOARD_SHARE)
 let watching = $state(false)
 let heard = $state<WatchState>(EMPTY_WATCH)
 const live = $derived(
@@ -64,6 +71,8 @@ const notes = $derived(
 )
 </script>
 
+<svelte:window bind:innerHeight={windowHeight} />
+
 {#if character !== undefined && names !== undefined}
   <header class="head">
     <h2>{modeWords(character.id)}</h2>
@@ -79,13 +88,21 @@ const notes = $derived(
   {/if}
 
   <section class="panel" data-active={tab === 'diagram'} aria-label="Diagram">
-    <div class="tools">
-      <Button onclick={() => (zoom = Math.min(2, zoom + 0.25))}>Bigger</Button>
-      <Button onclick={() => (zoom = Math.max(MIN_ZOOM, zoom - 0.25))}>Smaller</Button>
-      <Button onclick={fit}>Fit</Button>
-    </div>
-    <div class="scroll" tabindex="-1" bind:this={scroller}>
-      <Diagram {character} {names} selected={session.selected} {zoom} {live} onselect={(selection) => (session.selected = selection)} />
+    <div class="stage">
+      <div
+        class="scroll"
+        tabindex="-1"
+        style:max-height="{BOARD_SHARE * 100}vh"
+        bind:this={scroller}
+        bind:clientWidth={room}
+      >
+        <Diagram {character} {names} selected={session.selected} {zoom} {tall} {live} onselect={(selection) => (session.selected = selection)} />
+      </div>
+      <FloatingToolbar label="Board size" at="zoom">
+        <IconButton icon="plus" label="Bigger" onclick={() => (zoom = Math.min(2, zoom + 0.25))} />
+        <IconButton icon="minus" label="Smaller" onclick={() => (zoom = Math.max(MIN_ZOOM, zoom - 0.25))} />
+        <IconButton icon="fit" label="Fit" onclick={fit} />
+      </FloatingToolbar>
     </div>
     {#if notes.length > 0}
       <ul class="notes">
@@ -153,18 +170,18 @@ const notes = $derived(
     gap: var(--space-3);
     min-width: 0;
   }
-  .tools {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
+  /* The board sits on the stage: the same dotted floor in both looks, with its size controls floating over it. */
+  .stage {
+    position: relative;
+    container-type: inline-size;
   }
   .scroll {
     overflow: auto;
     max-width: 100%;
-    max-height: 70vh;
-    border: 1px solid var(--color-border-default);
     border-radius: var(--edge-md);
-    background: var(--color-bg-surface);
+    background-color: var(--tool-stage, var(--charcoal));
+    background-image: radial-gradient(circle, var(--tool-dot, transparent) 1px, transparent 1.5px);
+    background-size: 20px 20px;
   }
   .notes,
   .rules ul {

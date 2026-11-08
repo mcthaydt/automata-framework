@@ -27,6 +27,7 @@ const READY: Readonly<Record<string, string>> = {
   Audio: '[aria-label="Sounds and music"], [aria-label="Audio"]',
   Writer: 'textarea',
   Sequence: '[aria-label="Playing"]',
+  Schematic: 'svg.diagram',
 }
 
 let opened: OpenedSuite | undefined

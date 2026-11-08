@@ -28,7 +28,9 @@ const ports = {
 
 /** Presses a button by its words and waits for the page to settle. */
 async function press(words: string): Promise<void> {
-  const button = [...document.querySelectorAll('button')].find((b) => b.textContent?.trim() === words)
+  const button = [...document.querySelectorAll('button')].find(
+    (b) => (b.getAttribute('aria-label') ?? b.textContent)?.trim() === words,
+  )
   button?.click()
   await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
 }
@@ -135,6 +137,50 @@ describe.each(SIZES)('the diagram on a $name', (size) => {
     const at = far?.getBoundingClientRect()
     expect(at?.right).toBeLessThanOrEqual(region.getBoundingClientRect().right + 1)
     expect(at?.left).toBeGreaterThanOrEqual(region.getBoundingClientRect().left - 1)
+  })
+})
+
+/** The modes' boxes as [mode, left, top] in the page, and the arrows as the modes each joins. */
+function board() {
+  const boxes = [...document.querySelectorAll<SVGGElement>('svg .box')].map((box) => {
+    const at = box.getBoundingClientRect()
+    return { mode: box.dataset.mode as string, left: at.left, top: at.top }
+  })
+  const arrows = [...document.querySelectorAll<SVGGElement>('svg .label')]
+    .map((label) => label.getAttribute('aria-label') ?? '')
+    .sort()
+  return { boxes, arrows }
+}
+
+describe.each(SIZES)('the board on a $name is tall', (size) => {
+  test('the modes stack top to bottom, no box has its words cut, and the same arrows join the same modes', async () => {
+    await start(size)
+    const tall = board()
+    const starts = tall.boxes.filter((box) => box.mode !== '*')
+    expect(starts.length).toBeGreaterThan(2)
+    // Stacked: no two levels share a row, so the boxes' tops are not all the same, and the page's lefts are fewer than its tops.
+    expect(new Set(tall.boxes.map((box) => Math.round(box.top))).size).toBeGreaterThan(
+      new Set(tall.boxes.map((box) => Math.round(box.left))).size,
+    )
+    for (const box of document.querySelectorAll<SVGGElement>('svg .box')) {
+      const frame = box.querySelector('rect')?.getBBox()
+      for (const text of box.querySelectorAll('text')) {
+        const words = text.getBBox()
+        expect(words.x + words.width, `${box.dataset.mode} words`).toBeLessThanOrEqual(
+          (frame?.x ?? 0) + (frame?.width ?? 0),
+        )
+      }
+    }
+    // Wide at 1440 x 900: the same arrows, joining the same modes, with the levels left to right instead.
+    if (mounted) void unmount(mounted)
+    mounted = undefined
+    document.body.innerHTML = ''
+    await start({ name: 'desktop', width: 1440, height: 900 } as never)
+    const wide = board()
+    expect(wide.arrows).toEqual(tall.arrows)
+    expect(new Set(wide.boxes.map((box) => Math.round(box.left))).size).toBeGreaterThan(
+      new Set(wide.boxes.map((box) => Math.round(box.top))).size - 1,
+    )
   })
 })
 

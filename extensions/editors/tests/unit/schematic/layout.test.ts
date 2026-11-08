@@ -108,6 +108,48 @@ describe('the layout', () => {
   })
 })
 
+describe('the tall layout', () => {
+  const TALL = { ...SIZE, tall: true }
+  const def = agent({
+    transitions: [
+      { from: 'patrol', to: 'hunt', when: [{ sees: true }], priority: 1 },
+      { from: 'hunt', to: 'search', when: [], priority: 1 },
+      { from: 'search', to: 'patrol', when: [{ heard: '*' }], priority: 1 },
+      { from: 'hunt', to: 'hunt', when: [{ touching: true }], priority: 2 },
+    ],
+  })
+
+  it('stacks the modes top to bottom in the order the wide board runs left to right', () => {
+    const wide = layoutAgent(def, SIZE).boxes
+    const tall = layoutAgent(def, TALL).boxes
+    const order = (boxes: typeof wide, axis: 'x' | 'y') =>
+      [...boxes].sort((a, b) => a[axis] - b[axis]).map((box) => box.mode)
+    expect(order(tall, 'y')).toEqual(order(wide, 'x'))
+    expect(new Set(tall.map((box) => box.x)).size).toBe(1)
+  })
+
+  it('keeps each box its own size, so its words are not cut', () => {
+    for (const box of layoutAgent(def, TALL).boxes) expect([box.w, box.h]).toEqual([120, 52])
+  })
+
+  it('draws the same arrows between the same modes, with no overlap', () => {
+    const wide = layoutAgent(def, SIZE)
+    const tall = layoutAgent(def, TALL)
+    const key = (d: Diagram) =>
+      d.arrows.map((arrow) => `${arrow.from}>${arrow.to}:${arrow.switches.join(',')}`).sort()
+    expect(key(tall)).toEqual(key(wide))
+    expectClean(tall, def)
+  })
+
+  it('is narrower than the wide board at the size the diagram draws, which is the point of it', () => {
+    const drawn = { box: { w: 160, h: 64 }, gap: 168, label: 52, labelW: 144 }
+    const wide = layoutAgent(def, drawn)
+    const tall = layoutAgent(def, { ...drawn, tall: true })
+    expect(tall.width).toBeLessThan(wide.width)
+    expectClean(tall, def)
+  })
+})
+
 describe.each(SCENES)('on the %s scene', (scene) => {
   const def = fixture(scene)
   for (const character of def.agents)
@@ -116,6 +158,10 @@ describe.each(SCENES)('on the %s scene', (scene) => {
 
       it('draws every switch once, and no two boxes or labels overlap', () => {
         expectClean(diagram, character)
+      })
+
+      it('does the same laid out tall', () => {
+        expectClean(layoutAgent(character, { ...SIZE, tall: true }), character)
       })
 
       it('says when each switch is asked, as the interpreter asks it', () => {
