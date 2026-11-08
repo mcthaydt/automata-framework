@@ -382,6 +382,19 @@
 - `Placement` (interface): Where a frame's own pixels are: inside its extrusion, on page `page`.
 - `subsetWoff2(source, characters)`: The font cut to `characters`, as woff2.
 
+### `import { … } from '@mcthaydt/automata-content/compile'`
+
+- `compileContentFiles(files, options)`: Compiles a game's content from a list of files, with no disk: every path below the project (such as `content/songs/dusk-run.toml`) to its text.
+- `CompiledContent` (interface): The result of a compile: the content and its hash, the sim partition, every output file's text, warnings, the languages and each language's message catalog.
+- `CompileOptions` (interface): What the compiler is given: the registered kinds, and optionally tunables, invariants, flow capabilities, generators and an output folder.
+- `CompileResult` (type): How a compile ends.
+- `contentModuleText` (const): The source text of `virtual:automata/content` for compiled content.
+- `Diagnostic` (interface): One authoring problem: a stable `code`, the file to open, the 1-based line and column, the dotted key inside it and a message that says what to write instead.
+- `formatDiagnostic(d)`: `content/tuning.toml:12:1 GRAVITY outOfRange: expected -1200..-100, received -2000`
+- `MessageLocation` (interface): A message's place in its file, 1-based.
+- `SourceFile` (interface): One authored file, with the project-relative path a diagnostic names.
+- `VIRTUAL_MODULE_ID` (const): The import path of the compiled content: `content`, `contentHash`, `simContent` and `simContentHash`.
+
 ### `import { … } from '@mcthaydt/automata-content/game-config'`
 
 - `GAME_ID_PATTERN` (const): A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.

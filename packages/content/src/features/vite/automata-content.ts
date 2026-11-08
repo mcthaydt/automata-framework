@@ -13,17 +13,18 @@ import { dirname, join, sep } from 'node:path'
 import { Effect, Either } from 'effect'
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 import { type CompiledContent, type ContentOptions, outDirOf } from '../../shared/compile/compile-content'
+import { contentModuleText, VIRTUAL_MODULE_ID } from '../../shared/compile/content-module'
 import type {
   ContentCompileFailed,
   ContentWriteFailed,
   InvalidContentConfig,
 } from '../../shared/compile/errors'
-import { TRANSLATIONS_FOLDER } from '../../shared/compile/read-sources'
+import { TRANSLATIONS_FOLDER } from '../../shared/compile/source-tree'
 import { buildContent } from '../../shared/compile/write-outputs'
 import { formatDiagnostic } from '../../shared/diagnostics/diagnostic'
 
-/** The import path of the compiled content: `content`, `contentHash`, `simContent` and `simContentHash`. */
-export const VIRTUAL_MODULE_ID = 'virtual:automata/content'
+export { VIRTUAL_MODULE_ID }
+
 const RESOLVED_ID = `\0${VIRTUAL_MODULE_ID}`
 
 /** Long enough to collapse an editor's write burst, short enough to feel live (FloorFifty). */
@@ -67,21 +68,6 @@ function sameOutcome(previous: BuildOutcome | undefined, next: BuildOutcome): bo
   if (previous.ok && next.ok) return previous.content.hash === next.content.hash
   if (!previous.ok && !next.ok) return previous.lines.join('\n') === next.lines.join('\n')
   return false
-}
-
-// `simContent` is built from `content`'s own properties (`{ "room": content["room"], ... }`) rather than a
-// second JSON literal, so the bundle holds the data once and the two share their objects.
-const moduleCode = (content: CompiledContent): string => {
-  const simFields = Object.keys(content.sim.data)
-    .sort()
-    .map((kind) => `${JSON.stringify(kind)}: content[${JSON.stringify(kind)}]`)
-  return [
-    `export const content = ${content.files.get('content.json') ?? '{}'}`,
-    `export const contentHash = ${JSON.stringify(content.hash)}`,
-    `export const simContent = { ${simFields.join(', ')} }`,
-    `export const simContentHash = ${JSON.stringify(content.sim.hash)}`,
-    '',
-  ].join('\n')
 }
 
 /**
@@ -229,7 +215,7 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
       if (!started) lastOutcome = await enqueue()
       await chain
       if (latest === undefined) throw new Error(`content has errors:\n${latestErrors.join('\n')}`)
-      return moduleCode(latest)
+      return contentModuleText(latest)
     },
 
     async buildEnd() {

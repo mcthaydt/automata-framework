@@ -4480,19 +4480,9 @@ What the content compiler is given: the project root, the registered kinds, and 
 invariants, flow capabilities, generators, an output folder and Paraglide.
 
 ```ts
-interface ContentOptions {
+interface ContentOptions extends CompileOptions {
   /** The project root; content is read from `<root>/content`. */
   readonly root: string;
-  readonly schemas: readonly ContentSchemaDef[];
-  /** Code-owned tunable names and ranges. Absent: ranges are authored in `tuning.toml`. */
-  readonly tunables?: TunableDeclarations | undefined;
-  /** Code-only constants an author may not write in `tuning.toml`. */
-  readonly invariants?: readonly string[] | undefined;
-  /** Code-owned screens, pairs and styles for `flow.toml`. */
-  readonly flow?: FlowCapabilities | undefined;
-  readonly generators?: readonly ContentGenerator[] | undefined;
-  /** Relative to `root`. Default `content/generated`. */
-  readonly outDir?: string | undefined;
   /** Compile the catalogs with Paraglide on each build. Absent: no Paraglide output. */
   readonly paraglide?: ParaglideOptions | undefined;
 }
@@ -5213,6 +5203,152 @@ The font cut to `characters`, as woff2. A character the font lacks is simply not
 
 ```ts
 function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>): Promise<Uint8Array>;
+```
+
+### `import { … } from '@mcthaydt/automata-content/compile'`
+
+#### `compileContentFiles` (function)
+
+Compiles a game's content from a list of files, with no disk: every path below the project (such as
+`content/songs/dusk-run.toml`) to its text. Gives the same result as `compileContent` on a folder holding
+those files.
+
+```ts
+function compileContentFiles(files: ReadonlyMap<string, string>, options: CompileOptions): CompileResult;
+```
+
+#### `CompiledContent` (interface)
+
+The result of a compile: the content and its hash, the sim partition, every output file's text, warnings,
+the languages and each language's message catalog.
+
+```ts
+interface CompiledContent {
+  readonly data: ContentData;
+  /** Over all of `data`: the boot check and evidence identity. Never compared with `sim.hash`. */
+  readonly hash: string;
+  /** What the sim receives, and the hash that gates snapshots and replays. */
+  readonly sim: SimPartition;
+  /** Each output path, relative to the output folder, to its exact text. Build and verify use the same bytes. */
+  readonly files: ReadonlyMap<string, string>;
+  /** Problems that do not stop a compile (`skippedFile`), sorted. They are not part of the hash or the outputs. */
+  readonly warnings: readonly Diagnostic[];
+  /** The source language, then each translation's language, sorted. */
+  readonly languages: readonly string[];
+  /**
+   * Each language's checked catalog (without `$schema`), in `languages` order. Derived beside the hashed data,
+   * never inside it, so a translation edit moves neither hash. Paraglide and the glyph sets read these.
+   */
+  readonly catalogs: ReadonlyMap<string, MessageCatalog>;
+  /**
+   * Where each language's messages are written, in `languages` order: a source message at its text in the
+   * TOML, a translated one at its key in `messages/<lang>.json`. The glyph gate names a message by these.
+   */
+  readonly messageLocations: ReadonlyMap<string, ReadonlyMap<string, MessageLocation>>;
+}
+```
+
+#### `CompileOptions` (interface)
+
+What the compiler is given: the registered kinds, and optionally tunables, invariants, flow capabilities,
+generators and an output folder. Where the files come from, and Paraglide, belong to the Node shell
+(`ContentOptions`).
+
+```ts
+interface CompileOptions {
+  readonly schemas: readonly ContentSchemaDef[];
+  /** Code-owned tunable names and ranges. Absent: ranges are authored in `tuning.toml`. */
+  readonly tunables?: TunableDeclarations | undefined;
+  /** Code-only constants an author may not write in `tuning.toml`. */
+  readonly invariants?: readonly string[] | undefined;
+  /** Code-owned screens, pairs and styles for `flow.toml`. */
+  readonly flow?: FlowCapabilities | undefined;
+  readonly generators?: readonly ContentGenerator[] | undefined;
+  /** Relative to the project root. Default `content/generated`. */
+  readonly outDir?: string | undefined;
+}
+```
+
+#### `CompileResult` (type)
+
+How a compile ends. A failure lists diagnostics, or, when the game's own code is wrong, config problems.
+
+```ts
+type CompileResult = {
+  readonly ok: true;
+  readonly content: CompiledContent;
+} | {
+  readonly ok: false;
+  readonly diagnostics: readonly Diagnostic[];
+  readonly configProblems: readonly string[];
+};
+```
+
+#### `contentModuleText` (const)
+
+The source text of `virtual:automata/content` for compiled content. `simContent` is built from `content`'s own
+properties (`{ "room": content["room"], ... }`) rather than a second JSON literal, so the bundle holds the data
+once and the two share their objects.
+
+```ts
+const contentModuleText: (content: CompiledContent) => string;
+```
+
+#### `Diagnostic` (interface)
+
+One authoring problem: a stable `code`, the file to open, the 1-based line and column, the dotted key
+inside it and a message that says what to write instead.
+
+```ts
+interface Diagnostic {
+  readonly code: DiagnosticCode;
+  /** Project-relative, `/`-separated, e.g. `content/tuning.toml`. */
+  readonly file: string;
+  readonly line: number;
+  readonly column: number;
+  /** Dotted path inside the file (`transitions.3.to`), or '' for the whole file. */
+  readonly keyPath: string;
+  readonly message: string;
+}
+```
+
+#### `formatDiagnostic` (function)
+
+`content/tuning.toml:12:1  GRAVITY  outOfRange: expected -1200..-100, received -2000`
+
+```ts
+function formatDiagnostic(d: Diagnostic): string;
+```
+
+#### `MessageLocation` (interface)
+
+A message's place in its file, 1-based.
+
+```ts
+interface MessageLocation {
+  readonly file: string;
+  readonly line: number;
+  readonly column: number;
+}
+```
+
+#### `SourceFile` (interface)
+
+One authored file, with the project-relative path a diagnostic names.
+
+```ts
+interface SourceFile {
+  readonly file: string;
+  readonly text: string;
+}
+```
+
+#### `VIRTUAL_MODULE_ID` (const)
+
+The import path of the compiled content: `content`, `contentHash`, `simContent` and `simContentHash`.
+
+```ts
+const VIRTUAL_MODULE_ID = "virtual:automata/content";
 ```
 
 ### `import { … } from '@mcthaydt/automata-content/game-config'`

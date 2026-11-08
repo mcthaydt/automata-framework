@@ -92,14 +92,8 @@ function contentHash(data: unknown): string;
 ### `ContentOptions` (interface)
 
 ```ts
-interface ContentOptions {
+interface ContentOptions extends CompileOptions {
     readonly root: string;
-    readonly schemas: readonly ContentSchemaDef[];
-    readonly tunables?: TunableDeclarations | undefined;
-    readonly invariants?: readonly string[] | undefined;
-    readonly flow?: FlowCapabilities | undefined;
-    readonly generators?: readonly ContentGenerator[] | undefined;
-    readonly outDir?: string | undefined;
     readonly paraglide?: ParaglideOptions | undefined;
 }
 ```
@@ -633,6 +627,105 @@ interface Placement {
 
 ```ts
 function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>): Promise<Uint8Array>;
+```
+
+## `./compile`
+
+### `compileContentFiles` (function)
+
+```ts
+function compileContentFiles(files: ReadonlyMap<string, string>, options: CompileOptions): CompileResult;
+```
+
+### `CompiledContent` (interface)
+
+```ts
+interface CompiledContent {
+    readonly data: ContentData;
+    readonly hash: string;
+    readonly sim: SimPartition;
+    readonly files: ReadonlyMap<string, string>;
+    readonly warnings: readonly Diagnostic[];
+    readonly languages: readonly string[];
+    readonly catalogs: ReadonlyMap<string, MessageCatalog>;
+    readonly messageLocations: ReadonlyMap<string, ReadonlyMap<string, MessageLocation>>;
+}
+```
+
+### `CompileOptions` (interface)
+
+```ts
+interface CompileOptions {
+    readonly schemas: readonly ContentSchemaDef[];
+    readonly tunables?: TunableDeclarations | undefined;
+    readonly invariants?: readonly string[] | undefined;
+    readonly flow?: FlowCapabilities | undefined;
+    readonly generators?: readonly ContentGenerator[] | undefined;
+    readonly outDir?: string | undefined;
+}
+```
+
+### `CompileResult` (type)
+
+```ts
+type CompileResult = {
+    readonly ok: true;
+    readonly content: CompiledContent;
+} | {
+    readonly ok: false;
+    readonly diagnostics: readonly Diagnostic[];
+    readonly configProblems: readonly string[];
+};
+```
+
+### `contentModuleText` (const)
+
+```ts
+const contentModuleText: (content: CompiledContent) => string;
+```
+
+### `Diagnostic` (interface)
+
+```ts
+interface Diagnostic {
+    readonly code: DiagnosticCode;
+    readonly file: string;
+    readonly line: number;
+    readonly column: number;
+    readonly keyPath: string;
+    readonly message: string;
+}
+```
+
+### `formatDiagnostic` (function)
+
+```ts
+function formatDiagnostic(d: Diagnostic): string;
+```
+
+### `MessageLocation` (interface)
+
+```ts
+interface MessageLocation {
+    readonly file: string;
+    readonly line: number;
+    readonly column: number;
+}
+```
+
+### `SourceFile` (interface)
+
+```ts
+interface SourceFile {
+    readonly file: string;
+    readonly text: string;
+}
+```
+
+### `VIRTUAL_MODULE_ID` (const)
+
+```ts
+const VIRTUAL_MODULE_ID = "virtual:automata/content";
 ```
 
 ## `./game-config`

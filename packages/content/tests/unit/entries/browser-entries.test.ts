@@ -43,6 +43,7 @@ function externalsOf(entry: string): string[] {
 }
 
 const BROWSER_ENTRIES = {
+  './compile': { source: './src/entries/compile.ts', build: 'compile' },
   './level-2d': { source: './src/entries/level-2d.ts', build: 'level-2d' },
   './palette': { source: './src/entries/palette.ts', build: 'palette' },
   './schema': { source: './src/entries/schema.ts', build: 'schema' },
@@ -65,6 +66,14 @@ describe('the browser-safe entries', () => {
     const schema = await import('#src/entries/schema.ts')
     expect(Object.keys(schema).sort()).toEqual(['contentRef', 'defineContentSchema', 'localized'])
     expect(externalsOf(BROWSER_ENTRIES['./schema'].source)).toEqual(['zod'])
+  })
+
+  it('./compile runs in a page: no Node built-in and no Effect (law 5), so the phone app can compile content', () => {
+    const externals = externalsOf(BROWSER_ENTRIES['./compile'].source)
+    expect(externals.filter((external) => external === 'effect' || external.startsWith('effect/'))).toEqual(
+      [],
+    )
+    expect(externals.filter((external) => external.startsWith('node:'))).toEqual([])
   })
 
   it("./level-2d imports only zod, so a game's sim may use it", () => {
