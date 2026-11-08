@@ -1,6 +1,6 @@
 # Refactor progress
 
-**Overall: 67% (12 of 18 stages done).**
+**Overall: 63% (15 of 24 stages done; the customer value pipeline's six stages are counted from 2026-11-08).**
 
 The Owner's order: finish one slice completely before starting the next. On 2026-11-05 it was core and 2D, then 3D, then
 the editors, then the website. On 2026-11-06 the Owner changed the later slices to vertical ones: "we do the editor
@@ -578,132 +578,7 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
 
-## Content editors: Feel, Audio, Writer, Sequence (plan audit done, 2026-11-08)
-
-Each editor's plan audited against its spec, the shared content-editors spec, the content-in-play plan and the code:
-[`2026-11-08-feel-plan-audit.md`](2026-11-08-feel-plan-audit.md) (F1 to F11),
-[`2026-11-08-audio-plan-audit.md`](2026-11-08-audio-plan-audit.md) (A1 to A8),
-[`2026-11-08-writer-plan-audit.md`](2026-11-08-writer-plan-audit.md) (W1 to W11),
-[`2026-11-08-sequence-plan-audit.md`](2026-11-08-sequence-plan-audit.md) (S1 to S10). The findings are fixed in the
-specs and plans. Chief among them: nothing in a game played `feel.toml` or `audio.toml`, so Feel and Audio gain a
-stage player and a served journey each; Writer and Sequence prove themselves in content-in-play's `examples/2d-story`
-journey, whose Sequence step changes (a caption's words are written in Writer). Audio's music pieces and rules wait for
-the Owner's call. Next: the builds (Sonnet, high).
-
-## Content editors: build (2026-11-08)
-
-Built on `claude/project-thread-2salzc`, stacked on #478 (plans' Logs have the evidence):
-
-- **Writer**: built (lines with their words, conversations as a branching script, the map, problems, Play it).
-- **Sequence**: built (timeline, plan preview, step fields in words, drag, Add here, Play, problems).
-- **Feel**: every field, the game's events, the stage and the player's settings built. Not built: the in-play stage
-  (`@automata/feel/stage`), a word's own `words`, the squash spring fields.
-- **Audio**: sounds, the events page, Play and the rail built. Music is **imported and arranged, never made** (the Owner,
-  2026-11-08 05:10): tracks from the game's `assets/music` and rules for which plays when. Not built: the in-play player
-  (`@automata/audio-synth/stage`), the mix, shadowed rows, Check the sounds, the sound's picture.
-- Create-game's `editors.toml` names every content editor's files.
-- **Not run:** any browser (layout) test, WebKit, Firefox. **No journey has run:** `examples/2d-story` has not landed,
-  so no editor is done by the Owner's rule until its served journey runs and shows the change in play. Feel and Audio
-  also lack their in-play stage.
-
-- Update (2026-11-08 06:05): Feel's `@automata/feel/stage` (shake, flash, tint, cues, rumbles) is built. Still open: hit-stop,
-  squash, words, the Audio in-play player, the journeys and the layout tests; hand-off notes are in the Feel and Audio plan logs.
-  A follow-up thread based on #484 plus #487 wires both players into `examples/2d-story` and runs them.
-
-- Update (2026-11-08 08:20, follow-up thread on PR #487 plus #484): the Feel stage's hit-stop, squash and words, the Audio
-  in-play player (`@automata/audio-synth/stage`: the event map's sounds, imported tracks, music rules, fades) and
-  `defineGame({ audio })` are built, wired into `examples/2d-story`, and **proved by served journeys**
-  (`extensions/editors/tests/e2e/journeys/`, each copies the story, runs `automata editor` with the content suite page,
-  edits in the editor, plays the game the editor started and reads what it did): Feel (a word and a flash made in Feel
-  show in play), Audio (two tracks dropped in, used, rules made; the played game's music goes calm to chase),
-  Writer (the keeper's words and the caption), Sequence (a step pointed at another caption line). Found by working the
-  editors on the real story and fixed: the suite page opened only the in-memory sample, never the served game; Audio's
-  first track, rule, sound or event in a file with none was refused ("Node not found at slot"); two quick edits were
-  refused as a conflict and reverted; the story kept its words in a catalog Writer could not see (now `words` in
-  `content/lines`, #491 H2); the story's editor list left out Writer's and Sequence's files. The layout tests at
-  390 x 844 and 820 x 1180 are in `extensions/editors/tests/browser/layout`. **Not built:** Audio's mix, shadowed rows,
-  Check the sounds, the sound's picture and its `about`/`world`/`no_duck`/`draft` fields; `seam` and `resume` in the
-  player; the Schematic (guard) editor, which is #486. **Not run:** WebKit, Firefox, the GPU runner.
-
-- Build audit (2026-11-08, PR stacked on #487):
-  [`2026-11-08-feel-audio-writer-sequence-build-audit.md`](2026-11-08-feel-audio-writer-sequence-build-audit.md). 8 high,
-  12 medium, 10 low. Made and played content in all four editors, in the story and in a new `create-game` game. Chief
-  findings: Feel's default shake moves 0 px; Feel's stage shows a word's key and plays no sound; Sequence's playhead and
-  selected step are invisible (`--color-accent` is not a token) and its step fields cover the timeline on a phone;
-  Writer's advice after a choice to a new part is backwards; a `create-game` game lists the four editors but plays none
-  of their content (Owner decision). Next: Sonnet fixes.
-
-- Audit fixes (2026-11-08, PR stacked on #495): all 8 high, 11 of 12 medium and 8 of 10 low fixed, test first; the plan logs
-  have the list. A new Feel shake moves the screen and says by how much; Feel shows a word's words and plays the game's
-  sounds; Sequence's playhead and selected step show and its step fields stack under the timeline on a phone; Writer's
-  new part goes on to the way out; Audio removals keep the file valid. **`create-game` games now play Feel and Audio**: they
-  come with a starter feel and sound for the square bumping a wall (checked by making a game with `create-game`, editing it
-  in the real editor and playing it). Writer's and Sequence's files are not listed by the template until it has a dialogue
-  box and cutscenes. Journeys: the 5 served journeys pass on a phone and an iPad in Chromium. Deferred: L9 (the kit writes inserted
-  tables inline), Audio's mix and sound checks (unbuilt, unchanged). Not run: WebKit, Firefox, the GPU runner.
-
-## Edited content shows in play: 67% (4 of 6: stages 2, 3 and 4; the build is done except three journey steps)
-
-Normal dev pipeline (no stage 1 audit; the investigation is
-[`2026-11-08-complete-game-gaps.md`](2026-11-08-complete-game-gaps.md)). The Owner approved steps 1 to 6 on 2026-11-08
-04:13 and corrected the goal at 04:14: "I want humans to be able to modify content", not games without code. Steps 2
-(ready-made behaviours) and 5 (HUD pieces) are cut for that reason (spec section 1).
-
-| Stage | State |
-| --- | --- |
-| 2. Spec and plan | Done: [spec](2026-11-08-content-in-play-spec.md), [plan](2026-11-08-content-in-play-plan.md), 16 tasks |
-| 3. Plan audit | Done: [audit](2026-11-08-content-in-play-plan-audit.md), 21 findings fixed in the spec and plan; 17 tasks |
-| 4. Build | Done on PR #484, except three journey steps (17 of 17 tasks): tile readers, `levelScene`, `pictureView` and clips, controls as data, `places`, `level-2d`, `usePlay`, the dialogue box, 2D cutscenes and captions, systems in 2D, and `examples/2d-story`, played in the served journey `story-in-play` (iPad and phone, Chromium). **Pending:** changing the keeper's words in Writer, the caption in Sequence and the guard's chase speed in Schematic: those editors (PR #478) are not on this branch, so the steps are not run and nothing was written behind an editor's back. Also pending: WebKit and Firefox (parity, journeys) on the runner. |
-| 5. Build audit | Done: [audit](2026-11-08-content-in-play-build-audit.md), 2 High, 5 Medium, 9 Low |
-| 6. Fixes | Done on this branch except H2 (needs #478's editors; named step in the plan log) and the Writer, Sequence and Schematic journey steps. WebKit, Firefox and the GPU runner not run |
-
-## Schematic (the AI editor)
-
-[plan](2026-11-08-schematic-plan.md), AF PR #486 stacked on #478. 14 of 16 tasks done (about 88%), 2026-11-08: 1 conditions, 2 actions, 3 layout, 4 session and problems, 5 diagram and list, 6 inspector, 7 senses, start and patrol, 9 Places, 10 rules and Numbers, 11 Watch, 12 Fair play, 13 Puzzle, 15 the served 3D journey (`examples/3d-story`, 12 of 12 in Chromium at phone and iPad, Node scene hash `1addc88c39a912bf`), 16 sample journey, template and README. Not done: Task 14 and the 2D half of Task 8 (they need the content-in-play work, spec AF PR #479, which is not built). Not proven: Fair play in a served game (`automata editor` has no checks runner). Evidence: see the plan's log; WebKit, Firefox, the GPU runner and parity have not run.
-
-Build audit, 2026-11-08: [audit](2026-11-08-schematic-build-audit.md), PR stacked on #486. 3 high, 9 medium, 12 low. A behaviour built by hand in Schematic shows in play in the 3D story; the high ones are the sight setting that says the opposite of the game, Fair play that no game can run, and no 2D proof. Next: Sonnet fixes.
-
-Fixes, 2026-11-08: H1, H3 (Task 14, the 2D half of Task 8), M1 to M8 and L1 to L10 fixed with tests first; Schematic now has 16 of 16 tasks. Played in the served journeys: 2D 10 of 10 and 3D 13 of 13 (Chromium, phone and iPad). `style` and `boundaries` now cover `extensions/editors` and `examples/3d-story`. Waiting on the Owner: H2 (Fair play has no runner) and M9 (the sim's `fleeNode`). Not run: WebKit, Firefox, the GPU runner, parity; `pnpm api-index --write` fails on two exports it does not own. Next: audit the fixes, then the Owner's two choices.
-
-## Shared editors: every editor in 2D and 3D games (2026-11-08)
-
-[spec](2026-11-08-shared-editors-spec.md), [plan](2026-11-08-shared-editors-plan.md), [audit](2026-11-08-shared-editors-audit.md),
-[plan audit](2026-11-08-shared-editors-plan-audit.md). Stage 4 (build) done: 19 of 19 tasks, branch
-`claude/project-thread-fxu792` stacked on #512 (base #508's head).
-
-Every editor except the two level editors is on the rail of a new 2D and a new 3D game (nine entries fit a phone: the rest fold under
-More), each says when the game cannot play what it makes, and starting a file adds its editor to the game's list. A new
-2D game has a keeper, a cutscene and a guard; a new 3D game has Wick, a keeper, a cutscene and a guard, with Feel and
-Audio answering his bump. Made by hand in both kinds and played, at iPad and phone size (screens in
-`/mnt/project-files/refactor/2026-11-08-shared-editors-build-screens/`), and by the `complete-game-2d` and
-`complete-game-3d` journeys: 22 pass at both sizes. Not run: WebKit, Firefox, the GPU runner, hosted CI (the editor
-browser projects need the other engines, so `pnpm test:browser:2d` stops here); `stranger-3d.test.ts` pending. `pnpm check`
-is green except `check-changesets`, which fails on an earlier branch's changeset naming the unpublished `@automata/3d`
-(`stage-characters-3d.md`). Stage 5 (build audit) and 6 (fixes) not started. Details and rulings: the plan's log.
-
-## Every editor free on the web (2026-11-08)
-
-Branch `claude/project-thread-szjdbh`, stacked on #522. The Owner: all editors are free on the web, nothing marked "Not in
-this build", and the 3D editors are not held back because the launch waits for Pixi 3D to go public.
-
-- `automata editor` serves one page, the editors extension's, whatever the game's editor list names (`page-for.ts` is gone), and
-  `-tools` packs that page into `dist/editors/suite`. Its build scan now refuses only Pixi 3D's `./extras`, which breaks under a strict
-  CSP; the full page carries none, so the copy passes.
-- The site's try-it page (`/editor/app/`) is that page, opening a sample with a file for every editor: a hall and Wick for
-  Levels 3D and the Studio, the content editors' files, and Levels 2D starting a level from a template. Its sample is kept in the
-  browser's private storage like the 2D page's (it was held in memory and lost every edit), and a browser that cannot keep it says
-  "Your changes are lost when you close this page." The site's build scan allows Pixi 3D too and refuses its extras.
-- Run: unit tests of `-tools`, `editors`, `editor`, `editor-3d` and `site` (the one fix to an existing test: `senses.test.ts` now strips
-  the sample's 3D rows to make a 2D-only game); the editors' layout test in Chromium; `site/tests/e2e/editor-try.e2e.ts` in Chromium
-  (every editor on the rail, none missing, a platformer level draws, an edit survives a reload and a closed and reopened browser);
-  `complete-game-2d` and `complete-game-3d` at iPad size in Chromium (a 2D and a 3D game made in the editors, played); lint, typecheck,
-  boundaries, style, source-names and knip green. `check-changesets` still fails on `stage-characters-3d.md` (#522).
-- Not run: WebKit, Firefox, the GPU runner, hosted CI, the phone-size journeys. `whole-game-loop` fails at iPad size on #522 too: its
-  wall at column 5 no longer matches the story template's level, which now has a wall column at 16 (stale expectation, not changed here).
-  `standalone-exemption.test.ts` failed once in the site's unit run before a build and passed after; it fails the same on #522.
-- Do not publish `@automata/tools` or deploy the site before `@pixi/3d` is public: both now carry it.
-
-## Customer value for AI game makers (stage 1 of 6 done, 2026-11-08)
+## Customer value for AI game makers: 33% (2 of 6 stages done, 2026-11-08)
 
 The Owner, 2026-11-08 21:35: "Do an audit that the editors and framework actually deliver on the value expected from the
 customer - we are customer obsessed, we are crafting the perfect product from someone who is making games with AI".
@@ -711,4 +586,8 @@ customer - we are customer obsessed, we are crafting the perfect product from so
 | Stage | Status | Record |
 |---|---|---|
 | 1. Audit | Done, 2026-11-08: 3 critical (V1 to V3), 5 high (V4 to V8), 6 medium (V9 to V14), 5 low (V15 to V19), one decision for the Owner (D1, whether Publish puts the game on itch.io). A game made from the packed tools outside the workspace was given a coin feature by an agent, edited in the editors, played, reloaded, reopened and published to a zip that played; the story and 3D games were edited in every editor. Typed words were lost on reload (V2, sent to the sign-in and saving thread) | [audit](2026-11-08-customer-value-audit.md) |
-| 2. Plan and spec | Not started; V1, V3, V4 and V6 make one "agent experience" slice; V2, V5 and V8 belong to running threads | |
+| 2. Plan and spec | Done, 2026-11-08: 18 tasks in six phases. Phase 1 is the agent experience (V1, V3, V4, V6): the skills mirror becomes a marketplace, `create-game` writes `AGENTS.md`, `CLAUDE.md` and `.claude/settings.json`, a sixth skill `automata-content`, the API reference covers every package a template imports, the editor command recognises the repository by name, and the player collides with the box it is drawn in. Then the first minute (V9, V12, V17), extension events and landscape fit (V10, V8), sharing for both answers of D1 (V11), site copy (V7, V13, V14) and tidy-ups (V19). Left out: V2 (the saving thread, #528). Handed off with acceptance lines: V5, V8's HUD, V15, V16, V18. Waiting: Task 14 on D1, Task 15 on the free web editor work, Task 16 on the DUEL licence answer | [spec](2026-11-08-customer-value-spec.md), [plan](2026-11-08-customer-value-plan.md) |
+| 3. Plan audit | Not started | |
+| 4. Build | Not started | |
+| 5. Build audit | Not started | |
+| 6. Fixes | Not started | |
