@@ -34,7 +34,7 @@ onDestroy(() => clearTimeout(timer))
 </script>
 <div class="copy-control">
   <span role="status">{message}</span>
-  <button type="button" class:icon={!caption} aria-label={label} onclick={copy}>{#if caption}{caption}{:else}<Icon name={message === copied ? 'check' : 'copy'} size={18} />{/if}</button>
+  <button type="button" class:icon={!caption} class:ticked={message === copied} aria-label={label} onclick={copy}>{#if caption}{caption}{:else}<Icon name={message === copied ? 'check' : 'copy'} size={18} />{/if}</button>
 </div>
 
 <style>
@@ -66,5 +66,12 @@ onDestroy(() => clearTimeout(timer))
   .copy-control button.icon:hover {
     border-color: var(--line-strong);
     color: var(--ink);
+  }
+  /* The words and the tick fade in when a copy lands; nothing animates while the page loads. */
+  @media (prefers-reduced-motion: no-preference) {
+    .copy-control span:not(:empty),
+    .copy-control button.ticked :global(svg) {
+      animation: motion-fade var(--t-ui) var(--ease-out);
+    }
   }
 </style>

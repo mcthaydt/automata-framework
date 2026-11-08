@@ -243,4 +243,10 @@ const current = (href: string) => pathname === href || pathname.startsWith(href 
       display: block;
     }
   }
+  /* The phone menu eases in when opened; closing is instant. */
+  @media (prefers-reduced-motion: no-preference) {
+    .menu[open] nav {
+      animation: motion-rise var(--t-ui) var(--ease-out);
+    }
+  }
 </style>

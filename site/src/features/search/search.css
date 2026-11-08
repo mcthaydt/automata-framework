@@ -59,3 +59,12 @@
     background: var(--paper);
   }
 }
+/* The dialog and its backdrop enter softly when opened. Closing is instant, so Escape never waits for a frame. */
+@media (prefers-reduced-motion: no-preference) {
+  .search-dialog[open] {
+    animation: motion-rise var(--t-ui) var(--ease-out);
+  }
+  .search-dialog[open]::backdrop {
+    animation: motion-fade var(--t-ui) var(--ease-out);
+  }
+}
