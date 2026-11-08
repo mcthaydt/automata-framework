@@ -539,3 +539,13 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 2026-11-06: "completely redesign the editors for ux, copy, and ui"; the 2D slice redesigns the kit and the 2D editor),
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
+
+## Sign-in that syncs, and the try-it apart from the editors (stage 1 of 6 done, 2026-11-08)
+
+The Owner, 2026-11-08 21:34: "The try it page and editors should be separated? We should have sign in that syncs
+progress by account", and "Why wasn't it caught that progress doesn't actually save lol".
+
+| Stage | Status | Record |
+|---|---|---|
+| 1. Audit | Done, 2026-11-08: 5 high (P1 to P5), 5 medium (P6 to P10), 3 low (P11 to P13), two decisions for the Owner (D1, how people sign in; D2, whether the web gets sync free). Reproduced: the every-editor page with no server keeps nothing (a Writer edit is gone after a reload; being fixed in "Show every editor in the free web editor"), while today's 2D try-it keeps a level in Chromium even though the site says it is gone. A new game made with `automata editor`: three coins and a changed keeper line kept through a reload and seen in play. Recommended: save on the device first, `/try` apart from "Your games", sign in with GitHub with each game in the person's own repository and one small sign-in step on the site's host that stores nothing | [audit](2026-11-08-sign-in-sync-audit.md) |
+| 2. Plan and spec | Not started; waits for D1 and D2. Section 6.2 (saving on the device) is needed whatever D1 says | |
