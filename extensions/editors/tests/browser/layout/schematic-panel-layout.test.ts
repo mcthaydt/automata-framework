@@ -38,9 +38,7 @@ describe.each([
 ])('the list on a $name', ({ width, height, rail }) => {
   test('stays inside its rail, and its buttons are at least 44 px', async () => {
     await page.viewport(width, height)
-    const session = new SchematicSession(ports, { usesSystems: true, gameUrl: undefined, twoD: false }, [
-      'bay',
-    ])
+    const session = new SchematicSession(ports, { hasPlayer: true, gameUrl: undefined, twoD: false }, ['bay'])
     await session.select('bay')
     const target = document.body.appendChild(document.createElement('div'))
     target.style.width = `${rail}px`

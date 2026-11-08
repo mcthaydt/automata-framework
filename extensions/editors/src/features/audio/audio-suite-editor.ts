@@ -5,6 +5,7 @@ import { type AudioContent, audioSchema } from '@automata/audio-synth'
 import { defineSuiteEditor, type SuiteEditor } from '@automata/editor/kit/ports'
 import type { AudioPlay } from '../../shared/audio-play.ts'
 import { gameEvents } from '../../shared/game-events.ts'
+import { gameHasPlayer } from '../../shared/game-player.ts'
 import { undoOf } from '../../shared/session-hooks.ts'
 import { openTomlSession } from '../../shared/toml-session.ts'
 import { canvas, panel, status } from './AudioRegions.svelte'
@@ -30,12 +31,14 @@ export function createAudio(options: { readonly play: AudioPlay }): SuiteEditor<
         empty: EMPTY,
         editor: 'audio',
       })
-      return new AudioSession(
+      const session = new AudioSession(
         toml,
         options.play,
         await trackFiles(ports.workspace),
         await gameEvents(ports.workspace),
       )
+      session.hasPlayer = await gameHasPlayer(ports.workspace, 'audio')
+      return session
     },
     regions: { panel, canvas, status },
     undo: (session) => undoOf(session.toml),

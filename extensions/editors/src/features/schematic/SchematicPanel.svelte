@@ -24,45 +24,43 @@ const chosen = $derived(session.chosen)
       </select>
     </label>
   {/if}
-  {#if session.facts.usesSystems}
-    <h2>Characters</h2>
-    <ul>
-      {#each characters as character, index (character.id)}
-        <li>
-          <button
-            type="button"
-            aria-current={chosen.kind === 'character' && chosen.index === index}
-            onclick={() => session.choose(index)}
-          >
-            {modeWords(character.id)}
-          </button>
-        </li>
-      {/each}
-    </ul>
-    <h2>Scene</h2>
-    <ul>
+  <h2>Characters</h2>
+  <ul>
+    {#each characters as character, index (character.id)}
       <li>
-        <button type="button" aria-current={chosen.kind === 'places'} onclick={() => (session.chosen = { kind: 'places' })}>Places</button>
+        <button
+          type="button"
+          aria-current={chosen.kind === 'character' && chosen.index === index}
+          onclick={() => session.choose(index)}
+        >
+          {modeWords(character.id)}
+        </button>
       </li>
+    {/each}
+  </ul>
+  <h2>Scene</h2>
+  <ul>
+    <li>
+      <button type="button" aria-current={chosen.kind === 'places'} onclick={() => (session.chosen = { kind: 'places' })}>Places</button>
+    </li>
+    <li>
+      <button type="button" aria-current={chosen.kind === 'rules'} onclick={() => (session.chosen = { kind: 'rules' })}>Rules</button>
+    </li>
+    <li>
+      <button type="button" aria-current={chosen.kind === 'numbers'} onclick={() => (session.chosen = { kind: 'numbers' })}>Numbers</button>
+    </li>
+    <li>
+      <button type="button" aria-current={chosen.kind === 'fair'} onclick={() => (session.chosen = { kind: 'fair' })}>Fair play</button>
+    </li>
+    {#if session.hasPuzzle}
       <li>
-        <button type="button" aria-current={chosen.kind === 'rules'} onclick={() => (session.chosen = { kind: 'rules' })}>Rules</button>
+        <button type="button" aria-current={chosen.kind === 'puzzle'} onclick={() => (session.chosen = { kind: 'puzzle' })}>Puzzle</button>
       </li>
-      <li>
-        <button type="button" aria-current={chosen.kind === 'numbers'} onclick={() => (session.chosen = { kind: 'numbers' })}>Numbers</button>
-      </li>
-      <li>
-        <button type="button" aria-current={chosen.kind === 'fair'} onclick={() => (session.chosen = { kind: 'fair' })}>Fair play</button>
-      </li>
-      {#if session.hasPuzzle}
-        <li>
-          <button type="button" aria-current={chosen.kind === 'puzzle'} onclick={() => (session.chosen = { kind: 'puzzle' })}>Puzzle</button>
-        </li>
-      {/if}
-    </ul>
-    {#if session.read.kind !== 'syntax' && session.read.kind !== 'invalid'}
-      <Button variant="primary" onclick={() => void session.addCharacter()}>Add a character</Button>
-      <AddCharacter {session} />
     {/if}
+  </ul>
+  {#if session.read.kind !== 'syntax' && session.read.kind !== 'invalid'}
+    <Button variant="primary" onclick={() => void session.addCharacter()}>Add a character</Button>
+    <AddCharacter {session} />
   {/if}
 </nav>
 

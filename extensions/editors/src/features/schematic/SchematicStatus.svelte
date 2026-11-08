@@ -1,11 +1,13 @@
 <!-- The behaviour file's problems, counted, in words; and a line that says the game is still playing the last version that worked. -->
 <script lang="ts">
+import NoPlayer from '../../shared/ui/NoPlayer.svelte'
 import type { SchematicSession } from './schematic-session.svelte.ts'
 
 const { session }: { session: SchematicSession } = $props()
 const count = $derived(session.problems.length)
 </script>
 
+{#if !session.facts.hasPlayer}<NoPlayer editor="schematic" short />{/if}
 <p class="status" role="status">
   {#if session.read.kind === 'syntax'}
     This scene's file has a mistake, so it is read only.

@@ -15,6 +15,8 @@ export type AudioChoice =
 import type { AudioPlay } from '../../shared/audio-play.ts'
 
 export class AudioSession extends ContentSession<AudioContent, AudioChoice> {
+  /** The game's code has the part that plays what this editor makes, found when the editor opened. */
+  hasPlayer = true
   readonly play: AudioPlay
   /** The sound files in the game folder (music tracks to set up), found when the editor opened. */
   files: readonly string[] = $state([])

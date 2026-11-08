@@ -17,6 +17,7 @@ import {
 import type { Cond, Value } from '@automata/puzzle/sim'
 import { ContentSession } from '../../shared/content-session.svelte.ts'
 import { appendEdits } from '../../shared/fields.ts'
+import { gameHasPlayer } from '../../shared/game-player.ts'
 import { humanize } from '../../shared/id-words.ts'
 import { type Outcome, openTomlSession } from '../../shared/toml-session.ts'
 import { UndoTrail } from '../../shared/undo-many.ts'
@@ -57,6 +58,8 @@ const joined = (names: readonly string[]): string =>
 
 export class WriterSession {
   readonly ports: SuitePorts
+  /** The game's code has the part that plays what this editor makes, found when the editor opened. */
+  hasPlayer = true
   readonly trail: UndoTrail = new UndoTrail()
   scenes: string[] = $state([])
   scene: string | undefined = $state()
@@ -81,6 +84,7 @@ export class WriterSession {
 
   static async open(listed: readonly WorkspaceFile[], ports: SuitePorts): Promise<WriterSession> {
     const session = new WriterSession(ports)
+    session.hasPlayer = await gameHasPlayer(ports.workspace, 'writer')
     const everything = await ports.workspace.files()
     const scenes = new Set<string>()
     for (const file of [...listed, ...everything]) {

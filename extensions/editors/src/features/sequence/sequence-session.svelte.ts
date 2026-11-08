@@ -6,6 +6,7 @@ import { type CutsceneScript, cutsceneSchema, type PlacedScript, placeScript } f
 import type { ContentEdit } from '@automata/editor/kit/documents'
 import type { SuitePorts, WorkspaceFile } from '@automata/editor/kit/ports'
 import { ContentSession } from '../../shared/content-session.svelte.ts'
+import { gameHasPlayer } from '../../shared/game-player.ts'
 import { humanize } from '../../shared/id-words.ts'
 import { type Outcome, openTomlSession } from '../../shared/toml-session.ts'
 import { UndoTrail } from '../../shared/undo-many.ts'
@@ -74,6 +75,8 @@ export function cutsceneIdOf(name: string): string {
 
 export class SequenceSession {
   readonly ports: SuitePorts
+  /** The game's code has the part that plays what this editor makes, found when the editor opened. */
+  hasPlayer = true
   readonly trail: UndoTrail = new UndoTrail()
   readonly is2d: boolean
   cutscenes: CutsceneEntry[] = $state([])
@@ -106,6 +109,7 @@ export class SequenceSession {
       (await ports.workspace.files('levels-3d')).length === 0
     const game = await readGameNames(ports, everything)
     const session = new SequenceSession(ports, is2d, game)
+    session.hasPlayer = await gameHasPlayer(ports.workspace, 'sequence')
     const found = new Map<string, CutsceneEntry>()
     for (const file of [...listed, ...everything]) {
       const id = CUTSCENE_FILE.exec(file.path)?.[1]

@@ -4,24 +4,21 @@
 -->
 <script lang="ts">
 import { Button } from '@automata/editor/kit'
+import NoPlayer from '../../shared/ui/NoPlayer.svelte'
 import type { SchematicSession } from './schematic-session.svelte.ts'
 
 const { session }: { session: SchematicSession } = $props()
 const read = $derived(session.read)
-const README = 'https://github.com/mcthaydt/automata-framework/blob/main/extensions/systems/README.md'
 </script>
 
 <div class="empty">
-  {#if !session.facts.usesSystems}
-    <h2>This game does not use characters that think yet.</h2>
-    <p>Add the systems extension to your game to use Schematic.</p>
-    <a href={README}>How to add it</a>
-  {:else if read.kind === 'syntax'}
+  {#if read.kind === 'syntax'}
     <h2>This scene's file has a mistake{read.line === undefined ? '' : ` on line ${String(read.line)}`}.</h2>
     <p>It opens read only until the mistake is fixed. Your file is unchanged.</p>
   {:else}
     <h2>This scene has no characters yet.</h2>
     <p>A character is an enemy or a friend that walks, notices the player and decides what to do.</p>
+    {#if !session.facts.hasPlayer}<NoPlayer editor="schematic" />{/if}
     {#if session.places === undefined || Object.keys(session.places.nodes).length === 0}
       <p>A character walks between places, so add the places first. One added now has nowhere to walk and stands in the corner.</p>
       <Button onclick={() => (session.chosen = { kind: 'places' })}>Add the first place</Button>
@@ -44,10 +41,6 @@ const README = 'https://github.com/mcthaydt/automata-framework/blob/main/extensi
   p {
     margin: 0;
     color: var(--color-text-dim);
-    font: var(--text-body-13);
-  }
-  a {
-    color: var(--color-accent-default);
     font: var(--text-body-13);
   }
 </style>

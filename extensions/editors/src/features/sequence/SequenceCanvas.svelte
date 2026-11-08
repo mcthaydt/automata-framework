@@ -6,6 +6,7 @@
 <script lang="ts">
 import { Button } from '@automata/editor/kit'
 import EditorPage from '../../shared/ui/EditorPage.svelte'
+import NoPlayer from '../../shared/ui/NoPlayer.svelte'
 import SequenceAdd from './SequenceAdd.svelte'
 import SequenceInspector from './SequenceInspector.svelte'
 import SequencePreview from './SequencePreview.svelte'
@@ -22,6 +23,7 @@ const seconds = (value: number): string => String(Math.round(value * 10) / 10)
   {#if session.current === undefined}
     <div class="empty">
       <h2>This game has no cutscenes yet.</h2>
+      {#if !session.hasPlayer}<NoPlayer editor="sequence" />{/if}
       <p>A cutscene is the game taking the camera for a moment. Give the first one a name and a length.</p>
       <SequenceAdd {session} />
     </div>

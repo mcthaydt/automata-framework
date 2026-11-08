@@ -7,6 +7,7 @@ import { Button } from '@automata/editor/kit'
 import { type FeelEntry, resolveLimits } from '@automata/feel'
 import EventPicker from '../../shared/ui/EventPicker.svelte'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
+import NoPlayer from '../../shared/ui/NoPlayer.svelte'
 import FeelPlayer from './FeelPlayer.svelte'
 import {
   addEffectEdit,
@@ -107,6 +108,7 @@ async function removeFeel(chosen: FeelEntry) {
     <div class="empty">
       <h2>This game has no feel file yet.</h2>
       <p>A feel file says what the player feels when something happens: a shake, a freeze, a flash, a rumble.</p>
+      {#if !session.hasPlayer}<NoPlayer editor="feel" />{/if}
       <Button variant="primary" onclick={() => void session.start()}>Start a feel file</Button>
     </div>
   {:else if read.kind === 'syntax'}

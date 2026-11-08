@@ -144,16 +144,11 @@ describe('Schematic', () => {
     ])
   })
 
-  it('says what to add when the game does not use the systems extension', async () => {
+  it('says the game cannot play characters yet, and still lets a person make them', async () => {
     await open({ 'package.json': JSON.stringify({ dependencies: { '@automata/feel': '1.0.0' } }) })
-    expect(
-      screen.getByRole('heading', { name: 'This game does not use characters that think yet.' }),
-    ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'How to add it' })).toHaveAttribute(
-      'href',
-      expect.stringContaining('extensions/systems/README.md'),
-    )
-    expect(screen.queryByRole('button', { name: 'Add a character' })).toBeNull()
+    expect(screen.getAllByText("Your game can't move characters that think yet.").length).toBeGreaterThan(0)
+    expect(screen.queryByRole('link', { name: 'How to add it' })).toBeNull()
+    expect(screen.getAllByRole('button', { name: 'Add a character' }).length).toBeGreaterThan(0)
   })
 
   it('says a file with a mistake is read only', async () => {

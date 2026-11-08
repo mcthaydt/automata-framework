@@ -10,6 +10,7 @@ import { problemAt } from '../../shared/content-session.svelte.ts'
 import type { Field } from '../../shared/fields.ts'
 import { setOrInsert } from '../../shared/fields.ts'
 import EditorPage from '../../shared/ui/EditorPage.svelte'
+import NoPlayer from '../../shared/ui/NoPlayer.svelte'
 import EventPicker from '../../shared/ui/EventPicker.svelte'
 import FieldRow from '../../shared/ui/FieldRow.svelte'
 import AudioMusic from './AudioMusic.svelte'
@@ -167,6 +168,7 @@ $effect(() => {
   {#if read.kind === 'missing'}
     <h2>This game has no audio file yet.</h2>
     <p>An audio file holds the game's sounds, which music track plays when, and which sound plays when something happens.</p>
+    {#if !session.hasPlayer}<NoPlayer editor="audio" />{/if}
     <div class="actions"><Button variant="primary" onclick={() => void session.start()}>Start an audio file</Button></div>
   {:else if read.kind === 'syntax'}
     <h2>The audio file has a mistake{read.line === undefined ? '' : ` on line ${String(read.line)}`}.</h2>
