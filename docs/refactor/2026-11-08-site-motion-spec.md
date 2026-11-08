@@ -268,8 +268,8 @@ The Owner: "do the same for the editors, we can do that when it makes sense to".
 (AF #519's plan) and its audit land. The plan for that stage:
 
 - **GSAP for the editors' own interface, never for the game.** The Owner, 2026-11-08: "Use gsap for the editor UI
-  motion", after asking "How is my app competing with webflow?" It is not: Webflow builds websites, and the editors make games. The licence's words are broad
-  ("Competitive Products" is any tool where people "create, edit, or manage animations through a visual interface",
+  motion", after asking "How is my app competing with webflow?" It is not: Webflow builds websites, and the editors
+  make games. The licence's words are broad ("Competitive Products" is any tool where people "create, edit, or manage animations through a visual interface",
   which Feel and Sequence are), but what it bars is using GSAP *to power* such a builder. So GSAP may animate the
   editors' buttons, dialogs and panels, the same tokens and curve as the site. It must never drive what a person
   animates in their game: Feel's juice, Sequence's timeline and every in-game move stay the framework's own code. A
