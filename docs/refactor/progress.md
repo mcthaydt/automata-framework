@@ -702,3 +702,17 @@ this build", and the 3D editors are not held back because the launch waits for P
   wall at column 5 no longer matches the story template's level, which now has a wall column at 16 (stale expectation, not changed here).
   `standalone-exemption.test.ts` failed once in the site's unit run before a build and passed after; it fails the same on #522.
 - Do not publish `@automata/tools` or deploy the site before `@pixi/3d` is public: both now carry it.
+
+## Sign-in that syncs, and the try-it apart from the editors: 50% (3 of 6 stages done, 2026-11-08)
+
+The Owner, 2026-11-08 21:34: "The try it page and editors should be separated? We should have sign in that syncs
+progress by account", and "Why wasn't it caught that progress doesn't actually save lol".
+
+| Stage | Status | Record |
+|---|---|---|
+| 1. Audit | Done, 2026-11-08: 6 high (P1 to P5, P14), 5 medium (P6 to P10), 3 low (P11 to P13), two decisions for the Owner (D1, how people sign in: decided 22:30, sign in with GitHub; D2, whether the web gets sync free: decided 22:30, free on the web). Reproduced: the every-editor page with no server keeps nothing (a Writer edit is gone after a reload; being fixed in "Show every editor in the free web editor"), while today's 2D try-it keeps a level in Chromium even though the site says it is gone. A new game made with `automata editor`: three coins and a changed keeper line kept through a reload and seen in play, but typed words are lost when the page reloads before the field loses focus (P14). Recommended: save on the device first, `/try` apart from "Your games", sign in with GitHub with each game in the person's own repository and one small sign-in step on the site's host that stores nothing | [audit](2026-11-08-sign-in-sync-audit.md) |
+| 2. Plan and spec | Done, 2026-11-08: the spec (saving on the device first, typed words written 0.5 s after the last key with one Undo step per field visit, the saved line at every size; `/try` with starting points that play and "Make this game"; Your games in OPFS `games/<id>/`, the old `sample-game/` kept as "Your first game"; sign in with GitHub through one Cloudflare Pages Function that stores nothing; sync over GitHub's REST API as a second `GitEngine` for #531's `kit/sync` loop) and an 18-task plan in six phases | [spec](2026-11-08-sign-in-sync-spec.md), [plan](2026-11-08-sign-in-sync-plan.md) |
+| 3. Plan audit | Done, 2026-11-08: 4 high (A1 the base misses the site stack; A2 one Undo step per visit built on the write path while Writer, Feel, Audio, Sequence and Schematic undo through their own history; A3 a 500 ms commit resets FieldRow's input on a half-typed value and renames ids mid-word; A4 a flush on hide cannot finish its write and iPhone and iPad never ask "Leave site?", so drafts go to `localStorage` as typed), 7 medium (A5 to A11: the 2D fields, the web Tuner, the sync loop's error words, the empty repository's first pull, sign-out's token, the way back from GitHub's install page, the Function's own headers), 6 low. All fixed in the spec and plan; nothing for the Owner. Reproduced first in Chromium on #532's web page and the served `automata editor`: typed words lost on a closed tab or a reload in Writer, Feel and the Tuner while the served header said "Saved in your game folder"; words left with Tab kept through a browser restart and shown in play | [plan audit](2026-11-08-sign-in-sync-plan-audit.md) |
+| 4. Build | Not started | |
+| 5. Build audit | Not started | |
+| 6. Fixes | Not started | |
