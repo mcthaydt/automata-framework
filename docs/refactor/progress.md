@@ -477,3 +477,7 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 2026-11-06: "completely redesign the editors for ux, copy, and ui"; the 2D slice redesigns the kit and the 2D editor),
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
+
+## Schematic (the AI editor)
+
+[plan](2026-11-08-schematic-plan.md), AF PR #486 stacked on #478. 8 of 16 tasks done (50%), 2026-11-08: 1 conditions, 2 actions, 3 layout, 4 session and problems, 5 diagram and list, 6 inspector, 7 senses, start and patrol, 8 ready-made behaviours (3D sim half; the 2D half waits for content-in-play Task 15). To do: 9 Places, 10 Rules and Numbers, 11 Watch, 12 Fair play, 13 Puzzle, 14 and 15 the served 2D and 3D journeys, 16 template, docs and gate. Evidence: editors unit 266, systems unit 74, typecheck and biome clean; the journeys, `pnpm check` and parity have not run.
