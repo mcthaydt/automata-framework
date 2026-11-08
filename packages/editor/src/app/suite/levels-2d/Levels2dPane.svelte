@@ -39,7 +39,12 @@ const open = $derived(session.state.kind === 'open' ? session.state : undefined)
       <CharactersStage session={open.characters} {read} objectUrls={session.options.objectUrls} />
       <Levels2dConflict {session} />
     {:else}
-      <CharactersInspector session={open.characters} />
+      <CharactersInspector
+        session={open.characters}
+        {read}
+        objectUrls={session.options.objectUrls}
+        files={session.files}
+      />
     {/if}
   {:else if $view === 'tiles'}
     {#if part === 'panel'}

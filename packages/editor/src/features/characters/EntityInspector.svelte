@@ -7,6 +7,7 @@
   refusal dialog, whose "anyway" is one undo step (G-f).
 -->
 <script lang="ts">
+import type { ProjectStore } from '../../shared/kit/storage/project-store'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import ColorField from '../../shared/kit/widgets/ColorField.svelte'
 import type { EditEvent } from '../../shared/kit/widgets/edit-event'
@@ -14,8 +15,10 @@ import Picker from '../../shared/kit/widgets/Picker.svelte'
 import Segmented from '../../shared/kit/widgets/Segmented.svelte'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'
 import Tabs from '../../shared/kit/widgets/Tabs.svelte'
+import type { ObjectUrls } from '../../shared/level-2d/documents/view-props'
 import type { FieldCommit } from '../../shared/level-2d/model/field-commit'
 import type { EntityDef2D, Project } from '../../shared/level-2d/model/project-types'
+import AnimationSection from './AnimationSection.svelte'
 import { fieldRows, type ResolvedEntitiesSelection, SHAPE_WORDS } from './entities-model'
 import type { EntitiesSession, GuardedCommit } from './entities-session'
 import FieldDefEditor from './FieldDefEditor.svelte'
@@ -25,9 +28,14 @@ interface Props {
   project: Project
   selection: ResolvedEntitiesSelection
   session: EntitiesSession
+  /** Where Animation's picture is read from; without it the section is not offered. */
+  read?: ((path: string) => Promise<Uint8Array | undefined>) | undefined
+  objectUrls?: ObjectUrls | undefined
+  /** Where Animation's picture is written; without it there is no Add picture. */
+  files?: Pick<ProjectStore, 'list' | 'write'> | undefined
 }
 
-const { project, selection, session }: Props = $props()
+const { project, selection, session, read, objectUrls, files }: Props = $props()
 
 const SHAPES = ['rect', 'ellipse', 'point', 'tile'] as const
 const NO_TILE = 'none'
@@ -149,6 +157,16 @@ function tileChoice(current: EntityDef2D, id: string): void {
                 min={0}
                 integer
                 onedit={(event) => committed(event) && edit({ tile: { ...tile, index: event.value } })}
+              />
+            {/if}
+            {#if read !== undefined}
+              <AnimationSection
+                animation={def.animation}
+                size={def.size}
+                {files}
+                {read}
+                {objectUrls}
+                onedit={(next) => edit({ animation: next })}
               />
             {/if}
             <!-- What only a programmer needs: the name the game's code uses and where the thing is held from. -->

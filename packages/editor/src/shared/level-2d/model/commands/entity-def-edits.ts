@@ -15,7 +15,10 @@ import { entityDefOf } from './field-owner'
  * definition `single` keeps every instance; a level that then holds two is the Checks' `singleExceeded`.
  */
 export type EntityDefPatch = Partial<
-  Pick<EntityDef2D, 'label' | 'color' | 'single' | 'shape' | 'size' | 'pivot' | 'tile' | 'tags' | 'min'>
+  Pick<
+    EntityDef2D,
+    'label' | 'color' | 'single' | 'shape' | 'size' | 'pivot' | 'tile' | 'animation' | 'tags' | 'min'
+  >
 >
 
 function checkDefinition(project: Project, def: EntityDef2D): void {

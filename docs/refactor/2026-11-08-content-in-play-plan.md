@@ -582,4 +582,9 @@ The Owner's rule (2026-11-08): content made in the editors must be seen in play,
   from" picker for a tiles or objects layer once the game has more than one tileset; choosing one is a step
   (`setLayerTileset`: tiles the new set has keep their number, cells past its end are cleared in every level). The
   journey now paints Decor with Add-tiles tile 5 and plays: the pixel at the cell is that tile's colour. iPad and phone.
-
+- 2026-11-08 Task 6 done: core's `pictureView` plays a character's clips (`clips.ts`); the draw list carries placed
+  characters with an animation. `examples/2d-story` exists as a skeleton (level, content, tests) so later tasks have a game.
+- 2026-11-08 Task 7 done: Characters has an Animation section (choose a picture of frames, frame size, clips with frames,
+  speed, repeat, remove). Journey `animation-plays-in-game`: the player start gets a 4-frame picture and a clip of its
+  four frames; the saved project holds the clip; in Play the canvas shows the frame colours in turn. Layout test at the
+  four sizes in mouse and touch (only a phone's strip overflows; every control meets the pointer's target size).
