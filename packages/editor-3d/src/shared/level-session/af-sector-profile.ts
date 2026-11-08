@@ -1,5 +1,6 @@
 // The `af-sector/2` format as a level profile (the one the editor has; an `/1` file is upgraded when it is read): the codec,
 // the geometry of the sectors it builds (it has no nav graph), its checks, and the entities the file defines and holds.
+import { TIMES } from '@automata/3d'
 import type { AfSector2File } from '@automata/3d/level'
 import { afSectorChecks } from './af-sector/af-checks'
 import { afSectorCodec } from './af-sector/af-codec'
@@ -10,8 +11,21 @@ import { afThingAccess } from './af-sector/af-things'
 import { AfBuildError, buildSectors } from './af-sector/build'
 import { EMPTY_LIBRARY, type GameLibrary } from './game-library'
 import { SECTOR_HINTS } from './level-hints'
-import { GeometryError, type LevelProfile, resolveOrThrow } from './level-profile'
+import { GeometryError, type LevelProfile, resolveOrThrow, type TimeAccess } from './level-profile'
 import { afMaterials } from './materials'
+
+/** The times of day the 3D package has, by their words. */
+const afTimeAccess: TimeAccess<AfSector2File> = {
+  options: () => TIMES.map((time) => ({ id: time.name, label: time.label })),
+  of: (level) =>
+    typeof level.time === 'string' ? level.time : level.time === undefined ? undefined : level.time.preset,
+  withTime(level, id) {
+    const { time, ...rest } = level
+    if (id === undefined) return rest as AfSector2File
+    // A time with changes of its own keeps them, over the new one.
+    return { ...rest, time: typeof time === 'object' ? { ...time, preset: id } : id } as AfSector2File
+  },
+}
 
 /**
  * The `/2` profile bound to the game's library: what its things stand under, which materials it offers and which names it
@@ -36,6 +50,7 @@ export const afSectorProfileFor = (library: GameLibrary): LevelProfile<AfSector2
   things: afThingAccess,
   materials: (level) => afMaterials(level, library),
   views: (level) => Object.keys(level.views ?? {}),
+  time: afTimeAccess,
   hints: SECTOR_HINTS,
 })
 

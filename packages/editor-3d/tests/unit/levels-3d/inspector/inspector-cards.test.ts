@@ -23,8 +23,24 @@ const editorWith = (...ids: string[]) => {
 }
 
 describe('inspectorOf', () => {
+  it('reads the time of day the level names', () => {
+    const editor = createLevelEditor({ profile: afSectorProfile, level: { ...depot, time: 'dusk' } })
+    expect(inspectorOf(editor)).toMatchObject({ kind: 'none', time: { value: 'dusk' } })
+  })
+
   it('says how to select when nothing is', () => {
-    expect(inspectorOf(editorWith())).toEqual({ kind: 'none', selected: 0 })
+    const card = inspectorOf(editorWith())
+    expect(card).toMatchObject({ kind: 'none', selected: 0 })
+    // With nothing selected the card is the level's: its time of day, none chosen, and the times by their words.
+    expect(card.kind === 'none' && card.time?.value).toBeUndefined()
+    expect(card.kind === 'none' && card.time?.options.map((each) => each.label)).toEqual([
+      'Day',
+      'Golden hour',
+      'Dusk',
+      'Night',
+      'Lamplight',
+      'Bar light',
+    ])
   })
 
   it('reads a sector’s card: heights, light, materials, its walls and portals', () => {
@@ -41,6 +57,7 @@ describe('inspectorOf', () => {
       wallTexture: 'brick',
       view: undefined,
       pit: false,
+      trim: {},
       views: [],
       walls: 4,
       portals: 1,
@@ -124,7 +141,7 @@ describe('inspectorOf', () => {
   })
 
   it('shows none for a selection that names nothing the level has', () => {
-    expect(inspectorOf(editorWith('sector:gone'))).toEqual({ kind: 'none', selected: 1 })
+    expect(inspectorOf(editorWith('sector:gone'))).toMatchObject({ kind: 'none', selected: 1 })
   })
 })
 

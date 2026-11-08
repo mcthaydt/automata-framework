@@ -9,6 +9,7 @@
 // which is how an entity is told from a placed thing. (Not ":": a selection id is split on ":" and "/".)
 
 import type { AfSector2File, CastPlace, LampPlace, PropPlace } from '@automata/3d/level'
+import { LAMP_KINDS } from '@automata/3d/world-content'
 import type { FieldDef } from '@automata/editor/kit/fields'
 import { fileTitle } from '@automata/editor/suite'
 import { sameJson } from '../../edit/json-values'
@@ -103,7 +104,7 @@ const propDef = (place: PropPlace): string | undefined =>
 /**
  * The definitions the level's placed things stand under: every piece of furniture and every character the game has (so
  * the palette offers them), then any the level names that the game lacks (so they still open, drawn plain), then the
- * lamp kinds in use. Each once, in that order.
+ * lamp kit's kinds and any in use. Each once, in that order.
  */
 export function placedDefinitions(level: AfSector2File, library: GameLibrary): ThingDef[] {
   const out = new Map<string, ThingDef>()
@@ -117,6 +118,9 @@ export function placedDefinitions(level: AfSector2File, library: GameLibrary): T
   }
   for (const who of library.figures) add(character(who))
   for (const place of level.cast ?? []) add(character(place.who))
+  // Every lamp the kit has, so a lamp can be placed in a room that has none (a game with no library offers only the
+  // file's own names); then any kind in use the kit lacks.
+  if (library.found) for (const kind of Object.keys(LAMP_KINDS)) add(lamp(kind))
   for (const place of level.lamps ?? []) add(lamp(place.kind))
   return [...out.values()]
 }

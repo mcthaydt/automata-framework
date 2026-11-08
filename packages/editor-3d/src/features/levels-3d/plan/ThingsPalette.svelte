@@ -20,6 +20,7 @@ const GROUPS = [
   { id: 'things', label: 'Things' },
   { id: 'furniture', label: 'Furniture' },
   { id: 'characters', label: 'Characters' },
+  { id: 'lamps', label: 'Lamps' },
 ] as const
 
 const groups = $derived(

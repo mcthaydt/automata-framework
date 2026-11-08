@@ -23,9 +23,10 @@ import { genericChecks } from '../../checks/generic-checks'
 import { materialProblems } from '../../checks/materials'
 import { roomsProblem } from '../../checks/rooms-problem'
 import { wallLocator } from '../../checks/wall-locator'
-import { type ResolvedMap, resolveMap } from '../../geometry/sectors'
+import { type ResolvedMap, resolveMap, sectorAt } from '../../geometry/sectors'
 import { EMPTY_LIBRARY, type GameLibrary, worldLibrary } from '../game-library'
 import { afEntityKit } from './af-entities'
+import { isPlacedDefinition, placedThings } from './af-placed'
 import { AfBuildError, buildSectors } from './build'
 
 /**
@@ -118,6 +119,63 @@ function placeLocator(def: string, id: string, at: readonly number[]): Locator |
   return place(() => entitySelection(def, id), { x, z })
 }
 
+/** How close to a wall's line a lamp may stand before it is in the wall, in metres. */
+const IN_WALL = 0.05
+
+/** The distance from a point to the segment `a`-`b`. */
+function distanceToSegment(
+  p: { readonly x: number; readonly z: number },
+  a: readonly unknown[],
+  b: readonly unknown[],
+): number {
+  const [ax = 0, az = 0] = a as readonly number[]
+  const [bx = 0, bz = 0] = b as readonly number[]
+  const dx = bx - ax
+  const dz = bz - az
+  const length = dx * dx + dz * dz
+  const t = length === 0 ? 0 : Math.max(0, Math.min(1, ((p.x - ax) * dx + (p.z - az) * dz) / length))
+  return Math.hypot(p.x - (ax + t * dx), p.z - (az + t * dz))
+}
+
+/** What a placed thing is called in a sentence: `crate`, `pendant lamp`, `character wick`. */
+const nounOf = (def: string): string =>
+  def.startsWith('cast.')
+    ? `character ${def.slice(5)}`
+    : def.startsWith('lamp.')
+      ? `${def.slice(5)} lamp`
+      : def.replace(/^(?:prop|kind)\./, '')
+
+/**
+ * Where the furniture, characters and lamps stand, in words: outside every room (the engine's own sentence for a
+ * level's own things stays as it was), and a lamp in a wall, which would light nothing a person could see.
+ */
+export function placedProblems(level: AfSector2File, map: ResolvedMap): Problem[] {
+  const problems: Problem[] = []
+  for (const thing of placedThings(level)) {
+    const locator = place(() => entitySelection(thing.def, thing.id), { x: thing.x, z: thing.z })
+    const noun = nounOf(thing.def)
+    const inWall =
+      thing.def.startsWith('lamp.') &&
+      level.sectors.some((sector) =>
+        sector.corners.some((corner, index) => {
+          const next = sector.corners[(index + 1) % sector.corners.length]
+          return next !== undefined && distanceToSegment(thing, corner, next) <= IN_WALL
+        }),
+      )
+    if (inWall)
+      problems.push({
+        message: `The ${noun} "${thing.id}" is inside a wall. Move it into the room.`,
+        locator,
+      })
+    else if (sectorAt(map, { x: thing.x, z: thing.z }) === undefined)
+      problems.push({
+        message: `The ${noun} "${thing.id}" stands outside every room. Move it into a room, or remove it.`,
+        locator,
+      })
+  }
+  return problems
+}
+
 export function afSectorChecks(level: AfSector2File, library: GameLibrary = EMPTY_LIBRARY): CheckResult[] {
   let sectors: SectorDef[]
   try {
@@ -134,7 +192,9 @@ export function afSectorChecks(level: AfSector2File, library: GameLibrary = EMPT
     return [ids, checkResult('rooms', [roomsProblem(error)])]
   }
   const kit = afEntityKit(level, library)
-  const entities = checkResult('entities', entityProblems(kit, map), {
+  // The things the game gives are checked for where they stand in words (`placedProblems`), the level's own as ever.
+  const own = { ...kit, things: kit.things.filter((thing) => !isPlacedDefinition(thing.def)) }
+  const entities = checkResult('entities', [...entityProblems(own, map), ...placedProblems(level, map)], {
     ok: `${kit.things.length} things of ${kit.definitions.length} definitions`,
   })
   const wall = wallLocator(level.sectors)

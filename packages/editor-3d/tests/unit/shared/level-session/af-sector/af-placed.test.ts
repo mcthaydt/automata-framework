@@ -49,6 +49,29 @@ describe('the things a level places', () => {
     })
   })
 
+  it('offers every lamp the kit has, in words, so a lamp can be placed where there is none yet', () => {
+    const lamps = profile
+      .entities(toyAfSector({}))
+      .definitions.filter((def) => def.group === 'lamps')
+      .map((def) => def.label)
+    expect(lamps).toEqual([
+      'Pendant lamp',
+      'Bulb lamp',
+      'Desk lamp',
+      'Fluorescent lamp',
+      'Sodium lamp',
+      'Neon lamp',
+    ])
+  })
+
+  it('a lamp placed from the palette is written as a lamp of that kind', () => {
+    expect(afThingAccess.add(EMBER_HALL, thing('lamp.sodium', 'lamp-sodium-1', 1, 2)).lamps?.at(-1)).toEqual({
+      id: 'lamp-sodium-1',
+      kind: 'sodium',
+      at: [1, 2],
+    })
+  })
+
   it('the pendant lamp’s parameters stay as written when it is moved', () => {
     const level = toyAfSector({
       props: [{ id: 'prop0', use: 'lamp.pendant', at: [0, 0], with: { height: 2.25, ceiling: 2.7 } }],
@@ -138,6 +161,41 @@ describe('the things a level places', () => {
 
 const problemsOf = (level: AfSector2File, library = LIBRARY): string[] =>
   afSectorChecks(level, library).flatMap((check) => check.problems.map((problem) => problem.message))
+
+describe('where placed things stand', () => {
+  it('names a prop outside every room in words, once, and not in the engine’s words', () => {
+    const level = {
+      ...EMBER_HALL,
+      props: [...(EMBER_HALL.props ?? []), { id: 'crate-9', use: 'crate', at: [100, 100] }],
+    }
+    const found = problemsOf(level)
+    expect(found).toContain(
+      'The crate "crate-9" stands outside every room. Move it into a room, or remove it.',
+    )
+    expect(found.filter((message) => message.includes('crate-9'))).toHaveLength(1)
+  })
+
+  it('names a lamp that sits in a wall', () => {
+    const level = {
+      ...EMBER_HALL,
+      lamps: [
+        { id: 'lamp-1', kind: 'pendant', at: [5, 4] },
+        { id: 'lamp-2', kind: 'pendant', at: [0, 4] },
+      ],
+    }
+    const found = problemsOf(level)
+    expect(found).toContain('The pendant lamp "lamp-1" is inside a wall. Move it into the room.')
+    expect(found.some((message) => message.includes('lamp-2'))).toBe(false)
+  })
+
+  it('still names a level’s own entity outside every room as before', () => {
+    const level = {
+      ...EMBER_HALL,
+      entities: [...(EMBER_HALL.entities ?? []), { id: 'ember-9', def: 'ember', x: 100, z: 100 }],
+    }
+    expect(problemsOf(level)).toContain('entity ember-9 is outside every sector')
+  })
+})
 
 describe('what the game lacks', () => {
   it('a prop the game lacks still opens and is named in the checks', () => {

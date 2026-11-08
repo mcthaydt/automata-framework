@@ -69,6 +69,22 @@ describe('ThingsPalette', () => {
     expect(screen.queryByText(/prop\./)).toBeNull()
   })
 
+  it('offers the lamps under their own name, after the characters', () => {
+    render(ThingsPalette, {
+      palette: [
+        entry('cast.wick', { label: 'Wick', group: 'characters' }),
+        entry('lamp.pendant', { label: 'Pendant lamp', group: 'lamps' }),
+      ],
+      active: undefined,
+      onpick: vi.fn(),
+    })
+    const groups = screen
+      .getAllByRole('group')
+      .filter((each) => each.getAttribute('aria-label') !== 'Things to place')
+    expect(groups.map((group) => group.getAttribute('aria-label'))).toEqual(['Characters', 'Lamps'])
+    expect(screen.getByRole('button', { name: 'Pendant lamp' })).toBeInTheDocument()
+  })
+
   it('says nothing of groups when the level has only its own things', () => {
     render(ThingsPalette, { palette: [entry('spawn')], active: undefined, onpick: vi.fn() })
     expect(screen.queryByText('Things')).toBeNull()

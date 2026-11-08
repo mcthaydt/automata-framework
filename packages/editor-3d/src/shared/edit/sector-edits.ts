@@ -217,6 +217,52 @@ export function setPit<D>(args: { readonly id: string; readonly pit: boolean }):
   }
 }
 
+const TRIM_PIECES = ['skirting', 'wainscot', 'rail'] as const
+
+export interface SetTrimArgs {
+  readonly id: string
+  /** Heights in metres above the room's floor; `null` takes a piece off. A piece left out stays as it is. */
+  readonly skirting?: number | null | undefined
+  readonly wainscot?: number | null | undefined
+  readonly rail?: number | null | undefined
+}
+
+/**
+ * The trim along the room's walls: the skirting, the wainscot and the rail, by height. Pieces it is not asked about
+ * (a capital, a cap) stay as written, and taking the last piece off takes the `trim` member off, so the file is as it
+ * was before the room had any.
+ */
+export function setTrim<D>(args: SetTrimArgs): Edit<D> {
+  return {
+    id: 'sector.setTrim',
+    label: `Change the trim of ${args.id}`,
+    coalesce: `trim:${args.id}`,
+    run(profile, level) {
+      const sector = sectorOf(profile, level, args.id)
+      if (sector === undefined) return noSector(args.id)
+      const room = sector.ceiling - sector.floor
+      const trim: Record<string, unknown> = { ...sector.trim }
+      for (const piece of TRIM_PIECES) {
+        const value = args[piece]
+        if (value === undefined) continue
+        if (value === null) delete trim[piece]
+        else if (!Number.isFinite(value) || value < 0) return refuse(`the ${piece} is below the floor`)
+        else if (value > room) return refuse(`the ${piece} is higher than the room (${room} m)`)
+        else trim[piece] = value
+      }
+      const same = JSON.stringify(trim) === JSON.stringify(sector.trim ?? {})
+      if (same) return ok(level)
+      const { trim: _old, ...rest } = sector
+      return replaceSector(
+        profile,
+        level,
+        args.id,
+        Object.keys(trim).length === 0 ? rest : { ...rest, trim: trim as NonNullable<typeof sector.trim> },
+      )
+    },
+  }
+}
+
 /**
  * The camera view the game takes while the player is in the sector (the 3D direction spec §4.2), by the id of a
  * `camera-view` of the game's content: the editor holds the id, and the content check of the game says whether there is

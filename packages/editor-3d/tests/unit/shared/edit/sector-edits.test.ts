@@ -12,6 +12,7 @@ import {
   setLight,
   setMaterials,
   setPit,
+  setTrim,
   setView,
 } from '#src/shared/edit/sector-edits.ts'
 import { afSectorCodec } from '#src/shared/level-session/af-sector/af-codec.ts'
@@ -758,6 +759,50 @@ describe('sector.setPit', () => {
     expect([edit.id, edit.label]).toEqual(['sector.setPit', 'Make hall a pit'])
     expect(setPit({ id: 'hall', pit: false }).label).toBe('Make hall not a pit')
     expect(reasonOf(pit('nowhere', true))).toBe('no sector nowhere')
+  })
+})
+
+describe('sector.setTrim', () => {
+  const trim = (args: Parameters<typeof setTrim>[0], level = depot) =>
+    run(afSectorProfile, level, setTrim(args))
+
+  it('writes the pieces one by one, and clearing them all takes the member off', () => {
+    const skirted = levelOf(trim({ id: 'hall', skirting: 0.1 }))
+    expect(sector(skirted, 'hall').trim).toEqual({ skirting: 0.1 })
+    const both = levelOf(trim({ id: 'hall', rail: 0.9 }, skirted))
+    expect(sector(both, 'hall').trim).toEqual({ skirting: 0.1, rail: 0.9 })
+    const cleared = levelOf(trim({ id: 'hall', skirting: null, rail: null }, both))
+    expect('trim' in sector(cleared, 'hall')).toBe(false)
+    expect(cleared).toEqual(depot)
+  })
+
+  it('keeps a piece it was not asked about, as written', () => {
+    const level = toyAfSector({
+      sectors: [{ ...must(depot.sectors[0]), trim: { skirting: 0.2, wainscot: 1, capital: 0.3 } }],
+    })
+    const made = levelOf(trim({ id: must(level.sectors[0]).id, wainscot: 1.2 }, level))
+    expect(must(made.sectors[0]).trim).toEqual({ skirting: 0.2, wainscot: 1.2, capital: 0.3 })
+  })
+
+  it('changes nothing for what is already so', () => {
+    const skirted = levelOf(trim({ id: 'hall', skirting: 0.1 }))
+    expect(levelOf(trim({ id: 'hall', skirting: 0.1 }, skirted))).toBe(skirted)
+    expect(levelOf(trim({ id: 'hall', rail: null }))).toBe(depot)
+  })
+
+  it('writes only the room’s `trim` member, and Undo puts the text back byte for byte', () => {
+    const made = levelOf(trim({ id: 'hall', wainscot: 1 }))
+    const text = afSectorCodec.patch(depotText, depot, made)
+    if (!text.ok) throw new Error(text.detail)
+    const back = afSectorCodec.patch(text.text, made, depot)
+    expect(back.ok && back.text).toBe(depotText)
+  })
+
+  it('says what it does in words, and refuses a height below nothing, or above the room, or a room that is not there', () => {
+    expect(setTrim({ id: 'hall', skirting: 0.1 }).label).toBe('Change the trim of hall')
+    expect(reasonOf(trim({ id: 'hall', skirting: -1 }))).toBe('the skirting is below the floor')
+    expect(reasonOf(trim({ id: 'hall', rail: 9 }))).toBe('the rail is higher than the room (4 m)')
+    expect(reasonOf(trim({ id: 'nowhere', rail: 1 }))).toBe('no sector nowhere')
   })
 })
 

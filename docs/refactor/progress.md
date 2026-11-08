@@ -486,7 +486,7 @@ One row per task of the [plan](2026-11-07-3d-slice-plan.md); a task is done when
 | 16.1c One `/2` profile | 16 | Done, 2026-11-08 (PR #490; editor-3d unit 2159, Chromium layout 262, canvas 14, journeys 16; Ember Hall opens with its seven things and no problems) |
 | 16.1d Furniture, characters and lamps from the game | 16 | Done, 2026-11-08 (PR #490; `SuiteWorkspace.list?`, `readGameLibrary`, placed props, cast and lamps as things named in words under Furniture and Characters, the check for a name the game lacks; Ember Hall's crates move and write as `at`) |
 | 16.1e Pits, cameras, and Ember Hall played after an edit | 16 | Done, 2026-11-08 (PR #490; Pit and Camera on the room's card, a pit drawn dark and labelled; base-3d's dev server plays the copy the editor wrote; the journey `levels-3d-edit-reaches-the-game` passes in Chromium at iPad and phone size, and failed first on the checkout's room) |
-| 16.2 The builders' authoring | 16 | Not started |
+| 16.2 The builders' authoring | 16 | Mostly done, 2026-11-08 (PR #493; every lamp the kit has is in the Things palette under Lamps, a placed thing outside every room or a lamp in a wall is named in words, Time of day on the level card, Skirting, Wainscot and Rail on the room's card; not done: window grids over a facade (`setWindows`), which nothing in base-3d uses) |
 | 16.3 Plan, 3D and Walk in the game's look | 16 | Not started |
 | 17.1 The frame, phone first | 17 | Not started |
 | 17.2 New sliders, actions and words | 17 | Not started |

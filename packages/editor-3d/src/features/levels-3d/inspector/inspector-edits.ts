@@ -7,12 +7,15 @@ import type { Occlude } from '@automata/3d/level'
 import type { FieldValue } from '@automata/editor/kit/fields'
 import type { Edit } from '../../../shared/edit/edit'
 import type { EditSession, LevelEditor } from '../../../shared/edit/level-editor'
+import { setTimeOfDay } from '../../../shared/edit/level-edits'
 import {
   type SetMaterialsArgs,
+  type SetTrimArgs,
   setHeights,
   setLight,
   setMaterials,
   setPit,
+  setTrim,
   setView,
 } from '../../../shared/edit/sector-edits'
 import { removeThing, setThingField } from '../../../shared/edit/thing-edits'
@@ -46,10 +49,18 @@ export type InspectorChange =
       /** `null` clears the field. */
       readonly value: FieldValue | null
     }
+  /** The level's time of day; `null` takes it off. `label` is its name in words, for the Undo. */
+  | { readonly kind: 'level'; readonly time: string | null; readonly label?: string }
   | { readonly kind: 'sector'; readonly id: string; readonly floor: number }
   | { readonly kind: 'sector'; readonly id: string; readonly ceiling: number }
   | { readonly kind: 'sector'; readonly id: string; readonly light: number }
   | { readonly kind: 'sector'; readonly id: string; readonly pit: boolean }
+  /** Trim heights in metres; `null` takes a piece off. */
+  | {
+      readonly kind: 'sector'
+      readonly id: string
+      readonly trim: Without<SetTrimArgs, 'id'>
+    }
   /** `null` takes the camera off. */
   | { readonly kind: 'sector'; readonly id: string; readonly view: string | null }
   | { readonly kind: 'sector'; readonly id: string; readonly materials: Without<SetMaterialsArgs, 'id'> }
@@ -75,12 +86,18 @@ function editOf<D>(change: InspectorChange): Edit<D> {
       ? setThingField({ ...thing, field: change.field, value: change.value })
       : removeThing(thing)
   }
+  if (change.kind === 'level')
+    return setTimeOfDay({
+      time: change.time ?? undefined,
+      ...(change.label === undefined ? {} : { label: change.label }),
+    })
   if (change.kind === 'sector') {
     if ('floor' in change) return setHeights({ id: change.id, floor: change.floor })
     if ('ceiling' in change) return setHeights({ id: change.id, ceiling: change.ceiling })
     if ('light' in change) return setLight({ id: change.id, light: change.light })
     if ('pit' in change) return setPit({ id: change.id, pit: change.pit })
     if ('view' in change) return setView({ id: change.id, view: change.view })
+    if ('trim' in change) return setTrim({ id: change.id, ...change.trim })
     return setMaterials({ id: change.id, ...change.materials })
   }
   const wall = { sector: change.sector, corner: change.corner }
