@@ -43,7 +43,7 @@ const short = { any: '', empty: '0', filled: '■', is: '=', not: '≠' } as con
     height: 44px;
     padding: 0;
     border: 1px dashed var(--color-border-strong);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-sm);
     background: transparent;
     color: var(--color-text-primary);
     font: var(--text-title-15);

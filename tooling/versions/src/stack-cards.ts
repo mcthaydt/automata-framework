@@ -6,7 +6,7 @@ import type { StackSource } from './stack.ts'
 
 export const STACK: StackSource = {
   intro: [
-    'The libraries AF is built on, what each one does here and what AF adds on top. **Core** is the free foundation every game gets; **Plus** is the paid Automata Plus tier (PRODUCT spec §1, PD-1).',
+    'The libraries AF is built on, what each one does here and what AF adds on top.',
     '',
     "Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken tarballs show their packed version and RukenApp commit). Licenses are read from each installed package's `package.json`. A library AF has chosen but not installed yet says so and names the task that installs it.",
   ].join('\n'),
@@ -26,14 +26,6 @@ export const STACK: StackSource = {
       does: 'The entity-component store inside the deterministic sim (ADR 0001).',
       why: 'Spike S1 found it deterministic across Node, Chromium, WebKit and Firefox, like Miniplex, and it adds relations with data, added/changed/removed tracking and struct-of-arrays storage at no determinism cost (ADR 0001).',
       adds: '`@mcthaydt/automata-sim` keeps Koota behind a facade: its own monotonic `StableId` (Koota recycles IDs), StableId-ordered iteration, snapshot and restore, render deltas, seeded RNG, deterministic math and hashing, and `.replay` recording. Game code never imports Koota directly.',
-    },
-    {
-      library: 'Effect',
-      tier: 'Core',
-      packages: ['effect'],
-      does: 'Runs everything outside the sim: runtime services, the boot program, time, retries and resource disposal (ADR 0003).',
-      why: 'The runtime needs ordered boot with failure states, retries and timeouts, disposal on screen exit and restart, an injectable clock and typed errors that each map to a UI state; FloorFifty and The Last Light do all of that by hand (ADR 0003).',
-      adds: "Runtime managers are Effect services (`Context.Tag` + `Layer`), time comes from `Clock` and is tested with `TestClock`, and `Scope` replaces FloorFifty's `DisposeBag`. The sim never imports Effect (`check-boundaries` rejects it there) and the frame loop allocates no Effect per frame.",
     },
     {
       library: 'Zod',
@@ -83,32 +75,6 @@ export const STACK: StackSource = {
       why: 'Ruken pins the same tools and versions, so a game and its host build and test the same way (versions.md).',
       adds: "`@mcthaydt/automata/testing`: sim and replay goldens that must match bit for bit in Node, Chromium, WebKit and Firefox, renderer-free screen fixtures and layout assertions (hit testing, target size, clipping); `automata-content`'s Vite plugin compiles content on build.",
     },
-    {
-      library: 'Rapier (deterministic-compat)',
-      tier: 'Plus',
-      packages: [],
-      elsewhere: {
-        packages: ['@dimforge/rapier2d-deterministic-compat', '@dimforge/rapier3d-deterministic-compat'],
-        repository: 'mcthaydt/automata-plus',
-      },
-      does: '2D and 3D physics inside the sim (M2.1).',
-      why: 'The deterministic build gives bit-identical results in Node, Chromium, WebKit and Firefox, and `-compat` inlines the wasm, so there is no loader to set up. Automata Plus pins it at 0.21.0, the release The Last Light uses.',
-      adds: '`@mcthaydt/automata-physics`: a sim plugin that syncs bodies in, steps and syncs out each tick, adds its own snapshot section and raises collision events, with four-engine parity tests. It lives in `automata-plus` (PRODUCT.5f) and left this repository in PRODUCT.5g.',
-    },
-    {
-      library: 'Colyseus',
-      tier: 'Plus',
-      packages: [],
-      planned: { packages: ['colyseus'], task: 'M7 (`net` and `server`)' },
-      does: 'Rooms and transport for the `net` and `server` extensions (master spec §4).',
-      why: "FloorFifty's multiplayer already runs on Colyseus: its network manager, room store and server rooms are the extraction source (extraction map).",
-      adds: 'Planned in M7: a network seam behind the client, a room-mirroring store, server rooms running the same sim, an input queue and tick scheduler, prediction and reconciliation.',
-    },
   ],
-  notes: [
-    {
-      title: "Why FloorFifty's Planck becomes Rapier",
-      body: "FloorFifty simulates its races with Planck. AF uses Rapier instead: Rapier's deterministic build is already proven across Node, Chromium, WebKit and Firefox (M2.1), and one physics engine means one parity suite (PRODUCT spec §8, PD-2).",
-    },
-  ],
+  notes: [],
 }

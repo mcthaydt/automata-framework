@@ -1,11 +1,14 @@
 <!--
-  The Level view's toolbar: the tool in plain words, the
-  brush size while a brush or the eraser is out, Fit (the whole level in view), below `wide` Layers and Inspector,
-  which open the panel and the inspector, and Levels where the dock is a sheet. One row over
-  the canvas that scrolls sideways on a narrow screen rather than shrinking a control under 44 px.
+  The Level view's toolbar: the six tools as icons (each named in plain words, its tooltip and its accessible name:
+  Select, Brush, Rectangle, Fill, Eraser, Copy a tile), the brush size behind a "Size" button while a brush or the
+  eraser is out (a popover with the stepper, so the size never widens the row), Fit (the whole level in view), below
+  `wide` Layers and Inspector, which open the panel and the inspector, and Levels where the dock is a sheet. One row
+  over the canvas that scrolls sideways on a narrow screen rather than shrinking a control under 44 px.
 -->
 <script lang="ts">
+import type { IconName } from '../../shared/kit/icons/paths'
 import Button from '../../shared/kit/widgets/Button.svelte'
+import Popup from '../../shared/kit/widgets/Popup.svelte'
 import Segmented from '../../shared/kit/widgets/Segmented.svelte'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'
 import type { LevelTool } from '../../shared/level-2d/editor/level-editor-api'
@@ -47,16 +50,20 @@ const {
   onlevels,
 }: Props = $props()
 
-const TOOLS: readonly { id: LevelTool; label: string }[] = [
-  { id: 'select', label: 'Select' },
-  { id: 'brush', label: 'Brush' },
-  { id: 'rectangle', label: 'Rectangle' },
-  { id: 'fill', label: 'Fill' },
-  { id: 'eraser', label: 'Eraser' },
-  { id: 'picker', label: 'Pick' },
+const TOOLS: readonly { id: LevelTool; label: string; icon: IconName }[] = [
+  { id: 'select', label: 'Select', icon: 'select' },
+  { id: 'brush', label: 'Brush', icon: 'brush' },
+  { id: 'rectangle', label: 'Rectangle', icon: 'rectangle' },
+  { id: 'fill', label: 'Fill', icon: 'fill' },
+  { id: 'eraser', label: 'Eraser', icon: 'eraser' },
+  { id: 'picker', label: 'Copy a tile', icon: 'eyedropper' },
 ]
 const sized = $derived(tool === 'brush' || tool === 'eraser')
 const isTool = (id: string): id is LevelTool => TOOLS.some((each) => each.id === id)
+
+/** The size popover: opened from the "Size" button, placed against it. */
+let sizing = $state(false)
+let sizeButton = $state<HTMLElement>()
 </script>
 
 <div class="toolbar" data-testid="level-toolbar" data-scroll-region="both">
@@ -74,18 +81,23 @@ const isTool = (id: string): id is LevelTool => TOOLS.some((each) => each.id ===
     />
   </div>
   {#if sized}
-    <div class="size">
-      <Stepper
-      label="Brush size"
-      value={brushSize}
-      min={1}
-      max={8}
-      integer
-      onedit={(event) => {
-        if (event.phase === 'set' || event.phase === 'commit') onbrushsize(event.value)
-      }}
-      />
-    </div>
+    <span bind:this={sizeButton}>
+      <Button aria-expanded={sizing} aria-haspopup="dialog" onclick={() => (sizing = !sizing)}>Size {brushSize}</Button>
+    </span>
+    <Popup bind:open={sizing} anchor={sizeButton} label="Brush size">
+      <div class="size">
+        <Stepper
+          label="Brush size"
+          value={brushSize}
+          min={1}
+          max={8}
+          integer
+          onedit={(event) => {
+            if (event.phase === 'set' || event.phase === 'commit') onbrushsize(event.value)
+          }}
+        />
+      </div>
+    </Popup>
   {/if}
   <Button onclick={onfit}>Fit</Button>
   {#if showLevels}
@@ -115,6 +127,9 @@ const isTool = (id: string): id is LevelTool => TOOLS.some((each) => each.id ===
     width: max-content;
   }
   /* The kit's stepper wraps its buttons under its label when squeezed; in a row that scrolls it never needs to. */
+  .size {
+    padding: var(--space-3);
+  }
   .size :global(.stepper) {
     flex-wrap: nowrap;
   }

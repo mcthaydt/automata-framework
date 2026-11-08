@@ -205,7 +205,7 @@ function thumb(tile: number | undefined): string {
     min-height: 44px;
     padding: var(--space-1) var(--space-2);
     border: 1px solid transparent;
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-sm);
     background: transparent;
     color: var(--color-text-primary);
     text-align: start;
@@ -231,7 +231,7 @@ function thumb(tile: number | undefined): string {
   .thumb {
     width: 30px;
     height: 30px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--edge-sm);
     background-repeat: no-repeat;
     image-rendering: pixelated;
   }

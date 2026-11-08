@@ -49,7 +49,7 @@ const headingId = $derived(`card-${card.editor}`)
     min-width: 0;
     padding: var(--space-4);
     border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-lg);
+    border-radius: var(--edge-lg);
     background: var(--color-bg-surface);
   }
   header {
@@ -65,7 +65,7 @@ const headingId = $derived(`card-${card.editor}`)
   .badge {
     padding: 2px var(--space-2);
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--radius-sm);
+    border-radius: var(--edge-sm);
     color: var(--color-text-dim);
     font: var(--text-eyebrow-11);
   }
@@ -90,7 +90,7 @@ const headingId = $derived(`card-${card.editor}`)
     min-height: 44px;
     padding: var(--space-1) var(--space-3);
     border: 0;
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-sm);
     background: var(--color-bg-field);
     color: var(--color-text-primary);
     text-align: left;

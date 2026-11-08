@@ -1,7 +1,7 @@
 <!--
-  A 44 px round frosted button that shows an icon. `label` is its accessible name and its tooltip (the browser's
+  A 44 px square button that shows an icon, borderless until hovered so a toolbar reads as one quiet strip. `label` is its accessible name and its tooltip (the browser's
   title, shown on hover and, on iPad, on a long press); with `showLabel` the label is also written beside the icon,
-  for where there is room, and the button grows into a pill. `pressed` makes it a toggle (a layer's eye or lock) and
+  for where there is room, and the button grows wider. `pressed` makes it a toggle (a layer's eye or lock) and
   is announced as one. It never submits a form; a disabled one stays in place.
 -->
 <script lang="ts">
@@ -43,9 +43,9 @@ const { icon, label, showLabel = false, pressed, ...rest }: Props = $props()
     width: var(--size-hit);
     height: var(--size-hit);
     padding: 0;
-    border: 1px solid var(--line-strong);
-    border-radius: var(--pill);
-    background: var(--glass);
+    border: 1px solid transparent;
+    border-radius: var(--edge-sm);
+    background: transparent;
     color: var(--ink);
     font: var(--text-body-13-medium);
     white-space: nowrap;
@@ -57,7 +57,8 @@ const { icon, label, showLabel = false, pressed, ...rest }: Props = $props()
     padding: 0 var(--space-4) 0 var(--space-3);
   }
   .icon-button:hover:not(:disabled) {
-    background: var(--paper);
+    border-color: var(--line-strong);
+    background: var(--surface);
   }
   .icon-button[aria-pressed='true'] {
     border-color: var(--cobalt);

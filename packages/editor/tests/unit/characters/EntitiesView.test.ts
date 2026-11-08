@@ -50,7 +50,7 @@ async function mount() {
     onback: () => {},
   })
   await userEvent.click(
-    within(screen.getByRole('tablist', { name: 'Views' })).getByRole('tab', { name: 'Entities' }),
+    within(screen.getByRole('radiogroup', { name: 'Views' })).getByRole('radio', { name: 'Characters' }),
   )
   const history = opened.document.history
   const project = (): Project => history.state as Project

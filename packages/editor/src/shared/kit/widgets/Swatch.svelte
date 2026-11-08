@@ -53,7 +53,7 @@ let {
     height: var(--size-hit);
     padding: 0;
     border: 0;
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-sm);
     background: transparent;
     cursor: pointer;
   }
@@ -61,7 +61,7 @@ let {
     box-sizing: border-box;
     width: 28px;
     height: 28px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--edge-sm);
     border: 1px solid var(--line-strong);
   }
   .swatch[aria-pressed='true'] .chip,

@@ -152,7 +152,7 @@ function addTag(event: SubmitEvent): void {
     height: 44px;
     padding: 0;
     border: 0;
-    border-radius: var(--radius-sm);
+    border-radius: var(--edge-sm);
     background-repeat: no-repeat;
     image-rendering: pixelated;
     color: var(--color-text-primary);
@@ -168,7 +168,7 @@ function addTag(event: SubmitEvent): void {
     width: 7px;
     height: 7px;
     border: 1px solid var(--color-bg-app);
-    border-radius: 50%;
+    border-radius: var(--edge-sm);
     background: var(--color-accent-default);
   }
   .tile[aria-pressed='true'] {
@@ -197,7 +197,7 @@ function addTag(event: SubmitEvent): void {
     min-height: 44px;
     padding: 0 var(--space-3);
     border: 1px solid var(--color-border-strong);
-    border-radius: 999px;
+    border-radius: var(--edge-sm);
     background: transparent;
     color: var(--color-text-dim);
     font: var(--text-label-12);
@@ -224,7 +224,7 @@ function addTag(event: SubmitEvent): void {
     min-height: 44px;
     padding: 0 var(--space-2);
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-sm);
     background: var(--color-bg-field);
     color: var(--color-text-primary);
     font: var(--text-body-13);
@@ -234,7 +234,7 @@ function addTag(event: SubmitEvent): void {
     min-height: 44px;
     padding: 0 var(--space-3);
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-sm);
     background: var(--color-bg-field);
     color: var(--color-text-primary);
     font: var(--text-body-13-medium);

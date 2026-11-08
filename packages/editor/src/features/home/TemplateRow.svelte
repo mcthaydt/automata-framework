@@ -50,7 +50,7 @@ const { cards, busy, oncreate }: Props = $props()
     min-height: var(--size-primary);
     padding: var(--space-3);
     border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
+    border-radius: var(--edge-lg);
     background: var(--paper);
     color: var(--ink);
     text-align: left;
@@ -73,7 +73,7 @@ const { cards, busy, oncreate }: Props = $props()
     place-items: center;
     width: 48px;
     height: 48px;
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-sm);
     background: color-mix(in srgb, var(--cobalt) 14%, var(--paper));
     color: var(--cobalt);
     font: var(--text-display-20);

@@ -45,7 +45,7 @@ async function mount() {
     onback: () => {},
   })
   await userEvent.click(
-    within(screen.getByRole('tablist', { name: 'Views' })).getByRole('tab', { name: 'Tilesets' }),
+    within(screen.getByRole('radiogroup', { name: 'Views' })).getByRole('radio', { name: 'Tiles' }),
   )
   const ground = (): AutoLayerDef =>
     (opened.document.history.state as Project).defs.layers.find(

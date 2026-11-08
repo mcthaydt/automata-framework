@@ -115,7 +115,7 @@ async function ship(): Promise<void> {
     min-height: 44px;
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--radius-sm);
+    border-radius: var(--edge-sm);
     background: var(--color-bg-field);
     color: var(--color-text-primary);
     font: var(--text-body-13);

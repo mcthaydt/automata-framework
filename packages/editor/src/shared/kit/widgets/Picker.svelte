@@ -238,8 +238,8 @@ function onKey(event: KeyboardEvent): void {
     min-height: var(--size-hit);
     padding: 0 var(--space-4);
     border: 1px solid var(--line-strong);
-    border-radius: var(--pill);
-    background: var(--glass);
+    border-radius: var(--edge-sm);
+    background: var(--paper);
     color: var(--ink);
     font: var(--text-body-13);
     cursor: pointer;
@@ -273,7 +273,7 @@ function onKey(event: KeyboardEvent): void {
     margin: var(--space-1);
     padding: 0 var(--space-3);
     border: 1px solid var(--line);
-    border-radius: var(--radius-sm);
+    border-radius: var(--edge-sm);
     background: var(--paper);
     color: var(--ink);
     font: var(--text-body-13);
@@ -298,7 +298,7 @@ function onKey(event: KeyboardEvent): void {
     gap: var(--space-4);
     min-height: var(--size-hit);
     padding: 0 var(--space-3);
-    border-radius: var(--radius-sm);
+    border-radius: var(--edge-sm);
     font: var(--text-body-13);
     cursor: pointer;
   }

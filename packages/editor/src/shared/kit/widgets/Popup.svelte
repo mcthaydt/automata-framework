@@ -156,7 +156,7 @@ function onClick(event: MouseEvent): void {
     position: fixed;
     overflow: auto;
     border: 1px solid var(--line);
-    border-radius: var(--radius);
+    border-radius: var(--edge-md);
     background: var(--paper);
     box-shadow: var(--shadow-sheet);
     color: var(--ink);
@@ -170,7 +170,7 @@ function onClick(event: MouseEvent): void {
     padding-bottom: max(var(--space-4), env(safe-area-inset-bottom, 0px));
     border: 1px solid var(--line);
     border-bottom: 0;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    border-radius: var(--edge-lg) var(--edge-lg) 0 0;
     background: var(--paper);
     box-shadow: var(--shadow-sheet);
     color: var(--ink);
@@ -180,7 +180,7 @@ function onClick(event: MouseEvent): void {
     width: 36px;
     height: 4px;
     margin: var(--space-2) auto;
-    border-radius: var(--pill);
+    border-radius: var(--edge-sm);
     background: var(--line-strong);
   }
   .scroll {

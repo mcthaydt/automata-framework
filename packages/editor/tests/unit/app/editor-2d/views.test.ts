@@ -5,13 +5,11 @@ import EntitiesView from '#src/features/characters/EntitiesView.svelte'
 import PendingView from '#src/features/document/PendingView.svelte'
 import LevelView from '#src/features/level/LevelView.svelte'
 import WorldView from '#src/features/map/WorldView.svelte'
-import ChecksView from '#src/features/problems/ChecksView.svelte'
 import TilesetsView from '#src/features/tiles/TilesetsView.svelte'
 
 describe('the view components', () => {
   it('maps the Level view by its component name', () => {
     expect(componentOf('LevelView')).toBe(LevelView)
-    expect(componentOf('ChecksView')).toBe(ChecksView)
   })
 
   it('maps the Tilesets view by its component name', () => {
@@ -28,6 +26,8 @@ describe('the view components', () => {
 
   it('maps a view not built yet to the pending view', () => {
     expect(componentOf('ComposeView')).toBe(PendingView)
+    // Checks and Export are no longer views: Problems and Share live in the top bar.
+    expect(componentOf('ChecksView')).toBe(PendingView)
     expect(componentOf('')).toBe(PendingView)
   })
 })

@@ -182,7 +182,7 @@ const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6'
     color: var(--color-text-primary);
     background: var(--color-bg-raised);
     border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-sm);
   }
 
   .title {

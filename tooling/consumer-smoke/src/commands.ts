@@ -2,8 +2,7 @@
 // printed, and packing the workspace's published packages the way they are published.
 import { execFileSync } from 'node:child_process'
 import { join } from 'node:path'
-import { resolveSourceCommit } from '../../core-packs/src/args.ts'
-import { packWorkspace } from '../../core-packs/src/pack.ts'
+import { packPublished } from './pack.ts'
 import type { ConsumerPackage } from './project.ts'
 
 /** Runs a command in `cwd`; on failure the error carries everything it printed. */
@@ -28,14 +27,10 @@ export function sh(
   }
 }
 
-/** Packs the published packages (tooling/core-packs: publishConfig and workspace:* applied, as at publish). */
+/** Packs the published packages into the project's `packs/` (publishConfig and workspace:* applied, as at publish). */
 export function packAll(root: string, project: string): ConsumerPackage[] {
-  const git = (args: readonly string[]) => sh(root, 'git', args)
-  const { packs } = packWorkspace({
-    root,
-    out: join(project, 'packs'),
-    extras: [],
-    sourceCommit: resolveSourceCommit({ out: '', extras: [], allowDirty: true, unpack: false }, git),
-  })
-  return packs.map(({ name, file }) => ({ name, tarball: `packs/${file}` }))
+  return packPublished({ root, out: join(project, 'packs') }).map(({ name, file }) => ({
+    name,
+    tarball: `packs/${file}`,
+  }))
 }

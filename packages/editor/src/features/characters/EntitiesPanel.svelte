@@ -123,7 +123,7 @@ const levelFields = $derived(levelFieldRows(project))
     min-height: 48px;
     padding: var(--space-1) var(--space-2);
     border: 1px solid transparent;
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-sm);
     background: transparent;
     color: var(--color-text-primary);
     text-align: start;
@@ -141,7 +141,7 @@ const levelFields = $derived(levelFieldRows(project))
   .swatch {
     width: 30px;
     height: 30px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--edge-sm);
     background: color-mix(in srgb, var(--swatch) 30%, transparent);
     box-shadow: inset 0 0 0 2px var(--swatch);
   }

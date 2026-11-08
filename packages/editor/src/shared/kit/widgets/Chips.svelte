@@ -89,8 +89,8 @@ function toggle(chip: Chip): void {
     display: inline-flex;
     align-items: stretch;
     border: 1px solid var(--line-strong);
-    border-radius: var(--pill);
-    background: var(--glass);
+    border-radius: var(--edge-sm);
+    background: var(--paper);
     overflow: hidden;
   }
   .body,

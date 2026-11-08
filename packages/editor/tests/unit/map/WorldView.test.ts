@@ -56,13 +56,15 @@ async function mount(seed: (project: Project) => Project = (project) => project)
     worldCanvas: FakeWorldCanvas,
     onback: () => {},
   })
-  await rail('World')
+  await rail('Map')
   await screen.findByTestId('world-view')
   return { history, first: history.state.levels[0]?.id ?? '' }
 }
 
 async function rail(name: string): Promise<void> {
-  await userEvent.click(within(screen.getByRole('tablist', { name: 'Views' })).getByRole('tab', { name }))
+  await userEvent.click(
+    within(screen.getByRole('radiogroup', { name: 'Views' })).getByRole('radio', { name }),
+  )
 }
 
 /** A mouse press, move or release as the browser sends it; jsdom has no `PointerEvent` constructor. */

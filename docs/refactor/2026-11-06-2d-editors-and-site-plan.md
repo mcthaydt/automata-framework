@@ -2119,3 +2119,84 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   the view switcher with the four views and their new names, "2 problems" opening a sheet in place of the Checks
   view, the Share menu (browser storage only) in place of the Export view, the rail's icons, and the essential-only
   cut over each (rename on tap is listed by the spec; keep it only if it passes the Owner's essential-only rule).
+- **12.2, the rest (session 11): the view switcher, Problems, Share and rename.** The 56 px rail is gone: `ViewRail`
+  became `ViewSwitcher` in the top bar, the kit's `Segmented` ("Views", a radio group) from iPad up and the kit's
+  `Menu` named after the open view on a phone. The level project lists four views with the spec's names: Level, Map,
+  Tiles, Characters (ids `level`, `world`, `tilesets`, `entities` kept). `ViewFrame.rail` and `ViewServices.locate`
+  and `.workspace` are removed; the five views no longer place a rail. `DocumentBar` takes `switcher` and `tools`
+  snippets and is two rows on a phone (Back, the name, Save; then the switcher, Problems, Share, Undo, Redo), so no
+  target shrinks; the kit shell's top bar row is now `minmax(52px, auto)` so it can grow. **Problems** (`Problems.svelte`)
+  replaces `ChecksView`: "2 problems" in the top bar opens a sheet (Needs fixing, Worth a look; Show, the repair, Done);
+  Show closes it and reopens the Level view on the finding (a counter re-keys the view, so a Show while the Level
+  view is open still selects it). **Share** (`ShareMenu.svelte`, `share-model.ts`) replaces `ExportView`: shown only
+  where Save does not write the game (no `gameFolder`), it holds Download, Share (off with a reason where the device
+  cannot share) and Copy of the level's file, each answered with a toast; on a device that keeps nothing a file that
+  left marks the level clean, as Export did. **Rename on tap** kept (a level had no other way to be renamed): a new
+  optional `Profile.rename`, the name is a button opening `RenameDialog`, one undo step named "Rename".
+  **Cut, by the Owner's essential-only rule:** notes (info findings: an empty level, a definition nothing uses) are
+  not counted or listed (a fresh template showed "problems"); Export's target cards, file sizes and per-target choice;
+  "Download game files" (in browser storage there is no game to put them in; a game folder's Save writes them);
+  "Write to folder" (only reachable on a checkout without an `exports` row, where the answer is to add the row so Save
+  writes the game); the rail's icons (the rail is gone; the switcher's words are enough). **Deviation 106:** the
+  switcher is a radio group, not tabs, because it is the kit's `Segmented`; tests read `radio` and `aria-checked`.
+  **Deviation 107:** the restore dialog's new words (grandma Step G) move to 12.4, which owns `RecoveryDialog`.
+  Gates: editor unit 3,284 (ChecksView, ExportView and export-model tests replaced by Problems 10, share-model 3,
+  DocumentScreen 25); editor typecheck clean; Chromium layout (level, problems, map, tiles, characters) 130 of 130;
+  Chromium 2D journeys 8 of 8. WebKit, Firefox and hosted CI not run. Rounded buttons: none added; the kit's look
+  changes with the design thread (the Owner, 2026-11-06: "I HATE rounded buttons").
+- **The Owner, 2026-11-06 (relayed), the site's order: "Let's do that".** The design thread's site mockups come
+  first and the Owner picks a direction; phase 18 (18.0 included) then applies that direction and the
+  [site visual audit](2026-11-06-site-visual-audit.md)'s fixes in one pass, and the visual audit is rerun after.
+  Phase 18 does not start until the Owner has picked. The editors' look follows the same design thread's token and
+  component changes when it sends them.
+- **The design direction (session 11).** A design thread's draft PR #422 (square, flat editor look; spec
+  `docs/refactor/2026-11-06-editor-visual-direction.md`) is merged into this stack; the Problems sheet and the rename
+  field use `var(--edge)`, and the phone top bar's lower row became one flex row of its own (a wide "3 problems"
+  label had squeezed the name to 1 px; the Chromium layout test caught it). The Owner then picked site direction C
+  (flat lime; relayed 2026-11-06 16:01): editors and site share one system, flat lime primary buttons, radii 4 px
+  controls, 6 px panels, 8 px cards and dialogs. #422 is being updated to match and is adopted from there again; phase
+  18 starts once those final tokens land.
+- **17.1 (session 11): five workflow rules replace the YAML-pinning tests.** `tooling/repo-hygiene/src/workflow-invariants.ts`
+  checks every workflow for: top-level `permissions`; no `pull_request_target`; secrets only in a step's `env`; no
+  publishing secret (anything but `GITHUB_TOKEN` and the read-only `AF_READ_TOKEN`) in a job a pull request can start,
+  a reusable workflow counted as one a pull request can start; heavy jobs skip drafts (`checks` is the light gate).
+  Each rule has a fixture that breaks it. **They found a real gap:** `game-release.yml`'s `ruken` job held
+  `RUKEN_TOKEN` with no pull request guard; it now has the itch and desktop jobs' guard. Deleted:
+  `packages/tools/tests/unit/shared/ship/workflows.test.ts` (108 tests, 1,469 lines). `yaml` moved from -tools to
+  repo-hygiene (`docs/versions.md` row updated), `.github/workflows/**` moved from -tools' turbo inputs to
+  repo-hygiene's. **Deviation 108:** the two `turbo-inputs` tests stay (they guard the turbo cache, which once hid red
+  tests); -tools' one loses its two workflow entries. Counts: -tools unit 627 → 519 (108 gone), repo-hygiene 82 → 88.
+- **17.2 (session 11): the tooling that lost its reason.** `tooling/core-packs` (625 lines): deleted; the consumer
+  smoke's own `src/pack.ts` (80 lines, 8 tests) packs the published packages with `pnpm pack`; the extras, unpack,
+  source-commit and `packs.json` parts served Plus only; the root `pnpm packs` script goes. `tooling/api-report/src/seams.ts`
+  (83 lines): deleted with Plus; `seams.test.ts` becomes `committed-reports.test.ts`, keeping the committed-report and
+  planted-break tests. `tooling/bundle-report` (300 lines): deleted; it attributed bytes by package for task 5.1's
+  before and after (recorded) and held no budget, and a per-game budget would be a new check nobody asked for.
+  `tooling/versions`: the Plus cards (Rapier, Colyseus), the Planck note, the Plus sentence and the Effect card go
+  (Effect is Node tooling only now); `docs/stack.md` regenerated. `tooling/examples-runner`: confirmed, only the
+  examples index is left (the playground is the site's). `tooling/evidence`: unchanged here; the Proof page's half goes
+  with the page in 18.1 (the parity job's golden evidence stays).
+- **12.3, part (session 11): the tools as icons.** The kit's `Segmented` takes an optional `icon` per option (the
+  label stays the option's accessible name and tooltip); the Level toolbar's six tools are icons, the eyedropper
+  named "Copy a tile" (was "Pick"); the brush size is behind a "Size 2" button that opens a popover with the stepper,
+  so the size never widens the row. On a 390 px phone all six tools now fit beside Layers. Gates: editor unit (level
+  98), Chromium layout (level and shared) 161, Chromium 2D journeys 8. **Left for 12.3:** the floating pill over the
+  canvas (top from iPad up, bottom on a phone), the charcoal cabinet, Layers as a sheet with colour, name, eye and lock
+  per row and the palette under the chosen layer, the inspector opening on selection, and the level picker in the top
+  bar; then the canvas tests' colour expectations.
+- **12.3, part (session 11): the layer rows.** Each row names its kind in plain words (spec 11.5: "Walls and floors",
+  "Tiles that place themselves", "Characters and items", "Shapes"), shows a square colour swatch from the layer colour
+  tokens, and hides or locks through icon buttons labelled "Hide Entities" or "Lock Entities" (eye and lock icons, the
+  pressed state spoken). Gates: editor unit 3288, Chromium layout (level) 50, Chromium 2D journeys 8. **Left for
+  12.3:** the floating pill, the charcoal cabinet, Layers as a sheet with the palette under the chosen layer, the
+  inspector on selection, the level picker in the top bar, the canvas colour expectations.
+- **12.3, part (session 11): the inspector opens on selection.** The Level view opens the inspector when the editor's
+  selection changes to a new, non-empty one, so below `wide` a thing just placed or tapped shows its fields; closing
+  the sheet with the same thing selected keeps it closed. Gates: editor unit 3289, Chromium layout (level) 50, 2D
+  journeys 8, `pnpm check`. #422's second commit (corners 4 / 6 / 8 px, the flat lime primary) is merged; this
+  stack's three corners moved onto the scale (swatch and rename field `--edge-sm`, Problems rows `--edge-md`).
+- **Site unit tests (session 11).** `examples-pages.test.ts` and `playground/origin.test.ts` read
+  `static/playground/compiled/`, build output a fresh checkout lacks, so hosted CI failed with ENOENT on #420 and
+  #422. They now compile the examples in place with `compileExample`, the way `build-demos.ts` does.
+- **Owner, 2026-11-06:** the editors' look is still not good. The design thread makes a Level screen mockup; the rest
+  of 12.3 keeps to structure and behaviour and takes its styling from that mockup.

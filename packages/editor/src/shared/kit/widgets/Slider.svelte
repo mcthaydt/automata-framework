@@ -187,13 +187,13 @@ $effect(() => {
     display: flex;
     align-items: center;
     cursor: pointer;
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-sm);
     user-select: none;
   }
   .rail {
     width: 100%;
     height: 6px;
-    border-radius: var(--pill);
+    border-radius: var(--edge-sm);
     background: var(--paper);
     border: 1px solid var(--line);
     overflow: hidden;
@@ -208,7 +208,7 @@ $effect(() => {
     width: 24px;
     height: 24px;
     margin: -12px 0 0 -12px;
-    border-radius: 50%;
+    border-radius: var(--edge-sm);
     background: var(--paper);
     box-shadow: var(--shadow);
     border: 2px solid var(--cobalt);

@@ -293,7 +293,7 @@ $effect(() => {
     box-sizing: border-box;
     min-height: var(--size-hit);
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius-sm);
+    border-radius: var(--edge-sm);
     background: var(--paper);
     color: inherit;
     font: var(--text-mono-12);

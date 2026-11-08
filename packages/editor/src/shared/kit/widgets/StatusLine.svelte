@@ -58,7 +58,7 @@ const LABELS: Readonly<Record<SaveState, string>> = {
   .save {
     flex: 0 0 auto;
     padding: 2px var(--space-2);
-    border-radius: var(--radius-sm);
+    border-radius: var(--edge-sm);
     background: var(--paper);
     color: var(--muted);
   }

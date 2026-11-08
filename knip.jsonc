@@ -61,7 +61,6 @@
     // Run by hand on one package at a time: `node tooling/codemods/src/cli.ts <package>`.
     "tooling/codemods": { "entry": ["src/cli.ts", "src/move-modules-cli.ts"] },
     // Run by hand on a build made with `vite build --sourcemap`.
-    "tooling/bundle-report": { "entry": ["src/cli.ts"] },
     // The editor's pages and entries are what the build and its consumers start from; `src/shared/kit/fonts.css`
     // imports the Geist families with CSS @import, which knip does not follow. `src/app/design/main.ts` is the design
     // board, started from `design.html` by the dev server.

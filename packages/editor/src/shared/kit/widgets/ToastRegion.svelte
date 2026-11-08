@@ -55,7 +55,7 @@ $effect(() => toasts.subscribe((next) => (items = next)))
     max-width: min(32rem, 100%);
     padding-left: var(--space-4);
     border: 1px solid var(--line);
-    border-radius: var(--pill);
+    border-radius: var(--edge-sm);
     background: var(--paper);
     box-shadow: var(--shadow-sheet);
     color: var(--ink);
@@ -69,7 +69,7 @@ $effect(() => toasts.subscribe((next) => (items = next)))
     width: 8px;
     height: 8px;
     margin-right: var(--space-2);
-    border-radius: var(--pill);
+    border-radius: var(--edge-sm);
     background: var(--toast-mark, var(--cobalt));
   }
   .toast[data-kind='ok'] {

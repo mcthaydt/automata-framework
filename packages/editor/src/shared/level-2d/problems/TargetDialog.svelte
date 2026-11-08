@@ -3,9 +3,9 @@
   scroll region; picking one closes the dialog and hands the choice back, which the view commits as one step.
 -->
 <script lang="ts">
-import Button from '../../shared/kit/widgets/Button.svelte'
-import Dialog from '../../shared/kit/widgets/Dialog.svelte'
-import type { TargetChoice } from '../../shared/level-2d/profiles/profile'
+import Button from '../../kit/widgets/Button.svelte'
+import Dialog from '../../kit/widgets/Dialog.svelte'
+import type { TargetChoice } from '../profiles/profile'
 
 interface Props {
   open: boolean
@@ -63,7 +63,7 @@ let { open = $bindable(), name, choices, onchoose }: Props = $props()
     min-height: 44px;
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-sm);
     background: var(--color-bg-raised);
     color: var(--color-text-primary);
     font: var(--text-body-13);

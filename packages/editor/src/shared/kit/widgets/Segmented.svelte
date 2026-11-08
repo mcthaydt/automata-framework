@@ -1,17 +1,22 @@
 <!--
-  Two to five exclusive options in a row, a radio group: arrows choose the next enabled option and
+  Two to six exclusive options in a row, a radio group: arrows choose the next enabled option and
   wrap, Home and End go to the ends, and only the chosen option is in the tab order. A disabled option stays
   focusable by touch and mouse: pressing it calls `onblocked` with its reason, which is also its accessible
-  description. Choosing is a `set` edit event.
+  description. Choosing is a `set` edit event. An option with an `icon` shows the icon alone: its label stays its
+  accessible name and its tooltip (a tool bar's tools, where six words would not fit a phone).
 -->
 <script lang="ts">
 import { tick } from 'svelte'
+import Icon from '../icons/Icon.svelte'
+import type { IconName } from '../icons/paths'
 import type { BlockedProps, EditEvent } from './edit-event'
 import { nextEnabled } from './widget-math'
 
 interface Option {
   id: string
   label: string
+  /** Shown instead of the label, which stays the option's name and tooltip. */
+  icon?: IconName | undefined
   disabled?: boolean | undefined
   reason?: string | undefined
 }
@@ -82,12 +87,17 @@ function onKey(event: KeyboardEvent, index: number): void {
       aria-disabled={isOff(option) || undefined}
       aria-describedby={isOff(option) && reasonOf(option) ? `${uid}-reason-${option.id}` : undefined}
       tabindex={index === stop ? 0 : -1}
-      title={isOff(option) ? reasonOf(option) : undefined}
+      title={isOff(option) ? reasonOf(option) : option.icon !== undefined ? option.label : undefined}
+      data-icon={option.icon !== undefined}
       bind:this={buttons[index]}
       onclick={() => choose(option)}
       onkeydown={(event) => onKey(event, index)}
     >
-      {option.label}
+      {#if option.icon !== undefined}
+        <Icon name={option.icon} /><span class="hidden">{option.label}</span>
+      {:else}
+        {option.label}
+      {/if}
     </button>
     {#if isOff(option) && reasonOf(option)}
       <span class="reason" id={`${uid}-reason-${option.id}`}>{reasonOf(option)}</span>
@@ -101,9 +111,9 @@ function onKey(event: KeyboardEvent, index: number): void {
     max-width: 100%;
     padding: 3px;
     gap: 2px;
-    border: 1px solid var(--line);
-    border-radius: var(--pill);
-    background: var(--glass);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--edge-sm);
+    background: var(--surface);
   }
   .option {
     flex: 1 1 auto;
@@ -111,18 +121,26 @@ function onKey(event: KeyboardEvent, index: number): void {
     min-height: var(--size-hit);
     padding: 0 var(--space-3);
     border: 0;
-    border-radius: var(--pill);
+    border-radius: var(--edge-sm);
     background: transparent;
     color: var(--muted);
     font: var(--text-body-13-medium);
     cursor: pointer;
   }
+  .option[data-icon='true'] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
   .option:hover:not([aria-checked='true']) {
     color: var(--ink);
   }
+  /* The chosen option is a paper tile with an ink hairline on the grey track: clear without a block of colour. */
   .option[aria-checked='true'] {
-    background: var(--cobalt);
-    color: var(--stage-ink);
+    background: var(--paper);
+    box-shadow: inset 0 0 0 1px var(--ink);
+    color: var(--ink);
   }
   .option[aria-disabled='true'] {
     opacity: 0.45;
@@ -131,7 +149,8 @@ function onKey(event: KeyboardEvent, index: number): void {
     outline: 2px solid var(--focus);
     outline-offset: -2px;
   }
-  .reason {
+  .reason,
+  .hidden {
     position: absolute;
     width: 1px;
     height: 1px;

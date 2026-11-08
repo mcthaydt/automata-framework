@@ -31,15 +31,16 @@ describe('atOrigin', () => {
   })
 
   it('moves the literal in a real precompiled original', () => {
-    // Compiled as scripts/build-demos.ts compiles it, so the test needs no build output.
+    // Compiled here the way build-demos.ts precompiles it: a unit test never reads build output, which a fresh
+    // checkout does not have.
     const example = getExample('audio-sound')
-    if (example === undefined) throw new Error('the catalog has no audio-sound')
-    const result = compileExample(example.source, {
+    if (example === undefined) throw new Error('no audio-sound example')
+    const compiled = compileExample(example.source, {
       id: example.id,
       moduleUrl: new URL(example.moduleUrl, SITE_ORIGIN).href,
     })
-    if (!result.ok) throw new Error('audio-sound does not compile')
-    const original = result.code
+    if (!compiled.ok) throw new Error('audio-sound does not compile')
+    const original = compiled.code
     const moved = atOrigin(original, SITE_ORIGIN, 'http://localhost:5173')
     expect(moved).toContain('"http://localhost:5173/playground/examples/audio/audio-sound.ts"')
     expect(moved).not.toContain(SITE_ORIGIN)

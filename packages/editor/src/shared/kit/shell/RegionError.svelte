@@ -140,9 +140,9 @@ function clearNoteOnLeave(event: FocusEvent): void {
     padding: var(--space-1) var(--space-2);
     font: var(--text-mono-11);
     color: var(--muted);
-    background: var(--glass);
+    background: var(--paper);
     border: 1px solid var(--line);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-sm);
     user-select: text;
     -webkit-user-select: text;
   }
@@ -161,9 +161,9 @@ function clearNoteOnLeave(event: FocusEvent): void {
     padding: 0 var(--space-3);
     font: var(--text-label-12);
     color: var(--ink);
-    background: var(--glass);
+    background: var(--paper);
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-sm);
     cursor: pointer;
   }
 

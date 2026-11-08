@@ -1,7 +1,7 @@
-import type { Diagnostic, Severity } from '../../shared/level-2d/profiles/profile'
+import type { Diagnostic, Severity } from '../profiles/profile'
 
-// What the Checks view shows: the profile's findings grouped
-// by severity, the label of the repair each names, and the object each points at.
+// What the Problems sheet shows: the profile's findings grouped by severity in plain words, how many there are, the
+// label of the repair each names, and the object each points at.
 
 export interface CheckGroup {
   readonly severity: Severity
@@ -10,9 +10,9 @@ export interface CheckGroup {
 }
 
 const GROUPS: readonly { severity: Severity; title: string }[] = [
-  { severity: 'error', title: 'Errors' },
-  { severity: 'warning', title: 'Warnings' },
-  { severity: 'info', title: 'Info' },
+  { severity: 'error', title: 'Needs fixing' },
+  { severity: 'warning', title: 'Worth a look' },
+  { severity: 'info', title: 'Notes' },
 ]
 
 /** Errors, then warnings, then info, each in the profile's order; a severity with no findings has no group. */

@@ -70,7 +70,7 @@ const loadHash = async (server: ViteDevServer): Promise<string> =>
   ((await server.ssrLoadModule('virtual:automata/content')) as { contentHash: string }).contentHash
 
 // 90 s budgets: real Vite builds and servers, slow on the shared af-linux runner under load. The root test:unit
-// default is the same 90 s; packages/ship's workflows test pins both.
+// default is the same 90 s.
 describe('vite build', () => {
   const buildApp = (root: string) => {
     writeFileSync(

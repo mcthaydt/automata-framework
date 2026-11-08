@@ -376,7 +376,7 @@ function transformOf(index: number, id: string): string | undefined {
   .row[data-dragging] {
     position: relative;
     z-index: 2;
-    background: var(--glass);
+    background: var(--paper);
     box-shadow: var(--shadow);
     transition: none;
   }

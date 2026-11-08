@@ -10,6 +10,7 @@ import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-s
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
+import { switcherControls } from '#src/testing/level-2d/view-switcher.ts'
 
 // The Level view with the production CSS in a real browser, at the eight
 // window sizes of Home's layout test, in Chromium, WebKit and Firefox: every control at least 44 px and never clipped,
@@ -84,20 +85,14 @@ async function showLayers(size: EditorSize): Promise<void> {
 }
 
 describe.each(SIZES)('Level view at $name ($width x $height)', (size) => {
-  test('every control is sized and unclipped; the top bar, the rail and Layers are reachable', async () => {
+  test('every control is sized and unclipped; the top bar, its view switcher and Layers are reachable', async () => {
     const { conditions } = await start(size)
     const bar = byTestId('document-bar')
-    const tabs = [
-      ...document.querySelectorAll<HTMLElement>('[role="tablist"][aria-label="Views"] [role="tab"]'),
-    ]
-    expect(tabs.map((tab) => tab.textContent?.trim())).toEqual([
-      'Level',
-      'World',
-      'Tilesets',
-      'Entities',
-      'Checks',
-      'Export',
-    ])
+    const tabs = switcherControls()
+    // A phone has the switcher's menu button, named after the open view; wider screens the four views.
+    expect(tabs.map((tab) => tab.textContent?.trim())).toEqual(
+      size.mode === 'compact' ? ['Level'] : ['Level', 'Map', 'Tiles', 'Characters'],
+    )
     const essentials = [buttonNamed(bar, 'Back'), ...['undo', 'redo', 'save'].map(byTestId), ...tabs]
     if (size.mode !== 'wide') essentials.push(buttonNamed(byTestId('level-toolbar'), 'Layers'))
     expect(checkLayout(conditions, essentials)).toEqual([])
@@ -191,13 +186,12 @@ describe.each(SIZES)('Level view inspector and dock at $name ($width x $height)'
     await page.screenshot({ path: `.vitest/shots/level-dock-${size.name}.png` })
   })
 
-  test('the tools, Undo, Layers and Export stay in view', async () => {
+  test('the tools, Undo, Layers, the view switcher and Save stay in view', async () => {
     const { conditions } = await start(size)
     const toolbar = byTestId('level-toolbar')
     const tools = [...toolbar.querySelectorAll<HTMLElement>('[role="radiogroup"] [role="radio"]')]
     expect(tools.length).toBe(6)
-    const views = document.querySelector<HTMLElement>('[role="tablist"][aria-label="Views"]') as HTMLElement
-    const essentials = [tools[0] as HTMLElement, byTestId('undo'), buttonNamed(views, 'Export')]
+    const essentials = [tools[0] as HTMLElement, byTestId('undo'), byTestId('save'), ...switcherControls()]
     if (size.mode !== 'wide') essentials.push(buttonNamed(toolbar, 'Layers'))
     for (const control of essentials) expectInside(control, size)
     // The toolbar is a declared sideways scroll region (it scrolls rather than squeeze a label), so a narrow canvas

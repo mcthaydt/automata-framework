@@ -202,15 +202,14 @@ describe('/examples/<id>', () => {
     )
   })
 
-  // The originals are compiled by scripts/build-demos.ts with this same call. Compiling here, not reading
-  // static/playground/compiled/, keeps the check in a fresh checkout, where that build output does not exist.
-  it('compiles every catalog example to an original that names its file', () => {
+  it('compiles every example the way build-demos.ts precompiles it, naming its file', () => {
+    // Compiled here rather than read from static/playground/compiled/: a unit test never reads build output.
     for (const example of getExamples()) {
-      const result = compileExample(example.source, {
+      const compiled = compileExample(example.source, {
         id: example.id,
         moduleUrl: new URL(example.moduleUrl, SITE_ORIGIN).href,
       })
-      expect(result.ok && result.code).toContain('//# sourceURL=examples/' + example.path)
+      expect(compiled.ok && compiled.code).toContain('//# sourceURL=examples/' + example.path)
     }
   })
 })

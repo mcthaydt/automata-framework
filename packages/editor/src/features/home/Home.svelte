@@ -261,7 +261,7 @@ function onSearchKeydown(event: KeyboardEvent): void {
     gap: var(--space-3);
     padding: var(--space-5);
     border: 1px dashed var(--line-strong);
-    border-radius: var(--radius-lg);
+    border-radius: var(--edge-lg);
   }
   input[type='search'] {
     box-sizing: border-box;
@@ -269,7 +269,7 @@ function onSearchKeydown(event: KeyboardEvent): void {
     min-height: var(--size-hit);
     padding: 0 var(--space-3);
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-sm);
     background: var(--paper);
     color: var(--ink);
     font: var(--text-body-13);

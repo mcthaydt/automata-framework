@@ -45,13 +45,25 @@ const wide = $derived(mode === 'wide')
 const dockIsSheet = $derived(dockPlacementOf(mode, geometry.current.heightTier) !== 'inline')
 const dockShown = $derived(dockOpen ?? defaultDockOpen(mode, geometry.current.heightTier))
 
-onDestroy(() => session?.dispose())
+// Selecting something opens the inspector on it, so below `wide` (where the inspector is a drawer or a sheet) the
+// thing just placed or tapped shows its fields without a second tap. Only a new selection opens it: closing the
+// sheet with the same thing still selected keeps it closed.
+let selectedBefore = session?.editor.view.selected.join() ?? ''
+const stopFollowing = session?.editor.subscribe(() => {
+  const selected = session.editor.view.selected.join()
+  if (selected !== selectedBefore && selected !== '') inspectorOpen = true
+  selectedBefore = selected
+})
+
+onDestroy(() => {
+  stopFollowing?.()
+  session?.dispose()
+})
 </script>
 
 <EditorShell
   {geometry}
   topbar={frame.topbar}
-  rail={frame.rail}
   sheets={frame.sheets}
   bind:panelOpen
   bind:inspectorOpen
