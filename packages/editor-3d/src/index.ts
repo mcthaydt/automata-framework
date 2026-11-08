@@ -124,16 +124,23 @@ export * from './checks/wall-locator'
 export * from './entities/thing-def.schema'
 export * from './entities/things'
 export * from './geometry/loops'
-export * from './geometry/sectors'
-// The editor's own geometry until 14.1 moves it onto the level entry's (7.5): the same names from both `export *`s are
-// ambiguous, so the editor's stand until then.
+// The six sector queries the level entry also exports (crossing, insideSector, opening, polygonArea, segmentDistance,
+// walkBlocker) come from the entry above; the rest of the editor's sector model is named here.
 export {
-  crossing,
-  insideSector,
-  opening,
-  polygonArea,
-  segmentDistance,
-  walkBlocker,
+  type Collider,
+  type Edge,
+  edges,
+  floorAt,
+  isPortal,
+  type Piece,
+  type PortalEdge,
+  pieces,
+  type Resolved,
+  type ResolvedMap,
+  resolveMap,
+  resolveSectors,
+  type Sector,
+  sectorAt,
 } from './geometry/sectors'
 export { type Triangle, type Triangulation, triangulate } from './geometry/triangulate'
 export { type MoveCornerArgs, moveCorner, moveSector } from './model/corner-edits'
