@@ -3,12 +3,11 @@
 // (wide and straight with bellows pockets, or cuffed at the ankle). A wide leg's hem rides its hem pivot
 // (J.hemL / J.hemR).
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/streetwear.ts at a1f7246
-// (`trousers`, `stacked`, `breakOver`, `wideCut`, `wideLegs`, `cargoCut`, `cargos`), with AF's strict types;
-// the formulas and their order are the source's. Cut: the wash (the wide-legs' `fade`, a painter stain).
-// Changed: painter materials are swatch variants; the stitching, which the source draws tonal at density 2
+// The parts here (`trousers`, `stacked`, `breakOver`, `wideCut`, `wideLegs`, `cargoCut`, `cargos`), with AF's strict types;
+// the formulas and their order are unchanged. Cut: the wash (the wide-legs' `fade`, a painter stain).
+// Changed: painter materials are swatch variants; the stitching, which the original draws tonal at density 2
 // and in the outfit's thread from density 3, is drawn once, in the thread when the outfit names one, and a
-// back pocket is its top edge (M3.5b decision 4).
+// back pocket is its top edge (the density is fixed).
 
 import type { Anchor, Garment, Measure } from '@automata/3d/figures-kit'
 import {

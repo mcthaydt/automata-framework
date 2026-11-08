@@ -2,10 +2,9 @@
 // rib cuffs, a centre zip closed to the collar, slash pockets, a yoke across the back, a utility zip on the
 // left sleeve.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/streetwear.ts at a1f7246
-// (`bomberShell`, `bomber`), with AF's strict types; the formulas and their order are the source's. Cut:
+// The parts here (`bomberShell`, `bomber`), with AF's strict types; the formulas and their order are unchanged. Cut:
 // graphics (SNEKPRTY marks). Changed: painter materials are swatch variants, and the zip's pull, drawn at two
-// sizes by density, is one decal at its density-2 size (M3.5b decision 4).
+// sizes by density, is one decal at its density-2 size (the density is fixed).
 
 import type { Anchor, Decal, Garment, Measure, Part } from '@automata/3d/figures-kit'
 import { clamp, J, lerp, normalize, SIDES, type Skeleton, smooth, type V3 } from '@automata/3d/figures-kit'

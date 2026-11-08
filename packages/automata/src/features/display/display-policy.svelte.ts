@@ -1,12 +1,12 @@
 // The display policy: two covers the runtime keeps over every screen for the session.
 //
-// - The landscape gate (FloorFifty `LandscapeGate.svelte` at `ac72660`, classified by ui's `landscapeGate`):
+// - The landscape gate:
 //   standalone only. Under Ruken the host frames the game and fullscreen is the host's, so the gate never shows. Its
 //   one button asks the page's own browser for fullscreen (`enterFullscreen`); a refusal leaves the gate as it was
 //   and the game plays in the window.
 // - The rotate hint: a game locked to one orientation (`GameDefinition.orientation`), on a phone held the other way,
 //   pauses under `display` while the hint shows, hosted or not. A game that plays either way never sees it. With
-//   `rotateHint: 'toast'` (Owner amendment, 2026-10-18) it is FloorFifty's toast instead: advice, no pause.
+//   `rotateHint: 'toast'` (Owner amendment, 2026-10-18) it is a dismissible toast instead: advice, no pause.
 //
 // "A phone" is a coarse pointer in a phone form factor: a short desktop window is classed `phone-landscape` too, and
 // has no bar to hide and nothing to turn.

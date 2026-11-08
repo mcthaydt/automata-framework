@@ -49,7 +49,7 @@ describe('CORE_SETTINGS', () => {
     expect(CORE_SETTINGS.deviceFields).not.toContain('camera')
   })
 
-  // M5.4: the Audio group's choices (M5 spec §7), FloorFifty's `audio` settings.
+  // M5.4: the Audio group's choices (M5 spec §7).
   it('reads a record saved before audio with audio at its defaults: not muted, every bus at full', () => {
     const before = '{"version":1,"input":{"profile":"","overrides":{}},"display":{"quality":"low"}}'
     expect(readSettings(CORE_SETTINGS, before).audio).toEqual({
@@ -93,7 +93,7 @@ describe('CORE_SETTINGS', () => {
     expect(audioSettingsSchema.parse({ muted: true })).toEqual({ ...AUDIO_SETTINGS_DEFAULT, muted: true })
   })
 
-  // M5.2 (M5 spec §4.5, M5-D4): the audio choices belong to the device, as FloorFifty's `keepAudioOnDevice` has it
+  // M5.2 (M5 spec §4.5, M5-D4): the audio choices belong to the device,
   // (Owner, 2026-10-10: "muting a Mac must not mute the same player's iPad").
   it('keeps the audio choices on the device', () => {
     expect(CORE_SETTINGS.deviceFields).toEqual(['audio'])

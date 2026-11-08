@@ -397,18 +397,43 @@ the site's 3D parts.
 | 1. Audit | Done, 2026-11-07 (PR stacked on #441): 10 structure (S1 to S10), 3 contracts (K1 to K3), 6 editor shipping (E1 to E6), 5 layout and look (V1 to V5), 6 tests (T1 to T6), 7 game (G1 to G7), 2 CI (Q1, Q2), 2 site (W1, W2), 10 copy (C1 to C10); and, the same day on the Owner's word, FigureBuilder and EnvironmentBuilder measured against AF (B1 to B10, section 9); 10 decisions for the Owner (D1 to D10); the Owner took D10 the same day: C on the card ("Their pixel-art look too"), then "Take everything basically", then "We use pixi3D, and 2D should also use the duel palette". 3,836 unit and DOM tests pass; the 3D editor's Chromium layout and canvas run 187 pass and 8 fail (the known 8); base-3d's journeys 8 of 8 and the 3D examples' 9 of 9 in Chromium. Headline: the 3D editor cannot open base-3d, and the Studio is unreachable | [2026-11-07-3d-slice-audit.md](2026-11-07-3d-slice-audit.md) |
 | 2. Plan and spec | Done, 2026-11-07, rewritten the same day with the superpowers plugin (`brainstorming`, `writing-plans`) in place of the hand-written first version (#443), with the paused plan audit's 21 findings folded in: D1 to D9 on the audit's recommendations, D10 as the Owner took it; four parts in the Owner's order, 20 phases, 53 tasks, each with files, interfaces and its failing tests; one `@automata/3d` package in `--features` layout (shared timeline, level and time of day), DUEL AF-wide, one timeline, one level format (`af-sector/2`, field by field), the look on Pixi 3D, `automata textures` in `-tools`, the 8 tests fixed in phase 1 | [spec](2026-11-07-3d-slice-spec.md), [plan](2026-11-07-3d-slice-plan.md) |
 | 3. Plan audit | Done, 2026-11-07, with the superpowers plugin (`writing-plans`' self-review), native: 26 findings against #444's head, the checkout and both builders, all fixed in place in the spec and the plan (the move map now follows today's imports, so `--features` holds: `shared/render/`, the occluders the camera's; the test mover's real flags; the goldens renamed and re-recorded once for FigureBuilder's newer fat; the 15 classic kinds; `Ease` keeps the cubic-bezier tuple; `LevelProblem`; `findCutByBar` in place of `findClipped`; the 2D slice's real-command harness reused; editor-3d's full move map; the look's target follows a phone in portrait; drunk grandma fixes to the new words). The paused audit's 21: 17 fixed by the rewrite, 4 finished here. DUEL's author and licence stay the Owner's | [record](2026-11-07-3d-slice-plan-audit.md) |
-| 4. Build | In progress (Sonnet, high): 22 of 54 tasks, see the build table below | [plan](2026-11-07-3d-slice-plan.md) |
+| 4. Build | In progress (Sonnet, high): 29 of 54 tasks, see the build table below | [plan](2026-11-07-3d-slice-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-**Where to resume (2026-11-07, stage 3 done):** the build (stage 4, Sonnet high) starts at task 1.1 of the [plan](2026-11-07-3d-slice-plan.md) with `superpowers:executing-plans`, natively in the session with no subagents, handing off after 90 minutes; the [plan audit](2026-11-07-3d-slice-plan-audit.md) lists what changed. Before it, stage 2's note: the plan audit read the
+**The whole game loop (2026-11-08, session 6rfl3t, PR stacked on #473; the Owner asked whether a whole game can be made
+from the editors).** The 2D editors audit's E1 to E5 are fixed on the open stack, each with a served journey (E1
+`save-reaches-the-game`, E2 and E3 `new-game-opens`, E4 the 2D default, E5 `suite-opens-the-checkout`); none is on
+`main` yet. E6 was not: Play needed a second terminal (`pnpm dev`) and Publish was a change-set flow only a sample has,
+so nothing shipped a game from the editors. Now `automata editor` opens the editors page by default (the suite, ahead of
+15.2), starts the game's own Vite beside it (`features/editor/game-runner.ts`; `--game-url` still names a running one,
+and a game with no packages installed opens with "Play is off" and what to run), and serves `/api/publish`
+(`publish-game.ts`: the game's `vite build --mode itch`, then `automata ship prepare --target itch`, one zip). The
+suite's top bar has Play (a link to the running game) and, on a game's own folder, Publish (`PublishGameDialog`:
+Build my game, then Download the zip). The journey `whole-game-loop` runs the loop on a fresh `create-game` game: paint,
+saved to the level file, `check --only levels`, Play shows the wall in the running game, Publish, the downloaded zip
+holds `index.html` and the wall. All 20 journeys pass twice in Chromium at iPad and phone size; WebKit and Firefox not
+run (not in cloud sessions). `pnpm check`: green except `serve-editor.test.ts` "writes an mtime a later guarded write
+can use", which fails on this PR's base too (the container's file clock), not touched here. For 15.2 and 15.3: the default
+is already the suite; 15.3 cuts the change-set Publish, Export changes and Import changes, and keeps Play and the game's
+Publish. Screens: `/mnt/project-files/whole-game-loop/`.
+
+**Where to resume (2026-11-08, session us0s9k, 15.1b (a) to (d) and (f) half done):** branch `claude/project-thread-us0s9k`, PR #473 stacked on #472. Next is 15.1b (e), then the last journey and the site's Try-it page, then 15.2 to 15.4; the plan's log ("Task 15.1b" entries) has each ruling and a design note for (e). `pnpm install --frozen-lockfile` first in a fresh container; a commit that exports a type needs `pnpm build`, `pnpm api-report --update` first or the hook fails on the editor report; the served journeys run with `pnpm exec playwright test -c playwright.journeys.config.ts --project=editor-ipad-chromium` in `packages/editor` (`PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`, tools built).
+
+**Where to resume (2026-11-08, session ngqsn7 after 14.1):** the build continues at task 15.2 (one page, chosen by the game) on branch `claude/project-thread-ngqsn7`, stacked on #467 (PR #472). 14.1, 14.2 and 15.1 are done (the plan's log has the rulings). Facts a fresh session needs: `editor-3d`'s tests are in `tests/{unit,browser/{layout,canvas,journeys}}` and import the code as `#src/...`; run them with `pnpm exec vitest run --project unit`, `--project 'layout (chromium)'`, `--project canvas`, `--project 'journeys (chromium)'` in `packages/editor-3d` (`PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`); a mover does not rewrite `new URL(...)`, `import.meta.glob(...)` or path strings in data.
+
+**Where to resume (2026-11-08, 00:20, session iivhdo after 13.3, part B done):** the build continues at part C, task 14.1 (`editor-3d` by feature; the plan's step 6, merging part B's PRs in stack order, belongs to the merge thread, not this one) on branch `claude/project-thread-x8jce3` (PR #467); 12.2 is done (the plan's log, "Task 12.2", has eight rulings). The Plus port moved to a new thread, `cmsg_01Bdevh9DCcthSQNtQzThLSXABi58zGxx9tEDe8tK4L8zr`: send it anything about `packages/3d`. A fresh checkout needs `pnpm install --frozen-lockfile` (7 s) before anything runs; a full `pnpm check` is about 4 minutes and once failed in `@automata/framework#build` on a missing `src/node_modules/.cache/af-paraglide-fixture` file (a unit test writes it while `svelte-package` reads `src`; run `pnpm check` again). To try a generated 3D game, make it inside the workspace with `node packages/tools/src/app/bin.ts create-game games/<id> --template 3d --link-workspace`, run its tests with `pnpm exec vitest run --configLoader runner`, and set its tsconfig to `module ESNext` and `moduleResolution bundler` (the workspace's packages are sources); delete it and restore `pnpm-lock.yaml` after. The stranger journey for 3D (`AF_BETA_3D=1 pnpm exec playwright test --trace off stranger-3d` in `tooling/consumer-smoke`, after `pnpm build`) takes about two minutes and stops at `@automata/3d` shipping `.ts` sources: the release PR must build it to `dist/`.
+
+**Where to resume (2026-11-07, 23:00, session x8jce3 handed off after 12.1):** the build continues at task 12.2 (`create-game --template 3d`) on branch `claude/project-thread-x8jce3` (PR #467, stacked on #465), then phase 13. Done in that PR: 10.2, 11.1 to 11.3, 12.1. Read the plan's execution log for each task's rulings. Facts a fresh session needs: base-3d's tests run with `pnpm exec vitest run --configLoader runner --project unit` (and `--project layout --browser.name=chromium` here, since only Chromium is installed); the 3D journeys run with `pnpm exec playwright test --project=base-3d --project=base-3d-dev --trace off` in `games/base-3d` and `--project=examples-3d` in `examples/3d`; `PATH` needs `/opt/node24/bin` and `PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`; commits take two to four minutes in the hook, so run them in the background and wait on their exit; the progress tables have a 2D slice section above the 3D one with the same task numbers, so edit the 3D rows only (the build table near line 450). 12.2 needs a whole new game template (project files, vite config with the 3D content kinds, a sim with Wick and one room, tuning, editor list, tests) that passes `automata check`, a `--template 2d|3d` flag, the gate `3D games need a package that is not public yet. For now, make a 2D game: leave out --template.`, and a consumer-smoke case behind `AF_BETA_3D=1` that cannot run offline.
+
+**Earlier (2026-11-07, stage 3 done):** the build (stage 4, Sonnet high) starts at task 1.1 of the [plan](2026-11-07-3d-slice-plan.md) with `superpowers:executing-plans`, natively in the session with no subagents, handing off after 90 minutes; the [plan audit](2026-11-07-3d-slice-plan-audit.md) lists what changed. Before it, stage 2's note: the plan audit read the
 [spec](2026-11-07-3d-slice-spec.md) and the [plan](2026-11-07-3d-slice-plan.md) against the audit, the checkout and
 both builders at FigureBuilder `025ffb4` and EnvironmentBuilder `6d82a52`. The paused audit's 21 findings are folded in
 (the plan's "Audit notes folded in" says where each went); its unchecked items remain: the editor-3d move map (14.1),
 the site paths (19.1), the copy table and the 2D editor counts. Then the build (Sonnet, high) starts at task 1.1 with
 `superpowers:executing-plans`, natively in the session with no subagents, handing off after 90 minutes.
 
-### Build: 41% (22 of 54 tasks)
+### Build: 54% (29 of 54 tasks)
 
 Scope trim (2026-11-07 19:28, the Owner): 3D core as light as 2D; see [2026-11-07-3d-scope-trim.md](2026-11-07-3d-scope-trim.md). 9.1 and 9.2 moved to the Plus port and leave the count; 7.5, 7.6 and 7.7 joined it, so it is now 54 (the Owner at 19:58 kept the base pair and the base interior and exterior in core).
 
@@ -453,15 +478,16 @@ One row per task of the [plan](2026-11-07-3d-slice-plan.md); a task is done when
 | 11.2 One name, the menu and the HUD | 11 | Done, 2026-11-07 (session x8jce3; the game is Ember Hall in the catalog, page, store listing, editor and `DESIGN.md` (`automata editor` reads `package.json` `automata.title`, a `@automata/tools` patch); the menu has a Settings button that returns to the menu (its own `menu-settings` screen and flow transition); the HUD says `Embers 0 of 6`; the pixel field takes the screen's shape (`features/scene/field.ts`) so an iPad's room fills its height (was 66%); base-3d unit 100, Chromium layout 18 pass, journeys 8 pass, `pnpm typecheck`, `boundaries`, `style`, `knip` clean; before/after screens in `/mnt/project-files/3d-slice/11.2/`; WebKit, Firefox and hosted CI not run) |
 | 11.3 Journeys that play | 11 | Done, 2026-11-07 (session x8jce3; `e2e/play.e2e.ts`: with a real touch (CDP), the stick walks Wick to an ember and the HUD says `Embers 1 of 6`, Roll lunges him over 2.5 m, the goal ember opens the end screen, at 844 × 390 and 1194 × 834; `src/testing/route.ts` (`?route=ember\|goal` and `data-hero`, only in the `e2e:game` build); Chromium journeys 14 pass (7 before), first attempt after fixing the roll's hold and the 40 s steps; WebKit and hosted CI not run) |
 | 12.1 The 3D examples on the new package | 12 | Done, 2026-11-07 (session x8jce3; three new examples (`figures-stand-and-sliders`, `look-pixel-art`, `world-level-room`) with journeys; the eight existing ones import `@automata/3d` and have `// --- <role> ---` sections; `examples/3d/README.md`; the catalog accepts the `look` and `world` modules; the sky-share journeys of `render3d-meshes` and `render3d-angled-camera` named the old sky colour and now name the DUEL one; Chromium 12 journeys pass, catalog and site playground unit pass, typecheck, style, boundaries, knip clean; WebKit not run) |
-| 12.2 `create-game --template 3d` | 12 | Not started |
-| 13.1 `automata editor` reads 3D levels | 13 | Not started |
-| 13.2 Docs, agents and words outside the 3D package | 13 | Not started |
-| 13.3 The 3D frame-budget projects | 13 | Not started |
-| 14.1 Feature folders and `tests/` | 14 | Not started |
-| 14.2 Dead entries, the shim and the tokens | 14 | Not started |
-| 15.1 The full suite opens the checkout | 15 | Not started |
-| 15.2 One page, chosen by the game | 15 | Not started |
-| 15.3 The cuts | 15 | Not started |
+| 12.2 `create-game --template 3d` | 12 | Done, 2026-11-07 (session iivhdo; `--template 2d|3d`, the gate sentence, the 3D template (Wick walking one room with a box and a cylinder prop, tuning, editor list, feature layout, content test) in `template-3d*.ts` and `template-3d-content/`; the generated game typechecks, passes its 14 tests, boundaries and a build, and plays in Chromium; the stranger journey `stranger-3d.test.ts` is written behind `AF_BETA_3D=1` and stops at `@automata/3d` shipping `.ts` sources, the release PR's job; `pnpm check` 31/31; WebKit not run) |
+| 13.1 `automata editor` reads 3D levels | 13 | Done, 2026-11-07 (session iivhdo; a game with no editor list opens its `.af-sector.json` room; the first line names the game by its title; tools editor unit 136 pass; WebKit not run) |
+| 13.2 Docs, agents and words outside the 3D package | 13 | Done, 2026-11-07 (session iivhdo; 342 source names and 10 plan IDs rewritten to 0 in `automata`, `content`, `tools`, `base-3d`, `examples/3d`; `docs/guides/3d.md` and `games/base-3d/README.md` written; the 3D guide is not on the site until 3D is public) |
+| 13.3 The 3D frame-budget projects | 13 | Done, 2026-11-08 (session iivhdo; `frame-budget-3d-phone` and `-ipad`, a 3D stress page, `firstPoseMs`; unit 51 pass, the probe skips on software; **`pnpm budget:frame` stays red for the 3D rows until the Owner's GPU run**) |
+| 14.1 Feature folders and `tests/` | 14 | Done, 2026-11-08 (session ngqsn7; 406 files by a 130-row map, Levels 3D one feature with a folder per screen and the Studio another, `shared/` for what two use; `--features packages/editor-3d --components` finds 0 and runs in `pnpm boundaries`; unit 2181 (was 2196: the retired architecture test is 10, the purity cases 5), layout 189, canvas 14, journeys 16 all as before in Chromium; the duplicated geometry deleted for the level entry's; WebKit and Firefox not run) |
+| 14.2 Dead entries, the shim and the tokens | 14 | Done, 2026-11-08 (session ngqsn7; `style --tokens` finds 52 uses of 13 unknown names in editor-3d and 0 after the fix; the shim, the `.` and `./suite` entries and the barrel are gone; unit 2159, layout 189, canvas 14; colours move from the fallbacks to the kit's tokens, the Owner's GPU run is where they are looked at) |
+| 15.1 The full suite opens the checkout | 15 | Done, 2026-11-08 (session ngqsn7; `openSuite3d` opens the checkout through `openSuitePorts` and the 3D sample (a room and Wick) only when no server answers; 2 tests; base-3d's editor list gives the Studio only `content/figures/*.toml`, noted for 17.x) |
+| 15.1b Port the 2D views into the suite's Levels | 15 | In progress (session us0s9k, PR #473 stacked on #472; the Owner's call, 2026-11-08): (a) the game's files are written with the project, (b) the Tiles view with Add tiles, (c) the suite carries pictures, (d) a changed file is a choice (Use mine, Use theirs) are done; five of the six `automata editor` journeys drive the suite and pass in Chromium at iPad and phone size. Left: (e) templates and Share on the sample game, and `share-leaves-the-browser` with the site's Try-it page. Map is not ported: World is the Map view (the Owner) |
+| 15.2 One page, chosen by the game | 15 | Waits for 15.1b (e); the tools half is to be rewritten test first (the plan's log lists every piece) |
+| 15.3 The cuts | 15 | Not started (scope read; see the plan log) |
 | 15.4 The suite on a phone | 15 | Not started |
 | 16.1 The frame, phone first | 16 | Not started |
 | 16.2 The builders' authoring | 16 | Not started |
@@ -477,6 +503,21 @@ Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and Levels 3
 2026-11-06: "completely redesign the editors for ux, copy, and ui"; the 2D slice redesigns the kit and the 2D editor),
 the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
 examples' and editors' code refactor to the same standard (2D spec section 17).
+
+## Edited content shows in play: 33% (2 of 6: stages 2 and 3)
+
+Normal dev pipeline (no stage 1 audit; the investigation is
+[`2026-11-08-complete-game-gaps.md`](2026-11-08-complete-game-gaps.md)). The Owner approved steps 1 to 6 on 2026-11-08
+04:13 and corrected the goal at 04:14: "I want humans to be able to modify content", not games without code. Steps 2
+(ready-made behaviours) and 5 (HUD pieces) are cut for that reason (spec section 1).
+
+| Stage | State |
+| --- | --- |
+| 2. Spec and plan | Done: [spec](2026-11-08-content-in-play-spec.md), [plan](2026-11-08-content-in-play-plan.md), 16 tasks |
+| 3. Plan audit | Done: [audit](2026-11-08-content-in-play-plan-audit.md), 21 findings fixed in the spec and plan; 17 tasks |
+| 4. Build | In progress (7 of 17, plus 5b: tile readers, `levelScene`, `pictureView`, the new game draws the editor's level, animation schema and clips in play, Tiles from, the `examples/2d-story` skeleton, the Animation section in Characters; the journeys found and fixed a lost-save bug) |
+| 5. Build audit | Not started |
+| 6. Fixes | Not started |
 
 ## Schematic (the AI editor)
 

@@ -145,9 +145,12 @@ describe('a package with named browser folders', () => {
   it('folds a one-off qualifier into the name with a hyphen, and a DOM one still runs in jsdom', () => {
     const result = planMoves(
       config({ browserFolders: true }),
-      ['src/a/patch.refusal.test.ts', 'src/a/Suite.ship.dom.test.ts', 'src/a/codec.codec-bug.test.ts'].map(
-        where,
-      ),
+      [
+        'src/a/patch.refusal.test.ts',
+        'src/a/Suite.ship.dom.test.ts',
+        'src/a/codec.codec-bug.test.ts',
+        'src/a/Suite.studio.dom.test.ts',
+      ].map(where),
       () => '',
     )
     const to = Object.fromEntries(
@@ -157,6 +160,7 @@ describe('a package with named browser folders', () => {
       'src/a/patch.refusal.test.ts': 'tests/unit/a/patch-refusal.test.ts',
       'src/a/Suite.ship.dom.test.ts': 'tests/unit/a/Suite-ship.test.ts',
       'src/a/codec.codec-bug.test.ts': 'tests/unit/a/codec-codec-bug.test.ts',
+      'src/a/Suite.studio.dom.test.ts': 'tests/unit/a/Suite-studio.test.ts',
     })
     expect(result.moves.find((move) => move.from === where('src/a/Suite.ship.dom.test.ts'))?.directive).toBe(
       '// @vitest-environment jsdom',

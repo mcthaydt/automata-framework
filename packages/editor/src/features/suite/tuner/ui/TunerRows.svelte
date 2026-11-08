@@ -19,6 +19,7 @@ import { shownName, shownNote, type Tunable } from '../tuner-content'
 import type { TunerController } from '../tuner-controller'
 import { rawValue, shownBounds, shownValue } from '../tuner-display'
 import { checkValue } from '../tuner-edits'
+import ControlsSection from './ControlsSection.svelte'
 
 const { controller }: { controller: TunerController } = $props()
 
@@ -177,9 +178,10 @@ const shownOf = (tunable: Tunable) => {
         </div>
       </div>
     {/each}
-    {#if $refusal !== undefined}
-      <p class="refusal" role="status" data-testid="tuner-refusal">{$refusal}</p>
-    {/if}
+  {/if}
+  <ControlsSection {controller} />
+  {#if $refusal !== undefined}
+    <p class="refusal" role="status" data-testid="tuner-refusal">{$refusal}</p>
   {/if}
 </section>
 

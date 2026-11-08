@@ -1,0 +1,5 @@
+# How fast Wick walks, in metres a second. The range, label and feel are what the Tuner shows beside the slider; the
+# game reads only the value.
+
+# 4 m/s: a full push of the stick.
+WALK_SPEED = { value = 4, min = 2, max = 8, step = 0.1, label = "Walking speed", feel = "How fast Wick walks with the stick pushed all the way.", unit = "m/s" }

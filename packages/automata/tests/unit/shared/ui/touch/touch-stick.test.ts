@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { clampRingCentre, stickVector, TOUCH_STICK_RADIUS_PX } from '#src/shared/ui/touch/touch-stick.ts'
 
-// The floating move stick's vector (M4 spec §16.3.3), from The Last Light `src/input.ts` at `92e6704` and its test
-// "stick vectors have a dead zone and clamp to length 1". The dead zone moved to runtime (`Input.touchStick`, M4-D13),
+// The floating move stick's vector (M4 spec §16.3.3). The dead zone moved to runtime (`Input.touchStick`, M4-D13),
 // so this only clamps; its second axis is `y`, positive down, as a pad's.
 describe('stickVector', () => {
   it('is the drag over the radius, clamped to length 1', () => {

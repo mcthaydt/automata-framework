@@ -1,0 +1,20 @@
+{
+  "format": "af-sector/1",
+  "name": "hall",
+  "sectors": [
+    {
+      "id": "hall",
+      "floor": 0,
+      "ceiling": 4,
+      "light": 1,
+      "corners": [[0, 0], [8, 0, { "next": "dock" }], [8, 6], [0, 6]]
+    },
+    {
+      "id": "dock",
+      "floor": -0.5,
+      "ceiling": 4,
+      "light": 0.7,
+      "corners": [[8, 0], [14, 0], [14, 6], [8, 6, { "next": "hall" }]]
+    }
+  ]
+}

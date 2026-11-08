@@ -1,10 +1,9 @@
 // The cropped puffer (quilted baffles, a high collar, full sleeves) and the oversized tee (dropped shoulders,
 // a boxy hang), each cut from the measure and grown round what it goes on over (layering.ts).
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/streetwear.ts at a1f7246
-// (`pufferShell`, `puffer`, `teeShell`, `tee`), with AF's strict types; the formulas and their order are the
-// source's. Cut: graphics (SNEKPRTY marks). Changed: painter materials are swatch variants, and a mark the
-// source draws at two sizes by density is one decal at its density-2 size (M3.5b decision 4).
+// The parts here (`pufferShell`, `puffer`, `teeShell`, `tee`), with AF's strict types; the formulas and their order are
+// unchanged. Cut: graphics (SNEKPRTY marks). Changed: painter materials are swatch variants, and a mark the
+// source draws at two sizes by density is one decal at its density-2 size (the density is fixed).
 
 import type { Anchor, Garment, Measure } from '@automata/3d/figures-kit'
 import {

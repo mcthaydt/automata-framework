@@ -1,5 +1,5 @@
-// Haptics (Owner, 2026-10-18): a controller's rumble, or a phone's buzz. From FloorFifty `systems/haptics.ts` at
-// a28dc44, generalised: a game says what each pulse is (`HapticPulse`) rather than FloorFifty's race kinds.
+// Haptics (Owner, 2026-10-18): a controller's rumble, or a phone's buzz.
+// A game says what each pulse is (`HapticPulse`).
 //
 // Where a pulse goes:
 // - A connected pad with an actuator (the W3C `vibrationActuator`, Chrome and Edge today) gets a `dual-rumble`: the

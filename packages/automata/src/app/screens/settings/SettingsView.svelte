@@ -1,5 +1,5 @@
 <!--
-  The default Settings screen, in FloorFifty's two tabs (`SettingsPanel.svelte` at a28dc44):
+  The default Settings screen, in two tabs:
   Settings holds Language, Audio, Vibration (where the device can), Display, Touch controls (on a coarse pointer, when the game offers buttons and swipes), then every
   component the extensions put in the `settings.sections` slot; Controls holds the controls by device, when the game
   has an input map. `view` is the screen's live state

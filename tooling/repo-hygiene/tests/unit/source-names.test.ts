@@ -100,10 +100,11 @@ describe('findSourceNames with code folders', () => {
     ])
   })
 
-  it('skips node_modules and dist', () => {
+  it('skips node_modules, dist and .svelte-kit (generated)', () => {
     const root = tree({
       'packages/3d/node_modules/x/a.ts': `// ${sample}\n`,
       'packages/3d/dist/a.json': `"${sample}"\n`,
+      'packages/3d/.svelte-kit/__package__/a.d.ts': `// ${sample}\n`,
     })
     expect(findSourceNames(root, code)).toEqual([])
   })

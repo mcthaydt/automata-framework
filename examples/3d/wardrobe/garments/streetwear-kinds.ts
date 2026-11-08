@@ -4,7 +4,7 @@
 // what goes over it clears. And `reachable`: the openings a hand can use in a dressed outfit, less those a garment
 // worn over them covers, which the wardrobe sets as the outfit hook that picks a dressed figure's openings.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/streetwear.ts at a1f7246 (`Layer`,
+// The parts here (`Layer`,
 // `Kind`, `Role`, `TAKES`, `Entry`, `GARMENTS`, `garmentOf`, `roleOf`, `fieldRole`, `reachable`), with AF's
 // strict types. Swatch kinds and roles are AF's swatch fields (library/swatch.schema.ts). Not taken:
 // `recombine` (the random cast is core's testing/random-character.ts).

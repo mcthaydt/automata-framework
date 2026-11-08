@@ -1,4 +1,4 @@
-// The atlas packer. AF's own: FloorFifty ships single images, so there is no source to port.
+// The atlas packer.
 //
 // Deterministic by construction: frames are taken in code-unit order of their names and placed on shelves, left to
 // right, then top to bottom. Each frame sits in a cell one pixel larger on every side (the extrusion, which repeats

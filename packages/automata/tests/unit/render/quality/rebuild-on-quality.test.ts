@@ -3,7 +3,7 @@ import { rebuildOnQuality } from '#src/features/render/quality/rebuild-on-qualit
 import type { QualityTier } from '#src/shared/runtime/display-settings.schema.ts'
 import type { SettingsStore } from '#src/shared/runtime/settings/settings.manager.ts'
 
-// From FloorFifty `tests/client/systems/render/quality-rebuild.test.ts` at `ac72660`, over runtime's SettingsStore.
+// Over runtime's SettingsStore.
 interface TestSettings {
   readonly display: { readonly quality: QualityTier }
   readonly audio: { readonly muted: boolean }

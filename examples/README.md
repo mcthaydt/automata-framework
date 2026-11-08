@@ -1,11 +1,14 @@
 # Examples
 
-Two packages, one per dimension. Each file is one example of one feature.
+Two packages, one per dimension, and one small game. Each file is one example of one feature.
 
 - [`2d/`](2d/) (`@af-examples/examples-2d`): the 2D examples, run by `pnpm examples` (the index) and checked by their
   journeys in `2d/tests`. They are public: nothing here reaches the 3D packages.
 - [`3d/`](3d/) (`@af-examples/examples-3d`): the 3D renderer's and the procedural figures' examples, run by
   `pnpm examples:3d` and checked by their journeys in `3d/tests` in the 3D workflow.
+
+[`2d-story/`](2d-story/) (`@af-examples/2d-story`): a small 2D game with two areas, a keeper and a guard, edited by the content editors'
+served journeys (private).
 
 Emberwick, the 2D game, is in [`games/emberwick`](../games/emberwick/); the 3D game is in
 [`games/base-3d`](../games/base-3d/). Art keeps to the [art direction](../docs/art/README.md) and its DUEL colour palette.

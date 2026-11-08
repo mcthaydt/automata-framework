@@ -1,5 +1,5 @@
 // Finding and checking references between content items.
-// The checks are FloorFifty's (packages/content/src/validate/references.ts, 122a220): a reference must name
+// A reference must name
 // an existing item (`unknownReference`), and that item must be the right kind (`wrongKind`). What changed is
 // how references are found: they are marked in the schema (`contentRef`) and collected by walking the data.
 

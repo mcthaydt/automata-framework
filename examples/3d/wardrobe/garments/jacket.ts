@@ -2,11 +2,10 @@
 // lapels folded back either side of it, epaulettes, a zipped chest pocket and two slant pockets, zipped
 // cuffs, a belted hem, a yoked and panelled back.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/streetwear.ts at a1f7246
-// (`jacketShell`, `jacket`), with AF's strict types; the formulas and their order are the source's. Cut:
+// The parts here (`jacketShell`, `jacket`), with AF's strict types; the formulas and their order are unchanged. Cut:
 // graphics (SNEKPRTY marks). Changed: painter materials (the folded hide, its lit edge, the notch, the
-// metal's teeth and pulls, seams) are swatch variants, and a mark the source draws at two sizes by density is
-// one decal at its density-2 size (M3.5b decision 4).
+// metal's teeth and pulls, seams) are swatch variants, and a mark the original draws at two sizes by density is
+// one decal at its density-2 size (the density is fixed).
 
 import type { Anchor, Garment, Measure } from '@automata/3d/figures-kit'
 import {

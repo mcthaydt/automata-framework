@@ -1,7 +1,6 @@
 <!--
   @component
-  The whole visible screen as one swipe surface, from FloorFifty `ui/components/SwipeSurface.svelte`
-  at `ac72660`.
+  The whole visible screen as one swipe surface.
 
   All bookkeeping is the tracker's (runtime `SwipeTracker`); this forwards pointer events, each with its own
   `timeStamp`, and draws a thin thumb-to-anchor line so the player can see the dead zone. Which fingers may steer
@@ -51,7 +50,7 @@ function move(event: PointerEvent): void {
 
 /**
  * Per finger, for a lift, a cancel and a lost capture alike: a lifted finger loses its capture too, and releasing
- * every finger then stopped the other thumb steering (FloorFifty).
+ * every finger then stopped the other thumb steering.
  */
 function up(event: PointerEvent): void {
   tracker.up(event.pointerId, event.clientX, event.clientY, event.timeStamp)

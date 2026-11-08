@@ -9,6 +9,7 @@ export default publishedBuild(import.meta.url, {
   entry: {
     index: 'src/entries/index.ts',
     assets: 'src/entries/assets.ts',
+    controls: 'src/entries/controls.ts',
     locale: 'src/entries/locale.ts',
     palette: 'src/entries/palette.ts',
     schema: 'src/entries/schema.ts',

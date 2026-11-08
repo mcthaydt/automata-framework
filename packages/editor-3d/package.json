@@ -10,15 +10,14 @@
   },
   "type": "module",
   "sideEffects": false,
-  "exports": {
-    ".": "./src/index.ts",
-    "./suite": "./src/ui/suite/index.ts"
+  "imports": {
+    "#src/*": "./src/*"
   },
   "scripts": {
     "dev": "vite",
     "build": "vite build && vite build --mode suite",
     "test": "vitest run",
-    "test:unit": "vitest run --project unit --project dom",
+    "test:unit": "vitest run --project unit",
     "test:layout": "vitest run --project layout",
     "test:canvas": "vitest run --project canvas",
     "test:browser": "vitest run --project layout",
@@ -37,6 +36,7 @@
     "zod": "4.6.6"
   },
   "devDependencies": {
+    "@automata/vitest-preset": "workspace:*",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",

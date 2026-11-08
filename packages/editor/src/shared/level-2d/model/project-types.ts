@@ -1,4 +1,4 @@
-import type { EntityDef, FieldDef, FieldValues } from '@automata/content/level-2d'
+import type { ContentAnimation, EntityDef, FieldDef, FieldValues } from '@automata/content/level-2d'
 import type { RuleGroup } from '../tiles/autotile/rule.schema.ts'
 import type { Grid } from './grid.ts'
 
@@ -102,6 +102,8 @@ export type EntityDef2D = EntityDef & {
   readonly resizable: EntityResize
   /** Drawn on the canvas when set. */
   readonly tile?: { readonly tileset: string; readonly index: number } | undefined
+  /** A picture cut into frames and clips over them; a character with one plays its first clip until a game says otherwise. */
+  readonly animation?: ContentAnimation | undefined
   readonly tags: readonly string[]
   /** "At least one player-start in the project": a count the Checks enforce, no template code. */
   readonly min?: { readonly per: 'level' | 'project'; readonly count: number } | undefined

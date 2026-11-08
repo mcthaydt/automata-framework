@@ -32,6 +32,11 @@ export interface WorkspaceFile {
   readonly checks: readonly string[]
   /** `edit`: direct edits; `ask`: the assistant may propose a diff. */
   readonly modes: readonly EditMode[]
+  /**
+   * For a level project: the folder its game files go into (the row's `exports`), so the editor writes them with the
+   * project. Absent for a file whose row names none.
+   */
+  readonly exports?: string | undefined
   /** False for a file the editor may show but never write (a generated or `never` path). */
   readonly writable: boolean
   /** Why the file is not writable, for the person. */
@@ -66,6 +71,30 @@ export interface SuiteWorkspace {
    * `'absent'`: it must not exist yet (a new figure, pose or clip), and the open change set records it as created.
    */
   write(path: string, text: string, expected: WriteExpectation): Promise<WriteResult>
+  /**
+   * The bytes of any file inside the game root, for the pictures a level draws; `undefined` when there is none or the
+   * path is outside the root. The served workspace has it; a workspace of text only does not.
+   */
+  readBytes?(path: string): Promise<Uint8Array | undefined>
+  /**
+   * Writes a picture (or any file) a writable row matches, under the same rules and expectation as `write`. It is not
+   * an undo step: Add tiles' picture is the game's own file, kept whether or not the level that uses it is.
+   */
+  writeBytes?(path: string, bytes: Uint8Array, expected: WriteExpectation): Promise<WriteResult>
+  /**
+   * Several files as one undo step: every one is written or none is. Only the suite's own wrapper has it (an adapter's
+   * `write` is the port); an editor that writes more than one file per step uses it when it is there. Each file's
+   * `expected` is as `write`'s, and a file the editor already wrote in this session needs none. `force` is the
+   * person's choice to write over a file that changed somewhere else (a conflict's Use mine).
+   */
+  writeAll?(
+    files: readonly {
+      readonly path: string
+      readonly text: string
+      readonly expected?: WriteExpectation
+      readonly force?: boolean
+    }[],
+  ): Promise<WriteResult>
   /** Removes a file the open change set created, at the mtime it was read with; `policy` for any other file. */
   remove(path: string, expected: { readonly mtime: number }): Promise<WriteResult>
   /** A compiler output, read only (`tuning-meta.json`), or `undefined` when there is none. */

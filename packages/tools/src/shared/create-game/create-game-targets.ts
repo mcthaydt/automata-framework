@@ -92,8 +92,21 @@ const TARGET_GUIDE: Record<DistTarget, { readonly name: string; readonly command
   tauri: { name: 'Desktop (Tauri)', commands: 'pnpm build:tauri && pnpm prepare:tauri' },
 }
 
-/** The README of a new game: how to run it, where its code is, how to build for each chosen target. */
-export function targetReadme(title: string, targets: readonly DistTarget[]): string {
+/** The lines of a 2D game's README that say where its code and content are. */
+export const SQUARE_WHERE = `- \`src/features/square/\`: the square and how it moves. One folder for each thing in your game.
+- \`src/features/level/\`: how the game reads its level: the walls the square stops at, and where it starts.
+- \`content/levels/start.af2d.json\`: the level. \`pnpm exec automata editor\` opens it in the level editor; press Save
+  and the game plays the new level.
+- \`src/shared/constants.ts\`: numbers the game uses in more than one place.
+- \`src/app/game.ts\`: where the game is put together (the controls, the screen size).
+- \`tests/\`: tests. \`pnpm test\` runs them, and \`pnpm check\` runs every check a game has to pass before it is published.`
+
+/** The README of a new game: how to run it, where its code is (`where`), how to build for each chosen target. */
+export function targetReadme(
+  title: string,
+  targets: readonly DistTarget[],
+  where: string = SQUARE_WHERE,
+): string {
   const rows = targets.map((target) => `- ${TARGET_GUIDE[target].name}: \`${TARGET_GUIDE[target].commands}\``)
   return `# ${title}
 
@@ -101,13 +114,7 @@ export function targetReadme(title: string, targets: readonly DistTarget[]): str
 
 ## Where things are
 
-- \`src/features/square/\`: the square and how it moves. One folder for each thing in your game.
-- \`src/features/level/\`: how the game reads its level: the walls the square stops at, and where it starts.
-- \`content/levels/start.af2d.json\`: the level. \`pnpm exec automata editor\` opens it in the level editor; press Save
-  and the game plays the new level.
-- \`src/shared/constants.ts\`: numbers the game uses in more than one place.
-- \`src/app/game.ts\`: where the game is put together (the controls, the screen size).
-- \`tests/\`: tests. \`pnpm test\` runs them, and \`pnpm check\` runs every check a game has to pass before it is published.
+${where}
 
 ## Building
 

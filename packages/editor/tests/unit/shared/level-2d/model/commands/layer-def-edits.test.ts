@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest'
+import { paintLayerCells } from '#src/shared/level-2d/model/commands/cell-edits.ts'
 import {
   addLayerDef,
   editLayerDef,
   reorderLayerDefs,
   setIntValue,
+  setLayerTileset,
 } from '#src/shared/level-2d/model/commands/layer-def-edits.ts'
 import { newRule } from '#src/shared/level-2d/model/commands/rule-edits.ts'
+import { addTileset } from '#src/shared/level-2d/model/commands/tileset-edits.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import type {
   AutoLayerDef,
@@ -294,5 +297,51 @@ describe('setIntValue', () => {
     expect(() => setIntValue(platformer(), 'decor', { value: 6, id: 'x', color: '#000000' })).toThrow(
       /IntGrid/,
     )
+  })
+})
+
+describe('setLayerTileset', () => {
+  /** The platformer with a 16 x 16 tile picture of 4 x 2 tiles added as "kit", and tile 12 painted on Decor. */
+  const withKit = (): Project => {
+    const added = addTileset(platformer(), {
+      id: 'kit',
+      label: 'Kit',
+      image: 'assets/kit.png',
+      imageSize: { w: 64, h: 32 },
+      tile: { w: 16, h: 16 },
+      spacing: 0,
+      padding: 0,
+      tags: [],
+    })
+    const level = added.levels[0]
+    if (level === undefined) throw new Error('no level')
+    return paintLayerCells(added, { level: level.id, layer: 'decor' }, [{ x: 1, y: 1 }], 13)
+  }
+  const decorTileset = (p: Project): string | undefined => {
+    const def = p.defs.layers.find((candidate) => candidate.id === 'decor')
+    return def !== undefined && 'tileset' in def ? def.tileset : undefined
+  }
+
+  it('points a tile layer at another tileset, so its palette is that tileset’s tiles', () => {
+    expect(decorTileset(setLayerTileset(withKit(), 'decor', 'kit'))).toBe('kit')
+    expect(errors(setLayerTileset(withKit(), 'decor', 'kit'))).toEqual([])
+  })
+
+  it('clears the cells whose tile the new tileset does not have, and keeps the ones it does', () => {
+    const project = withKit()
+    const level = project.levels[0]
+    if (level === undefined) throw new Error('no level')
+    const painted = paintLayerCells(project, { level: level.id, layer: 'decor' }, [{ x: 3, y: 3 }], 2)
+    const next = setLayerTileset(painted, 'decor', 'kit')
+    const cells = next.levels[0]?.layers.find((layer) => layer.def === 'decor')
+    const kept = cells?.kind === 'tiles' ? cells.cells.nonEmpty().length : -1
+    expect(kept).toBe(1)
+  })
+
+  it('is no step when the layer already uses it, and refuses an unknown tileset or a layer with no tiles', () => {
+    const project = withKit()
+    expect(setLayerTileset(project, 'decor', 'terrain')).toBe(project)
+    expect(() => setLayerTileset(project, 'decor', 'nope')).toThrow(RangeError)
+    expect(() => setLayerTileset(project, 'collision', 'kit')).toThrow(/no tileset/)
   })
 })

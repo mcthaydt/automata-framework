@@ -75,10 +75,22 @@ export async function createMemoryWorkspace(options: MemoryWorkspaceOptions): Pr
       return entry === undefined || text === undefined ? undefined : { text, mtime: entry.mtime }
     },
 
+    async readBytes(path) {
+      return insideRoot(path) ? store.read(path) : undefined
+    },
+
     async write(path, text, expected) {
       const refusal = writeRefusal(path)
       if (refusal !== undefined) return refused(refusal)
       const written = await store.write(path, text, expected)
+      if (written.ok && expected === 'absent') changeSet?.noteCreated(path)
+      return written
+    },
+
+    async writeBytes(path, bytes, expected) {
+      const refusal = writeRefusal(path)
+      if (refusal !== undefined) return refused(refusal)
+      const written = await store.write(path, bytes, expected)
       if (written.ok && expected === 'absent') changeSet?.noteCreated(path)
       return written
     },

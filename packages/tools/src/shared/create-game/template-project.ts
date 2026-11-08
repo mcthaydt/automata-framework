@@ -1,5 +1,6 @@
 import {
   adapterConditions,
+  SQUARE_WHERE,
   targetDependencies,
   targetGitignore,
   targetReadme,
@@ -8,7 +9,8 @@ import {
 import { frameworkSpec, type TemplateFile, type TemplateOptions, targetsOf } from './template-file.ts'
 
 // The files every game has whatever it plays like: its package, the ship config, the build and type settings, and
-// the page. They change with the targets chosen, not with the game.
+// the page. They change with the targets chosen and a little with the kind of game (2D or 3D), so each is a piece that
+// `PROJECT_FILES` (the 2D game) and template-3d.ts put together.
 
 /** The `ship.config.ts` sections only some targets read: itch.io's project, the desktop app's identifier. */
 function shipTargetSections(options: TemplateOptions): string {
@@ -22,52 +24,58 @@ function shipTargetSections(options: TemplateOptions): string {
   return itch + tauri
 }
 
-/** The project's files, written beside the game's code. */
-export const PROJECT_FILES: readonly TemplateFile[] = [
-  { path: '.gitignore', content: (options) => targetGitignore(targetsOf(options)) },
-  { path: 'README.md', content: (options) => targetReadme(options.title, targetsOf(options)) },
-  {
-    path: 'package.json',
-    content: (options) =>
-      JSON.stringify(
-        {
-          name: options.id,
-          version: '0.1.0',
-          private: true,
-          type: 'module',
-          scripts: {
-            dev: 'vite',
-            ...targetScripts(targetsOf(options)),
-            typecheck: 'tsc -p .',
-            test: 'vitest run',
-            check: 'automata check',
-          },
-          dependencies: {
-            '@automata/framework': frameworkSpec(options),
-            '@automata/content': frameworkSpec(options),
-            '@automata/sim': frameworkSpec(options),
-            'pixi.js': '8.22.0',
-            svelte: '5.57.1',
-            zod: '4.6.6',
-            ...targetDependencies(targetsOf(options)).dependencies,
-          },
-          devDependencies: {
-            '@automata/tools': frameworkSpec(options),
-            '@sveltejs/vite-plugin-svelte': '7.3.1',
-            '@types/node': '24.19.1',
-            typescript: '7.0.2',
-            vite: '8.3.3',
-            vitest: '5.0.3',
-            ...targetDependencies(targetsOf(options)).devDependencies,
-          },
+/** The README of a game, from the lines that say where its code and content are. */
+export const readmeFile = (where: string): TemplateFile => ({
+  path: 'README.md',
+  content: (options) => targetReadme(options.title, targetsOf(options), where),
+})
+
+/** The game's `package.json`; `extra` is what a kind of game depends on besides the framework, sim and content. */
+export const packageFile = (extra: (options: TemplateOptions) => Record<string, string>): TemplateFile => ({
+  path: 'package.json',
+  content: (options) =>
+    JSON.stringify(
+      {
+        name: options.id,
+        version: '0.1.0',
+        private: true,
+        type: 'module',
+        scripts: {
+          dev: 'vite',
+          ...targetScripts(targetsOf(options)),
+          typecheck: 'tsc -p .',
+          test: 'vitest run',
+          check: 'automata check',
         },
-        null,
-        2,
-      ) + '\n',
-  },
-  {
-    path: 'ship.config.ts',
-    content: (options) => `import { defineShipConfig } from '@automata/tools'
+        dependencies: {
+          '@automata/framework': frameworkSpec(options),
+          '@automata/content': frameworkSpec(options),
+          '@automata/sim': frameworkSpec(options),
+          ...extra(options),
+          'pixi.js': '8.22.0',
+          svelte: '5.57.1',
+          zod: '4.6.6',
+          ...targetDependencies(targetsOf(options)).dependencies,
+        },
+        devDependencies: {
+          '@automata/tools': frameworkSpec(options),
+          '@sveltejs/vite-plugin-svelte': '7.3.1',
+          '@types/node': '24.19.1',
+          typescript: '7.0.2',
+          vite: '8.3.3',
+          vitest: '5.0.3',
+          ...targetDependencies(targetsOf(options)).devDependencies,
+        },
+      },
+      null,
+      2,
+    ) + '\n',
+})
+
+/** The ship config; `orientation` is how the game turns on a phone. */
+export const shipConfigFile = (orientation: 'any' | 'landscape'): TemplateFile => ({
+  path: 'ship.config.ts',
+  content: (options) => `import { defineShipConfig } from '@automata/tools'
 import packageJson from './package.json' with { type: 'json' }
 
 export default defineShipConfig({
@@ -79,7 +87,7 @@ export default defineShipConfig({
   },
   runtime: {
     renderer: 'webgl2',
-    orientation: 'any',
+    orientation: '${orientation}',
     inputs: ['touch', 'keyboard', 'gamepad'],
     pause_behavior: 'pause',
   },
@@ -87,10 +95,22 @@ export default defineShipConfig({
   content: { languages: ['en'], rating: 'everyone', descriptors: [] },${shipTargetSections(options)}
 })
 `,
-  },
-  {
-    path: 'vite.config.ts',
-    content: (options) => `import { level2dKinds } from '@automata/content/level-2d'
+})
+
+/** What differs between the kinds of game in `vite.config.ts`: the content kinds the game's folders hold. */
+export interface ViteContent {
+  /** Import lines for the content kinds' modules, sorted with the other imports by the caller. */
+  readonly imports: string
+  /** The `schemas` the content plugin compiles `content/` with. */
+  readonly schemas: string
+  /** What the content plugin compiles, said in the comment above the plugins. */
+  readonly compiles: string
+}
+
+/** The `vite.config.ts`: one target's host adapter per build mode, Svelte for the screens, the content plugin. */
+export const viteConfigFile = (kinds: ViteContent): TemplateFile => ({
+  path: 'vite.config.ts',
+  content: (options) => `${kinds.imports}
 import { automataContent } from '@automata/content/vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { defaultClientConditions, defineConfig } from 'vite'
@@ -105,8 +125,8 @@ export default defineConfig(({ mode }) => ({
   base: './',
   resolve: { conditions: [ADAPTER_CONDITIONS[mode] ?? 'automata-web', ...defaultClientConditions] },
   // The framework's screens are Svelte components, compiled with the game. The content plugin compiles \`content/\`
-  // (the level the editor writes) into \`virtual:automata/content\`, again on every save while \`pnpm dev\` runs.
-  plugins: [svelte(), automataContent({ schemas: level2dKinds() })],
+  // (${kinds.compiles}) into \`virtual:automata/content\`, again on every save while \`pnpm dev\` runs.
+  plugins: [svelte(), automataContent({ schemas: ${kinds.schemas} })],
   build: {
     outDir: 'dist',
     emptyOutDir: true,
@@ -116,7 +136,11 @@ export default defineConfig(({ mode }) => ({
   },
 }))
 `,
-  },
+})
+
+/** The files every kind of game has the same: ignore list, type settings and the page. */
+export const SHARED_PROJECT_FILES: readonly TemplateFile[] = [
+  { path: '.gitignore', content: (options) => targetGitignore(targetsOf(options)) },
   {
     path: 'tsconfig.json',
     content: () =>
@@ -187,4 +211,18 @@ body {
 }
 `,
   },
+]
+
+/** The 2D game's project files, written beside its code. */
+export const PROJECT_FILES: readonly TemplateFile[] = [
+  readmeFile(SQUARE_WHERE),
+  packageFile(() => ({})),
+  shipConfigFile('any'),
+  viteConfigFile({
+    imports:
+      "import { controlsKind } from '@automata/content/controls'\nimport { level2dKinds } from '@automata/content/level-2d'",
+    schemas: '[...level2dKinds(), controlsKind()]',
+    compiles: 'the level the editor writes and the default controls',
+  }),
+  ...SHARED_PROJECT_FILES,
 ]

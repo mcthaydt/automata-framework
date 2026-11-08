@@ -16,7 +16,8 @@ import Dialog from '../../shared/kit/widgets/Dialog.svelte'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'
 import type { FieldCommit } from '../../shared/level-2d/model/field-commit'
 import type { Size, TilesetDef } from '../../shared/level-2d/model/project-types'
-import { PICTURE_TYPES, pictureAsset, tileGrid, tilesetFromPicture } from './add-tiles'
+import { decodedSize, PICTURE_TYPES, writePicture } from '../../shared/pictures/pick-picture'
+import { tileGrid, tilesetFromPicture } from './add-tiles'
 
 interface Props {
   open: boolean
@@ -30,19 +31,6 @@ interface Props {
 }
 
 let { open = $bindable(), taken, files, measure = decodedSize, onadd }: Props = $props()
-
-/** A browser decodes the picture to learn its size; a file it cannot decode is not a picture we can read. */
-async function decodedSize(bytes: Uint8Array): Promise<Size | undefined> {
-  if (typeof createImageBitmap !== 'function') return undefined
-  try {
-    const bitmap = await createImageBitmap(new Blob([bytes as Uint8Array<ArrayBuffer>]))
-    const size = { w: bitmap.width, h: bitmap.height }
-    bitmap.close()
-    return size
-  } catch {
-    return undefined
-  }
-}
 
 interface Chosen {
   readonly name: string
@@ -81,30 +69,19 @@ async function pick(event: Event): Promise<void> {
   chosen = { name: file.name, bytes, size, url }
 }
 
-/**
- * What a failed write says. A game that does not let the editor save pictures (`policy`) is not a fault to quote: the
- * person is told what is true and what to do. Any other failure carries its own plain sentence ("The disk is full.").
- */
-function refusal(failed: { reason: string; message: string }): string {
-  if (failed.reason === 'policy') {
-    return 'This game doesn’t let the editor save pictures yet. Ask whoever set the game up to allow pictures in its assets folder.'
-  }
-  return `Couldn’t add the picture. ${failed.message}`
-}
-
 async function add(close: () => void): Promise<void> {
   if (chosen === undefined || !ready) return
   busy = true
   trouble = undefined
   try {
-    const existing = (await files.list('assets/')).map((entry) => entry.path)
-    const path = pictureAsset(chosen.name, existing)
-    const written = await files.write(path, chosen.bytes, 'absent')
+    const written = await writePicture(files, chosen)
     if (!written.ok) {
-      trouble = refusal(written)
+      trouble = written.message
       return
     }
-    const done = onadd(tilesetFromPicture({ fileName: chosen.name, path, size: chosen.size, tile, taken }))
+    const done = onadd(
+      tilesetFromPicture({ fileName: chosen.name, path: written.path, size: chosen.size, tile, taken }),
+    )
     if (!done.ok) {
       trouble = done.message
       return

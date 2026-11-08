@@ -335,6 +335,12 @@ interface ComponentDef<S extends FieldSchema = FieldSchema> {
 function contentHashOf(data: unknown): string;
 ```
 
+### `controlsFrom` (function)
+
+```ts
+function controlsFrom<Z extends z.ZodType>(command: CommandDef<Z>, file: ControlsFile): InputMap;
+```
+
 ### `CORE_SETTINGS` (const)
 
 ```ts
@@ -813,6 +819,7 @@ interface GameSpec<S = never, D = unknown> {
     readonly settings?: SettingsDef<S>;
     readonly extensions?: readonly ExtensionDef[];
     readonly draw?: (ctx: DrawContext) => void;
+    readonly level?: LevelScene;
     readonly renderer?: PixiRendererOptions;
     readonly createRenderer?: (options: PixiRendererOptions) => RendererFactory;
     readonly preload?: readonly string[];
@@ -1100,6 +1107,12 @@ function installGlobalErrorHandlers(win: Window, onFatal: (errorClass: string) =
 type KeyBindings<Z extends z.ZodType> = Readonly<Record<string, Payload<Z>>>;
 ```
 
+### `keyLabel` (function)
+
+```ts
+function keyLabel(code: string, layout?: ReadonlyMap<string, string>): string;
+```
+
 ### `keys` (function)
 
 ```ts
@@ -1208,6 +1221,64 @@ function lerp(a: number, b: number, t: number): number;
 function lerpAngle(a: number, b: number, t: number): number;
 ```
 
+### `LevelDraw` (interface)
+
+```ts
+interface LevelDraw {
+    readonly background: {
+        readonly color: string;
+        readonly image?: string | undefined;
+        readonly mode: ContentLevel['background']['mode'];
+    };
+    readonly items: readonly DrawItem[];
+    readonly problems: readonly string[];
+}
+```
+
+### `levelDrawList` (function)
+
+```ts
+function levelDrawList(project: ContentProject, level: ContentLevel, images: ReadonlySet<string>, live: readonly string[]): LevelDraw;
+```
+
+### `LevelScene` (interface)
+
+```ts
+interface LevelScene {
+    add(hooks: LevelSceneHooks): void;
+}
+```
+
+### `levelScene` (function)
+
+```ts
+function levelScene(options: LevelSceneOptions): LevelScene;
+```
+
+### `LevelSceneHooks` (interface)
+
+```ts
+interface LevelSceneHooks {
+    draw(sim: DrawSim, scene: {
+        readonly container: Container;
+        hide(itemId: string, hidden: boolean): void;
+    }): void;
+}
+```
+
+### `LevelSceneOptions` (interface)
+
+```ts
+interface LevelSceneOptions {
+    readonly project: ContentProject;
+    readonly levels: Readonly<Record<string, ContentLevel>>;
+    readonly images: Readonly<Record<string, string>>;
+    readonly start: string;
+    readonly live?: readonly string[] | undefined;
+    readonly current?: ((sim: DrawSim) => string) | undefined;
+}
+```
+
 ### `LifecyclePayload` (interface)
 
 ```ts
@@ -1292,6 +1363,12 @@ interface OwnedRenderer extends GameRenderer {
 }
 ```
 
+### `padLabel` (function)
+
+```ts
+function padLabel(button: number, glyphs: PromptGlyphs, copy: PromptCopy): string;
+```
+
 ### `PagedGrid` (svelte)
 
 ```ts
@@ -1314,6 +1391,24 @@ type PauseBehavior = 'pause' | 'continue';
 
 ```ts
 const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
+```
+
+### `pictureView` (function)
+
+```ts
+function pictureView(project: ContentProject, def: string, images: Readonly<Record<string, string>>, options?: PictureViewOptions): EntityViewFactory;
+```
+
+### `PictureViewOptions` (interface)
+
+```ts
+interface PictureViewOptions {
+    readonly clip?: ((components: Readonly<Record<string, Readonly<FieldRecord>>>) => string) | undefined;
+    readonly offset?: {
+        readonly x: number;
+        readonly y: number;
+    } | undefined;
+}
 ```
 
 ### `PixiRenderer` (interface)
@@ -1434,6 +1529,22 @@ interface PostFilterSpec {
 interface PresentationBus<Facts = RuntimeFacts> {
     publish<K extends keyof Facts & string>(name: K, fact: Facts[K]): void;
     subscribe<K extends keyof Facts & string>(name: K, listener: (fact: Facts[K]) => void): () => void;
+}
+```
+
+### `PROMPT_COPY` (const)
+
+```ts
+const PROMPT_COPY: PromptCopy;
+```
+
+### `PromptCopy` (interface)
+
+```ts
+interface PromptCopy {
+    readonly unbound: string;
+    readonly touch: string;
+    readonly pad: Readonly<Record<PadWord, string>>;
 }
 ```
 

@@ -58,15 +58,17 @@ function publishedSurfaces(root: string): string[] {
 /** The files a code folder holds that can carry words: source, styles, markup, data and tests. */
 const CODE_FILE = /\.(?:ts|svelte|css|json|toml)$/
 
-/** Every code file below `dir`, skipping `node_modules` and `dist`. */
+/** Folders that hold built or installed files, not words an author wrote. */
+const GENERATED_FOLDERS: ReadonlySet<string> = new Set(['node_modules', 'dist', '.svelte-kit'])
+
+/** Every code file below `dir`, skipping the generated folders. */
 function codeBelow(dir: string): string[] {
   if (!existsSync(dir)) return []
   return readdirSync(dir, { withFileTypes: true })
     .sort((a, b) => a.name.localeCompare(b.name))
     .flatMap((entry) => {
       const path = join(dir, entry.name)
-      if (entry.isDirectory())
-        return entry.name === 'node_modules' || entry.name === 'dist' ? [] : codeBelow(path)
+      if (entry.isDirectory()) return GENERATED_FOLDERS.has(entry.name) ? [] : codeBelow(path)
       return CODE_FILE.test(entry.name) ? [path] : []
     })
 }

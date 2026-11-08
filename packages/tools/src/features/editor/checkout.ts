@@ -39,13 +39,15 @@ export interface Checkout {
 /** The checkout at `root` (a real path), read and written as `policy` allows. */
 export function openCheckout(root: string, policy: EditorPolicy): Checkout {
   async function walk(dir: string, relative: string, out: ListedFile[]): Promise<void> {
-    for (const entry of await readdir(dir, { withFileTypes: true })) {
+    for (const entry of await readdir(dir, { withFileTypes: true }).catch(() => [])) {
       if (entry.isSymbolicLink() || OWNED.has(entry.name)) continue
       const path = relative === '' ? entry.name : `${relative}/${entry.name}`
       if (entry.isDirectory()) await walk(join(dir, entry.name), path, out)
       else if (entry.isFile() && policy.canRead(path)) {
-        const info = await stat(join(dir, entry.name))
-        out.push({ path, size: info.size, mtime: mtimeOf(info) })
+        // A file can go between being named and being read (the content build writes a temp file and renames it as
+        // the editor lists), and a file that is gone is not listed. Failing the whole list would stop every save.
+        const info = await stat(join(dir, entry.name)).catch(() => undefined)
+        if (info !== undefined) out.push({ path, size: info.size, mtime: mtimeOf(info) })
       }
     }
   }

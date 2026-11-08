@@ -50,6 +50,27 @@ describe('exportContent', () => {
     expect(exportContent(project)).toEqual(exportContent(project))
   })
 
+  it('exports a character’s animation, and a project parsed back has the same clips', () => {
+    const project = rich()
+    const [first, ...rest] = project.defs.entities
+    if (first === undefined) throw new Error('the rich project has no character')
+    const animation = {
+      image: 'assets/hero.png',
+      frame: { w: 16, h: 24 },
+      clips: [
+        { id: 'idle', frames: [0, 1], fps: 4, loop: true },
+        { id: 'jump', frames: [2, 3], fps: 8, loop: false },
+      ],
+    }
+    const animated = {
+      ...project,
+      defs: { ...project.defs, entities: [{ ...first, animation }, ...rest] },
+    }
+    const parsed = projectContentSchema.parse(parse(fileOf(animated, 'project.toml')))
+    expect(parsed.entities.find((def) => def.id === first.id)?.animation).toEqual(animation)
+    expect(parsed.entities.filter((def) => def.animation !== undefined)).toHaveLength(1)
+  })
+
   describe('project.toml', () => {
     const parsed = projectContentSchema.parse(parse(fileOf(rich(), 'project.toml')))
 

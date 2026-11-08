@@ -1,0 +1,25 @@
+{
+  "format": "af-sector/2",
+  "name": "room",
+  "title": "The room",
+  "sectors": [
+    {
+      "id": "room",
+      "floor": 0,
+      "ceiling": 3,
+      "light": 1,
+      "corners": [[-5, -4], [5, -4], [5, 4], [-5, 4]],
+      "floorTexture": "floor",
+      "ceilingTexture": "ceiling",
+      "wallTexture": "wall"
+    }
+  ],
+  "props": [
+    { "id": "crate-1", "use": "crate", "at": [-3.5, 2.8] },
+    { "id": "crate-2", "use": "crate", "at": [3.5, 2.8], "angle": 45 },
+    { "id": "barrel-1", "use": "barrel", "at": [-3.5, 1.7] },
+    { "id": "barrel-2", "use": "barrel", "at": [3.5, -2.8] }
+  ],
+  "entityDefs": [{ "id": "spawn" }],
+  "entities": [{ "def": "spawn", "id": "spawn", "x": 0, "z": -2 }]
+}

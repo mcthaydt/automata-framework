@@ -11,6 +11,7 @@ import type { TemplateFile } from './template-file.ts'
 
 /** The files under `template-content/`, as written into the game's `content/`. */
 export const TEMPLATE_CONTENT_PATHS: readonly string[] = [
+  'controls.toml',
   'editors.toml',
   'levels/start.af2d.json',
   'levels/start.toml',

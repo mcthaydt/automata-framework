@@ -42,11 +42,13 @@ export const test: TestType<
 })
 export { expect }
 
-/** Opens the editor, then a level project (Emberwick's room unless named) in the Level view, and waits for the canvas to draw. */
-export async function openRoom(page: Page, editor: RunningEditor, card = 'Emberwick room'): Promise<void> {
+/**
+ * Opens the editor, then a level (Emberwick's room unless named, by its name in words as Home shows it) in the Level
+ * view, and waits for the canvas to draw.
+ */
+export async function openRoom(page: Page, editor: RunningEditor, level = 'Room 1'): Promise<void> {
   await page.goto(editor.url)
-  // The card's button reads its name, then when it changed ("Levels Changed just now").
-  await page.getByRole('button', { name: new RegExp(`^${card} `) }).click()
+  await page.getByRole('region', { name: 'Levels' }).getByRole('button', { name: level }).click()
   await expect(page.locator('[data-level-canvas]')).toHaveAttribute('data-state', 'drawn')
 }
 
@@ -56,9 +58,9 @@ export async function paintWall(
   cell: { col: number; row: number },
   tile: number = ROOM_TILE,
 ): Promise<void> {
-  // Below the wide layout the layers sit in a sheet behind the Layers button.
+  // Below the wide layout the layers sit in a sheet behind the top bar's Panel button.
   const layer = page.getByRole('button', { name: 'Collision Walls and floors' })
-  if (!(await layer.isVisible())) await page.getByRole('button', { name: 'Layers' }).click()
+  if (!(await layer.isVisible())) await page.getByRole('button', { name: 'Panel' }).click()
   await layer.click()
   await page.getByRole('radio', { name: 'Brush' }).click()
   const canvas = page.locator('[data-level-canvas]')

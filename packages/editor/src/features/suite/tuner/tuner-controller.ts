@@ -1,5 +1,6 @@
 import { type Readable, writable } from 'svelte/store'
 import type { SuitePorts } from '../../../shared/kit/ports/suite-ports.ts'
+import type { ControlsRead } from './controls-section'
 import type { Tunable } from './tuner-content'
 import { openTuner, type TunerOutcome, type TunerSession } from './tuner-session'
 
@@ -26,6 +27,12 @@ export interface TunerController {
   isLocked(name: string): boolean
   toggleLock(name: string): void
   create(): Promise<TunerOutcome>
+  /** The default controls (undefined when the game has none), and the edits a person makes to them. */
+  controls(): ControlsRead | undefined
+  setControlLabel(id: string, label: string): Promise<TunerOutcome>
+  addControlKey(id: string, code: string): Promise<TunerOutcome>
+  removeControlKey(id: string, code: string): Promise<TunerOutcome>
+  setControlTouch(id: string, on: boolean): Promise<TunerOutcome>
   undo(): Promise<TunerOutcome>
   redo(): Promise<TunerOutcome>
 }
@@ -78,6 +85,19 @@ export async function createTunerController(ports: SuitePorts): Promise<TunerCon
     },
     async create() {
       return say(await session.create())
+    },
+    controls: () => session.controls(),
+    async setControlLabel(id, label) {
+      return say(await session.setControlLabel(id, label))
+    },
+    async addControlKey(id, code) {
+      return say(await session.addControlKey(id, code))
+    },
+    async removeControlKey(id, code) {
+      return say(await session.removeControlKey(id, code))
+    },
+    async setControlTouch(id, on) {
+      return say(await session.setControlTouch(id, on))
     },
     async undo() {
       return say(await session.undo())

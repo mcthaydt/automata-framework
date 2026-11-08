@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { type AudioBusGains, audioBusGainsSchema } from './audio-buses.schema.js'
 
 /**
- * The player's audio choices, as FloorFifty's `audio` settings: the mute, the mute while another
+ * The player's audio choices: the mute, the mute while another
  * window has focus, and a gain per bus. The one owner of their shape: the Settings screen's Audio group and the
  * `Audio` service read it from here. Kept on the device, not in the player's saves: `CORE_SETTINGS.deviceFields`.
  */
