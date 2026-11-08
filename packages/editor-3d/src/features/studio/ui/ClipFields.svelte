@@ -183,8 +183,8 @@ const set = (event: { phase: string }): boolean => event.phase === 'set' || even
   input {
     min-height: 44px;
     padding: 0 var(--space-3);
-    border: 1px solid var(--color-border, #3a3f48);
-    border-radius: var(--radius-control, 8px);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--edge-lg);
     background: transparent;
     color: inherit;
     font: inherit;

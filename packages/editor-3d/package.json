@@ -10,10 +10,6 @@
   },
   "type": "module",
   "sideEffects": false,
-  "exports": {
-    ".": "./src/entries/index.ts",
-    "./suite": "./src/app/suite/index.ts"
-  },
   "imports": {
     "#src/*": "./src/*"
   },

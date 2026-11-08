@@ -339,7 +339,7 @@ onDestroy(() => {
     max-height: calc(100% - 80px - var(--space-3) - 160px);
     overflow-y: auto;
     border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-lg);
     background: var(--color-bg-surface);
   }
   .labels {
@@ -366,9 +366,9 @@ onDestroy(() => {
     max-width: calc(100% - 24px);
     margin: 0;
     padding: var(--space-1) var(--space-3);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-lg);
     background: var(--color-bg-surface);
-    color: var(--color-state-error, #e5534b);
+    color: var(--color-state-bad);
     font: var(--text-body-13);
     pointer-events: none;
   }
@@ -397,7 +397,7 @@ onDestroy(() => {
     min-height: 48px;
     padding: 0 var(--space-4);
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-lg);
     background: var(--color-bg-raised);
     color: var(--color-text-primary);
     font: var(--text-label-12);

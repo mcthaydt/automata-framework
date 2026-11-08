@@ -88,8 +88,8 @@ const hold =
     height: 16px;
     margin: -8px 0 0 -8px;
     background:
-      linear-gradient(var(--color-accent, #d9a441), var(--color-accent, #d9a441)) center / 2px 100% no-repeat,
-      linear-gradient(var(--color-accent, #d9a441), var(--color-accent, #d9a441)) center / 100% 2px no-repeat;
+      linear-gradient(var(--lime), var(--lime)) center / 2px 100% no-repeat,
+      linear-gradient(var(--lime), var(--lime)) center / 100% 2px no-repeat;
   }
   .modes {
     position: absolute;
@@ -104,8 +104,8 @@ const hold =
     margin: 0;
     padding: var(--space-1) var(--space-3);
     transform: translateX(-50%);
-    border-radius: var(--radius-control, 8px);
-    background: color-mix(in srgb, var(--color-surface-base, #14161a) 80%, transparent);
+    border-radius: var(--edge-lg);
+    background: color-mix(in srgb, var(--color-bg-canvas) 80%, transparent);
     white-space: nowrap;
   }
   .chip {
@@ -124,8 +124,8 @@ const hold =
     right: var(--space-3);
     width: 120px;
     height: 90px;
-    border-radius: var(--radius-control, 8px);
-    background: color-mix(in srgb, var(--color-surface-base, #14161a) 80%, transparent);
+    border-radius: var(--edge-lg);
+    background: color-mix(in srgb, var(--color-bg-canvas) 80%, transparent);
   }
   .room {
     fill: color-mix(in srgb, var(--color-text-dim, #8a919e) 35%, transparent);
@@ -133,10 +133,10 @@ const hold =
     stroke-width: 1;
   }
   .eye {
-    fill: var(--color-accent, #d9a441);
+    fill: var(--lime);
   }
   .heading {
-    stroke: var(--color-accent, #d9a441);
+    stroke: var(--lime);
     stroke-width: 2;
   }
   .lift {
@@ -150,9 +150,9 @@ const hold =
   .lift button {
     min-width: 64px;
     min-height: 48px;
-    border: 1px solid var(--color-border, #3a3f48);
-    border-radius: var(--radius-control, 8px);
-    background: color-mix(in srgb, var(--color-surface-base, #14161a) 80%, transparent);
+    border: 1px solid var(--stage-line);
+    border-radius: var(--edge-lg);
+    background: color-mix(in srgb, var(--color-bg-canvas) 80%, transparent);
     color: inherit;
     font: inherit;
     touch-action: none;

@@ -353,14 +353,14 @@ function capture(event: PointerEvent): void {
     height: 44px;
     margin: -22px 0 0 -22px;
     padding: 0;
-    border: 2px solid var(--color-accent, #d9a441);
+    border: 2px solid var(--lime);
     border-radius: 50%;
-    background: color-mix(in srgb, var(--color-accent, #d9a441) 25%, transparent);
+    background: color-mix(in srgb, var(--lime) 25%, transparent);
     pointer-events: auto;
     touch-action: none;
   }
   .handle.chosen {
-    background: var(--color-accent, #d9a441);
+    background: var(--lime);
   }
   .handle.amber {
     border-color: var(--color-state-warn, #e0a030);
@@ -373,7 +373,7 @@ function capture(event: PointerEvent): void {
     place-content: center;
     gap: var(--space-3);
     padding: var(--space-5);
-    background: var(--color-surface-base, #14161a);
+    background: var(--color-bg-canvas);
     color: var(--color-text-dim);
     font: var(--text-body-13);
     text-align: center;

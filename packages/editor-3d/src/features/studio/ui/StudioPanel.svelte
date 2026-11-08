@@ -116,18 +116,18 @@ async function add(): Promise<void> {
     padding: 0 var(--space-3);
     align-items: center;
     border: 1px solid transparent;
-    border-radius: var(--radius-control, 8px);
+    border-radius: var(--edge-lg);
     background: transparent;
     color: inherit;
     font: inherit;
     text-align: left;
   }
   li button[aria-pressed='true'] {
-    border-color: var(--color-accent, #d9a441);
+    border-color: var(--color-accent-default);
     background: var(--color-accent-soft, rgb(217 164 65 / 0.14));
   }
   .flag {
-    color: var(--color-state-error, #e5534b);
+    color: var(--color-state-bad);
     font-weight: 700;
   }
   .none {
@@ -144,14 +144,14 @@ async function add(): Promise<void> {
   input {
     min-height: 44px;
     padding: 0 var(--space-3);
-    border: 1px solid var(--color-border, #3a3f48);
-    border-radius: var(--radius-control, 8px);
-    background: var(--color-surface-sunk, transparent);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--edge-lg);
+    background: var(--color-bg-app);
     color: inherit;
     font: inherit;
   }
   .problems li {
-    color: var(--color-state-error, #e5534b);
+    color: var(--color-state-bad);
   }
   .problems strong {
     color: var(--color-text-primary);

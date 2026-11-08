@@ -51,7 +51,7 @@ const reasonOf = (entry: PaletteEntry): string | undefined =>
     overflow-x: auto;
     transform: translateX(-50%);
     border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-lg);
     background: var(--color-bg-surface);
   }
   button {
@@ -62,7 +62,7 @@ const reasonOf = (entry: PaletteEntry): string | undefined =>
     min-height: 44px;
     padding: 0 var(--space-3);
     border: 1px solid transparent;
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-lg);
     background: transparent;
     color: var(--color-text-primary);
     font: var(--text-label-12);

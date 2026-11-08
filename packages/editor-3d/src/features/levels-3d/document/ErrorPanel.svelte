@@ -79,7 +79,7 @@ async function copy(details: string): Promise<void> {
     margin: 0;
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-lg);
     background: var(--color-bg-field);
     list-style: none;
   }
@@ -107,7 +107,7 @@ async function copy(details: string): Promise<void> {
     gap: var(--space-1);
     padding: var(--space-3);
     border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-lg);
     background: var(--color-bg-surface);
     color: var(--color-text-dim);
   }

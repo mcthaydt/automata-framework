@@ -164,7 +164,7 @@ function apply(): void {
     min-height: 44px;
     padding: 0 0.75rem;
     text-align: left;
-    border: 1px solid var(--edk-border, #8884);
+    border: 1px solid var(--color-border-default);
     border-radius: 0.5rem;
     background: transparent;
     color: inherit;
@@ -172,8 +172,8 @@ function apply(): void {
   }
   .category.on,
   .tile.on {
-    border-color: var(--edk-accent, #4a90e2);
-    background: color-mix(in srgb, var(--edk-accent, #4a90e2) 18%, transparent);
+    border-color: var(--color-accent-default);
+    background: color-mix(in srgb, var(--color-accent-default) 18%, transparent);
   }
   .count,
   .now {
@@ -202,6 +202,6 @@ function apply(): void {
     margin: 0;
   }
   .refusal {
-    color: var(--edk-danger, #c0392b);
+    color: var(--color-state-bad);
   }
 </style>

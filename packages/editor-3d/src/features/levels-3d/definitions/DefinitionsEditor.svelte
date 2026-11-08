@@ -132,7 +132,7 @@ function addField(def: string): void {
     display: grid;
     gap: var(--space-2);
     padding: var(--space-3);
-    border: 1px solid var(--color-border, #8884);
+    border: 1px solid var(--color-border-default);
     border-radius: 0.5rem;
   }
   header,
@@ -165,6 +165,6 @@ function addField(def: string): void {
   }
   .refusal {
     margin: 0;
-    color: var(--color-danger, #c0392b);
+    color: var(--color-state-bad);
   }
 </style>

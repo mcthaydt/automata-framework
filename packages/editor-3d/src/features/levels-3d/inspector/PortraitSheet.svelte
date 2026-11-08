@@ -103,7 +103,7 @@ const TABS = [
     min-height: 44px;
     padding: 0 var(--space-3);
     border: 1px solid transparent;
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-lg);
     background: transparent;
     color: var(--color-text-primary);
     font: var(--text-body-13);

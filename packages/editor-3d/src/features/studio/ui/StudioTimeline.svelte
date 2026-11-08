@@ -131,7 +131,7 @@ function capture(event: PointerEvent): void {
     /* The kit's dock is 148 px: the bar, then keys (44 px) and one row of marker and cue names fit without scrolling. */
     height: 62px;
     margin: 0 22px;
-    border-top: 2px solid var(--color-border, #3a3f48);
+    border-top: 2px solid var(--stage-line);
     touch-action: none;
   }
   .playhead {
@@ -139,7 +139,7 @@ function capture(event: PointerEvent): void {
     top: 0;
     bottom: 0;
     width: 2px;
-    background: var(--color-accent, #d9a441);
+    background: var(--lime);
   }
   .key {
     position: absolute;
@@ -148,13 +148,13 @@ function capture(event: PointerEvent): void {
     height: 44px;
     margin-left: -22px;
     padding: 0;
-    border: 2px solid var(--color-accent, #d9a441);
+    border: 2px solid var(--lime);
     border-radius: 8px;
-    background: var(--color-surface-base, #14161a);
+    background: var(--color-bg-canvas);
     touch-action: none;
   }
   .key.chosen {
-    background: var(--color-accent, #d9a441);
+    background: var(--lime);
   }
   .marker,
   .cue {
@@ -167,7 +167,7 @@ function capture(event: PointerEvent): void {
   }
   .cue {
     /* Beside the markers' row, in the accent, so the two read apart. */
-    color: var(--color-accent, #d9a441);
+    color: var(--lime);
   }
   .none {
     margin: 0;

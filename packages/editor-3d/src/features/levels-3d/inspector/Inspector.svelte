@@ -82,7 +82,7 @@ function change(next: InspectorChange, phase: InspectorPhase): void {
   }
   .refusal {
     margin: 0;
-    color: var(--color-state-error, #e5534b);
+    color: var(--color-state-bad);
     font: var(--text-body-13);
   }
 </style>

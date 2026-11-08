@@ -58,7 +58,7 @@ const ARROWS = [
     border: 1px solid var(--color-border-default);
     border-radius: 50%;
     background: var(--color-bg-surface);
-    box-shadow: var(--shadow-pop, none);
+    box-shadow: var(--shadow);
   }
   button {
     display: flex;

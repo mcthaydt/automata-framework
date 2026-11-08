@@ -18,7 +18,8 @@ import {
 import { checkLayout } from '@automata/framework/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
-import { createLevels3d, type PlanRendererFactory } from '#src/app/suite/index.ts'
+import { createLevels3d } from '#src/features/levels-3d/levels-3d-suite-editor.ts'
+import type { PlanRendererFactory } from '#src/features/levels-3d/plan/plan-renderer.ts'
 import depot from '#src/testing/fixtures/depot.af-sector.json?raw'
 
 // The 3D level editor in the suite's one shell with the production CSS in real browsers at the sizes of spec §10: its

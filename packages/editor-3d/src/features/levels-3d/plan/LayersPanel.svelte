@@ -99,7 +99,7 @@ const { rows, ontoggle, onactivate }: Props = $props()
     min-width: 44px;
     min-height: 44px;
     border: 0;
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-lg);
     background: transparent;
     color: var(--color-text-primary);
     font: var(--text-label-12);

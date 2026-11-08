@@ -39,6 +39,6 @@ const refusal = controller.refusal
   }
   .refusal {
     margin: 0;
-    color: var(--color-state-error, #e5534b);
+    color: var(--color-state-bad);
   }
 </style>

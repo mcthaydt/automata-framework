@@ -80,9 +80,9 @@ const options = $derived(
     gap: var(--space-2);
     padding: var(--space-1);
     border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-lg);
     background: var(--color-bg-surface);
-    box-shadow: var(--shadow-pop, none);
+    box-shadow: var(--shadow);
   }
   .shapes {
     top: var(--space-3);

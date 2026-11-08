@@ -157,7 +157,7 @@ onDestroy(() => {
     top: var(--space-2);
     left: var(--space-2);
     padding: 2px 8px;
-    border-radius: var(--radius-sm, 4px);
+    border-radius: var(--edge-sm);
     background: color-mix(in srgb, var(--color-bg-app) 85%, transparent);
     color: var(--color-text-dim);
     font: 500 11px / 16px var(--font-mono, monospace);
@@ -188,7 +188,7 @@ onDestroy(() => {
     min-height: 48px;
     padding: 0 var(--space-4);
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-lg);
     background: var(--color-bg-raised);
     color: var(--color-text-primary);
     font: var(--text-label-12);

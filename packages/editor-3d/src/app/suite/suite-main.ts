@@ -11,12 +11,16 @@ import {
   samplePorts,
   startSuite,
 } from '@automata/editor/suite'
+import { createLevels3d } from '../../features/levels-3d/levels-3d-suite-editor.ts'
+import { lazyPlanRenderer } from '../../features/levels-3d/plan/lazy-renderer.ts'
 import { createStudio } from '../../features/studio/studio-suite-editor.ts'
-import { createLevels3d, lazyPlanRenderer, loadPlanRenderer } from './index.ts'
 
 // The full suite's page: the editors of `@automata/editor` plus Levels 3D and the Studio. The only file that
 // reaches for the page's globals. When no checkout answers, the page opens a sample game held in memory and says so in
 // the top bar. The Studio's stage loads Pixi's 3D view with its first figure, not with the page.
+
+// The Plan view's Pixi renderer, loaded on first use.
+const loadPlanRenderer = () => import('../../features/levels-3d/plan/plan-renderer.ts')
 
 const target = document.getElementById('app')
 if (target === null) throw new Error('suite.html has no #app element')

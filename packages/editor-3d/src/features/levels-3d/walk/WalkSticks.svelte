@@ -89,7 +89,7 @@ const pad =
     height: 120px;
     border: 2px solid color-mix(in srgb, var(--color-text-dim, #8a919e) 60%, transparent);
     border-radius: 50%;
-    background: color-mix(in srgb, var(--color-surface-base, #14161a) 55%, transparent);
+    background: color-mix(in srgb, var(--color-bg-canvas) 55%, transparent);
     touch-action: none;
     pointer-events: auto;
   }
@@ -103,7 +103,7 @@ const pad =
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: var(--color-accent, #d9a441);
+    background: var(--lime);
     opacity: 0.85;
   }
 </style>

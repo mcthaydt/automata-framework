@@ -379,7 +379,7 @@ const levelName = $derived((view.level.path.split('/').pop() ?? view.level.path)
     max-width: calc(100% - 2 * var(--space-3));
     transform: translateX(-50%);
     border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-lg);
     background: var(--color-bg-surface);
   }
   /* Split at wide: the plan and the 3D view in two equal columns with a hairline between (the mockup's divider). */

@@ -126,6 +126,6 @@ const material = (row: MaterialRow, change: { category?: string; wallOnly?: bool
     margin: 0;
   }
   .refusal {
-    color: var(--color-danger, #c0392b);
+    color: var(--color-state-bad);
   }
 </style>

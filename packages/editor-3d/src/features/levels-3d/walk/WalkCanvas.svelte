@@ -239,8 +239,8 @@ const setMode = (mode: WalkMode): void => walk?.setMode(mode)
   .notice button {
     min-height: 48px;
     padding: 0 var(--space-4);
-    border: 1px solid var(--color-border, #3a3f48);
-    border-radius: var(--radius-control, 8px);
+    border: 1px solid var(--stage-line);
+    border-radius: var(--edge-lg);
     background: transparent;
     color: var(--color-text-primary);
     font: inherit;

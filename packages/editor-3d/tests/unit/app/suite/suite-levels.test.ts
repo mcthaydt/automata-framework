@@ -6,7 +6,8 @@ import { fixtureEditor } from '@automata/editor/suite/testing'
 import { screen, waitFor, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createLevels3d, type PlanRendererFactory } from '#src/app/suite/index.ts'
+import { createLevels3d } from '#src/features/levels-3d/levels-3d-suite-editor.ts'
+import type { PlanRendererFactory } from '#src/features/levels-3d/plan/plan-renderer.ts'
 import depot from '#src/testing/fixtures/depot.af-sector.json?raw'
 
 // The 3D level editor mounted in the suite (editor suite spec §4.7, EDS-D12, §13 EDS-k): the suite's one shell holds its

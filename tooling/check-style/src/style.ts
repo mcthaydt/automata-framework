@@ -21,6 +21,7 @@ export type StyleRule =
   | 'plan-comment'
   | 'broken-link'
   | 'test-src-chain'
+  | 'unknown-token'
 
 export interface StyleFinding {
   readonly file: string

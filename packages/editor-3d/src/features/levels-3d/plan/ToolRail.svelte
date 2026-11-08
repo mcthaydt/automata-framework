@@ -69,7 +69,7 @@ const pressed = $derived<RailTool>(SECTOR_SHAPES.includes(active) ? 'sector' : (
     min-height: 44px;
     padding: 0 2px;
     border: 0;
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-lg);
     background: transparent;
     color: var(--color-text-dim);
     font: var(--text-eyebrow-11);

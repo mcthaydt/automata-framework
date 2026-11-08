@@ -110,7 +110,7 @@ const summary = $derived(entry === undefined ? undefined : summaryOf(entry))
     margin: 0;
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge-lg);
     background: var(--color-bg-field);
   }
   .fact {
