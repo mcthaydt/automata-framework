@@ -6,12 +6,13 @@ import PageShell from './PageShell.svelte'
 </script>
 
 <PageMeta title="Page not found" />
+<!-- The 404 page answers every missing address, so it must never be a search result of its own. -->
+<svelte:head><meta name="robots" content="noindex" /></svelte:head>
 <PageShell>
-  <h1>Lost your place?</h1>
-  <p>That page is unavailable. The examples and documentation are a good place to start.</p>
+  <h1>Page not found</h1>
+  <p>There is no page at this address. It may have moved.</p>
   <div class="link-row">
-    <a class="button" href="/">Back to overview</a>
+    <a class="button" href="/">Go to the home page</a>
     <a href="/docs">Read the docs</a>
-    <a href="/examples">Explore examples</a>
   </div>
 </PageShell>

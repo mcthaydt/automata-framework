@@ -37,6 +37,7 @@ describe('UI Components', () => {
     expect(view.getAllByRole('link', { name: 'Reference' }).map((link) => link.getAttribute('href'))).toEqual(
       ['/api'],
     )
+    expect(view.getByRole('link', { name: 'The app' }).getAttribute('href')).toBe('/app')
     for (const name of ['Privacy', 'Terms', 'Contact']) expect(view.getByRole('link', { name })).toBeTruthy()
     expect(view.queryByRole('link', { name: /AI|Showcase|Complete API/ })).toBeNull()
   })

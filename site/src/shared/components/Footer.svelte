@@ -9,6 +9,7 @@ const links = [
   ['/docs', 'Docs'],
   ['/examples', 'Examples'],
   ['/api', 'Reference'],
+  ['/app', 'The app'],
   ['/privacy', 'Privacy'],
   ['/terms', 'Terms'],
 ] as const

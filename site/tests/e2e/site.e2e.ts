@@ -230,11 +230,25 @@ test.describe('desktop 1280×800', () => {
     expect(await response.text()).toContain('Page not found')
   })
 
+  test('/app at 390 × 844 stacks the two prices and nothing reaches past the screen’s edge', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await open(page, '/app')
+    const boxes = await page
+      .locator('.price')
+      .evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect()))
+    expect(boxes).toHaveLength(2)
+    expect(boxes[1].top).toBeGreaterThan(boxes[0].bottom - 1)
+    expect(boxes[0].left).toBe(boxes[1].left)
+    expect(await horizontalOverflow(page)).toEqual([])
+  })
+
   test('a missing address is branded, with ways back', async ({ page }) => {
     const response = await page.goto('/no-such-page')
     expect(response?.status()).toBe(404)
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Lost your place?')
-    for (const name of ['Back to overview', 'Read the docs', 'Explore examples']) {
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Page not found')
+    for (const name of ['Go to the home page', 'Read the docs']) {
       await expect(page.getByRole('main').getByRole('link', { name })).toBeVisible()
     }
   })
@@ -248,10 +262,10 @@ test.describe('desktop 1280×800', () => {
     expect(failed).toEqual([])
     // Styled: the lime button has its fill, which a page without its stylesheet does not.
     const fill = await page
-      .getByRole('link', { name: 'Back to overview' })
+      .getByRole('link', { name: 'Go to the home page' })
       .evaluate((a) => getComputedStyle(a).backgroundColor)
     expect(fill).not.toBe('rgba(0, 0, 0, 0)')
-    await page.getByRole('link', { name: 'Back to overview' }).click()
+    await page.getByRole('link', { name: 'Go to the home page' }).click()
     await expect(page).toHaveURL(`${ORIGIN}/`)
   })
 

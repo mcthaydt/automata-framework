@@ -246,3 +246,7 @@ Reference, Privacy, Terms and Contact; the targets are named by the publish sect
 | `llms.txt`, full file | `The framework's defined documentation corpus and its complete API reference…` | `Every guide and Reference page in one file, for version …` | 4 |
 | `llms.txt`, editor guide | `In your game's folder, run:` | `How to open the level editor on your game and draw its levels.` | 4 |
 | Reference, doc comments | backticks shown as marks | shown as code | 4 |
+| Missing page | `Lost your place?`, `Back to overview`, three links | `Page not found`, `There is no page at this address. It may have moved.`, `Go to the home page` (primary) and `Read the docs` | 1, 2 |
+| Editor page, the app | `Nothing to install` alone | `Every editor, on your phone, tablet or computer: the Automata app.` and `Get the app` (white, secondary) | 2 |
+| App page | (none) | `Get the Automata app`; `$19.99, paid once` / `$39.99, paid once`; `Coming soon` (words, not a button); `These are two separate purchases…`; `Free in your browser`; `In the app`; the open-source sentence; `Questions about the app? Write to hello@automataframework.com.` | 2 |
+| Footer | (none) | `The app` | 2 |

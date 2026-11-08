@@ -73,4 +73,15 @@ describe('/editor', () => {
     for (const later of ['Levels 3D', 'Studio', 'Feel', 'Writer', 'Schematic', 'Sequence', 'Plus'])
       expect(text, later).not.toContain(later)
   })
+
+  it('leads to /app with a white secondary button, and keeps one lime primary', () => {
+    const view = render(EditorPage)
+    const app = view.getByRole('link', { name: 'Get the app' })
+    expect(app.getAttribute('href')).toBe('/app')
+    expect(app.className).toContain('secondary')
+    expect(view.container.querySelectorAll('a.button:not(.secondary)')).toHaveLength(1)
+    expect(view.container.textContent).toContain(
+      'Every editor, on your phone, tablet or computer: the Automata app.',
+    )
+  })
 })

@@ -4,7 +4,9 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { JSDOM } from 'jsdom'
+import { APP_OFFER } from '../src/features/app/app-offer.ts'
 import { REPOSITORY_PUBLIC, REPOSITORY_URL, SITE_ORIGIN } from '../src/shared/site.js'
+import { checkAppOffer } from './site-checks/app-offer.ts'
 import {
   checkIconFiles,
   checkIconLinks,
@@ -73,7 +75,8 @@ export function checkSite(
       doc.body.textContent ?? '',
     ].join('\n')
     for (const banned of BANNED_PHRASES)
-      if (banned.pattern.test(text)) failures.push(`${file}: banned phrase "${banned.label}"`)
+      if (!banned.allowedIn?.includes(file) && banned.pattern.test(text))
+        failures.push(`${file}: banned phrase "${banned.label}"`)
     failures.push(...checkStandalone(file, ownText(doc)))
     failures.push(
       ...checkIconLinks(file, doc),
@@ -121,6 +124,7 @@ export function checkSite(
     ...checkImageFormats(root),
     ...checkIconFiles(root),
     ...checkSecurityTxt(root, now),
+    ...checkAppOffer(root, APP_OFFER),
   )
   return failures
 }

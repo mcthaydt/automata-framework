@@ -494,6 +494,13 @@ describe('checkSite', () => {
     expect(checkSite(site.root, { now: NOW })).toContain(`docs.html: banned phrase "${phrase}"`)
   })
 
+  it('lets the app page say "Coming soon" for a place to buy that has no link yet, and no other page', () => {
+    const site = goodSite()
+    site.write('app.html', page('/app', { body: '<p>App Store: Coming soon</p>' }))
+    site.write('sitemap.xml', sitemap(['/', '/app', '/docs', '/privacy', '/terms']))
+    expect(checkSite(site.root, { now: NOW })).toEqual([])
+  })
+
   it('does not flag words that merely contain a banned phrase', () => {
     const site = goodSite()
     site.write(

@@ -65,6 +65,16 @@ button:hover {
 .button:hover {
   background: var(--primary-hover);
 }
+/* The white secondary beside a lime primary: a screen has one lime button. */
+.button.secondary,
+.button.secondary:hover {
+  background: var(--panel);
+  border-color: var(--line-strong);
+  font-weight: 500;
+}
+.button.secondary:hover {
+  border-color: var(--ink);
+}
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   button:hover,
   .button:hover {

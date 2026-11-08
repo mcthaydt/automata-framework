@@ -26,11 +26,15 @@ const webp = (src: string) => src.replace(/\.jpg$/, '.webp')
       the game, and the running game picks it up.
     </p>
     <!-- The editor is a page of its own, not one of the site's routes, so the browser loads it whole. -->
-    <p class="cta"><a class="button" href="/editor/app/" data-sveltekit-reload>Try the editor <Icon name="arrowRight" /></a></p>
+    <p class="cta">
+      <a class="button" href="/editor/app/" data-sveltekit-reload>Try the editor <Icon name="arrowRight" /></a>
+      <a class="button secondary" href="/app">Get the app</a>
+    </p>
     <p class="note">
       Nothing to install. Your levels stay in this page and are gone when you close it, so press Share to save one as a
       file. {EDITOR_PLAY_NOTE}
     </p>
+    <p class="note">Every editor, on your phone, tablet or computer: the Automata app.</p>
   </header>
 
   <div class="pictures">
