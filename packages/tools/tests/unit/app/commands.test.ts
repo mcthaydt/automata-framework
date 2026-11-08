@@ -1,14 +1,15 @@
-import { existsSync } from 'node:fs'
+import { existsSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { afterAll, describe, expect, it } from 'vitest'
 import { runCli } from '#src/app/cli.ts'
+import type { Git } from '#src/shared/create-game/start-history.ts'
 import { parseCliArgs } from '#src/shared/ship/cli-args.ts'
 
 // What a game author can run. The command holds the five things they need, and anything else says so and shows the
 // help instead of being taken for a folder name to make a game in (`automata add` once did exactly that).
 
-async function cli(args: string[], threeD?: boolean) {
+async function cli(args: string[], threeD?: boolean, git?: Git) {
   let stdout = ''
   let stderr = ''
   const code = await runCli(
@@ -18,6 +19,7 @@ async function cli(args: string[], threeD?: boolean) {
     undefined,
     undefined,
     threeD,
+    git,
   )
   return { code, stdout, stderr }
 }
@@ -78,5 +80,71 @@ describe('create-game --template', () => {
     expect(code).toBe(1)
     expect(existsSync(target)).toBe(false)
     expect(stderr).toContain('--template: unknown template "4d" (allowed: 2d, 3d)')
+  })
+})
+
+describe('create-game and git', () => {
+  const folders: string[] = []
+  afterAll(() => {
+    for (const folder of folders) rmSync(folder, { recursive: true, force: true })
+  })
+
+  /** A new folder to make a game in, and the git commands a run asked for (what a fake git answers is `answer`). */
+  async function make(
+    extra: string[],
+    answer: (args: readonly string[]) => { code: number } | 'missing' = (args) =>
+      args[0] === 'rev-parse' ? { code: 128 } : { code: 0 },
+  ) {
+    const base = mkdtempSync(join(tmpdir(), 'af-create-git-'))
+    folders.push(base)
+    const calls: string[][] = []
+    const git: Git = async (_cwd, args) => {
+      calls.push([...args])
+      return answer(args)
+    }
+    const result = await cli(['create-game', join(base, 'my-game'), ...extra], false, git)
+    return { ...result, calls }
+  }
+
+  it('makes a repository with a first commit named for the game', async () => {
+    const { code, calls } = await make([])
+    expect(code).toBe(0)
+    expect(calls).toEqual([
+      ['rev-parse', '--is-inside-work-tree'],
+      ['init'],
+      ['add', '-A'],
+      ['commit', '-m', 'Start My Game'],
+    ])
+  })
+
+  it('--no-git makes none', async () => {
+    const { code, calls } = await make(['--no-git'])
+    expect(code).toBe(0)
+    expect(calls).toEqual([])
+  })
+
+  it('leaves a game inside someone else’s repository alone', async () => {
+    const { code, calls } = await make([], () => ({ code: 0 }))
+    expect(code).toBe(0)
+    expect(calls).toEqual([['rev-parse', '--is-inside-work-tree']])
+  })
+
+  it('without git it says so and the game is still made', async () => {
+    const { code, stdout } = await make([], () => 'missing')
+    expect(code).toBe(0)
+    expect(stdout).toContain('Created "My Game"')
+    expect(stdout).toContain("Git isn't installed, so the game has no history yet.")
+  })
+
+  it('a commit that fails leaves the repository and says how to commit', async () => {
+    const { code, stdout } = await make([], (args) =>
+      args[0] === 'commit' ? { code: 128 } : args[0] === 'rev-parse' ? { code: 128 } : { code: 0 },
+    )
+    expect(code).toBe(0)
+    expect(stdout).toContain('To save this first version: git add -A && git commit -m "Start"')
+  })
+
+  it('--no-git is in the help', async () => {
+    expect((await cli(['create-game', '--help'])).stdout).toContain('--no-git')
   })
 })

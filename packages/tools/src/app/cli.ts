@@ -11,6 +11,7 @@ import { CspProbeLive } from '../shared/check/ruken/csp-probe-live.ts'
 import { type RunCheckOptions, runCheck } from '../shared/check/run-check.ts'
 import { createGame } from '../shared/create-game/create-game.ts'
 import { parseTargets } from '../shared/create-game/create-game-targets.ts'
+import { type Git, type HistoryOutcome, liveGit, startHistory } from '../shared/create-game/start-history.ts'
 import { TEMPLATES, type TemplateKind } from '../shared/create-game/template-file.ts'
 import { threeDAvailable } from '../shared/create-game/three-d-gate.ts'
 import { FilesLive } from '../shared/node/files.ts'
@@ -29,6 +30,8 @@ export interface ParsedArgs {
   readonly template?: string | undefined
   /** `--link-workspace`: for a game made inside this repository's workspace (the repository's own tests). */
   readonly linkWorkspace: boolean
+  /** `--no-git`: do not start a git history for the new game. */
+  readonly noGit: boolean
   readonly help: boolean
 }
 
@@ -40,6 +43,7 @@ export function parseArgs(args: readonly string[]): ParsedArgs {
   let template: string | undefined
   let help = false
   let linkWorkspace = false
+  let noGit = false
 
   for (let i = 0; i < args.length; i++) {
     const token = args[i]
@@ -54,6 +58,8 @@ export function parseArgs(args: readonly string[]): ParsedArgs {
       title = args[++i]
     } else if (token === '--link-workspace') {
       linkWorkspace = true
+    } else if (token === '--no-git') {
+      noGit = true
     } else if (token === '--targets' && i + 1 < args.length) {
       targets = args[++i]
     } else if (token === '--template' && i + 1 < args.length) {
@@ -63,7 +69,7 @@ export function parseArgs(args: readonly string[]): ParsedArgs {
     }
   }
 
-  return { targetDir, id, title, targets, template, linkWorkspace, help }
+  return { targetDir, id, title, targets, template, linkWorkspace, noGit, help }
 }
 
 /** Runs `automata check` with the real processes, files and browser. */
@@ -136,13 +142,14 @@ export async function runCli(
   build: (options: { gameDir: string; debug: boolean }) => Promise<BuildResult> = runBuildLive,
   ship: (args: readonly string[], io: CliIo) => Promise<number> = runShip,
   threeD: boolean = threeDAvailable(),
+  git: Git = liveGit,
 ): Promise<number> {
   const [command, ...rest] = args
   if (command === undefined || command === '--help' || command === '-h') {
     io.stdout(ROOT_HELP)
     return 0
   }
-  if (command === 'create-game') return createGameCommand(rest, io, threeD)
+  if (command === 'create-game') return createGameCommand(rest, io, threeD, git)
   if (command === 'ship') return ship(rest, io)
   if (command === 'build') return buildCommand(rest, io, build)
   if (command === 'check') return checkCommand(rest, io, check)
@@ -157,9 +164,23 @@ export async function runCli(
   return 2
 }
 
+/** What `create-game` says about the game's git history, before its "Next:" line. */
+const HISTORY_LINES: Record<HistoryOutcome, string> = {
+  committed: 'Started its git history with a first version.\n',
+  'git-missing': "Git isn't installed, so the game has no history yet.\n",
+  'not-committed':
+    'Started its git history. To save this first version: git add -A && git commit -m "Start"\n(Git may ask who you are first: git config --global user.name "Your name" and git config --global user.email you@example.com.)\n',
+  'inside-a-repository': '',
+}
+
 const isTemplate = (value: string): value is TemplateKind => (TEMPLATES as readonly string[]).includes(value)
 
-async function createGameCommand(args: readonly string[], io: CliIo, threeD: boolean): Promise<number> {
+async function createGameCommand(
+  args: readonly string[],
+  io: CliIo,
+  threeD: boolean,
+  git: Git,
+): Promise<number> {
   const parsed = parseArgs(args)
 
   if (parsed.help) {
@@ -209,7 +230,14 @@ async function createGameCommand(args: readonly string[], io: CliIo, threeD: boo
   if (exit._tag === 'Success') {
     // The folder as typed, so the next commands can be pasted as they are.
     const dir = parsed.targetDir
-    io.stdout(`Created "${exit.value.title}" in ${dir}.\nNext: cd ${dir} && pnpm install && pnpm editor\n`)
+    // A game made inside this repository's workspace is already in a repository; so is any other made inside one.
+    const history =
+      parsed.noGit || parsed.linkWorkspace
+        ? undefined
+        : await startHistory(git, resolvedTarget, exit.value.title)
+    io.stdout(
+      `Created "${exit.value.title}" in ${dir}.\n${HISTORY_LINES[history ?? 'inside-a-repository']}Next: cd ${dir} && pnpm install && pnpm editor\n`,
+    )
     return 0
   }
 

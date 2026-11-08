@@ -690,3 +690,8 @@ want, itch will be first output". Spec §11.
   says what the assertion says (24 does not touch, 24.5 does, because the right edge is open). Ruling: the player-box
   test reads `content.project` from the content module, since the story keeps its project in `level-content.ts` and the
   plain game in `level-scene.ts`.
+- Task 8 done: `start-history.ts` (`startHistory`, `liveGit`) and `create-game --no-git`; the git runner is the CLI's last
+  injected function, so tests answer for it. 82 `app` unit tests and the tools typecheck pass. Ruling: before `git init` it
+  asks `git rev-parse --is-inside-work-tree` and leaves a folder inside a repository alone (Review Focus 1: a game made in
+  a person's own monorepo must not get a nested history); the plan's test list gained that call. A `--link-workspace`
+  game never starts a history. Checked for real with the live git in the journey (Task 18).
