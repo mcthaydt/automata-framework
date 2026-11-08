@@ -2,14 +2,15 @@
 import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
+import { createEditorApp } from '#src/app/editor-2d/editor-app.ts'
+import { componentOf } from '#src/app/editor-2d/views.ts'
 import DocumentScreen from '#src/features/document/DocumentScreen.svelte'
 import { createDocumentController } from '#src/features/document/document-controller.ts'
 import type { LifecycleDocument, LifecycleWindow } from '#src/shared/kit/storage/page-lifecycle.ts'
 import { createToasts } from '#src/shared/kit/widgets/toasts.ts'
-import { createEditorApp } from '#src/shared/level-2d/documents/editor-app.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import type { AutoLayerDef, Project } from '#src/shared/level-2d/model/project-types.ts'
+import { createAppProfiles } from '#src/shared/level-2d/profiles/app-profiles.ts'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
@@ -35,6 +36,7 @@ async function mount(template = 'platformer', options: { files?: boolean } = {})
   render(DocumentScreen, {
     geometry: stubGeometry(1194, 834),
     controller,
+    viewOf: componentOf,
     toasts,
     clock,
     read: (path: string) => workspace.store.read(path),
