@@ -38,15 +38,9 @@ importers:
 
   apps/editor:
     dependencies:
-      '@mcthaydt/automata-content':
-        specifier: workspace:*
-        version: link:../../packages/content
       '@mcthaydt/automata-editor':
         specifier: workspace:*
         version: link:../../packages/editor
-      sucrase:
-        specifier: 3.35.1
-        version: 3.35.1
     devDependencies:
       '@mcthaydt/automata-tools':
         specifier: workspace:*
@@ -524,6 +518,9 @@ importers:
       smol-toml:
         specifier: 1.9.0
         version: 1.9.0
+      sucrase:
+        specifier: 3.35.1
+        version: 3.35.1
       svelte:
         specifier: 5.57.1
         version: 5.57.1

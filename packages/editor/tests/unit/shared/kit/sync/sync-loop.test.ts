@@ -100,7 +100,7 @@ describe('startSync: saving', () => {
     await timers.advance(4000)
     expect(engine.commits).toEqual(['Edited in Automata: Feel, Levels (Start)'])
     expect(engine.calls.slice(-2)).toEqual(['commit', 'push'])
-    expect(handle.status.get()).toEqual({ state: 'saved', line: 'Saved and on GitHub' })
+    expect(handle.status.get()).toEqual({ state: 'saved', line: 'Saved on this device and on GitHub' })
   })
 
   it('makes no commit when nothing was edited', async () => {

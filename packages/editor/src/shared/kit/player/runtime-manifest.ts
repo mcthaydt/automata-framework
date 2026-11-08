@@ -1,4 +1,4 @@
-import { frameworkCore, frameworkPackage } from '../../shared/framework-packages.ts'
+import { frameworkCore, frameworkPackage } from './framework-packages'
 
 // The runtime a phone carries: the framework's browser packages and the few a 2D game imports, already built, served
 // to a game through an import map. A game is compiled against this list, so a game that names anything else is told

@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
+import { FRAMEWORK_PREFIX } from '@mcthaydt/automata-editor/kit/player'
 import { describe, expect, it } from 'vitest'
-import { FRAMEWORK_PREFIX } from '#src/shared/framework-packages.ts'
 
 // The rules of the app's package (apps spec section 4, plan task 2.1) that no linter reads. `pnpm boundaries` checks
 // the feature layout; these check what it cannot.
@@ -43,14 +43,11 @@ describe("the app's source", () => {
     expect(offenders).toEqual([])
   })
 
-  it('writes a framework package name only in framework-packages.ts, so a rename is one edit', () => {
+  it('writes no framework package name of its own: the kit player hands a game the names, so a rename is one edit there', () => {
     // An import of a workspace package (the editor, the tools) is a dependency of the app, not a name it hands a game.
     const withoutImports = (text: string): string =>
       text.replace(/^(import|export)\b[^;'"]*?from\s+'[^']*'/gm, '').replace(/^import\s+'[^']*'/gm, '')
-    const offenders = sources.filter(
-      (path) =>
-        path !== 'src/shared/framework-packages.ts' && withoutImports(read(path)).includes(FRAMEWORK_PREFIX),
-    )
+    const offenders = sources.filter((path) => withoutImports(read(path)).includes(FRAMEWORK_PREFIX))
     expect(offenders).toEqual([])
   })
 

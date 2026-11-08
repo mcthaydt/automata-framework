@@ -1,7 +1,7 @@
+import { compileGame } from '@mcthaydt/automata-editor/kit/player'
 import { templateFiles } from '@mcthaydt/automata-tools/template-files'
 import { describe, expect, it } from 'vitest'
 import { createAppStore } from '#src/features/app-store/app-store.ts'
-import { compileGame } from '#src/features/player/compile-game.ts'
 import { fakeAppFs } from '../app-store/fake-app-fs.ts'
 import { fakeRuntime } from './fake-games.ts'
 

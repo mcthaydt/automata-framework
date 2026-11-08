@@ -3,7 +3,7 @@ import * as level2d from '@mcthaydt/automata-content/level-2d'
 import * as palette from '@mcthaydt/automata-content/palette'
 import * as schema from '@mcthaydt/automata-content/schema'
 import { transform } from 'sucrase'
-import { frameworkPackage } from '../../shared/framework-packages.ts'
+import { frameworkPackage } from './framework-packages'
 
 // A game's `content.config.ts` is a plain file the app reads on a phone, where there is no Node and no Vite: it is
 // stripped of types, turned into CommonJS and run against the browser-safe content entries the app carries. A file

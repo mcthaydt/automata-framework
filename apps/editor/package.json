@@ -13,9 +13,7 @@
     "typecheck": "tsc -p ."
   },
   "dependencies": {
-    "@mcthaydt/automata-content": "workspace:*",
-    "@mcthaydt/automata-editor": "workspace:*",
-    "sucrase": "3.35.1"
+    "@mcthaydt/automata-editor": "workspace:*"
   },
   "devDependencies": {
     "@mcthaydt/automata-tools": "workspace:*",

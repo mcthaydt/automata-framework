@@ -10,7 +10,7 @@ export interface SyncStatus {
 }
 
 export const STATUS_LINES: Readonly<Record<SyncState, string>> = {
-  saved: 'Saved and on GitHub',
+  saved: 'Saved on this device and on GitHub',
   pulling: 'Checking GitHub…',
   offline: 'Saved on this device. Not on GitHub yet: no internet.',
   'signed-out': 'Saved on this device. Not on GitHub yet: sign in to GitHub.',

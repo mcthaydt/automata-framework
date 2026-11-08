@@ -1,8 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import {
+  type CompiledGame,
+  compileGame,
+  type PlayRefusal,
+  scanSpecifiers,
+} from '@mcthaydt/automata-editor/kit/player'
 import { describe, expect, it } from 'vitest'
-import { type CompiledGame, compileGame, type PlayRefusal } from '#src/features/player/compile-game.ts'
-import { scanSpecifiers } from '#src/features/player/vite-subset.ts'
 import { fakeRuntime, gameFromDisk, gameStore, newGame } from './fake-games.ts'
 
 const emberwick = join(import.meta.dirname, '../../../../../games/emberwick')

@@ -21,6 +21,7 @@
     "./kit/documents": "./src/entries/kit-documents.ts",
     "./kit/fields": "./src/entries/kit-fields.ts",
     "./kit/ports": "./src/entries/kit-ports.ts",
+    "./kit/player": "./src/entries/kit-player.ts",
     "./kit/ports/testing": "./src/entries/kit-ports-testing.ts",
     "./kit/storage": "./src/entries/kit-storage.ts",
     "./kit/storage/testing": "./src/entries/kit-storage-testing.ts",
@@ -58,6 +59,7 @@
     "@mcthaydt/automata-content": "workspace:*",
     "pixi.js": "8.22.0",
     "smol-toml": "1.9.0",
+    "sucrase": "3.35.1",
     "svelte": "5.57.1",
     "zod": "4.6.6"
   },

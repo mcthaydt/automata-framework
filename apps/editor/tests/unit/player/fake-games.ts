@@ -1,8 +1,8 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { RUNTIME_SPECIFIERS, type RuntimeManifest } from '@mcthaydt/automata-editor/kit/player'
 import { createMemoryStore, type ProjectStore } from '@mcthaydt/automata-editor/kit/storage'
 import { templateFiles } from '@mcthaydt/automata-tools/template-files'
-import { RUNTIME_SPECIFIERS, type RuntimeManifest } from '#src/features/player/runtime-manifest.ts'
 
 /** A runtime that serves every specifier the app's runtime serves, from made-up addresses. */
 export function fakeRuntime(

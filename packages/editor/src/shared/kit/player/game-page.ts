@@ -1,4 +1,4 @@
-import type { RuntimeManifest } from './runtime-manifest.ts'
+import type { RuntimeManifest } from './runtime-manifest'
 
 // A game's `index.html` as the app plays it: the same page, its module scripts pointing at the compiled files and an
 // import map in front of them that names where the app's runtime packages are, plus a stylesheet link for each

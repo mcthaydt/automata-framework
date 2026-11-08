@@ -6,7 +6,7 @@ import {
   globToRegExp,
   pluginsOf,
   scanSpecifiers,
-} from '#src/features/player/vite-subset.ts'
+} from '#src/shared/kit/player/vite-subset.ts'
 
 const values = (source: string): string[] => scanSpecifiers(source).map((each) => each.value)
 

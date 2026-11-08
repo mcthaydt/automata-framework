@@ -5,12 +5,12 @@ import {
   formatDiagnostic,
   VIRTUAL_MODULE_ID,
 } from '@mcthaydt/automata-content/compile'
-import type { ProjectStore } from '@mcthaydt/automata-editor/kit/storage'
 import { transform } from 'sucrase'
-import { type ConfigModules, defaultConfigModules, loadContentConfig } from './content-config.ts'
-import { assemblePage, entriesOf } from './game-page.ts'
-import { dirOf, extensionOf, normalizePath, outputPath, packageName, relativePath } from './game-paths.ts'
-import { FRAMEWORK_ENTRY, type RuntimeManifest } from './runtime-manifest.ts'
+import type { ProjectStore } from '../storage/project-store'
+import { type ConfigModules, defaultConfigModules, loadContentConfig } from './content-config'
+import { assemblePage, entriesOf } from './game-page'
+import { dirOf, extensionOf, normalizePath, outputPath, packageName, relativePath } from './game-paths'
+import { FRAMEWORK_ENTRY, type RuntimeManifest } from './runtime-manifest'
 import {
   applyEdits,
   buildConstantEdits,
@@ -20,7 +20,7 @@ import {
   globToRegExp,
   pluginsOf,
   scanSpecifiers,
-} from './vite-subset.ts'
+} from './vite-subset'
 
 // Compiles a game inside the app, on a phone, with no computer, no Node and no Vite: its own TypeScript is stripped of
 // types one file at a time, the packages it imports are the ones the app carries (named in an import map), and the
